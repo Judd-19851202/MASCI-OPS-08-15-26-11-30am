@@ -1,6 +1,61 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — Phase 10 · MASCI Layer / Product Core Audit ✅
+
+### Mission
+Productization audit only. Zero code changes. Identify every place the platform is hardcoded to MASCI and determine what must become configurable before commercial scaling.
+
+### Discovery evidence (concrete grep findings)
+- **473** `@mascigc.com` / `@mascidocs.com` email references across `backend/` + `frontend/src/`
+- **134** MASCI hits in `frontend/src/lib/i18n.js` (bilingual UI copy)
+- **108** MASCI hits in `backend/server.py`
+- **128** hits each in `equipment_master.json` + 8 backup snapshots (operational data)
+- **8** hardcoded `MASCI_HUB_*` Content-Disposition filenames in server.py
+- **1** FastAPI app title literal, **1** HTML `<title>` literal, **1** `MasciLogo.jsx` component
+- **7** env vars baking MASCI identity (`ADMIN_PASSWORD=MASCI1982!`, `SENDER_EMAIL=noreply@mascidocs.com`, etc.)
+- **~150** MASCI references across `backend/guidance/` (content + tips + ES translations)
+- **75** references in legal pages (intentionally tenant-specific)
+- **~890** total MASCI-specific surface area references in production code paths
+- **0** hits for `tenant_id` / `workspace_id` / `organization_id` / `company_id` (confirms no multi-tenant scaffolding)
+
+### Documents shipped (5, all in `/app/memory/`)
+
+**1. `MASCI_LAYER_AUDIT.md`** (10 KB) — Inventory of all MASCI-specific surfaces across 10 categories (brand/identity · PDF filenames · email copy · legal · training content · operational data · bilingual UI · env vars · holiday/observance · test fixtures). Each with treatment strategy.
+
+**2. `PRODUCT_CORE_BOUNDARY_MAP.md`** (11 KB) — Defines what stays in code (RBAC, lifecycles, governance, notifications, audit, UX patterns, glossary) vs what becomes per-tenant. ~80% of codebase is product core; ~15% MASCI layer; ~5% tenant data shape. Includes ASCII boundary diagram.
+
+**3. `HARDCODED_COMPANY_REFERENCES.md`** (10 KB) — The grep-able discovery map: file-by-file, line-by-line inventory of MASCI hits. Top-20 files by hit count. 10 sections organized by surface type.
+
+**4. `TENANT_CONFIGURATION_CANDIDATES.md`** (11 KB) — 5-tier configuration model (env var · config doc · content collection · per-tenant asset · per-tenant legal doc). 18 candidate env vars enumerated. `tenants` Mongo collection schema sketched. Explicit list of items that COULD become config but SHOULDN'T (severity safety net, second-reviewer rule, canonical glossary).
+
+**5. `COMMERCIALIZATION_BLOCKERS.md`** (13 KB) — 13 ordered blockers across 4 severity tiers. 🛑 STRUCTURAL: multi-tenancy + tenant resolution + JWT per-tenant. 🟠 MAJOR: MASCI sweep + setup wizard + support model + per-tenant backup. **Minimum-viable productization: ~90-100 engineer-days.**
+
+### Files touched (Phase 10 · final delta)
+- NEW · `memory/MASCI_LAYER_AUDIT.md`
+- NEW · `memory/PRODUCT_CORE_BOUNDARY_MAP.md`
+- NEW · `memory/HARDCODED_COMPANY_REFERENCES.md`
+- NEW · `memory/TENANT_CONFIGURATION_CANDIDATES.md`
+- NEW · `memory/COMMERCIALIZATION_BLOCKERS.md`
+- MOD · `memory/PRD.md` (this entry)
+
+Zero code changes. Zero schema changes. Zero refactoring.
+
+### Headline finding
+The platform's intellectual property — operational discipline, lifecycle continuity, governance findings, signal hygiene — is **separate from the MASCI layer**. Productization is sweeping + plumbing work, not architectural rebuild. The structural blocker (zero multi-tenant scaffolding) is real but bounded; the MASCI sweep is volumetric but well-categorized.
+
+**The operator now has the data to make the strategic decision: pursue commercial scaling, or remain best-in-class for MASCI?** Either answer is honorable; Phase 10 removes ambiguity from the choice.
+
+### Next Action Items
+- 🟢 **P0 — Operator (strategic):** Read `COMMERCIALIZATION_BLOCKERS.md` and decide: commercial scaling YES → proceed to multi-tenant scaffolding program (~90-100 days); NO → stay best-in-class for MASCI and execute the 7 small fixes in `REMAINING_HIGH_VALUE_FIXES.md`.
+- 🟢 **P0 — Operator (deploy):** The Phase 9 GO/NO-GO verdict still stands. Deploy to production for MASCI is independent of the productization decision.
+- 🟡 **P1**: If commercial scaling = YES, the recommended order is (1) validate a real first commercial deal exists, (2) choose Path A vs Path B for multi-tenancy, (3) sweep MASCI layer in parallel with multi-tenancy work, (4) ship to second customer in beta before formal launch.
+- 🟠 **P2**: iter384 polish cluster from `REMAINING_HIGH_VALUE_FIXES.md` continues regardless of commercial-scaling decision.
+- 🔵 **P3**: iter385 (legacy-imports extraction) + iter386 (pytest isolation) continue regardless.
+
+---
+
+
 ## 2026-05-24 — Phase 9 · Final Pre-Deployment System-Wide Validation Audit ✅
 
 ### Mission
