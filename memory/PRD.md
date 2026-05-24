@@ -1,6 +1,64 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — Phase 5D · Operational Completion + Stability Lock ✅
+
+### Mission
+The platform exited feature-accumulation mode. Phase 5D was high-leverage operational finishing work: close the final continuity gaps, eliminate asymmetry, raise adoption, preserve simplicity. No new dashboards, no architecture churn, no extraction work.
+
+### P1 · Tier-2 Incident Follow-Up Awareness (frontend-only)
+The CAPA system has always been the Tier-2 follow-up vehicle (no PATCH endpoint exists and none was added per the "no backend schema changes" rule). What was missing was a quiet, obvious surface that told the reviewer whether follow-up was outstanding, in motion, or complete.
+
+`ViewIncident.jsx` now derives a live operational status from severity + linked CAPAs and renders one of three quiet states (hidden on print):
+- **Follow-Up Required** (rose) — serious incident (medical/restricted/lost_time/fatality or OSHA-recordable) with no CAPA yet. Includes an `Open Follow-Up CAPA` CTA.
+- **Investigation Open** (amber) — ≥1 linked CAPA still in Open / In Progress / Pending Review.
+- **Operationally Complete** (emerald) — every linked CAPA is Verified or Closed.
+- No banner shown for low-severity incidents with no CAPAs (quiet behavior).
+
+Each banner deep-links to its glossary entry via a "What this means" link. The CTA carries the incident ID + source_kind into `SafetyCorrectiveActions.jsx` via query params; the dialog auto-opens with title prefilled and the URL is synchronously cleaned via `window.history.replaceState`.
+
+### P2 · Field Leadership Notification Convergence (one-file backend edit)
+`routes/integrations/_deps.py` — `make_require_any_portal_token` now accepts `X-FL-Token` (per-user FL accounts from iter314). Closes the asymmetry where 6 portals could hit `/api/notifications` but per-user FL accounts could not. No second engine, no widening of any existing filter.
+
+### P2 closeout · Multi-Login Token Fan-Out (one-file frontend edit)
+`lib/directoryAuth.js` · `applyMultiLoginResponse` now distributes `t.safety` + `t.dispatch` to localStorage on multi-login (previously discarded by the client even though the backend has minted them since iter120/iter126). This was the hidden root cause that made the P1 CTA workflow fail for super-admins — they would land on `/safety-portal/*` and see Access Restricted because no safety token was ever persisted.
+
+### P3 · Operational Language Convergence
+`AdminOperationalLanguage.jsx` grew from 12 → 16 canonical entries:
+- **Follow-Up Required** · operational status, severity-gated, derived live.
+- **Investigation Open** · ≥1 CAPA in motion, amber surface.
+- **Operationally Complete** · every linked CAPA verified/closed.
+- **Pending Review** · CAPA awaiting second-reviewer verification.
+
+Each entry has EN + ES names and 4 sections (Operational / Lifecycle / Accountability / Downstream). The new ViewIncident banner deep-links into them.
+
+### Files touched (Phase 5D · final delta)
+- MOD · `/app/frontend/src/pages/ViewIncident.jsx` — follow-up status helper + banner JSX + CTA href.
+- MOD · `/app/frontend/src/pages/SafetyCorrectiveActions.jsx` — query-param prefill + synchronous URL cleanup.
+- MOD · `/app/frontend/src/pages/admin/AdminOperationalLanguage.jsx` — 4 new canonical glossary entries.
+- MOD · `/app/frontend/src/lib/directoryAuth.js` — fan out safety + dispatch tokens on multi-login.
+- MOD · `/app/frontend/src/lib/i18n.js` — 11 new ES translations for the banner.
+- MOD · `/app/backend/routes/integrations/_deps.py` — accept X-FL-Token in unified portal gate.
+
+### Testing
+- **Backend (15/15 PASS):** FL token now 200 on `/api/notifications`; all other portals unchanged; anon still 401; smoke `POST /api/incidents`, `GET /api/admin/governance/summary`, CSV exports all green.
+- **Frontend (100% retest):** Rose / amber / emerald banner states render correctly; CTA strips URL; ES translations confirmed; create dialog auto-opens with prefilled title + source_id; all 16 glossary entries searchable; deep-link anchors preserved.
+- ESLint clean on all 6 modified files; ruff clean on the backend deps file.
+
+### Discipline notes (per directive)
+- 0 new dashboards · 0 new APIs · 0 new endpoints · 0 new collections · 0 schema changes · 0 new lifecycle states.
+- The single backend edit closes the unified-portal aggregator gap; no notification engine duplication.
+- The single multi-login fan-out edit closes a real asymmetry but does not change auth semantics.
+- All UX additions are dismissible / hidden in print / EN+ES parity.
+
+### Next Action Items
+- 🟢 **P0 — Operator**: Phase 5D + the pre-Phase 5D readiness audit are both green. Authorize production deploy when ready (deploy docs in `/app/memory/DEPLOYMENT_READINESS_REPORT.md`).
+- 🟠 **P1 (deferred) — iter383 `/api/legacy-imports/*` extraction**: Pre-flight checklist complete in `PHASE4D_EXTRACTION_TRACKER.md`. Held pending operator authorization after deploy stabilizes.
+- 🔵 **P3 — historical pytest debt (233 inherited isolation failures)**: separate quality project, still tracked, not blocking.
+
+---
+
+
 ## 2026-05-23 — iter380 + iter381 · Phase 4D continued ✅
 
 ### iter380 · PO Digest admin routes extraction
