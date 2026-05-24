@@ -25,10 +25,14 @@ import {
   getDriverSession,
   getDriverToken,
 } from "@/lib/driverAuth";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-const STATE_LABEL = {
+// Canonical state keys stay constant (used by the backend lifecycle
+// engine) — the human-readable label is resolved through `t()` at
+// render time so EN / ES parity is automatic.
+const STATE_LABEL_KEY = {
   ASSIGNED: "Assigned · ready to roll",
   ENROUTE_TO_LOAD: "En route to load",
   AT_LOAD_SITE: "At load site",
@@ -60,7 +64,7 @@ const STATE_TONE = {
   OFF_SHIFT: "bg-slate-800 text-slate-200",
 };
 
-const WAIT_REASONS = [
+const WAIT_REASON_KEY = [
   ["WAITING_ON_PLANT", "Plant"],
   ["WAITING_ON_LOADER", "Loader"],
   ["WAITING_ON_DUMP", "Dump"],
@@ -77,15 +81,17 @@ const PRIMARY_NEXT = [
 ];
 
 function StateChip({ state }) {
+  const { t } = useT();
   const tone = STATE_TONE[state] || "bg-slate-700 text-slate-50";
+  const labelKey = STATE_LABEL_KEY[state];
   return (
     <div
       data-testid="driver-current-state"
       className={`rounded-2xl px-6 py-8 text-center shadow-xl ${tone}`}
     >
-      <div className="text-xs uppercase tracking-[0.25em] opacity-80">Current state</div>
+      <div className="text-xs uppercase tracking-[0.25em] opacity-80">{t("Current state")}</div>
       <div className="mt-2 text-3xl font-bold tracking-tight">
-        {STATE_LABEL[state] || state || "—"}
+        {labelKey ? t(labelKey) : (state || "—")}
       </div>
     </div>
   );
@@ -113,6 +119,7 @@ function TapButton({ label, onClick, tone = "amber", testId, disabled = false })
 
 export default function DriverShift() {
   const navigate = useNavigate();
+  const { t } = useT();
   const [assignment, setAssignment] = useState(null);
   const [allowed, setAllowed] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -145,11 +152,11 @@ export default function DriverShift() {
       setAllowed(Array.isArray(j.allowed_next_states) ? j.allowed_next_states : []);
       setErrorMsg("");
     } catch {
-      setErrorMsg("Connection failed — retrying…");
+      setErrorMsg(t("Connection failed — retrying…"));
     } finally {
       setLoading(false);
     }
-  }, [goSignedOut]);
+  }, [goSignedOut, t]);
 
   useEffect(() => {
     refresh();
@@ -175,19 +182,19 @@ export default function DriverShift() {
       }
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setErrorMsg(j.detail || "Could not record that. Try again.");
+        setErrorMsg(j.detail || t("Could not record that. Try again."));
       } else {
         setAssignment(j.assignment || null);
         setAllowed(Array.isArray(j.allowed_next_states) ? j.allowed_next_states : []);
         setErrorMsg("");
       }
     } catch {
-      setErrorMsg("Connection failed — try again.");
+      setErrorMsg(t("Connection failed — try again."));
     } finally {
       setBusyState(null);
       setWaitSheetOpen(false);
     }
-  }, [assignment, goSignedOut]);
+  }, [assignment, goSignedOut, t]);
 
   if (loading) {
     return (
@@ -195,7 +202,7 @@ export default function DriverShift() {
         data-testid="driver-shift-loading"
         className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100"
       >
-        <p className="text-xl">Loading your shift…</p>
+        <p className="text-xl">{t("Loading your shift…")}</p>
       </div>
     );
   }
@@ -206,10 +213,9 @@ export default function DriverShift() {
         data-testid="driver-no-assignment"
         className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 px-6 text-center space-y-6"
       >
-        <p className="text-3xl font-bold tracking-tight">No active haul right now</p>
+        <p className="text-3xl font-bold tracking-tight">{t("No active haul right now")}</p>
         <p className="text-base text-slate-400 max-w-sm">
-          Dispatch will assign your next cycle. This screen will update on its own —
-          keep it open in your phone.
+          {t("Dispatch will assign your next cycle. This screen will update on its own — keep it open in your phone.")}
         </p>
         <button
           type="button"
@@ -217,7 +223,7 @@ export default function DriverShift() {
           onClick={goSignedOut}
           className="mt-6 inline-flex items-center justify-center min-h-[44px] px-4 text-sm uppercase tracking-widest text-slate-400 underline"
         >
-          Sign out
+          {t("Sign out")}
         </button>
       </div>
     );
@@ -239,10 +245,10 @@ export default function DriverShift() {
       <header className="px-5 pt-6 pb-3 flex items-start justify-between">
         <div>
           <div className="text-xs uppercase tracking-[0.25em] text-amber-400 font-semibold">
-            Driver shift
+            {t("Driver shift")}
           </div>
           <div className="mt-1 text-xl font-bold" data-testid="driver-truck-label">
-            Truck · {assignment.truck_id || "—"}
+            {t("Truck")} · {assignment.truck_id || "—"}
           </div>
           <div className="text-sm text-slate-400" data-testid="driver-name-label">
             {session?.driver?.driver_name || assignment.driver_name || "—"}
@@ -254,7 +260,7 @@ export default function DriverShift() {
           onClick={goSignedOut}
           className="inline-flex items-center justify-center min-h-[44px] px-3 -mr-2 text-xs uppercase tracking-widest text-slate-400 underline"
         >
-          Sign out
+          {t("Sign out")}
         </button>
       </header>
 
@@ -263,12 +269,15 @@ export default function DriverShift() {
         <StateChip state={currentState} />
         {currentState === "WAITING" && assignment.current_wait_reason ? (
           <p className="mt-3 text-center text-rose-300 text-sm" data-testid="driver-wait-reason">
-            Reason · {assignment.current_wait_reason.replace(/_/g, " ")}
+            {t("Reason")} · {(() => {
+              const pair = WAIT_REASON_KEY.find(([k]) => k === assignment.current_wait_reason);
+              return pair ? t(pair[1]) : assignment.current_wait_reason.replace(/_/g, " ");
+            })()}
           </p>
         ) : null}
         {assignment.project_number ? (
           <p className="mt-2 text-center text-xs text-slate-500">
-            Job · {assignment.project_number}{assignment.material ? ` · ${assignment.material}` : ""}
+            {t("Job")} · {assignment.project_number}{assignment.material ? ` · ${assignment.material}` : ""}
           </p>
         ) : null}
       </section>
@@ -277,14 +286,14 @@ export default function DriverShift() {
       <section className="px-5 mt-6 space-y-3" data-testid="driver-transition-grid">
         {orderedNext.length === 0 ? (
           <p className="text-center text-sm text-slate-400">
-            No next step — dispatch will pick this up.
+            {t("No next step — dispatch will pick this up.")}
           </p>
         ) : (
           orderedNext.map((s) => (
             <TapButton
               key={s}
               testId={`driver-next-${s}`}
-              label={STATE_LABEL[s] || s}
+              label={STATE_LABEL_KEY[s] ? t(STATE_LABEL_KEY[s]) : s}
               tone="amber"
               disabled={busyState !== null}
               onClick={() => transition(s)}
@@ -298,7 +307,7 @@ export default function DriverShift() {
         {showWaitButton ? (
           <TapButton
             testId="driver-open-wait-sheet"
-            label="Waiting…"
+            label={t("Waiting…")}
             tone="rose"
             disabled={busyState !== null}
             onClick={() => setWaitSheetOpen(true)}
@@ -307,7 +316,7 @@ export default function DriverShift() {
         {showBreakdownButton ? (
           <TapButton
             testId="driver-breakdown"
-            label="Breakdown"
+            label={t("Breakdown")}
             tone="rose"
             disabled={busyState !== null}
             onClick={() => transition("BREAKDOWN")}
@@ -316,7 +325,7 @@ export default function DriverShift() {
         {showHoldButton ? (
           <TapButton
             testId="driver-hold"
-            label="Hold"
+            label={t("Hold")}
             tone="slate"
             disabled={busyState !== null}
             onClick={() => transition("HOLD")}
@@ -325,7 +334,7 @@ export default function DriverShift() {
         {showOffShift ? (
           <TapButton
             testId="driver-off-shift"
-            label="End shift"
+            label={t("End shift")}
             tone="slate"
             disabled={busyState !== null}
             onClick={() => transition("OFF_SHIFT")}
@@ -350,27 +359,26 @@ export default function DriverShift() {
           className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-50"
           onClick={() => setWaitSheetOpen(false)}
         >
-          <div
-            className="w-full sm:max-w-md bg-slate-900 rounded-t-3xl sm:rounded-3xl p-6 space-y-3 border-t-4 border-rose-500"
+          <div className="w-full sm:max-w-md bg-slate-900 rounded-t-3xl sm:rounded-3xl p-6 space-y-3 border-t-4 border-rose-500"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <p className="text-lg font-bold tracking-tight">What are you waiting on?</p>
+              <p className="text-lg font-bold tracking-tight">{t("What are you waiting on?")}</p>
               <button
                 type="button"
                 data-testid="driver-wait-sheet-close"
                 onClick={() => setWaitSheetOpen(false)}
                 className="inline-flex items-center justify-center min-h-[44px] px-3 text-slate-400 text-sm uppercase tracking-widest"
               >
-                Cancel
+                {t("Cancel")}
               </button>
             </div>
             <div className="space-y-2">
-              {WAIT_REASONS.map(([reason, short]) => (
+              {WAIT_REASON_KEY.map(([reason, short]) => (
                 <TapButton
                   key={reason}
                   testId={`driver-wait-reason-${reason}`}
-                  label={short}
+                  label={t(short)}
                   tone="rose"
                   disabled={busyState !== null}
                   onClick={() => transition("WAITING", { wait_reason: reason })}

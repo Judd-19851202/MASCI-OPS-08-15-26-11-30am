@@ -30,6 +30,7 @@ import {
   getDriverToken,
   persistDriverSession,
 } from "@/lib/driverAuth";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -51,6 +52,7 @@ function SearchableSelect({
   prefetch,         // boolean — load options on mount with empty query
   minQuery,         // typically 0 (trucks/trailers/haulers) or 2 (drivers)
 }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [options, setOptions] = useState([]);
@@ -152,12 +154,12 @@ function SearchableSelect({
             {display}
             {value.isTemp ? (
               <span className="ml-2 text-[10px] uppercase tracking-[0.25em] text-amber-400">
-                temp
+                {t("temp")}
               </span>
             ) : null}
           </span>
           <span className="text-[11px] uppercase tracking-[0.25em] text-slate-400">
-            change
+            {t("change")}
           </span>
         </button>
       ) : (
@@ -188,13 +190,13 @@ function SearchableSelect({
             >
               {loading ? (
                 <div className="px-4 py-3 text-sm text-slate-400" data-testid={`${testId}-loading`}>
-                  Looking…
+                  {t("Looking…")}
                 </div>
               ) : options.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-slate-500" data-testid={`${testId}-empty`}>
                   {query.trim().length < (minQuery || 0)
-                    ? emptyHint || `Type at least ${minQuery} letters to search.`
-                    : "No matches yet."}
+                    ? emptyHint || t("Type at least 2 letters to search.")
+                    : t("No matches yet.")}
                 </div>
               ) : (
                 options.map((opt) => (
@@ -221,7 +223,7 @@ function SearchableSelect({
                   data-testid={`${testId}-add-temp`}
                   className="w-full min-h-[48px] px-4 py-2 text-left text-amber-400 active:bg-slate-800"
                 >
-                  {(tempPrefix || "Add temporary:") + " "}
+                  {(tempPrefix || t("Add temporary:")) + " "}
                   <span className="font-bold">{query.trim()}</span>
                 </button>
               ) : null}
@@ -238,6 +240,7 @@ function SearchableSelect({
 // ─────────────────────────────────────────────────────────────────────
 export default function ShiftStart() {
   const navigate = useNavigate();
+  const { t } = useT();
   const [driver, setDriver] = useState(null);          // {label, refId, isTemp}
   const [truck, setTruck] = useState(null);            // ditto
   const [trailer, setTrailer] = useState(null);        // ditto (optional)
@@ -323,7 +326,7 @@ export default function ShiftStart() {
         });
         const data = await r.json().catch(() => ({}));
         if (!r.ok || !data?.driver_token) {
-          throw new Error(data?.detail || "Could not start shift. Try again.");
+          throw new Error(data?.detail || t("Could not start shift. Try again."));
         }
         clearDriverSession();
         persistDriverSession({
@@ -335,11 +338,11 @@ export default function ShiftStart() {
         });
         navigate("/driver", { replace: true });
       } catch (err) {
-        setError(err?.message || "Could not start shift. Try again.");
+        setError(err?.message || t("Could not start shift. Try again."));
         setSubmitting(false);
       }
     },
-    [API, canSubmit, driver, truck, trailer, hauler, navigate],
+    [API, canSubmit, driver, truck, trailer, hauler, navigate, t],
   );
 
   return (
@@ -348,7 +351,7 @@ export default function ShiftStart() {
       data-testid="shift-start-page"
     >
       <div className="px-5 sm:px-8 pt-6 pb-2 text-[11px] uppercase tracking-[0.3em] text-amber-400">
-        Operational check-in
+        {t("Operational check-in")}
       </div>
 
       <main className="flex-1 px-5 sm:px-8 pt-4 pb-10 max-w-md w-full mx-auto">
@@ -356,60 +359,61 @@ export default function ShiftStart() {
           className="font-display text-3xl sm:text-4xl font-bold tracking-tight"
           data-testid="shift-start-title"
         >
-          Start your shift
+          {t("Start your shift")}
         </h1>
         <p className="mt-3 text-sm text-slate-400 leading-relaxed">
-          Pick who's driving and which truck. Subs and rentals aren't in the
-          system yet — tap <span className="text-amber-400">Add temporary</span> if needed.
+          {t("Pick who's driving and which truck. Subs and rentals aren't in the system yet — tap")}{" "}
+          <span className="text-amber-400">{t("Add temporary")}</span>{" "}
+          {t("if needed.")}
         </p>
 
         <form className="mt-8 space-y-5" onSubmit={onSubmit} noValidate>
           <SearchableSelect
             testId="shift-start-driver-name"
-            label="Driver name"
-            placeholder="Type a name to search"
+            label={t("Driver name")}
+            placeholder={t("Type a name to search")}
             required
             autoFocus
             value={driver}
             onChange={setDriver}
             loadOptions={lookupDrivers}
             minQuery={2}
-            emptyHint="Type at least 2 letters to search."
-            tempPrefix="Add temporary driver:"
+            emptyHint={t("Type at least 2 letters to search.")}
+            tempPrefix={t("Add temporary driver:")}
           />
           <SearchableSelect
             testId="shift-start-truck-id"
-            label="Truck number"
-            placeholder="Pick a truck or type unit number"
+            label={t("Truck number")}
+            placeholder={t("Pick a truck or type unit number")}
             required
             value={truck}
             onChange={setTruck}
             loadOptions={lookupTrucks}
             minQuery={0}
             prefetch
-            tempPrefix="Add temporary truck:"
+            tempPrefix={t("Add temporary truck:")}
           />
           <SearchableSelect
             testId="shift-start-trailer-id"
-            label="Trailer number"
-            optionalHint="optional"
-            placeholder="If you're pulling one"
+            label={t("Trailer number")}
+            optionalHint={t("optional")}
+            placeholder={t("If you're pulling one")}
             value={trailer}
             onChange={setTrailer}
             loadOptions={lookupTrailers}
             minQuery={0}
-            tempPrefix="Add temporary trailer:"
+            tempPrefix={t("Add temporary trailer:")}
           />
           <SearchableSelect
             testId="shift-start-company"
-            label="Company / Hauler"
-            placeholder="Search or add"
+            label={t("Company / Hauler")}
+            placeholder={t("Search or add")}
             value={hauler}
             onChange={(v) => setHauler(v || { label: "MASCI", refId: "", isTemp: false })}
             loadOptions={lookupHaulers}
             minQuery={0}
             prefetch
-            tempPrefix="Add carrier / hauler:"
+            tempPrefix={t("Add carrier / hauler:")}
           />
 
           {error ? (
@@ -435,11 +439,11 @@ export default function ShiftStart() {
                 : "bg-slate-800 text-slate-500")
             }
           >
-            {submitting ? "Starting…" : "Start shift"}
+            {submitting ? t("Starting…") : t("Start shift")}
           </button>
 
           <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 pt-2">
-            No password. No app. Just check in.
+            {t("No password. No app. Just check in.")}
           </p>
         </form>
       </main>

@@ -28,13 +28,14 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { toast } from "sonner";
 import AssignmentDrawer from "@/components/dispatch/AssignmentDrawer";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DISPATCH_PAL = paletteFor("dispatch");
 const POLL_MS = 5000;
 const STUCK_THRESHOLD_MIN = 30;
 
-const STATE_LABEL = {
+const STATE_LABEL_KEY = {
   ASSIGNED: "Assigned",
   ENROUTE_TO_LOAD: "En route · load",
   AT_LOAD_SITE: "At load",
@@ -88,18 +89,20 @@ function minutesSince(iso) {
 }
 
 function StateChip({ state }) {
+  const { t } = useT();
   const tone = STATE_TONE[state] || STATE_TONE.ASSIGNED;
   return (
     <span
       className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide border ${tone}`}
       data-testid={`board-state-${state}`}
     >
-      {STATE_LABEL[state] || state || "—"}
+      {STATE_LABEL_KEY[state] ? t(STATE_LABEL_KEY[state]) : (state || "—")}
     </span>
   );
 }
 
 function FindingsBanner({ findings, counts, onOpen }) {
+  const { t } = useT();
   // Severity prioritization is already done server-side; we just trim to
   // 6 chips so the banner stays calm.
   const visible = findings.slice(0, 6);
@@ -116,24 +119,24 @@ function FindingsBanner({ findings, counts, onOpen }) {
         <Bell className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-[200px]">
           <div className="text-xs font-mono uppercase tracking-[0.22em] text-amber-700 font-bold">
-            Operational signals
+            {t("Operational signals")}
           </div>
           <div className="text-sm text-slate-700 mt-0.5">
             {counts.total
-              ? `${counts.total} finding${counts.total === 1 ? "" : "s"} ${counts.total === 1 ? "requires" : "require"} operational attention.`
-              : "No active findings."}
+              ? `${counts.total} ${counts.total === 1 ? t("finding requires operational attention.") : t("findings require operational attention.")}`
+              : t("No active findings.")}
             {" "}
             {counts.BREAKDOWN_ACTIVE
-              ? <span className="font-bold text-rose-800">{counts.BREAKDOWN_ACTIVE} breakdown{counts.BREAKDOWN_ACTIVE === 1 ? "" : "s"} · </span>
+              ? <span className="font-bold text-rose-800">{counts.BREAKDOWN_ACTIVE} {counts.BREAKDOWN_ACTIVE === 1 ? t("breakdown") : t("breakdowns")} · </span>
               : null}
             {counts.ASSIGNMENT_STUCK
-              ? <span className="font-bold text-amber-800">{counts.ASSIGNMENT_STUCK} stuck · </span>
+              ? <span className="font-bold text-amber-800">{counts.ASSIGNMENT_STUCK} {t("stuck")} · </span>
               : null}
             {counts.WAIT_THRESHOLD_EXCEEDED
-              ? <span className="font-bold text-rose-700">{counts.WAIT_THRESHOLD_EXCEEDED} long wait{counts.WAIT_THRESHOLD_EXCEEDED === 1 ? "" : "s"} · </span>
+              ? <span className="font-bold text-rose-700">{counts.WAIT_THRESHOLD_EXCEEDED} {counts.WAIT_THRESHOLD_EXCEEDED === 1 ? t("long wait") : t("long waits")} · </span>
               : null}
             {counts.NON_STANDARD_TRANSITION_PATTERN
-              ? <span className="font-bold text-slate-700">{counts.NON_STANDARD_TRANSITION_PATTERN} pattern{counts.NON_STANDARD_TRANSITION_PATTERN === 1 ? "" : "s"}</span>
+              ? <span className="font-bold text-slate-700">{counts.NON_STANDARD_TRANSITION_PATTERN} {counts.NON_STANDARD_TRANSITION_PATTERN === 1 ? t("pattern") : t("patterns")}</span>
               : null}
           </div>
         </div>
@@ -157,8 +160,9 @@ function FindingsBanner({ findings, counts, onOpen }) {
 }
 
 function ExportStrip({ onDownload, tenantOverride }) {
+  const { t } = useT();
   const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 13);
-  const t = tenantOverride ? `_${tenantOverride}` : "";
+  const ts = tenantOverride ? `_${tenantOverride}` : "";
   return (
     <div
       data-testid="board-export-strip"
@@ -166,28 +170,28 @@ function ExportStrip({ onDownload, tenantOverride }) {
     >
       <span className="text-xs uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1">
         <Download className="w-3.5 h-3.5" />
-        Operational exports (CSV)
+        {t("Operational exports (CSV)")}
       </span>
       <Button
         size="sm" variant="outline"
-        onClick={() => onDownload("/api/dispatch/exports/assignments.csv", `dispatch_assignments${t}_${stamp}.csv`)}
+        onClick={() => onDownload("/api/dispatch/exports/assignments.csv", `dispatch_assignments${ts}_${stamp}.csv`)}
         data-testid="export-assignments"
       >
-        Assignments
+        {t("Assignments")}
       </Button>
       <Button
         size="sm" variant="outline"
-        onClick={() => onDownload("/api/dispatch/exports/state-events.csv?limit=5000", `dispatch_state_events${t}_${stamp}.csv`)}
+        onClick={() => onDownload("/api/dispatch/exports/state-events.csv?limit=5000", `dispatch_state_events${ts}_${stamp}.csv`)}
         data-testid="export-state-events"
       >
-        State events
+        {t("State events")}
       </Button>
       <Button
         size="sm" variant="outline"
-        onClick={() => onDownload("/api/dispatch/exports/haul-cycles.csv", `dispatch_haul_cycles${t}_${stamp}.csv`)}
+        onClick={() => onDownload("/api/dispatch/exports/haul-cycles.csv", `dispatch_haul_cycles${ts}_${stamp}.csv`)}
         data-testid="export-haul-cycles"
       >
-        Haul cycles
+        {t("Haul cycles")}
       </Button>
     </div>
   );
@@ -195,6 +199,7 @@ function ExportStrip({ onDownload, tenantOverride }) {
 
 
 function SummaryStrip({ assignments }) {
+  const { t } = useT();
   const counts = useMemo(() => {
     const base = {
       active: 0, waiting: 0, breakdown: 0, stuck: 0,
@@ -225,25 +230,25 @@ function SummaryStrip({ assignments }) {
   return (
     <div className="flex flex-wrap gap-3" data-testid="board-summary-strip">
       {tile(
-        "Active hauls", counts.active,
+        t("Active hauls"), counts.active,
         <Activity className="w-5 h-5 text-slate-700" />,
         "bg-white border-slate-200",
         "summary-active",
       )}
       {tile(
-        "Waiting", counts.waiting,
+        t("Waiting"), counts.waiting,
         <Clock className="w-5 h-5 text-rose-700" />,
         "bg-rose-50 border-rose-200",
         "summary-waiting",
       )}
       {tile(
-        "Breakdown", counts.breakdown,
+        t("Breakdown"), counts.breakdown,
         <Wrench className="w-5 h-5 text-rose-800" />,
         "bg-rose-100 border-rose-300",
         "summary-breakdown",
       )}
       {tile(
-        `Stuck > ${STUCK_THRESHOLD_MIN}m`, counts.stuck,
+        `${t("Stuck")} > ${STUCK_THRESHOLD_MIN}m`, counts.stuck,
         <AlertTriangle className="w-5 h-5 text-amber-700" />,
         "bg-amber-50 border-amber-200",
         "summary-stuck",
@@ -252,7 +257,9 @@ function SummaryStrip({ assignments }) {
   );
 }
 
-function AssignmentRow({ a, onOpen }) {  const m = minutesSince(a.last_transition_at);
+function AssignmentRow({ a, onOpen }) {
+  const { t } = useT();
+  const m = minutesSince(a.last_transition_at);
   const isStuck = m !== null && m >= STUCK_THRESHOLD_MIN;
   const isWaiting = a.current_state === "WAITING";
   const isBreakdown = a.current_state === "BREAKDOWN";
@@ -292,7 +299,7 @@ function AssignmentRow({ a, onOpen }) {  const m = minutesSince(a.last_transitio
 
       <div className="flex-1 min-w-[160px] text-xs text-slate-700">
         <div className="font-bold truncate" data-testid={`row-project-${a.id}`}>
-          {a.project_name || a.project_number || "Unassigned project"}
+          {a.project_name || a.project_number || t("Unassigned project")}
         </div>
         <div className="text-slate-500 truncate">
           {[a.material, a.source_location, a.destination].filter(Boolean).join(" → ")}
@@ -301,10 +308,10 @@ function AssignmentRow({ a, onOpen }) {  const m = minutesSince(a.last_transitio
 
       <div className="text-right shrink-0">
         <div className={`text-xs font-bold ${isStuck ? "text-amber-700" : "text-slate-600"}`}>
-          {m === null ? "—" : `${m}m in state`}
+          {m === null ? "—" : `${m}${t("m in state")}`}
         </div>
         <div className="text-[11px] text-slate-400 uppercase tracking-wider">
-          tap for actions
+          {t("tap for actions")}
         </div>
       </div>
     </button>
@@ -314,6 +321,7 @@ function AssignmentRow({ a, onOpen }) {  const m = minutesSince(a.last_transitio
 export default function DispatchBoard() {
   usePageTitle("Operational Board · Dispatch · MASCI");
   const nav = useNavigate();
+  const { t } = useT();
   const [assignments, setAssignments] = useState([]);
   const [findings, setFindings] = useState([]);
   const [findingCounts, setFindingCounts] = useState({});
@@ -358,12 +366,12 @@ export default function DispatchBoard() {
       }
       setErrorMsg("");
     } catch {
-      setErrorMsg("Connection failed — retrying…");
+      setErrorMsg(t("Connection failed — retrying…"));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [nav, tenantOverride]);
+  }, [nav, tenantOverride, t]);
 
   useEffect(() => {
     refresh({ silent: true });
@@ -380,8 +388,8 @@ export default function DispatchBoard() {
   const handleDrawerRemoved = useCallback((id) => {
     setAssignments((prev) => prev.filter((a) => a.id !== id));
     setDrawerAssignment(null);
-    toast.success("Removed from active board");
-  }, []);
+    toast.success(t("Removed from active board"));
+  }, [t]);
 
   /**
    * CSV downloads — fetch with auth headers so we can pass
@@ -392,7 +400,7 @@ export default function DispatchBoard() {
     try {
       const r = await fetch(`${API}${path}`, { headers: authHeaders(tenantOverride) });
       if (!r.ok) {
-        toast.error(`Export failed (${r.status})`);
+        toast.error(`${t("Export failed")} (${r.status})`);
         return;
       }
       const blob = await r.blob();
@@ -404,25 +412,25 @@ export default function DispatchBoard() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success("Export downloaded");
+      toast.success(t("Export downloaded"));
     } catch {
-      toast.error("Export failed — check connection.");
+      toast.error(t("Export failed — check connection."));
     }
-  }, [tenantOverride]);
+  }, [tenantOverride, t]);
 
   /** Map a finding to the assignment row + open the drawer. */
   const openFinding = useCallback((finding) => {
     if (!finding?.assignment_id) {
-      toast.info("Truck-level finding — open the row directly to act.");
+      toast.info(t("Truck-level finding — open the row directly to act."));
       return;
     }
     const target = assignments.find((a) => a.id === finding.assignment_id);
     if (target) {
       setDrawerAssignment(target);
     } else {
-      toast.info("Assignment not on active board — likely already cleared.");
+      toast.info(t("Assignment not on active board — likely already cleared."));
     }
-  }, [assignments]);
+  }, [assignments, t]);
 
   return (
     <div className="min-h-screen blueprint-bg flex flex-col" data-testid="dispatch-board">
@@ -435,10 +443,10 @@ export default function DispatchBoard() {
             data-testid="board-back-link"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            Dispatch Hub
+            {t("Dispatch Hub")}
           </Link>
           <h1 className="ml-auto text-sm sm:text-base font-bold uppercase tracking-widest opacity-80">
-            Operational Board
+            {t("Operational Board")}
           </h1>
         </div>
       </header>
@@ -450,15 +458,13 @@ export default function DispatchBoard() {
             <Activity className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
             <div className="flex-1">
               <span className="font-mono text-xs uppercase tracking-[0.22em] text-orange-700 font-bold">
-                Dispatch Lifecycle System
+                {t("Dispatch Lifecycle System")}
               </span>
               <h2 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-1">
-                Live operational flow
+                {t("Live operational flow")}
               </h2>
               <p className="text-sm text-slate-600 mt-2 max-w-2xl">
-                Every active haul, one card. Tap a row to see history, issue
-                a driver magic link, cancel, reassign, or revoke a session.
-                Refreshes every {Math.round(POLL_MS / 1000)} seconds.
+                {t("Every active haul, one card. Tap a row to see history, issue a driver magic link, cancel, reassign, or revoke a session. Refreshes every")} {Math.round(POLL_MS / 1000)} {t("seconds.")}
               </p>
             </div>
             <Button
@@ -469,7 +475,7 @@ export default function DispatchBoard() {
               data-testid="board-refresh"
             >
               <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
-              Refresh
+              {t("Refresh")}
             </Button>
           </div>
         </div>
@@ -480,25 +486,25 @@ export default function DispatchBoard() {
         <LifecycleGuide
           id="dispatch-operational-board"
           icon={Activity}
-          title="What this board is telling you"
-          summary="Calm operational truth · forgiving transitions · governance signals"
+          title={t("What this board is telling you")}
+          summary={t("Calm operational truth · forgiving transitions · governance signals")}
           accent="orange"
           sections={[
             {
-              label: "Lifecycle",
-              body: "Every truck moves through 13 canonical states. Non-standard transitions are accepted but tagged so operations are never blocked. See /admin/operational-language#dls for the full glossary.",
+              label: t("Lifecycle"),
+              body: t("Every truck moves through 13 canonical states. Non-standard transitions are accepted but tagged so operations are never blocked. See the glossary for full definitions."),
             },
             {
-              label: "Findings",
-              body: "Four signals only — BREAKDOWN_ACTIVE (critical), ASSIGNMENT_STUCK (≥30 min in non-terminal state), WAIT_THRESHOLD_EXCEEDED (≥20 min in WAITING), NON_STANDARD_TRANSITION_PATTERN (≥3 non-standard transitions in 2h per truck). Nothing else fires.",
+              label: t("Findings"),
+              body: t("Four signals only — BREAKDOWN_ACTIVE (critical), ASSIGNMENT_STUCK (≥30 min in non-terminal state), WAIT_THRESHOLD_EXCEEDED (≥20 min in WAITING), NON_STANDARD_TRANSITION_PATTERN (≥3 non-standard transitions in 2h per truck). Nothing else fires."),
             },
             {
-              label: "Roles",
-              body: "Dispatch + Admin act here. Drivers act on the magic-link mobile screen. PM and Shop see project- and breakdown-scoped signals on their own hubs. Safety, FL, and HR remain operationally quiet on DLS by design — restraint until live operations tell us where signal-surfacing actually helps.",
+              label: t("Roles"),
+              body: t("Dispatch and Admin act here. Drivers act on the magic-link mobile screen. PM and Shop see project- and breakdown-scoped signals on their own hubs. Safety, FL, and HR remain operationally quiet on DLS by design — restraint until live operations tell us where signal-surfacing actually helps."),
             },
             {
-              label: "Restraint",
-              body: "Read-only · refreshes every 5 seconds · no chat, no maps, no analytics. The lifecycle engine is the single source of operational truth — every action here delegates to it so nothing gets out of sync.",
+              label: t("Restraint"),
+              body: t("Read-only · refreshes every 5 seconds · no chat, no maps, no analytics. The lifecycle engine is the single source of operational truth — every action here delegates to it so nothing gets out of sync."),
             },
           ]}
         />
@@ -517,7 +523,7 @@ export default function DispatchBoard() {
 
         {tenantOverride ? (
           <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2" data-testid="board-tenant-override">
-            Viewing tenant override: <strong>{tenantOverride}</strong> (dev mode)
+            {t("Viewing tenant override:")} <strong>{tenantOverride}</strong> ({t("dev mode")})
           </div>
         ) : null}
 
@@ -529,14 +535,14 @@ export default function DispatchBoard() {
 
         {loading ? (
           <div className="text-center text-slate-500 py-10" data-testid="board-loading">
-            Loading operational board…
+            {t("Loading operational board…")}
           </div>
         ) : assignments.length === 0 ? (
           <div className="text-center text-slate-500 py-12 border-2 border-dashed border-slate-300 rounded-lg" data-testid="board-empty">
             <Send className="w-8 h-8 mx-auto mb-3 text-slate-400" />
-            <p className="font-bold text-slate-700">No active hauls right now.</p>
+            <p className="font-bold text-slate-700">{t("No active hauls right now.")}</p>
             <p className="text-sm mt-1">
-              Trucks will appear here the moment dispatch creates an assignment.
+              {t("Trucks will appear here the moment dispatch creates an assignment.")}
             </p>
           </div>
         ) : (

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -90,6 +91,7 @@ function HistoryEntry({ entry, idx, isLatest }) {
 export default function AssignmentDrawer({
   assignment, tenantOverride, onClose, onChanged, onRemoved,
 }) {
+  const { t } = useT();
   const [magic, setMagic] = useState(null);          // { url, magic_token, expires_at }
   const [activeSessions, setActiveSessions] = useState([]);
   const [busy, setBusy] = useState(null);
@@ -299,13 +301,13 @@ export default function AssignmentDrawer({
         <header className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-start justify-between gap-3">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-orange-700 font-bold">
-              Assignment
+              {t("Assignment")}
             </div>
             <div className="text-lg font-black text-slate-900 mt-1" data-testid="drawer-truck">
               {assignment.truck_id || "—"}
             </div>
             <div className="text-xs text-slate-600">
-              {assignment.driver_name || assignment.driver_id || "No driver"}
+              {assignment.driver_name || assignment.driver_id || t("No driver")}
             </div>
           </div>
           <button
@@ -313,7 +315,7 @@ export default function AssignmentDrawer({
             data-testid="drawer-close"
             onClick={close}
             className="inline-flex items-center justify-center h-10 w-10 -mr-2 text-slate-500 hover:text-slate-900"
-            aria-label="Close"
+            aria-label={t("Close")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -322,21 +324,21 @@ export default function AssignmentDrawer({
         <section className="px-5 py-4 space-y-3">
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div>
-              <div className="uppercase tracking-widest text-slate-400">Current state</div>
+              <div className="uppercase tracking-widest text-slate-400">{t("Current state")}</div>
               <div className="font-bold text-slate-900 mt-0.5">{assignment.current_state || "—"}</div>
             </div>
             <div>
-              <div className="uppercase tracking-widest text-slate-400">Project</div>
+              <div className="uppercase tracking-widest text-slate-400">{t("Project")}</div>
               <div className="font-bold text-slate-900 mt-0.5 truncate">
                 {assignment.project_name || assignment.project_number || "—"}
               </div>
             </div>
             <div>
-              <div className="uppercase tracking-widest text-slate-400">Material</div>
+              <div className="uppercase tracking-widest text-slate-400">{t("Material")}</div>
               <div className="font-medium text-slate-700 mt-0.5">{assignment.material || "—"}</div>
             </div>
             <div>
-              <div className="uppercase tracking-widest text-slate-400">Assigned at</div>
+              <div className="uppercase tracking-widest text-slate-400">{t("Assigned at")}</div>
               <div className="font-medium text-slate-700 mt-0.5">{fmtDt(assignment.assigned_at)}</div>
             </div>
           </div>

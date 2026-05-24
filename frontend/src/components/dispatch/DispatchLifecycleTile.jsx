@@ -26,6 +26,7 @@
  */
 import React, { useEffect, useMemo, useState } from "react";
 import { Activity, Truck, Wrench, AlertTriangle, Clock } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const POLL_MS = 60000;                              // calm cadence
@@ -56,28 +57,28 @@ function buildHeaders() {
 
 const SCOPE_CONFIG = {
   pm: {
-    title: "Haul activity on your projects",
-    sub: "live dispatch signal · project-scoped",
+    titleKey: "Haul activity on your projects",
+    subKey: "live dispatch signal · project-scoped",
     icon: Truck,
     accent: "border-l-amber-600 text-amber-700",
     iconBg: "bg-amber-600 text-white",
-    emptyMsg: "No haul activity currently affecting your projects.",
+    emptyKey: "No haul activity currently affecting your projects.",
   },
   shop: {
-    title: "Trucks in breakdown right now",
-    sub: "operational downtime signal",
+    titleKey: "Trucks in breakdown right now",
+    subKey: "operational downtime signal",
     icon: Wrench,
     accent: "border-l-rose-700 text-rose-800",
     iconBg: "bg-rose-700 text-white",
-    emptyMsg: "No trucks in BREAKDOWN — fleet operating cleanly.",
+    emptyKey: "No trucks in BREAKDOWN — fleet operating cleanly.",
   },
   fl: {
-    title: "Production-impacting haul signals",
-    sub: "starvation + extended wait",
+    titleKey: "Production-impacting haul signals",
+    subKey: "starvation + extended wait",
     icon: Clock,
     accent: "border-l-orange-600 text-orange-700",
     iconBg: "bg-orange-600 text-white",
-    emptyMsg: "No paving-impacting haul signals right now.",
+    emptyKey: "No paving-impacting haul signals right now.",
   },
 };
 
@@ -103,6 +104,7 @@ export default function DispatchLifecycleTile({
   projectNumbers = null,
   testId = "dispatch-lifecycle-tile",
 }) {
+  const { t } = useT();
   const cfg = SCOPE_CONFIG[scope] || SCOPE_CONFIG.pm;
   const [counts, setCounts] = useState({});
   const [findings, setFindings] = useState([]);
@@ -160,12 +162,12 @@ export default function DispatchLifecycleTile({
         </div>
         <div className="flex-1 min-w-[200px]">
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold">
-            Dispatch Lifecycle System
+            {t("Dispatch Lifecycle System")}
           </div>
           <h3 className="font-display text-lg font-black tracking-tight text-slate-900 mt-0.5">
-            {cfg.title}
+            {t(cfg.titleKey)}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">{cfg.sub}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{t(cfg.subKey)}</p>
         </div>
         <div className="text-right">
           <div
@@ -175,7 +177,7 @@ export default function DispatchLifecycleTile({
             {headlineCount}
           </div>
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 mt-1">
-            {headlineCount === 1 ? "signal" : "signals"}
+            {headlineCount === 1 ? t("signal") : t("signals")}
           </div>
         </div>
       </header>
@@ -199,13 +201,13 @@ export default function DispatchLifecycleTile({
         </ul>
       ) : (
         <p className="mt-3 text-sm text-slate-500" data-testid={`${testId}-empty`}>
-          {cfg.emptyMsg}
+          {t(cfg.emptyKey)}
         </p>
       )}
 
       <p className="mt-3 text-[11px] text-slate-400 italic flex items-center gap-1">
         <Activity className="w-3 h-3" />
-        Read-only · refreshes every minute · dispatch owns these states.
+        {t("Read-only · refreshes every minute · dispatch owns these states.")}
       </p>
     </section>
   );

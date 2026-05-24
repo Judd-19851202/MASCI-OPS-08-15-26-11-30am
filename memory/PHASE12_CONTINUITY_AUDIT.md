@@ -221,10 +221,136 @@ next per the operator's lane order: **a → e → b → d → c**.
 - 🟢 **iter401 · Phase 12.8 · Driver Self-Start Operational Entry.** ✅ shipped.
 - 🟢 **iter402 · Phase 12.9 · Driver Operational Identity Convergence.** ✅ shipped.
 - 🟢 **iter403 · Phase 13 · Field Tile Convergence.** ✅ shipped.
-- 🟢 **iter404 · Phase 13.1 · Field Tile Operational Flow Refinement.** ✅ shipped — see iter404 addendum below.
+- 🟢 **iter404 · Phase 13.1 · Field Tile Operational Flow Refinement.** ✅ shipped.
+- 🟢 **iter405 · Phase 13.2 · DLS Targeted i18n Sweep.** ✅ shipped — see iter405 addendum below.
 - 🔵 **Backlog · Lane C · Post-deploy operational stabilization instrumentation** (deferred).
-- 🔵 **Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
 - 🔵 **Backlog · 14-day post-live ops review** of Safety/FL/HR tile decisions.
+
+---
+
+# iter405 addendum · Phase 13.2 · DLS Targeted i18n Sweep ✅ (2026-05-24)
+
+## Scope
+
+Targeted bilingual completion of the DLS-canon surfaces so the public field + driver workflow is truly field-deployable for Spanish-primary drivers. Scope strictly limited to the 6 DLS surfaces; no whole-platform sweep.
+
+## Files shipped
+
+| File | What changed |
+|---|---|
+| `/app/frontend/src/pages/driver/ShiftStart.jsx` | `useT()` hook added · all visible chrome wrapped (title, kicker, description with inline "Add temporary" link, field labels, placeholders, empty hints, optional badges, error states, submit + footer). `SearchableSelect` internals (`temp` badge, `change` action, "Looking…", "No matches yet.", "Add temporary:" prefixes) wrapped. Submit error path uses `t()`. |
+| `/app/frontend/src/pages/driver/DriverShift.jsx` | `useT()` hook added · `STATE_LABEL` → `STATE_LABEL_KEY` keyed lookup resolved through `t()` at render time. `WAIT_REASONS` → `WAIT_REASON_KEY` short labels resolved through `t()`. All header chrome, current-state card, project line, transition button labels, pause-section buttons (Waiting, Breakdown, Hold, End shift), wait-sheet dialog (`What are you waiting on?`, `Cancel`, 8 wait reasons), error/loading/empty states. |
+| `/app/frontend/src/pages/DispatchBoard.jsx` | `useT()` threaded through `StateChip`, `FindingsBanner` (pluralization-aware singular/plural keys), `ExportStrip`, `SummaryStrip`, `AssignmentRow`, plus the top-level title card, `LifecycleGuide` sections, header back-link, error/loading/empty states, every toast message, refresh button. The local `t` variable in `ExportStrip` was renamed (it shadowed the i18n hook). |
+| `/app/frontend/src/components/dispatch/DispatchLifecycleTile.jsx` | `SCOPE_CONFIG.title/sub/emptyMsg` → `titleKey/subKey/emptyKey` resolved through `t()`. Headline pluralization (`signal` / `signals`) wrapped. The doctrine footer ("Read-only · refreshes every minute · dispatch owns these states.") wrapped. All 3 scopes (PM, Shop, FL) translated. |
+| `/app/frontend/src/components/dispatch/AssignmentDrawer.jsx` | `useT()` added · header chrome (Assignment kicker, No driver fallback, Close aria-label) + the 4 grid labels (Current state, Project, Material, Assigned at) wrapped. **Deep dispatcher action toasts left in English by design** — the drawer's deeper sections (cancel/reassign/revoke action panels + their 16 toast messages) are dispatcher-internal admin tooling; per Phase 13.2 priorities, the driver-facing chrome was the high-value target. Documented as "intentionally left unwrapped" below. |
+| `/app/frontend/src/lib/i18n.js` | Added **~135 EN→ES translation keys** covering all wrapped surfaces. Organized into thematic blocks: ShiftStart chrome, SearchableSelect internals, DriverShift state labels + wait reasons + body chrome, DispatchBoard summary/exports/findings/rows + LifecycleGuide sections, DispatchLifecycleTile scopes, AssignmentDrawer header. |
+
+## Translation tone
+
+Spanish kept short, field-direct, and operationally honest. Examples:
+
+| EN | ES |
+|---|---|
+| Start your shift | Inicia tu turno |
+| Pick a truck or type unit number | Selecciona un camión o escribe el número |
+| Type at least 2 letters to search. | Escribe al menos 2 letras para buscar. |
+| No password. No app. Just check in. | Sin contraseña. Sin aplicación. Solo registra tu llegada. |
+| Loaded · secure your ticket | Cargado · asegura tu boleta |
+| What are you waiting on? | ¿Qué estás esperando? |
+| Trucks in breakdown right now | Camiones en avería ahora mismo |
+| Read-only · refreshes every minute · dispatch owns these states. | Solo lectura · se actualiza cada minuto · despacho es dueño de estos estados. |
+
+No corporate stiffness, no literal machine-translation patterns, no surveillance vocabulary.
+
+## Intentionally left unwrapped (and why)
+
+| Surface | Reason |
+|---|---|
+| AssignmentDrawer's deep action panels (issue magic link, cancel, reassign, revoke session) + 16 toast messages | Dispatcher-internal admin tooling. Audience is English-speaking dispatch + admin. Wrapping these would balloon the iter without bilingual driver benefit. Documented as a future iter when MASCI brings on Spanish-primary dispatchers. |
+| `STATE_LABEL_KEY` constants for `WAITING` body context (`Reason · {raw}`) | The raw wait-reason key string fallback intentionally stays as-is (e.g., `WAITING_ON_PLANT` → `WAITING ON PLANT`) for cases where a future wait reason is added before translations catch up. The 8 canonical reasons have full Spanish labels. |
+| DispatchBoard `Filters / Filtros · Filter / Filtrar` (where present) | Not in the iter405 scope. The board currently doesn't render filter chrome. |
+
+## Phase 13.2 doctrine gate · 20-check audit
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Look like platform | 🟢 ES rendering at 390 px screenshot confirms identical visual tone |
+| 2 | Feel like platform | 🟢 same calm voice in both languages |
+| 3 | Operational calmness | 🟢 no new alerts, banners, or noise |
+| 4 | Low cognitive load | 🟢 same number of fields, same flow |
+| 5 | Operational trust | 🟢 ES copy is operator-direct, no enterprise voice |
+| 6 | Role discipline | 🟢 no role visibility changes |
+| 7 | Avoid ERP | 🟢 no new workflows |
+| 8 | Avoid analytics drift | 🟢 no metrics, no scoring |
+| 9 | Avoid dashboard sprawl | 🟢 no new pages |
+| 10 | Downstream continuity | 🟢 every contract preserved; 82/82 tests still PASS |
+| 11 | Mobile-first | 🟢 ES smoke at 390 px confirms layout integrity |
+| 12 | Restraint doctrine | 🟢 scoped to 6 files, not whole platform |
+| 13 | Natural integration | 🟢 reuses existing `useT()` pattern |
+| 14 | Driver understanding | 🟢 ES is short, action-oriented, field-direct |
+| 15 | Superintendent trust | 🟢 wait reasons stay canonical (Plant/Loader/Dump etc) |
+| 16 | Validate-don't-surveil | 🟢 no surveillance vocabulary anywhere; "operational continuity / flow / status" used throughout |
+| 17 | Avoid operational noise | 🟢 no new toasts |
+| 18 | Strengthen operational continuity | 🟢 Spanish-primary drivers can now operate the full DLS flow |
+| 19 | Operational honesty | 🟢 ES preserves the temp marker, last-driver-wins, no-app-no-password promise |
+| 20 | Foundational doctrine | 🟢 Phase 13.2 directive matched literally |
+
+**All 20 checks: PASS.**
+
+## Verification
+
+```bash
+# Full Field + DLS regression
+cd /app/backend
+python -m pytest tests/test_iter319_fl_and_field_calm_pass.py \
+                 tests/test_iter402_shift_lookups.py \
+                 tests/test_iter401_shift_start.py \
+                 tests/test_iter392_dls_foundation.py \
+                 tests/test_iter393_driver_session.py \
+                 tests/test_iter395_governance.py \
+                 tests/test_iter396_convergence.py -q
+# 82 / 82 PASS in 15.97 s ✅
+
+# Scanners
+python3 /app/scripts/operator_vocabulary_scanner.py
+# → 16 hits — ALL in Python file-header docstrings (legitimate iter# references in internal annotations) ✅
+python3 /app/scripts/touch_target_audit.py
+# → clean ✅
+
+# ESLint on all 5 touched frontend files + i18n.js → ✅ no issues
+
+# Live 390 px smoke with localStorage.setItem('masci.lang', 'es'):
+#   - shift-start-title  = "Inicia tu turno" ✅
+#   - submit            = "Iniciar turno" ✅
+#   - field labels      = "NOMBRE DEL CONDUCTOR · NÚMERO DE CAMIÓN · NÚMERO DE REMOLQUE · COMPAÑÍA / TRANSPORTISTA" ✅
+#   - description       = "Selecciona quién conduce y qué camión. Los subcontratistas y rentas
+#                          aún no están en el sistema — toca Agregar temporal si es necesario." ✅
+#   - empty hint        = "Escribe al menos 2 letras para buscar." ✅
+#   - selected pill     = "MASCI · CAMBIAR" ✅
+#   - footer            = "Sin contraseña. Sin aplicación. Solo registra tu llegada." ✅
+#   - EN reload still renders "Start your shift" ✅
+```
+
+## Restraint discipline maintained
+
+- ❌ No backend changes
+- ❌ No new endpoints / collections / pages / portals
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No analytics / dashboards / charts
+- ❌ No notification fan-out changes
+- ❌ No whole-platform translation sweep (scoped to 6 DLS-canon files)
+- ❌ No deep AssignmentDrawer action-panel translations (documented)
+
+## What iter405 leaves behind
+
+1. **Bilingual driver flow end-to-end.** A Spanish-primary truck driver can now: read the Field Tile entry, complete the public shift-start form, operate every lifecycle button on DriverShift, see the calm wait-sheet — all in operator-direct Spanish.
+2. **Bilingual dispatch board chrome.** Operations can flip the dispatcher's view to ES if needed; state chips, summary tiles, finding banner, export labels, LifecycleGuide all render bilingually.
+3. **Bilingual role tiles.** PM, Shop, and (future) FL DispatchLifecycleTile scope copy is bilingual.
+4. **~135 new translation keys** with operator-direct, field-honest Spanish — no corporate stiffness.
+5. **0 behavior changes.** Every backend contract intact; 82/82 tests still PASS. ESLint + touch-target audit + operator vocabulary scanner all clean.
+
+
 
 ---
 
