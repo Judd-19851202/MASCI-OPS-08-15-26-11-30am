@@ -220,10 +220,137 @@ next per the operator's lane order: **a → e → b → d → c**.
 - 🟢 **iter400 · Lane D · Motive integration strategy refresh (DOC ONLY) + AUDIT_GUARDRAILS.md doctrine index.** ✅ shipped — see iter400 addendum above.
 - 🟢 **iter401 · Phase 12.8 · Driver Self-Start Operational Entry.** ✅ shipped.
 - 🟢 **iter402 · Phase 12.9 · Driver Operational Identity Convergence.** ✅ shipped.
-- 🟢 **iter403 · Phase 13 · Field Tile Convergence.** ✅ shipped — see iter403 addendum below.
+- 🟢 **iter403 · Phase 13 · Field Tile Convergence.** ✅ shipped.
+- 🟢 **iter404 · Phase 13.1 · Field Tile Operational Flow Refinement.** ✅ shipped — see iter404 addendum below.
 - 🔵 **Backlog · Lane C · Post-deploy operational stabilization instrumentation** (deferred).
 - 🔵 **Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
 - 🔵 **Backlog · 14-day post-live ops review** of Safety/FL/HR tile decisions.
+
+---
+
+# iter404 addendum · Phase 13.1 · Field Tile Operational Flow Refinement ✅ (2026-05-24)
+
+## Scope
+
+iter403 placed Driver Shift Start on the Field Tile. iter404 refines the **grouping** so workflows cluster by *operational continuity* instead of generic form categories. Per directive: the page should subconsciously teach operational flow, not display random forms.
+
+**Old structure (3 groups):**
+- Daily Operations: Shift Start · Daily Reports · Equipment Pre-Op · DVIR
+- Weekly Checks: Weekly Lead · Weekly Emergency
+- Calculators & Tools: Material Calculators
+
+**New structure (4 groups, in directive order):**
+1. **Field Reporting** — Daily Reports (red, emphasized, single tile)
+2. **Equipment Operations** — Equipment Pre-Op (slate)
+3. **Trucking Operations** — Driver Shift Start · Trucking DVIR · Weekly Lead · Weekly Emergency (amber — the driver's operational lane, 4 tiles)
+4. **Calculators & Tools** — Material Calculators (unchanged, demoted via top-border separator)
+
+## Files shipped
+
+| File | Change | Why |
+|---|---|---|
+| `/app/frontend/src/pages/FieldSection.jsx` | Restructured 3 groups → 4 operational-continuity groups. New testids `field-group-reporting`, `field-group-equipment`, `field-group-trucking` + `field-group-heading-*` companions. All 7 tile testids preserved. | Phase 13.1 doctrine: group by operational behavior, not form category. The trucking lane becomes the driver's visual anchor. |
+| `/app/frontend/src/lib/i18n.js` | Added 6 EN→ES entries for the new group headings + subtitles | iter319 bilingual parity contract. Old strings retained for back-compat. |
+| `/app/backend/tests/test_iter319_fl_and_field_calm_pass.py` | Updated 3 assertions (group testids · tile testids · ES translations) to reflect Phase 13.1 structure | Test evolves with the doctrine. Legacy iter319 ES entries remain asserted (back-compat). |
+
+## Visual emphasis on Field Reporting
+
+Per directive: "Daily Reports should retain slightly more breathing room and importance." Implemented as:
+- A dedicated `field-group-reporting` section sitting first.
+- Single tile inside a `grid-cols-1 lg:grid-cols-2` container so it never gets squeezed into a multi-column row — it visually "leads" without becoming a banner.
+- Red accent stripe retained (operational memory family).
+
+No dashboards, no widgets, no banners. Subtle.
+
+## Trucking lane emphasis
+
+Per directive: "Drivers should subconsciously understand 'This is my operational lane' without reading instructions." Implemented as:
+- 4 amber-accented tiles in one dedicated section (Driver Shift Start first — chronologically first action).
+- Same icon family (Send for shift, Truck for the 3 inspections).
+- Same `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` rhythm so on phone the lane is one vertical scroll, on desktop it's a clean 3+1 grid.
+
+The trucking lane is now the largest section by tile count and the only section sharing a single accent color across all its tiles.
+
+## Phase 13.1 doctrine gate · 20-check audit
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Operational grouping clarity | 🟢 4 sections, each named for its operational behavior, not form type |
+| 2 | Reduced cognitive fragmentation | 🟢 trucking workflows now visually adjacent · scattered "weekly" framing gone |
+| 3 | Trucking continuity clarity | 🟢 all 4 trucking workflows under one heading · all amber-accented |
+| 4 | Mobile scanning improvement | 🟢 verified 390 px: clear group rhythm, one vertical scroll per section |
+| 5 | No ERP drift | 🟢 no new workflows, just regrouping |
+| 6 | No analytics drift | 🟢 no metrics added |
+| 7 | No operational clutter | 🟢 no banners, accordions, widgets, headers |
+| 8 | No role contamination | 🟢 all groups remain public Field Tile · no FL / Safety / HR drift |
+| 9 | Visual calmness | 🟢 same typography, same spacing rhythm, same accent palette |
+| 10 | Operational honesty | 🟢 group names match what the tiles actually represent |
+| 11 | Downstream continuity | 🟢 every tile still points to the same route as before |
+| 12 | Typography continuity | 🟢 mono-uppercase headings + italic sub maintained |
+| 13 | Color continuity | 🟢 red / slate / amber families used exactly as before |
+| 14 | Spacing continuity | 🟢 `space-y-10` between sections retained · `gap-4` between tiles retained |
+| 15 | Platform tone continuity | 🟢 sub-headings are operator-direct ("End-of-day operational memory", "Shift activation · daily readiness · recurring continuity") |
+| 16 | Field usability | 🟢 group-then-tile rhythm makes 390 px viewport scannable |
+| 17 | Operational trust | 🟢 the layout teaches operational flow; no surveillance language anywhere |
+| 18 | Doctrine alignment | 🟢 Phase 13.1 directive matched literally — same 4 groups in same order |
+| 19 | Platform convergence | 🟢 Field Tile now matches the visual rhythm of PM Hub, Shop Hub, etc. |
+| 20 | Operational inevitability | 🟢 the new grouping reads as the obviously-correct grouping in hindsight |
+
+**All 20 checks: PASS.**
+
+## Verification
+
+```bash
+# Field + DLS regression
+cd /app/backend
+python -m pytest tests/test_iter319_fl_and_field_calm_pass.py \
+                 tests/test_iter402_shift_lookups.py \
+                 tests/test_iter401_shift_start.py \
+                 tests/test_iter392_dls_foundation.py \
+                 tests/test_iter393_driver_session.py \
+                 tests/test_iter395_governance.py \
+                 tests/test_iter396_convergence.py -q
+# 82 / 82 PASS in 25.76 s ✅
+
+# Scanners
+python3 /app/scripts/operator_vocabulary_scanner.py --paths frontend/src/pages/FieldSection.jsx
+# → clean ✅
+python3 /app/scripts/touch_target_audit.py --paths frontend/src/pages/FieldSection.jsx
+# → clean ✅
+
+# Live 390 px smoke (full-page screenshot)
+#   - 4 group sections visible: FIELD REPORTING (red Daily Reports tile leads, breathing room) ·
+#     EQUIPMENT OPERATIONS (slate Equipment Pre-Op) ·
+#     TRUCKING OPERATIONS (4 amber tiles: Shift Start first, DVIR next, Weekly Lead + Emergency below)
+#   - All 7 tile testids verified
+#   - Driver Shift Start nested in Trucking Operations ✅
+#   - Daily Reports nested in Field Reporting ✅
+```
+
+## Restraint discipline maintained
+
+- ❌ No new endpoints / collections / pages / portals
+- ❌ No backend changes
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No analytics / dashboards / charts / banners / widgets
+- ❌ No notification fan-out changes
+- ❌ No tile additions, no tile removals — same 7 tiles, same routes
+- ❌ No accent color changes — red / slate / amber palette preserved
+- ❌ No accordion or expanded chrome
+- ❌ No reorder of tiles WITHIN trucking group (Shift Start kept first per iter403)
+
+## What iter404 leaves behind
+
+1. **An operational-continuity-grouped Field Tile** — the page now subconsciously teaches the trucking lane.
+2. **Field Reporting emphasized** — Daily Reports has breathing room and its own dedicated section.
+3. **Equipment Operations isolated** — daily OSHA readiness is its own clean lane.
+4. **Calculators & Tools demoted** — still present, still useful, visually de-emphasized via top-border separator.
+5. **iter319 test evolved to match Phase 13.1 doctrine.** Legacy testids removed cleanly; tile testid contract preserved (back-compat for QA scripts that target tiles, not groups).
+6. **0 behavior changes** in any workflow — every route, every tile, every session contract intact.
+7. **Bilingual parity** on the new group headings + sub-headings.
+
+
 
 ---
 

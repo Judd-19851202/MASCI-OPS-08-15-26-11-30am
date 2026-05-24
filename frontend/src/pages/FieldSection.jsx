@@ -116,12 +116,54 @@ export default function FieldSection() {
         </div>
 
         <div className="space-y-10 mb-12">
-          {/* Group 01 · Daily Operations */}
-          <section data-testid="field-group-daily">
+          {/* Group 01 · Field Reporting — operational memory continuity */}
+          <section data-testid="field-group-reporting">
             <SectionHeading
-              title={t("Daily Operations")}
-              sub={t("Start-of-shift and end-of-shift submissions")}
-              testId="field-group-heading-daily"
+              title={t("Field Reporting")}
+              sub={t("End-of-day operational memory")}
+              testId="field-group-heading-reporting"
+            />
+            {/* Slightly emphasized: single tile in a max-width container
+                so it visually "leads" without becoming a banner. */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <FieldTile
+                to="/daily/submit"
+                icon={ClipboardList}
+                title={t("Daily Reports")}
+                desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
+                accent="red"
+                ctaLabel={t("START FORM")}
+                testId="field-tile-daily"
+              />
+            </div>
+          </section>
+
+          {/* Group 02 · Equipment Operations */}
+          <section data-testid="field-group-equipment">
+            <SectionHeading
+              title={t("Equipment Operations")}
+              sub={t("Daily OSHA equipment readiness")}
+              testId="field-group-heading-equipment"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FieldTile
+                to="/equipment/submit"
+                icon={Wrench}
+                title={t("Equipment Pre-Op")}
+                desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
+                accent="slate"
+                ctaLabel={t("START FORM")}
+                testId="field-tile-equipment"
+              />
+            </div>
+          </section>
+
+          {/* Group 03 · Trucking Operations — the driver's operational lane */}
+          <section data-testid="field-group-trucking">
+            <SectionHeading
+              title={t("Trucking Operations")}
+              sub={t("Shift activation · daily readiness · recurring continuity")}
+              testId="field-group-heading-trucking"
             />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <FieldTile
@@ -134,24 +176,6 @@ export default function FieldSection() {
                 testId="field-tile-shift-start"
               />
               <FieldTile
-                to="/daily/submit"
-                icon={ClipboardList}
-                title={t("Daily Reports")}
-                desc={t("End-of-day site log: crews, subs, visitors, equipment, materials, weather, photos. Replaces Fieldwire.")}
-                accent="red"
-                ctaLabel={t("START FORM")}
-                testId="field-tile-daily"
-              />
-              <FieldTile
-                to="/equipment/submit"
-                icon={Wrench}
-                title={t("Equipment Pre-Op")}
-                desc={t("Daily OSHA walk-around inspections for Heavy Equipment. PASS / FAIL each item — fail tags the unit out of service.")}
-                accent="slate"
-                ctaLabel={t("START FORM")}
-                testId="field-tile-equipment"
-              />
-              <FieldTile
                 to="/fleet/dvir/new"
                 icon={Truck}
                 title={t("Trucking · Daily DVIR")}
@@ -160,17 +184,6 @@ export default function FieldSection() {
                 ctaLabel={t("START DVIR")}
                 testId="field-tile-dvir"
               />
-            </div>
-          </section>
-
-          {/* Group 02 · Weekly Checks */}
-          <section data-testid="field-group-weekly">
-            <SectionHeading
-              title={t("Weekly Checks")}
-              sub={t("Lead-driven recurring inspections")}
-              testId="field-group-heading-weekly"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <FieldTile
                 to="/fleet/weekly-lead/new"
                 icon={Truck}
@@ -192,7 +205,7 @@ export default function FieldSection() {
             </div>
           </section>
 
-          {/* Group 03 · Tools (demoted — supporting calculators) */}
+          {/* Group 04 · Calculators & Tools — supporting utilities */}
           <section
             data-testid="field-group-tools"
             className="pt-6 border-t border-slate-200"

@@ -114,16 +114,25 @@ def test_iter319_field_hub_h1_toned_down():
 
 
 def test_iter319_field_hub_three_groups():
-    """Field Hub now renders 3 lightweight operational groups."""
+    """Field Hub renders the Phase 13.1 operational groups (4 since
+    iter404 · Field Reporting · Equipment Operations · Trucking
+    Operations · Calculators & Tools)."""
     src = FIELD_HUB.read_text()
-    for heading in ("Daily Operations", "Weekly Checks", "Calculators & Tools"):
+    for heading in (
+        "Field Reporting",
+        "Equipment Operations",
+        "Trucking Operations",
+        "Calculators & Tools",
+    ):
         assert heading in src, f"Field Hub must surface group: {heading}"
     for tid in (
-        "field-group-daily",
-        "field-group-weekly",
+        "field-group-reporting",
+        "field-group-equipment",
+        "field-group-trucking",
         "field-group-tools",
-        "field-group-heading-daily",
-        "field-group-heading-weekly",
+        "field-group-heading-reporting",
+        "field-group-heading-equipment",
+        "field-group-heading-trucking",
         "field-group-heading-tools",
     ):
         assert f'"{tid}"' in src, f"Field Hub must surface group testid {tid}"
@@ -137,9 +146,11 @@ def test_iter319_field_hub_tools_group_demoted():
 
 
 def test_iter319_field_hub_all_tile_testids_preserved():
-    """All 6 prior `field-tile-*` testids preserved."""
+    """All 7 `field-tile-*` testids preserved across the Phase 13.1
+    regrouping (iter319 original 6 + iter403 shift-start)."""
     src = FIELD_HUB.read_text()
     for tid in (
+        "field-tile-shift-start",
         "field-tile-daily",
         "field-tile-equipment",
         "field-tile-calculators",
@@ -153,14 +164,26 @@ def test_iter319_field_hub_all_tile_testids_preserved():
 # ─── Bilingual gate (Rule 8) ────────────────────────────────────────────
 
 def test_iter319_es_translations_present():
-    """All new iter319 group headings + CTAs have ES entries."""
+    """All operational group headings + CTAs have ES entries.
+
+    Phase 13.1 (iter404) extends this set with the new 4-group
+    operational headings. Legacy iter319 strings remain in i18n.js for
+    backwards-compat (harmless even if no longer surfaced)."""
     src = I18N.read_text()
     for entry in (
+        # iter319 originals — still in i18n.js for back-compat
         '"Daily Operations": "Operaciones Diarias"',
         '"Weekly Checks": "Inspecciones Semanales"',
         '"Calculators & Tools": "Calculadoras y Herramientas"',
         '"START FORM": "INICIAR FORMULARIO"',
         '"START DVIR": "INICIAR DVIR"',
         '"OPEN": "ABRIR"',
+        # iter403 driver shift entry
+        '"Driver Shift Start": "Inicio de Turno del Conductor"',
+        '"START SHIFT": "INICIAR TURNO"',
+        # iter404 Phase 13.1 operational groupings
+        '"Field Reporting": "Reportes de Campo"',
+        '"Equipment Operations": "Operaciones de Equipo"',
+        '"Trucking Operations": "Operaciones de Camiones"',
     ):
         assert entry in src, f"i18n.js missing ES entry: {entry}"

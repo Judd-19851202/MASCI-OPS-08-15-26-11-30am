@@ -1,6 +1,75 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter404 · Phase 13.1 · Field Tile Operational Flow Refinement ✅
+
+### Mission
+Refine Field Tile groupings from generic form categories to operational-continuity lanes. The page should subconsciously teach operational flow — drivers must instantly see where their lane is; field crews must instantly see where reporting lives. **No new features, no banners, no analytics — pure information-architecture refinement.**
+
+### Doctrine reinforced (Phase 13.1)
+- The Field Tile is not a form library — it's the public operational entry layer.
+- Group by what operations actually do, not by how forms are categorized.
+- Daily Reports = core operational memory continuity → its own emphasized section.
+- Trucking Operations = the driver's lane → its own dedicated section (4 amber tiles).
+- "Subtle grouping · calm spacing · low-friction scanning · operational clarity · visual restraint."
+- 20-point Phase 13.1 doctrine gate: ALL 20 PASS.
+
+### New Field Tile structure (locked)
+| Group | Accent | Tiles | Audience |
+|---|---|---|---|
+| **Field Reporting** | red (emphasized) | Daily Reports | All field crew |
+| **Equipment Operations** | slate | Equipment Pre-Op | Equipment operators |
+| **Trucking Operations** | amber | Driver Shift Start · Trucking DVIR · Weekly Lead Inspection · Weekly Emergency Equipment | Truck drivers + leads |
+| **Calculators & Tools** | slate (demoted) | Material Calculators | Anyone |
+
+### Files shipped
+- **MOD** `/app/frontend/src/pages/FieldSection.jsx` — restructured 3 groups → 4 operational-continuity groups. New group testids `field-group-reporting`, `field-group-equipment`, `field-group-trucking` + `field-group-heading-*` companions. All 7 tile testids preserved (iter319 originals + iter403 shift-start). Field Reporting tile sits in a `grid-cols-1 lg:grid-cols-2` container so it visually "leads" without becoming a banner.
+- **MOD** `/app/frontend/src/lib/i18n.js` — added 6 EN→ES entries (Field Reporting, End-of-day operational memory, Equipment Operations, Daily OSHA equipment readiness, Trucking Operations, Shift activation · daily readiness · recurring continuity). iter319 legacy entries preserved.
+- **MOD** `/app/backend/tests/test_iter319_fl_and_field_calm_pass.py` — updated 3 assertions to match Phase 13.1 structure (group testids, tile testid count = 7, ES translations).
+
+### What iter404 explicitly did NOT do (restraint enforced)
+- ❌ No new tiles (same 7 tiles, same routes)
+- ❌ No tile reorder within Trucking Operations (Shift Start stays first)
+- ❌ No backend changes
+- ❌ No new endpoints / collections / pages / portals
+- ❌ No accent color changes (red/slate/amber palette preserved)
+- ❌ No banners / accordions / widgets / dashboards
+- ❌ No role visibility changes (Safety/FL/HR stay quiet on DLS)
+- ❌ No Motive activation
+- ❌ No DLS UI i18n sweep (still backlog)
+
+### Tests · 82 / 82 PASS in 25.76 s
+- iter319 Field calm-pass 12/12 ✅ (evolved for Phase 13.1 — tile contract preserved)
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+- iter401 driver self-start 9/9 (untouched)
+- iter402 shift lookups 10/10 (untouched)
+ESLint clean on `FieldSection.jsx`. Both audit guardrails clean. Live 390 px full-page smoke: 4 group rhythm verified, all 8 group/heading testids + all 7 tile testids present, nesting (Shift Start in Trucking, Daily Reports in Reporting) verified.
+
+### Phase doctrine timeline (current state)
+1. iter397 · Phase 12 · Lane A · Cross-platform continuity audit ✅
+2. iter398 · Phase 12.5 · Lane E · Restraint / tone pass + operator vocabulary scanner ✅
+3. iter399 · Phase 12.6 · Lane B · Mobile-first DLS usability sweep + touch-target audit helper ✅
+4. iter400 · Phase 12.7 · Lane D · Motive doc refresh + audit doctrine index ✅
+5. iter401 · Phase 12.8 · Driver self-start operational entry ✅
+6. iter402 · Phase 12.9 · Driver operational identity convergence ✅
+7. iter403 · Phase 13 · Field Tile convergence (Driver Shift Start tile) ✅
+8. iter404 · Phase 13.1 · Field Tile operational flow refinement (4-group regrouping) ✅
+9. **Lane C · Post-deploy operational stabilization instrumentation** — deferred to backlog.
+
+### Next Action Items
+- 🔵 **P2 — Backlog · Lane C · Post-deploy stabilization instrumentation.** Possible tighter form: `GET /api/admin/dls/health-summary` JSON only, no new page.
+- 🔵 **P3 — Backlog · DLS UI i18n sweep.** Wrap deeper ShiftStart / DriverShift / DispatchBoard / FindingsBanner chrome in `t()`. (Field Tile chrome + the iter404 group headings are bilingual; deeper surfaces still EN-only.)
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR tile decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+- 🟡 **P2 — Backlog · Shift start QR card generator** (admin tool printing per-tenant PDF with `/shift` URL as QR — door stickers).
+
+---
+
+
 ## 2026-05-24 — iter403 · Phase 13 · Field Tile Convergence ✅
 
 ### Mission
