@@ -250,10 +250,19 @@ async def create_driver_session(
     assignment_id: Optional[str],
     issued_by_name: str,
     ttl_seconds: int = SESSION_TTL_SECONDS,
+    origin: str = "magic_link",
+    company: Optional[str] = None,
+    trailer_id: Optional[str] = None,
+    material: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Persist a fresh driver session row and return
     ``{session_id, token, expires_at}``. The session token is rebuilt
-    by ``make_session_token`` so storage carries no secret."""
+    by ``make_session_token`` so storage carries no secret.
+
+    ``origin`` differentiates dispatcher-minted magic-link sessions
+    (``"magic_link"``) from driver-self-started shift sessions
+    (``"self_start"``). ``company``, ``trailer_id``, ``material`` are
+    optional shift metadata captured at self-start time (iter401)."""
     session_id = str(uuid.uuid4())
     issued_at = now_dt()
     expires_at = issued_at + timedelta(seconds=ttl_seconds)
@@ -271,6 +280,10 @@ async def create_driver_session(
         "revoked_at": None,
         "revoked_by_name": None,
         "last_seen_at": None,
+        "origin": origin or "magic_link",
+        "company": (company or "").strip() or None,
+        "trailer_id": (trailer_id or "").strip() or None,
+        "material": (material or "").strip() or None,
     }
     await db.dispatch_driver_sessions.insert_one(doc)
     token = make_session_token(session_id=session_id, driver_id=driver_id)

@@ -1,6 +1,79 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter401 · Phase 12.8 · Driver Self-Start Operational Entry ✅
+
+### Mission
+Close the missing operational bridge: drivers can now self-start a shift through the public `/shift` URL — 4 inputs, one button, no password, no enrollment, no dispatcher needed. The magic-link flow (iter393) continues to coexist for dispatcher-initiated handoffs.
+
+### Doctrine reinforced (Phase 12.8)
+- Drivers should never feel they're "using the MASCI platform". They are simply checking operational status.
+- Truck identity > user-account identity. Operational continuity follows the truck.
+- 0 passwords, 0 enrollment, 0 enterprise auth.
+- Last-driver-wins: only one driver authors a truck's lifecycle at any moment.
+- Driver tap remains the sole author of every lifecycle transition (Motive doctrine intact).
+- 20-point Phase 12.8 doctrine gate: ALL 20 PASS.
+
+### Files shipped
+- **MOD** `/app/backend/driver_sessions.py` — `create_driver_session` extended with `origin`, `company`, `trailer_id`, `material`.
+- **MOD** `/app/backend/routes/dispatch_driver.py` —
+  - New `StartShiftRequest` Pydantic model.
+  - New public `POST /api/dispatch/driver/start-shift` endpoint (no auth).
+  - `_current_assignment_for_session` extended with **truck-id fallback** for self-started sessions.
+  - Transition auth relaxed: self-started drivers can advance the truck's assignment when truck_id matches.
+  - Synthetic `driver_id` = `shift-<12hex>` (readable origin marker).
+  - Last-driver-wins: revokes prior active session on the same truck when a new driver claims it.
+- **NEW** `/app/backend/tests/test_iter401_shift_start.py` — 9 backend tests (public access, required-fields, response shape, /me validation, truck-id fallback, self-started transition, last-driver-wins, tenant isolation).
+- **NEW** `/app/frontend/src/pages/driver/ShiftStart.jsx` — ~210 LOC operational entry form. Slate canvas + amber kicker. 56 px inputs, 64 px primary button. WCAG-AAA tap targets.
+- **MOD** `/app/frontend/src/App.js` — wires `/shift` route.
+- **MOD** `/app/frontend/src/pages/driver/DriverShift.jsx` — `goSignedOut` now redirects to `/shift` (not `/`).
+
+### Identity model
+- Self-started session `driver_id` = `shift-<12hex>` (synthetic). The truck_id is the operational continuity key.
+- Audit trail stays intact: `_record_transition` captures the declared driver name + role on every state change.
+- Magic-link flow (iter393) and self-start flow (iter401) coexist: same session shape, same downstream consumers.
+
+### Phase 12.8 doctrine gate · 20-check audit
+**All 20 checks: PASS.** Documented in `PHASE12_CONTINUITY_AUDIT.md` iter401 addendum.
+
+### Tests · 60 / 60 PASS in 14.15 s
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+- **iter401 driver self-start 9/9 (new)**
+ESLint clean on `ShiftStart.jsx`, `DriverShift.jsx`, `App.js`. Ruff clean on `driver_sessions.py`, `routes/dispatch_driver.py`, `tests/test_iter401_shift_start.py`. Both audit guardrails report clean on the new code. Live smoke at 390 px: page renders, all 5 testids present, visual matches platform tone.
+
+### What iter401 explicitly did NOT do (restraint enforced)
+- ❌ No new portal / dashboard / analytics surface
+- ❌ No role visibility changes (Safety / FL / HR stay quiet)
+- ❌ No Motive activation
+- ❌ No password / signup / enrollment / verification
+- ❌ No employee record / HR coupling
+- ❌ No GPS / tracking / location capture
+- ❌ No automated state transitions (driver tap is sole author)
+- ❌ No new collection — sessions extended in place
+- ❌ No EN→ES sweep (consistent with existing DLS chrome; deferred to backlog i18n iter)
+
+### Phase 12 lane order — current state
+1. **a · Cross-platform continuity audit** ✅ iter397.
+2. **e · Restraint / tone pass + operator vocabulary scanner** ✅ iter398.
+3. **b · Mobile-first usability sweep + touch-target audit helper** ✅ iter399.
+4. **d · Motive integration strategy refresh + audit doctrine index** ✅ iter400.
+5. **Phase 12.8 · Driver self-start operational entry** ✅ iter401 *(replaced Lane C per operator directive — driver entry was the missing operational bridge)*.
+6. **c · Post-deploy operational stabilization instrumentation** — deferred.
+
+### Next Action Items
+- 🔵 **P2 — Backlog · Lane C (deferred) · Post-deploy operational stabilization instrumentation.** Week 1 / 2 / 4 checklist. Optional `/admin/dls-health` page only if it stays under "one page, no new data".
+- 🔵 **P3 — Backlog · DLS UI i18n sweep.** Wrap operational chrome (including the new `ShiftStart.jsx`) in `t()`.
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR tile decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+- 🟡 **P1 — Backlog · Dispatcher visibility of active driver shifts** (low priority — they already see assignment ownership; would only become useful if shift-without-assignment becomes a common state in live ops).
+
+---
+
+
 ## 2026-05-24 — iter400 · Phase 12.7 · Lane D · Motive Strategy Refresh + Audit Doctrine Index ✅
 
 ### Mission

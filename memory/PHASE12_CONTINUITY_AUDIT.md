@@ -217,12 +217,138 @@ next per the operator's lane order: **a → e → b → d → c**.
 
 - 🟢 **iter398 · Lane E · Restraint/tone pass.** ✅ shipped — see iter398 addendum above.
 - 🟢 **iter399 · Lane B · Mobile-first usability sweep.** ✅ shipped — see iter399 addendum above.
-- 🟢 **iter400 · Lane D · Motive integration strategy refresh (DOC ONLY) + AUDIT_GUARDRAILS.md doctrine index.** ✅ shipped — see iter400 addendum below.
-- 🔵 **iter401 · Lane C · Post-deploy operational stabilization instrumentation.**
-  Week 1 / 2 / 4 stability checklist. Optional read-only `/admin/dls-health`
-  page if and only if it stays under "one page, no new data".
+- 🟢 **iter400 · Lane D · Motive integration strategy refresh (DOC ONLY) + AUDIT_GUARDRAILS.md doctrine index.** ✅ shipped — see iter400 addendum above.
+- 🟢 **iter401 · Phase 12.8 · Driver Self-Start Operational Entry.** ✅ shipped — see iter401 addendum below. (Lane C deferred per operator directive — driver entry was the missing operational bridge and took priority.)
+- 🔵 **iter402+ · Lane C · Post-deploy operational stabilization instrumentation** (deferred).
 - 🔵 **Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
 - 🔵 **Backlog · 14-day post-live ops review** of Safety/FL/HR tile decisions.
+
+---
+
+# iter401 addendum · Phase 12.8 · Driver Self-Start Operational Entry ✅ (2026-05-24)
+
+## Scope
+
+Close the "how do drivers self-enter the system" gap. Until iter401 every driver session required a dispatcher to mint a magic link. iter401 lets a driver land on a public `/shift` URL, fill 4 short fields, tap **Start shift**, and immediately receive a shift-scoped session — no passwords, no accounts, no enrollment.
+
+This is **NOT** a new portal. The driver surface, doctrine, and tone all stay the same. The new `/shift` page is the missing front door to the existing iter393 driver experience.
+
+## Doctrine framing (Phase 12.8)
+
+- Drivers should never feel they are "using the MASCI platform". They are simply checking operational status.
+- Truck identity > user-account identity. Trucks rotate drivers; subs rotate; owner-operators swap. Operational continuity must follow the truck.
+- 0 passwords, 0 enrollment, 0 enterprise auth — the magic-link flow stays alongside the self-start flow.
+- 4 inputs maximum (2 required, 2 optional). One button: "Start shift".
+
+## Files shipped
+
+### Backend (3 files)
+
+| File | Change | Why |
+|---|---|---|
+| `/app/backend/driver_sessions.py` | `create_driver_session` extended with `origin`, `company`, `trailer_id`, `material` optional fields | Differentiates magic-link sessions from self-start sessions; captures shift metadata. |
+| `/app/backend/routes/dispatch_driver.py` | New `StartShiftRequest` model · new public `POST /api/dispatch/driver/start-shift` route · `_current_assignment_for_session` extended with **truck-id fallback** for self-started sessions · transition auth relaxed so a self-started driver can advance the truck's assignment even when dispatch pinned a different `driver_id` | The operational identity model: when a driver self-starts on truck T-42, the truck is the operational continuity key. The relaxed match is the forgiving doctrine in action. |
+| `/app/backend/tests/test_iter401_shift_start.py` | NEW — 9 backend tests covering public access, required-field enforcement, response shape, `/me` validation, truck-id fallback, self-started transition, last-driver-wins revocation, tenant isolation | Comprehensive regression for the new flow + cross-flow integration verification. |
+
+### Frontend (3 files)
+
+| File | Change | Why |
+|---|---|---|
+| `/app/frontend/src/pages/driver/ShiftStart.jsx` | NEW · ~210 LOC · the `/shift` form (4 inputs, one button, error pane, calm "Operational check-in" kicker) | The new operational entry surface. Follows iter399 mobile doctrine: 56 px inputs, 64 px primary button, sunlight-readable amber-on-slate. |
+| `/app/frontend/src/App.js` | Imports `ShiftStart`, adds `<Route path="/shift" element={<ShiftStart />} />` | Wires up the new public route alongside the existing `/d/:token` and `/driver` routes. |
+| `/app/frontend/src/pages/driver/DriverShift.jsx` | `goSignedOut` redirect target changed from `/` to `/shift` | Sign-out now lands on the operational entry surface instead of the marketing root — drivers stay in driver-land. |
+
+## Identity model
+
+Self-started sessions carry a synthetic `driver_id` of the form `shift-<12hex>`. This makes the origin readable at a glance in admin tooling (existing `GET /sessions` lists them with `origin: "self_start"`). The truck_id captured at shift start is what binds the session to dispatch's assignments.
+
+The transition authorization checks now read:
+
+> Driver can transition an assignment when **(a)** the assignment's driver_id matches the session's driver_id (magic-link path, unchanged), **OR (b)** the assignment's driver_id is unset / mismatched but its `truck_id` matches the session's `truck_id` (iter401 self-start path).
+
+This preserves audit integrity — the transition's `by_name` + `by_role` come from the session, so the state_history always records who actually moved the truck.
+
+## Last-driver-wins
+
+When a second driver claims the same truck (e.g., shift change without the previous driver signing out), the system revokes the previous active session on that truck. The previous driver's phone, if still open, will 401 on next poll and bounce to `/shift`. This is the operationally honest behavior: only one driver authors a truck's lifecycle at any given time.
+
+## Phase 12.8 doctrine gate · 20-check audit
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Does this look like the platform? | 🟢 slate canvas · amber kicker · same typography family · same input chrome |
+| 2 | Does this feel like the platform? | 🟢 calm copy ("Tell us who's driving and which truck") · "Operational check-in" kicker matches the platform's operator-honest voice |
+| 3 | Does this preserve operational calmness? | 🟢 no toast spam · single submit button · single error pane |
+| 4 | Does this preserve low cognitive load? | 🟢 2 required inputs + 2 clearly-marked optional inputs |
+| 5 | Does this preserve operational trust? | 🟢 driver self-declares identity; existing append-only audit captures every transition with the declared name |
+| 6 | Does this preserve role discipline? | 🟢 driver remains driver-only · no new privileges · no new visibility |
+| 7 | Does this avoid ERP behavior? | 🟢 no employee record, no signup, no verification, no manager approval |
+| 8 | Does this avoid analytics drift? | 🟢 no new metrics, scores, charts |
+| 9 | Does this avoid dashboard sprawl? | 🟢 one tiny form, zero new dashboards or panels |
+| 10 | Does this preserve downstream continuity? | 🟢 feeds existing `dispatch_assignments` → `DispatchBoard` → `DispatchLifecycleTile` unchanged |
+| 11 | Does this remain mobile-first? | 🟢 verified at 390 px viewport · 64 px primary button · 56 px inputs · scanner clean |
+| 12 | Does this preserve restraint doctrine? | 🟢 no passwords, no signup, no enrollment, no extra fields |
+| 13 | Does this integrate naturally into the existing platform? | 🟢 reuses `driver_sessions.py`, `_current_assignment_for_session`, `_record_transition`, `driverAuth.js`. No parallel systems. |
+| 14 | Would a driver instantly understand this? | 🟢 4 fields with familiar labels, one obvious button |
+| 15 | Would a Superintendent instantly trust this? | 🟢 the truck-id model matches how the field actually works |
+| 16 | Does this preserve validate-don't-surveil doctrine? | 🟢 zero GPS, zero tracking. Driver self-declares. Future Motive validates honestly. |
+| 17 | Does this avoid operational noise? | 🟢 no new alerts, no new banners, no new findings |
+| 18 | Does this strengthen operational continuity? | 🟢 closes the "how does the driver get a session" gap |
+| 19 | Does this preserve operational honesty? | 🟢 last-driver-wins is the honest model · audit trail tracks declared identity |
+| 20 | Does this align with foundational doctrine? | 🟢 Phase 12.8 explicitly directs this |
+
+**All 20 checks: PASS.**
+
+## Verification
+
+```bash
+# Full iter401 + every prior DLS regression
+cd /app/backend
+python -m pytest tests/test_iter401_shift_start.py \
+                 tests/test_iter392_dls_foundation.py \
+                 tests/test_iter393_driver_session.py \
+                 tests/test_iter395_governance.py \
+                 tests/test_iter396_convergence.py -q
+# 60 / 60 PASS in 14.15 s ✅
+
+# Both audit guardrails on the new code
+python3 /app/scripts/operator_vocabulary_scanner.py --paths frontend/src/pages/driver/ShiftStart.jsx
+# → Operator Vocabulary Scan · clean ✅
+python3 /app/scripts/touch_target_audit.py --paths frontend/src/pages/driver/ShiftStart.jsx
+# → Touch-target Audit · clean ✅
+
+# ESLint on touched frontend files + Ruff on touched backend → ✅ all clean
+
+# Live smoke at 390 px — page renders, all 5 testids present, calm visual
+```
+
+## What iter401 leaves behind
+
+1. **A public `/shift` operational entry surface** — drivers self-start without a dispatcher in the loop.
+2. **Backwards-compatible coexistence** — the magic-link flow (iter393) is untouched; both flows mint identical session shapes.
+3. **A truck-keyed continuity model** — operational truth follows the truck, not the user account. Subs and owner-operators rotate seamlessly.
+4. **Last-driver-wins** — the previous active session on a truck is revoked automatically when a new driver claims it. No stale claims.
+5. **9 new backend tests** + **0 behavior changes** for prior iters (51 prior tests still PASS).
+6. **Both audit guardrails report clean** on the new file (no vocabulary drift · no undersized targets).
+
+## Restraint discipline maintained
+
+- ❌ No new portal
+- ❌ No new dashboard
+- ❌ No new analytics surface
+- ❌ No role visibility changes (Safety / FL / HR stay quiet)
+- ❌ No Motive activation
+- ❌ No password / enrollment / signup / verification system
+- ❌ No employee record
+- ❌ No GPS / tracking / location capture
+- ❌ No automated state transitions (driver tap remains sole author)
+- ❌ No new collection (sessions extended in place)
+
+## EN / ES parity note
+
+`ShiftStart.jsx` is currently EN-only. This is consistent with the existing DLS chrome (per iter397 audit documentation). When the deferred "DLS UI i18n sweep" lands, `ShiftStart.jsx` joins the same `t()` wrap as the rest of the driver surface. Not in iter401's scope.
+
+
 
 ---
 

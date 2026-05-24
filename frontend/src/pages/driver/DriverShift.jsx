@@ -124,7 +124,7 @@ export default function DriverShift() {
 
   const goSignedOut = useCallback(() => {
     clearDriverSession();
-    navigate("/", { replace: true });
+    navigate("/shift", { replace: true });
   }, [navigate]);
 
   const refresh = useCallback(async () => {

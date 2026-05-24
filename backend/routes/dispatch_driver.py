@@ -50,6 +50,15 @@ class SessionExchangeRequest(BaseModel):
     magic_token: str = Field(..., min_length=8, max_length=240)
 
 
+class StartShiftRequest(BaseModel):
+    """iter401 · Phase 12.8 · driver self-start (no dispatcher needed)."""
+    driver_name: str = Field(..., min_length=1, max_length=120)
+    truck_id: str = Field(..., min_length=1, max_length=64)
+    company: Optional[str] = Field(default="", max_length=120)
+    trailer_id: Optional[str] = Field(default="", max_length=64)
+    material: Optional[str] = Field(default="", max_length=120)
+
+
 class DriverTransitionRequest(BaseModel):
     to_state: str = Field(..., min_length=1, max_length=64)
     note: Optional[str] = ""
@@ -87,7 +96,11 @@ async def _current_assignment_for_session(
     Priority:
       1. If the session was issued with a pinned ``assignment_id`` use that.
       2. Otherwise, latest non-terminal, non-cancelled assignment for
-         the driver in their tenant.
+         the driver in their tenant (``driver_id`` match — magic-link path).
+      3. iter401 fallback (self-start path): if no driver_id match AND
+         the session carries a ``truck_id``, find the latest active
+         assignment for that truck regardless of who originally owned it.
+         Trucks rotate drivers; operational continuity follows the truck.
     """
     tenant_id = session["tenant_id"]
     pinned = session.get("assignment_id")
@@ -98,7 +111,7 @@ async def _current_assignment_for_session(
         )
         if doc:
             return doc
-    # Fallback: most recent active assignment for this driver.
+    # 2 · driver_id match (magic-link path)
     cursor = (
         db.dispatch_assignments
         .find(
@@ -114,7 +127,29 @@ async def _current_assignment_for_session(
         .limit(1)
     )
     rows = await cursor.to_list(length=1)
-    return rows[0] if rows else None
+    if rows:
+        return rows[0]
+    # 3 · iter401 truck_id fallback (self-start path)
+    truck_id = (session.get("truck_id") or "").strip()
+    if truck_id:
+        cursor = (
+            db.dispatch_assignments
+            .find(
+                {
+                    "tenant_id": tenant_id,
+                    "truck_id": truck_id,
+                    "current_state": {"$nin": [DLS.COMPLETE, DLS.OFF_SHIFT]},
+                    "cancelled_at": None,
+                },
+                {"_id": 0},
+            )
+            .sort("assigned_at", -1)
+            .limit(1)
+        )
+        rows = await cursor.to_list(length=1)
+        if rows:
+            return rows[0]
+    return None
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -126,6 +161,103 @@ def build_driver_router(
 ) -> APIRouter:
     router = APIRouter(prefix="/api/dispatch/driver", tags=["dispatch-driver"])
     require_driver = DS.make_require_driver_session(db)
+
+    # ────────────────────────────────────────────────────────────────
+    # iter401 · Phase 12.8 · Driver self-start operational entry
+    # ────────────────────────────────────────────────────────────────
+    @router.post("/start-shift")
+    async def start_shift_route(
+        body: StartShiftRequest,
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        """Public · driver self-starts a shift.
+
+        No dispatcher action required. No password. The driver lands on
+        ``/shift``, fills four short fields, taps Start Shift, and gets a
+        shift-scoped session immediately.
+
+        Identity model: the synthetic ``driver_id`` is ``shift-<12hex>``.
+        Trucks rotate drivers; the truck_id is the operational continuity
+        key — assignments owned by this truck become visible to whichever
+        driver is currently shifted onto it.
+
+        Idempotence-ish: if an active session already exists for the same
+        (tenant, truck), the previous session is revoked (last driver
+        wins) so an old phone left logged in doesn't keep a stale claim.
+        """
+        import uuid as _uuid
+        tenant_id = _resolve_tenant(x_tenant_id)
+        driver_name = body.driver_name.strip()
+        truck_id = body.truck_id.strip()
+        if not driver_name or not truck_id:
+            raise HTTPException(400, "Driver name and truck number are required")
+
+        # Last-driver-wins: revoke any active session on this truck.
+        try:
+            stale = db.dispatch_driver_sessions.find(
+                {
+                    "tenant_id": tenant_id,
+                    "truck_id": truck_id,
+                    "revoked_at": None,
+                },
+                {"_id": 0, "id": 1},
+            )
+            async for s in stale:
+                await DS.revoke_driver_session(
+                    db,
+                    session_id=s["id"],
+                    revoked_by_name=f"Truck claimed by {driver_name}",
+                )
+        except Exception:
+            # Non-fatal — fresh session still issues; stale will TTL.
+            pass
+
+        synthetic_driver_id = f"shift-{_uuid.uuid4().hex[:12]}"
+        session = await DS.create_driver_session(
+            db,
+            tenant_id=tenant_id,
+            driver_id=synthetic_driver_id,
+            driver_name=driver_name,
+            truck_id=truck_id,
+            assignment_id=None,
+            issued_by_name=driver_name,
+            origin="self_start",
+            company=body.company or None,
+            trailer_id=body.trailer_id or None,
+            material=body.material or None,
+        )
+
+        # Land the driver directly on their assignment if one exists.
+        assignment = None
+        try:
+            session_row = await db.dispatch_driver_sessions.find_one(
+                {"id": session["session_id"]}, {"_id": 0},
+            )
+            if session_row:
+                assignment = await _current_assignment_for_session(
+                    db, session=session_row,
+                )
+        except Exception:
+            assignment = None
+
+        return {
+            "ok": True,
+            "driver_token": session["token"],
+            "session_id": session["session_id"],
+            "expires_at": session["expires_at"],
+            "tenant_id": tenant_id,
+            "driver": {
+                "driver_id": synthetic_driver_id,
+                "driver_name": driver_name,
+            },
+            "shift": {
+                "truck_id": truck_id,
+                "company": (body.company or "").strip() or None,
+                "trailer_id": (body.trailer_id or "").strip() or None,
+                "material": (body.material or "").strip() or None,
+            },
+            "assignment": assignment,
+        }
 
     # ────────────────────────────────────────────────────────────────
     # Magic link issuance (dispatch/admin) and exchange (public)
@@ -265,12 +397,17 @@ def build_driver_router(
         )
         if not assignment:
             raise HTTPException(404, "Assignment not found")
-        # Scope: drivers can only transition assignments tied to them.
+        # Scope: drivers can only transition assignments tied to them
+        # OR — iter401 self-start path — assignments owned by the same
+        # truck this driver is currently shifted onto. Trucks rotate
+        # drivers; operational continuity follows the truck.
         if assignment.get("driver_id") and assignment["driver_id"] != session["driver_id"]:
-            raise HTTPException(
-                403,
-                "Driver session is not authorized for this assignment",
-            )
+            truck_id = (session.get("truck_id") or "").strip()
+            if not truck_id or assignment.get("truck_id") != truck_id:
+                raise HTTPException(
+                    403,
+                    "Driver session is not authorized for this assignment",
+                )
         if assignment.get("cancelled_at"):
             raise HTTPException(409, "Assignment is cancelled")
 
