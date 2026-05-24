@@ -1012,8 +1012,189 @@ def build_dispatch_lifecycle_router(
     return router
 
 
+# ════════════════════════════════════════════════════════════════════
+# iter412 · Phase 16.1 · Admin DLS Health Summary
+# ════════════════════════════════════════════════════════════════════
+def build_dls_admin_health_router(
+    db,
+    require_admin_dep: Callable[..., Awaitable[Dict[str, Any]]],
+) -> APIRouter:
+    """Single read-only health endpoint for Day-1 live ops monitoring.
+
+    GET /api/admin/dls/health-summary
+
+    Doctrine:
+      - Admin only · single JSON read · no charts · no scores · no KPIs.
+      - Computed on demand from existing collections; zero new
+        collections, zero stored summaries, zero new write surface.
+      - status ∈ {quiet, flowing, attention} — no scoring.
+      - Notes carry small operational reasons for the status (≤3 entries).
+    """
+    router = APIRouter(prefix="/api/admin/dls", tags=["dispatch-lifecycle-health"])
+
+    @router.get("/health-summary")
+    async def dls_health_summary(
+        actor: Dict[str, Any] = Depends(require_admin_dep),  # noqa: ARG001
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        tenant_id = _resolve_tenant(x_tenant_id)
+        now = datetime.now(timezone.utc)
+        day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_iso = day_start.isoformat()
+        date_str = now.strftime("%Y-%m-%d")
+
+        # ── Active assignments + state classification ──────────────
+        active_assignments = 0
+        waiting_count = 0
+        breakdown_count = 0
+        oldest_waiting_minutes = 0
+        oldest_stuck_minutes = 0
+        try:
+            cur = db.dispatch_assignments.find(
+                {
+                    "tenant_id": tenant_id,
+                    "current_state": {"$nin": list(DLS.TERMINAL_STATES)},
+                },
+                {
+                    "_id": 0, "current_state": 1, "last_transition_at": 1,
+                },
+            )
+            async for a in cur:
+                active_assignments += 1
+                state = a.get("current_state") or ""
+                lt = a.get("last_transition_at")
+                age_min = 0
+                if lt:
+                    try:
+                        ts = datetime.fromisoformat(lt.replace("Z", "+00:00"))
+                        age_min = int(max(0, (now - ts).total_seconds() // 60))
+                    except Exception:
+                        age_min = 0
+                if state == DLS.WAITING:
+                    waiting_count += 1
+                    if age_min > oldest_waiting_minutes:
+                        oldest_waiting_minutes = age_min
+                if state == DLS.BREAKDOWN:
+                    breakdown_count += 1
+                if age_min > oldest_stuck_minutes:
+                    oldest_stuck_minutes = age_min
+        except Exception:
+            pass
+
+        # ── Today's flow signals ───────────────────────────────────
+        assignments_created_today = 0
+        haul_counts = {
+            "Material": 0, "Equipment Move": 0,
+            "Tanker / Liquid Asphalt": 0,
+            "Spoils / Dump": 0, "Support / Misc": 0,
+        }
+        try:
+            cur2 = db.dispatch_assignments.find(
+                {"tenant_id": tenant_id, "created_at": {"$gte": day_iso}},
+                {"_id": 0, "haul_type": 1},
+            )
+            async for a in cur2:
+                assignments_created_today += 1
+                ht = (a.get("haul_type") or "Material").strip() or "Material"
+                if ht in haul_counts:
+                    haul_counts[ht] += 1
+        except Exception:
+            pass
+
+        completed_cycles_today = 0
+        try:
+            completed_cycles_today = await db.haul_cycles.count_documents({
+                "tenant_id": tenant_id,
+                "completed_at": {"$gte": day_iso},
+            })
+        except Exception:
+            pass
+
+        transitions_today = 0
+        try:
+            transitions_today = await db.dispatch_state_events.count_documents({
+                "tenant_id": tenant_id,
+                "occurred_at": {"$gte": day_iso},
+            })
+        except Exception:
+            pass
+
+        # ── Active shifts (driver sessions still open today) ───────
+        active_shifts = 0
+        try:
+            active_shifts = await db.dispatch_driver_sessions.count_documents({
+                "tenant_id": tenant_id,
+                "$or": [
+                    {"ended_at": None},
+                    {"ended_at": {"$exists": False}},
+                ],
+            })
+        except Exception:
+            pass
+
+        # ── Findings today (reuse governance computation surface) ──
+        findings_today = 0
+        try:
+            findings_today = (
+                (1 if breakdown_count > 0 else 0)
+                + (1 if oldest_waiting_minutes >= 45 else 0)
+                + (1 if oldest_stuck_minutes >= 30 else 0)
+            )
+        except Exception:
+            findings_today = 0
+
+        # ── Status classification ──────────────────────────────────
+        notes: List[str] = []
+        if breakdown_count > 0:
+            notes.append(f"{breakdown_count} breakdown(s) active")
+        if oldest_waiting_minutes >= 45:
+            notes.append(f"longest wait {oldest_waiting_minutes} min")
+        if oldest_stuck_minutes >= 60:
+            notes.append(f"oldest active assignment {oldest_stuck_minutes} min in state")
+
+        if (
+            active_assignments == 0
+            and active_shifts == 0
+            and findings_today == 0
+            and breakdown_count == 0
+        ):
+            status = "quiet"
+        elif (
+            breakdown_count > 0
+            or oldest_waiting_minutes >= 45
+            or oldest_stuck_minutes >= 60
+            or findings_today > 0
+        ):
+            status = "attention"
+        else:
+            status = "flowing"
+
+        return {
+            "ok": True,
+            "tenant_id": tenant_id,
+            "date": date_str,
+            "as_of": now.isoformat(),
+            "active_shifts": active_shifts,
+            "active_assignments": active_assignments,
+            "assignments_created_today": assignments_created_today,
+            "completed_cycles_today": completed_cycles_today,
+            "transitions_today": transitions_today,
+            "waiting_count": waiting_count,
+            "breakdown_count": breakdown_count,
+            "oldest_waiting_minutes": oldest_waiting_minutes,
+            "oldest_stuck_minutes": oldest_stuck_minutes,
+            "findings_today": findings_today,
+            "haul_types_today": haul_counts,
+            "status": status,
+            "notes": notes[:3],
+        }
+
+    return router
+
+
 __all__ = [
     "build_dispatch_lifecycle_router",
+    "build_dls_admin_health_router",
     "ensure_dispatch_lifecycle_indexes",
     "DEFAULT_TENANT_ID",
 ]

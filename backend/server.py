@@ -9732,6 +9732,7 @@ logging.getLogger(__name__).info("[fleet-ops] iter251 Phase A router mounted · 
 # surface — driver magic-link arrives in iter393.
 from routes.dispatch_lifecycle import (  # noqa: E402
     build_dispatch_lifecycle_router,
+    build_dls_admin_health_router,
     ensure_dispatch_lifecycle_indexes,
 )
 
@@ -9741,6 +9742,13 @@ _dls_router = build_dispatch_lifecycle_router(
     require_any_portal_token_dep=_require_any_portal_token,
 )
 app.include_router(_dls_router)
+
+# iter412 · Phase 16.1 · admin-only health summary mounted at /api/admin/dls
+_dls_admin_health_router = build_dls_admin_health_router(
+    db,
+    require_admin_dep=require_admin,
+)
+app.include_router(_dls_admin_health_router)
 
 
 @app.on_event("startup")

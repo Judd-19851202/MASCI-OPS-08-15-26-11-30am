@@ -1,6 +1,105 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter412 · Phase 16.1 · DLS Health Summary + Day-1 Debrief Doc ✅
+
+### Mission
+Close Phase 15 Part 11 with the smallest useful Day-1 live ops observability. **One read-only JSON endpoint · one calm status string · one debrief checklist.** Zero charts, zero scoring, zero dashboards.
+
+### Doctrine reinforced (Phase 16.1)
+- **Minimum observability**, not monitoring suite. Three calm hits to one endpoint = the entire Day-1 platform-health story.
+- **Computed on demand** from existing collections (`dispatch_assignments`, `dispatch_state_events`, `haul_cycles`, `dispatch_driver_sessions`). Zero new collection, zero stored summary.
+- **Admin only.** Not exposed to PM, dispatch, drivers, or public. This is operations leadership visibility.
+- **No analytics language.** Status ∈ `{quiet, flowing, attention}` — three operational words, no KPIs, no scores.
+
+### iter412 · DLS Health Summary Endpoint
+`GET /api/admin/dls/health-summary` (admin-gated · 200 JSON)
+
+```json
+{
+  "ok": true,
+  "tenant_id": "masci",
+  "date": "2026-05-24",
+  "as_of": "2026-05-24T23:17:46.482009+00:00",
+  "active_shifts": 1,
+  "active_assignments": 4,
+  "assignments_created_today": 4,
+  "completed_cycles_today": 0,
+  "transitions_today": 0,
+  "waiting_count": 0,
+  "breakdown_count": 0,
+  "oldest_waiting_minutes": 0,
+  "oldest_stuck_minutes": 181,
+  "findings_today": 1,
+  "haul_types_today": {
+    "Material": 1, "Equipment Move": 2, "Tanker / Liquid Asphalt": 1,
+    "Spoils / Dump": 0, "Support / Misc": 0
+  },
+  "status": "attention",
+  "notes": ["oldest active assignment 181 min in state"]
+}
+```
+
+**Status classification** (deterministic, no scoring):
+- `quiet` — zero active assignments, zero shifts, zero breakdowns, zero findings
+- `flowing` — active work present, no exceptions
+- `attention` — breakdown present, or oldest wait ≥ 45 min, or oldest stuck ≥ 60 min, or findings > 0
+
+**Notes** carry up to 3 small operational reasons (e.g. "2 breakdown(s) active", "longest wait 51 min").
+
+### Day-1 Live Ops Debrief Doc
+`/app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF.md` — 10-question checklist + 5-bullet "what TO capture" guide + 5-bullet "what NOT to capture" guide. **Prompt sheet, not survey system.** Designed to be filled by hand or typed bullets the SAME day the platform runs in the field.
+
+Includes explicit guidance to:
+- Hit the health-summary endpoint 3 times across Day 1 (kickoff · 11 AM · end of day) — three timestamps = the entire monitoring story.
+- File completed debriefs as `DLS_DAY1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md` so they accumulate as operational memory.
+- Read the completed debrief BEFORE building the next iteration — the platform should serve the operations the debrief describes, not what engineering imagined.
+
+### Files shipped
+- **NEW** `/app/backend/tests/test_iter412_dls_health_summary.py` — 8 tests (auth gate · shape · quiet → flowing → attention status classifications · 5-haul-type split · no internal field leakage)
+- **NEW** `/app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF.md` — blank-template debrief
+- **MOD** `/app/backend/routes/dispatch_lifecycle.py` — added `build_dls_admin_health_router()` factory (~170 LOC scoped block, no edits to existing routes)
+- **MOD** `/app/backend/server.py` — mounted new admin router at `/api/admin/dls/*`
+
+### Tests · 130/130 per-file PARITY-LOCK PASS
+- iter319 12/12 · iter392 23/23 · iter393 13/13 · iter395 12/12 · iter396 3/3 · iter401 9/9 · iter402 10/10 · iter407 7/7 · iter408 15/15 · iter409 9/9 · iter410 9/9 · **iter412 8/8 NEW**
+- Cross-file isolation flakiness on full-suite runs is the documented inherited iter395↔iter402/iter409 tenant-state leakage (P3 backlog) — not introduced by iter412
+- Ruff clean
+
+Live endpoint smoke-test against production tenant confirmed the endpoint correctly classifies `attention` status when an assignment has been stuck >180min, emits operational notes, and counts haul_types across all 5 canonical entries.
+
+### What Phase 16.1 explicitly did NOT do (restraint enforced)
+- ❌ No admin dashboard · no charts · no scoring · no KPIs · no graphs · no telemetry suite
+- ❌ No new collection · no stored summaries · no write endpoint
+- ❌ No analytics language anywhere in response or notes
+- ❌ No exposure to non-admin roles
+- ❌ No Dispatch Portal integration (the directive allowed it "if extremely small"; deferring until Day-1 debrief surfaces real demand)
+- ❌ No new governance detectors · no Motive code · no notifications
+
+### Phase doctrine timeline (current state)
+1. iter397-405 · Phases 12-13.2 ✅
+2. iter406+iter407 · Phase 14 ✅
+3. iter408 · Phase 14.1 + 14.2 ✅
+4. iter409 · Phase 14.3 · PM Haul Activity ✅
+5. iter410 · Phase 15.1 · Tanker / Liquid Asphalt ✅
+6. iter411 · Phase 16 · Dispatch Command Portal IA ✅
+7. **iter412 · Phase 16.1 · DLS Health Summary + Day-1 Debrief ✅**
+
+### Operational Rollout Status: DEPLOYABLE WITH DAY-1 OBSERVABILITY
+- ✅ 5 haul types · ✅ searchable rosters · ✅ QR shift start · ✅ Driver self-start · ✅ Assignment issuance · ✅ Dispatch Command Portal · ✅ PM Haul Activity · ✅ Shop breakdown continuity · ✅ Bilingual EN/ES · ✅ Mobile 390px validated
+- ✅ **NEW**: One calm read-only signal of platform health (`/api/admin/dls/health-summary`)
+- ✅ **NEW**: Day-1 debrief prompt sheet ready for the first live morning
+
+### Next Action Items
+- 🟡 **P1 — Day-1 live ops debrief** (now actively unblocked — go run the platform tomorrow morning · capture the 10 answers · file as `DLS_DAY1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md`)
+- 🟠 **P2 — DispatchHub.jsx & AssignmentCreateDrawer.jsx component extraction** (deferred cleanup · 559 + 806 LOC)
+- 🟠 **P2 — `server.py` Phase 4D extractions** (`/api/legacy-imports/*`)
+- 🔵 **P3 — Phase 15 backlog deferred items** (Ticket photos · WAITING_OTHER picker · Memory hygiene · Onboarding · Driver edge cases — each contingent on Day-1 debrief naming real demand)
+- 🔵 **P3 — 233 inherited pytest isolation failures** (separate quality project)
+
+---
+
+
 ## 2026-05-24 — iter411 · Phase 16 · Dispatch Portal Operational Cognition Convergence ✅
 
 ### Mission
