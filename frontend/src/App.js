@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 // AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
+import DriverMagicLanding from "@/pages/driver/DriverMagicLanding";
+import DriverShift from "@/pages/driver/DriverShift";
 import SafetySection from "@/pages/SafetySection";
 import SafetyFormsLogin from "@/pages/SafetyFormsLogin";
 import SafetyFormsHub from "@/pages/SafetyFormsHub";
@@ -667,6 +669,9 @@ function App() {
                 authorization gate — these are display redirects only. */}
             <Route path="/admin/audit" element={<Navigate to="/admin/audit-log" replace />} />
             <Route path="/admin/health" element={<Navigate to="/admin/system-health" replace />} />
+            {/* iter393 · DLS Driver Mobile Surface — magic-link entry */}
+            <Route path="/d/:token" element={<DriverMagicLanding />} />
+            <Route path="/driver" element={<DriverShift />} />
             <Route path="/field-leadership" element={<Navigate to="/leadership" replace />} />
             {/* Catch-all — any path that doesn't match an explicit route
                 renders the 404 NotFound page (Iter181). Previously such

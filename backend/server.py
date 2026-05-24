@@ -9754,6 +9754,33 @@ async def _ensure_dls_indexes() -> None:
         logging.getLogger(__name__).warning(f"[dispatch-lifecycle] index setup skipped: {e}")
 
 
+# ─── iter393 · DLS Driver Mobile Surface (magic-link sessions) ──────
+# Backend half of the driver tap-and-work surface. Magic-link + revokable
+# session pattern mirrors the existing PM/HR/Shop/Safety token model.
+# Driver token gate is built INSIDE the router factory.
+from routes.dispatch_driver import build_driver_router  # noqa: E402
+from driver_sessions import ensure_driver_session_indexes  # noqa: E402
+
+_driver_router = build_driver_router(
+    db,
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+)
+app.include_router(_driver_router)
+
+
+@app.on_event("startup")
+async def _ensure_driver_session_indexes() -> None:
+    try:
+        await ensure_driver_session_indexes(db)
+        logging.getLogger(__name__).info(
+            "[dispatch-driver] iter393 router mounted · indexes ensured",
+        )
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[dispatch-driver] index setup skipped: {e}",
+        )
+
+
 # ─── Backup verification (iter79 — weekly R2 health email) ──────────
 from routes.backup_verification_routes import build_backup_verification_router  # noqa: E402
 from backup_verification import verification_scheduler_loop  # noqa: E402

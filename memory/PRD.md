@@ -1,6 +1,96 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter393 · Phase 11.2 · DLS Driver Mobile Experience ✅
+
+### Mission
+Build the driver tap-and-work surface. Adoption depends on this iteration: drivers must move trucks through the iter392 lifecycle in under 5 seconds, ≤ 6 taps, 0 typed characters. Zero passwords, zero enterprise account headaches.
+
+### Doctrine reinforced
+- **Tap and work, never "use software."** Dispatcher issues a one-time magic link in person; driver opens it on their phone; the shift screen takes over.
+- **Lifecycle states are the system.** Every driver button maps 1:1 to an iter392 canonical state. No parallel data, no narrative fields.
+- **Forgiving operational continuity.** Driver-side transition goes through the EXACT same `_record_transition` writer as the dispatch surface — non-standard transitions stay tagged, never blocked.
+- **Inherit, don't invent.** Magic-link auth pattern mirrors the existing PM-reset + FL-portal HMAC token model. ADMIN_HMAC_SECRET + ADMIN_SESSION_EPOCH knobs reused.
+
+### Files shipped
+- **NEW** `/app/backend/driver_sessions.py` — magic-link + revokable session primitives. `generate_magic_token()` (256-bit urlsafe) · `hash_magic_token()` (sha256 storage) · `make_session_token()` (HMAC `session_id.hmac` mirror of pm_auth) · `validate_driver_session_token()` (revocation + expiry + tenant-aware) · TTL indexes via `ensure_driver_session_indexes()`.
+- **NEW** `/app/backend/routes/dispatch_driver.py` — 7 endpoints under `/api/dispatch/driver/*`:
+  - `POST /magic-link` (dispatch+admin) → returns `{magic_token, url, expires_at, ttl_seconds}`
+  - `POST /session/exchange` (public · single-use) → returns `{driver_token, session_id, expires_at, assignment}`
+  - `GET  /me` (driver) → session shape
+  - `GET  /my-assignment` (driver) → current assignment + `allowed_next_states` + `lifecycle_states`
+  - `POST /assignments/{id}/transition` (driver, scope-checked) → delegates to iter392 `_record_transition`
+  - `GET  /sessions` (dispatch+admin) · `POST /sessions/{id}/revoke` (dispatch+admin)
+- **NEW** `/app/backend/tests/test_iter393_driver_session.py` — 13 tests, all PASS.
+- **MOD** `/app/backend/server.py` (+25 LOC wiring · 0 LOC removed).
+- **NEW** `/app/frontend/src/lib/driverAuth.js` — minimal storage + header helpers (localStorage key `masci.driver.token`, `X-Driver-Token` header).
+- **NEW** `/app/frontend/src/pages/driver/DriverMagicLanding.jsx` — `/d/:token` exchange page. Single-flight guard via `sessionStorage` survives the `authTick`-driven `<BrowserRouter>` remount.
+- **NEW** `/app/frontend/src/pages/driver/DriverShift.jsx` — `/driver` shift screen. CurrentStateCard (giant, tone-keyed) · StateTransitionGrid (80 px amber buttons) · WaitReasonSheet (8 canonical reasons, one-tap) · Breakdown/Hold/Off-shift secondary actions. Polls `/my-assignment` every 6 s so dispatcher cancel/reassign is reflected without driver action.
+- **MOD** `/app/frontend/src/App.js` — 2 new public routes (`/d/:token` and `/driver`). EnforcePortalScope does NOT touch driver storage (verified).
+
+### Magic-link contract (security primitives summary)
+- Magic token = `secrets.token_urlsafe(32)` · sha256 hash stored, raw never persisted.
+- Magic token TTL = 15 min (`DRIVER_MAGIC_TTL_SECONDS`, env-overridable).
+- Magic token is single-use — `used_at` + `used_session_id` flip on first successful `/session/exchange`.
+- Driver session token format = `session_id.hmac` (HMAC binds `ADMIN_SESSION_EPOCH + driver_id + session_id`; bumping the epoch invalidates every driver token in one shot).
+- Driver session TTL = 14 h (`DRIVER_SESSION_TTL_SECONDS`, env-overridable).
+- Sessions are revokable: `POST /sessions/{id}/revoke` flips `revoked_at`; validator rejects on every request thereafter.
+- TTL indexes on both collections auto-prune ended shifts and stale magic links.
+- Tenant-scoped throughout: `tenant_id` on every row, `X-Tenant-Id` honored by every endpoint, cross-tenant exchange rejected (test verified).
+
+### Driver UI contract (adoption critical)
+- **Magic link landing (`/d/:token`):** "Signing you in…" loading state with DLS brand mark and progress bar. On success, replaces history and forwards to `/driver`. On failure (expired/used/network) shows actionable error.
+- **Driver shift screen (`/driver`):**
+  - Full-bleed dark slate background · text-amber accent · sunlight-readable.
+  - **0 typed characters.** Every action is a tap.
+  - **80 px primary tap targets** (state transitions) · 80 px wait-reason buttons · glove-friendly.
+  - 6-tap success budget per cycle (verified manually with demo data).
+  - Current state card uses tone-keyed palette (slate / sky / indigo / emerald / amber / rose) that mirrors Phase 5D/6 conventions.
+  - Wait sheet exposes only the 8 canonical reasons from `WAIT_STATE_DISCIPLINE.md` — no free text in v1 (parity-locked to the operational glossary).
+  - "Sign out" is the only secondary action — discoverable but quiet.
+  - Empty state ("No active haul right now") tells the driver to keep the screen open; auto-refresh every 6 s catches dispatch assignments without driver action.
+
+### Tests · 36 / 36 PASS in 5.74 s
+- iter392 foundation regressions still 23/23 PASS (lifecycle engine + assignments + state-events + haul-cycles unchanged).
+- iter393 driver session = 13/13 PASS:
+  - Magic-link anon-rejected (write gate)
+  - Magic-link shape contract (token ≥ 32 chars · URL has `/d/{token}` suffix)
+  - Magic-link single-use (replay = 401)
+  - Magic-link cross-tenant rejected
+  - Invalid magic token rejected
+  - Driver `/me` anon = 401
+  - Driver `/me` with valid session = 200
+  - Driver `/my-assignment` returns `allowed_next_states` honoring the iter392 graph
+  - Driver-side transition records standard=True, by_role="driver", mirrors to state_events
+  - Cross-driver transition forbidden (driver A cannot move driver B's truck) = 403
+  - Dispatcher revoke = 200 → driver token immediately 401
+  - HMAC roundtrip + sha256 magic-hash determinism (pure module units)
+
+### Live smoke (preview, ~6-tap manual walkthrough)
+1. `python -m scripts.dls_seed_demo --reset-demo` against `tenant_id=dls-demo` (DEMO-T-002 stops at WAITING).
+2. Admin curl → `POST /api/dispatch/driver/magic-link` with `driver_id=demo-driver-bob` → returns URL.
+3. Open the URL on the 414×896 viewport (iPhone-ish).
+4. **Result confirmed:** landing → "Signing you in…" → instant forward to `/driver`. Shift screen shows giant rose "Waiting" current-state card, "Reason · WAITING ON PLANT" badge, job + material chip, 7 primary-next amber buttons sized 80 px, sign-out link in header. Network log shows 1 exchange (200) and recurring 6-second `/my-assignment` polls (200).
+
+### What was explicitly NOT built
+- ❌ Driver profile / settings / history / messaging / chat
+- ❌ Maps / GPS / live tracking
+- ❌ Ticket OCR / PDF generation / photo capture (parked — iter394 board can prompt dispatcher to capture)
+- ❌ Multi-assignment juggling (one assignment in focus by design)
+- ❌ Notifications fan-out (iter395)
+- ❌ Glossary entries / coaching tips / EN-ES translations (iter396)
+- ❌ Free-text WAITING_OTHER (iter396 will add when glossary lands)
+
+### Next Action Items
+- 🟡 **P1 — iter394 DISPATCH OPERATIONAL BOARD.** Live truck-by-truck grid consuming `/api/dispatch/assignments/board`. Includes "Issue magic link" button per row (uses `POST /magic-link`). Row drawer with state_history timeline + cancel/reassign/revoke-session actions.
+- 🟠 **P2 — iter395 GOVERNANCE + NOTIFICATIONS + CSV.** Wire `ASSIGNMENT_STUCK`, `WAIT_THRESHOLD_EXCEEDED`, `MOTIVE_REALITY_MISMATCH` detectors. 3 CSV endpoints. Notification matrix 19 → 25.
+- 🟠 **P2 — iter396 COACHING + GLOSSARY + ES.** 22 glossary entries + LifecycleGuide + EN-ES parity + 2 training modules.
+- 🔵 **P3 — Resume Phase 4D Extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — 233 inherited pytest isolation failures** (separate quality project).
+
+---
+
+
 ## 2026-05-24 — iter392 · Phase 11.1 · DLS Backend Foundation ✅
 
 ### Mission
