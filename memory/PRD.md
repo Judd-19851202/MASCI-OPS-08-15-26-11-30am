@@ -1,6 +1,72 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter397 · Phase 12.A · Cross-Platform Continuity Audit ✅
+
+### Mission
+First Phase 12 iteration · audit-first · surgical fixes only. Walk every DLS surface against 8 priority targets (tone · role visibility · ERP-ness · driver flow · board glanceability · portal drift · Motive doctrine · subsystem drift) and ship the smallest honest copy fixes the audit surfaced. **No new modules, endpoints, collections, tiles, dashboards, or analytics.**
+
+### Doctrine reinforced
+- **Refinement, not expansion.** The mission of Phase 12 is to make the platform feel inevitable, not bigger.
+- **Restraint on Safety/FL/HR DLS visibility is correct** — per operator directive, defer for 14 days of live ops before any role-tile additions.
+- **Operator-facing copy ≠ internal vocabulary.** Iteration references ("iter392 API"), grammar slips ("1 finding require"), and singular-only ribbon counts ("2 breakdown") were all caught and corrected.
+- **The LifecycleGuide must reflect reality, not aspiration.** The "Roles" doctrine line was overstating current visibility for Safety/FL/HR; tightened to match the restraint directive verbatim.
+
+### Files shipped
+- **NEW** `/app/memory/PHASE12_CONTINUITY_AUDIT.md` — full 8-target audit with verdicts, 3 surgical fixes, deferred-gap register, and next-lane order (a → e → b → d → c).
+- **MOD** `/app/frontend/src/pages/DispatchBoard.jsx` — 3 copy fixes (≤ 20 LOC total):
+  1. Empty state: removed `"iter392 API"` leak. Now reads "Trucks will appear here the moment dispatch creates an assignment."
+  2. FindingsBanner: subject-verb agreement ("1 finding requires") + pluralization for `breakdown / long wait / pattern`.
+  3. LifecycleGuide "Roles" section: rewritten to honestly reflect restraint doctrine — PM and Shop see role-scoped signals; Safety/FL/HR remain operationally quiet on DLS by design until live ops tells us otherwise.
+
+Backend untouched. Glossary untouched. Test contract untouched.
+
+### Continuity gaps documented for future iters (not fixed this iter)
+| Gap | Severity | Where it lands |
+|---|---|---|
+| DLS operational chrome (state labels, wait reasons, tile titles, banner copy) is EN-only — not wrapped in `t()`. | 🟡 medium | Lane B (mobile sweep) or dedicated i18n pass |
+| `scope="fl"` tile implemented but unmounted (no FL board surface yet). | 🟢 intentional | Post-14-day live ops review |
+| Wait-reason picker on 320 px viewport wraps. | 🟡 small | Lane B (mobile sweep) |
+| 233 inherited backend `pytest` isolation failures. | 🔵 backlog | Separate quality project |
+
+### Tests · 51 / 51 PASS in 12.87 s
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+
+Copy-only fixes — no contract changes. ESLint clean on the modified file.
+
+### What iter397 explicitly did NOT do (restraint enforced)
+- ❌ No new endpoints / collections / pages / tiles
+- ❌ No analytics / dashboards / charts
+- ❌ No EN→ES sweep on the DLS UI chrome (deferred to lane B)
+- ❌ No role-visibility expansion (Safety/FL/HR stay quiet)
+- ❌ No Motive activation
+- ❌ No notification fan-out changes
+- ❌ No bell-volume reconfig
+- ❌ No structural refactor
+
+### Phase 12 lane order (locked by operator iter397)
+1. **a · Cross-platform continuity audit** ✅ shipped iter397.
+2. **e · Restraint / tone pass** — next (iter398).
+3. **b · Mobile-first usability sweep of DLS surfaces** — iter399.
+4. **d · Motive integration strategy refresh (DOC ONLY)** — iter400.
+5. **c · Post-deploy operational stabilization instrumentation** — iter401.
+
+### Next Action Items
+- 🟡 **P1 — iter398 · Lane E · Restraint / tone pass.** Walk the codebase for any "almost-ERP" wording, default values, modal copy, button language that has drifted toward enterprise speak. Pure language work. No behavior change.
+- 🟡 **P1 — iter399 · Lane B · Mobile-first DLS usability sweep.** DispatchBoard, DriverShift, DriverMagicLanding, AssignmentDrawer at 390 px and 320 px. Tap targets, one-handed reachability, sunlight-readability spot check, glove-friendly verification.
+- 🟠 **P2 — iter400 · Lane D · Motive integration strategy refresh.** DOC-ONLY refresh of `/app/memory/MOTIVE_INTEGRATION_STRATEGY.md` for the iter392→396 reality. Zero code.
+- 🔵 **P3 — iter401 · Lane C · Post-deploy stabilization instrumentation.** Week 1/2/4 checklist. Optional `/admin/dls-health` page only if it stays under "one page, no new data".
+- 🔵 **P3 — Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR tile decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+
+---
+
+
 ## 2026-05-24 — iter396 · Phase 11.5 · DLS Convergence (Glossary · LifecycleGuide · Cross-Portal Tiles) ✅
 
 ### Mission

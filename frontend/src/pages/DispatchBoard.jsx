@@ -120,20 +120,20 @@ function FindingsBanner({ findings, counts, onOpen }) {
           </div>
           <div className="text-sm text-slate-700 mt-0.5">
             {counts.total
-              ? `${counts.total} finding${counts.total === 1 ? "" : "s"} require operational attention.`
+              ? `${counts.total} finding${counts.total === 1 ? "" : "s"} ${counts.total === 1 ? "requires" : "require"} operational attention.`
               : "No active findings."}
             {" "}
             {counts.BREAKDOWN_ACTIVE
-              ? <span className="font-bold text-rose-800">{counts.BREAKDOWN_ACTIVE} breakdown · </span>
+              ? <span className="font-bold text-rose-800">{counts.BREAKDOWN_ACTIVE} breakdown{counts.BREAKDOWN_ACTIVE === 1 ? "" : "s"} · </span>
               : null}
             {counts.ASSIGNMENT_STUCK
               ? <span className="font-bold text-amber-800">{counts.ASSIGNMENT_STUCK} stuck · </span>
               : null}
             {counts.WAIT_THRESHOLD_EXCEEDED
-              ? <span className="font-bold text-rose-700">{counts.WAIT_THRESHOLD_EXCEEDED} long wait · </span>
+              ? <span className="font-bold text-rose-700">{counts.WAIT_THRESHOLD_EXCEEDED} long wait{counts.WAIT_THRESHOLD_EXCEEDED === 1 ? "" : "s"} · </span>
               : null}
             {counts.NON_STANDARD_TRANSITION_PATTERN
-              ? <span className="font-bold text-slate-700">{counts.NON_STANDARD_TRANSITION_PATTERN} pattern</span>
+              ? <span className="font-bold text-slate-700">{counts.NON_STANDARD_TRANSITION_PATTERN} pattern{counts.NON_STANDARD_TRANSITION_PATTERN === 1 ? "" : "s"}</span>
               : null}
           </div>
         </div>
@@ -494,7 +494,7 @@ export default function DispatchBoard() {
             },
             {
               label: "Roles",
-              body: "Dispatch + Admin act here. Driver actions happen on the magic-link mobile screen. PM/Shop/Safety/FL see role-scoped signals on their own hubs — they never see the full board.",
+              body: "Dispatch + Admin act here. Drivers act on the magic-link mobile screen. PM and Shop see project- and breakdown-scoped signals on their own hubs. Safety, FL, and HR remain operationally quiet on DLS by design — restraint until live operations tell us where signal-surfacing actually helps.",
             },
             {
               label: "Restraint",
@@ -536,7 +536,7 @@ export default function DispatchBoard() {
             <Send className="w-8 h-8 mx-auto mb-3 text-slate-400" />
             <p className="font-bold text-slate-700">No active hauls right now.</p>
             <p className="text-sm mt-1">
-              Create an assignment via the iter392 API to populate the board.
+              Trucks will appear here the moment dispatch creates an assignment.
             </p>
           </div>
         ) : (
