@@ -1,6 +1,85 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — Phase 11 · Dispatch Lifecycle System (DLS) · Foundation Design ✅
+
+### Mission
+Design (not build) the Dispatch Lifecycle System foundation — a 13-state operational truth machine for trucking + haul operations that replaces text-message coordination with audit-grade lifecycle visibility. **Zero code changes; 10 architecture documents shipped.**
+
+### Doctrine
+- **Lifecycle states are the system.** Not messages. Not chat. States.
+- **Validate, don't surveil.** Motive integration confirms operational truth; never manages the driver.
+- **Driver tap-and-work.** ≤ 6 taps per cycle, 0 typed characters, magic-link entry, no passwords.
+- **Inherit, don't invent.** All UX/notification/coaching patterns reuse Phase 5D/6/7/9 platform infrastructure.
+
+### Documents shipped (10, all in `/app/memory/`)
+
+**1. `DISPATCH_LIFECYCLE_ARCHITECTURE.md`** (11 KB) — Master technical foundation. 3 new collections (`haul_assignments`, `dispatch_shifts`, `dispatch_driver_sessions`), 13-state machine, allowed transition graph (forgiving with backtrack support), API surface (~10 endpoints), frontend integration points, multi-tenant `tenant_id` field from day 1.
+
+**2. `DRIVER_WORKFLOW_MAP.md`** (11 KB) — Tap-by-tap journey across a full shift. 6 driver screens specified. 30-second-shift example. Ergonomic specs (80 px primary buttons, glove-friendly). Bilingual coverage. Friction-removal principles.
+
+**3. `DISPATCH_OPERATIONAL_FLOW.md`** (12 KB) — Dispatch Board (one screen of truth). Row anatomy, visual encoding (slate/amber/rose/red inherited from Phase 5D/6/7), top-bar summary tile, row drawer drill-down, cross-portal visibility, 5-second-decision-support principle.
+
+**4. `MOTIVE_INTEGRATION_STRATEGY.md`** (9 KB) — Validate-not-surveil doctrine. Webhook receiver pattern, `motive_events` collection, 3 cross-check validation results (`confirmed` / `pending_confirmation` / `mismatch`), 3 new governance findings (`MOTIVE_REALITY_MISMATCH`, `ASSIGNMENT_STUCK_NO_MOTIVE_DATA`, `MOTIVE_IGNITION_OFF_DURING_HAUL`). Architecture-ready; deferred activation.
+
+**5. `WAIT_STATE_DISCIPLINE.md`** (10 KB) — The highest-ROI signal. 8 canonical wait reasons + 1 free-text fallback. 2-tap capture (≤ 3 sec). Per-state thresholds (soft 30 min / hard 60 min). `PLANT_BOTTLENECK_PATTERN` governance finding. Cross-portal visibility. Success criteria: ≥ 90% wait capture, ≥ 80% canonical reason use.
+
+**6. `OPERATIONAL_INTELLIGENCE_MODEL.md`** (10 KB) — 5 fundamental operational signals (cycle time · wait time · haul duration · utilization · bottleneck pattern). Derived-metric library specified but architecture-only. 7 architectural guarantees committed (UTC timestamps · derived-at-COMPLETE · append-only audit · etc.).
+
+**7. `MOBILE_DRIVER_EXPERIENCE.md`** (11 KB) — Non-negotiable contract: 0 passwords, ≤ 6 taps, 0 typed chars, optimistic UI + retry queue for patchy signal, magic-link entry. Touch targets (80/60 px). Typography. Sunlight + glove testing required.
+
+**8. `DISPATCH_COACHING_AND_TRAINING_PLAN.md`** (10 KB) — Inherits Phase 5D LifecycleGuide + glossary. 22 new canonical glossary entries (13 states + 9 wait sub-states). 4 new LifecycleGuide instances. 2 short in-platform training modules (driver + truck boss). No videos, no quizzes, no mandatory training-before-use.
+
+**9. `DISPATCH_NOTIFICATION_DISCIPLINE.md`** (9 KB) — Extends Phase 6/9 notification matrix from 19 → 25 rows. All 6 new notifications pass the 5-question discipline check. State transitions explicitly SILENT (board is live). SMS used sparingly (magic links + shop on-call breakdown only). Bell volume projected: ~1.5 notifications per shift per dispatcher.
+
+**10. `FUTURE_ANALYTICS_ROADMAP.md`** (11 KB) — Iteration 11.1 ships ZERO charts, only 3 CSV endpoints. 11.2-11.5 gated by explicit operator request + production stability. Hard "no" on real-time map view, AI predictions, per-driver scoring, gamification. Mature analytics 6-month horizon = change-order intelligence.
+
+### Files touched (Phase 11 · final delta)
+- NEW · 10 documents in `/app/memory/`
+- MOD · `memory/PRD.md` (this entry)
+
+Zero code changes. Zero schema changes. Zero new endpoints. Zero new collections.
+
+### Architecture commitments locked in for the future build
+- 3 new Mongo collections with multi-tenant `tenant_id` from day 1
+- 13-state machine + forgiving transition graph + append-only state_history
+- API surface ~10 endpoints (driver + dispatch + cross-portal)
+- 22 new canonical glossary entries
+- 4 new LifecycleGuide instances
+- 6 new notification rows (matrix 19 → 25)
+- 3 new governance findings (Motive-related)
+- `PLANT_BOTTLENECK_PATTERN` governance finding (wait-related)
+- Magic-link driver session pattern (inherits FL portal token discipline from Phase 5D)
+- Zero dashboards in iteration 1 (CSV-first analytics)
+
+### Restraint discipline maintained
+- ❌ No chat / messaging
+- ❌ No real-time GPS map view
+- ❌ No AI dispatching
+- ❌ No gamification / leaderboards
+- ❌ No per-driver scoring
+- ❌ No giant settings panels
+- ❌ No offline-first sync engine (optimistic UI + retry queue covers patchy signal)
+- ❌ No new portal (Dispatch portal already exists; DLS extends it)
+- ❌ No commitment to commercial-scale productization (DLS architecture is multi-tenant-ready but the productization decision is independent)
+
+### Next Action Items
+- 🟢 **P0 — Operator (strategic):** Approve the Phase 11 architecture as the design contract for iter392 (first DLS code iteration). Review the 10 documents, particularly the 5 doctrines: lifecycle-states-as-system, validate-not-surveil, tap-and-work, inherit-don't-invent, CSV-first-analytics.
+- 🟡 **P1 — Engineering:** iter392 = backend collections + state machine + 10 API endpoints. ~5-7 days of disciplined work.
+- 🟡 **P1 — Engineering:** iter393 = driver mobile surface (6 screens). ~5-7 days.
+- 🟡 **P1 — Engineering:** iter394 = Dispatch Board + cross-portal visibility. ~4-5 days.
+- 🟠 **P2 — Engineering:** iter395 = governance findings + notification matrix wiring + CSV endpoints. ~3-4 days.
+- 🟠 **P2 — Engineering:** iter396 = glossary + LifecycleGuide + training modules + EN+ES translations. ~2-3 days.
+- 🔵 **P3 — Engineering:** Motive integration activation (when operator decides). ~3-5 days of plumbing.
+- 🔵 **P3 — Engineering:** iter11.2 analytics tile additions (top-bar 5 numbers + this-week rollup). ~2 days, post 30-day production stability.
+
+**Total DLS first-iteration build estimate: ~20-26 engineer-days across iter392-396.**
+
+This delivers operational flow continuity, audit-grade lifecycle visibility, wait-state intelligence, and CSV-driven analytics — without dashboard bloat, without surveillance, without driver micromanagement.
+
+---
+
+
 ## 2026-05-24 — Phase 10 · MASCI Layer / Product Core Audit ✅
 
 ### Mission
