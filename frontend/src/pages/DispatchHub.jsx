@@ -90,6 +90,14 @@ export default function DispatchHub() {
             <span className="hidden sm:inline">Transfers</span>
           </Link>
           <Link
+            to="/dispatch-portal/board"
+            className="hidden sm:inline-flex items-center h-9 px-3 rounded-md border-2 border-orange-400/70 bg-orange-500/15 text-white hover:bg-orange-500/25 text-xs font-bold uppercase tracking-wide"
+            data-testid="dispatch-board-link"
+          >
+            <Activity className="w-3.5 h-3.5 sm:mr-1" />
+            <span className="hidden sm:inline">Live Board</span>
+          </Link>
+          <Link
             to="/dispatch-portal/fleet"
             className="hidden sm:inline-flex items-center h-9 px-3 rounded-md border-2 border-white/30 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wide"
             data-testid="dispatch-fleet-link"

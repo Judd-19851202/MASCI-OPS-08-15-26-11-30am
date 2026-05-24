@@ -1,6 +1,69 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter394 · Phase 11.3 · DLS Operational Flow Board ✅
+
+### Mission
+Ship the dispatch operational board — the live trucking heartbeat. Glanceable. Calm. Mobile-capable. No ERP clutter, no maps, no analytics, no chat. One scan and the dispatcher knows what's flowing, what's waiting, what's stuck.
+
+### Doctrine reinforced
+- **One operational system, not a trucking module.** The board reads iter392 endpoints and reuses iter393 magic-link issuance. No new collections, no new auth surface, no parallel pipelines.
+- **Restraint as a feature.** Skipped: maps, GPS, filtering chrome, charts, dispatch chat, scheduling engine, AI dispatch, gamification — all per the iter394 directive. Operational clarity comes from honest data, not enterprise dressing.
+- **Lifecycle as truth.** Every drawer action (cancel · reassign · magic link · revoke session) calls the existing iter392/iter393 endpoint. The lifecycle engine remains the single source of truth.
+
+### Files shipped
+- **NEW** `/app/frontend/src/pages/DispatchBoard.jsx` — board surface (route `/dispatch-portal/board`). SummaryStrip (4 glanceable counters: Active · Waiting · Breakdown · Stuck > 30m) · AssignmentRow (tone-keyed state chip + truck + driver + project + material + minutes-in-state). 5 s polling. Mobile-capable layout (rows stack on narrow viewports).
+- **NEW** `/app/frontend/src/components/dispatch/AssignmentDrawer.jsx` — right-side slide-over carrying the full state_history timeline + 4 dispatcher actions:
+  1. **Issue driver magic link** (calls iter393 endpoint; output card shows full public-host URL + Copy button)
+  2. **Cancel** (with reason; 409 if already cancelled)
+  3. **Reassign** (driver_id / driver_name / truck_id; at least one required)
+  4. **Revoke** any active driver session for the driver (lists all active sessions inline; one-tap revoke)
+- **MOD** `/app/frontend/src/App.js` — added route `/dispatch-portal/board` behind RequireDispatch; imported the new page component.
+- **MOD** `/app/frontend/src/pages/DispatchHub.jsx` — added "Live Board" pill in the portal header (orange-tinted, glanceable, sm+ only).
+
+### What the board solves (per iter394 directive · "operational truth at a glance")
+- **Active vs total** — header counter ✅
+- **Where is waiting?** — `WAITING` rows render rose with `WAITING_ON_PLANT` (or other canonical reason) sub-label ✅
+- **Where is breakdown?** — `BREAKDOWN` rows render deep rose; counter in summary ✅
+- **What is stuck?** — every row carries "minutes since last transition"; rows ≥ 30 min flip to amber + the summary "Stuck > 30m" counter increments ✅
+- **What's the recent journey?** — drawer history timeline (latest first, non-standard transitions tagged amber, standard tagged emerald) ✅
+
+### What the board does NOT do (restraint per directive)
+- ❌ No map · no GPS · no live tracking
+- ❌ No filtering / search / faceted chrome (board is small enough to scan)
+- ❌ No charts · no analytics · no heatmaps · no scoring
+- ❌ No chat / messaging
+- ❌ No AI dispatch · no auto-routing · no auto-assign
+- ❌ No PM/Safety/Shop/FL cross-portal UI (iter392 endpoints already let those tokens read the data; "natural continuity" surfacing belongs in iter395 governance findings, NOT in iter394)
+
+### Live smoke (preview · seeded `dls-demo` tenant)
+Pre-state: `python -m scripts.dls_seed_demo --reset-demo` + 2 extra ASSIGNED trucks + 1 LOADING walk-through.
+
+1. Dispatch login (`dispatch@mascigc.com` / `DispatchTest2026!`).
+2. Click "Live Board" pill in DispatchHub header.
+3. Result: full board renders. Summary shows `Active=4 · Waiting=1 · Breakdown=0 · Stuck>30m=0`. Tenant override badge visible.
+4. Click the WAITING (DEMO-T-002) row → drawer opens with:
+   - Truck label, material chip (Base Rock), assigned-at timestamp, "Waiting on: WAITING ON PLANT" red badge.
+   - All 4 dispatcher actions visible.
+   - Click "Issue driver magic link" → emerald success chip with the full public URL `https://safety-audit-mobile-1.preview.../d/{token}?tenant=dls-demo` + Copy button (toasts "Magic link issued · valid 15 minutes").
+   - Active driver sessions listed (multiple from prior testing) — each with one-tap Revoke.
+   - State history timeline (4 entries: ASSIGNED → ENROUTE_TO_LOAD → AT_LOAD_SITE → WAITING) rendered latest-first with emerald/amber dots.
+
+### Tests · 36/36 PASS in 5.71 s
+- iter392 backend foundation (23) — unchanged
+- iter393 driver session (13) — unchanged
+- Frontend: visual + behavioral smoke covered above (no Jest tests; the React surfaces are thin proxies over the verified backend endpoints).
+
+### Next Action Items
+- 🟡 **P1 — iter395 GOVERNANCE + NOTIFICATIONS + CSV.** Wire `ASSIGNMENT_STUCK` (≥30m in non-terminal state), `WAIT_THRESHOLD_EXCEEDED`, `BREAKDOWN_ACTIVE`, and `NON_STANDARD_TRANSITION_PATTERN` detectors against the data the foundation already produces. 3 CSV endpoints (`/dispatch/exports/assignments.csv`, `/state-events.csv`, `/haul-cycles.csv`). Notification matrix 19 → ~25.
+- 🟡 **P1 — iter396 COACHING + GLOSSARY + ES.** 13 state entries + 9 wait-reason entries + 4 LifecycleGuide instances + EN/ES parity + 2 training modules. Add a free-text `WAITING_OTHER` sub-state to the driver wait sheet once the glossary entries exist.
+- 🟠 **P2 — Cross-portal natural continuity (iter395 follow-up).** PM hub tile: "Haul activity on your projects" — thin filter over `/api/dispatch/assignments?project_number=X`. Shop hub tile: trucks in BREAKDOWN. Safety hub tile: assignments stuck > 60m. ALL read-only; surfaces existing data; no new endpoints.
+- 🔵 **P3 — Resume Phase 4D Extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — 233 inherited pytest isolation failures**.
+
+---
+
+
 ## 2026-05-24 — iter393 · Phase 11.2 · DLS Driver Mobile Experience ✅
 
 ### Mission

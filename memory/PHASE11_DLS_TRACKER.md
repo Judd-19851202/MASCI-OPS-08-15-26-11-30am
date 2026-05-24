@@ -136,6 +136,6 @@ curl -sS "$URL/api/dispatch/state-events?non_standard_only=true" \
 |---|---|---|---|
 | iter392 | Backend Foundation | ✅ shipped 2026-05-24 | This entry. |
 | iter393 | Driver Mobile Experience | ✅ shipped 2026-05-24 | Magic-link auth (HMAC mirror of pm_auth) + revokable sessions + 7 driver endpoints (`/api/dispatch/driver/*`) + 2 driver routes (`/d/:token`, `/driver`) + 13 tests. Tap-and-work surface live in preview. |
-| iter394 | Dispatch Operational Board | ⏳ planned | Live board UI consuming `/api/dispatch/assignments/board`. Uses `dls-demo` tenant for dev. |
-| iter395 | Governance + Notifications + CSV | ⏳ planned | `ASSIGNMENT_STUCK`, `WAIT_THRESHOLD_EXCEEDED` detectors; 3 CSV endpoints. |
+| iter394 | Dispatch Operational Board | ✅ shipped 2026-05-24 | `/dispatch-portal/board` route + `AssignmentDrawer` with full state_history timeline + 4 dispatcher actions (issue magic link · cancel · reassign · revoke session). 5 s polling. Tone-keyed state chips. Tenant-override aware (`?tenant=dls-demo`). |
+| iter395 | Governance + Notifications + CSV | ⏳ next | `ASSIGNMENT_STUCK`, `WAIT_THRESHOLD_EXCEEDED`, `BREAKDOWN_ACTIVE` detectors; 3 CSV endpoints; cross-portal natural continuity tiles. |
 | iter396 | Coaching + Glossary + ES | ⏳ planned | 22 glossary entries + 4 LifecycleGuide instances + 2 training modules + EN/ES. |
