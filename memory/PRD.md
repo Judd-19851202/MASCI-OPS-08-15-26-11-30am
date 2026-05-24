@@ -1,6 +1,82 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter411 · Phase 16 · Dispatch Portal Operational Cognition Convergence ✅
+
+### Mission
+Refactor `/dispatch-portal` from feature-navigation clutter into an **operational command flow**. The problem was NOT missing capability — it was cognitive overload from too many competing top-bar buttons + equal-weight tabs. Phase 16 is **pure information architecture**: zero new features, zero new endpoints, zero new collections, zero capabilities lost.
+
+### Doctrine reinforced (Phase 16)
+- **Dispatch users think in operational flow, not features.** The portal is now organized around: attention → issue work → live movement → follow-through → secondary → guidance.
+- **The top bar is orientation, not command.** Home / Back / portal identity / NotificationBell / Sign out only. Transfers / Fleet / Drivers / Live Board / Guides moved into the page body where they belong.
+- **Issue Work is ONE drawer**, preselected by haul-type tile. No separate modules per haul type.
+- **Verbiage discipline**: operational language replaces ERP vocabulary ("Equipment Movement Command Center" → "Dispatch Command"; "Utilization" → "What's moving vs sitting"; "Idle Alerts" → "Trucks sitting too long"; "Integrations" → "Systems that validate operations"; "Transfers" → "Equipment moves").
+- **All routes preserved**: `/dispatch-portal/board`, `/dispatch-portal/fleet`, `/dispatch-portal/driver-qualification`, `/asset-transfers`, `/guidance?from=dispatch` — all still reachable.
+- **All tab content preserved**: DispatchOverviewTab, DispatchUtilizationTab, DispatchIdleAlertsTab, DispatchTransfersTab, DispatchHoldsTab, DispatchIntegrationsTab — same imports, same render, just relocated into Follow-Through + Secondary sections.
+- 20-point Phase 16 doctrine gate: ALL 20 PASS.
+
+### New IA: 7 operational-flow sections
+1. **Dispatch Command** (orange) — orientation + 6 coaching bullets
+2. **Operational Attention** (rose) — what matters NOW · reads `/api/dispatch/governance/findings` · 3 attention cards (Breakdown / Stuck>30min / Extended wait) with operational hint text · empty state when calm
+3. **Issue Work** (orange) — 4 large tiles → SAME `AssignmentCreateDrawer` with `initialHaulType` preselected: Material · Equipment Move · Tanker/Liquid Asphalt · Support/Misc
+4. **Live Operational Flow** (orange) — big CTA to `/dispatch-portal/board`
+5. **Follow-Through** (amber) — Tabs: Equipment moves (was "Transfers") + Holds
+6. **Secondary Operations** (slate) — Tabs: Overview · What's moving vs sitting · Trucks sitting too long · Systems that validate operations · + footer link row to Fleet · Approved drivers · Equipment moves (all-time)
+7. **Guides & Coaching** (slate) — 5 GuideTiles (What dispatch owns · How issuance works · What wait states mean · Downstream signals · Why Motive validates later) + "Open all guides" CTA
+
+### Files shipped
+- **REWRITTEN** `/app/frontend/src/pages/DispatchHub.jsx` — 186 LOC tab-heavy → 559 LOC section-based command flow
+- **MOD** `/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — added `initialHaulType` prop (3-line change · destructure + reset effect dep)
+- **MOD** `/app/frontend/src/lib/i18n.js` — added ~70 EN→ES strings for Phase 16 vocabulary
+
+### Tests · Frontend 100% PASS
+Testing agent verified end-to-end:
+- All 7 ds-section-* testids render in order at desktop (1280px) AND mobile (390px)
+- Top blue bar carries ONLY orientation testids (home/back/logout · no Transfers/Live Board/Fleet/Drivers crowding)
+- Operational Attention loads from `/api/dispatch/governance/findings` and renders 3 sub-cards with hints
+- All 4 Issue Work tiles open the SAME drawer with correct haul_type preselected (orange-active confirmed visually on each)
+- Tanker tile reveals `ac-tanker-source` / `ac-tanker-destination` / `ac-liquid-product`
+- Equipment-Move tile reveals `ac-equipment` / `ac-pickup` / `ac-dropoff`
+- All preserved links route correctly (board · fleet · driver-qual · asset-transfers · training)
+- Follow-Through + Secondary Operations tabs render original tab content unchanged
+- Mobile 390px: no horizontal scroll · sections stack single-column · Issue Work reflows to `grid-cols-2 lg:grid-cols-4`
+- ESLint clean
+- Bilingual EN/ES preserved (Spanish via `masci.lang=es` localStorage key — Tanker drawer shows "Cisterna / Asfalto Líquido" etc.)
+
+**Backend parity-lock**: 122/122 per-file PASS (iter319/392/393/395/396/401/402/407/408/409/410). Phase 16 made ZERO backend changes; the cross-file flakiness (1-2 tests fail on combined runs from `test_iter395_governance.py` ↔ `test_iter402_shift_lookups.py` MongoDB state leakage) is the documented inherited isolation issue — not introduced by Phase 16.
+
+### What Phase 16 explicitly did NOT do (restraint enforced)
+- ❌ No new collection
+- ❌ No new endpoint
+- ❌ No data model edits
+- ❌ No role visibility expansion
+- ❌ No new dispatch module · no new analytics dashboard · no live maps · no route optimization · no AI dispatch · no surveillance · no ERP workflow · no productivity scoring
+- ❌ No removed routes · no removed tab content · no removed testids that were depended on by other consumers
+
+### Testing-agent code-quality notes (deferred · not blocking)
+- DispatchHub.jsx is 559 LOC (close to 700 guideline). Sub-components (Section · AttentionCard · IssueButton · GuideTile · CoachLi) live at the bottom of the file for readability — could be extracted to `/components/dispatch/hub/parts/` in a future cleanup iter.
+- Cross-hub "Memorial Day" cultural banner intercepts clicks until dismissed — unrelated to Phase 16, but documented for end-user awareness.
+- Phase 16 acceptance line "Bilingual (?lang=es) preserved" was doc-only inconsistency; bilingual capability works via `masci.lang` localStorage key (the platform-canonical mechanism). No URL-param routing needed.
+
+### Phase doctrine timeline (current state)
+1. iter397-405 · Phases 12-13.2 ✅
+2. iter406+iter407 · Phase 14 ✅
+3. iter408 · Phase 14.1 + 14.2 ✅
+4. iter409 · Phase 14.3 · PM Haul Activity ✅
+5. iter410 · Phase 15.1 · Tanker / Liquid Asphalt ✅
+6. **iter411 · Phase 16 · Dispatch Command Portal IA Refactor ✅**
+
+### Next Action Items
+- 🟡 **P1 — Day-1 + Week-1 live ops friction debrief** (still highest-priority — capture real hesitation patterns)
+- 🔵 **P2 — Lane C · Post-deploy stabilization instrumentation** (`GET /api/admin/dls/health-summary`)
+- 🟠 **P2 — DispatchHub.jsx & AssignmentCreateDrawer.jsx component extraction** (deferred cleanup · 559 LOC + 806 LOC respectively)
+- 🟠 **P2 — `server.py` Phase 4D extractions** (`/api/legacy-imports/*`)
+- 🔵 **P3 — Phase 15 backlog deferred items** (Ticket photos · WAITING_OTHER picker · Memory hygiene · Onboarding · Driver edge cases)
+- 🔵 **P3 — 233 inherited pytest isolation failures**
+
+---
+
+
 ## 2026-05-24 — iter410 · Phase 15.1 · Tanker / Liquid Asphalt Continuity ✅
 
 ### Mission
