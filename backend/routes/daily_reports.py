@@ -153,6 +153,55 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         n = await db.daily_reports.count_documents({"report_number": {"$regex": f"^{prefix}"}})
         return {"report_number": f"{prefix}{n + 1:03d}", "prefix": prefix}
 
+    @api_router.get("/daily-reports.csv")
+    async def list_daily_reports_csv(actor=Depends(require_admin)):
+        """Phase 5 · W8 · CSV export of daily reports.
+
+        Same auth gate + same PM scope as the JSON list. No write peer."""
+        import csv as _csv  # noqa: PLC0415
+        import io as _io    # noqa: PLC0415
+        from fastapi.responses import Response as _Resp  # noqa: PLC0415
+        scope = await compute_pm_scope(db, actor)
+        pipeline = [
+            {"$match": scope.filter({})},
+            {"$sort": {"report_date": -1, "created_at": -1}},
+            {"$limit": 5000},
+            {"$project": {
+                "_id": 0, "id": 1, "report_number": 1, "project_name": 1,
+                "project_number": 1, "location": 1, "report_date": 1,
+                "prepared_by": 1, "superintendent": 1, "weather_summary": 1,
+                "schedule_delays": 1, "weather_impact": 1,
+                "safety_incidents_today": 1, "injuries_reported": 1,
+                "created_at": 1,
+                "crew_count":    {"$size": {"$ifNull": ["$masci_crews", []]}},
+                "sub_count":     {"$size": {"$ifNull": ["$subcontractors", []]}},
+                "visitor_count": {"$size": {"$ifNull": ["$visitors", []]}},
+                "photo_count":   {"$size": {"$ifNull": ["$photos", []]}},
+            }},
+        ]
+        docs = await db.daily_reports.aggregate(pipeline).to_list(5000)
+        buf = _io.StringIO()
+        fields = [
+            "report_number", "report_date", "project_number", "project_name",
+            "location", "prepared_by", "superintendent", "weather_summary",
+            "schedule_delays", "weather_impact",
+            "safety_incidents_today", "injuries_reported",
+            "crew_count", "sub_count", "visitor_count", "photo_count",
+            "created_at",
+        ]
+        writer = _csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        for d in docs:
+            writer.writerow({f: (d.get(f) if d.get(f) is not None else "") for f in fields})
+        return _Resp(
+            content=buf.getvalue(),
+            media_type="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": 'attachment; filename="daily_reports.csv"',
+                "Cache-Control": "private, no-store",
+            },
+        )
+
     @api_router.get("/daily-reports/{report_id}")
     async def get_daily_report(report_id: str, actor=Depends(require_admin)):
         doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})

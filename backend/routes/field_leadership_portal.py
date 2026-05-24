@@ -567,6 +567,156 @@ def build_field_leadership_portal_router(
         return {"ok": True, "items": items, "count": len(items),
                 "viewer_role": "field_leadership"}
 
+    # ═══════════════════════════════════════════════════════════════════
+    # iter Phase 5 · W5 closeout — FL Training/PPE aggregate visibility
+    # ───────────────────────────────────────────────────────────────────
+    # Closes the final field-leadership operational blind spot identified
+    # by FINAL_OPERATIONAL_COMMUNICATION_VERIFICATION.md (Gap W5). FL has
+    # had per-employee snapshot since iter353d; these endpoints provide
+    # the cross-crew aggregate view FL needs to make crew-assignment
+    # decisions ("who is expired/expiring/missing?").
+    #
+    # Strictly read-only · no writes · no new collections · mirrors the
+    # PM crew pattern (`/api/pm/crew/training-records`,
+    # `/api/pm/crew/ppe`) without the PM scope filter (FL portal is
+    # company-wide read by design — see iter353d).
+    # ═══════════════════════════════════════════════════════════════════
+
+    @router.get("/field-leadership/portal/crew/training-records")
+    async def fl_crew_training_records(
+        actor=Depends(require_fl_user),
+        status: Optional[str] = Query(
+            default=None,
+            description="Filter: 'expired' · 'expiring_30d' · None (all)",
+        ),
+        limit: int = Query(default=200, ge=1, le=500),
+    ):
+        """Phase 5 · W5 · FL read-only training records aggregate.
+        Returns the last N training records across all crew; supports
+        an optional ``status`` filter for expired or expiring-within-30d.
+        No write peer — FL cannot create or edit training records."""
+        today = datetime.now(timezone.utc).isoformat()[:10]
+        cutoff_30d = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()[:10]
+        q: Dict[str, Any] = {}
+        if status == "expired":
+            q = {"expiration_date": {"$lt": today, "$ne": ""}}
+        elif status == "expiring_30d":
+            q = {"expiration_date": {"$gte": today, "$lte": cutoff_30d}}
+        items = []
+        async for r in db.safety_training_records.find(
+            q,
+            {"_id": 0, "id": 1, "employee_id": 1, "employee_name": 1,
+             "training_name": 1, "certification_type": 1,
+             "completed_date": 1, "expiration_date": 1, "notes": 1,
+             "created_by_role": 1},
+        ).sort("expiration_date", 1).limit(limit):
+            items.append(r)
+        return {
+            "ok": True,
+            "items": items,
+            "count": len(items),
+            "filter": status or "all",
+            "viewer_role": "field_leadership",
+            "as_of": today,
+        }
+
+    @router.get("/field-leadership/portal/crew/ppe")
+    async def fl_crew_ppe(
+        actor=Depends(require_fl_user),
+        limit: int = Query(default=200, ge=1, le=500),
+    ):
+        """Phase 5 · W5 · FL read-only PPE issuance aggregate. Most-
+        recently issued PPE across all crew (helps FL spot crew members
+        who haven't been issued PPE recently). No write peer."""
+        items = []
+        async for r in db.safety_equipment_issuances.find(
+            {},
+            {"_id": 0, "id": 1, "employee_name": 1, "equipment_type": 1,
+             "issued_date": 1, "size": 1, "condition": 1},
+        ).sort("issued_date", -1).limit(limit):
+            items.append(r)
+        return {
+            "ok": True,
+            "items": items,
+            "count": len(items),
+            "viewer_role": "field_leadership",
+        }
+
+    @router.get("/field-leadership/portal/crew/training-summary")
+    async def fl_crew_training_summary(actor=Depends(require_fl_user)):
+        """Phase 5 · W5 · FL crew-readiness summary roll-up.
+        Returns one-glance counts: expired training · expiring within
+        30d · PPE records on file. Drives the FL "is this crew safe to
+        deploy?" decision without exposing individual employee detail."""
+        today = datetime.now(timezone.utc).isoformat()[:10]
+        cutoff_30d = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()[:10]
+        expired_count = await db.safety_training_records.count_documents({
+            "expiration_date": {"$lt": today, "$ne": ""}
+        })
+        expiring_30d_count = await db.safety_training_records.count_documents({
+            "expiration_date": {"$gte": today, "$lte": cutoff_30d}
+        })
+        ppe_records = await db.safety_equipment_issuances.count_documents({})
+        # Employees with any active driver readiness (active drivers).
+        active_drivers = await db.employees.count_documents({
+            "driver_status": "active",
+            "approved_company_driver": True,
+            "deleted_at": None,
+        })
+        return {
+            "ok": True,
+            "viewer_role": "field_leadership",
+            "as_of": today,
+            "expired_count": expired_count,
+            "expiring_within_30d_count": expiring_30d_count,
+            "ppe_records": ppe_records,
+            "active_company_drivers": active_drivers,
+        }
+
+    # ═══════════════════════════════════════════════════════════════════
+    # Phase 5 · W3 closeout — FL read-only daily-report visibility
+    # ───────────────────────────────────────────────────────────────────
+    # FL needs to see daily reports so they can verify crew continuity
+    # ("did the crew show up today? · was there an incident? · what
+    # subs were on site?"). Read-only company-wide — same access scope
+    # as the existing iter353d FL portal surfaces. No write peer.
+    # ═══════════════════════════════════════════════════════════════════
+    @router.get("/field-leadership/portal/daily-reports")
+    async def fl_daily_reports(
+        actor=Depends(require_fl_user),
+        days: int = Query(default=7, ge=1, le=30),
+        limit: int = Query(default=200, ge=1, le=500),
+    ):
+        """Phase 5 · W3 · FL read-only daily-report visibility.
+        Default 7-day window, max 30 days. Projects crew/subcontractor/
+        incident-flag fields only — FL doesn't need labor cost or
+        incident-narrative detail (those belong to PM/Safety)."""
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()[:10]
+        pipeline = [
+            {"$match": {"report_date": {"$gte": cutoff}}},
+            {"$sort": {"report_date": -1, "created_at": -1}},
+            {"$limit": limit},
+            {"$project": {
+                "_id": 0, "id": 1, "project_name": 1, "project_number": 1,
+                "location": 1, "report_date": 1, "prepared_by": 1,
+                "superintendent": 1, "weather_summary": 1,
+                "schedule_delays": 1, "weather_impact": 1,
+                "safety_incidents_today": 1, "injuries_reported": 1,
+                "created_at": 1,
+                "crew_count":     {"$size": {"$ifNull": ["$masci_crews", []]}},
+                "sub_count":      {"$size": {"$ifNull": ["$subcontractors", []]}},
+                "visitor_count":  {"$size": {"$ifNull": ["$visitors", []]}},
+            }},
+        ]
+        items = await db.daily_reports.aggregate(pipeline).to_list(limit)
+        return {
+            "ok": True,
+            "items": items,
+            "count": len(items),
+            "window_days": days,
+            "viewer_role": "field_leadership",
+        }
+
     # ─────────────────────────────────────────────────────────────────
     # ADMIN/HR — FL user management (HR + Admin both can manage)
     # ─────────────────────────────────────────────────────────────────

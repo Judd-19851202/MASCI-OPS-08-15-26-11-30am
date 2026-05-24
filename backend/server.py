@@ -941,6 +941,43 @@ async def dev_ops_manual_docx(_: bool = Depends(require_dev)):
     )
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# Phase 5 · W8 closeout — Ops Manual admin-discoverable mirror
+# ───────────────────────────────────────────────────────────────────────
+# The dev-token-gated routes above remain for developer tooling. These
+# mirrors gate on `require_admin` so operators can discover and download
+# the Operations Manual without a separate dev-token issuance flow.
+# Identical payload — zero behavior drift, just an additional gate.
+# ═══════════════════════════════════════════════════════════════════════
+
+@api_router.get("/admin/ops-manual.pdf")
+async def admin_ops_manual_pdf(_: bool = Depends(require_admin)):
+    from ops_manual import render_ops_manual_pdf
+    pdf = await asyncio.to_thread(render_ops_manual_pdf)
+    return _FastAPIResponse(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": 'attachment; filename="MASCI_HUB_Operations_Manual.pdf"',
+            "Cache-Control": "private, no-store",
+        },
+    )
+
+
+@api_router.get("/admin/ops-manual.docx")
+async def admin_ops_manual_docx(_: bool = Depends(require_admin)):
+    from ops_manual import render_ops_manual_docx
+    docx = await asyncio.to_thread(render_ops_manual_docx)
+    return _FastAPIResponse(
+        content=docx,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={
+            "Content-Disposition": 'attachment; filename="MASCI_HUB_Operations_Manual.docx"',
+            "Cache-Control": "private, no-store",
+        },
+    )
+
+
 # --- Ops Manual snapshots (pinned historical copies) ---------------------
 # Store both PDF + DOCX bytes (base64) plus the backend source_hash in
 # MongoDB so a specific "official" revision of the manual can be pulled

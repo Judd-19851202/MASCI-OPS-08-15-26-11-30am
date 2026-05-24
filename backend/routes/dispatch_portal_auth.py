@@ -354,6 +354,47 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
             raise HTTPException(400, str(e))
         return {"ok": True, **payload, "viewer_role": "dispatch"}
 
+    # ═══════════════════════════════════════════════════════════════════
+    # Phase 5 · W3 closeout — Dispatch read-only daily-report visibility
+    # ───────────────────────────────────────────────────────────────────
+    # Dispatch needs to see equipment/crew movement fields from daily
+    # reports for logistics planning. Strictly read-only · projection
+    # omits incident narratives, labor cost, and safety details (none
+    # of Dispatch's domain). No POST/PATCH/DELETE peer.
+    # ═══════════════════════════════════════════════════════════════════
+    @router.get("/dispatch/daily-reports")
+    async def dispatch_daily_reports(
+        _: dict = Depends(require_dispatch_or_admin),
+        limit: int = _Query(default=100, ge=1, le=500),
+    ):
+        """Phase 5 · W3 · Dispatch read-only daily-report visibility.
+        Returns the most recent daily reports projected to logistics
+        fields only (equipment · crew counts · subcontractors · weather)."""
+        pipeline = [
+            {"$sort": {"report_date": -1, "created_at": -1}},
+            {"$limit": limit},
+            {"$project": {
+                "_id": 0, "id": 1, "project_name": 1, "project_number": 1,
+                "location": 1, "report_date": 1, "prepared_by": 1,
+                "superintendent": 1, "weather_summary": 1,
+                "schedule_delays": 1, "schedule_delays_notes": 1,
+                "weather_impact": 1, "weather_impact_notes": 1,
+                "equipment": 1, "materials": 1,
+                "created_at": 1,
+                "crew_count":     {"$size": {"$ifNull": ["$masci_crews", []]}},
+                "sub_count":      {"$size": {"$ifNull": ["$subcontractors", []]}},
+                "visitor_count":  {"$size": {"$ifNull": ["$visitors", []]}},
+                "equipment_count":{"$size": {"$ifNull": ["$equipment", []]}},
+            }},
+        ]
+        items = await db.daily_reports.aggregate(pipeline).to_list(limit)
+        return {
+            "ok": True,
+            "items": items,
+            "count": len(items),
+            "viewer_role": "dispatch",
+        }
+
     return router
 
 

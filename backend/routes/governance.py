@@ -40,6 +40,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response as _FastAPIResponse
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -1165,6 +1166,67 @@ def build_governance_router(db, require_admin_strict):
         items.reverse()  # most recent within rank first
         items.sort(key=lambda r: SEVERITY_RANK.get(r.get("severity", "info"), 99))
         return {"ok": True, "items": items, "count": len(items)}
+
+    @router.get("/api/admin/compliance/findings.csv",
+                dependencies=[Depends(require_admin_strict)])
+    async def list_findings_csv(
+        status: Optional[str] = Query(default=None),
+        severity: Optional[str] = Query(default=None),
+        rule_id: Optional[str] = Query(default=None),
+        category: Optional[str] = Query(default=None),
+        entity_kind: Optional[str] = Query(default=None),
+        q: Optional[str] = Query(default=None),
+        limit: int = Query(default=2000, ge=1, le=10000),
+    ):
+        """Phase 5 · W8 · CSV export of compliance findings. Same
+        filter semantics as the JSON list; defaults to open + acknowledged."""
+        import csv as _csv  # noqa: PLC0415
+        import io as _io    # noqa: PLC0415
+        flt: Dict[str, Any] = {}
+        if status:
+            flt["status"] = status
+        else:
+            flt["status"] = {"$in": ["open", "acknowledged"]}
+        if severity:
+            flt["severity"] = severity
+        if rule_id:
+            flt["rule_id"] = rule_id
+        if category:
+            flt["category"] = category
+        if entity_kind:
+            flt["entity_kind"] = entity_kind
+        if q:
+            safe = re.escape(q.strip())
+            if safe:
+                flt["$or"] = [
+                    {"entity_name": {"$regex": safe, "$options": "i"}},
+                    {"description": {"$regex": safe, "$options": "i"}},
+                ]
+        rows: List[Dict[str, Any]] = []
+        async for row in db[COLLECTION].find(flt, {"_id": 0}).limit(limit):
+            rows.append(row)
+        rows.sort(key=lambda r: SEVERITY_RANK.get(r.get("severity", "info"), 99))
+
+        buf = _io.StringIO()
+        fields = [
+            "rule_id", "severity", "category", "status",
+            "entity_kind", "entity_id", "entity_name",
+            "description", "first_detected_at", "last_detected_at",
+            "acknowledged_at", "acknowledged_by",
+            "resolved_at", "resolved_by",
+        ]
+        writer = _csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        for r in rows:
+            writer.writerow({f: (r.get(f) or "") for f in fields})
+        return _FastAPIResponse(
+            content=buf.getvalue(),
+            media_type="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": 'attachment; filename="compliance_findings.csv"',
+                "Cache-Control": "private, no-store",
+            },
+        )
 
     @router.get("/api/admin/compliance/findings/{finding_id}",
                 dependencies=[Depends(require_admin_strict)])

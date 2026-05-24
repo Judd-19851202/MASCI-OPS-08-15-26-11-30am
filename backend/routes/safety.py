@@ -691,6 +691,52 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             raise HTTPException(status_code=404, detail="Incident not found")
         return doc
 
+    @api_router.get("/incidents.csv")
+    async def list_incidents_csv(actor=Depends(_read_gate)):
+        """Phase 5 · W8 · CSV export of incidents.
+
+        Same auth gate + same PM scope as the JSON list. Safety/Admin/PM
+        each see their authorized slice. No new ownership chain."""
+        import csv as _csv  # noqa: PLC0415
+        import io as _io    # noqa: PLC0415
+        from fastapi.responses import Response as _Resp  # noqa: PLC0415
+        scope = await compute_pm_scope(db, actor)
+        pipeline = [
+            {"$match": scope.filter({})},
+            {"$sort": {"created_at": -1}},
+            {"$limit": 5000},
+            {"$project": {
+                "_id": 0, "id": 1, "doc_id": 1, "project_name": 1, "project_number": 1,
+                "location": 1, "incident_date": 1, "incident_time": 1,
+                "incident_type": 1, "severity": 1, "person_name": 1,
+                "reported_by": 1, "supervisor_name": 1,
+                "osha_recordable": 1, "work_stopped": 1,
+                "description": 1, "immediate_actions_taken": 1,
+                "created_at": 1,
+            }},
+        ]
+        docs = await db.incidents.aggregate(pipeline).to_list(5000)
+        buf = _io.StringIO()
+        fields = [
+            "doc_id", "incident_date", "incident_time", "project_number",
+            "project_name", "location", "incident_type", "severity",
+            "person_name", "reported_by", "supervisor_name",
+            "osha_recordable", "work_stopped",
+            "description", "immediate_actions_taken", "created_at",
+        ]
+        writer = _csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        for d in docs:
+            writer.writerow({f: (d.get(f) or "") for f in fields})
+        return _Resp(
+            content=buf.getvalue(),
+            media_type="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": 'attachment; filename="incidents.csv"',
+                "Cache-Control": "private, no-store",
+            },
+        )
+
     @api_router.delete("/incidents/{incident_id}")
     async def delete_incident(incident_id: str, _: bool = Depends(require_admin)):
         result = await db.incidents.delete_one({"id": incident_id})
