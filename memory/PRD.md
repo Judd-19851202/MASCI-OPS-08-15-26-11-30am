@@ -1,6 +1,70 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — Phase 6 · Field Adoption + Operational Value Sprint ✅
+
+### Mission
+Real-world adoption work. Make the platform easier to use, harder to misuse, faster in the field, clearer for crews. No new dashboards, no new engines, no schema changes.
+
+### WS1 · Field Shadow Validation Toolkit
+Created `/app/memory/FIELD_SHADOW_VALIDATION_KIT.md` — 5 single-page role tests (Superintendent · Foreman · Safety Manager · Dispatcher · PM). Each test gives device, time budget, tap/scroll estimate, hesitation watchpoints, post-test questions, pass/fail criteria, and a field-notes template. Roll-up procedure feeds PRODUCTION_RISK_REGISTER.md for critical fails only.
+
+### WS2 · Smart Required-Field Logic
+- `CollapseCard.jsx` — new `attentionOpen` prop auto-expands a card when the parent signals operational attention.
+- `NewIncident.jsx` — new `attemptedSubmit` flag drives `attentionOpen` on the Tier-2 cards (Sections 05/07/08) when severity is serious AND the section is bare. Submit is **refused** (toast + remain on page) for serious incidents until Root Cause + Corrective Actions + Notifications carry minimal content. Severity-escalation safety net unchanged.
+- `NewDailyReport.jsx` — same flag drives signal-driven gap detection (`schedule_delays=Yes` without `delay_description`; `safety_incidents_today=Yes` without `safety_notified=Yes`).
+
+### WS3 · Operational Completion Indicators
+Quiet status banner directly above the submit button on both forms (`data-testid="incident-completion-summary"` / `daily-completion-summary`). Four tones:
+- **rose** `Attention · N section(s) need attention` + field-direct prompt (`Complete the highlighted section or mark it not used today.`)
+- **emerald** `Operationally complete · ready to submit` or `Operationally complete · N sections filled today`
+- **emerald** `Optional sections completed` (optional Tier-2 filled by user choice on a near-miss)
+- **slate** `Ready to submit · follow-up optional for this severity` / `Optional sections available · add only what applies`
+
+Reuses the same Phase 5D vocabulary so intake → ViewIncident → archive read consistently.
+
+### WS4 · Mobile / Bad Signal Reliability Audit
+Audited 5 workflows at 390 px. Already in place: submit disabled during photo upload / autosave + draft recovery / payload-size warning / idempotency dedup / tap targets ≥ 44 px. Light fixes not required. Documented in PHASE6 results.
+
+### WS5 · Notification Discipline Cleanup
+Created `/app/memory/NOTIFICATION_DISCIPLINE_MATRIX.md`:
+- 3-tier definitions (CRITICAL · IMPORTANT · INFO) with channel/color cue.
+- 19-row event matrix mapping every notification source to audience, tier, channel, suppress/aggregate rule, owner, expected action.
+- 4 aggregation rules (per-record uniqueness · silent status churn · severity-driven channel · auto-resolve > manual).
+- 5-question discipline checklist for new notifications (acts as code-review gate).
+- No new notifications added; no existing widening.
+
+### Files touched (Phase 6 · final delta)
+- MOD · `frontend/src/components/CollapseCard.jsx`
+- MOD · `frontend/src/pages/NewIncident.jsx`
+- MOD · `frontend/src/pages/NewDailyReport.jsx`
+- MOD · `frontend/src/lib/i18n.js` (11 new EN→ES keys)
+- NEW · `memory/FIELD_SHADOW_VALIDATION_KIT.md`
+- NEW · `memory/NOTIFICATION_DISCIPLINE_MATRIX.md`
+- NEW · `memory/PHASE6_FIELD_ADOPTION_SPRINT_RESULTS.md`
+
+Backend untouched.
+
+### Testing
+- ESLint clean on all 4 modified frontend files.
+- `testing_agent_v3_fork` Phase 6 retest: **15/15 PASS** (slate/rose/emerald banner state transitions on both forms; signal-driven gap detection; EN+ES parity; 390 px mobile; draft recovery regression OK; all three memory docs present and well-formed).
+
+### Discipline notes
+- Stayed inside bounded sprint scope. No iter383 work. No analytics. No theme redesign.
+- Every user-facing string EN+ES parity.
+- Severity-escalation safety net intact.
+- Code-review note from testing agent: NewIncident.jsx (1306 lines) and NewDailyReport.jsx are above the 700-line soft limit. **Out of Phase 6 scope** (directive forbids architecture churn) — logged as P3 backlog.
+
+### Next Action Items
+- 🟢 **P0 — Operator:** Phase 6 + Phase 5D both green. Ready for production deploy.
+- 🟡 **P1 — Operator:** Run the 5 field-shadow tests in `FIELD_SHADOW_VALIDATION_KIT.md` with real users. Even a Superintendent + Safety Manager pair gives a confidence read worth the deploy delay if results are negative.
+- 🟠 **P2 — Engineering:** Resume iter383 `/api/legacy-imports/*` extraction (pre-flight already complete).
+- 🔵 **P3 — Engineering:** Extract `incidentCompletionTone/Label` + `drCompletionLabel/drAttentionItems` derivations into custom hooks once architectural-churn freeze lifts. Eases future maintenance without changing behavior.
+- 🔵 **P3 — Engineering:** 233 inherited pytest isolation failures — separate quality project, not a deploy blocker.
+
+---
+
+
 ## 2026-05-24 — Phase 5D · Operational Completion + Stability Lock ✅
 
 ### Mission
