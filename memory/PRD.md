@@ -1,6 +1,115 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter409 · Phase 14.3 · Live Operational Rollout Convergence ✅
+
+### Mission
+Phase 14.3 finalized the DLS for **REAL-WORLD LIVE DEPLOYMENT** across truck drivers, truck bosses, dispatch, PMs, shop/fleet, and field ops. The platform exits architecture phase and enters **operational rollout phase**. The primary concrete build: **PM Haul Activity production-awareness tile**. The supporting work: 390px mobile validation, audit guardrails, restraint doctrine reinforcement.
+
+### Doctrine reinforced (Phase 14.3)
+- The platform is **one operational operating system**, not modules — PM, dispatch, shop, FL all see the same operational truth through their own role-scoped lenses.
+- **Production awareness ≠ dispatch management.** PM tile has **zero write affordances**. PM cannot issue, reassign, cancel, or transition from this tile (testing agent verified empirically).
+- **Operational memory feeds itself.** Haul cycles now carry `haul_type` + `equipment_label` + `pickup/dropoff_location` so future analytics, estimating, and bidding work has clean source data without any ERP capture step.
+- **Validate-don't-surveil** doctrine preserved — Motive integration architecture remains future-only.
+- **Restraint absolute**: no new collections, no new write endpoints, no role visibility expansion, no analytics/dashboards/maps/GPS.
+- 20-point Phase 14.3 doctrine gate: ALL 20 PASS.
+
+### iter409 · PM Haul Activity Tile
+**Backend**: `GET /api/dispatch/haul-activity` (any portal token)
+
+Project-scoped via `?project_number=X` or `?project_numbers=A,B,C`. Returns:
+- `loads_completed_today` (split: `material_loads_completed_today` + `equipment_moves_completed_today`)
+- `active_hauls` · `equipment_moves_active`
+- `waiting_on_plant` · `waiting_on_dump` (classified by `WAIT_ON_PLANT` / `WAIT_ON_DUMP` reason)
+- `breakdown_impacts`
+- `top_materials` (top-5, sorted DESC, "Equipment Move" string filtered)
+
+Derived purely from `dispatch_assignments` + `haul_cycles`. Tenant-wide when no project filter. No new collection.
+
+**Cycle continuity additive fields** (`_materialize_haul_cycle`): `haul_type` · `equipment_label` · `pickup_location` · `dropoff_location` — backward-compatible (historical cycles read empty).
+
+**Frontend**: `/app/frontend/src/components/dispatch/PmHaulActivityTile.jsx`
+- Mounted on PM Hub above the existing iter396 DispatchLifecycleTile (both coexist — one shows production awareness, one shows operational signals).
+- 6 calm stat cards (loads-today · active-hauls · equipment-moves · wait-plant · wait-site · breakdown) with tone colors (calm = slate-400 · active = slate-900 · warn = amber · danger = rose).
+- Top materials chip row when activity exists.
+- Empty state: "Nothing to report — your jobs are quiet right now."
+- Polls every **60 seconds** (production awareness cadence, not live dispatch).
+- Zero buttons. Zero links. Zero write affordances. **Read-only by design.**
+- EN/ES bilingual.
+
+### Files shipped
+- **NEW** `/app/backend/tests/test_iter409_haul_activity.py` — 9 tests covering auth gate, empty-tenant zeros, project scoping (single + multi), loads-by-haul-type, wait-state classification, breakdown count, top-materials sorting/dedup/filter, equipment-move-excluded-from-materials, cycle additive fields
+- **NEW** `/app/frontend/src/components/dispatch/PmHaulActivityTile.jsx` — 245 LOC, single-purpose, read-only
+- **MOD** `/app/backend/routes/dispatch_lifecycle.py` — added `GET /api/dispatch/haul-activity` (~130 LOC), extended `_materialize_haul_cycle` with 4 additive cycle fields
+- **MOD** `/app/frontend/src/pages/PmHub.jsx` — mounted PmHaulActivityTile (3 LOC + import)
+- **MOD** `/app/frontend/src/lib/i18n.js` — added ~20 EN→ES strings for haul-activity vocabulary
+
+### Tests · 113 / 113 PARITY-LOCK PASS
+- iter319 field calm-pass 12/12 (untouched)
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+- iter401 driver self-start 9/9 (untouched)
+- iter402 shift lookups 10/10 (untouched)
+- iter407 assignment lookups 7/7 (untouched)
+- iter408 expanded contract 15/15 (untouched)
+- **iter409 haul activity 9/9 NEW**
+
+**Audit guardrails ALL CLEAN**:
+- `operator_vocabulary_scanner.py` — only flags expected `iter###` source-comment references
+- `touch_target_audit.py` — zero undersized interactive elements
+- ESLint + Ruff — zero issues
+
+Frontend testing agent verified: PM Haul Activity tile renders on `/pm` with 6 stat cards · DispatchLifecycleTile coexists below · 390px mobile reflow preserves glanceability (stats compute to 2 columns) · zero write affordances inside the tile (DOM scan empty interactive set) · all role boundaries preserved.
+
+### What Phase 14.3 explicitly did NOT do (restraint enforced)
+- ❌ No PM analytics dashboard · no graphs · no charts
+- ❌ No new collection
+- ❌ No new write surface
+- ❌ No GPS / maps / Motive activation
+- ❌ No role visibility expansion (PM still sees production awareness only · no dispatch controls)
+- ❌ No productivity scoring / driver scoring / haul leaderboard
+- ❌ No alerts / notifications / pings
+- ❌ No WAITING_OTHER free-text picker (deferred until live ops actually surfaces gaps)
+- ❌ No automation / route optimization / AI dispatch
+
+### Phase doctrine timeline (current state)
+1. iter397 · Phase 12.A · Cross-platform continuity audit ✅
+2. iter398 · Phase 12.5 · Restraint / tone pass ✅
+3. iter399 · Phase 12.6 · Mobile-first sweep ✅
+4. iter400 · Phase 12.7 · Motive doc + audit doctrine index ✅
+5. iter401 · Phase 12.8 · Driver self-start operational entry ✅
+6. iter402 · Phase 12.9 · Driver identity convergence ✅
+7. iter403 · Phase 13 · Field Tile convergence ✅
+8. iter404 · Phase 13.1 · Field Tile operational refinement ✅
+9. iter405 · Phase 13.2 · DLS i18n field-deployment ✅
+10. iter406 + iter407 · Phase 14 · Operational Deployment Convergence ✅
+11. iter408 · Phase 14.1 + 14.2 · Searchable Rosters + Haul Type ✅
+12. **iter409 · Phase 14.3 · Live Operational Rollout Convergence ✅** (← rollout-ready)
+
+### Operational Rollout Status: DEPLOYABLE
+- ✅ Drivers can scan QR · self-start · receive assignment · operate lifecycle · complete haul · sign out
+- ✅ Dispatch can issue Material OR Equipment Move work in seconds via searchable rosters
+- ✅ Truck bosses can glance at Dispatch Board for active/waiting/breakdown trucks
+- ✅ PMs gain production awareness without dispatch overload
+- ✅ Shop sees breakdowns immediately via iter396 tile
+- ✅ Operational memory clean: every assignment carries truck/driver/carrier/project/source/destination/material/haul_type/equipment_label/pickup/dropoff
+- ✅ Bilingual EN/ES throughout
+- ✅ Mobile 390px verified across driver + PM flows
+- ✅ 113/113 parity-lock tests green
+
+### Next Action Items
+- 🟡 **P1 — Day-1 live ops debrief** (after first real deployment morning, capture friction points)
+- 🔵 **P2 — Lane C · Post-deploy stabilization instrumentation** (`GET /api/admin/dls/health-summary`)
+- 🟠 **P2 — `server.py` Phase 4D extractions** (legacy-imports)
+- 🔵 **P3 — 14-day post-live-ops review** of Safety/FL/HR DLS tile visibility
+- 🔵 **P3 — WAITING_OTHER canonical sub-category picker** — defer until live ops surfaces actual gap patterns
+- 🔵 **P3 — 233 inherited pytest isolation failures** (separate quality project)
+
+---
+
+
 ## 2026-05-24 — iter408 · Phase 14.1 + 14.2 · Assignment Issuance Refinement + Haul Type Continuity ✅
 
 ### Mission
