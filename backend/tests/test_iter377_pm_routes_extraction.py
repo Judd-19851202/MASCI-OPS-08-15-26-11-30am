@@ -245,13 +245,19 @@ class TestExtractionFoundation:
         """iter377-locked baseline. Updated in iter378: ALL 5 PM auth-
         lifecycle routes (/pm/login, /pm/forgot-password, /pm/reset-password,
         /pm/change-password, /pm/logout) have now been extracted as well.
-        The ONLY remaining PM-related route in server.py is the
-        admin-side set-password route, which belongs to the admin family
-        and is not a PM-portal endpoint."""
+
+        Updated in iter382: The admin-side /admin/project-managers/* family
+        (including set-password) has been extracted to
+        /app/backend/routes/pm_admin.py. The route must now be owned by
+        pm_admin.py, NOT server.py."""
         src = Path("/app/backend/server.py").read_text()
-        # Admin-side PM management route still here.
-        assert '@api_router.post("/admin/project-managers/{pm_id}/set-password")' in src, (
-            "admin set-password route must remain in server.py (admin family)"
+        pm_admin_src = Path("/app/backend/routes/pm_admin.py").read_text()
+        # Admin-side PM management route now lives in pm_admin.py (iter382).
+        assert '@router.post("/admin/project-managers/{pm_id}/set-password"' in pm_admin_src, (
+            "admin set-password route must live in pm_admin.py (iter382 extraction)"
+        )
+        assert '@api_router.post("/admin/project-managers/{pm_id}/set-password")' not in src, (
+            "admin set-password route must be removed from server.py (iter382 extraction)"
         )
         # All 5 PM-portal auth routes are now in pm_routes.py.
         for path_marker in [

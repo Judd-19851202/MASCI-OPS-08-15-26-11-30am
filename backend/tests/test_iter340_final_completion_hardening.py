@@ -73,14 +73,31 @@ def test_no_raw_detail_toasts_remain_in_target_pages():
 
 
 def test_server_pdf_renders_use_to_thread():
-    """The 4 ops-manual + pm-welcome PDF sites must be async-wrapped now."""
+    """The 4 ops-manual + pm-welcome PDF sites must be async-wrapped now.
+
+    iter382 · The pm-welcome PDF render sites moved into
+    routes/pm_admin.py along with the /admin/project-managers/* family
+    (welcome-pdf + email-welcome handlers). The asyncio.to_thread
+    wrappers must persist in their new home — zero behavior drift."""
     src = SERVER_PY.read_text()
-    # All 3 ops-manual render calls wrapped
+    pm_admin_src = (ROOT / "backend/routes/pm_admin.py").read_text()
+    # All 3 ops-manual render calls wrapped (still in server.py)
     assert "await asyncio.to_thread(render_ops_manual_pdf)" in src
     assert "await asyncio.to_thread(render_ops_manual_docx)" in src
-    # PM-welcome PDF render — both sites (already-wrapped + newly-wrapped)
-    assert src.count("await asyncio.to_thread(\n            render_pm_welcome_pdf,") + \
-           src.count("await asyncio.to_thread(\n        render_pm_welcome_pdf,") >= 2
+    # PM-welcome PDF render — both sites must remain async-wrapped, now
+    # in pm_admin.py (welcome-pdf + email-welcome handlers). Indentation
+    # differs between the two sites (one is inside a try block, one is
+    # not), so count occurrences of the wrap-pattern rather than match
+    # an exact prefix.
+    import re
+    pm_admin_to_thread_sites = re.findall(
+        r"await asyncio\.to_thread\(\s*\n\s*render_pm_welcome_pdf,",
+        pm_admin_src,
+    )
+    assert len(pm_admin_to_thread_sites) >= 2, (
+        f"pm-welcome PDF renders must remain async-wrapped in pm_admin.py "
+        f"(found {len(pm_admin_to_thread_sites)} sites)"
+    )
     # Make sure the OLD sync calls aren't lingering at those sites
     assert "    pdf = render_ops_manual_pdf()" not in src
     assert "    docx = render_ops_manual_docx()" not in src

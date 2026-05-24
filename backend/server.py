@@ -2017,6 +2017,79 @@ async def shop_reset_password(body: ShopResetPasswordBody, request: Request):
     }
 
 
+# ============================================================
+# Safety Forms — Inspections, Meetings, JHPs, Incidents
+# ----------------------------------------------------------
+# Extracted to /app/backend/routes/safety.py 2026-04-28 (P1 refactor batch 2).
+# Pydantic models (InspectionCreate, Inspection, MeetingCreate, Meeting, etc.)
+# are now defined in that module. The 16 endpoints are attached to the shared
+# router via register_safety_routes() below.
+#
+# iter383 · Restored after the iter382 PM-admin extraction inadvertently
+# removed the registration blocks. Zero behavior drift: identical to the
+# pre-iter382 wiring (admin/safety/pm dependency injection unchanged).
+# ============================================================
+from routes.safety import (  # noqa: E402,F401
+    register_safety_routes,
+    Inspection, InspectionCreate, InspectionSummary,
+    Meeting, MeetingCreate, MeetingSummary,
+    Jha, JhaCreate, JhaSummary,
+    Incident, IncidentCreate, IncidentSummary,
+)
+
+register_safety_routes(
+    api_router, db, require_admin, rate_limit_public_post,
+    # Late binding: schedule_auto_email is defined later in this file. Wrapping
+    # in a lambda lets Python resolve it at request time (when the route fires)
+    # rather than at registration time (when it doesn't exist yet).
+    lambda kind, record: schedule_auto_email(kind, record),
+    # iter236 · Site Inspection moved into Safety portal ownership. POST
+    # /api/inspections now requires Safety or Admin auth (no public/rate-limit
+    # path). The make_require_safety_or_admin factory accepts X-Safety-Token
+    # or X-Admin-Token; HR is intentionally excluded for this write surface.
+    require_safety_or_admin=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_or_admin"]
+    ).make_require_safety_or_admin(db, _is_valid_admin_token),
+    # iter322 · Safety-side READ gate. Closes the operator bug where
+    # X-Safety-Token requests to /api/incidents, /inspections, /meetings,
+    # /jhas were rejected with "Admin or PM login required". Accepts
+    # Safety + Admin + PM. Destructive endpoints stay on require_admin.
+    require_safety_admin_or_pm=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
+
+# QA/QC inspection routes (Concrete Form / Rebar / Subcontractor Work).
+# Same pattern as the Safety routes — single registration helper, late-bound
+# auto-email so PM routing fires after submit.
+from routes.qaqc import register_qaqc_routes  # noqa: E402
+
+register_qaqc_routes(
+    api_router, db, require_admin, rate_limit_public_post,
+    lambda kind, record: schedule_auto_email(kind, record),
+)
+
+
+# ============================================================
+# Daily Job Reports
+# ----------------------------------------------------------
+# Extracted to /app/backend/routes/daily_reports.py 2026-04-28 (P1 batch 3).
+# ============================================================
+from routes.daily_reports import (  # noqa: E402,F401
+    register_daily_reports_routes,
+    DailyReport, DailyReportCreate, DailyReportSummary,
+)
+
+register_daily_reports_routes(
+    api_router, db, require_admin, rate_limit_public_post,
+    lambda kind, record: schedule_auto_email(kind, record),
+)
+
+
+# ============================================================
+# Job Hazard Plans (per-job PDF repository — admin uploads, crews view)
+# ============================================================
 class JobHazardPlanUpload(BaseModel):
     """Admin uploads (or replaces) a Job Hazard Plan for one project."""
     project_number: str

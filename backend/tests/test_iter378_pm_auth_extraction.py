@@ -232,19 +232,32 @@ class TestPmAuthExtractionFoundation:
 
     def test_server_py_no_longer_owns_pm_body_models(self):
         """The 4 PM body models (Login/Change/Forgot/Reset) should be gone
-        from server.py (they were unused after handler extraction)."""
+        from server.py (they were unused after handler extraction).
+
+        Updated in iter382: PMSetPasswordBody was extracted alongside the
+        admin set-password route into pm_admin.py."""
         src = Path("/app/backend/server.py").read_text()
-        # PMSetPasswordBody MUST remain (used by admin set-password route).
-        assert "class PMSetPasswordBody(" in src
+        pm_admin_src = Path("/app/backend/routes/pm_admin.py").read_text()
+        # PMSetPasswordBody now lives in pm_admin.py (iter382).
+        assert "class PMSetPasswordBody(" in pm_admin_src
+        assert "class PMSetPasswordBody(" not in src
         assert "class PMLoginBody(" not in src
         assert "class PMChangePasswordBody(" not in src
         assert "class PMForgotPasswordBody(" not in src
         assert "class PMResetPasswordBody(" not in src
 
     def test_server_py_still_owns_admin_set_password(self):
+        """iter378 baseline lock. Updated in iter382: the admin set-password
+        route AND its handler have been extracted to pm_admin.py. The route
+        must now be served by the pm_admin sub-router."""
         src = Path("/app/backend/server.py").read_text()
-        assert "@api_router.post(\"/admin/project-managers/{pm_id}/set-password\")" in src
-        assert "async def admin_set_pm_password(" in src
+        pm_admin_src = Path("/app/backend/routes/pm_admin.py").read_text()
+        # Route + handler now live in pm_admin.py.
+        assert '@router.post("/admin/project-managers/{pm_id}/set-password"' in pm_admin_src
+        assert "async def admin_set_pm_password(" in pm_admin_src
+        # And must NOT remain in server.py.
+        assert '@api_router.post("/admin/project-managers/{pm_id}/set-password")' not in src
+        assert "async def admin_set_pm_password(" not in src
 
     def test_server_py_wires_login_deps_into_pm_router(self):
         src = Path("/app/backend/server.py").read_text()
