@@ -1,48 +1,94 @@
 # Phase 5C · Workflow Compression Plan (Master)
 
 **Date:** 2026-05-24
-**Status (post-execution 2026-05-24):** ✅ **Iter 1 + Iter 3 IMPLEMENTED.** Iter 2 (Tier-1 reorder) folded into Iter 1 (section order already correct after Tier-3 collapse). Iter 4 (Tier-2 follow-up via PATCH) leverages existing backend capability — no work required. Iter 5 (UX polish) — mobile-friendly classes baked into Iter 1/3 implementations.
-**Mode:** EXECUTION COMPLETE for all behavior-changing iterations.
+**Status (post Phase 5C.1 — Smart Operational Disclosure · 2026-05-24):**
+✅ **Visible-but-collapsed pattern implemented on both target forms.**
+The "hide everything behind one button" approach from Phase 5C Iter 1/3
+was evolved into Smart Operational Disclosure per operator directive:
+every optional section remains VISIBLE as a `CollapseCard` with an
+operational status badge ("3 entered" / "Optional" / "Required" /
+"No entries today"). Users always know what sections exist; only the
+expanded form body collapses. Severity auto-expansion + lock on incident
+Tier-2 preserved exactly.
+
+**Mode:** EXECUTION COMPLETE for all Phase 5C iterations + Phase 5C.1 refinement.
 
 ---
 
-## Execution log (2026-05-24)
+## Phase 5C.1 execution log (2026-05-24)
 
-### ✅ Iter 1 — Daily Report Tier-3 disclosure
-- File: `frontend/src/pages/NewDailyReport.jsx` · +60 LOC · 1,524 → 1,583
-- Added `showMoreFields` state with `localStorage` persistence (`masci.dr.showMoreFields`).
-- Wrapped Sections 05 (Subs) · 06 (Visitors) · 07 (Equipment) · 08 (Materials) · 09 (Activities) behind a single "Show all fields" disclosure.
-- Collapsed banner clearly explains what's hidden.
-- "Hide optional fields" reverse toggle when expanded.
-- ZERO field deletion · all 35 + 7 schema fields remain in payload when populated.
-- Existing Safety Escalation conditional logic untouched.
-- ESLint clean.
+### ✅ New primitive: `<CollapseCard>` (90 LOC)
+File: `frontend/src/components/CollapseCard.jsx`
+Single small UI helper. Props: `title`, `statusLabel`, `statusTone`
+(slate/emerald/amber/rose), `defaultOpen`, `forceOpen`, `lockOpen`,
+`testId`. Used 5× on Daily Report + 4× on Incident.
 
-### ✅ Iter 2 — Daily Report Tier-1 reorder
-**Result:** No code change needed. The current section order (01 Report Info → 02 Weather → 03 General → 04 Crews → [Tier 3 collapsed] → 10 Photos → 11 Sign-Off) already matches the recommended Tier-1 ordering after Iter 1 collapse. The previously-perceived "wrong order" was caused by Tier 3 sections (05-09) being visually interleaved with Tier 1; collapsing them resolves the ordering problem.
+### ✅ Daily Report — 5 named CollapseCards
+Replaced the single "Show all fields" button with 5 visible cards:
+- Subcontractors on Site → "3 entered" / "No subs today"
+- Site Visitors → "2 entered" / "No visitors today"
+- Equipment Log → "1 entered" / "Optional"
+- Material Deliveries → "4 entered" / "No deliveries today"
+- Activity / Production Log → "2 entered" / "Optional"
 
-### ✅ Iter 3 — Incident Fast Entry (tiered)
-- File: `frontend/src/pages/NewIncident.jsx` · +84 LOC · 1,088 → 1,172
-- Added `SERIOUS_SEVERITIES`, `isSeriousIncident`, `tier2Open` state + `showTier2` derived gate.
-- Wrapped Sections 05 (Root Cause) · 06 (Witnesses) · 07 (Corrective Actions) · 08 (Notifications Made + Distribution List) behind a Tier-2 disclosure.
-- **Auto-expansion safety net:** when severity ∈ {medical, restricted, lost_time, fatality}, `showTier2` is forced TRUE and the collapse toggle is locked OFF.
-- Locked banner displayed when serious incident: *"Severity is Medical or higher — full follow-up detail is required before submit."*
-- Near Miss / First Aid: 8-field fast-entry path (Tier 1 only).
-- ZERO field deletion · all 54 schema fields remain in payload.
-- Section 03 (Person Involved) `isInjury` conditional preserved untouched.
-- ESLint clean.
+Tone rules: emerald when entries present, slate when empty. All 35 + 7
+schema fields preserved. Rich field configs (`supplier-combo`,
+`employee-combo`, `ticket_photos`, `attachment_note`) intact.
 
-### ✅ Iter 4 — Incident Tier-2 follow-up
-**Result:** Zero new code required. The existing incident detail page (`ViewIncident.jsx`) supports PATCH-based field updates against the existing `/api/incidents/{id}` endpoint. A reporter or Safety user who submits a Tier-1-only incident can complete Tier-2 fields from the detail view at any time. The audit log, severity-based CAPA creation, and lifecycle status all use the same backend hooks.
+### ✅ Incident — 4 named CollapseCards with severity lock
+Replaced the single "Add follow-up" button with 4 visible cards for
+sections 05–08:
+- Root Cause Analysis · status reflects checkbox count
+- Witnesses · status reflects array length / Recommended for serious
+- Corrective Actions & Follow-Up · status reflects content / Required for serious
+- Notifications Made · status reflects toggle count / "Platform notifies automatically on submit"
 
-### ✅ Iter 5 — UX polish
-**Result:** Folded into Iter 1 + Iter 3. Mobile-friendly Tailwind classes (`flex items-center justify-between gap-3`, `shrink-0`, `min-w-0`, `text-sm`, dashed `border-dashed`) baked into both disclosure banners. Visual depth and density mirror existing platform conventions; no new visual experiments introduced.
+**Severity safety net preserved exactly:** when `severity ∈ {medical,
+restricted, lost_time, fatality}`, all 4 cards auto-open (`forceOpen`)
+and the toggle is locked (`lockOpen`). Rose banner displays:
+*"Severity is Medical or higher — follow-up sections are open and
+required before submit."*
 
-### Frontend health post-execution
-- Frontend supervisor: RUNNING · uptime preserved
-- Bundle: 200 OK
-- Only pre-existing deprecation warnings in webpack log (no new errors)
-- ESLint on both modified files: clean
+For Near Miss / First Aid: cards collapsed by default, status badges
+clearly communicate what each section is for.
+
+### Trust + accountability preservation (verified)
+- ✅ ZERO backend changes
+- ✅ ZERO schema/field deletions
+- ✅ `useDraftSync` autosave (DR) — untouched
+- ✅ `idempotencyKeyRef` (both forms) — untouched
+- ✅ Existing Safety Escalation conditional (DR) — untouched
+- ✅ Existing `isInjury` conditional (Incident Section 03) — untouched
+- ✅ Severity auto-expansion + lock (Incident) — preserved exactly
+- ✅ All 11 root cause checkboxes still rendered when card open
+- ✅ All distribution list / fan-out logic untouched
+- ✅ ESLint on all 3 changed files: clean
+- ✅ Frontend bundle 200 OK · no compile errors
+
+---
+
+## Phase 5C original execution log (kept for history · 2026-05-24)
+
+### Iter 1 — Daily Report Tier-3 (superseded by 5C.1)
+First implementation used a single "Show all fields" toggle. Replaced
+by 5 named CollapseCards in Phase 5C.1 per operator directive (users
+need to see what sections exist, not just that "more fields" exist).
+
+### Iter 2 — Daily Report Tier-1 reorder
+No code change needed. Original section order is already correct.
+
+### Iter 3 — Incident tiered fast entry (superseded by 5C.1)
+First implementation used a single "Add follow-up" toggle. Replaced
+by 4 named CollapseCards with per-card status. Same severity safety
+net preserved.
+
+### Iter 4 — Incident Tier-2 follow-up via PATCH
+Zero new code required. Existing `/api/incidents/{id}` PATCH path
+supports follow-up enrichment from the incident detail page.
+
+### Iter 5 — UX polish
+Folded into 5C.1 implementation (mobile-friendly Tailwind classes baked
+into `CollapseCard`).
 
 ---
 

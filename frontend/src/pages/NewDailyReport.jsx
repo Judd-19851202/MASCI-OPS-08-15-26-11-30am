@@ -21,6 +21,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { Section } from "@/components/Section";
 import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
+import { CollapseCard } from "@/components/CollapseCard";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
@@ -217,22 +218,11 @@ export default function NewDailyReport({ publicMode = false }) {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [fetchingWeather, setFetchingWeather] = useState(false);
-  // iter383 · Phase 5C Iter 1 — Tier-3 progressive disclosure. Hides
-  // sections 05–09 (Subs · Visitors · Equipment · Materials · Activities)
-  // behind a single "More fields" toggle. Saves the user's preference
-  // per-actor via localStorage so power users (Safety, senior PMs) stay
-  // expanded after their first session, while supers/foremen get the
-  // compressed default. ZERO backend impact — all 35 + 7 schema fields
-  // remain in the payload regardless of disclosure state.
-  const [showMoreFields, setShowMoreFields] = useState(() => {
-    try {
-      return localStorage.getItem("masci.dr.showMoreFields") === "1";
-    } catch { return false; }
-  });
-  const toggleMoreFields = (next) => {
-    setShowMoreFields(next);
-    try { localStorage.setItem("masci.dr.showMoreFields", next ? "1" : "0"); } catch { /* ignore */ }
-  };
+  // iter383 · Phase 5C.1 — Smart Operational Disclosure. Each optional
+  // section is now wrapped in a CollapseCard with status badge (see
+  // <CollapseCard> usages below). Per-card open state is held inside
+  // each CollapseCard so users can independently expand sections that
+  // matter today (e.g., subs but not visitors). ZERO field deletion.
   const idempotencyKeyRef = React.useRef(null);
 
   // Phase J — autosave + draft recovery (non-invasive).
@@ -1270,201 +1260,211 @@ export default function NewDailyReport({ publicMode = false }) {
           </div>
         </Section>
 
-        {/* iter383 · Phase 5C Iter 1 — Tier-3 progressive disclosure.
-            Sections 05–09 are "More fields" — operationally optional on
-            most days. Default collapsed for supers/foremen on phones;
-            user preference persists via localStorage. ZERO field deletion
-            — all schema preserved and submitted when populated.        */}
-        {!showMoreFields ? (
-          <div
-            className="border border-dashed border-slate-300 rounded-md bg-slate-50/60 p-4 flex items-center justify-between gap-3"
-            data-testid="dr-tier3-collapsed"
+        {/* iter383 · Phase 5C.1 — Smart Operational Disclosure.
+            Each optional section remains VISIBLE as a CollapseCard with
+            a status badge ("3 entered" / "Optional" / "No entries").
+            Only the expanded body collapses — section name + operational
+            state are always communicated. ZERO field deletion: each card
+            wraps the original Section block exactly as-is so all rich
+            field configs (supplier-combo, employee-combo, ticket_photos,
+            attachment_note) remain intact. */}
+        <div className="space-y-2" data-testid="dr-collapse-cards">
+
+          <CollapseCard
+            title={t("Subcontractors on Site")}
+            testId="dr-subcontractors"
+            statusLabel={
+              (data.subcontractors?.length || 0) > 0
+                ? `${data.subcontractors.length} ${t("entered")}`
+                : t("No subs today")
+            }
+            statusTone={(data.subcontractors?.length || 0) > 0 ? "emerald" : "slate"}
           >
-            <div className="flex-1 min-w-0">
-              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
-                {t("More Fields")}
-              </div>
-              <div className="text-sm text-slate-700 mt-1">
-                {t("Subcontractors · Visitors · Equipment · Materials · Activities. Optional on most days — expand if needed.")}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => toggleMoreFields(true)}
-              className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white font-mono text-xs uppercase tracking-wider hover:bg-slate-700"
-              data-testid="dr-tier3-expand-btn"
-            >
-              {t("Show all fields")}
-            </button>
-          </div>
-        ) : (
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => toggleMoreFields(false)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 font-mono text-[11px] uppercase tracking-wider hover:bg-slate-50"
-              data-testid="dr-tier3-collapse-btn"
-            >
-              {t("Hide optional fields")}
-            </button>
-          </div>
-        )}
+            <RepeatBlock
+              title={t("Subcontractor")}
+              list="subcontractors"
+              rows={data.subcontractors}
+              helpers={subs}
+              t={t}
+              defaults={{
+                company: "",
+                trade: "",
+                foreman: "",
+                count: "",
+                hours: "",
+                work_performed: "",
+                attachment_note: "",
+                photos: [],
+              }}
+              fields={[
+                { key: "company", label: "Company", full: true, type: "supplier-combo" },
+                { key: "trade", label: "Trade" },
+                { key: "foreman", label: "Foreman / Lead", type: "employee-combo" },
+                { key: "count", label: "# of Workers", type: "number" },
+                { key: "hours", label: "Hours Worked", type: "number" },
+                {
+                  key: "work_performed",
+                  label: "Work Performed",
+                  full: true,
+                  type: "textarea",
+                },
+                {
+                  key: "attachment_note",
+                  label: "Attachment Note (optional)",
+                  full: true,
+                  placeholder: "e.g. Flagger tickets — AM shift · Signed labor slips · QC issue",
+                },
+                { key: "photos", label: "Photos / Tickets", full: true, type: "photo" },
+              ]}
+              testIdBase="sub"
+            />
+          </CollapseCard>
 
-        {/* 05 — Subcontractors */}
-        {showMoreFields && (<>
-        <Section number="05" title={t("Subcontractors on Site")}>
-          <RepeatBlock
-            title={t("Subcontractor")}
-            list="subcontractors"
-            rows={data.subcontractors}
-            helpers={subs}
-            t={t}
-            defaults={{
-              company: "",
-              trade: "",
-              foreman: "",
-              count: "",
-              hours: "",
-              work_performed: "",
-              attachment_note: "",
-              photos: [],
-            }}
-            fields={[
-              { key: "company", label: "Company", full: true, type: "supplier-combo" },
-              { key: "trade", label: "Trade" },
-              { key: "foreman", label: "Foreman / Lead", type: "employee-combo" },
-              { key: "count", label: "# of Workers", type: "number" },
-              { key: "hours", label: "Hours Worked", type: "number" },
-              {
-                key: "work_performed",
-                label: "Work Performed",
-                full: true,
-                type: "textarea",
-              },
-              {
-                key: "attachment_note",
-                label: "Attachment Note (optional)",
-                full: true,
-                placeholder: "e.g. Flagger tickets — AM shift · Signed labor slips · QC issue",
-              },
-              { key: "photos", label: "Photos / Tickets", full: true, type: "photo" },
-            ]}
-            testIdBase="sub"
-          />
-        </Section>
+          <CollapseCard
+            title={t("Site Visitors")}
+            testId="dr-visitors"
+            statusLabel={
+              (data.visitors?.length || 0) > 0
+                ? `${data.visitors.length} ${t("entered")}`
+                : t("No visitors today")
+            }
+            statusTone={(data.visitors?.length || 0) > 0 ? "emerald" : "slate"}
+          >
+            <RepeatBlock
+              title={t("Visitor")}
+              list="visitors"
+              rows={data.visitors}
+              helpers={vis}
+              t={t}
+              defaults={{
+                name: "",
+                company: "",
+                time_in: "",
+                time_out: "",
+                purpose: "",
+              }}
+              fields={[
+                { key: "name", label: "Name" },
+                { key: "company", label: "Company / Agency" },
+                { key: "time_in", label: "Time In", type: "time" },
+                { key: "time_out", label: "Time Out", type: "time" },
+                { key: "purpose", label: "Purpose / Notes", full: true },
+              ]}
+              testIdBase="visitor"
+            />
+          </CollapseCard>
 
-        {/* 06 — Visitors */}
-        <Section number="06" title={t("Site Visitors")}>
-          <RepeatBlock
-            title={t("Visitor")}
-            list="visitors"
-            rows={data.visitors}
-            helpers={vis}
-            t={t}
-            defaults={{
-              name: "",
-              company: "",
-              time_in: "",
-              time_out: "",
-              purpose: "",
-            }}
-            fields={[
-              { key: "name", label: "Name" },
-              { key: "company", label: "Company / Agency" },
-              { key: "time_in", label: "Time In", type: "time" },
-              { key: "time_out", label: "Time Out", type: "time" },
-              { key: "purpose", label: "Purpose / Notes", full: true },
-            ]}
-            testIdBase="visitor"
-          />
-        </Section>
+          <CollapseCard
+            title={t("Equipment Log")}
+            testId="dr-equipment"
+            statusLabel={
+              (data.equipment?.length || 0) > 0
+                ? `${data.equipment.length} ${t("entered")}`
+                : t("Optional")
+            }
+            statusTone={(data.equipment?.length || 0) > 0 ? "emerald" : "slate"}
+          >
+            <HelpTipBlock formKey="daily-report.equipment" className="mb-3" />
+            <RepeatBlock
+              title={t("Equipment")}
+              list="equipment"
+              rows={data.equipment}
+              helpers={eq}
+              t={t}
+              defaults={{
+                description: "",
+                hours_used: "",
+                time_delivered: "",
+                time_removed: "",
+                notes: "",
+              }}
+              fields={[
+                { key: "description", label: "Unit / Equipment", full: true, type: "equipment-combo" },
+                { key: "hours_used", label: "Hours Used", type: "number" },
+                { key: "time_delivered", label: "Time Delivered", type: "time" },
+                { key: "time_removed", label: "Time Removed", type: "time" },
+                { key: "notes", label: "Notes", full: true, type: "textarea" },
+              ]}
+              testIdBase="equipment"
+            />
+          </CollapseCard>
 
-        {/* 07 — Equipment */}
-        <Section number="07" title={t("Equipment Log")}>
-          <HelpTipBlock formKey="daily-report.equipment" className="mb-3" />
-          <RepeatBlock
-            title={t("Equipment")}
-            list="equipment"
-            rows={data.equipment}
-            helpers={eq}
-            t={t}
-            defaults={{
-              description: "",
-              hours_used: "",
-              time_delivered: "",
-              time_removed: "",
-              notes: "",
-            }}
-            fields={[
-              { key: "description", label: "Unit / Equipment", full: true, type: "equipment-combo" },
-              { key: "hours_used", label: "Hours Used", type: "number" },
-              { key: "time_delivered", label: "Time Delivered", type: "time" },
-              { key: "time_removed", label: "Time Removed", type: "time" },
-              { key: "notes", label: "Notes", full: true, type: "textarea" },
-            ]}
-            testIdBase="equipment"
-          />
-        </Section>
+          <CollapseCard
+            title={t("Material Deliveries")}
+            testId="dr-materials"
+            statusLabel={
+              (data.materials?.length || 0) > 0
+                ? `${data.materials.length} ${t("entered")}`
+                : t("No deliveries today")
+            }
+            statusTone={(data.materials?.length || 0) > 0 ? "emerald" : "slate"}
+          >
+            <HelpTipBlock formKey="daily-report.materials" className="mb-3" />
+            <RepeatBlock
+              title={t("Material")}
+              list="materials"
+              rows={data.materials}
+              helpers={mat}
+              t={t}
+              defaults={{
+                description: "",
+                quantity: "",
+                unit: "",
+                supplier: "",
+                ticket_number: "",
+                notes: "",
+                ticket_photos: [],
+              }}
+              fields={[
+                { key: "description", label: "Description", full: true },
+                { key: "quantity", label: "Quantity" },
+                { key: "unit", label: "Unit", placeholder: "ton, cy, ea, lf" },
+                { key: "supplier", label: "Supplier", full: true, type: "supplier-combo" },
+                { key: "ticket_number", label: "Ticket #" },
+                { key: "notes", label: "Notes", full: true, type: "textarea" },
+                { key: "ticket_photos", label: "Ticket Photo(s)", full: true, type: "photo" },
+              ]}
+              testIdBase="material"
+            />
+          </CollapseCard>
 
-        {/* 08 — Materials */}
-        <Section number="08" title={t("Material Deliveries")}>
-          <HelpTipBlock formKey="daily-report.materials" className="mb-3" />
-          <RepeatBlock
-            title={t("Material")}
-            list="materials"
-            rows={data.materials}
-            helpers={mat}
-            t={t}
-            defaults={{
-              description: "",
-              quantity: "",
-              unit: "",
-              supplier: "",
-              ticket_number: "",
-              notes: "",
-              ticket_photos: [],
-            }}
-            fields={[
-              { key: "description", label: "Description", full: true },
-              { key: "quantity", label: "Quantity" },
-              { key: "unit", label: "Unit", placeholder: "ton, cy, ea, lf" },
-              { key: "supplier", label: "Supplier", full: true, type: "supplier-combo" },
-              { key: "ticket_number", label: "Ticket #" },
-              { key: "notes", label: "Notes", full: true, type: "textarea" },
-              { key: "ticket_photos", label: "Ticket Photo(s)", full: true, type: "photo" },
-            ]}
-            testIdBase="material"
-          />
-        </Section>
+          <CollapseCard
+            title={t("Activity / Production Log")}
+            testId="dr-activities"
+            statusLabel={
+              (data.activities?.length || 0) > 0
+                ? `${data.activities.length} ${t("entered")}`
+                : t("Optional")
+            }
+            statusTone={(data.activities?.length || 0) > 0 ? "emerald" : "slate"}
+          >
+            <HelpTipBlock formKey="daily-report.narrative" className="mb-3" />
+            <RepeatBlock
+              title={t("Activity")}
+              list="activities"
+              rows={data.activities}
+              helpers={act}
+              t={t}
+              defaults={{
+                activity: "",
+                percent_complete: "",
+                station_from: "",
+                station_to: "",
+                notes: "",
+              }}
+              fields={[
+                { key: "activity", label: "Activity", full: true },
+                { key: "percent_complete", label: "% Complete", type: "number" },
+                { key: "station_from", label: "Station / Loc From" },
+                { key: "station_to", label: "Station / Loc To" },
+                { key: "notes", label: "Notes", full: true, type: "textarea" },
+              ]}
+              testIdBase="activity"
+            />
+          </CollapseCard>
 
-        {/* 09 — Activity Log */}
-        <Section number="09" title={t("Activity / Production Log")}>
-          <HelpTipBlock formKey="daily-report.narrative" className="mb-3" />
-          <RepeatBlock
-            title={t("Activity")}
-            list="activities"
-            rows={data.activities}
-            helpers={act}
-            t={t}
-            defaults={{
-              activity: "",
-              percent_complete: "",
-              station_from: "",
-              station_to: "",
-              notes: "",
-            }}
-            fields={[
-              { key: "activity", label: "Activity", full: true },
-              { key: "percent_complete", label: "% Complete", type: "number" },
-              { key: "station_from", label: "Station / Loc From" },
-              { key: "station_to", label: "Station / Loc To" },
-              { key: "notes", label: "Notes", full: true, type: "textarea" },
-            ]}
-            testIdBase="activity"
-          />
-        </Section>
-        </>)}
-        {/* iter383 · End of Tier-3 disclosure block (Phase 5C Iter 1). */}
+        </div>
+        {/* iter383 · End of Smart Operational Disclosure cards. */}
 
         {/* 10 — Photos (min 6) */}
         <Section

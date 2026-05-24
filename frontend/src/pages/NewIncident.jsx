@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { MasciLogo } from "@/components/MasciLogo";
 import { Section } from "@/components/Section";
+import { CollapseCard } from "@/components/CollapseCard";
 import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -71,32 +72,16 @@ export default function NewIncident({ publicMode = false }) {
   const [locating, setLocating] = useState(false);
   const idempotencyKeyRef = React.useRef(null);
 
-  // iter383 · Phase 5C Iter 3 — Tiered incident entry.
-  // ─────────────────────────────────────────────────────
-  // Near Miss / First Aid: Tier 2 sections (Root Cause, Witnesses,
-  // Corrective Actions, Notifications-Made checklist) collapse behind
-  // a single disclosure. Stressed supervisors get an 8-field fast-entry
-  // path. ZERO field deletion · ZERO backend change · all data flows
-  // through the same POST /api/incidents endpoint.
+  // iter383 · Phase 5C.1 — Smart Operational Disclosure for Incident
+  // Tier-2 (sections 05–08). Each follow-up section is wrapped in a
+  // CollapseCard with forceOpen + lockOpen tied to isSeriousIncident.
   //
-  // SAFETY NET (non-negotiable): if severity escalates to medical /
-  // restricted / lost_time / fatality, Tier 2 auto-expands and the
-  // collapse toggle is locked OFF. Under-classification cannot bypass
-  // the OSHA-grade fields. See OPERATIONAL_ADOPTION_PROTECTION_PLAN.md.
+  // SAFETY NET (non-negotiable): for severity ∈ {medical, restricted,
+  // lost_time, fatality}, every Tier-2 CollapseCard auto-opens and the
+  // toggle is locked. Under-classification cannot bypass the OSHA-grade
+  // fields. See OPERATIONAL_ADOPTION_PROTECTION_PLAN.md.
   const SERIOUS_SEVERITIES = ["medical", "restricted", "lost_time", "fatality"];
   const isSeriousIncident = SERIOUS_SEVERITIES.includes(data.severity);
-  const [tier2Open, setTier2Open] = useState(() => {
-    try {
-      return localStorage.getItem("masci.incident.tier2Open") === "1";
-    } catch { return false; }
-  });
-  // Auto-force tier2Open for serious incidents — every render.
-  const showTier2 = tier2Open || isSeriousIncident;
-  const toggleTier2 = (next) => {
-    if (isSeriousIncident) return; // lock — cannot collapse a serious event
-    setTier2Open(next);
-    try { localStorage.setItem("masci.incident.tier2Open", next ? "1" : "0"); } catch { /* ignore */ }
-  };
 
   // Phase J — autosave + draft recovery. Non-invasive (does not own
   // state). On mount we offer recovery via a toast.
@@ -816,61 +801,47 @@ export default function NewIncident({ publicMode = false }) {
           </div>
         </Section>
 
-        {/* iter383 · Phase 5C Iter 3 — Tier-2 progressive disclosure.
-            Sections 05–08 collapse behind a single button for Near Miss
-            / First Aid. AUTO-EXPAND + LOCK for severity ≥ medical (see
-            isSeriousIncident). ZERO field deletion — all schema fields
-            remain in the payload. */}
-        {!showTier2 ? (
-          <div
-            className="border border-dashed border-slate-300 rounded-md bg-slate-50/60 p-4 flex items-center justify-between gap-3"
-            data-testid="incident-tier2-collapsed"
-          >
-            <div className="flex-1 min-w-0">
-              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
-                {t("Follow-Up Details")}
-              </div>
-              <div className="text-sm text-slate-700 mt-1">
-                {t("Root cause · Witnesses · Corrective actions · Notifications. Add now if you have time, or after the incident is stabilized.")}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => toggleTier2(true)}
-              className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white font-mono text-xs uppercase tracking-wider hover:bg-slate-700"
-              data-testid="incident-tier2-expand-btn"
-            >
-              {t("Add follow-up")}
-            </button>
-          </div>
-        ) : (
-          <>
-            {isSeriousIncident && (
-              <div
-                className="border-l-4 border-rose-600 bg-rose-50/60 rounded-md p-3 text-sm text-rose-900"
-                data-testid="incident-tier2-locked-banner"
-              >
-                <span className="font-mono text-[11px] uppercase tracking-[0.2em] font-bold">
-                  {t("Required")}
-                </span>
-                {" · "}
-                {t("Severity is Medical or higher — full follow-up detail is required before submit.")}
-              </div>
-            )}
-            {!isSeriousIncident && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => toggleTier2(false)}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 font-mono text-[11px] uppercase tracking-wider hover:bg-slate-50"
-                  data-testid="incident-tier2-collapse-btn"
-                >
-                  {t("Hide follow-up fields")}
-                </button>
-              </div>
-            )}
+        {/* iter383 · Phase 5C.1 — Smart Operational Disclosure for
+            Incident Tier-2 (sections 05–08). Each follow-up section is a
+            visible CollapseCard with operational status. AUTO-EXPAND +
+            LOCK when severity ≥ medical (forceOpen + lockOpen). ZERO
+            field deletion — full payload preserved.
 
-        {/* Section 05 — Root cause */}
+            DO NOT TOUCH: severity auto-escalation, OSHA-grade enforcement,
+            CAPA lifecycle hooks. This refactor only changes awareness. */}
+        {isSeriousIncident && (
+          <div
+            className="border-l-4 border-rose-600 bg-rose-50/60 rounded-md p-3 text-sm text-rose-900"
+            data-testid="incident-tier2-locked-banner"
+          >
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] font-bold">
+              {t("Required")}
+            </span>
+            {" · "}
+            {t("Severity is Medical or higher — follow-up sections are open and required before submit.")}
+          </div>
+        )}
+
+        <CollapseCard
+          title={t("Root Cause Analysis")}
+          testId="incident-root-cause"
+          statusLabel={
+            isSeriousIncident
+              ? t("Required")
+              : Object.values(data.root_causes || {}).filter(Boolean).length > 0
+                ? `${Object.values(data.root_causes || {}).filter(Boolean).length} ${t("selected")}`
+                : t("Optional · add if cause is known")
+          }
+          statusTone={
+            isSeriousIncident
+              ? "rose"
+              : Object.values(data.root_causes || {}).filter(Boolean).length > 0
+                ? "emerald"
+                : "slate"
+          }
+          forceOpen={isSeriousIncident}
+          lockOpen={isSeriousIncident}
+        >
         <Section number="05" title="Root Cause Analysis">
           <p className="text-sm text-slate-600">
             Check every category that contributed. Pick all that apply.
@@ -902,7 +873,28 @@ export default function NewIncident({ publicMode = false }) {
             />
           </div>
         </Section>
+        </CollapseCard>
 
+        <CollapseCard
+          title={t("Witnesses")}
+          testId="incident-witnesses"
+          statusLabel={
+            (data.witnesses?.length || 0) > 0
+              ? `${data.witnesses.length} ${t("entered")}`
+              : isSeriousIncident
+                ? t("Recommended")
+                : t("Optional · none today")
+          }
+          statusTone={
+            (data.witnesses?.length || 0) > 0
+              ? "emerald"
+              : isSeriousIncident
+                ? "amber"
+                : "slate"
+          }
+          forceOpen={isSeriousIncident}
+          lockOpen={isSeriousIncident}
+        >
         {/* Section 06 — Witnesses */}
         <Section number="06" title={t("Witnesses")}>
           <HelpTipBlock formKey="incident.witnesses" className="mb-3" />
@@ -956,7 +948,30 @@ export default function NewIncident({ publicMode = false }) {
             <UserPlus className="w-4 h-4 mr-2" /> Add Witness
           </Button>
         </Section>
+        </CollapseCard>
 
+        <CollapseCard
+          title={t("Corrective Actions & Follow-Up")}
+          testId="incident-corrective"
+          statusLabel={
+            (data.corrective_actions || "").trim().length > 0 ||
+            (data.responsible_party || "").trim().length > 0
+              ? t("In progress")
+              : isSeriousIncident
+                ? t("Required")
+                : t("Optional · add if known")
+          }
+          statusTone={
+            (data.corrective_actions || "").trim().length > 0 ||
+            (data.responsible_party || "").trim().length > 0
+              ? "emerald"
+              : isSeriousIncident
+                ? "rose"
+                : "slate"
+          }
+          forceOpen={isSeriousIncident}
+          lockOpen={isSeriousIncident}
+        >
         {/* Section 07 — Corrective actions */}
         <Section number="07" title={t("Corrective Actions & Follow-Up")}>
           <HelpTipBlock formKey="incident.corrective" className="mb-3" />
@@ -1015,7 +1030,42 @@ export default function NewIncident({ publicMode = false }) {
             </div>
           </div>
         </Section>
+        </CollapseCard>
 
+        <CollapseCard
+          title={t("Notifications Made")}
+          testId="incident-notifications"
+          statusLabel={
+            [
+              data.notified_safety_manager,
+              data.notified_pm,
+              data.notified_gc,
+              data.notified_owner,
+              data.notified_osha,
+              data.notified_other,
+            ].filter((v) => v && v !== "no" && v !== "No").length > 0
+              ? t("Tracked")
+              : isSeriousIncident
+                ? t("Required")
+                : t("Optional · platform notifies automatically on submit")
+          }
+          statusTone={
+            [
+              data.notified_safety_manager,
+              data.notified_pm,
+              data.notified_gc,
+              data.notified_owner,
+              data.notified_osha,
+              data.notified_other,
+            ].filter((v) => v && v !== "no" && v !== "No").length > 0
+              ? "emerald"
+              : isSeriousIncident
+                ? "rose"
+                : "slate"
+          }
+          forceOpen={isSeriousIncident}
+          lockOpen={isSeriousIncident}
+        >
         {/* Section 08 — Notifications */}
         <Section number="08" title={t("Notifications Made")}>
           <p className="text-sm text-slate-600">
@@ -1093,9 +1143,8 @@ export default function NewIncident({ publicMode = false }) {
             />
           </div>
         </Section>
-        </>
-        )}
-        {/* iter383 · End of Tier-2 disclosure block (Phase 5C Iter 3). */}
+        </CollapseCard>
+        {/* iter383 · End of Smart Operational Disclosure Tier-2 cards. */}
 
         <Section number="09" title={t("Photos / Evidence")}>
           <p className="text-xs text-slate-600 -mt-2 mb-2">
