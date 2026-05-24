@@ -363,6 +363,13 @@ async def _materialize_haul_cycle(db, *, assignment_id: str, tenant_id: str) -> 
         "material": assignment.get("material") or "",
         "source_location": assignment.get("source_location") or "",
         "destination": assignment.get("destination") or "",
+        # iter409 · Phase 14.3 · cycle continuity for haul-type-aware
+        # PM production awareness. Additive — historical cycles will
+        # simply read these fields as empty strings.
+        "haul_type": assignment.get("haul_type") or "Material",
+        "equipment_label": assignment.get("equipment_label") or "",
+        "pickup_location": assignment.get("pickup_location") or "",
+        "dropoff_location": assignment.get("dropoff_location") or "",
         "started_at": started_at,
         "completed_at": completed_at,
         "total_seconds": total_seconds,
@@ -853,6 +860,147 @@ def build_dispatch_lifecycle_router(
             "preferred_next": {
                 s: DLS.allowed_next_states(s) for s in DLS.CANONICAL_STATES
             },
+        }
+
+    # ────────────────────────────────────────────────────────────────
+    # iter409 · Phase 14.3 · PM Haul Activity (production awareness)
+    # ────────────────────────────────────────────────────────────────
+    @router.get("/haul-activity")
+    async def haul_activity_summary(
+        actor: Dict[str, Any] = Depends(require_any_portal_token_dep),  # noqa: ARG001
+        project_number: Optional[str] = Query(default=None),
+        project_numbers: Optional[str] = Query(default=None),
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        """Calm, role-agnostic production awareness.
+
+        PM Hub renders this as a "Haul Activity" tile, scoped to the
+        PM's project_numbers. The same endpoint serves any portal that
+        cares — admin, dispatch, FL — so we don't fork the data path.
+
+        Doctrine:
+          * Derived only from `dispatch_assignments` + `haul_cycles`
+            (no new collection).
+          * Numbers, not graphs. No analytics drift.
+          * "Today" = UTC calendar day boundary of `started_at`.
+          * Empty project_number → tenant-wide summary (admin/dispatch).
+
+        Query options:
+          - project_number=PRJ-1
+          - project_numbers=PRJ-1,PRJ-2,PRJ-3
+        """
+        tenant_id = _resolve_tenant(x_tenant_id)
+        targets: List[str] = []
+        if project_number:
+            targets.append(project_number.strip())
+        if project_numbers:
+            targets.extend(
+                [p.strip() for p in project_numbers.split(",") if p.strip()],
+            )
+        targets = list({p for p in targets if p})
+
+        # Day boundary in UTC
+        now = datetime.now(timezone.utc)
+        day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_start_iso = day_start.isoformat()
+
+        # Base match: tenant + (optional) project scope
+        base_match: Dict[str, Any] = {"tenant_id": tenant_id}
+        if targets:
+            base_match["project_number"] = {"$in": targets}
+
+        # ── Loads completed today (haul_cycles is canonical) ──────
+        loads_completed_today = 0
+        equipment_moves_completed_today = 0
+        material_loads_completed_today = 0
+        try:
+            cycle_match = dict(base_match)
+            cycle_match["completed_at"] = {"$gte": day_start_iso}
+            async for c in db.haul_cycles.find(
+                cycle_match,
+                {"_id": 0, "haul_type": 1},
+            ):
+                loads_completed_today += 1
+                if (c.get("haul_type") or "Material") == "Equipment Move":
+                    equipment_moves_completed_today += 1
+                else:
+                    material_loads_completed_today += 1
+        except Exception:
+            pass
+
+        # ── Active hauls + state-based signals (dispatch_assignments) ──
+        active_hauls = 0
+        equipment_moves_active = 0
+        waiting_on_plant = 0
+        waiting_on_dump = 0
+        breakdown_impacts = 0
+        try:
+            active_match = dict(base_match)
+            active_match["current_state"] = {"$nin": list(DLS.TERMINAL_STATES)}
+            async for a in db.dispatch_assignments.find(
+                active_match,
+                {
+                    "_id": 0, "current_state": 1, "current_wait_reason": 1,
+                    "haul_type": 1,
+                },
+            ):
+                active_hauls += 1
+                state = a.get("current_state") or ""
+                wait = (a.get("current_wait_reason") or "").upper()
+                if state == DLS.BREAKDOWN:
+                    breakdown_impacts += 1
+                if state == DLS.WAITING:
+                    if "PLANT" in wait:
+                        waiting_on_plant += 1
+                    elif "DUMP" in wait or "SITE" in wait:
+                        waiting_on_dump += 1
+                if (a.get("haul_type") or "Material") == "Equipment Move":
+                    equipment_moves_active += 1
+        except Exception:
+            pass
+
+        # ── Top materials today (small, calm, capped at 5) ─────────
+        top_materials: List[Dict[str, Any]] = []
+        try:
+            pipeline = [
+                {"$match": {
+                    "tenant_id": tenant_id,
+                    "completed_at": {"$gte": day_start_iso},
+                    "material": {"$nin": [None, "", "Equipment Move"]},
+                    **({"project_number": {"$in": targets}} if targets else {}),
+                }},
+                {"$group": {
+                    "_id": "$material",
+                    "count": {"$sum": 1},
+                }},
+                {"$sort": {"count": -1}},
+                {"$limit": 5},
+            ]
+            async for row in db.haul_cycles.aggregate(pipeline):
+                if row.get("_id"):
+                    top_materials.append({
+                        "label": row["_id"],
+                        "loads": int(row.get("count") or 0),
+                    })
+        except Exception:
+            pass
+
+        return {
+            "ok": True,
+            "tenant_id": tenant_id,
+            "scope": "project" if targets else "tenant",
+            "project_numbers": targets,
+            "as_of": now.isoformat(),
+            "day_window_start": day_start_iso,
+            "loads_completed_today": loads_completed_today,
+            "material_loads_completed_today": material_loads_completed_today,
+            "equipment_moves_completed_today": equipment_moves_completed_today,
+            "active_hauls": active_hauls,
+            "equipment_moves_active": equipment_moves_active,
+            "waiting_on_plant": waiting_on_plant,
+            "waiting_on_dump": waiting_on_dump,
+            "breakdown_impacts": breakdown_impacts,
+            "top_materials": top_materials,
         }
 
     return router

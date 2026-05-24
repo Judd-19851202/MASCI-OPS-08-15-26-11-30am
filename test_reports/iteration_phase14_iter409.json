@@ -1,0 +1,30 @@
+{
+  "summary": "Phase 14.3 (iter409 · PM Haul Activity production-awareness tile) end-to-end validated. Backend: 9/9 iter409 NEW tests PASS; 113/113 parity-lock PASS across iter409+iter408+iter407+iter319+iter392+iter393+iter395+iter396+iter401+iter402 (~49s). All 6 counters (loads_completed_today w/ material+equipment split, active_hauls, equipment_moves_active, waiting_on_plant, waiting_on_dump, breakdown_impacts) compute correctly; top_materials capped/sorted with 'Equipment Move' string filtered; haul_cycles doc carries haul_type+equipment_label+pickup_location+dropoff_location additively; anon GET /api/dispatch/haul-activity → 401; empty tenant returns zeros + empty top_materials + scope='tenant'; ?project_number=PRJ-A single-scopes; ?project_numbers=PRJ-A,PRJ-B multi-scopes. Frontend: /pm renders pm-haul-activity-mount + pm-haul-activity-tile with all 6 stat cards (loads-today / active-hauls / equipment-moves / wait-plant / wait-site / breakdown); DispatchLifecycleTile and PM crew-compliance tile coexist below; no write affordances on the tile (zero buttons/links — confirmed read-only); 390px mobile: no horizontal scroll, stats reflow to 2 columns (computed gridTemplateColumns = '154.5px 154.5px'); audit guardrails clean (touch_target_audit ✅; operator_vocabulary_scanner flags only expected iter### source comments incl. the new iter409 reference on PmHub.jsx:237).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter409_haul_activity.py",
+    "/app/test_reports/pytest/iter409_results.xml",
+    "/app/test_reports/pytest/iter409_parity.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PmHaulActivityTile.jsx (244 lines) — clean, single-purpose, well under the 700-line ceiling. Read-only by design: zero buttons, zero hrefs, zero write affordances inside the tile (verified empirically — DOM scan returned empty interactive set). Poll cadence honors doctrine (POLL_MS=60000, not 5s). Calm-tone Stat helper correctly maps tones: calm=text-slate-400 / active=text-slate-900 / warn=text-amber-700 / danger=text-rose-700.",
+    "Tile uses fetch w/ silent catch — failures degrade to empty tile rather than crashing PmHub; appropriate for a non-critical awareness tile.",
+    "buildHeaders() attaches all portal tokens permissively (admin/dispatch/pm/shop/safety/hr/fl) — fine for read-only GET; backend auth gate is what enforces tenancy/scope.",
+    "Backend GET /api/dispatch/haul-activity correctly derives from existing dispatch_assignments + haul_cycles — no new collection, no new write surface (doctrine preserved). _materialize_haul_cycle now additively populates haul_type/equipment_label/pickup_location/dropoff_location; no regression on prior cycle consumers (iter408/iter407/iter396 parity still 100%).",
+    "Project-scope query supports both ?project_number=X (single) and ?project_numbers=A,B (multi) — symmetric with iter408 lookup endpoints."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (9/9 iter409 NEW; 113/113 parity-lock)", "frontend": "100% (mount + tile + 6 stats + mobile reflow + read-only invariant + audit guardrails all verified)"},
+  "test_credentials": "Admin legacy MASCI1982! · Multi-login jaymn.judd@mascigc.com / Maddix123! (portal_tokens.pm satisfies /pm Hub access; portal_tokens.admin/dispatch used for dispatch namespace endpoints).",
+  "seed_data_creation": "Backend tests seed throwaway tenants (iter409-empty-/scope-/loads-/wait-/bd-/top-/em-mat-/cycle-<hex>) — each isolated, no impact on shared seed data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 14.3 (iter409) shipped clean. Parity-lock cmd: cd /app/backend && python -m pytest tests/test_iter409_*.py tests/test_iter408_*.py tests/test_iter407_*.py tests/test_iter319_*.py tests/test_iter392_*.py tests/test_iter393_*.py tests/test_iter395_*.py tests/test_iter396_*.py tests/test_iter401_*.py tests/test_iter402_*.py — 113/113 PASS in ~49s. PM Haul Activity tile renders ABOVE DispatchLifecycleTile on PmHub.jsx (line 239 vs 244). When tenant has live activity the stat block (testid pm-haul-activity-tile-stats) renders; when all 6 counters are 0 the empty card with testid pm-haul-activity-tile-empty renders the 'Nothing to report — your jobs are quiet right now.' message. Tile is strictly read-only — failing a regression that introduces any button/link inside the tile is correct doctrine.",
+  "rca of the issue": "N/A — no issues encountered."
+}

@@ -15,6 +15,7 @@ import {
 import PmShell from "@/components/PmShell";
 import OperationsCenter from "@/components/OperationsCenter";
 import DispatchLifecycleTile from "@/components/dispatch/DispatchLifecycleTile";
+import PmHaulActivityTile from "@/components/dispatch/PmHaulActivityTile";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/usePageTitle";
 
@@ -231,6 +232,11 @@ export default function PmHub() {
                 testId={`pm-tile-${t.to.split("/").pop()}`}
               />
             ))}
+          </div>
+
+          {/* iter409 · Phase 14.3 · PM Haul Activity production awareness */}
+          <div className="mt-6" data-testid="pm-haul-activity-mount">
+            <PmHaulActivityTile projectNumbers={pmProjectNumbers} />
           </div>
 
           {/* iter396 · DLS cross-portal convergence — read-only, project-scoped */}

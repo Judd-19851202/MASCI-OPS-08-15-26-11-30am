@@ -4469,6 +4469,25 @@ const ES = {
     "El camión es obligatorio. El conductor es opcional — el auto-inicio puede reclamarlo después. Elige proyecto, origen y material para que la memoria operativa se mantenga precisa. Las razones de espera siguen siendo canónicas (se asignan después en el ciclo del conductor).",
   "Issue equipment move": "Emitir mover equipo",
   "Equipment move issued · truck on the board": "Mover equipo emitido · camión en el tablero",
+
+  // ─── iter409 · Phase 14.3 · PM Haul Activity Tile ───────────────
+  "Haul activity": "Actividad de viajes",
+  "loading": "cargando",
+  "Haul activity on your projects": "Actividad de viajes en tus proyectos",
+  "production awareness · read-only": "conciencia de producción · solo lectura",
+  "What's moving on your jobs today. PM never operates dispatch — this is glanceable awareness only.":
+    "Lo que se mueve hoy en tus trabajos. El PM no opera despacho — esto es conciencia operativa solamente.",
+  "Nothing to report — your jobs are quiet right now.":
+    "Nada que reportar — tus trabajos están tranquilos en este momento.",
+  "Loads today": "Viajes hoy",
+  "eq": "eq",
+  "Active hauls": "Viajes activos",
+  "Equipment moves": "Mover equipo",
+  "inbound + active": "entrante + activo",
+  "Waiting on plant": "Esperando planta",
+  "Waiting on site": "Esperando sitio",
+  "Breakdown impacts": "Impactos por avería",
+  "Top materials today": "Materiales principales hoy",
 };
 
 const DICTS = { es: ES, en: {} };
