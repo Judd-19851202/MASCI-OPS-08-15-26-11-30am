@@ -1,6 +1,82 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter395 · Phase 11.4 · DLS Governance + Notifications + CSV ✅
+
+### Mission
+Convert the operational lifecycle truth shipped in iter392–394 into actionable signals. Four detectors, three CSVs, one calm banner on the dispatch board. **No new collections, no new write paths, no analytics explosion.**
+
+### Doctrine reinforced
+- **Operational signals, not punishment.** Findings exist to support continuity. The system shows operators what's stuck so they can unstick it — never to surveil.
+- **Disciplined surface.** Exactly the four detectors the operator sanctioned (`ASSIGNMENT_STUCK`, `WAIT_THRESHOLD_EXCEEDED`, `BREAKDOWN_ACTIVE`, `NON_STANDARD_TRANSITION_PATTERN`). Nothing else. Documented potential detectors stay documented.
+- **CSVs as foundation, not dashboards.** Three thin streaming exports power the future estimating + cycle-time + change-order work without standing up a single chart today.
+- **Notification discipline.** Findings are computed on demand by the consumer (board polling, future PM/Safety tiles); no spam, no daemon, no per-transition push.
+- **Tenant continuity.** Every endpoint reads X-Tenant-Id (default `masci`); iter392 collections were tenant-ready from day 1.
+
+### Files shipped
+- **NEW** `/app/backend/routes/dispatch_governance.py` — pure read-side computation of the four findings. `GET /api/dispatch/governance/findings` returns `{ counts, findings[], thresholds, generated_at }`. Query knobs: `stuck_threshold`, `wait_threshold`, `non_standard_window`, `non_standard_min`. Read-gated by `_require_any_portal_token` so PM/Safety/Shop/FL hubs can light role-specific tiles in iter396+ WITHOUT a new endpoint.
+- **NEW** `/app/backend/routes/dispatch_exports.py` — three streaming CSV endpoints:
+  - `GET /api/dispatch/exports/assignments.csv` (current snapshot + per-row transition counts + non-standard counts)
+  - `GET /api/dispatch/exports/state-events.csv` (full append-only log; supports `non_standard_only=true` for governance audits)
+  - `GET /api/dispatch/exports/haul-cycles.csv` (derived per-cycle summaries with total/wait/operating seconds)
+  - All three: UTF-8 BOM (Excel-friendly), `no-store`, dispatch+admin only, hard `limit=5000` per call.
+- **MOD** `/app/backend/server.py` (+25 LOC wiring · 0 LOC removed)
+- **MOD** `/app/frontend/src/pages/DispatchBoard.jsx` — added `FindingsBanner` (top 6 chips, severity-tone) + `ExportStrip` (3 CSV download buttons). Polling fan-out now fetches `/board` + `/governance/findings` in parallel.
+- **NEW** `/app/backend/tests/test_iter395_governance.py` — 12 regression tests, all PASS.
+
+### Detector behavior (canonical contract)
+| Detector | Fires when | Severity |
+|---|---|---|
+| `BREAKDOWN_ACTIVE` | `current_state == BREAKDOWN` AND not cancelled | critical |
+| `ASSIGNMENT_STUCK` | non-terminal, non-WAITING, no transition for ≥ threshold (default 30m) | high if ≥ 2× threshold, else medium |
+| `WAIT_THRESHOLD_EXCEEDED` | `current_state == WAITING` for ≥ threshold (default 20m) | high if ≥ 2× threshold, else medium |
+| `NON_STANDARD_TRANSITION_PATTERN` | a single `truck_id` recorded ≥ N (default 3) non-standard transitions inside a window (default 120m) | medium |
+
+WAITING rows are deliberately excluded from `ASSIGNMENT_STUCK` — they have their own dedicated detector with the wait reason attached.
+
+### Frontend convergence (calm, glanceable)
+- **Findings banner** — single amber-left-rule card above the rows. Shows the count breakdown ("3 stuck · 1 long wait") + up to 6 severity-toned chips ("DEMO-T-002 waiting on WAITING ON PLANT for 55 min"). Tapping a chip opens the matching row's drawer with full state_history visible.
+- **CSV export strip** — slim slate row with the 3 download buttons. Wired through `fetch` so X-Tenant-Id is honored; downloads land as `dispatch_assignments_<tenant>_<stamp>.csv` etc.
+- **Zero new pages.** All convergence happens on the existing board surface.
+
+### What was explicitly NOT built (restraint per operator directive)
+- ❌ No additional detectors beyond the sanctioned four. (Documented future ideas remain documented.)
+- ❌ No analytics / charts / heatmaps / scoring.
+- ❌ No notification fan-out daemon, no email blast, no per-transition push, no SMS.
+- ❌ No PM / Safety / Shop / FL portal-specific UIs — the governance endpoint is already read-gated for any portal; UI tiles wait for iter396+.
+- ❌ No `WAITING_OTHER` free-text — gated behind iter396 glossary.
+- ❌ No Motive integration / GPS validation — sanctioned future architecture, not iter395.
+
+### Tests · 48 / 48 PASS in 10.33 s
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 NEW:
+  - Findings anon = 401
+  - All four detectors fire with low thresholds
+  - Default thresholds quiet for freshly seeded data (anti-spam baseline)
+  - WAITING finding carries wait_reason + minutes_waiting
+  - Non-standard pattern returns last 5 sample transitions
+  - Tenant isolation (other tenant → 0 findings, empty CSV)
+  - CSV anon = 401 on all three exports
+  - assignments.csv well-formed (BOM + canonical header + all 4 fixture rows)
+  - state-events.csv well-formed + `non_standard_only=true` filter strict
+  - haul-cycles.csv well-formed after a happy-path COMPLETE walk
+
+### Live smoke (preview · `dls-demo` tenant)
+After backdating active demo rows by 55 min:
+- `GET /findings` returns 4 findings (3 STUCK + 1 WAIT) at default thresholds.
+- Dispatch board renders Operational Signals banner with 4 chips, Stuck > 30m counter = 4, CSV export strip live with 3 buttons.
+- Tap any chip → drawer opens on the matching row.
+
+### Next Action Items
+- 🟡 **P1 — iter396 COACHING + GLOSSARY + ES.** 22 glossary entries (13 states + 9 wait reasons) + 4 LifecycleGuide instances + EN/ES parity + 2 training modules. Will unlock the WAITING_OTHER free-text sub-state on the driver wait sheet.
+- 🟠 **P2 — Cross-portal natural continuity (iter396+ follow-up).** PM hub tile "Haul activity on your projects" + Shop hub tile "Trucks in breakdown" + Safety hub tile "Assignments stuck > 60m". All thin filters over `/api/dispatch/governance/findings` and `/api/dispatch/assignments?project_number=X`. No new endpoints.
+- 🔵 **P3 — Resume Phase 4D Extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — 233 inherited pytest isolation failures**.
+
+---
+
+
 ## 2026-05-24 — iter394 · Phase 11.3 · DLS Operational Flow Board ✅
 
 ### Mission

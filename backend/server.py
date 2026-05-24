@@ -9781,6 +9781,28 @@ async def _ensure_driver_session_indexes() -> None:
         )
 
 
+# ─── iter395 · DLS Governance + CSV Exports ─────────────────────────
+# Read-only operational signals over the existing iter392 truth.
+# Governance uses the cross-portal token aggregator (any portal can
+# read for role-aware tiles); exports are dispatch+admin only.
+from routes.dispatch_governance import build_dispatch_governance_router  # noqa: E402
+from routes.dispatch_exports import build_dispatch_exports_router  # noqa: E402
+
+app.include_router(
+    build_dispatch_governance_router(
+        db, require_any_portal_token_dep=_require_any_portal_token,
+    ),
+)
+app.include_router(
+    build_dispatch_exports_router(
+        db, require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+    ),
+)
+logging.getLogger(__name__).info(
+    "[dispatch-governance] iter395 routers mounted · 4 detectors + 3 csv exports",
+)
+
+
 # ─── Backup verification (iter79 — weekly R2 health email) ──────────
 from routes.backup_verification_routes import build_backup_verification_router  # noqa: E402
 from backup_verification import verification_scheduler_loop  # noqa: E402

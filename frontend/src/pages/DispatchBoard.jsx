@@ -18,7 +18,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Truck, ArrowLeft, AlertTriangle, Wrench, Clock, Activity, RefreshCw, Send,
+  Truck, ArrowLeft, AlertTriangle, Wrench, Clock, Activity, RefreshCw, Send, Download, Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { paletteFor } from "@/lib/portalPalette";
@@ -98,6 +98,101 @@ function StateChip({ state }) {
   );
 }
 
+function FindingsBanner({ findings, counts, onOpen }) {
+  // Severity prioritization is already done server-side; we just trim to
+  // 6 chips so the banner stays calm.
+  const visible = findings.slice(0, 6);
+  const severityTone = (sev) =>
+    sev === "critical" ? "bg-rose-100 text-rose-900 border-rose-300" :
+    sev === "high"     ? "bg-amber-100 text-amber-900 border-amber-300" :
+                         "bg-slate-100 text-slate-800 border-slate-300";
+  return (
+    <div
+      data-testid="board-findings-banner"
+      className="bg-white border border-amber-300 border-l-4 border-l-amber-500 rounded-md p-4"
+    >
+      <div className="flex items-start gap-3 flex-wrap">
+        <Bell className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-[200px]">
+          <div className="text-xs font-mono uppercase tracking-[0.22em] text-amber-700 font-bold">
+            Operational signals
+          </div>
+          <div className="text-sm text-slate-700 mt-0.5">
+            {counts.total
+              ? `${counts.total} finding${counts.total === 1 ? "" : "s"} require operational attention.`
+              : "No active findings."}
+            {" "}
+            {counts.BREAKDOWN_ACTIVE
+              ? <span className="font-bold text-rose-800">{counts.BREAKDOWN_ACTIVE} breakdown · </span>
+              : null}
+            {counts.ASSIGNMENT_STUCK
+              ? <span className="font-bold text-amber-800">{counts.ASSIGNMENT_STUCK} stuck · </span>
+              : null}
+            {counts.WAIT_THRESHOLD_EXCEEDED
+              ? <span className="font-bold text-rose-700">{counts.WAIT_THRESHOLD_EXCEEDED} long wait · </span>
+              : null}
+            {counts.NON_STANDARD_TRANSITION_PATTERN
+              ? <span className="font-bold text-slate-700">{counts.NON_STANDARD_TRANSITION_PATTERN} pattern</span>
+              : null}
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {visible.map((f, idx) => (
+          <button
+            key={`${f.kind}-${f.assignment_id || f.truck_id}-${idx}`}
+            type="button"
+            data-testid={`finding-chip-${f.kind}-${idx}`}
+            onClick={() => onOpen(f)}
+            className={`text-left text-xs font-medium px-2.5 py-1.5 rounded border ${severityTone(f.severity)} hover:shadow-sm transition-shadow max-w-[260px] truncate`}
+            title={f.headline}
+          >
+            {f.headline}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ExportStrip({ onDownload, tenantOverride }) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 13);
+  const t = tenantOverride ? `_${tenantOverride}` : "";
+  return (
+    <div
+      data-testid="board-export-strip"
+      className="flex flex-wrap gap-2 items-center bg-slate-50 border border-slate-200 rounded-md px-3 py-2"
+    >
+      <span className="text-xs uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1">
+        <Download className="w-3.5 h-3.5" />
+        Operational exports (CSV)
+      </span>
+      <Button
+        size="sm" variant="outline"
+        onClick={() => onDownload("/api/dispatch/exports/assignments.csv", `dispatch_assignments${t}_${stamp}.csv`)}
+        data-testid="export-assignments"
+      >
+        Assignments
+      </Button>
+      <Button
+        size="sm" variant="outline"
+        onClick={() => onDownload("/api/dispatch/exports/state-events.csv?limit=5000", `dispatch_state_events${t}_${stamp}.csv`)}
+        data-testid="export-state-events"
+      >
+        State events
+      </Button>
+      <Button
+        size="sm" variant="outline"
+        onClick={() => onDownload("/api/dispatch/exports/haul-cycles.csv", `dispatch_haul_cycles${t}_${stamp}.csv`)}
+        data-testid="export-haul-cycles"
+      >
+        Haul cycles
+      </Button>
+    </div>
+  );
+}
+
+
 function SummaryStrip({ assignments }) {
   const counts = useMemo(() => {
     const base = {
@@ -156,8 +251,7 @@ function SummaryStrip({ assignments }) {
   );
 }
 
-function AssignmentRow({ a, onOpen }) {
-  const m = minutesSince(a.last_transition_at);
+function AssignmentRow({ a, onOpen }) {  const m = minutesSince(a.last_transition_at);
   const isStuck = m !== null && m >= STUCK_THRESHOLD_MIN;
   const isWaiting = a.current_state === "WAITING";
   const isBreakdown = a.current_state === "BREAKDOWN";
@@ -220,6 +314,8 @@ export default function DispatchBoard() {
   usePageTitle("Operational Board · Dispatch · MASCI");
   const nav = useNavigate();
   const [assignments, setAssignments] = useState([]);
+  const [findings, setFindings] = useState([]);
+  const [findingCounts, setFindingCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -234,16 +330,31 @@ export default function DispatchBoard() {
   const refresh = useCallback(async ({ silent } = {}) => {
     if (!silent) setRefreshing(true);
     try {
-      const r = await fetch(
-        `${API}/api/dispatch/assignments/board?limit=300`,
-        { headers: authHeaders(tenantOverride) },
-      );
-      if (r.status === 401) {
+      const [r1, r2] = await Promise.all([
+        fetch(
+          `${API}/api/dispatch/assignments/board?limit=300`,
+          { headers: authHeaders(tenantOverride) },
+        ),
+        fetch(
+          `${API}/api/dispatch/governance/findings`,
+          { headers: authHeaders(tenantOverride) },
+        ),
+      ]);
+      if (r1.status === 401) {
         nav("/dispatch-portal/login", { replace: true });
         return;
       }
-      const j = await r.json().catch(() => ({}));
-      setAssignments(Array.isArray(j.assignments) ? j.assignments : []);
+      const j1 = await r1.json().catch(() => ({}));
+      setAssignments(Array.isArray(j1.assignments) ? j1.assignments : []);
+      if (r2.ok) {
+        const j2 = await r2.json().catch(() => ({}));
+        setFindings(Array.isArray(j2.findings) ? j2.findings : []);
+        setFindingCounts(j2.counts || {});
+      } else {
+        // Findings is best-effort — never break the board if it fails.
+        setFindings([]);
+        setFindingCounts({});
+      }
       setErrorMsg("");
     } catch {
       setErrorMsg("Connection failed — retrying…");
@@ -270,6 +381,47 @@ export default function DispatchBoard() {
     setDrawerAssignment(null);
     toast.success("Removed from active board");
   }, []);
+
+  /**
+   * CSV downloads — fetch with auth headers so we can pass
+   * X-Tenant-Id, then trigger a client-side download. Native <a href>
+   * cannot attach headers.
+   */
+  const downloadCsv = useCallback(async (path, suggestedName) => {
+    try {
+      const r = await fetch(`${API}${path}`, { headers: authHeaders(tenantOverride) });
+      if (!r.ok) {
+        toast.error(`Export failed (${r.status})`);
+        return;
+      }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = suggestedName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Export downloaded");
+    } catch {
+      toast.error("Export failed — check connection.");
+    }
+  }, [tenantOverride]);
+
+  /** Map a finding to the assignment row + open the drawer. */
+  const openFinding = useCallback((finding) => {
+    if (!finding?.assignment_id) {
+      toast.info("Truck-level finding — open the row directly to act.");
+      return;
+    }
+    const target = assignments.find((a) => a.id === finding.assignment_id);
+    if (target) {
+      setDrawerAssignment(target);
+    } else {
+      toast.info("Assignment not on active board — likely already cleared.");
+    }
+  }, [assignments]);
 
   return (
     <div className="min-h-screen blueprint-bg flex flex-col" data-testid="dispatch-board">
@@ -322,6 +474,18 @@ export default function DispatchBoard() {
         </div>
 
         <SummaryStrip assignments={assignments} />
+
+        {/* iter395 · governance findings banner — calm, glanceable */}
+        {findings.length > 0 ? (
+          <FindingsBanner
+            findings={findings}
+            counts={findingCounts}
+            onOpen={openFinding}
+          />
+        ) : null}
+
+        {/* iter395 · CSV operational intelligence exports */}
+        <ExportStrip onDownload={downloadCsv} tenantOverride={tenantOverride} />
 
         {tenantOverride ? (
           <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2" data-testid="board-tenant-override">
