@@ -1,0 +1,33 @@
+{
+  "summary": "Phase 5D · Operational Completion verified. Backend P2 (FL token on /api/notifications) + zero-regression across 6 existing portals + adjacent smoke endpoints all PASS. Frontend P1 (rose Follow-Up Required banner with pill, glossary link, CTA, print:hidden) and P3 (16 glossary entries + 4 new searchable + deep-link anchor) all PASS. Quiet behavior preserved on low-severity incidents. TWO MINOR ISSUES: (a) CTA target page does NOT clean query params from URL after the create dialog opens (spec said it should), and (b) ES parity is BROKEN on the new banner — pill text 'FOLLOW-UP REQUIRED', 'WHAT THIS MEANS', summary line, and 'OPEN FOLLOW-UP CAPA' CTA all render in English even when masci.lang=es (the surrounding page is correctly Spanish: 'Reporte de Accidente / Incidente', 'Ciclo de vida del incidente', etc.).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Open Follow-Up CAPA CTA → /safety/corrective-actions", "issue": "URL query params (source_kind, source_id, title) NOT cleaned after the create dialog opens. Spec required them to be stripped. Dialog itself appears to consume params (prefill works), but URL stays cluttered — minor UX/share-link cleanliness issue.", "affected_selectors": ["URL window.location"]}
+    ],
+    "design_issues": [
+      {"screen": "ViewIncident · follow-up banner (ES locale)", "issues": ["New banner strings not translated when localStorage masci.lang='es': titleKey 'Follow-Up Required', 'What this means' link, summary 'Tier-1 report is in...', and CTA 'Open Follow-Up CAPA' all render in English. Glossary entry HAS the ES name 'Requiere Seguimiento' but t() lookup does not resolve these new EN strings. Likely missing entries in the i18n dictionary."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iter_phase5d_p2.py", "/app/test_reports/pytest/iter_phase5d_p2.xml"],
+  "action_items": [
+    "P1 frontend (low priority): clean URL query params after SafetyCorrectiveActions create dialog opens (history.replace to /safety/corrective-actions without ?source_kind=…&source_id=…&title=…) — review/extend the useEffect at SafetyCorrectiveActions.jsx ~lines 134-160.",
+    "P1 frontend (i18n): add Spanish translations for the 4 new banner strings ('Follow-Up Required', 'Investigation Open', 'Operationally Complete', 'What this means', 'Open Follow-Up CAPA', and the 3 summary sentences) in the i18n dictionary. Glossary side already has ES names but the t() lookup in ViewIncident.jsx returns the English fallback."
+  ],
+  "critical_code_review_comments": [
+    "ViewIncident.jsx line 65 OPEN_CAPA_STATES includes 'Pending Review' as an OPEN state. Per /admin/operational-language entry for 'pending_review', the next step is Verified — treating it as 'still in motion' is semantically correct, good.",
+    "computeFollowUpStatus() is pure / no side-effects / null-safe on missing severity — good defensive code.",
+    "Backend _deps.py FL branch correctly requires '.' in token (mirrors HR/PM/Shop pattern) and uses is_valid_fl_user_token_async — clean minimal 8-line diff."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter_phase5d_p2.py"],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "~87% (6 test groups pass; 1 minor URL-cleanup + 1 ES parity gap)"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! (multi-login); fieldleader@mascigc.com / FieldLead2026! (FL portal)",
+  "seed_data_creation": "No persistent seed data. One TEST_INC near-miss incident was POSTed via /api/incidents in backend test — non-impactful.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend conftest at /app/backend/tests/conftest.py auto-injects X-Admin-Token into every requests call — for true 'no-token' tests pass headers={'X-Admin-Token': ''} to suppress that fixture. /api/safety/corrective-actions LIST endpoint requires X-Safety-Token specifically (admin token returns 401). /api/incidents POST requires reported_date in payload. /api/notifications returns {items, count} not a bare array. Phase 5D core acceptance is GREEN; only the two minor frontend gaps above remain."
+}

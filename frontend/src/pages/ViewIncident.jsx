@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
-import { Printer, Loader2, Trash2, MapPin, Mail } from "lucide-react";
+import { Printer, Loader2, Trash2, MapPin, Mail, ClipboardCheck, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { RefKicker } from "@/components/RefKicker";
@@ -55,6 +55,82 @@ const KV = ({ label, value, full = false }) => (
 
 const severityOf = (key) =>
   SEVERITY_LEVELS.find((s) => s.key === key) || SEVERITY_LEVELS[0];
+
+// Phase 5D · P1 — Tier-2 follow-up awareness
+// Derives a quiet operational status from severity + linked CAPAs.
+// Never stored, never cached — computed live on every render.
+// Returns null when the incident is low-severity AND has no CAPAs
+// (no follow-up needed, no banner shown).
+const SERIOUS_SEVERITIES = new Set(["medical", "restricted", "lost_time", "fatality"]);
+const OPEN_CAPA_STATES = new Set(["Open", "In Progress", "Pending Review"]);
+
+function computeFollowUpStatus(incident, capas) {
+  const sev = (incident?.severity || "").toLowerCase();
+  const oshaRecordable = incident?.osha_recordable === "Yes";
+  const requiresFollowUp = SERIOUS_SEVERITIES.has(sev) || oshaRecordable;
+  const capaCount = capas.length;
+  const openCount = capas.filter((c) => OPEN_CAPA_STATES.has(c.status || "Open")).length;
+  const verifiedCount = capas.filter((c) => c.status === "Verified" || c.status === "Closed").length;
+
+  if (capaCount === 0 && requiresFollowUp) {
+    return {
+      kind: "required",
+      tone: "rose",
+      glossaryAnchor: "follow_up_required",
+      titleKey: "Follow-Up Required",
+      summaryKey: "Tier-1 report is in. No CAPA has been opened yet. Open one to track the corrective work.",
+      ctaKey: "Open Follow-Up CAPA",
+    };
+  }
+  if (capaCount > 0 && openCount > 0) {
+    return {
+      kind: "open",
+      tone: "amber",
+      glossaryAnchor: "investigation_open",
+      titleKey: "Investigation Open",
+      summaryKey: `${verifiedCount} of ${capaCount} CAPA(s) verified · ${openCount} still in motion.`,
+      ctaKey: null,
+    };
+  }
+  if (capaCount > 0 && openCount === 0) {
+    return {
+      kind: "complete",
+      tone: "emerald",
+      glossaryAnchor: "operationally_complete",
+      titleKey: "Operationally Complete",
+      summaryKey: `All ${capaCount} linked CAPA(s) verified or closed. Audit trail preserved.`,
+      ctaKey: null,
+    };
+  }
+  return null; // low severity, no CAPAs → quiet
+}
+
+const TONE_STYLES = {
+  rose: {
+    wrap: "bg-rose-50 border-rose-300",
+    pill: "bg-rose-700 text-white",
+    label: "text-rose-700",
+    icon: "text-rose-700",
+    iconCmp: AlertTriangle,
+    cta: "bg-rose-700 hover:bg-rose-800 text-white border-rose-900",
+  },
+  amber: {
+    wrap: "bg-amber-50 border-amber-300",
+    pill: "bg-amber-600 text-white",
+    label: "text-amber-700",
+    icon: "text-amber-700",
+    iconCmp: ClipboardCheck,
+    cta: "",
+  },
+  emerald: {
+    wrap: "bg-emerald-50 border-emerald-300",
+    pill: "bg-emerald-700 text-white",
+    label: "text-emerald-700",
+    icon: "text-emerald-700",
+    iconCmp: CheckCircle2,
+    cta: "",
+  },
+};
 
 export default function ViewIncident() {
   const { t } = useT();
@@ -136,6 +212,13 @@ export default function ViewIncident() {
   const checkedRootCauses = ROOT_CAUSE_CATEGORIES.filter(
     (c) => data.root_causes && data.root_causes[c.key]
   );
+  // Phase 5D · P1 — quiet follow-up awareness
+  const followUpStatus = computeFollowUpStatus(data, linkedCapas);
+  const followUpTone = followUpStatus ? TONE_STYLES[followUpStatus.tone] : null;
+  const FollowUpIcon = followUpTone?.iconCmp;
+  const capaCtaHref =
+    `/safety/corrective-actions?source_kind=incident&source_id=${data.id}` +
+    `&title=${encodeURIComponent(`Incident follow-up — ${data.incident_type || "Incident"}`)}`;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -196,6 +279,48 @@ export default function ViewIncident() {
             ]}
           />
         </div>
+
+        {/* Phase 5D · P1 — Tier-2 follow-up awareness banner.
+            Quiet operational status derived live from severity + linked
+            CAPAs. Hidden on print so the official report PDF stays clean. */}
+        {followUpStatus && followUpTone ? (
+          <div
+            className={`print:hidden border-2 ${followUpTone.wrap} rounded-md px-4 py-3 flex items-start gap-3`}
+            data-testid={`followup-status-${followUpStatus.kind}`}
+          >
+            <FollowUpIcon className={`w-5 h-5 shrink-0 mt-0.5 ${followUpTone.icon}`} aria-hidden />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.18em] rounded font-bold ${followUpTone.pill}`}
+                >
+                  {t(followUpStatus.titleKey)}
+                </span>
+                <Link
+                  to={`/admin/operational-language#${followUpStatus.glossaryAnchor}`}
+                  className={`text-[10px] font-mono uppercase tracking-[0.18em] ${followUpTone.label} hover:underline`}
+                  data-testid="followup-glossary-link"
+                >
+                  {t("What this means")}
+                </Link>
+              </div>
+              <p className="text-sm text-slate-800 mt-1 leading-snug">
+                {t(followUpStatus.summaryKey)}
+              </p>
+            </div>
+            {followUpStatus.ctaKey ? (
+              <Link to={capaCtaHref} className="shrink-0" data-testid="followup-cta">
+                <Button
+                  size="sm"
+                  className={`h-9 px-3 font-bold uppercase tracking-wide text-xs border-b-2 ${followUpTone.cta}`}
+                >
+                  <ClipboardCheck className="w-4 h-4 mr-1" />
+                  {t(followUpStatus.ctaKey)}
+                </Button>
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo

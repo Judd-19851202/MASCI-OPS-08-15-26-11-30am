@@ -36,7 +36,7 @@ import { HelpTip } from "@/components/ui/HelpTip";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { useRememberedFilter } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { WhyItMattersPanel } from "@/components/guidance";
@@ -131,6 +131,33 @@ export default function SafetyCorrectiveActions() {
   const [filterEmpLabel, setFilterEmpLabel] = useState("");
   const [dlg, setDlg] = useState({ open: false, mode: "create", form: blankForm(), id: null });
   const [saving, setSaving] = useState(false);
+
+  // Phase 5D · P1 — accept query-param pre-fill from ViewIncident
+  // ("Open Follow-Up CAPA" CTA). Auto-opens the create dialog with
+  // source_kind/source_id/title prefilled, then strips the params so
+  // a manual refresh doesn't re-open the dialog endlessly.
+  const _location = useLocation();
+  const _navigate = useNavigate();
+  useEffect(() => {
+    const sp = new URLSearchParams(_location.search);
+    const srcKind = sp.get("source_kind");
+    const srcId = sp.get("source_id");
+    if (!srcKind && !srcId) return;
+    const presetTitle = sp.get("title") || "";
+    setDlg({
+      open: true,
+      mode: "create",
+      id: null,
+      form: {
+        ...blankForm(),
+        source_kind: srcKind || "manual",
+        source_id: srcId || "",
+        title: presetTitle,
+      },
+    });
+    _navigate(_location.pathname, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const refresh = async () => {
     setLoading(true);

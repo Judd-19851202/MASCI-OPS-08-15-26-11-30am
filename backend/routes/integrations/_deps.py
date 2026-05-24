@@ -14,6 +14,7 @@ from fastapi import Header, HTTPException
 
 from safety_users import is_valid_safety_user_token_async
 from hr_users import is_valid_hr_user_token_async
+from field_leadership_users import is_valid_fl_user_token_async
 
 
 def make_require_any_portal_token(
@@ -22,7 +23,7 @@ def make_require_any_portal_token(
     """Factory — returns a FastAPI dependency that resolves any of the
     platform portal tokens to a generic actor dict.
 
-    Returns: ``{"_actor": "admin"|"safety"|"hr"|"shop"|"pm"|"dispatch", "name": str, ...}``
+    Returns: ``{"_actor": "admin"|"safety"|"hr"|"shop"|"pm"|"dispatch"|"leadership"|"fl", "name": str, ...}``
     Raises:  HTTP 401 if none of the headers carry a valid token.
     """
 
@@ -34,6 +35,7 @@ def make_require_any_portal_token(
         x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
         x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
         x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
+        x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
     ) -> dict:
         if x_admin_token and is_valid_admin_token(x_admin_token):
             return {"_actor": "admin", "name": "Admin"}
@@ -69,6 +71,15 @@ def make_require_any_portal_token(
                     return {"_actor": "leadership", "name": "Field Leadership"}
             except Exception:
                 pass
+        if x_fl_token and "." in x_fl_token:
+            # Phase 5D · P2 — per-user Field Leadership accounts (iter314).
+            # Closes the FL notification asymmetry where per-user FL
+            # accounts could not hit /api/notifications. The unified
+            # surface now resolves FL tokens identically to other
+            # portal tokens; recipient_role filter becomes "fl".
+            u = await is_valid_fl_user_token_async(db, x_fl_token)
+            if u:
+                return {**u, "_actor": "fl"}
         raise HTTPException(401, "Portal authentication required")
 
     return _require_any_portal_token
