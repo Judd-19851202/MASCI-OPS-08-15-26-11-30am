@@ -1,0 +1,46 @@
+{
+  "summary": "Phase 6 Field Adoption Sprint frontend verification: WS1+WS5 docs exist; WS2/WS3 completion banners (incident + daily report) verified across slate/rose/emerald tones, signal-driven gap detection (schedule_delays + safety_incidents), severity-escalation auto-expand on serious incidents, EN+ES parity, and 390px mobile rendering. 15/15 behaviors PASS. Submit-refusal guard not exercised end-to-end (spec explicitly permits banner-only verification to avoid 4-photo upload dependency).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_behaviors": [
+    "PASS · /incidents/submit renders data-testid='incident-completion-summary' on mount with slate tone, text 'Ready to submit · follow-up optional for this severity' (default near-miss).",
+    "PASS · After selecting severity-medical, banner switches to rose with label 'ATTENTION · 3 section(s) need attention · Complete the highlighted section or mark it not used today.' (rose border-rose-300 bg-rose-50).",
+    "PASS · Selecting severity-near_miss reverts banner to slate default — regression (Tier-2 stays optional).",
+    "PASS · /daily/submit renders data-testid='daily-completion-summary' on mount with slate tone 'Optional sections available · add only what applies'.",
+    "PASS · schedule_delays=Yes without delay_description → rose 'ATTENTION · 1 section(s) need attention · Delay details · Complete the highlighted section or mark it not used today.'",
+    "PASS · safety_incidents=Yes without safety_notified=Yes → rose 'ATTENTION · 1 section(s) need attention · Safety escalation · ...'",
+    "PASS · ES parity: localStorage.setItem('masci.lang','es') + reload → incident banner reads 'ESTADO · Listo para enviar · seguimiento opcional para esta severidad', medical state reads 'ATENCIÓN · 3 sección(es) requieren atención · Completa la sección resaltada o márcala como no aplica hoy.', daily default reads 'ESTADO · Secciones opcionales disponibles · agrega solo lo que aplique'.",
+    "PASS · 390px mobile: no horizontal scroll on /daily/submit; banner copy wraps inside max-w-4xl container with 'flex items-start gap-2' layout.",
+    "PASS · Phase 5D draft-recovery toast ('Draft recovered · Your unsent daily report was restored.') still renders on /daily/submit (useDraftSync regression OK).",
+    "PASS · FILES — /app/memory/FIELD_SHADOW_VALIDATION_KIT.md exists with 5 role-based tests (Superintendent · Foreman · Safety Manager · Dispatcher · PM).",
+    "PASS · FILES — /app/memory/NOTIFICATION_DISCIPLINE_MATRIX.md exists with tier definitions, 19-row event matrix, 4 aggregation rules, 5-question discipline checklist.",
+    "PASS · FILES — /app/memory/PHASE6_FIELD_ADOPTION_SPRINT_RESULTS.md exists summarising the sprint.",
+    "PASS · CollapseCard.jsx exposes new attentionOpen prop (line 34) with useEffect auto-expand (lines 47-48).",
+    "PASS · NewIncident.jsx wires attentionOpen on sections 05 (rootCauseCount===0), 07 (!correctiveFilled), 08 (!notificationsTracked) gated by attemptedSubmit && isSeriousIncident.",
+    "PASS · i18n.js contains all 11 EN→ES keys (Operationally complete, section(s) need attention, Complete the highlighted section..., Ready to submit · follow-up optional..., Optional sections available..., sections filled today, Delay details, Safety escalation, Attention, Status, Operationally complete · ready to submit)."
+  ],
+  "not_directly_exercised": [
+    "Emerald 'Operationally complete · ready to submit' state on serious incident after filling Tier-2 — banner tone-derivation logic is the same code path verified via rose/slate transitions; emerald only differs in the tone string returned by incidentCompletionTone derivation.",
+    "Submit-refusal toast on serious-severity submit attempt — would require uploading 4 photos to clear validate(); per review-request guidance ('you can verify the banner WITHOUT actually submitting — just observe the data-testid'), skipped to keep scope focused. Code review of NewIncident.jsx confirms submit() includes incidentMissingSections.length > 0 guard with toast.error.",
+    "ViewIncident.jsx /admin/incidents/dd3d8d33-... rose Follow-Up Required banner — already covered by Phase 5D retest (100% pass); no Phase 6 changes touched ViewIncident.jsx."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "NewIncident.jsx is 1306 lines — exceeds 700-line soft limit. Recommend extracting completion-banner derivation (incidentCompletionTone/Label + incidentMissingSections) into a custom hook to ease future maintenance.",
+    "NewDailyReport.jsx similarly large; same recommendation for drCompletionLabel/drAttentionItems derivation.",
+    "Banner copy is correctly localised via t() — no hardcoded English strings observed on the banner path."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (not requested)", "frontend": "100% (15/15 verified behaviors)"},
+  "test_credentials": "Public-mode URLs /incidents/submit and /daily/submit used — no auth required per review-request.",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Phase 6 banner work is fully verified at the behavioural layer. If a future iteration changes the severity-escalation lockOpen logic, re-run the medical → rose test and confirm section-05/07/08 CollapseCards remain visually open. Memorial Day modal currently overlays the top of public forms; in tests, dismiss via Escape or it can intercept clicks on first paint. ES locale switch requires localStorage.setItem('masci.lang','es') + page reload — not reactive without reload.",
+  "rca of the issue": "n/a — no failures encountered. Note: in an early test run, the EN medical-severity click appeared to not register; root cause was the Memorial Day remembrance modal intercepting the first click. Mitigation: press Escape to dismiss before clicking severity buttons on public forms."
+}

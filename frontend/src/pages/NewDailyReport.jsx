@@ -218,6 +218,9 @@ export default function NewDailyReport({ publicMode = false }) {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [fetchingWeather, setFetchingWeather] = useState(false);
+  // Phase 6 · WS2/WS3 — submit-attempt flag for attentionOpen on collapsed
+  // sections that have unresolved signal-driven detail.
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   // iter383 · Phase 5C.1 — Smart Operational Disclosure. Each optional
   // section is now wrapped in a CollapseCard with status badge (see
   // <CollapseCard> usages below). Per-card open state is held inside
@@ -457,7 +460,11 @@ export default function NewDailyReport({ publicMode = false }) {
   };
 
   const submit = async () => {
-    if (!validate()) return;
+    if (!validate()) {
+      // Phase 6 · WS2 — open any incomplete signal-driven sections.
+      setAttemptedSubmit(true);
+      return;
+    }
     setSaving(true);
     try {
       const lang = getLang();
@@ -539,6 +546,37 @@ export default function NewDailyReport({ publicMode = false }) {
 
   const photosCount = (data.photos || []).length;
   const photoMin = data.photo_min || 6;
+
+  // Phase 6 · WS3 — operational completion derivation for Daily Report.
+  // Quiet status — no nagging. Counts which optional CollapseCard sections
+  // have entries today + surfaces any signal-driven gaps (e.g., user said
+  // "schedule delays Yes" but left delay description blank).
+  const drSectionEntries = {
+    crew: (data.masci_crews || []).length,
+    subs: (data.subcontractors || []).length,
+    visitors: (data.visitors || []).length,
+    equipment: (data.equipment || []).length,
+    materials: (data.materials || []).length,
+    activities: (data.activities || []).length,
+  };
+  const drFilledSectionCount = Object.values(drSectionEntries).filter((c) => c > 0).length;
+  const drDelayGap = data.schedule_delays === "Yes"
+    && !(data.delay_description || "").trim();
+  const drSafetyGap = (data.safety_incidents_today === "Yes" || data.injuries_reported === "Yes")
+    && data.safety_notified !== "Yes";
+  const drAttentionItems = [];
+  if (drDelayGap) drAttentionItems.push(t("Delay details"));
+  if (drSafetyGap) drAttentionItems.push(t("Safety escalation"));
+  const drCompletionTone = drAttentionItems.length > 0
+    ? "rose"
+    : drFilledSectionCount >= 2
+      ? "emerald"
+      : "slate";
+  const drCompletionLabel = drAttentionItems.length > 0
+    ? `${drAttentionItems.length} ${t("section(s) need attention")} · ${drAttentionItems.join(" · ")}`
+    : drFilledSectionCount >= 2
+      ? `${t("Operationally complete")} · ${drFilledSectionCount} ${t("sections filled today")}`
+      : t("Optional sections available · add only what applies");
 
   // Soft payload-size warning · iter250. Mongo's 16 MB doc-size cap is the
   // real ceiling for inline daily-report photos. We estimate total photo
@@ -1526,6 +1564,31 @@ export default function NewDailyReport({ publicMode = false }) {
         </Section>
 
         <div className="pt-4">
+          {/* Phase 6 · WS3 — operational completion indicator. Quiet voice.
+              Only goes rose when there's a signal-driven gap (delays said
+              Yes but no detail; safety incident said Yes but not notified). */}
+          <div
+            className={`mb-3 rounded-md border-2 px-3 py-2 text-sm flex items-start gap-2 ${
+              drCompletionTone === "rose"
+                ? "border-rose-300 bg-rose-50 text-rose-900"
+                : drCompletionTone === "emerald"
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                  : "border-slate-200 bg-slate-50 text-slate-700"
+            }`}
+            data-testid="daily-completion-summary"
+          >
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold shrink-0 mt-0.5">
+              {drCompletionTone === "rose" ? t("Attention") : t("Status")}
+            </span>
+            <div className="flex-1 leading-snug">
+              {drCompletionLabel}
+              {drAttentionItems.length > 0 && (
+                <div className="text-xs mt-1">
+                  {t("Complete the highlighted section or mark it not used today.")}
+                </div>
+              )}
+            </div>
+          </div>
           {payloadIsHeavy && (
             <div
               className="mb-3 rounded-md border-2 border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm flex items-start gap-2"

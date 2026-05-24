@@ -31,6 +31,7 @@ export function CollapseCard({
   defaultOpen = false,
   forceOpen = false,
   lockOpen = false,
+  attentionOpen = false,
   testId,
   children,
 }) {
@@ -38,6 +39,13 @@ export function CollapseCard({
   useEffect(() => {
     if (forceOpen) setOpen(true);
   }, [forceOpen]);
+  // Phase 6 · WS2 — attentionOpen auto-expands the card when the parent
+  // signals operational attention is needed (e.g., user clicked submit and
+  // this section is amber/rose). User can still collapse it back unless
+  // lockOpen is also true.
+  useEffect(() => {
+    if (attentionOpen) setOpen(true);
+  }, [attentionOpen]);
 
   const isOpen = open || forceOpen;
   const Chevron = isOpen ? ChevronUp : ChevronDown;

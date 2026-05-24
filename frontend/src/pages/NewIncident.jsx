@@ -83,6 +83,47 @@ export default function NewIncident({ publicMode = false }) {
   const SERIOUS_SEVERITIES = ["medical", "restricted", "lost_time", "fatality"];
   const isSeriousIncident = SERIOUS_SEVERITIES.includes(data.severity);
 
+  // Phase 6 · WS2/WS3 — submit-attempt flag drives attentionOpen on Tier-2
+  // CollapseCards. Reset whenever the user changes severity or types into
+  // any Tier-2 section so the cards don't stay artificially flagged after
+  // the user starts completing them.
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  // Phase 6 · WS3 — operational completion derivation.
+  // For SERIOUS incidents, follow-up sections are required (already
+  // locked-open). The summary tells the user what is filled and what is
+  // still bare so they know whether the report is operationally complete
+  // before they tap submit. Stays quiet for low-severity events.
+  const rootCauseCount = Object.values(data.root_causes || {}).filter(Boolean).length;
+  const witnessCount = (data.witnesses || []).length;
+  const correctiveFilled =
+    (data.corrective_actions || "").trim().length > 0 ||
+    (data.responsible_party || "").trim().length > 0;
+  const notificationsTracked = [
+    data.notified_safety_manager, data.notified_pm, data.notified_gc,
+    data.notified_owner, data.notified_osha, data.notified_other,
+  ].filter((v) => v && v !== "no" && v !== "No").length > 0;
+
+  const incidentMissingSections = [];
+  if (isSeriousIncident) {
+    if (rootCauseCount === 0) incidentMissingSections.push("Root cause");
+    if (!correctiveFilled) incidentMissingSections.push("Corrective actions");
+    if (!notificationsTracked) incidentMissingSections.push("Notifications");
+  }
+  const incidentCompletionTone =
+    incidentMissingSections.length > 0 ? "rose" :
+    isSeriousIncident ? "emerald" :
+    rootCauseCount > 0 || correctiveFilled || witnessCount > 0 ? "emerald" :
+    "slate";
+  const incidentCompletionLabel =
+    incidentMissingSections.length > 0
+      ? `${incidentMissingSections.length} ${t("section(s) need attention")}`
+      : isSeriousIncident
+        ? t("Operationally complete · ready to submit")
+        : (rootCauseCount + (correctiveFilled ? 1 : 0) + (witnessCount > 0 ? 1 : 0)) > 0
+          ? t("Optional sections completed")
+          : t("Ready to submit · follow-up optional for this severity");
+
   // Phase J — autosave + draft recovery. Non-invasive (does not own
   // state). On mount we offer recovery via a toast.
   const actorId = React.useMemo(() => getActorId(), []);
@@ -199,7 +240,22 @@ export default function NewIncident({ publicMode = false }) {
   };
 
   const submit = async () => {
-    if (!validate()) return;
+    if (!validate()) {
+      // Phase 6 · WS2 — surface attention to missing Tier-2 sections.
+      setAttemptedSubmit(true);
+      return;
+    }
+    // Phase 6 — for serious incidents, refuse to submit until every
+    // required Tier-2 section has minimal operational content. Severity
+    // escalation must not be bypassable by a clean Section 01 alone.
+    if (isSeriousIncident && incidentMissingSections.length > 0) {
+      setAttemptedSubmit(true);
+      toast.error(
+        `${t("Complete the highlighted section or mark it not used today.")} · ${incidentMissingSections.join(" · ")}`,
+        { duration: 6000 },
+      );
+      return;
+    }
     setSaving(true);
     try {
       const lang = getLang();
@@ -841,6 +897,7 @@ export default function NewIncident({ publicMode = false }) {
           }
           forceOpen={isSeriousIncident}
           lockOpen={isSeriousIncident}
+          attentionOpen={attemptedSubmit && isSeriousIncident && rootCauseCount === 0}
         >
         <Section number="05" title="Root Cause Analysis">
           <p className="text-sm text-slate-600">
@@ -971,6 +1028,7 @@ export default function NewIncident({ publicMode = false }) {
           }
           forceOpen={isSeriousIncident}
           lockOpen={isSeriousIncident}
+          attentionOpen={attemptedSubmit && isSeriousIncident && !correctiveFilled}
         >
         {/* Section 07 — Corrective actions */}
         <Section number="07" title={t("Corrective Actions & Follow-Up")}>
@@ -1065,6 +1123,7 @@ export default function NewIncident({ publicMode = false }) {
           }
           forceOpen={isSeriousIncident}
           lockOpen={isSeriousIncident}
+          attentionOpen={attemptedSubmit && isSeriousIncident && !notificationsTracked}
         >
         {/* Section 08 — Notifications */}
         <Section number="08" title={t("Notifications Made")}>
@@ -1193,6 +1252,31 @@ export default function NewIncident({ publicMode = false }) {
         </Section>
 
         <div className="pt-4">
+          {/* Phase 6 · WS3 — operational completion indicator. Field-direct
+              wording; no gamification; reflects severity-driven follow-up
+              expectations without nagging on low-severity reports. */}
+          <div
+            className={`mb-3 rounded-md border-2 px-3 py-2 text-sm flex items-start gap-2 ${
+              incidentCompletionTone === "rose"
+                ? "border-rose-300 bg-rose-50 text-rose-900"
+                : incidentCompletionTone === "emerald"
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                  : "border-slate-200 bg-slate-50 text-slate-700"
+            }`}
+            data-testid="incident-completion-summary"
+          >
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold shrink-0 mt-0.5">
+              {incidentCompletionTone === "rose" ? t("Attention") : t("Status")}
+            </span>
+            <div className="flex-1">
+              <div className="leading-snug">{incidentCompletionLabel}</div>
+              {isSeriousIncident && incidentMissingSections.length > 0 && (
+                <div className="text-xs mt-1 leading-snug">
+                  {t("Complete the highlighted section or mark it not used today.")}
+                </div>
+              )}
+            </div>
+          </div>
           {(data.photos || []).length < 4 && (
             <p className="text-xs text-red-700 font-bold text-center mb-2 font-mono uppercase tracking-[0.15em]">
               {t("Need")} {4 - (data.photos || []).length} {t("more photo(s) before you can submit")}

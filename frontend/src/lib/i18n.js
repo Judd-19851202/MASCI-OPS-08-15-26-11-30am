@@ -4150,6 +4150,20 @@ const ES = {
   "still in motion.": "aún en curso.",
   "All": "Todas",
   "linked CAPA(s) verified or closed. Audit trail preserved.": "las CAPAs vinculadas verificadas o cerradas. Pista de auditoría preservada.",
+
+  // Phase 6 · WS3 · operational completion indicators on NewIncident + NewDailyReport.
+  "Operationally complete": "Operativamente completo",
+  "Operationally complete · ready to submit": "Operativamente completo · listo para enviar",
+  "section(s) need attention": "sección(es) requieren atención",
+  "Complete the highlighted section or mark it not used today.": "Completa la sección resaltada o márcala como no aplica hoy.",
+  "Optional sections completed": "Secciones opcionales completadas",
+  "Ready to submit · follow-up optional for this severity": "Listo para enviar · seguimiento opcional para esta severidad",
+  "Optional sections available · add only what applies": "Secciones opcionales disponibles · agrega solo lo que aplique",
+  "sections filled today": "secciones completadas hoy",
+  "Delay details": "Detalles de demora",
+  "Safety escalation": "Escalamiento de seguridad",
+  "Attention": "Atención",
+  "Status": "Estado",
 };
 
 const DICTS = { es: ES, en: {} };
