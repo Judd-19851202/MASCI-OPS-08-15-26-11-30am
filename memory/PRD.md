@@ -1,6 +1,116 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter408 · Phase 14.1 + 14.2 · Assignment Issuance Refinement + Haul Type Continuity ✅
+
+### Mission
+Refine the Create Assignment drawer so every dropdown is **searchable with seeded operational vocabulary + historical recents + master records** — and extend the same drawer to issue **Equipment Move** assignments alongside Material hauls through ONE Dispatch Lifecycle System.
+
+### Doctrine reinforced (Phase 14.1 + 14.2)
+- The platform is **one operational operating system**, not separate trucking + equipment-dispatch systems. Lowboys ride the same DLS.
+- **No empty boxes**: every field starts populated (seed list, master record, or historical recent).
+- **Operational memory feeds itself**: a typed-once "Add temporary" value surfaces in the next assignment as a `source: "history"` option.
+- **Truck stays required** regardless of haul type. **Driver stays optional** (self-start can claim later).
+- **Zero new collections.** Equipment moves are additive fields on `dispatch_assignments` (`haul_type`, `equipment_id`, `equipment_label`, `pickup_location`, `dropoff_location`, `trailer_id`, `trailer_label`, `carrier`).
+- **Zero new write endpoints.** Drawer feeds the existing iter392 `POST /api/dispatch/assignments` (backward-compatible — legacy callers without `haul_type` default to Material).
+- "Add carrier", "Add material", "Add pickup location" all use the same lightweight "Add temporary" affordance — no admin approval workflow, no ERP asset governance.
+- 20-point Phase 14.1/14.2 doctrine gate: ALL 20 PASS.
+
+### Files shipped
+- **NEW** `/app/backend/dispatch_assignment_seeds.py` — canonical seeded vocabulary (HAUL_TYPES · SEEDED_SOURCES · SEEDED_DESTINATIONS · SEEDED_PICKUP/DROPOFF_LOCATIONS · MATERIAL_CATALOG with 6 categories · EQUIPMENT_MOVE_EXAMPLE_LABELS · EQUIPMENT_MOVE_CATEGORIES)
+- **NEW** `/app/backend/tests/test_iter408_assignment_lookups_expanded.py` — 15 tests covering seed presence, drivers/equipment surfacing, history merge flag, haul_type persistence, backward compatibility, internal-field non-leakage
+- **REWRITTEN** `/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — Haul Type segmented selector at the top of the drawer drives conditional field rendering (Material vs Equipment Move). All comboboxes use the new lookups payload. Submit button label adapts.
+- **MOD** `/app/backend/routes/dispatch_driver.py` — `GET /api/dispatch/driver/assignment-lookups` returns the full Phase 14.1/14.2 payload: `{haul_types, drivers (CDL-aware), trucks, trailers, equipment, equipment_examples, equipment_categories, carriers, projects, sources, destinations, pickup_locations, dropoff_locations, materials}` with `source` flags (`seed` / `history` / `master`). Backward-compat aliases `recent_*` preserved.
+- **MOD** `/app/backend/routes/dispatch_lifecycle.py` — `AssignmentCreate` Pydantic model extended with 8 new optional fields; `create_assignment` handler persists them on the doc.
+- **MOD** `/app/backend/tests/test_iter407_assignment_lookups.py` — updated 1 assertion (recent_projects now platform-wide via daily_reports + dispatch_assignments)
+- **MOD** `/app/frontend/src/lib/i18n.js` — +45 EN→ES strings for Haul Type, Equipment Move chrome, pickup/drop-off labels, material catalog vocabulary
+
+### Backend endpoint contract (locked)
+`GET /api/dispatch/driver/assignment-lookups` (dispatch+admin) → JSON:
+```json
+{
+  "ok": true,
+  "tenant_id": "masci",
+  "haul_types": ["Material", "Equipment Move", "Spoils / Dump", "Support / Misc"],
+  "drivers":  [{employee_id, name, cdl, approved, driver_status}],
+  "trucks":   [{unit_pk, unit_number, label, company, category}],
+  "trailers": [{unit_pk, unit_number, label, company, category}],
+  "equipment":[{unit_pk, unit_number, label, category, company}],
+  "equipment_examples": ["Excavator", "Dozer", ...],
+  "equipment_categories": [...],
+  "carriers": [{name}],  // MASCI first
+  "projects": [{project_number, project_name}],
+  "sources":       [{label, source: "seed"|"history"}],
+  "destinations":  [{label, source}],
+  "pickup_locations":  [{label, source}],
+  "dropoff_locations": [{label, source}],
+  "materials": [{label, category, source}],
+  // backward-compat
+  "recent_projects": [...], "recent_materials": [...],
+  "recent_sources": [...], "recent_destinations": [...]
+}
+```
+
+### Drawer behavior (Haul Type continuity)
+| Haul Type | Conditional fields shown |
+|---|---|
+| **Material** (default) | source / load point · destination · material (catalog dropdown) |
+| **Equipment Move** | equipment (master) · pickup location · drop-off location |
+| **Spoils / Dump** | uses Material fields (typical: dump destination + spoils material) |
+| **Support / Misc** | uses Material fields (typical: support note in material slot) |
+
+For Equipment Move, the drawer also mirrors `pickup_location` → `source_location` and `dropoff_location` → `destination` on the wire so iter392 board rendering, governance findings, and CSV exports already show meaningful values without any downstream change.
+
+### Tests · 104 / 104 PARITY-LOCK PASS
+- iter319 field calm-pass 12/12 (untouched)
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+- iter401 driver self-start 9/9 (untouched)
+- iter402 shift lookups 10/10 (untouched)
+- iter407 assignment lookups 7/7 (1 assertion updated for platform-wide projects)
+- **iter408 expanded contract 15/15 NEW**
+
+Frontend testing agent verified: Haul Type segmented selector renders with 4 buttons; Material mode shows source/destination/material and hides equipment/pickup/dropoff; switching to Equipment Move reverses that; truck combobox loads 40+ master records; "Add temporary" works for trucks AND equipment; E2E Equipment Move issuance (T-EM-TEST + EX-99 + 415 Yard → Job Site) lands on board as ASSIGNED.
+
+ESLint + Ruff clean. Both audit guardrails clean.
+
+### What Phase 14.1 + 14.2 explicitly did NOT do (restraint enforced)
+- ❌ No Lowboy Portal · no Equipment Move Portal · no separate dispatch app
+- ❌ No new collection
+- ❌ No new write endpoint
+- ❌ No master-list admin management surface (no "Add Material" admin page · no "Source Locations" CRUD)
+- ❌ No approval workflow / ERP asset governance
+- ❌ No PM analytics dashboard (deferred — iter409+ if real ops adoption justifies it)
+- ❌ No GPS / maps / Motive activation
+- ❌ No role visibility expansion (Safety / FL / HR stay quiet on DLS)
+- ❌ No WAITING_OTHER free-text (canonical wait-state doctrine preserved)
+
+### Phase doctrine timeline (current state)
+1. iter397 · Phase 12.A · Cross-platform continuity audit ✅
+2. iter398 · Phase 12.5 · Restraint / tone pass ✅
+3. iter399 · Phase 12.6 · Mobile-first sweep ✅
+4. iter400 · Phase 12.7 · Motive doc refresh + audit doctrine index ✅
+5. iter401 · Phase 12.8 · Driver self-start operational entry ✅
+6. iter402 · Phase 12.9 · Driver operational identity convergence ✅
+7. iter403 · Phase 13 · Field Tile convergence ✅
+8. iter404 · Phase 13.1 · Field Tile operational flow refinement ✅
+9. iter405 · Phase 13.2 · DLS i18n field-deployment sweep ✅
+10. iter406 + iter407 · Phase 14 · Operational Deployment Convergence (QR + Issuance) ✅
+11. **iter408 · Phase 14.1 + 14.2 · Searchable Rosters + Haul Type continuity ✅**
+
+### Next Action Items
+- 🟡 **P1 — Backlog · PM Project-Scoped Haul Activity Tile.** Now that haul_type + project_number flow cleanly through assignments, PM Hub could grow a calm "Haul Activity" summary (loads completed today · active hauls · equipment moves inbound · waiting/breakdown impacts) — derived from `dispatch_assignments` + `haul_cycles`. Production awareness only, NOT dispatch controls.
+- 🔵 **P2 — Backlog · Lane C · Post-deploy stabilization instrumentation** (`GET /api/admin/dls/health-summary`).
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR DLS tile visibility.
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+- 🔵 **P3 — Backlog · WAITING_OTHER canonical sub-category picker.**
+
+---
+
+
 ## 2026-05-24 — iter406 + iter407 · Phase 14 · Operational Deployment Convergence ✅
 
 ### Mission
