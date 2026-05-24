@@ -139,7 +139,14 @@ def test_haul_types_returned():
     hdrs = _admin_hdrs()
     r = requests.get(f"{API}/dispatch/driver/assignment-lookups", headers=hdrs, timeout=15)
     j = r.json()
-    assert j.get("haul_types") == ["Material", "Equipment Move", "Spoils / Dump", "Support / Misc"]
+    # iter410 · Tanker added as 3rd entry between Equipment Move and Spoils.
+    assert j.get("haul_types") == [
+        "Material",
+        "Equipment Move",
+        "Tanker / Liquid Asphalt",
+        "Spoils / Dump",
+        "Support / Misc",
+    ]
 
 
 # ════════════════════════════════════════════════════════════════════

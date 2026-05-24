@@ -21,11 +21,12 @@ from __future__ import annotations
 
 from typing import List
 
-# ── Haul types · iter408 Phase 14.2 ────────────────────────────────
+# ── Haul types · iter408 + iter410 Phase 14.2 / 15.1 ───────────────
 # Drives conditional fields in the Create Assignment drawer.
 HAUL_TYPES: List[str] = [
     "Material",
     "Equipment Move",
+    "Tanker / Liquid Asphalt",
     "Spoils / Dump",
     "Support / Misc",
 ]
@@ -219,4 +220,97 @@ __all__ = [
     "flat_material_options",
     "EQUIPMENT_MOVE_CATEGORIES",
     "EQUIPMENT_MOVE_EXAMPLE_LABELS",
+    # iter410 · Phase 15.1 · Tanker continuity
+    "SEEDED_TANKER_SOURCES",
+    "SEEDED_TANKER_DESTINATIONS",
+    "LIQUID_PRODUCT_CATALOG",
+    "flat_liquid_product_options",
 ]
+
+
+# ════════════════════════════════════════════════════════════════════
+# iter410 · Phase 15.1 · Tanker / Liquid Asphalt continuity
+# ════════════════════════════════════════════════════════════════════
+# Seeded terminal / source list for tanker operations. Mirrors the
+# operational floor doctrine: real tankers ALWAYS have a starting list
+# to pick from on the very first day a tenant uses the platform.
+SEEDED_TANKER_SOURCES: List[str] = [
+    "MASCI Hot Plant 1",
+    "Terminal",
+    "Asphalt Terminal",
+    "Port",
+    "Storage Yard",
+    "Vendor Plant",
+    "Fuel Depot",
+    "Job Site",
+    "Shop",
+]
+
+# Seeded destinations include the operational plant + tank receivers
+# that tanker operations typically deliver to.
+SEEDED_TANKER_DESTINATIONS: List[str] = [
+    "MASCI Hot Plant 1",
+    "Asphalt Plant",
+    "Other Plant",
+    "Storage Tank",
+    "Fuel Tank",
+    "Job Site",
+    "Yard",
+    "Shop",
+    "Terminal",
+]
+
+# Liquid product catalog · grouped for the drawer dropdown.
+# Categories are display-only; the wire field is a single string label.
+LIQUID_PRODUCT_CATALOG: List[dict] = [
+    {
+        "category": "Asphalt Binders",
+        "items": [
+            "AC-20",
+            "AC-30",
+            "PG 64-22",
+            "PG 67-22",
+            "PG 70-22",
+            "PG 76-22",
+            "Polymer Modified Binder",
+            "Modified Binder",
+            "Rubberized Binder",
+        ],
+    },
+    {
+        "category": "Emulsions / Tack",
+        "items": [
+            "CRS-1",
+            "CRS-2",
+            "RS-1",
+            "RS-2",
+            "SS-1",
+            "CSS-1",
+            "Tack Oil",
+            "Prime Oil",
+            "Emulsion",
+        ],
+    },
+    {
+        "category": "Fuel / Support",
+        "items": [
+            "Diesel",
+            "DEF",
+            "Fuel Oil",
+            "Gasoline",
+            "Hydraulic Oil",
+            "Liquid Lime",
+            "Water",
+            "Waste Oil",
+            "Other Liquid",
+        ],
+    },
+]
+
+
+def flat_liquid_product_options() -> List[dict]:
+    out: List[dict] = []
+    for group in LIQUID_PRODUCT_CATALOG:
+        for item in group["items"]:
+            out.append({"label": item, "category": group["category"]})
+    return out

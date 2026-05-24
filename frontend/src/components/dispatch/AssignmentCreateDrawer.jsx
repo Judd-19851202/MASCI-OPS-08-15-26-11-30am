@@ -22,7 +22,7 @@
  *   - POST /api/dispatch/assignments                 (extended in iter408)
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { X, Send, Plus, Truck as TruckIcon, Wrench, ArrowRight, Package } from "lucide-react";
+import { X, Send, Plus, Truck as TruckIcon, Wrench, ArrowRight, Package, Droplet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -221,6 +221,7 @@ function HaulTypePicker({ value, onChange, types }) {
   const { t } = useT();
   const iconFor = (h) => {
     if (h === "Equipment Move") return Wrench;
+    if (h === "Tanker / Liquid Asphalt") return Droplet;
     if (h === "Spoils / Dump") return Package;
     if (h === "Support / Misc") return ArrowRight;
     return TruckIcon;
@@ -276,6 +277,8 @@ export default function AssignmentCreateDrawer({
     pickup_locations: [], dropoff_locations: [],
     materials: [],
     equipment_examples: [],
+    // iter410 · Phase 15.1 · Tanker / Liquid Asphalt lookups
+    tanker_sources: [], tanker_destinations: [], liquid_products: [],
   });
 
   // Form state
@@ -291,6 +294,10 @@ export default function AssignmentCreateDrawer({
   const [equipment, setEquipment] = useState(null);
   const [pickup, setPickup] = useState(null);
   const [dropoff, setDropoff] = useState(null);
+  // iter410 · Phase 15.1 · Tanker fields
+  const [tankerSource, setTankerSource] = useState(null);
+  const [tankerDestination, setTankerDestination] = useState(null);
+  const [liquidProduct, setLiquidProduct] = useState(null);
   const [note, setNote] = useState("");
 
   // Reset on open
@@ -308,6 +315,9 @@ export default function AssignmentCreateDrawer({
     setEquipment(null);
     setPickup(null);
     setDropoff(null);
+    setTankerSource(null);
+    setTankerDestination(null);
+    setLiquidProduct(null);
     setNote("");
     setErrorMsg("");
   }, [open]);
@@ -324,7 +334,7 @@ export default function AssignmentCreateDrawer({
         const j = await r.json().catch(() => ({}));
         if (cancelled) return;
         setL({
-          haul_types: j.haul_types || ["Material", "Equipment Move", "Spoils / Dump", "Support / Misc"],
+          haul_types: j.haul_types || ["Material", "Equipment Move", "Tanker / Liquid Asphalt", "Spoils / Dump", "Support / Misc"],
           drivers: j.drivers || [],
           trucks: j.trucks || [],
           trailers: j.trailers || [],
@@ -337,6 +347,9 @@ export default function AssignmentCreateDrawer({
           dropoff_locations: j.dropoff_locations || [],
           materials: j.materials || [],
           equipment_examples: j.equipment_examples || [],
+          tanker_sources: j.tanker_sources || [],
+          tanker_destinations: j.tanker_destinations || [],
+          liquid_products: j.liquid_products || [],
         });
       } catch {
         /* non-fatal */
@@ -401,6 +414,19 @@ export default function AssignmentCreateDrawer({
     label: m.label, category: m.category || "", source: m.source || "seed",
   })), [L.materials]);
 
+  // iter410 · Phase 15.1 · Tanker option projections
+  const tankerSourceOptions = useMemo(() => L.tanker_sources.map((s) => ({
+    label: s.label, source: s.source,
+  })), [L.tanker_sources]);
+
+  const tankerDestinationOptions = useMemo(() => L.tanker_destinations.map((s) => ({
+    label: s.label, source: s.source,
+  })), [L.tanker_destinations]);
+
+  const liquidProductOptions = useMemo(() => L.liquid_products.map((p) => ({
+    label: p.label, category: p.category || "", source: p.source || "seed",
+  })), [L.liquid_products]);
+
   // ── Submit ──────────────────────────────────────────────────────
   const submit = useCallback(async () => {
     if (!truck?.label) {
@@ -411,6 +437,7 @@ export default function AssignmentCreateDrawer({
     setErrorMsg("");
 
     const isEquipMove = haulType === "Equipment Move";
+    const isTanker = haulType === "Tanker / Liquid Asphalt";
     const pickedProjectOpt = projectOptions.find((o) => o.refId === project?.refId);
     const projectName = pickedProjectOpt?.project_name || "";
 
@@ -440,6 +467,16 @@ export default function AssignmentCreateDrawer({
       body.source_location = pickup?.label || "";
       body.destination = dropoff?.label || "";
       body.material = "Equipment Move";
+    } else if (isTanker) {
+      // iter410 · Phase 15.1 · Tanker continuity uses the canonical
+      // source/destination fields so the operational board, governance,
+      // CSV exports, and haul_cycles surface tanker hauls without any
+      // downstream code change. liquid_product is the new tanker-only
+      // wire field; material is set for backward-compat tooling.
+      body.source_location = tankerSource?.label || "";
+      body.destination = tankerDestination?.label || "";
+      body.liquid_product = liquidProduct?.label || "";
+      body.material = liquidProduct?.label || "Tanker / Liquid Asphalt";
     } else {
       body.material = material?.label || "";
       body.source_location = source?.label || "";
@@ -461,7 +498,9 @@ export default function AssignmentCreateDrawer({
       toast.success(
         isEquipMove
           ? t("Equipment move issued · truck on the board")
-          : t("Assignment issued · truck on the board"),
+          : isTanker
+            ? t("Tanker haul issued · truck on the board")
+            : t("Assignment issued · truck on the board"),
       );
       if (onCreated) onCreated(j.assignment || null);
       onClose && onClose();
@@ -470,11 +509,12 @@ export default function AssignmentCreateDrawer({
     } finally {
       setSubmitting(false);
     }
-  }, [haulType, truck, driver, trailer, carrier, project, projectOptions, source, destination, material, equipment, pickup, dropoff, note, tenantOverride, onCreated, onClose, t]);
+  }, [haulType, truck, driver, trailer, carrier, project, projectOptions, source, destination, material, equipment, pickup, dropoff, tankerSource, tankerDestination, liquidProduct, note, tenantOverride, onCreated, onClose, t]);
 
   if (!open) return null;
 
   const isEquipMove = haulType === "Equipment Move";
+  const isTanker = haulType === "Tanker / Liquid Asphalt";
 
   return (
     <div
@@ -515,7 +555,9 @@ export default function AssignmentCreateDrawer({
         <div className="px-5 py-3 bg-orange-50 border-b border-orange-200 text-xs text-slate-700 leading-snug">
           {isEquipMove
             ? t("Equipment Move: dispatch picks the truck/lowboy, the piece of equipment being hauled, pickup, drop-off. Same lifecycle, same board — completed counts as an Equipment Move on operational memory.")
-            : t("Truck is required. Driver is optional — self-start can claim later. Pick a project, source, and material so operational memory stays accurate. Wait reasons stay canonical (set later via the driver lifecycle).")}
+            : isTanker
+              ? t("Tanker / Liquid Asphalt: dispatch picks the truck, tanker trailer, terminal/source, destination plant or tank, and the liquid product. Same lifecycle, same board — feeds plant continuity and supply truth.")
+              : t("Truck is required. Driver is optional — self-start can claim later. Pick a project, source, and material so operational memory stays accurate. Wait reasons stay canonical (set later via the driver lifecycle).")}
         </div>
 
         {/* Body */}
@@ -553,10 +595,16 @@ export default function AssignmentCreateDrawer({
             emptyHint={t("No matching driver. Leave blank for self-start.")}
           />
 
-          {/* Trailer / lowboy */}
+          {/* Trailer / lowboy / tanker */}
           <ComboboxField
             testId="ac-trailer"
-            label={isEquipMove ? t("Lowboy / Trailer") : t("Trailer")}
+            label={
+              isEquipMove
+                ? t("Lowboy / Trailer")
+                : isTanker
+                  ? t("Tanker trailer")
+                  : t("Trailer")
+            }
             optionalHint={t("optional")}
             placeholder={t("Type or pick a trailer")}
             value={trailer}
@@ -582,7 +630,13 @@ export default function AssignmentCreateDrawer({
           {/* Project */}
           <ComboboxField
             testId="ac-project"
-            label={isEquipMove ? t("Receiving job / project") : t("Project")}
+            label={
+              isEquipMove
+                ? t("Receiving job / project")
+                : isTanker
+                  ? t("Plant / job / project")
+                  : t("Project")
+            }
             optionalHint={t("optional")}
             placeholder={t("Project number")}
             value={project}
@@ -592,7 +646,7 @@ export default function AssignmentCreateDrawer({
             emptyHint={t("Recent projects appear here as operations build memory.")}
           />
 
-          {/* Conditional · Material vs Equipment Move */}
+          {/* Conditional · Material / Equipment Move / Tanker */}
           {isEquipMove ? (
             <>
               <ComboboxField
@@ -625,6 +679,40 @@ export default function AssignmentCreateDrawer({
                 options={dropoffOptions}
                 tempPrefix={t("Add drop-off location:")}
                 emptyHint={t("Pick from seeded or recent locations.")}
+              />
+            </>
+          ) : isTanker ? (
+            <>
+              <ComboboxField
+                testId="ac-tanker-source"
+                label={t("Terminal / source")}
+                placeholder={t("e.g. Asphalt Terminal, Port")}
+                value={tankerSource}
+                onChange={setTankerSource}
+                options={tankerSourceOptions}
+                tempPrefix={t("Add terminal / source:")}
+                emptyHint={t("Pick from seeded terminals or recent values.")}
+              />
+              <ComboboxField
+                testId="ac-tanker-destination"
+                label={t("Destination plant / tank")}
+                placeholder={t("e.g. MASCI Hot Plant 1, Storage Tank")}
+                value={tankerDestination}
+                onChange={setTankerDestination}
+                options={tankerDestinationOptions}
+                tempPrefix={t("Add destination plant / tank:")}
+                emptyHint={t("Pick from seeded plants/tanks or recent values.")}
+              />
+              <ComboboxField
+                testId="ac-liquid-product"
+                label={t("Liquid product")}
+                optionalHint={t("optional")}
+                placeholder={t("e.g. PG 64-22, CRS-2, Diesel")}
+                value={liquidProduct}
+                onChange={setLiquidProduct}
+                options={liquidProductOptions}
+                tempPrefix={t("Add liquid product:")}
+                emptyHint={t("Pick from the seeded liquid catalog or recent values.")}
               />
             </>
           ) : (
@@ -703,7 +791,9 @@ export default function AssignmentCreateDrawer({
               ? t("Issuing…")
               : isEquipMove
                 ? t("Issue equipment move")
-                : t("Issue assignment")}
+                : isTanker
+                  ? t("Issue tanker haul")
+                  : t("Issue assignment")}
           </Button>
           <p className="text-[11px] text-slate-500 mt-2 text-center">
             {t("Truck appears on the board immediately. Driver lifecycle stays the source of operational truth.")}

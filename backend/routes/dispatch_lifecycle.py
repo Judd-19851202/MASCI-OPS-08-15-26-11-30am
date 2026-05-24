@@ -106,6 +106,8 @@ class AssignmentCreate(BaseModel):
     equipment_label: Optional[str] = ""
     pickup_location: Optional[str] = ""
     dropoff_location: Optional[str] = ""
+    # iter410 · Phase 15.1 · Tanker / Liquid Asphalt continuity
+    liquid_product: Optional[str] = ""
 
 
 class TransitionRequest(BaseModel):
@@ -370,6 +372,8 @@ async def _materialize_haul_cycle(db, *, assignment_id: str, tenant_id: str) -> 
         "equipment_label": assignment.get("equipment_label") or "",
         "pickup_location": assignment.get("pickup_location") or "",
         "dropoff_location": assignment.get("dropoff_location") or "",
+        # iter410 · Phase 15.1 · Tanker continuity carried into cycle truth
+        "liquid_product": assignment.get("liquid_product") or "",
         "started_at": started_at,
         "completed_at": completed_at,
         "total_seconds": total_seconds,
@@ -463,6 +467,8 @@ def build_dispatch_lifecycle_router(
             "equipment_label": (body.equipment_label or "").strip(),
             "pickup_location": (body.pickup_location or "").strip(),
             "dropoff_location": (body.dropoff_location or "").strip(),
+            # iter410 · Phase 15.1 · Tanker / Liquid Asphalt continuity
+            "liquid_product": (body.liquid_product or "").strip(),
             "current_state": DLS.ASSIGNED,
             "current_wait_reason": "",
             "assigned_at": at_iso,

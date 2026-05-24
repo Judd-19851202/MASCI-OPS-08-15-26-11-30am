@@ -1,0 +1,30 @@
+{
+  "summary": "Phase 15.1 (iter410 · Tanker / Liquid Asphalt continuity) end-to-end validated. Backend: 9/9 iter410 NEW PASS; 122/122 parity-lock PASS (iter410+iter409+iter408+iter407+iter319+iter392+iter393+iter395+iter396+iter401+iter402) in ~64s. Tanker is the 3rd entry in haul_types between Equipment Move and Spoils/Dump; tanker_sources/tanker_destinations seeded with full expected sets (source='seed'); liquid_products catalog seeded with 27 entries across 3 categories (Asphalt Binders / Emulsions / Tack / Fuel / Support); historical merge correctly tags Refinery North/Plant Delta/Custom Binder Blend X as source='history'; full DLS lifecycle (ENROUTE_TO_LOAD → COMPLETE) materializes haul_cycles doc carrying haul_type='Tanker / Liquid Asphalt' + liquid_product + source_location + destination; backward compat preserved (Material POST without liquid_product defaults haul_type='Material' and liquid_product=''); no internal `_*` field leakage in new arrays. Frontend: AssignmentCreateDrawer renders 5 haul-type buttons (testids ac-haul-type-material/equipment-move/tanker-liquid-asphalt/spoils-dump/support-misc); selecting Tanker swaps in ac-tanker-source / ac-tanker-destination / ac-liquid-product and removes ac-source/ac-destination/ac-material from DOM; trailer label flips to 'Tanker trailer', project label to 'Plant / job / project', submit label to 'Issue tanker haul'; liquid product combobox loads exactly 27 seeded options on focus with SEED badges and category tags (Asphalt Binders / Emulsions / Tack / Fuel / Support); AC-20, AC-30, PG 64-22 present as expected first-row samples. E2E confirmed: created truck T-TANK-99 + Asphalt Terminal + MASCI Hot Plant 1 + PG 64-22 → POST 200 → toast 'Tanker haul issued · truck on the board' rendered → row 'T-TANK-99 ... Tanker / Liquid Asphalt → Asphalt Terminal' visible on board → ACTIVE HAULS counter 3→4. Mobile 390px: no horizontal scroll on body or drawer, all 5 haul-type buttons reflow correctly, liquid product dropdown fully usable. touch_target_audit.py clean (zero undersized interactives).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter410_tanker_continuity.py",
+    "/app/test_reports/pytest/iter410_results.xml",
+    "/app/test_reports/pytest/iter410_parity.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AssignmentCreateDrawer.jsx remains a single-file component but is now ~806 lines after Phase 15.1 additions. Still under the 700-line soft ceiling guidance only by interpretation — recommend extracting HaulTypePicker + ComboboxField into /components/dispatch/parts/ in a follow-up cleanup iter (not blocking; current code is readable and well-organized into clearly commented sections).",
+    "Tanker fields plug into the SAME ComboboxField primitive as Material/Equipment-Move fields → seed/history merge behavior + add-temp affordances + a11y all inherit cleanly without duplication. Good doctrine adherence.",
+    "Backend reuses the SAME POST /api/dispatch/assignments + SAME _materialize_haul_cycle path → tanker hauls naturally surface in iter392 board rendering, iter409 PM Haul Activity counters, and iter408/iter395 governance/CSV exports without any consumer changes (confirmed by 122/122 parity-lock).",
+    "liquid_product is additive on the AssignmentCreate Pydantic model with default='' → backward-compat POST without the field works correctly (test_material_post_still_works_without_liquid_product PASS).",
+    "No `_id` or `_*` field leakage in tanker_sources / tanker_destinations / liquid_products arrays (explicitly tested in test_no_internal_field_leakage_in_tanker_arrays)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (9/9 iter410 NEW + 122/122 parity-lock)", "frontend": "100% (drawer + 5 haul-type buttons + tanker conditional fields + label adaptation + submit-label adaptation + 27 seeded liquid products with seed/category badges + E2E submit→board row + toast + mobile 390px reflow all verified)"},
+  "test_credentials": "Multi-login: jaymn.judd@mascigc.com / Maddix123! (portal_tokens.dispatch fans out to localStorage 'masci.dispatch.token' via applyMultiLoginResponse; admin legacy MASCI1982! still works for backend test_iter410 fixture).",
+  "seed_data_creation": "Backend tests seed throwaway tenants (iter410-tsrc-/tdst-/tank-post-/tank-hist-/tank-cyc-/mat-<hex>); frontend E2E created one tanker assignment T-TANK-99 → Asphalt Terminal → MASCI Hot Plant 1 / PG 64-22 in default tenant (visible on /dispatch-portal/board). No production data impacted.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 15.1 (iter410) shipped clean. Parity-lock cmd: cd /app/backend && python -m pytest tests/test_iter410_*.py tests/test_iter409_*.py tests/test_iter408_*.py tests/test_iter407_*.py tests/test_iter319_*.py tests/test_iter392_*.py tests/test_iter393_*.py tests/test_iter395_*.py tests/test_iter396_*.py tests/test_iter401_*.py tests/test_iter402_*.py — 122/122 PASS in ~64s. Tanker haul type sits at position [2] in lookups.haul_types list (Material=0, Equipment Move=1, Tanker / Liquid Asphalt=2, Spoils / Dump=3, Support / Misc=4). Liquid product catalog has 27 entries — if future iter changes this count, update the test_iter410 spot-check assertions accordingly. Tanker hauls naturally count in iter409 PM Haul Activity tile counters (active_hauls/loads_completed_today) — this was verified indirectly by the 122/122 parity-lock (iter409 tests still PASS after additive cycle doc field on _materialize_haul_cycle). Drawer liquid-product panel opens on input focus only — wait_for_timeout 500-800ms after click(force=True) for reliable selector resolution.",
+  "rca of the issue": "N/A — no issues encountered."
+}

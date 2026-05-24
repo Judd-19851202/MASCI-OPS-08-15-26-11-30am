@@ -37,6 +37,10 @@ from dispatch_assignment_seeds import (
     EQUIPMENT_MOVE_CATEGORIES,
     EQUIPMENT_MOVE_EXAMPLE_LABELS,
     flat_material_options,
+    # iter410 · Phase 15.1 · Tanker continuity
+    SEEDED_TANKER_SOURCES,
+    SEEDED_TANKER_DESTINATIONS,
+    flat_liquid_product_options,
 )
 from routes.dispatch_lifecycle import (
     DEFAULT_TENANT_ID,
@@ -642,6 +646,16 @@ def build_driver_router(
         dropoff_locations = await _merge_seed_and_history(
             SEEDED_DROPOFF_LOCATIONS, "dropoff_location",
         )
+        # iter410 · Phase 15.1 · Tanker terminal / destination continuity.
+        # Tanker source values reuse the canonical `source_location` field
+        # on the assignment doc; seeded terminal list is the operational
+        # floor and historical tanker hauls layer in via the same field.
+        tanker_sources = await _merge_seed_and_history(
+            SEEDED_TANKER_SOURCES, "source_location",
+        )
+        tanker_destinations = await _merge_seed_and_history(
+            SEEDED_TANKER_DESTINATIONS, "destination",
+        )
 
         # ── Materials · catalog + historical ────────────────────────
         material_options: List[Dict[str, Any]] = []
@@ -691,6 +705,49 @@ def build_driver_router(
             for n in sorted(company_set, key=lambda s: (s != "MASCI", s.lower()))
         ]
 
+        # iter410 · Phase 15.1 · Liquid product catalog + history merge
+        liquid_products: List[Dict[str, Any]] = []
+        seen_liquid: set[str] = set()
+        for opt in flat_liquid_product_options():
+            key = opt["label"].lower()
+            if key in seen_liquid:
+                continue
+            seen_liquid.add(key)
+            liquid_products.append({
+                "label": opt["label"],
+                "category": opt["category"],
+                "source": "seed",
+            })
+        try:
+            pipeline = [
+                {"$match": {
+                    "tenant_id": tenant_id,
+                    "liquid_product": {"$nin": [None, ""]},
+                }},
+                {"$sort": {"assigned_at": -1}},
+                {"$group": {
+                    "_id": "$liquid_product",
+                    "last_at": {"$max": "$assigned_at"},
+                }},
+                {"$sort": {"last_at": -1}},
+                {"$limit": 25},
+            ]
+            async for row in db.dispatch_assignments.aggregate(pipeline):
+                v = (row.get("_id") or "").strip()
+                if not v:
+                    continue
+                key = v.lower()
+                if key in seen_liquid:
+                    continue
+                seen_liquid.add(key)
+                liquid_products.append({
+                    "label": v,
+                    "category": "Historical",
+                    "source": "history",
+                })
+        except Exception:
+            pass
+
         return {
             "ok": True,
             "tenant_id": tenant_id,
@@ -708,6 +765,10 @@ def build_driver_router(
             "pickup_locations": pickup_locations,
             "dropoff_locations": dropoff_locations,
             "materials": material_options,
+            # iter410 · Phase 15.1 · Tanker / Liquid Asphalt continuity
+            "tanker_sources": tanker_sources,
+            "tanker_destinations": tanker_destinations,
+            "liquid_products": liquid_products,
             # iter407 backward-compat aliases — DispatchBoard's old
             # consumer still expects these names.
             "recent_projects": projects,

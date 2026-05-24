@@ -4488,6 +4488,28 @@ const ES = {
   "Waiting on site": "Esperando sitio",
   "Breakdown impacts": "Impactos por avería",
   "Top materials today": "Materiales principales hoy",
+
+  // ─── iter410 · Phase 15.1 · Tanker / Liquid Asphalt continuity ──
+  "Tanker / Liquid Asphalt": "Cisterna / Asfalto Líquido",
+  "Tanker / Liquid Asphalt: dispatch picks the truck, tanker trailer, terminal/source, destination plant or tank, and the liquid product. Same lifecycle, same board — feeds plant continuity and supply truth.":
+    "Cisterna / Asfalto Líquido: despacho elige camión, tráiler cisterna, terminal/origen, planta o tanque de destino y el producto líquido. Mismo ciclo, mismo tablero — alimenta la continuidad de planta y la verdad de suministro.",
+  "Tanker trailer": "Tráiler cisterna",
+  "Plant / job / project": "Planta / trabajo / proyecto",
+  "Terminal / source": "Terminal / origen",
+  "Destination plant / tank": "Planta / tanque de destino",
+  "Liquid product": "Producto líquido",
+  "e.g. Asphalt Terminal, Port": "ej. Terminal de asfalto, Puerto",
+  "e.g. MASCI Hot Plant 1, Storage Tank": "ej. MASCI Hot Plant 1, Tanque de almacenamiento",
+  "e.g. PG 64-22, CRS-2, Diesel": "ej. PG 64-22, CRS-2, Diésel",
+  "Add terminal / source:": "Agregar terminal / origen:",
+  "Add destination plant / tank:": "Agregar planta / tanque de destino:",
+  "Add liquid product:": "Agregar producto líquido:",
+  "Pick from seeded terminals or recent values.": "Elige de las terminales predefinidas o valores recientes.",
+  "Pick from seeded plants/tanks or recent values.": "Elige de las plantas/tanques predefinidos o valores recientes.",
+  "Pick from the seeded liquid catalog or recent values.":
+    "Elige del catálogo de líquidos predefinidos o valores recientes.",
+  "Issue tanker haul": "Emitir viaje de cisterna",
+  "Tanker haul issued · truck on the board": "Viaje de cisterna emitido · camión en el tablero",
 };
 
 const DICTS = { es: ES, en: {} };
