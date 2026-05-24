@@ -1,6 +1,80 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter396 · Phase 11.5 · DLS Convergence (Glossary · LifecycleGuide · Cross-Portal Tiles) ✅
+
+### Mission
+The final convergence iteration. The Dispatch Lifecycle System must no longer feel like a bolted-on trucking module — it must feel like the platform has always understood operational flow. **Restraint held throughout.**
+
+### Doctrine reinforced
+- **One platform, one language.** 22 canonical glossary entries with full EN/ES parity. Lifecycle states + wait reasons documented in the same tone as the existing 18 platform terms (Accountability · Operational · Lifecycle · Downstream).
+- **Coaching only where confusion risk is real.** Exactly one LifecycleGuide instance shipped — on the dispatch board itself — explaining what the four governance signals mean and how forgiving transitions work. No coaching anywhere else.
+- **Cross-portal natural continuity.** A single shared `DispatchLifecycleTile` component mounted in two role-honest places: PM Hub (project-scoped) and Shop Hub (BREAKDOWN-scoped). Read-only, calm, polls every 60 s. No portal escape into the Dispatch surface.
+- **No new endpoints.** The tile reads `/api/dispatch/governance/findings` with a small `project_numbers=` filter parameter added.
+
+### Files shipped
+- **NEW** `/app/frontend/src/components/dispatch/DispatchLifecycleTile.jsx` — three scopes (`pm`, `shop`, `fl`) over one component. Sends every portal token it finds; backend picks the right gate via `_require_any_portal_token`.
+- **MOD** `/app/frontend/src/pages/PmHub.jsx` — extracts project_numbers from already-loaded daily reports / incidents / inspections / QA samples and feeds them to the tile. Tile mounted below the FORM_TILES grid.
+- **MOD** `/app/frontend/src/pages/ShopHub.jsx` — tile mounted at the top of the Open Items tab (where Shop already works first thing in the morning).
+- **MOD** `/app/frontend/src/pages/admin/AdminOperationalLanguage.jsx` — +22 canonical glossary entries (1 umbrella `dls` term · 13 lifecycle states · 8 wait reasons). Each entry carries EN+ES + Operational + Lifecycle + Accountability + Downstream slots, matching the existing 18 platform terms.
+- **MOD** `/app/frontend/src/pages/DispatchBoard.jsx` — added one LifecycleGuide ("What this board is telling you") with 4 sections: Lifecycle, Findings, Roles, Restraint. Deep-links to `/admin/operational-language#dls` for full context.
+- **MOD** `/app/backend/routes/dispatch_governance.py` — added optional `?project_numbers=A,B,C` filter parameter (backwards compatible). Truck-level `NON_STANDARD_TRANSITION_PATTERN` findings are dropped when a project filter is active (PM-scope is project-honest, not truck-honest).
+- **NEW** `/app/backend/tests/test_iter396_convergence.py` — 3 regression tests covering the new filter contract.
+
+### Glossary coverage shipped (22 entries · EN + ES)
+- Umbrella: `dls`
+- Lifecycle states (13): `dls_assigned`, `dls_enroute_to_load`, `dls_at_load_site`, `dls_loading`, `dls_loaded`, `dls_enroute_to_job`, `dls_arrived_job`, `dls_dumping`, `dls_complete`, `dls_waiting`, `dls_hold`, `dls_breakdown`, `dls_off_shift`
+- Wait reasons (8): `dls_waiting_on_plant`, `dls_waiting_on_loader`, `dls_waiting_on_dump`, `dls_waiting_on_paver`, `dls_waiting_on_traffic`, `dls_waiting_on_lane_closure`, `dls_waiting_on_assignment`, `dls_staging`
+
+Every term is anchorable: `/admin/operational-language#dls_waiting_on_plant` etc.
+
+### Tile behavior summary
+| Scope | What it shows | Filter |
+|---|---|---|
+| `pm` | All scoped findings on the PM's projects | `?project_numbers=A,B,C` from PM-loaded data |
+| `shop` | Trucks currently in BREAKDOWN | `kind == BREAKDOWN_ACTIVE` client-side filter |
+| `fl` | Production-impacting signals (WAIT_THRESHOLD_EXCEEDED + ASSIGNMENT_STUCK + BREAKDOWN_ACTIVE) | client-side filter; ready to mount when FL Hub gains a board surface |
+
+### What was explicitly NOT built (restraint per directive)
+- ❌ Safety / FL / HR tiles in their hubs — FL component is ready but the operator explicitly said HR visibility must remain "very restrained"; the Safety + FL hub tile mounts are documented as a clean follow-up.
+- ❌ `WAITING_OTHER` free-text — requires the canonical sub-category UX picker; explicitly deferred ("never free-text-only operational states").
+- ❌ Motive integration / surveillance — sanctioned future architecture.
+- ❌ Post-deploy operational telemetry — out of iter396 scope.
+- ❌ Driver coaching modules / training search expansion — wait for adoption signals.
+- ❌ Charts, heatmaps, analytics dashboards — operational truth first.
+
+### Tests · 51 / 51 PASS in 12.91 s
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 NEW:
+  - `project_numbers` filter includes only listed projects
+  - Truck-level NON_STANDARD_TRANSITION_PATTERN findings dropped from filtered responses
+  - Empty / whitespace project_numbers is a no-op (no accidental "filter to zero" trap)
+
+### Live smoke (preview)
+- Dispatch Board: backdated `dls-demo` rows → findings banner shows 5 chips, summary correctly counts `Breakdown=1 · Stuck>30m=4 · Waiting=1`. LifecycleGuide renders above the banner with 4 doctrine sections.
+- Shop Hub: DispatchLifecycleTile mounts above Open Items, shows "Trucks in breakdown right now · 0 signals · No trucks in BREAKDOWN — fleet operating cleanly" against the default `masci` tenant (correct — demo breakdown rows live under `dls-demo`).
+- Glossary: `/admin/operational-language` carries all 22 DLS terms searchable in EN+ES.
+
+### Next Action Items
+- 🟡 **Cross-portal tile follow-up** — mount the existing `DispatchLifecycleTile` into the Safety hub (with `scope="fl"` semantics: stuck + long-wait + breakdown) and FL hub once a board surface exists. **No new component work required** — just placement.
+- 🟢 **WAITING_OTHER picker** — when product is ready, add a canonical sub-category picker + optional clarification note (NEVER free text alone). Glossary entries already documented; UX is a one-evening task.
+- 🟠 **Phase 4D Extractions** — `/api/legacy-imports/*` (deferred since iter383).
+- 🔵 **233 inherited pytest isolation failures** — separate quality project.
+
+### DLS · Phase 11 status — COMPLETE
+- iter392 backend foundation · ✅
+- iter393 driver mobile experience + magic-link · ✅
+- iter394 dispatch operational board · ✅
+- iter395 governance + CSV · ✅
+- iter396 glossary + LifecycleGuide + role tiles · ✅
+
+The platform now naturally understands operational flow in real time — and a PM sees only what they need, Shop sees only what they need, the dispatcher sees the whole picture, drivers tap-and-work. **One operational system.**
+
+---
+
+
 ## 2026-05-24 — iter395 · Phase 11.4 · DLS Governance + Notifications + CSV ✅
 
 ### Mission

@@ -21,6 +21,7 @@ import {
   Truck, ArrowLeft, AlertTriangle, Wrench, Clock, Activity, RefreshCw, Send, Download, Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { paletteFor } from "@/lib/portalPalette";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -474,6 +475,33 @@ export default function DispatchBoard() {
         </div>
 
         <SummaryStrip assignments={assignments} />
+
+        {/* iter396 · LifecycleGuide — only here where confusion risk is real */}
+        <LifecycleGuide
+          id="dispatch-operational-board"
+          icon={Activity}
+          title="What this board is telling you"
+          summary="Calm operational truth · forgiving transitions · governance signals"
+          accent="orange"
+          sections={[
+            {
+              label: "Lifecycle",
+              body: "Every truck moves through 13 canonical states. Non-standard transitions are accepted but tagged so operations are never blocked. See /admin/operational-language#dls for the full glossary.",
+            },
+            {
+              label: "Findings",
+              body: "Four signals only — BREAKDOWN_ACTIVE (critical), ASSIGNMENT_STUCK (≥30 min in non-terminal state), WAIT_THRESHOLD_EXCEEDED (≥20 min in WAITING), NON_STANDARD_TRANSITION_PATTERN (≥3 non-standard transitions in 2h per truck). Nothing else fires.",
+            },
+            {
+              label: "Roles",
+              body: "Dispatch + Admin act here. Driver actions happen on the magic-link mobile screen. PM/Shop/Safety/FL see role-scoped signals on their own hubs — they never see the full board.",
+            },
+            {
+              label: "Restraint",
+              body: "Read-only · refresh every 5s · no chat, no maps, no analytics. The lifecycle engine is the single source of truth — every action here is a thin call to the iter392/iter393 endpoints.",
+            },
+          ]}
+        />
 
         {/* iter395 · governance findings banner — calm, glanceable */}
         {findings.length > 0 ? (

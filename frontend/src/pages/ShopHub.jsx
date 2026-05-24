@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
+import DispatchLifecycleTile from "@/components/dispatch/DispatchLifecycleTile";
 import ShopActivityFeed from "@/components/ShopActivityFeed";
 import PartsCatalog from "@/components/PartsCatalog";
 import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
@@ -226,7 +227,11 @@ export default function ShopHub() {
         </div>
 
         {tab === "open" && (
-          <OpenItemsPanel baseHref="/shop/equipment" testIdPrefix="shop-open" />
+          <>
+            {/* iter396 · DLS cross-portal convergence — Shop sees BREAKDOWN signals */}
+            <DispatchLifecycleTile scope="shop" testId="shop-dispatch-lifecycle" />
+            <OpenItemsPanel baseHref="/shop/equipment" testIdPrefix="shop-open" />
+          </>
         )}
         {tab === "activity" && <ShopActivityFeed baseHref="/shop/equipment" testIdPrefix="shop-activity" />}
         {tab === "trends" && <EquipmentTrendsPanel />}

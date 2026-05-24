@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import PmShell from "@/components/PmShell";
 import OperationsCenter from "@/components/OperationsCenter";
+import DispatchLifecycleTile from "@/components/dispatch/DispatchLifecycleTile";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/usePageTitle";
 
@@ -82,6 +83,7 @@ export default function PmHub() {
   usePageTitle("PM · MASCI");
   const [counts, setCounts] = useState({});
   const [crewSummary, setCrewSummary] = useState(null);
+  const [pmProjectNumbers, setPmProjectNumbers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -110,6 +112,17 @@ export default function PmHub() {
           equipment: len(eq), qaqc: len(qa),
         });
         setCrewSummary(crew?.data || null);
+        // Extract project_numbers from already-fetched PM-scoped data
+        // so the DispatchLifecycleTile can filter without a new API.
+        const seen = new Set();
+        const pushFrom = (arr) => {
+          (Array.isArray(arr) ? arr : []).forEach((r) => {
+            const p = r?.project_number || r?.project_no || r?.job_number;
+            if (p && typeof p === "string") seen.add(p.trim());
+          });
+        };
+        pushFrom(dr?.data); pushFrom(inc?.data); pushFrom(insp?.data); pushFrom(qa?.data);
+        setPmProjectNumbers(Array.from(seen));
       } catch { /* tiles still render with em-dash */ }
       setLoading(false);
     })();
@@ -218,6 +231,15 @@ export default function PmHub() {
                 testId={`pm-tile-${t.to.split("/").pop()}`}
               />
             ))}
+          </div>
+
+          {/* iter396 · DLS cross-portal convergence — read-only, project-scoped */}
+          <div className="mt-6" data-testid="pm-dispatch-lifecycle-mount">
+            <DispatchLifecycleTile
+              scope="pm"
+              projectNumbers={pmProjectNumbers}
+              testId="pm-dispatch-lifecycle"
+            />
           </div>
         </>
       )}

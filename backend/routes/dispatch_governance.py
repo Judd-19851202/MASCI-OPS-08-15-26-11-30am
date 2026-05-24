@@ -283,9 +283,20 @@ def build_dispatch_governance_router(
             NON_STANDARD_COUNT_THRESHOLD, ge=2, le=20,
             description="Min non-standard transitions in window to flag.",
         ),
+        project_numbers: Optional[str] = Query(
+            None,
+            description="Optional comma-separated list of project_numbers. "
+                        "When provided, findings are filtered to assignments "
+                        "tied to those projects (PM-scope tile use case).",
+        ),
     ):
         tenant_id = _resolve_tenant(x_tenant_id)
         now = _now()
+        project_filter: Optional[set] = None
+        if project_numbers:
+            project_filter = {
+                p.strip() for p in project_numbers.split(",") if p.strip()
+            } or None
         stuck = await _detect_assignment_stuck(
             db, tenant_id=tenant_id, threshold_minutes=stuck_threshold, now=now,
         )
@@ -301,11 +312,19 @@ def build_dispatch_governance_router(
             now=now,
         )
         all_findings = bdn + stuck + wait + pattern   # severity-ordered roughly
+        if project_filter:
+            # Filter to PM-scope projects. NON_STANDARD_TRANSITION_PATTERN
+            # has no project_number (it's truck-level) — drop it from the
+            # filtered view since a PM scope doesn't apply.
+            all_findings = [
+                f for f in all_findings
+                if (f.get("project_number") or "") in project_filter
+            ]
         counts = {
-            "BREAKDOWN_ACTIVE": len(bdn),
-            "ASSIGNMENT_STUCK": len(stuck),
-            "WAIT_THRESHOLD_EXCEEDED": len(wait),
-            "NON_STANDARD_TRANSITION_PATTERN": len(pattern),
+            "BREAKDOWN_ACTIVE": sum(1 for f in all_findings if f["kind"] == "BREAKDOWN_ACTIVE"),
+            "ASSIGNMENT_STUCK": sum(1 for f in all_findings if f["kind"] == "ASSIGNMENT_STUCK"),
+            "WAIT_THRESHOLD_EXCEEDED": sum(1 for f in all_findings if f["kind"] == "WAIT_THRESHOLD_EXCEEDED"),
+            "NON_STANDARD_TRANSITION_PATTERN": sum(1 for f in all_findings if f["kind"] == "NON_STANDARD_TRANSITION_PATTERN"),
             "total": len(all_findings),
         }
         return {
