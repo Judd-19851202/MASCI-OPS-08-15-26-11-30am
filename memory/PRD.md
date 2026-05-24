@@ -1,6 +1,73 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter400 · Phase 12.7 · Lane D · Motive Strategy Refresh + Audit Doctrine Index ✅
+
+### Mission
+Two doctrine deliverables, **zero code**. Refresh the Motive integration strategy to match the iter392–399 reality. Build a durable audit-doctrine index so every scanner / gate / guardrail the platform carries is discoverable from one page.
+
+### Doctrine reinforced (Phase 12.7)
+- Platform is **one operational operating system**, not modules.
+- 20-point pre-implementation gate applied (all 20 PASS).
+- **Motive answers questions; Motive does not give orders.** Promoted to the doctrine summary line.
+- Per-driver Motive history will never surface to PM / Shop / Safety / FL / HR. Tenant-level view only.
+- Restraint absolute: zero code, zero contract changes, zero role-visibility, zero scope creep.
+
+### Files shipped (2 docs · 0 code)
+- **MOD** `/app/memory/MOTIVE_INTEGRATION_STRATEGY.md` — full refresh:
+  - Architecture updated to match iter392–399 (correct collection names: `dispatch_assignments` · `dispatch_state_events` · `haul_cycles`).
+  - Governance compute path corrected to "on-demand, not stored" matching iter395 reality.
+  - 7-point Phase 12.7 compatibility verification added — confirms nothing in iter392–399 closed off future Motive activation. All 7: PASS.
+  - `ASSIGNMENT_STUCK_NO_MOTIVE_DATA` renamed to `ASSIGNMENT_QUIET_NO_MOTIVE_DATA` — "quiet" is operationally honest, "stuck" was punitive-leaning.
+  - Refusal list extended: per-driver Motive history must stay tenant-internal.
+  - Cross-references added to iter397/398/399 audit docs + new audit doctrine index.
+- **NEW** `/app/memory/AUDIT_GUARDRAILS.md` — single, durable doctrine index:
+  - Tool index (`operator_vocabulary_scanner.py`, `touch_target_audit.py`) with purpose/scope/when-to-run/output for each.
+  - Doctrine gates index — 7 existing memory/* docs.
+  - 20-point pre-implementation gate reproduced in one canonical place.
+  - Cross-doctrine reference table — "if you're adding X, read Y first".
+  - Explicit "what this index is NOT" + "when to add a new row" gates.
+  - Short by design; commit history is the audit trail.
+
+### Phase 12.7 doctrine gate · 20-check audit
+**All 20 checks: PASS.** Documented in `PHASE12_CONTINUITY_AUDIT.md` iter400 addendum.
+
+### Scanner self-check
+- `operator_vocabulary_scanner.py` against the 2 new/refreshed docs reports 38 hits across 2 files — 100% legitimate (doctrine documents reference iteration history + vocabulary they refuse). Exactly the "tool reports, human decides" pattern.
+
+### Tests · 51 / 51 PASS in 12.36 s
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+
+### What iter400 explicitly did NOT do (restraint enforced)
+- ❌ No code changes (zero frontend / backend / .env)
+- ❌ No new endpoints / collections / pages / tiles
+- ❌ No Motive activation
+- ❌ No role visibility changes
+- ❌ No analytics / dashboards / charts
+- ❌ No notification fan-out changes
+- ❌ No new tooling
+- ❌ No structural refactor
+
+### Phase 12.7 lane order (locked) · 4 of 5 lanes complete
+1. **a · Cross-platform continuity audit** ✅ shipped iter397.
+2. **e · Restraint / tone pass** ✅ shipped iter398.
+3. **b · Mobile-first usability sweep of DLS surfaces** ✅ shipped iter399.
+4. **d · Motive integration strategy refresh + audit doctrine index** ✅ shipped iter400.
+5. **c · Post-deploy operational stabilization instrumentation** — iter401 last.
+
+### Next Action Items
+- 🔵 **P2 — iter401 · Lane C · Post-deploy operational stabilization instrumentation.** Week 1 / 2 / 4 stability checklist. Optional `/admin/dls-health` read-only page only if it stays under "one page, no new data". Final lane in the Phase 12 sequence.
+- 🔵 **P3 — Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR tile decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+
+---
+
+
 ## 2026-05-24 — iter399 · Phase 12.6 · Lane B · Mobile-First Operational Refinement ✅
 
 ### Mission

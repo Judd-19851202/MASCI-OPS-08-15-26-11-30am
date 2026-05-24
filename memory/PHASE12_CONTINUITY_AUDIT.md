@@ -216,15 +216,127 @@ next per the operator's lane order: **a → e → b → d → c**.
 ## Next Action Items
 
 - 🟢 **iter398 · Lane E · Restraint/tone pass.** ✅ shipped — see iter398 addendum above.
-- 🟢 **iter399 · Lane B · Mobile-first usability sweep.** ✅ shipped — see iter399 addendum below.
-- 🟠 **iter400 · Lane D · Motive integration strategy refresh (DOC ONLY).**
-  Refresh `/app/memory/MOTIVE_INTEGRATION_STRATEGY.md` for iter392→396 reality.
-  Zero code.
+- 🟢 **iter399 · Lane B · Mobile-first usability sweep.** ✅ shipped — see iter399 addendum above.
+- 🟢 **iter400 · Lane D · Motive integration strategy refresh (DOC ONLY) + AUDIT_GUARDRAILS.md doctrine index.** ✅ shipped — see iter400 addendum below.
 - 🔵 **iter401 · Lane C · Post-deploy operational stabilization instrumentation.**
   Week 1 / 2 / 4 stability checklist. Optional read-only `/admin/dls-health`
   page if and only if it stays under "one page, no new data".
 - 🔵 **Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
 - 🔵 **Backlog · 14-day post-live ops review** of Safety/FL/HR tile decisions.
+
+---
+
+# iter400 addendum · Lane D · Motive Strategy Refresh + Audit Doctrine Index ✅ (2026-05-24)
+
+## Scope (Phase 12.7 Implementation Targets #6 + #7)
+
+- **DOC ONLY.** Zero code changes. Zero backend changes. Zero contract changes.
+- Refresh `/app/memory/MOTIVE_INTEGRATION_STRATEGY.md` for the iter392–399 reality.
+- Build `/app/memory/AUDIT_GUARDRAILS.md` as a durable doctrine index.
+
+## Files shipped
+
+### 1. `/app/memory/MOTIVE_INTEGRATION_STRATEGY.md` (refreshed)
+
+The Phase 11 design document was architecturally stale. It referenced collections (`haul_assignments`, `compliance_findings`) that never shipped under those names — iter392 shipped `dispatch_assignments` + `dispatch_state_events` + `haul_cycles`; iter395 governance is **on-demand-computed**, not stored.
+
+The refresh:
+
+- **Keeps every doctrine sentence** the original document got right. The "Motive answers questions; Motive does not give orders" line is now elevated to the explicit doctrine summary.
+- **Updates architecture** to match iter392–399 reality (correct collection names, computed-on-read governance, role-scoped tile reuse).
+- **Adds a Phase 12.7 compatibility verification table** — 7 architectural checks confirming that nothing in iter392–399 closed off future Motive activation. All 7: PASS.
+- **Renames `ASSIGNMENT_STUCK_NO_MOTIVE_DATA` → `ASSIGNMENT_QUIET_NO_MOTIVE_DATA`** — "quiet" is operationally honest; "stuck" was punitive-leaning.
+- **Reinforces the foundational refusal list** with one extra item: per-driver Motive history must never surface to PM / Shop / Safety / FL / HR (tenant-level view only).
+- **Cross-references** the iter397/398/399 audit docs + the new audit doctrine index so future readers can find the connected doctrine.
+
+The activation contract still reads "3–5 engineer-days + 1 day of geofence config when the operator decides". Architecture-ready. Code deferred. Doctrine intact.
+
+### 2. `/app/memory/AUDIT_GUARDRAILS.md` (new)
+
+A single, durable index of every audit aid, scanner, doctrine guardrail, and pre-implementation gate the platform carries.
+
+Sections:
+
+- **Tool index** — `operator_vocabulary_scanner.py` (iter398) + `touch_target_audit.py` (iter399). Each row: purpose, scope, when to run, output format.
+- **Doctrine gates index** — 7 existing doctrine documents (`DO_NOT_BUILD_YET`, `NOTIFICATION_DISCIPLINE_MATRIX`, `DEPLOYMENT_GO_NO_GO`, `WAIT_STATE_DISCIPLINE`, `PHASE12_CONTINUITY_AUDIT`, `MOTIVE_INTEGRATION_STRATEGY`, `20-point Pre-implementation Gate`).
+- **The 20-point pre-implementation gate** reproduced in one canonical place — every future iter can link to this single source instead of re-pasting the list.
+- **Cross-doctrine reference table** — "if you're adding X, read Y first" mapping. Routes contributors to the right guardrail before they ship anything.
+- **What this index is NOT** — explicit refusals (it is not a test catalog, lint config, or CI configuration).
+- **When to add a new guardrail row** — 4-condition gate that prevents this index from growing into its own form of sprawl.
+- **Maintenance** — short by design; split if > 300 lines; commit history is the audit trail.
+
+The platform now has a single page where a Phase-13+ developer can land and ask "what guardrails do I have?" — and get a complete, honest answer.
+
+## Phase 12.7 doctrine gate · 20-check audit
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Does this LOOK like the platform? | 🟢 Doc-only · no UI to look at |
+| 2 | Does this FEEL like the platform? | 🟢 Tone matches the existing memory/* doctrine docs |
+| 3 | Does this MATCH platform tone? | 🟢 Same calm, declarative voice; same EN-only doctrine docs convention |
+| 4 | Does this preserve operational calmness? | 🟢 No new alerts, no new noise — pure documentation |
+| 5 | Does this preserve low cognitive load? | 🟢 Audit doctrine now indexed in one place — less to remember |
+| 6 | Does this preserve operational trust? | 🟢 Motive doctrine reaffirmed; validate-don't-surveil locked in |
+| 7 | Does this preserve role discipline? | 🟢 No role visibility change |
+| 8 | Does this avoid ERP drift? | 🟢 No new dashboards, no new "manager view" |
+| 9 | Does this avoid analytics drift? | 🟢 No analytics |
+| 10 | Does this avoid dashboard sprawl? | 🟢 The doctrine index actively prevents sprawl |
+| 11 | Does this preserve downstream continuity? | 🟢 Architecture compatibility verified (7/7 PASS in Motive doc) |
+| 12 | Does this remain mobile-first? | 🟢 N/A · doc only |
+| 13 | Does this preserve restraint doctrine? | 🟢 Strengthened — the index makes restraint discoverable |
+| 14 | Does this integrate naturally with existing workflows? | 🟢 Lives in `/app/memory/` next to its peers |
+| 15 | Would a Superintendent instantly understand this? | 🟢 N/A · contributor-facing doctrine |
+| 16 | Would a truck driver instantly understand this? | 🟢 N/A · contributor-facing doctrine |
+| 17 | Does this preserve validate-don't-surveil doctrine? | 🟢 Reinforced — the Motive refresh sharpens it |
+| 18 | Does this avoid operational noise? | 🟢 Zero new signals |
+| 19 | Does this strengthen operational continuity? | 🟢 Future Motive activation is now plumbing-only |
+| 20 | Does this align with foundational doctrine? | 🟢 Foundational doctrine is what got refreshed |
+
+**All 20 checks: PASS.**
+
+## Scanner self-check
+
+Running `operator_vocabulary_scanner.py` against the two new/refreshed docs reports **38 hits across 2 files**. Every hit is legitimate: doctrine documents literally **document** iteration history (`iter397`, `iter398`, `iter399`, `iter400`) and the vocabulary the platform refuses (`ERP`, `surveillance`). The scanner is over-reporting by design; human triage keeps all 38. This is exactly the "tool reports, human decides" pattern documented in `AUDIT_GUARDRAILS.md`.
+
+## Verification
+
+```bash
+# Phase 11 regression — every contract intact (doc-only iter, but verified anyway)
+cd /app/backend
+python -m pytest tests/test_iter392_dls_foundation.py \
+                 tests/test_iter393_driver_session.py \
+                 tests/test_iter395_governance.py \
+                 tests/test_iter396_convergence.py -q
+# 51 / 51 PASS in 12.36 s ✅
+
+# Scanner self-check on refreshed/new docs
+python3 /app/scripts/operator_vocabulary_scanner.py --paths memory/MOTIVE_INTEGRATION_STRATEGY.md memory/AUDIT_GUARDRAILS.md
+# 38 candidates → 100% legitimate (doctrine docs reference iter history + vocabulary they refuse) ✅
+```
+
+## Restraint discipline maintained
+
+- ❌ No code changes
+- ❌ No new endpoints / collections / pages / tiles
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No analytics / dashboards / charts
+- ❌ No notification fan-out changes
+- ❌ No animation or transition additions
+- ❌ No frontend changes
+- ❌ No backend changes
+- ❌ No `.env` changes
+
+## What iter400 leaves behind
+
+1. **A doctrine document** (`MOTIVE_INTEGRATION_STRATEGY.md`) that is architecturally honest about the iter392–399 reality. Future Motive activation is now plumbing-only, with the 7-point compatibility verification on record.
+2. **A doctrine index** (`AUDIT_GUARDRAILS.md`) that turns the audit toolkit into a first-class operational asset. New contributors can land on one page and find every guardrail the platform carries.
+3. **The 20-point gate** lifted into one canonical place. Future Phase 12.x directives can link to it instead of re-pasting.
+4. **0 behavior changes.** Every contract intact, 51/51 tests still green.
+
+---
+
+
 
 ---
 
