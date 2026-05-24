@@ -9725,6 +9725,35 @@ app.include_router(_fleet_router)
 logging.getLogger(__name__).info("[fleet-ops] iter251 Phase A router mounted · backend-only foundation")
 
 
+# ─── iter392 · Dispatch Lifecycle System (DLS) Backend Foundation ───
+# Phase 11.1 — operational state machine for haul cycles.
+# Reuses _require_dispatch_or_admin (write gate) and
+# _require_any_portal_token (cross-portal read gate). No new auth
+# surface — driver magic-link arrives in iter393.
+from routes.dispatch_lifecycle import (  # noqa: E402
+    build_dispatch_lifecycle_router,
+    ensure_dispatch_lifecycle_indexes,
+)
+
+_dls_router = build_dispatch_lifecycle_router(
+    db,
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+    require_any_portal_token_dep=_require_any_portal_token,
+)
+app.include_router(_dls_router)
+
+
+@app.on_event("startup")
+async def _ensure_dls_indexes() -> None:
+    try:
+        await ensure_dispatch_lifecycle_indexes(db)
+        logging.getLogger(__name__).info(
+            "[dispatch-lifecycle] iter392 router mounted · indexes ensured",
+        )
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).warning(f"[dispatch-lifecycle] index setup skipped: {e}")
+
+
 # ─── Backup verification (iter79 — weekly R2 health email) ──────────
 from routes.backup_verification_routes import build_backup_verification_router  # noqa: E402
 from backup_verification import verification_scheduler_loop  # noqa: E402

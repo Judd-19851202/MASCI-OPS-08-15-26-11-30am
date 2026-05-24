@@ -1,6 +1,107 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter392 · Phase 11.1 · DLS Backend Foundation ✅
+
+### Mission
+Ship the operational foundation for the Dispatch Lifecycle System (DLS) — the 13-state truth machine for haul cycles. **Backend only.** No UI, no analytics, no driver auth, no governance wiring. Establish trustworthy operational truth so future iterations can build on a stable foundation.
+
+### Doctrine reinforced this iteration
+- **Lifecycle states are the system.** 13 canonical states persisted as a state machine.
+- **Forgiving operational continuity.** Any transition accepted; non-standard ones tagged for future review. Field reality (missed taps, late updates, truck-boss overrides) never blocks operations.
+- **Append-only truth.** Every transition mirrors into a separate audit/analytics stream.
+- **Tenant-ready from day 1.** Every record carries `tenant_id`.
+
+### Files shipped
+- **NEW** `/app/backend/dispatch_lifecycle.py` (172 LOC) — pure state-machine module:
+  - 13 canonical state constants (ASSIGNED, ENROUTE_TO_LOAD, AT_LOAD_SITE, LOADING, LOADED, ENROUTE_TO_JOB, ARRIVED_JOB, DUMPING, COMPLETE, WAITING, HOLD, BREAKDOWN, OFF_SHIFT)
+  - Preferred transition graph (`_PREFERRED`)
+  - `is_canonical_state` · `is_standard_transition` · `allowed_next_states` · `is_terminal` · `classify_transition`
+  - Stateless and side-effect-free — importable from tests + future analytics jobs
+- **NEW** `/app/backend/routes/dispatch_lifecycle.py` (~600 LOC) — DLS router factory + collection writers:
+  - 3 new Mongo collections: `dispatch_assignments` (current truth) · `dispatch_state_events` (append-only) · `haul_cycles` (derived summaries on COMPLETE)
+  - 9 endpoints under `/api/dispatch/*` (assignments CRUD, transition, cancel, reassign, state-events stream, haul-cycles list, lifecycle meta)
+  - Indexes ensured on startup (tenant + state + truck + driver + project)
+  - `_record_transition` writes BOTH embedded `state_history[]` AND a mirrored row in `dispatch_state_events`; COMPLETE auto-materializes a `haul_cycles` row
+- **MOD** `/app/backend/server.py` (+30 LOC) — wire `_dls_router` + startup index hook
+- **NEW** `/app/backend/tests/test_iter392_dls_foundation.py` — 23 regression tests
+
+### Architecture (hybrid model approved by operator)
+- `dispatch_assignments` = operational current truth. Carries `current_state`, `current_wait_reason`, latest timestamps, and an embedded `state_history[]` for in-document audit.
+- `dispatch_state_events` = append-only analytics/audit truth. One immutable row per transition — query-friendly for future governance and CSV exports.
+- `haul_cycles` = derived cycle summary truth. One row per completed cycle (idempotent via unique `assignment_id` index). Captures total/wait/operating seconds + transition counts.
+
+### API surface (9 endpoints, prefix `/api/dispatch`)
+| Method | Path | Gate |
+|---|---|---|
+| POST | `/assignments` | dispatch + admin (write) |
+| GET  | `/assignments` | any portal token (read) |
+| GET  | `/assignments/board` | any portal token (read) |
+| GET  | `/assignments/{id}` | any portal token (read) |
+| POST | `/assignments/{id}/transition` | dispatch + admin (write) |
+| POST | `/assignments/{id}/cancel` | dispatch + admin (write) |
+| POST | `/assignments/{id}/reassign` | dispatch + admin (write) |
+| GET  | `/state-events` | any portal token (read) |
+| GET  | `/haul-cycles` | any portal token (read) |
+| GET  | `/lifecycle/states` | any portal token (read · meta) |
+
+Reuses existing `_require_dispatch_or_admin` (iter370 canonical) and `_require_any_portal_token` (Phase 5D unified aggregator). **No new auth surface introduced.**
+
+### Forgiving validation contract
+- Any `to_state` is accepted (matches operator's chosen "forgiving" doctrine).
+- `classify_transition()` tags every event with:
+  - `standard: bool` — True iff in preferred graph
+  - `warning_tag: "NON_STANDARD_TRANSITION" | "UNKNOWN_STATE" | "CANCELLED" | "REASSIGNED" | null`
+  - `warning_tags: List[str]` for multi-tag composition
+- Driver UI (iter393) can restrict displayed buttons to `allowed_next_states()` — the backend stays permissive.
+- `state-events?non_standard_only=true` filter lets governance (iter395) audit deviations later.
+
+### Tests · 23 / 23 PASS in 3.44 s
+- Pure state-machine unit tests (6): canonical count · happy path · wait-state returns · non-standard classification · unknown-state tagging · terminal states
+- Route + wiring smoke (2)
+- RBAC (4): anon 401 on write, anon 401 on board, admin 200, lifecycle meta 200
+- Create flow (3): seeds state_history, mirrors to events, detail readback
+- Transition flow (4): standard tagged True, non-standard tagged with reason, COMPLETE materializes haul_cycles (transitions=3, non_standard=1), wait_reason captured + cleared on return
+- Cancel (1): blocks subsequent transitions (409)
+- Reassign (1): swaps driver + writes REASSIGNED history entry
+- Tenant isolation (1): board query honors X-Tenant-Id
+- Performance (1): board read < 2 s after ~7 writes
+- Governance prep (1): `non_standard_only=true` returns only flagged events
+
+### Live preview smoke (curl, admin token)
+- `GET /api/dispatch/lifecycle/states` → 13 states + correct preferred-next graph
+- `POST /api/dispatch/assignments` → tenant_id propagated, seed history entry written
+- `GET /api/dispatch/assignments/board` → 200 with truck visible
+- Anon board → 401
+
+### What was explicitly NOT built (per operator restraint directive)
+- ❌ Driver magic-link / driver sessions (iter393)
+- ❌ Driver mobile UI (iter393)
+- ❌ Dispatch Board UI (iter394)
+- ❌ Governance detector wiring (iter395)
+- ❌ Notifications fan-out (iter395)
+- ❌ CSV exports (iter395)
+- ❌ Glossary entries + ES translations (iter396)
+- ❌ Motive integration · maps · GPS · chat · AI · analytics · PDF · offline engine · scoring · forecasting · admin settings
+
+### Files touched (iter392 · final delta)
+- NEW · `/app/backend/dispatch_lifecycle.py`
+- NEW · `/app/backend/routes/dispatch_lifecycle.py`
+- NEW · `/app/backend/tests/test_iter392_dls_foundation.py`
+- MOD · `/app/backend/server.py` (+30 LOC wiring · 0 lines removed)
+- MOD · `/app/memory/PRD.md` (this entry)
+
+### Next Action Items
+- 🟡 **P1 — iter393 DRIVER MOBILE EXPERIENCE.** Driver magic-link session + 6 driver screens. Will require `integration_playbook_expert_v2` call for the magic-link auth design.
+- 🟡 **P1 — iter394 DISPATCH OPERATIONAL BOARD.** Live board UI consuming `/api/dispatch/assignments/board`. Detail drawer with state_history timeline.
+- 🟠 **P2 — iter395 GOVERNANCE + NOTIFICATIONS + CSV.** Wire `ASSIGNMENT_STUCK`, `WAIT_THRESHOLD_EXCEEDED` detectors against the data the foundation already produces; 3 CSV endpoints (`/dispatch/exports/assignments.csv`, `/state-events.csv`, `/haul-cycles.csv`).
+- 🟠 **P2 — iter396 COACHING + GLOSSARY + ES.** Add 22 glossary entries (13 states + 9 wait sub-states), 4 LifecycleGuide instances, 2 training modules, EN+ES.
+- 🔵 **P3 — Resume Phase 4D Extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — 233 inherited pytest isolation failures** (separate quality project, still tracked, non-blocking).
+
+---
+
+
 ## 2026-05-24 — Phase 11 · Dispatch Lifecycle System (DLS) · Foundation Design ✅
 
 ### Mission
