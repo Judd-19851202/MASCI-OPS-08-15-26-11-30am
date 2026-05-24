@@ -1,0 +1,30 @@
+{
+  "summary": "Phase 5D RETEST after main agent fixes — ALL FOUR target fixes VERIFIED PASS. (1) URL query params are now correctly stripped after CTA click (final URL is /safety-portal/corrective-actions with no source_kind/source_id/title query). (2) ES translations now render correctly on the follow-up banner: pill 'Requiere Seguimiento', link 'Qué significa', CTA 'Abrir CAPA de Seguimiento', Spanish summary 'El reporte inicial está registrado. Aún no se ha abierto una CAPA. Abre una para rastrear el trabajo correctivo.' (3) ROOT CAUSE confirmed fixed: CTA href now correctly points to /safety-portal/corrective-actions (not the old broken /safety/corrective-actions). (4) Multi-login fan-out now distributes ALL six portal tokens to localStorage on super-admin sign-in: masci.admin.token, masci.safety.token, masci.dispatch.token, masci.hr.token, masci.pm.token, masci.shop.token — plus masci.directory.token. Full CTA flow lands on /safety-portal/corrective-actions and opens the create dialog with prefilled title 'Incident follow-up — Injury / Illness', source 'Incident / Near Miss', and source_id=dd3d8d33-3047-4572-a4fe-5dda595e2dc0. /admin/operational-language renders 16/16 entries; deep link hash #follow_up_required preserved on URL. One observation: low-severity incident 48781df2 DOES render a followup banner (data-testid='followup-status-open' or 'followup-status-complete' was found in DOM) — this may be expected if the incident has linked CAPAs in some state, but the original spec language said low-severity should be 'quiet' (no banner). Forwarded as a question for main agent to confirm whether banner severity gating vs CAPA-state gating is intended.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_phase5d.json (prior baseline)"],
+  "action_items": [
+    "P3 (clarification, not bug): Confirm whether the followup banner is supposed to be suppressed on ALL low-severity incidents, OR whether 'Operationally Complete' / 'Investigation Open' banners may legitimately render on a low-severity incident that has linked CAPAs in those states. Test incident 48781df2-278b-49da-b910-d0794c46615c (severity Low) currently shows a banner with data-testid prefix followup-status-* in DOM. The 'required' variant was correctly absent — only the open/complete variant appeared. If this is the intended semantic (severity gates only the REQUIRED state, while open/complete reflect actual CAPA pipeline regardless of severity), then the original spec phrasing was ambiguous and no fix is needed."
+  ],
+  "critical_code_review_comments": [
+    "directoryAuth.js applyMultiLoginResponse fan-out is clean: 2 imports + 2 setX calls with rememberMe propagated — matches the existing PM/Shop/HR/Admin pattern (only HR uses a plain boolean signature). Code is consistent and minimal. Verified at runtime all 6 portal tokens populate.",
+    "SafetyCorrectiveActions.jsx query-param consume + window.history.replaceState pattern is correct — synchronous URL cleanup with no remount loop. useEffect runs once on mount (empty deps, eslint-disable comment in place). After click, URL is /safety-portal/corrective-actions with no trailing ?",
+    "ViewIncident.jsx CTA href now correctly resolves to /safety-portal/corrective-actions (the safety-portal-mounted route is the only one that has X-Safety-Token guards). Previous /safety/corrective-actions would have 404'd for non-admin paths.",
+    "i18n.js banner translations confirmed loaded — ES locale produces exact strings called out in the spec verbatim including the parameterized summary sentence."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (no backend changes since previous iteration_phase5d.json; FL token gate on /api/notifications was already 100% PASS)", "frontend": "100% on all four targeted fixes (URL strip, ES translations, CTA route, multi-portal token fan-out). Operational-language deep-link + 16 entries also verified."},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! (super admin, multi-portal)",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 5D is operationally complete. The four-fix retest passed clean. Sign-in fan-out now writes all 6 portal tokens + directory token to localStorage. CTA route on ViewIncident → /safety-portal/corrective-actions opens dialog with prefilled fields and URL is cleaned synchronously. ES locale fully translated on the new banner strings. Only follow-up question is whether the 'open' / 'complete' banner variants should also be suppressed on low-severity incidents, or whether severity gating only applies to the 'required' variant — confirm with product before changing.",
+  "rca of the issue": "Previous iteration_phase5d.json found two minor gaps: (a) URL not cleaned after CTA — root cause was the create dialog's useEffect used react-router-dom useNavigate({replace:true}) which the React Router internal state was re-applying on next render; switching to window.history.replaceState produces a synchronous DOM-level URL rewrite that React Router does not contest. (b) ES translations missing — root cause was the i18n dictionary did not have keys for the new EN banner strings, so t() returned the EN fallback; main agent added 5+ ES entries covering pill, link, CTA, and parameterized summaries. Additionally, the hidden root cause (CTA pointed to /safety/corrective-actions instead of /safety-portal/corrective-actions, and multi-login response was discarding safety+dispatch tokens) was caught and fixed in this iteration. All four problems are now closed."
+}

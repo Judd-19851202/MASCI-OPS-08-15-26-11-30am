@@ -10,6 +10,8 @@ import { setAdminToken } from "./adminAuth";
 import { setPmToken } from "./pmAuth";
 import { setHrToken } from "./hrAuth";
 import { setShopToken } from "./shopAuth";
+import { setSafetyToken } from "./safetyAuth";
+import { setDispatchToken } from "./dispatchAuth";
 
 const DIR_TOKEN_KEY = "masci.directory.token";
 const DIR_USER_KEY = "masci.directory.user";
@@ -74,6 +76,14 @@ export function applyMultiLoginResponse(response, rememberMe = true) {
   if (t.pm) setPmToken(t.pm, { remember: rememberMe });
   if (t.shop) setShopToken(t.shop, { remember: rememberMe });
   if (t.hr) setHrToken(t.hr, rememberMe);
+  // Phase 5D · P2 closeout — fan out the safety + dispatch tokens that
+  // /api/auth/multi-login has been minting since iter120/iter126 but
+  // were never persisted on the client. Restores cross-portal continuity
+  // for super-admins (and any future multi-portal user) so they don't
+  // see "Access Restricted" when navigating across portals from inside
+  // operational workflows like the ViewIncident → Follow-Up CAPA CTA.
+  if (t.safety) setSafetyToken(t.safety, rememberMe);
+  if (t.dispatch) setDispatchToken(t.dispatch, rememberMe);
 }
 
 /**

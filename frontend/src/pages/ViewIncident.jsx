@@ -88,7 +88,9 @@ function computeFollowUpStatus(incident, capas) {
       tone: "amber",
       glossaryAnchor: "investigation_open",
       titleKey: "Investigation Open",
-      summaryKey: `${verifiedCount} of ${capaCount} CAPA(s) verified · ${openCount} still in motion.`,
+      // Counts surface as numbers; surrounding label translates via t().
+      counts: { verified: verifiedCount, total: capaCount, open: openCount },
+      summaryTemplate: "open",
       ctaKey: null,
     };
   }
@@ -98,7 +100,8 @@ function computeFollowUpStatus(incident, capas) {
       tone: "emerald",
       glossaryAnchor: "operationally_complete",
       titleKey: "Operationally Complete",
-      summaryKey: `All ${capaCount} linked CAPA(s) verified or closed. Audit trail preserved.`,
+      counts: { verified: verifiedCount, total: capaCount, open: openCount },
+      summaryTemplate: "complete",
       ctaKey: null,
     };
   }
@@ -217,7 +220,7 @@ export default function ViewIncident() {
   const followUpTone = followUpStatus ? TONE_STYLES[followUpStatus.tone] : null;
   const FollowUpIcon = followUpTone?.iconCmp;
   const capaCtaHref =
-    `/safety/corrective-actions?source_kind=incident&source_id=${data.id}` +
+    `/safety-portal/corrective-actions?source_kind=incident&source_id=${data.id}` +
     `&title=${encodeURIComponent(`Incident follow-up — ${data.incident_type || "Incident"}`)}`;
 
   return (
@@ -305,7 +308,31 @@ export default function ViewIncident() {
                 </Link>
               </div>
               <p className="text-sm text-slate-800 mt-1 leading-snug">
-                {t(followUpStatus.summaryKey)}
+                {followUpStatus.summaryKey ? (
+                  t(followUpStatus.summaryKey)
+                ) : followUpStatus.summaryTemplate === "open" ? (
+                  <>
+                    {followUpStatus.counts.verified}
+                    {" "}
+                    {t("of")}
+                    {" "}
+                    {followUpStatus.counts.total}
+                    {" "}
+                    {t("CAPA(s) verified ·")}
+                    {" "}
+                    {followUpStatus.counts.open}
+                    {" "}
+                    {t("still in motion.")}
+                  </>
+                ) : (
+                  <>
+                    {t("All")}
+                    {" "}
+                    {followUpStatus.counts.total}
+                    {" "}
+                    {t("linked CAPA(s) verified or closed. Audit trail preserved.")}
+                  </>
+                )}
               </p>
             </div>
             {followUpStatus.ctaKey ? (

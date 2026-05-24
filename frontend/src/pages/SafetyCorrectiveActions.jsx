@@ -36,7 +36,7 @@ import { HelpTip } from "@/components/ui/HelpTip";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { useRememberedFilter } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { WhyItMattersPanel } from "@/components/guidance";
@@ -137,7 +137,6 @@ export default function SafetyCorrectiveActions() {
   // source_kind/source_id/title prefilled, then strips the params so
   // a manual refresh doesn't re-open the dialog endlessly.
   const _location = useLocation();
-  const _navigate = useNavigate();
   useEffect(() => {
     const sp = new URLSearchParams(_location.search);
     const srcKind = sp.get("source_kind");
@@ -155,7 +154,10 @@ export default function SafetyCorrectiveActions() {
         title: presetTitle,
       },
     });
-    _navigate(_location.pathname, { replace: true });
+    // Synchronous URL cleanup — replaces history entry without re-rendering.
+    if (typeof window !== "undefined" && window.history?.replaceState) {
+      window.history.replaceState(window.history.state, "", _location.pathname);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

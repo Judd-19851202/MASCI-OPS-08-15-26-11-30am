@@ -4137,6 +4137,19 @@ const ES = {
   "Linked CAPAs": "CAPAs vinculadas",
   "Owner": "Responsable",
   "Due": "Vence",
+
+  // Phase 5D · P1 · ViewIncident follow-up awareness banner (rose/amber/emerald).
+  "Follow-Up Required": "Requiere Seguimiento",
+  "Investigation Open": "Investigación Abierta",
+  "Operationally Complete": "Operativamente Completo",
+  "What this means": "Qué significa",
+  "Open Follow-Up CAPA": "Abrir CAPA de Seguimiento",
+  "Tier-1 report is in. No CAPA has been opened yet. Open one to track the corrective work.": "El reporte inicial está registrado. Aún no se ha abierto una CAPA. Abre una para rastrear el trabajo correctivo.",
+  "of": "de",
+  "CAPA(s) verified ·": "CAPA(s) verificada(s) ·",
+  "still in motion.": "aún en curso.",
+  "All": "Todas",
+  "linked CAPA(s) verified or closed. Audit trail preserved.": "las CAPAs vinculadas verificadas o cerradas. Pista de auditoría preservada.",
 };
 
 const DICTS = { es: ES, en: {} };
