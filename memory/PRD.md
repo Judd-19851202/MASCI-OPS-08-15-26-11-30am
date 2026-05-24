@@ -1,6 +1,98 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter410 · Phase 15.1 · Tanker / Liquid Asphalt Continuity ✅
+
+### Mission
+Phase 15 is **operational maturity hardening** — explicit "DO NOT panic-build" doctrine. Phase 15.1 is the one concrete build inside Phase 15: a 5th haul type (**Tanker / Liquid Asphalt**) that flows through the SAME Dispatch Lifecycle System as Material / Equipment Move / Spoils / Support.
+
+### Doctrine reinforced (Phase 15 + 15.1)
+- **One DLS, not five systems.** Tankers ride the same lifecycle, same board, same governance.
+- **Tankers are another haul type, NOT another module.** Zero tanker portal, zero terminal logistics platform, zero inventory tracking.
+- **Operational floor stays seeded.** First-day tenants see 9 seeded tanker terminals + 9 seeded plant/tank destinations + 27 seeded liquid products across 3 categories (Asphalt Binders, Emulsions / Tack, Fuel / Support).
+- **Operational memory feeds itself.** Custom terminals / products from real tanker hauls surface as `source: "history"` on the next dropdown render.
+- **`liquid_product` is additive.** Legacy POSTs without it default `haul_type='Material'` and `liquid_product=''`. Backward compat verified.
+- **Validate-don't-surveil** Motive doctrine preserved.
+- 10-point Phase 15.1 doctrine gate: ALL 10 PASS.
+
+### iter410 · Tanker / Liquid Asphalt Continuity
+**Backend additions** (all additive — no breaking changes):
+- `dispatch_assignment_seeds.py`: `HAUL_TYPES` now 5 entries; new `SEEDED_TANKER_SOURCES` (9) + `SEEDED_TANKER_DESTINATIONS` (9) + `LIQUID_PRODUCT_CATALOG` (27 across 3 categories) + `flat_liquid_product_options()`.
+- `routes/dispatch_driver.py`: lookups endpoint returns 3 new keys — `tanker_sources`, `tanker_destinations`, `liquid_products` (each with `source: "seed"|"history"` flag).
+- `routes/dispatch_lifecycle.py`: `AssignmentCreate.liquid_product` added (optional `""`); persisted on assignment doc; `_materialize_haul_cycle` carries `liquid_product` into cycle truth.
+
+**Frontend additions**:
+- `AssignmentCreateDrawer.jsx`: 5th haul-type button (Droplet icon); Tanker conditional fields `ac-tanker-source` / `ac-tanker-destination` / `ac-liquid-product`; label adaptation (Trailer → Tanker trailer · Project → Plant / job / project); submit label → "Issue tanker haul".
+- `i18n.js`: +20 EN→ES strings for tanker vocabulary.
+
+**Wire-level tanker assignment**:
+```jsonc
+{
+  "haul_type": "Tanker / Liquid Asphalt",
+  "truck_id": "T-TANK-99",
+  "trailer_id": "...",
+  "trailer_label": "TK-09",
+  "source_location": "Asphalt Terminal",   // mirrors Tanker source
+  "destination": "MASCI Hot Plant 1",       // mirrors Tanker dest
+  "liquid_product": "PG 64-22",             // NEW
+  "material": "PG 64-22",                   // mirrored so iter392 board / CSV / governance render naturally
+  "carrier": "MASCI"
+}
+```
+Same `POST /api/dispatch/assignments`. Same lifecycle. Same board.
+
+### Tests · 122 / 122 PARITY-LOCK PASS
+- iter319 field calm-pass 12/12 (untouched)
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+- iter401 driver self-start 9/9 (untouched)
+- iter402 shift lookups 10/10 (untouched)
+- iter407 assignment lookups 7/7 (untouched)
+- iter408 expanded contract 15/15 (1 assertion updated for 5-item haul_types)
+- iter409 haul activity 9/9 (untouched — tanker cycle additions backward compatible)
+- **iter410 tanker continuity 9/9 NEW**
+
+Testing agent verified: drawer Tanker mode swaps in 3 conditional fields + flips 3 labels + adapts submit label; 27 seeded liquid products visible on focus with SEED + category badges; E2E (T-TANK-99 + Asphalt Terminal → MASCI Hot Plant 1 + PG 64-22) creates ASSIGNED row on board + active_hauls counter increments; 390px mobile reflow preserved; `touch_target_audit.py` clean; ESLint + Ruff clean.
+
+### What Phase 15 explicitly did NOT do (restraint enforced)
+- ❌ No new collection
+- ❌ No new write endpoint
+- ❌ No Tanker Portal · no Terminal Logistics System · no Liquid Inventory System
+- ❌ No plant management software · no asphalt oil ERP · no fuel inventory
+- ❌ No tanker-specific wait states (deferred per directive — "DO NOT implement immediately unless operationally justified")
+- ❌ No PM dashboard explosion (iter409 PM Haul Activity tile auto-includes tankers without changes)
+- ❌ No master-data governance system · no approval workflows · no master-list admin CRUD
+- ❌ No Phase 15 parts 1-13 panic-builds (Shop Continuity Hardening, Ticket Photos, WAITING_OTHER picker, Health Summary, etc. — deferred until real live ops surfaces actual need patterns)
+
+### Phase doctrine timeline (current state)
+1. iter397-405 · Phases 12-13.2 ✅
+2. iter406+iter407 · Phase 14 · Operational Deployment Convergence (QR + Issuance) ✅
+3. iter408 · Phase 14.1 + 14.2 · Searchable Rosters + Haul Type ✅
+4. iter409 · Phase 14.3 · Live Operational Rollout Convergence (PM Haul Activity) ✅
+5. **iter410 · Phase 15.1 · Tanker / Liquid Asphalt Continuity ✅**
+
+### Operational Rollout Status: 5-HAUL-TYPE READY
+- ✅ Material hauls (Asphalt, Aggregate, Earthwork, Concrete, Utility, Job Support · 66-item catalog)
+- ✅ Equipment Move (lowboy haul with pickup/dropoff + equipment master)
+- ✅ **Tanker / Liquid Asphalt** (NEW · 27-product catalog · 9 terminals · 9 plant/tank destinations)
+- ✅ Spoils / Dump
+- ✅ Support / Misc
+
+### Next Action Items
+- 🟡 **P1 — Day-1 + Week-1 live ops friction debrief** (the Phase 15 directive's highest-priority deferred work — capture real operational hesitation patterns before building anything further)
+- 🔵 **P2 — Lane C · Post-deploy stabilization instrumentation** (`GET /api/admin/dls/health-summary` · Phase 15 Part 11)
+- 🟠 **P2 — `server.py` Phase 4D extractions** (`/api/legacy-imports/*`)
+- 🔵 **P3 — Phase 15 backlog (deferred until real ops surfaces gaps)**: Ticket / Load Photo continuity · WAITING_OTHER sub-category picker · Operational memory hygiene · Real-world onboarding continuity · Driver edge-case hardening
+- 🔵 **P3 — 233 inherited pytest isolation failures**
+
+### Code-quality follow-up surfaced by testing agent
+- `AssignmentCreateDrawer.jsx` is now ~806 LOC after Phase 15.1 additions. Refactor candidate: extract `HaulTypePicker` + `ComboboxField` into `/components/dispatch/parts/`. **Not blocking** — current structure is well-commented and readable. Deferred to a future cleanup iteration.
+
+---
+
+
 ## 2026-05-24 — iter409 · Phase 14.3 · Live Operational Rollout Convergence ✅
 
 ### Mission
