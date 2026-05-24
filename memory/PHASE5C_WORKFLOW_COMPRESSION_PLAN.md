@@ -1,7 +1,53 @@
 # Phase 5C · Workflow Compression Plan (Master)
 
 **Date:** 2026-05-24
-**Mode:** PLANNING ONLY · zero code changes in this phase.
+**Status (post-execution 2026-05-24):** ✅ **Iter 1 + Iter 3 IMPLEMENTED.** Iter 2 (Tier-1 reorder) folded into Iter 1 (section order already correct after Tier-3 collapse). Iter 4 (Tier-2 follow-up via PATCH) leverages existing backend capability — no work required. Iter 5 (UX polish) — mobile-friendly classes baked into Iter 1/3 implementations.
+**Mode:** EXECUTION COMPLETE for all behavior-changing iterations.
+
+---
+
+## Execution log (2026-05-24)
+
+### ✅ Iter 1 — Daily Report Tier-3 disclosure
+- File: `frontend/src/pages/NewDailyReport.jsx` · +60 LOC · 1,524 → 1,583
+- Added `showMoreFields` state with `localStorage` persistence (`masci.dr.showMoreFields`).
+- Wrapped Sections 05 (Subs) · 06 (Visitors) · 07 (Equipment) · 08 (Materials) · 09 (Activities) behind a single "Show all fields" disclosure.
+- Collapsed banner clearly explains what's hidden.
+- "Hide optional fields" reverse toggle when expanded.
+- ZERO field deletion · all 35 + 7 schema fields remain in payload when populated.
+- Existing Safety Escalation conditional logic untouched.
+- ESLint clean.
+
+### ✅ Iter 2 — Daily Report Tier-1 reorder
+**Result:** No code change needed. The current section order (01 Report Info → 02 Weather → 03 General → 04 Crews → [Tier 3 collapsed] → 10 Photos → 11 Sign-Off) already matches the recommended Tier-1 ordering after Iter 1 collapse. The previously-perceived "wrong order" was caused by Tier 3 sections (05-09) being visually interleaved with Tier 1; collapsing them resolves the ordering problem.
+
+### ✅ Iter 3 — Incident Fast Entry (tiered)
+- File: `frontend/src/pages/NewIncident.jsx` · +84 LOC · 1,088 → 1,172
+- Added `SERIOUS_SEVERITIES`, `isSeriousIncident`, `tier2Open` state + `showTier2` derived gate.
+- Wrapped Sections 05 (Root Cause) · 06 (Witnesses) · 07 (Corrective Actions) · 08 (Notifications Made + Distribution List) behind a Tier-2 disclosure.
+- **Auto-expansion safety net:** when severity ∈ {medical, restricted, lost_time, fatality}, `showTier2` is forced TRUE and the collapse toggle is locked OFF.
+- Locked banner displayed when serious incident: *"Severity is Medical or higher — full follow-up detail is required before submit."*
+- Near Miss / First Aid: 8-field fast-entry path (Tier 1 only).
+- ZERO field deletion · all 54 schema fields remain in payload.
+- Section 03 (Person Involved) `isInjury` conditional preserved untouched.
+- ESLint clean.
+
+### ✅ Iter 4 — Incident Tier-2 follow-up
+**Result:** Zero new code required. The existing incident detail page (`ViewIncident.jsx`) supports PATCH-based field updates against the existing `/api/incidents/{id}` endpoint. A reporter or Safety user who submits a Tier-1-only incident can complete Tier-2 fields from the detail view at any time. The audit log, severity-based CAPA creation, and lifecycle status all use the same backend hooks.
+
+### ✅ Iter 5 — UX polish
+**Result:** Folded into Iter 1 + Iter 3. Mobile-friendly Tailwind classes (`flex items-center justify-between gap-3`, `shrink-0`, `min-w-0`, `text-sm`, dashed `border-dashed`) baked into both disclosure banners. Visual depth and density mirror existing platform conventions; no new visual experiments introduced.
+
+### Frontend health post-execution
+- Frontend supervisor: RUNNING · uptime preserved
+- Bundle: 200 OK
+- Only pre-existing deprecation warnings in webpack log (no new errors)
+- ESLint on both modified files: clean
+
+---
+
+## Targets and current state
+
 **Targets:** `NewDailyReport.jsx` (1,524 LOC · ~35 inputs · 9 sections) and `NewIncident.jsx` (1,088 LOC · ~54 inputs · 9 sections).
 **Hard constraint:** **No reduction in accountability, downstream visibility, lifecycle continuity, or compliance.** Compression is **visual & sequencing**, not data-model deletion.
 

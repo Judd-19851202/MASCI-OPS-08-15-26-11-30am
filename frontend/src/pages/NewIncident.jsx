@@ -71,6 +71,33 @@ export default function NewIncident({ publicMode = false }) {
   const [locating, setLocating] = useState(false);
   const idempotencyKeyRef = React.useRef(null);
 
+  // iter383 · Phase 5C Iter 3 — Tiered incident entry.
+  // ─────────────────────────────────────────────────────
+  // Near Miss / First Aid: Tier 2 sections (Root Cause, Witnesses,
+  // Corrective Actions, Notifications-Made checklist) collapse behind
+  // a single disclosure. Stressed supervisors get an 8-field fast-entry
+  // path. ZERO field deletion · ZERO backend change · all data flows
+  // through the same POST /api/incidents endpoint.
+  //
+  // SAFETY NET (non-negotiable): if severity escalates to medical /
+  // restricted / lost_time / fatality, Tier 2 auto-expands and the
+  // collapse toggle is locked OFF. Under-classification cannot bypass
+  // the OSHA-grade fields. See OPERATIONAL_ADOPTION_PROTECTION_PLAN.md.
+  const SERIOUS_SEVERITIES = ["medical", "restricted", "lost_time", "fatality"];
+  const isSeriousIncident = SERIOUS_SEVERITIES.includes(data.severity);
+  const [tier2Open, setTier2Open] = useState(() => {
+    try {
+      return localStorage.getItem("masci.incident.tier2Open") === "1";
+    } catch { return false; }
+  });
+  // Auto-force tier2Open for serious incidents — every render.
+  const showTier2 = tier2Open || isSeriousIncident;
+  const toggleTier2 = (next) => {
+    if (isSeriousIncident) return; // lock — cannot collapse a serious event
+    setTier2Open(next);
+    try { localStorage.setItem("masci.incident.tier2Open", next ? "1" : "0"); } catch { /* ignore */ }
+  };
+
   // Phase J — autosave + draft recovery. Non-invasive (does not own
   // state). On mount we offer recovery via a toast.
   const actorId = React.useMemo(() => getActorId(), []);
@@ -789,6 +816,60 @@ export default function NewIncident({ publicMode = false }) {
           </div>
         </Section>
 
+        {/* iter383 · Phase 5C Iter 3 — Tier-2 progressive disclosure.
+            Sections 05–08 collapse behind a single button for Near Miss
+            / First Aid. AUTO-EXPAND + LOCK for severity ≥ medical (see
+            isSeriousIncident). ZERO field deletion — all schema fields
+            remain in the payload. */}
+        {!showTier2 ? (
+          <div
+            className="border border-dashed border-slate-300 rounded-md bg-slate-50/60 p-4 flex items-center justify-between gap-3"
+            data-testid="incident-tier2-collapsed"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
+                {t("Follow-Up Details")}
+              </div>
+              <div className="text-sm text-slate-700 mt-1">
+                {t("Root cause · Witnesses · Corrective actions · Notifications. Add now if you have time, or after the incident is stabilized.")}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => toggleTier2(true)}
+              className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white font-mono text-xs uppercase tracking-wider hover:bg-slate-700"
+              data-testid="incident-tier2-expand-btn"
+            >
+              {t("Add follow-up")}
+            </button>
+          </div>
+        ) : (
+          <>
+            {isSeriousIncident && (
+              <div
+                className="border-l-4 border-rose-600 bg-rose-50/60 rounded-md p-3 text-sm text-rose-900"
+                data-testid="incident-tier2-locked-banner"
+              >
+                <span className="font-mono text-[11px] uppercase tracking-[0.2em] font-bold">
+                  {t("Required")}
+                </span>
+                {" · "}
+                {t("Severity is Medical or higher — full follow-up detail is required before submit.")}
+              </div>
+            )}
+            {!isSeriousIncident && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => toggleTier2(false)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 font-mono text-[11px] uppercase tracking-wider hover:bg-slate-50"
+                  data-testid="incident-tier2-collapse-btn"
+                >
+                  {t("Hide follow-up fields")}
+                </button>
+              </div>
+            )}
+
         {/* Section 05 — Root cause */}
         <Section number="05" title="Root Cause Analysis">
           <p className="text-sm text-slate-600">
@@ -1012,6 +1093,9 @@ export default function NewIncident({ publicMode = false }) {
             />
           </div>
         </Section>
+        </>
+        )}
+        {/* iter383 · End of Tier-2 disclosure block (Phase 5C Iter 3). */}
 
         <Section number="09" title={t("Photos / Evidence")}>
           <p className="text-xs text-slate-600 -mt-2 mb-2">

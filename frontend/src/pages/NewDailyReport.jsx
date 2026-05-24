@@ -217,6 +217,22 @@ export default function NewDailyReport({ publicMode = false }) {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [fetchingWeather, setFetchingWeather] = useState(false);
+  // iter383 · Phase 5C Iter 1 — Tier-3 progressive disclosure. Hides
+  // sections 05–09 (Subs · Visitors · Equipment · Materials · Activities)
+  // behind a single "More fields" toggle. Saves the user's preference
+  // per-actor via localStorage so power users (Safety, senior PMs) stay
+  // expanded after their first session, while supers/foremen get the
+  // compressed default. ZERO backend impact — all 35 + 7 schema fields
+  // remain in the payload regardless of disclosure state.
+  const [showMoreFields, setShowMoreFields] = useState(() => {
+    try {
+      return localStorage.getItem("masci.dr.showMoreFields") === "1";
+    } catch { return false; }
+  });
+  const toggleMoreFields = (next) => {
+    setShowMoreFields(next);
+    try { localStorage.setItem("masci.dr.showMoreFields", next ? "1" : "0"); } catch { /* ignore */ }
+  };
   const idempotencyKeyRef = React.useRef(null);
 
   // Phase J — autosave + draft recovery (non-invasive).
@@ -1254,7 +1270,48 @@ export default function NewDailyReport({ publicMode = false }) {
           </div>
         </Section>
 
+        {/* iter383 · Phase 5C Iter 1 — Tier-3 progressive disclosure.
+            Sections 05–09 are "More fields" — operationally optional on
+            most days. Default collapsed for supers/foremen on phones;
+            user preference persists via localStorage. ZERO field deletion
+            — all schema preserved and submitted when populated.        */}
+        {!showMoreFields ? (
+          <div
+            className="border border-dashed border-slate-300 rounded-md bg-slate-50/60 p-4 flex items-center justify-between gap-3"
+            data-testid="dr-tier3-collapsed"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
+                {t("More Fields")}
+              </div>
+              <div className="text-sm text-slate-700 mt-1">
+                {t("Subcontractors · Visitors · Equipment · Materials · Activities. Optional on most days — expand if needed.")}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => toggleMoreFields(true)}
+              className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white font-mono text-xs uppercase tracking-wider hover:bg-slate-700"
+              data-testid="dr-tier3-expand-btn"
+            >
+              {t("Show all fields")}
+            </button>
+          </div>
+        ) : (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => toggleMoreFields(false)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 font-mono text-[11px] uppercase tracking-wider hover:bg-slate-50"
+              data-testid="dr-tier3-collapse-btn"
+            >
+              {t("Hide optional fields")}
+            </button>
+          </div>
+        )}
+
         {/* 05 — Subcontractors */}
+        {showMoreFields && (<>
         <Section number="05" title={t("Subcontractors on Site")}>
           <RepeatBlock
             title={t("Subcontractor")}
@@ -1406,6 +1463,8 @@ export default function NewDailyReport({ publicMode = false }) {
             testIdBase="activity"
           />
         </Section>
+        </>)}
+        {/* iter383 · End of Tier-3 disclosure block (Phase 5C Iter 1). */}
 
         {/* 10 — Photos (min 6) */}
         <Section
