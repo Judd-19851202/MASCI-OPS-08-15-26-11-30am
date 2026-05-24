@@ -1,6 +1,109 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter406 + iter407 · Phase 14 · Operational Deployment Convergence ✅
+
+### Mission
+Phase 14 closes the operational-deployment gap with **two coherent iterations shipping as one operational layer**:
+1. **iter406** — Physical operational reachability via QR Shift Start sticker generator.
+2. **iter407** — Dispatch Assignment Issuance UI driven by an operational-memory `assignment-lookups` endpoint.
+
+Together they complete **operational movement continuity**: driver scans → starts shift → dispatcher issues work → lifecycle accumulates haul truth.
+
+### Doctrine reinforced (Phase 14)
+- The platform is **one operational operating system**, not modules. Issuance UI and shift-start UI share the same combobox pattern, tone, spacing, coaching, and bilingual continuity.
+- **The QR utility is a printer, not a system** — no per-card audit log, no QR management surface.
+- **Operational memory feeds itself** — recent projects/materials/sources/destinations surface from existing `dispatch_assignments` rows. Zero "master list management" admin screens.
+- **Truck is the only required field** on assignment issuance — driver optional (self-start can claim later).
+- **No new write endpoints** — the drawer feeds the existing iter392 `POST /api/dispatch/assignments`.
+- **No new collections** — recents are computed at request time.
+- 20-point Phase 14 doctrine gate: ALL 20 PASS.
+
+### iter406 · QR Shift Start Generator
+**Route**: `/admin/dls/shift-qr` (admin-gated)
+
+- Client-side QR via `qrcode.react` (already a dep — zero install).
+- Inputs: optional truck label, optional carrier label (default MASCI), optional tenant (dev only).
+- Output: printable 340 px card with brand-mark header, 220 px QR, bilingual scan instructions, "No password · No app · Just tap" footer.
+- Print button uses native `window.print()` with `@media print` CSS that hides everything except the card.
+- Linked from DispatchBoard issuance strip (`board-shift-qr-link`).
+- Inline LifecycleGuide ("How operations uses this") with 4 sections (Print · Place · Scan · Restraint).
+
+### iter407 · Dispatch Assignment Issuance
+**Backend**: `GET /api/dispatch/driver/assignment-lookups` (dispatch+admin)
+
+- Returns `{recent_projects, recent_materials, recent_sources, recent_destinations}` — distinct values from `dispatch_assignments`, sorted by most-recent, capped (20-25 per category).
+- Tenant-isolated. Empty tenant → empty arrays. Dedupes identical values.
+- Zero internal field leakage (`_id` or `_*` stripped).
+
+**Frontend**: `/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx`
+
+- Right-side slide-over, mirrors `AssignmentDrawer` chrome.
+- 9 fields: Truck (REQ) · Driver · Trailer · Carrier (default MASCI) · Project · Source/load point · Destination · Material · Note.
+- Combobox pattern with "Add temporary" fallback — identical UX contract to iter402 `ShiftStart` `SearchableSelect`.
+- Inline operational-honesty coaching: "Truck is required. Driver is optional — self-start can claim later. Pick a project and source so operational memory stays accurate. Wait reasons stay canonical (set later via the driver lifecycle)."
+- Submit button (`assignment-create-submit`) gated by truck presence. Disabled state visible.
+- Drawer closes + toast "Assignment issued · truck on the board" + new assignment appears immediately on board on success.
+
+### Files shipped
+- **NEW** `/app/frontend/src/pages/admin/AdminDlsShiftQR.jsx` — 295 LOC
+- **NEW** `/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — 584 LOC
+- **NEW** `/app/backend/tests/test_iter407_assignment_lookups.py` — 7 tests, all PASS
+- **MOD** `/app/backend/routes/dispatch_driver.py` — added `GET /api/dispatch/driver/assignment-lookups` (~95 LOC, scoped block)
+- **MOD** `/app/frontend/src/pages/DispatchBoard.jsx` — wired Create assignment CTA + Shift Start QR link + drawer mount
+- **MOD** `/app/frontend/src/App.js` — new admin route `/admin/dls/shift-qr`
+- **MOD** `/app/frontend/src/lib/i18n.js` — ~50 EN→ES strings for both iterations
+
+### Tests · 89 / 89 PARITY-LOCK PASS
+- iter319 field calm-pass 12/12 (untouched)
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+- iter401 driver self-start 9/9 (untouched)
+- iter402 shift lookups 10/10 (untouched)
+- **iter407 assignment lookups 7/7 NEW**
+
+Frontend testing agent verified: `/admin/dls/shift-qr` renders QR + truck label live-reflects + tenant updates URL readout; `/dispatch-portal/board` shows Create CTA + Shift Start QR link; drawer opens with all 9 fields; submit gated by truck; end-to-end assignment issuance (T-99TEST → ASSIGNED row on board); iter404 Driver Shift Start tile still on `/field`.
+
+ESLint clean on all 3 modified frontend files. Ruff clean on backend changes.
+
+### What Phase 14 explicitly did NOT do (restraint enforced)
+- ❌ No new collection
+- ❌ No new write endpoint (drawer reuses iter392 `POST /api/dispatch/assignments`)
+- ❌ No "master list" admin management surface (recents feed themselves from operational memory)
+- ❌ No per-card QR audit log
+- ❌ No role-visibility changes (Safety/FL/HR stay quiet on DLS)
+- ❌ No Motive activation
+- ❌ No analytics / dashboards / charts / maps / GPS
+- ❌ No phone-call replacement chat / messaging
+- ❌ No AI dispatch / route optimization / auto-assign
+- ❌ No `WAITING_OTHER` free-text (canonical wait-state doctrine preserved)
+- ❌ No new portal / dashboard / new admin tile (the QR link lives inside DispatchBoard where operations already work)
+
+### Phase doctrine timeline (current state)
+1. iter397 · Phase 12.A · Cross-platform continuity audit ✅
+2. iter398 · Phase 12.5 · Restraint / tone pass + scanner ✅
+3. iter399 · Phase 12.6 · Mobile-first sweep + tap-target audit ✅
+4. iter400 · Phase 12.7 · Motive doc refresh + audit doctrine index ✅
+5. iter401 · Phase 12.8 · Driver self-start operational entry ✅
+6. iter402 · Phase 12.9 · Driver operational identity convergence ✅
+7. iter403 · Phase 13 · Field Tile convergence (Driver Shift Start tile) ✅
+8. iter404 · Phase 13.1 · Field Tile operational flow refinement ✅
+9. iter405 · Phase 13.2 · DLS i18n field-deployment sweep ✅
+10. **iter406 + iter407 · Phase 14 · Operational Deployment Convergence ✅**
+
+### Next Action Items
+- 🔵 **P2 — Backlog · Lane C · Post-deploy stabilization instrumentation.** Possible tighter form: `GET /api/admin/dls/health-summary` (assignment continuity, active shifts, transition counts, findings counts, anomalies) — JSON only, no new page.
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR DLS tile visibility decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+- 🔵 **P3 — Backlog · WAITING_OTHER picker** — canonical sub-category UX picker; deferred (never free-text-only operational states).
+- 🔵 **P3 — Backlog · Motive integration (validate-don't-surveil).** Future architecture; doctrine locked in MOTIVE_INTEGRATION_STRATEGY.md.
+
+---
+
+
 ## 2026-05-24 — iter404 · Phase 13.1 · Field Tile Operational Flow Refinement ✅
 
 ### Mission
