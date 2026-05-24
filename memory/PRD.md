@@ -1,6 +1,82 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — Phase 8 · Final Convergence + Productization Audit ✅
+
+### Mission
+Zero feature work. Five audit documents shipped to lock in the doctrine and provide an honest, evidence-grounded assessment of where the platform stands today.
+
+### Documents shipped (all in `/app/memory/`)
+
+**1. `FINAL_PLATFORM_CONVERGENCE_AUDIT.md`** (7.8 KB)
+- 5 remaining weak points (server.py size · pytest debt · red/rose tone split · NewIncident+NewDailyReport file size · ESLint enforcement) — all LOW-MEDIUM, all tracked
+- 4 drift risks (dashboard pressure · AI temptation · notification volume creep · glossary expansion) — all with documented mitigations
+- 8 cross-cutting lifecycles re-verified unbroken end-to-end
+- Field adoption confidence: 9 workflows HIGH, 3 MEDIUM (intentional regulatory weight), 0 LOW
+
+**2. `PRODUCTIZATION_READINESS_SCORECARD.md`** (11.4 KB)
+- 10-axis scorecard. Total: **2.8 / 5.0**
+- Score 0: Tenant isolation (HARD BLOCKER for multi-tenant SaaS)
+- Score 1-2: Multi-company readiness · onboarding · branding configurability
+- Score 3: Operational templates · support readiness · scalability · maintainability
+- Score 4: Deployment readiness
+- Score 5: Operational trust (the platform's strongest axis)
+- Productization roadmap with 5-step ordered execution path (if commercial scaling becomes active)
+
+**3. `REMAINING_HIGH_VALUE_FIXES.md`** (7.4 KB)
+- 7 entries. All restraint-compliant (operationally meaningful · commercially meaningful · adoption-positive · low-noise · simple).
+- 2 × P1: Tenant-driven branding env vars (4-6 h) · Extract completion-banner hooks (2-3 h)
+- 3 × P2: `<title>` env var · Bell unread-count cap · "What this means" links on Phase 6 banners
+- 2 × P3: iter383 extraction · pytest isolation cleanup
+- 8 considered-and-rejected items documented with the failed filter
+
+**4. `FIELD_ADOPTION_RISK_REVIEW.md`** (10.0 KB)
+- Per-role honest adoption review (Superintendent, Foreman, Safety Manager, PM, Dispatcher, HR, FL)
+- All roles: adoption likelihood HIGH or MEDIUM-HIGH
+- 2 genuine residual risks: incident severity under-classification (accepted) · bell volume creep (mitigation queued)
+- Every other risk bounded, named, glossary-anchored, or owned by existing mitigation
+
+**5. `PLATFORM_MATURITY_ASSESSMENT.md`** (9.1 KB)
+- 4 honest answers:
+  - Production-grade? **YES.**
+  - Commercially viable? **Directionally yes, structurally not yet** (needs tenant scaffolding).
+  - Software category? **Construction Operations Trust Platform.**
+  - Remaining blockers? Tenant isolation (HARD) · branding env vars (MEDIUM) · setup wizard (MEDIUM) · support model (SOFT) · per-tenant backup (MEDIUM).
+- **Final maturity: 4.0 / 5.0 production-platform axis · 2.8 / 5.0 commercial-SaaS axis.**
+
+### Files touched (Phase 8 · final delta)
+- NEW · `memory/FINAL_PLATFORM_CONVERGENCE_AUDIT.md`
+- NEW · `memory/PRODUCTIZATION_READINESS_SCORECARD.md`
+- NEW · `memory/REMAINING_HIGH_VALUE_FIXES.md`
+- NEW · `memory/FIELD_ADOPTION_RISK_REVIEW.md`
+- NEW · `memory/PLATFORM_MATURITY_ASSESSMENT.md`
+- MOD · `memory/PRD.md` (this entry)
+
+Zero code changes. Zero schema changes. Zero new endpoints.
+
+### Concrete productization findings rooted in actual codebase
+- 0 hits for `tenant_id`/`workspace_id`/`organization_id`/`company_id` across `backend/server.py + backend/routes/`
+- 15+ MASCI literals in `server.py` (FastAPI title · PDF download filenames · source-bundle ZIP name · XLSX export filenames)
+- `frontend/src/lib/companyInfo.js` already supports localStorage-driven brand swap — but backend has no equivalent
+- `MasciLogo.jsx` is intentionally brand-specific (3 SVG variants)
+- `ADMIN_PASSWORD=MASCI1982!` in `backend/.env` (single-tenant by design)
+
+### Discipline notes
+- Stayed inside Phase 8 audit scope. No drift into iter383, AI assistants, or dashboard creation.
+- Resisted writing aspirational fluff; every score and finding is rooted in `grep` output or prior phase work.
+- The five documents collectively form the **production-deploy go/no-go evidence pack** and the **commercial-scaling decision input**.
+
+### Next Action Items
+- 🟢 **P0 — Operator:** Phase 5D + 6 + 7 + 8 all green. **Authorize production deploy.**
+- 🟡 **P1 — Operator:** Run the 5 field-shadow tests from `FIELD_SHADOW_VALIDATION_KIT.md` with real MASCI users.
+- 🟠 **P2 — Operator:** Read `PLATFORM_MATURITY_ASSESSMENT.md` and decide whether commercial-scaling is the next strategic move. If yes, multi-tenant scaffolding becomes iter390+ (out of current scope).
+- 🟠 **P2 — Engineering:** iter384 = P1+P2 cluster from `REMAINING_HIGH_VALUE_FIXES.md` (tenant branding env vars · `<title>` + bell cap · completion-banner hooks · "What this means" links). All small. All ship before iter383.
+- 🔵 **P3 — Engineering:** iter385 = iter383 `/api/legacy-imports/*` extraction (resume).
+- 🔵 **P3 — Engineering:** iter386 = pytest isolation cleanup.
+
+---
+
+
 ## 2026-05-24 — Phase 7 · Operational Excellence + Restraint Sprint ✅
 
 ### Mission
