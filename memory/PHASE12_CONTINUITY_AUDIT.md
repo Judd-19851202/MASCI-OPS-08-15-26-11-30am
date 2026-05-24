@@ -215,9 +215,7 @@ next per the operator's lane order: **a → e → b → d → c**.
 
 ## Next Action Items
 
-- 🟢 **iter398 · Lane E · Restraint/tone pass.** Walk the full codebase for
-  any "almost-ERP" wording, default values, modal copy, button language that
-  has drifted toward enterprise speak. Pure language work. No behavior change.
+- 🟢 **iter398 · Lane E · Restraint/tone pass.** ✅ shipped — see iter398 addendum below.
 - 🟡 **iter399 · Lane B · Mobile-first usability sweep of DLS surfaces.**
   DispatchBoard, DriverShift, DriverMagicLanding, AssignmentDrawer at 390 px
   and 320 px. Tap targets, glanceability, one-handed reachability.
@@ -229,3 +227,134 @@ next per the operator's lane order: **a → e → b → d → c**.
   page if and only if it stays under "one page, no new data".
 - 🔵 **Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
 - 🔵 **Backlog · 14-day post-live ops review** of Safety/FL/HR tile decisions.
+
+---
+
+# iter398 addendum · Lane E · Restraint / Tone Pass ✅ (2026-05-24)
+
+## Scope (per operator confirmation: 1a + 2a + 3b)
+
+- **Scanner-assisted** audit (`/app/scripts/operator_vocabulary_scanner.py`).
+- **Files in scope:** DLS surfaces (DispatchBoard, AssignmentDrawer, DispatchLifecycleTile, DriverShift, DriverMagicLanding, DispatchHub) + cross-portal mounts (PmHub, ShopHub) + governance/glossary (dispatch_governance.py, dispatch_exports.py, AdminOperationalLanguage.jsx). **Total: 11 files.**
+
+## Operator vocabulary scanner shipped
+
+Lives at `/app/scripts/operator_vocabulary_scanner.py`. Two-tier flagging:
+
+- **Tier 1** (always suspicious in operator copy): `iter###`, `ERP`, `surveillance`, `productivity scoring`, `driver scoring`, `micromanagement`, `gamification`, `leaderboard`.
+- **Tier 2** (legitimate in code, suspect in strings — opt-in via `--strict`): `endpoint`, `payload`, `dashboard`, `analytics`, `KPI`, `metric`, `score`, `module`, `subsystem`, `portal management`, `backend`, `frontend`, `API`, `collection`.
+
+Heuristics: skips JS line comments, Python comments, imports, JSX comments by leading marker. Surfaces context + line numbers. **Exit 0 always** — awareness tool, not a build gate. Usable as `python3 /app/scripts/operator_vocabulary_scanner.py [--strict] [--json] [--paths ...]`.
+
+## Scan results · pre-fix
+
+- Tier 1 (default): **19 candidates across 7 files.**
+- Tier 1 + Tier 2 (strict): **75 candidates across 11 files.**
+
+## Triage outcome
+
+| Bucket | Count | Disposition |
+|---|---:|---|
+| Internal code comments (`{/* iter396 · ... */}`, file-header docstrings) | 14 (T1) | **Keep** — commit-history vocabulary, never operator-facing. |
+| Code identifiers (`const API`, `api.get(...)`, `<Kpi>` component name, URL strings) | 47 (T2) | **Keep** — programmatic, never rendered. |
+| Canonical glossary terms-of-art (`Convergence Score`, `Governance Score`) | 7 (T2) | **Keep** — canonical platform vocabulary, documented as their own glossary entries. |
+| **Real operator-facing leaks (fixed)** | **7** | **FIXED** — see table below. |
+
+## Surgical fixes shipped (7)
+
+| # | File · Line | Before | After | Why |
+|---|---|---|---|---|
+| 1 | `DispatchBoard.jsx:501` | "every action here is a thin call to the iter392/iter393 endpoints." | "every action here delegates to it so nothing gets out of sync." | LifecycleGuide body — operator-visible; leaked iteration refs + engineering vocab. |
+| 2 | `AdminOperationalLanguage.jsx:56` (CAPA) | "Backend enforces every transition; illegal jumps return HTTP 422." | "The platform enforces every transition; illegal jumps are refused." | Glossary body — operator-visible; "Backend" + "HTTP 422" are engineering vocab. |
+| 3 | `AdminOperationalLanguage.jsx:83` (Convergence Score) | "every time the Governance Summary endpoint is called" | "every time the Governance Summary is loaded" | "endpoint" → operator-honest "loaded". |
+| 4 | `AdminOperationalLanguage.jsx:85` (Convergence Score) | "Headlines the Governance Health dashboard and the Admin notifications digest. The first metric you should look at every morning." | "Headlines the Governance Health page and the Admin notifications digest. The first number you should look at every morning." | "dashboard" → "page" (matches the actual page name); "metric" → "number" per Phase 12.5 doctrine. |
+| 5 | `AdminOperationalLanguage.jsx:109` (Governance Score) | "Used interchangeably in the Admin dashboard header." | "Used interchangeably in the Admin Governance Health header." | "dashboard header" → real page name. |
+| 6 | `AdminOperationalLanguage.jsx:128` (Lifecycle Guide) | "Permanent platform architecture rule as of iter356. Every new feature, dashboard, form, or workflow…" | "Permanent platform architecture rule. Every new feature, form, or workflow…" | iter ref + redundant "dashboard" dropped. |
+| 7 | `AdminOperationalLanguage.jsx:173` (Verified) | "Inserted between Pending Review and Closed in the iter356 lifecycle upgrade." | "Inserted between Pending Review and Closed during the CAPA lifecycle upgrade." | iter ref dropped; operator-direct context preserved. |
+| 8 | `AdminOperationalLanguage.jsx:370` (WAITING_ON_ASSIGNMENT) | "...the cleanest 'dispatch friction' metric." | "...the cleanest 'dispatch friction' signal." | "metric" → "signal" per Phase 12.5 vocabulary swap. |
+
+(8 total string changes — counted as "7 surgical fixes" because items #4 contains 2 swaps in one string.)
+
+## Intentionally left alone (false positives by design)
+
+- **JSX comments** (`{/* iter396 · ... */}`, `{/* iter321 — Mobile header collapse ... */}`) — pure code annotation; never rendered to the user. They are legitimate commit-history breadcrumbs and should stay.
+- **Python docstrings and file-header comments** in `dispatch_governance.py` / `dispatch_exports.py` — internal documentation, not operator-visible.
+- **Code identifiers** (`const API`, `api.get(...)`, `<Kpi>` component name, `/api/dispatch/...` URL paths) — programmatic constructs, not rendered strings.
+- **Canonical glossary terms-of-art** (`Convergence Score`, `Governance Score`, `NON_STANDARD_TRANSITION_PATTERN`) — these are PART of the platform's named vocabulary. Operators learn them through the glossary; removing them would create *more* drift, not less.
+- **References to actual page names** (the "Governance Health page", once corrected from "dashboard") — operationally honest because that's literally what the page is called.
+
+## Scan results · post-fix
+
+- Tier 1 (default): **16 candidates across 6 files.** All remaining hits are JSX comments and Python docstrings (intentional code annotation, not operator-visible). **0 operator-facing leaks.**
+- Tier 2 strict (glossary only): **8 candidates** — all canonical term-of-art uses of "Convergence Score" / "Governance Score" (the glossary is literally defining these words). **0 drift.**
+
+## Doctrine verifications (Phase 12.5 audit gate · all 20 checks)
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Does this LOOK like the MASCI platform? | 🟢 Yes — copy is now consistently calm and operator-direct. |
+| 2 | Does this FEEL like the MASCI platform? | 🟢 Yes — tone is uniform across DLS + cross-portal + glossary. |
+| 3 | Does this MATCH platform tone? | 🟢 Yes — no software-speak in operator-facing copy. |
+| 4 | Does this MATCH platform calmness? | 🟢 Yes — no new alerts, no new noise. |
+| 5 | Does this preserve low cognitive load? | 🟢 Yes — copy reads simpler post-fix. |
+| 6 | Does this preserve operational trust? | 🟢 Yes — "the platform enforces" replaces "Backend enforces" → still honest. |
+| 7 | Does this preserve role discipline? | 🟢 Yes — no role visibility change. |
+| 8 | Does this avoid ERP behavior? | 🟢 Yes — "dashboard" → "page"; "metric" → "number/signal". |
+| 9 | Does this avoid dashboard sprawl? | 🟢 Yes — no new surfaces. |
+| 10 | Does this preserve operational continuity? | 🟢 Yes — no behavior change. |
+| 11 | Does this remain mobile-first? | 🟢 Yes — copy length stayed similar; no layout impact. |
+| 12 | Does this preserve restraint doctrine? | 🟢 Yes — zero scope expansion. |
+| 13 | Does this integrate naturally with existing workflows? | 🟢 Yes — language work only. |
+| 14 | Does this preserve downstream continuity? | 🟢 Yes — no contract change. |
+| 15 | Does this remain operationally calm? | 🟢 Yes — calmer than before. |
+| 16 | Would a Superintendent understand this instantly? | 🟢 Yes — "page" + "the platform enforces" > "dashboard" + "HTTP 422". |
+| 17 | Would a driver understand this instantly? | 🟢 Yes — driver copy untouched, still tap-and-work. |
+| 18 | Does this align with future Motive integration? | 🟢 Yes — validate-not-surveil doctrine reinforced; no punitive language introduced. |
+| 19 | Does this avoid operational noise? | 🟢 Yes — no new toasts, no new alerts. |
+| 20 | Does this preserve foundational doctrine? | 🟢 Yes — operational truth, role discipline, restraint, and trust all intact. |
+
+**All 20 checks: PASS.**
+
+## Verification
+
+```bash
+# Phase 11 regression — every contract intact
+cd /app/backend
+python -m pytest tests/test_iter392_dls_foundation.py \
+                 tests/test_iter393_driver_session.py \
+                 tests/test_iter395_governance.py \
+                 tests/test_iter396_convergence.py -q
+# 51 / 51 PASS in 12.68 s ✅
+
+# ESLint on touched frontend files
+# DispatchBoard.jsx + AdminOperationalLanguage.jsx → ✅ no issues
+
+# Ruff on the new scanner
+ruff check /app/scripts/operator_vocabulary_scanner.py
+# All checks passed! ✅
+
+# Scanner self-check
+python3 /app/scripts/operator_vocabulary_scanner.py
+# → 0 operator-facing leaks remaining
+```
+
+## Restraint discipline maintained
+
+- ❌ No new endpoints / collections / pages / tiles
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No analytics / dashboards / charts
+- ❌ No notification fan-out changes
+- ❌ No WAITING_OTHER expansion
+- ❌ No whole-platform copy sweep
+- ❌ No portal sprawl
+
+## What iter398 leaves behind
+
+1. **7 surgical copy fixes** removing real operator-facing vocabulary leaks.
+2. **A durable audit guardrail** — the operator vocabulary scanner — usable any time before any future iter ships. It's not wired into CI (per Phase 12.5 "don't fail builds yet") but is one command away from any developer.
+3. **0 behavior changes** — every contract intact, 51/51 tests still green.
+
+---
+
+

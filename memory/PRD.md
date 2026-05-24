@@ -1,6 +1,80 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter398 · Phase 12.5 · Lane E · Restraint / Tone Pass ✅
+
+### Mission
+Scanner-assisted restraint and vocabulary convergence pass over the DLS + cross-portal mounts + governance/glossary scope. Catch and remove engineering/internal/ERP-ish language leaking into operator-facing copy. **No behavior changes. No scope expansion.**
+
+### Doctrine reinforced (Phase 12.5)
+- The platform is **one operational operating system**, not modules.
+- 20-point pre-implementation gate now baked in (look · feel · tone · calmness · cognitive load · trust · role discipline · ERP avoidance · dashboard avoidance · operational continuity · mobile-first · restraint · workflow integration · downstream continuity · calmness · Superintendent clarity · driver clarity · Motive alignment · noise avoidance · foundational doctrine).
+- **Validate-don't-surveil** Motive doctrine reinforced — no punitive vocabulary anywhere in the platform copy.
+
+### Files shipped
+- **NEW** `/app/scripts/operator_vocabulary_scanner.py` — durable audit guardrail. Two-tier flagging (T1 always-suspicious · T2 strict). Markdown + JSON output. Exit-0 awareness tool, never breaks builds.
+- **NEW** Updated `/app/memory/PHASE12_CONTINUITY_AUDIT.md` with iter398 addendum (scanner contract · triage table · 8-string fix list · 20-check doctrine gate · false-positive justifications).
+- **MOD** `/app/frontend/src/pages/DispatchBoard.jsx` — 1 string change in the LifecycleGuide "Restraint" body: removed "iter392/iter393 endpoints" leak; replaced with "delegates to it so nothing gets out of sync" — operator-honest.
+- **MOD** `/app/frontend/src/pages/admin/AdminOperationalLanguage.jsx` — 6 glossary string changes (CAPA / Convergence Score / Governance Score / Lifecycle Guide / Verified / WAITING_ON_ASSIGNMENT). Engineering vocab → operator vocab. iter-references removed. Single-tap reading restored.
+
+Backend untouched. No new endpoints, collections, tiles, pages, role visibility, or features.
+
+### Scanner contract (durable guardrail)
+- Path: `/app/scripts/operator_vocabulary_scanner.py`
+- Flags Tier 1 always (`iter###`, `ERP`, `surveillance`, `productivity scoring`, `driver scoring`, `micromanagement`, `gamification`, `leaderboard`).
+- `--strict` adds Tier 2 (`endpoint`, `payload`, `dashboard`, `analytics`, `KPI`, `metric`, `score`, `module`, `subsystem`, `portal management`, `backend`, `frontend`, `API`, `collection`).
+- Skips JS/Python comments, imports, JSX comment markers, and `data-testid=` lines automatically.
+- Outputs markdown by default; `--json` for tooling.
+- **Exit 0 always** — awareness tool, not a build gate (per Phase 12.5 doctrine "don't fail builds yet").
+
+### Scan results
+- Pre-fix: 19 T1 candidates, 75 T1+T2 strict candidates.
+- Triage:
+  - 14 internal JSX/Python comments → **keep** (commit-history vocabulary, never rendered).
+  - 47 code identifiers (`const API`, `api.get(...)`, etc.) → **keep** (programmatic).
+  - 7 canonical glossary terms-of-art (`Convergence Score`, `Governance Score`) → **keep**.
+  - **7 real operator-facing leaks → fixed.**
+- Post-fix: **0 operator-facing leaks remaining.**
+
+### Phase 12.5 doctrine gate · 20-check audit
+**All 20 checks: PASS.** Documented in `PHASE12_CONTINUITY_AUDIT.md` iter398 addendum.
+
+### Tests · 51 / 51 PASS in 12.68 s
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+ESLint clean on `DispatchBoard.jsx` + `AdminOperationalLanguage.jsx`. Ruff clean on the new scanner.
+
+### What iter398 explicitly did NOT do (restraint enforced)
+- ❌ No new endpoints / collections / pages / tiles
+- ❌ No analytics / dashboards / charts
+- ❌ No role visibility expansion (Safety/FL/HR stay quiet)
+- ❌ No Motive activation
+- ❌ No whole-platform copy rewrite (scoped to DLS + cross-portal mounts + governance/glossary)
+- ❌ No CI/build gate from the scanner (awareness only)
+- ❌ No notification fan-out changes
+- ❌ No structural refactor
+
+### Phase 12.5 lane order (locked)
+1. **a · Cross-platform continuity audit** ✅ shipped iter397.
+2. **e · Restraint / tone pass** ✅ shipped iter398.
+3. **b · Mobile-first usability sweep of DLS surfaces** — iter399 next.
+4. **d · Motive integration strategy refresh (DOC ONLY)** — iter400.
+5. **c · Post-deploy operational stabilization instrumentation** — iter401.
+
+### Next Action Items
+- 🟡 **P1 — iter399 · Lane B · Mobile-first DLS usability sweep.** DispatchBoard, DriverShift, DriverMagicLanding, AssignmentDrawer at 390 px and 320 px. Tap targets, glanceability, one-handed reachability, sunlight-readability spot check, glove-friendly verification.
+- 🟠 **P2 — iter400 · Lane D · Motive integration strategy refresh.** DOC-ONLY refresh of `/app/memory/MOTIVE_INTEGRATION_STRATEGY.md` for the iter392→396 reality. Zero code. Reinforce validate-don't-surveil contract.
+- 🔵 **P3 — iter401 · Lane C · Post-deploy stabilization instrumentation.** Week 1/2/4 checklist. Optional `/admin/dls-health` page only if it stays under "one page, no new data".
+- 🔵 **P3 — Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR tile decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+
+---
+
+
 ## 2026-05-24 — iter397 · Phase 12.A · Cross-Platform Continuity Audit ✅
 
 ### Mission

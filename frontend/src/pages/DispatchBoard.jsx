@@ -498,7 +498,7 @@ export default function DispatchBoard() {
             },
             {
               label: "Restraint",
-              body: "Read-only · refresh every 5s · no chat, no maps, no analytics. The lifecycle engine is the single source of truth — every action here is a thin call to the iter392/iter393 endpoints.",
+              body: "Read-only · refreshes every 5 seconds · no chat, no maps, no analytics. The lifecycle engine is the single source of operational truth — every action here delegates to it so nothing gets out of sync.",
             },
           ]}
         />
