@@ -4510,6 +4510,96 @@ const ES = {
     "Elige del catálogo de líquidos predefinidos o valores recientes.",
   "Issue tanker haul": "Emitir viaje de cisterna",
   "Tanker haul issued · truck on the board": "Viaje de cisterna emitido · camión en el tablero",
+
+  // ─── iter411 · Phase 16 · Dispatch Command Portal ───────────────
+  "Dispatcher": "Despachador",
+  "Dispatch Command": "Mando de Despacho",
+  "Issue work, watch movement, resolve delays, and keep trucks flowing.":
+    "Emite trabajo, observa el movimiento, resuelve demoras y mantén los camiones fluyendo.",
+  "Start with anything needing attention.": "Comienza con lo que requiere atención.",
+  "Issue assignments before reviewing history.": "Emite asignaciones antes de revisar el historial.",
+  "Driver taps are the source of operational truth.":
+    "Los toques del conductor son la fuente de la verdad operativa.",
+  "PMs see production awareness only.": "Los PMs solo ven conciencia de producción.",
+  "Shop sees breakdown continuity only.": "El taller solo ve continuidad de averías.",
+  "Motive will validate later — it does not replace the driver.":
+    "Motive validará más adelante — no reemplaza al conductor.",
+  "Start here": "Empieza aquí",
+  "Operational Attention": "Atención operativa",
+  "These are the items most likely to slow work today.":
+    "Estos son los elementos con mayor probabilidad de retrasar el trabajo hoy.",
+  "Reading signals…": "Leyendo señales…",
+  "All hauls are flowing. Nothing requires dispatch attention right now.":
+    "Todos los viajes están fluyendo. Nada requiere atención de despacho ahora mismo.",
+  "Trucks in breakdown": "Camiones en avería",
+  "Shop sees these too. Decide reassign vs hold.":
+    "El taller también ve esto. Decide reasignar o detener.",
+  "Stuck > 30 min": "Detenido > 30 min",
+  "Lifecycle stalled. Tap the row on the board for context.":
+    "Ciclo detenido. Toca la fila en el tablero para más contexto.",
+  "Extended wait": "Espera prolongada",
+  "Driver is waiting too long. Confirm the wait reason still applies.":
+    "El conductor está esperando demasiado. Confirma que la razón de espera sigue aplicando.",
+  "Open the operational board": "Abrir el tablero operativo",
+  "Primary actions": "Acciones principales",
+  "Issue Work": "Emitir trabajo",
+  "Create the assignment once. Drivers and PMs see the right operational signal downstream.":
+    "Crea la asignación una vez. Conductores y PMs verán la señal operativa correcta aguas abajo.",
+  "Create Assignment": "Crear asignación",
+  "Material haul": "Viaje de material",
+  "Start Equipment Move": "Iniciar movimiento de equipo",
+  "Lowboy / equipment haul": "Lowboy / movimiento de equipo",
+  "Asphalt oil · binder · fuel": "Aceite asfáltico · ligante · combustible",
+  "Support / Misc Haul": "Apoyo / Misc",
+  "Spoils · support · misc": "Escombros · apoyo · varios",
+  "Watch movement": "Observar movimiento",
+  "Live Operational Flow": "Flujo operativo en vivo",
+  "Active assignments, waiting trucks, breakdowns, and haul movement.":
+    "Asignaciones activas, camiones en espera, averías y movimiento de viajes.",
+  "Driver lifecycle taps keep the board current. Motive will validate later; it does not replace the driver.":
+    "Los toques del ciclo del conductor mantienen el tablero al día. Motive validará después; no reemplaza al conductor.",
+  "Open Operational Board": "Abrir tablero operativo",
+  "Resolve before tomorrow": "Resolver antes de mañana",
+  "Follow-Through": "Seguimiento",
+  "These items need a decision, handoff, or correction before they become tomorrow's problem.":
+    "Estos elementos necesitan una decisión, entrega o corrección antes de que se conviertan en el problema de mañana.",
+  "Holds": "Retenciones",
+  "Secondary operations": "Operaciones secundarias",
+  "Fleet, utilization, and integrations": "Flota, utilización e integraciones",
+  "Lower-priority context. Open only when needed.":
+    "Contexto de menor prioridad. Ábrelo solo cuando lo necesites.",
+  "Overview": "Resumen",
+  "What's moving vs sitting": "Qué se mueve vs qué está detenido",
+  "Trucks sitting too long": "Camiones detenidos demasiado tiempo",
+  "Systems that validate operations": "Sistemas que validan las operaciones",
+  "Fleet": "Flota",
+  "Approved drivers": "Conductores aprobados",
+  "Equipment moves (all-time)": "Movimientos de equipo (histórico)",
+  "Coaching": "Coaching",
+  "Guides & Coaching": "Guías y Coaching",
+  "Use these when a dispatcher or truck boss is unsure what a state means.":
+    "Úsalas cuando un despachador o jefe de camiones no sepa qué significa un estado.",
+  "What dispatch owns": "Qué le pertenece a despacho",
+  "Issuance, reassignment, breakdown response, and the operational board.":
+    "Emisión, reasignación, respuesta a averías y tablero operativo.",
+  "How assignment issuance works": "Cómo funciona la emisión de asignaciones",
+  "One drawer · five haul types · seeded + historical rosters · add-temp anywhere.":
+    "Un cajón · cinco tipos de viaje · listas predefinidas + históricas · agregar temporal en cualquier campo.",
+  "What wait states mean": "Qué significan los estados de espera",
+  "Canonical operational intelligence — never free text. Plant, dump, breakdown, etc.":
+    "Inteligencia operativa canónica — nunca texto libre. Planta, vertedero, avería, etc.",
+  "Downstream signals": "Señales aguas abajo",
+  "PM sees production awareness only. Shop sees breakdown continuity only. Safety / FL / HR stay quiet on DLS.":
+    "PM solo ve conciencia de producción. Taller solo ve continuidad de averías. Safety / FL / HR permanecen silenciosos en DLS.",
+  "Why Motive validates later, not surveils": "Por qué Motive valida después, no vigila",
+  "Motive answers questions about movement, arrival, and wait truth — it does not give orders.":
+    "Motive responde preguntas sobre movimiento, llegada y verdad de espera — no da órdenes.",
+  "Open all guides": "Abrir todas las guías",
+  "Home": "Inicio",
+  "Back": "Atrás",
+  "Dispatch": "Despacho",
+  "Sign out": "Cerrar sesión",
+  "Equipment moves": "Movimientos de equipo",
 };
 
 const DICTS = { es: ES, en: {} };

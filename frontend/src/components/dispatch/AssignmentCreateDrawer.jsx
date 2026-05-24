@@ -264,6 +264,7 @@ function HaulTypePicker({ value, onChange, types }) {
 // ─────────────────────────────────────────────────────────────────────
 export default function AssignmentCreateDrawer({
   open, onClose, onCreated, tenantOverride,
+  initialHaulType,                              // iter411 · Phase 16 · preselect from dispatch hub
 }) {
   const { t } = useT();
   const [submitting, setSubmitting] = useState(false);
@@ -303,7 +304,7 @@ export default function AssignmentCreateDrawer({
   // Reset on open
   useEffect(() => {
     if (!open) return;
-    setHaulType("Material");
+    setHaulType(initialHaulType || "Material");
     setTruck(null);
     setDriver(null);
     setTrailer(null);
@@ -320,7 +321,7 @@ export default function AssignmentCreateDrawer({
     setLiquidProduct(null);
     setNote("");
     setErrorMsg("");
-  }, [open]);
+  }, [open, initialHaulType]);
 
   // Load lookups
   useEffect(() => {
