@@ -1,6 +1,74 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter403 · Phase 13 · Field Tile Convergence ✅
+
+### Mission
+Phase 13 introduces canonical doctrine: **Field Tile** (`/field`) is the *public operational access layer*; **Field Leadership** (`/field-leadership`) is authenticated oversight. The two MUST remain distinct. Per directive: "Driver Shift Start belongs INSIDE Field Tile." Close the discoverability gap with one tile.
+
+### Doctrine reinforced (Phase 13)
+- **Field Tile = public operational workflows** (Material Calculator · Daily Reports · Equipment Pre-Op · DVIR · Weekly Lead · Weekly Emergency · **Driver Shift Start**).
+- **Field Leadership = authenticated leadership continuity only** — no driver workflows allowed inside.
+- Operational chronology drives placement: Shift Start is first in Daily Operations.
+- Restraint absolute: 1 tile + 3 i18n strings, zero other changes.
+- 20-point Phase 13 doctrine gate: ALL 20 PASS.
+
+### Files shipped
+- **MOD** `/app/frontend/src/pages/FieldSection.jsx` — added Driver Shift Start tile as the FIRST tile in the Daily Operations group. Send icon, amber accent (matches the trucking tile family), `START SHIFT` CTA, testid `field-tile-shift-start`, links to `/shift`. Existing 6 tile testids preserved (iter319 contract intact).
+- **MOD** `/app/frontend/src/lib/i18n.js` — added 3 EN→ES entries (`Driver Shift Start`, `START SHIFT`, description string) per the iter319 Field Hub bilingual parity contract.
+
+### What iter403 explicitly did NOT do (restraint enforced)
+- ❌ No reorder of existing tiles (preserves muscle memory)
+- ❌ No new endpoints / collections / pages / portals
+- ❌ No Field Tile / Field Leadership merger or visibility change
+- ❌ No deeper ShiftStart i18n sweep (deferred to backlog DLS UI i18n iter)
+- ❌ No backend changes
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No new doctrine doc file (Phase 13 distinction lives in PRD + audit doc; doctrine sprawl avoided)
+
+### Tests · 82 / 82 PASS in 15.64 s
+- iter319 Field calm-pass 12/12 (untouched — new tile is additive)
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+- iter401 driver self-start 9/9 (untouched)
+- iter402 shift lookups 10/10 (untouched)
+ESLint clean on `FieldSection.jsx`. Both audit guardrails clean. Live 390 px smoke: all 7 tiles present (no testid regressions), tile click navigates to `/shift` correctly.
+
+### Field Tile composition (post-iter403 · locked)
+| Group | Tile | Route | Testid | Audience |
+|---|---|---|---|---|
+| Daily Operations | **Driver Shift Start** (NEW) | `/shift` | `field-tile-shift-start` | Truck drivers |
+| Daily Operations | Daily Reports | `/daily/submit` | `field-tile-daily` | Field crew |
+| Daily Operations | Equipment Pre-Op | `/equipment/submit` | `field-tile-equipment` | Equipment operators |
+| Daily Operations | Trucking · Daily DVIR | `/fleet/dvir/new` | `field-tile-dvir` | Truck drivers |
+| Weekly Checks | Weekly · Lead Inspection | `/fleet/weekly-lead/new` | `field-tile-weekly-lead` | Field leads |
+| Weekly Checks | Weekly · Emergency Equipment | `/fleet/weekly-emergency/new` | `field-tile-weekly-emergency` | Field leads |
+| Calculators & Tools | Material Calculators | `/field/calculators` | `field-tile-calculators` | Anyone in the field |
+
+### Phase doctrine timeline (current state)
+1. iter397 · Phase 12 · Lane A · Cross-platform continuity audit ✅
+2. iter398 · Phase 12.5 · Lane E · Restraint / tone pass + operator vocabulary scanner ✅
+3. iter399 · Phase 12.6 · Lane B · Mobile-first DLS usability sweep + touch-target audit helper ✅
+4. iter400 · Phase 12.7 · Lane D · Motive doc refresh + audit doctrine index ✅
+5. iter401 · Phase 12.8 · Driver self-start operational entry ✅
+6. iter402 · Phase 12.9 · Driver operational identity convergence ✅
+7. iter403 · Phase 13 · Field Tile convergence ✅
+8. **Lane C · Post-deploy operational stabilization instrumentation** — deferred to backlog.
+
+### Next Action Items
+- 🔵 **P2 — Backlog · Lane C · Post-deploy stabilization instrumentation.** Possible tighter form: `GET /api/admin/dls/health-summary` JSON only, no new page (per iter402's finish proposal).
+- 🔵 **P3 — Backlog · DLS UI i18n sweep.** Wrap operational chrome (ShiftStart, DriverShift, DispatchBoard, FindingsBanner) in `t()`. Currently only the Field Tile tile itself is bilingual.
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR tile decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+- 🟡 **P2 — Backlog · Shift start QR card generator** — admin tool printing per-tenant PDF with `/shift` URL as QR (door stickers).
+
+---
+
+
 ## 2026-05-24 — iter402 · Phase 12.9 · Driver Operational Identity Convergence ✅
 
 ### Mission

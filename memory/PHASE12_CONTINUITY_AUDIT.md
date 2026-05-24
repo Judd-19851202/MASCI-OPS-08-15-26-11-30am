@@ -219,10 +219,114 @@ next per the operator's lane order: **a → e → b → d → c**.
 - 🟢 **iter399 · Lane B · Mobile-first usability sweep.** ✅ shipped — see iter399 addendum above.
 - 🟢 **iter400 · Lane D · Motive integration strategy refresh (DOC ONLY) + AUDIT_GUARDRAILS.md doctrine index.** ✅ shipped — see iter400 addendum above.
 - 🟢 **iter401 · Phase 12.8 · Driver Self-Start Operational Entry.** ✅ shipped.
-- 🟢 **iter402 · Phase 12.9 · Driver Operational Identity Convergence.** ✅ shipped — see iter402 addendum below.
+- 🟢 **iter402 · Phase 12.9 · Driver Operational Identity Convergence.** ✅ shipped.
+- 🟢 **iter403 · Phase 13 · Field Tile Convergence.** ✅ shipped — see iter403 addendum below.
 - 🔵 **Backlog · Lane C · Post-deploy operational stabilization instrumentation** (deferred).
 - 🔵 **Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
 - 🔵 **Backlog · 14-day post-live ops review** of Safety/FL/HR tile decisions.
+
+---
+
+# iter403 addendum · Phase 13 · Field Tile Convergence ✅ (2026-05-24)
+
+## Scope
+
+Phase 13 introduces canonical doctrine: **Field Tile** (`/field`) is the *public operational access layer*, distinct from **Field Leadership** (`/field-leadership`) which is authenticated oversight. The directive explicitly locks Driver Shift Start inside Field Tile.
+
+Currently the Field Tile (`FieldSection.jsx`) had Daily Reports, Equipment Pre-Op, Trucking DVIR, and Weekly + Calculator tiles — but no entry point for the iter401–402 Driver Shift Start flow. Drivers landing on `/field` could not discover where to check in.
+
+This iter closes that discoverability gap with **one new tile**.
+
+## Files shipped
+
+| File | Change | Why |
+|---|---|---|
+| `/app/frontend/src/pages/FieldSection.jsx` | Added `Driver Shift Start` tile as FIRST tile in the Daily Operations group (links to `/shift`). Send icon · amber accent · `START SHIFT` CTA. | Phase 13 doctrine: Driver Shift Start belongs inside Field Tile. First position because shift-start is chronologically the first thing a driver does. |
+| `/app/frontend/src/lib/i18n.js` | Added 3 EN→ES entries (`Driver Shift Start`, `START SHIFT`, the description string) | Honors the iter319 Field Hub bilingual parity contract. The deeper `/shift` form's own copy remains EN-only (backlog · documented). |
+
+## Restraint applied
+
+| Considered but NOT done | Why |
+|---|---|
+| Reorder existing 3 Daily Ops tiles to match shift chronology | Would break muscle memory for crews already trained on the current order. Preserve. |
+| Add Material / Loader fields to ShiftStart | Phase 12.8 marked these "Optional later" — not iter403's scope. |
+| Spanish translation of full ShiftStart form copy | Backlog (DLS UI i18n sweep). Field Tile is bilingual; the deeper `/shift` form follows the rest of the DLS chrome which is EN-only. |
+| Create a new `FIELD_TILE_DOCTRINE.md` doctrine doc | Field Tile is now codified in PRD + this audit addendum. Doctrine sprawl warning — keep memory/ short. |
+| Add Phase 13 / Field Tile row to `AUDIT_GUARDRAILS.md` | The audit doctrine index already lists Phase docs; one more cross-reference would add noise without doctrine value. Skip until a second Phase 13-era guardrail exists. |
+
+## Phase 13 doctrine gate · 20-check audit
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Look like platform | 🟢 same left-stripe tile pattern · same icon family · same heading hierarchy |
+| 2 | Feel like platform | 🟢 calm copy, no marketing voice |
+| 3 | Operational calmness | 🟢 1 tile added, no chrome change |
+| 4 | Low cognitive load | 🟢 Daily Operations now 4 tiles — still scannable on mobile |
+| 5 | Operational trust | 🟢 shift-start is the canonical operational check-in moment |
+| 6 | Role discipline | 🟢 Field Tile is public · matches driver access doctrine |
+| 7 | Avoid ERP | 🟢 no new workflow, just discovery |
+| 8 | Avoid analytics drift | 🟢 no metrics |
+| 9 | Avoid dashboard sprawl | 🟢 one tile, not a new page or panel |
+| 10 | Downstream continuity | 🟢 `/shift` already does the right thing — nothing in the chain changes |
+| 11 | Mobile-first | 🟢 Field tiles are responsive (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`) · verified 390 px |
+| 12 | Restraint doctrine | 🟢 1 tile + 3 i18n strings · zero other code changes |
+| 13 | Natural integration | 🟢 the directive explicitly says shift-start belongs here |
+| 14 | Driver understanding | 🟢 "Driver Shift Start" + "Pick your name and truck — no password, no app" is operator-direct |
+| 15 | Superintendent trust | 🟢 the tile makes the canonical operational check-in physically discoverable |
+| 16 | Validate-don't-surveil | 🟢 no behavior change downstream |
+| 17 | Avoid operational noise | 🟢 no alerts, no banners |
+| 18 | Strengthen operational continuity | 🟢 closes the discoverability gap — drivers know where to go |
+| 19 | Operational honesty | 🟢 first-position placement honors actual shift chronology |
+| 20 | Foundational doctrine | 🟢 Phase 13 directive declares this distinction · iter403 implements literally |
+
+**All 20 checks: PASS.**
+
+## Verification
+
+```bash
+# Full Field + DLS regression
+cd /app/backend
+python -m pytest tests/test_iter319_fl_and_field_calm_pass.py \
+                 tests/test_iter402_shift_lookups.py \
+                 tests/test_iter401_shift_start.py \
+                 tests/test_iter392_dls_foundation.py \
+                 tests/test_iter393_driver_session.py \
+                 tests/test_iter395_governance.py \
+                 tests/test_iter396_convergence.py -q
+# 82 / 82 PASS in 15.64 s ✅
+
+# Scanners on the touched frontend
+python3 /app/scripts/operator_vocabulary_scanner.py --paths frontend/src/pages/FieldSection.jsx
+# → clean ✅
+python3 /app/scripts/touch_target_audit.py --paths frontend/src/pages/FieldSection.jsx
+# → clean ✅
+
+# Live 390 px smoke
+#   - all 7 Field tiles present (6 prior + new shift-start) — testid regressions: 0
+#   - tile click navigates to /shift correctly
+#   - amber accent matches the trucking tile family
+#   - EN+ES translations live
+```
+
+## Restraint discipline maintained
+
+- ❌ No new endpoints / collections / pages / portals
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No analytics / dashboards / charts
+- ❌ No notification fan-out changes
+- ❌ No JSX structural refactor of the existing tile chrome
+- ❌ No reorder of existing tiles (muscle memory preserved)
+- ❌ No backend changes
+
+## What iter403 leaves behind
+
+1. **Physical discoverability** of Driver Shift Start from Field Tile — drivers landing on `/field` now see the canonical check-in entry first.
+2. **Phase 13 canonical distinction logged**: Field Tile (public ops layer) ≠ Field Leadership (auth oversight).
+3. **EN+ES parity** on the new tile copy honoring the iter319 bilingual contract.
+4. **0 behavior changes** in any flow — iter319 test suite still PASS, iter392→402 suites still PASS.
+
+
 
 ---
 

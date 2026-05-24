@@ -8,7 +8,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardList, Wrench, ArrowLeft, HardHat, Calculator, Truck,
+  ClipboardList, Wrench, ArrowLeft, HardHat, Calculator, Truck, Send,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -124,6 +124,15 @@ export default function FieldSection() {
               testId="field-group-heading-daily"
             />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FieldTile
+                to="/shift"
+                icon={Send}
+                title={t("Driver Shift Start")}
+                desc={t("Truck drivers check in here at the start of every shift. Pick your name and truck — no password, no app.")}
+                accent="amber"
+                ctaLabel={t("START SHIFT")}
+                testId="field-tile-shift-start"
+              />
               <FieldTile
                 to="/daily/submit"
                 icon={ClipboardList}
