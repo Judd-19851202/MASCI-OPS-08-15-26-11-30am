@@ -97,6 +97,15 @@ class AssignmentCreate(BaseModel):
     destination: Optional[str] = ""
     loader_operator_name: Optional[str] = ""
     note: Optional[str] = ""
+    # iter408 · Phase 14.2 · Haul Type continuity
+    haul_type: Optional[str] = "Material"
+    trailer_id: Optional[str] = ""
+    trailer_label: Optional[str] = ""
+    carrier: Optional[str] = ""
+    equipment_id: Optional[str] = ""
+    equipment_label: Optional[str] = ""
+    pickup_location: Optional[str] = ""
+    dropoff_location: Optional[str] = ""
 
 
 class TransitionRequest(BaseModel):
@@ -436,6 +445,17 @@ def build_dispatch_lifecycle_router(
             "source_location": (body.source_location or "").strip(),
             "destination": (body.destination or "").strip(),
             "loader_operator_name": (body.loader_operator_name or "").strip(),
+            # iter408 · Phase 14.2 · Haul Type continuity (additive,
+            # backward-compatible — legacy assignments simply default
+            # haul_type to "Material" via the model).
+            "haul_type": (body.haul_type or "Material").strip() or "Material",
+            "trailer_id": (body.trailer_id or "").strip(),
+            "trailer_label": (body.trailer_label or "").strip(),
+            "carrier": (body.carrier or "").strip(),
+            "equipment_id": (body.equipment_id or "").strip(),
+            "equipment_label": (body.equipment_label or "").strip(),
+            "pickup_location": (body.pickup_location or "").strip(),
+            "dropoff_location": (body.dropoff_location or "").strip(),
             "current_state": DLS.ASSIGNED,
             "current_wait_reason": "",
             "assigned_at": at_iso,

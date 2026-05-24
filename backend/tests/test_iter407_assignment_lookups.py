@@ -88,7 +88,8 @@ def test_assignment_lookups_authorized_returns_shape():
 
 
 # ════════════════════════════════════════════════════════════════════
-# 2. Empty tenant returns empty memory lists
+# 2. Empty tenant returns empty recent_* lists (materials/sources/dest
+#    stay tenant-scoped; projects are platform-level per iter408).
 # ════════════════════════════════════════════════════════════════════
 def test_empty_tenant_returns_empty_recents():
     hdrs = _dispatch_token()
@@ -99,10 +100,14 @@ def test_empty_tenant_returns_empty_recents():
     )
     assert r.status_code == 200
     j = r.json()
-    assert j["recent_projects"] == []
+    # iter408: recent_materials/sources/destinations remain tenant-scoped
+    # (they're truly operational memory of this tenant's hauls).
     assert j["recent_materials"] == []
     assert j["recent_sources"] == []
     assert j["recent_destinations"] == []
+    # recent_projects is platform-wide (daily_reports + assignments)
+    # so we only check shape, not emptiness.
+    assert isinstance(j["recent_projects"], list)
 
 
 # ════════════════════════════════════════════════════════════════════

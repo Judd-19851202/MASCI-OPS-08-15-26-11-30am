@@ -28,6 +28,16 @@ from pydantic import BaseModel, Field
 
 import dispatch_lifecycle as DLS
 import driver_sessions as DS
+from dispatch_assignment_seeds import (
+    HAUL_TYPES,
+    SEEDED_SOURCES,
+    SEEDED_DESTINATIONS,
+    SEEDED_PICKUP_LOCATIONS,
+    SEEDED_DROPOFF_LOCATIONS,
+    EQUIPMENT_MOVE_CATEGORIES,
+    EQUIPMENT_MOVE_EXAMPLE_LABELS,
+    flat_material_options,
+)
 from routes.dispatch_lifecycle import (
     DEFAULT_TENANT_ID,
     _record_transition,                                            # reuse
@@ -404,7 +414,7 @@ def build_driver_router(
         }
 
     # ────────────────────────────────────────────────────────────────
-    # iter407 · Phase 14 · Dispatcher assignment-issuance lookups
+    # iter407 + iter408 · Phase 14.1 + 14.2 · Dispatcher assignment lookups
     # ────────────────────────────────────────────────────────────────
     @router.get("/assignment-lookups")
     async def assignment_lookups_route(
@@ -413,55 +423,181 @@ def build_driver_router(
     ):
         """Dispatcher-gated · powers the iter407 Create Assignment drawer.
 
-        Extends `shift-lookups` (drivers / trucks / trailers / haulers)
-        with four additional "operational memory" lists derived at
-        request time from `dispatch_assignments` itself — no new
-        collections, no admin config screens:
-          • recent_projects     [{project_number, project_name}]
-          • recent_materials    [{label}]
-          • recent_sources      [{label}]
-          • recent_destinations [{label}]
+        Phase 14.1 contract: every dropdown gets a useful starting list
+        even on a brand-new tenant (seeded defaults + historical recents
+        + platform master records). No empty boxes.
 
-        Doctrine: operational memory feeds itself. The more dispatch
-        issues assignments, the more useful these dropdowns become.
-        No "master list" management surface — restraint.
+        Phase 14.2 contract: returns haul_types and equipment options
+        so the drawer can pivot between Material and Equipment Move
+        without a second round-trip.
+
+        Returned shape (sketched):
+          {
+            haul_types: ["Material", "Equipment Move", ...],
+            drivers:  [{employee_id, name, cdl, status}],
+            trucks:   [{unit_pk, unit_number, label, company}],
+            trailers: [...],
+            equipment:[{unit_pk, unit_number, label, category, company}],
+            carriers: [{name}],   // MASCI first
+            projects: [{project_number, project_name}],
+            sources:       [{label, source}],   // source ∈ {seed, history}
+            destinations:  [{label, source}],
+            pickup_locations:  [{label, source}],
+            dropoff_locations: [{label, source}],
+            materials: [{label, category, source}],
+          }
         """
+        import re as _re
         tenant_id = _resolve_tenant(x_tenant_id)
 
-        # ── recent operational memory (distinct values, capped) ─────
-        recent_projects: List[Dict[str, Any]] = []
-        recent_materials: List[Dict[str, Any]] = []
-        recent_sources: List[Dict[str, Any]] = []
-        recent_destinations: List[Dict[str, Any]] = []
+        # ── DRIVERS · CDL-qualified employees ───────────────────────
+        # Dispatch is authenticated — no q≥2 privacy gate. Filter to
+        # active drivers with any qualification signal so the list is
+        # operationally relevant (CDL, approved company driver, or
+        # active driver_status).
+        drivers: List[Dict[str, Any]] = []
         try:
-            # Project pairs (project_number + project_name) — keep the
-            # most-recent name when the same number appears twice.
-            proj_pipeline = [
-                {"$match": {
-                    "tenant_id": tenant_id,
-                    "project_number": {"$nin": [None, ""]},
-                }},
-                {"$sort": {"assigned_at": -1}},
+            cur = (
+                db.employees
+                .find(
+                    {
+                        "deleted_at": None,
+                        "$or": [
+                            {"cdl_holder": True},
+                            {"approved_company_driver": True},
+                            {"driver_status": "active"},
+                        ],
+                    },
+                    {
+                        "_id": 0, "id": 1, "employee_id": 1, "name": 1,
+                        "lifecycle_status": 1, "is_active": 1,
+                        "cdl_holder": 1, "approved_company_driver": 1,
+                        "driver_status": 1,
+                    },
+                )
+                .sort("name", 1)
+                .limit(500)
+            )
+            async for emp in cur:
+                if emp.get("lifecycle_status") in (
+                    "OFFBOARDED", "TERMINATED", "DECEASED",
+                ):
+                    continue
+                if emp.get("is_active") is False:
+                    continue
+                name = (emp.get("name") or "").strip()
+                if not name:
+                    continue
+                drivers.append({
+                    "employee_id": emp.get("employee_id") or emp.get("id") or "",
+                    "name": name,
+                    "cdl": bool(emp.get("cdl_holder")),
+                    "approved": bool(emp.get("approved_company_driver")),
+                    "driver_status": emp.get("driver_status") or "",
+                })
+        except Exception:
+            drivers = []
+
+        # ── TRUCKS / TRAILERS (operational assets) ──────────────────
+        truck_categories = [
+            "Dump Trucks", "Tractor Trailer Trucks", "Service Trucks",
+            "Pickup Trucks", "Flatbed Trucks", "Water Trucks",
+            "Misc Trucks", "Supervisor / Mgmt Trucks",
+        ]
+        trailer_categories = ["Trailers"]
+        trucks: List[Dict[str, Any]] = []
+        trailers: List[Dict[str, Any]] = []
+        equipment: List[Dict[str, Any]] = []
+        company_set: set[str] = {"MASCI"}
+        try:
+            cur = (
+                db.equipment_master
+                .find(
+                    {"category": {"$nin": [None, ""]}},
+                    {"_id": 0, "id": 1, "unit_number": 1, "category": 1,
+                     "make_model": 1, "display_label": 1, "company": 1},
+                )
+                .sort("unit_number", 1)
+                .limit(2000)
+            )
+            async for u in cur:
+                unit_pk = u.get("id") or ""
+                num = (u.get("unit_number") or "").strip()
+                if not num:
+                    continue
+                label = (u.get("display_label") or u.get("make_model") or "").strip()
+                co = (u.get("company") or "").strip()
+                if co:
+                    company_set.add(co)
+                entry = {
+                    "unit_pk": unit_pk,
+                    "unit_number": num,
+                    "label": label,
+                    "company": co or "",
+                    "category": u.get("category") or "",
+                }
+                cat = u.get("category") or ""
+                if cat in truck_categories:
+                    if len(trucks) < 200:
+                        trucks.append(entry)
+                elif cat in trailer_categories:
+                    if len(trailers) < 200:
+                        trailers.append(entry)
+                else:
+                    # iter408 · everything that isn't a truck/trailer
+                    # is candidate equipment-move cargo (lowboy haul).
+                    if len(equipment) < 400:
+                        equipment.append(entry)
+        except Exception:
+            pass
+
+        # ── PROJECTS · daily_reports distinct values + dispatch history
+        project_pairs: Dict[str, str] = {}
+        try:
+            pipeline = [
+                {"$match": {"project_number": {"$nin": [None, ""]}}},
                 {"$group": {
                     "_id": "$project_number",
-                    "project_name": {"$first": "$project_name"},
+                    "project_name": {"$last": "$project_name"},
+                    "last_at": {"$max": "$report_date"},
+                }},
+                {"$sort": {"last_at": -1}},
+                {"$limit": 200},
+            ]
+            async for row in db.daily_reports.aggregate(pipeline):
+                pn = (row.get("_id") or "").strip()
+                if pn and pn not in project_pairs:
+                    project_pairs[pn] = (row.get("project_name") or "").strip()
+        except Exception:
+            pass
+        # Merge any project_numbers seen ONLY on dispatch_assignments
+        try:
+            pipeline = [
+                {"$match": {"tenant_id": tenant_id, "project_number": {"$nin": [None, ""]}}},
+                {"$group": {
+                    "_id": "$project_number",
+                    "project_name": {"$last": "$project_name"},
                     "last_at": {"$max": "$assigned_at"},
                 }},
                 {"$sort": {"last_at": -1}},
-                {"$limit": 25},
+                {"$limit": 100},
             ]
-            async for row in db.dispatch_assignments.aggregate(proj_pipeline):
+            async for row in db.dispatch_assignments.aggregate(pipeline):
                 pn = (row.get("_id") or "").strip()
-                if not pn:
-                    continue
-                recent_projects.append({
-                    "project_number": pn,
-                    "project_name": (row.get("project_name") or "").strip(),
-                })
+                if pn and pn not in project_pairs:
+                    project_pairs[pn] = (row.get("project_name") or "").strip()
         except Exception:
-            recent_projects = []
+            pass
+        projects = [
+            {"project_number": k, "project_name": v}
+            for k, v in project_pairs.items()
+        ]
 
-        async def _distinct_recent(field: str, cap: int = 20) -> List[str]:
+        # ── Helper · merge seeded + historical into {label, source} ─
+        async def _merge_seed_and_history(
+            seed: List[str], field: str, *, cap_history: int = 25,
+        ) -> List[Dict[str, Any]]:
+            history: List[str] = []
             try:
                 pipeline = [
                     {"$match": {
@@ -474,31 +610,116 @@ def build_driver_router(
                         "last_at": {"$max": "$assigned_at"},
                     }},
                     {"$sort": {"last_at": -1}},
-                    {"$limit": cap},
+                    {"$limit": cap_history},
                 ]
-                vals: List[str] = []
                 async for row in db.dispatch_assignments.aggregate(pipeline):
                     v = (row.get("_id") or "").strip()
                     if v:
-                        vals.append(v)
-                return vals
+                        history.append(v)
             except Exception:
-                return []
+                history = []
+            seen: set[str] = set()
+            merged: List[Dict[str, Any]] = []
+            for label in seed:
+                key = label.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                merged.append({"label": label, "source": "seed"})
+            for label in history:
+                key = label.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                merged.append({"label": label, "source": "history"})
+            return merged
 
-        for v in await _distinct_recent("material"):
-            recent_materials.append({"label": v})
-        for v in await _distinct_recent("source_location"):
-            recent_sources.append({"label": v})
-        for v in await _distinct_recent("destination"):
-            recent_destinations.append({"label": v})
+        sources = await _merge_seed_and_history(SEEDED_SOURCES, "source_location")
+        destinations = await _merge_seed_and_history(SEEDED_DESTINATIONS, "destination")
+        pickup_locations = await _merge_seed_and_history(
+            SEEDED_PICKUP_LOCATIONS, "pickup_location",
+        )
+        dropoff_locations = await _merge_seed_and_history(
+            SEEDED_DROPOFF_LOCATIONS, "dropoff_location",
+        )
+
+        # ── Materials · catalog + historical ────────────────────────
+        material_options: List[Dict[str, Any]] = []
+        seen_mat: set[str] = set()
+        for opt in flat_material_options():
+            key = opt["label"].lower()
+            if key in seen_mat:
+                continue
+            seen_mat.add(key)
+            material_options.append({
+                "label": opt["label"],
+                "category": opt["category"],
+                "source": "seed",
+            })
+        try:
+            pipeline = [
+                {"$match": {
+                    "tenant_id": tenant_id,
+                    "material": {"$nin": [None, ""]},
+                }},
+                {"$sort": {"assigned_at": -1}},
+                {"$group": {
+                    "_id": "$material",
+                    "last_at": {"$max": "$assigned_at"},
+                }},
+                {"$sort": {"last_at": -1}},
+                {"$limit": 50},
+            ]
+            async for row in db.dispatch_assignments.aggregate(pipeline):
+                v = (row.get("_id") or "").strip()
+                if not v:
+                    continue
+                key = v.lower()
+                if key in seen_mat:
+                    continue
+                seen_mat.add(key)
+                material_options.append({
+                    "label": v,
+                    "category": "Historical",
+                    "source": "history",
+                })
+        except Exception:
+            pass
+
+        carriers = [
+            {"name": n}
+            for n in sorted(company_set, key=lambda s: (s != "MASCI", s.lower()))
+        ]
 
         return {
             "ok": True,
             "tenant_id": tenant_id,
-            "recent_projects": recent_projects,
-            "recent_materials": recent_materials,
-            "recent_sources": recent_sources,
-            "recent_destinations": recent_destinations,
+            "haul_types": HAUL_TYPES,
+            "drivers": drivers,
+            "trucks": trucks,
+            "trailers": trailers,
+            "equipment": equipment,
+            "equipment_examples": EQUIPMENT_MOVE_EXAMPLE_LABELS,
+            "equipment_categories": EQUIPMENT_MOVE_CATEGORIES,
+            "carriers": carriers,
+            "projects": projects,
+            "sources": sources,
+            "destinations": destinations,
+            "pickup_locations": pickup_locations,
+            "dropoff_locations": dropoff_locations,
+            "materials": material_options,
+            # iter407 backward-compat aliases — DispatchBoard's old
+            # consumer still expects these names.
+            "recent_projects": projects,
+            "recent_materials": [
+                {"label": m["label"]} for m in material_options if m["source"] == "history"
+            ],
+            "recent_sources": [
+                {"label": s["label"]} for s in sources if s["source"] == "history"
+            ],
+            "recent_destinations": [
+                {"label": d["label"]} for d in destinations if d["source"] == "history"
+            ],
         }
 
     # ────────────────────────────────────────────────────────────────

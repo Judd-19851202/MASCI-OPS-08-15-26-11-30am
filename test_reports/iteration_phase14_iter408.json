@@ -1,0 +1,31 @@
+{
+  "summary": "Phase 14.1 + 14.2 (iter408 · Dispatch Assignment Issuance Refinement + Haul Type continuity) end-to-end validated. Backend parity-lock 104/104 PASS (15 new iter408 + 7 iter407 + 82 historical iter319/392/393/395/396/401/402). All seeded vocabulary (sources, destinations, pickup_locations, dropoff_locations, materials with categories, haul_types, equipment_examples, carriers MASCI-first) returned on empty tenant with source='seed'; historical merge tags returned source='history' after POST. POST /api/dispatch/assignments accepts haul_type + equipment_id/label + pickup/dropoff_location + trailer_id/label + carrier; legacy POST defaults haul_type='Material'; no internal _* leakage. Frontend: /dispatch-portal/board shows board-create-assignment; drawer ac-haul-type-group renders all 4 buttons (material, equipment-move, spoils-dump, support-misc); Material mode shows ac-source/destination/material and hides ac-equipment/pickup/dropoff; Equipment Move mode reverses that; truck combobox loads 40 master options (seed slice cap of 40 in ComboboxField); ac-truck-add-temp + ac-equipment-add-temp surface for non-matching typed values; submit button label flips to 'Issue equipment move' in EM mode; end-to-end EM submission (temp truck T-EM-TEST + temp equipment EX-99 + pickup '415 Yard' + dropoff 'Job Site') creates a new ASSIGNED row tagged 'Equipment Move' on the board; iter407 T-99TEST row preserved.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/dispatch-portal/board drawer", "issues": ["Cosmetic (carry-over from iter407 report): once a combobox value is selected the testid transitions from 'ac-<field>' to 'ac-<field>-selected'; testers must use the -selected suffix or re-clear to access the input. Already documented. No functional impact.", "ComboboxField.filtered slices options at 40 when query is empty — exactly meets the 'shows 40+' acceptance criterion at the floor; typing narrows further so the equipment_master master records beyond 40 are still reachable via search. Consider raising the cap or rendering a 'show more' affordance if reviewers want >40 visible on cold-click."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter408_assignment_lookups_expanded.py",
+    "/app/backend/tests/test_iter407_assignment_lookups.py",
+    "/app/test_reports/pytest/iter408_parity.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "dispatch_assignment_seeds.py (223 lines) — clean, single-purpose module; canonical vocabulary correctly decoupled from server.py; doctrine (no new collections / no new write endpoints) preserved.",
+    "AssignmentCreateDrawer.jsx (716 lines) — close to the 700-line guideline ceiling; ComboboxField subcomponent and conditional Haul Type field rendering are well-organized; future iter could extract ComboboxField + form-state hook into separate files if more haul types or field-sets land.",
+    "Lookups endpoint correctly merges seed + history with explicit 'source' flag; tenant isolation verified; no _id or _* leakage in any of the 11 lookup categories (drivers/trucks/trailers/equipment/carriers/projects/sources/destinations/pickup_locations/dropoff_locations/materials).",
+    "POST /api/dispatch/assignments correctly defaults haul_type='Material' for legacy callers; new additive fields persist on the assignment doc; backward compatibility confirmed by test_material_assignment_defaults_haul_type."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (104/104 parity-lock; 22/22 iter408+iter407 targeted)", "frontend": "100% (all 9 acceptance flows verified including E2E Equipment Move issuance)"},
+  "test_credentials": "Admin legacy MASCI1982! · Multi-login jaymn.judd@mascigc.com / Maddix123! (portal_tokens.dispatch + .admin satisfy dispatch-portal RequireDispatch + admin-gated route).",
+  "seed_data_creation": "Created one Equipment Move assignment (truck T-EM-TEST, equipment EX-99, pickup '415 Yard', dropoff 'Job Site', haul_type='Equipment Move') via the drawer to validate end-to-end EM issuance. Visible as ASSIGNED row on the board alongside iter407's T-99TEST. Safe to leave (matches doctrine — assignments are operational memory).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 14.1 + 14.2 (iter408) shipped clean. Parity-lock command (DO NOT run full suite): cd /app/backend && python -m pytest tests/test_iter408_*.py tests/test_iter407_*.py tests/test_iter319_*.py tests/test_iter392_*.py tests/test_iter393_*.py tests/test_iter395_*.py tests/test_iter396_*.py tests/test_iter401_*.py tests/test_iter402_*.py — 104/104 PASS in ~22s. Dispatch token via multi-login portal fan-out (NOT /api/admin/dispatch-users reset). Combobox 'selected' state testid is `ac-<field>-selected` (input transitions after value chosen) — same behavior since iter407.",
+  "rca of the issue": "N/A — no issues encountered."
+}

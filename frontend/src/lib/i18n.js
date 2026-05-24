@@ -4427,6 +4427,48 @@ const ES = {
   "Close": "Cerrar",
   "Connection failed — try again.": "Conexión fallida — intenta de nuevo.",
   "No matches yet.": "Aún no hay coincidencias.",
+
+  // ─── iter408 · Phase 14.1 + 14.2 · Haul Type + searchable rosters ──
+  "Haul type": "Tipo de viaje",
+  "Material": "Material",
+  "Equipment Move": "Mover Equipo",
+  "Spoils / Dump": "Escombros / Vertedero",
+  "Support / Misc": "Apoyo / Varios",
+  "Lowboy / Trailer": "Lowboy / Tráiler",
+  "Receiving job / project": "Trabajo / proyecto receptor",
+  "Equipment being hauled": "Equipo a transportar",
+  "from equipment master": "del maestro de equipo",
+  "Type or pick equipment (e.g. EX-12)": "Escribe o elige equipo (ej. EX-12)",
+  "Add temporary equipment:": "Agregar equipo temporal:",
+  "No matching equipment. Type a label to add a temporary one.":
+    "Sin coincidencias. Escribe una etiqueta para agregar uno temporal.",
+  "Pickup location": "Ubicación de recogida",
+  "Drop-off location": "Ubicación de entrega",
+  "e.g. 415 Yard, Vendor": "ej. 415 Yard, Proveedor",
+  "e.g. Job Site, Shop": "ej. Sitio, Taller",
+  "e.g. MASCI Hot Plant 1, 415 Yard": "ej. MASCI Hot Plant 1, 415 Yard",
+  "e.g. Job Site, Dump": "ej. Sitio, Vertedero",
+  "Add pickup location:": "Agregar ubicación de recogida:",
+  "Add drop-off location:": "Agregar ubicación de entrega:",
+  "Add source:": "Agregar origen:",
+  "Add destination:": "Agregar destino:",
+  "Add material:": "Agregar material:",
+  "Add carrier:": "Agregar transportista:",
+  "Pick from seeded or recent locations.": "Elige de las ubicaciones predefinidas o recientes.",
+  "Pick from seeded or recent load points.": "Elige de los puntos de carga predefinidos o recientes.",
+  "Pick from seeded or recent destinations.": "Elige de los destinos predefinidos o recientes.",
+  "Pick from the seeded material catalog or recent values.":
+    "Elige del catálogo de materiales o valores recientes.",
+  "Type or pick a truck number": "Escribe o elige un número de camión",
+  "Type or pick a driver": "Escribe o elige un conductor",
+  "Type or pick a trailer": "Escribe o elige un tráiler",
+  "Type or pick a material": "Escribe o elige un material",
+  "Equipment Move: dispatch picks the truck/lowboy, the piece of equipment being hauled, pickup, drop-off. Same lifecycle, same board — completed counts as an Equipment Move on operational memory.":
+    "Mover Equipo: despacho elige el camión/lowboy, la pieza de equipo a transportar, recogida y entrega. Mismo ciclo, mismo tablero — al completarse cuenta como Mover Equipo en la memoria operativa.",
+  "Truck is required. Driver is optional — self-start can claim later. Pick a project, source, and material so operational memory stays accurate. Wait reasons stay canonical (set later via the driver lifecycle).":
+    "El camión es obligatorio. El conductor es opcional — el auto-inicio puede reclamarlo después. Elige proyecto, origen y material para que la memoria operativa se mantenga precisa. Las razones de espera siguen siendo canónicas (se asignan después en el ciclo del conductor).",
+  "Issue equipment move": "Emitir mover equipo",
+  "Equipment move issued · truck on the board": "Mover equipo emitido · camión en el tablero",
 };
 
 const DICTS = { es: ES, en: {} };
