@@ -1,6 +1,82 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-24 — iter399 · Phase 12.6 · Lane B · Mobile-First Operational Refinement ✅
+
+### Mission
+Field-operational continuity work, NOT mobile UI design. Verify tap confidence, one-thumb usage, glove friendliness, glance readability, sunlight readability across the 5 DLS mobile surfaces. Ship only surgical fixes the audit scanner surfaces.
+
+### Doctrine reinforced (Phase 12.6)
+- The platform is **one operational operating system**, not modules.
+- 20-point pre-implementation gate applied (every check PASS).
+- Driver UX must remain stupidly simple — never feel like "using software."
+- Validate-don't-surveil Motive doctrine unchanged.
+- Restraint enforced: zero new endpoints / tiles / pages / role visibility.
+
+### Files shipped
+- **NEW** `/app/scripts/touch_target_audit.py` — durable doctrine guardrail. Flags interactive elements lacking explicit sizing tokens. Exit-0 advisory tool, never breaks builds. Sibling to `operator_vocabulary_scanner.py` in `/app/scripts/`.
+- **MOD** `/app/frontend/src/components/dispatch/AssignmentDrawer.jsx` — 2 surgical tap-target fixes:
+  1. Drawer close X: bare 20 px → `h-10 w-10` centered (40 px).
+  2. Magic-link Copy button: `h-7` (28 px) → `h-10` (40 px).
+- **MOD** `/app/frontend/src/pages/driver/DriverShift.jsx` — 3 surgical tap-target fixes:
+  1. Empty-state Sign out: text-only ~14 px → `min-h-[44px] px-4` flex.
+  2. Header Sign out: text-only ~14 px → `min-h-[44px] px-3` flex.
+  3. Wait-sheet Cancel: text-only ~14 px → `min-h-[44px] px-3` flex.
+
+All 5 fixes are **additive Tailwind classes only**. Zero JSX structural change, zero prop removal, zero copy change, zero behavior change.
+
+### Scanner contract (durable guardrail)
+- Path: `/app/scripts/touch_target_audit.py`
+- Detects: `<button`, `<Button`, `<a `, `<Link `, inline `onClick=` opens.
+- Flags: lack of `h-\d+`, `min-h-[`, `min-h-\d`, `py-\d`, `p-\d`, `size="…"`, sized icon-box, `h-[`.
+- `--strict` flags `h-9` and below.
+- Skips JS/Python comments + imports automatically.
+- Exit 0 always — advisory tool, not a build gate.
+- Usable as `python3 /app/scripts/touch_target_audit.py [--strict] [--json] [--paths …]`.
+
+### Scan results
+- Pre-fix: 4 default candidates / 6 strict candidates across 2 files.
+- Triage: 5 real undersized targets, 1 false positive (icon glyph inside `size="sm"` Button).
+- **Post-fix: 0 candidates — scanner reports clean.**
+
+### Phase 12.6 doctrine gate · 20-check audit
+**All 20 checks: PASS.** Documented in `PHASE12_CONTINUITY_AUDIT.md` iter399 addendum.
+
+### Tests · 51 / 51 PASS in 12.32 s
+- iter392 foundation 23/23 (untouched)
+- iter393 driver session 13/13 (untouched)
+- iter395 governance + CSV 12/12 (untouched)
+- iter396 convergence 3/3 (untouched)
+ESLint clean on `AssignmentDrawer.jsx` + `DriverShift.jsx`. Ruff clean on the new audit helper.
+
+### What iter399 explicitly did NOT do (restraint enforced)
+- ❌ No new endpoints / collections / pages / tiles
+- ❌ No analytics / dashboards / charts
+- ❌ No role visibility changes (Safety/FL/HR stay quiet)
+- ❌ No Motive activation
+- ❌ No JSX structural refactor
+- ❌ No animation or transition additions
+- ❌ No copy strings changed (preserves EN/ES parity automatically)
+- ❌ No notification fan-out changes
+
+### Phase 12.6 lane order (locked)
+1. **a · Cross-platform continuity audit** ✅ shipped iter397.
+2. **e · Restraint / tone pass** ✅ shipped iter398.
+3. **b · Mobile-first usability sweep of DLS surfaces** ✅ shipped iter399.
+4. **d · Motive integration strategy refresh (DOC ONLY)** — iter400 next.
+5. **c · Post-deploy operational stabilization instrumentation** — iter401.
+
+### Next Action Items
+- 🟠 **P1 — iter400 · Lane D · Motive integration strategy refresh.** DOC-ONLY refresh of `/app/memory/MOTIVE_INTEGRATION_STRATEGY.md` for the iter392→396 reality. Zero code. Reinforce validate-don't-surveil contract, sketch webhook receiver shape that reads but never writes punitive findings.
+- 🔵 **P2 — iter401 · Lane C · Post-deploy stabilization instrumentation.** Week 1/2/4 checklist. Optional `/admin/dls-health` page only if it stays under "one page, no new data".
+- 🔵 **P3 — Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
+- 🔵 **P3 — Backlog · 14-day post-live-ops review** of Safety/FL/HR tile decisions.
+- 🟠 **P2 — Backlog · `server.py` Phase 4D extractions** (`/api/legacy-imports/*`).
+- 🔵 **P3 — Backlog · 233 inherited pytest isolation failures.**
+
+---
+
+
 ## 2026-05-24 — iter398 · Phase 12.5 · Lane E · Restraint / Tone Pass ✅
 
 ### Mission

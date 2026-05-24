@@ -215,7 +215,7 @@ export default function DriverShift() {
           type="button"
           data-testid="driver-sign-out-empty"
           onClick={goSignedOut}
-          className="mt-6 text-sm uppercase tracking-widest text-slate-400 underline"
+          className="mt-6 inline-flex items-center justify-center min-h-[44px] px-4 text-sm uppercase tracking-widest text-slate-400 underline"
         >
           Sign out
         </button>
@@ -252,7 +252,7 @@ export default function DriverShift() {
           type="button"
           data-testid="driver-sign-out"
           onClick={goSignedOut}
-          className="text-xs uppercase tracking-widest text-slate-400 underline"
+          className="inline-flex items-center justify-center min-h-[44px] px-3 -mr-2 text-xs uppercase tracking-widest text-slate-400 underline"
         >
           Sign out
         </button>
@@ -360,7 +360,7 @@ export default function DriverShift() {
                 type="button"
                 data-testid="driver-wait-sheet-close"
                 onClick={() => setWaitSheetOpen(false)}
-                className="text-slate-400 text-sm uppercase tracking-widest"
+                className="inline-flex items-center justify-center min-h-[44px] px-3 text-slate-400 text-sm uppercase tracking-widest"
               >
                 Cancel
               </button>

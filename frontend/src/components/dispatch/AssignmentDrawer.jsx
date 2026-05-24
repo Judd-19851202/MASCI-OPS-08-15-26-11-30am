@@ -312,7 +312,7 @@ export default function AssignmentDrawer({
             type="button"
             data-testid="drawer-close"
             onClick={close}
-            className="text-slate-500 hover:text-slate-900"
+            className="inline-flex items-center justify-center h-10 w-10 -mr-2 text-slate-500 hover:text-slate-900"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -378,11 +378,11 @@ export default function AssignmentDrawer({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[11px]"
+                  className="h-10 text-xs"
                   onClick={copyMagicLink}
                   data-testid="drawer-copy-magic"
                 >
-                  <Copy className="w-3 h-3 mr-1" /> Copy
+                  <Copy className="w-3.5 h-3.5 mr-1" /> Copy
                 </Button>
               </div>
             ) : null}

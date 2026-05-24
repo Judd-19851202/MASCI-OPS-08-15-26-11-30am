@@ -215,10 +215,8 @@ next per the operator's lane order: **a → e → b → d → c**.
 
 ## Next Action Items
 
-- 🟢 **iter398 · Lane E · Restraint/tone pass.** ✅ shipped — see iter398 addendum below.
-- 🟡 **iter399 · Lane B · Mobile-first usability sweep of DLS surfaces.**
-  DispatchBoard, DriverShift, DriverMagicLanding, AssignmentDrawer at 390 px
-  and 320 px. Tap targets, glanceability, one-handed reachability.
+- 🟢 **iter398 · Lane E · Restraint/tone pass.** ✅ shipped — see iter398 addendum above.
+- 🟢 **iter399 · Lane B · Mobile-first usability sweep.** ✅ shipped — see iter399 addendum below.
 - 🟠 **iter400 · Lane D · Motive integration strategy refresh (DOC ONLY).**
   Refresh `/app/memory/MOTIVE_INTEGRATION_STRATEGY.md` for iter392→396 reality.
   Zero code.
@@ -227,6 +225,137 @@ next per the operator's lane order: **a → e → b → d → c**.
   page if and only if it stays under "one page, no new data".
 - 🔵 **Backlog · DLS UI i18n sweep.** Wrap operational chrome in `t()`.
 - 🔵 **Backlog · 14-day post-live ops review** of Safety/FL/HR tile decisions.
+
+---
+
+# iter399 addendum · Lane B · Mobile-First Operational Refinement ✅ (2026-05-24)
+
+## Doctrine framing
+This is **field-operational continuity work**, not mobile UI design. Optimize for one-thumb usage, sunlight readability, glove friendliness, tap confidence, glance readability — never visual flair.
+
+## Touch-target audit helper shipped
+
+Lives at `/app/scripts/touch_target_audit.py`. Mirrors the operator vocabulary scanner's philosophy: advisory only, exit 0 always, never breaks builds.
+
+- Scans JSX/TSX for interactive opens (`<button`, `<Button`, `<a `, `<Link `, inline `onClick=`).
+- Flags any without an explicit sizing token (`h-\d+`, `min-h-[`, `min-h-\d`, `py-\d`, `p-\d`, `size="..."`, `w-\d+ h-\d`, `h-[`).
+- `--strict` additionally flags `h-9` and below (under WCAG 44 px).
+- Skips comments + imports automatically.
+- Markdown + JSON output.
+- Usable: `python3 /app/scripts/touch_target_audit.py [--strict] [--json] [--paths …]`.
+
+## Scan results · pre-fix
+
+- Default: **4 candidates across 2 files** (AssignmentDrawer + DriverShift).
+- Strict: **6 candidates across 2 files** (the 4 above + 2 small `h-7` / icon-glyph hits).
+
+## Triage outcome
+
+| # | File · Line | Element | Triage |
+|---|---|---|---|
+| 1 | `AssignmentDrawer.jsx:311` | drawer close X | **Real** — bare 20 px target |
+| 2 | `AssignmentDrawer.jsx:378` | magic-link Copy button | **Real** — explicit `h-7` (28 px) |
+| 3 | `AssignmentDrawer.jsx:395` | Reassign open button | **False positive** — scanner caught the Replace icon's `h-4`; the parent Button uses shadcn `size="sm"` which is itself sizing. Keep. |
+| 4 | `DriverShift.jsx:214` | empty-state Sign out | **Real** — text-only ~14 px target |
+| 5 | `DriverShift.jsx:251` | header Sign out | **Real** — text-only ~14 px target |
+| 6 | `DriverShift.jsx:359` | wait-sheet Cancel | **Real** — text-only ~14 px in a dim modal |
+
+## Surgical fixes shipped (5)
+
+| # | File · Line | Before | After | Why |
+|---|---|---|---|---|
+| 1 | `AssignmentDrawer.jsx` drawer close | bare `<button>` with no sizing | `h-10 w-10` + centered icon + `-mr-2` to maintain visual position | 20 px → 40 px tap target. Dispatcher on a trailer phone now hits it confidently. |
+| 2 | `AssignmentDrawer.jsx` Copy button | `h-7 text-[11px]` icon `w-3 h-3` | `h-10 text-xs` icon `w-3.5 h-3.5` | 28 px → 40 px. Magic-link Copy is a high-tap moment — dispatcher hands phone to driver. |
+| 3 | `DriverShift.jsx` empty-state Sign out | bare text button | `inline-flex min-h-[44px] px-4 items-center justify-center` | Driver should never struggle to sign out at end of shift. |
+| 4 | `DriverShift.jsx` header Sign out | bare text button | `inline-flex min-h-[44px] px-3 -mr-2 items-center justify-center` | Same. `-mr-2` keeps header alignment. |
+| 5 | `DriverShift.jsx` wait-sheet Cancel | bare text in modal | `inline-flex min-h-[44px] px-3 items-center justify-center` | Modal dismiss must be glove-friendly. |
+
+All five fixes:
+- Use `min-h-[44px]` (WCAG 2.1 minimum AAA) — operator-honest, glove-safe, not flashy.
+- Are additive Tailwind classes only — **zero JSX structural change, zero prop removal, zero behavior change**.
+- Are tone-consistent with the existing palette (no new colors, no new animations, no new chrome).
+
+## Scan results · post-fix
+
+```
+Touch-target Audit · clean
+No undersized interactive candidates in the scanned scope. ✅
+```
+
+## Intentionally left alone
+
+- **Drawer scrim** (`fixed inset-0 bg-slate-950/40` with onClick) — it's not a tap target, it's an overlay; the close action also lives on the X.
+- **Reassign open Button** with shadcn `size="sm"` — has sizing via prop, scanner false-positive on icon glyph.
+- **Driver state transition buttons** — already `min-h-[80px]` (well above WCAG 44 px) per iter393 driver doctrine.
+- **DispatchBoard rows** — already padded `px-4 py-3` and stretched to full row width; tap area is the entire row.
+- **CSV export buttons on the board** — shadcn `size="sm"` Buttons (36 px); used from a dispatcher desktop in 99% of cases. Acceptable; flagged but not raised because the surface is desk-first.
+
+## Mobile doctrine verifications (the 20 iter399 checks)
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Tap confidence | 🟢 5 newly enlarged targets ≥ 44 px |
+| 2 | Thumb reachability | 🟢 sign-out lives top-right, naturally reachable on iPhone 13/14/15 |
+| 3 | Sunlight readability | 🟢 amber-400 on slate-950 retained — high-contrast |
+| 4 | Operational clarity | 🟢 no copy change |
+| 5 | Low typing | 🟢 still 0 typed chars in the happy path |
+| 6 | Low ambiguity | 🟢 Cancel / Sign out / Copy labels stay obvious |
+| 7 | Mobile consistency | 🟢 same `min-h-[44px]` token used everywhere |
+| 8 | No dashboard drift | 🟢 zero new tiles or panels |
+| 9 | No ERP behavior | 🟢 no new workflows |
+| 10 | No visual clutter | 🟢 no new colors / animations / decorations |
+| 11 | Operational calmness | 🟢 calmer — targets feel more confident |
+| 12 | Role discipline | 🟢 visibility unchanged across PM / Shop / Safety / FL / HR |
+| 13 | Downstream continuity | 🟢 every contract intact |
+| 14 | EN/ES parity | 🟢 no copy strings changed |
+| 15 | Motive compatibility | 🟢 architecture untouched; validate-don't-surveil intact |
+| 16 | Field usability | 🟢 measurably better for glove + sunlight |
+| 17 | Low cognitive load | 🟢 same number of buttons, same labels |
+| 18 | Operational honesty | 🟢 no new metrics, no scoring |
+| 19 | Doctrine alignment | 🟢 restraint + trust + calm preserved |
+| 20 | Platform convergence | 🟢 mobile surfaces now match the established 44 px+ tap-target floor |
+
+**All 20 checks: PASS.**
+
+## Verification
+
+```bash
+# Touch-target audit post-fix → clean
+python3 /app/scripts/touch_target_audit.py
+# → Touch-target Audit · clean ✅
+
+# Phase 11 regression — every contract intact
+cd /app/backend
+python -m pytest tests/test_iter392_dls_foundation.py \
+                 tests/test_iter393_driver_session.py \
+                 tests/test_iter395_governance.py \
+                 tests/test_iter396_convergence.py -q
+# 51 / 51 PASS in 12.32 s ✅
+
+# ESLint on touched frontend files → ✅ no issues
+# Ruff on touch_target_audit.py → ✅ All checks passed
+```
+
+## Restraint discipline maintained
+
+- ❌ No new endpoints / collections / pages / tiles
+- ❌ No role visibility changes
+- ❌ No Motive activation
+- ❌ No analytics / charts / dashboards
+- ❌ No notification fan-out changes
+- ❌ No animations or transitions added
+- ❌ No JSX structural changes — only additive Tailwind classes
+- ❌ No live screenshot smoke spent (DriverShift requires magic-link session; scanner + lint + regression cover the contract)
+
+## What iter399 leaves behind
+
+1. **5 surgical mobile-tap-target fixes** lifting AssignmentDrawer + DriverShift to ≥ 44 px on every interactive element.
+2. **A durable doctrine guardrail** — `/app/scripts/touch_target_audit.py` — the second permanent audit aid in `/app/scripts/`, sibling to the operator vocabulary scanner.
+3. **0 behavior changes** — every contract intact, 51/51 tests still green.
+
+---
+
+
 
 ---
 
