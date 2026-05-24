@@ -258,8 +258,38 @@ Daily reports, inspections, JHAs, employee CRUD, audit endpoints, etc. — extra
 - Behavior identical · no auth drift · no lifecycle drift · no visibility drift.
 - No route renaming unless explicitly required.
 - Each iteration adds ≥5 functional parity tests + ≥3 source-level guards.
-- Cumulative pytest suite must stay green.
+- **Parity-lock subset must stay green** (not the full 4,700-test inherited-debt suite).
 - If an iteration would touch >300 LOC or require a behavior change, STOP and consult operator.
+- **MANDATORY iteration-zero pre-flight** (see checklist below) — no extraction without it.
+
+---
+
+## Iteration-Zero Extraction Checklist
+
+Adopted 2026-05-24 after iter382 closeout. No extraction iteration begins
+without completing this checklist and saving the pre-flight artifact in
+this tracker. The goal: catch silently-deleted wiring, hidden cross-
+references, and adjacent-block coupling **before** any code moves.
+
+For each extraction iteration, fill in:
+
+1. **Target route family** — exact path prefix being extracted.
+2. **Current server.py route block location** — line range of the routes.
+3. **Current import dependencies** — every module the handlers import.
+4. **Current DB dependencies** — every collection the handlers touch.
+5. **Current auth gates** — every dependency / token type each route uses.
+6. **Current registration wiring** — `@app.<verb>` vs `@api_router.<verb>`,
+   any `app.include_router(...)` block, any startup hooks, any helpers
+   that wire dependencies.
+7. **Adjacent route families** — what registration blocks live within
+   ±50 LOC of the target (these are at highest risk of accidental
+   deletion during patch operations).
+8. **Before-curl endpoints** — exact list of routes to smoke before
+   touching code, with expected status codes.
+9. **Existing tests touching the family** — file paths + test counts.
+10. **Missing parity-lock tests needed** — what gaps must be filled.
+11. **Risk rating** — low / medium / high, with explicit factors.
+12. **Rollback plan** — exact git command(s) to revert if anything drifts.
 
 ---
 
@@ -269,3 +299,169 @@ Daily reports, inspections, JHAs, employee CRUD, audit endpoints, etc. — extra
 - Each route family lives in `/app/backend/routes/<family>_routes.py`.
 - Each family file is a `build_<family>_router(db, ...deps)` factory.
 - `server.py` is reduced to: app construction, shared dependencies (db, auth gates, schedulers), router mounting, startup/shutdown hooks.
+
+---
+
+## iter383 · Pre-Flight (`/api/legacy-imports/*`) · 🟡 PRE-FLIGHT ONLY · NO EXTRACTION YET
+
+**Completed:** 2026-05-24
+**Status:** Pre-flight artifact only. Extraction blocked pending operator approval.
+
+### 1. Target route family
+`/api/legacy-imports/*` and `/api/admin/legacy-imports/*` — total **11 routes**
+(handoff said 9; actual is 11). All registered directly on `app` with
+explicit `/api/` prefix (NOT via `api_router`).
+
+### 2. Current server.py route block location
+| Line | Method | Path | Handler |
+|---|---|---|---|
+| 9066 | POST | `/api/legacy-imports/upload`            | `li_upload` |
+| 9207 | GET  | `/api/legacy-imports/_meta`             | `li_meta` |
+| 9235 | GET  | `/api/legacy-imports`                   | `li_list` |
+| 9255 | GET  | `/api/legacy-imports/{import_id}`       | `li_get` |
+| 9264 | GET  | `/api/legacy-imports/{import_id}/file`  | `li_signed_file_url` |
+| 9303 | PATCH| `/api/legacy-imports/{import_id}`       | `li_patch` |
+| 9345 | POST | `/api/legacy-imports/{import_id}/approve` | `li_approve` |
+| 9381 | POST | `/api/legacy-imports/{import_id}/reject`  | `li_reject` |
+| 9406 | POST | `/api/legacy-imports/{import_id}/retry-ocr` | `li_retry_ocr` |
+| 9442 | GET  | `/api/admin/legacy-imports/audit`       | `li_audit_list` |
+| 9456 | GET  | `/api/admin/legacy-imports/pilot-debrief` | `li_pilot_debrief` |
+
+Plus a 35-LOC helper `_li_require_uploader` (line 9029) and **two startup
+hooks** at lines 9004 and 9012 (`_li_ensure_indexes`, `_li_start_worker`)
+that MUST move with the routes or be preserved verbatim.
+
+**Total block:** lines 8985 → 9492 (≈507 LOC including comments, the
+phase intro block, the helper, the startup hooks, and the 11 handlers).
+
+### 3. Current import dependencies
+- `import legacy_imports as _li` (line 8999) — `/app/backend/legacy_imports.py` · 601 LOC.
+- `import photo_storage as _ps` (line 9000) — used for signed URL generation in `/file` endpoint.
+- `from fastapi import UploadFile, File, Form` (line 9001) — used by `/upload`.
+- Inside handlers (PLC0415-lazy):
+  - `legacy_imports_equipment_checkout as _li_ec` (Phase B promoter registration; appears in 4 sites).
+  - `hr_users.is_valid_hr_user_token_async` (auth gate).
+  - `safety_users.is_valid_safety_user_token` (auth gate).
+
+### 4. Current DB dependencies
+- `db.legacy_imports` (primary collection; 9 sites in this block).
+- `db.legacy_import_audit` (audit log; 1 site, `/audit` endpoint).
+- Indexes created in `_li.ensure_indexes(db)` at startup.
+
+### 5. Current auth gates
+| Route | Gate |
+|---|---|
+| `/upload`, `/_meta`, `/`, `/{id}`, `/{id}/file`, `/{id}/approve`, `/{id}/reject`, `/{id}/retry-ocr` | `_li_require_uploader` (HR · Safety · Admin) |
+| `/{id}` PATCH | `_li_require_uploader` |
+| `/admin/legacy-imports/audit` | `require_admin` (admin-only) |
+| `/admin/legacy-imports/pilot-debrief` | `require_admin` (admin-only) |
+
+Anti-self-approval guard inside `/approve` handler — must preserve.
+
+### 6. Current registration wiring
+- **Direct `@app.<verb>("/api/...")`** — not `api_router`. This is unusual
+  for the codebase; new file MUST mount via `app.include_router(router,
+  prefix="/api")` OR keep the explicit `/api/` prefix inside the router.
+- Two startup hooks (`@app.on_event("startup")`) wire indexes + worker.
+- One module-level `_li_worker_task: Optional[asyncio.Task] = None`.
+
+### 7. Adjacent route families (±50 LOC)
+**ABOVE (lines ~8950 → 8985):** Section header comments only — the
+preceding code block ends with PM-related admin endpoints (already
+extracted in iter382 to `pm_admin.py`). No active registration calls
+in the gap.
+**BELOW (lines 9493 → 9540):** `iter251 Phase A · Fleet Operations
+Foundation` — `from routes.fleet_ops import build_router as
+_fleet_build_router`, `from routes.dispatch_portal_auth import
+make_require_dispatch_token`, helper `_require_fleet_submitter`.
+
+**Risk:** the iter382 mistake was caused by an over-broad delete that
+swallowed the safety/qaqc/daily-reports registration blocks living below
+the deleted family. For iter383, the comparable risk surface is the
+**fleet_ops include/build call** immediately below line 9492. Any patch
+that deletes past line 9492 must be visually verified to preserve fleet
+ops registration intact.
+
+### 8. Before-curl endpoints (smoke baseline · captured 2026-05-24)
+Admin token: `X-Admin-Token: <admin login token>`.
+
+| Method | URL | Expected status | Verified |
+|---|---|---|---|
+| GET | `/api/legacy-imports?limit=2` | 200 (returns `{count, items}`) | ✅ `{"count":0,"items":[]}` |
+| GET | `/api/legacy-imports/_meta` | 200 (returns `upload_portal`, `allowed_document_types`, `active_promoters`, etc.) | ✅ full payload |
+| GET | `/api/admin/legacy-imports/audit?limit=2` | 200 (returns `{count, items}`) | ✅ `{"count":2,...}` |
+| GET | `/api/admin/legacy-imports/pilot-debrief` | 200 (returns debrief payload) | ✅ full payload |
+| GET | `/api/legacy-imports` (no auth) | 401 (`HR, Safety, or Admin authentication required`) | ✅ |
+| GET | `/api/admin/legacy-imports/audit` (no auth) | 401 (`Admin login required`) | ✅ |
+
+Adjacent smoke (must NOT regress post-extraction):
+| GET | `/api/health` | 200 | ✅ |
+| POST | `/api/incidents` (anon) | 200 | ✅ |
+| GET | `/api/admin/project-managers` (admin) | 200 (PM admin family — iter382) | (verify pre/post) |
+| GET | `/api/fleet-ops/*` (admin) | (verify pre/post) | (verify pre/post) |
+
+### 9. Existing tests touching legacy imports
+| File | Test count (approx) | Notes |
+|---|---|---|
+| `tests/test_iter248_phase_a.py` | TBD | Phase A foundation (staging + RBAC + OCR scaffold) |
+| `tests/test_iter249_phase_b.py` | TBD | Phase B equipment-checkout activation |
+| `tests/test_iter249_pilot_debrief.py` | TBD | Pilot debrief endpoint |
+
+These three files form the **parity-lock subset for iter383**. They must
+all pass before AND after extraction with identical assertion counts.
+
+### 10. Missing parity-lock tests needed
+- **`test_iter383_legacy_imports_extraction.py`** (new) — explicit
+  structural assertions:
+  - `legacy_imports` route handlers NOT in `server.py`.
+  - `/api/legacy-imports/upload` (etc.) registered via the new
+    `routes/legacy_imports.py` router.
+  - Helper `_li_require_uploader` lives in the new module (or in a
+    shared deps module).
+  - Startup hooks `_li_ensure_indexes` + `_li_start_worker` preserved
+    (still wired to `app` via the new module's `register_*` factory).
+  - `/api/admin/legacy-imports/audit` and `/pilot-debrief` registered
+    with `require_admin` gate (not `_li_require_uploader`).
+- **Curl smoke parity assertions** — every endpoint from §8 returns the
+  same status code and same JSON shape pre/post.
+
+### 11. Risk rating
+**MEDIUM-HIGH.** Justification:
+- Direct `@app.<verb>` registration (different pattern than other
+  extractions which used `@api_router.<verb>`).
+- Two startup hooks must be preserved verbatim — extracted module must
+  expose a `register(app, db, ...)` that re-wires them.
+- File-storage coupling (`photo_storage` + R2 signed URLs).
+- Anti-self-approval guard inside `/approve` handler — easy to drop on
+  copy-paste.
+- Adjacent fleet_ops block (the analog of the iter382 safety/qaqc
+  silently-deleted block).
+- Worker module global `_li_worker_task` lives in `server.py` scope —
+  extraction must decide whether to move it to the new module or keep
+  it parked in `server.py` and pass a reference.
+
+### 12. Rollback plan
+If anything drifts post-extraction:
+```bash
+cd /app
+git log --oneline -5 backend/server.py        # find pre-iter383 commit
+git checkout <pre-iter383-sha> -- backend/server.py
+rm -f backend/routes/legacy_imports_routes.py  # if a new file was created
+rm -f backend/tests/test_iter383_legacy_imports_extraction.py
+sudo supervisorctl restart backend
+curl -sf http://localhost:8001/api/health     # verify
+```
+
+### Pre-flight verdict
+🟡 **NOT GREEN-FLAG YET.** Two pre-flight items still owed before
+extraction can safely start:
+1. Read and capture test counts in `test_iter248`, `test_iter249_phase_b`,
+   `test_iter249_pilot_debrief` (need to confirm they pass against the
+   current restored baseline).
+2. Decide the destination structure (single `routes/legacy_imports.py`
+   with `register(app, db)` factory, OR split into `legacy_imports.py`
+   user-facing + `legacy_imports_admin.py` admin-facing? recommend the
+   single-file approach to match iter382 pattern).
+
+Both items are operator-decision points. **No code moves until they're
+resolved.**
