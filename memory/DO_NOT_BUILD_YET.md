@@ -1,11 +1,13 @@
-# Do Not Build (Yet) · Phase 7 · WS7
+# Do Not Build (Yet) · Phase 7 → 9 Refresh
 
 **Date:** 2026-05-24
 **Doctrine:** *Restraint creates competitive advantage at this stage.*
 
-The platform is mature, operationally green, and ready for deploy. The single biggest risk now is **system sprawl** — adding features that feel impressive but make daily work heavier. This document is the canonical list of things that should NOT be built right now, with the reasoning.
+**Phase 9 update:** Refreshed with pre-deployment context. The same 11 categories from Phase 7 apply — now sharpened for the operational pressure that Day-1 production use will produce. Operator and engineers should re-read this doc before responding to any Day-1 feature request.
 
-This is not a permanent "never." This is a "not until live operational data tells us otherwise."
+The platform is mature, operationally green, and ready for deploy (see `DEPLOYMENT_GO_NO_GO.md`). The single biggest risk now is **system sprawl** — adding features that feel impressive but make daily work heavier. This document is the canonical list of things that should NOT be built right now, with the reasoning.
+
+This is not a permanent "never." This is a "not until live operational data tells us otherwise" — and the data window is the **first 60 days of production**.
 
 ---
 
@@ -239,5 +241,53 @@ These items remain in the active backlog because they extend already-proven syst
 1. **Engineering review gate:** Anyone proposing a new feature must first check this file and the friction audit. If the proposed feature lives in any of the ❌ sections above, the default answer is no.
 2. **Operator review gate:** Operator-driven feature requests get filtered through this list. If a request maps to a ❌ section, the conversation becomes "what's the underlying operational problem we're really trying to solve?"
 3. **60-day re-review:** Pin a calendar reminder for 2026-07-23 (60 days post-deploy). Re-read this file. Update statuses based on what live operations have actually surfaced.
+4. **Phase 9 Day-1 review:** Before responding to ANY feature request in the first 14 days of production deploy, re-read this file. Day-1 enthusiasm is the most common source of platform regret.
 
 Restraint is a feature.
+
+---
+
+## Phase 9 addendum · Day-1 pressure scenarios
+
+These are the specific scenarios most likely to produce feature pressure in the first 14 days of production. Each scenario has a pre-decided response.
+
+### Scenario 1 · "Leadership wants a dashboard summary on the home page"
+- **Pre-decided response:** Route to the existing surfaces (Governance Health · Notifications bell · Accountability Timeline · CSV exports). If a specific decision cannot be made with those, route to the operator for a 60-day-review item.
+
+### Scenario 2 · "Safety wants to bulk-edit CAPAs"
+- **Pre-decided response:** No. Each CAPA is an audit-grade record. Bulk edits compromise the audit trail. If a recurring issue needs systemic correction, it's a governance finding, not a bulk-edit feature.
+
+### Scenario 3 · "PM wants to add a note to an incident they didn't create"
+- **Pre-decided response:** No. PM is intentionally read-only on safety records. The note belongs in a CAPA opened by Safety, with the PM as a watcher. The cross-portal separation IS the value.
+
+### Scenario 4 · "Foreman wants to skip the Tier-2 lock on a serious incident"
+- **Pre-decided response:** No. The lock is the platform's most important safety net. If the foreman believes the severity is misclassified, they downgrade severity (visible in the audit trail) — they do not bypass.
+
+### Scenario 5 · "Field user wants a 'duplicate previous report' button"
+- **Pre-decided response:** No. Daily reports are not templates. Every report reflects today's reality. Duplicate would encourage copy-paste behavior that defeats the platform's value.
+
+### Scenario 6 · "User wants to upload PDFs in addition to photos"
+- **Pre-decided response:** Park for 60-day review. Real workflows might genuinely benefit (e.g., subcontractor certificate of insurance). But ship only with a clear use case + explicit storage limits + audit trail integration.
+
+### Scenario 7 · "Crew wants an offline mode"
+- **Pre-decided response:** No (already documented in main ❌ section). `useDraftSync` + idempotency-key dedup cover the realistic bad-signal cases.
+
+### Scenario 8 · "We should email customers automatically when incidents close"
+- **Pre-decided response:** No. The customer notification path is intentionally human-mediated for liability and tone-control reasons. Resend is already wired for AUTO_EMAIL_REPORTS; expanding it to customer recipients introduces compliance + branding risk.
+
+### Scenario 9 · "We should add a satisfaction survey at the end of every report"
+- **Pre-decided response:** No. Gamification + survey fatigue. Adoption is measured by completion rate and field-shadow observation, not by self-report.
+
+### Scenario 10 · "We should integrate with [X external system]"
+- **Pre-decided response:** Park for 90-day review. Integrations have ongoing maintenance cost; ship only with a documented owner + clear failure-mode behavior.
+
+---
+
+## What this list IS saying for Phase 9
+
+The platform is ready to deploy. Once deployed:
+- For 14 days, do not build features.
+- For 60 days, do not change doctrine.
+- For 90 days, do not pursue major new integrations.
+
+That is the operational maturity window. Honor it.
