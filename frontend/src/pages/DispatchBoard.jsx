@@ -18,7 +18,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Truck, ArrowLeft, AlertTriangle, Wrench, Clock, Activity, RefreshCw, Send, Download, Bell,
+  Truck, ArrowLeft, AlertTriangle, Wrench, Clock, Activity, RefreshCw, Send, Download, Bell, Plus, QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
@@ -28,6 +28,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { toast } from "sonner";
 import AssignmentDrawer from "@/components/dispatch/AssignmentDrawer";
+import AssignmentCreateDrawer from "@/components/dispatch/AssignmentCreateDrawer";
 import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -329,6 +330,7 @@ export default function DispatchBoard() {
   const [refreshing, setRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [drawerAssignment, setDrawerAssignment] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
   // Tenant override is read-only support for `dls-demo` dev work.
   // Set ?tenant=dls-demo on the URL to see seeded demo data.
   const tenantOverride = useMemo(() => {
@@ -480,6 +482,26 @@ export default function DispatchBoard() {
           </div>
         </div>
 
+        {/* iter407 · Phase 14 · Dispatcher issuance + iter406 QR utility row */}
+        <div className="flex flex-wrap gap-2" data-testid="board-issuance-strip">
+          <Button
+            onClick={() => setCreateOpen(true)}
+            data-testid="board-create-assignment"
+            className="bg-orange-600 hover:bg-orange-500 text-white min-h-[44px] px-4 font-bold"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            {t("Create assignment")}
+          </Button>
+          <Link
+            to="/admin/dls/shift-qr"
+            data-testid="board-shift-qr-link"
+            className="inline-flex items-center min-h-[44px] px-4 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
+          >
+            <QrCode className="w-4 h-4 mr-1.5" />
+            {t("Shift Start QR")}
+          </Link>
+        </div>
+
         <SummaryStrip assignments={assignments} />
 
         {/* iter396 · LifecycleGuide — only here where confusion risk is real */}
@@ -560,6 +582,18 @@ export default function DispatchBoard() {
         onClose={() => setDrawerAssignment(null)}
         onChanged={handleDrawerChange}
         onRemoved={handleDrawerRemoved}
+      />
+
+      <AssignmentCreateDrawer
+        open={createOpen}
+        tenantOverride={tenantOverride}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(created) => {
+          if (created) {
+            setAssignments((prev) => [created, ...prev]);
+          }
+          refresh({ silent: true });
+        }}
       />
     </div>
   );

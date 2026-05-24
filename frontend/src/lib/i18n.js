@@ -4329,6 +4329,104 @@ const ES = {
   "Safety escalation": "Escalamiento de seguridad",
   "Attention": "Atención",
   "Status": "Estado",
+
+  // ─── iter406 · Phase 14 · QR Shift Start Generator ──────────────
+  "Physical Deployment": "Despliegue Físico",
+  "Shift Start QR Generator": "Generador de QR · Inicio de Turno",
+  "Print a QR sticker for the truck cab. Drivers scan, land on the public shift entry, pick their identity and start the shift. No password, no app install.":
+    "Imprime una etiqueta QR para la cabina del camión. Los conductores escanean, llegan al inicio público de turno, eligen su identidad e inician el turno. Sin contraseña, sin aplicación.",
+  "How operations uses this": "Cómo lo usa operaciones",
+  "One QR per truck cab · scan · start shift · operate lifecycle":
+    "Un QR por cabina · escanea · inicia turno · opera el ciclo",
+  "Print": "Imprimir",
+  "Fill the optional truck and carrier labels so operations can tell stickers apart. Tap Print, then choose 'Save as PDF' or send to your printer.":
+    "Completa las etiquetas opcionales de camión y transportista para que operaciones pueda distinguir las etiquetas. Toca Imprimir y luego elige 'Guardar como PDF' o envíalo a la impresora.",
+  "Place": "Colocar",
+  "Stick the printed card on the inside of the driver's door, the visor, or the dash. Anywhere the driver can reach with their phone camera before they roll.":
+    "Pega la tarjeta impresa en el interior de la puerta del conductor, en la visera o en el tablero. Cualquier lugar al que el conductor pueda apuntar la cámara antes de arrancar.",
+  "Scan": "Escanear",
+  "The driver opens their phone camera, points at the QR, taps the link. They land on the public shift entry and pick their identity from the platform's existing records — no enrollment, no app install.":
+    "El conductor abre la cámara, apunta al QR y toca el enlace. Llega al inicio público de turno y elige su identidad de los registros existentes — sin inscripción, sin instalar nada.",
+  "The QR is not tracked. There is no per-card audit log. This screen is a printer, not a system. If a sticker is damaged, print a new one — the QR target is the same public URL for every truck.":
+    "El QR no se rastrea. No hay registro de auditoría por tarjeta. Esta pantalla es una impresora, no un sistema. Si una etiqueta se daña, imprime una nueva — el destino del QR es la misma URL pública para todos los camiones.",
+  "Card details": "Detalles de la tarjeta",
+  "Truck label": "Etiqueta del camión",
+  "optional": "opcional",
+  "e.g. T-21": "ej. T-21",
+  "Printed at the top of the card so operations knows which truck this sticker belongs to.":
+    "Se imprime en la parte superior de la tarjeta para que operaciones sepa a qué camión pertenece.",
+  "Carrier": "Transportista",
+  "Useful when printing sticker packs for subhauler fleets.":
+    "Útil al imprimir paquetes de etiquetas para flotas subcontratadas.",
+  "Tenant": "Inquilino",
+  "dev only": "solo dev",
+  "Leave blank for production": "Déjalo en blanco para producción",
+  "Only set this when generating stickers for a non-default tenant (dev or pilot).":
+    "Solo configúralo al generar etiquetas para un inquilino distinto al predeterminado (dev o piloto).",
+  "Print card": "Imprimir tarjeta",
+  "Open shift URL": "Abrir URL de turno",
+  "DRIVER SHIFT START": "INICIO DE TURNO",
+  "Truck cab": "Cabina del camión",
+  "Scan to start your shift": "Escanea para iniciar tu turno",
+  "Open camera · point at QR · tap link": "Abre la cámara · apunta al QR · toca el enlace",
+  "No password · No app · Just tap": "Sin contraseña · Sin app · Solo toca",
+  "Shift Start QR": "QR · Inicio de Turno",
+
+  // ─── iter407 · Phase 14 · Dispatch Assignment Issuance ──────────
+  "Create assignment": "Crear asignación",
+  "Dispatch issuance": "Emisión de despacho",
+  "Truck is required. Driver is optional — self-start can claim later. Pick a project and source so operational memory stays accurate. Wait reasons stay canonical (set later via the driver lifecycle).":
+    "El camión es obligatorio. El conductor es opcional — el auto-inicio puede reclamarlo después. Elige un proyecto y origen para que la memoria operativa siga siendo precisa. Las razones de espera siguen siendo canónicas (se asignan después en el ciclo del conductor).",
+  "Truck": "Camión",
+  "Type a truck number": "Escribe un número de camión",
+  "Add temporary truck:": "Agregar camión temporal:",
+  "No matching truck. Type the unit number to add a temporary one.":
+    "Sin coincidencias. Escribe el número de unidad para agregar uno temporal.",
+  "Driver": "Conductor",
+  "Type a driver name": "Escribe el nombre del conductor",
+  "Add temporary driver:": "Agregar conductor temporal:",
+  "No matching driver. Leave blank for self-start.":
+    "Sin coincidencias. Déjalo vacío para auto-inicio.",
+  "Trailer": "Tráiler",
+  "Type a trailer number": "Escribe un número de tráiler",
+  "Add temporary trailer:": "Agregar tráiler temporal:",
+  "No matching trailer.": "Sin coincidencias.",
+  "Add temporary carrier:": "Agregar transportista temporal:",
+  "Add a one-time carrier.": "Agrega un transportista de una sola vez.",
+  "Project": "Proyecto",
+  "Project number": "Número de proyecto",
+  "Add temporary project:": "Agregar proyecto temporal:",
+  "Recent projects appear here as operations build memory.":
+    "Los proyectos recientes aparecen aquí conforme operaciones acumula memoria.",
+  "Source / load point": "Origen / punto de carga",
+  "e.g. Plant 04, Pit 12": "ej. Planta 04, Pozo 12",
+  "Add temporary source:": "Agregar origen temporal:",
+  "Recent load points appear here as operations build memory.":
+    "Los puntos de carga recientes aparecen aquí conforme operaciones acumula memoria.",
+  "Destination": "Destino",
+  "Job site or stockpile": "Sitio del trabajo o acopio",
+  "Add temporary destination:": "Agregar destino temporal:",
+  "Recent destinations appear here as operations build memory.":
+    "Los destinos recientes aparecen aquí conforme operaciones acumula memoria.",
+  "Material": "Material",
+  "e.g. Base Rock, RAP, Hot Mix": "ej. Base, RAP, Mezcla Caliente",
+  "Add temporary material:": "Agregar material temporal:",
+  "Recent materials appear here as operations build memory.":
+    "Los materiales recientes aparecen aquí conforme operaciones acumula memoria.",
+  "Note": "Nota",
+  "Anything the driver needs to know before they roll.":
+    "Cualquier cosa que el conductor necesite saber antes de arrancar.",
+  "Truck is required to issue an assignment.":
+    "El camión es obligatorio para emitir una asignación.",
+  "Issuance failed": "La emisión falló",
+  "Assignment issued · truck on the board": "Asignación emitida · camión en el tablero",
+  "Issuing…": "Emitiendo…",
+  "Issue assignment": "Emitir asignación",
+  "Truck appears on the board immediately. Driver lifecycle stays the source of operational truth.":
+    "El camión aparece en el tablero de inmediato. El ciclo del conductor sigue siendo la fuente de verdad operativa.",
+  "Close": "Cerrar",
+  "Connection failed — try again.": "Conexión fallida — intenta de nuevo.",
+  "No matches yet.": "Aún no hay coincidencias.",
 };
 
 const DICTS = { es: ES, en: {} };

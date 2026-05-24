@@ -404,6 +404,104 @@ def build_driver_router(
         }
 
     # ────────────────────────────────────────────────────────────────
+    # iter407 · Phase 14 · Dispatcher assignment-issuance lookups
+    # ────────────────────────────────────────────────────────────────
+    @router.get("/assignment-lookups")
+    async def assignment_lookups_route(
+        actor: Dict[str, Any] = Depends(require_dispatch_or_admin_dep),  # noqa: ARG001
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        """Dispatcher-gated · powers the iter407 Create Assignment drawer.
+
+        Extends `shift-lookups` (drivers / trucks / trailers / haulers)
+        with four additional "operational memory" lists derived at
+        request time from `dispatch_assignments` itself — no new
+        collections, no admin config screens:
+          • recent_projects     [{project_number, project_name}]
+          • recent_materials    [{label}]
+          • recent_sources      [{label}]
+          • recent_destinations [{label}]
+
+        Doctrine: operational memory feeds itself. The more dispatch
+        issues assignments, the more useful these dropdowns become.
+        No "master list" management surface — restraint.
+        """
+        tenant_id = _resolve_tenant(x_tenant_id)
+
+        # ── recent operational memory (distinct values, capped) ─────
+        recent_projects: List[Dict[str, Any]] = []
+        recent_materials: List[Dict[str, Any]] = []
+        recent_sources: List[Dict[str, Any]] = []
+        recent_destinations: List[Dict[str, Any]] = []
+        try:
+            # Project pairs (project_number + project_name) — keep the
+            # most-recent name when the same number appears twice.
+            proj_pipeline = [
+                {"$match": {
+                    "tenant_id": tenant_id,
+                    "project_number": {"$nin": [None, ""]},
+                }},
+                {"$sort": {"assigned_at": -1}},
+                {"$group": {
+                    "_id": "$project_number",
+                    "project_name": {"$first": "$project_name"},
+                    "last_at": {"$max": "$assigned_at"},
+                }},
+                {"$sort": {"last_at": -1}},
+                {"$limit": 25},
+            ]
+            async for row in db.dispatch_assignments.aggregate(proj_pipeline):
+                pn = (row.get("_id") or "").strip()
+                if not pn:
+                    continue
+                recent_projects.append({
+                    "project_number": pn,
+                    "project_name": (row.get("project_name") or "").strip(),
+                })
+        except Exception:
+            recent_projects = []
+
+        async def _distinct_recent(field: str, cap: int = 20) -> List[str]:
+            try:
+                pipeline = [
+                    {"$match": {
+                        "tenant_id": tenant_id,
+                        field: {"$nin": [None, ""]},
+                    }},
+                    {"$sort": {"assigned_at": -1}},
+                    {"$group": {
+                        "_id": f"${field}",
+                        "last_at": {"$max": "$assigned_at"},
+                    }},
+                    {"$sort": {"last_at": -1}},
+                    {"$limit": cap},
+                ]
+                vals: List[str] = []
+                async for row in db.dispatch_assignments.aggregate(pipeline):
+                    v = (row.get("_id") or "").strip()
+                    if v:
+                        vals.append(v)
+                return vals
+            except Exception:
+                return []
+
+        for v in await _distinct_recent("material"):
+            recent_materials.append({"label": v})
+        for v in await _distinct_recent("source_location"):
+            recent_sources.append({"label": v})
+        for v in await _distinct_recent("destination"):
+            recent_destinations.append({"label": v})
+
+        return {
+            "ok": True,
+            "tenant_id": tenant_id,
+            "recent_projects": recent_projects,
+            "recent_materials": recent_materials,
+            "recent_sources": recent_sources,
+            "recent_destinations": recent_destinations,
+        }
+
+    # ────────────────────────────────────────────────────────────────
     # Magic link issuance (dispatch/admin) and exchange (public)
     # ────────────────────────────────────────────────────────────────
     @router.post("/magic-link")

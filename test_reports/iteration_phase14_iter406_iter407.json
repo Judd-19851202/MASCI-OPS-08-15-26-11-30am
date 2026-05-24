@@ -1,0 +1,28 @@
+{
+  "summary": "Phase 14 (iter406 QR + iter407 Assignment Issuance) end-to-end validated. Backend parity-lock: 89/89 PASS (7 new iter407 + 82 historical iter319/392/393/395/396/401/402). Frontend: /admin/dls/shift-qr renders QR with all 8 testids; truck label live-reflects into shiftqr-card-truck; tenant input updates shiftqr-url-readout to include ?tenant=. /dispatch-portal/board shows board-create-assignment + board-shift-qr-link; drawer opens with all required fields; submit gated by truck; after temp-truck submit, drawer closes, success toast 'Assignment issued · truck on the board' appears, and T-99TEST appears as ASSIGNED row on board. iter404 regression intact (Driver Shift Start tile still on /field).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/dispatch-portal/board drawer", "issues": ["Note (informational, not a bug): ac-carrier testid is rendered conditionally by the shared Combobox — when a value is selected (default 'MASCI') the DOM exposes 'ac-carrier-selected'; only after clearing does the input expose 'ac-carrier'. Both pathways verified. Other ac-* fields (project/source/destination/material) expose 'ac-*' directly because they start empty. Cosmetic clarification only; no functional impact."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter407_assignment_lookups.py",
+    "/app/test_reports/pytest/iter407_parity.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "iter406 QR page (295 lines) is well within file-size limits; cleanly client-side via qrcode.react; no new collections / endpoints — doctrine respected.",
+    "iter407 drawer (584 lines) — within limits; restraint observed (reuses POST /api/dispatch/assignments, no new write endpoint).",
+    "GET /api/dispatch/driver/assignment-lookups returns 401 for anon, dedupes recents, isolates by tenant, and strips internal _* fields (validated by all 7 iter407 tests)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (89/89)", "frontend": "100% all required flows"},
+  "test_credentials": "Admin legacy MASCI1982! · Multi-login jaymn.judd@mascigc.com / Maddix123! (portal_tokens.dispatch + .admin used to satisfy dispatch-portal RequireDispatch + admin-gated route).",
+  "seed_data_creation": "Created one dispatch assignment with truck='T-99TEST' via the drawer to validate end-to-end issuance flow. Visible as single ASSIGNED row on the board; safe to leave (matches doctrine — assignments are operational memory).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 14 (iter406 + iter407) shipped clean. Parity-lock targeted command (DO NOT run full suite): pytest tests/test_iter407_assignment_lookups.py tests/test_iter319_*.py tests/test_iter392_*.py tests/test_iter393_*.py tests/test_iter395_*.py tests/test_iter396_*.py tests/test_iter401_*.py tests/test_iter402_*.py — 89/89 PASS in ~75s. Dispatch token via multi-login portal fan-out (NOT /api/admin/dispatch-users reset — seeded dispatch user not in preview)."
+}
