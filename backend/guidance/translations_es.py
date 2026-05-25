@@ -1942,3 +1942,10 @@ TRANSLATIONS_ES.update(_EXTRA_ES_ITER281)
 # direction in the iter296+iter297 bundle).
 from .translations_es_iter297 import EXTRA_ES as _EXTRA_ES_ITER297  # noqa: E402
 TRANSLATIONS_ES.update(_EXTRA_ES_ITER297)
+
+# iter414 · Phase 18 · DLS operational unification — Help-Search closure.
+# 7 new DLS-era articles (driver shift start · assignment issuance ·
+# haul types · lifecycle states · PM haul activity · operational
+# attention · health summary) with field-accurate operational Spanish.
+from .translations_es_iter414 import EXTRA_ES as _EXTRA_ES_ITER414  # noqa: E402
+TRANSLATIONS_ES.update(_EXTRA_ES_ITER414)

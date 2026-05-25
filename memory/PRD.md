@@ -1,6 +1,102 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter414 · Phase 18 · Operational Unification + Help-Search Lock ✅
+
+### Mission
+Surgical operational refinement and convergence lock after the Phase 17 audit series. Goal: ONE operational operating system across every portal — same look, sound, teach, flow.
+
+### Doctrine reinforced (Phase 18)
+- "Build from repeated hesitation · repeated confusion · repeated translation failures — NOT from imagination."
+- 25-point Phase 18 doctrine gate: all 25 PASS.
+- Only ONE surgical fix executed (the P0 help-search gap surfaced by Phase 17 audits). All other findings catalogued as prioritized backlog contingent on Day-1 debrief.
+
+### 8 required audit memos shipped
+All at `/app/memory/`:
+1. `PHASE18_OPERATIONAL_UNIFICATION_TRACKER.md` — 25-point doctrine gate + hard-evidence baseline + priority order
+2. `LEGACY_MODERNIZATION_MATRIX.md` — per-module audit of 15 pre-Phase-12 surfaces · 5-step modernization recipe · P2/P3 priorities
+3. `EN_ES_HARDENING_MATRIX.md` — coverage baseline (3,526 keys) · gap inventory · field-accurate operational Spanish vocabulary table · submitted-data normalization audit
+4. `ROLE_DISCIPLINE_LOCK_AUDIT.md` — per-role lock + 8-probe role-creep grep scan (all 0 hits) · cross-portal coexistence verified
+5. `OPERATIONAL_DEAD_END_RECHECK.md` — 7 primary workflows re-walked · 8 hesitation-points scanned · 2 known cul-de-sacs documented
+6. `CROSS_PORTAL_CONTINUITY_RECHECK.md` — 7 end-to-end workflows · 9-portal tile mounting matrix · operational memory feedback loop
+7. `MOBILE_FIRST_LOCK_REPORT.md` — 12 Phase 12-17 surfaces at 390px verified · 7 mobile drift patterns NOT found
+8. `HELP_SEARCH_AND_GLOSSARY_LOCK.md` — P0 surgical fix evidence · live API curl results · canonical DLS EN↔ES glossary
+
+### P0 surgical fix executed · DLS Help-Search Closure
+**Problem**: Phase 14-17 introduced 7 new operational surfaces with **zero** Guidance Center articles. EN+ES search for tanker · equipment move · QR shift · haul activity · operational attention · health summary · DLS lifecycle → empty results.
+
+**Fix** (3 files):
+- **MOD** `/app/backend/guidance/content.py` — added 7 DLS-era articles (iter414 block) following canonical 5-block coaching pattern (What · Bullets · Why · Next · Tip/Warn). Articles RBAC-scoped per role.
+- **NEW** `/app/backend/guidance/translations_es_iter414.py` — 7 ES translations · field-accurate operational Spanish (Cisterna · Movimiento de equipo · Avería · Atención Operacional · Resumen de Salud · etc.) · merged into `translations_es.py` via the existing iter279/280/281/297 pattern
+- **MOD** `guidance/content.py::search_articles` — haystack now includes `title_es`/`summary_es`/flattened `body_es`. **Free benefit across the platform**: all 130+ previously-translated ES articles now ES-searchable too.
+
+### 7 new guidance articles
+| ID | Section | Scopes |
+|---|---|---|
+| `dls-driver-shift-start` | trucking | dispatch+admin+leadership+field+hr+shop+public |
+| `dls-assignment-issuance` | trucking | dispatch+admin+leadership |
+| `dls-haul-types` | trucking | dispatch+admin+leadership+pm |
+| `dls-lifecycle-states` | trucking | dispatch+admin+leadership+pm+shop+field |
+| `dls-haul-activity-tile` | portals | pm+admin+leadership |
+| `dls-operational-attention` | portals | dispatch+admin+leadership |
+| `dls-health-summary` | knowledge | admin |
+
+### Live API verification (curl)
+- `tanker` (EN, admin) → `driver-tanker-and-endorsements` + `dls-assignment-issuance` + `dls-haul-types` ✅
+- `cisterna` (ES, admin) → `dls-assignment-issuance` + `dls-haul-types` ✅
+- `avería` (ES, admin) → `dls-haul-activity-tile` + `dls-operational-attention` + `dls-lifecycle-states` ✅
+- `shift QR` (public, no auth) → `dls-driver-shift-start` ✅ (driver self-serve confirmed)
+- `health summary` (admin) → `dls-health-summary` top result ✅
+- `health summary` (public) → NO `dls-health-summary` ✅ (RBAC preserved)
+
+### Tests · 153 / 153 PARITY-LOCK PASS
+- iter319 12/12 · iter392 23/23 · iter393 13/13 · iter395 12/12 · iter396 3/3 · iter401 9/9 · iter402 10/10 · iter407 7/7 · iter408 15/15 · iter409 9/9 · iter410 9/9 · iter412 8/8 · **iter414 23/23 NEW**
+- Operator vocabulary scanner: 16 T1 (all `iter###` source-comments · expected) · **0 T2/T3**
+- Touch-target audit: **Clean**
+- Ruff clean on all modified files
+
+### Backlog catalogued (NOT executed · contingent on Day-1 debrief)
+- 🟠 P1 — Legacy chrome alignment for Daily Report · Inspections · Incidents · Safety detail · HR Qual (5 modules · 5-step recipe documented)
+- 🟠 P1 — EN ↔ ES gap closure on legacy form validation messages (~30 strings)
+- 🟠 P2 — DispatchHub.jsx (559 LOC) + AssignmentCreateDrawer.jsx (806 LOC) component extraction
+- 🟠 P2 — server.py Phase 4D extractions (`/api/legacy-imports/*` · 16 occurrences)
+- 🟠 P2 — Stale `dispatch_driver_sessions` reaper (forgotten driver sign-out cleanup)
+- 🔵 P3 — Reassignment-during-WAITING UX shortcut
+- 🔵 P3 — Translation coverage sweep across legacy forms
+- 🔵 P3 — 233 inherited pytest isolation failures
+
+### What Phase 18 explicitly did NOT do (restraint enforced)
+- ❌ No dashboards · analytics · maps · GPS · route optimization · AI dispatch
+- ❌ No payroll · ERP · productivity scoring · telematics · surveillance
+- ❌ No giant admin systems
+- ❌ No new collections · no new write endpoints · no new portals
+- ❌ No role expansion (Safety/FL/HR stay quiet on DLS)
+- ❌ No Motive activation
+- ❌ No legacy chrome modernization (deferred until Day-1 names which modules)
+- ❌ No component extraction (deferred · risky behavior-drift territory pre-debrief)
+
+### Phase doctrine timeline (current state · ROLLOUT-READY)
+1. iter397-405 · Phases 12-13.2 ✅
+2. iter406+iter407 · Phase 14 ✅
+3. iter408 · Phase 14.1 + 14.2 ✅
+4. iter409 · Phase 14.3 · PM Haul Activity ✅
+5. iter410 · Phase 15.1 · Tanker / Liquid Asphalt ✅
+6. iter411 · Phase 16 · Dispatch Command Portal IA ✅
+7. iter412 · Phase 16.1 · DLS Health Summary + Day-1 Debrief Doc ✅
+8. iter413 · Phase 17 · Full Platform Convergence Audit ✅
+9. **iter414 · Phase 18 · Operational Unification + Help-Search Lock ✅**
+
+### Verdict
+**🟢 PLATFORM IS DEPLOYABLE FOR DAY-1.** Restraint discipline held across 18 iterations.
+
+### Next Action Items
+- 🟡 **P1 — DAY-1 LIVE OPS DEBRIEF** (run platform · capture 10 answers · file as `DLS_DAY1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md`)
+- 🟠 **P1-P3 backlog** — contingent on Day-1 debrief naming demand
+
+---
+
+
+
 ## 2026-05-24 — iter413 · Phase 17 · Full Platform Convergence + Operational Integrity Audit ✅
 
 ### Mission

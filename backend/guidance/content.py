@@ -4721,6 +4721,254 @@ _ARTICLES: list[dict] = [
         ],
         "related": ["fleet-repair-lifecycle", "fleet-severity-oos-vs-monitor", "fleet-daily-dvir"],
     },
+    # ─────────────────────────────────────────────────────────────────
+    # iter414 · Phase 18 · DLS operational unification — Help-Search closure
+    # ─────────────────────────────────────────────────────────────────
+    # Operator directive: every new DLS surface introduced by Phase 14-17
+    # must be reachable through Help Search in BOTH EN and ES. Without
+    # these articles, a Spanish-preferring dispatcher / driver typing
+    # "cisterna" or "movimiento de equipo" finds nothing — a real
+    # operational dead-end. Seven articles, each ≤6 blocks, calm voice.
+    # ES translations live in guidance/translations_es_iter414.py.
+    {
+        "id": "dls-driver-shift-start",
+        "section": "trucking",
+        "title": "DLS · Driver Shift Start (QR Sticker → /shift)",
+        "summary": "How a truck driver self-starts a shift in seconds — no password, no app, no enrollment.",
+        "scopes": ["dispatch", "admin", "leadership", "field", "hr", "shop", "public"],
+        "tags": ["dls", "shift", "qr", "driver", "self-start", "shift-start", "magic-link"],
+        "body": [
+            {"type": "p", "text":
+                "Every truck cab carries a printed QR sticker. The driver scans it with their phone "
+                "camera, lands on /shift, picks their name + the truck + (optionally) trailer and "
+                "carrier, taps START SHIFT, and they are operationally live. No password, no app, "
+                "no enrollment. The platform follows the truck, not the user account."},
+            {"type": "steps", "items": [
+                "Driver opens phone camera and scans the sticker on the truck door",
+                "Phone opens /shift in the browser — already on the right tenant",
+                "Driver picks their name (or types it if they're a sub), picks the truck, optional trailer + carrier",
+                "Driver taps START SHIFT",
+                "Truck appears on the dispatch board · driver can now receive lifecycle taps",
+            ]},
+            {"type": "why", "text":
+                "Truck identity is the operational continuity key, not the user account. The "
+                "platform must not require enterprise auth from a driver who's about to wear "
+                "gloves. The QR is the physical bridge from a parked truck to live operations."},
+            {"type": "next", "items": [
+                "Drive the assignment — tap ENROUTE_TO_LOAD when leaving",
+                "If dispatch hasn't issued one yet, the truck simply sits ready",
+                "End of day · tap Sign out — leaves the truck clean for the next driver",
+            ]},
+            {"type": "tip", "text":
+                "Admins print the sticker at /admin/dls/shift-qr — one tenant, one URL, one QR. "
+                "Stickers go on cab doors. A worn sticker is reprintable in 30 seconds."},
+        ],
+        "related": ["dls-assignment-issuance", "dls-lifecycle-states", "portal-dispatch"],
+    },
+    {
+        "id": "dls-assignment-issuance",
+        "section": "trucking",
+        "title": "DLS · Assignment Issuance (Issue Work Drawer)",
+        "summary": "How dispatch issues a haul to a truck — Material · Equipment Move · Tanker · Spoils · Support — through one calm drawer.",
+        "scopes": ["dispatch", "admin", "leadership"],
+        "tags": ["dls", "assignment", "issuance", "drawer", "haul-type", "material", "equipment-move", "tanker", "spoils", "support"],
+        "body": [
+            {"type": "p", "text":
+                "Dispatch opens the Issue Work drawer from the Dispatch Command portal and the "
+                "Issue Work section preselects the haul type. The drawer asks for the truck "
+                "(required), driver (optional · self-start can claim later), and 4-6 conditional "
+                "fields depending on haul type. Submit lands the assignment on the board "
+                "immediately."},
+            {"type": "bullets", "items": [
+                "Material — source / load point · destination · material (catalog dropdown)",
+                "Equipment Move — equipment · pickup location · drop-off location",
+                "Tanker / Liquid Asphalt — tanker source · destination plant · liquid product (27-item catalog)",
+                "Spoils / Dump — uses Material fields with spoils-typical defaults",
+                "Support / Misc — minimal fields · free-text in material slot",
+            ]},
+            {"type": "why", "text":
+                "ONE drawer · ONE Dispatch Lifecycle System · five haul types. Lowboys ride the "
+                "same DLS as material trucks. Tankers ride the same DLS as lowboys. The platform "
+                "is one operational operating system, not five separate dispatch modules."},
+            {"type": "next", "items": [
+                "Truck appears on the board as ASSIGNED",
+                "Driver lifecycle taps drive state forward (ENROUTE → AT_LOAD → ENROUTE_TO_DUMP → COMPLETE)",
+                "On COMPLETE, a cycle is materialized · PM tile updates · top materials chips update",
+            ]},
+            {"type": "tip", "text":
+                "Every typed-once 'Add temporary' value (carrier, material, source, destination) "
+                "surfaces in the next drawer as a 'history' option. Operational memory feeds itself."},
+        ],
+        "related": ["dls-driver-shift-start", "dls-haul-types", "dls-lifecycle-states", "dls-operational-attention"],
+    },
+    {
+        "id": "dls-haul-types",
+        "section": "trucking",
+        "title": "DLS · Five Haul Types (Material · Equipment Move · Tanker · Spoils · Support)",
+        "summary": "How the DLS handles every kind of truck work through ONE lifecycle.",
+        "scopes": ["dispatch", "admin", "leadership", "pm"],
+        "tags": ["dls", "haul-type", "material", "equipment-move", "tanker", "liquid-asphalt", "spoils", "support"],
+        "body": [
+            {"type": "p", "text":
+                "MASCI dispatch handles five haul types through the SAME lifecycle. Same board. "
+                "Same governance. Same cycle materialization. No separate portals, no separate "
+                "modules — just different conditional fields on the assignment drawer."},
+            {"type": "bullets", "items": [
+                "Material — asphalt, aggregate, concrete, earthwork, utility, job support (66-item catalog)",
+                "Equipment Move — lowboy hauls with pickup/dropoff + equipment master record",
+                "Tanker / Liquid Asphalt — 27-product catalog (binders · emulsions · fuel) · 9 terminals · 9 plant destinations",
+                "Spoils / Dump — spoils material to a dump destination",
+                "Support / Misc — any other operationally valid haul",
+            ]},
+            {"type": "why", "text":
+                "Operations think in trucks moving stuff, not in software modules. Forcing the "
+                "system to mirror operational language (instead of forcing operations to mirror "
+                "software taxonomy) is what makes this platform feel calm rather than corporate."},
+            {"type": "next", "items": [
+                "PM tile splits material loads from equipment moves in the count",
+                "Health summary surfaces all 5 haul types in `haul_types_today`",
+                "Future plant continuity work has `liquid_product` already on the wire",
+            ]},
+        ],
+        "related": ["dls-assignment-issuance", "dls-lifecycle-states", "dls-haul-activity-tile"],
+    },
+    {
+        "id": "dls-lifecycle-states",
+        "section": "trucking",
+        "title": "DLS · Lifecycle States & Wait Reasons",
+        "summary": "ASSIGNED → ENROUTE → AT_LOAD → WAITING → ENROUTE_TO_DUMP → COMPLETE — and what each transition signals downstream.",
+        "scopes": ["dispatch", "admin", "leadership", "pm", "shop", "field"],
+        "tags": ["dls", "lifecycle", "state-machine", "wait-state", "waiting", "breakdown", "complete"],
+        "body": [
+            {"type": "p", "text":
+                "Every assignment moves through a canonical state machine driven by driver taps. "
+                "There is no auto-state — drivers are the sole authors of every transition. This "
+                "preserves operational honesty (the platform never invents activity that didn't "
+                "happen) and protects against false GPS-driven state changes."},
+            {"type": "bullets", "items": [
+                "ASSIGNED — issued by dispatch · waiting for driver claim",
+                "ENROUTE_TO_LOAD — driver is moving toward the source",
+                "AT_LOAD — driver arrived at source",
+                "WAITING — driver tapped a canonical wait reason (WAIT_ON_PLANT / WAIT_ON_DUMP / BREAKDOWN / WAITING_OTHER)",
+                "ENROUTE_TO_DUMP — driver loaded and rolling to destination",
+                "AT_DUMP — driver arrived at destination",
+                "COMPLETE — driver finished the haul · cycle materialized",
+            ]},
+            {"type": "why", "text":
+                "Canonical states + canonical wait reasons (not free-text) keep operational data "
+                "clean for governance, PM reporting, and post-deploy review. WAIT_ON_PLANT means "
+                "the SAME thing every time, in every report, regardless of which driver typed it."},
+            {"type": "next", "items": [
+                "Governance fires findings on stuck > 30 min or wait > 45 min",
+                "Shop sees BREAKDOWN immediately via the cross-portal tile",
+                "PM sees waiting_on_plant / waiting_on_dump counts in the haul activity tile",
+            ]},
+            {"type": "warn", "text":
+                "Drivers DO NOT use free-text wait reasons. Free-text destroys operational "
+                "intelligence. The WAITING_OTHER picker (deferred until live ops surfaces real "
+                "patterns) will be a canonical sub-category list, not a notes box."},
+        ],
+        "related": ["dls-driver-shift-start", "dls-operational-attention", "dls-haul-activity-tile"],
+    },
+    {
+        "id": "dls-haul-activity-tile",
+        "section": "portals",
+        "title": "DLS · PM Haul Activity Tile (Production Awareness)",
+        "summary": "How PMs see live haul activity for their projects — without becoming a dispatcher.",
+        "scopes": ["pm", "admin", "leadership"],
+        "tags": ["dls", "pm", "production-awareness", "haul-activity", "tile", "read-only"],
+        "body": [
+            {"type": "p", "text":
+                "The PM Haul Activity tile sits on the PM hub and refreshes every 60 seconds. It "
+                "shows production awareness — loads completed today, active hauls, equipment "
+                "moves, waits on plant/site, breakdown impacts — scoped to the PM's assigned "
+                "projects. It is read-only by design. PMs cannot issue, cancel, or transition."},
+            {"type": "bullets", "items": [
+                "Loads completed today — split into material loads and equipment moves",
+                "Active hauls — anything not yet COMPLETE",
+                "Equipment moves active — lowboys in flight to or from a job",
+                "Waiting on plant / Waiting on dump — exception counts",
+                "Breakdown impacts — trucks down on the PM's projects",
+                "Top materials — top-5 by load count today (Equipment Move filtered out)",
+            ]},
+            {"type": "why", "text":
+                "PMs need production-awareness, not dispatch controls. Knowing how much work "
+                "completed today and what's waiting is enough — the dispatcher remains the "
+                "single decision-maker on every reassignment. This restraint is what keeps "
+                "operations from accumulating five overlapping coordinators."},
+            {"type": "next", "items": [
+                "Tile refreshes every 60 seconds automatically",
+                "Empty state explicit: 'Nothing to report — your jobs are quiet right now'",
+                "If a breakdown occurs, the tile reflects it within a minute · Shop sees it instantly",
+            ]},
+        ],
+        "related": ["dls-lifecycle-states", "dls-operational-attention", "portal-pm"],
+    },
+    {
+        "id": "dls-operational-attention",
+        "section": "portals",
+        "title": "DLS · Operational Attention (What Matters NOW)",
+        "summary": "The Dispatch Command surface that surfaces stuck trucks, long waits, and breakdowns — without becoming a dashboard.",
+        "scopes": ["dispatch", "admin", "leadership"],
+        "tags": ["dls", "operational-attention", "governance", "stuck", "breakdown", "wait", "findings", "dispatch"],
+        "body": [
+            {"type": "p", "text":
+                "Operational Attention is the rose-accented section at the top of the Dispatch "
+                "Command portal. It reads from /api/dispatch/governance/findings and surfaces "
+                "three exception families: breakdowns, trucks stuck more than 30 minutes, and "
+                "extended waits. Each card carries action-oriented hint text — not a metric."},
+            {"type": "bullets", "items": [
+                "Breakdown — Shop sees these too. Decide reassign vs hold.",
+                "Stuck > 30 min — driver hasn't tapped in a while. Call them.",
+                "Extended wait — plant or dump bottleneck. Reassign or absorb.",
+            ]},
+            {"type": "why", "text":
+                "Calm operations require ONE place where exceptions surface. Dashboards split "
+                "attention across charts; Operational Attention concentrates it into 3 cards "
+                "with a clear next action. When the cards are empty, dispatch can breathe — "
+                "the platform is signalling 'nothing needs your eyes right now'."},
+            {"type": "next", "items": [
+                "Each card carries an action hint, not a number",
+                "Empty state says exactly that — empty",
+                "Findings update live via /api/dispatch/governance/findings polling",
+            ]},
+        ],
+        "related": ["dls-lifecycle-states", "dls-health-summary", "portal-dispatch"],
+    },
+    {
+        "id": "dls-health-summary",
+        "section": "knowledge",
+        "title": "DLS · Day-1 Health Summary (Quiet · Flowing · Attention)",
+        "summary": "The read-only admin endpoint that gives operations leadership one calm signal of platform health.",
+        "scopes": ["admin"],
+        "tags": ["dls", "health-summary", "observability", "day-1", "quiet", "flowing", "attention", "admin"],
+        "body": [
+            {"type": "p", "text":
+                "GET /api/admin/dls/health-summary is the entire Day-1 monitoring story. Three "
+                "calm hits — morning, mid-morning, end-of-day — answer 'is the platform healthy?' "
+                "Three operational words, no scoring, no charts."},
+            {"type": "bullets", "items": [
+                "quiet — zero active assignments · zero shifts · zero exceptions",
+                "flowing — active work present · no exceptions",
+                "attention — breakdown present · OR longest wait ≥ 45 min · OR oldest stuck ≥ 60 min · OR findings > 0",
+            ]},
+            {"type": "why", "text":
+                "Minimum observability beats monitoring suites for operations leadership. A "
+                "single endpoint, hit three times a day, is the entire platform-health story "
+                "for Day-1. Notes carry up to 3 small operational reasons. There is no KPI, "
+                "no scoring, no graph. Just one word and an honest reason."},
+            {"type": "next", "items": [
+                "Pre-flight (30 min before drivers arrive) — expect status: quiet",
+                "Mid-morning (~11 AM) — expect status: flowing · transitions_today > 0",
+                "End-of-day — capture completed_cycles_today · transitions_today as closing numbers",
+            ]},
+            {"type": "tip", "text":
+                "File the Day-1 debrief same day at /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md. "
+                "Operational memory fades fast — and the debrief is what tells the next iteration "
+                "what to actually build versus what to leave alone."},
+        ],
+        "related": ["dls-operational-attention", "dls-lifecycle-states", "portal-dispatch"],
+    },
 ]
 
 
@@ -4828,7 +5076,13 @@ def get_article(article_id: str, granted_scopes: set[str]) -> dict | None:
 
 
 def search_articles(query: str, granted_scopes: set[str], limit: int = 25) -> list[dict]:
-    """Title + body keyword match, RBAC-aware, no fuzzy (Phase A spec)."""
+    """Title + body keyword match, RBAC-aware, no fuzzy (Phase A spec).
+
+    iter414 · Phase 18: include ES title/summary/body in the haystack so
+    Spanish-preferring callers can find articles by Spanish keywords
+    (e.g. 'cisterna', 'movimiento de equipo', 'avería'). EN remains the
+    canonical source; ES is additive search fuel only.
+    """
     q = (query or "").strip().lower()
     if not q:
         return []
@@ -4842,6 +5096,10 @@ def search_articles(query: str, granted_scopes: set[str], limit: int = 25) -> li
             a.get("summary", ""),
             " ".join(a.get("tags") or []),
             _flatten_body(a.get("body") or []),
+            # iter414 · ES fuel (graceful: keys may be absent)
+            a.get("title_es", "") or "",
+            a.get("summary_es", "") or "",
+            _flatten_body(a.get("body_es") or []),
         ]).lower()
         score = sum(haystack.count(t) for t in terms)
         if score > 0:
