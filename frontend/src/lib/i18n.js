@@ -4700,6 +4700,7 @@ const ES = {
   "No device passkey is registered for this account": "No hay clave de dispositivo registrada para esta cuenta",
   "Please sign in with your password first": "Inicie sesión con su contraseña primero",
   "Device sign-in is not available in this browser": "El inicio con dispositivo no está disponible en este navegador",
+  "Continue sign-in at the master page.": "Continúe el inicio de sesión en la página principal.",
 };
 
 const DICTS = { es: ES, en: {} };

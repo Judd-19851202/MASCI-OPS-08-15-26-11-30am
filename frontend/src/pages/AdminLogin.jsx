@@ -12,7 +12,7 @@
 // portal's sign-in chrome.
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { ShieldAlert, Loader2, ArrowLeft, Mail, KeyRound } from "lucide-react";
+import { ShieldAlert, Loader2, ArrowLeft, Mail, KeyRound, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
 import { clearHrToken } from "@/lib/hrAuth";
+import { passkeySupported, platformAuthenticatorAvailable, signInWithPasskey } from "@/lib/passkeys";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -39,6 +40,55 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  // iter422 · Phase 24 · Optional device-native sign-in
+  const [passkeyReady, setPasskeyReady] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (passkeySupported()) {
+        const ok = await platformAuthenticatorAvailable();
+        if (!cancelled) setPasskeyReady(!!ok);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const onPasskeySignIn = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      toast.error(t("Enter your work email first"));
+      return;
+    }
+    setPasskeyBusy(true);
+    try {
+      const data = await signInWithPasskey({ email: cleanEmail });
+      if (data?.mfa_required) {
+        // Redirect to /sign-in to complete MFA flow (existing path)
+        toast.message(t("Continue sign-in at the master page."));
+        navigate("/sign-in", { replace: true });
+        return;
+      }
+      if (data?.ok) {
+        applyMultiLoginResponse(data, rememberMe);
+        toast.success(`${t("Welcome")} ${data?.user?.name || ""}`, { duration: 4000 });
+        navigate(landingFor(data.user), { replace: true });
+      } else {
+        toast.error(t("Device sign-in failed"));
+      }
+    } catch (err) {
+      const name = err?.name || "";
+      const msg = err?.message || t("Device sign-in failed");
+      if (name === "NotAllowedError" || /cancel/i.test(msg)) {
+        // user cancelled · stay calm
+      } else {
+        toast.error(msg, { duration: 5000 });
+      }
+    } finally {
+      setPasskeyBusy(false);
+    }
+  };
 
   useEffect(() => {
     // Iter88 — DO NOT wipe tokens on mount.
@@ -231,6 +281,28 @@ export default function AdminLogin() {
                 <>{t("Sign In")}</>
               )}
             </Button>
+            {/* iter422 · Phase 24 · Optional device passkey sign-in */}
+            {passkeyReady ? (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={onPasskeySignIn}
+                  disabled={passkeyBusy || submitting}
+                  data-testid="admin-login-passkey-btn"
+                  className="w-full h-11 inline-flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-800 bg-white border-2 border-slate-300 hover:border-red-700 hover:text-red-700 rounded-md disabled:opacity-50"
+                >
+                  {passkeyBusy ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Fingerprint className="w-4 h-4" />
+                  )}
+                  {passkeyBusy ? t("Verifying device…") : t("Use device sign-in")}
+                </button>
+                <p className="mt-2 text-[11px] text-slate-500 leading-snug" data-testid="admin-login-passkey-hint">
+                  {t("Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.")}
+                </p>
+              </div>
+            ) : null}
           </form>
           <PortalLoginHelp portal="admin" />
 

@@ -15,6 +15,7 @@ import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import OperationsCenter from "@/components/OperationsCenter";
 import { getAdminToken } from "@/lib/adminAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
+import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 
 // iter326 · platform-wide calm convergence — AdminHub SectionTile
 // migrated from the legacy hot-chrome pattern (border-2 +
@@ -60,6 +61,9 @@ export default function AdminHub() {
       }
     >
       <div className="space-y-5">
+        {/* iter422 · Phase 24 · Optional device sign-in enrollment (self-gated · dismissible · single-card) */}
+        <PasskeyEnrollPrompt />
+
         {/* Operations Center — real-time aggregated operational visibility */}
         <OperationsCenter />
 
