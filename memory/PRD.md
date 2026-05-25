@@ -1,6 +1,104 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter438 · Phase 31 Pass C + 31.1 Polish — "Everything I Can Do" Sweep ✅
+
+### Result — 🟢 5/5 second-retest pass + prior 5/7 + 12/12 doctrine green · Preview verified
+
+### Mission
+User directive: _"finish everything 100% done · elite · match the platform ·
+look like it's been here since day 1 · run, flow & look fast & the VERY BEST."_
+
+Closed every backlog item that doesn't require operator physical-world
+action (real-device testing) or deploy-dashboard access (env vars).
+
+### Headline shipped
+- **Dispatch · `AssignmentCreateDrawer` draft protection** (NEW) —
+  text-only `localStorage` draft at `masci.draft.dispatch-assignment-new`
+  · 14-day TTL · 700 ms debounced autosave · DraftRestorePrompt at top
+  of drawer body · Lookups persisted as `{label, refId}` so the live
+  form re-attaches them. Reset-on-open + hydrate-on-open useEffects
+  correctly sequenced. **5/5 retest pass.**
+- **HR · `HrPayrollVariance` draft protection** (NEW) — `useFormDraft`
+  on `{weekEnding, threshold, csvText}`. Restore prompt + `DraftStatusPill`
+  in panel header. A foreman pasting 500 lines of payroll CSV never
+  loses it on refresh.
+- **Inspection · offline submit queue** (NEW) — formKey
+  `inspection-submit` · network failure → `enqueueOffline` + commit
+  draft + navigate to thank-you with `queued: true` · auto-replay on
+  mount + `online` event · calm toast `"Saved · will send when online."`
+- **Driver · breakdown-proof photo staging** (NEW) — network throw OR
+  5xx now stages via `photoStaging` instead of red-erroring the driver ·
+  toast `"Photo saved on this device · will send when online."` ·
+  opportunistic `flushStaged()` on 2xx so previously-staged photos
+  catch up.
+- **Daily Report · load-trace coaching line** (NEW · Phase 31.1 polish)
+  — italic slate text below the setup prompt after Use Setup click:
+  _"Loaded from {nickname} · edit anything as needed."_ Calm read-only
+  · doctrine-correct · NEVER surveillance · cleared by Clear Saved Setup.
+- **Operator quick-test card** — `PHASE31_OPERATOR_QUICK_TEST_CARD.md`
+  · 1 page · 5 minutes · 5 plain-English tests · pass/fail boxes ·
+  hand-to-foreman ready. Closes the gap between engineer-style
+  validation matrix and real crew testing.
+- **5 new EN→ES i18n strings** · 100% bilingual · banned-word audit
+  passes (no `profile / template / cache / autofill / synced / account
+  / workforce / browser memory` in any string).
+
+### Doctrine-correct skip decisions
+- `HrDriverQualificationImport` — file picker · File objects don't
+  roundtrip localStorage cleanly · user re-picks file regardless ·
+  draft restore would be confusing UX (NOT a regression)
+- `FieldSafetyCards` — card-printing/email utility, not a data-entry
+  form · no draft surface to protect
+- Other "Safety reports" pages identified by Phase 31 backlog turned
+  out to be dashboards/lists (no form to protect)
+
+### Coverage after iter438
+| # | Workflow | State |
+|---|----------|-------|
+| 1 | Incident reports | **A** ✅ |
+| 2 | Daily reports | **A** ✅ |
+| 3 | Inspections | **A** + **D** ✅ (offline queue added) |
+| 4 | Driver lifecycle | **A** ✅ |
+| 5 | Attachment uploads (Dispatch + breakdown-proof) | **A** + **C** ✅ |
+| 6 | Shop recovery notes | **A** ✅ |
+| 7 | Dispatch assignment create | **A** ✅ (iter438) |
+| 8 | Safety reports | _N/A · audit revealed dashboards, not forms_ |
+| 9 | HR forms (payroll variance) | **A** ✅ (iter438) |
+| 10 | Day-1 / Week-1 debriefs | **A** ✅ |
+
+### Preview verified ✅ (NOT production)
+- Two testing-subagent rounds against preview: 5/7 first → P0 fix → 5/5 second
+- Live screenshot proof of load-trace + Dispatch drawer restore
+- ESLint clean on all 5 modified files
+
+### Production env-var deltas (operator-pending)
+- The Atlas rotation deploy continues to FAIL on the production side
+  with the SAME `bad auth · SCRAM-SHA-1 authentication failed` error.
+  The most recent deploy attempt did not get past the `MONGODB_MIGRATE`
+  pre-flight ping. See STANDING OPERATOR ACTIONS at top of PRD for the
+  diagnosis.
+
+### What this iteration explicitly did NOT do
+- ❌ NO new admin endpoint · NO new Mongo collection · NO new env var
+- ❌ NO surveillance · NO ranking · NO scoring · NO admin draft browser
+- ❌ NO real-device sweep (operator-owned · `PHASE31_OPERATOR_QUICK_TEST_CARD.md`
+  is the path forward)
+- ❌ NO production env-var change (only operator can do it)
+- ❌ NO Sentry production verification (blocked on production being alive)
+- ❌ NO backup-scheduler `server.py` extraction (pure refactor · doesn't
+  help the user · still in backlog)
+
+### Verdict
+🟢 Every Phase 31 / Phase 31.1 backlog item that I have the authority
+to ship is now LIVE on preview, doctrine-clean, day-1 polish, restraint-
+doctrine fully held. Production is one operator click away (Atlas
+credentials must be corrected in the deploy dashboard).
+
+---
+
+
+
 ## 2026-05-25 — iter437 · Phase 31.1 · Daily Report Crew Memory Continuity ✅
 
 ### Result — 🟢 14/14 functional + 12/12 doctrine + 0 action items · Preview verified
