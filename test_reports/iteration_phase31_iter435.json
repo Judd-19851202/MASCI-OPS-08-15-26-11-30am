@@ -1,0 +1,46 @@
+{
+  "summary": "Phase 31 · Pass B (iter435) Work Recovery Continuity expansion — frontend-only validation. Verified DraftRestorePrompt wiring on AdminDlsDay1Debrief (both day-1 and week-1 variants) end-to-end through the browser. Verified doctrine restraints by static + live inspection: no /admin/drafts browser route, no new admin endpoints in App.js, no console errors, calm chrome only. Photo staging + offline queue extraction validated by static file inspection (live offline simulation not run — caller has Dispatch flow gated behind live assignment data that wasn't seeded).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "DraftStatusPill (AdminDlsDay1Debrief)", "issue": "[data-testid='day-1-draft-pill'] element did not render in DOM after typing into Day-1 textareas, even though the underlying DraftRestorePrompt+useFormDraft draft autosave was confirmed working (reload→prompt appeared, Restore repopulated fields). Most likely DraftStatusPill returns null for the current status value rather than emitting the testid wrapper. Cosmetic — does NOT affect operator behaviour.", "selector": "[data-testid='day-1-draft-pill']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_pass_b_assertions": [
+    "Day-1 debrief: typing autosaves to draftStore (verified via reload→DraftRestorePrompt appearance)",
+    "Day-1 debrief: NO auto-overwrite — fields stay empty after reload until Restore is clicked (doctrine OK)",
+    "Day-1 debrief: Restore button (testid `day-1-draft-restore-prompt-restore`) repopulates ops-notes + doctrine textareas with prior values",
+    "Day-1 debrief: Discard button (testid `day-1-draft-restore-prompt-discard`) wipes draft AND survives reload (no prompt re-appears)",
+    "Week-1 variant: does NOT see Day-1's draft — confirms `dls-debrief-<variant>` scoping is correctly isolated per variant",
+    "Doctrine: /admin/drafts route does NOT exist (no admin draft browser surface added)",
+    "Doctrine: no console errors emitted during draft autosave / restore / discard flows",
+    "Static: photoStaging.js exports the documented surface (stagePhoto, listStagedFor, listAllStaged, getStagedCount, flushStaged, removeStaged, onStagedChange); cap=20 + 4xx-clears + 5xx-keeps + auto-flush on online/focus all present (lines 99-213).",
+    "Static: offlineQueue.js exports the documented surface (enqueue, readQueue, clearQueue, replayQueue, getQueueDepth, onQueueChange, registerAutoReplay); default max=3, replay rules 2xx+4xx clear / 401 preserves / 5xx+network keep, storage key `masci.offline-queue.<formKey>` (lines 35-181).",
+    "Static: lib/resiliency/index.js re-exports enqueueOffline/readOfflineQueue/etc with the requested alias names AND StagedPhotoBadge as default export.",
+    "Static: DriverShift.jsx imports the new aliases (line 30-31), declares OFFLINE_FORM_KEY='driver-lifecycle', calls registerOfflineAutoReplay at module top (line 51).",
+    "Static: RecoveryActionRow.jsx wires useFormDraft per-assignment (`shop-recovery-<assignmentId>`), DraftRestorePrompt with testId=`${testIdPrefix}-draft-restore-prompt`, commit() called on successful save (line 134).",
+    "Static: AdminDlsDay1Debrief.jsx wires useFormDraft on combined payload {answers, operationalNotes, doctrineObservations} with formKey `dls-debrief-${variant}`, commit() called on submit success (line 190), DraftRestorePrompt + DraftStatusPill testids match spec.",
+    "Static: AttachmentStrip.jsx imports stagePhoto + StagedPhotoBadge from @/lib/resiliency (line 32), calls stagePhoto on network failure AND on 5xx response paths (lines 128, 147), and mounts StagedPhotoBadge in header (line 209).",
+    "Static: i18n.js contains BOTH required new strings: 'Photo saved on this device · will send when online.' and 'waiting to send'.",
+    "Static: App.js has only the two expected new routes /admin/dls/day-1-debrief and /admin/dls/week-1-debrief, no /admin/drafts or queue-management routes."
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "LOW priority: investigate why `day-1-draft-pill` testid is not rendered after autosave — likely DraftStatusPill returns null for `idle`/`saved` status. If the pill is supposed to be visible during/after autosave, gate render only on `hidden` status. Otherwise update doctrine note in PHASE31_OFFLINE_QUEUE_EXPANSION_PLAN.md to clarify the pill is intentionally only visible during the in-flight 'saving' window."
+  ],
+  "critical_code_review_comments": [
+    "photoStaging.js auto-attach listeners at module import time (lines 210-213) register on EVERY import. Because the module is a singleton in webpack this is fine, but worth noting that flushStaged is also called from StagedPhotoBadge useEffect on mount — three triggers (mount + online + focus) on the same flushing path. The _flushing guard handles re-entrancy correctly.",
+    "offlineQueue.js registerAutoReplay is fine but _allKnownFormKeys is module-scoped — multi-tab scenarios will not cross-register. Acceptable per doctrine (foreground only).",
+    "AdminDlsDay1Debrief useEffect that resets state on variant change (line 137-152) re-fetches questions and resets answers/notes/doctrine to empty when route swaps. This intentionally bypasses the per-variant draft until the useFormDraft auto-prompt path fires — verified working in live test (Week-1 didn't pick up Day-1's draft)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only request)", "frontend": "Day-1 debrief end-to-end: 5/5 critical assertions; Static doctrine + wiring: 11/11 assertions PASS; only DraftStatusPill cosmetic miss"},
+  "test_credentials": "Master admin /admin/login: jaymn.judd@mascigc.com / Maddix123! (from /app/memory/test_credentials.md line 7) — confirmed working in preview.",
+  "seed_data_creation": "None — drafts created and torn down inside the test via localStorage+idb-keyval flow.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Live offline simulation for photoStaging (the headline Pass B win) was NOT run end-to-end because /dispatch-portal/board requires a live Assignment with the AttachmentStrip mounted — no seed assignment in preview. Static code review confirms the spec is met (stagePhoto called on network throw + on 5xx, badge mounted in header, i18n strings present, cap=20, auto-flush on online/focus). DriverShift queue migration is also invisible-behaviour-preservation — verified static (formKey='driver-lifecycle', registerOfflineAutoReplay called at module top, enqueueOfflineTransition still returns depth). If main agent wants explicit live photo-staging proof: open /dispatch-portal/board with a real assignment, capture-photo while page.context.set_offline(True), confirm the amber `staged-photo-badge` pill renders with text 'N waiting to send', toggle offline=False, fire focus, observe pill disappear (~3s). Pass A regression on NewIncident/NewDailyReport/NewInspection was NOT re-run — Pass A was green in iter434 and Pass B did not touch those files (confirmed by git-equivalent inspection: useFormDraft signature unchanged, draftStore.js unchanged).",
+  "rca of the issue": "n/a — no blocking issues found."
+}

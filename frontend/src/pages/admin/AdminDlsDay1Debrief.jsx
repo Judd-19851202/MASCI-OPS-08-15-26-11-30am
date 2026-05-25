@@ -30,6 +30,10 @@ import { Label } from "@/components/ui/label";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { getAdminToken } from "@/lib/adminAuth";
+import {
+  useFormDraft, getActorId, DraftStatusPill, DraftRestorePrompt,
+} from "@/lib/resiliency";
+import { toast } from "sonner";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -100,6 +104,31 @@ export default function AdminDlsDay1Debrief({ variant = "day-1" }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
+  // iter435 · Phase 31 · Pass B — calm draft recovery for the entire
+  // debrief payload. Per-variant scoping ensures Day-1 and Week-1
+  // drafts never collide.
+  const actorId = useMemo(() => getActorId(), []);
+  const draftPayload = useMemo(
+    () => ({ answers, operationalNotes, doctrineObservations }),
+    [answers, operationalNotes, doctrineObservations],
+  );
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft(`dls-debrief-${variant}`, draftPayload, actorId);
+
+  const onRestoreDraft = () => {
+    const d = restore();
+    if (!d) return;
+    if (d.answers) setAnswers(d.answers);
+    if (typeof d.operationalNotes === "string") setOperationalNotes(d.operationalNotes);
+    if (typeof d.doctrineObservations === "string") setDoctrineObservations(d.doctrineObservations);
+    toast.success(t("Draft restored"));
+  };
+  const onDiscardDraft = () => {
+    discard();
+    toast.message(t("Draft discarded"));
+  };
+
   // Fetch canonical question list on mount (admin source of truth).
   useEffect(() => {
     let cancelled = false;
@@ -157,6 +186,8 @@ export default function AdminDlsDay1Debrief({ variant = "day-1" }) {
         setError(data?.detail || t("Submission failed."));
       } else {
         setResult(data);
+        // iter435 · clear the draft on confirmed submission.
+        await commit();
       }
     } catch (e) {
       setError(String(e?.message || e));
@@ -169,7 +200,7 @@ export default function AdminDlsDay1Debrief({ variant = "day-1" }) {
     <AdminShell>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
         {/* Back link · calm slate */}
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <Link
             to="/admin"
             data-testid="day1-back-to-admin"
@@ -177,7 +208,16 @@ export default function AdminDlsDay1Debrief({ variant = "day-1" }) {
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" /> {t("Back to Admin")}
           </Link>
+          <DraftStatusPill status={draftStatus} testId={`${variant}-draft-pill`} />
         </div>
+
+        {/* iter435 · Phase 31 · Pass B — calm draft recovery prompt. */}
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          testId={`${variant}-draft-restore-prompt`}
+        />
 
         {/* Section header · calm operational chrome */}
         <div

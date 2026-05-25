@@ -17,16 +17,16 @@ recovery primitives.
 
 | # | Workflow | File(s) | Current state | Target state |
 |---|----------|---------|---------------|--------------|
-| 1 | **Incident reports** | `pages/NewIncident.jsx` | **A** _(iter434)_ · prompt + autosave + offline queue via `enqueueUpload` | **A** + **C** (photo staging in Pass B) |
-| 2 | **Daily reports** | `pages/NewDailyReport.jsx` | **A** _(iter434)_ · prompt + autosave + offline queue | **A** + **C** (photo staging in Pass B) |
-| 3 | **Inspections** | `pages/NewInspection.jsx` | **A** _(iter434)_ · prompt + autosave NEW · previously **E** | **A** + **C** + **D** (queue + staging in Pass B) |
-| 4 | **Driver shift / lifecycle** | `pages/DriverShift.jsx` | partial **D** _(iter421)_ · localStorage 3-slot queue · no text-draft | **B** + **D** in Pass B |
-| 5 | **Attachment uploads** | `components/dispatch/AttachmentStrip.jsx`, `pages/DriverShift.jsx` (breakdown-proof) | **E** — no staging on upload failure | **C** in Pass B |
-| 6 | **Shop recovery notes** | `components/shop/RecoveryActionRow.jsx` | **E** — inline transition has no draft | **B** in Pass B |
-| 7 | **Dispatch assignment creation** | `components/dispatch/AssignmentCreateDrawer.jsx` | **E** | **B** in Pass B |
-| 8 | **Safety reports** _(varied)_ | `pages/SafetyHub.jsx` + linked forms | mixed · audit needed | **B** in Pass B audit step |
-| 9 | **HR qualification forms** | `pages/HrIncidents.jsx`, driver-qualification surfaces | **E** | **B** in Pass B |
-| 10 | **Day-1 / Week-1 debriefs** | `pages/admin/AdminDlsDayOneDebrief.jsx`, Week-1 sibling | **E** — single-shot admin forms · loss tolerance low | **B** in Pass B |
+| 1 | **Incident reports** | `pages/NewIncident.jsx` | **A** _(iter434)_ · prompt + autosave + offline queue via `enqueueUpload` | **A** + **C** (photo staging in Pass C) |
+| 2 | **Daily reports** | `pages/NewDailyReport.jsx` | **A** _(iter434)_ · prompt + autosave + offline queue | **A** + **C** (photo staging in Pass C) |
+| 3 | **Inspections** | `pages/NewInspection.jsx` | **A** _(iter434)_ · prompt + autosave NEW | **A** + **C** + **D** (photo + queue submit in Pass C) |
+| 4 | **Driver shift / lifecycle** | `pages/driver/DriverShift.jsx` | **A** _(iter435)_ · iter421 driver queue migrated to shared `lib/resiliency/offlineQueue.js` (formKey=`driver-lifecycle`) · behaviour preserved 1:1 | **A** complete |
+| 5 | **Attachment uploads** | `components/dispatch/AttachmentStrip.jsx`, breakdown-proof | **A** _(iter435)_ · **NEW** `lib/resiliency/photoStaging.js` · IDB-backed retry on `online`/`focus` · calm "N waiting to send" pill | **A** complete (operational proof attachments) · breakdown-proof gets same treatment in Pass C |
+| 6 | **Shop recovery notes** | `components/shop/RecoveryActionRow.jsx` | **A** _(iter435)_ · prompt + autosave on per-assignment formKey | **A** complete |
+| 7 | **Dispatch assignment creation** | `components/dispatch/AssignmentCreateDrawer.jsx` | **E** — complex multi-step state with `useEffect`-reset on open · deferred to Pass C with a targeted draft scope (text-only fields) | **B** in Pass C |
+| 8 | **Safety reports** _(varied)_ | `pages/SafetyHub.jsx` + linked forms | mixed · audit needed | **B** in Pass C |
+| 9 | **HR qualification forms** | `pages/HrIncidents.jsx`, driver-qualification surfaces | **E** | **B** in Pass C |
+| 10 | **Day-1 / Week-1 debriefs** | `pages/admin/AdminDlsDay1Debrief.jsx` (shared component · variant prop) | **A** _(iter435)_ · prompt + autosave + commit-on-success · per-variant formKey (`dls-debrief-day-1` / `dls-debrief-week-1`) · BOTH debriefs covered by ONE wiring | **A** complete |
 
 ## Already-protected forms (pre-existing Phase J)
 

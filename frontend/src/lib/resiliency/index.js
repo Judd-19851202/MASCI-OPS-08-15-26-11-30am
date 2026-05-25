@@ -17,7 +17,21 @@ export {
   enqueueUpload, getQueueDepth, getQueueItems,
   onQueueChange, drainQueue,
 } from "./resiliencyQueue";
+export {
+  enqueue as enqueueOffline,
+  readQueue as readOfflineQueue,
+  clearQueue as clearOfflineQueue,
+  replayQueue as replayOfflineQueue,
+  getQueueDepth as getOfflineQueueDepth,
+  onQueueChange as onOfflineQueueChange,
+  registerAutoReplay as registerOfflineAutoReplay,
+} from "./offlineQueue";
+export {
+  stagePhoto, listStagedFor, listAllStaged, getStagedCount,
+  flushStaged, removeStaged, onStagedChange,
+} from "./photoStaging";
 export { default as OfflineIndicator } from "./OfflineIndicator";
 export { default as DraftStatusPill } from "./DraftStatusPill";
 export { default as DraftRestorePrompt } from "./DraftRestorePrompt";
+export { default as StagedPhotoBadge } from "./StagedPhotoBadge";
 export { getActorId } from "./actorId";

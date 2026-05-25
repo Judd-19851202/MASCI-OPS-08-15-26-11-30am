@@ -79,6 +79,9 @@ const ES = {
   "Discard": "Descartar",
   "Draft restored": "Borrador restaurado",
   "Draft discarded": "Borrador descartado",
+  "Photo saved on this device · will send when online.":
+    "Foto guardada en este dispositivo · se enviará cuando haya conexión.",
+  "waiting to send": "esperando enviar",
   "Photos waiting to send will upload when connection returns.":
     "Las fotos pendientes se enviarán cuando vuelva la conexión.",
   "Submitted reports are stored in the platform. Drafts only stay on this device.":

@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
+import { stagePhoto, flushStaged, StagedPhotoBadge } from "@/lib/resiliency";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -114,17 +115,55 @@ export default function AttachmentStrip({ assignmentId, canWrite = true }) {
       form.append("attachment_type", uploadingType);
       form.append("operational_note", note.slice(0, 500));
       form.append("file", file);
-      const r = await fetch(`${API}/api/operational-attachments/upload`, {
-        method: "POST",
-        headers: _authHeaders(),
-        body: form,
-      });
+      let r;
+      try {
+        r = await fetch(`${API}/api/operational-attachments/upload`, {
+          method: "POST",
+          headers: _authHeaders(),
+          body: form,
+        });
+      } catch (netErr) {
+        // iter435 · Phase 31 · network failure → stage locally · calm.
+        try {
+          await stagePhoto({
+            file,
+            hostKind: "assignment",
+            hostId: assignmentId,
+            attachmentType: uploadingType,
+            note: note.slice(0, 500),
+          });
+          toast.message(t("Photo saved on this device · will send when online."));
+          setNote("");
+        } catch (stageErr) {
+          toast.error(String(stageErr?.message || stageErr));
+        }
+        return;
+      }
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        toast.error(data?.detail || t("Upload failed."));
+        if (r.status >= 500) {
+          // Server hiccup → stage for later retry.
+          try {
+            await stagePhoto({
+              file,
+              hostKind: "assignment",
+              hostId: assignmentId,
+              attachmentType: uploadingType,
+              note: note.slice(0, 500),
+            });
+            toast.message(t("Photo saved on this device · will send when online."));
+            setNote("");
+          } catch {
+            toast.error(data?.detail || t("Upload failed."));
+          }
+        } else {
+          toast.error(data?.detail || t("Upload failed."));
+        }
       } else {
         toast.success(t("Attached."));
         setNote("");
+        // Opportunistic flush in case any earlier upload was staged.
+        flushStaged().catch(() => { /* silent */ });
         refresh();
       }
     } catch (err) {
@@ -165,14 +204,22 @@ export default function AttachmentStrip({ assignmentId, canWrite = true }) {
             {t("Tickets · photos · receipts")}
           </h3>
         </div>
-        <Link
-          to="/guidance/dls-attachments-load-proof"
-          data-testid="attachment-strip-help"
-          className="text-xs text-slate-500 hover:text-slate-800 underline decoration-slate-300 underline-offset-2 inline-flex items-center"
-        >
-          {t("How load proof works")}
-          <ArrowRight className="w-3 h-3 ml-1 opacity-70" />
-        </Link>
+        <div className="flex items-center gap-2">
+          {/* iter435 · Phase 31 · calm "N waiting to send" pill */}
+          <StagedPhotoBadge
+            hostKind="assignment"
+            hostId={assignmentId}
+            testId="attachment-staged-badge"
+          />
+          <Link
+            to="/guidance/dls-attachments-load-proof"
+            data-testid="attachment-strip-help"
+            className="text-xs text-slate-500 hover:text-slate-800 underline decoration-slate-300 underline-offset-2 inline-flex items-center"
+          >
+            {t("How load proof works")}
+            <ArrowRight className="w-3 h-3 ml-1 opacity-70" />
+          </Link>
+        </div>
       </div>
 
       {/* Upload row · camera-first */}

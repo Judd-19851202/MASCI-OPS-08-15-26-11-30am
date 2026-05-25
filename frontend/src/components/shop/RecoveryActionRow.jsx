@@ -21,6 +21,9 @@ import { Loader2, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import {
+  useFormDraft, getActorId, DraftRestorePrompt,
+} from "@/lib/resiliency";
 
 // Canonical iter420 recovery states · MUST mirror RECOVERY_STATES in
 // /app/backend/routes/dispatch_continuity.py. Don't extend this list.
@@ -87,6 +90,30 @@ export const RecoveryActionRow = ({ assignmentId, currentState, onSaved, testIdP
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // iter435 · Phase 31 · Pass B — protect the inline note + state pick
+  // per-assignment so a refresh / signal-drop / phone close never
+  // loses a half-typed mechanic note. NO modal · NO auto-overwrite.
+  const actorId = useMemo(() => getActorId(), []);
+  const draftPayload = useMemo(
+    () => ({ nextState, note }),
+    [nextState, note],
+  );
+  const {
+    pendingDraft, restore, discard, commit,
+  } = useFormDraft(
+    `shop-recovery-${assignmentId || "unknown"}`,
+    draftPayload,
+    actorId,
+  );
+
+  const onRestoreDraft = () => {
+    const d = restore();
+    if (!d) return;
+    if (typeof d.nextState === "string") setNextState(d.nextState);
+    if (typeof d.note === "string") setNote(d.note);
+  };
+  const onDiscardDraft = () => discard();
+
   const coaching = coachingForState(nextState, t);
 
   const onSave = async () => {
@@ -103,6 +130,8 @@ export const RecoveryActionRow = ({ assignmentId, currentState, onSaved, testIdP
       });
       toast.success(t("Recovery state updated."), { duration: 3000 });
       setNote("");
+      // iter435 · clear draft on confirmed submission.
+      await commit();
       if (typeof onSaved === "function") onSaved();
     } catch (err) {
       // Operational language only · no jargon · no stack details
@@ -118,6 +147,13 @@ export const RecoveryActionRow = ({ assignmentId, currentState, onSaved, testIdP
       className="mt-3 pt-3 border-t border-slate-100 space-y-2"
       data-testid={`${testIdPrefix}-row`}
     >
+      {/* iter435 · Phase 31 · Pass B — inline draft restore prompt. */}
+      <DraftRestorePrompt
+        pendingDraft={pendingDraft}
+        onRestore={onRestoreDraft}
+        onDiscard={onDiscardDraft}
+        testId={`${testIdPrefix}-draft-restore-prompt`}
+      />
       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         <label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold shrink-0" htmlFor={`${testIdPrefix}-state-select`}>
           {t("Set recovery state")}

@@ -26,6 +26,10 @@ import {
   getDriverToken,
 } from "@/lib/driverAuth";
 import { useT } from "@/lib/i18n";
+import {
+  enqueueOffline, readOfflineQueue, clearOfflineQueue,
+  replayOfflineQueue, registerOfflineAutoReplay,
+} from "@/lib/resiliency";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -36,45 +40,35 @@ const API = process.env.REACT_APP_BACKEND_URL;
 // offline / weak signal, hold the update locally and replay when
 // signal returns. Operational truth NEVER disappears — it just waits.
 //
-// DOCTRINE GUARDS (walking-skeleton):
-//   - localStorage only · NO IndexedDB · NO ServiceWorker · NO sync engine
-//   - Max 3 queued updates · drop oldest if exceeded (anti-stale)
-//   - Replay strictly oldest→newest on `online` event
-//   - Invisible · operational language ("Update waiting to sync")
-//   - NO retry panels · NO conflict UI · NO technical chrome
+// iter435 · Phase 31 Pass B · Storage primitives extracted to
+// `lib/resiliency/offlineQueue.js` so the SAME guarantees can be
+// re-used by Shop Recovery, Dispatch assignment writes, etc. Behavior
+// is preserved: formKey="driver-lifecycle" · max 3 · oldest→newest
+// replay · 401 preserves queue · 2xx + 4xx clear entries.
 // ════════════════════════════════════════════════════════════════════
-const OFFLINE_QUEUE_KEY = "masci.driver.pendingTransitions";
+const OFFLINE_FORM_KEY = "driver-lifecycle";
 const OFFLINE_QUEUE_MAX = 3;
+registerOfflineAutoReplay(OFFLINE_FORM_KEY);
 
-function readOfflineQueue() {
-  try {
-    const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeOfflineQueue(items) {
-  try {
-    const capped = items.slice(-OFFLINE_QUEUE_MAX);
-    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(capped));
-  } catch {
-    /* localStorage unavailable — drop silently · operational continuity */
-  }
+function readDriverQueue() {
+  return readOfflineQueue(OFFLINE_FORM_KEY);
 }
 
 function enqueueOfflineTransition(entry) {
-  const q = readOfflineQueue();
-  q.push(entry);
-  writeOfflineQueue(q);
-  return Math.min(q.length, OFFLINE_QUEUE_MAX);
-}
-
-function clearOfflineQueue() {
-  try { localStorage.removeItem(OFFLINE_QUEUE_KEY); } catch { /* noop */ }
+  // Translate the iter421 action shape into the iter435 HTTP shape so
+  // a single replayer drives every queued lifecycle write.
+  const depth = enqueueOffline(OFFLINE_FORM_KEY, {
+    method: "POST",
+    url: `/api/dispatch/driver/assignments/${entry.assignment_id}/transition`,
+    headers: driverHeaders(),
+    body: { to_state: entry.to_state, ...(entry.extra || {}) },
+    meta: {
+      assignment_id: entry.assignment_id,
+      to_state: entry.to_state,
+      queued_at: entry.queued_at,
+    },
+  }, { max: OFFLINE_QUEUE_MAX });
+  return depth;
 }
 
 // Canonical state keys stay constant (used by the backend lifecycle
@@ -265,44 +259,20 @@ export default function DriverShift() {
   // iter421 · Phase 23.0 · Replay queued transitions when signal returns.
   // Invisible · operational · no retry chrome. Runs on mount AND on the
   // browser `online` event. Mirrors operational truth back to backend
-  // strictly in queued order (oldest→newest).
-  const replayOfflineQueue = useCallback(async () => {
-    const q = readOfflineQueue();
+  // strictly in queued order (oldest→newest). iter435 · the actual
+  // queue + replay primitives now live in `lib/resiliency/offlineQueue`
+  // so Shop Recovery / Dispatch / etc. share the same guarantees.
+  const replayDriverQueue = useCallback(async () => {
+    const q = readDriverQueue();
     if (q.length === 0) {
       setPendingSyncCount(0);
       return;
     }
     if (!getDriverToken()) return;
-    const remaining = [];
-    let replayedAny = false;
-    for (const entry of q) {
-      try {
-        const r = await fetch(
-          `${API}/api/dispatch/driver/assignments/${entry.assignment_id}/transition`,
-          {
-            method: "POST",
-            headers: driverHeaders(),
-            body: JSON.stringify({ to_state: entry.to_state, ...(entry.extra || {}) }),
-          },
-        );
-        if (r.status === 401) {
-          // Auth lost → preserve queue · re-attempt next signal
-          writeOfflineQueue(q);
-          return;
-        }
-        // Success OR 4xx domain rejection both clear the entry — driver
-        // cannot resolve a stale rejection from a quiet phone screen.
-        replayedAny = true;
-      } catch {
-        remaining.push(entry);
-      }
-    }
-    if (remaining.length === 0) {
-      clearOfflineQueue();
-    } else {
-      writeOfflineQueue(remaining);
-    }
-    setPendingSyncCount(remaining.length);
+    const { kept, replayedAny } = await replayOfflineQueue(
+      OFFLINE_FORM_KEY, { max: OFFLINE_QUEUE_MAX },
+    );
+    setPendingSyncCount(kept);
     if (replayedAny) {
       // Pull fresh assignment truth after replay so UI mirrors backend
       refresh();
@@ -311,12 +281,12 @@ export default function DriverShift() {
 
   // Boot · seed counter from any pre-existing queue · attempt one replay.
   useEffect(() => {
-    setPendingSyncCount(readOfflineQueue().length);
-    replayOfflineQueue();
-    const onOnline = () => replayOfflineQueue();
+    setPendingSyncCount(readDriverQueue().length);
+    replayDriverQueue();
+    const onOnline = () => replayDriverQueue();
     window.addEventListener("online", onOnline);
     return () => window.removeEventListener("online", onOnline);
-  }, [replayOfflineQueue]);
+  }, [replayDriverQueue]);
 
   if (loading) {
     return (
