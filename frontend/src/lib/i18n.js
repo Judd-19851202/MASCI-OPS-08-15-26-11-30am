@@ -82,6 +82,40 @@ const ES = {
   "Photo saved on this device · will send when online.":
     "Foto guardada en este dispositivo · se enviará cuando haya conexión.",
   "waiting to send": "esperando enviar",
+  // iter437 · Phase 31.1 · Daily Report Crew Memory Continuity strings.
+  // Operational language ONLY · banned-word list enforced
+  // (no profile / template / cache / autofill / synced / account / memory).
+  "Use yesterday's crew and equipment setup from this device?":
+    "¿Usar la configuración de cuadrilla y equipo de ayer de este dispositivo?",
+  "Saved setups stay only on this device.":
+    "Las configuraciones guardadas permanecen solo en este dispositivo.",
+  "Use this option only if this is your crew device or personal device.":
+    "Usa esta opción solo si este es el dispositivo de tu cuadrilla o personal.",
+  "You can edit crew and equipment after loading.":
+    "Puedes editar cuadrilla y equipo después de cargar.",
+  "Starting blank will not erase previously submitted reports.":
+    "Empezar en blanco no borra los informes ya enviados.",
+  "Use Setup": "Usar configuración",
+  "Start Blank": "Empezar en blanco",
+  "Clear Saved Setup": "Borrar configuración guardada",
+  "Name this setup": "Nombrar esta configuración",
+  "Optional · name this setup": "Opcional · nombrar esta configuración",
+  "e.g. Paving Crew A": "p.ej. Cuadrilla de Pavimentación A",
+  "Save name": "Guardar nombre",
+  "saved": "guardada",
+  "today": "hoy",
+  "yesterday": "ayer",
+  "days ago": "días atrás",
+  "crew member": "miembro de cuadrilla",
+  "crew members": "miembros de cuadrilla",
+  "subcontractor": "subcontratista",
+  "subcontractors": "subcontratistas",
+  "equipment item": "equipo",
+  "equipment items": "equipos",
+  "Crew setup loaded · edit anything as needed.":
+    "Configuración cargada · edita lo que necesites.",
+  "Saved setup cleared from this device.":
+    "Configuración guardada borrada de este dispositivo.",
   "Photos waiting to send will upload when connection returns.":
     "Las fotos pendientes se enviarán cuando vuelva la conexión.",
   "Submitted reports are stored in the platform. Drafts only stay on this device.":

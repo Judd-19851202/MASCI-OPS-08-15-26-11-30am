@@ -50,6 +50,12 @@ import {
   useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
   DraftStatusPill, DraftRestorePrompt,
 } from "@/lib/resiliency";
+// iter437 · Phase 31.1 · Daily Report Crew Memory Continuity.
+import {
+  extractSetupSnapshot, saveCrewSetup, loadCrewSetup,
+  clearCrewSetup, renameCrewSetup, applySetupSnapshotToData,
+} from "@/lib/crewMemory";
+import CrewSetupRestorePrompt from "@/components/daily-report/CrewSetupRestorePrompt";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
@@ -247,6 +253,33 @@ export default function NewDailyReport({ publicMode = false }) {
     discard();
     toast.message(t("Draft discarded"));
   }, [discard, t]);
+
+  // iter437 · Phase 31.1 · Device-local crew + equipment setup memory.
+  // Loaded once on mount · NEVER auto-applied · restore prompt is the
+  // only path into the form. Shared-device safe by construction.
+  const [crewSetup, setCrewSetup] = React.useState(null);
+  React.useEffect(() => {
+    const rec = loadCrewSetup();
+    if (rec) setCrewSetup(rec);
+  }, []);
+  const onUseCrewSetup = React.useCallback(() => {
+    if (!crewSetup) return;
+    setData((d) => applySetupSnapshotToData(d, crewSetup));
+    setCrewSetup(null);
+    toast.success(t("Crew setup loaded · edit anything as needed."));
+  }, [crewSetup, t]);
+  const onStartBlankCrewSetup = React.useCallback(() => {
+    setCrewSetup(null);
+  }, []);
+  const onClearCrewSetup = React.useCallback(() => {
+    clearCrewSetup();
+    setCrewSetup(null);
+    toast.message(t("Saved setup cleared from this device."));
+  }, [t]);
+  const onRenameCrewSetup = React.useCallback((nickname) => {
+    const updated = renameCrewSetup(nickname);
+    if (updated) setCrewSetup(updated);
+  }, []);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -490,6 +523,9 @@ export default function NewDailyReport({ publicMode = false }) {
           duration: 6000,
         });
         await commit();
+        // iter437 · also save setup memory on the queued path so the
+        // operator gets continuity even when the network was offline.
+        try { saveCrewSetup(payload); } catch { /* silent */ }
         idempotencyKeyRef.current = null;
         if (payload.project_number) rememberLastProject(String(payload.project_number));
         if (publicMode || !isAdmin()) {
@@ -510,6 +546,9 @@ export default function NewDailyReport({ publicMode = false }) {
       const res = { data: r.data };
       toast.success(t("Daily report filed · PM distribution sent · visible under Daily Reports"));
       await commit();
+      // iter437 · Phase 31.1 · save setup snapshot for tomorrow on this
+      // device. Strips banned fields defensively · 30d TTL · rolling.
+      try { saveCrewSetup(payload); } catch { /* silent · doctrine */ }
       idempotencyKeyRef.current = null;
       // iter148 — remember this project for the next visit
       if (payload.project_number) rememberLastProject(String(payload.project_number));
@@ -653,6 +692,19 @@ export default function NewDailyReport({ publicMode = false }) {
             {t("One report per crew, per day. Capture labor, subs, materials, weather, and photos so payroll and PM coordination run clean tomorrow.")}
           </p>
         </div>
+
+        {/* iter437 · Phase 31.1 · device-local crew setup restore.
+            Shown BEFORE the draft prompt because crew/equipment is the
+            highest-friction repetitive entry · prompt always visible
+            · NEVER silent auto-fill. */}
+        <CrewSetupRestorePrompt
+          snapshot={crewSetup}
+          onUseSetup={onUseCrewSetup}
+          onStartBlank={onStartBlankCrewSetup}
+          onClear={onClearCrewSetup}
+          onRename={onRenameCrewSetup}
+          testId="daily-report-crew-setup-prompt"
+        />
 
         {/* iter434 · Phase 31 · Part 2 — calm draft recovery prompt. */}
         <DraftRestorePrompt
