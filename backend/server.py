@@ -9518,6 +9518,25 @@ app.include_router(build_admin_operator_digest_router(
     require_admin_dep=require_admin,
 ))
 
+# iter432 · Phase 30 · Part 6 · Field Memory continuity (institutional
+# operational wisdom · append-only · role-aware writes · NEVER analytics).
+from routes.field_memory import (  # noqa: E402
+    build_field_memory_router,
+    ensure_field_memory_indexes,
+)
+app.include_router(build_field_memory_router(
+    db=db,
+    require_any_portal_token_dep=_require_any_portal_token,
+))
+
+
+@app.on_event("startup")
+async def _ensure_field_memory_indexes_startup():
+    try:
+        await ensure_field_memory_indexes(db)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[field-memory] index ensure failed: {e}")
+
 # iter418/419/420 · Phases 20.1/21.0/22.0 · Operational Continuity primitives.
 # ONE router · THREE walking-skeleton primitives: breakdown-proof upload (driver
 # magic-link) · continuity-event log · shop-recovery sub-state transitions.
