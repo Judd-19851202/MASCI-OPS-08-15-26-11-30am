@@ -1,4 +1,4 @@
-"""routes/operational_attachments.py · iter417 · Phase 20.0.
+"""routes/operational_attachments.py · iter417 · Phase 20.0 · iter429 · Phase 28.
 
 Operational Attachments Foundation — walking-skeleton primitive.
 
@@ -13,6 +13,23 @@ This module ships the smallest viable primitive:
   - 5 MB per file · image MIME types only (jpg/png/heic/webp/gif)
   - 25 attachments cap per host (anti-abuse)
   - RBAC: dispatch+admin write · any-portal-token + driver-session read
+
+iter429 · Phase 28 · R2 Cold-Storage Refactor
+---------------------------------------------
+Full-resolution image bytes now live in Cloudflare R2 (S3-compatible) when
+photo_storage is configured. Only metadata + an `r2_key` pointer remain in
+MongoDB. Legacy `data_b64` rows continue to read transparently so no
+historical operational truth is lost.
+
+Storage strategy (per upload):
+  - If photo_storage.is_configured() → upload bytes to R2 ·
+    persist  storage_backend="r2", r2_key=<bucket-key>, sha256=<hex>
+  - Else (preview/dev fallback)      → persist storage_backend="inline_b64",
+    data_b64=<base64> (legacy walking-skeleton behaviour)
+
+Reads (`GET /{id}/file`):
+  - storage_backend == "r2"          → stream bytes from R2
+  - else if data_b64 present         → return inline bytes (legacy)
 
 What is OUT of scope (deferred to later iter)
   - Folders / buckets / albums / "attachments management" page
@@ -31,6 +48,7 @@ Doctrine guards
 from __future__ import annotations
 
 import base64
+import hashlib
 import logging
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -38,6 +56,8 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File, Form
 from pydantic import BaseModel
+
+import photo_storage
 
 logger = logging.getLogger("operational_attachments")
 
@@ -95,7 +115,13 @@ def _actor_role(actor: Dict[str, Any]) -> str:
 
 
 def _public_attachment(doc: Dict[str, Any]) -> Dict[str, Any]:
-    """Return the attachment WITHOUT the raw base64 data field (small list)."""
+    """Return the attachment WITHOUT the raw bytes / R2 key (small list).
+
+    `storage_backend` is exposed so the FE can opt into a future presigned-URL
+    fetch path without changing the response shape. The R2 key itself is
+    intentionally NOT exposed — the FE fetches binaries through
+    `/api/operational-attachments/{id}/file` only.
+    """
     return {
         "id": doc.get("id"),
         "type": doc.get("type"),
@@ -108,6 +134,7 @@ def _public_attachment(doc: Dict[str, Any]) -> Dict[str, Any]:
         "filename": doc.get("filename"),
         "content_type": doc.get("content_type"),
         "size_bytes": doc.get("size_bytes"),
+        "storage_backend": doc.get("storage_backend") or ("inline_b64" if doc.get("data_b64") else None),
     }
 
 
@@ -196,7 +223,41 @@ def build_operational_attachments_router(
             operational_note = operational_note[:MAX_NOTE_LEN]
 
         attachment_id = str(uuid.uuid4())
-        doc = {
+        sha256_hex = hashlib.sha256(raw).hexdigest()
+
+        # ── iter429 · R2 cold-storage path · falls back to inline base64
+        #    in unconfigured (preview-only) environments so the walking-
+        #    skeleton contract is preserved even without R2 credentials.
+        ext = (content_type.split("/", 1)[-1] or "jpg").replace("jpeg", "jpg")
+        r2_key: Optional[str] = None
+        storage_backend = "inline_b64"
+        if photo_storage.is_configured():
+            try:
+                # photo_storage returns a `photo://<bucket>/<key>` URL ·
+                # we keep only the key portion in Mongo so the bucket can
+                # rotate without a data migration.
+                ref = await photo_storage.upload_photo_bytes(
+                    raw,
+                    ext=ext,
+                    source_id=f"opattach/{host_kind}/{host_id}/{attachment_id}",
+                    content_type=content_type,
+                )
+                # parse `photo://<bucket>/<key>` → keep <key>
+                if ref.startswith("photo://"):
+                    _, _, rest = ref.partition("photo://")
+                    _, _, key_part = rest.partition("/")
+                    r2_key = key_part or None
+                if r2_key:
+                    storage_backend = "r2"
+            except Exception as exc:  # noqa: BLE001
+                # R2 upload failed · keep operational continuity by writing
+                # the inline-base64 path so the driver/dispatch user is
+                # never blocked by a transient storage outage.
+                logger.warning(
+                    f"[op-attachments] R2 upload failed · falling back to inline_b64: {exc}",
+                )
+
+        doc: Dict[str, Any] = {
             "id": attachment_id,
             "tenant_id": tenant_id,
             "host_kind": host_kind,
@@ -209,8 +270,13 @@ def build_operational_attachments_router(
             "filename": (file.filename or "attachment").strip()[:255],
             "content_type": content_type,
             "size_bytes": size_bytes,
-            "data_b64": base64.b64encode(raw).decode("ascii"),
+            "sha256": sha256_hex,
+            "storage_backend": storage_backend,
         }
+        if storage_backend == "r2":
+            doc["r2_key"] = r2_key
+        else:
+            doc["data_b64"] = base64.b64encode(raw).decode("ascii")
         await db.operational_attachments.insert_one(doc)
 
         return _public_attachment(doc)
@@ -230,7 +296,7 @@ def build_operational_attachments_router(
             raise HTTPException(status_code=400, detail="host_id is required")
         cur = db.operational_attachments.find(
             {"tenant_id": tenant_id, "host_kind": host_kind, "host_id": host_id.strip()},
-            {"_id": 0, "data_b64": 0},
+            {"_id": 0, "data_b64": 0, "r2_key": 0},
         ).sort("uploaded_at", 1)
         items = [_public_attachment(d) async for d in cur]
         return {"attachments": items, "count": len(items)}
@@ -250,7 +316,27 @@ def build_operational_attachments_router(
         if not doc:
             raise HTTPException(status_code=404, detail="Attachment not found")
         from fastapi.responses import Response
-        raw = base64.b64decode(doc.get("data_b64") or "")
+
+        backend = doc.get("storage_backend") or ("r2" if doc.get("r2_key") else "inline_b64")
+        if backend == "r2" and doc.get("r2_key"):
+            try:
+                # photo_storage reads any `photo://<bucket>/<key>` ref ·
+                # we rebuild the canonical ref from the stored key + the
+                # configured bucket so a bucket rotation is transparent.
+                ref = f"photo://{photo_storage._env('S3_BUCKET')}/{doc['r2_key']}"  # noqa: SLF001
+                raw = await photo_storage.read_photo_bytes(ref)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    f"[op-attachments] R2 fetch failed for {attachment_id}: {exc}",
+                )
+                # Last-chance legacy fallback (rare · only for docs that
+                # have BOTH r2_key and an old data_b64 still attached).
+                if doc.get("data_b64"):
+                    raw = base64.b64decode(doc["data_b64"])
+                else:
+                    raise HTTPException(status_code=502, detail="Attachment storage unavailable")
+        else:
+            raw = base64.b64decode(doc.get("data_b64") or "")
         return Response(
             content=raw,
             media_type=doc.get("content_type") or "application/octet-stream",
@@ -273,9 +359,11 @@ def build_operational_attachments_router(
         After that, the attachment is permanent operational proof.
         """
         tenant_id = _resolve_tenant(x_tenant_id)
+        # iter429 · Phase 28 · need r2_key for cold-storage cleanup
         doc = await db.operational_attachments.find_one(
             {"id": attachment_id, "tenant_id": tenant_id},
-            {"_id": 0, "uploaded_at": 1, "uploaded_by": 1, "uploaded_role": 1},
+            {"_id": 0, "uploaded_at": 1, "uploaded_by": 1, "uploaded_role": 1,
+             "storage_backend": 1, "r2_key": 1},
         )
         if not doc:
             raise HTTPException(status_code=404, detail="Attachment not found")
@@ -303,6 +391,14 @@ def build_operational_attachments_router(
         await db.operational_attachments.delete_one(
             {"id": attachment_id, "tenant_id": tenant_id}
         )
+        # Best-effort R2 cleanup · orphaned R2 objects are cheap, but the
+        # mistake-recovery doctrine says "make it as if it never happened".
+        if doc.get("storage_backend") == "r2" and doc.get("r2_key"):
+            try:
+                ref = f"photo://{photo_storage._env('S3_BUCKET')}/{doc['r2_key']}"  # noqa: SLF001
+                await photo_storage.delete_photo(ref)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"[op-attachments] R2 delete best-effort failed: {exc}")
         return AttachmentDeleteResponse(ok=True, id=attachment_id)
 
     return router

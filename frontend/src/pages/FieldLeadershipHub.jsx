@@ -49,6 +49,7 @@ import {
   FIELD_LEADERSHIP_FORMS,
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
 } from "@/lib/fieldLeadershipSchemas";
+import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 
 const FL_PAL = paletteFor("leadership");
 
@@ -447,6 +448,12 @@ export default function FieldLeadershipHub() {
             <Lock className="w-3.5 h-3.5 text-slate-500" />
             {t("All forms must be factual, professional, and compliant with employment-documentation best practices.")}
           </div>
+        </div>
+
+        {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
+            self-gated · dismissible · single-card · NEVER nags */}
+        <div className="mb-8">
+          <PasskeyEnrollPrompt />
         </div>
 
         <div className="space-y-10">

@@ -19,6 +19,7 @@ import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
+import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 
 const HR_PAL = paletteFor("hr");
 
@@ -185,6 +186,12 @@ export default function HrHub() {
         </p>
 
         <OperationsCenter compact className="mt-6" />
+
+        {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
+            self-gated · dismissible · single-card · NEVER nags */}
+        <div className="mt-6">
+          <PasskeyEnrollPrompt />
+        </div>
 
         <div className="mt-8 space-y-10">
           {TILE_GROUPS.map((group) => {

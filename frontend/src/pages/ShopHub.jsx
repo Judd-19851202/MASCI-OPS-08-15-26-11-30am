@@ -47,6 +47,7 @@ import { clearAllSessions } from "@/lib/sessionReset";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
+import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 
 const SHOP_PAL = paletteFor("shop");
 
@@ -282,6 +283,10 @@ export default function ShopHub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-10">
+        {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
+            self-gated · dismissible · single-card · NEVER nags */}
+        <PasskeyEnrollPrompt />
+
         {/* Calm operational kicker · iter423 wording: recovery, not maintenance */}
         <div>
           <span className={`font-mono text-xs uppercase tracking-[0.22em] ${SHOP_PAL.hubKicker} font-bold`}>

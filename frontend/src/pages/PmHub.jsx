@@ -18,6 +18,7 @@ import DispatchLifecycleTile from "@/components/dispatch/DispatchLifecycleTile";
 import PmHaulActivityTile from "@/components/dispatch/PmHaulActivityTile";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/usePageTitle";
+import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 
 const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
@@ -154,6 +155,12 @@ export default function PmHub() {
         </div>
       ) : (
         <>
+          {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
+              self-gated · dismissible · single-card · NEVER nags */}
+          <div className="mt-5">
+            <PasskeyEnrollPrompt />
+          </div>
+
           <OperationsCenter compact className="mt-5" />
 
           {/* iter353e-UI · My Crew Compliance — operational accountability awareness */}

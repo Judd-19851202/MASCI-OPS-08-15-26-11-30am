@@ -45,6 +45,7 @@ import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
+import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DISPATCH_PAL = paletteFor("dispatch");
@@ -171,6 +172,10 @@ export default function DispatchHub() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-6 flex-1 w-full">
+        {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
+            self-gated · dismissible · single-card · NEVER nags */}
+        <PasskeyEnrollPrompt />
+
         {/* ── 1 · DISPATCH COMMAND · orientation + coaching ──────── */}
         <Section
           testId="ds-section-command"

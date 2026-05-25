@@ -27,6 +27,7 @@ import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { useT } from "@/lib/i18n";
 import { isSafety, getSafetyToken } from "@/lib/safetyAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
+import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -184,6 +185,12 @@ export default function SafetyHub() {
 
   return (
     <SafetyShell title="Safety Operations Dashboard" kicker="SAFETY PORTAL">
+      {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
+          self-gated · dismissible · single-card · NEVER nags */}
+      <div className="mb-6">
+        <PasskeyEnrollPrompt />
+      </div>
+
       {/* KPI strip — neutral chrome per Rule 5. Colored value text for
           incident/CA emphasis; everything else stays calm. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-10" data-testid="safety-kpi-strip">
