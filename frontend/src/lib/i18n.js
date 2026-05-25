@@ -116,6 +116,15 @@ const ES = {
     "Configuración cargada · edita lo que necesites.",
   "Saved setup cleared from this device.":
     "Configuración guardada borrada de este dispositivo.",
+  // iter438 · Phase 31.1 load-trace + Phase 31 Pass C wirings.
+  "Loaded from your saved setup · edit anything as needed.":
+    "Cargado desde tu configuración guardada · edita lo que necesites.",
+  "Loaded from {nickname} · edit anything as needed.":
+    "Cargado desde {nickname} · edita lo que necesites.",
+  "Saved · will send when online.":
+    "Guardado · se enviará cuando haya conexión.",
+  "This inspection is on this device and will upload automatically.":
+    "Esta inspección está en este dispositivo y se cargará automáticamente.",
   "Photos waiting to send will upload when connection returns.":
     "Las fotos pendientes se enviarán cuando vuelva la conexión.",
   "Submitted reports are stored in the platform. Drafts only stay on this device.":

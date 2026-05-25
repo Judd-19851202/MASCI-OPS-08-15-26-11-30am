@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Save, Loader2, MapPin, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,14 @@ import { GradeBanner } from "@/components/Grade";
 import { getCurrentPosition, reverseGeocode, formatCoords } from "@/lib/geolocation";
 import {
   useFormDraft, getActorId, DraftStatusPill, DraftRestorePrompt,
+  enqueueOffline, replayOfflineQueue, registerOfflineAutoReplay,
 } from "@/lib/resiliency";
+
+// iter438 · Phase 31 · Pass C · offline queue formKey for inspection
+// submits. Lets a foreman file from a dead zone and the report
+// catches up automatically when signal returns.
+const INSPECTION_QUEUE_KEY = "inspection-submit";
+registerOfflineAutoReplay(INSPECTION_QUEUE_KEY);
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
@@ -68,6 +75,17 @@ export default function NewInspection({ publicMode = false }) {
     discard();
     toast.message(t("Draft discarded"));
   }, [discard, t]);
+
+  // iter438 · attempt to replay any queued inspection submits on mount
+  // and on the `online` event. Silent · operational continuity.
+  useEffect(() => {
+    replayOfflineQueue(INSPECTION_QUEUE_KEY).catch(() => { /* silent */ });
+    const onOnline = () => {
+      replayOfflineQueue(INSPECTION_QUEUE_KEY).catch(() => { /* silent */ });
+    };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, []);
 
   const applyJob = (job) => {
     setData((p) => ({
@@ -184,7 +202,48 @@ export default function NewInspection({ publicMode = false }) {
         payload = await translateUserInput(payload, "es");
       }
       payload = { ...payload, submit_language: lang || "en" };
-      const res = await api.post("/inspections", payload);
+      let res;
+      try {
+        res = await api.post("/inspections", payload);
+      } catch (netErr) {
+        // iter438 · Phase 31 · Pass C · offline / network failure →
+        // queue the submission so it replays on `online` event. The
+        // operator sees a calm "Saved · will send when online" toast
+        // instead of an error · doctrine matches the Daily Report
+        // queued-offline path.
+        const isNetwork = !netErr?.response ||
+          netErr.code === "ERR_NETWORK" ||
+          netErr.message?.toLowerCase().includes("network");
+        if (isNetwork) {
+          enqueueOffline(INSPECTION_QUEUE_KEY, {
+            method: "POST",
+            url: "/api/inspections",
+            body: payload,
+            meta: { project_name: payload.project_name },
+          });
+          // iter438 · clear the draft once we've queued — the queued
+          // copy is the durable copy from this point.
+          await commit();
+          toast.message(t("Saved · will send when online."), {
+            description: t("This inspection is on this device and will upload automatically."),
+            duration: 6000,
+          });
+          if (publicMode || !isAdmin()) {
+            navigate("/thank-you", {
+              state: {
+                projectName: payload.project_name,
+                formType: "Inspection",
+                queued: true,
+              },
+              replace: true,
+            });
+          } else {
+            navigate(`/audits`);
+          }
+          return;
+        }
+        throw netErr;
+      }
       // iter434 · Phase 31 · clear the draft on confirmed submission.
       await commit();
       toast.success(t("Inspection filed · graded · visible under Audits & Inspections"));

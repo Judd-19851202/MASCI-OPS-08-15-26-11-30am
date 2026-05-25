@@ -265,6 +265,10 @@ export default function NewDailyReport({ publicMode = false }) {
   const onUseCrewSetup = React.useCallback(() => {
     if (!crewSetup) return;
     setData((d) => applySetupSnapshotToData(d, crewSetup));
+    setRecentlyLoadedSetup({
+      nickname: crewSetup.nickname || "",
+      lastUsedAt: crewSetup.lastUsedAt || Date.now(),
+    });
     setCrewSetup(null);
     toast.success(t("Crew setup loaded · edit anything as needed."));
   }, [crewSetup, t]);
@@ -274,12 +278,19 @@ export default function NewDailyReport({ publicMode = false }) {
   const onClearCrewSetup = React.useCallback(() => {
     clearCrewSetup();
     setCrewSetup(null);
+    setRecentlyLoadedSetup(null);
     toast.message(t("Saved setup cleared from this device."));
   }, [t]);
   const onRenameCrewSetup = React.useCallback((nickname) => {
     const updated = renameCrewSetup(nickname);
     if (updated) setCrewSetup(updated);
   }, []);
+
+  // iter438 · Phase 31.1 · tiny additive read-only load-trace line.
+  // Surfaces ONLY after a Use Setup click, so the operator gets a
+  // soft "this came from your saved setup" reassurance — calm,
+  // dismissible (Clear Saved Setup wipes it), never persisted.
+  const [recentlyLoadedSetup, setRecentlyLoadedSetup] = React.useState(null);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -705,6 +716,23 @@ export default function NewDailyReport({ publicMode = false }) {
           onRename={onRenameCrewSetup}
           testId="daily-report-crew-setup-prompt"
         />
+
+        {/* iter438 · Phase 31.1 · calm read-only load-trace line ·
+            renders ONLY after Use Setup. Doctrine: never surveillance ·
+            just a quiet acknowledgement that the setup came from
+            saved memory · operator language only. */}
+        {recentlyLoadedSetup && (
+          <p
+            data-testid="daily-report-setup-load-trace"
+            className="text-xs text-slate-500 italic -mt-1 mb-3 ml-1"
+          >
+            {recentlyLoadedSetup.nickname
+              ? t("Loaded from {nickname} · edit anything as needed.").replace(
+                  "{nickname}", recentlyLoadedSetup.nickname,
+                )
+              : t("Loaded from your saved setup · edit anything as needed.")}
+          </p>
+        )}
 
         {/* iter434 · Phase 31 · Part 2 — calm draft recovery prompt. */}
         <DraftRestorePrompt

@@ -28,6 +28,9 @@ import { getHrToken } from "@/lib/hrAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { HelpTipBlock } from "@/components/HelpTip";
+import {
+  useFormDraft, getActorId, DraftStatusPill, DraftRestorePrompt,
+} from "@/lib/resiliency";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
 
@@ -68,6 +71,31 @@ export default function HrPayrollVariance() {
 
   useEffect(() => { fetchRecent(); }, [fetchRecent]);
 
+  // iter438 · Phase 31 · Pass C · draft protection for the pasted CSV
+  // + threshold + week-ending. A foreman pasting a 500-line payroll
+  // CSV must NEVER lose it on refresh.
+  const actorId = useMemo(() => getActorId(), []);
+  const draftPayload = useMemo(
+    () => ({ weekEnding, threshold, csvText }),
+    [weekEnding, threshold, csvText],
+  );
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft("hr-payroll-variance", draftPayload, actorId);
+
+  const onRestoreDraft = useCallback(() => {
+    const d = restore();
+    if (!d) return;
+    if (d.weekEnding) setWeekEnding(d.weekEnding);
+    if (typeof d.threshold !== "undefined") setThreshold(d.threshold);
+    if (typeof d.csvText === "string") setCsvText(d.csvText);
+    toast.success(t("Draft restored"));
+  }, [restore, t]);
+  const onDiscardDraft = useCallback(() => {
+    discard();
+    toast.message(t("Draft discarded"));
+  }, [discard, t]);
+
   const upload = async () => {
     if (!csvText.trim()) return toast.error(t("Paste your Exact CSV first"));
     setBusy(true);
@@ -80,6 +108,8 @@ export default function HrPayrollVariance() {
       });
       setBatch(r.data.batch);
       toast.success(t("Variance batch created"));
+      // iter438 · clear draft on successful upload.
+      await commit();
       fetchRecent();
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Upload failed"));
@@ -147,12 +177,25 @@ export default function HrPayrollVariance() {
   return (
     <HrPageShell title="Payroll Variance" kicker="HR · Exact CSV Cross-Check">
       <HelpTipBlock formKey="payroll-variance" showCounter />
+      {/* iter438 · Phase 31 · Pass C · calm draft restore prompt for
+          the paste/upload flow. Pasted CSVs can be hundreds of lines —
+          never lose them on refresh. */}
+      <DraftRestorePrompt
+        pendingDraft={pendingDraft}
+        onRestore={onRestoreDraft}
+        onDiscard={onDiscardDraft}
+        testId="hr-pv-draft-restore-prompt"
+      />
+
       {/* Upload panel */}
       <Card className="p-5 mb-6 border-2 border-purple-200 bg-purple-50/30" data-testid="hr-pv-upload-card">
         <div className="flex items-start gap-3 mb-3">
           <ClipboardPaste className="w-5 h-5 text-purple-700 mt-1" />
-          <div>
-            <h2 className="font-display text-lg font-black">{t("Paste your Exact payroll export")}</h2>
+          <div className="flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-black">{t("Paste your Exact payroll export")}</h2>
+              <DraftStatusPill status={draftStatus} testId="hr-pv-draft-pill" />
+            </div>
             <p className="text-sm text-slate-600">
               {t("Paste the CSV from Exact for the week — the system matches each row to MASCI supervisor-reported hours and flags every variance above the threshold.")}
             </p>

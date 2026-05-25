@@ -29,7 +29,9 @@ import { useT } from "@/lib/i18n";
 import {
   enqueueOffline, readOfflineQueue, clearOfflineQueue,
   replayOfflineQueue, registerOfflineAutoReplay,
+  stagePhoto, flushStaged,
 } from "@/lib/resiliency";
+import { toast } from "sonner";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -417,15 +419,57 @@ export default function DriverShift() {
                     const form = new FormData();
                     form.append("host_id", assignment.id);
                     form.append("file", f);
-                    const r = await fetch(
-                      `${API}/api/dispatch/driver/breakdown-proof/upload`,
-                      { method: "POST", headers: driverHeaders({ omitContentType: true }), body: form },
-                    );
+                    let r;
+                    try {
+                      r = await fetch(
+                        `${API}/api/dispatch/driver/breakdown-proof/upload`,
+                        { method: "POST", headers: driverHeaders({ omitContentType: true }), body: form },
+                      );
+                    } catch (netErr) {
+                      // iter438 · Phase 31 · Pass C · stage the photo
+                      // so it auto-retries on `online` / `focus`. The
+                      // driver gets calm confirmation instead of a
+                      // red error · breakdown photo never disappears.
+                      try {
+                        await stagePhoto({
+                          file: f,
+                          hostKind: "breakdown_proof",
+                          hostId: assignment.id,
+                          attachmentType: "breakdown_proof",
+                          note: "",
+                        });
+                        toast.message(t("Photo saved on this device · will send when online."));
+                        setBreakdownProofPrompt(false);
+                      } catch {
+                        setErrorMsg(t("Connection failed — try again."));
+                      }
+                      return;
+                    }
                     if (!r.ok) {
-                      const j = await r.json().catch(() => ({}));
-                      setErrorMsg(j.detail || t("Upload failed."));
+                      if (r.status >= 500) {
+                        // 5xx — stage for later retry · driver moves on.
+                        try {
+                          await stagePhoto({
+                            file: f,
+                            hostKind: "breakdown_proof",
+                            hostId: assignment.id,
+                            attachmentType: "breakdown_proof",
+                            note: "",
+                          });
+                          toast.message(t("Photo saved on this device · will send when online."));
+                          setBreakdownProofPrompt(false);
+                        } catch {
+                          const j = await r.json().catch(() => ({}));
+                          setErrorMsg(j.detail || t("Upload failed."));
+                        }
+                      } else {
+                        const j = await r.json().catch(() => ({}));
+                        setErrorMsg(j.detail || t("Upload failed."));
+                      }
                     } else {
                       setBreakdownProofPrompt(false);
+                      // Opportunistic flush of any prior staged photos.
+                      flushStaged().catch(() => { /* silent */ });
                     }
                   } catch {
                     setErrorMsg(t("Connection failed — try again."));

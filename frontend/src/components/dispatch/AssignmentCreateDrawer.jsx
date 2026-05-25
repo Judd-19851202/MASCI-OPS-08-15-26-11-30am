@@ -28,6 +28,7 @@ import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { DraftRestorePrompt } from "@/lib/resiliency";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -359,6 +360,60 @@ export default function AssignmentCreateDrawer({
     return () => { cancelled = true; };
   }, [open, tenantOverride]);
 
+  // iter438 · debounced autosave on any meaningful state change while
+  // drawer is open. Captures everything except local UI flags (busy,
+  // error). Selected lookups persist as {label, refId} so the form
+  // re-attaches cleanly on restore.
+  useEffect(() => {
+    if (!open) return;
+    const isEmptyFresh =
+      haulType === (initialHaulType || "Material") && !truck && !driver
+      && !trailer && !project && !source && !destination && !material
+      && !equipment && !pickup && !dropoff && !tankerSource
+      && !tankerDestination && !liquidProduct && !note.trim()
+      && (!carrier || carrier.label === "MASCI");
+    if (isEmptyFresh) return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      _writeDraft({
+        haulType, truck, driver, trailer, carrier, project, source,
+        destination, material, equipment, pickup, dropoff,
+        tankerSource, tankerDestination, liquidProduct, note,
+      });
+    }, 700);
+    return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current); };
+  }, [open, haulType, truck, driver, trailer, carrier, project, source,
+      destination, material, equipment, pickup, dropoff, tankerSource,
+      tankerDestination, liquidProduct, note, initialHaulType]);
+
+  const onRestoreDraft = useCallback(() => {
+    if (!pendingDraft) return;
+    if (pendingDraft.haulType) setHaulType(pendingDraft.haulType);
+    if (pendingDraft.truck) setTruck(pendingDraft.truck);
+    if (pendingDraft.driver) setDriver(pendingDraft.driver);
+    if (pendingDraft.trailer) setTrailer(pendingDraft.trailer);
+    if (pendingDraft.carrier) setCarrier(pendingDraft.carrier);
+    if (pendingDraft.project) setProject(pendingDraft.project);
+    if (pendingDraft.source) setSource(pendingDraft.source);
+    if (pendingDraft.destination) setDestination(pendingDraft.destination);
+    if (pendingDraft.material) setMaterial(pendingDraft.material);
+    if (pendingDraft.equipment) setEquipment(pendingDraft.equipment);
+    if (pendingDraft.pickup) setPickup(pendingDraft.pickup);
+    if (pendingDraft.dropoff) setDropoff(pendingDraft.dropoff);
+    if (pendingDraft.tankerSource) setTankerSource(pendingDraft.tankerSource);
+    if (pendingDraft.tankerDestination) setTankerDestination(pendingDraft.tankerDestination);
+    if (pendingDraft.liquidProduct) setLiquidProduct(pendingDraft.liquidProduct);
+    if (typeof pendingDraft.note === "string") setNote(pendingDraft.note);
+    setPendingDraft(null);
+    toast.success(t("Draft restored"));
+  }, [pendingDraft, t]);
+
+  const onDiscardDraft = useCallback(() => {
+    _clearDraft();
+    setPendingDraft(null);
+    toast.message(t("Draft discarded"));
+  }, [t]);
+
   // ── Option projections ─────────────────────────────────────────
   const truckOptions = useMemo(() => L.trucks.map((x) => ({
     label: x.unit_number, refId: x.unit_pk || "", hint: x.company || "", source: "master",
@@ -504,6 +559,8 @@ export default function AssignmentCreateDrawer({
             : t("Assignment issued · truck on the board"),
       );
       if (onCreated) onCreated(j.assignment || null);
+      // iter438 · clear draft on confirmed creation.
+      _clearDraft();
       onClose && onClose();
     } catch {
       setErrorMsg(t("Connection failed — try again."));
@@ -563,6 +620,16 @@ export default function AssignmentCreateDrawer({
 
         {/* Body */}
         <div className="px-5 py-4 space-y-4 flex-1">
+          {/* iter438 · Phase 31 · Pass C · calm draft restore prompt.
+              Mounts at the top of the body so it never collides with
+              the haul-type picker · auto-dismisses on Restore/Discard. */}
+          <DraftRestorePrompt
+            pendingDraft={pendingDraft}
+            onRestore={onRestoreDraft}
+            onDiscard={onDiscardDraft}
+            testId="assignment-create-draft-restore-prompt"
+          />
+
           {/* Haul Type */}
           <HaulTypePicker
             value={haulType}
