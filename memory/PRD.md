@@ -1,6 +1,84 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter434 · Phase 31 · Pass A · Work Recovery Continuity Foundation ✅
+
+### Result — 🟢 8/8 doctrine assertions live-pass · 0 action items · 0 regressions
+
+### Mission
+Stand up the calm work-recovery foundation: a manual-restore variant of
+the existing Phase J resiliency hook, a two-button restore prompt
+matching the Phase 31 doctrine ("Do NOT auto-overwrite"), and wire it
+onto the 3 highest-impact text-heavy forms. Photo staging (Part 3) and
+queue expansion (Part 4) explicitly deferred to Pass B.
+
+### Headline shipped
+- **`lib/resiliency/useFormDraft.js`** (NEW) — manual-restore variant
+  of `useDraftSync`. Auto-saves on data changes (debounced 800 ms) but
+  loads the draft into `pendingDraft` state instead of auto-applying.
+  Exposes `restore()` / `discard()` / `commit()` for explicit control.
+- **`lib/resiliency/DraftRestorePrompt.jsx`** (NEW) — calm amber card
+  with two buttons: Restore · Discard. Exact doctrine microcopy:
+  _"You have unsaved work from earlier."_ + _"Your work is saved on
+  this device until it is submitted."_ Bilingual (EN + ES).
+- **3 forms wired** (top-priority text-heavy workflows):
+  - `pages/NewIncident.jsx` — migrated from auto-apply toast pattern
+  - `pages/NewDailyReport.jsx` — migrated from auto-apply toast pattern
+  - `pages/NewInspection.jsx` — previously had **no draft protection**;
+    now full autosave + restore prompt + draft-pill + commit() on POST
+- **6 new EN→ES strings** in `lib/i18n.js`
+- **3 Phase 31 docs**: `PHASE31_WORK_RECOVERY_CONTINUITY.md` (master),
+  `PHASE31_WORK_RECOVERY_COVERAGE_MATRIX.md` (audit · classifies all
+  10 high-priority workflows A/B/C/D/E), `PHASE31_DRAFT_RETENTION_DOCTRINE.md` (7 rules).
+
+### Doctrine assertions verified live (testing subagent · 8/8)
+1. Calm two-button prompt · NO modal · NO overlay · NO sticky banner
+2. Auto-save is silent (debounced ~800 ms · IDB key appears within 2 s)
+3. **NO auto-overwrite** · form field stays EMPTY on reload until user
+   clicks Restore (this IS the entire Phase 31 directive)
+4. Restored draft applies only on explicit Restore click
+5. Discard wipes IDB key + clears form
+6. Per-actor scoping via `getActorId()` — `anon` for public routes
+7. EN/ES microcopy strings present + verbatim doctrine
+8. Same hook+component pair shared across all 3 forms (DRY)
+
+### What this iteration explicitly did NOT do
+- ❌ NO photo / attachment staging (Part 3 · deferred to Pass B)
+- ❌ NO offline submit queue generalisation (Part 4 · deferred to Pass B)
+- ❌ NO fan-out to remaining 7 workflows (Driver Shift, Shop Recovery
+  notes, Dispatch assignment creation, Safety reports, HR forms, Day-1,
+  Week-1) — listed and prioritised in the coverage matrix
+- ❌ NO real-device certification matrix (Part 8 · operator-owned)
+- ❌ NO admin draft browser, dashboard, ranking, scoring, surveillance,
+  or chat-style activity feed
+- ❌ NO Service Worker (foreground-only · iOS-safe · WebView-safe)
+- ❌ NO new admin endpoint · NO new Mongo collection · NO new env var
+
+### Backlog (Pass B / Pass C)
+- 🟡 **P1 · Pass B** · Photo staging primitive (`AttachmentStrip` +
+  driver breakdown-proof) — biggest remaining field-data-loss surface
+- 🟡 **P1 · Pass B** · Fan out `useFormDraft` to Driver Shift, Shop
+  Recovery notes (`RecoveryActionRow`), Dispatch
+  `AssignmentCreateDrawer`, Safety + HR forms, Day-1/Week-1 debriefs
+- 🟡 **P1 · Pass B** · Generalize iter421 driver queue →
+  `lib/resiliency/offlineQueue.js` (already 70 % done by
+  `resiliencyQueue.js` — needs lifecycle/recovery write coverage)
+- 🟢 **P2 · Pass B** · `PHASE31_OFFLINE_QUEUE_EXPANSION_PLAN.md` +
+  `PHASE31_MOBILE_RECOVERY_VALIDATION.md` (last 2 of 5 docs)
+- 🟢 **P3 · Pass C** · Real-device certification matrix · coaching
+  language sweep across all wired forms
+
+### Verdict
+🟢 The MASCI Operations Platform now offers the calm
+**"close your phone, lose signal, come back, your work is still there"**
+experience on the 3 highest-impact text-heavy operational reports.
+Phase J resiliency primitives are intact. Doctrine of restraint held —
+zero new admin surfaces, zero scope expansion.
+
+---
+
+
+
 ## 2026-05-25 — iter432–433 · Phase 30 · Field Memory + Role Cognition Convergence ✅
 
 ### Result — 🟢 Phase 30 CLOSED · 12/12 parity-lock + 7/7 live + 5/5 hub mounts · 0 action items
