@@ -360,6 +360,17 @@ export default function AssignmentCreateDrawer({
     setErrorMsg("");
   }, [open, initialHaulType]);
 
+  // iter438 · Phase 31 · Pass C · hydrate pendingDraft from localStorage
+  // AFTER the reset effect so the form is pristine before we offer
+  // restore. NEVER auto-applies · the prompt is the only path back in.
+  useEffect(() => {
+    if (!open) {
+      setPendingDraft(null);
+      return;
+    }
+    setPendingDraft(_readDraft());
+  }, [open, _readDraft]);
+
   // Load lookups
   useEffect(() => {
     if (!open) return;
