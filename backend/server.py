@@ -4585,6 +4585,11 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
             ("/app/backend/storage", "storage"),
             ("/app/backend/static", "static"),
             ("/app/backend/data", "data"),
+            # iter426 · Phase 25.3 · Memory-doc continuity (PRD · audits ·
+            # debriefs · doctrine notes). These are git-tracked but cheap
+            # disaster-recovery insurance — if the repo + R2 ever
+            # diverged, the backup zip is the single source of truth.
+            ("/app/memory", "memory"),
         ]
         log_lines.append("")
         log_lines.append("Disk-backed files (storage tree):")
@@ -5832,6 +5837,63 @@ async def _log_r2_usage_warning() -> None:
         logger.warning(f"[r2-usage] couldn't record health row: {e}")
 
 
+# iter426 · Phase 25.3 · Backup Drift Watcher (calm, log-only).
+# ────────────────────────────────────────────────────────────────────
+# Persists the latest archive's `captured_collections` set to a Mongo
+# collection `backup_drift_history` (capped: last 30 runs). On each new
+# run, compares against the previous run and logs a WARNING line if any
+# collection disappeared. Does NOT email, NOT alert, NOT surface in UI.
+# Pure operational survivability whisper.
+async def _backup_drift_watch(db, stats: dict) -> None:
+    """Log a calm WARN if any collection vanished since the last archive."""
+    if not stats:
+        return
+    captured_now = sorted(stats.get("captured_collections") or [])
+    if not captured_now:
+        return
+
+    # Read the most recent prior run (if any).
+    prior = await db.backup_drift_history.find_one(
+        {}, sort=[("recorded_at", -1)],
+    )
+
+    if prior:
+        prior_set = set(prior.get("captured_collections") or [])
+        now_set = set(captured_now)
+        disappeared = sorted(prior_set - now_set)
+        appeared = sorted(now_set - prior_set)
+        if disappeared:
+            logger.warning(
+                f"[complete-archive] DRIFT · collection count "
+                f"{len(prior_set)} -> {len(now_set)} · "
+                f"disappeared: {', '.join(disappeared)}"
+            )
+        if appeared:
+            logger.info(
+                f"[complete-archive] drift · new collection(s) included: "
+                f"{', '.join(appeared)}"
+            )
+
+    # Append today's snapshot · keep history slim.
+    await db.backup_drift_history.insert_one({
+        "id": str(uuid.uuid4()),
+        "recorded_at": datetime.now(timezone.utc),
+        "captured_collections": captured_now,
+        "total_records": stats.get("total_records", 0),
+        "explicit_exclusions": sorted(stats.get("explicit_exclusions") or []),
+    })
+
+    # Trim to last 30 entries (FIFO).
+    excess = await db.backup_drift_history.count_documents({}) - 30
+    if excess > 0:
+        old = db.backup_drift_history.find(
+            {}, {"_id": 1}, sort=[("recorded_at", 1)],
+        ).limit(excess)
+        ids = [d["_id"] async for d in old]
+        if ids:
+            await db.backup_drift_history.delete_many({"_id": {"$in": ids}})
+
+
 async def _run_complete_archive_to_r2(db) -> Optional[dict]:
     """Build a complete-system zip on disk, stream-upload it to
     ``r2://<bucket>/backups/auto-90d/<filename>``, then delete the local file.
@@ -5867,6 +5929,17 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             f"{stats.get('total_records', 0)} records · "
             f"{stats.get('inlined_photos', 0)} photos inlined"
         )
+
+        # iter426 · Phase 25.3 · Calm backup drift watcher.
+        # Compares the newly-captured collection set against the last
+        # recorded archive. If a collection silently disappears between
+        # runs (e.g., an accidental drop_collection in code review),
+        # surface it as a calm log warning — NEVER as an alert, email,
+        # dashboard, or notification. Infrastructure whisper only.
+        try:
+            await _backup_drift_watch(db, stats)
+        except Exception as _e:  # noqa: BLE001
+            logger.warning(f"[complete-archive] drift watch failed (non-fatal): {_e}")
 
         # Iter184 / Phase-2 Round 2 — R2 lifecycle scope.
         # New backups are written under a sub-prefix that the R2 lifecycle

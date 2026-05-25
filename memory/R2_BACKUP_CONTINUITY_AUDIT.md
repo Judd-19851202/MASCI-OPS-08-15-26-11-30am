@@ -1,6 +1,53 @@
 # R2_BACKUP_CONTINUITY_AUDIT.md
 ## Phase 25.2 · MASCI Platform Backup Coverage Audit
-## Date: 2026-05-25 · iter425 audit + remediation
+## Date: 2026-05-25 · iter425 audit + iter426 hardening
+
+---
+
+## ✅ PHASE 25.3 HARDENING LANDED · 2026-05-25 (iter426)
+
+After the iter425 P0 + P1 remediation, Phase 25.3 closes the remaining
+disaster-recovery continuity layer.
+
+### Fixes shipped (iter426)
+
+| # | Fix | File / location | Status |
+|---|-----|-----------------|--------|
+| 1 | Formal operator-facing restore runbook | `/app/memory/RESTORE_RUNBOOK.md` | 🟢 LIVE |
+| 2 | Calm backup drift watcher (log-only · NO alerts) | `server.py:_backup_drift_watch` | 🟢 LIVE |
+| 3 | `backup_drift_history` Mongo collection · FIFO-capped at 30 runs | `server.py:_backup_drift_watch` | 🟢 LIVE |
+| 4 | `/app/memory/*.md` added to `DISK_BACKUP_ROOTS` (PRD · audits · debriefs) | `server.py:4584` | 🟢 LIVE |
+| 5 | 5 new tests covering drift watcher · disk root · attachment binary round-trip | `tests/test_iter426_*.py` | 🟢 LIVE |
+
+### Verification
+
+- **`test_iter426_restore_drift_watcher.py` · 5 / 5 PASS**:
+  - ✅ Drift watcher logs a calm WARN when a collection disappears
+  - ✅ `backup_drift_history` collection trims FIFO at 30 rows
+  - ✅ `/app/memory` registered in `DISK_BACKUP_ROOTS`
+  - ✅ Manifest carries every iter425 audit field + Phase 12-25 collections
+  - ✅ Operational attachment binary round-trips byte-for-byte through archive + decode
+- **Full parity-lock**: 250 / 250 PASS (zero flakes)
+- **Ruff**: clean on all changed files
+
+### Drift watcher behavior (sample log line on a real disappearance)
+
+```
+[complete-archive] DRIFT · collection count 41 -> 38 · disappeared: foo, bar, baz
+```
+
+That's the entire UX. No dashboard. No email. No banner. Infrastructure
+whisper only — exactly per Phase 25.3 doctrine.
+
+### Disk root expansion · doc continuity
+
+`DISK_BACKUP_ROOTS` (server.py:4584) now backs up four directories:
+- `/app/backend/storage` → FDOT plans, project docs
+- `/app/backend/static`  → training videos, safety cards, branding
+- `/app/backend/data`    → seed JSON
+- **`/app/memory`** → PRD.md, R2_BACKUP_CONTINUITY_AUDIT.md, RESTORE_RUNBOOK.md, doctrine, debrief docs
+
+Repo-loss insurance for doctrine continuity is now in place.
 
 ---
 

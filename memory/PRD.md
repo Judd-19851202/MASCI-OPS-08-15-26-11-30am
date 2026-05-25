@@ -1,6 +1,102 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter426 · Phase 25.3 · Restore Continuity + Drift Watcher ✅
+
+### Mission
+Complete the final disaster-recovery continuity layer:
+- Formal operator-facing restore runbook
+- Calm log-only backup drift watcher
+- `/app/memory` doc continuity in disk-backup zip
+Surgical only · no backup-management UI · doctrine restraint held.
+
+### What ships
+- **`/app/memory/RESTORE_RUNBOOK.md`** (NEW · 15 operational sections):
+  recovery overview · prerequisites · env keys · Mongo restore · attachment
+  continuity · DLS validation · passkey notes · TTL behavior · post-restore
+  + smoke-test checklists · intentional exclusions · manifest interpretation
+  · rollback · doctrine notes. Written for restore-under-stress operators,
+  not engineers.
+- **Calm backup drift watcher** (`server.py:_backup_drift_watch`):
+  - Compares latest archive's `captured_collections` vs. prior
+  - Logs **WARN** on disappearance: `[complete-archive] DRIFT · collection
+    count 41 -> 38 · disappeared: foo, bar, baz`
+  - Logs **INFO** on new collection appearance
+  - NO email · NO dashboard · NO alert · NO admin surface
+  - Persists snapshots to `backup_drift_history` Mongo collection
+  - FIFO-trims to last 30 snapshots (cap inside the watcher itself)
+- **`DISK_BACKUP_ROOTS` expansion**: adds `("/app/memory", "memory")` —
+  PRD · audits · debriefs · doctrine docs now ride every backup zip
+  (repo-loss insurance).
+- **`PHASE25_3_RESTORE_CONTINUITY_LOG.md`** (NEW): single-page hardening
+  log + restraint reaffirmation + verdict.
+- **`R2_BACKUP_CONTINUITY_AUDIT.md` updated**: iter426 hardening section
+  prepended; iter425 remediation + pre-remediation history preserved.
+
+### Tests · iter426 5 / 5 PASS · full parity-lock 250 / 250 PASS
+`test_iter426_restore_drift_watcher.py`:
+- Drift watcher logs calm WARN line when a collection disappears ✓
+- `backup_drift_history` FIFO-capped at 30 rows ✓
+- `/app/memory` registered in DISK_BACKUP_ROOTS ✓
+- Archive manifest carries every iter425 audit field + Phase 12-25 collections ✓
+- Operational attachment binary round-trips byte-for-byte through archive ✓
+
+Zero flakes in mixed-suite + isolated runs.
+
+### Restraint enforced (anti-scope NO list)
+- ❌ NO restore dashboards · NO backup portals · NO archive explorers
+- ❌ NO admin backup systems · NO monitoring centers · NO recovery analytics
+- ❌ NO backup notifications · NO emails · NO push · NO banners
+- ❌ NO scheduler change · NO frequency change · NO retention change
+- ❌ NO new env var · NO new endpoint · NO architectural drift
+
+### Operational survivability — current state
+The MASCI Operations Platform can now:
+- back itself up automatically (Pipelines A + B · iter425 auto-discovery)
+- restore operational continuity calmly via `RESTORE_RUNBOOK.md`
+- preserve operational proof continuity (attachment binary round-trip verified)
+- preserve DLS / trucking / passkey / bilingual / coaching continuity
+- detect silent backup drift (calm WARN log only · iter426)
+- redact MFA secrets + password hashes (iter425)
+
+WITH:
+- clear restore doctrine
+- clear auditability (manifest captures every audit field)
+- no hidden backup drift (`backup_drift_history` keeps last 30 snapshots)
+
+### Phase doctrine timeline (current state)
+1-17. iter397-425 · Phases 12-25.2 ✅
+18. **iter426 · Phase 25.3 · Restore Continuity + Drift Watcher ✅**
+
+### Next iter candidates (gated)
+- 🟠 **iter427 · Operational Moments rail** in AssignmentDrawer (read-only
+  chronological list of dispatch_continuity_events per assignment) — gated
+  on Day-1 / Week-1 debrief
+- 🟠 **iter428 · Phase 24 passkey fan-out** to FL · Dispatch · PM · Shop ·
+  Safety · HR · Governance per-portal login pages
+- 🔵 **P3** — Add `webauthn_challenges` + `dispatch_driver_sessions` to
+  `BACKUP_EXPLICIT_EXCLUSIONS` (low-value transient · revisit if archive
+  size warrants)
+- 🔵 **P3** — `server.py` component extractions (Phase 4D)
+- 🔵 Day-1 Live Ops Debrief filing — master gating signal
+
+### Verdict
+🟢 **True operational survivability continuity achieved.** The platform now
+feels like one calm operational nervous system that can survive its own
+infrastructure loss without panic, while the developer experience stays
+quiet (no dashboards, no banners, no clutter).
+
+### Next Action Items
+- 🟡 **Tonight's 03:00 UTC archive run** will be the first to populate
+  `backup_drift_history` and write a `MASCI_complete_backup_*.zip`
+  containing `disk_files/memory/`. Verify via `backup_health` row + log
+  scan tomorrow.
+- 🟠 P3 backlog as above (defer per restraint doctrine)
+
+---
+
+
+
 ## 2026-05-25 — iter425 · Phase 25.2 · R2 Backup Continuity Remediation ✅
 
 ### Mission
