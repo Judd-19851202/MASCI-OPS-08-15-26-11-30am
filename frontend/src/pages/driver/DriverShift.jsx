@@ -126,6 +126,11 @@ export default function DriverShift() {
   const [busyState, setBusyState] = useState(null);
   const [waitSheetOpen, setWaitSheetOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  // iter418 · Phase 20.1 · breakdown-proof optional prompt
+  const [breakdownProofPrompt, setBreakdownProofPrompt] = useState(false);
+  const [breakdownProofBusy, setBreakdownProofBusy] = useState(false);
+  // iter421 · Phase 23.0 · offline pending count
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
 
   const session = useMemo(() => getDriverSession(), []);
 
@@ -187,6 +192,10 @@ export default function DriverShift() {
         setAssignment(j.assignment || null);
         setAllowed(Array.isArray(j.allowed_next_states) ? j.allowed_next_states : []);
         setErrorMsg("");
+        // iter418 · Phase 20.1 · After a BREAKDOWN tap, offer optional photo proof
+        if (toState === "BREAKDOWN") {
+          setBreakdownProofPrompt(true);
+        }
       }
     } catch {
       setErrorMsg(t("Connection failed — try again."));
@@ -280,7 +289,88 @@ export default function DriverShift() {
             {t("Job")} · {assignment.project_number}{assignment.material ? ` · ${assignment.material}` : ""}
           </p>
         ) : null}
+        {/* iter421 · Phase 23.0 · offline pending sync indicator (invisible language) */}
+        {pendingSyncCount > 0 && (
+          <p
+            className="mt-2 text-center text-xs text-amber-300"
+            data-testid="driver-pending-sync"
+          >
+            {pendingSyncCount === 1
+              ? t("1 update waiting to sync")
+              : t("{n} updates waiting to sync").replace("{n}", String(pendingSyncCount))}
+          </p>
+        )}
       </section>
+
+      {/* iter418 · Phase 20.1 · Optional breakdown-proof prompt */}
+      {breakdownProofPrompt && (
+        <section
+          className="mx-5 mt-4 rounded-2xl border border-rose-700 bg-rose-950/60 p-4"
+          data-testid="driver-breakdown-proof-prompt"
+        >
+          <div className="text-xs uppercase tracking-wide text-rose-300 font-bold">
+            {t("Operational proof · optional")}
+          </div>
+          <p className="text-sm text-slate-100 mt-1">
+            {t("Add a breakdown photo? Helps Shop see what's wrong.")}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <label className="inline-flex">
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                disabled={breakdownProofBusy}
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!f) return;
+                  if (f.size > 5 * 1024 * 1024) {
+                    setErrorMsg(t("File too large (5 MB max)."));
+                    return;
+                  }
+                  setBreakdownProofBusy(true);
+                  try {
+                    const form = new FormData();
+                    form.append("host_id", assignment.id);
+                    form.append("file", f);
+                    const r = await fetch(
+                      `${API}/api/dispatch/driver/breakdown-proof/upload`,
+                      { method: "POST", headers: driverHeaders({ omitContentType: true }), body: form },
+                    );
+                    if (!r.ok) {
+                      const j = await r.json().catch(() => ({}));
+                      setErrorMsg(j.detail || t("Upload failed."));
+                    } else {
+                      setBreakdownProofPrompt(false);
+                    }
+                  } catch {
+                    setErrorMsg(t("Connection failed — try again."));
+                  } finally {
+                    setBreakdownProofBusy(false);
+                  }
+                }}
+                data-testid="driver-breakdown-proof-input"
+                className="hidden"
+              />
+              <span
+                className={`inline-flex items-center px-4 h-12 rounded-md text-sm font-bold cursor-pointer
+                  ${breakdownProofBusy ? "bg-slate-700 text-slate-400" : "bg-amber-400 text-slate-950"}`}
+              >
+                {breakdownProofBusy ? t("Uploading…") : t("Take Photo")}
+              </span>
+            </label>
+            <button
+              type="button"
+              data-testid="driver-breakdown-proof-skip"
+              onClick={() => setBreakdownProofPrompt(false)}
+              className="inline-flex items-center px-4 h-12 rounded-md text-sm font-bold text-slate-300 underline"
+            >
+              {t("Skip")}
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Primary transitions */}
       <section className="px-5 mt-6 space-y-3" data-testid="driver-transition-grid">

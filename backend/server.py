@@ -9773,6 +9773,22 @@ _op_attachments_router = build_operational_attachments_router(
 )
 app.include_router(_op_attachments_router)
 
+# iter418/419/420 · Phases 20.1/21.0/22.0 · Operational Continuity primitives.
+# ONE router · THREE walking-skeleton primitives: breakdown-proof upload (driver
+# magic-link) · continuity-event log · shop-recovery sub-state transitions.
+from routes.dispatch_continuity import (  # noqa: E402
+    build_dispatch_continuity_router,
+    ensure_dispatch_continuity_indexes,
+)
+import driver_sessions as _driver_sessions_mod  # noqa: E402
+_dispatch_continuity_router = build_dispatch_continuity_router(
+    db,
+    require_driver_session_dep=_driver_sessions_mod.make_require_driver_session(db),
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+    require_any_portal_token_dep=_require_any_portal_token,
+)
+app.include_router(_dispatch_continuity_router)
+
 
 @app.on_event("startup")
 async def _ensure_dls_indexes() -> None:
@@ -9780,6 +9796,8 @@ async def _ensure_dls_indexes() -> None:
         await ensure_dispatch_lifecycle_indexes(db)
         # iter417 · Phase 20.0 · attachments collection indexes
         await ensure_operational_attachments_indexes(db)
+        # iter419 · Phase 21.0 · continuity-events collection indexes
+        await ensure_dispatch_continuity_indexes(db)
         logging.getLogger(__name__).info(
             "[dispatch-lifecycle] iter392 router mounted · indexes ensured",
         )

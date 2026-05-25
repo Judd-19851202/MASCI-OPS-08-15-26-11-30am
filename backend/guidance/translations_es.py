@@ -1954,3 +1954,8 @@ TRANSLATIONS_ES.update(_EXTRA_ES_ITER414)
 # coaching shipped at the same time as the primitive.
 from .translations_es_iter417 import EXTRA_ES as _EXTRA_ES_ITER417  # noqa: E402
 TRANSLATIONS_ES.update(_EXTRA_ES_ITER417)
+
+# iter418-421 · Phases 20.1/21.0/22.0/23.0 · Continuity expansion —
+# breakdown proof · operational exceptions · shop recovery · offline.
+from .translations_es_iter418 import EXTRA_ES as _EXTRA_ES_ITER418  # noqa: E402
+TRANSLATIONS_ES.update(_EXTRA_ES_ITER418)

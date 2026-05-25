@@ -5028,6 +5028,162 @@ _ARTICLES: list[dict] = [
             "dls-driver-shift-start", "portal-dispatch",
         ],
     },
+    # ─────────────────────────────────────────────────────────────────
+    # iter418 · Phase 20.1 · Breakdown Proof Continuity
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "id": "dls-breakdown-proof",
+        "section": "trucking",
+        "title": "DLS · Breakdown Proof Continuity",
+        "summary": "Why an optional photo right after BREAKDOWN strengthens operational truth — without slowing the driver down.",
+        "scopes": ["dispatch", "admin", "leadership", "pm", "shop", "field"],
+        "tags": ["dls", "breakdown", "proof", "photo", "shop", "recovery", "continuity"],
+        "body": [
+            {"type": "p", "text":
+                "After a driver taps BREAKDOWN, the platform offers an optional "
+                "'Add breakdown photo?' prompt. The driver may snap a quick photo "
+                "or skip — both are operationally valid. The photo, if captured, "
+                "becomes permanent operational proof glued to the assignment."},
+            {"type": "why", "text":
+                "Breakdowns are high-trust operational continuity moments. A "
+                "single photo at the moment of the breakdown strengthens "
+                "downstream continuity for Shop (mechanic prep), PM (production "
+                "impact), and governance (operational truth). Optional means "
+                "drivers are never blocked by software during operational stress."},
+            {"type": "next", "items": [
+                "Photo attaches as a `breakdown_photo` to the assignment",
+                "Shop sees breakdown proof in the recovery flow",
+                "Dispatch sees proof + breakdown in Operational Attention",
+                "Recovery sub-state begins at 'reported' automatically",
+            ]},
+            {"type": "warn", "text":
+                "Skip is always valid. No photo, no problem — the BREAKDOWN tap "
+                "alone is operational truth. Never delay roadside response for "
+                "software."},
+        ],
+        "related": ["dls-lifecycle-states", "dls-attachments-load-proof", "dls-shop-recovery", "dls-operational-attention"],
+    },
+    # ─────────────────────────────────────────────────────────────────
+    # iter419 · Phase 21.0 · Operational Exception Continuity
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "id": "dls-operational-exceptions",
+        "section": "trucking",
+        "title": "DLS · Operational Exception Continuity",
+        "summary": "How operational chaos — trailer swaps, mid-flight reassignments, delayed updates — stays narrated and continuous, not erased.",
+        "scopes": ["dispatch", "admin", "leadership", "pm", "shop"],
+        "tags": ["dls", "exception", "continuity", "reassignment", "trailer-swap", "stale", "delayed"],
+        "body": [
+            {"type": "p", "text":
+                "Edge cases are NOT errors. They are operational continuity "
+                "events. Trailer swaps mid-haul, reassignments during WAITING, "
+                "stale assignment recoveries, delayed lifecycle updates — each "
+                "becomes a narrative on the assignment record, not a flag, not "
+                "an error code, not a workflow."},
+            {"type": "bullets", "items": [
+                "TRAILER_SWAP — driver swapped trailer mid-haul",
+                "REASSIGNED_DURING_WAITING — dispatch swapped truck while WAITING",
+                "STALE_ASSIGNMENT_RECOVERED — assignment lingered, then recovered",
+                "DELAYED_LIFECYCLE_UPDATE — state arrived late due to signal",
+                "ASSIGNMENT_REASSIGNED — generic reassignment continuity",
+            ]},
+            {"type": "why", "text":
+                "Operations is messy. Pretending it isn't, by deleting messy "
+                "events from the record, destroys downstream continuity. "
+                "Capturing edge cases as narrated continuity events preserves "
+                "operational truth without dragging operations into workflow "
+                "engines or automation chrome."},
+            {"type": "next", "items": [
+                "Dispatch posts a continuity event tied to the assignment",
+                "PM, Shop, governance all read the same narrative",
+                "Future Day-N debriefs see the full operational story",
+            ]},
+            {"type": "tip", "text":
+                "Keep narratives short and operational ('Trailer T-12 swapped "
+                "for T-09 at plant A'). NO finger-pointing, NO blame, NO "
+                "workflow language."},
+        ],
+        "related": ["dls-lifecycle-states", "dls-operational-attention", "dls-assignment-issuance"],
+    },
+    # ─────────────────────────────────────────────────────────────────
+    # iter420 · Phase 22.0 · Shop Recovery Continuity
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "id": "dls-shop-recovery",
+        "section": "trucking",
+        "title": "DLS · Shop Recovery Continuity (Breakdown → Return-to-Service)",
+        "summary": "Seven calm operational continuity states for Shop — not a work-order ERP.",
+        "scopes": ["shop", "dispatch", "admin", "leadership", "pm"],
+        "tags": ["dls", "shop", "recovery", "breakdown", "return-to-service", "waiting-on-parts", "operational-test"],
+        "body": [
+            {"type": "p", "text":
+                "When a truck breaks down, the assignment carries TWO state "
+                "tracks: the DLS haul lifecycle (BREAKDOWN) and a separate "
+                "Shop recovery sub-state. Shop progresses the recovery arc "
+                "without touching the haul lifecycle — both stay honest, both "
+                "stay continuous."},
+            {"type": "bullets", "items": [
+                "reported — set automatically when a driver taps BREAKDOWN",
+                "acknowledged — Shop has seen it",
+                "diagnosing — a mechanic is on the truck",
+                "waiting_on_parts — blocked on supply",
+                "repair_active — parts in hand · repair work happening",
+                "operational_test — post-repair operational verification",
+                "returned_to_service — back available for dispatch",
+            ]},
+            {"type": "why", "text":
+                "Shop exists to maintain operational continuity, not "
+                "maintenance bureaucracy. Seven calm states tell every "
+                "downstream consumer where this truck is in its recovery arc "
+                "without parts catalogs, labor codes, work orders, or "
+                "approval chains."},
+            {"type": "next", "items": [
+                "Dispatch reads availability from `returned_to_service`",
+                "PM sees production-impact continuity",
+                "Repeated `waiting_on_parts` on the same truck = operational pattern",
+                "Recovery history is append-only · operational truth preserved",
+            ]},
+            {"type": "warn", "text":
+                "This is NOT a work-order system. No labor logging, no parts "
+                "catalog, no PO chains. If those needs surface, they belong in "
+                "a different system — not in DLS recovery continuity."},
+        ],
+        "related": ["dls-lifecycle-states", "dls-breakdown-proof", "dls-operational-attention", "portal-shop"],
+    },
+    # ─────────────────────────────────────────────────────────────────
+    # iter421 · Phase 23.0 · Offline / Low-Signal Continuity Primitive
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "id": "dls-offline-continuity",
+        "section": "trucking",
+        "title": "DLS · Offline / Low-Signal Continuity (In the Field)",
+        "summary": "How operational truth survives poor signal — invisible sync when the bars come back.",
+        "scopes": ["dispatch", "admin", "leadership", "field", "public"],
+        "tags": ["dls", "offline", "low-signal", "sync", "queued", "delayed", "field", "continuity"],
+        "body": [
+            {"type": "p", "text":
+                "When a driver taps START SHIFT in a no-signal pit or remote "
+                "job-site corner, the platform quietly stores the update on "
+                "the device and syncs when signal returns. Operational truth "
+                "never disappears — it just waits."},
+            {"type": "why", "text":
+                "Operational truth must NEVER disappear because signal "
+                "failed. Drivers in pits, job-site bottoms, or remote "
+                "routes are operationally real, and the platform must never "
+                "punish them for being where the work happens."},
+            {"type": "next", "items": [
+                "Device caches up to 3 pending updates",
+                "When signal returns, sync is automatic",
+                "Indicator shows 'Update waiting to sync' · then it disappears",
+                "No panels · no manual retries · no technical language",
+            ]},
+            {"type": "tip", "text":
+                "If sync seems stuck (10+ minutes), opening the page "
+                "manually will force another connectivity check. Operations "
+                "never falls further behind than signal allows."},
+        ],
+        "related": ["dls-driver-shift-start", "dls-lifecycle-states", "dls-breakdown-proof"],
+    },
 ]
 
 
