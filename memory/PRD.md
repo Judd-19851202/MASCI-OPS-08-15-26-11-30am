@@ -1,6 +1,77 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter414 · Phase 18.1 · In-Flow Operational Coaching Links ✅
+
+### Mission
+Wire the Phase 18 iter414 guidance articles into the **operational flow** itself — calm, slate, in-context "How this works" links at the 5 highest-cognition checkpoints. Reuses existing infrastructure (no new help system).
+
+### 10-point Phase 18.1 doctrine gate
+All 10 PASS (calmness · no clutter · no modals · low cognitive load · operational flow · platform aesthetics · no ERP · no tutorial feel · bilingual · doctrine).
+
+### 5 in-flow links shipped
+| Location | testid | Article |
+|---|---|---|
+| `/shift` (driver self-start, public) | `shift-start-help` | `dls-driver-shift-start` |
+| `/dispatch-portal` Operational Attention | `ds-attention-help` | `dls-operational-attention` |
+| `/dispatch-portal` Issue Work | `ds-issue-help-issuance` | `dls-assignment-issuance` |
+| `/dispatch-portal` Issue Work | `ds-issue-help-haul-types` | `dls-haul-types` |
+| `/pm` PmHaulActivityTile | `pm-haul-activity-tile-help` | `dls-haul-activity-tile` |
+
+### Visual doctrine (locked)
+`text-xs text-slate-500 hover:text-slate-800 underline decoration-slate-300 underline-offset-2` + small `→` arrow. No button chrome. No icon weight. Placed directly under section subtitles where hesitation naturally occurs.
+
+### Files shipped
+- **MOD** `frontend/src/pages/DispatchHub.jsx` — added `HelpLink` reusable component + 3 link insertions (+30 LOC)
+- **MOD** `frontend/src/components/dispatch/PmHaulActivityTile.jsx` — Link/ArrowRight imports + 1 link insertion (+14 LOC)
+- **MOD** `frontend/src/pages/driver/ShiftStart.jsx` — Link import + 1 inline link insertion (+13 LOC, slate-400 variant for dark canvas)
+- **MOD** `frontend/src/lib/i18n.js` — 4 EN→ES translation keys
+- **MOD** `backend/tests/test_iter414_dls_guidance_help_search.py` — added 6 Phase 18.1 regression guards locking the article slugs the frontend depends on
+- **NEW** `/app/memory/PHASE18_1_INFLOW_COACHING_LOG.md` — full evidence + visual doctrine + RBAC verification
+
+### Tests · 159 / 159 PARITY-LOCK PASS
+- iter319 12/12 · iter392 23/23 · iter393 13/13 · iter395 12/12 · iter396 3/3 · iter401 9/9 · iter402 10/10 · iter407 7/7 · iter408 15/15 · iter409 9/9 · iter410 9/9 · iter412 8/8 · **iter414 29/29** (23 from Phase 18 + 6 NEW Phase 18.1 link-target regression guards)
+- ESLint clean across all 3 modified frontend files
+- Ruff clean
+- Operator vocabulary scanner: 18 T1 (all `iter###` source-comments · 2 new from this iter) · **0 T2/T3**
+- Touch-target audit: **Clean**
+- Live `/shift` screenshot at 390px: HelpLink renders calmly under subtitle ✅
+
+### RBAC verified (no role leakage)
+- `dls-driver-shift-start` includes `public` scope → unauthenticated drivers can read it ✅
+- `dls-health-summary` (admin-only) has NO in-flow link from any non-admin surface ✅
+- PM tile only links to `dls-haul-activity-tile` (scoped pm+admin+leadership) ✅
+
+### What Phase 18.1 explicitly did NOT do (restraint enforced)
+- ❌ No onboarding wizard · no tutorial system · no modal walkthroughs · no pop-up training
+- ❌ No AI assistant overlays · no help dashboards · no notification spam · no guided tours
+- ❌ No new collections · no new endpoints · no new help system architecture
+- ❌ No per-haul-type duplicate articles (one `dls-haul-types` covers all 5 cleanly)
+- ❌ No link in DispatchBoard rows (operational speed > coaching insertion at that surface)
+- ❌ No link in Live Operational Flow / Follow-Through / Secondary Operations / Guides sections (calmness paramount)
+
+### Phase doctrine timeline (current state · ROLLOUT-READY)
+1. iter397-405 · Phases 12-13.2 ✅
+2. iter406-407 · Phase 14 ✅
+3. iter408 · Phase 14.1-14.2 ✅
+4. iter409 · Phase 14.3 ✅
+5. iter410 · Phase 15.1 ✅
+6. iter411 · Phase 16 ✅
+7. iter412 · Phase 16.1 ✅
+8. iter413 · Phase 17 ✅
+9. iter414 · Phase 18 ✅ + Phase 18.1 ✅
+
+### Verdict
+**🟢 Operational cognition is now reinforced at every hesitation point.** The platform doesn't lecture — it quietly offers "How this works" exactly where users naturally pause. Search win (Phase 18) + in-flow win (Phase 18.1) together = users find guidance whether they search OR just look at the screen.
+
+### Next Action Items
+- 🟡 **P1 — DAY-1 LIVE OPS DEBRIEF** (run platform · file same-day at `DLS_DAY1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md`)
+- 🟠 **P1-P3 backlog** — contingent on Day-1 debrief naming demand (legacy chrome alignment · component extraction · `server.py` Phase 4D · driver-session reaper · reassign-while-WAITING UX · translation sweep · 233 inherited pytest failures)
+
+---
+
+
+
 ## 2026-05-25 — iter414 · Phase 18 · Operational Unification + Help-Search Lock ✅
 
 ### Mission

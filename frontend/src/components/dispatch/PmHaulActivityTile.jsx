@@ -14,8 +14,9 @@
  *   - Renders nothing when there is nothing to say. Calm by default.
  */
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  Truck, AlertTriangle, Wrench, Activity, Clock, Package,
+  Truck, AlertTriangle, Wrench, Activity, Clock, Package, ArrowRight,
 } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
@@ -125,6 +126,17 @@ export default function PmHaulActivityTile({
           <p className="text-xs text-slate-600 mt-0.5">
             {t("What's moving on your jobs today. PM never operates dispatch — this is glanceable awareness only.")}
           </p>
+          {/* iter414 · Phase 18.1 · in-flow coaching link → dls-haul-activity-tile */}
+          <div className="mt-1.5">
+            <Link
+              to="/guidance/dls-haul-activity-tile"
+              data-testid={`${testId}-help`}
+              className="inline-flex items-center text-xs text-slate-500 hover:text-slate-800 underline decoration-slate-300 hover:decoration-slate-600 underline-offset-2"
+            >
+              {t("What PM haul activity means")}
+              <ArrowRight className="w-3 h-3 ml-1 opacity-70" />
+            </Link>
+          </div>
         </div>
       </div>
 

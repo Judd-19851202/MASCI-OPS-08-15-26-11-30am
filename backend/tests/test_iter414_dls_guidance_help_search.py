@@ -146,3 +146,43 @@ def test_iter414_no_internal_field_leakage_in_search_results():
         assert set(r.keys()) == {"id", "title", "summary", "section"}, (
             f"search result leaks internal fields: {set(r.keys())}"
         )
+
+
+# iter414 · Phase 18.1 · regression guard for in-flow coaching links.
+# The frontend wires hardcoded `/guidance/<article-id>` links from:
+#   - DispatchHub.jsx (ds-attention-help · ds-issue-help-issuance · ds-issue-help-haul-types)
+#   - PmHaulActivityTile.jsx (pm-haul-help)
+#   - ShiftStart.jsx (shift-start-help)
+# If any article ID below is renamed or removed, these in-flow links
+# break operationally. This test locks the contract.
+INFLOW_LINK_ARTICLE_IDS = [
+    "dls-operational-attention",
+    "dls-assignment-issuance",
+    "dls-haul-types",
+    "dls-haul-activity-tile",
+    "dls-driver-shift-start",
+]
+
+
+@pytest.mark.parametrize("aid", INFLOW_LINK_ARTICLE_IDS)
+def test_iter414_phase181_inflow_link_article_exists(aid: str):
+    """Each Phase 18.1 in-flow coaching link target must remain in the registry."""
+    a = _article_by_id(aid)
+    assert a is not None, (
+        f"Frontend in-flow coaching link to /guidance/{aid} would 404 — "
+        "article was renamed or removed. Update DispatchHub.jsx / "
+        "PmHaulActivityTile.jsx / ShiftStart.jsx if this is intentional."
+    )
+
+
+def test_iter414_phase181_driver_shift_start_remains_public():
+    """The /shift route is public (no auth); the help link target MUST stay
+    reachable by unauthenticated callers, otherwise a driver tapping the
+    coaching link gets a permission error."""
+    a = _article_by_id("dls-driver-shift-start")
+    assert a is not None
+    scopes = a.get("scopes") or []
+    assert "public" in scopes, (
+        "dls-driver-shift-start lost 'public' scope — the in-flow link "
+        "from /shift would 403 for unauthenticated drivers."
+    )

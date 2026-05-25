@@ -4600,6 +4600,11 @@ const ES = {
   "Dispatch": "Despacho",
   "Sign out": "Cerrar sesión",
   "Equipment moves": "Movimientos de equipo",
+  // iter414 · Phase 18.1 · in-flow coaching links — EN→ES
+  "What requires dispatch attention": "Qué requiere atención de despacho",
+  "How the 5 haul types flow": "Cómo fluyen los 5 tipos de acarreo",
+  "What PM haul activity means": "Qué significa la actividad de acarreos del PM",
+  "How shift start works": "Cómo funciona el inicio de turno",
 };
 
 const DICTS = { es: ES, en: {} };

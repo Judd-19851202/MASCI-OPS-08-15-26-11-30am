@@ -235,7 +235,7 @@ export default function DispatchHub() {
               />
             </div>
           )}
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-4 flex-wrap">
             <Link
               to="/dispatch-portal/board"
               data-testid="ds-attention-open-board"
@@ -243,6 +243,12 @@ export default function DispatchHub() {
             >
               {t("Open the operational board")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Link>
+            {/* iter414 · Phase 18.1 · in-flow coaching link → dls-operational-attention */}
+            <HelpLink
+              testId="ds-attention-help"
+              to="/guidance/dls-operational-attention"
+              label={t("What requires dispatch attention")}
+            />
           </div>
         </Section>
 
@@ -283,6 +289,19 @@ export default function DispatchHub() {
               title={t("Support / Misc Haul")}
               sub={t("Spoils · support · misc")}
               onClick={() => issueWork("Support / Misc")}
+            />
+          </div>
+          {/* iter414 · Phase 18.1 · in-flow coaching links — calm, slate, NOT modal */}
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+            <HelpLink
+              testId="ds-issue-help-issuance"
+              to="/guidance/dls-assignment-issuance"
+              label={t("How assignment issuance works")}
+            />
+            <HelpLink
+              testId="ds-issue-help-haul-types"
+              to="/guidance/dls-haul-types"
+              label={t("How the 5 haul types flow")}
             />
           </div>
         </Section>
@@ -555,5 +574,32 @@ function GuideTile({ testId, title, body }) {
       <div className="font-display text-sm font-black text-slate-900">{title}</div>
       <div className="text-xs text-slate-600 leading-snug mt-1">{body}</div>
     </div>
+  );
+}
+
+/**
+ * HelpLink · iter414 · Phase 18.1 · in-flow operational coaching.
+ *
+ * Calm, slate, low-visual-weight link to the Operational Guidance Center
+ * article for the surrounding operational area. The purpose is NOT a
+ * tutorial system or modal walkthrough — it's a quiet "How this works"
+ * link directly under the operational checkpoint where hesitation
+ * naturally happens.
+ *
+ * Visual doctrine: text-xs slate-500 with subtle underline. No button
+ * chrome, no icon weight, no alert color. Tappable (≥ 32px hit area
+ * via min-h on the parent flex container) and bilingual via the
+ * caller's `t()` wrap.
+ */
+function HelpLink({ testId, to, label }) {
+  return (
+    <Link
+      to={to}
+      data-testid={testId}
+      className="inline-flex items-center text-xs text-slate-500 hover:text-slate-800 underline decoration-slate-300 hover:decoration-slate-600 underline-offset-2"
+    >
+      {label}
+      <ArrowRight className="w-3 h-3 ml-1 opacity-70" />
+    </Link>
   );
 }

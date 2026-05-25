@@ -24,7 +24,7 @@
  *   to the platform records when possible. Temp entries omit them.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   clearDriverSession,
   getDriverToken,
@@ -366,6 +366,19 @@ export default function ShiftStart() {
           <span className="text-amber-400">{t("Add temporary")}</span>{" "}
           {t("if needed.")}
         </p>
+        {/* iter414 · Phase 18.1 · in-flow coaching link → dls-driver-shift-start
+            (public scope · article is reachable without auth, matching the
+            /shift route itself) */}
+        <div className="mt-2">
+          <Link
+            to="/guidance/dls-driver-shift-start"
+            data-testid="shift-start-help"
+            className="inline-flex items-center text-xs text-slate-400 hover:text-slate-200 underline decoration-slate-600 hover:decoration-slate-300 underline-offset-2"
+          >
+            {t("How shift start works")}
+            <span aria-hidden className="ml-1 opacity-70">→</span>
+          </Link>
+        </div>
 
         <form className="mt-8 space-y-5" onSubmit={onSubmit} noValidate>
           <SearchableSelect
