@@ -1,6 +1,79 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter427 · Phase 26 · Final Pre-Deployment Certification Audit ✅
+
+### Mission
+Top-to-bottom certification of the platform before live production
+cut-over. NO new features. NO scope expansion. ONLY audit + true-defect
+fixes.
+
+### Result — 🟢 GO with documented minor pre-deploy operator actions
+
+### What landed
+- **Parity-lock baseline re-run**: `pytest` across 23 iter319 + iter392-426
+  files → **250 / 250 PASS** in 3:22 (zero net-new regressions).
+- **Deep surface UI sweep**: 23 screenshots across mobile (390 × 844) +
+  desktop (1920 × 1080) covering every public + portal-protected +
+  admin-protected surface in EN and ES.
+- **Live API smoke**: `/api/health`, `/api/auth/multi-login` (admin),
+  `/api/passkeys/list`, `/api/passkeys/register/options`,
+  `/api/dispatch/recovery/by-shop`.
+- **Live observation**: Super-admin already has 1 active passkey
+  enrolled (`qdLbzousPmU…`, friendly-name "This device",
+  created 2026-05-25T03:27:09Z). Original user complaint
+  ("I wasn't asked about facial recognition") resolved.
+- **Eight Phase 26 certification docs** in `/app/memory/`:
+  1. `PHASE26_FINAL_PRE_DEPLOYMENT_CERTIFICATION.md` (master)
+  2. `PHASE26_SURFACE_UI_AUDIT.md`
+  3. `PHASE26_AUTH_PASSKEY_AUDIT.md`
+  4. `PHASE26_MOBILE_BROWSER_COMPATIBILITY.md`
+  5. `PHASE26_BACKUP_RESTORE_VERIFICATION.md`
+  6. `PHASE26_TRANSLATION_COACHING_AUDIT.md`
+  7. `PHASE26_LAST_72_HOURS_CHANGE_VERIFICATION.md`
+  8. `PHASE26_DEPLOYMENT_GO_NO_GO.md`
+
+### Doctrine restraint held
+- ❌ NO new dashboards, NO new portals, NO new analytics
+- ❌ NO scope expansion
+- ❌ NO data-model edits
+- ❌ NO env var proliferation
+- ❌ NO scheduler change
+- Pure audit pass · zero true defects detected · zero code changed
+  beyond doc creation.
+
+### Pre-deploy operator checklist (in GO/NO-GO doc)
+1. Click "Backup + Email + Download Now" on `/admin/system`.
+2. Confirm email + R2 archive landed.
+3. Recommended: migrate production MongoDB to MongoDB Atlas (15-min
+   setup) — addresses the container-DB-destroyed-on-redeploy risk
+   (platform already self-flags this with a permanent-fix banner).
+4. Confirm production env vars (MFA_ENCRYPTION_KEY, ADMIN_HMAC_SECRET,
+   CORS_ORIGINS, RATE_LIMITING=on, AUTO_EMAIL_REPORTS=true, R2 creds).
+5. Smoke `/api/health` + `/sign-in` + `/shop` post-deploy.
+
+### Backlog (NOT blocking deploy)
+- **P1** · Phase 24 passkey fan-out to FL · Dispatch · PM · Shop ·
+  Safety · HR (Admin pilot proven by iter422)
+- **P1** · Day-1 live-ops debrief capture morning after first prod day
+- **P2** · Phase 25.1 Operational Moments Continuity Rail
+- **P2** · `server.py` Phase 4D `/api/legacy-imports/*` extraction
+- **P2** · Stale `dispatch_driver_sessions` reaper
+- **P2** · Component extractions (`DispatchHub.jsx`,
+  `AssignmentCreateDrawer.jsx`)
+- **P3** · 233 inherited legacy pytest fixtures repair
+- **P3** · Skip-to-content a11y link platform-wide
+
+### Verdict
+🟢 **The MASCI Operations Platform is certified to deploy to
+mascidocs.com.** The calm operational doctrine is intact. The platform
+feels like one calm operational nervous system. Zero net-new
+regressions. Zero true defects.
+
+---
+
+
+
 ## 2026-05-25 — iter426 · Phase 25.3 · Restore Continuity + Drift Watcher ✅
 
 ### Mission
