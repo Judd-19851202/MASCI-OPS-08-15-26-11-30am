@@ -187,10 +187,17 @@ def build_passkeys_router(
         await db.webauthn_challenges.update_one(
             {"_id": doc["_id"]}, {"$set": {"used": True}},
         )
-        # TTL check (in case TTL index deletion is lagging)
-        age = (_now() - doc["created_at"]).total_seconds()
-        if age > CHALLENGE_TTL_SECONDS:
-            return None
+        # TTL check (in case TTL index deletion is lagging).
+        # Motor returns datetimes from Mongo as timezone-NAIVE (treated as UTC),
+        # so coerce before subtraction to avoid:
+        #   "can't subtract offset-naive and offset-aware datetimes"
+        created_at = doc.get("created_at")
+        if isinstance(created_at, datetime):
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=timezone.utc)
+            age = (_now() - created_at).total_seconds()
+            if age > CHALLENGE_TTL_SECONDS:
+                return None
         return doc
 
     def _public_passkey(doc: Dict[str, Any]) -> Dict[str, Any]:
