@@ -5671,13 +5671,15 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
                 projection = BACKUP_SENSITIVE_FIELD_REDACTION.get(coll_name, {"_id": 0})
 
                 kind_count = 0
-                # `created_at` is the natural sort order for safety records;
-                # collections without it (passkeys, attachments, etc.) just
-                # iterate insertion order — safe either way.
-                try:
-                    cursor = sync_db[coll_name].find({}, projection).sort("created_at", -1)
-                except Exception:  # noqa: BLE001
-                    cursor = sync_db[coll_name].find({}, projection)
+                # iter428 · Phase 26.1 — Atlas M0 free tier caps in-memory
+                # sort at 32 MB and rejects `allowDiskUse`. Archive files
+                # are individually addressed by record ID
+                # (`{kind}/json/{safe_id}.json`), so the in-archive sort
+                # order is operationally irrelevant — drop the sort and
+                # iterate in natural order. Restore-time queries land
+                # against full Mongo, not the zip, so this preserves
+                # restore correctness.
+                cursor = sync_db[coll_name].find({}, projection)
                 for doc in cursor:
                     rec_id = doc.get("id") or f"row_{kind_count:06d}"
                     safe_id = "".join(c if c.isalnum() or c in "._-" else "_" for c in str(rec_id))
