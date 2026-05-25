@@ -302,6 +302,42 @@ export default function AssignmentCreateDrawer({
   const [liquidProduct, setLiquidProduct] = useState(null);
   const [note, setNote] = useState("");
 
+  // iter438 · Phase 31 · Pass C · text-only draft protection for the
+  // assignment-create drawer. Stored in localStorage at
+  // `masci.draft.dispatch-assignment-new` · NEVER auto-applies on
+  // open · restore prompt is the only path back into a half-typed
+  // assignment. Lookups (truck/driver/etc.) are stored as
+  // {label, refId} so the live form reattaches them after reload.
+  const DRAFT_KEY = "masci.draft.dispatch-assignment-new";
+  const DRAFT_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+  const [pendingDraft, setPendingDraft] = useState(null);
+  const draftTimerRef = useRef(null);
+
+  const _readDraft = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return null;
+      const d = JSON.parse(raw);
+      if (!d || !d.savedAt) return null;
+      if (Date.now() - d.savedAt > DRAFT_TTL_MS) {
+        localStorage.removeItem(DRAFT_KEY);
+        return null;
+      }
+      return d;
+    } catch { return null; }
+  }, []);
+  const _writeDraft = useCallback((payload) => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        ...payload, savedAt: Date.now(),
+      }));
+    } catch { /* localStorage unavailable · operational continuity */ }
+  }, []);
+  const _clearDraft = useCallback(() => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* noop */ }
+  }, []);
+
+
   // Reset on open
   useEffect(() => {
     if (!open) return;

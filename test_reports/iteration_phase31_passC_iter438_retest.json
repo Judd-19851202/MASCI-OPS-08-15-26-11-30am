@@ -1,0 +1,53 @@
+{
+  "summary": "iter438 retest of AssignmentCreateDrawer Pass C draft restore. PRIOR P0 (ReferenceError 'pendingDraft is not defined') IS FIXED — dispatch board loads cleanly with zero red overlay. Autosave to localStorage works. HOWEVER a NEW P0 emerged: the load-on-open hook that the prior report explicitly called for was NOT added. _readDraft is defined but never called anywhere in the file (grep: 0 call sites), so pendingDraft stays null forever and the DraftRestorePrompt never renders. Net result: the drawer no longer crashes, but the entire restore round-trip is non-functional — a saved draft can never be surfaced to the user.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "AssignmentCreateDrawer · Pass C draft restore",
+        "issue": "Missing load-on-open useEffect. _readDraft helper is defined at line 316 but never invoked anywhere in the module (grep confirms zero call sites). pendingDraft is initialized to null at line 313 and is only ever set back to null by onRestoreDraft (line 443) and onDiscardDraft (line 449). Consequence: <DraftRestorePrompt pendingDraft={pendingDraft} ...> at line 662 always receives null, and DraftRestorePrompt returns null when pendingDraft is null (resiliency/DraftRestorePrompt.jsx line 28). The restore prompt can therefore never appear, even after autosave has demonstrably written a valid draft to localStorage. Verified live: opened drawer, typed 'Hello draft test 123' into ac-note, waited 1.5s, confirmed localStorage['masci.draft.dispatch-assignment-new'] contains {note:'Hello draft test 123', savedAt:<ms>} — then closed and reopened, restore prompt did NOT appear.",
+        "selector": "[data-testid='assignment-create-draft-restore-prompt']",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Dispatch · open → type → close → reopen → expect DraftRestorePrompt",
+        "issue": "Restore prompt never mounts because pendingDraft is never hydrated from localStorage on drawer open. The remaining tests (Restore button repopulates note, Discard wipes localStorage, 14-day TTL purge) cannot be executed end-to-end until the load-on-open hook is added.",
+        "affected_selectors": ["[data-testid='assignment-create-draft-restore-prompt']", "[data-testid='ac-note']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_cases_executed": [
+    {"id": "PC1a", "name": "Dispatch board loads clean · no pendingDraft ReferenceError", "status": "PASS", "detail": "Multi-login OK (admin+dispatch tokens stored), /dispatch-portal/board renders Live operational flow header, Active hauls counter 107, Create assignment FAB (testid 'board-create-assignment') visible. ZERO console errors. ZERO pageerror events. Prior P0 from iter438 is resolved."},
+    {"id": "PC1b", "name": "Drawer opens clean · no runtime error · no prompt on first open", "status": "PASS", "detail": "Cleared localStorage['masci.draft.dispatch-assignment-new'], clicked 'board-create-assignment', drawer with testid 'assignment-create-drawer' mounted, no DraftRestorePrompt visible (correct — no saved draft)."},
+    {"id": "PC1c", "name": "Draft autosave (700ms debounce)", "status": "PASS", "detail": "Typed 'Hello draft test 123' into [data-testid='ac-note'], waited 1.5s. localStorage['masci.draft.dispatch-assignment-new'] populated with valid JSON containing note='Hello draft test 123' and savedAt:<epoch ms>. Lookups projected as {label,refId}. Autosave path is fully working."},
+    {"id": "PC1d", "name": "Draft restore prompt appears on reopen", "status": "FAIL · CRITICAL", "detail": "Closed drawer (assignment-create-close), reopened via board-create-assignment FAB. Drawer remounted successfully but [data-testid='assignment-create-draft-restore-prompt'] was NOT present. RCA below."},
+    {"id": "PC1e", "name": "Click Restore → note repopulates", "status": "BLOCKED · cannot reach prompt", "detail": "Cannot be exercised because the prompt never appears (see PC1d). onRestoreDraft handler at line 425 is correctly wired and would work if pendingDraft were ever set."},
+    {"id": "PC1f", "name": "Click Discard → prompt clears + localStorage purged", "status": "BLOCKED · cannot reach prompt", "detail": "Same blocker as PC1e. onDiscardDraft at line 447 correctly calls _clearDraft + setPendingDraft(null) — handler is correct, just unreachable."},
+    {"id": "PC1g", "name": "14-day TTL auto-purge on read", "status": "BLOCKED", "detail": "Cannot be exercised end-to-end because _readDraft is never invoked. Static review confirms _readDraft (lines 316–328) correctly removes the key + returns null when Date.now() - savedAt > 14d — so the TTL logic itself is correct, it's just never executed."},
+    {"id": "REG", "name": "Phase 31 Pass A/B/31.1 regression smoke", "status": "NOT EXERCISED", "detail": "Time prioritized on the Pass C blocker. Recommend re-running PC1 once the load-on-open hook is added, then doing a 30-second smoke on /incidents/submit, /daily/submit, /safety/inspections/new."}
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "CRITICAL · Add the missing load-on-open useEffect to AssignmentCreateDrawer.jsx, immediately AFTER the reset-on-open effect (~line 361). Suggested code:\n\n  // iter438 · Pass C · hydrate pendingDraft from localStorage when the drawer opens.\n  // Sequencing note: this MUST run after the reset-on-open effect so the form is\n  // pristine before we ask the user whether to restore.\n  useEffect(() => {\n    if (!open) return;\n    setPendingDraft(_readDraft());\n  }, [open, _readDraft]);\n\nWithout this, _readDraft is dead code and the restore prompt is structurally unreachable.",
+    "After the fix, retest PC1d/e/f/g end-to-end and run the Phase 31 Pass A/B/31.1 regression smoke (incidents · daily · inspections still cleanly mount their own restore prompts).",
+    "OPTIONAL · consider tightening ESLint with the 'react-hooks/exhaustive-deps' rule AND a project-level 'no-unused-vars' tuned to flag defined-but-never-called useCallback helpers — that would have caught _readDraft sitting orphaned at lint time."
+  ],
+  "critical_code_review_comments": [
+    "iter438 fix delivered 4 of the 5 required pieces (DRAFT_KEY const, DRAFT_TTL_MS const, useState for pendingDraft, useRef for draftTimerRef, three useCallback helpers) but dropped the fifth: the useEffect that calls setPendingDraft(_readDraft()) when open transitions to true. The handoff brief on this iteration even listed it as one of the 6 unchanged consumers ('reset-on-open setPendingDraft call'), but no such call exists in the file. This is the second incomplete merge of the same logical block in two iterations — recommend the main agent diff against the PRD's reference snippet before claiming completion next time.",
+    "Helper functions _readDraft/_writeDraft/_clearDraft are correctly memoized with useCallback and have stable empty dep arrays — once the missing useEffect is added it will work without lint complaints.",
+    "DRAFT_KEY and DRAFT_TTL_MS are defined inside the component body. They are constants — could hoist to module scope to avoid re-creating on every render. Cosmetic only.",
+    "The autosave useEffect at lines 403–423 correctly skips writing for an empty fresh form (isEmptyFresh check) which prevents a phantom draft from being created the first time the drawer opens. Nice.",
+    "Submit success path correctly calls _clearDraft() at line 599 before onClose — draft is destroyed only after the POST returns 2xx. Correct doctrine."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "skipped (frontend-only request)", "frontend": "3/7 Pass C draft tests pass (board loads · drawer opens · autosave) · 1 critical fail (restore prompt unreachable) · 3 blocked behind the critical fail"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login → portal_tokens.admin/dispatch stored in masci.admin.token + masci.dispatch.token localStorage keys.",
+  "seed_data_creation": "None this iteration. localStorage['masci.draft.dispatch-assignment-new'] is auto-created by the autosave flow during test PC1c and auto-cleaned by removeItem before each run.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The dispatch board crash is permanently fixed — that part of iter438 is done. The ONLY remaining gap is one missing useEffect (4–5 lines) inside AssignmentCreateDrawer.jsx that reads the draft on open. After it lands, retest plan is: (1) clear localStorage key, open drawer, expect NO prompt; (2) type into ac-note, wait 1s, verify localStorage key populated; (3) close + reopen, expect [data-testid='assignment-create-draft-restore-prompt'] visible; (4) click Restore button inside prompt (text='Restore' or testid containing 'restore'), expect ac-note repopulated; (5) type new text, close, reopen, click Discard, expect prompt gone + localStorage key removed; (6) seed an expired draft (savedAt=Date.now()-15*24*60*60*1000), reload, open drawer, expect NO prompt AND localStorage key removed (TTL purge fires on _readDraft).",
+  "rca_of_the_issue": "ROOT CAUSE: AssignmentCreateDrawer.jsx defines _readDraft as a useCallback at line 316–328 but never calls it. The component initializes pendingDraft to null via useState (line 313) and never transitions it to a non-null value except inside onRestoreDraft/onDiscardDraft (both of which set it back to null). DraftRestorePrompt (resiliency/DraftRestorePrompt.jsx line 28) renders null when pendingDraft is null, so the prompt is structurally unreachable from any user flow. REPRODUCTION: multi-login → set masci.admin.token + masci.dispatch.token → goto /dispatch-portal/board → click 'board-create-assignment' → type into 'ac-note' → wait 1s (autosave fires, localStorage['masci.draft.dispatch-assignment-new'] populated) → click 'assignment-create-close' → click 'board-create-assignment' again → observe: drawer remounts but no 'assignment-create-draft-restore-prompt' anywhere in DOM. MITIGATION: insert a useEffect that runs setPendingDraft(_readDraft()) when open becomes true, immediately after the reset-on-open effect (~line 361). See action_items for the exact 5-line patch."
+}
