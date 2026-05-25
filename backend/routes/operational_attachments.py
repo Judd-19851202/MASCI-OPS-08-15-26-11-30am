@@ -475,6 +475,43 @@ def build_operational_attachments_router(
         total = (result.get("totals") or [{"total": 0}])[0].get("total", 0) if result.get("totals") else 0
         r2_count = by_backend.get("r2", {}).get("count", 0)
         migration_pct = round(100 * r2_count / total, 2) if total else 100.0
+
+        # iter430 · Phase 28.2 · Part 7 expansion
+        # avg_attachment_size           — sum / count across BOTH backends
+        # projected_90_day_growth_bytes — extrapolate from the rolling
+        #                                 30-day window of uploaded rows.
+        total_size = (
+            by_backend.get("r2", {}).get("total_size_bytes", 0)
+            + by_backend.get("inline_b64", {}).get("total_size_bytes", 0)
+            + by_backend.get("unknown", {}).get("total_size_bytes", 0)
+        )
+        avg_size = round(total_size / total) if total else 0
+
+        # Look back 30 days at uploaded_at to extrapolate a 90-day
+        # projection. Calm prediction · NOT analytics · just a growth
+        # number the operator can sanity-check against R2 billing.
+        thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        recent_pipeline = [
+            {"$match": {"tenant_id": tenant_id,
+                        "uploaded_at": {"$gte": thirty_days_ago}}},
+            {"$group": {
+                "_id": None,
+                "bytes": {"$sum": {"$ifNull": ["$size_bytes", 0]}},
+                "count": {"$sum": 1},
+            }},
+        ]
+        recent_bytes = 0
+        recent_count = 0
+        try:
+            async for row in coll.aggregate(recent_pipeline):
+                recent_bytes = row.get("bytes", 0) or 0
+                recent_count = row.get("count", 0) or 0
+        except Exception:
+            pass
+        # 90-day projection = (last 30d throughput) × 3 — no smoothing,
+        # no decay; the operator owns the interpretation.
+        projected_90_day_growth_bytes = recent_bytes * 3
+        projected_90_day_growth_count = recent_count * 3
         return {
             "tenant_id": tenant_id,
             "total": total,
@@ -482,6 +519,14 @@ def build_operational_attachments_router(
             "inline_b64": by_backend.get("inline_b64", {"count": 0, "total_size_bytes": 0}),
             "unknown": by_backend.get("unknown", {"count": 0, "total_size_bytes": 0}),
             "migrated_pct": migration_pct,
+            "avg_attachment_size_bytes": avg_size,
+            "projected_90_day_growth": {
+                "based_on_window_days": 30,
+                "recent_window_count": recent_count,
+                "recent_window_bytes": recent_bytes,
+                "projected_count": projected_90_day_growth_count,
+                "projected_bytes": projected_90_day_growth_bytes,
+            },
             "captured_at": _now_iso(),
         }
 

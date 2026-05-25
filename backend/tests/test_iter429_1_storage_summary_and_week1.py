@@ -56,13 +56,26 @@ class _FakeCollection:
         self.docs = docs or []
 
     def aggregate(self, pipeline):
-        # Tiny faithful implementation: handles the $facet pipeline our
-        # storage_summary route emits.
+        # Detect which pipeline shape the route emitted:
+        #   1. $facet pipeline → return the by_backend + totals doc
+        #   2. $group {bytes, count} pipeline → return the recent-window
+        #      stats doc the storage-summary uses for the 90-day projection
         tenant_filter = None
         for stage in pipeline:
             if "$match" in stage:
                 tenant_filter = stage["$match"].get("tenant_id")
         rows = [d for d in self.docs if d.get("tenant_id") == tenant_filter]
+
+        is_facet = any("$facet" in stage for stage in pipeline)
+        if not is_facet:
+            # Simple recent-window aggregation. The route's pipeline:
+            #   [{$match: {tenant_id, uploaded_at: {$gte: cutoff}}},
+            #    {$group: {bytes: $sum size_bytes, count: $sum 1}}]
+            # Our fake ignores the date cutoff entirely — tests that
+            # care about it can populate `uploaded_at` accordingly and
+            # the count/bytes will reflect every matching tenant row.
+            total_bytes = sum(int(d.get("size_bytes") or 0) for d in rows)
+            return _FakeCursor([{"_id": None, "bytes": total_bytes, "count": len(rows)}])
 
         by_backend_buckets: Dict[str, Dict[str, int]] = {}
         for d in rows:
@@ -160,6 +173,14 @@ def test_iter429_1_storage_summary_returns_honest_counts():
     assert body["inline_b64"]["total_size_bytes"] == 50
     # 2/3 → 66.67 %
     assert abs(body["migrated_pct"] - 66.67) < 0.05
+    # iter430 · Phase 28.2 expansion · avg + 90-day projection
+    assert "avg_attachment_size_bytes" in body
+    assert body["avg_attachment_size_bytes"] == round((300 + 50) / 3)
+    assert "projected_90_day_growth" in body
+    proj = body["projected_90_day_growth"]
+    assert proj["based_on_window_days"] == 30
+    assert "projected_bytes" in proj
+    assert "projected_count" in proj
     assert "captured_at" in body
 
 
@@ -203,12 +224,13 @@ def test_iter429_1_week1_questions_contract():
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["debrief_type"] == "week-1"
-    assert len(body["questions"]) == 14
-    assert [q["id"] for q in body["questions"]] == [f"q{i}" for i in range(1, 15)]
+    # Phase 28.2 refined set — exactly 12 doctrine-locked questions.
+    assert len(body["questions"]) == 12
+    assert [q["id"] for q in body["questions"]] == [f"q{i}" for i in range(1, 13)]
     # First and last questions are doctrine-locked — guard them.
     labels = [q["label"] for q in body["questions"]]
-    assert labels[0] == "What friction repeated more than once?"
-    assert labels[-1] == "What is the highest-value surgical improvement now?"
+    assert labels[0] == "What operational friction repeated multiple times?"
+    assert labels[-1] == "What role lacked visibility into downstream operations?"
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -234,7 +256,7 @@ def test_iter429_1_week1_submit_writes_markdown(monkeypatch, tmp_path):
     body = r.json()
     assert body["ok"] is True
     assert body["debrief_type"] == "week-1"
-    assert body["question_count"] == 14
+    assert body["question_count"] == 12
     assert body["filename"].startswith("DLS_WEEK1_LIVE_OPS_DEBRIEF_")
     assert body["filename"].endswith(".md")
     # File actually exists and contains our answer text.

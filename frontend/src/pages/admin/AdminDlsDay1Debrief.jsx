@@ -49,22 +49,20 @@ const DAY1_FALLBACK = [
   { id: "q12", label: "What should remain simple and untouched?" },
 ];
 
-// Canonical Week-1 questions — mirror of backend list (Phase 28.1).
+// Canonical Week-1 questions — mirror of backend list (Phase 28.2 refined set).
 const WEEK1_FALLBACK = [
-  { id: "q1",  label: "What friction repeated more than once?" },
-  { id: "q2",  label: "Where did users still hesitate?" },
-  { id: "q3",  label: "Which workflows felt natural after a week?" },
-  { id: "q4",  label: "Which workflows still felt confusing?" },
-  { id: "q5",  label: "Did dispatch trust DLS status?" },
-  { id: "q6",  label: "Did drivers consistently update lifecycle states?" },
-  { id: "q7",  label: "Did Shop recovery continuity work?" },
-  { id: "q8",  label: "Did PM haul awareness help production?" },
-  { id: "q9",  label: "Did attachments/photos reduce calls or confusion?" },
-  { id: "q10", label: "Did passkey/device sign-in reduce login friction?" },
-  { id: "q11", label: "Were any Spanish translations confusing in real use?" },
-  { id: "q12", label: "What should remain simple and untouched?" },
-  { id: "q13", label: "What should NOT be built even if requested?" },
-  { id: "q14", label: "What is the highest-value surgical improvement now?" },
+  { id: "q1",  label: "What operational friction repeated multiple times?" },
+  { id: "q2",  label: "What workflows became naturally trusted?" },
+  { id: "q3",  label: "What workflows caused hesitation?" },
+  { id: "q4",  label: "Where did crews bypass the platform?" },
+  { id: "q5",  label: "What operational continuity proved most valuable?" },
+  { id: "q6",  label: "What felt unnecessary?" },
+  { id: "q7",  label: "What should remain untouched?" },
+  { id: "q8",  label: "What systems need stronger coaching?" },
+  { id: "q9",  label: "What systems need less complexity?" },
+  { id: "q10", label: "What operational terminology confused users?" },
+  { id: "q11", label: "What mobile/device issues surfaced repeatedly?" },
+  { id: "q12", label: "What role lacked visibility into downstream operations?" },
 ];
 
 const VARIANTS = {

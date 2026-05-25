@@ -83,6 +83,7 @@ import AssetProfile from "@/pages/admin/AssetProfile";
 import AdminDispatch from "@/pages/admin/AdminDispatch";
 import AdminDlsShiftQR from "@/pages/admin/AdminDlsShiftQR";
 import AdminDlsDay1Debrief from "@/pages/admin/AdminDlsDay1Debrief";
+import AdminProfile from "@/pages/admin/AdminProfile";
 import AdminOperationsEvents from "@/pages/admin/AdminOperationsEvents";
 import AdminDigestConfig from "@/pages/admin/AdminDigestConfig";
 import SystemHealth from "@/pages/admin/SystemHealth";
@@ -369,6 +370,7 @@ function App() {
             <Route path="/admin/dls/shift-qr" element={A(<AdminDlsShiftQR />)} />
             <Route path="/admin/dls/day-1-debrief" element={A(<AdminDlsDay1Debrief variant="day-1" />)} />
             <Route path="/admin/dls/week-1-debrief" element={A(<AdminDlsDay1Debrief variant="week-1" />)} />
+            <Route path="/admin/profile" element={A(<AdminProfile />)} />
             <Route path="/admin/operations-events" element={A(<AdminOperationsEvents />)} />
             <Route path="/admin/digest-config" element={A(<AdminDigestConfig />)} />
             <Route path="/admin/system-health" element={A(<SystemHealth />)} />
