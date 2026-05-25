@@ -1,6 +1,77 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter430 · Phase 28.2 · Elite Operational Maturity Convergence ✅
+
+### Result — 🟢 5 of 6 implementable parts SHIPPED · 64/64 parity-lock tests pass · 0 action items
+
+### Mission
+Production-trust hardening: Atlas verification, debrief continuity,
+passkey device management, Sentry observability tagging, controlled
+server.py modularization. No feature sprawl. No dashboards.
+
+### Headline shipped
+- **`/api/legacy-imports/*` EXTRACTION executed.** 11 routes ·
+  ~390 LOC · zero-behaviour-change move from `server.py:9241-9702`
+  into `routes/legacy_imports.py` via factory pattern.
+  `server.py` shrunk **11,584 → 11,140 LOC**. All 43
+  pre-existing iter238/iter248/iter249 tests still pass against the
+  extracted module. New parity-lock test
+  `test_iter430_legacy_imports_extraction.py` enumerates every
+  (method,path) pair and guards against silent drift.
+- **`/api/admin-strict/diag/persistence-health`** (NEW)
+  · admin-strict · JSON-only. Verifies Atlas + R2 backup + drift
+  watch in one curl. Live: `atlas_connected: true · mongo_version:
+  8.0.23 · collections: 121`.
+- **Sentry operational tags middleware** (NEW
+  `backend/sentry_tags.py`). Auto-attaches portal/role/route/device/
+  browser/language/tenant to every event. No PII, no fingerprinting.
+- **Week-1 debrief questions REPLACED** with the new 12 refined
+  operational prompts (friction repeats, naturally-trusted workflows,
+  hesitation causes, platform bypasses, valuable continuity,
+  unnecessary, untouched, coaching gaps, complexity gaps,
+  terminology confusion, mobile/device issues, role visibility gaps).
+- **`/admin/profile` "Your devices"** (NEW
+  `pages/admin/AdminProfile.jsx`). Calm passkey list + per-device
+  Remove. Uses the existing `listPasskeys()` / `revokePasskey()` lib.
+- **`storage-summary` expanded** with `avg_attachment_size_bytes`
+  + `projected_90_day_growth` (rolling 30-day × 3 · no smoothing).
+
+### Parity-lock testing
+- 64/64 backend tests pass across 8 files
+- Frontend lint clean
+- Live curl verification passed: persistence-health, storage-summary,
+  Week-1 questions, Day-1 questions (no regression), every legacy-
+  imports route (401 unauth proves mounting · 200 authed proves
+  behaviour).
+
+### Real-device validation — OPERATOR-OWNED
+- `PHASE28_2_REAL_DEVICE_VALIDATION.md` carries the matrix
+  (iPhone Safari / iPad Safari / Android Chrome / Chrome Win /
+  Edge Win / Mac Touch ID / Firefox × 17 verification rows).
+- Operator executes against live devices.
+
+### What this phase did NOT do
+- ❌ No dashboards · KPI screens · analytics · monitoring portal
+- ❌ No notification system · alerting UI · session recording
+- ❌ No identity center · security dashboard · geo tracking
+- ❌ No code rewrites during extraction (zero-behaviour-change held)
+
+### Outstanding operator action
+1. Production `MONGO_URL` rotation in deploy dashboard (carried
+   over from Phase 28.1).
+2. Real-device validation matrix.
+3. Real Sentry inbox check on production to confirm new tags
+   appear on a forced 500.
+
+### Backlog (P2)
+- Next safe `server.py` extractions per
+  `PHASE28_2_SERVER_MODULARIZATION_ROADMAP.md`:
+  fleet-ops legacy stubs → identity/passkey auth helpers →
+  backup scheduler block → cross-portal session mint.
+- iter425 Operational Moments Continuity Rail.
+
+
 ## 2026-05-25 — iter429.1 · Phase 28.1 · Final Scale + Security Hardening ✅
 
 ### Result — 🟢 ALL 5 PARTS GREEN · ZERO ACTION ITEMS · ZERO REGRESSIONS
