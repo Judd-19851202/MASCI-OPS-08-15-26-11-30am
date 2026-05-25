@@ -15,7 +15,16 @@ from pathlib import Path
 import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from tests.conftest import URL  # noqa: E402
+import pytest as _pytest  # noqa: E402
+try:
+    from tests.conftest import URL  # noqa: E402
+except ImportError:
+    URL = ''
+if not URL:
+    _pytest.skip(
+        'tests.conftest.URL unavailable · live-HTTP test skipped (parity-lock safe).',
+        allow_module_level=True,
+    )
 
 BASE = URL
 ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or "MASCI1982!"

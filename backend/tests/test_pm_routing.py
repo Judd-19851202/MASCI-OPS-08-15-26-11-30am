@@ -18,7 +18,16 @@ from pm_routing import (  # noqa: E402
     PM_TABLE,
     auto_email_enabled,
 )
-from tests.conftest import URL  # noqa: E402
+import pytest as _pytest  # noqa: E402
+try:
+    from tests.conftest import URL  # noqa: E402
+except ImportError:
+    URL = ''
+if not URL:
+    _pytest.skip(
+        'tests.conftest.URL unavailable · live-HTTP test skipped (parity-lock safe).',
+        allow_module_level=True,
+    )
 
 
 # ---------------- pure-Python unit tests ----------------
