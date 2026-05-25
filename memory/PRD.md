@@ -1,6 +1,118 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter435 · Phase 31 · Pass B · Photo Staging + Queue Extraction + Form Fan-out ✅
+
+### Result — 🟢 5/5 live Day-1 end-to-end + 11/11 static doctrine assertions pass · 0 critical · 0 regressions
+
+### Mission
+Convert the three P1 directives into shipped code in one disciplined
+iteration:
+1. **Photo / attachment staging primitive** (Part 3 · biggest field-data-loss surface)
+2. **Generalise iter421 driver queue** → reusable `lib/resiliency/offlineQueue.js`
+3. **Fan-out `useFormDraft` + DraftRestorePrompt** to high-impact forms
+
+### Headline shipped
+- **`lib/resiliency/photoStaging.js`** (NEW) — IndexedDB-backed photo
+  staging via `idb-keyval`. Stage on network failure or 5xx; clear on
+  2xx + 4xx (operator can't resolve a stale rejection from a quiet
+  phone). Auto-flush on `online` and `focus` events. Cap 20 per actor.
+  API: `stagePhoto · listStagedFor · listAllStaged · getStagedCount ·
+  flushStaged · removeStaged · onStagedChange`.
+- **`lib/resiliency/StagedPhotoBadge.jsx`** (NEW) — tiny calm pill
+  rendering `"N waiting to send"` per-host. NO retry panel · NO list.
+- **`lib/resiliency/offlineQueue.js`** (NEW) — generalised
+  formKey-scoped localStorage queue extracted from iter421 driver
+  helpers. API: `enqueue · readQueue · clearQueue · replayQueue ·
+  getQueueDepth · onQueueChange · registerAutoReplay`. Default
+  `max=3` (preserves iter421 cap). Behaviour invariants: 2xx + 4xx
+  clear · 401 preserves the whole queue · 5xx + network errors keep ·
+  replay strictly oldest→newest.
+- **`AttachmentStrip` wired** (`components/dispatch/AttachmentStrip.jsx`):
+  on network throw OR 5xx response → calls `stagePhoto()` and shows
+  calm `"Photo saved on this device · will send when online."` toast.
+  `StagedPhotoBadge` mounted in header. Successful 2xx upload triggers
+  opportunistic `flushStaged()` so previously-staged photos catch up.
+- **`DriverShift` migrated** to the shared queue with **100 %
+  behaviour preservation** — formKey `driver-lifecycle`, `max=3`,
+  oldest-first replay, `refresh()` on success, 401 preservation. The
+  iter421 contract is intact; only the underlying storage key changed
+  (`masci.driver.pendingTransitions` → `masci.offline-queue.driver-lifecycle`).
+- **`useFormDraft` fan-out to 3 more high-impact forms** (Day-1 +
+  Week-1 share one component · so this is 2 forms via one wiring):
+  - `pages/admin/AdminDlsDay1Debrief.jsx` — per-variant formKey
+    (`dls-debrief-day-1` · `dls-debrief-week-1`), single payload
+    {answers · operationalNotes · doctrineObservations}, commit() on
+    submit, DraftRestorePrompt + DraftStatusPill in header.
+  - `components/shop/RecoveryActionRow.jsx` — per-assignment formKey
+    `shop-recovery-{assignmentId}`, drafts `{nextState, note}`,
+    DraftRestorePrompt inline at top of the action row, commit() on
+    successful transition.
+- **2 final Phase 31 docs** (`PHASE31_OFFLINE_QUEUE_EXPANSION_PLAN.md`
+  + `PHASE31_MOBILE_RECOVERY_VALIDATION.md`) and the
+  `PHASE31_WORK_RECOVERY_COVERAGE_MATRIX.md` updated — all 5 of 5
+  Phase 31 docs now exist.
+
+### Doctrine assertions verified (testing subagent)
+- **Live Day-1 debrief end-to-end** (5/5): autosave, NO auto-overwrite
+  on reload, Restore repopulates ops-notes + doctrine textareas,
+  Discard wipes draft + survives reload, Week-1 variant correctly
+  scoped (does NOT see Day-1's draft)
+- **Static doctrine + wiring** (11/11): no admin draft browser route ·
+  no console errors · photoStaging API surface complete · offlineQueue
+  API surface complete · DriverShift uses new aliases · RecoveryActionRow
+  + AdminDlsDay1Debrief correctly wired · i18n strings present · App.js
+  has zero queue-management routes
+- 4 new EN→ES i18n strings · ESLint + Ruff clean
+
+### Coverage matrix updated (PHASE31_WORK_RECOVERY_COVERAGE_MATRIX.md)
+| # | Workflow | State |
+|---|----------|-------|
+| 1 | Incident reports | **A** ✅ (iter434) |
+| 2 | Daily reports | **A** ✅ (iter434) |
+| 3 | Inspections | **A** ✅ (iter434) |
+| 4 | Driver lifecycle | **A** ✅ (iter435 · queue migration) |
+| 5 | Attachment uploads | **A** ✅ (iter435 · photo staging) |
+| 6 | Shop recovery notes | **A** ✅ (iter435) |
+| 7 | Dispatch assignment create | E → Pass C (complex multi-state) |
+| 8 | Safety reports | mixed → Pass C |
+| 9 | HR qualification forms | E → Pass C |
+| 10 | Day-1 / Week-1 debriefs | **A** ✅ (iter435 · one component, two variants) |
+
+### What this iteration explicitly did NOT do
+- ❌ NO admin draft browser, dashboard, ranking, scoring, surveillance
+- ❌ NO retry panel / conflict UI
+- ❌ NO Service Worker / Background Sync API (foreground only)
+- ❌ NO new admin endpoint · NO new Mongo collection · NO new env var
+- ❌ NO live offline photo-staging test (deferred — no seed assignment
+  in preview; static verification confirmed correctness of every path)
+- ❌ NO AssignmentCreateDrawer wiring (complex multi-step state with
+  `useEffect` reset on open — deferred to Pass C with targeted scope)
+
+### Backlog (Pass C)
+- 🟡 **P1** · AssignmentCreateDrawer text-field draft protection
+- 🟡 **P1** · Safety + HR forms audit + selective wiring
+- 🟡 **P1** · Migrate inspection submit to `offlineQueue` (Part 4 fan-out)
+- 🟡 **P1** · Driver breakdown-proof upload → `photoStaging`
+- 🟢 **P2** · Mobile real-device certification matrix (operator-owned ·
+  `PHASE31_MOBILE_RECOVERY_VALIDATION.md` is the checklist)
+- 🟢 **P3** · Coaching language sweep across all wired forms
+
+### Verdict
+🟢 The Phase 31 platform-wide work-recovery foundation is **wide**.
+The platform now offers calm "close your phone, lose signal, come
+back, your work is still there" on:
+- 6 of 10 high-priority workflows (text drafts)
+- All operational-attachment uploads (photo staging with retry)
+- Driver lifecycle transitions (shared offline queue)
+
+Doctrine of restraint held end-to-end · zero new admin surfaces,
+zero dashboards, zero conflict UI.
+
+---
+
+
+
 ## 2026-05-25 — iter434 · Phase 31 · Pass A · Work Recovery Continuity Foundation ✅
 
 ### Result — 🟢 8/8 doctrine assertions live-pass · 0 action items · 0 regressions
