@@ -1,6 +1,86 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter427 · Phase 26.1 · Infrastructure Stability + Storage Pressure Hardening ✅
+
+### Mission
+Real-measurement infrastructure audit · zero feature work · only true-defect
+surgical fixes for storage continuity, attachment growth, Mongo durability,
+backup retention, cleanup behavior, disaster recovery, deploy survivability.
+
+### Result — 🟢 GREEN with one yellow operator-action flag (MongoDB-in-container)
+
+### What landed
+- **Real measurements** captured (no estimation):
+  - `/app` disk: **94 % → 93 %** after iter427 cleanup of 318 legacy lite +
+    3 legacy complete backup files (26 MB · 321 inodes recovered)
+  - MongoDB: 121 collections · 67.8 MB data · 313.7 MB storage
+  - `operational_attachments`: 56 docs · 0.02 MB (placeholder data · real
+    photo flow has NOT yet started)
+- **Surgical fix shipped (iter427)** — bug found: `_emergency_prune_backups`
+  and `_run_scheduled_backup` pre-flight prune only globbed
+  `MASCI_full_backup_*.zip` and never touched legacy `MASCI_lite_backup_*.zip`
+  or `MASCI_complete_backup_*.zip` patterns (accumulated 318+ files since
+  2026-05-11). Both prune paths now sweep legacy patterns past
+  `BACKUP_RETENTION_DAYS`.
+- **2 new parity-lock tests** in `tests/test_iter427_legacy_backup_prune.py`
+  (legacy sweep + young-legacy preservation). Both PASS.
+- **6 Phase 26.1 docs created** in `/app/memory/`:
+  1. `PHASE26_1_INFRASTRUCTURE_HEALTH_AUDIT.md` (master)
+  2. `PHASE26_1_DISK_PRESSURE_REPORT.md`
+  3. `PHASE26_1_ATTACHMENT_STORAGE_ANALYSIS.md`
+  4. `PHASE26_1_MONGO_DURABILITY_PLAN.md` (30-step operator migration
+     checklist + rollback runbook)
+  5. `PHASE26_1_BACKUP_RETENTION_VERIFICATION.md`
+  6. `PHASE26_1_CLEANUP_CONTINUITY_LOG.md`
+
+### Test evidence
+- Backup suite (iter425 + iter426 + iter427): **13 / 13 PASS**
+- Full Phase 26 + iter427 parity-lock: **251 / 252 PASS** (1 documented
+  inherited flake `test_iter417_types_list_anon_blocked` passes in
+  isolation — not a regression)
+- Ruff on new test: clean
+- Backend hot-reloaded cleanly · `/api/health` 200
+
+### Doctrine restraint held
+- ❌ NO monitoring dashboard
+- ❌ NO admin storage UI
+- ❌ NO backup portal
+- ❌ NO archive browser
+- ❌ NO infrastructure management surface
+- ❌ NO new endpoint
+- ❌ NO new env var
+- ❌ NO scheduler change
+- ❌ NO destructive Mongo migration (preparation-only checklist)
+- Touched 2 functions · added 1 test file · created 6 doc files.
+
+### Findings — GO / WATCH / ACTION REQUIRED
+- 🟢 Local backup retention (iter427 fix)
+- 🟢 Disk pressure self-management (75 % watermark prune intact)
+- 🟢 Attachment storage future-safety (8.6 GB / crew / year · safe)
+- 🟢 Backup / restore continuity re-verified
+- 🟢 Cleanup continuity (temp files + Mongo TTL coverage)
+- 🟡 **WATCH** R2 bucket-level lifecycle policy (operator verifies on
+  Cloudflare R2 console)
+- 🔴 **ACTION REQUIRED** (in production) MongoDB-in-container redeploy
+  survivability — operator should execute the 30-step Atlas migration
+  checklist in `PHASE26_1_MONGO_DURABILITY_PLAN.md` for the permanent fix
+
+### Backlog (NOT blocking deploy)
+- 🟡 P2 · stale `dispatch_driver_sessions` reaper (TTL or cron)
+- 🟡 P3 · add TTL to 4 low-volume Mongo collections
+  (`dispatch_state_events`, `directory_sessions`, `operations_events`,
+  `hub_banner_audit`) — combined <4 MB · not urgent
+- 🟡 P2 · Re-measure attachment growth after 90 days of real photo flow
+
+### Verdict
+🟢 **Infrastructure-stable and storage-safe for live production deployment.**
+No hidden time-bombs. Calm operational doctrine held.
+
+---
+
+
+
 ## 2026-05-25 — iter427 · Phase 26 · Final Pre-Deployment Certification Audit ✅
 
 ### Mission

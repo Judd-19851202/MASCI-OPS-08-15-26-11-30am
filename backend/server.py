@@ -4861,6 +4861,20 @@ def _emergency_prune_backups(reason: str) -> int:
                 pruned += 1
             except Exception:
                 continue
+        # iter427 · Phase 26.1 — also sweep legacy backup patterns
+        # (lite/complete) that the pre-iter425 archive naming left behind.
+        # These are superseded by `MASCI_full_backup_*.zip` (auto-discovery)
+        # and any local copy older than retention is dead weight (R2 keeps
+        # the canonical copy).
+        _legacy_cutoff = _now_ts - BACKUP_RETENTION_DAYS * 86400
+        for legacy_glob in ("MASCI_lite_backup_*.zip", "MASCI_complete_backup_*.zip"):
+            for p in BACKUPS_DIR.glob(legacy_glob):
+                try:
+                    if p.stat().st_mtime < _legacy_cutoff:
+                        p.unlink()
+                        pruned += 1
+                except Exception:
+                    continue
         # Keep BACKUP_KEEP_MAX-1 newest so the next backup fits within cap
         files = sorted(
             BACKUPS_DIR.glob("MASCI_full_backup_*.zip"),
@@ -4947,6 +4961,16 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
                     pre_pruned += 1
             except Exception:
                 continue
+        # iter427 · Phase 26.1 — also sweep legacy backup patterns
+        # (lite/complete from pre-iter425 naming) past retention.
+        for legacy_glob in ("MASCI_lite_backup_*.zip", "MASCI_complete_backup_*.zip"):
+            for p in BACKUPS_DIR.glob(legacy_glob):
+                try:
+                    if p.stat().st_mtime < cutoff:
+                        p.unlink()
+                        pre_pruned += 1
+                except Exception:
+                    continue
         # By count (keep newest BACKUP_KEEP_MAX-1 so the new one fits within cap)
         existing = sorted(
             BACKUPS_DIR.glob("MASCI_full_backup_*.zip"),
