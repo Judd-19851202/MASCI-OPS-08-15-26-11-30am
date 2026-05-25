@@ -1,6 +1,70 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter440 · Last Activity Line · 5 Hubs Verified ✅ + Build-Break Fix
+
+### Result — 🟢 SHIPPED · 5/5 hubs render the calm one-line indicator · build healthy
+
+### Headlines
+1. **Item 3 · LastActivityLine fully verified** — per-portal "calm
+   one-line activity trace" now visible and tested on all 5 role
+   hubs in preview. Live values today:
+   - **Dispatch** (`/dispatch-portal`) — `Assignment created · 7 hr ago`
+   - **Shop** (`/shop`)                 — `Equipment inspection filed · 2 d ago`
+   - **Safety** (`/safety-portal`)      — `Incident filed · 1 d ago`
+   - **PM** (`/pm`)                     — `Inspection filed · 2 d ago`
+   - **Field Leadership** (`/leadership`) — `Incident filed · 1 d ago`
+2. **Build-break HOTFIX in `ShopHub.jsx`** — the previous iter440
+   edit left 4 orphan JSX lines (`)} </section> ); };`) appended
+   AFTER `OperationalContinuityHistory` closed. Webpack overlay
+   was screaming `SyntaxError: ShopHub.jsx (583:5)` on every
+   render. Deleted the orphan tail and mounted the missing
+   `<LastActivityLine portal="shop" />` next to `<FieldMemoryGlance />`
+   so ShopHub matches the other 4 hubs.
+3. **Backend `/api/diag/last-activity` verified across 6 portals**
+   via curl. All portals return ISO timestamp + label · invalid
+   portal returns `400` with the allowed list · missing auth
+   returns `401`. Read-only · 7-day lookback cap · never touches
+   `field_memory_notes`.
+
+### Doctrine reaffirmed
+- Single line · NEVER a card · NEVER a chart · NEVER an alert
+- Muted slate text (NOT amber/green/red) — it's a calm fact
+- Renders NOTHING if there's nothing in the last 7 days
+- Renders NOTHING on auth failure (silent · operational continuity)
+- Polls every 60s while mounted
+- Same font + spacing as `<FieldMemoryGlance />` — feels like it's
+  been there since day 1
+
+### Files of reference for this iter
+- `/app/backend/routes/last_activity.py` (verified)
+- `/app/frontend/src/components/admin/LastActivityLine.jsx` (verified)
+- `/app/frontend/src/pages/ShopHub.jsx` (hotfix · orphan tail removed + mount added)
+- `/app/frontend/src/pages/DispatchHub.jsx` (verified)
+- `/app/frontend/src/pages/SafetyHub.jsx` (verified)
+- `/app/frontend/src/pages/PmHub.jsx` (verified)
+- `/app/frontend/src/pages/FieldLeadershipHub.jsx` (verified)
+
+### Testing
+- Backend: 6 curl probes across all portals · 400/401 negative cases · all green
+- Frontend: 5 hub smoke screenshots via Playwright + multi-login token
+  injection · all 5 `[data-testid="last-activity-line-<portal>"]` visible
+  with live human-readable text
+- Lint: `mcp_lint_javascript` on `ShopHub.jsx` → ✅ No issues
+
+### STANDING OPERATOR ACTIONS
+- **P1 · Atlas password rotation** (chat-history hygiene) — operator
+  generates new Atlas password → paste here so preview `.env` updates
+  AND simultaneously update the production deploy-dashboard
+- **P1 · Real-device certification** — hand
+  `PHASE31_OPERATOR_QUICK_TEST_CARD.md` to crews on iPad/iPhone
+- **P2 · Phase 31.2 fan-out** — operator picks which OTHER form
+  (Incident? Inspection? Shop Recovery?) should get crew memory next,
+  or declares Daily-Report-only is the permanent answer
+- **P3 · First Monday Operator Digest** — verify Resend cron fires
+  on the next Monday morning
+
+
 ## 2026-05-25 — iter439 · Backlog Sweep F·G·H·I·J·K + Production Restored ✅
 
 ### Result — 🟢 4 of 6 items SHIPPED · 2 deliberate skips (with rationale) · 100/100 testing

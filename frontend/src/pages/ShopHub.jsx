@@ -293,6 +293,10 @@ export default function ShopHub() {
             operational-attention surface — read-only Field Memory glance. */}
         <FieldMemoryGlance />
 
+        {/* iter440 · calm one-line "Last activity" trace per portal ·
+            quiet proof the platform is being USED, not just UP. */}
+        <LastActivityLine portal="shop" />
+
         {/* Calm operational kicker · iter423 wording: recovery, not maintenance */}
         <div>
           <span className={`font-mono text-xs uppercase tracking-[0.22em] ${SHOP_PAL.hubKicker} font-bold`}>
@@ -577,10 +581,6 @@ const OperationalContinuityHistory = () => {
           ))}
         </ul>
       )}
-    </section>
-  );
-};
-     )}
     </section>
   );
 };
