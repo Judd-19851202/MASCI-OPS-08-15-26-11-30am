@@ -85,6 +85,10 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _now_iso_obj() -> datetime:
+    return datetime.now(timezone.utc)
+
+
 def _resolve_tenant(x_tenant_id: Optional[str]) -> str:
     return (x_tenant_id or DEFAULT_TENANT_ID).strip() or DEFAULT_TENANT_ID
 
@@ -279,6 +283,24 @@ def build_dispatch_continuity_router(
         items = [_public_event(d) async for d in cur]
         return {"events": items, "count": len(items)}
 
+    # iter423 · Phase 25 · Recent continuity chronology (read-only · capped)
+    # Surfaces newest-first events for the Shop "Operational Continuity
+    # History" rail. NO scoring · NO analytics · just calm chronology.
+    @router.get("/continuity-events/recent")
+    async def list_events_recent(
+        actor: Dict[str, Any] = Depends(require_any_portal_token_dep),  # noqa: ARG001
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+        limit: int = 25,
+    ):
+        tenant_id = _resolve_tenant(x_tenant_id)
+        capped = max(1, min(limit, 50))
+        cur = db.dispatch_continuity_events.find(
+            {"tenant_id": tenant_id},
+            {"_id": 0},
+        ).sort("created_at", -1).limit(capped)
+        items = [_public_event(d) async for d in cur]
+        return {"events": items, "count": len(items)}
+
     # ════════════════════════════════════════════════════════════
     # iter420 · Phase 22.0 · Shop recovery sub-state transitions
     # ════════════════════════════════════════════════════════════
@@ -287,6 +309,127 @@ def build_dispatch_continuity_router(
         actor: Dict[str, Any] = Depends(require_any_portal_token_dep),  # noqa: ARG001
     ):
         return {"states": RECOVERY_STATES}
+
+    # ════════════════════════════════════════════════════════════
+    # iter423 · Phase 25 · Shop convergence — grouped recovery read
+    # ────────────────────────────────────────────────────────────
+    # MUST be defined BEFORE /recovery/{assignment_id} so the
+    # literal `/by-shop` path is not captured by the param route.
+    # ONE read-only endpoint that groups all in-flight recoveries by
+    # canonical sub-state. Reuses iter420 storage · no new collection ·
+    # no aggregation framework · no analytics. Each row carries a
+    # tiny operational-impact line (truck_id · driver_name) so Shop
+    # sees downstream operational continuity at a glance.
+    @router.get("/recovery/by-shop")
+    async def recovery_by_shop(
+        actor: Dict[str, Any] = Depends(require_any_portal_token_dep),  # noqa: ARG001
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        """Group active recovery assignments by canonical recovery state.
+
+        Returns five buckets keyed by canonical RECOVERY_STATES. Excludes
+        the terminal `returned_to_service` from active buckets (it has
+        its own 7-day tail). Includes `reported` so fresh, un-acknowledged
+        breakdowns surface under Equipment Needing Attention.
+
+        Downstream impact line is intentionally tiny · NO charts · NO
+        scoring · NO analytics. Shop reads operational truth, not KPIs.
+        """
+        tenant_id = _resolve_tenant(x_tenant_id)
+
+        active_cur = db.dispatch_assignments.find(
+            {
+                "tenant_id": tenant_id,
+                "recovery_state": {
+                    "$in": [
+                        "reported", "acknowledged", "diagnosing",
+                        "waiting_on_parts", "repair_active",
+                        "operational_test",
+                    ],
+                },
+            },
+            {
+                "_id": 0, "id": 1, "truck_id": 1, "driver_id": 1,
+                "driver_name": 1, "project_number": 1, "material": 1,
+                "current_state": 1, "recovery_state": 1,
+                "recovery_history": 1,
+            },
+        )
+
+        buckets: Dict[str, List[Dict[str, Any]]] = {
+            "reported": [], "acknowledged": [], "diagnosing": [],
+            "waiting_on_parts": [], "repair_active": [],
+            "operational_test": [],
+        }
+        async for doc in active_cur:
+            rs = doc.get("recovery_state")
+            if rs not in buckets:
+                continue
+            history = doc.get("recovery_history") or []
+            last_entry = history[-1] if history else None
+            buckets[rs].append({
+                "assignment_id": doc.get("id"),
+                "truck_id": doc.get("truck_id"),
+                "driver_name": doc.get("driver_name"),
+                "project_number": doc.get("project_number"),
+                "material": doc.get("material"),
+                "current_state": doc.get("current_state"),
+                "recovery_state": rs,
+                "last_recovery_at": (last_entry or {}).get("at"),
+                "last_recovery_note": (last_entry or {}).get("note"),
+            })
+
+        from datetime import timedelta
+        seven_days_ago = (_now_iso_obj() - timedelta(days=7)).isoformat()
+        restored_cur = db.dispatch_assignments.find(
+            {
+                "tenant_id": tenant_id,
+                "recovery_state": "returned_to_service",
+            },
+            {
+                "_id": 0, "id": 1, "truck_id": 1, "driver_name": 1,
+                "project_number": 1, "recovery_state": 1,
+                "recovery_history": 1,
+            },
+        )
+        restored: List[Dict[str, Any]] = []
+        async for doc in restored_cur:
+            history = doc.get("recovery_history") or []
+            terminal = next(
+                (h for h in reversed(history) if h.get("to") == "returned_to_service"),
+                None,
+            )
+            if not terminal:
+                continue
+            at = terminal.get("at") or ""
+            if at < seven_days_ago:
+                continue
+            restored.append({
+                "assignment_id": doc.get("id"),
+                "truck_id": doc.get("truck_id"),
+                "driver_name": doc.get("driver_name"),
+                "project_number": doc.get("project_number"),
+                "returned_at": at,
+                "returned_by": terminal.get("by"),
+                "note": terminal.get("note"),
+            })
+        restored.sort(key=lambda r: r.get("returned_at") or "", reverse=True)
+        restored = restored[:25]
+
+        total_active = sum(len(v) for v in buckets.values())
+        today_prefix = _now_iso()[:10]
+        return {
+            "buckets": buckets,
+            "restored_recent": restored,
+            "summary": {
+                "total_active": total_active,
+                "waiting_on_parts": len(buckets["waiting_on_parts"]),
+                "returned_today": sum(
+                    1 for r in restored
+                    if (r.get("returned_at") or "")[:10] == today_prefix
+                ),
+            },
+        }
 
     @router.post("/recovery/{assignment_id}/transition")
     async def recovery_transition(

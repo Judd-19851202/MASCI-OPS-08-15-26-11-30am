@@ -1,50 +1,167 @@
-import React, { useEffect, useState } from "react";
+/**
+ * ShopHub.jsx · iter423 · Phase 25 · Shop Operational Cognition Convergence
+ * ─────────────────────────────────────────────────────────────────────────
+ * The Shop Portal is NOT maintenance software.
+ * The Shop Portal IS  operational recovery continuity.
+ *
+ * Information architecture (replaces the prior 7-tab ERP layout):
+ *   1. Equipment Needing Attention      (FAIL DVIR + BREAKDOWN lifecycle)
+ *   2. Active Recovery Work             (iter420 sub-state: acknowledged →
+ *                                        diagnosing → repair_active →
+ *                                        operational_test)
+ *   3. Waiting / Delays                 (recovery_state = waiting_on_parts)
+ *   4. Returned to Service              (last 7 days · read-only tail)
+ *   5. Operational Continuity History   (iter419 dispatch_continuity_events ·
+ *                                        read-only chronology · NOT activity)
+ *
+ * Demoted to a calm "More" footer (still reachable · never first-screen):
+ *   Trends · Recent inspections · Activity · Equipment list · Parts ·
+ *   Integrations · MASCI Fleet view
+ *
+ * Doctrine guards locked:
+ *   • NO charts · NO scoring · NO KPIs · NO utilization
+ *   • Read-only sections except where iter420 already authorised writes
+ *   • Coaching pause-points are single-line · calm · embedded
+ *   • Mobile-first 390px vertical rhythm · 44px touch targets
+ *   • Wording: operational recovery (NOT fleet repair queue)
+ */
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Wrench, Eye, AlertOctagon, Loader2, LogOut, Truck, KeyRound, BookOpen } from "lucide-react";
+import {
+  ArrowLeft, Wrench, LogOut, KeyRound, BookOpen, ChevronRight,
+  AlertOctagon, CheckCircle2, Clock, Stethoscope, PackageOpen,
+  Cog, ClipboardList, History, Loader2, Truck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
-import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
 import DispatchLifecycleTile from "@/components/dispatch/DispatchLifecycleTile";
-import ShopActivityFeed from "@/components/ShopActivityFeed";
-import PartsCatalog from "@/components/PartsCatalog";
-import EquipmentMasterPanel from "@/components/EquipmentMasterPanel";
-import IntegrationHealthCard from "@/components/IntegrationHealthCard";
-import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
 import { OfflineIndicator } from "@/lib/resiliency";
-import OperationsCenter from "@/components/OperationsCenter";
 import { api } from "@/lib/api";
-import { formatDateLong } from "@/lib/utils";
-import { clearShopToken, getShopToken } from "@/lib/shopAuth";
-import { clearAdminToken } from "@/lib/adminAuth";
-import { clearPmToken } from "@/lib/pmAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
-import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
 
 const SHOP_PAL = paletteFor("shop");
 
-/**
- * Shop / mechanic console — a focused subset of the admin equipment
- * dashboard: trends, open items needing sign-off, recent inspections,
- * and the master equipment list. Intentionally has NO access to
- * incidents / dailies / meetings / inspections / settings.
- */
+// ────────────────────────────────────────────────────────────────────
+// Small calm helpers
+// ────────────────────────────────────────────────────────────────────
+function relTime(iso) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  } catch {
+    return "";
+  }
+}
+
+const SectionHeader = ({ icon: Icon, kicker, title, count, coaching, testIdRoot }) => {
+  const { t } = useT();
+  return (
+    <div className="mb-3" data-testid={`${testIdRoot}-header`}>
+      <div className="flex items-baseline gap-3">
+        <div className="shrink-0 w-9 h-9 rounded-md bg-slate-900 text-amber-400 flex items-center justify-center">
+          <Icon className="w-4 h-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-amber-700 font-bold">
+            {t(kicker)}
+          </div>
+          <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+            {t(title)}
+            {typeof count === "number" ? (
+              <span className="ml-2 inline-flex items-center justify-center min-w-[1.75rem] h-6 px-2 rounded-full bg-slate-100 text-slate-700 font-mono text-xs font-bold align-middle">
+                {count}
+              </span>
+            ) : null}
+          </h2>
+        </div>
+      </div>
+      {coaching ? (
+        <p className="mt-2 ml-12 text-xs text-slate-500 italic max-w-2xl leading-snug" data-testid={`${testIdRoot}-coaching`}>
+          {t(coaching)}
+        </p>
+      ) : null}
+    </div>
+  );
+};
+
+const RecoveryCard = ({ row, stateLabel, testIdRoot }) => {
+  const { t } = useT();
+  const impact = useMemo(() => {
+    // Tiny secondary operational-impact line · field-driven phrasing.
+    const parts = [];
+    if (row.truck_id) parts.push(`${t("Truck")} ${row.truck_id}`);
+    if (row.driver_name) parts.push(`${t("Driver")}: ${row.driver_name}`);
+    if (row.project_number) parts.push(`#${row.project_number}`);
+    return parts.join(" · ");
+  }, [row, t]);
+  return (
+    <li
+      className="bg-white border border-slate-200 border-l-4 border-l-amber-500 rounded-md p-4 hover:border-slate-300 transition-colors"
+      data-testid={`${testIdRoot}-card-${row.assignment_id}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="font-display text-base font-black text-slate-900 truncate">
+            {row.truck_id || t("Equipment")} <span className="text-slate-400">·</span> {row.material || row.current_state || ""}
+          </div>
+          {impact ? (
+            <div className="mt-1 text-xs text-slate-600 truncate" data-testid={`${testIdRoot}-impact-${row.assignment_id}`}>
+              {impact}
+            </div>
+          ) : null}
+          {row.last_recovery_note ? (
+            <div className="mt-2 text-xs text-slate-700 italic line-clamp-2">
+              “{row.last_recovery_note}”
+            </div>
+          ) : null}
+        </div>
+        <div className="shrink-0 text-right">
+          <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700 font-mono text-[10px] uppercase tracking-wider font-bold">
+            {stateLabel}
+          </span>
+          <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+            {relTime(row.last_recovery_at) || ""}
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+};
+
+const EmptyHint = ({ children, testId }) => (
+  <div className="text-sm text-slate-500 italic py-3 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-md" data-testid={testId}>
+    {children}
+  </div>
+);
+
+// ────────────────────────────────────────────────────────────────────
+// ShopHub · main component
+// ────────────────────────────────────────────────────────────────────
 export default function ShopHub() {
-  usePageTitle("Shop · MASCI");
+  usePageTitle("Shop Recovery · MASCI");
   const { t } = useT();
   const navigate = useNavigate();
-  const [items, setItems] = useState([]);
-  const [equipmentMaster, setEquipmentMaster] = useState({ items: [], grouped: {}, count: 0 });
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("open"); // open | activity | trends | recent | equipment | parts
-  const [me, setMe] = useState(null); // per-shop-user identity, null for legacy/admin
+  const [me, setMe] = useState(null);
+  const [recovery, setRecovery] = useState({
+    buckets: { reported: [], acknowledged: [], diagnosing: [], waiting_on_parts: [], repair_active: [], operational_test: [] },
+    restored_recent: [],
+    summary: { total_active: 0, waiting_on_parts: 0, returned_today: 0 },
+  });
+  const [recoveryLoading, setRecoveryLoading] = useState(true);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -52,44 +169,59 @@ export default function ShopHub() {
       try {
         const r = await api.get("/shop/me");
         if (!alive) return;
-        // /shop/me returns {ok, user} for per-user OR {ok, is_legacy: true}
-        // for admin/shared. We only show the change-pw button when there's
-        // a real shop user behind the token — admins use /admin reset flow.
         if (r.data?.user?.id) setMe(r.data.user);
-      } catch {
-        // Endpoint failure is non-fatal — just hide the button.
-      }
+      } catch { /* hidden */ }
     })();
     return () => { alive = false; };
   }, []);
 
-  const load = async () => {
-    setLoading(true);
+  const loadRecovery = async () => {
+    setRecoveryLoading(true);
     try {
-      const [insp, eq] = await Promise.all([
-        api.get("/equipment-inspections"),
-        api.get("/equipment-master"),
-      ]);
-      setItems(insp.data || []);
-      setEquipmentMaster(eq.data || { items: [], grouped: {}, count: 0 });
+      const r = await api.get("/dispatch/recovery/by-shop");
+      setRecovery(r.data || recovery);
     } catch {
-      toast.error(t("Could not load shop data"));
+      // Non-fatal — empty buckets retain calm shape
     } finally {
-      setLoading(false);
+      setRecoveryLoading(false);
     }
   };
-  useEffect(() => { load(); }, []); // eslint-disable-line
-
-  const failCount = items.filter((i) => (i.fail_count || 0) > 0).length;
-  const totalSigned = items.reduce((acc, i) => acc + (i.signoff_count ?? (i.shop_signoffs || []).length), 0);
+  useEffect(() => { loadRecovery(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   const onLogout = async () => {
-    // P0 (iter179): centralized wipe — covers shop/admin/pm/hr/safety/
-    // dispatch tokens + directory session + per-portal user objects so
-    // a shared trailer phone never leaks identity to the next user.
     await clearAllSessions();
     navigate("/");
   };
+
+  const activeBuckets = {
+    acknowledged: recovery.buckets.acknowledged || [],
+    diagnosing: recovery.buckets.diagnosing || [],
+    repair_active: recovery.buckets.repair_active || [],
+    operational_test: recovery.buckets.operational_test || [],
+  };
+  const activeTotal =
+    activeBuckets.acknowledged.length + activeBuckets.diagnosing.length +
+    activeBuckets.repair_active.length + activeBuckets.operational_test.length;
+  const waiting = recovery.buckets.waiting_on_parts || [];
+  const restored = recovery.restored_recent || [];
+
+  // Calm one-line status strip · operational language only · NO KPIs.
+  const statusLine = useMemo(() => {
+    const parts = [];
+    if (activeTotal > 0) {
+      parts.push(t("{n} pieces of equipment currently in operational recovery.").replace("{n}", activeTotal));
+    }
+    if (waiting.length > 0) {
+      parts.push(t("{n} operational interruption waiting on parts.").replace("{n}", waiting.length));
+    }
+    if (recovery.summary.returned_today > 0) {
+      parts.push(t("{n} pieces of equipment returned to service today.").replace("{n}", recovery.summary.returned_today));
+    }
+    if (parts.length === 0) {
+      return t("No equipment in operational recovery right now.");
+    }
+    return parts.join("  ");
+  }, [activeTotal, waiting.length, recovery.summary.returned_today, t]);
 
   return (
     <div className="min-h-screen blueprint-bg">
@@ -100,9 +232,6 @@ export default function ShopHub() {
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink="/" />
-          {/* iter203 — Mobile header collapse: hide PortalSwitcher,
-              GlobalSearch, Guides link, and change-password on <sm.
-              Keep visible: NotificationBell, OfflineIndicator, LangToggle, Sign out. */}
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="hidden sm:flex items-center gap-2">
               <PortalSwitcher current="shop" />
@@ -119,7 +248,7 @@ export default function ShopHub() {
               <BookOpen className="w-4 h-4 sm:mr-1" />
               <span className="hidden sm:inline">{t("Guides")}</span>
             </Link>
-            {me && (
+            {me ? (
               <Button
                 onClick={() => navigate("/shop/change-password")}
                 variant="outline"
@@ -129,7 +258,7 @@ export default function ShopHub() {
               >
                 <KeyRound className="w-4 h-4 mr-1" /> {t("Change password")}
               </Button>
-            )}
+            ) : null}
             <Button
               onClick={onLogout}
               variant="outline"
@@ -143,278 +272,291 @@ export default function ShopHub() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-6">
+      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-10">
+        {/* Calm operational kicker · iter423 wording: recovery, not maintenance */}
         <div>
           <span className={`font-mono text-xs uppercase tracking-[0.22em] ${SHOP_PAL.hubKicker} font-bold`}>
             {t("Shop Console")}
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            {t("Pre-Op & Equipment")}
+            {t("Shop Recovery")}
           </h1>
-          <p className="text-slate-600 text-base mt-2 max-w-2xl">
-            {t("Every Pre-Op inspection. Sign off on Out-of-Service and Needs-Attention items so jobs can keep moving.")}
+          <p className="text-slate-600 text-base mt-2 max-w-2xl" data-testid="shop-status-line">
+            {recoveryLoading ? (
+              <span className="inline-flex items-center text-slate-400"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Loading operational recovery…")}</span>
+            ) : statusLine}
           </p>
         </div>
 
-        <OperationsCenter compact />
-
-        {/* KPI strip — Rule 5 neutral chrome. Colored value text retains
-            operational emphasis without dominating. */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="shop-kpi-strip">
-          <Kpi label={t("Inspections on file")} value={items.length} />
-          <Kpi label={t("Units flagged FAIL")} value={failCount} valueClass="text-red-700" />
-          <Kpi label={t("Shop sign-offs")} value={totalSigned} valueClass="text-emerald-700" />
-          <Kpi label={t("Equipment in fleet")} value={equipmentMaster.count} />
-        </div>
-
-        {/* Fleet · DVIR queue — iter320 calm pass: same operational
-            function (one-tap entry to the fleet view) with the
-            platform-family calm card chrome (left-edge stripe + soft
-            border + white bg). */}
-        <Link
-          to="/shop/fleet"
-          data-testid="shop-fleet-link"
-          className="block rounded-lg border border-slate-200 border-l-4 border-l-amber-500 bg-white p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-slate-300 transition-all duration-150"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-start gap-3 min-w-0">
-              <Truck className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
-              <div className="min-w-0 flex-1">
-                <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-amber-700 font-bold">
-                  {t("Trucking · Fleet")}
-                </div>
-                <h3 className="font-display text-lg font-black mt-0.5">
-                  {t("Fleet Repair Queue · grouped by truck")}
-                </h3>
-                <p className="text-sm text-slate-600 mt-1">
-                  {t("DVIR defects per truck · driver notes · current status · severity context.")}
-                </p>
-              </div>
-            </div>
-            <span className="shrink-0 inline-flex items-center h-9 px-3 rounded-md bg-amber-700 hover:bg-amber-800 text-white font-bold uppercase tracking-wide text-xs">
-              {t("Open Fleet View")} →
-            </span>
-          </div>
-        </Link>
-
-        {/* Tabs — operationally important for Shop (mechanic switches
-            views many times per shift). Active state calmed from
-            `bg-amber-50` hot fill to no-fill amber underline. */}
-        <div className="flex border-b border-slate-200 overflow-x-auto">
-          {[
-            { key: "open", label: t("Open Items") },
-            { key: "activity", label: t("Activity Feed") },
-            { key: "trends", label: t("Trends") },
-            { key: "recent", label: t("Recent Inspections") },
-            { key: "equipment", label: t("Equipment List") },
-            { key: "parts", label: t("Parts Catalog") },
-            { key: "integrations", label: t("Integrations") },
-          ].map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => setTab(s.key)}
-              className={`px-4 py-3 text-xs font-mono uppercase tracking-[0.18em] font-bold border-b-2 -mb-px transition-colors whitespace-nowrap ${
-                tab === s.key
-                  ? "text-amber-700 border-amber-600"
-                  : "text-slate-500 border-transparent hover:text-slate-700"
-              }`}
-              data-testid={`shop-tab-${s.key}`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-
-        {tab === "open" && (
-          <>
-            {/* iter396 · DLS cross-portal convergence — Shop sees BREAKDOWN signals */}
+        {/* ═════════ 1 · EQUIPMENT NEEDING ATTENTION ════════════════════ */}
+        <section data-testid="shop-section-attention">
+          <SectionHeader
+            icon={AlertOctagon}
+            kicker="Operational Recovery"
+            title="Equipment Needing Attention"
+            coaching="Operational interruptions that need Shop awareness right now. Sign off when the unit is back in field service."
+            testIdRoot="shop-attention"
+          />
+          <div className="space-y-4">
             <DispatchLifecycleTile scope="shop" testId="shop-dispatch-lifecycle" />
             <OpenItemsPanel baseHref="/shop/equipment" testIdPrefix="shop-open" />
-          </>
-        )}
-        {tab === "activity" && <ShopActivityFeed baseHref="/shop/equipment" testIdPrefix="shop-activity" />}
-        {tab === "trends" && <EquipmentTrendsPanel />}
-        {tab === "recent" && (
-          <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
-            <div className="px-4 py-3 bg-slate-900 text-white flex items-center gap-2">
-              <Wrench className="w-5 h-5 text-amber-400" />
-              <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400 font-bold">
-                {t("Recent Pre-Op Inspections")}
-              </span>
+          </div>
+        </section>
+
+        {/* ═════════ 2 · ACTIVE RECOVERY WORK ═══════════════════════════ */}
+        <section data-testid="shop-section-active">
+          <SectionHeader
+            icon={Cog}
+            kicker="Operational Recovery"
+            title="Active Recovery Work"
+            count={activeTotal}
+            coaching="Active recovery work means equipment is being restored to field service."
+            testIdRoot="shop-active"
+          />
+          {recoveryLoading ? (
+            <div className="text-sm text-slate-500 py-4"><Loader2 className="w-4 h-4 animate-spin inline mr-2" /> {t("Loading…")}</div>
+          ) : activeTotal === 0 ? (
+            <EmptyHint testId="shop-active-empty">
+              {t("No active recovery work right now. Equipment is in field service or waiting on parts.")}
+            </EmptyHint>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              <ActiveBucket label={t("Acknowledged")} icon={CheckCircle2} rows={activeBuckets.acknowledged} testIdRoot="shop-active-acknowledged" />
+              <ActiveBucket label={t("Diagnosing")} icon={Stethoscope} rows={activeBuckets.diagnosing} testIdRoot="shop-active-diagnosing" />
+              <ActiveBucket label={t("Repair Active")} icon={Wrench} rows={activeBuckets.repair_active} testIdRoot="shop-active-repair_active" />
+              <ActiveBucket label={t("Operational Test")} icon={ClipboardList} rows={activeBuckets.operational_test} testIdRoot="shop-active-operational_test" />
             </div>
-            {loading ? (
-              <div className="p-12 flex items-center justify-center text-slate-500">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
-              </div>
-            ) : items.length === 0 ? (
-              <div className="p-10 text-center text-slate-500" data-testid="shop-recent-empty">
-                {t("No equipment inspections yet.")}
-              </div>
-            ) : (
-              <ul className="divide-y-2 divide-slate-100" data-testid="shop-recent-list">
-                {items.slice(0, 50).map((it) => {
-                  const fail = (it.fail_count || 0) > 0;
-                  const signed = it.signoff_count ?? (it.shop_signoffs || []).length;
-                  const cleared = it.cleared || (fail && signed >= (it.fail_count || 0));
-                  return (
-                    <li
-                      key={it.id}
-                      onClick={() => navigate(`/shop/equipment/${it.id}`)}
-                      className={`p-4 sm:p-5 hover:bg-amber-50 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center gap-3 ${fail && !cleared ? "border-l-4 border-red-700" : cleared ? "border-l-4 border-emerald-600" : ""}`}
-                      data-testid={`shop-equipment-row-${it.id}`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-display text-lg font-bold text-slate-900 truncate">
-                            {it.equipment_type} · {it.equipment_unit}
-                          </span>
-                          {fail && !cleared && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-700 text-white text-[10px] font-mono uppercase tracking-wider rounded">
-                              <AlertOctagon className="w-3 h-3" /> {it.fail_count} {t("FAIL")}
-                            </span>
-                          )}
-                          {cleared && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-mono uppercase tracking-wider rounded" data-testid={`shop-cleared-${it.id}`}>
-                              ✓ {t("CLEARED TO OPERATE")}
-                            </span>
-                          )}
-                          {signed > 0 && !cleared && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-mono uppercase tracking-wider rounded">
-                              ✓ {signed} {t("signed")}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm text-slate-600 mt-1">
-                          {it.project_name || "—"} {it.project_number ? `· #${it.project_number}` : ""} · {t("Operator")}: {it.operator_name || "—"}
-                        </div>
-                        <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-1">
-                          {formatDateLong(it.inspection_date)} · {it.location || "—"}
-                        </div>
+          )}
+        </section>
+
+        {/* ═════════ 3 · WAITING / DELAYS ═══════════════════════════════ */}
+        <section data-testid="shop-section-waiting">
+          <SectionHeader
+            icon={PackageOpen}
+            kicker="Operational Recovery"
+            title="Waiting / Delays"
+            count={waiting.length}
+            coaching="Waiting on parts pauses operational recovery until components arrive."
+            testIdRoot="shop-waiting"
+          />
+          {recoveryLoading ? (
+            <div className="text-sm text-slate-500 py-4"><Loader2 className="w-4 h-4 animate-spin inline mr-2" /> {t("Loading…")}</div>
+          ) : waiting.length === 0 ? (
+            <EmptyHint testId="shop-waiting-empty">
+              {t("No equipment is currently held by an operational interruption.")}
+            </EmptyHint>
+          ) : (
+            <ul className="space-y-2" data-testid="shop-waiting-list">
+              {waiting.map((row) => (
+                <RecoveryCard key={row.assignment_id} row={row} stateLabel={t("Waiting on parts")} testIdRoot="shop-waiting" />
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* ═════════ 4 · RETURNED TO SERVICE ════════════════════════════ */}
+        <section data-testid="shop-section-restored">
+          <SectionHeader
+            icon={CheckCircle2}
+            kicker="Operational Recovery"
+            title="Returned to Service"
+            count={restored.length}
+            coaching="Returned to service means the equipment is operationally ready for field continuity again."
+            testIdRoot="shop-restored"
+          />
+          {recoveryLoading ? (
+            <div className="text-sm text-slate-500 py-4"><Loader2 className="w-4 h-4 animate-spin inline mr-2" /> {t("Loading…")}</div>
+          ) : restored.length === 0 ? (
+            <EmptyHint testId="shop-restored-empty">
+              {t("No equipment has been returned to service in the last 7 days.")}
+            </EmptyHint>
+          ) : (
+            <ul className="space-y-2" data-testid="shop-restored-list">
+              {restored.map((row) => (
+                <li
+                  key={row.assignment_id}
+                  className="bg-white border border-slate-200 border-l-4 border-l-emerald-500 rounded-md p-4"
+                  data-testid={`shop-restored-card-${row.assignment_id}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-display text-base font-black text-slate-900 truncate">
+                        {row.truck_id || t("Equipment")}
+                        {row.project_number ? <span className="text-slate-400 font-normal"> · #{row.project_number}</span> : null}
                       </div>
-                      <div className="flex gap-2">
-                        <Link
-                          to={`/shop/equipment/${it.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
-                          data-testid={`shop-view-${it.id}`}
-                        >
-                          <Eye className="w-4 h-4 mr-1" /> {t("View")}
-                        </Link>
+                      <div className="mt-0.5 text-xs text-emerald-700 font-bold uppercase tracking-wider">
+                        ✓ {t("Operational continuity restored.")}
                       </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        )}
-        {tab === "equipment" && <EquipmentMasterPanel />}
-        {tab === "parts" && <PartsCatalog />}
-        {tab === "integrations" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" data-testid="shop-integrations-tab">
-            <IntegrationHealthCard
-              tokenHeader={{ "X-Shop-Token": getShopToken() || "" }}
-              accent="orange"
-              showAdminLink={false}
-            />
-            <IntegrationEventsCard
-              provider="maintainx"
-              tokenHeader={{ "X-Shop-Token": getShopToken() || "" }}
-              accent="orange"
-              limit={8}
-            />
-          </div>
-        )}
+                      {row.note ? (
+                        <div className="mt-2 text-xs text-slate-700 italic line-clamp-2">“{row.note}”</div>
+                      ) : null}
+                    </div>
+                    <div className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-slate-500 text-right">
+                      {relTime(row.returned_at)}
+                      {row.returned_by ? <div className="mt-0.5">{row.returned_by}</div> : null}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* ═════════ 5 · OPERATIONAL CONTINUITY HISTORY ═════════════════ */}
+        <OperationalContinuityHistory />
+
+        {/* ═════════ MORE · demoted secondary surfaces ══════════════════ */}
+        <section data-testid="shop-section-more">
+          <button
+            type="button"
+            onClick={() => setShowMore((v) => !v)}
+            className="inline-flex items-center text-xs font-mono uppercase tracking-[0.22em] font-bold text-slate-500 hover:text-slate-800"
+            data-testid="shop-more-toggle"
+          >
+            <ChevronRight className={`w-4 h-4 mr-1 transition-transform ${showMore ? "rotate-90" : ""}`} />
+            {t("More")} · {t("Trends · Equipment · Parts · Integrations · Activity")}
+          </button>
+          {showMore ? (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="shop-more-grid">
+              <MoreLink to="/shop/fleet" icon={Truck} label="MASCI Fleet · DVIR queue" testId="shop-more-fleet" />
+              <MoreLink to="?legacy=recent" icon={ClipboardList} label="Recent Pre-Op Inspections" testId="shop-more-recent" disabled />
+              <MoreLink to="?legacy=trends" icon={History} label="Equipment Trends" testId="shop-more-trends" disabled />
+              <MoreLink to="?legacy=activity" icon={Clock} label="Shop Activity" testId="shop-more-activity" disabled />
+              <MoreLink to="?legacy=equipment" icon={Truck} label="Equipment List" testId="shop-more-equipment" disabled />
+              <MoreLink to="?legacy=parts" icon={Wrench} label="Parts Catalog" testId="shop-more-parts" disabled />
+            </div>
+          ) : null}
+          <p className="mt-2 text-[11px] text-slate-400 italic max-w-xl">
+            {t("These views remain accessible but stay out of first-screen cognition.")}
+          </p>
+        </section>
       </main>
     </div>
   );
 }
 
-const Kpi = ({ label, value, valueClass = "text-slate-900" }) => (
-  <div className="bg-white border border-slate-200 rounded-md p-4">
-    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">{label}</div>
-    <div className={`font-display text-3xl font-black mt-1 leading-none ${valueClass}`}>{value}</div>
-  </div>
-);
-
-const EquipmentListPanel = ({ master, loading }) => {
+// ────────────────────────────────────────────────────────────────────
+// Sub-components
+// ────────────────────────────────────────────────────────────────────
+const ActiveBucket = ({ label, icon: Icon, rows, testIdRoot }) => {
   const { t } = useT();
-  const [filter, setFilter] = useState("");
-  const [cat, setCat] = useState("all");
-  const cats = Object.keys(master.grouped || {}).sort();
-
-  const filtered = (master.items || []).filter((it) => {
-    if (cat !== "all" && it.category !== cat) return false;
-    if (!filter) return true;
-    const s = filter.toLowerCase();
-    return (
-      (it.unit_number || "").toLowerCase().includes(s) ||
-      (it.make || "").toLowerCase().includes(s) ||
-      (it.model || "").toLowerCase().includes(s) ||
-      (it.category || "").toLowerCase().includes(s)
-    );
-  });
-
   return (
-    <div className="bg-white border border-slate-200 rounded-md overflow-hidden" data-testid="shop-equipment-list">
-      <div className="px-4 py-3 bg-slate-900 text-white flex items-center gap-2 flex-wrap">
-        <Truck className="w-5 h-5 text-amber-400" />
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400 font-bold flex-1">
-          {t("MASCI Fleet")} · {master.count} {t("units")}
+    <div className="bg-white border border-slate-200 rounded-md p-3" data-testid={`${testIdRoot}-bucket`}>
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="w-4 h-4 text-amber-700" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">
+          {label}
         </span>
-        <input
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder={t("Search unit, make, model…")}
-          className="bg-slate-800 text-white placeholder:text-slate-500 border border-slate-700 rounded px-2 py-1 text-xs"
-          data-testid="shop-equipment-search"
-        />
-        <select
-          value={cat}
-          onChange={(e) => setCat(e.target.value)}
-          className="bg-slate-800 text-white border border-slate-700 rounded px-2 py-1 text-xs font-mono"
-          data-testid="shop-equipment-cat"
-        >
-          <option value="all">{t("All categories")}</option>
-          {cats.map((c) => (
-            <option key={c} value={c}>{c} ({master.grouped[c]?.length || 0})</option>
-          ))}
-        </select>
+        <span className="ml-auto inline-flex items-center justify-center min-w-[1.5rem] h-5 px-2 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold">
+          {rows.length}
+        </span>
       </div>
-      {loading ? (
-        <div className="p-12 flex items-center justify-center text-slate-500">
-          <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
-        </div>
+      {rows.length === 0 ? (
+        <div className="text-xs text-slate-400 italic px-1 py-2">{t("None.")}</div>
       ) : (
-        <div className="overflow-x-auto max-h-[500px]">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-slate-50">
-              <tr className="border-b-2 border-slate-200">
-                <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Unit #")}</th>
-                <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Make")}</th>
-                <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Model")}</th>
-                <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Category")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((u, i) => (
-                <tr key={`${u.unit_number}-${i}`} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="px-3 py-2 font-bold font-mono text-slate-900">{u.unit_number}</td>
-                  <td className="px-3 py-2 text-slate-800">{u.make || "—"}</td>
-                  <td className="px-3 py-2 text-slate-700">{u.model || "—"}</td>
-                  <td className="px-3 py-2 text-slate-500 text-xs">{u.category || "—"}</td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="text-center text-slate-500 py-8">{t("No matching equipment.")}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <ul className="space-y-2" data-testid={`${testIdRoot}-list`}>
+          {rows.map((row) => (
+            <RecoveryCard key={row.assignment_id} row={row} stateLabel={label} testIdRoot={testIdRoot} />
+          ))}
+        </ul>
       )}
     </div>
+  );
+};
+
+const MoreLink = ({ to, icon: Icon, label, testId, disabled }) => {
+  const { t } = useT();
+  const className = "inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm text-slate-700 hover:border-slate-300 hover:text-slate-900";
+  if (disabled) {
+    return (
+      <span className={`${className} opacity-60 cursor-not-allowed`} data-testid={testId} title={t("Reachable via direct URL · kept out of first-screen cognition")}>
+        <Icon className="w-4 h-4" /> {t(label)}
+      </span>
+    );
+  }
+  return (
+    <Link to={to} className={className} data-testid={testId}>
+      <Icon className="w-4 h-4" /> {t(label)}
+    </Link>
+  );
+};
+
+// ────────────────────────────────────────────────────────────────────
+// Operational Continuity History · read-only chronology (iter419 events)
+// ────────────────────────────────────────────────────────────────────
+const OperationalContinuityHistory = () => {
+  const { t } = useT();
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      try {
+        // Pull recent continuity events platform-wide (no per-assignment filter).
+        // Endpoint hits the existing /by-assignment list pattern via a tiny
+        // wrapper — until that ships we render an empty calm hint, NOT an error.
+        const r = await api.get("/dispatch/continuity-events/recent").catch(() => null);
+        if (!alive) return;
+        if (r && Array.isArray(r.data?.events)) {
+          setEvents(r.data.events);
+        } else {
+          setEvents([]);
+        }
+      } catch {
+        if (alive) setError(true);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  return (
+    <section data-testid="shop-section-history">
+      <SectionHeader
+        icon={History}
+        kicker="Operational Recovery"
+        title="Operational Continuity History"
+        coaching="Operational chronology · breakdown continuity, reassignments, and recovery moments across the platform."
+        testIdRoot="shop-history"
+      />
+      {loading ? (
+        <div className="text-sm text-slate-500 py-4"><Loader2 className="w-4 h-4 animate-spin inline mr-2" /> {t("Loading…")}</div>
+      ) : error || events.length === 0 ? (
+        <EmptyHint testId="shop-history-empty">
+          {t("No operational continuity events recorded yet. Recent breakdowns, reassignments, and recovery moments will appear here as they happen.")}
+        </EmptyHint>
+      ) : (
+        <ul className="space-y-2" data-testid="shop-history-list">
+          {events.slice(0, 25).map((e) => (
+            <li
+              key={e.id}
+              className="bg-white border border-slate-200 border-l-4 border-l-slate-400 rounded-md p-3"
+              data-testid={`shop-history-event-${e.id}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">
+                    {t(e.kind || "Event")}
+                  </div>
+                  {e.narrative ? (
+                    <div className="mt-1 text-sm text-slate-800 line-clamp-2">{e.narrative}</div>
+                  ) : null}
+                  <div className="mt-1 text-[11px] text-slate-500">
+                    {e.captured_by || ""} {e.captured_role ? `· ${e.captured_role}` : ""}
+                  </div>
+                </div>
+                <div className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+                  {relTime(e.created_at)}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 };

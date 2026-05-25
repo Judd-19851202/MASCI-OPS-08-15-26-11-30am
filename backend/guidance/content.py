@@ -5184,6 +5184,120 @@ _ARTICLES: list[dict] = [
         ],
         "related": ["dls-driver-shift-start", "dls-lifecycle-states", "dls-breakdown-proof"],
     },
+    # ─────────────────────────────────────────────────────────────────
+    # iter423 · Phase 25 · Shop Operational Cognition Convergence
+    # Four short calm articles surfaced directly by the Shop Hub
+    # section coaching one-liners.
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "id": "dls-equipment-needing-attention",
+        "section": "trucking",
+        "title": "Shop · Equipment Needing Attention",
+        "summary": "What this section means and why it leads the Shop Console.",
+        "scopes": ["shop", "admin", "leadership", "pm"],
+        "tags": ["shop", "recovery", "attention", "breakdown", "fail", "dvir", "continuity"],
+        "body": [
+            {"type": "p", "text":
+                "'Equipment Needing Attention' is the first thing Shop sees because "
+                "it answers ONE operational question: what is interrupting field "
+                "service right now? Two sources feed it — fresh FAIL DVIR "
+                "inspections from drivers, and BREAKDOWN lifecycle signals from "
+                "the dispatch board."},
+            {"type": "why", "text":
+                "Field work pauses while equipment is unhealthy. Surfacing those "
+                "interruptions in operational language (not a dashboard) helps Shop "
+                "lead with recovery — not reporting."},
+            {"type": "next", "items": [
+                "Acknowledge the breakdown to move it into Active Recovery Work",
+                "Sign off DVIR fails once the unit is back in field service",
+                "Use Operational Continuity History to see the narrative",
+            ]},
+        ],
+        "related": ["dls-breakdown-proof", "dls-active-recovery-work", "dls-shop-recovery"],
+    },
+    {
+        "id": "dls-active-recovery-work",
+        "section": "trucking",
+        "title": "Shop · Active Recovery Work",
+        "summary": "What the four recovery sub-states mean and how mechanics move equipment through them.",
+        "scopes": ["shop", "admin", "leadership", "pm"],
+        "tags": ["shop", "recovery", "acknowledged", "diagnosing", "repair", "operational-test"],
+        "body": [
+            {"type": "p", "text":
+                "Active recovery work means equipment is being restored to field "
+                "service. Four sub-states walk a unit from awareness to readiness: "
+                "Acknowledged → Diagnosing → Repair Active → Operational Test."},
+            {"type": "why", "text":
+                "Each step is a real operational moment. Shop knows where every "
+                "down unit stands. Dispatch and PM see downstream impact in calm, "
+                "secondary text — never alert behavior."},
+            {"type": "next", "items": [
+                "Acknowledged · Shop has seen the breakdown",
+                "Diagnosing · mechanic is investigating",
+                "Repair Active · parts in hand, work happening",
+                "Operational Test · verifying before returning to service",
+            ]},
+            {"type": "tip", "text":
+                "If a part is missing, transition to Waiting on Parts instead. "
+                "That makes the operational interruption visible to PM and "
+                "dispatch without confusing them with a stalled repair."},
+        ],
+        "related": ["dls-shop-recovery", "dls-waiting-on-parts", "dls-returned-to-service"],
+    },
+    {
+        "id": "dls-waiting-on-parts",
+        "section": "trucking",
+        "title": "Shop · Waiting on Parts",
+        "summary": "Why the Waiting state is calm, not urgent — and what downstream operations see.",
+        "scopes": ["shop", "admin", "leadership", "pm"],
+        "tags": ["shop", "recovery", "waiting", "parts", "operational-interruption", "delay"],
+        "body": [
+            {"type": "p", "text":
+                "'Waiting on Parts' pauses operational recovery until components "
+                "arrive. It is an operational interruption — a calm, visible "
+                "moment of waiting — not an emergency."},
+            {"type": "why", "text":
+                "PM and Dispatch see the same waiting signal. Plants can plan. "
+                "Foremen can rebalance. Nobody assumes the unit is coming back "
+                "today. Visibility lowers cognition under field pressure."},
+            {"type": "next", "items": [
+                "Note the part vendor and ETA in the recovery note",
+                "Transition back to Repair Active when parts arrive",
+                "Use Operational Continuity History to keep the narrative",
+            ]},
+            {"type": "warn", "text":
+                "Do not let a Waiting card linger silently. A brief recovery "
+                "note (e.g. 'sensor ordered, ETA Thursday') is the operational "
+                "courtesy that keeps downstream calm."},
+        ],
+        "related": ["dls-active-recovery-work", "dls-returned-to-service", "dls-shop-recovery"],
+    },
+    {
+        "id": "dls-returned-to-service",
+        "section": "trucking",
+        "title": "Shop · Returned to Service",
+        "summary": "What 'Returned to Service' means and why it reads as operational completion confidence.",
+        "scopes": ["shop", "admin", "leadership", "pm"],
+        "tags": ["shop", "recovery", "returned", "service", "completion", "continuity"],
+        "body": [
+            {"type": "p", "text":
+                "Returned to Service means the equipment is operationally ready "
+                "for field continuity again. The Shop tile reads 'Operational "
+                "continuity restored.' — a small, calm confidence signal that "
+                "the loop closed cleanly."},
+            {"type": "why", "text":
+                "Recovery work that ends silently teaches nothing. Surfacing the "
+                "completion gives mechanics, PM, and dispatch shared awareness "
+                "that the unit is operational — and gives operational memory "
+                "something to learn from."},
+            {"type": "next", "items": [
+                "Last 7 days of restored equipment surface automatically",
+                "The terminal transition is preserved in recovery history",
+                "Operational Continuity History records the full narrative",
+            ]},
+        ],
+        "related": ["dls-active-recovery-work", "dls-operational-exceptions", "dls-shop-recovery"],
+    },
 ]
 
 

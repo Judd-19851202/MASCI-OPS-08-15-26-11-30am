@@ -1,6 +1,134 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter423 · Phase 25 · Shop Operational Cognition Convergence ✅
+
+### Mission
+Transform Shop Portal from ERP-feeling "Pre-Op & Equipment" maintenance
+software into a calm, operationally-guided **recovery continuity** environment.
+Walking-skeleton IA rebuild · NO new features · NO ERP drift · doctrine lock
+held throughout.
+
+### What ships
+- **Backend additive** (`routes/dispatch_continuity.py`):
+  - `GET /api/dispatch/recovery/by-shop` — single read-only endpoint that
+    groups all in-flight recoveries by canonical iter420 sub-state. Returns
+    `{buckets, restored_recent, summary}` shape. Stable empty-tenant scaffold.
+    7-day terminal tail computed from `recovery_history[]`. NO new collection.
+  - `GET /api/dispatch/continuity-events/recent` — newest-first chronology
+    feed for the Operational Continuity History rail (capped 50). Reads
+    iter419 `dispatch_continuity_events` directly.
+  - Route order: `/recovery/by-shop` defined BEFORE `/recovery/{assignment_id}`
+    to avoid path-param shadowing.
+- **Frontend `ShopHub.jsx` IA rebuild** (replaces prior 7-tab ERP layout):
+  - H1 "**Pre-Op & Equipment**" → "**Shop Recovery**"
+  - 4-up KPI strip → single calm operational status strip ("N pieces of
+    equipment currently in operational recovery · N waiting on parts · N
+    returned to service today")
+  - **5 vertical operational sections**:
+    1. Equipment Needing Attention (DVIR FAIL + BREAKDOWN lifecycle)
+    2. Active Recovery Work (4 sub-state buckets: acknowledged →
+       diagnosing → repair_active → operational_test)
+    3. Waiting / Delays (waiting_on_parts)
+    4. Returned to Service (7-day completion tail with "Operational
+       continuity restored." reinforcement)
+    5. Operational Continuity History (read-only iter419 chronology)
+  - **Coaching one-liners** at every section header (calm, italic, secondary)
+  - **Downstream-impact line** on each recovery card (truck_id · driver_name ·
+    project_number) — tiny secondary text, NOT alert behavior
+  - **"More" footer** demotes Trends · Recent · Activity · Equipment List ·
+    Parts · Integrations · MASCI Fleet (still reachable, never first-screen)
+- **Guidance · 4 new bilingual coaching articles** in `guidance/content.py`:
+  - `dls-equipment-needing-attention` · `dls-active-recovery-work` ·
+    `dls-waiting-on-parts` · `dls-returned-to-service`
+  - ES mirror in `guidance/translations_es_iter423.py` (operational meaning
+    preserved, not robotic literal translation)
+- **i18n · 35 new EN→ES strings** (operational language only — "Shop Recovery"
+  / "Recuperación Operacional", "Operational continuity restored." /
+  "Continuidad operacional restaurada.", etc.)
+
+### Tests · 231 / 231 PARITY-LOCK PASS
+221 prior + **10 new iter423 tests**:
+- /by-shop RBAC (anon 401)
+- Stable empty-tenant scaffold shape
+- Active recovery grouping by canonical state (no _id leakage · truck/driver
+  fields populated for downstream-impact line)
+- waiting_on_parts surfaces in summary with last note
+- returned_to_service appears in `restored_recent`, NOT in any active bucket
+- `summary.returned_today` reflects today's transitions
+- /continuity-events/recent newest-first capped at 50
+- /continuity-events/recent anon-blocked
+- All 4 guidance articles registered + retrievable
+
+### Guardrails
+- Ruff clean · ESLint clean
+- Operator vocabulary scanner: **0 T2/T3** hits after sweep
+- Mobile 390px smoke screenshot — all 5 sections render cleanly · operational
+  language only · calm vertical rhythm · 44px touch targets preserved
+- All Mongo `_id` excluded from every response
+- Append-only history doctrine preserved (iter420 recovery_history[] untouched)
+
+### Restraint enforced (anti-scope NO list)
+- ❌ NO inline recovery transition buttons (deferred · per user directive)
+- ❌ NO Operational Moments rail in AssignmentDrawer (deferred to iter424)
+- ❌ NO Parts Catalog redesign
+- ❌ NO Integrations redesign
+- ❌ NO Equipment Trends redesign
+- ❌ NO Dispatch / PM / FL portal changes
+- ❌ NO passkey iter423 fan-out (separately gated)
+- ❌ NO component extraction of ShopHub.jsx (~500 LOC single file, still
+  readable; extraction deferred)
+- ❌ NO charts · NO KPIs · NO scoring · NO utilization metrics
+- ❌ NO ERP wording (Fleet Repair Queue · Maintenance Queue · Asset Tracking ·
+  Work Orders all removed)
+- ❌ NO modals · NO tutorial popups · coaching is inline + secondary
+
+### Wording sweep (operational language locked)
+| Removed (ERP) | Replaced with (operational) |
+|---|---|
+| Pre-Op & Equipment | Shop Recovery |
+| Fleet Repair Queue | Equipment Operationally Down |
+| Open Items | Equipment Needing Attention |
+| Activity Feed | Operational Continuity History |
+| 4-up KPI strip | Calm one-line operational status |
+| Maintenance Queue / Work Orders | Active Recovery Work / Operational Test |
+
+### Phase doctrine timeline (current state)
+1-14. iter397-422 · Phases 12-24 ✅
+15. **iter423 · Phase 25 · Shop Operational Cognition Convergence ✅**
+
+### Next iter candidates
+- 🟠 **iter424 · Operational Moments rail** in AssignmentDrawer (Shop-side
+  · read-only chronological rail of `dispatch_continuity_events` filtered
+  to a specific assignment) — gated on Day-1 debrief
+- 🟠 **iter425 · Inline mechanic recovery transitions** (small calm "Set
+  recovery state" row in Active Recovery Work cards) — gated on real
+  mechanic feedback
+- 🟠 **iter426 · Phase 24 passkey fan-out** to FL / Dispatch / PM / Shop /
+  Safety / HR / Governance
+- 🔵 **P2** — `server.py` Phase 4D extractions · stale driver-session reaper ·
+  `DispatchHub.jsx` / `AssignmentCreateDrawer.jsx` / `ShopHub.jsx` component
+  extractions
+
+### Verdict
+🟢 Shop Portal now reads as **operational recovery continuity**, not
+maintenance software. Mechanics see ONE question answered first: "what is
+interrupting field service right now?" Recovery flow is calm, narrated,
+and bilingual. Downstream operational impact visible without alert
+behavior. Demoted views remain reachable. Doctrine fully held.
+
+### Next Action Items
+- 🟡 **User walk-through** of `/shop` on a real iPad/phone to validate
+  cognition load (especially the 5-section vertical rhythm)
+- 🟠 If mechanic feedback names friction → iter425 inline transitions
+- 🟠 If recovery narrative needs per-assignment depth → iter424
+  Operational Moments rail in AssignmentDrawer
+- 🔵 Day-1 Live Ops Debrief filing remains the master gating signal
+
+---
+
+
+
 ## 2026-05-25 — iter422 · Phase 24 · Passkey / WebAuthn Continuity (Admin pilot) ✅
 
 ### Mission

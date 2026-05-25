@@ -1959,3 +1959,8 @@ TRANSLATIONS_ES.update(_EXTRA_ES_ITER417)
 # breakdown proof · operational exceptions · shop recovery · offline.
 from .translations_es_iter418 import EXTRA_ES as _EXTRA_ES_ITER418  # noqa: E402
 TRANSLATIONS_ES.update(_EXTRA_ES_ITER418)
+
+# iter423 · Phase 25 · Shop Operational Cognition Convergence —
+# four new bilingual coaching articles surfaced by the Shop Hub sections.
+from .translations_es_iter423 import EXTRA_ES as _EXTRA_ES_ITER423  # noqa: E402
+TRANSLATIONS_ES.update(_EXTRA_ES_ITER423)
