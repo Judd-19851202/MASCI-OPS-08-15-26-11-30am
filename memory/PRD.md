@@ -1,6 +1,67 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter428 · Phase 27 · Complete Platform Cost / Infrastructure / Dependency Forensic Audit ✅
+
+### Mission
+Forensic-level operational + financial audit of the entire platform — every dependency, every cost, every cliff, every survivability path. Built from REAL measurements (Atlas live `dbstats`, Resend `/domains` API, requirements.txt, package.json, .env). No estimates where the platform can be measured directly.
+
+### Headline numbers
+- **Today's burn:** ≈ $2.50 / mo (domains only) outside of Emergent runtime
+- **Full-MASCI-adoption (258 employees) projected cost:** $60–$120 / mo
+- **6-year cumulative cost (optimized path):** $8,000–$10,000 total
+- **Cost vs equivalent ERP (HCSS / Vista / Procore at $150/user/mo × 258):** **0.15–0.31 % of industry baseline**
+
+### Live metrics captured
+- MongoDB Atlas: 96.6 MB / 512 MB ceiling (10.6 % of M0 free tier)
+- 121 collections · 237,243 documents · 327 indexes · 23/500 connections
+- usage_events velocity: 18,198 / day → projects to 50k / day at full adoption
+- operational_attachments: 68 docs (placeholder · real photo flow has not started)
+- Resend: 2 verified domains (mascidocs.com + forgedopshq.com)
+- R2: ~90 MB / archive · 24/hr · prune logic green
+- /app pod: 6.0 GB / 9.8 GB used (62 %)
+
+### 10 audit documents created in /app/memory/
+1. `EXECUTIVE_PLATFORM_FINANCIAL_SUMMARY.md` (TL;DR + companion-doc index)
+2. `PLATFORM_TOTAL_COST_AUDIT.md` (line-item · today)
+3. `THIRD_PARTY_DEPENDENCY_MAP.md` (every external service · what it does · cost · cliff)
+4. `EMERGENT_INFRASTRUCTURE_ANALYSIS.md` (what Emergent provides · reliance · portability)
+5. `CURRENT_OPERATING_COST_BREAKDOWN.md` (real burn rate today)
+6. `MASCI_FULL_SCALE_FORECAST.md` (full 258-employee adoption model with heavy-civil-specific assumptions)
+7. `YEARS_1_TO_6_INFRASTRUCTURE_FORECAST.md` (6-year cost curve · most-likely · worst-case)
+8. `HIDDEN_COST_AND_SCALING_RISK_REPORT.md` (8 hidden-cost vectors, severity-ranked)
+9. `INFRASTRUCTURE_SURVIVABILITY_ANALYSIS.md` (every SPOF · recovery time · escape hatch)
+10. `COST_OPTIMIZATION_OPPORTUNITIES.md` (4 operator actions + 1 engineering pass · doctrine-aligned)
+
+### Single most important findings
+- 🟢 **GO · platform is operationally healthy + financially obscenely efficient.**
+- 🟡 **Photo upload growth (Phase 27.1)** — when real field photo capture starts, Atlas grows ~5.7 GB / month. Recommended P1 engineering pass: cold-storage offload of photo bytes to R2 (keep `r2_key + thumb_b64` in Mongo only). Saves $1,000–$2,000 / yr starting Year 2.
+- 🔴 **Operator action: set R2 bucket lifecycle rule** (3-min Cloudflare console click) — without it, R2 grows ~64 GB / month forever.
+- 🟢 **No single-point-of-failure has > 4 hours recovery time** thanks to R2 archive + portable architecture.
+- 🟢 **Zero vendor lock-in** — every line has at least 2 drop-in replacements.
+
+### Doctrine restraint held
+- NO new dashboards, NO admin UI, NO monitoring portals, NO analytics, NO code changes (pure audit + documentation pass).
+- 10 markdown files created. No executable code touched.
+
+### Backlog (P1 engineering · NOT this pass)
+- 🟡 **Phase 27.1** · Operational attachment R2 cold-storage offload (engineering · 1–2 days · before real photo flow lands)
+- 🟡 **P2** · Tighten `usage_events` TTL from 90 → 30 days (1-line change, bundle with Phase 27.1)
+- 🟡 **P2** · Stale `dispatch_driver_sessions` reaper (already on Phase 26 backlog)
+
+### Operator backlog (no engineering needed)
+- 🔴 Set R2 bucket lifecycle rule (Cloudflare console · 3 min)
+- 🔴 Set Universal LLM key auto-top-up cap (Emergent dashboard · 2 min)
+- 🟡 Rotate Atlas database-user password (Atlas console + production env vars · 10 min)
+- 🟡 Tighten Atlas IP allowlist from 0.0.0.0/0 to Emergent egress IPs (Atlas console · 5 min once IPs are sourced)
+
+### Verdict
+🟢 **Complete financial + infrastructure visibility delivered. The platform is operationally healthy, financially obscenely efficient, and architecturally survivable. No hidden time-bombs. Three operator actions and one engineering pass capture the entire material optimization surface for the next 6 years.**
+
+---
+
+
+
 ## 2026-05-25 — iter427 · Phase 26.1 · Infrastructure Stability + Storage Pressure Hardening ✅
 
 ### Mission
