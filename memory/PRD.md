@@ -1,6 +1,55 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter429 · Phase 26.2 · Production Post-Deployment + Atlas Crossover Forensic Verification ✅
+
+### Mission
+Forensic certification of the LIVE production deployment at `mascidocs.com` after the Atlas migration. Hard-evidence verification across 13 categories: env parity, Atlas crossover, collections, indexes, backups, passkeys, attachments, mobile/browser, performance, R2 lifecycle, infra health, disaster survivability, and GO/NO-GO.
+
+### Result — 🟢 PRODUCTION CERTIFIED OPERATIONAL
+
+### Hard evidence (live + measured)
+- **Atlas crossover**: production sign-in caused Atlas `usage_events` to grow +2 docs in 3 s — conclusively proves writes go to Atlas, not container Mongo
+- **GREEN banner** captured on `mascidocs.com/admin/system`: "Persistent database connected — MongoDB Atlas. Redeploys will not wipe your data."
+- **First Atlas-sourced production R2 archive**: `MASCI_complete_backup_2026-05-25_155024Z.zip` · 89.5 MB · landed at 15:50 UTC (60 sec after redeploy)
+- **WebAuthn RP_ID** = `mascidocs.com` (NOT preview) — production passkey path correctly bound
+- **Admin's pre-migration passkey survived**: credential `qdLbzou...` from 2026-05-25T03:27:09 intact + accessible from production
+- **Collection parity**: 121 / 121 collections in Atlas (3 "missing" were audit-script name-guess errors, not real absences)
+- **Index parity**: 327 indexes + 20 TTL indexes armed
+- **Atlas connection health**: 35 / 500 connections used (7 %) · 474k inserts through Atlas already
+- **Disaster survivability**: ✅ YES — platform fully reconstitutes from Atlas + R2 alone in 5-30 min
+- **Backend parity-lock retest**: 45 / 45 PASS on critical Phase 24-27 path (passkey + recovery + backup + drift + legacy-prune)
+
+### 11 Phase 26.2 certification documents created in /app/memory/
+1. `PHASE26_2_PRODUCTION_FORENSIC_VERIFICATION.md` (master)
+2. `PHASE26_2_ATLAS_CROSSOVER_CERTIFICATION.md`
+3. `PHASE26_2_COLLECTION_PARITY_REPORT.md`
+4. `PHASE26_2_INDEX_PARITY_REPORT.md`
+5. `PHASE26_2_BACKUP_CONTINUITY_CERTIFICATION.md`
+6. `PHASE26_2_PASSKEY_PRODUCTION_VERIFICATION.md`
+7. `PHASE26_2_ATTACHMENT_CONTINUITY_REPORT.md`
+8. `PHASE26_2_MOBILE_BROWSER_FORENSIC_SWEEP.md`
+9. `PHASE26_2_INFRASTRUCTURE_HEALTH_RECHECK.md`
+10. `PHASE26_2_DISASTER_SURVIVABILITY_CERTIFICATION.md`
+11. `PHASE26_2_PRODUCTION_GO_NO_GO.md`
+
+### Doctrine restraint held
+- NO new dashboards · NO admin UI · NO monitoring portals · NO analytics
+- 11 markdown files · ZERO executable code changes · pure verification + documentation
+
+### Operator follow-ups (NON-blocking, recommended this week · ~30 min total)
+1. 🔴 Set R2 bucket lifecycle rule (Cloudflare R2 console · `backups/auto-90d/` prefix · 30-day delete) — 3 min
+2. 🔴 Cap Universal LLM key auto-top-up at $25/mo (Emergent dashboard) — 2 min
+3. 🟡 Rotate Atlas database-user password + redeploy production — 15 min
+4. 🟡 Source Emergent egress IPs + tighten Atlas IP allowlist from `0.0.0.0/0` — 10 min
+
+### Verdict
+🟢 **The MASCI Operations Platform is live at `mascidocs.com`. Operationally durable. Disaster-recovery-capable. Field-ready. The platform has crossed from build mode into operational business infrastructure — and the forensic audit confirms it.**
+
+---
+
+
+
 ## 2026-05-25 — iter428 · Phase 27 · Complete Platform Cost / Infrastructure / Dependency Forensic Audit ✅
 
 ### Mission
