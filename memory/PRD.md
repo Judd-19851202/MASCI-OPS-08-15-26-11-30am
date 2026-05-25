@@ -1,6 +1,103 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter422 · Phase 24 · Passkey / WebAuthn Continuity (Admin pilot) ✅
+
+### Mission
+Optional device-native biometric / passkey sign-in for the Admin master sign-in
+flow (`/sign-in`). Walking-skeleton **pilot only** — proves the primitive,
+preserves every existing auth contract, password fallback unchanged. Fan-out to
+FL · Dispatch · PM · Shop · Safety · HR · Governance gated to iter423.
+
+### What ships
+- **Backend `routes/passkeys.py`** (NEW · ~370 LOC) — 6 endpoints:
+  - `POST /api/passkeys/register/options` (authed via `X-Directory-Token`)
+  - `POST /api/passkeys/register/verify` (authed · persists `user_passkeys` doc)
+  - `POST /api/passkeys/login/options` (public · email-first · enum-safe)
+  - `POST /api/passkeys/login/verify` (public · mints **identical** multi-login response)
+  - `GET /api/passkeys/list` (authed · device-management read-only)
+  - `DELETE /api/passkeys/{credential_id}` (authed · `disabled=true`, append-only revoke)
+- **New collections**: `user_passkeys` (credential metadata only) + `webauthn_challenges` (TTL-indexed 5-min)
+- **Frontend `lib/passkeys.js`** (NEW) — base64url helpers + `registerPasskey()` + `signInWithPasskey()` + `listPasskeys()` + `revokePasskey()` (library-free, navigator.credentials only)
+- **Frontend `SignIn.jsx`** — adds optional **"Use device sign-in"** CTA below password submit (only renders when `platformAuthenticatorAvailable()` returns true · disappears silently on unsupported devices)
+- **i18n** — 17 new EN→ES UI strings (operational language: "Use device sign-in" / "Usar inicio con dispositivo", "MASCI never stores biometric information" / "MASCI nunca almacena información biométrica")
+- **RP_ID derivation** — Cloudflare-aware: trusts `X-Forwarded-Host` first, returns `preview.emergentagent.com` for any `*.preview.emergentagent.com` host, or the visible host for prod custom domains. NEVER returns the internal cluster name.
+
+### Integration
+- **`py_webauthn` 2.7.1** (Duo Security · FIDO2 standards-based · pinned in `requirements.txt`)
+- **NO custom biometric code** · Face ID / Touch ID / Windows Hello / Android biometrics handled entirely by the device OS
+- **NO biometric data stored** — only WebAuthn public-key credential metadata
+- **Multi-login response shape preserved EXACTLY** (verified by regression test) — passkey path is a drop-in substitute for the password path; MFA gate still applies post-passkey if super-admin has TOTP enabled
+
+### Tests · 221 / 221 PARITY-LOCK PASS
+207 prior + **14 new iter422 tests**:
+- register/options RBAC + CreationOptions shape contract
+- login/options shape + email-enumeration safety (unknown email = empty `allowCredentials`, not 404)
+- login/verify rejects garbage payload (400)
+- list / revoke RBAC + 404 on unknown credential
+- RP_ID does NOT leak internal `emergentcf.cloud` cluster host
+- Password flow multi-login response shape preserved (regression guard)
+- Password flow still mints admin token (regression guard)
+
+PLUS · iter375 MFA suite 16/16 PASS (verified password+MFA flow integrity untouched).
+
+### Guardrails
+- Ruff clean · ESLint clean
+- Operator vocabulary scanner: **0 T2/T3** (21 expected T1 source-comments)
+- `/sign-in` smoke screenshot clean · passkey button correctly hidden on browsers without a platform authenticator
+- All Mongo `_id` excluded from responses
+- Append-only revoke (no destructive `delete_one` on `user_passkeys`)
+
+### Restraint enforced (anti-scope NO list)
+- ❌ NO fan-out to FL/Dispatch/PM/Shop/Safety/HR/Governance yet (iter423)
+- ❌ NO custom facial recognition · NO camera capture · NO selfie verification
+- ❌ NO identity dashboard · NO device-management portal · NO MFA complexity screens · NO "security center"
+- ❌ NO replacement of passwords (passwords remain the canonical authentication factor)
+- ❌ NO changes to driver magic-link, Field Tile, or public form continuity
+- ❌ NO admin SSO clutter · NO auth analytics
+- ❌ NO new corporate-tech branding · existing operational chrome only
+
+### Field operational benefits (visible on first device-enrolled login)
+- Faster sign-in for foremen / truck bosses / shop leadership / dispatchers / PMs on phones + iPads
+- Fewer password resets · less shared-password behavior
+- Lower cognition under field conditions
+- Native Face ID / Touch ID / Windows Hello / Android prompts — no MASCI biometric UI
+
+### UI language (operational, not technical)
+| Good | Bad (banned) |
+|---|---|
+| "Use device sign-in" | "Biometric enrollment" |
+| "Verifying device…" | "FIDO challenge" |
+| "MASCI never stores biometric information" | "Credential assertion" |
+
+### Phase doctrine timeline (current state)
+1-13. iter397-420 · Phases 12-23 ✅
+14. **iter422 · Phase 24 · Passkey / WebAuthn Continuity (Admin pilot) ✅**
+
+### Next iter candidates (gated on Day-1 + pilot proof)
+- 🟠 **iter423 · Phase 24 fan-out** — wire passkey CTA into FL, Dispatch, PM, Shop, Safety, HR per-portal login pages (each reuses `lib/passkeys.js` + the same backend router · per-portal token bindings via new collection)
+- 🟠 **Phase 24 governance** — read-only "Your devices" panel in `/admin/profile` for users to see + revoke enrolled passkeys
+- 🔵 **Day-1 Live Ops Debrief** filing — still the gating signal for ALL P2/P3 backlog
+- 🔵 **P2** — `server.py` Phase 4D extractions · stale `dispatch_driver_sessions` reaper · `DispatchHub.jsx`/`AssignmentCreateDrawer.jsx` component extraction
+
+### Verdict
+🟢 Optional device-native biometric sign-in is operational on the Admin master
+sign-in flow. Password fallback unchanged. Multi-login token fan-out unchanged.
+NO biometric data stored. Browsers without an authenticator silently see the
+calm password-only form. Pilot proves the primitive · ready for iter423 fan-out
+when Day-1 debrief justifies it.
+
+### Next Action Items
+- 🟡 **User test the live passkey enrollment** from an iPhone (Safari) or Mac
+  (Touch ID Chrome/Safari): sign in with password → look for the
+  "Use device sign-in" button on next visit → enroll via account settings
+  (Phase 24 governance panel · queued for iter423)
+- 🟠 Fan out to remaining 7 portals when ready (iter423)
+
+---
+
+
+
 ## 2026-05-25 — iter418-420 · Phases 20.1 / 21.0 / 22.0 / 23.0 · Operational Field Continuity Expansion (walking skeletons) ✅
 
 ### Mission

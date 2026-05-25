@@ -12,7 +12,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, ArrowLeft, Mail, KeyRound, ShieldCheck } from "lucide-react";
+import { Loader2, ArrowLeft, Mail, KeyRound, ShieldCheck, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearHrToken } from "@/lib/hrAuth";
 import { clearShopToken } from "@/lib/shopAuth";
+import { passkeySupported, platformAuthenticatorAvailable, signInWithPasskey } from "@/lib/passkeys";
 import { toast } from "sonner";
 
 export default function SignIn() {
@@ -42,6 +43,56 @@ export default function SignIn() {
   const [mfaCode, setMfaCode] = useState("");
   const [mfaUseRecovery, setMfaUseRecovery] = useState(false);
   const [mfaUserName, setMfaUserName] = useState("");
+  // iter422 · Phase 24 · Passkey availability (Face ID / Touch ID / Hello)
+  const [passkeyReady, setPasskeyReady] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (passkeySupported()) {
+        const ok = await platformAuthenticatorAvailable();
+        if (!cancelled) setPasskeyReady(!!ok);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const onPasskeySignIn = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      toast.error(t("Enter your work email first"));
+      return;
+    }
+    setPasskeyBusy(true);
+    try {
+      const data = await signInWithPasskey({ email: cleanEmail });
+      if (data?.mfa_required) {
+        setMfaChallenge(data.mfa_challenge_token || "");
+        setMfaUserName(data?.user?.name || data?.user?.email || "");
+        setMfaRequired(true);
+        return;
+      }
+      if (data?.ok) {
+        applyMultiLoginResponse(data, rememberMe);
+        toast.success(`${t("Welcome")} ${data?.user?.name || ""}`, { duration: 4000 });
+        navigate(landingFor(data.user), { replace: true });
+      } else {
+        toast.error(t("Device sign-in failed"));
+      }
+    } catch (err) {
+      // NotAllowedError = user cancelled or no matching passkey · stay calm
+      const name = err?.name || "";
+      const msg = err?.message || t("Device sign-in failed");
+      if (name === "NotAllowedError" || /cancel/i.test(msg)) {
+        // Silent — user cancelled
+      } else {
+        toast.error(msg, { duration: 5000 });
+      }
+    } finally {
+      setPasskeyBusy(false);
+    }
+  };
 
   useEffect(() => {
     // Iter88 — Removed mount-time token wipe. See AdminLogin.jsx rationale.
@@ -305,6 +356,28 @@ export default function SignIn() {
                 </>
               )}
             </Button>
+            {/* iter422 · Phase 24 · Optional device passkey sign-in (Face ID · Touch ID · Hello) */}
+            {passkeyReady ? (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={onPasskeySignIn}
+                  disabled={passkeyBusy || submitting}
+                  data-testid="signin-passkey-btn"
+                  className="w-full h-11 inline-flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-800 bg-white border-2 border-slate-300 hover:border-red-700 hover:text-red-700 rounded-md disabled:opacity-50"
+                >
+                  {passkeyBusy ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Fingerprint className="w-4 h-4" />
+                  )}
+                  {passkeyBusy ? t("Verifying device…") : t("Use device sign-in")}
+                </button>
+                <p className="mt-2 text-[11px] text-slate-500 leading-snug" data-testid="signin-passkey-hint">
+                  {t("Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.")}
+                </p>
+              </div>
+            ) : null}
           </form>
           )}
 

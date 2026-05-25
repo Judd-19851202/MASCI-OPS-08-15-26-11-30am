@@ -4682,6 +4682,24 @@ const ES = {
   "Could not record that. Try again.": "No se pudo registrar. Intente de nuevo.",
   "Connection failed — try again.": "Falló la conexión — intente de nuevo.",
   "Connection failed — retrying…": "Falló la conexión — reintentando…",
+  // iter422 · Phase 24 · Passkey / device sign-in continuity
+  "Use device sign-in": "Usar inicio con dispositivo",
+  "Use passkey": "Usar clave de acceso",
+  "Use password instead": "Usar contraseña en su lugar",
+  "Sign in with Face ID": "Iniciar sesión con Face ID",
+  "Verifying device…": "Verificando dispositivo…",
+  "Enter your work email first": "Ingrese su correo de trabajo primero",
+  "Device sign-in failed": "Falló el inicio con dispositivo",
+  "Device sign-in cancelled": "Inicio con dispositivo cancelado",
+  "Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.": "Su dispositivo maneja Face ID / Touch ID de forma segura. MASCI nunca almacena información biométrica.",
+  "Enable faster sign-in on this device?": "¿Activar inicio de sesión más rápido en este dispositivo?",
+  "Your device's secure unlock will sign you in next time.": "El desbloqueo seguro de su dispositivo le iniciará sesión la próxima vez.",
+  "Enable device sign-in": "Activar inicio con dispositivo",
+  "Not now": "Ahora no",
+  "Device sign-in enabled.": "Inicio con dispositivo activado.",
+  "No device passkey is registered for this account": "No hay clave de dispositivo registrada para esta cuenta",
+  "Please sign in with your password first": "Inicie sesión con su contraseña primero",
+  "Device sign-in is not available in this browser": "El inicio con dispositivo no está disponible en este navegador",
 };
 
 const DICTS = { es: ES, en: {} };
