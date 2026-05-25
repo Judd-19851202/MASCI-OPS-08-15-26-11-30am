@@ -9786,6 +9786,8 @@ _dispatch_continuity_router = build_dispatch_continuity_router(
     require_driver_session_dep=_driver_sessions_mod.make_require_driver_session(db),
     require_dispatch_or_admin_dep=_require_dispatch_or_admin,
     require_any_portal_token_dep=_require_any_portal_token,
+    # iter424 · Phase 25.1 · Shop owns recovery-state WRITES (role discipline)
+    require_shop_or_admin_dep=require_shop_or_admin,
 )
 app.include_router(_dispatch_continuity_router)
 

@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
 import DispatchLifecycleTile from "@/components/dispatch/DispatchLifecycleTile";
+import { RecoveryActionRow } from "@/components/shop/RecoveryActionRow";
 import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
@@ -97,7 +98,7 @@ const SectionHeader = ({ icon: Icon, kicker, title, count, coaching, testIdRoot 
   );
 };
 
-const RecoveryCard = ({ row, stateLabel, testIdRoot }) => {
+const RecoveryCard = ({ row, stateLabel, testIdRoot, onUpdated, enableActions = true }) => {
   const { t } = useT();
   const impact = useMemo(() => {
     // Tiny secondary operational-impact line · field-driven phrasing.
@@ -137,6 +138,14 @@ const RecoveryCard = ({ row, stateLabel, testIdRoot }) => {
           </div>
         </div>
       </div>
+      {enableActions ? (
+        <RecoveryActionRow
+          assignmentId={row.assignment_id}
+          currentState={row.recovery_state}
+          onSaved={onUpdated}
+          testIdPrefix={`${testIdRoot}-action-${row.assignment_id}`}
+        />
+      ) : null}
     </li>
   );
 };
@@ -321,10 +330,10 @@ export default function ShopHub() {
             </EmptyHint>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              <ActiveBucket label={t("Acknowledged")} icon={CheckCircle2} rows={activeBuckets.acknowledged} testIdRoot="shop-active-acknowledged" />
-              <ActiveBucket label={t("Diagnosing")} icon={Stethoscope} rows={activeBuckets.diagnosing} testIdRoot="shop-active-diagnosing" />
-              <ActiveBucket label={t("Repair Active")} icon={Wrench} rows={activeBuckets.repair_active} testIdRoot="shop-active-repair_active" />
-              <ActiveBucket label={t("Operational Test")} icon={ClipboardList} rows={activeBuckets.operational_test} testIdRoot="shop-active-operational_test" />
+              <ActiveBucket label={t("Acknowledged")} icon={CheckCircle2} rows={activeBuckets.acknowledged} testIdRoot="shop-active-acknowledged" onUpdated={loadRecovery} />
+              <ActiveBucket label={t("Diagnosing")} icon={Stethoscope} rows={activeBuckets.diagnosing} testIdRoot="shop-active-diagnosing" onUpdated={loadRecovery} />
+              <ActiveBucket label={t("Repair Active")} icon={Wrench} rows={activeBuckets.repair_active} testIdRoot="shop-active-repair_active" onUpdated={loadRecovery} />
+              <ActiveBucket label={t("Operational Test")} icon={ClipboardList} rows={activeBuckets.operational_test} testIdRoot="shop-active-operational_test" onUpdated={loadRecovery} />
             </div>
           )}
         </section>
@@ -348,7 +357,7 @@ export default function ShopHub() {
           ) : (
             <ul className="space-y-2" data-testid="shop-waiting-list">
               {waiting.map((row) => (
-                <RecoveryCard key={row.assignment_id} row={row} stateLabel={t("Waiting on parts")} testIdRoot="shop-waiting" />
+                <RecoveryCard key={row.assignment_id} row={row} stateLabel={t("Waiting on parts")} testIdRoot="shop-waiting" onUpdated={loadRecovery} />
               ))}
             </ul>
           )}
@@ -438,7 +447,7 @@ export default function ShopHub() {
 // ────────────────────────────────────────────────────────────────────
 // Sub-components
 // ────────────────────────────────────────────────────────────────────
-const ActiveBucket = ({ label, icon: Icon, rows, testIdRoot }) => {
+const ActiveBucket = ({ label, icon: Icon, rows, testIdRoot, onUpdated }) => {
   const { t } = useT();
   return (
     <div className="bg-white border border-slate-200 rounded-md p-3" data-testid={`${testIdRoot}-bucket`}>
@@ -456,7 +465,7 @@ const ActiveBucket = ({ label, icon: Icon, rows, testIdRoot }) => {
       ) : (
         <ul className="space-y-2" data-testid={`${testIdRoot}-list`}>
           {rows.map((row) => (
-            <RecoveryCard key={row.assignment_id} row={row} stateLabel={label} testIdRoot={testIdRoot} />
+            <RecoveryCard key={row.assignment_id} row={row} stateLabel={label} testIdRoot={testIdRoot} onUpdated={onUpdated} />
           ))}
         </ul>
       )}

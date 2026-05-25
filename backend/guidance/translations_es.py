@@ -1964,3 +1964,43 @@ TRANSLATIONS_ES.update(_EXTRA_ES_ITER418)
 # four new bilingual coaching articles surfaced by the Shop Hub sections.
 from .translations_es_iter423 import EXTRA_ES as _EXTRA_ES_ITER423  # noqa: E402
 TRANSLATIONS_ES.update(_EXTRA_ES_ITER423)
+
+# iter424 · Phase 25.1 · Inline recovery state transitions article ES mirror.
+TRANSLATIONS_ES.update({
+    "dls-recovery-state-transitions": {
+        "title": "Taller · Transiciones de Estado de Recuperación",
+        "summary": "Cómo los mecánicos actualizan la continuidad de recuperación operacional en línea — con calma, sin modales ni software de flujos de trabajo.",
+        "body": [
+            {"type": "p", "text":
+                "Cada tarjeta de Trabajo de Recuperación Activo lleva una "
+                "pequeña fila de acción en línea: un menú desplegable de "
+                "estado, una nota operacional opcional y un botón Guardar. "
+                "Esa es toda la interfaz. Sin modal, sin pantallas de flujo, "
+                "sin formularios de tickets — solo flujo de recuperación "
+                "operacional."},
+            {"type": "why", "text":
+                "Visibilidad sin acción sería software de reportes. El Taller "
+                "necesita poseer la continuidad de recuperación de extremo a "
+                "extremo. La misma tarjeta calma que muestra el estado "
+                "permite al mecánico actualizarlo · sin cambio de contexto, "
+                "sin impuesto cognitivo."},
+            {"type": "next", "items": [
+                "Reconocido → Diagnosticando cuando un mecánico inicia la investigación",
+                "Diagnosticando → Esperando Piezas cuando los componentes bloquean",
+                "Esperando Piezas → Reparación Activa cuando llegan las piezas",
+                "Reparación Activa → Prueba Operacional antes de devolver al servicio",
+                "Prueba Operacional → Devuelto al Servicio tras confirmar la disponibilidad de campo",
+            ]},
+            {"type": "tip", "text":
+                "La nota opcional es contexto de continuidad operacional — una "
+                "frase corta como 'Esperando manguera hidráulica' o 'Prueba "
+                "operacional completa'. NO es una entrada de registro de "
+                "mantenimiento. NO es un reporte de reparación."},
+            {"type": "warn", "text":
+                "Solo Taller y Administrador pueden cambiar el estado de "
+                "recuperación. Despacho, PM, Seguridad y RRHH permanecen de "
+                "solo lectura sobre la continuidad de recuperación por "
+                "doctrina — visibilidad sí, propiedad no."},
+        ],
+    },
+})

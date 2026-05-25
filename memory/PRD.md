@@ -1,6 +1,113 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter424 · Phase 25.1 · Inline Recovery Continuity Actions ✅
+
+### Mission
+Close the Shop operational recovery cognition loop by allowing mechanics
+and shop leadership to update operational recovery continuity **INLINE**
+inside Active Recovery Work + Waiting/Delays cards — calm, low-cognition,
+no modals, no workflow software.
+
+### What ships
+- **Backend RBAC tightening** (`routes/dispatch_continuity.py`):
+  - `POST /api/dispatch/recovery/{id}/transition` now requires
+    `require_shop_or_admin` (was `require_dispatch_or_admin`). Shop OWNS
+    recovery writes · Dispatch/PM/Safety/HR remain READ-ONLY on recovery.
+    Wired in via new optional `require_shop_or_admin_dep` builder arg so
+    legacy callers stay safe.
+  - Reads (`/by-shop`, `/states`, `/recovery/{id}`) remain
+    `require_any_portal_token` — visibility is shared.
+- **Frontend `components/shop/RecoveryActionRow.jsx`** (NEW · ~150 LOC):
+  - Single inline row with canonical iter420 state dropdown + optional
+    short note (120 char input limit · 500 char backend ceiling) + Save
+  - State dropdown defaults to the NEXT canonical state (biases toward
+    forward operational progress · never forces choice)
+  - Embedded coaching one-liner surfaces below dropdown for
+    `returned_to_service`, `waiting_on_parts`, `operational_test`
+    (none for other states — calm restraint)
+  - Note placeholder rotates 5 operational examples via deterministic
+    hash on `assignment_id` (stable per card · teaches operational
+    language without ever becoming a tutorial)
+  - Success toast: "Recovery state updated." (operational language only)
+  - NO modal · NO drawer · NO page transition · NO workflow chrome
+- **`ShopHub.jsx` integration** — `RecoveryActionRow` threaded into:
+  - All 4 Active Recovery Work sub-state buckets (acknowledged ·
+    diagnosing · repair_active · operational_test)
+  - Waiting / Delays cards (so `waiting_on_parts → repair_active` flows
+    naturally when parts arrive)
+  - `onSaved` callback triggers calm `loadRecovery()` refresh — same
+    grouped read endpoint, no per-card refetch
+- **Guidance · 1 new bilingual article**: `dls-recovery-state-transitions`
+  + ES mirror inline in `translations_es.py`
+- **i18n · 15 new EN→ES strings** (placeholder examples + coaching +
+  save/saving · all operational language)
+
+### Tests · iter424 8 / 8 PASS · all individual file suites 30 / 30 PASS
+- `test_iter424_recovery_inline_transition.py`:
+  - Shop token CAN transition recovery state ✓
+  - Admin token still works (regression guard) ✓
+  - **Dispatch-only token BLOCKED from recovery write (role discipline)** ✓
+  - Invalid state rejected (400) ✓
+  - Long notes truncated to ≤500 chars (or 422 — both safe) ✓
+  - History append-only · oldest first · `by` actor preserved ✓
+  - Anon writers blocked (401) ✓
+  - Guidance article registered ✓
+
+### Cross-suite flakiness note
+Aggregate parity-lock run shows occasional single-test flakes from inherited
+test-isolation debt (the legacy P3 "233 broken tests" item) — different
+test fails on each run · all individual files remain 100 % green when
+run alone. iter424 itself never flakes.
+
+### Guardrails
+- Ruff clean · ESLint clean
+- All Mongo `_id` excluded from responses
+- Append-only history (`recovery_history[]` untouched in shape)
+- Doctrine NO list reaffirmed: NO work-orders · NO labor tracking · NO
+  repair tickets · NO mechanic assignments · NO timekeeping · NO repair
+  analytics · NO parts-ordering · NO approvals · NO modals · NO popups
+
+### UI language locked
+| Good (operational) | Banned (jargon) |
+|---|---|
+| "Recovery state updated." | "Workflow transition successful" |
+| "Set recovery state" | "Repair state committed" |
+| "Note (optional): Waiting on hydraulic hose" | "Maintenance task updated" |
+
+### Phase doctrine timeline (current state)
+1-15. iter397-423 · Phases 12-25 ✅
+16. **iter424 · Phase 25.1 · Inline Recovery Continuity Actions ✅**
+
+### Next iter candidates (gated)
+- 🟠 **iter425 · Operational Moments rail** in AssignmentDrawer
+  (read-only chronological list of `dispatch_continuity_events` per
+  assignment) — explicitly deferred per user directive until real
+  mechanic usage proves friction
+- 🟠 **iter426 · Phase 24 passkey fan-out** to FL / Dispatch / PM /
+  Shop / Safety / HR / Governance
+- 🔵 **P2** — `server.py` Phase 4D extractions · stale driver-session
+  reaper · `DispatchHub.jsx` / `AssignmentCreateDrawer.jsx` /
+  `ShopHub.jsx` component extractions
+- 🔵 **P3** — Inherited 233 broken-test isolation debt
+
+### Verdict
+🟢 The Shop recovery cognition loop is now CLOSED. Mechanics see ·
+mechanics act · in the SAME calm flow. Role discipline locked (Shop +
+Admin write · Dispatch/PM/Safety/HR read). Doctrine fully held — NO
+ERP drift, NO maintenance software behavior, NO workflow management.
+
+### Next Action Items
+- 🟡 **Real-device walk-through** — sign in to `/shop`, create or wait
+  for a real breakdown, then exercise the inline action row on iPad
+  + phone to validate cognition under field pressure
+- 🟠 iter425 Moments rail — gated on Day-1/Week-1 debrief
+- 🔵 Day-1 Live Ops Debrief filing — master gating signal
+
+---
+
+
+
 ## 2026-05-25 — iter423 · Phase 25 · Shop Operational Cognition Convergence ✅
 
 ### Mission

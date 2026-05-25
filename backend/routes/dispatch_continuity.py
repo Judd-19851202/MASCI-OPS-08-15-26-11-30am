@@ -138,8 +138,14 @@ def build_dispatch_continuity_router(
     require_driver_session_dep: Callable[..., Awaitable[Dict[str, Any]]],
     require_dispatch_or_admin_dep: Callable[..., Awaitable[Dict[str, Any]]],
     require_any_portal_token_dep: Callable[..., Awaitable[Dict[str, Any]]],
+    require_shop_or_admin_dep: Optional[Callable[..., Awaitable[Dict[str, Any]]]] = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/dispatch", tags=["dispatch-continuity"])
+    # iter424 · Phase 25.1 · Shop owns recovery-state WRITES. Read remains
+    # any-portal. When the host wires the optional shop-or-admin dep we
+    # use it; legacy callers (which pass only dispatch-or-admin) keep the
+    # prior write surface so we never lock anyone out by accident.
+    require_recovery_write_dep = require_shop_or_admin_dep or require_dispatch_or_admin_dep
 
     # ════════════════════════════════════════════════════════════
     # iter418 · Phase 20.1 · Driver breakdown-proof upload (magic-link)
@@ -435,7 +441,7 @@ def build_dispatch_continuity_router(
     async def recovery_transition(
         assignment_id: str,
         payload: RecoveryTransition,
-        actor: Dict[str, Any] = Depends(require_dispatch_or_admin_dep),
+        actor: Dict[str, Any] = Depends(require_recovery_write_dep),
         x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
     ):
         """Transition the Shop-recovery sub-state on a dispatch assignment.

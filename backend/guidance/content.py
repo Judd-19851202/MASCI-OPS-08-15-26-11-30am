@@ -5298,6 +5298,45 @@ _ARTICLES: list[dict] = [
         ],
         "related": ["dls-active-recovery-work", "dls-operational-exceptions", "dls-shop-recovery"],
     },
+    # ─────────────────────────────────────────────────────────────────
+    # iter424 · Phase 25.1 · Inline Recovery Continuity Actions
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "id": "dls-recovery-state-transitions",
+        "section": "trucking",
+        "title": "Shop · Recovery State Transitions",
+        "summary": "How mechanics update operational recovery continuity inline — calmly, without modals or workflow software.",
+        "scopes": ["shop", "admin", "leadership", "pm"],
+        "tags": ["shop", "recovery", "transitions", "inline", "actions", "continuity"],
+        "body": [
+            {"type": "p", "text":
+                "Each Active Recovery Work card carries a small inline action "
+                "row: a state dropdown, an optional operational note, and a "
+                "Save button. That is the entire UI. No modal, no workflow "
+                "screens, no ticket forms — just operational recovery flow."},
+            {"type": "why", "text":
+                "Visibility without action would be reporting software. Shop "
+                "needs to own recovery continuity end-to-end. The same calm "
+                "card that surfaces the state lets the mechanic update it · "
+                "no context switch, no cognition tax."},
+            {"type": "next", "items": [
+                "Acknowledged → Diagnosing when a mechanic begins investigation",
+                "Diagnosing → Waiting on Parts when components are blocking",
+                "Waiting on Parts → Repair Active when parts arrive",
+                "Repair Active → Operational Test before returning to service",
+                "Operational Test → Returned to Service after field readiness confirmed",
+            ]},
+            {"type": "tip", "text":
+                "The optional note is operational continuity context — a short "
+                "phrase like 'Waiting on hydraulic hose' or 'Operational test "
+                "complete'. NOT a maintenance log entry. NOT a repair report."},
+            {"type": "warn", "text":
+                "Only Shop and Admin can transition recovery state. Dispatch, "
+                "PM, Safety, and HR remain read-only on recovery continuity by "
+                "doctrine — visibility yes, ownership no."},
+        ],
+        "related": ["dls-active-recovery-work", "dls-waiting-on-parts", "dls-returned-to-service"],
+    },
 ]
 
 

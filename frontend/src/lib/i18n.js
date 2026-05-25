@@ -4745,6 +4745,22 @@ const ES = {
   "Equipment List": "Lista de Equipo",
   "Parts Catalog": "Catálogo de Piezas",
   "Reachable via direct URL · kept out of first-screen cognition": "Accesible vía URL directa · mantenido fuera de la cognición de pantalla inicial",
+  // iter424 · Phase 25.1 · Inline Recovery Continuity Actions
+  "Set recovery state": "Establecer estado de recuperación",
+  "Note (optional)": "Nota (opcional)",
+  "Save": "Guardar",
+  "Saving…": "Guardando…",
+  "Recovery state updated.": "Estado de recuperación actualizado.",
+  "Already in that recovery state.": "Ya está en ese estado de recuperación.",
+  "Could not update recovery state. Try again.": "No se pudo actualizar el estado de recuperación. Intente de nuevo.",
+  "Returned to service means equipment is operationally ready for field continuity.": "Devuelto al servicio significa que el equipo está operacionalmente listo para la continuidad de campo.",
+  "Operational test confirms field readiness before return.": "La prueba operacional confirma la disponibilidad de campo antes del retorno.",
+  // Note placeholder examples (rotated · teach operational language)
+  "Waiting on hydraulic hose": "Esperando manguera hidráulica",
+  "Operational test complete": "Prueba operacional completa",
+  "Back running": "De vuelta en operación",
+  "Parts arriving tomorrow": "Piezas llegan mañana",
+  "Sensor swapped · running clean": "Sensor cambiado · operando limpio",
 };
 
 const DICTS = { es: ES, en: {} };
