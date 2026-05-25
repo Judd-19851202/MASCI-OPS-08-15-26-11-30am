@@ -9750,6 +9750,15 @@ _dls_admin_health_router = build_dls_admin_health_router(
 )
 app.include_router(_dls_admin_health_router)
 
+# iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
+# Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.
+# No database storage · no analytics · no scoring · no charts. Closes the
+# Phase 17/19 doctrinal loop: operations runs → debrief filed same-day →
+# surgical pickup follows.
+from routes.dispatch_day1_debrief import build_day1_debrief_router  # noqa: E402
+_dls_day1_debrief_router = build_day1_debrief_router(require_admin_dep=require_admin)
+app.include_router(_dls_day1_debrief_router)
+
 
 @app.on_event("startup")
 async def _ensure_dls_indexes() -> None:

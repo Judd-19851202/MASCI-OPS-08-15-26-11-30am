@@ -1,6 +1,86 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter416 · Phase 19.1 · Day-1 Live Ops Debrief Capture Form ✅
+
+### Mission
+One tiny, calm, admin-only page that closes the Phase 17/19 doctrinal loop:
+**operations runs Day-1 → debrief filed same-day → surgical pickup follows.**
+
+### Route + endpoints
+- Page: `/admin/dls/day-1-debrief` (admin-gated)
+- `GET  /api/admin/dls/day-1-debrief/questions` → canonical 12 questions
+- `POST /api/admin/dls/day-1-debrief` → writes markdown to `/app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md`
+
+### Files shipped (3 new · 3 modified)
+- **NEW** `backend/routes/dispatch_day1_debrief.py` (~135 LOC · zero DB writes)
+- **NEW** `frontend/src/pages/admin/AdminDlsDay1Debrief.jsx` (~210 LOC · slate chrome · 12 questions + 2 optional notes)
+- **NEW** `backend/tests/test_iter416_day1_debrief.py` (9 lock tests · all PASS)
+- **MOD** `backend/server.py` — wired `build_day1_debrief_router` after iter412 health router
+- **MOD** `frontend/src/App.js` — registered route + import
+- **MOD** `frontend/src/lib/i18n.js` — 32 new EN→ES keys (12 questions · UI strings · doctrine reminder)
+- **NEW** `/app/memory/PHASE19_1_DAY1_DEBRIEF_CAPTURE_LOG.md` — full evidence
+
+### The 12 doctrine-locked questions
+10 directive-approved (Where did dispatch hesitate? · What was difficult to find? · Did drivers understand shift start? · Did drivers understand assignment flow? · Was assignment issuance fast enough? · Did PM haul visibility help production awareness? · Did Shop breakdown continuity make sense? · Were any dropdowns confusing? · Were any wait states missing or unclear? · Where did users pause too long or become uncertain?)
++ 2 **anti-creep guards**: What felt unnecessary or overly complicated? · What should remain simple and untouched?
+
+### Doctrine guards (all verified by iter416 tests)
+- ✅ Admin only (anon · bogus token · both → 401/403)
+- ✅ No DB writes (source-level forbidden-call scan PASS)
+- ✅ Same-day idempotent overwrite (not append)
+- ✅ Filename format locked: `DLS_DAY1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md`
+- ✅ Per-answer truncation at 4000 chars (anti-abuse)
+- ✅ Markdown content includes all 12 question labels · timestamp · admin marker · doctrine reminder
+- ✅ Bilingual EN↔ES via `useT()`
+
+### Tests · 168 / 168 PARITY-LOCK PASS
+159 baseline + **9 new iter416 lock tests**:
+- Questions list anon blocked · submit anon blocked · bogus admin token blocked
+- Questions list admin OK (12 questions returned)
+- Submit writes markdown file (content asserts)
+- Same-day overwrite (not append)
+- Oversized answer truncated to 4000 chars
+- Filename format regex-locked
+- Doctrine-no-DB source check (zero `insert_one`/`update_one`/etc.)
+
+### Guardrails
+- ESLint clean · Ruff clean
+- Operator vocabulary scanner: **0 T2/T3** (16 T1 source-comments · expected)
+- Touch-target audit: **Clean**
+- Live `/admin/dls/day-1-debrief` screenshot at 390px: calm single-column flow ✅
+
+### Restraint enforced (anti-scope NO list)
+- ❌ NOT survey software · NOT analytics software · NOT workflow automation
+- ❌ No Likert · no NPS · no satisfaction scoring · no emoji reactions
+- ❌ No aggregation · no trend lines · no comparison views
+- ❌ No notifications · no approval chains
+- ❌ No multi-step wizard · no progress tracker
+- ❌ No DB collection added · markdown is the only output
+- ❌ No sentiment NLP · no AI · no scoring of any kind
+
+### Phase doctrine timeline (current state · DAY-1 READY)
+1. iter397-405 · Phases 12-13.2 ✅
+2. iter406-407 · Phase 14 ✅
+3. iter408 · Phase 14.1-14.2 ✅
+4. iter409 · Phase 14.3 ✅
+5. iter410 · Phase 15.1 ✅
+6. iter411 · Phase 16 ✅
+7. iter412 · Phase 16.1 ✅
+8. iter413 · Phase 17 ✅
+9. iter414 · Phase 18 + 18.1 ✅
+10. iter415 · Phase 19 (audit) ✅
+11. iter416 · Phase 19.1 (capture form) ✅
+
+### Next Action Items
+- 🟡 **Day-1 Live Ops Debrief filing** — go run the platform · file at `/admin/dls/day-1-debrief` same-day
+- 🟠 **P2 backlog** (9 items in `PHASE19_FINAL_REMEDIATION_PRIORITY.md`) — execute only if debrief names them as friction
+- 🔵 **P3 backlog** (7 items) — defer until convenient
+
+---
+
+
+
 ## 2026-05-25 — iter415 · Phase 19 · Total Operational Integrity Audit ✅
 
 ### Mission

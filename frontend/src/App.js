@@ -82,6 +82,7 @@ import AdminIntegrationCenter from "@/pages/admin/AdminIntegrationCenter";
 import AssetProfile from "@/pages/admin/AssetProfile";
 import AdminDispatch from "@/pages/admin/AdminDispatch";
 import AdminDlsShiftQR from "@/pages/admin/AdminDlsShiftQR";
+import AdminDlsDay1Debrief from "@/pages/admin/AdminDlsDay1Debrief";
 import AdminOperationsEvents from "@/pages/admin/AdminOperationsEvents";
 import AdminDigestConfig from "@/pages/admin/AdminDigestConfig";
 import SystemHealth from "@/pages/admin/SystemHealth";
@@ -366,6 +367,7 @@ function App() {
             <Route path="/admin/integrations" element={A(<AdminIntegrationCenter />)} />
             <Route path="/admin/dispatch" element={A(<AdminDispatch />)} />
             <Route path="/admin/dls/shift-qr" element={A(<AdminDlsShiftQR />)} />
+            <Route path="/admin/dls/day-1-debrief" element={A(<AdminDlsDay1Debrief />)} />
             <Route path="/admin/operations-events" element={A(<AdminOperationsEvents />)} />
             <Route path="/admin/digest-config" element={A(<AdminDigestConfig />)} />
             <Route path="/admin/system-health" element={A(<SystemHealth />)} />
