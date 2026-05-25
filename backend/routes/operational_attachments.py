@@ -52,7 +52,7 @@ import hashlib
 import logging
 import uuid
 from datetime import datetime, timezone, timedelta
-from typing import Any, Awaitable, Callable, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File, Form
 from pydantic import BaseModel
@@ -147,8 +147,29 @@ def build_operational_attachments_router(
     db,
     require_dispatch_or_admin_dep: Callable[..., Awaitable[Dict[str, Any]]],
     require_any_portal_token_dep: Callable[..., Awaitable[Dict[str, Any]]],
-) -> APIRouter:
+    require_admin_dep: Optional[Callable[..., Awaitable[Dict[str, Any]]]] = None,
+) -> Tuple[APIRouter, APIRouter]:
+    """Build the operational-attachments routers.
+
+    Returns a 2-tuple:
+      - main router  · `/api/operational-attachments/*`        (portal-facing)
+      - admin router · `/api/admin/operational-attachments/*`  (admin-only)
+
+    Two routers are returned (rather than one merged router) because
+    FastAPI concatenates child-router prefixes onto the parent prefix
+    when you `include_router(child)` — which would corrupt the admin
+    URL. Returning both lets `server.py` mount each at the top level.
+    """
     router = APIRouter(prefix="/api/operational-attachments", tags=["operational-attachments"])
+
+    # iter429.1 · Phase 28.1 · admin-only storage summary lives under
+    # `/api/admin/operational-attachments/*` so it joins the rest of the
+    # platform's admin-only surface naturally. We merge this sub-router
+    # into `router` at the end so callers still get a single APIRouter.
+    admin_router = APIRouter(
+        prefix="/api/admin/operational-attachments",
+        tags=["operational-attachments-admin"],
+    )
 
     @router.get("/types")
     async def list_types(
@@ -401,7 +422,70 @@ def build_operational_attachments_router(
                 logger.warning(f"[op-attachments] R2 delete best-effort failed: {exc}")
         return AttachmentDeleteResponse(ok=True, id=attachment_id)
 
-    return router
+    # ─── iter429.1 · Phase 28.1 · ADMIN STORAGE SUMMARY (JSON only) ───
+    # Tiny doctrine-safe visibility: how many rows are inline_b64 vs R2.
+    # NO frontend page · NO chart · NO dashboard. Admins curl it before
+    # / after migration to verify cold-storage convergence.
+    @admin_router.get("/storage-summary")
+    async def storage_summary(
+        actor: Dict[str, Any] = Depends(require_admin_dep or require_dispatch_or_admin_dep),
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        tenant_id = _resolve_tenant(x_tenant_id)
+        # Only count rows that still carry usable bytes (legacy inline OR
+        # r2-backed). Rows missing both fields are anomalies and are
+        # surfaced separately so they can be investigated.
+        coll = db.operational_attachments
+        # Aggregate-once with a $facet so we make ONE round-trip to Atlas.
+        pipeline = [
+            {"$match": {"tenant_id": tenant_id}},
+            {"$facet": {
+                "by_backend": [
+                    {"$group": {
+                        "_id": {
+                            "$cond": [
+                                {"$eq": ["$storage_backend", "r2"]},
+                                "r2",
+                                {"$cond": [
+                                    {"$or": [
+                                        {"$eq": ["$storage_backend", "inline_b64"]},
+                                        {"$and": [
+                                            {"$ne": ["$data_b64", None]},
+                                            {"$ne": ["$data_b64", ""]},
+                                        ]},
+                                    ]},
+                                    "inline_b64",
+                                    "unknown",
+                                ]},
+                            ],
+                        },
+                        "count": {"$sum": 1},
+                        "total_size_bytes": {"$sum": {"$ifNull": ["$size_bytes", 0]}},
+                    }},
+                ],
+                "totals": [{"$count": "total"}],
+            }},
+        ]
+        rows = []
+        async for r in coll.aggregate(pipeline):
+            rows.append(r)
+        result = rows[0] if rows else {"by_backend": [], "totals": []}
+        by_backend = {b["_id"]: {"count": b["count"], "total_size_bytes": b["total_size_bytes"]}
+                      for b in result.get("by_backend", [])}
+        total = (result.get("totals") or [{"total": 0}])[0].get("total", 0) if result.get("totals") else 0
+        r2_count = by_backend.get("r2", {}).get("count", 0)
+        migration_pct = round(100 * r2_count / total, 2) if total else 100.0
+        return {
+            "tenant_id": tenant_id,
+            "total": total,
+            "r2_backed": by_backend.get("r2", {"count": 0, "total_size_bytes": 0}),
+            "inline_b64": by_backend.get("inline_b64", {"count": 0, "total_size_bytes": 0}),
+            "unknown": by_backend.get("unknown", {"count": 0, "total_size_bytes": 0}),
+            "migrated_pct": migration_pct,
+            "captured_at": _now_iso(),
+        }
+
+    return router, admin_router
 
 
 async def ensure_operational_attachments_indexes(db) -> None:

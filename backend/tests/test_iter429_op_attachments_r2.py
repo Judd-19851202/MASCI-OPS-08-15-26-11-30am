@@ -117,11 +117,13 @@ def _png_bytes() -> bytes:
 
 def _build_app(db):
     app = FastAPI()
-    app.include_router(build_operational_attachments_router(
+    main_r, admin_r = build_operational_attachments_router(
         db,
         require_dispatch_or_admin_dep=_admin_actor,
         require_any_portal_token_dep=_portal_actor,
-    ))
+    )
+    app.include_router(main_r)
+    app.include_router(admin_r)
     return app
 
 

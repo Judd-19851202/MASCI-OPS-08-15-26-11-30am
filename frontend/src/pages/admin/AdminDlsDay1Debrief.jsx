@@ -1,7 +1,9 @@
 /**
  * AdminDlsDay1Debrief.jsx · iter416 · Phase 19.1 · Day-1 Live Ops Debrief.
+ * iter429.1 · Phase 28.1 · Extended to support Week-1 debriefs.
  *
- * Route: /admin/dls/day-1-debrief  (admin token gated)
+ * Route: /admin/dls/day-1-debrief   (Day-1)
+ *        /admin/dls/week-1-debrief  (Week-1) · same component · variant prop
  *
  * Doctrine
  * --------
@@ -9,7 +11,8 @@
  * doctrinal loop: operations runs → debrief filed same-day → surgical
  * pickup follows.
  *
- *   - 12 questions (10 doctrine-approved + 2 anti-creep · #11 #12)
+ *   - Day-1: 12 questions (10 doctrine-approved + 2 anti-creep)
+ *   - Week-1: 14 questions (Phase 28.1 repeated-pattern set)
  *   - 2 freeform notes (operational + doctrine observations)
  *   - One submit button → markdown file written to /app/memory/
  *   - NO database storage · NO analytics · NO scoring · NO charts
@@ -30,10 +33,8 @@ import { getAdminToken } from "@/lib/adminAuth";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-// Canonical 12 questions — mirror of backend list.
-// Backend is the source of truth via GET /api/admin/dls/day-1-debrief/questions
-// but we keep a synced fallback so the page renders even if that GET fails.
-const FALLBACK_QUESTIONS = [
+// Canonical Day-1 questions — mirror of backend list.
+const DAY1_FALLBACK = [
   { id: "q1",  label: "Where did dispatch hesitate?" },
   { id: "q2",  label: "What was difficult to find?" },
   { id: "q3",  label: "Did drivers understand shift start?" },
@@ -48,12 +49,52 @@ const FALLBACK_QUESTIONS = [
   { id: "q12", label: "What should remain simple and untouched?" },
 ];
 
-export default function AdminDlsDay1Debrief() {
-  usePageTitle("Day-1 Live Ops Debrief · Dispatch · MASCI");
+// Canonical Week-1 questions — mirror of backend list (Phase 28.1).
+const WEEK1_FALLBACK = [
+  { id: "q1",  label: "What friction repeated more than once?" },
+  { id: "q2",  label: "Where did users still hesitate?" },
+  { id: "q3",  label: "Which workflows felt natural after a week?" },
+  { id: "q4",  label: "Which workflows still felt confusing?" },
+  { id: "q5",  label: "Did dispatch trust DLS status?" },
+  { id: "q6",  label: "Did drivers consistently update lifecycle states?" },
+  { id: "q7",  label: "Did Shop recovery continuity work?" },
+  { id: "q8",  label: "Did PM haul awareness help production?" },
+  { id: "q9",  label: "Did attachments/photos reduce calls or confusion?" },
+  { id: "q10", label: "Did passkey/device sign-in reduce login friction?" },
+  { id: "q11", label: "Were any Spanish translations confusing in real use?" },
+  { id: "q12", label: "What should remain simple and untouched?" },
+  { id: "q13", label: "What should NOT be built even if requested?" },
+  { id: "q14", label: "What is the highest-value surgical improvement now?" },
+];
+
+const VARIANTS = {
+  "day-1": {
+    title: "Day-1 Live Ops Debrief",
+    kicker: "Day-1 review",
+    fallback: DAY1_FALLBACK,
+    questionsPath: "/api/admin/dls/day-1-debrief/questions",
+    submitPath: "/api/admin/dls/day-1-debrief",
+    intro: "Capture real operational friction while it is still fresh. Only document repeated hesitation, confusion, downstream continuity problems, or operational slowdowns.",
+    pageTitle: "Day-1 Live Ops Debrief · Dispatch · MASCI",
+  },
+  "week-1": {
+    title: "Week-1 Live Ops Debrief",
+    kicker: "Week-1 review",
+    fallback: WEEK1_FALLBACK,
+    questionsPath: "/api/admin/dls/week-1-debrief/questions",
+    submitPath: "/api/admin/dls/week-1-debrief",
+    intro: "Capture repeated operational patterns from the first week of real production usage. Focus on what REPEATED — not isolated requests. Build from operational truth.",
+    pageTitle: "Week-1 Live Ops Debrief · Dispatch · MASCI",
+  },
+};
+
+export default function AdminDlsDay1Debrief({ variant = "day-1" }) {
+  const cfg = VARIANTS[variant] || VARIANTS["day-1"];
+  usePageTitle(cfg.pageTitle);
   const { t } = useT();
   const navigate = useNavigate();
 
-  const [questions, setQuestions] = useState(FALLBACK_QUESTIONS);
+  const [questions, setQuestions] = useState(cfg.fallback);
   const [answers, setAnswers] = useState({});
   const [operationalNotes, setOperationalNotes] = useState("");
   const [doctrineObservations, setDoctrineObservations] = useState("");
@@ -66,7 +107,12 @@ export default function AdminDlsDay1Debrief() {
     let cancelled = false;
     const token = getAdminToken();
     if (!token) return;
-    fetch(`${API}/api/admin/dls/day-1-debrief/questions`, {
+    // Reset state when variant changes (route swap).
+    setQuestions(cfg.fallback);
+    setAnswers({});
+    setResult(null);
+    setError("");
+    fetch(`${API}${cfg.questionsPath}`, {
       headers: { "X-Admin-Token": token },
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -76,7 +122,7 @@ export default function AdminDlsDay1Debrief() {
       })
       .catch(() => { /* keep fallback */ });
     return () => { cancelled = true; };
-  }, []);
+  }, [variant, cfg.fallback, cfg.questionsPath]);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
@@ -95,7 +141,7 @@ export default function AdminDlsDay1Debrief() {
       return;
     }
     try {
-      const r = await fetch(`${API}/api/admin/dls/day-1-debrief`, {
+      const r = await fetch(`${API}${cfg.submitPath}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,6 +151,7 @@ export default function AdminDlsDay1Debrief() {
           answers,
           operational_notes: operationalNotes,
           doctrine_observations: doctrineObservations,
+          debrief_type: variant,
         }),
       });
       const data = await r.json().catch(() => ({}));
@@ -145,13 +192,13 @@ export default function AdminDlsDay1Debrief() {
             </div>
             <div>
               <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">
-                {t("Day-1 review")}
+                {t(cfg.kicker)}
               </div>
               <h1 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-tight">
-                {t("Day-1 Live Ops Debrief")}
+                {t(cfg.title)}
               </h1>
               <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                {t("Capture real operational friction while it is still fresh. Only document repeated hesitation, confusion, downstream continuity problems, or operational slowdowns.")}
+                {t(cfg.intro)}
               </p>
               <p className="text-xs text-slate-500 mt-2">
                 {t("Today")}: <span className="font-bold text-slate-700">{today}</span>
@@ -228,7 +275,7 @@ export default function AdminDlsDay1Debrief() {
             className="bg-slate-900 hover:bg-slate-800 text-white"
           >
             <Send className="w-4 h-4 mr-2" />
-            {submitting ? t("Saving…") : t("Save Day-1 debrief")}
+            {submitting ? t("Saving…") : (variant === "week-1" ? t("Save Week-1 debrief") : t("Save Day-1 debrief"))}
           </Button>
           {error && (
             <span

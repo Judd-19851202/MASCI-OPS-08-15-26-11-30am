@@ -367,7 +367,8 @@ function App() {
             <Route path="/admin/integrations" element={A(<AdminIntegrationCenter />)} />
             <Route path="/admin/dispatch" element={A(<AdminDispatch />)} />
             <Route path="/admin/dls/shift-qr" element={A(<AdminDlsShiftQR />)} />
-            <Route path="/admin/dls/day-1-debrief" element={A(<AdminDlsDay1Debrief />)} />
+            <Route path="/admin/dls/day-1-debrief" element={A(<AdminDlsDay1Debrief variant="day-1" />)} />
+            <Route path="/admin/dls/week-1-debrief" element={A(<AdminDlsDay1Debrief variant="week-1" />)} />
             <Route path="/admin/operations-events" element={A(<AdminOperationsEvents />)} />
             <Route path="/admin/digest-config" element={A(<AdminDigestConfig />)} />
             <Route path="/admin/system-health" element={A(<SystemHealth />)} />

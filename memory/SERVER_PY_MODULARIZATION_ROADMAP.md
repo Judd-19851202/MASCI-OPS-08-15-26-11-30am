@@ -8,10 +8,14 @@
 
 | Metric | Value |
 |---|---|
-| `/app/backend/server.py` size | **11,583 LOC** |
+| `/app/backend/server.py` size | **11,584 LOC** |
 | Already-modularized route files in `/app/backend/routes/` | 60+ |
 | Total backend Python LOC | 45,090 |
 | `server.py` share of backend LOC | ~26 % |
+| Inline `@app.{verb}` route decorators remaining in `server.py` | **11** (all under `/api/legacy-imports/*`) |
+| `app.include_router(...)` already extracted | **60** |
+
+**Phase 28.1 update (2026-05-25):** Re-measured. The migration is further along than the prior LOC-only metric suggested — only **11 routes** remain inline in `server.py`, and they are all in one cohesive group (`/api/legacy-imports/*`). Every other route is already in a `routes/*.py` module mounted via `app.include_router()`. This is great news: Phase 1 of this roadmap (legacy-imports extraction) closes 100 % of the remaining inline-route surface in one move.
 
 **Diagnosis:** Strong existing modularization. `server.py` is still the largest single file but contains a calmly identifiable set of remaining route groups, helpers, and bootstrap code. Extraction is mechanical, low-risk, and parity-lock-protected.
 
@@ -33,16 +37,38 @@
 
 ## Likely extraction order (from `server.py`)
 
-### Phase 1 (FIRST · low-risk · ~300 LOC out)
+### Phase 1 (FIRST · low-risk · ~390 LOC out · CLOSES ALL INLINE ROUTES)
 
 **Target: `/api/legacy-imports/*` routes**
 
-- Currently lives in `server.py` around the legacy-imports admin section
-- Self-contained: own request/response shapes, no shared state with other server.py routes
-- Test coverage: `test_iter238_legacy_imports.py` (already exists)
-- Risk: **LOW**
+- Lives in `server.py` lines **9278–9670** (11 route decorators, ~390 LOC)
+- Routes (exact paths, never change):
+  - `POST   /api/legacy-imports/upload`                  (line 9278)
+  - `GET    /api/legacy-imports/_meta`                   (line 9419)
+  - `GET    /api/legacy-imports`                         (line 9447)
+  - `GET    /api/legacy-imports/{import_id}`             (line 9467)
+  - `GET    /api/legacy-imports/{import_id}/file`        (line 9476)
+  - `PATCH  /api/legacy-imports/{import_id}`             (line 9515)
+  - `POST   /api/legacy-imports/{import_id}/approve`     (line 9557)
+  - `POST   /api/legacy-imports/{import_id}/reject`      (line 9593)
+  - `POST   /api/legacy-imports/{import_id}/retry-ocr`   (line 9618)
+  - `GET    /api/admin/legacy-imports/audit`             (line 9654)
+  - `GET    /api/admin/legacy-imports/pilot-debrief`     (line 9668)
+- Shared symbols used by these routes (must be passed in via the
+  router factory; do NOT import server.py from the new module):
+  - `db` (Motor handle)
+  - `require_admin` (admin auth dep)
+  - `_require_dispatch_or_admin` (write auth dep)
+  - `legacy_imports` module-level state (already extracted)
+  - `legacy_imports_equipment_checkout` (already extracted)
+- Test coverage already in place: `test_iter238_legacy_imports.py`
+- Risk: **LOW** — pure relocation, no shared internal state with the
+  unrelated bootstrap code that surrounds it.
 - Estimated: 0.5 session
-- New file: `/app/backend/routes/legacy_imports.py`
+- New file: `/app/backend/routes/legacy_imports.py` (factory pattern
+  mirroring `routes/operational_attachments.py` + `routes/passkeys.py`)
+- Behavior contract: every route returns the exact same JSON shape;
+  every header / status code preserved; parity-lock retest required.
 
 ### Phase 2 (SECOND · low-risk · ~400 LOC out)
 

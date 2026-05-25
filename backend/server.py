@@ -9941,12 +9941,14 @@ from routes.operational_attachments import (  # noqa: E402
     build_operational_attachments_router,
     ensure_operational_attachments_indexes,
 )
-_op_attachments_router = build_operational_attachments_router(
+_op_attachments_router, _op_attachments_admin_router = build_operational_attachments_router(
     db,
     require_dispatch_or_admin_dep=_require_dispatch_or_admin,
     require_any_portal_token_dep=_require_any_portal_token,
+    require_admin_dep=require_admin,
 )
 app.include_router(_op_attachments_router)
+app.include_router(_op_attachments_admin_router)
 
 # iter418/419/420 · Phases 20.1/21.0/22.0 · Operational Continuity primitives.
 # ONE router · THREE walking-skeleton primitives: breakdown-proof upload (driver
