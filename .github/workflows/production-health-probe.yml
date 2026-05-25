@@ -1,0 +1,46 @@
+name: production-health-probe
+
+# iter439 · Item J · scheduled production smoke probe.
+#
+# Runs the same checks as tools/verify-production.sh from GitHub-hosted
+# runners every 15 minutes. If any probe goes red, the workflow fails
+# and GitHub sends the standard "workflow failed" notification email
+# to whichever account has notifications enabled on the repo.
+#
+# To wire this up:
+#   1. Push this file to the repo's default branch (the workflow is
+#      auto-enabled by GitHub Actions on first push).
+#   2. Make sure your GitHub profile email notifications are enabled
+#      ("Actions" workflow runs failures).
+#   3. Optionally set the secret PROD_URL in repo settings if you ever
+#      move off mascidocs.com — default is mascidocs.com.
+#
+# To pause: comment out the `schedule:` block. Manual trigger via the
+# workflow_dispatch button always works.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 minutes
+  workflow_dispatch: {}      # manual "Run workflow" button
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-health-probe
+  cancel-in-progress: false  # let in-flight probes finish before next tick
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run verify-production.sh
+        env:
+          PROD_URL: ${{ secrets.PROD_URL || 'https://mascidocs.com' }}
+        run: |
+          chmod +x ./tools/verify-production.sh
+          ./tools/verify-production.sh

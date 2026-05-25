@@ -11,7 +11,14 @@ import os
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
+_RAW_BASE_URL = os.environ.get("REACT_APP_BACKEND_URL")
+import pytest as _pytest
+if not _RAW_BASE_URL:
+    _pytest.skip(
+        "REACT_APP_BACKEND_URL not set · live-HTTP test skipped (parity-lock safe).",
+        allow_module_level=True,
+    )
+BASE_URL = _RAW_BASE_URL.rstrip("/")
 API = f"{BASE_URL}/api"
 
 ADMIN_PASSWORD = "MASCI1982!"

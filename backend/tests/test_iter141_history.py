@@ -14,7 +14,14 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
+_RAW_BASE_URL = os.environ.get("REACT_APP_BACKEND_URL")
+import pytest as _pytest
+if not _RAW_BASE_URL:
+    _pytest.skip(
+        "REACT_APP_BACKEND_URL not set · live-HTTP test skipped (parity-lock safe).",
+        allow_module_level=True,
+    )
+BASE_URL = _RAW_BASE_URL.rstrip("/")
 
 EQUIPMENT_MASTER_ID = "10127b48-af7e-4a24-9fde-a3f14734d0cf"  # FBT-1476
 EMPLOYEE_MASTER_ID = "57a7f6b5-db6b-422d-8b9c-18a721566518"   # Jaymn Judd

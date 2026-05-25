@@ -9504,6 +9504,15 @@ app.include_router(build_admin_persistence_health_router(
     require_admin_strict_dep=require_admin_strict,
 ))
 
+# iter439 · Item I · admin-strict production health probe (HTTP probes
+# against mascidocs.com, NOT preview's own Mongo). Powers the calm
+# read-only line on /admin/system so preview-vs-production drift is
+# structurally impossible to hide.
+from routes.admin_production_health import build_production_health_router  # noqa: E402
+app.include_router(build_production_health_router(
+    require_admin_dep=require_admin_strict,
+))
+
 # iter431 · Phase 29 · Part 4 · admin-strict stability sweepers
 from routes.admin_stability import build_admin_stability_router  # noqa: E402
 app.include_router(build_admin_stability_router(

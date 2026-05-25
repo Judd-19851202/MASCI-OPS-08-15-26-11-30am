@@ -125,6 +125,12 @@ const ES = {
     "Guardado · se enviará cuando haya conexión.",
   "This inspection is on this device and will upload automatically.":
     "Esta inspección está en este dispositivo y se cargará automáticamente.",
+  // iter439 · Item I · Production health line strings.
+  "Production verified": "Producción verificada",
+  "Production unreachable": "Producción no accesible",
+  "Checking production…": "Verificando producción…",
+  "healthy": "sano",
+  "a moment ago": "hace un momento",
   "Photos waiting to send will upload when connection returns.":
     "Las fotos pendientes se enviarán cuando vuelva la conexión.",
   "Submitted reports are stored in the platform. Drafts only stay on this device.":

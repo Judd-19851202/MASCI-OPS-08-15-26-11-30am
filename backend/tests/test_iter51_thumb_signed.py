@@ -25,7 +25,14 @@ import time
 import pytest
 import requests
 
-BASE_URL = os.environ["REACT_APP_BACKEND_URL"].rstrip("/")
+_RAW_BASE_URL = os.environ.get("REACT_APP_BACKEND_URL")
+import pytest as _pytest
+if not _RAW_BASE_URL:
+    _pytest.skip(
+        "REACT_APP_BACKEND_URL not set · live-HTTP test skipped (parity-lock safe).",
+        allow_module_level=True,
+    )
+BASE_URL = _RAW_BASE_URL.rstrip("/")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
 
 # Allow `import routes.job_photos` for the HEIF-registration assertion.

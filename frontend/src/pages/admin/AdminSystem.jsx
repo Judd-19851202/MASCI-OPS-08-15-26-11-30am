@@ -20,6 +20,7 @@ import AdminBackupVerificationPanel from "@/components/AdminBackupVerificationPa
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import AdminReferenceLookup from "@/components/AdminReferenceLookup";
+import ProductionHealthLine from "@/components/admin/ProductionHealthLine";
 
 export default function AdminSystem() {
   return (
@@ -36,6 +37,11 @@ export default function AdminSystem() {
       }
     >
       <div className="space-y-4">
+        {/* iter439 · Item I · calm read-only production health line ·
+            polls /api/admin-strict/diag/production-health every 60s ·
+            preview-vs-production drift now structurally impossible to
+            hide. */}
+        <ProductionHealthLine />
         {/* iter338 · Admin Reference Lookup — top of System tools */}
         <AdminReferenceLookup />
         {/* Pre-deploy snapshot freshness — top priority */}
