@@ -1,6 +1,59 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter429.1 · Phase 28.1 · Final Scale + Security Hardening ✅
+
+### Result — 🟢 ALL 5 PARTS GREEN · ZERO ACTION ITEMS · ZERO REGRESSIONS
+
+### Mission
+Close the remaining production-hardening loop opened by Phase 27/28:
+credential rotation, R2 cold-storage convergence, calm verification
+visibility, Week-1 live-ops feedback, and a refreshed `server.py`
+modularization roadmap — all without expanding feature surface.
+
+### Live verified results
+- **Atlas password rotation**: operator rotated in dashboard ·
+  preview `.env` updated · backend restarted · 30+ index ensures,
+  identity-mirror (68 users), role-templates seed (31 entries) all
+  succeeded against Atlas with the new credential.
+- **R2 backfill complete**: 70/70 attachments migrated · 0 inline_b64
+  remaining · sha256 round-trip verified before every `data_b64`
+  unset.
+- **Storage summary endpoint live**:
+  `GET /api/admin/operational-attachments/storage-summary` returns
+  `migrated_pct: 100.0` for the masci tenant.
+- **Week-1 debrief live**: 14 doctrine-locked questions returned at
+  `/api/admin/dls/week-1-debrief/questions` · markdown sink at
+  `/app/memory/DLS_WEEK1_LIVE_OPS_DEBRIEF_YYYY-MM-DD.md`.
+- **Day-1 contract preserved**: 12 questions, same testid prefix,
+  same filename — no regression.
+- **Modularization roadmap refreshed**: re-measured
+  `server.py` = 11,584 LOC · only **11 inline `@app.{verb}`
+  decorators remain** (all `/api/legacy-imports/*`) · roadmap doc
+  now carries exact line ranges and shared-symbol checklist for the
+  Phase 1 extraction.
+
+### Parity-lock test coverage
+- `test_iter429_1_storage_summary_and_week1.py` (new · 7 tests) ✅
+- `test_iter429_op_attachments_r2.py` (4 tests) ✅
+- `test_iter427_legacy_backup_prune.py` (2 tests) ✅
+- Testing subagent: 100 % backend · 100 % frontend · 0 action items
+
+### Operator action remaining
+1. **Update production deploy dashboard** `MONGO_URL` to the new
+   Atlas password and redeploy production. Preview is already done.
+2. **Optional**: after one week of real production use, file the
+   first Week-1 debrief at `/admin/dls/week-1-debrief`.
+
+### Backlog (P2 · ranked)
+- `server.py` Phase 1 extraction (`/api/legacy-imports/*` → 
+  `routes/legacy_imports.py`) — closes 100 % of inline `@app.{verb}`
+  decorators in one move. Plan locked in roadmap doc.
+- iter425 Operational Moments Continuity Rail.
+- 233 pre-existing legacy pytest failures (BLOCKED · parity-lock
+  directive).
+
+
 ## 2026-05-25 — iter429 · Phase 28 · Elite Platform Hardening — Engineering Execution ✅
 
 ### Mission
