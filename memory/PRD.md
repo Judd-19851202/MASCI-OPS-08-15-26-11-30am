@@ -1,6 +1,82 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter429 · Phase 28 · Elite Platform Hardening — Engineering Execution ✅
+
+### Mission
+Execute the engineering work previously deferred by the planning agent:
+1. **Part 1 — R2 Photo Cold-Storage Refactor** for `operational_attachments`
+2. **Part 4 — Passkey Fan-out** to all 6 non-admin portal hubs (Field
+   Leadership, Dispatch, PM, Shop, Safety, HR)
+
+### What landed
+
+**R2 cold-storage (`/app/backend/routes/operational_attachments.py`)**
+- `upload_attachment`: when `photo_storage.is_configured()` → bytes go
+  straight to Cloudflare R2; Mongo stores `storage_backend="r2"`,
+  `r2_key`, `sha256`, and metadata only (NO `data_b64`). When R2 is not
+  configured (preview/dev) the legacy `inline_b64` fallback preserves
+  the walking-skeleton contract verbatim.
+- `get_attachment_file`: transparently reads from R2 when `r2_key` is
+  set, falls back to inline base64 for legacy rows.
+- `delete` honours the 5-min mistake-recovery window AND best-effort
+  cleans up the R2 object so "make it as if it never happened" holds.
+- `list` projection now also excludes `r2_key` (security parity with
+  the existing `data_b64` exclusion).
+
+**Migration script (`/app/scripts/migrate_attachments_to_r2.py`)**
+- Dry-run by DEFAULT · `--apply` required to mutate Mongo / upload to R2
+- SHA-256 round-trip verification before unsetting `data_b64` — never
+  destroys operational truth on a silent R2 corruption.
+- Idempotent · skips rows already on `storage_backend == "r2"`
+- `--limit N` for batched runs
+- Refuses `--apply` when `photo_storage.is_configured()` is False.
+- Dry-run against LIVE Atlas: found **70** legacy `inline_b64`
+  attachment rows ready to migrate.
+
+**Passkey fan-out (frontend only · backend already grants multi-portal
+tokens via `_mint_all_portal_tokens` in `_mint_multi_login_response_for_passkey`)**
+- `<PasskeyEnrollPrompt />` placed on all 6 non-admin portal hubs:
+  `DispatchHub`, `HrHub`, `PmHub`, `ShopHub`, `SafetyHub`,
+  `FieldLeadershipHub`. Self-gates on (1) WebAuthn support,
+  (2) platform authenticator presence, (3) directory token,
+  (4) no existing passkey, (5) not previously dismissed. Calm,
+  dismissible, single-card · NEVER nags.
+
+### Verification (parity-lock testing)
+- **NEW** test file: `/app/backend/tests/test_iter429_op_attachments_r2.py`
+  · 4 tests · ALL PASS (R2 path, inline fallback, R2 fetch, legacy fetch)
+- `tests/test_iter427_legacy_backup_prune.py` · 2 tests · ALL PASS
+- Migration dry-run on LIVE Atlas: exit 0 · 70 candidates identified
+- Backend service healthy: `/api/health` → `{"ok":true}`
+- Routes mounted + auth-gated: `/types`, `/upload`, `/{id}/file` return
+  401 (not 404) without an X-Portal token.
+- Testing agent (backend-only) report:
+  `/app/test_reports/iteration_phase28_iter427_iter429.json` ·
+  ✅ 100 % backend pass · zero action items
+
+### Outstanding (USER ACTION REQUIRED)
+1. **Atlas password rotation** — runbook in
+   `/app/memory/ATLAS_PASSWORD_ROTATION_RUNBOOK.md`. User to rotate in
+   Atlas dashboard, then provide new password so `.env` (preview +
+   prod) can be updated. Status: DEFERRED at user's request.
+2. **Live migration** — when ready, run:
+   ```
+   cd /app && python scripts/migrate_attachments_to_r2.py --apply --limit 50
+   ```
+   then re-run without `--limit` once verified. 70 rows currently
+   pending migration on Atlas.
+
+### Backlog (P2 · per user directive)
+- `server.py` Phase 4D modularization extractions (roadmap exists at
+  `/app/memory/SERVER_PY_MODULARIZATION_ROADMAP.md`). Backend now
+  ~11,584 LOC.
+- Phase 28 Part 5 — `/admin/dls/week-1-debrief` (planning doc exists
+  at `/app/memory/DLS_WEEK1_DEBRIEF_PLAN.md`). Deferred this session
+  per user scope (Part 1 + Part 4 only).
+- iter425 Operational Moments Continuity Rail.
+
+
 ## 2026-05-25 — iter429 · Phase 26.2 · Production Post-Deployment + Atlas Crossover Forensic Verification ✅
 
 ### Mission
