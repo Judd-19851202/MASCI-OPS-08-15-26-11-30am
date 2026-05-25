@@ -20,6 +20,7 @@ import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
+import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
@@ -166,6 +167,11 @@ export default function PmHub() {
               operational-attention surface — read-only Field Memory glance. */}
           <div className="mt-5">
             <FieldMemoryGlance />
+          </div>
+
+          {/* iter440 · calm "Last activity" trace. */}
+          <div className="mt-5">
+            <LastActivityLine portal="pm" />
           </div>
 
           <OperationsCenter compact className="mt-5" />

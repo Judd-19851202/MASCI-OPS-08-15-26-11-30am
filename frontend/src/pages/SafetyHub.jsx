@@ -29,6 +29,7 @@ import { isSafety, getSafetyToken } from "@/lib/safetyAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
+import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -196,6 +197,11 @@ export default function SafetyHub() {
           operational-attention surface — read-only Field Memory glance. */}
       <div className="mb-6">
         <FieldMemoryGlance />
+      </div>
+
+      {/* iter440 · calm "Last activity" trace. */}
+      <div className="mb-6">
+        <LastActivityLine portal="safety" />
       </div>
 
       {/* KPI strip — neutral chrome per Rule 5. Colored value text for

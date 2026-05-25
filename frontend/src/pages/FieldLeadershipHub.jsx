@@ -51,6 +51,7 @@ import {
 } from "@/lib/fieldLeadershipSchemas";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
+import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const FL_PAL = paletteFor("leadership");
 
@@ -461,6 +462,11 @@ export default function FieldLeadershipHub() {
             operational-attention surface — read-only Field Memory glance. */}
         <div className="mb-8">
           <FieldMemoryGlance />
+        </div>
+
+        {/* iter440 · calm "Last activity" trace · quiet proof of platform usage. */}
+        <div className="mb-8">
+          <LastActivityLine portal="field_leadership" />
         </div>
 
         <div className="space-y-10">

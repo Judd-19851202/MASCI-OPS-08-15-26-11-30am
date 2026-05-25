@@ -9513,6 +9513,15 @@ app.include_router(build_production_health_router(
     require_admin_dep=require_admin_strict,
 ))
 
+# iter440 · Last Activity probe · powers the calm "Last submission · N
+# minutes ago" indicator on every role hub. Per-portal scoping ·
+# read-only · 7-day lookback cap.
+from routes.last_activity import build_last_activity_router  # noqa: E402
+app.include_router(build_last_activity_router(
+    db=db,
+    require_any_portal_token_dep=_require_any_portal_token,
+))
+
 # iter431 · Phase 29 · Part 4 · admin-strict stability sweepers
 from routes.admin_stability import build_admin_stability_router  # noqa: E402
 app.include_router(build_admin_stability_router(

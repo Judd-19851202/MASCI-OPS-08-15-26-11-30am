@@ -47,6 +47,7 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
+import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DISPATCH_PAL = paletteFor("dispatch");
@@ -180,6 +181,10 @@ export default function DispatchHub() {
         {/* iter432 · Phase 30 · Part 6 · Option iii · ONE calm additive
             operational-attention surface — read-only Field Memory glance. */}
         <FieldMemoryGlance />
+
+        {/* iter440 · calm one-line "Last activity" trace per portal ·
+            quiet proof the platform is being USED, not just UP. */}
+        <LastActivityLine portal="dispatch" />
 
         {/* ── 1 · DISPATCH COMMAND · orientation + coaching ──────── */}
         <Section

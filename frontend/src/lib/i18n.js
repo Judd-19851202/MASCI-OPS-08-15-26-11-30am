@@ -131,6 +131,16 @@ const ES = {
   "Checking production…": "Verificando producción…",
   "healthy": "sano",
   "a moment ago": "hace un momento",
+  // iter440 · Last Activity line strings per portal write kind.
+  "Activity": "Actividad",
+  "Assignment created": "Asignación creada",
+  "Operational moment logged": "Momento operacional registrado",
+  "Recovery moment logged": "Momento de recuperación registrado",
+  "Daily report filed": "Informe diario enviado",
+  "Inspection filed": "Inspección enviada",
+  "Equipment inspection filed": "Inspección de equipo enviada",
+  "QA/QC inspection filed": "Inspección QA/QC enviada",
+  "Incident filed": "Incidente enviado",
   "Photos waiting to send will upload when connection returns.":
     "Las fotos pendientes se enviarán cuando vuelva la conexión.",
   "Submitted reports are stored in the platform. Drafts only stay on this device.":

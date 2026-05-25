@@ -49,6 +49,7 @@ import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
+import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const SHOP_PAL = paletteFor("shop");
 
@@ -576,6 +577,10 @@ const OperationalContinuityHistory = () => {
           ))}
         </ul>
       )}
+    </section>
+  );
+};
+     )}
     </section>
   );
 };
