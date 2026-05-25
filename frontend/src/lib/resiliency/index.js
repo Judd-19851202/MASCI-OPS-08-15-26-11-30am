@@ -11,6 +11,7 @@ export {
 } from "./draftStore";
 export { useDraft } from "./useDraft";
 export { useDraftSync } from "./useDraftSync";
+export { useFormDraft } from "./useFormDraft";
 export { useOnlineStatus } from "./useOnlineStatus";
 export {
   enqueueUpload, getQueueDepth, getQueueItems,
@@ -18,4 +19,5 @@ export {
 } from "./resiliencyQueue";
 export { default as OfflineIndicator } from "./OfflineIndicator";
 export { default as DraftStatusPill } from "./DraftStatusPill";
+export { default as DraftRestorePrompt } from "./DraftRestorePrompt";
 export { getActorId } from "./actorId";

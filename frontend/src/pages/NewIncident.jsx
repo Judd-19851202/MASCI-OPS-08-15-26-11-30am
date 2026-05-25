@@ -57,8 +57,8 @@ import {
 } from "@/lib/geolocation";
 import { cn } from "@/lib/utils";
 import {
-  useDraftSync, getActorId, mintIdempotencyKey, enqueueUpload,
-  DraftStatusPill,
+  useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
+  DraftStatusPill, DraftRestorePrompt,
 } from "@/lib/resiliency";
 
 const inputCls =
@@ -124,26 +124,25 @@ export default function NewIncident({ publicMode = false }) {
           ? t("Optional sections completed")
           : t("Ready to submit · follow-up optional for this severity");
 
-  // Phase J — autosave + draft recovery. Non-invasive (does not own
-  // state). On mount we offer recovery via a toast.
+  // iter434 · Phase 31 · Part 2 — manual draft recovery via calm prompt
+  // (do NOT auto-overwrite the form). Autosave continues silently.
   const actorId = React.useMemo(() => getActorId(), []);
-  const { draftStatus, hasDraft, discard, commit } = useDraftSync(
-    "incident-new", data, actorId,
-    (draft) => {
-      setData(draft);
-      toast.message("Draft recovered", {
-        description: "Your unsent incident report was restored.",
-        action: {
-          label: "Discard",
-          onClick: () => {
-            setData(buildIncidentDefaults());
-            discard();
-          },
-        },
-        duration: 6000,
-      });
-    },
-  );
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft("incident-new", data, actorId);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const d = restore();
+    if (d) {
+      setData(d);
+      toast.success(t("Draft restored"));
+    }
+  }, [restore, t]);
+
+  const onDiscardDraft = React.useCallback(() => {
+    discard();
+    toast.message(t("Draft discarded"));
+  }, [discard, t]);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
   const setMap = (mapKey, key, value) =>
@@ -401,6 +400,15 @@ export default function NewIncident({ publicMode = false }) {
             </p>
           </div>
         </div>
+
+        {/* iter434 · Phase 31 · Part 2 — calm draft recovery prompt.
+            Shown ONLY when an unsent draft was loaded on mount. */}
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          testId="incident-draft-restore-prompt"
+        />
 
         {/* Section 01 — Report Info */}
         <HelpTipBlock formKey="incident" className="mb-3" showCounter />

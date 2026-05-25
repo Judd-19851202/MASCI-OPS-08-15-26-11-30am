@@ -1,0 +1,37 @@
+{
+  "summary": "Phase 31 Pass A · Work Recovery Continuity foundation — frontend-only e2e verification of useFormDraft hook + DraftRestorePrompt component on /incidents/submit and /daily/submit. Both flows pass the full doctrine matrix: silent debounced autosave to IndexedDB, calm two-button restore prompt on reload, NO auto-overwrite (fields stay empty pre-Restore), Restore re-applies pending draft, Discard wipes the IDB key, draft consumed after Restore (no re-prompt on next reload). EN microcopy 'Your work is saved on this device until it is submitted.' verified in DraftRestorePrompt body. ES microcopy mapping confirmed present in /app/frontend/src/lib/i18n.js (line 76-77: 'Tu trabajo se guarda en este dispositivo hasta que se envíe.'). IDB key shape verified: `masci.draft.anon.incident-new` and `masci.draft.anon.daily-report-new`.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "useFormDraft hook is clean — manual restore semantics correctly implemented: pendingDraft is loaded but NOT applied to form state on mount. restore() returns the draft and clears the local pending state, leaving the parent to call setData(restored) explicitly. This satisfies the Phase 31 doctrine.",
+    "DraftRestorePrompt renders null when pendingDraft is falsy — clean no-op when no draft exists. Two-button calm UX (Restore / Discard) with amber-50 background, no modal/overlay/sticky banner — matches doctrine.",
+    "Per-actor scoping via getActorId() resolves to 'anon' for public submitters with no portal token (incident/daily routes). IDB key shape `masci.draft.<actor>.<formKey>` confirmed live.",
+    "All 3 forms (NewIncident, NewDailyReport, NewInspection) use the IDENTICAL hook+component pair imported from /lib/resiliency — DRY, no per-form draft logic duplication. Verified via grep on each file (line refs: NewIncident:60-61,132,406-410 · NewDailyReport:50-51,236,658-662 · NewInspection:39,57,263-267).",
+    "Inspection draft-pill testid 'inspection-draft-pill' wired (NewInspection.jsx:230). Same DraftStatusPill component used across all 3 forms — consistent saving/saved status indicator.",
+    "ES microcopy entries in /app/frontend/src/lib/i18n.js line 76-77 verified — 'Tu trabajo se guarda en este dispositivo hasta que se envíe.' is the exact Spanish doctrine string."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "100% on tested flows (2/3 forms live-verified; 3rd inherits by shared-hook construction)"},
+  "test_credentials": "Not used — both tested flows are publicMode (no auth). /safety/inspections/new admin-gated flow was NOT live-tested but uses the same useFormDraft+DraftRestorePrompt pair (verified by static file inspection).",
+  "seed_data_creation": "None — drafts auto-cleared via Discard at end of each subtest.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 31 Pass A foundation is solid. Live-tested doctrine matrix on /incidents/submit and /daily/submit via Playwright against https://safety-audit-mobile-1.preview.emergentagent.com — both pass all 8 assertions: (1) initial no-prompt, (2) autosave creates IDB key masci.draft.anon.<formKey> within 800ms+margin, (3) reload shows prompt + field stays EMPTY, (4) EN microcopy 'Your work is saved on this device until it is submitted.' present, (5) Restore re-applies draft and hides prompt, (6) 2nd reload no prompt (draft consumed by restore()), (7) Discard wipes IDB key and field, (8) IDB empty after Discard. NewInspection.jsx uses identical hook+component pair (verified by file diff) so it inherits same behavior — only deferred test is the SF/admin-gated login path. /es/incidents/submit returns 404 — ES is served via in-page EN/ES toggle (visible in header), NOT URL prefix; ES microcopy mapping in i18n.js is confirmed correct so the toggle will render the Spanish string. No doctrine violations found. No admin draft browser route added to App.js (would require code review — not seen during testing).",
+  "doctrine_assertions_passed": [
+    "Calm two-button prompt (Restore/Discard) — NO modal, NO overlay, NO sticky banner",
+    "Auto-save is silent (debounced ~800ms) — IDB key appears within 2s of typing",
+    "NO auto-overwrite: form field stays EMPTY on reload until user clicks Restore",
+    "Restored draft applies only on explicit Restore click",
+    "Discard wipes IDB key + clears form",
+    "Per-actor scoping via getActorId() — anon for public routes",
+    "EN/ES microcopy strings present and verbatim doctrine",
+    "Same hook+component pair shared across all 3 forms (DRY)"
+  ],
+  "rca of the issue": "n/a — all assertions pass; no bug to RCA."
+}

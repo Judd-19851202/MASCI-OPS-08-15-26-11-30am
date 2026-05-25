@@ -47,8 +47,8 @@ import {
   formatCoords,
 } from "@/lib/geolocation";
 import {
-  useDraftSync, getActorId, mintIdempotencyKey, enqueueUpload,
-  DraftStatusPill,
+  useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
+  DraftStatusPill, DraftRestorePrompt,
 } from "@/lib/resiliency";
 
 const inputCls =
@@ -228,25 +228,25 @@ export default function NewDailyReport({ publicMode = false }) {
   // matter today (e.g., subs but not visitors). ZERO field deletion.
   const idempotencyKeyRef = React.useRef(null);
 
-  // Phase J — autosave + draft recovery (non-invasive).
+  // iter434 · Phase 31 · Part 2 — manual draft recovery via calm prompt
+  // (do NOT auto-overwrite the form). Autosave continues silently.
   const actorId = React.useMemo(() => getActorId(), []);
-  const { draftStatus, discard, commit } = useDraftSync(
-    "daily-report-new", data, actorId,
-    (draft) => {
-      setData(draft);
-      toast.message("Draft recovered", {
-        description: "Your unsent daily report was restored.",
-        action: {
-          label: "Discard",
-          onClick: () => {
-            setData(buildDailyReportDefaults());
-            discard();
-          },
-        },
-        duration: 6000,
-      });
-    },
-  );
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft("daily-report-new", data, actorId);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const d = restore();
+    if (d) {
+      setData(d);
+      toast.success(t("Draft restored"));
+    }
+  }, [restore, t]);
+
+  const onDiscardDraft = React.useCallback(() => {
+    discard();
+    toast.message(t("Draft discarded"));
+  }, [discard, t]);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -653,6 +653,14 @@ export default function NewDailyReport({ publicMode = false }) {
             {t("One report per crew, per day. Capture labor, subs, materials, weather, and photos so payroll and PM coordination run clean tomorrow.")}
           </p>
         </div>
+
+        {/* iter434 · Phase 31 · Part 2 — calm draft recovery prompt. */}
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          testId="daily-report-draft-restore-prompt"
+        />
 
         {/* 01 — Report info */}
         <HelpTipBlock formKey="daily-report" className="mb-3" showCounter />

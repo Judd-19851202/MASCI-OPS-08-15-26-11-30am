@@ -71,6 +71,19 @@ const ES = {
   "just now": "ahora",
   "min ago": "min atrás",
   "hr ago": "h atrás",
+  // iter434 · Phase 31 · Work Recovery Continuity strings.
+  "You have unsaved work from earlier.": "Tienes trabajo sin guardar de antes.",
+  "Your work is saved on this device until it is submitted.":
+    "Tu trabajo se guarda en este dispositivo hasta que se envíe.",
+  "Restore": "Restaurar",
+  "Discard": "Descartar",
+  "Draft restored": "Borrador restaurado",
+  "Draft discarded": "Borrador descartado",
+  "Photos waiting to send will upload when connection returns.":
+    "Las fotos pendientes se enviarán cuando vuelva la conexión.",
+  "Submitted reports are stored in the platform. Drafts only stay on this device.":
+    "Los informes enviados se guardan en la plataforma. Los borradores solo permanecen en este dispositivo.",
+
   "d ago": "d atrás",
 
   // Branding / hub

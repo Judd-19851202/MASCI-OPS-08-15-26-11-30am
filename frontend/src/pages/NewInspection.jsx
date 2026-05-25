@@ -35,6 +35,9 @@ import { toast } from "sonner";
 import { computeGrade } from "@/lib/grading";
 import { GradeBanner } from "@/components/Grade";
 import { getCurrentPosition, reverseGeocode, formatCoords } from "@/lib/geolocation";
+import {
+  useFormDraft, getActorId, DraftStatusPill, DraftRestorePrompt,
+} from "@/lib/resiliency";
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
@@ -45,6 +48,26 @@ export default function NewInspection({ publicMode = false }) {
   const [data, setData] = useState(buildDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
+
+  // iter434 · Phase 31 · Part 2 — manual draft recovery via calm prompt
+  // (do NOT auto-overwrite the form). Autosave continues silently.
+  const actorId = React.useMemo(() => getActorId(), []);
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft("inspection-new", data, actorId);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const d = restore();
+    if (d) {
+      setData(d);
+      toast.success(t("Draft restored"));
+    }
+  }, [restore, t]);
+
+  const onDiscardDraft = React.useCallback(() => {
+    discard();
+    toast.message(t("Draft discarded"));
+  }, [discard, t]);
 
   const applyJob = (job) => {
     setData((p) => ({
@@ -162,6 +185,8 @@ export default function NewInspection({ publicMode = false }) {
       }
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/inspections", payload);
+      // iter434 · Phase 31 · clear the draft on confirmed submission.
+      await commit();
       toast.success(t("Inspection filed · graded · visible under Audits & Inspections"));
       if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
@@ -202,6 +227,7 @@ export default function NewInspection({ publicMode = false }) {
           )}
           <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} homeLink="/" />
           <div className="flex items-center gap-2">
+            <DraftStatusPill status={draftStatus} testId="inspection-draft-pill" />
             <LangToggle />
             <Button
               onClick={submit}
@@ -232,6 +258,14 @@ export default function NewInspection({ publicMode = false }) {
 
         {/* Live grade banner */}
         <GradeBanner grade={computeGrade(data)} label={t("Live Grade")} />
+
+        {/* iter434 · Phase 31 · Part 2 — calm draft recovery prompt. */}
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          testId="inspection-draft-restore-prompt"
+        />
 
         {/* Section 1: Project / Inspection Information */}
         <Section number="01" title={t("Project / Inspection Information")}>
