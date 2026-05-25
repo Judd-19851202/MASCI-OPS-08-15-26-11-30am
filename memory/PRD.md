@@ -1,6 +1,53 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter431 · Phase 29 · Elite Operational Longevity Convergence ✅
+
+### Result — 🟢 5 of 6 implementable parts SHIPPED · 73/73 parity-lock tests pass · 0 regressions
+
+### Mission
+Long-term operational survivability + maintenance discipline. No
+feature sprawl. No dashboards. Just calm visibility, governed
+cleanup, and disciplined `server.py` decoupling.
+
+### Headline shipped
+- **Operational Moments Rail** (Part 2) — `GET /api/dispatch/operational-moments/by-assignment/{id}` merges lifecycle + recovery + continuity_events + attachments into one chronological list. New `OperationalMomentsRail.jsx` mounted in `AssignmentDrawer` above the AttachmentStrip. Bilingual, mobile-first, read-only — calm operational truth timeline.
+- **Stability governance** (Part 4) — `POST /api/admin-strict/stability/sweep?dry_run={bool}` plus TTL ensures for `webauthn_challenges` + `temp_upload_chunks`. Allow-list protects all operational truth collections. DRY-RUN by default.
+- **Weekly operator digest** (Part 6) — `GET /api/admin/digest/weekly?format={text|json}` returns plain-text summary; cron in `lib/operator_digest.py` schedules a Monday-morning Sendgrid send through the existing `_safety_send_email` wrapper.
+- **`server.py` decomposition** (Part 5a + 5b):
+  - **5a** · Fleet-ops auth deps → `routes/fleet_ops_deps.py` (`make_require_fleet_submitter` + `make_require_any_fleet_portal`)
+  - **5b** · Passkey session mint → `routes/passkey_session_mint.py` (`make_mint_multi_login_response_for_passkey`); server.py keeps a thin delegation wrapper for caller stability.
+  - **5c** · Backup scheduler → DEFERRED per operator decision.
+
+### Parity-lock testing
+- 73/73 backend tests pass · 9 NEW · 43 regression-guard from prior phases
+- Live curl verified: persistence-health, storage-summary, weekly digest (text + JSON), stability sweep dry-run, operational moments rail, all 11 legacy-imports routes, all Phase 28.2 endpoints
+- Testing subagent: 100 % pass · 0 action items
+- Lint: Ruff + ESLint clean across every new file
+
+### Operator-owned tracks (cannot be agent-executed)
+- **Part 1** · Real-device certification matrix (`PHASE29_REAL_DEVICE_CERTIFICATION.md`) · iPhone × iPad × Android × rugged tablet × Mac × Windows × Edge × Firefox × workflows
+- **Part 3** · Sentry tag verification (`PHASE29_OBSERVABILITY_VALIDATION.md`) · controlled failures + inbox screenshot pass
+
+### What this phase did NOT do
+- ❌ No dashboards · charts · KPI · analytics · monitoring portal
+- ❌ No notification system · session recording · gamification
+- ❌ No new collections · auth-shape changes · schema migrations
+- ❌ No backup scheduler decomposition (deferred per operator)
+
+### Outstanding operator action
+1. Production `MONGO_URL` rotation in deploy dashboard (P28.1 carry-over)
+2. Real-device certification sweep
+3. Sentry tag verification on production
+4. Confirm first Monday digest delivery; set `OPERATOR_DIGEST_RECIPIENTS` if needed
+
+### 8 phase docs created
+PHASE29_FINAL_CERTIFICATION · PHASE29_OPERATIONAL_MOMENTS_RAIL ·
+PHASE29_OBSERVABILITY_VALIDATION · PHASE29_STABILITY_GOVERNANCE ·
+PHASE29_SERVER_DECOMPOSITION_LOG · PHASE29_COST_STORAGE_GOVERNANCE ·
+PHASE29_PRODUCTION_SURVIVABILITY · PHASE29_REAL_DEVICE_CERTIFICATION
+
+
 ## 2026-05-25 — iter430 · Phase 28.2 · Elite Operational Maturity Convergence ✅
 
 ### Result — 🟢 5 of 6 implementable parts SHIPPED · 64/64 parity-lock tests pass · 0 action items
