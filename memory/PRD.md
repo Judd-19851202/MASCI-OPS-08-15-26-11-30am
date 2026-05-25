@@ -1,6 +1,96 @@
 # MASCI Safety Hub — PRD
 
 
+## 🔴 STANDING OPERATOR ACTIONS · MUST RESOLVE BEFORE NEXT FINISH
+
+> **DISCIPLINE RULE** (added iter436 after the mascidocs.com production
+> incident): every subsequent `finish` summary MUST re-state every item
+> in this block verbatim until the operator confirms each is DONE.
+> Items in this block do NOT get quietly buried in iteration changelogs.
+> The cost of a forgotten item here is a P0 outage like iter436.
+
+### 🚨 P0 · OPEN · iter436 (2026-05-25)
+**Production `mascidocs.com` is currently returning HTTP 520 from
+Cloudflare on every API endpoint.** The production backend pod is
+crash-looping (or hung) — almost certainly because the Atlas password
+was rotated in Phase 28.1 on PREVIEW but the matching env var update
+was never applied to PRODUCTION via the Emergent deploy dashboard.
+
+**Verified evidence (iter436)**:
+- `GET https://mascidocs.com/api/health` → HTTP 520 (Cloudflare origin
+  unreachable)
+- `POST https://mascidocs.com/api/passkeys/login/options` → HTTP 520
+- `GET https://safety-audit-mobile-1.preview.emergentagent.com/api/health`
+  → HTTP 200 ✅ (preview is healthy · same code · different env vars)
+
+**Owner**: Operator (only the project owner can edit production env
+vars in the Emergent deploy dashboard).
+
+**Remediation steps** (5 clicks · NOT coder work):
+1. Open the **Emergent deploy dashboard** → MASCI project →
+   **Deploy** tab → **Production** environment.
+2. Open **Environment Variables** (or **Secrets** depending on UI
+   labelling).
+3. Update `MONGO_URL` to the current preview value:
+   ```
+   mongodb+srv://admin_db_user:<NEW_PASSWORD>@masci-prod.1nduwmg.mongodb.net/?appName=MASCI-prod&retryWrites=true&w=majority
+   ```
+   The exact preview value lives in `/app/backend/.env` line `MONGO_URL=...`
+   on the live preview pod. Copy it verbatim into the dashboard field.
+4. Confirm `DB_NAME` is set to `masci_safety`.
+5. Click **Save** then **Redeploy production**. Wait ~60 s for the
+   pod to come up clean.
+
+**Verification** (operator runs this AFTER the redeploy completes):
+```bash
+/app/tools/verify-production.sh
+```
+A clean run prints **5 green checks** and exits 0. If any probe is
+still red, capture the deploy logs (look for `Authentication failed`
+or `MongoServerSelectionError`) and ping back.
+
+### Other STANDING items (re-stated until each is confirmed DONE)
+- **Real-device certification matrix** — operator-owned · checklist at
+  `/app/memory/PHASE31_MOBILE_RECOVERY_VALIDATION.md` · OPEN
+- **Sentry tag verification on production** — confirm `role`, `portal`,
+  `device`, `tenant` tags appear on production Sentry issues · OPEN
+- **First Monday operator digest delivery** — confirm the iter428
+  weekly Resend email actually arrived in the operator inbox · OPEN
+
+---
+
+## 📐 DISCIPLINE · Preview ≠ Production (iter436)
+
+> Adopted after the iter436 production outage. Every future iteration
+> follows these rules.
+
+### Rule 1 · Never collapse "preview verified" into "production verified"
+- Every `finish` summary must label test surfaces explicitly:
+  `Preview verified ✅` vs `Production verified ✅`. The two are
+  separate words on the page. Mixing them is the failure mode that
+  hid iter429.1 / iter435 production drift for weeks.
+
+### Rule 2 · Standing operator actions live at the TOP of `PRD.md`
+- The `🔴 STANDING OPERATOR ACTIONS` block is the FIRST section in
+  `PRD.md`. It is re-stated in every `finish` summary until each item
+  is operator-confirmed DONE. No quiet burying allowed.
+
+### Rule 3 · `tools/verify-production.sh` is the one-command truth probe
+- Anyone (operator OR agent) can run `/app/tools/verify-production.sh`
+  to get a 5-second 5-endpoint smoke. Green here is the only signal
+  that production is actually serving — preview tests are necessary
+  but not sufficient.
+
+### Rule 4 · Production deploys list their env-var deltas
+- Every iteration that touches backend `.env` keys (rotation, new key,
+  removed key) MUST list the delta in the `finish` summary under a
+  `Production env-var deltas` heading, even if the action is operator-
+  pending. This makes drift impossible to forget.
+
+---
+
+
+
 ## 2026-05-25 — iter435 · Phase 31 · Pass B · Photo Staging + Queue Extraction + Form Fan-out ✅
 
 ### Result — 🟢 5/5 live Day-1 end-to-end + 11/11 static doctrine assertions pass · 0 critical · 0 regressions
