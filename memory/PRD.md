@@ -1,6 +1,100 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter437 · Phase 31.1 · Daily Report Crew Memory Continuity ✅
+
+### Result — 🟢 14/14 functional + 12/12 doctrine + 0 action items · Preview verified
+
+### Mission
+Save Mike 60–90 seconds of typing every morning by remembering
+yesterday's Daily Report SETUP on this device only · never sync ·
+never auto-apply · never expose one crew's setup to another on a
+shared device.
+
+### Headline shipped
+- **`lib/crewMemory.js`** (NEW) — device-local memory primitive with
+  defensive field-stripping. Allowed: `prepared_by`, `superintendent`,
+  `project_name/_number`, `masci_crews[name,trade]`,
+  `subcontractors[company,trade,foreman]`, `equipment[description]`,
+  optional `nickname`. Banned (and structurally unreachable): notes,
+  signatures, weather, incidents, GPS, photos, materials, activities,
+  visitors, distribution list, schedule flags, idempotency keys,
+  report numbers, report dates. 30-day TTL · rolling on Use Setup ·
+  schemaVersion=1 pin auto-purges old shapes.
+- **`components/daily-report/CrewSetupRestorePrompt.jsx`** (NEW) —
+  calm amber 3-button card: **Use Setup · Start Blank · Clear Saved
+  Setup**. Optional nickname chip with inline rename. Summary line
+  shows project + crew/sub/equipment counts. Coaching microcopy:
+  _"Saved setups stay only on this device."_ + _"Use this option only
+  if this is your crew device or personal device."_ + _"You can edit
+  crew and equipment after loading."_ + _"Starting blank will not
+  erase previously submitted reports."_
+- **`pages/NewDailyReport.jsx`** wiring — loads snapshot on mount ·
+  renders prompt above the existing draft prompt · `saveCrewSetup`
+  on both successful-submit AND queued-offline paths · `applySetupSnapshotToData`
+  preserves today's date/weather/photos/notes (only setup fields
+  applied · per Phase 31.1 merge contract).
+- **25 new EN→ES strings** in `lib/i18n.js`. Banned-word UI scan
+  (word-boundary regex) returns ZERO hits in either language.
+- **4 Phase 31.1 docs**:
+  - `PHASE31_1_CREW_MEMORY_CONTINUITY.md` (master doctrine)
+  - `PHASE31_1_SHARED_DEVICE_SAFETY.md` (threat model + 8 protections)
+  - `PHASE31_1_DAILY_REPORT_MEMORY_FLOW.md` (state machine + merge contract)
+  - `PHASE31_1_OPERATIONAL_VERBIAGE_GUIDE.md` (banned-word audit table)
+- **Pre-existing dead-code cleanup** — removed 24 lines of orphaned
+  duplicate JSX after the component close (from an older iteration ·
+  ESLint flagged it once new edits increased the parse surface).
+
+### Preview verified ✅ (NOT production)
+- 14/14 functional tests pass: fresh page · seeded snapshot ·
+  Use Setup populates form · Start Blank preserves record ·
+  Clear Saved Setup deletes record · nickname rename persists ·
+  saved-when label "yesterday" / "7 days ago" · 30-day TTL purge ·
+  schemaVersion mismatch purge · NO silent auto-fill ·
+  banned-words UI scan zero hits · Phase 31 draft-prompt coexists ·
+  Incident form unaffected (scope lock holds)
+- Doctrine pillars (12/12): localStorage-only, no-silent-autofill,
+  3-button prompt, TTL purge, schemaVersion purge, shared-device
+  copy present, banned fields structurally unreachable, banned words
+  absent in UI, scope locked to Daily Report, no new admin endpoint,
+  Phase 31 prompt coexists, no window global pollution
+- ESLint clean · ruff not applicable (frontend-only iteration)
+
+### Production env-var deltas (operator-pending)
+- **None new from iter437.** The outstanding Atlas-password rotation
+  from Phase 28.1 is the only env-var delta still pending in the
+  deploy dashboard.
+
+### What this iteration explicitly did NOT do
+- ❌ NO fan-out to other forms (incident / inspection / HR / safety /
+  PM / dispatch / shop) — strict scope lock per Phase 31.1 Part 2
+- ❌ NO server-side storage of crew setups
+- ❌ NO admin draft/setup browser
+- ❌ NO cross-device sync
+- ❌ NO surveillance · ranking · scoring · "AI suggestions"
+- ❌ NO new admin endpoint · NO new Mongo collection · NO new env var
+- ❌ NO banned vocabulary in any UI string (profile / template / cache /
+  autofill / synced / account / workforce / browser memory — all absent
+  by word-boundary regex scan)
+
+### Backlog
+- 🟡 P2 · Operator-owned real-device certification on iPhone Safari +
+  Android Chrome + iPad Safari + rugged tablet
+- 🟢 P3 · Phase 31.2 (future · only with explicit user approval) ·
+  potential calm fan-out to a second high-friction form (Incident
+  reports? Inspections?) after operational proof on Daily Report
+
+### Verdict
+🟢 The platform now offers operators the calm _"yesterday's setup is
+right there, edit anything, never silent"_ pattern on Daily Reports
+only · doctrine of restraint held end-to-end · zero new admin
+surfaces · zero new server endpoints · zero new collections · zero
+banned vocabulary in user-facing strings.
+
+---
+
+
+
 ## 🔴 STANDING OPERATOR ACTIONS · MUST RESOLVE BEFORE NEXT FINISH
 
 > **DISCIPLINE RULE** (added iter436 after the mascidocs.com production
@@ -9,19 +103,29 @@
 > Items in this block do NOT get quietly buried in iteration changelogs.
 > The cost of a forgotten item here is a P0 outage like iter436.
 
-### 🚨 P0 · OPEN · iter436 (2026-05-25)
+### 🚨 P0 · OPEN · iter436 → iter437 (2026-05-25)
 **Production `mascidocs.com` is currently returning HTTP 520 from
 Cloudflare on every API endpoint.** The production backend pod is
-crash-looping (or hung) — almost certainly because the Atlas password
-was rotated in Phase 28.1 on PREVIEW but the matching env var update
-was never applied to PRODUCTION via the Emergent deploy dashboard.
+crash-looping on Atlas authentication. The most recent production
+deploy attempt failed with this exact error from the platform:
 
-**Verified evidence (iter436)**:
+> `external MongoDB connection test failed: failed to ping MongoDB:
+>  connection() error occurred during connection handshake: auth error:
+>  sasl conversation error: unable to authenticate using mechanism
+>  "SCRAM-SHA-1": (AtlasError) bad auth : authentication failed`
+
+This is unambiguous: the `MONGO_URL` value being used by production
+contains an Atlas username or password that Atlas no longer accepts.
+Phase 28.1 rotated the password on PREVIEW; the matching update to
+PRODUCTION env vars has not yet succeeded.
+
+**Verified evidence (iter436 / iter437)**:
 - `GET https://mascidocs.com/api/health` → HTTP 520 (Cloudflare origin
-  unreachable)
-- `POST https://mascidocs.com/api/passkeys/login/options` → HTTP 520
+  unreachable) — _persistent across iter436 and iter437_
+- Most recent production deploy attempt → FAILED with `bad auth :
+  authentication failed` on Atlas SCRAM-SHA-1 handshake
 - `GET https://safety-audit-mobile-1.preview.emergentagent.com/api/health`
-  → HTTP 200 ✅ (preview is healthy · same code · different env vars)
+  → HTTP 200 ✅ (preview is healthy · same code · correct Atlas creds)
 
 **Owner**: Operator (only the project owner can edit production env
 vars in the Emergent deploy dashboard).
