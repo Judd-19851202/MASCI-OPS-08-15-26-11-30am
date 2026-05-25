@@ -46,6 +46,7 @@ import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DISPATCH_PAL = paletteFor("dispatch");
@@ -175,6 +176,10 @@ export default function DispatchHub() {
         {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
             self-gated · dismissible · single-card · NEVER nags */}
         <PasskeyEnrollPrompt />
+
+        {/* iter432 · Phase 30 · Part 6 · Option iii · ONE calm additive
+            operational-attention surface — read-only Field Memory glance. */}
+        <FieldMemoryGlance />
 
         {/* ── 1 · DISPATCH COMMAND · orientation + coaching ──────── */}
         <Section

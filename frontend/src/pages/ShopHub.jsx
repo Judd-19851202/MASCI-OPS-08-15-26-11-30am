@@ -48,6 +48,7 @@ import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 
 const SHOP_PAL = paletteFor("shop");
 
@@ -286,6 +287,10 @@ export default function ShopHub() {
         {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
             self-gated · dismissible · single-card · NEVER nags */}
         <PasskeyEnrollPrompt />
+
+        {/* iter432 · Phase 30 · Part 6 · Option iii · ONE calm additive
+            operational-attention surface — read-only Field Memory glance. */}
+        <FieldMemoryGlance />
 
         {/* Calm operational kicker · iter423 wording: recovery, not maintenance */}
         <div>

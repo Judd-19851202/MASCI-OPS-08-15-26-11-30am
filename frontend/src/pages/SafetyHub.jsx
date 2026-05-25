@@ -28,6 +28,7 @@ import { useT } from "@/lib/i18n";
 import { isSafety, getSafetyToken } from "@/lib/safetyAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -189,6 +190,12 @@ export default function SafetyHub() {
           self-gated · dismissible · single-card · NEVER nags */}
       <div className="mb-6">
         <PasskeyEnrollPrompt />
+      </div>
+
+      {/* iter432 · Phase 30 · Part 6 · Option iii · ONE calm additive
+          operational-attention surface — read-only Field Memory glance. */}
+      <div className="mb-6">
+        <FieldMemoryGlance />
       </div>
 
       {/* KPI strip — neutral chrome per Rule 5. Colored value text for

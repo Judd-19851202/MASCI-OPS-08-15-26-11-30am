@@ -19,6 +19,7 @@ import PmHaulActivityTile from "@/components/dispatch/PmHaulActivityTile";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 
 const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
@@ -159,6 +160,12 @@ export default function PmHub() {
               self-gated · dismissible · single-card · NEVER nags */}
           <div className="mt-5">
             <PasskeyEnrollPrompt />
+          </div>
+
+          {/* iter432 · Phase 30 · Part 6 · Option iii · ONE calm additive
+              operational-attention surface — read-only Field Memory glance. */}
+          <div className="mt-5">
+            <FieldMemoryGlance />
           </div>
 
           <OperationsCenter compact className="mt-5" />

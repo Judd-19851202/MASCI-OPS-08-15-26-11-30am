@@ -206,6 +206,37 @@ def build_field_memory_router(
         await db.field_memory_notes.insert_one(doc)
         return _public(doc)
 
+    @router.get("/recent")
+    async def recent_notes(
+        limit: int = 5,
+        subject_kind: Optional[str] = None,
+        actor: Dict[str, Any] = Depends(require_any_portal_token_dep),  # noqa: ARG001
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        """Most recent UNRESOLVED notes for this tenant.
+
+        Tiny additive surface for role hubs · calm read-only.
+        - Any portal token can read (matches the list endpoint).
+        - Defaults to limit=5 · hard cap 25 to keep the surface calm.
+        - Optional subject_kind filter (project/equipment/assignment/recovery_event).
+        - No subject_id required (this is the "what's on the platform's mind"
+          glance · NOT a search · NOT analytics · NOT ranked).
+        """
+        n = max(1, min(int(limit or 5), 25))
+        q: Dict[str, Any] = {
+            "tenant_id": _resolve_tenant(x_tenant_id),
+            "resolved": False,
+        }
+        if subject_kind:
+            if subject_kind not in _VALID_SUBJECT_KINDS:
+                raise HTTPException(400, f"subject_kind must be one of {sorted(_VALID_SUBJECT_KINDS)}")
+            q["subject_kind"] = subject_kind
+        items: List[Dict[str, Any]] = []
+        cur = db.field_memory_notes.find(q, {"_id": 0}).sort("captured_at", -1).limit(n)
+        async for d in cur:
+            items.append(d)
+        return {"count": len(items), "items": items}
+
     @router.get("")
     async def list_notes(
         subject_kind: str,

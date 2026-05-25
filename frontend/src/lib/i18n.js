@@ -59,6 +59,20 @@ const subscribe = (cb) => {
 // to the English key itself, so wrapping a string with t(...) is safe even
 // before the Spanish translation lands.
 const ES = {
+  // iter432 · Phase 30 · Part 6 · Field Memory glance (calm role-hub
+  // additive operational-attention surface). Operational language only.
+  "Recent field memory": "Memoria operacional reciente",
+  "No recent operational notes.": "No hay notas operacionales recientes.",
+  "Project": "Proyecto",
+  "Equipment": "Equipo",
+  "Assignment": "Asignación",
+  "Recovery": "Recuperación",
+  "Note": "Nota",
+  "just now": "ahora",
+  "min ago": "min atrás",
+  "hr ago": "h atrás",
+  "d ago": "d atrás",
+
   // Branding / hub
   "MASCI Safety Hub": "Centro MASCI",
   // iter239 — Legacy "MASCI Hub" platform-identity strings retired

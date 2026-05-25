@@ -50,6 +50,7 @@ import {
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
 } from "@/lib/fieldLeadershipSchemas";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 
 const FL_PAL = paletteFor("leadership");
 
@@ -454,6 +455,12 @@ export default function FieldLeadershipHub() {
             self-gated · dismissible · single-card · NEVER nags */}
         <div className="mb-8">
           <PasskeyEnrollPrompt />
+        </div>
+
+        {/* iter432 · Phase 30 · Part 6 · Option iii · ONE calm additive
+            operational-attention surface — read-only Field Memory glance. */}
+        <div className="mb-8">
+          <FieldMemoryGlance />
         </div>
 
         <div className="space-y-10">

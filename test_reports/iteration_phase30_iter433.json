@@ -1,0 +1,32 @@
+{
+  "summary": "Phase 30 iter433 verification — FieldMemoryGlance + GET /api/field-memory/recent. Backend parity-lock 12/12 PASS. Live endpoint behavior verified (anon=401, garbage subject_kind=400, default limit ok, hard cap clamps 9999->25, subject_kind filter returns only filtered+unresolved). Phase 28/29 regression endpoints all green (persistence-health 200, storage-summary 200, stability/sweep POST 200, field-memory CRUD+resolve 200). Frontend: all 5 role hubs render <FieldMemoryGlance> with data-testid='field-memory-glance' and list of items after master-portal sign-in. Zero JS console errors across all 5 hub navigations.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter432_field_memory.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: GET /api/field-memory/recent returns 401 anonymous (auth-gated via _require_any_portal_token_dep).",
+    "VERIFIED: subject_kind=vendor returns HTTP 400 with descriptive detail listing valid kinds.",
+    "VERIFIED: limit=9999 clamps gracefully to 25 (count<=25, no error).",
+    "VERIFIED: subject_kind=project filter returns only project rows, all resolved=False.",
+    "VERIFIED: Resolved notes excluded from /recent (only unresolved surfaced).",
+    "VERIFIED: All 12 tests in test_iter432_field_memory.py pass including the new test_iter432_field_memory_recent_returns_unresolved_newest_first parity-lock.",
+    "VERIFIED: FieldMemoryGlance imported and mounted on DispatchHub (line 49,182), FieldLeadershipHub (53,463), PmHub (22,168), ShopHub (51,293), SafetyHub (31,198).",
+    "VERIFIED: Frontend hub routes are /leadership (NOT /field-leadership), /dispatch-portal (NOT /dispatch), /pm, /shop, /safety-portal (NOT /safety). The review request's path list (/field-leadership, /dispatch, /safety) is incorrect for THIS app; actual App.js routes confirm /leadership, /dispatch-portal, /safety-portal. Component still mounts correctly on the actual routes.",
+    "VERIFIED: Component is read-only — no buttons/inputs in the rendered DOM, no 'AI'/'score'/'recommendation' wording in the JSX source.",
+    "VERIFIED: Silent degrade — useEffect catches non-ok responses and sets items=[] with no toast/error banner; renders nothing (returns null) when no portal token present.",
+    "VERIFIED: data-testid contract honored — field-memory-glance, field-memory-glance-list, field-memory-glance-item-<id>, field-memory-glance-empty all queryable.",
+    "VERIFIED: Zero JS console errors observed across all 5 hub navigations after sign-in with super-admin master credentials.",
+    "MINOR DOC NOTE: review_request listed hub routes as /field-leadership, /dispatch, /safety, but actual mounts in App.js are /leadership, /dispatch-portal, /safety-portal. Component still mounts on the actual hubs. Main agent may want to align documentation."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "12/12 = 100% (parity-lock) + 7/7 live curl checks", "frontend": "5/5 hubs render the glance with zero console errors"},
+  "test_credentials": "Admin multi-login jaymn.judd@mascigc.com / Maddix123! (used for live curl and Playwright sign-in). Master sign-in form located at /sign-in (data-testid='signin-submit').",
+  "seed_data_creation": "POSTed one TEST-iter433 row via curl during live regression and immediately resolved it. Existing TEST-* rows from prior iter432 round remain in db (append-only doctrine).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Frontend hub paths in this app are /leadership, /dispatch-portal, /pm, /shop, /safety-portal — NOT the bare /field-leadership/dispatch/safety paths sometimes referenced in review notes. Multi-portal master sign-in at /sign-in fans out admin/dir/pm/shop/safety/dispatch/hr tokens (NOT fl) into localStorage, which is sufficient for FieldMemoryGlance because it sends any portal token it finds. The /api/field-memory/recent endpoint accepts any portal token. Tests in test_iter432_field_memory.py use FastAPI TestClient with mocked db so they run instantly and require no live backend.",
+  "rca of the issue": "No issues found this iteration. Phase 30 follow-up implementation is correct, doctrine-compliant, and integrates cleanly with all 5 role hubs."
+}

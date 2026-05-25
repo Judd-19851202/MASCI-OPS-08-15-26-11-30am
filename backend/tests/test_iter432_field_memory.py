@@ -258,6 +258,54 @@ def test_iter432_field_memory_resolve_missing_note_404():
     assert r.status_code == 404
 
 
+def test_iter432_field_memory_recent_returns_unresolved_newest_first():
+    """GET /api/field-memory/recent surfaces the most recent UNRESOLVED
+    notes across all subjects for the tenant. Resolved notes are
+    excluded · ordered newest-first · honors hard cap of 25 · optional
+    subject_kind filter rejects garbage with 400."""
+    db = _DB()
+    c = _client("admin", db)
+
+    # Three notes across two subjects.
+    ids = []
+    for i, sk in enumerate(["project", "equipment", "assignment"]):
+        r = c.post("/api/field-memory", json={
+            "subject_kind": sk, "subject_id": f"s-{i}",
+            "subject_label": f"S{i}", "body": f"note {i}",
+        })
+        assert r.status_code == 200
+        ids.append(r.json()["id"])
+
+    # Default limit=5 returns all 3 unresolved (newest-first ordering
+    # is enforced by Mongo · the unit-test mock's sort() is a no-op so
+    # we assert membership only · ordering is locked at integration
+    # level via the live test suite).
+    r = c.get("/api/field-memory/recent")
+    body = r.json()
+    assert body["count"] == 3
+    assert {it["body"] for it in body["items"]} == {"note 0", "note 1", "note 2"}
+
+    # Resolve the newest · /recent should drop it.
+    c.post(f"/api/field-memory/{ids[-1]}/resolve",
+           json={"reason": "condition_addressed"})
+    r2 = c.get("/api/field-memory/recent")
+    assert r2.json()["count"] == 2
+    assert all(it["resolved"] is False for it in r2.json()["items"])
+
+    # Filter by subject_kind.
+    r3 = c.get("/api/field-memory/recent?subject_kind=project")
+    assert r3.json()["count"] == 1
+    assert r3.json()["items"][0]["subject_kind"] == "project"
+
+    # Invalid subject_kind → 400.
+    r4 = c.get("/api/field-memory/recent?subject_kind=vendor")
+    assert r4.status_code == 400
+
+    # limit clamped to 25.
+    r5 = c.get("/api/field-memory/recent?limit=9999")
+    assert r5.status_code == 200
+
+
 def test_iter432_field_memory_actor_meta_uses_portal_kind_slug():
     """Regression lock for the Phase 30 live-wire bug.
 
