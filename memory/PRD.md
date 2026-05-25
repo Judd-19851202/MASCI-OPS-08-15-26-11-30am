@@ -1,6 +1,91 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter432–433 · Phase 30 · Field Memory + Role Cognition Convergence ✅
+
+### Result — 🟢 Phase 30 CLOSED · 12/12 parity-lock + 7/7 live + 5/5 hub mounts · 0 action items
+
+### Mission
+Close the Phase 30 Field Memory continuity loop (iter432) and ship the
+first calm additive operational-attention surface on every operational
+role home (iter433 · Option iii — NO role-home rebuild).
+
+### Headline shipped
+- **Field Memory continuity** (iter432 · `routes/field_memory.py`):
+  - `POST /api/field-memory` (role-gated · append-only)
+  - `GET  /api/field-memory?subject_kind=&subject_id=` (default unresolved)
+  - `POST /api/field-memory/{id}/resolve` (`no_longer_applies` |
+    `condition_addressed` · cannot double-resolve)
+  - `GET  /api/field-memory/recent?limit=N&subject_kind=...` (NEW · any
+    portal token · tenant-scoped · hard cap 25 · only unresolved)
+  - Append-only doctrine pinned: NO DELETE route registered.
+  - Role × subject_kind write matrix: admin/field_leadership/pm/safety
+    write any kind · shop writes equipment/recovery_event · dispatch
+    writes assignment/recovery_event · HR cannot write any.
+- **Critical fix during Phase 30 closeout**: `_actor_meta()` now derives
+  the portal-kind slug from `actor['_actor']` (alias `fl`/`leadership`
+  → `field_leadership`) instead of the human job title `actor['role']`
+  (`Dispatcher`, `Shop Manager`, …) which had broken the matrix for
+  every real portal user. Locked by new parity-lock regression test
+  `test_iter432_field_memory_actor_meta_uses_portal_kind_slug`.
+- **`FieldMemoryGlance.jsx`** (iter433 · NEW): tiny read-only strip
+  surfacing the 3 most recent UNRESOLVED notes from the new `/recent`
+  endpoint. Mounted on FieldLeadershipHub, DispatchHub, PmHub, ShopHub,
+  SafetyHub immediately after `<PasskeyEnrollPrompt />`. Self-gates on
+  portal-token presence · silent on 4xx/5xx · NEVER nags.
+- **11 new EN→ES strings** in `lib/i18n.js` (Recent field memory ·
+  No recent operational notes · Project · Equipment · Assignment ·
+  Recovery · Note · just now · min ago · hr ago · d ago).
+- **8 Phase 30 docs** in `/app/memory/PHASE30_*.md` (governance,
+  cognition convergence, search, survivability, DR rehearsal).
+
+### Parity-lock testing
+- 12/12 backend tests pass in `test_iter432_field_memory.py` (10 doctrine
+  locks + actor_meta portal-kind regression lock + recent endpoint lock)
+- 29/29 across iter430/iter431/iter432 parity-lock subset
+- Testing subagent: 100 % across two iterations (iter432 retest +
+  iter433 follow-up) · 0 outstanding action items
+- Frontend lint clean · Backend ruff clean
+- Live curl verified: anon 401 · garbage subject_kind 400 · limit 9999
+  clamps to 25 · subject_kind filter returns only filtered+unresolved
+- 5/5 hubs render `FieldMemoryGlance` with zero JS console errors
+
+### What this iteration did NOT do
+- ❌ NO role-home rebuilds (Option iii doctrine held)
+- ❌ NO dashboards · charts · KPIs · ranking · scoring · "AI suggestions"
+- ❌ NO write affordance on the glance (creation lives inside subject screens)
+- ❌ NO operational truth search (deferred per user · "stabilize cognition
+  surfaces first, then unify retrieval intelligence")
+- ❌ NO HR mount (HR has no operational write scope in the matrix)
+- ❌ NO Admin mount (Admin already owns dedicated admin surfaces)
+
+### Outstanding operator action
+- Production `MONGO_URL` rotation in deploy dashboard (P28.1 carry-over)
+- Real-device certification sweep
+- Sentry tag verification on production
+- Confirm first Monday operator digest delivery
+
+### Backlog (next iterations)
+- 🟡 **P1** · Platform-Wide Operational Truth Search (Phase 30 Part 2 ·
+  fuzzy match across continuity events / attachments / projects /
+  field memory) — gated on Field Memory accumulating real notes.
+- 🟡 **P2** · Full No-Signal Field Survivability (Phase 30 Part 3 ·
+  expand offline queueing for attachments / inspections / recovery).
+- 🟡 **P2** · Extract backup scheduler helpers from `server.py`
+  (deferred from Phase 29 modularization).
+- 🔵 **P3** · 233 inherited legacy pytest fixtures (BLOCKED ·
+  parity-lock directive · de-scoped by operator).
+
+### Verdict
+🟢 The MASCI Operations Platform now carries an **append-only
+institutional-wisdom continuity layer** (Field Memory) that surfaces
+at a glance on every operational role hub WITHOUT becoming a dashboard,
+feed, or ranking system. Doctrine of restraint fully held.
+
+---
+
+
+
 ## 2026-05-25 — iter431 · Phase 29 · Elite Operational Longevity Convergence ✅
 
 ### Result — 🟢 5 of 6 implementable parts SHIPPED · 73/73 parity-lock tests pass · 0 regressions
