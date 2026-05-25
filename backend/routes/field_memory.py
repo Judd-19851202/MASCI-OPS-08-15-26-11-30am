@@ -88,11 +88,27 @@ def _resolve_tenant(x_tenant: Optional[str]) -> str:
 
 
 def _actor_meta(actor: Dict[str, Any]) -> Dict[str, str]:
+    """Resolve actor → {name, role} where role is the portal-kind slug.
+
+    The upstream `_require_any_portal_token` dep returns the user doc with
+    an injected `_actor` field carrying the portal kind ('admin', 'dispatch',
+    'shop', 'pm', 'safety', 'hr', 'fl', 'leadership'). The plain `role`
+    field on a user doc carries the human-readable job title
+    ('Dispatcher', 'Shop Manager', 'Superintendent', …) which must NOT
+    be used for RBAC. Prefer `_actor` when present; fall back to `role`
+    so unit tests that mock the dep directly with a slug still work.
+    Alias `fl` / `leadership` → `field_leadership` to match the write
+    matrix in `_can_write_subject`.
+    """
     if not isinstance(actor, dict):
         return {"name": "Admin", "role": "admin"}
+    raw_role = actor.get("_actor") or actor.get("role") or "admin"
+    role = str(raw_role).strip().lower()
+    if role in ("fl", "leadership"):
+        role = "field_leadership"
     return {
         "name": actor.get("name") or actor.get("email") or "Operator",
-        "role": actor.get("role") or "admin",
+        "role": role,
     }
 
 

@@ -258,6 +258,74 @@ def test_iter432_field_memory_resolve_missing_note_404():
     assert r.status_code == 404
 
 
+def test_iter432_field_memory_actor_meta_uses_portal_kind_slug():
+    """Regression lock for the Phase 30 live-wire bug.
+
+    The upstream `_require_any_portal_token` dep returns the user doc
+    with `_actor` carrying the portal-kind slug (e.g. 'dispatch') and
+    `role` carrying the human job title (e.g. 'Dispatcher'). The write
+    matrix must use `_actor`, never `role`, otherwise EVERY real portal
+    user gets 403. Also pins the `fl`/`leadership` → `field_leadership`
+    alias so FL users (iter314 per-user accounts AND shared-password
+    leadership gate) can write field memory.
+    """
+    db = _DB()
+
+    # Dispatch user (real shape from upstream dep) writes an assignment note.
+    async def _dispatch_actor():
+        return {"name": "Carlos R.", "role": "Dispatcher", "_actor": "dispatch"}
+    app1 = FastAPI()
+    app1.include_router(build_field_memory_router(
+        db=db, require_any_portal_token_dep=_dispatch_actor,
+    ))
+    c1 = TestClient(app1)
+    r1 = c1.post("/api/field-memory", json={
+        "subject_kind": "assignment",
+        "subject_id": "asgn-9",
+        "body": "Driver reports radio dead zone past MP 47.",
+    })
+    assert r1.status_code == 200, r1.text
+    assert r1.json()["captured_by_role"] == "dispatch"
+
+    # Dispatch is blocked from project (project is not in dispatch matrix).
+    bad = c1.post("/api/field-memory", json={
+        "subject_kind": "project", "subject_id": "p-1", "body": "x",
+    })
+    assert bad.status_code == 403
+
+    # FL user (real shape) writes a project note — 'fl' must alias to
+    # 'field_leadership'.
+    async def _fl_actor():
+        return {"name": "Chris W.", "role": "Superintendent", "_actor": "fl"}
+    app2 = FastAPI()
+    app2.include_router(build_field_memory_router(
+        db=db, require_any_portal_token_dep=_fl_actor,
+    ))
+    c2 = TestClient(app2)
+    r2 = c2.post("/api/field-memory", json={
+        "subject_kind": "project",
+        "subject_id": "proj-oxford",
+        "body": "Oxford repeatedly bottlenecks near STA 112+00.",
+    })
+    assert r2.status_code == 200, r2.text
+    assert r2.json()["captured_by_role"] == "field_leadership"
+
+    # Shared-password leadership gate also aliases to field_leadership.
+    async def _leadership_actor():
+        return {"name": "Leadership", "_actor": "leadership"}
+    app3 = FastAPI()
+    app3.include_router(build_field_memory_router(
+        db=db, require_any_portal_token_dep=_leadership_actor,
+    ))
+    c3 = TestClient(app3)
+    r3 = c3.post("/api/field-memory", json={
+        "subject_kind": "equipment", "subject_id": "t-1",
+        "body": "Cycling issue under high temps.",
+    })
+    assert r3.status_code == 200, r3.text
+    assert r3.json()["captured_by_role"] == "field_leadership"
+
+
 def test_iter432_field_memory_no_delete_endpoint_registered():
     """Append-only doctrine: there is no DELETE surface. This pins it
     in the parity-lock so a future hand cannot quietly add one."""

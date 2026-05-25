@@ -256,7 +256,7 @@ class TestRoleMatrix:
     def test_dispatch_can_write_assignment(self, dispatch_token):
         if not dispatch_token:
             pytest.skip("dispatch bootstrap failed")
-        h = {"X-Dispatch-Token": dispatch_token, "Content-Type": "application/json"}
+        h = {"X-Dispatch-Token": dispatch_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "assignment",
             "subject_id": f"TEST-{uuid.uuid4().hex[:8]}",
@@ -267,7 +267,7 @@ class TestRoleMatrix:
     def test_dispatch_cannot_write_equipment_403(self, dispatch_token):
         if not dispatch_token:
             pytest.skip("dispatch bootstrap failed")
-        h = {"X-Dispatch-Token": dispatch_token, "Content-Type": "application/json"}
+        h = {"X-Dispatch-Token": dispatch_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "equipment",
             "subject_id": "truck-47",
@@ -277,7 +277,7 @@ class TestRoleMatrix:
     def test_dispatch_cannot_write_project_403(self, dispatch_token):
         if not dispatch_token:
             pytest.skip("dispatch bootstrap failed")
-        h = {"X-Dispatch-Token": dispatch_token, "Content-Type": "application/json"}
+        h = {"X-Dispatch-Token": dispatch_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "project", "subject_id": "p1", "body": "no"}, timeout=15)
         assert r.status_code == 403
@@ -285,7 +285,7 @@ class TestRoleMatrix:
     def test_dispatch_can_write_recovery_event(self, dispatch_token):
         if not dispatch_token:
             pytest.skip("dispatch bootstrap failed")
-        h = {"X-Dispatch-Token": dispatch_token, "Content-Type": "application/json"}
+        h = {"X-Dispatch-Token": dispatch_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "recovery_event",
             "subject_id": f"TEST-{uuid.uuid4().hex[:8]}",
@@ -295,7 +295,7 @@ class TestRoleMatrix:
     def test_shop_can_write_equipment(self, shop_token):
         if not shop_token:
             pytest.skip("shop bootstrap failed")
-        h = {"X-Shop-Token": shop_token, "Content-Type": "application/json"}
+        h = {"X-Shop-Token": shop_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "equipment",
             "subject_id": f"TEST-{uuid.uuid4().hex[:8]}",
@@ -306,7 +306,7 @@ class TestRoleMatrix:
     def test_shop_cannot_write_project_403(self, shop_token):
         if not shop_token:
             pytest.skip("shop bootstrap failed")
-        h = {"X-Shop-Token": shop_token, "Content-Type": "application/json"}
+        h = {"X-Shop-Token": shop_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "project", "subject_id": "p1", "body": "no"}, timeout=15)
         assert r.status_code == 403
@@ -314,7 +314,7 @@ class TestRoleMatrix:
     def test_shop_cannot_write_assignment_403(self, shop_token):
         if not shop_token:
             pytest.skip("shop bootstrap failed")
-        h = {"X-Shop-Token": shop_token, "Content-Type": "application/json"}
+        h = {"X-Shop-Token": shop_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "assignment", "subject_id": "a1", "body": "no"}, timeout=15)
         assert r.status_code == 403
@@ -322,7 +322,7 @@ class TestRoleMatrix:
     def test_hr_cannot_write_403(self, hr_token):
         if not hr_token:
             pytest.skip("hr bootstrap failed")
-        h = {"X-HR-Token": hr_token, "Content-Type": "application/json"}
+        h = {"X-HR-Token": hr_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "recovery_event", "subject_id": "r1",
             "body": "HR should be denied."}, timeout=15)
@@ -331,7 +331,7 @@ class TestRoleMatrix:
     def test_fl_can_write_project(self, fl_token):
         if not fl_token:
             pytest.skip("fl bootstrap failed")
-        h = {"X-FL-Token": fl_token, "Content-Type": "application/json"}
+        h = {"X-FL-Token": fl_token, "X-Admin-Token": "", "Content-Type": "application/json"}
         r = requests.post(f"{BASE_URL}/api/field-memory", headers=h, json={
             "subject_kind": "project",
             "subject_id": f"TEST-{uuid.uuid4().hex[:8]}",
