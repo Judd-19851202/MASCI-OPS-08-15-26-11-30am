@@ -22,6 +22,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import AttachmentStrip from "@/components/dispatch/AttachmentStrip";
+import OperationalMomentsRail from "@/components/dispatch/OperationalMomentsRail";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -555,6 +556,22 @@ export default function AssignmentDrawer({
               ))}
             </ol>
           )}
+        </section>
+
+        {/* iter431 · Phase 29 · Operational Moments Rail (read-only ·
+            merged chronology · lifecycle + recovery + continuity +
+            attachments) */}
+        <section
+          className="border-t border-slate-100"
+          data-testid="drawer-moments-section"
+        >
+          <h3 className="px-5 pt-4 pb-2 text-xs uppercase tracking-widest text-slate-500 font-bold">
+            {t("Operational moments")}
+          </h3>
+          <OperationalMomentsRail
+            assignmentId={assignment?.id}
+            tenantOverride={tenantOverride}
+          />
         </section>
 
         {/* iter417 · Phase 20.0 · Operational Attachments (load proof) */}

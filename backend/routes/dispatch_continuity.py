@@ -504,6 +504,125 @@ def build_dispatch_continuity_router(
             "history": doc.get("recovery_history") or [],
         }
 
+    # iter431 · Phase 29 · Operational Moments Rail (read-only · merged
+    # chronology · NOT analytics · NOT activity feed). One round-trip
+    # for the AssignmentDrawer rail so the FE never juggles four GETs
+    # and four loading states. Reuses existing collections — NO new
+    # collection introduced.
+    @router.get("/operational-moments/by-assignment/{assignment_id}")
+    async def operational_moments_by_assignment(
+        assignment_id: str,
+        actor: Dict[str, Any] = Depends(require_any_portal_token_dep),  # noqa: ARG001
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        """Merged chronological list of:
+          • lifecycle state transitions (state_history)
+          • dispatch_continuity_events
+          • recovery_history transitions
+          • operational_attachments uploads
+
+        Each row is normalised to:
+          {kind, ts, label, actor, actor_role, detail, source}
+
+        Read-only · sorted ascending by `ts` so the rail reads from
+        first to last like an operational truth timeline. Calm
+        operational language only — no PII beyond what already lives
+        in the underlying documents.
+        """
+        tenant_id = _resolve_tenant(x_tenant_id)
+        aid = assignment_id.strip()
+
+        assignment = await db.dispatch_assignments.find_one(
+            {"id": aid, "tenant_id": tenant_id},
+            {"_id": 0, "id": 1, "state_history": 1, "recovery_history": 1},
+        )
+        if not assignment:
+            raise HTTPException(404, "Assignment not found")
+
+        moments = []
+
+        # 1. Lifecycle state transitions
+        for h in (assignment.get("state_history") or []):
+            moments.append({
+                "kind": "lifecycle",
+                "ts": h.get("at") or h.get("created_at"),
+                "label": f"State → {h.get('to') or h.get('state') or '?'}",
+                "actor": h.get("by") or h.get("actor") or "",
+                "actor_role": h.get("by_role") or h.get("actor_role") or "",
+                "detail": h.get("reason") or h.get("note") or "",
+                "source": "state_history",
+                "from_state": h.get("from"),
+                "to_state": h.get("to"),
+            })
+
+        # 2. Recovery sub-state history
+        for h in (assignment.get("recovery_history") or []):
+            moments.append({
+                "kind": "recovery",
+                "ts": h.get("at") or h.get("created_at"),
+                "label": f"Recovery → {h.get('to') or h.get('state') or '?'}",
+                "actor": h.get("by") or h.get("actor") or "",
+                "actor_role": h.get("by_role") or h.get("actor_role") or "",
+                "detail": h.get("note") or "",
+                "source": "recovery_history",
+                "from_state": h.get("from"),
+                "to_state": h.get("to"),
+            })
+
+        # 3. Continuity events
+        try:
+            cur = db.dispatch_continuity_events.find(
+                {"tenant_id": tenant_id, "assignment_id": aid},
+                {"_id": 0},
+            )
+            async for e in cur:
+                moments.append({
+                    "kind": "continuity",
+                    "ts": e.get("created_at") or e.get("ts"),
+                    "label": e.get("title") or e.get("kind_label") or (e.get("kind") or "event"),
+                    "actor": e.get("created_by") or e.get("by") or "",
+                    "actor_role": e.get("created_by_role") or e.get("by_role") or "",
+                    "detail": e.get("note") or e.get("detail") or "",
+                    "source": "dispatch_continuity_events",
+                    "event_kind": e.get("kind"),
+                })
+        except Exception:
+            pass
+
+        # 4. Operational attachments (load proof · breakdown photos · etc.)
+        try:
+            cur = db.operational_attachments.find(
+                {"tenant_id": tenant_id, "host_kind": "assignment", "host_id": aid},
+                {"_id": 0, "data_b64": 0, "r2_key": 0},  # never expose bytes here
+            )
+            async for a in cur:
+                moments.append({
+                    "kind": "attachment",
+                    "ts": a.get("uploaded_at"),
+                    "label": f"Attachment · {a.get('type') or 'photo'}",
+                    "actor": a.get("uploaded_by") or "",
+                    "actor_role": a.get("uploaded_role") or "",
+                    "detail": a.get("operational_note") or "",
+                    "source": "operational_attachments",
+                    "attachment_id": a.get("id"),
+                    "attachment_type": a.get("type"),
+                    "filename": a.get("filename"),
+                })
+        except Exception:
+            pass
+
+        # Sort ascending by ts (string-sortable ISO-8601). Empties last
+        # so a missing timestamp doesn't poison the ordering.
+        def _key(m):
+            return (m.get("ts") or "9999-99-99T99:99:99")
+        moments.sort(key=_key)
+
+        return {
+            "assignment_id": aid,
+            "count": len(moments),
+            "moments": moments,
+        }
+
     return router
 
 

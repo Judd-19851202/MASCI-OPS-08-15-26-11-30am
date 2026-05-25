@@ -9085,6 +9085,7 @@ _safety_digest_task: Optional[asyncio.Task] = None
 
 
 @app.on_event("startup")
+@app.on_event("startup")
 async def _start_safety_digest_cron():
     """Long-running weekly cron — Monday 14:00 UTC default. Email goes
     to SAFETY_DIGEST_TO_EMAIL (default safety@mascigc.com)."""
@@ -9101,6 +9102,44 @@ async def _start_safety_digest_cron():
         logger.info("[safety-digest] weekly cron started")
     except Exception as e:  # noqa: BLE001
         logger.exception(f"[safety-digest] failed to start: {e}")
+
+
+# iter431 · Phase 29 · Part 6 · weekly operator digest cron.
+_operator_digest_task: Optional[asyncio.Task] = None
+
+
+@app.on_event("startup")
+async def _start_operator_digest_cron():
+    """Long-running weekly cron — Monday 14:00 UTC default. Email goes
+    to OPERATOR_DIGEST_RECIPIENTS (comma-separated) or falls back to
+    SAFETY_DIGEST_TO_EMAIL. Reuses the existing Resend `_safety_send_email`
+    wrapper — no new SDK plumbing."""
+    global _operator_digest_task
+    try:
+        from lib.operator_digest import operator_digest_scheduler_loop  # noqa: PLC0415
+        _operator_digest_task = asyncio.create_task(
+            operator_digest_scheduler_loop(
+                db,
+                send_email_fn=_safety_send_email,
+            )
+        )
+        logger.info("[operator-digest] weekly cron started")
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"[operator-digest] failed to start: {e}")
+
+
+# iter431 · Phase 29 · Part 4 · TTL index ensures for transient surfaces.
+@app.on_event("startup")
+async def _ensure_stability_ttls():
+    try:
+        from lib.stability_governance import ensure_stability_ttls  # noqa: PLC0415
+        report = await ensure_stability_ttls(db)
+        logger.info(
+            f"[stability-governance] TTL ensures · created={len(report['created'])} "
+            f"· skipped={len(report['skipped'])} · errors={len(report['errors'])}",
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[stability-governance] TTL ensure failed: {e}")
 
 
 # ─── iter246 F3 · Weekly PO Request digest (PM + HR) ─────────────────
@@ -9267,41 +9306,27 @@ _require_dispatch_token = make_require_dispatch_token(db)
 _require_safety_for_fleet = _require_safety  # already built above
 
 
-async def _require_fleet_submitter(
-    request: Request,
-    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
-    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
-    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
-    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
-    x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
-) -> Dict[str, Any]:
-    """Per D2 operator decision · DVIR can be submitted by:
-    (a) a public-tile anonymous driver (no token) · audit captures
-        driver_name + truck_unit + signature for evidence
-    (b) any signed-in employee (Safety / Dispatch / HR / Shop / Admin)
-        · audit additionally captures the signed-in actor identity.
-    Read endpoints are gated tighter — this dep is ONLY for submission."""
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
-        return {"role": "admin", "actor_id": "admin", "name": "Admin"}
-    if x_safety_token:
-        try:
-            from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
-            u = await is_valid_safety_user_token_async(db, x_safety_token)
-            if u:
-                return {"role": "safety", "actor_id": u.get("id"), "name": u.get("name", "")}
-        except Exception:
-            pass
-    if x_dispatch_token:
-        try:
-            from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
-            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
-            if u:
-                return {"role": "dispatch", "actor_id": u.get("id"), "name": u.get("name", "")}
-        except Exception:
-            pass
-    # Public-tile fallback · operator-approved (D2 a) · audit captures
-    # driver_name + truck identity + signature for evidence quality.
-    return {"role": "public", "actor_id": "", "name": ""}
+# iter431 · Phase 29 · Part 5a · fleet-ops auth deps now live in
+# routes/fleet_ops_deps.py (zero-behaviour-change factory move).
+from routes.fleet_ops_deps import (  # noqa: E402
+    make_require_fleet_submitter,
+    make_require_any_fleet_portal,
+)
+_require_fleet_submitter = make_require_fleet_submitter(
+    db=db,
+    is_valid_admin_token=_is_valid_admin_token,
+)
+
+
+# Phase 4 · multi-portal READ gate. Any of admin / shop / dispatch /
+# safety satisfies — used for defect detail + audit-trail reads where
+# the operator wants all three operational scopes (Shop, Dispatch,
+# Safety) to see the same record.
+_require_any_fleet_portal = make_require_any_fleet_portal(
+    db=db,
+    is_valid_admin_token=_is_valid_admin_token,
+    shop_token_for=_shop_token_for,
+)
 
 
 # iter370 · Canonical shared dispatch+admin gate (single source of truth).
@@ -9385,40 +9410,8 @@ async def _require_shop_or_admin_fleet(
     )
 
 
-# Phase 4 · multi-portal READ gate. Any of admin / shop / dispatch /
-# safety satisfies — used for defect detail + audit-trail reads where
-# the operator wants all three operational scopes (Shop, Dispatch,
-# Safety) to see the same record.
-async def _require_any_fleet_portal(
-    request: Request,
-    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
-    x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
-    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
-    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
-) -> Dict[str, Any]:
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
-        return {"role": "admin"}
-    if x_shop_token:
-        shop_pw = os.environ.get("SHOP_PASSWORD", "")
-        if shop_pw and x_shop_token == _shop_token_for(shop_pw):
-            return {"role": "shop"}
-    if x_dispatch_token:
-        try:
-            from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
-            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
-            if u:
-                return {"role": "dispatch", **u}
-        except Exception:
-            pass
-    if x_safety_token:
-        try:
-            from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
-            u = await is_valid_safety_user_token_async(db, x_safety_token)
-            if u:
-                return {"role": "safety", **u}
-        except Exception:
-            pass
-    raise HTTPException(401, "Shop, Dispatch, Safety, or Admin auth required")
+# iter431 · Phase 29 · Part 5a · `_require_any_fleet_portal` extracted
+# above into `routes/fleet_ops_deps.make_require_any_fleet_portal`.
 
 
 @app.on_event("startup")
@@ -9509,6 +9502,20 @@ from routes.admin_persistence_health import build_admin_persistence_health_route
 app.include_router(build_admin_persistence_health_router(
     db=db,
     require_admin_strict_dep=require_admin_strict,
+))
+
+# iter431 · Phase 29 · Part 4 · admin-strict stability sweepers
+from routes.admin_stability import build_admin_stability_router  # noqa: E402
+app.include_router(build_admin_stability_router(
+    db=db,
+    require_admin_strict_dep=require_admin_strict,
+))
+
+# iter431 · Phase 29 · Part 6 · admin weekly operator digest generator
+from routes.admin_operator_digest import build_admin_operator_digest_router  # noqa: E402
+app.include_router(build_admin_operator_digest_router(
+    db=db,
+    require_admin_dep=require_admin,
 ))
 
 # iter418/419/420 · Phases 20.1/21.0/22.0 · Operational Continuity primitives.
@@ -9833,78 +9840,23 @@ async def _require_directory_session_for_passkeys(
 async def _mint_multi_login_response_for_passkey(
     user_row: Dict[str, Any], request: Request,
 ) -> Dict[str, Any]:
-    """Replicate /api/auth/multi-login response shape after a successful
-    passkey ceremony. MFA still applies — if the user has MFA enabled,
-    return the same challenge envelope the password flow returns."""
-    # MFA gate (preserves doctrine from iter375)
-    cfg = user_row.get("mfa") or {}
-    if cfg.get("enabled"):
-        try:
-            import mfa as _mfa  # noqa: PLC0415
-            challenge = _mfa.mint_challenge_token(user_row["id"])
-            await _mfa.write_audit(
-                db, user_id=user_row["id"], user_email=user_row.get("email"),
-                event="LOGIN_MFA_CHALLENGE_ISSUED",
-                ip=(request.client.host if request.client else None),
-                user_agent=request.headers.get("user-agent"),
-                metadata={"login_method": "passkey"},
-            )
-        except Exception as e:  # noqa: BLE001
-            logging.getLogger(__name__).error(f"[passkey-login] MFA challenge mint failed: {e}")
-            raise HTTPException(500, "MFA challenge unavailable")
-        return {
-            "ok": True,
-            "mfa_required": True,
-            "mfa_challenge_token": challenge,
-            "user": {"email": user_row.get("email"), "name": user_row.get("name")},
-        }
+    """iter431 · Phase 29 · Part 5b · delegated to the canonical
+    factory at `routes.passkey_session_mint.make_mint_multi_login_response_for_passkey`.
+    The wrapper signature is preserved because the passkey router was
+    wired with this name BEFORE the extraction and downstream code
+    (and tests) may still reference it. Behaviour is identical."""
+    return await _passkey_session_mint_fn(user_row, request)
 
-    portal_tokens = await _auth_directory_router._mint_all_portal_tokens(user_row)  # type: ignore[attr-defined]
-    session_token = _ud_for_pk.make_directory_token()
-    await _ud_for_pk.persist_session(db, token=session_token, user_id=user_row["id"])
-    await _ud_for_pk.stamp_last_login(db, user_id=user_row["id"], portal="multi")
 
-    # Session-activity reset (mirrors multi-login behaviour)
-    try:
-        from session_timeout import reset_session_activity
-        _tier = {"admin": "ADMIN_HR", "hr": "ADMIN_HR",
-                 "pm": "OPERATIONS", "shop": "OPERATIONS",
-                 "safety": "OPERATIONS", "dispatch": "OPERATIONS",
-                 "field_leadership": "ADMIN_FL"}
-        _ua = request.headers.get("user-agent") or ""
-        _ip = request.client.host if request.client else None
-        for _p, _t in (portal_tokens or {}).items():
-            if _t:
-                await reset_session_activity(
-                    db, _t, _tier.get(_p, "OPERATIONS"),
-                    user_id=user_row.get("id"), email=user_row.get("email"),
-                    actor_label=_p, ip=_ip, user_agent=_ua,
-                )
-    except Exception:  # noqa: BLE001
-        pass
-
-    # Audit · same shape as multi-login but with method tag
-    try:
-        await _ud_for_pk.write_audit(
-            db,
-            actor_email=user_row["email"],
-            action="multi_login",
-            target_email=user_row["email"],
-            diff={"portals_granted": sorted([p for p, t in (portal_tokens or {}).items() if t]),
-                  "login_method": "passkey"},
-            ip=(request.client.host if request.client else None),
-            user_agent=request.headers.get("user-agent"),
-        )
-    except Exception:  # noqa: BLE001
-        pass
-
-    return {
-        "ok": True,
-        "session_token": session_token,
-        "portal_tokens": portal_tokens,
-        "user": _ud_for_pk.public_view(user_row),
-        "must_change_password": bool(user_row.get("must_change_password")),
-    }
+# Build the canonical mint once at module load.
+from routes.passkey_session_mint import (  # noqa: E402
+    make_mint_multi_login_response_for_passkey as _make_passkey_mint,
+)
+_passkey_session_mint_fn = _make_passkey_mint(
+    db=db,
+    mint_all_portal_tokens_fn=_auth_directory_router._mint_all_portal_tokens,  # type: ignore[attr-defined]
+    ud_for_pk=_ud_for_pk,
+)
 
 
 _passkeys_router = build_passkeys_router(
