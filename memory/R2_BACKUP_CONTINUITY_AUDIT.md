@@ -1,10 +1,77 @@
 # R2_BACKUP_CONTINUITY_AUDIT.md
 ## Phase 25.2 · MASCI Platform Backup Coverage Audit
-## Date: 2026-05-25 · iter425 audit pass (read-only investigation)
+## Date: 2026-05-25 · iter425 audit + remediation
 
 ---
 
-## 1. Executive Verdict
+## ✅ REMEDIATION LANDED · 2026-05-25 (iter425)
+
+Both **P0** (R2 auto-discovery) and **P1** (MFA secret redaction) fixes are now live.
+The disaster-recovery gap identified in Section 11 is **CLOSED**.
+
+### Fixes shipped
+
+| # | Fix | File / location | Status |
+|---|-----|-----------------|--------|
+| 1 | R2 complete-archive switched from `EXPORTABLE_KINDS` allowlist → `db.list_collection_names()` auto-discovery | `server.py:_build_complete_archive_on_disk` (~line 5550-5680) | 🟢 LIVE |
+| 2 | `mfa.secret` + `mfa.recovery_codes` redacted on `user_directory` in BOTH pipelines | `server.py:BACKUP_SENSITIVE_FIELD_REDACTION` (line 4080-4100) | 🟢 LIVE |
+| 3 | Explicit exclusion logging via `logger.info("[complete-archive] explicit exclusions ...")` + `MANIFEST.explicit_exclusions` | `server.py:_build_complete_archive_on_disk` | 🟢 LIVE |
+| 4 | New manifest fields: `captured_collections` · `explicit_exclusions` · `redaction_rules_applied` | every R2 archive zip's MANIFEST.json | 🟢 LIVE |
+
+### Verification
+
+- **`test_iter425_backup_auto_discovery.py` · 6 / 6 PASS**:
+  - ✅ R2 archive now contains: `dispatch_assignments`, `dispatch_continuity_events`, `operational_attachments`, `user_passkeys`, `user_directory`
+  - ✅ MFA secrets + recovery_codes are STRIPPED from `user_directory` records in the archive
+  - ✅ `password_hash` regression guard on `users` still passes
+  - ✅ Operational attachment `data_b64` binary preserved end-to-end (restore-readiness round-trip)
+  - ✅ Legacy `EXPORTABLE_KINDS` six kinds still covered under their friendly names
+  - ✅ MANIFEST.json contains the new audit fields
+- **Full parity-lock**: 245 / 245 PASS (no regressions)
+- **Ruff**: clean on all changed files
+- Smoke verified manually by building one archive against the live preview DB.
+
+### Before / After behavior
+
+| Surface                              | Before iter425             | After iter425                                |
+|--------------------------------------|----------------------------|----------------------------------------------|
+| Collection discovery in R2 archive   | Hard-coded 6-entry allowlist | `db.list_collection_names()` auto-discovery |
+| Phase 12-25 collections in R2        | 🔴 MISSED                  | 🟢 INCLUDED automatically                    |
+| MFA TOTP secrets in any backup       | 🔴 PRESENT (plaintext)     | 🟢 REDACTED before write                     |
+| Excluded collections in audit trail  | 🔴 Silent                  | 🟢 Logged + listed in MANIFEST.json          |
+| Future new collections               | 🔴 Required manual allowlist update | 🟢 Inherit coverage automatically   |
+
+### Manifest schema (new fields)
+
+```json
+{
+  "generated_at": "2026-05-25T04:30:00Z",
+  "mode": "complete",
+  "source": "mascidocs.com",
+  "total_records": 38241,
+  "per_kind": { "dispatch_assignments": 1247, ... },
+  "captured_collections": ["dispatch_assignments", "dispatch_continuity_events", ... ],
+  "explicit_exclusions": [],
+  "redaction_rules_applied": ["user_directory", "users"],
+  "inlined_photos": 412,
+  "inlined_photo_bytes": 18421502,
+  "failed_photos": 0,
+  "notice": "Complete standalone backup. ... MFA secrets, password hashes, and recovery codes are redacted."
+}
+```
+
+### Updated Go / No-Go
+
+| Scenario | Before iter425 | After iter425 |
+|----------|----------------|---------------|
+| Daily ops · email backup live | 🟢 GO | 🟢 GO |
+| Container disaster · restore from local zip | 🟢 GO | 🟢 GO |
+| Disaster recovery from **R2 only** | 🔴 NO-GO | 🟢 **GO** |
+| Live customer rollout depending on R2 as off-site copy | 🟠 CONDITIONAL | 🟢 **GO** |
+
+---
+
+## 1. Executive Verdict (PRE-REMEDIATION — preserved for record)
 
 **Mixed: partially safe · one real gap that must be closed before depending on R2 alone for disaster recovery.**
 

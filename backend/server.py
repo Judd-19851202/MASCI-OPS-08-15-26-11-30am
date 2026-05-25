@@ -4076,6 +4076,34 @@ EXPORTABLE_KINDS = {
     "equipment-inspections": "equipment_inspections",
 }
 
+# ════════════════════════════════════════════════════════════════════════
+# iter425 · Phase 25.2 · BACKUP-WIDE redaction + exclusion config
+# Extracted to module scope so the R2 complete-archive in Pipeline B can
+# share the exact same hygiene rules as Pipeline A.
+# ════════════════════════════════════════════════════════════════════════
+# Sensitive fields stripped from EVERY backup pipeline.
+# Mongo projection format: 0 = exclude. `_id` always excluded.
+BACKUP_SENSITIVE_FIELD_REDACTION = {
+    "users":          {"_id": 0, "password_hash": 0},
+    # iter425 · MFA TOTP secret + recovery codes are bearer-equivalent
+    # credentials. Never persist them in a portable backup.
+    "user_directory": {
+        "_id": 0,
+        "password_hash": 0,
+        "mfa.secret": 0,
+        "mfa.recovery_codes": 0,
+    },
+}
+
+# Collections explicitly EXCLUDED from auto-discovery backup paths.
+# Reasons documented in /app/memory/R2_BACKUP_CONTINUITY_AUDIT.md §9.
+# We intentionally keep webauthn_challenges + dispatch_driver_sessions IN
+# for now (short-lived but harmless · keeps audit explicit · no silent drop).
+BACKUP_EXPLICIT_EXCLUSIONS = {
+    "system.indexes",  # MongoDB internal
+}
+
+
 # Per-kind row schema — what each CSV column should contain. We deliberately
 # omit photos / signatures (binary blobs) and the raw checklist dict (renders
 # poorly in Excel). Reviewers click into the Admin Hub for the full record.
@@ -4492,14 +4520,13 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
         EXCLUDE_FROM_AUTO_BACKUP = {
             # Already covered above
             *(coll for coll in EXPORTABLE_KINDS.values()),
-            # System / internal
-            "system.indexes",
+            # Module-level explicit exclusions (system collections, etc.)
+            *BACKUP_EXPLICIT_EXCLUSIONS,
         }
         # Per-collection projection rules — sensitive fields stay redacted
         # regardless of which path picks the collection up.
-        SENSITIVE_FIELD_REDACTION = {
-            "users": {"password_hash": 0, "_id": 0},
-        }
+        # iter425: now also covers `user_directory.mfa.secret` + recovery codes.
+        SENSITIVE_FIELD_REDACTION = BACKUP_SENSITIVE_FIELD_REDACTION
 
         all_collections = await db.list_collection_names()
         log_lines.append("")
@@ -5575,15 +5602,53 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
     seen_keys: set = set()  # dedupe — same photo referenced from 2 docs
 
     sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
+    excluded_logged: List[str] = []
     try:
         sync_db = sync_client[db_name]
         with _zf.ZipFile(str(dst_zip), "w", _zf.ZIP_DEFLATED, compresslevel=6) as zf:
+            # ════════════════════════════════════════════════════════════
+            # iter425 · Phase 25.2 · AUTO-DISCOVERY (replaces EXPORTABLE_KINDS allowlist)
+            # ────────────────────────────────────────────────────────────
             # Pass 1 — every record, every collection, as JSON.
+            # Mirrors Pipeline A's behavior so NEW collections (Phase 12-25:
+            # dispatch_assignments · dispatch_continuity_events ·
+            # operational_attachments · user_passkeys · etc.) inherit R2
+            # coverage automatically with zero allowlist maintenance.
+            #
             # Photos stay as `photo://` refs in the JSON; the actual
             # bytes get inlined separately so the manifest links them.
-            for kind, coll_name in EXPORTABLE_KINDS.items():
+            # Operational attachments store `data_b64` INLINE — they
+            # restore from the JSON dump alone, no photo-walk needed.
+            # ════════════════════════════════════════════════════════════
+            all_collections = sorted(sync_db.list_collection_names())
+            for coll_name in all_collections:
+                # Skip Mongo system collections + module-level explicit
+                # exclusions (kept in BACKUP_EXPLICIT_EXCLUSIONS for audit
+                # visibility — see R2_BACKUP_CONTINUITY_AUDIT.md §9).
+                if coll_name in BACKUP_EXPLICIT_EXCLUSIONS or coll_name.startswith("system."):
+                    excluded_logged.append(coll_name)
+                    continue
+
+                # Friendly "kind" for the in-zip folder — matches Pipeline A
+                # convention for the six legacy safety collections, otherwise
+                # uses the raw collection name. Restorers don't care which
+                # folder shape they see — both ship valid JSON.
+                kind = next(
+                    (k for k, v in EXPORTABLE_KINDS.items() if v == coll_name),
+                    coll_name,
+                )
+
+                # iter425 · same sensitive-field redaction as Pipeline A
+                projection = BACKUP_SENSITIVE_FIELD_REDACTION.get(coll_name, {"_id": 0})
+
                 kind_count = 0
-                cursor = sync_db[coll_name].find({}, {"_id": 0}).sort("created_at", -1)
+                # `created_at` is the natural sort order for safety records;
+                # collections without it (passkeys, attachments, etc.) just
+                # iterate insertion order — safe either way.
+                try:
+                    cursor = sync_db[coll_name].find({}, projection).sort("created_at", -1)
+                except Exception:  # noqa: BLE001
+                    cursor = sync_db[coll_name].find({}, projection)
                 for doc in cursor:
                     rec_id = doc.get("id") or f"row_{kind_count:06d}"
                     safe_id = "".join(c if c.isalnum() or c in "._-" else "_" for c in str(rec_id))
@@ -5596,15 +5661,13 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
                     for ref in _iter_photo_refs(doc):
                         if not is_storage_ref(ref):
                             continue
-                        # Parse out the key from photo://bucket/key
                         try:
-                            key = ref.split("/", 3)[3]  # photo://bucket/key/path
+                            key = ref.split("/", 3)[3]
                         except (IndexError, AttributeError):
                             continue
                         if key in seen_keys:
                             continue
                         seen_keys.add(key)
-                        # Fetch + inline
                         try:
                             raw = read_photo_bytes_sync(ref)
                             zf.writestr(f"photos/{key}", raw)
@@ -5616,21 +5679,34 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
                 per_kind[kind] = kind_count
                 total_records += kind_count
 
+            # iter425 · log every excluded collection so audit trail is
+            # NEVER silent. R2_BACKUP_CONTINUITY_AUDIT.md §9 documents reasons.
+            if excluded_logged:
+                logger.info(
+                    f"[complete-archive] explicit exclusions ({len(excluded_logged)}): "
+                    f"{', '.join(sorted(set(excluded_logged)))}",
+                )
+
             manifest = {
                 "generated_at": datetime.now(timezone.utc).isoformat(),
                 "mode": "complete",
                 "source": "mascidocs.com",
                 "total_records": total_records,
                 "per_kind": per_kind,
+                "captured_collections": sorted(per_kind.keys()),
+                "explicit_exclusions": sorted(set(excluded_logged)),
+                "redaction_rules_applied": sorted(BACKUP_SENSITIVE_FIELD_REDACTION.keys()),
                 "inlined_photos": inlined_photos,
                 "inlined_photo_bytes": inlined_photo_bytes,
                 "failed_photos": failed_photos,
                 "notice": (
                     "Complete standalone backup. Contains every Mongo "
-                    "collection (JSON) plus the actual binary photos "
-                    "previously stored in R2. No external dependency — "
-                    "you can restore the entire MASCI Hub from this "
-                    "single zip even if Cloudflare R2 becomes unreachable."
+                    "collection (JSON) via auto-discovery (iter425) plus "
+                    "the actual binary photos previously stored in R2. "
+                    "No external dependency — you can restore the entire "
+                    "MASCI Hub from this single zip even if Cloudflare R2 "
+                    "becomes unreachable. MFA secrets, password hashes, "
+                    "and recovery codes are redacted."
                 ),
             }
             zf.writestr("MANIFEST.json", _json.dumps(manifest, indent=2))

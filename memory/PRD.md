@@ -1,6 +1,105 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter425 · Phase 25.2 · R2 Backup Continuity Remediation ✅
+
+### Mission
+Close the disaster-recovery gap surfaced by the Phase 25.2 audit:
+- R2 nightly archive was using a hard-coded 6-entry `EXPORTABLE_KINDS`
+  allowlist and silently MISSED every Phase 12-25 collection
+  (dispatch · continuity · attachments · passkeys · driver sessions ·
+  recovery state).
+- MFA TOTP secrets + recovery codes landed in backups in plaintext.
+
+Surgical P0 + P1 fix only · NO scope expansion · NO backup-management UI.
+
+### What ships
+- **Module-level redaction + exclusion config** (`server.py:4080-4100`):
+  - `BACKUP_SENSITIVE_FIELD_REDACTION` — shared by BOTH pipelines.
+    Now includes `user_directory.mfa.secret` and `mfa.recovery_codes`
+    in addition to legacy `users.password_hash` + `user_directory.password_hash`.
+  - `BACKUP_EXPLICIT_EXCLUSIONS` — system collections only (preserved for
+    audit-trail visibility · NO silent drops).
+- **Pipeline A (local zip + email)** already used auto-discovery; now
+  also inherits the new MFA redaction automatically (one constant · both pipelines).
+- **Pipeline B (R2 nightly complete archive)** rebuilt:
+  - Discovers collections via `sync_db.list_collection_names()` —
+    every NEW Phase 12-25 + future collection auto-includes.
+  - Friendly "kind" folder name preserved for the six legacy `EXPORTABLE_KINDS`
+    so existing restorers don't see folder-layout drift.
+  - `MANIFEST.json` now carries `captured_collections` + `explicit_exclusions`
+    + `redaction_rules_applied` (explicit audit trail).
+  - `[complete-archive] explicit exclusions ...` logged on every run.
+- **Photo-byte inlining** unchanged — operational attachments restore from
+  inline `data_b64` (verified by binary round-trip test).
+
+### Tests · iter425 6 / 6 PASS · parity-lock 245 / 245 PASS
+`test_iter425_backup_auto_discovery.py`:
+- `dispatch_assignments`, `dispatch_continuity_events`, `operational_attachments`,
+  `user_passkeys`, `user_directory` ALL now present in the R2 archive ✓
+- MFA `secret` + `recovery_codes` REDACTED on `user_directory` ✓
+- `password_hash` regression guard on `users` ✓
+- Operational-attachment `data_b64` binary preserved end-to-end ✓
+- Legacy `EXPORTABLE_KINDS` six kinds still covered under friendly names ✓
+- `MANIFEST.json` carries the new audit fields ✓
+
+### Restraint enforced (anti-scope NO list)
+- ❌ NO backup dashboard · NO restore GUI · NO management portal
+- ❌ NO scheduler change · NO retention change · NO frequency change
+- ❌ NO new endpoint · NO new admin surface · NO new env var
+- ❌ NO auth flow change · NO MFA UX change · NO session change
+- ❌ NO architectural drift · NO ERP-style "backup center"
+
+### Verified outcomes
+| Surface | Before iter425 | After iter425 |
+|---|---|---|
+| Phase 12-25 collections in R2 nightly | 🔴 MISSED | 🟢 INCLUDED automatically |
+| MFA TOTP secrets in any backup | 🔴 PLAINTEXT | 🟢 REDACTED |
+| Excluded collections in audit trail | 🔴 SILENT | 🟢 Logged + manifest |
+| Future new collections | 🔴 Manual allowlist | 🟢 Auto-inherited |
+| R2-only disaster recovery | 🔴 NO-GO | 🟢 GO |
+
+### Phase doctrine timeline (current state)
+1-16. iter397-424 · Phases 12-25.1 ✅
+17. **iter425 · Phase 25.2 · R2 Backup Continuity Remediation ✅**
+
+### Next iter candidates (gated)
+- 🟠 **iter426 · Operational Moments rail** in AssignmentDrawer (read-only
+  chronological list of `dispatch_continuity_events` per assignment) —
+  deferred to Day-1 / Week-1 debrief signal
+- 🟠 **iter427 · Phase 24 passkey fan-out** to FL · Dispatch · PM · Shop ·
+  Safety · HR · Governance
+- 🔵 **P3** — Add `webauthn_challenges` + `dispatch_driver_sessions` to
+  `BACKUP_EXPLICIT_EXCLUSIONS` (low-value transient data — keep IN for
+  now to keep audit visible · revisit if size warrants)
+- 🔵 **P3** — Add `/app/memory/*.md` to `DISK_BACKUP_ROOTS` (cheap insurance
+  vs. repo loss)
+- 🔵 **P3** — Author formal `RESTORE_RUNBOOK.md`
+
+### Verdict
+🟢 **All critical MASCI platform operational data — including DLS / trucking
+continuity, operational proof attachments, recovery continuity, and passkey
+metadata — now inherits automatic R2 backup coverage without manual
+allowlist maintenance.**
+
+🟢 **MFA / TOTP secrets are no longer persisted in plaintext backups.**
+
+🟢 **All future collections inherit R2 coverage automatically by doctrine.**
+
+### Updated audit doc
+`/app/memory/R2_BACKUP_CONTINUITY_AUDIT.md` — remediation section prepended;
+pre-remediation findings preserved as historical record.
+
+### Next Action Items
+- 🟡 **Tonight's 03:00 UTC R2 archive run** — first one with auto-discovery
+  active. Monitor `backup_health` row + `[complete-archive] explicit
+  exclusions` log line to confirm clean output.
+- 🟠 P3 backlog items as above (defer per restraint doctrine)
+
+---
+
+
+
 ## 2026-05-25 — iter424 · Phase 25.1 · Inline Recovery Continuity Actions ✅
 
 ### Mission
