@@ -4969,6 +4969,65 @@ _ARTICLES: list[dict] = [
         ],
         "related": ["dls-operational-attention", "dls-lifecycle-states", "portal-dispatch"],
     },
+    # ─────────────────────────────────────────────────────────────────
+    # iter417 · Phase 20.0 · Operational Attachments Foundation
+    # ─────────────────────────────────────────────────────────────────
+    {
+        "id": "dls-attachments-load-proof",
+        "section": "trucking",
+        "title": "DLS · Operational Attachments (Load Proof · Tickets · Photos)",
+        "summary": "How operational proof flows with the haul — tickets, BOLs, scale receipts, breakdown photos — without becoming document management.",
+        "scopes": ["dispatch", "admin", "leadership", "pm", "shop", "field"],
+        "tags": [
+            "dls", "attachments", "load-proof", "asphalt-ticket", "scale-ticket",
+            "tanker-bol", "bol", "fuel-receipt", "dump-receipt", "delivery-receipt",
+            "breakdown-photo", "damage-photo", "load-photo", "operational-proof",
+        ],
+        "body": [
+            {"type": "p", "text":
+                "Operational attachments are NOT files. They are operational proof "
+                "that travels with the haul itself. A scale ticket attached to a "
+                "Material assignment becomes part of that assignment's truth — "
+                "downstream consumers (PM, Shop, governance, post-deploy review) "
+                "all see the same proof tied to the same operational event."},
+            {"type": "bullets", "items": [
+                "Asphalt ticket / Scale ticket — material load proof from the plant or scale",
+                "Tanker BOL — bill of lading for tanker / liquid asphalt hauls",
+                "Fuel receipt / Dump receipt / Delivery receipt — operational proof points",
+                "Load photo / Damage photo / Breakdown photo — operational visual continuity",
+                "Inspection photo — pre-op or DVIR follow-up visual",
+                "Transfer document — equipment-move chain-of-custody",
+                "Operational note photo — anything else operations needs to remember",
+            ]},
+            {"type": "why", "text":
+                "Operational truth fades fast in the field — and paper tickets get "
+                "lost or damaged. Tying every photo and receipt to the assignment "
+                "(not to a folder, not to a project, not to a user account) keeps "
+                "the proof permanently glued to the operational truth that created "
+                "it. Dispatch, PM, Shop, and governance all read the same proof "
+                "from the same assignment record."},
+            {"type": "next", "items": [
+                "Driver or dispatcher attaches via the assignment context drawer · camera-first",
+                "Attachment becomes operational proof for that assignment forever",
+                "Mistake recovery: original uploader can delete within 5 minutes · then permanent",
+                "Each attachment carries: type · uploader · time · optional operational note",
+            ]},
+            {"type": "tip", "text":
+                "Take photos AT THE LOAD POINT or AT THE DUMP — not from memory in "
+                "the truck cab afterwards. The closer the proof is captured to the "
+                "operational moment, the more operational truth it carries."},
+            {"type": "warn", "text":
+                "Attachments are operational proof. Don't use them as a general "
+                "photo album · don't attach unrelated company documents · don't "
+                "attach personnel records. The 12 canonical types exist to keep "
+                "operational truth tight — anything that doesn't fit is doctrine "
+                "drift and belongs somewhere else."},
+        ],
+        "related": [
+            "dls-assignment-issuance", "dls-haul-types", "dls-lifecycle-states",
+            "dls-driver-shift-start", "portal-dispatch",
+        ],
+    },
 ]
 
 

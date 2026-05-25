@@ -1,6 +1,81 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter417 · Phase 20.0 · Operational Attachments Foundation (walking skeleton) ✅
+
+### Mission
+First foundational continuity primitive: image attachments tied to `dispatch_assignments` as operational proof (NOT files, NOT documents). Walking-skeleton scope · doctrine-aligned · coaching shipped at the same time.
+
+### What ships
+- **Collection**: `operational_attachments` (host_kind/host_id discriminator)
+- **5 endpoints** under `/api/operational-attachments/*` (types · upload · list · file · delete)
+- **12 canonical types** locked: asphalt_ticket · scale_ticket · tanker_BOL · fuel_receipt · delivery_receipt · load_photo · damage_photo · breakdown_photo · inspection_photo · transfer_document · dump_receipt · operational_note_photo
+- **Caps**: 5 MB/file · 25/host · 500-char note · 5-min mistake-recovery delete window
+- **MIME restriction**: image only (jpg · png · heic · webp · gif)
+- **One display surface**: `AttachmentStrip` inline component mounted in `AssignmentDrawer` (no new pages, no new portals)
+- **Guidance article**: `dls-attachments-load-proof` (EN + ES · field-accurate operational Spanish · 5-block coaching pattern · searchable EN+ES)
+- **In-flow HelpLink**: under the attachment strip header → `/guidance/dls-attachments-load-proof`
+- **22 new EN→ES translation keys** in `lib/i18n.js`
+
+### Files shipped (9 changed · 4 new)
+- `backend/routes/operational_attachments.py` (NEW · ~250 LOC)
+- `backend/guidance/translations_es_iter417.py` (NEW · ES counterpart)
+- `backend/tests/test_iter417_operational_attachments.py` (NEW · 13 lock tests)
+- `frontend/src/components/dispatch/AttachmentStrip.jsx` (NEW · ~210 LOC)
+- `backend/server.py` · `backend/guidance/content.py` · `backend/guidance/translations_es.py` · `frontend/src/components/dispatch/AssignmentDrawer.jsx` · `frontend/src/lib/i18n.js` (modifications)
+- `/app/memory/PHASE20_0_ATTACHMENTS_FOUNDATION_LOG.md` (NEW · evidence)
+
+### Tests · 181 / 181 PARITY-LOCK PASS
+168 baseline + **13 new iter417 lock tests**: types canonical · upload happy-path · list+sanitized shape · file binary fetch · type/MIME/size/host_kind/host_existence validation · delete in 5-min window · anon upload+list blocked (urllib bypass of conftest monkey-patch) · guidance article registered+searchable EN+ES.
+
+### Guardrails
+- Ruff clean · ESLint clean
+- Operator vocabulary scanner: **0 T2/T3** · touch-target audit clean
+- Live `/dispatch-portal/board` → row tap → drawer · AttachmentStrip renders inline calmly under history
+
+### Restraint enforced (anti-scope NO list)
+- ❌ NO document management · NO folders · NO albums · NO buckets · NO "Attachments dashboard" page
+- ❌ NO bulk operations · NO download-all · NO ZIP export
+- ❌ NO PDF / doc / spreadsheet (images only for walking skeleton)
+- ❌ NO OCR · NO auto-tagging · NO annotation tools
+- ❌ NO surveillance · NO auto-snapshot · NO GPS attachment
+- ❌ NO new portal · NO new admin page · NO multi-host expansion in this iter
+
+### Roles (current iter)
+- Admin · Dispatch: full read/write/delete (admin always · dispatch own + 5-min window)
+- PM · Shop · Safety · HR (any-portal-token): read-only
+- Driver magic-link · Public: not yet (Phase 20.1)
+
+### Phase doctrine timeline (current state)
+1. iter397-405 · Phases 12-13.2 ✅
+2. iter406-407 · Phase 14 ✅
+3. iter408 · Phase 14.1-14.2 ✅
+4. iter409 · Phase 14.3 ✅
+5. iter410 · Phase 15.1 ✅
+6. iter411 · Phase 16 ✅
+7. iter412 · Phase 16.1 ✅
+8. iter413 · Phase 17 ✅
+9. iter414 · Phase 18 + 18.1 ✅
+10. iter415 · Phase 19 (audit) ✅
+11. iter416 · Phase 19.1 (Day-1 debrief capture) ✅
+12. **iter417 · Phase 20.0 (Attachments Foundation · walking skeleton) ✅**
+
+### Next iter candidates (held until needed)
+- 🟡 **iter418 · Phase 21.0** — Operational Exception Continuity (continuity-event model · 1 edge case)
+- 🟡 **iter419 · Phase 22.0** — Shop Recovery Continuity (7-state breakdown lifecycle)
+- 🟡 **iter420 · Phase 23.0** — Offline Continuity Primitive (`/shift` only · invisible sync)
+- 🟠 **Phase 20.1** — Driver magic-link upload path
+- 🟠 **Phase 20.2** — Multi-host expansion (incidents · inspections · daily reports · breakdowns)
+- 🟠 **Phase 20.3** — Cross-portal attachment surfacing (PM tile · Shop tile thumbnails)
+
+### Next Action Items
+- 🟡 **Day-1 Live Ops Debrief filing** — still the gating signal for every P2/P3 backlog item
+- 🟠 Proceed with **iter418 · Phase 21.0** when ready
+
+---
+
+
+
 ## 2026-05-25 — iter416 · Phase 19.1 · Day-1 Live Ops Debrief Capture Form ✅
 
 ### Mission

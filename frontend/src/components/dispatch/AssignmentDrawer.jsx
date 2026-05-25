@@ -21,6 +21,7 @@ import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import AttachmentStrip from "@/components/dispatch/AttachmentStrip";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -554,6 +555,11 @@ export default function AssignmentDrawer({
               ))}
             </ol>
           )}
+        </section>
+
+        {/* iter417 · Phase 20.0 · Operational Attachments (load proof) */}
+        <section className="px-5 sm:px-6 pb-8" data-testid="drawer-attachments-section">
+          <AttachmentStrip assignmentId={assignment?.id} canWrite={true} />
         </section>
       </aside>
     </>

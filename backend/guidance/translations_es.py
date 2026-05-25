@@ -1949,3 +1949,8 @@ TRANSLATIONS_ES.update(_EXTRA_ES_ITER297)
 # attention · health summary) with field-accurate operational Spanish.
 from .translations_es_iter414 import EXTRA_ES as _EXTRA_ES_ITER414  # noqa: E402
 TRANSLATIONS_ES.update(_EXTRA_ES_ITER414)
+
+# iter417 · Phase 20.0 · Operational Attachments Foundation —
+# coaching shipped at the same time as the primitive.
+from .translations_es_iter417 import EXTRA_ES as _EXTRA_ES_ITER417  # noqa: E402
+TRANSLATIONS_ES.update(_EXTRA_ES_ITER417)

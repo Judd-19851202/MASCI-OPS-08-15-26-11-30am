@@ -9759,11 +9759,27 @@ from routes.dispatch_day1_debrief import build_day1_debrief_router  # noqa: E402
 _dls_day1_debrief_router = build_day1_debrief_router(require_admin_dep=require_admin)
 app.include_router(_dls_day1_debrief_router)
 
+# iter417 · Phase 20.0 · Operational Attachments Foundation (walking skeleton).
+# Single primitive: attach images to dispatch_assignments only (this iter).
+# Doctrine: operational proof continuity, NOT document management.
+from routes.operational_attachments import (  # noqa: E402
+    build_operational_attachments_router,
+    ensure_operational_attachments_indexes,
+)
+_op_attachments_router = build_operational_attachments_router(
+    db,
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+    require_any_portal_token_dep=_require_any_portal_token,
+)
+app.include_router(_op_attachments_router)
+
 
 @app.on_event("startup")
 async def _ensure_dls_indexes() -> None:
     try:
         await ensure_dispatch_lifecycle_indexes(db)
+        # iter417 · Phase 20.0 · attachments collection indexes
+        await ensure_operational_attachments_indexes(db)
         logging.getLogger(__name__).info(
             "[dispatch-lifecycle] iter392 router mounted · indexes ensured",
         )
