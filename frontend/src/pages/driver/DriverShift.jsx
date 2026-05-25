@@ -29,6 +29,54 @@ import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
+// ════════════════════════════════════════════════════════════════════
+// iter421 · Phase 23.0 · Offline Continuity Primitive (walking skeleton)
+// ────────────────────────────────────────────────────────────────────
+// One job: if a lifecycle transition fails because the device is
+// offline / weak signal, hold the update locally and replay when
+// signal returns. Operational truth NEVER disappears — it just waits.
+//
+// DOCTRINE GUARDS (walking-skeleton):
+//   - localStorage only · NO IndexedDB · NO ServiceWorker · NO sync engine
+//   - Max 3 queued updates · drop oldest if exceeded (anti-stale)
+//   - Replay strictly oldest→newest on `online` event
+//   - Invisible · operational language ("Update waiting to sync")
+//   - NO retry panels · NO conflict UI · NO technical chrome
+// ════════════════════════════════════════════════════════════════════
+const OFFLINE_QUEUE_KEY = "masci.driver.pendingTransitions";
+const OFFLINE_QUEUE_MAX = 3;
+
+function readOfflineQueue() {
+  try {
+    const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeOfflineQueue(items) {
+  try {
+    const capped = items.slice(-OFFLINE_QUEUE_MAX);
+    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(capped));
+  } catch {
+    /* localStorage unavailable — drop silently · operational continuity */
+  }
+}
+
+function enqueueOfflineTransition(entry) {
+  const q = readOfflineQueue();
+  q.push(entry);
+  writeOfflineQueue(q);
+  return Math.min(q.length, OFFLINE_QUEUE_MAX);
+}
+
+function clearOfflineQueue() {
+  try { localStorage.removeItem(OFFLINE_QUEUE_KEY); } catch { /* noop */ }
+}
+
 // Canonical state keys stay constant (used by the backend lifecycle
 // engine) — the human-readable label is resolved through `t()` at
 // render time so EN / ES parity is automatic.
@@ -198,12 +246,77 @@ export default function DriverShift() {
         }
       }
     } catch {
-      setErrorMsg(t("Connection failed — try again."));
+      // iter421 · Phase 23.0 · Network failure → queue locally · stay calm.
+      // The transition becomes a pending operational update, NOT an error.
+      const count = enqueueOfflineTransition({
+        assignment_id: assignment.id,
+        to_state: toState,
+        extra: extra || {},
+        queued_at: new Date().toISOString(),
+      });
+      setPendingSyncCount(count);
+      setErrorMsg("");
     } finally {
       setBusyState(null);
       setWaitSheetOpen(false);
     }
   }, [assignment, goSignedOut, t]);
+
+  // iter421 · Phase 23.0 · Replay queued transitions when signal returns.
+  // Invisible · operational · no retry chrome. Runs on mount AND on the
+  // browser `online` event. Mirrors operational truth back to backend
+  // strictly in queued order (oldest→newest).
+  const replayOfflineQueue = useCallback(async () => {
+    const q = readOfflineQueue();
+    if (q.length === 0) {
+      setPendingSyncCount(0);
+      return;
+    }
+    if (!getDriverToken()) return;
+    const remaining = [];
+    let replayedAny = false;
+    for (const entry of q) {
+      try {
+        const r = await fetch(
+          `${API}/api/dispatch/driver/assignments/${entry.assignment_id}/transition`,
+          {
+            method: "POST",
+            headers: driverHeaders(),
+            body: JSON.stringify({ to_state: entry.to_state, ...(entry.extra || {}) }),
+          },
+        );
+        if (r.status === 401) {
+          // Auth lost → preserve queue · re-attempt next signal
+          writeOfflineQueue(q);
+          return;
+        }
+        // Success OR 4xx domain rejection both clear the entry — driver
+        // cannot resolve a stale rejection from a quiet phone screen.
+        replayedAny = true;
+      } catch {
+        remaining.push(entry);
+      }
+    }
+    if (remaining.length === 0) {
+      clearOfflineQueue();
+    } else {
+      writeOfflineQueue(remaining);
+    }
+    setPendingSyncCount(remaining.length);
+    if (replayedAny) {
+      // Pull fresh assignment truth after replay so UI mirrors backend
+      refresh();
+    }
+  }, [refresh]);
+
+  // Boot · seed counter from any pre-existing queue · attempt one replay.
+  useEffect(() => {
+    setPendingSyncCount(readOfflineQueue().length);
+    replayOfflineQueue();
+    const onOnline = () => replayOfflineQueue();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [replayOfflineQueue]);
 
   if (loading) {
     return (

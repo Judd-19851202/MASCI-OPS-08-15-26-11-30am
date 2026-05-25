@@ -4669,6 +4669,19 @@ const ES = {
   "Transfer document": "Documento de transferencia",
   "Dump receipt": "Recibo de descarga",
   "Other photo": "Otra foto",
+  // iter418 · Phase 20.1 · Driver breakdown-proof prompt
+  "Operational proof · optional": "Prueba operacional · opcional",
+  "Add a breakdown photo? Helps Shop see what's wrong.": "¿Agregar foto de avería? Ayuda al Taller a ver qué está mal.",
+  "Take Photo": "Tomar foto",
+  "Skip": "Omitir",
+  // iter421 · Phase 23.0 · Offline continuity (invisible language)
+  "1 update waiting to sync": "1 actualización esperando sincronizar",
+  "{n} updates waiting to sync": "{n} actualizaciones esperando sincronizar",
+  "Operational update pending": "Actualización operacional pendiente",
+  // iter418/421 · errors stay operational, not technical
+  "Could not record that. Try again.": "No se pudo registrar. Intente de nuevo.",
+  "Connection failed — try again.": "Falló la conexión — intente de nuevo.",
+  "Connection failed — retrying…": "Falló la conexión — reintentando…",
 };
 
 const DICTS = { es: ES, en: {} };

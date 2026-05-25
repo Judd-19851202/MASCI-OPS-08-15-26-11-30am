@@ -1,6 +1,86 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-25 — iter418-420 · Phases 20.1 / 21.0 / 22.0 / 23.0 · Operational Field Continuity Expansion (walking skeletons) ✅
+
+### Mission
+Close the four continuity walking-skeletons in ONE combined surgical pass:
+breakdown-proof (20.1) · operational exceptions (21.0) · shop recovery (22.0) ·
+offline continuity (23.0). Doctrine: walking-skeleton primitives only · NO
+new portals · NO dashboards · NO ERP behavior.
+
+### What ships (4 phases · 1 router · 3 test files · 1 frontend wiring)
+- **Backend `routes/dispatch_continuity.py`** (NEW · ~370 LOC) — ONE router · THREE primitives:
+  - `POST /api/dispatch/driver/breakdown-proof/upload` (driver-session magic-link; type LOCKED to `breakdown_photo`; reuses iter417 `operational_attachments`)
+  - `GET /api/dispatch/continuity-events/kinds` + `POST /api/dispatch/continuity-events` + `GET /api/dispatch/continuity-events/by-assignment/{id}` (5 canonical kinds: TRAILER_SWAP · REASSIGNED_DURING_WAITING · STALE_ASSIGNMENT_RECOVERED · DELAYED_LIFECYCLE_UPDATE · ASSIGNMENT_REASSIGNED)
+  - `GET /api/dispatch/recovery/states` + `POST /api/dispatch/recovery/{id}/transition` + `GET /api/dispatch/recovery/{id}` (7-state shop recovery sub-state · decoupled from DLS `current_state` · append-only history)
+- **NEW collection** `dispatch_continuity_events` (indexes ensured on startup)
+- **Append-only** `recovery_history[]` array on `dispatch_assignments`
+- **Frontend `DriverShift.jsx`**:
+  - iter418 breakdown-proof prompt (optional · `data-testid="driver-breakdown-proof-prompt"`)
+  - iter421 offline queue (localStorage `masci.driver.pendingTransitions` · max 3 · replays on `online` event · invisible pending-sync indicator)
+- **Guidance articles** (4 NEW): `dls-breakdown-proof` · `dls-operational-exceptions` · `dls-shop-recovery` · `dls-offline-continuity` (EN + ES via `translations_es_iter418.py`)
+- **i18n** — 12 new EN→ES UI strings for breakdown-proof prompt + pending-sync language
+
+### Tests · 207 / 207 PARITY-LOCK PASS
+181 baseline + **26 new** across:
+- `test_iter418_breakdown_proof.py` (7 lock tests: happy path · iter417 surfacing · cross-driver block · anon block · non-image reject · oversize reject · missing host_id)
+- `test_iter419_continuity_events.py` (9 lock tests: kinds list · anon block · happy create · unknown kind · unknown assignment · anon create · by-assignment ordering · narrative max-length · missing assignment_id)
+- `test_iter420_shop_recovery.py` (10 lock tests: states list · anon list block · happy transition · history append · unknown state · unknown assignment · anon transition block · DLS-decoupling · returned_to_service · GET 404)
+
+### Guardrails
+- Ruff clean · ESLint clean
+- Operator vocabulary scanner: **0 T2/T3** (only expected `iter###` source-comment T1)
+- All Mongo `_id` excluded from every response
+- Append-only continuity history (no destructive updates)
+- Driver path type-locked to `breakdown_photo` (no type picker under stress)
+
+### Restraint enforced (anti-scope NO list)
+- ❌ NO shop-portal recovery UI tile (deferred · Phase 22 frontend gated on Day-1)
+- ❌ NO PM/Dispatch continuity-event display tile (deferred)
+- ❌ NO IndexedDB · NO ServiceWorker · NO sync engine (localStorage only · max-3 queue)
+- ❌ NO retry panels · NO conflict UI · NO technical "sync manager" chrome
+- ❌ NO new portals · NO new admin pages · NO bulk ops
+- ❌ NO work-order ERP · NO parts catalog · NO labor codes on shop recovery
+- ❌ NO surveillance · NO scoring · NO charts · NO dashboards
+
+### UI language doctrine (offline continuity)
+- "Update waiting to sync" / "Actualización esperando sincronizar"
+- NEVER "payload" · "retry" · "failed request" · "cache conflict" · "sync manager"
+
+### Phase doctrine timeline (current state)
+1-11. iter397-416 · Phases 12-19.1 ✅
+12. iter417 · Phase 20.0 · Operational Attachments Foundation ✅
+13. **iter418-420 · Phases 20.1 + 21.0 + 22.0 + 23.0 · Field Continuity Expansion (walking skeletons) ✅**
+
+### Next iter candidates (gated on Day-1 debrief)
+- 🟠 **Phase 20.2** — Multi-host attachment expansion (incidents · inspections · daily reports · breakdowns) — deferred
+- 🟠 **Phase 22 FE** — Shop portal recovery tile (read + transition affordance for mechanics) — deferred
+- 🟠 **Phase 21 FE** — Dispatch continuity-event narrative entry inline drawer — deferred
+- 🟠 **Phase 20.3** — Cross-portal attachment surfacing (PM tile · Shop tile thumbnails) — deferred
+- 🔵 **P2** — `server.py` Phase 4D extractions (`/api/legacy-imports/*` breakdown)
+- 🔵 **P2** — Stale `dispatch_driver_sessions` reaper (forgotten driver sign-out)
+- 🔵 **P2** — `DispatchHub.jsx` + `AssignmentCreateDrawer.jsx` component extraction
+- 🔵 **P3** — Translation coverage sweep across legacy pre-Phase-12 forms
+- 🔵 **P3** — 233 inherited pytest isolation failures
+
+### Verdict
+🟢 Four field-continuity walking-skeletons land cleanly with **operational
+calmness · continuity preservation · bilingual continuity · offline resilience
+primitive · breakdown proof continuity · shop recovery continuity · operational
+exception continuity** — WITHOUT ERP drift, analytics drift, dashboard
+behavior, or operational clutter. Platform continues feeling like ONE
+operational nervous system.
+
+### Next Action Items
+- 🟡 **Day-1 Live Ops Debrief** filing — gating signal for ALL P2/P3 backlog
+- 🟠 Phase 22 FE (shop recovery tile) — only if Day-1 debrief names mechanic friction
+- 🟠 Phase 21 FE (continuity-event entry drawer) — only if Day-1 debrief names hand-narration friction
+
+---
+
+
+
 ## 2026-05-25 — iter417 · Phase 20.0 · Operational Attachments Foundation (walking skeleton) ✅
 
 ### Mission
