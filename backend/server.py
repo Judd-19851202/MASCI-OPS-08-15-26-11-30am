@@ -6845,7 +6845,13 @@ async def admin_list_r2_backups(
     """List backup zips currently stored in ``r2://<bucket>/backups/``.
     Returns most recent first, plus a presigned URL for each so the
     admin can click-and-download from the UI without exposing the
-    bucket credentials."""
+    bucket credentials.
+
+    iter440 · Phase 31.2 health-lock · uses the boto3 paginator so
+    buckets with >1000 keys (the S3 default page size) don't truncate
+    silently — without pagination, the newest archives were hidden by
+    older legacy keys that sort first alphabetically.
+    """
     try:
         from photo_storage import _bucket, _client, presigned_get_url_for_key, is_configured
     except Exception:  # noqa: BLE001
@@ -6855,13 +6861,19 @@ async def admin_list_r2_backups(
     c = _client()
     if c is None:
         raise HTTPException(500, "R2 client unavailable")
+    contents: list = []
     try:
-        resp = await asyncio.to_thread(
-            c.list_objects_v2, Bucket=_bucket(), Prefix="backups/",
-        )
+        paginator = await asyncio.to_thread(c.get_paginator, "list_objects_v2")
+
+        def _collect() -> list:
+            out_local = []
+            for page in paginator.paginate(Bucket=_bucket(), Prefix="backups/"):
+                out_local.extend(page.get("Contents") or [])
+            return out_local
+
+        contents = await asyncio.to_thread(_collect)
     except Exception as e:  # noqa: BLE001
         raise HTTPException(502, f"R2 list failed: {e}")
-    contents = resp.get("Contents") or []
     # Sort newest first
     contents.sort(key=lambda o: o.get("LastModified") or datetime.min, reverse=True)
     out = []
@@ -6879,7 +6891,7 @@ async def admin_list_r2_backups(
                               if o.get("LastModified") else None),
             "download_url": url,
         })
-    return {"count": len(out), "backups": out}
+    return {"count": len(out), "total_in_bucket": len(contents), "backups": out}
 
 @api_router.get("/admin/sessions/recent")
 async def admin_recent_sessions(

@@ -1,6 +1,86 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 — iter440 · Phase 31.2 SECOND PASS · 2nd defect found + fixed
+
+### Result — 🟡 GO (still one redeploy away from 🟢 · NOW two fixes pending instead of one)
+
+### What the re-run found
+
+When the operator re-ran the Phase 31.2 mission, I confirmed production
+had **NOT** been redeployed yet (`/api/admin/system-health` still
+yellow, persistence-health still lying about backups). Then I dug
+deeper than the first pass and found a **second** true defect.
+
+### 🔴 NEW DEFECT FOUND — `/api/admin/backups-list-r2` truncates >1000 keys
+
+R2 bucket has 1502 keys under `backups/`. The endpoint used a single
+unpaginated `list_objects_v2` call (S3 default page limit = 1000).
+First 1000 keys (sorted alphabetically) happened to be legacy
+`backups/*.zip` + oldest `backups/auto-90d/*`. The 1002 newer archives
+under `backups/auto-90d/MASCI_complete_backup_2026-05-2[2-6]_*.zip`
+were silently truncated. Result: API reported newest = 2026-05-21
+while R2 actually had archives from 2026-05-26 00:12.
+
+**Fix** · `backend/server.py` — `list_objects_v2` → `get_paginator`
+loop. Added `total_in_bucket` to the response so operators can see
+the full count.
+
+**Verified (preview)** · `count returned: 5 · total_in_bucket: 1502` ·
+newest = `MASCI_complete_backup_2026-05-26_000942Z.zip @ 2026-05-26T00:12`.
+
+### Additional verifications run this pass
+
+- Downloaded 91 MB newest archive, parsed `MANIFEST.json`:
+  - 123 `captured_collections` (matches Atlas count exactly)
+  - `operational_attachments`, `user_passkeys`, `webauthn_challenges` all included
+  - 10 `inlined_photos`, 0 `failed_photos`
+  - `redaction_rules_applied: ['user_directory', 'users']`
+  - `explicit_exclusions: []`
+  - 243,565 total records
+- Sampled user_directory rows → MFA subdoc is only `{enabled: true}`,
+  NO `totp_secret`/recovery codes leak.
+- `backup_health` row breakdown:
+  98 × `complete-r2` (ok, hourly, 91 MB each, 243K records) ·
+  98 × `r2-usage-alert` (R2 quota probe, informational) ·
+  2 × `complete-r2-error` on 2026-05-25T15 (Atlas usage_events sort
+  memory · self-recovered) · 1 × `lite` · 1 × `unknown`.
+- Sentry confirmed live on production:
+  `release=3cae10f77b...`, `sentry: {enabled: true}`.
+- All 9 hub routes return 200 · verify-production.sh 5/5 healthy.
+
+### Files of reference (this pass)
+
+- `/app/memory/PHASE31_2_PRODUCTION_HEALTH_LOCK.md` (rewritten with second-pass evidence · two defects · two fixes · GO verdict matrix)
+- `/app/backend/server.py` (pagination fix on backups-list-r2)
+- Previously fixed in first pass (still pending prod deploy):
+  - `/app/backend/routes/admin_persistence_health.py`
+  - `/app/backend/lib/operator_digest.py`
+  - `/app/backend/routes/admin_ops.py`
+
+### Testing
+
+- Ruff: changes clean (server.py has pre-existing unrelated `_now_iso` F821 at line 3106, not touched).
+- Pytest parity-lock (k="iter440 or persistence or admin_ops or digest"): 29/29 passed.
+- Curl battery + boto3 direct probe (definitive ground truth).
+
+### STANDING OPERATOR ACTIONS
+
+- **🟡→🟢 MANDATORY · ONE production redeploy** from Emergent deploy
+  dashboard lands BOTH iter440 fixes simultaneously:
+  1. backup_health collection-name correctness (3 readers fixed)
+  2. backups-list-r2 pagination (1 endpoint fixed)
+- **🟡 optional** — explicitly set `OPERATOR_DIGEST_RECIPIENTS` in prod env
+- **🟡 carried** — Atlas password chat-transcript hygiene rotation
+- After redeploy, smoke:
+  ```
+  curl https://mascidocs.com/api/admin/system-health   →  backup card GREEN
+  curl https://mascidocs.com/api/admin-strict/diag/persistence-health  →  last_backup_time recent
+  curl https://mascidocs.com/api/admin/digest/weekly?format=text  →  "All systems calm."
+  curl https://mascidocs.com/api/admin/backups-list-r2?limit=5  →  total_in_bucket: 1502
+  ```
+
+
 ## 2026-05-26 — iter440 · Phase 31.2 · Production Health Lock 🟡→🟢-after-redeploy
 
 ### Result — 🟡 GO (one defect found, fixed in preview, awaiting prod redeploy)
