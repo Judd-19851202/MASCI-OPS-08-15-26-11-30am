@@ -11249,7 +11249,7 @@ app.add_middleware(
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 import re as _thumb_re
 
-_THUMB_PATH_RE = _thumb_re.compile(r"^/api/job-photos/.+/thumb(-signed)?/?$")
+_THUMB_PATH_RE = _thumb_re.compile(r"^/api/job-photos/.+/(thumb(-signed)?|raw|raw-signed)/?$")
 _THUMB_HEADERS_TO_STRIP = (
     "vary",
     "access-control-allow-origin",
@@ -11269,8 +11269,8 @@ class PhotoEdgeCacheMiddleware(BaseHTTPMiddleware):
                 for h in _THUMB_HEADERS_TO_STRIP:
                     if h in response.headers:
                         del response.headers[h]
-                response.headers["Cache-Control"] = "public, max-age=604800, immutable"
-                response.headers["CDN-Cache-Control"] = "public, max-age=604800, immutable"
+                response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400, immutable"
+                response.headers["CDN-Cache-Control"] = "public, max-age=2592000, stale-while-revalidate=86400, immutable"
         except Exception:
             # Never break a photo response over a header tweak.
             pass

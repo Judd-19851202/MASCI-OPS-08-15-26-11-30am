@@ -1,6 +1,27 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 13:15 UTC — PHOTO EDGE-CACHE FIX v2 (full coverage) 🟢
+
+### What changed (shipped to preview)
+Extended `PhotoEdgeCacheMiddleware` in `/app/backend/server.py`:
+1. **Path regex broadened** to also cover full-resolution endpoints:
+   - `/api/job-photos/{id}/thumb` ✓ (already)
+   - `/api/job-photos/{id}/thumb-signed` ✓ (already)
+   - `/api/job-photos/{id}/raw` ✓ **NEW** — used when PMs tap a thumb to expand
+   - `/api/job-photos/{id}/raw-signed` ✓ **NEW**
+2. **Stale-while-revalidate added** to cache directives — browser/CF can serve stale instantly while refreshing in background:
+   - Browser: `public, max-age=604800, stale-while-revalidate=86400, immutable` (1 week fresh, 1 day stale-fallback)
+   - CDN: `public, max-age=2592000, stale-while-revalidate=86400, immutable` (30 days fresh — photos are immutable anyway)
+
+### Net effect
+Photo detail pages (where users click a thumb to see full-res) now benefit from the same CDN-cache-friendly response headers as the gallery thumbnails — no more 600ms+ round-trip when zooming into a photo.
+
+### Files changed
+- `/app/backend/server.py` (extended `_THUMB_PATH_RE` regex + updated Cache-Control / CDN-Cache-Control directives)
+
+
+
 ## 2026-05-26 12:15 UTC — PHOTO EDGE-CACHE FIX (permanent) 🟢
 
 ### Root cause of the "site sluggish / photos slow" report
