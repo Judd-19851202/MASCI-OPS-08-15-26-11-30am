@@ -11230,6 +11230,55 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ─────────────────────────────────────────────────────────────────────
+# Photo thumbnail Cloudflare edge-cache enabler (2026-05-26)
+#
+# Problem: /api/job-photos/<id>/thumb-signed responses had `Vary: Accept`
+# and the CORS middleware appended `Access-Control-*` headers to them.
+# Cloudflare treats responses with `Vary` + `Access-Control-Allow-Origin`
+# as DYNAMIC and refuses to edge-cache them — so every browser hit went
+# back to the origin (~540 ms each). With 32 thumbs in a gallery that's
+# 5-10 seconds of visible delay on first paint, which is what users felt
+# as "photos load slow / site sluggish".
+#
+# Fix: a tiny BaseHTTPMiddleware running AFTER CORS that, for thumb URLs
+# only, drops the cache-poisoning headers and re-affirms the immutable
+# directives. CF can now serve repeat requests from the edge in ~50 ms,
+# and the browser cache + sw-thumbs service worker do the rest on-device.
+# ─────────────────────────────────────────────────────────────────────
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
+import re as _thumb_re
+
+_THUMB_PATH_RE = _thumb_re.compile(r"^/api/job-photos/.+/thumb(-signed)?/?$")
+_THUMB_HEADERS_TO_STRIP = (
+    "vary",
+    "access-control-allow-origin",
+    "access-control-allow-credentials",
+    "access-control-allow-methods",
+    "access-control-allow-headers",
+    "access-control-max-age",
+    "access-control-expose-headers",
+)
+
+
+class PhotoEdgeCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        try:
+            if _THUMB_PATH_RE.match(request.url.path) and response.status_code == 200:
+                for h in _THUMB_HEADERS_TO_STRIP:
+                    if h in response.headers:
+                        del response.headers[h]
+                response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+                response.headers["CDN-Cache-Control"] = "public, max-age=604800, immutable"
+        except Exception:
+            # Never break a photo response over a header tweak.
+            pass
+        return response
+
+
+app.add_middleware(PhotoEdgeCacheMiddleware)
+
 # iter430 · Phase 28.2 · Sentry operational-tag enrichment ·
 # Auto-attaches portal/role/route/device/browser/language/tenant tags
 # to every Sentry event so production exceptions immediately reveal

@@ -1,6 +1,57 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 12:15 UTC — PHOTO EDGE-CACHE FIX (permanent) 🟢
+
+### Root cause of the "site sluggish / photos slow" report
+Every `/api/job-photos/{id}/thumb-signed` response (the hot path for the PM gallery `<img src=>`) was carrying two CF-cache-poisoning headers added by the CORS middleware:
+- `Vary: Accept` (CF treats `Vary` responses as per-client-unique)
+- `Access-Control-Allow-Origin: *` + sibling CORS headers
+
+Result on production: `cf-cache-status: DYNAMIC` on every thumb. Browser had to round-trip to the origin for every photo (~540 ms × 32 thumbs ≈ 5 s of visible delay on first paint). Backend cache was working perfectly (`x-thumb-cache: hit`, 40 ms server-side) but the request never reached the warm cache because Cloudflare gave it a full pass-through every time.
+
+### Fix shipped (preview) — pending production redeploy
+Added `PhotoEdgeCacheMiddleware` to `/app/backend/server.py` (right after `CORSMiddleware`). For any path matching `^/api/job-photos/.+/thumb(-signed)?/?$` and a 200 status code, it strips the cache-poisoning headers and re-affirms the immutable directives:
+
+```python
+_THUMB_HEADERS_TO_STRIP = (
+    "vary", "access-control-allow-origin", "access-control-allow-credentials",
+    "access-control-allow-methods", "access-control-allow-headers",
+    "access-control-max-age", "access-control-expose-headers",
+)
+class PhotoEdgeCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        if _THUMB_PATH_RE.match(request.url.path) and response.status_code == 200:
+            for h in _THUMB_HEADERS_TO_STRIP:
+                response.headers.pop(h, None)
+            response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+            response.headers["CDN-Cache-Control"] = "public, max-age=604800, immutable"
+        return response
+```
+
+### Verification (direct backend, bypassing Emergent preview ingress overlay)
+- `/api/job-photos/{id}/thumb-signed`: `cache-control: public, max-age=604800, immutable` ✅, **no Vary, no CORS** ✅, `x-thumb-cache: hit` ✅
+- `/api/health`, `/api/jobs`, `/api/employees`, etc: CORS headers preserved exactly as before ✅
+
+### Expected production behavior after redeploy
+- First visitor to any photo (cold edge): ~540 ms (single backend round-trip)
+- Every subsequent viewer worldwide: ~50 ms (`cf-cache-status: HIT`)
+- Browser cache + sw-thumbs service worker still layer on top: 0 ms after first view on each device
+- 32-photo gallery first-paint goes from ~5 s → ~150 ms after first warmup
+
+### Stack already in place (no changes needed)
+- ✅ Frontend uses `/thumb-signed?t=<token>` (no auth header on thumb requests)
+- ✅ `<img loading="lazy">` so off-screen photos defer fetch
+- ✅ `/public/sw-thumbs.js` service worker (400-entry LRU, stale-while-revalidate, registered in `/src/index.js`)
+- ✅ Backend Mongo cache pre-warmed (1,389 thumbs)
+- ✅ Three formats served per photo (jpeg/webp/avif) with `Accept`-driven selection
+
+### Files changed
+- `/app/backend/server.py` (added 50-line middleware block after CORSMiddleware)
+
+
+
 ## 2026-05-26 11:55 UTC — FULL TOP-TO-BOTTOM CERTIFICATION 🟢🟢🟢
 
 ### What the certification sweep actually checked
