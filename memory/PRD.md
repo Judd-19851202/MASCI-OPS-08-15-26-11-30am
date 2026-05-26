@@ -1,6 +1,38 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 — iter441 · Phase 32 · Operational War-Game Certification 🟢
+
+### Result — 🟢 CERTIFIED · safe to operate · ZERO known defects
+
+### Coverage (8 parts)
+
+1. **Surface (26 routes)** — all 200 · avg ~330ms
+2. **Recent changes (3 iter440 fixes)** — all verified live on prod
+3. **API latency (8 endpoints × 5 samples)** — 7/8 under 500ms · 1 inherent slow (R2 pagination of 1502 keys)
+4. **Mobile rendering (390 × 844 iPhone viewport)** — 7/7 portals render clean, no compile errors, all new iter440 components present
+5. **Continuity (offline/draft/queue)** — code paths verified · real-device certification deferred to crews per doctrine
+6. **Backup + restore** — manifest 123 collections, redactions applied, no MFA leak, hourly cadence resumed post-fix
+7. **Auth boundaries** — 5/5 unauthenticated 401 · 5/5 authenticated 200 · login matrix clean
+8. **Database + storage** — 123 collections · 21 TTL indexes · 0 orphan attachments · 100% R2-migrated · today's writes confirmed
+
+### Files of reference
+
+- `/app/memory/PHASE32_OPERATIONAL_WAR_GAME_CERTIFICATION.md` (full audit · 8 verdicts · evidence matrix)
+
+### Standing operator actions (carried · NONE blocking)
+
+- 🟡 Real-device certification with crews (hand `PHASE31_OPERATOR_QUICK_TEST_CARD.md`)
+- 🟡 Phase 31.2 fan-out decision (Crew Memory beyond Daily Reports?)
+- 🟡 First Monday operator digest delivery verification
+- 🟡 Optional: delete 500 legacy `backups/<no-prefix>/` archives (22.5 GB · ~$0.34/mo)
+- 🟡 Optional: set `OPERATOR_DIGEST_RECIPIENTS` in prod env
+
+### Doctrine reaffirmed
+
+Zero new portals · zero dashboards · zero analytics · zero monitoring centers · zero UI surfaces. Only: probed, verified, documented.
+
+
 ## 2026-05-26 — iter440 · Phase 31.3 · R2 Forensic Audit · 🔴 root cause → 🟢 surgical fix
 
 ### Result — 🟢 ROOT CAUSE FOUND + SURGICALLY FIXED
