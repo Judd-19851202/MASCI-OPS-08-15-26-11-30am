@@ -28,10 +28,16 @@ import { WeeklyHoursFlag, DailyHoursFlag } from "@/components/HoursSanityFlag";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
 
-// Compute the Sunday-ending date of the current week (matches the
-// backend window math: end - 6 days = start, Mon→Sun).
+// Compute the Saturday-ending date of the current payroll week.
+// MASCI runs Sun→Sat weeks; the backend window math is
+// `end - 6 days = start`, so we MUST pass the Saturday-ending date
+// for the current pay period (otherwise a mid-week query returns
+// 0 records and HR sees a blank Time Verification board).
 function defaultWeekEnding() {
   const d = new Date();
+  // Day index: Sun=0, Mon=1 ... Sat=6 → add (6 - getDay()) days to reach Saturday.
+  const offset = (6 - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + offset);
   return d.toISOString().slice(0, 10);
 }
 

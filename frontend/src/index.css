@@ -51,6 +51,116 @@ h1.font-display, h2.font-display, h3.font-display {
     -webkit-hyphens: auto;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+ * iPadOS Safari containment hardening (2026-05-26)
+ *
+ * ROOT-CAUSE FIXES for the P0/P1 mobile stabilization sprint.
+ *
+ * R1 — Z-INDEX HIERARCHY
+ *   Multiple page shells used inconsistent sticky-header z-index
+ *   (z-10, z-30, z-[80]). Lifecycle-guide accordions and
+ *   framer-motion-animated cards created their own stacking contexts
+ *   and painted OVER the header (visible as black/red header bleed
+ *   on Daily Reports, Crew, Subcontractor, Visitor sections).
+ *
+ *   Fix: a single normalized z-index scale via CSS custom props +
+ *   `.app-sticky-header` utility used by every shell. Accordion
+ *   content stays below the header at all times.
+ *
+ * R2 — VIEWPORT UNIT INSTABILITY ON SAFARI
+ *   `min-h-screen` (= 100vh) was computed against the LARGEST
+ *   viewport on iOS Safari — when the dynamic toolbar or software
+ *   keyboard reduced the actual visible area, content was pushed
+ *   off-screen and forms hid behind the keyboard.
+ *
+ *   Fix: override Tailwind's `min-h-screen` and `h-screen` to use
+ *   the modern `100dvh` (dynamic viewport height) which tracks the
+ *   real visible area as the toolbar/keyboard moves. Browsers that
+ *   don't support dvh fall back to vh automatically.
+ *
+ * R3 — STACKING CONTEXT LEAKAGE
+ *   Pages with transformed/animated children let those children
+ *   establish stacking contexts that escaped the page boundary,
+ *   causing "section merging" between unrelated cards.
+ *
+ *   Fix: `isolation: isolate` on every `.min-h-screen` page wrapper
+ *   creates a hard stacking-context boundary. Cards no longer leak.
+ *
+ * R4 — IPAD SAFE-AREA RESPECT
+ *   The home-indicator bar on iPad Pro and the dynamic notch were
+ *   overlapping the Submit button on bottom-fixed action bars.
+ *
+ *   Fix: respect safe-area-inset-* on the body and on any
+ *   `.app-sticky-footer` utility.
+ * ───────────────────────────────────────────────────────────────── */
+
+:root {
+    --z-page-base: 0;
+    --z-elevated-card: 5;
+    --z-sticky-header: 40;
+    --z-sticky-footer: 40;
+    --z-banner-strip: 80;
+    --z-drawer-overlay: 90;
+    --z-drawer-panel: 95;
+    --z-modal: 100;
+    --z-toast: 110;
+    --z-splash: 9999;
+}
+
+/* R2 — Modern dynamic viewport height for ALL pages */
+@supports (height: 100dvh) {
+    .min-h-screen {
+        min-height: 100dvh;
+    }
+    .h-screen {
+        height: 100dvh;
+    }
+}
+
+/* R3 — Hard stacking-context boundary on every page wrapper */
+.min-h-screen {
+    isolation: isolate;
+}
+
+/* R4 — Safe-area handling on body for iPad */
+body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* R1 — Normalized sticky header utility used by all shells */
+.app-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky-header);
+    isolation: isolate;
+}
+.app-sticky-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: var(--z-sticky-footer);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Force every existing sticky header element to the normalized z. */
+header.sticky,
+header[class*="sticky top-0"] {
+    z-index: var(--z-sticky-header) !important;
+}
+
+/* Prevent body scroll lock from clipping iPad rubber-band */
+html, body {
+    overscroll-behavior-y: none;
+}
+
+/* iPad keyboard fix — forms scroll into view above keyboard */
+input, textarea, select {
+    scroll-margin-top: 80px;
+    scroll-margin-bottom: 120px;
+}
+
 @layer base {
     :root {
         --background: 0 0% 100%;

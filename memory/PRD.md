@@ -1,6 +1,61 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 14:00 UTC — P0/P1 IPAD STABILIZATION SPRINT 🟢
+
+### Operator-reported issues
+P0 Time Verification showing 0 employees / 0 hours on iPad; P1 header/section bleed-over on Daily Reports + Crew + Visitor + Subcontractor + Time Verification; P1 keyboard overlapping forms; P1 touch target compression; platform doctrine violation: "calm operational cognition" broken by visual instability.
+
+### Root-cause analysis
+Three architectural defects driving every symptom:
+| ID | Defect | Affected modules |
+|---|---|---|
+| **R1** | Sticky-header z-index inconsistent across shells (`z-10` on Driver/FL/Dispatch portals, `z-30` on PM/Admin/HR shells, `z-[80]` on banners). Lifecycle-guide accordions inside cards established their own stacking contexts and painted OVER `z-10` headers. | Daily Reports, Crew, Visitor, Subcontractor, Time Verification |
+| **R2** | All page shells use `min-h-screen` (= legacy `100vh`). On iOS Safari `100vh` is computed against the LARGEST viewport, so when the dynamic toolbar shrinks or the software keyboard appears, content runs underneath. | All field forms + admin pages with inputs |
+| **R3** | No `isolation: isolate` on page wrappers — child elements with `transform`/`opacity`/framer-motion animations could escape the page boundary. | Section "merging" symptom across the platform |
+| **TV** | `defaultWeekEnding()` returned **today** instead of the **week-ending Saturday**. Backend window math = `end - 6 days = start`, so a Tuesday query returned no matches. HR saw "0 employees" and assumed Time Verification was broken. | HR/Time Verification |
+
+### Architectural fix shipped (one file)
+`/app/frontend/src/index.css` — single platform-wide CSS block. No isolated page patches.
+
+1. **R1 — normalized z-index scale** via CSS custom properties (`--z-page-base`, `--z-sticky-header=40`, `--z-banner-strip=80`, `--z-drawer-overlay=90`, `--z-modal=100`, `--z-toast=110`, `--z-splash=9999`).
+2. **R1 — force-promote every existing `<header class="sticky ...">`** to `z-index: var(--z-sticky-header) !important` so no shell can drop below the safe baseline.
+3. **R2 — replace `min-h-screen` and `h-screen`** with modern `100dvh` (dynamic viewport height) under `@supports`. Fallback to `100vh` on legacy browsers. Keyboard/toolbar resize now track viewport correctly.
+4. **R3 — `isolation: isolate` on every `.min-h-screen` page wrapper**. Hard stacking-context boundary; child animations no longer leak.
+5. **R4 — `env(safe-area-inset-*)` honored on `body`**, so iPad notch + home-indicator never overlap content.
+6. **R4 — `.app-sticky-footer` utility** for any future bottom-fixed bars (Submit, save-bar) to include safe-area bottom padding.
+7. **iPad keyboard scroll** — `scroll-margin-top: 80px` + `scroll-margin-bottom: 120px` on every `<input>/<textarea>/<select>` so focused fields auto-scroll above the keyboard.
+8. **Rubber-band protection** — `overscroll-behavior-y: none` on `html, body`.
+
+### Time Verification specific fix
+`/app/frontend/src/pages/HrTimeVerification.jsx` — `defaultWeekEnding()` now rolls forward to the next Saturday using `(6 - getDay() + 7) % 7`. HR opening the page on any weekday now sees the current pay period by default.
+
+### Verification on iPad-class viewports
+- **iPad Pro landscape (1366×1024)** — Time Verification: header normalized to z-index=40, page wrapper isolated, default `week_ending = 2026-05-30` (Saturday) ✅
+- **iPad portrait (820×1180)** — Daily Report at Crew/Visitor/Subcontractor section: every section cleanly contained, no header bleed, accordions stable, photo section properly separated ✅
+- **Mobile 390×844** — Dispatch hub tiles cleanly stacked, Shift Start has Back link ✅ (verified earlier in session)
+
+### What I deliberately did NOT do
+- No isolated page-level z-index hacks
+- No per-component padding fixes
+- No new feature work (per user's "STABILITY > NEW FEATURES" directive)
+
+### Modules I did NOT yet sweep (acknowledged debt)
+The architectural CSS change benefits every page (since every page uses `min-h-screen` or `.sticky` headers), but I have not individually screenshot-validated every module. Pending iPad-Safari regression sweep on:
+- Dispatch Hub
+- PM Hub
+- Shop Hub
+- Field Leadership Hub
+- Admin shell (multiple sub-pages)
+- All drawers / modals
+- Operator digest views
+
+### Files changed
+- `/app/frontend/src/index.css` — added ~85 lines of architectural CSS hardening
+- `/app/frontend/src/pages/HrTimeVerification.jsx` — fixed `defaultWeekEnding()` to use Saturday
+
+
+
 ## 2026-05-26 13:15 UTC — PHOTO EDGE-CACHE FIX v2 (full coverage) 🟢
 
 ### What changed (shipped to preview)
