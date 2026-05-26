@@ -854,6 +854,50 @@ def _compute_source_hash() -> str:
 _SOURCE_HASH = _compute_source_hash()
 
 
+# ---------------------------------------------------------------------------
+# Environment / database safety check (iter436, 2026-05-26)
+#
+# After the 2026-05-26 preview/production data crossover incident — where
+# preview pytest fixtures and agent test writes landed directly in the live
+# `masci_safety` database — every worker is now required to LOUDLY identify
+# which environment + database it has been wired to at startup. The check
+# also refuses to start if the combo is unsafe:
+#   - APP_ENV=preview  →  DB_NAME MUST end with `_preview`
+#   - APP_ENV=production (or unset) → DB_NAME MUST NOT end with `_preview`
+#
+# A misconfiguration raises RuntimeError before the server can accept
+# requests, which is far safer than silently corrupting production data.
+# ---------------------------------------------------------------------------
+def _verify_env_db_alignment() -> None:
+    app_env = os.environ.get("APP_ENV", "production").lower()
+    db_name = os.environ.get("DB_NAME", "")
+    is_preview_db = db_name.endswith("_preview")
+    banner = "═" * 78
+    print(f"\n{banner}")
+    print(f"  MASCI-HUB ENVIRONMENT SAFETY CHECK")
+    print(f"  APP_ENV : {app_env}")
+    print(f"  DB_NAME : {db_name}")
+    print(f"  Atlas   : {os.environ.get('MONGO_URL','').split('@')[-1].split('/')[0] if '@' in os.environ.get('MONGO_URL','') else '(local)'}")
+    if app_env == "preview" and not is_preview_db:
+        print(f"  STATUS  : 🚨  REFUSING TO START — preview env pointed at non-preview DB")
+        print(f"{banner}\n")
+        raise RuntimeError(
+            f"APP_ENV=preview must use a DB_NAME ending in `_preview`. "
+            f"Refusing to start with DB_NAME={db_name!r} to prevent production data corruption."
+        )
+    if app_env != "preview" and is_preview_db:
+        print(f"  STATUS  : 🚨  REFUSING TO START — production env pointed at preview DB")
+        print(f"{banner}\n")
+        raise RuntimeError(
+            f"APP_ENV={app_env} cannot use a `_preview` database. Refusing to start with DB_NAME={db_name!r}."
+        )
+    print(f"  STATUS  : 🟢 SAFE — env and database aligned")
+    print(f"{banner}\n")
+
+
+_verify_env_db_alignment()
+
+
 @api_router.get("/version")
 def api_version():
     # Sentry release identifier is computed by sentry_init from the same
@@ -886,6 +930,12 @@ def api_version():
         "uptime_s": int((datetime.now(timezone.utc) - _STARTUP_TS).total_seconds()),
         "session_timeouts": sess,
         "sentry": {"enabled": sentry["enabled"]},
+        # iter436 (2026-05-26) — environment / database identity for the
+        # frontend banner. After today's prod/preview crossover incident,
+        # both environments now expose the database they are actually
+        # connected to so a banner can flag preview unambiguously.
+        "app_env": os.environ.get("APP_ENV", "production").lower(),
+        "db_name": os.environ.get("DB_NAME", "unknown"),
     }
 
 

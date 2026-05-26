@@ -1,0 +1,877 @@
+kind,verb,path,area,criticality,roles,mobile_required,attachment_dep,operational_impact,source_file,source_line
+backend_api,GET,/api/projects,PM,P1,public_or_multi,no,no,Mission critical — significant degradation,projects.py,109
+backend_api,GET,/api/projects/{project_id},PM,P1,public_or_multi,no,no,Mission critical — significant degradation,projects.py,127
+backend_api,GET,/api/projects/{project_id}/members,PM,P1,public_or_multi,no,no,Mission critical — significant degradation,projects.py,136
+backend_api,POST,/api/projects/{project_id}/members,PM,P1,public_or_multi,no,no,Mission critical — significant degradation,projects.py,170
+backend_api,DELETE,/api/projects/{project_id}/members/{user_id},PM,P1,public_or_multi,no,no,Mission critical — significant degradation,projects.py,201
+backend_api,GET,/api/projects/{project_id}/scorecard,PM,P1,public_or_multi,no,no,Mission critical — significant degradation,projects.py,216
+backend_api,POST,/api/auth/login,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,auth.py,210
+backend_api,POST,/api/auth/logout,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,auth.py,232
+backend_api,GET,/api/auth/me,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,auth.py,237
+backend_api,POST,/api/auth/change-password,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,auth.py,241
+backend_api,POST,/api/auth/refresh,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,auth.py,261
+backend_api,GET,/api/users,misc,P3,public_or_multi,no,no,Secondary/admin — internal,auth.py,285
+backend_api,POST,/api/users,misc,P3,public_or_multi,no,no,Secondary/admin — internal,auth.py,292
+backend_api,PUT,/api/users/{user_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,auth.py,317
+backend_api,POST,/api/users/{user_id}/reset-password,misc,P3,public_or_multi,no,no,Secondary/admin — internal,auth.py,342
+backend_api,DELETE,/api/users/{user_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,auth.py,359
+backend_api,GET,/api/health,Health/Diagnostic,P2,public_or_multi,no,no,Operational support — non-blocking,server.py,501
+backend_api,GET,/api/healthz,Health/Diagnostic,P2,public_or_multi,no,no,Operational support — non-blocking,server.py,506
+backend_api,GET,/api/guidance/sections,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,528
+backend_api,GET,/api/guidance/articles,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,537
+backend_api,GET,/api/guidance/articles/{article_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,555
+backend_api,GET,/api/guidance/tips,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,576
+backend_api,GET,/api/guidance/search,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,593
+backend_api,GET,/api/admin/guidance/coverage,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,631
+backend_api,GET,/api/admin/guidance/workflow-coverage,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,641
+backend_api,GET,/api/health/full,Health/Diagnostic,P2,public_or_multi,no,no,Operational support — non-blocking,server.py,766
+backend_api,GET,/api/version,Health/Diagnostic,P2,public_or_multi,no,no,Operational support — non-blocking,server.py,901
+backend_api,POST,/api/dev/login,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,server.py,951
+backend_api,GET,/api/dev/check,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,967
+backend_api,GET,/api/dev/ops-manual.pdf,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,973
+backend_api,GET,/api/dev/ops-manual.docx,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,989
+backend_api,GET,/api/admin/ops-manual.pdf,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1012
+backend_api,GET,/api/admin/ops-manual.docx,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1026
+backend_api,POST,/api/dev/ops-manual/snapshot,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,1047
+backend_api,GET,/api/dev/ops-manual/snapshots,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,1081
+backend_api,DELETE,/api/dev/ops-manual/snapshots/{snap_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,1091
+backend_api,GET,/api/dev/ops-manual/snapshots/{snap_id}.pdf,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,1101
+backend_api,GET,/api/dev/ops-manual/snapshots/{snap_id}.docx,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,1122
+backend_api,GET,/api/dev/source-bundle.zip,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,1246
+backend_api,GET,/api/dev/source-bundle.info,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,1265
+backend_api,GET,/api/admin/employees/export,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1377
+backend_api,GET,/api/admin/suppliers/export,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1397
+backend_api,GET,/api/admin/equipment-master/export,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,server.py,1409
+backend_api,GET,/api/admin/equipment-parts/export,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,server.py,1436
+backend_api,GET,/api/admin/jobs/export,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1466
+backend_api,POST,/api/admin/login,Auth,P0,admin,YES,no,Operational survival — workflow halts,server.py,1489
+backend_api,GET,/api/admin/check,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1515
+backend_api,POST,/api/admin/logout,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1521
+backend_api,POST,/api/admin/auth/verify-password,Auth,P0,admin,YES,no,Operational survival — workflow halts,server.py,1546
+backend_api,GET,/api/admin/submit-language-stats,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1576
+backend_api,POST,/api/calculators/save,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,1659
+backend_api,GET,/api/admin/calculators/stats,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1688
+backend_api,GET,/api/admin/calculators/export.csv,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,1734
+backend_api,POST,/api/shop/login,Auth,P0,shop,YES,no,Operational survival — workflow halts,server.py,1771
+backend_api,GET,/api/shop/check,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,server.py,1885
+backend_api,GET,/api/shop/me,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,server.py,1895
+backend_api,POST,/api/shop/change-password,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,server.py,1915
+backend_api,POST,/api/shop/forgot-password,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,server.py,1975
+backend_api,POST,/api/shop/reset-password,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,server.py,2072
+backend_api,GET,/api/job-hazard-plans,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2240
+backend_api,GET,/api/job-hazard-plans/{project_number}/file,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2254
+backend_api,POST,/api/job-hazard-plans,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2282
+backend_api,DELETE,/api/job-hazard-plans/{project_number},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2327
+backend_api,GET,/api/job-hazard-files,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2343
+backend_api,GET,/api/job-hazard-files/public/grouped,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2350
+backend_api,GET,/api/job-hazard-files/by-project/{project_number},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2361
+backend_api,POST,/api/job-hazard-files,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2368
+backend_api,GET,/api/job-hazard-files/{file_id}/download,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2387
+backend_api,DELETE,/api/job-hazard-files/{file_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2424
+backend_api,GET,/api/trench-box-files,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2438
+backend_api,GET,/api/trench-box-files/by-box/{box_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2447
+backend_api,POST,/api/trench-box-files,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2454
+backend_api,DELETE,/api/trench-box-files/{file_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2476
+backend_api,GET,/api/trench-boxes,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2530
+backend_api,GET,/api/trench-boxes/{box_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2547
+backend_api,GET,/api/trench-boxes/{box_id}/file,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2559
+backend_api,POST,/api/trench-boxes,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2590
+backend_api,PUT,/api/trench-boxes/{box_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2618
+backend_api,DELETE,/api/trench-boxes/{box_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2645
+backend_api,GET,/api/equipment-master,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,server.py,2718
+backend_api,GET,/api/admin/equipment-master/archive,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,server.py,2740
+backend_api,POST,/api/admin/equipment-master/{unit_id}/restore,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,server.py,2748
+backend_api,GET,/api/equipment-types,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,server.py,2763
+backend_api,GET,/api/jobs,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,2792
+backend_api,GET,/api/admin/jobs,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,2808
+backend_api,POST,/api/admin/jobs,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,2823
+backend_api,PATCH,/api/admin/jobs/{job_id}/active,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,2832
+backend_api,DELETE,/api/admin/jobs/{job_id},Admin,P2,admin,no,no,Operational support — non-blocking,server.py,2843
+backend_api,GET,/api/admin/shop-users,Shop/Fleet,P1,"admin,shop",no,no,Mission critical — significant degradation,server.py,2879
+backend_api,POST,/api/admin/shop-users,Shop/Fleet,P1,"admin,shop",no,no,Mission critical — significant degradation,server.py,2886
+backend_api,PATCH,/api/admin/shop-users/{user_id},Shop/Fleet,P1,"admin,shop",no,no,Mission critical — significant degradation,server.py,2896
+backend_api,DELETE,/api/admin/shop-users/{user_id},Shop/Fleet,P1,"admin,shop",no,no,Mission critical — significant degradation,server.py,2913
+backend_api,POST,/api/admin/shop-users/{user_id}/set-password,Shop/Fleet,P1,"admin,shop",no,no,Mission critical — significant degradation,server.py,2922
+backend_api,POST,/api/admin/shop-users/{user_id}/disable,Shop/Fleet,P1,"admin,shop",no,no,Mission critical — significant degradation,server.py,2952
+backend_api,POST,/api/admin/shop-users/{user_id}/email-welcome,Shop/Fleet,P1,"admin,shop",no,no,Mission critical — significant degradation,server.py,2963
+backend_api,GET,/api/admin/jobs/archive,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3091
+backend_api,POST,/api/admin/jobs/{job_id}/restore,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,3103
+backend_api,POST,/api/admin/jobs/bulk-replace,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3112
+backend_api,PATCH,/api/admin/jobs/{job_id}/co-pms,Admin,P2,"admin,pm",no,no,Operational support — non-blocking,server.py,3127
+backend_api,GET,/api/employees,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,3245
+backend_api,GET,/api/admin/employees/status,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3257
+backend_api,GET,/api/admin/employees/archive,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3271
+backend_api,POST,/api/admin/employees/{employee_id}/restore,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,3276
+backend_api,POST,/api/admin/employees/upload,Attachments,P0,admin,YES,YES,Operational survival — workflow halts,server.py,3284
+backend_api,POST,/api/admin/employees,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3369
+backend_api,PUT,/api/admin/employees/{employee_id},Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3396
+backend_api,DELETE,/api/admin/employees/{employee_id},Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3419
+backend_api,GET,/api/suppliers,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,3433
+backend_api,GET,/api/admin/suppliers/status,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3445
+backend_api,GET,/api/admin/suppliers/archive,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3459
+backend_api,POST,/api/admin/suppliers/{supplier_id}/restore,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,3464
+backend_api,POST,/api/admin/suppliers/upload,Attachments,P0,admin,YES,YES,Operational survival — workflow halts,server.py,3472
+backend_api,POST,/api/admin/suppliers,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3536
+backend_api,PUT,/api/admin/suppliers/{supplier_id},Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3556
+backend_api,DELETE,/api/admin/suppliers/{supplier_id},Admin,P2,admin,no,no,Operational support — non-blocking,server.py,3579
+backend_api,GET,/api/admin/projects/list,PM,P1,admin,no,no,Mission critical — significant degradation,server.py,3674
+backend_api,GET,/api/admin/projects/pnl,PM,P1,admin,no,no,Mission critical — significant degradation,server.py,3709
+backend_api,GET,/api/admin/equipment-master/status,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,server.py,3923
+backend_api,POST,/api/admin/equipment-master,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,server.py,3948
+backend_api,PUT,/api/admin/equipment-master/{unit_id},Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,server.py,3990
+backend_api,DELETE,/api/admin/equipment-master/{unit_id},Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,server.py,4018
+backend_api,POST,/api/admin/equipment-master/upload,Shop/Fleet,P1,"admin,pm",no,YES,Mission critical — significant degradation,server.py,4035
+backend_api,GET,/api/exports/csv,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,4288
+backend_api,GET,/api/exports/summary,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,4359
+backend_api,GET,/api/exports/full-backup,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,4412
+backend_api,GET,/api/admin/backups,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,6644
+backend_api,GET,/api/admin/backups/integrity-check,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,6663
+backend_api,GET,/api/admin/backups/{filename},Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,6713
+backend_api,DELETE,/api/admin/backups/{filename},Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,6746
+backend_api,POST,/api/admin/backups/run-now,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,6783
+backend_api,POST,/api/admin/backups/run-complete-now,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,6871
+backend_api,GET,/api/admin/backups-complete-r2-state,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,6921
+backend_api,GET,/api/admin/backups-list-r2,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,6937
+backend_api,GET,/api/admin/sessions/recent,Auth,P0,admin,YES,no,Operational survival — workflow halts,server.py,6993
+backend_api,GET,/api/admin/backups-scheduler-state,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,server.py,7079
+backend_api,POST,/api/admin/data-fixes/run,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,7141
+backend_api,GET,/api/admin/crew-recovery/status,Daily Report,P0,admin,YES,YES,Operational survival — workflow halts,server.py,7159
+backend_api,POST,/api/admin/crew-recovery/reset-password,Daily Report,P0,admin,YES,YES,Operational survival — workflow halts,server.py,7196
+backend_api,POST,/api/admin/crew-recovery/force-reseed,Daily Report,P0,admin,YES,YES,Operational survival — workflow halts,server.py,7225
+backend_api,POST,/api/admin/crew-recovery/scrap-crew-hub,Daily Report,P0,admin,YES,YES,Operational survival — workflow halts,server.py,7252
+backend_api,POST,/api/admin/alert-outage,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,7321
+backend_api,GET,/api/admin/persistence-check,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,7358
+backend_api,PATCH,/api/admin/records/{kind}/{record_id}/project,PM,P1,admin,no,no,Mission critical — significant degradation,server.py,7449
+backend_api,POST,/api/exports/restore,Backup/R2,P0,public_or_multi,no,no,Operational survival — workflow halts,server.py,7474
+backend_api,GET,/api/equipment-status-board,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,server.py,7680
+backend_api,POST,/api/translate,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,7864
+backend_api,HEAD,/api/training/video/{filename},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,8014
+backend_api,GET,/api/training/video/{filename},misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,8015
+backend_api,GET,/api/training/videos,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,8092
+backend_api,GET,/api/training/packet.pdf,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,8158
+backend_api,GET,/api/admin/training/stats,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,8286
+backend_api,GET,/api/qr.svg,misc,P3,public_or_multi,no,no,Secondary/admin — internal,server.py,8343
+backend_api,PUT,/api/admin/training/videos,Admin,P2,admin,no,no,Operational support — non-blocking,server.py,8365
+backend_api,GET,/api/po-requests,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,336
+backend_api,GET,/api/po-requests/summary,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,390
+backend_api,GET,/api/po-requests/export.csv,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,411
+backend_api,GET,/api/po-requests/{po_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,495
+backend_api,POST,/api/po-requests,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,502
+backend_api,POST,/api/po-requests/{po_id}/approve,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,557
+backend_api,POST,/api/po-requests/{po_id}/receipt,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,635
+backend_api,POST,/api/po-requests/{po_id}/respond-clarification,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,706
+backend_api,POST,/api/po-requests/{po_id}/close,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,745
+backend_api,POST,/api/po-requests/{po_id}/cancel,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/po_requests.py,773
+backend_api,POST,/api/admin/po-requests/scan-missing-receipts,Admin,P2,admin,no,no,Operational support — non-blocking,routes/po_requests.py,796
+backend_api,GET,/api/admin/po-requests/scan-missing-receipts/preview,Admin,P2,admin,no,no,Operational support — non-blocking,routes/po_requests.py,801
+backend_api,POST,/api/events,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,389
+backend_api,GET,/api/events,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,397
+backend_api,GET,/api/events/{event_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,424
+backend_api,PATCH,/api/events/{event_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,431
+backend_api,POST,/api/holds,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,444
+backend_api,POST,/api/holds/{hold_id}/approve,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,499
+backend_api,POST,/api/holds/{hold_id}/dismiss,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,531
+backend_api,POST,/api/holds/{hold_id}/release,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,567
+backend_api,GET,/api/holds,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,598
+backend_api,POST,/api/assignments,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,625
+backend_api,POST,/api/assignments/{asset_id}/clear,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,670
+backend_api,POST,/api/transfers,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,692
+backend_api,POST,/api/transfers/{xid}/decide,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,740
+backend_api,GET,/api/transfers,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,846
+backend_api,GET,/api/integration-readiness,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,863
+backend_api,GET,/api/utilization,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,906
+backend_api,GET,/api/assets/{asset_id}/profile,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations.py,959
+backend_api,GET,/api/idle-equipment,misc,P3,pm,no,no,Secondary/admin — internal,routes/operations.py,1023
+backend_api,GET,/api/day-1-debrief/questions,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_day1_debrief.py,169
+backend_api,GET,/api/week-1-debrief/questions,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_day1_debrief.py,177
+backend_api,POST,/api/day-1-debrief,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_day1_debrief.py,238
+backend_api,POST,/api/week-1-debrief,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_day1_debrief.py,247
+backend_api,GET,/api/banners/active,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/hub_banners.py,235
+backend_api,POST,/api/banners/{banner_id}/acknowledge,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/hub_banners.py,326
+backend_api,POST,/api/banners/{banner_id}/dismiss,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/hub_banners.py,348
+backend_api,GET,/api/admin/banners,Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,369
+backend_api,POST,/api/admin/banners,Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,384
+backend_api,PATCH,/api/admin/banners/{banner_id},Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,426
+backend_api,DELETE,/api/admin/banners/{banner_id},Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,462
+backend_api,POST,/api/admin/banners/translate,Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,470
+backend_api,GET,/api/admin/banners/{banner_id}/audit,Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,531
+backend_api,GET,/api/admin/banners/{banner_id}/audit.pdf,Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,549
+backend_api,GET,/api/admin/banners/{banner_id}/audit.csv,Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,579
+backend_api,POST,/api/admin/banners/{banner_id}/clone,Admin,P2,admin,no,no,Operational support — non-blocking,routes/hub_banners.py,615
+backend_api,POST,/api/assignments,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,421
+backend_api,GET,/api/assignments/board,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,522
+backend_api,GET,/api/assignments,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,545
+backend_api,GET,/api/assignments/{assignment_id},misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,578
+backend_api,POST,/api/assignments/{assignment_id}/transition,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,595
+backend_api,POST,/api/assignments/{assignment_id}/cancel,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,638
+backend_api,POST,/api/assignments/{assignment_id}/reassign,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,710
+backend_api,GET,/api/state-events,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,802
+backend_api,GET,/api/haul-cycles,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,828
+backend_api,GET,/api/lifecycle/states,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,857
+backend_api,GET,/api/haul-activity,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_lifecycle.py,874
+backend_api,GET,/api/health-summary,Health/Diagnostic,P2,dispatch,no,no,Operational support — non-blocking,routes/dispatch_lifecycle.py,1035
+backend_api,GET,/api/operations-center,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operations_center.py,123
+backend_api,GET,/api/last-activity,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/last_activity.py,81
+backend_api,GET,/api/findings,Compliance,P1,dispatch,no,no,Mission critical — significant degradation,routes/dispatch_governance.py,263
+backend_api,GET,/api/system-health,misc,P3,admin,no,no,Secondary/admin — internal,routes/admin_ops.py,210
+backend_api,GET,/api/system-health/recent,misc,P3,admin,no,no,Secondary/admin — internal,routes/admin_ops.py,217
+backend_api,GET,/api/audit-log,misc,P3,admin,no,no,Secondary/admin — internal,routes/admin_ops.py,229
+backend_api,GET,/api/search,misc,P3,admin,no,no,Secondary/admin — internal,routes/admin_ops.py,346
+backend_api,GET,/api/deploy-recovery,misc,P3,admin,no,no,Secondary/admin — internal,routes/admin_ops.py,452
+backend_api,GET,/api/lookup,misc,P3,admin,no,no,Secondary/admin — internal,routes/admin_ops.py,537
+backend_api,GET,/api/admin/po-digest/preview,Admin,P2,admin,no,no,Operational support — non-blocking,routes/po_digest_admin.py,50
+backend_api,POST,/api/admin/po-digest/run-now,Admin,P2,admin,no,no,Operational support — non-blocking,routes/po_digest_admin.py,62
+backend_api,GET,/api/integrations/health,Health/Diagnostic,P2,public_or_multi,no,no,Operational support — non-blocking,routes/integration_health.py,246
+backend_api,GET,/api/integrations/alerts,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/integration_health.py,253
+backend_api,GET,/api/pm/check,PM,P1,pm,no,no,Mission critical — significant degradation,routes/pm_routes.py,139
+backend_api,GET,/api/pm/crew/training-records,Daily Report,P0,pm,YES,YES,Operational survival — workflow halts,routes/pm_routes.py,144
+backend_api,GET,/api/pm/crew/ppe,Daily Report,P0,pm,YES,YES,Operational survival — workflow halts,routes/pm_routes.py,171
+backend_api,GET,/api/pm/crew/capas,Daily Report,P0,pm,YES,YES,Operational survival — workflow halts,routes/pm_routes.py,195
+backend_api,GET,/api/pm/crew/summary,Daily Report,P0,pm,YES,YES,Operational survival — workflow halts,routes/pm_routes.py,220
+backend_api,GET,/api/pm/me,PM,P1,pm,no,no,Mission critical — significant degradation,routes/pm_routes.py,255
+backend_api,POST,/api/pm/login,Auth,P0,pm,YES,no,Operational survival — workflow halts,routes/pm_routes.py,282
+backend_api,POST,/api/pm/forgot-password,PM,P1,pm,no,no,Mission critical — significant degradation,routes/pm_routes.py,407
+backend_api,POST,/api/pm/reset-password,PM,P1,pm,no,no,Mission critical — significant degradation,routes/pm_routes.py,504
+backend_api,POST,/api/pm/change-password,PM,P1,pm,no,no,Mission critical — significant degradation,routes/pm_routes.py,542
+backend_api,POST,/api/pm/logout,PM,P1,pm,no,no,Mission critical — significant degradation,routes/pm_routes.py,581
+backend_api,POST,/api/upload,Attachments,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/payroll_variance.py,306
+backend_api,GET,/api/recent,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/payroll_variance.py,336
+backend_api,GET,/api/{batch_id}.csv,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/payroll_variance.py,346
+backend_api,GET,/api/{batch_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/payroll_variance.py,374
+backend_api,POST,/api/{batch_id}/decision,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/payroll_variance.py,381
+backend_api,GET,/api/tasks,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/tasks_notifications.py,378
+backend_api,GET,/api/tasks/summary,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/tasks_notifications.py,418
+backend_api,GET,/api/tasks/{task_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/tasks_notifications.py,453
+backend_api,POST,/api/tasks,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/tasks_notifications.py,463
+backend_api,PATCH,/api/tasks/{task_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/tasks_notifications.py,478
+backend_api,POST,/api/tasks/{task_id}/comment,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/tasks_notifications.py,493
+backend_api,GET,/api/notifications,Notifications/Digest,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/tasks_notifications.py,509
+backend_api,GET,/api/notifications/unread-count,Notifications/Digest,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/tasks_notifications.py,532
+backend_api,POST,/api/notifications/{notif_id}/read,Notifications/Digest,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/tasks_notifications.py,554
+backend_api,POST,/api/notifications/read-all,Notifications/Digest,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/tasks_notifications.py,571
+backend_api,POST,/api/notifications/{notif_id}/acknowledge,Notifications/Digest,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/tasks_notifications.py,589
+backend_api,GET,/api/search,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/global_search.py,180
+backend_api,POST,/api/send-now,misc,P3,admin,no,no,Secondary/admin — internal,routes/admin_digest_config.py,100
+backend_api,GET,/api/asset-transfers,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,325
+backend_api,GET,/api/asset-transfers/{tid},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,360
+backend_api,POST,/api/asset-transfers,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,371
+backend_api,POST,/api/asset-transfers/{tid}/approve,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,454
+backend_api,POST,/api/asset-transfers/{tid}/reject,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,468
+backend_api,POST,/api/asset-transfers/{tid}/in-transit,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,484
+backend_api,POST,/api/asset-transfers/{tid}/receive,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,497
+backend_api,POST,/api/asset-transfers/{tid}/cancel,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,558
+backend_api,POST,/api/asset-transfers/{tid}/close,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/asset_transfers.py,579
+backend_api,GET,/api/deploy-readiness,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/deploy_readiness.py,285
+backend_api,GET,/api/equipment-inspections,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/equipment.py,303
+backend_api,GET,/api/equipment-inspections/{inspection_id},Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/equipment.py,340
+backend_api,DELETE,/api/equipment-inspections/{inspection_id},Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/equipment.py,350
+backend_api,GET,/api/admin/equipment-inspections/trends,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/equipment.py,358
+backend_api,GET,/api/admin/equipment-inspections/open-items,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/equipment.py,439
+backend_api,POST,/api/admin/equipment-inspections/{inspection_id}/signoff,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/equipment.py,477
+backend_api,DELETE,/api/admin/equipment-inspections/{inspection_id}/signoff,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/equipment.py,509
+backend_api,POST,/api/register/options,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/passkeys.py,219
+backend_api,POST,/api/register/verify,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/passkeys.py,273
+backend_api,POST,/api/login/options,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,routes/passkeys.py,343
+backend_api,POST,/api/login/verify,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,routes/passkeys.py,395
+backend_api,GET,/api/list,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/passkeys.py,473
+backend_api,DELETE,/api/{credential_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/passkeys.py,491
+backend_api,GET,/api/admin/operational-signals,Admin,P2,admin,no,no,Operational support — non-blocking,routes/operational_signals.py,217
+backend_api,GET,/api/equipment,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/master_lookup.py,47
+backend_api,GET,/api/equipment/by-id/{master_id},Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/master_lookup.py,75
+backend_api,GET,/api/employees,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/master_lookup.py,87
+backend_api,GET,/api/employees/by-id/{master_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/master_lookup.py,116
+backend_api,POST,/api/backfill/equipment,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/master_lookup.py,128
+backend_api,POST,/api/backfill/employees,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/master_lookup.py,184
+backend_api,GET,/api/audit,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/master_lookup.py,256
+backend_api,GET,/api/{photo_id}/raw,misc,P3,public_or_multi,no,YES,Secondary/admin — internal,routes/job_photos.py,824
+backend_api,GET,/api/{photo_id}/thumb,misc,P3,public_or_multi,no,YES,Secondary/admin — internal,routes/job_photos.py,842
+backend_api,GET,/api/{photo_id}/thumb-signed,misc,P3,public_or_multi,no,YES,Secondary/admin — internal,routes/job_photos.py,864
+backend_api,POST,/api/raw-batch,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/job_photos.py,892
+backend_api,POST,/api/zip,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/job_photos.py,917
+backend_api,POST,/api/email,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/job_photos.py,968
+backend_api,POST,/api/admin/reindex,Admin,P2,admin,no,no,Operational support — non-blocking,routes/job_photos.py,1032
+backend_api,POST,/api/admin/warm-cache,Admin,P2,admin,no,no,Operational support — non-blocking,routes/job_photos.py,1052
+backend_api,GET,/api/equipment/{master_id}/where-used,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/master_where_used.py,95
+backend_api,GET,/api/employees/{master_id}/where-used,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/master_where_used.py,108
+backend_api,POST,/api/usage/track,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/usage_analytics.py,254
+backend_api,GET,/api/admin/analytics/summary,Admin,P2,admin,no,no,Operational support — non-blocking,routes/usage_analytics.py,284
+backend_api,GET,/api/admin/analytics/routes,Admin,P2,admin,no,no,Operational support — non-blocking,routes/usage_analytics.py,315
+backend_api,GET,/api/admin/analytics/portals,Admin,P2,admin,no,no,Operational support — non-blocking,routes/usage_analytics.py,349
+backend_api,GET,/api/admin/analytics/health,Admin,P2,admin,no,no,Operational support — non-blocking,routes/usage_analytics.py,368
+backend_api,GET,/api/document-expirations,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/document_expirations.py,328
+backend_api,GET,/api/document-expirations/summary,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/document_expirations.py,363
+backend_api,POST,/api/document-expirations,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/document_expirations.py,392
+backend_api,PATCH,/api/document-expirations/{doc_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/document_expirations.py,429
+backend_api,DELETE,/api/document-expirations/{doc_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/document_expirations.py,464
+backend_api,POST,/api/admin/document-expirations/scan,Admin,P2,admin,no,no,Operational support — non-blocking,routes/document_expirations.py,484
+backend_api,GET,/api/admin/document-expirations/scan/preview,Admin,P2,admin,no,no,Operational support — non-blocking,routes/document_expirations.py,489
+backend_api,POST,/api/login,Auth,P0,safety,YES,no,Operational survival — workflow halts,routes/safety_forms.py,898
+backend_api,GET,/api/check,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_forms.py,907
+backend_api,POST,/api/equipment-issuances,Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,912
+backend_api,GET,/api/equipment-issuances,Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,943
+backend_api,GET,/api/equipment-issuances/{rec_id},Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,990
+backend_api,GET,/api/equipment-issuances/{rec_id}/pdf,Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,997
+backend_api,POST,/api/equipment-issuances/{rec_id}/return,Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,1014
+backend_api,GET,/api/equipment-issuances/{rec_id}/return/pdf,Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,1060
+backend_api,POST,/api/equipment-trainings,Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,1080
+backend_api,GET,/api/equipment-trainings,Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,1099
+backend_api,GET,/api/equipment-trainings/{rec_id},Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,1139
+backend_api,GET,/api/equipment-trainings/{rec_id}/pdf,Shop/Fleet,P1,"pm,safety",no,no,Mission critical — significant degradation,routes/safety_forms.py,1146
+backend_api,GET,/api/types,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operational_attachments.py,174
+backend_api,POST,/api/upload,Attachments,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/operational_attachments.py,182
+backend_api,GET,/api/list,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/operational_attachments.py,306
+backend_api,GET,/api/{attachment_id}/file,misc,P3,public_or_multi,no,YES,Secondary/admin — internal,routes/operational_attachments.py,326
+backend_api,DELETE,/api/{attachment_id},misc,P3,public_or_multi,no,YES,Secondary/admin — internal,routes/operational_attachments.py,371
+backend_api,GET,/api/fleet/_meta,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/fleet_ops.py,311
+backend_api,GET,/api/fleet/units,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/fleet_ops.py,356
+backend_api,POST,/api/fleet/inspections,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/fleet_ops.py,412
+backend_api,GET,/api/dispatch/fleet/status,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/fleet_ops.py,556
+backend_api,GET,/api/shop/fleet/defects,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,routes/fleet_ops.py,642
+backend_api,GET,/api/safety/fleet/emergency-equipment,Safety,P1,"pm,safety",YES,YES,Mission critical — significant degradation,routes/fleet_ops.py,670
+backend_api,POST,/api/shop/fleet/defects/{defect_id}/acknowledge,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,routes/fleet_ops.py,693
+backend_api,POST,/api/shop/fleet/defects/{defect_id}/repair,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,routes/fleet_ops.py,729
+backend_api,POST,/api/dispatch/fleet/defects/{defect_id}/clear,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/fleet_ops.py,774
+backend_api,POST,/api/dispatch/fleet/units/{unit_number}/oos,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/fleet_ops.py,819
+backend_api,GET,/api/fleet/inspections/{inspection_id},Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/fleet_ops.py,867
+backend_api,GET,/api/fleet/defects/{defect_id},Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/fleet_ops.py,879
+backend_api,GET,/api/fleet/defects/{defect_id}/detail,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/fleet_ops.py,890
+backend_api,POST,/api/admin/fleet/migrate-kind-field,Shop/Fleet,P1,admin,no,no,Mission critical — significant degradation,routes/fleet_ops.py,938
+backend_api,GET,/api/admin/fleet/severity-audit,Shop/Fleet,P1,admin,no,no,Mission critical — significant degradation,routes/fleet_ops.py,959
+backend_api,GET,/api/admin/fleet/severity-reference-card.pdf,Shop/Fleet,P1,admin,no,no,Mission critical — significant degradation,routes/fleet_ops.py,1105
+backend_api,GET,/api/shop/fleet/by-unit,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,routes/fleet_ops.py,1242
+backend_api,GET,/api/recent,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/field_memory.py,209
+backend_api,POST,/api/{note_id}/resolve,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/field_memory.py,268
+backend_api,GET,/api/categories,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/promo_assets.py,109
+backend_api,GET,/api/manifest.json,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/promo_assets.py,147
+backend_api,GET,/api/{asset_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/promo_assets.py,249
+backend_api,PATCH,/api/{asset_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/promo_assets.py,256
+backend_api,DELETE,/api/{asset_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/promo_assets.py,271
+backend_api,GET,/api/{asset_id}/download,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/promo_assets.py,283
+backend_api,GET,/api/equipment/{master_id}/history,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/master_history.py,401
+backend_api,GET,/api/employees/{master_id}/history,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/master_history.py,412
+backend_api,GET,/api/equipment/{master_id}/history.csv,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/master_history.py,424
+backend_api,GET,/api/employees/{master_id}/history.csv,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/master_history.py,441
+backend_api,GET,/api/equipment/{master_id}/history.pdf,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,routes/master_history.py,464
+backend_api,GET,/api/employees/{master_id}/history.pdf,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/master_history.py,485
+backend_api,GET,/api/project-health,PM,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/project_health.py,93
+backend_api,GET,/api/preview,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/backup_verification_routes.py,31
+backend_api,POST,/api/run-now,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/backup_verification_routes.py,38
+backend_api,GET,/api/state,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/backup_verification_routes.py,67
+backend_api,GET,/api/portals,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/training_center.py,492
+backend_api,GET,/api/guides,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/training_center.py,509
+backend_api,GET,/api/guide/{slug},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/training_center.py,528
+backend_api,GET,/api/guide/{slug}/pdf,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/training_center.py,540
+backend_api,POST,/api/seed,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/training_center.py,561
+backend_api,POST,/api/guide,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/training_center.py,569
+backend_api,PATCH,/api/guide/{slug},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/training_center.py,582
+backend_api,DELETE,/api/guide/{slug},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/training_center.py,594
+backend_api,GET,/api/shop/activity,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,routes/shop_parts.py,80
+backend_api,GET,/api/equipment-parts,Shop/Fleet,P1,"pm,shop",no,no,Mission critical — significant degradation,routes/shop_parts.py,115
+backend_api,GET,/api/equipment-parts/{unit_number},Shop/Fleet,P1,"pm,shop",no,no,Mission critical — significant degradation,routes/shop_parts.py,121
+backend_api,PUT,/api/equipment-parts/{unit_number},Shop/Fleet,P1,"pm,shop",no,no,Mission critical — significant degradation,routes/shop_parts.py,128
+backend_api,DELETE,/api/equipment-parts/{unit_number},Shop/Fleet,P1,"pm,shop",no,no,Mission critical — significant degradation,routes/shop_parts.py,150
+backend_api,GET,/api/admin/equipment-parts/status,Shop/Fleet,P1,"admin,pm,shop",no,no,Mission critical — significant degradation,routes/shop_parts.py,155
+backend_api,POST,/api/admin/equipment-parts/upload,Shop/Fleet,P1,"admin,pm,shop",no,YES,Mission critical — significant degradation,routes/shop_parts.py,164
+backend_api,POST,/api/equipment-parts/order,Shop/Fleet,P1,"pm,shop",no,no,Mission critical — significant degradation,routes/shop_parts.py,264
+backend_api,POST,/api/dispatch/login,Auth,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,153
+backend_api,GET,/api/dispatch/me,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,211
+backend_api,POST,/api/dispatch/change-password,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,215
+backend_api,POST,/api/dispatch/forgot-password,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,228
+backend_api,POST,/api/dispatch/reset-password,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,237
+backend_api,GET,/api/admin/dispatch-users,Dispatch/Driver,P0,"admin,dispatch",YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,251
+backend_api,POST,/api/admin/dispatch-users,Dispatch/Driver,P0,"admin,dispatch",YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,256
+backend_api,PATCH,/api/admin/dispatch-users/{user_id},Dispatch/Driver,P0,"admin,dispatch",YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,266
+backend_api,POST,/api/admin/dispatch-users/{user_id}/reset-password,Dispatch/Driver,P0,"admin,dispatch",YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,276
+backend_api,POST,/api/admin/dispatch-users/{user_id}/impersonate,Dispatch/Driver,P0,"admin,dispatch",YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,284
+backend_api,DELETE,/api/admin/dispatch-users/{user_id},Dispatch/Driver,P0,"admin,dispatch",YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,315
+backend_api,GET,/api/dispatch/driver-qualification,Dispatch/Driver,P0,"dispatch,driver",YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,330
+backend_api,GET,/api/dispatch/daily-reports,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_portal_auth.py,365
+backend_api,POST,/api/apply,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/date_audit.py,231
+backend_api,POST,/api/inspections,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/safety.py,303
+backend_api,GET,/api/inspections,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/safety.py,398
+backend_api,GET,/api/inspections/{inspection_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/safety.py,437
+backend_api,DELETE,/api/inspections/{inspection_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/safety.py,447
+backend_api,POST,/api/meetings,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,455
+backend_api,GET,/api/meetings,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,467
+backend_api,GET,/api/meetings/{meeting_id},Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,491
+backend_api,DELETE,/api/meetings/{meeting_id},Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,501
+backend_api,POST,/api/jhas,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,509
+backend_api,GET,/api/jhas,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,521
+backend_api,GET,/api/jhas/{jha_id},Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,545
+backend_api,DELETE,/api/jhas/{jha_id},Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,555
+backend_api,POST,/api/incidents,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,563
+backend_api,GET,/api/incidents,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,652
+backend_api,GET,/api/incidents/{incident_id},Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,684
+backend_api,GET,/api/incidents.csv,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,694
+backend_api,DELETE,/api/incidents/{incident_id},Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,routes/safety.py,740
+backend_api,GET,/api/admin/notifications/digest,Admin,P2,admin,no,no,Operational support — non-blocking,routes/notifications.py,704
+backend_api,GET,/api/safety/notifications/digest,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/notifications.py,709
+backend_api,GET,/api/hr/notifications/digest,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/notifications.py,713
+backend_api,GET,/api/pm/notifications/digest,PM,P1,pm,no,no,Mission critical — significant degradation,routes/notifications.py,727
+backend_api,GET,/api/dispatch/notifications/digest,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/notifications.py,740
+backend_api,GET,/api/fl/notifications/digest,Notifications/Digest,P1,public_or_multi,no,no,Mission critical — significant degradation,routes/notifications.py,753
+backend_api,GET,/api/hr/employees,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,767
+backend_api,POST,/api/hr/employees,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,810
+backend_api,PATCH,/api/hr/employees/{employee_id},HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,918
+backend_api,POST,/api/hr/employees/{employee_id}/status,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,968
+backend_api,POST,/api/hr/employees/{employee_id}/reactivate,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,1135
+backend_api,GET,/api/hr/employees/{employee_id}/offboarding-summary,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,1214
+backend_api,GET,/api/hr/driver-qualification/dashboard,HR/Payroll,P0,"hr,driver",YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,1331
+backend_api,GET,/api/hr/driver-qualification/dashboard.csv,HR/Payroll,P0,"hr,driver",YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,1469
+backend_api,POST,/api/hr/driver-qualification/import/preview,HR/Payroll,P0,"hr,driver",YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,1590
+backend_api,POST,/api/hr/driver-qualification/import/apply,HR/Payroll,P0,"hr,driver",YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,1696
+backend_api,GET,/api/hr/driver-qualification/import/audit,HR/Payroll,P0,"hr,driver",YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,1865
+backend_api,GET,/api/hr/driver-qualification/import/audit/{audit_id},HR/Payroll,P0,"hr,driver",YES,no,Operational survival — workflow halts,routes/employee_lifecycle.py,1875
+backend_api,GET,/api/status,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/signature_migration.py,189
+backend_api,POST,/api/migrate,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/signature_migration.py,235
+backend_api,POST,/api/admin/compliance/scan,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1105
+backend_api,POST,/api/admin/compliance/backfill-employee-links,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1111
+backend_api,GET,/api/admin/compliance/findings,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1124
+backend_api,GET,/api/admin/compliance/findings.csv,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1170
+backend_api,GET,/api/admin/compliance/findings/{finding_id},Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1231
+backend_api,POST,/api/admin/compliance/findings/{finding_id}/acknowledge,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1239
+backend_api,POST,/api/admin/compliance/findings/{finding_id}/resolve,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1261
+backend_api,GET,/api/admin/governance/summary,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1280
+backend_api,GET,/api/admin/operational-inventory,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1359
+backend_api,GET,/api/admin/operational-inventory/portals,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1369
+backend_api,GET,/api/admin/operational-inventory/translation,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1377
+backend_api,GET,/api/admin/operational-inventory/drift,Backup/R2,P0,admin,no,no,Operational survival — workflow halts,routes/governance.py,1385
+backend_api,GET,/api/admin/guidance/search-misses,Admin,P2,admin,no,no,Operational support — non-blocking,routes/governance.py,1393
+backend_api,GET,/api/template,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/fire_ext_bulk_import.py,180
+backend_api,POST,/api/preview,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/fire_ext_bulk_import.py,204
+backend_api,POST,/api/commit,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/fire_ext_bulk_import.py,309
+backend_api,GET,/api/history,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/fire_ext_bulk_import.py,384
+backend_api,GET,/api/signatures,misc,P3,public_or_multi,no,YES,Secondary/admin — internal,routes/signatures.py,164
+backend_api,POST,/api/signatures,misc,P3,public_or_multi,no,YES,Secondary/admin — internal,routes/signatures.py,187
+backend_api,GET,/api/incidents,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_exports.py,99
+backend_api,GET,/api/corrective-actions,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_exports.py,116
+backend_api,GET,/api/inspections,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_exports.py,133
+backend_api,GET,/api/training-records,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_exports.py,152
+backend_api,GET,/api/training-expired,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_exports.py,168
+backend_api,GET,/api/fire-extinguishers,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_exports.py,200
+backend_api,GET,/api/employee-profiles,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_exports.py,222
+backend_api,GET,/api/documents,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_exports.py,247
+backend_api,GET,/api/project-safety,PM,P1,safety,no,no,Mission critical — significant degradation,routes/safety_exports.py,266
+backend_api,GET,/api/executive,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_exports.py,300
+backend_api,GET,/api/project-managers,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,83
+backend_api,GET,/api/admin/project-managers,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,97
+backend_api,GET,/api/admin/project-managers/export,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,105
+backend_api,POST,/api/admin/project-managers,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,123
+backend_api,PATCH,/api/admin/project-managers/{pm_id},PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,132
+backend_api,DELETE,/api/admin/project-managers/{pm_id},PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,169
+backend_api,POST,/api/admin/project-managers/{pm_id}/set-password,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,190
+backend_api,POST,/api/admin/project-managers/{pm_id}/welcome-pdf,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,213
+backend_api,POST,/api/admin/project-managers/{pm_id}/email-welcome,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,250
+backend_api,POST,/api/admin/project-managers/{pm_id}/disable,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,358
+backend_api,GET,/api/admin/project-managers/activity,PM,P1,"admin,pm",no,no,Mission critical — significant degradation,routes/pm_admin.py,368
+backend_api,POST,/api/field-leadership/portal/login,Auth,P0,field_leadership,YES,no,Operational survival — workflow halts,routes/field_leadership_portal.py,161
+backend_api,POST,/api/field-leadership/portal/change-password,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership_portal.py,267
+backend_api,POST,/api/field-leadership/portal/forgot-password,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership_portal.py,283
+backend_api,POST,/api/field-leadership/portal/reset/{token},Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership_portal.py,328
+backend_api,GET,/api/field-leadership/portal/me,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership_portal.py,339
+backend_api,GET,/api/field-leadership/portal/dispatch-today,Dispatch/Driver,P0,"dispatch,field_leadership",YES,no,Operational survival — workflow halts,routes/field_leadership_portal.py,346
+backend_api,GET,/api/field-leadership/portal/driver-qualification,Dispatch/Driver,P0,"driver,field_leadership",YES,no,Operational survival — workflow halts,routes/field_leadership_portal.py,368
+backend_api,GET,/api/field-leadership/portal/employee/{emp_id}/snapshot,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership_portal.py,410
+backend_api,GET,/api/field-leadership/portal/incidents-recent,Safety,P1,field_leadership,YES,YES,Mission critical — significant degradation,routes/field_leadership_portal.py,532
+backend_api,GET,/api/field-leadership/portal/notifications-recent,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership_portal.py,552
+backend_api,GET,/api/field-leadership/portal/crew/training-records,Daily Report,P0,field_leadership,YES,YES,Operational survival — workflow halts,routes/field_leadership_portal.py,585
+backend_api,GET,/api/field-leadership/portal/crew/ppe,Daily Report,P0,field_leadership,YES,YES,Operational survival — workflow halts,routes/field_leadership_portal.py,623
+backend_api,GET,/api/field-leadership/portal/crew/training-summary,Daily Report,P0,field_leadership,YES,YES,Operational survival — workflow halts,routes/field_leadership_portal.py,645
+backend_api,GET,/api/field-leadership/portal/daily-reports,Daily Report,P0,field_leadership,YES,YES,Operational survival — workflow halts,routes/field_leadership_portal.py,684
+backend_api,POST,/api/hr/login,Auth,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,142
+backend_api,POST,/api/hr/change-password,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,209
+backend_api,POST,/api/hr/forgot-password,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,223
+backend_api,POST,/api/hr/reset/{token},HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,259
+backend_api,GET,/api/hr/me,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,268
+backend_api,GET,/api/hr/field-leadership,HR/Payroll,P0,"hr,field_leadership",YES,no,Operational survival — workflow halts,routes/hr_portal.py,277
+backend_api,GET,/api/hr/field-leadership/{record_id},HR/Payroll,P0,"hr,field_leadership",YES,no,Operational survival — workflow halts,routes/hr_portal.py,309
+backend_api,GET,/api/hr/field-leadership/{record_id}/pdf,HR/Payroll,P0,"hr,field_leadership",YES,no,Operational survival — workflow halts,routes/hr_portal.py,316
+backend_api,GET,/api/hr/daily-reports,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,349
+backend_api,GET,/api/hr/daily-reports/{report_id},HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,404
+backend_api,GET,/api/hr/employee-accountability,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,417
+backend_api,GET,/api/hr/employees/{emp_id}/accountability/timeline,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,506
+backend_api,GET,/api/hr/employees/{emp_id}/accountability/brief.pdf,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,762
+backend_api,GET,/api/hr/time-verification,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,925
+backend_api,GET,/api/hr/time-verification.csv,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,1141
+backend_api,GET,/api/hr/training-records,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,1219
+backend_api,GET,/api/hr/safety-documents,HR/Payroll,P0,"hr,safety",YES,no,Operational survival — workflow halts,routes/hr_portal.py,1323
+backend_api,GET,/api/hr/safety-documents/{doc_id}/download,HR/Payroll,P0,"hr,safety",YES,no,Operational survival — workflow halts,routes/hr_portal.py,1384
+backend_api,GET,/api/admin/hr-users,Admin,P2,"admin,hr",no,no,Operational support — non-blocking,routes/hr_portal.py,1445
+backend_api,POST,/api/admin/hr-users,Admin,P2,"admin,hr",no,no,Operational support — non-blocking,routes/hr_portal.py,1450
+backend_api,PATCH,/api/admin/hr-users/{user_id},Admin,P2,"admin,hr",no,no,Operational support — non-blocking,routes/hr_portal.py,1473
+backend_api,POST,/api/admin/hr-users/{user_id}/reset-password,Admin,P2,"admin,hr",no,no,Operational support — non-blocking,routes/hr_portal.py,1483
+backend_api,DELETE,/api/admin/hr-users/{user_id},Admin,P2,"admin,hr",no,no,Operational support — non-blocking,routes/hr_portal.py,1503
+backend_api,GET,/api/hr/incidents,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,1521
+backend_api,GET,/api/hr/corrective-actions,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,routes/hr_portal.py,1579
+backend_api,POST,/api/driver/breakdown-proof/upload,Dispatch/Driver,P0,"dispatch,driver",YES,YES,Operational survival — workflow halts,routes/dispatch_continuity.py,153
+backend_api,GET,/api/continuity-events/kinds,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_continuity.py,238
+backend_api,POST,/api/continuity-events,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_continuity.py,244
+backend_api,GET,/api/continuity-events/by-assignment/{assignment_id},misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_continuity.py,278
+backend_api,GET,/api/continuity-events/recent,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_continuity.py,295
+backend_api,GET,/api/recovery/states,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_continuity.py,313
+backend_api,GET,/api/recovery/by-shop,misc,P3,"shop,dispatch",no,no,Secondary/admin — internal,routes/dispatch_continuity.py,329
+backend_api,POST,/api/recovery/{assignment_id}/transition,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_continuity.py,440
+backend_api,GET,/api/recovery/{assignment_id},misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_continuity.py,488
+backend_api,GET,/api/operational-moments/by-assignment/{assignment_id},misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_continuity.py,512
+backend_api,POST,/api/start-shift,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_driver.py,192
+backend_api,GET,/api/shift-lookups,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_driver.py,292
+backend_api,GET,/api/assignment-lookups,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_driver.py,423
+backend_api,POST,/api/magic-link,Auth,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_driver.py,789
+backend_api,POST,/api/session/exchange,Auth,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_driver.py,816
+backend_api,GET,/api/me,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_driver.py,873
+backend_api,GET,/api/my-assignment,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_driver.py,891
+backend_api,POST,/api/assignments/{assignment_id}/transition,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_driver.py,912
+backend_api,GET,/api/sessions,Auth,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_driver.py,965
+backend_api,POST,/api/sessions/{session_id}/revoke,Auth,P0,dispatch,YES,no,Operational survival — workflow halts,routes/dispatch_driver.py,994
+backend_api,POST,/api/auth/multi-login,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,routes/auth_directory_routes.py,216
+backend_api,POST,/api/auth/multi-logout,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,routes/auth_directory_routes.py,301
+backend_api,GET,/api/auth/me-directory,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,routes/auth_directory_routes.py,307
+backend_api,POST,/api/auth/issue-portal-token,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,routes/auth_directory_routes.py,314
+backend_api,POST,/api/auth/change-master-password,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,routes/auth_directory_routes.py,366
+backend_api,GET,/api/admin/directory,Admin,P2,admin,no,no,Operational support — non-blocking,routes/auth_directory_routes.py,396
+backend_api,POST,/api/admin/directory,Admin,P2,admin,no,no,Operational support — non-blocking,routes/auth_directory_routes.py,403
+backend_api,GET,/api/admin/audit,Admin,P2,admin,no,no,Operational support — non-blocking,routes/auth_directory_routes.py,567
+backend_api,GET,/api/assignments.csv,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_exports.py,91
+backend_api,GET,/api/state-events.csv,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_exports.py,148
+backend_api,GET,/api/haul-cycles.csv,misc,P3,dispatch,no,no,Secondary/admin — internal,routes/dispatch_exports.py,202
+backend_api,GET,/api/admin/mfa/status,Auth,P0,admin,YES,no,Operational survival — workflow halts,routes/mfa_routes.py,113
+backend_api,POST,/api/admin/mfa/enroll/start,Auth,P0,admin,YES,no,Operational survival — workflow halts,routes/mfa_routes.py,127
+backend_api,POST,/api/admin/mfa/enroll/verify,Auth,P0,admin,YES,no,Operational survival — workflow halts,routes/mfa_routes.py,163
+backend_api,POST,/api/admin/mfa/disable,Auth,P0,admin,YES,no,Operational survival — workflow halts,routes/mfa_routes.py,198
+backend_api,POST,/api/admin/mfa/regenerate-recovery,Auth,P0,admin,YES,no,Operational survival — workflow halts,routes/mfa_routes.py,226
+backend_api,POST,/api/auth/mfa/verify-login,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,routes/mfa_routes.py,255
+backend_api,GET,/api/production-health,misc,P3,admin,no,no,Secondary/admin — internal,routes/admin_production_health.py,99
+backend_api,POST,/api/daily-reports,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/daily_reports.py,84
+backend_api,GET,/api/daily-reports,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/daily_reports.py,112
+backend_api,GET,/api/daily-reports/next-number,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/daily_reports.py,148
+backend_api,GET,/api/daily-reports.csv,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/daily_reports.py,156
+backend_api,GET,/api/daily-reports/{report_id},Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/daily_reports.py,205
+backend_api,DELETE,/api/daily-reports/{report_id},Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/daily_reports.py,215
+backend_api,GET,/api/admin/find-by-doc-id,Admin,P2,admin,no,no,Operational support — non-blocking,routes/admin_lookups.py,68
+backend_api,POST,/api/login,Auth,P0,field_leadership,YES,no,Operational survival — workflow halts,routes/field_leadership.py,334
+backend_api,GET,/api/check,misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,343
+backend_api,GET,/api/jobs,misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,351
+backend_api,GET,/api/employees,misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,361
+backend_api,POST,/api/employees,misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,371
+backend_api,GET,/api/equipment-catalog,Shop/Fleet,P1,"pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,754
+backend_api,GET,/api/equipment-makes,Shop/Fleet,P1,"pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,762
+backend_api,GET,/api/equipment-checkout-lookup,Shop/Fleet,P1,"pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,770
+backend_api,GET,/api/{rec_id},misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,818
+backend_api,GET,/api/{rec_id}/pdf,misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,829
+backend_api,DELETE,/api/{rec_id},misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,855
+backend_api,GET,/api/export/csv,misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,865
+backend_api,GET,/api/admin/equipment-catalog,Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,923
+backend_api,POST,/api/admin/equipment-catalog,Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,928
+backend_api,PATCH,/api/admin/equipment-catalog/{item_id},Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,953
+backend_api,DELETE,/api/admin/equipment-catalog/{item_id},Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,979
+backend_api,GET,/api/admin/equipment-makes,Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,989
+backend_api,POST,/api/admin/equipment-makes,Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,994
+backend_api,PATCH,/api/admin/equipment-makes/{item_id},Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,1011
+backend_api,DELETE,/api/admin/equipment-makes/{item_id},Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,1034
+backend_api,GET,/api/admin/equipment-checkout-export.csv,Shop/Fleet,P1,"admin,pm,field_leadership",no,no,Mission critical — significant degradation,routes/field_leadership.py,1044
+backend_api,GET,/api/field-leadership/time-off,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership.py,1138
+backend_api,GET,/api/field-leadership/time-off/stats,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership.py,1161
+backend_api,POST,/api/field-leadership/time-off/{rec_id}/decide,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership.py,1188
+backend_api,POST,/api/field-leadership/time-off/public-link,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership.py,1261
+backend_api,GET,/api/field-leadership/time-off/public-links,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,routes/field_leadership.py,1306
+backend_api,GET,/api/public/time-off/{token},misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,1313
+backend_api,POST,/api/public/time-off/{token}/submit,misc,P3,field_leadership,no,no,Secondary/admin — internal,routes/field_leadership.py,1331
+backend_api,POST,/api/pack,misc,P3,safety,no,no,Secondary/admin — internal,routes/safety_topic_library.py,449
+backend_api,GET,/api/qaqc-inspections,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/qaqc.py,274
+backend_api,GET,/api/qaqc-inspections/{inspection_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/qaqc.py,316
+backend_api,DELETE,/api/qaqc-inspections/{inspection_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/qaqc.py,326
+backend_api,GET,/api/admin/qaqc-inspections/stats,Admin,P2,admin,no,no,Operational support — non-blocking,routes/qaqc.py,333
+backend_api,GET,/api/admin/qaqc-inspections/export.csv,Admin,P2,admin,no,no,Operational support — non-blocking,routes/qaqc.py,349
+backend_api,POST,/api/legacy-imports/upload,Attachments,P0,public_or_multi,YES,YES,Operational survival — workflow halts,routes/legacy_imports.py,147
+backend_api,GET,/api/legacy-imports/_meta,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/legacy_imports.py,285
+backend_api,GET,/api/legacy-imports,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/legacy_imports.py,314
+backend_api,GET,/api/legacy-imports/{import_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/legacy_imports.py,337
+backend_api,GET,/api/legacy-imports/{import_id}/file,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/legacy_imports.py,346
+backend_api,PATCH,/api/legacy-imports/{import_id},misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/legacy_imports.py,379
+backend_api,POST,/api/legacy-imports/{import_id}/approve,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/legacy_imports.py,415
+backend_api,POST,/api/legacy-imports/{import_id}/reject,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/legacy_imports.py,445
+backend_api,POST,/api/legacy-imports/{import_id}/retry-ocr,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/legacy_imports.py,470
+backend_api,GET,/api/admin/legacy-imports/audit,Admin,P2,admin,no,no,Operational support — non-blocking,routes/legacy_imports.py,506
+backend_api,GET,/api/admin/legacy-imports/pilot-debrief,Admin,P2,admin,no,no,Operational support — non-blocking,routes/legacy_imports.py,523
+backend_api,GET,/api/safety/fire-extinguishers,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_extinguishers.py,25
+backend_api,POST,/api/safety/fire-extinguishers,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_extinguishers.py,39
+backend_api,PATCH,/api/safety/fire-extinguishers/{fe_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_extinguishers.py,67
+backend_api,POST,/api/safety/fire-extinguishers/{fe_id}/inspect,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_extinguishers.py,78
+backend_api,DELETE,/api/safety/fire-extinguishers/{fe_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_extinguishers.py,166
+backend_api,GET,/api/safety/documents,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/documents.py,45
+backend_api,POST,/api/safety/documents,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/documents.py,57
+backend_api,PATCH,/api/safety/documents/{doc_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/documents.py,141
+backend_api,GET,/api/safety/documents/{doc_id}/download,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/documents.py,161
+backend_api,DELETE,/api/safety/documents/{doc_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/documents.py,185
+backend_api,GET,/api/safety/training-records,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/training.py,31
+backend_api,POST,/api/safety/training-records,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/training.py,45
+backend_api,PATCH,/api/safety/training-records/{rec_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/training.py,88
+backend_api,DELETE,/api/safety/training-records/{rec_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/training.py,106
+backend_api,GET,/api/safety/employee-profile/{employee_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/training.py,118
+backend_api,GET,/api/safety/digest/preview,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/digest.py,148
+backend_api,POST,/api/safety/digest/send,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/digest.py,153
+backend_api,POST,/api/safety/login,Auth,P0,safety,YES,no,Operational survival — workflow halts,routes/safety_portal/auth_users.py,68
+backend_api,GET,/api/safety/me,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/auth_users.py,127
+backend_api,POST,/api/safety/change-password,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/auth_users.py,132
+backend_api,POST,/api/safety/forgot-password,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/auth_users.py,150
+backend_api,POST,/api/safety/reset-password,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/auth_users.py,172
+backend_api,GET,/api/admin/safety-users,Safety,P1,"admin,safety",YES,YES,Mission critical — significant degradation,routes/safety_portal/auth_users.py,236
+backend_api,POST,/api/admin/safety-users,Safety,P1,"admin,safety",YES,YES,Mission critical — significant degradation,routes/safety_portal/auth_users.py,241
+backend_api,PATCH,/api/admin/safety-users/{user_id},Safety,P1,"admin,safety",YES,YES,Mission critical — significant degradation,routes/safety_portal/auth_users.py,263
+backend_api,DELETE,/api/admin/safety-users/{user_id},Safety,P1,"admin,safety",YES,YES,Mission critical — significant degradation,routes/safety_portal/auth_users.py,298
+backend_api,POST,/api/safety/fire-extinguishers/{fe_id}/attachments,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_ext_attachments.py,107
+backend_api,DELETE,/api/safety/fire-extinguishers/{fe_id}/attachments/{att_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_ext_attachments.py,176
+backend_api,GET,/api/safety/fire-extinguishers/{fe_id}/attachments/{att_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_ext_attachments.py,197
+backend_api,GET,/api/safety/fire-extinguishers/{fe_id}/history.pdf,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/fire_ext_attachments.py,220
+backend_api,GET,/api/safety/daily-reports,Daily Report,P0,safety,YES,YES,Operational survival — workflow halts,routes/safety_portal/daily_reports.py,30
+backend_api,GET,/api/safety/overview,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/overview.py,57
+backend_api,GET,/api/admin/safety/overview,Safety,P1,"admin,safety",YES,YES,Mission critical — significant degradation,routes/safety_portal/overview.py,61
+backend_api,GET,/api/safety/corrective-actions,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/corrective_actions.py,20
+backend_api,POST,/api/safety/corrective-actions,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/corrective_actions.py,42
+backend_api,GET,/api/safety/corrective-actions/{ca_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/corrective_actions.py,120
+backend_api,PATCH,/api/safety/corrective-actions/{ca_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/corrective_actions.py,147
+backend_api,POST,/api/safety/corrective-actions/{ca_id}/links,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/corrective_actions.py,250
+backend_api,DELETE,/api/safety/corrective-actions/{ca_id}/links,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/corrective_actions.py,277
+backend_api,GET,/api/safety/corrective-actions/{ca_id}/related-resolved,Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/corrective_actions.py,293
+backend_api,DELETE,/api/safety/corrective-actions/{ca_id},Safety,P1,safety,YES,YES,Mission critical — significant degradation,routes/safety_portal/corrective_actions.py,326
+backend_api,POST,/api/integrations/motive/webhook,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/integrations/webhooks.py,98
+backend_api,POST,/api/integrations/maintainx/webhook,misc,P3,public_or_multi,no,no,Secondary/admin — internal,routes/integrations/webhooks.py,105
+backend_api,GET,/api/admin/integrations/overview,Admin,P2,admin,no,no,Operational support — non-blocking,routes/integrations/config.py,46
+backend_api,POST,/api/some-endpoint,misc,P3,public_or_multi,no,no,Secondary/admin — internal,lib/idempotency.py,15
+frontend_route,-,/,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/safety,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/forms/login,Auth,P0,safety,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/safety/forms,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/forms/equipment-issuance/new,Safety,P1,"pm,safety",YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/forms/equipment-issuance/:id,Safety,P1,"pm,safety",YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/forms/equipment-issuance/:id/return,Safety,P1,"pm,safety",YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/forms/equipment-training/new,Safety,P1,"pm,safety",YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/forms/equipment-training/:id,Safety,P1,"pm,safety",YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/cards,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/field,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/field/calculators,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/qaqc,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/qa-qc,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/qaqc/:slug/new,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/qaqc/:id,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/admin/qaqc,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/photos,Attachments,P0,admin,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/leadership,Field Leadership,P1,public_or_multi,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/leadership/records,Field Leadership,P1,public_or_multi,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/leadership/records/:id,Field Leadership,P1,public_or_multi,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/leadership/:kind/new,Field Leadership,P1,public_or_multi,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/inspections/new,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/inspect/new,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/submit,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/inspections/submit,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/inspections/new,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/meetings/new,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/meetings/submit,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/jha,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/jha/submit,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/jha/new,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/trench-boxes,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/incidents/new,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/incidents/submit,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/daily/new,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/daily/submit,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/equipment/new,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/equipment/submit,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/equipment/:id,Shop/Fleet,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/fleet/dvir/new,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/fleet/dvir/submit,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/fleet/weekly-lead/new,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/fleet/weekly-emergency/new,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/fleet/dvir/submitted/:id,Shop/Fleet,P1,public_or_multi,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/thank-you,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/cheatsheet,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/cheat-sheet,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/reports/daily/new,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/safety/jha,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety/trench-boxes,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/app/*,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/admin/login,Auth,P0,admin,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/admin,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/people,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/mfa,Auth,P0,admin,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/admin/promo-assets,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/jobs,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/equipment,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/email,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/training,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/compliance,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/system,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/integrations,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/dispatch,Dispatch/Driver,P0,"admin,dispatch",YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/admin/dls/shift-qr,Dispatch/Driver,P0,admin,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/admin/dls/day-1-debrief,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/dls/week-1-debrief,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/profile,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/operations-events,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/digest-config,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/system-health,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/audit-log,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/legacy-imports,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/sessions,Auth,P0,admin,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/admin/guidance-coverage,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/operational-inventory,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/notifications,Notifications/Digest,P1,public_or_multi,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/governance,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/compliance-findings,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/operational-language,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/guidance,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/guidance/section/:sectionId,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/guidance/:articleId,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/admin/deploy-recovery,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/assets/:assetId,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/equipment/:id/history,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/employees/:id/history,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/analytics,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/leadership-equipment,Field Leadership,P1,"admin,pm",YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/terminations,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/guide,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/pnl,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/inspections,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/inspections/:id,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/meetings,Safety,P1,admin,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/meetings/:id,Safety,P1,admin,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/jha-plans,Safety,P1,admin,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/jha,Safety,P1,admin,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/jha/:id,Safety,P1,admin,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/trench-boxes,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/trench-boxes/poster,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/jha-plans/poster,Safety,P1,admin,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/posters/print-all,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/incidents,Safety,P1,admin,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/incidents/:id,Safety,P1,admin,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/daily,Daily Report,P0,admin,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/admin/daily/:id,Daily Report,P0,admin,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/admin/equipment-inspections,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/equipment/:id,Shop/Fleet,P1,"admin,pm",no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/qaqc/:id,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/leadership/records/:id,Field Leadership,P1,admin,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/safety/issuance/:id,Safety,P1,"admin,safety",YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/admin/safety/training/:id,Safety,P1,"admin,safety",YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/login,Auth,P0,pm,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/pm/reset/:token,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/change-password,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm,misc,P3,pm,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/pm/crew-compliance,Daily Report,P0,pm,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/pm/jobs,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/field-leadership,PM,P1,"pm,field_leadership",no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/fleet,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/people,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/suppliers,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/posters,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/routing,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/compliance-export,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/qaqc,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/photos,PM,P1,pm,no,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/daily,Daily Report,P0,pm,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/pm/daily/:id,Daily Report,P0,pm,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/pm/incidents,Safety,P1,pm,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/incidents/:id,Safety,P1,pm,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/meetings,Safety,P1,pm,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/meetings/:id,Safety,P1,pm,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/inspections,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/inspections/:id,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/jha-plans,Safety,P1,pm,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/trench-boxes,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/equipment,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/pm/equipment/:id,PM,P1,pm,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/shop/login,Auth,P0,shop,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/shop/reset/:token,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/shop/change-password,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/shop,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/shop/fleet,Shop/Fleet,P1,shop,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/shop/equipment/:id,Shop/Fleet,P1,"pm,shop",no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/hr/login,Auth,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/sign-in,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/hr/forgot,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/reset/:token,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/change-password,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr,misc,P3,hr,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/hr/field-leadership,HR/Payroll,P0,"hr,field_leadership",YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/field-leadership-users,HR/Payroll,P0,"hr,field_leadership",YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/employee-accountability,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/time-verification,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/time-off,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/payroll-variance,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/training-records,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/driver-qualification,HR/Payroll,P0,"hr,driver",YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/driver-qualification/import,HR/Payroll,P0,"hr,driver",YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/daily-reports,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/daily-reports/:id,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/time-off/public/:token,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/field-leadership/portal/login,Auth,P0,field_leadership,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/field-leadership/portal/change-password,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/field-leadership/portal/dashboard,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/field-leadership/portal,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/field-leadership/portal/driver-qualification,Dispatch/Driver,P0,"driver,field_leadership",YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/safety-portal/login,Auth,P0,safety,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/safety-portal/forgot-password,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/reset/:token,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/change-password,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/fleet,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/corrective-actions,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/fire-extinguishers,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/fire-extinguishers/import,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/documents,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/training,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/incidents,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/audits,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/forms-records,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/reports,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/library,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/employees,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/safety-portal/digest,Safety,P1,safety,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/hr/safety-records,HR/Payroll,P0,"hr,safety",YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/dispatch-portal/login,Auth,P0,dispatch,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/leadership/login,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/leadership/legacy-login,Field Leadership,P1,public_or_multi,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/dispatch-portal/forgot-password,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/dispatch-portal/reset/:token,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/dispatch-portal/change-password,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/dispatch-portal,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/dispatch-portal/board,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/dispatch-portal/fleet,Dispatch/Driver,P0,dispatch,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/dispatch-portal/driver-qualification,Dispatch/Driver,P0,"dispatch,driver",YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/training,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/training-hub,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/training/:track,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/training/:track/poster,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/training/:track/packet,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/admin/training-videos,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/deploy-readiness,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/ops-training,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/ops-training/:slug,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/dev/login,Auth,P0,public_or_multi,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/dev,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/inspections,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/inspect/:id,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/inspections/:id,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/meetings,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/meetings/:id,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/incidents,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/incidents/:id,Safety,P1,public_or_multi,YES,YES,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/daily,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/daily/:id,Daily Report,P0,public_or_multi,YES,YES,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/legal/terms,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/legal/privacy,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/tasks,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/document-expirations,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/hr/employees,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/employees/:id/accountability,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/hr/incidents,HR/Payroll,P0,hr,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/po-requests,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/project-health,PM,P1,public_or_multi,no,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,/asset-transfers,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/access-denied,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/admin/audit,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/admin/health,Admin,P2,admin,no,no,Operational support — non-blocking,src/App.js,
+frontend_route,-,/d/:token,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,
+frontend_route,-,/driver,Dispatch/Driver,P0,driver,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/shift,Dispatch/Driver,P0,public_or_multi,YES,no,Operational survival — workflow halts,src/App.js,
+frontend_route,-,/field-leadership,Field Leadership,P1,field_leadership,YES,no,Mission critical — significant degradation,src/App.js,
+frontend_route,-,*,misc,P3,public_or_multi,no,no,Secondary/admin — internal,src/App.js,

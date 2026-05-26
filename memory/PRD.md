@@ -1,6 +1,68 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 15:30 UTC — ENVIRONMENT SEPARATION COMPLETE 🟢🟢
+
+User selected **Option A** (separate database, same cluster). Executed in full.
+
+### Configuration changes
+1. `/app/backend/.env` — `DB_NAME=masci_safety_preview`, added `APP_ENV=preview`
+2. **Production** (mascidocs.com) — `.env` remains `DB_NAME=masci_safety`. `APP_ENV` defaults to "production" when unset, so existing production env requires no change. (User should explicitly set `APP_ENV=production` for clarity, but it's not required.)
+3. Atlas now hosts two distinct databases on the same cluster:
+   - `masci_safety` — 524.5 MB, 124 collections (PRODUCTION)
+   - `masci_safety_preview` — 2.9 MB → grows independently (PREVIEW)
+
+### Guardrails shipped
+1. **Backend `_verify_env_db_alignment()`** runs at server startup. Refuses to boot with `RuntimeError` if:
+   - `APP_ENV=preview` AND `DB_NAME` does NOT end with `_preview`
+   - `APP_ENV=production` (or unset) AND `DB_NAME` ends with `_preview`
+   - Verified all 4 scenarios: 2 misalignments BLOCKED CORRECTLY, 2 alignments PASS
+2. **`/api/version`** now exposes `app_env` and `db_name` so frontend / monitoring / smoke tests can detect environment unambiguously.
+3. **`<EnvBanner />` component** renders an amber sticky banner on every non-production page:  
+   `⚠ PREVIEW ENVIRONMENT · DB: MASCI_SAFETY_PREVIEW · DO NOT ENTER REAL OPERATIONAL DATA`  
+   Only shows when `app_env !== "production"`; production users never see it.
+4. **Scheduler**: preview keeps `SCHEDULER_ENABLED=false` (already in place since Phase 31.4), so the only env writing backup archives to R2 is production.
+
+### Write-isolation proof (executed live)
+```
+BEFORE WRITE
+  PROD  masci_safety.employees:         242
+  PREV  masci_safety_preview.employees: 234
+
+AFTER inserting a test row through the runtime DB_NAME (simulating pytest)
+  PROD  masci_safety.employees:         242  (delta: +0)   ← unchanged
+  PREV  masci_safety_preview.employees: 235  (delta: +1)   ← preview only
+
+Cleanup complete — test marker removed from preview.
+```
+
+### Caveats / what user must know
+1. **Preview DB had pre-existing data** (234 employees, 86 collections). It is NOT the current production snapshot. It's a stale image from before today's restore work. The 70 daily reports, 20 meetings, 21 DVIRs, 476 photos, 233 compliance findings I restored today live in **production only**.
+2. If preview needs the current production dataset for testing, run a one-time copy: `mongodump` from `masci_safety`, then `mongorestore` into `masci_safety_preview`. I can script this on demand.
+3. **Backup jobs** (R2 archives) run from production only because `SCHEDULER_ENABLED=true` is only on prod. R2 archive names are unchanged; if you want preview archives later we'd add `BACKUP_R2_PREFIX_OVERRIDE` to namespace them.
+4. **Cross-env user accounts** — since preview was seeded from a production snapshot, the same login credentials work in both. After today, any user changes (passwords, roles, new users) in preview don't affect production and vice-versa.
+
+### Production redeploy required to ship
+- `/app/backend/server.py` (env safety check + version endpoint)
+- `/app/backend/routes/hr_portal.py` (TV projection fix — 21× speedup)
+- `/app/frontend/src/components/EnvBanner.jsx` (only renders if app_env != production, so a no-op for prod)
+- `/app/frontend/src/App.js` (wires `<EnvBanner />` into the tree)
+- All iPad architectural CSS from earlier
+- `/app/frontend/src/pages/HrTimeVerification.jsx`
+- `/app/frontend/src/pages/DispatchHub.jsx`
+- `/app/frontend/src/pages/driver/ShiftStart.jsx`
+
+When the user redeploys, **production /api/version will report `app_env: "production"`** (the default), the env banner will stay hidden, and HR endpoints will return in 0.5s instead of timing out.
+
+### Files changed
+- `/app/backend/.env` — DB_NAME + APP_ENV
+- `/app/backend/server.py` — `_verify_env_db_alignment()` + extended `/api/version` payload
+- `/app/frontend/src/App.js` — wires `<EnvBanner />`
+- `/app/frontend/src/components/EnvBanner.jsx` — new component
+- `/app/memory/test_credentials.md` — env separation notes prepended
+
+
+
 ## 2026-05-26 15:00 UTC — P0/P1 FORENSIC STABILIZATION AUDIT (PHASE 1) 🟢
 
 ### Audit deliverables addressed (10 of 15)
