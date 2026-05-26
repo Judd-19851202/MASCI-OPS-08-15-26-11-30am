@@ -24025,3 +24025,28 @@ See `/app/memory/test_credentials.md`. Quick refs:
 
 **Forensic artifact:** `/app/memory/PHASE_RESTORE_DRILL_ATLAS_BLOCKER.md` (full evidence — failure log, rollback sequence, growth analysis, decision log, file pointers).
 
+
+---
+
+## iter437 (2026-05-26 · evening) — Atlas M10 upgrade · Restore drill CERTIFIED PASS
+
+**Unblocked:** Operator upgraded Atlas M0 → M10 (10 GB dedicated, Mongo 8.0.23, WiredTiger). I re-ran the full restore drill end-to-end:
+
+- ✅ Post-upgrade validation: Mongo 8.0.23, dedicated cluster, prod storage dropped from 522.8 MB → 297.7 MB (M10 compression).
+- ✅ Restore drill #2 (clean wipe → restore): 110 s wall-clock · 75 collections · **26/26 critical collections parity with backup manifest, 0 mismatches**.
+- ✅ Production isolation enforced — prod recorded +4 daily reports, +1 meeting, +3 equipment inspections DURING the restore window (writes never blocked).
+- ✅ Attachment integrity — **37/37 sampled R2 URIs resolve** (32 daily-report photos + 5 operational_attachments).
+- ✅ Regression suite green post-restore: **43 / 43 PASSED**.
+- ✅ Current cluster: 782 MB / 10 240 MB = **7.6% utilization** · banner suppressed · ~12 months operational runway at observed +25 MB/day growth.
+
+**New deliverables this session:**
+- `/app/memory/PHASE_RESTORE_DRILL_ATLAS_BLOCKER.md` — full certification (pre-upgrade failure, rollback proof, post-upgrade validation, current capacity, runway, abnormal-collection findings, lifecycle recommendations).
+- `/app/memory/ATLAS_ALERTS_RUNBOOK.md` — operator configuration steps for Atlas alerts (75% / 90% storage, CPU, connection spikes, replica lag, backup-failure).
+
+**Open observations for operator review (NOT implemented):**
+- 🔴 `idempotency_keys` averaging 3.3 MB/doc — abnormally large; likely storing request bodies. Worth a forensic audit of the writer.
+- 🟡 `daily_reports` averaging 5.5 MB/doc — legacy embedded base64 photos pre-iter288; targeted R2 migration would reclaim 100-300 MB now, multi-GB long-term.
+- 🟡 Lifecycle TTL candidates: `job_photo_thumb_cache` (90 d), `usage_events` (90 d), `health_monitor_runs` (14 d), `audit_events` (365 d, compliance-sensitive).
+
+**Phase R verdict:** ✅ CERTIFIED PASS. Ready to proceed to performance audit, role access matrix, Playwright suite.
+
