@@ -1,6 +1,49 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 10:25 UTC — DEEP TEST-DATA PURGE 🟢 COMPLETE (3 rounds)
+
+### Trigger
+User reported the live site was full of preview/test/demo data instead of real production data. Investigation confirmed massive contamination from accumulated test runs (preview & prod share same Atlas cluster).
+
+### Operation Summary
+Surgical, field-level purge across 40+ collections in **3 rounds** — total **22,551 test records deleted**. Verification scan now returns **zero residual test markers** (the lone hit is the legitimate Memorial Day cultural banner whose audit field `auto_posted_iter: "iter329"` is itself real).
+
+| Round | Records Deleted | Notes |
+|---|---|---|
+| Round 1 | 14,635 | Field-level filters on first 40 collections (TEST_*, iter*, PHASE*, pytest, fixture, etc.) |
+| Round 2 | 6,893 | Extended fields: `tenant_id`, `linked_project_number`, `actor`, `reason`, `source_label`, `source_file`, `event_title`, `batch_id`, `unit_label`, `make_model`, `location_value`, plus `@masci.test` & `admin-token` patterns |
+| Round 3 | 1,023 | Cleared `tenant_id` patterns without `-test` suffix (`iter395-*`), `Test Driver`, `T-EM-TEST`, `user_agent: iter370-dispatch-parity`, `file_name: test.csv`, `PhaseE_*`, `Phase4 Driver P4UNIT-*`, also cleared `pytest resolve` notes on 6 real compliance findings |
+
+### Real Data Preserved (verified by sampling)
+- **5 admin users** (David Jewett, Chris Wright, Ramon Rodriguez, Jaymn Judd, MASCI Safety)
+- **24 field leadership users** (ALLEN SMATHERS, ANTHONY GOES, BRIAN HARDING, CARLOS MEZA, …)
+- **6 project managers**, 2 each in HR / Dispatch / Safety / Shop hubs
+- **234 employees** (real Masci roster)
+- **28 jobs_master** (T5686 SR 15/SR600 Sanford, T5749 SR 436 Altamonte Springs, etc.)
+- **587 equipment_master + 482 equipment_units** (real fleet)
+- **145 suppliers**, 3 vendors
+- **1,175 PPE compliance findings** (cleared pytest ack/resolve flags, findings themselves preserved)
+- **228 document_expirations**, 19 training_guides, 31 role_templates, 2 hub_banners (Memorial Day)
+- Audit/health logs retained (10,778 health_monitor_runs, 9,927 audit_events, 1,818 admin_audit)
+
+### Collections fully wiped (100% test)
+asset_assignments (117), asset_mappings (1), corrective_actions (293), dispatch_assignments (1), dispatch_continuity_events (82), driver_qualification_audit (80), fleet_status (5 T-PHASE2 units), integration_settings (2), jhas (1), mfa_audit_events (140), safety_equipment_issuances (117), safety_equipment_trainings (83), po_requests (562), meetings (45), qaqc_inspections (78), haul_cycles (354).
+
+### Scripts retained
+- `/tmp/scan_all.py` — full-DB contamination scanner (sampling)
+- `/tmp/purge_dry_run.py` — dry-run with $or filters by collection
+- `/tmp/purge_live.py` — Round 1 executor
+- `/tmp/probe.py` / `probe2.py` — field-level residue probes
+- `/tmp/purge_round2.py` / `/tmp/purge_round3.py` — follow-up cleanups
+- `/tmp/verify.py` — comprehensive top-to-bottom verification (run anytime)
+- `/tmp/final_state.py` — preserved-data sampler
+
+### Testing
+Manual: backend `/api/health` 200 in 143ms · post-purge. User to spot-check live UI.
+
+
+
 ## 2026-05-26 02:10 UTC — iter441 · Phase 31.4 RE-VERIFICATION 🟡 GO (🟢 after redeploy)
 
 ### Hard finding from re-verification pass
