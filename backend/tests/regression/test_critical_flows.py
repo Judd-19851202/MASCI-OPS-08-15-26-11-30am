@@ -219,3 +219,28 @@ def test_reference_data_jobs(base_url, admin_headers):
     body = r.json()
     items = body if isinstance(body, list) else body.get("items") or body.get("jobs")
     assert isinstance(items, list), f"unexpected shape: {type(items).__name__}"
+
+
+# ---------------------------------------------------------------------------
+# 10. Cluster capacity probe (iter437) — public read, always returns 200
+#     with a severity field. The frontend ClusterCapacityBanner depends on
+#     this contract. A regression here means the banner stops surfacing
+#     write-block conditions.
+# ---------------------------------------------------------------------------
+def test_cluster_capacity_endpoint(base_url):
+    r = requests.get(f"{base_url}/api/cluster/capacity", timeout=10)
+    assert r.status_code == 200, r.text[:200]
+    body = r.json()
+    assert body.get("ok") is True
+    assert isinstance(body.get("storage_used_mb"), (int, float))
+    assert isinstance(body.get("storage_used_pct"), (int, float))
+    assert isinstance(body.get("tier_quota_mb"), int)
+    assert body.get("severity") in {"ok", "warning", "critical"}
+    assert isinstance(body.get("dbs"), dict)
+
+
+def test_cluster_capacity_no_auth_required(base_url):
+    """Banner must render on the public login page, before any portal token
+    has been issued. Endpoint MUST work with zero headers."""
+    r = requests.get(f"{base_url}/api/cluster/capacity", timeout=10)
+    assert r.status_code == 200

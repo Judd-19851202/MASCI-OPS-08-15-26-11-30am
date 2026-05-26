@@ -9675,6 +9675,13 @@ app.include_router(build_last_activity_router(
     require_any_portal_token_dep=_require_any_portal_token,
 ))
 
+# iter437 (2026-05-26) · Cluster capacity probe · public, sub-50ms.
+# Surfaces Atlas storage utilization to the frontend banner so a quota
+# block (writes-blocked) cannot happen silently again. Discovered after
+# today's restore drill exposed the cluster at 99% capacity.
+from routes.cluster_capacity import build_cluster_capacity_router  # noqa: E402
+app.include_router(build_cluster_capacity_router(get_client=lambda: client))
+
 # iter431 · Phase 29 · Part 4 · admin-strict stability sweepers
 from routes.admin_stability import build_admin_stability_router  # noqa: E402
 app.include_router(build_admin_stability_router(

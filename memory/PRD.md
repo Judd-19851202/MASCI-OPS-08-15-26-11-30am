@@ -24003,3 +24003,25 @@ See `/app/memory/test_credentials.md`. Quick refs:
 - Shop: `testmech@mascigc.com` / `ResetWorks2026!`
 - Field Leadership: `MASCIGC`
 - PM (Chris Wright): `chriswright@mascigc.com` / `ChrisRocksThis2026`
+
+---
+
+## iter437 (2026-05-26) — Operational Certification: Regression Baseline + Restore-Drill Blocker
+
+**Phase:** Operational stabilization / certification (code-freeze on features in force).
+
+**Delivered:**
+- ✅ `/app/backend/tests/regression/test_critical_flows.py` — 43-assertion API regression suite covering env-separation guardrail, multi-login, all 7 portal /me reachability, cross-portal token isolation, critical list endpoints, HR performance SLA, public-vs-protected auth enforcement, reference-data presence, cluster-capacity probe.
+- ✅ Baseline locked at `/app/memory/REGRESSION_BASELINE.md`. **43 / 43 PASSED in ~9s · stable across 5 runs.**
+- ✅ `GET /api/cluster/capacity` (public, no auth) — reports total cluster storage MB, percentage vs ATLAS_QUOTA_MB, and severity (`ok|warning|critical`). Cached 60s.
+- ✅ `<ClusterCapacityBanner />` in `App.js` — invisible at <80%, amber at 80-95%, red ⛔ at ≥95%. Field crews can no longer hit a silent write-block.
+
+**Blocked:**
+- ⛔ Production Restore Drill. R2 backup downloaded successfully (336.67 MB, 223,598 entries) but Atlas cluster reached 544 MB / 512 MB free-tier quota mid-restore and rejected writes cluster-wide. Partial restore rolled back safely (184 MB freed; carry-over data intact; production never touched). Cluster currently at 540 MB / 512 MB = **105.5% — chronically over quota**. Growth rate measured at ~25 MB/day Mongo storage including indexes.
+
+**Action required (waiting on operator):**
+- 🔴 Upgrade Atlas tier (M0 → M10 minimum, 10 GB) before any further restore work.
+- Then: set `ATLAS_QUOTA_MB=10240` in `/app/backend/.env`, re-run `python3 /app/backend/tools/restore_drill.py /tmp/restore_source.zip` (script idempotent), verify counts, refresh regression baseline.
+
+**Forensic artifact:** `/app/memory/PHASE_RESTORE_DRILL_ATLAS_BLOCKER.md` (full evidence — failure log, rollback sequence, growth analysis, decision log, file pointers).
+

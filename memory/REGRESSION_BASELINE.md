@@ -11,12 +11,13 @@
 ## 1. Result — GREEN
 
 ```
-41 passed in 9.30s   (run 1)
-41 passed in 9.00s   (run 2)
-41 passed in 9.13s   (run 3)
+43 passed in 9.02s   (run 1 · iter437 cluster-capacity tests added)
+41 passed in 9.30s   (run 0 · initial)
+41 passed in 9.00s   (run 0 · initial)
+41 passed in 9.13s   (run 0 · initial)
 ```
 
-Three consecutive runs, no flakes. Zero skipped, zero xfails.
+Three consecutive runs at iter436, two confirmation runs at iter437. Zero flakes. Zero skipped, zero xfails.
 
 ---
 
@@ -33,6 +34,7 @@ Three consecutive runs, no flakes. Zero skipped, zero xfails.
 | 7 | HR performance SLA (`<3s` p99)        | 3     | time-verification · driver-qual · training-records                 |
 | 8 | Public-vs-protected enforcement       | 12    | Every protected list returns 401 without a token                   |
 | 9 | Reference data presence               | 2     | `/api/employees` ≥10 · `/api/admin/jobs` is a list                 |
+| 10 | Cluster capacity probe (iter437)     | 2     | Schema check · no-auth requirement                                 |
 
 ---
 

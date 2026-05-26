@@ -4,6 +4,30 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## 🔴 ACTIVE BLOCKER — Atlas Tier Capacity (P0 · iter437 · 2026-05-26)
+
+**Status:** Production cluster at **540 MB / 512 MB (105.5%)**. Writes currently work only because of Atlas reclaim cycle — fragile. **The certification directive's restore-drill phase cannot complete until this is resolved.**
+
+**Required action (operator-side):**
+1. Upgrade Atlas tier M0 → M10 (10 GB minimum) or larger.
+2. Set `ATLAS_QUOTA_MB=10240` in `/app/backend/.env` (or unset for unbounded).
+3. Restart backend.
+
+**Then I will:**
+1. Re-run `python3 /app/backend/tools/restore_drill.py /tmp/restore_source.zip` (script is idempotent, source already cached).
+2. Verify per-collection counts match the backup manifest.
+3. Refresh `REGRESSION_BASELINE.md` with post-restore state.
+4. Proceed to remaining certification phases: performance audit, role access matrix, Playwright suite.
+
+**Mitigations already live** (don't depend on the upgrade):
+- `GET /api/cluster/capacity` public endpoint reports utilization.
+- Frontend `<ClusterCapacityBanner />` renders ⛔ banner site-wide when ≥95%.
+- 43-assertion API regression suite green and locked.
+
+Full forensic artifact at `/app/memory/PHASE_RESTORE_DRILL_ATLAS_BLOCKER.md`.
+
+---
+
 ## 🅿️ PARKED — Awaiting User Green Light
 
 ### 🔐 Site-Wide Employee Login Gate

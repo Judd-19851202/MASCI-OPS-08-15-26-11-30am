@@ -284,4 +284,4 @@ report = {
 
 Path("/tmp/restore_drill_report.json").write_text(json.dumps(report, indent=2))
 print(f"\n[restore-drill] DONE. total elapsed: {report['total_elapsed_s']}s")
-print(f"[restore-drill] report: /tmp/restore_drill_report.json")
+print("[restore-drill] report: /tmp/restore_drill_report.json")

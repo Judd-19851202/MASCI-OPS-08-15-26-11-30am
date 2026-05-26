@@ -186,6 +186,7 @@ import { RequireDev } from "@/components/RequireDev";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
+import ClusterCapacityBanner from "@/components/ClusterCapacityBanner";
 import BannerStrip from "@/components/BannerStrip";
 import EnvBanner from "@/components/EnvBanner";
 import SplashOverlay from "@/components/SplashOverlay";
@@ -261,6 +262,7 @@ function App() {
       <Toaster position="top-center" richColors closeButton />
       <GlobalKeepalive />
       <BackendStatusBanner />
+      <ClusterCapacityBanner />
       <EnvBanner />
       <BannerStrip />
       <BrowserRouter key={authTick}>
