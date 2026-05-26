@@ -26,6 +26,31 @@ body {
         "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+ * Mobile-safe text wrapping (2026-05-26)
+ *
+ * Problem: long words inside narrow flex/grid tiles ("Equipment",
+ * "Tanker / Liquid Asphalt", "Support / Misc Haul") were bleeding
+ * outside their boxes on phones because the default Tailwind /
+ * browser word-break behavior keeps long tokens intact and overflows
+ * the parent. Reported as "words are bleeding out of boxes badly
+ * look horrible" on the Dispatch hub mobile view.
+ *
+ * Fix: enable `overflow-wrap: break-word` only on the patterns where
+ * this matters — display headings and bold/black-weight labels (the
+ * Dispatch action tiles use `font-display font-black`). Plain table
+ * cells and body text keep default browser behavior so they don't
+ * break mid-word unnecessarily.
+ * ───────────────────────────────────────────────────────────────── */
+.font-display, .font-black {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+h1.font-display, h2.font-display, h3.font-display {
+    hyphens: auto;
+    -webkit-hyphens: auto;
+}
+
 @layer base {
     :root {
         --background: 0 0% 100%;

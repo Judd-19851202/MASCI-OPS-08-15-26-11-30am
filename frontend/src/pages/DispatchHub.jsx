@@ -276,7 +276,7 @@ export default function DispatchHub() {
           title={t("Issue Work")}
           subtitle={t("Create the assignment once. Drivers and PMs see the right operational signal downstream.")}
         >
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="ds-issue-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" data-testid="ds-issue-grid">
             <IssueButton
               testId="ds-issue-material"
               icon={Truck}
@@ -573,8 +573,8 @@ function IssueButton({ testId, icon: Icon, title, sub, onClick }) {
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-display text-base font-black text-slate-900 leading-tight">{title}</div>
-        <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mt-1">{sub}</div>
+        <div className="font-display text-base font-black text-slate-900 leading-tight break-words hyphens-auto">{title}</div>
+        <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mt-1 break-words">{sub}</div>
       </div>
     </button>
   );

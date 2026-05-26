@@ -350,8 +350,19 @@ export default function ShiftStart() {
       className="min-h-screen bg-slate-950 text-slate-50 flex flex-col"
       data-testid="shift-start-page"
     >
-      <div className="px-5 sm:px-8 pt-6 pb-2 text-[11px] uppercase tracking-[0.3em] text-amber-400">
-        {t("Operational check-in")}
+      <div className="px-5 sm:px-8 pt-4 flex items-center justify-between max-w-md w-full mx-auto">
+        <Link
+          to="/field"
+          data-testid="shift-start-back-link"
+          className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-amber-300 active:text-amber-200 px-3 py-2 -ml-3 rounded-md transition-colors min-h-[44px]"
+          aria-label={t("Back to Field Section")}
+        >
+          <span aria-hidden className="text-lg leading-none">←</span>
+          <span>{t("Back to Field")}</span>
+        </Link>
+        <div className="text-[11px] uppercase tracking-[0.3em] text-amber-400">
+          {t("Operational check-in")}
+        </div>
       </div>
 
       <main className="flex-1 px-5 sm:px-8 pt-4 pb-10 max-w-md w-full mx-auto">
