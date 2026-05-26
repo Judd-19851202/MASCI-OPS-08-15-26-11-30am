@@ -194,6 +194,17 @@ async def run_with_singleton_lock(
     then awaits the scheduler. On loss-of-lock or crash, falls back to
     re-polling so the cluster heals itself.
 
+    iter441 · Phase 31.4 closeout · Environment gate
+    -------------------------------------------------
+    Preview and production share the same Atlas cluster, which means
+    without an environment gate the preview backend (with ``uvicorn
+    --reload`` always-on) would hog the lock and starve production.
+
+    The env var ``SCHEDULER_ENABLED`` defaults to ``true`` so production
+    (and any other unconfigured deploy) runs schedulers as expected. Set
+    ``SCHEDULER_ENABLED=false`` in preview's ``.env`` so preview workers
+    never participate in the scheduler lock race.
+
     Usage
     -----
         asyncio.create_task(
@@ -202,6 +213,13 @@ async def run_with_singleton_lock(
 
     Replaces the previous direct ``asyncio.create_task(scheduler_fn(db))``.
     """
+    enabled = (os.environ.get("SCHEDULER_ENABLED", "true") or "true").lower()
+    if enabled not in ("true", "1", "yes", "on"):
+        logger.info(
+            f"[singleton-lock:{lock_name}] SCHEDULER_ENABLED={enabled!r} — "
+            f"scheduler disabled on this worker (preview / non-prod)"
+        )
+        return
     owner_id = _generate_owner_id()
     logger.info(
         f"[singleton-lock:{lock_name}] starting under owner_id={owner_id}"
