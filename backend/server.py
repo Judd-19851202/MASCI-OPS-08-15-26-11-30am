@@ -6420,6 +6420,44 @@ async def _backup_scheduler_loop(db) -> None:
             f"(stale). Catch-up will fire ~30s after startup."
         )
 
+    # iter440 · Phase 31.3 · Restart-fire prevention.
+    # Seed `_BACKUP_SCHEDULER_STATE["last_r2_complete_hour"]` from the most
+    # recent successful `complete-r2` row in `backup_health` so that a
+    # `uvicorn --reload` (or supervisord restart) DOES NOT immediately
+    # re-fire an archive in an hour bucket we've already covered.
+    # Without this seed, the in-memory state is wiped on every restart
+    # and the next 5-min tick sees `last_r2_complete_hour != current` →
+    # fires a duplicate archive. This was the root cause of the
+    # ~100 archives/day vs expected 24/day rate (each reload caused by
+    # WatchFiles file-change detection during agent edits added one
+    # archive within minutes of startup).
+    try:
+        latest_r2 = await db.backup_health.find_one(
+            {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+            sort=[("ts", -1)],
+            projection={"_id": 0, "ts": 1, "filename": 1},
+        )
+        if latest_r2 and latest_r2.get("ts"):
+            try:
+                # ts is ISO 8601 like "2026-05-26T00:09:52.987715+00:00".
+                # The bucket key is "%Y-%m-%dT%H" — take the first 13 chars.
+                seeded_bucket = str(latest_r2["ts"])[:13]
+                _BACKUP_SCHEDULER_STATE["last_r2_complete_hour"] = seeded_bucket
+                _BACKUP_SCHEDULER_STATE["last_r2_complete_date"] = seeded_bucket[:10]
+                logger.info(
+                    f"[scheduled-backup] R2 state seeded from backup_health: "
+                    f"last_r2_complete_hour={seeded_bucket} "
+                    f"(prevents restart-fire of {latest_r2.get('filename')})"
+                )
+            except Exception as _e:  # noqa: BLE001
+                logger.warning(
+                    f"[scheduled-backup] R2 state seed parse failed (non-fatal): {_e}"
+                )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            f"[scheduled-backup] R2 state seed query failed (non-fatal): {e}"
+        )
+
     # Give the app a moment to finish startup before first tick
     await asyncio.sleep(30)
     while True:

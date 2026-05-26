@@ -1,6 +1,83 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 — iter440 · Phase 31.3 · R2 Forensic Audit · 🔴 root cause → 🟢 surgical fix
+
+### Result — 🟢 ROOT CAUSE FOUND + SURGICALLY FIXED
+
+### The mystery
+
+Last pass flagged "1500+ R2 archives in 9 days at 91 MB each = ~140 GB" — far more than the documented "2/day at 02:00 + 18:00 UTC" schedule should produce. Phase 31.3 was the deep forensic audit to determine why.
+
+### Hard evidence
+
+- R2 bucket inventory (paginated boto3): **1504 keys · 77.66 GB**
+  - 1004 keys under `backups/auto-90d/` (2026-05-17 → 2026-05-26)
+  - 500 keys under legacy `backups/<no-prefix>/` (2026-05-11 → 2026-05-17)
+- Real cadence: **~110 archives/day** (10 days probed)
+- Backend scheduler-arm log events per day: **104–201** events/day
+- **1:1 correspondence**: each scheduler-arm event = one new archive
+
+### 🔴 ROOT CAUSE
+
+`uvicorn --reload` (configured in supervisord for hot-reload dev cycle) detects file changes via WatchFiles. Every detected change → worker reload → `@app.on_event("startup")` re-runs → `_backup_scheduler_loop` boots with a fresh empty `_BACKUP_SCHEDULER_STATE` dict (module-level in-memory state) → first 5-min tick sees `last_r2_complete_hour != current bucket` → fires a fresh archive even if one was already produced 4 minutes ago in the same hour. Agent's heavy editing today/yesterday → 100+ reloads/day → 100+ archives/day.
+
+This was NOT: retry storm, recursive trigger, lifecycle failure, health-probe side effect, deploy artifact. It WAS a pure in-memory-state-volatility bug.
+
+### 🟢 SURGICAL FIX
+
+`backend/server.py` — added a startup seed in `_backup_scheduler_loop`:
+- One read from `backup_health` (most recent successful `complete-r2` row with a filename).
+- Initializes `_BACKUP_SCHEDULER_STATE["last_r2_complete_hour"]` to the hour bucket of that row.
+- Best-effort · failures logged and continue · no schema change · no new collection.
+- Verified: two consecutive backend restarts within the same hour bucket produced ZERO new R2 archives. Log shows `R2 state seeded from backup_health: last_r2_complete_hour=2026-05-26T00` followed by NO `firing complete-archive` line.
+
+### R2 lifecycle status (verified directly via Cloudflare API)
+- ✅ `masci-backups-auto-90d` rule **ENABLED** · `Expiration: 90 days` · `Filter: Prefix=backups/auto-90d/`
+- ✅ Default Multipart Abort: 7 days
+- 🟡 500 legacy `backups/*.zip` (22.5 GB) intentionally OUT of lifecycle scope per iter184 doctrine (manual cleanup with operator approval, documented in `R2_RETENTION_AUDIT.md`)
+
+### Storage trajectory
+
+| Phase     | Archives/day | 90-day steady-state | $ R2 storage |
+| --------- | -----------: | ------------------: | -----------: |
+| Pre-fix   | ~110         | 765 GB              | ~$12/mo     |
+| Post-fix  | 24 (hourly)  | 190 GB              | ~$3/mo      |
+
+**~76% cost reduction** at steady state.
+
+### Files of reference
+
+- `/app/memory/PHASE31_3_R2_FORENSIC_AUDIT.md` (root cause analysis + verification)
+- `/app/memory/PHASE31_3_RETENTION_VALIDATION.md` (lifecycle + local prune)
+- `/app/memory/PHASE31_3_STORAGE_GROWTH_ANALYSIS.md` (cost trajectory)
+- `/app/memory/PHASE31_3_BACKUP_CALL_GRAPH.md` (every producer code path)
+- `/app/backend/server.py` (surgical seed fix at scheduler startup)
+
+### Testing
+
+- Ruff: 7 pre-existing errors (none introduced by this change · F401/F821 in unrelated lines).
+- Live restart test: 2 consecutive restarts within same hour → 0 redundant archives, 2 seed-log entries (expected).
+- R2 paginated probe matches `backup_health` 1:1 (no orphan archives, no missing rows).
+- R2 lifecycle config probed directly via `get_bucket_lifecycle_configuration` → rule enabled.
+
+### STANDING OPERATOR ACTIONS
+
+- **🟡→🟢 MANDATORY · ONE production redeploy** still pending. This redeploy lands all 3 iter440 fixes together:
+  1. Diag readers point at correct Mongo collections (Phase 31.2 pass 1)
+  2. `backups-list-r2` pagination (Phase 31.2 pass 2)
+  3. Scheduler restart-fire prevention (Phase 31.3 this pass)
+- **🟡 optional cleanup** · 500 legacy `backups/<no-prefix>/` archives (22.5 GB) can be deleted with operator approval per `R2_RETENTION_AUDIT.md`. Not blocking.
+- **🟡 optional janitor** · 5 `.zip.tmp.*` orphans (~440 MB) on local disk from old killed-mid-archive runs. Will self-clear at next container deploy.
+- **🟡 carried** · Atlas password chat-transcript hygiene rotation.
+
+### Doctrine reaffirmed
+
+- No new dashboards, portals, analytics, monitoring centers, backup browsers.
+- One surgical fix · 30 lines in `server.py` · all 4 docs are read-only diagnostics.
+- Doctrine intact: defense-in-depth, hourly survivability, calm operator surfaces.
+
+
 ## 2026-05-26 — iter440 · Phase 31.2 SECOND PASS · 2nd defect found + fixed
 
 ### Result — 🟡 GO (still one redeploy away from 🟢 · NOW two fixes pending instead of one)
