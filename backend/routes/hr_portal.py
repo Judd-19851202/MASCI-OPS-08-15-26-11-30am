@@ -973,7 +973,18 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         rows: List[Dict[str, Any]] = []
         weekly: Dict[str, Dict[str, Any]] = {}
 
-        async for d in db.daily_reports.find(query, {"_id": 0}).sort("report_date", 1).limit(1000):
+        # iter435 (2026-05-26) — perf fix
+        # Daily reports embed full base64 photos inline (each 50-200 KB).
+        # Pulling all docs unprojected = ~15 MB transfer + JSON parse per
+        # call, which timed Time Verification out at 10 s on iPad Safari.
+        # We only need the time-tracking fields; explicitly project them
+        # and drop the photo/attachment/signature payloads.
+        TV_FIELDS = {
+            "_id": 0, "id": 1, "report_date": 1, "project_name": 1,
+            "project_number": 1, "prepared_by": 1, "superintendent": 1,
+            "masci_crews": 1, "created_at": 1, "submitted_at": 1,
+        }
+        async for d in db.daily_reports.find(query, TV_FIELDS).sort("report_date", 1).limit(1000):
             day = d.get("report_date") or ""
             job = d.get("project_name") or ""
             job_num = d.get("project_number") or ""

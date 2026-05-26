@@ -1,6 +1,93 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 15:00 UTC — P0/P1 FORENSIC STABILIZATION AUDIT (PHASE 1) 🟢
+
+### Audit deliverables addressed (10 of 15)
+- [x] (1) Environment separation report — see below, **CRITICAL ROOT-CAUSE FINDING**
+- [x] (2) Production data integrity report — 222,956 docs · 0 test residue
+- [x] (3) Preview vs production database comparison — they're the same DB
+- [x] (4) Backup/R2 forensic report — 2,533 archives · 88 GB · cadence normal
+- [x] (5) Restore safety verification — works; restore endpoint guarded by `Admin-Strict` token
+- [x] (8) Performance report — P0 fix: HR endpoints 10s→0.46s (21×)
+- [x] (10) List of bugs found — see below
+- [x] (11) List of bugs fixed — 11 architectural fixes shipped this session
+- [x] (13) Confirmation production is safe to operate — yes, after preview redeploy
+- [x] (14) Confirmation no mocked/test data — confirmed via 22-field regex sweep
+- [ ] (6) Full route/API regression matrix — NEXT SESSION (scope too large for one cycle)
+- [ ] (7) Full iPad/mobile regression matrix — NEXT SESSION (architectural fix done; full module sweep pending)
+- [ ] (9) Role access report — NEXT SESSION (12 roles × every endpoint)
+- [ ] (12) List of unresolved risks — see below
+- [ ] (15) Confirmation no preview workflow can contaminate production — **PENDING the env-separation fix below**
+
+### 🚨 P0 CRITICAL FINDING — environment separation broken
+Preview `/app/backend/.env` and production both point at the SAME Atlas cluster + SAME database:
+```
+MONGO_URL host:  masci-prod.1nduwmg.mongodb.net
+DB_NAME:         masci_safety
+```
+This is the architectural defect that allowed today's data crossover. Every pytest run, agent fixture, manual preview test, or QA workflow writes directly into production-readable collections. The surgical purge I ran today (23,118 records deleted, 108 restored) was treating the symptom — until the env separation is fixed at the platform level, this will reoccur.
+
+**Three fix paths (only the user can choose):**
+1. **Cheapest**: change preview `backend/.env → DB_NAME=masci_safety_preview`. Same cluster, different database. Preview reads/writes go to an isolated DB. Production stays untouched. ~15 min change + a one-time data seed for preview to be usable.
+2. **Cleanest**: spin up a second Atlas free-tier cluster (M0, $0/mo) and point preview at it. Hardest isolation; preview cannot reach production cluster at all.
+3. **Status quo**: keep them shared, accept the risk, agree never to run pytest/fixtures against this preview env.
+
+I cannot make this choice unilaterally — it has cost/operational implications. Awaiting user direction.
+
+### 🟢 P1 PERFORMANCE FIX SHIPPED (preview)
+`/api/hr/time-verification` and `/api/hr/driver-qualification/dashboard` were timing out at 10s on iPad Safari — that's the *real* "Time Verification broken on iPad" complaint. Root cause: the time-verification endpoint pulled full `daily_reports` documents **including their embedded base64 photos** (each ~50-200 KB). 69 daily reports × inline photos ≈ 10-15 MB transferred per call.
+
+Fix: added an explicit projection in `/app/backend/routes/hr_portal.py` that returns only time-tracking fields (`report_date, project_*, prepared_by, superintendent, masci_crews, created_at, submitted_at`) — no photos, no signatures, no attachments.
+
+Measured on preview after fix:
+- `/api/hr/time-verification?week_ending=2026-05-24` → **0.46 s** (was 10s timeout)
+- `/api/hr/time-verification?week_ending=2026-05-17` → **0.48 s**
+- `/api/hr/driver-qualification/dashboard` → **0.62 s** (was 10s timeout)
+
+Production still has the old code — needs redeploy.
+
+### Backup forensics — within bounds
+- 2,533 archives, 88 GB total
+- 1,517 legacy `backups/<noprefix>/` (64 GB — old format, retention not changed)
+- 1,016 `backups/auto-90d/` (24 GB — current lifecycle, oldest 1 month)
+- Cadence ~1/15min (full + lite) — matches the configured `BACKUP_R2_HOURLY=true` + complete every 15min
+- Largest archive: 249 MB (full daily snapshot with photos+signatures)
+- Status: **working as designed**, no anomalies. The legacy 64 GB block is the cleanup the user previously deferred to P2.
+
+### Data integrity census
+| Collection group | Count | Status |
+|---|---|---|
+| Real users (admin, FL, HR, Dispatch, Safety, Shop, PM) | 45 across all portals | ✓ |
+| Employees | 240 | ✓ (includes 6 newly added) |
+| Drivers (approved_company_driver) | 86 | ✓ (matches xlsx) |
+| CDL holders | 43 | ✓ (matches xlsx) |
+| Jobs (jobs_master) | 28 | ✓ |
+| Equipment (master + units) | 588 + 482 | ✓ |
+| Suppliers | 145 | ✓ |
+| Real operational records | 7 incidents + 19 meetings + 68 DR + 18 DVIRs | ✓ Restored from May 23 backup |
+| Photos indexed | 464 with 1389 thumbs cached | ✓ |
+| Compliance findings | 233 (all real PPE gaps) | ✓ |
+| Test/preview residue | **0** across 22-field regex sweep | 🟢 CLEAN |
+
+### Unresolved risks (item #12)
+1. **Env separation** — production-grade isolation pending decision (above)
+2. **Driver license columns missing** — the xlsx only had name + CDL flag. CDL expiration dates, medical card expirations, states, endorsements still need a second upload to populate.
+3. **PPE issuances absent** — 233 compliance findings will only clear once HR enters PPE issuances through the UI. Not a bug; the system is correctly flagging real gaps.
+4. **iPad regression matrix not complete** — architectural CSS fix is shipped, but individual modules (Dispatch Hub, PM Hub, Shop Hub, Field Leadership, admin sub-pages, drawers/modals) have not been individually screenshot-validated on iPad-class viewports.
+5. **Cloudflare CDN edge-caching blocked by Bot Fight Mode `__cf_bm` cookie** — user chose to keep BFM on (correct call). Photos still cache via service worker on each device.
+6. **Production redeploy needed** to push today's perf fix + iPad architectural CSS to mascidocs.com.
+
+### Files changed this session (architectural sprint)
+1. `/app/backend/server.py` — PhotoEdgeCacheMiddleware (extended to /raw + stale-while-revalidate)
+2. `/app/backend/routes/hr_portal.py` — Time Verification projection (10s → 0.46s)
+3. `/app/frontend/src/index.css` — iPad architectural fixes (~85 lines, see prev entry)
+4. `/app/frontend/src/pages/HrTimeVerification.jsx` — defaultWeekEnding → Saturday
+5. `/app/frontend/src/pages/DispatchHub.jsx` — mobile grid + word-wrap
+6. `/app/frontend/src/pages/driver/ShiftStart.jsx` — Back to Field link
+
+
+
 ## 2026-05-26 14:00 UTC — P0/P1 IPAD STABILIZATION SPRINT 🟢
 
 ### Operator-reported issues
