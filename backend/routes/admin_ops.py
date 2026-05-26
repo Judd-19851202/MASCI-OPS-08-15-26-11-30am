@@ -96,12 +96,18 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                           "detail": f"Probe error: {e!s}"[:120]})
 
         # 3. Last successful backup (any kind)
+        # iter440 · Phase 31.2 health-lock · real scheduler writes to
+        # `backup_health` with `ok=true` + `ts` (NOT
+        # `backup_runs.status=success/started_at`). Filter to rows that
+        # actually produced a backup file (filename != null) so the
+        # banner never reports a quota-probe row as a backup.
         try:
-            last = await db.backup_runs.find_one(
-                {"status": "success"}, {"_id": 0}, sort=[("started_at", -1)]
+            last = await db.backup_health.find_one(
+                {"ok": True, "filename": {"$nin": [None, ""]}},
+                {"_id": 0}, sort=[("ts", -1)],
             )
             if last:
-                started_at = last.get("started_at")
+                started_at = last.get("ts")
                 dt = _parse_iso(started_at)
                 hrs = (now - dt).total_seconds() / 3600.0 if dt else 999
                 status = "green" if hrs < 24 else "yellow" if hrs < 72 else "red"
@@ -457,15 +463,18 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
         built_at = os.environ.get("MASCI_BUILD_AT", "—")
 
         # Recent successful backups (any kind)
+        # iter440 · Phase 31.2 health-lock · same collection-name fix +
+        # filename filter so quota-probe rows don't masquerade as
+        # backups in the deploy-recovery view.
         recent_backups: List[Dict[str, Any]] = []
         try:
-            async for r in db.backup_runs.find(
-                {"status": "success"}, {"_id": 0},
-            ).sort("started_at", -1).limit(5):
+            async for r in db.backup_health.find(
+                {"ok": True, "filename": {"$nin": [None, ""]}}, {"_id": 0},
+            ).sort("ts", -1).limit(5):
                 recent_backups.append({
-                    "started_at": r.get("started_at"),
-                    "kind": r.get("kind") or "unknown",
-                    "destination": r.get("destination") or "—",
+                    "started_at": r.get("ts"),
+                    "kind": r.get("mode") or "unknown",
+                    "destination": "r2" if "r2" in (r.get("mode") or "") else "—",
                     "size_bytes": r.get("size_bytes") or 0,
                 })
         except Exception:  # noqa: BLE001

@@ -100,15 +100,27 @@ async def build_weekly_digest_payload(db) -> Dict[str, Any]:
         pass
 
     # Last successful backup
+    # iter440 · Phase 31.2 health-lock · the scheduler writes every run
+    # into `backup_health` (NOT `backup_runs`). Filter to rows that
+    # actually produced a zip (filename != null) so the digest never
+    # surfaces an `r2-usage-alert` quota probe as if it were a backup.
     try:
-        row = await db.backup_runs.find_one(
-            {"ok": True},
+        row = await db.backup_health.find_one(
+            {"ok": True, "filename": {"$nin": [None, ""]}},
             sort=[("ts", -1)],
-            projection={"_id": 0, "ts": 1, "kind": 1, "size_bytes": 1,
-                        "filename": 1, "destinations": 1, "error": 1},
+            projection={"_id": 0, "ts": 1, "mode": 1, "size_bytes": 1,
+                        "filename": 1, "records": 1, "error": 1},
         )
         if row:
-            payload["last_backup"] = row
+            payload["last_backup"] = {
+                "ts": row.get("ts"),
+                "ok": True,  # filtered above
+                "kind": row.get("mode"),
+                "size_bytes": row.get("size_bytes"),
+                "filename": row.get("filename"),
+                "records": row.get("records"),
+                "error": row.get("error"),
+            }
     except Exception:
         pass
 
@@ -181,10 +193,13 @@ async def build_weekly_digest_payload(db) -> Dict[str, Any]:
         pass
 
     # Drift watch heartbeat (last 36h)
+    # iter440 · Phase 31.2 health-lock · the complete-archive scheduler
+    # writes snapshots to `backup_drift_history` with a `recorded_at`
+    # datetime field (NOT `backup_drift_watch.ts/updated_at`).
     try:
-        cutoff = (_now_utc() - timedelta(hours=36)).isoformat()
-        heart = await db.backup_drift_watch.find_one(
-            {"$or": [{"ts": {"$gte": cutoff}}, {"updated_at": {"$gte": cutoff}}]},
+        cutoff = _now_utc() - timedelta(hours=36)
+        heart = await db.backup_drift_history.find_one(
+            {"recorded_at": {"$gte": cutoff}},
         )
         if not heart:
             payload["drift_warnings"] = 1

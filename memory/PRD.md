@@ -1,6 +1,78 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 — iter440 · Phase 31.2 · Production Health Lock 🟡→🟢-after-redeploy
+
+### Result — 🟡 GO (one defect found, fixed in preview, awaiting prod redeploy)
+
+### Summary
+
+Ran the Phase 31.2 production confidence lock: 8 parts × verified
+endpoints. Production HTTP surface is healthy (`mascidocs.com` 9/9 hub
+routes 200, 5/5 smoke). Atlas is healthy (123 collections, 8.0.23,
+shared cluster). R2 is healthy (100% migrated, latest 87 MB archive 2m
+old). Auth/passkey/Sentry all green.
+
+### 🔴 Defect found + fixed
+
+Three diag readers were querying non-existent Mongo collections
+(`backup_runs`, `backup_drift_watch`) while the actual writers in
+`server.py` write to `backup_health` + `backup_drift_history`. Result:
+operator dashboards lied — "No backup runs recorded · yellow" while
+backups were running every hour.
+
+**Fix** (3 files, 5 edits):
+- `routes/admin_persistence_health.py` — read `backup_health` +
+  `backup_drift_history`, map `mode → kind`, drift filter on
+  `recorded_at` datetime.
+- `lib/operator_digest.py` — same rename + field mapping; filter to
+  rows with real `filename` so quota-probe alerts don't masquerade
+  as backups in the digest.
+- `routes/admin_ops.py` — same fix for `/api/admin/system-health`
+  (the `/admin/system` banner card).
+
+**Verification (preview, after fix)**
+- `persistence-health.last_backup_time` → `2026-05-26T00:09:52` (2m ago)
+- `r2_backup_success` → `{ok:true, kind:"complete-r2", filename:"MASCI_complete_backup_2026-05-26_000927Z.zip", size_bytes:91420848, records:243550}`
+- `drift_watch_active` → `true · "snapshot recorded within 36h"`
+- system-health backup card → GREEN
+- weekly digest → "Last backup: 2m ago · All systems calm."
+
+### Files of reference
+
+- `/app/memory/PHASE31_2_PRODUCTION_HEALTH_LOCK.md` (full audit · evidence · verdicts)
+- `/app/backend/routes/admin_persistence_health.py` (fixed)
+- `/app/backend/lib/operator_digest.py` (fixed)
+- `/app/backend/routes/admin_ops.py` (fixed)
+
+### Testing
+
+- Ruff: 3 changed files → all checks passed
+- Curl: 9 production hub routes 200 · verify-production.sh 5/5 healthy
+- Preview diag endpoints: 100% truth-aligned after fix
+- Pytest parity-lock (k="iter440 or iter439 or persistence or digest or ops"): 139 passed · 11 skipped · 1 pre-existing unrelated rebrand-footer failure
+
+### STANDING OPERATOR ACTIONS
+
+- **🟡→🟢 mandatory** — redeploy production from Emergent dashboard so
+  the iter440 collection-name fix lands. Then re-run
+  `./tools/verify-production.sh` and hit
+  `https://mascidocs.com/api/admin/system-health` to confirm the
+  `backup` card is GREEN.
+- **🟡 optional** — explicitly set `OPERATOR_DIGEST_RECIPIENTS` in
+  prod env (defaults to `safety@mascigc.com` via fallback chain). Add
+  e.g. `OPERATOR_DIGEST_RECIPIENTS=jaymn.judd@mascigc.com,safety@mascigc.com`.
+- **🟡 carried over** — Atlas password chat-transcript hygiene
+  rotation.
+
+### Doctrine reaffirmed
+
+- No new dashboards, portals, analytics, monitoring centers, UI panels, reports.
+- Only: verify, fix true defects, document status.
+- Surgical 3-file fix · no schema migration · no collection rename · no
+  scheduler change.
+
+
 ## 2026-05-25 — iter440 · Last Activity Line · 5 Hubs Verified ✅ + Build-Break Fix
 
 ### Result — 🟢 SHIPPED · 5/5 hubs render the calm one-line indicator · build healthy
