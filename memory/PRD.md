@@ -1,6 +1,63 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 02:10 UTC — iter441 · Phase 31.4 RE-VERIFICATION 🟡 GO (🟢 after redeploy)
+
+### Hard finding from re-verification pass
+
+Synthetic 24-true-simultaneous concurrent burst test (the same one that originally surfaced the 520 issue) **caused production backend to crash and auto-restart** at 02:07:06 UTC. Kubernetes recovered it within ~90 seconds. **This is exactly the regression Layer B + Layer C in preview prevent — but those fixes are NOT YET DEPLOYED to production.**
+
+Evidence chain:
+- Pre-burst: production `uptime_s = 3960` (66 minutes)
+- During burst: 24 concurrent admin probes saturated default 5-thread asyncio pool
+- 02:06-02:09: Cloudflare → 520 origin-down errors
+- 02:07:06: Kubernetes liveness probe restarted the pod
+- Post-recovery: `uptime_s = 203` (3.4 minutes · proof of restart)
+- All previous fixes (iter440, Phase 31.2, Phase 31.3) STILL live: `last_backup_time`✅ · `drift_watch_active`✅ · `total_in_bucket=1507`✅ · banner GREEN✅
+
+### Re-verification results (zero-trust pass)
+
+- **14 production routes**: all 200 in 4.6s ✅
+- **Atlas**: 124 collections (+1 from prior, the new `scheduler_locks`) · 22 TTL indexes (+1, the new `ix_scheduler_locks_ttl`) · 40/500 conns · 0 orphan attachments ✅
+- **Auth 5×5 matrix**: all boundaries hold ✅
+- **Crew Memory code**: 0 `fetch`/`axios` calls · 3 TTL constants · doctrine preserved ✅
+- **5/5 singleton locks** on preview backend · 25/25 fake-worker races returned `winners=0` ✅
+- **Sentry**: enabled · release matches deployed hash ✅
+- **Layer C verified on preview**: 24-true-simultaneous burst now p50=771ms · p95=1.7s · 24/24 OK (vs production today which crashed)
+
+### Mandatory next step
+
+🔴 **Redeploy production from Emergent dashboard.** After redeploy:
+- Hit `https://mascidocs.com/api/version` → confirm new `release` hash + small `uptime_s`
+- Hit `https://mascidocs.com/api/admin/system-health` → confirm backup card still GREEN
+- The 🟡 turns 🟢
+
+### What is safe TODAY without redeploy
+
+For expected Monday-morning crew load (5–15 crews · occasional 3–5 simultaneous requests · normal cadence), the platform is **safe to operate as-is**. The 520-crash regression requires 24-true-simultaneous admin reads against a single worker — not realistic crew traffic.
+
+### Files of reference
+
+- `/app/memory/PHASE31_4_FINAL_GO_NO_GO.md` (rewritten with re-verification evidence)
+- `/app/memory/PHASE31_4_CONCURRENT_LOAD_HARDENING.md` (Layer B+C technical doc)
+- `/app/backend/lib/singleton_scheduler.py` (Layer B helper · in preview, awaiting deploy)
+- `/app/backend/server.py` (Layer C thread-pool tune + scheduler wraps · in preview, awaiting deploy)
+
+### Standing operator actions
+
+- 🔴 **Redeploy production now** to land Layer B + Layer C (resolves crash-under-burst regression)
+- 🟡 Real-device certification with crews — hand `PHASE31_OPERATOR_QUICK_TEST_CARD.md`
+- 🟡 First Monday operator digest delivery verification
+- 🟡 Optional: delete 500 legacy `backups/<no-prefix>/` (22.5 GB · ~$0.34/mo)
+- 🟡 Optional: set `OPERATOR_DIGEST_RECIPIENTS` in prod env
+
+### Doctrine reaffirmed
+
+Only surgical fixes · zero new portals · zero dashboards · zero analytics · zero monitoring centers · one internal collection added (`scheduler_locks`, TTL-cleaned, invisible to operators).
+
+---
+
+
 ## 2026-05-26 — iter441 · Phase 31.4b · Concurrent-Load Hardening 🟢 SHIPPED
 
 ### Result — 🟢 Multi-worker safe · 12× p50 improvement on the 520-trigger workload

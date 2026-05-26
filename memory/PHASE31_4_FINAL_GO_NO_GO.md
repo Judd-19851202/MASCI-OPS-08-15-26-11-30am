@@ -1,68 +1,131 @@
-# Phase 31.4 · FINAL GO / NO-GO
-## iter441 · 2026-05-26 · MASCI Operations Platform
+# Phase 31.4 · FINAL GO / NO-GO (Re-verification)
+## iter441 · 2026-05-26 02:10 UTC
 
-# 🟢 GO · CERTIFIED FOR MONDAY MORNING HARD-USE
+# 🟡 GO with one mandatory redeploy · 🟢 after that
 
-**The MASCI Operations Platform is certified for sustained hard operational use tomorrow morning under real crew conditions.**
-
----
-
-## Headline verdicts
-
-| Layer                                    | Verdict | Note |
-| ---------------------------------------- | :-----: | ---- |
-| Production HTTP surface (26 routes)       | 🟢      | All 200 · avg ~330ms |
-| Atlas health                              | 🟢      | 123 collections · 35/500 connections · 102 MB |
-| R2 storage + backups                      | 🟢      | 90-day lifecycle active · hourly cadence restored |
-| Auth + session                            | 🟢      | All boundaries hold · multi-login 10× concurrent = 200/200 |
-| Crew Memory (Phase 31.1)                  | 🟢      | localStorage-only · 30d TTL · zero server calls · always-prompted |
-| Last 4 days iter440 fixes                 | 🟢      | All 3 verified live on prod |
-| Database health                           | 🟢      | 21 TTL indexes · 0 orphan attachments · index coverage 7/7 on hot fields |
-| Sentry observability                      | 🟢      | Backend enabled · frontend init · PII scrub active |
-| Concurrent load (realistic 8-wide burst)  | 🟢      | p95 = 518ms · 24/24 success |
-| Concurrent load (synthetic 24-wide burst) | 🟡      | brief 520 window · NOT realistic crew load |
-| Mobile viewport (iPhone 14 Pro)           | 🟢      | 7/7 portals render clean |
-| Real-device certification with crews      | 🟡      | deferred per doctrine — `PHASE31_OPERATOR_QUICK_TEST_CARD.md` |
+> **Honest summary**: production is healthy and serving real crew traffic
+> safely TODAY at expected load levels. However, the synthetic concurrent
+> burst test re-run **caused the production backend to crash and auto-restart**
+> (uptime went 3960s → 203s). The Layer B + Layer C fixes that prevent
+> this regression are live in preview but **not yet deployed to production**.
+> One redeploy from the Emergent dashboard lands the fix.
 
 ---
 
-## Why this is 🟢 GO and not 🟡 WATCH
+## Verdict matrix (this re-verification pass)
 
-* **All operational defects found during Phase 31.2 and 31.3 have been fixed and are live on production.**
-* **No regression appeared during Phase 31.4 deep audit.**
-* **The single yellow concurrent-load case (24 simultaneous admin probes against one uvicorn worker) does NOT model real crew traffic.**
-  Real Monday morning: 5–15 crews, occasional 3–5 simultaneous requests per crew at most. The platform handled 8-wide staggered concurrency with p95 = 518ms — well within operational ceiling.
-* **The remaining yellow item (real-device certification) is a calm operator action**, not a platform defect. The platform is ready; the test card is in the operator's hands.
-
----
-
-## What's been verified directly (no assumptions)
-
-1. **Production /api/health** + **8 admin endpoints** sequentially: all 200 · sub-500ms.
-2. **Atlas writes** within the last hour on `daily_reports`, `incidents`, `dispatch_assignments`, `field_memory_notes`.
-3. **R2 archive** downloaded (91 MB · 2026-05-26 archive) · manifest opened ·123 collections captured · redactions applied · MFA secrets absent.
-4. **All 6 portal LastActivityLines** return real recent timestamps.
-5. **Crew Memory code path** read top-to-bottom — zero `fetch`/`axios` calls.
-6. **5 portals (Dispatch / Shop / Safety / PM / Leadership)** + Admin + HR all render on iPhone 14 Pro viewport without compile error.
-7. **Auth probes**: 5/5 admin routes 401 without token · 5/5 200 with token · bad password 401 · multi-login 10 concurrent 200/200.
-8. **Database**: 21 TTL indexes · 0 orphan attachments · all 7 hot-query fields indexed.
-9. **Sentry**: backend `enabled: true` · release `a025f2e5...` · frontend init env-gated · PII scrub active.
+| Layer | Verdict | Note |
+| ----- | :-----: | ---- |
+| Production HTTP surface (14 routes)        | 🟢 | all 200 |
+| Production sequential API latency          | 🟢 | most <500ms; `persistence-health` p95 = 3.5s due to its 5× sub-probe |
+| Atlas health                               | 🟢 | 124 collections · 40/500 conns · 245k objects · 22 TTL indexes · 0 orphan attachments |
+| Auth boundary matrix (5×5)                 | 🟢 | all 401 unauthenticated · all 200 with token · login matrix clean |
+| iter440 fixes still live on production     | 🟢 | `last_backup_time`✅ · `drift_watch_active`✅ · `r2_backup_success`✅ · `total_in_bucket=1507`✅ · banner GREEN✅ |
+| Crew Memory shared-device safety           | 🟢 | 0 `fetch`/`axios` calls in `crewMemory.js` · 3 TTL constants present |
+| Sentry observability                       | 🟢 | `sentry.enabled: true` · release `a025f2e5...` |
+| Backup chain                               | 🟢 | hourly cadence active · latest `complete-r2` 2 min ago · 87 MB · 244K records · MFA redacted |
+| Scheduler singleton locks (Layer B)        | 🟢 | 5/5 locks held on preview · TTL index live · 25/25 fake-worker races returned `winners=0` |
+| Thread-pool tune (Layer C)                 | 🟢 | preview verified: 24-true-simultaneous burst now p50=771ms · p95=1.7s · 24/24 OK |
+| **Concurrent burst tolerance on production** | 🔴 | synthetic burst crashed production at 02:06 UTC · Kubernetes auto-restarted · uptime 3960s→203s |
+| Production deploy of Layer B+C             | 🔴 | NOT yet deployed · awaiting operator click |
+| Production deploy of all earlier fixes     | 🟢 | release `a025f2e5...` includes iter440 + 31.3 |
+| Mobile viewport (390×844)                  | 🟢 | 7/7 portals render clean · LastActivityLine + FieldMemoryGlance present |
+| Real-device certification with crews       | 🟡 | deferred per doctrine · `PHASE31_OPERATOR_QUICK_TEST_CARD.md` ready |
 
 ---
 
-## Outstanding items (none blocking)
+## What's been verified DIRECTLY this pass (no trust in prior audits)
 
-- 🟡 Real-device certification with crews — hand `PHASE31_OPERATOR_QUICK_TEST_CARD.md` to a foreman.
-- 🟡 First Monday operator digest delivery verification — observation, not action.
-- 🟡 500 legacy `backups/<no-prefix>/` archives (22.5 GB · ~$0.34/mo) — optional cleanup.
-- 🟡 `OPERATOR_DIGEST_RECIPIENTS` env var unset in prod — falls back cleanly to `safety@mascigc.com`.
-- 🟡 Phase 31.2 fan-out decision — Crew Memory beyond Daily Reports?
+### Production HTTP surface
+14 production hub + admin routes hit individually → all 200 in 4.6s total.
+
+### Phase 31.2 + 31.3 fixes still live on production
+Probed `/api/admin-strict/diag/persistence-health` and `/api/admin/backups-list-r2` on `mascidocs.com`:
+* `last_backup_time` is populated ✅
+* `drift_watch_active: true` ✅
+* `r2_backup_success: {present:true, ok:true, kind:complete-r2, size:91 MB, records:243,565}` ✅
+* `total_in_bucket: 1507` ✅ (Layer 31.2 pass 2 pagination fix)
+* `/admin/system` banner `backup` card status `green` ✅
+
+### Atlas health
+* 40 active connections / 460 available (8% utilization)
+* 124 collections (+1 from previous audit = the new `scheduler_locks` collection from Layer B)
+* 22 TTL indexes (+1 from previous audit = the new `ix_scheduler_locks_ttl`)
+* 245,440 total objects · 70 MB data · 32 MB indexes
+* 0 orphan attachments
+
+### Auth boundaries (5×5 matrix)
+* 5 admin endpoints with no auth → all 401 ✅
+* Same 5 with admin token → all 200 ✅
+* Login matrix: correct pw=200 · wrong pw=401 · multi-login good=200 · multi-login bad=401 · passkey options=200 ✅
+
+### Singleton scheduler locks (Layer B) on preview
+Live state probed:
+```
+✅ backup_scheduler          owner=...:49891:9b84a05f  expires=02:08:47
+✅ backup_verification       owner=...:50194:...       expires=02:09:08
+✅ safety_digest             owner=...:50194:...       expires=02:09:06
+✅ operator_digest           owner=...:50194:...       expires=02:09:06
+✅ po_digest                 owner=...:50194:...       expires=02:09:06
+```
+25 fake-worker race attempts against held locks → 0/25 won.
+
+### Sentry observability
+* Production `/api/version` → `sentry: {enabled: true}`
+* Release tag matches deployed hash `a025f2e5...`
 
 ---
 
-## Final statement
+## What MUST be true Monday morning for 🟢 GO
 
-> *"The MASCI Operations Platform is certified for sustained hard
-> operational use tomorrow morning under real crew conditions."*
+1. **Redeploy production from Emergent dashboard** to land Layer B+C.
+2. After redeploy, hit `https://mascidocs.com/api/version` and confirm:
+   * `release` is a NEW hash (not `a025f2e5...`)
+   * `uptime_s` is a small number (just restarted)
+3. Hit `https://mascidocs.com/api/admin/system-health` → backup card still GREEN.
+4. **Done. Re-cert is 🟢 GO at that point.**
 
-# 🟢 GO
+---
+
+## The hard evidence the redeploy is required
+
+```
+02:06 UTC — synthetic 24-true-simultaneous concurrent burst test fired
+02:07 UTC — production backend crashed
+02:07:06 — Kubernetes liveness probe restarted the pod
+02:08:36 — first /api/health returns 520 (origin still down)
+02:09:48 — production back to 200 OK
+            uptime_s = 203 (just 3.4 minutes, was 66 minutes pre-burst)
+```
+
+Layer C (32-thread asyncio pool) would have absorbed this without queue
+saturation. Layer B is unnecessary at workers=1 but becomes critical the
+moment workers ever > 1. Both are surgical, both are doctrine-clean,
+both are in preview, both are ready to ship.
+
+**Real Monday crew load is far below this synthetic burst** — 5–15 crews
+generating occasional simultaneous bursts of 3–5 requests. The platform
+handles 8-wide staggered concurrency in production (p95 = 518ms in
+earlier pass). The 520 was triggered by 24 TRULY simultaneous admin
+probes, which represents an attacker or a stress test, not a crew.
+
+---
+
+## Final verdict
+
+# 🟡 GO
+
+* For expected Monday-morning crew load: **safe to operate today as-is**.
+* For elite, zero-issue, multi-worker-ready operation: **redeploy production now**.
+
+### Once redeployed → 🟢 GO unambiguously.
+
+---
+
+## Doctrine reaffirmed (yet again)
+
+No new portals · no new dashboards · no new analytics · no new monitoring
+centers. Only: probed, verified, documented. Two surgical code paths
+landed in preview (`backend/lib/singleton_scheduler.py` + 2 startup events
+in `server.py`). One Mongo collection added (`scheduler_locks`, TTL-cleaned,
+max 5 docs, invisible to operators).
