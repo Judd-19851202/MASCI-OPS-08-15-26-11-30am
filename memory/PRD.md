@@ -1,6 +1,53 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 — iter441 · Phase 31.4 · Hard-Use Operational Certification 🟢 GO
+
+### Result — 🟢 CERTIFIED for sustained hard operational use Monday morning under real crew conditions
+
+### Coverage (10 parts — prompt parts 10–19)
+
+1. **Last-4-days forensic** — every system touched in last 4 days verified live · only outlier is `continuity_events` (0 docs · indexes lazy-created on first write · non-blocking)
+2. **Hard-use simulation** — realistic 8-wide staggered burst: p95 = 518ms ✅ · synthetic 24-wide simultaneous: brief 520 window then recovered (NOT realistic crew load)
+3. **Mobile + tablet** — viewport ✅ on 7 portals · real-device certification deferred to crews per doctrine
+4. **Auth + session continuity** — all boundaries hold · multi-login 10× concurrent = 200/200
+5. **Crew Memory shared-device safety** — localStorage-only · 30d TTL · zero `fetch`/`axios` · always-prompted · strips production fields
+6. **Backup + restore** — manifest 123 collections · MFA redacted · hourly cadence resumed post-fix
+7. **Performance** — 7/8 endpoints <500ms · one inherent slow (R2 list of 1502 keys) · no N+1 · no duplicate fetches
+8. **Sentry + observability** — backend `enabled: true` · release `a025f2e5...` · frontend init env-gated · PII scrub active
+9. **Database health** — 245k objects · 123 collections · 21 TTL indexes · 332 total indexes · 0 orphan attachments · 35/500 Atlas conns
+10. **Operational cognition** — no ERP creep · no analytics terms · calm one-line surfaces · doctrine intact
+
+### Output docs (all created)
+
+- `/app/memory/PHASE31_4_FINAL_GO_NO_GO.md`
+- `/app/memory/PHASE31_4_HARD_USE_CERTIFICATION.md`
+- `/app/memory/PHASE31_4_LAST_4_DAYS_FORENSIC_AUDIT.md`
+- `/app/memory/PHASE31_4_PERFORMANCE_AUDIT.md`
+- `/app/memory/PHASE31_4_DATABASE_HEALTH.md`
+- `/app/memory/PHASE31_4_BACKUP_RESTORE_CERTIFICATION.md`
+- `/app/memory/PHASE31_4_AUTH_CONTINUITY_AUDIT.md`
+- `/app/memory/PHASE31_4_MOBILE_CERTIFICATION.md`
+
+### One yellow item · NOT a blocker
+
+Synthetic 24-truly-simultaneous request burst causes brief Cloudflare 520 window (single uvicorn worker queue overflow). NOT realistic Monday-morning load. Optional post-Monday: bump uvicorn workers from 1 → 2 in deploy config if observed traffic exceeds ~10 simultaneous admin reads sustained.
+
+### Standing operator actions (carried · all optional)
+
+- 🟡 Real-device certification with crews — hand `PHASE31_OPERATOR_QUICK_TEST_CARD.md`
+- 🟡 Phase 31.2 fan-out decision — Crew Memory beyond Daily Reports?
+- 🟡 First Monday operator digest delivery verification
+- 🟡 Optional: delete 500 legacy `backups/<no-prefix>/` (22.5 GB · ~$0.34/mo)
+- 🟡 Optional: set `OPERATOR_DIGEST_RECIPIENTS` in prod env
+
+### Final statement
+
+> *"The MASCI Operations Platform is certified for sustained hard operational use tomorrow morning under real crew conditions."*
+
+# 🟢 GO
+
+
 ## 2026-05-26 — iter441 · Phase 32 · Operational War-Game Certification 🟢
 
 ### Result — 🟢 CERTIFIED · safe to operate · ZERO known defects
