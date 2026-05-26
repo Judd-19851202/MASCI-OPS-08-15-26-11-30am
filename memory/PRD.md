@@ -1,6 +1,56 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-26 — iter441 · Phase 31.4b · Concurrent-Load Hardening 🟢 SHIPPED
+
+### Result — 🟢 Multi-worker safe · 12× p50 improvement on the 520-trigger workload
+
+Closed out the one yellow finding from Phase 31.4 with two surgical fixes:
+
+**Layer B · Mongo singleton-lock helper** (`backend/lib/singleton_scheduler.py`, ~270 lines)
+Wraps all 5 long-running schedulers (backup, verification, safety-digest, operator-digest, po-digest) so each runs on exactly ONE worker across the deployment. TTL=90s · heartbeat=30s · automatic failover. Zero behavior change at workers=1. Defense-in-depth ready for any future `--workers N` bump.
+
+**Layer C · asyncio thread-pool tune** (`backend/server.py` startup, ~15 lines)
+Default executor goes from `cpu_count + 4` (5 threads on a 1-vCPU pod) to 32 threads. Eliminates queue buildup that caused the 9.5s p50 + 520 cascade on the synthetic 24-true-simultaneous test.
+
+### Headline before/after
+
+| Test (24 true-simultaneous burst) | Before | After |
+| --- | --- | --- |
+| Success rate | 24/24 (with subsequent 520s) | 24/24 (no 520s) |
+| p50 latency | 9,475ms | **771ms** (12× faster) |
+| p95 latency | 10,409ms | **1,703ms** (6× faster) |
+| Multi-worker safe? | NO (would double backups) | YES (singleton lock) |
+
+### Verification
+- 25/25 fake-worker races against held locks → `winners=0`
+- Live lock state confirmed for all 5 schedulers
+- TTL index `ix_scheduler_locks_ttl` created on `scheduler_locks.expires_at`
+- 24-burst against localhost: 24/24 OK · p95 = 1.7s
+- Ruff: only pre-existing unrelated `_now_iso` F821 warning, no new errors introduced
+
+### Files of reference
+
+- `/app/memory/PHASE31_4_CONCURRENT_LOAD_HARDENING.md` (full doc · before/after · code paths)
+- `/app/backend/lib/singleton_scheduler.py` (new helper · 270 lines, lint-clean)
+- `/app/backend/server.py` (8 edits: import + 2 startup events + 5 scheduler wraps)
+
+### Doctrine reaffirmed
+
+- Zero new portals · zero dashboards · zero analytics · zero monitoring UI
+- One new collection (`scheduler_locks`) — invisible to operators, TTL-cleaned, max 5 small docs
+- Operator quality of life unchanged · operational survivability dramatically improved
+
+### Standing operator actions (carried)
+
+- 🟡 Real-device certification with crews — hand `PHASE31_OPERATOR_QUICK_TEST_CARD.md`
+- 🟡 First Monday operator digest delivery verification
+- 🟡 Optional: delete 500 legacy `backups/<no-prefix>/` (22.5 GB · ~$0.34/mo)
+- 🟡 Optional: set `OPERATOR_DIGEST_RECIPIENTS` in prod env
+
+---
+
+
 ## 2026-05-26 — iter441 · Phase 31.4 · Hard-Use Operational Certification 🟢 GO
 
 ### Result — 🟢 CERTIFIED for sustained hard operational use Monday morning under real crew conditions

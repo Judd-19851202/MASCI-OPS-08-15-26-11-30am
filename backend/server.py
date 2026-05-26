@@ -48,6 +48,15 @@ except Exception:  # noqa: BLE001
     init_sentry_if_configured = None
     _sentry_release = None
 
+# iter441 · Phase 31.4 · multi-worker scheduler safety.
+# Ensures every long-running scheduler (backup, digest, verification, etc.)
+# runs on exactly ONE worker process at a time across the deployment.
+# No-op for workers=1; safe for any future workers=N bump.
+from lib.singleton_scheduler import (  # noqa: E402
+    run_with_singleton_lock,
+    ensure_lock_indexes as _ensure_scheduler_lock_indexes,
+)
+
 # Session-timeout middleware (Phase 2 Initiative 4) — env-gated.
 # Default disabled. Installed during startup after db handle is ready.
 from session_timeout import (  # noqa: E402
@@ -8477,6 +8486,41 @@ _attach_field_leadership_routes(
 
 
 @app.on_event("startup")
+async def _ensure_scheduler_lock_indexes_at_startup():
+    # iter441 · Phase 31.4 · multi-worker scheduler safety.
+    # TTL index on scheduler_locks.expires_at so dead locks auto-clean
+    # within 90s even if every worker that ever held them has died.
+    try:
+        await _ensure_scheduler_lock_indexes(db)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[singleton-lock] index ensure failed (non-fatal): {e}")
+
+
+@app.on_event("startup")
+async def _tune_asyncio_thread_pool():
+    # iter441 · Phase 31.4 · concurrent-load hardening.
+    # The asyncio default executor is ``ThreadPoolExecutor(max_workers=cpu+4)``
+    # which on a 1-vCPU Kubernetes pod is just 5 threads. Several endpoints
+    # off-load sync work (boto3 R2 listings, presigned URL signing) via
+    # ``asyncio.to_thread`` — under bursty concurrent admin load the default
+    # pool saturates and incoming requests queue behind it, which Cloudflare
+    # interprets as origin-down (520). Bumping the pool to 32 threads makes
+    # the event loop comfortably absorb a 24-wide simultaneous burst without
+    # queue buildup. Pure capacity tune · zero behavior change at low load.
+    import concurrent.futures  # noqa: PLC0415
+    try:
+        loop = asyncio.get_event_loop()
+        loop.set_default_executor(
+            concurrent.futures.ThreadPoolExecutor(
+                max_workers=32, thread_name_prefix="masci-async"
+            )
+        )
+        logger.info("[concurrency] asyncio default thread pool tuned to max_workers=32")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[concurrency] thread pool tune failed (non-fatal): {e}")
+
+
+@app.on_event("startup")
 async def _start_job_photos_indexer():
     asyncio.create_task(_job_photos_indexer_loop(db))
 
@@ -9141,13 +9185,16 @@ async def _start_safety_digest_cron():
     to SAFETY_DIGEST_TO_EMAIL (default safety@mascigc.com)."""
     global _safety_digest_task
     try:
-        _safety_digest_task = asyncio.create_task(
-            safety_digest_scheduler_loop(
-                db,
-                build_payload=lambda: build_digest_payload(db),
+        # iter441 · gated through singleton-lock so only one worker fires.
+        async def _safety_digest_wrapped(_db):
+            return await safety_digest_scheduler_loop(
+                _db,
+                build_payload=lambda: build_digest_payload(_db),
                 render_html=render_digest_html,
                 send_email_fn=_safety_send_email,
             )
+        _safety_digest_task = asyncio.create_task(
+            run_with_singleton_lock(db, "safety_digest", _safety_digest_wrapped)
         )
         logger.info("[safety-digest] weekly cron started")
     except Exception as e:  # noqa: BLE001
@@ -9167,11 +9214,14 @@ async def _start_operator_digest_cron():
     global _operator_digest_task
     try:
         from lib.operator_digest import operator_digest_scheduler_loop  # noqa: PLC0415
-        _operator_digest_task = asyncio.create_task(
-            operator_digest_scheduler_loop(
-                db,
+
+        async def _operator_digest_wrapped(_db):
+            return await operator_digest_scheduler_loop(
+                _db,
                 send_email_fn=_safety_send_email,
             )
+        _operator_digest_task = asyncio.create_task(
+            run_with_singleton_lock(db, "operator_digest", _operator_digest_wrapped)
         )
         logger.info("[operator-digest] weekly cron started")
     except Exception as e:  # noqa: BLE001
@@ -9235,12 +9285,15 @@ async def _start_po_digest_cron():
         portal_url = (os.environ.get("PORTAL_PUBLIC_URL")
                       or os.environ.get("PUBLIC_BASE_URL")
                       or "https://mascidocs.com").rstrip("/")
-        _po_digest_task = asyncio.create_task(
-            po_digest_scheduler_loop(
-                db,
+
+        async def _po_digest_wrapped(_db):
+            return await po_digest_scheduler_loop(
+                _db,
                 send_email_fn=_po_digest_send_email,
                 portal_url=portal_url,
             )
+        _po_digest_task = asyncio.create_task(
+            run_with_singleton_lock(db, "po_digest", _po_digest_wrapped)
         )
         logger.info("[po-digest] weekly cron started")
     except Exception as e:  # noqa: BLE001
@@ -9705,7 +9758,9 @@ async def _start_backup_verification_cron():
     crash in this loop never disturbs the actual backup scheduler."""
     global _backup_verify_task
     try:
-        _backup_verify_task = asyncio.create_task(verification_scheduler_loop(db))
+        _backup_verify_task = asyncio.create_task(
+            run_with_singleton_lock(db, "backup_verification", verification_scheduler_loop)
+        )
         logging.getLogger(__name__).info(
             "[verify] weekly cron started"
         )
@@ -11050,7 +11105,9 @@ async def _start_backup_scheduler():
                 f"[scheduled-backup] disk at {pct}% on boot — running emergency prune"
             )
             _emergency_prune_backups(reason=f"boot disk {pct}%")
-        _backup_task = asyncio.create_task(_backup_scheduler_loop(db))
+        _backup_task = asyncio.create_task(
+            run_with_singleton_lock(db, "backup_scheduler", _backup_scheduler_loop)
+        )
         _hours_str = " · ".join(f"{h:02d}:00" for h in BACKUP_HOURS_UTC) + " UTC"
         logging.getLogger(__name__).info(
             f"[scheduled-backup] scheduler started — {_hours_str} · "
@@ -11107,7 +11164,11 @@ async def _start_backup_scheduler():
                             f"RESURRECTED at {datetime.now(timezone.utc).isoformat()} "
                             f"(previous: {exc_repr})"
                         )
-                        _backup_task = asyncio.create_task(_backup_scheduler_loop(db))
+                        _backup_task = asyncio.create_task(
+                            run_with_singleton_lock(
+                                db, "backup_scheduler", _backup_scheduler_loop
+                            )
+                        )
                 except asyncio.CancelledError:
                     raise
                 except Exception as e:  # noqa: BLE001
