@@ -250,6 +250,14 @@ stage_governance_doctrine_drift() {
   return 0
 }
 
+# iter437 IV-BETA.5A-P1D · governance maturity aggregates — warning-only.
+stage_governance_doctrine_maturity() {
+  cd "$REPO_ROOT"
+  echo "Mode: WARNING-ONLY (calmness ranking + hierarchy consistency + escalation noise)"
+  python3 scripts/diff_doctrine_baseline.py --summary || true
+  return 0
+}
+
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
 
@@ -273,6 +281,7 @@ if [[ "$MODE" != "auth-only" ]]; then
   run_stage "Governance · visual loudness trend (warning-only)" stage_governance_visual_loudness
 fi
 run_stage "Governance · doctrine baseline drift (warning-only)" stage_governance_doctrine_drift
+run_stage "Governance · doctrine maturity aggregates (warning-only)" stage_governance_doctrine_maturity
 
 # Sigma-III enforceable gates — run on every mode (these are the
 # minimum operational-trust contract the platform now ships under).

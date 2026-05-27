@@ -1,6 +1,73 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A-P1 · Stabilization + V2 Default Readiness 🟢
+
+### Mission
+Stabilize the governed platform: add quiet operator-facing governance
+instrumentation (a single monochrome chip), conduct cross-portal
+operator validation, classify PM/HR/Safety V2 default readiness, and
+extend doctrine instruments — **without escalating any to deploy-
+blocking**. STOP before Safety 5B / Dispatch / V2 default flips.
+
+### What shipped (🟢 verified · ~400 LOC + 5 docs)
+
+**P1A — Governance Health Chip**
+- `backend/routes/governance_health.py` (NEW · 110 LOC) — public `/api/governance/health` + `/api/governance/health/{portal}` reading `HUB_VISUAL_BASELINE.json` and classifying each portal as `stable` / `monitor` / `drift`.
+- `frontend/src/components/GovernanceHealthChip.jsx` (NEW · 60 LOC) — tiny monochrome 1-line chip mounted on **Admin / PM / HR / Safety** Hub V2 surfaces.
+- `backend/tests/pw_suite/test_governance_health_chip.py` (NEW · 21 assertions) — endpoint contract + per-portal render + monochrome contract + lowercase coaching contract.
+
+**P1D — Governance Maturity Hardening**
+- `scripts/diff_doctrine_baseline.py --summary` (NEW mode) emits **calmness ranking · hierarchy consistency · escalation-noise composite**.
+- `scripts/pre_deploy_check.sh` new warning-only stage `stage_governance_doctrine_maturity`.
+
+**P1B + P1C — Operator-grade reviews (5 docs)**
+1. `GOVERNANCE_HEALTH_CHIP_CERTIFICATION.md`
+2. `PORTAL_V2_DEFAULT_READINESS.md` — PM 🟢 · HR 🟢 · Safety 🟡 (caution: 1 cycle of operator validation recommended)
+3. `CROSS_PORTAL_VALIDATION_SYNTHESIS.md` — 6 strongest surfaces; 5 deferrable fragmentations; 0 hierarchy confusion
+4. `GOVERNANCE_MATURITY_HARDENING.md`
+5. `PLATFORM_STABILITY_REVIEW.md`
+
+### Regression matrix (🟢 96+ tests · all green this phase)
+
+| Suite | Result |
+|---|---|
+| `test_governance_health_chip.py` (NEW) | 🟢 21/21 (86 s) |
+| `test_safety_sidebar_v2.py` | 🟢 21/21 |
+| `test_visual_doctrine_baseline.py` (4 portals × 3 viewports) | 🟢 12/12 (67 s) |
+| `verify_coaching_sublines.py` | 🟢 clean |
+| `diff_doctrine_baseline.py --summary` | 🟢 clean (4 portals consistent hierarchy) |
+
+### Current doctrine baselines (post P1)
+
+| Portal | Loudness | State |
+|---|---|---|
+| PM | 32.75 | 🟢 stable |
+| Admin | 36.11 | 🟢 stable |
+| HR | 70.15 | 🟡 monitor |
+| Safety | 72.41 | 🟡 monitor |
+
+Monitor states on HR/Safety are driven by **data-bound badges**
+(severity pills, OSHA pills, expirations) — doctrine-preserved
+true-signal elements, NOT decorative loudness.
+
+### Doctrine compliance
+
+- ✅ Chip is monochrome, non-animated, secondary-hierarchy, single-line
+- ✅ Endpoint requires no auth · returns zero PII · no DB I/O
+- ✅ All P1D aggregates remain **warning-only** in `pre_deploy_check.sh`
+- ✅ NO new dashboard surface · NO chart · NO gamification
+- ✅ Severity / OSHA / severe banner / severe email subject preserved
+- ✅ Auth boundaries verified · zero `/api/admin/*` leakage
+- ✅ Preview only · NO production deploy
+
+### Status
+
+🟢 PHASE IV-BETA.5A-P1 COMPLETE · STOP awaiting operator review before Safety 5B / Dispatch governance / V2 default flips begin.
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A · Safety Hub + Incident Surfaces governance 🟢
 
 ### Mission

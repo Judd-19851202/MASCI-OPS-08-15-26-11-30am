@@ -9018,6 +9018,14 @@ from routes.governance import build_governance_router  # noqa: E402
 
 app.include_router(build_governance_router(db, require_admin_strict))
 
+# ─── Phase IV-BETA.5A-P1A · Governance Health Chip (public read-only) ─
+# Tiny operator-facing chip that reads the persisted doctrine baseline
+# JSON and surfaces loudness + drift state. NO auth — telemetry only,
+# zero PII. See routes/governance_health.py for thresholds.
+from routes.governance_health import build_governance_health_router  # noqa: E402
+
+app.include_router(build_governance_health_router())
+
 
 # ─── Phase 2 P1 · Operational Intelligence Notifications ─────────────
 # Role-scoped digest engine over the existing findings + lifecycle state.

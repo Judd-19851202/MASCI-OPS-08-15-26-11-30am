@@ -37,6 +37,7 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
+import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -201,6 +202,9 @@ export default function SafetyHub() {
 
   return (
     <SafetyShell title="Safety Operations Dashboard" kicker="SAFETY PORTAL">
+      <div className="-mt-4 mb-6">
+        <GovernanceHealthChip portal="safety" />
+      </div>
       {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
           self-gated · dismissible · single-card · NEVER nags */}
       <div className="mb-6">

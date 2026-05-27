@@ -20,6 +20,7 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 
 const HR_PAL = paletteFor("hr");
 
@@ -207,6 +208,9 @@ export default function HrHub() {
         <p className="text-slate-600 mt-2 max-w-2xl">
           {t("Read-only HR access · field leadership records · accountability · payroll-time verification · training compliance.")}
         </p>
+        <div className="mt-3">
+          <GovernanceHealthChip portal="hr" />
+        </div>
 
         <OperationsCenter compact className="mt-6" />
 

@@ -22,6 +22,7 @@ import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 import { isPmSidebarV2Enabled } from "@/components/pm/sidebar/SideNavV2";
+import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 
 const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
@@ -358,6 +359,11 @@ export default function PmHub() {
           {/* Tier 4 · Activity trace */}
           <div className="mt-5">
             <LastActivityLine portal="pm" />
+          </div>
+
+          {/* Tier 4.5 · Governance health (iter437 IV-BETA.5A-P1A) */}
+          <div className="mt-3">
+            <GovernanceHealthChip portal="pm" />
           </div>
 
           {/* Tier 5 · Field memory + optional enrollment (de-emphasized) */}

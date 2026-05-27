@@ -1,19 +1,19 @@
 {
   "_meta": {
-    "updated_at": "2026-05-27T14:40:52.442Z",
+    "updated_at": "2026-05-27T15:04:36.883Z",
     "version": "iter437.IV-BETA.3-P2A"
   },
   "snapshots": {
     "admin": {
       "desktop": {
-        "badge_density": 2.15,
-        "dom_style_hash": "ef714a693de25c4e",
-        "elements_walked": 186,
+        "badge_density": 2.11,
+        "dom_style_hash": "47ebf399d63d4933",
+        "elements_walked": 190,
         "emphasis_score": 2,
         "font_size_summary": {
           "body": 161,
           "h3": 2,
-          "small": 23
+          "small": 27
         },
         "hierarchy_hash": "f11aa76eca3d3759",
         "hue_families": [
@@ -24,26 +24,26 @@
           "red"
         ],
         "hue_family_count": 5,
-        "loudness_score": 36.15,
+        "loudness_score": 36.11,
         "name": "Admin Hub V2",
         "portal": "admin",
         "typography_summary": {
           "black": 32,
           "bold": 10,
           "medium": 2,
-          "regular": 142
+          "regular": 146
         },
         "url": "/admin?adminSidebarV2=1"
       },
       "ipad": {
-        "badge_density": 2.15,
-        "dom_style_hash": "ef714a693de25c4e",
-        "elements_walked": 186,
+        "badge_density": 2.11,
+        "dom_style_hash": "fb1d66fce5164d04",
+        "elements_walked": 190,
         "emphasis_score": 2,
         "font_size_summary": {
           "body": 161,
           "h3": 2,
-          "small": 23
+          "small": 27
         },
         "hierarchy_hash": "f11aa76eca3d3759",
         "hue_families": [
@@ -54,26 +54,26 @@
           "red"
         ],
         "hue_family_count": 5,
-        "loudness_score": 36.15,
+        "loudness_score": 36.11,
         "name": "Admin Hub V2",
         "portal": "admin",
         "typography_summary": {
           "black": 32,
           "bold": 10,
           "medium": 2,
-          "regular": 142
+          "regular": 146
         },
         "url": "/admin?adminSidebarV2=1"
       },
       "mobile": {
-        "badge_density": 1.25,
-        "dom_style_hash": "c4752e0baecc325c",
-        "elements_walked": 160,
+        "badge_density": 1.22,
+        "dom_style_hash": "00e9c2bdab05cca1",
+        "elements_walked": 164,
         "emphasis_score": 1,
         "font_size_summary": {
           "body": 139,
           "h3": 1,
-          "small": 20
+          "small": 24
         },
         "hierarchy_hash": "f11aa76eca3d3759",
         "hue_families": [
@@ -83,190 +83,196 @@
           "red"
         ],
         "hue_family_count": 4,
-        "loudness_score": 27.25,
+        "loudness_score": 27.22,
         "name": "Admin Hub V2",
         "portal": "admin",
         "typography_summary": {
           "black": 32,
           "bold": 8,
           "medium": 3,
-          "regular": 117
+          "regular": 121
         },
         "url": "/admin?adminSidebarV2=1"
       }
     },
     "hr": {
       "desktop": {
-        "badge_density": 14.71,
-        "dom_style_hash": "ca79e21502fa9519",
-        "elements_walked": 102,
+        "badge_density": 14.15,
+        "dom_style_hash": "8d830e425b27da0f",
+        "elements_walked": 106,
         "emphasis_score": 19,
         "font_size_summary": {
           "body": 50,
           "h1": 1,
           "h3": 17,
-          "small": 34
+          "small": 38
         },
         "hierarchy_hash": "f6ba352e5d86eb54",
         "hue_families": [
           "blue",
+          "blue-violet",
           "red"
         ],
-        "hue_family_count": 2,
-        "loudness_score": 64.71,
+        "hue_family_count": 3,
+        "loudness_score": 70.15,
         "name": "HR Hub V2",
         "portal": "hr",
         "typography_summary": {
           "black": 18,
           "bold": 23,
           "medium": 5,
-          "regular": 56
+          "regular": 60
         },
         "url": "/hr?hrSidebarV2=1"
       },
       "ipad": {
-        "badge_density": 14.71,
-        "dom_style_hash": "ca79e21502fa9519",
-        "elements_walked": 102,
+        "badge_density": 14.15,
+        "dom_style_hash": "8d830e425b27da0f",
+        "elements_walked": 106,
         "emphasis_score": 19,
         "font_size_summary": {
           "body": 50,
           "h1": 1,
           "h3": 17,
-          "small": 34
+          "small": 38
         },
         "hierarchy_hash": "f6ba352e5d86eb54",
         "hue_families": [
           "blue",
+          "blue-violet",
           "red"
         ],
-        "hue_family_count": 2,
-        "loudness_score": 64.71,
+        "hue_family_count": 3,
+        "loudness_score": 70.15,
         "name": "HR Hub V2",
         "portal": "hr",
         "typography_summary": {
           "black": 18,
           "bold": 23,
           "medium": 5,
-          "regular": 56
+          "regular": 60
         },
         "url": "/hr?hrSidebarV2=1"
       },
       "mobile": {
-        "badge_density": 15.96,
-        "dom_style_hash": "6aaa7ce82ddcd540",
-        "elements_walked": 94,
+        "badge_density": 15.31,
+        "dom_style_hash": "86c1770500c910a0",
+        "elements_walked": 98,
         "emphasis_score": 18,
         "font_size_summary": {
           "body": 41,
           "h1": 1,
           "h3": 17,
-          "small": 35
+          "small": 39
         },
         "hierarchy_hash": "f6ba352e5d86eb54",
         "hue_families": [
           "blue",
+          "blue-violet",
           "red"
         ],
-        "hue_family_count": 2,
-        "loudness_score": 63.96,
+        "hue_family_count": 3,
+        "loudness_score": 69.31,
         "name": "HR Hub V2",
         "portal": "hr",
         "typography_summary": {
           "black": 18,
           "bold": 22,
           "medium": 3,
-          "regular": 51
+          "regular": 55
         },
         "url": "/hr?hrSidebarV2=1"
       }
     },
     "pm": {
       "desktop": {
-        "badge_density": 2.86,
-        "dom_style_hash": "be3ea83509078038",
-        "elements_walked": 105,
+        "badge_density": 2.75,
+        "dom_style_hash": "b3c18f058a62e73a",
+        "elements_walked": 109,
         "emphasis_score": 3,
         "font_size_summary": {
           "body": 83,
           "h1": 1,
           "h3": 3,
-          "small": 18
+          "small": 22
         },
         "hierarchy_hash": "c0d7489cee8ca25f",
         "hue_families": [
           "blue",
+          "blue-violet",
           "green",
           "red"
         ],
-        "hue_family_count": 3,
-        "loudness_score": 26.86,
+        "hue_family_count": 4,
+        "loudness_score": 32.75,
         "name": "PM Hub V2",
         "portal": "pm",
         "typography_summary": {
           "black": 5,
           "bold": 4,
           "medium": 3,
-          "regular": 89,
+          "regular": 93,
           "semibold": 4
         },
         "url": "/pm?pmSidebarV2=1"
       },
       "ipad": {
-        "badge_density": 2.86,
-        "dom_style_hash": "be3ea83509078038",
-        "elements_walked": 105,
+        "badge_density": 2.75,
+        "dom_style_hash": "b3c18f058a62e73a",
+        "elements_walked": 109,
         "emphasis_score": 3,
         "font_size_summary": {
           "body": 83,
           "h1": 1,
           "h3": 3,
-          "small": 18
+          "small": 22
         },
         "hierarchy_hash": "c0d7489cee8ca25f",
         "hue_families": [
           "blue",
+          "blue-violet",
           "green",
           "red"
         ],
-        "hue_family_count": 3,
-        "loudness_score": 26.86,
+        "hue_family_count": 4,
+        "loudness_score": 32.75,
         "name": "PM Hub V2",
         "portal": "pm",
         "typography_summary": {
           "black": 5,
           "bold": 4,
           "medium": 3,
-          "regular": 89,
+          "regular": 93,
           "semibold": 4
         },
         "url": "/pm?pmSidebarV2=1"
       },
       "mobile": {
-        "badge_density": 1.27,
-        "dom_style_hash": "ddcfdc83d71211d8",
-        "elements_walked": 79,
+        "badge_density": 1.2,
+        "dom_style_hash": "6f35ff4333c3493d",
+        "elements_walked": 83,
         "emphasis_score": 1,
         "font_size_summary": {
           "body": 63,
           "h1": 1,
           "h3": 1,
-          "small": 14
+          "small": 18
         },
         "hierarchy_hash": "c0d7489cee8ca25f",
         "hue_families": [
           "blue",
+          "blue-violet",
           "red"
         ],
-        "hue_family_count": 2,
-        "loudness_score": 15.27,
+        "hue_family_count": 3,
+        "loudness_score": 21.2,
         "name": "PM Hub V2",
         "portal": "pm",
         "typography_summary": {
           "black": 5,
           "bold": 1,
           "medium": 3,
-          "regular": 66,
+          "regular": 70,
           "semibold": 4
         },
         "url": "/pm?pmSidebarV2=1"
@@ -274,86 +280,89 @@
     },
     "safety": {
       "desktop": {
-        "badge_density": 12.78,
-        "dom_style_hash": "52e529dac0945ef4",
-        "elements_walked": 133,
+        "badge_density": 12.41,
+        "dom_style_hash": "a536a04b38cb055b",
+        "elements_walked": 137,
         "emphasis_score": 21,
         "font_size_summary": {
           "body": 76,
           "h1": 1,
           "h3": 18,
-          "small": 38
+          "small": 42
         },
         "hierarchy_hash": "6295f0e0cc8efd71",
         "hue_families": [
           "blue",
+          "blue-violet",
           "red"
         ],
-        "hue_family_count": 2,
-        "loudness_score": 66.78,
+        "hue_family_count": 3,
+        "loudness_score": 72.41,
         "name": "Safety Hub V2",
         "portal": "safety",
         "typography_summary": {
           "black": 20,
           "bold": 25,
           "medium": 6,
-          "regular": 82
+          "regular": 86
         },
         "url": "/safety-portal?safetySidebarV2=1"
       },
       "ipad": {
-        "badge_density": 12.78,
-        "dom_style_hash": "52e529dac0945ef4",
-        "elements_walked": 133,
+        "badge_density": 12.41,
+        "dom_style_hash": "a536a04b38cb055b",
+        "elements_walked": 137,
         "emphasis_score": 21,
         "font_size_summary": {
           "body": 76,
           "h1": 1,
           "h3": 18,
-          "small": 38
+          "small": 42
         },
         "hierarchy_hash": "6295f0e0cc8efd71",
         "hue_families": [
           "blue",
+          "blue-violet",
           "red"
         ],
-        "hue_family_count": 2,
-        "loudness_score": 66.78,
+        "hue_family_count": 3,
+        "loudness_score": 72.41,
         "name": "Safety Hub V2",
         "portal": "safety",
         "typography_summary": {
           "black": 20,
           "bold": 25,
           "medium": 6,
-          "regular": 82
+          "regular": 86
         },
         "url": "/safety-portal?safetySidebarV2=1"
       },
       "mobile": {
-        "badge_density": 16.04,
-        "dom_style_hash": "071a142dbe821e41",
-        "elements_walked": 106,
+        "badge_density": 15.45,
+        "dom_style_hash": "05cdc626fb96bd16",
+        "elements_walked": 110,
         "emphasis_score": 20,
         "font_size_summary": {
           "body": 48,
           "h1": 1,
           "h3": 18,
-          "small": 39
+          "small": 43
         },
         "hierarchy_hash": "6295f0e0cc8efd71",
         "hue_families": [
           "blue",
+          "blue-violet",
           "red"
         ],
-        "hue_family_count": 2,
-        "loudness_score": 68.04,
+        "hue_family_count": 3,
+        "loudness_score": 73.45,
         "name": "Safety Hub V2",
         "portal": "safety",
         "typography_summary": {
           "black": 20,
           "bold": 24,
           "medium": 4,
-          "regular": 58
+          "regular": 62
         },
         "url": "/safety-portal?safetySidebarV2=1"
       }

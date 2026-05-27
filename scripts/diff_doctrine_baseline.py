@@ -128,6 +128,11 @@ def _lines_for_portal(portal: str, prev_block: dict, curr_block: dict) -> list[s
 def main() -> int:
     parser = argparse.ArgumentParser(description="Doctrine baseline drift summary")
     parser.add_argument("--against", default="HEAD", help="git ref to compare against")
+    parser.add_argument(
+        "--summary", action="store_true",
+        help="Print P1D maturity aggregates (calmness ranking, hierarchy "
+             "consistency, escalation noise) from the working baseline only.",
+    )
     args = parser.parse_args()
 
     if not BASELINE_PATH.exists():
@@ -135,6 +140,10 @@ def main() -> int:
         return 0
 
     curr = json.loads(BASELINE_PATH.read_text())
+
+    if args.summary:
+        return _emit_maturity_aggregates(curr)
+
     prev = _committed(BASELINE_PATH, args.against)
     if prev is None:
         print("doctrine drift: no committed baseline at "
@@ -164,6 +173,66 @@ def main() -> int:
         print(line)
     if len(summary) > 10:
         print(f"  · …and {len(summary) - 10} more metric shifts elided")
+    return 0
+
+
+# ─── iter437 IV-BETA.5A-P1D · Governance maturity aggregates ─────────
+# WARNING-ONLY. Produces three operator-readable aggregates from the
+# current working baseline:
+#   1. Portal calmness ranking — desktop loudness, ascending
+#   2. Hierarchy consistency  — distinct hierarchy_hash count per portal
+#   3. Escalation noise score — hue_family_count + scaled badge density
+#
+# None of these block deploys; they are trend-line instruments.
+
+def _emit_maturity_aggregates(curr: dict) -> int:
+    snaps = curr.get("snapshots", {}) or {}
+    portals = sorted(snaps.keys())
+    if not portals:
+        print("doctrine maturity: baseline has no snapshots.")
+        return 0
+
+    # 1. Calmness ranking (desktop loudness, ascending)
+    ranking = []
+    for p in portals:
+        cell = (snaps.get(p) or {}).get("desktop") or {}
+        loud = float(cell.get("loudness_score") or 0.0)
+        ranking.append((p, loud))
+    ranking.sort(key=lambda r: r[1])
+
+    print("governance maturity · calmness ranking (desktop, ascending loudness)")
+    for p, loud in ranking:
+        band = (
+            "stable" if loud <= 45.0
+            else "monitor" if loud <= 75.0
+            else "drift"
+        )
+        print(f"  · {p:<6} {loud:>6.2f} / 100   {band}")
+
+    # 2. Hierarchy consistency — same hierarchy_hash across all three
+    #    viewports = consistent.
+    print("")
+    print("governance maturity · hierarchy consistency (desktop / ipad / mobile)")
+    for p in portals:
+        cells = snaps.get(p) or {}
+        hashes = {(cells.get(v) or {}).get("hierarchy_hash") for v in ("desktop", "ipad", "mobile")}
+        hashes.discard(None)
+        consistent = len(hashes) == 1
+        print(f"  · {p:<6} {'consistent' if consistent else 'split'}"
+              f"   ({len(hashes)} distinct hierarchy hash(es))")
+
+    # 3. Escalation noise composite — hue_family_count * 4 + badge_density.
+    #    Lower is calmer; doctrine-locked floor is 0 (pure neutrals).
+    print("")
+    print("governance maturity · escalation noise composite (lower = calmer)")
+    for p in portals:
+        cell = (snaps.get(p) or {}).get("desktop") or {}
+        hues = int(cell.get("hue_family_count") or 0)
+        badges = float(cell.get("badge_density") or 0.0)
+        score = hues * 4.0 + badges
+        print(f"  · {p:<6} hues={hues} · badge_density={badges:>5.2f} "
+              f"· composite={score:>5.1f}")
+
     return 0
 
 
