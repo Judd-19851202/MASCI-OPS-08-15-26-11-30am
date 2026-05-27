@@ -1,6 +1,76 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-BETA.3-P1 · Platform Maturation Refinement 🟢
+
+### Mission
+Maturation refinement pass — NOT new features. Stabilize, tighten, clarify
+governance work already in place before Safety governance begins.
+
+### What shipped (🟢 every item verified · ~720 LOC net across 4 sub-phases)
+
+**IV-BETA.3-P1A · Cross-Portal Operator Atlas**
+- New `CROSS_PORTAL_OPERATOR_ATLAS.md` — single printable reference: side-by-side domain maps (Admin · PM · HR), "Where should I go?" matrix, escalation routing, portal-boundary doctrine, "what DOES NOT belong here" anti-patterns, onboarding quick-reference, mobile considerations.
+
+**IV-BETA.3-P1B · HR Calmness Tuning**
+- HR Hub `TILE_DEFS` rebuilt to the 5-domain map: stripes **9 → 5** hues, CTA buttons **9 → 1** (slate-800), sublines **avg 19 → 9 words** (every one ≤14, sentence-cased, period-terminated).
+- Loudness verdict **🟡 borderline → 🟢 calm**.
+- `HR_CALMNESS_TUNING_REPORT.md` published.
+
+**IV-BETA.3-P1C · Communication Footer Standardization**
+- New `backend/operational_footer.py` (single source of truth).
+- Wired into `branded_portal_emails.render_portal_email` → cascades to PM/Shop/HR/Safety/Dispatch welcome+reset emails.
+- Wired into `backup_verification`, `health_monitor`, `routes/shop_parts`.
+- Footer contract: `MASCI / automated operational notice · {Portal} Portal / do-not-reply [· {doc_id}]`.
+- Restraint contract (calm palette · no marketing words · no urgency words) locked by 15 new tests.
+- `COMMUNICATION_FOOTER_STANDARDIZATION.md` published.
+
+**IV-BETA.3-P1D · Governance Instrument Hardening**
+- `verify_coaching_sublines.py` gained 6 new escalation-wording bans (URGENT/ASAP/Please/Kindly/Time-sensitive/Heads up) AND now governs HrSideNavV2.jsx.
+- `measure_visual_loudness.py` deploy-stage now sweeps `/admin /pm /pm/jobs /hr /hr/time-verification?hrSidebarV2=1`.
+- All governance scripts remain WARNING-ONLY (P0 classes only block deploys).
+- `GOVERNANCE_INSTRUMENT_HARDENING.md` published.
+
+**Plus** `PLATFORM_MATURATION_REVIEW.md` — operator review checklist + cross-portal posture + deferred items.
+
+### Regression matrix (🟢 131/131 GREEN)
+
+| Suite | Result |
+|---|---|
+| `test_iter437_footer_standardization.py` (NEW) | 🟢 15 passed, 1 skipped |
+| `test_iter437_communication_unification.py` | 🟢 24/24 |
+| `test_iter437_pm_jobs_endpoint.py` | 🟢 4/4 |
+| `test_iter238_email_uniformity.py` (PM gold-standard intact) | 🟢 44/44 |
+| `test_hr_sidebar_v2.py` | 🟢 15/15 (1m 4s) |
+| `test_portal_token_routing.py` (PM auth-routing) | 🟢 27/27 (2m 13s) |
+| `verify_coaching_sublines.py` (hardened) | 🟢 |
+| `bash -n pre_deploy_check.sh` | 🟢 |
+| Frontend lint on changed files | 🟢 |
+
+### Cross-portal posture (🟢 after this batch)
+
+| Portal | Sidebar V2 | Calmness | Coaching | Footer | Auth | Comm |
+|---|---|---|---|---|---|---|
+| Admin | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 |
+| PM | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 |
+| **HR** | 🟢 | 🟢 **(this batch)** | 🟢 | 🟢 | 🟢 | 🟢 |
+| Safety / Dispatch / FL | ⚪ pending V2 | ⚪ | ⚪ | 🟢 (inherits) | 🟢 (clean) | 🟢 |
+
+### Doctrine reaffirmed
+
+- ✅ Preview only · NO production deploy · NO destructive data action
+- ✅ NO notification engine rewrite (helper-based, additive)
+- ✅ NO backend rewrites · NO permission changes · NO schema changes
+- ✅ NO weakening of `/api/admin/*` boundary
+- ✅ Feature-flag governance preserved (`?hrSidebarV2=1` legacy intact)
+- ✅ Every artifact distinguishes 🟢 / 🟡 / ⚪
+- ✅ Every change regression-locked BEFORE certification (131/131)
+
+# 🟢 PHASE IV-BETA.3-P1 · iter437 · CLOSED · STOP for operator review
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-BETA.3 · Communication Unification + HR Governance Alignment 🟢
 
 ### Mission

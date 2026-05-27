@@ -47,14 +47,25 @@ BANNED_PHRASES = [
     r"\bWhoops\b",
     r"\bAwesome\b",
     r"\bAmazing\b",
+    # iter437 P1D · escalation-wording doctrine (COMMUNICATION_UNIFICATION
+    # _DOCTRINE.md §A.III banned urgency words). Coaching copy is operator-
+    # facing and must NEVER patronise or shout urgency.
+    r"\bURGENT\b",
+    r"\bASAP\b",
+    r"\bPlease\s+(click|tap|submit|review|approve)\b",
+    r"\bKindly\b",
+    r"\bTime-sensitive\b",
+    r"\bHeads\s+up\b",
 ]
 
 # Files governed by this gate. Only sidebar domainMap files and PmSections/
 # AdminSections-style coaching wrappers — not arbitrary copy.
+# iter437 P1D · HrSideNavV2 added.
 COACHING_FILES = [
     "frontend/src/components/admin/sidebar/domainMap.js",
     "frontend/src/components/pm/sidebar/domainMap.js",
     "frontend/src/pages/pm/PmSections.jsx",
+    "frontend/src/components/hr/sidebar/HrSideNavV2.jsx",
 ]
 
 EMOJI_RE = re.compile(

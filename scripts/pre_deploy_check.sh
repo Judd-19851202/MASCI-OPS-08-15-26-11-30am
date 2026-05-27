@@ -233,7 +233,7 @@ stage_governance_visual_loudness() {
   iter=$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
   python3 scripts/measure_visual_loudness.py \
     --base-url "$url" \
-    --routes /admin /pm /pm/jobs \
+    --routes /admin /pm /pm/jobs /hr /hr/time-verification?hrSidebarV2=1 \
     --iteration "deploy-$iter" || {
     echo ""
     echo "⚠  Visual loudness measurement reported issues — NOT blocking deploy."

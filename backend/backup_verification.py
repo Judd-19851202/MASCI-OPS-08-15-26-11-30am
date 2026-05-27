@@ -36,6 +36,8 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
+from operational_footer import render_operational_footer_html
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_DAY_OF_WEEK = 0       # Monday
@@ -452,7 +454,8 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
       <div style="margin-top:8px">{counts_chips}</div>
 
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:24px 0 18px 0" />
-      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#475569;font-weight:bold;">
+      {render_operational_footer_html(portal="Admin", doc_id=f"backup-{report.get('verdict','info')}")}
+      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#475569;font-weight:bold;margin-top:14px;">
         MASCI General Contractors Inc. · 386-322-4500 · mascidocs.com
       </div>
       <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;font-weight:normal;margin-top:6px;">

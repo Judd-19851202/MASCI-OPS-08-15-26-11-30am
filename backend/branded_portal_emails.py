@@ -7,6 +7,13 @@ chrome (MASCI Operations Platform eyebrow → portal sub-eyebrow → bold
 h1 → divider → Inc. + phone + ForgedOps™ footer) is identical across
 portals; only the per-portal accent color and sub-eyebrow text varies.
 
+iter437 IV-BETA.3-P1C (2026-02-27): every email rendered by this helper
+now includes the calm 3-line operational footer mandated by
+COMMUNICATION_UNIFICATION_DOCTRINE.md §A.IV
+(`MASCI / automated operational notice · {Portal} Portal / do-not-reply`),
+placed above the existing branding line so the operator sees the
+"who sent this and where" signal first, branding second.
+
 The INNER body content (greeting, credentials block, "what to do next"
 list) is whatever the caller provides — the helper is just the wrapper.
 
@@ -22,6 +29,8 @@ from __future__ import annotations
 
 from html import escape as _esc
 from typing import Dict
+
+from operational_footer import render_operational_footer_html
 
 
 _PORTAL_THEMES: Dict[str, Dict[str, str]] = {
@@ -75,6 +84,7 @@ def render_portal_email(*, portal: str, headline: str, body_inner_html: str) -> 
       <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:{accent};font-weight:600;margin-top:4px;">{sub_eyebrow}</div>
       <h1 style="margin:8px 0 14px;font-size:22px;font-weight:900;letter-spacing:-0.02em;line-height:1.15;">{_esc(headline)}</h1>
       <div style="font-size:14px;line-height:1.55;color:#0f172a;">{body_inner_html}</div>
+      {render_operational_footer_html(portal=portal)}
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:22px 0 16px 0" />
       <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#475569;font-weight:bold;">
         MASCI General Contractors Inc. · 386-322-4500 · mascidocs.com

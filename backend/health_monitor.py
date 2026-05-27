@@ -64,6 +64,9 @@ async def _send_alert(red_cards: List[Dict[str, Any]], overall: str) -> bool:
         f'<td style="padding:6px 10px;border-bottom:1px solid #e5e7eb;color:#1e293b;">{c.get("detail", "—")}</td></tr>'
         for c in red_cards
     )
+    # iter437 P1C · operational footer (doctrine §A.IV)
+    from operational_footer import render_operational_footer_html
+    _op_footer = render_operational_footer_html(portal="Admin", doc_id="system-health-alert")
     html = f"""
     <div style="font-family:system-ui,-apple-system,sans-serif;max-width:600px;margin:0 auto;color:#0f172a;">
       <div style="border-bottom:4px solid #b91c1c;padding-bottom:10px;margin-bottom:15px;">
@@ -93,6 +96,7 @@ async def _send_alert(red_cards: List[Dict[str, Any]], overall: str) -> bool:
       <p style="font-size:11px;color:#64748b;margin-top:14px;">
         Synthetic monitor · iter132 · 60-second poll · 30-minute cooldown per subsystem
       </p>
+      {_op_footer}
     </div>
     """
     # iter437 IV-BETA.3A · doctrine A.III severe-tier prefix for fail; calm

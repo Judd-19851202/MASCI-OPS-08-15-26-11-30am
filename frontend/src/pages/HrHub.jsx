@@ -25,87 +25,110 @@ const HR_PAL = paletteFor("hr");
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// iter317-C Part 2 · HR Portal Visual-Hierarchy Refinement.
-// Tiles are now organized into 4 operational groups (no sidebar, no IA
-// redesign, no route changes). Tile order WITHIN each group preserved
-// from the prior flat array for muscle-memory protection. Per-tile
-// `accent` now drives a left-edge stripe (border-l-4) instead of a full
-// hot border, calming the page while preserving identity recognition.
+// iter437 P1B · HR Calmness Tuning — 2026-02-27
+//
+// Tile palette consolidated from 9 hues to 5 (matching the 5-domain
+// V2 sidebar map in `HR_INFORMATION_PRIORITY_MAP.json`). Every tile
+// subline trimmed to ≤14 words sentence case, period-terminated, per
+// `CROSS_PORTAL_COACHING_STANDARD.md §V`. Per-tile CTA buttons
+// normalised to a single neutral slate-800 across the board — identity
+// is carried by the left-edge stripe, not by the button.
+//
+// The 5-stripe / 5-domain map:
+//   green-600  → People Operations
+//   sky-600    → Time & Payroll
+//   violet-600 → Compliance & Records
+//   amber-700  → Access & Identity
+//   slate-600  → Guidance
 const TILE_DEFS = {
+  // ── People Operations (green-600) ────────────────────────────
   employees: { to: "/hr/employees", icon: Users, label: "Employee Lifecycle",
-    desc: "Add new employees · status changes · offboarding summary · auto-playbook on termination",
-    stripe: "border-l-emerald-500", btn: "bg-emerald-700 hover:bg-emerald-800" },
+    desc: "Add, status, offboarding, termination playbook.",
+    stripe: "border-l-green-600", btn: "bg-slate-800 hover:bg-slate-900" },
   tasks: { to: "/tasks", icon: GraduationCap, label: "Tasks & Actions",
-    desc: "Cross-portal accountability · employee documentation tasks · offboarding follow-ups",
-    stripe: "border-l-amber-500", btn: "bg-amber-700 hover:bg-amber-800" },
-  docExpirations: { to: "/document-expirations", icon: GraduationCap, label: "Document Expirations",
-    desc: "OSHA · TWIC · CDL · Driver License · Training Certifications — expiring soon & overdue.",
-    stripe: "border-l-rose-500", btn: "bg-rose-700 hover:bg-rose-800" },
-  poRequests: { to: "/po-requests", icon: Receipt, label: "PO Requests & Receipts",
-    desc: "Approve / reject / clarify PO requests · assign PO numbers · track missing receipts · employee-linked spending visibility · CSV export",
-    stripe: "border-l-indigo-500", btn: "bg-indigo-700 hover:bg-indigo-800" },
-  flRecords: { to: "/hr/field-leadership", icon: Users, label: "Field Leadership Records",
-    desc: "Write-ups · coaching · attendance · recognition · evaluations · terminations · equipment checkout",
-    stripe: "border-l-blue-500", btn: "bg-blue-700 hover:bg-blue-800" },
-  flUsers: { to: "/hr/field-leadership-users", icon: KeyRound, label: "Field Leadership Portal Accounts",
-    desc: "Issue per-user logins for Superintendents · Foremen · Truck Bosses · Working Supervisors · reset passwords · deactivate users (governed identity, iter314)",
-    stripe: "border-l-purple-600", btn: "bg-purple-700 hover:bg-purple-800" },
-  timeOff: { to: "/hr/time-off", icon: CalendarOff, label: "Time Off Requests",
-    desc: "Vacation · Sick · Medical · Family Emergency · Bereavement · approve, deny, or request more info · send public form to office staff",
-    stripe: "border-l-cyan-500", btn: "bg-cyan-700 hover:bg-cyan-800",
-    badgeKey: "pending" },
+    desc: "Cross-portal accountability and follow-ups.",
+    stripe: "border-l-green-600", btn: "bg-slate-800 hover:bg-slate-900" },
   accountability: { to: "/hr/employee-accountability", icon: Search, label: "Employee Accountability",
-    desc: "Search an employee · all records · outstanding equipment · disciplinary history · clearance for offboarding",
-    stripe: "border-l-amber-500", btn: "bg-amber-700 hover:bg-amber-800" },
+    desc: "Per-employee records, equipment, clearance.",
+    stripe: "border-l-green-600", btn: "bg-slate-800 hover:bg-slate-900" },
+  flRecords: { to: "/hr/field-leadership", icon: Users, label: "Field Leadership Records",
+    desc: "Crew docs, coaching, recognition, evaluations.",
+    stripe: "border-l-green-600", btn: "bg-slate-800 hover:bg-slate-900" },
+
+  // ── Time & Payroll (sky-600) ─────────────────────────────────
   timeVerification: { to: "/hr/time-verification", icon: Clock, label: "Time Verification",
-    desc: "Daily Report labor hours · lunch tracking · payroll cross-check (Exact-ready)",
-    stripe: "border-l-emerald-500", btn: "bg-emerald-700 hover:bg-emerald-800" },
+    desc: "Daily report labor and payroll cross-check.",
+    stripe: "border-l-sky-600", btn: "bg-slate-800 hover:bg-slate-900" },
   payrollVariance: { to: "/hr/payroll-variance", icon: Calculator, label: "Payroll Variance",
-    desc: "Paste Exact payroll CSV · auto-match to MASCI hours · approve / dispute each variance · weekly email summary",
-    stripe: "border-l-red-500", btn: "bg-red-700 hover:bg-red-800" },
+    desc: "Reconcile Exact CSV against MASCI hours.",
+    stripe: "border-l-sky-600", btn: "bg-slate-800 hover:bg-slate-900" },
+  timeOff: { to: "/hr/time-off", icon: CalendarOff, label: "Time Off Requests",
+    desc: "Vacation, sick, medical, bereavement approvals.",
+    stripe: "border-l-sky-600", btn: "bg-slate-800 hover:bg-slate-900",
+    badgeKey: "pending" },
+  poRequests: { to: "/po-requests", icon: Receipt, label: "PO Requests & Receipts",
+    desc: "Pending approvals, receipts, employee-linked spend.",
+    stripe: "border-l-sky-600", btn: "bg-slate-800 hover:bg-slate-900" },
+
+  // ── Compliance & Records (violet-600) ───────────────────────
+  docExpirations: { to: "/document-expirations", icon: GraduationCap, label: "Document Expirations",
+    desc: "OSHA, TWIC, CDL, training cert windows.",
+    stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
   trainingRecords: { to: "/hr/training-records", icon: GraduationCap, label: "Training Records",
-    desc: "Completed tracks · certifications · training compliance roster",
-    stripe: "border-l-purple-500", btn: "bg-purple-700 hover:bg-purple-800" },
-  dailyReports: { to: "/hr/daily-reports", icon: ClipboardList, label: "Daily Reports Review",
-    desc: "Read-only daily report visibility for payroll cross-checks · labor crews · subcontractors · vendors · attendance context. No edit or approval.",
-    stripe: "border-l-purple-700", btn: "bg-purple-700 hover:bg-purple-800" },
+    desc: "Completed tracks and certification roster.",
+    stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
   driverQual: { to: "/hr/driver-qualification", icon: Truck, label: "Driver Qualification",
-    desc: "Read-only operational visibility · CDL holders · approved drivers · endorsements · expirations · tanker-capable list",
-    stripe: "border-l-emerald-600", btn: "bg-emerald-800 hover:bg-emerald-900" },
+    desc: "CDL holders, endorsements, tanker capability.",
+    stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
   safetyRecords: { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
-    desc: "Read-only · safety document library (OSHA, SDS, EAPs) and per-employee training & certifications maintained by Safety",
-    stripe: "border-l-cyan-700", btn: "bg-cyan-700 hover:bg-cyan-800" },
+    desc: "Read-only Safety library and per-employee training.",
+    stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
+  dailyReports: { to: "/hr/daily-reports", icon: ClipboardList, label: "Daily Reports Review",
+    desc: "Read-only payroll cross-check context.",
+    stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
+
+  // ── Access & Identity (amber-700) ───────────────────────────
+  flUsers: { to: "/hr/field-leadership-users", icon: KeyRound, label: "Field Leadership Portal Accounts",
+    desc: "Issue, reset, deactivate Field Leadership logins.",
+    stripe: "border-l-amber-700", btn: "bg-slate-800 hover:bg-slate-900" },
+
+  // ── Guidance (slate-600) ────────────────────────────────────
   guidance: { to: "/guidance?from=hr", icon: BookOpen, label: "Training Center & Guides",
-    desc: "Step-by-step operator guides for the HR Portal · onboarding · payroll · cross-portal safety access · downloadable PDFs",
-    stripe: "border-l-indigo-500", btn: "bg-indigo-700 hover:bg-indigo-800" },
+    desc: "Step-by-step HR operator guides.",
+    stripe: "border-l-slate-600", btn: "bg-slate-800 hover:bg-slate-900" },
 };
 
-// Grouped tile layout. Each group renders its own section heading +
-// 2-col tile grid. Tile order WITHIN groups preserved from prior flat
-// TILES array (muscle-memory contract).
+// iter437 P1B · Tile groups now mirror the 5-domain V2 sidebar map.
+// `HR_INFORMATION_PRIORITY_MAP.json` is the canonical reference.
 const TILE_GROUPS = [
   {
-    key: "primary",
-    heading: "Primary HR Actions",
-    sub: "Day-to-day employee operations",
-    tiles: ["employees", "tasks", "docExpirations", "timeOff"],
+    key: "people-operations",
+    heading: "People Operations",
+    sub: "Day-to-day employee lifecycle and field accountability.",
+    tiles: ["employees", "tasks", "accountability", "flRecords"],
   },
   {
-    key: "compliance",
-    heading: "Compliance & Accountability",
-    sub: "Field leadership · accountability · safety · driver qualification",
-    tiles: ["flRecords", "flUsers", "accountability", "driverQual", "safetyRecords"],
+    key: "time-payroll",
+    heading: "Time & Payroll",
+    sub: "Time verification, payroll variance, expense visibility.",
+    tiles: ["timeVerification", "payrollVariance", "timeOff", "poRequests"],
   },
   {
-    key: "payroll",
-    heading: "Payroll / Time",
-    sub: "Time, payroll variance, expense tracking, training compliance",
-    tiles: ["poRequests", "timeVerification", "payrollVariance", "trainingRecords", "dailyReports"],
+    key: "compliance-records",
+    heading: "Compliance & Records",
+    sub: "Certifications, driver qualification, safety overlap.",
+    tiles: ["docExpirations", "trainingRecords", "driverQual", "safetyRecords", "dailyReports"],
   },
   {
-    key: "integrations",
-    heading: "Integrations & Systems",
-    sub: "Supporting tools · guides · cross-portal integration visibility",
+    key: "access-identity",
+    heading: "Access & Identity",
+    sub: "Field leadership accounts and sign-in management.",
+    tiles: ["flUsers"],
+  },
+  {
+    key: "guidance",
+    heading: "Guidance",
+    sub: "Operator guides and supporting documentation.",
     tiles: ["guidance"],
     muted: true,
   },

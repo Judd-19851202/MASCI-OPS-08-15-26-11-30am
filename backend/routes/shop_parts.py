@@ -28,6 +28,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
+from operational_footer import render_operational_footer_html as _operational_footer_html
+
 logger = logging.getLogger(__name__)
 
 PART_CATEGORIES = ["filters", "cutting_edges", "wiper_blades", "tires", "other_wear_items"]
@@ -309,7 +311,7 @@ def register_shop_parts_routes(api_router: APIRouter, db, require_admin, require
             <tbody>{rows_html}</tbody>
           </table>
           {f"<p style='margin-top:14px'><b>Notes:</b> {payload.additional_notes}</p>" if payload.additional_notes else ""}
-          <p style='margin-top:18px;color:#64748b;font-size:12px'>Sent automatically by the MASCI Shop console.</p>
+          {_operational_footer_html(portal="Shop", doc_id=f"parts-{payload.unit_number}")}
         </div>
         """
 
