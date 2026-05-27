@@ -242,6 +242,14 @@ stage_governance_visual_loudness() {
   return 0
 }
 
+# iter437 IV-BETA.4A · doctrine baseline drift intelligence — warning-only.
+stage_governance_doctrine_drift() {
+  cd "$REPO_ROOT"
+  echo "Mode: WARNING-ONLY (operator-readable drift summary — does not fail deploy)"
+  python3 scripts/diff_doctrine_baseline.py || true
+  return 0
+}
+
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
 
@@ -264,6 +272,7 @@ run_stage "Governance · admin copy doctrine (warning-only)" stage_governance_ad
 if [[ "$MODE" != "auth-only" ]]; then
   run_stage "Governance · visual loudness trend (warning-only)" stage_governance_visual_loudness
 fi
+run_stage "Governance · doctrine baseline drift (warning-only)" stage_governance_doctrine_drift
 
 # Sigma-III enforceable gates — run on every mode (these are the
 # minimum operational-trust contract the platform now ships under).
