@@ -1,13 +1,13 @@
 {
   "_meta": {
-    "updated_at": "2026-05-27T15:36:14.973Z",
+    "updated_at": "2026-05-27T17:14:49.364Z",
     "version": "iter437.IV-BETA.3-P2A"
   },
   "snapshots": {
     "admin": {
       "desktop": {
         "badge_density": 2.11,
-        "dom_style_hash": "ccfaff64f15a24b3",
+        "dom_style_hash": "a749f3445725f27b",
         "elements_walked": 190,
         "emphasis_score": 2,
         "font_size_summary": {

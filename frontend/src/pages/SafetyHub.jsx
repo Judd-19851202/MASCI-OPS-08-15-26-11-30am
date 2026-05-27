@@ -10,10 +10,11 @@
 // + severity pills + severe-tier banners (see SAFETY_ESCALATION_HIERARCHY
 // _MAP.md §III + §VI).
 //
-// Doctrine preserved: NO sidebar redesign (Sidebar V2 ships behind
-// ?safetySidebarV2=1 via SafetyShell). NO IA changes · NO route
-// changes · NO permission changes · NO new features. All 15 tile
-// testids + SafetyShell chrome preserved.
+// Doctrine preserved: Sidebar V2 is now the DEFAULT layout (iter437
+// IV-BETA.5A-P6) with `?safetySidebarV2=0`, localStorage, and env
+// escape hatches preserved. NO IA changes · NO route changes · NO
+// permission changes · NO new features. All 15 tile testids and
+// SafetyShell chrome preserved.
 //
 // Tile groupings (4-domain priority map · iter437 IV-BETA.5A):
 //   01 · Incidents & Escalation  (red)

@@ -1,9 +1,15 @@
 // Safety Portal · Sidebar V2 · iter437 / Phase IV-BETA.5A
 //
 // Mirrors HR Sidebar V2 discipline (HrSideNavV2.jsx). 4-domain layout
-// driven by SAFETY_INFORMATION_PRIORITY_MAP.json. Mounted behind
-// `?safetySidebarV2=1` so legacy Safety chrome stays untouched when
-// the flag is off — pure additive change, zero regression risk.
+// driven by SAFETY_INFORMATION_PRIORITY_MAP.json.
+//
+// iter437 IV-BETA.5A-P6 · Safety Sidebar V2 is now the DEFAULT layout
+// after a clean stabilization review (28 consecutive trendline records
+// at calmness=72.41 / direction=stable / delta=0.0). The flag resolves
+// cleanly so operators can opt out via `?safetySidebarV2=0` (or
+// localStorage `masci.safety.sidebar.v2=0`, or env
+// `REACT_APP_SAFETY_SIDEBAR_V2=0`) without redeploying. Legacy Safety
+// chrome stays one keystroke away.
 //
 // Governance contracts honoured:
 //   • OPERATIONAL_VERBIAGE_DOCTRINE.md §IV (no marketing slop)
@@ -151,8 +157,37 @@ export default function SafetySideNavV2({ className = "" }) {
   );
 }
 
-// Helper · reads the ?safetySidebarV2=1 query flag (mirrors HR/PM pattern).
+// Helper · iter437 IV-BETA.5A-P6 · Safety Sidebar V2 is now the DEFAULT
+// layout. Operators can opt out without a redeploy. Resolution order
+// mirrors the PM `isPmSidebarV2Enabled` pattern exactly:
+//
+//   1. URL query `?safetySidebarV2=0|1` (sticky · writes to localStorage)
+//   2. localStorage `masci.safety.sidebar.v2` ("0" → force OFF · "1" → on)
+//   3. env `REACT_APP_SAFETY_SIDEBAR_V2` ("0" / "false" → off)
+//   4. default: **ON** (V2 default · iter437 IV-BETA.5A-P6)
 export function useSafetySidebarV2Enabled() {
   const loc = useLocation();
-  return /[?&]safetySidebarV2=1\b/.test(loc.search || "");
+  // URL flag (sticky · writes through to localStorage so it persists
+  // across the rest of the Safety session).
+  const search = loc.search || "";
+  if (/[?&]safetySidebarV2=0\b/.test(search)) {
+    try { localStorage.setItem("masci.safety.sidebar.v2", "0"); } catch { /* ignore */ }
+    return false;
+  }
+  if (/[?&]safetySidebarV2=1\b/.test(search)) {
+    try { localStorage.setItem("masci.safety.sidebar.v2", "1"); } catch { /* ignore */ }
+    return true;
+  }
+  // localStorage override (set once, persists until cleared).
+  try {
+    const ls = localStorage.getItem("masci.safety.sidebar.v2");
+    if (ls === "0") return false;
+    if (ls === "1") return true;
+  } catch { /* ignore */ }
+  // Env-level kill-switch (rarely needed in preview, but available for
+  // emergency rollback without touching code).
+  const env = (process.env.REACT_APP_SAFETY_SIDEBAR_V2 || "").toLowerCase();
+  if (env === "0" || env === "false") return false;
+  // Default · V2 default posture (iter437 IV-BETA.5A-P6)
+  return true;
 }

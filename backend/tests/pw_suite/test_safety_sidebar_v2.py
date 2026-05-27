@@ -1,8 +1,11 @@
 """iter437 / Phase IV-BETA.5A · Safety Portal Sidebar V2 + Hub V2 regression.
 
 Locks the Safety governance contract:
-  • Legacy Safety layout renders unchanged when ?safetySidebarV2=1 is absent
-  • Sidebar V2 renders all 4 governance domains when flag is on
+  • Safety Sidebar V2 is now the DEFAULT layout (flipped at IV-BETA.5A-P6)
+  • `?safetySidebarV2=0` (URL · sticky) and localStorage
+    `masci.safety.sidebar.v2=0` are operator escape hatches back to the
+    legacy single-column layout
+  • Sidebar V2 renders all 4 governance domains
   • Safety portal never leaks /api/admin/* calls (defence-in-depth)
   • Hub palette stays calm: incidents tile-stripe red OK; status pills slate
   • Sub-page chrome (SafetyShell) preserved across V2 flag
@@ -78,29 +81,57 @@ SAFETY_DOMAINS = (
 )
 
 
-def test_safety_sidebar_v2_renders_when_flag_on(page, base_url: str, safety_token: str):
-    """With ?safetySidebarV2=1, the V2 sidebar (4 domain groups) mounts on
+def test_safety_sidebar_v2_is_default(page, base_url: str, safety_token: str):
+    """iter437 IV-BETA.5A-P6 · Safety Sidebar V2 is now the DEFAULT
+    layout. No flag required · all 4 governance domains must mount on
     any Safety sub-page using SafetyShell."""
     _seed_safety_session(page, base_url, safety_token)
+    # Clear any sticky LS override from earlier runs so we test the true default.
+    page.evaluate("localStorage.removeItem('masci.safety.sidebar.v2')")
     page.goto(
-        f"{base_url}/safety-portal/incidents?safetySidebarV2=1",
+        f"{base_url}/safety-portal/incidents",
         wait_until="networkidle",
     )
     page.wait_for_timeout(1500)
     for domain_id in SAFETY_DOMAINS:
         loc = page.locator(f"[data-testid='safety-side-nav-domain-{domain_id}']")
         assert loc.count() >= 1, (
-            f"V2 domain '{domain_id}' missing on /safety-portal/incidents"
+            f"V2 domain '{domain_id}' missing on /safety-portal/incidents · "
+            "Safety V2 must be default after IV-BETA.5A-P6"
         )
 
 
-def test_safety_sidebar_v2_hidden_by_default(page, base_url: str, safety_token: str):
-    """Without the flag, V2 sidebar must NOT render — legacy layout intact."""
+def test_safety_sidebar_v2_escape_hatch_query(page, base_url: str, safety_token: str):
+    """`?safetySidebarV2=0` collapses Safety back to the legacy single-
+    column chrome. Operator escape hatch preserved (mirrors PM/HR)."""
     _seed_safety_session(page, base_url, safety_token)
-    page.goto(f"{base_url}/safety-portal/incidents", wait_until="networkidle")
-    page.wait_for_timeout(1000)
+    page.evaluate("localStorage.removeItem('masci.safety.sidebar.v2')")
+    page.goto(
+        f"{base_url}/safety-portal/incidents?safetySidebarV2=0",
+        wait_until="networkidle",
+    )
+    page.wait_for_timeout(1500)
     loc = page.locator("[data-testid='safety-side-nav-desktop']")
-    assert loc.count() == 0, "Safety Sidebar V2 leaked into default layout"
+    assert loc.count() == 0, (
+        "Safety Sidebar V2 should collapse when ?safetySidebarV2=0"
+    )
+
+
+def test_safety_sidebar_v2_escape_hatch_localstorage(
+    page, base_url: str, safety_token: str
+):
+    """`localStorage.masci.safety.sidebar.v2='0'` also disables V2 (URL-
+    less escape hatch · matches PM pattern). Cleans up after itself."""
+    _seed_safety_session(page, base_url, safety_token)
+    page.evaluate("localStorage.setItem('masci.safety.sidebar.v2', '0')")
+    page.goto(f"{base_url}/safety-portal/incidents", wait_until="networkidle")
+    page.wait_for_timeout(1500)
+    loc = page.locator("[data-testid='safety-side-nav-desktop']")
+    assert loc.count() == 0, (
+        "localStorage escape hatch must disable V2 without a URL flag"
+    )
+    # Clean up so later tests start from a known state.
+    page.evaluate("localStorage.removeItem('masci.safety.sidebar.v2')")
 
 
 @pytest.mark.parametrize("route", SAFETY_SUBPAGE_ROUTES)

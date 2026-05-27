@@ -8246,28 +8246,6 @@ async def training_stats(_: bool = Depends(require_admin)):
     }
 
 
-@api_router.get("/qr.svg")
-async def qr_svg(data: str, scale: int = 6):
-    """Public QR-code generator. Returns an SVG-encoded QR for `data`.
-    Used by the Training Scan-&-Go posters (and anywhere else the UI wants
-    to inline a QR without shipping a JS library). Cached for 24h — the
-    input is always a stable public URL so it's safe to cache hard."""
-    import io
-    import segno  # type: ignore
-    if not data or len(data) > 2048:
-        raise HTTPException(400, "data query param required (1-2048 chars)")
-    scale = max(2, min(int(scale or 6), 20))
-    qr = segno.make(data, error="m")
-    buf = io.BytesIO()
-    qr.save(buf, kind="svg", scale=scale, dark="#0F172A", light=None, border=2, xmldecl=False)
-    from fastapi.responses import Response
-    return Response(
-        content=buf.getvalue(),
-        media_type="image/svg+xml",
-        headers={"Cache-Control": "public, max-age=86400"},
-    )
-
-
 @api_router.put("/admin/training/videos")
 async def training_videos_put(
     body: dict,
@@ -8710,6 +8688,13 @@ app.include_router(build_guidance_router(db, _guidance_caller_scopes))
 from routes.health_routes import build_health_router  # noqa: E402
 
 app.include_router(build_health_router())
+
+# iter437 IV-BETA.5A-P6 · Safe route extraction · public static helpers.
+# Pure public utilities (no DB, no auth, no scheduler). Currently:
+#   • GET /api/qr.svg — public QR-code generator (Training Scan-&-Go).
+from routes.static_helpers import build_static_helpers_router  # noqa: E402
+
+app.include_router(build_static_helpers_router())
 
 
 # ─── Deploy Readiness Aggregator (iter136) ──────────────────────────

@@ -12,8 +12,12 @@ Locks the new P2A + P2B governance contracts:
   P2B — V2 Default Posture
     • PM Sidebar V2 mounts by default on /pm (no flag needed)
     • HR Sidebar V2 mounts by default on /hr/* (no flag needed)
-    • Safety Sidebar V2 stays OFF by default (🟡 caution per directive)
-    • `?pmSidebarV2=0` and `?hrSidebarV2=0` are operator escape hatches
+    • Safety Sidebar V2 mounts by default on /safety-portal/* (no flag
+      needed) — flipped at IV-BETA.5A-P6 after a clean stabilization
+      review (28 consecutive trendline records at calmness=72.41,
+      direction=stable, delta=0.0).
+    • `?pmSidebarV2=0`, `?hrSidebarV2=0`, and `?safetySidebarV2=0` are
+      operator escape hatches
 """
 from __future__ import annotations
 
@@ -144,20 +148,50 @@ def test_hr_sidebar_v2_is_default(page, base_url: str, tokens: dict):
     ).count() == 1, "HR Sidebar V2 must mount by default after P2B"
 
 
-def test_safety_sidebar_v2_stays_caution_off(page, base_url: str, tokens: dict):
-    """Safety remains 🟡 caution — Sidebar V2 must NOT mount by default."""
+def test_safety_sidebar_v2_is_default_posture(page, base_url: str, tokens: dict):
+    """iter437 IV-BETA.5A-P6 · Safety Sidebar V2 is now the DEFAULT
+    layout after a clean stabilization review. No flag · the V2 desktop
+    nav must mount on Safety sub-pages that wrap in SafetyShell.
+
+    Note: the Safety Hub root (`/safety-portal`) doesn't use SafetyShell
+    so we hit a sub-page (`/safety-portal/incidents`) where the shell
+    chrome is active."""
     tok = tokens.get("safety") or tokens.get("admin")
     page.goto(f"{base_url}/", wait_until="domcontentloaded")
     page.evaluate(
         f"localStorage.setItem('masci.safety.token', '{tok}');"
-        f"localStorage.setItem('masci.safety.user', JSON.stringify({{name:'Caution'}}));"
+        f"localStorage.setItem('masci.safety.user', JSON.stringify({{name:'DefaultPosture'}}));"
+        # Clear any sticky LS override so we test the true default.
+        f"localStorage.removeItem('masci.safety.sidebar.v2');"
     )
-    page.goto(f"{base_url}/safety-portal", wait_until="networkidle")
+    page.goto(f"{base_url}/safety-portal/incidents", wait_until="networkidle")
+    page.wait_for_timeout(2000)
+    assert page.locator(
+        "[data-testid='safety-side-nav-desktop']"
+    ).count() == 1, (
+        "Safety Sidebar V2 must mount by default after IV-BETA.5A-P6"
+    )
+
+
+def test_safety_sidebar_v2_escape_hatch_query(page, base_url: str, tokens: dict):
+    """`?safetySidebarV2=0` collapses Safety back to the legacy single-
+    column chrome (operator escape hatch · mirrors PM/HR)."""
+    tok = tokens.get("safety") or tokens.get("admin")
+    page.goto(f"{base_url}/", wait_until="domcontentloaded")
+    page.evaluate(
+        f"localStorage.setItem('masci.safety.token', '{tok}');"
+        f"localStorage.setItem('masci.safety.user', JSON.stringify({{name:'EscapeHatch'}}));"
+        f"localStorage.removeItem('masci.safety.sidebar.v2');"
+    )
+    page.goto(
+        f"{base_url}/safety-portal/incidents?safetySidebarV2=0",
+        wait_until="networkidle",
+    )
     page.wait_for_timeout(1500)
     assert page.locator(
         "[data-testid='safety-side-nav-desktop']"
     ).count() == 0, (
-        "Safety Sidebar V2 must stay OFF by default per P2 caution posture"
+        "Safety Sidebar V2 should collapse when ?safetySidebarV2=0"
     )
 
 

@@ -2,9 +2,12 @@
 // HrPageShell but with the cyan-700 accent so the portal is visually
 // distinct from HR (purple), Field Leadership (red), PM (amber).
 //
-// iter437 IV-BETA.5A · optional Sidebar V2 mounts behind ?safetySidebarV2=1
-// — when off, the legacy single-column layout renders unchanged (zero
-// regression risk for default users).
+// iter437 IV-BETA.5A-P6 · Sidebar V2 is now the DEFAULT layout after a
+// clean stabilization review (Safety trendline direction=stable for 28
+// consecutive records). Operators can opt out via `?safetySidebarV2=0`
+// (URL · sticky), localStorage `masci.safety.sidebar.v2=0`, or env
+// `REACT_APP_SAFETY_SIDEBAR_V2=0`. Legacy single-column layout remains
+// one keystroke away — full reversibility, no destructive change.
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LogOut, ArrowLeft, ShieldAlert, Home, KeyRound } from "lucide-react";

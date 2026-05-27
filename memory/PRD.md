@@ -1,6 +1,67 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — iter437 · Phase IV-BETA.5A-P6 · Safety V2 Default Flip + Safe Route Extraction (Phase 2) 🟢
+
+### Mission
+After a clean stabilization review (Safety trendline `direction=stable`
+for 28 consecutive records · `delta=0.0` vs operator checkpoint), flip
+Safety Sidebar V2 to the **default layout** while preserving the legacy
+single-column chrome as a one-keystroke escape hatch. Continue safe
+route extraction from `server.py` with the next lowest-risk public
+utility (`/api/qr.svg`). NO Safety 5B · NO Dispatch implementation ·
+NO auth/upload/notification/websocket extraction.
+
+### What shipped (🟢 verified · 4 docs · 5 new parity tests · 108/108 governance regressions green)
+
+**Safety V2 default flip (IV-BETA.5A-P6)**
+- Stabilization review: 28 consecutive trendline records · calmness 72.41 · direction=stable · delta=0.0 · 7-day API drift sweep clean.
+- `useSafetySidebarV2Enabled()` rewritten to mirror PM `isPmSidebarV2Enabled()`: URL query → localStorage → env → default-true.
+- Escape hatch trio preserved: `?safetySidebarV2=0` (URL · sticky), `localStorage.masci.safety.sidebar.v2='0'`, `REACT_APP_SAFETY_SIDEBAR_V2=0`.
+- Legacy Safety sidebar **not removed** — fully reversible via 35-line patch.
+- 2 stale tests (`test_safety_sidebar_v2_hidden_by_default`, `test_safety_sidebar_v2_stays_caution_off`) rewritten to lock the new V2-default + escape-hatch contract.
+- Operator checkpoint declared: `operator · safety-v2-default-flip-IV-BETA-5A-P6` (2026-05-27T16:51:38Z).
+- Live in-browser verification: V2 sidebar mounts by default (4 domains visible); `?safetySidebarV2=0` collapses cleanly.
+
+**Safe route extraction · Phase 2 (P6)**
+- New `backend/routes/static_helpers.py` (66 LOC) extracts `GET /api/qr.svg` from `server.py`.
+- Pure public utility · stateless · no auth · no DB · bounded input (1-2048 chars).
+- `server.py`: 11,318 → **11,303** (−15 cumulative this phase).
+- 5 new parity tests in `test_static_helpers_extraction.py` lock byte-for-byte behavioural equivalence (content-type, cache-control, oversized-input rejection, missing-param rejection).
+
+**Docs produced**
+- `SAFETY_V2_DEFAULT_FLIP_CERTIFICATION.md` (new)
+- `SAFE_ROUTE_EXTRACTION_PHASE2.md` (new)
+- `SERVER_DECOMPOSITION_STATUS.md` (refreshed · catalog updated)
+- `PLATFORM_STABILITY_REVIEW.md` (refreshed · current snapshot)
+
+### Regression matrix (this pass · 108 / 108 green)
+- `test_safety_sidebar_v2.py` (rewritten): 6/6
+- `test_trendline_and_default_posture.py` (Safety contract rewritten): 13/13
+- `test_p5_dispatch_health_autocheckpoint.py`: 6/6
+- `test_governance_health_chip.py`: 21/21
+- `test_guidance_routes_extraction.py`: 9/9
+- `test_checkpoint_system.py`: 9/9
+- `test_portal_token_routing.py`: 27/27
+- `test_visual_doctrine_baseline.py`: 12/12
+- `test_static_helpers_extraction.py` (new): 5/5
+
+### Doctrine probe (post-flip)
+- `/api/governance/health/safety` → `state=monitor · direction=stable · delta=0.0 · delta_since_checkpoint=0.0 · reference=checkpoint · checkpoint_kind=operator`
+- Trendline file: valid JSON · 116 records · operator checkpoint thread intact.
+
+### Production deploy
+- ⛔ NONE · preview only · `APP_ENV=preview` · `DB_NAME=masci_safety_preview`.
+
+### Backlog (in priority order)
+- 🔵 P0 · Phase IV-BETA.5B · Safety governance for deeper surfaces (inspections, reports, JHA, trench workflows · UI doctrine only, no logic changes) — awaiting operator directive.
+- 🔵 P0 · Phase IV-BETA.5X · Dispatch governance UI/UX implementation (based on Sub-Pass 1 audit · still no backend / websocket changes) — awaiting operator directive.
+- 🟢 P2 · Continue safe route decomposition · next candidate `GET /api/version` (needs lifecycle-globals DI pattern documented first).
+- 🟢 P2 · Continue safe route decomposition · catalogue `GET /api/health/full` extraction (touches scheduler state).
+- ⚪ P3 · Eventually retire legacy Safety single-column chrome (only after multiple stable iterations with zero operator escape-hatch usage).
+
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A-P4 · Operational Memory Lock + Safe Decomposition + Dispatch Inventory 🟢
 
 ### Mission
