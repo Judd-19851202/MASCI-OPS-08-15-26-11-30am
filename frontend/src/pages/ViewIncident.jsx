@@ -6,6 +6,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { RefKicker } from "@/components/RefKicker";
 import BackLink from "@/components/BackLink";
 import { useHubHome } from "@/components/HubBackLink";
+import { useReturnContext } from "@/lib/returnContext";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
@@ -142,6 +143,18 @@ export default function ViewIncident() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/incidents";
+  // iter443 · P1 governance refinement — contextual return-path.
+  // Resolves to caller-supplied state.from > query ?from= > derived
+  // from pathname > fallback. The fallback path matches the prior
+  // behavior (parent list URL with "Incidents" label) so this is
+  // strictly additive: pre-iter443 entry surfaces still see the same
+  // label they did before, while admin/pm/safety contexts now see
+  // their portal-correct label.
+  const ret = useReturnContext({
+    key: "incidents-fallback",
+    label: t("Incidents"),
+    path: listUrl,
+  });
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -229,7 +242,7 @@ export default function ViewIncident() {
       <div className="caution-stripe no-print" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={listUrl} label={t("Incidents")} variant="header" testId="back-link" />
+          <BackLink to={ret.path} label={t(ret.label)} variant="header" testId="back-link" />
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <EditProjectDialog

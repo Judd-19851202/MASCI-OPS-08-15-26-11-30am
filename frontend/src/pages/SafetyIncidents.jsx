@@ -172,7 +172,18 @@ export default function SafetyIncidents() {
                     <td className="px-3 py-2 text-slate-600 truncate max-w-[10rem]">{i.project_name || i.project_number || "—"}</td>
                     <td className="px-3 py-2 text-slate-600 truncate max-w-[10rem]">{i.reporter_name || i.supervisor || "—"}</td>
                     <td className="px-3 py-2 text-right">
-                      <Link to={`/incidents/${i.id}`} className="text-slate-800 hover:underline font-bold inline-flex items-center" data-testid={`incident-open-${idx}`}>
+                      <Link
+                        to={`/admin/incidents/${i.id}`}
+                        state={{
+                          from: {
+                            key: "safety-incidents",
+                            label: "Incident Center",
+                            path: "/safety-portal/incidents",
+                          },
+                        }}
+                        className="text-slate-800 hover:underline font-bold inline-flex items-center"
+                        data-testid={`incident-open-${idx}`}
+                      >
                         {t("Open")} <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </td>

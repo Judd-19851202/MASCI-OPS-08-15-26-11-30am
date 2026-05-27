@@ -138,7 +138,15 @@ export default function IncidentsDashboard() {
                 const sev = severityOf(it.severity);
                 return (
                   <div
-                    onClick={() => navigate(`${pathname}/${it.id}`)}
+                    onClick={() => navigate(`${pathname}/${it.id}`, {
+                      state: {
+                        from: {
+                          key: pathname.startsWith("/pm/") ? "pm-incidents" : "admin-incidents",
+                          label: "Incidents",
+                          path: pathname,
+                        },
+                      },
+                    })}
                     className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
                     data-testid={`incident-row-${it.id}`}
                   >
@@ -171,6 +179,13 @@ export default function IncidentsDashboard() {
                     <div className="flex gap-2">
                       <Link
                         to={`${pathname}/${it.id}`}
+                        state={{
+                          from: {
+                            key: pathname.startsWith("/pm/") ? "pm-incidents" : "admin-incidents",
+                            label: "Incidents",
+                            path: pathname,
+                          },
+                        }}
                         onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
                         data-testid={`view-${it.id}`}

@@ -1,6 +1,63 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — iter443 · P1 GOVERNANCE · Contextual Return-Path Inheritance 🟢
+
+### Mission
+Field report: Incident detail surface hardcoded `← INCIDENTS`
+regardless of entry portal. Implemented the smallest safe
+contextual return-path inheritance layer.
+
+### Implementation
+
+**Frontend**
+- `lib/returnContext.js` (NEW) — `useReturnContext(fallback)` hook
+  resolves in order: `location.state.from` → `?from=&fromPath=` →
+  derived from current pathname → caller-supplied fallback.
+  Pure JS, no global state, returns a memoized stable shape.
+- `pages/ViewIncident.jsx` — consumes the hook; back label and
+  destination both come from `ret.label` / `ret.path` instead of
+  hardcoded `t("Incidents")` / parent-list path.
+- `pages/IncidentsDashboard.jsx` — both navigation call sites
+  (admin + PM) pass `state.from = { key, label: "Incidents", path }`
+  so list-to-detail keeps the "Incidents" label.
+- `pages/SafetyIncidents.jsx` — Link to incident detail now passes
+  `state.from = { key: "safety-incidents", label: "Incident Center",
+  path: "/safety-portal/incidents" }`. Also retargets the legacy
+  `/incidents/:id` redirect URL to `/admin/incidents/:id` directly
+  so `<Navigate replace />` doesn't drop the state.
+
+**No backend changes. No auth changes. No routing rewrite.**
+Additive · reversible · zero schema impact.
+
+### Doctrine documents (4 new)
+- `/app/memory/CONTEXTUAL_RETURN_PATH_AUDIT.md`
+- `/app/memory/SHARED_SURFACE_CONTEXT_MAP.md`
+- `/app/memory/RETURN_PATH_GOVERNANCE_STANDARD.md`
+- `/app/memory/LOW_RISK_IMPLEMENTATION_PLAN.md`
+
+### Verification
+🟢 **35/35 P0+P1 regression tests pass** (28 prior + 7 new):
+- `test_contextual_return_path_iter443.py` (7 tests):
+  - Pure resolver priority: state > query > derived > fallback
+  - Admin direct URL paste → "Admin Console"
+  - Admin list → detail (via `?from=admin-incidents`) → "Incidents"
+  - PM direct URL paste → "PM Portal" (via multi-login)
+  - Query param `?from=safety-incidents` override → "Incident Center"
+  - State.from override → "Incident Center"
+  - `data-testid="back-link"` survives label changes
+
+### Reversibility
+Delete `lib/returnContext.js` + revert 3 caller edits → exact prior
+behavior. No data migration, no schema, no routing change.
+
+### Stop condition
+🟢 Contextual return-path live in preview · 35/35 regression green
+· field-trust system intact · awaiting user-initiated production
+cutover.
+
+
+
 ## 2026-05-27 (fork) — iter442 · FIELD-TRUST PASS · Draft Health Tile + Device Memory Doctrine 🟢
 
 ### Mission
