@@ -24372,3 +24372,51 @@ See `/app/memory/test_credentials.md`. Quick refs:
 - Or run `localStorage.setItem('masci.admin.sidebar.v2', '1')` in DevTools then reload
 
 **Verdict:** 🟢 IV.A.1 COMPLETE · awaiting manual preview review before IV.A.2–IV.A.6 begin.
+
+---
+
+## iter437 (2026-02-27 · continued) — Phase IV-BETA.0 · Cross-Portal Governance Inventory + 8 Governance Docs
+
+**Scope:** Documentation-only · zero backend writes · zero schema changes · zero code changes · preview-only.
+
+**Approach (per directive):** Full PM portal inventory FIRST → audit grounded in actual files → 8 governance deliverables generated in one disciplined pass.
+
+**Files inspected (read-only):** `PmShell.jsx` · `PmHub.jsx` · `pages/pm/PmSections.jsx` · `PmCrewCompliance.jsx` · `PmFieldLeadership.jsx` · `PmQaqcList.jsx` · `App.js` routing · `backend/routes/pm_routes.py`.
+
+**Deliverables shipped:**
+
+| Document | Status | Path |
+|---|---|---|
+| PM Portal Current-State Audit | ✅ inventory-grounded | `/app/memory/PM_PORTAL_CURRENT_STATE_AUDIT.md` |
+| PM Portal Governance Alignment | ✅ shipped | `/app/memory/PM_PORTAL_GOVERNANCE_ALIGNMENT.md` |
+| Cross-Portal Consistency Standard (16 rules) | ✅ shipped | `/app/memory/CROSS_PORTAL_CONSISTENCY_STANDARD.md` |
+| PM Information Priority Map (JSON · 6 domains · 23 routes) | ✅ validated JSON | `/app/memory/PM_INFORMATION_PRIORITY_MAP.json` |
+| Shared Component Governance (12 components) | ✅ shipped | `/app/memory/SHARED_COMPONENT_GOVERNANCE.md` |
+| Platform-Wide Navigation Doctrine | ✅ shipped | `/app/memory/PLATFORM_WIDE_NAVIGATION_DOCTRINE.md` |
+| Cross-Portal Coaching Standard | ✅ shipped | `/app/memory/CROSS_PORTAL_COACHING_STANDARD.md` |
+| Visual Consistency Audit (Admin vs PM drift matrix) | ✅ shipped | `/app/memory/VISUAL_CONSISTENCY_AUDIT.md` |
+| PM Portal Re-Architecture Plan (5 sub-phases) | ✅ shipped | `/app/memory/PM_PORTAL_REARCHITECTURE_PLAN.md` |
+
+**Key findings from inventory:**
+- 🔴 P0 — PM portal `<SheetContent>` mobile drawer is missing the iOS scroll fix that Admin received in Phase IV-A.0. Identical field-blocking iPhone Safari bug recurs in PM.
+- 🔴 PM sidebar is flat (9 entries, no hierarchy) with saturated `bg-amber-600` active state — same pattern Admin V2 corrected.
+- 🟡 PM Hub overview shows 15 tiles + 6 inline widgets above the fold (target ≤ 12).
+- 🟡 PM uses 7 distinct hue families on the Hub (target ≤ 3).
+- 🟡 PM sidebar is missing the most-used surfaces (Daily Reports, Inspections, Incidents live as Hub tiles, not sidebar entries — hierarchy inversion).
+- 🟡 8 doctrine-violating copy strings ("Welcome to the PM Portal", uppercase-mono feature-list sublines, etc.).
+- ✅ 12 existing PM strengths cataloged as preserve-only (OperationsCenter, Crew Compliance card, PmHaulActivityTile, DispatchLifecycleTile, FieldMemoryGlance, LastActivityLine, server-side PM scoping, etc.).
+
+**Phased rollout plan (locked per PM_PORTAL_REARCHITECTURE_PLAN.md):**
+- IV-BETA.1: PM Sidebar V2 + iOS scroll fix · feature-flagged · ≤ 300 LOC
+- IV-BETA.2: PM Hub re-tiering · 15-tile grid retired · widgets reordered by tier
+- IV-BETA.3: Coaching sublines across all PM pages
+- IV-BETA.4: Loudness reduction · saturated amber chrome eliminated · deploy gates land
+- IV-BETA.5: Feature-flag cut · legacy PM sidebar retired
+
+**Post-PM cross-portal expansion (deferred to subsequent iterations):**
+- HR · Dispatch · Safety · Field Leadership · Driver — each follows the same 5-step pattern with its own audit + governance per-portal.
+
+**Constraints honored:** preview-only · APP_ENV=preview · DB=masci_safety_preview · no backend writes · no schema changes · no destructive migrations · no production deploy · no code changes (documentation-only iteration).
+
+**Verdict:** 🟢 Phase IV-BETA.0 governance pass complete · 9 documents shipped · IV-BETA.1 implementation awaits your manual review of these documents before starting.
+
