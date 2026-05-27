@@ -154,14 +154,20 @@ def test_pm_hub_v2_more_forms_list_renders(
     assert rows.count() == 8, f"expected 8 'More forms' rows, got {rows.count()}"
 
 
-def test_pm_hub_legacy_renders_when_flag_off(
+def test_pm_hub_legacy_renders_via_escape_hatch(
     base_url: str, super_admin_creds: dict, page: Page, viewport_name: str,
 ):
-    """With the flag OFF (default), legacy hub must render — V2 root absent."""
+    """iter437 IV-BETA.5A-P2B · PM Hub V2 is now the DEFAULT layout.
+    With `?pmSidebarV2=0` (or localStorage `masci.pm.sidebar.v2='0'`),
+    the legacy single-column hub must render — V2 root absent.
+
+    (Pre-P2B this test asserted the inverse — i.e. that legacy was the
+    default — but PM V2 has been the default posture since P2B. This
+    rewrite locks the escape-hatch contract instead.)"""
     if viewport_name != "desktop":
         pytest.skip("desktop-only")
 
-    # Seed tokens but explicitly DO NOT enable the V2 flag
+    # Seed tokens and force V2 OFF via the localStorage escape hatch
     r = requests.post(f"{base_url}/api/auth/multi-login", json=super_admin_creds, timeout=15)
     tokens = r.json()["portal_tokens"]
     page.goto(base_url, wait_until="domcontentloaded", timeout=20_000)
@@ -174,7 +180,8 @@ def test_pm_hub_legacy_renders_when_flag_off(
             localStorage.setItem('masci.safety.token', t.safety);
             localStorage.setItem('masci.dispatch.token', t.dispatch);
             localStorage.setItem('masci.fl.token', t.field_leadership);
-            localStorage.removeItem('masci.pm.sidebar.v2');
+            // Force V2 OFF · operator escape hatch
+            localStorage.setItem('masci.pm.sidebar.v2', '0');
         }""",
         tokens,
     )
@@ -182,4 +189,9 @@ def test_pm_hub_legacy_renders_when_flag_off(
     page.wait_for_timeout(1500)
 
     v2_root = page.locator('[data-testid="pm-hub-v2"]')
-    assert v2_root.count() == 0, "legacy default must not render V2 body"
+    assert v2_root.count() == 0, (
+        "PM V2 escape hatch (LS masci.pm.sidebar.v2='0') must collapse V2"
+    )
+
+    # Clean up so later tests start from a known state
+    page.evaluate("localStorage.removeItem('masci.pm.sidebar.v2')")

@@ -1,0 +1,9 @@
+{
+  "viewport": "desktop",
+  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm",
+  "console_tail": [
+    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[info] [sentry] initialised {env: preview, release: 0f5d997dffba4e95fefa9a58c7f02780}"
+  ]
+}
