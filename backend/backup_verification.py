@@ -299,13 +299,15 @@ def _verdict_color(verdict: str) -> str:
 
 
 def render_verification_subject(report: Dict[str, Any]) -> str:
+    # iter437 IV-BETA.3A · doctrine A.I (no non-reserved emoji) + A.III
+    # severe-tier prefix on hard failure. See COMMUNICATION_UNIFICATION_DOCTRINE.md.
     verdict = report.get("verdict") or "info"
     archives = report["r2"]["archive_count"]
     if verdict == "pass":
-        return f"[MASCI] Weekly Backup Verification ✓ · {archives} archives healthy"
+        return f"[MASCI \u00b7 BACKUP] Weekly Verification \u00b7 {archives} archives healthy"
     if verdict == "fail":
-        return "🚨 BACKUP VERIFICATION FAILED · check immediately"
-    return f"⚠ MASCI Backup Verification · {archives} archives · issues detected"
+        return "\U0001F6A8 BACKUP VERIFICATION FAILED \u00b7 check immediately"
+    return f"[MASCI \u00b7 BACKUP] Weekly Verification \u00b7 {archives} archives \u00b7 issues detected"
 
 
 def render_verification_email_html(report: Dict[str, Any]) -> str:

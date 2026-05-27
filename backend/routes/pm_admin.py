@@ -330,7 +330,7 @@ def build_pm_admin_router(
         params: Dict[str, Any] = {
             "from": f"MASCI Operations Platform <{sender_email}>",
             "to": [pm_email],
-            "subject": f"[MASCI] {headline}",
+            "subject": f"[MASCI · ACCESS] {headline}",
             "html": html_body,
             "attachments": [
                 {"filename": fname, "content": base64.b64encode(pdf_bytes).decode()}

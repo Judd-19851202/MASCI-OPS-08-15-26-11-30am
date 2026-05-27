@@ -95,7 +95,16 @@ async def _send_alert(red_cards: List[Dict[str, Any]], overall: str) -> bool:
       </p>
     </div>
     """
-    subject = f"[MASCI] System Health {overall.upper()} — {len(red_cards)} subsystem(s) failing"
+    # iter437 IV-BETA.3A · doctrine A.III severe-tier prefix for fail; calm
+    # `[MASCI · HEALTH]` TAG otherwise. See COMMUNICATION_UNIFICATION_DOCTRINE.md.
+    _is_fail = (overall or "").lower() in ("fail", "red", "critical")
+    if _is_fail:
+        subject = f"\U0001F6A8 HEALTH FAIL \u00b7 {len(red_cards)} subsystem(s)"
+    else:
+        subject = (
+            f"[MASCI \u00b7 HEALTH] System Health {overall.upper()} \u00b7 "
+            f"{len(red_cards)} subsystem(s) at risk"
+        )
 
     try:
         import httpx  # noqa: PLC0415

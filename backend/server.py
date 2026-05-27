@@ -7349,7 +7349,7 @@ async def admin_alert_outage(body: OutageAlertBody, _: bool = Depends(require_ad
         rows_html += "</tbody></table>"
     return await send_outage_alert(
         issue_key=body.issue_key,
-        subject=f"⚠ MASCI Hub outage — {body.issue_key}",
+        subject=f"\U0001F6A8 PLATFORM OUTAGE \u00b7 {body.issue_key}",
         summary=body.summary,
         details_html=rows_html,
     )

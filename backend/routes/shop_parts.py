@@ -320,7 +320,10 @@ def register_shop_parts_routes(api_router: APIRouter, db, require_admin, require
             params = {
                 "from": f"MASCI Operations Platform <{sender_email}>",
                 "to": payload.send_to,
-                "subject": f"[MASCI] Parts Order · {payload.unit_number} · {len(payload.items)} item(s)",
+                "subject": (
+                    f"[MASCI · PARTS] {payload.unit_number} · "
+                    f"Parts Order · {len(payload.items)} item(s)"
+                ),
                 "html": html,
             }
             if payload.cc:

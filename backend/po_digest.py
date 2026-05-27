@@ -43,6 +43,21 @@ PO_OPEN_STATUSES = (
 
 DIGEST_SUBJECT = "[MASCI \u00b7 PO] Weekly Request PO Digest"
 
+
+def build_digest_subject(week_iso: str | None = None) -> str:
+    """iter437 IV-BETA.3A · operational subject for PO digest.
+
+    Format: ``[MASCI · PO] Weekly Request PO Digest · {YYYY-MM-DD}`` —
+    dropping the bare ``DIGEST_SUBJECT`` constant for an inbox-Cmd-F
+    friendly variant per COMMUNICATION_UNIFICATION_DOCTRINE.md §A.I.
+    Callers may pass an explicit ``week_iso`` (e.g. "2026-02-23")
+    for deterministic test output; otherwise today's UTC date is used.
+    """
+    if not week_iso:
+        from datetime import datetime, timezone
+        week_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return f"{DIGEST_SUBJECT} \u00b7 {week_iso}"
+
 # Default non-production / seeded test domains — never receive prod digests.
 # Operator can extend via PO_DIGEST_EXCLUDE_DOMAINS env (comma-separated,
 # case-insensitive, with or without leading dot/@).
@@ -318,7 +333,8 @@ async def send_po_digest_once(
     Returns per-recipient summary so admin /preview endpoint + tests
     can verify exactly who got what without burning Resend quota.
     """
-    results = {"pm": [], "hr": [], "skipped": [], "subject": DIGEST_SUBJECT, "dry_run": dry_run}
+    digest_subject = build_digest_subject()
+    results = {"pm": [], "hr": [], "skipped": [], "subject": digest_subject, "dry_run": dry_run}
 
     send_empty = _send_empty_scope_pms()
     pms = await _active_pm_recipients(db)
@@ -338,7 +354,7 @@ async def send_po_digest_once(
             sent = False
             if send_email_fn and not dry_run:
                 try:
-                    sent = bool(await send_email_fn(pm["email"], DIGEST_SUBJECT, html))
+                    sent = bool(await send_email_fn(pm["email"], digest_subject, html))
                 except Exception as e:  # noqa: BLE001
                     logger.warning(f"[po-digest] PM send failed for {pm['email']}: {e}")
                     sent = False
@@ -359,7 +375,7 @@ async def send_po_digest_once(
             sent = False
             if send_email_fn and not dry_run:
                 try:
-                    sent = bool(await send_email_fn(hr["email"], DIGEST_SUBJECT, html))
+                    sent = bool(await send_email_fn(hr["email"], digest_subject, html))
                 except Exception as e:  # noqa: BLE001
                     logger.warning(f"[po-digest] HR send failed for {hr['email']}: {e}")
                     sent = False

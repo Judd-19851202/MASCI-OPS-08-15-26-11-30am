@@ -1,0 +1,81 @@
+{
+  "_meta": {
+    "version": "iter437.IV-BETA.3B",
+    "generated": "2026-02-27",
+    "purpose": "Canonical priority map for the HR portal — drives the HR Sidebar V2 domain order, the HR Hub tile grouping (HrHub.jsx TILE_GROUPS), and any future HR re-tier decisions. Anchored to the HR audit doc.",
+    "verification": "VERIFIED · matches frontend/src/components/hr/sidebar/HrSideNavV2.jsx and frontend/src/pages/HrHub.jsx as of iter437"
+  },
+  "domains": [
+    {
+      "id": "people-operations",
+      "label": "People Operations",
+      "order": 1,
+      "subline": "Day-to-day employee lifecycle and field accountability.",
+      "stripe": "#16a34a",
+      "rationale": "Highest-frequency HR work — daily employee changes, accountability searches, FL crew docs.",
+      "routes": [
+        {"to": "/hr/employees", "label": "Employee Lifecycle", "tier": "P0"},
+        {"to": "/hr/employee-accountability", "label": "Employee Accountability", "tier": "P0"},
+        {"to": "/hr/field-leadership", "label": "Field Leadership", "tier": "P0"}
+      ]
+    },
+    {
+      "id": "time-payroll",
+      "label": "Time & Payroll",
+      "order": 2,
+      "subline": "Time verification, payroll variance, expense visibility.",
+      "stripe": "#0284c7",
+      "rationale": "Weekly payroll cycle and approval surfaces.",
+      "routes": [
+        {"to": "/hr/time-verification", "label": "Time Verification", "tier": "P0"},
+        {"to": "/hr/payroll-variance", "label": "Payroll Variance", "tier": "P0"},
+        {"to": "/hr/time-off", "label": "Time Off Requests", "tier": "P0"},
+        {"to": "/po-requests", "label": "PO Requests", "tier": "P1"}
+      ]
+    },
+    {
+      "id": "compliance-records",
+      "label": "Compliance & Records",
+      "order": 3,
+      "subline": "Certifications, driver qualification, safety overlap.",
+      "stripe": "#7c3aed",
+      "rationale": "Read-mostly compliance surfaces — accessed during audits, expirations, and pre-mobilization checks.",
+      "routes": [
+        {"to": "/document-expirations", "label": "Document Expirations", "tier": "P0"},
+        {"to": "/hr/training-records", "label": "Training Records", "tier": "P0"},
+        {"to": "/hr/driver-qualification", "label": "Driver Qualification", "tier": "P0"},
+        {"to": "/hr/safety-records", "label": "Safety Records", "tier": "P1"},
+        {"to": "/hr/daily-reports", "label": "Daily Reports", "tier": "P1"}
+      ]
+    },
+    {
+      "id": "access-identity",
+      "label": "Access & Identity",
+      "order": 4,
+      "subline": "Field leadership accounts and sign-in management.",
+      "stripe": "#b45309",
+      "rationale": "Identity governance for the Field Leadership portal users HR provisions.",
+      "routes": [
+        {"to": "/hr/field-leadership-users", "label": "FL Portal Accounts", "tier": "P0"},
+        {"to": "/hr/change-password", "label": "Change Password", "tier": "P1"}
+      ]
+    },
+    {
+      "id": "guidance",
+      "label": "Guidance",
+      "order": 5,
+      "subline": "Operator guides and supporting documentation.",
+      "stripe": "#475569",
+      "rationale": "Reference material. Lowest-frequency surface. Slate stripe communicates 'support, not operations'.",
+      "routes": [
+        {"to": "/guidance?from=hr", "label": "Training Center", "tier": "P2"}
+      ]
+    }
+  ],
+  "doctrine_compliance": {
+    "verbiage_doctrine": "All labels and sublines pass verify_admin_copy.py — no banned phrases.",
+    "coaching_standard": "All sublines ≤14 words, sentence-cased, end with period.",
+    "loudness": "One accent stripe per domain (5 stripes total); chrome stays slate-900.",
+    "auth_routing": "Every route confirmed clean (no /api/admin/* calls) — see PORTAL_AUTH_TOKEN_AUDIT.md §3.2."
+  }
+}

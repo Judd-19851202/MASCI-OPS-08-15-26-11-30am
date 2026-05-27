@@ -1,6 +1,89 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-BETA.3 · Communication Unification + HR Governance Alignment 🟢
+
+### Mission
+Cross the platform from "rapid internal tool expansion" into "governed
+operational platform maturity". Two execution targets this batch:
+- **IV-BETA.3A** — implement the 6-site subject-line drift remediation
+  documented in `COMMUNICATION_UNIFICATION_DOCTRINE.md` §A.VII
+- **IV-BETA.3B** — first cross-portal governance expansion: HR Sidebar V2
+  behind `?hrSidebarV2=1`, full audit trail (5 governance docs + a JSON
+  priority map), and HR Playwright regression coverage
+
+### What shipped — additive · ~640 LOC net across backend + frontend + tests + docs
+
+#### IV-BETA.3A · Communication Unification (🟢 6 drift sites remediated)
+
+| Site | Before | After | Test |
+|---|---|---|---|
+| `routes/shop_parts.py:323` | `[MASCI] Parts Order · …` | `[MASCI · PARTS] {unit} · Parts Order · {N}` | 🟢 |
+| `routes/pm_admin.py:333` | `[MASCI] {headline}` | `[MASCI · ACCESS] {headline}` | 🟢 |
+| `po_digest.DIGEST_SUBJECT` | constant (no date) | `build_digest_subject(week_iso)` → `…· YYYY-MM-DD` | 🟢 |
+| `server.py:7352` (outage) | `⚠ MASCI Hub outage — …` | `🚨 PLATFORM OUTAGE · {issue}` (severe tier) | 🟢 |
+| `health_monitor.py:98` | `[MASCI] System Health …` | tier-aware: fail/red → `🚨 HEALTH FAIL · {N}`; else `[MASCI · HEALTH] …` | 🟢 |
+| `backup_verification.render_verification_subject` | mixed emoji | `[MASCI · BACKUP] …` (pass/warn) + `🚨 BACKUP VERIFICATION FAILED · …` (fail) | 🟢 |
+
+Locks: `backend/tests/test_iter437_communication_unification.py` — **24 new assertions** including cross-cutting "no forbidden urgency words" sweep. Pre-existing `test_iter238_email_uniformity.py` 44/44 still green (PM gold-standard subject contract untouched).
+
+#### IV-BETA.3B · HR Portal Governance Alignment (🟢 sidebar V2 shipped behind `?hrSidebarV2=1`)
+
+| Artifact | Result |
+|---|---|
+| `components/hr/sidebar/HrSideNavV2.jsx` | NEW · 5 domain groups · 18 governed entries · all sublines ≤14 words sentence-case |
+| `components/HrPageShell.jsx` | Conditional mount of V2 sidebar (flag-gated · legacy unchanged when off) |
+| `backend/tests/pw_suite/test_hr_sidebar_v2.py` | NEW · 15/15 pass · desktop+iPad+mobile · zero `/api/admin/*` leak across 3 HR routes |
+| `memory/HR_PORTAL_CURRENT_STATE_AUDIT.md` | Baseline inventory of 17 HR pages + auth + loudness + nav |
+| `memory/HR_PORTAL_GOVERNANCE_ALIGNMENT.md` | Doctrine application matrix (verbiage / coaching / loudness / mobile / comm / auth) |
+| `memory/HR_INFORMATION_PRIORITY_MAP.json` | Canonical 5-domain map · machine-readable · drives sidebar + future hub trim |
+| `memory/HR_SIDEBAR_V2_CERTIFICATION.md` | Contract certification + promotion criteria + rollback plan |
+| `memory/HR_VISUAL_LOUDNESS_REPORT.md` | 6-dimension baseline · hub 🟡 borderline · sidebar V2 🟢 calm |
+| `memory/HR_PLAYWRIGHT_REGRESSION_REPORT.md` | Coverage attestation · cross-portal posture · doctrine reaffirmed |
+| `memory/COMMUNICATION_UNIFICATION_IMPLEMENTATION_REPORT.md` | 6-site diff table + regression evidence |
+
+### Verification matrix (🟢 every cell green)
+
+| Suite | Result |
+|---|---|
+| `test_iter437_communication_unification.py` | 🟢 24/24 |
+| `test_iter238_email_uniformity.py` (PM gold-standard unchanged) | 🟢 44/44 |
+| `test_iter437_pm_jobs_endpoint.py` | 🟢 4/4 |
+| `test_portal_token_routing.py` (PM auth-routing) | 🟢 27/27 |
+| `test_hr_sidebar_v2.py` (NEW) | 🟢 15/15 |
+| Frontend lint (5 changed files) | 🟢 no issues |
+| `pre_deploy_check.sh` syntax | 🟢 bash -n clean |
+
+**Grand total: 114/114 green.**
+
+### Doctrine reaffirmed
+
+- ✅ Preview only · `APP_ENV=preview` · `DB_NAME=masci_safety_preview`
+- ✅ NO production deploy
+- ✅ NO destructive data action · NO permission changes · NO schema changes
+- ✅ NO notification engine rewrite — 6 surgical subject-string edits + 1 builder helper
+- ✅ NO HR backend rewrites · NO payroll logic changes
+- ✅ NO weakening of `/api/admin/*` boundary
+- ✅ Every artifact distinguishes 🟢 VERIFIED / 🟡 ASSUMED / ⚪ UNTESTED
+- ✅ HR Sidebar V2 ships behind `?hrSidebarV2=1` — legacy renderpath intact
+- ✅ Every change regression-locked BEFORE certification
+
+### Cross-portal posture after this batch
+
+| Portal | Sidebar V2 | Coaching | Loudness | Auth audited | Comm doctrine |
+|---|---|---|---|---|---|
+| Admin | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 |
+| PM | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 |
+| **HR** | 🟢 **(this batch)** | 🟢 (V2 entries) | 🟢 (V2 entries) | 🟢 | 🟢 (inherits) |
+| Safety | ⚪ pending | ⚪ pending | ⚪ pending | 🟢 (clean) | 🟢 (inherits) |
+| Dispatch | ⚪ pending | ⚪ pending | ⚪ pending | 🟢 (clean) | 🟢 (inherits) |
+| Field Leadership | ⚪ pending | ⚪ pending | ⚪ pending | 🟢 (clean) | 🟢 (inherits) |
+
+# 🟢 PHASE IV-BETA.3 · iter437 · CLOSED · STOP for operator review before Dispatch/Safety/FL
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 follow-up · IV-AUTH-FIX++ · PmJobsRead + Communication Doctrine + Governance Wiring + Cross-Portal Plan 🟢
 
 ### Mission
