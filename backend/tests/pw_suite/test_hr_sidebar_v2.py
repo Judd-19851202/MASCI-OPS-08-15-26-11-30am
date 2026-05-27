@@ -1,8 +1,9 @@
-"""iter437 / Phase IV-BETA.3B · HR Portal Sidebar V2 regression.
+"""iter437 / Phase IV-BETA.3B + P2B · HR Portal Sidebar V2 regression.
 
 Locks the HR portal governance contract:
-  • Legacy HR layout renders unchanged when ?hrSidebarV2=1 is absent
-  • Sidebar V2 renders all 5 domain groups when flag is on
+  • iter437 P2B · HR Sidebar V2 is the DEFAULT layout
+  • `?hrSidebarV2=0` is the explicit operator escape hatch
+  • Sidebar V2 renders all 5 domain groups (default + explicit flag-on)
   • HR portal never leaks /api/admin/* calls (defence-in-depth — HR
     already audited clean in PORTAL_AUTH_TOKEN_AUDIT.md §3.2)
   • Auth-routing P0 stays green
@@ -79,13 +80,30 @@ def test_hr_sidebar_v2_renders_when_flag_on(page, base_url: str, hr_token: str):
         )
 
 
-def test_hr_sidebar_v2_hidden_by_default(page, base_url: str, hr_token: str):
-    """Without the flag, V2 sidebar must NOT render — legacy layout intact."""
+def test_hr_sidebar_v2_is_now_default(page, base_url: str, hr_token: str):
+    """iter437 IV-BETA.5A-P2B · HR Sidebar V2 is the DEFAULT layout.
+    Without any flag, the V2 sidebar SHOULD now render."""
     _seed_hr_session(page, base_url, hr_token)
     page.goto(f"{base_url}/hr/time-verification", wait_until="networkidle")
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(1500)
     loc = page.locator("[data-testid='hr-side-nav-desktop']")
-    assert loc.count() == 0, "HR Sidebar V2 leaked into default layout"
+    assert loc.count() == 1, (
+        "HR Sidebar V2 must render by default after the P2B default flip"
+    )
+
+
+def test_hr_sidebar_v2_escape_hatch(page, base_url: str, hr_token: str):
+    """iter437 IV-BETA.5A-P2B · `?hrSidebarV2=0` is the operator escape
+    hatch — explicitly forces the legacy layout without redeploy."""
+    _seed_hr_session(page, base_url, hr_token)
+    page.goto(
+        f"{base_url}/hr/time-verification?hrSidebarV2=0", wait_until="networkidle"
+    )
+    page.wait_for_timeout(1500)
+    loc = page.locator("[data-testid='hr-side-nav-desktop']")
+    assert loc.count() == 0, (
+        "HR Sidebar V2 must collapse to legacy when ?hrSidebarV2=0"
+    )
 
 
 @pytest.mark.parametrize("route", HR_SUBPAGE_ROUTES)

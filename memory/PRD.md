@@ -1,6 +1,82 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A-P2 · Trendline + V2 Default Posture 🟢
+
+### Mission
+Transition the platform from governance stabilization into **persistent
+operational memory**. Build the doctrine trendline, evolve the chip
+to surface direction (not just state), flip PM + HR V2 to default
+posture (with rollback hatch), hold Safety on 🟡 caution, and apply
+a surgical Admin calmness refinement.
+
+### What shipped (🟢 verified · ~500 LOC + 5 docs + 17 new tests)
+
+**P2A — Doctrine Trendline + chip evolution**
+- `memory/DOCTRINE_TRENDLINE.json` (NEW · append-only) — filesystem operational memory · rolling 500-record cap.
+- `scripts/diff_doctrine_baseline.py --append` (NEW mode) — pushes one record per portal per invocation.
+- `routes/governance_health.py` — endpoint now blends baseline + trendline and returns `direction` (`stable | improving | drifting | new`).
+- `GovernanceHealthChip.jsx` — same footprint (1 dot + 2 spans) renders 5 labels: `governance stable / improving / drifting / monitor / drift`.
+- `pre_deploy_check.sh` — trendline append wired into the warning-only governance stage.
+
+**P2B — PM + HR V2 default flip · Safety held 🟡**
+- `isPmSidebarV2Enabled()` defaults to true · `?pmSidebarV2=0` escape hatch.
+- `useHrSidebarV2Enabled()` defaults to true · `?hrSidebarV2=0` escape hatch.
+- Safety stays OFF by default (🟡 caution — needs 1–2 iterations of trend stability before flip).
+- Legacy `<SideNav>` retained · three-layer override (URL · localStorage · env) preserved.
+
+**Admin calmness refinement (P2)**
+- `AdminKpiStrip.jsx` accent palette config: 5 → 3 hue families. `purple` and weekly-delta `emerald` demoted to slate. Rendered hue count holds at 5 because operational status widgets (IntegrationHealthCard) preserve red/amber/emerald per directive (escalation visibility).
+
+**Tests**
+- `test_trendline_and_default_posture.py` (NEW · 17 assertions): trendline append contract + chip direction field + PM/HR default + escape hatches + Safety stays off.
+- `test_hr_sidebar_v2.py` updated: new default + escape hatch tests.
+
+**Docs (all 5 deliverables)**
+1. `DOCTRINE_TRENDLINE_SYSTEM.md`
+2. `V2_DEFAULT_TRANSITION_CERTIFICATION.md`
+3. `ADMIN_CALMNESS_REFINEMENT.md`
+4. `GOVERNANCE_MEMORY_EVOLUTION.md`
+5. `PLATFORM_GOVERNANCE_STATUS.md`
+
+### Regression matrix (🟢 113/113 GREEN this phase)
+
+| Suite | Result |
+|---|---|
+| `test_trendline_and_default_posture.py` (NEW) | 🟢 17/17 (91 s) |
+| `test_governance_health_chip.py` | 🟢 21/21 |
+| `test_hr_sidebar_v2.py` (updated) | 🟢 21/21 |
+| `test_safety_sidebar_v2.py` | 🟢 21/21 |
+| `test_visual_doctrine_baseline.py` | 🟢 12/12 |
+| `test_portal_token_routing.py` | 🟢 21/21 |
+
+### Current baselines (post P2)
+
+| Portal | Loudness | Hues | State | Direction |
+|---|---|---|---|---|
+| PM | 32.75 | 4 | 🟢 stable | new (need 7+ records) |
+| Admin | 36.11 | 5 | 🟢 stable | new |
+| HR | 70.15 | 3 | 🟡 monitor | new |
+| Safety | 72.41 | 3 | 🟡 monitor | new |
+
+### Doctrine compliance
+
+- ✅ Trendline = filesystem-only · no DB writes
+- ✅ Chip footprint unchanged · operationally restrained
+- ✅ All P2 instruments remain **warning-only**
+- ✅ Three-layer escape hatch preserved (URL · localStorage · env)
+- ✅ Legacy `<SideNav>` retained · revertible flip
+- ✅ Severity / OSHA / severe banner / severe email subject preserved
+- ✅ Zero `/api/admin/*` leakage from non-admin contexts
+- ✅ Preview only · NO production deploy
+
+### Status
+
+🟢 PHASE IV-BETA.5A-P2 COMPLETE · STOP awaiting operator review before Safety 5B / Dispatch governance / Safety default flip begin.
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A-P1 · Stabilization + V2 Default Readiness 🟢
 
 ### Mission

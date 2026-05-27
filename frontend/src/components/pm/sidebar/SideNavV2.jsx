@@ -150,18 +150,22 @@ export default function SideNavV2({ onNavigate }) {
 // Feature-flag resolver — same shape as Admin V2's isAdminSidebarV2Enabled.
 // PM-namespaced so the two flags toggle independently.
 //
+// iter437 IV-BETA.5A-P2B · PM V2 is now the DEFAULT layout. The flag
+// still resolves cleanly so operators can opt out via `?pmSidebarV2=0`
+// (or localStorage `masci.pm.sidebar.v2=0`) without redeploying.
+//
 // Resolution order:
-//   1. URL query `?pmSidebarV2=1` (sticky · writes to localStorage)
-//   2. localStorage `masci.pm.sidebar.v2` ("1" → on · "0" → force off)
-//   3. env REACT_APP_PM_SIDEBAR_V2 ("1" / "true" → on)
-//   4. default: off (legacy nav)
+//   1. URL query `?pmSidebarV2=0|1` (sticky · writes to localStorage)
+//   2. localStorage `masci.pm.sidebar.v2` ("0" → force OFF · "1" → on)
+//   3. env REACT_APP_PM_SIDEBAR_V2 ("0" → off)
+//   4. default: **ON** (V2 default · iter437 IV-BETA.5A-P2B)
 export function isPmSidebarV2Enabled() {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") return true;
   try {
     const qs = new URLSearchParams(window.location.search);
     if (qs.has("pmSidebarV2")) {
       const v = qs.get("pmSidebarV2");
-      const on = v === "1" || v === "true";
+      const on = !(v === "0" || v === "false");
       try { localStorage.setItem("masci.pm.sidebar.v2", on ? "1" : "0"); } catch { /* ignore */ }
       return on;
     }
@@ -170,5 +174,6 @@ export function isPmSidebarV2Enabled() {
     if (ls === "0") return false;
   } catch { /* ignore */ }
   const env = (process.env.REACT_APP_PM_SIDEBAR_V2 || "").toLowerCase();
-  return env === "1" || env === "true";
+  if (env === "0" || env === "false") return false;
+  return true; // V2 default · escape hatch via ?pmSidebarV2=0
 }

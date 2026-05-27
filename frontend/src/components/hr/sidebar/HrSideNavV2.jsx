@@ -161,8 +161,15 @@ export default function HrSideNavV2({ className = "" }) {
   );
 }
 
-// Helper · reads the ?hrSidebarV2=1 query flag the same way PM does.
+// Helper · iter437 IV-BETA.5A-P2B · HR Sidebar V2 is now the DEFAULT
+// layout. Returns FALSE only when `?hrSidebarV2=0` is explicitly present
+// in the URL (operator escape hatch · matches PM V2 pattern).
 export function useHrSidebarV2Enabled() {
   const loc = useLocation();
-  return /[?&]hrSidebarV2=1\b/.test(loc.search || "");
+  // Explicit force-off escape hatch
+  if (/[?&]hrSidebarV2=0\b/.test(loc.search || "")) return false;
+  // Explicit force-on (still supported for clarity in tests / URLs)
+  if (/[?&]hrSidebarV2=1\b/.test(loc.search || "")) return true;
+  // Default · V2 default posture (iter437 IV-BETA.5A-P2B)
+  return true;
 }

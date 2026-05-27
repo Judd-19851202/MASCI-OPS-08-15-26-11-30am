@@ -35,6 +35,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException
 
 BASELINE_PATH = Path("/app/memory/HUB_VISUAL_BASELINE.json")
+TRENDLINE_PATH = Path("/app/memory/DOCTRINE_TRENDLINE.json")
 
 VALID_PORTALS = {"admin", "pm", "hr", "safety"}
 
@@ -42,6 +43,15 @@ VALID_PORTALS = {"admin", "pm", "hr", "safety"}
 # gate. Operator can tighten these once 3+ iterations of trend data exist.
 STABLE_CEIL = 45.0
 MONITOR_CEIL = 75.0
+
+# iter437 IV-BETA.5A-P2A · doctrine direction thresholds.
+# Direction is computed from the LAST N trendline records for a portal.
+# `improving` = recent average is materially lower than older average.
+# `drifting`  = recent average is materially higher.
+# `stable`    = within noise band.
+DIRECTION_RECENT_N = 3
+DIRECTION_OLDER_N = 3
+DIRECTION_DELTA_THRESHOLD = 4.0  # |Δ| ≥ 4 calmness points → direction signal
 
 
 def _classify(loudness: float) -> Dict[str, str]:
@@ -74,6 +84,54 @@ def _load_baseline() -> Optional[Dict[str, Any]]:
         return None
 
 
+def _load_trendline_records(portal: str) -> list:
+    """Load DOCTRINE_TRENDLINE.json records for one portal, oldest first."""
+    if not TRENDLINE_PATH.exists():
+        return []
+    try:
+        data = json.loads(TRENDLINE_PATH.read_text())
+    except (OSError, json.JSONDecodeError):
+        return []
+    return [
+        r for r in (data.get("records") or [])
+        if r.get("portal") == portal
+    ]
+
+
+def _direction_for(portal: str, current_loudness: float) -> Dict[str, Any]:
+    """Compute direction (stable | improving | drifting | new) from trendline.
+
+    Compares the average calmness of the last DIRECTION_RECENT_N records
+    against the average of the DIRECTION_OLDER_N records preceding them.
+    Returns the human-readable delta so the chip can surface it.
+    """
+    records = _load_trendline_records(portal)
+    # Exclude the very-latest record only when it duplicates the current
+    # loudness; otherwise include it in the recent window.
+    if not records or len(records) < (DIRECTION_RECENT_N + 1):
+        return {"direction": "new", "delta": None, "trend_records": len(records)}
+
+    recent = records[-DIRECTION_RECENT_N:]
+    older_window = records[
+        -(DIRECTION_RECENT_N + DIRECTION_OLDER_N):-DIRECTION_RECENT_N
+    ]
+    if not older_window:
+        return {"direction": "new", "delta": None, "trend_records": len(records)}
+
+    recent_avg = sum(r.get("calmness") or 0.0 for r in recent) / len(recent)
+    older_avg = sum(r.get("calmness") or 0.0 for r in older_window) / len(older_window)
+    delta = round(recent_avg - older_avg, 2)
+
+    if abs(delta) < DIRECTION_DELTA_THRESHOLD:
+        direction = "stable"
+    elif delta < 0:
+        direction = "improving"
+    else:
+        direction = "drifting"
+
+    return {"direction": direction, "delta": delta, "trend_records": len(records)}
+
+
 def _portal_health(baseline: Dict[str, Any], portal: str) -> Optional[Dict[str, Any]]:
     snapshots = baseline.get("snapshots") or {}
     cells = snapshots.get(portal)
@@ -87,6 +145,7 @@ def _portal_health(baseline: Dict[str, Any], portal: str) -> Optional[Dict[str, 
 
     loudness = float(cell.get("loudness_score") or 0.0)
     classification = _classify(loudness)
+    direction = _direction_for(portal, loudness)
 
     return {
         "portal": portal,
@@ -97,6 +156,7 @@ def _portal_health(baseline: Dict[str, Any], portal: str) -> Optional[Dict[str, 
         "dom_style_hash": cell.get("dom_style_hash") or "",
         "hierarchy_hash": cell.get("hierarchy_hash") or "",
         **classification,
+        **direction,
         "baseline_version": (baseline.get("_meta") or {}).get("version") or "",
         "baseline_updated_at": (baseline.get("_meta") or {}).get("updated_at") or "",
     }

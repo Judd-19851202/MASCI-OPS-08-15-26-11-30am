@@ -40,35 +40,62 @@ export default function GovernanceHealthChip({ portal }) {
 
   if (!data) return null;
 
-  // State tone — strictly monochrome slate. The `state` value is a
-  // semantic class for testing only; it does NOT colour the text.
-  const stateLabel =
-    data.state === "stable"
-      ? "stable"
-      : data.state === "monitor"
-      ? "monitor"
-      : "drift";
+  // iter437 IV-BETA.5A-P2A · Direction-aware chip.
+  //
+  // The chip surfaces one of three operational states:
+  //   • stable     — current loudness within calm band AND no material trend
+  //   • improving  — calmness DROPPED ≥ 4 points vs prior window (good)
+  //   • drifting   — calmness ROSE ≥ 4 points vs prior window (warn)
+  //
+  // The endpoint's `direction` field carries: stable | improving |
+  // drifting | new. We blend it with the static `state` (stable/monitor/
+  // drift) to choose the chip label — but the footprint NEVER changes
+  // (one slate dot + two text spans). No animation, no badge, no chart.
+
+  const dir = data.direction || "new";
+  const delta = typeof data.delta === "number" ? data.delta : null;
+  const state = data.state || "stable";
+
+  // Choose label by priority: a real `drift` state always wins; otherwise
+  // honour the direction signal; fall back to the static state.
+  let label;
+  let trailing;
+  if (state === "drift") {
+    label = "governance drift";
+    trailing = `${Math.round(data.loudness || 0)}/100`;
+  } else if (dir === "improving" && delta !== null) {
+    label = "governance improving";
+    trailing = `${delta > 0 ? "+" : ""}${delta} drift`;
+  } else if (dir === "drifting" && delta !== null) {
+    label = "governance drifting";
+    trailing = `+${Math.abs(delta)} drift`;
+  } else if (state === "monitor") {
+    label = "governance monitor";
+    trailing = `${Math.round(data.loudness || 0)}/100`;
+  } else {
+    label = "governance stable";
+    trailing = `${Math.round(data.loudness || 0)}/100`;
+  }
 
   return (
     <div
       className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500"
       data-testid={`governance-health-chip-${portal}`}
-      data-state={data.state || "unknown"}
+      data-state={state}
+      data-direction={dir}
       title={data.summary || ""}
     >
       <span
         className="inline-block w-1.5 h-1.5 rounded-sm bg-slate-400"
         aria-hidden="true"
       />
-      <span data-testid={`governance-health-label-${portal}`}>
-        governance {stateLabel}
-      </span>
+      <span data-testid={`governance-health-label-${portal}`}>{label}</span>
       <span className="text-slate-400">·</span>
       <span
         className="tabular-nums text-slate-500"
         data-testid={`governance-health-loudness-${portal}`}
       >
-        {Math.round(data.loudness || 0)}/100
+        {trailing}
       </span>
     </div>
   );

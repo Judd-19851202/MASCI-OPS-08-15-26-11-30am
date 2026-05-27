@@ -32,6 +32,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BASELINE_PATH = REPO_ROOT / "memory" / "HUB_VISUAL_BASELINE.json"
+# iter437 IV-BETA.5A-P2A · Doctrine Trendline — append-only operational
+# memory file. Filesystem-only; NO database collection. Every `--summary`
+# (and `--append`) invocation pushes ONE record per portal at the tail.
+# Quiet by design — no charts, no panels, no operator noise.
+TRENDLINE_PATH = REPO_ROOT / "memory" / "DOCTRINE_TRENDLINE.json"
+TRENDLINE_MAX_RECORDS = 500  # rolling cap so the file never balloons
 
 LOUDNESS_VIOLATION_CEIL = 75.0      # >75 = doctrine violation
 LOUDNESS_SUSPICIOUS_DELTA = 7.5     # delta beyond this = suspicious
@@ -133,6 +139,12 @@ def main() -> int:
         help="Print P1D maturity aggregates (calmness ranking, hierarchy "
              "consistency, escalation noise) from the working baseline only.",
     )
+    parser.add_argument(
+        "--append", action="store_true",
+        help="Append the current working baseline as one record per portal "
+             "to memory/DOCTRINE_TRENDLINE.json (filesystem operational "
+             "memory · no DB writes).",
+    )
     args = parser.parse_args()
 
     if not BASELINE_PATH.exists():
@@ -140,6 +152,9 @@ def main() -> int:
         return 0
 
     curr = json.loads(BASELINE_PATH.read_text())
+
+    if args.append:
+        return _append_trendline(curr)
 
     if args.summary:
         return _emit_maturity_aggregates(curr)
@@ -233,6 +248,92 @@ def _emit_maturity_aggregates(curr: dict) -> int:
         print(f"  · {p:<6} hues={hues} · badge_density={badges:>5.2f} "
               f"· composite={score:>5.1f}")
 
+    return 0
+
+
+# ─── iter437 IV-BETA.5A-P2A · Doctrine Trendline (append-only memory) ─
+# Filesystem-only operational memory. Records ONE entry per portal per
+# invocation. Rolling cap to keep the file small. Used by the governance
+# chip backend to compute `direction` (stable / improving / drifting) so
+# the chip can surface trend not just current state.
+
+def _band_for(loud: float) -> str:
+    if loud <= 45.0:
+        return "stable"
+    if loud <= 75.0:
+        return "monitor"
+    return "drift"
+
+
+def _load_trendline() -> dict:
+    if not TRENDLINE_PATH.exists():
+        return {
+            "_meta": {"version": "iter437.IV-BETA.5A-P2A",
+                      "purpose": "Append-only doctrine memory · operator-readable trend."},
+            "records": [],
+        }
+    try:
+        return json.loads(TRENDLINE_PATH.read_text())
+    except (OSError, json.JSONDecodeError):
+        # Quarantine the broken file by NOT overwriting and starting fresh.
+        return {"_meta": {"version": "iter437.IV-BETA.5A-P2A"}, "records": []}
+
+
+def _append_trendline(curr_baseline: dict) -> int:
+    snaps = curr_baseline.get("snapshots", {}) or {}
+    if not snaps:
+        print("doctrine trendline: baseline has no snapshots — nothing to append.")
+        return 0
+
+    from datetime import datetime as _dt, timezone as _tz  # local import on purpose
+    ts = _dt.now(_tz.utc).isoformat(timespec="seconds")
+
+    line = _load_trendline()
+    records = list(line.get("records") or [])
+
+    appended_for: list[str] = []
+    for portal in sorted(snaps.keys()):
+        cell = (snaps.get(portal) or {}).get("desktop") or {}
+        if not cell:
+            continue
+        loud = float(cell.get("loudness_score") or 0.0)
+        hues = int(cell.get("hue_family_count") or 0)
+        badge = float(cell.get("badge_density") or 0.0)
+        emphasis = int(cell.get("emphasis_score") or 0)
+        # Hierarchy consistency = 100 when all 3 viewports share hash.
+        viewport_hashes = {
+            (snaps[portal].get(v) or {}).get("hierarchy_hash")
+            for v in ("desktop", "ipad", "mobile")
+        }
+        viewport_hashes.discard(None)
+        hierarchy_consistency = 100 if len(viewport_hashes) <= 1 else 50
+
+        record = {
+            "portal": portal,
+            "timestamp": ts,
+            "calmness": round(loud, 2),
+            "hierarchy_consistency": hierarchy_consistency,
+            "escalation_noise": round(hues * 4.0 + badge, 2),
+            "hue_family_count": hues,
+            "badge_density": round(badge, 2),
+            "emphasis_score": emphasis,
+            "status": _band_for(loud),
+        }
+        records.append(record)
+        appended_for.append(portal)
+
+    # Rolling cap — keep the most recent TRENDLINE_MAX_RECORDS entries.
+    if len(records) > TRENDLINE_MAX_RECORDS:
+        records = records[-TRENDLINE_MAX_RECORDS:]
+
+    line["records"] = records
+    line["_meta"]["updated_at"] = ts
+    TRENDLINE_PATH.write_text(json.dumps(line, indent=2, sort_keys=True))
+
+    print(
+        f"doctrine trendline · appended {len(appended_for)} record(s) "
+        f"at {ts} · {len(records)} total"
+    )
     return 0
 
 

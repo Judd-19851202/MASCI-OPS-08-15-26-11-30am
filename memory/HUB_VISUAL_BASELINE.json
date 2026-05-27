@@ -1,13 +1,13 @@
 {
   "_meta": {
-    "updated_at": "2026-05-27T15:04:36.883Z",
+    "updated_at": "2026-05-27T15:36:14.973Z",
     "version": "iter437.IV-BETA.3-P2A"
   },
   "snapshots": {
     "admin": {
       "desktop": {
         "badge_density": 2.11,
-        "dom_style_hash": "47ebf399d63d4933",
+        "dom_style_hash": "ccfaff64f15a24b3",
         "elements_walked": 190,
         "emphasis_score": 2,
         "font_size_summary": {
@@ -37,7 +37,7 @@
       },
       "ipad": {
         "badge_density": 2.11,
-        "dom_style_hash": "fb1d66fce5164d04",
+        "dom_style_hash": "a749f3445725f27b",
         "elements_walked": 190,
         "emphasis_score": 2,
         "font_size_summary": {
@@ -67,7 +67,7 @@
       },
       "mobile": {
         "badge_density": 1.22,
-        "dom_style_hash": "00e9c2bdab05cca1",
+        "dom_style_hash": "c944e3a45b542e10",
         "elements_walked": 164,
         "emphasis_score": 1,
         "font_size_summary": {

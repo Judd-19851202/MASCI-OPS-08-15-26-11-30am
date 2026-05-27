@@ -63,10 +63,14 @@ const ACCENT = {
     chip: "bg-amber-600 text-white",
     num: "text-slate-900",
   },
+  // iter437 IV-BETA.5A-P2 · Admin calmness refinement — `purple` accent
+  // demoted to slate. Red remains the ONE escalation accent · amber the
+  // ONE warning accent · slate everything else. Collapses Admin Hub
+  // palette from 5 → 3 hue families on the KPI strip.
   purple: {
-    border: "border-slate-200 hover:border-purple-700",
-    bg: "bg-white hover:bg-purple-50",
-    chip: "bg-purple-700 text-white",
+    border: "border-slate-200 hover:border-slate-700",
+    bg: "bg-white hover:bg-slate-50",
+    chip: "bg-slate-800 text-white",
     num: "text-slate-900",
   },
   slate: {
@@ -114,7 +118,7 @@ function Tile({ to, icon: Icon, label, num, subLabel, accent, hoverTitle, testId
         <span className="truncate">{subLabel}</span>
         {weeklyDelta != null && weeklyDelta > 0 && (
           <span
-            className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold normal-case tracking-normal text-[10px] shrink-0"
+            className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-slate-100 text-slate-700 font-bold normal-case tracking-normal text-[10px] shrink-0"
             data-testid={`${testId}-weekly-delta`}
             title={`${weeklyDelta} added in the last 7 days`}
           >
