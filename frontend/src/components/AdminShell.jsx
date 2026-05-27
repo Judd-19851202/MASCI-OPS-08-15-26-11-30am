@@ -9,7 +9,7 @@
 // Each section page just wraps its panels in <AdminShell title="Equipment & Suppliers" section="equipment">
 // and the chrome takes care of everything else.
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
@@ -29,6 +29,7 @@ import AdminGlobalSearch from "@/components/AdminGlobalSearch";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
+import SideNavV2, { isAdminSidebarV2Enabled } from "@/components/admin/sidebar/SideNavV2";
 import { api } from "@/lib/api";
 import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
@@ -104,6 +105,14 @@ function SideNav({ active, onNavigate }) {
 export default function AdminShell({ title, section, children, intro }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Phase IV.A.1 — Feature-flagged V2 sidebar. Resolved once per mount
+  // so toggling the flag requires a page reload (predictable rollout).
+  // Legacy <SideNav> remains the default; V2 must be opted in.
+  const useV2Sidebar = useMemo(() => isAdminSidebarV2Enabled(), []);
+  const renderNav = (onNavigate) =>
+    useV2Sidebar
+      ? <SideNavV2 onNavigate={onNavigate} />
+      : <SideNav active={section} onNavigate={onNavigate} />;
 
   const signOut = async () => {
     try { await api.post("/admin/logout"); } catch { /* ignore */ }
@@ -149,7 +158,7 @@ export default function AdminShell({ title, section, children, intro }) {
                 style={{ WebkitOverflowScrolling: "touch" }}
                 data-testid="admin-mobile-nav-scroll"
               >
-                <SideNav active={section} onNavigate={() => setMobileOpen(false)} />
+                {renderNav(() => setMobileOpen(false))}
               </div>
             </SheetContent>
           </Sheet>
@@ -228,7 +237,7 @@ export default function AdminShell({ title, section, children, intro }) {
           data-testid="admin-side-nav-desktop"
         >
           <div className="rounded-md bg-slate-900 border-2 border-slate-800 overflow-hidden">
-            <SideNav active={section} />
+            {renderNav()}
           </div>
           <div className="mt-3 px-3 text-[9px] font-mono uppercase tracking-[0.22em] text-slate-400 flex items-center justify-between">
             <BackendVersionBadge />

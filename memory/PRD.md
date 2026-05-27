@@ -24308,3 +24308,67 @@ See `/app/memory/test_credentials.md`. Quick refs:
 
 **Verdict:** 🟢 Phase IV-A Governance complete · 8/8 docs locked · iOS bug fixed and regression-armed · awaiting user review before Phase IV.A.1 implementation begins.
 
+
+
+---
+
+## iter437 (2026-02-27 · continued) — Phase IV.A.1 · V2 Sidebar SHIPPED behind feature flag
+
+**Scope:** Frontend only · zero backend mutations · zero schema changes · feature-flagged · old sidebar remains the default.
+
+**Files added:**
+- `frontend/src/components/admin/sidebar/domainMap.js` (117 LOC · data + helpers)
+- `frontend/src/components/admin/sidebar/SideNavV2.jsx` (176 LOC · component + flag resolver)
+- `backend/tests/pw_suite/test_admin_mobile_nav_scroll_v2.py` (112 LOC · regression)
+
+**File modified:**
+- `frontend/src/components/AdminShell.jsx` (+12 / -3 lines · flag-gated render swap)
+
+**Feature flag resolution order (per-account, manually reversible without redeploy):**
+1. URL query `?adminSidebarV2=1` (sticky · writes to localStorage)
+2. localStorage `masci.admin.sidebar.v2` ("1" → on · "0" → force off)
+3. env `REACT_APP_ADMIN_SIDEBAR_V2`
+4. default: OFF (legacy nav)
+
+**Visual contract delivered:**
+- 6 governed domains · per-domain 2-px stripe in semantic color (operations red, workforce blue, equipment-fleet amber, communications violet, safety-compliance orange, system-governance slate)
+- Coaching subline under each domain header (≤ 12 words, slate-500)
+- Tier-2 child entries indented with smaller icons + secondary metadata
+- localStorage-persisted open/collapsed state (key: `masci.admin.sidebar.openDomains`)
+- Active domain auto-expanded on route change
+- Footer rail (My Tasks · PO Requests · Guidance) below domains, separated by a slate-800 divider
+- Saturated red `bg-red-700` active state ELIMINATED — replaced by `bg-slate-800` for active children and `bg-slate-800/60` for expanded domain headers
+
+**Mobile contract preserved:**
+- `admin-mobile-nav-trigger` testid unchanged
+- `admin-mobile-nav-scroll` testid unchanged (iOS Safari scroll fix from Phase IV.A.0 still in place)
+- 44+ px touch targets enforced via `min-h-[44px]` on Tier-2 child rows
+
+**Regression status (full pw_suite):**
+- ✅ 31 passed · 8 skipped · 0 failed
+- ✅ Legacy `test_admin_mobile_nav_scroll.py` — 2 passed (iOS scroll guard intact)
+- ✅ NEW `test_admin_mobile_nav_scroll_v2.py` — 2 passed (V2 mobile scroll + 6 domain rows + footer rail)
+
+**Reversibility:**
+- Default flag = off · zero impact on existing operators
+- Per-user opt-in via query string · sticky via localStorage
+- Single `git revert` removes V2 entirely without touching legacy nav code
+
+**Doctrine alignment:**
+- Domain grouping derived from `ADMIN_INFORMATION_PRIORITY_MAP.json`
+- Routes use ONLY paths that already exist in the legacy SECTIONS list — zero new routes introduced this phase
+- Operator's daily-rhythm ordering (Operations first → System & Governance last) per ADMIN_UX_GOVERNANCE.md §III
+
+**NOT shipped this phase (deferred to IV.A.2–IV.A.6 awaiting review):**
+- Saturation/color cleanup beyond the sidebar surface
+- Modal audit and conversion
+- Notification channel coordination
+- Typography/spacing/border/shadow normalization across all admin pages
+- Visual loudness measurement script
+- Feature-flag cut (V2 → default · legacy removed)
+
+**To enable in preview for review:**
+- Append `?adminSidebarV2=1` to any `/admin*` URL once, then it sticks via localStorage
+- Or run `localStorage.setItem('masci.admin.sidebar.v2', '1')` in DevTools then reload
+
+**Verdict:** 🟢 IV.A.1 COMPLETE · awaiting manual preview review before IV.A.2–IV.A.6 begin.
