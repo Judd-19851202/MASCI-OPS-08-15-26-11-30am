@@ -1,6 +1,86 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A-P4 · Operational Memory Lock + Safe Decomposition + Dispatch Inventory 🟢
+
+### Mission
+Declare the first operator-blessed governance checkpoint, perform
+one lowest-risk route extraction from `server.py`, and produce a
+read-only Dispatch intelligence inventory in preparation for a future
+Dispatch governance phase. Continue Safety observation (🟡 caution).
+STOP before Dispatch implementation / Safety 5B / Safety default flip.
+
+### What shipped (🟢 verified · 10 docs · 9 new regression tests · −84 LOC from server.py)
+
+**P4A — First operator-blessed checkpoint**
+- Executed: `python3 scripts/diff_doctrine_baseline.py --append --checkpoint "iter437 IV-BETA.5A-P4 · operational governance baseline"`
+- 4 trendline records flagged checkpoint with `checkpoint_label`.
+- Chip endpoint now returns `reference="checkpoint"` for every portal; chip surfaces `since checkpoint` on drift.
+
+**P4B — Safe route extraction (guidance content)**
+- New `backend/routes/guidance_routes.py` (115 LOC) extracts 5 public read-only endpoints from `server.py`:
+  - `/api/guidance/sections`
+  - `/api/guidance/articles`
+  - `/api/guidance/articles/{id}`
+  - `/api/guidance/tips`
+  - `/api/guidance/search`
+- `server.py`: **−84 LOC** (11,399 → 11,315). 5 fewer in-file `@api_router.get` decls.
+- New regression suite `test_guidance_routes_extraction.py` (9 assertions · all green).
+- Uses dependency injection (`build_guidance_router(db, _guidance_caller_scopes)`) mirroring the existing `build_training_center_router` pattern. `_guidance_caller_scopes` helper stays in server.py.
+- Behavioural parity verified: 200/404/JSON shape byte-for-byte equivalent.
+
+**P4C — Dispatch intelligence inventory (READ-ONLY · no Dispatch code touched)**
+- 5 docs documenting the Dispatch portal's current state, volatility profile, mobile workflows, escalation density, and governance scope sketch.
+- Confirmed `POLL_MS=5000` is doctrine-locked.
+- Confirmed "Nothing else fires" 4-signal escalation policy is honoured.
+- Cataloged hot-spots where governance discipline could **slow operators** (must avoid).
+
+**Safety stability (continued)**
+- `POST_CHECKPOINT_SAFETY_STABILITY.md`: 🟢 STABLE classification. 13/13 lifetime Safety records in monitor band, zero drift. Default-flip stays held per P2 caution (1 more iteration needed).
+
+**Docs (all 10 required deliverables)**
+1. `OPERATOR_CHECKPOINT_DECLARATION.md`
+2. `GOVERNANCE_BASELINE_LOCK.md`
+3. `SAFE_ROUTE_EXTRACTION_CERTIFICATION.md`
+4. `SERVER_DECOMPOSITION_STATUS.md`
+5. `DISPATCH_CURRENT_STATE_AUDIT.md`
+6. `DISPATCH_OPERATIONAL_VOLATILITY_MAP.md`
+7. `DISPATCH_MOBILE_WORKFLOW_REVIEW.md`
+8. `DISPATCH_ESCALATION_DENSITY_ANALYSIS.md`
+9. `DISPATCH_GOVERNANCE_PREPARATION.md`
+10. `POST_CHECKPOINT_SAFETY_STABILITY.md`
+
+### Regression matrix (🟢 39/39 GREEN this iter · aggregate 131+ across the platform)
+
+| Suite | Result |
+|---|---|
+| `test_guidance_routes_extraction.py` (NEW) | 🟢 9/9 (2 s) |
+| `test_checkpoint_system.py` | 🟢 9/9 |
+| `test_governance_health_chip.py` | 🟢 21/21 |
+| `test_trendline_and_default_posture.py` (prior phase) | 🟢 17/17 |
+| `test_safety_sidebar_v2.py` (prior phase) | 🟢 21/21 |
+| `test_hr_sidebar_v2.py` (prior phase) | 🟢 21/21 |
+| `test_visual_doctrine_baseline.py` (prior phase) | 🟢 12/12 |
+| `test_portal_token_routing.py` (prior phase) | 🟢 21/21 |
+
+### Doctrine compliance
+
+- ✅ First operator-blessed checkpoint declared (institutional governance memory)
+- ✅ ONE lowest-risk extraction · cleanly reversible
+- ✅ Dispatch inventory READ-ONLY · zero code changes
+- ✅ Safety V2 stays OFF default (🟡 caution preserved)
+- ✅ NO Safety 5B · NO Dispatch implementation · NO production deploy
+- ✅ NO auth/permission/notification/escalation changes
+- ✅ All 39 new + prior tests green · zero `/api/admin/*` leakage
+- ✅ Preview only
+
+### Status
+
+🟢 PHASE IV-BETA.5A-P4 COMPLETE · STOP awaiting operator review before Dispatch governance / Safety 5B / Safety default flip begin.
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A-P3 · Checkpoints + Safety Trend + Backlog Reduction 🟢
 
 ### Mission

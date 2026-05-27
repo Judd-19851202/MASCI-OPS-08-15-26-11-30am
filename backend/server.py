@@ -525,101 +525,11 @@ def api_healthz():
 # needs to hit it anonymously — which is why it leaks zero useful detail
 # beyond pass/fail per subsystem.
 # ─────────────────────────────────────────────────────────────────────────
-@api_router.get("/guidance/sections")
-async def guidance_sections(request: Request):
-    """Operational Guidance Center — list visible sections + counts.
-    RBAC: open endpoint; visibility filtered by caller's portal tokens."""
-    from guidance.content import sections_for
-    scopes = await _guidance_caller_scopes(request)
-    return {"sections": sections_for(scopes), "scopes": sorted(scopes)}
-
-
-@api_router.get("/guidance/articles")
-async def guidance_articles(request: Request, section: Optional[str] = None):
-    """List visible articles (optionally filtered by section)."""
-    from guidance.content import visible_articles
-    scopes = await _guidance_caller_scopes(request)
-    rows = visible_articles(scopes)
-    if section:
-        rows = [a for a in rows if a.get("section") == section]
-    return {
-        "articles": [
-            {"id": a["id"], "title": a["title"], "summary": a.get("summary"),
-             "section": a["section"], "tags": a.get("tags") or []}
-            for a in rows
-        ],
-        "count": len(rows),
-    }
-
-
-@api_router.get("/guidance/articles/{article_id}")
-async def guidance_article(article_id: str, request: Request):
-    """Fetch a single article. Returns 404 if not visible to caller —
-    a restricted title is never leaked to an unauthorized caller."""
-    from guidance.content import get_article
-    scopes = await _guidance_caller_scopes(request)
-    art = get_article(article_id, scopes)
-    if not art:
-        raise HTTPException(status_code=404, detail="Not found")
-    return art
-
-
-# ─────────────────────────────────────────────────────────────────────
-# Contextual Operational Guidance · HelpTip Engine (iter209)
-# ─────────────────────────────────────────────────────────────────────
-# Operator directive (2026-05-18): "Build a unified contextual-guidance
-# architecture using reusable components." This endpoint serves the
-# backend tip registry (guidance/tips.py) to the frontend <HelpTip />
-# component. RBAC-aware via the same _guidance_caller_scopes contract
-# as articles. Bilingual via merged tips_es.py.
-# ─────────────────────────────────────────────────────────────────────
-@api_router.get("/guidance/tips")
-async def guidance_tips(request: Request, form_key: str = ""):
-    """Return RBAC-filtered HelpTips for a form_key.
-
-    `form_key` follows a dotted hierarchy (e.g. "daily-report.crew").
-    A query for a leaf returns tips bound to the leaf AND tips bound
-    to parent contexts ("daily-report"), so callers always get the
-    broad + narrow coaching in one fetch.
-    """
-    from guidance.tips import tips_for
-    if not form_key:
-        return {"form_key": "", "tips": []}
-    scopes = await _guidance_caller_scopes(request)
-    rows = tips_for(form_key.strip()[:120], scopes)
-    return {"form_key": form_key, "tips": rows, "count": len(rows)}
-
-
-@api_router.get("/guidance/search")
-async def guidance_search(request: Request, q: str = "", limit: int = 25):
-    """Title + body keyword match, RBAC-aware, no fuzzy (Phase A spec).
-
-    Zero-results logging (iter193, operator-approved):
-      • Logs query text + UTC timestamp + scope set when a non-empty
-        query returns zero results.
-      • Operational gap-intelligence ONLY — used to identify content
-        gaps, terminology mismatches, onboarding pain.
-      • No sensitive payload, no user identification, no IP — strictly
-        a content-demand signal.
-    """
-    from guidance.content import search_articles
-    scopes = await _guidance_caller_scopes(request)
-    safe_limit = max(1, min(int(limit or 25), 100))
-    results = search_articles(q, scopes, limit=safe_limit)
-    # Fire-and-forget zero-results logging
-    if q and (q.strip()) and not results:
-        try:
-            await db.guidance_search_misses.insert_one({
-                "query": q.strip()[:200],  # cap length defensively
-                "ts": datetime.now(timezone.utc).isoformat(),
-                "scopes": sorted(scopes),
-            })
-        except Exception as e:  # noqa: BLE001 — log-and-swallow by design
-            logger.debug("guidance_search_misses insert failed: %s", e)
-    return {
-        "query": q,
-        "results": results,
-    }
+# iter437 IV-BETA.5A-P4B · Public guidance content endpoints moved to
+# routes/guidance_routes.py (build_guidance_router). The router is
+# mounted further down alongside the other domain routers and uses the
+# same `_guidance_caller_scopes` helper (defined below) via
+# dependency-injection.
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -8790,6 +8700,14 @@ app.include_router(build_fire_import_router(db, _require_safety))
 from routes.training_center import build_training_center_router  # noqa: E402
 
 app.include_router(build_training_center_router(db, require_admin, _guidance_caller_scopes))
+
+# iter437 IV-BETA.5A-P4B · Safe route extraction · public guidance content.
+# Reads from guidance.content + guidance.tips, scopes via the same
+# _guidance_caller_scopes helper as the training-center router (so behaviour
+# is identical to the in-server.py originals).
+from routes.guidance_routes import build_guidance_router  # noqa: E402
+
+app.include_router(build_guidance_router(db, _guidance_caller_scopes))
 
 
 # ─── Deploy Readiness Aggregator (iter136) ──────────────────────────
