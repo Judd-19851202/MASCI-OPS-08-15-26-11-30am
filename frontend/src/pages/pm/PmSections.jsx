@@ -1,6 +1,10 @@
 // PM section pages — each is a thin wrapper over PmShell + the existing
 // admin/PM-scoped panels that previously lived in PmHub as one tall scroll.
-// (iter105 — PM Portal cleanup mirroring AdminConsole architecture.)
+//
+// (iter105 · iter437/IV-BETA.2 coaching cleanup — doctrine-compliant sublines
+//  per CROSS_PORTAL_COACHING_STANDARD.md §V · ≤14 words · sentence-case ·
+//  no "PMs have read-only access — edits live in…" feature-listing · no
+//  forbidden "Pull" / casual verbs · ends with a period.)
 
 import React from "react";
 import PmShell from "@/components/PmShell";
@@ -15,10 +19,15 @@ import TrainingStatsStripe from "@/components/TrainingStatsStripe";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import ComplianceExportPanel from "@/components/ComplianceExportPanel";
 
+// Calm doctrine-compliant subline — sentence-case slate-500, ≤14 words.
+const Subline = ({ children }) => (
+  <p className="text-xs text-slate-500 leading-relaxed">{children}</p>
+);
+
 export function PmJobs() {
   return (
     <PmShell title="Jobs" section="jobs"
-      intro={<p className="text-sm text-slate-700">Active jobs assigned to you, plus the master job list. Add new jobs from here — they auto-appear in every form picker on the platform.</p>}>
+      intro={<Subline>Active jobs assigned to you and the master roster.</Subline>}>
       <AdminJobMasterPanel />
     </PmShell>
   );
@@ -27,7 +36,7 @@ export function PmJobs() {
 export function PmFleet() {
   return (
     <PmShell title="Equipment Fleet" section="fleet"
-      intro={<p className="text-sm text-slate-700">Live status of every piece of equipment across your jobs. Below is the master fleet roster and parts catalog (read-only from this view).</p>}>
+      intro={<Subline>Status board, master roster, and parts across your fleet.</Subline>}>
       <EquipmentStatusBoard />
       <div className="mt-6">
         <EquipmentMasterPanel />
@@ -42,7 +51,7 @@ export function PmFleet() {
 export function PmPeople() {
   return (
     <PmShell title="People" section="people"
-      intro={<p className="text-sm text-slate-700">Master roster of every MASCI employee. PMs have read-only access — additions and edits live in the Admin Console.</p>}>
+      intro={<Subline>Employee master roster (read-only).</Subline>}>
       <EmployeeMasterPanel />
     </PmShell>
   );
@@ -51,7 +60,7 @@ export function PmPeople() {
 export function PmSuppliers() {
   return (
     <PmShell title="Suppliers" section="suppliers"
-      intro={<p className="text-sm text-slate-700">Approved supplier list with contacts. PMs have read-only access — additions and edits live in the Admin Console.</p>}>
+      intro={<Subline>Approved supplier roster with contacts (read-only).</Subline>}>
       <SupplierMasterPanel />
     </PmShell>
   );
@@ -60,7 +69,7 @@ export function PmSuppliers() {
 export function PmPosters() {
   return (
     <PmShell title="Site Posters" section="posters"
-      intro={<p className="text-sm text-slate-700">Generate printable posters for the site trailer — JHP cover sheet, Trench Box data, Inspection-QR for field crews. Training QR scan analytics live here too, so you can see at-a-glance how the posted QR codes are being used.</p>}>
+      intro={<Subline>Printable JHA, trench box, and inspection QR posters for the trailer.</Subline>}>
       <SitePostersPanel />
       <div className="mt-6">
         <TrainingStatsStripe />
@@ -72,7 +81,7 @@ export function PmPosters() {
 export function PmRouting() {
   return (
     <PmShell title="Email Routing" section="routing"
-      intro={<p className="text-sm text-slate-700">Auto-routing rules — when a form is submitted, this is the people who get the email. Edits are admin-only; PMs see the current rules so they can confirm who's in the loop.</p>}>
+      intro={<Subline>Active auto-routing rules per form (admin-edited).</Subline>}>
       <AutoEmailRoutingPanel />
     </PmShell>
   );
@@ -81,7 +90,7 @@ export function PmRouting() {
 export function PmComplianceExport() {
   return (
     <PmShell title="Compliance Export" section="compliance-export"
-      intro={<p className="text-sm text-slate-700">Pull a CSV of every safety record (Daily Reports, Inspections, Meetings, Incidents, JHPs, QA/QC) inside a date window — ready for compliance audits or insurance reviews. PM portal NEVER exposes backup/restore tools.</p>}>
+      intro={<Subline>Date-range CSV of safety records for audits and insurance reviews.</Subline>}>
       <ComplianceExportPanel hideBackupTools />
     </PmShell>
   );

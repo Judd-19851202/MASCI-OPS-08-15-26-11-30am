@@ -24482,3 +24482,71 @@ See `/app/memory/test_credentials.md`. Quick refs:
 
 **Verdict:** 🟢 IV-BETA.1 COMPLETE · awaiting manual preview review before IV-BETA.2 (PM Hub re-tiering) begins.
 
+
+---
+
+## iter437 (2026-02-27 · continued) — Phase IV-BETA.2 · PM Hub V2 + Coaching Cleanup + 3 Governance Scripts
+
+**Scope:** PM Hub re-tiering · coaching cleanup · governance instrumentation · regression expansion. Unified PM V2 flag (Sidebar + Hub travel together). Preview-only · zero backend · zero schema · zero production deploy.
+
+**Files added:**
+- `scripts/verify_coaching_sublines.py` (126 LOC) — 14-word budget + banned-phrase + emoji/exclamation gate on governed files
+- `scripts/verify_admin_copy.py` (127 LOC) — informational v1 terminology drift scanner across all frontend JSX
+- `scripts/measure_visual_loudness.py` (228 LOC) — Playwright-driven 6-dimension loudness measurement + trendline log
+- `backend/tests/pw_suite/test_pm_hub_v2_layout.py` (185 LOC) — 7 Hub V2 regression tests
+
+**Files modified:**
+- `frontend/src/pages/PmHub.jsx` (+224 / −11 LOC) — flag-gated V2 body with 3 inline primitives + 5-tier layout; legacy preserved in `else` branch
+- `frontend/src/pages/pm/PmSections.jsx` (rewritten · 97 LOC) — calm `<Subline>` helper, all 7 PM sections now doctrine-compliant
+
+**Hub V2 layout (Tier 0–5):**
+- Tier 0 · OperationsCenter KPIs (preserved)
+- Tier 1 · Crew Compliance (calm slate + orange stripe · `border-2 border-amber-600` eliminated)
+- Tier 1 · 3 quick-action tiles (Daily Reports · Inspections · Incidents)
+- Tier 2 · 4 coordination chips (Tasks · PO Requests · Project Health · Asset Transfers)
+- Tier 2 · PmHaulActivityTile + DispatchLifecycleTile (preserved)
+- Tier 3 · "More forms" compact 8-row list
+- Tier 4 · LastActivityLine (preserved)
+- Tier 5 · FieldMemoryGlance + PasskeyEnrollPrompt (de-emphasized · preserved)
+- "Welcome to the PM Portal" intro → replaced with 8-word calm subline
+
+**Loudness reductions achieved (this iteration):**
+- Above-fold elements: **21 → 8** (≤14 target ✅)
+- Hue families: **7 → 3** (≤3 target ✅)
+- Saturated full-fill backgrounds: **9 → 0** (stripes only)
+- Typography combinations: 6 → 4 (≤4 target ✅)
+- Crew Compliance border: `border-2 border-amber-600` → calm slate + 2-px orange stripe
+
+**Coaching:** 72 governed strings (8 hub copy · 7 section sublines · 6 PM domain + 23 PM children · 6 Admin domain + ~30 Admin children) all pass `verify_coaching_sublines.py`. Zero "Welcome to", zero "Easily", zero "Just …", zero emoji, zero exclamation marks in governed coaching surfaces.
+
+**Governance instrumentation:** 3 scripts operational. Coaching gate green. Copy gate informational v1 (catalogs ~30 violations · most legit · refinement to AST-based scanning + topic corpus whitelist in IV-BETA.4). Loudness script ready for trendline baseline.
+
+**Regression status:**
+- ✅ 16 PM + Admin sidebar/Hub tests pass (4 Admin · 5 PM sidebar · 7 PM Hub V2)
+- ✅ Legacy default path tested (`test_pm_hub_legacy_renders_when_flag_off`)
+- ✅ All preserved widgets verified (`test_pm_hub_v2_crew_compliance_preserved`, `test_pm_hub_v2_preserved_widgets_mount`)
+- 🟡 Transient network timeouts to preview URL recur intermittently in parallel runs — each test passes on isolated retry · not a test-code defect
+
+**Workflow speed preservation:** Every most-frequent PM workflow remains 1 click away. Zero workflows added clicks. Operational signals (red KPIs, severity stripes, state badges) all preserved.
+
+**Constraints honored:**
+- ✅ preview-only · APP_ENV=preview · DB=masci_safety_preview
+- ✅ no production deploy
+- ✅ no backend writes · no schema changes
+- ✅ unified V2 flag (per user direction · single cohesive PM experience)
+- ✅ legacy preserved (default flag-off)
+- ✅ all 6 audit §9 preserved widgets intact
+- ✅ ≤500 LOC frontend logic budget honored (~260 net new + 30 data + section rewrite)
+
+**Certification documents shipped (per directive):**
+- `PM_HUB_RETIERING_CERTIFICATION.md`
+- `PM_VISUAL_LOUDNESS_REDUCTION.md`
+- `PM_BACKLOG_REDUCTION_REPORT.md` (16 items addressed · 9 deferred)
+- `PM_COACHING_ALIGNMENT_REPORT.md` (72 coaching strings doctrine-compliant)
+- `PM_GOVERNANCE_SCRIPT_REPORT.md` (3 scripts shipped)
+- `PM_PLAYWRIGHT_EXPANSION_REPORT.md` (16 tests · trendline 12× since iter437 began)
+
+**To enable in preview for review:** `?pmSidebarV2=1` on any `/pm*` URL (persists via localStorage until reset). Unified flag now controls both Sidebar V2 and Hub V2.
+
+**Verdict:** 🟢 IV-BETA.2 COMPLETE · awaiting manual preview review before IV-BETA.3 (PM page coaching + modal audit + email tone unification) begins.
+
