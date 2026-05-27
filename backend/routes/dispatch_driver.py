@@ -794,16 +794,25 @@ def build_driver_router(
         x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
     ):
         tenant_id = _resolve_tenant(x_tenant_id)
-        result = await DS.issue_magic_link(
-            db,
-            tenant_id=tenant_id,
-            driver_id=body.driver_id.strip(),
-            driver_name=(body.driver_name or "").strip(),
-            truck_id=(body.truck_id or "").strip() or None,
-            assignment_id=(body.assignment_id or "").strip() or None,
-            issued_by_name=(actor.get("name") or actor.get("email") or "Dispatch"),
-            issued_by_role=actor.get("_actor") or "dispatch",
-        )
+        try:
+            result = await DS.issue_magic_link(
+                db,
+                tenant_id=tenant_id,
+                driver_id=body.driver_id.strip(),
+                driver_name=(body.driver_name or "").strip(),
+                truck_id=(body.truck_id or "").strip() or None,
+                assignment_id=(body.assignment_id or "").strip() or None,
+                issued_by_name=(actor.get("name") or actor.get("email") or "Dispatch"),
+                issued_by_role=actor.get("_actor") or "dispatch",
+            )
+        except DS.DriverIneligibleError as e:
+            # iter437 Phase Sigma-III · structured rejection codes for the
+            # dispatch UI so it can surface "driver disabled" vs "not found"
+            # vs "id missing" distinctly.
+            raise HTTPException(
+                status_code=404 if e.code == "driver_not_found" else 400,
+                detail={"code": e.code, "message": e.message},
+            )
         return {
             "ok": True,
             "link_id": result["link_id"],

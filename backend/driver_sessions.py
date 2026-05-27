@@ -151,6 +151,53 @@ async def ensure_driver_session_indexes(db) -> None:
 # ─────────────────────────────────────────────────────────────────────
 # DB ops — magic links
 # ─────────────────────────────────────────────────────────────────────
+class DriverIneligibleError(ValueError):
+    """Raised when issue_magic_link is called for an employee that does
+    not exist or is disabled. Caller (FastAPI route) should translate
+    this into a 4xx response. iter437 Phase Sigma-III · P0 security.
+    """
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
+async def _validate_driver_eligibility(db, driver_id: str) -> Dict[str, Any]:
+    """Phase Sigma-III gate: confirm `driver_id` resolves to a real,
+    enabled employee row before any magic link is minted.
+
+    Strictness (operator-approved):
+      - MUST exist in `employees`.
+      - MUST NOT be disabled.
+      - We do NOT enforce `is_driver=true` (the flag is not universally
+        present across legacy employee rows; dispatch workflow assigns
+        magic links to non-CDL roles too).
+
+    Raises `DriverIneligibleError` on any failure. Returns the employee
+    document (minus _id) on success.
+    """
+    if not driver_id or not isinstance(driver_id, str):
+        raise DriverIneligibleError("missing_driver_id", "driver_id is required")
+    emp = await db.employees.find_one({"id": driver_id}, {"_id": 0})
+    if not emp:
+        raise DriverIneligibleError(
+            "driver_not_found",
+            f"no employee with id={driver_id!r}",
+        )
+    if emp.get("disabled") is True:
+        raise DriverIneligibleError(
+            "driver_disabled",
+            f"employee {driver_id!r} is disabled",
+        )
+    if emp.get("active") is False:
+        raise DriverIneligibleError(
+            "driver_inactive",
+            f"employee {driver_id!r} is marked inactive",
+        )
+    return emp
+
+
 async def issue_magic_link(
     db,
     *,
@@ -165,7 +212,16 @@ async def issue_magic_link(
 ) -> Dict[str, Any]:
     """Mint a one-time magic token tied to a driver. Returns
     ``{token, expires_at, link_id}``. Caller is responsible for
-    surfacing the URL to dispatch (the API response includes it)."""
+    surfacing the URL to dispatch (the API response includes it).
+
+    iter437 Phase Sigma-III · validates `driver_id` against the
+    `employees` collection BEFORE minting. Invalid driver_ids now
+    raise `DriverIneligibleError` instead of silently producing a
+    usable magic token for a fictional driver.
+    """
+    # P0 gate — validate before any side effect.
+    await _validate_driver_eligibility(db, driver_id)
+
     token = generate_magic_token()
     token_hash = hash_magic_token(token)
     link_id = str(uuid.uuid4())
