@@ -247,9 +247,10 @@ def _summarise(raw: Dict[str, Any]) -> Dict[str, Any]:
 # Routes to baseline
 # ────────────────────────────────────────────────────────────────────
 ROUTES = [
-    {"portal": "admin", "name": "Admin Hub V2", "url": "/admin?adminSidebarV2=1"},
-    {"portal": "pm",    "name": "PM Hub V2",    "url": "/pm?pmSidebarV2=1"},
-    {"portal": "hr",    "name": "HR Hub V2",    "url": "/hr?hrSidebarV2=1"},
+    {"portal": "admin",  "name": "Admin Hub V2",  "url": "/admin?adminSidebarV2=1"},
+    {"portal": "pm",     "name": "PM Hub V2",     "url": "/pm?pmSidebarV2=1"},
+    {"portal": "hr",     "name": "HR Hub V2",     "url": "/hr?hrSidebarV2=1"},
+    {"portal": "safety", "name": "Safety Hub V2", "url": "/safety-portal?safetySidebarV2=1"},
 ]
 
 
@@ -267,6 +268,12 @@ def _seed_localstorage(page, base_url: str, tokens: Dict[str, str], portal: str)
         page.evaluate(
             f"localStorage.setItem('masci.hr.token', '{tok}');"
             f"localStorage.setItem('masci.hr.user', JSON.stringify({{name:'Baseline'}}));"
+        )
+    elif portal == "safety":
+        tok = tokens.get("safety") or tokens.get("admin")
+        page.evaluate(
+            f"localStorage.setItem('masci.safety.token', '{tok}');"
+            f"localStorage.setItem('masci.safety.user', JSON.stringify({{name:'Baseline'}}));"
         )
 
 

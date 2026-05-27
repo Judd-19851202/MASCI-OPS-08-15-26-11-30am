@@ -22,6 +22,8 @@ import { toast } from "sonner";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
 
+// SEV_PILL — colour bound to severity DATA, not theme.
+// Reserved as the primary urgent-scan signal (do not desaturate).
 const SEV_PILL = {
   Critical: "bg-red-700 text-white",
   High:     "bg-red-100 text-red-900 border-red-300",
@@ -29,10 +31,14 @@ const SEV_PILL = {
   Low:      "bg-emerald-100 text-emerald-900 border-emerald-300",
 };
 
+// STATUS_PILL — workflow state, not severity. Demoted to neutral
+// slate so the eye elevates SEV_PILL as the danger signal. (iter437
+// IV-BETA.5A · false urgency removal — see SAFETY_ESCALATION_HIERARCHY
+// _MAP.md §IV.)
 const STATUS_PILL = {
-  Open:        "bg-red-100 text-red-900",
-  Investigating: "bg-amber-100 text-amber-900",
-  Closed:      "bg-emerald-100 text-emerald-900",
+  Open:          "bg-slate-100 text-slate-800",
+  Investigating: "bg-slate-100 text-slate-800",
+  Closed:        "bg-slate-100 text-slate-500",
 };
 
 export default function SafetyIncidents() {
@@ -78,20 +84,21 @@ export default function SafetyIncidents() {
   return (
     <SafetyShell title={t("Incidents & Near Misses")} kicker={t("Safety Review")}>
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4" data-testid="safety-incidents-page">
-        <header className="bg-white border border-slate-200 rounded-md p-5 flex items-start gap-3">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
+        <header className="bg-white border border-slate-200 border-l-4 border-l-red-700 rounded-md p-5 flex items-start gap-3">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-800 text-white shrink-0">
             <ClipboardCheck className="w-6 h-6" />
           </div>
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-700 font-bold">
-              Safety Portal
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">
+              Safety Portal · Incidents
             </span>
             <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
               {t("Incidents & Near Misses")}
             </h1>
             <p className="text-sm text-slate-600 mt-1">
-              {t("Read-only review of every incident and near-miss filed from the field. Use the filters to focus on critical events, open investigations, or a specific job/employee. New incidents are submitted from the field at ")}
-              <Link to="/incidents/new" className="font-bold text-cyan-700 underline">/incidents/new</Link>.
+              {t("Read-only review of every incident and near-miss filed from the field. Filter by severity, project, or employee.")}{" "}
+              {t("New incidents are submitted from the field at ")}
+              <Link to="/incidents/new" className="font-bold text-slate-800 underline">/incidents/new</Link>.
             </p>
           </div>
         </header>
@@ -165,7 +172,7 @@ export default function SafetyIncidents() {
                     <td className="px-3 py-2 text-slate-600 truncate max-w-[10rem]">{i.project_name || i.project_number || "—"}</td>
                     <td className="px-3 py-2 text-slate-600 truncate max-w-[10rem]">{i.reporter_name || i.supervisor || "—"}</td>
                     <td className="px-3 py-2 text-right">
-                      <Link to={`/incidents/${i.id}`} className="text-cyan-700 hover:underline font-bold inline-flex items-center" data-testid={`incident-open-${idx}`}>
+                      <Link to={`/incidents/${i.id}`} className="text-slate-800 hover:underline font-bold inline-flex items-center" data-testid={`incident-open-${idx}`}>
                         {t("Open")} <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </td>

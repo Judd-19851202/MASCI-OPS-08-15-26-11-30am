@@ -1,6 +1,66 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A · Safety Hub + Incident Surfaces governance 🟢
+
+### Mission
+Apply the Operational Calmness Doctrine to the **Safety Portal Hub +
+Incident surfaces only** (staged rollout). Remove false urgency so
+true urgency stays unmistakable. STOP at the boundary operator
+specified — Inspections / Reports / JHA / Trench governance is
+**NOT YET AUTHORISED**.
+
+### What shipped (🟢 verified · ~600 LOC across code + 6 docs + tests)
+
+**Code**
+- `frontend/src/components/safety/sidebar/SafetySideNavV2.jsx` (NEW) — 4-domain sidebar (`incidents-escalation` · `documents-training` · `compliance-records` · `audits-guidance`) behind `?safetySidebarV2=1`.
+- `frontend/src/components/SafetyShell.jsx` — conditional V2 sidebar mount.
+- `frontend/src/pages/SafetyHub.jsx` — Hub calmness pass: 9 hue families → 2, 8 CTA colours → 1 neutral slate-800, all sublines ≤14 words, red retired from non-incidents tiles.
+- `frontend/src/pages/SafetyIncidents.jsx` — incidents-list surface alignment: amber-600 header block → slate-800 + red-700 page-stripe, STATUS_PILL neutralised to slate, Open link cyan-700 → slate-800. **SEV_PILL preserved (true urgency).**
+
+**Tests**
+- `backend/tests/pw_suite/test_safety_sidebar_v2.py` (NEW · 21 assertions) — domain mount + flag-off legacy + admin-leak guard + Hub CTA + incidents stripe + header tone.
+- `backend/tests/pw_suite/test_visual_doctrine_baseline.py` — Safety added (4 portals × 3 viewports = 12 cells).
+- `scripts/verify_coaching_sublines.py` — SafetySideNavV2 added to COACHING_FILES.
+
+**Documents (all 6 required deliverables)**
+1. `SAFETY_HUB_V2_CERTIFICATION.md`
+2. `SAFETY_INCIDENT_GOVERNANCE_ALIGNMENT.md`
+3. `SAFETY_ESCALATION_VISUAL_REDUCTION.md`
+4. `SAFETY_MOBILE_CALMNESS_REPORT.md`
+5. `SAFETY_PLAYWRIGHT_REGRESSION_REPORT.md`
+6. `SAFETY_V2_OPERATOR_REVIEW.md`
+Plus `SAFETY_INFORMATION_PRIORITY_MAP.json` (4-domain canonical map).
+
+### Regression matrix (🟢 75/75 GREEN this phase)
+
+| Suite | Result |
+|---|---|
+| `test_safety_sidebar_v2.py` (NEW) | 🟢 21/21 (105 s) |
+| `test_visual_doctrine_baseline.py` (Safety + Admin + PM + HR) | 🟢 12/12 (67 s) |
+| `test_hr_sidebar_v2.py` | 🟢 21/21 — unaffected |
+| `test_portal_token_routing.py` | 🟢 21/21 — zero `/api/admin/*` leakage |
+| `verify_coaching_sublines.py` (extended) | 🟢 |
+
+### Doctrine compliance
+
+- ✅ Sidebar V2 ships behind `?safetySidebarV2=1` — legacy unaffected
+- ✅ Red reserved for incidents domain + severity pills + severe banners
+- ✅ 9 hue families → 2 (per doctrine baseline)
+- ✅ 8 CTA button colours → 1 neutral slate-800
+- ✅ All sublines ≤14 words · passes coaching gate
+- ✅ Severity pills, OSHA pill, severe banner preserved verbatim
+- ✅ Severe-incident email subject preserved
+- ✅ Preview only · NO production deploy
+- ✅ NO inspections / reports / JHA / trench / compliance / OSHA / notification / backend escalation / schema / auth changes (per operator directive)
+
+### Status
+
+🟢 PHASE IV-BETA.5A COMPLETE · awaiting operator review before Inspections / Reports / JHA / Trench begins.
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-BETA.3-P2 · Visual Doctrine Baselines + Pre-Safety Certification 🟢
 
 ### Mission

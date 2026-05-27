@@ -1,18 +1,25 @@
 // Safety Portal Hub — landing dashboard after sign-in.
 //
-// iter318 · Safety Hub Calm Pass (Platform UX Governance Phase A · iter318)
-// Applies the iter317-C HR pattern: calm tile chrome (left-edge stripe,
-// white background, lg headings), grouped operational sections, neutral
-// KPI strip, integration cards demoted to the bottom Guidance & Systems
-// section. NO sidebar · NO IA redesign · NO route changes · NO permission
-// changes · NO new features. All 15 tile testids + SafetyShell chrome
-// preserved.
+// iter437 · Phase IV-BETA.5A · Safety Hub V2 calmness tuning.
 //
-// Tile groupings (operator-approved · UX_REFINEMENT_ROADMAP iter318):
-//   01 · Primary Safety Operations
-//   02 · Compliance & Records
-//   03 · Operational Output
-//   04 · Guidance & Systems  (visually demoted · top-border separator)
+// Reduces the 9-hue Hub palette to a 4-domain doctrine palette
+// (red · cyan · violet · slate) per SAFETY_INFORMATION_PRIORITY_MAP.json.
+// Single neutral slate-800 CTA across every tile (HR P1B trim pattern).
+// Coaching sublines trimmed to ≤14 words. True urgency stays
+// unmistakable — red is RESERVED for the Incidents & Escalation domain
+// + severity pills + severe-tier banners (see SAFETY_ESCALATION_HIERARCHY
+// _MAP.md §III + §VI).
+//
+// Doctrine preserved: NO sidebar redesign (Sidebar V2 ships behind
+// ?safetySidebarV2=1 via SafetyShell). NO IA changes · NO route
+// changes · NO permission changes · NO new features. All 15 tile
+// testids + SafetyShell chrome preserved.
+//
+// Tile groupings (4-domain priority map · iter437 IV-BETA.5A):
+//   01 · Incidents & Escalation  (red)
+//   02 · Documents & Training    (cyan)
+//   03 · Compliance & Records    (violet)
+//   04 · Audits & Guidance       (slate · demoted)
 
 import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -53,33 +60,40 @@ function KPI({ label, value, sub, valueClass = "text-slate-900" }) {
 
 // ─── Calm Tile (UX_GOVERNANCE_RULES Rule 1) ──────────────────────────────
 //
-// Left-edge accent stripe + soft slate border + white background. The
-// accent identifies the tile's semantic role without competing with the
-// operational content.
+// iter437 IV-BETA.5A · 4-domain doctrine palette per
+// SAFETY_INFORMATION_PRIORITY_MAP.json. Legacy accent keys (red/redDeep
+// /amber/emerald/cyan/indigo/slate/purple) remap onto the 4-domain
+// stripes so existing tile call-sites stay working while the visual
+// surface collapses to red · cyan · violet · slate.
+//
+// All Hub CTA buttons share the single neutral slate-800 colour
+// (HR P1B trim pattern). Red is RESERVED for severity pills + severe-
+// tier banners — never decorative.
 const STRIPE = {
-  red:     "border-l-red-600",
-  redDeep: "border-l-red-900",
-  amber:   "border-l-amber-500",
-  emerald: "border-l-emerald-600",
-  cyan:    "border-l-cyan-600",
-  indigo:  "border-l-indigo-600",
+  // 4-domain doctrine palette
+  incidents:  "border-l-red-700",   // the ONE red domain
+  documents:  "border-l-cyan-700",  // Safety brand chrome
+  compliance: "border-l-violet-600",
+  audits:     "border-l-slate-500",
+  // ── legacy aliases (back-compat for existing accent= values) ──────
+  red:     "border-l-red-700",
+  redDeep: "border-l-red-700",
+  amber:   "border-l-violet-600",   // demoted: amber → compliance domain
+  emerald: "border-l-slate-500",    // demoted: emerald → guidance/audits
+  cyan:    "border-l-cyan-700",
+  indigo:  "border-l-violet-600",
   slate:   "border-l-slate-500",
-  purple:  "border-l-purple-600",
-};
-const BTN = {
-  red:     "bg-red-700 hover:bg-red-800",
-  redDeep: "bg-red-900 hover:bg-red-950",
-  amber:   "bg-amber-700 hover:bg-amber-800",
-  emerald: "bg-emerald-700 hover:bg-emerald-800",
-  cyan:    "bg-cyan-700 hover:bg-cyan-800",
-  indigo:  "bg-indigo-700 hover:bg-indigo-800",
-  slate:   "bg-slate-700 hover:bg-slate-800",
-  purple:  "bg-purple-700 hover:bg-purple-800",
+  purple:  "border-l-violet-600",
 };
 
+// Single neutral CTA across all Hub tiles. Reserves true colour for
+// severity pills and severe-tier banners — see SAFETY_ESCALATION_
+// HIERARCHY_MAP.md §IV. The accent prop is intentionally unused for
+// CTA colour now — the stripe carries the domain identity.
+const CTA_NEUTRAL = "bg-slate-800 hover:bg-slate-900";
+
 function SafetyTile({ to, icon: Icon, title, desc, accent = "cyan", ctaLabel = "OPEN", testId, badge }) {
-  const stripe = STRIPE[accent] || STRIPE.cyan;
-  const btn = BTN[accent] || BTN.cyan;
+  const stripe = STRIPE[accent] || STRIPE.documents;
   return (
     <Link
       to={to}
@@ -106,7 +120,7 @@ function SafetyTile({ to, icon: Icon, title, desc, accent = "cyan", ctaLabel = "
             )}
           </div>
           <p className="text-sm text-slate-600 mt-1">{desc}</p>
-          <span className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${btn} text-white font-bold uppercase tracking-wide text-xs`}>
+          <span className={`mt-3 inline-flex items-center h-9 px-3 rounded-md ${CTA_NEUTRAL} text-white font-bold uppercase tracking-wide text-xs`}>
             {ctaLabel} →
           </span>
         </div>
@@ -241,8 +255,8 @@ export default function SafetyHub() {
             to="/tasks"
             icon={ClipboardCheck}
             title={t("Tasks & Actions")}
-            desc={t("Cross-portal accountability engine. Track corrective actions, follow-ups, deficiencies, and approvals to closure.")}
-            accent="amber"
+            desc={t("Cross-portal accountability. Track corrective actions, follow-ups, deficiencies, approvals.")}
+            accent="incidents"
             ctaLabel={t("OPEN")}
             testId="safety-tile-tasks"
           />
@@ -250,8 +264,8 @@ export default function SafetyHub() {
             to="/safety-portal/corrective-actions"
             icon={AlertOctagon}
             title={t("Corrective Actions")}
-            desc={t("Open → In Progress → Pending Review → Closed. Track every safety deficiency to resolution. Auto-link to incidents, audits, inspections, and training records.")}
-            accent="red"
+            desc={t("Open, investigate, verify, close. Linked to incidents, audits, training.")}
+            accent="incidents"
             ctaLabel={t("OPEN")}
             testId="safety-tile-ca"
           />
@@ -259,8 +273,8 @@ export default function SafetyHub() {
             to="/safety-portal/incidents"
             icon={ClipboardCheck}
             title={t("Incidents & Near Misses")}
-            desc={t("Read-only roll-up of every incident report filed from the field. Filter by severity, project, employee, and date.")}
-            accent="red"
+            desc={t("Severity-tagged review of every field report. Filter by project, employee, date.")}
+            accent="incidents"
             ctaLabel={t("OPEN")}
             testId="safety-tile-incidents"
           />
@@ -268,8 +282,8 @@ export default function SafetyHub() {
             to="/safety-portal/audits"
             icon={ShieldAlert}
             title={t("Audits & Inspections")}
-            desc={t("Review every Job Site Safety Inspection submitted from the field · filter, search, drill in · start a new inspection from the same page.")}
-            accent="emerald"
+            desc={t("Review every job-site inspection. Filter, search, drill in, or start new.")}
+            accent="audits"
             ctaLabel={t("OPEN")}
             testId="safety-tile-audits"
           />
@@ -288,8 +302,8 @@ export default function SafetyHub() {
             to="/document-expirations"
             icon={ClipboardCheck}
             title={t("Document Expirations")}
-            desc={t("Training certifications, competent-person docs, fall protection, CPR/First Aid — visibility before they lapse.")}
-            accent="amber"
+            desc={t("Training certifications, competent-person docs, fall protection, CPR/First Aid windows.")}
+            accent="compliance"
             ctaLabel={t("OPEN")}
             testId="safety-tile-expirations"
           />
@@ -297,8 +311,8 @@ export default function SafetyHub() {
             to="/safety-portal/training"
             icon={Award}
             title={t("Training & Certifications")}
-            desc={t("Employee certifications, training records, expiration tracking, sign-in sheets, and renewal alerts.")}
-            accent="cyan"
+            desc={t("Certifications, training records, expirations, sign-in sheets, renewal reminders.")}
+            accent="documents"
             ctaLabel={t("OPEN")}
             testId="safety-tile-training"
           />
@@ -306,8 +320,8 @@ export default function SafetyHub() {
             to="/safety-portal/employees"
             icon={Users}
             title={t("Employee Safety Profiles")}
-            desc={t("Per-employee roll-up: trainings, certs, meeting attendance, incident involvement, retraining, and PPE issuance.")}
-            accent="slate"
+            desc={t("Per-employee training, certs, meetings, incidents, retraining, PPE issuance.")}
+            accent="documents"
             ctaLabel={t("OPEN")}
             testId="safety-tile-employees"
           />
@@ -315,8 +329,8 @@ export default function SafetyHub() {
             to="/safety-portal/fire-extinguishers"
             icon={Flame}
             title={t("Fire Extinguishers")}
-            desc={t("Monthly inspections, due-date tracking, pass/fail records, and unit-level history per truck / job / facility.")}
-            accent="redDeep"
+            desc={t("Monthly inspections, due-date tracking, pass/fail records, per-unit history.")}
+            accent="compliance"
             ctaLabel={t("OPEN")}
             testId="safety-tile-extinguishers"
           />
@@ -328,8 +342,8 @@ export default function SafetyHub() {
             to="/safety-portal/forms-records"
             icon={Package}
             title={t("Equipment & PPE Accountability")}
-            desc={t("Review every Equipment Issuance and Use & Care Training submission — per-employee chain of custody, returns, damages, and chargebacks.")}
-            accent="cyan"
+            desc={t("Issuance, returns, damages, chargebacks. Per-employee chain of custody review.")}
+            accent="documents"
             ctaLabel={t("OPEN")}
             testId="safety-tile-forms-records"
             badge={
@@ -348,8 +362,8 @@ export default function SafetyHub() {
             to="/safety-portal/documents"
             icon={FolderArchive}
             title={t("Safety Document Library")}
-            desc={t("OSHA records, SDS, emergency action plans, competent-person docs, fall-protection training, sign-in sheets, and more.")}
-            accent="cyan"
+            desc={t("OSHA, SDS, emergency action plans, competent-person docs, fall-protection records.")}
+            accent="documents"
             ctaLabel={t("OPEN")}
             testId="safety-tile-docs"
           />
@@ -368,8 +382,8 @@ export default function SafetyHub() {
             to="/safety-portal/digest"
             icon={Mail}
             title={t("Weekly Digest")}
-            desc={t("Monday-morning email digest of open CAs, overdue items, 7-day incidents, and 30-day training expirations. Preview anytime or send on demand.")}
-            accent="emerald"
+            desc={t("Monday email summarising open CAs, overdue items, recent incidents, expirations.")}
+            accent="compliance"
             ctaLabel={t("OPEN")}
             testId="safety-tile-digest"
           />
@@ -377,8 +391,8 @@ export default function SafetyHub() {
             to="/safety-portal/reports"
             icon={BarChart3}
             title={t("Reports & Exports")}
-            desc={t("OSHA 300, insurance summaries, trend reports, executive roll-ups, and project safety flags.")}
-            accent="slate"
+            desc={t("OSHA 300, insurance summaries, trend reports, executive roll-ups, project flags.")}
+            accent="compliance"
             ctaLabel={t("OPEN")}
             testId="safety-tile-reports"
           />
@@ -386,8 +400,8 @@ export default function SafetyHub() {
             to="/safety-portal/library"
             icon={BookOpen}
             title={t("Topic Library · Operational Prep")}
-            desc={t("Filter the 136-topic safety library by severity and domain · build a multi-topic PDF pack for kickoffs, mobilizations, and high-risk job prep. Internal use only.")}
-            accent="amber"
+            desc={t("Filter the 136-topic library, build a PDF pack for kickoffs and prep.")}
+            accent="audits"
             ctaLabel={t("OPEN LIBRARY")}
             testId="safety-tile-topic-library"
           />
@@ -395,8 +409,8 @@ export default function SafetyHub() {
             to="/safety-portal/fleet"
             icon={Truck}
             title={t("Trucking · Fleet")}
-            desc={t("See defects grouped by truck · driver notes · current status · severity context. Mobile-friendly · operational clarity only.")}
-            accent="amber"
+            desc={t("Defects grouped by truck, driver notes, current status, severity context.")}
+            accent="audits"
             ctaLabel={t("OPEN FLEET VIEW")}
             testId="safety-tile-fleet"
           />
@@ -424,8 +438,8 @@ export default function SafetyHub() {
             to="/guidance?from=safety"
             icon={GraduationCap}
             title={t("Training Center & Guides")}
-            desc={t("Step-by-step operator guides for Safety Portal workflows — Corrective Actions, Incidents, Fire Extinguisher Bulk Import, Weekly Digest. Download any guide as PDF.")}
-            accent="slate"
+            desc={t("Step-by-step Safety operator guides. Download any guide as a PDF.")}
+            accent="audits"
             ctaLabel={t("OPEN")}
             testId="safety-tile-training-center"
           />
@@ -433,8 +447,8 @@ export default function SafetyHub() {
             to="/safety-portal/change-password"
             icon={FileText}
             title={t("Change Password")}
-            desc={t("Update your Safety Portal password. Required for first login after Admin issues a temp password.")}
-            accent="slate"
+            desc={t("Update your Safety Portal password. Required after a temp-password issue.")}
+            accent="audits"
             ctaLabel={t("OPEN")}
             testId="safety-tile-changepw"
           />

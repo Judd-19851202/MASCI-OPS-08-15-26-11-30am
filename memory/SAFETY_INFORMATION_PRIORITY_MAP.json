@@ -1,0 +1,73 @@
+{
+  "_meta": {
+    "version": "iter437.IV-BETA.5A",
+    "generated": "2026-02-27",
+    "purpose": "Canonical 4-domain priority map for the Safety portal. Drives the Safety Sidebar V2 domain order, the Safety Hub tile stripe palette, and any future Safety re-tier decisions. Mirrors HR_INFORMATION_PRIORITY_MAP.json discipline.",
+    "verification": "VERIFIED · matches frontend/src/components/safety/sidebar/SafetySideNavV2.jsx and the post-iter437-IV-BETA.5A SafetyHub tile palette",
+    "doctrine": "Reserve red for incidents/escalation only. False urgency must disappear so true urgency stays unmistakable."
+  },
+  "domains": [
+    {
+      "id": "incidents-escalation",
+      "label": "Incidents & Escalation",
+      "order": 1,
+      "subline": "Active incidents, near misses, corrective action closure.",
+      "stripe": "#b91c1c",
+      "rationale": "Highest operational severity. The ONE red domain. Owns true urgency signalling so the rest of the portal can stay calm.",
+      "routes": [
+        {"to": "/safety-portal/incidents",           "label": "Incidents & Near Misses",   "tier": "P0"},
+        {"to": "/safety-portal/corrective-actions",  "label": "Corrective Actions",         "tier": "P0"},
+        {"to": "/tasks",                              "label": "Tasks & Actions",            "tier": "P0"}
+      ]
+    },
+    {
+      "id": "documents-training",
+      "label": "Documents & Training",
+      "order": 2,
+      "subline": "Library, certifications, accountability, PPE issuance.",
+      "stripe": "#0e7490",
+      "rationale": "Day-to-day operational reference surfaces. Cyan stripe carries the Safety brand chrome without competing with red.",
+      "routes": [
+        {"to": "/safety-portal/training",       "label": "Training & Certifications",         "tier": "P0"},
+        {"to": "/safety-portal/documents",      "label": "Safety Document Library",           "tier": "P0"},
+        {"to": "/safety-portal/forms-records",  "label": "Equipment & PPE Accountability",     "tier": "P0"},
+        {"to": "/safety-portal/employees",      "label": "Employee Safety Profiles",          "tier": "P1"}
+      ]
+    },
+    {
+      "id": "compliance-records",
+      "label": "Compliance & Records",
+      "order": 3,
+      "subline": "Expirations, fire extinguishers, weekly digest, reports.",
+      "stripe": "#7c3aed",
+      "rationale": "Read-mostly compliance and record-keeping surfaces. Violet differentiates from urgent red and operational cyan.",
+      "routes": [
+        {"to": "/document-expirations",              "label": "Document Expirations",  "tier": "P0"},
+        {"to": "/safety-portal/fire-extinguishers",  "label": "Fire Extinguishers",     "tier": "P0"},
+        {"to": "/safety-portal/digest",              "label": "Weekly Digest",          "tier": "P1"},
+        {"to": "/safety-portal/reports",             "label": "Reports & Exports",      "tier": "P1"}
+      ]
+    },
+    {
+      "id": "audits-guidance",
+      "label": "Audits & Guidance",
+      "order": 4,
+      "subline": "Inspections, topic prep, fleet visibility, operator guides.",
+      "stripe": "#475569",
+      "rationale": "Lowest-frequency surfaces. Slate communicates 'support, not operations' — visually demoted on the Hub.",
+      "routes": [
+        {"to": "/safety-portal/audits",   "label": "Audits & Inspections",   "tier": "P0"},
+        {"to": "/safety-portal/library",  "label": "Topic Library",          "tier": "P1"},
+        {"to": "/safety-portal/fleet",    "label": "Trucking · Fleet",        "tier": "P1"},
+        {"to": "/guidance?from=safety",   "label": "Training Center",         "tier": "P2"}
+      ]
+    }
+  ],
+  "doctrine_compliance": {
+    "verbiage_doctrine": "All labels and sublines pass verify_admin_copy.py — no banned phrases.",
+    "coaching_standard": "All sublines ≤14 words, sentence-cased, end with period.",
+    "loudness": "Four stripe colours total (red · cyan · violet · slate); chrome stays slate-900. Single neutral slate-800 CTA across Hub tiles.",
+    "escalation_contract": "Red reserved for incidents/escalation domain + severity pills + severe-tier banners. All other domains demoted.",
+    "auth_routing": "Safety portal already audited clean — see PORTAL_AUTH_TOKEN_AUDIT.md §3.x. No /api/admin/* calls from Safety context."
+  }
+}

@@ -61,11 +61,13 @@ BANNED_PHRASES = [
 # Files governed by this gate. Only sidebar domainMap files and PmSections/
 # AdminSections-style coaching wrappers — not arbitrary copy.
 # iter437 P1D · HrSideNavV2 added.
+# iter437 IV-BETA.5A · SafetySideNavV2 added.
 COACHING_FILES = [
     "frontend/src/components/admin/sidebar/domainMap.js",
     "frontend/src/components/pm/sidebar/domainMap.js",
     "frontend/src/pages/pm/PmSections.jsx",
     "frontend/src/components/hr/sidebar/HrSideNavV2.jsx",
+    "frontend/src/components/safety/sidebar/SafetySideNavV2.jsx",
 ]
 
 EMOJI_RE = re.compile(
