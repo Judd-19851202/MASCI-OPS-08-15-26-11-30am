@@ -11,7 +11,7 @@
 import {
   Activity, Briefcase, ClipboardList, ClipboardCheck, Users, Camera, UserCheck,
   Wrench, Truck, FileText, Box, AlertOctagon, ShieldCheck,
-  Mail, KeyRound, FileImage, GraduationCap,
+  Mail, KeyRound, FileImage, GraduationCap, Building2,
 } from "lucide-react";
 
 export const DOMAINS_V2 = [
@@ -23,6 +23,7 @@ export const DOMAINS_V2 = [
     icon: Activity,
     routes: [
       { to: "/pm",                   label: "Overview",          desc: "Today's signal across your projects.",         icon: Briefcase, end: true },
+      { to: "/pm/jobs",              label: "Jobs",              desc: "Jobs assigned to you (read-only).",            icon: Building2 },
       { to: "/pm/daily",             label: "Daily Reports",     desc: "Field production, manpower, progress.",        icon: ClipboardList },
       { to: "/pm/inspections",       label: "Inspections",       desc: "Field safety and quality checks.",             icon: ClipboardCheck },
       { to: "/pm/meetings",          label: "Meetings",          desc: "Pre-shift, toolbox, project meetings.",        icon: Users },

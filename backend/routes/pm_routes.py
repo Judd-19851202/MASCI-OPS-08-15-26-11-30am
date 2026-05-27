@@ -262,6 +262,45 @@ def build_pm_router(
         return {"is_admin_or_legacy": False, "pm": public_pm_view(actor)}
 
     # ════════════════════════════════════════════════════════════════
+    # iter437 P0 follow-up · 2026-02 · PmJobsRead
+    # ════════════════════════════════════════════════════════════════
+    # Calm read-only PM jobs surface. Mirrors the data-scoping rules of
+    # /api/admin/jobs (PMs see only jobs they're primary or co-PM on;
+    # admin tokens see all). Lives under /api/pm/* so the iter180
+    # /api/admin/* boundary is preserved — PM tokens are valid here.
+    #
+    # Frontend mounts this at /pm/jobs (PmJobsRead view) instead of the
+    # old AdminJobMasterPanel, which was admin-only and triggered the
+    # "Admin login required" regression documented in
+    # /app/memory/PORTAL_AUTH_TOKEN_AUDIT.md.
+    @router.get("/pm/jobs")
+    async def pm_list_jobs(
+        actor=Depends(require_admin_async_dep),
+        include_inactive: bool = Query(default=False),
+    ):
+        """Return jobs visible to the caller.
+
+        Behaviour:
+          • Admin / legacy-shared-PM: every job (active by default;
+            inactive included when `include_inactive=true`).
+          • Per-PM token: only jobs where the PM is primary or co-PM
+            (matches `compute_pm_scope`).
+        Read-only. No write surface. No `/api/admin/*` dependency."""
+        from jobs_master import list_jobs
+        from pm_auth import compute_pm_scope
+        items = await list_jobs(db, only_active=not include_inactive)
+        scope = await compute_pm_scope(db, actor)
+        if not scope.is_admin:
+            nums = scope.project_numbers or set()
+            items = [j for j in items if (j.get("project_number") or "") in nums]
+        return {
+            "ok": True,
+            "items": items,
+            "count": len(items),
+            "scope": "admin_all" if scope.is_admin else "pm_assigned",
+        }
+
+    # ════════════════════════════════════════════════════════════════
     # iter378 · Auth-lifecycle routes (login / forgot / reset /
     # change-password / logout). Mounted only when `login_deps` is
     # provided — keeps tests and headless invocations safe.

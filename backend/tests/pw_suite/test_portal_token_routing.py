@@ -25,6 +25,7 @@ PM_PASSWORD = "ChrisRocksThis2026"
 # "Admin login required" or firing any /api/admin/* request.
 PM_ROUTES = [
     "/pm",
+    "/pm/jobs",
     "/pm/people",
     "/pm/suppliers",
     "/pm/fleet",
@@ -86,15 +87,14 @@ def test_pm_sidebar_does_not_leak_admin_endpoints(
 
 
 def test_pm_removed_routes_are_actually_removed(page, base_url: str, pm_token: str):
-    """The three panels that have no PM-safe endpoint were removed
-    from PM. Confirm their sidebar entries no longer render."""
+    """Routes whose panels have no PM-safe endpoint were removed from
+    PM. Confirm their sidebar entries no longer render."""
     page.goto(f"{base_url}/", wait_until="domcontentloaded")
     page.evaluate(f"localStorage.setItem('masci.pm.token', '{pm_token}')")
     page.goto(f"{base_url}/pm", wait_until="networkidle")
     page.wait_for_timeout(1000)
     # V1 sidebar (default) — look at the desktop sidebar test ids
     body = page.text_content("[data-testid='pm-side-nav-desktop']") or ""
-    assert "/pm/jobs" not in body  # link href would only show via attribute
     for forbidden_label in (
         "Email Routing",
         "Compliance Export",
@@ -103,3 +103,37 @@ def test_pm_removed_routes_are_actually_removed(page, base_url: str, pm_token: s
         assert forbidden_label not in body, (
             f"Sidebar still surfaces removed entry '{forbidden_label}'"
         )
+
+
+def test_pm_jobs_read_uses_pm_namespace_only(page, base_url: str, pm_token: str):
+    """iter437 follow-up · PmJobsRead view must hit /api/pm/jobs (the
+    new non-admin PM endpoint) and never /api/admin/jobs (the legacy
+    panel that triggered the original regression)."""
+    pm_jobs_calls: list[tuple[int, str]] = []
+    admin_jobs_calls: list[tuple[int, str]] = []
+
+    def on_response(resp):
+        if "/api/pm/jobs" in resp.url:
+            pm_jobs_calls.append((resp.status, resp.url))
+        if "/api/admin/jobs" in resp.url:
+            admin_jobs_calls.append((resp.status, resp.url))
+
+    page.on("response", on_response)
+
+    page.goto(f"{base_url}/", wait_until="domcontentloaded")
+    page.evaluate(f"localStorage.setItem('masci.pm.token', '{pm_token}')")
+    page.goto(f"{base_url}/pm/jobs", wait_until="networkidle")
+    page.wait_for_timeout(2000)
+
+    body = page.text_content("body") or ""
+    assert "Admin login required" not in body
+    assert not admin_jobs_calls, (
+        f"PmJobsRead leaked /api/admin/jobs calls: {admin_jobs_calls}"
+    )
+    assert pm_jobs_calls, (
+        "PmJobsRead did not call /api/pm/jobs — view appears unwired"
+    )
+    statuses = [s for s, _ in pm_jobs_calls]
+    assert all(s == 200 for s in statuses), (
+        f"/api/pm/jobs did not return 200 for PM token: {pm_jobs_calls}"
+    )

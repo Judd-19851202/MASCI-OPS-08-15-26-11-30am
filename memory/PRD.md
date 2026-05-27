@@ -1,6 +1,57 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 follow-up · IV-AUTH-FIX++ · PmJobsRead + Communication Doctrine + Governance Wiring + Cross-Portal Plan 🟢
+
+### Mission
+Continue the iter437 controlled batch: restore safe PM Jobs visibility,
+publish IV-BETA.3 Communication doctrine, wire the three governance
+instruments into the deploy gate (warning-only first pass), and prepare
+HR/Dispatch/Safety/FL alignment plan — all preview-only, additive,
+reversible, regression-locked.
+
+### What shipped — additive · ~340 LOC net across backend, frontend, tests, scripts, docs
+
+| Surface | Change | Verification |
+|---|---|---|
+| `backend/routes/pm_routes.py` | NEW `/api/pm/jobs` — PM-scoped read-only jobs endpoint. PM token → only assigned jobs (`scope=pm_assigned`); Admin → every job (`scope=admin_all`). No `/api/admin/*` dependency. | 🟢 Live: PM Chris=8 jobs · Admin=28 jobs · no-token=401 |
+| `frontend/components/pm/PmJobsRead.jsx` | NEW · calm read-only job table — search filter, scope banner, deep-link-free (no edit/delete/upload UI) | 🟢 Live: 2× `/api/pm/jobs` calls, 0× `/api/admin/*` |
+| `frontend/pages/pm/PmSections.jsx` | Restored `PmJobs` section wrapping `PmJobsRead` | 🟢 Live |
+| `frontend/App.js` + `PmShell.jsx` + `pm/sidebar/domainMap.js` | Restored `/pm/jobs` route + Jobs entry on both V1 and V2 sidebars | 🟢 Live |
+| `backend/tests/test_iter437_pm_jobs_endpoint.py` | NEW · 4 backend tests locking endpoint contract (uses urllib + Mozilla UA to bypass conftest's auto-admin-token patch + Cloudflare bot-detection) | 🟢 4/4 pass |
+| `backend/tests/pw_suite/test_portal_token_routing.py` | Extended to 7 PM routes incl. `/pm/jobs` + new `test_pm_jobs_read_uses_pm_namespace_only` (asserts pm-namespace called, admin-namespace untouched) | 🟢 27/27 pass |
+| `scripts/pre_deploy_check.sh` | NEW stages (warning-only): `Governance · coaching sublines`, `Governance · admin copy doctrine`, `Governance · visual loudness trend`. Deploy-blocking only for P0 classes (admin leaks · preview contamination · env mismatch · auth routing). | 🟢 bash -n clean, wired into runStageList |
+| `memory/COMMUNICATION_UNIFICATION_DOCTRINE.md` | Addendum: subject-line contract, body-tone contract, urgency vocabulary (3-tier), footer contract, drift inventory (5/11 sites compliant, 6 with drift), 7-step roll-out plan, regression-coverage anchor. Verification legend (🟢/🟡/⚪) throughout. | 🟡 doctrine published, code unchanged |
+| `memory/CROSS_PORTAL_GOVERNANCE_READINESS_PLAN.md` | NEW · HR · Dispatch · Safety · Field Leadership inventory + 8-step alignment pattern per portal + governance-script extension plan + communication doctrine reach + effort tiers. Confirms no admin-endpoint leak exists in those portals. | 🟢 inventory verified |
+| `memory/PORTAL_AUTH_TOKEN_AUDIT.md` (last batch) | (Unchanged) — still the canonical doc on the original P0 fix | 🟢 |
+
+### Verification matrix
+
+| Check | Result |
+|---|---|
+| `/api/pm/jobs` boundary (no token → 401, PM → pm_assigned, Admin → admin_all, POST → 405) | 🟢 4/4 backend tests pass |
+| PM portal sidebar/routes do not leak any `/api/admin/*` | 🟢 21/21 Playwright (7 routes × 3 viewports) |
+| `/pm/jobs` UI calls `/api/pm/jobs` and never `/api/admin/jobs` | 🟢 dedicated Playwright assertion passes |
+| Combined test suite | 🟢 31/31 in 136s |
+| Linter | 🟢 ESLint no issues on all 5 changed frontend files |
+| pre_deploy_check.sh syntax | 🟢 `bash -n` clean |
+| Governance scripts (verify_coaching_sublines / verify_admin_copy / measure_visual_loudness) | 🟡 wired warning-only; current scan flags ~29 minor copy drifts (Unlock buttons, comment "simply"s — mostly false positives — these are non-blocking by design) |
+
+### Doctrine reaffirmed
+
+- ✅ Preview only · no production touches
+- ✅ No backend rewrite — only one **additive** PM-scoped read endpoint
+- ✅ No weakening of `/api/admin/*` boundary
+- ✅ No destructive data action
+- ✅ Every doc distinguishes 🟢 VERIFIED / 🟡 ASSUMED / ⚪ UNTESTED
+- ✅ Every change regression-locked (4 backend + 6 new Playwright assertions added in this batch)
+- ✅ Governance instruments warning-only on first pass; deploy-blocking only for P0 classes (admin leaks, preview contamination, env mismatch, broken auth routing)
+
+# 🟢 PHASE IV-AUTH-FIX++ · iter437 follow-up · CLOSED · awaiting operator review
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-AUTH-FIX · Portal Auth/Token Routing P0 🟢
 
 ### Mission

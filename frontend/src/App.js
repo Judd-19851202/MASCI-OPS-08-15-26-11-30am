@@ -60,7 +60,7 @@ import PmHub from "@/pages/PmHub";
 import PmCrewCompliance from "@/pages/PmCrewCompliance";
 import PmFieldLeadership from "@/pages/PmFieldLeadership";
 import {
-  PmFleet, PmPeople, PmSuppliers, PmPosters,
+  PmJobs, PmFleet, PmPeople, PmSuppliers, PmPosters,
 } from "@/pages/pm/PmSections";
 import PmQaqcList from "@/pages/PmQaqcList";
 import ShopLogin from "@/pages/ShopLogin";
@@ -460,10 +460,13 @@ function App() {
             {/* iter353e-UI · PM Crew Compliance Lens (read-only) */}
             <Route path="/pm/crew-compliance" element={P(<PmCrewCompliance />)} />
             {/* iter105 — PM Console sub-routes (mirrors AdminConsole layout)
-                iter437 P0 Auth Routing — `/pm/jobs`, `/pm/routing`,
+                iter437 P0 Auth Routing — `/pm/routing` and
                 `/pm/compliance-export` removed: their panels hardcode
                 `/api/admin/*` endpoints the PM token cannot satisfy.
-                See PORTAL_AUTH_TOKEN_AUDIT.md. */}
+                See PORTAL_AUTH_TOKEN_AUDIT.md.
+                iter437 follow-up — `/pm/jobs` restored, now backed by
+                PmJobsRead → /api/pm/jobs (non-admin namespace). */}
+            <Route path="/pm/jobs"               element={P(<PmJobs />)} />
             <Route path="/pm/field-leadership"   element={P(<PmFieldLeadership />)} />
             <Route path="/pm/fleet"              element={P(<PmFleet />)} />
             <Route path="/pm/people"             element={P(<PmPeople />)} />

@@ -184,6 +184,64 @@ stage_portal_auth_routing() {
   python3 -m pytest -q --tb=short tests/pw_suite/test_portal_token_routing.py
 }
 
+# ─── Phase IV-BETA.4 · Governance instrument wiring (2026-02-27) ──────
+# Per operator directive (iter437 follow-up): first-pass governance
+# scripts run as WARNING-ONLY stages. They report violations and trend
+# data but DO NOT block the deploy. Only the P0 classes already
+# enforced above stay deploy-blocking:
+#   • admin-token leaks    → stage_portal_auth_routing
+#   • preview contamination → stage_sigma3_prod_contamination
+#   • env mismatch          → stage_sigma3_preview_identity
+#   • broken auth routing   → stage_portal_auth_routing
+#
+# When a governance gate is ready to escalate to deploy-blocking, drop
+# the `|| true` from its body and the stage will fail on regression.
+
+stage_governance_coaching_sublines() {
+  cd "$REPO_ROOT"
+  echo "Mode: WARNING-ONLY (does not fail deploy)"
+  python3 scripts/verify_coaching_sublines.py || {
+    echo ""
+    echo "⚠  Coaching subline drift detected — NOT blocking deploy."
+    echo "   Operator: review violations above and clean up in next pass."
+  }
+  return 0
+}
+
+stage_governance_admin_copy() {
+  cd "$REPO_ROOT"
+  echo "Mode: WARNING-ONLY (does not fail deploy)"
+  python3 scripts/verify_admin_copy.py || {
+    echo ""
+    echo "⚠  Operational verbiage drift detected — NOT blocking deploy."
+    echo "   Operator: review violations above and clean up in next pass."
+  }
+  return 0
+}
+
+stage_governance_visual_loudness() {
+  cd "$REPO_ROOT"
+  echo "Mode: WARNING-ONLY (trend-recording only — does not fail deploy)"
+  local url
+  url=$(grep '^REACT_APP_BACKEND_URL=' frontend/.env | cut -d= -f2 | tr -d '"' | tr -d "'")
+  if [[ -z "$url" ]]; then
+    echo "REACT_APP_BACKEND_URL missing — skipping loudness measurement"
+    return 0
+  fi
+  # Iteration label = short git SHA (stable per deploy)
+  local iter
+  iter=$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+  python3 scripts/measure_visual_loudness.py \
+    --base-url "$url" \
+    --routes /admin /pm /pm/jobs \
+    --iteration "deploy-$iter" || {
+    echo ""
+    echo "⚠  Visual loudness measurement reported issues — NOT blocking deploy."
+    echo "   Operator: review /app/memory/LOUDNESS_TRENDLINE.json for trend."
+  }
+  return 0
+}
+
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
 
@@ -199,6 +257,13 @@ fi
 
 run_stage "Auth + RBAC critical tests" stage_auth_rbac_tests
 run_stage "Portal auth-routing (iter437 P0 · /api/admin/* leak guard)" stage_portal_auth_routing
+# Governance instruments (Phase IV-BETA.4) — warning-only first pass.
+run_stage "Governance · coaching sublines (warning-only)" stage_governance_coaching_sublines
+run_stage "Governance · admin copy doctrine (warning-only)" stage_governance_admin_copy
+# Visual loudness needs Playwright + a live preview URL; skip in auth-only mode
+if [[ "$MODE" != "auth-only" ]]; then
+  run_stage "Governance · visual loudness trend (warning-only)" stage_governance_visual_loudness
+fi
 
 # Sigma-III enforceable gates — run on every mode (these are the
 # minimum operational-trust contract the platform now ships under).
