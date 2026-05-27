@@ -1,6 +1,73 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-BETA.3-P2 · Visual Doctrine Baselines + Pre-Safety Certification 🟢
+
+### Mission
+Pre-Safety maturation: build a DOM-style doctrine baseline system,
+conduct operator-grade reviews, harden governance instrumentation,
+certify platform stability before Safety governance starts. **NOT
+feature expansion.**
+
+### What shipped (🟢 every item verified · ~500 LOC across test + 5 docs)
+
+**P2A — Visual Doctrine Baseline System**
+- New `tests/pw_suite/test_visual_doctrine_baseline.py` — DOM-style hashing test (NOT pixel diff). Per hub × viewport (9 cells total): walks visible elements via `page.evaluate`, buckets computed styles into hues / font weights / font sizes, detects badge-like elements + sequential bold runs, produces 7 governance metrics (dom_style_hash, hierarchy_hash, hue_family_count, typography_summary, font_size_summary, badge_density, emphasis_score, loudness_score).
+- Baseline written to `/app/memory/HUB_VISUAL_BASELINE.json` — 9 cells captured: Admin Hub V2 / PM Hub V2 / HR Hub V2 × desktop / iPad / mobile.
+- Initial baseline: **PM 26.9 calmness · Admin 36.1 · HR 64.7** (HR scoring quirk from rounded-card-as-badge heuristic, documented in §VII).
+- Suite: **9/9 pass in 50s** · zero `/api/admin/*` leak detected from PM or HR context during baseline capture.
+
+**P2B — Operator-Grade Review Synthesis**
+- New `OPERATOR_REVIEW_SYNTHESIS.md` — portal-by-portal review against 10 governance categories, grounded in measured signal (baseline JSON) + structural inspection. Includes "preserve at all costs" and "safe to simplify later" surfaces per portal. PM declared best-in-class (lowest loudness).
+
+**P2C — Governance Instrument Evolution**
+- New `GOVERNANCE_INSTRUMENT_EVOLUTION.md` — maps the directive's 5 new dimensions (bold-density, badge-saturation, hierarchy-weight, coaching consistency, escalation consistency) onto already-shipping instruments. All warning-only. Block-deploy promotion plan calibrated to need ≥3 iterations of trend data.
+
+**P2D — Pre-Safety Certification**
+- New `PRE_SAFETY_CERTIFICATION.md` — 8-category cert matrix scored 🟢/🟡/🔴: cross-portal consistency · auth boundary stability · mobile governance · comm doctrine · regression maturity · governance instrumentation · deploy governance · operational trust. **All 8 🟢.**
+- Verdict: platform CERTIFIED STABLE for Safety governance start on operator authorisation.
+
+**Plus** `VISUAL_DOCTRINE_BASELINE_REPORT.md` — full baseline report + drift classification framework (expected drift / suspicious drift / doctrine violation drift) + limitations acknowledged.
+
+### Regression matrix (🟢 138/138 GREEN)
+
+| Suite | Result |
+|---|---|
+| `test_visual_doctrine_baseline.py` (NEW · 3 portals × 3 viewports) | 🟢 9/9 (50s) |
+| `test_iter437_footer_standardization.py` | 🟢 15/15 + 1 skipped |
+| `test_iter437_communication_unification.py` | 🟢 24/24 |
+| `test_iter437_pm_jobs_endpoint.py` | 🟢 4/4 |
+| `test_iter238_email_uniformity.py` (PM gold-standard intact) | 🟢 44/44 |
+| `test_hr_sidebar_v2.py` | 🟢 15/15 (63s) |
+| `test_portal_token_routing.py` (PM auth-routing) | 🟢 27/27 (132s) |
+| `verify_coaching_sublines.py` (hardened) | 🟢 |
+| `bash -n pre_deploy_check.sh` | 🟢 |
+
+### Doctrine reaffirmed
+
+- ✅ Preview only · NO production deploy · NO destructive data action
+- ✅ NO Safety implementation yet (this batch PREPARES the platform; doesn't implement Safety)
+- ✅ NO backend rewrites · NO permission changes · NO schema changes · NO notification engine rewrite
+- ✅ NO weakening of `/api/admin/*` boundary
+- ✅ DOM-style hashing, NOT pixel-diff testing
+- ✅ All governance instruments remain WARNING-ONLY (P0 classes only block deploys)
+- ✅ Every artifact distinguishes 🟢 / 🟡 / ⚪
+- ✅ Every change regression-locked BEFORE certification (138/138)
+
+### Cross-portal posture (🟢 after this batch)
+
+| Portal | Sidebar V2 | Calmness | Coaching | Footer | Auth | Comm | **Baseline cell** |
+|---|---|---|---|---|---|---|---|
+| Admin | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 9/9 |
+| PM | 🟢 | 🟢 best-in-class | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 |
+| HR | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 | 🟢 |
+| Safety / Dispatch / FL | ⚪ pending V2 | ⚪ | ⚪ | 🟢 (inherits) | 🟢 (clean) | 🟢 | ⚪ pending V2 |
+
+# 🟢 PHASE IV-BETA.3-P2 · iter437 · CLOSED · STOP for operator review before Safety governance begins
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-BETA.3-P1 · Platform Maturation Refinement 🟢
 
 ### Mission
