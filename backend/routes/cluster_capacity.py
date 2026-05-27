@@ -37,10 +37,10 @@ from __future__ import annotations
 import logging
 import os
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from motor.motor_asyncio import AsyncIOMotorClient
 
 logger = logging.getLogger(__name__)
@@ -49,6 +49,22 @@ logger = logging.getLogger(__name__)
 # Atlas on every page load if 50 crew members open the app simultaneously.
 _CACHE: Dict[str, Any] = {"ts": 0.0, "payload": None}
 _CACHE_TTL_S = 60
+
+# iter437 Phase Sigma-II — history collection name + TTL window (90 days).
+HISTORY_COLLECTION = "cluster_capacity_history"
+HISTORY_TTL_SECONDS = 90 * 86400
+
+
+async def ensure_history_indexes(db) -> None:
+    """One-time TTL on `ts` so the history collection self-prunes.
+    Safe to call repeatedly — Mongo no-ops on duplicate index specs."""
+    try:
+        await db[HISTORY_COLLECTION].create_index(
+            "ts", expireAfterSeconds=HISTORY_TTL_SECONDS,
+            name="ts_ttl_90d",
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[cluster_capacity] history index ensure failed: %s", e)
 
 
 def _quota_mb() -> int:
@@ -122,4 +138,121 @@ def build_cluster_capacity_router(get_client: callable) -> APIRouter:
         _CACHE["payload"] = payload
         return payload
 
+    # ------------------------------------------------------------------
+    # iter437 · Phase Sigma-II · history endpoint
+    # ------------------------------------------------------------------
+    @router.get("/cluster/capacity/history")
+    async def cluster_capacity_history(
+        days: int = Query(default=7, ge=1, le=90, description="lookback window in days, max 90"),
+    ):
+        """Return hourly capacity snapshots for the last `days` days.
+
+        Also computes a simple linear-fit slope (MB/day) over the
+        retrieved window and projects days-to-quota at current rate.
+        """
+        client: AsyncIOMotorClient = get_client()
+        # Read from whichever DB the backend currently writes to —
+        # `cluster_capacity_history` lives in masci_safety_preview when
+        # APP_ENV=preview, masci_safety when production. We never read
+        # cross-environment for history (preview history is preview-only).
+        db = client[os.environ.get("DB_NAME", "masci_safety")]
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+        cursor = db[HISTORY_COLLECTION].find(
+            {"ts": {"$gte": cutoff}},
+            {"_id": 0},
+        ).sort("ts", 1)
+        rows: List[Dict[str, Any]] = []
+        async for r in cursor:
+            # Mongo decoded `ts` as a datetime — emit ISO string for JSON.
+            if isinstance(r.get("ts"), datetime):
+                r["ts"] = r["ts"].isoformat()
+            rows.append(r)
+
+        # Compute slope (MB/day) over the points we have.
+        slope_mb_per_day: Optional[float] = None
+        days_to_quota: Optional[float] = None
+        first_mb: Optional[float] = None
+        last_mb: Optional[float] = None
+        if len(rows) >= 2:
+            first = rows[0]
+            last = rows[-1]
+            try:
+                first_mb = float(first["storage_used_mb"])
+                last_mb = float(last["storage_used_mb"])
+                t0 = datetime.fromisoformat(first["ts"].replace("Z", "+00:00")) \
+                    if isinstance(first["ts"], str) else first["ts"]
+                t1 = datetime.fromisoformat(last["ts"].replace("Z", "+00:00")) \
+                    if isinstance(last["ts"], str) else last["ts"]
+                dt_days = max((t1 - t0).total_seconds() / 86400.0, 1 / 24.0)
+                slope_mb_per_day = round((last_mb - first_mb) / dt_days, 3)
+                quota = _quota_mb()
+                if slope_mb_per_day and slope_mb_per_day > 0 and quota > 0:
+                    headroom = quota - last_mb
+                    days_to_quota = round(headroom / slope_mb_per_day, 1)
+            except Exception:  # noqa: BLE001
+                pass
+
+        return {
+            "ok": True,
+            "days": days,
+            "samples": len(rows),
+            "first_mb": first_mb,
+            "last_mb": last_mb,
+            "slope_mb_per_day": slope_mb_per_day,
+            "days_to_quota": days_to_quota,
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "rows": rows,
+        }
+
     return router
+
+
+# ----------------------------------------------------------------------
+# iter437 · Phase Sigma-II · hourly snapshot recorder.
+# Called from server.py scheduler. Idempotent and best-effort — failures
+# are logged but never propagate.
+# ----------------------------------------------------------------------
+async def record_capacity_snapshot(client) -> Optional[Dict[str, Any]]:
+    """Insert a single capacity snapshot into `cluster_capacity_history`."""
+    try:
+        quota_mb = _quota_mb()
+        candidates = [
+            os.environ.get("DB_NAME", "masci_safety"),
+            "masci_safety",
+            "masci_safety_preview",
+        ]
+        seen = set()
+        dbs: Dict[str, float] = {}
+        total_mb = 0.0
+        for db_name in candidates:
+            if not db_name or db_name in seen:
+                continue
+            seen.add(db_name)
+            try:
+                stats = await client[db_name].command("dbStats")
+                storage_mb = (stats.get("storageSize", 0) or 0) / (1024 * 1024)
+                index_mb = (stats.get("indexSize", 0) or 0) / (1024 * 1024)
+                dbs[db_name] = round(storage_mb + index_mb, 2)
+                total_mb += dbs[db_name]
+            except Exception:  # noqa: BLE001
+                pass
+
+        used_pct = (total_mb / quota_mb * 100.0) if quota_mb > 0 else 0.0
+        record = {
+            "ts": datetime.now(timezone.utc),
+            "tier_quota_mb": quota_mb,
+            "storage_used_mb": round(total_mb, 2),
+            "storage_used_pct": round(used_pct, 1),
+            "dbs": dbs,
+        }
+        # Write to the DB the backend is currently using (preview or prod).
+        target_db = client[os.environ.get("DB_NAME", "masci_safety")]
+        await ensure_history_indexes(target_db)
+        await target_db[HISTORY_COLLECTION].insert_one(record)
+        # Strip _id for return
+        record.pop("_id", None)
+        return record
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[cluster_capacity] snapshot record failed: %s", e)
+        return None

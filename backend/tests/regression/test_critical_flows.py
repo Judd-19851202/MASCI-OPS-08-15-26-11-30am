@@ -244,3 +244,31 @@ def test_cluster_capacity_no_auth_required(base_url):
     has been issued. Endpoint MUST work with zero headers."""
     r = requests.get(f"{base_url}/api/cluster/capacity", timeout=10)
     assert r.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# 11. Cluster capacity HISTORY (iter437 Phase Sigma-II) — drift detection
+# ---------------------------------------------------------------------------
+def test_cluster_capacity_history_default_window(base_url):
+    r = requests.get(f"{base_url}/api/cluster/capacity/history", timeout=10)
+    assert r.status_code == 200, r.text[:200]
+    body = r.json()
+    assert body.get("ok") is True
+    assert body.get("days") == 7
+    assert isinstance(body.get("samples"), int)
+    assert "rows" in body and isinstance(body["rows"], list)
+
+
+def test_cluster_capacity_history_validates_days_range(base_url):
+    """days=0 → 422 (out of range, ge=1)."""
+    r = requests.get(f"{base_url}/api/cluster/capacity/history?days=0", timeout=10)
+    assert r.status_code == 422, r.text[:200]
+
+    r = requests.get(f"{base_url}/api/cluster/capacity/history?days=120", timeout=10)
+    assert r.status_code == 422, r.text[:200]
+
+
+def test_cluster_capacity_history_no_auth_required(base_url):
+    """Same public surface as the live probe — drift widget loads pre-login."""
+    r = requests.get(f"{base_url}/api/cluster/capacity/history?days=1", timeout=10)
+    assert r.status_code == 200

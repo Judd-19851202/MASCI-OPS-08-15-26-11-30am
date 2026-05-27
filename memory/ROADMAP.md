@@ -21,16 +21,24 @@ This file tracks **parked features** the user wants to revisit later. Surface th
    - Regression Strategy: `/app/memory/REGRESSION_STRATEGY.md` · 3-gate deploy doctrine
 
 **Open items (queued, not yet implemented, all REVIEW-ONLY per directive):**
-- 🔴 `lib/idempotency.py:128` — patch to strip `photos/gallery/attachments/image_base64` before caching (drops `idempotency_keys` avg from 3.3 MB/doc → < 5 KB/doc)
-- 🟠 Configure Atlas alerts (operator-side, requires Atlas admin login) per `ATLAS_ALERTS_RUNBOOK.md`
-- 🟠 Reproduce `/api/field-leadership/portal/dispatch-today` 20-second cold-start; add startup warmup if confirmed
-- 🟠 Legacy base64 photo migration (300+ MB reclaim) — defer to dedicated migration phase
-- 🟡 Re-seed `testmech@mascigc.com` shop test user (wiped by restore — shop direct-login gap in role cert)
-- 🟡 Playwright flows 6-15 (MFA, passkeys, write-paths, dispatch, payroll, public-form, restore-health, isolation-under-load)
-- 🟡 Per-FL-role direct logins (Superintendent, Foreman, Truck Boss, Working Supervisor) for role-cert next pass
-- 🟡 `dispatch_driver` session + magic-link token probe for role-cert next pass
-- ⚪ Lifecycle TTL governance documentation
-- ⚪ Deployment Certification Checklist (P2)
+- 🟡 Configure Atlas alerts (operator-side, requires Atlas admin login) per `ATLAS_ALERTS_RUNBOOK.md`
+- 🟡 Legacy base64 photo migration (300+ MB reclaim) — defer to dedicated migration phase
+- 🟡 Re-seed `testmech@mascigc.com` shop test user (wiped by restore — shop direct-login gap)
+- 🟡 Playwright flows 8 (crew), 9 (dispatch board), 10b (driver shift), 11b (payroll), 12 (MFA/passkey browser), 13 (public form), 15 (env isolation under WRITE load)
+- 🟡 Per-FL-subrole direct logins (Superintendent, Foreman, Truck Boss, Working Supervisor) — needs credentials
+- 🟡 `dispatch_driver` testing with real driver (preview lacks `is_driver=true` employees)
+- 🟡 Magic-link issuance: validate `driver_id` against employees collection (~5 LoC; LOW severity)
+- 🟡 Storage observability widget (data plumbing live — UI deferred)
+- ⚪ Atlas alert smoke-test (operator-side · requires Atlas admin login)
+
+**Phase Sigma-II completed (this session, all CERTIFIED PASS):**
+- ✅ `IDEMPOTENCY_PATCH_CERTIFICATION.md` — strip patch + 99.2% rewrite reclaim
+- ✅ `DISPATCH_COLDSTART_FORENSICS.md` — cannot reproduce; documented; no patch shipped
+- ✅ `ROLE_ACCESS_CERTIFICATION.md` (2nd pass) — Leadership + driver session scope verified
+- ✅ `STORAGE_OBSERVABILITY.md` — capacity history collection + endpoint live
+- ✅ `PLAYWRIGHT_CERTIFICATION_PHASE2.md` — 4 new flows operational
+- ✅ `DEPLOYMENT_CERTIFICATION_CHECKLIST.md` — 11 gates + preflight script
+- ✅ `LIFECYCLE_GOVERNANCE.md` — 6-class doctrine; no destructive action
 
 ---
 

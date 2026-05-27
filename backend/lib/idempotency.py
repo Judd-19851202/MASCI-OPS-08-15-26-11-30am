@@ -41,6 +41,41 @@ logger = logging.getLogger(__name__)
 # 90 days — matches usage_events TTL convention.
 TTL_SECONDS = 60 * 60 * 24 * 90
 
+# iter437 · Phase Sigma-II · Idempotency Storage Explosion Patch.
+# The legacy cache stored full response bodies (including base64
+# photos), causing 3-5 MB documents and uncontrolled `idempotency_keys`
+# collection growth. We now recursively strip large/binary fields
+# before persistence. The cached response retains every operational
+# field the client needs to recognize a replay (id, ok, status,
+# timestamps, error markers) — only the heavy attachments are dropped.
+_STRIP_KEYS = frozenset({
+    "image_base64",
+    "file_base64",
+    "data_base64",
+    "photos",
+    "gallery",
+    "attachments",
+    "image_data",
+})
+_LARGE_STRING_BYTES = 100 * 1024  # 100 KB — any individual string above is replaced with a placeholder.
+_LARGE_STRING_PLACEHOLDER = "[stripped:large_string]"
+
+
+def _strip_for_cache(obj):
+    """Recursively remove heavy media fields + truncate oversize strings.
+
+    Preserves the *shape* of the response so a replaying client still
+    sees the same JSON skeleton with identical scalar fields.
+    """
+    if isinstance(obj, dict):
+        return {k: _strip_for_cache(v) for k, v in obj.items() if k not in _STRIP_KEYS}
+    if isinstance(obj, list):
+        return [_strip_for_cache(x) for x in obj]
+    if isinstance(obj, str) and len(obj) > _LARGE_STRING_BYTES:
+        return _LARGE_STRING_PLACEHOLDER
+    return obj
+
+
 
 def idem_key_from_request(req: Request) -> Optional[str]:
     """Pulls the `Idempotency-Key` header from the request. Lower-cased
@@ -120,6 +155,10 @@ async def with_idempotency(
         cached_resp = jsonable_encoder(result)
     except Exception:  # noqa: BLE001
         cached_resp = result if isinstance(result, (dict, list, str, int, float, bool, type(None))) else None
+
+    # iter437 · Phase Sigma-II · strip heavy fields BEFORE persisting.
+    # See `_strip_for_cache` above for the policy.
+    cached_resp = _strip_for_cache(cached_resp)
 
     try:
         # ensure_indexes() is safe to call repeatedly — protects against

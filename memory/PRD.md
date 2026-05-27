@@ -24076,3 +24076,43 @@ See `/app/memory/test_credentials.md`. Quick refs:
 
 **No code shipped beyond:** cluster-capacity probe + banner (last session) and tests/tooling this session. Per directive, no feature work, no migrations.
 
+
+---
+
+## iter437 (2026-05-27) — Phase Sigma-II · Operational Trust Hardening (CERTIFIED PASS)
+
+**Final gate state (this session end):**
+- ✅ API regression: 46 passed in 8s (43 base + 3 capacity-history)
+- ✅ Idempotency unit: 9 passed in <1s
+- ✅ Playwright (phase 1 + 2): 23 passed · 1 structural skip in 46s
+- ✅ Cluster capacity: severity=ok · 8.5% utilization · 9 history samples
+- ✅ All 5 documented portal credentials login 200
+
+**Delivered:**
+
+| Artifact                                                          | Status                                                    |
+|-------------------------------------------------------------------|-----------------------------------------------------------|
+| `IDEMPOTENCY_PATCH_CERTIFICATION.md`                              | ✅ PROD rewrite 14.6 MB → 0.12 MB (99.2% reclaim · 9 rows) |
+| `DISPATCH_COLDSTART_FORENSICS.md`                                 | ⚠ Cannot reproduce · documented · no patch shipped         |
+| `ROLE_ACCESS_CERTIFICATION.md` (2nd pass)                         | ✅ Leadership + driver magic-link + session scope verified |
+| `STORAGE_OBSERVABILITY.md`                                        | ✅ `cluster_capacity_history` collection + endpoint live  |
+| `PLAYWRIGHT_CERTIFICATION_PHASE2.md`                              | ✅ 4 new flows: write-path, attachment, health, isolation  |
+| `DEPLOYMENT_CERTIFICATION_CHECKLIST.md`                           | ✅ 11 gates · `preflight.sh` one-shot script              |
+| `LIFECYCLE_GOVERNANCE.md`                                         | ✅ 6 lifecycle classes mapped · no destructive action      |
+
+**Code changed this session:**
+- `lib/idempotency.py` — strip patch (38 lines added)
+- `routes/cluster_capacity.py` — history endpoint + snapshot recorder (~80 lines added)
+- `server.py` — hourly snapshot loop in @app.on_event("startup") (~25 lines added)
+- `tests/test_iter437_idempotency_strip.py` — NEW (9 unit assertions)
+- `tests/regression/test_critical_flows.py` — +3 capacity-history assertions
+- `tests/pw_suite/test_critical_flows_pw_phase2.py` — NEW (4 flows × 1-3 viewports)
+- `tools/idempotency_rewrite.py` — NEW reusable rewrite tool
+
+**Open observations (review-only, NOT implemented):**
+- 🟡 `/api/dispatch/driver/magic-link` accepts any string `driver_id` — bounded impact (data visibility only, no escalation) but worth validating against `employees` collection. ~5 LoC fix.
+- 🟡 Atlas alerts configuration (operator-side, runbook ready)
+- 🟡 Legacy base64 photo migration (deferred to dedicated session)
+- 🟡 Per-FL-subrole + dispatch_driver real-employee testing (needs FL roster credentials)
+- 🟡 Storage drift widget (UI not built; data plumbing in place)
+

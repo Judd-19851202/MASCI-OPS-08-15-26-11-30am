@@ -214,3 +214,82 @@ Exit code 0 + zero unexpected accepts = certification pass.
 - 1 known gap (shop direct-login user missing in preview) → tracked, not silenced
 
 The platform's per-portal token-scope discipline is **structurally sound**.
+
+---
+
+## 9. SECOND PASS — iter437 · Phase Sigma-II additions
+
+**Date:** 2026-05-27 00:30 UTC
+**New probes:** Leadership shared-password flow · dispatch driver magic-link lifecycle · driver session token scope
+**Raw data:** `/tmp/role_cert_2nd_pass.json`
+
+### 9a. Leadership shared-password flow
+
+| Test                                                          | Result    | Notes                                          |
+|---------------------------------------------------------------|-----------|------------------------------------------------|
+| `POST /api/field-leadership/login` with correct password      | ✅ 200    | Token minted, TTL respected                    |
+| `POST /api/field-leadership/login` with wrong password        | ✅ 401    | Bcrypt-compare safe                            |
+| `GET /api/field-leadership/check` with X-Leadership-Token     | ✅ 200    | Returns `{ok:true, role:"leadership"}`         |
+| Leadership token → X-Admin-Token slot                         | ✅ 401    | NO escalation possible                         |
+| Leadership token → X-FL-Token slot                            | ✅ 401    | Distinct token class — no cross-pollination    |
+
+**Verdict:** Leadership shared-password is a tight, dedicated scope. No bleed.
+
+### 9b. Driver magic-link lifecycle
+
+| Test                                                          | Result    | Notes                                          |
+|---------------------------------------------------------------|-----------|------------------------------------------------|
+| `POST /api/dispatch/driver/magic-link` no auth                | ✅ 401    | Issuance gated                                 |
+| Magic-link issuance with valid dispatch token                 | ✅ 200    | Returns `magic_token` + `url` + `ttl_seconds`  |
+| `POST /api/dispatch/driver/session/exchange` valid magic-token| ✅ 200    | Mints `driver_token` + `session_id`            |
+| Session exchange with random string                            | ✅ 401/422| Pydantic validates body shape                  |
+| `GET /api/dispatch/driver/me` no token                        | ✅ 401    | Endpoint gated                                 |
+| `GET /api/dispatch/driver/me` with bogus token                | ✅ 401    | Bogus token rejected                           |
+| `GET /api/dispatch/driver/me` with valid `X-Driver-Token`     | ✅ 200    | Returns driver session info                    |
+| Driver session token → X-Admin-Token                          | ✅ 401    | NO escalation possible                         |
+| Driver session token → X-HR-Token / X-Dispatch-Token          | ✅ 401    | Scope enforced — driver token != dispatch token|
+| Driver session token → /api/daily-reports                     | ✅ 401    | Operational endpoints out of driver scope      |
+
+### 9c. ⚠ Observation — magic-link issuance is permissive on `driver_id`
+
+`POST /api/dispatch/driver/magic-link` accepts **any** string as `driver_id` (including non-existent UUIDs) and returns a valid magic_token. The token DOES successfully exchange into a session that authenticates against driver-scoped routes — but since the driver_id doesn't resolve to a real employee, those routes return empty results.
+
+**Severity:** LOW (cannot escalate scope; only impacts data visibility).
+
+**Recommendation (NOT IMPLEMENTED — appendix-only per directive):**
+The `issue_magic_link` helper in `driver_sessions.py` should validate that `driver_id` exists in `employees` (and ideally that the employee is `is_driver=true` / has a CDL) before minting. Estimated patch: 3-5 lines. Defer to next session.
+
+### 9d. Token-class isolation summary (all P0 negative-path checks)
+
+| Source class                  | Pasted into header                  | Result | Notes                              |
+|-------------------------------|-------------------------------------|:------:|------------------------------------|
+| Super-admin admin token       | X-PM-Token / X-HR-Token / etc      | 401   | Distinct portal scopes              |
+| HR token                       | X-Admin-Token                       | 401   | (from regression suite §5)          |
+| PM token                       | X-HR-Token                          | 401   | (from regression suite §5)          |
+| Leadership token (shared-pw)   | X-Admin-Token                       | 401   | NEW · iter437                        |
+| Leadership token               | X-FL-Token                          | 401   | NEW · iter437                        |
+| Driver session token           | X-Admin-Token / X-HR-Token / etc    | 401   | NEW · iter437 · 6 of 6 slots rejected |
+| Random/bogus string            | X-Admin-Token                       | 401   | (from regression suite §5)          |
+
+**Cross-scope escalation: IMPOSSIBLE across every probed combination.**
+
+### 9e. Coverage gaps still standing (deferred to next session)
+
+| Identity                              | Status                              |
+|---------------------------------------|--------------------------------------|
+| Per-FL-subrole direct logins (Superintendent / Foreman / Truck Boss / Working Supervisor) | `needs-credentials` — operator must supply or re-seed FL roster |
+| Shop direct-login (`testmech@`)       | `needs-data-seed` — wiped by restore drill                          |
+| Time-off magic-link tokens             | `needs-real-link` — endpoint returns 404 without a valid token UUID |
+| MFA-protected admin login              | Covered by `tests/test_iter375_mfa_totp.py` (separate suite)        |
+
+### 9f. Updated final verdict — Phase Sigma-II
+
+**Role Access (1st + 2nd pass) — CERTIFIED PASS.**
+
+- ✅ 13 token identities × 26 endpoints = 338 cells with 0 unexpected accepts/rejections
+- ✅ Leadership shared-password flow: scope-tight, no escalation possible
+- ✅ Driver magic-link → session exchange lifecycle: 9 scope checks, 9 correct outcomes
+- ⚠ 1 LOW-severity observation: magic-link issuance doesn't validate driver_id existence (data-visibility impact only, no scope escalation)
+- 🟡 4 gaps documented for next-session coverage (per-FL-subrole, shop testmech, time-off magic-link, MFA already covered elsewhere)
+
+No verifiable security regression. All P0 negative-path assertions remain green.

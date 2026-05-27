@@ -9679,8 +9679,35 @@ app.include_router(build_last_activity_router(
 # Surfaces Atlas storage utilization to the frontend banner so a quota
 # block (writes-blocked) cannot happen silently again. Discovered after
 # today's restore drill exposed the cluster at 99% capacity.
-from routes.cluster_capacity import build_cluster_capacity_router  # noqa: E402
+from routes.cluster_capacity import (  # noqa: E402
+    build_cluster_capacity_router,
+    record_capacity_snapshot,
+    ensure_history_indexes,
+)
 app.include_router(build_cluster_capacity_router(get_client=lambda: client))
+
+
+# iter437 · Phase Sigma-II · hourly cluster-capacity snapshot recorder.
+# Writes one row to `cluster_capacity_history` every hour with a 90-day
+# TTL. Powers `/api/cluster/capacity/history` + drift detection.
+@app.on_event("startup")
+async def _cluster_capacity_history_loop() -> None:
+    async def _loop():
+        # Best-effort initial record + index ensure.
+        try:
+            await ensure_history_indexes(db)
+            await record_capacity_snapshot(client)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("[cluster-capacity-history] initial record failed: %s", e)
+        # Then hourly forever.
+        while True:
+            await asyncio.sleep(3600)
+            try:
+                await record_capacity_snapshot(client)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("[cluster-capacity-history] tick failed: %s", e)
+
+    asyncio.create_task(_loop())
 
 # iter431 · Phase 29 · Part 4 · admin-strict stability sweepers
 from routes.admin_stability import build_admin_stability_router  # noqa: E402
