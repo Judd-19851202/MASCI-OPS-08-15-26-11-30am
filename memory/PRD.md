@@ -1,6 +1,79 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — iter442 · FIELD-TRUST PASS · Draft Health Tile + Device Memory Doctrine 🟢
+
+### Mission
+Promoted the P0 daily-report draft fix from a code patch into a
+field-trust system. Added admin observability + operator-side
+device memory doctrine + calm coaching language + 4 doctrine docs.
+
+### Implementation
+
+**Frontend**
+- `components/admin/DraftHealthTile.jsx` (NEW) — calm read-only
+  tile on `/admin/governance` · consumes `/api/draft-telemetry/recent`
+  · verdict pill + 4 stat cells + manual refresh + 60s poll · no
+  charts · admin-only · MUST NEVER leak form content.
+- `pages/admin/AdminGovernance.jsx` — mounts the tile between the
+  convergence banner and severity strip.
+- `lib/crewMemory.js` — adds `usageCount` / `firstSeenAt` to the
+  snapshot · `getCrewMemoryConfidence()` returns `{level, usageCount}`
+  · `isProjectChange()` guard · accrual resets on project change.
+- `components/daily-report/CrewSetupRestorePrompt.jsx` — calm
+  coaching copy (low/medium: "Recent crew and equipment may
+  preload to speed up daily reporting." · high: "Loaded from
+  recent reports on this iPad.") · NEW "Change project / foreman"
+  button · data-confidence attribute · banned surveillance language.
+- `pages/NewDailyReport.jsx` — passes `confidence` + `onChangeProject`
+  to the prompt · project-change `window.confirm()` guard before
+  applying snapshot when current `project_number` differs from
+  the snapshot's.
+
+**Backend**
+- No new endpoints. The existing `/api/draft-telemetry/recent` (iter440)
+  feeds the new tile. Verified schema-locked: no `_id`, no banned
+  meta keys, meta size-capped to 2 KB.
+
+**Doctrine docs (4 new)**
+- `/app/memory/DRAFT_HEALTH_TILE_CERTIFICATION.md`
+- `/app/memory/DAILY_REPORT_DEVICE_MEMORY_MODEL.md`
+- `/app/memory/DAILY_REPORT_COACHING_LANGUAGE.md`
+- `/app/memory/DAILY_REPORT_FIELD_TRUST_REVIEW.md`
+
+### Verification
+🟢 **28/28 P0+P1 regression tests pass** across 4 files:
+- `test_draft_telemetry_endpoint.py` (10 backend)
+- `test_draft_loss_remediation.py` (5 client · iPhone viewport)
+- `test_draft_loss_regression_iter440.py` (6 sibling/integration)
+- `test_field_trust_iter442.py` (NEW · 7 tile + memory + coaching)
+
+The new file's 7 tests cover:
+- Recent feed never leaks form content (banned meta keys)
+- Meta payload size cap honored
+- Tile renders on /admin/governance (desktop)
+- Refresh button works
+- Crew-memory confidence accrual (1 → 2 → 5 same project · resets on change)
+- Coaching copy uses calm phrases + no surveillance language
+  (regex word-boundary check for "ai" / "profile" to avoid
+  substring false positives like "daily")
+- "Change project / foreman" button present at medium+ confidence
+
+### Doctrine preserved
+- ❌ No login · no passwords · no accounts · no distributed keys
+- ❌ No hard-lock device identity — every reuse operator-confirmed
+- ❌ No big dashboard · no charts · no animations · no sounds
+- ❌ No surveillance language · regression-tested
+- ❌ No RFI/Schedule V.1 implementation (still deferred per user)
+- ❌ No database schema changes · no auth changes · no production deploy
+
+### Stop condition
+🟢 Field-trust system certified in preview · 28/28 regression green
+· awaiting user direction to (a) cut production, (b) Spanish
+localization of new copy, or (c) begin Phase V.1 RFI MVP.
+
+
+
 ## 2026-05-27 (fork) — iter440/441 · P0 FIELD INCIDENT REMEDIATION · Daily Report Draft Loss 🟢
 
 ### Mission

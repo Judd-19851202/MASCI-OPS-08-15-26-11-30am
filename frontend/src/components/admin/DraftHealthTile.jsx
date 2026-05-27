@@ -1,0 +1,235 @@
+// DraftHealthTile.jsx — iter442 · Field-trust observability surface.
+//
+// Tiny, calm, admin-only read-only consumer of /api/draft-telemetry/recent.
+// Surfaces the health of the Daily Report (and sibling form) draft
+// system on the operator's device — the very surface that the P0
+// field incident was about. NEVER renders form content. NEVER renders
+// photo blobs. ONLY sizes, error names, timestamps, transitions.
+//
+// What it shows
+// -------------
+//   - Health verdict pill: healthy / watch / degraded
+//   - Failed saves in last 24h
+//   - Restore-then-discard decisions in last 24h (operator gave up)
+//   - Distinct affected devices in last 24h
+//   - Last telemetry event timestamp ("12s ago")
+//
+// What it doesn't show
+// --------------------
+//   - No payload content. No PII. No photo references. No form text.
+//   - No charts. No graphs. No drill-down panel.
+//
+// Refresh: silent 60-second poll. Manual refresh button is available
+// but the tile is calm by default — no spinner, no animation, no
+// loud color unless health is genuinely degraded.
+
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Activity, RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { api } from "@/lib/api";
+
+const POLL_MS = 60_000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function _fmtRelative(iso) {
+  if (!iso) return "—";
+  try {
+    const t = new Date(iso).getTime();
+    if (!t) return "—";
+    const dt = Math.max(0, Date.now() - t);
+    const s = Math.floor(dt / 1000);
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d}d ago`;
+  } catch {
+    return "—";
+  }
+}
+
+function _verdict({ failedSaves24h, discardsAfterFail24h }) {
+  if (failedSaves24h === 0 && discardsAfterFail24h === 0) return "healthy";
+  if (failedSaves24h <= 5 && discardsAfterFail24h <= 1) return "watch";
+  return "degraded";
+}
+
+const VERDICT_META = {
+  healthy: {
+    Icon: CheckCircle2,
+    label: "Healthy",
+    tint: "border-emerald-300 bg-emerald-50 text-emerald-900",
+    pill: "bg-emerald-600 text-white",
+  },
+  watch: {
+    Icon: Activity,
+    label: "Watch",
+    tint: "border-amber-300 bg-amber-50 text-amber-900",
+    pill: "bg-amber-600 text-white",
+  },
+  degraded: {
+    Icon: AlertTriangle,
+    label: "Degraded",
+    tint: "border-rose-300 bg-rose-50 text-rose-900",
+    pill: "bg-rose-600 text-white",
+  },
+};
+
+export default function DraftHealthTile({ testId = "draft-health-tile" }) {
+  const [events, setEvents] = useState(null);
+  const [loadedAt, setLoadedAt] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const fetchEvents = useCallback(async () => {
+    setRefreshing(true);
+    setErr(null);
+    try {
+      // Cap at 200 (server max) — gives us a 24h window for normal
+      // platform usage. We compute everything client-side; we do NOT
+      // ask the server to aggregate (server is dumb store).
+      const r = await api.get("/draft-telemetry/recent?limit=200");
+      const items = (r && r.data && r.data.items) || [];
+      setEvents(items);
+      setLoadedAt(Date.now());
+    } catch (e) {
+      setErr(e?.message || "failed to load");
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEvents();
+    const id = setInterval(fetchEvents, POLL_MS);
+    return () => clearInterval(id);
+  }, [fetchEvents]);
+
+  const stats = useMemo(() => {
+    const out = {
+      failedSaves24h: 0,
+      discardsAfterFail24h: 0,
+      affectedDevices24h: 0,
+      lastEventReceivedAt: null,
+      anonShare: 0,
+      total24h: 0,
+    };
+    if (!events || !events.length) return out;
+    const cutoff = Date.now() - DAY_MS;
+    const failDevices = new Set();
+    let anonCount = 0;
+    let total24h = 0;
+    let mostRecent = null;
+    // Walk by receivedAt; events come sorted desc already.
+    for (const e of events) {
+      const rt = e && e.receivedAt ? new Date(e.receivedAt).getTime() : 0;
+      if (!rt) continue;
+      if (!mostRecent || rt > mostRecent) mostRecent = rt;
+      if (rt < cutoff) continue;
+      total24h += 1;
+      if ((e.tokenKind || "") === "anon") anonCount += 1;
+      if (e.event === "draft.write.fail") {
+        out.failedSaves24h += 1;
+        if (e.deviceId) failDevices.add(e.deviceId);
+      }
+      if (e.event === "draft.restore.action" && e.meta && e.meta.choice === "discard") {
+        // A discard immediately after observed failures hints the
+        // operator gave up. Cheap heuristic: count any discard in
+        // the 24h window.
+        out.discardsAfterFail24h += 1;
+      }
+    }
+    out.affectedDevices24h = failDevices.size;
+    out.lastEventReceivedAt = mostRecent ? new Date(mostRecent).toISOString() : null;
+    out.anonShare = total24h > 0 ? Math.round((anonCount / total24h) * 100) : 0;
+    out.total24h = total24h;
+    return out;
+  }, [events]);
+
+  const verdict = _verdict(stats);
+  const meta = VERDICT_META[verdict];
+  const Icon = meta.Icon;
+
+  return (
+    <section
+      data-testid={testId}
+      data-verdict={verdict}
+      className={`rounded-lg border-2 ${meta.tint} px-4 py-3`}
+    >
+      <header className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Icon className="w-4 h-4" aria-hidden="true" />
+          <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] font-bold">
+            Daily Report · Draft Health
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider ${meta.pill}`}
+            data-testid={`${testId}-verdict`}
+          >
+            {meta.label}
+          </span>
+          <button
+            type="button"
+            onClick={fetchEvents}
+            disabled={refreshing}
+            data-testid={`${testId}-refresh`}
+            className="text-current opacity-70 hover:opacity-100 disabled:opacity-40"
+            title="Refresh draft health"
+            aria-label="Refresh"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+          </button>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]" data-testid={`${testId}-stats`}>
+        <div>
+          <div className="font-mono uppercase tracking-wider opacity-70">Failed saves · 24h</div>
+          <div className="font-display text-2xl font-black leading-none mt-0.5"
+               data-testid={`${testId}-failed-saves`}>
+            {stats.failedSaves24h}
+          </div>
+        </div>
+        <div>
+          <div className="font-mono uppercase tracking-wider opacity-70">Discards · 24h</div>
+          <div className="font-display text-2xl font-black leading-none mt-0.5"
+               data-testid={`${testId}-discards`}>
+            {stats.discardsAfterFail24h}
+          </div>
+        </div>
+        <div>
+          <div className="font-mono uppercase tracking-wider opacity-70">Devices affected</div>
+          <div className="font-display text-2xl font-black leading-none mt-0.5"
+               data-testid={`${testId}-devices`}>
+            {stats.affectedDevices24h}
+          </div>
+        </div>
+        <div>
+          <div className="font-mono uppercase tracking-wider opacity-70">Last event</div>
+          <div className="font-display text-base font-bold leading-tight mt-0.5"
+               data-testid={`${testId}-last-event`}>
+            {_fmtRelative(stats.lastEventReceivedAt)}
+          </div>
+        </div>
+      </div>
+
+      <footer className="flex items-center justify-between mt-3 pt-2 border-t border-current/10 text-[10px] font-mono uppercase tracking-wider opacity-70">
+        <span data-testid={`${testId}-total`}>
+          {stats.total24h} events · 24h · {stats.anonShare}% anon
+        </span>
+        <span data-testid={`${testId}-loaded-at`}>
+          {loadedAt ? `loaded ${_fmtRelative(new Date(loadedAt).toISOString())}` : "loading…"}
+        </span>
+      </footer>
+
+      {err ? (
+        <p className="text-[11px] mt-2 text-rose-700" data-testid={`${testId}-error`}>
+          could not load · {err}
+        </p>
+      ) : null}
+    </section>
+  );
+}

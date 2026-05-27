@@ -55,6 +55,7 @@ import {
 import {
   extractSetupSnapshot, saveCrewSetup, loadCrewSetup,
   clearCrewSetup, renameCrewSetup, applySetupSnapshotToData,
+  getCrewMemoryConfidence, isProjectChange,
 } from "@/lib/crewMemory";
 import CrewSetupRestorePrompt from "@/components/daily-report/CrewSetupRestorePrompt";
 
@@ -277,21 +278,55 @@ export default function NewDailyReport({ publicMode = false }) {
   // iter437 · Phase 31.1 · Device-local crew + equipment setup memory.
   // Loaded once on mount · NEVER auto-applied · restore prompt is the
   // only path into the form. Shared-device safe by construction.
+  // iter442 · adds confidence scoring + project-change guard. The
+  // device_id may SUGGEST context but MUST NOT silently hard-lock
+  // identity — every reuse is operator-confirmed.
   const [crewSetup, setCrewSetup] = React.useState(null);
+  const [crewMemoryConfidence, setCrewMemoryConfidence] = React.useState(null);
   React.useEffect(() => {
     const rec = loadCrewSetup();
-    if (rec) setCrewSetup(rec);
+    if (rec) {
+      setCrewSetup(rec);
+      setCrewMemoryConfidence(getCrewMemoryConfidence());
+    }
   }, []);
   const onUseCrewSetup = React.useCallback(() => {
     if (!crewSetup) return;
+    // iter442 · project-change guard. If the operator has already
+    // typed a project number (auto-filled from a job pick or manual),
+    // and it differs from the snapshot's project, ask before applying
+    // crew/equipment. Doctrine: "if project changes, confirm before
+    // reusing crew/equipment."
+    const current = (data?.project_number || "").trim();
+    if (current && isProjectChange(crewSetup, current)) {
+      const confirmed = window.confirm(
+        t("This setup is from a different project. Reuse crew and equipment anyway?")
+      );
+      if (!confirmed) return;
+    }
     setData((d) => applySetupSnapshotToData(d, crewSetup));
     setRecentlyLoadedSetup({
       nickname: crewSetup.nickname || "",
       lastUsedAt: crewSetup.lastUsedAt || Date.now(),
     });
     setCrewSetup(null);
-    toast.success(t("Crew setup loaded · edit anything as needed."));
-  }, [crewSetup, t]);
+    toast.success(t("Loaded from recent reports on this iPad."));
+  }, [crewSetup, t, data?.project_number]);
+  // iter442 · "Change project / foreman" — keep the saved setup
+  // available but let the operator clear ONLY the project/foreman
+  // fields so they can pick a different job without losing the crew
+  // memory. Calm calm calm.
+  const onChangeProjectFromSetup = React.useCallback(() => {
+    setData((d) => ({
+      ...d,
+      project_name: "",
+      project_number: "",
+      prepared_by: "",
+      superintendent: "",
+    }));
+    setCrewSetup(null);
+    toast.message(t("Pick a project · crew and equipment can preload after."));
+  }, [t]);
   const onStartBlankCrewSetup = React.useCallback(() => {
     setCrewSetup(null);
   }, []);
@@ -739,7 +774,9 @@ export default function NewDailyReport({ publicMode = false }) {
             · NEVER silent auto-fill. */}
         <CrewSetupRestorePrompt
           snapshot={crewSetup}
+          confidence={crewMemoryConfidence}
           onUseSetup={onUseCrewSetup}
+          onChangeProject={onChangeProjectFromSetup}
           onStartBlank={onStartBlankCrewSetup}
           onClear={onClearCrewSetup}
           onRename={onRenameCrewSetup}

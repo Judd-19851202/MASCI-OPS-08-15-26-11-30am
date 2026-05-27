@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminShell from "@/components/AdminShell";
+import DraftHealthTile from "@/components/admin/DraftHealthTile";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { usePageTitle } from "@/lib/usePageTitle";
@@ -266,6 +267,12 @@ export default function AdminGovernance() {
         {err ? (
           <div className="bg-rose-50 border border-rose-300 rounded-md p-3 text-sm text-rose-900" data-testid="gov-error">{err}</div>
         ) : null}
+
+        {/* iter442 · Daily Report draft-health tile — calm read-only
+            observability over /api/draft-telemetry. Sits between the
+            convergence banner and the severity strip so admins notice
+            field-side draft issues alongside policy contradictions. */}
+        <DraftHealthTile testId="gov-draft-health-tile" />
 
         {/* Severity tile strip */}
         <div>

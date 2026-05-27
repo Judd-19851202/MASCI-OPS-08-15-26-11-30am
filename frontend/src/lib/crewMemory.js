@@ -114,7 +114,15 @@ export function extractSetupSnapshot(reportData) {
  * defensively so callers cannot accidentally save banned fields. Adds
  * savedAt / lastUsedAt timestamps and the optional nickname.
  *
- * Returns the persisted record (with timestamps + nickname).
+ * iter442 · confidence accrual:
+ *   Each successful save increments `usageCount`. After repeated
+ *   submissions of the same project, the operator gets a calm
+ *   "preload from recent reports" banner instead of having to tap
+ *   restore. Project-change detection (see applySetupSnapshotToData)
+ *   gates the auto-apply path so a NEW job does not silently reuse
+ *   the prior crew/equipment.
+ *
+ * Returns the persisted record (with timestamps + nickname + counts).
  */
 export function saveCrewSetup(snapshot, { nickname } = {}) {
   const clean = extractSetupSnapshot(snapshot);
@@ -125,11 +133,23 @@ export function saveCrewSetup(snapshot, { nickname } = {}) {
     clean.project_number || clean.masci_crews.length ||
     clean.subcontractors.length || clean.equipment.length;
   if (!hasAnything) return null;
+  const existing = loadCrewSetup();
+  // Confidence accrual — bump usageCount when the SAME project number
+  // is being saved again. New project → reset to 1 (the operator is
+  // shifting context; the prior accrual no longer applies).
+  let usageCount = 1;
+  let firstSeenAt = _now();
+  if (existing && existing.project_number === clean.project_number) {
+    usageCount = (existing.usageCount || 1) + 1;
+    firstSeenAt = existing.firstSeenAt || existing.savedAt || _now();
+  }
   const record = {
     ...clean,
-    nickname: (nickname || "").trim().slice(0, 60),
+    nickname: (nickname || existing?.nickname || "").trim().slice(0, 60),
     savedAt: _now(),
     lastUsedAt: _now(),
+    firstSeenAt,
+    usageCount,
   };
   return _writeRaw(record);
 }
@@ -230,3 +250,41 @@ export function applySetupSnapshotToData(data, snapshot) {
 // Test-only seam · NOT exported for app code. Kept here so unit tests
 // can flush the slot deterministically without touching window.
 export const __TESTING__ = { STORAGE_KEY, TTL_MS, SCHEMA_VERSION };
+
+// iter442 · confidence proxy. Doctrine-locked:
+//   - device_id may SUGGEST context
+//   - device_id MUST NOT silently hard-lock identity
+//   - if confidence is low, ask minimal setup questions
+//   - if project changes, confirm before reusing crew/equipment
+//
+// `getConfidence()` returns one of "low" | "medium" | "high" based on
+// how many times the SAME project_number has been submitted from this
+// device. Pages use this to decide whether to surface a calm preload
+// banner ("Recent crew and equipment may preload to speed up daily
+// reporting.") vs. always require the manual Use Setup tap.
+export function getCrewMemoryConfidence() {
+  const rec = loadCrewSetup();
+  if (!rec) return { level: "low", usageCount: 0, projectNumber: "" };
+  const n = rec.usageCount || 1;
+  let level = "low";
+  if (n >= 5) level = "high";
+  else if (n >= 2) level = "medium";
+  return {
+    level,
+    usageCount: n,
+    projectNumber: rec.project_number || "",
+    nickname: rec.nickname || "",
+  };
+}
+
+// iter442 · project-change guard. Returns true when the snapshot's
+// project_number differs from the supplied currentProjectNumber AND
+// the operator has any usageCount accrued — i.e., we'd be reusing
+// the crew/equipment for a DIFFERENT job. Pages call this BEFORE
+// auto-applying the setup; if true, the operator must confirm.
+export function isProjectChange(snapshot, currentProjectNumber) {
+  if (!snapshot || !snapshot.project_number) return false;
+  const current = (currentProjectNumber || "").trim();
+  if (!current) return false;
+  return snapshot.project_number !== current;
+}

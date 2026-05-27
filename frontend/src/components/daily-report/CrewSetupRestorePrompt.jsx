@@ -31,7 +31,9 @@ function _relativeDay(ts, t) {
 
 export default function CrewSetupRestorePrompt({
   snapshot,
+  confidence = null,
   onUseSetup,
+  onChangeProject,
   onStartBlank,
   onClear,
   onRename,
@@ -50,6 +52,7 @@ export default function CrewSetupRestorePrompt({
   return (
     <section
       data-testid={testId}
+      data-confidence={confidence?.level || "low"}
       className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 mb-4"
     >
       <div className="flex items-start gap-3">
@@ -59,7 +62,9 @@ export default function CrewSetupRestorePrompt({
         />
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-amber-900">
-            {t("Use yesterday's crew and equipment setup from this device?")}
+            {confidence?.level === "high"
+              ? t("Loaded from recent reports on this iPad.")
+              : t("Recent crew and equipment may preload to speed up daily reporting.")}
           </h3>
           <p className="text-xs text-amber-800 mt-1">
             {t("Saved setups stay only on this device.")}
@@ -150,6 +155,17 @@ export default function CrewSetupRestorePrompt({
           <RotateCcw className="h-4 w-4 mr-1.5" aria-hidden="true" />
           {t("Use Setup")}
         </Button>
+        {onChangeProject ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onChangeProject}
+            data-testid={`${testId}-change-project`}
+            className="h-9 px-4 border-amber-300 text-amber-900 hover:bg-amber-100"
+          >
+            {t("Change project / foreman")}
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="outline"
