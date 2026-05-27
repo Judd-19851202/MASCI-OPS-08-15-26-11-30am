@@ -10,8 +10,8 @@
 
 import {
   Activity, Briefcase, ClipboardList, ClipboardCheck, Users, Camera, UserCheck,
-  Wrench, Truck, FileText, Box, AlertOctagon, ShieldCheck, Image as ImageIcon,
-  Mail, KeyRound, FileImage, GraduationCap, FileDown, Building2,
+  Wrench, Truck, FileText, Box, AlertOctagon, ShieldCheck,
+  Mail, KeyRound, FileImage, GraduationCap,
 } from "lucide-react";
 
 export const DOMAINS_V2 = [
@@ -23,7 +23,6 @@ export const DOMAINS_V2 = [
     icon: Activity,
     routes: [
       { to: "/pm",                   label: "Overview",          desc: "Today's signal across your projects.",         icon: Briefcase, end: true },
-      { to: "/pm/jobs",              label: "Jobs",              desc: "Active jobs assigned to you · master list.",   icon: Building2 },
       { to: "/pm/daily",             label: "Daily Reports",     desc: "Field production, manpower, progress.",        icon: ClipboardList },
       { to: "/pm/inspections",       label: "Inspections",       desc: "Field safety and quality checks.",             icon: ClipboardCheck },
       { to: "/pm/meetings",          label: "Meetings",          desc: "Pre-shift, toolbox, project meetings.",        icon: Users },
@@ -50,7 +49,7 @@ export const DOMAINS_V2 = [
     stripe: "#d97706", // amber-600
     icon: Truck,
     routes: [
-      { to: "/pm/fleet",     label: "Equipment Fleet",  desc: "Status board · master roster · parts.",        icon: Wrench },
+      { to: "/pm/fleet",     label: "Equipment Fleet",  desc: "Master roster and parts catalog (read-only).",  icon: Wrench },
       { to: "/pm/equipment", label: "Pre-Op Checks",    desc: "Today's pre-shift checks across your fleet.",  icon: ClipboardCheck },
       { to: "/pm/suppliers", label: "Suppliers",        desc: "Approved supplier roster (read-only).",        icon: Truck },
       { to: "/pm/people",    label: "People",           desc: "Employee master (read-only).",                 icon: Users },
@@ -71,24 +70,22 @@ export const DOMAINS_V2 = [
   {
     id: "compliance-risk",
     label: "Compliance & Risk",
-    subline: "Incidents, QA/QC, crew compliance, audits.",
+    subline: "Incidents, QA/QC, crew compliance.",
     stripe: "#ea580c", // orange-600
     icon: AlertOctagon,
     routes: [
       { to: "/pm/incidents",          label: "Incidents",         desc: "Open and recent safety/quality deviations.",   icon: AlertOctagon },
       { to: "/pm/qaqc",               label: "QA/QC",             desc: "Quality records across your projects.",        icon: ShieldCheck },
       { to: "/pm/crew-compliance",    label: "Crew Compliance",   desc: "Training, PPE, CAPA exposure, expirations.",   icon: Users },
-      { to: "/pm/compliance-export",  label: "Compliance Export", desc: "Date-range CSV for audits and insurance.",     icon: FileDown },
     ],
   },
   {
     id: "system-communications",
     label: "System & Communications",
-    subline: "Email routing, sign-in, escalations.",
+    subline: "Sign-in credentials.",
     stripe: "#475569", // slate-600
     icon: Mail,
     routes: [
-      { to: "/pm/routing",         label: "Email Routing",     desc: "Active auto-routing rules (admin-edited).",   icon: Mail },
       { to: "/pm/change-password", label: "Change Password",   desc: "Rotate your sign-in credentials.",            icon: KeyRound },
     ],
   },

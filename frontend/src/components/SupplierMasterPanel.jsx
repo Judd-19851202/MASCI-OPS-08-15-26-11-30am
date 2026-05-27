@@ -8,12 +8,13 @@ import { clearSupplierCache } from "@/components/SupplierCombo";
  * bulk XLSX. Feeds Daily-Report Sections 05 (Subcontractors) and 08
  * (Material Deliveries) plus every other supplier dropdown.
  */
-const SupplierMasterPanel = () => (
+const SupplierMasterPanel = ({ readOnly = false }) => (
   <MasterListPanel
     title="MASCI Supplier & Subcontractor List"
     icon={Building2}
     accent="amber"
     testIdPrefix="supplier-master"
+    readOnly={readOnly}
     listEndpoint="/suppliers"
     statusEndpoint="/admin/suppliers/status"
     createEndpoint="/admin/suppliers"

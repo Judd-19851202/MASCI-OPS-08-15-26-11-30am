@@ -7,12 +7,13 @@ import { clearEmployeeCache } from "@/components/EmployeeCombo";
  * MASCI Employee Roster — single-add + table + edit + delete + bulk XLSX.
  * Drives every employee dropdown across the app.
  */
-const EmployeeMasterPanel = () => (
+const EmployeeMasterPanel = ({ readOnly = false }) => (
   <MasterListPanel
     title="MASCI Employee Roster"
     icon={Users}
     accent="amber"
     testIdPrefix="employee-master"
+    readOnly={readOnly}
     listEndpoint="/employees"
     statusEndpoint="/admin/employees/status"
     createEndpoint="/admin/employees"

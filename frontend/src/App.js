@@ -60,7 +60,7 @@ import PmHub from "@/pages/PmHub";
 import PmCrewCompliance from "@/pages/PmCrewCompliance";
 import PmFieldLeadership from "@/pages/PmFieldLeadership";
 import {
-  PmJobs, PmFleet, PmPeople, PmSuppliers, PmPosters, PmRouting, PmComplianceExport,
+  PmFleet, PmPeople, PmSuppliers, PmPosters,
 } from "@/pages/pm/PmSections";
 import PmQaqcList from "@/pages/PmQaqcList";
 import ShopLogin from "@/pages/ShopLogin";
@@ -459,15 +459,16 @@ function App() {
             <Route path="/pm" element={P(<PmHub />)} />
             {/* iter353e-UI · PM Crew Compliance Lens (read-only) */}
             <Route path="/pm/crew-compliance" element={P(<PmCrewCompliance />)} />
-            {/* iter105 — PM Console sub-routes (mirrors AdminConsole layout) */}
-            <Route path="/pm/jobs"               element={P(<PmJobs />)} />
+            {/* iter105 — PM Console sub-routes (mirrors AdminConsole layout)
+                iter437 P0 Auth Routing — `/pm/jobs`, `/pm/routing`,
+                `/pm/compliance-export` removed: their panels hardcode
+                `/api/admin/*` endpoints the PM token cannot satisfy.
+                See PORTAL_AUTH_TOKEN_AUDIT.md. */}
             <Route path="/pm/field-leadership"   element={P(<PmFieldLeadership />)} />
             <Route path="/pm/fleet"              element={P(<PmFleet />)} />
             <Route path="/pm/people"             element={P(<PmPeople />)} />
             <Route path="/pm/suppliers"          element={P(<PmSuppliers />)} />
             <Route path="/pm/posters"            element={P(<PmPosters />)} />
-            <Route path="/pm/routing"            element={P(<PmRouting />)} />
-            <Route path="/pm/compliance-export"  element={P(<PmComplianceExport />)} />
             <Route path="/pm/qaqc" element={P(<PmQaqcList />)} />
             <Route path="/pm/photos" element={P(<JobPhotosLibrary portalKey="pm" />)} />
 

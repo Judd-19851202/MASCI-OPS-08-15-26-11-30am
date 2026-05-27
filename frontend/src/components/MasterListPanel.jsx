@@ -66,7 +66,14 @@ export default function MasterListPanel({
   entitySingular = "entry",
   onChange,
   search = true,
+  // iter437 P0 Auth Routing — when true, the panel only calls the public
+  // `listEndpoint`. All write surfaces (add / edit / delete / upload /
+  // export / archive / status) are suppressed so non-admin portals (PM,
+  // HR, etc.) never fire an `/api/admin/*` request they cannot satisfy.
+  // See /app/memory/PORTAL_AUTH_TOKEN_AUDIT.md.
+  readOnly = false,
 }) {
+  const writeAllowed = !readOnly;
   const [items, setItems] = useState([]);
   const [archive, setArchive] = useState([]);
   const [retainDays, setRetainDays] = useState(14);
@@ -101,8 +108,8 @@ export default function MasterListPanel({
     try {
       const [listR, statusR, archiveR] = await Promise.all([
         api.get(listEndpoint),
-        statusEndpoint ? api.get(statusEndpoint) : Promise.resolve({ data: null }),
-        archiveEndpoint ? api.get(archiveEndpoint) : Promise.resolve({ data: { items: [], retain_days: 14 } }),
+        writeAllowed && statusEndpoint ? api.get(statusEndpoint) : Promise.resolve({ data: null }),
+        writeAllowed && archiveEndpoint ? api.get(archiveEndpoint) : Promise.resolve({ data: { items: [], retain_days: 14 } }),
       ]);
       const arr = listR.data?.items || listR.data || [];
       setItems(Array.isArray(arr) ? arr : []);
@@ -276,7 +283,7 @@ export default function MasterListPanel({
         >
           <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
         </Button>
-        {exportEndpoint && (
+        {writeAllowed && exportEndpoint && (
           <Button
             type="button"
             variant="outline"
@@ -294,29 +301,33 @@ export default function MasterListPanel({
             Export
           </Button>
         )}
-        <input
-          ref={fileRef}
-          type="file"
-          accept={uploadAccept}
-          onChange={onFile}
-          className="hidden"
-          data-testid={`${testIdPrefix}-bulk-input`}
-        />
-        <Button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className={`h-8 px-3 ${accentBg} text-white font-mono uppercase tracking-wide text-[11px]`}
-          data-testid={`${testIdPrefix}-bulk-btn`}
-          title={uploadHint}
-        >
-          {uploading ? (
-            <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-          ) : (
-            <UploadCloud className="w-3.5 h-3.5 mr-1" />
-          )}
-          Bulk Replace
-        </Button>
+        {writeAllowed && (
+          <>
+            <input
+              ref={fileRef}
+              type="file"
+              accept={uploadAccept}
+              onChange={onFile}
+              className="hidden"
+              data-testid={`${testIdPrefix}-bulk-input`}
+            />
+            <Button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className={`h-8 px-3 ${accentBg} text-white font-mono uppercase tracking-wide text-[11px]`}
+              data-testid={`${testIdPrefix}-bulk-btn`}
+              title={uploadHint}
+            >
+              {uploading ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+              ) : (
+                <UploadCloud className="w-3.5 h-3.5 mr-1" />
+              )}
+              Bulk Replace
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Stats + add-one form */}
@@ -339,7 +350,7 @@ export default function MasterListPanel({
           )}
         </div>
 
-        <form onSubmit={addOne} className="mt-4">
+        <form onSubmit={addOne} className="mt-4" hidden={!writeAllowed}>
           <div
             className="grid gap-3"
             style={{
@@ -383,7 +394,7 @@ export default function MasterListPanel({
       {/* Search + table */}
       <div className="p-5">
         {/* Active / Archive toggle */}
-        {archiveEndpoint && (
+        {writeAllowed && archiveEndpoint && (
           <div className="mb-3 flex items-center gap-2 flex-wrap" data-testid={`${testIdPrefix}-tabs`}>
             <Button
               type="button"
@@ -516,9 +527,11 @@ export default function MasterListPanel({
                       {f.label}
                     </th>
                   ))}
-                  <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-32">
-                    Actions
-                  </th>
+                  {writeAllowed && (
+                    <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-32">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -549,6 +562,7 @@ export default function MasterListPanel({
                           )}
                         </td>
                       ))}
+                      {writeAllowed && (
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         {isEditing ? (
                           <>
@@ -604,6 +618,7 @@ export default function MasterListPanel({
                           </>
                         )}
                       </td>
+                      )}
                     </tr>
                   );
                 })}

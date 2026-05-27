@@ -87,7 +87,8 @@ const blankUnit = {
   comments: "",
 };
 
-export default function EquipmentMasterPanel() {
+export default function EquipmentMasterPanel({ readOnly = false }) {
+  const writeAllowed = !readOnly;
   const [items, setItems] = useState([]);
   const [archive, setArchive] = useState([]);
   const [retainDays, setRetainDays] = useState(14);
@@ -113,8 +114,8 @@ export default function EquipmentMasterPanel() {
     try {
       const [listR, statusR, archR] = await Promise.all([
         api.get("/equipment-master"),
-        api.get("/admin/equipment-master/status").catch(() => ({ data: null })),
-        api.get("/admin/equipment-master/archive").catch(() => ({ data: { items: [], retain_days: 14 } })),
+        writeAllowed ? api.get("/admin/equipment-master/status").catch(() => ({ data: null })) : Promise.resolve({ data: null }),
+        writeAllowed ? api.get("/admin/equipment-master/archive").catch(() => ({ data: { items: [], retain_days: 14 } })) : Promise.resolve({ data: { items: [], retain_days: 14 } }),
       ]);
       setItems(listR.data?.items || []);
       setGrouped(listR.data?.grouped || {});
@@ -315,6 +316,8 @@ export default function EquipmentMasterPanel() {
         >
           <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
         </Button>
+        {writeAllowed && (
+        <>
         <Button
           type="button"
           variant="outline"
@@ -354,6 +357,8 @@ export default function EquipmentMasterPanel() {
           )}
           Bulk Replace
         </Button>
+        </>
+        )}
       </div>
 
       {/* Stats + Add */}
@@ -377,6 +382,7 @@ export default function EquipmentMasterPanel() {
           onClick={openNew}
           className="h-9 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs ml-auto"
           data-testid="equipment-master-add-btn"
+          hidden={!writeAllowed}
         >
           <Plus className="w-4 h-4 mr-1" /> Add Unit
         </Button>
@@ -385,6 +391,7 @@ export default function EquipmentMasterPanel() {
       {/* Search + filter */}
       <div className="p-5">
         {/* Active / Archive tabs */}
+        {writeAllowed && (
         <div className="mb-3 flex items-center gap-2 flex-wrap" data-testid="equipment-tabs">
           <Button
             type="button"
@@ -418,6 +425,7 @@ export default function EquipmentMasterPanel() {
             </span>
           )}
         </div>
+        )}
 
         {!showArchive && (
           <div className="flex items-center gap-2 flex-wrap mb-3">
@@ -521,7 +529,9 @@ export default function EquipmentMasterPanel() {
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Model</th>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Category</th>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Pre-Op Type</th>
-                  <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-24">Actions</th>
+                  {writeAllowed && (
+                    <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-24">Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -535,6 +545,7 @@ export default function EquipmentMasterPanel() {
                       <td className="px-3 py-2 text-slate-700">{u.model || "—"}</td>
                       <td className="px-3 py-2 text-slate-500 text-xs">{u.category || "—"}</td>
                       <td className="px-3 py-2 text-slate-500 text-xs">{u.preop_equipment_type || "—"}</td>
+                      {writeAllowed && (
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         <Link
                           to={`/admin/assets/${id}`}
@@ -568,6 +579,7 @@ export default function EquipmentMasterPanel() {
                           )}
                         </Button>
                       </td>
+                      )}
                     </tr>
                   );
                 })}

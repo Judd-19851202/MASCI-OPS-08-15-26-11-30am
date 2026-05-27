@@ -171,6 +171,19 @@ stage_sigma3_prod_contamination() {
   python3 scripts/verify_no_contamination.py --target masci_safety
 }
 
+# ─── iter437 P0 Auth Routing — 2026-02 ───────────────────────────────
+# Lightweight, fast-running guard against the regression documented in
+# /app/memory/PORTAL_AUTH_TOKEN_AUDIT.md: non-Admin portals must NEVER
+# leak /api/admin/* calls. Re-runs the dedicated Playwright suite that
+# walks every PM sidebar entry and asserts zero admin-namespace calls.
+# Cheaper than the full pw_suite/ pass — runs only the auth-routing
+# tests, useful as a `--auth-only` mode pre-check.
+
+stage_portal_auth_routing() {
+  cd "$REPO_ROOT/backend"
+  python3 -m pytest -q --tb=short tests/pw_suite/test_portal_token_routing.py
+}
+
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
 
@@ -185,6 +198,7 @@ if [[ "$MODE" != "auth-only" ]]; then
 fi
 
 run_stage "Auth + RBAC critical tests" stage_auth_rbac_tests
+run_stage "Portal auth-routing (iter437 P0 · /api/admin/* leak guard)" stage_portal_auth_routing
 
 # Sigma-III enforceable gates — run on every mode (these are the
 # minimum operational-trust contract the platform now ships under).

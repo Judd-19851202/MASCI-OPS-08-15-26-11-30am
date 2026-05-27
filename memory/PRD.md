@@ -1,6 +1,92 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-AUTH-FIX · Portal Auth/Token Routing P0 🟢
+
+### Mission
+Operator-reported P0: PM portal users clicking "PM People" (and other
+shared roster sidebar entries) saw an "Admin login required" toast and
+the page failed to render. Per directive: halt all UX work, audit every
+portal (PM + HR + Safety + Dispatch + Shop + FL), produce
+`PORTAL_AUTH_TOKEN_AUDIT.md`, fix without backend rewrites, add
+permanent regression coverage, and ship live for everyone (NOT behind a
+feature flag — this is an auth correctness fix, not a UX experiment).
+
+### Root cause (1 sentence)
+Shared admin panels (`EmployeeMasterPanel`, `SupplierMasterPanel`,
+`EquipmentMasterPanel`, `AdminJobMasterPanel`, `EquipmentStatusBoard`,
+`AutoEmailRoutingPanel`, `ComplianceExportPanel`, `TrainingStatsStripe`)
+hardcode `/api/admin/*` endpoint URLs; when re-mounted inside `PmShell`
+the PM token was attached to those calls; the iter180 doctrine
+(`/api/admin/*` is strict-admin, no per-portal bypasses) rejected them
+with 401 "Admin login required".
+
+### What shipped — frontend-only · additive · reversible · ~140 LOC
+
+- **`MasterListPanel.jsx`** — new `readOnly` prop suppresses
+  status/archive/CRUD/upload calls AND hides their UI. Default behavior
+  unchanged for Admin Hub.
+- **`EmployeeMasterPanel.jsx`, `SupplierMasterPanel.jsx`** — accept and
+  forward `readOnly`.
+- **`EquipmentMasterPanel.jsx`** — new `readOnly` prop skips the 2 ×
+  `/admin/equipment-master/*` calls and hides Export / Bulk Replace /
+  Add Unit / Edit / Delete / Archive UI.
+- **`PmSections.jsx`** rewritten — kept PmPeople, PmSuppliers, PmFleet,
+  PmPosters with `readOnly` (or admin panels stripped). Removed
+  `PmJobs`, `PmRouting`, `PmComplianceExport` entirely per the user's
+  doctrine ("if there is no PM-safe endpoint, it does not belong in the
+  PM portal yet").
+- **`App.js`** — removed orphan `/pm/jobs`, `/pm/routing`,
+  `/pm/compliance-export` routes.
+- **`PmShell.jsx`** (V1 sidebar) — trimmed sections list to match.
+- **`pm/sidebar/domainMap.js`** (V2 sidebar) — trimmed routes to match.
+
+### Regression coverage shipped
+
+- **`backend/tests/pw_suite/test_portal_token_routing.py`** (NEW · 21
+  tests, 6 routes × 3 viewports + 3 sidebar checks). For every PM
+  sidebar entry:
+  - Asserts ZERO `/api/admin/*` calls fire from PM context
+  - Asserts body does NOT contain "Admin login required"
+- **`pre_deploy_check.sh`** — new explicit stage "Portal auth-routing
+  (iter437 P0 · /api/admin/* leak guard)" runs the test above before
+  any deploy.
+
+### Audit deliverable
+
+- **`/app/memory/PORTAL_AUTH_TOKEN_AUDIT.md`** — 7-section audit:
+  scope, root cause, cross-portal scan matrix (PM + HR + Safety +
+  Dispatch + Shop + FL), per-panel verdict & recommended owning
+  portal, fix shipped, regression coverage, doctrine reaffirmed,
+  future P2 follow-ups (move `/admin/projects/list` etc. to non-admin
+  namespace so AP-gated `/admin/pnl` works for PMs).
+
+### Verification matrix (all green)
+
+| Surface | Result |
+|---|---|
+| Live PM token → `/api/employees` | 200 · 234 items |
+| Live PM token → `/api/admin/employees/status` (proves boundary intact) | 401 "Invalid admin token" |
+| Live PM browser load of `/pm/people` | renders 234 employees · zero `/api/admin/*` calls · no error toast |
+| Playwright `test_portal_token_routing.py` | **21/21 passed in 106s** |
+| Playwright `test_pm_hub_v2_layout.py` + V1 + V2 sidebar | 28 passed · pre-existing flake cleared on re-run |
+| `mcp_lint_javascript` on all 8 changed files | ✅ no issues |
+
+### Doctrine reaffirmed
+
+- ✅ NO backend rewrites · iter180 `/api/admin/*` boundary untouched
+- ✅ NO destructive schema migrations · NO production touches
+- ✅ Fix live for everyone (not behind a feature flag — this is
+  platform correctness, not UX experiment)
+- ✅ No `if PM then bypass` logic · no duplicated token handling
+- ✅ Additive (`readOnly` prop) and reversible (removed routes can be
+  re-added once a PM-safe backend endpoint exists)
+
+# 🟢 PHASE IV-AUTH-FIX · iter437 · CLOSED
+
+---
+
+
 ## 2026-02 (fork) — iter437 · Phase SIGMA-III · Operational Trust Hardening 🟢🟢
 
 ### Mission

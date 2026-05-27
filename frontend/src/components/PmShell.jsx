@@ -34,14 +34,11 @@ import { toast } from "sonner";
 
 const SECTIONS = [
   { key: "overview",        to: "/pm",                   icon: LayoutDashboard, label: "Overview",        desc: "Forms · Jobs · Search" },
-  { key: "jobs",            to: "/pm/jobs",              icon: Building2,       label: "Jobs",            desc: "Active jobs · Master list" },
   { key: "field-leadership", to: "/pm/field-leadership", icon: UserCheck,       label: "Field Leadership", desc: "Crew docs · My jobs only" },
-  { key: "fleet",           to: "/pm/fleet",             icon: Wrench,          label: "Equipment Fleet", desc: "Status board · Master · Parts" },
+  { key: "fleet",           to: "/pm/fleet",             icon: Wrench,          label: "Equipment Fleet", desc: "Master · Parts (read-only)" },
   { key: "people",          to: "/pm/people",            icon: Users,           label: "People",          desc: "Employee master (read-only)" },
   { key: "suppliers",       to: "/pm/suppliers",         icon: Truck,           label: "Suppliers",       desc: "Supplier master (read-only)" },
   { key: "posters",         to: "/pm/posters",           icon: FileImage,       label: "Site Posters",    desc: "JHP · Trench Box · Inspection QRs" },
-  { key: "routing",         to: "/pm/routing",           icon: Mail,            label: "Email Routing",   desc: "Auto-routing summary" },
-  { key: "compliance-export", to: "/pm/compliance-export", icon: ClipboardCheck, label: "Compliance Export", desc: "Date-range CSV export" },
 ];
 
 export { SECTIONS };
