@@ -46,6 +46,8 @@ import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+import DispatchSideNavV2, { useDispatchSidebarV2Enabled } from "@/components/dispatch/sidebar/DispatchSideNavV2";
+import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 
@@ -66,6 +68,8 @@ export default function DispatchHub() {
   const { t } = useT();
   const nav = useNavigate();
   const user = getDispatchUser() || {};
+  // iter437 IV-BETA.5A-P5B · Dispatch Sidebar V2 behind ?dispatchSidebarV2=1.
+  const sidebarV2 = useDispatchSidebarV2Enabled();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createHaulType, setCreateHaulType] = useState("Material");
@@ -173,7 +177,13 @@ export default function DispatchHub() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-6 flex-1 w-full">
+      <div className={sidebarV2 ? "max-w-7xl mx-auto flex w-full" : ""}>
+        {sidebarV2 && (
+          <DispatchSideNavV2 className="hidden lg:block w-64 flex-shrink-0 min-h-[calc(100vh-200px)]" />
+        )}
+        <main className={sidebarV2
+          ? "flex-1 px-5 sm:px-8 py-6 space-y-6 w-full"
+          : "max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-6 flex-1 w-full"}>
         {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
             self-gated · dismissible · single-card · NEVER nags */}
         <PasskeyEnrollPrompt />
@@ -470,6 +480,7 @@ export default function DispatchHub() {
           </div>
         </Section>
       </main>
+      </div>
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 w-full flex flex-col items-center gap-2">
         <ForgedOpsAttribution variant="footer" />

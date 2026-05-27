@@ -498,14 +498,10 @@ class AdminLoginRequest(BaseModel):
 # absolutely synchronous + dependency-free is what prevents production
 # outages.
 # ─────────────────────────────────────────────────────────────────────────
-@api_router.get("/health")
-def api_health():
-    return {"ok": True, "service": "masci-hub", "ts": datetime.now(timezone.utc).isoformat()}
-
-
-@api_router.get("/healthz")
-def api_healthz():
-    return {"ok": True}
+# iter437 IV-BETA.5A-P5D · /api/health and /api/healthz extracted to
+# routes/health_routes.py (build_health_router). The deeper /api/health/full
+# and /api/version remain in this file pending their own catalogued
+# extraction pass.
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -8708,6 +8704,12 @@ app.include_router(build_training_center_router(db, require_admin, _guidance_cal
 from routes.guidance_routes import build_guidance_router  # noqa: E402
 
 app.include_router(build_guidance_router(db, _guidance_caller_scopes))
+
+# iter437 IV-BETA.5A-P5D · Safe route extraction · /api/health + /api/healthz.
+# Zero dependencies · stateless · safest possible extraction.
+from routes.health_routes import build_health_router  # noqa: E402
+
+app.include_router(build_health_router())
 
 
 # ─── Deploy Readiness Aggregator (iter136) ──────────────────────────

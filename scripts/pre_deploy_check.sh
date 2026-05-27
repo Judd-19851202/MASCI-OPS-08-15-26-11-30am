@@ -311,4 +311,19 @@ fi
 
 echo ""
 echo "  ✅ GATE PASSED — safe to click Emergent Deploy."
+
+# iter437 IV-BETA.5A-P5A · Auto-deploy checkpoint.
+# Append a quiet `auto · deploy {sha}` checkpoint so every gate-passing
+# build becomes a retrievable governance reference. Operator-blessed
+# checkpoints are preserved (last-write-wins per portal); deploy
+# checkpoints serve as operational breadcrumbs between them.
+# Filesystem-only · no DB writes · no notifications · no UI surface.
+if [[ -f "$REPO_ROOT/scripts/diff_doctrine_baseline.py" ]]; then
+  DEPLOY_SHA=$(cd "$REPO_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+  python3 "$REPO_ROOT/scripts/diff_doctrine_baseline.py" --append \
+    --checkpoint "auto · deploy $DEPLOY_SHA" 2>/dev/null \
+    && echo "  ✓ auto-deploy checkpoint appended (sha=$DEPLOY_SHA)" \
+    || true
+fi
+
 exit 0

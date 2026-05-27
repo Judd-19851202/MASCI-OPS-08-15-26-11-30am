@@ -1,0 +1,70 @@
+{
+  "_meta": {
+    "version": "iter437.IV-BETA.5A-P5B",
+    "generated": "2026-02-27",
+    "purpose": "Canonical 4-domain priority map for the Dispatch portal. Drives the Dispatch Sidebar V2 domain order and the eventual Dispatch Hub tile stripe palette. Mirrors PM / HR / Safety priority-map discipline while honouring Dispatch's real-time / interruption-heavy operational rhythm.",
+    "verification": "VERIFIED · matches frontend/src/components/dispatch/sidebar/DispatchSideNavV2.jsx",
+    "doctrine": "Dispatch governance is operational velocity discipline · NOT minimalism. Red stripe reserved for the live haul-board domain because that surface owns true real-time urgency. Every non-board surface visually demotes so the board never has to compete for the operator's eye."
+  },
+  "domains": [
+    {
+      "id": "live-board",
+      "label": "Live Board",
+      "order": 1,
+      "subline": "Haul-board, escalations, breakdowns. Real-time scan.",
+      "stripe": "#b91c1c",
+      "rationale": "Highest operational velocity surface. Owns the 5-second polling cadence and the four-signal escalation policy. The ONE red domain — true real-time urgency anchor.",
+      "routes": [
+        {"to": "/dispatch-portal/board",            "label": "Haul Board",            "tier": "P0"},
+        {"to": "/dispatch-portal",                  "label": "Dispatch Hub",          "tier": "P0"},
+        {"to": "/dispatch-portal/assignments/new",  "label": "Create Assignment",     "tier": "P0"}
+      ]
+    },
+    {
+      "id": "driver-coordination",
+      "label": "Driver Coordination",
+      "order": 2,
+      "subline": "Drivers, qualifications, magic-link sessions.",
+      "stripe": "#0e7490",
+      "rationale": "Driver-side workflows. Cyan stripe carries the Dispatch chrome accent without competing with red.",
+      "routes": [
+        {"to": "/dispatch-portal/drivers",                "label": "Drivers Directory",       "tier": "P0"},
+        {"to": "/dispatch-portal/driver-qualification",   "label": "Driver Qualification",    "tier": "P0"},
+        {"to": "/dispatch-portal/sessions",                "label": "Active Sessions",          "tier": "P1"}
+      ]
+    },
+    {
+      "id": "lifecycle-records",
+      "label": "Lifecycle & Records",
+      "order": 3,
+      "subline": "Truck lifecycle, history, transition trails.",
+      "stripe": "#7c3aed",
+      "rationale": "Read-mostly records. Violet differentiates from urgent red and operational cyan; signals 'reference, not real-time'.",
+      "routes": [
+        {"to": "/dispatch-portal/lifecycle",         "label": "Truck Lifecycle",       "tier": "P0"},
+        {"to": "/dispatch-portal/history",           "label": "Assignment History",    "tier": "P1"},
+        {"to": "/dispatch-portal/reports",           "label": "Reports & Exports",     "tier": "P1"}
+      ]
+    },
+    {
+      "id": "guidance-support",
+      "label": "Guidance & Support",
+      "order": 4,
+      "subline": "Operator guides, password rotation, training center.",
+      "stripe": "#475569",
+      "rationale": "Lowest-frequency Dispatch surfaces. Slate communicates 'support, not operations'.",
+      "routes": [
+        {"to": "/guidance?from=dispatch",                "label": "Training Center",       "tier": "P1"},
+        {"to": "/dispatch-portal/change-password",       "label": "Change Password",       "tier": "P2"}
+      ]
+    }
+  ],
+  "doctrine_compliance": {
+    "verbiage_doctrine": "All labels and sublines pass verify_admin_copy.py — no banned phrases.",
+    "coaching_standard": "All sublines ≤14 words, sentence-cased, end with period.",
+    "loudness": "Four stripe colours total (red · cyan · violet · slate); chrome stays slate-900.",
+    "escalation_contract": "Red reserved for live-board domain + severity pills + severe-tier escalations. Status pills neutral slate.",
+    "operational_velocity": "Sidebar mount is behind ?dispatchSidebarV2=1; the 5 s polling cadence is doctrine-locked; no governance instrument may slow operator scan speed.",
+    "auth_routing": "Dispatch portal token isolated · zero /api/admin/* calls from Dispatch context."
+  }
+}

@@ -120,15 +120,38 @@ def _direction_for(portal: str, current_loudness: float) -> Dict[str, Any]:
     records = _load_trendline_records(portal)
 
     # ── Checkpoint reference (preferred when present) ──────────────
-    checkpoints = [r for r in records if r.get("checkpoint")]
-    if checkpoints:
-        last_cp = checkpoints[-1]
-        cp_loud = float(last_cp.get("calmness") or 0.0)
+    # iter437 IV-BETA.5A-P5A · Operator checkpoints OUTRANK auto-deploy
+    # checkpoints. An auto checkpoint is the breadcrumb between operator
+    # milestones; the chip should anchor to the operator milestone when
+    # one exists, falling back to the most recent auto checkpoint
+    # otherwise.
+    operator_cps = [
+        r for r in records
+        if r.get("checkpoint")
+        and not (r.get("checkpoint_label") or "").startswith("auto · deploy")
+    ]
+    auto_cps = [
+        r for r in records
+        if r.get("checkpoint")
+        and (r.get("checkpoint_label") or "").startswith("auto · deploy")
+    ]
+    checkpoint = None
+    checkpoint_kind = None
+    if operator_cps:
+        checkpoint = operator_cps[-1]
+        checkpoint_kind = "operator"
+    elif auto_cps:
+        checkpoint = auto_cps[-1]
+        checkpoint_kind = "auto"
+
+    if checkpoint is not None:
+        cp_loud = float(checkpoint.get("calmness") or 0.0)
         delta = round(current_loudness - cp_loud, 2)
         cp_payload = {
-            "checkpoint_label": last_cp.get("checkpoint_label") or "",
-            "checkpoint_timestamp": last_cp.get("timestamp") or "",
+            "checkpoint_label": checkpoint.get("checkpoint_label") or "",
+            "checkpoint_timestamp": checkpoint.get("timestamp") or "",
             "checkpoint_calmness": cp_loud,
+            "checkpoint_kind": checkpoint_kind,
             "delta_since_checkpoint": delta,
         }
         if abs(delta) < DIRECTION_DELTA_THRESHOLD:

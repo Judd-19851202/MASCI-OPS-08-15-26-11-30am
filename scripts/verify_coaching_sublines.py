@@ -68,6 +68,7 @@ COACHING_FILES = [
     "frontend/src/pages/pm/PmSections.jsx",
     "frontend/src/components/hr/sidebar/HrSideNavV2.jsx",
     "frontend/src/components/safety/sidebar/SafetySideNavV2.jsx",
+    "frontend/src/components/dispatch/sidebar/DispatchSideNavV2.jsx",
 ]
 
 EMOJI_RE = re.compile(

@@ -55,13 +55,16 @@ export default function GovernanceHealthChip({ portal }) {
   const dir = data.direction || "new";
   const delta = typeof data.delta === "number" ? data.delta : null;
   const state = data.state || "stable";
-  // iter437 IV-BETA.5A-P3A · Checkpoint-aware reference.
-  // When the endpoint has an operator-blessed checkpoint for this portal,
-  // `data.reference === "checkpoint"`. The chip suffixes "since
-  // checkpoint" on drift so the operator reads the delta against the
-  // baseline THEY blessed — not against rolling math.
+  // iter437 IV-BETA.5A-P5A · Checkpoint-aware reference.
+  // The endpoint distinguishes operator checkpoints from auto-deploy
+  // checkpoints via `checkpoint_kind`. The chip suffix follows:
+  //   • operator → "since checkpoint"   (sacred milestone reference)
+  //   • auto     → "since deploy"       (operational breadcrumb)
   const sinceCp = data.reference === "checkpoint";
-  const sinceSuffix = sinceCp ? " since checkpoint" : "";
+  const kind = data.checkpoint_kind || "operator";
+  const sinceSuffix = sinceCp
+    ? (kind === "auto" ? " since deploy" : " since checkpoint")
+    : "";
 
   // Choose label by priority: a real `drift` state always wins; otherwise
   // honour the direction signal; fall back to the static state.
