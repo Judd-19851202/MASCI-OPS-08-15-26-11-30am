@@ -824,10 +824,22 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
     @router.get("/{photo_id}/raw")
     async def get_photo_raw(
         photo_id: str,
+        response: Response,
         actor=Depends(require_caller),
     ):
         """Return the actual data URL for a single photo (used for
-        lightbox + thumbnail rendering). PM-scoped."""
+        lightbox + thumbnail rendering). PM-scoped.
+
+        iter437 P0-incident fix · 2026-02:
+          Response carries inline base64 image data. It is auth-scoped
+          and user-specific. It MUST NOT be cached by browsers/edges
+          (during the 2026-02 production outage, Cloudflare's 520 HTML
+          error page was cached by iOS Safari against this URL with
+          `immutable` for 7 days, persistently poisoning the mobile
+          photo viewer even after origin recovered). Forcing
+          `no-store` here prevents any future poisoning regardless of
+          intermediate proxy behaviour.
+        """
         scope = await compute_pm_scope(db, actor)
         meta = await db.job_photos.find_one({"id": photo_id}, {"_id": 0})
         if not meta:
@@ -837,6 +849,8 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
         if not url:
             raise HTTPException(404, "source photo missing")
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+        response.headers["Pragma"] = "no-cache"
         return {"data_url": url, "meta": meta}
 
     @router.get("/{photo_id}/thumb")
@@ -892,13 +906,18 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
     @router.post("/raw-batch")
     async def get_photo_raw_batch(
         body: BulkSelection,
+        response: Response,
         actor=Depends(require_caller),
     ):
         """Bulk fetch up to 50 full-resolution photos in a single round-trip.
         Used by the lightbox preloader and downstream tooling that needs
-        original bytes (e.g. ZIP). For gallery thumbnails, use /thumb."""
+        original bytes (e.g. ZIP). For gallery thumbnails, use /thumb.
+
+        iter437 P0 · same `no-store` doctrine as /raw above — see note there.
+        """
         ids = (body.photo_ids or [])[:50]
         if not ids:
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
             return {"items": []}
         scope = await compute_pm_scope(db, actor)
         metas = await db.job_photos.find(
@@ -912,6 +931,8 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
             if not url:
                 continue
             out.append({"id": meta["id"], "data_url": url})
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+        response.headers["Pragma"] = "no-cache"
         return {"items": out}
 
     @router.post("/zip")

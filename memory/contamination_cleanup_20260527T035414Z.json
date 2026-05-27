@@ -1,0 +1,4517 @@
+{
+  "generated_at": "2026-05-27T03:54:14.943765+00:00",
+  "mode": "dry-run",
+  "tier_a_notifications": [
+    {
+      "id": "48dee13b-1b17-45ec-a8aa-063d0f9461f9",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-6415ea46 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00047 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "a7027b55-3b92-4d97-b108-d751eaae0830",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "2a330ec7-0fa0-4c68-a7c3-bcc13207dbcc",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:18:29.180000",
+      "expires_at": "2026-07-14 23:18:29.180000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "f0b6ea49-1394-4462-94b0-3ef1440261ab",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-b71aef21 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00053 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "99be47d6-c254-4e8c-bd0f-2eae2eb1d5ed",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "34383342-205b-4a50-9562-33265fadc2ca",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:34:54.848000",
+      "expires_at": "2026-07-14 23:34:54.848000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "31bf2b39-eb02-44fc-99c1-185f63d0b9c2",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-b71aef21 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "34383342-205b-4a50-9562-33265fadc2ca",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:34:54.848000",
+      "expires_at": "2026-07-14 23:34:54.848000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "3a1907c0-d0f0-494c-8b2b-fc99d6d0ecad",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-b71aef21 (2 items)",
+      "message": "PE-b71aef21 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "34383342-205b-4a50-9562-33265fadc2ca",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:34:54.848000",
+      "expires_at": "2026-07-14 23:34:54.848000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "accae00d-ca9a-4c76-8585-7b4e468aa5bd",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-e4f04fcd (2 items)",
+      "message": "PE-e4f04fcd flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "384f0ce7-13ac-465c-91b6-0761e6e49752",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 00:08:40.693000",
+      "expires_at": "2026-07-15 00:08:40.693000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "3943fa52-739a-41af-acfd-6c83010649b6",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-80f9bbe4 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00059 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "ac1959ef-581d-4782-a77b-8e55a6c9234d",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ac01f8f8-fcb3-4463-8bb7-416805040e95",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 00:28:25.284000",
+      "expires_at": "2026-07-15 00:28:25.284000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "762d0940-9946-40a8-9e70-90c6c541cf3c",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "c763dd65-25b9-4d5d-8a8f-77d7f759f1d7",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:17:21.818000",
+      "expires_at": "2026-07-15 02:17:21.818000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "552581de-1ee8-4f52-baa8-cf948bd55cc5",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-77af04 (1 item)",
+      "message": "TST-A23-77af04 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "783ecf0f-c7b7-461b-aa00-75e6085a6e46",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:22:59.163000",
+      "expires_at": "2026-07-15 02:22:59.163000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "fc1c219d-b508-4728-bef2-90d9476c7489",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-2cae489f (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00083 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "27a6e6f9-6447-4a90-a74e-8ab23a7e7941",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "6131f0c5-c203-44f6-ad35-93d8c3b31919",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 19:59:27.498000",
+      "expires_at": "2026-07-17 19:59:27.498000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "474bfe30-01d6-472a-9024-4f5a9b526e55",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-4516959c (2 items)",
+      "message": "PE-4516959c flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "47311896-0632-4ca8-a80b-868b8f59a1da",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 20:01:28.410000",
+      "expires_at": "2026-07-17 20:01:28.410000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "a7273ae3-3506-4bcc-b1b5-9c2dc494f36c",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "f44772ef-60b8-4f1b-9223-019c735a774c",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 02:41:38.008000",
+      "expires_at": "2026-07-18 02:41:38.008000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "1dd619b3-da09-4792-a467-86c48822cea7",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-892121c6 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00110 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "da5f9a47-856e-46bf-85c1-6e15447111e2",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "04049678-a3e5-4337-b53d-c39f20310d05",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 15:50:49.901000",
+      "expires_at": "2026-07-18 15:50:49.901000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "dedcf55e-cc1e-4816-b031-1ad6f67d9232",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-3e2882 (1 item)",
+      "message": "TST-A23-3e2882 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "3056f23f-825e-4e05-8237-86b99204ff07",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 15:59:33.570000",
+      "expires_at": "2026-07-18 15:59:33.570000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "2cd4fb80-6136-4795-bffe-68433b0592b6",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-d747c165 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "546f3d35-150e-4b2b-b7d7-c44518c811b4",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 01:17:37.729000",
+      "expires_at": "2026-07-19 01:17:37.729000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "d9c31cc5-c0c9-4d2a-9d98-be1e524a6330",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-d747c165 (2 items)",
+      "message": "PE-d747c165 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "546f3d35-150e-4b2b-b7d7-c44518c811b4",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 01:17:37.729000",
+      "expires_at": "2026-07-19 01:17:37.729000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "2f7c5a08-f8ee-4a04-94be-01db93ca66d1",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "204b1018-ae3c-46e1-823e-d4fa0478ed06",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 01:26:55.006000",
+      "expires_at": "2026-07-19 01:26:55.006000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "cfce1316-e35b-4115-b7ad-dc6fcace8580",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-b43463 (1 item)",
+      "message": "TST-A23-b43463 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "8018bec3-2baa-4e13-ba5a-55603e21fa5b",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 17:11:51.363000",
+      "expires_at": "2026-07-19 17:11:51.363000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "67626d70-1e65-481b-90dc-599fc5d8bec9",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-a01bc3fb (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00168 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "50cdecd9-c848-406f-b0c0-bc35bdfd5d9d",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "cbed86f7-dd79-4962-81be-ddb311e353d3",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-22 15:04:02.387000",
+      "expires_at": "2026-07-21 15:04:02.387000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "658a94ef-3b41-4ef0-aec0-d5477d7381b6",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-a01bc3fb (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "cbed86f7-dd79-4962-81be-ddb311e353d3",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-22 15:04:02.388000",
+      "expires_at": "2026-07-21 15:04:02.388000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "32f10db3-c1a8-4a0c-9ddf-0b215ef8b67c",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "3d70defb-b10d-46e9-b751-3c68187fdb90",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-22 15:07:35.381000",
+      "expires_at": "2026-07-21 15:07:35.381000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "cbc9af7a-2278-4c4d-94fd-b405450b86ed",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-8fa59bdc (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "5b3e6d68-0a3a-4b01-807c-b077f705ad8e",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-23 21:21:43.696000",
+      "expires_at": "2026-07-22 21:21:43.696000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "52823fb7-33d5-40fc-8732-3c3d8b3f89f9",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-a8142e (1 item)",
+      "message": "TST-A23-a8142e flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ad9402e8-3166-4c49-a8c8-2515aa92948a",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-23 21:35:08.026000",
+      "expires_at": "2026-07-22 21:35:08.026000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "e157fb18-cfaa-4b0b-b534-c7f0a72e7e68",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "122cf851-6a5d-4450-b526-e0d9120bf728",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-23 21:35:12.500000",
+      "expires_at": "2026-07-22 21:35:12.500000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "e9b5b37e-2c6e-4a5a-9643-fc03c05522ba",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-a0f0da77 (2 items)",
+      "message": "PE-a0f0da77 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "bc57e8bc-a31b-464e-ab0a-b0374fdf2909",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:03:12.434000",
+      "expires_at": "2026-07-23 00:03:12.434000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "3e8da86a-b1fa-4fa5-936b-3cc8dd8204f2",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "b55d72ac-e6a1-472d-a862-6b8c1995b02c",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:23:13.844000",
+      "expires_at": "2026-07-23 00:23:13.844000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "b81ffc13-b82b-4f32-ac33-6b81a435bd94",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-304144c7 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00334 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "7fad6948-15bc-4f7d-8664-d282d668e4a8",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "4126551e-c890-4962-88a3-0f60321fd9b9",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:40:24.917000",
+      "expires_at": "2026-07-23 00:40:24.917000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "6ec71d0f-2483-4c5a-8abb-16251fe2ad29",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-304144c7 (2 items)",
+      "message": "PE-304144c7 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "4126551e-c890-4962-88a3-0f60321fd9b9",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:40:24.918000",
+      "expires_at": "2026-07-23 00:40:24.918000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "820bfe73-7fd0-4712-896c-43de178c00b2",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "b08ab9ae-fa24-4674-8f00-9a64e588ac50",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:52:25.503000",
+      "expires_at": "2026-07-23 00:52:25.503000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "a5518035-4d92-4485-9149-57dbc79712a3",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "bf64d3ba-d1a6-4b18-ba39-f5a9767197eb",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 01:06:12.712000",
+      "expires_at": "2026-07-23 01:06:12.712000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "ebbe8d7d-f817-4f86-a3de-e8dccab8b451",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-3de5f11d (2 items)",
+      "message": "PE-3de5f11d flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "397379dc-5a0a-4f5e-87c5-2db6e8bdf233",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:17:56.881000",
+      "expires_at": "2026-07-14 23:17:56.881000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "8a36f475-2183-40b0-ac7e-5855b30ad7cd",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-6415ea46 (2 items)",
+      "message": "PE-6415ea46 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "2a330ec7-0fa0-4c68-a7c3-bcc13207dbcc",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:18:29.180000",
+      "expires_at": "2026-07-14 23:18:29.180000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "df6d263f-c400-4d5e-8611-5b683fc26ffc",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-299b95b3 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00051 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "1bc6d52c-6e92-4920-9cdb-5aaa0d1d26d5",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "bd7826ec-cbbd-4c97-98d7-c224dcc695c0",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:32:05.743000",
+      "expires_at": "2026-07-14 23:32:05.743000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "1e792440-d44e-4427-a0b7-29a7d234e7fd",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-e4f04fcd (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "384f0ce7-13ac-465c-91b6-0761e6e49752",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 00:08:40.693000",
+      "expires_at": "2026-07-15 00:08:40.693000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "173d97d8-c5f0-4567-a098-ac99dcd800aa",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-f2ee9eed (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00064 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "c1d6a057-4ffa-41ef-968d-e8f030eef62c",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "82ab14d8-7eed-4c2e-8bfa-e201fadc7a40",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:16:48.252000",
+      "expires_at": "2026-07-15 02:16:48.252000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "fce7e9d1-1b07-43b7-8378-6ac511c56be2",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-f2ee9eed (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "82ab14d8-7eed-4c2e-8bfa-e201fadc7a40",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:16:48.252000",
+      "expires_at": "2026-07-15 02:16:48.252000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "d3c7195e-e73f-47c1-9ac2-1ce677d9437a",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-f2ee9eed (2 items)",
+      "message": "PE-f2ee9eed flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "82ab14d8-7eed-4c2e-8bfa-e201fadc7a40",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:16:48.252000",
+      "expires_at": "2026-07-15 02:16:48.252000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "9358170f-31ab-4b9f-a221-f0439e59b2be",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-f85d2c98 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00076 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "0cba6d2c-8db1-4afd-9151-1c32b1d95557",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "df8a81d4-ebdd-4c8a-858a-05fd8f51e9db",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 10:56:55.234000",
+      "expires_at": "2026-07-17 10:56:55.234000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "2b85d682-1381-4c18-9254-88da99d32d35",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-2cae489f (2 items)",
+      "message": "PE-2cae489f flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "6131f0c5-c203-44f6-ad35-93d8c3b31919",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 19:59:27.499000",
+      "expires_at": "2026-07-17 19:59:27.499000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "95060492-f980-4bcb-86da-3038059091a2",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-bff01d2e (2 items)",
+      "message": "PE-bff01d2e flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "20d371a3-6158-4a36-8a14-d7f6b6750fd8",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 02:18:20.920000",
+      "expires_at": "2026-07-18 02:18:20.920000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "e92e2408-1911-4a5d-b639-b95b0d86c205",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-892121c6 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "04049678-a3e5-4337-b53d-c39f20310d05",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 15:50:49.902000",
+      "expires_at": "2026-07-18 15:50:49.902000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "99e6516f-5080-4a2e-9e98-e78f7c262b88",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-892121c6 (2 items)",
+      "message": "PE-892121c6 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "04049678-a3e5-4337-b53d-c39f20310d05",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 15:50:49.902000",
+      "expires_at": "2026-07-18 15:50:49.902000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "70c4fb43-1880-4e57-a68d-64870ebb7e4a",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-008c4721 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "d1b4c8aa-b98c-4038-ad66-fa2623e23f50",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 21:03:25.403000",
+      "expires_at": "2026-07-18 21:03:25.403000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "254e695c-6a90-4b00-8474-50ec8f717e37",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "3ae7186a-9462-414b-a3e4-c8658bf4fd9b",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 21:11:30.092000",
+      "expires_at": "2026-07-18 21:11:30.092000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "8ce3044f-18bf-4b4c-84ca-ee3fa840fee4",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "0975eb0e-28f3-4a1f-bd38-e53bc229a214",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 01:20:46.695000",
+      "expires_at": "2026-07-19 01:20:46.695000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "ec6967d2-07bc-4256-b846-d61eedebd3ce",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-c14e20 (1 item)",
+      "message": "TST-A23-c14e20 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "71d1f8f1-7133-4f8a-a312-24cffc9f0559",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 01:26:50.361000",
+      "expires_at": "2026-07-19 01:26:50.361000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "c603e964-86c0-4f42-b23d-3340ab361bdd",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-95c6fda4 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00147 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "04877e2d-fc20-4cf8-a660-99d542add1b7",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "2ba3b4a5-5fe0-446d-ae0f-a4774e29bb8b",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 17:01:48.083000",
+      "expires_at": "2026-07-19 17:01:48.083000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "3142e2bf-ce77-4096-a506-481feae776fd",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-95c6fda4 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "2ba3b4a5-5fe0-446d-ae0f-a4774e29bb8b",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 17:01:48.084000",
+      "expires_at": "2026-07-19 17:01:48.084000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "923438e3-73d2-4948-a96e-34abe1245cf8",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-95c6fda4 (2 items)",
+      "message": "PE-95c6fda4 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "2ba3b4a5-5fe0-446d-ae0f-a4774e29bb8b",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 17:01:48.084000",
+      "expires_at": "2026-07-19 17:01:48.084000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "db6dbf82-37f0-41e5-a56c-8480f92b8506",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-8fa59bdc (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00225 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "b7674086-624e-4b33-82c9-fd012473dde1",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "5b3e6d68-0a3a-4b01-807c-b077f705ad8e",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-23 21:21:43.695000",
+      "expires_at": "2026-07-22 21:21:43.695000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "0814c93e-a38b-4833-b4d5-93c9bbb8b0b4",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "03c669e8-aff5-42ed-948c-f19b90594e7d",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-23 21:25:46.464000",
+      "expires_at": "2026-07-22 21:25:46.464000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "9a415d12-9a07-4440-95ad-1a4c9c941fea",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-33d64be6 (2 items)",
+      "message": "PE-33d64be6 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "fdf02d9a-8e3a-4397-b208-a461ffe2a9c6",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:07:56.552000",
+      "expires_at": "2026-07-23 00:07:56.552000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "e6d1c367-4b99-4261-a8d2-9b0649309c2a",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-d82d2959 (2 items)",
+      "message": "PE-d82d2959 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "79a4bdd1-2376-4e62-b258-9ebf6e2616df",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:20:05.587000",
+      "expires_at": "2026-07-23 00:20:05.587000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "29d522cc-dc46-4675-91af-84fcd5d71271",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "de759dc1-2ce8-4e34-ac63-13f7e472cd64",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:33:35.718000",
+      "expires_at": "2026-07-23 00:33:35.718000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "28f40620-f563-46d7-b6d0-ae055ea01181",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "9955eedb-1002-40cd-9f60-4006fc7249f1",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:43:31.498000",
+      "expires_at": "2026-07-23 00:43:31.498000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "3227ad69-8762-4004-8931-21834bae99f7",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-3de5f11d (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "397379dc-5a0a-4f5e-87c5-2db6e8bdf233",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:17:56.881000",
+      "expires_at": "2026-07-14 23:17:56.881000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "fa4ffe11-918f-4cd7-a070-af992486bd18",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-65aef03e (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00049 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "435bab7d-eacc-4128-b0cf-e78651c63f23",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ccd40b3e-1f65-4332-807f-6829e3fc77a3",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:20:41.602000",
+      "expires_at": "2026-07-14 23:20:41.602000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "70148b6b-0f83-4bd8-b860-d9675aafa442",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-65aef03e (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ccd40b3e-1f65-4332-807f-6829e3fc77a3",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:20:41.602000",
+      "expires_at": "2026-07-14 23:20:41.602000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "ea8d0040-ac98-4ac2-aa8d-3eae566408c0",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-65aef03e (2 items)",
+      "message": "PE-65aef03e flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ccd40b3e-1f65-4332-807f-6829e3fc77a3",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:20:41.602000",
+      "expires_at": "2026-07-14 23:20:41.602000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "0a972067-83be-4fbf-9999-bb86da366ce7",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-299b95b3 (2 items)",
+      "message": "PE-299b95b3 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "bd7826ec-cbbd-4c97-98d7-c224dcc695c0",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:32:05.744000",
+      "expires_at": "2026-07-14 23:32:05.744000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "e9e3862c-6790-40f8-b7ee-9f52a0da32d8",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-bf1e29b1 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "153d641c-6aaa-43aa-af63-04ed20f51f54",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:55:30.122000",
+      "expires_at": "2026-07-14 23:55:30.122000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "a84d546d-3f77-44b5-9992-a6de917df56d",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-80f9bbe4 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ac01f8f8-fcb3-4463-8bb7-416805040e95",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 00:28:25.284000",
+      "expires_at": "2026-07-15 00:28:25.284000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "a77caa90-2e02-4c6c-850f-11f84fc5332c",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-3eb83da1 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00065 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "50af1070-623e-4b66-b9cc-f5c87132de92",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "e410001d-e964-45f9-ab64-abffd44ac4c5",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:16:48.571000",
+      "expires_at": "2026-07-15 02:16:48.571000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "81382880-b85e-4eb7-8873-d42bedf4cf1b",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-f85d2c98 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "df8a81d4-ebdd-4c8a-858a-05fd8f51e9db",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 10:56:55.235000",
+      "expires_at": "2026-07-17 10:56:55.235000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "fcb8d07e-f493-45cc-b52d-23cb73c277d4",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "0103931d-d420-4312-ba14-75d24591cd10",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 11:00:06.055000",
+      "expires_at": "2026-07-17 11:00:06.055000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "3c60c2da-cc39-4c43-a546-b5092e18095b",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "063c45a6-8e45-4160-9c37-3cbd21c2b651",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 11:06:28.718000",
+      "expires_at": "2026-07-17 11:06:28.718000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "575bba07-2f6f-4cad-9e37-3d0842524249",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-4516959c (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00085 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "264c7477-5b0e-46c6-b672-066dbe0a28e3",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "47311896-0632-4ca8-a80b-868b8f59a1da",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 20:01:28.409000",
+      "expires_at": "2026-07-17 20:01:28.409000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "4fb0eb34-cf0e-4235-8024-6207bb81b288",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "c4845ffa-f162-428f-9eaa-8dfc6d418d2b",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 15:54:01.620000",
+      "expires_at": "2026-07-18 15:54:01.620000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "ebc115c6-1264-4725-b1c8-78b5e949a37f",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-008c4721 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00120 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "9c50830b-0200-4262-aa95-867b9017e6ed",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "d1b4c8aa-b98c-4038-ad66-fa2623e23f50",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 21:03:25.403000",
+      "expires_at": "2026-07-18 21:03:25.403000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "d0d8b274-e94f-44ef-b062-f5825e803d1d",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-62e2bb (1 item)",
+      "message": "TST-A23-62e2bb flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "7ab2ae62-4ede-4fa9-b624-3c7cd28e18de",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 21:11:25.004000",
+      "expires_at": "2026-07-18 21:11:25.004000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "fa8e2dee-5875-4cb8-9a1f-9731dcd840cb",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "25754a34-55fe-4ac5-981c-1ac7205bdcd7",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 17:11:55.899000",
+      "expires_at": "2026-07-19 17:11:55.899000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "00fc45e4-6c46-44db-bd2e-112c11a0dce2",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-a01bc3fb (2 items)",
+      "message": "PE-a01bc3fb flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "cbed86f7-dd79-4962-81be-ddb311e353d3",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-22 15:04:02.388000",
+      "expires_at": "2026-07-21 15:04:02.388000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "54dd5a49-5442-4322-9d1d-059bd84ecf03",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-8fa59bdc (2 items)",
+      "message": "PE-8fa59bdc flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "5b3e6d68-0a3a-4b01-807c-b077f705ad8e",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-23 21:21:43.696000",
+      "expires_at": "2026-07-22 21:21:43.696000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "f5b3ad6c-32ab-4293-8a67-0af7ea6975d9",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-a0f0da77 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00306 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "69f7cb1a-a0d3-43ba-af49-9f67149a7da3",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "bc57e8bc-a31b-464e-ab0a-b0374fdf2909",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:03:12.433000",
+      "expires_at": "2026-07-23 00:03:12.433000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "76da68d5-c755-4125-9b7c-e7e4591dfcd1",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-a0f0da77 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "bc57e8bc-a31b-464e-ab0a-b0374fdf2909",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:03:12.434000",
+      "expires_at": "2026-07-23 00:03:12.434000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "f8a6f086-da8a-4594-aedd-f87e6a26d422",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-0c2f28 (1 item)",
+      "message": "TST-A23-0c2f28 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ba391501-0328-4581-8ed7-1c2be85175ed",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:33:31.109000",
+      "expires_at": "2026-07-23 00:33:31.109000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "f540481f-0f2e-4bce-9906-8f5117983cbf",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-c65ed1 (1 item)",
+      "message": "TST-A23-c65ed1 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "abfc28b4-b83d-41b8-bc5f-a6d4722af9d9",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:52:20.942000",
+      "expires_at": "2026-07-23 00:52:20.942000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "83859706-7835-481d-aeff-a724f7ade1be",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-be1b865f (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00348 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "d7fd22ac-bcce-4177-bf31-e5e8cec200a0",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "64aed0f7-eb38-4983-b6bc-f5744f1b8ffa",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 01:02:54.161000",
+      "expires_at": "2026-07-23 01:02:54.161000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "42819f5a-cfb7-4d7e-9f68-3c4e6732e626",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-be1b865f (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "64aed0f7-eb38-4983-b6bc-f5744f1b8ffa",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 01:02:54.162000",
+      "expires_at": "2026-07-23 01:02:54.162000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "e509340c-5e00-4282-8d80-b6c9654852bb",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-3de5f11d (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00045 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "59eaf44c-95ae-4843-ab75-94fd521dd59a",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "397379dc-5a0a-4f5e-87c5-2db6e8bdf233",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:17:56.880000",
+      "expires_at": "2026-07-14 23:17:56.880000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "67e2ca77-a3b1-4b7e-89b2-24235673d244",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-6415ea46 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "2a330ec7-0fa0-4c68-a7c3-bcc13207dbcc",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:18:29.180000",
+      "expires_at": "2026-07-14 23:18:29.180000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "d9cc67da-e50d-434b-bbda-ab7892243628",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-299b95b3 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "bd7826ec-cbbd-4c97-98d7-c224dcc695c0",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:32:05.744000",
+      "expires_at": "2026-07-14 23:32:05.744000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "8848c6c5-6431-44dd-89a6-1b9fefa03786",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-bf1e29b1 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00055 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "d7379dca-71bd-4a20-8d6b-210d25f24db8",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "153d641c-6aaa-43aa-af63-04ed20f51f54",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:55:30.121000",
+      "expires_at": "2026-07-14 23:55:30.121000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "b04bfa65-54f7-4f48-bae1-fbff4db0d6e4",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-bf1e29b1 (2 items)",
+      "message": "PE-bf1e29b1 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "153d641c-6aaa-43aa-af63-04ed20f51f54",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-15 23:55:30.122000",
+      "expires_at": "2026-07-14 23:55:30.122000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "0739770e-c888-44b2-8b94-9d85905b2fae",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-e4f04fcd (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00057 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "de00a529-8b1e-4d65-8b43-bcb136a0050a",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "384f0ce7-13ac-465c-91b6-0761e6e49752",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 00:08:40.692000",
+      "expires_at": "2026-07-15 00:08:40.692000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "a3d6a283-8d48-4bd1-8233-74287fa32cc3",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-80f9bbe4 (2 items)",
+      "message": "PE-80f9bbe4 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ac01f8f8-fcb3-4463-8bb7-416805040e95",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 00:28:25.284000",
+      "expires_at": "2026-07-15 00:28:25.284000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "92b41161-207a-4b88-8de0-f0c1720e1460",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-3eb83da1 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "e410001d-e964-45f9-ab64-abffd44ac4c5",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:16:48.571000",
+      "expires_at": "2026-07-15 02:16:48.571000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "96bfe14e-9569-4d94-8955-273dde1a594f",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-3eb83da1 (2 items)",
+      "message": "PE-3eb83da1 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "e410001d-e964-45f9-ab64-abffd44ac4c5",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:16:48.572000",
+      "expires_at": "2026-07-15 02:16:48.572000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "00fef691-d059-42ec-9c30-a006d1903893",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "f099ac4b-05fc-49c5-9d34-bbeccee566d0",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-16 02:23:04.643000",
+      "expires_at": "2026-07-15 02:23:04.643000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "9c3dad77-2e3c-4f90-ae01-5dce84c1ba02",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-f85d2c98 (2 items)",
+      "message": "PE-f85d2c98 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "df8a81d4-ebdd-4c8a-858a-05fd8f51e9db",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 10:56:55.235000",
+      "expires_at": "2026-07-17 10:56:55.235000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "621c5224-0497-4016-aaaa-e52c59de87b9",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-5b2d40 (1 item)",
+      "message": "TST-A23-5b2d40 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "196f09bb-7d7c-4f6b-9026-76bb94f77c9c",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 11:06:24.492000",
+      "expires_at": "2026-07-17 11:06:24.492000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "f14f91b6-311b-457c-9c2e-ccb2d068be5c",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-2cae489f (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "6131f0c5-c203-44f6-ad35-93d8c3b31919",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 19:59:27.499000",
+      "expires_at": "2026-07-17 19:59:27.499000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "aa6da566-d0ab-4efe-8c52-51e333f0790b",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-4516959c (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "47311896-0632-4ca8-a80b-868b8f59a1da",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-18 20:01:28.409000",
+      "expires_at": "2026-07-17 20:01:28.409000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "ff2caf34-55ba-4c8c-8e06-657f270c214f",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-bff01d2e (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00098 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "adc92363-2490-40b7-8334-5eb7270bfb87",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "20d371a3-6158-4a36-8a14-d7f6b6750fd8",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 02:18:20.919000",
+      "expires_at": "2026-07-18 02:18:20.919000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "71494ea6-12d0-4172-a0ed-9a6bcd6c41e8",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-bff01d2e (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "20d371a3-6158-4a36-8a14-d7f6b6750fd8",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 02:18:20.920000",
+      "expires_at": "2026-07-18 02:18:20.920000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "88f3c4a7-8f31-4c9f-8ad4-187db5e09d70",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "8dcfc7fd-543a-4266-8abb-562e095fcd5d",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 02:23:23.281000",
+      "expires_at": "2026-07-18 02:23:23.281000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "fd3b4264-4444-49b1-8a2d-fcce3e6f475b",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-8bf8c9 (1 item)",
+      "message": "TST-A23-8bf8c9 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "dcced256-e578-409d-9c59-e76d932f96f9",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 02:41:33.247000",
+      "expires_at": "2026-07-18 02:41:33.247000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "63856fed-ef97-4ffd-9e8f-79c75bd65758",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "3c171765-4531-47ec-a98d-5409d4a6c886",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 15:59:38.536000",
+      "expires_at": "2026-07-18 15:59:38.536000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "9d42d389-2c90-4a4e-89dd-487bb45e48c6",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-008c4721 (2 items)",
+      "message": "PE-008c4721 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "d1b4c8aa-b98c-4038-ad66-fa2623e23f50",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 21:03:25.404000",
+      "expires_at": "2026-07-18 21:03:25.404000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "ca6b5f3e-59ac-4c6a-bab7-b8f97a9e07e2",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "ed1b11a4-3c22-4b7a-af9e-92609c68b222",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-19 21:06:33.141000",
+      "expires_at": "2026-07-18 21:06:33.141000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "1a11d89c-76a9-47d5-ac64-f029b790bd0d",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-d747c165 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00137 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "1eec6930-e0db-4390-a9fe-9c1ff14ada0e",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "546f3d35-150e-4b2b-b7d7-c44518c811b4",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 01:17:37.728000",
+      "expires_at": "2026-07-19 01:17:37.728000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "422e361b-06e5-4727-8b45-b5f44a78c535",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-IT24 (1 item)",
+      "message": "TST-IT24 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "75be1b28-137f-4454-a3c3-a96e4ddfb85c",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-20 17:05:00.256000",
+      "expires_at": "2026-07-19 17:05:00.256000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "37495f3a-fb93-4944-a75d-cbe101151078",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-A23-ba9273 (1 item)",
+      "message": "TST-A23-ba9273 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "b1c28ce3-8f4e-41b6-8bea-221c582bebdb",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-22 15:15:48.432000",
+      "expires_at": "2026-07-21 15:15:48.432000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "394a8815-05cc-4db9-9944-74b11361cf9d",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 TST-001 (1 item)",
+      "message": "TST-001 flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "b20af23e-f988-49e1-b269-8d620e10f0ce",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-22 15:15:53.710000",
+      "expires_at": "2026-07-21 15:15:53.710000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "aed4dc72-694e-4614-9a59-b66e1657a05f",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-33d64be6 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00311 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "9e3a1ca6-5387-4a0b-9e54-b78c75a1f9dd",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "fdf02d9a-8e3a-4397-b208-a461ffe2a9c6",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:07:56.551000",
+      "expires_at": "2026-07-23 00:07:56.551000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "aae78dda-b00b-43b2-ad04-9efa5332695c",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-33d64be6 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "fdf02d9a-8e3a-4397-b208-a461ffe2a9c6",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:07:56.551000",
+      "expires_at": "2026-07-23 00:07:56.551000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "bb769235-c008-4f82-87d6-a967da7efa0d",
+      "type": "task.assigned",
+      "title": "New task: Failed pre-op \u2014 PE-d82d2959 (2 items)",
+      "message": "Operator: PhaseE \u00b7 Doc: PRE-2026-00320 \u00b7 Equipment: Bobcat S650",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": "390ea3b1-3615-4569-8842-11d2835837b6",
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "79a4bdd1-2376-4e62-b258-9ebf6e2616df",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:20:05.586000",
+      "expires_at": "2026-07-23 00:20:05.586000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "8e7f6bb8-7c39-404d-9ac5-fc147e5240de",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-d82d2959 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "79a4bdd1-2376-4e62-b258-9ebf6e2616df",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:20:05.586000",
+      "expires_at": "2026-07-23 00:20:05.586000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "8fe808bd-76b8-45e8-b972-4bdcf067836c",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-304144c7 (2 items)",
+      "message": "Operator: PhaseE \u00b7 2 failed item(s)",
+      "severity": "Warning",
+      "recipient_role": "shop",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "4126551e-c890-4962-88a3-0f60321fd9b9",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 00:40:24.917000",
+      "expires_at": "2026-07-23 00:40:24.917000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    },
+    {
+      "id": "fed9dad8-9701-4d13-ace4-44650148ec26",
+      "type": "preop.failed",
+      "title": "Failed pre-op \u2014 PE-be1b865f (2 items)",
+      "message": "PE-be1b865f flagged from pre-op",
+      "severity": "Warning",
+      "recipient_role": "dispatch",
+      "recipient_user_id": null,
+      "linked_task_id": null,
+      "linked_source_module": "equipment.preop",
+      "linked_source_record_id": "64aed0f7-eb38-4983-b6bc-f5744f1b8ffa",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "created_at": "2026-05-24 01:02:54.162000",
+      "expires_at": "2026-07-23 01:02:54.162000",
+      "read_by": [
+        {
+          "role": "admin",
+          "user_id": null,
+          "at": "2026-05-27 03:30:36.096000"
+        }
+      ],
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "delivery": {
+        "internal": true,
+        "email": false,
+        "push": false,
+        "sms": false
+      }
+    }
+  ],
+  "tier_a_tasks": [
+    {
+      "id": "1bc6d52c-6e92-4920-9cdb-5aaa0d1d26d5",
+      "title": "Failed pre-op \u2014 PE-299b95b3 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00051 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "bd7826ec-cbbd-4c97-98d7-c224dcc695c0",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-15 23:32:05.743000",
+      "updated_at": "2026-05-15 23:32:05.743000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-15 23:32:05.743000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "de00a529-8b1e-4d65-8b43-bcb136a0050a",
+      "title": "Failed pre-op \u2014 PE-e4f04fcd (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00057 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "384f0ce7-13ac-465c-91b6-0761e6e49752",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-16 00:08:40.692000",
+      "updated_at": "2026-05-16 00:08:40.692000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-16 00:08:40.692000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "264c7477-5b0e-46c6-b672-066dbe0a28e3",
+      "title": "Failed pre-op \u2014 PE-4516959c (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00085 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "47311896-0632-4ca8-a80b-868b8f59a1da",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-18 20:01:28.408000",
+      "updated_at": "2026-05-18 20:01:28.408000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-18 20:01:28.408000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "adc92363-2490-40b7-8334-5eb7270bfb87",
+      "title": "Failed pre-op \u2014 PE-bff01d2e (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00098 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "20d371a3-6158-4a36-8a14-d7f6b6750fd8",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-19 02:18:20.919000",
+      "updated_at": "2026-05-19 02:18:20.919000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-19 02:18:20.919000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "59eaf44c-95ae-4843-ab75-94fd521dd59a",
+      "title": "Failed pre-op \u2014 PE-3de5f11d (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00045 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "397379dc-5a0a-4f5e-87c5-2db6e8bdf233",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-15 23:17:56.880000",
+      "updated_at": "2026-05-15 23:17:56.880000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-15 23:17:56.880000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "a7027b55-3b92-4d97-b108-d751eaae0830",
+      "title": "Failed pre-op \u2014 PE-6415ea46 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00047 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "2a330ec7-0fa0-4c68-a7c3-bcc13207dbcc",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-15 23:18:29.179000",
+      "updated_at": "2026-05-15 23:18:29.179000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-15 23:18:29.179000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "435bab7d-eacc-4128-b0cf-e78651c63f23",
+      "title": "Failed pre-op \u2014 PE-65aef03e (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00049 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "ccd40b3e-1f65-4332-807f-6829e3fc77a3",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-15 23:20:41.602000",
+      "updated_at": "2026-05-15 23:20:41.602000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-15 23:20:41.602000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "99be47d6-c254-4e8c-bd0f-2eae2eb1d5ed",
+      "title": "Failed pre-op \u2014 PE-b71aef21 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00053 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "34383342-205b-4a50-9562-33265fadc2ca",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-15 23:34:54.847000",
+      "updated_at": "2026-05-15 23:34:54.847000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-15 23:34:54.847000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "ac1959ef-581d-4782-a77b-8e55a6c9234d",
+      "title": "Failed pre-op \u2014 PE-80f9bbe4 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00059 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "ac01f8f8-fcb3-4463-8bb7-416805040e95",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-16 00:28:25.283000",
+      "updated_at": "2026-05-16 00:28:25.283000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-16 00:28:25.283000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "27a6e6f9-6447-4a90-a74e-8ab23a7e7941",
+      "title": "Failed pre-op \u2014 PE-2cae489f (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00083 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "6131f0c5-c203-44f6-ad35-93d8c3b31919",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-18 19:59:27.497000",
+      "updated_at": "2026-05-18 19:59:27.497000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-18 19:59:27.497000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "da5f9a47-856e-46bf-85c1-6e15447111e2",
+      "title": "Failed pre-op \u2014 PE-892121c6 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00110 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "04049678-a3e5-4337-b53d-c39f20310d05",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-19 15:50:49.901000",
+      "updated_at": "2026-05-19 15:50:49.901000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-19 15:50:49.901000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "9c50830b-0200-4262-aa95-867b9017e6ed",
+      "title": "Failed pre-op \u2014 PE-008c4721 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00120 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "d1b4c8aa-b98c-4038-ad66-fa2623e23f50",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-19 21:03:25.403000",
+      "updated_at": "2026-05-19 21:03:25.403000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-19 21:03:25.403000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "1eec6930-e0db-4390-a9fe-9c1ff14ada0e",
+      "title": "Failed pre-op \u2014 PE-d747c165 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00137 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "546f3d35-150e-4b2b-b7d7-c44518c811b4",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-20 01:17:37.728000",
+      "updated_at": "2026-05-20 01:17:37.728000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-20 01:17:37.728000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "04877e2d-fc20-4cf8-a660-99d542add1b7",
+      "title": "Failed pre-op \u2014 PE-95c6fda4 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00147 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "2ba3b4a5-5fe0-446d-ae0f-a4774e29bb8b",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-20 17:01:48.083000",
+      "updated_at": "2026-05-20 17:01:48.083000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-20 17:01:48.083000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "b7674086-624e-4b33-82c9-fd012473dde1",
+      "title": "Failed pre-op \u2014 PE-8fa59bdc (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00225 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "5b3e6d68-0a3a-4b01-807c-b077f705ad8e",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-23 21:21:43.694000",
+      "updated_at": "2026-05-23 21:21:43.694000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-23 21:21:43.694000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "69f7cb1a-a0d3-43ba-af49-9f67149a7da3",
+      "title": "Failed pre-op \u2014 PE-a0f0da77 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00306 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "bc57e8bc-a31b-464e-ab0a-b0374fdf2909",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-24 00:03:12.433000",
+      "updated_at": "2026-05-24 00:03:12.433000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-24 00:03:12.433000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "7fad6948-15bc-4f7d-8664-d282d668e4a8",
+      "title": "Failed pre-op \u2014 PE-304144c7 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00334 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "4126551e-c890-4962-88a3-0f60321fd9b9",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-24 00:40:24.916000",
+      "updated_at": "2026-05-24 00:40:24.916000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-24 00:40:24.916000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "50cdecd9-c848-406f-b0c0-bc35bdfd5d9d",
+      "title": "Failed pre-op \u2014 PE-a01bc3fb (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00168 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "cbed86f7-dd79-4962-81be-ddb311e353d3",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-22 15:04:02.387000",
+      "updated_at": "2026-05-22 15:04:02.387000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-22 15:04:02.387000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "d7fd22ac-bcce-4177-bf31-e5e8cec200a0",
+      "title": "Failed pre-op \u2014 PE-be1b865f (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00348 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "64aed0f7-eb38-4983-b6bc-f5744f1b8ffa",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-24 01:02:54.161000",
+      "updated_at": "2026-05-24 01:02:54.161000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-24 01:02:54.161000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "d7379dca-71bd-4a20-8d6b-210d25f24db8",
+      "title": "Failed pre-op \u2014 PE-bf1e29b1 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00055 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "153d641c-6aaa-43aa-af63-04ed20f51f54",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-15 23:55:30.121000",
+      "updated_at": "2026-05-15 23:55:30.121000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-15 23:55:30.121000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "c1d6a057-4ffa-41ef-968d-e8f030eef62c",
+      "title": "Failed pre-op \u2014 PE-f2ee9eed (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00064 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "82ab14d8-7eed-4c2e-8bfa-e201fadc7a40",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-16 02:16:48.251000",
+      "updated_at": "2026-05-16 02:16:48.251000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-16 02:16:48.251000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "50af1070-623e-4b66-b9cc-f5c87132de92",
+      "title": "Failed pre-op \u2014 PE-3eb83da1 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00065 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "e410001d-e964-45f9-ab64-abffd44ac4c5",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-16 02:16:48.570000",
+      "updated_at": "2026-05-16 02:16:48.570000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-16 02:16:48.570000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "0cba6d2c-8db1-4afd-9151-1c32b1d95557",
+      "title": "Failed pre-op \u2014 PE-f85d2c98 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00076 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "df8a81d4-ebdd-4c8a-858a-05fd8f51e9db",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-18 10:56:55.234000",
+      "updated_at": "2026-05-18 10:56:55.234000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-18 10:56:55.234000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "9e3a1ca6-5387-4a0b-9e54-b78c75a1f9dd",
+      "title": "Failed pre-op \u2014 PE-33d64be6 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00311 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "fdf02d9a-8e3a-4397-b208-a461ffe2a9c6",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-24 00:07:56.550000",
+      "updated_at": "2026-05-24 00:07:56.550000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-24 00:07:56.550000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    },
+    {
+      "id": "390ea3b1-3615-4569-8842-11d2835837b6",
+      "title": "Failed pre-op \u2014 PE-d82d2959 (2 items)",
+      "description": "Operator: PhaseE \u00b7 Doc: PRE-2026-00320 \u00b7 Equipment: Bobcat S650",
+      "source_module": "equipment.preop",
+      "source_record_id": "79a4bdd1-2376-4e62-b258-9ebf6e2616df",
+      "linked_employee_id": null,
+      "linked_equipment_id": null,
+      "linked_project_number": null,
+      "linked_po_id": null,
+      "assignee_role": "shop",
+      "assignee_user_id": null,
+      "assignee_employee_id": null,
+      "priority": "High",
+      "status": "Open",
+      "due_at": null,
+      "created_at": "2026-05-24 00:20:05.585000",
+      "updated_at": "2026-05-24 00:20:05.585000",
+      "created_by": {
+        "role": "system",
+        "via": "preop-fanout"
+      },
+      "comments": [],
+      "audit": [
+        {
+          "at": "2026-05-24 00:20:05.585000",
+          "by": {
+            "role": "system",
+            "via": "preop-fanout"
+          },
+          "action": "created"
+        }
+      ],
+      "closed_at": null,
+      "completion_notes": null
+    }
+  ],
+  "tier_b_field_leadership_records": [
+    {
+      "id": "864f8506-cbd9-4ddf-b5fd-a87ae3bafd8b",
+      "kind": "time_off_request",
+      "employee_name": "Office Jane",
+      "employee_email": "",
+      "employee_position": "",
+      "supervisor_name": "(filed by employee via HR-issued public link)",
+      "supervisor_email": "jaymn.judd@mascigc.com",
+      "occurred_at": "2026-05-13T21:16:53.311447+00:00",
+      "details": {
+        "reason": "Vacation",
+        "pay_type": "Paid",
+        "start_date": "2026-06-01",
+        "end_date": "2026-06-05",
+        "half_day_start": false,
+        "half_day_end": false,
+        "total_days": 5.0,
+        "return_to_work_date": "",
+        "contact_phone": "",
+        "coverage_plan": "",
+        "notes": "",
+        "employee_signature": "",
+        "submitted_via": "public_link",
+        "hr_decision": {
+          "status": "approved",
+          "notes": "All set",
+          "pay_code": "VAC",
+          "decided_by": "Super Admin",
+          "decided_by_email": "jaymn.judd@mascigc.com",
+          "decided_at": "2026-05-13T21:16:54.101208+00:00"
+        }
+      },
+      "photos": [],
+      "supervisor_signature": "",
+      "employee_signature": "",
+      "employee_refused": false,
+      "employee_not_present": false,
+      "witness_name": "",
+      "witness_signature": "",
+      "language": "en",
+      "created_at": "2026-05-13T21:16:53.311447+00:00",
+      "updated_at": "2026-05-13T21:16:54.101208+00:00",
+      "deleted_at": null,
+      "submitted_via_role": "public_link",
+      "doc_id": "TOR-2026-00001"
+    }
+  ],
+  "tier_b_time_off_public_links": [
+    {
+      "id": "e58e027b-a3c7-4f6d-ae07-291e08ec17ec",
+      "token": "a9040ecf9cd940039d9df98e54c0c53e50023cd89a5c4672",
+      "employee_name": "Office Jane",
+      "employee_email": "",
+      "employee_position": "",
+      "department": "",
+      "note": "",
+      "created_at": "2026-05-13T21:16:52.999372+00:00",
+      "created_by": "jaymn.judd@mascigc.com",
+      "expires_at": "2026-05-20T21:16:52.999342+00:00",
+      "used_at": "2026-05-13T21:16:53.311447+00:00",
+      "used_record_id": "864f8506-cbd9-4ddf-b5fd-a87ae3bafd8b"
+    },
+    {
+      "id": "e5df6605-da88-4405-889a-09c21e7e9498",
+      "token": "b60940017ff3473e8e955bd822e90b6e815014d353dd47cd",
+      "employee_name": "Steve Office",
+      "employee_email": "",
+      "employee_position": "Admin Assistant",
+      "department": "Office",
+      "note": "",
+      "created_at": "2026-05-13T21:19:57.369191+00:00",
+      "created_by": "jaymn.judd@mascigc.com",
+      "expires_at": "2026-05-20T21:19:57.369170+00:00",
+      "used_at": null,
+      "used_record_id": null
+    },
+    {
+      "id": "c7322166-173c-42f7-9402-fcfc711c8dc1",
+      "token": "11ecd44279614004824fa7b076676d142e1c63bfadf647d7",
+      "employee_name": "Maria Mobile",
+      "employee_email": "",
+      "employee_position": "Admin Assistant",
+      "department": "Office",
+      "note": "",
+      "created_at": "2026-05-13T22:12:17.240224+00:00",
+      "created_by": "jaymn.judd@mascigc.com",
+      "expires_at": "2026-05-20T22:12:17.240204+00:00",
+      "used_at": null,
+      "used_record_id": null
+    },
+    {
+      "id": "7089401a-32a8-4db8-afe6-cae6a98a1385",
+      "token": "683da5623ef146679e8af989be66c8f47c2de230fc1146c0",
+      "employee_name": "Brand Check",
+      "employee_email": "",
+      "employee_position": "Admin",
+      "department": "",
+      "note": "",
+      "created_at": "2026-05-13T22:53:49.634677+00:00",
+      "created_by": "jaymn.judd@mascigc.com",
+      "expires_at": "2026-05-20T22:53:49.634658+00:00",
+      "used_at": null,
+      "used_record_id": null
+    }
+  ],
+  "sanity_pre": {
+    "daily_reports": 72,
+    "meetings": 20,
+    "incidents": 7,
+    "audit_events": 9934,
+    "admin_audit": 1840,
+    "admin_audit_log": 142,
+    "operations_events": 534,
+    "session_activity": 1043,
+    "directory_sessions": 1868,
+    "dispatch_users": 2,
+    "employees": 243,
+    "jobs_master": 28,
+    "job_photos": 489
+  }
+}

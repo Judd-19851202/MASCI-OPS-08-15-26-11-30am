@@ -140,7 +140,14 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
     const key = `full:${id}`;
     if (thumbCache[key]) return;
     try {
-      const res = await api.get(`/job-photos/${id}/raw`);
+      // iter437 P0 · 2026-02 — append cache-buster to bypass any
+      // poisoned iOS Safari local cache from the production outage
+      // (Cloudflare had served 520 HTML pages with `immutable` cache
+      // headers, which iOS Safari obeyed for 7 days). Backend now
+      // sends `no-store` so future writes can't be poisoned, but
+      // existing devices need the URL to differ from the poisoned
+      // entry to bypass the local cache entirely.
+      const res = await api.get(`/job-photos/${id}/raw?_=${Date.now()}`);
       setThumbCache((p) => ({ ...p, [key]: res.data.data_url }));
     } catch {
       setThumbCache((p) => ({ ...p, [key]: "error" }));

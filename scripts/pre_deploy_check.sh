@@ -159,6 +159,18 @@ stage_sigma3_preview_identity() {
     "$url" preview masci_safety_preview
 }
 
+# ─── iter437 P0 cleanup learning · 2026-02 ──────────────────────────
+# After the production contamination cleanup, the operator demanded a
+# permanent probe so the same junk can never silently re-accumulate.
+# Probes the production DB (masci_safety) for the exact patterns that
+# were cleaned up. Exits non-zero if any has re-appeared, blocking
+# the deploy.
+
+stage_sigma3_prod_contamination() {
+  cd "$REPO_ROOT"
+  python3 scripts/verify_no_contamination.py --target masci_safety
+}
+
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
 
@@ -177,6 +189,7 @@ run_stage "Auth + RBAC critical tests" stage_auth_rbac_tests
 # Sigma-III enforceable gates — run on every mode (these are the
 # minimum operational-trust contract the platform now ships under).
 run_stage "Sigma-III preview env identity proof" stage_sigma3_preview_identity
+run_stage "Sigma-III prod contamination probe" stage_sigma3_prod_contamination
 run_stage "Sigma-III regression contract" stage_sigma3_regression
 run_stage "Sigma-III Playwright browser suite" stage_sigma3_playwright
 run_stage "Sigma-III cluster severity probe" stage_sigma3_cluster_severity
