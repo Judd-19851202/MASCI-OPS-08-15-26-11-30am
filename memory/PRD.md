@@ -1,6 +1,56 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — Production Deploy Stabilized · Post-Deploy Live Certification 🟢
+
+### Mission
+Validate the live production deployment at https://mascidocs.com against
+the stabilized governance release (Safety V2 default flip + `/api/qr.svg`
+extraction + Phase V.0/V.0A doctrine docs). Read-only validation · no
+production data mutated.
+
+### Production environment confirmed
+- `app_env=production` · `db_name=masci_safety` (not preview)
+- `source_hash=0f5d997dffba4e95fefa9a58c7f02780` — identical preview ↔ prod (deploy succeeded cleanly)
+- Backend uptime monotonically growing (158s → 424s through validation pass)
+- Sentry enabled · session timeouts active (ADMIN_HR/OPERATIONS/FIELD tiers)
+
+### Validation outcomes (full table in `POST_DEPLOY_LIVE_CERTIFICATION.md`)
+- 🟢 API health · all 4 endpoints 200 (`/api/health`, `/api/healthz`, `/api/version`, `/api/qr.svg`)
+- 🟢 Extracted-route parity confirmed end-to-end (Cloudflare in front · cache headers preserved)
+- 🟢 Auth · multi-login issues all 7 portal tokens · bad creds → 401
+- 🟢 Admin endpoint leak guard · 401/404/405 across the board for unauthenticated probes
+- 🟢 PM Hub V2 mounts by default · escape hatch `?pmSidebarV2=0` works
+- 🟢 HR Sidebar V2 mounts on HrPageShell routes (`/hr/training-records` etc.) · escape hatch works
+- 🟢 Safety Sidebar V2 mounts by default on `/safety-portal/*` (P6 flip live in prod) · escape hatch works
+- 🟢 GovernanceHealthChip renders on all hubs · `GOVERNANCE STABLE` on PM/Admin (drift signal explained below)
+- 🟢 Mobile viewport · no horizontal overflow · chip visible
+- 🟢 Production cleanliness · no preview banner · no preview env markers
+
+### Documented anomaly (non-blocking)
+HR / Safety chip shows `state=drift` due to new Chromium 147 measuring DOM slightly
+differently than the Chromium 1216 that captured the baseline file. `direction=stable`
+and `delta_since_checkpoint=0.0` confirm there is NO operational drift. End-user browsers
+render the same DOM that has been stable for weeks. Follow-up (non-blocking): refresh
+baseline against new Chromium next time we touch a preview-pod browser version.
+
+### Post-deploy operator checkpoint declared
+```
+label       operator · post-deploy-live-IV-BETA-5A-P6 · mascidocs.com
+timestamp   2026-05-27T20:24:48Z
+trendline   356 records · all 4 portals direction=stable · delta=0.0
+```
+
+### Rollback recommendation
+⛔ NONE. Release is stable.
+
+### Stop condition active
+🟢 Live production certification complete. E1 STOPS per operator directive.
+No V.1 / RFI / Schedule / Dispatch / Safety 5B work begins until operator
+issues explicit "start V.1" command in a fresh message.
+
+
+
 ## 2026-05-27 (fork) — Phase V.0A · RFI + Schedule Paper-Prototype Walkthrough 🟢
 
 ### Mission
