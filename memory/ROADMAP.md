@@ -6,18 +6,31 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ## ✅ RESOLVED — Atlas Tier Capacity (iter437 · 2026-05-26)
 
-**Outcome:** Cluster upgraded M0 → M10. Restore drill completed end-to-end. Currently at **7.6% utilization** (782 MB / 10 240 MB). Operational runway ≈ 12 months at observed +25 MB/day growth.
+**Outcome:** Cluster upgraded M0 → M10. Restore drill completed end-to-end. Currently at **8.9% utilization** (911 MB / 10 240 MB). Operational runway ≈ 12 months at observed +25 MB/day growth.
 
 **What's in place:**
-- ✅ Cluster-capacity probe (`/api/cluster/capacity`) + frontend banner (`<ClusterCapacityBanner />`)
-- ✅ Atlas alerts runbook ready for operator configuration: `/app/memory/ATLAS_ALERTS_RUNBOOK.md`
-- ✅ Restore-drill script idempotent and proven: `/app/backend/tools/restore_drill.py`
-- ✅ Full certification at `/app/memory/PHASE_RESTORE_DRILL_ATLAS_BLOCKER.md` (CERTIFIED PASS)
+- ✅ Cluster-capacity probe (`/api/cluster/capacity`) + frontend banner (`<ClusterCapacityBanner />`) · threshold logic VERIFIED across all 3 severities
+- ✅ Atlas alerts runbook: `/app/memory/ATLAS_ALERTS_RUNBOOK.md`
+- ✅ Restore-drill script proven: `/app/backend/tools/restore_drill.py` · 110s wall-clock · 26/26 collections parity
+- ✅ Phase R certification: `/app/memory/PHASE_RESTORE_DRILL_ATLAS_BLOCKER.md` (PASS)
+- ✅ Phase Sigma · Operational Trust Hardening (iter437 · this session)
+   - Playwright foundation: `/app/backend/tests/pw_suite/` · 15/15 green on desktop/ipad/mobile
+   - Role Access Certification: `/app/memory/ROLE_ACCESS_CERTIFICATION.md` · 338 cells · 0 unexpected
+   - Performance Forensics: `/app/memory/PERFORMANCE_FORENSICS.md` · `idempotency_keys` root cause identified
+   - Operational Runbooks: `/app/memory/OPERATIONAL_RUNBOOKS.md` · 10 procedures with proof gates
+   - Regression Strategy: `/app/memory/REGRESSION_STRATEGY.md` · 3-gate deploy doctrine
 
-**Open items for operator (low priority, documented):**
-- 🟡 Configure Atlas alerts (75% / 90% storage, CPU, connection spikes) per `ATLAS_ALERTS_RUNBOOK.md`
-- 🟡 Review `idempotency_keys` (3.3 MB/doc — abnormally large; likely storing request bodies)
-- 🟡 Decide on lifecycle policies (TTL indexes for `usage_events`, `health_monitor_runs`, photo migration) — list in certification report § 12
+**Open items (queued, not yet implemented, all REVIEW-ONLY per directive):**
+- 🔴 `lib/idempotency.py:128` — patch to strip `photos/gallery/attachments/image_base64` before caching (drops `idempotency_keys` avg from 3.3 MB/doc → < 5 KB/doc)
+- 🟠 Configure Atlas alerts (operator-side, requires Atlas admin login) per `ATLAS_ALERTS_RUNBOOK.md`
+- 🟠 Reproduce `/api/field-leadership/portal/dispatch-today` 20-second cold-start; add startup warmup if confirmed
+- 🟠 Legacy base64 photo migration (300+ MB reclaim) — defer to dedicated migration phase
+- 🟡 Re-seed `testmech@mascigc.com` shop test user (wiped by restore — shop direct-login gap in role cert)
+- 🟡 Playwright flows 6-15 (MFA, passkeys, write-paths, dispatch, payroll, public-form, restore-health, isolation-under-load)
+- 🟡 Per-FL-role direct logins (Superintendent, Foreman, Truck Boss, Working Supervisor) for role-cert next pass
+- 🟡 `dispatch_driver` session + magic-link token probe for role-cert next pass
+- ⚪ Lifecycle TTL governance documentation
+- ⚪ Deployment Certification Checklist (P2)
 
 ---
 

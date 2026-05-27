@@ -24050,3 +24050,29 @@ See `/app/memory/test_credentials.md`. Quick refs:
 
 **Phase R verdict:** ✅ CERTIFIED PASS. Ready to proceed to performance audit, role access matrix, Playwright suite.
 
+
+---
+
+## iter437 (2026-05-26 · late) — Phase Sigma · Operational Trust Hardening (P0/P1 first pass)
+
+**Delivered (all evidence-backed, all gates green):**
+
+| Artifact                                                       | Status              | Proof                                         |
+|----------------------------------------------------------------|---------------------|-----------------------------------------------|
+| Cluster-capacity threshold logic (critical/warning/ok)         | ✅ VERIFIED         | 3/3 severities exercised live; restored 10240 MB |
+| Playwright foundation (3 viewports · 5 flows)                  | ✅ 15/15 PASS in 36s | `/app/backend/tests/pw_suite/`                |
+| Role-access certification matrix (13 identities × 26 endpoints)| ✅ 338 cells logged · 0 unexpected | `/app/memory/ROLE_ACCESS_CERTIFICATION.md` |
+| Documented credentials restored post-probe                     | ✅ all 5 portals 200| dispatch, safety, hr, pm, field-leadership   |
+| Performance forensics (23 endpoints × 5 samples)               | ✅ all <500ms p99 except one cold-start outlier | `/app/memory/PERFORMANCE_FORENSICS.md` |
+| 🔴 Root cause for `idempotency_keys` bloat                     | ✅ FOUND, not patched | `lib/idempotency.py:128` stores full response body |
+| Operational runbooks (10 procedures with proof gates)          | ✅ COMPLETE         | `/app/memory/OPERATIONAL_RUNBOOKS.md`         |
+| Regression strategy + gating doctrine                          | ✅ DOCUMENTED       | `/app/memory/REGRESSION_STRATEGY.md`          |
+
+**Final certification state:**
+- ✅ Gate A · API regression: **43 passed in 7.98s**
+- ✅ Gate B · Playwright: **15 passed in 36.23s** (desktop / ipad / mobile)
+- ✅ Gate C · Cluster capacity: severity=ok, 8.9% utilization
+- ✅ All 5 documented portal credentials login successfully (200)
+
+**No code shipped beyond:** cluster-capacity probe + banner (last session) and tests/tooling this session. Per directive, no feature work, no migrations.
+
