@@ -24261,3 +24261,50 @@ See `/app/memory/test_credentials.md`. Quick refs:
 - 🟡 Per-FL-subrole + dispatch_driver real-employee testing (needs FL roster credentials)
 - 🟡 Storage drift widget (UI not built; data plumbing in place)
 
+
+---
+
+## iter437 (2026-02-27 · continued) — Phase IV-A · Admin Experience Governance (DOCTRINE PASS COMPLETE)
+
+**Scope:** Documentation-only · zero backend mutations · zero production writes · zero schema changes · zero feature implementation. Strict preview isolation maintained.
+
+**P0 — Mobile bug fixed in this iteration block (Phase IV-A.0):**
+- ✅ iOS Safari Admin Sidebar scroll bug — `SheetContent` rebuilt as flex-column with `min-h-0 overflow-y-auto overscroll-contain` + `WebkitOverflowScrolling: touch`.
+- ✅ Regression-locked by `/app/backend/tests/pw_suite/test_admin_mobile_nav_scroll.py` (2 passed · 4 desktop/iPad skips correct).
+
+**P0 — Phase IV-A 8-document governance package · all 8 delivered:**
+
+| Document | Status | Path |
+|---|---|---|
+| Admin UX Governance | ✅ shipped earlier in session | `/app/memory/ADMIN_UX_GOVERNANCE.md` |
+| Sidebar Re-Architecture | ✅ shipped earlier in session | `/app/memory/SIDEBAR_REARCHITECTURE.md` |
+| Operational Verbiage Doctrine | ✅ shipped this pass | `/app/memory/OPERATIONAL_VERBIAGE_DOCTRINE.md` |
+| Communication Tone Standard | ✅ shipped this pass | `/app/memory/COMMUNICATION_TONE_STANDARD.md` |
+| Mobile Navigation Standard | ✅ shipped this pass | `/app/memory/MOBILE_NAVIGATION_STANDARD.md` |
+| Component Hierarchy Standard | ✅ shipped this pass | `/app/memory/COMPONENT_HIERARCHY_STANDARD.md` |
+| Admin Information Priority Map (JSON) | ✅ shipped this pass | `/app/memory/ADMIN_INFORMATION_PRIORITY_MAP.json` |
+| Visual Loudness Reduction Plan | ✅ shipped this pass | `/app/memory/VISUAL_LOUDNESS_REDUCTION_PLAN.md` |
+
+**What this phase produces:**
+- One lexicon (canonical verbs · canonical nouns · forbidden wording · severity ladder · escalation grammar).
+- One voice (severity-tiered communication tone across email, push, banner, toast, modal, SMS — anti-panic + anti-alarm-fatigue doctrine).
+- One mobile contract (drawer-scroll pattern codified · iOS Safari governance · thumb-zone + 44 px touch target rules · keyboard-safe behavior).
+- One component governance (Tier 0–5 ladder · z-index ladder of 9 layers · modal-stack rules · badge restrictions · red-color reservation · density tiers).
+- One machine-readable priority map (6 domains · per-route operational_tier × frequency_class × urgency_class × mobile_priority × role visibility — drives sidebar / dashboard / notification / future AI routing).
+- One measurable loudness budget (6 dimensions · per-surface targets · phased reduction plan IV.A.1 → IV.A.6 · pre-deploy measurement gate).
+
+**Code touched this iteration:** Only `frontend/src/components/ui/sheet.jsx` (iOS scroll fix · Phase IV-A.0) and `backend/tests/pw_suite/test_admin_mobile_nav_scroll.py` (regression).
+
+**No production data was touched. No schema changes. No backend mutations.**
+
+**Next phase — Phase IV.A.1 (NOT in this iteration):**
+- Refactor `AdminShell.jsx` behind a feature flag to render the new domain-grouped sidebar from `ADMIN_INFORMATION_PRIORITY_MAP.json`.
+- Each sub-step (IV.A.1 → IV.A.6) is ≤ 200 LOC and independently reversible per `SIDEBAR_REARCHITECTURE.md` §"Implementation phasing".
+
+**Roadmap after IV-A.x complete:**
+- Phase IV-B · Communication System Unification (apply tone doctrine to emails/notifications)
+- Phase IV-C · UX Consistency Governance (buttons, spacing, modals retrofit)
+- Phase IV-D · Terminology + Wording Governance (lexicon enforcement via deploy gate)
+
+**Verdict:** 🟢 Phase IV-A Governance complete · 8/8 docs locked · iOS bug fixed and regression-armed · awaiting user review before Phase IV.A.1 implementation begins.
+
