@@ -134,11 +134,23 @@ export default function AdminShell({ title, section, children, intro }) {
                 <MenuIcon className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="bg-slate-900 border-r-2 border-red-700 p-0 w-72">
-              <SheetHeader className="px-4 pt-4 pb-2 border-b border-slate-800">
+            <SheetContent side="left" className="bg-slate-900 border-r-2 border-red-700 p-0 w-72 flex flex-col">
+              <SheetHeader className="px-4 pt-4 pb-2 border-b border-slate-800 shrink-0">
                 <SheetTitle className="text-white font-display text-lg">Admin Console</SheetTitle>
               </SheetHeader>
-              <SideNav active={section} onNavigate={() => setMobileOpen(false)} />
+              {/* iter437 Phase IV-A · mobile sidebar scroll fix
+                  Root cause: SheetContent is `fixed inset-y-0 h-full`
+                  with no internal scroll container. iOS Safari does
+                  NOT auto-scroll overflowing children of a fixed
+                  ancestor. Add an explicit flex-1 + overflow-y-auto
+                  wrapper + WebKit momentum scroll. */}
+              <div
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+                style={{ WebkitOverflowScrolling: "touch" }}
+                data-testid="admin-mobile-nav-scroll"
+              >
+                <SideNav active={section} onNavigate={() => setMobileOpen(false)} />
+              </div>
             </SheetContent>
           </Sheet>
 
