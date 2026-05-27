@@ -1,6 +1,47 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — iter437 IV-BETA.5A-P7 · Source-Hash Drift Gate 🟢
+
+### Mission
+Add one early, informational stage to `pre_deploy_check.sh` that
+compares the live preview `/api/version.source_hash` against the live
+production `/api/version.source_hash` BEFORE the expensive validation
+stages start. Prevents the "we thought we deployed it" failure mode.
+
+### Implementation
+- New stage function `stage_source_hash_drift_report` added to `scripts/pre_deploy_check.sh`.
+- Wired as the **first** stage in the run order — operator sees the verdict in 2 seconds, before the 15+ minute test pipeline starts.
+- Three verdict branches:
+  - `preview_hash == prod_hash` → `✓ production already current`
+  - `preview_hash != prod_hash` → `▸ preview_hash=<a> · prod_hash=<b> · production behind preview`
+  - unreachable → `⚠ ... soft warn`
+- **Always exits 0** (informational · not deploy-blocking by doctrine).
+- Reads from `frontend/.env` `REACT_APP_BACKEND_URL` and env var `PRODUCTION_URL` (default `https://mascidocs.com`).
+
+### Verification
+- 🟢 `bash -n scripts/pre_deploy_check.sh` exits 0 (syntax clean)
+- 🟢 Live in-stage run reports `production already current` (preview hash == prod hash == `0f5d997dffba`)
+- 🟢 New `scripts/test_source_hash_gate.sh` exercises all 3 branches via ephemeral http.server fixtures · **10 / 10 assertions PASS**
+
+### Discipline preserved
+- ❌ No database modification
+- ❌ No auth modification
+- ❌ No portal logic modification
+- ❌ No destructive action of any kind
+- ❌ No production deploy (preview-only file change)
+- ❌ No backend or frontend code touched
+
+### Files changed
+- `scripts/pre_deploy_check.sh` (+76 lines · header docstring + new stage + wired as first runner)
+- `scripts/test_source_hash_gate.sh` (NEW · 138 lines · 10-assertion branch coverage)
+- `memory/SOURCE_HASH_GATE_CERTIFICATION.md` (NEW · documentation)
+
+### Stop condition active
+🟢 Operator wanted: "After this is done and green, we can start V.1 with a clean platform baseline." E1 stops. V.1 begins only on an explicit operator command in a fresh message.
+
+
+
 ## 2026-05-27 (fork) — Production Deploy Stabilized · Post-Deploy Live Certification 🟢
 
 ### Mission

@@ -10,6 +10,7 @@
 # as a hard stop — DO NOT redeploy until every stage passes.
 #
 # Stages:
+#   0. Source-hash drift report (preview vs production · informational)
 #   1. Backend syntax check (python compile)
 #   2. Backend lint (ruff) — fail on errors only
 #   3. Frontend lint (eslint via CRA) — fail on errors
@@ -66,6 +67,62 @@ stage_backend_lint() {
   fi
   # Fail only on actual errors (E9, F63, F7, F82); style warnings tolerated.
   ruff check backend/server.py backend/routes --select=E9,F63,F7,F82 --no-cache
+}
+
+# ─── Phase IV-BETA.5A-P7 · Source-hash drift report (2026-05-27) ──────
+# After the 2026-05-27 post-deploy review the operator added a doctrine:
+# every pre-deploy run MUST report the live preview vs. live production
+# `source_hash` BEFORE the expensive stages start. This prevents the
+# "we thought we deployed it" failure mode — you'll catch a stale
+# production build (or an already-deployed identical build) in seconds.
+#
+# Always returns 0. This is a REPORT stage, not a blocker:
+#   • The normal pre-deploy state IS "production behind preview". That's
+#     exactly why you're running this script.
+#   • Identical hashes is also a valid state ("already current").
+#   • Only the network unreachable / malformed response case is worth
+#     flagging — and even then, just as a soft warning. The downstream
+#     identity stages do the hard env-mismatch enforcement.
+#
+# Configuration:
+#   • Preview URL  ← REACT_APP_BACKEND_URL in frontend/.env
+#   • Prod URL     ← env var PRODUCTION_URL (default: https://mascidocs.com)
+stage_source_hash_drift_report() {
+  local preview_url prod_url preview_hash prod_hash
+  preview_url=$(grep '^REACT_APP_BACKEND_URL=' frontend/.env | cut -d= -f2 | tr -d '"' | tr -d "'")
+  prod_url="${PRODUCTION_URL:-https://mascidocs.com}"
+
+  if [[ -z "$preview_url" ]]; then
+    echo "  ⚠ preview URL unavailable (REACT_APP_BACKEND_URL missing) — skipping drift report"
+    return 0
+  fi
+
+  preview_hash=$(curl -fsS --max-time 8 "$preview_url/api/version" 2>/dev/null \
+    | python3 -c "import sys,json;print(json.load(sys.stdin).get('source_hash','?'))" 2>/dev/null)
+  prod_hash=$(curl -fsS --max-time 8 "$prod_url/api/version" 2>/dev/null \
+    | python3 -c "import sys,json;print(json.load(sys.stdin).get('source_hash','?'))" 2>/dev/null)
+
+  echo "  preview ($preview_url)"
+  echo "    source_hash = ${preview_hash:-<unreachable>}"
+  echo "  production ($prod_url)"
+  echo "    source_hash = ${prod_hash:-<unreachable>}"
+
+  if [[ -z "$preview_hash" || "$preview_hash" == "?" ]]; then
+    echo "  ⚠ preview /api/version unreachable or missing source_hash · soft warn"
+    return 0
+  fi
+  if [[ -z "$prod_hash" || "$prod_hash" == "?" ]]; then
+    echo "  ⚠ production /api/version unreachable or missing source_hash · soft warn"
+    return 0
+  fi
+  if [[ "$preview_hash" == "$prod_hash" ]]; then
+    echo "  ✓ production already current"
+    echo "    (preview_hash == prod_hash · nothing to ship · safe to skip Deploy)"
+  else
+    echo "  ▸ preview_hash=$preview_hash · prod_hash=$prod_hash · production behind preview"
+    echo "    (expected when you are ABOUT to deploy · click Deploy to ship preview to prod)"
+  fi
+  return 0
 }
 
 stage_frontend_lint() {
@@ -260,6 +317,9 @@ stage_governance_doctrine_maturity() {
 
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
+
+# IV-BETA.5A-P7 · early visibility · "did we already deploy this?" check
+run_stage "Source-hash drift report (preview vs production · informational)" stage_source_hash_drift_report
 
 run_stage "Backend syntax compile" stage_backend_syntax
 run_stage "Backend lint (ruff errors)" stage_backend_lint
