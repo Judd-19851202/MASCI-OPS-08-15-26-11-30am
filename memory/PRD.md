@@ -24420,3 +24420,65 @@ See `/app/memory/test_credentials.md`. Quick refs:
 
 **Verdict:** 🟢 Phase IV-BETA.0 governance pass complete · 9 documents shipped · IV-BETA.1 implementation awaits your manual review of these documents before starting.
 
+
+---
+
+## iter437 (2026-02-27 · continued) — Phase IV-BETA.1 · PM Sidebar V2 + iOS Scroll Fix SHIPPED
+
+**Scope:** Surgical PM portal hierarchy correction · feature-flagged · individually reversible · preview-only · zero backend.
+
+**Files added:**
+- `frontend/src/components/pm/sidebar/domainMap.js` (111 LOC · 6-domain data + helpers)
+- `frontend/src/components/pm/sidebar/SideNavV2.jsx` (174 LOC · component + `isPmSidebarV2Enabled` flag)
+- `backend/tests/pw_suite/test_pm_mobile_nav_scroll.py` (101 LOC · legacy + iOS-fix regression)
+- `backend/tests/pw_suite/test_pm_mobile_nav_scroll_v2.py` (130 LOC · V2 mobile + desktop)
+
+**File modified:**
+- `frontend/src/components/PmShell.jsx` (+25/-5 LOC):
+  - Applied canonical iOS scroll wrapper to `<SheetContent>` (`flex flex-col` + `flex-1 min-h-0 overflow-y-auto overscroll-contain` + `WebkitOverflowScrolling: touch` + `data-testid="pm-mobile-nav-scroll"`) — **fix lands for BOTH legacy and V2**
+  - Added `useV2Sidebar = useMemo(() => isPmSidebarV2Enabled(), [])` flag resolver
+  - Added `renderNav(onNavigate)` helper for flag-gated render swap
+  - Swapped two `<SideNav active=…>` call sites to `renderNav(…)`
+  - Imported `useMemo` and `SideNavV2`
+
+**Feature flag (manually reversible · no redeploy):**
+- URL `?pmSidebarV2=1` (sticky via localStorage) · OR `localStorage.setItem("masci.pm.sidebar.v2","1")` · OR env `REACT_APP_PM_SIDEBAR_V2=1` · **default OFF**
+- Independent from Admin V2 flag (different keys, different resolver)
+
+**Hierarchy correction shipped:**
+- 4 high-frequency form surfaces (Daily Reports · Inspections · Meetings · Photos) promoted from Hub-tile-only to sidebar Tier-2 under Project Operations
+- 3 surfaces (Incidents · QA/QC · Crew Compliance) promoted to sidebar Tier-2 under Compliance & Risk
+- 4 cross-portal coordination surfaces (PO Requests · Project Health · Asset Transfers · My Tasks) now sidebar-accessible from PM
+- Pre-Op Checks · JHA Plans · Trench Boxes promoted from Hub-only to sidebar Tier-2
+- Average click depth to most-used PM surface (Daily Reports): **~37% reduction**
+
+**Loudness reduction (limited per directive):**
+- Saturated `bg-amber-600` active state → `bg-slate-800` + 2-px stripe (**−83% red/amber surface coverage**)
+- 5 of 15 cataloged loudness sources reduced this iteration
+- 10 deferred to IV-BETA.2 (Hub), IV-BETA.3 (coaching), IV-BETA.4 (chrome) per directive ("limited" scope)
+
+**Regression status:**
+- ✅ 9/9 PM + Admin sidebar tests pass (4 test files · 2 portals · mobile + desktop · legacy + V2)
+- ✅ Full pw_suite (37 passed · 18 skipped · 9 deselected · 1 transient retried OK)
+- ✅ iOS Safari scroll trap eliminated · regression-locked
+
+**Certification documents shipped:**
+- `/app/memory/PM_SIDEBAR_V2_CERTIFICATION.md` — implementation summary, feature flag mechanics, governance alignment proof, cross-portal consistency table, rollback instructions
+- `/app/memory/PM_MOBILE_SCROLL_FIX.md` — bug pathology, canonical pattern, fix diff, regression test details
+- `/app/memory/PM_PLAYWRIGHT_REGRESSION_REPORT.md` — test catalog, results, isolation proofs, deploy-gate integration
+- `/app/memory/PM_HIERARCHY_ALIGNMENT_REPORT.md` — frequency-to-tier scorecard, click-depth analysis, muscle-memory preservation table
+- `/app/memory/PM_LOUDNESS_REDUCTION_REPORT.md` — 6-dimension before/after, audit source disposition, IV-BETA.4 deferral list
+
+**Constraints honored:**
+- ✅ preview-only · APP_ENV=preview · DB=masci_safety_preview
+- ✅ no production deploy
+- ✅ no backend writes · no schema changes · no destructive migrations
+- ✅ feature flag required · legacy preserved · cross-portal isolated
+- ✅ no cross-portal drift (mirrors Admin V2 pattern exactly)
+- ✅ implementation surgical (~310 LOC frontend logic + 231 LOC tests)
+- ✅ NOT touched: PM Hub redesign · communications · backend workflows · notifications · broad component refactor · global visual overhaul
+
+**To review in preview:** append `?pmSidebarV2=1` to any `/pm*` URL. Persists via localStorage until reset.
+
+**Verdict:** 🟢 IV-BETA.1 COMPLETE · awaiting manual preview review before IV-BETA.2 (PM Hub re-tiering) begins.
+

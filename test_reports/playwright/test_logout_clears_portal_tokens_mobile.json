@@ -1,0 +1,7 @@
+{
+  "viewport": "mobile",
+  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/",
+  "console_tail": [
+    "[info] [sentry] initialised {env: preview, release: 45e66bd7a89e16894ba55dff064ce456}"
+  ]
+}

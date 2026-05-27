@@ -8,7 +8,7 @@
 // Each PM section page wraps panels in <PmShell title="Jobs" section="jobs"> and
 // the chrome handles header/sidebar/footer.
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Wrench, Mail, Users, Truck, FileImage,
@@ -26,6 +26,7 @@ import GlobalSearch from "@/components/GlobalSearch";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
+import SideNavV2, { isPmSidebarV2Enabled } from "@/components/pm/sidebar/SideNavV2";
 import { api } from "@/lib/api";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
@@ -79,6 +80,14 @@ function SideNav({ active, onNavigate }) {
 export default function PmShell({ title, section, children, intro }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Phase IV-BETA.1 — Feature-flagged V2 sidebar. Resolved once per mount
+  // so toggling the flag requires a page reload (predictable rollout).
+  // Legacy <SideNav> remains the default; V2 must be opted in.
+  const useV2Sidebar = useMemo(() => isPmSidebarV2Enabled(), []);
+  const renderNav = (onNavigate) =>
+    useV2Sidebar
+      ? <SideNavV2 onNavigate={onNavigate} />
+      : <SideNav active={section} onNavigate={onNavigate} />;
 
   const signOut = async () => {
     try { await api.post("/pm/logout"); } catch { /* ignore */ }
@@ -105,13 +114,24 @@ export default function PmShell({ title, section, children, intro }) {
                 <MenuIcon className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="bg-slate-900 border-r-2 border-amber-600 p-0 w-72">
-              <SheetHeader className="px-4 pt-4 pb-2 border-b border-slate-800">
+            <SheetContent side="left" className="bg-slate-900 border-r-2 border-amber-600 p-0 w-72 flex flex-col">
+              <SheetHeader className="px-4 pt-4 pb-2 border-b border-slate-800 shrink-0">
                 <SheetTitle className="text-white font-display text-lg flex items-center gap-2">
                   <Briefcase className="w-4 h-4 text-amber-400" /> PM Portal
                 </SheetTitle>
               </SheetHeader>
-              <SideNav active={section} onNavigate={() => setMobileOpen(false)} />
+              {/* iter437 Phase IV-BETA.1 · PM mobile sidebar scroll fix
+                  Mirrors AdminShell Phase IV-A.0. Without an explicit
+                  scroll wrapper, iOS Safari does not auto-scroll
+                  overflowing children of a `position: fixed` ancestor —
+                  the bottom of the menu would be unreachable. */}
+              <div
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+                style={{ WebkitOverflowScrolling: "touch" }}
+                data-testid="pm-mobile-nav-scroll"
+              >
+                {renderNav(() => setMobileOpen(false))}
+              </div>
             </SheetContent>
           </Sheet>
 
@@ -196,7 +216,7 @@ export default function PmShell({ title, section, children, intro }) {
           data-testid="pm-side-nav-desktop"
         >
           <div className="rounded-md bg-slate-900 border-2 border-slate-800 overflow-hidden">
-            <SideNav active={section} />
+            {renderNav()}
           </div>
           <div className="mt-3 px-3 text-[9px] font-mono uppercase tracking-[0.22em] text-slate-400 flex items-center justify-between">
             <BackendVersionBadge />
