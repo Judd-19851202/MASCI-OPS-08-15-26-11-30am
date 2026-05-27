@@ -112,9 +112,12 @@ function _scheduleFlush() {
 async function _postBatch(batch) {
   if (!API || !batch.length) return false;
   const headers = { "Content-Type": "application/json" };
+  // iter441 — POST anonymously when no portal token is present.
+  // The P0 population (foremen on /daily/submit via public link)
+  // carry no token; we still need their telemetry to land. Backend
+  // accepts anonymous batches and rate-limits per device.
   const tok = _tokenHeader();
-  if (!tok) return false; // no token live → keep buffered
-  Object.assign(headers, tok);
+  if (tok) Object.assign(headers, tok);
   try {
     const r = await fetch(`${API}${ENDPOINT}`, {
       method: "POST",

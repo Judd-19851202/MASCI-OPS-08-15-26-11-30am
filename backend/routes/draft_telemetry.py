@@ -125,28 +125,55 @@ async def ensure_draft_telemetry_indexes(db) -> None:
 def build_draft_telemetry_router(db, require_any_portal_token, require_admin_dep):
     router = APIRouter(tags=["draft-telemetry"])
 
-    def _token_kind_from_actor(actor: Dict[str, Any]) -> str:
-        return (actor.get("_actor") or actor.get("role") or "any")[:16]
-
     @router.post("/api/draft-telemetry")
     async def append_events(
         body: DraftEventBatch,
         request: Request,
-        actor: Dict[str, Any] = Depends(require_any_portal_token),
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
+        x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+        x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+        x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+        x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
+        x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+        x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
     ):
+        # iter441 — accept anonymous events too. The P0 incident
+        # population (foremen accessing /daily/submit via public link)
+        # carries no portal token, so requiring auth would silently
+        # drop the exact telemetry we need. Rate-limit by deviceId
+        # AND by token-or-anon to bound abuse.
         token_key = (
-            request.headers.get("x-admin-token")
-            or request.headers.get("x-pm-token")
-            or request.headers.get("x-hr-token")
-            or request.headers.get("x-safety-token")
-            or request.headers.get("x-dispatch-token")
-            or request.headers.get("x-leadership-token")
-            or "anon"
-        )[:32]
-        if _rate_limited(token_key):
+            x_admin_token or x_pm_token or x_hr_token or x_safety_token
+            or x_dispatch_token or x_leadership_token or x_shop_token
+            or x_fl_token or ""
+        )
+        token_kind = "anon"
+        if x_admin_token:
+            token_kind = "admin"
+        elif x_pm_token:
+            token_kind = "pm"
+        elif x_hr_token:
+            token_kind = "hr"
+        elif x_safety_token:
+            token_kind = "safety"
+        elif x_dispatch_token:
+            token_kind = "dispatch"
+        elif x_leadership_token:
+            token_kind = "leadership"
+        elif x_shop_token:
+            token_kind = "shop"
+        elif x_fl_token:
+            token_kind = "fl"
+
+        # Rate-limit on (deviceId, token_key) — keeps a misconfigured
+        # device from drowning the collector while letting genuine
+        # multi-user shared phones through.
+        first_device = body.batch[0].deviceId if body.batch else "anon"
+        rl_key = f"{token_kind}:{first_device}:{token_key[:16]}"[:80]
+        if _rate_limited(rl_key):
             raise HTTPException(429, "draft-telemetry rate limit exceeded")
 
-        token_kind = _token_kind_from_actor(actor)
         now = datetime.now(timezone.utc)
         received = 0
         deduped = 0
@@ -154,7 +181,6 @@ def build_draft_telemetry_router(db, require_any_portal_token, require_admin_dep
             # Cheap meta-size guard.
             try:
                 meta_json = ev.meta or {}
-                # Quick sizeof estimate without dumping (avoid pulling json):
                 if sum(len(str(k)) + len(str(v)) for k, v in meta_json.items()) > MAX_META_BYTES:
                     meta_json = {"_truncated": True}
             except Exception:
@@ -180,8 +206,6 @@ def build_draft_telemetry_router(db, require_any_portal_token, require_admin_dep
                 if "duplicate" in msg or "e11000" in msg:
                     deduped += 1
                     continue
-                # Anything else — log + count as deduped so the client
-                # doesn't retry a poisoned event into a tight loop.
                 logger.warning("draft_telemetry insert failed: %s", e)
                 deduped += 1
         return {"received": received, "deduplicated": deduped}

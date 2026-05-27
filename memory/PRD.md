@@ -1,6 +1,97 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — iter440/441 · P0 FIELD INCIDENT REMEDIATION · Daily Report Draft Loss 🟢
+
+### Mission
+The P0 field incident — Daily Report draft data disappearing on iPhone
+Safari for foremen — is fully remediated. Three independently
+sufficient root causes (H1 silent write failure / H2 token-rotation
+orphaning / H4 photo-quota overflow), plus H3 iOS lifecycle gap and
+H9 stale-restore confusion — all defended by code changes and
+disconfirming tests.
+
+### Implementation (iter440 + iter441 closing gap)
+
+**Backend (new)**
+- `routes/draft_telemetry.py` — `/api/draft-telemetry` POST/health/recent.
+  - POST is anonymous-friendly (iter441) — rate-limited by deviceId;
+    closes the public-mode observability gap surfaced by the testing
+    agent.
+  - 30-day TTL on `receivedAt`; unique-index on `eventId` (dedupe).
+  - `/recent` admin-gated; `/health` token-gated.
+- `server.py` wires the router + startup index-ensure.
+
+**Client lib (`frontend/src/lib/resiliency/`)**
+- `deviceId.js` (NEW) — persisted `d.<32hex>` UUID in localStorage.
+  Independent of any auth token. Root fix for H2.
+- `actorId.js` (REWRITTEN) — `getDeviceScopedActorId()` for IDB keys;
+  `getActorId()` for telemetry segmentation; `getLegacyActorIds()`
+  for one-time migration.
+- `draftStore.js` (REWRITTEN) — `saveDraft()` returns `{ok, error}`
+  (truthful); `discardDraft()` SOFT-deletes to a 24h archive;
+  `migrateLegacyDrafts()` re-keys token-derived orphans;
+  `storeIdempotencyKey/getIdempotencyKey/clearIdempotencyKey` persist
+  the submit key across reloads.
+- `photoDraftStore.js` (NEW) — blob-only IDB store; form payload
+  carries refs only. Closes the H4 quota-blowing path.
+- `quotaProbe.js` (NEW) — `navigator.storage.estimate()` wrapper.
+- `draftTelemetry.js` (NEW) — in-memory ring buffer (200) + debounced
+  batch POST + sendBeacon-style flush on pagehide. iter441: works
+  anonymously (no portal token required).
+- `useFormDraft.js` (REWRITTEN) — visibilitychange/pagehide/
+  beforeunload synchronous flush; 10s max-interval forced flush;
+  truthful status + `lastSavedAt` + `lastError`; one-time legacy
+  draft migration on mount.
+- `DraftStatusPill.jsx` (REWRITTEN) — `"failed"` state (rose-tint)
+  with "Save failed — storage full"; "Saved Ns ago" relative time.
+- `DraftRestorePrompt.jsx` (REWRITTEN) — shows `savedAt`
+  timestamp + "Recovered from a previous session" subtitle when
+  `isCrossToken === true`.
+
+**Page wiring**
+- `pages/NewDailyReport.jsx` — consumes new pill props
+  (`lastSavedAt`, `lastError`) + restore prompt props
+  (`savedAt`, `isCrossToken`); persists `idempotencyKey` to IDB
+  immediately after first mint to defend H8.
+
+### Verification
+- 🟢 **21/21 P0 regression tests pass** across 3 files:
+  - `tests/pw_suite/test_draft_telemetry_endpoint.py` — 10 backend
+    tests (auth, dedupe, rate-limit, oversized batch, allowlist,
+    anonymous POST, admin recent, MongoDB _id leak guard).
+  - `tests/pw_suite/test_draft_loss_remediation.py` — 5 client
+    tests on iPhone-emulated mobile viewport (pill truthfulness, H1
+    quota-fail → red pill, restore prompt savedAt, H3 visibility-
+    hidden flush, deviceId persistence).
+  - `tests/pw_suite/test_draft_loss_regression_iter440.py` — 6
+    sibling-form smoke + integration tests (NewIncident,
+    NewInspection, HrPayrollVariance, AdminDlsDay1Debrief mount
+    without crash; idempotency-key round-trip in IDB; typing emits
+    `draft.write.ok` to telemetry endpoint).
+
+### Doctrine documents (6 audit / remediation docs in `/app/memory/`)
+- `DAILY_REPORT_DRAFT_LIFECYCLE_AUDIT.md`
+- `AUTOSAVE_FAILURE_ANALYSIS.md`
+- `MOBILE_STATE_PERSISTENCE_ANALYSIS.md`
+- `ROOT_CAUSE_HYPOTHESIS_MATRIX.md`
+- `DRAFT_INSTRUMENTATION_PLAN.md`
+- `P0_REMEDIATION_PLAN.md`
+
+### Discipline preserved
+- ❌ No database schema modification
+- ❌ No auth modification
+- ❌ No portal logic modification
+- ❌ No destructive action
+- ❌ No production deploy (preview-only · awaiting user-initiated cutover)
+
+### Stop condition
+🟢 P0 fully fixed in preview · all tests green · awaiting user
+command to (a) cut to production, or (b) begin Phase V.1 RFI MVP
+implementation.
+
+
+
 ## 2026-05-27 (fork) — iter437 IV-BETA.5A-P7 · Source-Hash Drift Gate 🟢
 
 ### Mission

@@ -135,15 +135,52 @@ def test_draft_telemetry_oversized_batch_rejected(base_url: str):
     assert r.status_code in (400, 422), r.text
 
 
-def test_draft_telemetry_unauth_post_401(base_url: str):
-    # Empty X-Admin-Token bypasses the conftest auto-auth monkey-patch.
+def test_draft_telemetry_unauth_post_accepted(base_url: str):
+    """iter441 — POST is now anonymous-friendly. The P0 population
+    (foremen on /daily/submit via public link) carry no portal token;
+    requiring auth would silently drop the very telemetry we need.
+    Backend rate-limits anonymous POSTs by deviceId."""
+    eid = f"pw-anon-{uuid.uuid4().hex[:16]}"
     r = requests.post(
         f"{base_url}/api/draft-telemetry",
         headers={"X-Admin-Token": "", "Content-Type": "application/json"},
-        json={"batch": [_ev(f"pw-{uuid.uuid4().hex[:8]}")]},
+        json={"batch": [_ev(eid)]},
         timeout=10,
     )
-    assert r.status_code == 401
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body.get("received") == 1
+    # And the recorded tokenKind should reflect "anon" for the
+    # public-mode path.
+    # (We verify this via the admin /recent endpoint below.)
+
+
+def test_draft_telemetry_anon_post_records_tokenkind_anon(base_url: str):
+    """iter441 — anon POSTs land with tokenKind='anon' so we can
+    triage public-mode telemetry separately from authenticated
+    portal-mode events."""
+    eid = f"pw-anon-tk-{uuid.uuid4().hex[:16]}"
+    r1 = requests.post(
+        f"{base_url}/api/draft-telemetry",
+        headers={"X-Admin-Token": "", "Content-Type": "application/json"},
+        json={"batch": [_ev(eid)]},
+        timeout=10,
+    )
+    assert r1.status_code == 200, r1.text
+    tok = _admin_token(base_url)
+    r2 = requests.get(
+        f"{base_url}/api/draft-telemetry/recent",
+        headers={"X-Admin-Token": tok},
+        params={"limit": 50},
+        timeout=10,
+    )
+    assert r2.status_code == 200
+    items = r2.json().get("items") or []
+    anon = [i for i in items if i.get("eventId") == eid]
+    assert anon, f"anon-posted event {eid} not found in recent feed"
+    assert anon[0].get("tokenKind") == "anon", (
+        f"expected tokenKind='anon' for unauth POST, got {anon[0]}"
+    )
 
 
 def test_draft_telemetry_recent_admin_only(base_url: str):
