@@ -8814,6 +8814,20 @@ from routes.signatures import (  # noqa: E402
 app.include_router(build_signatures_router(db, _require_any_portal_token))
 
 
+# ─── Draft Telemetry (P0 field-incident · daily report draft loss) ──
+# Append-only client-driven telemetry for the form-draft / autosave
+# subsystem. NEVER stores form content — only sizes / error-names /
+# timestamps / page-lifecycle transitions. 30-day TTL via index.
+from routes.draft_telemetry import (  # noqa: E402
+    build_draft_telemetry_router, ensure_draft_telemetry_indexes,
+)
+app.include_router(
+    build_draft_telemetry_router(
+        db, _require_any_portal_token, require_admin,
+    )
+)
+
+
 # ─── Global Search (iter155 — Phase 2.5 · Phase G) ──────────────────
 # Permission-safe, role-aware, lightweight cross-collection typeahead.
 # Reuses _require_any_portal_token and applies per-role visibility +
@@ -9050,6 +9064,10 @@ async def _bootstrap_integrations():
     logger.info("[po-requests] indexes ensured")
     await ensure_signatures_indexes(db)
     logger.info("[signatures] indexes ensured")
+    # P0 field-incident · draft-loss remediation — telemetry collection
+    # gets unique-eventId + TTL on receivedAt (30d) + ts/event lookup.
+    await ensure_draft_telemetry_indexes(db)
+    logger.info("[draft-telemetry] indexes ensured")
     # Phase 2 Initiative 4 — session_activity indexes (TTL + uniqueness)
     await ensure_session_timeout_indexes(db)
     logger.info("[session-timeout] indexes ensured")

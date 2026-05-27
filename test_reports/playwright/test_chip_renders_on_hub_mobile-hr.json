@@ -1,5 +1,10 @@
 {
   "viewport": "mobile",
-  "url": "about:blank",
-  "console_tail": []
+  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr?hrSidebarV2=1",
+  "console_tail": [
+    "[error] Failed to load resource: the server responded with a status of 403 ()",
+    "[error] Refused to execute script from 'https://safety-audit-mobile-1.preview.emergentagent.com/static/js/src_lib_usageTracker_js.chunk.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+    "[error] Failed to load resource: the server responded with a status of 403 ()",
+    "[error] Refused to execute script from 'https://safety-audit-mobile-1.preview.emergentagent.com/static/js/bundle.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
 }

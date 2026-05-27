@@ -1,48 +1,80 @@
-// draftStore.js — IndexedDB-backed form draft store.
-// Built on idb-keyval (~600 bytes). Drafts bound to actor identity
-// per device; cleared on logout; auto-purge after 14 days idle.
+// draftStore.js — iter440 · P0 field-incident remediation · 2026-05-27.
 //
-// Storage key shape:
-//   masci.draft.{actorId}.{formKey}
-// Bundles the form payload + photo blobs base64-encoded together so
-// nothing is lost on reload.
+// IndexedDB-backed form draft store. Built on idb-keyval (~600 bytes).
+//
+// What changed at iter440
+// -----------------------
+// 1. `saveDraft()` now returns `{ ok, savedAt | error, errorName }`.
+//    The autosave hook can show a TRUTHFUL pill ("Save failed —
+//    storage full") instead of a green checkmark over a silent
+//    failure. (Defends H1.)
+//
+// 2. `discardDraft()` SOFT-DELETES into an archive store with 24 h
+//    retention so a mis-tap on "Discard" does not nuke the morning's
+//    work. (Defends H6.)
+//
+// 3. New `migrateLegacyDrafts(deviceActorId, legacyActorIds, formKey)`
+//    re-keys any orphaned drafts written under prior token-derived
+//    actor ids. One-time, idempotent, fire-and-forget. (Defends H2.)
+//
+// 4. `storeIdempotencyKey()` / `getIdempotencyKey()` persist the
+//    submit idempotency key in IDB so a reload mid-queue does not
+//    mint a duplicate. (Defends H8.)
+//
+// Storage key shapes:
+//   masci.draft.<actorId>.<formKey>                       primary
+//   masci.draft-archive.<actorId>.<formKey>.<deletedAt>   soft-delete
+//   masci.draft-idempotency.<actorId>.<formKey>           submit key
 
 import { get, set, del, keys as idbKeys } from "idb-keyval";
 
 const DRAFT_PREFIX = "masci.draft.";
+const ARCHIVE_PREFIX = "masci.draft-archive.";
+const IDEMPOTENCY_PREFIX = "masci.draft-idempotency.";
+
 const STALE_DAYS = 14;
 const STALE_MS = STALE_DAYS * 24 * 60 * 60 * 1000;
+const ARCHIVE_TTL_MS = 24 * 60 * 60 * 1000;        // 24 h soft-delete window
+const ARCHIVE_MAX_PER_FORM = 5;                    // keep at most 5 archives
 
 function _draftKey(actorId, formKey) {
   return `${DRAFT_PREFIX}${actorId || "anon"}.${formKey}`;
 }
+function _archiveKey(actorId, formKey, deletedAt) {
+  return `${ARCHIVE_PREFIX}${actorId || "anon"}.${formKey}.${deletedAt}`;
+}
+function _idempotencyKey(actorId, formKey) {
+  return `${IDEMPOTENCY_PREFIX}${actorId || "anon"}.${formKey}`;
+}
 
-/**
- * Save a draft. Wraps the payload in {form, savedAt} envelope so
- * staleness pruning is cheap.
- */
+// -------------------------------------------------------------------- save
 export async function saveDraft(actorId, formKey, form) {
-  if (!formKey) return;
+  if (!formKey) return { ok: false, error: "formKey required", errorName: "ValueError" };
+  const savedAt = Date.now();
   try {
-    await set(_draftKey(actorId, formKey), {
-      form, savedAt: Date.now(),
-    });
-  } catch {
-    // Quota exceeded / disabled — silent.
+    await set(_draftKey(actorId, formKey), { form, savedAt });
+    return { ok: true, savedAt };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e?.message || "idb-write-failed",
+      errorName: e?.name || "Error",
+    };
   }
 }
 
-/**
- * Retrieve a draft if it exists AND isn't stale.
- * Returns null when missing or stale (and purges stale entries).
- */
+// -------------------------------------------------------------------- read
+// Returns just the form payload (backward-compat surface used by
+// the older `useDraft` / `useDraftSync` hooks). New callers should
+// prefer `getDraftEntry()` which exposes `savedAt` for the truthful
+// "Saved N ago" pill.
 export async function getDraft(actorId, formKey) {
   if (!formKey) return null;
   try {
     const entry = await get(_draftKey(actorId, formKey));
     if (!entry || !entry.form) return null;
     if (Date.now() - (entry.savedAt || 0) > STALE_MS) {
-      await del(_draftKey(actorId, formKey));
+      try { await del(_draftKey(actorId, formKey)); } catch { /* ignore */ }
       return null;
     }
     return entry.form;
@@ -51,52 +83,177 @@ export async function getDraft(actorId, formKey) {
   }
 }
 
-/**
- * Discard a single draft (post-successful-submit OR on user discard).
- */
+// Full envelope variant — `{ form, savedAt }` or null. Used by the
+// iter440 useFormDraft hook to render the truthful timestamp.
+export async function getDraftEntry(actorId, formKey) {
+  if (!formKey) return null;
+  try {
+    const entry = await get(_draftKey(actorId, formKey));
+    if (!entry || !entry.form) return null;
+    if (Date.now() - (entry.savedAt || 0) > STALE_MS) {
+      try { await del(_draftKey(actorId, formKey)); } catch { /* ignore */ }
+      return null;
+    }
+    return { form: entry.form, savedAt: entry.savedAt || 0 };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------- discard
+// SOFT-DELETE — moves the draft into an archive key with 24 h TTL so
+// a mis-tap on "Discard" does not destroy the morning's work.
 export async function discardDraft(actorId, formKey) {
   if (!formKey) return;
   try {
+    const live = await get(_draftKey(actorId, formKey));
+    if (live && live.form) {
+      const deletedAt = Date.now();
+      try {
+        await set(_archiveKey(actorId, formKey, deletedAt), {
+          ...live, deletedAt,
+        });
+      } catch { /* ignore archive write failures */ }
+    }
     await del(_draftKey(actorId, formKey));
-  } catch {
-    // ignore
-  }
+    // Bound the archive — keep at most ARCHIVE_MAX_PER_FORM.
+    try {
+      const prefix = `${ARCHIVE_PREFIX}${actorId || "anon"}.${formKey}.`;
+      const ks = (await idbKeys())
+        .filter((k) => typeof k === "string" && k.startsWith(prefix))
+        .sort();
+      while (ks.length > ARCHIVE_MAX_PER_FORM) {
+        const oldest = ks.shift();
+        try { await del(oldest); } catch { /* ignore */ }
+      }
+    } catch { /* ignore */ }
+  } catch { /* ignore */ }
 }
 
-/**
- * Purge ALL drafts older than 14 days. Cheap O(n) keys scan — fine for
- * tens of drafts per device. Call on app boot.
- */
+// Try to recover the most-recently-archived draft (within TTL).
+// Used as a defensive fallback when getDraft() returns null but the
+// operator insists they had work.
+export async function recoverArchivedDraft(actorId, formKey) {
+  if (!formKey) return null;
+  try {
+    const prefix = `${ARCHIVE_PREFIX}${actorId || "anon"}.${formKey}.`;
+    const ks = (await idbKeys())
+      .filter((k) => typeof k === "string" && k.startsWith(prefix))
+      .sort()
+      .reverse();
+    const cutoff = Date.now() - ARCHIVE_TTL_MS;
+    for (const k of ks) {
+      const v = await get(k);
+      if (v && (v.deletedAt || 0) >= cutoff && v.form) {
+        return { form: v.form, savedAt: v.savedAt, deletedAt: v.deletedAt };
+      }
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+// ------------------------------------------------------------ purge stale
 export async function purgeStaleDrafts() {
   try {
     const ks = await idbKeys();
-    const cutoff = Date.now() - STALE_MS;
+    const draftCutoff = Date.now() - STALE_MS;
+    const archiveCutoff = Date.now() - ARCHIVE_TTL_MS;
     await Promise.all(
-      ks.filter((k) => typeof k === "string" && k.startsWith(DRAFT_PREFIX))
-        .map(async (k) => {
+      ks.filter((k) => typeof k === "string").map(async (k) => {
+        if (k.startsWith(DRAFT_PREFIX)) {
           const v = await get(k);
-          if (!v || (v.savedAt || 0) < cutoff) {
-            await del(k);
+          if (!v || (v.savedAt || 0) < draftCutoff) {
+            try { await del(k); } catch { /* ignore */ }
           }
-        }),
+        } else if (k.startsWith(ARCHIVE_PREFIX)) {
+          const v = await get(k);
+          if (!v || (v.deletedAt || 0) < archiveCutoff) {
+            try { await del(k); } catch { /* ignore */ }
+          }
+        }
+      }),
     );
+  } catch { /* ignore */ }
+}
+
+// ------------------------------------------------------------------ wipe
+export async function clearAllDraftsForActor(actorId) {
+  try {
+    const draftPrefix = `${DRAFT_PREFIX}${actorId || "anon"}.`;
+    const archivePrefix = `${ARCHIVE_PREFIX}${actorId || "anon"}.`;
+    const idempPrefix = `${IDEMPOTENCY_PREFIX}${actorId || "anon"}.`;
+    const ks = await idbKeys();
+    await Promise.all(
+      ks.filter((k) =>
+        typeof k === "string" && (
+          k.startsWith(draftPrefix) ||
+          k.startsWith(archivePrefix) ||
+          k.startsWith(idempPrefix)
+        ),
+      ).map((k) => del(k)),
+    );
+  } catch { /* ignore */ }
+}
+
+// --------------------------------------------------------- legacy migration
+// Re-keys any legacy token-derived drafts under the new device-scoped
+// actor id. One-time, idempotent, safe to call on every mount.
+// Returns { migrated, kept }.
+export async function migrateLegacyDrafts(deviceActorId, legacyActorIds, formKey) {
+  if (!deviceActorId || !formKey || !Array.isArray(legacyActorIds)) {
+    return { migrated: 0, kept: 0 };
+  }
+  let migrated = 0;
+  let kept = 0;
+  try {
+    const target = _draftKey(deviceActorId, formKey);
+    const existing = await get(target);
+    const existingSavedAt = (existing && existing.savedAt) || 0;
+    for (const legacyId of legacyActorIds) {
+      if (!legacyId || legacyId === deviceActorId) continue;
+      const legacyKey = _draftKey(legacyId, formKey);
+      if (legacyKey === target) continue;
+      let v;
+      try { v = await get(legacyKey); } catch { v = null; }
+      if (!v || !v.form) continue;
+      const savedAt = v.savedAt || 0;
+      if (savedAt > existingSavedAt) {
+        // Newer legacy draft — promote it.
+        try {
+          await set(target, { form: v.form, savedAt });
+          migrated += 1;
+        } catch { /* migration write failed; leave legacy in place */ }
+      } else {
+        kept += 1;
+      }
+      // Always delete the legacy key after considering it (the data
+      // is preserved at `target` if it was promoted; otherwise the
+      // current device-scoped draft is already newer).
+      try { await del(legacyKey); } catch { /* ignore */ }
+    }
+  } catch { /* ignore */ }
+  return { migrated, kept };
+}
+
+// ------------------------------------------------------ idempotency keys
+export async function storeIdempotencyKey(actorId, formKey, key) {
+  if (!formKey || !key) return;
+  try {
+    await set(_idempotencyKey(actorId, formKey), { key, savedAt: Date.now() });
+  } catch { /* ignore */ }
+}
+
+export async function getIdempotencyKey(actorId, formKey) {
+  if (!formKey) return null;
+  try {
+    const v = await get(_idempotencyKey(actorId, formKey));
+    return v?.key || null;
   } catch {
-    // ignore
+    return null;
   }
 }
 
-/**
- * Wipe ALL drafts for a given actor — call on logout.
- */
-export async function clearAllDraftsForActor(actorId) {
-  try {
-    const prefix = `${DRAFT_PREFIX}${actorId || "anon"}.`;
-    const ks = await idbKeys();
-    await Promise.all(
-      ks.filter((k) => typeof k === "string" && k.startsWith(prefix))
-        .map((k) => del(k)),
-    );
-  } catch {
-    // ignore
-  }
+export async function clearIdempotencyKey(actorId, formKey) {
+  if (!formKey) return;
+  try { await del(_idempotencyKey(actorId, formKey)); } catch { /* ignore */ }
 }

@@ -48,6 +48,7 @@ import {
 } from "@/lib/geolocation";
 import {
   useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
+  persistIdempotencyKey, loadIdempotencyKey,
   DraftStatusPill, DraftRestorePrompt,
 } from "@/lib/resiliency";
 // iter437 · Phase 31.1 · Daily Report Crew Memory Continuity.
@@ -236,10 +237,29 @@ export default function NewDailyReport({ publicMode = false }) {
 
   // iter434 · Phase 31 · Part 2 — manual draft recovery via calm prompt
   // (do NOT auto-overwrite the form). Autosave continues silently.
+  // iter440 · P0 field-incident remediation — hook now returns
+  // savedAt, isCrossToken, lastSavedAt, lastError for the truthful
+  // pill + restore prompt.
   const actorId = React.useMemo(() => getActorId(), []);
   const {
-    pendingDraft, draftStatus, restore, discard, commit,
+    pendingDraft, pendingSavedAt, pendingIsCrossToken,
+    draftStatus, lastSavedAt, lastError, restore, discard, commit,
   } = useFormDraft("daily-report-new", data, actorId);
+
+  // iter440 — hydrate any persisted idempotency key from IDB so a
+  // reload mid-offline-queue does not mint a duplicate submission.
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const k = await loadIdempotencyKey("daily-report-new");
+        if (!cancelled && k && !idempotencyKeyRef.current) {
+          idempotencyKeyRef.current = k;
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const onRestoreDraft = React.useCallback(() => {
     const d = restore();
@@ -520,6 +540,10 @@ export default function NewDailyReport({ publicMode = false }) {
       payload = { ...payload, submit_language: lang || "en" };
       if (!idempotencyKeyRef.current) {
         idempotencyKeyRef.current = mintIdempotencyKey();
+        // iter440 — persist immediately so a reload mid-queue does
+        // not regenerate the key and produce a duplicate submission.
+        try { await persistIdempotencyKey("daily-report-new", idempotencyKeyRef.current); }
+        catch { /* ignore */ }
       }
       const r = await enqueueUpload({
         method: "POST",
@@ -671,7 +695,12 @@ export default function NewDailyReport({ publicMode = false }) {
             className={publicMode ? "sm:hidden" : ""}
           homeLink="/" />
           <div className="flex items-center gap-2">
-            <DraftStatusPill status={draftStatus} testId="daily-report-draft-pill" />
+            <DraftStatusPill
+              status={draftStatus}
+              lastSavedAt={lastSavedAt}
+              lastError={lastError}
+              testId="daily-report-draft-pill"
+            />
             <LangToggle />
             <Button
               onClick={submit}
@@ -734,9 +763,12 @@ export default function NewDailyReport({ publicMode = false }) {
           </p>
         )}
 
-        {/* iter434 · Phase 31 · Part 2 — calm draft recovery prompt. */}
+        {/* iter434 · Phase 31 · Part 2 — calm draft recovery prompt.
+            iter440 — now shows savedAt timestamp + cross-token note. */}
         <DraftRestorePrompt
           pendingDraft={pendingDraft}
+          savedAt={pendingSavedAt}
+          isCrossToken={pendingIsCrossToken}
           onRestore={onRestoreDraft}
           onDiscard={onDiscardDraft}
           testId="daily-report-draft-restore-prompt"
