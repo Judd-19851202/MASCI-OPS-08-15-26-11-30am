@@ -100,6 +100,42 @@ stage_full_pytest() {
   python3 -m pytest -q --tb=short backend/tests
 }
 
+# ─── Sigma-III gates (iter437) ────────────────────────────────────────
+# These three stages enforce the operational-trust contract layer added
+# in Phase Sigma-III. They must ALL pass before a deploy is allowed.
+
+stage_sigma3_regression() {
+  cd "$REPO_ROOT/backend"
+  python3 -m pytest -q --tb=line \
+    tests/regression/test_critical_flows.py \
+    tests/test_iter437_magic_link_hardening.py
+}
+
+stage_sigma3_playwright() {
+  cd "$REPO_ROOT/backend"
+  python3 -m pytest -q --tb=line tests/pw_suite/
+}
+
+stage_sigma3_cluster_severity() {
+  # Block any deploy where cluster capacity is critical. Warnings are
+  # tolerated (operator's call), critical is a hard stop.
+  cd "$REPO_ROOT"
+  local url
+  url=$(grep '^REACT_APP_BACKEND_URL=' frontend/.env | cut -d= -f2 | tr -d '"' | tr -d "'")
+  if [[ -z "$url" ]]; then
+    echo "REACT_APP_BACKEND_URL missing — cannot probe cluster capacity"
+    return 1
+  fi
+  curl -fsS "$url/api/cluster/capacity" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+assert d.get('ok'), 'cluster capacity probe not ok'
+sev = d.get('severity')
+print(f'cluster severity = {sev} (usage {d.get(\"usage_mb\")}/{d.get(\"quota_mb\")} MB)')
+assert sev in {'ok', 'warning'}, f'CRITICAL severity blocks deploy: {sev}'
+"
+}
+
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
 
@@ -114,6 +150,12 @@ if [[ "$MODE" != "auth-only" ]]; then
 fi
 
 run_stage "Auth + RBAC critical tests" stage_auth_rbac_tests
+
+# Sigma-III enforceable gates — run on every mode (these are the
+# minimum operational-trust contract the platform now ships under).
+run_stage "Sigma-III regression contract" stage_sigma3_regression
+run_stage "Sigma-III Playwright browser suite" stage_sigma3_playwright
+run_stage "Sigma-III cluster severity probe" stage_sigma3_cluster_severity
 
 if [[ "$MODE" == "full" ]]; then
   run_stage "Full backend pytest suite" stage_full_pytest

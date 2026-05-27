@@ -16,6 +16,26 @@ from pathlib import Path
 import pytest
 import requests
 
+
+def _arun(coro):
+    """Run a coroutine to completion on a module-shared event loop.
+
+    iter437 Phase Sigma-III · safer than ``asyncio.get_event_loop()``
+    because pytest-playwright's anyio fixture may already be using the
+    default loop. We maintain ONE persistent loop for this module so
+    Motor's client (bound at first use) survives across tests instead
+    of breaking on "Event loop is closed".
+    """
+    global _MODULE_LOOP
+    try:
+        loop = _MODULE_LOOP
+    except NameError:
+        loop = None
+    if loop is None or loop.is_closed():
+        loop = asyncio.new_event_loop()
+        globals()["_MODULE_LOOP"] = loop
+    return loop.run_until_complete(coro)
+
 # Bootstrap env
 for line in Path("/app/backend/.env").read_text().splitlines():
     if "=" not in line or line.strip().startswith("#"):
@@ -66,9 +86,9 @@ def disabled_employee(db):
     async def teardown():
         await db.employees.delete_one({"id": eid})
 
-    asyncio.get_event_loop().run_until_complete(setup())
+    _arun(setup())
     yield eid
-    asyncio.get_event_loop().run_until_complete(teardown())
+    _arun(teardown())
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +100,7 @@ def test_validate_rejects_missing_driver_id(db):
             await DS._validate_driver_eligibility(db, "")
         assert exc.value.code == "missing_driver_id"
 
-    asyncio.get_event_loop().run_until_complete(go())
+    _arun(go())
 
 
 def test_validate_rejects_unknown_driver(db):
@@ -89,7 +109,7 @@ def test_validate_rejects_unknown_driver(db):
             await DS._validate_driver_eligibility(db, f"nope-{uuid.uuid4().hex}")
         assert exc.value.code == "driver_not_found"
 
-    asyncio.get_event_loop().run_until_complete(go())
+    _arun(go())
 
 
 def test_validate_rejects_disabled_employee(db, disabled_employee):
@@ -98,7 +118,7 @@ def test_validate_rejects_disabled_employee(db, disabled_employee):
             await DS._validate_driver_eligibility(db, disabled_employee)
         assert exc.value.code == "driver_disabled"
 
-    asyncio.get_event_loop().run_until_complete(go())
+    _arun(go())
 
 
 def test_validate_accepts_real_employee(db):
@@ -111,7 +131,7 @@ def test_validate_accepts_real_employee(db):
         result = await DS._validate_driver_eligibility(db, emp["id"])
         assert result["id"] == emp["id"]
 
-    asyncio.get_event_loop().run_until_complete(go())
+    _arun(go())
 
 
 # ---------------------------------------------------------------------------

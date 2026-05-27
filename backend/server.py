@@ -3162,7 +3162,7 @@ async def admin_set_job_co_pms(
             break
     await db.jobs_master.update_one(
         {"id": job_id},
-        {"$set": {"co_pm_emails": cleaned, "updated_at": _now_iso()}},
+        {"$set": {"co_pm_emails": cleaned, "updated_at": datetime.now(timezone.utc).isoformat()}},
     )
     saved = await db.jobs_master.find_one({"id": job_id}, {"_id": 0})
     return saved
