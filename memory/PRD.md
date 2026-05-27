@@ -1,6 +1,73 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A-P3 · Checkpoints + Safety Trend + Backlog Reduction 🟢
+
+### Mission
+Evolve governance from rolling math into **operator-blessed memory**
+via a checkpoint system. Continue Safety stability observation
+(stay 🟡 caution). Safely reduce approved backlog · catalog server.py
+route extraction targets. STOP before Safety 5B / Dispatch / Safety
+default flip.
+
+### What shipped (🟢 verified · 7 docs · 9 new regression tests)
+
+**P3A — Governance Checkpoint System**
+- `scripts/diff_doctrine_baseline.py --checkpoint <label>` (NEW flag, implies `--append`) — writes append-only checkpoint records (`checkpoint=true`, `checkpoint_label`) to `DOCTRINE_TRENDLINE.json`. 80-char cap on label. Atomic across all 4 portals per invocation.
+- `routes/governance_health.py::_direction_for` (EXTENDED) — when a checkpoint exists for a portal, the endpoint compares current loudness against the **most-recent checkpoint** rather than the rolling window. Returns `reference="checkpoint"` + `checkpoint_label` + `checkpoint_timestamp` + `delta_since_checkpoint`.
+- `GovernanceHealthChip.jsx` (EVOLVED · same footprint) — renders `data-reference="checkpoint"` and suffixes `" since checkpoint"` on drift/improving labels. Tooltip carries the checkpoint label.
+
+**P3B — Safety Trend Stability Review**
+- `SAFETY_TREND_STABILITY_REVIEW.md` — 🟢 STABLE classification. 9/9 trend records in monitor band; zero drift records; hierarchy 100% consistent across iterations. Default-flip **held** per P2 caution posture (need 1-2 more iterations).
+
+**P3C — Backlog reduction (approved items only)**
+- `CROSS_PORTAL_VOCABULARY_GLOSSARY.md` — canonical portal/role/surface/severity/coaching/punctuation vocabulary.
+- `ADMIN_REFINEMENT_REPORT.md` — surgical demotion of `IntegrationHealthCard` "Demo" pill from amber → slate (decorative, not status-bound).
+- `SERVER_ROUTE_EXTRACTION_PROGRESS.md` — cataloged 3 LOW-risk + 1 MEDIUM-risk extraction candidates; **zero physical extractions** this iteration (stability discipline).
+- `BACKLOG_REDUCTION_SUMMARY.md` — 8 approved items: 5 shipped, 1 intentionally divergent, 2 cataloged for future.
+
+**Tests**
+- `test_checkpoint_system.py` (NEW · 9 assertions): script writes label · 80-char cap · endpoint reference flip · chip data-attr · lowercase coaching contract.
+
+**Docs (all 7 required deliverables)**
+1. `GOVERNANCE_CHECKPOINT_SYSTEM.md`
+2. `DOCTRINE_CHECKPOINT_PROTOCOL.md`
+3. `SAFETY_TREND_STABILITY_REVIEW.md`
+4. `SERVER_ROUTE_EXTRACTION_PROGRESS.md`
+5. `CROSS_PORTAL_VOCABULARY_GLOSSARY.md`
+6. `ADMIN_REFINEMENT_REPORT.md`
+7. `BACKLOG_REDUCTION_SUMMARY.md`
+
+### Regression matrix (🟢 122/122 GREEN aggregate)
+
+| Suite | Result |
+|---|---|
+| `test_checkpoint_system.py` (NEW) | 🟢 9/9 (54 s) |
+| `test_trendline_and_default_posture.py` | 🟢 17/17 |
+| `test_governance_health_chip.py` | 🟢 21/21 |
+| `test_safety_sidebar_v2.py` | 🟢 21/21 |
+| `test_hr_sidebar_v2.py` | 🟢 21/21 |
+| `test_visual_doctrine_baseline.py` | 🟢 12/12 |
+| `test_portal_token_routing.py` | 🟢 21/21 |
+
+### Doctrine compliance
+
+- ✅ Checkpoints: filesystem-only · append-only · immutable once written · 80-char label cap
+- ✅ Chip footprint **unchanged** (1 dot + 2 spans · monochrome · no animation)
+- ✅ NO physical route extraction this iter (zero risk introduced)
+- ✅ Severity / OSHA / severe banner / severe email subject preserved
+- ✅ Safety V2 stays OFF by default (🟡 caution)
+- ✅ Safety 5B NOT started · Dispatch NOT started
+- ✅ Auth boundaries verified · zero `/api/admin/*` leakage
+- ✅ Preview only · NO production deploy
+
+### Status
+
+🟢 PHASE IV-BETA.5A-P3 COMPLETE · STOP awaiting operator review before Safety 5B / Safety default flip / Dispatch governance begin.
+
+---
+
+
 ## 2026-02-27 (fork) — iter437 · Phase IV-BETA.5A-P2 · Trendline + V2 Default Posture 🟢
 
 ### Mission

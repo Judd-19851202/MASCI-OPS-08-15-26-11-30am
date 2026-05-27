@@ -145,6 +145,14 @@ def main() -> int:
              "to memory/DOCTRINE_TRENDLINE.json (filesystem operational "
              "memory · no DB writes).",
     )
+    parser.add_argument(
+        "--checkpoint", default=None, metavar="LABEL",
+        help="Mark the appended record(s) as an operator-blessed "
+             "checkpoint with the given LABEL (e.g. 'Safety V2 stable "
+             "review'). Implies --append. Checkpoints become the "
+             "reference point for the chip's drift-since-checkpoint "
+             "signal.",
+    )
     args = parser.parse_args()
 
     if not BASELINE_PATH.exists():
@@ -153,8 +161,8 @@ def main() -> int:
 
     curr = json.loads(BASELINE_PATH.read_text())
 
-    if args.append:
-        return _append_trendline(curr)
+    if args.append or args.checkpoint:
+        return _append_trendline(curr, checkpoint_label=args.checkpoint)
 
     if args.summary:
         return _emit_maturity_aggregates(curr)
@@ -279,7 +287,7 @@ def _load_trendline() -> dict:
         return {"_meta": {"version": "iter437.IV-BETA.5A-P2A"}, "records": []}
 
 
-def _append_trendline(curr_baseline: dict) -> int:
+def _append_trendline(curr_baseline: dict, checkpoint_label: str | None = None) -> int:
     snaps = curr_baseline.get("snapshots", {}) or {}
     if not snaps:
         print("doctrine trendline: baseline has no snapshots — nothing to append.")
@@ -290,6 +298,13 @@ def _append_trendline(curr_baseline: dict) -> int:
 
     line = _load_trendline()
     records = list(line.get("records") or [])
+
+    # Sanitise the checkpoint label — operator-supplied free text.
+    cp_label = None
+    if checkpoint_label:
+        cp_label = checkpoint_label.strip()[:80]  # cap at 80 chars
+        if not cp_label:
+            cp_label = None
 
     appended_for: list[str] = []
     for portal in sorted(snaps.keys()):
@@ -319,10 +334,18 @@ def _append_trendline(curr_baseline: dict) -> int:
             "emphasis_score": emphasis,
             "status": _band_for(loud),
         }
+        # iter437 IV-BETA.5A-P3A · Checkpoint marker.
+        # Per directive: append-only, immutable once written, lightweight.
+        if cp_label:
+            record["checkpoint"] = True
+            record["checkpoint_label"] = cp_label
         records.append(record)
         appended_for.append(portal)
 
     # Rolling cap — keep the most recent TRENDLINE_MAX_RECORDS entries.
+    # Checkpoints are NOT immune to the cap by design — old institutional
+    # baselines can age out gracefully. If the operator wants to preserve
+    # one beyond the rolling window, they can re-checkpoint.
     if len(records) > TRENDLINE_MAX_RECORDS:
         records = records[-TRENDLINE_MAX_RECORDS:]
 
@@ -330,9 +353,10 @@ def _append_trendline(curr_baseline: dict) -> int:
     line["_meta"]["updated_at"] = ts
     TRENDLINE_PATH.write_text(json.dumps(line, indent=2, sort_keys=True))
 
+    cp_msg = f" · checkpoint='{cp_label}'" if cp_label else ""
     print(
         f"doctrine trendline · appended {len(appended_for)} record(s) "
-        f"at {ts} · {len(records)} total"
+        f"at {ts} · {len(records)} total{cp_msg}"
     )
     return 0
 

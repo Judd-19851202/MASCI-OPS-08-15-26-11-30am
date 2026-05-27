@@ -132,7 +132,7 @@ function ProviderRow({ label, sub, settings }) {
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-display font-black text-sm">{label}</span>
           {settings?.demo_mode && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[9px] font-mono uppercase tracking-[0.18em] font-bold">Demo</span>
+            <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[9px] font-mono uppercase tracking-[0.18em] font-bold">Demo</span>
           )}
         </div>
         <div className="text-[11px] text-slate-500">{sub}</div>

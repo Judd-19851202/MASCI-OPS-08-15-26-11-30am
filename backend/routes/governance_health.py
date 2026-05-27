@@ -101,22 +101,62 @@ def _load_trendline_records(portal: str) -> list:
 def _direction_for(portal: str, current_loudness: float) -> Dict[str, Any]:
     """Compute direction (stable | improving | drifting | new) from trendline.
 
-    Compares the average calmness of the last DIRECTION_RECENT_N records
-    against the average of the DIRECTION_OLDER_N records preceding them.
-    Returns the human-readable delta so the chip can surface it.
+    Two signals are computed:
+
+      1. Rolling-window direction — compares the average calmness of the
+         last DIRECTION_RECENT_N records against the DIRECTION_OLDER_N
+         records preceding them. Backwards-compatible with P2A.
+
+      2. iter437 IV-BETA.5A-P3A · Checkpoint drift — if the trendline
+         contains at least one record flagged `checkpoint=true` for this
+         portal, compare current loudness against the MOST-RECENT
+         checkpoint. When `|Δ| ≥ DIRECTION_DELTA_THRESHOLD` the chip
+         surfaces `drifting · +N since checkpoint` (or `improving · -N
+         since checkpoint`) instead of the rolling-window signal.
+
+    Checkpoint signal takes priority over rolling-window when present —
+    operator-blessed baselines are stronger trust anchors than rolling math.
     """
     records = _load_trendline_records(portal)
-    # Exclude the very-latest record only when it duplicates the current
-    # loudness; otherwise include it in the recent window.
+
+    # ── Checkpoint reference (preferred when present) ──────────────
+    checkpoints = [r for r in records if r.get("checkpoint")]
+    if checkpoints:
+        last_cp = checkpoints[-1]
+        cp_loud = float(last_cp.get("calmness") or 0.0)
+        delta = round(current_loudness - cp_loud, 2)
+        cp_payload = {
+            "checkpoint_label": last_cp.get("checkpoint_label") or "",
+            "checkpoint_timestamp": last_cp.get("timestamp") or "",
+            "checkpoint_calmness": cp_loud,
+            "delta_since_checkpoint": delta,
+        }
+        if abs(delta) < DIRECTION_DELTA_THRESHOLD:
+            return {
+                "direction": "stable",
+                "delta": delta,
+                "reference": "checkpoint",
+                **cp_payload,
+            }
+        return {
+            "direction": "improving" if delta < 0 else "drifting",
+            "delta": delta,
+            "reference": "checkpoint",
+            **cp_payload,
+        }
+
+    # ── Rolling-window direction (fallback) ────────────────────────
     if not records or len(records) < (DIRECTION_RECENT_N + 1):
-        return {"direction": "new", "delta": None, "trend_records": len(records)}
+        return {"direction": "new", "delta": None, "reference": "rolling",
+                "trend_records": len(records)}
 
     recent = records[-DIRECTION_RECENT_N:]
     older_window = records[
         -(DIRECTION_RECENT_N + DIRECTION_OLDER_N):-DIRECTION_RECENT_N
     ]
     if not older_window:
-        return {"direction": "new", "delta": None, "trend_records": len(records)}
+        return {"direction": "new", "delta": None, "reference": "rolling",
+                "trend_records": len(records)}
 
     recent_avg = sum(r.get("calmness") or 0.0 for r in recent) / len(recent)
     older_avg = sum(r.get("calmness") or 0.0 for r in older_window) / len(older_window)
@@ -129,7 +169,12 @@ def _direction_for(portal: str, current_loudness: float) -> Dict[str, Any]:
     else:
         direction = "drifting"
 
-    return {"direction": direction, "delta": delta, "trend_records": len(records)}
+    return {
+        "direction": direction,
+        "delta": delta,
+        "reference": "rolling",
+        "trend_records": len(records),
+    }
 
 
 def _portal_health(baseline: Dict[str, Any], portal: str) -> Optional[Dict[str, Any]]:

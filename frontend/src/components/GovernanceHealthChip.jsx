@@ -55,6 +55,13 @@ export default function GovernanceHealthChip({ portal }) {
   const dir = data.direction || "new";
   const delta = typeof data.delta === "number" ? data.delta : null;
   const state = data.state || "stable";
+  // iter437 IV-BETA.5A-P3A · Checkpoint-aware reference.
+  // When the endpoint has an operator-blessed checkpoint for this portal,
+  // `data.reference === "checkpoint"`. The chip suffixes "since
+  // checkpoint" on drift so the operator reads the delta against the
+  // baseline THEY blessed — not against rolling math.
+  const sinceCp = data.reference === "checkpoint";
+  const sinceSuffix = sinceCp ? " since checkpoint" : "";
 
   // Choose label by priority: a real `drift` state always wins; otherwise
   // honour the direction signal; fall back to the static state.
@@ -65,10 +72,10 @@ export default function GovernanceHealthChip({ portal }) {
     trailing = `${Math.round(data.loudness || 0)}/100`;
   } else if (dir === "improving" && delta !== null) {
     label = "governance improving";
-    trailing = `${delta > 0 ? "+" : ""}${delta} drift`;
+    trailing = `${delta > 0 ? "+" : ""}${delta} drift${sinceSuffix}`;
   } else if (dir === "drifting" && delta !== null) {
     label = "governance drifting";
-    trailing = `+${Math.abs(delta)} drift`;
+    trailing = `+${Math.abs(delta)} drift${sinceSuffix}`;
   } else if (state === "monitor") {
     label = "governance monitor";
     trailing = `${Math.round(data.loudness || 0)}/100`;
@@ -83,7 +90,10 @@ export default function GovernanceHealthChip({ portal }) {
       data-testid={`governance-health-chip-${portal}`}
       data-state={state}
       data-direction={dir}
-      title={data.summary || ""}
+      data-reference={data.reference || "rolling"}
+      title={data.checkpoint_label
+        ? `Checkpoint: ${data.checkpoint_label}`
+        : (data.summary || "")}
     >
       <span
         className="inline-block w-1.5 h-1.5 rounded-sm bg-slate-400"
