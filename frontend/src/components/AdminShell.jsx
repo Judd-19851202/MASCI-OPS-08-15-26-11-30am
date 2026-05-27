@@ -14,7 +14,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
   ShieldCheck, LogOut, Menu as MenuIcon, Home, Cable, Truck, Activity,
-  Rocket, History, GraduationCap, ListChecks, ChartBar, Map, Film,
+  Rocket, History, GraduationCap, ListChecks, ChartBar, Map, Film, Database,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -54,6 +54,7 @@ const SECTIONS = [
   { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },
   { key: "system",     to: "/admin/system",     icon: ShieldCheck,     label: "System & Backups",desc: "Backups · R2 · Restore · Recovery" },
   { key: "system-health", to: "/admin/system-health", icon: Activity,  label: "System Health",   desc: "Green/yellow/red operational probe" },
+  { key: "database", to: "/admin/database", icon: Database, label: "Database",   desc: "Atlas capacity · 30-day storage trend · runway" },
   { key: "digest-config", to: "/admin/digest-config", icon: Mail,      label: "Weekly Digest",   desc: "Recipients · schedule · preview · send" },
   { key: "audit-log",  to: "/admin/audit-log",  icon: History,         label: "Audit Log",       desc: "Unified merged timeline" },
   { key: "sessions",   to: "/admin/sessions",   icon: Activity,        label: "Sessions",        desc: "Last 50 portal sessions · idle/abs status · forensic only" },

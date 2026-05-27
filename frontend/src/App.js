@@ -78,6 +78,7 @@ import AdminEmail from "@/pages/admin/AdminEmail";
 import AdminTraining from "@/pages/admin/AdminTraining";
 import AdminCompliance from "@/pages/admin/AdminCompliance";
 import AdminSystem from "@/pages/admin/AdminSystem";
+import AdminDatabase from "@/pages/admin/AdminDatabase";
 import AdminIntegrationCenter from "@/pages/admin/AdminIntegrationCenter";
 import AssetProfile from "@/pages/admin/AssetProfile";
 import AdminDispatch from "@/pages/admin/AdminDispatch";
@@ -369,6 +370,7 @@ function App() {
             <Route path="/admin/training" element={A(<AdminTraining />)} />
             <Route path="/admin/compliance" element={A(<AdminCompliance />)} />
             <Route path="/admin/system" element={A(<AdminSystem />)} />
+            <Route path="/admin/database" element={A(<AdminDatabase />)} />
             <Route path="/admin/integrations" element={A(<AdminIntegrationCenter />)} />
             <Route path="/admin/dispatch" element={A(<AdminDispatch />)} />
             <Route path="/admin/dls/shift-qr" element={A(<AdminDlsShiftQR />)} />

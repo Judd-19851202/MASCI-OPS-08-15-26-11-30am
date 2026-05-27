@@ -1,6 +1,151 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02 (fork) — iter437 · Phase SIGMA-III · Operational Trust Hardening 🟢🟢
+
+### Mission
+
+Resume iter437 directive: stabilize operational trust, scale security,
+expand write-path regression, enforce deployment governance, add calm
+operational observability. Strict anti-feature-sprawl doctrine. All
+work proof-backed (logs, tests, screenshots, certification artefacts).
+
+### What shipped this iteration
+
+#### 🟢 P0 · Driver Magic-Link Security Hardening · CLOSED
+- `driver_sessions.py` now validates `driver_id` against `employees`
+  (must exist · must NOT be `disabled=true` · must NOT be
+  `active=false`) BEFORE minting any magic token. Raises a structured
+  `DriverIneligibleError(code, message)` translated by the route to
+  `404` (`driver_not_found`) or `400` (`driver_disabled`,
+  `driver_inactive`, `missing_driver_id`).
+- 7/7 unit + integration tests pass (`tests/test_iter437_magic_link_hardening.py`).
+- Live curl verification confirms 404/400/422/200 paths.
+- Cert: `/app/memory/MAGIC_LINK_SECURITY_HARDENING.md`
+
+#### 🟢 P0 · Playwright Write-Path Expansion Phase III · CLOSED
+- New file: `tests/pw_suite/test_critical_flows_pw_phase3.py` · 12 tests in 32s.
+- Flow 8 — Daily Report sub-sections (crew + visitors) persist (3 viewports)
+- Flow 9 — Dispatch board reads (3 endpoints) via dispatch token
+- Flow 10b — Driver magic-link → session exchange → /me → revoke round-trip
+- Flow 11b — HR Time Verification SLA (<3s · regression guard for iPad blank-screen)
+- Flow 12 — MFA enroll/verify/disable round-trip (with finally-cleanup safety net)
+- Flow 13 — Public form submission parameterized over BOTH operator-confirmed public forms (`meeting`, `incident` — NOT `inspection`, which is now safety_or_admin gated)
+- Flow 15 — Env isolation under 10-write parallel load
+- Combined: phase 1 + 2 + 3 = **35 passed · 1 skipped** in 75s.
+- Cert: `/app/memory/PLAYWRIGHT_CERTIFICATION_PHASE3.md`
+
+#### 🟢 P0 · Deployment Governance Maturity · CLOSED
+- `pre_deploy_check.sh` extended with three Sigma-III stages:
+  regression contract, Playwright suite, cluster severity probe.
+- New GitHub Actions workflow `sigma3-deploy-gate.yml` enforces static
+  + iteration-summary discipline + governance-artefact presence on
+  every push/PR to `main`.
+- Both stages REQUIRED to pass before Emergent Deploy. No bypass.
+- Live gate verification: **6/6 stages green** in 3 min total.
+- Cert: `/app/memory/DEPLOYMENT_GOVERNANCE_MATURITY.md`
+
+#### 🟢 P1 · Calm Operational Observability UI · CLOSED
+- New `/admin/database` route + nav entry.
+- New `<StorageObservabilityCard>` component — pure inline SVG
+  sparkline + one-line operational summary (`<MB> · <slope MB/day>
+  · <human runway>`).
+- New `<CapacityNow>` block — live `/api/cluster/capacity` snapshot
+  with per-DB breakdown and severity-coloured border.
+- No animation, no hover-heavy UX, no chart library, no dependency.
+- Mobile-safe via `viewBox`. Accessible (`<title>` + `aria-label`).
+- Cert: `/app/memory/CALM_OBSERVABILITY_UI.md`
+
+#### 🟢 P1 · Atlas Alert Validation & Escalation · CLOSED (in-app side)
+- In-app severity threshold logic verified end-to-end (3 thresholds).
+- Two-layer escalation matrix documented.
+- Operator validation checklist (1 min) committed.
+- Atlas-UI configuration remains operator-owned per
+  `ATLAS_ALERTS_RUNBOOK.md`.
+- Cert: `/app/memory/ATLAS_ALERT_VALIDATION.md`
+
+#### 🟡 P1 · Legacy Base64 Media Migration Planning · DOCUMENTED · CLOSED (no execution)
+- Live preview census recorded — only `meetings` carries legacy inline
+  base64 in preview (production census deferred to execution time).
+- 5-phase migration strategy (prep · walk+rewrite · reader compat ·
+  verify · cleanup) with idempotency markers + risk matrix.
+- Execution criteria gated on operator authorisation. No migration
+  script committed.
+- Cert: `/app/memory/LEGACY_BASE64_MIGRATION_PLAN.md`
+
+#### 🟢 P1 · Operational Health Expansion · CLOSED
+- Inventoried 5 existing drift/failure tracking surfaces · concluded
+  no new collection needed.
+- Lightweight expansion delivered via the storage runway widget on
+  `/admin/database`.
+- Operator validation script (curl-based) for 4 drift surfaces.
+- Cert: `/app/memory/OPERATIONAL_HEALTH_EXPANSION.md`
+
+### Pre-existing issues fixed inline
+
+- **Shop user `testmech@mascigc.com`** — was wiped during a previous
+  restore drill; re-seeded with documented password
+  `ResetWorks2026!` (user_id=`a19b9b3b-fa44-4cca-a4b1-98f4ad6d6f79`).
+  Unblocks `test_iter176_login_regression.py` and
+  `test_iter179_admin_access_control_gate.py` in the deploy gate.
+- **Ruff F821 `_now_iso` at `server.py:3165`** — replaced with inline
+  `datetime.now(timezone.utc).isoformat()`. Ruff E9/F63/F7/F82 now
+  100% clean.
+- **iter437 asyncio loop conflict** — `_arun()` helper added so the
+  iter437 magic-link tests can run alongside the Playwright suite
+  without `Event loop is closed` errors.
+
+### Verification matrix (all green)
+
+| Surface                              | Result                              |
+|--------------------------------------|--------------------------------------|
+| Magic-link hardening unit/HTTP tests | `7 passed in 2.6s`                   |
+| Playwright Phase 3                   | `12 passed in 32s`                   |
+| Playwright Phase 1+2+3 combined      | `35 passed, 1 skipped in 75s`        |
+| Combined regression sweep            | `88 passed, 1 skipped in 97s`        |
+| Pre-deploy gate (6 stages)           | `6/6 green` in ~3 min                |
+| Independent testing-agent re-verify  | 100% backend pass · zero action items |
+| `/admin/database` page render        | Screenshot captured · 0 console errors |
+
+### Files of reference
+
+- `/app/backend/driver_sessions.py`
+- `/app/backend/routes/dispatch_driver.py`
+- `/app/backend/tests/test_iter437_magic_link_hardening.py`
+- `/app/backend/tests/pw_suite/test_critical_flows_pw_phase3.py`
+- `/app/scripts/pre_deploy_check.sh`
+- `/app/.github/workflows/sigma3-deploy-gate.yml`
+- `/app/frontend/src/pages/admin/AdminDatabase.jsx`
+- `/app/frontend/src/components/admin/StorageObservabilityCard.jsx`
+- `/app/frontend/src/components/AdminShell.jsx` (nav entry)
+- `/app/frontend/src/App.js` (route)
+
+### Backlog after iter437 Sigma-III
+
+#### P2 (deferred · operator scope decision needed)
+- Expanded Certification for Shop/Field Leadership roles
+- Lifecycle Governance Readiness
+- Legacy Base64 Media Migration **execution** (plan ready, awaiting auth)
+
+#### P3 (carry-over)
+- Atlas password chat-history rotation hygiene
+- Real-device certification with crews (operator-owned)
+- 500 legacy `backups/<no-prefix>/` cleanup (22.5 GB · ~$0.34/mo)
+
+### Doctrine reaffirmed
+- Zero new portals · zero new dashboards · zero analytics · zero
+  monitoring centers. One new admin sub-page (`/admin/database`) +
+  one new component (`StorageObservabilityCard`) — both read-only,
+  both calm, both mobile-safe.
+- All third-party integrations untouched.
+- No new env vars · no new collections · no schema changes.
+- Test suite grew from 76 to 88 tests; runtime stays under 100s.
+
+# 🟢 PHASE SIGMA-III · iter437 · CLOSED
+
+---
+
+
 ## 2026-05-26 15:30 UTC — ENVIRONMENT SEPARATION COMPLETE 🟢🟢
 
 User selected **Option A** (separate database, same cluster). Executed in full.
