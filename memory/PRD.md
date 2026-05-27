@@ -1,6 +1,66 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — Phase V.0A · RFI + Schedule Paper-Prototype Walkthrough 🟢
+
+### Mission
+Visual + operational prototype validation before any V.1 build effort.
+Static markdown wireframes only · zero code · zero DB · zero production
+PM portal modification · zero new mounts in the frontend. STOP after
+prototype walkthrough · await operator review before V.1.
+
+### Deliverables produced (9/9 · 2,336 lines · `/app/memory/`)
+
+1. `OPERATIONAL_RECORDS_WALKTHROUGH.md` — guided tour, doctrine inheritance map, single-red-dot recap, operator sign-off items
+2. `PM_OPERATIONAL_RECORDS_SIDEBAR_PREVIEW.md` — 4th-domain placement in PM V2, 6 entries with locked coaching sublines, mobile bottom-sheet
+3. `RFI_LIST_VISUAL_DOCTRINE.md` — 8-column scanable list with single-character severity glyph dictionary (`⬤ ◯ ⬜ ⛬ ◌ ─`), three-filter discipline
+4. `SUPERINTENDENT_MOBILE_FLOW_CERTIFICATION.md` — 4-screen camera-first draft path with 36s best-case / 64s realistic-case timing budget · offline resilience · Spanish-first
+5. `CONSTRAINT_BOARD_VISUAL_MODEL.md` — operational-blocker board grouped by responsible party (CEI / EOR / Utility / Internal), no Kanban, no priority weighting
+6. `SCHEDULE_INTELLIGENCE_VISUAL_MODEL.md` — five views (Activity List · Lookahead · Critical-Path Risk · Operational Impact · Schedule History) · no default Gantt
+7. `EXTERNAL_RESPONSE_PREVIEW_STANDARD.md` — tokenized landing page · response form · clarification form · expired-link state · multi-recipient distribution block
+8. `RFI_PDF_VISUAL_PREVIEW.md` — 4-page DOT/FAA-grade PDF: header, project info, metadata, condition, question, photos, attachments, response, distribution log, audit trail · sha256 footer · revision/voided/draft watermarks
+9. `PHASE_V0A_OPERATOR_REVIEW_GUIDE.md` — read order, checklist (~40 boxes), feedback workflow, sign-off form
+
+### Key visual / workflow locks
+- 🔵 PM V2 sidebar adds "Operational Records" as the **4th** domain with slate-600 stripe (calm, not red, not green)
+- 🔵 Severity glyph dictionary is **single-character** and **monochrome-by-default** — only red-700 carries color, only on critical-path/safety/compliance/overdue-CP-dot
+- 🔵 Superintendent flow is **photo-first** (camera opens immediately on tap) · ≤ 60s realistic target · voice-to-text primary input · "Not sure" default for schedule impact
+- 🔵 Constraint board groups by **responsible party** (not status, not type) · single glyph per card · three filters total
+- 🔵 Schedule Intelligence ships **five views, no Gantt default** · single "Days of exposure" headline number · activity detail drawer is read-only
+- 🔵 External response page has **no portal chrome** · two CTAs · one-tap PDF download · audited
+- 🔵 PDF has 4-page canonical layout with severity-stripe (red-700 page-1 left margin) ONLY on CP/safety/compliance RFIs · sha256 footer enables third-party integrity verification
+
+### State at handoff
+- All 9 deliverable docs verified at `/app/memory/`
+- Backend untouched · `/api/health` 200 · supervisor RUNNING
+- Frontend untouched · no UI changes
+- PM portal code dirs (`Pm*.jsx`, `components/pm/`, `PmShell.jsx`) — zero `git status` diff
+- No database migration
+- No production deploy
+- Preview-only · `APP_ENV=preview` · `DB_NAME=masci_safety_preview`
+- All prior 132+ regressions remain green (no code touched)
+
+### Production deploy
+- ⛔ NONE · preview only.
+
+### Next gate (awaiting operator review)
+- 🔵 Operator reads the 9 deliverables in the order given in `PHASE_V0A_OPERATOR_REVIEW_GUIDE §2`
+- 🔵 Operator pastes the sign-off form from `PHASE_V0A_OPERATOR_REVIEW_GUIDE §9` with each box marked
+- 🔵 Once green light → V.1 begins (RFI MVP) starting with sidebar amendment + Superintendent mobile flow
+
+### Backlog (post sign-off, no order changes)
+- 🔵 V.1 · RFI MVP (internal PM/Superintendent flow + PDF + audit)
+- 🔵 V.2 · External RFI collaboration (tokenized links + respond)
+- 🔵 V.3 · Schedule shell + external P6 link + `.xer` upload (storage only)
+- 🔵 V.4 · P6 import MVP (parse + diff + activate)
+- 🔵 V.5 · RFI ↔ Schedule linkage (constraint engine)
+- 🔵 V.6 · Operational schedule intelligence (dispute package + optional external schedule access)
+- 🟢 (Carry-over) Phase IV-BETA.5B · Safety governance for deeper surfaces
+- 🟢 (Carry-over) Phase IV-BETA.5X · Dispatch UI/UX implementation
+- 🟢 (Carry-over) Continue safe `server.py` route extraction (next: `/api/version`, then `/api/health/full`)
+
+
+
 ## 2026-05-27 (fork) — Phase V.0 · Master RFI + Schedule Intelligence Architecture Directive 🟢
 
 ### Mission
