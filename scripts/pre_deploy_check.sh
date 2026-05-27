@@ -136,6 +136,29 @@ assert sev in {'ok', 'warning'}, f'CRITICAL severity blocks deploy: {sev}'
 "
 }
 
+# ─── iter437 P0-incident learning · 2026-02 ──────────────────────────
+# After the production crash-loop incident (the new container refused
+# to start because env vars on the production deploy could not be
+# proven aligned), the operator added a doctrine: every deploy MUST
+# prove env identity before AND after the deploy ships.
+#
+# This stage proves the PREVIEW side (the side we have access to from
+# the pod). The PRODUCTION side cannot be proven from the preview pod
+# until after the prod redeploy completes — it has its own dedicated
+# script: `verify_production_identity.sh`.
+
+stage_sigma3_preview_identity() {
+  cd "$REPO_ROOT"
+  local url
+  url=$(grep '^REACT_APP_BACKEND_URL=' frontend/.env | cut -d= -f2 | tr -d '"' | tr -d "'")
+  if [[ -z "$url" ]]; then
+    echo "REACT_APP_BACKEND_URL missing — cannot probe preview identity"
+    return 1
+  fi
+  bash "$REPO_ROOT/scripts/verify_env_identity.sh" \
+    "$url" preview masci_safety_preview
+}
+
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
 
@@ -153,6 +176,7 @@ run_stage "Auth + RBAC critical tests" stage_auth_rbac_tests
 
 # Sigma-III enforceable gates — run on every mode (these are the
 # minimum operational-trust contract the platform now ships under).
+run_stage "Sigma-III preview env identity proof" stage_sigma3_preview_identity
 run_stage "Sigma-III regression contract" stage_sigma3_regression
 run_stage "Sigma-III Playwright browser suite" stage_sigma3_playwright
 run_stage "Sigma-III cluster severity probe" stage_sigma3_cluster_severity
