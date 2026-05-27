@@ -1,6 +1,71 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — Phase V.0 · Master RFI + Schedule Intelligence Architecture Directive 🟢
+
+### Mission
+Architecture, governance, and system design only. Produce 16
+doctrine-locked deliverables describing the field-first, DOT/FAA-native
+RFI + Schedule Intelligence subsystem. NO code. NO database migrations.
+NO production deploy. STOP after Phase V.0 deliverables · await operator
+review before V.1 begins.
+
+### Deliverables produced (16/16 · 3,125 lines of governance)
+
+**RFI cluster (8 docs)**
+- `RFI_SYSTEM_DOCTRINE.md` — purpose, ownership model, doctrine inheritance, field-first ≤60s draft target, lock-and-snapshot principle
+- `RFI_WORKFLOW_LIFECYCLE.md` — full state machine, transition permissions, revision discipline, audit-trail fields
+- `RFI_PERMISSION_MODEL.md` — role × operation matrix (9 roles × 18 operations), dual-control void, external token envelope
+- `RFI_EXTERNAL_ACCESS_MODEL.md` — tokenized read/respond pattern, URL pattern, audit discipline, revocation, rate limiting, GDPR
+- `RFI_BACKUP_RETENTION_MODEL.md` — Mongo+R2 split, 7-year retention, no hard-delete doctrine, dispute package skeleton
+- `RFI_PDF_STANDARD.md` — 13-section PDF layout, severity pill discipline, content-addressable sha256, renderer reuse
+- `DOT_FAA_RFI_TEMPLATE_STANDARD.md` — FDOT / TxDOT / FAA / Owner / Utility / Generic templates, JSON format, versioning
+- `RFI_COACHING_TERMINOLOGY_STANDARD.md` — approved terms, forbidden marketing tone, 8 subline patterns, error messaging
+
+**Schedule cluster (5 docs)**
+- `SCHEDULE_SYSTEM_DOCTRINE.md` — P6-stays-canonical position, MASCI is intelligence layer, no CPM rebuild, no two-way sync
+- `P6_IMPORT_ARCHITECTURE.md` — `.xer` parse pipeline, validation matrix, diff engine, atomic activation transaction, vendor parser strategy
+- `SCHEDULE_CONSTRAINT_MODEL.md` — 14 constraint types, status machine, rebinding on revision, visual doctrine (single red dot only)
+- `RFI_SCHEDULE_LINKAGE_MODEL.md` — three-object triangle (RFI ↔ Constraint ↔ Activity), "Impacts Schedule" toggle, CP exposure formula
+- `SCHEDULE_BACKUP_RETENTION_MODEL.md` — immutable revisions, atomic activation transaction, dispute package extension
+
+**Architecture cluster (3 docs)**
+- `PM_RFI_SCHEDULE_PORTAL_ARCHITECTURE.md` — PM Sidebar V2 5th domain (Operational Records, slate-600), full route map, component hierarchy, no new code in server.py
+- `VISUAL_GOVERNANCE_INHERITANCE.md` — spacing, typography, color discipline, loudness budget, mobile doctrine, 12-item PR checklist
+- `PHASE_V_IMPLEMENTATION_ROADMAP.md` — V.1 → V.6 sub-phases, exit gates, production deploy gate, out-of-scope guardrails
+
+### Key doctrine locks
+- 🔵 **P6 stays canonical** · MASCI is operational intelligence on top · no CPM rebuild · no two-way sync · `.xer` import read-only
+- 🔵 **External access tokenized first** · no full external accounts until demand justifies · single-RFI-scope envelope
+- 🔵 **Three-object triangle** · RFI → Constraint → Activity · no direct RFI ↔ Activity edges · constraint always in the middle
+- 🔵 **Lock-and-snapshot** on RFI submission · revisions never overwrite · 7-year retention · no hard-delete platform-wide
+- 🔵 **Red reserved** for critical-path / safety / compliance pills + the single red dot on overdue-CP activities · nothing else
+- 🔵 **Field-first ≤60s draft** target on Superintendent mobile path
+- 🔵 **No new endpoints in server.py** · all RFI/Schedule code lives in `routes/rfi/*` and `routes/schedule/*`
+- 🔵 **Notification discipline** · NO notification hell · role-targeted, event-driven only
+- 🔵 **Dispute package** as the headline legal-defensibility deliverable · ZIP of every PDF, revision, audit entry, photo, schedule artifact
+
+### Phase V.0 gate (now)
+- [x] 16 deliverable docs in `/app/memory/`
+- [x] No code changes
+- [x] No DB migrations
+- [x] No production deploy
+- [x] Doctrine inherits visibly from existing platform memory
+- [ ] **OPERATOR REVIEW** — pending
+
+### Production deploy
+- ⛔ NONE · preview only · `APP_ENV=preview` · `DB_NAME=masci_safety_preview`.
+
+### Backlog (post-V.0 · awaiting operator green-light)
+- 🔵 V.1 · RFI MVP (internal flow + PDF + audit, no external yet)
+- 🔵 V.2 · External RFI collaboration (tokenized links + respond)
+- 🔵 V.3 · Schedule shell + external P6 link + `.xer` upload (storage only)
+- 🔵 V.4 · P6 import MVP (parse + diff + activate)
+- 🔵 V.5 · RFI ↔ Schedule linkage (constraint engine)
+- 🔵 V.6 · Operational schedule intelligence (dispute package + optional external schedule access)
+
+
+
 ## 2026-05-27 (fork) — iter437 · Phase IV-BETA.5A-P6 · Safety V2 Default Flip + Safe Route Extraction (Phase 2) 🟢
 
 ### Mission
