@@ -46,9 +46,23 @@ def _admin_token(base_url: str) -> str:
 
 
 def test_self_protection_requires_admin(base_url):
-    r = requests.get(f"{base_url}{PATH}", timeout=10)
-    assert r.status_code in (401, 403), (
-        f"self-protection should require admin auth · got {r.status_code}"
+    # NOTE: /app/backend/tests/conftest.py monkey-patches
+    # requests.api.request and Session.request to auto-attach
+    # X-Admin-Token on every call to our backend host. To prove
+    # the route genuinely rejects unauthenticated traffic we use
+    # urllib directly, which is not patched.
+    import urllib.request
+    import urllib.error
+    req = urllib.request.Request(
+        f"{base_url}{PATH}", headers={"User-Agent": "pw-noauth-probe/1.0"},
+    )
+    try:
+        urllib.request.urlopen(req, timeout=10)
+        raised = None
+    except urllib.error.HTTPError as e:
+        raised = e.code
+    assert raised in (401, 403), (
+        f"self-protection should require admin auth · got status={raised}"
     )
 
 

@@ -1,6 +1,101 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — Phase GOVERNANCE-OPS-1 · Self-Protection Operations Hub 🟢
+
+### Mission
+Convert the governance INFRASTRUCTURE (probes, registries, doctrines,
+field-walk checklists) shipped under GOVERNANCE-INFRA-1 into a single
+operationally-visible surface so administrators can answer the
+question — "Is the platform's own governance healthy right now?" — in
+≤ 5 seconds. Read-only · admin-only · text-first · chart-free · no
+new telemetry · no new database.
+
+### Deliverables
+**Backend** — `routes/governance_self_protection.py` (298 LOC)
+- New endpoint `GET /api/admin/governance/self-protection` (admin-only).
+- Aggregates 7 governance artifacts in-process, on disk, no DB:
+  Authority Mismatch Probe (60 s in-memory cache) · TRUST_SURFACES.json
+  · SHARED_SURFACE_CONTEXT_MATRIX.json · TRUTHFUL_STATE_TEST_MATRIX.json
+  · TELEMETRY_SIGNAL_MATRIX.json · FIELD_WALK_CHECKLISTS/ · most-recent
+  `test_reports/iteration_*.json`.
+- Returns 8 stanzas + `page_status` (worst-of) + `generated_at`.
+- Graceful degradation — any missing source file ⇒ `"status":"unknown"`
+  on that stanza, never a 500.
+- Mounted on `server.py` via `build_governance_self_protection_router(require_admin)`.
+
+**Frontend** — `pages/admin/SelfProtection.jsx` (254 LOC)
+- Route `/admin/governance/self-protection` (admin-only).
+- 8 sections, monospace, monochrome, slate/emerald/amber/rose pills only.
+- 60 s background poll + manual refresh button.
+- "← back to governance" link · overall status pill in header.
+- Hooks under `AdminGovernance.jsx` and `App.js` router.
+
+**Tests** — `tests/pw_suite/test_governance_self_protection_page.py`
+- 11 tests · all green (idempotent across reruns):
+  - Backend admin-gate, full payload, authority counts, trust surface
+    coverage, PII-free response, graceful-degradation under missing source.
+  - Frontend page renders 8 sections (desktop + mobile), zero canvas
+    elements / chart classes, no horizontal overflow on mobile (390×844),
+    admin-gate when token absent.
+- One subtlety: the platform-wide `tests/conftest.py` monkey-patches
+  `requests.api.request` to auto-attach `X-Admin-Token`; the
+  unauthenticated probe test now uses `urllib.request` to bypass the
+  patch and prove the route genuinely returns 401 without auth.
+
+### Live verification (2026-05-28 03:38 UTC)
+- 🟢 401 without admin token (curl + urllib confirmed)
+- 🟢 200 with admin token · 2,875 bytes · 8 stanzas
+- 🟢 PII scan clean (`@`, `password`, `phone`, `email` substrings absent)
+- 🟢 0 `<canvas>` elements · 0 Recharts/Victory/Chartjs classes
+- 🟢 Probe runtime: 84-131 ms (sub-500 ms cold path · 60 s warm cache)
+- 🟢 No horizontal overflow on 390×844 mobile viewport
+- 🟢 Adjacent governance suites green: probe (6/6) · health chip (21/21)
+- 🟢 Page status reported `amber` because Context Governance correctly
+  surfaces 3 TBD-Wave-3 rows (capa / meetings / inspections); this is
+  the EXPECTED governance gap signal, not drift.
+
+### Doctrine compliance
+- ✅ Read-only · idempotent · no DB writes anywhere
+- ✅ No new telemetry signals introduced — page reads existing artifacts
+- ✅ Calm · monochrome · text-first · monospace · no animation
+- ✅ No charts · no canvas · no analytics widgets
+- ✅ PII-free response contract (regression-tested)
+- ✅ Admin-only (require_admin dependency)
+- ✅ Graceful degradation when any source file is missing
+- ✅ Preview only · NO production deploy
+
+### Remaining governance TBDs (surfaced by the new page)
+- 🟡 `capa-list` · `incident-list-pm-mounted` · `inspections-list-pm-mounted`
+  · all marked `TBD-Wave3` in SHARED_SURFACE_CONTEXT_MATRIX.json.
+  These are the Wave-3 context-governance items already cataloged
+  before this phase; OPS-1 makes them visible at a glance.
+- ⛔ No new TBDs introduced by this phase.
+
+### Production-readiness verdict
+- 🟢 Code path: production-ready. Read-only, no DB writes, admin-gated,
+  graceful degradation, sub-500 ms cold response.
+- 🔵 Recommendation: **preview-stabilize for one observation window**
+  before cutover so the operator team can confirm the page reads
+  the way real on-call admins expect during routine governance checks.
+  No code blockers.
+
+### Files touched
+- `backend/routes/governance_self_protection.py` (NEW · 298 LOC)
+- `backend/server.py` (router wiring — 2 lines)
+- `frontend/src/pages/admin/SelfProtection.jsx` (NEW · 254 LOC)
+- `frontend/src/pages/admin/AdminGovernance.jsx` (link added)
+- `frontend/src/App.js` (route added)
+- `backend/tests/pw_suite/test_governance_self_protection_page.py` (NEW · 11/11 PASS)
+
+### Status
+🟢 PHASE GOVERNANCE-OPS-1 COMPLETE · entering preview observation
+window · next gate is the operator-initiated **Phase V.1 RFI MVP**
+kickoff (no work begins until explicit user command).
+
+---
+
+
 ## 2026-05-28 (fork) — Phase GOVERNANCE-INFRA-1 · Platform Self-Protection Layer 🟢
 
 ### Mission
