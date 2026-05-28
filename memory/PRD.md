@@ -26991,3 +26991,59 @@ See `/app/memory/test_credentials.md`. Quick refs:
 
 **Verdict:** 🟢 IV-BETA.2 COMPLETE · awaiting manual preview review before IV-BETA.3 (PM page coaching + modal audit + email tone unification) begins.
 
+
+---
+
+## Phase V-Prelude · Wave 1 — Substrate (2026-05-28)
+
+🟢 **COMPLETE · preview env** · 24-hr observation window open.
+
+### Authorization
+Operator command "START V-PRELUDE WAVE 1" (2026-05-28).
+
+### Hard rules honored
+- ✅ preview-only · APP_ENV=preview · DB=masci_safety_preview
+- ✅ no production deploy
+- ✅ no RFI implementation
+- ✅ no schedule / P6 / XER
+- ✅ no enterprise dashboard bloat
+- ✅ no AI copilot
+- ✅ no visual doctrine drift
+- ✅ no auth expansion (reuses `_require_any_portal_token`)
+- ✅ every change reversible (drop 4 router mounts + 3 routes)
+
+### Delivered components
+1. **Operational Constraints** — operational blocker memory.
+2. **Operational Links** — single-source-of-truth relationship substrate (§1–§11 of OPERATIONAL_LINKING_RULES.md).
+3. **Operational Timeline** — read-only chronology aggregator.
+4. **Photo Governance** — thin metadata + linkage layer.
+
+### Files added
+- Backend routes (4): `operational_links.py` · `operational_constraints.py` · `operational_timeline.py` · `photo_governance.py`
+- Frontend (7): `constraintCapabilities.js` · `operationalApi.js` · `ChronologyPanel.jsx` · `SeverityPill.jsx` · `Constraints.jsx` · `NewConstraint.jsx` · `ConstraintDetail.jsx`
+- Tests (1): `test_v_prelude_wave1_substrate.py` (19 tests, all pass)
+- Probe (1): `scripts/operational_links_doctrine_probe.py` (wired into pre_deploy_check.sh)
+
+### Required certification deliverables (all shipped)
+- `WAVE1_IMPLEMENTATION_SUMMARY.md`
+- `OPERATIONAL_CONSTRAINT_CERTIFICATION.md`
+- `PHOTO_GOVERNANCE_CERTIFICATION.md`
+- `OPERATIONAL_TIMELINE_CERTIFICATION.md`
+- `OPERATIONAL_LINKS_CERTIFICATION.md`
+- `WAVE1_OBSERVATION_GUIDE.md`
+
+### Regression status
+- ✅ 19/19 new substrate tests pass.
+- ✅ 117/117 broader regression sweep pass (auth · RBAC · phase-K identity).
+- ✅ `authority_mismatch_probe`: 0 new violations.
+- ✅ `timestamp_doctrine_probe`: 0 new violations.
+- ✅ `operational_links_doctrine_probe`: 0 violations · sub-second.
+- ✅ Frontend bundle ships new components (15 references in bundle).
+
+### Stop condition
+Per operator directive: STOP. Observation window 24 hr.
+Wave 2 (Operational Search · Field Memory) is **LOCKED** until explicit
+"start V-Prelude Wave 2" command.
+
+### Verdict
+🟢 **Wave 1 substrate complete — substrate live in preview — 0 regressions — awaiting 24-hr observation window + Wave 2 authorization.**

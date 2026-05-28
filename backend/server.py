@@ -8477,6 +8477,24 @@ async def _seed_hr_users():
     await seed_hr_users(db)
 
 
+@app.on_event("startup")
+async def _ensure_v_prelude_wave1_indexes():
+    """Phase V-Prelude · Wave 1 — index ensure for new substrate
+    collections (operational_links · operational_constraints) plus the
+    thin governance.tags index on job_photos. Idempotent."""
+    try:
+        from routes.operational_links import ensure_operational_links_indexes  # noqa: PLC0415
+        from routes.operational_constraints import ensure_operational_constraints_indexes  # noqa: PLC0415
+        from routes.photo_governance import ensure_photo_governance_indexes  # noqa: PLC0415
+        await ensure_operational_links_indexes(db)
+        await ensure_operational_constraints_indexes(db)
+        await ensure_photo_governance_indexes(db)
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            "V-Prelude Wave 1 index ensure failed: %s", e
+        )
+
+
 # iter299 · Lane D operational hygiene — visibility-only log line at boot.
 # Emits a single structured line under tag `[ops-hygiene]` so operators can
 # grep startup logs for disk pressure + backup inventory + retention config.
@@ -8870,6 +8888,43 @@ app.include_router(build_promo_assets_router(db, require_admin_strict))
 # data model. Passive observability — workflow-impact-free by design.
 from routes.operational_signals import build_operational_signals_router  # noqa: E402
 app.include_router(build_operational_signals_router(db, require_admin))
+
+
+# ─── Phase V-Prelude · Wave 1 · Substrate ─────────────────────────────
+# operational_links · operational_constraints · operational_timeline ·
+# photo_governance. All four mount the existing _require_any_portal_token
+# gate (no auth expansion) and adhere to OPERATIONAL_LINKING_RULES.md.
+# Doctrine docs:
+#   /app/memory/OPERATIONAL_LINKING_RULES.md         · ⛔ read-before-touching
+#   /app/memory/OPERATIONAL_CONSTRAINT_FOUNDATION.md
+#   /app/memory/OPERATIONAL_TIMELINE_FOUNDATION.md
+#   /app/memory/PHOTO_GOVERNANCE_STANDARD.md
+from routes.operational_links import (  # noqa: E402
+    build_operational_links_router, ensure_operational_links_indexes,
+)
+from routes.operational_constraints import (  # noqa: E402
+    build_operational_constraints_router,
+    ensure_operational_constraints_indexes,
+)
+from routes.operational_timeline import (  # noqa: E402
+    build_operational_timeline_router,
+)
+from routes.photo_governance import (  # noqa: E402
+    build_photo_governance_router, ensure_photo_governance_indexes,
+)
+
+app.include_router(build_operational_links_router(
+    db, _require_any_portal_token, require_admin,
+))
+app.include_router(build_operational_constraints_router(
+    db, _require_any_portal_token,
+))
+app.include_router(build_operational_timeline_router(
+    db, _require_any_portal_token,
+))
+app.include_router(build_photo_governance_router(
+    db, _require_any_portal_token,
+))
 
 
 # ─── Project Health Dashboard (Phase H) ──────────────────────────────

@@ -132,6 +132,63 @@
         "backend/tests/pw_suite/test_trust1_final_hardening.py"
       ],
       "telemetry": ["draft.restore.offered", "draft.restore.action"]
+    },
+    {
+      "id": "operational-constraints",
+      "name": "Operational Constraints (V-Prelude Wave 1)",
+      "status": "live",
+      "phase": "V-Prelude.W1",
+      "capabilities": [
+        "constraint.view",
+        "constraint.create",
+        "constraint.edit",
+        "constraint.resolve",
+        "constraint.chronology_note",
+        "constraint.link_photo",
+        "constraint.read_cross_portal"
+      ],
+      "regression": [
+        "backend/tests/test_v_prelude_wave1_substrate.py"
+      ],
+      "telemetry": [],
+      "doctrine": "memory/OPERATIONAL_CONSTRAINT_FOUNDATION.md"
+    },
+    {
+      "id": "operational-links",
+      "name": "Operational Links substrate (V-Prelude Wave 1)",
+      "status": "live",
+      "phase": "V-Prelude.W1",
+      "capabilities": [],
+      "regression": [
+        "backend/tests/test_v_prelude_wave1_substrate.py",
+        "scripts/operational_links_doctrine_probe.py"
+      ],
+      "telemetry": [],
+      "doctrine": "memory/OPERATIONAL_LINKING_RULES.md"
+    },
+    {
+      "id": "operational-timeline",
+      "name": "Operational Timeline (V-Prelude Wave 1)",
+      "status": "live",
+      "phase": "V-Prelude.W1",
+      "capabilities": [],
+      "regression": [
+        "backend/tests/test_v_prelude_wave1_substrate.py"
+      ],
+      "telemetry": [],
+      "doctrine": "memory/OPERATIONAL_TIMELINE_FOUNDATION.md"
+    },
+    {
+      "id": "photo-governance",
+      "name": "Photo Governance metadata (V-Prelude Wave 1)",
+      "status": "live",
+      "phase": "V-Prelude.W1",
+      "capabilities": [],
+      "regression": [
+        "backend/tests/test_v_prelude_wave1_substrate.py"
+      ],
+      "telemetry": [],
+      "doctrine": "memory/PHOTO_GOVERNANCE_STANDARD.md"
     }
   ],
   "doctrine_fields": [

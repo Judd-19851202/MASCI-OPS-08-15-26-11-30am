@@ -94,7 +94,18 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_UX_REFINEMENT_AUDIT.md` | Wave 3 | 📐 |
 | `ROLE_AWARE_VISIBILITY_MODEL.md` | Wave 1-3 | 📐 |
 | `GOVERNANCE_SELF_HEALING_ROADMAP.md` | Wave 4 | 📐 |
-| `V_PRELUDE_WAVE_READINESS_CERTIFICATION.md` | Pre-Wave-1 gate | 📐 |
+| `V_PRELUDE_WAVE_READINESS_CERTIFICATION.md` | Pre-Wave-1 gate | 🟢 |
+
+### Wave 1 — Substrate (implemented 2026-05-28)
+
+| File | Purpose | Status |
+|---|---|---|
+| `WAVE1_IMPLEMENTATION_SUMMARY.md` | Wave 1 master summary | 🟢 |
+| `OPERATIONAL_CONSTRAINT_CERTIFICATION.md` | Wave 1 constraint cert | 🟢 |
+| `OPERATIONAL_LINKS_CERTIFICATION.md` | Wave 1 links cert · §10 probes | 🟢 ⛔ |
+| `OPERATIONAL_TIMELINE_CERTIFICATION.md` | Wave 1 timeline cert | 🟢 |
+| `PHOTO_GOVERNANCE_CERTIFICATION.md` | Wave 1 photo governance cert | 🟢 |
+| `WAVE1_OBSERVATION_GUIDE.md` | 24-hr observation window guide | 🟡 active |
 
 ## 5 · Route Decomposition / Backend Architecture
 

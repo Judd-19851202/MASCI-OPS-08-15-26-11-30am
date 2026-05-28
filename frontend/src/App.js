@@ -172,6 +172,10 @@ import HrEmployees from "@/pages/HrEmployees";
 import PoRequests from "@/pages/PoRequests";
 import ProjectHealth from "@/pages/ProjectHealth";
 import AssetTransfers from "@/pages/AssetTransfers";
+// Phase V-Prelude · Wave 1 · Substrate — Operational Constraints.
+import Constraints from "@/pages/Constraints";
+import NewConstraint from "@/pages/NewConstraint";
+import ConstraintDetail from "@/pages/ConstraintDetail";
 import AccessDenied from "@/pages/AccessDenied";
 import NotFound from "@/pages/NotFound";
 import GlobalFooter from "@/components/GlobalFooter";
@@ -293,6 +297,16 @@ function App() {
             <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
             <Route path="/admin/qaqc" element={<AdminQaqcList />} />
             <Route path="/admin/photos" element={A(<JobPhotosLibrary portalKey="admin" />)} />
+
+            {/* Phase V-Prelude · Wave 1 · Operational Constraints.
+                Capability-scoped at the page level (constraintCapabilities.js).
+                Backend gate accepts admin / pm / safety / fl / leadership / hr
+                tokens. We don't wrap with a Require* component because the
+                surface is cross-portal — same React tree renders for every
+                operator role per the shared-surface doctrine. */}
+            <Route path="/constraints" element={<Constraints />} />
+            <Route path="/constraints/new" element={<NewConstraint />} />
+            <Route path="/constraints/:id" element={<ConstraintDetail />} />
 
             {/* Field Leadership — supervisor docs gated by MASCIGC password */}
             <Route path="/leadership" element={<FieldLeadershipHub />} />

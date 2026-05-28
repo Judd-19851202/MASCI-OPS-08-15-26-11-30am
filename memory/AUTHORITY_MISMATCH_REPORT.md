@@ -2,16 +2,21 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-05-28 14:39:17 UTC
-* Scan duration: 135 ms
+* Generated: 2026-05-28 18:29:56 UTC
+* Scan duration: 88 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 
 ## Summary
 
 * **New violations** (fail the gate): **0**
-* **New warnings** (review): 0
+* **New warnings** (review): 2
 * **Baselined** (previously approved): 58
+
+## 🟡 New warnings
+
+* `lib/constraintCapabilities.js:48` · ad-hoc canApprove variable · `const hasHr = isHr();`
+* `lib/constraintCapabilities.js:49` · ad-hoc canApprove variable · `const hasAdmin = isAdmin();`
 
 ## ⚪ Baselined (already reviewed)
 

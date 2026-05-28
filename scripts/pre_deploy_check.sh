@@ -339,6 +339,19 @@ stage_timestamp_doctrine() {
 }
 
 
+# ─── V-Prelude Wave 1 · operational_links doctrine probe · 2026-05-28 ─
+# Enforces OPERATIONAL_LINKING_RULES.md §10: audit-field completeness,
+# closed-set artifact/relationship/visibility enums, no self-link, no
+# circular resulted_in, no stored display-only inverse, status-change
+# timestamp present on archived/voided/superseded rows. Sub-second
+# probe runs against the live preview Mongo (read-only) so it catches
+# rows that bypassed the API doctrine.
+stage_operational_links_doctrine() {
+  cd "$REPO_ROOT"
+  python3 scripts/operational_links_doctrine_probe.py --gate
+}
+
+
 # ─── TRUST-1 Wave 1 · TF-018 · 2026-05-27 ─────────────────────────────
 # Visibility-of-visibility gate. The /api/draft-telemetry layer exists
 # specifically so field-incident failures stay diagnosable. If a future
