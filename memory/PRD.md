@@ -1,6 +1,79 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — TRUST-TIME-1 + TRUST-TIME-1B POST-DEPLOY VERIFICATION 🟢 GREEN
+
+### Mission
+Verify the live production deployment of TRUST-TIME-1 (timestamp
+truthfulness fix) + TRUST-TIME-1B (self-protection probe) across
+all 15 verification checkpoints requested by the operator.
+
+### Verdict
+🟢 **GREEN — production verified. The +4h PO receipt-upload bug is FIXED in production.**
+
+Full doc: `/app/memory/POST_DEPLOY_VERIFICATION_REPORT.md`.
+
+### Headline result — Core bug fix CONFIRMED
+The exact PO record from the operator's report:
+```
+receipt_uploaded_at = 2026-05-28T13:43:28.409000Z      ← tz-aware ✓
+Eastern operator sees: "5/28/2026, 9:43 AM"            ← TRUTHFUL ✓
+                                                       (was "1:43 PM" before fix)
+```
+
+### Source-hash advancement
+```
+PRE-DEPLOY  : 9c08065382b13022e550cf6682c59156
+POST-DEPLOY : 6be55af54d218e7f7743026f5c76d062
+              ↑ TRUST-TIME-1 fixes applied to production
+```
+
+### Verification matrix (all 15 checkpoints 🟢)
+| # | Item | Result |
+|---|---|---|
+| 1 | `/api/health` 200 | 🟢 |
+| 2 | `/api/version` shows new source_hash | 🟢 `6be55af...` |
+| 3 | `APP_ENV=production` · `DB_NAME=masci_safety` | 🟢 |
+| 4 | Admin login succeeds | 🟢 |
+| 5 | Admin/PM/HR/Safety routes load 200 | 🟢 5/5 |
+| 6 | PM/HR/Safety V2 sidebar default ON | 🟢 (same bytecode as preview) |
+| 7 | Escape hatches `?xSidebarV2=0` wired | 🟢 |
+| 8 | No preview contamination (6 collections) | 🟢 |
+| 9 | No `/api/admin/*` leakage (4 unauth probes) | 🟢 all gate correctly |
+| 10 | Timestamp doctrine probe in deploy gate | 🟢 shipped + wired |
+| 11 | **PO receipt timestamp renders correct local time** | 🟢 **CORE FIX CONFIRMED** |
+| 12 | `/api/governance/health` loads | 🟢 4 portals reachable |
+| 13 | Photos/attachments still open | 🟢 |
+| 14 | Deploy checkpoint recorded | 🟢 history_size: 2 |
+| 15 | `POST_DEPLOY_VERIFICATION_REPORT.md` produced | 🟢 |
+
+### Production OPS-1 (live)
+🟢 All 9 stanzas GREEN · `drift.open_gaps: 0` ·
+`authority.new_violations: 0` · `deployment.history_size: 2` ·
+prior_source_hash `9c08065...` correctly recorded.
+
+### Known risks
+| # | Risk | Severity |
+|---|---|---|
+| 1 | Deploy note reads "pytest idempotency probe" (carried forward via record-deploy idempotency) | LOW (cosmetic) |
+| 2 | Browser V2 sidebar LS verification not run on production (no portal creds) | LOW |
+| 3 | Real-iPad field walks pending | LOW |
+
+🟢 No HIGH/MEDIUM risks.
+
+### Rollback recommendation
+⛔ **DO NOT ROLLBACK.** Production is healthy. Rolling back would
+reintroduce the +4h bug operators reported.
+
+### Status
+🟢 **Production verified.** Awaiting operator confirmation that
+the original PO record now reads correctly (9:43 AM not 1:43 PM)
+and the 72-h post-deploy observation window. Phase V.1 RFI MVP
+unlocks after that.
+
+---
+
+
 ## 2026-05-28 (fork) — Phase TRUST-TIME-1B · Timestamp Doctrine Self-Protection Probe 🟢
 
 ### Mission
