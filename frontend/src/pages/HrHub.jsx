@@ -21,6 +21,7 @@ import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
+import { setPortalContext } from "@/lib/portalContext";
 
 const HR_PAL = paletteFor("hr");
 
@@ -146,6 +147,13 @@ export default function HrHub() {
   const nav = useNavigate();
   const user = getHrUser();
   const [stats, setStats] = React.useState({});
+
+  // TRUST-PO-1 · 2026-05-28 — declare portal context on mount so
+  // shared pages (e.g., /po-requests) know the operator is in HR/Office
+  // context.
+  React.useEffect(() => {
+    try { setPortalContext("hr"); } catch { /* noop */ }
+  }, []);
 
   React.useEffect(() => {
     (async () => {

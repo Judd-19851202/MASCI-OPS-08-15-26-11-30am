@@ -23,6 +23,7 @@ import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 import { isPmSidebarV2Enabled } from "@/components/pm/sidebar/SideNavV2";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
+import { setPortalContext } from "@/lib/portalContext";
 
 const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
@@ -180,6 +181,11 @@ export default function PmHub() {
   // Phase IV-BETA.2 · Single unified flag — PM Sidebar V2 + Hub V2 travel
   // together as one cohesive governed PM experience.
   const v2 = isPmSidebarV2Enabled();
+
+  // TRUST-PO-1 · 2026-05-28 — declare portal context on mount.
+  useEffect(() => {
+    try { setPortalContext("pm"); } catch { /* noop */ }
+  }, []);
 
   useEffect(() => {
     (async () => {

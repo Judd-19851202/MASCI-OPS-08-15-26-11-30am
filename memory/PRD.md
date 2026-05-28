@@ -1,6 +1,86 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — Phase TRUST-PO-1 · Procurement Authority Boundary 🟢
+
+### Mission
+Procurement approval authority must be unmistakable. Field Leadership
+requests; PM / Admin / HR-Office approves, issues, closes, cancels.
+The platform must never imply authority where authority does not
+exist.
+
+### Incident
+A field user observed the PO detail drawer rendering `Approve` /
+`Reject` / `Clarify` / `Manual PO #` / `Approved amount` / `Cancel` /
+`Close` controls under what looked like a Field Leadership context.
+
+### Findings
+* **UI authority leak (primary)** — `pages/PoRequests.jsx` derived its
+  render gate from raw token-presence
+  (`isPm() || isHr() || isAdmin()`). A Super Admin who also held a
+  Field Leadership session in browser storage saw approval controls
+  in the FL portal.
+* **Backend authority leak (secondary)** —
+  `POST /api/po-requests/{id}/cancel` had NO `_can_approve` gate. Any
+  actor with any portal token (including Field Leadership) could
+  cancel a PO mid-workflow.
+* **Notification routing CLEAN** — approval-needed tasks already
+  fanned to `role=pm` with `cc_roles=["hr"]`, never to leadership.
+  No remediation required there.
+
+### Remediation
+1. **Frontend capability-scoped rendering**
+   * `lib/portalContext.js` (NEW) — tracks current portal in
+     `sessionStorage.masci.portal-context`.
+   * `lib/poCapabilities.js` (NEW) — `getPoCapabilities()` returns
+     explicit per-action capability bundle:
+     * `po.request.create`, `po.request.view`, `po.request.receipt_upload`,
+       `po.request.respond_clarify`
+     * `po.approve`, `po.reject`, `po.clarify`,
+       `po.issue_number`, `po.set_approved_amount`,
+       `po.close`, `po.cancel`
+   * Field Leadership context **forces every approver capability OFF**,
+     regardless of which tokens coexist in storage. Surgical fix.
+   * `pages/PoRequests.jsx` consumes capabilities instead of
+     token-presence checks. Every button + input gated individually.
+2. **Hub context wiring** — `FieldLeadershipHub`, `AdminHub`, `PmHub`,
+   `HrHub` mounts call `setPortalContext(...)`.
+3. **Backend `/cancel` gate** — `routes/po_requests.py` cancel handler
+   now requires `_can_approve(actor)`; returns 403 otherwise.
+
+### Verification
+* `tests/pw_suite/test_trust_po1_backend_enforcement.py` · **10/10 PASS**
+  * Leadership can create PO ✅
+  * Leadership cannot approve / reject / clarify / close / cancel
+    (403) ✅
+  * Leadership cannot assign Manual PO # or Approved amount (403) ✅
+  * Admin can approve / cancel ✅
+  * Approval task fanout goes to PM (cc HR), never to leadership ✅
+* `tests/pw_suite/test_trust_po1_frontend_capability_scope.py` · **4/4 PASS**
+  * Admin context renders approval block ✅
+  * Leadership-only context hides approval block ✅
+  * Super Admin in FL context hides approval block ✅ ← surgical fix
+  * Switching admin→FL recomputes capabilities ✅
+
+### Deliverables (7 audit documents)
+* `memory/PROCUREMENT_AUTHORITY_AUDIT.md`
+* `memory/PO_ROLE_CAPABILITY_MATRIX.md`
+* `memory/PO_NOTIFICATION_TARGETING_AUDIT.md`
+* `memory/PO_BACKEND_ENFORCEMENT_REPORT.md`
+* `memory/PO_FRONTEND_VISIBILITY_REPORT.md`
+* `memory/PROCUREMENT_TRUST_REMEDIATION_PLAN.md`
+* `memory/PROCUREMENT_AUTHORITY_CERTIFICATION.md`
+
+### Doctrine
+**Portal context is the FIRST capability gate, token presence is the
+SECOND.** Every shared portal page MUST consult portal context for
+capability decisions, never raw token-presence. Backend remains
+the source of truth for actual authorisation — UI capability gating
+is a TRUST surface, not a SECURITY surface.
+
+---
+
+
 ## 2026-05-27 (fork) — Phase TRUST-1 · Final Hardening Pass 🟢
 
 ### Mission

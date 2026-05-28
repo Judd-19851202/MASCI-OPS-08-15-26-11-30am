@@ -47,6 +47,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { isHr } from "@/lib/hrAuth";
 import { isPm } from "@/lib/pmAuth";
 import { isLeadershipAuthed } from "@/lib/leadershipAuth";
+import { getPoCapabilities } from "@/lib/poCapabilities";
 import AccessDenied from "@/pages/AccessDenied";
 import { toast } from "sonner";
 import StatusBadge from "@/components/StatusBadge";
@@ -59,7 +60,13 @@ const STATUS_COLORS = PO_STATUS_TINTS;
 export default function PoRequests() {
   const nav = useNavigate();
   const signedIn = isSignedInAnywhere() || isLeadershipAuthed();
-  const canApprove = isPm() || isHr() || isAdmin();
+  // TRUST-PO-1 · 2026-05-28 — capability-scoped rendering.
+  // The page is universal across portals; capabilities are now derived
+  // from (portal context) × (token presence), NOT from raw token-presence.
+  // This is the surgical fix for Super-Admin-in-FL approval-control bleed.
+  // See `lib/poCapabilities.js` for the gate logic.
+  const caps = useMemo(() => getPoCapabilities(), []);
+  const canApprove = caps["po.approve"] || caps["po.reject"] || caps["po.clarify"];
 
   const [tab, setTab] = useRememberedFilter("po.tab", "open");
   const [statusFilter, setStatusFilter] = useRememberedFilter("po.status", "all");
@@ -309,7 +316,7 @@ export default function PoRequests() {
         )}
       </main>
 
-      <PoDrawer id={openId} canApprove={canApprove} isAdmin={isAdmin()} onClose={() => { setOpenId(null); fetchAll(); }} />
+      <PoDrawer id={openId} caps={caps} onClose={() => { setOpenId(null); fetchAll(); }} />
     </div>
   );
 }
@@ -450,7 +457,7 @@ function AddDialog({ open, setOpen, onSaved }) {
   );
 }
 
-function PoDrawer({ id, canApprove, isAdmin: isAd, onClose }) {
+function PoDrawer({ id, caps, onClose }) {
   const [po, setPo] = useState(null);
   const [saving, setSaving] = useState(false);
   const [actionNotes, setActionNotes] = useState("");
@@ -466,13 +473,18 @@ function PoDrawer({ id, canApprove, isAdmin: isAd, onClose }) {
   }, [id]);
 
   const refresh = async () => { if (po) setPo(await getPo(po.id)); };
+  // TRUST-PO-1 · 2026-05-28 — every renderable approver action is now
+  // gated by an explicit capability flag from poCapabilities. The flag
+  // is FALSE for Field Leadership context regardless of which tokens
+  // happen to coexist in storage.
+  const canApproveBundle = caps && (caps["po.approve"] || caps["po.reject"] || caps["po.clarify"]);
   const can = useMemo(() => ({
-    approve: canApprove && ["Submitted", "Pending Approval", "Clarification Needed"].includes(po?.status),
-    upload: po && ["Approved", "Pending Receipt", "Overdue Receipt"].includes(po?.status),
-    close: isAd && ["Receipt Uploaded", "Approved", "Pending Receipt", "Overdue Receipt"].includes(po?.status),
-    cancel: isAd && !["Closed", "Cancelled", "Rejected"].includes(po?.status),
-    respondClarification: po?.status === "Clarification Needed",
-  }), [po, canApprove, isAd]);
+    approve: canApproveBundle && ["Submitted", "Pending Approval", "Clarification Needed"].includes(po?.status),
+    upload: po && caps && caps["po.request.receipt_upload"] && ["Approved", "Pending Receipt", "Overdue Receipt"].includes(po?.status),
+    close: caps && caps["po.close"] && ["Receipt Uploaded", "Approved", "Pending Receipt", "Overdue Receipt"].includes(po?.status),
+    cancel: caps && caps["po.cancel"] && !["Closed", "Cancelled", "Rejected"].includes(po?.status),
+    respondClarification: po?.status === "Clarification Needed" && caps && caps["po.request.respond_clarify"],
+  }), [po, caps, canApproveBundle]);
 
   const doRespondClarification = async () => {
     if (!clarifyResp.trim()) { toast.error("Response is required"); return; }
@@ -603,25 +615,41 @@ function PoDrawer({ id, canApprove, isAdmin: isAd, onClose }) {
                 </div>
               )}
 
-              {/* Approval block */}
+              {/* Approval block — capability-scoped. Manual PO # and
+                  Approved amount inputs are ALSO individually gated so
+                  that a non-issuing approver (no `po.issue_number`)
+                  doesn't see those fields even if approve/reject is
+                  granted. */}
               {can.approve && (
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-3 space-y-2" data-testid="po-approval-block">
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-blue-700 font-bold">Approval action</div>
                   <Textarea rows={2} value={actionNotes} onChange={(e) => setActionNotes(e.target.value)} placeholder="Approval / rejection notes" className="text-xs" data-testid="po-approval-notes" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input placeholder="Manual PO # (optional)" value={manualPoNumber} onChange={(e) => setManualPoNumber(e.target.value)} className="text-xs" data-testid="po-approval-manual" />
-                    <Input type="number" step="0.01" placeholder="Approved amount" value={approvedAmount} onChange={(e) => setApprovedAmount(e.target.value)} className="text-xs" data-testid="po-approval-amount" />
-                  </div>
+                  {(caps["po.issue_number"] || caps["po.set_approved_amount"]) ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {caps["po.issue_number"] ? (
+                        <Input placeholder="Manual PO # (optional)" value={manualPoNumber} onChange={(e) => setManualPoNumber(e.target.value)} className="text-xs" data-testid="po-approval-manual" />
+                      ) : null}
+                      {caps["po.set_approved_amount"] ? (
+                        <Input type="number" step="0.01" placeholder="Approved amount" value={approvedAmount} onChange={(e) => setApprovedAmount(e.target.value)} className="text-xs" data-testid="po-approval-amount" />
+                      ) : null}
+                    </div>
+                  ) : null}
                   <div className="flex gap-2 flex-wrap">
-                    <Button size="sm" onClick={() => doAction("approve")} disabled={saving} data-testid="po-approve-btn">
-                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Approve
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => doAction("clarify")} disabled={saving} data-testid="po-clarify-btn">
-                      <MessageSquare className="w-3.5 h-3.5 mr-1" /> Clarify
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => doAction("reject")} disabled={saving} data-testid="po-reject-btn">
-                      <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
-                    </Button>
+                    {caps["po.approve"] ? (
+                      <Button size="sm" onClick={() => doAction("approve")} disabled={saving} data-testid="po-approve-btn">
+                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Approve
+                      </Button>
+                    ) : null}
+                    {caps["po.clarify"] ? (
+                      <Button size="sm" variant="outline" onClick={() => doAction("clarify")} disabled={saving} data-testid="po-clarify-btn">
+                        <MessageSquare className="w-3.5 h-3.5 mr-1" /> Clarify
+                      </Button>
+                    ) : null}
+                    {caps["po.reject"] ? (
+                      <Button size="sm" variant="destructive" onClick={() => doAction("reject")} disabled={saving} data-testid="po-reject-btn">
+                        <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               )}

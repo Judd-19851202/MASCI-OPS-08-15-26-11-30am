@@ -775,6 +775,12 @@ def build_po_requests_router(
         po_id: str,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        # TRUST-PO-1 · 2026-05-28 — auth gate. Cancellation is an
+        # approver action (it terminates the workflow); Field Leadership
+        # must NOT be able to cancel. The original implementation was
+        # missing this check — a real backend authority leak.
+        if not _can_approve(actor):
+            raise HTTPException(403, "Not authorized to cancel POs")
         await db.po_requests.update_one({"id": po_id}, {"$set": {
             "status": "Cancelled",
             "updated_at": datetime.now(timezone.utc),

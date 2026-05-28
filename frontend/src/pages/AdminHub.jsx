@@ -17,6 +17,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
+import { setPortalContext } from "@/lib/portalContext";
 
 // iter326 · platform-wide calm convergence — AdminHub SectionTile
 // migrated from the legacy hot-chrome pattern (border-2 +
@@ -46,6 +47,11 @@ function SectionTile({ to, icon: Icon, label, desc, testId }) {
 
 export default function AdminHub() {
   usePageTitle("Admin Console · MASCI");
+  // TRUST-PO-1 · 2026-05-28 — declare portal context on mount so shared
+  // pages (e.g., /po-requests) know the operator is in the Admin context.
+  React.useEffect(() => {
+    try { setPortalContext("admin"); } catch { /* noop */ }
+  }, []);
   // The Overview tile excludes itself.
   const tiles = SECTIONS.filter((s) => s.key !== "overview");
 

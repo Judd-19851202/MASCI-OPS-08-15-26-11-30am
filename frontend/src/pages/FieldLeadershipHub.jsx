@@ -45,6 +45,7 @@ import {
 // password) get straight into the Hub without needing the legacy
 // shared-password gate.
 import { getFlToken, clearFlToken } from "@/lib/flAuth";
+import { setPortalContext } from "@/lib/portalContext";
 import {
   FIELD_LEADERSHIP_FORMS,
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
@@ -334,6 +335,13 @@ export default function FieldLeadershipHub() {
   useEffect(() => {
     const next = Boolean(getLeadershipToken()) || Boolean(getFlToken()) || isAdmin() || Boolean(getPmToken());
     setAuthed(next);
+    // TRUST-PO-1 · 2026-05-28 — declare portal context on every mount
+    // so shared pages (e.g., /po-requests) can render capability-scoped
+    // UI even when admin/pm tokens coexist in storage. This is the
+    // surgical fix for Super-Admin-in-FL approval-control bleed.
+    if (next) {
+      try { setPortalContext("field-leadership"); } catch { /* noop */ }
+    }
     // Pass 4 — first-class /leadership/login. If not authed, send the
     // user to the dedicated portal door instead of rendering the
     // inline password gate. The inline PasswordGate below is retained
