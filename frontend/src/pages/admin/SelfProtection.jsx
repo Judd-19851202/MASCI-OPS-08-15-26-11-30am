@@ -140,6 +140,7 @@ export default function SelfProtection() {
   const rg = data.regression_suite || {};
   const fw = data.field_walks || {};
   const dr = data.drift || {};
+  const dp = data.deployment || {};
 
   return (
     <AdminShell active="governance">
@@ -239,6 +240,34 @@ export default function SelfProtection() {
           <Row label="Context TBD" value={dr.context_tbd} testId="drift-ctx-tbd" />
           <Row label="Authority violations" value={dr.authority_violations} testId="drift-auth-v" />
           <Row label="Authority warnings (review)" value={dr.authority_warnings} testId="drift-auth-w" />
+        </Section>
+
+        <Section title="Deployment" status={dp.status} testId="self-protection-deployment">
+          <Row
+            label="Current source"
+            value={dp.source_hash ? dp.source_hash.slice(0, 12) : "—"}
+            testId="deploy-current"
+          />
+          <Row
+            label="Recorded at"
+            value={dp.deployed_at ? _fmtAgo(dp.deployed_at) : "not recorded yet"}
+            testId="deploy-recorded"
+          />
+          <Row
+            label="Prior source"
+            value={dp.prior_source_hash ? dp.prior_source_hash.slice(0, 12) : "—"}
+            testId="deploy-prior"
+          />
+          <Row
+            label="Prior recorded"
+            value={dp.prior_deployed_at ? _fmtAgo(dp.prior_deployed_at) : "—"}
+            testId="deploy-prior-recorded"
+          />
+          <Row
+            label="History entries"
+            value={dp.history_size != null ? dp.history_size : "—"}
+            testId="deploy-history-size"
+          />
         </Section>
 
         <footer className="text-[10px] text-slate-400 mt-6 pt-3 border-t border-slate-200 font-mono">

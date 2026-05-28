@@ -34,13 +34,15 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
 
 REPO_ROOT = Path("/app")
 SCRIPTS_DIR = REPO_ROOT / "scripts"
 MEMORY_DIR = REPO_ROOT / "memory"
 TEST_REPORTS_DIR = REPO_ROOT / "test_reports"
 FIELD_WALKS_DIR = MEMORY_DIR / "FIELD_WALK_CHECKLISTS"
+DEPLOY_HISTORY_PATH = MEMORY_DIR / "DEPLOYMENT_HISTORY.json"
+DEPLOY_HISTORY_MAX = 50
 
 # 60s cache for the probe — page polling MUST NOT thrash CI.
 _PROBE_CACHE: Dict[str, Any] = {"at": 0.0, "data": None}
@@ -257,12 +259,104 @@ def _drift_status(*, context: Dict[str, Any], probe: Dict[str, Any]) -> Dict[str
     }
 
 
+# ─── Deployment stanza (CUTOVER-READY · 2026-05-28) ─────────────────
+#
+# Tracks the moment-of-deploy and the source_hash that was current at
+# each cutover. Read-only on the GET path. The pre-deploy script (or
+# the operator, manually) POSTs to /api/admin/governance/record-deploy
+# to append a new entry — this is the ONLY write path on the
+# self-protection surface.
+#
+# The OPS-1 page consumes this to answer "what just changed?" in five
+# seconds without leaving the governance surface.
+
+def _read_deploy_history() -> List[Dict[str, Any]]:
+    data = _safe_read_json(DEPLOY_HISTORY_PATH)
+    if not data:
+        return []
+    items = data.get("history") if isinstance(data, dict) else None
+    return items if isinstance(items, list) else []
+
+
+def _deployment_status(*, current_hash: str) -> Dict[str, Any]:
+    """Return the deployment stanza. Always renders — degrades to
+    `bootstrap` when no history file exists yet (fresh install)."""
+    history = _read_deploy_history()
+    current_entry = None
+    prior_entry = None
+    if history:
+        # Most recent entry whose hash matches the running process.
+        for entry in reversed(history):
+            if entry.get("source_hash") == current_hash:
+                current_entry = entry
+                break
+        # Prior = the most recent entry whose hash != current.
+        for entry in reversed(history):
+            if entry.get("source_hash") and entry.get("source_hash") != current_hash:
+                prior_entry = entry
+                break
+    deployed_at = (current_entry or {}).get("deployed_at")
+    prior_source_hash = (prior_entry or {}).get("source_hash")
+    prior_deployed_at = (prior_entry or {}).get("deployed_at")
+    # Status doctrine:
+    #   green     · history known, current hash recorded, prior hash present
+    #   amber     · history known, current hash NOT recorded (deploy moved
+    #               forward but operator hasn't run record-deploy yet)
+    #   unknown   · no history at all (bootstrap)
+    if not history:
+        status = "unknown"
+    elif current_entry is None:
+        status = "amber"
+    else:
+        status = "green"
+    return {
+        "status": status,
+        "source_hash": current_hash,
+        "deployed_at": deployed_at,
+        "prior_source_hash": prior_source_hash,
+        "prior_deployed_at": prior_deployed_at,
+        "history_size": len(history),
+    }
+
+
+def _record_deploy_entry(*, source_hash: str, note: str) -> Dict[str, Any]:
+    """Append a deploy record. Idempotent against the exact same
+    `source_hash` already at the tail — we never duplicate the most
+    recent entry. Returns the new history payload."""
+    history = _read_deploy_history()
+    if history and history[-1].get("source_hash") == source_hash:
+        # Idempotent — same hash already at tail.
+        return {"appended": False, "history": history}
+    entry = {
+        "source_hash": source_hash,
+        "deployed_at": int(time.time()),
+        "note": (note or "")[:200],
+    }
+    history.append(entry)
+    # Keep the last N records.
+    if len(history) > DEPLOY_HISTORY_MAX:
+        history = history[-DEPLOY_HISTORY_MAX:]
+    payload = {
+        "schema": "DEPLOYMENT_HISTORY/v1",
+        "history": history,
+    }
+    DEPLOY_HISTORY_PATH.write_text(json.dumps(payload, indent=2))
+    return {"appended": True, "entry": entry, "history_size": len(history)}
+
+
 def build_governance_self_protection_router(require_admin):
     router = APIRouter()
 
     @router.get("/api/admin/governance/self-protection",
                 dependencies=[Depends(require_admin)])
     async def get_self_protection() -> Dict[str, Any]:
+        # Lazy-import to keep the route module independent of server.py
+        # at import time; resolves at call time so unit tests that
+        # mount the router in isolation don't crash.
+        try:
+            from server import _SOURCE_HASH as current_hash
+        except ImportError:
+            current_hash = "unknown"
         probe = _run_probe()
         trust = _trust_surfaces_status()
         context = _context_governance_status()
@@ -271,7 +365,12 @@ def build_governance_self_protection_router(require_admin):
         regression = _regression_suite_status()
         walks = _field_walk_status()
         drift = _drift_status(context=context, probe=probe)
+        deployment = _deployment_status(current_hash=current_hash)
         # Overall page status: worst of the constituent stanzas.
+        # NOTE: `deployment.status == "amber"` (deploy moved forward
+        # but not yet recorded) is informational, not a governance
+        # failure — it does NOT flip the overall page status. It only
+        # affects its own pill so the operator sees "deploy recorded".
         order = {"green": 0, "amber": 1, "red": 2, "unknown": 1}
         worst = max((order.get(s.get("status"), 0)
                      for s in (probe, trust, context, truthful, telemetry,
@@ -289,7 +388,28 @@ def build_governance_self_protection_router(require_admin):
             "regression_suite": regression,
             "field_walks": walks,
             "drift": drift,
+            "deployment": deployment,
         }
+
+    @router.post("/api/admin/governance/record-deploy",
+                 dependencies=[Depends(require_admin)])
+    async def record_deploy(payload: Dict[str, Any] = Body(default=None)) -> Dict[str, Any]:
+        """Append the running process's `source_hash` to the deploy
+        history. The operator runs this once per production cutover
+        (or the pre-deploy script does it automatically). Idempotent
+        against the same hash."""
+        try:
+            from server import _SOURCE_HASH as current_hash
+        except ImportError:
+            raise HTTPException(status_code=500,
+                                detail="cannot resolve current source_hash")
+        note = ""
+        if isinstance(payload, dict):
+            note = str(payload.get("note") or "")[:200]
+        result = _record_deploy_entry(source_hash=current_hash, note=note)
+        # Refresh the stanza for the operator.
+        result["deployment"] = _deployment_status(current_hash=current_hash)
+        return result
 
     return router
 

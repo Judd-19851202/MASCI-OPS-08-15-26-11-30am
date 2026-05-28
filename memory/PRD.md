@@ -1,6 +1,91 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — Phase CUTOVER-READY · OPS-1 Deployment Stanza 🟢
+
+### Mission
+Make OPS-1 the canonical deploy-truth surface. Adds a `deployment`
+stanza + a paired `record-deploy` POST endpoint so the operator (or
+the pre-deploy script) can answer "what just changed?" in five
+seconds without leaving the governance page. Preserves all calmness
++ chart-free + PII-free contracts.
+
+### What shipped
+**Backend** — `routes/governance_self_protection.py`
+- New `deployment` stanza in the existing GET response with fields
+  `status` (green | amber | unknown), `source_hash`, `deployed_at`,
+  `prior_source_hash`, `prior_deployed_at`, `history_size`.
+- NEW endpoint `POST /api/admin/governance/record-deploy` (admin-only)
+  appends a record to `memory/DEPLOYMENT_HISTORY.json`. Idempotent
+  against the same `source_hash`. Last 50 records retained.
+- Doctrine preserved: `deployment.amber` (deploy moved forward,
+  hash NOT yet recorded) is INFORMATIONAL — never flips overall
+  `page_status` to amber. Other stanzas remain the source of truth
+  for the worst-of calculation.
+
+**Frontend** — `pages/admin/SelfProtection.jsx`
+- New "Deployment" section at the bottom of the page · same monospace
+  + slate/emerald/amber pill doctrine · 5 rows · history size.
+
+**Tests** — `tests/pw_suite/test_cutover_ready_deployment_stanza.py`
+- 4 tests, all PASS:
+  - stanza always present with all 6 keys + valid md5 source_hash
+  - record-deploy requires admin (urllib bypass of the auto-token patch)
+  - record-deploy is idempotent against the same hash
+  - `deployment.unknown` does NOT degrade `page_status`
+
+**Operator handoff updated** — `DEPLOY_STABILIZATION_1_HANDOFF.md`
+- Step 2.5 added: post-deploy curl to hit `record-deploy` immediately
+  after the Emergent UI deploy succeeds.
+
+### Live verification (preview · CUTOVER-READY)
+- 🟢 GET → stanza renders, `status: green` after initial record,
+  `source_hash: 9c08065382b1...`, `history_size: 1`.
+- 🟢 POST `record-deploy` → `appended: true`, idempotent on retry
+  (`appended: false`).
+- 🟢 Authority Mismatch Probe `--gate`: 0 violations · 0 warnings
+  · 58 baselined · 86 ms.
+- 🟢 OPS-1 page status: **GREEN** · open_gaps: 0 · context_tbd: 0
+  · authority_violations: 0 · deployment.status: green.
+- 🟢 Smoke screenshot confirms the new section renders calmly,
+  monochrome, monospace, no charts, no canvas.
+- 🟢 **56/56 regression battery PASS** (was 52 · added 4 new tests).
+
+### Doctrine compliance
+- ✅ Calm · monospace · text-first · chart-free contract intact
+- ✅ Admin-only on GET and POST
+- ✅ PII-free (only md5 hashes and unix epochs in payload)
+- ✅ Idempotent POST (no duplicate history entries)
+- ✅ Graceful degradation (no history file → `unknown`, never 500)
+- ✅ Deployment stanza never degrades page_status — informational only
+- ✅ Preview only · NO production deploy
+
+### Operator-owned next steps (unchanged)
+- 🔵 Execute 5 field walks (FL · PM · Safety · HR · MobileSafari)
+- 🔵 24-72 h preview observation
+- 🔵 Save to GitHub → Deploy via Emergent UI
+- 🔵 **NEW**: hit `POST /api/admin/governance/record-deploy` on
+  production immediately after deploy (curl in handoff doc §4 step 2.5)
+- 🔵 72-h post-deploy observation
+- 🟢 **Phase V.1 RFI MVP** unlocks on explicit "start V.1" command
+
+### Files touched
+- `backend/routes/governance_self_protection.py` (+ deploy stanza + record endpoint)
+- `frontend/src/pages/admin/SelfProtection.jsx` (+ Deployment section)
+- `backend/tests/pw_suite/test_cutover_ready_deployment_stanza.py` (NEW · 4/4 PASS)
+- `memory/DEPLOY_STABILIZATION_1_HANDOFF.md` (Step 2.5 curl added)
+- `memory/DEPLOYMENT_HISTORY.json` (NEW · initialized via record-deploy POST)
+- `memory/AUTHORITY_MISMATCH_REPORT.md` (refreshed)
+
+### Status
+🟢 **CUTOVER-READY** · OPS-1 now answers "what just changed?" alongside
+"is governance healthy?" in the same five-second glance · awaiting
+operator-led field walks + Save + Deploy + 72h observation before
+Phase V.1 unlocks.
+
+---
+
+
 ## 2026-05-28 (fork) — Phase DEPLOY-STABILIZATION-1 · Field Validation + Production Cutover 🟢/🔵
 
 ### Mission

@@ -138,6 +138,23 @@ Both must exit 0. If either fails, **do not deploy.**
 - Watch the deploy logs for any non-zero exit on
   `stage_governance_authority_mismatch` (the pre-deploy gate).
 
+### Step 2.5 · Record the deploy moment (NEW · CUTOVER-READY)
+**Immediately after the deploy succeeds**, hit the new endpoint
+so the OPS-1 Deployment stanza records the cutover:
+
+```bash
+PROD="https://mascidocs.com"
+PROD_TOKEN=$(curl -s -X POST "$PROD/api/admin/login" \
+  -H "Content-Type: application/json" \
+  -d '{"password":"MASCI1982!"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['token'])")
+curl -s -X POST "$PROD/api/admin/governance/record-deploy" \
+  -H "X-Admin-Token: $PROD_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"note":"CUTOVER-READY · forward from 0f5d997"}' | python3 -m json.tool
+```
+Expect: `appended: true · history_size: 1+`. Idempotent against
+re-runs with the same hash — safe to repeat.
+
 ### Step 3 · Production verification (paste these curl checks)
 ```bash
 PROD="https://mascidocs.com"

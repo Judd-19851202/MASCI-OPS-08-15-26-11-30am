@@ -1,0 +1,10 @@
+{
+  "schema": "DEPLOYMENT_HISTORY/v1",
+  "history": [
+    {
+      "source_hash": "9c08065382b13022e550cf6682c59156",
+      "deployed_at": 1779961018,
+      "note": "CUTOVER-READY initial baseline \u00b7 preview"
+    }
+  ]
+}
