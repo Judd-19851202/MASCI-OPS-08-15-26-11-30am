@@ -1,6 +1,76 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — Phase V-PRELUDE · Operational Intelligence Hardening 🔵 PLANNING
+
+### Mission
+Strengthen, refine, harden the CURRENT platform BEFORE RFI +
+Schedule + Constraint Intelligence systems begin implementation.
+**Doctrine-only phase.** No code mutations. 10 deliverable docs
+produced; agent stops awaiting operator review.
+
+### Stop condition (per directive)
+> "STOP after Phase V-Prelude deliverables and implementation
+> planning. Await operator review before major implementation
+> begins."
+
+🟢 Agent halts here. No wave begins without explicit
+"start V-Prelude wave N" command in a fresh chat.
+
+### 10 deliverable docs (all produced · `/app/memory/`)
+1. `OPERATIONAL_CONSTRAINT_FOUNDATION.md` — lightweight blocker
+   memory · schema · severity/aging doctrine
+2. `OPERATIONAL_SEARCH_ARCHITECTURE.md` — calm field-first text
+   search · 6 collections · p95 < 200 ms
+3. `PHOTO_GOVERNANCE_STANDARD.md` — evidence infrastructure ·
+   implicit linkage · NO DAM bloat
+4. `OFFLINE_DRAFT_RESILIENCE_MODEL.md` — extends TRUST-1 IDB queue
+   to constraints + field notes + future RFI drafts
+5. `MOBILE_UX_REFINEMENT_AUDIT.md` — 12/12 surfaces 🟢 · 10
+   targeted polish items (P1/P2/P3)
+6. `ROLE_AWARE_VISIBILITY_MODEL.md` — per-role surface map · 4
+   new capability primitives planned
+7. `FIELD_MEMORY_FOUNDATION.md` — deterministic counters · NOT AI
+   · operator-driven discovery
+8. `OPERATIONAL_TIMELINE_FOUNDATION.md` — `operational_links`
+   substrate · chronology panel · forward-compatible with V.1+
+9. `GOVERNANCE_SELF_HEALING_ROADMAP.md` — 5 next probes
+   (Terminology · OPS-1 Drift · Token-Scope · Contamination ·
+   Hierarchy)
+10. `PHASE_V_PRELUDE_IMPLEMENTATION_PLAN.md` — 4-wave master
+    sequence · ~7,100 total LOC across all waves
+
+### 4-wave implementation sequence (proposed)
+| Wave | Scope | Est. LOC | Gates |
+|---|---|---|---|
+| 1 — Substrate | Constraints · Photo Gov · Timeline | ~3,600 | Authority + Timestamp probes clean · 4/4 capability tests |
+| 2 — Discovery | Search · Field Memory | ~2,100 | p95 < 200 ms · _id leak still 10/10 · 0 PII |
+| 3 — Resilience | Offline drafts extension · Mobile polish | ~550 | TRUST-1 6/6 · mobile audit 12/12 |
+| 4 — Self-Healing | 5 new doctrine probes | ~1,600 | Each sub-3s · regression test each |
+
+### Operator decisions pending
+1. 🔵 Approve / amend the 4-wave sequence
+2. 🔵 Waves 2 + 3 parallel or strictly sequential
+3. 🔵 Which Wave-4 probes are required vs nice-to-have
+4. 🔵 Per-wave observation window length (recommended: 24 h)
+5. 🔵 Confirm V.1 RFI unlock gate stays bound to 72-h post-V4
+
+### Hard absolutes (re-stated)
+- 🚫 PREVIEW ONLY (no production deploy in this phase)
+- 🚫 NO RFI / Schedule / CPM / P6 / external collab work
+- 🚫 NO enterprise dashboard · NO AI features · NO new colors
+- 🟢 OPS-1 stays GREEN throughout
+- 🟢 Every wave individually reversible
+- 🟢 Every wave governance-protected
+
+### Status
+🔵 **V-PRELUDE PLANNING COMPLETE.** All 10 docs shipped to
+`/app/memory/`. Awaiting operator review + green-light on the
+wave sequence before implementation begins.
+
+---
+
+
 ## 2026-05-28 (fork) — TRUST-TIME-1 + TRUST-TIME-1B POST-DEPLOY VERIFICATION 🟢 GREEN
 
 ### Mission
