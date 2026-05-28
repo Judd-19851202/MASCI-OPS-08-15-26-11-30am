@@ -27226,3 +27226,58 @@ posture. Wave 2 LOCKED until "start V-Prelude Wave 2".
 triggers documented · institutional memory now un-falsifiable ·
 0 regressions · 0 operator-facing surfaces touched · awaiting Wave 2
 authorization.**
+
+---
+
+## Phase V-Prelude · Wave 1 — Observation Posture (entered 2026-05-28)
+
+🟡 **WINDOW OPEN · discipline-first observation · no feature work**
+
+### Authorization
+Operator command "PHASE V-PRELUDE · WAVE 1 OBSERVATION COMMAND ·
+OPERATIONAL TRUST VALIDATION WINDOW" (2026-05-28).
+
+### Hard rules honored
+- ✅ no Wave 2 work · no RFI · no schedule · no P6
+- ✅ no new UI surfaces · no dashboard expansion
+- ✅ no operator-facing analytics · no chronology expansion
+- ✅ no cross-portal timeline mounts · no additional substrate features
+- ✅ OBSERVATION + STABILITY ONLY
+
+### Entry-of-window stability sweep
+- ✅ All **5 doctrine probes green** (authority_mismatch ·
+  timestamp_doctrine · operational_links · trendline_integrity ·
+  timeline_calmness).
+- ✅ **50/50** V-Prelude regression sweep green (substrate · sidecar ·
+  telemetry · density heuristics · trendline integrity).
+- ✅ **10/10** Playwright sidecar tests green across desktop · iPad ·
+  mobile.
+- ✅ Mongo footprint cleaned to zero (2 smoke-test artifacts removed
+  with receipts in `WAVE1_OBSERVATION_STATUS.md`).
+- ✅ Both trendlines snapshot-anchored · 0 integrity violations.
+- ✅ **0 / 18 freeze triggers** fired.
+
+### Required deliverables (all 5 shipped)
+- `WAVE1_OBSERVATION_STATUS.md`
+- `OPERATIONAL_TRUST_VALIDATION_REPORT.md`
+- `CHRONOLOGY_BEHAVIOR_REPORT.md`
+- `MOBILE_RHYTHM_REPORT.md`
+- `GOVERNANCE_STABILITY_REPORT.md`
+
+### Wave 2 readiness gate
+```
+[x] Wave 1 substrate live
+[x] Wave 1.1 sidecar live
+[x] Wave 1.1A telemetry live + baselined
+[x] Wave 1.1B memory self-protection live + sealed
+[x] All 5 doctrine probes green
+[x] 50/50 regression suite green
+[x] Observation reports shipped
+[ ] No freeze trigger fires during the observation window
+[ ] Operator explicitly issues "start V-Prelude Wave 2"
+```
+
+### Verdict
+🟢 **Wave 1 observation posture engaged · 5/5 probes green · 50/50
+regressions green · 0/18 freeze triggers fired · operator + PM
+walkthrough notes awaited. Wave 2 LOCKED.**

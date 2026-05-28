@@ -140,6 +140,16 @@ All planning artifacts for the pre-RFI substrate work.
 | `TIMELINE_LOUDNESS_TRENDLINE.snapshot.json` | Trendline integrity anchor | 🟢 auto-gen |
 | `LOUDNESS_TRENDLINE.snapshot.json` | Portal-wide trendline anchor | 🟢 auto-gen |
 
+### Wave 1 Observation Posture (open 2026-05-28)
+
+| File | Purpose | Status |
+|---|---|---|
+| `WAVE1_OBSERVATION_STATUS.md` | Window status · 18 freeze trigger states · cleanup receipts | 🟡 active |
+| `OPERATIONAL_TRUST_VALIDATION_REPORT.md` | Machine vs operator-verifiable trust signals · walkthrough capture template | 🟡 awaiting operator input |
+| `CHRONOLOGY_BEHAVIOR_REPORT.md` | Substrate state · anti-patterns · canonical row shapes | 🟢 |
+| `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
+| `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
+
 ## 5 · Route Decomposition / Backend Architecture
 
 How `server.py` is being split into `routes/`.

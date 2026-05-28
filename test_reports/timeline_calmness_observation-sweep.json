@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-05-28T20:08:22.941Z",
+  "base_url": "https://safety-audit-mobile-1.preview.emergentagent.com",
+  "project_number": "SIDECAR-PROBE",
+  "per_viewport": {
+    "mobile": {
+      "missing": false,
+      "slate_class_count": 5,
+      "accent_class_count": 0,
+      "accent_class_ratio": 0,
+      "badge_count": 0,
+      "badge_density_per_1k_px2": 0,
+      "red_usage": 0,
+      "hierarchy_compression": 4,
+      "vertical_density": 0,
+      "sidecar_width_px": 366,
+      "sidecar_height_px": 155
+    },
+    "ipad": {
+      "missing": false,
+      "slate_class_count": 5,
+      "accent_class_count": 0,
+      "accent_class_ratio": 0,
+      "badge_count": 0,
+      "badge_density_per_1k_px2": 0,
+      "red_usage": 0,
+      "hierarchy_compression": 4,
+      "vertical_density": 0,
+      "sidecar_width_px": 704,
+      "sidecar_height_px": 127
+    },
+    "desktop": {
+      "missing": false,
+      "slate_class_count": 5,
+      "accent_class_count": 0,
+      "accent_class_ratio": 0,
+      "badge_count": 0,
+      "badge_density_per_1k_px2": 0,
+      "red_usage": 0,
+      "hierarchy_compression": 4,
+      "vertical_density": 0,
+      "sidecar_width_px": 960,
+      "sidecar_height_px": 127
+    }
+  },
+  "chronology": {
+    "row_count": 0,
+    "truncated": false,
+    "chronology_dup_ratio": 0.0,
+    "avg_row_signature_len": 0,
+    "low_value_repeats": 0
+  },
+  "score": 0.0,
+  "aggregate": {
+    "accent_class_ratio": 0.0,
+    "badge_density_per_1k_px2": 0.0,
+    "red_usage": 0.0,
+    "hierarchy_compression": 4.0,
+    "chronology_dup_ratio": 0.0,
+    "vertical_density": 0.0
+  },
+  "gate_breaches": [],
+  "viewports_measured": 3,
+  "iteration": "observation-sweep"
+}
