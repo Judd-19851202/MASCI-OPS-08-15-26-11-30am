@@ -1,6 +1,101 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — Phase GOVERNANCE-INFRA-1 · Platform Self-Protection Layer 🟢
+
+### Mission
+Convert operational governance from manual operator discovery into
+automated infrastructure enforcement. The platform must begin
+detecting authority drift, trust drift, contextual leakage,
+survivability regressions, misleading UI state, and operational
+governance violations BEFORE production users encounter them.
+
+### Seven Workstreams Delivered
+
+**W1 · Authority Mismatch Probe** (live · 88ms scan)
+- `scripts/authority_mismatch_probe.py` — sub-second deterministic
+  scanner over `frontend/src/`. Flags `isPm() || isHr() || isAdmin()`
+  variants outside the capability layer.
+- `scripts/authority_pattern_baseline.json` — blessed pre-existing
+  legitimate patterns (58 baselined entries; 0 new violations after
+  TRUST-PO-1).
+- Pre-deploy gate stage `stage_governance_authority_mismatch()` wired
+  into `pre_deploy_check.sh` — FAIL on new violations.
+- Self-tests `test_governance_authority_mismatch_probe.py` · **6/6 PASS**
+  including synthetic-violation gate proof.
+
+**W2 · Trust Surface Registry**
+- `memory/TRUST_SURFACES.md` — narrative registry, 10 surfaces.
+- `memory/TRUST_SURFACES.json` — machine-readable manifest.
+- Each surface declares: survivability · truthful-state · authority ·
+  telemetry · recovery · calmness · regression.
+
+**W3 · Truthful-State Regression Doctrine**
+- `memory/TRUTHFUL_STATE_GOVERNANCE.md` — Five Contracts (save≠persisted;
+  queued≠confirmed; restore-offered≠restore-possible-elsewhere;
+  authority-rendered⇔authority-enforced; preload-implied≠preload-confirmed).
+- `memory/TRUTHFUL_STATE_TEST_MATRIX.json` — 12 contracts mapped to
+  surfaces, render gates, enforcement endpoints, and regression tests.
+
+**W4 · Governance Primitives Standard**
+- `memory/GOVERNANCE_PRIMITIVES_STANDARD.md` — formalises the 5 live
+  primitives (portalContext · poCapabilities · returnContext ·
+  useFormDraft · resiliencyQueue) and reserves slots for Phase V
+  siblings (rfiCapabilities · scheduleCapabilities · safetyCapabilities).
+- `memory/SHARED_SURFACE_DOCTRINE.md` — origin context · return-path ·
+  capability inheritance · portal identity · authority visibility ·
+  shell expectations.
+
+**W5 · Preview Field Walk Framework**
+- `memory/FIELD_WALK_CHECKLISTS/` directory with:
+  - `README.md` (15-min operator-led walks before every cutover)
+  - `FL.md` · `PM.md` · `Safety.md` · `HR.md` · `MobileSafari.md`
+- Operators run these on preview before production cutover. Every
+  walk PROVES specific contracts, not happy-path demos.
+
+**W6 · Context Governance Contracts**
+- `memory/CONTEXT_GOVERNANCE_STANDARD.md` — six contract fields per
+  shared surface; compliance gate criteria.
+- `memory/SHARED_SURFACE_CONTEXT_MATRIX.json` — per-surface
+  declaration (po-requests context-governed; capa/meetings/inspections
+  TBD-wave3; rfis/schedule MUST be context-governed at MVP).
+
+**W7 · Operational Telemetry Discipline**
+- `memory/OPERATIONAL_TELEMETRY_DOCTRINE.md` — Lightweight · Calm ·
+  Operational · Low-noise · Server-dumb · PII-free · Allowlisted.
+- `memory/TELEMETRY_SIGNAL_MATRIX.json` — 10 client signals + 6
+  server signals + explicit anti-pattern list (NO click tracking, NO
+  conversion funnels, NO real-time alerting).
+
+### Self-Protection Invariants Now Enforced
+- **Authority drift** → caught at pre-deploy by W1 probe.
+- **Trust drift** → caught by W3 matrix + pw_suite regressions.
+- **Contextual leakage** → caught by W6 matrix + capability tests.
+- **Survivability regressions** → caught by `test_draft_loss_remediation.py` (mobile+ipad).
+- **Misleading UI state** → caught by `test_trust1_wave1_wave2_calmness.py` + final-hardening tests.
+- **Governance violations** → caught by primitives doctrine + Authority Mismatch Probe.
+
+### Files Touched
+- `scripts/authority_mismatch_probe.py` (NEW · 280 lines)
+- `scripts/authority_pattern_baseline.json` (NEW · 58 approved entries)
+- `scripts/pre_deploy_check.sh` (added `stage_governance_authority_mismatch`)
+- `backend/tests/pw_suite/test_governance_authority_mismatch_probe.py` (NEW · 6 tests · all PASS)
+- 11 memory deliverables in `/app/memory/` (see workstreams above)
+
+### Doctrine Going Forward
+- Every new shared-surface PR MUST pass the Authority Mismatch Probe
+  pre-deploy gate.
+- Every new capability gradient MUST be added to a capabilities
+  primitive (no ad-hoc `isPm() || isAdmin()` patterns).
+- Every new operator-visible state MUST have a matrix entry in
+  `TRUTHFUL_STATE_TEST_MATRIX.json` before merge.
+- Every new trust surface MUST register in `TRUST_SURFACES.json`.
+- Every production cutover that touches a trust surface MUST clear
+  the relevant field-walk checklist.
+
+---
+
+
 ## 2026-05-28 (fork) — Phase TRUST-PO-1 · Procurement Authority Boundary 🟢
 
 ### Mission

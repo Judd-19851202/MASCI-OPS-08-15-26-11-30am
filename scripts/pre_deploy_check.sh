@@ -315,6 +315,18 @@ stage_governance_doctrine_maturity() {
   return 0
 }
 
+# ─── GOVERNANCE-INFRA-1 · Workstream 1 · 2026-05-28 ────────────────────
+# Authority Mismatch Probe — scans the frontend tree for token-coexistence
+# rendering patterns that bypass the capability layer (the exact class of
+# regression that caused TRUST-PO-1). Sub-second, deterministic, baseline-
+# gated: only NEW violations fail; previously-approved patterns are
+# baselined in `scripts/authority_pattern_baseline.json`.
+stage_governance_authority_mismatch() {
+  cd "$REPO_ROOT"
+  python3 scripts/authority_mismatch_probe.py --gate
+}
+
+
 # ─── TRUST-1 Wave 1 · TF-018 · 2026-05-27 ─────────────────────────────
 # Visibility-of-visibility gate. The /api/draft-telemetry layer exists
 # specifically so field-incident failures stay diagnosable. If a future
@@ -394,6 +406,8 @@ run_stage "Sigma-III Playwright browser suite" stage_sigma3_playwright
 run_stage "Sigma-III cluster severity probe" stage_sigma3_cluster_severity
 # TRUST-1 Wave 1 · TF-018 — observability route must be reachable.
 run_stage "TRUST-1 · draft-telemetry route health (visibility gate)" stage_trust1_draft_telemetry_health
+# GOVERNANCE-INFRA-1 · Workstream 1 — authority mismatch self-audit.
+run_stage "GOVERNANCE-INFRA-1 · authority mismatch probe" stage_governance_authority_mismatch
 
 if [[ "$MODE" == "full" ]]; then
   run_stage "Full backend pytest suite" stage_full_pytest

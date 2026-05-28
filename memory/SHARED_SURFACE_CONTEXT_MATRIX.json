@@ -1,0 +1,91 @@
+{
+  "version": "GOVERNANCE-INFRA-1",
+  "generated": "2026-05-28",
+  "contract_fields": [
+    "origin_context",
+    "return_path",
+    "capability_inheritance",
+    "portal_identity",
+    "authority_visibility",
+    "shell_expectation"
+  ],
+  "surfaces": [
+    {
+      "path": "/po-requests",
+      "status": "live",
+      "compliance": "context-governed",
+      "origin_context": ["field-leadership", "pm", "hr", "admin"],
+      "return_path": "hub-relative",
+      "capability_inheritance": "lib/poCapabilities.js::getPoCapabilities",
+      "portal_identity": "inline Authority banner + portal nav",
+      "authority_visibility": "hidden",
+      "shell_expectation": "raw + inline identity"
+    },
+    {
+      "path": "/incidents/:id",
+      "status": "live",
+      "compliance": "context-governed",
+      "origin_context": ["safety", "pm", "admin", "field-leadership"],
+      "return_path": "lib/returnContext.js::useReturnContext",
+      "capability_inheritance": "TBD-wave3",
+      "portal_identity": "shell-aware",
+      "authority_visibility": "hidden",
+      "shell_expectation": "portal shell"
+    },
+    {
+      "path": "/capa/:id",
+      "status": "live",
+      "compliance": "TBD-wave3",
+      "origin_context": "any",
+      "return_path": "TBD-wave3",
+      "capability_inheritance": "TBD-wave3",
+      "portal_identity": "shell-aware",
+      "authority_visibility": "hidden",
+      "shell_expectation": "portal shell"
+    },
+    {
+      "path": "/meetings/:id",
+      "status": "live",
+      "compliance": "TBD-wave3",
+      "origin_context": "any",
+      "return_path": "TBD-wave3",
+      "capability_inheritance": "TBD-wave3",
+      "portal_identity": "shell-aware",
+      "authority_visibility": "TBD",
+      "shell_expectation": "shell-aware"
+    },
+    {
+      "path": "/inspections/:id",
+      "status": "live",
+      "compliance": "TBD-wave3",
+      "origin_context": "any",
+      "return_path": "TBD-wave3",
+      "capability_inheritance": "TBD-wave3",
+      "portal_identity": "shell-aware",
+      "authority_visibility": "hidden",
+      "shell_expectation": "portal shell"
+    },
+    {
+      "path": "/rfis",
+      "status": "planned-phase-V.1",
+      "compliance": "must-be-context-governed-at-MVP",
+      "origin_context": "TBD",
+      "return_path": "TBD",
+      "capability_inheritance": "lib/rfiCapabilities.js::getRfiCapabilities (planned)",
+      "portal_identity": "TBD",
+      "authority_visibility": "hidden",
+      "shell_expectation": "TBD"
+    },
+    {
+      "path": "/schedule",
+      "status": "planned-phase-V.3",
+      "compliance": "must-be-context-governed-at-MVP",
+      "origin_context": "TBD",
+      "return_path": "TBD",
+      "capability_inheritance": "lib/scheduleCapabilities.js (planned)",
+      "portal_identity": "TBD",
+      "authority_visibility": "hidden",
+      "shell_expectation": "TBD"
+    }
+  ]
+}

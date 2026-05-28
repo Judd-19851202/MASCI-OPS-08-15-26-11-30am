@@ -1,0 +1,146 @@
+{
+  "version": "GOVERNANCE-INFRA-1",
+  "generated": "2026-05-28",
+  "surfaces": [
+    {
+      "id": "daily-reports",
+      "name": "Daily Reports",
+      "status": "live",
+      "capabilities": ["po.request.respond_clarify"],
+      "regression": [
+        "backend/tests/pw_suite/test_draft_loss_remediation.py",
+        "backend/tests/pw_suite/test_field_trust_iter442.py",
+        "backend/tests/pw_suite/test_trust1_wave1_wave2_calmness.py",
+        "backend/tests/pw_suite/test_trust1_final_hardening.py"
+      ],
+      "telemetry": [
+        "draft.write.ok",
+        "draft.write.fail",
+        "draft.restore.offered",
+        "draft.restore.action",
+        "draft.recovery.absent",
+        "draft.lifecycle",
+        "quota.warning"
+      ]
+    },
+    {
+      "id": "po-requests",
+      "name": "PO Requests (Procurement)",
+      "status": "live",
+      "capabilities": [
+        "po.request.create",
+        "po.request.view",
+        "po.request.receipt_upload",
+        "po.request.respond_clarify",
+        "po.approve",
+        "po.reject",
+        "po.clarify",
+        "po.issue_number",
+        "po.set_approved_amount",
+        "po.close",
+        "po.cancel"
+      ],
+      "regression": [
+        "backend/tests/pw_suite/test_trust_po1_backend_enforcement.py",
+        "backend/tests/pw_suite/test_trust_po1_frontend_capability_scope.py"
+      ],
+      "telemetry": [
+        "po.approve",
+        "po.reject",
+        "po.clarify",
+        "po.close",
+        "po.cancel",
+        "po.receipt"
+      ]
+    },
+    {
+      "id": "incidents",
+      "name": "Incidents",
+      "status": "live",
+      "capabilities": [],
+      "regression": [
+        "backend/tests/pw_suite/test_contextual_return_path_iter443.py"
+      ],
+      "telemetry": ["draft.write.ok", "draft.write.fail"]
+    },
+    {
+      "id": "capas",
+      "name": "CAPAs",
+      "status": "live",
+      "capabilities": [],
+      "regression": ["TBD"],
+      "telemetry": []
+    },
+    {
+      "id": "rfis",
+      "name": "RFIs",
+      "status": "planned",
+      "phase": "V.1",
+      "capabilities": [
+        "rfi.create",
+        "rfi.send",
+        "rfi.respond",
+        "rfi.close"
+      ],
+      "regression": ["TBD"],
+      "telemetry": []
+    },
+    {
+      "id": "schedule-imports",
+      "name": "Schedule Imports (.xer)",
+      "status": "planned",
+      "phase": "V.3",
+      "capabilities": ["schedule.upload", "schedule.link"],
+      "regression": ["TBD"],
+      "telemetry": []
+    },
+    {
+      "id": "offline-queue",
+      "name": "Offline Queue (shared)",
+      "status": "live",
+      "capabilities": [],
+      "regression": ["backend/tests/pw_suite/test_draft_loss_remediation.py"],
+      "telemetry": ["queue.commit.confirmed", "queue.commit.failed"]
+    },
+    {
+      "id": "notifications",
+      "name": "Notifications / Bell Feed",
+      "status": "live",
+      "capabilities": [],
+      "regression": [
+        "backend/tests/pw_suite/test_trust_po1_backend_enforcement.py::test_approval_task_assigned_to_pm_not_leadership"
+      ],
+      "telemetry": []
+    },
+    {
+      "id": "shared-portal-pages",
+      "name": "Shared cross-portal pages",
+      "status": "live",
+      "capabilities": ["portalContext-derived"],
+      "regression": [
+        "backend/tests/pw_suite/test_trust_po1_frontend_capability_scope.py"
+      ],
+      "telemetry": []
+    },
+    {
+      "id": "restore-recovery",
+      "name": "Restore / Recovery Systems",
+      "status": "live",
+      "capabilities": [],
+      "regression": [
+        "backend/tests/pw_suite/test_field_trust_iter442.py",
+        "backend/tests/pw_suite/test_trust1_final_hardening.py"
+      ],
+      "telemetry": ["draft.restore.offered", "draft.restore.action"]
+    }
+  ],
+  "doctrine_fields": [
+    "survivability",
+    "truthful-state",
+    "authority",
+    "telemetry",
+    "recovery",
+    "calmness",
+    "regression"
+  ]
+}
