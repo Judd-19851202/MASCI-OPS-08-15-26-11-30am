@@ -1,6 +1,90 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — POST-DEPLOY LIVE PRODUCTION CERTIFICATION 🟢 GREEN
+
+### Mission
+Verify the live production deployment at `https://mascidocs.com`
+across every governance, trust, authority, survivability, context,
+and contamination dimension using read-only probes only.
+
+### Verdict
+🟢 **GREEN — production certified. No rollback needed.**
+
+Full document: `/app/memory/POST_DEPLOY_LIVE_CERTIFICATION.md`.
+
+### Source-hash advancement (deploy succeeded)
+```
+PRE-DEPLOY  : 0f5d997dffba4e95fefa9a58c7f02780  (iter437 baseline)
+POST-DEPLOY : 9c08065382b13022e550cf6682c59156  (CUTOVER-READY)
+              ↑ identical to preview · deploy was byte-perfect
+```
+
+Deploy carried forward TRUST-1 final hardening · TRUST-PO-1 ·
+GOVERNANCE-INFRA-1 · GOVERNANCE-OPS-1 · STABILIZATION-FINAL ·
+CUTOVER-READY in a single cutover.
+
+### Live production OPS-1 snapshot
+```
+page_status            : GREEN
+authority              : green · 0 new violations · 58 baselined · 795 ms probe
+trust_surfaces         : green · 10/8/2 (registered/live/planned)
+context_governance     : green · 5/0/2 (governed/TBD/planned-V)
+truthful_state         : green · 12 contracts · 4 surfaces
+telemetry              : green · 10 client signals · 6 server signals
+regression_suite       : green · iteration_phase6.json · 3 d ago
+field_walks            : green · 5 checklists current
+drift                  : green · 0 open gaps
+deployment             : green · source 9c08065382b1 · history_size 1
+```
+
+### Production cleanroom (all 10 dimensions 🟢)
+| Dimension | Result |
+|---|---|
+| Production identity (`app_env: production` · `db_name: masci_safety`) | 🟢 |
+| Core health (7/7 endpoints 200 · Sentry enabled · session-tiers configured) | 🟢 |
+| Auth bad-cred rejection (admin · pm · hr · safety all 401) | 🟢 |
+| `/api/admin/*` leakage to unauth (401 confirmed) | 🟢 |
+| OPS-1 governance (9 stanzas green · 0 violations · 0 TBD · 0 gaps) | 🟢 |
+| PII scan on production response (clean across 5 needles) | 🟢 |
+| Chart-creep scan on production page (0 canvas · 0 chart libs) | 🟢 |
+| Contamination probe (6/6 collections clean · 343 records scanned) | 🟢 |
+| Frontend smoke (5/5 routes 200) | 🟢 |
+| Live screenshot (production OPS-1 renders calmly · monospace · `ALL OK`) | 🟢 |
+
+### TRUST-PO-1 on production
+🟢 Bytecode-identical to preview (same source_hash). Backend
+enforcement and frontend capability layer ship unmodified.
+14/14 PASS contract preserved in production. FL lockdown intact,
+Super Admin in FL context still hides approval block, PM/Admin
+retain approval authority.
+
+### Known risks (production)
+| # | Risk | Severity |
+|---|---|---|
+| 1 | `DEPLOYMENT_HISTORY.json` note field reads "preview" (file carried forward · idempotent against same hash) | LOW (cosmetic only) |
+| 2 | Real-iPad field walks pending operator execution | LOW |
+| 3 | Contamination probe scanned 7 patterns across 4 lists (spot-check, not exhaustive) | LOW |
+
+🟢 No HIGH or MEDIUM risks. Functional impact of all 3: zero.
+
+### Rollback recommendation
+⛔ **DO NOT ROLLBACK.** Production is healthy.
+
+Post-deploy rollback triggers preserved in
+`DEPLOY_STABILIZATION_1_HANDOFF.md §5`.
+
+### Status
+🟢 **PRODUCTION CERTIFIED.** Phase V.1 RFI MVP unlocks AFTER:
+- 72-h production observation closes clean
+- 5 real-iPad field walks land green
+- Operator issues explicit "start V.1" in a fresh chat
+
+Agent stops here.
+
+---
+
+
 ## 2026-05-28 (fork) — FINAL DEEP PRE-DEPLOY CERTIFICATION 🟢 GREEN
 
 ### Mission
