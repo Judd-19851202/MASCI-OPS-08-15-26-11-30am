@@ -327,6 +327,18 @@ stage_governance_authority_mismatch() {
 }
 
 
+# ─── TRUST-TIME-1B · Timestamp doctrine self-protection · 2026-05-28 ─
+# Scans the frontend and backend trees for the timestamp anti-patterns
+# that produced the +4h PO receipt-upload bug. Sub-second probe;
+# fails the gate on any NEW high-severity violation. Baseline of
+# documented legacy admin/audit lines lives in
+# `scripts/timestamp_pattern_baseline.json`.
+stage_timestamp_doctrine() {
+  cd "$REPO_ROOT"
+  python3 scripts/timestamp_doctrine_probe.py --gate
+}
+
+
 # ─── TRUST-1 Wave 1 · TF-018 · 2026-05-27 ─────────────────────────────
 # Visibility-of-visibility gate. The /api/draft-telemetry layer exists
 # specifically so field-incident failures stay diagnosable. If a future
@@ -408,6 +420,8 @@ run_stage "Sigma-III cluster severity probe" stage_sigma3_cluster_severity
 run_stage "TRUST-1 · draft-telemetry route health (visibility gate)" stage_trust1_draft_telemetry_health
 # GOVERNANCE-INFRA-1 · Workstream 1 — authority mismatch self-audit.
 run_stage "GOVERNANCE-INFRA-1 · authority mismatch probe" stage_governance_authority_mismatch
+# TRUST-TIME-1B · timestamp doctrine self-protection probe.
+run_stage "TRUST-TIME-1B · timestamp doctrine probe" stage_timestamp_doctrine
 
 if [[ "$MODE" == "full" ]]; then
   run_stage "Full backend pytest suite" stage_full_pytest

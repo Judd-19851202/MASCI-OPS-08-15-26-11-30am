@@ -406,3 +406,36 @@ The platform is governed operational infrastructure. The next
 phase lands on a clean, trusted, self-protected baseline.
 
 Certified 🟢 GREEN by E1 · 2026-05-28.
+
+---
+
+## Addendum · TRUST-TIME-1 + TRUST-TIME-1B · 2026-05-28 (later)
+
+After this certification was signed, production operators surfaced
+a +4h timestamp delta on PO receipt uploads. Phase TRUST-TIME-1
+fixed the root cause across 3 layers (Motor `tz_aware=True` ·
+defensive `_iso()` helpers · shared `lib/dateUtils.js`). Phase
+TRUST-TIME-1B added a self-protection probe so the same class of
+regression cannot return.
+
+This addendum supersedes §10 (Telemetry) and §11 (Mobile) of the
+above pass-fail matrix where timestamp truthfulness is concerned:
+
+| Dimension | Now |
+|---|---|
+| Backend timestamp serialization | 🟢 tz-aware on every read (Motor `tz_aware=True`) |
+| `_iso()` defensive coerce | 🟢 in `po_requests.py`, `admin_ops.py`, `health_monitor.py` |
+| Frontend timestamp rendering | 🟢 via 8 shared helpers in `lib/dateUtils.js` |
+| Naive ISO defensive coerce (legacy records) | 🟢 in `dateUtils.js::_coerce()` |
+| Self-protection probe | 🟢 `scripts/timestamp_doctrine_probe.py` |
+| Pre-deploy gate integration | 🟢 `stage_timestamp_doctrine` in `pre_deploy_check.sh` |
+| Regression coverage | 🟢 22 tests total (5 backend + 7 frontend localization + 10 probe) |
+| **Operator-facing surfaces migrated** | 🟢 PoRequests · NotificationsDigest · PmFieldLeadership · HrEmployeeAccountabilityTimeline (UTC-labeled) · SystemHealth (UTC-labeled) |
+| Operator-facing surfaces deferred | 🔵 8 admin/audit views (baselined as warnings · scheduled for next pass) |
+
+**Overall verdict remains 🟢 GREEN** with the timestamp truthfulness
+dimension now actively self-protected.
+
+Full details:
+- `/app/memory/TRUST_TIME_1_CERTIFICATION.md`
+- `/app/memory/TIMESTAMP_DOCTRINE_SELF_PROTECTION_CERTIFICATION.md`
