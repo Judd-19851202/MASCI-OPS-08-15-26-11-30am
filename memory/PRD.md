@@ -1,6 +1,108 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — Phase TRUST-1 · Wave 1 + Wave 2 · Operational trust hardening 🟢
+
+### Mission
+Close the visibility + survivability gaps catalogued by the Phase
+TRUST-1 audit before Phase V (RFI / Schedule) expansion. Two surgical
+remediation waves, no schema changes, no new auth, calm operator UX.
+
+### Findings closed in this pass
+**Wave 1 — Visibility (4 findings)**
+- **TF-018** · pre-deploy gate pings `/api/draft-telemetry/health`. New
+  `stage_trust1_draft_telemetry_health()` block-stage in
+  `scripts/pre_deploy_check.sh` curls the route with an admin token
+  and asserts `ok=true`. Catches future route-drop regressions before
+  prod.
+- **TF-015** · `_id` leak contract test. New
+  `backend/tests/pw_suite/test_mongo_id_leak_contract.py` parametrizes
+  10 admin/PM read endpoints + draft-telemetry feed and asserts no
+  `"_id":` substring leaks through. 10/10 pass.
+- **TF-012** · Draft Health tile distinguishes `quiet` from `healthy`.
+  Tile now probes `/api/draft-telemetry/health` alongside `/recent`;
+  when route is up but `recent_events_60s < 1` the verdict pill
+  renders **Quiet** (slate, calm) instead of misleading green. A small
+  signal-quiet note explains the state.
+- **TF-022** · Operator-visible "Support ID" affordance.
+  `components/daily-report/SupportIdAffordance.jsx` — calm life-buoy
+  icon next to the autosave pill on Daily Report. Hidden popover with
+  copyable device-id + reassuring language: *"If the office asks
+  about your daily report, share this ID so they can find it on their
+  end."* No "Fingerprint" / "Tracking ID" / "Debug" wording.
+
+**Wave 2 — Survivability (5 findings)**
+- **TF-002** · Sibling forms persist the idempotency key in IDB.
+  `NewIncident.jsx` and `FieldLeadershipFormPage.jsx` now call
+  `persistIdempotencyKey()` immediately after `mintIdempotencyKey()`
+  and hydrate via `loadIdempotencyKey()` on mount. Removes the
+  duplicate-record risk under reload-mid-queue.
+- **TF-004** · Calm storage-pressure warning BEFORE failure.
+  `useFormDraft.js` probes `navigator.storage.estimate()` on mount
+  and every 60s; surfaces `quotaPressure` when usage ≥ 80%.
+  `QuotaWarningChip.jsx` renders an amber operator-language chip
+  ("Storage 82%") next to the autosave pill. Fires single
+  `quota.warning` telemetry event per session.
+- **TF-011** · Submit-time `commit()` defers discard until 2xx.
+  `resiliencyQueue.js` adds `onQueueItemSettled(idempotencyKey, cb)`;
+  queue notifies subscribers on confirmed delivery OR retry-exhaustion.
+  Daily Report's queued path now waits for confirmation before
+  discarding the IDB draft. Telemetry fires `queue.commit.confirmed`
+  and `queue.commit.failed` on resolution.
+- **TF-009** · iPad viewport added to draft-loss regression.
+  `test_draft_loss_remediation.py` now parametrizes on `[mobile, ipad]`.
+  10/10 pass (5 tests × 2 viewports).
+- **TF-016** · Calm recovery affordance for soft-deleted drafts.
+  `lib/resiliency/DraftRecoveryNotice.jsx` — slate, reassuring banner
+  surfaces on Daily Report mount ONLY when no live draft exists AND a
+  24h-archive entry is present. Two actions: *Bring it back* /
+  *Not now*. NEVER amber/red.
+
+### Calmness doctrine (user-directive · binding)
+1. Support ID label MUST read "Support ID" — never "Fingerprint",
+   "Tracking ID", "Device UUID", "Debug ID".
+2. Recovery banner stays slate-toned; no panic / "lost work" copy.
+3. Quota warning is amber, never red; speaks human ("Storage 82% full
+   · finish and submit soon").
+4. No new auth/account complexity introduced.
+5. Device-memory operational model preserved.
+
+### Files touched
+- `frontend/src/lib/resiliency/useFormDraft.js` — quota probe + return value
+- `frontend/src/lib/resiliency/resiliencyQueue.js` — `onQueueItemSettled`
+- `frontend/src/lib/resiliency/index.js` — new barrel exports
+- `frontend/src/lib/resiliency/QuotaWarningChip.jsx` (NEW)
+- `frontend/src/lib/resiliency/DraftRecoveryNotice.jsx` (NEW)
+- `frontend/src/components/daily-report/SupportIdAffordance.jsx` (NEW)
+- `frontend/src/components/admin/DraftHealthTile.jsx` — Quiet verdict
+- `frontend/src/pages/NewDailyReport.jsx` — wired SupportId + Quota + Recovery + deferred commit
+- `frontend/src/pages/NewIncident.jsx` — persist idempotency key
+- `frontend/src/pages/FieldLeadershipFormPage.jsx` — persist idempotency key
+- `backend/tests/pw_suite/test_mongo_id_leak_contract.py` (NEW · 10/10 PASS)
+- `backend/tests/pw_suite/test_trust1_wave1_wave2_calmness.py` (NEW · 5/5 PASS)
+- `backend/tests/pw_suite/test_draft_loss_remediation.py` — iPad viewport
+- `scripts/pre_deploy_check.sh` — `stage_trust1_draft_telemetry_health`
+
+### Testing
+- New tests: 15 (10 _id-leak + 5 calmness), all PASS
+- Existing pw_suite contracts touched: draft-loss (10/10 across mobile+ipad),
+  draft-telemetry (9/9), field-trust iter442 (8/8), contextual-return-path
+  iter443 (continued PASS)
+- Full pw_suite re-run: 245 PASS · 11 PRE-EXISTING failures (governance
+  health chip + trendline append + sibling sidebar timeouts — all confirmed
+  by clean-baseline reproduction; none caused by this pass)
+
+### Phase V gate (binding)
+- ✅ Wave 1 landed (visibility)
+- ✅ Wave 2 landed (survivability for siblings + deferred commit + recovery)
+- 🔄 T4 TF-001 still requires operator-facing response path (banner OR
+   one-page playbook) before RFI work begins
+- 🟢 RFI / Schedule / Constraints work CAN now begin once TF-001 has a
+   documented response path
+
+---
+
+
 ## 2026-05-27 (fork) — iter443 · P1 GOVERNANCE · Contextual Return-Path Inheritance 🟢
 
 ### Mission

@@ -1,34 +1,37 @@
 {
   "_meta": {
-    "updated_at": "2026-05-27T22:00:58.491Z",
+    "updated_at": "2026-05-28T00:31:07.269Z",
     "version": "iter437.IV-BETA.3-P2A"
   },
   "snapshots": {
     "admin": {
       "desktop": {
-        "badge_density": 1.28,
-        "dom_style_hash": "c54a80efab8b8334",
-        "elements_walked": 156,
-        "emphasis_score": 1,
+        "badge_density": 2.01,
+        "dom_style_hash": "6f2015cf71e914e4",
+        "elements_walked": 199,
+        "emphasis_score": 4,
         "font_size_summary": {
-          "body": 141,
+          "body": 161,
           "h3": 2,
-          "small": 13
+          "small": 36
         },
-        "hierarchy_hash": "e3359fbefc4a98c8",
+        "hierarchy_hash": "f11aa76eca3d3759",
         "hue_families": [
           "blue",
+          "blue-violet",
+          "green",
+          "pink-red",
           "red"
         ],
-        "hue_family_count": 2,
-        "loudness_score": 15.28,
+        "hue_family_count": 5,
+        "loudness_score": 40.01,
         "name": "Admin Hub V2",
         "portal": "admin",
         "typography_summary": {
-          "black": 30,
-          "bold": 4,
+          "black": 32,
+          "bold": 16,
           "medium": 2,
-          "regular": 120
+          "regular": 149
         },
         "url": "/admin?adminSidebarV2=1"
       },

@@ -315,6 +315,48 @@ stage_governance_doctrine_maturity() {
   return 0
 }
 
+# ─── TRUST-1 Wave 1 · TF-018 · 2026-05-27 ─────────────────────────────
+# Visibility-of-visibility gate. The /api/draft-telemetry layer exists
+# specifically so field-incident failures stay diagnosable. If a future
+# deploy drops that route (config drift, router-build regression), the
+# platform still LOOKS healthy — pill stays green, autosave still
+# writes locally — but the observability surface is silently dead.
+# This stage hits the public health endpoint and asserts a 200 + ok=true.
+# Hard-blocks the deploy on regression. Cheap (<1s) and idempotent.
+stage_trust1_draft_telemetry_health() {
+  cd "$REPO_ROOT"
+  local url
+  url=$(grep '^REACT_APP_BACKEND_URL=' frontend/.env | cut -d= -f2 | tr -d '"' | tr -d "'")
+  if [[ -z "$url" ]]; then
+    echo "REACT_APP_BACKEND_URL missing — cannot probe draft-telemetry health"
+    return 1
+  fi
+  local admin_pw
+  admin_pw=$(grep '^ADMIN_PASSWORD=' backend/.env | cut -d= -f2 | tr -d '"' | tr -d "'")
+  if [[ -z "$admin_pw" ]]; then
+    echo "ADMIN_PASSWORD missing — cannot acquire admin token for health probe"
+    return 1
+  fi
+  local tok
+  tok=$(curl -fsS --max-time 8 -X POST "$url/api/admin/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"password\":\"$admin_pw\"}" 2>/dev/null \
+    | python3 -c "import sys,json;print(json.load(sys.stdin).get('token',''))" 2>/dev/null)
+  if [[ -z "$tok" ]]; then
+    echo "admin login failed — could not acquire token for draft-telemetry health probe"
+    return 1
+  fi
+  curl -fsS --max-time 8 "$url/api/draft-telemetry/health" \
+    -H "X-Admin-Token: $tok" \
+    | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+assert d.get('ok') is True, f'draft-telemetry health not ok: {d}'
+assert 'recent_events_60s' in d, f'health response missing recent_events_60s: {d}'
+print(f'  ✓ draft-telemetry route live · recent_events_60s={d[\"recent_events_60s\"]}')
+"
+}
+
 echo "MASCI Hub Pre-Deploy Gate — mode: $MODE"
 echo "Repo: $REPO_ROOT"
 
@@ -350,6 +392,8 @@ run_stage "Sigma-III prod contamination probe" stage_sigma3_prod_contamination
 run_stage "Sigma-III regression contract" stage_sigma3_regression
 run_stage "Sigma-III Playwright browser suite" stage_sigma3_playwright
 run_stage "Sigma-III cluster severity probe" stage_sigma3_cluster_severity
+# TRUST-1 Wave 1 · TF-018 — observability route must be reachable.
+run_stage "TRUST-1 · draft-telemetry route health (visibility gate)" stage_trust1_draft_telemetry_health
 
 if [[ "$MODE" == "full" ]]; then
   run_stage "Full backend pytest suite" stage_full_pytest

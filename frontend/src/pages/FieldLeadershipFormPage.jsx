@@ -121,6 +121,7 @@ const FL_KIND_GUIDANCE = {
 };
 import {
   useDraftSync, getActorId, mintIdempotencyKey, enqueueUpload,
+  persistIdempotencyKey, loadIdempotencyKey,
   DraftStatusPill,
 } from "@/lib/resiliency";
 
@@ -332,6 +333,21 @@ export default function FieldLeadershipFormPage() {
   const [witnessSig, setWitnessSig] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const idempotencyKeyRef = React.useRef(null);
+
+  // TRUST-1 · TF-002 — hydrate any persisted idempotency key from IDB
+  // so a reload mid-offline-queue does not mint a duplicate submission.
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const k = await loadIdempotencyKey(`fl-${kind}-new`);
+        if (!cancelled && k && !idempotencyKeyRef.current) {
+          idempotencyKeyRef.current = k;
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [kind]);
 
   // Phase J — composite snapshot of all user-edited fields for autosave.
   const snapshot = useMemo(() => ({
@@ -653,6 +669,9 @@ export default function FieldLeadershipFormPage() {
       const finalPayload = await translateUserInput(payload, lang);
       if (!idempotencyKeyRef.current) {
         idempotencyKeyRef.current = mintIdempotencyKey();
+        // TRUST-1 · TF-002 — persist immediately.
+        try { await persistIdempotencyKey(`fl-${kind}-new`, idempotencyKeyRef.current); }
+        catch { /* ignore */ }
       }
       const up = await enqueueUpload({
         method: "POST",

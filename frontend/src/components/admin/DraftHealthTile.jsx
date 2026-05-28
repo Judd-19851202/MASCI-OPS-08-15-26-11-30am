@@ -24,11 +24,17 @@
 // loud color unless health is genuinely degraded.
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Activity, RefreshCw, AlertTriangle, CheckCircle2, EyeOff } from "lucide-react";
 import { api } from "@/lib/api";
 
 const POLL_MS = 60_000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+// TRUST-1 · TF-012 · "Quiet" verdict floor. Below this many events in
+// the last 60s the tile can't distinguish "no failures" from "no
+// telemetry reaching the server" (CDN blocked, route dropped, etc.).
+// We surface a calm "Quiet" pill so the admin knows the signal is
+// suspicious rather than confidently green.
+const QUIET_FLOOR_60S = 1;
 
 function _fmtRelative(iso) {
   if (!iso) return "—";
@@ -49,7 +55,19 @@ function _fmtRelative(iso) {
   }
 }
 
-function _verdict({ failedSaves24h, discardsAfterFail24h }) {
+function _verdict({ failedSaves24h, discardsAfterFail24h, health }) {
+  // TRUST-1 · TF-012 — if the live /health probe says the route is
+  // alive but no events landed in the last 60s, we cannot trust a
+  // "healthy" verdict. Distinct from genuine green so the admin can
+  // tell that the signal itself may be off-air.
+  if (
+    health
+    && health.ok === true
+    && typeof health.recent_events_60s === "number"
+    && health.recent_events_60s < QUIET_FLOOR_60S
+  ) {
+    return "quiet";
+  }
   if (failedSaves24h === 0 && discardsAfterFail24h === 0) return "healthy";
   if (failedSaves24h <= 5 && discardsAfterFail24h <= 1) return "watch";
   return "degraded";
@@ -61,6 +79,12 @@ const VERDICT_META = {
     label: "Healthy",
     tint: "border-emerald-300 bg-emerald-50 text-emerald-900",
     pill: "bg-emerald-600 text-white",
+  },
+  quiet: {
+    Icon: EyeOff,
+    label: "Quiet",
+    tint: "border-slate-300 bg-slate-50 text-slate-800",
+    pill: "bg-slate-600 text-white",
   },
   watch: {
     Icon: Activity,
@@ -78,6 +102,7 @@ const VERDICT_META = {
 
 export default function DraftHealthTile({ testId = "draft-health-tile" }) {
   const [events, setEvents] = useState(null);
+  const [health, setHealth] = useState(null);
   const [loadedAt, setLoadedAt] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [err, setErr] = useState(null);
@@ -89,9 +114,15 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
       // Cap at 200 (server max) — gives us a 24h window for normal
       // platform usage. We compute everything client-side; we do NOT
       // ask the server to aggregate (server is dumb store).
-      const r = await api.get("/draft-telemetry/recent?limit=200");
+      // TF-012 — also probe /health so we can detect a telemetry-
+      // pipeline failure that would otherwise look like a calm day.
+      const [r, hres] = await Promise.all([
+        api.get("/draft-telemetry/recent?limit=200"),
+        api.get("/draft-telemetry/health").catch(() => null),
+      ]);
       const items = (r && r.data && r.data.items) || [];
       setEvents(items);
+      setHealth(hres && hres.data ? hres.data : null);
       setLoadedAt(Date.now());
     } catch (e) {
       setErr(e?.message || "failed to load");
@@ -147,7 +178,7 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
     return out;
   }, [events]);
 
-  const verdict = _verdict(stats);
+  const verdict = _verdict({ ...stats, health });
   const meta = VERDICT_META[verdict];
   const Icon = meta.Icon;
 
@@ -219,11 +250,25 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
       <footer className="flex items-center justify-between mt-3 pt-2 border-t border-current/10 text-[10px] font-mono uppercase tracking-wider opacity-70">
         <span data-testid={`${testId}-total`}>
           {stats.total24h} events · 24h · {stats.anonShare}% anon
+          {health && typeof health.recent_events_60s === "number"
+            ? ` · ${health.recent_events_60s}/60s`
+            : ""}
         </span>
         <span data-testid={`${testId}-loaded-at`}>
           {loadedAt ? `loaded ${_fmtRelative(new Date(loadedAt).toISOString())}` : "loading…"}
         </span>
       </footer>
+
+      {verdict === "quiet" ? (
+        <p
+          className="text-[11px] mt-2 leading-snug"
+          data-testid={`${testId}-quiet-note`}
+        >
+          Signal quiet · the route answered, but no events arrived in
+          the last 60s. Verify a recent operator session before trusting
+          a green count.
+        </p>
+      ) : null}
 
       {err ? (
         <p className="text-[11px] mt-2 text-rose-700" data-testid={`${testId}-error`}>

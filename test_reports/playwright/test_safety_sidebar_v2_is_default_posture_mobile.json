@@ -1,6 +1,6 @@
 {
-  "viewport": "ipad",
-  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm?pmSidebarV2=1",
+  "viewport": "mobile",
+  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal/incidents",
   "console_tail": [
     "[error] Failed to load resource: the server responded with a status of 403 ()",
     "[error] Refused to execute script from 'https://safety-audit-mobile-1.preview.emergentagent.com/static/js/bundle.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."

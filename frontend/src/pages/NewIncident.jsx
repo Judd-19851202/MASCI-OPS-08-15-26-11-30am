@@ -58,6 +58,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
+  persistIdempotencyKey, loadIdempotencyKey,
   DraftStatusPill, DraftRestorePrompt,
 } from "@/lib/resiliency";
 
@@ -130,6 +131,22 @@ export default function NewIncident({ publicMode = false }) {
   const {
     pendingDraft, draftStatus, restore, discard, commit,
   } = useFormDraft("incident-new", data, actorId);
+
+  // TRUST-1 · TF-002 — hydrate any persisted idempotency key from IDB
+  // so a reload mid-offline-queue does not mint a duplicate incident.
+  // Mirrors the NewDailyReport iter440 pattern.
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const k = await loadIdempotencyKey("incident-new");
+        if (!cancelled && k && !idempotencyKeyRef.current) {
+          idempotencyKeyRef.current = k;
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const onRestoreDraft = React.useCallback(() => {
     const d = restore();
@@ -272,6 +289,10 @@ export default function NewIncident({ publicMode = false }) {
       // the queue so the server treats them as the same logical write.
       if (!idempotencyKeyRef.current) {
         idempotencyKeyRef.current = mintIdempotencyKey();
+        // TRUST-1 · TF-002 — persist immediately so a reload mid-queue
+        // does not regenerate the key and produce a duplicate.
+        try { await persistIdempotencyKey("incident-new", idempotencyKeyRef.current); }
+        catch { /* ignore */ }
       }
       const r = await enqueueUpload({
         method: "POST",

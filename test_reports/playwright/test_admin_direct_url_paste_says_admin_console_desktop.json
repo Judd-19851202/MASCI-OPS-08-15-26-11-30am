@@ -1,10 +1,9 @@
 {
   "viewport": "desktop",
-  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/incidents/5c8f23cc-2492-409c-9845-616ed72b2086",
+  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/incidents/cea59884-f44c-4b40-a38a-ca41c35e8b43",
   "console_tail": [
     "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
-    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
-    "[warning] %s\n\n%s\n An error occurred in the <ViewIncident> component. Consider adding an error boundary to your tree to customize error handling behavior.\nVisit https://react.dev/link/error-boundaries to learn more about error boundaries.",
-    "[info] [sentry] initialised {env: preview, release: 55652802d441442559c17feb4daed499}"
+    "[error] Failed to load resource: the server responded with a status of 403 ()",
+    "[error] Refused to execute script from 'https://safety-audit-mobile-1.preview.emergentagent.com/static/js/bundle.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
   ]
 }

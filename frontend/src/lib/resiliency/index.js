@@ -18,7 +18,7 @@ export {
 export { useOnlineStatus } from "./useOnlineStatus";
 export {
   enqueueUpload, getQueueDepth, getQueueItems,
-  onQueueChange, drainQueue,
+  onQueueChange, onQueueItemSettled, drainQueue,
 } from "./resiliencyQueue";
 export {
   enqueue as enqueueOffline,
@@ -42,6 +42,8 @@ export { estimateQuota } from "./quotaProbe";
 export { default as OfflineIndicator } from "./OfflineIndicator";
 export { default as DraftStatusPill } from "./DraftStatusPill";
 export { default as DraftRestorePrompt } from "./DraftRestorePrompt";
+export { default as DraftRecoveryNotice } from "./DraftRecoveryNotice";
+export { default as QuotaWarningChip } from "./QuotaWarningChip";
 export { default as StagedPhotoBadge } from "./StagedPhotoBadge";
 export { getActorId, getDeviceScopedActorId, getLegacyActorIds } from "./actorId";
 export { getDeviceId, ensureDeviceId } from "./deviceId";

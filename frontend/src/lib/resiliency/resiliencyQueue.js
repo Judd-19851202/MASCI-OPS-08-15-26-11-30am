@@ -28,6 +28,7 @@ const BACKOFFS_MS = [1000, 2000, 4000, 8000, 16000];
 let _queue = null;        // in-memory mirror; null until first load
 let _draining = false;
 const _listeners = new Set();
+const _itemListeners = new Map(); // idempotencyKey → Set<{onSuccess,onFail}>
 let _retryTimer = null;
 
 async function _load() {
@@ -64,6 +65,37 @@ export function onQueueChange(cb) {
   // fire once with current state (load lazily)
   _load().then(() => cb(_queue || []));
   return () => _listeners.delete(cb);
+}
+
+/**
+ * TRUST-1 · TF-011 · 2026-05-27.
+ * Subscribe to delivery outcome for a single queued item, keyed by its
+ * idempotency key. Used by long forms (NewDailyReport) to defer
+ * discarding the IDB draft until the offline queue confirms a 2xx OR
+ * gives up (status=failed after MAX_TRIES). Callback receives
+ *   { ok: true,  data }                 on confirmed 2xx
+ *   { ok: false, status: "failed", lastError }   when retries exhaust
+ * Subscription auto-unregisters after firing once. Safe to call before
+ * the item is enqueued — the listener will fire on the next drain.
+ */
+export function onQueueItemSettled(idempotencyKey, cb) {
+  if (!idempotencyKey || typeof cb !== "function") return () => {};
+  let set = _itemListeners.get(idempotencyKey);
+  if (!set) { set = new Set(); _itemListeners.set(idempotencyKey, set); }
+  set.add(cb);
+  return () => {
+    const s = _itemListeners.get(idempotencyKey);
+    if (s) { s.delete(cb); if (s.size === 0) _itemListeners.delete(idempotencyKey); }
+  };
+}
+
+function _notifyItem(idempotencyKey, payload) {
+  const set = _itemListeners.get(idempotencyKey);
+  if (!set) return;
+  for (const cb of set) {
+    try { cb(payload); } catch { /* ignore */ }
+  }
+  _itemListeners.delete(idempotencyKey);
 }
 
 /** Current pending count (excludes `failed` items). */
@@ -166,13 +198,22 @@ export async function drainQueue() {
         continue;
       }
       try {
-        await _attempt(it);
-        // success → drop from queue.
+        const data = await _attempt(it);
+        // success → drop from queue + notify any listener so the
+        // caller can finally commit() / discard the IDB draft.
+        if (it.idempotencyKey) {
+          _notifyItem(it.idempotencyKey, { ok: true, data });
+        }
       } catch (e) {
         it.tries += 1;
         it.lastError = _errMsg(e);
         if (it.tries >= MAX_TRIES) {
           it.status = "failed";
+          if (it.idempotencyKey) {
+            _notifyItem(it.idempotencyKey, {
+              ok: false, status: "failed", lastError: it.lastError,
+            });
+          }
         }
         remaining.push(it);
       }

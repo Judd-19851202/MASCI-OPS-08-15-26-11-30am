@@ -18,13 +18,15 @@ from __future__ import annotations
 import json
 import time
 
-# Each test uses ONLY the mobile viewport. The conftest parametrizes
-# `viewport_name` across desktop/ipad/mobile; we filter via an
-# override at the module level to keep these draft-loss tests focused
-# on the iPhone surface (which is where the P0 field incident lived).
+# Each test uses BOTH mobile AND iPad viewports. The conftest
+# parametrizes `viewport_name` across desktop/ipad/mobile; we filter
+# at the module level to keep the desktop case out (the P0 field
+# incident was an iPhone/iPad surface). TRUST-1 · TF-009 adds the
+# ipad viewport so iPad-only layout regressions in the draft flow
+# (Superintendents and Field Leaders use iPads daily) are caught.
 import pytest
 
-pytestmark = [pytest.mark.parametrize("viewport_name", ["mobile"], indirect=True)]
+pytestmark = [pytest.mark.parametrize("viewport_name", ["mobile", "ipad"], indirect=True)]
 
 
 _DAILY_REPORT_PATH = "/daily/submit"

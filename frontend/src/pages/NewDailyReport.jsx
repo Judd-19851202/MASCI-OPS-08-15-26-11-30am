@@ -48,8 +48,11 @@ import {
 } from "@/lib/geolocation";
 import {
   useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
-  persistIdempotencyKey, loadIdempotencyKey,
-  DraftStatusPill, DraftRestorePrompt,
+  persistIdempotencyKey, loadIdempotencyKey, onQueueItemSettled,
+  DraftStatusPill, DraftRestorePrompt, DraftRecoveryNotice,
+  QuotaWarningChip,
+  recoverArchivedDraft,
+  getDeviceScopedActorId,
 } from "@/lib/resiliency";
 // iter437 · Phase 31.1 · Daily Report Crew Memory Continuity.
 import {
@@ -58,6 +61,7 @@ import {
   getCrewMemoryConfidence, isProjectChange,
 } from "@/lib/crewMemory";
 import CrewSetupRestorePrompt from "@/components/daily-report/CrewSetupRestorePrompt";
+import SupportIdAffordance from "@/components/daily-report/SupportIdAffordance";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
@@ -244,8 +248,39 @@ export default function NewDailyReport({ publicMode = false }) {
   const actorId = React.useMemo(() => getActorId(), []);
   const {
     pendingDraft, pendingSavedAt, pendingIsCrossToken,
-    draftStatus, lastSavedAt, lastError, restore, discard, commit,
+    loaded: draftLoaded,
+    draftStatus, lastSavedAt, lastError, quotaPressure,
+    restore, discard, commit,
   } = useFormDraft("daily-report-new", data, actorId);
+
+  // TRUST-1 · TF-016 — Recovery affordance for soft-deleted drafts.
+  // After the hook reports loaded=true with no pendingDraft, probe the
+  // 24h archive store. If a recently-discarded draft exists we surface
+  // a calm "Bring it back" affordance — the ONLY operator path to a
+  // soft-deleted draft. Hidden by default; never shown when a live
+  // draft is already on offer.
+  const [archivedDraft, setArchivedDraft] = React.useState(null);
+  React.useEffect(() => {
+    if (!draftLoaded) return undefined;
+    if (pendingDraft) { setArchivedDraft(null); return undefined; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const arc = await recoverArchivedDraft(
+          getDeviceScopedActorId(), "daily-report-new",
+        );
+        if (!cancelled && arc && arc.form) setArchivedDraft(arc);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [draftLoaded, pendingDraft]);
+
+  const onRecoverArchive = React.useCallback(() => {
+    if (!archivedDraft || !archivedDraft.form) return;
+    setData(archivedDraft.form);
+    setArchivedDraft(null);
+    toast.success(t("Draft brought back"));
+  }, [archivedDraft, t]);
 
   // iter440 — hydrate any persisted idempotency key from IDB so a
   // reload mid-offline-queue does not mint a duplicate submission.
@@ -592,7 +627,34 @@ export default function NewDailyReport({ publicMode = false }) {
           description: "Your daily report is queued and will send automatically.",
           duration: 6000,
         });
-        await commit();
+        // TRUST-1 · TF-011 — DO NOT commit() (discard the IDB draft)
+        // until the offline queue confirms a 2xx. If the queue later
+        // gives up (5 retries), telemetry fires and the draft stays
+        // available for restore on the next mount. Doctrine: only
+        // delete the draft on confirmed delivery.
+        const idemKey = idempotencyKeyRef.current;
+        try {
+          onQueueItemSettled(idemKey, async (outcome) => {
+            try {
+              if (outcome && outcome.ok) {
+                await commit();
+                import("@/lib/resiliency").then(({ emitDraftEvent }) =>
+                  emitDraftEvent("draft.write.ok", {
+                    formKey: "daily-report-new",
+                    trigger: "queue.commit.confirmed",
+                  })).catch(() => {});
+              } else {
+                import("@/lib/resiliency").then(({ emitDraftEvent }) =>
+                  emitDraftEvent("draft.write.fail", {
+                    formKey: "daily-report-new",
+                    trigger: "queue.commit.failed",
+                    errorName: "QueueExhausted",
+                    error: outcome?.lastError || "queue gave up",
+                  })).catch(() => {});
+              }
+            } catch { /* never throw from settle callback */ }
+          });
+        } catch { /* ignore */ }
         // iter437 · also save setup memory on the queued path so the
         // operator gets continuity even when the network was offline.
         try { saveCrewSetup(payload); } catch { /* silent */ }
@@ -736,6 +798,11 @@ export default function NewDailyReport({ publicMode = false }) {
               lastError={lastError}
               testId="daily-report-draft-pill"
             />
+            <QuotaWarningChip
+              pressure={quotaPressure}
+              testId="daily-report-quota-chip"
+            />
+            <SupportIdAffordance testId="daily-report-support-id" />
             <LangToggle />
             <Button
               onClick={submit}
@@ -809,6 +876,16 @@ export default function NewDailyReport({ publicMode = false }) {
           onRestore={onRestoreDraft}
           onDiscard={onDiscardDraft}
           testId="daily-report-draft-restore-prompt"
+        />
+
+        {/* TRUST-1 · TF-016 — calm recovery for soft-deleted drafts.
+            Shown only when there is no live draft on offer AND an
+            archive entry exists within the 24h window. */}
+        <DraftRecoveryNotice
+          archive={pendingDraft ? null : archivedDraft}
+          onRecover={onRecoverArchive}
+          onDismiss={() => setArchivedDraft(null)}
+          testId="daily-report-draft-recovery"
         />
 
         {/* 01 — Report info */}

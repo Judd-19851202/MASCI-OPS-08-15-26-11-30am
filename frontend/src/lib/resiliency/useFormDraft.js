@@ -46,9 +46,16 @@ import {
 } from "./draftStore";
 import { getDeviceScopedActorId, getLegacyActorIds } from "./actorId";
 import { emitDraftEvent } from "./draftTelemetry";
+import { estimateQuota } from "./quotaProbe";
 
 const DEBOUNCE_MS = 800;
 const MAX_INTERVAL_MS = 10_000;
+// TRUST-1 · TF-004 — surface a calm operator warning BEFORE a silent
+// QuotaExceededError. The estimate API is cheap; probe once on mount
+// and then every 60s while the form is open. Threshold tuned to
+// give the operator ~20% headroom for a multi-photo daily report.
+const QUOTA_WARN_RATIO = 0.8;
+const QUOTA_PROBE_INTERVAL_MS = 60_000;
 
 export function useFormDraft(formKey, data, actorId) {
   const [pendingDraft, setPendingDraft] = useState(null);
@@ -58,6 +65,9 @@ export function useFormDraft(formKey, data, actorId) {
   const [draftStatus, setDraftStatus] = useState("idle");
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [lastError, setLastError] = useState(null);
+  // TRUST-1 · TF-004 — calm storage pressure surface. `null` until
+  // first probe lands; { ratio, usageMb, quotaMb } once probed.
+  const [quotaPressure, setQuotaPressure] = useState(null);
 
   const timerRef = useRef(null);
   const intervalRef = useRef(null);
@@ -219,6 +229,50 @@ export function useFormDraft(formKey, data, actorId) {
     };
   }, [loaded, formKey, _doSave]);
 
+  // ── TRUST-1 · TF-004 · calm storage pressure probe ────────────────
+  // Probes navigator.storage.estimate() once on mount and then every
+  // 60s while the form is open. If usage/quota >= 80%, exposes the
+  // numbers via `quotaPressure` so the page can render a small calm
+  // chip BEFORE the next big write fails silently. Also fires a
+  // single quota.warning telemetry event per session per form.
+  useEffect(() => {
+    if (!loaded) return undefined;
+    let cancelled = false;
+    let warnedOnce = false;
+    const probe = async () => {
+      try {
+        const q = await estimateQuota();
+        if (cancelled) return;
+        if (!q || !q.supported || q.ratio == null) {
+          setQuotaPressure(null);
+          return;
+        }
+        if (q.ratio >= QUOTA_WARN_RATIO) {
+          setQuotaPressure({
+            ratio: q.ratio,
+            usageMb: q.usageMb,
+            quotaMb: q.quotaMb,
+            freeMb: q.freeMb,
+          });
+          if (!warnedOnce) {
+            warnedOnce = true;
+            emitDraftEvent("quota.warning", {
+              formKey,
+              ratio: Number(q.ratio.toFixed(3)),
+              usageMb: q.usageMb,
+              quotaMb: q.quotaMb,
+            });
+          }
+        } else {
+          setQuotaPressure(null);
+        }
+      } catch { /* never throw from probe */ }
+    };
+    probe();
+    const id = setInterval(probe, QUOTA_PROBE_INTERVAL_MS);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [loaded, formKey]);
+
   // ── restore() returns the pending draft and clears it ─────────────
   const restore = useCallback(() => {
     const d = pendingDraft;
@@ -260,6 +314,7 @@ export function useFormDraft(formKey, data, actorId) {
     draftStatus,
     lastSavedAt,
     lastError,
+    quotaPressure,
     restore,
     discard,
     commit,
