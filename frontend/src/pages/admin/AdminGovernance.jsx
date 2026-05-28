@@ -274,6 +274,27 @@ export default function AdminGovernance() {
             field-side draft issues alongside policy contradictions. */}
         <DraftHealthTile testId="gov-draft-health-tile" />
 
+        {/* GOVERNANCE-OPS-1 · 2026-05-28 — calm link to the
+            self-protection operational page. Text-only · no badge. */}
+        <div className="flex items-center justify-between border border-slate-300 bg-white rounded-md px-4 py-2"
+             data-testid="gov-self-protection-link">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold">
+              Self-Protection
+            </div>
+            <p className="text-[11px] text-slate-700 leading-snug mt-0.5">
+              Read-only operational status of the platform's own
+              governance protections.
+            </p>
+          </div>
+          <Link
+            to="/admin/governance/self-protection"
+            className="font-mono text-[10px] uppercase tracking-wider text-slate-600 hover:text-slate-900 underline"
+          >
+            open →
+          </Link>
+        </div>
+
         {/* Severity tile strip */}
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2">By severity (open + acknowledged)</div>

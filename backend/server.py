@@ -8828,6 +8828,16 @@ app.include_router(
 )
 
 
+# ─── Governance Self-Protection · Phase GOVERNANCE-OPS-1 · 2026-05-28 ─
+# Read-only aggregator powering `/admin/governance/self-protection`.
+# Reads the doctrine artifacts on disk + runs the Authority Mismatch
+# Probe (60s cache). Admin-only. No writes anywhere.
+from routes.governance_self_protection import (  # noqa: E402
+    build_governance_self_protection_router,
+)
+app.include_router(build_governance_self_protection_router(require_admin))
+
+
 # ─── Global Search (iter155 — Phase 2.5 · Phase G) ──────────────────
 # Permission-safe, role-aware, lightweight cross-collection typeahead.
 # Reuses _require_any_portal_token and applies per-role visibility +
