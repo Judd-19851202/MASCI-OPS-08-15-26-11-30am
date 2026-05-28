@@ -1,6 +1,96 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — FINAL DEEP PRE-DEPLOY CERTIFICATION 🟢 GREEN
+
+### Mission
+Run the most complete pre-deploy certification possible across every
+governance, trust, authority, survivability, context, telemetry, and
+regression system. Document the official governed-baseline
+certification before Phase V.1.
+
+### Verdict
+🟢 **GREEN — safe to Save + Deploy.**
+
+Full document: `/app/memory/FINAL_DEEP_PRE_DEPLOY_CERTIFICATION.md`
+
+### Certification matrix (15 dimensions · all 🟢)
+| # | Dimension | Result |
+|---|---|---|
+| §1 | Environment + identity proof | 🟢 preview/prod identities confirmed · source_hash drift documented (preview ahead) |
+| §2 | Core build + backend checks | 🟢 7/7 endpoints 200 · lint clean (ruff + eslint) |
+| §3 | Auth + RBAC + portal access | 🟢 all 6 portal logins reject bad creds · token routing 21/21 |
+| §4 | Procurement authority (TRUST-PO-1) | 🟢 backend 10/10 · frontend 4/4 · FL lockdown intact |
+| §5 | Governance self-protection (OPS-1) | 🟢 9 stanzas green · 11/11 + 4/4 cutover tests |
+| §6 | Contextual governance | 🟢 7/7 · 5 live surfaces governed · 0 TBD |
+| §7 | Capability primitives | 🟢 6 primitives · all lint-clean · FL lockdown explicit |
+| §8 | Daily Report survivability (TRUST-1) | 🟢 6/6 + 5/5 + 10/10 (_id leak) |
+| §9 | Device memory + preload trust | 🟢 coaching copy verified · project-change guard intact |
+| §10 | Telemetry + observability | 🟢 10/10 · allowlist enforced · PII-free |
+| §11 | Mobile + field-walk readiness | 🟢 no overflow on mobile · all 5 checklists current |
+| §12 | Notification + task targeting | 🟢 PO fanout to PM (cc HR) · FL excluded |
+| §13 | Data cleanliness | 🟢 preview-only ops · no production mutations |
+| §14 | Visual calmness + doctrine | 🟢 0 canvas · 0 chart libs · monospace intact |
+| §15 | Regression battery | 🟢 **130 / 130 PASS** · 0 fail · 0 skip · 0 flakes |
+
+### Regression battery breakdown (130 tests · 0 failures)
+- self-protection page: 11/11
+- cutover-ready deployment stanza: 4/4
+- stabilization-final capabilities: 4/4
+- authority mismatch probe: 6/6
+- governance health chip: 21/21
+- TRUST-PO-1 backend: 10/10
+- TRUST-PO-1 frontend: 4/4
+- contextual return-path iter443: 7/7
+- _id leak contract: 10/10
+- TRUST-1 final hardening: 6/6
+- draft-telemetry endpoint: 10/10
+- draft-loss remediation: 10/10
+- portal-token routing: 27/27
+
+### Live OPS-1 snapshot at certification time
+```
+page_status            : GREEN
+authority              : green · 0/0/58
+trust_surfaces         : green · 10/8/2
+context_governance     : green · 5/0/2
+truthful_state         : green · 12 contracts
+telemetry              : green
+regression_suite       : green
+field_walks            : green · 5 checklists current
+drift                  : green · 0 open gaps
+deployment             : green · source 9c08065382b1 · history_size 1
+```
+
+### Known risks
+🟢 No HIGH or MEDIUM severity risks identified. 4 LOW-severity items
+documented in `FINAL_DEEP_PRE_DEPLOY_CERTIFICATION.md §16`, all
+mitigated.
+
+### Doctrine compliance (final)
+- ✅ Authority is controlled (Authority Mismatch Probe gated · 0 new)
+- ✅ Saves are truthful (TRUST-1 W1 + W2 + Final Hardening · live)
+- ✅ Drafts survive (`deviceId` persisted · queue commit confirmed
+  before discard · soft-delete archive recovery · prior-usage banner)
+- ✅ Context is clear (5 live surfaces governed · 0 TBD)
+- ✅ Telemetry is clean (PII-free · allowlisted · 2 KB meta cap)
+- ✅ Governance is green (every stanza · every probe · every suite)
+- ✅ Operators are protected (calmness intact · no surveillance copy
+  · hidden-not-greyed authority controls)
+
+### Deploy + rollback recommendations
+- 🟢 **PROCEED WITH SAVE + DEPLOY.** No blockers.
+- ⛔ Rollback NOT required pre-deploy. Post-deploy rollback triggers
+  documented in `FINAL_DEEP_PRE_DEPLOY_CERTIFICATION.md §16-Rollback`.
+
+### Status
+🟢 **CERTIFIED GREEN.** Phase V.1 RFI MVP unlocks AFTER operator-led
+field walks · Save · Deploy · record-deploy POST · 72-h post-deploy
+observation. Agent stops here.
+
+---
+
+
 ## 2026-05-28 (fork) — Phase CUTOVER-READY · OPS-1 Deployment Stanza 🟢
 
 ### Mission
