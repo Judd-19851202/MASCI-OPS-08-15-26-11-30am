@@ -27047,3 +27047,65 @@ Wave 2 (Operational Search · Field Memory) is **LOCKED** until explicit
 
 ### Verdict
 🟢 **Wave 1 substrate complete — substrate live in preview — 0 regressions — awaiting 24-hr observation window + Wave 2 authorization.**
+
+---
+
+## Phase V-Prelude · Wave 1.1 — Timeline Sidecar (2026-05-28)
+
+🟢 **COMPLETE · preview env** · 24-hr observation window open.
+
+### Authorization
+Operator command "PHASE V-PRELUDE · WAVE 1.1 · OPERATIONAL TIMELINE
+SIDE-CAR + OBSERVATION HARDENING" (2026-05-28).
+
+### Hard rules honored
+- ✅ preview-only · APP_ENV=preview · DB=masci_safety_preview
+- ✅ no production deploy
+- ✅ no Wave 2 work · no RFI · no schedule · no P6
+- ✅ no dashboard additions
+- ✅ no timeline mutation controls (passive + read-only)
+- ✅ no notification expansion
+- ✅ no auth expansion (re-uses `_require_any_portal_token`)
+- ✅ every change reversible
+
+### Delivered components
+1. **`OperationalTimelineSidecar.jsx`** — calm, bounded, role-aware,
+   read-only chronology sidecar.
+2. **`PmProjectDetail.jsx`** at `/pm/projects/:projectNumber` — single
+   high-context surface that hosts the sidecar.
+3. **`PmJobsRead.jsx` row link** — natural operator entry point.
+4. Zero backend code changes (sidecar consumes existing `/api/timeline`).
+
+### Files
+- Frontend (added): `OperationalTimelineSidecar.jsx`, `PmProjectDetail.jsx`.
+- Frontend (modified): `App.js` (1 route), `PmJobsRead.jsx` (cell → Link).
+- Tests (added): `test_v_prelude_wave1_1_sidecar.py` (8) +
+  `pw_suite/test_v_prelude_wave1_1_sidecar_calmness.py` (10).
+- Governance: `TRUST_SURFACES.json` registers
+  `operational-timeline-sidecar` (passive=true).
+
+### Required certification deliverables (all 5 shipped)
+- `WAVE1_1_TIMELINE_SIDECAR_SUMMARY.md`
+- `TIMELINE_CALMNESS_CERTIFICATION.md`
+- `MOBILE_CHRONOLOGY_CERTIFICATION.md`
+- `OPERATIONAL_TIMELINE_OBSERVATION_REPORT.md`
+- `TIMELINE_ROLE_VISIBILITY_CERTIFICATION.md`
+
+### Regression
+- ✅ 8/8 new sidecar backend tests pass (ordering · scope · Z-suffix ·
+  voided-exclusion · no-orphan · canonical-relationship-only ·
+  audit-only PM-hidden).
+- ✅ 10/10 new Playwright sidecar tests pass across desktop · iPad ·
+  mobile (mount · single-column mobile · thumb-safe · calm chrome).
+- ✅ 19/19 Wave 1 substrate tests pass (no regression).
+- ✅ All 3 doctrine probes green (authority_mismatch ·
+  timestamp_doctrine · operational_links_doctrine).
+
+### Stop condition
+Per operator directive: STOP. Observation window 24 hr.
+Wave 2 LOCKED until explicit "start V-Prelude Wave 2".
+
+### Verdict
+🟢 **Wave 1.1 timeline sidecar live in preview · 0 regressions ·
+mobile-safe · role-filtered · awaiting 24-hr observation window +
+Wave 2 authorization.**

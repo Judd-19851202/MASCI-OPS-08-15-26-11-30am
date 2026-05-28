@@ -107,6 +107,16 @@ All planning artifacts for the pre-RFI substrate work.
 | `PHOTO_GOVERNANCE_CERTIFICATION.md` | Wave 1 photo governance cert | 🟢 |
 | `WAVE1_OBSERVATION_GUIDE.md` | 24-hr observation window guide | 🟡 active |
 
+### Wave 1.1 — Timeline Sidecar (implemented 2026-05-28)
+
+| File | Purpose | Status |
+|---|---|---|
+| `WAVE1_1_TIMELINE_SIDECAR_SUMMARY.md` | Wave 1.1 master summary | 🟢 |
+| `TIMELINE_CALMNESS_CERTIFICATION.md` | Visual calmness contract | 🟢 |
+| `MOBILE_CHRONOLOGY_CERTIFICATION.md` | Mobile ergonomic contract | 🟢 |
+| `TIMELINE_ROLE_VISIBILITY_CERTIFICATION.md` | Cross-portal role gate | 🟢 |
+| `OPERATIONAL_TIMELINE_OBSERVATION_REPORT.md` | Observation window log | 🟡 active |
+
 ## 5 · Route Decomposition / Backend Architecture
 
 How `server.py` is being split into `routes/`.

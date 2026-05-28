@@ -6,6 +6,7 @@
 // /app/memory/PORTAL_AUTH_TOKEN_AUDIT.md §7 future follow-up.
 
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Briefcase, Loader2, RefreshCw, Search, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,7 +136,20 @@ export default function PmJobsRead() {
                     data-testid={`pm-jobs-read-row-${j.project_number}`}
                   >
                     <td className="px-3 py-2 font-mono font-bold text-slate-900 whitespace-nowrap">
-                      {j.project_number || <span className="text-slate-400">—</span>}
+                      {j.project_number ? (
+                        // Phase V-Prelude · Wave 1.1 — deep-link to
+                        // per-project detail surface (hosts the
+                        // Operational Timeline sidecar). No new column,
+                        // no row chrome — just makes the existing
+                        // project_number cell navigable.
+                        <Link
+                          to={`/pm/projects/${encodeURIComponent(j.project_number)}`}
+                          data-testid={`pm-jobs-read-row-link-${j.project_number}`}
+                          className="hover:underline underline-offset-2 hover:text-amber-700 transition-colors"
+                        >
+                          {j.project_number}
+                        </Link>
+                      ) : <span className="text-slate-400">—</span>}
                     </td>
                     <td className="px-3 py-2 text-slate-800">
                       {j.project_name || <span className="text-slate-400">—</span>}

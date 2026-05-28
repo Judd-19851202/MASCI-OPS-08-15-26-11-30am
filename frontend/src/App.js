@@ -176,6 +176,9 @@ import AssetTransfers from "@/pages/AssetTransfers";
 import Constraints from "@/pages/Constraints";
 import NewConstraint from "@/pages/NewConstraint";
 import ConstraintDetail from "@/pages/ConstraintDetail";
+// Phase V-Prelude · Wave 1.1 — PM Project Detail (hosts the
+// Operational Timeline sidecar). Read-only, calm, single-project.
+import PmProjectDetail from "@/pages/PmProjectDetail";
 import AccessDenied from "@/pages/AccessDenied";
 import NotFound from "@/pages/NotFound";
 import GlobalFooter from "@/components/GlobalFooter";
@@ -483,6 +486,11 @@ function App() {
                 iter437 follow-up — `/pm/jobs` restored, now backed by
                 PmJobsRead → /api/pm/jobs (non-admin namespace). */}
             <Route path="/pm/jobs"               element={P(<PmJobs />)} />
+            {/* Phase V-Prelude · Wave 1.1 · 2026-05-28.
+                Calm per-project detail surface hosting the Operational
+                Timeline sidecar. Mounted under /pm/* (PM portal
+                surface, not a dashboard) per Wave 1.1 directive. */}
+            <Route path="/pm/projects/:projectNumber" element={P(<PmProjectDetail />)} />
             <Route path="/pm/field-leadership"   element={P(<PmFieldLeadership />)} />
             <Route path="/pm/fleet"              element={P(<PmFleet />)} />
             <Route path="/pm/people"             element={P(<PmPeople />)} />
