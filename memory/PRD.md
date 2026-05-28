@@ -1,6 +1,77 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — Phase DEPLOY-STABILIZATION-1 · Field Validation + Production Cutover 🟢/🔵
+
+### Mission
+Move from governance construction → operational validation +
+production stabilization. Lock the cleanroom state, hand off the
+operator-owned validation + cutover sequence (real iPads, real
+deploy click, real time-based observation), then unlock Phase V.1.
+
+### Agent-completed (🟢)
+**W3 — Pre-Deploy Cleanroom Pass**
+- 🟢 Authority Mismatch Probe `--gate` clean: 0 violations · 0 warnings · 58 baselined · 90 ms.
+- 🟢 Self-Protection page: ALL 8 stanzas GREEN. `page_status: green`.
+  `drift.open_gaps: 0` · `context_governance.tbd: 0` ·
+  `authority.new_violations: 0`.
+- 🟢 PII scan on `/api/admin/governance/self-protection`: clean
+  (`@`, `password`, `phone`, `email` absent).
+- 🟢 Chart-creep scan on `SelfProtection.jsx`: clean.
+- 🟢 Stale-bypass / TODO / FIXME / HACK in governance code: NONE.
+- 🟢 Preview-URL contamination in governance code: NONE.
+- 🟢 Preview source_hash AHEAD of production (deploy will move prod
+  forward — TRUST-1 + TRUST-PO-1 + GOVERNANCE-INFRA-1 + OPS-1 +
+  STABILIZATION-FINAL all preview-only).
+- 🟢 **52/52 regression battery PASS**: self-protection 11 ·
+  capabilities 4 · probe 6 · TRUST-PO-1 backend 10 · TRUST-PO-1
+  frontend 4 · contextual return-path 7 · _id leak contract 10.
+- 🟢 Playwright Chromium re-installed (binary was version-bumped at
+  the pod level — environment fix, not a test failure).
+- 🟢 Live screenshot verifies every section pill green; canvas count 0.
+
+### Operator-owned handoff (🔵)
+**W1 — Real Field Walks** · 5 checklists ready · friction-capture
+  template in `DEPLOY_STABILIZATION_1_HANDOFF.md §1` · paste results
+  back into `STABILIZATION_FINAL_REPORT.md §W5`.
+
+**W2 — 24-72h Preview Telemetry Observation** · daily 1-minute glance
+  recipe in `DEPLOY_STABILIZATION_1_HANDOFF.md §2` · pattern-signal
+  table (recurring Support IDs · authority warnings · quota events ·
+  recovery events) · one-event noise filter.
+
+**W4 — Save + Deploy** · paste-ready curl probes for production
+  identity verification · 4-step production verification · 5-step
+  browser verification (PM vs FL capability rendering, return-path
+  labels, OPS-1 green on prod).
+
+**W5 — 72h Post-Deploy Observation** · hard rollback triggers (page
+  red >15 min · authority violations · FL sees approval controls) ·
+  soft rollback triggers (single-stanza amber · single device
+  recovery events) · rollback path: Emergent UI rollback (free).
+
+### V.1 Gate (binding · 7 checkpoints)
+- [ ] All 5 field walks recorded with 🟢 verdicts
+- [ ] 24-72h preview observation clean (no recurring patterns)
+- [ ] Save to GitHub completed
+- [ ] Production deploy succeeded
+- [ ] 4 production curl checks PASS
+- [ ] Browser verification 5-step PASS
+- [ ] 72-hour production observation clean
+
+### Files touched
+- `memory/DEPLOY_STABILIZATION_1_HANDOFF.md` (NEW · full operator flight card)
+- `memory/AUTHORITY_MISMATCH_REPORT.md` (refreshed by probe run)
+- `pw-browsers/chromium_headless_shell-1217/*` (env-level reinstall)
+
+### Status
+🟢 **Cleanroom locked. Foundation operationally ready for cutover.**
+🔵 Awaiting operator-led field walks + Save + Deploy + 72h observation.
+🟢 **Phase V.1 RFI MVP unlocks** on explicit operator "start V.1" command.
+
+---
+
+
 ## 2026-05-28 (fork) — Phase STABILIZATION-FINAL · Pre-V.1 Hardening Sweep 🟢
 
 ### Mission
