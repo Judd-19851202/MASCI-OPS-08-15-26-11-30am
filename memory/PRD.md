@@ -1,6 +1,112 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — Phase TRUST-TIME-1 · Platform Timezone/Timestamp Truthfulness 🟢 GREEN
+
+### Mission
+Operators in production reported PO receipt upload times showing
++4h delta (uploaded at 9:43 AM Eastern, displayed 1:43 PM). Operators
+cannot trust timelines off by an entire shift. Audit + fix the
+platform's timestamp truthfulness contract.
+
+### Verdict
+🟢 **GREEN — safe to deploy.**
+
+Full certification: `/app/memory/TRUST_TIME_1_CERTIFICATION.md`.
+
+### Root cause (3-layer alignment failure)
+1. `AsyncIOMotorClient(mongo_url)` was not tz-aware → Mongo
+   returned naive datetimes despite being stored as UTC.
+2. Backend `_iso(dt)` helpers emitted naive ISO strings (no `Z`
+   suffix) — three independent copies in `po_requests.py`,
+   `admin_ops.py`, `health_monitor.py`.
+3. JS `new Date("2026-05-28T13:43:00")` parses naive ISO as **local**
+   time per ECMAScript spec → UTC clock numbers displayed as local.
+
+### Fix (3-layer remediation)
+**Backend (root cause):**
+- `server.py` — `AsyncIOMotorClient(mongo_url, tz_aware=True)`
+- 3 `_iso()` helpers — defensive: tag naive datetimes as UTC
+
+**Frontend (display contract + defense in depth):**
+- `lib/dateUtils.js` — full rewrite with 8 named exports + `_coerce()`
+  helper that defensively tags naive ISO as UTC for backward
+  compatibility with historical records.
+
+### Doctrine (one paragraph)
+**Store UTC · transmit tz-aware ISO · render local browser time · label
+UTC when explicitly UTC.** Detailed standard in
+`/app/memory/TIMESTAMP_UTILITY_STANDARD.md`.
+
+### Operator-facing surfaces migrated (10 renders across 5 files)
+- `PoRequests.jsx` — PO list created · drawer submitted · approved-by · receipt-uploaded · audit log
+- `NotificationsDigest.jsx` — last-detected · generated-at
+- `PmFieldLeadership.jsx` — list occurred-at · detail filed
+- `HrEmployeeAccountabilityTimeline.jsx` — audit footer (UTC labeled)
+- `SystemHealth.jsx` — checked-at footer (UTC labeled)
+
+### Surfaces deferred (8 admin/audit · LOW impact · next pass)
+Documented in `/app/memory/TIMEZONE_RENDERING_SURFACE_MAP.md`.
+
+### Verification
+- 🟢 Live preview: every PO `created_at` now ends with `Z`
+- 🟢 OPS-1 page green · all 9 stanzas
+- 🟢 Authority Mismatch Probe: 0/0/58/88ms
+- 🟢 **74/74 regression battery PASS** (12 new tests + 62 preserved)
+- 🟢 Florida operator simulation: UTC 13:43 → "9:43 AM" local
+- 🟢 All 4 CONUS timezones (ET · CT · MT · PT) localize correctly
+- 🟢 Naive ISO and `Z`-suffixed ISO render identically (defensive coerce)
+- 🟢 Audit helper always suffixes " UTC" (no silent UTC display)
+
+### New tests
+- `test_trust_time_1_backend_contract.py` · 5/5 PASS
+- `test_trust_time_1_frontend_localization.py` · 7/7 PASS
+  (Node-driven V8 `Intl` harness · ~2s wall time · 4 CONUS tz)
+
+### Required output docs (all 6 produced)
+- `TIMESTAMP_TRUTHFULNESS_AUDIT.md`
+- `TIMEZONE_RENDERING_SURFACE_MAP.md`
+- `TIMESTAMP_UTILITY_STANDARD.md`
+- `PO_TIMESTAMP_REMEDIATION_REPORT.md`
+- `PLATFORM_TIMEZONE_REGRESSION_REPORT.md`
+- `TRUST_TIME_1_CERTIFICATION.md`
+
+### Files touched (18)
+**Backend (4):** server.py · po_requests.py · admin_ops.py · health_monitor.py.
+**Frontend (6):** dateUtils.js (rewrite) · PoRequests.jsx ·
+NotificationsDigest.jsx · PmFieldLeadership.jsx ·
+HrEmployeeAccountabilityTimeline.jsx · SystemHealth.jsx.
+**Probe baseline (1):** authority_pattern_baseline.json (line 113 → 114).
+**Tests (2):** TRUST-TIME-1 backend + frontend localization suites.
+**Docs (6):** all six required output docs.
+
+### Doctrine compliance
+- ✅ Store UTC · transmit tz-aware · render local · label UTC explicitly
+- ✅ No data migration required
+- ✅ No auth changes · no workflow redesign · no dashboard expansion
+- ✅ No chart creep · no PII leakage · governance suites all green
+- ✅ Preview only · NO production deploy yet
+
+### Known risks
+🟢 **No HIGH or MEDIUM risks.** 2 LOW risks documented:
+- 8 admin/audit surfaces still use the legacy `.slice(0,16).replace("T"," ")`
+  pattern (scheduled for next pass — all admin-context audit views)
+- Frontend localization tests use Node V8 `Intl` rather than real iOS
+  Safari (same Unicode CLDR data underlies both)
+
+### Deploy recommendation
+🟢 **PROCEED with Save + Deploy.** Fix is byte-clean,
+regression-locked, surgical. Production operators will immediately
+see correct local-time renderings on PO timelines after the deploy.
+The defensive frontend `_coerce()` also fixes historical records
+that may still be cached with naive serialization.
+
+### Status
+🟢 **TRUST-TIME-1 COMPLETE.** Awaiting operator-led Save + Deploy.
+
+---
+
+
 ## 2026-05-28 (fork) — POST-DEPLOY LIVE PRODUCTION CERTIFICATION 🟢 GREEN
 
 ### Mission

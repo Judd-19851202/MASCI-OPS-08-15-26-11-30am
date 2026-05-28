@@ -12,6 +12,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Loader2, FileText, Search, Eye, X, UserCheck } from "lucide-react";
 import { API } from "@/lib/api";
+import { formatLocalDate, formatLocalDateTime } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -160,7 +161,7 @@ export default function PmFieldLeadership() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t border-slate-100 hover:bg-amber-50/30">
-                  <td className="px-3 py-2 font-mono text-xs">{(r.occurred_at || r.created_at || "").slice(0, 10)}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{formatLocalDate(r.occurred_at || r.created_at)}</td>
                   <td className="px-3 py-2 font-mono text-xs">{r.doc_id || "—"}</td>
                   <td className="px-3 py-2">{KIND_LABEL[r.kind] || r.kind}</td>
                   <td className="px-3 py-2 font-semibold">{r.employee_name || "—"}</td>
@@ -200,7 +201,7 @@ function DetailDrawer({ record, onClose }) {
           <Button variant="ghost" size="sm" onClick={onClose}><X className="w-4 h-4" /></Button>
         </div>
         <div className="p-4 sm:p-5 text-sm space-y-2">
-          <Row label="Filed" value={(record.occurred_at || record.created_at || "").slice(0, 16).replace("T", " ")} />
+          <Row label="Filed" value={formatLocalDateTime(record.occurred_at || record.created_at)} />
           <Row label="Supervisor" value={record.supervisor_name} />
           <Row label="Position" value={record.employee_position} />
           {record.details && Object.entries(record.details).filter(([k]) => !k.startsWith("_") && k !== "hr_decision").slice(0, 12).map(([k, v]) => (

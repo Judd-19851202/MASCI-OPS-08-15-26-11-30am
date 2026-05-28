@@ -48,6 +48,7 @@ import { isHr } from "@/lib/hrAuth";
 import { isPm } from "@/lib/pmAuth";
 import { isLeadershipAuthed } from "@/lib/leadershipAuth";
 import { getPoCapabilities } from "@/lib/poCapabilities";
+import { formatLocalDateTime, formatLocalDate } from "@/lib/dateUtils";
 import AccessDenied from "@/pages/AccessDenied";
 import { toast } from "sonner";
 import StatusBadge from "@/components/StatusBadge";
@@ -306,7 +307,7 @@ export default function PoRequests() {
                     <td className="px-4 py-2.5 text-slate-600 text-xs font-mono">{p.project_number}</td>
                     <td className="px-4 py-2.5 text-slate-800 text-xs font-mono">${(p.approved_amount ?? p.estimated_amount).toFixed(2)}</td>
                     <td className="px-4 py-2.5 text-slate-600 text-xs">{p.urgency}</td>
-                    <td className="px-4 py-2.5 text-slate-500 text-[11px] font-mono">{new Date(p.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-2.5 text-slate-500 text-[11px] font-mono">{formatLocalDate(p.created_at)}</td>
                     <td className="px-4 py-2.5"><ChevronRight className="w-4 h-4 text-slate-300" /></td>
                   </tr>
                 ))}
@@ -551,9 +552,9 @@ function PoDrawer({ id, caps, onClose }) {
               <KV label="Category" value={po.category} />
               <KV label="Description" value={po.description} multiline />
               <KV label="Requested by" value={`${po.requested_by_name} (${po.requested_by_role})`} />
-              <KV label="Submitted" value={new Date(po.created_at).toLocaleString()} />
+              <KV label="Submitted" value={formatLocalDateTime(po.created_at)} />
               {po.needed_by_date && <KV label="Needed by" value={po.needed_by_date} />}
-              {po.approved_by && <KV label="Approved by" value={`${po.approved_by.name} on ${new Date(po.approved_at).toLocaleString()}`} />}
+              {po.approved_by && <KV label="Approved by" value={`${po.approved_by.name} on ${formatLocalDateTime(po.approved_at)}`} />}
               {po.rejection_reason && <KV label="Reason" value={po.rejection_reason} multiline />}
 
               {/* Receipt block */}
@@ -565,7 +566,7 @@ function PoDrawer({ id, caps, onClose }) {
                   </a>
                   <div className="text-[11px] text-slate-600 mt-1">
                     {po.receipt_amount != null && <>${po.receipt_amount.toFixed(2)} · </>}
-                    {po.receipt_uploaded_at && new Date(po.receipt_uploaded_at).toLocaleString()}
+                    {po.receipt_uploaded_at && formatLocalDateTime(po.receipt_uploaded_at)}
                   </div>
                   {po.receipt_notes && <div className="text-[11px] text-slate-700 mt-1">{po.receipt_notes}</div>}
                 </div>
@@ -676,7 +677,7 @@ function PoDrawer({ id, caps, onClose }) {
                   <ul className="space-y-1 text-[11px] text-slate-600">
                     {po.audit.slice().reverse().map((a, idx) => (
                       <li key={idx}>
-                        <span className="font-mono text-slate-400">{new Date(a.at).toLocaleString()}</span>
+                        <span className="font-mono text-slate-400">{formatLocalDateTime(a.at)}</span>
                         {" · "}
                         <span className="font-bold">{a.action}</span>
                         {a.by?.name && ` · ${a.by.name}`}

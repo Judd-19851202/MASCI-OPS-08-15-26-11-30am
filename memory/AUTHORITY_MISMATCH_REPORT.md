@@ -2,8 +2,8 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-05-28 09:52:53 UTC
-* Scan duration: 118 ms
+* Generated: 2026-05-28 14:05:52 UTC
+* Scan duration: 140 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 
@@ -39,8 +39,8 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `pages/HrEmployees.jsx:78` · ad-hoc canApprove variable
 * `pages/NewIncident.jsx:311` · ad-hoc canApprove variable
 * `pages/NewIncident.jsx:333` · ad-hoc canApprove variable
-* `pages/HrEmployeeAccountabilityTimeline.jsx:113` · ad-hoc canApprove variable
-* `pages/HrEmployeeAccountabilityTimeline.jsx:113` · ad-hoc canApprove variable
+* `pages/HrEmployeeAccountabilityTimeline.jsx:114` · ad-hoc canApprove variable
+* `pages/HrEmployeeAccountabilityTimeline.jsx:114` · ad-hoc canApprove variable
 * `pages/ViewEquipmentInspection.jsx:145` · ad-hoc canApprove variable
 * `pages/SafetyFormsHub.jsx:62` · ad-hoc canApprove variable
 * `pages/ViewQaqcInspection.jsx:71` · ad-hoc canApprove variable

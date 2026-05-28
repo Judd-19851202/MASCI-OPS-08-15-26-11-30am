@@ -6,6 +6,7 @@ import { Activity, RefreshCcw, CheckCircle2, AlertTriangle, XCircle, Loader2 } f
 import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { formatUtcForAudit } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 
@@ -61,7 +62,7 @@ export default function SystemHealth() {
             <div className="font-display text-xl font-black">{ov.label}</div>
           </div>
           <div className="ml-auto text-xs text-slate-600 font-mono">
-            Checked {(data?.checked_at || "").slice(0, 16).replace("T", " ")} UTC
+            Checked {formatUtcForAudit(data?.checked_at)}
           </div>
         </div>
 

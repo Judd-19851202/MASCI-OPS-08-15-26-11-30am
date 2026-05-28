@@ -97,11 +97,27 @@ class PoClarificationResponse(BaseModel):
 
 
 def _iso(dt) -> str:
+    # TRUST-TIME-1 doctrine · 2026-05-28
+    # ----------------------------------
+    # All operator-facing timestamps MUST round-trip as ABSOLUTE
+    # (tz-aware) ISO strings so the browser can convert them to local
+    # time. Historical writes used `datetime.now(timezone.utc)` (good)
+    # but Mongo round-tripped them as NAIVE datetimes when the Motor
+    # client wasn't tz-aware. That made the frontend interpret them
+    # as LOCAL time → operator at 9:43 AM Eastern saw 1:43 PM.
+    #
+    # Belt-and-braces:
+    #   * server.py now uses `AsyncIOMotorClient(..., tz_aware=True)`
+    #     so reads come back UTC-aware.
+    #   * This helper still defends against historical naive datetimes
+    #     by tagging them as UTC explicitly before serializing.
     if not dt:
         return ""
     if isinstance(dt, str):
         return dt
     try:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
         return dt.replace(microsecond=0).isoformat()
     except Exception:
         return str(dt)

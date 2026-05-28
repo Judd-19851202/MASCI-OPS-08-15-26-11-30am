@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
+import { formatLocalDateTime, formatLocalShort } from "@/lib/dateUtils";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -120,7 +121,7 @@ function SectionCard({ section }) {
               </div>
               {it.last_detected_at ? (
                 <div className="text-[10px] font-mono text-slate-400 shrink-0 inline-flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> {it.last_detected_at.slice(0, 16).replace("T", " ")}
+                  <Clock className="w-3 h-3" /> {formatLocalShort(it.last_detected_at)}
                 </div>
               ) : null}
             </li>
@@ -188,7 +189,7 @@ export default function NotificationsDigest() {
             </h1>
             {digest?.generated_at ? (
               <div className="text-xs font-mono text-slate-500 mt-1">
-                {t("Generated")} {digest.generated_at.slice(0, 19).replace("T", " ")}
+                {t("Generated")} {formatLocalDateTime(digest.generated_at)}
               </div>
             ) : null}
           </div>

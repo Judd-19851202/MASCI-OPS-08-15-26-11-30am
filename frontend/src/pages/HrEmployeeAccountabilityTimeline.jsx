@@ -29,6 +29,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { formatUtcForAudit } from "@/lib/dateUtils";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -450,7 +451,7 @@ export default function HrEmployeeAccountabilityTimeline() {
             <div className="text-[11px] text-slate-500 font-mono flex items-center gap-2 pt-2 border-t border-slate-200" data-testid="acct-footer">
               <FileText className="w-3 h-3" />
               {t("Aggregated view · source records remain authoritative · generated")}{" "}
-              {(data?.generated_at || "").slice(0, 19).replace("T", " ")} UTC
+              {formatUtcForAudit(data?.generated_at)}
             </div>
           </>
         )}

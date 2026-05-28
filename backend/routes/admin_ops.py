@@ -30,10 +30,13 @@ def _now() -> datetime:
 
 
 def _iso(dt: Optional[datetime]) -> Optional[str]:
+    # TRUST-TIME-1 · always emit tz-aware ISO so the browser localizes.
     if not dt:
         return None
     if isinstance(dt, str):
         return dt
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
     return dt.replace(microsecond=0).isoformat()
 
 
