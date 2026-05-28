@@ -222,6 +222,28 @@
       "passive": true,
       "operator_facing": false,
       "probe": "scripts/timeline_calmness_probe.py"
+    },
+    {
+      "id": "trendline-integrity-probe",
+      "name": "Trendline Integrity Probe · governance memory self-protection (V-Prelude Wave 1.1B)",
+      "status": "live",
+      "phase": "V-Prelude.W1.1B",
+      "capabilities": [],
+      "regression": [
+        "backend/tests/test_trendline_integrity_probe.py"
+      ],
+      "telemetry": [
+        "memory/TIMELINE_LOUDNESS_TRENDLINE.snapshot.json",
+        "memory/LOUDNESS_TRENDLINE.snapshot.json"
+      ],
+      "doctrine": "memory/WAVE1_1B_GOVERNANCE_MEMORY_SUMMARY.md",
+      "passive": true,
+      "operator_facing": false,
+      "probe": "scripts/trendline_integrity_probe.py",
+      "protected_assets": [
+        "memory/TIMELINE_LOUDNESS_TRENDLINE.json",
+        "memory/LOUDNESS_TRENDLINE.json"
+      ]
     }
   ],
   "doctrine_fields": [

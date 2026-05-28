@@ -27167,3 +27167,62 @@ posture. Wave 2 LOCKED until "start V-Prelude Wave 2".
 🟢 **Wave 1.1A passive calmness telemetry live · institutional memory
 seeded · 0 regressions · 0 operator-facing surfaces touched · awaiting
 Wave 2 authorization.**
+
+---
+
+## Phase V-Prelude · Wave 1.1B — Governance Memory Self-Protection (2026-05-28)
+
+🟢 **COMPLETE · preview env** · observation posture remains active.
+
+### Authorization
+Operator command "PHASE V-PRELUDE · WAVE 1.1B · GOVERNANCE MEMORY
+SELF-PROTECTION + OBSERVATION FREEZE HARDENING" (2026-05-28).
+
+### Hard rules honored
+- ✅ preview-only · APP_ENV=preview · DB=masci_safety_preview
+- ✅ no production deploy
+- ✅ no Wave 2 · no search · no field memory
+- ✅ no new UI surfaces · no new operator features
+- ✅ no timeline UX expansion · no dashboard creation
+- ✅ PASSIVE HARDENING ONLY
+
+### Delivered components
+1. **`scripts/trendline_integrity_probe.py`** — sub-second 8-axis
+   self-protection probe (shape · overwrite · historical mutation ·
+   malformed entries · TRUST-TIME-1 · chronology order · duplicate
+   deploy · snapshot continuity).
+2. **`*.snapshot.json` companion files** — last-known-good integrity
+   anchors for both `TIMELINE_LOUDNESS_TRENDLINE` and
+   `LOUDNESS_TRENDLINE`.
+3. **`scripts/pre_deploy_check.sh`** — new BLOCKING stage
+   `stage_trendline_integrity` (sub-second).
+4. One-time TRUST-TIME-1 conformance fix for the single pre-existing
+   `LOUDNESS_TRENDLINE.json` entry (`+00:00` → `Z`).
+5. Zero backend code changes · zero frontend changes.
+
+### Required certification deliverables (all 5 shipped)
+- `WAVE1_1B_GOVERNANCE_MEMORY_SUMMARY.md`
+- `TRENDLINE_SELF_PROTECTION_CERTIFICATION.md`
+- `GOVERNANCE_MEMORY_INTEGRITY_REPORT.md`
+- `APPEND_ONLY_MEMORY_CERTIFICATION.md`
+- `OBSERVATION_FREEZE_HARDENING_REPORT.md`
+
+### Regression
+- ✅ 16/16 trendline integrity tests pass in 0.06 s
+  (`test_trendline_integrity_probe.py`).
+- ✅ 50/50 combined V-Prelude regression sweep (Wave 1 substrate +
+  Wave 1.1 sidecar + Wave 1.1A telemetry + Wave 1.1B integrity).
+- ✅ All 5 doctrine probes green
+  (authority_mismatch · timestamp_doctrine · operational_links ·
+  trendline_integrity · timeline_calmness).
+- ✅ Live trendlines clean · snapshots seeded.
+
+### Stop condition
+Per operator directive: STOP. Remain inside Wave 1 observation
+posture. Wave 2 LOCKED until "start V-Prelude Wave 2".
+
+### Verdict
+🟢 **Wave 1.1B governance memory self-protection live · 18 freeze
+triggers documented · institutional memory now un-falsifiable ·
+0 regressions · 0 operator-facing surfaces touched · awaiting Wave 2
+authorization.**

@@ -376,6 +376,22 @@ stage_timeline_calmness_telemetry() {
 }
 
 
+# ─── V-Prelude Wave 1.1B · trendline integrity probe · 2026-05-28 ─
+# Sub-second append-only governance memory self-protection. Defends
+# `memory/TIMELINE_LOUDNESS_TRENDLINE.json` and
+# `memory/LOUDNESS_TRENDLINE.json` against silent overwrite, historical
+# mutation, malformed entries, non-Z timestamps, chronology-order
+# violations, and duplicate (iteration,timestamp) pairs. Snapshot
+# companion files (`*.snapshot.json`) record the last known-good
+# checksum + entry count + newest/oldest timestamps.
+# Doctrine: PROTECTIVE only · never mutates the trendlines · only
+# refreshes its own snapshots on a clean run.
+stage_trendline_integrity() {
+  cd "$REPO_ROOT"
+  python3 scripts/trendline_integrity_probe.py --gate
+}
+
+
 # ─── TRUST-1 Wave 1 · TF-018 · 2026-05-27 ─────────────────────────────
 # Visibility-of-visibility gate. The /api/draft-telemetry layer exists
 # specifically so field-incident failures stay diagnosable. If a future
@@ -461,6 +477,8 @@ run_stage "GOVERNANCE-INFRA-1 · authority mismatch probe" stage_governance_auth
 run_stage "TRUST-TIME-1B · timestamp doctrine probe" stage_timestamp_doctrine
 # V-Prelude Wave 1 · operational_links doctrine probe (Mongo sweep).
 run_stage "V-Prelude Wave 1 · operational_links doctrine probe" stage_operational_links_doctrine
+# V-Prelude Wave 1.1B · trendline integrity probe (sub-second).
+run_stage "V-Prelude Wave 1.1B · trendline integrity probe" stage_trendline_integrity
 # V-Prelude Wave 1.1A · timeline calmness telemetry (passive trendline).
 if [[ "$MODE" != "auth-only" && "$MODE" != "fast" ]]; then
   run_stage "V-Prelude Wave 1.1A · timeline calmness telemetry" stage_timeline_calmness_telemetry

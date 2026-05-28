@@ -128,6 +128,18 @@ All planning artifacts for the pre-RFI substrate work.
 | `OPERATIONAL_TIMELINE_STABILITY_REPORT.md` | End-of-pass stability picture | 🟡 active |
 | `TIMELINE_LOUDNESS_TRENDLINE.json` | Append-only calmness trendline | 🟢 auto-gen |
 
+### Wave 1.1B — Governance Memory Self-Protection (implemented 2026-05-28)
+
+| File | Purpose | Status |
+|---|---|---|
+| `WAVE1_1B_GOVERNANCE_MEMORY_SUMMARY.md` | Wave 1.1B master summary | 🟢 |
+| `TRENDLINE_SELF_PROTECTION_CERTIFICATION.md` | Probe cert · 8-axis matrix | 🟢 |
+| `GOVERNANCE_MEMORY_INTEGRITY_REPORT.md` | Live snapshot state · guarantees | 🟢 |
+| `APPEND_ONLY_MEMORY_CERTIFICATION.md` | Append-only doctrine | 🟢 |
+| `OBSERVATION_FREEZE_HARDENING_REPORT.md` | 18 freeze triggers · pre-Wave-2 gate | 🟢 |
+| `TIMELINE_LOUDNESS_TRENDLINE.snapshot.json` | Trendline integrity anchor | 🟢 auto-gen |
+| `LOUDNESS_TRENDLINE.snapshot.json` | Portal-wide trendline anchor | 🟢 auto-gen |
+
 ## 5 · Route Decomposition / Backend Architecture
 
 How `server.py` is being split into `routes/`.
