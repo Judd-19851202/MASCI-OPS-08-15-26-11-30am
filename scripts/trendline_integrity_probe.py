@@ -77,6 +77,20 @@ TRENDLINES: List[Dict[str, Any]] = [
         "ts_key": "timestamp",
         "id_key": "iteration",
     },
+    {
+        # V-Prelude Observation Ledger — operator walkthrough verdicts.
+        # Dedup key is the (scenario, reviewer) pair alongside timestamp;
+        # encoded as a composite string here so the existing
+        # single-`id_key` logic handles it without a refactor.
+        "name": "OBSERVATION_LEDGER",
+        "path": Path("/app/memory/OBSERVATION_LEDGER.json"),
+        "required_keys": (
+            "timestamp", "scenario", "reviewer",
+            "answers", "freeze_trigger_observed",
+        ),
+        "ts_key": "timestamp",
+        "id_key": "_dedup_composite",
+    },
 ]
 
 # Z-suffixed UTC ISO 8601, second OR millisecond precision. Reject any
@@ -181,7 +195,15 @@ def _check_one(spec: Dict[str, Any], *, refresh: bool) -> Dict[str, Any]:
             )
             parsed_times.append(None)  # type: ignore[arg-type]
         # Duplicate detection — same (iteration, timestamp) pair.
-        ident = entry.get(id_key)
+        # OBSERVATION_LEDGER uses a composite identifier built from
+        # (scenario, reviewer) so two distinct walkthroughs at the
+        # same timestamp don't collide while genuine replays still do.
+        if id_key == "_dedup_composite":
+            scenario = entry.get("scenario", "")
+            reviewer = entry.get("reviewer", "")
+            ident = f"{scenario}|{reviewer}"
+        else:
+            ident = entry.get(id_key)
         if isinstance(ident, str) and isinstance(ts, str):
             key_pair = (ident, ts)
             if key_pair in seen_ids:
