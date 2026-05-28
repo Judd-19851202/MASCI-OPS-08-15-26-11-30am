@@ -101,8 +101,11 @@ def context(browser: Browser, viewport_name: str) -> Iterator[BrowserContext]:
             else None
         ),
     )
-    # Cap per-test wall time so a hang doesn't burn the whole suite.
-    ctx.set_default_timeout(20_000)
+    # TRUST-1 stabilization · 2026-05-27 — bumped from 20s to 30s after
+    # repeated Page.goto/wait_for_selector timeouts on the preview pod
+    # under load. The preview is shared infra; 30s is still fast enough
+    # to catch real regressions while absorbing routine network jitter.
+    ctx.set_default_timeout(30_000)
     yield ctx
     ctx.close()
 

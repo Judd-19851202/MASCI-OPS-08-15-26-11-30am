@@ -61,6 +61,7 @@ ALLOWED_EVENTS = {
     "draft.write.fail",
     "draft.restore.offered",
     "draft.restore.action",
+    "draft.recovery.absent",
     "draft.lifecycle",
     "draft.actorId.rotated",
     "quota.warning",

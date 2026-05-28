@@ -47,6 +47,7 @@ import {
 import { getDeviceScopedActorId, getLegacyActorIds } from "./actorId";
 import { emitDraftEvent } from "./draftTelemetry";
 import { estimateQuota } from "./quotaProbe";
+import { markPriorUsage } from "./priorUsage";
 
 const DEBOUNCE_MS = 800;
 const MAX_INTERVAL_MS = 10_000;
@@ -148,6 +149,10 @@ export function useFormDraft(formKey, data, actorId) {
       setDraftStatus("saved");
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       idleTimerRef.current = setTimeout(() => setDraftStatus("idle"), 1500);
+      // TRUST-1 · TF-001 — record that this device has used the form
+      // so a future returning-foreman session with empty IDB can be
+      // distinguished from a genuinely first-time user.
+      try { markPriorUsage(formKey); } catch { /* ignore */ }
       emitDraftEvent("draft.write.ok", {
         formKey,
         payloadBytes: serialized.length,

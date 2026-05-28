@@ -30,6 +30,9 @@ export {
   registerAutoReplay as registerOfflineAutoReplay,
 } from "./offlineQueue";
 export {
+  markPriorUsage, getPriorUsage, hasStalePriorUsage,
+} from "./priorUsage";
+export {
   stagePhoto, listStagedFor, listAllStaged, getStagedCount,
   flushStaged, removeStaged, onStagedChange,
 } from "./photoStaging";
@@ -44,6 +47,7 @@ export { default as DraftStatusPill } from "./DraftStatusPill";
 export { default as DraftRestorePrompt } from "./DraftRestorePrompt";
 export { default as DraftRecoveryNotice } from "./DraftRecoveryNotice";
 export { default as QuotaWarningChip } from "./QuotaWarningChip";
+export { default as PriorUsageBanner } from "./PriorUsageBanner";
 export { default as StagedPhotoBadge } from "./StagedPhotoBadge";
 export { getActorId, getDeviceScopedActorId, getLegacyActorIds } from "./actorId";
 export { getDeviceId, ensureDeviceId } from "./deviceId";

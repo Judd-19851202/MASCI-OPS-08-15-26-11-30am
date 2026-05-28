@@ -50,9 +50,10 @@ import {
   useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
   persistIdempotencyKey, loadIdempotencyKey, onQueueItemSettled,
   DraftStatusPill, DraftRestorePrompt, DraftRecoveryNotice,
-  QuotaWarningChip,
+  QuotaWarningChip, PriorUsageBanner,
   recoverArchivedDraft,
   getDeviceScopedActorId,
+  hasStalePriorUsage, getPriorUsage,
 } from "@/lib/resiliency";
 // iter437 · Phase 31.1 · Daily Report Crew Memory Continuity.
 import {
@@ -281,6 +282,23 @@ export default function NewDailyReport({ publicMode = false }) {
     setArchivedDraft(null);
     toast.success(t("Draft brought back"));
   }, [archivedDraft, t]);
+
+  // TRUST-1 · TF-001 — Prior-usage soft banner.
+  // Shown only when (a) the live draft is absent, (b) no archive entry
+  // is recoverable, AND (c) the prior-usage beacon shows this device
+  // has saved before more than 24h ago. Calm reassurance, not alarm.
+  const [priorUsage, setPriorUsage] = React.useState(null);
+  React.useEffect(() => {
+    if (!draftLoaded) return;
+    if (pendingDraft || archivedDraft) { setPriorUsage(null); return; }
+    try {
+      if (hasStalePriorUsage("daily-report-new")) {
+        setPriorUsage(getPriorUsage("daily-report-new"));
+      } else {
+        setPriorUsage(null);
+      }
+    } catch { /* ignore */ }
+  }, [draftLoaded, pendingDraft, archivedDraft]);
 
   // iter440 — hydrate any persisted idempotency key from IDB so a
   // reload mid-offline-queue does not mint a duplicate submission.
@@ -886,6 +904,16 @@ export default function NewDailyReport({ publicMode = false }) {
           onRecover={onRecoverArchive}
           onDismiss={() => setArchivedDraft(null)}
           testId="daily-report-draft-recovery"
+        />
+
+        {/* TRUST-1 · TF-001 — calm prior-usage banner. Surfaces ONLY
+            when no live draft and no archive exists AND this device has
+            saved this form > 24h ago. Reassuring, not alarming. */}
+        <PriorUsageBanner
+          formKey="daily-report-new"
+          priorUsage={pendingDraft || archivedDraft ? null : priorUsage}
+          onDismiss={() => setPriorUsage(null)}
+          testId="daily-report-prior-usage"
         />
 
         {/* 01 — Report info */}

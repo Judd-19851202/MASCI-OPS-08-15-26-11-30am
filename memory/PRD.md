@@ -1,6 +1,104 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-27 (fork) — Phase TRUST-1 · Final Hardening Pass 🟢
+
+### Mission
+Close the remaining TRUST-1 audit items (TF-001 T4 + TF-005/019/020
+visibility) and stabilize the pre-existing pw_suite flakes BEFORE
+Phase V.1 RFI work begins.
+
+### Findings closed
+- **TF-001 (T4)** · Soft prior-usage banner on Daily Report.
+  `lib/resiliency/priorUsage.js` — tiny localStorage beacon
+  (`masci.prior-usage.<formKey>`) recording `{ first, last, count }`.
+  `useFormDraft` writes on every successful save. On mount with no
+  live draft AND no archive AND beacon stale > 24h:
+  `lib/resiliency/PriorUsageBanner.jsx` surfaces a calm slate banner
+  reading **"We couldn't find recent local draft data on this iPad.
+  If work seems missing, contact support and provide your Support ID."**
+  Includes copyable Support ID, "Learn more" disclosure, and a quiet
+  Dismiss action. Fires `draft.recovery.absent` telemetry on mount
+  (new event added to backend `ALLOWED_EVENTS`). NO scary language /
+  no "panic" / no "corruption" / no "IndexedDB" / no "ITP" wording.
+
+- **TF-005 / TF-019 / TF-020** · Affected-device triage expander on
+  the Draft Health tile. Clicking the "Devices affected" number
+  toggles a text-only list of the last 5 affected Support IDs with
+  event type (`write.fail` / `restore.action` / `recovery.absent` /
+  `q.warning`), detail (error name, choice, trigger), and humanized
+  timestamp. No charts, no graphs, no per-device drill page. 1-minute
+  deterministic triage; closes the "which device, what happened,
+  when" question without curl.
+
+### Flake stabilization (pre-Phase V)
+- **Governance health chip /100 contract** —
+  `frontend/src/components/GovernanceHealthChip.jsx` now always
+  appends the absolute `N/100` loudness score to the trailing label,
+  even for `drifting` / `improving` directional states. Truthful-
+  state doctrine: operator always sees absolute baseline alongside
+  any trend. 5 viewport×portal regressions back to green.
+- **Trendline append at-cap** —
+  `test_trendline_and_default_posture.py::test_trendline_append_writes_record`
+  now uses `min(TRENDLINE_MAX_RECORDS, before_count+1)` as the
+  invariant. Once at-cap, the file holds steady-state with the
+  latest record. Cap is doctrine, not bug.
+- **Safety sidebar default-posture mobile param** — pinned desktop+ipad
+  via `viewport_name` skip on mobile. Mobile uses the separate
+  mobile-nav surface (covered by `test_pm_mobile_nav_scroll.py`).
+- **Conftest default-timeout** — bumped from 20s → 30s. The preview
+  pod is shared infra; the bump absorbs routine network jitter
+  without masking real regressions. Eliminated repeated Page.goto
+  timeouts on the pm/safety/admin portal nav suites.
+
+### Truthful-state doctrine reinforced
+- Save pill data-state (saving / saved / failed / idle)
+- Restore prompt with savedAt timestamp + cross-token note
+- Recovery notice for soft-deleted drafts (24h window)
+- Quota warning chip BEFORE QuotaExceededError
+- Prior-usage banner for returning device with empty storage
+- Deferred submit-commit (commit only on confirmed 2xx OR queue exhaustion)
+- Governance chip absolute loudness always visible alongside trend
+
+### Files touched
+- `frontend/src/lib/resiliency/priorUsage.js` (NEW)
+- `frontend/src/lib/resiliency/PriorUsageBanner.jsx` (NEW)
+- `frontend/src/lib/resiliency/index.js` — new barrel exports
+- `frontend/src/lib/resiliency/useFormDraft.js` — `markPriorUsage` on save.ok
+- `frontend/src/components/admin/DraftHealthTile.jsx` — affected-device expander
+- `frontend/src/components/GovernanceHealthChip.jsx` — `/100` suffix
+- `frontend/src/pages/NewDailyReport.jsx` — wired `PriorUsageBanner`
+- `backend/routes/draft_telemetry.py` — `draft.recovery.absent` allowlist
+- `backend/tests/pw_suite/test_trust1_final_hardening.py` (NEW · 6/6 PASS)
+- `backend/tests/pw_suite/test_trust1_affected_device_expander.py` (NEW · 1/1 PASS)
+- `backend/tests/pw_suite/test_trendline_and_default_posture.py` — cap-tolerant + mobile-skip
+- `backend/tests/pw_suite/conftest.py` — 30s default timeout
+
+### Testing
+- New: 7 tests (6 final-hardening + 1 expander) · all PASS
+- Previously-failing tests now PASS: governance chip (5/5), trendline append,
+  safety sidebar default-posture, contextual return path, pm-mobile-nav, portal-token-routing,
+  safety-sidebar-v2 admin-leak tests
+- Trust-1 sweep: 96 PASS / 1 expected-skip / 0 FAIL across 10 test files
+- Pre-deploy gate stage_trust1_draft_telemetry_health now green-lights
+
+### Phase V gate (now clear)
+- ✅ Wave 1 visibility hardened
+- ✅ Wave 2 survivability closed
+- ✅ TF-001 operator response path landed (soft banner approach)
+- ✅ Pre-existing pw_suite flakes resolved (no false-signal source remaining)
+
+**Phase V.1 RFI MVP may begin after:**
+1. Preview validation pass
+2. Full trust regression sweep
+3. Real iPad workflow validation
+4. Telemetry validation (draft.recovery.absent visible in /api/draft-telemetry/recent)
+5. Production cutover review
+6. 72-hour observation window
+
+---
+
+
 ## 2026-05-27 (fork) — Phase TRUST-1 · Wave 1 + Wave 2 · Operational trust hardening 🟢
 
 ### Mission

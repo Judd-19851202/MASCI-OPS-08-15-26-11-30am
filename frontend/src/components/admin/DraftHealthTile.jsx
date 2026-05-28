@@ -142,6 +142,7 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
       failedSaves24h: 0,
       discardsAfterFail24h: 0,
       affectedDevices24h: 0,
+      affectedDevicesList: [],
       lastEventReceivedAt: null,
       anonShare: 0,
       total24h: 0,
@@ -149,6 +150,11 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
     if (!events || !events.length) return out;
     const cutoff = Date.now() - DAY_MS;
     const failDevices = new Set();
+    // TRUST-1 · TF-005/019/020 — per-device deterministic triage map.
+    // Keyed by deviceId; remembers most recent failure event + token
+    // kind so the admin can read off a Support ID and event type in
+    // one tap. Lightweight (max 5 entries), text-only, no charts.
+    const deviceMap = new Map();
     let anonCount = 0;
     let total24h = 0;
     let mostRecent = null;
@@ -170,13 +176,36 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
         // the 24h window.
         out.discardsAfterFail24h += 1;
       }
+      // Per-device triage map — fail / discard / recovery.absent are
+      // the events that indicate operator-trust concern. Take only the
+      // FIRST (most recent, since events are desc) match per device.
+      const concernEvents = new Set([
+        "draft.write.fail",
+        "draft.restore.action",
+        "draft.recovery.absent",
+        "quota.warning",
+      ]);
+      if (e.deviceId && concernEvents.has(e.event) && !deviceMap.has(e.deviceId)) {
+        deviceMap.set(e.deviceId, {
+          deviceId: e.deviceId,
+          tokenKind: e.tokenKind || "anon",
+          event: e.event,
+          choice: (e.meta && e.meta.choice) || null,
+          trigger: (e.meta && e.meta.trigger) || null,
+          errorName: (e.meta && e.meta.errorName) || null,
+          receivedAt: e.receivedAt,
+        });
+      }
     }
     out.affectedDevices24h = failDevices.size;
+    out.affectedDevicesList = Array.from(deviceMap.values()).slice(0, 5);
     out.lastEventReceivedAt = mostRecent ? new Date(mostRecent).toISOString() : null;
     out.anonShare = total24h > 0 ? Math.round((anonCount / total24h) * 100) : 0;
     out.total24h = total24h;
     return out;
   }, [events]);
+
+  const [expanded, setExpanded] = useState(false);
 
   const verdict = _verdict({ ...stats, health });
   const meta = VERDICT_META[verdict];
@@ -233,10 +262,25 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
         </div>
         <div>
           <div className="font-mono uppercase tracking-wider opacity-70">Devices affected</div>
-          <div className="font-display text-2xl font-black leading-none mt-0.5"
-               data-testid={`${testId}-devices`}>
-            {stats.affectedDevices24h}
-          </div>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            disabled={stats.affectedDevicesList.length === 0}
+            data-testid={`${testId}-devices`}
+            aria-expanded={expanded}
+            aria-label="Toggle affected device triage"
+            className={`font-display text-2xl font-black leading-none mt-0.5 inline-flex items-baseline gap-1
+              ${stats.affectedDevicesList.length === 0
+                ? "cursor-default opacity-90"
+                : "cursor-pointer hover:opacity-80"}`}
+          >
+            <span>{stats.affectedDevices24h}</span>
+            {stats.affectedDevicesList.length > 0 ? (
+              <span className="font-mono text-[10px] uppercase tracking-wider opacity-60">
+                {expanded ? "hide" : "view"}
+              </span>
+            ) : null}
+          </button>
         </div>
         <div>
           <div className="font-mono uppercase tracking-wider opacity-70">Last event</div>
@@ -258,6 +302,55 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
           {loadedAt ? `loaded ${_fmtRelative(new Date(loadedAt).toISOString())}` : "loading…"}
         </span>
       </footer>
+
+      {/* TRUST-1 · TF-005 / TF-019 / TF-020 — affected-device expander.
+          Text-only operational triage: most recent Support IDs that
+          hit a concern event in the last 24h with their event type,
+          trigger, and timestamp. Lightweight by design — no charts,
+          no per-device drill page. Closes the "what's actually
+          wrong?" question in under a minute. */}
+      {expanded && stats.affectedDevicesList.length > 0 ? (
+        <div
+          data-testid={`${testId}-affected-list`}
+          className="mt-3 pt-2 border-t border-current/10"
+        >
+          <div className="font-mono text-[10px] uppercase tracking-wider opacity-70 mb-1.5">
+            Recent affected · Support IDs · top 5
+          </div>
+          <ul className="space-y-1">
+            {stats.affectedDevicesList.map((d) => {
+              const short = (d.deviceId || "—").slice(0, 12) + (d.deviceId && d.deviceId.length > 12 ? "…" : "");
+              const evShort = (d.event || "").replace(/^draft\./, "").replace(/^quota\./, "q.");
+              const detail = d.errorName
+                ? d.errorName
+                : d.choice
+                  ? d.choice
+                  : d.trigger || "—";
+              return (
+                <li
+                  key={d.deviceId}
+                  data-testid={`${testId}-affected-row`}
+                  data-device-id={d.deviceId}
+                  className="grid grid-cols-12 gap-2 items-center text-[11px] leading-tight"
+                >
+                  <span className="col-span-4 font-mono text-current/80 truncate" title={d.deviceId}>
+                    {short}
+                  </span>
+                  <span className="col-span-3 font-mono uppercase tracking-wider text-current/70">
+                    {evShort}
+                  </span>
+                  <span className="col-span-3 font-mono text-current/60 truncate" title={detail}>
+                    {detail}
+                  </span>
+                  <span className="col-span-2 font-mono text-[10px] text-current/60 text-right">
+                    {_fmtRelative(d.receivedAt)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
 
       {verdict === "quiet" ? (
         <p

@@ -68,23 +68,29 @@ export default function GovernanceHealthChip({ portal }) {
 
   // Choose label by priority: a real `drift` state always wins; otherwise
   // honour the direction signal; fall back to the static state.
+  //
+  // TRUST-1 hardening pass · 2026-05-27 — truthful-state doctrine. Every
+  // trailing label now carries the absolute loudness score (`N/100`),
+  // even when surfacing a directional delta. Operators must always be
+  // able to read the calm baseline at a glance, not just the trend.
+  const absLoudness = `${Math.round(data.loudness || 0)}/100`;
   let label;
   let trailing;
   if (state === "drift") {
     label = "governance drift";
-    trailing = `${Math.round(data.loudness || 0)}/100`;
+    trailing = absLoudness;
   } else if (dir === "improving" && delta !== null) {
     label = "governance improving";
-    trailing = `${delta > 0 ? "+" : ""}${delta} drift${sinceSuffix}`;
+    trailing = `${delta > 0 ? "+" : ""}${delta} drift${sinceSuffix} · ${absLoudness}`;
   } else if (dir === "drifting" && delta !== null) {
     label = "governance drifting";
-    trailing = `+${Math.abs(delta)} drift${sinceSuffix}`;
+    trailing = `+${Math.abs(delta)} drift${sinceSuffix} · ${absLoudness}`;
   } else if (state === "monitor") {
     label = "governance monitor";
-    trailing = `${Math.round(data.loudness || 0)}/100`;
+    trailing = absLoudness;
   } else {
     label = "governance stable";
-    trailing = `${Math.round(data.loudness || 0)}/100`;
+    trailing = absLoudness;
   }
 
   return (

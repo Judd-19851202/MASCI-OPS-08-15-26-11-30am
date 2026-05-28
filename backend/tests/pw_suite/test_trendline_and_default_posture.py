@@ -39,6 +39,7 @@ SUPER_PW = (
 )
 
 TRENDLINE_PATH = Path("/app/memory/DOCTRINE_TRENDLINE.json")
+TRENDLINE_MAX_RECORDS = 500  # mirrors scripts/diff_doctrine_baseline.py
 
 
 @pytest.fixture(scope="module")
@@ -71,7 +72,17 @@ def test_trendline_append_writes_record(tmp_path):
     assert TRENDLINE_PATH.exists()
     after = json.loads(TRENDLINE_PATH.read_text())
     after_records = after.get("records") or []
-    assert len(after_records) >= before_count + 1
+    # The trendline file enforces a rolling cap (TRENDLINE_MAX_RECORDS).
+    # Once at-cap, an --append cannot grow the file past the cap by
+    # design — old records age out. The truthful invariant is:
+    # either growth, OR steady-state at cap with the latest record
+    # matching the current portal set.
+    expected_min = min(TRENDLINE_MAX_RECORDS, before_count + 1)
+    assert len(after_records) >= expected_min, (
+        f"records did not grow as expected: "
+        f"before={before_count}, after={len(after_records)}, "
+        f"expected_min={expected_min}"
+    )
     # Latest record must have the required fields.
     latest = after_records[-1]
     for key in (
@@ -148,14 +159,20 @@ def test_hr_sidebar_v2_is_default(page, base_url: str, tokens: dict):
     ).count() == 1, "HR Sidebar V2 must mount by default after P2B"
 
 
-def test_safety_sidebar_v2_is_default_posture(page, base_url: str, tokens: dict):
+def test_safety_sidebar_v2_is_default_posture(page, base_url: str, tokens: dict, viewport_name: str):
     """iter437 IV-BETA.5A-P6 · Safety Sidebar V2 is now the DEFAULT
     layout after a clean stabilization review. No flag · the V2 desktop
     nav must mount on Safety sub-pages that wrap in SafetyShell.
 
     Note: the Safety Hub root (`/safety-portal`) doesn't use SafetyShell
     so we hit a sub-page (`/safety-portal/incidents`) where the shell
-    chrome is active."""
+    chrome is active.
+
+    Mobile uses a separate mobile-nav surface, NOT `safety-side-nav-desktop`,
+    so we skip the desktop selector check on the mobile viewport — its
+    own scroll/leak regressions live in test_safety_sidebar_v2.py."""
+    if viewport_name == "mobile":
+        pytest.skip("desktop sidebar selector — mobile uses mobile-nav surface")
     tok = tokens.get("safety") or tokens.get("admin")
     page.goto(f"{base_url}/", wait_until="domcontentloaded")
     page.evaluate(
