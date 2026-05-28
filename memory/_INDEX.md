@@ -117,6 +117,17 @@ All planning artifacts for the pre-RFI substrate work.
 | `TIMELINE_ROLE_VISIBILITY_CERTIFICATION.md` | Cross-portal role gate | 🟢 |
 | `OPERATIONAL_TIMELINE_OBSERVATION_REPORT.md` | Observation window log | 🟡 active |
 
+### Wave 1.1A — Calmness Telemetry (implemented 2026-05-28)
+
+| File | Purpose | Status |
+|---|---|---|
+| `WAVE1_1A_CALMNESS_TELEMETRY_SUMMARY.md` | Wave 1.1A master summary | 🟢 |
+| `TIMELINE_LOUDNESS_PROBE_CERTIFICATION.md` | Probe cert · heuristic targets | 🟢 |
+| `CHRONOLOGY_DENSITY_HEURISTICS_REPORT.md` | Density / dup heuristics | 🟢 |
+| `GOVERNANCE_TRENDLINE_EXTENSION.md` | Trendline doctrine + inventory | 🟢 |
+| `OPERATIONAL_TIMELINE_STABILITY_REPORT.md` | End-of-pass stability picture | 🟡 active |
+| `TIMELINE_LOUDNESS_TRENDLINE.json` | Append-only calmness trendline | 🟢 auto-gen |
+
 ## 5 · Route Decomposition / Backend Architecture
 
 How `server.py` is being split into `routes/`.

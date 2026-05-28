@@ -204,6 +204,24 @@
       "doctrine": "memory/WAVE1_1_TIMELINE_SIDECAR_SUMMARY.md",
       "surface_url": "/pm/projects/:projectNumber",
       "passive": true
+    },
+    {
+      "id": "timeline-calmness-telemetry",
+      "name": "Timeline Calmness Telemetry (V-Prelude Wave 1.1A)",
+      "status": "live",
+      "phase": "V-Prelude.W1.1A",
+      "capabilities": [],
+      "regression": [
+        "backend/tests/test_timeline_calmness_probe.py",
+        "backend/tests/test_chronology_density_heuristics.py"
+      ],
+      "telemetry": [
+        "memory/TIMELINE_LOUDNESS_TRENDLINE.json"
+      ],
+      "doctrine": "memory/WAVE1_1A_CALMNESS_TELEMETRY_SUMMARY.md",
+      "passive": true,
+      "operator_facing": false,
+      "probe": "scripts/timeline_calmness_probe.py"
     }
   ],
   "doctrine_fields": [

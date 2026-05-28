@@ -27109,3 +27109,61 @@ Wave 2 LOCKED until explicit "start V-Prelude Wave 2".
 🟢 **Wave 1.1 timeline sidecar live in preview · 0 regressions ·
 mobile-safe · role-filtered · awaiting 24-hr observation window +
 Wave 2 authorization.**
+
+---
+
+## Phase V-Prelude · Wave 1.1A — Passive Calmness Telemetry (2026-05-28)
+
+🟢 **COMPLETE · preview env** · observation window remains active.
+
+### Authorization
+Operator command "PHASE V-PRELUDE · WAVE 1.1A · PASSIVE CALMNESS
+TELEMETRY + CHRONOLOGY STABILITY HARDENING" (2026-05-28).
+
+### Hard rules honored
+- ✅ preview-only · APP_ENV=preview · DB=masci_safety_preview
+- ✅ no production deploy
+- ✅ no Wave 2 · no RFI · no schedule · no P6
+- ✅ no new dashboard surfaces
+- ✅ no operator-facing analytics (probe writes to /app/memory/ only)
+- ✅ no visual chrome expansion
+- ✅ no timeline interaction expansion
+- ✅ PASSIVE GOVERNANCE ONLY
+
+### Delivered components
+1. **`scripts/timeline_calmness_probe.py`** — Playwright sweep across
+   3 viewports + `/api/timeline` density heuristics → calmness score.
+2. **`memory/TIMELINE_LOUDNESS_TRENDLINE.json`** — append-only
+   longitudinal calmness memory.
+3. **`scripts/pre_deploy_check.sh`** — new
+   `stage_timeline_calmness_telemetry` (warning + 5×-target blocking).
+4. **`memory/TRUST_SURFACES.json`** — registered
+   `timeline-calmness-telemetry` (passive=true, operator_facing=false).
+5. Zero backend code changes · zero frontend changes.
+
+### Required certification deliverables (all 5 shipped)
+- `WAVE1_1A_CALMNESS_TELEMETRY_SUMMARY.md`
+- `TIMELINE_LOUDNESS_PROBE_CERTIFICATION.md`
+- `CHRONOLOGY_DENSITY_HEURISTICS_REPORT.md`
+- `GOVERNANCE_TRENDLINE_EXTENSION.md`
+- `OPERATIONAL_TIMELINE_STABILITY_REPORT.md`
+
+### Regression
+- ✅ 3/3 probe tests pass (`test_timeline_calmness_probe.py`).
+- ✅ 4/4 density heuristic tests pass
+  (`test_chronology_density_heuristics.py`).
+- ✅ 19/19 Wave 1 substrate tests still green.
+- ✅ 8/8 Wave 1.1 sidecar tests still green.
+- ✅ Baseline calmness score: **0.0** · 0 gate breaches · 3 viewports.
+- ✅ All 4 doctrine probes green
+  (authority_mismatch · timestamp_doctrine ·
+  operational_links_doctrine · timeline_calmness).
+
+### Stop condition
+Per operator directive: STOP. Remain inside Wave 1 observation
+posture. Wave 2 LOCKED until "start V-Prelude Wave 2".
+
+### Verdict
+🟢 **Wave 1.1A passive calmness telemetry live · institutional memory
+seeded · 0 regressions · 0 operator-facing surfaces touched · awaiting
+Wave 2 authorization.**

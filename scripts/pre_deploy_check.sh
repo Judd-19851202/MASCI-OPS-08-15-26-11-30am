@@ -352,6 +352,30 @@ stage_operational_links_doctrine() {
 }
 
 
+# ─── V-Prelude Wave 1.1A · timeline calmness telemetry · 2026-05-28 ─
+# Passive Playwright-driven calmness measurement for the Operational
+# Timeline sidecar (`/pm/projects/:projectNumber`). WARNING-ONLY first
+# pass — appends a longitudinal entry to
+# `memory/TIMELINE_LOUDNESS_TRENDLINE.json` and exits 1 ONLY when a
+# heuristic exceeds 5x the doctrine target on any dimension.
+# Doctrine: passive governance instrument · NOT a hard deploy gate.
+stage_timeline_calmness_telemetry() {
+  cd "$REPO_ROOT"
+  echo "Mode: WARNING-ONLY (passive trendline · severe regression blocks)"
+  local iter
+  iter=$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+  python3 scripts/timeline_calmness_probe.py \
+    --iteration "deploy-$iter" --gate || {
+    echo ""
+    echo "⚠  Timeline calmness probe detected SEVERE regression (>5x target)."
+    echo "   Review /app/memory/TIMELINE_LOUDNESS_TRENDLINE.json — "
+    echo "   if intentional, baseline by removing earlier entries."
+    return 1
+  }
+  return 0
+}
+
+
 # ─── TRUST-1 Wave 1 · TF-018 · 2026-05-27 ─────────────────────────────
 # Visibility-of-visibility gate. The /api/draft-telemetry layer exists
 # specifically so field-incident failures stay diagnosable. If a future
@@ -435,6 +459,12 @@ run_stage "TRUST-1 · draft-telemetry route health (visibility gate)" stage_trus
 run_stage "GOVERNANCE-INFRA-1 · authority mismatch probe" stage_governance_authority_mismatch
 # TRUST-TIME-1B · timestamp doctrine self-protection probe.
 run_stage "TRUST-TIME-1B · timestamp doctrine probe" stage_timestamp_doctrine
+# V-Prelude Wave 1 · operational_links doctrine probe (Mongo sweep).
+run_stage "V-Prelude Wave 1 · operational_links doctrine probe" stage_operational_links_doctrine
+# V-Prelude Wave 1.1A · timeline calmness telemetry (passive trendline).
+if [[ "$MODE" != "auth-only" && "$MODE" != "fast" ]]; then
+  run_stage "V-Prelude Wave 1.1A · timeline calmness telemetry" stage_timeline_calmness_telemetry
+fi
 
 if [[ "$MODE" == "full" ]]; then
   run_stage "Full backend pytest suite" stage_full_pytest

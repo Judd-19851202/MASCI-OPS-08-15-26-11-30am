@@ -1,0 +1,36 @@
+[
+  {
+    "iteration": "wave-1-1a-baseline",
+    "timestamp": "2026-05-28T19:06:13.135Z",
+    "score": 0.0,
+    "aggregate": {
+      "accent_class_ratio": 0.0,
+      "badge_density_per_1k_px2": 0.0,
+      "red_usage": 0.0,
+      "hierarchy_compression": 4.0,
+      "chronology_dup_ratio": 0.0,
+      "vertical_density": 0.0
+    },
+    "gate_breaches": [],
+    "viewports_measured": 3,
+    "chronology_row_count": 0,
+    "chronology_truncated": false
+  },
+  {
+    "iteration": "wave-1-1a-final",
+    "timestamp": "2026-05-28T19:11:02.879Z",
+    "score": 0.0,
+    "aggregate": {
+      "accent_class_ratio": 0.0,
+      "badge_density_per_1k_px2": 0.0,
+      "red_usage": 0.0,
+      "hierarchy_compression": 4.0,
+      "chronology_dup_ratio": 0.0,
+      "vertical_density": 0.0
+    },
+    "gate_breaches": [],
+    "viewports_measured": 3,
+    "chronology_row_count": 0,
+    "chronology_truncated": false
+  }
+]
