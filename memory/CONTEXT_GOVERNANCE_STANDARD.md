@@ -35,34 +35,34 @@ Companion machine-readable matrix:
 * authority_visibility: hidden when capability OFF (no grey)
 * shell_expectation: raw page (predates shell); inline identity banner
 
-### `/incidents/:id` (live · iter443)
+### `/incidents/:id` (live · iter443 + STABILIZATION-FINAL)
 * origin_context: any (`safety`, `pm`, `admin`, `field-leadership`)
 * return_path: `useReturnContext()` ✅ wired
-* capability_inheritance: TBD — safety-capabilities primitive in Wave 3
+* capability_inheritance: `getSafetyCapabilities()` — incidents are safety records (same primitive as meetings)
 * portal_identity: shell-aware
 * authority_visibility: hidden-not-greyed
 * shell_expectation: portal-specific shell
 
-### `/capa/:id` (live)
-* origin_context: any
-* return_path: TBD (Wave 3) — MUST migrate to `useReturnContext()`
-* capability_inheritance: TBD
+### `/capa/:id` (live · STABILIZATION-FINAL)
+* origin_context: any of safety / pm / hr / admin (CAPAs not surfaced to field-leadership by doctrine)
+* return_path: `useReturnContext()` — wired on the safety corrective-actions list
+* capability_inheritance: `getCapaCapabilities()` (lib/capaCapabilities.js)
 * portal_identity: shell-aware
 * authority_visibility: hidden-not-greyed
 * shell_expectation: portal-specific shell
 
-### `/meetings/:id` (live)
-* origin_context: any
-* return_path: TBD (Wave 3)
-* capability_inheritance: TBD
+### `/meetings/:id` (live · STABILIZATION-FINAL)
+* origin_context: any of safety / pm / admin / field-leadership
+* return_path: `useReturnContext()` ✅ wired
+* capability_inheritance: `getSafetyCapabilities()` (lib/safetyCapabilities.js)
 * portal_identity: shell-aware
-* authority_visibility: TBD
+* authority_visibility: hidden-not-greyed
 * shell_expectation: shell-aware
 
-### `/inspections/:id` (live)
-* origin_context: any
-* return_path: TBD (Wave 3)
-* capability_inheritance: TBD
+### `/inspections/:id` (live · STABILIZATION-FINAL)
+* origin_context: any of safety / pm / admin / field-leadership
+* return_path: `useReturnContext()` ✅ wired
+* capability_inheritance: `getInspectionCapabilities()` (lib/inspectionCapabilities.js)
 * portal_identity: shell-aware
 * authority_visibility: hidden-not-greyed
 * shell_expectation: portal-specific shell

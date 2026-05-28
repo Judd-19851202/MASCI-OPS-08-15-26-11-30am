@@ -6,6 +6,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { RefKicker } from "@/components/RefKicker";
 import BackLink from "@/components/BackLink";
 import { useHubHome } from "@/components/HubBackLink";
+import { useReturnContext } from "@/lib/returnContext";
+import { getInspectionCapabilities } from "@/lib/inspectionCapabilities";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { getCompanyInfo } from "@/lib/companyInfo";
@@ -104,6 +106,12 @@ export default function ViewInspection() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/inspections";
+  const ret = useReturnContext({
+    key: "inspections-list",
+    label: t("Reports"),
+    path: listUrl,
+  });
+  const caps = getInspectionCapabilities();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -175,7 +183,7 @@ export default function ViewInspection() {
       <div className="caution-stripe no-print" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={listUrl} label={t("Reports")} variant="header" testId="back-link" />
+          <BackLink to={ret.path} label={ret.label} variant="header" testId="back-link" />
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <EditProjectDialog
@@ -184,15 +192,17 @@ export default function ViewInspection() {
               current={data}
               onSaved={(rec) => rec && setData(rec)}
             />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleDelete}
-              className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
-              data-testid="delete-btn"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            {caps["inspection.delete"] && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleDelete}
+                className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
+                data-testid="delete-btn"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => setEmailOpen(true)}

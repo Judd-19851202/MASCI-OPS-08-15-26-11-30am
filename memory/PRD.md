@@ -1,6 +1,101 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-28 (fork) — Phase STABILIZATION-FINAL · Pre-V.1 Hardening Sweep 🟢
+
+### Mission
+Lock the operational foundation before RFI + scheduling complexity
+multiplies it. Close the 3 amber context surfaces · complete the
+capability primitive layer · audit shared surfaces · audit the role
+matrix · run the cleanroom pass · arrive at a clean / trusted /
+governed / survivable baseline.
+
+### Workstreams (all 7 executed)
+1. **W1 — 3 amber context surfaces** 🟢 CLOSED
+   - `/capa/:id`, `/meetings/:id`, `/inspections/:id` migrated from
+     `compliance: TBD-wave3` → `context-governed`.
+   - `ViewInspection.jsx` + `ViewMeeting.jsx` migrated to
+     `useReturnContext()` with calmness-preserving fallbacks.
+   - Destructive controls (delete) now gated by capability primitive.
+2. **W2 — Capability primitives** 🟢 CLOSED
+   - `lib/safetyCapabilities.js` (NEW · `getSafetyCapabilities`)
+   - `lib/inspectionCapabilities.js` (NEW · `getInspectionCapabilities`)
+   - `lib/capaCapabilities.js` (NEW · `getCapaCapabilities`)
+   - Each follows `poCapabilities.js` doctrine VERBATIM: portal
+     context FIRST, token presence SECOND, FL lockdown EXPLICIT.
+   - Probe allowlist extended (they ARE the capability layer).
+3. **W3 — Shared surface sweep** 🟢 PASS · 5 live surfaces audited.
+4. **W4 — Role matrix sweep** 🟢 PASS · zero authority ambiguity.
+5. **W5 — Field walk execution** 🔵 OPERATOR-OWNED · checklists
+     current · pre-walk readiness verified · friction-capture
+     template provided.
+6. **W6 — "No surprises" audit** 🟢 PASS · 10/10 risk classes
+     cleared · 2 informational notes documented.
+7. **W7 — Pre-deploy cleanroom** 🟢 READY · 42/42 governance
+     regression suites PASS · 0 violations / warnings / open gaps.
+
+### Self-Protection page now reads GREEN
+- `page_status: green`
+- `drift.open_gaps: 0` (was 3)
+- `context_governance.tbd: 0` (was 3)
+- `authority.new_violations: 0` · `new_warnings: 0` · `baselined: 58`
+- All 8 stanzas: OK
+
+### Files touched (12)
+**Frontend (5)**
+- `lib/safetyCapabilities.js` (NEW · 121 LOC)
+- `lib/inspectionCapabilities.js` (NEW · 118 LOC)
+- `lib/capaCapabilities.js` (NEW · 113 LOC)
+- `pages/ViewInspection.jsx` (3 edits · returnContext + cap-gated delete)
+- `pages/ViewMeeting.jsx` (3 edits · same pattern)
+
+**Memory / governance (4)**
+- `memory/SHARED_SURFACE_CONTEXT_MATRIX.json` (3 surfaces upgraded · 1 corrected)
+- `memory/CONTEXT_GOVERNANCE_STANDARD.md` (4 entries refreshed)
+- `memory/STABILIZATION_FINAL_REPORT.md` (NEW · full audit doc)
+- `scripts/authority_mismatch_probe.py` (allowlist · 3 new entries)
+
+**Tests (1)**
+- `backend/tests/pw_suite/test_stabilization_final_capabilities.py` (NEW · 4/4 PASS)
+
+### Regression matrix (🟢 42/42)
+| Suite | Result |
+|---|---|
+| `test_stabilization_final_capabilities.py` (NEW) | 🟢 4/4 |
+| `test_governance_self_protection_page.py` | 🟢 11/11 |
+| `test_governance_authority_mismatch_probe.py` | 🟢 6/6 |
+| `test_trust_po1_backend_enforcement.py` | 🟢 10/10 |
+| `test_trust_po1_frontend_capability_scope.py` | 🟢 4/4 |
+| `test_contextual_return_path_iter443.py` | 🟢 7/7 |
+
+### Doctrine compliance
+- ✅ Portal context is the FIRST capability gate · token presence is SECOND
+- ✅ Field Leadership lockdown EXPLICIT in every primitive
+- ✅ Backend authority parity verified (no UI control without backend route)
+- ✅ Hidden-not-greyed rendering doctrine preserved
+- ✅ Calmness · monochrome · text-first · no charts (OPS-1 page intact)
+- ✅ No new auth, schema, or routing complexity introduced
+- ✅ Preview only · NO production deploy
+
+### Deployment sequence (operator-paced)
+1. 🟢 Preview validation — DONE
+2. 🟢 Governance sweep — DONE
+3. 🔵 Field walks (real iPad execution) — operator-owned
+4. 🔵 Telemetry observation (24-72 h)
+5. 🔵 Save to GitHub (via Emergent UI)
+6. 🔵 Deploy (via Emergent UI)
+7. 🔵 72-h post-deploy window
+8. 🟢 **Phase V.1 RFI MVP** unlocks here
+
+### Status
+🟢 **PHASE STABILIZATION-FINAL COMPLETE** · foundation locked ·
+authority + truthful-state + survivability + context + telemetry +
+self-protection all green · awaiting operator-led field walks +
+production cutover before Phase V.1 begins.
+
+---
+
+
 ## 2026-05-28 (fork) — Phase GOVERNANCE-OPS-1 · Self-Protection Operations Hub 🟢
 
 ### Mission

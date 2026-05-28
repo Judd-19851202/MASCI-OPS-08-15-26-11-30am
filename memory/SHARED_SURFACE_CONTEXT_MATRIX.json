@@ -1,5 +1,5 @@
 {
-  "version": "GOVERNANCE-INFRA-1",
+  "version": "STABILIZATION-FINAL",
   "generated": "2026-05-28",
   "contract_fields": [
     "origin_context",
@@ -27,7 +27,7 @@
       "compliance": "context-governed",
       "origin_context": ["safety", "pm", "admin", "field-leadership"],
       "return_path": "lib/returnContext.js::useReturnContext",
-      "capability_inheritance": "TBD-wave3",
+      "capability_inheritance": "lib/safetyCapabilities.js::getSafetyCapabilities",
       "portal_identity": "shell-aware",
       "authority_visibility": "hidden",
       "shell_expectation": "portal shell"
@@ -35,10 +35,10 @@
     {
       "path": "/capa/:id",
       "status": "live",
-      "compliance": "TBD-wave3",
-      "origin_context": "any",
-      "return_path": "TBD-wave3",
-      "capability_inheritance": "TBD-wave3",
+      "compliance": "context-governed",
+      "origin_context": ["safety", "pm", "hr", "admin"],
+      "return_path": "lib/returnContext.js::useReturnContext (planned)",
+      "capability_inheritance": "lib/capaCapabilities.js::getCapaCapabilities",
       "portal_identity": "shell-aware",
       "authority_visibility": "hidden",
       "shell_expectation": "portal shell"
@@ -46,21 +46,21 @@
     {
       "path": "/meetings/:id",
       "status": "live",
-      "compliance": "TBD-wave3",
-      "origin_context": "any",
-      "return_path": "TBD-wave3",
-      "capability_inheritance": "TBD-wave3",
+      "compliance": "context-governed",
+      "origin_context": ["safety", "pm", "admin", "field-leadership"],
+      "return_path": "lib/returnContext.js::useReturnContext",
+      "capability_inheritance": "lib/safetyCapabilities.js::getSafetyCapabilities",
       "portal_identity": "shell-aware",
-      "authority_visibility": "TBD",
+      "authority_visibility": "hidden",
       "shell_expectation": "shell-aware"
     },
     {
       "path": "/inspections/:id",
       "status": "live",
-      "compliance": "TBD-wave3",
-      "origin_context": "any",
-      "return_path": "TBD-wave3",
-      "capability_inheritance": "TBD-wave3",
+      "compliance": "context-governed",
+      "origin_context": ["safety", "pm", "admin", "field-leadership"],
+      "return_path": "lib/returnContext.js::useReturnContext",
+      "capability_inheritance": "lib/inspectionCapabilities.js::getInspectionCapabilities",
       "portal_identity": "shell-aware",
       "authority_visibility": "hidden",
       "shell_expectation": "portal shell"

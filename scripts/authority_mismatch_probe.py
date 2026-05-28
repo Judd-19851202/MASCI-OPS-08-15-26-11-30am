@@ -66,6 +66,9 @@ REPORT_OUT = REPO_ROOT / "memory" / "AUTHORITY_MISMATCH_REPORT.md"
 ALLOWLIST_GLOBS = [
     # The capability layer itself
     "lib/poCapabilities.js",
+    "lib/safetyCapabilities.js",
+    "lib/inspectionCapabilities.js",
+    "lib/capaCapabilities.js",
     "lib/portalContext.js",
     # Portal-owned pages — token presence is correct here
     "pages/AdminHub.jsx",
