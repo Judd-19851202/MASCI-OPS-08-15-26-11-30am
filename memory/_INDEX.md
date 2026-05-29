@@ -150,11 +150,16 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
 | `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
 
-## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.1 + M0.2 + M0.2A LIVE · 2026-05-29)
+## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.0 → M0.35 LIVE · 2026-05-29)
 
-ODR substrate is LIVE in preview. M0.0 hygiene closed. M0.1 substrate
-sealed (no schema rewrites later). M0.2 + M0.2A engines + probes live.
-Halted at end of M0.2A pending operator review (per directive).
+ODR substrate is LIVE in preview through M0.35. M0.0 hygiene closed.
+M0.1 substrate sealed (no schema rewrites later). M0.2 + M0.2A engines
++ probes live. M0.3 operator surfaces (Foreman / FL Center / PM Panel /
+Public Viewer) live. M0.35 reality validation complete · 2 permanent
+doctrine locks registered. **HALTED at end of M0.35 pending operator
+review (per directive). M1 migration / dual-write / pilot may NOT begin
+until operator acknowledges Doctrine Lock #1, Doctrine Lock #2, and the
+5 approval items in `M0_35_OPERATOR_REVIEW_GUIDE.md` §7.**
 
 | File | Purpose | Status |
 |---|---|---|
@@ -191,8 +196,17 @@ Halted at end of M0.2A pending operator review (per directive).
 | `ODR_TRUST_BANNER_DOCTRINE.md` | Calm "Operational Record · Audit history protected · Amendments tracked" line | ✅ 🟢 |
 | `ODR_ADOPTION_OBSERVATION_PLAN.md` | Aggregate-only adoption telemetry doctrine (NEVER scoring) | ✅ 🟢 |
 | `M0_3_OPERATOR_REVIEW_GUIDE.md` | **M0.3 review checklist · STOP point** | ✅ ⛔ |
+| `ODR_AUDIENCE_PROJECTION_DOCTRINE.md` | M0.35 · "user picks audience · system picks projection" · 11 profiles → 5 projections | ✅ ⛔ |
+| `ODR_REALITY_VALIDATION_REPORT.md` | M0.35 · 4 scenarios (Airport · Drainage · Asphalt · Concrete) · 4/4 clean · 0 leaks | ✅ 🟢 |
+| `ODR_REALITY_GAP_AUDIT.md` | M0.35 · 8 gaps surfaced · 1 pilot blocker (G7 · photo embedding) | ✅ 🟢 |
+| `OFFLINE_QUEUE_READINESS_ASSESSMENT.md` | M0.35 · 5-phase plan · 8.5–11.5 dev-day estimate | ✅ 🟢 |
+| `ODR_PILOT_SUCCESS_SCORECARD.md` | M0.35 · adoption / quality / operational value / sentiment thresholds | ✅ 🟢 |
+| `M0_35_OPERATOR_REVIEW_GUIDE.md` | **M0.35 review checklist · STOP point · M1 authorization gate** | ✅ ⛔ |
+| `ODR_SIMPLICITY_TEST_DOCTRINE.md` | **M0.35 Doctrine Lock #1** · permanent foreman approval gate · field simplicity overrides architectural elegance | ✅ ⛔ |
+| `ODR_PLATFORM_INHERITANCE_DOCTRINE.md` | **M0.35 Doctrine Lock #2** · ODR is a module of MASCI Ops, not a separate app · inheritance contract | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
+| `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |
 | _(Future)_ `odr_doctrine_probe.py` | shape + enum + audit-envelope probe (planned for M1+) | 🟡 |
 
 ## 5 · Route Decomposition / Backend Architecture

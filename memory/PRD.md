@@ -27885,3 +27885,108 @@ O9 + O27 + O45 + O50 form a **hard architectural cultural contract**: coaching n
 3. Answer the 25 open architecture questions (or `"accept all defaults"`)
 4. Issue spec lock command: `"LOCK ODR SPECIFICATION · PROCEED TO M0"`
 5. Implementation Wave M0 begins ONLY after step 4
+
+---
+
+## Phase V.1 · M0.35 Reality Validation Pass · CLOSED · 2026-05-29
+
+Operator command: **"Authorize M0.35 Reality Validation Pass. Run 4
+real-world scenarios. Add Audience Projection Doctrine. STOP after M0.35."**
+followed by the **M0.35 ADDENDUM — REQUIRED DOCTRINE LOCKS** directive.
+
+### M0.35 deliverables shipped (8)
+
+1. **`ODR_AUDIENCE_PROJECTION_DOCTRINE.md`** — "user picks audience ·
+   system picks projection" · 11 profiles → 5 projections · PMs never
+   pick redaction options · public links audience-locked at mint.
+2. **`ODR_REALITY_VALIDATION_REPORT.md`** — 4 scenarios (Airport
+   ODR-2026-00029 · Drainage 00030 · Asphalt 00031 · Concrete 00032
+   with amendment) · 4/4 submitted clean · 0 internal-field leaks ·
+   ~5 sec end-to-end per scenario.
+3. **`ODR_REALITY_GAP_AUDIT.md`** — 8 gaps surfaced · 1 pilot blocker
+   (G7 · external PDFs do not embed photo thumbnails · 1–2 dev-days
+   to fix in M0.4) · 7 pilot-tolerable gaps.
+4. **`OFFLINE_QUEUE_READINESS_ASSESSMENT.md`** — 5-phase plan ·
+   8.5–11.5 dev-day estimate · O1+O2 (read cache + write queue) is
+   minimum viable for pilot.
+5. **`ODR_PILOT_SUCCESS_SCORECARD.md`** — adoption / quality /
+   operational value / sentiment thresholds (75% completion · 25%
+   abandonment · 9-min completion · ≥3 photos · ≤0.10 amendment rate).
+6. **`M0_35_OPERATOR_REVIEW_GUIDE.md`** — pre-M1 review guide · §7
+   has 5 approval items · §10 records the 2 doctrine locks · §11
+   M1 authorization conditions · §12 STOP point.
+7. **`ODR_SIMPLICITY_TEST_DOCTRINE.md`** _(Doctrine Lock #1)_ —
+   permanent foreman approval gate. Test: "Would a foreman complete
+   this on a phone, standing in mud, wearing gloves, at 5:30 PM,
+   after a 12-hour shift?" Target < 5 min · stretch < 3 min · ceiling
+   7 min. Field simplicity always overrides architectural elegance.
+8. **`ODR_PLATFORM_INHERITANCE_DOCTRINE.md`** _(Doctrine Lock #2)_ —
+   ODR is a module of MASCI Ops, not a separate app. Mandatory
+   inheritance from PLATFORM_WIDE_NAVIGATION · SHARED_COMPONENT ·
+   CROSS_PORTAL_CONSISTENCY · OPERATIONAL_CALMNESS · TIMELINE ·
+   OPERATIONAL_LINKING · PHOTO_GOVERNANCE · FIELD_LEADERSHIP_VISIBILITY.
+   Divergence requires documentation + justification + review +
+   approval.
+
+### Backend changes shipped in M0.35
+
+- `routes/odr/pdf.py::AUDIENCE_PROFILES` — 11-profile → 5-projection map
+- `routes/odr/pdf.py::get_pdf` — append-only render audit log to
+  `odr_pdf_renders` · `X-ODR-Audience-Profile` response header
+- `routes/odr/continuity.py::mint_link` — public link now writes
+  `audience_profile_locked="external"` (immutable at mint)
+- `routes/odr/continuity.py::ensure_continuity_indexes` — 3 new indexes
+  on `odr_pdf_renders`
+- `scripts/odr_reality_validation.py` — 4-scenario field reality harness
+
+### Doctrine inventory now totals 52
+- O1–O10 foundational
+- O11–O20 public-link device continuity
+- O21–O35 Field Leadership governance
+- O36–O50 coaching / training / guidance
+- **Doctrine Lock #1** — Simplicity Test (permanent foreman gate)
+- **Doctrine Lock #2** — Platform Inheritance (ODR is a MASCI Ops module)
+
+### Cumulative test surface · 70+ pytest · 4 scenarios · 2 probes · 0 fails
+
+| Suite | Result |
+|---|---|
+| `tests/odr/test_odr_substrate.py` (M0.1) | 🟢 12/12 |
+| `tests/odr/test_odr_m02.py` (M0.2 + M0.2A) | 🟢 24/24 |
+| `tests/odr/test_odr_m03.py` (M0.3) | 🟢 7/7 |
+| Wave 1 substrate + 1.1 sidecar regression | 🟢 27/27 |
+| `scripts/odr_public_link_continuity_probe.py --gate` | 🟢 0 fails |
+| `scripts/odr_bilingual_probe.py --gate` | 🟢 0 fails |
+| `scripts/odr_reality_validation.py` (M0.35) | 🟢 4/4 scenarios |
+
+### M1 authorization gate — ALL conditions must be ✅
+
+| Condition | Status |
+|---|---|
+| M0.35 wrap-up complete | ✅ |
+| pytest sweep complete | ✅ |
+| Reality validation passed (4/4) | ✅ |
+| 6 review artifacts updated + indexed | ✅ |
+| Doctrine Lock #1 (Simplicity Test) registered | ✅ |
+| Doctrine Lock #2 (Platform Inheritance) registered | ✅ |
+| **Operator review of all of the above** | ⏳ awaiting |
+
+### STOP condition honored (per directive)
+
+🛑 **HALTED at end of M0.35.**
+- ❌ NO M1 migration / dual-write / pilot rollout
+- ❌ NO RFI / Schedule / P6 work
+- ❌ NO new architecture / new governance layers
+- ❌ NO production deploy (preview only)
+- ✅ Awaiting operator authorization + acknowledgement of the two
+  doctrine locks before any M1 work begins.
+
+### Next operator actions
+
+1. Read `M0_35_OPERATOR_REVIEW_GUIDE.md` (top-to-bottom · ~5 min).
+2. Acknowledge `ODR_SIMPLICITY_TEST_DOCTRINE.md` (Lock #1).
+3. Acknowledge `ODR_PLATFORM_INHERITANCE_DOCTRINE.md` (Lock #2).
+4. Decide on the 5 approval items in §7 of the review guide.
+5. Issue M1 authorization command — only then does dual-write / pilot
+   work begin.
+

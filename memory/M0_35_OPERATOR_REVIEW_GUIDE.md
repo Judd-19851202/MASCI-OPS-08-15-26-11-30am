@@ -33,6 +33,8 @@ The 4 review items from M0.3 are now locked in the certifications:
 | `OFFLINE_QUEUE_READINESS_ASSESSMENT.md` | ✅ — 5-phase plan · 8.5–11.5 dev-days estimate |
 | `M0_35_OPERATOR_REVIEW_GUIDE.md` (this) | ✅ ⛔ |
 | `ODR_AUDIENCE_PROJECTION_DOCTRINE.md` | ✅ — locked · "user picks audience · system picks projection" |
+| `ODR_SIMPLICITY_TEST_DOCTRINE.md` | ✅ ⛔ — Doctrine Lock #1 · permanent foreman approval gate |
+| `ODR_PLATFORM_INHERITANCE_DOCTRINE.md` | ✅ ⛔ — Doctrine Lock #2 · ODR is a module of MASCI Ops, not a separate app |
 
 ## 3 · Backend changes shipped in M0.35
 
@@ -124,14 +126,67 @@ row to `odr_pdf_renders` (audit · indexed · append-only).
 
 **Total: 70 pytest + 4 reality scenarios + 2 probes · 0 failures · 0 regression.**
 
-## 10 · Stop condition
+## 10 · Doctrine Locks registered (M1 authorization conditions)
+
+Two permanent doctrine locks were added to M0.35 closure. **Both are
+M1 authorization preconditions** — M1 may not begin until they are
+acknowledged by operator review.
+
+### 🔴 Doctrine Lock #1 · `ODR_SIMPLICITY_TEST_DOCTRINE.md`
+
+> "Would a foreman complete this on a phone, standing in mud,
+> wearing gloves, at 5:30 PM, after a 12-hour shift?"
+
+If the answer is NO, implementation must remove / hide / auto-populate /
+infer / move-to-Super / move-to-PM / move-to-Ops the burden — never
+push it onto the foreman.
+
+- **Target**: < 5 min foreman completion
+- **Stretch**: < 3 min
+- **Hard ceiling**: 7 min (P0 regression above this)
+- **Rule**: The platform may grow more intelligent. The foreman
+  experience must grow simpler. Field simplicity always overrides
+  architectural elegance.
+
+### 🔴 Doctrine Lock #2 · `ODR_PLATFORM_INHERITANCE_DOCTRINE.md`
+
+> ODR is NOT a standalone product. ODR is a module of MASCI Ops.
+
+ODR must inherit: `PLATFORM_WIDE_NAVIGATION_DOCTRINE`,
+`SHARED_COMPONENT_GOVERNANCE`, `CROSS_PORTAL_CONSISTENCY_STANDARD`,
+`OPERATIONAL_CALMNESS_DOCTRINE`, `TIMELINE_DOCTRINE`,
+`OPERATIONAL_LINKING_RULES`, `PHOTO_GOVERNANCE_STANDARD`,
+`FIELD_LEADERSHIP_VISIBILITY_DOCTRINE`.
+
+Divergence requires: **documentation · justification · review · approval.**
+Every persona must feel they are using one operating system — not
+multiple systems stitched together.
+
+## 11 · M1 Authorization Conditions (all must be ✅)
+
+| Condition | Status |
+|---|---|
+| M0.35 wrap-up complete | ✅ |
+| pytest sweep complete (70+ tests · 0 fails) | ✅ |
+| Reality validation passed (4/4 scenarios) | ✅ |
+| 6 review artifacts updated | ✅ |
+| `ODR_SIMPLICITY_TEST_DOCTRINE` registered | ✅ |
+| `ODR_PLATFORM_INHERITANCE_DOCTRINE` registered | ✅ |
+| **Operator review of all of the above** | ⏳ awaiting |
+
+Until the final row turns ✅: **No migration. No dual-write. No pilot.
+Await authorization.**
+
+## 12 · Stop condition
 
 🛑 **HALTED at end of M0.35 as directed.**
 
-Awaiting operator decision on the **5 approval items in §7** before
-M1 migration begins. Once M1 is authorized, the substrate enters
-its first dual-write / pilot wave from a position of confidence —
-because reality has already validated it.
+Awaiting operator decision on the **5 approval items in §7** plus
+acknowledgement of the **2 doctrine locks in §10** before M1 migration
+begins. Once M1 is authorized, the substrate enters its first dual-write
+/ pilot wave from a position of confidence — because reality has
+already validated it and the doctrine locks protect simplicity and
+platform inheritance from drift.
 
 Field truth beats developer assumptions. Operator adoption beats
 feature count. Reality validation beats rework.
