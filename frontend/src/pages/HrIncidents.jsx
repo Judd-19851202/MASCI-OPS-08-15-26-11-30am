@@ -181,7 +181,7 @@ export default function HrIncidents() {
               </SelectContent>
             </Select>
           </div>
-          <div className="sm:col-span-5 flex justify-end">
+          <div className="sm:col-span-2 xl:col-span-5 flex justify-end">
             <Button variant="outline" size="sm" onClick={load} disabled={loading} data-testid="hr-inc-refresh">
               <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? "animate-spin" : ""}`} /> {t("Refresh")}
             </Button>

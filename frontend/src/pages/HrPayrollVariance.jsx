@@ -203,15 +203,15 @@ export default function HrPayrollVariance() {
         </div>
         <HelpTipBlock formKey="payroll-variance.upload" />
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-3">
-          <div>
+          <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
-            <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={inputCls} data-testid="hr-pv-week" />
+            <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-pv-week" />
           </div>
-          <div>
+          <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Threshold (minutes)")}</Label>
-            <Input type="number" min="1" max="120" value={threshold} onChange={(e) => setThreshold(e.target.value)} className={inputCls} data-testid="hr-pv-threshold" />
+            <Input type="number" min="1" max="120" value={threshold} onChange={(e) => setThreshold(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-pv-threshold" />
           </div>
-          <div className="col-span-2 lg:col-span-2 flex items-end justify-end gap-2">
+          <div className="min-w-0 sm:col-span-2 xl:col-span-2 flex items-end justify-end gap-2">
             <Button variant="outline" onClick={() => setCsvText("")} disabled={busy || !csvText}>{t("Clear")}</Button>
             <Button onClick={upload} disabled={busy || !csvText.trim()} className="bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-pv-upload">
               {busy ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}

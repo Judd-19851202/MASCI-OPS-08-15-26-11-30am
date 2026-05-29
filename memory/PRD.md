@@ -1,6 +1,49 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — HR LAYOUT · Pass 3 (Remaining Defects Fix) 🟢 SHIPPED TO PREVIEW
+
+### Operator follow-up
+"Daily Reports appear fixed. HR Portal is improved but NOT fully fixed.
+Fix only the remaining HR layout defect. Do not touch Daily Reports."
+
+### Residuals identified after Pass 2
+- **HrPayrollVariance:214** — `col-span-2` (no breakpoint) on `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` parent → phone-portrait implicit-column expansion (the `303,152px` measurement from Pass 2 report).
+- **HrIncidents:184** — `sm:col-span-5` on a 2-col grid at sm → 5 implicit columns auto-created at sm-xl range.
+- **HrEmployees:336-337, 830, 875** — Add Employee + status transition dialogs used `grid-cols-2 gap-2` (no breakpoint, 8 px gap) → cramped at phone portrait.
+- **HrTimeOff:465** — Position / Department row, same pattern.
+- **HrTimeVerification:124 + HrPayrollVariance:205** — filter cells lacked `min-w-0` → iOS Safari date-input intrinsic chrome stretched its grid cell beyond `1fr` (operator-visible asymmetry on IMG_0018).
+
+### Fixes shipped (HR-only, 7 surgical edits)
+- `col-span-2 lg:col-span-2` → `sm:col-span-2 xl:col-span-2`
+- `sm:col-span-5` → `sm:col-span-2 xl:col-span-5`
+- 4× dialog grids: `grid-cols-2 gap-2` → `grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3`
+- Filter-cell wrappers: added `min-w-0` (forces true `minmax(0, 1fr)`)
+- Filter-cell inputs: added `w-full` (input fills cell, not vice versa)
+
+### AFTER matrix (DOM-measured, 5 HR surfaces × 5 viewports)
+- Every HR surface: phone portrait = **1-col stack** (no more residual 2-col).
+- Phone landscape / iPad portrait / iPad landscape: **2 equal columns**.
+- Desktop (≥1280 px): full 4-col or 5-col with equal widths.
+
+### Deliverables
+- `/app/memory/HR_LAYOUT_REMAINING_DEFECTS_APPENDIX.md` — Pass 3 appendix to the global root-cause report.
+- `/tmp/gate/hr_v2/` — 8 AFTER screenshots (HR Time Verification + HR Payroll Variance × 4 viewports each).
+
+### What was deliberately NOT touched
+- ✅ Daily Reports (no regression risk · no edits)
+- ✅ Non-HR portals
+- ✅ shadcn vendor primitives
+- ✅ All other new-feature / scheduler / governance work
+
+### Status
+🟢 PREVIEW SHIPPED. Operator review pending. Production redeploy
+required to land Pass 2 + Pass 3 together on mascidocs.com.
+
+---
+
+
+
 ## 2026-02-01 (fork) — EMERGENCY · Global Form Layout Root-Cause Fix 🟢 SHIPPED TO PREVIEW
 
 ### Operator directive

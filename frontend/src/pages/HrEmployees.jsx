@@ -333,8 +333,8 @@ function AddDialog({ open, setOpen, onSaved }) {
       <DialogContent className="sm:max-w-lg" data-testid="hremp-add-dialog">
         <DialogHeader><DialogTitle>Add Employee</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+            <div className="sm:col-span-2">
               <Label>Name *</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} data-testid="hremp-add-name" />
             </div>
@@ -827,7 +827,7 @@ function EmployeeDrawer({ id, onClose }) {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                         <div>
                           <Label>{t("Last Day Worked")}</Label>
                           <Input type="date" value={statusForm.last_day_worked} onChange={(e) => setStatusForm({ ...statusForm, last_day_worked: e.target.value })} data-testid="hremp-tx-last-day" />
@@ -872,7 +872,7 @@ function EmployeeDrawer({ id, onClose }) {
                   )}
                   {statusForm.lifecycle_status === "Leave of Absence" && (
                     <div data-testid="hremp-leave-section" className="space-y-2 bg-slate-50 border border-slate-200 rounded-md p-3">
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                         <div>
                           <Label>{t("Leave Start Date")}</Label>
                           <Input type="date" value={statusForm.leave_start_date} onChange={(e) => setStatusForm({ ...statusForm, leave_start_date: e.target.value })} data-testid="hremp-tx-leave-start" />

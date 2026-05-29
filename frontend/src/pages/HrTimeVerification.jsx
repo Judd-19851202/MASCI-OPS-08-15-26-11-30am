@@ -122,23 +122,23 @@ export default function HrTimeVerification() {
       {/* Filter bar */}
       <Card className="p-4 mb-5 border-2 border-purple-200 bg-purple-50/30">
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 items-end">
-          <div>
+          <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
-            <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={inputCls} data-testid="hr-tv-week" />
+            <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-tv-week" />
           </div>
-          <div>
+          <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Employee")}</Label>
-            <Input value={employee} onChange={(e) => setEmployee(e.target.value)} placeholder={t("Name contains...")} className={inputCls} data-testid="hr-tv-employee" />
+            <Input value={employee} onChange={(e) => setEmployee(e.target.value)} placeholder={t("Name contains...")} className={`${inputCls} w-full`} data-testid="hr-tv-employee" />
           </div>
-          <div>
+          <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Project #")}</Label>
-            <Input value={projectNumber} onChange={(e) => setProjectNumber(e.target.value)} placeholder="e.g. 25-103" className={inputCls} data-testid="hr-tv-project" />
+            <Input value={projectNumber} onChange={(e) => setProjectNumber(e.target.value)} placeholder="e.g. 25-103" className={`${inputCls} w-full`} data-testid="hr-tv-project" />
           </div>
-          <div>
+          <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Supervisor")}</Label>
-            <Input value={supervisor} onChange={(e) => setSupervisor(e.target.value)} placeholder={t("Name contains...")} className={inputCls} data-testid="hr-tv-supervisor" />
+            <Input value={supervisor} onChange={(e) => setSupervisor(e.target.value)} placeholder={t("Name contains...")} className={`${inputCls} w-full`} data-testid="hr-tv-supervisor" />
           </div>
-          <div className="flex gap-2">
+          <div className="min-w-0 flex gap-2">
             <Button onClick={() => setPendingFilters((n) => n + 1)} disabled={loading} className="flex-1 bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-tv-apply">
               {loading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Filter className="w-4 h-4 mr-1" />}
               {t("Apply")}

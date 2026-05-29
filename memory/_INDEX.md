@@ -20,6 +20,7 @@ The substrate that protects the platform from itself.
 | `PRD.md` | Master product requirements + phase log (always read first) | ✅ |
 | `FINAL_DEEP_PRE_DEPLOY_CERTIFICATION.md` | Last canonical pre-deploy gate · 15 dimensions | ✅ |
 | `GLOBAL_FORM_LAYOUT_ROOT_CAUSE_REPORT.md` | **2026-02-01 EMERGENCY** · Real root cause for platform-wide form bleed · `sm:col-span-2` auto-column-expansion defect + `md:` breakpoint too narrow + 5-col filter bars unreadable below 1280px · 214 grid + 60 col-span replacements · DOM evidence · binding global standard | ✅ ⛔ |
+| `HR_LAYOUT_REMAINING_DEFECTS_APPENDIX.md` | **Pass 3 · HR-only** · Surgical fix for residual HR defects after global Pass 2: `col-span-N` without breakpoint, dialog `grid-cols-2 gap-2` cramped on phone, iOS Safari date-input cell stretching · 7 edits across 5 HR files · `min-w-0` + `w-full` doctrine | ✅ ⛔ |
 | `PRE_DEPLOY_LIVE_DEFECT_VALIDATION_REPORT.md` | **Phase V.5 · 2026-02-01** · 5-viewport × 6-defect pre-redeploy gate · 🟢 SAFE TO REDEPLOY verdict · prototype for Phase 1C | ✅ ⛔ |
 | `PHASE_1C_VIEWPORT_VALIDATION_GATE_SPEC.md` | **P1 Platform Quality Infrastructure** · 10-viewport × 11-target gate spec · binding deployment policy · APPROVED BACKLOG · implement AFTER prod validation + backup hardening | 📐 ⛔ |
 | `POST_DEPLOY_LIVE_CERTIFICATION.md` | Last production verification · post-cutover | ✅ |

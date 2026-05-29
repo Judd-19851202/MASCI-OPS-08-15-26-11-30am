@@ -462,7 +462,7 @@ function PublicLinkDialog({ onCreated, headers, t }) {
               <Label className="font-mono text-xs uppercase">{t("Employee Email (sends auto-link)")}</Label>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="time-off-public-email" />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
               <div>
                 <Label className="font-mono text-xs uppercase">{t("Position")}</Label>
                 <Input value={position} onChange={(e) => setPosition(e.target.value)} />
