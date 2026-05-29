@@ -626,6 +626,24 @@ export default function NewDailyReport({ publicMode = false }) {
       );
       return false;
     }
+    // Phase V.2 · Weather Impact Cleanup (2026-05-29):
+    // Weather Impact Today = Yes now feeds the structured Delays /
+    // Extra Work area instead of triggering a legacy weather narrative
+    // box.  Require at least one Weather-typed delay row.  Stays
+    // signal-only (advisory schedule flag may still derive
+    // server-side; never creates an RFI / schedule / notification).
+    // Doctrine: WEATHER_IMPACT_CLEANUP_CERTIFICATION.md
+    if (
+      data.weather_impact === "Yes" &&
+      !(data.constraints || []).some(
+        (r) => (r?.constraint_type || "").toLowerCase() === "weather"
+      )
+    ) {
+      toast.error(
+        "Add a Delay / Extra Work row with cause = Weather before submitting"
+      );
+      return false;
+    }
     // Safety-escalation gate runs BEFORE photos/signature so a stop-the-line
     // event can never be hidden behind a missing-photos toast.
     const hasAccidentOrInjury =
@@ -1218,15 +1236,15 @@ export default function NewDailyReport({ publicMode = false }) {
               />
             </div>
           </div>
-          {/* Phase V.2 · Section 03 Cleanup (2026-05-29):
-              `schedule_delays === "Yes"` no longer triggers this
-              free-text "Detail any Yes answers" box.  Delays now
-              live in the structured "Delays / Extra Work" card so
-              this trigger only fires for weather / accidents /
-              injuries to prevent duplicate delay reporting.
-              Doctrine: SECTION_03_CLEANUP_CERTIFICATION.md  */}
-          {(data.weather_impact === "Yes" ||
-            data.safety_incidents_today === "Yes" ||
+          {/* Phase V.2 · Section 03 Cleanup (2026-05-29) + Weather
+              Impact Cleanup (2026-05-29).  Delays YES feeds the
+              structured Delays / Extra Work card.  Weather YES also
+              feeds the structured card (requires a row with
+              cause = Weather).  Only Accidents / Injuries still
+              surface this free-text narrative box so the foreman is
+              never asked to describe the same delay twice.
+              Doctrine: WEATHER_IMPACT_CLEANUP_CERTIFICATION.md  */}
+          {(data.safety_incidents_today === "Yes" ||
             data.injuries_reported === "Yes") && (
             <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-3">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-amber-800 font-bold">
@@ -1237,7 +1255,7 @@ export default function NewDailyReport({ publicMode = false }) {
                 value={data.incident_notes}
                 onChange={(e) => set("incident_notes", e.target.value)}
                 className="min-h-[80px] text-base border-2 border-amber-300 mt-1"
-                placeholder={t("Describe weather impact, accidents, injuries…")}
+                placeholder={t("Describe accidents or injuries…")}
                 data-testid="input-incident-notes"
               />
             </div>
@@ -1894,29 +1912,44 @@ export default function NewDailyReport({ publicMode = false }) {
               construction ("delays / extra work") while backend
               models / enums / APIs keep "constraint" terminology.
               Doctrine: CONSTRAINT_UI_CERTIFICATION.md */}
-          <CollapseCard
-            title={t("Delays / Extra Work")}
-            testId="dr-constraints"
-            attentionOpen={
-              attemptedSubmit &&
-              data.schedule_delays === "Yes" &&
-              (data.constraints?.length || 0) === 0
+          {(() => {
+            // Phase V.2 · Weather Impact Cleanup — merged-gate logic.
+            // The Delays / Extra Work card surfaces attention when
+            // EITHER directive 03 question is YES and the matching
+            // constraint row is missing.  Wrap in IIFE so the
+            // derived flags stay co-located with the JSX they steer.
+            const rows = data.constraints || [];
+            const hasWeatherRow = rows.some(
+              (r) => (r?.constraint_type || "").toLowerCase() === "weather"
+            );
+            const delaysGateUnmet =
+              data.schedule_delays === "Yes" && rows.length === 0;
+            const weatherGateUnmet =
+              data.weather_impact === "Yes" && !hasWeatherRow;
+            const gateUnmet = delaysGateUnmet || weatherGateUnmet;
+            let statusLabel;
+            let statusTone;
+            if (rows.length > 0 && !gateUnmet) {
+              statusLabel = `${rows.length} ${t("logged")}`;
+              statusTone = "emerald";
+            } else if (weatherGateUnmet && !delaysGateUnmet) {
+              statusLabel = t("Add a row with cause = Weather (required)");
+              statusTone = "amber";
+            } else if (gateUnmet) {
+              statusLabel = t("Add at least one delay (required)");
+              statusTone = "amber";
+            } else {
+              statusLabel = t("No delays today");
+              statusTone = "slate";
             }
-            statusLabel={
-              (data.constraints?.length || 0) > 0
-                ? `${data.constraints.length} ${t("logged")}`
-                : data.schedule_delays === "Yes"
-                  ? t("Add at least one delay (required)")
-                  : t("No delays today")
-            }
-            statusTone={
-              (data.constraints?.length || 0) > 0
-                ? "emerald"
-                : data.schedule_delays === "Yes"
-                  ? "amber"
-                  : "slate"
-            }
-          >
+            return (
+              <CollapseCard
+                title={t("Delays / Extra Work")}
+                testId="dr-constraints"
+                attentionOpen={attemptedSubmit && gateUnmet}
+                statusLabel={statusLabel}
+                statusTone={statusTone}
+              >
             <div
               className="mb-3 text-xs text-slate-500 leading-snug"
               data-testid="constraints-helper"
@@ -1980,6 +2013,8 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="constraint"
             />
           </CollapseCard>
+          );
+          })()}
 
         </div>
         {/* iter383 · End of Smart Operational Disclosure cards. */}

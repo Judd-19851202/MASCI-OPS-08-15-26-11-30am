@@ -1,6 +1,65 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.2 · Weather Impact Cleanup 🟢
+
+### Mission
+Operator surfaced one final overlap: Section 03's `Weather Impact
+Today?` YES path triggered the legacy free-text "Detail any 'Yes'
+answers" box AND the new structured Delays / Extra Work card
+(which already exposes a Weather chip). Foremen were entering
+weather impact narrative twice. Fix: keep the Weather YES button
+but route it through the structured card with a "row with
+cause = Weather" requirement.
+
+### What shipped (UI-only)
+| Surface | Change |
+|---|---|
+| `NewDailyReport.jsx` legacy detail box | `weather_impact === "Yes"` removed from trigger · only accidents / injuries still surface the narrative box · placeholder updated to "Describe accidents or injuries…" |
+| `validate()` | New gate: if `weather_impact === "Yes"` AND no constraint row with `constraint_type === "weather"`, submit is blocked with toast "Add a Delay / Extra Work row with cause = Weather…" |
+| Delays card CollapseCard | Merged-gate IIFE derives `delaysGateUnmet` + `weatherGateUnmet` · status pill amber "Add a row with cause = Weather (required)" when weather gate unmet · `attentionOpen` honors merged gate |
+
+### Behavior verified live (6 scenarios)
+- ✅ Weather YES alone → no legacy box · amber Weather-required pill
+- ✅ Weather YES + Weather row → emerald "N logged"
+- ✅ Weather NO → no Weather requirement
+- ✅ Both YES + Utility row only → still blocked on Weather gate (precedence)
+- ✅ Both YES + Weather row + Utility row → submit allowed
+- ✅ Accidents YES / Injuries YES → legacy detail box still appears (unchanged)
+
+### Backend untouched
+- `weather_impact`, `schedule_delays`, `incident_notes`,
+  `ConstraintRow`, `ConstraintType`, advisory derivation —
+  all preserved.
+- **89 / 89 ODR tests still pass** · ESLint clean.
+- Existing reports with weather narrative in `incident_notes`
+  render unchanged (no schema mutation).
+
+### Doctrine compliance
+- ✅ **Signal-only** — no RFI / schedule / notification / auto-row creation.
+- ✅ **Doctrine Lock #1** — foreman 9-step contract intact · one clear pill, not a wall of warnings.
+- ✅ **Doctrine Lock #2** — reused `CollapseCard.attentionOpen`, existing Weather chip, `useList`, `RepeatBlock`. Zero new components or deps.
+- ✅ **No historical mutation** — DELETE still 410 · weather narrative on legacy reports still renders verbatim.
+
+### Files touched
+| File | Change |
+|---|---|
+| `frontend/src/pages/NewDailyReport.jsx` | 3 surgical edits (legacy box trigger · validate gate · merged-gate IIFE on Delays card) |
+| `memory/WEATHER_IMPACT_CLEANUP_CERTIFICATION.md` (NEW) | full cert · 6-scenario behavior matrix |
+| `memory/PRD.md` | this entry |
+| `memory/_INDEX.md` | new doc registered |
+
+### Status
+🛑 **HALTED after this cleanup as directed.**
+
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6
+- ❌ NO PM Hub wiring · NO approval/rejection workflow
+- ❌ NO new role standardization beyond the prior pass
+- ✅ Awaiting **Internal Superintendent Validation Review**.
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.2 · Section 03 Cleanup + FL Role Standardization 🟢
 
 ### Mission
