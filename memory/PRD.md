@@ -1,6 +1,75 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.2 · Daily Report Field-Logic Refinement 🟢
+
+### Mission
+Operator authorized 4 targeted field-logic fixes on the Daily
+Report after Wave-1B/1C acceptance — labels and inputs that
+weren't aligned with how foremen / superintendents naturally
+communicate. Refinement only. No new modules · no pilot · no
+RFI · no Schedule · no P6.
+
+### Fixes shipped
+| # | Fix | Result |
+|---|---|---|
+| 1 | Subcontractor Foreman / Lead → free-text input (was MASCI employee combo) | ✅ plain `<Input type="text">` · label "Subcontractor Foreman / Lead" · placeholder "e.g. John Doe (sub crew lead)" |
+| 2 | Prepared By + Superintendent → FL roster pickers with manual fallback | ✅ new `FlUserCombo` · new public `GET /api/field-leadership-roster` (24 active users in preview) · `allowedRoles` filter · manual fallback always permitted |
+| 3 | Section 03 "Schedule Delays Today?" → "Delays / Extra Work Today?" + submit-gate | ✅ relabel · `validate()` blocks submit when YES + 0 delay rows · amber "Add at least one delay (required)" pill · auto-expand via `attentionOpen` |
+| 4 | "Hours Impact" → "Lost Hours" (and other field-language hardening) | ✅ done · backend `ConstraintRow.hours_impact` field name unchanged |
+
+### Backend untouched
+- `ConstraintRow`, `ConstraintType`, `/api/daily-reports.constraints[]`,
+  advisory flags (`may_require_rfi`, `may_affect_schedule`),
+  exposure aggregator, `prepared_by`, `superintendent`,
+  `schedule_delays` — **all preserved**.
+- New public endpoint `GET /api/field-leadership-roster` returns
+  ONLY `{name, role, is_active}` (no PII · no email · no phone).
+  Sorted by name · supports `?role=` filter · 24 users in preview.
+- **89 / 89 ODR tests still pass** · ESLint clean.
+
+### Files touched
+| File | Change |
+|---|---|
+| `backend/routes/field_leadership_portal.py` | + public `/field-leadership-roster` route |
+| `frontend/src/components/FlUserCombo.jsx` (NEW · 199 LOC) | Role-aware combobox · manual fallback banner |
+| `frontend/src/pages/NewDailyReport.jsx` | 5 surgical edits · zero structural change |
+| `memory/DAILY_REPORT_FIELD_LOGIC_REFINEMENT_REPORT.md` (NEW) | Master closure doc |
+| `memory/SUBCONTRACTOR_FOREMAN_FIELD_CERTIFICATION.md` (NEW) | Fix 1 cert |
+| `memory/REPORT_ROLE_PICKER_CERTIFICATION.md` (NEW) | Fix 2 cert |
+| `memory/DELAY_EXTRA_WORK_GATE_CERTIFICATION.md` (NEW) | Fix 3 cert |
+| `memory/FIELD_LANGUAGE_CLEANUP_CERTIFICATION.md` (NEW) | Fix 4 cert |
+| `memory/PRD.md` | this entry |
+| `memory/_INDEX.md` | 5 new docs registered |
+
+### Doctrine compliance
+- ✅ **Doctrine Lock #1 (Simplicity)** — fewer keystrokes (role
+  pickers) · clearer label language · YES-path requirement is
+  the only new gate and lives inside the existing Step 3.
+- ✅ **Doctrine Lock #2 (Platform Inheritance)** — no new deps ·
+  `FlUserCombo` mirrors `EmployeeCombo` / `SupplierCombo` UX
+  byte-for-byte where possible · `CollapseCard.attentionOpen`
+  reused for auto-expand.
+- ✅ **No schema-breaking changes** — `prepared_by` /
+  `superintendent` still free-text strings · `schedule_delays`
+  preserved · existing reports render untouched.
+- ✅ **PII-safe** — public FL roster endpoint strips email /
+  phone / password hints / session state.
+- ✅ **Signal-only** — submit-gate never creates RFI / schedule
+  entry / notification.
+
+### Status
+🛑 **HALTED at end of refinement pass as directed.**
+
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6
+- ❌ NO PM Hub wiring (PM Exposure Tile remains a drop-in)
+- ❌ NO new modules · NO new dashboards · NO new workflow steps
+- ✅ Awaiting **Internal Superintendent Validation Review**
+  (3 scenarios · Airport · Utility/Drainage · Concrete/Sidewalk).
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.2 · Daily Report Evolution · POST-WAVE-1B/1C FIELD-LANGUAGE REFINEMENT 🟢
 
 ### Mission

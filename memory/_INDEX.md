@@ -264,6 +264,11 @@ explicitly. RFI · Schedule · P6 remain out of scope.**
 | `WAVE_1B_1C_OPERATOR_REVIEW_GUIDE.md` | **Wave-1B/1C supersedes Wave-1A review guide** · pilot is NOT next gate · Internal Superintendent Validation Review is | ✅ ⛔ |
 | `WAVE_1B_1C_EXECUTIVE_SUMMARY.md` | **Wave-1B/1C closure brief** · WHAT CHANGED / WHAT DID NOT · current status · remaining risks · next gate (NOT pilot) | ✅ ⛔ |
 | `SUPERINTENDENT_VALIDATION_REPORT.md` | **Post-refinement** · operational-review template · 3 scenarios (Airport · Utility/Drainage · Concrete/Sidewalk) · pilot gate checklist · field-language confirmation matrix | ✅ ⛔ |
+| `DAILY_REPORT_FIELD_LOGIC_REFINEMENT_REPORT.md` | **Field-logic refinement closure** · 4 fixes shipped · backend untouched · 89/89 still green · stop-condition reinforced | ✅ ⛔ |
+| `SUBCONTRACTOR_FOREMAN_FIELD_CERTIFICATION.md` | **Fix 1** · subcontractor foreman → plain text · no MASCI roster pollution · supplier-tied picker deferred | ✅ ⛔ |
+| `REPORT_ROLE_PICKER_CERTIFICATION.md` | **Fix 2** · `FlUserCombo` + public `GET /api/field-leadership-roster` (name+role+active only · no PII) · Prepared By / Superintendent role-aware pickers with manual fallback | ✅ ⛔ |
+| `DELAY_EXTRA_WORK_GATE_CERTIFICATION.md` | **Fix 3** · Section 03 relabel · submit-gate when YES + 0 rows · `attentionOpen` auto-expand · NO path preserved · still signal-only | ✅ ⛔ |
+| `FIELD_LANGUAGE_CLEANUP_CERTIFICATION.md` | **Fix 4** · UI vocabulary matrix · "Hours Impact" → "Lost Hours" · anti-pattern audit (forbidden strings cleared) · chip labels held as-is per directive | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

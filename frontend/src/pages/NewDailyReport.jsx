@@ -28,6 +28,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
+import { FlUserCombo } from "@/components/FlUserCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
 import { DailyHoursFlag } from "@/components/HoursSanityFlag";
 import { useT, getLang } from "@/lib/i18n";
@@ -583,6 +584,21 @@ export default function NewDailyReport({ publicMode = false }) {
       toast.error("Prepared By is required");
       return false;
     }
+    // Phase V.2 · Field-Logic Refinement (2026-05-29):
+    // when the foreman flagged Delays / Extra Work Today = Yes, at
+    // least one structured Delay / Extra Work row must accompany the
+    // narrative.  This stays signal-only — no RFI, no schedule entry,
+    // no notifications.  The attentionOpen prop on the Delays card
+    // auto-expands it when submission is blocked.
+    if (
+      data.schedule_delays === "Yes" &&
+      (data.constraints?.length || 0) === 0
+    ) {
+      toast.error(
+        "Add at least one Delay / Extra Work row (Type + Notes) before submitting"
+      );
+      return false;
+    }
     // Safety-escalation gate runs BEFORE photos/signature so a stop-the-line
     // event can never be hidden behind a missing-photos toast.
     const hasAccidentOrInjury =
@@ -1038,23 +1054,36 @@ export default function NewDailyReport({ publicMode = false }) {
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Prepared By *")}
               </Label>
-              <Input
+              <FlUserCombo
                 value={data.prepared_by}
-                onChange={(e) => set("prepared_by", e.target.value)}
-                className={inputClsTall}
-                placeholder={t("Foreman / Superintendent")}
-                data-testid="input-prepared-by"
+                onChange={(v) => set("prepared_by", v)}
+                placeholder={t("Foreman / General Foreman / Superintendent")}
+                testId="prepared-by"
+                allowedRoles={[
+                  "Foreman",
+                  "General Foreman",
+                  "Field Supervisor",
+                  "Working Supervisor",
+                  "Truck Boss",
+                  "Superintendent",
+                  "Senior Superintendent",
+                ]}
               />
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Superintendent")}
               </Label>
-              <Input
+              <FlUserCombo
                 value={data.superintendent}
-                onChange={(e) => set("superintendent", e.target.value)}
-                className={inputClsTall}
-                data-testid="input-superintendent"
+                onChange={(v) => set("superintendent", v)}
+                placeholder={t("Superintendent / Senior Super")}
+                testId="superintendent"
+                allowedRoles={[
+                  "Superintendent",
+                  "Senior Superintendent",
+                  "Field Supervisor",
+                ]}
               />
             </div>
           </div>
@@ -1127,7 +1156,7 @@ export default function NewDailyReport({ publicMode = false }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-                {t("Schedule Delays Today?")}
+                {t("Delays / Extra Work Today?")}
               </Label>
               <YesNo
                 value={data.schedule_delays}
@@ -1617,7 +1646,8 @@ export default function NewDailyReport({ publicMode = false }) {
               fields={[
                 { key: "company", label: "Company", full: true, type: "supplier-combo" },
                 { key: "trade", label: "Trade" },
-                { key: "foreman", label: "Foreman / Lead", type: "employee-combo" },
+                { key: "foreman", label: "Subcontractor Foreman / Lead",
+                  placeholder: "e.g. John Doe (sub crew lead)" },
                 { key: "count", label: "# of Workers", type: "number" },
                 { key: "hours", label: "Hours Worked", type: "number" },
                 {
@@ -1838,12 +1868,25 @@ export default function NewDailyReport({ publicMode = false }) {
           <CollapseCard
             title={t("Delays / Extra Work")}
             testId="dr-constraints"
+            attentionOpen={
+              attemptedSubmit &&
+              data.schedule_delays === "Yes" &&
+              (data.constraints?.length || 0) === 0
+            }
             statusLabel={
               (data.constraints?.length || 0) > 0
                 ? `${data.constraints.length} ${t("logged")}`
-                : t("No delays today")
+                : data.schedule_delays === "Yes"
+                  ? t("Add at least one delay (required)")
+                  : t("No delays today")
             }
-            statusTone={(data.constraints?.length || 0) > 0 ? "emerald" : "slate"}
+            statusTone={
+              (data.constraints?.length || 0) > 0
+                ? "emerald"
+                : data.schedule_delays === "Yes"
+                  ? "amber"
+                  : "slate"
+            }
           >
             <div
               className="mb-3 text-xs text-slate-500 leading-snug"
@@ -1900,7 +1943,7 @@ export default function NewDailyReport({ publicMode = false }) {
                             "equipment", "trucking", "mot",
                             "cei_inspection", "owner_engineer",
                             "safety", "other"] },
-                { key: "hours_impact", label: "Hours Impact", type: "number",
+                { key: "hours_impact", label: "Lost Hours", type: "number",
                   placeholder: "0.0" },
                 { key: "notes", label: "Notes", full: true, type: "textarea",
                   placeholder: "What happened and where" },

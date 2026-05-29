@@ -877,4 +877,35 @@ def build_field_leadership_portal_router(
             raise HTTPException(404, "user not found")
         return {"ok": True}
 
+    # ─────────────────────────────────────────────────────────────────
+    # PUBLIC roster (name + role only)
+    # ─────────────────────────────────────────────────────────────────
+    # Phase V.2 · Daily Report Field-Logic Refinement (2026-05-29):
+    # the foreman-facing Daily Report (/daily/new) is a public form,
+    # so its Prepared By + Superintendent role pickers cannot require
+    # admin / HR / FL auth.  This endpoint returns only the minimum
+    # data the picker needs (name + role + active flag) and strips
+    # ALL contact / login / session fields.  Doctrine:
+    #   - REPORT_ROLE_PICKER_CERTIFICATION.md
+    @router.get("/field-leadership-roster")
+    async def public_fl_roster(
+        role: Optional[str] = Query(default=None),
+    ):
+        users = await list_fl_users(db, only_active=True)
+        items: List[Dict[str, Any]] = []
+        for u in users:
+            r = (u.get("role") or "").strip()
+            if role and r.lower() != role.strip().lower():
+                continue
+            items.append({
+                "name": (u.get("name") or "").strip(),
+                "role": r,
+                "is_active": bool(u.get("is_active", True)),
+            })
+        return {
+            "items": items,
+            "count": len(items),
+            "allowed_roles": sorted(ALLOWED_FL_ROLES),
+        }
+
     return router
