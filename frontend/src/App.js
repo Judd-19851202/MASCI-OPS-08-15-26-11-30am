@@ -535,6 +535,10 @@ function App() {
             <Route path="/shop/change-password" element={S(<ShopChangePassword />)} />
             <Route path="/shop" element={S(<ShopHub />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
+            {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is
+                now reachable from /shop/equipment (was previously buried as a
+                disabled link in the ShopHub "More" footer). */}
+            <Route path="/shop/equipment" element={S(<EquipmentDashboard />)} />
             <Route path="/shop/equipment/:id" element={S(<ViewEquipmentInspection context="shop" />)} />
 
             {/* ============================================================

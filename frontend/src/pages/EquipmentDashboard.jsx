@@ -20,6 +20,16 @@ export default function EquipmentDashboard() {
   const { pathname } = useLocation();
   const hubHome = useHubHome();
 
+  // Iter520 · Phase V.5 · P0-2A/2B — derive portal context from pathname so
+  // we hide admin-only widgets and PM-incompatible actions when the
+  // dashboard is rendered inside /pm/.
+  const portalContext = pathname.startsWith("/pm/")
+    ? "pm"
+    : pathname.startsWith("/shop/")
+      ? "shop"
+      : "admin";
+  const isPmContext = portalContext === "pm";
+
   const load = async () => {
     setLoading(true);
     try {
@@ -55,22 +65,26 @@ export default function EquipmentDashboard() {
           <HubBackLink />
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex items-center gap-2">
-            <ShareFormDialog
-              formType="equipment-inspection"
-              path="/equipment/submit"
-              title="Share Equipment Form"
-              description="Anyone with this link can file an Equipment Pre-Op Inspection. No login required."
-              testIdPrefix="share-equipment"
-            />
-            <Button
-              onClick={() => navigate("/equipment/new")}
-              className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
-              data-testid="new-equipment-btn"
-            >
-              <Plus className="w-5 h-5 mr-1" />
-              <span className="hidden sm:inline">New Inspection</span>
-              <span className="sm:hidden">New</span>
-            </Button>
+            {!isPmContext && (
+              <ShareFormDialog
+                formType="equipment-inspection"
+                path="/equipment/submit"
+                title="Share Equipment Form"
+                description="Anyone with this link can file an Equipment Pre-Op Inspection. No login required."
+                testIdPrefix="share-equipment"
+              />
+            )}
+            {!isPmContext && (
+              <Button
+                onClick={() => navigate("/equipment/new")}
+                className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
+                data-testid="new-equipment-btn"
+              >
+                <Plus className="w-5 h-5 mr-1" />
+                <span className="hidden sm:inline">New Inspection</span>
+                <span className="sm:hidden">New</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -103,14 +117,23 @@ export default function EquipmentDashboard() {
             )}
           </div>
           <div className="p-4 sm:p-5 border-b-2 border-slate-100">
-            <EquipmentTrendsPanel />
+            {!isPmContext && <EquipmentTrendsPanel />}
+            {isPmContext && (
+              <p className="text-sm text-slate-600">
+                PM read-only view. Use the inspections list below to open any pre-op record for a project you manage.
+              </p>
+            )}
           </div>
-          <div className="p-4 sm:p-5 border-b-2 border-slate-100">
-            <OpenItemsPanel baseHref="/admin/equipment" testIdPrefix="admin-open" />
-          </div>
-          <div className="p-4 sm:p-5 border-b-2 border-slate-100">
-            <ShopActivityFeed baseHref="/admin/equipment" testIdPrefix="admin-activity" />
-          </div>
+          {!isPmContext && (
+            <div className="p-4 sm:p-5 border-b-2 border-slate-100">
+              <OpenItemsPanel baseHref="/admin/equipment" testIdPrefix="admin-open" />
+            </div>
+          )}
+          {!isPmContext && (
+            <div className="p-4 sm:p-5 border-b-2 border-slate-100">
+              <ShopActivityFeed baseHref="/admin/equipment" testIdPrefix="admin-activity" />
+            </div>
+          )}
           {loading ? (
             <div className="p-12 flex items-center justify-center text-slate-500">
               <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
@@ -121,18 +144,22 @@ export default function EquipmentDashboard() {
                 <Wrench className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-display text-2xl font-bold text-slate-900">
-                No equipment inspections yet
+                {isPmContext ? "No inspections for your projects yet" : "No equipment inspections yet"}
               </h3>
               <p className="text-slate-600 mt-2 max-w-md mx-auto">
-                Run a daily pre-op inspection on any unit to log its condition.
+                {isPmContext
+                  ? "When a pre-op inspection is filed on one of your assigned projects, it will appear here."
+                  : "Run a daily pre-op inspection on any unit to log its condition."}
               </p>
-              <Button
-                onClick={() => navigate("/equipment/new")}
-                className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
-                data-testid="empty-cta"
-              >
-                <Plus className="w-5 h-5 mr-2" /> File First Inspection
-              </Button>
+              {!isPmContext && (
+                <Button
+                  onClick={() => navigate("/equipment/new")}
+                  className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
+                  data-testid="empty-cta"
+                >
+                  <Plus className="w-5 h-5 mr-2" /> File First Inspection
+                </Button>
+              )}
             </div>
           ) : (
             <JobFolderList
@@ -182,15 +209,17 @@ export default function EquipmentDashboard() {
                       >
                         <Eye className="w-4 h-4 mr-1" /> View
                       </Link>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
-                        onClick={(e) => handleDelete(it.id, e)}
-                        data-testid={`delete-${it.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {!isPmContext && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
+                          onClick={(e) => handleDelete(it.id, e)}
+                          data-testid={`delete-${it.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );

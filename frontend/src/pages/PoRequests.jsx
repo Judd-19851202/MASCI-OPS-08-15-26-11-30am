@@ -55,8 +55,43 @@ import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
 import { PO_STATUS_TINTS } from "@/lib/statusBadges";
 import GlobalSearch from "@/components/GlobalSearch";
+import { api } from "@/lib/api";
 
 const STATUS_COLORS = PO_STATUS_TINTS;
+
+/**
+ * Iter520 · Phase V.5 · P0-3 — open a PO attachment (receipt or invoice)
+ * through the stable backend stream endpoint. Avoids the iPad-Safari
+ * blank-tab failure that occurred when the raw data URL was used as
+ * <a href>. Fetches the bytes via api (with auth headers), creates a
+ * Blob URL, and opens it in a new tab. Falls back to triggering a
+ * download anchor when the popup is blocked (also iPad-friendly).
+ */
+async function openPoAttachment(poId, filename) {
+  try {
+    const res = await api.get(`/po-requests/${poId}/receipt`, {
+      responseType: "blob",
+    });
+    const blob = res.data;
+    const url = URL.createObjectURL(blob);
+    // Try opening in a new tab first (works for PDFs and images on most browsers).
+    const popup = window.open(url, "_blank", "noopener");
+    if (!popup) {
+      // Popup blocked — fall back to a programmatic download click.
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename || `po_${poId}_receipt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    // Revoke after a short delay so the new tab has time to load.
+    setTimeout(() => { try { URL.revokeObjectURL(url); } catch (_e) { /* ignore */ } }, 60_000);
+  } catch (err) {
+    const msg = friendlyError(err) || "Could not open receipt";
+    toast.error(msg);
+  }
+}
 
 export default function PoRequests() {
   const nav = useNavigate();
@@ -561,9 +596,14 @@ function PoDrawer({ id, caps, onClose }) {
               {po.receipt_url ? (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-md p-3" data-testid="po-receipt-block">
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-700 font-bold mb-1">Receipt Uploaded</div>
-                  <a href={po.receipt_url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-900 hover:text-red-700 underline">
-                    {po.receipt_filename || "View"}
-                  </a>
+                  <button
+                    type="button"
+                    onClick={() => openPoAttachment(po.id, po.receipt_filename)}
+                    className="text-xs font-bold text-slate-900 hover:text-red-700 underline"
+                    data-testid="po-receipt-open"
+                  >
+                    {po.receipt_filename || "View receipt"}
+                  </button>
                   <div className="text-[11px] text-slate-600 mt-1">
                     {po.receipt_amount != null && <>${po.receipt_amount.toFixed(2)} · </>}
                     {po.receipt_uploaded_at && formatLocalDateTime(po.receipt_uploaded_at)}

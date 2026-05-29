@@ -1,6 +1,71 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.5 · P0-2 + P0-3 · Live Portal Workflow + PO Attachment Fixes 🟢
+
+### Mission
+Operator-reported live iPad defects spanning **four** user-facing workflows:
+- **P0-2A** — PM Portal Pre-Op view bounces to /pm/login on click (was reported as Shop login — same visual treatment)
+- **P0-2B** — PM Portal pre-op list shows Delete button that always fails ("Delete failed" toast)
+- **P0-2C** — Shop Portal pre-op visibility buried in More footer AND non-functional (disabled placeholder link)
+- **P0-3** — PO receipt PDF tap opens blank tab on iPad Safari
+
+### Root causes (one per defect)
+1. **P0-2A** — Three-link chain: `EquipmentDashboard` rendered admin-only widgets in PM context → `/api/admin/equipment-inspections/*` returned 401 → `api.js` 401 interceptor blindly cleared PM token → `RequireAdminOrPm` no longer admitted → bounced to /pm/login. Compounded by `list_equipment_inspections` not applying `compute_pm_scope` (PM saw rows they couldn't open).
+2. **P0-2B** — `EquipmentDashboard` rendered Trash button unconditionally; backend `DELETE /api/equipment-inspections/{id}` requires `require_admin` → PM gets 403 every click.
+3. **P0-2C** — `/shop/equipment` (list route) did not exist in `App.js`; ShopHub's "Recent Pre-Op Inspections" link was hardcoded `disabled` with placeholder `to="?legacy=recent"`.
+4. **P0-3** — Frontend rendered raw `<a href={po.receipt_url} target="_blank">`. The `receipt_url` was either a 2-MB data URL (iPad Safari refuses to navigate to multi-megabyte data URLs) or an expired R2 signed URL. Both produced blank tabs.
+
+### What shipped (preview)
+
+**Backend** (zero scheduler / env / Daily Report changes):
+- `routes/equipment.py` — `list_equipment_inspections` now applies `compute_pm_scope` filter for consistency with the detail endpoint
+- `routes/po_requests.py` — new `GET /api/po-requests/{po_id}/receipt` streaming endpoint:
+  - Auth-gated via `require_any_portal_token`
+  - Handles both `data:` URLs (preview / fallback) and `http(s):` URLs (R2 signed)
+  - Returns `Content-Disposition: inline; filename="..."` with correct content-type for iPad Safari inline render
+  - Fetches R2 bytes server-side via httpx so client never holds an expiring URL
+
+**Frontend**:
+- `lib/api.js` — namespace-aware 401 interceptor: `/api/admin/*` 401s ONLY clear admin token (PM/Shop/HR sessions survive admin-widget failures)
+- `pages/EquipmentDashboard.jsx` — portal context derived from pathname; hides `EquipmentTrendsPanel`, `OpenItemsPanel`, `ShopActivityFeed`, `ShareFormDialog`, `New Inspection`, `File First Inspection`, and per-row Delete buttons when rendered inside `/pm/`
+- `App.js` — new `<Route path="/shop/equipment" element={S(<EquipmentDashboard />)} />`
+- `pages/ShopHub.jsx` — Recent Pre-Op Inspections link removed `disabled` prop, now points at `/shop/equipment`
+- `pages/PoRequests.jsx` — new `openPoAttachment(poId, filename)` helper using `api.get` with `responseType: "blob"`, creates Blob URL, opens in new tab with download fallback
+
+### Validation
+- **P0-2A** verified via Playwright: PM logged in as chriswright, navigated to `/pm/equipment` → stayed at `/pm/equipment` ✅; navigated to `/pm/equipment/<out-of-scope-id>` → stayed at `/pm/equipment` (toast "Inspection not found", **NO bounce to /pm/login**) ✅; admin widgets count = 0 in PM context ✅; New/Share/Delete buttons count = 0 ✅
+- **P0-2B** verified: same screenshots show 0 write actions on PM dashboard
+- **P0-2C** verified via Playwright: Shop testmech logged in, expanded More footer, tapped Recent Pre-Op Inspections → navigated to `/shop/equipment` showing full 82-inspection dashboard with "54 UNITS FLAGGED FAIL" badge ✅
+- **P0-3** verified via curl: `GET /api/po-requests/{id}/receipt` returns HTTP 200, `application/pdf` body (first 4 bytes = `%PDF`), correct `Content-Disposition: inline` header, 401 without auth, 200 with PM token, 404 for PO with no receipt
+- Wave-2 Playwright DR field reliability: 6 passed · 1 skipped (39.5 s)
+- Backend admin auth: 23 passed
+- ESLint + Ruff clean on all touched files
+
+### Deliverables (6 documents)
+1. `LIVE_PORTAL_WORKFLOW_DEFECT_AUDIT.md`
+2. `PM_PREOP_ROUTING_FIX_CERTIFICATION.md`
+3. `PM_PREOP_PERMISSION_CERTIFICATION.md`
+4. `SHOP_PREOP_WORKFLOW_CERTIFICATION.md`
+5. `PO_ATTACHMENT_OPEN_FIX_CERTIFICATION.md`
+6. `LIVE_USER_FACING_P0_CLOSEOUT_REPORT.md`
+
+### Stop conditions honored
+- ✅ No backup scheduler hardening work (held per directive)
+- ✅ No Approval/Rejection / Pilot / RFI / Schedule / P6 / PM Exposure Tile / unrelated dashboard work
+- ✅ Daily Report workflow unchanged
+- ✅ Private files not exposed publicly (every receipt fetch re-validates portal token)
+- ✅ Broken workflows fixed (not hidden)
+- ✅ No env-var changes
+
+### Status
+Preview shipped. Awaiting operator review. After review:
+- Sign-off → roll into next production redeploy alongside accepted P0-1 form bleed fix
+- Then operator decides on backup scheduler hardening (P0-3 in the new priority order)
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.5 · P0-1 · Platform Form Field Bleed Fix 🟢
 
 ### Mission

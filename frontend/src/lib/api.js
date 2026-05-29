@@ -86,14 +86,40 @@ api.interceptors.request.use((config) => {
 // On 401, drop whichever token the request was using so the next protected
 // route click bounces back to its login page. We don't redirect here — the
 // route guards handle navigation cleanly.
+//
+// Iter520 · Phase V.5 · P0-2A — namespace-aware token clearing. Failures on
+// `/api/admin/*` only clear the admin token; non-admin session tokens (PM,
+// Shop, HR, etc.) survive. Otherwise a single failed admin-side widget
+// inside a PM-or-Shop dashboard would kick the user out of their portal.
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err?.response?.status === 401) {
       const cfg = err.config || {};
-      // If the request had an admin token, clear that one; if it had a JWT,
-      // clear that. Don't blow away both — admin and crew-hub sessions are
-      // independent.
+      const url = String(cfg.url || "");
+      const isAdminNamespace = url.startsWith("/admin/") || url.includes("/api/admin/");
+      const isShopNamespace = url.startsWith("/shop/") || url.includes("/api/shop/");
+      const isHrNamespace = url.startsWith("/hr/") || url.includes("/api/hr/");
+
+      // If the 401 came from a namespaced route, only clear the matching
+      // namespace token. The user's non-admin session must survive.
+      if (isAdminNamespace) {
+        if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
+        return Promise.reject(err);
+      }
+      if (isShopNamespace) {
+        if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
+        return Promise.reject(err);
+      }
+      if (isHrNamespace) {
+        if (cfg.headers?.["X-HR-Token"]) clearHrToken();
+        return Promise.reject(err);
+      }
+
+      // Non-namespaced 401 (e.g. /api/daily-reports/{id} rejected by a
+      // top-level gate) — preserve the legacy behavior of clearing every
+      // token the request carried so the next protected click bounces to
+      // the right login.
       if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
       if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
       if (cfg.headers?.["X-PM-Token"]) clearPmToken();

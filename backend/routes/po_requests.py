@@ -719,6 +719,81 @@ def build_po_requests_router(
             pass
         return await get_po(po_id, actor=actor)
 
+    @router.get("/api/po-requests/{po_id}/receipt")
+    async def get_receipt(
+        po_id: str,
+        actor: Dict[str, Any] = Depends(require_any_portal_token),
+    ):
+        """Iter520 · Phase V.5 · P0-3 — stable receipt download endpoint.
+
+        Always streams the bytes inline with a clean Content-Type and
+        Content-Disposition so iPad Safari / desktop browsers render the
+        PDF reliably. Replaces the prior "embed the raw URL in an
+        <a href>" pattern that produced blank tabs whenever (a) the
+        stored URL was a 2MB data URL Safari refuses to navigate to, or
+        (b) the stored R2 signed URL had expired.
+
+        Two storage cases:
+          • Data URL ("data:<mime>;base64,...") — preview / R2 fallback.
+            Parse + stream.
+          • Plain URL (R2 signed URL or any https URL) — fetch via httpx
+            and re-stream so the client never sees an expired link.
+
+        Permission: any authenticated portal user (matches `require_any_portal_token`
+        used on the upload + drawer-read endpoints).
+        """
+        from fastapi.responses import StreamingResponse  # noqa: PLC0415
+        import io  # noqa: PLC0415
+
+        po = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
+        if not po:
+            raise HTTPException(404, "PO not found")
+        receipt_url = po.get("receipt_url") or ""
+        if not receipt_url:
+            raise HTTPException(404, "No receipt uploaded for this PO")
+        filename = po.get("receipt_filename") or f"po_{po_id}_receipt"
+
+        # Case 1 — data URL ("data:<mime>;base64,<b64>")
+        if receipt_url.startswith("data:"):
+            import base64  # noqa: PLC0415
+            try:
+                head, b64 = receipt_url.split(",", 1)
+                # head format: "data:<mime>;base64"
+                mime = head.split(":", 1)[1].split(";", 1)[0] or "application/octet-stream"
+                blob = base64.b64decode(b64)
+            except Exception:
+                raise HTTPException(500, "Stored receipt is corrupted")
+            headers = {
+                "Content-Disposition": f'inline; filename="{filename}"',
+                "Cache-Control": "private, no-store",
+            }
+            return StreamingResponse(io.BytesIO(blob), media_type=mime, headers=headers)
+
+        # Case 2 — http(s) URL (R2 signed URL or external). Fetch + re-stream.
+        if receipt_url.startswith(("http://", "https://")):
+            import httpx  # noqa: PLC0415
+            try:
+                async with httpx.AsyncClient(timeout=20.0) as client:
+                    r = await client.get(receipt_url)
+                    if r.status_code != 200:
+                        raise HTTPException(502, f"Upstream receipt fetch failed (HTTP {r.status_code})")
+                    content_type = r.headers.get("content-type") or "application/octet-stream"
+                    body = r.content
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.warning("Receipt upstream fetch failed for po=%s: %s", po_id, e)
+                raise HTTPException(502, "Receipt fetch failed — please re-upload")
+            headers = {
+                "Content-Disposition": f'inline; filename="{filename}"',
+                "Cache-Control": "private, no-store",
+            }
+            return StreamingResponse(io.BytesIO(body), media_type=content_type, headers=headers)
+
+        raise HTTPException(500, "Unrecognized receipt storage format")
+
+
+
     @router.post("/api/po-requests/{po_id}/respond-clarification")
     async def respond_clarification(
         po_id: str,

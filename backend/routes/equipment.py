@@ -301,9 +301,22 @@ def register_equipment_routes(
         return insp
 
     @api_router.get("/equipment-inspections", response_model=List[EquipmentInspectionSummary])
-    async def list_equipment_inspections(_: bool = Depends(require_shop_or_admin)):
+    async def list_equipment_inspections(actor=Depends(require_shop_or_admin)):
         # $size aggregation skips pulling the photos[] array — much faster.
-        pipeline = [
+        # Iter520 · Phase V.5 · P0-2A — apply PM scope filter so PM sees
+        # only inspections for projects they manage (matches the detail
+        # endpoint's behavior; prevents 404-bounce on row click).
+        scope = await compute_pm_scope(db, actor)
+        match_stage = {}
+        if not scope.is_admin and scope.project_numbers is not None:
+            allowed = list(scope.project_numbers or [])
+            if not allowed:
+                return []
+            match_stage = {"project_number": {"$in": allowed}}
+        pipeline = []
+        if match_stage:
+            pipeline.append({"$match": match_stage})
+        pipeline.extend([
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {
@@ -314,7 +327,7 @@ def register_equipment_routes(
                 "photo_count":   {"$size": {"$ifNull": ["$photos", []]}},
                 "signoff_count": {"$size": {"$ifNull": ["$shop_signoffs", []]}},
             }},
-        ]
+        ])
         docs = await db.equipment_inspections.aggregate(pipeline).to_list(1000)
         return [
             EquipmentInspectionSummary(
