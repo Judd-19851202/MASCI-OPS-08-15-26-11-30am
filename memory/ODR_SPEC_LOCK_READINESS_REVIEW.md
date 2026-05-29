@@ -325,3 +325,55 @@ See `ODR_SPEC_LOCK_CERTIFICATION.md` for the final pre-lock
 certification statement.
 
 _End of Final Governance Pre-Lock Update._
+
+---
+
+# Coaching / Guidance Pre-Lock Update · 2026-05-29
+
+This update extends the readiness review with the **Coaching ·
+Training · Operational Guidance** certification (O36–O50).
+
+## 16 · Coaching / Guidance certifications
+
+| # | Aspect | Verdict | Evidence |
+|---|---|---|---|
+| 16.1 | Operational Guidance Center integration defined | ✅ | COACHING_GUIDANCE_ADDENDUM § 9 + ECOSYSTEM § C1 diagram |
+| 16.2 | English guidance path defined | ✅ | COACHING § 4 + ECOSYSTEM § C4 EN i18n string tables |
+| 16.3 | Spanish guidance path defined | ✅ | COACHING § 4 + ECOSYSTEM § C4 ES i18n string tables + D8 probe extension |
+| 16.4 | Crew-specific coaching defined | ✅ | COACHING § 4 catalog map (14 crew types · 4+ bullets each) |
+| 16.5 | Readiness coaching defined (vocabulary contract) | ✅ | COACHING § 5 vocabulary contract + DATA_MODEL § C1 `CoachingPrompt` |
+| 16.6 | First-time onboarding defined | ✅ | COACHING § 6 + UI § C3 4-card flow + UI § C4 help menu |
+| 16.7 | Field Leadership training architecture defined | ✅ | COACHING § 7 + UI § C5 Training Center |
+| 16.8 | PM visibility architecture defined | ✅ | COACHING § 8 + UI § C6 PM coaching consumption surface |
+| 16.9 | No per-foreman scoring (O50 hard contract) | ✅ | DATA_MODEL § C3 + ECOSYSTEM § C7 anti-pattern + § C6 probe checks 4–5 |
+| 16.10 | Single source of truth for guidance content | ✅ | ECOSYSTEM § C1 + § C7 anti-pattern (no parallel guidance stores) |
+| 16.11 | Audit append-only for telemetry · O49 | ✅ | existing `odr_section_events` + planned `guidance_catalog_audit` |
+| 16.12 | No new ODR collection introduced | ✅ | DATA_MODEL § C2 (catalog is OGC reference · 7+1 collections unchanged) |
+
+## 17 · Final readiness checklist · 29 / 29 ✅
+
+| Range | Confirmations | Pass |
+|---|---|---|
+| 1–8 | Foundational + bilingual + reliability + ecosystem | ✅ 8/8 |
+| 9 | Public-Link Device Continuity | ✅ |
+| 10–21 | Field Leadership Governance (gov · public · Inbox · PM · amendment · official · signature · attachment · continuity · backend · audit · 35 doctrines) | ✅ 12/12 |
+| 22–29 | Coaching · Training · Guidance | ✅ 8/8 |
+
+**Total: 29 / 29 ✅**
+
+## 18 · Verdict (final · coaching layer absorbed)
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║      ✅  ODR ARCHITECTURE COMPLETE                            ║
+║      ✅  50 / 50 DOCTRINES ANCHORED                           ║
+║      ✅  29 / 29 READINESS CONFIRMATIONS                      ║
+║                                                              ║
+║   STOP — awaiting operator spec-lock authorization.          ║
+║   See ODR_COACHING_AND_GUIDANCE_CERTIFICATION.md.            ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+_End of Coaching / Guidance Pre-Lock Update._

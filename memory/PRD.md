@@ -27557,3 +27557,48 @@ Operator command: **"ODR FINAL GOVERNANCE REVISION · PRE-SPEC LOCK DIRECTIVE ·
 3. Answer the 25 open architecture questions (or `"accept all defaults"`)
 4. Issue spec lock command: `"LOCK ODR SPECIFICATION · PROCEED TO M0"`
 5. Implementation Wave M0 begins ONLY after step 4
+
+---
+
+## ODR Coaching · Training · Operational Guidance · Pre-Lock Final Doctrine · 2026-05-29
+
+Operator command: **"ODR FINAL DOCTRINE ADDENDUM · COACHING • TRAINING • OPERATIONAL GUIDANCE INTEGRATION · AUTHORIZATION: APPROVED"**.
+
+### Deliverables shipped (7 · architecture-only)
+
+1. **`ODR_COACHING_GUIDANCE_ADDENDUM.md`** (new master · 15 KB · O36–O50 · 15 new doctrines)
+2. **`ODR_DATA_MODEL.md`** — `CoachingPrompt` structured replacement (was `List[str]`) · `prompt_key` field · `CoachingMetricsRollup` (no `foreman_uid`) · references `guidance_catalog` (no new ODR collection)
+3. **`ODR_UI_WIREFRAMES.md`** — 4 guidance touchpoints (Learn More · Examples · Crew Tips · Best Practices) on 12 sections · inline drawer · 4-card first-time onboarding · top-right help menu · FL Training Center 4 panels · PM coaching consumption surface
+4. **`ODR_ECOSYSTEM_INTEGRATION_MAP.md`** — OGC single-source diagram · bilingual content path · coaching telemetry contract · 5 anti-patterns · extended probe responsibilities
+5. **`ODR_MIGRATION_PLAN.md`** — M0 seed catalog floor · M1 crew rollout · M2 FL Training Center go-live · 6 new risks (R29–R34) · 7 acceptance criteria
+6. **`ODR_SPEC_LOCK_READINESS_REVIEW.md`** — extended with 12 new certifications · 29/29 confirmations green
+7. **`ODR_COACHING_AND_GUIDANCE_CERTIFICATION.md`** (new final cert · 50/50 doctrines · 8/8 coaching certs)
+
+### Doctrine inventory now totals 50
+- O1–O10 foundational · O11–O20 public-link continuity · O21–O35 FL governance · O36–O50 coaching/training/guidance
+
+### Operator's 8-point coaching certification · ALL ✅
+1. OGC integration · 2. English path · 3. Spanish path · 4. Crew-specific · 5. Readiness coaching · 6. First-time onboarding · 7. FL Training architecture · 8. PM visibility
+
+### Critical non-punitive guarantee (4 doctrines anchored)
+O9 + O27 + O45 + O50 form a **hard architectural cultural contract**: coaching never becomes a foreman scoreboard. `CoachingMetricsRollup` has **no** `foreman_uid` field. FL Training + PM coaching surfaces are **aggregate-only** · probe-enforced.
+
+### Architecture footprint (minimal)
+- ZERO new ODR Mongo collections (catalog is OGC reference · 7+1 collections unchanged)
+- ZERO new tokens / roles / portals (sub-surfaces under FL + PM)
+- ZERO new auth gates
+- Existing `odr_section_events` + planned `guidance_catalog_audit` carry the audit substrate
+
+### STOP condition honored
+- ✅ No code · no routes · no collections · no UI · no probe code
+- ✅ Wave M0 NOT begun
+- ✅ Spec lock command NOT yet issued
+- ✅ V-Prelude Observation Freeze on broader platform still intact
+- ✅ Only `/app/memory/` touched · PRD.md now ~27,600 lines
+
+### Next operator actions
+1. Read `ODR_COACHING_AND_GUIDANCE_CERTIFICATION.md` (the final summary)
+2. Optionally skim `ODR_COACHING_GUIDANCE_ADDENDUM.md` for O36–O50
+3. Answer the 25 open architecture questions (or `"accept all defaults"`)
+4. Issue spec lock command: `"LOCK ODR SPECIFICATION · PROCEED TO M0"`
+5. Implementation Wave M0 begins ONLY after step 4

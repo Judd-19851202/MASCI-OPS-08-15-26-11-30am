@@ -1195,3 +1195,77 @@ STATUS = Literal["draft","submitted","returned","approved"]
 | O35 audit append-only | all `_events` / `_attempts` / `_amendments` collections |
 
 _End of Final Governance Addendum · DATA_MODEL._
+
+---
+
+# Coaching / Guidance Addendum · 2026-05-29
+
+Lightweight data-model deltas to absorb the coaching doctrine
+(O36–O50). Read alongside `ODR_COACHING_GUIDANCE_ADDENDUM.md`.
+
+## C1 · `ReadinessSnapshot` extended with `prompt_key`
+
+```python
+class CoachingPrompt(BaseModel):
+    prompt_key: str                          # opaque slug · stable across versions
+                                             # e.g. "production.pipe.add_compaction_value"
+    text: LocalizedString                    # rendered EN canonical · ES preserved
+    section_anchor: str                      # e.g. "production_segments[0]"
+    severity: Literal["nudge","suggest","strong_suggest"]   # never "error"
+
+class ReadinessSnapshot(BaseModel):
+    evaluated_at_utc: str
+    missing_required: List[str]              # field paths (admin diagnostic · not foreman-visible verbatim)
+    coaching_prompts: List[CoachingPrompt]   # was List[str] · now structured
+    hard_stops: List[str]                    # rare · Safety only (O9)
+    score: Literal["draft","ready","needs_attention","blocked"]
+```
+
+`prompt_key` links into the `guidance_catalog` so the inline drawer
+(Learn More / Examples / Crew Tips / Best Practices) can resolve the
+right content per (prompt_key, lang) without code changes.
+
+## C2 · `guidance_catalog` reference (no new ODR collection)
+
+`guidance_catalog` is **not** an ODR collection. It is the canonical
+Operational Guidance Center store — referenced by `prompt_key`
+across the ODR, the FL Training Center, and the PM coaching
+consumption surface. Backend module + i18n string tables.
+
+This means the ODR collection inventory (per
+`ODR_SPEC_LOCK_CERTIFICATION.md § 4`) is **unchanged at 7 + 1
+derived**.
+
+## C3 · Coaching metrics rollup (derived · materialized)
+
+```python
+class CoachingMetricsRollup(BaseModel):
+    scope: Literal["project","region","platform"]
+    scope_id: str                            # project_id · region_id · "platform"
+    period_start_utc: str
+    period_end_utc: str
+
+    # All aggregates · never per-foreman:
+    submitted_count: int
+    submitted_with_complete_production_photos: int
+    submitted_with_tomorrow_plan: int
+    submitted_with_categorized_delay: int
+    submitted_with_non_zero_materials: int
+    coaching_prompt_distribution: Dict[str, int]   # prompt_key → count
+```
+
+Materialized nightly + on-submit incremental. Drives the FL Training
+Center coaching-metrics panel and the PM coaching consumption
+surface. **Never carries `foreman_uid` or any per-foreman dimension.**
+
+## C4 · Anti-pattern (additions)
+
+| Anti-pattern | Why forbidden |
+|---|---|
+| Storing `foreman_uid` on `CoachingMetricsRollup` | Breaks O50 — coaching never used as performance review evidence |
+| Rendering "Required" / "Error" / "Missing" / "Failed" on a coaching prompt | Breaks O45 vocabulary contract |
+| Using a coaching prompt as a hard stop | Breaks O38 (hard-stop is Safety-only per O9) |
+| Reading raw `coaching_prompts` from any portal other than the foreman's own ODR | Breaks O27 + O50 audience boundary |
+| Storing guidance content inside the `odr` row | Breaks O41 (OGC is the canonical store; ODR carries `prompt_key` references only) |
+
+_End of Coaching / Guidance Addendum · DATA_MODEL._

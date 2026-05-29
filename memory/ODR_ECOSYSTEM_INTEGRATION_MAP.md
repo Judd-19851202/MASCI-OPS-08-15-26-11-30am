@@ -673,3 +673,129 @@ surface.
 | O35 audit append-only | § G5 step 5 |
 
 _End of Final Governance Addendum · ECOSYSTEM_INTEGRATION_MAP._
+
+---
+
+# Coaching / Guidance Addendum · 2026-05-29
+
+Ecosystem deltas for the coaching doctrine (O36–O50).
+
+## C1 · Operational Guidance Center as shared cross-portal asset
+
+```
+            ┌─────────────────────────────────────────────┐
+            │       Operational Guidance Center           │
+            │       (canonical · bilingual · admin-edited) │
+            └─────────────────────────────────────────────┘
+                              │
+       ┌─────────────┬────────┴──────────┬─────────────────┐
+       ▼             ▼                   ▼                 ▼
+   ODR inline   First-time          FL Training       PM coaching
+   drawers      onboarding          Center            consumption
+   (foreman)    (foreman)           (Super+)          (PM read-only)
+```
+
+The OGC is the **single source of truth** for guidance content. It
+is:
+
+- **Bilingual** by construction — every entry exists in EN and ES.
+- **Admin-edited** — content is authored / curated by admin role.
+- **Read-only from foreman / Super / PM** surfaces.
+- **Cross-portal** — ODR, FL Training, PM coaching, and the
+  general help menu all read from it.
+
+`prompt_key` is the contract between ODR readiness output and OGC
+content — stable across versions, opaque, language-independent.
+
+## C2 · Coaching telemetry contract
+
+| Source | Append-only? | Carries per-foreman uid? | Surfaced where |
+|---|---|---|---|
+| `odr_section_events` (existing) | yes | yes (system uid) | admin · governance only |
+| `ReadinessSnapshot.coaching_prompts[]` (per ODR) | follows ODR (drafts mutable) | author uid only · own-record visible | foreman own ODR (per § C4 of UI addendum) · Super+ amendment view |
+| `CoachingMetricsRollup` (derived · planned) | refreshed nightly + incremental | **never per-foreman** · only `scope_id` (project/region/platform) | FL Training Center · PM coaching consumption · admin |
+
+**Hard rule (O50)**: the rollup never carries a per-foreman
+dimension. Probe-enforced (§ C6 below).
+
+## C3 · No new consumer · no new projector
+
+The 12 ODR consumers (PM · Safety · Dispatch · Shop · HR · Exec ·
+Memory · Search · RFI · Schedule · Claims · AI) are **unchanged**.
+The coaching layer:
+
+- Is read by **the same FL governance surfaces** + the same PM
+  consumer surface · just with new aggregate views.
+- Writes nothing back to consumer-derived records.
+- Lives behind the same per-token authority matrix as the rest of
+  the governance addendum.
+
+## C4 · Bilingual content path
+
+```
+guidance_catalog (i18n string tables)
+   ├─ en/odr.guidance.json
+   └─ es/odr.guidance.json
+```
+
+`odr_bilingual_probe.py` (D8) extends to cover:
+
+- Every `prompt_key` referenced anywhere in ODR / FL Training / PM
+  coaching surfaces has both EN and ES content.
+- Every crew_type has at least 4 crew-specific bullets in both EN
+  and ES.
+- Onboarding cards have EN + ES copies.
+- Help menu items have EN + ES copies.
+
+Failure → HARD gate · deploy refused.
+
+## C5 · OGC editing surface (admin only)
+
+- Lives in the Admin Portal (not part of V.1 ODR · already part of
+  the Operational Guidance Center).
+- Admin edits an entry → updates both EN and ES (or stages the
+  entry until ES catches up).
+- All entry edits append to `guidance_catalog_audit` (planned ·
+  append-only · trendline-protected). Editor accountability without
+  punishing foremen.
+
+## C6 · Probe responsibility (extended)
+
+`verify_coaching_sublines.py` extends:
+
+1. Every `coaching_prompts[i].text.text` (canonical EN) is in the
+   approved vocabulary list (`ODR_COACHING_GUIDANCE_ADDENDUM § 5`).
+2. No coaching prompt uses "Error" / "Required" / "Missing" /
+   "Failed" / "Incomplete" / similar punitive words.
+3. Every `prompt_key` referenced by code has a matching catalog
+   entry (EN + ES).
+4. `CoachingMetricsRollup` documents NEVER carry a `foreman_uid`
+   field (grep check).
+5. FL Training Center + PM coaching consumption routes never
+   expose a per-foreman row (integration-test check).
+
+Mode: **WARN** for vocabulary drift · **HARD** for missing EN/ES
+parity or per-foreman dimensional leak.
+
+## C7 · Anti-patterns (additions)
+
+| Anti-pattern | Why forbidden |
+|---|---|
+| Per-foreman row in `CoachingMetricsRollup` | Breaks O50 |
+| Per-foreman row in FL Training Center / PM coaching surfaces | Breaks O50 + O27 |
+| Coaching prompt phrased as a hard error | Breaks O45 vocabulary contract |
+| Mutating `guidance_catalog` from any surface other than admin | Breaks O41 single-source |
+| Two parallel guidance stores per portal | Breaks O41 + O43 |
+
+## C8 · Doctrine anchors (O36–O50 in ECOSYSTEM)
+
+| Doctrine | Anchor |
+|---|---|
+| O41 OGC integration | § C1 diagram |
+| O43 EN/ES mirrored | § C4 path + § C6 probe |
+| O47 FL Training Center | § C1 + § C3 |
+| O48 PM coaching consumption | § C1 + § C3 |
+| O49 telemetry append-only | § C2 table |
+| O50 never performance-review | § C2 hard rule + § C6 probe + § C7 anti-pattern |
+
+_End of Coaching / Guidance Addendum · ECOSYSTEM_INTEGRATION_MAP._

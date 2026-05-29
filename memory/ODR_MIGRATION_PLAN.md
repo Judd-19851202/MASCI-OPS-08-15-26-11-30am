@@ -641,3 +641,77 @@ Adds to original + D1–D8 + continuity acceptance:
 | O32 attachments | architecturally available M0; UI exposure staged through M1+ |
 
 _End of Final Governance Addendum · MIGRATION_PLAN._
+
+---
+
+# Coaching / Guidance Addendum · 2026-05-29
+
+Migration deltas for the coaching doctrine (O36–O50).
+
+## C1 · M0 · ship guidance catalog seed
+
+- ✅ `guidance_catalog` seeded with at least one entry per ODR
+  section × per crew_type (architectural floor: 12 sections × 4
+  bullets EN + 4 bullets ES per relevant crew_type).
+- ✅ Inline guidance drawers wired to read `prompt_key` from
+  `ReadinessSnapshot.coaching_prompts[]`.
+- ✅ First-time onboarding 4-card flow shipped (EN + ES).
+- ✅ Help menu "Quick start" wired to the same content.
+- ✅ `verify_coaching_sublines.py` extended (vocabulary + EN/ES
+  parity).
+
+The pilot wave runs with the seed catalog. Refinement happens
+through M1 + M2 as field experience identifies gaps.
+
+## C2 · M1 · staged crew-specific rollout
+
+- All 14 crew types receive curated guidance (EN + ES) by end of M1.
+- Examples panel (in inline drawer) gains 2–4 anonymized real-day
+  examples per crew_type (where consent permits) or curated samples
+  otherwise.
+- `CoachingMetricsRollup` materialization goes live for FL Training
+  Center.
+- PM coaching consumption surface goes live in PM Portal.
+
+## C3 · M2 · adoption · FL Training Center go-live
+
+- FL Training Center exposes all four panels (Best Practices ·
+  Examples · Quality Guidance · Coaching Metrics).
+- Admin role gains OGC editing UI (already part of platform · just
+  extended with ODR coverage).
+- "Most coached prompt" trends visible to FL + PM.
+- Coaching probe runs in HARD mode for EN/ES parity and per-foreman
+  leak; WARN for vocabulary drift.
+
+## C4 · Risk register additions
+
+| # | Risk | Severity | Mitigation |
+|---|---|---|---|
+| R29 | Seed catalog too thin at M0 launch — foremen open empty drawers | MEDIUM | minimum 4 bullets per section per active crew_type before M0 ship · operator approves baseline before pilot opens |
+| R30 | Spanish translation lag · ES drawer empty | LOW | bilingual probe HARD-gates deploy until EN/ES parity reaches 100% on referenced prompt_keys |
+| R31 | Aggregate rollup accidentally surfaces per-foreman | HIGH | probe check #4 + #5 in § C6 of ECOSYSTEM addendum · grep + integration test |
+| R32 | Foreman dismisses onboarding then cannot find it | LOW | help menu always carries "Quick start" · OGC is searchable |
+| R33 | OGC catalog drift between portals | LOW | single source enforced · cross-portal grep-check in probe |
+| R34 | Crew-specific tips weaponized as performance review | HIGH | O50 hard contract · culture memo before M2 · admin Audit view shows who reads Training metrics |
+
+## C5 · Acceptance criteria additions
+
+- [ ] Every active crew_type has ≥ 4 EN guidance bullets + ≥ 4 ES guidance bullets in `guidance_catalog`.
+- [ ] Every `prompt_key` emitted by `ReadinessSnapshot` resolves to a catalog entry (EN + ES).
+- [ ] `verify_coaching_sublines.py` reports zero vocabulary violations on shipping code.
+- [ ] First-time onboarding flow has both EN and ES copies.
+- [ ] `CoachingMetricsRollup` schema has no foreman_uid field.
+- [ ] FL Training Center + PM coaching consumption surfaces never expose a per-foreman row (verified by integration tests).
+- [ ] Help menu accessible from every ODR surface · launches "Quick start" on demand.
+
+## C6 · Doctrine anchors (O36–O50 in MIGRATION)
+
+| Doctrine | Anchor |
+|---|---|
+| O39 multiple guidance modes | catalog seed ships at M0 with all 4 modes |
+| O40 platform > foreman memory | seed catalog floor + EN/ES parity floor |
+| O43 EN/ES mirrored | HARD gate before deploy |
+| O46 first-time onboarding optional · ≤ 2 min | M0 ship + dismissibility tested |
+| O50 never performance-review evidence | R31 + R34 mitigations |
+
+_End of Coaching / Guidance Addendum · MIGRATION_PLAN._

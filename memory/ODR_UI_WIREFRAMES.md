@@ -1036,3 +1036,161 @@ forms (Materials, ExtraWork, Safety):
 | O32 attachments | § G7 |
 
 _End of Final Governance Addendum · UI_WIREFRAMES._
+
+---
+
+# Coaching / Guidance Addendum · 2026-05-29
+
+UI deltas for the coaching doctrine (O36–O50). Read alongside
+`ODR_COACHING_GUIDANCE_ADDENDUM.md`.
+
+## C1 · Four guidance touchpoints per section
+
+Every guidance-eligible ODR section (12 sections per addendum § 3)
+gains four small affordances next to the section header. None block
+entry; all are dismissible.
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Production · Segment 1                       ⓘ      │  ⓘ = Learn More
+│  Crew type ▾ Pipe   Area ▾ MP 12.4 SB                │
+│  Tips for pipe crews                                  │  ← pill (Crew Tips)
+│  Show example ✎                                       │  ← link (Examples)
+│  Best practices ▸                                     │  ← footer link
+│  …section body…                                       │
+└──────────────────────────────────────────────────────┘
+```
+
+- `ⓘ` Learn More — small icon · slide-in drawer · 1 paragraph
+- "Tips for X crews" — calm pill at top · opens drawer with 4–6 bullets
+- "Show example ✎" — link beneath header · drawer with 2–4 worked examples
+- "Best practices ▸" — footer link · deep-links to OGC entry in same drawer
+
+## C2 · Inline guidance drawer (shared shape)
+
+Slides in from the right (desktop) or bottom (mobile). Workflow
+context preserved — the underlying form remains visible behind the
+drawer. Closing returns the foreman exactly where they were.
+
+```
+┌──────────────────────────────────────────────────────┐
+│  ✕  Tips for pipe crews                              │
+├──────────────────────────────────────────────────────┤
+│  · Record bedding type per run                        │
+│  · Separate runs by station break                     │
+│  · Capture compaction percent + test method           │
+│  · Note testing time for claims                       │
+│  · Add photo of structure with stationing visible     │
+│                                                       │
+│  See the Operational Guidance Center for the full     │
+│  pipe-crew best practices ▸                           │
+└──────────────────────────────────────────────────────┘
+```
+
+Bilingual: drawer reads from i18n strings keyed by `prompt_key` ·
+EN/ES parity enforced by `odr_bilingual_probe.py` (D8 + this pass).
+
+## C3 · First-time onboarding flow (≤ 2 minutes)
+
+Shown on first open per `(device_fingerprint, project_id)`. Renders
+inside the ODR shell as a 4-card slide-show — not a full-screen
+takeover. Foreman can dismiss any time.
+
+```
+┌──────────────────────────────────────────────────────┐
+│  ●○○○  Welcome — this is your daily report.          │
+│                                                       │
+│  The form fills itself in where it can. You confirm. │
+│                                                       │
+│  [Got it]   [Skip for now]                           │
+└──────────────────────────────────────────────────────┘
+```
+
+Cards 2–4: "Sections fill themselves" · "Tap ⓘ for tips on any
+section" · "Submit when ready — you have 24h to edit after". Card 4
+ends with "Got it". State stored in localStorage keyed to
+`(fingerprint, project_id)`. Re-launchable from the help menu →
+"Quick start".
+
+## C4 · Top-right help menu
+
+```
+┌──────────────────────────────────────────────────────┐
+│                                          (?) Help    │
+└──────────────────────────────────────────────────────┘
+         ▼
+┌──────────────────────────────────────────────────────┐
+│  · Quick start (4 cards · ≤ 2 min)                   │
+│  · Search guidance ▸ (opens OGC search)               │
+│  · Contact your superintendent ▸ (mailto/phone)       │
+└──────────────────────────────────────────────────────┘
+```
+
+Single calm menu. No marketing copy. No surveys. No upsells.
+
+## C5 · Field Leadership Training Center
+
+Lives at `/field-leadership/portal/training` (X-FL-Token Super+).
+Read-only. Four panels:
+
+```
+┌──────────────────────────────────────────────────────┐
+│  ODR Training · Project #43-217                       │
+├──── Best Practices ─────────────────────────────────┤
+│   · Pipe crew · Pavement crew · MOT crew · …          │
+├──── Examples ───────────────────────────────────────┤
+│   · Anonymized real-day examples · drag to compare    │
+├──── Quality Guidance ───────────────────────────────┤
+│   · What makes an ODR claims-defensible               │
+├──── Coaching Metrics (aggregate) ───────────────────┤
+│   · 87% submitted with all production photos          │
+│   · 71% submitted with tomorrow plan                  │
+│   · Most coached section: Production · Pipe           │
+│   · Most coached prompt: "Add compaction value"       │
+└──────────────────────────────────────────────────────┘
+```
+
+**No per-foreman names · no per-foreman counts · no rankings.**
+Drawing on `CoachingMetricsRollup` from the data-model addendum.
+
+## C6 · PM coaching consumption surface
+
+Added to the existing read-only PM ODR panel
+(`ODR_FINAL_GOVERNANCE_ADDENDUM.md § G5` · `UI § G5`):
+
+```
+┌──────────────────────────────────────────────────────┐
+│  ODR · #43-217 · coaching                             │
+├──────────────────────────────────────────────────────┤
+│  Completion trend (last 30 days)                      │
+│   ▮▮▮▮▮▮▮▯▯▯  79%   (last week 81%)                  │
+│  Coaching opportunities (top 3)                       │
+│   · 18 reports missing tomorrow plan                  │
+│   · 12 reports missing compaction value               │
+│   · 8 reports missing delay description               │
+│  Common missing information                           │
+│   · production.pipe.compaction_pct                    │
+│   · tomorrow.planned_work                             │
+│   · delays.entries[].description                      │
+└──────────────────────────────────────────────────────┘
+```
+
+**Aggregate-only.** No per-foreman dimension. No "Request a
+performance review" affordance — purely a training-opportunity
+identifier.
+
+## C7 · Doctrine anchors (O36–O50 in UI)
+
+| Doctrine | Anchor |
+|---|---|
+| O37 teach while working | § C1 + § C2 inline drawers |
+| O39 multiple guidance modes | § C1 four touchpoints |
+| O41 OGC integration | § C2 + § C4 + § C5 + § C6 all read from OGC |
+| O42 context-preserving | § C2 inline drawer (no destructive nav) |
+| O45 readiness coaches | calm pills · "Suggest" / "Tip" never "Error" |
+| O46 first-time onboarding | § C3 |
+| O47 FL Training Center | § C5 |
+| O48 PM coaching consumption | § C6 |
+| O50 never performance-review | § C5 + § C6 aggregate-only |
+
+_End of Coaching / Guidance Addendum · UI_WIREFRAMES._
