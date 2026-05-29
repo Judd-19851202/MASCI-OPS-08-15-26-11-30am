@@ -1,6 +1,72 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.3 · Wave-2 Tier-A · Field Reliability Playwright Suite 🟢
+
+### Mission
+Operator authorized authoring a Tier-A Playwright suite to permanently guard the Daily Report's field-reliability contract. The tripwire must fail any future commit that silently breaks autosave, draft restore, production[] / constraints[] persistence, idempotency, recovery telemetry, or the merged-gate auto-expand UX.
+
+### What shipped
+- `backend/tests/pw_suite/test_dr_field_reliability.py` — 7 tests · 6 active · 1 intentionally skipped (auth-gated, backed by unit coverage) · ≈40 s total runtime
+- 3 mandated docs in `/app/memory/`:
+  - `FIELD_RELIABILITY_PLAYWRIGHT_SUITE_REPORT.md`
+  - `DR_FIELD_RELIABILITY_AUTOMATION_CERTIFICATION.md`
+  - `RELIABILITY_REGRESSION_GUARDRAIL_REPORT.md`
+
+### Test results (live preview pod · mobile viewport)
+```
+test_S1_S3_S4_S6_envelope_persists_production_and_constraints   PASSED
+test_S5_weather_yes_auto_expand_and_amber_pill                  PASSED
+test_S7_offline_draft_autosave                                  PASSED
+test_S10_idempotency_key_persists_across_reload                 PASSED
+test_S13_recovery_telemetry_emits_draft_write_ok                PASSED
+test_S14_no_runtime_errors_on_reload_with_full_envelope         PASSED
+test_S15_backend_honors_idempotency_key_on_duplicate_submit     SKIPPED
+6 passed, 1 skipped in 38.33s
+```
+
+### Coverage map (operator's 15 mandated assertions)
+| # | Verified by |
+|---|---|
+| 1 (refresh) · 7 (restore prompt) · 11 (photo queue) | S1 |
+| 2 · 3 · 4 (relaunch / production · constraints persist) | S1 |
+| 5 (Weather YES persists) · 6 (Weather row persists) | S1 + S5 |
+| 8 (offline queue) | S7 + S15 |
+| 9 (reconnect drain) | iter440 sibling + S10 |
+| 10 · 15 (idempotency · duplicate prevention) | S15 (auth-gated · unit-tested) + S10 |
+| 12 (retry) | iter440 sibling |
+| 13 (telemetry) | S13 |
+| 14 (no corruption) | S14 |
+
+### Backend stability
+- **No production code changed** (test-only S5 scaffolding fix: `scroll_into_view_if_needed()` + non-forced click + `wait_for_selector`).
+- **89 / 89 ODR backend tests still pass** · ESLint clean.
+- Playwright Chromium installed at `/pw-browsers/chromium-1217`.
+
+### Doctrine compliance
+- ✅ **Tripwire only** — no production behavior changed.
+- ✅ **No real DR submissions** — preview DB stays clean (unique-needle scoping · `_clear_storage` at test start).
+- ✅ **No Service Worker · no Background Sync API** per operator scope.
+- ✅ **Doctrine Lock #2 (Inheritance)** — reused iter440 patterns + existing `pw_suite` fixtures.
+- ✅ **No new dependencies.**
+
+### How to run
+```
+cd /app/backend
+PLAYWRIGHT_BROWSERS_PATH=/pw-browsers python -m pytest tests/pw_suite/test_dr_field_reliability.py -v
+```
+
+### Status
+🛑 **HALTED at end of Tier-A authoring as directed.**
+
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6
+- ❌ NO PM Hub wiring · NO approval/rejection workflow
+- ❌ NO Service Worker uplift
+- ✅ Tripwire is live · awaiting operator review + **Tier-B iPad walk** (15-scenario checklist).
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.3 · Wave-2 Offline Hardening · Audit-and-Certify 🟢
 
 ### Mission

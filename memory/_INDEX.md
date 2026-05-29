@@ -286,6 +286,9 @@ explicitly. RFI · Schedule · P6 remain out of scope.**
 | `RECOVERY_TELEMETRY_CERTIFICATION.md` | **Wave-2 · telemetry** · 7-event taxonomy mapped to operator's 5 mandated signals · `/api/draft-telemetry` ingestion · IDB-buffered offline send · aggregate-only | ✅ ⛔ |
 | `FIELD_RELIABILITY_TEST_MATRIX.md` | **Wave-2 · 15-scenario matrix** · Tier-A Playwright scaffolding + Tier-B iPad operator checklist · acceptance criteria · pilot gate | ✅ ⛔ |
 | `PILOT_READINESS_RELIABILITY_ASSESSMENT.md` | **Wave-2 · reliability-only pilot gate** · supersedes Wave-1B/1C assessment on the reliability axis · open risks · acceptance criteria · doctrine compliance · pilot scoping runway (not in scope today) | ✅ ⛔ |
+| `FIELD_RELIABILITY_PLAYWRIGHT_SUITE_REPORT.md` | **Wave-2 Tier-A** · authored `backend/tests/pw_suite/test_dr_field_reliability.py` · 7 tests · 6 active · 1 skipped (auth-gated) · ≈40 s total · maps to 15 mandated assertions · regression guardrail value matrix | ✅ ⛔ |
+| `DR_FIELD_RELIABILITY_AUTOMATION_CERTIFICATION.md` | **Wave-2 Tier-A** · per-assertion verification table (1–15) · stability features · maintenance contract · what the suite is NOT (not a Tier-B walk replacement) | ✅ ⛔ |
+| `RELIABILITY_REGRESSION_GUARDRAIL_REPORT.md` | **Wave-2 Tier-A** · platform-wide tripwire inventory · what each suite protects · run cadence · maintenance contract · stop condition | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

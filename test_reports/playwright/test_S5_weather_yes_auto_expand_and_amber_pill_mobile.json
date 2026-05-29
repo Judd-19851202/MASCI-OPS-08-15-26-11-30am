@@ -1,0 +1,12 @@
+{
+  "viewport": "mobile",
+  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/daily/submit",
+  "console_tail": [
+    "[warning] Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+    "[warning] Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+    "[info] [sentry] initialised {env: preview, release: 2771f4f915a7ac527d531f78a0bf855a}",
+    "[warning] Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+    "[warning] Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+    "[info] [sentry] initialised {env: preview, release: 2771f4f915a7ac527d531f78a0bf855a}"
+  ]
+}
