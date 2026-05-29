@@ -299,6 +299,18 @@ explicitly. RFI · Schedule · P6 remain out of scope.**
 | `SHOP_PREOP_WORKFLOW_CERTIFICATION.md` | **V.5 P0-2C** · new `/shop/equipment` route + enabled Recent Pre-Op link · failed pre-ops remain first-screen via `OpenItemsPanel` · live testmech verification | ✅ ⛔ |
 | `PO_ATTACHMENT_OPEN_FIX_CERTIFICATION.md` | **V.5 P0-3** · new `GET /api/po-requests/{po_id}/receipt` streaming endpoint · iPad-Safari-friendly Blob URL frontend · data-URL + R2-URL storage modes handled · curl matrix | ✅ ⛔ |
 | `LIVE_USER_FACING_P0_CLOSEOUT_REPORT.md` | **V.5 P0-2/3 closeout** · operator's 10-check validation matrix · regression evidence · stop conditions honored · awaiting review before backup scheduler hardening | ✅ ⛔ |
+| `PLATFORM_ROUTING_PERMISSION_AUDIT.md` | **V.5 Trust Restoration** · 249 frontend routes · 739 backend endpoints · portal namespace map · routing defects inventory (P0/P1/P2/P3) | ✅ ⛔ |
+| `VISIBLE_ACTION_MATRIX.md` | **V.5 Trust Restoration** · 2 200 testIds audited · per-action permission + destination + render-gate matrix · P0 surfaces certified | ✅ ⛔ |
+| `PORTAL_BOUNDARY_CERTIFICATION.md` | **V.5 Trust Restoration** · 401 interceptor namespace policy · cross-portal access matrix · login-destination correctness | ✅ ⛔ |
+| `BROKEN_ROUTE_FIX_PLAN.md` | **V.5 Trust Restoration · NO IMPL** · 4 P0 fixed in preview · 3 P1 + 3 P2 + 5 test-only defects documented · net-state verdict | ✅ ⛔ |
+| `PLATFORM_FLOW_NOTIFICATION_AUDIT.md` | **V.5 Trust Restoration** · two notification pipelines (auto-email + emit_task_and_notification) · per-workflow matrix · routing-config keys | ✅ ⛔ |
+| `WORKFLOW_OWNERSHIP_MATRIX.md` | **V.5 Trust Restoration** · creator·owner·viewers·editors·delete authority·closer·no-response path for 30+ workflows | ✅ ⛔ |
+| `ALERTING_AND_DESTINATION_MATRIX.md` | **V.5 Trust Restoration** · email/bell/task/dashboard destinations per workflow · dashboard inventory per hub · alert-staleness recovery | ✅ ⛔ |
+| `DASHBOARD_DESTINATION_CERTIFICATION.md` | **V.5 Trust Restoration** · every record's proactive vs search-only surface · orphan-candidate flags · recommended dashboard additions | ✅ ⛔ |
+| `NOTIFICATION_GAP_REGISTER.md` | **V.5 Trust Restoration** · 18-gap inventory · P0/P1/P2/P3 classification · operator decision pending | ✅ ⛔ |
+| `FLOW_FIX_RECOMMENDATION_PLAN.md` | **V.5 Trust Restoration · NO IMPL** · staged α/β/γ/δ remediation plan · effort estimates · held items list | ✅ ⛔ |
+| `ORPHAN_WORKFLOW_REPORT.md` | **V.5 Trust Restoration** · 1 confirmed P0 orphan candidate (Fleet DVIR) · 4 soft orphans · 17 validated complete chains · no-response paths inventory | ✅ ⛔ |
+| `PLATFORM_TRUST_RESTORATION_AUDIT.md` | **V.5 Trust Restoration · master synthesis · READ FIRST** · 5 trust pillars · solid 80% · patchy 20% · decision tree | ✅ ⛔ |
 | `APPROVAL_REJECTION_ARCHITECTURE.md` | **V.4 architecture** · full Daily Report lifecycle · 7 canonical states · state-transition contract · append-only `daily_report_review_events` schema · planned API + UI surface · hash continuity · NOT implemented | 📐 |
 | `REPORT_LIFECYCLE_DOCTRINE.md` | **V.4 doctrine** · per-state mutability · limited revision-edit surface · version semantics · multi-reviewer contention · legacy DR projection · NOT implemented | 📐 |
 | `FL_ROLE_MAPPING_RESOLUTION_REPORT.md` | **V.4 governance · supersedes LEGACY_ROLE_MAPPING_REVIEW on the resolution axis** · operator review table for the 4 uncertain mappings · approval authority allowlist · project-scope contract · fail-closed defaults | ✅ ⛔ |

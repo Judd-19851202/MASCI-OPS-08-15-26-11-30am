@@ -1,6 +1,57 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.5 · P0 Platform Trust Restoration Audit 🟢
+
+### Mission
+Operator-directed COMPLETE platform audit: routing · permissions · actions · ownership · alerts · notifications · destinations. Treat MASCI Ops like an operating system. Find every dead route, every dead button, every orphan record, every silent-failure path, every trust-killing black hole. AUDIT ONLY — no fixes.
+
+### Method
+- Inventoried 249 frontend routes, 739 backend endpoints, 2 200 visible testIds
+- Traced two notification pipelines (`schedule_auto_email` PDF email + `emit_task_and_notification` bell/task fan-out) across every workflow
+- Cross-referenced `recipients_for_record_async`, `email_routing_config` Mongo doc, role-based task service, and dashboard surface inventory
+- Mapped per-workflow: creator · owner · viewers · editors · delete authority · closer · no-response path
+
+### Findings — 18-gap inventory
+- **P0 (2)**: GAP-6 Fleet DVIR has no confirmed notification path (orphan candidate, needs operator confirm); GAP-7 Backup scheduler dead (separately tracked, held per priority directive)
+- **P1 (7)**: GAP-1 FL 10 forms bell/task missing; GAP-2 Safety Forms bell/task missing; GAP-3 JHA safety-supervisor task missing; GAP-4 Training-assigned supervisor not notified; GAP-10 Shop Equipment Trash dead button; GAP-16 `/equipment/:id` redirect always admin; GAP-17 `/inspections/:id` same pattern
+- **P2 (6)**: GAP-5 Payroll manual no fan-out; GAP-8 DR Weather YES no schedule task (intentional stop-list); GAP-9 DR Equipment-Issue YES no Pre-Op auto-link; GAP-14 severe incident no escalation cadence; GAP-15 PO 60+ day no escalation tier; GAP-18 PM Exposure Tile sidebar entry cleanup
+- **P3 (3, test-only)**: GAP-11 stale tab-title tests; GAP-12 pre-freeze DR delete tests; GAP-13 non-deterministic projector test on preview DB
+
+### Verdict
+The platform is operationally trustworthy on **~80% of workflows** (safety / quality / financial paths are solid: DR · Equipment Pre-Op · PO · Incidents · Safety / QA-QC · Dispatch · Document Expirations · HR Time Verification / Payroll Variance · Training employee-lens · Backup success · System Health). Patchy on **~20%** (email-only fan-outs without dashboard queues; one suspected orphan).
+
+The recent operator-reported defects (P0-2A/2B/2C/3) are all addressed in preview · awaiting redeploy · none recur in audit findings.
+
+### 12 deliverables in /app/memory/
+1. `PLATFORM_ROUTING_PERMISSION_AUDIT.md`
+2. `VISIBLE_ACTION_MATRIX.md`
+3. `PORTAL_BOUNDARY_CERTIFICATION.md`
+4. `BROKEN_ROUTE_FIX_PLAN.md`
+5. `PLATFORM_FLOW_NOTIFICATION_AUDIT.md`
+6. `WORKFLOW_OWNERSHIP_MATRIX.md`
+7. `ALERTING_AND_DESTINATION_MATRIX.md`
+8. `DASHBOARD_DESTINATION_CERTIFICATION.md`
+9. `NOTIFICATION_GAP_REGISTER.md`
+10. `FLOW_FIX_RECOMMENDATION_PLAN.md`
+11. `ORPHAN_WORKFLOW_REPORT.md`
+12. `PLATFORM_TRUST_RESTORATION_AUDIT.md` ← master synthesis
+
+### Stop conditions honored
+- ✅ AUDIT ONLY — zero code, env, or scheduler changes
+- ✅ No backup scheduler hardening, no Approval/Rejection, no Pilot, no RFI, no Schedule, no P6, no PM Exposure Tile routing, no new dashboards, no new features
+- ✅ Every gap classified per operator's rubric (P0/P1/P2/OK)
+- ✅ Recommendation plan staged but NOT executed
+
+### Operator next-step decision tree
+1. Confirm Fleet DVIR intent (P0 GAP-6 — orphan vs ledger-only)
+2. Redeploy P0-1 + P0-2 + P0-3 fixes to production
+3. After live verification, authorize Backup Scheduler Hardening 5-phase plan
+4. (Later) authorize P1/P2/P3 gap closures in operator-prioritized batches
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.5 · P0-2 + P0-3 · Live Portal Workflow + PO Attachment Fixes 🟢
 
 ### Mission
