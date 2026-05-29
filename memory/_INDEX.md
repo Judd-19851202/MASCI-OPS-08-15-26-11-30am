@@ -278,6 +278,14 @@ explicitly. RFI · Schedule · P6 remain out of scope.**
 | `LEGACY_ROLE_MAPPING_REVIEW.md` | **FL Role · operator review** · 4 uncertain aliases (`Field Supervisor`, `General Foreman`, `Truck Boss`, `Working Supervisor`) with proposed canonical defaults + counts + recommended actions | ✅ ⛔ |
 | `WEATHER_IMPACT_CLEANUP_CERTIFICATION.md` | **Weather Impact** · YES now routes to the structured Delays / Extra Work card with a "row with cause = Weather" requirement · legacy detail box removed from weather path · merged-gate IIFE drives status pill + `attentionOpen` · 6-scenario behavior matrix verified | ✅ ⛔ |
 | `AUTO_EXPAND_GUIDANCE_CERTIFICATION.md` | **Auto-Expand Guidance** · Weather YES or Delays YES auto-expands the Delays / Extra Work card · 1.6 s amber ring highlight · scroll-into-view · NEVER auto-creates rows / auto-fills / notifies · prohibited-behavior audit · iPad viewport validation | ✅ ⛔ |
+| `OFFLINE_HARDENING_IMPLEMENTATION_REPORT.md` | **Wave-2 master** · iter440 engine inventory · audit findings (zero schema-bump gaps) · live verification summary · 8-deliverable index · stop condition | ✅ ⛔ |
+| `OFFLINE_DRAFT_ENGINE_CERTIFICATION.md` | **Wave-2 · draft engine** · `useFormDraft` contract · 800 ms debounce + 10 s force + iOS lifecycle handlers · device-scoped IDB · production/constraints round-trip proof | ✅ ⛔ |
+| `PHOTO_RESILIENCY_CERTIFICATION.md` | **Wave-2 · photos** · DR Path A (inline dataURL) vs PO/Incident Path B (`photoStaging`) · failure-mode coverage matrix · status surfaces | ✅ ⛔ |
+| `OFFLINE_SUBMISSION_QUEUE_CERTIFICATION.md` | **Wave-2 · submit queue** · `enqueueUpload` · MAX_TRIES=5 · backoff `[1·2·4·8·16]s` · `online`/`focus` drain · `onQueueItemSettled` deferred-commit · 3-layer dedup | ✅ ⛔ |
+| `SYNC_RECONCILIATION_CERTIFICATION.md` | **Wave-2 · sync** · single-author/single-device/append-only doctrine · device-A round-trip walk · cross-token banner · 24 h server dedup TTL | ✅ ⛔ |
+| `RECOVERY_TELEMETRY_CERTIFICATION.md` | **Wave-2 · telemetry** · 7-event taxonomy mapped to operator's 5 mandated signals · `/api/draft-telemetry` ingestion · IDB-buffered offline send · aggregate-only | ✅ ⛔ |
+| `FIELD_RELIABILITY_TEST_MATRIX.md` | **Wave-2 · 15-scenario matrix** · Tier-A Playwright scaffolding + Tier-B iPad operator checklist · acceptance criteria · pilot gate | ✅ ⛔ |
+| `PILOT_READINESS_RELIABILITY_ASSESSMENT.md` | **Wave-2 · reliability-only pilot gate** · supersedes Wave-1B/1C assessment on the reliability axis · open risks · acceptance criteria · doctrine compliance · pilot scoping runway (not in scope today) | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

@@ -1,6 +1,62 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.3 · Wave-2 Offline Hardening · Audit-and-Certify 🟢
+
+### Mission
+Operator authorized Wave-2 with scope (a) — Audit-and-Certify of the existing iter440 resiliency engine against the new `production[] + constraints[]` Daily Report schema. No Service Worker. No Background Sync. No new architecture. Reliability before expansion.
+
+### Engine inventory (iter440 · already production)
+- Autosave (`useFormDraft` · 800 ms debounce + 10 s force + iOS lifecycle)
+- IDB-backed draft store with 24 h soft-delete archive
+- Draft restore prompt with cross-token detection
+- Offline submit queue (`enqueueUpload`) with MAX_TRIES=5, exponential backoff, `online` + `focus` auto-drain
+- Settlement-aware commit (`onQueueItemSettled`) — IDB draft never discarded until 2xx confirmed
+- Client + backend idempotency keys with 24 h TTL
+- Recovery telemetry (`/api/draft-telemetry`) with 7-event taxonomy
+- Photo resiliency Path A (inline dataURLs ride the envelope) — atomically submitted with the form
+- Quota probe + warning chip + device-scoped actor id + one-time legacy migration
+
+### Audit findings
+**Zero schema-bump gaps.** The engine has zero per-field coupling — `idb-keyval` stores the structured clone of whatever JS value is passed in, and `enqueueUpload` serializes `entry.body` as-is. Adding `production[]` and `constraints[]` arrays to the schema requires no engine change.
+
+### Live verification (Playwright iPad-portrait probe · `820 × 1180`)
+- ✅ Production rows + constraint rows + weather toggle round-trip through visibilitychange flush + full page reload
+- ✅ "Draft restored" toast fires
+- ✅ All fields restored (project_name · prepared_by · constraint hours=2.5 · weather_impact=Yes · production "1 rows" status pill)
+- ✅ IDB envelope contains the complete payload after autosave
+
+### 8 deliverables shipped (all in `/app/memory/`)
+1. `OFFLINE_HARDENING_IMPLEMENTATION_REPORT.md` — master audit report
+2. `OFFLINE_DRAFT_ENGINE_CERTIFICATION.md` — useFormDraft contract
+3. `PHOTO_RESILIENCY_CERTIFICATION.md` — DR Path A doctrine
+4. `OFFLINE_SUBMISSION_QUEUE_CERTIFICATION.md` — enqueueUpload + onQueueItemSettled
+5. `SYNC_RECONCILIATION_CERTIFICATION.md` — single-author/single-device contract + 3-layer dedup
+6. `RECOVERY_TELEMETRY_CERTIFICATION.md` — 7-event taxonomy + 5 mandated signals
+7. `FIELD_RELIABILITY_TEST_MATRIX.md` — 15-scenario matrix · Tier-A Playwright scaffolding + Tier-B iPad checklist
+8. `PILOT_READINESS_RELIABILITY_ASSESSMENT.md` — reliability-only pilot gate
+
+### Backend stability
+- **No code changes** in this wave (zero engine gaps found).
+- **89 / 89 ODR tests still pass** · ESLint clean.
+
+### Doctrine compliance
+- ✅ **Reliability only** — no new features · no new components · no new deps
+- ✅ **Doctrine Lock #1 (Simplicity)** — foreman 9-step contract intact
+- ✅ **Doctrine Lock #2 (Inheritance)** — reused iter440 engine 100 %
+- ✅ **No Service Worker · no Background Sync API · no IndexedDB Blob-cached photo queue** per operator directive
+
+### Status
+🛑 **HALTED at end of Wave-2 Audit-and-Certify pass as directed.**
+
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6
+- ❌ NO PM Hub wiring · NO approval/rejection workflow
+- ❌ NO Service Worker uplift in this wave
+- ✅ Awaiting operator review of the 8 deliverables and **iPad Tier-B walk of the 15-scenario matrix**.
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.2 · Auto-Expand Guidance Micro-Refinement 🟢
 
 ### Mission
