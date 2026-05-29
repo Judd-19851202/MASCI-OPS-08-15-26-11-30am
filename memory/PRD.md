@@ -1,6 +1,68 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.2 · Auto-Expand Guidance Micro-Refinement 🟢
+
+### Mission
+Operator surfaced one more iPad-friendliness gap: the Delays /
+Extra Work card was only opening AFTER a blocked submit, forcing
+the foreman to "answer YES → submit → get blocked → hunt for the
+card → expand → fill → resubmit." Fix: when EITHER Section 03
+question turns YES, the Delays / Extra Work card auto-expands,
+scrolls itself into view, and pulses a brief amber ring for 1.6 s.
+Pure UX guidance — never auto-creates a row, never auto-fills a
+field, never notifies anyone.
+
+### What shipped (UI-only · `NewDailyReport.jsx`)
+- `attentionOpen` predicate on the Delays / Extra Work CollapseCard
+  now fires on `weather_impact === "Yes"` OR
+  `schedule_delays === "Yes"` OR `(attemptedSubmit && gateUnmet)`.
+- New `useEffect` watching both YES flags: on the NO→YES transition
+  it scrolls the card into view (smooth · centered · 80 ms after
+  paint) and sets `delaysGuideHighlight` for 1.6 s.
+- Wrapper `<div>` around the CollapseCard hosts a transient
+  `ring-2 ring-amber-400` halo with `transition-shadow duration-700`.
+
+### Backend stability
+- **No backend changes** · no schema changes · no API additions.
+- **89 / 89 ODR tests still pass** · ESLint clean.
+- Existing reports and `attemptedSubmit && gateUnmet` codepath untouched.
+
+### Behavior verified live (iPad viewport · 820 × 1180)
+- ✅ Weather YES → card open · 1.6 s amber ring · cleared cleanly
+- ✅ Delays YES → card open · 1.6 s amber ring · cleared cleanly
+- ✅ Weather NO / Delays NO → no spurious behavior · no ring
+- ✅ Manual chevron toggle → does NOT retrigger ring
+- ✅ Auto-row check: rows count stays at 0 after both YES
+- ✅ Existing rows preserved across YES re-trigger
+- ✅ Status pills unchanged (amber required-pill · emerald N-logged · slate no-delays)
+
+### Doctrine compliance
+- ✅ **Guidance, not automation.** No row creation · no field fill · no notification.
+- ✅ **Doctrine Lock #1 (Simplicity).** Saves one tap + one re-submit cycle per YES answer.
+- ✅ **Doctrine Lock #2 (Inheritance).** Reused `CollapseCard.attentionOpen` + Tailwind `ring-*`.
+- ✅ **Operational Calmness.** Amber, not red. 1.6 s fade, not pulsing.
+- ✅ **No pilot · no RFI · no Schedule · no P6 · no PM Hub wiring · no approval workflow.**
+
+### Files touched
+| File | Change |
+|---|---|
+| `frontend/src/pages/NewDailyReport.jsx` | 3 surgical edits (useEffect + wrapper ref + attentionOpen predicate) |
+| `memory/AUTO_EXPAND_GUIDANCE_CERTIFICATION.md` (NEW) | full cert · trigger matrix · prohibited-behavior audit · validation matrix |
+| `memory/PRD.md` | this entry |
+| `memory/_INDEX.md` | new doc registered |
+
+### Status
+🛑 **HALTED after this micro-refinement as directed.**
+
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6
+- ❌ NO PM Hub wiring · NO approval/rejection workflow
+- ❌ NO additional role standardization beyond the prior pass
+- ✅ Awaiting **Internal Superintendent Validation Review**.
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.2 · Weather Impact Cleanup 🟢
 
 ### Mission

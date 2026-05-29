@@ -277,6 +277,7 @@ explicitly. RFI · Schedule · P6 remain out of scope.**
 | `APPROVAL_REJECTION_PERMISSION_FOUNDATION.md` | **FL Role · planning only** · permission matrix · audit contract · audit-hash continuity with Wave-1C footer · forbidden behaviors · NOT implemented today | 📐 |
 | `LEGACY_ROLE_MAPPING_REVIEW.md` | **FL Role · operator review** · 4 uncertain aliases (`Field Supervisor`, `General Foreman`, `Truck Boss`, `Working Supervisor`) with proposed canonical defaults + counts + recommended actions | ✅ ⛔ |
 | `WEATHER_IMPACT_CLEANUP_CERTIFICATION.md` | **Weather Impact** · YES now routes to the structured Delays / Extra Work card with a "row with cause = Weather" requirement · legacy detail box removed from weather path · merged-gate IIFE drives status pill + `attentionOpen` · 6-scenario behavior matrix verified | ✅ ⛔ |
+| `AUTO_EXPAND_GUIDANCE_CERTIFICATION.md` | **Auto-Expand Guidance** · Weather YES or Delays YES auto-expands the Delays / Extra Work card · 1.6 s amber ring highlight · scroll-into-view · NEVER auto-creates rows / auto-fills / notifies · prohibited-behavior audit · iPad viewport validation | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

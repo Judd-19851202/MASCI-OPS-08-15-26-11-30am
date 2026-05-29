@@ -598,6 +598,40 @@ export default function NewDailyReport({ publicMode = false }) {
   const prod = useList(data, setData, "production");
   const cons = useList(data, setData, "constraints");
 
+  // Phase V.2 · Auto-Expand Guidance (2026-05-29) — wraps the Delays
+  // / Extra Work card with a ref so the YES → expand → scroll → brief
+  // highlight pattern can fire without auto-creating any row.  The
+  // CollapseCard's `attentionOpen` handles the force-open; this
+  // useEffect just adds the iPad-friendly "guide me to the section"
+  // affordance.  Highlight clears after 1.6s.  Signal-only.  Doctrine:
+  // AUTO_EXPAND_GUIDANCE_CERTIFICATION.md
+  const delaysCardWrapRef = React.useRef(null);
+  const prevWeatherYesRef = React.useRef(false);
+  const prevDelaysYesRef  = React.useRef(false);
+  const [delaysGuideHighlight, setDelaysGuideHighlight] = useState(false);
+  useEffect(() => {
+    const weatherYesNow = data.weather_impact === "Yes";
+    const delaysYesNow  = data.schedule_delays === "Yes";
+    const weatherTransitioned = weatherYesNow && !prevWeatherYesRef.current;
+    const delaysTransitioned  = delaysYesNow  && !prevDelaysYesRef.current;
+    prevWeatherYesRef.current = weatherYesNow;
+    prevDelaysYesRef.current  = delaysYesNow;
+    if (!weatherTransitioned && !delaysTransitioned) return;
+    // Scroll the card into view (smooth · centered) on the next tick
+    // so the CollapseCard has actually rendered its open body.
+    setTimeout(() => {
+      try {
+        delaysCardWrapRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      } catch { /* no-op for older browsers */ }
+    }, 80);
+    setDelaysGuideHighlight(true);
+    const tmr = setTimeout(() => setDelaysGuideHighlight(false), 1600);
+    return () => clearTimeout(tmr);
+  }, [data.weather_impact, data.schedule_delays]);
+
   const validate = () => {
     if (!data.project_name.trim()) {
       toast.error("Project Name is required");
@@ -1943,10 +1977,27 @@ export default function NewDailyReport({ publicMode = false }) {
               statusTone = "slate";
             }
             return (
+              <div
+                ref={delaysCardWrapRef}
+                className={`rounded-md transition-shadow duration-700 ${
+                  delaysGuideHighlight
+                    ? "ring-2 ring-amber-400 shadow-[0_0_0_4px_rgba(251,191,36,0.15)]"
+                    : ""
+                }`}
+              >
               <CollapseCard
                 title={t("Delays / Extra Work")}
                 testId="dr-constraints"
-                attentionOpen={attemptedSubmit && gateUnmet}
+                attentionOpen={
+                  // Phase V.2 · Auto-Expand Guidance: open whenever
+                  // EITHER trigger is YES, OR submit was blocked on a
+                  // gate.  CollapseCard.attentionOpen is "one-way" —
+                  // user can still collapse the card after expansion
+                  // without re-triggering anything.
+                  data.weather_impact === "Yes" ||
+                  data.schedule_delays === "Yes" ||
+                  (attemptedSubmit && gateUnmet)
+                }
                 statusLabel={statusLabel}
                 statusTone={statusTone}
               >
@@ -2013,6 +2064,7 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="constraint"
             />
           </CollapseCard>
+              </div>
           );
           })()}
 
