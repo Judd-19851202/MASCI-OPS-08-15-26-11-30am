@@ -28240,3 +28240,120 @@ by design. Inheritance:
    integration on ODR substrate before pilot).
 5. Issue authorization command — only then does the next wave begin.
 
+
+---
+
+## Phase V.1 · Daily Report Evolution Pivot · PLANNING CLOSED · 2026-05-29
+
+Operator command: **"DAILY REPORT EVOLUTION PIVOT DIRECTIVE · Stop
+treating ODR as a replacement form. Keep the current Daily Report
+workflow as the field-facing experience. Use the ODR
+architecture/substrate behind the scenes as the Operational
+Intelligence Layer. Make the existing Daily Report system elite
+without disrupting foremen. Stop after planning and
+implementation-readiness review. Do not begin build until operator
+approves the exact upgrade scope."**
+
+### Pivot deliverables (7 docs · planning only · NO IMPLEMENTATION)
+
+1. **`DAILY_REPORT_EVOLUTION_PLAN.md`** — master plan · §3 the 6 ADDs ·
+   §7 the 9 DO-NOTs · §1 the M1 freeze collision flag.
+2. **`DAILY_REPORT_FIELD_SIMPLICITY_CERTIFICATION.md`** — Doctrine
+   Lock #1 applied to every ADD · 9-step contract locked · PR
+   approval block template.
+3. **`DAILY_REPORT_PRODUCTION_TRACKING_DESIGN.md`** — 7-unit closed
+   enum (LF_pipe / CY_concrete / tons_asphalt / SY_grading /
+   SY_milling / LF_curb / custom) · structured rows · station range ·
+   activity INFERRED from production (no separate step) ·
+   ~1.5–2 dev-days.
+4. **`DAILY_REPORT_CONSTRAINT_TRACKING_DESIGN.md`** — 11-type closed
+   enum (weather / utility / survey_control / material / equipment /
+   trucking / mot / cei_inspection / owner_engineer / safety / other) ·
+   chip selector · RFI + schedule advisory flags (pure signal · do
+   not create RFI · do not modify schedule) · ~1–1.5 dev-days.
+5. **`DAILY_REPORT_OFFLINE_RECOVERY_PLAN.md`** — low/no-signal
+   contract · ~2.5 dev-days strengthening · 7 pilot acceptance
+   criteria · idempotent submit + photo retry queue + service-worker
+   POST queue.
+6. **`ODR_SUBSTRATE_REUSE_MAP.md`** — 16 substrate assets reused
+   (operational_links · timeline · audience projection · external
+   redaction · continuity IDs · photo governance · archive · unified
+   projector · role-aware visibility · low/no signal · device recog ·
+   auto-save · draft recovery · offline queue · OGC coaching · audit
+   footer · platform inheritance · simplicity · M1 archive UI) ·
+   backend + frontend + probes inventory.
+7. **`DAILY_REPORT_ELITE_UPGRADE_OPERATOR_REVIEW.md`** —
+   implementation-readiness gate · wave-1 scope picks (suggested ~5–6
+   dev-days vs conservative ~3 dev-days) · 8-item operator
+   checklist.
+
+### 🔴 IMMEDIATE COLLISION · M1 freeze contradicts this pivot
+
+`POST /api/daily-reports` currently returns `410 Gone` redirecting
+to `/odr/new`. Under the pivot, foremen file Daily Reports there —
+**the POST must be restored.** Original implementation preserved as
+`_legacy_create_daily_report_archived` for a clean 4-line revert.
+
+`DELETE /api/daily-reports/{id}` stays `410 Gone` (historical
+immutability still desired).
+
+**This revert is documented in
+`DAILY_REPORT_EVOLUTION_PLAN.md §1` and
+`DAILY_REPORT_ELITE_UPGRADE_OPERATOR_REVIEW.md §2` but has NOT been
+executed.** Awaiting operator authorization.
+
+### Doctrine inheritance (unchanged · pivot lives entirely inside existing doctrine)
+
+The pivot adds no new doctrine. It exercises:
+
+- Doctrine Lock #1 (Simplicity Test) — applied to every ADD via the
+  certification doc.
+- Doctrine Lock #2 (Platform Inheritance) — the reuse map proves we
+  are not building parallel components.
+- Operational Calmness, Cross-Portal Coaching Standard, Operational
+  Linking Rules, Audience Projection Doctrine — all inherited.
+
+### Wave-1 scope · operator picks
+
+| Bundle | Items | Effort |
+|---|---|---|
+| **Suggested** | I (revert) + A (production) + B (constraints) + D (RFI flag) + E (schedule flag) + G (offline strengthening) + H (DR audit footer) | ~5–6 dev-days · parallelizable to ~4 calendar days |
+| **Conservative** | I (revert) + G (offline strengthening) + H (DR audit footer) | ~3 dev-days |
+
+### Pilot authorization gate (every row must be ✅)
+
+| Condition | Status |
+|---|---|
+| Pivot planning artifacts produced (7 docs) | ✅ |
+| M1 partial-revert plan documented + ready | ✅ (4-line revert, untouched) |
+| Operator review of pivot planning artifacts | ⏳ awaiting |
+| Operator picks wave-1 scope | ⏳ awaiting |
+| Operator authorizes M1 partial revert | ⏳ awaiting |
+| Wave-1 build complete + tested | ⏳ |
+| Offline contract acceptance criteria met | ⏳ |
+| **Pilot authorization** | ⏳ |
+
+### STOP condition honored (per directive)
+
+🛑 **HALTED at end of planning.**
+
+- ❌ NO code written in this wave
+- ❌ NO M1 partial revert executed
+- ❌ NO pilot rollout
+- ❌ NO RFI / Schedule / P6 work
+- ❌ NO mutation of any legacy row
+- ❌ NO production deploy beyond preview cutover
+- ✅ Awaiting operator approval of the exact upgrade scope.
+
+### Next operator actions
+
+1. Read `DAILY_REPORT_ELITE_UPGRADE_OPERATOR_REVIEW.md` (consolidated
+   review · 5 minutes).
+2. Authorize (or hold) the **M1 partial revert** (restore
+   `POST /api/daily-reports`, keep `DELETE` frozen).
+3. Pick the **wave-1 scope** from §4 (suggested · conservative ·
+   custom).
+4. Acknowledge the **8-item readiness checklist** in §7.
+5. Issue **build authorization command** with the chosen wave-1
+   scope — only then does any code change.
+

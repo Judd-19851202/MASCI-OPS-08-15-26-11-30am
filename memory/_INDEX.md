@@ -150,7 +150,7 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
 | `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
 
-## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.0 → M1 LIVE · 2026-05-29)
+## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.0 → M1 LIVE · Daily Report Evolution Pivot · 2026-05-29)
 
 ODR substrate is LIVE in preview through **M1 Option C**. M0.0 hygiene
 closed. M0.1 substrate sealed. M0.2 + M0.2A engines + probes live.
@@ -158,10 +158,19 @@ M0.3 operator surfaces live. M0.35 reality validation complete with
 2 permanent doctrine locks. **M0.4 external PDF photo thumbnail
 embedding shipped.** **M1 (Option C) shipped: Daily Report write
 freeze + Unified Operational Records projector + Doc id router +
-operational_links bridge (legacy_daily_report target-only) + calm
-slate Archive visual treatment.** **HALTED at end of M1 pending
-operator review (per directive). Pilot rollout / M2 may NOT begin
-until operator acknowledges the M1 review guide.**
+operational_links bridge + Archive visual treatment.**
+
+🔄 **2026-05-29 · Daily Report Evolution Pivot Directive:** The
+direction has pivoted. Daily Report remains the field-facing form;
+ODR becomes the backend intelligence layer. 7 planning artifacts
+produced (`DAILY_REPORT_EVOLUTION_PLAN.md` and family) describe how
+M0.1–M1 assets are retargeted at the existing DR substrate.
+**🔴 Known collision:** M1's `POST /api/daily-reports` 410 freeze
+contradicts the pivot and must be partially reverted (POST restored,
+DELETE stays frozen) before any foreman can file a DR. 4-line revert
+prepared; awaiting operator authorization. **HALTED at end of pivot
+planning per directive. Do not begin build until operator approves
+the exact upgrade scope.**
 
 | File | Purpose | Status |
 |---|---|---|
@@ -276,6 +285,23 @@ Locked snapshots, soft-delete, archive doctrine, audit defensibility.
 - ⛔ `DATA_SURVIVABILITY_AUDIT.md` — every draft / queue / IDB change
 - ⛔ `AUDIT_GUARDRAILS.md` — every change to records that may be referenced legally
 - ⛔ `CROSS_PORTAL_COACHING_STANDARD.md` — every operator-facing copy change
+- ⛔ `VISUAL_LOUDNESS_DOCTRINE.md` (or `CALM_OBSERVABILITY_UI.md`) — every color / pill / badge addition
+
+---
+
+## Where to find the live state
+
+- 🟢 Live OPS-1 status: `GET /api/admin/governance/self-protection`
+- 🟢 Probe state: `python3 scripts/authority_mismatch_probe.py --gate`
+- 🟢 Timestamp probe: `python3 scripts/timestamp_doctrine_probe.py --gate`
+- 🟢 Pre-deploy gate: `bash scripts/pre_deploy_check.sh`
+
+---
+
+_If a doc you need is not listed here, grep `/app/memory/` for the
+topic — but document its addition to this index when you next
+touch it. Goal: 500 docs · 1 map · 30 seconds._
+ copy change
 - ⛔ `VISUAL_LOUDNESS_DOCTRINE.md` (or `CALM_OBSERVABILITY_UI.md`) — every color / pill / badge addition
 
 ---
