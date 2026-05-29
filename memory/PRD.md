@@ -27516,3 +27516,44 @@ D1–D8 incorporated · no implementation · 25 questions still survivable · no
 3. Read `ODR_SPEC_LOCK_READINESS_REVIEW.md § 9 + § 10` (9/9 certified)
 4. Answer the 25 open architecture questions (or `"accept all defaults"`)
 5. Issue spec lock command → implementation Wave M0 begins
+
+---
+
+## ODR Final Governance Revision · Pre-Spec Lock · 2026-05-29
+
+Operator command: **"ODR FINAL GOVERNANCE REVISION · PRE-SPEC LOCK DIRECTIVE · AUTHORIZATION: APPROVED"**.
+
+### Deliverables shipped (7 · architecture-only)
+
+1. **`ODR_FINAL_GOVERNANCE_ADDENDUM.md`** (new · O21–O35 · 15 doctrines · governance / Inbox / amendment / official record / signature / attachment)
+2. **`ODR_DATA_MODEL.md`** — added `SignatureBlock` · `Attachment` (11 kinds) + `odr_attachments` registry · `Amendment` + `odr_amendments` collection · `amend_allowed_until_utc` · audience map (now 1197 lines)
+3. **`ODR_UI_WIREFRAMES.md`** — Field Leadership ODR Center · 5-tab Inbox · Foreman "Mine" with 24h countdown · Superintendent review surface · PM read-only consumption panel · foreman signature check · attachment add affordance (now 1038 lines)
+4. **`ODR_ECOSYSTEM_INTEGRATION_MAP.md`** — governance vs consumption boundary · per-token authority matrix · Inbox queries · amendment dispatch · public-link 5-endpoint scope · single backend (no parallel PM data model) (now 675 lines)
+5. **`ODR_MIGRATION_PLAN.md`** — wave-by-wave governance scaffolding · legacy approvals re-routed · attachment migration · 6 new risks R23–R28 · acceptance criteria (now 643 lines)
+6. **`ODR_SPEC_LOCK_READINESS_REVIEW.md`** — extended with 12 new certifications · 21/21 confirmations
+7. **`ODR_SPEC_LOCK_CERTIFICATION.md`** (new final cert · 35/35 doctrines · 10/10 final governance certs · 28/28 risks · STOP)
+
+### Doctrine inventory now totals 35 locked statements
+- O1–O10 foundational (revision pass 2)
+- O11–O20 public-link device continuity (revision pass 3)
+- O21–O35 Field Leadership governance (this pass)
+
+### Final readiness checklist · 21 / 21 ✅
+1. D1–D8 incorporated · 2. No implementation · 3. 25 questions survivable · 4. No new blocking gaps · 5. Simplicity holds · 6. Bilingual native · 7. Tier-1 Reliability · 8. Single-entry/multi-consumer · 9. Public-link device continuity · 10. FL governance model · 11. Public ODR simplicity · 12. ODR Inbox · 13. PM consumption model · 14. Amendment doctrine · 15. Official record doctrine · 16. Signature doctrine · 17. Attachment doctrine · 18. Continuity retained · 19. Single backend · 20. Audit append-only · 21. All 35 doctrines anchored
+
+### Collections inventory (final · 7)
+`odr` · `odr_photos` · `odr_attachments` (new) · `odr_section_events` · `odr_translation_events` · `odr_preload_attempts` · `odr_amendments` (new) · `odr_consumer_index` (derived). No PM-side collection.
+
+### STOP condition honored
+- ✅ No code · no routes · no collections · no UI · no probe code
+- ✅ Wave M0 NOT begun
+- ✅ Spec lock command NOT yet issued
+- ✅ V-Prelude Observation Freeze on broader platform still intact
+- ✅ Only `/app/memory/` touched · PRD.md now ~27,575 lines
+
+### Next operator actions
+1. Read `ODR_SPEC_LOCK_CERTIFICATION.md` (the final summary)
+2. Optionally skim `ODR_FINAL_GOVERNANCE_ADDENDUM.md` for the new doctrine statements (O21–O35)
+3. Answer the 25 open architecture questions (or `"accept all defaults"`)
+4. Issue spec lock command: `"LOCK ODR SPECIFICATION · PROCEED TO M0"`
+5. Implementation Wave M0 begins ONLY after step 4

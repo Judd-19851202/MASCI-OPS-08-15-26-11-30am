@@ -516,3 +516,128 @@ as preload).
 | O19 every preload surface | every carryover surface (crew · equipment · subs · materials · production shells) is gated |
 
 _End of Public-Link Device Continuity Addendum · MIGRATION_PLAN._
+
+---
+
+# Final Governance Addendum · 2026-05-29
+
+This addendum extends the migration plan with the Field Leadership
+governance model, the ODR Inbox, the amendment policy, and the
+attachment migration story.
+
+## G1 · Wave-by-wave additions
+
+### M0 · dual-write pilot (governance scaffold)
+
+- ✅ FL portal ODR Center routes scaffolded (read-only · no
+  amendment surface yet).
+- ✅ Foreman "Mine" view ships in pilot mode.
+- ✅ Public-link surface ships with foreman signature acknowledgement
+  (O31) and attachment upload (O32 architecture-supported).
+- ✅ `odr_amendments` collection created and integrity-anchored
+  (empty until M1).
+- ✅ `odr_attachments` collection created (empty until first upload).
+
+### M1 · backfill migration (governance baselining)
+
+- Legacy `daily_reports` rows are migrated as `status="approved"`
+  by default (they were the legacy company record · treated as
+  final per O30).
+- Legacy `prepared_by_signature` + `superintendent_signature` map
+  to `signature.foreman_acknowledgement` (text + uid + timestamp);
+  if absent, `acknowledged=False · migrated=True`.
+- Legacy `auto_emailed`/`distribution_list` reads carry over as PM
+  consumer history (informational only).
+- Legacy attachments (currently embedded in photo arrays) are
+  retained as photos; the new `Attachment` kinds (delivery, haul,
+  CEI, FAA, etc.) start empty for migrated rows.
+
+### M2 · all foremen on ODR (governance go-live)
+
+- FL ODR Center Inbox goes live for Superintendent / Senior Super.
+- Foreman 24-hour edit window enforced (`amend_allowed_until_utc`
+  stamped at every submit).
+- PM read-only ODR consumption panel goes live in PM Portal.
+- "Start from yesterday" preload affordance ships **only** if
+  continuity gate has been green ≥ 7 days (per O33).
+
+### M3 · read surfaces re-platformed
+
+- Legacy `DailyReportsDashboard.jsx` retired in favour of FL Inbox.
+- Legacy `HrDailyReports.jsx` continues to read ODR via HR projector.
+- Amendment workflow audited via `odr_amendments` retention rule:
+  zero deletions, ever.
+
+### M4 · cleanup
+
+- Legacy approval / return UIs deleted.
+- All approval workflow code paths route through FL Center.
+
+### M5 · sunset
+
+- Legacy `daily_reports` collection archived to R2.
+
+## G2 · Amendment policy migration
+
+The legacy `daily_reports.notes` field allowed free-form post-hoc
+edits with no preservation. Migration:
+
+- Legacy edits are **not** retroactively split into amendments;
+  every migrated row arrives as a single "approved" record with no
+  amendment chain.
+- Starting from M2, every Super+ amendment writes one
+  `odr_amendments` row.
+- Legacy PMs / Supers do not have a 24-hour window to migrate; their
+  authority on already-approved rows is admin-only post-cutover.
+
+## G3 · Attachment migration story
+
+The legacy `photos[]` field may contain PDF receipts mixed with
+photos. Migration:
+
+- Photos remain photos (existing handling).
+- Items with mime `application/pdf` move to `odr_attachments` with
+  `kind="other_pdf"` and a manual-review flag.
+- A migration report row enumerates ambiguous items (e.g., scanned
+  ticket images that should arguably be `delivery_ticket`).
+- PM Review queue handles re-classification post-cutover.
+
+## G4 · Risk register additions
+
+Adds to D1–D8 + continuity risk lists:
+
+| # | Risk | Severity | Mitigation |
+|---|---|---|---|
+| R23 | Foremen unsure when 24h edit window closes | LOW | live countdown in "Mine" view (UI § G4) + 1h pre-expiry email reminder |
+| R24 | Superintendents over-amend (correction creep) | LOW | every amendment writes to `odr_amendments` · trendline visible in Admin view |
+| R25 | PM mistakes read-only consumption for ability to fix issues | LOW | PM panel explicitly lacks action buttons (UI § G5) · short coaching text "Amendments are handled by Field Leadership" |
+| R26 | Attachment migration mis-classifies tickets as photos or vice versa | MEDIUM | manual-review queue post-cutover · doctrine permits re-classification by Super+ as a tracked amendment |
+| R27 | Continuity override route confused with FL amendment route | LOW | two separate routes · two separate audit trails (continuity → `odr_preload_attempts`; amendment → `odr_amendments`) |
+| R28 | "Approval doesn't create the official record" not understood by stakeholders | LOW | PDF cover page explicitly labels the report `Official Record · Submitted` · approval status renders below |
+
+## G5 · Acceptance criteria additions
+
+Adds to original + D1–D8 + continuity acceptance:
+
+- [ ] FL ODR Center surfaces (Inbox / Mine / Search-Export) live and tested.
+- [ ] Foreman 24h edit window enforced server-side AND client-side.
+- [ ] Every Super+ amendment writes one `odr_amendments` row.
+- [ ] PM panel has zero edit/amend/return/approve affordances.
+- [ ] PDF cover page reflects "Official Record · Submitted" labelling.
+- [ ] Foreman acknowledgement check required on submit (server-side enforced).
+- [ ] Attachment uploads work for all 11 declared kinds (architecturally; only the V.1-exposed kinds appear in UI selectors).
+- [ ] Continuity gate independent of amendment route (audit trails non-overlapping).
+- [ ] `odr_amendments` collection: 0 deletions in 30 days post-M2.
+
+## G6 · Doctrine anchors (O21–O35 in MIGRATION)
+
+| Doctrine | Anchor |
+|---|---|
+| O21 governance lives in FL | M0–M2 ship FL Center scaffolding first |
+| O28 24h window | M2 enforces; M0 ships scaffolding |
+| O29 no deletion · ever | M3+ audited; trendline integrity probe extended |
+| O30 official record at submit | PDF labelling adjusted in M2 · operator stakeholders briefed (R28) |
+| O31 signature | M2 ships ack at submit; legacy rows default `acknowledged=False · migrated=True` |
+| O32 attachments | architecturally available M0; UI exposure staged through M1+ |
+
+_End of Final Governance Addendum · MIGRATION_PLAN._

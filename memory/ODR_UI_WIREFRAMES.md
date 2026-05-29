@@ -844,3 +844,195 @@ Spanish-speaking foreman without code-switching.
 | O20 asymmetric default | Flow B copy is calm; the system prefers blank over leak |
 
 _End of Public-Link Device Continuity Addendum · UI_WIREFRAMES._
+
+---
+
+# Final Governance Addendum · 2026-05-29
+
+This addendum adds the Field Leadership ODR Center, the ODR Inbox,
+the foreman / superintendent / PM views, the signature affordance,
+and the attachment add affordance. **No implementation.**
+
+## G1 · Field Leadership ODR Center · top-level
+
+Location: `/field-leadership/portal/odr` (authenticated · X-FL-Token).
+Three left-rail destinations:
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Field Leadership                                     │
+│  · ODR · Inbox                                        │
+│  · ODR · Mine (foreman own-only · all roles see)      │
+│  · ODR · Search / Export (Super+)                     │
+├──────────────────────────────────────────────────────┤
+│  (selected view body)                                 │
+└──────────────────────────────────────────────────────┘
+```
+
+## G2 · Inbox wireframe (Superintendent · scope: project)
+
+```
+┌──────────────────────────────────────────────────────┐
+│  ODR Inbox · Project #43-217 · Reyes/Davis crews     │
+├──────────────────────────────────────────────────────┤
+│  ┌Missing 2┐┌Draft 1┐┌Submitted 4┐┌Returned 1┐┌Approved 187┐│
+│                                                       │
+│  Missing                                              │
+│    · Reyes Pipe     2026-05-28      [Open record]    │
+│    · Davis Paving   2026-05-28      [Open record]    │
+│                                                       │
+│  Submitted                                            │
+│    · Davis Paving   2026-05-28   18:11 ET  ▸          │
+│       readiness ◉◉◉◉○  (4 coaching)                  │
+│    · Reyes Pipe     2026-05-27   17:54 ET  ▸          │
+│    · …                                                │
+│                                                       │
+│  Returned                                             │
+│    · Reyes Pipe     2026-05-26  "fix compaction"      │
+└──────────────────────────────────────────────────────┘
+```
+
+- Five tabs at top; counts auto-update.
+- Each row carries the calm readiness dots (filled = sections
+  complete) — visible coaching, no scoring.
+- "Open record" launches the review surface (G3).
+
+## G3 · Superintendent review surface (Submitted → Approved)
+
+```
+┌──────────────────────────────────────────────────────┐
+│  ⟵ Inbox      Davis Paving · 2026-05-28 · ODR-…-00427 │
+├──────────────────────────────────────────────────────┤
+│  [ Today at a glance card · same shape as PDF p.1 ]   │
+│                                                       │
+│  Sections (collapsed by default)                      │
+│    ▸ Project · Crew · Work Areas · Manpower …         │
+│                                                       │
+│  Readiness                                            │
+│    · 4 coaching items — open ▾                       │
+│                                                       │
+│  Actions:                                             │
+│    [ Amend a field ]  [ Return for revision ]  [ Approve ] │
+│                                                       │
+│  Amendment log (chronological)                        │
+│    · J. Murphy · 2026-05-28 19:02 · production_       │
+│       segments[0].body.pipe.runs[0].compaction_pct    │
+│       96 → 98 · "field re-measure" ▸                  │
+└──────────────────────────────────────────────────────┘
+```
+
+- Amend surface opens a per-field editor with required `reason`.
+- Return surface requires a reason; transitions `submitted → returned`.
+- Approve transitions `submitted | returned → approved` · validates
+  quality (does NOT change the official record status).
+
+## G4 · Foreman "Mine" view (own ODRs · all FL foremen)
+
+```
+┌──────────────────────────────────────────────────────┐
+│  My ODRs · Carlos Reyes                              │
+├──────────────────────────────────────────────────────┤
+│  Drafts (1)                                          │
+│   · 2026-05-29 11:24 ET · pipe · Reyes crew  [Open]  │
+│  Submitted (last 30d)                                │
+│   · 2026-05-28 18:11 ET · edit window: 16h 22m left  │
+│       [View] [Edit]                                  │
+│   · 2026-05-27 17:54 ET · edit window: closed        │
+│       [View only]                                    │
+│  Returned (1)                                        │
+│   · 2026-05-26 · "fix compaction" · [Re-open]        │
+│  Approved (most recent 5)                            │
+│   · 2026-05-25 · 2026-05-24 · …                      │
+└──────────────────────────────────────────────────────┘
+```
+
+- 24h edit window shown as a live countdown next to "Submitted" rows.
+- After 24h, "[Edit]" is replaced by "[View only]" with the calm
+  text "Window closed. Ask your Superintendent for an amendment."
+
+## G5 · PM Portal · ODR consumption surface (READ-ONLY)
+
+PM stays in their existing portal (`/pm/projects/:projectNumber`).
+A read-only ODR panel is added beneath the existing Project Detail
+content:
+
+```
+┌──────────────────────────────────────────────────────┐
+│  ODR · #43-217 · last 7 days                          │
+├──────────────────────────────────────────────────────┤
+│  ◉◉◉◉◉◉◉ 7/7 days reported                            │
+│  · Davis Paving  · 2026-05-28 · Approved              │
+│  · Reyes Pipe    · 2026-05-28 · Approved              │
+│  · …                                                  │
+│                                                       │
+│  [ Search ODRs ]   [ Export selection ]               │
+│  [ Quality dashboard ]   [ Completion dashboard ]     │
+└──────────────────────────────────────────────────────┘
+```
+
+- **PM cannot edit, return, approve, or amend.** Action buttons are
+  absent — not greyed out — to enforce O22.
+- Quality dashboard shows aggregated coaching counts; never per-
+  foreman scoring.
+
+## G6 · Foreman signature at submit (O31)
+
+Added to the bottom of the Review & Submit screen (UI § 15 of the
+original spec):
+
+```
+┌──────────────────────────────────────────────────────┐
+│  I certify the information on this report is true    │
+│  and complete to the best of my knowledge.           │
+│  ☐  I acknowledge                                     │
+│                                                       │
+│  [Submit ODR]   (disabled until check + readiness OK) │
+└──────────────────────────────────────────────────────┘
+```
+
+- Single checkbox · single sentence.
+- Renders in both EN and ES via existing i18n table.
+- On submit, the check is stamped into `signature.foreman_ack` with
+  fingerprint + timestamp + UID.
+
+## G7 · Attachment add affordance (O32)
+
+Added to the Photos section (UI § 12) AND to relevant per-event
+forms (Materials, ExtraWork, Safety):
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Evidence                                             │
+├──────────────────────────────────────────────────────┤
+│  Photos  9                                            │
+│  Attachments  2                                       │
+│    · Delivery ticket · Vulcan · #21338 · 1.4 MB · PDF │
+│    · CEI directive   · M. Lopez · 2026-05-28 · PDF   │
+│                                                       │
+│  [+ Photo]  [+ Attachment]                            │
+└──────────────────────────────────────────────────────┘
+```
+
+- "[+ Attachment]" opens a kind selector (Delivery / Haul / Density
+  / Asphalt / Concrete / CEI / FAA / FDOT / RFI / Other).
+- Architecture supports all 11 attachment kinds today; UI exposure
+  is staged per `ODR_FINAL_GOVERNANCE_ADDENDUM.md § 8` (V.1 exposes
+  delivery ticket numbers via materials; richer attachment surfaces
+  arrive M1+).
+
+## G8 · Doctrine anchors (O21–O35 in UI)
+
+| Doctrine | Anchor |
+|---|---|
+| O21 FL governance | § G1 ODR Center root |
+| O22 PM read-only | § G5 (action buttons absent) |
+| O23–O24 public ODR simple | original public-link flows unchanged · no Inbox / dashboard on public surface |
+| O25 FL ODR Center | § G1 |
+| O26 5-category Inbox | § G2 |
+| O27 coaching not punish | § G2 readiness dots · § G5 quality dashboard (no per-foreman scoring) |
+| O28 24h edit window | § G4 countdown |
+| O29 amendment preserves | § G3 amendment log visible |
+| O31 foreman signature | § G6 |
+| O32 attachments | § G7 |
+
+_End of Final Governance Addendum · UI_WIREFRAMES._

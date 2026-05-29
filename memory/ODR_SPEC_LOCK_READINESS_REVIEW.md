@@ -252,3 +252,76 @@ lock**, with the public-link continuity doctrine fully absorbed.
 ```
 
 _End of Continuity Doctrine Pre-Lock Update._
+
+---
+
+# Final Governance Pre-Lock Update · 2026-05-29
+
+This update extends the readiness review with the **Field Leadership
+Governance Model**, the **ODR Inbox**, the **amendment doctrine**,
+the **official record doctrine**, the **signature doctrine**, and
+the **attachment doctrine**.
+
+## 13 · Final governance certifications (new — O21–O35)
+
+| # | Aspect | Verdict | Evidence |
+|---|---|---|---|
+| 13.1 | Field Leadership governance model incorporated (O21) | ✅ | ECOSYSTEM § G1 boundary · UI § G1 ODR Center · DATA_MODEL audience map § G6 |
+| 13.2 | Public ODR simplicity preserved (O23 + O24) | ✅ | ECOSYSTEM § G6 (5 endpoints only · no Inbox / dashboard / cross-crew) |
+| 13.3 | ODR Inbox architecture incorporated (O26) | ✅ | UI § G2 wireframe · ECOSYSTEM § G4 server queries · 5 categories on `odr.status` + missing-tuple join |
+| 13.4 | PM consumption model preserved (O22) | ✅ | UI § G5 read-only panel · ECOSYSTEM § G3 four read-only endpoints · zero edit / amend / return / approve |
+| 13.5 | Amendment doctrine incorporated (O28 + O29) | ✅ | DATA_MODEL § G4 `Amendment` + `odr_amendments` collection · DATA_MODEL § G5 24h window · ECOSYSTEM § G5 dispatch · UI § G3 amendment log surface |
+| 13.6 | Official record doctrine incorporated (O30) | ✅ | DATA_MODEL § G7 status enum · PDF cover label · MIGRATION § G1/G4 R28 stakeholder briefing |
+| 13.7 | Signature doctrine incorporated (O31) | ✅ | DATA_MODEL § G2 `SignatureBlock` + `ForemanAck` · UI § G6 submit-time check · PDF cover renders ack |
+| 13.8 | Attachment doctrine incorporated (O32) | ✅ | DATA_MODEL § G3 `Attachment` + 11 kinds + `odr_attachments` registry · UI § G7 add affordance · MIGRATION § G3 staged exposure |
+| 13.9 | Device continuity doctrine retained (O33 = O11–O20) | ✅ | already locked · re-affirmed in O33 · audit trail separate from amendment trail per ECOSYSTEM § G2 + R27 |
+| 13.10 | No new blocking gaps introduced | ✅ | this addendum cleared without re-opening any prior question or breaking any prior contract |
+| 13.11 | Single backend preserved (O34) | ✅ | ECOSYSTEM § G1 diagram + § G7 |
+| 13.12 | Audit append-only (O35) | ✅ | `odr_amendments` + `odr_preload_attempts` + `odr_translation_events` + `odr_section_events` all integrity-anchored |
+
+## 14 · Final readiness checklist · 21 / 21 confirmations
+
+| # | Confirmation | Verdict |
+|---|---|---|
+| 1 | D1–D8 incorporated | ✅ |
+| 2 | No implementation performed | ✅ |
+| 3 | All 25 architecture questions still survivable | ✅ |
+| 4 | No new blocking gaps | ✅ |
+| 5 | Simplicity doctrine holds | ✅ |
+| 6 | Bilingual architecture native | ✅ |
+| 7 | Tier-1 Reliability codified | ✅ |
+| 8 | Ecosystem single-entry / multi-consumer | ✅ |
+| 9 | Public-Link Device Continuity certified | ✅ |
+| 10 | Field Leadership governance model incorporated | ✅ |
+| 11 | Public ODR simplicity preserved | ✅ |
+| 12 | ODR Inbox architecture incorporated | ✅ |
+| 13 | PM consumption model preserved | ✅ |
+| 14 | Amendment doctrine incorporated | ✅ |
+| 15 | Official record doctrine incorporated | ✅ |
+| 16 | Signature doctrine incorporated | ✅ |
+| 17 | Attachment doctrine incorporated | ✅ |
+| 18 | Device continuity doctrine retained | ✅ |
+| 19 | Single backend (no parallel PM data model) | ✅ |
+| 20 | Audit append-only across all governance collections | ✅ |
+| 21 | All 35 doctrine statements (O1–O35) anchored | ✅ |
+
+## 15 · Verdict (final)
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║          ✅  READY FOR SPECIFICATION LOCK · 21 / 21          ║
+║                                                              ║
+║   The architecture is complete. The only remaining items     ║
+║   are the operator's answers to the 25 open questions in     ║
+║   the artifact `Open questions` blocks, after which the      ║
+║   spec lock command may be issued and implementation Wave    ║
+║   M0 may begin.                                              ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+See `ODR_SPEC_LOCK_CERTIFICATION.md` for the final pre-lock
+certification statement.
+
+_End of Final Governance Pre-Lock Update._

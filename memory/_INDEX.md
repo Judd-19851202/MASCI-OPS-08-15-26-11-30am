@@ -165,6 +165,8 @@ Architecture-only authoring · NOT yet implemented · awaiting spec lock.
 | `ODR_DELTA_INTEGRATION_SUMMARY.md` | Master delta map · D1–D8 + O1–O10 doctrine | 🟢 |
 | `ODR_SPEC_LOCK_READINESS_REVIEW.md` | Pre-lock certification · 9/9 confirmations · awaiting lock | 🟢 |
 | `ODR_PUBLIC_LINK_DEVICE_CONTINUITY_ADDENDUM.md` | **Public-Link Device Continuity Doctrine** (O11–O20) · trust boundary · 7 signals · audit log spec | 🟢 |
+| `ODR_FINAL_GOVERNANCE_ADDENDUM.md` | **Final Governance** (O21–O35) · Field Leadership ODR Center · Inbox · amendment / official record / signature / attachment doctrines | 🟢 |
+| `ODR_SPEC_LOCK_CERTIFICATION.md` | **Final pre-lock certification** · 35/35 doctrines · 21/21 confirmations · 28/28 risks · STOP | 🟢 |
 | _(Future)_ `odr_bilingual_probe.py` | D8 governance probe (planned) | 🟡 |
 | _(Future)_ `odr_doctrine_probe.py` | shape + enum + audit-envelope probe (planned) | 🟡 |
 | _(Future)_ `odr_public_link_continuity_probe.py` | 7-signal continuity gate · cross-crew leak prevention (planned) | 🟡 |

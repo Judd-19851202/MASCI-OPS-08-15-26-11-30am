@@ -529,3 +529,147 @@ those flags** — they are observational only.
 | O19 applies to every preload surface | § C3 covers every prior-data class |
 
 _End of Public-Link Device Continuity Addendum · ECOSYSTEM._
+
+---
+
+# Final Governance Addendum · 2026-05-29
+
+This addendum codifies the **governance vs consumption split** in
+the ecosystem map. Read alongside `ODR_FINAL_GOVERNANCE_ADDENDUM.md`.
+
+## G1 · Governance vs consumption boundary
+
+```
+                Field Leadership Portal (governance owner)
+                ├── ODR Center: Inbox · Mine · Search/Export
+                ├── Roles: Foreman · Super · Senior Super
+                ├── Powers: edit (24h FL) · amend (Super+) · return · approve
+                └── Audit: writes odr_amendments + odr_section_events
+                                  │
+                                  ▼
+              ┌────────────────────────────────────────────┐
+              │   odr collection · single backend          │
+              └────────────────────────────────────────────┘
+                                  ▲
+                ┌─────────────────┴────────────────────┐
+                │                                      │
+        PM Portal (consumer)              All other consumers
+        ├── Read-only ODR panel           ├── Safety · Dispatch · Shop
+        ├── Search · Export               ├── HR · Executive · Memory
+        ├── Quality/completion dash       ├── Search · RFI · Schedule
+        │   (aggregated · no scoring)     ├── Claims · future AI
+        └── No edit · no amend            └── via per-consumer projectors
+
+                Public Link (data collection only)
+                ├── Create / draft / submit one ODR
+                ├── Never sees other crews / projects / prior reports
+                └── Device-continuity gate (O11–O20)
+```
+
+There is **one `odr` collection** and **one projector layer**. PM,
+FL, Safety, Shop, HR, Exec, Memory, Search, RFI, Schedule, Claims,
+and AI all read the same source through their own projectors.
+Governance authority is route-gated by token type — not by
+collection partitioning.
+
+## G2 · Per-token authority matrix (re-affirmed)
+
+| Token | Read | Edit ≤ 24h | Amend any time | Return | Approve | Override continuity | Manage Inbox |
+|---|---|---|---|---|---|---|---|
+| (public link · anonymous) | own ODR today only | own (if author) | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `X-FL-Token` Foreman | own ODRs | ✅ within 24h | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `X-FL-Token` Super | scope projects | ✅ | ✅ | ✅ | ✅ | ❌ (continuity stays separate route) | ✅ |
+| `X-FL-Token` Sr Super | regional | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `X-PM-Token` PM | own projects | ❌ | ❌ | ❌ | ❌ | ❌ | read-only |
+| `X-Admin-Token` | platform | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+Continuity override remains a **separate authenticated route**
+(O17). The FL Superintendent token is **not** automatically a
+continuity-override token; an explicit admin/PM override action is
+required because continuity touches public-link trust.
+
+(Operator may at lock time choose to grant Super continuity-override
+power; today's default keeps continuity overrides admin/PM only.)
+
+## G3 · PM as pure consumer (O22)
+
+PM Portal's new read-only ODR panel reads through the existing
+`PM` projector (ECOSYSTEM § 2.1) plus three new consumer queries:
+
+- `GET /api/pm/odr/search` — text + filter search across PM's projects
+- `GET /api/pm/odr/export.csv` — selection export
+- `GET /api/pm/odr/quality-summary` — aggregated coaching counts
+- `GET /api/pm/odr/completion-summary` — aggregated section completion
+
+All four are **read-only**; none accept `PATCH` / `POST` on ODR
+rows. Per O27, none expose per-foreman scoring.
+
+## G4 · Inbox queries (FL · server-side · same `odr` collection)
+
+The Inbox does not require a separate collection. Five server-side
+queries:
+
+| Category | Query shape (project-scoped) |
+|---|---|
+| Missing | join `(project, crew, report_date)` expected tuples (from dispatch board) ← LEFT JOIN `odr` ON `(project, crew, report_date)` WHERE odr is null |
+| Draft | `odr.status="draft"` |
+| Submitted | `odr.status="submitted"` |
+| Returned | `odr.status="returned"` |
+| Approved | `odr.status="approved"` |
+
+A small server-side helper builds the Missing list. No new
+collection; existing indexes on `{project_number, report_date, crew_id}`
+cover it.
+
+## G5 · Amendment dispatch
+
+When an amendment is committed:
+
+1. Route layer (FL portal · authenticated) writes the new value to
+   the `odr` row.
+2. Append one row to `odr_amendments`.
+3. Re-run the relevant consumer projector(s) (because, e.g., a
+   compaction-value amendment affects PM project rollup).
+4. If the amended field is rendered on the PDF, set
+   `triggers_pdf_rerender=True` so the cached PDF is purged.
+5. Telemetry: append one row to `odr_section_events` with
+   `event="amended"`.
+
+## G6 · Public-link surface scope (re-affirmed · O23 · O24)
+
+Public-link surface in production:
+
+| Endpoint | Method | Returns |
+|---|---|---|
+| `/api/public/odr/<link_id>/today/init` | GET | project + date + weather + continuity decision (allowed/denied seeds vs blank) |
+| `/api/public/odr/<link_id>/today/draft` | PATCH | partial save (own draft) |
+| `/api/public/odr/<link_id>/today/submit` | POST | finalize (writes status=submitted + foreman_ack + amend_allowed_until_utc) |
+| `/api/public/odr/<link_id>/today/photo` | POST | upload photo to own ODR only |
+| `/api/public/odr/<link_id>/today/attachment` | POST | upload attachment to own ODR only |
+
+That is the **entire** public surface. Listing prior ODRs,
+viewing approval status, browsing other crews — all out of scope
+for the public link.
+
+## G7 · Single-entry preserved (O6 + O34)
+
+Every governance action (amend / return / approve) writes through
+the same routes consumers read from. There is **no** PM-side ODR
+model, **no** parallel collection, **no** consumer-owned mutation
+surface.
+
+## G8 · Doctrine anchors (O21–O35 in ECOSYSTEM)
+
+| Doctrine | Anchor |
+|---|---|
+| O21 FL governance | § G1 + § G2 |
+| O22 PM consumer | § G3 four read-only endpoints |
+| O23–O24 public-link scope | § G6 enumerates entire surface |
+| O25 ODR Center | § G2 + § G4 |
+| O26 5-category Inbox | § G4 server queries |
+| O29 amendment chain | § G5 dispatch order |
+| O30 official record | submission writes status=submitted (system of record · projectors fan out) |
+| O34 single backend | § G1 diagram + § G7 |
+| O35 audit append-only | § G5 step 5 |
+
+_End of Final Governance Addendum · ECOSYSTEM_INTEGRATION_MAP._

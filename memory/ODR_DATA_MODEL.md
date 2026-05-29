@@ -985,3 +985,213 @@ Adds to the index list from the earlier D1–D8 addendum (§ A9):
 | O18 append-only log | `odr_preload_attempts` collection |
 
 _End of Public-Link Device Continuity Addendum · DATA_MODEL._
+
+---
+
+# Final Governance Addendum · 2026-05-29
+
+This addendum extends the ODR envelope with the final governance
+deltas (O21–O35). Read alongside
+`ODR_FINAL_GOVERNANCE_ADDENDUM.md`.
+
+## G1 · ODR envelope · final additions
+
+```python
+class ODR(BaseModel):
+    ...  # (everything from earlier addenda)
+
+    # ── Signature (NEW · O31) ──
+    signature: SignatureBlock
+
+    # ── Attachments (NEW · O32) ──
+    attachments: List[AttachmentRef]      # 0..N (any non-photo evidence)
+
+    # ── Amendment posture (NEW · O28) ──
+    amend_allowed_until_utc: Optional[str]  # foreman 24h window upper bound
+                                            # · set on first submit
+    amendment_count: int                    # convenience · derived
+    last_amended_at_utc: Optional[str]
+    last_amended_by_uid: Optional[str]
+```
+
+## G2 · `SignatureBlock` (O31)
+
+```python
+class SignatureBlock(BaseModel):
+    foreman_acknowledgement: ForemanAck
+
+class ForemanAck(BaseModel):
+    acknowledged: bool                       # must be True at submit
+    acknowledged_at_utc: Optional[str]
+    acknowledged_by_uid: str                 # FL token UID OR public-link
+                                             # foreman identity (when public)
+    acknowledged_from_fingerprint: Optional[DeviceFingerprint]
+                                             # ties to continuity gate when
+                                             # the submission came through
+                                             # a public link
+    text: str                                # canonical English ack text
+                                             # (also rendered in i18n table)
+```
+
+PM approval signatures are not part of V.1; the existing
+`review.status_history: List[ReviewEvent]` already records PM
+return/approve actions with `actor_uid` + `at_utc`.
+
+## G3 · `Attachment` type (O32)
+
+```python
+ATTACHMENT_KIND = Literal[
+    "delivery_ticket",
+    "haul_ticket",
+    "density_report",
+    "asphalt_ticket",
+    "concrete_ticket",
+    "cei_directive",
+    "faa_notice",
+    "fdot_directive",
+    "rfi_attachment",
+    "other_pdf",
+    "other_image",
+]
+
+class Attachment(BaseModel):
+    attachment_id: str                       # uuid4
+    kind: ATTACHMENT_KIND
+    label: LocalizedString
+    file_object_key: str                     # R2 key
+    file_size_bytes: int
+    file_mime: str                           # "application/pdf" / image/*
+    file_sha256: str
+    uploaded_at_utc: str
+    uploaded_by_uid: str
+    work_area_id: Optional[str]              # ties to a work area when relevant
+    material_event_id: Optional[str]         # ties to a materials row when relevant
+    extra_work_id: Optional[str]             # ties to ExtraWork (e.g., CEI directive)
+    safety_event_id: Optional[str]           # ties to a safety event
+    photos: List[str]                        # photo_ref ids associated
+
+class AttachmentRef(BaseModel):
+    attachment_id: str                       # FK → odr_attachments (new registry)
+```
+
+A lightweight registry collection `odr_attachments` holds the
+`Attachment` documents (parallel to `odr_photos`).
+
+## G4 · `Amendment` model + `odr_amendments` collection (O28 + O29 + O35)
+
+```python
+class Amendment(BaseModel):
+    amendment_id: str                        # uuid4
+    odr_id: str
+    actor_uid: str
+    actor_role: Literal[
+        "foreman",                           # only within 24h window
+        "superintendent",
+        "senior_superintendent",
+        "admin",
+    ]
+    actor_portal: Literal["field_leadership","admin"]  # not "public" · not "pm"
+    field_path: str                          # e.g. "production_segments[0].body.pipe.runs[1].lf_installed"
+    old_value: Any                           # preserved · never null when there was a prior
+    new_value: Any
+    old_value_sha256: str
+    new_value_sha256: str
+    reason: LocalizedString                  # required for Super+
+    at_utc: str
+    triggers_pdf_rerender: bool              # set True if field is rendered
+```
+
+Collection properties:
+
+| Property | Value |
+|---|---|
+| Name | `odr_amendments` |
+| Append-only? | **yes** · `trendline_integrity_probe.py` extended |
+| Indexes | `{ odr_id: 1, at_utc: -1 }` · `{ actor_uid: 1, at_utc: -1 }` · `{ actor_role: 1, at_utc: -1 }` |
+| Read access | admin · FL (Super+) · PM (read-only · own projects) |
+| Write access | only the amendment service route in the FL portal · admin override |
+| Delete? | **never** |
+
+## G5 · Edit-window contract
+
+```python
+def compute_amend_allowed_until(submitted_at_utc: str) -> str:
+    """24-hour window starting at submission."""
+    # operator-configurable per project (default 24h · range 12-72h)
+
+class ODR(BaseModel):
+    ...
+    amend_allowed_until_utc: Optional[str]
+    # When status transitions draft → submitted:
+    #   amend_allowed_until_utc := submitted_at_utc + 24h (or per project)
+```
+
+Foreman amendments **during** the window do NOT write to
+`odr_amendments`; they are treated as final-pass corrections (a
+single `odr_section_events` row is appended per field changed).
+
+Foreman amendments **after** the window are rejected with 403 from
+the public-link surface AND from the FL portal foreman view.
+
+Super / Senior Super / Admin amendments always write to
+`odr_amendments` regardless of window.
+
+## G6 · Audience map (visibility · O22 · O27)
+
+```python
+class ODRVisibilityRule(BaseModel):
+    role: Literal["foreman","superintendent","senior_superintendent","pm","admin","public_link"]
+    can_read_full: bool
+    can_read_completion_coaching: bool          # narrative prompts
+    can_read_raw_completion_telemetry: bool     # numbers
+    can_amend: bool
+    can_amend_post_24h: bool
+    can_return: bool
+    can_approve: bool
+```
+
+Live values mirror the role table in
+`ODR_FINAL_GOVERNANCE_ADDENDUM.md § 2`.
+
+The visibility rules are **enforced at the route layer**, not the
+collection layer. There is one `odr` collection. Projector queries
+add the right `$match` filters per token type.
+
+## G7 · Status enum · re-affirmed (O30)
+
+```python
+STATUS = Literal["draft","submitted","returned","approved"]
+```
+
+- `submitted` is the moment of **official record creation** (O30).
+- `returned` means a Super+ flagged for revision; the original
+  submitted ODR remains the official record until the foreman
+  re-submits (which appends a new amendment chain rather than
+  overwriting history).
+- `approved` validates quality; record itself is unchanged.
+
+## G8 · New collections after the final governance addendum
+
+| Collection | Source | Append-only? |
+|---|---|---|
+| `odr` | system of record | no (drafts mutable · post-submit governed by edit window) |
+| `odr_photos` | original | no (caption editable) |
+| `odr_section_events` | original | **yes** |
+| `odr_translation_events` | D6 | **yes** |
+| `odr_preload_attempts` | O18 | **yes** |
+| `odr_attachments` (NEW · O32) | this addendum | no (label editable) |
+| `odr_amendments` (NEW · O29 + O35) | this addendum | **yes** |
+| `odr_consumer_index` | original (derived) | refreshed |
+
+## G9 · Doctrine anchors (O21–O35 in DATA_MODEL)
+
+| Doctrine | Anchor |
+|---|---|
+| O28 24h edit window | `amend_allowed_until_utc` |
+| O29 amendments preserve · no deletion | `Amendment` · `odr_amendments` (append-only) |
+| O30 submission = official record | `STATUS` enum + § G7 |
+| O31 foreman signature | `SignatureBlock` |
+| O32 attachments supported | `Attachment` · `odr_attachments` |
+| O35 audit append-only | all `_events` / `_attempts` / `_amendments` collections |
+
+_End of Final Governance Addendum · DATA_MODEL._
