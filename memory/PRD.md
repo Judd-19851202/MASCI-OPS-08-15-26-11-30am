@@ -27309,3 +27309,39 @@ Forked agent context · zero code changes · append-only verifications.
 - ⛔ Wave 2 remains LOCKED
 - 🟢 0 / 18 freeze triggers fired
 - 🟢 No UI mutations · no feature code · no scope expansion
+
+---
+
+## V-Prelude · Deployment Readiness Certification · 2026-05-29T00:25Z
+
+Operator command: **"PHASE V-PRELUDE · DEPLOYMENT READINESS
+CERTIFICATION"**. Read-only · observation freeze intact ·
+no feature code · no Wave 2 work.
+
+### Deliverables (8/8 shipped)
+
+1. `PREVIEW_PRODUCTION_DELTA_REPORT.md` — ✅ preview = prod + approved Wave 1 only
+2. `FEATURE_FLAG_AUDIT.md` — ✅ 0 abandoned · 5 sidebar V2 flags pre-graduation
+3. `PORTAL_CONSISTENCY_CERTIFICATION.md` — ✅ 5 portals aligned
+4. `COMMUNICATION_CONSISTENCY_CERTIFICATION.md` — ✅ 15 surfaces · 1 footer
+5. `RBAC_BOUNDARY_CERTIFICATION.md` — ✅ 8 tokens · 0 leak paths · 11 CI gates
+6. `MOBILE_DEPLOYMENT_CERTIFICATION.md` — ✅ all surfaces certified
+7. `DEPLOYMENT_RECOVERY_CERTIFICATION.md` — ✅ RTO < 30m · RPO < 15m
+8. `DEPLOYMENT_READINESS_SCORECARD.md` — ✅ **VERDICT: DEPLOY**
+
+### Verdict
+
+🟢 **DEPLOY** with 5 named advisories (preview-side contamination
+cleanup · master_coverage backfill · seed operator-led ledger entry ·
+sidebar V2 promotion future · post-cutover identity re-prove).
+
+Mean grade: **A** across 8 dimensions (Architecture · Governance ·
+Stability · Mobile · Security · Consistency · Recovery · Trust).
+
+### Stop condition honored
+
+- ✅ No deployment performed by agent
+- ✅ No Wave 2 work initiated
+- ✅ No feature code written
+- ✅ No UI mutations
+- ✅ Observation freeze intact · 0 / 18 triggers fired
