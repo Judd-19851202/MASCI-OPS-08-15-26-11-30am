@@ -1,6 +1,6 @@
 # ODR Bilingual Probe Report
 
-_Generated 2026-05-29T13:32:13Z · env=preview · db=masci_safety_preview_
+_Generated 2026-05-29T15:38:08Z · env=preview · db=masci_safety_preview_
 
 ## Catalog snapshot
 - Prompt keys: **14**
@@ -8,7 +8,7 @@ _Generated 2026-05-29T13:32:13Z · env=preview · db=masci_safety_preview_
 - ES keys meeting ≥4 floor: **14**
 - Sections covered: **constraints, delays, equipment, extra_work, manpower, materials, photos, plan_vs_actual, production_segments, project, safety, signature, tomorrow, weather_impact**
 - Crews with overlays: **airfield, concrete, electrical, milling, mot, paving, pipe, structures, survey**
-- ODRs scanned: **68**
+- ODRs scanned: **86**
 
 ## Checks
 - ⚠️ **B1** · ≥1 prompt_key per ODR section

@@ -28357,3 +28357,91 @@ The pivot adds no new doctrine. It exercises:
 5. Issue **build authorization command** with the chosen wave-1
    scope — only then does any code change.
 
+
+---
+
+## Phase V.2 · Wave-1A · Daily Report Elite Upgrade · CLOSED · 2026-05-29
+
+Operator command: **"PHASE V.2 · DAILY REPORT EVOLUTION · WAVE-1A
+AUTHORIZATION. Begin implementation."**
+
+### Wave-1A deliverables shipped
+
+**Backend (additive · no historical mutation):**
+- `routes/daily_reports.py::create_daily_report` — POST restored
+  (M1 freeze partial revert per operator authorization)
+- `ProductionRow` model · 7-unit closed enum (`LF`, `SY`, `CY`,
+  `TON`, `EA`, `ACRE`, `OTHER`)
+- `ConstraintRow` model · 11-type closed enum (`weather`, `utility`,
+  `survey`, `material`, `equipment`, `trucking`, `mot`,
+  `cei_inspection`, `owner_engineer`, `safety`, `other`)
+- `_derive_advisory_flags` — server-side operator-defined heuristic
+  (utility/owner_engineer/cei_inspection/survey → may_require_rfi ·
+  weather/utility/material/equipment/mot → may_affect_schedule)
+- `_compute_audit_envelope_sha256` — canonical envelope hash at insert
+- `GET /api/daily-reports/{report_id}/audit-footer` — returns
+  doc_id + sha256 + rendered_at + footer_text · admin-gated · 404 on missing
+- DELETE remains frozen (410) · M1 historical immutability preserved
+
+**Tests:**
+- `tests/odr/test_wave_1a.py` — 15 cases · all green · 4.0 s
+- `tests/odr/test_m1_option_c.py` — 2 cases renamed/updated to
+  reflect POST restoration (now expects 200 + count-only-grows
+  semantics)
+
+### 7 mandated docs created
+1. `WAVE_1A_IMPLEMENTATION_REPORT.md`
+2. `PRODUCTION_TRACKING_CERTIFICATION.md`
+3. `CONSTRAINT_TRACKING_CERTIFICATION.md`
+4. `OFFLINE_HARDENING_CERTIFICATION.md`
+5. `DAILY_REPORT_AUDIT_FOOTER_CERTIFICATION.md`
+6. `ADVISORY_FLAG_CERTIFICATION.md`
+7. `WAVE_1A_OPERATOR_REVIEW_GUIDE.md`
+
+### Cumulative test surface · 82 pytest · 0 fails
+
+| Suite | Result |
+|---|---|
+| M0.1 substrate | 🟢 12 / 12 |
+| M0.2 + M0.2A engines | 🟢 24 / 24 |
+| M0.3 operator surfaces | 🟢 7 / 7 |
+| M0.4 photo embedding | 🟢 9 / 9 |
+| M1 Option C (2 cases updated for Wave-1A) | 🟢 15 / 15 |
+| **Wave-1A (this wave)** | 🟢 **15 / 15** |
+| Public link continuity probe `--gate` | 🟢 0 fail · 0 warn |
+| Bilingual probe `--gate` | 🟢 0 fail |
+
+### Field simplicity status (Doctrine Lock #1)
+
+The foreman workflow is **unchanged**. New fields are optional;
+omitting them yields the same submit behavior as pre-Wave-1A. The
+9-step contract is preserved. < 5 min target untouched.
+
+### Forbidden actions (all confirmed NOT DONE)
+
+- ❌ NO new ODR form
+- ❌ NO pilot
+- ❌ NO RFI / Schedule / P6 work
+- ❌ NO dashboard bloat
+- ❌ NO new navigation
+- ❌ NO Daily Report name change
+- ❌ NO foreman workload increase
+- ❌ NO production deploy
+
+### STOP condition honored (per directive)
+
+🛑 **HALTED at end of Wave-1A.**
+
+- ❌ NO Wave-1B (frontend UI for new fields) yet
+- ❌ NO Wave-1C (offline hardening + DR PDF audit footer rendering) yet
+- ✅ Awaiting operator review of Wave-1A artifacts and Wave-1B/1C scope authorization
+
+### Next operator actions
+
+1. Read `WAVE_1A_OPERATOR_REVIEW_GUIDE.md` (~4 min)
+2. Spend ~3 minutes on the spot-check checklist (§6)
+3. Acknowledge the 6 approval items in §7 (production enum · constraint enum · advisory heuristic · etc.)
+4. Pick Wave-1B scope (full UI · partial UI · hold)
+5. Pick Wave-1C scope (offline hardening + DR PDF footer · ~2.5–3 dev-days)
+6. Issue authorization command — only then does the next wave begin
+

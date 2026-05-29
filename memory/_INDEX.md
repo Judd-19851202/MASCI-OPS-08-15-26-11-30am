@@ -150,27 +150,26 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
 | `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
 
-## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.0 → M1 LIVE · Daily Report Evolution Pivot · 2026-05-29)
+## 4.A · Phase V.1/V.2 · Operational Daily Record (ODR) + Daily Report Evolution (M0.0 → Wave-1A LIVE · 2026-05-29)
 
-ODR substrate is LIVE in preview through **M1 Option C**. M0.0 hygiene
-closed. M0.1 substrate sealed. M0.2 + M0.2A engines + probes live.
-M0.3 operator surfaces live. M0.35 reality validation complete with
-2 permanent doctrine locks. **M0.4 external PDF photo thumbnail
-embedding shipped.** **M1 (Option C) shipped: Daily Report write
-freeze + Unified Operational Records projector + Doc id router +
-operational_links bridge + Archive visual treatment.**
+ODR substrate is LIVE in preview through **M1 Option C**. M0.0–M0.4
+shipped per their certifications. M0.35 added 2 permanent doctrine
+locks. M1 shipped Option C: write freeze · unified projector ·
+operational_links bridge · archive UI.
 
-🔄 **2026-05-29 · Daily Report Evolution Pivot Directive:** The
-direction has pivoted. Daily Report remains the field-facing form;
-ODR becomes the backend intelligence layer. 7 planning artifacts
-produced (`DAILY_REPORT_EVOLUTION_PLAN.md` and family) describe how
-M0.1–M1 assets are retargeted at the existing DR substrate.
-**🔴 Known collision:** M1's `POST /api/daily-reports` 410 freeze
-contradicts the pivot and must be partially reverted (POST restored,
-DELETE stays frozen) before any foreman can file a DR. 4-line revert
-prepared; awaiting operator authorization. **HALTED at end of pivot
-planning per directive. Do not begin build until operator approves
-the exact upgrade scope.**
+🔄 **Daily Report Evolution Pivot landed (2026-05-29):** ODR
+substrate becomes the operational intelligence layer; the Daily
+Report remains the field-facing experience. **Wave-1A SHIPPED:**
+`POST /api/daily-reports` restored · `DELETE` stays frozen ·
+structured `production[]` (7-unit closed enum) · structured
+`constraints[]` (11-type closed enum) · `audit_envelope_sha256` at
+insert · `GET /api/daily-reports/{id}/audit-footer` endpoint ·
+advisory flags (RFI candidate · schedule impact · informational
+only · server-derived). **15/15 Wave-1A tests · 82/82 cumulative
+ODR tests · 0 failures.** **HALTED at end of Wave-1A pending
+operator review. Wave-1B (frontend UI) / Wave-1C (offline +
+audit footer rendering) / pilot may NOT begin until operator
+authorizes.**
 
 | File | Purpose | Status |
 |---|---|---|
@@ -225,6 +224,20 @@ the exact upgrade scope.**
 | `ARCHIVE_VISUAL_TREATMENT_STANDARD.md` | **M1** · single source of truth for archive UI · slate · uppercase · no alarm · forbidden phrases & colors · component contract | ✅ ⛔ |
 | `OPERATIONAL_LINKS_BRIDGE_CERTIFICATION.md` | **M1** · `legacy_daily_report` target-only · validation gate · allowed link patterns · forward operations enabled | ✅ ⛔ |
 | `M1_OPERATOR_REVIEW_GUIDE.md` | **M1 supersedes M0.4 review guide** · pilot authorization gate · spot-check checklist | ✅ ⛔ |
+| `DAILY_REPORT_EVOLUTION_PLAN.md` | **Pivot master plan** · keep DR field-facing · retarget ODR as intelligence layer · 6 ADDs · M1 freeze collision flagged | ✅ ⛔ |
+| `DAILY_REPORT_FIELD_SIMPLICITY_CERTIFICATION.md` | **Pivot** · Doctrine Lock #1 applied to every ADD · 9-step contract locked · PR approval block template | ✅ ⛔ |
+| `DAILY_REPORT_PRODUCTION_TRACKING_DESIGN.md` | **Pivot design** · 7-unit closed enum · activity INFERRED | ✅ |
+| `DAILY_REPORT_CONSTRAINT_TRACKING_DESIGN.md` | **Pivot design** · 11-type taxonomy · chip selector · advisory flags | ✅ |
+| `DAILY_REPORT_OFFLINE_RECOVERY_PLAN.md` | **Pivot** · low/no signal contract · 7 acceptance criteria before pilot | ✅ ⛔ |
+| `ODR_SUBSTRATE_REUSE_MAP.md` | **Pivot** · 16 ODR-era assets retargeted at DR | ✅ |
+| `DAILY_REPORT_ELITE_UPGRADE_OPERATOR_REVIEW.md` | **Pivot** · implementation-readiness gate · wave-1 scope picks | ✅ ⛔ |
+| `WAVE_1A_IMPLEMENTATION_REPORT.md` | **Wave-1A** · 14 moves shipped · POST restored · structured production+constraints · audit footer · advisory flags · 15/15 tests · 82/82 cumulative | ✅ ⛔ |
+| `PRODUCTION_TRACKING_CERTIFICATION.md` | **Wave-1A** · 7-unit closed enum {LF,SY,CY,TON,EA,ACRE,OTHER} · ProductionRow · 3 tests | ✅ ⛔ |
+| `CONSTRAINT_TRACKING_CERTIFICATION.md` | **Wave-1A** · 11-type closed enum · ConstraintRow + advisory derivation · 3 tests | ✅ ⛔ |
+| `OFFLINE_HARDENING_CERTIFICATION.md` | **Wave-1A baseline** · existing offline contract baselined · Wave-1C strengthening scoped (~2.5 dev-days) · pilot gating | ✅ ⛔ |
+| `DAILY_REPORT_AUDIT_FOOTER_CERTIFICATION.md` | **Wave-1A** · SHA256 envelope at insert · `GET /api/daily-reports/{id}/audit-footer` · 4 tests | ✅ ⛔ |
+| `ADVISORY_FLAG_CERTIFICATION.md` | **Wave-1A** · operator-defined heuristic table · informational only · no actions triggered · 1 test | ✅ ⛔ |
+| `WAVE_1A_OPERATOR_REVIEW_GUIDE.md` | **Wave-1A supersedes Daily Report Elite Upgrade review** · Wave-1B / 1C scope picks · 9-item spot-check | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

@@ -52,26 +52,29 @@ def headers() -> dict:
 # ── Daily Report write freeze (M1 cutover · Option C) ────────────────
 
 
-def test_daily_report_post_returns_410(headers):
-    """Cutover invariant: POST /api/daily-reports always 410 Gone.
-    Operators are routed toward ODR; the legacy archive is never extended."""
+def test_daily_report_post_restored_in_wave_1a(headers):
+    """Phase V.2 · Wave-1A · POST /api/daily-reports is RESTORED.
+
+    Supersedes the M1 freeze test: under the Daily Report Evolution
+    Pivot, the foreman experience is the Daily Report form, so
+    POST must work. DELETE remains frozen (see next test).
+
+    Doctrine: WAVE_1A_IMPLEMENTATION_REPORT.md
+    """
     r = requests.post(
         f"{URL}/api/daily-reports",
         json={
-            "project_name": "M1 freeze test",
+            "project_name": "M1->Wave1A regression",
             "location": "n/a",
             "report_date": "2026-05-29",
-            "prepared_by": "M1 tester",
+            "prepared_by": "M1 regression",
         },
         timeout=10,
     )
-    assert r.status_code == 410, r.text
+    assert r.status_code == 200, r.text
     body = r.json()
-    detail = body.get("detail") or {}
-    assert detail.get("error") == "daily_report_write_frozen"
-    assert "ODR" in detail.get("message", "")
-    assert detail.get("redirect_to") == "/odr/new"
-    assert detail.get("historical_records_remain_accessible") is True
+    assert body.get("id")
+    assert body.get("doc_id", "").startswith("DR-")
 
 
 def test_daily_report_delete_returns_410(headers):
@@ -294,8 +297,11 @@ def test_link_legacy_as_source_blocked_422(headers):
 # ── Zero-mutation invariant ──────────────────────────────────────────
 
 
-def test_legacy_row_byte_count_stable_after_freeze(headers):
-    """The 410 freeze does NOT mutate the row count of daily_reports."""
+def test_legacy_row_count_only_grows_via_post(headers):
+    """Phase V.2 · Wave-1A · row count may GROW via POST but never
+    SHRINK (DELETE remains frozen). Previously the M1 freeze
+    asserted strict equality; under Wave-1A POST is restored, so
+    we assert the weaker invariant: count never decreases."""
     import asyncio
     from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -308,14 +314,14 @@ def test_legacy_row_byte_count_stable_after_freeze(headers):
             client.close()
 
     before = asyncio.get_event_loop().run_until_complete(_count())
-    # Exercise the freeze + the unified projector + the resolver.
-    requests.post(f"{URL}/api/daily-reports", json={
-        "project_name": "x", "location": "y",
-        "report_date": "2026-05-29", "prepared_by": "z",
-    }, timeout=10)
-    requests.delete(f"{URL}/api/daily-reports/anything", headers=headers, timeout=10)
-    requests.get(f"{URL}/api/operational-records?limit=200", headers=headers, timeout=10)
+    # DELETE attempt — must NOT decrement
+    requests.delete(f"{URL}/api/daily-reports/anything",
+                    headers=headers, timeout=10)
+    # Read endpoints — must NOT mutate
+    requests.get(f"{URL}/api/operational-records?limit=200",
+                 headers=headers, timeout=10)
     after = asyncio.get_event_loop().run_until_complete(_count())
-    assert before == after, (
-        f"daily_reports row count drifted under freeze ({before} → {after})"
+    assert after >= before, (
+        f"daily_reports row count decreased — DELETE freeze breached "
+        f"({before} → {after})"
     )
