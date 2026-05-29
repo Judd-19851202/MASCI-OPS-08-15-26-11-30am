@@ -10,6 +10,7 @@ import OdrPmPanel from "@/pages/odr/OdrPmPanel";
 import OdrPublicViewer from "@/pages/odr/OdrPublicViewer";
 import OdrDone from "@/pages/odr/OdrDone";
 import OdrDetail from "@/pages/odr/OdrDetail";
+import OperationalRecords from "@/pages/operational_records/OperationalRecords";
 import DriverMagicLanding from "@/pages/driver/DriverMagicLanding";
 import DriverShift from "@/pages/driver/DriverShift";
 import ShiftStart from "@/pages/driver/ShiftStart";
@@ -733,6 +734,10 @@ function App() {
             <Route path="/odr/public/:doc_id" element={<OdrPublicViewer />} />
             <Route path="/odr/:id/done" element={<OdrDone />} />
             <Route path="/odr/:id" element={<OdrDetail />} />
+            {/* Phase V.1 · M1 · Option C · Unified Operational Records dashboard.
+                One search · one timeline across ODR + frozen Daily Reports.
+                Doctrine: M1_OPTION_C_IMPLEMENTATION_PLAN.md */}
+            <Route path="/operational-records" element={<OperationalRecords />} />
             {/* Catch-all — any path that doesn't match an explicit route
                 renders the 404 NotFound page (Iter181). Previously such
                 URLs rendered only the global navbar + footer with an

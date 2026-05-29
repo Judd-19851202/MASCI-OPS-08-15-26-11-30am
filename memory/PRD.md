@@ -28095,3 +28095,148 @@ zero new foreman steps, inherited components only).
 5. Issue M1 authorization command — only then does dual-write / pilot
    work begin.
 
+
+---
+
+## Phase V.1 · M1 · Option C · CLOSED · 2026-05-29
+
+Operator command: **"M1 AUTHORIZATION DIRECTIVE · OPTION C APPROVED ·
+Frozen Archive + Forward-Only ODR + Unified Read Experience.
+REJECTED: Option B Historical Conversion. No historical Daily Reports
+will be converted into ODR records. No signature re-attestation. No
+enum guessing. No historical record mutation. No historical truth
+rewriting. After M1: STOP. Await final operator review before pilot."**
+
+### Pre-authorization review (the document that earned the authorization)
+
+`M1_PRE_AUTHORIZATION_REVIEW_LEGACY_DAILY_REPORT_STRATEGY.md` —
+grounded in live measurements (85 rows · 21-month span · 481 photos ·
+68 / 37 signatures preserved · 0 legacy participation in
+operational_links). Option A / B / C analysis · ~16 of 31 fields
+don't map cleanly · ~150–200 manual decisions if forced · signature
+re-attestation = legal chain-of-custody fault line. **Option C
+recommended and authorized.**
+
+### M1 deliverables shipped (6 docs · 15 tests · 0 mutations)
+
+1. **`M1_OPTION_C_IMPLEMENTATION_PLAN.md`** — 6 authorized moves ·
+   what shipped on each · explicit "what was NOT done" inventory ·
+   reversibility plan (4-line revert).
+2. **`LEGACY_RECORD_FREEZE_CERTIFICATION.md`** — endpoint freeze
+   matrix · response shape · zero-mutation evidence · API-layer
+   enforcement (data-layer reinforcement deferred to optional M1.5).
+3. **`UNIFIED_RECORDS_PROJECTOR_CERTIFICATION.md`** — surface
+   contract · intersection envelope · sort/filter/count rules ·
+   read-only invariants · doc id router · 8 tests covering it.
+4. **`ARCHIVE_VISUAL_TREATMENT_STANDARD.md`** — single source of
+   truth for archive UI · slate palette · forbidden phrases ·
+   forbidden colors · component contract · placement rules ·
+   accessibility · forward-i18n contract.
+5. **`OPERATIONAL_LINKS_BRIDGE_CERTIFICATION.md`** — `legacy_daily_report`
+   as target-only · validation gate · allowed patterns · forward
+   operations enabled · forbidden operations.
+6. **`M1_OPERATOR_REVIEW_GUIDE.md`** — supersedes the M0.4 guide
+   for the pilot decision · 3-min spot-check · pilot authorization
+   gate · halt condition.
+
+### Backend changes shipped in M1
+
+- `routes/daily_reports.py::create_daily_report` — replaced body
+  with `410 Gone` redirecting to `/odr/new`. Original implementation
+  preserved as `_legacy_create_daily_report_archived` for revert.
+- `routes/daily_reports.py::delete_daily_report` — replaced body
+  with `410 Gone` preservation copy.
+- `routes/operational_links.py::ARTIFACT_TYPES` — added
+  `legacy_daily_report`.
+- `routes/operational_links.py::TARGET_ONLY_ARTIFACT_TYPES` — new
+  constant (initial member: `legacy_daily_report`).
+- `routes/operational_links.py::_validate_relationship` — new guard
+  rejecting any link whose `source_type` is in `TARGET_ONLY_ARTIFACT_TYPES`.
+- `routes/operational_records.py` — **NEW MODULE** (213 lines).
+  `GET /api/operational-records` + `GET /api/operational-records/resolve/{doc_id}`.
+  Read-only · merges `daily_reports` + `odr` into one normalized envelope.
+- `server.py` — registers the new router.
+
+### Frontend changes shipped in M1
+
+- `components/odr/ArchiveBadge.jsx` — **NEW**. Single source of
+  archive visual treatment (`<ArchiveBadge>` + `<ArchiveExplainerCard>`).
+- `pages/operational_records/OperationalRecords.jsx` — **NEW**
+  unified dashboard with search · project filter · kind filter ·
+  honest counts · viewer-route routing on click.
+- `lib/odrApi.js` — adds `listOperationalRecords()` + `resolveDocId()`
+  thin clients.
+- `App.js` — registers `/operational-records` route.
+
+### Cumulative test surface · 67 pytest · 0 fails
+
+| Suite | Result |
+|---|---|
+| `tests/odr/test_odr_substrate.py` (M0.1) | 🟢 12 / 12 |
+| `tests/odr/test_odr_m02.py` (M0.2 + M0.2A) | 🟢 24 / 24 |
+| `tests/odr/test_odr_m03.py` (M0.3) | 🟢 7 / 7 |
+| `tests/odr/test_odr_m04.py` (M0.4) | 🟢 9 / 9 |
+| `tests/odr/test_m1_option_c.py` (**M1**) | 🟢 **15 / 15** |
+| `scripts/odr_public_link_continuity_probe.py --gate` | 🟢 0 fail · 0 warn |
+| `scripts/odr_bilingual_probe.py --gate` | 🟢 0 fail |
+| 4 advisory probes (installed in M0.4 · M1-prep) | 🟢 GREEN |
+
+### Zero-mutation invariant (the test that proves the contract)
+
+`test_legacy_row_byte_count_stable_after_freeze` exercises:
+
+- `POST /api/daily-reports` → 410
+- `DELETE /api/daily-reports/<any-id>` → 410
+- `GET /api/operational-records?limit=200`
+
+…and asserts `db.daily_reports.count_documents({})` is identical
+before and after. **🟢 PASS.** The legacy substrate is byte-identical.
+
+### Doctrine inventory (unchanged · 50 ODR + 2 Doctrine Locks)
+
+M1 ships entirely within existing doctrine. No new doctrine added —
+by design. Inheritance:
+
+- Doctrine Lock #1 (Simplicity Test): M1 adds **zero foreman steps**
+  (server-side freeze + read-only projector).
+- Doctrine Lock #2 (Platform Inheritance): M1 uses the shared ui/
+  kit only · single-source `<ArchiveBadge>` component · platform
+  font/spacing/typography preserved.
+
+### Pilot authorization gate — ALL conditions must be ✅
+
+| Condition | Status |
+|---|---|
+| M0.0–M0.4 + M0.35 (carried forward) | ✅ |
+| Doctrine Lock #1 + #2 acknowledged | ✅ |
+| **M1 Option C closure** | ✅ |
+| 67 / 67 pytest passing | ✅ |
+| Continuity + bilingual probes green | ✅ |
+| 4 advisory probes installed | ✅ |
+| Zero-mutation invariant verified | ✅ |
+| **Operator final review** | ⏳ awaiting |
+
+### STOP condition honored (per directive)
+
+🛑 **HALTED at end of M1.**
+
+- ❌ NO pilot rollout begun
+- ❌ NO RFI / Schedule / P6 work
+- ❌ NO migration written
+- ❌ NO mutation of any legacy row (verified by test 15)
+- ❌ NO production deploy beyond preview cutover
+- ❌ NO new architecture or governance layers
+- ✅ Awaiting operator authorization for next wave (pilot or M2).
+
+### Next operator actions
+
+1. Read `M1_OPERATOR_REVIEW_GUIDE.md` (supersedes M0.4 guide for
+   pilot decision).
+2. Spend 3 minutes on the §6 spot-check checklist (open
+   `/operational-records` · click a legacy + ODR row · curl-test the
+   410s).
+3. Acknowledge `ARCHIVE_VISUAL_TREATMENT_STANDARD.md` tone is right.
+4. Decide: pilot rollout authorization, OR M2 (RFI + Schedule
+   integration on ODR substrate before pilot).
+5. Issue authorization command — only then does the next wave begin.
+

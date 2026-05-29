@@ -72,6 +72,20 @@ ARTIFACT_TYPES = {
     "work_area",               # geographic sub-area of a project
     "material_event",          # material delivery / consumption / waste
     "safety_event",            # one safety event within an ODR safety block
+    # ── Phase V.1 · M1 · Legacy Archive Bridge (2026-05-29) ─────
+    # `legacy_daily_report` is TARGET-ONLY per Option C approval.
+    # New ODR records may reference legacy archived rows; legacy rows
+    # may NEVER become active source artifacts. Enforced by
+    # TARGET_ONLY_ARTIFACT_TYPES below + write-time validation.
+    "legacy_daily_report",
+}
+
+# Doctrine: OPERATIONAL_LINKS_BRIDGE_CERTIFICATION.md
+# These artifact types may appear ONLY as `target_type` on an
+# operational_link — never as `source_type`. They represent frozen
+# historical or system-of-record substrates where mutation is forbidden.
+TARGET_ONLY_ARTIFACT_TYPES = {
+    "legacy_daily_report",
 }
 
 # Canonical relationship directions (storage layer). Inverse views
@@ -214,6 +228,17 @@ def _validate_relationship(body: OperationalLinkCreate) -> None:
         raise HTTPException(422, f"Invalid source_type: {body.source_type}")
     if body.target_type not in ARTIFACT_TYPES:
         raise HTTPException(422, f"Invalid target_type: {body.target_type}")
+    # M1 · Option C · target-only artifact gate.
+    # `legacy_daily_report` (and any future frozen substrate) may not
+    # appear as the source side of a new link. Historical records never
+    # generate new outbound chronology — only inbound references.
+    if body.source_type in TARGET_ONLY_ARTIFACT_TYPES:
+        raise HTTPException(
+            422,
+            f"'{body.source_type}' is a target-only archive artifact "
+            "and cannot be the source of a new operational link "
+            "(M1 · Option C · OPERATIONAL_LINKS_BRIDGE_CERTIFICATION.md).",
+        )
     if body.relationship in FORBIDDEN_INVERSE_RELATIONSHIPS:
         raise HTTPException(
             422,
@@ -435,6 +460,7 @@ __all__ = [
     "build_operational_links_router",
     "ensure_operational_links_indexes",
     "ARTIFACT_TYPES",
+    "TARGET_ONLY_ARTIFACT_TYPES",
     "CANONICAL_RELATIONSHIPS",
     "FORBIDDEN_INVERSE_RELATIONSHIPS",
     "VISIBILITY_SCOPES",

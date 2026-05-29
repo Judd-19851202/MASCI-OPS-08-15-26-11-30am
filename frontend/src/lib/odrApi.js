@@ -136,3 +136,19 @@ export function logObservation(event) {
 export function pdfUrl(id, audience = "foreman") {
   return `${api.defaults.baseURL.replace(/\/$/, "")}/odr/${encodeURIComponent(id)}/pdf?audience=${audience}`;
 }
+
+// ── Unified Operational Records (M1 · Option C) ─────────────────────
+// Doctrine: /app/memory/UNIFIED_RECORDS_PROJECTOR_CERTIFICATION.md
+// Read-only · two-substrate projection · zero mutation.
+
+export async function listOperationalRecords(params = {}) {
+  try {
+    return (await api.get(`/operational-records`, { params })).data;
+  } catch (e) { throw _err(e); }
+}
+
+export async function resolveDocId(docId) {
+  try {
+    return (await api.get(`/operational-records/resolve/${encodeURIComponent(docId)}`)).data;
+  } catch (e) { throw _err(e); }
+}

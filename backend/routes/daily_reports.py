@@ -83,6 +83,35 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
 
     @api_router.post("/daily-reports", response_model=DailyReport, dependencies=[Depends(rate_limit_public_post)])
     async def create_daily_report(payload: DailyReportCreate, request: Request):
+        # ── Phase V.1 · M1 · Daily Report Write Freeze ───────────────────
+        # Per operator directive (2026-05-29 · Option C approval):
+        #   "At ODR cutover: Legacy Daily Reports become READ ONLY · no
+        #    edits · no deletes · no conversion · no migration scripts ·
+        #    no schema mutation. Any attempt to create a new Daily Report
+        #    routes users toward ODR."
+        # Doctrine: /app/memory/M1_OPTION_C_IMPLEMENTATION_PLAN.md
+        #           /app/memory/LEGACY_RECORD_FREEZE_CERTIFICATION.md
+        # The historical 85-row archive remains canonical. Never mutated.
+        raise HTTPException(
+            status_code=410,
+            detail={
+                "error": "daily_report_write_frozen",
+                "message": (
+                    "Daily Reports are now Operational Daily Records. "
+                    "Please use the ODR substrate to file today's record."
+                ),
+                "redirect_to": "/odr/new",
+                "historical_records_remain_accessible": True,
+                "doctrine": "M1_OPTION_C_IMPLEMENTATION_PLAN.md",
+            },
+        )
+
+    # M1 · daily-report ID-shape POST endpoint kept for idempotency-key
+    # compat checks (returns 410 immediately regardless of payload).
+    # The original implementation is preserved below for reference and
+    # is reachable only via internal admin migration utilities — not
+    # mounted on the public router.
+    async def _legacy_create_daily_report_archived(payload: DailyReportCreate, request: Request):
         # Phase J · Field Resiliency — idempotent submit. Re-POSTs with
         # the same Idempotency-Key header return the cached response.
         from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
@@ -214,8 +243,23 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
 
     @api_router.delete("/daily-reports/{report_id}")
     async def delete_daily_report(report_id: str, _: bool = Depends(require_admin)):
-        result = await db.daily_reports.delete_one({"id": report_id})
-        if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Daily report not found")
-        return {"deleted": True, "id": report_id}
-        return {"deleted": True, "id": report_id}
+        # ── Phase V.1 · M1 · Daily Report Delete Freeze ─────────────────
+        # Per operator directive (2026-05-29 · Option C approval):
+        #   "Historical reports remain accessible forever. No edits.
+        #    No deletes. No conversion. No mutation."
+        # The historical archive is canonical operational evidence.
+        # Discovery against signed Daily Reports requires byte-identical
+        # preservation. Hard delete is forbidden post-M1 cutover.
+        raise HTTPException(
+            status_code=410,
+            detail={
+                "error": "daily_report_delete_frozen",
+                "message": (
+                    "Daily Reports are preserved as the historical record. "
+                    "Hard delete is no longer permitted. Records remain "
+                    "accessible read-only."
+                ),
+                "doctrine": "LEGACY_RECORD_FREEZE_CERTIFICATION.md",
+                "report_id": report_id,
+            },
+        )

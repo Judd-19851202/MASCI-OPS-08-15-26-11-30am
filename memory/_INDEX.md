@@ -150,18 +150,18 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
 | `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
 
-## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.0 → M0.4 LIVE · 2026-05-29)
+## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.0 → M1 LIVE · 2026-05-29)
 
-ODR substrate is LIVE in preview through M0.4. M0.0 hygiene closed.
-M0.1 substrate sealed. M0.2 + M0.2A engines + probes live. M0.3
-operator surfaces (Foreman / FL Center / PM Panel / Public Viewer)
-live. M0.35 reality validation complete · 2 permanent doctrine locks
-registered. **M0.4 external PDF photo thumbnail embedding shipped ·
-audience-projected · continuity-stable.** **HALTED at end of M0.4
-pending operator review (per directive). M1 migration / dual-write /
-pilot may NOT begin until operator acknowledges Doctrine Locks #1+#2,
-M0.4 photo governance, and the approval items in
-`UPDATED_OPERATOR_REVIEW_GUIDE.md` §7.**
+ODR substrate is LIVE in preview through **M1 Option C**. M0.0 hygiene
+closed. M0.1 substrate sealed. M0.2 + M0.2A engines + probes live.
+M0.3 operator surfaces live. M0.35 reality validation complete with
+2 permanent doctrine locks. **M0.4 external PDF photo thumbnail
+embedding shipped.** **M1 (Option C) shipped: Daily Report write
+freeze + Unified Operational Records projector + Doc id router +
+operational_links bridge (legacy_daily_report target-only) + calm
+slate Archive visual treatment.** **HALTED at end of M1 pending
+operator review (per directive). Pilot rollout / M2 may NOT begin
+until operator acknowledges the M1 review guide.**
 
 | File | Purpose | Status |
 |---|---|---|
@@ -209,6 +209,13 @@ M0.4 photo governance, and the approval items in
 | `M0_4_PHOTO_PDF_CERTIFICATION.md` | **M0.4** · external PDF photo thumbnail embedding · 9/9 tests · audience projection + redaction + continuity preserved | ✅ 🟢 |
 | `EXTERNAL_PDF_PHOTO_GOVERNANCE_REPORT.md` | **M0.4** · audience projection matrix · external threat model · 6/6 redactions confirmed · audit log enrichment | ✅ 🟢 |
 | `UPDATED_OPERATOR_REVIEW_GUIDE.md` | **M0.4 supersedes M0.35 review guide** · M1 authorization gate · advisory probe inventory · approval items | ✅ ⛔ |
+| `M1_PRE_AUTHORIZATION_REVIEW_LEGACY_DAILY_REPORT_STRATEGY.md` | **M1 review** · Option A/B/C analysis · 85-row mapping audit · recommendation: Option C · operator chose Option C | ✅ |
+| `M1_OPTION_C_IMPLEMENTATION_PLAN.md` | **M1** · Option C closure · 6 authorized moves · zero-mutation evidence · reversibility plan | ✅ ⛔ |
+| `LEGACY_RECORD_FREEZE_CERTIFICATION.md` | **M1** · POST/DELETE → 410 Gone · zero-mutation test green · response shape spec · reversibility | ✅ ⛔ |
+| `UNIFIED_RECORDS_PROJECTOR_CERTIFICATION.md` | **M1** · `/api/operational-records` + resolver · read-only two-substrate projection · honest counts · 8 tests | ✅ ⛔ |
+| `ARCHIVE_VISUAL_TREATMENT_STANDARD.md` | **M1** · single source of truth for archive UI · slate · uppercase · no alarm · forbidden phrases & colors · component contract | ✅ ⛔ |
+| `OPERATIONAL_LINKS_BRIDGE_CERTIFICATION.md` | **M1** · `legacy_daily_report` target-only · validation gate · allowed link patterns · forward operations enabled | ✅ ⛔ |
+| `M1_OPERATOR_REVIEW_GUIDE.md` | **M1 supersedes M0.4 review guide** · pilot authorization gate · spot-check checklist | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

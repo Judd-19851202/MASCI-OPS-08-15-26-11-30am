@@ -8932,6 +8932,16 @@ from routes.odr import (  # noqa: E402
 app.include_router(build_operational_links_router(
     db, _require_any_portal_token, require_admin,
 ))
+# Phase V.1 · M1 · Unified Operational Records Projector (Option C).
+# Doctrine: M1_OPTION_C_IMPLEMENTATION_PLAN.md ·
+#           UNIFIED_RECORDS_PROJECTOR_CERTIFICATION.md
+# Read-only · zero mutation · merges ODR + frozen daily_reports.
+from routes.operational_records import (  # noqa: E402
+    build_operational_records_router,
+)
+app.include_router(build_operational_records_router(
+    db, _require_any_portal_token,
+))
 app.include_router(build_operational_constraints_router(
     db, _require_any_portal_token,
 ))
