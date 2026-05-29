@@ -27432,3 +27432,87 @@ All 8 deltas are **additive** — none break prior architecture decisions.
 4. Operator answers the 25 open questions
 5. Lock command issued
 6. Implementation Wave M0 begins
+
+---
+
+## ODR Architecture Revision Pass · D1–D8 + O1–O10 · 2026-05-29
+
+Operator command: **"APPROVE ODR GAP AUDIT DELTAS D1–D8"** + 10 newly-locked doctrine statements.
+
+### Deliverables shipped (8 of 8)
+
+1. `ODR_DELTA_INTEGRATION_SUMMARY.md` — master delta + doctrine map (new)
+2. `ODR_DATA_MODEL.md` — Delta Integration Addendum (D1–D8) appended (now 822 lines)
+3. `ODR_UI_WIREFRAMES.md` — Delta Integration Addendum (D1–D8) appended (now 692 lines)
+4. `ODR_ECOSYSTEM_INTEGRATION_MAP.md` — Delta Integration Addendum (D1–D8) appended (now 412 lines)
+5. `ODR_PDF_LAYOUT_DESIGN.md` — Delta Integration Addendum (D1–D8) appended (now 568 lines)
+6. `ODR_MIGRATION_PLAN.md` — Delta Integration Addendum (D1–D8) appended (now 416 lines)
+7. `_INDEX.md` — § 4.A "Phase V.1 ODR Architecture" subsection added
+8. `ODR_SPEC_LOCK_READINESS_REVIEW.md` — 8-point pre-lock certification (new)
+
+### 8-point readiness checklist · all ✅
+- D1–D8 incorporated
+- No implementation performed
+- All 25 architecture questions still survivable
+- No new blocking gaps
+- Simplicity doctrine survives (typical 4 m 15 s – 7 m 45 s · complex 8–13 min)
+- Bilingual architecture native (LocalizedString + odr_translation_events + odr_bilingual_probe from M0)
+- Tier-1 Reliability codified (autosave · draft recovery · offline · sync · GPS · device · edit history)
+- Ecosystem single-entry / multi-consumer preserved (12 consumers · 0 duplicate-entry paths)
+
+### 10 doctrine statements (O1–O10) locked
+Architecturally anchored across all 5 artifacts. See `ODR_DELTA_INTEGRATION_SUMMARY.md § 5` for the cross-reference map.
+
+### STOP condition honored
+- ✅ No code · no routes · no collections · no UI · no production mutations
+- ✅ No new probes installed (only specified)
+- ✅ Wave M0 NOT begun
+- ✅ V-Prelude Observation Freeze on the broader platform still intact
+
+### Next operator actions
+1. Skim the appended addendum in each of the 5 artifacts
+2. Read `ODR_SPEC_LOCK_READINESS_REVIEW.md` for the consolidated certification
+3. Answer the 25 open architecture questions (or reply "accept all defaults")
+4. Issue spec lock command (e.g., `"LOCK ODR SPECIFICATION · PROCEED TO M0"`)
+5. Implementation Wave M0 begins ONLY at step 4
+
+---
+
+## ODR Public-Link Device Continuity · Pre-Lock Hard Requirement · 2026-05-29
+
+Operator command: **"ODR SPEC LOCK HOLD — PUBLIC LINK DEVICE CONTINUITY REQUIREMENT."**
+
+### Deliverables shipped (architecture-only · no implementation)
+
+1. `ODR_PUBLIC_LINK_DEVICE_CONTINUITY_ADDENDUM.md` (new central doctrine doc · O11–O20 · 7 signals · trust boundary)
+2. `ODR_DATA_MODEL.md` — `PublicAccessBlock` + `DeviceToken` + `DeviceContinuityBlock` + `ContinuitySignals` + `PreloadAttempt` + new collection `odr_preload_attempts` (now 987 lines)
+3. `ODR_UI_WIREFRAMES.md` — Flow A (verified) · Flow B (denied · calm fallback) · Flow C (authenticated override) · Flow D (first-use) + continuity status pill (now 846 lines)
+4. `ODR_ECOSYSTEM_INTEGRATION_MAP.md` — trust boundary diagram · no-cross-crew rule · sanitized envelope spec · authenticated override path (now 531 lines)
+5. `ODR_MIGRATION_PLAN.md` — M0 continuity gate · synthetic test matrix · "Start from yesterday" gated to M2 · 6 new risks (R17–R22) (now 518 lines)
+6. `ODR_SPEC_LOCK_READINESS_REVIEW.md` — § 9 Public-Link Device Continuity certification · 9 / 9 confirmations
+7. `_INDEX.md` — § 4.A extended with continuity addendum + planned probe row
+
+### 10 new doctrine statements locked (O11–O20)
+- Public scope · continuity-gated preload · 7-signal check · pass = allow / fail = blank · zero prior-data exposure · manual blank always allowed · override authenticated-only · append-only log · applies to every preload surface · asymmetric default (blank wins).
+
+### Trust boundary at a glance
+- Public link surface: today's own ODR + (continuity-passed) seed shells only
+- Authenticated portal surface: 12 consumer projectors + override path + log inspection
+- Continuity engine: the **only** bridge between the two
+
+### 9/9 readiness checklist · all ✅
+D1–D8 incorporated · no implementation · 25 questions still survivable · no new blocking gaps · simplicity holds · bilingual native · Tier-1 Reliability · single-entry/multi-consumer · **public-link device continuity certified**.
+
+### STOP condition honored
+- ✅ No code · no routes · no collections · no UI · no probe code
+- ✅ Wave M0 NOT begun
+- ✅ V-Prelude Observation Freeze on broader platform still intact
+- ✅ Spec lock command NOT yet issued (per operator hold)
+- ✅ PRD.md appended (now ~27,540 lines)
+
+### Next operator actions
+1. Read `ODR_PUBLIC_LINK_DEVICE_CONTINUITY_ADDENDUM.md`
+2. Skim the per-artifact addenda (each marked "Public-Link Device Continuity Addendum")
+3. Read `ODR_SPEC_LOCK_READINESS_REVIEW.md § 9 + § 10` (9/9 certified)
+4. Answer the 25 open architecture questions (or `"accept all defaults"`)
+5. Issue spec lock command → implementation Wave M0 begins

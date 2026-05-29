@@ -485,3 +485,362 @@ Awaiting operator decisions before implementation.
 ---
 
 _Artifact 2 of 5 · proceed to ODR_ECOSYSTEM_INTEGRATION_MAP.md_
+
+---
+
+# Delta Integration Addendum (D1–D8) · 2026-05-29
+
+This addendum revises the UI to absorb D1–D8 + O1–O10 without
+breaking the simplicity doctrine. Wireframes here **supersede** the
+sections they touch.
+
+## U1 · Global shell · EN/ES toggle + Sync pill (D4 + D6)
+
+```
+┌─────────────────────────────────────────────┐
+│ ⟵  ODR · #43-217   ◉ Sync clean   EN | ES   │  ← top bar
+│      Day 47 · Wed May 28 · 06:14 ET         │
+├─────────────────────────────────────────────┤
+│  ▮▮▮▮▮▯▯▯▯▯▯▯▯▯▯▯▯▯  5 / 18 sections        │  passive
+│  3 coaching · 0 hard stops                   │
+├─────────────────────────────────────────────┤
+│  [Section pill bar — scrolls horizontally]   │
+│  PROJECT  CREW  AREAS  MANPOWER  EQUIP …    │
+└─────────────────────────────────────────────┘
+```
+
+- **EN / ES toggle** lives in the top bar. When toggled to ES, every
+  label / hint / dropdown enum / coaching message renders in Spanish
+  via existing `frontend/src/lib/i18n` string tables.
+- **Sync pill** shows `Sync clean · Pending · Conflict · Error` from
+  `reliability.sync_state`. Tap to see queue detail.
+- 18 sections now (16 original + 2.5 Work Areas + 5.5 Materials).
+
+## U2 · Section 2.5 · Work Areas (NEW · D2)
+
+Sits between Crew Profile and Manpower. Pre-populated from
+yesterday's ODR + Memory pattern matching for the project.
+
+```
+┌─────────────────────────────────────────────┐
+│  Work areas today                            │
+├─────────────────────────────────────────────┤
+│  ◉ MP 12.4 SB         (yesterday's area)    │
+│  ◉ MP 13.1 SB         (suggested · Memory)  │
+│  ◯ Taxiway B          (rarely used here)    │
+│                                              │
+│  [+ Add area]                                │
+│                                              │
+│  Selected — MP 12.4 SB                       │
+│   Station    ▸ 122+50 — 132+00               │
+│   Notes      🎙 …                            │
+└─────────────────────────────────────────────┘
+```
+
+Foreman taps to confirm or add. **Zero typing on a typical day.**
+Each work area becomes a chip that can be attached to any later
+event (delay · extra work · production segment · material · photo).
+
+## U3 · Section 5.5 · Materials (NEW · D3)
+
+Sits between Subcontractors and Production. Defaults to empty on
+no-material days — adds **0 seconds** when nothing happened.
+
+```
+┌─────────────────────────────────────────────┐
+│  Materials today                             │
+├─────────────────────────────────────────────┤
+│  ┌─ #57 Stone · Vulcan ─────────────────┐   │
+│  │  Kind ▾ Delivered   Qty 21 · ton      │   │
+│  │  Area ▾ MP 12.4 SB                     │   │
+│  │  Tickets · 21 (autofilled from dispatch)│   │
+│  │  Issue · none                          │   │
+│  └────────────────────────────────────────┘   │
+│  [+ Add material]                            │
+└─────────────────────────────────────────────┘
+```
+
+Auto-pre-fill from today's dispatch deliveries. Foreman confirms
+quantity if it differs from what arrived.
+
+## U4 · Section 6 · Production Segments (REVISED · D1)
+
+The polymorphic template per `crew_type` from the original spec now
+runs **per segment**. Add-row pattern: foreman taps `[+ Add segment]`
+to start a new operation (e.g., paving after pipe).
+
+```
+┌─────────────────────────────────────────────┐
+│  Production · Segment 1 / 2                 │
+│  Crew type ▾ Pipe   Area ▾ MP 12.4 SB       │
+├─────────────────────────────────────────────┤
+│  Run 1 · 24" RCP · 220 LF · S-14 → S-16     │
+│  Run 2 · …                                   │
+│  [+ Add run]                                 │
+│                                              │
+│  ←  Segment 1   ●●   Segment 2  →            │  swipe between
+├─────────────────────────────────────────────┤
+│  [+ Add segment]                             │
+└─────────────────────────────────────────────┘
+```
+
+- **Single-segment days look identical to the original spec.** The
+  "+ Add segment" affordance is a soft secondary action.
+- Each segment can target a different `work_area_id`.
+- Cap: 6 segments per ODR (operator-configurable).
+
+## U5 · Section 10 · Safety per-event branch (REVISED · D7)
+
+```
+┌─────────────────────────────────────────────┐
+│  Safety today                                │
+├─────────────────────────────────────────────┤
+│  Accident?                ◯ Yes  ◉ No        │
+│  Incident?                ◉ Yes  ◯ No   ⛔   │
+│  Near miss?               ◯ Yes  ◉ No        │
+│  Property damage?         ◯ Yes  ◉ No        │
+│  Environmental release?   ◯ Yes  ◉ No        │
+│  Injury?                  ◯ Yes  ◉ No        │
+└─────────────────────────────────────────────┘
+        ↓ when any Yes:
+┌─────────────────────────────────────────────┐
+│  ⛔  Safety event(s) — required:              │
+│                                              │
+│   Event 1 · Incident                        │
+│     Notified Safety?    ◉ Yes  ◯ No          │
+│      ↳ Contact name    ▸ J. Vincent           │
+│      ↳ Contact time    ▸ 14:12 ET             │
+│     Incident report complete?  ◯ Yes  ◯ No   │
+│      ↳ [Open incident report] →               │
+│                                              │
+│   [+ Add another safety event]               │
+│                                              │
+│  Submission blocked until each event = Yes.  │
+└─────────────────────────────────────────────┘
+```
+
+Multiple events in one ODR (e.g., one incident **and** one property-
+damage) each carry their own contact / time / linked-report lineage.
+
+## U6 · Reliability surfaces (D4)
+
+Three small additions to existing surfaces. **No new section.**
+
+- **Top-bar sync pill** (see U1) — replaces nothing; new tag.
+- **Auto-save indicator** appears beneath the sticky bottom bar:
+  `Saved 06:21 ET` (text-only, single-line). Updates every ≤ 5 s.
+- **Offline mode banner** (single calm text line · NOT red): "You are
+  offline — saving locally. Will sync when connected."
+- **Conflict resolver** (rare path · drawer) opens only when
+  `sync_conflicts` is non-empty. Side-by-side server/client view; one-
+  tap resolve.
+
+## U7 · Bilingual interaction rules (D6)
+
+| Field | EN entry | ES entry | Storage |
+|---|---|---|---|
+| Free-text (all 10 fields) | typed or voice-EN | typed or voice-ES | `LocalizedString.original` preserves ES; `text` carries EN canonical (auto-translated on save) |
+| Dropdowns | EN labels | ES labels (i18n table) | enum value (language-independent) |
+| Section titles · hints · coaching | EN | ES | i18n table |
+| Hard-stop messages (§ 10) | EN | ES | i18n table |
+| Photo voice captions | EN audio | ES audio | both audio + transcript + EN translation |
+
+Toggle is single-tap, persists per-foreman in localStorage. No
+foreman ever has to "re-enter in English" — the platform does the
+translation, the foreman can re-edit the canonical text if they want.
+
+## U8 · Updated per-section completion-time receipt (after D1–D8)
+
+(Verbatim from `ODR_SPEC_LOCK_READINESS_REVIEW.md § 2.)
+
+- Typical-day total: **4 m 15 s – 7 m 45 s**
+- Complex-day total: **8 m – 13 m**
+
+D1–D3 add 15–90 seconds on a typical day. Doctrine O3 (< 5 min) is
+achievable when Memory pre-fills work areas + materials defaults to
+empty + production stays single-segment (~85% of crew-days).
+
+## U9 · Cross-cutting interaction rules — REVISED
+
+Adds to original § 17:
+
+| Rule | Where it applies |
+|---|---|
+| EN/ES toggle in global shell | global |
+| LocalizedString fields wrap voice + text | 10 free-text fields |
+| Add-row / add-segment pattern | Work Areas · Materials · Production Segments · Safety Events |
+| Work-area chip selector on every event-bearing form | Delays · Extra Work · Constraints · Equipment · Materials · Photos · Segments |
+| Sync pill visibility | global |
+| Auto-save indicator | global |
+| Offline mode banner | global (when offline) |
+
+## U10 · Doctrine anchors (O1–O10 in UI)
+
+| Doctrine | Where visible |
+|---|---|
+| O1 complexity ≠ burden | add-row pattern + auto-pre-fill from yesterday/Memory |
+| O2 many of everything | every multi-row section + new § 2.5 + § 5.5 + per-event safety |
+| O3 < 5 min typical day | passive progress bar + auto-fill density |
+| O4 voice/dropdown/auto-fill | mic icon on every free-text · closed-set dropdowns · last-7-day defaults |
+| O5 platform > foreman | Memory suggestions in § 2.5, § 9 · dispatch pre-fill in § 5.5 |
+| O6 single-entry | Safety incident "Open incident report" inline · no duplicate form |
+| O7 bilingual native | EN/ES toggle from day 1 |
+| O8 reliability | sync pill + auto-save indicator + offline banner |
+| O9 safety hard-stop · production coach | § 10 disables submit; § 15 coaching never blocks |
+| O10 PDF executive | PDF_LAYOUT artifact |
+
+_End of Delta Integration Addendum (D1–D8) · UI_WIREFRAMES._
+
+---
+
+# Public-Link Device Continuity Addendum · 2026-05-29
+
+This addendum revises the foreman entry flow to honour the Public
+Link Device Continuity Doctrine (O11–O20). Wireframes here describe
+the four new flows triggered by the continuity gate.
+
+## C1 · Open public link · continuity decision moment
+
+When the foreman opens `https://mascidocs.com/odr/<link_id>/today`,
+the continuity engine evaluates the seven signals **before** any
+prior-day data is shipped to the device. The decision moment lasts
+≤ 300 ms and is invisible to the foreman in the success path.
+
+## C2 · Flow A · continuity PASSES (verified device)
+
+```
+┌─────────────────────────────────────────────┐
+│  ODR · #43-217 · Reyes Crew                  │
+│  Welcome back. Today is Thursday, May 29.   │
+│                                              │
+│  We've pre-filled today's report with your   │
+│  crew, equipment, subs, and work areas       │
+│  from yesterday.                             │
+│                                              │
+│   [Start today's report]                     │
+│   [Start blank instead]                      │
+└─────────────────────────────────────────────┘
+```
+
+- Single calm header sentence — no badge, no chrome, no banner.
+- Pre-filled data: crew roster · equipment list · subs/vendors ·
+  work areas · production-segment shells (crew_type +
+  primary_operation only — never values). See `ODR_PUBLIC_LINK_DEVICE_CONTINUITY_ADDENDUM.md § 4`.
+- Always show a "Start blank instead" affordance so the foreman is
+  never forced into yesterday's context.
+
+## C3 · Flow B · continuity FAILS (denied preload · calm fallback)
+
+```
+┌─────────────────────────────────────────────┐
+│  ODR · #43-217                               │
+│                                              │
+│  We could not verify this is the same       │
+│  device that created yesterday's report.    │
+│  Start a blank report for today.            │
+│                                              │
+│  [Start blank report]                       │
+│  [Get help from your PM]                    │
+└─────────────────────────────────────────────┘
+```
+
+- One sentence. Single primary action.
+- Neutral chrome — no red, no warning glyph, no "security",
+  "denied", "unauthorized", or "error" copy. (Per doctrine O20.)
+- The "Get help from your PM" link opens a `mailto:` / phone link
+  configured per project; it does **not** trigger an in-app override.
+- The form opens blank if the foreman taps "Start blank report".
+  Project / date / weather still auto-fill (those are public, not
+  prior-ODR data).
+
+## C4 · Flow C · authenticated PM/Admin override (inside portal · not public link)
+
+This flow lives in `/pm/projects/:projectNumber/odr/...` (PM
+portal) and `/admin/odr/...` (Admin portal). It is **not**
+reachable from the public link surface.
+
+```
+┌─────────────────────────────────────────────┐
+│  PM · Project #43-217 · ODR · 2026-05-28     │
+├─────────────────────────────────────────────┤
+│  Reyes Crew · submitted 18:11 ET             │
+│  Trusted devices (3):                        │
+│    · iPhone 15 · iOS 17.4 · last seen 18:11 │
+│    · iPhone 13 · iOS 17.3 · last seen May 26│
+│    · iPad Air · iPadOS 17.4 · last seen Apr │
+│                                              │
+│  Recent preload attempts (5):                │
+│    · 06:14 ET today · denied_device_mismatch │
+│    · 06:11 ET today · denied_device_mismatch │
+│    …                                         │
+│                                              │
+│  Trust a new device                          │
+│    Device fingerprint: ___ (paste from foreman's screen)│
+│    Reason: _________________________________ │
+│   [Trust this device for preload]            │
+└─────────────────────────────────────────────┘
+```
+
+- Override action requires PM-token or Admin-token authentication;
+  the route enforces token type.
+- Action writes one row to `odr_preload_attempts` with
+  `outcome="override_used"` + `override_actor_uid` + `override_portal`
+  + `notes`.
+- Action appends a `DeviceToken` to `public_access.device_tokens[]`
+  with `issued_via="pm_override"` or `"admin_override"` and an
+  `expires_at_utc` per the operator-configurable TTL.
+- Foreman reloads the public link → continuity now passes → Flow A.
+
+## C5 · Flow D · first-time device (no prior preload context)
+
+When the link has no prior ODR yet (first day of project, or new
+crew), the foreman is **not** subject to a continuity decision —
+there is nothing to preload. Section 1 auto-fills from project
+metadata; everything else opens blank. On submission, the foreman's
+device fingerprint + a freshly-minted `DeviceToken` are stamped
+into the new ODR's `public_access.device_tokens[]` with
+`issued_via="foreman_first_use"`. Subsequent days will treat this
+device as trusted (signal 1 + 2 pass).
+
+## C6 · Global shell · continuity status pill (passive)
+
+A small, calm pill appears in the top bar (next to the existing
+`Sync clean` + `EN | ES` pills):
+
+```
+┌────────────────────────────────────────────────┐
+│ ⟵ ODR · #43-217  ◉ Sync clean  EN|ES  ◉ Trusted │
+└────────────────────────────────────────────────┘
+```
+
+- `Trusted` — this device passed continuity OR is the link's
+  first-use device.
+- `Not trusted` — appears only on Flow B; same calm tone.
+- `New device` — appears on Flow D first-use.
+
+No tooltip mentions security. Tone is operational, not adversarial.
+
+## C7 · Bilingual coverage (D6 inheritance)
+
+Flow B and Flow D messages have i18n string entries in:
+
+- `frontend/src/lib/i18n/en/odr.public_link.json` (planned)
+- `frontend/src/lib/i18n/es/odr.public_link.json` (planned)
+
+The `odr_bilingual_probe.py` (D8) extends to assert these entries
+exist in both languages — the failure UX must be readable to a
+Spanish-speaking foreman without code-switching.
+
+## C8 · Doctrine anchors (O11–O20 in UI)
+
+| Doctrine | Flow / surface |
+|---|---|
+| O11 public-link scope | none of these flows expose other crews or other projects |
+| O12–O14 continuity-gated preload | Flow A vs Flow B branching at moment-of-open |
+| O15 no leak | Flow B opens blank · zero prior data on screen |
+| O16 manual blank always allowed | "Start blank instead" on Flow A · primary action on Flow B |
+| O17 override authenticated only | Flow C lives only in PM / Admin portals · not in any public route |
+| O18 audit logged | every flow writes one `odr_preload_attempts` row |
+| O20 asymmetric default | Flow B copy is calm; the system prefers blank over leak |
+
+_End of Public-Link Device Continuity Addendum · UI_WIREFRAMES._

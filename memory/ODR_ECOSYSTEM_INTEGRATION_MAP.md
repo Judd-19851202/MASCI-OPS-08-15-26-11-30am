@@ -253,3 +253,279 @@ Awaiting operator decisions before implementation.
 ---
 
 _Artifact 3 of 5 · proceed to ODR_PDF_LAYOUT_DESIGN.md_
+
+---
+
+# Delta Integration Addendum (D1–D8) · 2026-05-29
+
+This addendum revises the ecosystem map to reflect D1–D8. Consumer
+contracts here **supersede** the original where they differ. The
+single-entry / multi-consumer doctrine (O6) is preserved end-to-end.
+
+## E1 · Bilingual canonical-read contract (D6)
+
+**Every consumer reads `LocalizedString.text` (English canonical) only.**
+No consumer reads `.original` (the Spanish-as-entered text).
+
+| Consumer | Reads `.text`? | Reads `.original`? |
+|---|---|---|
+| PM | ✅ | ❌ |
+| Safety | ✅ | ❌ |
+| Dispatch | ✅ | ❌ |
+| Shop | ✅ | ❌ |
+| HR | ✅ | ❌ |
+| Executive | ✅ | ❌ |
+| Operational Memory | ✅ | ❌ |
+| Search · RFI · Schedule · Claims · AI | ✅ | only AI retrieval may opt-in for bilingual training corpus, with explicit `odr_translation_events` audit; default ❌ |
+
+**PDF rendering also reads `.text` only** — guarantees English-only PDF.
+
+## E2 · Per-segment projector contracts (D1)
+
+Projectors that previously consumed `production.*` now iterate
+`production_segments[]`:
+
+| Consumer | Per-segment behaviour |
+|---|---|
+| PM | Aggregates production across all segments for the day; respects each segment's `work_area_id` |
+| Memory | Production-rate baselines now keyed by `(crew_type, work_area_id, primary_operation)` triple |
+| Executive | Productivity dashboards roll up segments per day per project per crew_type |
+| Schedule (P6) | Each segment correlates separately by station limits |
+| Search · AI | Index per segment; segment_id surfaces in search results |
+
+**Idempotency key** changes from `(odr_id, projector_kind)` to
+`(odr_id, projector_kind, segment_id?)` where segment_id is included
+for projectors that emit per-segment rows.
+
+## E3 · Work-area aware reads (D2)
+
+Every consumer that reads event-bearing entries now respects
+`work_area_id`:
+
+- **PM project rollup** carries per-work-area drill-down.
+- **Memory** detects recurring constraints / delays per work_area —
+  "this corner of the project repeatedly has utility conflicts".
+- **Claims package** groups events by work_area for spatial defence.
+- **Executive** can filter productivity per work_area.
+
+Projector output schema gains a `work_area_id: Optional[str]` column
+on event-derived rows.
+
+## E4 · Materials projector (D3)
+
+New projection fan-out for the `materials[]` block:
+
+| Consumer | Consumes from `materials[]` |
+|---|---|
+| PM | Delivery + consumption rollup per project |
+| Memory | Vendor-reliability patterns · recurring shortages |
+| Executive | Material cost-burn rate · waste-rate KPI |
+| Shop | `kind=rejected` or `issue=damage` items surface for inspection |
+| Claims | Shortages / rejects / damages with photos = claims evidence |
+| Search · AI | Indexed by material_code · vendor · ticket_numbers |
+
+No new consumer surface for Dispatch, HR, or Safety on materials.
+
+## E5 · Reliability projector contract (D4)
+
+The reliability block is **not** projected to operational consumers.
+It feeds two governance surfaces only:
+
+| Surface | Reads |
+|---|---|
+| `/admin/odr/health` | sync_state distribution · autosave counts · offline_origin rate · device_fingerprint OS mix |
+| `odr_section_events` · audit | sync_conflicts (each resolution logged) |
+
+Foreman never sees this data per doctrine O9 (no grades / no
+punishment).
+
+## E6 · Completion telemetry projector (D5)
+
+Single consumer: `/admin/odr/health · simplicity-doctrine panel`.
+
+- Median seconds_to_submit per crew_type
+- Per-section dwell-time heatmap
+- Auto-fill accept rate (proves auto-fill is doing its job)
+- Voice usage rate (per-language)
+
+**Not surfaced to foremen.** Not used for any performance review.
+
+## E7 · Safety per-event projector (D7)
+
+Safety projector iterates `safety.events[]`:
+
+- For each event, look up `incident_report_link_id` and verify it
+  matches an existing `safety_incidents` row.
+- Each event gets its own row in the Safety queue (no merging).
+- Hard-block contract (unchanged) applies to **each** event
+  independently.
+
+## E8 · Bilingual probe (D8)
+
+`scripts/odr_bilingual_probe.py` runs in `pre_deploy_check.sh`
+between `operational_links_doctrine_probe.py` and
+`trendline_integrity_probe.py`. Mode: **HARD gate** on missing
+`LocalizedString` fields; **WARN** on translation-lineage gaps.
+
+Probe asserts:
+
+1. Every one of the 10 wrapped fields has a `LocalizedString` shape
+   (no raw string fallback).
+2. When `original_lang != "en"`, both `original` and `translated_by`
+   are present.
+3. Every value of `translated_by="model"` has a matching row in
+   `odr_translation_events`.
+4. PDF renderer code reads `.text` only (no grep matches for
+   `.original` in `backend/pdf_render*.py` or any odr renderer).
+5. Spanish UI labels exist in `frontend/src/lib/i18n/es/*.json` for
+   every section title, dropdown enum, and coaching message.
+6. Safety hard-stop strings exist in both EN and ES.
+
+## E9 · Revised dispatch order
+
+Same order as original § 4 (Safety still first). Per-segment +
+per-event iteration happens **inside** each projector — the dispatch
+order is unchanged.
+
+## E10 · Anti-patterns (additions)
+
+Adds to original § 5:
+
+| Anti-pattern | Why forbidden |
+|---|---|
+| Reading `.original` from any production consumer (PM/Safety/etc.) | Breaks English-canonical contract |
+| Rendering `.original` in the PDF | Breaks O10 English-only PDF |
+| Storing translations outside `odr_translation_events` | Breaks append-only audit |
+| Re-projecting a segment without the right idempotency key | Causes duplicate consumer rows |
+| Surfacing `completion_telemetry` to a foreman | Breaks O9 coach-not-punish |
+
+## E11 · Doctrine anchors (O1–O10 in ecosystem)
+
+| Doctrine | Anchor |
+|---|---|
+| O5 platform > foreman | E2/E3/E4/E7 projectors do the heavy lifting |
+| O6 single-entry · multi-consumer | E1–E4 + E7 confirm 12 consumers read · 0 duplicate writes |
+| O7 bilingual native | E1 + E8 |
+| O8 reliability | E5 |
+| O9 coach not punish | E6 (no foreman exposure) |
+
+_End of Delta Integration Addendum (D1–D8) · ECOSYSTEM_INTEGRATION_MAP._
+
+---
+
+# Public-Link Device Continuity Addendum · 2026-05-29
+
+This addendum extends the ecosystem map with the public-link trust
+boundary (O11–O20). Sections here **supersede** the matching parts
+of earlier addenda where they differ.
+
+## C1 · Trust boundaries (revised)
+
+The platform now has **two distinct trust surfaces** for ODR data:
+
+```
+   Public surface (no auth · device-continuity gate only)
+     ↓
+   ─────────────────────────────────────────────────────
+   ↑
+   Authenticated surface (PM-token · Admin-token)
+```
+
+- **Public surface**: serves the link-based foreman entry flow.
+  Reads only today's own ODR + (when continuity passes) seed data
+  from the prior ODR. Cannot enumerate other crews / projects /
+  prior reports beyond the linked context.
+- **Authenticated surface**: serves all 12 consumer projectors,
+  PM Review queue, Admin override flow, preload-attempt log
+  inspection, and operator knobs.
+
+The continuity engine is the **only** bridge from a public request
+to prior-ODR data, and it always emits one `odr_preload_attempts`
+row per request.
+
+## C2 · No-cross-crew preload rule
+
+The continuity engine MUST refuse a preload request when:
+
+- `public_link_id` does not match the prior ODR's `public_access.link_id`.
+- `project_id` does not match the prior ODR's `project.project_id`.
+- `link_scope="project_crew"` AND `crew_id` does not match the prior ODR's `crew_profile.crew_id`.
+
+These three rules are evaluated **before** the seven continuity
+signals. No fingerprint match can override a wrong project / wrong
+link / wrong crew context.
+
+## C3 · Prior-report data exposure prevention
+
+When the continuity engine returns anything other than `allowed`,
+the route layer:
+
+1. Returns a sanitized envelope: `{ preload_allowed: false, denial_reason: "…", today_link_context: {…} }`.
+2. The `today_link_context` carries **only** project name + project
+   number + report_date + weather snapshot + sunrise/sunset.
+3. The envelope does NOT include: prior crew roster · equipment ·
+   subs · production · materials · delays · safety answers · photos
+   · constraints · notes.
+4. The envelope does NOT mention the existence of a prior ODR
+   (e.g., does not return `prior_odr_id`).
+5. The route writes one `odr_preload_attempts` row server-side and
+   returns the envelope to the public client.
+
+## C4 · Override flow · single authenticated path
+
+The only path to an override is:
+
+```
+PM/Admin authenticated portal
+     → POST /api/odr/preload/override
+        body: { prior_odr_id, target_fingerprint, reason }
+        auth: X-PM-Token (PM-scoped) OR X-Admin-Token
+```
+
+The route:
+
+- Verifies the actor has rights over the project.
+- Verifies `target_fingerprint` is a well-formed `DeviceFingerprint`.
+- Appends one `DeviceToken` to the prior ODR's
+  `public_access.device_tokens[]` with `issued_via` set accordingly.
+- Writes one `odr_preload_attempts` row with `outcome="override_used"`.
+- Returns 204.
+
+The public link surface **never** sees this route.
+
+## C5 · Consumer projector posture
+
+The 12 consumers are unaffected by this addendum — they all read
+`odr` collection data from the authenticated server side, post-
+submission. The continuity engine sits **upstream** of submission;
+once an ODR is submitted, the projectors see it the same way they
+see any other ODR.
+
+One small augmentation: every consumer may read
+`prior_report_preload_allowed` + `preload_denial_reason` if they
+want to distinguish "seeded from yesterday" rows from "true blank"
+rows for analytics purposes. **No consumer makes decisions based on
+those flags** — they are observational only.
+
+## C6 · Probe responsibility
+
+`odr_public_link_continuity_probe.py` (PLANNED · D8-companion):
+
+- Wired into `pre_deploy_check.sh` between the bilingual probe and
+  the trendline integrity probe.
+- HARD gate. Failure blocks deploy.
+
+`trendline_integrity_probe.py` extended to cover
+`odr_preload_attempts` (append-only · snapshot anchor).
+
+## C7 · Doctrine anchors (O11–O20 in ECOSYSTEM)
+
+| Doctrine | Anchor |
+|---|---|
+| O11 public scope | § C1 boundary diagram + § C3 sanitized envelope |
+| O15 no leak | § C3 enumerates forbidden fields |
+| O17 override authenticated only | § C4 single authenticated path |
+| O18 append-only log | § C3 + § C4 both write `odr_preload_attempts` |
+| O19 applies to every preload surface | § C3 covers every prior-data class |
+
+_End of Public-Link Device Continuity Addendum · ECOSYSTEM._

@@ -483,3 +483,505 @@ Awaiting operator decisions before implementation.
 ---
 
 _Artifact 1 of 5 · proceed to ODR_UI_WIREFRAMES.md_
+
+---
+
+# Delta Integration Addendum (D1–D8) · 2026-05-29
+
+This addendum revises the data model to incorporate the eight
+operator-approved deltas and the ten newly-locked doctrine
+statements (O1–O10). Original content above remains the foundational
+spec; the structures defined here **supersede** the matching
+sections where they differ.
+
+## A1 · Revised top-level envelope
+
+```python
+class ODR(BaseModel):
+    # ── Identity ──
+    id: str
+    doc_id: str                          # ODR-YYYY-NNNNN
+    schema_version: int                  # bumped to 2 with D1–D8
+    legacy_daily_report_id: Optional[str]
+
+    # ── Section 1 · Project Snapshot ──
+    project: ProjectSnapshot
+
+    # ── Section 2 · Crew Profile ──
+    crew_profile: CrewProfile
+
+    # ── Section 2.5 · Work Areas (NEW · D2) ──
+    work_areas: List[WorkArea]           # 0..N
+
+    # ── Section 3 · Manpower ──
+    manpower: ManpowerBlock
+
+    # ── Section 4 · Equipment ──
+    equipment: EquipmentBlock
+
+    # ── Section 5 · Subcontractors / Vendors ──
+    subcontractors: SubcontractorBlock
+
+    # ── Section 5.5 · Materials (NEW · D3) ──
+    materials: List[MaterialEvent]       # 0..N
+
+    # ── Section 6 · Production (REVISED · D1 — now a list of segments) ──
+    production_segments: List[ProductionSegment]   # 1..N (singular `production`
+                                                   # field deprecated; auto-
+                                                   # migrated in M1)
+
+    # ── Section 7 · Delays ──
+    delays: DelayBlock
+
+    # ── Section 8 · Extra Work ──
+    extra_work: ExtraWorkBlock
+
+    # ── Section 9 · Constraints ──
+    constraints: ConstraintBlock
+
+    # ── Section 10 · Safety Compliance (REVISED · D7) ──
+    safety: SafetyBlock                  # now carries events: List[SafetyEvent]
+
+    # ── Section 11 · Weather Impact ──
+    weather_impact: WeatherImpactBlock
+
+    # ── Section 12 · Photos ──
+    photos: List[PhotoRef]
+
+    # ── Section 13 · Tomorrow Plan ──
+    tomorrow: TomorrowPlanBlock
+
+    # ── Section 14 · Plan vs Actual ──
+    plan_vs_actual: PlanVsActualBlock
+
+    # ── Section 15 · Readiness Check ──
+    readiness: ReadinessSnapshot
+
+    # ── Section 16 · PM Review ──
+    review: ReviewBlock
+
+    # ── Reliability envelope (NEW · D4) ──
+    reliability: ReliabilityBlock
+
+    # ── Completion telemetry (NEW · D5) ──
+    completion_telemetry: CompletionTelemetry
+
+    # ── Audit envelope ──
+    status: Literal["draft","submitted","returned","approved"]
+    created_at: str
+    submitted_at: Optional[str]
+    last_edited_at: str
+    last_edited_by_uid: str
+    submitted_by_uid: Optional[str]
+    location_at_submit: Optional[GeoFix]
+    location_accuracy_m: Optional[float]
+    device_session_id: Optional[str]
+    schema_violations: List[str]
+    consumer_dispatch: Dict[str, str]
+```
+
+## A2 · D1 · `ProductionSegment` (multiple operations per ODR)
+
+```python
+class ProductionSegment(BaseModel):
+    segment_id: str                      # uuid4
+    crew_type: CrewType                  # same enum as CrewProfile.crew_type
+    primary_operation: str               # closed-set per crew_type
+    work_area_id: Optional[str]          # FK → ODR.work_areas[*].work_area_id
+    started_at_utc: Optional[str]
+    ended_at_utc: Optional[str]
+    body: ProductionBlock                # the polymorphic sub-block · one shape
+```
+
+Cap: **6 segments / ODR** (proposed default · operator may override).
+The polymorphic `ProductionBlock` (PipeProduction · PavingProduction ·
+GradingProduction · MotProduction · ConcreteProduction · …) remains
+unchanged; it now lives inside a segment.
+
+## A3 · D2 · `WorkArea` + `work_area_id` FK pattern
+
+```python
+class WorkArea(BaseModel):
+    work_area_id: str                    # uuid4
+    label: LocalizedString               # e.g. "MP 12.4 SB" / "Taxiway B"
+    station_from: Optional[str]
+    station_to: Optional[str]
+    gps_centroid: Optional[GeoFix]
+    timezone: Optional[str]              # override site-TZ if rare TZ-spanning
+    notes: LocalizedString
+```
+
+`work_area_id: Optional[str]` is added to every event-bearing entry:
+
+- `DelayEntry.work_area_id`
+- `ExtraWorkEntry.work_area_id`
+- `ConstraintEntry.work_area_id`
+- `EquipmentRow.work_area_id`
+- `MaterialEvent.work_area_id`
+- `PhotoRef.work_area_id` (additive to existing `section_anchor`)
+- `ProductionSegment.work_area_id`
+
+Cap: **8 work_areas / ODR** (proposed default).
+
+## A4 · D3 · `MaterialEvent` (top-level)
+
+```python
+class MaterialEvent(BaseModel):
+    material_event_id: str                  # uuid4
+    work_area_id: Optional[str]
+    kind: Literal["delivered","consumed","staged","returned",
+                  "wasted","rejected","short"]
+    material_code: Optional[str]            # FK → materials master
+    description: LocalizedString
+    quantity: float
+    uom: Literal["ton","cy","lf","sf","ea","gal","other"]
+    vendor: Optional[str]
+    ticket_numbers: List[str]
+    photos: List[str]                       # photo_ref ids
+    issue: Optional[Literal["shortage","reject","damage","wrong_material"]]
+```
+
+## A5 · D4 · Reliability envelope
+
+```python
+class ReliabilityBlock(BaseModel):
+    # Autosave
+    autosave_enabled: bool                   # default True
+    autosave_interval_s: int                 # contract: ≤ 5
+    last_autosave_at_utc: Optional[str]
+    autosave_count: int
+
+    # Draft recovery
+    last_known_good_section: Optional[str]
+    recovery_token: Optional[str]
+
+    # Offline
+    offline_origin: bool                     # was first save offline?
+    offline_session_id: Optional[str]
+    offline_photo_queue_size: int            # at submit time
+    offline_photo_queue_drained_at_utc: Optional[str]
+
+    # Sync
+    sync_state: Literal["clean","pending","conflict","error"]
+    last_sync_at_utc: Optional[str]
+    sync_conflicts: List[SyncConflict]
+
+    # Device
+    device_fingerprint: DeviceFingerprint
+
+
+class DeviceFingerprint(BaseModel):
+    ua: str
+    os: str
+    os_version: str
+    app_version: str                         # bundle build id
+    is_pwa: bool
+    is_secure_context: bool
+
+
+class SyncConflict(BaseModel):
+    section: str                             # field path
+    detected_at_utc: str
+    server_value_hash: str
+    client_value_hash: str
+    resolution: Literal["server_wins","client_wins","merged","unresolved"]
+    resolved_at_utc: Optional[str]
+```
+
+## A6 · D5 · `CompletionTelemetry` envelope
+
+```python
+class CompletionTelemetry(BaseModel):
+    seconds_to_submit: Optional[float]       # submitted_at - created_at
+    section_visit_times: Dict[str, float]    # per-section dwell time
+    auto_fill_accept_rate: Dict[str, float]  # per-section %
+    voice_caption_count: int
+    voice_caption_chars: int
+    autosave_count: int
+    language_at_entry: Literal["en","es","mixed"]
+```
+
+Admin-visible only. Per O9: not surfaced to the foreman.
+
+## A7 · D6 · `LocalizedString` envelope (bilingual native · MANDATORY)
+
+```python
+class LocalizedString(BaseModel):
+    text: str                                # canonical English at storage
+    original: Optional[str]                  # original-language as entered
+    original_lang: Optional[Literal["en","es"]]
+    translated_by: Optional[Literal["model","operator","none"]]
+    translated_at_utc: Optional[str]
+    translation_model: Optional[str]         # e.g. "claude-haiku-4.5"
+    translation_confidence: Optional[float]  # 0..1
+```
+
+Applied to the 10 free-text fields (see DELTA_INTEGRATION_SUMMARY § 4):
+
+| # | Field path |
+|---|---|
+| 1 | `DelayEntry.description` |
+| 2 | `ExtraWorkEntry.description` |
+| 3 | `ConstraintEntry.description` |
+| 4 | `SubRow.work_performed` |
+| 5 | `PhotoRef.text_caption` |
+| 6 | `PhotoRef.voice_caption` |
+| 7 | `TomorrowPlanBlock.planned_work` |
+| 8 | `WeatherImpactBlock.description` |
+| 9 | `PlanVsActualBlock.variance_reason` |
+| 10 | `MaterialEvent.description` + `WorkArea.label` + `WorkArea.notes` |
+
+A new collection `odr_translation_events` is introduced:
+
+```python
+class TranslationEvent(BaseModel):
+    odr_id: str
+    field_path: str
+    original_lang: Literal["en","es"]
+    original_text_hash: str                  # SHA-256
+    canonical_text_hash: str
+    model: Optional[str]
+    actor_uid: Optional[str]
+    at_utc: str
+```
+
+Append-only · protected by extended `trendline_integrity_probe.py`.
+
+## A8 · D7 · `SafetyBlock` per-event refactor
+
+```python
+SAFETY_EVENT_KIND = Literal[
+    "accident","incident","near_miss",
+    "property_damage","environmental_release","injury",
+]
+
+class SafetyEvent(BaseModel):
+    event_id: str                            # uuid4
+    event_kind: SAFETY_EVENT_KIND
+    notified_safety: bool
+    contact_name: Optional[str]
+    contact_time_utc: Optional[str]
+    incident_report_complete: bool
+    incident_report_link_id: Optional[str]
+    work_area_id: Optional[str]              # ties event to a WorkArea
+    photos: List[str]
+
+
+class SafetyBlock(BaseModel):
+    # Six booleans retained for fast filtering / dashboards:
+    accident: bool
+    incident: bool
+    near_miss: bool
+    property_damage: bool
+    environmental_release: bool
+    injury: bool
+    any_event: bool                          # derived OR
+    # Per-event accountability lineage:
+    events: List[SafetyEvent]                # 1..N when any_event=True
+```
+
+Hard-stop contract (unchanged): readiness engine refuses submission
+when **any** event in `events` has `notified_safety=False` OR
+`incident_report_complete=False`.
+
+## A9 · Updated index strategy
+
+Indexes added to support the new shape:
+
+- `odr`: `{ "work_areas.work_area_id": 1, report_date: -1 }`
+- `odr`: `{ "production_segments.crew_type": 1, report_date: -1 }`
+- `odr`: `{ "materials.kind": 1, report_date: -1 }`
+- `odr`: `{ "safety.any_event": 1, report_date: -1 }`
+- `odr_translation_events`: `{ odr_id: 1, at_utc: 1 }`
+
+## A10 · D6 collection inventory (post-revision)
+
+| Collection | Purpose | Append-only? |
+|---|---|---|
+| `odr` | system of record | no — drafts mutable |
+| `odr_photos` | photo registry | no — caption mutable |
+| `odr_section_events` | field-level transitions | yes (probe-protected) |
+| `odr_translation_events` | bilingual audit trail (D6) | yes (probe-protected) |
+| `odr_consumer_index` | derived projector views | refreshed |
+
+## A11 · Doctrine anchors (O1–O10 → spec)
+
+| Doctrine | Anchor in this artifact |
+|---|---|
+| O1 | A1 envelope shape + A6 telemetry |
+| O2 | A2 + A3 + A4 + A8 + existing lists |
+| O3 | A6 measurable budget |
+| O4 | A7 LocalizedString voice support + closed-set enums § 4 |
+| O5 | ECOSYSTEM projector contracts (see that artifact) |
+| O6 | ECOSYSTEM § 1–2 (see that artifact) |
+| O7 | A7 LocalizedString + odr_translation_events |
+| O8 | A5 ReliabilityBlock |
+| O9 | A8 SafetyBlock hard-stop + ReadinessSnapshot |
+| O10 | PDF_LAYOUT artifact |
+
+_End of Delta Integration Addendum (D1–D8) · DATA_MODEL._
+
+---
+
+# Public-Link Device Continuity Addendum · 2026-05-29
+
+This addendum revises the ODR envelope to absorb the
+Public-Link Device Continuity Doctrine (O11–O20). Read alongside
+`ODR_PUBLIC_LINK_DEVICE_CONTINUITY_ADDENDUM.md`. Sections here
+**supersede** the matching parts of the earlier spec.
+
+## P1 · Revised ODR envelope (additions only)
+
+```python
+class ODR(BaseModel):
+    ...  # (everything from earlier addenda)
+
+    # ── Public-link access envelope (NEW · O11–O20) ──
+    public_access: PublicAccessBlock
+```
+
+## P2 · `PublicAccessBlock`
+
+```python
+class PublicAccessBlock(BaseModel):
+    link_id: str                              # opaque · per-project + per-crew
+    link_scope: Literal["project", "project_crew"]
+    link_created_at_utc: str
+    link_created_by_uid: str                  # PM / Admin
+    link_revoked_at_utc: Optional[str]
+
+    device_tokens: List[DeviceToken]          # 0..N trusted devices
+
+    continuity: DeviceContinuityBlock         # last-evaluated continuity result
+                                              # for the device that authored / submitted
+                                              # this ODR
+```
+
+## P3 · `DeviceToken`
+
+```python
+class DeviceToken(BaseModel):
+    token_id: str                             # uuid4 (server-issued)
+    token_hash: str                           # SHA-256 of the opaque token
+    issued_at_utc: str
+    last_seen_at_utc: str
+    expires_at_utc: str                       # default issued + 90d
+    issued_to_fingerprint: DeviceFingerprint  # bound at issue time
+    issued_via: Literal["foreman_first_use","admin_override","pm_override"]
+    issuer_uid: Optional[str]                 # set when issued_via != foreman_first_use
+    note: Optional[str]
+    revoked_at_utc: Optional[str]
+```
+
+## P4 · `DeviceContinuityBlock`
+
+```python
+class DeviceContinuityBlock(BaseModel):
+    # The seven signals at the moment of evaluation:
+    signals: ContinuitySignals
+
+    # Aggregate result:
+    outcome: Literal[
+        "allowed",
+        "denied_device_mismatch",
+        "denied_missing_token",
+        "denied_expired_context",
+        "denied_wrong_project",
+        "denied_wrong_link",
+        "denied_date_out_of_window",
+        "denied_gps_conflict",
+        "denied_no_prior",
+    ]
+    evaluated_at_utc: str
+    prior_odr_id: Optional[str]               # the prior ODR considered, if any
+
+class ContinuitySignals(BaseModel):
+    fingerprint_match: bool                   # signal 1
+    token_match: bool                         # signal 2
+    project_match: bool                       # signal 3
+    link_match: bool                          # signal 4
+    date_in_window: bool                      # signal 5
+    gps_proximity_ok: Optional[bool]          # signal 6 · None if unmeasurable
+    prior_identity_match: Optional[bool]      # signal 7 · None if no prior identity
+    explicit_conflict: bool                   # any signal explicitly conflicted
+```
+
+## P5 · `PreloadAttempt` (per-attempt audit row)
+
+```python
+class PreloadAttempt(BaseModel):
+    attempt_id: str                            # uuid4
+    requested_at_utc: str
+    public_link_id: str
+    project_id: str
+    target_report_date: str                    # YYYY-MM-DD
+    prior_odr_id: Optional[str]
+
+    outcome: Literal[
+        "allowed",
+        "denied_device_mismatch",
+        "denied_missing_token",
+        "denied_expired_context",
+        "denied_wrong_project",
+        "denied_wrong_link",
+        "denied_date_out_of_window",
+        "denied_gps_conflict",
+        "denied_no_prior",
+        "override_used",
+    ]
+    signals_matched: List[str]
+    signals_failed: List[str]
+
+    override_actor_uid: Optional[str]          # set when outcome="override_used"
+    override_portal: Optional[Literal["pm","admin"]]
+    notes: Optional[str]
+
+    device_fingerprint_at_request: DeviceFingerprint
+    gps_at_request: Optional[GeoFix]
+```
+
+## P6 · New collection · `odr_preload_attempts`
+
+| Property | Value |
+|---|---|
+| Append-only? | **yes** (probe-protected · `trendline_integrity_probe.py` extended) |
+| Indexes | `{ project_id: 1, requested_at_utc: -1 }` · `{ public_link_id: 1, requested_at_utc: -1 }` · `{ outcome: 1, requested_at_utc: -1 }` |
+| Read access | admin-strict + PM-token for own-project · NEVER public |
+| Write access | only the public-link continuity engine and admin override route |
+| Retention | append-only · never purged · doctrine-anchored |
+
+## P7 · Two additional ODR convenience flags
+
+```python
+class ODR(BaseModel):
+    ...
+    prior_report_preload_allowed: bool        # convenience flag · True if
+                                              # this ODR was created via an
+                                              # allowed preload
+    preload_denial_reason: Optional[str]      # set when a preload was denied
+                                              # but the foreman chose "start blank"
+                                              # · same enum as PreloadAttempt.outcome
+```
+
+These two flags make it cheap for the projector layer to know
+whether this ODR carries inherited seed data or is a true blank.
+
+## P8 · Updated index list
+
+Adds to the index list from the earlier D1–D8 addendum (§ A9):
+
+- `odr`: `{ "public_access.link_id": 1, "project.report_date": -1 }`
+- `odr_preload_attempts`: `{ project_id: 1, requested_at_utc: -1 }`
+- `odr_preload_attempts`: `{ outcome: 1, requested_at_utc: -1 }`
+
+## P9 · Doctrine anchors (O11–O20 → DATA_MODEL)
+
+| Doctrine | Anchor |
+|---|---|
+| O11 public scope | `PublicAccessBlock` · `link_scope` |
+| O12–O14 continuity-gated preload | `DeviceContinuityBlock` + `prior_report_preload_allowed` |
+| O15 no leak | only `allowed`-outcome preloads return prior data (enforced at route layer) |
+| O17 override authenticated only | `DeviceToken.issued_via in {admin_override, pm_override}` requires `issuer_uid` |
+| O18 append-only log | `odr_preload_attempts` collection |
+
+_End of Public-Link Device Continuity Addendum · DATA_MODEL._

@@ -338,3 +338,231 @@ Awaiting operator decisions before implementation.
 ---
 
 _Artifact 4 of 5 · proceed to ODR_MIGRATION_PLAN.md_
+
+---
+
+# Delta Integration Addendum (D1–D8) · 2026-05-29
+
+This addendum revises the PDF layout to absorb D1–D8. Sections here
+**supersede** the original where they differ. PDF doctrine O10
+(executive/claims/owner-ready, not a form dump) holds.
+
+## P1 · English-only render rule (D6 · explicit)
+
+**The PDF renderer reads `LocalizedString.text` only.** It never
+reads `.original`. This is a hard contract enforced by
+`odr_bilingual_probe.py` (Track 4 grep pattern).
+
+Why: the company record must be one language for legal / audit /
+claims / FAA / FDOT purposes. The original-language (Spanish) field
+remains in Mongo for **operator review** and **AI retrieval**, but
+no PDF page displays it.
+
+A future "bilingual appendix" PDF variant may be added in V.1.1+
+(out of scope for V.1 lock).
+
+## P2 · Page 1 · Executive Summary (REVISED for D1 + D2 + D3 + D7)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  MASCI   Operational Daily Record                          │
+│          ODR-2026-00427                                    │
+├────────────────────────────────────────────────────────────┤
+│  Project   I-95 / SR-9 Widening (#43-217)                  │
+│  Contract  E1S22                                           │
+│  Date      Wednesday, May 28, 2026 · Day 47                │
+│  Crew      "Reyes Crew"                                    │
+│  Foreman   Carlos Reyes  ·  Super: J. Murphy               │
+│  PM        M. Ortiz      ·  Weather: 78°F partly cloudy    │
+├────────────────────────────────────────────────────────────┤
+│  ── Today at a glance ──                                   │
+│   Work areas          2 · MP 12.4 SB · MP 13.1 SB           │  (D2)
+│   Segments            2 · Pipe AM (220 LF) · Paving PM (412t)│  (D1)
+│   Manpower            8 / 8 expected · 81.5 h               │
+│   Equipment           5 assigned · 1 maintenance flag        │
+│   Materials           1 delivered · 1 staged · 0 issues      │  (D3)
+│   Delays              1 · 2.5 h lost (utility)               │
+│   Extra Work          1 · est $4,200 · 0.5 day               │
+│   Safety              1 event (incident · INC-2026-00188)    │  (D7)
+│   Weather impact      None                                   │
+│   Plan vs Actual      Completed ✓                            │
+│                                                              │
+│  ── 3-line narrative (PM-authored on review) ──             │
+│   …                                                          │
+├────────────────────────────────────────────────────────────┤
+│  ▢ QR · authenticity verify       Signed: Reyes · Murphy   │
+└────────────────────────────────────────────────────────────┘
+```
+
+The glance block now includes Work areas · Segments · Materials.
+Single-red doctrine still allows one red accent — the Safety event
+chip.
+
+## P3 · Page 2 · Labor / Equipment (REVISED for D2)
+
+Equipment table gains a `Area` column where set:
+
+```
+┌──────────────────┬─────┬─────┬──────┬───────────────┬─────────────────┐
+│  Asset            │ Run │Idle │ Down │  Area          │  Maintenance    │
+├──────────────────┼─────┼─────┼──────┼───────────────┼─────────────────┤
+│  Cat 320 #E-114   │ 8.5 │ 1.5 │  0.0 │  MP 12.4 SB    │  —              │
+│  JD 850K #E-088   │ 7.0 │ 2.0 │  1.0 │  MP 13.1 SB    │  Hydraulic ⚠    │
+└──────────────────┴─────┴─────┴──────┴───────────────┴─────────────────┘
+```
+
+Labor table unchanged.
+
+## P4 · Page 3 · Production · per-segment (REVISED · D1)
+
+Pages 3 of the PDF now render **one per production segment** (no
+artificial page-break enforcement; segments flow with their natural
+sizes):
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  Production · Segment 1 · Pipe · Area MP 12.4 SB            │
+│  Started 07:10 ET · Ended 12:45 ET                          │
+├────────────────────────────────────────────────────────────┤
+│  Run table (Size · Material · LF · From · To · Backfill)    │
+│  Structures set today: …                                    │
+│  Testing · Compaction                                       │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│  Production · Segment 2 · Paving · Area MP 13.1 SB          │
+│  Started 13:30 ET · Ended 17:10 ET                          │
+├────────────────────────────────────────────────────────────┤
+│  Lift · Tons · Station limits · Mix temp · Compaction        │
+└────────────────────────────────────────────────────────────┘
+```
+
+Total production summary appears once at the bottom of the last
+production page.
+
+## P5 · Page 4 · Delays / Constraints / Extra Work / Materials (REVISED · D2 · D3)
+
+Adds a Materials sub-table and a Work-Area column to every event
+table:
+
+```
+┌─ Delays ───────────────────┬──────┬──────────────┬──────────────────┐
+│ Type                        │ Hours│ Area          │ Description      │
+├─────────────────────────────┼──────┼──────────────┼──────────────────┤
+│ Utility                     │ 2.5  │ MP 12.4 SB    │ FPL no-show      │
+└─────────────────────────────┴──────┴──────────────┴──────────────────┘
+
+┌─ Constraints (today) ──────┬──────────────┬───────────────────────┐
+│ Type                        │ Area          │ Description           │
+├─────────────────────────────┼──────────────┼───────────────────────┤
+│ Utility (recurring)         │ MP 12.4 SB    │ FPL hand-off · OC-188 │
+└─────────────────────────────┴──────────────┴───────────────────────┘
+
+┌─ Extra Work ───────────────┬──────┬──────┬──────────────┬──────────┐
+│ Requested by                │ $ est│ Days │ Area          │ Desc     │
+├─────────────────────────────┼──────┼──────┼──────────────┼──────────┤
+│ M. Lopez (CEI)              │ 4,200│ 0.5  │ MP 13.1 SB    │ Extra cnxn│
+└─────────────────────────────┴──────┴──────┴──────────────┴──────────┘
+
+┌─ Materials (NEW · D3) ─────┬──────┬────────┬──────────┬─────────────┐
+│ Kind   · Material · Vendor  │ Qty  │ UOM    │ Area      │ Issue       │
+├─────────────────────────────┼──────┼────────┼──────────┼─────────────┤
+│ Delivered · #57 stone · Vul │  21  │ ton    │ MP 12.4   │ —           │
+│ Staged    · SP-12.5 · APAC  │ 420  │ ton    │ MP 13.1   │ —           │
+└─────────────────────────────┴──────┴────────┴──────────┴─────────────┘
+```
+
+## P6 · Page 5 · Safety / Weather (REVISED · D7)
+
+Per-event safety lineage block:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  Safety today                                                │
+├────────────────────────────────────────────────────────────┤
+│  Accidents                ◯ No                              │
+│  Incidents                ◉ Yes  (1 event below)            │
+│  Near misses              ◯ No                              │
+│  Property damage          ◯ No                              │
+│  Environmental release    ◯ No                              │
+│  Injuries                 ◯ No                              │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│  ⛔ Event 1 — Incident · INC-2026-00188 · Area MP 12.4 SB    │
+├────────────────────────────────────────────────────────────┤
+│  Notified Safety: Yes · J. Vincent · 14:12 ET               │
+│  Incident report complete: Yes · INC-2026-00188             │
+│  Linked photos: 2 · see Photo Appendix · tag=safety         │
+└────────────────────────────────────────────────────────────┘
+```
+
+When multiple events exist, each gets its own block — same shape,
+stacked vertically. Single-red accent rendered once at the top of
+the page; subsequent event blocks use neutral chrome with a small
+red glyph at the left.
+
+## P7 · Photo Appendix · per-work-area grouping (REVISED · D2)
+
+Photos already carried `section_anchor`; now also carry
+`work_area_id`. The appendix groups photos by `(work_area_id, tag)`:
+
+```
+── Photos · MP 12.4 SB ──
+  Production · S-15 tee install · 11:40 · "Setting structure"
+  Delay      · FPL coordination · 10:21
+  Safety     · Incident scene   · 14:08 · audio QR ▢
+
+── Photos · MP 13.1 SB ──
+  Production · Paving lift 1   · 14:30
+  Equipment  · Hydraulic leak  · 09:45
+```
+
+A small per-area thumbnail header improves attorney / claims
+readability without breaking calmness.
+
+## P8 · Final page · Audit envelope (REVISED · D4 · D6)
+
+The audit envelope page now also lists:
+
+```
+  Reliability
+    Autosave count:     42
+    Offline origin:     No
+    Sync state at submit: clean
+    Device:             iPhone · iOS 17.4 · MASCI v2.18.3 · PWA
+    GPS at submit:      27.962, -82.120 · ±3.2 m
+
+  Translation lineage (D6)
+    Fields translated:  3 (delay 1 · photo 4 caption · tomorrow plan)
+    Source language:    es
+    Engine:             claude-haiku-4.5 · confidence avg 0.94
+    Translation events: 3 · see odr_translation_events
+```
+
+These additions reinforce forensic value (O10) without making the
+PDF a form dump.
+
+## P9 · Variants · revised
+
+Each variant still applies; D1–D8 surface as follows:
+
+| Variant | Sees segments | Sees work areas | Sees materials | Sees per-event safety | Sees reliability | Sees translation lineage |
+|---|---|---|---|---|---|---|
+| `executive` | ✅ | ✅ | ✅ | ✅ | summary only | summary only |
+| `claims_only` | ✅ | ✅ | ✅ | ✅ | ❌ | summary only |
+| `cei_packet` | ✅ | ✅ | ✅ (delivered only) | ❌ | ❌ | ❌ |
+| `fdot_owner` | ✅ | ✅ | ✅ | ✅ | summary only | summary only |
+| `attorney_full` | ✅ | ✅ | ✅ | ✅ | full | full |
+
+## P10 · Doctrine anchors (O1–O10 in PDF)
+
+| Doctrine | Anchor |
+|---|---|
+| O2 many of everything | P2 glance block + P4 multi-table + P6 per-event |
+| O7 bilingual native | P1 English-only render rule + P8 translation lineage |
+| O8 reliability | P8 reliability envelope |
+| O9 coach not punish | PDF never shows readiness-coaching prompts (foreman-private) |
+| O10 executive PDF | All revisions preserve the 3-minute readability target |
+
+_End of Delta Integration Addendum (D1–D8) · PDF_LAYOUT_DESIGN._

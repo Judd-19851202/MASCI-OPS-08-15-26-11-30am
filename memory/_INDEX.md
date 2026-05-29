@@ -150,6 +150,25 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
 | `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
 
+## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (in spec-revision · 2026-05-29)
+
+Architecture-only authoring · NOT yet implemented · awaiting spec lock.
+
+| File | Purpose | Status |
+|---|---|---|
+| `ODR_DATA_MODEL.md` | Pydantic schema · 16+2 sections · enums · indexes (+ Delta Integration Addendum D1–D8) | 📐 ⛔ |
+| `ODR_UI_WIREFRAMES.md` | Mobile-first foreman entry · voice + dropdown + auto-fill (+ Addendum D1–D8) | 📐 |
+| `ODR_ECOSYSTEM_INTEGRATION_MAP.md` | 12 consumer projectors · single-entry / multi-consumer (+ Addendum D1–D8) | 📐 ⛔ |
+| `ODR_PDF_LAYOUT_DESIGN.md` | 5 pages + appendix · 5 audience variants · forensic envelope (+ Addendum D1–D8) | 📐 |
+| `ODR_MIGRATION_PLAN.md` | 6-wave cutover M0–M5 · legacy → ODR field mapping (+ Addendum D1–D8) | 📐 |
+| `ODR_GAP_AUDIT.md` | 7-requirement pre-lock audit · 8 deltas proposed | 🟢 |
+| `ODR_DELTA_INTEGRATION_SUMMARY.md` | Master delta map · D1–D8 + O1–O10 doctrine | 🟢 |
+| `ODR_SPEC_LOCK_READINESS_REVIEW.md` | Pre-lock certification · 9/9 confirmations · awaiting lock | 🟢 |
+| `ODR_PUBLIC_LINK_DEVICE_CONTINUITY_ADDENDUM.md` | **Public-Link Device Continuity Doctrine** (O11–O20) · trust boundary · 7 signals · audit log spec | 🟢 |
+| _(Future)_ `odr_bilingual_probe.py` | D8 governance probe (planned) | 🟡 |
+| _(Future)_ `odr_doctrine_probe.py` | shape + enum + audit-envelope probe (planned) | 🟡 |
+| _(Future)_ `odr_public_link_continuity_probe.py` | 7-signal continuity gate · cross-crew leak prevention (planned) | 🟡 |
+
 ## 5 · Route Decomposition / Backend Architecture
 
 How `server.py` is being split into `routes/`.

@@ -270,3 +270,249 @@ Awaiting operator decisions before implementation.
 ---
 
 _Artifact 5 of 5 · STOP CONDITION REACHED · architecture review awaited._
+
+---
+
+# Delta Integration Addendum (D1–D8) · 2026-05-29
+
+This addendum revises the migration plan to absorb D1–D8 and codify
+the doctrine statements O1–O10. Field mappings, wave gates, and
+risk register additions appear here. Sections **supersede** the
+original where they differ.
+
+## M1 · Revised legacy-to-ODR field mapping (D1–D3 · D7)
+
+Additions / changes to the original mapping table:
+
+| Legacy field | ODR field | Notes |
+|---|---|---|
+| `activities[]` (one or more shape-heterogeneous rows) | `production_segments[]` (one segment per detected operation) | heuristic: if activities span multiple crew-types, emit one segment per type · default to a single segment for ambiguous cases · flag for PM review |
+| `materials[]` (legacy top-level) | `materials[]` (new top-level · D3) | direct map: each legacy row → one `MaterialEvent`. `kind` defaults to `"consumed"` if not specifiable; ticket numbers and vendor carry over. |
+| _(no legacy work_areas concept)_ | `work_areas[]` — synthesized | default: one synthetic WorkArea with `label="(legacy · single area)"` and `station_from`/`station_to` parsed from project metadata when possible · `requires_manual_review=true` for every migrated row |
+| Legacy single-event safety fields (`safety_incidents_today`, `injuries_reported`, `incident_notes`, etc.) | `safety.events[0]` (one event when `any_event=True`) | direct: collapse the legacy single-event semantics into one `SafetyEvent`; flag the migrated row so PM Review can split it later if multiple events occurred |
+
+## M2 · Legacy bilingual normalization (D6 · D8 · ONE-TIME PASS)
+
+Legacy `daily_reports` may contain free-text already authored in
+Spanish (foreman notes, captions). The migration:
+
+1. For every wrapped-eligible field (the 10 in DATA_MODEL § A7),
+   detect language via lightweight heuristic (langdetect or model
+   inference).
+2. If detected language ≠ `en`:
+   - Store original text in `LocalizedString.original`.
+   - Store `original_lang` accordingly.
+   - Auto-translate to English via the approved engine (operator to
+     choose Claude Haiku 4.5 or Gemini 3 Flash before M0).
+   - Store engine + confidence in `LocalizedString`.
+   - Append a row to `odr_translation_events` with
+     `actor_uid="migration-script"`.
+3. If detected language = `en`:
+   - Store as `LocalizedString.text = legacy_value`, leave `original`
+     null, `original_lang="en"`, `translated_by="none"`.
+4. If detection is ambiguous (confidence < 0.7):
+   - Default to `original_lang="en"` and flag the row for PM Review
+     with `migration_notes.lang_ambiguous=true`.
+
+`odr_bilingual_probe.py` runs at the end of each migration night and
+asserts the wrapped-eligible fields are 100% covered.
+
+## M3 · Legacy Reliability defaults (D4)
+
+Legacy rows have no autosave / sync / device data. Migration defaults:
+
+| Field | Default for migrated rows |
+|---|---|
+| `reliability.autosave_enabled` | `false` |
+| `reliability.autosave_interval_s` | `0` |
+| `reliability.autosave_count` | `0` |
+| `reliability.last_autosave_at_utc` | `null` |
+| `reliability.last_known_good_section` | `null` |
+| `reliability.recovery_token` | `null` |
+| `reliability.offline_origin` | `false` |
+| `reliability.offline_session_id` | `null` |
+| `reliability.offline_photo_queue_size` | `0` |
+| `reliability.offline_photo_queue_drained_at_utc` | `null` |
+| `reliability.sync_state` | `"clean"` |
+| `reliability.last_sync_at_utc` | `created_at` (legacy) |
+| `reliability.sync_conflicts` | `[]` |
+| `reliability.device_fingerprint` | `{ua:"legacy", os:"unknown", os_version:"unknown", app_version:"legacy", is_pwa:false, is_secure_context:true}` |
+
+## M4 · Legacy CompletionTelemetry defaults (D5)
+
+| Field | Default for migrated rows |
+|---|---|
+| `completion_telemetry.seconds_to_submit` | `null` |
+| `completion_telemetry.section_visit_times` | `{}` |
+| `completion_telemetry.auto_fill_accept_rate` | `{}` |
+| `completion_telemetry.voice_caption_count` | `0` |
+| `completion_telemetry.voice_caption_chars` | `0` |
+| `completion_telemetry.autosave_count` | `0` |
+| `completion_telemetry.language_at_entry` | `"en"` (unless M2 detected ES) |
+
+These nulls are explicit so the projector knows the data is
+"unmeasurable legacy" rather than "zero".
+
+## M5 · Wave gate revisions
+
+Per-wave gates remain as originally specified, with these additions:
+
+- **M0 (dual-write pilot)** now also runs `odr_bilingual_probe.py`
+  daily. Probe must be green for 7 days before M1.
+- **M1 (backfill migration)** runs the legacy bilingual
+  normalization (§ M2) and the Reliability/Telemetry defaulting
+  (§ M3 + § M4) as part of each night's batch.
+- **M2 (all foremen on ODR)** introduces the EN/ES toggle in
+  production. Bilingual probe must be green for 14 consecutive days
+  before M3.
+- **M3 (read surfaces re-platformed)** unchanged.
+
+## M6 · Risk register additions
+
+Adds to original § 5:
+
+| # | Risk | Severity | Mitigation |
+|---|---|---|---|
+| R11 | Legacy `activities[]` ambiguous for `production_segments[]` mapping | medium | conservative single-segment default + PM Review queue · `requires_manual_review=true` |
+| R12 | Work-area synthesis loses geographic precision | medium | manual back-fill window during M1–M2 surfaced on `/admin/odr/migration` |
+| R13 | Bilingual auto-translation introduces semantic drift | medium | translation_confidence stored · low-confidence rows queued for PM Review · operator may opt-out per project |
+| R14 | `LocalizedString.original` preserves text that, in litigation, must be reviewed in original language | low | Original always preserved, never deleted · attorney_full PDF variant displays both (future V.1.1+) |
+| R15 | Materials auto-mapping introduces duplicate rows when legacy stored the same material in multiple places | low | dedupe by `(material_code, vendor, ticket_numbers)` tuple |
+| R16 | Safety multi-event back-split requires PM judgement | medium | leave as single event; PM Review can split during 30-day review window |
+
+## M7 · Updated acceptance criteria
+
+Adds to original § 6:
+
+- [ ] 100% of migrated rows have a `production_segments[]` with at least one element.
+- [ ] 100% of migrated rows have a `work_areas[]` with at least one element (synthetic OK).
+- [ ] 100% of migrated rows have a `materials[]` block (may be empty).
+- [ ] 100% of wrapped-eligible legacy fields stored as `LocalizedString`.
+- [ ] `odr_bilingual_probe.py` green for 30 consecutive days.
+- [ ] `odr_translation_events` records every model-driven translation
+      from the migration batch.
+- [ ] PM Review queue (work-area / segment / safety-split / lang
+      ambiguity) reduced to 0 by end of M4.
+
+## M8 · Probe + governance integration
+
+Adds to original § 1.2 inventory:
+
+| Probe | When | Action on fail |
+|---|---|---|
+| `odr_doctrine_probe.py` | every pre-deploy + post-migration nightly | HARD gate |
+| `odr_bilingual_probe.py` (D8) | every pre-deploy + every M1 batch end | HARD gate on missing LocalizedString · WARN on translation lineage gaps |
+| `trendline_integrity_probe.py` extended | every pre-deploy | HARD gate (now covers `odr_section_events` + `odr_translation_events`) |
+| `verify_no_contamination.py` | pre/post each wave | HARD gate (legacy patterns scanned) |
+
+## M9 · Doctrine anchors (O1–O10 in migration)
+
+| Doctrine | Anchor |
+|---|---|
+| O7 bilingual native (NOT retrofit) | § M2 legacy ES values normalized + `odr_translation_events` audit trail begins at M1 |
+| O8 reliability inherited | § M3 reliability defaults so the consumer view is consistent across native vs migrated rows |
+| O6 single-entry · multi-consumer preserved during migration | projectors run with `provisional=True` on migrated rows; flip after PM Review |
+
+_End of Delta Integration Addendum (D1–D8) · MIGRATION_PLAN._
+
+---
+
+# Public-Link Device Continuity Addendum · 2026-05-29
+
+This addendum extends the migration plan with the public-link
+device continuity gate (O11–O20). M0–M5 timing remains; gating
+criteria are reinforced.
+
+## C1 · Revised M0 · dual-write pilot
+
+The M0 gate now also requires:
+
+- ✅ `PublicAccessBlock` schema present on every new ODR row.
+- ✅ Continuity engine wired into every public preload route.
+- ✅ `odr_preload_attempts` collection created with the index set
+  from `ODR_DATA_MODEL.md § P6`.
+- ✅ Synthetic continuity tests pass:
+  - same project + same link + same fingerprint + valid token → `allowed`
+  - same project + same link + **different** fingerprint → `denied_device_mismatch`
+  - same project + **different** link → `denied_wrong_link`
+  - missing token → `denied_missing_token`
+  - expired token (> `token_ttl_days`) → `denied_expired_context`
+  - prior ODR older than `date_window_days` → `denied_date_out_of_window`
+  - GPS conflict (when GPS required) → `denied_gps_conflict`
+- ✅ `odr_public_link_continuity_probe.py` (PLANNED) green in
+  pre-deploy gate.
+- ✅ "Start from yesterday" preload affordance is **disabled** for
+  the pilot group until all of the above are green for 7 consecutive
+  days.
+- ✅ Bilingual coverage: Flow B + Flow D copy present in both EN
+  and ES i18n string tables.
+
+Until M0 continuity tests pass, **no public-link surface ships a
+preload affordance.** Foremen in the pilot wave see a blank report
+every day; the carryover heuristics light up once the gate is green.
+
+## C2 · Legacy `daily_reports` & continuity
+
+The legacy `daily_reports` collection has **no** device tokens,
+fingerprints, or `public_access` context. Migration handles this by:
+
+- Defaulting every migrated row's `public_access.link_id` to a
+  synthetic value (e.g., `legacy:<project_number>:<crew_id>`).
+- Marking `public_access.device_tokens = []` — no inherited tokens.
+- Setting `public_access.continuity.outcome = "denied_no_prior"`
+  for migrated rows so that the first post-migration day will need
+  the foreman's device to register fresh (Flow D first-use).
+- This is intentional: the migration cannot retroactively prove
+  device identity; the cutover day is a "fresh trust" moment.
+
+Migrated rows continue to power Memory / Executive / Search / etc.
+analytics; they simply cannot **seed** today's blank via the public
+link until the foreman has registered a trusted device.
+
+## C3 · Risk register additions
+
+Adds to original § 5 and prior D1–D8 risk register:
+
+| # | Risk | Severity | Mitigation |
+|---|---|---|---|
+| R17 | First day after M0 cutover: every foreman sees Flow B/D (denied or first-use) until their device registers | LOW | known one-time onboarding · PM Review queue surfaces the count · communications + training before cutover |
+| R18 | Foreman switches phones mid-project | MEDIUM | PM override flow (Flow C) re-trusts the new device · audit logged · same-day usable |
+| R19 | Lost phone (foreman cannot complete continuity) | MEDIUM | "Start blank report" always available · foreman can submit without preload · PM Review can stitch context later |
+| R20 | Continuity engine false-positive (allows wrong device) | HIGH | seven-signal check + explicit-conflict rule + asymmetric default + `odr_public_link_continuity_probe.py` synthetic tests + 100% audit logging |
+| R21 | Override abuse (PM grants override carelessly) | LOW | every override carries `override_actor_uid` + `notes` + Admin audit view |
+| R22 | Trustless first-day after migration causes adoption fatigue | LOW | brief banner in PM portal explains the one-time onboarding · foremen can submit blank without friction |
+
+## C4 · Acceptance criteria additions
+
+Adds to original § 6 + D1–D8 acceptance criteria:
+
+- [ ] `odr_public_link_continuity_probe.py` green for 30 consecutive days post-M0.
+- [ ] Zero `outcome="allowed"` rows in `odr_preload_attempts` correspond to a verified cross-crew leak (synthetic + spot audit).
+- [ ] Zero public-link route responses ever include prior-ODR data when continuity returned anything other than `allowed`.
+- [ ] All Flow B / Flow D copy translated to ES; `odr_bilingual_probe.py` green.
+- [ ] PM override flow exercised at least once in M0 with audit row visible.
+
+## C5 · Wave M2 · "Start from yesterday" enablement
+
+The "Start from yesterday" UX (Flow A in UI Addendum § C2) ships
+**only** in Wave M2, and **only** after:
+
+- M0 continuity gate green for 7 days.
+- M1 backfill complete.
+- PM Review queue from migrated `denied_no_prior` rows reduced to
+  manageable size.
+
+Before M2, every public link opens a blank report by default;
+"yesterday's context" is shown as informational text only (not
+as preload).
+
+## C6 · Doctrine anchors (O11–O20 in MIGRATION)
+
+| Doctrine | Anchor |
+|---|---|
+| O12 continuity-gated preload | "Start from yesterday" cannot ship until M2 + continuity green |
+| O14 fail → blank | migrated rows default to `denied_no_prior` |
+| O18 audit logged | every continuity check writes to `odr_preload_attempts` |
+| O19 every preload surface | every carryover surface (crew · equipment · subs · materials · production shells) is gated |
+
+_End of Public-Link Device Continuity Addendum · MIGRATION_PLAN._
