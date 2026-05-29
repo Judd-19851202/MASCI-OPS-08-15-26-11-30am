@@ -1,6 +1,49 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Phase V.5 · Pre-Deploy Live-Defect Validation Gate 🟢
+
+### Mission
+Operator directive: "Hold redeploy. Prove the fixes in preview using
+exact workflows on iPads, phones, tablets, and large monitors.
+Produce PRE_DEPLOY_LIVE_DEFECT_VALIDATION_REPORT.md."
+
+### Verdict
+🟢 **SAFE TO REDEPLOY TO PRODUCTION.** 21 / 22 multi-viewport probes
+PASS · 1 informational WARN (resolved out-of-band via direct endpoint
+test) · 0 FAIL.
+
+### What was verified
+Six P0 live-defect fixes verified across the full
+phone (390×844) · iPad portrait (820×1180) · iPad landscape (1180×820)
+· desktop (1440×900) · ultra-wide (1920×1080) matrix:
+- **P0-1** Form bleed — canonical `FormGrid` 24-px gap contract holds at every breakpoint on DR `/daily/new` and HR `/hr/time-verification`.
+- **P0-2A** PM Pre-Op routing — PM session survives admin-namespace 401s; bad inspection IDs no longer bounce to `/pm/login`.
+- **P0-2B** PM Pre-Op permissions — 0 admin widgets, 0 write buttons, 0 per-row Delete buttons in PM context.
+- **P0-2C** Shop Pre-Op visibility — `/shop/equipment` loads cleanly for shop role.
+- **Delay-enum cleanup** — all 11 chips show human labels (`+ Weather`, `+ Utility`, …); every row Type `<select>` displays human labels; zero raw lowercase tokens visible.
+- **P0-3** PO Receipt — direct endpoint test (401 unauth · 200 auth · `application/pdf` · `inline` Content-Disposition · `no-store` Cache-Control · `%PDF-` bytes). iPad Safari-safe sync-window pattern in place.
+
+### Deliverables
+- `/app/memory/PRE_DEPLOY_LIVE_DEFECT_VALIDATION_REPORT.md` — full report (verdict, viewport matrix, per-defect evidence, screenshot index, curl proof).
+- `/tmp/gate/predeploy/` — 22 screenshots + machine-readable JSON receipts + Playwright orchestrator (`run_validation.py`) + delay-enum probe (`check_delay_enum.py`).
+
+### Stop conditions honored
+- ✅ Validation only — no production deploy in this phase.
+- ✅ No backup scheduler hardening (held per directive — GAP-7 still tracked).
+- ✅ No Approval/Rejection / Pilot / RFI / Schedule / P6 / PM Exposure Tile / new dashboards.
+- ✅ Preview-only DB (`masci_safety_preview`). Test PO inserted + deleted in same run; preview DB returned to baseline.
+
+### Next operator step
+Authorize production redeploy via Emergent dashboard. Post-deploy
+live verification on `mascidocs.com` should follow the same 6-point
+checklist. After live verification, operator can then authorize the
+Backup Scheduler Hardening 5-phase plan (P0 GAP-7).
+
+---
+
+
+
 ## 2026-05-29 (fork) — Phase V.5 · P0 Platform Trust Restoration Audit 🟢
 
 ### Mission
