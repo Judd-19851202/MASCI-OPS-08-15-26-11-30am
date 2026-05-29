@@ -2,6 +2,17 @@
 
 _Phase V-Prelude-A · pre-Wave-1 substrate doctrine · 2026-05-28._
 
+> **2026-05-29 · Phase V.4 supplement.** Two new relationship types
+> are reserved for the approval / rejection workflow:
+>   - `relationship = "review-event"` · links a DR to each row in
+>     `daily_report_review_events` (submit · start_review · approve
+>     · reject · return · resubmit · amend).
+>   - `relationship = "amends"` · links an amendment record to the
+>     original LOCKED_RECORD it amends. Original is NEVER mutated.
+> Both follow this doctrine verbatim: links are operational context
+> not ownership · auditable forever · `created_by_actor` stamped.
+> Implementation gated on operator review.
+
 > **⛔ READ BEFORE TOUCHING.** Every operational link in this
 > platform — between photos, reports, incidents, constraints,
 > RFIs, schedule activities, inspections, daily reports, safety

@@ -289,6 +289,13 @@ explicitly. RFI · Schedule · P6 remain out of scope.**
 | `FIELD_RELIABILITY_PLAYWRIGHT_SUITE_REPORT.md` | **Wave-2 Tier-A** · authored `backend/tests/pw_suite/test_dr_field_reliability.py` · 7 tests · 6 active · 1 skipped (auth-gated) · ≈40 s total · maps to 15 mandated assertions · regression guardrail value matrix | ✅ ⛔ |
 | `DR_FIELD_RELIABILITY_AUTOMATION_CERTIFICATION.md` | **Wave-2 Tier-A** · per-assertion verification table (1–15) · stability features · maintenance contract · what the suite is NOT (not a Tier-B walk replacement) | ✅ ⛔ |
 | `RELIABILITY_REGRESSION_GUARDRAIL_REPORT.md` | **Wave-2 Tier-A** · platform-wide tripwire inventory · what each suite protects · run cadence · maintenance contract · stop condition | ✅ ⛔ |
+| `APPROVAL_REJECTION_ARCHITECTURE.md` | **V.4 architecture** · full Daily Report lifecycle · 7 canonical states · state-transition contract · append-only `daily_report_review_events` schema · planned API + UI surface · hash continuity · NOT implemented | 📐 |
+| `REPORT_LIFECYCLE_DOCTRINE.md` | **V.4 doctrine** · per-state mutability · limited revision-edit surface · version semantics · multi-reviewer contention · legacy DR projection · NOT implemented | 📐 |
+| `FL_ROLE_MAPPING_RESOLUTION_REPORT.md` | **V.4 governance · supersedes LEGACY_ROLE_MAPPING_REVIEW on the resolution axis** · operator review table for the 4 uncertain mappings · approval authority allowlist · project-scope contract · fail-closed defaults | ✅ ⛔ |
+| `APPROVAL_PERMISSION_MATRIX.md` | **V.4 governance** · full action × role matrix · `can_approve(actor, dr)` primitive · `If-Match` concurrency · 403/409 surfaces · UI capability primitive spec · NOT implemented | 📐 |
+| `REJECTION_WORKFLOW_CERTIFICATION.md` | **V.4 governance** · reason catalog · server-enforced ≥ 8-char reason · foreman recovery flow · forbidden behaviors · cycle handling · Review History PDF appendix · NOT implemented | 📐 |
+| `LOCKED_RECORD_GOVERNANCE.md` | **V.4 governance** · LOCKED_RECORD contract · final hash stamp · amendment workflow (new record · never mutates original) · external-auditor experience · NOT implemented | 📐 |
+| `PRE_DEPLOY_RELIABILITY_GATE_CERTIFICATION.md` | **V.4 reliability pillar** · `pre_deploy_verify.py` Phase 1B integration · verdict semantics · run cadence · the only V.4 code change | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

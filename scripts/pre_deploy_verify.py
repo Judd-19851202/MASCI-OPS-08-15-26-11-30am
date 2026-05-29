@@ -126,6 +126,48 @@ def phase1_regression() -> PhaseResult:
     return r
 
 
+def phase1b_field_reliability() -> PhaseResult:
+    """Phase V.4 · Pre-Deploy Reliability Gate (2026-05-29).
+
+    Wave-2 Tier-A Playwright suite that protects the Daily Report's
+    field-reliability contract (autosave · draft restore ·
+    production[] / constraints[] persistence · idempotency ·
+    recovery telemetry · merged-gate auto-expand UX · no-runtime-
+    error reload).  A FAIL here blocks deploy — reliability is now a
+    platform pillar.
+
+    Doctrine: PRE_DEPLOY_RELIABILITY_GATE_CERTIFICATION.md.
+    """
+    r = PhaseResult("Phase 1B · DR field reliability (Wave-2)")
+    t0 = time.time()
+    # Run from /app/backend so conftest fixture resolution matches the
+    # standalone invocation pattern.
+    rc, out, err = sh(
+        "PLAYWRIGHT_BROWSERS_PATH=/pw-browsers "
+        "python3 -m pytest -q --tb=line "
+        "backend/tests/pw_suite/test_dr_field_reliability.py",
+        timeout=240,
+    )
+    last_line = (out or err).strip().split("\n")[-1]
+    if rc != 0:
+        r.status = "FAIL"
+        r.detail = (
+            f"DR field-reliability suite failed:\n  {last_line}\n"
+            f"Reliability is a platform pillar — deploy blocked."
+        )
+        r.action_if_fail = (
+            "Run locally: "
+            "PLAYWRIGHT_BROWSERS_PATH=/pw-browsers python3 -m pytest "
+            "backend/tests/pw_suite/test_dr_field_reliability.py -v "
+            "and fix the regression BEFORE deploy."
+        )
+    else:
+        r.status = "PASS"
+        r.detail = last_line
+    r.duration_s = time.time() - t0
+    return r
+
+
 # ─────────────────────────────────────────────────────────────────────
 # Phase 2 — Build verification
 # ─────────────────────────────────────────────────────────────────────
@@ -681,6 +723,9 @@ def main() -> int:
         # Phase 1
         p1 = phase1_regression()
         phases.append(p1); print(f"{p1.name}: {p1.status}\n{p1.detail}\n")
+        # Phase 1B · Wave-2 reliability tripwire
+        p1b = phase1b_field_reliability()
+        phases.append(p1b); print(f"{p1b.name}: {p1b.status}\n{p1b.detail}\n")
         # Phase 2
         if not args.auth_only:
             p2 = phase2_build()

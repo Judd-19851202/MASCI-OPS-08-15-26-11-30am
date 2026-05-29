@@ -2,6 +2,10 @@
 
 _Phase ODR-Governance Extension · Master Visibility Contract · 2026-05-29_
 
+> **2026-05-29 · Phase V.4 supplement.** The canonical FL role ladder is now `sr_superintendent · superintendent · foreman · leadman` (per `FL_ROLE_ENUM_CERTIFICATION.md`). Visibility rules in this document continue to apply, with the addition of the **Approval / Rejection axis**: super-tier roles may transition Daily Reports between SUBMITTED → UNDER_REVIEW → APPROVED / REJECTED states within their assigned project (Superintendent) or region (Sr. Superintendent) scope. See `APPROVAL_PERMISSION_MATRIX.md`. Foremen and Leadmen retain DR creation / edit visibility for their own reports only and **never** see approval controls. Implementation gated on operator review.
+
+---
+
 This document is the **master visibility contract** for the
 platform. It governs what each Field Leadership Level (FLL) sees
 across ODR, Constraints, Operational Timeline, Photos, Daily

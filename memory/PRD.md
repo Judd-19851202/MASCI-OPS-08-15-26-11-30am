@@ -1,6 +1,57 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.4 · Approval/Rejection Foundation Architecture 🟢
+
+### Mission
+Operator authorized the architecture / governance phase for Daily Report Approval/Rejection. **This is doctrine + spec only.** Daily Reports move from `Draft → Submit` to `Draft → Submit → Review → Approve/Reject → Locked Operational Record` — auditability, simplicity, field usability, and historical integrity all preserved.
+
+### What shipped
+**One concrete code change** (pre-deploy gate wiring · operator-authorized):
+- `scripts/pre_deploy_verify.py` — new **Phase 1B · DR field reliability (Wave-2)** runs `test_dr_field_reliability.py` between Phase 1 and Phase 2. A FAIL blocks the deploy verdict.
+
+**7 mandated architecture / governance docs** in `/app/memory/`:
+1. `APPROVAL_REJECTION_ARCHITECTURE.md` — full lifecycle · state transitions · event log schema · planned API + UI surface
+2. `REPORT_LIFECYCLE_DOCTRINE.md` — 7 canonical states · immutability contract per state · limited-edit surface for revision · version semantics
+3. `FL_ROLE_MAPPING_RESOLUTION_REPORT.md` — operator review table (4 uncertain rows ticked / explicit) · approval authority allowlist · project-scope contract
+4. `APPROVAL_PERMISSION_MATRIX.md` — full action × role matrix · `can_approve(actor, dr)` primitive · `If-Match` concurrency contract · 403 + 409 surfaces
+5. `REJECTION_WORKFLOW_CERTIFICATION.md` — non-empty reason ≥ 8 chars · reason catalog · foreman recovery flow · forbidden behaviors · cycle handling · Review History PDF appendix
+6. `LOCKED_RECORD_GOVERNANCE.md` — hash continuity contract · amendment workflow (new record · never mutates original) · external auditor experience
+7. `PRE_DEPLOY_RELIABILITY_GATE_CERTIFICATION.md` — Phase 1B integration spec · verdict semantics · run cadence
+
+**4 sibling doc updates:**
+- `FIELD_LEADERSHIP_VISIBILITY_DOCTRINE.md` (V.4 supplement header)
+- `OPERATIONAL_LINKING_RULES.md` (`review-event` + `amends` relationships reserved)
+- `PRD.md` (this entry)
+- `_INDEX.md` (7 new docs registered)
+
+### Doctrine compliance
+- ✅ **Architecture only · no implementation** — no endpoint coded, no UI built, no DB migration
+- ✅ **Single canonical role ladder** — `sr_superintendent` · `superintendent` · `foreman` · `leadman` (per V.2 standardization)
+- ✅ **Append-only `daily_report_review_events` collection** specified — no PATCH · no DELETE
+- ✅ **Hash continuity** — every state transition recomputes `audit_envelope_sha256` · drift = tamper signal
+- ✅ **No silent deletion** — DELETE remains 410 forever · M1 Option C continues
+- ✅ **Foreman 9-step contract preserved** — buttons hidden via capability primitive · no new mandatory captures
+- ✅ **Reject requires reason · server-enforced** — minimum 8 chars
+- ✅ **Project scope** — `compute_fl_scope(actor)` fail-closed gate
+- ✅ **Optimistic concurrency** — `If-Match: <audit_envelope_sha256>` rejects stale snapshots with 409
+- ✅ **Admin override is auditable** — always writes an event row
+- ✅ **Amendments are NEW records** — original LOCKED record never mutated
+- ✅ **Reliability is now a platform pillar** — Phase 1B blocks deploy on Wave-2 suite failure
+- ✅ **89 / 89 ODR tests still green** · 6 / 6 Wave-2 reliability tests still green · ESLint + Ruff clean
+
+### Status
+🛑 **HALTED at end of Architecture & Governance phase as directed.**
+
+- ❌ NO approval workflow implementation
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6
+- ❌ NO PM Hub wiring · NO dashboard visibility layer · NO executive reporting
+- ❌ NO field-user workflow changes
+- ✅ Awaiting **operator review of the 7 governance docs + tick of the 4 uncertain FL role mappings in `FL_ROLE_MAPPING_RESOLUTION_REPORT.md §2`** before V.4 implementation begins.
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.3 · Wave-2 Tier-A · Field Reliability Playwright Suite 🟢
 
 ### Mission
