@@ -1,6 +1,119 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.1 · ODR M0.2 + M0.2A · ENGINES + PROBES LIVE 🟢
+
+### Mission
+Following M0.1 substrate certification, the operator authorized a
+coordinated M0.2 + M0.2A wave to evolve ODR from "data capture" into
+**Operational Memory · Contractual Memory · Training Memory ·
+Continuity Memory** — without feature bloat, workflow chaos, or
+governance drift.
+
+### What shipped (8 components · ruff clean · 63/63 tests pass)
+1. **Public Link Continuity Engine** — `routes/odr/continuity.py`
+   (mint/revoke/resolve/registry · 8 continuity invariants).
+2. **Amendment Engine** — `routes/odr/amendments.py` (24h foreman
+   window · Super+ post-window · append-only `odr_amendments` ·
+   no overwrite · reason required).
+3. **PDF Rendering Framework** — `routes/odr/pdf.py` (5 audiences ·
+   deterministic SHA256 footer · reportlab 4.5.1 · audience-aware
+   field projection).
+4. **ODR Public-Link Continuity Probe** —
+   `scripts/odr_public_link_continuity_probe.py` (8 invariants ·
+   sub-second · wired into `pre_deploy_check.sh`).
+5. **ODR Bilingual Probe** — `scripts/odr_bilingual_probe.py`
+   (7 invariants · sub-second · wired into `pre_deploy_check.sh`).
+6. **OGC Catalog Seed** — `routes/odr/guidance_catalog.py`
+   (14 prompt_keys · ≥4 EN + ≥4 ES per key · 9 crew overlays ·
+   real superintendent-tone content · zero AI-runtime calls).
+7. **Crew-Type Readiness Matrix** —
+   `routes/odr/crew_readiness_matrix.py` (21 crew types · Required /
+   Recommended / Advanced).
+8. **Guidance Intelligence Foundation** —
+   `routes/odr/guidance_routes.py` (deterministic resolver: Crew
+   Type → ODR Section → Prompt Key → Catalog → EN/ES output).
+
+### New API surface
+| Verb | Route | Purpose |
+|---|---|---|
+| `POST` | `/api/odr/{id}/link` | Admin/PM mint public link |
+| `GET` | `/api/odr/public/{doc_id}` | no-auth · continuity-gated resolve |
+| `GET` | `/api/odr/{id}/version-chain` | amendment chain |
+| `GET` | `/api/odr/public-links` | Admin · registry index |
+| `PATCH` | `/api/odr/public-links/{link_id}` | Admin/PM revoke |
+| `POST` | `/api/odr/{id}/amend` | Super+/Admin amendment |
+| `GET` | `/api/odr/{id}/amendments` | amendment list |
+| `GET` | `/api/odr/{id}/pdf?audience=…` | foreman/super/pm/exec/external PDF |
+| `GET` | `/api/odr/guidance/prompts` | catalog index |
+| `GET` | `/api/odr/guidance/resolve` | deterministic lookup |
+| `GET` | `/api/odr/guidance/catalog-health` | bilingual probe data |
+| `GET` | `/api/odr/guidance/crew-readiness/{crew_type}` | crew matrix |
+| `GET` | `/api/odr/guidance/crew-readiness` | full crew matrix |
+
+### Operational Memory · day-one
+- Append-only `odr_section_events`, `odr_amendments`,
+  `odr_preload_attempts`, `odr_translation_events` all defended
+  by trendline integrity probe (existing) + new continuity probe.
+- PDF SHA256 footer ties printed artifact to envelope at render time.
+- Crew-aware coaching surfaces via deterministic catalog (no AI).
+
+### Doctrine inheritance preserved
+- FIELD_LEADERSHIP_VISIBILITY_DOCTRINE (PDF audience projection ·
+  public envelope strip · guidance lookups respect FLL).
+- OPERATIONAL_LINKING_RULES (M0.1 carried; M0.2 makes no new writes).
+- TIMELINE_DOCTRINE (M0.1 carried; continuity ≠ chronology).
+- ODR_COACHING_GUIDANCE_ADDENDUM (OGC catalog is the single source
+  of truth · readiness emits prompt_key references only · UI may
+  NOT hardcode bullets).
+- ROLE_AWARE_VISIBILITY_MODEL (PDF endpoint role-gates external/
+  executive/pm · public resolver strips telemetry / consumer_dispatch /
+  device fingerprints).
+
+### Tests / probes
+| Suite | Result |
+|---|---|
+| `tests/odr/test_odr_substrate.py` (M0.1 regression) | 🟢 12/12 |
+| `tests/odr/test_odr_m02.py` (NEW · M0.2 + M0.2A) | 🟢 24/24 |
+| Wave 1 substrate + 1.1 sidecar regression | 🟢 27/27 |
+| `scripts/odr_public_link_continuity_probe.py --gate` | 🟢 0 failures |
+| `scripts/odr_bilingual_probe.py --gate` | 🟢 0 failures · 1 cosmetic warn |
+| `ruff check backend/routes/odr/ scripts/odr_*.py` | 🟢 clean |
+| Backend startup logs | 🟢 ODR + continuity indexes ensured |
+
+**Total: 63 tests + 2 probes · 0 failures · 0 regressions.**
+
+### Doctrine artifacts shipped (10 docs)
+- `M0_2_CONTINUITY_ENGINE_CERTIFICATION.md`
+- `M0_2_AMENDMENT_ENGINE_CERTIFICATION.md`
+- `M0_2_PDF_ENGINE_CERTIFICATION.md`
+- `OGC_CATALOG_SEED_CERTIFICATION.md`
+- `CREW_TYPE_READINESS_MATRIX.md`
+- `GUIDANCE_INTELLIGENCE_FOUNDATION.md`
+- `ODR_PUBLIC_LINK_CONTINUITY_PROBE_REPORT_DOCTRINE.md`
+- `ODR_BILINGUAL_PROBE_REPORT_DOCTRINE.md`
+- `M0_2A_OPERATOR_REVIEW_GUIDE.md` ⛔ start here for review
+- `_INDEX.md` (updated section 4.A)
+
+### Doctrine inventory snapshot
+- 50 ODR doctrines (O1–O50) preserved.
+- 4 new probes wired (continuity, bilingual; existing ops_links,
+  trendline integrity already active).
+- 0 new role models · 0 new dashboards · 0 RFI/Schedule/P6 code ·
+  0 AI copilot logic · 0 production deploy.
+
+### Stop condition acknowledged
+🛑 **HALTED at end of M0.2A.** Operator review pending before:
+- M0.3 (frontend pilot)
+- Migration / Dual-write
+- Pilot rollout
+
+See `M0_2A_OPERATOR_REVIEW_GUIDE.md` for the 5-minute review brief
+and the four "approve before M0.3" items.
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.1 · ODR Substrate · M0.0 + M0.1 COMPLETE 🟢
 
 ### Mission

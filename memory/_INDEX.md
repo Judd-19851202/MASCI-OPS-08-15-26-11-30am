@@ -150,9 +150,11 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
 | `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
 
-## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (in spec-revision · 2026-05-29)
+## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.1 + M0.2 + M0.2A LIVE · 2026-05-29)
 
-Architecture-only authoring · NOT yet implemented · awaiting spec lock.
+ODR substrate is LIVE in preview. M0.0 hygiene closed. M0.1 substrate
+sealed (no schema rewrites later). M0.2 + M0.2A engines + probes live.
+Halted at end of M0.2A pending operator review (per directive).
 
 | File | Purpose | Status |
 |---|---|---|
@@ -169,9 +171,22 @@ Architecture-only authoring · NOT yet implemented · awaiting spec lock.
 | `ODR_SPEC_LOCK_CERTIFICATION.md` | **Final pre-lock certification** · 35/35 doctrines · 21/21 confirmations · 28/28 risks · STOP | 🟢 |
 | `ODR_COACHING_GUIDANCE_ADDENDUM.md` | **Coaching · Training · Operational Guidance** (O36–O50) · 4 touchpoints · crew-specific · first-time onboarding · FL Training Center · PM coaching consumption | 🟢 |
 | `ODR_COACHING_AND_GUIDANCE_CERTIFICATION.md` | **Coaching pre-lock certification** · 8/8 coaching certs · 50/50 doctrines · 29/29 confirmations | 🟢 |
-| _(Future)_ `odr_bilingual_probe.py` | D8 governance probe (planned) | 🟡 |
-| _(Future)_ `odr_doctrine_probe.py` | shape + enum + audit-envelope probe (planned) | 🟡 |
-| _(Future)_ `odr_public_link_continuity_probe.py` | 7-signal continuity gate · cross-crew leak prevention (planned) | 🟡 |
+| `M0_0_HYGIENE_CLOSURE_REPORT.md` | M0.0 W1/W2/W3 closure (precondition to substrate) | ✅ |
+| `ODR_M0_1_SUBSTRATE_CERTIFICATION.md` | M0.1 substrate sealed · 8 collections · 25 indexes · 12 tests | ✅ 🟢 |
+| `M0_2_CONTINUITY_ENGINE_CERTIFICATION.md` | M0.2 Public Link Continuity Engine LIVE | ✅ 🟢 |
+| `M0_2_AMENDMENT_ENGINE_CERTIFICATION.md` | M0.2 Amendment Engine LIVE (24h window · Super+ post-window) | ✅ 🟢 |
+| `M0_2_PDF_ENGINE_CERTIFICATION.md` | M0.2 PDF Engine LIVE · 5 audiences · SHA256 footer | ✅ 🟢 |
+| `OGC_CATALOG_SEED_CERTIFICATION.md` | M0.2A OGC Catalog · 14 keys · ≥4 EN + ≥4 ES per key · 9 crew overlays | ✅ 🟢 |
+| `CREW_TYPE_READINESS_MATRIX.md` | M0.2A · 21 crew types · Required / Recommended / Advanced | ✅ 🟢 |
+| `GUIDANCE_INTELLIGENCE_FOUNDATION.md` | M0.2A · deterministic prompt resolver doctrine | ✅ 🟢 |
+| `ODR_PUBLIC_LINK_CONTINUITY_PROBE_REPORT.md` | Probe auto-generated report (refreshed on every run) | ✅ auto-gen |
+| `ODR_PUBLIC_LINK_CONTINUITY_PROBE_REPORT_DOCTRINE.md` | Operator playbook for the continuity probe | ✅ |
+| `ODR_BILINGUAL_PROBE_REPORT.md` | Probe auto-generated report (refreshed on every run) | ✅ auto-gen |
+| `ODR_BILINGUAL_PROBE_REPORT_DOCTRINE.md` | Operator playbook for the bilingual probe | ✅ |
+| `M0_2A_OPERATOR_REVIEW_GUIDE.md` | **Pre-pilot review checklist · STOP point** | ✅ ⛔ |
+| `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
+| `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
+| _(Future)_ `odr_doctrine_probe.py` | shape + enum + audit-envelope probe (planned for M0.3+) | 🟡 |
 
 ## 5 · Route Decomposition / Backend Architecture
 

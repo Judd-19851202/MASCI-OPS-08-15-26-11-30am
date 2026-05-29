@@ -392,6 +392,26 @@ stage_trendline_integrity() {
 }
 
 
+# ─── Phase V.1 · M0.2 · ODR Public Link Continuity probe · 2026-05-29 ─
+# Sub-second read-only probe. Defends the continuity-safe identifier
+# contract (doc_id format, doc_id uniqueness, link_id uniqueness,
+# registry ↔ ODR cross-reference integrity, append-only attempts).
+stage_odr_continuity() {
+  cd "$REPO_ROOT"
+  python3 scripts/odr_public_link_continuity_probe.py --gate
+}
+
+
+# ─── Phase V.1 · M0.2A · ODR Bilingual probe · 2026-05-29 ─────────────
+# Defends the EN+ES bilingual coverage contract for the OGC catalog
+# (≥4 EN + ≥4 ES per prompt_key, crew overlay floors, orphan prompt_key
+# detection in live ODR data, localized field shape integrity).
+stage_odr_bilingual() {
+  cd "$REPO_ROOT"
+  python3 scripts/odr_bilingual_probe.py --gate
+}
+
+
 # ─── TRUST-1 Wave 1 · TF-018 · 2026-05-27 ─────────────────────────────
 # Visibility-of-visibility gate. The /api/draft-telemetry layer exists
 # specifically so field-incident failures stay diagnosable. If a future
@@ -483,6 +503,11 @@ run_stage "V-Prelude Wave 1.1B · trendline integrity probe" stage_trendline_int
 if [[ "$MODE" != "auth-only" && "$MODE" != "fast" ]]; then
   run_stage "V-Prelude Wave 1.1A · timeline calmness telemetry" stage_timeline_calmness_telemetry
 fi
+
+# Phase V.1 · M0.2 · ODR public-link continuity probe.
+run_stage "Phase V.1 · ODR public-link continuity probe" stage_odr_continuity
+# Phase V.1 · M0.2A · ODR bilingual probe.
+run_stage "Phase V.1 · ODR bilingual probe" stage_odr_bilingual
 
 if [[ "$MODE" == "full" ]]; then
   run_stage "Full backend pytest suite" stage_full_pytest

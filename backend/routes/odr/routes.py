@@ -31,10 +31,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict
 
 from .models import (
-    AmendmentCreate, ODR, ODRCreate, ODRPatch, ODRSubmit, SectionEventCreate,
+    ODR, ODRCreate, ODRPatch, ODRSubmit, SectionEventCreate,
 )
 from .visibility import apply_field_projection, build_odr_scope_filter, resolve_fll
 

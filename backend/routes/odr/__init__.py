@@ -50,5 +50,17 @@ Out of scope for M0.1 (deferred to M0.2+):
 """
 from .routes import build_odr_router
 from .indexes import ensure_odr_indexes
+from .continuity import build_odr_continuity_router, ensure_continuity_indexes
+from .amendments import build_odr_amendments_router
+from .pdf import build_odr_pdf_router
+from .guidance_routes import build_odr_guidance_router
 
-__all__ = ["build_odr_router", "ensure_odr_indexes"]
+__all__ = [
+    "build_odr_router",
+    "ensure_odr_indexes",
+    "build_odr_continuity_router",
+    "ensure_continuity_indexes",
+    "build_odr_amendments_router",
+    "build_odr_pdf_router",
+    "build_odr_guidance_router",
+]

@@ -8486,11 +8486,12 @@ async def _ensure_v_prelude_wave1_indexes():
         from routes.operational_links import ensure_operational_links_indexes  # noqa: PLC0415
         from routes.operational_constraints import ensure_operational_constraints_indexes  # noqa: PLC0415
         from routes.photo_governance import ensure_photo_governance_indexes  # noqa: PLC0415
-        from routes.odr import ensure_odr_indexes  # noqa: PLC0415
+        from routes.odr import ensure_odr_indexes, ensure_continuity_indexes  # noqa: PLC0415
         await ensure_operational_links_indexes(db)
         await ensure_operational_constraints_indexes(db)
         await ensure_photo_governance_indexes(db)
         await ensure_odr_indexes(db)
+        await ensure_continuity_indexes(db)
     except Exception as e:  # noqa: BLE001
         logging.getLogger(__name__).warning(
             "V-Prelude Wave 1 index ensure failed: %s", e
@@ -8918,6 +8919,14 @@ from routes.odr import (  # noqa: E402
     build_odr_router, ensure_odr_indexes,
 )
 
+from routes.odr import (  # noqa: E402
+    build_odr_router, ensure_odr_indexes,
+    build_odr_continuity_router, ensure_continuity_indexes,
+    build_odr_amendments_router,
+    build_odr_pdf_router,
+    build_odr_guidance_router,
+)
+
 app.include_router(build_operational_links_router(
     db, _require_any_portal_token, require_admin,
 ))
@@ -8936,6 +8945,22 @@ app.include_router(build_photo_governance_router(
 # the substrate correctly once.
 app.include_router(build_odr_router(
     db, _require_any_portal_token,
+))
+# Phase V.1 · ODR M0.2 — Public Link Continuity, Amendment Engine,
+# PDF rendering framework (5 audience variants · SHA256 footer).
+# Phase V.1 · ODR M0.2A — Guidance Intelligence Foundation
+# (deterministic prompt resolver + crew readiness matrix).
+app.include_router(build_odr_continuity_router(
+    db, _require_any_portal_token, require_admin,
+))
+app.include_router(build_odr_amendments_router(
+    db, _require_any_portal_token,
+))
+app.include_router(build_odr_pdf_router(
+    db, _require_any_portal_token,
+))
+app.include_router(build_odr_guidance_router(
+    _require_any_portal_token,
 ))
 
 

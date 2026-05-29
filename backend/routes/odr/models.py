@@ -19,12 +19,10 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from .enums import (
-    AmendmentPortal, AmendmentRole, AttachmentKind, CoachingScope,
     CoachingSeverity, ConflictResolution, ConstraintType,
     ContinuityOutcome, CrewType, DelayType, ExtraWorkOrg,
     IssuedVia, LanguageAtEntry, MaterialEventKind, MaterialIssue,
-    MaterialUom, PhotoTag, PipeMaterial, PreloadAttemptOutcome,
-    PublicLinkScope, ReadinessScore, ReviewActionKind,
+    MaterialUom, PhotoTag, PipeMaterial, PublicLinkScope, ReadinessScore, ReviewActionKind,
     ReviewActorRole, ReviewStatus, SafetyEventKind, SupportedLang,
     SyncState, TranslatedBy,
 )
