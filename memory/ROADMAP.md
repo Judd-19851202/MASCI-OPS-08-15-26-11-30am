@@ -210,6 +210,7 @@ Not parked, just queued for user prioritization later:
 
 ## ✅ EXISTING ROADMAP (from PRD)
 
+- **P1 · Platform Quality Infrastructure** · **Multi-Viewport Pre-Deploy Validation Gate (Phase 1C)** — APPROVED BACKLOG (2026-02-01). 10 viewport classes × 11 core targets wired into `scripts/pre_deploy_check.sh`. Spec: `/app/memory/PHASE_1C_VIEWPORT_VALIDATION_GATE_SPEC.md`. Binding deployment policy: no `SAFE TO DEPLOY` without a completed viewport report. Implement AFTER (a) production validation of current Phase V.5 fixes lands clean and (b) Backup Scheduler Hardening (P0 GAP-7) completes. ~7 dev-hour estimate.
 - **P1**: Auto-suggest parts on Pre-Op FAIL (blocked on parts upload spreadsheet)
 - **P2**: New Hire Onboarding flow (currently "Coming Soon" on Training Hub)
 - **P2**: S3 Object Storage Migration (move local disk files/videos to S3)

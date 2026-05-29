@@ -19,6 +19,8 @@ The substrate that protects the platform from itself.
 |---|---|---|
 | `PRD.md` | Master product requirements + phase log (always read first) | ✅ |
 | `FINAL_DEEP_PRE_DEPLOY_CERTIFICATION.md` | Last canonical pre-deploy gate · 15 dimensions | ✅ |
+| `PRE_DEPLOY_LIVE_DEFECT_VALIDATION_REPORT.md` | **Phase V.5 · 2026-02-01** · 5-viewport × 6-defect pre-redeploy gate · 🟢 SAFE TO REDEPLOY verdict · prototype for Phase 1C | ✅ ⛔ |
+| `PHASE_1C_VIEWPORT_VALIDATION_GATE_SPEC.md` | **P1 Platform Quality Infrastructure** · 10-viewport × 11-target gate spec · binding deployment policy · APPROVED BACKLOG · implement AFTER prod validation + backup hardening | 📐 ⛔ |
 | `POST_DEPLOY_LIVE_CERTIFICATION.md` | Last production verification · post-cutover | ✅ |
 | `POST_DEPLOY_VERIFICATION_REPORT.md` | TRUST-TIME-1 + 1B post-deploy verification | ✅ |
 | `AUTHORITY_MISMATCH_REPORT.md` | Authority Mismatch Probe last run | ✅ auto-gen |

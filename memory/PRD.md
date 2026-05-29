@@ -1,6 +1,58 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Phase 1C · Multi-Viewport Pre-Deploy Validation Gate 📐 APPROVED BACKLOG
+
+### Mission
+Operator P1 directive: "Recent production defects passed preview
+certification but were still discovered by operators after deployment.
+To prevent future regressions, all production deployments must pass a
+standardized viewport validation gate before deployment approval."
+
+### Status
+📐 **APPROVED BACKLOG · P1 Platform Quality Infrastructure** —
+NOT YET IMPLEMENTED. Implementation gated on:
+1. Production validation of current Phase V.5 fixes (live on `mascidocs.com`).
+2. Backup Scheduler Hardening (P0 GAP-7) complete.
+
+### Scope
+- **10 viewport classes**: Phone Portrait/Landscape · Tablet
+  Portrait/Landscape · iPad Portrait/Landscape · Laptop · Desktop ·
+  Large Desktop · Ultra-Wide.
+- **11 core validation targets**: Daily Reports · PM Portal · Shop
+  Portal · HR Portal · Safety Portal · QA/QC · PO Requests ·
+  Attachments · Routing · Responsive layouts · Critical workflows.
+- **5 required outputs**: Screenshot inventory · Pass/Fail matrix ·
+  Route verification · Attachment verification · Responsive verification.
+- **Wired into**: `scripts/pre_deploy_check.sh` as Phase 1C (after
+  the existing V.4 Phase 1B reliability gate).
+
+### Binding deployment policy
+> No production deployment may be recommended `SAFE TO DEPLOY` without
+> a completed viewport validation report from this gate.
+
+### Spec
+Full binding spec: `/app/memory/PHASE_1C_VIEWPORT_VALIDATION_GATE_SPEC.md`
+(authored 2026-02-01 · 6 sections · acceptance criteria · ~7 dev-hour
+estimate).
+
+### Prototype reuse
+The Phase V.5 pre-deploy validation matrix (`/tmp/gate/predeploy/`)
+is the working prototype — 5 viewports × 6 defects, proven 2026-02-01.
+Phase 1C promotes it to 10 viewports × 11 targets and bakes it into
+`pre_deploy_check.sh`.
+
+### Expected outcome
+- Fewer production regressions
+- Faster operator confidence
+- Repeatable quality checks
+- Consistent device experience
+- Reduced trust-damaging defects
+
+---
+
+
+
 ## 2026-02-01 (fork) — Phase V.5 · Pre-Deploy Live-Defect Validation Gate 🟢
 
 ### Mission
