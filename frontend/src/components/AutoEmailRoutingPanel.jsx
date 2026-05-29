@@ -61,7 +61,7 @@ export default function AutoEmailRoutingPanel() {
         </span>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1.5">
             Compliance forms → PM + Office

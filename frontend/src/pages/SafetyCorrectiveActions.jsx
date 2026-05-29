@@ -402,7 +402,7 @@ export default function SafetyCorrectiveActions() {
       </div>
 
       {/* iter139 — filter by linked master records */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 mb-4">
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Filter by linked equipment")}</Label>
           <div className="mt-1">
@@ -546,7 +546,7 @@ export default function SafetyCorrectiveActions() {
                 data-testid="safety-ca-form-desc"
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Source")}</Label>
                 <Select
@@ -671,7 +671,7 @@ export default function SafetyCorrectiveActions() {
               />
             </div>
             {/* iter138 — master record bindings (optional, freetext OK) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Linked equipment")}</Label>
                 <div className="mt-1">

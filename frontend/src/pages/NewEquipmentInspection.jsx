@@ -643,7 +643,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Project Name *")}</Label>
               <Input value={data.project_name} onChange={(e) => set("project_name", e.target.value)} className={inputCls} data-testid="input-project-name" />
@@ -652,7 +652,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Project Number")}</Label>
               <Input value={data.project_number} onChange={(e) => set("project_number", e.target.value)} className={inputCls} data-testid="input-project-number" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Location *")}</Label>
               <Input value={data.location} onChange={(e) => set("location", e.target.value)} className={inputCls} data-testid="input-location" />
             </div>
@@ -664,7 +664,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Time *")}</Label>
               <Input type="time" value={data.inspection_time} onChange={(e) => set("inspection_time", e.target.value)} className={inputCls} data-testid="input-time" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Operator Name *")}</Label>
               <EmployeeCombo
                 value={data.operator_name}
@@ -754,8 +754,8 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                <div className="sm:col-span-2">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="lg:col-span-2">
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Unit # / Label *")}</Label>
                   <EquipmentCombo
                     value={data.equipment_unit}
@@ -780,7 +780,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Model")}</Label>
                   <Input value={data.equipment_model} onChange={(e) => set("equipment_model", e.target.value)} className={inputCls} placeholder="320 GC" data-testid="input-model" />
                 </div>
-                <div className="sm:col-span-2">
+                <div className="lg:col-span-2">
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Serial #")}</Label>
                   <Input value={data.equipment_serial} onChange={(e) => set("equipment_serial", e.target.value)} className={inputCls} data-testid="input-serial" />
                 </div>

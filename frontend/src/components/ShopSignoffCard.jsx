@@ -147,7 +147,7 @@ export default function ShopSignoffCard({
         </span>
         {sevPill}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         {/* iter364 · Shop sign-off identity captured atomically (name +
             canonical employee_id) via the same roster-first selector
             used on Incidents / PPE / Training / Pre-Op / QA-QC / CAPA. */}

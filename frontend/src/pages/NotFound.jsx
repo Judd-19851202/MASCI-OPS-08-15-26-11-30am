@@ -84,7 +84,7 @@ export default function NotFound() {
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2.5">
                 Other portals you can access
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4.5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4.5">
                 {others.map((p) => (
                   <Link
                     key={p}

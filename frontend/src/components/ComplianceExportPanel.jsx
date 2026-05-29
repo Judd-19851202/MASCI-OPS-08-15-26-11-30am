@@ -226,7 +226,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
       </div>
 
       {/* Date inputs */}
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-end">
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 items-end">
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
             Start date
@@ -267,7 +267,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
       </div>
 
       {/* Per-kind download grid */}
-      <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         {KINDS.map((k) => {
           const n = counts?.counts?.[k.key] ?? 0;
           const disabled = n === 0;

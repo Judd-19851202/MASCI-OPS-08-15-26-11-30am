@@ -19,6 +19,7 @@ The substrate that protects the platform from itself.
 |---|---|---|
 | `PRD.md` | Master product requirements + phase log (always read first) | ✅ |
 | `FINAL_DEEP_PRE_DEPLOY_CERTIFICATION.md` | Last canonical pre-deploy gate · 15 dimensions | ✅ |
+| `GLOBAL_FORM_LAYOUT_ROOT_CAUSE_REPORT.md` | **2026-02-01 EMERGENCY** · Real root cause for platform-wide form bleed · `sm:col-span-2` auto-column-expansion defect + `md:` breakpoint too narrow + 5-col filter bars unreadable below 1280px · 214 grid + 60 col-span replacements · DOM evidence · binding global standard | ✅ ⛔ |
 | `PRE_DEPLOY_LIVE_DEFECT_VALIDATION_REPORT.md` | **Phase V.5 · 2026-02-01** · 5-viewport × 6-defect pre-redeploy gate · 🟢 SAFE TO REDEPLOY verdict · prototype for Phase 1C | ✅ ⛔ |
 | `PHASE_1C_VIEWPORT_VALIDATION_GATE_SPEC.md` | **P1 Platform Quality Infrastructure** · 10-viewport × 11-target gate spec · binding deployment policy · APPROVED BACKLOG · implement AFTER prod validation + backup hardening | 📐 ⛔ |
 | `POST_DEPLOY_LIVE_CERTIFICATION.md` | Last production verification · post-cutover | ✅ |
@@ -44,6 +45,7 @@ Dispatch / Shop / Field Leadership.
 | File | Purpose | Status |
 |---|---|---|
 | `CROSS_PORTAL_OPERATOR_ATLAS.md` | Master map of every operator surface | ✅ |
+| `FORM_SPACING_DOCTRINE.md` | **Phase V.5+ revised contract** · `lg:grid-cols-{2,3} gap-x-8` form rows · `sm:grid-cols-2 xl:grid-cols-{4,5}` filter bars · `lg:col-span-2` for full-width children · enforced by `<FormGrid>` + `<FilterBar>` primitives | ✅ ⛔ |
 | `CROSS_PORTAL_CONSISTENCY_STANDARD.md` | UX consistency contract | ✅ |
 | `CROSS_PORTAL_COACHING_STANDARD.md` | Coaching copy doctrine | ✅ ⛔ |
 | `CROSS_PORTAL_VOCABULARY_GLOSSARY.md` | Canonical operator vocabulary | ✅ |

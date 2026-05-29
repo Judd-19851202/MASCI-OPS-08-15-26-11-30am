@@ -199,8 +199,8 @@ export default function DriverQualificationReadOnlyView({
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-slate-200 rounded-md p-3 grid grid-cols-1 md:grid-cols-5 gap-x-4 gap-y-3 items-end" data-testid={`${testidPrefix}-filters`}>
-        <div className="sm:col-span-2">
+      <div className="bg-white border border-slate-200 rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 items-end" data-testid={`${testidPrefix}-filters`}>
+        <div className="lg:col-span-2">
           <label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold flex items-center gap-1.5 mb-1">
             <Search className="w-3 h-3" /> {t("Search")}
           </label>

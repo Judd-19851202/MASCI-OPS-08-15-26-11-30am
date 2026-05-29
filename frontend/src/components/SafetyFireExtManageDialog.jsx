@@ -181,7 +181,7 @@ export default function SafetyFireExtManageDialog({ open, fe, onClose, onChanged
               className="block text-sm sm:col-span-6 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-2 file:border-slate-300 file:bg-slate-50 file:text-slate-800 file:font-bold file:uppercase file:text-xs hover:file:bg-slate-100"
               data-testid="safety-fe-att-file"
             />
-            <div className="sm:col-span-3">
+            <div className="lg:col-span-3">
               <Select value={kind} onValueChange={setKind}>
                 <SelectTrigger className="h-9 text-sm border-2 border-slate-300" data-testid="safety-fe-att-kind">
                   <SelectValue />
@@ -196,7 +196,7 @@ export default function SafetyFireExtManageDialog({ open, fe, onClose, onChanged
             <Button
               onClick={doUpload}
               disabled={!file || uploading}
-              className="sm:col-span-3 bg-cyan-700 hover:bg-cyan-800 text-white border-b-2 border-cyan-900 font-bold uppercase tracking-wide h-9"
+              className="lg:col-span-3 bg-cyan-700 hover:bg-cyan-800 text-white border-b-2 border-cyan-900 font-bold uppercase tracking-wide h-9"
               data-testid="safety-fe-att-upload"
             >
               {uploading

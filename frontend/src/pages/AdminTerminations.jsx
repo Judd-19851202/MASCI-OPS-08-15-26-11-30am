@@ -146,7 +146,7 @@ export default function AdminTerminations() {
         </p>
 
         {/* STATS STRIP */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3 mt-6" data-testid="terminations-stats">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 mt-6" data-testid="terminations-stats">
           <Card className="p-3 border-2 border-slate-300">
             <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">{t("Total")}</div>
             <div className="font-display text-2xl font-black mt-1">{stats.total}</div>

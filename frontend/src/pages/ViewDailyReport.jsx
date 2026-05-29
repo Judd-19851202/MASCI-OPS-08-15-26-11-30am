@@ -75,7 +75,7 @@ const ReportSection = ({ number, title, children }) => (
 );
 
 const KV = ({ label, value, full }) => (
-  <div className={full ? "sm:col-span-2" : ""}>
+  <div className={full ? "lg:col-span-2" : ""}>
     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
       {label}
     </div>
@@ -274,10 +274,10 @@ export default function ViewDailyReport() {
         </div>
 
         <ReportSection number="01" title={t("Report Information")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <KV label={t("Project Name")} value={data.project_name} />
             <KV label={t("Project Number")} value={data.project_number} />
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                 {t("Location")}
               </div>
@@ -345,11 +345,11 @@ export default function ViewDailyReport() {
             )}
             {(data.safety_incidents_today === "Yes" ||
               data.injuries_reported === "Yes") && (
-              <div className="sm:col-span-2 mt-2 border-2 border-red-600 bg-red-50 rounded-md p-3">
+              <div className="lg:col-span-2 mt-2 border-2 border-red-600 bg-red-50 rounded-md p-3">
                 <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold mb-2">
                   {t("Safety Escalation")}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
                   <KV label={t("Safety Notified")} value={data.safety_notified} />
                   {data.safety_notified === "Yes" && (
                     <>
@@ -562,7 +562,7 @@ export default function ViewDailyReport() {
                 testId="dr-photos-zip"
               />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
               {data.photos.map((p, i) => (
                 <PhotoLightbox
                   key={i}
@@ -584,7 +584,7 @@ export default function ViewDailyReport() {
         )}
 
         <ReportSection number="11" title="Sign-Off">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
                 Prepared By

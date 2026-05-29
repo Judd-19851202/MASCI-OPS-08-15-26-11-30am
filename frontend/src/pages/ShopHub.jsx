@@ -344,7 +344,7 @@ export default function ShopHub() {
               {t("No active recovery work right now. Equipment is in field service or waiting on parts.")}
             </EmptyHint>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
               <ActiveBucket label={t("Acknowledged")} icon={CheckCircle2} rows={activeBuckets.acknowledged} testIdRoot="shop-active-acknowledged" onUpdated={loadRecovery} />
               <ActiveBucket label={t("Diagnosing")} icon={Stethoscope} rows={activeBuckets.diagnosing} testIdRoot="shop-active-diagnosing" onUpdated={loadRecovery} />
               <ActiveBucket label={t("Repair Active")} icon={Wrench} rows={activeBuckets.repair_active} testIdRoot="shop-active-repair_active" onUpdated={loadRecovery} />
@@ -441,7 +441,7 @@ export default function ShopHub() {
             {t("More")} · {t("Trends · Equipment · Parts · Integrations · Activity")}
           </button>
           {showMore ? (
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" data-testid="shop-more-grid">
+            <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4" data-testid="shop-more-grid">
               <MoreLink to="/shop/fleet" icon={Truck} label="MASCI Fleet · DVIR queue" testId="shop-more-fleet" />
               <MoreLink to="/shop/equipment" icon={ClipboardList} label="Recent Pre-Op Inspections" testId="shop-more-recent" />
               <MoreLink to="?legacy=trends" icon={History} label="Equipment Trends" testId="shop-more-trends" disabled />

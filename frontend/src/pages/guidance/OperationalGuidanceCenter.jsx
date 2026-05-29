@@ -620,7 +620,7 @@ export default function OperationalGuidanceCenter() {
       <section className="relative overflow-hidden rounded-md border-2 border-slate-900 bg-slate-900 text-white mb-6" data-testid="guidance-hero">
         <div className="absolute inset-y-0 left-0 w-1.5 bg-red-700" />
         <div className="px-5 sm:px-8 py-6 sm:py-8 grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="md:col-span-2">
+          <div className="lg:col-span-2">
             <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-red-400 font-bold mb-2">
               {t("MASCI Operations Platform · Operational Guidance Center")}
             </div>

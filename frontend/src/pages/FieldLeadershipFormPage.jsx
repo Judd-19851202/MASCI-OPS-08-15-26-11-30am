@@ -230,11 +230,11 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
     return (
       <div className="space-y-2 border border-slate-200 rounded-md p-3 bg-slate-50">
         {field.items.map((it) => (
-          <div key={it.key} className="grid grid-cols-1 md:grid-cols-5 gap-x-4 gap-y-3.5 items-center">
-            <div className="sm:col-span-2 text-sm font-semibold text-slate-800">
+          <div key={it.key} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3.5 items-center">
+            <div className="lg:col-span-2 text-sm font-semibold text-slate-800">
               {l(it, lang)}
             </div>
-            <div className="sm:col-span-3 flex flex-wrap gap-1">
+            <div className="lg:col-span-3 flex flex-wrap gap-1">
               {ropts.map((opt, idx) => {
                 const en_val = field.rating_options[idx].en;
                 const active = ratings[it.key] === en_val;
@@ -267,7 +267,7 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
     // description" only when property_returned__other is true).
     const current = (value && typeof value === "object") ? value : {};
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4.5 border border-slate-200 rounded-md p-3 bg-slate-50"
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4.5 border border-slate-200 rounded-md p-3 bg-slate-50"
            data-testid={`field-${field.name}`}>
         {(field.options || []).map((opt) => {
           const key = opt.key || opt.en;
@@ -867,7 +867,7 @@ export default function FieldLeadershipFormPage() {
           </>
 
           {/* SUPERVISOR + DATE */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Supervisor / Foreman / Superintendent")}</Label>
               <Input value={supervisorName} onChange={(e) => setSupervisorName(e.target.value)} className={inputCls} data-testid="field-supervisor" />
@@ -876,7 +876,7 @@ export default function FieldLeadershipFormPage() {
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Date / Time")}</Label>
               <Input type="datetime-local" value={occurredAt} onChange={(e) => setOccurredAt(e.target.value)} className={inputCls} data-testid="field-occurred-at" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Location / Work Area")}</Label>
               <Input value={workArea} onChange={(e) => setWorkArea(e.target.value)} className={inputCls} placeholder={selectedJob?.location || ""} data-testid="field-work-area" />
             </div>

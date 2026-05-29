@@ -148,7 +148,7 @@ export default function AdminSafetyFormsPanel() {
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-x-4 gap-y-3 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 mb-3">
         <FilterField label="Search" icon={Search}>
           <Input
             value={filters.q}

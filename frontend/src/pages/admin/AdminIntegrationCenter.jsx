@@ -111,7 +111,7 @@ function OverviewTab() {
   if (loading || !data) return <div className="text-center py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400" /></div>;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
       {data.providers.map((p) => <ProviderStatusCard key={p.provider} p={p} onRefresh={refresh} />)}
     </div>
   );
@@ -215,7 +215,7 @@ function ProviderTab({ provider }) {
   return (
     <div className="space-y-4">
       <div className="bg-white border border-slate-200 rounded-md p-5">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
           <ToggleBlock
             label="Integration enabled" sub="When off, no syncs run and webhooks reject."
             checked={doc.enabled} onChange={(v) => save({ enabled: v })}
@@ -243,7 +243,7 @@ function ProviderTab({ provider }) {
           Secrets are stored server-side and never returned to this UI after save — only a masked indicator
           is shown so you can confirm the right value is in place.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
           <SecretField
             label="API Key"
             present={doc.api_key_present}
@@ -739,7 +739,7 @@ function CsvTab() {
           Bulk-create / bulk-update mappings before the live API is wired. Each CSV must include a <code>masci_equipment_id</code>
           (for asset rows) or <code>masci_employee_id</code> (for driver/user rows) plus the relevant provider ID columns.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-end">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 items-end">
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">CSV kind</Label>
             <Select value={kind} onValueChange={setKind}>
@@ -780,7 +780,7 @@ function CsvTab() {
           Hand the unmapped-equipment / unmapped-employees CSV to your Motive or MaintainX account manager
           so they can pre-populate IDs on their side.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
           {exportButtons.map((b) => (
             <Button
               key={b.path}
@@ -999,7 +999,7 @@ function WizardTab() {
         <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-3">
           Step 1 · Configure & paste rows
         </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Provider</Label>
             <Select value={kind} onValueChange={setKind}>

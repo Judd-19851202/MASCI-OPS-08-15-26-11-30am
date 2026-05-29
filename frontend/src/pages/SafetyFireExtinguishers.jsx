@@ -346,7 +346,7 @@ export default function SafetyFireExtinguishers() {
             {editDlg.mode === "create" && (
               <HelpTipBlock formKey="fire-extinguisher.add" className="mb-1" />
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Unit ID")} *</Label>
                 <Input value={editDlg.form.unit_id} onChange={(e) => setEditDlg((d) => ({ ...d, form: { ...d.form, unit_id: e.target.value } }))} className={`${inputCls} mt-1`} placeholder="FE-001" data-testid="safety-fe-form-unit" />

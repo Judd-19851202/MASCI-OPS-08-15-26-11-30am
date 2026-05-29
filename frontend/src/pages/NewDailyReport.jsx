@@ -119,11 +119,11 @@ const RepeatBlock = ({
             <X className="w-4 h-4 mr-1" /> {t("Remove")}
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
           {fields.map((f) => (
             <div
               key={f.key}
-              className={f.full ? "sm:col-span-2" : ""}
+              className={f.full ? "lg:col-span-2" : ""}
               style={f.style}
             >
               <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
@@ -1047,7 +1047,7 @@ export default function NewDailyReport({ publicMode = false }) {
               {t("Pick a current job to auto-fill name + number — or choose Custom Job to type your own.")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Project Name *")}
@@ -1070,7 +1070,7 @@ export default function NewDailyReport({ publicMode = false }) {
                 data-testid="input-project-number"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   {t("Location *")}
@@ -1195,7 +1195,7 @@ export default function NewDailyReport({ publicMode = false }) {
               {t("No weather data yet — tap Use GPS above.")}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
               {data.weather_snapshots.map((s, i) => (
                 <div
                   key={i}
@@ -1228,7 +1228,7 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 03 — General Info / Flags */}
         <Section number="03" title={t("General Information")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Delays / Extra Work Today?")}
@@ -1346,7 +1346,7 @@ export default function NewDailyReport({ publicMode = false }) {
 
               {/* Step 2: Who and when? */}
               {data.safety_notified === "Yes" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
                   <div>
                     <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-800">
                       {t("Who Was Contacted? *")}
@@ -1510,8 +1510,8 @@ export default function NewDailyReport({ publicMode = false }) {
                       <X className="w-4 h-4 mr-1" /> {t("Remove")}
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                    <div className="sm:col-span-2">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="lg:col-span-2">
                       <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
                         {t("Employee Name")}
                       </Label>
@@ -1618,7 +1618,7 @@ export default function NewDailyReport({ publicMode = false }) {
                         data-testid={`crew-stop-${i}`}
                       />
                     </div>
-                    <div className="sm:col-span-2">
+                    <div className="lg:col-span-2">
                       <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
                         {t("Work Performed")}
                       </Label>
@@ -1636,7 +1636,7 @@ export default function NewDailyReport({ publicMode = false }) {
                       if (!p) return null;
                       return (
                         <div
-                          className="sm:col-span-2 mt-1 px-3 py-2 rounded bg-slate-100 border-l-2 border-slate-700 font-mono text-[12px] text-slate-700 leading-snug"
+                          className="lg:col-span-2 mt-1 px-3 py-2 rounded bg-slate-100 border-l-2 border-slate-700 font-mono text-[12px] text-slate-700 leading-snug"
                           data-testid={`crew-hours-preview-${i}`}
                         >
                           <span className="font-bold text-slate-900">{p.label}</span>

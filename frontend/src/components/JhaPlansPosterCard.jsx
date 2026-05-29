@@ -103,7 +103,7 @@ export default function JhaPlansPosterCard() {
         <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-amber-700 font-black mb-3">
           {t("What's in a Hazard Plan")}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
           {[
             {
               title: t("Site-specific hazards"),

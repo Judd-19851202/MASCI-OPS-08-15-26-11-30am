@@ -119,7 +119,7 @@ export default function AdminSignatureMigrationPanel() {
       )}
 
       {/* Summary stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-5">
         <StatBox label="Records w/ signatures" value={grand.docs_with_sig} />
         <StatBox label="In Cloud (R2)" value={grand.cloud} accent="emerald" />
         <StatBox label="Still in DB" value={grand.base64} accent={grand.base64 > 0 ? "amber" : "slate"} />

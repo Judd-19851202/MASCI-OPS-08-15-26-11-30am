@@ -1,30 +1,30 @@
-// FormGrid.jsx — Phase V.5 · Platform Form Layout Doctrine.
+// FormGrid.jsx — Phase V.5+ · Platform Form Layout Doctrine (revised).
 //
-// CANONICAL responsive grid for form rows across every form on the
-// platform. Replaces the legacy ad-hoc `grid grid-cols-1 sm:grid-cols-2
-// gap-3` pattern that caused live iPad field-bleed in Daily Reports,
-// Equipment / Operator forms, Safety Meetings, QA/QC inspections, etc.
+// CANONICAL responsive grid for form rows. Replaces the legacy
+// `grid grid-cols-1 sm:grid-cols-2 gap-3` pattern AND the prior
+// `md:grid-cols-2 gap-x-6` pattern (which still bled on iPad
+// portrait per operator-verified production evidence).
 //
-// Doctrine: FORM_SPACING_DOCTRINE.md
+// Doctrine: GLOBAL_FORM_LAYOUT_ROOT_CAUSE_REPORT.md
 //
-// Responsive contract:
-//   • Mobile (<768px)        → 1 column · 16px row gap
-//   • iPad/Tablet (≥768px)   → 2 columns · 24px horiz gap · 16px row gap
-//   • Desktop (≥1024px)      → 2 columns · 24px horiz gap · 16px row gap
+// Responsive contract (revised after operator-verified bleed on
+// iPad portrait at md:768px):
+//   • Mobile (<1024px)        → 1 column · 16px row gap
+//   • Desktop (≥1024px)       → 2 columns · 32px horiz gap · 16px row gap
 //
-// Why 24px horizontal gap?
-//   Tailwind `gap-3` (12px) leaves only ~6px of safe space between
-//   adjacent native iOS / iPadOS input borders once you factor in the
-//   inputs' internal padding and the heavier WebKit chrome on iPad.
-//   24px (`gap-x-6`) guarantees inputs never visually collide and
-//   matches the platform's own card / section spacing rhythm.
+// Why lg: (1024px) instead of md: (768px)?
+//   At iPad portrait 820px width, md:grid-cols-2 produces 345px
+//   columns. Mathematically that's ~24px between adjacent input
+//   borders — fine on paper, but operator-verified field evidence
+//   (mascidocs.com production · iPad Safari) showed the WebKit
+//   native input chrome + uppercase monospace labels visually fuse
+//   adjacent inputs at this column width. Stacking on iPad portrait
+//   eliminates the bleed entirely.
 //
-// Why md: (768px) instead of sm: (640px)?
-//   The 640px breakpoint forces 2-col on small phones in landscape
-//   (e.g. iPhone Plus 736px), packing two inputs into ~310px each
-//   minus padding — too tight, visually bleeds. 768px guarantees
-//   iPad portrait (768 / 810 / 834px) gets clean 2-col without
-//   risking phone-landscape squeeze.
+// Why gap-x-8 (32px) instead of gap-x-6 (24px)?
+//   24px is the bare minimum to clear adjacent native input borders.
+//   32px adds proper visual breathing room and makes the row read
+//   as two distinct fields rather than one continuous strip.
 //
 // Usage:
 //   <FormGrid>
@@ -32,51 +32,32 @@
 //     <div>…input 2…</div>
 //   </FormGrid>
 //
-//   // Optional override for compact rows (e.g. date + time pair):
+//   // 3-col variant (e.g. date / time / duration triplets):
+//   <FormGrid columns={3}>…</FormGrid>
+//
+//   // Tight row gap (compact pairs):
 //   <FormGrid compact>…</FormGrid>
 //
-//   // Optional full-width-on-tablet row:
-//   <FormGrid stackUntil="lg">…</FormGrid>
-//
 // Notes:
-//   • Do NOT add `gap-*` Tailwind classes inside FormGrid — the
-//     component owns the gap rhythm.
+//   • Do NOT add `gap-*` Tailwind classes inside FormGrid.
 //   • Children that should span both columns can opt-out via
-//     `className="md:col-span-2"` on the child wrapper.
-//   • No business logic. Pure layout primitive.
+//     `className="lg:col-span-2"` on the child wrapper.
+//   • For dense 4-5 column filter bars, use <FilterBar> not <FormGrid>.
 
 import React from "react";
 
-/**
- * @param {Object}   props
- * @param {React.ReactNode} props.children
- * @param {string=}  props.className   — extra utility classes (e.g. mt-*).
- * @param {boolean=} props.compact     — reduce row gap from 16px → 12px
- *                                       (use only for tight date/time pairs).
- * @param {"sm"|"md"|"lg"=} props.stackUntil
- *                                     — breakpoint at which 2-col activates.
- *                                       Default "md" (768px). Use "lg" to
- *                                       keep iPad portrait in 1-col when
- *                                       inputs are visually heavy.
- */
 export default function FormGrid({
   children,
   className = "",
   compact = false,
-  stackUntil = "md",
+  columns = 2,
 }) {
-  const colsClass = {
-    sm: "sm:grid-cols-2",
-    md: "md:grid-cols-2",
-    lg: "lg:grid-cols-2",
-  }[stackUntil] || "md:grid-cols-2";
-
+  const colsClass = columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2";
   const rowGap = compact ? "gap-y-3" : "gap-y-4";
-
   return (
     <div
       data-testid="form-grid"
-      className={`grid grid-cols-1 ${colsClass} gap-x-6 ${rowGap} ${className}`.trim()}
+      className={`grid grid-cols-1 ${colsClass} gap-x-8 ${rowGap} ${className}`.trim()}
     >
       {children}
     </div>

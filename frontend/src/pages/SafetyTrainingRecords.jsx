@@ -342,7 +342,7 @@ export default function SafetyTrainingRecords() {
                 </div>
               </details>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Training name")} *</Label>
                 <Input value={dlg.form.training_name} onChange={(e) => setDlg((d) => ({ ...d, form: { ...d.form, training_name: e.target.value } }))} className={`${inputCls} mt-1`} placeholder="e.g. OSHA 10-hour Construction" data-testid="safety-tr-form-name" />
@@ -369,7 +369,7 @@ export default function SafetyTrainingRecords() {
                 </Label>
                 <Input type="date" value={dlg.form.expiration_date || ""} onChange={(e) => setDlg((d) => ({ ...d, form: { ...d.form, expiration_date: e.target.value } }))} className={`${inputCls} mt-1`} data-testid="safety-tr-form-expiration" />
               </div>
-              <div className="sm:col-span-2">
+              <div className="lg:col-span-2">
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Issued by")}</Label>
                 <Input value={dlg.form.issued_by} onChange={(e) => setDlg((d) => ({ ...d, form: { ...d.form, issued_by: e.target.value } }))} className={`${inputCls} mt-1`} placeholder="e.g. OSHA Outreach Trainer · ATSSA · Provider name" />
               </div>

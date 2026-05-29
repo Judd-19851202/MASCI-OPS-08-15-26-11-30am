@@ -94,7 +94,7 @@ function AccountabilityResults({ data }) {
         <h2 className="font-display text-2xl font-black">{data.employee}</h2>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
         <StatCard icon={ClipboardCheck} label={t("FL Records")} value={counts.fl_records} accent="purple" testId="hr-acc-stat-fl" />
         <StatCard icon={AlertOctagon} label={t("Active Write-ups")} value={counts.active_writeups} accent={counts.active_writeups > 0 ? "amber" : "slate"} testId="hr-acc-stat-writeups" />
         <StatCard icon={Wrench} label={t("Outstanding Equipment")} value={counts.outstanding_equipment} accent={counts.outstanding_equipment > 0 ? "red" : "emerald"} testId="hr-acc-stat-equip" />

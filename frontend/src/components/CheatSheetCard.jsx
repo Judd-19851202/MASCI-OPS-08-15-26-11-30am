@@ -135,7 +135,7 @@ export default function CheatSheetCard() {
 
       {/* Submit on Site — 3 tiles */}
       <SectionHeader kicker="01" title={t("Submit on Site")} subtitle={t("Public · no sign-in required.")} />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 mb-7">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-7">
         {submissionTiles.map((tile) => (
           <TileCard key={tile.title} {...tile} />
         ))}
@@ -143,7 +143,7 @@ export default function CheatSheetCard() {
 
       {/* Office Portals — 4 pills */}
       <SectionHeader kicker="02" title={t("Office Portals")} subtitle={t("Sign-in required. Office staff, mechanics, HR.")} />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-7">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-7">
         {officePortals.map((p) => (
           <PortalPillPrint key={p.title} {...p} />
         ))}
@@ -221,7 +221,7 @@ export default function CheatSheetCard() {
       </div>
 
       {/* Training & Help mini-strip */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <div className="border border-slate-200 rounded-md p-3 flex items-center gap-3 bg-slate-50 print:bg-white">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-900 text-white shrink-0">
             <Building2 className="w-5 h-5" />

@@ -449,7 +449,7 @@ export default function NewIncident({ publicMode = false }) {
               Pick a current job to auto-fill name + number — or choose Custom Job to type your own.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Project Name *
@@ -473,7 +473,7 @@ export default function NewIncident({ publicMode = false }) {
                 data-testid="input-project-number"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   Location *
@@ -557,7 +557,7 @@ export default function NewIncident({ publicMode = false }) {
                 testId="input-reported-by"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Supervisor / Foreman On-Site
               </Label>
@@ -614,7 +614,7 @@ export default function NewIncident({ publicMode = false }) {
               {t("Pick the actual outcome. For a near miss, choose Near Miss even if the potential was severe — note the potential in the description.")}
             </p>
             <div
-              className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4"
               data-testid="severity-grid"
             >
               {SEVERITY_LEVELS.map((s) => {
@@ -653,7 +653,7 @@ export default function NewIncident({ publicMode = false }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("OSHA Recordable?")}
@@ -681,8 +681,8 @@ export default function NewIncident({ publicMode = false }) {
         {/* Section 03 — Person involved (only if injury-related) */}
         {isInjury && (
           <Section number="03" title={t("Person Involved")}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-              <div className="sm:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+              <div className="lg:col-span-2">
                 {/* iter359 · Unified roster-first selector with operational
                     coaching baked in. Free-text fallback preserved for
                     subcontractors / non-employees, but the downstream
@@ -787,7 +787,7 @@ export default function NewIncident({ publicMode = false }) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="sm:col-span-2">
+              <div className="lg:col-span-2">
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   Treatment Provided
                 </Label>
@@ -932,7 +932,7 @@ export default function NewIncident({ publicMode = false }) {
           <p className="text-sm text-slate-600">
             Check every category that contributed. Pick all that apply.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             {ROOT_CAUSE_CATEGORIES.map((opt) => (
               <label
                 key={opt.key}
@@ -1088,7 +1088,7 @@ export default function NewIncident({ publicMode = false }) {
               data-testid="input-corrective"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Responsible Party
@@ -1159,7 +1159,7 @@ export default function NewIncident({ publicMode = false }) {
           <p className="text-sm text-slate-600">
             Confirm who was notified about this incident.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Safety Manager

@@ -86,7 +86,7 @@ export default function NewConstraint() {
       </p>
 
       <form onSubmit={submit} className="space-y-3" data-testid="new-constraint-form">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
           <label className="text-xs text-slate-600">
             Project
             <input
@@ -125,7 +125,7 @@ export default function NewConstraint() {
           />
         </label>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
           <label className="text-xs text-slate-600">
             Discipline
             <select

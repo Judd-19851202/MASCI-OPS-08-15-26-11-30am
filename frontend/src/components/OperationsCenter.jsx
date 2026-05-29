@@ -222,7 +222,7 @@ export default function OperationsCenter({ compact = false, className = "" }) {
   if (!data || visibleCards.length === 0) return null;
 
   const containerCls = compact
-    ? "grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3"
+    ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3"
     : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3";
 
   return (

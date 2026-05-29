@@ -112,7 +112,7 @@ function AddTrainingForm({ onCreated, onCancel, t }) {
         <div className="font-bold text-purple-900 flex items-center gap-2"><Plus className="w-4 h-4" /> {t("Add Training Record")}</div>
         <button onClick={onCancel} className="text-slate-500 hover:text-slate-900" aria-label="close"><X className="w-4 h-4" /></button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <label className="block">
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Employee")} *</div>
           <select value={employee} onChange={(e) => setEmployee(e.target.value)} className={inputCls("w-full px-2 bg-white")} data-testid="hr-safety-add-training-employee">
@@ -140,7 +140,7 @@ function AddTrainingForm({ onCreated, onCancel, t }) {
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Issued By")}</div>
           <Input value={issuedBy} onChange={(e) => setIssuedBy(e.target.value)} className={inputCls()} placeholder="Training provider / instructor" data-testid="hr-safety-add-training-issuer" />
         </label>
-        <label className="block sm:col-span-2">
+        <label className="block lg:col-span-2">
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Notes")}</div>
           <Input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputCls()} data-testid="hr-safety-add-training-notes" />
         </label>
@@ -193,8 +193,8 @@ function UploadDocForm({ onUploaded, onCancel, t }) {
         <div className="font-bold text-purple-900 flex items-center gap-2"><Upload className="w-4 h-4" /> {t("Upload Safety Document")}</div>
         <button onClick={onCancel} className="text-slate-500 hover:text-slate-900"><X className="w-4 h-4" /></button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-        <label className="block sm:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+        <label className="block lg:col-span-2">
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("File")} *</div>
           <input
             type="file"
@@ -215,11 +215,11 @@ function UploadDocForm({ onUploaded, onCancel, t }) {
               <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
-        <label className="block sm:col-span-2">
+        <label className="block lg:col-span-2">
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Description")}</div>
           <Input value={description} onChange={(e) => setDescription(e.target.value)} className={inputCls()} placeholder={t("Short description (optional)")} data-testid="hr-safety-upload-doc-description" />
         </label>
-        <label className="block sm:col-span-2">
+        <label className="block lg:col-span-2">
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Tags")}</div>
           <Input value={tags} onChange={(e) => setTags(e.target.value)} className={inputCls()} placeholder="comma, separated, tags" data-testid="hr-safety-upload-doc-tags" />
         </label>
@@ -409,7 +409,7 @@ export default function HrSafetyRecords() {
                 testId="hr-safety-docs-empty"
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" data-testid="hr-safety-doc-list">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4" data-testid="hr-safety-doc-list">
                 {filteredDocs.map((d) => {
                   const archived = isArchived(d);
                   const role = (d.created_by_role || d.uploaded_by_role || "legacy").toLowerCase();

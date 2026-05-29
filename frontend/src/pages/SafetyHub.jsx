@@ -225,7 +225,7 @@ export default function SafetyHub() {
 
       {/* KPI strip — neutral chrome per Rule 5. Colored value text for
           incident/CA emphasis; everything else stays calm. */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 sm:gap-4 mb-10" data-testid="safety-kpi-strip">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 sm:gap-4 mb-10" data-testid="safety-kpi-strip">
         {loading ? (
           <div className="col-span-full text-center py-8 text-slate-500">
             <Loader2 className="w-6 h-6 animate-spin mx-auto" /> {t("Loading metrics…")}
@@ -463,7 +463,7 @@ export default function SafetyHub() {
             inside the demoted Systems group so it never competes with
             the operational sections above. */}
         <div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4 mt-6"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 mt-6"
           data-testid="safety-integrations-strip"
         >
           <IntegrationHealthCard

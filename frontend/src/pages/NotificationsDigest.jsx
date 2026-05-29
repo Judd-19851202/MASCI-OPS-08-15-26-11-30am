@@ -241,7 +241,7 @@ export default function NotificationsDigest() {
         ) : null}
 
         {target.role === "safety" ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4" data-testid="notif-safety-summary">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4" data-testid="notif-safety-summary">
             {[
               ["overdue_capas",             t("Overdue CAPAs"),       "high"],
               ["incidents_needing_capa",    t("Need a CAPA"),         "critical"],
@@ -259,7 +259,7 @@ export default function NotificationsDigest() {
         ) : null}
 
         {target.role === "hr" ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4" data-testid="notif-hr-summary">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4" data-testid="notif-hr-summary">
             {[
               ["linkage_failures",                t("Linkage failures"),    "high"],
               ["driver_qualification_expired",    t("Driver creds expired"),"critical"],
@@ -276,7 +276,7 @@ export default function NotificationsDigest() {
         ) : null}
 
         {target.role === "pm" ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3" data-testid="notif-pm-summary">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3" data-testid="notif-pm-summary">
             {[
               ["capa_overdue",       t("CAPAs past due"),    "high"],
               ["trainings_expired",  t("Expired training"),  "high"],
@@ -292,7 +292,7 @@ export default function NotificationsDigest() {
         ) : null}
 
         {target.role === "dispatch" ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4" data-testid="notif-dispatch-summary">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4" data-testid="notif-dispatch-summary">
             {[
               ["med_card_expired", t("Med card expired"), "critical"],
               ["cdl_expired",      t("CDL expired"),       "critical"],
@@ -307,7 +307,7 @@ export default function NotificationsDigest() {
         ) : null}
 
         {target.role === "fl" ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3" data-testid="notif-fl-summary">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3" data-testid="notif-fl-summary">
             {[
               ["trainings_expired",      t("Expired training"),  "high"],
               ["ppe_missing",            t("No PPE"),            "medium"],

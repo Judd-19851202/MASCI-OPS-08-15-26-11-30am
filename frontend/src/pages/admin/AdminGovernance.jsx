@@ -298,7 +298,7 @@ export default function AdminGovernance() {
         {/* Severity tile strip */}
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2">By severity (open + acknowledged)</div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3" data-testid="gov-severity-strip">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3" data-testid="gov-severity-strip">
             {SEVERITY_ORDER.map((s) => (
               <SeverityTile key={s} severity={s} count={sevCounts[s] ?? 0} />
             ))}

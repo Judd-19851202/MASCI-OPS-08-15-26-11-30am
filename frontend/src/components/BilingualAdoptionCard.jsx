@@ -74,7 +74,7 @@ export default function BilingualAdoptionCard() {
 
       {stats && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-4">
             <BigStat
               label="Total"
               value={stats.totals.total}

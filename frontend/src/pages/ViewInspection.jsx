@@ -72,7 +72,7 @@ const ReadRow = ({ label, value, autoFail = false }) => {
 };
 
 const KV = ({ label, value, full = false }) => (
-  <div className={full ? "sm:col-span-2" : ""}>
+  <div className={full ? "lg:col-span-2" : ""}>
     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
       {label}
     </div>
@@ -276,10 +276,10 @@ export default function ViewInspection() {
         <GradeBanner grade={grade} />
 
         <ReportSection number="01" title={t("Project / Inspection Information")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <KV label={t("Project Name")} value={data.project_name} />
             <KV label={t("Project Number")} value={data.project_number} />
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                 {t("Location")}
               </div>
@@ -382,7 +382,7 @@ export default function ViewInspection() {
         </ReportSection>
 
         <ReportSection number="12" title={t("Safety Issues / Corrective Actions")}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-4">
             <KV label={t("Hazards Observed")} value={data.hazards_observed} />
             <KV label={t("Stop Work Issued")} value={data.stop_work_issued} />
             <KV label={t("Corrected On Site")} value={data.corrected_on_site} />
@@ -408,7 +408,7 @@ export default function ViewInspection() {
                   testId="inspection-photos-zip"
                 />
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
                 {data.photos.map((p, i) => (
                   <PhotoLightbox
                     key={i}

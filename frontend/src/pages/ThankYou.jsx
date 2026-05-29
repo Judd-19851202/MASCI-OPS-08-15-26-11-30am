@@ -103,7 +103,7 @@ export default function ThankYou() {
             </p>
           )}
 
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <Button
               asChild
               className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide border-b-2 border-red-900"

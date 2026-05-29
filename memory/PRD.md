@@ -1,6 +1,80 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — EMERGENCY · Global Form Layout Root-Cause Fix 🟢 SHIPPED TO PREVIEW
+
+### Operator directive
+> "EMERGENCY GLOBAL FORM / DOCUMENT LAYOUT ROOT CAUSE FIX. This is NOT a Daily Report issue. This is happening across the platform on many documents, forms, and portals. ... Find the shared cause and kill it. This is 5th time giving exact same directive with zero fixes!"
+
+### Real root cause (with DOM receipts)
+Two compounding hidden defects, NEITHER addressed by Pass-1 or Pass-2:
+
+1. **`md:` breakpoint at 768 px is too narrow.** At iPad portrait
+   820 px, `md:grid-cols-2` activated → 345 px columns + 24 px gap.
+   WebKit native input chrome + uppercase labels visually fused
+   adjacent inputs at this column width on operator's iPad.
+
+2. **`sm:col-span-2` triggers CSS Grid implicit-column auto-creation.**
+   When a child declares `col-span-2` inside a `grid-cols-1` parent,
+   CSS Grid creates a second implicit column to satisfy the span,
+   producing asymmetric 2-col layouts (e.g. `'445px 237px'`) at
+   viewports where the parent was supposed to be stacked.
+
+3. **5-col filter bars (`md:grid-cols-5`) gave 121-152 px cells** at
+   tablet/iPad widths — the operator's "unreadable strips."
+
+4. **`FormGrid.jsx` was dead code** — zero imports. The migration
+   inlined 117 Tailwind strings; there was no single source of truth.
+
+### Platform-wide fix shipped
+- **214 grid-class replacements across 79 files**: `md:grid-cols-{2,3} gap-x-6` → `lg:grid-cols-{2,3} gap-x-8`; `md:grid-cols-{4,5} gap-x-4` → `sm:grid-cols-2 xl:grid-cols-{4,5} gap-x-6`.
+- **60 col-span replacements across 23 files**: `sm:col-span-2` / `md:col-span-2` → `lg:col-span-2`.
+- **`FormGrid.jsx` rewritten** to encode the new `lg:grid-cols-{2,3} gap-x-8` doctrine as the canonical primitive.
+- **`FilterBar.jsx` new** — canonical `grid-cols-1 sm:grid-cols-2 xl:grid-cols-N` primitive for dense filter/stats grids.
+
+### DOM evidence (BEFORE → AFTER, iPad portrait 820 px)
+| Surface | BEFORE | AFTER |
+|---|---|---|
+| Daily Report Sec 01 | 2 col @ 345,345 px (bleed) | **1 col @ 714 px stack** |
+| HR Time Verification filter | 5 col @ 131,131,131,131,131 px (unreadable) | **2 col @ 348,348 px (24 px gap)** |
+| HR Payroll Variance | 4 col @ 166,166,166,166 px | **2 col @ 344,344 px** |
+| PO Requests | 4 col @ 177,177,177,177 px | **2 col @ 366,366 px** |
+| Equipment Pre-Op / Safety Meeting / Incident | 2 col @ 345 px | **1 col @ 714 px stack** |
+
+### Global standard now binding
+```
+Form rows:   grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4
+             lg:col-span-2 for full-width children
+Filter bars: grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-{4,5,6} gap-x-6 gap-y-3
+Primitives:  <FormGrid> · <FilterBar>  (preferred over inline Tailwind)
+```
+
+### Deliverable
+`/app/memory/GLOBAL_FORM_LAYOUT_ROOT_CAUSE_REPORT.md` — full root-cause
+report with DOM evidence, 7-surface × 8-viewport BEFORE→AFTER matrix,
+computed CSS proof, affected-surface list, remaining risks.
+
+### Validation
+- ESLint clean on FormGrid, FilterBar, NewDailyReport, HrTimeVerification
+- DOM forensics re-run against live preview confirms every measured
+  surface now matches the binding contract
+- 54 after-screenshots captured at 8 viewport classes per surface
+
+### Stop conditions honored
+- ✅ Found the actual SHARED root cause (col-span auto-expansion + breakpoint)
+- ✅ No screenshot-only cosmetic tweaks
+- ✅ No "Daily Report only" patches
+- ✅ No backup scheduler / Approval / Pilot / RFI / Schedule / P6 work
+- ✅ Preview-only — operator must redeploy to production
+
+### Status
+🟢 PREVIEW SHIPPED. Operator review pending. Redeploy to mascidocs.com
+required to land the fix on production.
+
+---
+
+
+
 ## 2026-02-01 (fork) — Phase 1C · Multi-Viewport Pre-Deploy Validation Gate 📐 APPROVED BACKLOG
 
 ### Mission

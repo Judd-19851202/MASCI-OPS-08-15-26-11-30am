@@ -338,7 +338,7 @@ export default function NewMeeting({ publicMode = false }) {
               {t("Pick a current job to auto-fill name + number — or choose Custom Job to type your own.")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Project Name *")}
@@ -362,7 +362,7 @@ export default function NewMeeting({ publicMode = false }) {
                 data-testid="input-project-number"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   {t("Location *")}
@@ -463,7 +463,7 @@ export default function NewMeeting({ publicMode = false }) {
           {/* iter270 · Section 01 context coaching (crew/shift/weather/high-risk) */}
           <HelpTipBlock formKey="meeting.context" className="mt-6 mb-3" />
           <div
-            className="mt-2 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4"
+            className="mt-2 pt-6 border-t border-slate-200 grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4"
             data-testid="meeting-context-row"
           >
             <div>

@@ -597,7 +597,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
               {editing ? `Edit Unit · ${editing.unit_number}` : "Add a Unit to the Fleet"}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Unit Number *</Label>
               <Input
@@ -671,7 +671,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">VIN / Serial #</Label>
               <Input
                 value={form.vin_serial_number}
@@ -690,7 +690,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                 data-testid="eq-form-company"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Comments / Notes</Label>
               <Textarea
                 value={form.comments}
@@ -700,7 +700,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                 data-testid="eq-form-comments"
               />
             </div>
-            <DialogFooter className="sm:col-span-2 mt-2">
+            <DialogFooter className="lg:col-span-2 mt-2">
               <Button
                 type="button"
                 variant="outline"

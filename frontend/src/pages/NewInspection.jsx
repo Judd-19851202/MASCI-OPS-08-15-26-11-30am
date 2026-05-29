@@ -346,7 +346,7 @@ export default function NewInspection({ publicMode = false }) {
               Pick a current job to auto-fill name + number — or choose Custom Job to type your own.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Project Name *
@@ -371,7 +371,7 @@ export default function NewInspection({ publicMode = false }) {
                 data-testid="input-project-number"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   Location *
@@ -471,7 +471,7 @@ export default function NewInspection({ publicMode = false }) {
                 testId="input-foreman-name"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Crew / MASCI Personnel Onsite
               </Label>
@@ -483,7 +483,7 @@ export default function NewInspection({ publicMode = false }) {
                 data-testid="input-crew"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Subcontractors Onsite
               </Label>
@@ -495,7 +495,7 @@ export default function NewInspection({ publicMode = false }) {
                 data-testid="input-subs"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Weather Conditions
               </Label>
@@ -614,7 +614,7 @@ export default function NewInspection({ publicMode = false }) {
         <Section number="12" title={t("Safety Issues / Corrective Actions")}>
           {/* iter273 · Section 12 findings coaching · the densest surface */}
           <HelpTipBlock formKey="inspection.findings" className="mb-3" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Hazards Observed *

@@ -417,7 +417,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
           {!isTraining && (doc.photos || []).length > 0 && (
             <>
               <h2 className="font-display text-lg font-black text-slate-900 mt-6 mb-2">{t("Photos")}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
                 {(doc.photos || []).map((p, i) => (
                   <img key={i} src={resolvePhotoSrc(p)} alt="" className="w-full h-32 object-cover rounded border border-slate-200" />
                 ))}

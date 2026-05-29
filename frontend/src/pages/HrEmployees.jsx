@@ -139,7 +139,7 @@ export default function HrEmployees() {
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         <HelpTipBlock formKey="employee-lifecycle" showCounter />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-6">
           <SummaryTile label="Actively Employed" value={counts.active} icon={UserCheck} accent="emerald" />
           <SummaryTile label="Inactive / Off-roll" value={counts.inactive} icon={UserMinus} accent="slate" />
           <SummaryTile label="Total in View" value={items.length} icon={Users} accent="blue" />

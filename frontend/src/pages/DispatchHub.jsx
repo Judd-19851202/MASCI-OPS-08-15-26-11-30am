@@ -233,7 +233,7 @@ export default function DispatchHub() {
               {t("All hauls are flowing. Nothing requires dispatch attention right now.")}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4" data-testid="ds-attention-cards">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4" data-testid="ds-attention-cards">
               <AttentionCard
                 testId="ds-attention-breakdown"
                 icon={Wrench}
@@ -443,7 +443,7 @@ export default function DispatchHub() {
           title={t("Guides & Coaching")}
           subtitle={t("Use these when a dispatcher or truck boss is unsure what a state means.")}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" data-testid="ds-guides-grid">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4" data-testid="ds-guides-grid">
             <GuideTile
               testId="ds-guide-dispatch-owns"
               title={t("What dispatch owns")}

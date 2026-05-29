@@ -249,7 +249,7 @@ export default function HrHub() {
                   <span className="hidden sm:inline-block h-px flex-1 bg-slate-200" aria-hidden="true" />
                   <span className="text-xs text-slate-500 italic">{t(group.sub)}</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
                   {group.tiles.map((tileKey) => {
                     const tile = TILE_DEFS[tileKey];
                     const badge = tile.badgeKey ? stats[tile.badgeKey] : 0;
@@ -292,7 +292,7 @@ export default function HrHub() {
             visually (after the section divider above) to keep it from
             competing with the operational HR sections. Empty until
             Motive credentials land or Admin flips Demo mode. */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4 mt-6" data-testid="hr-integrations-strip">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 mt-6" data-testid="hr-integrations-strip">
           <IntegrationHealthCard
             tokenHeader={{ "X-HR-Token": getHrToken() || "" }}
             accent="purple"

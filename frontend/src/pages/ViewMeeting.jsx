@@ -56,7 +56,7 @@ const ReportSection = ({ number, title, children }) => (
 );
 
 const KV = ({ label, value, full = false }) => (
-  <div className={full ? "sm:col-span-2" : ""}>
+  <div className={full ? "lg:col-span-2" : ""}>
     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
       {label}
     </div>
@@ -215,10 +215,10 @@ export default function ViewMeeting() {
         </div>
 
         <ReportSection number="01" title={t("Meeting Information")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <KV label={t("Project Name")} value={data.project_name} />
             <KV label={t("Project Number")} value={data.project_number} />
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                 {t("Location")}
               </div>
@@ -269,7 +269,7 @@ export default function ViewMeeting() {
               />
             )}
             {data.high_risk_activity && (
-              <div className="sm:col-span-2">
+              <div className="lg:col-span-2">
                 <div
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-300 text-red-800 font-mono text-xs uppercase tracking-[0.2em] font-bold"
                   data-testid="high-risk-flag"
@@ -299,7 +299,7 @@ export default function ViewMeeting() {
                 return <KV label={labelText} value={data.discussion_notes} full />;
               }
               return (
-                <div className="sm:col-span-2" data-testid="record-discussion-block">
+                <div className="lg:col-span-2" data-testid="record-discussion-block">
                   <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
                     {labelText}
                   </div>
@@ -336,7 +336,7 @@ export default function ViewMeeting() {
           ) : (
             <>
               <BilingualConsent variant="meeting" />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 mt-3">
                 {(data.attendees || []).map((a, i) => (
                   <div
                     key={i}
@@ -370,7 +370,7 @@ export default function ViewMeeting() {
                 testId="meeting-photos-zip"
               />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
               {data.photos.map((p, i) => (
                 <PhotoLightbox
                   key={i}

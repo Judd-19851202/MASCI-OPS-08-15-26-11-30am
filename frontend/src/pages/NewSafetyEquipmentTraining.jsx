@@ -259,7 +259,7 @@ export default function NewSafetyEquipmentTraining() {
                     data-testid={`trn-item-${idx}`}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
-                      <div className="sm:col-span-3">
+                      <div className="lg:col-span-3">
                         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold mb-1 block">
                           {t("Equipment")}
                         </Label>
@@ -273,7 +273,7 @@ export default function NewSafetyEquipmentTraining() {
                         />
                       </div>
                       {isOther && (
-                        <div className="sm:col-span-3">
+                        <div className="lg:col-span-3">
                           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold mb-1 block">
                             {t("Specify Other")}
                           </Label>
@@ -285,7 +285,7 @@ export default function NewSafetyEquipmentTraining() {
                           />
                         </div>
                       )}
-                      <div className={isOther ? "sm:col-span-3" : "sm:col-span-4"}>
+                      <div className={isOther ? "lg:col-span-3" : "sm:col-span-4"}>
                         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold mb-1 block">
                           {t("Description")}
                         </Label>
@@ -296,7 +296,7 @@ export default function NewSafetyEquipmentTraining() {
                           data-testid={`trn-item-${idx}-desc`}
                         />
                       </div>
-                      <div className="sm:col-span-3">
+                      <div className="lg:col-span-3">
                         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold mb-1 block">
                           {t("Training Type")}
                         </Label>
@@ -311,7 +311,7 @@ export default function NewSafetyEquipmentTraining() {
                           ))}
                         </select>
                       </div>
-                      <div className={isOther ? "sm:col-span-12 sm:col-start-1" : "sm:col-span-2"}>
+                      <div className={isOther ? "sm:col-span-12 sm:col-start-1" : "lg:col-span-2"}>
                         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold mb-1 block">
                           {t("Mfr / Model")}
                         </Label>
@@ -364,7 +364,7 @@ export default function NewSafetyEquipmentTraining() {
           </Section>
 
           <Section title={t("Topics Covered")} desc={t("Select every topic discussed during training.")}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
               {TRAINING_TOPICS.map((tp) => {
                 const checked = data.topics.includes(tp.key);
                 return (
@@ -489,7 +489,7 @@ function Section({ title, children, desc }) {
 }
 
 function Row({ children }) {
-  return <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">{children}</div>;
+  return <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">{children}</div>;
 }
 
 function Field({ label, children, required }) {

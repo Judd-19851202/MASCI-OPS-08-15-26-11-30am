@@ -238,7 +238,7 @@ export default function TrenchBoxesAdmin() {
               <DialogTitle className="font-display font-black">{editingId ? "Edit Trench Box" : "Add Trench Box"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
                 <F k="manufacturer" label="Manufacturer *" ph="e.g. Speed Shore" />
                 <F k="model" label="Model *" ph="e.g. SLD-8x16" />
                 <F k="serial_number" label="Serial #" />
@@ -279,7 +279,7 @@ export default function TrenchBoxesAdmin() {
 
               <div className="border-t-2 border-slate-100 pt-3">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold mb-2">Maximum Allowable Depth (ft) — OSHA 1926.652</div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
                   <F k="max_depth_type_a_ft" label="Type A" type="number" />
                   <F k="max_depth_type_b_ft" label="Type B" type="number" />
                   <F k="max_depth_type_c_60_ft" label="Type C-60" type="number" />

@@ -135,7 +135,7 @@ export default function AdminAnalytics() {
       )}
 
       {/* ── KPI row ──────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-5" data-testid="analytics-kpis">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-5" data-testid="analytics-kpis">
         <KpiCard label="Events" value={totalEvents.toLocaleString()} hint={`${WINDOW_OPTIONS.find((w) => w.value === window)?.label}`} />
         <KpiCard label="Error rate" value={`${errorRate}%`} hint={`${totalErrors} errors`} tone={errorRate > 5 ? "warn" : "ok"} />
         <KpiCard label="Top route count" value={(routes[0]?.count || 0).toLocaleString()} hint={routes[0]?.route?.slice(0, 28) || "—"} />
@@ -191,7 +191,7 @@ export default function AdminAnalytics() {
         {portals.length === 0 ? (
           <EmptyMini text="No portal events yet" />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3" data-testid="analytics-portals">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3" data-testid="analytics-portals">
             {portals.map((p) => (
               <div key={p.portal} className={`border-2 rounded-md p-3 ${PORTAL_TINT[p.portal] || PORTAL_TINT.public}`} data-testid={`analytics-portal-${p.portal}`}>
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">{p.portal}</div>

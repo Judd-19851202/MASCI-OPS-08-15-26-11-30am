@@ -549,7 +549,7 @@ const OrderCart = ({ cart, unit, removeFromCart, updateCartQty, requestedByDefau
             </table>
           </div>
 
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 border-t-2 border-slate-100">
+          <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 border-t-2 border-slate-100">
             <Input
               value={requestedBy}
               onChange={(e) => setRequestedBy(e.target.value)}
@@ -573,10 +573,10 @@ const OrderCart = ({ cart, unit, removeFromCart, updateCartQty, requestedByDefau
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t("Additional notes (e.g. needed by Friday for PM service)")}
               rows={2}
-              className="sm:col-span-2"
+              className="lg:col-span-2"
               data-testid="parts-order-notes"
             />
-            <div className="sm:col-span-2 flex justify-end">
+            <div className="lg:col-span-2 flex justify-end">
               <Button
                 onClick={sendOrder}
                 disabled={sending}
