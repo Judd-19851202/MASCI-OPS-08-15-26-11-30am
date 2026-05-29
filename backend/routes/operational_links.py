@@ -61,6 +61,17 @@ ARTIFACT_TYPES = {
     "qa_qc_record",
     "trench_record",
     "jha_record",
+    # ── Phase V.1 ODR substrate (registered M0.1 · 2026-05-29) ──
+    "odr",                     # the ODR record itself
+    "odr_section_event",       # append-only field-level transition
+    "odr_amendment",           # Super+ amendment row (post 24h window)
+    "odr_attachment",          # delivery/haul/CEI/FAA/etc. ticket
+    "odr_translation_event",   # bilingual normalization audit
+    "odr_preload_attempt",     # public-link continuity gate evaluation
+    "production_segment",      # one operation within an ODR
+    "work_area",               # geographic sub-area of a project
+    "material_event",          # material delivery / consumption / waste
+    "safety_event",            # one safety event within an ODR safety block
 }
 
 # Canonical relationship directions (storage layer). Inverse views

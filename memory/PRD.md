@@ -1,6 +1,99 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.1 · ODR Substrate · M0.0 + M0.1 COMPLETE 🟢
+
+### Mission
+Operator authorized Specification Lock + M0 implementation with two
+preconditions:
+1. M0.0 hygiene closure (W1/W2/W3) before substrate writes.
+2. M0.1 substrate must inherit FIELD_LEADERSHIP_VISIBILITY_DOCTRINE,
+   OPERATIONAL_LINKING_RULES, TIMELINE_DOCTRINE,
+   ODR_COACHING_GUIDANCE_ADDENDUM, ROLE_AWARE_VISIBILITY_MODEL —
+   day one. Build correctly once. No schema rewrites later.
+
+### M0.0 — Hygiene closure (CLOSED)
+- W1 (master-binding gaps in PROD) — documented as operator-owned;
+  ODR substrate writes to new collections, no dependency on backfill.
+- W2 (preview test artifacts) — **94 rows deleted** across 8 collections
+  with 10-email seed whitelist preserved. Receipt:
+  `M0_0_PREVIEW_CONTAMINATION_CLEANUP_*.json`.
+- W3 (OBSERVATION_LEDGER seed-only) — appended real M0.0 closure entry;
+  ledger now operationally meaningful (2 entries).
+- Closure doc: `/app/memory/M0_0_HYGIENE_CLOSURE_REPORT.md`.
+
+### M0.1 — ODR substrate (LIVE)
+**Package** — `/app/backend/routes/odr/` (5 modules · 0 lint issues):
+- `enums.py` — 23 closed enums (CrewType · DelayType · ConstraintType · PhotoTag · …)
+- `models.py` — full Pydantic envelope (schema_version=2 · D1–D8 + Continuity + Final Governance + Coaching)
+- `visibility.py` — FLL-1..FLL-6 projector + field projection
+- `indexes.py` — 8 collections · 25 indexes
+- `routes.py` — POST/GET/PATCH/SUBMIT/SECTION-EVENT
+
+**Collections (8)** — `odr · odr_section_events · odr_photos · odr_attachments · odr_amendments · odr_translation_events · odr_preload_attempts · odr_consumer_index`.
+
+**API surface** — `/api/odr` (CRUD) + `/api/odr/{id}/submit` (readiness · timeline emission) + `/api/odr/{id}/section-event` (append-only audit) + `/api/odr/{id}/section-events` (audit-trail read).
+
+**operational_links** — 10 new artifact_types registered (`odr`, `odr_section_event`, `odr_amendment`, `odr_attachment`, `odr_translation_event`, `odr_preload_attempt`, `production_segment`, `work_area`, `material_event`, `safety_event`). Future RFI + Schedule slots remain reserved.
+
+### Day-one capability matrix (all 🟢)
+| Capability | Verified by |
+|---|---|
+| Chronology participation | `operational_links` row emitted on submit · timeline query confirms |
+| Audit participation | `odr_section_events` row per create / patch / submit |
+| operational_links compatibility | 10 new artifact_types live |
+| Role-aware visibility | FLL-1..FLL-6 projector live · admin sees FLL-6/SUMMARY |
+| Coaching compatibility | `CoachingPrompt` w/ `prompt_key` (OGC-resolvable) |
+| Future RFI linkage | `future_rfi` artifact slot + `ExtraWorkEntry.rfi_link_id` field |
+| Future Schedule linkage | `future_schedule_activity` + `future_schedule_import` slots |
+
+### Hard stops (O9 + O31)
+- Safety any_event=True → submission refused without
+  `notified_safety` + `incident_report_complete` per event.
+- Submission refused without `signature.foreman_acknowledgement.acknowledged`.
+- 24-hour `amend_allowed_until_utc` stamped on submit.
+
+### Tests · 🟢 39/39 PASS
+- `tests/odr/test_odr_substrate.py` — **12/12** PASS (substrate-day-one battery).
+- `tests/test_v_prelude_wave1_substrate.py` + `tests/test_v_prelude_wave1_1_sidecar.py` — **27/27** PASS (no regression).
+
+### Doctrine compliance
+- ✅ Mongo `_id` never leaks.
+- ✅ TRUST-TIME-1 — every timestamp Z-suffixed UTC ISO.
+- ✅ Hard DELETE forbidden — status flips only.
+- ✅ Append-only events / amendments / translations / preload attempts.
+- ✅ No auth changes · existing `_require_any_portal_token` reused.
+- ✅ Ruff lint clean.
+- ✅ Preview-only · no production deploy.
+
+### Out of scope for M0.1 (deferred to M0.2+)
+- Public-link continuity engine + override flows.
+- Amendment route (post-24h window · Super+).
+- PDF rendering (5-page + appendix · 5 audience variants).
+- Per-consumer projector materialized views (12 consumers).
+- Frontend `/odr/new`, dashboards, FL ODR Center.
+- Migration from `daily_reports` (M1).
+- Guidance catalog seed (12 sections × CrewType × EN/ES) — required before pilot wave M0 ships.
+
+### Files shipped this session
+- NEW: `/app/backend/routes/odr/{__init__.py,enums.py,models.py,visibility.py,indexes.py,routes.py}`
+- MOD: `/app/backend/routes/operational_links.py` (10 new artifact_types)
+- MOD: `/app/backend/server.py` (router wiring + index ensure)
+- NEW: `/app/backend/tests/odr/test_odr_substrate.py`
+- NEW: `/app/memory/M0_0_HYGIENE_CLOSURE_REPORT.md`
+- NEW: `/app/memory/M0_0_PREVIEW_CONTAMINATION_CLEANUP_*.json`
+- NEW: `/app/memory/ODR_M0_1_SUBSTRATE_CERTIFICATION.md`
+- MOD: `/app/memory/OBSERVATION_LEDGER.json` (2nd entry)
+
+### Status
+🟢 **ODR SPECIFICATION LOCKED · M0.0 CLOSED · M0.1 LIVE.** Substrate
+ready to support M0.2 (public-link continuity + amendments + PDF),
+M0.3 (frontend), and M1 (migration). Build-correctly-once contract
+honored — no schema rewrites later.
+
+---
+
+
 ## 2026-05-28 (fork) — Phase V-PRELUDE · Operational Intelligence Hardening 🔵 PLANNING
 
 ### Mission

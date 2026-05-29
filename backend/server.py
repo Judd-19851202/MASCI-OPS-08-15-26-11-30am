@@ -8486,9 +8486,11 @@ async def _ensure_v_prelude_wave1_indexes():
         from routes.operational_links import ensure_operational_links_indexes  # noqa: PLC0415
         from routes.operational_constraints import ensure_operational_constraints_indexes  # noqa: PLC0415
         from routes.photo_governance import ensure_photo_governance_indexes  # noqa: PLC0415
+        from routes.odr import ensure_odr_indexes  # noqa: PLC0415
         await ensure_operational_links_indexes(db)
         await ensure_operational_constraints_indexes(db)
         await ensure_photo_governance_indexes(db)
+        await ensure_odr_indexes(db)
     except Exception as e:  # noqa: BLE001
         logging.getLogger(__name__).warning(
             "V-Prelude Wave 1 index ensure failed: %s", e
@@ -8912,6 +8914,9 @@ from routes.operational_timeline import (  # noqa: E402
 from routes.photo_governance import (  # noqa: E402
     build_photo_governance_router, ensure_photo_governance_indexes,
 )
+from routes.odr import (  # noqa: E402
+    build_odr_router, ensure_odr_indexes,
+)
 
 app.include_router(build_operational_links_router(
     db, _require_any_portal_token, require_admin,
@@ -8923,6 +8928,13 @@ app.include_router(build_operational_timeline_router(
     db, _require_any_portal_token,
 ))
 app.include_router(build_photo_governance_router(
+    db, _require_any_portal_token,
+))
+# Phase V.1 · ODR substrate (M0.1) — inherits FL Visibility Doctrine,
+# Operational Linking Rules, Timeline doctrine, Coaching addendum,
+# Role-Aware Visibility Model. Schema-version 2 at launch · build
+# the substrate correctly once.
+app.include_router(build_odr_router(
     db, _require_any_portal_token,
 ))
 
