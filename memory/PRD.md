@@ -1,6 +1,83 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.1 · ODR M0.3 · OPERATOR ADOPTION SURFACES LIVE 🟢
+
+### Mission
+Following M0.2 + M0.2A acceptance with **4 decision locks**
+(OGC tone, external PDF redaction, amendment authority, public-link
+authority), the operator authorized M0.3 — the **operator adoption
+wave**: foreman entry · FL command center · PM consumption panel ·
+public viewer.
+
+### Locked decisions (codified · no further review)
+- **OGC tone**: teach, don't judge · superintendent mentor voice · no AI runtime coaching · no punitive language.
+- **External PDF redaction**: external audience receives facts/photos/production/conditions/signatures/attachments ONLY · NEVER coaching/readiness/internal comments/chronology notes/risk scoring/future planning.
+- **Amendment authority matrix**: Foreman 0–24h · Super+ 24h+ · PM 24h+ (project ownership) · Admin always.
+- **Public link mint authority**: Superintendent · Senior Super · PM · Operations Leadership · Admin (Foreman / Crew Lead refused).
+
+### What shipped (frontend + observation backend)
+1. **Foreman ODR Entry** `/odr/new` — phone-first, bilingual EN/ES toggle, 9-step progressive disclosure, crew-aware coaching from OGC catalog, readiness preview, calm hard-stop surface, autosave-ready via PATCH, telemetry-instrumented, post-submit confirmation route.
+2. **FL ODR Command Center** `/odr/center` — 7 calm tabs (Needs Attention / Recently Submitted / Recently Amended / Ready for Review / Constraint-Linked / Chronology / Readiness Signals), role-aware scope inherited from server projector (FLL-1..FLL-6), one-line rows, no dashboard sludge.
+3. **PM Consumption Panel** `/pm/odr` — 5 calm metrics (Submitted 7d · Open Delays · Hours Lost · Extra Work · Safety Events), per-row PDF (audience=pm), read-only consumer lens, no per-foreman attribution.
+4. **Public ODR Viewer** `/odr/public/:doc_id` — no-auth, continuity-gated, redaction-compliant view for DOT/FAA/CEI/Owners, mobile + printable, NO internal data leakage.
+5. **ODR Detail** `/odr/:id` — substrate read view · 5 audience PDF buttons · amendment chain.
+6. **Trust Banner** — one calm line ("Operational Record · Audit history protected · Amendments tracked") · neutral palette · dismissible per session · embedded on every ODR surface.
+7. **Adoption Observation backend** `/api/odr/observation/{event,summary}` — closed-enum kind/surface set · aggregate-only summary · NEVER per-foreman · admin-only summary.
+
+### New backend modules
+- `routes/odr/observation.py` — telemetry router with closed-enum guards.
+- New collection `odr_observation_events` (append-only).
+
+### New frontend modules
+- `lib/odrApi.js` — thin client (substrate + amendments + continuity + guidance + observation + PDF URL helper).
+- `components/odr/OdrTrustBanner.jsx` — calm single-line trust banner.
+- `pages/odr/OdrNew.jsx` · `OdrCenter.jsx` · `OdrPmPanel.jsx` · `OdrPublicViewer.jsx` · `OdrDone.jsx` · `OdrDetail.jsx`.
+- `App.js` wires 6 new routes.
+
+### Tests & probes
+| Suite | Result |
+|---|---|
+| `tests/odr/test_odr_substrate.py` (M0.1 regression) | 🟢 12/12 |
+| `tests/odr/test_odr_m02.py` (M0.2 + M0.2A regression) | 🟢 24/24 |
+| `tests/odr/test_odr_m03.py` (NEW M0.3) | 🟢 9/9 |
+| Wave 1 substrate + 1.1 sidecar regression | 🟢 27/27 |
+| `scripts/odr_public_link_continuity_probe.py --gate` | 🟢 0 failures · 21 ODRs / 11 links / 34 attempts |
+| `scripts/odr_bilingual_probe.py --gate` | 🟢 0 failures · 14 keys · ES+EN floors met |
+| `ruff check backend/routes/odr/` | 🟢 clean |
+| `eslint frontend/src/{pages/odr,lib/odrApi,components/odr}` | 🟢 clean |
+| Browser smoke | 🟢 `/odr/new` renders · `/odr/public/...` renders cleanly with all sections |
+
+**Total: 72 tests + 2 probes + lint · 0 failures · 0 regression.**
+
+### Doctrine artifacts shipped (7 docs)
+- `M0_3_FOREMAN_ENTRY_CERTIFICATION.md`
+- `M0_3_FL_CENTER_CERTIFICATION.md`
+- `M0_3_PM_PANEL_CERTIFICATION.md`
+- `M0_3_PUBLIC_VIEWER_CERTIFICATION.md`
+- `ODR_TRUST_BANNER_DOCTRINE.md`
+- `ODR_ADOPTION_OBSERVATION_PLAN.md`
+- `M0_3_OPERATOR_REVIEW_GUIDE.md` ⛔ start here for review
+
+### Inheritance preserved (50 ODR doctrines + new)
+- FIELD_LEADERSHIP_VISIBILITY_DOCTRINE — server projector inherited, FE displays verb + scope filter NEVER bypassed.
+- OPERATIONAL_LINKING_RULES — M0.1 substrate-day-one carried.
+- TIMELINE_DOCTRINE — M0.1 carried; FL Center surfaces chronology.
+- ODR_COACHING_GUIDANCE_ADDENDUM — OGC catalog is the single source · resolved per-step in foreman entry.
+- ROLE_AWARE_VISIBILITY_MODEL — applied to PDF audience gating, public viewer redaction, PM panel field projection, FL Center scope filter.
+
+### Stop condition acknowledged
+🛑 **HALTED at end of M0.3 as directed.** No M1 migration. No dual-write. No pilot rollout. NO RFI. NO Schedule. NO P6.
+
+Operator review pending against the **4 approval items** in `M0_3_OPERATOR_REVIEW_GUIDE.md`:
+1. Foreman entry tone (read each step's EN copy)
+2. Public viewer redaction (open it as if you were FDOT)
+3. PM panel 5-metric selection
+4. Trust banner copy
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.1 · ODR M0.2 + M0.2A · ENGINES + PROBES LIVE 🟢
 
 ### Mission

@@ -184,9 +184,16 @@ Halted at end of M0.2A pending operator review (per directive).
 | `ODR_BILINGUAL_PROBE_REPORT.md` | Probe auto-generated report (refreshed on every run) | ✅ auto-gen |
 | `ODR_BILINGUAL_PROBE_REPORT_DOCTRINE.md` | Operator playbook for the bilingual probe | ✅ |
 | `M0_2A_OPERATOR_REVIEW_GUIDE.md` | **Pre-pilot review checklist · STOP point** | ✅ ⛔ |
+| `M0_3_FOREMAN_ENTRY_CERTIFICATION.md` | M0.3 foreman entry surface (phone-first, bilingual, 9-step) | ✅ 🟢 |
+| `M0_3_FL_CENTER_CERTIFICATION.md` | M0.3 FL ODR Command Center (7 calm tabs, role-aware) | ✅ 🟢 |
+| `M0_3_PM_PANEL_CERTIFICATION.md` | M0.3 PM consumption panel (5-metric read-only lens) | ✅ 🟢 |
+| `M0_3_PUBLIC_VIEWER_CERTIFICATION.md` | M0.3 public viewer (DOT/FAA/CEI-safe) | ✅ 🟢 |
+| `ODR_TRUST_BANNER_DOCTRINE.md` | Calm "Operational Record · Audit history protected · Amendments tracked" line | ✅ 🟢 |
+| `ODR_ADOPTION_OBSERVATION_PLAN.md` | Aggregate-only adoption telemetry doctrine (NEVER scoring) | ✅ 🟢 |
+| `M0_3_OPERATOR_REVIEW_GUIDE.md` | **M0.3 review checklist · STOP point** | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
-| _(Future)_ `odr_doctrine_probe.py` | shape + enum + audit-envelope probe (planned for M0.3+) | 🟡 |
+| _(Future)_ `odr_doctrine_probe.py` | shape + enum + audit-envelope probe (planned for M1+) | 🟡 |
 
 ## 5 · Route Decomposition / Backend Architecture
 

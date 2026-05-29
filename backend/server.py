@@ -8486,12 +8486,13 @@ async def _ensure_v_prelude_wave1_indexes():
         from routes.operational_links import ensure_operational_links_indexes  # noqa: PLC0415
         from routes.operational_constraints import ensure_operational_constraints_indexes  # noqa: PLC0415
         from routes.photo_governance import ensure_photo_governance_indexes  # noqa: PLC0415
-        from routes.odr import ensure_odr_indexes, ensure_continuity_indexes  # noqa: PLC0415
+        from routes.odr import ensure_odr_indexes, ensure_continuity_indexes, ensure_observation_indexes  # noqa: PLC0415
         await ensure_operational_links_indexes(db)
         await ensure_operational_constraints_indexes(db)
         await ensure_photo_governance_indexes(db)
         await ensure_odr_indexes(db)
         await ensure_continuity_indexes(db)
+        await ensure_observation_indexes(db)
     except Exception as e:  # noqa: BLE001
         logging.getLogger(__name__).warning(
             "V-Prelude Wave 1 index ensure failed: %s", e
@@ -8925,6 +8926,7 @@ from routes.odr import (  # noqa: E402
     build_odr_amendments_router,
     build_odr_pdf_router,
     build_odr_guidance_router,
+    build_odr_observation_router, ensure_observation_indexes,
 )
 
 app.include_router(build_operational_links_router(
@@ -8961,6 +8963,10 @@ app.include_router(build_odr_pdf_router(
 ))
 app.include_router(build_odr_guidance_router(
     _require_any_portal_token,
+))
+# Phase V.1 · M0.3 · ODR Adoption Observation (telemetry · aggregates only).
+app.include_router(build_odr_observation_router(
+    db, _require_any_portal_token, require_admin,
 ))
 
 

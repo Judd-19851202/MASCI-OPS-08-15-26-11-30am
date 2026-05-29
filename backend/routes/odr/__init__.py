@@ -54,6 +54,9 @@ from .continuity import build_odr_continuity_router, ensure_continuity_indexes
 from .amendments import build_odr_amendments_router
 from .pdf import build_odr_pdf_router
 from .guidance_routes import build_odr_guidance_router
+from .observation import (
+    build_odr_observation_router, ensure_observation_indexes,
+)
 
 __all__ = [
     "build_odr_router",
@@ -63,4 +66,6 @@ __all__ = [
     "build_odr_amendments_router",
     "build_odr_pdf_router",
     "build_odr_guidance_router",
+    "build_odr_observation_router",
+    "ensure_observation_indexes",
 ]

@@ -4,6 +4,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 // AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
+import OdrNew from "@/pages/odr/OdrNew";
+import OdrCenter from "@/pages/odr/OdrCenter";
+import OdrPmPanel from "@/pages/odr/OdrPmPanel";
+import OdrPublicViewer from "@/pages/odr/OdrPublicViewer";
+import OdrDone from "@/pages/odr/OdrDone";
+import OdrDetail from "@/pages/odr/OdrDetail";
 import DriverMagicLanding from "@/pages/driver/DriverMagicLanding";
 import DriverShift from "@/pages/driver/DriverShift";
 import ShiftStart from "@/pages/driver/ShiftStart";
@@ -719,6 +725,14 @@ function App() {
             {/* iter401 · Phase 12.8 · Driver self-start operational entry */}
             <Route path="/shift" element={<ShiftStart />} />
             <Route path="/field-leadership" element={<Navigate to="/leadership" replace />} />
+            {/* Phase V.1 · M0.3 · ODR surfaces. Public viewer is intentionally
+                no-auth — the continuity engine gates access by doc_id + link_id. */}
+            <Route path="/odr/new" element={<OdrNew />} />
+            <Route path="/odr/center" element={<OdrCenter />} />
+            <Route path="/pm/odr" element={<OdrPmPanel />} />
+            <Route path="/odr/public/:doc_id" element={<OdrPublicViewer />} />
+            <Route path="/odr/:id/done" element={<OdrDone />} />
+            <Route path="/odr/:id" element={<OdrDetail />} />
             {/* Catch-all — any path that doesn't match an explicit route
                 renders the 404 NotFound page (Iter181). Previously such
                 URLs rendered only the global navbar + footer with an
