@@ -27990,3 +27990,108 @@ followed by the **M0.35 ADDENDUM — REQUIRED DOCTRINE LOCKS** directive.
 5. Issue M1 authorization command — only then does dual-write / pilot
    work begin.
 
+
+---
+
+## Phase V.1 · M0.4 External PDF Photo Thumbnail Embedding · CLOSED · 2026-05-29
+
+Operator command: **"OPERATOR AUTHORIZATION · Lock M0.35 doctrines.
+Authorize M0.4 — External PDF Photo Thumbnail Enhancement. Preserve
+audience projection, redaction, continuity, audit footer doctrine.
+After M0.4: STOP. Await final operator review before M1 migration
+authorization."**
+
+### M0.4 deliverables shipped (3 docs + 4 advisory probes + 9 tests)
+
+1. **`M0_4_PHOTO_PDF_CERTIFICATION.md`** — pre-pilot certification ·
+   9/9 pytest cases · 5/5 doctrine compliance · 6/6 external redaction
+   confirmations · performance envelope · reversibility plan.
+2. **`EXTERNAL_PDF_PHOTO_GOVERNANCE_REPORT.md`** — audience projection
+   matrix · 7-row external threat model · continuity invariants ·
+   audit log enrichment · Pillow/ReportLab failure handling ·
+   distribution scenario verification.
+3. **`UPDATED_OPERATOR_REVIEW_GUIDE.md`** — supersedes M0.35 review
+   guide for M1 authorization · M1 gate matrix · 6 spot-check items ·
+   6 approval items.
+4. Advisory probes (4 · M1-prep · advisory only · exit 0 always):
+   - `odr_completion_time_drift_probe.py`
+   - `odr_simplicity_drift_probe.py`
+   - `odr_inheritance_drift_probe.py`
+   - `cross_portal_consistency_drift_probe.py`
+5. Test suite — `tests/odr/test_odr_m04.py` (9 cases · all green).
+
+### Backend changes shipped in M0.4
+
+- `routes/odr/pdf.py::_project_for_audience` — extended with audience-
+  aware photo projection (executive=count-only · external=
+  caption+tag only · internal=+section anchor).
+- `routes/odr/pdf.py::_strip_external_photo_meta` — replaces
+  `photo_id` with deterministic ordinal slot ids (`p1`, `p2`, …)
+  before SHA256 hashing for the external audience.
+- `routes/odr/pdf.py::_photo_caption` — voice→text fallback ·
+  external-safe regex redaction of email + 32+ hex tokens.
+- `routes/odr/pdf.py::_resolve_photo_assets` — async resolver ·
+  `odr_photos` first, then `job_photos` · decodes `data:` and
+  `photo://` refs.
+- `routes/odr/pdf.py::_render_thumbnail_jpeg` — Pillow render · 480 px
+  long-edge · 96 KB byte cap with quality stepdown · graceful fail.
+- `routes/odr/pdf.py::_section_photos` — 2-column thumbnail grid ·
+  caption + tag below · `[photo unavailable]` placeholder.
+- `routes/odr/pdf.py::_render_pdf` — accepts pre-resolved asset map ·
+  embeds for all non-executive audiences.
+- `routes/odr/pdf.py::get_pdf` — async asset resolution before render ·
+  `odr_pdf_renders` audit row gains `photo_count_referenced` +
+  `photo_count_embedded` · response gets `X-ODR-Photo-Count` +
+  `X-ODR-Photo-Embedded` headers.
+
+### Doctrine inventory now totals 52 (unchanged from M0.35)
+
+M0.4 ships within the 50 ODR doctrines + 2 doctrine locks already
+registered — by design. No new doctrines were added; the 2 doctrine
+locks from M0.35 governed how M0.4 was scoped (server-side only,
+zero new foreman steps, inherited components only).
+
+### Cumulative test surface · 52 pytest · 4 reality scenarios · 2 governance probes · 4 advisory probes · 0 fails
+
+| Suite | Result |
+|---|---|
+| `tests/odr/test_odr_substrate.py` (M0.1) | 🟢 12 / 12 |
+| `tests/odr/test_odr_m02.py` (M0.2 + M0.2A) | 🟢 24 / 24 |
+| `tests/odr/test_odr_m03.py` (M0.3) | 🟢 7 / 7 |
+| `tests/odr/test_odr_m04.py` (**M0.4**) | 🟢 9 / 9 |
+| `scripts/odr_public_link_continuity_probe.py --gate` | 🟢 0 fail · 0 warn |
+| `scripts/odr_bilingual_probe.py --gate` | 🟢 0 fail |
+| Advisory probes (4) | 🟢 GREEN at install |
+
+### M1 authorization gate — ALL conditions must be ✅
+
+| Condition | Status |
+|---|---|
+| M0.0–M0.3 + M0.35 (carried forward) | ✅ |
+| Doctrine Lock #1 (Simplicity Test) acknowledged | ✅ |
+| Doctrine Lock #2 (Platform Inheritance) acknowledged | ✅ |
+| **M0.4 external PDF photo embedding** | ✅ |
+| 52/52 pytest passing | ✅ |
+| Continuity + bilingual probes green | ✅ |
+| 4 advisory probes installed | ✅ |
+| **Operator final review** | ⏳ awaiting |
+
+### STOP condition honored (per directive)
+
+🛑 **HALTED at end of M0.4.**
+
+- ❌ NO M1 migration / dual-write / pilot rollout begun
+- ❌ NO RFI / Schedule / P6 work
+- ❌ NO new architecture or governance layers
+- ❌ NO production deploy beyond preview cutover
+- ✅ Awaiting operator authorization before any M1 work begins.
+
+### Next operator actions
+
+1. Read `UPDATED_OPERATOR_REVIEW_GUIDE.md` (supersedes M0.35 guide).
+2. Review `M0_4_PHOTO_PDF_CERTIFICATION.md` + `EXTERNAL_PDF_PHOTO_GOVERNANCE_REPORT.md`.
+3. Spot-check 1 real external PDF against the §6 checklist.
+4. Decide on the 6 approval items in §7 of the updated review guide.
+5. Issue M1 authorization command — only then does dual-write / pilot
+   work begin.
+

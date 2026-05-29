@@ -150,16 +150,18 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
 | `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
 
-## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.0 → M0.35 LIVE · 2026-05-29)
+## 4.A · Phase V.1 · Operational Daily Record (ODR) Architecture (M0.0 → M0.4 LIVE · 2026-05-29)
 
-ODR substrate is LIVE in preview through M0.35. M0.0 hygiene closed.
-M0.1 substrate sealed (no schema rewrites later). M0.2 + M0.2A engines
-+ probes live. M0.3 operator surfaces (Foreman / FL Center / PM Panel /
-Public Viewer) live. M0.35 reality validation complete · 2 permanent
-doctrine locks registered. **HALTED at end of M0.35 pending operator
-review (per directive). M1 migration / dual-write / pilot may NOT begin
-until operator acknowledges Doctrine Lock #1, Doctrine Lock #2, and the
-5 approval items in `M0_35_OPERATOR_REVIEW_GUIDE.md` §7.**
+ODR substrate is LIVE in preview through M0.4. M0.0 hygiene closed.
+M0.1 substrate sealed. M0.2 + M0.2A engines + probes live. M0.3
+operator surfaces (Foreman / FL Center / PM Panel / Public Viewer)
+live. M0.35 reality validation complete · 2 permanent doctrine locks
+registered. **M0.4 external PDF photo thumbnail embedding shipped ·
+audience-projected · continuity-stable.** **HALTED at end of M0.4
+pending operator review (per directive). M1 migration / dual-write /
+pilot may NOT begin until operator acknowledges Doctrine Locks #1+#2,
+M0.4 photo governance, and the approval items in
+`UPDATED_OPERATOR_REVIEW_GUIDE.md` §7.**
 
 | File | Purpose | Status |
 |---|---|---|
@@ -204,9 +206,16 @@ until operator acknowledges Doctrine Lock #1, Doctrine Lock #2, and the
 | `M0_35_OPERATOR_REVIEW_GUIDE.md` | **M0.35 review checklist · STOP point · M1 authorization gate** | ✅ ⛔ |
 | `ODR_SIMPLICITY_TEST_DOCTRINE.md` | **M0.35 Doctrine Lock #1** · permanent foreman approval gate · field simplicity overrides architectural elegance | ✅ ⛔ |
 | `ODR_PLATFORM_INHERITANCE_DOCTRINE.md` | **M0.35 Doctrine Lock #2** · ODR is a module of MASCI Ops, not a separate app · inheritance contract | ✅ ⛔ |
+| `M0_4_PHOTO_PDF_CERTIFICATION.md` | **M0.4** · external PDF photo thumbnail embedding · 9/9 tests · audience projection + redaction + continuity preserved | ✅ 🟢 |
+| `EXTERNAL_PDF_PHOTO_GOVERNANCE_REPORT.md` | **M0.4** · audience projection matrix · external threat model · 6/6 redactions confirmed · audit log enrichment | ✅ 🟢 |
+| `UPDATED_OPERATOR_REVIEW_GUIDE.md` | **M0.4 supersedes M0.35 review guide** · M1 authorization gate · advisory probe inventory · approval items | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |
+| `scripts/odr_completion_time_drift_probe.py` | **M0.4 advisory** · foreman ODR completion-time drift · target/stretch/ceiling thresholds · exit 0 always | ✅ advisory |
+| `scripts/odr_simplicity_drift_probe.py` | **M0.4 advisory** · scans foreman surfaces for forbidden patterns · exit 0 always | ✅ advisory |
+| `scripts/odr_inheritance_drift_probe.py` | **M0.4 advisory** · scans ODR pages for off-palette colors / non-shared imports · exit 0 always | ✅ advisory |
+| `scripts/cross_portal_consistency_drift_probe.py` | **M0.4 advisory** · cross-portal component inheritance · exit 0 always | ✅ advisory |
 | _(Future)_ `odr_doctrine_probe.py` | shape + enum + audit-envelope probe (planned for M1+) | 🟡 |
 
 ## 5 · Route Decomposition / Backend Architecture
