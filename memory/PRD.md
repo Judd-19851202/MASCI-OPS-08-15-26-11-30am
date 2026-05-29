@@ -27392,3 +27392,43 @@ Implementation begins only after operator decisions on these 25
 items and an explicit "PROCEED WITH ODR IMPLEMENTATION · WAVE M0"
 command. V-Prelude Observation Freeze remains intact through this
 architecture authoring; no other surface was touched.
+
+---
+
+## ODR Architecture Gap Audit · Pre-Lock Verification · 2026-05-29
+
+Operator command: **"PHASE V.1 ODR ARCHITECTURE REVIEW RESPONSE · DO NOT LOCK SPECIFICATION YET · perform Architecture Gap Audit against all 25 open questions."**
+
+### Deliverable shipped
+- `ODR_GAP_AUDIT.md` — 7-requirement audit · per-requirement coverage grade · 8 additive remediation deltas
+
+### Coverage scorecard (7 requirements)
+- 🟢 4 / 7 fully covered (Simplicity Doctrine architecturally · Ecosystem Single-Entry · Safety Hard-Stop · PDF Forensic Value)
+- 🟡 2 / 7 partial (Multi-Event Reality · Tier-1 Reliability Layer)
+- 🔴 1 / 7 missing (Bilingual Field Operations)
+
+### 8 additive remediation deltas (D1–D8)
+- D1 · lift `production` → `production_segments: List[ProductionSegment]` (mixed-crew-type days)
+- D2 · top-level `work_areas: List[WorkArea]` + `work_area_id` FK on every event-bearing entry
+- D3 · top-level `materials: List[MaterialEvent]`
+- D4 · `ReliabilityBlock` + `DeviceFingerprint` + `SyncConflict` (Tier-1 reliability)
+- D5 · `CompletionTelemetry` envelope (< 5 min doctrine measurable)
+- D6 · `LocalizedString` envelope on 10 free-text fields + `odr_translation_events` collection (bilingual EN/ES)
+- D7 · `SafetyBlock.events: List[SafetyEvent]` per-event accountability lineage (refinement)
+- D8 · `odr_bilingual_probe.py` governance probe
+
+All 8 deltas are **additive** — none break prior architecture decisions.
+
+### STOP condition honored
+- ✅ No implementation
+- ✅ No code · no schema mutations · no UI mutations
+- ✅ Spec NOT yet locked
+- ✅ Awaiting operator approval of D1–D8 before artifact revision
+
+### Decision sequence proposed
+1. Operator reviews `ODR_GAP_AUDIT.md`
+2. Operator approves / modifies / rejects D1–D8 deltas
+3. On approval, agent revises the 5 existing artifacts to incorporate D1–D8 (still no implementation)
+4. Operator answers the 25 open questions
+5. Lock command issued
+6. Implementation Wave M0 begins
