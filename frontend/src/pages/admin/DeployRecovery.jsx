@@ -54,7 +54,7 @@ export default function DeployRecovery() {
         </div>
 
         {/* Current state probe */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 mb-4">
           <div className="bg-white border border-slate-200 rounded-md p-4">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold mb-1">Current build</div>
             <div className="font-display text-lg font-black break-words">{data?.current?.version || "—"}</div>

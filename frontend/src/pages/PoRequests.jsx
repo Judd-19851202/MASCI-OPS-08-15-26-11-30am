@@ -160,7 +160,7 @@ export default function PoRequests() {
           Field Leadership submits purchase <strong>requests</strong>. The assigned PM, any Co-PMs on the job, HR, and Admin issue the official PO and assign the PO number. After purchase, the requester uploads receipts here.
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-6">
           <SummaryTile label="Pending Approval" value={summary.pending_approval ?? 0} icon={ClipboardCheck} accent="blue" />
           <SummaryTile label="Pending Receipt"  value={summary.pending_receipt ?? 0}  icon={Receipt}        accent="indigo" />
           <SummaryTile label="Overdue Receipt"  value={summary.overdue_receipt ?? 0}  icon={AlertTriangle}  accent="red" />
@@ -236,7 +236,7 @@ export default function PoRequests() {
           </div>
 
           {/* Advanced filters — supervisor, vendor, project (collapsed on mobile) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
             <div className="relative">
               <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
               <Input

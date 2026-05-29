@@ -101,7 +101,7 @@ export default function Constraints() {
 
       <section
         data-testid="constraints-filters"
-        className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4"
+        className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 mb-4"
       >
         <label className="text-xs text-slate-600">
           Project

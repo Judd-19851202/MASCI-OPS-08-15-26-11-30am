@@ -171,7 +171,7 @@ export default function SafetyDocuments() {
           testId="safety-doc-empty"
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="safety-doc-list">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" data-testid="safety-doc-list">
           {filtered.map((doc) => (
             <div key={doc.id} className="bg-white border border-slate-200 rounded-md p-4" data-testid={`safety-doc-row-${doc.id}`}>
               <div className="flex items-start justify-between gap-3">

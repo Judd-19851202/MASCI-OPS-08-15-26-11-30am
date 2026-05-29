@@ -409,7 +409,7 @@ export default function HrSafetyRecords() {
                 testId="hr-safety-docs-empty"
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="hr-safety-doc-list">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" data-testid="hr-safety-doc-list">
                 {filteredDocs.map((d) => {
                   const archived = isArchived(d);
                   const role = (d.created_by_role || d.uploaded_by_role || "legacy").toLowerCase();

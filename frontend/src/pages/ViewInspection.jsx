@@ -382,7 +382,7 @@ export default function ViewInspection() {
         </ReportSection>
 
         <ReportSection number="12" title={t("Safety Issues / Corrective Actions")}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 mb-4">
             <KV label={t("Hazards Observed")} value={data.hazards_observed} />
             <KV label={t("Stop Work Issued")} value={data.stop_work_issued} />
             <KV label={t("Corrected On Site")} value={data.corrected_on_site} />
@@ -408,7 +408,7 @@ export default function ViewInspection() {
                   testId="inspection-photos-zip"
                 />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
                 {data.photos.map((p, i) => (
                   <PhotoLightbox
                     key={i}

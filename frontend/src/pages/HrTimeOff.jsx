@@ -253,7 +253,7 @@ function StatsStrip({ stats, t }) {
     { key: "submitted_last_7d", label: t("Last 7 Days"), color: "bg-slate-100 text-slate-900 border-slate-400" },
   ];
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-5" data-testid="time-off-stats">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3 mt-5" data-testid="time-off-stats">
       {tiles.map((t) => (
         <div key={t.key} className={`rounded-md p-3 border-2 ${t.color}`}>
           <div className="font-mono text-[10px] uppercase tracking-widest font-bold">{t.label}</div>

@@ -68,7 +68,7 @@ export default function OdrPmPanel() {
 
         <OdrTrustBanner />
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4" data-testid="pm-odr-metrics">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3 mt-4" data-testid="pm-odr-metrics">
           <Metric label="Submitted (7d)" value={metrics.count} />
           <Metric label="Open Delays" value={metrics.openDelays} accent={metrics.openDelays > 0} />
           <Metric label="Hours Lost" value={metrics.totalHoursLost.toFixed(1)} />

@@ -148,7 +148,7 @@ export default function OperationalSignalsPanel() {
       {data && (
         <>
           {/* Throughput tiles */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-4">
             {Object.entries(THROUGHPUT_LABELS).map(([sig, label]) => {
               const t = data.throughput?.[sig] || { total: 0 };
               const d = data.deltas?.[sig] || { direction: "flat", previous: 0 };
@@ -210,7 +210,7 @@ export default function OperationalSignalsPanel() {
           </div>
 
           {/* Top failing equipment + doc threshold breakdown */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div className="border-2 border-slate-300 bg-white rounded-md">
               <div className="bg-slate-50 border-b-2 border-slate-200 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
                 Top failing equipment

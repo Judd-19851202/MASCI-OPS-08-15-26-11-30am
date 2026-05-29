@@ -79,7 +79,7 @@ export default function DispatchIntegrationsTab() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
         <IntegrationCard
           provider="Motive"
           icon={MapPin}

@@ -245,7 +245,7 @@ export default function DraftHealthTile({ testId = "draft-health-tile" }) {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]" data-testid={`${testId}-stats`}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-[11px]" data-testid={`${testId}-stats`}>
         <div>
           <div className="font-mono uppercase tracking-wider opacity-70">Failed saves · 24h</div>
           <div className="font-display text-2xl font-black leading-none mt-0.5"

@@ -185,7 +185,7 @@ export default function SafetyFormsRecords() {
         </div>
 
         {/* Summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
           <SummaryCard
             label={t("Records")}
             value={totalsLine.primary}

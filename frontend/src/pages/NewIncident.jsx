@@ -614,7 +614,7 @@ export default function NewIncident({ publicMode = false }) {
               {t("Pick the actual outcome. For a near miss, choose Near Miss even if the potential was severe — note the potential in the description.")}
             </p>
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+              className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4"
               data-testid="severity-grid"
             >
               {SEVERITY_LEVELS.map((s) => {
@@ -932,7 +932,7 @@ export default function NewIncident({ publicMode = false }) {
           <p className="text-sm text-slate-600">
             Check every category that contributed. Pick all that apply.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             {ROOT_CAUSE_CATEGORIES.map((opt) => (
               <label
                 key={opt.key}

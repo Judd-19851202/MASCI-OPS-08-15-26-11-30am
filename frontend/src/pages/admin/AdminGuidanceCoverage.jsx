@@ -95,7 +95,7 @@ export default function AdminGuidanceCoverage() {
 
         {/* Summary */}
         {coverage && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="coverage-summary">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3" data-testid="coverage-summary">
             <SummaryTile label="Articles total" value={coverage.article_count} />
             <SummaryTile label="Portals tracked" value={coverage.portals.length} />
             <SummaryTile

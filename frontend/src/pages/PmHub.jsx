@@ -282,7 +282,7 @@ export default function PmHub() {
                   <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">180-day scope</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">Training currency, PPE, CAPA exposure, expirations.</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3" data-testid="pm-crew-compliance-card-tiles">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mt-3" data-testid="pm-crew-compliance-card-tiles">
                   <div data-testid="pm-crew-card-tile-crew">
                     <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 flex items-center gap-1">
                       <Users className="w-3 h-3" /> Crew
@@ -315,7 +315,7 @@ export default function PmHub() {
           {/* Tier 1 · Today — 3 quick-action tiles */}
           <div className="mt-5">
             <div className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold mb-2">Today</div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" data-testid="pm-hub-v2-tier1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4" data-testid="pm-hub-v2-tier1">
               {HUB_V2_TIER1.map((t) => (
                 <HubV2QuickTile
                   key={t.to} to={t.to} icon={t.icon} title={t.title}
@@ -330,7 +330,7 @@ export default function PmHub() {
           {/* Tier 2 · Coordination — 4 compact chips */}
           <div className="mt-5">
             <div className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold mb-2">Coordination</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="pm-hub-v2-tier2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3" data-testid="pm-hub-v2-tier2">
               {HUB_V2_TIER2_CHIPS.map((c) => (
                 <HubV2Chip
                   key={c.to} to={c.to} icon={c.icon} label={c.label} subline={c.subline}
@@ -423,7 +423,7 @@ export default function PmHub() {
                 <p className="text-xs text-slate-600 mt-1">
                   Operational accountability awareness for crews on your projects — training currency, PPE, CAPA exposure, expirations.
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3" data-testid="pm-crew-compliance-card-tiles">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mt-3" data-testid="pm-crew-compliance-card-tiles">
                   <div data-testid="pm-crew-card-tile-crew">
                     <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold flex items-center gap-1">
                       <Users className="w-3 h-3" /> Crew (180d)

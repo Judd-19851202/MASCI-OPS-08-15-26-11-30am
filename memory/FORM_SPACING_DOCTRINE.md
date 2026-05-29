@@ -31,6 +31,11 @@ once iPad / iPadOS input chrome is rendered, produced the bleed.
 
 ## 2 · Canonical responsive contract
 
+The platform uses **two** canonical responsive grids depending on
+layout density:
+
+### 2a · 2-col / 3-col (form rows, sparse grids)
+
 | Viewport | Width | Layout | Horizontal gap | Row gap |
 |---|---|---|---|---|
 | Phone portrait | < 768 px | **1 column** | n/a | **16 px** |
@@ -39,21 +44,44 @@ once iPad / iPadOS input chrome is rendered, produced the bleed.
 | iPad landscape | 1024–1279 px | **2 columns** | **24 px** | **16 px** |
 | Desktop | ≥ 1280 px | **2 columns** | **24 px** | **16 px** |
 
-Tailwind utility encoding:
+Tailwind encoding:
 
 ```html
 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+<div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
 ```
 
-Equivalent component (preferred):
+Equivalent component:
 
 ```jsx
 import FormGrid from "@/components/FormGrid";
-<FormGrid>
-  <Field …/>
-  <Field …/>
-</FormGrid>
+<FormGrid>…</FormGrid>
 ```
+
+### 2b · 4-col / 5-col (dense filter bars, stats strips)
+
+When a filter bar or stats strip needs to show 4 or 5 fields side by
+side on iPad portrait, the canonical horizontal gap drops to **16 px**
+(otherwise each column gets too narrow):
+
+| Viewport | Width | Layout | Horizontal gap | Row gap |
+|---|---|---|---|---|
+| Phone portrait | < 768 px | **2 columns** | **16 px** | **12 px** |
+| Phone landscape | < 768 px | **2 columns** | **16 px** | **12 px** |
+| iPad portrait | 768–1023 px | **4 or 5 columns** | **16 px** | **12 px** |
+| iPad landscape | 1024–1279 px | **4 or 5 columns** | **16 px** | **12 px** |
+| Desktop | ≥ 1280 px | **4 or 5 columns** | **16 px** | **12 px** |
+
+Tailwind encoding:
+
+```html
+<div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
+<div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3">
+```
+
+(`FormGrid` does not yet have a `dense` variant — these dense filter
+bars stay as raw Tailwind classes until a need for componentization
+emerges. The canonical pattern is fixed.)
 
 ### 2a · Why these specific numbers
 

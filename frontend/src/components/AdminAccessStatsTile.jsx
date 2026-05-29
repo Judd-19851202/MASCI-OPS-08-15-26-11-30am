@@ -89,7 +89,7 @@ export default function AdminAccessStatsTile() {
           {error}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
           <StatNumber
             value={stats?.totalUsers}
             label={t("Total Users")}

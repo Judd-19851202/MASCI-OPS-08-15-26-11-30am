@@ -190,7 +190,7 @@ function ComposeDialog({ open, onClose, initial, onSaved }) {
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600">
               Quick Templates
             </Label>
-            <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+            <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3.5">
               {HUB_BANNER_TEMPLATES.map((tpl) => {
                 const Icon = SEVERITY_ICON[tpl.severity] || AlertTriangle;
                 const m = SEVERITY_META[tpl.severity];

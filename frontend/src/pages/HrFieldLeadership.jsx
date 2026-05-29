@@ -87,7 +87,7 @@ export default function HrFieldLeadership() {
         <HelpTipBlock formKey="field-leadership.records" showCounter />
       </div>
       <Card className="p-4 mb-5 border-2 border-purple-200 bg-purple-50/30">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-3 items-end">
           <div className="md:col-span-2">
             <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Search")}</label>
             <div className="relative">

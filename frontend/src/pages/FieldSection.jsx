@@ -125,7 +125,7 @@ export default function FieldSection() {
             />
             {/* Slightly emphasized: single tile in a max-width container
                 so it visually "leads" without becoming a banner. */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
               <FieldTile
                 to="/daily/submit"
                 icon={ClipboardList}

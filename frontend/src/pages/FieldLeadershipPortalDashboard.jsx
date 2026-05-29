@@ -207,7 +207,7 @@ export default function FieldLeadershipPortalDashboard() {
             <p className="text-xs text-slate-600 mb-3">
               {t("You have access to the same field workflows you use on a daily basis. Field Leadership identity does NOT include HR administration, payroll, system settings, or platform configuration.")}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
               {[
                 { label: t("Daily Reports"), to: "/daily-reports" },
                 { label: t("Safety Meetings"), to: "/meetings" },

@@ -135,7 +135,7 @@ export default function CheatSheetCard() {
 
       {/* Submit on Site — 3 tiles */}
       <SectionHeader kicker="01" title={t("Submit on Site")} subtitle={t("Public · no sign-in required.")} />
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 mb-7">
         {submissionTiles.map((tile) => (
           <TileCard key={tile.title} {...tile} />
         ))}
@@ -143,7 +143,7 @@ export default function CheatSheetCard() {
 
       {/* Office Portals — 4 pills */}
       <SectionHeader kicker="02" title={t("Office Portals")} subtitle={t("Sign-in required. Office staff, mechanics, HR.")} />
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-7">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-7">
         {officePortals.map((p) => (
           <PortalPillPrint key={p.title} {...p} />
         ))}

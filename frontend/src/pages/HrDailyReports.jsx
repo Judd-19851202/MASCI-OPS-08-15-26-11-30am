@@ -119,7 +119,7 @@ export default function HrDailyReports() {
         </header>
 
         {/* KPI strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
           <Kpi label={t("Reports")} value={totals.count} stripe="border-l-purple-700" testId="hr-dr-kpi-reports" />
           <Kpi label={t("Crews")} value={totals.crews} stripe="border-l-emerald-600" testId="hr-dr-kpi-crews" />
           <Kpi label={t("Subs")} value={totals.subs} stripe="border-l-amber-600" testId="hr-dr-kpi-subs" />
@@ -336,7 +336,7 @@ export function HrDailyReportDetail() {
                     <li key={idx} className="border border-slate-200 rounded-md p-3 bg-slate-50">
                       <div className="font-bold text-sm">{crew.foreman || crew.lead || t("Crew")} {idx + 1}</div>
                       {Array.isArray(crew.members) && crew.members.length > 0 && (
-                        <ul className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-1 text-sm">
+                        <ul className="mt-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                           {crew.members.map((m, mi) => (
                             <li key={mi} className="text-slate-700">
                               {m.name || "—"}{m.hours ? ` · ${m.hours}h` : ""}
@@ -352,7 +352,7 @@ export function HrDailyReportDetail() {
 
             {Array.isArray(doc.subcontractors) && doc.subcontractors.length > 0 && (
               <Section icon={Building2} title={t("Subcontractors")} count={doc.subcontractors.length}>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                   {doc.subcontractors.map((s, idx) => (
                     <li key={idx} className="border border-slate-200 rounded-md p-2 bg-white">
                       <div className="font-bold">{s.name || "—"}</div>
@@ -366,7 +366,7 @@ export function HrDailyReportDetail() {
 
             {Array.isArray(doc.visitors) && doc.visitors.length > 0 && (
               <Section icon={Truck} title={t("Visitors / Vendors")} count={doc.visitors.length}>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                   {doc.visitors.map((v, idx) => (
                     <li key={idx} className="border border-slate-200 rounded-md p-2 bg-white">
                       <div className="font-bold">{v.name || "—"}</div>
@@ -386,7 +386,7 @@ export function HrDailyReportDetail() {
 
             {Array.isArray(doc.photos) && doc.photos.length > 0 && (
               <Section title={t("Photos")} count={doc.photos.length}>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
                   {doc.photos.map((p, idx) => (
                     <a key={idx} href={p.url || p} target="_blank" rel="noreferrer">
                       <img src={p.url || p} alt={`photo-${idx}`} className="w-full h-32 object-cover rounded border border-slate-200" />

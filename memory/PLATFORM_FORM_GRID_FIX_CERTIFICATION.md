@@ -146,6 +146,28 @@ mechanical replacement is reversible by re-running the inverse
 self-contained — deleting it has no ripple because no migration
 currently imports it (it's available for new code).
 
+## 6A · Pass-2 extension (operator-required re-audit)
+
+After Pass 1 was rejected for incomplete platform coverage, Pass 2
+extended the migration to multi-col filter bars and stats strips
+using **two** canonical patterns:
+
+| Layout density | Canonical class chain |
+|---|---|
+| 2-col / 3-col (form rows) | `grid grid-cols-1 md:grid-cols-{2,3} gap-x-6 gap-y-4` (24/16 px) |
+| 4-col / 5-col (filter bars, stats strips) | `grid grid-cols-2 md:grid-cols-{4,5} gap-x-4 gap-y-3` (16/12 px) |
+
+Pass-2 added ~146 additional canonical migrations on top of Pass-1's 69,
+reaching **215 canonical multi-col grids platform-wide**. Detailed
+inventory and screenshots are in
+`IPAD_LAYOUT_VALIDATION_REPORT.md` Pass 2.
+
+Pass-2 regression evidence (re-run after Pass 2):
+- Wave-2 Playwright DR field reliability — 6 passed · 1 skipped (37.2 s)
+- Backend admin auth — 23 passed (3.3 s)
+- ESLint clean on FormGrid + NewDailyReport
+- Operator-cited surfaces (HR Time Verification, PO Drawer, HR Hub, Payroll Variance, Dispatch, Shop, Safety, Incident, Equipment) all visually clean at iPad portrait 820×1180
+
 ## 7 · Follow-up work (not in scope of this fix)
 
 These items are NOT part of this P0 and are explicitly deferred:

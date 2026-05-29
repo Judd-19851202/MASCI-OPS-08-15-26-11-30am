@@ -132,7 +132,7 @@ export default function TrenchBoxPosterCard() {
         <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-black mb-3">
           {t("Soil Type Quick Reference")}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
           {soilRows.map((row) => (
             <div key={row.label} className={`border-2 rounded-md p-4 ${toneCls(row.tone)}`}>
               <div className="font-display text-sm font-black leading-tight">{row.label}</div>
@@ -149,7 +149,7 @@ export default function TrenchBoxPosterCard() {
       </div>
 
       {/* How to use the library */}
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
         <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
           <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-red-700 text-white mb-2">
             <ScanLine className="w-5 h-5" />

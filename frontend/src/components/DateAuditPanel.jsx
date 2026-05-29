@@ -124,7 +124,7 @@ export default function DateAuditPanel() {
       {data && (
         <>
           {/* Totals strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-5">
             <Stat label="Scanned" value={data.totals?.scanned || 0} tone="slate" />
             <Stat
               label="Suspects"

@@ -230,7 +230,7 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
     return (
       <div className="space-y-2 border border-slate-200 rounded-md p-3 bg-slate-50">
         {field.items.map((it) => (
-          <div key={it.key} className="grid grid-cols-1 sm:grid-cols-5 gap-1.5 items-center">
+          <div key={it.key} className="grid grid-cols-1 md:grid-cols-5 gap-x-4 gap-y-3.5 items-center">
             <div className="sm:col-span-2 text-sm font-semibold text-slate-800">
               {l(it, lang)}
             </div>
@@ -267,7 +267,7 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
     // description" only when property_returned__other is true).
     const current = (value && typeof value === "object") ? value : {};
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 border border-slate-200 rounded-md p-3 bg-slate-50"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4.5 border border-slate-200 rounded-md p-3 bg-slate-50"
            data-testid={`field-${field.name}`}>
         {(field.options || []).map((opt) => {
           const key = opt.key || opt.en;

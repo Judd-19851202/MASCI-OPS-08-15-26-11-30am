@@ -614,7 +614,7 @@ export default function NewInspection({ publicMode = false }) {
         <Section number="12" title={t("Safety Issues / Corrective Actions")}>
           {/* iter273 · Section 12 findings coaching · the densest surface */}
           <HelpTipBlock formKey="inspection.findings" className="mb-3" />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Hazards Observed *

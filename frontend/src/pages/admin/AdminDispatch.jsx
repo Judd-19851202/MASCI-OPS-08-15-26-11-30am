@@ -133,7 +133,7 @@ export function DispatchOverviewTab() {
       {/* iter226 · end-of-day handoff coaching · Tier-2 dispatch+admin.
           Anchor: "The handoff is a conversation, not a calendar invite." */}
       <HelpTipBlock formKey="dispatch.handoff" showCounter />
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
         {cards.map((c) => (
           <div key={c.label} className={`bg-white border border-slate-200 border-l-4 ${c.stripe} rounded-md p-4`}>
             <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold">{c.label}</div>
@@ -141,7 +141,7 @@ export function DispatchOverviewTab() {
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
         <div className="bg-white border border-slate-200 rounded-md p-4">
           <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Recent transfers</h3>
           {xfers.length === 0 ? <p className="text-sm text-slate-500 italic">No transfers yet.</p> : (

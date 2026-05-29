@@ -156,7 +156,7 @@ export default function HrDriverQualificationDashboard() {
 
       {/* Tiny summary cards — operational gut-check */}
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 my-4" data-testid="dq-summary-cards">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3 my-4" data-testid="dq-summary-cards">
           <SummaryCard testid="dq-card-cdl-expiring" icon={Clock} tint="border-amber-500 bg-amber-50" label={t("CDL Expiring 30d")} count={summary.cdl_expiring_30d} />
           <SummaryCard testid="dq-card-med-expiring" icon={Clock} tint="border-rose-500 bg-rose-50" label={t("Medical Card Expiring 30d")} count={summary.medical_card_expiring_30d} />
           <SummaryCard testid="dq-card-restricted" icon={AlertTriangle} tint="border-amber-600 bg-amber-100/60" label={t("Restricted")} count={summary.restricted} />

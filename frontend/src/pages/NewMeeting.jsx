@@ -463,7 +463,7 @@ export default function NewMeeting({ publicMode = false }) {
           {/* iter270 · Section 01 context coaching (crew/shift/weather/high-risk) */}
           <HelpTipBlock formKey="meeting.context" className="mt-6 mb-3" />
           <div
-            className="mt-2 pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4"
+            className="mt-2 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4"
             data-testid="meeting-context-row"
           >
             <div>

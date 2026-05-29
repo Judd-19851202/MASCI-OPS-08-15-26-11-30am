@@ -301,7 +301,7 @@ export default function Hub() {
 
         {/* SECTION 1 — Today in the Field */}
         <SectionHeader kicker="01" title={t("Today in the Field")} subtitle={t("What every crew on site does today.")} />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 sm:gap-5 mb-10">
           <BigTile
             to="/field"
             icon={HardHat}
@@ -330,7 +330,7 @@ export default function Hub() {
 
         {/* SECTION 2 — Leadership Tools */}
         <SectionHeader kicker="02" title={t("Leadership Tools")} subtitle={t("For foremen, supervisors, and superintendents running the work.")} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 sm:gap-5 mb-10">
           <MediumTile
             to="/leadership"
             icon={UserCheck}
@@ -421,7 +421,7 @@ export default function Hub() {
 
         {/* SECTION 4 — Reference strip */}
         <SectionHeader kicker="04" title={t("Reference")} subtitle={t("Operator guides, training, and contact info — always available, no sign-in required.")} />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 sm:gap-4 mb-6">
           <CompanyInfoDialog
             trigger={(
               <button

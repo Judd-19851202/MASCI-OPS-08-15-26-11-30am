@@ -184,7 +184,7 @@ export default function FieldLeadershipView() {
         {Array.isArray(rec.photos) && rec.photos.length > 0 && (
           <Card className="mt-4 p-5">
             <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Photos")}</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
               {rec.photos.map((p, i) => (
                 <img key={i} src={resolvePhotoSrc(p)} alt={`photo ${i}`} className="w-full rounded border border-slate-200 object-contain max-h-48 bg-slate-50" />
               ))}
@@ -195,7 +195,7 @@ export default function FieldLeadershipView() {
         {(rec.supervisor_signature || rec.employee_signature || rec.witness_signature) && (
           <Card className="mt-4 p-5">
             <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Signatures")}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
               {rec.supervisor_signature && (
                 <div className="border-2 border-slate-200 rounded p-3 bg-white">
                   <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Supervisor")}</div>
@@ -426,7 +426,7 @@ function EquipmentComparisonCard({ rec, details, t }) {
               </div>
 
               {isReturn ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   {/* ORIGINAL */}
                   <div className="rounded border-2 border-emerald-300 bg-emerald-50 p-2.5">
                     <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-900 font-bold mb-2 flex items-center gap-1.5">
@@ -521,7 +521,7 @@ function EquipmentComparisonCard({ rec, details, t }) {
                     </div>
                   )}
                   {checkoutPhotos.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
                       {checkoutPhotos.slice(0, 8).map((src, pi) => (
                         <PhotoLightboxLink
                           key={pi}

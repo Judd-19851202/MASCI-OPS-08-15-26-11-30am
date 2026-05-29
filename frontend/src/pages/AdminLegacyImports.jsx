@@ -213,7 +213,7 @@ function UploadCard({ meta, onUploaded }) {
           <div className="text-xs text-slate-500 mt-0.5">
             PDF · JPG · PNG · phone photos OK. Max 25 MB. Source file is permanently retained.
           </div>
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4.5">
             <div className="sm:col-span-1">
               <Label className="text-[10px] font-mono uppercase tracking-wide text-slate-600">Document type</Label>
               <Select value={docType} onValueChange={setDocType}>
@@ -402,7 +402,7 @@ function ReviewModal({ importId, onClose, onChange, meta }) {
         </DialogHeader>
 
         {/* Side-by-side · scan + fields */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
           {/* LEFT · scan */}
           <div>
             <div className="text-[10px] font-mono uppercase tracking-wide text-slate-500 font-bold mb-1.5">

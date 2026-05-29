@@ -202,7 +202,7 @@ export default function HrPayrollVariance() {
           </div>
         </div>
         <HelpTipBlock formKey="payroll-variance.upload" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-3">
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
             <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={inputCls} data-testid="hr-pv-week" />
@@ -294,7 +294,7 @@ export default function HrPayrollVariance() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-4 bg-slate-50 border-b border-slate-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 p-4 bg-slate-50 border-b border-slate-200">
             <Stat label={t("Total")} value={summary.total} />
             <Stat label={t("Matched")} value={summary.matched} cls="text-emerald-700" />
             <Stat label={t("Flagged")} value={summary.flagged} cls={summary.flagged > 0 ? "text-red-700" : ""} />

@@ -102,7 +102,7 @@ export default function SafetyAudits() {
         </header>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
           <SummaryCard label={t("Total")} value={filtered.length} icon={ShieldAlert} accent="bg-slate-700" testId="audits-summary-total" />
           <SummaryCard label={t("With Deficiencies")} value={filtered.filter((i) => (i.deficiencies_count || 0) > 0).length} icon={AlertTriangle} accent="bg-amber-600" testId="audits-summary-defs" />
           <SummaryCard label={t("Open Deficiencies")} value={totalDef} icon={AlertTriangle} accent="bg-red-700" testId="audits-summary-open" />

@@ -517,7 +517,7 @@ export default function ViewIncident() {
               {t("No root cause categories selected.")}
             </div>
           ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               {checkedRootCauses.map((c) => (
                 <li
                   key={c.key}
@@ -646,7 +646,7 @@ export default function ViewIncident() {
                 testId="incident-photos-zip"
               />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
               {data.photos.map((p, i) => (
                 <PhotoLightbox
                   key={i}

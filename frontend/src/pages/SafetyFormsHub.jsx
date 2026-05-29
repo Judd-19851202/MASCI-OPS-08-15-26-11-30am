@@ -124,7 +124,7 @@ export default function SafetyFormsHub() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-12">
           <FormTile
             to="/safety/forms/equipment-issuance/new"
             icon={HardHat}

@@ -292,7 +292,7 @@ export default function HrHub() {
             visually (after the section divider above) to keep it from
             competing with the operational HR sections. Empty until
             Motive credentials land or Admin flips Demo mode. */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6" data-testid="hr-integrations-strip">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4 mt-6" data-testid="hr-integrations-strip">
           <IntegrationHealthCard
             tokenHeader={{ "X-HR-Token": getHrToken() || "" }}
             accent="purple"

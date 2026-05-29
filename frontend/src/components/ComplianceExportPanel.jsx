@@ -226,7 +226,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
       </div>
 
       {/* Date inputs */}
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-end">
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
             Start date

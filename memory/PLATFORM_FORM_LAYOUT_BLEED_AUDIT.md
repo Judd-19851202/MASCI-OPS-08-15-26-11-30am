@@ -90,6 +90,38 @@ The fix is documented in `PLATFORM_FORM_GRID_FIX_CERTIFICATION.md`.
 Validation evidence is in `IPAD_LAYOUT_VALIDATION_REPORT.md`. The
 binding doctrine is `FORM_SPACING_DOCTRINE.md`.
 
+## 7 · Pass-2 re-audit (operator rejected Pass 1)
+
+The operator's validation review surfaced **additional bleed surfaces
+not covered by Pass 1's regex** — specifically the dense multi-col
+filter bars and stats strips that use `grid grid-cols-2 md:grid-cols-{4,5}
+gap-{2,3}` instead of the `sm:grid-cols-2 gap-{3,4}` pattern Pass 1 had
+targeted.
+
+### 7a · Operator's cited surfaces (Pass 2)
+
+| Surface | Pattern in source | Resolution |
+|---|---|---|
+| HR → Time Verification filter bar | `grid grid-cols-2 md:grid-cols-5 gap-3 items-end` | migrated to `grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3 items-end` |
+| HR → Time Verification stats strip | `grid grid-cols-2 md:grid-cols-5 gap-3` | migrated to `grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3` |
+| PO Requests top status cards | `grid grid-cols-2 sm:grid-cols-4 gap-3` | migrated to `grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3` |
+| PO Request drawer 2-col input pairs | `grid grid-cols-1 sm:grid-cols-3 gap-2` | migrated to `grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4` |
+| HR Daily Reports filter grid | `grid grid-cols-2 md:grid-cols-4 gap-3` | migrated to `grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3` |
+| HR Payroll Variance form | mixed `gap-2/3` | migrated to canonical |
+| Safety / Dispatch / Shop hub stats strips | various `gap-3` | migrated to canonical |
+
+Total Pass-2 migrations: **~146 additional canonical replacements**
+across 45+ files. Combined Pass-1+Pass-2 = **215 canonical
+multi-col grids platform-wide**.
+
+### 7b · Why two canonical patterns
+
+A single `gap-x-6` (24 px) would compress 5-col filter bars on iPad
+portrait to columns < 130 px wide, which is too tight for label +
+input + clear icon. The dense `gap-x-4 gap-y-3` (16/12 px) is the
+correct rhythm for 4-5 col layouts. Both are codified in
+`FORM_SPACING_DOCTRINE.md` §2.
+
 ---
 
 _End of PLATFORM_FORM_LAYOUT_BLEED_AUDIT.md._

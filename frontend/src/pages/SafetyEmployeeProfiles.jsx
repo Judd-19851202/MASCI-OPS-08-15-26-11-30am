@@ -124,7 +124,7 @@ export default function SafetyEmployeeProfiles() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-6">
               <KPI icon={Award} label={t("Trainings on file")} value={profile.training_summary?.total ?? 0} />
               <KPI icon={AlertTriangle} label={t("Trainings expired")} value={profile.training_summary?.expired ?? 0} color="red" />
               <KPI icon={AlertTriangle} label={t("Expiring 30 days")} value={profile.training_summary?.expiring_within_30_days ?? 0} color="amber" />

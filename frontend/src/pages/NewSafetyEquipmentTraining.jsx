@@ -364,7 +364,7 @@ export default function NewSafetyEquipmentTraining() {
           </Section>
 
           <Section title={t("Topics Covered")} desc={t("Select every topic discussed during training.")}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               {TRAINING_TOPICS.map((tp) => {
                 const checked = data.topics.includes(tp.key);
                 return (

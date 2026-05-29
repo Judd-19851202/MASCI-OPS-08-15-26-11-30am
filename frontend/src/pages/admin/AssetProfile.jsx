@@ -154,7 +154,7 @@ function DispatchSection({ data }) {
       <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">Current Assignment</h3>
         {a ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
             <Field label="Project #"        value={a.project_number} />
             <Field label="Project Name"     value={a.project_name} />
             <Field label="Operator"         value={a.operator_name} />
@@ -167,7 +167,7 @@ function DispatchSection({ data }) {
       {(p || t) && (
         <div className="bg-cyan-50 border-2 border-cyan-300 rounded-md p-5">
           <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-900 font-bold mb-2">{t ? "In Transit" : "Pending Transfer"}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
             <Field label="From" value={(t || p).from_project_number} />
             <Field label="To"   value={(t || p).to_project_number} />
             <Field label="Need" value={(t || p).need_date} />
@@ -209,7 +209,7 @@ function PlaceholderCard({ icon: Icon, title, sub, fields }) {
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-xs">
         {fields.map((f) => (<div key={f}><div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-400 font-bold">{f}</div><div className="text-slate-400 italic">—</div></div>))}
       </div>
     </div>

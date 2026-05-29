@@ -233,7 +233,7 @@ export default function DispatchHub() {
               {t("All hauls are flowing. Nothing requires dispatch attention right now.")}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" data-testid="ds-attention-cards">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4" data-testid="ds-attention-cards">
               <AttentionCard
                 testId="ds-attention-breakdown"
                 icon={Wrench}

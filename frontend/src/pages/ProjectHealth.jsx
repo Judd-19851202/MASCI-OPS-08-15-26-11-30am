@@ -170,7 +170,7 @@ export default function ProjectHealth() {
 
       {/* Summary strip */}
       {data?.summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4" data-testid="project-health-summary">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-4" data-testid="project-health-summary">
           {["red", "amber", "green"].map((s) => (
             <button
               key={s}

@@ -123,7 +123,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3 sm:gap-4 mb-10">
           <StatPill icon={FileText} value={stats.total} label="Total Reports" tone="slate" />
           <StatPill icon={ShieldCheck} value={stats.pass} label="Passing" tone="green" />
           <StatPill icon={ShieldX} value={stats.fail} label="Failing" tone="red" />

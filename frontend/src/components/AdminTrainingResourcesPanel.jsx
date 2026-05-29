@@ -64,7 +64,7 @@ export default function AdminTrainingResourcesPanel() {
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-400 font-bold mb-2 flex items-center gap-2">
           <FileDown className="w-3.5 h-3.5" /> {t("PDF training packets")}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
           {INTERNAL_TRACKS.map((tr) => {
             const link = (lng) => `/training/${tr.slug}/packet?lang=${lng}`;
             return (
@@ -119,7 +119,7 @@ export default function AdminTrainingResourcesPanel() {
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-400 font-bold mb-2 flex items-center gap-2">
           <QrCode className="w-3.5 h-3.5" /> {t("Scan-&-Go Posters")}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
           {INTERNAL_TRACKS.map((tr) => (
             <div
               key={`qr-${tr.slug}`}

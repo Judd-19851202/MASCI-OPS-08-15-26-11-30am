@@ -40,6 +40,20 @@ Preview shipped. Awaiting operator review per the V.5 P0-1 stop condition. After
 ### Next P0 in sequence
 **P0-2 · PO Receipt / Invoice Attachment Open Defect** — defer per operator's locked order ("Complete and certify each P0 before moving to the next").
 
+### Pass 2 (operator rejection of Pass 1)
+Operator rejected Pass 1 with live evidence of remaining spacing concerns (HR Time Verification filter, multi-col grids on iPad). Pass 2 extended the migration to dense 4/5-col filter bars and stats strips:
+- ~146 additional mechanical replacements across the platform (HR Time Verification, HR Daily Reports, HR Payroll Variance, PO Requests + drawer, Dispatch, Shop, Safety, Incident, Equipment, etc.)
+- Two canonical patterns now: **2-3 col** → `gap-x-6 gap-y-4` (24/16 px) · **4-5 col** → `gap-x-4 gap-y-3` (16/12 px)
+- Combined Pass-1 + Pass-2: **215 canonical multi-col grids** platform-wide
+- 12 operator-cited surfaces re-validated at iPad portrait (820×1180): HR Hub, HR Time Verification, HR Daily Reports, HR Payroll Variance, PO Requests, PO Drawer, Dispatch Portal, Shop Console, Safety Operations Dashboard, Incident Report, Daily Report, Safety Meeting, Equipment Pre-Op
+- Wave-2 Playwright regression: 6 passed / 1 skipped (37.2 s)
+
+Updated deliverables:
+- `IPAD_LAYOUT_VALIDATION_REPORT.md` rewritten as Pass-2 with full 15-surface coverage matrix
+- `PLATFORM_FORM_LAYOUT_BLEED_AUDIT.md` §7 added (Pass-2 re-audit)
+- `PLATFORM_FORM_GRID_FIX_CERTIFICATION.md` §6A added
+- `FORM_SPACING_DOCTRINE.md` §2a + §2b — two canonical patterns codified
+
 ---
 
 

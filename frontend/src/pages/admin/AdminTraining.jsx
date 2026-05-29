@@ -33,7 +33,7 @@ export default function AdminTraining() {
           Field adoption
         </div>
         <TrainingStatsStripe />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
           <BilingualAdoptionCard />
           <CalculatorUsageCard />
         </div>

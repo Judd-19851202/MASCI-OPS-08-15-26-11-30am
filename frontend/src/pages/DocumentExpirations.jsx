@@ -152,7 +152,7 @@ export default function DocumentExpirations() {
             document-expirations surface. Anchor: "Phone call beats
             email blast." Tier-2: hr + safety + admin. */}
         <HelpTipBlock formKey="document-expirations" showCounter />
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mb-6">
           <SummaryTile label={t("Current")} value={summ.by_status?.Current ?? 0} icon={CheckCircle2} accent="emerald" testIdSuffix="current" />
           <SummaryTile label={t("Expiring Soon")} value={summ.expiring_30d ?? 0} icon={CalendarClock} accent="amber" testIdSuffix="expiring-soon" />
           <SummaryTile label={t("Expired")} value={summ.expired ?? 0} icon={AlertOctagon} accent="red" testIdSuffix="expired" />
