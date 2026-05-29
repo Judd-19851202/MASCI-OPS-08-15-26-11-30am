@@ -75,6 +75,21 @@ export function buildDailyReportDefaults() {
       // [{activity, percent_complete, station_from, station_to, notes}]
     ],
 
+    // Phase V.2 · Wave-1B — Structured Production Quantities (optional).
+    // Closed-enum unit list enforced server-side
+    // (LF / SY / CY / TON / EA / ACRE / OTHER). Empty by default —
+    // foreman 9-step contract preserved (Doctrine Lock #1).
+    // Per row: { description, quantity, unit, custom_unit_label,
+    //            station_from, station_to, notes }
+    production: [],
+
+    // Phase V.2 · Wave-1B — Structured Constraint rows (optional).
+    // Closed-enum constraint_type taxonomy enforced server-side.
+    // Advisory flags (may_require_rfi · may_affect_schedule)
+    // derived by backend — UI is signal-only. Empty by default.
+    // Per row: { constraint_type, hours_impact, notes }
+    constraints: [],
+
     // Photos — MIN 6
     photos: [],
     photo_min: 6,

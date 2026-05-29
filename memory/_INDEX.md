@@ -150,7 +150,7 @@ All planning artifacts for the pre-RFI substrate work.
 | `MOBILE_RHYTHM_REPORT.md` | Mobile contract · iPhone scenarios · stop-the-line conditions | 🟢 |
 | `GOVERNANCE_STABILITY_REPORT.md` | 5/5 probes · 50/50 tests · reversibility ledger | 🟢 |
 
-## 4.A · Phase V.1/V.2 · Operational Daily Record (ODR) + Daily Report Evolution (M0.0 → Wave-1A LIVE · 2026-05-29)
+## 4.A · Phase V.1/V.2 · Operational Daily Record (ODR) + Daily Report Evolution (M0.0 → Wave-1C CLOSED · 2026-05-29)
 
 ODR substrate is LIVE in preview through **M1 Option C**. M0.0–M0.4
 shipped per their certifications. M0.35 added 2 permanent doctrine
@@ -159,17 +159,32 @@ operational_links bridge · archive UI.
 
 🔄 **Daily Report Evolution Pivot landed (2026-05-29):** ODR
 substrate becomes the operational intelligence layer; the Daily
-Report remains the field-facing experience. **Wave-1A SHIPPED:**
-`POST /api/daily-reports` restored · `DELETE` stays frozen ·
-structured `production[]` (7-unit closed enum) · structured
-`constraints[]` (11-type closed enum) · `audit_envelope_sha256` at
-insert · `GET /api/daily-reports/{id}/audit-footer` endpoint ·
-advisory flags (RFI candidate · schedule impact · informational
-only · server-derived). **15/15 Wave-1A tests · 82/82 cumulative
-ODR tests · 0 failures.** **HALTED at end of Wave-1A pending
-operator review. Wave-1B (frontend UI) / Wave-1C (offline +
-audit footer rendering) / pilot may NOT begin until operator
-authorizes.**
+Report remains the field-facing experience.
+
+**Wave-1A SHIPPED:** `POST /api/daily-reports` restored ·
+`DELETE` stays frozen · structured `production[]` (7-unit closed
+enum) · structured `constraints[]` (11-type closed enum) ·
+`audit_envelope_sha256` at insert ·
+`GET /api/daily-reports/{id}/audit-footer` endpoint · advisory
+flags (RFI candidate · schedule impact · informational only ·
+server-derived).
+
+**Wave-1B SHIPPED:** Production UI · Constraint chip UI · PM
+Exposure Tile · `GET /api/daily-reports/exposure-signals?days=14`.
+Foreman 9-step contract preserved (both cards OPTIONAL ·
+Doctrine Lock #1).
+
+**Wave-1C SHIPPED:** DR PDF audit footer rendering
+(WeasyPrint `@page @bottom-center` · universal across audiences) ·
+offline / recovery baseline re-certified · Wave-2 strengthening
+scoped + documented.
+
+**89 / 89 cumulative ODR tests · 0 failures · ESLint clean ·
+advisory governance probes green.**
+
+**HALTED at end of Wave-1C pending Internal Superintendent
+Validation Review. Pilot may NOT begin until operator authorizes
+explicitly. RFI · Schedule · P6 remain out of scope.**
 
 | File | Purpose | Status |
 |---|---|---|
@@ -238,6 +253,16 @@ authorizes.**
 | `DAILY_REPORT_AUDIT_FOOTER_CERTIFICATION.md` | **Wave-1A** · SHA256 envelope at insert · `GET /api/daily-reports/{id}/audit-footer` · 4 tests | ✅ ⛔ |
 | `ADVISORY_FLAG_CERTIFICATION.md` | **Wave-1A** · operator-defined heuristic table · informational only · no actions triggered · 1 test | ✅ ⛔ |
 | `WAVE_1A_OPERATOR_REVIEW_GUIDE.md` | **Wave-1A supersedes Daily Report Elite Upgrade review** · Wave-1B / 1C scope picks · 9-item spot-check | ✅ ⛔ |
+| `WAVE_1B_IMPLEMENTATION_REPORT.md` | **Wave-1B** · Production UI · Constraint UI · PM Exposure Tile · 3 tests | ✅ ⛔ |
+| `WAVE_1C_IMPLEMENTATION_REPORT.md` | **Wave-1C** · DR PDF audit footer rendering · offline baseline · 4 tests | ✅ ⛔ |
+| `PRODUCTION_UI_CERTIFICATION.md` | **Wave-1B** · 7-field row · 7-unit closed-enum select · station from/to · doctrine compliance | ✅ ⛔ |
+| `CONSTRAINT_UI_CERTIFICATION.md` | **Wave-1B** · 11-chip grid · one-tap insert · advisory derivation server-side · `signal_only` doctrine | ✅ ⛔ |
+| `PM_EXPOSURE_TILE_CERTIFICATION.md` | **Wave-1B** · 5-row read-only signal panel · `GET /api/daily-reports/exposure-signals?days=14` | ✅ ⛔ |
+| `OFFLINE_RECOVERY_CERTIFICATION.md` | **Wave-1C baseline** · existing offline contract baselined · Wave-2 strengthening scoped · pilot gating | ✅ ⛔ |
+| `PDF_AUDIT_FOOTER_RENDER_CERTIFICATION.md` | **Wave-1C** · WeasyPrint `@page @bottom-center` · `Official Record · DR-NNN · sha256=<16> · rendered <UTC>` · universal across audiences | ✅ ⛔ |
+| `PILOT_READINESS_ASSESSMENT.md` | **Wave-1B/1C** · pilot acceptance criteria · open risks · NOT yet a pilot authorization | ✅ ⛔ |
+| `WAVE_1B_1C_OPERATOR_REVIEW_GUIDE.md` | **Wave-1B/1C supersedes Wave-1A review guide** · pilot is NOT next gate · Internal Superintendent Validation Review is | ✅ ⛔ |
+| `WAVE_1B_1C_EXECUTIVE_SUMMARY.md` | **Wave-1B/1C closure brief** · WHAT CHANGED / WHAT DID NOT · current status · remaining risks · next gate (NOT pilot) | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

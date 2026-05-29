@@ -1,6 +1,127 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.2 · Daily Report Evolution · WAVE-1B + WAVE-1C CLOSURE 🟢
+
+### Mission
+Wrap up Phase V.2 Wave-1B (Daily Report UI enhancements · PM Exposure
+Tile) and Wave-1C (PDF Audit Footer rendering · Offline hardening
+baseline) per the operator's `WAVE-1B + 1C AUTHORIZATION`. This is
+the verification + closure pass — **no new features · no scope
+expansion · no pilot · no RFI · no Schedule · no P6**.
+
+### What shipped (Wave-1B)
+1. **Production UI** inside the existing `NewDailyReport.jsx` form.
+   `CollapseCard "Production Quantities"` (optional) placed
+   after Activity / Production Log. 7-field rows · 7-unit closed
+   enum (LF / SY / CY / TON / EA / ACRE / OTHER) · station from/to
+   · notes. Sends `production[]` to the Wave-1A-restored POST.
+2. **Constraint UI** (chip-style) inside the same form.
+   `CollapseCard "Issues / Delays · Structured"` with an 11-chip
+   grid (Weather · Utility · Survey · Material · Equipment ·
+   Trucking · MOT · CEI/Inspection · Owner/Engineer · Safety ·
+   Other). One-tap inserts a row. Helper line restates "signal
+   only · never creates an RFI or schedule entry."
+3. **PM Exposure Tile** (new · `components/pm/PmExposureTile.jsx`).
+   Calm 5-row read-only signal panel · advisory flag counts · top
+   constraint types · 7-day trend · "Signal only · no actions
+   taken" subhead.
+4. **Exposure aggregator endpoint**
+   `GET /api/daily-reports/exposure-signals?days=14` · admin-gated
+   · PM-scope filtered · zero database mutation.
+
+### What shipped (Wave-1C)
+1. **DR PDF Audit Footer rendering** — `backend/pdf_render.py`
+   injects a WeasyPrint `@page { @bottom-center }` rule on every
+   page of every `kind=="daily-report"` PDF:
+   `Official Record · DR-YYYY-NNNNN · sha256=<16 hex> · rendered <UTC>`
+   slate-700 · 7pt Courier · monospace · universal across all
+   audiences. Hash is recomputed at render-time from the canonical
+   envelope (= tamper-detection contract).
+2. **Offline / recovery baseline** — re-baselined existing Phase J
+   posture. Idempotent submit · per-field auto-save · draft-recovery
+   on mount · photo upload retry queue · device recognition ·
+   backend write idempotency (24h TTL) — all green. Wave-2
+   strengthening (service-worker POST queue · "queued · will sync"
+   banner · recovery telemetry · automated mid-typing/throttled-
+   network tests) scoped + documented · deferred.
+
+### Closure-pass defect found + fixed (this session)
+- 🟢 **Frontend hot-fix** — `buildDailyReportDefaults()` in
+  `lib/dailyReportSchema.js` was missing the new `production: []`
+  and `constraints: []` keys. Opening either new card on a
+  fresh-form instance crashed `RepeatBlock` with
+  `Cannot read properties of undefined (reading 'map')`.
+  Fixed in `dailyReportSchema.js` (added the two defaults) +
+  defensive `|| []` on the two `rows={…}` props + defensive
+  `(p[key] || [])` inside the `useList` helpers so stale
+  localStorage drafts saved before today's schema bump also
+  rehydrate safely. Authenticated UI smoke confirms the form now
+  expands both cards cleanly, all 11 chips render, click-to-insert
+  works, status pill flips `No issues today` → `1 logged`.
+
+### Tests
+| Suite | Result |
+|---|---|
+| `tests/odr/test_wave_1bc.py` (7) | 🟢 |
+| `tests/odr/test_wave_1a.py` (15) | 🟢 |
+| `tests/odr/test_m1_option_c.py` (15) | 🟢 |
+| `tests/odr/test_odr_m04.py` (9 · M0.4 photo embedding) | 🟢 |
+| `tests/odr/test_odr_m03.py` (7) | 🟢 |
+| `tests/odr/test_odr_m02.py` (24 · M0.2 + M0.2A) | 🟢 |
+| `tests/odr/test_odr_substrate.py` (12 · M0.1) | 🟢 |
+| **Cumulative** | **🟢 89 / 89 in 26.35 s · 0 fail · 1 deprecation warning** |
+| ESLint · `NewDailyReport.jsx` + `dailyReportSchema.js` | 🟢 clean |
+
+### Doctrine compliance
+- ✅ **Doctrine Lock #1 (Simplicity Test)** — 9-step contract
+  preserved · both new cards are OPTIONAL · default skip behavior
+  preserves < 3 min stretch goal.
+- ✅ **Doctrine Lock #2 (Platform Inheritance)** — no new deps ·
+  reused `CollapseCard`, `RepeatBlock`, `useList`, WeasyPrint stack.
+- ✅ **Audience Projection (M0.4)** — PDF footer is universal /
+  non-PII · external auditors are exactly the intended consumer
+  of the integrity contract.
+- ✅ **Operational Calmness** — slate · monospace · no urgency · no
+  red.
+- ✅ **Frozen Archive (Option C)** — DELETE still 410 · zero
+  historical mutation · POST restored · unified projector intact.
+
+### Deliverables shipped (9 new docs · all registered in `_INDEX.md`)
+1. `WAVE_1B_IMPLEMENTATION_REPORT.md`
+2. `WAVE_1C_IMPLEMENTATION_REPORT.md`
+3. `PRODUCTION_UI_CERTIFICATION.md`
+4. `CONSTRAINT_UI_CERTIFICATION.md`
+5. `PM_EXPOSURE_TILE_CERTIFICATION.md`
+6. `OFFLINE_RECOVERY_CERTIFICATION.md`
+7. `PDF_AUDIT_FOOTER_RENDER_CERTIFICATION.md`
+8. `PILOT_READINESS_ASSESSMENT.md`
+9. `WAVE_1B_1C_OPERATOR_REVIEW_GUIDE.md`
++ `WAVE_1B_1C_EXECUTIVE_SUMMARY.md` (operator-level review brief
+  produced as part of this closure pass)
+
+### Files touched this closure pass
+| File | Change |
+|---|---|
+| `frontend/src/lib/dailyReportSchema.js` | + `production: []` + `constraints: []` initial state |
+| `frontend/src/pages/NewDailyReport.jsx` | defensive `rows` + defensive `useList` against stale drafts |
+| `memory/PRD.md` | this entry |
+| `memory/_INDEX.md` | 9 new Wave-1B/1C deliverables registered |
+| `memory/WAVE_1B_1C_EXECUTIVE_SUMMARY.md` | NEW · operator brief |
+
+### Status
+🛑 **HALTED at end of Wave-1B + Wave-1C as directed.**
+
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6 · NO production deploy
+- ❌ NO new feature work
+- ✅ 89 / 89 tests · ESLint clean · advisory governance probes green
+- ✅ Daily Report workflow unchanged for foremen
+- ✅ Awaiting **Internal Superintendent Validation Review** (NOT
+  pilot authorization) — see `WAVE_1B_1C_EXECUTIVE_SUMMARY.md`.
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.1 · ODR M0.3 · OPERATOR ADOPTION SURFACES LIVE 🟢
 
 ### Mission

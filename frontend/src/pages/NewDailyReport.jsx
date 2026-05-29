@@ -213,13 +213,13 @@ const RepeatBlock = ({
 // Generic add/remove/update helpers for repeating sections
 const useList = (data, set, key) => ({
   add: (defaults = {}) =>
-    set((p) => ({ ...p, [key]: [...p[key], { ...defaults }] })),
+    set((p) => ({ ...p, [key]: [...(p[key] || []), { ...defaults }] })),
   remove: (i) =>
-    set((p) => ({ ...p, [key]: p[key].filter((_, idx) => idx !== i) })),
+    set((p) => ({ ...p, [key]: (p[key] || []).filter((_, idx) => idx !== i) })),
   update: (i, field, value) =>
     set((p) => ({
       ...p,
-      [key]: p[key].map((row, idx) =>
+      [key]: (p[key] || []).map((row, idx) =>
         idx === i ? { ...row, [field]: value } : row
       ),
     })),
@@ -1797,7 +1797,7 @@ export default function NewDailyReport({ publicMode = false }) {
             <RepeatBlock
               title={t("Production")}
               list="production"
-              rows={data.production}
+              rows={data.production || []}
               helpers={prod}
               t={t}
               defaults={{
@@ -1882,7 +1882,7 @@ export default function NewDailyReport({ publicMode = false }) {
             <RepeatBlock
               title={t("Constraint")}
               list="constraints"
-              rows={data.constraints}
+              rows={data.constraints || []}
               helpers={cons}
               t={t}
               defaults={{
