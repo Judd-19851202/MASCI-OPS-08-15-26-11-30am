@@ -27345,3 +27345,50 @@ Stability · Mobile · Security · Consistency · Recovery · Trust).
 - ✅ No feature code written
 - ✅ No UI mutations
 - ✅ Observation freeze intact · 0 / 18 triggers fired
+
+---
+
+## Phase V.1 · Operational Daily Record (ODR) · Architecture Authorized · 2026-05-29
+
+Operator command: **"PHASE V.1 — OPERATIONAL DAILY RECORD (ODR) · MISSION-CRITICAL PLATFORM FOUNDATION · AUTHORIZATION: APPROVED"**.
+
+The legacy `Daily Report` concept is retired. The ODR becomes the
+**system of record** for all field-day operational intelligence.
+Single entry, multiple consumers, no duplicate reporting across PM /
+Safety / Dispatch / Shop / HR / Executive / Operational Memory /
+Search / RFI / Schedule / Claims / future AI.
+
+### Architecture artifacts shipped (5 of 5)
+
+1. `ODR_DATA_MODEL.md` — Pydantic schema · 16 sections · closed-set enums · indexes · TRUST-TIME audit envelope
+2. `ODR_UI_WIREFRAMES.md` — mobile-first foreman-facing entry · voice-first · dropdown-first · single-red doctrine
+3. `ODR_ECOSYSTEM_INTEGRATION_MAP.md` — 8 consumer projectors · idempotent dispatch order · Safety hard-stop contract
+4. `ODR_PDF_LAYOUT_DESIGN.md` — 5 core pages + photo appendix · executive/CEI/owner/FAA/FDOT/attorney/claims-readable in ≤ 3 min · 5 variants
+5. `ODR_MIGRATION_PLAN.md` — 6-wave cutover (M0–M5) · idempotent backfill · 12-month archive · full rollback through M3
+
+### Doctrine inherited from prior phases
+- TRUST-TIME-1 timestamp doctrine (Z-suffixed UTC)
+- V-Prelude Wave 1 substrates (`operational_constraints` · `operational_links` · `operational_timeline` · `photo_governance`) — ODR is where these rows are now BORN
+- Calmness doctrine (single-red · no badges · no celebratory chrome)
+- Append-only governance memory + integrity probes
+- Phase K RBAC + per-portal bcrypt-bound token types
+
+### STOP condition honored
+- ✅ No implementation performed
+- ✅ No code changed
+- ✅ No routes added
+- ✅ No collections created
+- ✅ No frontend pages built
+- ✅ Awaiting operator architecture review
+
+### Open questions for operator review (25 total)
+- 5 in Data Model § 8
+- 5 in UI Wireframes § 18
+- 5 in Ecosystem § 7
+- 5 in PDF § 12
+- 5 in Migration § 9
+
+Implementation begins only after operator decisions on these 25
+items and an explicit "PROCEED WITH ODR IMPLEMENTATION · WAVE M0"
+command. V-Prelude Observation Freeze remains intact through this
+architecture authoring; no other surface was touched.
