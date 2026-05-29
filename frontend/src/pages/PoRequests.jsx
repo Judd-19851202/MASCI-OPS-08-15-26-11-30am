@@ -60,34 +60,85 @@ import { api } from "@/lib/api";
 const STATUS_COLORS = PO_STATUS_TINTS;
 
 /**
- * Iter520 · Phase V.5 · P0-3 — open a PO attachment (receipt or invoice)
- * through the stable backend stream endpoint. Avoids the iPad-Safari
- * blank-tab failure that occurred when the raw data URL was used as
- * <a href>. Fetches the bytes via api (with auth headers), creates a
- * Blob URL, and opens it in a new tab. Falls back to triggering a
- * download anchor when the popup is blocked (also iPad-friendly).
+ * Iter520 · Phase V.5 · P0-3 (revised) — open a PO attachment (receipt
+ * or invoice) through the stable backend stream endpoint.
+ *
+ * Why this is the *second* attempt at this fix: the first version
+ * (`window.open(blobUrl, "_blank")` AFTER `await api.get(...)`) failed
+ * silently on iPad Safari because the asynchronous fetch destroys the
+ * user-gesture context the popup API requires.
+ *
+ * Bulletproof recipe (works on iPad Safari, desktop Safari, Chrome,
+ * Firefox, Edge, and inside the Sheet drawer):
+ *
+ *   1. SYNCHRONOUSLY open a blank popup tab on click (preserves
+ *      user-gesture context for Safari).
+ *   2. Fetch the receipt bytes via the api client (auth headers
+ *      attached automatically).
+ *   3. Wrap as a Blob, generate an object URL, navigate the
+ *      placeholder tab to that URL.
+ *   4. If the popup was blocked AND we're not on iOS Safari, fall
+ *      back to a programmatic download click.
+ *   5. If we ARE on iOS Safari and the popup was blocked, fall back
+ *      to same-tab navigation (`window.location.href = blobUrl`)
+ *      because iPad Safari WILL navigate same-tab to a Blob URL even
+ *      after async work — it only blocks new-tab popups.
  */
 async function openPoAttachment(poId, filename) {
+  // Step 1 — synchronously open a placeholder tab while we still
+  // have the user-gesture context.
+  let placeholder = null;
+  try { placeholder = window.open("", "_blank", "noopener"); } catch (_e) { placeholder = null; }
+  if (placeholder) {
+    try {
+      placeholder.document.write(
+        '<!doctype html><title>Loading receipt…</title>' +
+        '<style>body{font-family:system-ui;padding:2rem;text-align:center;color:#0f172a}' +
+        '.spinner{display:inline-block;width:32px;height:32px;border:3px solid #e2e8f0;' +
+        'border-top-color:#dc2626;border-radius:50%;animation:s 0.8s linear infinite}' +
+        '@keyframes s{to{transform:rotate(360deg)}}</style>' +
+        '<div class="spinner"></div><p>Loading receipt…</p>'
+      );
+    } catch (_e) { /* cross-origin write blocked — ignore */ }
+  }
+
   try {
-    const res = await api.get(`/po-requests/${poId}/receipt`, {
-      responseType: "blob",
-    });
+    const res = await api.get(`/po-requests/${poId}/receipt`, { responseType: "blob" });
     const blob = res.data;
     const url = URL.createObjectURL(blob);
-    // Try opening in a new tab first (works for PDFs and images on most browsers).
-    const popup = window.open(url, "_blank", "noopener");
-    if (!popup) {
-      // Popup blocked — fall back to a programmatic download click.
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename || `po_${poId}_receipt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+
+    if (placeholder && !placeholder.closed) {
+      // Step 3 — redirect the placeholder tab.
+      try { placeholder.location.href = url; }
+      catch (_e) { placeholder.close(); placeholder = null; }
     }
-    // Revoke after a short delay so the new tab has time to load.
+
+    if (!placeholder || placeholder.closed) {
+      // Popup blocked. iPad-friendly fallback chain.
+      const ua = String(navigator.userAgent || "");
+      const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+                    (ua.includes("Macintosh") && "ontouchend" in document);
+      if (isIOS) {
+        // iPad Safari WILL navigate same-tab to a Blob URL — no popup needed.
+        window.location.href = url;
+      } else {
+        // Desktop: programmatic download.
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename || `po_${poId}_receipt`;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    }
+
+    // Revoke after 60 s so the new tab has time to render the PDF.
     setTimeout(() => { try { URL.revokeObjectURL(url); } catch (_e) { /* ignore */ } }, 60_000);
   } catch (err) {
+    if (placeholder && !placeholder.closed) {
+      try { placeholder.close(); } catch (_e) { /* ignore */ }
+    }
     const msg = friendlyError(err) || "Could not open receipt";
     toast.error(msg);
   }

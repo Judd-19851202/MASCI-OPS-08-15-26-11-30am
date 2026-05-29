@@ -181,7 +181,7 @@ const RepeatBlock = ({
                 >
                   {(f.options || []).map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {(f.optionLabels && f.optionLabels[opt]) || opt}
                     </option>
                   ))}
                 </select>
@@ -2055,7 +2055,20 @@ export default function NewDailyReport({ publicMode = false }) {
                   options: ["weather", "utility", "survey", "material",
                             "equipment", "trucking", "mot",
                             "cei_inspection", "owner_engineer",
-                            "safety", "other"] },
+                            "safety", "other"],
+                  optionLabels: {
+                    weather: "Weather",
+                    utility: "Utility",
+                    survey: "Survey",
+                    material: "Material",
+                    equipment: "Equipment",
+                    trucking: "Trucking",
+                    mot: "MOT",
+                    cei_inspection: "CEI / Inspection",
+                    owner_engineer: "Owner / Engineer",
+                    safety: "Safety",
+                    other: "Other",
+                  } },
                 { key: "hours_impact", label: "Lost Hours", type: "number",
                   placeholder: "0.0" },
                 { key: "notes", label: "Notes", full: true, type: "textarea",
