@@ -263,6 +263,7 @@ explicitly. RFI · Schedule · P6 remain out of scope.**
 | `PILOT_READINESS_ASSESSMENT.md` | **Wave-1B/1C** · pilot acceptance criteria · open risks · NOT yet a pilot authorization | ✅ ⛔ |
 | `WAVE_1B_1C_OPERATOR_REVIEW_GUIDE.md` | **Wave-1B/1C supersedes Wave-1A review guide** · pilot is NOT next gate · Internal Superintendent Validation Review is | ✅ ⛔ |
 | `WAVE_1B_1C_EXECUTIVE_SUMMARY.md` | **Wave-1B/1C closure brief** · WHAT CHANGED / WHAT DID NOT · current status · remaining risks · next gate (NOT pilot) | ✅ ⛔ |
+| `SUPERINTENDENT_VALIDATION_REPORT.md` | **Post-refinement** · operational-review template · 3 scenarios (Airport · Utility/Drainage · Concrete/Sidewalk) · pilot gate checklist · field-language confirmation matrix | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

@@ -1830,14 +1830,18 @@ export default function NewDailyReport({ publicMode = false }) {
           {/* Phase V.2 · Wave-1B · Structured Constraint rows (chip-style).
               ADDITIVE · operator-approved · 11-type closed enum.
               Advisory flags derived server-side · UI displays them calmly.
+              Field-language refinement (post-Wave-1B/1C validation
+              directive 2026-05-29): user-facing labels speak
+              construction ("delays / extra work") while backend
+              models / enums / APIs keep "constraint" terminology.
               Doctrine: CONSTRAINT_UI_CERTIFICATION.md */}
           <CollapseCard
-            title={t("Issues / Delays · Structured")}
+            title={t("Delays / Extra Work")}
             testId="dr-constraints"
             statusLabel={
               (data.constraints?.length || 0) > 0
                 ? `${data.constraints.length} ${t("logged")}`
-                : t("No issues today")
+                : t("No delays today")
             }
             statusTone={(data.constraints?.length || 0) > 0 ? "emerald" : "slate"}
           >
@@ -1845,7 +1849,7 @@ export default function NewDailyReport({ publicMode = false }) {
               className="mb-3 text-xs text-slate-500 leading-snug"
               data-testid="constraints-helper"
             >
-              {t("Tap a chip to log a constraint. One-tap. Signal only — never creates an RFI or schedule entry.")}
+              {t("Tap a delay cause to document impacts to today's work. Signal only — never creates an RFI or schedule entry.")}
             </div>
             {/* Chip grid · single-tap to insert a new constraint row */}
             <div className="mb-4 flex flex-wrap gap-2" data-testid="constraint-chips">
@@ -1880,7 +1884,7 @@ export default function NewDailyReport({ publicMode = false }) {
               ))}
             </div>
             <RepeatBlock
-              title={t("Constraint")}
+              title={t("Delay")}
               list="constraints"
               rows={data.constraints || []}
               helpers={cons}

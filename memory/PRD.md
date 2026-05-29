@@ -1,6 +1,68 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.2 · Daily Report Evolution · POST-WAVE-1B/1C FIELD-LANGUAGE REFINEMENT 🟢
+
+### Mission
+Operator accepted Wave-1B/1C and authorized a refinement-only pass
+to align the new Constraint UI labels with how foremen and
+superintendents naturally talk on a jobsite. **Backend models /
+enums / APIs unchanged** — only user-facing strings change.
+
+### What changed (user-facing only)
+| Surface | Before | After |
+|---|---|---|
+| Collapse card title | _Issues / Delays · Structured_ | **Delays / Extra Work** |
+| Empty-state pill | _No issues today_ | **No delays today** |
+| Helper text | _"Tap a chip to log a constraint. One-tap. Signal only — never creates an RFI or schedule entry."_ | **"Tap a delay cause to document impacts to today's work. Signal only — never creates an RFI or schedule entry."** |
+| Row label | _Constraint 1_ / _Constraint 2_ | **Delay 1 / Delay 2** |
+| Add-row button | _ADD CONSTRAINT_ | **ADD DELAY** |
+
+### What stayed the same (internal platform terminology)
+- `ConstraintRow`, `ConstraintType`, `/api/daily-reports.constraints[]`,
+  `may_require_rfi`, `may_affect_schedule` — **all unchanged**.
+- `data-testid="constraint-chip-*"`, `data-testid="constraints-helper"`,
+  `data-testid="dr-constraints"` — kept stable so existing telemetry,
+  drift probes, and pw_suite tests do not break.
+- `lib/dailyReportSchema.js` field name (`constraints: []`) — unchanged.
+- Backend test names, advisory derivation, exposure aggregator — all
+  unchanged. **89 / 89 ODR tests still pass · 25.84 s.**
+
+### Files touched
+| File | Change |
+|---|---|
+| `frontend/src/pages/NewDailyReport.jsx` | 5 user-visible string swaps · zero structural change |
+| `memory/SUPERINTENDENT_VALIDATION_REPORT.md` (NEW) | Operational-review template · 3 scenarios (Airport / Utility-Drainage / Concrete-Sidewalk) · pilot gate checklist |
+| `memory/PRD.md` | this entry |
+| `memory/_INDEX.md` | new doc registered |
+
+### Doctrine compliance
+- ✅ **Doctrine Lock #1 (Simplicity Test)** — field language now
+  speaks construction · foreman cognitive load LOWER not higher ·
+  9-step contract still intact · both cards still OPTIONAL.
+- ✅ **Doctrine Lock #2 (Platform Inheritance)** — no new deps · no
+  new component · no new route · no new endpoint.
+- ✅ **Backend stability** — internal terminology preserved exactly ·
+  zero migration · zero schema mutation · zero historical mutation.
+- ✅ **Operational Calmness** — labels remain slate · monospace ·
+  signal-only · no urgency added.
+
+### Status
+🛑 **HALTED at end of refinement pass as directed.**
+
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6
+- ❌ NO PM Hub wiring (PM Exposure Tile remains a drop-in · waits
+  for the Superintendent Validation Review to land clean)
+- ❌ NO new modules · NO new dashboards · NO new workflow steps
+- ✅ Awaiting **Internal Superintendent Validation Review**
+  (3 scenarios · Airport · Utility/Drainage · Concrete/Sidewalk) ·
+  see `SUPERINTENDENT_VALIDATION_REPORT.md`.
+- ✅ When the review lands clean, operator may then authorize
+  Wave-2 (offline strengthening) and pilot scoping.
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.2 · Daily Report Evolution · WAVE-1B + WAVE-1C CLOSURE 🟢
 
 ### Mission
