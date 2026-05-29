@@ -170,6 +170,19 @@ const RepeatBlock = ({
                   placeholder={f.placeholder}
                   data-testid={`${testIdBase}-${f.key}-${i}`}
                 />
+              ) : f.type === "select" ? (
+                <select
+                  value={row[f.key] || (f.options && f.options[0]) || ""}
+                  onChange={(e) => helpers.update(i, f.key, e.target.value)}
+                  className={inputCls}
+                  data-testid={`${testIdBase}-${f.key}-${i}`}
+                >
+                  {(f.options || []).map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
               ) : (
                 <Input
                   type={f.type || "text"}
@@ -551,6 +564,11 @@ export default function NewDailyReport({ publicMode = false }) {
   const eq = useList(data, setData, "equipment");
   const mat = useList(data, setData, "materials");
   const act = useList(data, setData, "activities");
+  // Phase V.2 · Wave-1B · structured production + constraints (operator-approved).
+  // Both lists are ADDITIVE · foreman workflow unchanged · 9-step contract preserved.
+  // Doctrine: PRODUCTION_UI_CERTIFICATION.md · CONSTRAINT_UI_CERTIFICATION.md
+  const prod = useList(data, setData, "production");
+  const cons = useList(data, setData, "constraints");
 
   const validate = () => {
     if (!data.project_name.trim()) {
@@ -1760,6 +1778,130 @@ export default function NewDailyReport({ publicMode = false }) {
                 { key: "notes", label: "Notes", full: true, type: "textarea" },
               ]}
               testIdBase="activity"
+            />
+          </CollapseCard>
+
+          {/* Phase V.2 · Wave-1B · Structured Production rows.
+              ADDITIVE · operator-approved · 7-unit closed enum.
+              Doctrine: PRODUCTION_UI_CERTIFICATION.md */}
+          <CollapseCard
+            title={t("Production Quantities")}
+            testId="dr-production"
+            statusLabel={
+              (data.production?.length || 0) > 0
+                ? `${data.production.length} ${t("rows")}`
+                : t("Optional")
+            }
+            statusTone={(data.production?.length || 0) > 0 ? "emerald" : "slate"}
+          >
+            <RepeatBlock
+              title={t("Production")}
+              list="production"
+              rows={data.production}
+              helpers={prod}
+              t={t}
+              defaults={{
+                description: "",
+                quantity: "",
+                unit: "OTHER",
+                custom_unit_label: "",
+                station_from: "",
+                station_to: "",
+                notes: "",
+              }}
+              fields={[
+                { key: "description", label: "Description", full: true,
+                  placeholder: "e.g. RCP install, Type S-III mat, MH set" },
+                { key: "quantity", label: "Quantity", type: "number" },
+                { key: "unit", label: "Unit", type: "select",
+                  options: ["LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"] },
+                { key: "custom_unit_label", label: "Custom Unit (when OTHER)",
+                  placeholder: "permit, days, lot…" },
+                { key: "station_from", label: "Station / Loc From",
+                  placeholder: "12+50" },
+                { key: "station_to", label: "Station / Loc To",
+                  placeholder: "13+00" },
+                { key: "notes", label: "Notes", full: true, type: "textarea" },
+              ]}
+              testIdBase="production"
+            />
+          </CollapseCard>
+
+          {/* Phase V.2 · Wave-1B · Structured Constraint rows (chip-style).
+              ADDITIVE · operator-approved · 11-type closed enum.
+              Advisory flags derived server-side · UI displays them calmly.
+              Doctrine: CONSTRAINT_UI_CERTIFICATION.md */}
+          <CollapseCard
+            title={t("Issues / Delays · Structured")}
+            testId="dr-constraints"
+            statusLabel={
+              (data.constraints?.length || 0) > 0
+                ? `${data.constraints.length} ${t("logged")}`
+                : t("No issues today")
+            }
+            statusTone={(data.constraints?.length || 0) > 0 ? "emerald" : "slate"}
+          >
+            <div
+              className="mb-3 text-xs text-slate-500 leading-snug"
+              data-testid="constraints-helper"
+            >
+              {t("Tap a chip to log a constraint. One-tap. Signal only — never creates an RFI or schedule entry.")}
+            </div>
+            {/* Chip grid · single-tap to insert a new constraint row */}
+            <div className="mb-4 flex flex-wrap gap-2" data-testid="constraint-chips">
+              {[
+                { key: "weather", label: "Weather" },
+                { key: "utility", label: "Utility" },
+                { key: "survey", label: "Survey" },
+                { key: "material", label: "Material" },
+                { key: "equipment", label: "Equipment" },
+                { key: "trucking", label: "Trucking" },
+                { key: "mot", label: "MOT" },
+                { key: "cei_inspection", label: "CEI / Inspection" },
+                { key: "owner_engineer", label: "Owner / Engineer" },
+                { key: "safety", label: "Safety" },
+                { key: "other", label: "Other" },
+              ].map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  data-testid={`constraint-chip-${c.key}`}
+                  onClick={() =>
+                    cons.add({
+                      constraint_type: c.key,
+                      hours_impact: "",
+                      notes: "",
+                    })
+                  }
+                  className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-400 transition-colors"
+                >
+                  + {t(c.label)}
+                </button>
+              ))}
+            </div>
+            <RepeatBlock
+              title={t("Constraint")}
+              list="constraints"
+              rows={data.constraints}
+              helpers={cons}
+              t={t}
+              defaults={{
+                constraint_type: "other",
+                hours_impact: "",
+                notes: "",
+              }}
+              fields={[
+                { key: "constraint_type", label: "Type", type: "select",
+                  options: ["weather", "utility", "survey", "material",
+                            "equipment", "trucking", "mot",
+                            "cei_inspection", "owner_engineer",
+                            "safety", "other"] },
+                { key: "hours_impact", label: "Hours Impact", type: "number",
+                  placeholder: "0.0" },
+                { key: "notes", label: "Notes", full: true, type: "textarea",
+                  placeholder: "What happened and where" },
+              ]}
+              testIdBase="constraint"
             />
           </CollapseCard>
 

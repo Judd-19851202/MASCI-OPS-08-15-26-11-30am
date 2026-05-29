@@ -1,12 +1,12 @@
 # ODR Public-Link Continuity Probe Report
 
-_Generated 2026-05-29T15:38:07Z · env=preview · db=masci_safety_preview_
+_Generated 2026-05-29T15:51:03Z · env=preview · db=masci_safety_preview_
 
 ## Counts
-- ODRs: **86**
-- Public links issued: **39**
-- ODRs with public_access.link_id: **37**
-- Preload attempts logged: **90**
+- ODRs: **92**
+- Public links issued: **41**
+- ODRs with public_access.link_id: **39**
+- Preload attempts logged: **95**
 
 ## Checks
 - ✅ **C1** · Unique public link_id

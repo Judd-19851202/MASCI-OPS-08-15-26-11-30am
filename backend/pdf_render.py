@@ -1258,6 +1258,42 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     else:
         body = _render_generic(title, record)
 
+    # ── Phase V.2 · Wave-1C · DR PDF Audit Footer ───────────────────────
+    # Render `Official Record · DR-... · sha256=... · rendered <utc>` in
+    # the @bottom-center print slot on Daily Report PDFs only. Invisible
+    # to field workflow · visible to FAA / FDOT / CEI / Owner / Legal.
+    # Doctrine: PDF_AUDIT_FOOTER_RENDER_CERTIFICATION.md
+    audit_footer_css = ""
+    if kind == "daily-report":
+        try:
+            from routes.daily_reports import _compute_audit_envelope_sha256
+            from datetime import datetime as _dt, timezone as _tz
+            _sha = _compute_audit_envelope_sha256(record)
+            _rendered = _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            _doc = (record.get("doc_id") or "").strip() or "DR-?"
+            _footer_text = (
+                f"Official Record \u00B7 {_doc} \u00B7 sha256={_sha[:16]} "
+                f"\u00B7 rendered {_rendered}"
+            )
+            # CSS escape sequences for special chars in `content`.
+            _safe = (
+                _footer_text
+                .replace("\\", "\\\\")
+                .replace('"', '\\"')
+            )
+            audit_footer_css = (
+                "@page { @bottom-center { "
+                f'content: "{_safe}"; '
+                "font-family: 'Courier New', monospace; "
+                "font-size: 7pt; "
+                "letter-spacing: 0.12em; "
+                "color: #334155; "
+                "font-weight: normal; "
+                "} }"
+            )
+        except Exception:
+            audit_footer_css = ""  # never fail render on footer
+
     record_id = (record.get("id") or "")[:8].upper()
     # iter337 · PDF Header Reference Continuity. Surface the SAME
     # canonical identifier shown on the iter335 /thank-you submission
@@ -1374,6 +1410,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
      here — WeasyPrint treats `position: fixed` as fixed-per-page,
      which caused the iter310 double-footer regression that printed
      the footer text twice on every page of multi-page incident PDFs. */
+  {audit_footer_css}
 </style></head><body>
   <header class="hdr">
     <img src="{logo_uri}" alt="MASCI" />

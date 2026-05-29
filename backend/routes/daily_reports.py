@@ -264,6 +264,78 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         n = await db.daily_reports.count_documents({"report_number": {"$regex": f"^{prefix}"}})
         return {"report_number": f"{prefix}{n + 1:03d}", "prefix": prefix}
 
+    @api_router.get("/daily-reports/exposure-signals")
+    async def daily_report_exposure_signals(
+        days: int = 14,
+        actor=Depends(require_admin),
+    ):
+        """Phase V.2 · Wave-1B · Calm PM exposure tile aggregator.
+
+        Reads structured constraint rows from recent Daily Reports and
+        returns aggregate signal counts. Signal only · never an alert ·
+        never triggers an RFI / schedule entry / notification.
+
+        Doctrine: PM_EXPOSURE_TILE_CERTIFICATION.md
+        Calmness: ADVISORY_FLAG_CERTIFICATION.md §5
+        """
+        from datetime import datetime as _dt, timedelta as _td
+        from collections import Counter
+        cutoff = (_dt.utcnow() - _td(days=max(1, min(days, 90)))).strftime("%Y-%m-%d")
+        scope = await compute_pm_scope(db, actor)
+        q = scope.filter({"report_date": {"$gte": cutoff}})
+        cur = db.daily_reports.find(
+            q,
+            {"_id": 0, "constraints": 1, "report_date": 1, "project_number": 1},
+        ).sort("report_date", -1).limit(2000)
+
+        rfi_signal = 0
+        sched_signal = 0
+        types = Counter()
+        per_day = Counter()
+        per_project = Counter()
+        reports_with_constraints = 0
+        async for row in cur:
+            rows = row.get("constraints") or []
+            if rows:
+                reports_with_constraints += 1
+            for c in rows:
+                if not isinstance(c, dict):
+                    continue
+                t = c.get("constraint_type") or "other"
+                types[t] += 1
+                per_day[row.get("report_date") or "?"] += 1
+                pn = row.get("project_number") or "?"
+                per_project[pn] += 1
+                if c.get("may_require_rfi"):
+                    rfi_signal += 1
+                if c.get("may_affect_schedule"):
+                    sched_signal += 1
+
+        # Sort top lists for the calm tile UI
+        top_types = [
+            {"constraint_type": k, "count": n}
+            for k, n in types.most_common(5)
+        ]
+        recent_trend = [
+            {"date": d, "count": n}
+            for d, n in sorted(per_day.items(), reverse=True)[:7]
+        ]
+        top_projects = [
+            {"project_number": k, "count": n}
+            for k, n in per_project.most_common(5)
+        ]
+        return {
+            "window_days": days,
+            "reports_with_constraints": reports_with_constraints,
+            "rfi_signal_count": rfi_signal,
+            "schedule_signal_count": sched_signal,
+            "top_constraint_types": top_types,
+            "recent_trend": recent_trend,
+            "top_projects": top_projects,
+            "doctrine": "PM_EXPOSURE_TILE_CERTIFICATION.md",
+            "kind": "signal_only",
+        }
+
     @api_router.get("/daily-reports/{report_id}/audit-footer")
     async def daily_report_audit_footer(
         report_id: str,
