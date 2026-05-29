@@ -39,6 +39,7 @@ import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
+import { getFlUser } from "@/lib/flAuth";
 import { isAdmin } from "@/lib/adminAuth";
 import { translateUserInput } from "@/lib/translateOnSubmit";
 import { toast } from "sonner";
@@ -254,6 +255,32 @@ export default function NewDailyReport({ publicMode = false }) {
   // each CollapseCard so users can independently expand sections that
   // matter today (e.g., subs but not visitors). ZERO field deletion.
   const idempotencyKeyRef = React.useRef(null);
+
+  // Phase V.2 · FL Role Standardization (2026-05-29).
+  // Auto-populate Prepared By from the logged-in FL user when their
+  // role qualifies (leadman / foreman / superintendent / sr_super)
+  // AND the field is currently empty.  Foremen still get a manual
+  // fallback; this only saves a tap when the form is opened in a
+  // signed-in FL context.  Doctrine: DAILY_REPORT_ROLE_PICKER_ALIGNMENT.md
+  useEffect(() => {
+    if ((data.prepared_by || "").trim()) return;
+    let flUser = null;
+    try { flUser = getFlUser(); } catch { /* no-op */ }
+    if (!flUser?.name) return;
+    const roleRaw = (flUser.role || "").toLowerCase();
+    const eligible = [
+      "leadman", "foreman", "superintendent",
+      "sr_superintendent", "sr. superintendent",
+      "senior superintendent",
+      // legacy strings still in the wild
+      "general foreman", "field supervisor",
+      "working supervisor", "truck boss",
+    ];
+    if (eligible.some((r) => roleRaw === r)) {
+      set("prepared_by", flUser.name);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // iter434 · Phase 31 · Part 2 — manual draft recovery via calm prompt
   // (do NOT auto-overwrite the form). Autosave continues silently.
@@ -1057,16 +1084,13 @@ export default function NewDailyReport({ publicMode = false }) {
               <FlUserCombo
                 value={data.prepared_by}
                 onChange={(v) => set("prepared_by", v)}
-                placeholder={t("Foreman / General Foreman / Superintendent")}
+                placeholder={t("Foreman / Leadman / Superintendent")}
                 testId="prepared-by"
                 allowedRoles={[
-                  "Foreman",
-                  "General Foreman",
-                  "Field Supervisor",
-                  "Working Supervisor",
-                  "Truck Boss",
-                  "Superintendent",
-                  "Senior Superintendent",
+                  "leadman",
+                  "foreman",
+                  "superintendent",
+                  "sr_superintendent",
                 ]}
               />
             </div>
@@ -1077,12 +1101,11 @@ export default function NewDailyReport({ publicMode = false }) {
               <FlUserCombo
                 value={data.superintendent}
                 onChange={(v) => set("superintendent", v)}
-                placeholder={t("Superintendent / Senior Super")}
+                placeholder={t("Superintendent / Sr. Superintendent")}
                 testId="superintendent"
                 allowedRoles={[
-                  "Superintendent",
-                  "Senior Superintendent",
-                  "Field Supervisor",
+                  "superintendent",
+                  "sr_superintendent",
                 ]}
               />
             </div>
@@ -1195,8 +1218,14 @@ export default function NewDailyReport({ publicMode = false }) {
               />
             </div>
           </div>
-          {(data.schedule_delays === "Yes" ||
-            data.weather_impact === "Yes" ||
+          {/* Phase V.2 · Section 03 Cleanup (2026-05-29):
+              `schedule_delays === "Yes"` no longer triggers this
+              free-text "Detail any Yes answers" box.  Delays now
+              live in the structured "Delays / Extra Work" card so
+              this trigger only fires for weather / accidents /
+              injuries to prevent duplicate delay reporting.
+              Doctrine: SECTION_03_CLEANUP_CERTIFICATION.md  */}
+          {(data.weather_impact === "Yes" ||
             data.safety_incidents_today === "Yes" ||
             data.injuries_reported === "Yes") && (
             <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-3">
@@ -1208,7 +1237,7 @@ export default function NewDailyReport({ publicMode = false }) {
                 value={data.incident_notes}
                 onChange={(e) => set("incident_notes", e.target.value)}
                 className="min-h-[80px] text-base border-2 border-amber-300 mt-1"
-                placeholder={t("Describe delays, weather impact, accidents, injuries...")}
+                placeholder={t("Describe weather impact, accidents, injuries…")}
                 data-testid="input-incident-notes"
               />
             </div>

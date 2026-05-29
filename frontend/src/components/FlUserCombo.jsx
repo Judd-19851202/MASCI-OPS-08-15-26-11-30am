@@ -108,6 +108,10 @@ export const FlUserCombo = ({
 
   const roleFilterSet = useMemo(() => {
     if (!Array.isArray(allowedRoles) || allowedRoles.length === 0) return null;
+    // Phase V.2 · FL Role Standardization — accept canonical values
+    // (sr_superintendent / superintendent / foreman / leadman) AND
+    // legacy labels (Superintendent / Foreman / etc.) so callers can
+    // pass either.  Comparison is case-insensitive.
     return new Set(allowedRoles.map((r) => (r || "").toLowerCase()));
   }, [allowedRoles]);
 
@@ -115,14 +119,20 @@ export const FlUserCombo = ({
     const q = (value || "").trim().toLowerCase();
     let items = data.items || [];
     if (roleFilterSet) {
-      items = items.filter((it) =>
-        roleFilterSet.has(((it.role || "").toLowerCase()))
-      );
+      items = items.filter((it) => {
+        const candidates = [it.role_value, it.role_label, it.role, it.role_raw]
+          .filter(Boolean)
+          .map((s) => s.toLowerCase());
+        return candidates.some((c) => roleFilterSet.has(c));
+      });
     }
     if (!q) return items.slice(0, 200);
     return items
       .filter((it) => {
-        const hay = [it.name, it.role].filter(Boolean).join(" ").toLowerCase();
+        const hay = [it.name, it.role_label, it.role, it.role_value]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
         return hay.includes(q);
       })
       .slice(0, 200);
@@ -195,22 +205,38 @@ export const FlUserCombo = ({
                 : t("No matches. Manual entry is fine.")}
             </div>
           ) : (
-            filtered.map((it, i) => (
-              <button
-                key={`${it.name}-${i}`}
-                type="button"
-                onClick={() => pick(it)}
-                className="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
-                data-testid={`${testId}-option-${i}`}
-              >
-                <div className="text-sm font-medium text-slate-900">{it.name}</div>
-                {it.role && (
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-mono">
-                    {it.role}
+            filtered.map((it, i) => {
+              // Display format per FL Role Standardization:
+              //   "Name — Role"  (single line · em-dash · role label)
+              const label = it.role_label || it.role || "";
+              const uncertain = !!it.role_uncertain;
+              return (
+                <button
+                  key={`${it.name}-${i}`}
+                  type="button"
+                  onClick={() => pick(it)}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                  data-testid={`${testId}-option-${i}`}
+                >
+                  <div className="text-sm text-slate-900">
+                    <span className="font-medium">{it.name}</span>
+                    {label && (
+                      <>
+                        <span className="text-slate-400 mx-1.5">—</span>
+                        <span
+                          className={`text-[12px] uppercase tracking-[0.15em] font-mono ${
+                            uncertain ? "text-amber-700" : "text-slate-500"
+                          }`}
+                        >
+                          {label}
+                          {uncertain ? " *" : ""}
+                        </span>
+                      </>
+                    )}
                   </div>
-                )}
-              </button>
-            ))
+                </button>
+              );
+            })
           )}
         </div>
       )}

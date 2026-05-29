@@ -51,7 +51,8 @@ from pydantic import BaseModel, Field
 import field_leadership_users as fl
 from branded_portal_emails import render_portal_email
 from field_leadership_users import (
-    ALLOWED_FL_ROLES, add_fl_user, consume_fl_reset_token, delete_fl_user,
+    ALLOWED_FL_ROLES, FL_CANONICAL_ROLES, _canonical_role,
+    add_fl_user, consume_fl_reset_token, delete_fl_user,
     find_fl_user_by_email, generate_temp_password, is_valid_fl_user_token_async,
     list_fl_users, make_fl_reset_token, make_fl_user_token,
     public_fl_user_view, set_fl_user_password, stamp_fl_login, update_fl_user,
@@ -894,17 +895,35 @@ def build_field_leadership_portal_router(
         users = await list_fl_users(db, only_active=True)
         items: List[Dict[str, Any]] = []
         for u in users:
-            r = (u.get("role") or "").strip()
-            if role and r.lower() != role.strip().lower():
-                continue
+            raw_role = (u.get("role") or "").strip()
+            canon = _canonical_role(raw_role)
+            # Optional server-side filter — accept canonical OR label OR raw.
+            if role:
+                want = role.strip().lower()
+                if want not in (canon["value"], canon["label"].lower(),
+                                raw_role.lower()):
+                    continue
             items.append({
                 "name": (u.get("name") or "").strip(),
-                "role": r,
+                "role_value": canon["value"],     # canonical key
+                "role_label": canon["label"],     # display label
+                "role_raw":   raw_role,           # what's stored in DB
+                "role_uncertain": canon["uncertain"],
+                "role_uncertain_note": canon["uncertain_note"],
                 "is_active": bool(u.get("is_active", True)),
+                # Legacy "role" key preserved so older clients keep working
+                "role": canon["label"],
             })
         return {
             "items": items,
             "count": len(items),
+            "canonical_roles": [
+                {"value": v, "label": l}
+                for v, l in FL_CANONICAL_ROLES.items()
+            ],
+            # Back-compat: existing pickers consuming `allowed_roles`
+            # still receive the legacy set so old wire-format clients
+            # don't break.
             "allowed_roles": sorted(ALLOWED_FL_ROLES),
         }
 

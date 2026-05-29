@@ -1,6 +1,77 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.2 · Section 03 Cleanup + FL Role Standardization 🟢
+
+### Mission
+Two operator directives landed in one closure pass:
+
+1. **Section 03 Cleanup** — remove the legacy "Detail any 'Yes'
+   answers" amber box from the Delays / Extra Work YES flow to
+   eliminate duplicate delay entry (the new structured Delays
+   card is the source of truth).
+2. **FL Role Standardization** — collapse the FL role ladder to
+   four canonical values (`sr_superintendent`, `superintendent`,
+   `foreman`, `leadman`), thread canonical values through the
+   public roster + Daily Report pickers, prepare permission
+   foundation for future approval / rejection workflow.
+
+### What shipped — Section 03 Cleanup
+| Surface | Change |
+|---|---|
+| `NewDailyReport.jsx` Section 03 trigger | `schedule_delays === "Yes"` no longer surfaces the legacy detail box · weather / accidents / injuries unchanged |
+| Placeholder copy | "Describe weather impact, accidents, injuries…" |
+| `incident_notes` field | preserved · historical reports render unchanged |
+
+### What shipped — FL Role Standardization
+| Surface | Change |
+|---|---|
+| `backend/field_leadership_users.py` | `FL_CANONICAL_ROLES` + hard + uncertain alias maps + `_canonical_role()` resolver · expanded `ALLOWED_FL_ROLES` for back-compat |
+| `backend/routes/field_leadership_portal.py` | `GET /api/field-leadership-roster` returns `role_value` + `role_label` + `role_raw` + `role_uncertain` + `role_uncertain_note` + `canonical_roles[]` |
+| `frontend/src/components/FlUserCombo.jsx` | Canonical-aware filter · "Name — Role" single-line display · amber `*` marker on uncertain mappings |
+| `frontend/src/pages/NewDailyReport.jsx` | Prepared By picker filters to `{leadman, foreman, superintendent, sr_superintendent}` · Superintendent picker to super-tier · auto-populate Prepared By from logged-in FL user when eligible AND field empty |
+
+### Backend stability
+- `ConstraintRow`, `production[]`, `constraints[]`, advisory flags, exposure aggregator, `prepared_by`, `superintendent`, `schedule_delays`, `incident_notes` — **all preserved**.
+- No schema migration · no record rewrite · `role_raw` always echoes what's stored.
+- **89 / 89 ODR tests still pass** · ESLint clean · Ruff clean.
+
+### Doctrine compliance
+- ✅ **Single canonical ladder** — 4 roles · zero drift.
+- ✅ **No silent guessing** — 4 uncertain aliases flagged with `*` and reviewer note · documented in `LEGACY_ROLE_MAPPING_REVIEW.md`.
+- ✅ **Existing users preserved** — `role_raw` always rendered · permissions resolve from `role_value` at read time.
+- ✅ **PII-safe** — public roster strips emails / phones / passwords / sessions.
+- ✅ **No new pilot · no new dashboards · no approval/rejection workflow implementation.**
+- ✅ **Doctrine Locks #1 & #2 honored** — foreman 9-step contract intact · no new deps · reused `CollapseCard.attentionOpen`, `useList`, `RepeatBlock`.
+
+### Files touched
+| File | Status |
+|---|---|
+| `backend/field_leadership_users.py` | + canonical enum / aliases / resolver |
+| `backend/routes/field_leadership_portal.py` | + canonical envelope on public roster |
+| `frontend/src/components/FlUserCombo.jsx` | filter+display refresh |
+| `frontend/src/pages/NewDailyReport.jsx` | Section 03 cleanup · picker role lists · auto-populate |
+| `memory/SECTION_03_CLEANUP_CERTIFICATION.md` (NEW) | Section 03 cert |
+| `memory/FL_ROLE_STANDARDIZATION_REPORT.md` (NEW) | Master closure |
+| `memory/FL_ROLE_ENUM_CERTIFICATION.md` (NEW) | Enum + alias + resolver spec |
+| `memory/DAILY_REPORT_ROLE_PICKER_ALIGNMENT.md` (NEW) | Picker doctrine |
+| `memory/FL_DASHBOARD_VISIBILITY_PREP.md` (NEW) | Visibility matrix · planning only |
+| `memory/APPROVAL_REJECTION_PERMISSION_FOUNDATION.md` (NEW) | Permission spec · planning only |
+| `memory/LEGACY_ROLE_MAPPING_REVIEW.md` (NEW) | 4 uncertain rows · operator review |
+
+### Status
+🛑 **HALTED at end of FL Role Standardization as directed.**
+
+- ❌ NO Pilot · NO RFI · NO Schedule · NO P6
+- ❌ NO PM Hub wiring (PM Exposure Tile remains a drop-in)
+- ❌ NO approval/rejection workflow implementation
+- ❌ NO new dashboards · NO new navigation
+- ✅ Awaiting **Internal Superintendent Validation Review** + operator
+  review of `LEGACY_ROLE_MAPPING_REVIEW.md`.
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.2 · Daily Report Field-Logic Refinement 🟢
 
 ### Mission

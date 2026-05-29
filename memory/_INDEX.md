@@ -269,6 +269,13 @@ explicitly. RFI · Schedule · P6 remain out of scope.**
 | `REPORT_ROLE_PICKER_CERTIFICATION.md` | **Fix 2** · `FlUserCombo` + public `GET /api/field-leadership-roster` (name+role+active only · no PII) · Prepared By / Superintendent role-aware pickers with manual fallback | ✅ ⛔ |
 | `DELAY_EXTRA_WORK_GATE_CERTIFICATION.md` | **Fix 3** · Section 03 relabel · submit-gate when YES + 0 rows · `attentionOpen` auto-expand · NO path preserved · still signal-only | ✅ ⛔ |
 | `FIELD_LANGUAGE_CLEANUP_CERTIFICATION.md` | **Fix 4** · UI vocabulary matrix · "Hours Impact" → "Lost Hours" · anti-pattern audit (forbidden strings cleared) · chip labels held as-is per directive | ✅ ⛔ |
+| `SECTION_03_CLEANUP_CERTIFICATION.md` | **Section 03** · legacy "Detail any Yes answers" box no longer fires on `schedule_delays === Yes` · weather/accidents/injuries still trigger · placeholder copy updated · `incident_notes` field preserved | ✅ ⛔ |
+| `FL_ROLE_STANDARDIZATION_REPORT.md` | **FL Role · master closure** · 4 canonical roles · alias maps · resolver · picker + dashboard + permission foundation summary | ✅ ⛔ |
+| `FL_ROLE_ENUM_CERTIFICATION.md` | **FL Role · enum spec** · `FL_CANONICAL_ROLES` + hard aliases + uncertain aliases + `_canonical_role()` resolver behavior matrix · public roster envelope | ✅ ⛔ |
+| `DAILY_REPORT_ROLE_PICKER_ALIGNMENT.md` | **FL Role · DR picker doctrine** · Prepared By + Superintendent role lists · "Name — Role" em-dash display · uncertain `*` marker · auto-populate from FL user · manual fallback | ✅ ⛔ |
+| `FL_DASHBOARD_VISIBILITY_PREP.md` | **FL Role · planning only** · per-role surface matrix (Leadman / Foreman / Super / Sr. Super / Admin) · forbidden combinations · NOT implemented today | 📐 |
+| `APPROVAL_REJECTION_PERMISSION_FOUNDATION.md` | **FL Role · planning only** · permission matrix · audit contract · audit-hash continuity with Wave-1C footer · forbidden behaviors · NOT implemented today | 📐 |
+| `LEGACY_ROLE_MAPPING_REVIEW.md` | **FL Role · operator review** · 4 uncertain aliases (`Field Supervisor`, `General Foreman`, `Truck Boss`, `Working Supervisor`) with proposed canonical defaults + counts + recommended actions | ✅ ⛔ |
 | `scripts/odr_public_link_continuity_probe.py` | 8-invariant continuity probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_bilingual_probe.py` | 7-invariant bilingual probe · sub-second · wired into pre_deploy_check.sh | ✅ |
 | `scripts/odr_reality_validation.py` | M0.35 · 4-scenario field reality harness · run pre-pilot | ✅ |

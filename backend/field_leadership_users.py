@@ -60,6 +60,104 @@ ALLOWED_FL_ROLES = {
 }
 
 
+# ─────────────────────────────────────────────────────────────────
+# Phase V.2 · FL Role Standardization (2026-05-29)
+# ─────────────────────────────────────────────────────────────────
+# Canonical Field-Leadership role ladder.  Permissions use the
+# canonical value; UI displays the label.  Aliases map legacy
+# free-form roles into the canonical ladder safely.  UNCERTAIN
+# mappings (`General Foreman`, `Field Supervisor`, `Truck Boss`,
+# `Working Supervisor`) are surfaced as `_uncertain_role_value` on
+# the public roster so the operator can review and confirm in a
+# follow-up directive.  Doctrine:
+#   - FL_ROLE_ENUM_CERTIFICATION.md
+#   - LEGACY_ROLE_MAPPING_REVIEW.md
+FL_CANONICAL_ROLES = {
+    "sr_superintendent": "Sr. Superintendent",
+    "superintendent":    "Superintendent",
+    "foreman":           "Foreman",
+    "leadman":           "Leadman",
+}
+
+# Hard aliases — confidently mapped.  Compared case-insensitively.
+FL_ROLE_ALIASES_HARD = {
+    "sr. superintendent":      "sr_superintendent",
+    "sr superintendent":       "sr_superintendent",
+    "senior superintendent":   "sr_superintendent",
+    "superintendent":          "superintendent",
+    "foreman":                 "foreman",
+    "leadman":                 "leadman",
+    "crew lead":               "leadman",
+    "crewlead":                "leadman",
+}
+
+# Uncertain aliases — proposed canonical default, but flagged on the
+# public roster so the operator can review/override.  Each entry is
+# (proposed_canonical, note).
+FL_ROLE_ALIASES_UNCERTAIN = {
+    "general foreman":    ("foreman",        "operator review · could be Foreman or Leadman"),
+    "field supervisor":   ("superintendent", "operator review · could be Superintendent or Foreman"),
+    "truck boss":         ("leadman",        "operator review · trucking lead role · likely Leadman"),
+    "working supervisor": ("foreman",        "operator review · field-working lead · likely Foreman"),
+}
+
+# Back-compat: the legacy enum is still consumed by older create /
+# patch payload validation.  Expanded so old free-form role strings
+# still validate during the transition window.  New canonical writes
+# go through `_canonical_role()`.
+ALLOWED_FL_ROLES = {
+    # canonical labels
+    "Sr. Superintendent",
+    "Superintendent",
+    "Foreman",
+    "Leadman",
+    # legacy labels still in the wild
+    "Truck Boss",
+    "Working Supervisor",
+    "Field Supervisor",
+    "General Foreman",
+}
+
+
+def _canonical_role(raw_role: str) -> Dict[str, Any]:
+    """
+    Resolve an arbitrary `role` string to:
+      {
+        "value": <canonical key | "unknown">,
+        "label": <display label>,
+        "uncertain": <True iff alias is in FL_ROLE_ALIASES_UNCERTAIN>,
+        "uncertain_note": <reviewer note or None>,
+      }
+    Never raises.  Unknown legacy strings echo back as `value=unknown`,
+    `label=<raw>` so the UI can still render them and they do not
+    silently get auto-mapped to a different role.
+    """
+    key = (raw_role or "").strip().lower()
+    if key in FL_ROLE_ALIASES_HARD:
+        canon = FL_ROLE_ALIASES_HARD[key]
+        return {
+            "value": canon,
+            "label": FL_CANONICAL_ROLES[canon],
+            "uncertain": False,
+            "uncertain_note": None,
+        }
+    if key in FL_ROLE_ALIASES_UNCERTAIN:
+        canon, note = FL_ROLE_ALIASES_UNCERTAIN[key]
+        return {
+            "value": canon,
+            "label": FL_CANONICAL_ROLES[canon],
+            "uncertain": True,
+            "uncertain_note": note,
+        }
+    # Unknown — preserve raw, never guess.
+    return {
+        "value": "unknown",
+        "label": (raw_role or "").strip() or "Unknown",
+        "uncertain": True,
+        "uncertain_note": "unrecognized legacy role · operator review required",
+    }
+
+
 # ----- helpers ---------------------------------------------------------
 
 def _now() -> str:
@@ -70,10 +168,14 @@ def _normalize(doc: Dict[str, Any]) -> Dict[str, Any]:
     if "_id" in doc:
         doc.pop("_id")
     email = (doc.get("email") or "").strip().lower()
-    role = (doc.get("role") or "Superintendent").strip()
-    # Coerce to allowed role; default to Superintendent if unrecognized.
-    if role not in ALLOWED_FL_ROLES:
-        role = "Superintendent"
+    raw_role = (doc.get("role") or "Superintendent").strip()
+    # Phase V.2 · FL Role Standardization: accept canonical labels
+    # (Sr. Superintendent · Superintendent · Foreman · Leadman) AND
+    # legacy free-form roles (Truck Boss · Working Supervisor · Field
+    # Supervisor · General Foreman) so historical create / patch
+    # payloads continue to validate.  Unknown values default to
+    # Superintendent to preserve the iter314 behavior.
+    role = raw_role if raw_role in ALLOWED_FL_ROLES else "Superintendent"
     return {
         "id": doc.get("id") or str(uuid.uuid4()),
         "name": (doc.get("name") or "").strip(),
@@ -334,6 +436,10 @@ def public_fl_user_view(user: dict) -> dict:
 
 __all__ = [
     "ALLOWED_FL_ROLES",
+    "FL_CANONICAL_ROLES",
+    "FL_ROLE_ALIASES_HARD",
+    "FL_ROLE_ALIASES_UNCERTAIN",
+    "_canonical_role",
     "seed_field_leadership_users",
     "list_fl_users",
     "add_fl_user",
