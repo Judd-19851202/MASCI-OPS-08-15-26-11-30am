@@ -128,6 +128,10 @@ async def ensure_continuity_indexes(db) -> None:
     await db.odr_public_links.create_index("doc_id")
     await db.odr_public_links.create_index([("odr_id", 1), ("created_at_utc", -1)])
     await db.odr_public_links.create_index([("project_id", 1), ("created_at_utc", -1)])
+    # M0.35 · Audience Projection Doctrine — audit every PDF render.
+    await db.odr_pdf_renders.create_index("render_id", unique=True)
+    await db.odr_pdf_renders.create_index([("odr_id", 1), ("at_utc", -1)])
+    await db.odr_pdf_renders.create_index([("audience", 1), ("at_utc", -1)])
     logger.info("ODR continuity indexes ensured.")
 
 
@@ -161,6 +165,7 @@ def build_odr_continuity_router(
 
         link_id = str(uuid.uuid4())
         now = _utc_iso()
+        # M0.35 · Audience Projection Doctrine — public links ALWAYS use External projection.
         row = {
             "link_id": link_id,
             "odr_id": odr_id,
@@ -168,6 +173,8 @@ def build_odr_continuity_router(
             "project_id": (odr.get("project") or {}).get("project_id", ""),
             "crew_id": (odr.get("crew_profile") or {}).get("crew_id", ""),
             "link_scope": body.link_scope,
+            "audience_profile_locked": "external",      # never user-selectable on public links
+            "projection_audience": "external",
             "created_at_utc": now,
             "created_by_uid": _actor_uid(actor),
             "created_by_portal": portal,

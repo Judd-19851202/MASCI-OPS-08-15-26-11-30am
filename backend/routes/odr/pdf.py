@@ -362,6 +362,24 @@ def _render_pdf(odr: Dict[str, Any], audience: str) -> Tuple[bytes, str, str]:
 # ── Router factory ───────────────────────────────────────────────────
 
 
+# M0.35 · Audience Projection Doctrine — 4 audience profiles map to PDF audiences.
+# The user chooses the audience profile. The system chooses the projection.
+AUDIENCE_PROFILES = {
+    "internal_foreman": "foreman",
+    "internal_superintendent": "superintendent",
+    "internal_pm": "pm",
+    "internal_operations": "executive",
+    "external_owner": "external",
+    "external_cei": "external",
+    "external_dot": "external",
+    "external_faa": "external",
+    "external_consultant": "external",
+    "executive_leadership": "executive",
+    "legal_audit": "superintendent",   # complete internal record package · audit-only · admin-gated
+}
+PUBLIC_LINK_FIXED_AUDIENCE = "external"   # public links ALWAYS use External projection.
+
+
 def build_odr_pdf_router(
     db,
     require_actor: Callable[..., Awaitable[Dict[str, Any]]],
@@ -373,8 +391,25 @@ def build_odr_pdf_router(
     async def get_pdf(
         odr_id: str,
         audience: str = Query(default="foreman"),
+        audience_profile: Optional[str] = Query(
+            default=None,
+            description="M0.35 audience profile · maps to projection automatically. "
+                        "Takes precedence over `audience` if supplied.",
+        ),
         actor: Dict[str, Any] = Depends(require_actor),
     ) -> Response:
+        # M0.35 Audience Projection Doctrine: if a profile is supplied,
+        # it WINS and we look up the projection. PMs / users never
+        # decide redaction directly.
+        if audience_profile:
+            mapped = AUDIENCE_PROFILES.get(audience_profile)
+            if not mapped:
+                raise HTTPException(
+                    422,
+                    f"Unknown audience_profile. Valid profiles: "
+                    f"{sorted(AUDIENCE_PROFILES.keys())}",
+                )
+            audience = mapped
         if audience not in AUDIENCES:
             raise HTTPException(422, f"Invalid audience. Expected one of {AUDIENCES}")
         odr = await db.odr.find_one({"id": odr_id}, {"_id": 0})
@@ -395,13 +430,37 @@ def build_odr_pdf_router(
             # FLL-6 (admin) ok; FLL-3/4 (super+) ok.
             if portal not in ("admin",):
                 raise HTTPException(403, "Superintendent audience requires Super+ or Admin.")
+        # Legal/audit profile is admin-only.
+        if audience_profile == "legal_audit" and portal != "admin":
+            raise HTTPException(403, "Legal/Audit profile requires Admin token.")
 
         pdf_bytes, sha, footer = _render_pdf(odr, audience)
+
+        # M0.35 · Audit every render — what was generated, for whom, and which projection.
+        try:
+            import uuid as _uuid
+            from datetime import datetime as _dt, timezone as _tz
+            await db.odr_pdf_renders.insert_one({
+                "render_id": str(_uuid.uuid4()),
+                "odr_id": odr_id,
+                "doc_id": odr.get("doc_id"),
+                "audience": audience,
+                "audience_profile": audience_profile,
+                "sha256": sha,
+                "actor_uid": (actor.get("id") or actor.get("user_id") or actor.get("email") or "unknown"),
+                "actor_portal": portal,
+                "at_utc": _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+                "byte_size": len(pdf_bytes),
+            })
+        except Exception:  # noqa: BLE001
+            pass  # audit-best-effort; never fail the render
+
         headers = {
             "Content-Disposition": (
                 f'inline; filename="{odr.get("doc_id", "ODR")}-{audience}.pdf"'
             ),
             "X-ODR-Audience": audience,
+            "X-ODR-Audience-Profile": audience_profile or "",
             "X-ODR-SHA256": sha,
             "X-ODR-Footer": footer,
             "X-Content-Type-Options": "nosniff",

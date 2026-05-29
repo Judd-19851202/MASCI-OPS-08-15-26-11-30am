@@ -1,0 +1,542 @@
+{
+  "started_at": "2026-05-29T12:34:20Z",
+  "suite_id": "be2a1f82",
+  "scenarios": [
+    {
+      "name": "Airport \u00b7 Taxiway Closure",
+      "started_at": "2026-05-29T12:34:20Z",
+      "operations": [
+        {
+          "op": "create",
+          "ms": 322,
+          "status": 200
+        },
+        {
+          "op": "patch:manpower",
+          "ms": 329,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:equipment",
+          "ms": 326,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:production",
+          "ms": 340,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:delays",
+          "ms": 355,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:constraints",
+          "ms": 326,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:safety",
+          "ms": 282,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:weather_impact",
+          "ms": 284,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:tomorrow",
+          "ms": 290,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:ack",
+          "ms": 285,
+          "status": 200
+        },
+        {
+          "op": "submit",
+          "ms": 315,
+          "status": 200
+        }
+      ],
+      "doc_id": "ODR-2026-00029",
+      "odr_id": "41997d81-c02d-4ec8-8796-745cbc857e8d",
+      "submitted": true,
+      "submit_payload": {
+        "status": "submitted",
+        "amend_until": "2026-05-30T12:34:23.699Z",
+        "readiness_score": "ready"
+      },
+      "pdf_renders": {
+        "foreman": {
+          "ms": 251,
+          "status": 200,
+          "byte_size": 2975,
+          "sha256": "ae8a2a22dd1abe841ef32acb5e5c74a4cd50441c24117613d6fa25d1e9c01fbd",
+          "footer": "Official Record \u00b7 ODR-2026-00029 \u00b7 sha256=ae8a2a22dd1abe84 \u00b7 audience=foreman \u00b7 rendered 2026-05-29T12:34:24Z"
+        },
+        "superintendent": {
+          "ms": 237,
+          "status": 200,
+          "byte_size": 2991,
+          "sha256": "ae8a2a22dd1abe841ef32acb5e5c74a4cd50441c24117613d6fa25d1e9c01fbd",
+          "footer": "Official Record \u00b7 ODR-2026-00029 \u00b7 sha256=ae8a2a22dd1abe84 \u00b7 audience=superintendent \u00b7 rendered 2026-05-29T12:34:24Z"
+        },
+        "pm": {
+          "ms": 235,
+          "status": 200,
+          "byte_size": 2970,
+          "sha256": "7208e8ccbe8e8f498318a1086509ad944e21e6e413acc333e916a943f4f465a7",
+          "footer": "Official Record \u00b7 ODR-2026-00029 \u00b7 sha256=7208e8ccbe8e8f49 \u00b7 audience=pm \u00b7 rendered 2026-05-29T12:34:24Z"
+        },
+        "executive": {
+          "ms": 322,
+          "status": 200,
+          "byte_size": 2853,
+          "sha256": "2ab11dbb930f337067f8dc37eee8b644b1667436ea5157e808949c0056e88795",
+          "footer": "Official Record \u00b7 ODR-2026-00029 \u00b7 sha256=2ab11dbb930f3370 \u00b7 audience=executive \u00b7 rendered 2026-05-29T12:34:24Z"
+        },
+        "external": {
+          "ms": 241,
+          "status": 200,
+          "byte_size": 2853,
+          "sha256": "5f99fda4680f476b353567c5dff37e2146f21c8d699c68f256b4489a3b74c217",
+          "footer": "Official Record \u00b7 ODR-2026-00029 \u00b7 sha256=5f99fda4680f476b \u00b7 audience=external \u00b7 rendered 2026-05-29T12:34:25Z"
+        }
+      },
+      "audience_profile_external_dot": {
+        "ms": 251,
+        "status": 200,
+        "x_audience_returned": "external",
+        "x_audience_profile_returned": "external_dot"
+      },
+      "public_link": {
+        "ms": 277,
+        "status": 200,
+        "audience_profile_locked": "external"
+      },
+      "public_resolve": {
+        "ms": 164,
+        "status": 200,
+        "leaks_telemetry": false,
+        "leaks_consumer_dispatch": false,
+        "leaks_readiness": false
+      },
+      "total_ms": 5442,
+      "finished_at": "2026-05-29T12:34:25Z"
+    },
+    {
+      "name": "Drainage \u00b7 Utility Conflict",
+      "started_at": "2026-05-29T12:34:25Z",
+      "operations": [
+        {
+          "op": "create",
+          "ms": 255,
+          "status": 200
+        },
+        {
+          "op": "patch:manpower",
+          "ms": 291,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:equipment",
+          "ms": 287,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:production",
+          "ms": 290,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:delays",
+          "ms": 279,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:constraints",
+          "ms": 324,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:safety",
+          "ms": 279,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:tomorrow",
+          "ms": 295,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:ack",
+          "ms": 291,
+          "status": 200
+        },
+        {
+          "op": "submit",
+          "ms": 359,
+          "status": 200
+        }
+      ],
+      "doc_id": "ODR-2026-00030",
+      "odr_id": "17bce3de-5463-4ec1-b28a-91d37b00fa38",
+      "submitted": true,
+      "submit_payload": {
+        "status": "submitted",
+        "amend_until": "2026-05-30T12:34:28.638Z",
+        "readiness_score": "ready"
+      },
+      "pdf_renders": {
+        "foreman": {
+          "ms": 231,
+          "status": 200,
+          "byte_size": 4089,
+          "sha256": "ff042c566a2cce5ee6f30630c412f9dea36097aacb144e92480395d10e454d79",
+          "footer": "Official Record \u00b7 ODR-2026-00030 \u00b7 sha256=ff042c566a2cce5e \u00b7 audience=foreman \u00b7 rendered 2026-05-29T12:34:28Z"
+        },
+        "superintendent": {
+          "ms": 250,
+          "status": 200,
+          "byte_size": 4114,
+          "sha256": "ff042c566a2cce5ee6f30630c412f9dea36097aacb144e92480395d10e454d79",
+          "footer": "Official Record \u00b7 ODR-2026-00030 \u00b7 sha256=ff042c566a2cce5e \u00b7 audience=superintendent \u00b7 rendered 2026-05-29T12:34:29Z"
+        },
+        "pm": {
+          "ms": 237,
+          "status": 200,
+          "byte_size": 3193,
+          "sha256": "709c6b390d3d943a8837d07b11d9341cff37bb27e35862a34abdd7a90400de2b",
+          "footer": "Official Record \u00b7 ODR-2026-00030 \u00b7 sha256=709c6b390d3d943a \u00b7 audience=pm \u00b7 rendered 2026-05-29T12:34:29Z"
+        },
+        "executive": {
+          "ms": 258,
+          "status": 200,
+          "byte_size": 3086,
+          "sha256": "414acef606974aec69f6abf9e05041d951b3e2d1975e08c87575734c8d29bedd",
+          "footer": "Official Record \u00b7 ODR-2026-00030 \u00b7 sha256=414acef606974aec \u00b7 audience=executive \u00b7 rendered 2026-05-29T12:34:29Z"
+        },
+        "external": {
+          "ms": 303,
+          "status": 200,
+          "byte_size": 3082,
+          "sha256": "812cd731f05384249bc841ba7cb524716b20d5dbebf8f0dfa496aa2827b866ba",
+          "footer": "Official Record \u00b7 ODR-2026-00030 \u00b7 sha256=812cd731f0538424 \u00b7 audience=external \u00b7 rendered 2026-05-29T12:34:29Z"
+        }
+      },
+      "audience_profile_external_dot": {
+        "ms": 234,
+        "status": 200,
+        "x_audience_returned": "external",
+        "x_audience_profile_returned": "external_dot"
+      },
+      "public_link": {
+        "ms": 281,
+        "status": 200,
+        "audience_profile_locked": "external"
+      },
+      "public_resolve": {
+        "ms": 170,
+        "status": 200,
+        "leaks_telemetry": false,
+        "leaks_consumer_dispatch": false,
+        "leaks_readiness": false
+      },
+      "total_ms": 4923,
+      "finished_at": "2026-05-29T12:34:30Z"
+    },
+    {
+      "name": "Asphalt \u00b7 Plant Issue + MOT",
+      "started_at": "2026-05-29T12:34:30Z",
+      "operations": [
+        {
+          "op": "create",
+          "ms": 258,
+          "status": 200
+        },
+        {
+          "op": "patch:manpower",
+          "ms": 281,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:equipment",
+          "ms": 295,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:materials",
+          "ms": 283,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:production",
+          "ms": 282,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:delays",
+          "ms": 281,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:safety",
+          "ms": 287,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:tomorrow",
+          "ms": 286,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:ack",
+          "ms": 312,
+          "status": 200
+        },
+        {
+          "op": "submit",
+          "ms": 314,
+          "status": 200
+        }
+      ],
+      "doc_id": "ODR-2026-00031",
+      "odr_id": "d397067b-655a-4670-aa8f-4a99f5ab44d6",
+      "submitted": true,
+      "submit_payload": {
+        "status": "submitted",
+        "amend_until": "2026-05-30T12:34:33.492Z",
+        "readiness_score": "ready"
+      },
+      "pdf_renders": {
+        "foreman": {
+          "ms": 225,
+          "status": 200,
+          "byte_size": 3031,
+          "sha256": "a1ef333a57366dabb2db58dfbc9a65e0144f2160c2f8a899679fef14654c616a",
+          "footer": "Official Record \u00b7 ODR-2026-00031 \u00b7 sha256=a1ef333a57366dab \u00b7 audience=foreman \u00b7 rendered 2026-05-29T12:34:33Z"
+        },
+        "superintendent": {
+          "ms": 236,
+          "status": 200,
+          "byte_size": 3044,
+          "sha256": "a1ef333a57366dabb2db58dfbc9a65e0144f2160c2f8a899679fef14654c616a",
+          "footer": "Official Record \u00b7 ODR-2026-00031 \u00b7 sha256=a1ef333a57366dab \u00b7 audience=superintendent \u00b7 rendered 2026-05-29T12:34:34Z"
+        },
+        "pm": {
+          "ms": 232,
+          "status": 200,
+          "byte_size": 3025,
+          "sha256": "3c12257c7b8cd7687b6d29687117caf895bd175ccee92880885deec83d165f61",
+          "footer": "Official Record \u00b7 ODR-2026-00031 \u00b7 sha256=3c12257c7b8cd768 \u00b7 audience=pm \u00b7 rendered 2026-05-29T12:34:34Z"
+        },
+        "executive": {
+          "ms": 232,
+          "status": 200,
+          "byte_size": 2913,
+          "sha256": "1b982c64434d5c1786be5300d885244adc07d7f3fbcc54315435430717104748",
+          "footer": "Official Record \u00b7 ODR-2026-00031 \u00b7 sha256=1b982c64434d5c17 \u00b7 audience=executive \u00b7 rendered 2026-05-29T12:34:34Z"
+        },
+        "external": {
+          "ms": 231,
+          "status": 200,
+          "byte_size": 2911,
+          "sha256": "1fb5c2743fbac9d723650b371e858702f07053a38d7c327cfeaf75976e32e686",
+          "footer": "Official Record \u00b7 ODR-2026-00031 \u00b7 sha256=1fb5c2743fbac9d7 \u00b7 audience=external \u00b7 rendered 2026-05-29T12:34:34Z"
+        }
+      },
+      "audience_profile_external_dot": {
+        "ms": 289,
+        "status": 200,
+        "x_audience_returned": "external",
+        "x_audience_profile_returned": "external_dot"
+      },
+      "public_link": {
+        "ms": 281,
+        "status": 200,
+        "audience_profile_locked": "external"
+      },
+      "public_resolve": {
+        "ms": 191,
+        "status": 200,
+        "leaks_telemetry": false,
+        "leaks_consumer_dispatch": false,
+        "leaks_readiness": false
+      },
+      "total_ms": 4804,
+      "finished_at": "2026-05-29T12:34:35Z"
+    },
+    {
+      "name": "Concrete \u00b7 Structures + Amendment",
+      "started_at": "2026-05-29T12:34:35Z",
+      "operations": [
+        {
+          "op": "create",
+          "ms": 268,
+          "status": 200
+        },
+        {
+          "op": "patch:manpower",
+          "ms": 284,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:equipment",
+          "ms": 281,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:materials",
+          "ms": 278,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:production",
+          "ms": 283,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:weather_impact",
+          "ms": 282,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:safety",
+          "ms": 285,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:tomorrow",
+          "ms": 282,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:delays",
+          "ms": 292,
+          "status": 200,
+          "error": null
+        },
+        {
+          "op": "patch:ack",
+          "ms": 283,
+          "status": 200
+        },
+        {
+          "op": "submit",
+          "ms": 318,
+          "status": 200
+        }
+      ],
+      "doc_id": "ODR-2026-00032",
+      "odr_id": "2d5df28d-1b17-473c-8570-4afdf0dfa4dc",
+      "submitted": true,
+      "submit_payload": {
+        "status": "submitted",
+        "amend_until": "2026-05-30T12:34:38.554Z",
+        "readiness_score": "ready"
+      },
+      "pdf_renders": {
+        "foreman": {
+          "ms": 234,
+          "status": 200,
+          "byte_size": 2822,
+          "sha256": "a81cacae84834ffafa41707d615b99e3ffe9c60d316724b21503b899e4f09c46",
+          "footer": "Official Record \u00b7 ODR-2026-00032 \u00b7 sha256=a81cacae84834ffa \u00b7 audience=foreman \u00b7 rendered 2026-05-29T12:34:38Z"
+        },
+        "superintendent": {
+          "ms": 238,
+          "status": 200,
+          "byte_size": 2837,
+          "sha256": "a81cacae84834ffafa41707d615b99e3ffe9c60d316724b21503b899e4f09c46",
+          "footer": "Official Record \u00b7 ODR-2026-00032 \u00b7 sha256=a81cacae84834ffa \u00b7 audience=superintendent \u00b7 rendered 2026-05-29T12:34:39Z"
+        },
+        "pm": {
+          "ms": 245,
+          "status": 200,
+          "byte_size": 2816,
+          "sha256": "3655b437b47d378da66c0e8d4e561d20cc1531614dd0d2de9c054a1316ca6a13",
+          "footer": "Official Record \u00b7 ODR-2026-00032 \u00b7 sha256=3655b437b47d378d \u00b7 audience=pm \u00b7 rendered 2026-05-29T12:34:39Z"
+        },
+        "executive": {
+          "ms": 237,
+          "status": 200,
+          "byte_size": 2704,
+          "sha256": "cabcb4eb375b6c4db0880a17a66a0ebf285be9a148148702a2e9fa0839b64435",
+          "footer": "Official Record \u00b7 ODR-2026-00032 \u00b7 sha256=cabcb4eb375b6c4d \u00b7 audience=executive \u00b7 rendered 2026-05-29T12:34:39Z"
+        },
+        "external": {
+          "ms": 239,
+          "status": 200,
+          "byte_size": 2697,
+          "sha256": "608687234f93f17fbf9ddfaf4212c3c7f069e27c523805a5fccdd3ed9abdc472",
+          "footer": "Official Record \u00b7 ODR-2026-00032 \u00b7 sha256=608687234f93f17f \u00b7 audience=external \u00b7 rendered 2026-05-29T12:34:39Z"
+        }
+      },
+      "audience_profile_external_dot": {
+        "ms": 267,
+        "status": 200,
+        "x_audience_returned": "external",
+        "x_audience_profile_returned": "external_dot"
+      },
+      "public_link": {
+        "ms": 266,
+        "status": 200,
+        "audience_profile_locked": "external"
+      },
+      "public_resolve": {
+        "ms": 173,
+        "status": 200,
+        "leaks_telemetry": false,
+        "leaks_consumer_dispatch": false,
+        "leaks_readiness": false
+      },
+      "amendment": {
+        "ms": 293,
+        "status": 200,
+        "amendment_recorded": true
+      },
+      "total_ms": 5340,
+      "finished_at": "2026-05-29T12:34:40Z"
+    }
+  ],
+  "aggregate": {
+    "scenarios_run": 4,
+    "submitted_count": 4,
+    "total_run_ms": 20509,
+    "avg_scenario_ms": 5127
+  },
+  "finished_at": "2026-05-29T12:34:40Z"
+}
