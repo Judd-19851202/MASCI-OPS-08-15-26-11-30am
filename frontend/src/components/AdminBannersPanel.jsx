@@ -275,7 +275,7 @@ function ComposeDialog({ open, onClose, initial, onSaved }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label>Severity</Label>
               <div className="mt-1 grid grid-cols-2 gap-1.5">

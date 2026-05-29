@@ -614,7 +614,7 @@ function UploadDialog({ open, onClose, categories, onSubmit, t }) {
               </div>
             )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-wider text-slate-700 font-bold">
                 {t("Name")} *
@@ -659,7 +659,7 @@ function UploadDialog({ open, onClose, categories, onSubmit, t }) {
               data-testid="promo-upload-description"
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-wider text-slate-700 font-bold">
                 {t("Tags (comma separated)")}

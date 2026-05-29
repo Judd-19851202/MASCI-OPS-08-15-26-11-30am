@@ -376,7 +376,7 @@ function AggregatePanel({ lang, t }) {
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Aggregate Calculator")}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <Field label={t("Length (ft)")}><NumberInput value={length} onChange={setLength} testid="agg-length" /></Field>
         <Field label={t("Width (ft)")}><NumberInput value={width} onChange={setWidth} testid="agg-width" /></Field>
         <ThicknessRow value={thickness} setValue={setThickness} unit={thicknessUnit} setUnit={setThicknessUnit} t={t} testid="agg-thickness" />
@@ -468,7 +468,7 @@ function AsphaltPanel({ lang, t }) {
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Asphalt Calculator")}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <Field label={t("Length (ft)")}><NumberInput value={length} onChange={setLength} testid="asp-length" /></Field>
         <Field label={t("Width (ft)")}><NumberInput value={width} onChange={setWidth} testid="asp-width" /></Field>
         <ThicknessRow value={thickness} setValue={setThickness} unit={thicknessUnit} setUnit={setThicknessUnit} t={t} testid="asp-thickness" />
@@ -549,7 +549,7 @@ function ConcretePanel({ lang, t }) {
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Concrete Calculator")}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <Field label={t("Length (ft)")}><NumberInput value={length} onChange={setLength} testid="con-length" /></Field>
         <Field label={t("Width (ft)")}><NumberInput value={width} onChange={setWidth} testid="con-width" /></Field>
         <ThicknessRow value={thickness} setValue={setThickness} unit={thicknessUnit} setUnit={setThicknessUnit} t={t} testid="con-thickness" />
@@ -627,7 +627,7 @@ function TruckLoadPanel({ lang, t }) {
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Truck Load Calculator")}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <Field label={t("Total material needed")}>
           <NumberInput value={totalQty} onChange={setTotalQty} testid="tl-qty" />
         </Field>
@@ -708,7 +708,7 @@ function YieldWastePanel({ lang, t }) {
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Yield / Waste Factor")}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <Field label={t("Planned quantity")}>
           <NumberInput value={planned} onChange={setPlanned} testid="yw-planned" />
         </Field>
@@ -789,7 +789,7 @@ function ConversionPanel({ lang, t }) {
       <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
         {t("Tons ↔ Cubic Yards Conversion")}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <Field label={t("Direction")}>
           <select value={direction} onChange={(e) => setDirection(e.target.value)}
             className="h-12 w-full border-2 border-slate-300 rounded px-3 text-base bg-white" data-testid="conv-direction">

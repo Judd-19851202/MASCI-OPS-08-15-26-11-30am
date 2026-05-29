@@ -221,7 +221,7 @@ export default function CheatSheetCard() {
       </div>
 
       {/* Training & Help mini-strip */}
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div className="border border-slate-200 rounded-md p-3 flex items-center gap-3 bg-slate-50 print:bg-white">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-900 text-white shrink-0">
             <Building2 className="w-5 h-5" />

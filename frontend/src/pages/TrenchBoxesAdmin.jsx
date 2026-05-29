@@ -238,7 +238,7 @@ export default function TrenchBoxesAdmin() {
               <DialogTitle className="font-display font-black">{editingId ? "Edit Trench Box" : "Add Trench Box"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <F k="manufacturer" label="Manufacturer *" ph="e.g. Speed Shore" />
                 <F k="model" label="Model *" ph="e.g. SLD-8x16" />
                 <F k="serial_number" label="Serial #" />

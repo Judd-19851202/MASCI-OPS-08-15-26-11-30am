@@ -196,7 +196,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
 
         <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
           <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Project & Operator</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <KV label="Project" value={data.project_name} />
             <KV label="Project #" value={data.project_number} />
             <KV label="Location" value={data.location} full />
@@ -207,7 +207,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
 
         <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
           <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Equipment</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <KV label="Type" value={data.equipment_type} />
             <KV label="Unit" value={data.equipment_unit} />
             <KV label="Make" value={data.equipment_make} />
@@ -311,7 +311,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
         {(data.deficiency_notes || data.corrective_actions) && (
           <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
             <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Notes & Corrective Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <KV label="Deficiencies" value={data.deficiency_notes} />
               <KV label="Corrective Actions" value={data.corrective_actions} />
             </div>

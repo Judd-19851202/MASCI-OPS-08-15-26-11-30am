@@ -419,7 +419,7 @@ export default function ViewIncident() {
         </div>
 
         <ReportSection number="01" title={t("Report Information")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <KV label={t("Project Name")} value={data.project_name} />
             <KV label={t("Project Number")} value={data.project_number} />
             <div className="sm:col-span-2">
@@ -468,7 +468,7 @@ export default function ViewIncident() {
         </ReportSection>
 
         <ReportSection number="02" title={t("Classification")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <KV label={t("Incident Type")} value={data.incident_type} />
             <KV label={t("Severity")} value={sev.label} />
             <KV label={t("OSHA Recordable")} value={data.osha_recordable} />
@@ -478,7 +478,7 @@ export default function ViewIncident() {
 
         {(data.person_name || data.body_part || data.injury_nature) && (
           <ReportSection number="03" title={t("Person Involved")}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <KV label={t("Name")} value={data.person_name} />
               <KV label={t("Role / Trade")} value={data.person_role} />
               <KV label={t("Employer")} value={data.person_employer} />
@@ -578,7 +578,7 @@ export default function ViewIncident() {
               value={data.corrective_actions}
               full
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <KV label={t("Responsible Party")} value={data.responsible_party} />
               <KV
                 label={t("Target Completion")}
@@ -627,7 +627,7 @@ export default function ViewIncident() {
         </ReportSection>
 
         <ReportSection number="08" title={t("Notifications")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <KV label={t("Safety Manager")} value={data.notified_safety_manager} />
             <KV label={t("Project Manager")} value={data.notified_pm} />
             <KV label={t("General Contractor")} value={data.notified_gc} />
@@ -668,7 +668,7 @@ export default function ViewIncident() {
         )}
 
         <ReportSection number="10" title={t("Signatures")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
                 {t("Reporter")}

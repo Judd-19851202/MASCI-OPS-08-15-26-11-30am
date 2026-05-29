@@ -112,7 +112,7 @@ function AddTrainingForm({ onCreated, onCancel, t }) {
         <div className="font-bold text-purple-900 flex items-center gap-2"><Plus className="w-4 h-4" /> {t("Add Training Record")}</div>
         <button onClick={onCancel} className="text-slate-500 hover:text-slate-900" aria-label="close"><X className="w-4 h-4" /></button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <label className="block">
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Employee")} *</div>
           <select value={employee} onChange={(e) => setEmployee(e.target.value)} className={inputCls("w-full px-2 bg-white")} data-testid="hr-safety-add-training-employee">
@@ -193,7 +193,7 @@ function UploadDocForm({ onUploaded, onCancel, t }) {
         <div className="font-bold text-purple-900 flex items-center gap-2"><Upload className="w-4 h-4" /> {t("Upload Safety Document")}</div>
         <button onClick={onCancel} className="text-slate-500 hover:text-slate-900"><X className="w-4 h-4" /></button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <label className="block sm:col-span-2">
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("File")} *</div>
           <input

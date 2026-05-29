@@ -476,7 +476,7 @@ function Section({ title, children, desc }) {
 }
 
 function Row({ children }) {
-  return <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</div>;
+  return <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">{children}</div>;
 }
 
 function Field({ label, children, required }) {

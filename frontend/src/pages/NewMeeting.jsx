@@ -338,7 +338,7 @@ export default function NewMeeting({ publicMode = false }) {
               {t("Pick a current job to auto-fill name + number — or choose Custom Job to type your own.")}
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Project Name *")}

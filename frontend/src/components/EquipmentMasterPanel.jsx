@@ -597,7 +597,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
               {editing ? `Edit Unit · ${editing.unit_number}` : "Add a Unit to the Fleet"}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-[10px] uppercase tracking-[0.2em]">Unit Number *</Label>
               <Input

@@ -443,7 +443,7 @@ export default function DispatchHub() {
           title={t("Guides & Coaching")}
           subtitle={t("Use these when a dispatcher or truck boss is unsure what a state means.")}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="ds-guides-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" data-testid="ds-guides-grid">
             <GuideTile
               testId="ds-guide-dispatch-owns"
               title={t("What dispatch owns")}

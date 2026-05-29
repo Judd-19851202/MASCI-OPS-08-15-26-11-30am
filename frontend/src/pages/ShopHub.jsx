@@ -441,7 +441,7 @@ export default function ShopHub() {
             {t("More")} · {t("Trends · Equipment · Parts · Integrations · Activity")}
           </button>
           {showMore ? (
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="shop-more-grid">
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" data-testid="shop-more-grid">
               <MoreLink to="/shop/fleet" icon={Truck} label="MASCI Fleet · DVIR queue" testId="shop-more-fleet" />
               <MoreLink to="?legacy=recent" icon={ClipboardList} label="Recent Pre-Op Inspections" testId="shop-more-recent" disabled />
               <MoreLink to="?legacy=trends" icon={History} label="Equipment Trends" testId="shop-more-trends" disabled />

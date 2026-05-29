@@ -449,7 +449,7 @@ export default function NewIncident({ publicMode = false }) {
               Pick a current job to auto-fill name + number — or choose Custom Job to type your own.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Project Name *
@@ -653,7 +653,7 @@ export default function NewIncident({ publicMode = false }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("OSHA Recordable?")}
@@ -681,7 +681,7 @@ export default function NewIncident({ publicMode = false }) {
         {/* Section 03 — Person involved (only if injury-related) */}
         {isInjury && (
           <Section number="03" title={t("Person Involved")}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <div className="sm:col-span-2">
                 {/* iter359 · Unified roster-first selector with operational
                     coaching baked in. Free-text fallback preserved for
@@ -1088,7 +1088,7 @@ export default function NewIncident({ publicMode = false }) {
               data-testid="input-corrective"
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Responsible Party
@@ -1159,7 +1159,7 @@ export default function NewIncident({ publicMode = false }) {
           <p className="text-sm text-slate-600">
             Confirm who was notified about this incident.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 Safety Manager

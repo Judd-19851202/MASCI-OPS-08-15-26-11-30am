@@ -342,7 +342,7 @@ export default function SafetyTrainingRecords() {
                 </div>
               </details>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Training name")} *</Label>
                 <Input value={dlg.form.training_name} onChange={(e) => setDlg((d) => ({ ...d, form: { ...d.form, training_name: e.target.value } }))} className={`${inputCls} mt-1`} placeholder="e.g. OSHA 10-hour Construction" data-testid="safety-tr-form-name" />

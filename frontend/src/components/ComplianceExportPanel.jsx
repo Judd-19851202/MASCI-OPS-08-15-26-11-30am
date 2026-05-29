@@ -267,7 +267,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
       </div>
 
       {/* Per-kind download grid */}
-      <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         {KINDS.map((k) => {
           const n = counts?.counts?.[k.key] ?? 0;
           const disabled = n === 0;

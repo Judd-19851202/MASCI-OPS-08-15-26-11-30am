@@ -274,7 +274,7 @@ export default function ViewDailyReport() {
         </div>
 
         <ReportSection number="01" title={t("Report Information")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <KV label={t("Project Name")} value={data.project_name} />
             <KV label={t("Project Number")} value={data.project_number} />
             <div className="sm:col-span-2">
@@ -349,7 +349,7 @@ export default function ViewDailyReport() {
                 <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold mb-2">
                   {t("Safety Escalation")}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   <KV label={t("Safety Notified")} value={data.safety_notified} />
                   {data.safety_notified === "Yes" && (
                     <>
@@ -584,7 +584,7 @@ export default function ViewDailyReport() {
         )}
 
         <ReportSection number="11" title="Sign-Off">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
                 Prepared By

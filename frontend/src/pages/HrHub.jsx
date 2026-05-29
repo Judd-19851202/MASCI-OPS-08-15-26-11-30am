@@ -249,7 +249,7 @@ export default function HrHub() {
                   <span className="hidden sm:inline-block h-px flex-1 bg-slate-200" aria-hidden="true" />
                   <span className="text-xs text-slate-500 italic">{t(group.sub)}</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   {group.tiles.map((tileKey) => {
                     const tile = TILE_DEFS[tileKey];
                     const badge = tile.badgeKey ? stats[tile.badgeKey] : 0;

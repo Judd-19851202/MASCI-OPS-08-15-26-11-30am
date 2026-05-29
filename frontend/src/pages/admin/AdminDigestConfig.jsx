@@ -158,7 +158,7 @@ export default function AdminDigestConfig() {
         </div>
 
         {/* Schedule */}
-        <div className="bg-white border border-slate-200 rounded-md p-4 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="bg-white border border-slate-200 rounded-md p-4 mb-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Weekday</Label>
             <Select value={String(cfg.weekday)} onValueChange={(v) => update({ weekday: parseInt(v, 10) })}>

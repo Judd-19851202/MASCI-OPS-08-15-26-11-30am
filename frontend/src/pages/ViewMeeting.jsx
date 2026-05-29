@@ -215,7 +215,7 @@ export default function ViewMeeting() {
         </div>
 
         <ReportSection number="01" title={t("Meeting Information")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <KV label={t("Project Name")} value={data.project_name} />
             <KV label={t("Project Number")} value={data.project_number} />
             <div className="sm:col-span-2">
@@ -336,7 +336,7 @@ export default function ViewMeeting() {
           ) : (
             <>
               <BilingualConsent variant="meeting" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-3">
                 {(data.attendees || []).map((a, i) => (
                   <div
                     key={i}

@@ -119,7 +119,7 @@ const RepeatBlock = ({
             <X className="w-4 h-4 mr-1" /> {t("Remove")}
           </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           {fields.map((f) => (
             <div
               key={f.key}
@@ -1047,7 +1047,7 @@ export default function NewDailyReport({ publicMode = false }) {
               {t("Pick a current job to auto-fill name + number — or choose Custom Job to type your own.")}
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Project Name *")}
@@ -1228,7 +1228,7 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 03 — General Info / Flags */}
         <Section number="03" title={t("General Information")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Delays / Extra Work Today?")}
@@ -1346,7 +1346,7 @@ export default function NewDailyReport({ publicMode = false }) {
 
               {/* Step 2: Who and when? */}
               {data.safety_notified === "Yes" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   <div>
                     <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-800">
                       {t("Who Was Contacted? *")}
@@ -1510,7 +1510,7 @@ export default function NewDailyReport({ publicMode = false }) {
                       <X className="w-4 h-4 mr-1" /> {t("Remove")}
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                     <div className="sm:col-span-2">
                       <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
                         {t("Employee Name")}

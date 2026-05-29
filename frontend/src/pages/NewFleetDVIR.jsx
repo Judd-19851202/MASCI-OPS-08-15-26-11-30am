@@ -516,7 +516,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
             body={t("Accountability — Shop and Dispatch need to know who walked this truck. Drivers who report defects honestly keep the whole crew safe.")}
             testId="dvir-tip-driver"
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="text-sm font-semibold text-slate-800">{formCopy.submitterLabel}</Label>
               <EmployeeCombo

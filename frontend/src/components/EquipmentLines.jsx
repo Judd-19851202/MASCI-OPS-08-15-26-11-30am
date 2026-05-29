@@ -168,7 +168,7 @@ export function EquipmentLines({ value, onChange, lang, t }) {
             </div>
 
             {/* Catalog picker */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-3">
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   {t("Equipment / Tool")}<span className="text-red-700 ml-1">*</span>
@@ -260,7 +260,7 @@ export function EquipmentLines({ value, onChange, lang, t }) {
             </div>
 
             {/* Model + Serial */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-3">
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   {t("Model")}<span className="text-red-700 ml-1">*</span>

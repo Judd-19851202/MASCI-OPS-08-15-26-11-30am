@@ -284,7 +284,7 @@ export function EquipmentReturnLines({ value, onChange, lang, t }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-3">
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   {t("Return Condition")}<span className="text-red-700 ml-1">*</span>
@@ -384,7 +384,7 @@ export function EquipmentReturnLines({ value, onChange, lang, t }) {
       })}
 
       {lines.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div className="rounded-md border-2 border-slate-300 bg-white px-5 py-4 flex items-center justify-between">
             <div>
               <div className="font-mono text-xs uppercase tracking-[0.25em] text-slate-700 font-bold">{t("Total Replacement Value")}</div>

@@ -1,6 +1,48 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-29 (fork) — Phase V.5 · P0-1 · Platform Form Field Bleed Fix 🟢
+
+### Mission
+Operator reported **live iPad field bleed** across Daily Reports, Equipment / Operator forms, Safety Meetings, QA/QC inspections, Date/Time rows, Project/Project Number rows, Inspector/Work Area rows, Location/GPS rows, and Prepared By/Superintendent rows. Investigation found a **shared root cause** — every form used `grid grid-cols-1 sm:grid-cols-2 gap-{3,4}`. The `sm:` breakpoint (640 px) snapped to 2-col at all iPad widths with only 12–16 px of column gap, producing visual collisions of adjacent input borders.
+
+### What shipped
+**Single shared-component fix · zero business-logic / schema / workflow change:**
+- `frontend/src/components/FormGrid.jsx` (new · 76 lines · lint clean) — canonical responsive grid primitive: 1-col below 768 px, 2-col at ≥ 768 px with 24 px column gap + 16 px row gap.
+- **Mechanical migration** of 69 unsafe Tailwind strings across 44 files: `grid grid-cols-1 sm:grid-cols-2 gap-{3,4}` → `grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4`.
+- Three duplicated local `Row({children})` helpers in `NewQaqcInspection.jsx`, `NewSafetyEquipmentIssuance.jsx`, and `NewSafetyEquipmentTraining.jsx` were also migrated automatically.
+
+**4 deliverables in `/app/memory/`:**
+1. `PLATFORM_FORM_LAYOUT_BLEED_AUDIT.md` — investigation · 84-occurrence inventory · root cause
+2. `PLATFORM_FORM_GRID_FIX_CERTIFICATION.md` — file-by-file migration table · regression evidence · prohibited-change audit
+3. `IPAD_LAYOUT_VALIDATION_REPORT.md` — visual evidence at 390 / 820 / 1180 px viewports · before/after gap measurements (35 → 58 px)
+4. `FORM_SPACING_DOCTRINE.md` — binding canonical contract · variant matrix · enforcement plan
+
+### Validation
+- **Mobile (iPhone 12 · 390 × 844)**: 1-col stack confirmed · md:breakpoint correctly held below 768 px
+- **iPad portrait (iPad Air · 820 × 1180)**: 2-col layout · 58 px column gap (was 35 px) · no bleed on DR, Safety Meeting, Equipment Pre-Op
+- **iPad landscape (1180 × 820)**: 2-col layout with safe gap
+- **Wave-2 Playwright DR field reliability suite**: 6 passed · 1 skipped (39.7 s)
+- **ESLint** on `FormGrid.jsx` + `NewDailyReport.jsx`: clean
+
+### Doctrine compliance
+- ✅ **Shared-component fix** — operator directive "Fix shared form bleed once" honored
+- ✅ **Zero business logic / schema / workflow change** — pure layout primitive
+- ✅ **Zero scheduler / backup code touched** — frontend-only
+- ✅ **Zero approval/rejection / pilot / RFI / schedule / P6 / PM Exposure Tile work** — stop conditions held
+- ✅ **Reversible** — single mechanical sed replacement; new `FormGrid.jsx` is additive
+
+### Status
+Preview shipped. Awaiting operator review per the V.5 P0-1 stop condition. After review:
+- Sign-off → roll into next production redeploy alongside P0-2 (PO Attachment) and P0-3 (Scheduler Hardening) when those are ready.
+- Rejection → mechanical `sed` reversal is documented in the certification.
+
+### Next P0 in sequence
+**P0-2 · PO Receipt / Invoice Attachment Open Defect** — defer per operator's locked order ("Complete and certify each P0 before moving to the next").
+
+---
+
+
 ## 2026-05-29 (fork) — Phase V.4 · Approval/Rejection Foundation Architecture 🟢
 
 ### Mission

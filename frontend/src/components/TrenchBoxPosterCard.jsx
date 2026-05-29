@@ -98,7 +98,7 @@ export default function TrenchBoxPosterCard() {
           </h2>
 
           {/* Bilingual primer tagline */}
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div className="border-l-4 border-red-700 pl-3 py-1">
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
                 EN · What is tabulated data?

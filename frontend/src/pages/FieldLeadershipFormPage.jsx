@@ -867,7 +867,7 @@ export default function FieldLeadershipFormPage() {
           </>
 
           {/* SUPERVISOR + DATE */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Supervisor / Foreman / Superintendent")}</Label>
               <Input value={supervisorName} onChange={(e) => setSupervisorName(e.target.value)} className={inputCls} data-testid="field-supervisor" />

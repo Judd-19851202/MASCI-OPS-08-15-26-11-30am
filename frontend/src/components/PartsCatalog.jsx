@@ -549,7 +549,7 @@ const OrderCart = ({ cart, unit, removeFromCart, updateCartQty, requestedByDefau
             </table>
           </div>
 
-          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t-2 border-slate-100">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 border-t-2 border-slate-100">
             <Input
               value={requestedBy}
               onChange={(e) => setRequestedBy(e.target.value)}
