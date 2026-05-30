@@ -92,7 +92,7 @@ Classification: **🟢 KNOWN GOOD** — auth design matches `AUTH_AND_PORTAL_GOV
 | POST | `/api/qaqc-inspections` | `routes/qaqc.py` | public + rate-limit | `qaqc_inspections` | `schedule_auto_email("qaqc")` + task + notification fanout |
 | POST | `/api/po-requests` | `routes/po_requests.py` | `require_actor` | `po_requests` | `task_service.create` + `notification_service.fanout` (approval-needed) |
 | POST | `/api/asset-transfers` | `routes/asset_transfers.py` | `require_admin` | `asset_transfers` | `emit_task_and_notification` to Dispatch/Shop role |
-| POST | `/api/dispatch/state-events` | `routes/dispatch_lifecycle.py` | dispatch | `dispatch_state_events` | Fan-out to dispatcher + driver session |
+| POST | `/api/dispatch/assignments/{id}/transition` | `routes/dispatch_lifecycle.py` | dispatch | `dispatch_assignments` (state_history[] append) + `dispatch_state_events` audit ledger | Driver session update via `dispatch_magic_links` (corrected 2026-02-01 — earlier draft listed `/state-events` as POST; it is GET-only) |
 | POST | `/api/field-leadership/portal/forms` | `routes/field_leadership_users.py` | `require_fl_user` | `field_leadership_records` | Email to `leadership_always_to` (SOFT — no bell/task) |
 | POST | `/api/safety-forms/equipment-issuances` | `routes/safety_forms_*.py` | safety-forms | `safety_equipment_issuances` | Email to `safety_forms_to` (SOFT — no bell/task) |
 

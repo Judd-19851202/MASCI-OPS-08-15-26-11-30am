@@ -1,6 +1,46 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Batch A · TRUTH MAP CORRECTIONS + GAP UPDATE + DVIR POLICY + SCHEDULER PROBE/HARDENING ✅ COMPLETE
+
+### Operator directive (2026-02-01)
+> "Approved. Execute Batch A only. No additional scope."
+
+### What shipped (7 authorized actions · 8 deliverables)
+
+1. **Truth Map corrections** applied to `WORKFLOW_LIFECYCLE_MAP.md`, `API_DEPENDENCY_MAP.md`, `NOTIFICATION_DELIVERY_MAP.md` covering Workflows 2, 3, 4, 5, 10. Documented in `TRUTH_MAP_CORRECTIONS_CERTIFICATION.md`.
+2. **NEW-GAP-A** (Safety Meeting bell/task missing) added to `ORPHAN_AND_GAP_REGISTER.md`; inventory rollup updated to 19 gaps + 1 confirmed orphan. Documented in `GAP_REGISTER_UPDATE.md`.
+3. **Fleet DVIR ownership matrix adopted** (Normal=record-only · Defect=Shop · Safety Defect=Shop+Safety · OOS=Shop+Dispatch · Repeat unresolved=Escalation · **NO Superintendent notifications**). Documented in `FLEET_DVIR_POLICY_RECORD.md`.
+4. **`fleet_defect_severity.SEVERITY_TABLE_VERSION` adopted as canonical** severity classification source.
+5. **Production scheduler probe** executed 2026-05-30T03:13:55Z — scheduler STILL DEAD 8 days after the prior diagnostic; supervisor watchdog is actively respawning but each respawn dies cleanly. Documented in `PRODUCTION_SCHEDULER_PROBE_REPORT.md`.
+6. **Complete backup verification** triggered 2026-05-30T03:14:33Z. **CRITICAL FINDING**: `BACKUP_LITE_MODE_ONLY=true` env flag silently downgraded `lite=false` request to lite mode. Manual lite pipeline VERIFIED WORKING; complete-r2 pipeline NOT verified. Last complete-r2 = 2026-05-26 11:06 UTC (4-day drift). Documented in `COMPLETE_BACKUP_VERIFICATION_REPORT.md`.
+7. **Scheduler Hardening Phase 1 (instrumentation) + Phase 2 (defensive wrapping)** deployed to preview and verified working. Adds 3 diagnostic fields (`boot_step`, `boot_step_ts`, `boot_exception`) + 7 boot-step instrumentation points + 1 defensive wrapper coroutine. Documented in `SCHEDULER_HARDENING_PHASE1_REPORT.md` and `SCHEDULER_HARDENING_PHASE2_REPORT.md`. Net behavior change in production once deployed: dead-state diagnostic becomes deterministic.
+8. **Executive summary**: `EXECUTIVE_BATCH_A_SUMMARY.md` — operator-facing roll-up of all 8 items.
+
+### Files modified
+- `/app/backend/server.py` (~60 lines added across 4 sites — observability + defensive wrapper)
+- 5 truth-map markdown files (corrections only)
+- `ORPHAN_AND_GAP_REGISTER.md` (NEW-GAP-A + inventory rollup)
+
+### Operator decisions surfaced for next batch
+- A. NEW-GAP-A meeting fix track decision
+- B. Authorize Fleet DVIR notification wiring per adopted policy
+- C. Authorize production deploy of Phase 1+2 hardening
+- D. Post-deploy: fresh probe to capture `boot_step` / `boot_exception` evidence
+- E. Authorize either `POST /api/admin/backups/run-complete-now` OR temporary `BACKUP_LITE_MODE_ONLY` clear to verify complete-r2
+- F. Phase 3 hardening (watchdog email after N consecutive resurrections)
+- G. Phase 4 hardening (pod-restart safety)
+
+### Explicit non-changes
+- ❌ No Fleet DVIR implementation · ❌ No notification wiring · ❌ No gap closure · ❌ No new features · ❌ No redesign · ❌ No UI work · ❌ No Approval/Rejection · ❌ No Pilot/RFI/Schedule/P6/PM Exposure Tile
+
+### Next action item
+**STOP. Operator review of Batch A.**
+
+---
+
+
+
 ## 2026-02-01 (fork) — Phase 2A · TRUTH MAP VERIFICATION & GAP TRIAGE ✅ COMPLETE
 
 ### Operator directive (2026-02-01)

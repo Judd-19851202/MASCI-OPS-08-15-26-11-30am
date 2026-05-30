@@ -34,11 +34,11 @@ Classification: **🟢 KNOWN GOOD** — single source of truth, DB-backed, admin
 | Kind | To | CC | Trigger endpoint | Source module |
 |------|----|----|------------------|---------------|
 | `inspection` | assigned PM | `ALWAYS_CC` (jaymn.judd + safety@) | `POST /api/inspections` | `routes/safety.py:318` |
-| `meeting` | assigned PM | `ALWAYS_CC` | `POST /api/meetings` | `routes/safety.py:464` |
-| `jha` | assigned PM | `ALWAYS_CC` | `POST /api/jhas` | `routes/safety.py:518` |
+| `meeting` | assigned PM | `ALWAYS_CC` | `POST /api/meetings` | `routes/safety.py:455` · **email-only · no bell/task fan-out (NEW-GAP-A 2026-02-01)** |
+| `jha` | assigned PM | `ALWAYS_CC` | `POST /api/jhas` | `routes/safety.py:509` · email-only · no fan-out (GAP-3) · collection `jhas` (submissions); `job_hazard_plans` is master library |
 | `incident` | assigned PM | `ALWAYS_CC` + `severe_incident_cc` (when high severity / OSHA) | `POST /api/incidents` | `routes/safety.py:579` |
 | `daily-report` | assigned PM | — (no always-CC) | `POST /api/daily-reports` | `routes/daily_reports.py:218` |
-| `equipment-inspection` | assigned PM (+ all active shop users on FAIL/OOS, fallback `SHOP_MANAGER_EMAIL`) | — | `POST /api/equipment-inspections` | `routes/equipment.py:199 + 247` |
+| `equipment-inspection` | assigned PM (clean Pre-Op) · **Shop + Dispatch (FAIL/OOS)** | — | `POST /api/equipment-inspections` | `routes/equipment.py:199 + 234 + 247 + 274` — Shop gets bell+task as primary owner; Dispatch gets visibility notification on FAIL/OOS (corrected 2026-02-01) |
 | `qaqc` | assigned PM | `ALWAYS_CC` | `POST /api/qaqc-inspections` | `routes/qaqc.py:210` |
 | `po-request` (event-driven) | approver chain; PM Manager digest | per `email_routing_config` | `POST /api/po-requests` | `routes/po_requests.py:220+242` |
 | `leadership form (10 kinds)` | `leadership_always_to` (default safety@ + admin) | per DB override | `POST /api/field-leadership/portal/forms` | `routes/field_leadership_users.py` |

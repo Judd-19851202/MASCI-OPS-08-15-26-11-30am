@@ -6253,7 +6253,78 @@ _BACKUP_SCHEDULER_STATE: dict = {
     "last_attempt_outcome": None,
     "last_run_for_hour": {},
     "failed_attempts": {},
+    # iter462 · 2026-02-01 · Batch A Phase 1 hardening · boot-trace
+    # instrumentation. ``boot_step`` records the most recent boot stage
+    # the loop reached before exiting. ``boot_step_ts`` is the ISO
+    # timestamp of that stage. ``boot_exception`` captures the repr of
+    # any unhandled exception that escaped the loop body (Phase 2
+    # defensive wrapping). All three are surfaced by
+    # ``GET /api/admin/backups-scheduler-state`` so operators can see
+    # where the loop died WITHOUT triggering a fresh backup.
+    "boot_step": None,
+    "boot_step_ts": None,
+    "boot_exception": None,
 }
+
+
+def _record_boot_step(step: str, *, exc: Optional[Exception] = None) -> None:
+    """Phase 1 instrumentation · 2026-02-01 · Batch A.
+
+    Records the most recent boot stage reached by ``_backup_scheduler_loop``
+    into module-scope state AND emits a structured log line. Existed to
+    diagnose the production "task completed without error" silent-exit
+    failure mode: previously the state showed ``alive: false`` and
+    ``armed_at: null`` with no indication of WHERE in the boot path the
+    exit happened. With this helper, every boot stage is now traceable
+    via the admin diagnostic endpoint AND via the backend logs.
+
+    No behavioural change to the scheduler — this is pure observability.
+    """
+    now_iso = datetime.now(timezone.utc).isoformat()
+    _BACKUP_SCHEDULER_STATE["boot_step"] = step
+    _BACKUP_SCHEDULER_STATE["boot_step_ts"] = now_iso
+    if exc is not None:
+        _BACKUP_SCHEDULER_STATE["boot_exception"] = (
+            f"{type(exc).__name__}: {exc!r}"[:300]
+        )
+        logger.error(
+            f"[scheduled-backup][boot:{step}] EXCEPTION "
+            f"{type(exc).__name__}: {exc!r}"
+        )
+    else:
+        logger.info(
+            f"[scheduled-backup][boot:{step}] reached at {now_iso}"
+        )
+
+
+async def _backup_scheduler_loop_with_capture(db) -> None:
+    """Phase 2 defensive wrapper · 2026-02-01 · Batch A.
+
+    Wraps ``run_with_singleton_lock(...)`` so that an unhandled exception
+    escaping the lock acquirer OR the scheduler loop is captured into
+    ``_BACKUP_SCHEDULER_STATE["boot_exception"]`` BEFORE the asyncio
+    Task terminates. Without this, an exception inside an ``await``
+    boundary caused the supervisor to see ``completed without error``
+    while the actual cause was lost.
+
+    Behaviour:
+    - On clean return (e.g. SCHEDULER_ENABLED=false in preview), no
+      change — the function exits and the supervisor respawns as before.
+    - On asyncio.CancelledError, re-raises (caller decides).
+    - On any other exception, records ``boot_exception`` and re-raises so
+      the supervisor's ``_backup_task.exception()`` path also surfaces it.
+    """
+    try:
+        await run_with_singleton_lock(db, "backup_scheduler", _backup_scheduler_loop)
+    except asyncio.CancelledError:
+        _record_boot_step("cancelled")
+        raise
+    except Exception as e:  # noqa: BLE001
+        _record_boot_step("unhandled_exception_in_wrapper", exc=e)
+        _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
+            f"UNHANDLED EXCEPTION IN WRAPPER: {type(e).__name__}: {e!r}"
+        )
+        raise
 
 # Module-level "in-progress" guard for the manual /admin/backups/run-now
 # endpoint so two clicks 5 seconds apart can't both spawn 887 MB zip
@@ -6318,6 +6389,12 @@ async def _backup_scheduler_loop(db) -> None:
     """
     MAX_DAILY_ATTEMPTS = 3
 
+    # iter462 · 2026-02-01 · Batch A Phase 1 — first boot step. If we never
+    # see this in the diagnostic state, the loop body is being skipped
+    # before any code executes (e.g. SCHEDULER_ENABLED gate returned early,
+    # OR the asyncio task is being cancelled by the watchdog mid-spawn).
+    _record_boot_step("entered_loop_body")
+
     # hour → last date we ran for that slot (for slot-collapsing logic)
     last_run_for_hour: dict[int, "datetime.date"] = _BACKUP_SCHEDULER_STATE["last_run_for_hour"]
     # date → number of attempts that failed today (circuit breaker)
@@ -6327,8 +6404,10 @@ async def _backup_scheduler_loop(db) -> None:
     today = now.date()
     _BACKUP_SCHEDULER_STATE["alive"] = True
     _BACKUP_SCHEDULER_STATE["armed_at"] = now.isoformat()
+    _record_boot_step("armed")
 
     hours_stale = _hours_since_last_backup()
+    _record_boot_step("disk_staleness_read")
 
     # Iter182 belt-and-suspenders (2026-05-17): cross-check against the
     # ``backup_health`` Mongo collection. The on-disk staleness check
@@ -6339,6 +6418,7 @@ async def _backup_scheduler_loop(db) -> None:
     # backup row with its own TTL, so use it as a second source of
     # truth. We pick whichever timestamp is MORE recent.
     try:
+        _record_boot_step("mongo_heartbeat_started")
         latest_row = await db.backup_health.find_one(
             {"ok": True},
             {"_id": 0, "ts": 1, "mode": 1},
@@ -6359,10 +6439,12 @@ async def _backup_scheduler_loop(db) -> None:
                     f"{latest_row.get('mode')!r})"
                 )
                 hours_stale = mongo_hours
+        _record_boot_step("mongo_heartbeat_done")
     except Exception as e:  # noqa: BLE001
         logger.warning(
             f"[scheduled-backup] mongo staleness cross-check failed (non-fatal): {e}"
         )
+        _record_boot_step("mongo_heartbeat_exception", exc=e)
 
     if hours_stale is not None and hours_stale <= 8:
         # System is healthy. Original behaviour: skip past slots today.
@@ -6397,6 +6479,7 @@ async def _backup_scheduler_loop(db) -> None:
     # WatchFiles file-change detection during agent edits added one
     # archive within minutes of startup).
     try:
+        _record_boot_step("r2_seed_started")
         latest_r2 = await db.backup_health.find_one(
             {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
             sort=[("ts", -1)],
@@ -6422,9 +6505,13 @@ async def _backup_scheduler_loop(db) -> None:
         logger.warning(
             f"[scheduled-backup] R2 state seed query failed (non-fatal): {e}"
         )
+        _record_boot_step("r2_seed_exception", exc=e)
+    else:
+        _record_boot_step("r2_seed_done")
 
     # Give the app a moment to finish startup before first tick
     await asyncio.sleep(30)
+    _record_boot_step("entering_main_tick_loop")
     while True:
         try:
             now = datetime.now(timezone.utc)
@@ -11239,7 +11326,7 @@ async def _start_backup_scheduler():
             )
             _emergency_prune_backups(reason=f"boot disk {pct}%")
         _backup_task = asyncio.create_task(
-            run_with_singleton_lock(db, "backup_scheduler", _backup_scheduler_loop)
+            _backup_scheduler_loop_with_capture(db)
         )
         _hours_str = " · ".join(f"{h:02d}:00" for h in BACKUP_HOURS_UTC) + " UTC"
         logging.getLogger(__name__).info(
@@ -11298,9 +11385,7 @@ async def _start_backup_scheduler():
                             f"(previous: {exc_repr})"
                         )
                         _backup_task = asyncio.create_task(
-                            run_with_singleton_lock(
-                                db, "backup_scheduler", _backup_scheduler_loop
-                            )
+                            _backup_scheduler_loop_with_capture(db)
                         )
                 except asyncio.CancelledError:
                     raise

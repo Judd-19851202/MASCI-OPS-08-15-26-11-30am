@@ -39,21 +39,21 @@ Classification: **🟢 KNOWN GOOD**.
 1. Foreman/superintendent submits toolbox / pre-shift meeting
 2. `/meetings/new` · `/admin/meetings/:id` · `/pm/meetings/:id` · `/safety-portal` library
 3. `POST /api/meetings`
-4. `safety_meetings`
+4. `meetings` _(corrected 2026-02-01 — NOT `safety_meetings`; verified at `routes/safety.py:462`)_
 5. Submitter + assigned PM
 6. Admin · PM (scoped) · Safety · HR (cross-portal read)
 7. Admin · Safety
 8. Assigned PM + `ALWAYS_CC`
-9. Resend (`schedule_auto_email("meeting")`) + task + bell via `emit_task_and_notification`
+9. Resend (`schedule_auto_email("meeting")`) only — **NO bell/task fan-out** _(corrected 2026-02-01 — same gap as JHA · NEW-GAP-A)_
 10. `/admin/meetings`, `/pm/meetings`, Safety Portal records, HR cross-portal viewer
 11. Admin · Safety · PM Hub Compliance
 12. `submitted` ledger entry
 13. Safety logs and archives
 14. Record persists; no escalation
 15. Safety training-tracker (attendees), Project health
-16. No per-meeting action card on Safety Hub (mild SOFT)
+16. Per-record action card on Safety Hub (NEW-GAP-A — P1)
 
-Classification: **🟢 KNOWN GOOD**.
+Classification: **🟡 KNOWN GAP (NEW-GAP-A)**.
 
 ---
 
@@ -61,7 +61,7 @@ Classification: **🟢 KNOWN GOOD**.
 1. Field supervisor submits or attaches JHA
 2. `/jha/new` · `/jha` (public read) · `/admin/jha` · `/admin/jha/:id` · `/admin/jha-plans` · `/pm/jha-plans` · `/safety/jha`
 3. `POST /api/jhas` + `GET /api/job-hazard-plans` (public ref) + `/api/job-hazard-files/*`
-4. `job_hazard_plans`
+4. `jhas` (submissions) + `job_hazard_plans` (master library — separate) _(corrected 2026-02-01 — `routes/safety.py:516` writes to `db.jhas`)_
 5. Submitter + Safety supervisor
 6. Admin · PM · Safety · public read of master library
 7. Admin · Safety
@@ -80,15 +80,15 @@ Classification: **🟡 KNOWN GAP (GAP-3)**.
 ---
 
 ### A4 · Incident Report
-1. Anyone submits incident
+1. Anyone submits incident (creation is **idempotency-wrapped** via `Idempotency-Key` header / `lib/idempotency.py` — corrected 2026-02-01)
 2. `/incidents/new` · `/admin/incidents/:id` · `/pm/incidents/:id` · `/hr/incidents` · `/safety-portal/incidents`
 3. `POST /api/incidents`
 4. `incidents`
 5. Assigned PM + Safety
 6. Admin · PM (scoped) · Safety · HR (read)
 7. Admin · Safety
-8. Assigned PM + `ALWAYS_CC` + `severe_incident_cc` when severity high / OSHA-recordable
-9. Resend (`schedule_auto_email("incident")`) + task + bell (`emit_task_and_notification`)
+8. Assigned PM + `ALWAYS_CC` + severe-CC routing resolved per record by `pm_routing.py` (severity influences task priority `Critical`/`High`)
+9. Resend (`schedule_auto_email("incident")`) + task to safety + bell to PM (always — `routes/safety.py:585+625`)
 10. Every incident dashboard (admin/pm/hr/safety)
 11. Safety Hub · Admin · PM Hub · HR Incidents
 12. `submitted` → `under_review` → `closed`
@@ -199,9 +199,9 @@ Classification: **🟡 KNOWN GAP (GAP-8 + GAP-9)**.
 5. Operator + Shop + assigned PM
 6. Admin · PM · Shop
 7. Admin · Shop (`signoff`)
-8. Assigned PM (PM-only). FAIL/OOS → **every active shop user** + bell + task via `emit_task_and_notification` (fallback `SHOP_MANAGER_EMAIL` env)
-9. Resend + bell + task
-10. Admin Pre-Op trends · Shop Equipment dashboard · PM Equipment
+8. Assigned PM (PM-only) for clean Pre-Ops. **On FAIL/OOS: Shop role (bell + task, primary owner) AND Dispatch role (visibility notification)** _(corrected 2026-02-01 — `routes/equipment.py:234+247+274` verified)_
+9. Resend + bell + task to Shop + bell to Dispatch
+10. Admin Pre-Op trends · Shop Equipment dashboard · PM Equipment · Dispatch fleet status
 11. Shop Hub primary ops · Admin Pre-Op trends · PM Hub Equipment
 12. pass / fail / out_of_service
 13. Shop sign-off or repair workflow
@@ -484,7 +484,7 @@ Classification: **🟢 KNOWN GOOD**.
 ### D1 · Dispatch Assignment (haul cycle)
 1. Dispatcher creates assignment
 2. `/dispatch-portal/board` · `/admin/dispatch`
-3. `POST /api/dispatch/assignments`, `POST /api/dispatch/state-events`, `POST /api/dispatch/holds`
+3. `POST /api/dispatch/assignments`, `POST /api/dispatch/assignments/{id}/transition`, `POST /api/dispatch/holds` _(corrected 2026-02-01 — state transition endpoint is `/assignments/{id}/transition`; `/state-events` is GET-only for history)_
 4. `dispatch_assignments`, `dispatch_state_events`, `dispatch_continuity_events`, `asset_holds`, `asset_assignments`
 5. Dispatcher + Driver
 6. Dispatch · Admin · Safety (read) · PM (read for own jobs)

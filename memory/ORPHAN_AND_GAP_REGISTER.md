@@ -46,6 +46,14 @@ A gap is the next tier down: workflow functions but visibility, escalation, or f
 - Gap: no task fan-out, no Safety Hub action card
 - Classification: **🟡 KNOWN GAP (P1)**
 
+### SOFT-3b · NEW-GAP-A · Safety Meeting submit (added 2026-02-01)
+- Notification: ✅ email to PM + `ALWAYS_CC`
+- Dashboard surface: `/admin/meetings`, `/pm/meetings`, Safety Portal library (search-only)
+- Gap: **no task fan-out, no Safety Hub action card** — surfaced during Phase 2A validation. Same shape as SOFT-3.
+- Evidence: `routes/safety.py:455–465` — no `emit_task_and_notification` call in meeting submit handler.
+- Operator decision required: Confirm whether meetings should join the JHA/FL fix track or remain intentionally email-only.
+- Classification: **🟡 KNOWN GAP (P1)**
+
 ### SOFT-4 · Training Records — supervisor lens (= GAP-4)
 - Notification: ✅ trainee bell + task
 - Gap: supervisor of trainee not notified (`linked_supervisor` lookup intermittent)
@@ -172,10 +180,10 @@ Classification: **🟢 KNOWN GOOD**.
 |------|-------|-------|
 | P0 orphan (OPERATOR DECISION NEEDED) | 1 | ORPHAN-1 / GAP-6 (Fleet DVIR) |
 | P0 broken (HELD) | 1 | GAP-7 (Backup scheduler dead) |
-| P1 visibility gaps | 7 | GAP-1, GAP-2, GAP-3, GAP-4, GAP-10, GAP-16, GAP-17 |
+| P1 visibility gaps | 8 | GAP-1, GAP-2, GAP-3, **NEW-GAP-A (Meeting · added 2026-02-01)**, GAP-4, GAP-10, GAP-16, GAP-17 |
 | P2 enhancement gaps | 6 | GAP-5, GAP-8, GAP-9, GAP-14, GAP-15, GAP-18 |
 | P3 test-only | 3 | GAP-11, GAP-12, GAP-13 |
-| **Total** | **18** | |
+| **Total** | **19** | + 1 confirmed orphan |
 
 ---
 
