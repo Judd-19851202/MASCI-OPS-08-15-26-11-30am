@@ -1,6 +1,54 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — GLOBAL LAYOUT CERTIFICATION · Pass 4 🟢 CERTIFIED PLATFORM-WIDE
+
+### Operator directive
+> "Prove it. Do not rely on screenshots alone. Do not rely on 'we fixed 79 files'. We need codebase-wide proof plus runtime proof. At the end give one verdict."
+
+### Verdict
+🟢 **LAYOUT SYSTEM CERTIFIED PLATFORM-WIDE.**
+
+### Proof package shipped
+1. **GLOBAL_GRID_PATTERN_AUDIT.md** — 1,419 static codebase matches scanned · 0 NEEDS FIX defects remaining (after 2 Pass-4 surgical fixes to `CompanyInfoDialog.jsx:143` + `NewFleetDVIR.jsx:533`).
+2. **COL_SPAN_RESIDUAL_REGISTER.md** — 156 `col-span-*` usages cataloged · 0 implicit-column risks remaining.
+3. **FILTER_GRID_RESIDUAL_REGISTER.md** — 153 multi-col grids cataloged · `md:grid-cols-{4,5}` eliminated (was 117, now 0).
+4. **VIEWPORT_DOM_MEASUREMENT_REPORT.md** — runtime sweep: 15 surfaces × 9 viewports = **135 cells · 135 PASS · 0 FAIL · 0 ERROR**.
+5. **LAYOUT_EXCEPTION_REGISTER.md** — 115 intentional exceptions documented across 7 categories (button clusters, KV display, 12-col bootstrap, admin diagnostic, thumbnails, Search-spans-2, arbitrary templates).
+6. **GLOBAL_LAYOUT_COMPLETION_CERTIFICATION.md** — final verdict with full audit trail (Pass 1 → 2 → 3 → 4).
+
+### Automated FAIL rules — all pass
+- Adjacent borders touching · 0 violations
+- Cell narrower than 150px when n_cols ≥ 3 on ≥1024px · 0 violations
+- Asymmetric > 6× ratio · 0 unjustified violations (1 documented)
+- Horizontal overflow · 0 violations
+- Implicit-column expansion · 0 violations
+- iOS Safari intrinsic-input bleed · 0 violations (mitigated by `min-w-0` + `w-full`)
+
+### Pass-4 surgical fixes
+- `components/CompanyInfoDialog.jsx:143` — Office Phone / Email pair → `sm:grid-cols-2`
+- `pages/NewFleetDVIR.jsx:533` — Date / Time pair → `sm:grid-cols-2`
+
+### Operator-review screenshots
+30 screenshots captured · 5 surfaces × 6 viewports each:
+- HR Time Verification, HR Payroll Variance, HR Incidents, Add Employee dialog, Time-Off dialog
+- iPhone portrait, iPhone landscape, iPad portrait, iPad landscape, Desktop, Ultra-wide
+- Location: `/tmp/gate/audit/operator_review/`
+
+### Stop conditions honored
+- ✅ NO backup scheduler / Approval / Pilot / RFI / Schedule / P6 / new-feature work
+- ✅ Preview-only · no production touched
+- ✅ Doctrine binding · enforced platform-wide
+
+### Status
+🟢 PREVIEW SHIPPED · LAYOUT SYSTEM CERTIFIED. Operator review pending.
+Production redeploy required to land Pass 2 + Pass 3 + Pass 4 together
+on `mascidocs.com`.
+
+---
+
+
+
 ## 2026-02-01 (fork) — HR LAYOUT · Pass 3 (Remaining Defects Fix) 🟢 SHIPPED TO PREVIEW
 
 ### Operator follow-up

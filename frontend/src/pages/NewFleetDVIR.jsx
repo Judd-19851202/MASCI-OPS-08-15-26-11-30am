@@ -530,7 +530,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                 {t("If you're new to MASCI, type your full name and tap '+ Add to roster'. Future inspections will autocomplete.")}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
               <div className="min-w-0">
                 <Label className="text-sm font-semibold text-slate-800">{t("Date")}</Label>
                 <Input

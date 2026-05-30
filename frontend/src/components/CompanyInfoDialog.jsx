@@ -140,7 +140,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
                   data-testid="ci-csz"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-3">
                 <div>
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                     {t("Office Phone")}
