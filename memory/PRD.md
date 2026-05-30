@@ -1,6 +1,57 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-30 (fork) — Batch D · PROD BACKUP SCHEDULER ACTIVATION & PROOF OF LIFE ✅ COMPLETE
+
+### Operator directive (2026-05-30)
+> "Activate scheduler. Prove it. No assumptions, no theories, no 'should be.' Every conclusion backed by code · endpoint · runtime · database · log evidence. Stay locked on backup verification."
+
+### Outcome — three independent verdicts
+- 🟢 **BACKUP SCHEDULER RESTORED**
+- 🟢 **LITE BACKUPS VERIFIED**
+- 🟢 **COMPLETE-R2 BACKUPS VERIFIED** (cascaded auto-fire — see §below)
+
+### What happened
+Operator set `SCHEDULER_ENABLED=true` on production env panel + initiated redeploy (~13:21Z). New worker began serving 13:28:44Z (`source_hash=8e8ec6da31cf225cae2db172573f49a0`). Scheduler armed 13:30:14Z, `boot_step` advanced to `entering_main_tick_loop` at 13:30:44Z, gate cleared, catch-up lite backup fired for missed 02:00 slot (211 805 b · 141 records · emailed). In the same first tick, `BACKUP_R2_HOURLY=true` branch fired a 464 MB complete archive, uploaded to R2 (`backups/auto-90d/...133054Z.zip`). T+0 Attempt-2 (13:36Z) and T+5 (13:42Z) probes PASSED all gates.
+
+### What shipped (5 deliverables + 2 doc updates)
+1. **`SCHEDULER_STATUS_REPORT.md`** — Phase 1+2 verdict + probe matrix + mandatory-proof checklist (10/10)
+2. **`BACKUP_SYSTEM_VERIFICATION_REPORT.md`** — Phase 3 · 22-subsystem PASS/FAIL grid · final RPO answer
+3. **`DOCUMENTATION_DRIFT_REPORT.md`** — Phase 4 · 6 drift items · 0 critical
+4. **`RUNTIME_VS_CODE_COMPARISON_REPORT.md`** — Phase 4 · 0 discrepancies on exercised subsystems
+5. **`BATCH_D_EXECUTIVE_SUMMARY.md`** — Phase 5 · operator-facing roll-up
+6. `PRD.md` updated (this entry)
+7. `_INDEX.md` updated
+
+### 🟡 Critical finding — operator awareness required
+**Complete-R2 hourly backups fired automatically on scheduler activation.** `BACKUP_LITE_MODE_ONLY=true` gates ONLY the email path. `BACKUP_R2_HOURLY=true` (pre-existing prod value, untouched) is an INDEPENDENT path. Today's 464 MB build succeeded with no OOM. Going forward: 1 complete-R2 build per UTC hour while flag remains true. Operator decision required: (a) leave as-is (24×/day · 60-min RPO) (b) toggle false (1×/day · 24-h RPO) (c) other.
+
+### Final RPO answer
+- Last known good complete snapshot: 2026-05-30T13:30:44Z (R2 archive, 464 MB)
+- Max data-loss window: ≤ 60 minutes while `BACKUP_R2_HOURLY=true`
+- Proven recovery paths: NONE end-to-end. Archive **exists** and is queryable; **restore path itself ⚪ UNKNOWN — never exercised in any batch.**
+
+### Stop-condition compliance
+- ✅ Zero code modified
+- ✅ Zero env vars modified by main agent (operator-only change: `SCHEDULER_ENABLED=true`)
+- ✅ `BACKUP_LITE_MODE_ONLY` · `BACKUP_R2_HOURLY` untouched
+- ✅ No manual `run-now` / `run-complete-now` triggered by main agent
+- ✅ No UI / DVIR / notification / Pilot / RFI / Schedule / P6 / PM Exposure Tile / unrelated work
+- ✅ All probes read-only GETs against `mascidocs.com`
+
+### Held items (priority order · NOT to start without authorization)
+- 🟢 **P0** · Restore drill (exercise actual recovery path end-to-end)
+- 🟡 `BACKUP_R2_HOURLY` posture decision
+- 🟡 Fleet DVIR ownership matrix · 19 notification gaps · S3 photo migration · Phase 3/4 scheduler hardening
+- ⚪ Approval/Rejection · Pilot · RFI · Schedule · P6 · PM Exposure Tile
+
+### Next action item
+**STOP. Operator review of Batch D.**
+
+---
+
+
+
 ## 2026-02-01 (fork) — Batch B · PROD SCHEDULER DIAGNOSTIC DEPLOY + ROOT-CAUSE ID ✅ COMPLETE
 
 ### Operator directive (2026-02-01)

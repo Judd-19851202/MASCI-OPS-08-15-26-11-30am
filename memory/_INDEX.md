@@ -11,7 +11,24 @@ across 500 docs — the platform has strict domain boundaries.
 
 ---
 
-## 0 · 2026-02-01 fork — Latest pass index
+## 0 · 2026-05-30 fork — Latest pass index
+
+### 00 · Batch D · Production Backup Scheduler Activation & Proof of Life (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_D_EXECUTIVE_SUMMARY.md` | Operator-facing roll-up · 3 verdicts (🟢 SCHEDULER RESTORED · 🟢 LITE VERIFIED · 🟢 COMPLETE-R2 VERIFIED) · 1 critical operator-awareness finding | ✅ ⛔ |
+| `SCHEDULER_STATUS_REPORT.md` | Phase 1+2 · T+0 Attempt-1 (inconclusive · rolling deploy) · T+0 Attempt-2 (PASS) · T+5 (PASS) · 10/10 mandatory proof checks | ✅ ⛔ |
+| `BACKUP_SYSTEM_VERIFICATION_REPORT.md` | Phase 3 · 22-subsystem PASS/FAIL grid · RPO answer (≤ 60 min while `BACKUP_R2_HOURLY=true`) · restore paths still ⚪ UNKNOWN | ✅ ⛔ |
+| `DOCUMENTATION_DRIFT_REPORT.md` | Phase 4 · 6 drift items (0 critical) · key drift: `BACKUP_LITE_MODE_ONLY` and `BACKUP_R2_HOURLY` are **independent** code paths | ✅ ⛔ |
+| `RUNTIME_VS_CODE_COMPARISON_REPORT.md` | Phase 4 · 0 discrepancies on exercised subsystems · 9 subsystems documented as not-yet-exercised | ✅ ⛔ |
+| `batch_d_evidence/` (folder) | Raw probe + version + R2 inventory + admin endpoints (JSON) | ✅ |
+
+🟡 **Critical finding**: complete-R2 fired automatically on scheduler re-enable because `BACKUP_R2_HOURLY=true` was the pre-existing prod value. 464 MB archive succeeded with no OOM. Going forward: 24 complete-R2 archives/day while flag stays true. Operator decision required (no auto-action).
+
+---
+
+## 0 · 2026-02-01 fork — Prior pass index
 
 > The 2026-02-01 fork session: (a) reverted an unauthorized design-system
 > pivot · (b) built the complete Platform Truth Map · (c) verified it
