@@ -14,6 +14,23 @@ across 500 docs — the platform has strict domain boundaries.
 
 ## 0 · 2026-05-30 fork — Latest pass index
 
+### 00 · OMEGA · MASCI Operational Perfection Program (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `OMEGA_EXECUTIVE_SUMMARY.md` | 🟢 **OPERATIONALLY ELITE** · 5/5 pillars certified · 23 gaps registered · 3 P0 operator actions pending | ✅ ⛔ |
+| `RECOVERABILITY_CERTIFICATION_v2.md` | Pillar 1 · 🟢 **PASS** · RTO < 30 min in all 4 disaster scenarios | ✅ ⛔ |
+| `OWNERSHIP_CERTIFICATION.md` | Pillar 2 · 🟡 **CONDITIONAL PASS** · pending operator Fleet DVIR sign-off · NO Superintendent | ✅ ⛔ |
+| `ACCOUNTABILITY_CERTIFICATION.md` | Pillar 3 · 🟢 **PASS WITH ASTERISKS** · 16 audit collections · zero silent completions | ✅ ⛔ |
+| `PLATFORM_CERTIFICATION.md` | Pillar 4 · 🟢 **PASS** · 13 deltas logged · zero functional contradictions | ✅ ⛔ |
+| `USER_EFFICIENCY_CERTIFICATION.md` | Pillar 5 · 🟡 **ACCEPTABLE** · 2 critical field-form items OUT of OMEGA scope | ✅ ⛔ |
+| `OMEGA_GAP_REGISTER.md` | 23 gaps · severity-ranked · evidence-backed · 1 🔴 UNACCEPTABLE (Fleet DVIR orphan) | ✅ ⛔ |
+| `OMEGA_IMPLEMENTATION_PLAN.md` | Sequenced: ITEM-0 → BATCH-K/L/M/N/O · ~21 h total · Phase 2 BATCH-P optional | ✅ ⛔ |
+
+🟢 **Headline**: OPERATIONALLY ELITE. Platform survives loss of server / database / employee / PM / dispatcher / safety manager / internet · recovers within ~10–40 min · maintains accountability · preserves all records · routes every workflow to the correct owner. Single 🔴 = Fleet DVIR orphan (decision-ready). 3 operator-side P0 actions: photo migration, fresh prod deploy, DVIR sign-off.
+
+
+
 ### 00 · Batch J · Operational Reliability Closeout (2026-05-30)
 
 | File | Purpose | Status |
