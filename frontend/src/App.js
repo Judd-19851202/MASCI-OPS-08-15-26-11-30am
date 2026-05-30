@@ -11,13 +11,6 @@ import OdrPublicViewer from "@/pages/odr/OdrPublicViewer";
 import OdrDone from "@/pages/odr/OdrDone";
 import OdrDetail from "@/pages/odr/OdrDetail";
 import OperationalRecords from "@/pages/operational_records/OperationalRecords";
-import {
-  DesignIndex as DesignFamilyMockupsIndex,
-  FamilyAMockup as DesignFamilyMockupsA,
-  FamilyBMockup as DesignFamilyMockupsB,
-  FamilyCMockup as DesignFamilyMockupsC,
-  FamilyDMockup as DesignFamilyMockupsD,
-} from "@/components/DesignFamilyMockups";
 import DriverMagicLanding from "@/pages/driver/DriverMagicLanding";
 import DriverShift from "@/pages/driver/DriverShift";
 import ShiftStart from "@/pages/driver/ShiftStart";
@@ -755,14 +748,9 @@ function App() {
                 empty middle (the "blank shell" the production
                 verification sweep flagged). Backend authorization is
                 untouched; this is purely the unmatched-route UX. */}
-            {/* Pass-7 · Design-system family mockups (preview only, no auth, not linked) */}
-            <Route path="/__design" element={<DesignFamilyMockupsIndex />} />
-            <Route path="/__design/family-a" element={<DesignFamilyMockupsA />} />
-            <Route path="/__design/family-b" element={<DesignFamilyMockupsB />} />
-            <Route path="/__design/family-c" element={<DesignFamilyMockupsC />} />
-            <Route path="/__design/family-d" element={<DesignFamilyMockupsD />} />
+            {/* Pass-7 · Design-system family mockups removed (unauthorized direction; reverted per operator stabilization directive) */}
             <Route path="*" element={<NotFound />} />
-            {/* (catch-all moved above design routes — leave nothing below it) */}
+            {/* (catch-all is final) */}
           </Routes>
           <GlobalFooter />
         </div>

@@ -1,3 +1,9 @@
+> **STATUS: ABANDONED / UNAUTHORIZED DIRECTION (2026-02-01)**
+> This document was produced during a redesign pivot that the operator explicitly rejected.
+> Do NOT implement any "design family", primitive, or visual-language guidance from this file.
+> Retained only for audit history. The stabilization mission is: fix real layout defects only.
+
+
 # DESIGN_FAMILY_CLASSIFICATION.md
 
 _Pass 7 · Workflow family classification + per-family doctrine · 2026-02-01._
