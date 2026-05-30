@@ -1,6 +1,61 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-30 (fork) — Batch E · DISASTER RECOVERY DRILL & RECOVERABILITY CERTIFICATION ✅ COMPLETE
+
+### Operator directive (2026-05-30)
+> "Prove MASCI can be recovered from backup. The UNKNOWN from Batch D must be eliminated. Preview-environment only. No production modifications."
+
+### 🟢 FINAL VERDICT: PARTIALLY RECOVERABLE (with documented yellow-flag remediation paths)
+- 🟢 Operational data: FULLY RECOVERABLE
+- 🟢 Portal-user logins (PM/HR/Shop/Dispatch/Safety/FL): FULLY RECOVERABLE
+- 🟢 Legacy admin (`/api/admin/login`): FULLY RECOVERABLE
+- 🟡 Master multi-login (`/api/auth/multi-login`): requires 7-user password reseed (by design — bcrypt redacted from archive)
+- 🟢 Photos (if R2 survived): FULLY RECOVERABLE
+- 🟡 Photos (if R2 also lost): bytes in archive, re-upload automation absent
+- 🟢 DB indexes: auto-form on backend cold start
+- ⚪ Live-application boot against restored DB: not exercised (Batch F candidate)
+
+### What we did
+End-to-end DR drill: downloaded the 442.6 MB complete-R2 archive (2026-05-30T13:30:44Z) from R2 → extracted → restored into isolated `masci_restore_drill_2026_05_30` (separate DB on same Atlas cluster, NOT preview, NOT prod) via `scripts/restore_drill.py` → compared drill DB counts vs prod source.
+
+### Headline results
+- **283 575 records restored · 0 corrupt**
+- **23/23 mandatory-target collections EXACT match** (1 189 records on each side)
+- **76/76 prod data-bearing collections present** in drill DB
+- **End-to-end drill wall time: ~4 minutes** (download + extract + restore + validate + compare)
+- All 8 portal-user bcrypt hashes preserved · only `user_directory` (admin master-login) redacted
+
+### Key yellow-flag findings
+1. `user_directory.password_hash` redacted from archive by design — multi-login UI requires post-restore reseed. Fix: extend `_seed_hash` logic at `server.py:7596` to cover `user_directory`.
+2. `restore_drill.py` doesn't re-upload R2 photo bytes (only writes Mongo). Bytes ARE in the archive's `photos/` directory.
+3. Live-backend boot against restored DB not exercised. Next logical conversion of ⚪ → 🟢.
+
+### Backup posture recommendation
+🟢 **Operator should set `BACKUP_R2_HOURLY=false` and `BACKUP_R2_FULL_HOUR_UTC=4` (22:00 Central).**
+Rationale: archive size grew ~4.7× in 5 days (92 MB → 442 MB), worker has only 158 MB headroom under 600 MB OOM watermark, hourly cadence projects worker OOM within ~14 days. 24-hour RPO is construction-industry standard; lite email backup (twice daily) narrows practical RPO to ~12 hr. Storage cost not the driver.
+
+### Stop-condition compliance
+- ✅ Drill DB on same cluster but distinct name (NOT preview, NOT prod)
+- ✅ Zero writes to `masci_safety` or `masci_safety_preview` (read-only counts only)
+- ✅ Zero code · zero env vars modified
+- ✅ No notification / DVIR / Approval-Rejection / Pilot / RFI / Schedule / P6 / PM Exposure Tile / UI work
+
+### 5 deliverables shipped
+1. `DISASTER_RECOVERY_DRILL_REPORT.md` — full procedural + evidence record
+2. `RESTORE_VALIDATION_REPORT.md` — record-by-record validation
+3. `RECOVERABILITY_CERTIFICATION.md` — final recoverability determination
+4. `BACKUP_POSTURE_RECOMMENDATION.md` — cadence analysis + recommendation
+5. `BATCH_E_EXECUTIVE_SUMMARY.md` — operator-facing roll-up
+Plus: `PRD.md` + `_INDEX.md` updated; raw evidence under `batch_e_evidence/`.
+
+### Next action item
+**STOP. Operator review of Batch E required.** Drill DB `masci_restore_drill_2026_05_30` retained on cluster; recommend dropping after review.
+
+---
+
+
+
 ## 2026-05-30 (fork) — Batch D · PROD BACKUP SCHEDULER ACTIVATION & PROOF OF LIFE ✅ COMPLETE
 
 ### Operator directive (2026-05-30)

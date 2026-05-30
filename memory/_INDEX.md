@@ -13,7 +13,27 @@ across 500 docs — the platform has strict domain boundaries.
 
 ## 0 · 2026-05-30 fork — Latest pass index
 
-### 00 · Batch D · Production Backup Scheduler Activation & Proof of Life (2026-05-30)
+### 00 · Batch E · Disaster Recovery Drill & Recoverability Certification (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_E_EXECUTIVE_SUMMARY.md` | Operator-facing roll-up · final verdict 🟢 **PARTIALLY RECOVERABLE** (data layer 🟢 · master-login auth 🟡 · live-app boot ⚪) | ✅ ⛔ |
+| `DISASTER_RECOVERY_DRILL_REPORT.md` | Phase 1+2 · 442 MB archive downloaded · 283 575 records restored · 0 corrupt · 10-step drill checklist | ✅ ⛔ |
+| `RESTORE_VALIDATION_REPORT.md` | Phase 3 · 23/23 mandatory-target collection EXACT match · all portal-user bcrypt preserved · `user_directory` redacted by design | ✅ ⛔ |
+| `RECOVERABILITY_CERTIFICATION.md` | Phase 4 · "Yes — ~10-20 min full app recovery, 60-min RPO (current) or 24-hr RPO (recommended)" | ✅ ⛔ |
+| `BACKUP_POSTURE_RECOMMENDATION.md` | Phase 5 · Cadence analysis (hourly vs 4h vs 6h vs nightly) · **recommendation: nightly @ 04:00 UTC** (worker memory headroom shrinking; OOM trajectory ~14 days at current hourly cadence) | ✅ ⛔ |
+| `batch_e_evidence/` (folder) | Raw R2 presigned URL listing · drill_run.log · prod source counts · drill-vs-prod comparison JSON | ✅ |
+
+🟢 **Headline: drill DB `masci_restore_drill_2026_05_30` proves end-to-end restorability of the complete-R2 archive at the data layer.** Wall-clock drill: ~4 minutes. The principal UNKNOWN from Batch D is eliminated.
+
+🟡 **Material findings**:
+1. `user_directory.password_hash` redacted by design — master multi-login requires post-restore reseed (extension of `_seed_hash` logic at `server.py:7596` recommended)
+2. `restore_drill.py` doesn't auto re-upload R2 photo bytes (bytes ARE in archive)
+3. Live-application boot against restored DB not exercised — next logical Batch F candidate
+
+🟡 **Backup posture recommendation**: set `BACKUP_R2_HOURLY=false` + `BACKUP_R2_FULL_HOUR_UTC=4`. Archive size grew 4.7× in 5 days; worker has 158 MB headroom under 600 MB OOM watermark; hourly cadence projects OOM within ~14 days at current growth.
+
+### 0a · Batch D · Production Backup Scheduler Activation & Proof of Life (2026-05-30)
 
 | File | Purpose | Status |
 |---|---|---|
