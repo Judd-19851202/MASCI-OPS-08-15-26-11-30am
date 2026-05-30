@@ -119,9 +119,9 @@ export default function HrTimeVerification() {
       <div className="mb-4">
         <HelpTipBlock formKey="time-verification" showCounter />
       </div>
-      {/* Filter bar */}
-      <Card className="p-4 mb-5 border-2 border-purple-200 bg-purple-50/30">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 items-end">
+      {/* Filter bar — Pass-6 UX quality: clear input grid + dedicated action footer with window context */}
+      <Card className="p-5 mb-5 border-2 border-purple-200 bg-purple-50/30" data-testid="hr-tv-filter-card">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
           <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
             <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-tv-week" />
@@ -138,30 +138,39 @@ export default function HrTimeVerification() {
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Supervisor")}</Label>
             <Input value={supervisor} onChange={(e) => setSupervisor(e.target.value)} placeholder={t("Name contains...")} className={`${inputCls} w-full`} data-testid="hr-tv-supervisor" />
           </div>
-          <div className="min-w-0 flex gap-2">
-            <Button onClick={() => setPendingFilters((n) => n + 1)} disabled={loading} className="flex-1 bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-tv-apply">
-              {loading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Filter className="w-4 h-4 mr-1" />}
-              {t("Apply")}
+        </div>
+        <div className="mt-5 pt-4 border-t border-purple-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-slate-500" data-testid="hr-tv-window-chip">
+            {data?.week_start ? <>{t("Window")} · <span className="text-slate-700 font-bold">{data.week_start} → {data.week_end}</span></> : t("Set a week to begin")}
+          </div>
+          <div className="flex gap-2 sm:ml-auto">
+            <Button variant="outline" onClick={downloadCsv} disabled={!data || loading} data-testid="hr-tv-csv" title={t("Export CSV")} className="h-10">
+              <FileDown className="w-4 h-4 mr-1" />{t("Export CSV")}
             </Button>
-            <Button variant="outline" onClick={downloadCsv} disabled={!data || loading} data-testid="hr-tv-csv" title={t("Export CSV")}>
-              <FileDown className="w-4 h-4" />
+            <Button onClick={() => setPendingFilters((n) => n + 1)} disabled={loading} className="h-10 px-6 bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-tv-apply">
+              {loading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Filter className="w-4 h-4 mr-1" />}
+              {t("Apply Filters")}
             </Button>
           </div>
         </div>
-        <div className="mt-3 text-xs text-slate-600 font-mono">
-          {data?.week_start} → {data?.week_end}
-        </div>
       </Card>
 
-      {/* Stats strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-5" data-testid="hr-tv-stats-strip">
-        {stats.map((s) => (
-          <Card key={s.label} className={`p-4 ${s.highlight ? "border-2 border-amber-500 bg-amber-50" : "border-2 border-slate-200"}`} data-testid={`hr-tv-stat-${s.label.toLowerCase().replace(/\s+/g, "-")}`}>
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">{s.label}</div>
-            <div className="font-display text-2xl font-black mt-1">{s.value}</div>
-          </Card>
-        ))}
-      </div>
+      {/* Stats strip — Pass-6 UX: single card with 5 inline metrics + divider columns */}
+      <Card className="p-5 mb-5 border-2 border-slate-200" data-testid="hr-tv-stats-strip">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-5 sm:divide-x sm:divide-slate-200">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className={`flex flex-col ${i > 0 ? 'sm:pl-6' : ''} ${s.highlight ? 'sm:relative' : ''}`}
+              data-testid={`hr-tv-stat-${s.label.toLowerCase().replace(/\s+/g, "-")}`}
+            >
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">{s.label}</div>
+              <div className={`font-display text-3xl font-black mt-1.5 leading-none ${s.highlight ? 'text-amber-700' : 'text-slate-900'}`}>{s.value}</div>
+              {s.highlight ? <div className="mt-1 text-[10px] font-mono uppercase tracking-wider text-amber-700">{t("Variance flagged")}</div> : null}
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* View toggle */}
       <div className="flex items-center gap-2 mb-4">

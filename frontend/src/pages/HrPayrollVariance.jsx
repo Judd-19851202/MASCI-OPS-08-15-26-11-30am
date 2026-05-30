@@ -202,22 +202,19 @@ export default function HrPayrollVariance() {
           </div>
         </div>
         <HelpTipBlock formKey="payroll-variance.upload" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-3">
+        {/* Pass-6 UX quality: inputs in clean 2-col with constrained widths, actions live in a dedicated footer below the textarea */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mb-4">
           <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
             <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-pv-week" />
           </div>
           <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Threshold (minutes)")}</Label>
-            <Input type="number" min="1" max="120" value={threshold} onChange={(e) => setThreshold(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-pv-threshold" />
+            <Input type="number" min="1" max="120" value={threshold} onChange={(e) => setThreshold(e.target.value)} className={`${inputCls} w-full sm:max-w-[200px]`} data-testid="hr-pv-threshold" />
           </div>
-          <div className="min-w-0 sm:col-span-2 flex items-end justify-end gap-2">
-            <Button variant="outline" onClick={() => setCsvText("")} disabled={busy || !csvText}>{t("Clear")}</Button>
-            <Button onClick={upload} disabled={busy || !csvText.trim()} className="bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-pv-upload">
-              {busy ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
-              {t("Run Variance")}
-            </Button>
-          </div>
+        </div>
+        <div className="mb-2">
+          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Exact CSV Payload")}</Label>
         </div>
         <Textarea
           value={csvText}
@@ -227,9 +224,18 @@ export default function HrPayrollVariance() {
           className="font-mono text-xs border-2 border-slate-300"
           data-testid="hr-pv-textarea"
         />
-        <p className="text-xs text-slate-500 mt-2">
-          {t("Accepted columns: Employee Name (required), Regular Hours OR Total Hours (required), Overtime Hours, Employee ID, Week Ending. Comma, tab, or pipe-delimited.")}
-        </p>
+        <div className="mt-4 pt-4 border-t border-purple-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-xs text-slate-500 max-w-2xl">
+            {t("Accepted columns: Employee Name (required), Regular Hours OR Total Hours (required), Overtime Hours, Employee ID, Week Ending. Comma, tab, or pipe-delimited.")}
+          </p>
+          <div className="flex gap-2 sm:ml-auto shrink-0">
+            <Button variant="ghost" onClick={() => setCsvText("")} disabled={busy || !csvText} className="h-10">{t("Clear")}</Button>
+            <Button onClick={upload} disabled={busy || !csvText.trim()} className="h-10 px-6 bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-pv-upload">
+              {busy ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
+              {t("Run Variance")}
+            </Button>
+          </div>
+        </div>
       </Card>
 
       {/* Recent batches */}

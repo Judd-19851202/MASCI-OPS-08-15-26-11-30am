@@ -1,6 +1,54 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Pass 6 · UX QUALITY RESET 🟡 PREVIEW SHIPPED · AWAITING VISUAL VERDICT
+
+### Operator directive (P0)
+> "MASCI Ops must feel like a professional operations platform, not an internal developer tool. The standard is not 'DOM says no overlap.' The standard is 'the operator says this looks elite.'"
+
+### Why prior passes (2-5) weren't enough
+DOM-level rules fixed bleed/overlap but couldn't catch:
+- Orphan action buttons inside grids (Apply in 5th half-cell, Run Variance floating to right of single input)
+- Empty wasteful cells (5 stat Cards → 2+2+1 lonely-card pattern)
+- Weak field hierarchy (no header/section/footer composition)
+- Missing context chips (window date floated as orphan text)
+- Inconsistent input proportions (2-digit Threshold at full half-width)
+
+### Pass-6 fixes shipped (preview)
+**HR Time Verification redesigned**:
+- 4 inputs in clean 2×2 grid (was: 5-col with orphan buttons)
+- Dedicated action footer with `border-t` separator: `WINDOW · 2026-05-24 → 2026-05-30` chip LEFT + Export CSV + Apply Filters RIGHT
+- 5 stat Cards consolidated → single Card with internal `sm:divide-x` strip + 3xl numbers + uppercase labels
+
+**HR Payroll Variance redesigned**:
+- Inputs in clean 2-col (Threshold constrained to `sm:max-w-[200px]`)
+- Explicit "EXACT CSV PAYLOAD" label above textarea
+- Action footer at card bottom: "Accepted columns..." helper text LEFT + Clear (ghost) + Run Variance (primary) RIGHT
+- Resolves operator's "textarea dominates", "Run Variance detached", "hierarchy weak", "workflow grouping" complaints
+
+### Shared primitive added
+- `components/SectionCard.jsx` — `<SectionCard>` + `<ActionFooter>` for header/body/footer composition pattern
+
+### Doctrine docs shipped (6 deliverables)
+- `PLATFORM_UX_QUALITY_AUDIT.md` — why Pass 5 was insufficient
+- `FILTER_BAR_UX_STANDARD.md` — binding filter bar contract
+- `FORM_COMPOSITION_STANDARD.md` — binding form composition contract
+- `DASHBOARD_VISUAL_QUALITY_STANDARD.md` — stats strip + tile contracts
+- `DEVICE_CLASS_VISUAL_REVIEW_REPORT.md` — per-device visual review
+- `UX_QUALITY_FIX_CERTIFICATION.md` — Pass-6 status + pattern roll-out plan
+
+### Status: 🟡 awaiting operator visual verdict
+The new "elite-looking" standard cannot be self-certified. Pass 6 resolves every IMG_0019-22 issue; doctrine documented so the pattern can extend to remaining surfaces (HR Time Off, HR Incidents, HR Employees, PO Requests, DR submit row, etc.) in the next authorized pass.
+
+### Stop conditions honored
+- ✅ NO backup scheduler / Approval/Rejection / Pilot / RFI / Schedule / P6 / PM Exposure Tile / new-feature work
+- ✅ Preview-only
+- ✅ No "DOM says OK" certification claim
+
+---
+
+
+
 ## 2026-02-01 (fork) — Pass 5 · VISUAL QUALITY CORRECTION 🟢 PREVIEW SHIPPED
 
 ### Operator rejection of Pass 4
