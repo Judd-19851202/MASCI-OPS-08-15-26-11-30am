@@ -1,6 +1,52 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Phase 1 · PLATFORM TRUTH MAP ✅ COMPLETE
+
+### Operator directive (2026-02-01)
+> "Build the complete MASCI Ops Platform Truth Map. For every route, workflow, form, action, API, record, dashboard, notification, and owner, document exactly what happens. We need 100% known. Not 80%. Not probably. Not assumed."
+
+### What shipped
+Eight truth-map deliverables under `/app/memory/`:
+
+1. `PLATFORM_TRUTH_MAP_README.md` — index + classification legend
+2. `PLATFORM_ROUTE_MAP.md` — all 249 frontend routes by domain + auth wrapper + classification
+3. `API_DEPENDENCY_MAP.md` — all 816 backend endpoints clustered by URL prefix, with auth-gate distribution + critical-path workflow triggers
+4. `WORKFLOW_LIFECYCLE_MAP.md` — 31 workflows × 16 required questions answered (replaces prior 2026-05-23 version, archived to `WORKFLOW_LIFECYCLE_MAP_2026-05-23_archived.md`)
+5. `NOTIFICATION_DELIVERY_MAP.md` — email routing (ALWAYS_CC, COMPLIANCE_KINDS, PM_ONLY_KINDS), bell + task fan-out central path, cron-driven notifications, gap rollup
+6. `DASHBOARD_DESTINATION_MAP.md` — every record kind's UI destinations across all 8 portals
+7. `ORPHAN_AND_GAP_REGISTER.md` — re-validated 18 gaps + 1 confirmed orphan (Fleet DVIR / ORPHAN-1)
+8. `SYSTEM_TALK_MAP.md` — inter-system feeds (DB → collection → API → email → bell), plus aspirational feeds that should exist
+
+Plus raw machine-extracted evidence at `/app/memory/truth_map_data/`:
+- `frontend_routes.csv` (249 rows · 3 cols)
+- `backend_endpoints.csv` (816 rows · 6 cols)
+- `route_domains.json` · `auth_gate_summary.json`
+- `collections.txt` (143 MongoDB collections)
+- `notification_calls.csv`
+
+### Classification rollup (platform-wide)
+| Tag | Routes | Workflows | Notification chains | Feeds |
+|-----|-------:|----------:|--------------------:|------:|
+| 🟢 KNOWN GOOD | 244 | 21 | most | 22 |
+| 🟡 KNOWN GAP | 3 | 8 | 5 P1 + 6 P2 | 6 |
+| 🔴 BROKEN | 0 | 1 (Backup scheduler) | 1 (GAP-7) | 1 |
+| ⚪ UNKNOWN | 2 | 0 | 0 | 1 (SMS pathway) |
+| ⚫ OPERATOR DECISION NEEDED | 0 | 1 (Fleet DVIR) | 1 (Push vs polling) | 2 |
+
+### Explicit non-changes
+- ❌ No redesign · ❌ No mockups · ❌ No layout work · ❌ No scheduler hardening · ❌ No Approval/Rejection · ❌ No Pilot · ❌ No RFI · ❌ No Schedule · ❌ No P6 · ❌ No PM Exposure Tile
+- ❌ No code changed during truth-map authoring (read-only static analysis)
+
+### Next action item
+**STOP. Operator review.**
+
+The map is operator-facing documentation. After review, the operator will decide the next authorized batch — likely targeting one of the documented gaps in `ORPHAN_AND_GAP_REGISTER.md`, the Fleet DVIR clarification (ORPHAN-1 / GAP-6), or unlocking the held Backup Scheduler hardening (GAP-7 / P0).
+
+---
+
+
+
 ## 2026-02-01 (fork) — Pass 8 · STABILIZATION RESTORATION ✅ COMPLETE
 
 ### Operator directive (2026-02-01)

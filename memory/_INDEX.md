@@ -11,15 +11,32 @@ across 500 docs — the platform has strict domain boundaries.
 
 ---
 
-## 0 · Latest Stabilization Pass (2026-02-01)
+## 0 · Latest Stabilization Pass + Platform Truth Map (2026-02-01)
 
-> The 2026-02-01 fork session reverted an unauthorized design-system
-> pivot and restored strict stabilization mode. Read these three files
-> before doing ANY UI work going forward.
+> The 2026-02-01 fork session (a) reverted an unauthorized design-system
+> pivot and (b) built the complete Platform Truth Map. Read these files
+> before doing ANY platform work going forward.
+
+### 0a · Platform Truth Map (Phase 1 · 2026-02-01)
 
 | File | Purpose | Status |
 |---|---|---|
-| `MASTER_LAYOUT_DEFECT_LIST.md` | **2026-02-01** · 18 surfaces × 4 viewports audited · 5 defects found and surgically fixed · before/after evidence + DOM probes · NO redesign, NO primitives, NO workflow changes | ✅ ⛔ |
+| `PLATFORM_TRUTH_MAP_README.md` | Master index + classification legend (🟢 / 🟡 / 🔴 / ⚪ / ⚫) | ✅ ⛔ |
+| `PLATFORM_ROUTE_MAP.md` | 249 frontend routes · auth wrapper · classification | ✅ ⛔ |
+| `API_DEPENDENCY_MAP.md` | 816 backend endpoints · auth gates · 143 collections · critical-path triggers | ✅ ⛔ |
+| `WORKFLOW_LIFECYCLE_MAP.md` | 31 workflows × 16 required questions (full lifecycle) | ✅ ⛔ |
+| `NOTIFICATION_DELIVERY_MAP.md` | Email routing rules · bell/task fan-out · cron · gap rollup | ✅ ⛔ |
+| `DASHBOARD_DESTINATION_MAP.md` | Where every record kind lands per portal | ✅ ⛔ |
+| `ORPHAN_AND_GAP_REGISTER.md` | 18 gaps + 1 confirmed orphan re-validated 2026-02-01 | ✅ ⛔ |
+| `SYSTEM_TALK_MAP.md` | Inter-system feeds (DB → API → email → bell) + aspirational gaps | ✅ ⛔ |
+| `truth_map_data/` (folder) | Raw machine-extracted CSV/JSON/TXT evidence | ✅ |
+| `WORKFLOW_LIFECYCLE_MAP_2026-05-23_archived.md` | Prior dated version retained for audit history | 🟡 archived |
+
+### 0b · Stabilization Pass 8 (2026-02-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `MASTER_LAYOUT_DEFECT_LIST.md` | 18 surfaces × 4 viewports audited · 5 defects found and surgically fixed · before/after evidence + DOM probes · NO redesign, NO primitives, NO workflow changes | ✅ ⛔ |
 | `DESIGN_FAMILY_CLASSIFICATION.md` | Pass 7 "design families" mockup spec — **REJECTED by operator 2026-02-01** | 🚫 ABANDONED |
 | `DESIGN_SYSTEM_PRIMITIVES.md` | Pass 7 design-system primitives spec — **REJECTED by operator 2026-02-01** | 🚫 ABANDONED |
 
