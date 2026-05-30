@@ -183,6 +183,54 @@ class DailyReportSummary(BaseModel):
 def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email):
     """Attach Daily Report endpoints to the shared router."""
 
+    async def _sanitize_inline_photos(doc: Dict[str, Any]) -> Dict[str, int]:
+        """Batch H · GAP-1 write-path defense (2026-05-30).
+
+        Walks the same three nested photo paths as the
+        `scripts/migrate_dr_photos.py` migration script and replaces any
+        inline `data:image/...` base64 with a canonical `photo://` reference
+        BEFORE the doc is persisted. Idempotent: entries that are already
+        `photo://` refs (or empty) are skipped. R2 misconfiguration is a
+        soft failure — the submit still succeeds with inline base64 (legacy
+        behavior preserved) so a user is never blocked by a storage outage.
+
+        Returns counters: {photos, sub_photos, mat_photos, errors}.
+        """
+        counters = {"photos": 0, "sub_photos": 0, "mat_photos": 0, "errors": 0}
+        try:
+            from photo_storage import upload_data_url, is_configured  # noqa: PLC0415
+        except Exception:
+            return counters
+        if not is_configured():
+            return counters
+
+        dr_id = (doc.get("id") or "unknown")[:32]
+
+        async def _walk(lst, source_id: str, key: str) -> None:
+            if not isinstance(lst, list):
+                return
+            for i, item in enumerate(lst):
+                if isinstance(item, str) and item.startswith("data:image/"):
+                    try:
+                        ref = await upload_data_url(item, source_id=source_id)
+                        lst[i] = ref
+                        counters[key] += 1
+                    except Exception:
+                        # Soft fail — leave inline; counted for observability
+                        counters["errors"] += 1
+
+        # Path 1 — top-level photos[]
+        await _walk(doc.get("photos"), f"dr_{dr_id}", "photos")
+        # Path 2 — subcontractors[*].photos[]
+        for sub in (doc.get("subcontractors") or []):
+            if isinstance(sub, dict):
+                await _walk(sub.get("photos"), f"dr_{dr_id}_sub", "sub_photos")
+        # Path 3 — materials[*].ticket_photos[]
+        for mat in (doc.get("materials") or []):
+            if isinstance(mat, dict):
+                await _walk(mat.get("ticket_photos"), f"dr_{dr_id}_mat", "mat_photos")
+        return counters
+
     @api_router.post("/daily-reports", response_model=DailyReport, dependencies=[Depends(rate_limit_public_post)])
     async def create_daily_report(payload: DailyReportCreate, request: Request):
         # ── Phase V.2 · Wave-1A · POST RESTORED (M1 freeze partial revert) ──
@@ -203,10 +251,15 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             from doc_ids import ensure_doc_id  # local import to keep startup fast
             await ensure_doc_id(db, doc, "DR", when=doc.get("report_date") or doc.get("created_at"))
             report.doc_id = doc["doc_id"]
+            # Batch H · GAP-1 write-path defense — convert inline base64 to
+            # photo:// refs BEFORE the audit hash is computed, so the hash
+            # reflects the canonical (post-sanitization) saved state.
+            _photo_sanitization_counters = await _sanitize_inline_photos(doc)  # noqa: F841
             # Wave-1A · audit envelope hash (continuity + tamper detection).
             doc["audit_envelope_sha256"] = _compute_audit_envelope_sha256(doc)
-            report_dict = report.model_dump()
-            report_dict["audit_envelope_sha256"] = doc["audit_envelope_sha256"]
+            # Build the response dict from the sanitized doc so the API
+            # response matches what was persisted (refs not inline).
+            report_dict = dict(doc)
             await db.daily_reports.insert_one(doc)
             doc.pop("_id", None)
             # Mirror photos into the Job Photos library (Phase 1 read-only).

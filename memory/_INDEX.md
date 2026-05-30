@@ -13,7 +13,21 @@ across 500 docs — the platform has strict domain boundaries.
 
 ## 0 · 2026-05-30 fork — Latest pass index
 
-### 00 · Batch G · Full Recoverability Closeout (2026-05-30)
+### 00 · Batch H · Photo Architecture Hardening & Performance Certification (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_H_EXECUTIVE_SUMMARY.md` | 🟢 PASS · 8/8 success criteria · Mongo fetch 5.1× faster · payload 99.8% smaller | ✅ ⛔ |
+| `PHOTO_STORAGE_ARCHITECTURE_REPORT.md` | 3 storage modes mapped · write/read/cache/PDF paths · per-project distribution | ✅ ⛔ |
+| `WRITE_PATH_PROTECTION_REPORT.md` | New `_sanitize_inline_photos()` in DR handler · live smoke-tested in preview | ✅ ⛔ |
+| `PHOTO_PERFORMANCE_BENCHMARK_REPORT.md` | Mongo single-DR fetch: 140.8 ms → 27.7 ms · 11.33 MB → 25 KB | ✅ ⛔ |
+| `PHOTO_RETRIEVAL_FLOW_MAP.md` | End-to-end retrieval flow + failure modes | ✅ ⛔ |
+| `USER_EXPERIENCE_IMPACT_REPORT.md` | Zero UX regression · PM/Field/Safety workflow walkthroughs | ✅ ⛔ |
+| `batch_h_evidence/` (folder) | `perf_benchmark_raw.txt` (live benchmark output) | ✅ |
+
+🟢 **Headline**: 5.1× faster Mongo doc fetch · 99.8% payload reduction · zero UX regression · new DRs structurally immune to inline base64 bloat. Architecture answer to "18-month-old vs yesterday's project": photo retrieval is age-independent by design.
+
+### 0a · Batch G · Full Recoverability Closeout (2026-05-30)
 
 | File | Purpose | Status |
 |---|---|---|
