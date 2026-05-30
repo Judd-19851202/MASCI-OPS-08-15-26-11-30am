@@ -11,17 +11,29 @@ across 500 docs — the platform has strict domain boundaries.
 
 ---
 
-## 0 · Latest Stabilization Pass + Platform Truth Map + Phase 2A + Batch A (2026-02-01)
+## 0 · 2026-02-01 fork — Latest pass index
 
 > The 2026-02-01 fork session: (a) reverted an unauthorized design-system
 > pivot · (b) built the complete Platform Truth Map · (c) verified it
 > with code + runtime evidence · (d) executed operator-authorized
 > Batch A (truth-map corrections, NEW-GAP-A, Fleet DVIR policy, prod
 > scheduler probe + complete-backup verification, Phase 1+2 scheduler
-> hardening). Read these files before doing ANY platform work going
-> forward.
+> hardening) · (e) executed operator-authorized Batch B (prod hardening
+> deploy + root-cause-ID of dead scheduler + complete-R2 disablement
+> investigation). Read these files before doing ANY platform work
+> going forward.
 
-### 0a · Batch A · Truth Map Corrections + Hardening (2026-02-01)
+### 0a · Batch B · Prod Hardening Deploy + Root-Cause ID (2026-02-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_B_EXECUTIVE_SUMMARY.md` | Operator-facing roll-up · 4 deliverables · 6 future decisions surfaced | ✅ ⛔ |
+| `PRODUCTION_SCHEDULER_INSTRUMENTATION_DEPLOY_REPORT.md` | Deploy mechanism + post-deploy field-shape verification | ✅ ⛔ |
+| `POST_DEPLOY_SCHEDULER_PROBE_REPORT.md` | **ROOT CAUSE**: production has `SCHEDULER_ENABLED=false` (or other falsy value). Deterministic via `boot_step: None` + `boot_exception: None` + `singleton_scheduler.py:217` evidence | ✅ ⛔ |
+| `COMPLETE_R2_DISABLEMENT_INVESTIGATION.md` | **DESIGN INTENT**: lite-only is deliberate safety constraint per `server.py:6341` docstring · 4+ code refs | ✅ ⛔ |
+| `batch_b_evidence/` (folder) | 3 raw probe responses | ✅ |
+
+### 0b · Batch A · Truth Map Corrections + Hardening (2026-02-01)
 
 | File | Purpose | Status |
 |---|---|---|
@@ -35,7 +47,7 @@ across 500 docs — the platform has strict domain boundaries.
 | `SCHEDULER_HARDENING_PHASE2_REPORT.md` | Defensive wrapper `_backup_scheduler_loop_with_capture` live in preview | ✅ ⛔ |
 | `batch_a_evidence/` (folder) | Raw probe + run-now responses (JSON) | ✅ |
 
-### 0b · Phase 2A · Truth Map Verification & Gap Triage (2026-02-01)
+### 0c · Phase 2A · Truth Map Verification & Gap Triage (2026-02-01)
 
 | File | Purpose | Status |
 |---|---|---|
@@ -45,7 +57,7 @@ across 500 docs — the platform has strict domain boundaries.
 | `FLEET_DVIR_INVESTIGATION_REPORT.md` | Partial-orphan confirmed · target-behaviour matrix recommended | ✅ ⛔ |
 | `BACKUP_SCHEDULER_READINESS_REPORT.md` | Status proven (prod dead per 2026-05-29; preview noisy but harmless) · 5-phase hardening plan ready | ✅ ⛔ |
 
-### 0c · Platform Truth Map Phase 1 (2026-02-01)
+### 0d · Platform Truth Map Phase 1 (2026-02-01)
 
 | File | Purpose | Status |
 |---|---|---|
@@ -60,7 +72,7 @@ across 500 docs — the platform has strict domain boundaries.
 | `truth_map_data/` (folder) | Raw machine-extracted CSV/JSON/TXT evidence | ✅ |
 | `WORKFLOW_LIFECYCLE_MAP_2026-05-23_archived.md` | Prior dated version retained for audit history | 🟡 archived |
 
-### 0d · Stabilization Pass 8 (2026-02-01)
+### 0e · Stabilization Pass 8 (2026-02-01)
 
 | File | Purpose | Status |
 |---|---|---|

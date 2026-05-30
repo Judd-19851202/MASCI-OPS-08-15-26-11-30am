@@ -1,6 +1,46 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Batch B · PROD SCHEDULER DIAGNOSTIC DEPLOY + ROOT-CAUSE ID ✅ COMPLETE
+
+### Operator directive (2026-02-01)
+> "Deploy diagnostics. Probe production. Identify exactly where the scheduler dies. Identify why full backup mode is disabled."
+
+### What shipped (4 deliverables)
+
+1. **Phase 1+2 hardening deployed to production** via Emergent Deploy button (operator-driven). New diagnostic fields (`boot_step`, `boot_step_ts`, `boot_exception`) confirmed visible at `https://mascidocs.com/api/admin/backups-scheduler-state`. (`PRODUCTION_SCHEDULER_INSTRUMENTATION_DEPLOY_REPORT.md`)
+2. **Post-deploy probe report**: 3 probes captured 04:00:38–04:06:10Z. (`POST_DEPLOY_SCHEDULER_PROBE_REPORT.md`)
+3. **Complete-R2 disablement investigation**: full code-evidence trace of `BACKUP_LITE_MODE_ONLY`. (`COMPLETE_R2_DISABLEMENT_INVESTIGATION.md`)
+4. **Executive summary**. (`BATCH_B_EXECUTIVE_SUMMARY.md`)
+
+### 🔴 ROOT CAUSE OF DEAD SCHEDULER — DETERMINISTIC
+
+**Production has `SCHEDULER_ENABLED` set to a falsy value (`false`/`0`/`no`/`off`).**
+
+Evidence: `boot_step: None` + `boot_exception: None` after deploy + only-clean-return path in `lib/singleton_scheduler.py:216–222` is the `SCHEDULER_ENABLED` gate. The scheduler task spawns, runs `run_with_singleton_lock`, hits the gate, returns cleanly. Supervisor sees task done, respawns. Cycle repeats. **No code defect** — the dead-state has been an env-var configuration issue.
+
+### 🟢 COMPLETE-R2 LITE-ONLY — INTENTIONAL DESIGN
+
+`_lite_mode_default()` in `server.py:6341–6364` defaults to `True` regardless of env-var presence. Documented in 4+ code locations as a deliberate safety constraint: Iter64 phase 2 (2026-05-11) migrated photos to R2 but left other base64 fields in Mongo, causing the full-archive build to "recycle the worker mid-task on production" (OOM). A second consultation in `_run_scheduled_backup` (`server.py:4896`) defeats manual `lite=false` opt-outs. **Path forward**: complete the S3 photo migration of remaining base64 fields, OR build an IT-pull/streamed-export endpoint.
+
+### Operator decisions surfaced (NOT EXECUTED)
+- A. Inspect prod env panel for `SCHEDULER_ENABLED` value
+- B. Confirm intent (deliberate vs accidental)
+- C. If accidental: set `SCHEDULER_ENABLED=true` (or unset) + restart workers
+- D. If deliberate: document the reason
+- E. Status of S3 photo migration (predicate for re-enabling complete-R2)
+- F. Phase 3 candidate: alarm for "scheduler-never-ticked" (watchdog blind spot)
+
+### Explicit non-changes
+- ❌ No env-var changes · ❌ No backup-mode changes · ❌ No complete-R2 runs · ❌ No Phase 3/4 hardening · ❌ No backup architecture redesign · ❌ No DVIR/notification/redesign/UI/Pilot/RFI/Schedule/P6/PM Exposure Tile work
+
+### Next action item
+**STOP. Operator review of Batch B before any further work.**
+
+---
+
+
+
 ## 2026-02-01 (fork) — Batch A · TRUTH MAP CORRECTIONS + GAP UPDATE + DVIR POLICY + SCHEDULER PROBE/HARDENING ✅ COMPLETE
 
 ### Operator directive (2026-02-01)
