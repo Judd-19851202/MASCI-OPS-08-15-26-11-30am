@@ -1,0 +1,31 @@
+{
+    "service": "masci-hub",
+    "commit": "unknown",
+    "built_at": "unknown",
+    "source_hash": "550118913c503ae6d206223be384372f",
+    "release": "550118913c503ae6d206223be384372f",
+    "started_at": "2026-05-30T19:34:01.557268+00:00",
+    "uptime_s": 1568,
+    "session_timeouts": {
+        "enabled": true,
+        "tiers": {
+            "ADMIN_HR": {
+                "idle_min": 15,
+                "abs_hour": 4
+            },
+            "OPERATIONS": {
+                "idle_min": 30,
+                "abs_hour": 8
+            },
+            "FIELD": {
+                "idle_min": 60,
+                "abs_hour": 12
+            }
+        }
+    },
+    "sentry": {
+        "enabled": true
+    },
+    "app_env": "production",
+    "db_name": "masci_safety"
+}
