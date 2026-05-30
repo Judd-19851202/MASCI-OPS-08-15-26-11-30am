@@ -1,6 +1,40 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Phase 2A · TRUTH MAP VERIFICATION & GAP TRIAGE ✅ COMPLETE
+
+### Operator directive (2026-02-01)
+> "Prove the Truth Map is true. Prove the gaps are real. Prove Fleet DVIR ownership. Prove backup scheduler status. No guessing. No assumptions. No drift."
+
+### What shipped (5 verification deliverables)
+
+1. `TRUTH_MAP_VALIDATION_REPORT.md` — 10 workflows traced to code. **Score: 5 ✅ · 3 ⚠ · 2 ❌**
+2. `GAP_REVALIDATION_REPORT.md` — All 18 prior gaps re-confirmed by code + (where available) runtime evidence. **1 new gap surfaced** (NEW-GAP-A: Safety Meeting bell/task missing — same family as JHA/GAP-3). Re-ranked P0/P1/P2/P3.
+3. `FLEET_DVIR_INVESTIGATION_REPORT.md` — Partial-orphan confirmed; collection name corrected (storage is `equipment_inspections` + `fleet_defects` + `fleet_status`, **NOT** `fleet_dvirs`); target-behaviour matrix recommended (Shop / Safety / Dispatch per defect class; NO Superintendent).
+4. `BACKUP_SCHEDULER_READINESS_REPORT.md` — Production scheduler dead per 2026-05-29 diagnostic; preview "DEAD" log spam is harmless (`SCHEDULER_ENABLED=false`); manual lite-mode backup verified working; 5-phase hardening plan ready.
+5. `PHASE_2A_EXECUTIVE_SUMMARY.md` — Operator-facing summary with 7 decisions required.
+
+### Headline findings
+- Truth Map workflow corrections needed: Workflow 4 (Safety Meeting) collection name AND missing bell/task fan-out; Workflow 5 (JHA) collection name; Workflow 10 (Dispatch Event) endpoint URL.
+- **Re-ranked gap inventory**: 2 P0 (Backup scheduler dead + Fleet DVIR), 8 P1, 6 P2, 3 P3.
+- **Fleet DVIR is a partial-orphan**: has dashboard surface + state lifecycle, missing notification path + owner authority.
+- **Backup scheduler manual fallback works** (lite-mode verified 2026-05-29); production complete-r2 path needs re-verification.
+
+### Explicit non-changes
+- ❌ No redesign · ❌ No mockups · ❌ No layout work · ❌ No scheduler code modifications · ❌ No Approval/Rejection · ❌ No Pilot/RFI/Schedule/P6/PM Exposure Tile · ❌ No production fixes deployed · ❌ No gap closure begun · ❌ No code changed during verification
+
+### Next action item
+**STOP. Operator review of the 5 deliverables.**
+
+7 operator decisions are awaiting authorization (see `PHASE_2A_EXECUTIVE_SUMMARY.md` §3) before any code is written. Most urgent candidates:
+- Authorize a fresh production probe of `/api/admin/backups-scheduler-state`
+- Approve Fleet DVIR target-behaviour matrix
+- Authorize Phase 1+2 of backup scheduler hardening (diagnostic instrumentation + defensive wrapping)
+
+---
+
+
+
 ## 2026-02-01 (fork) — Phase 1 · PLATFORM TRUTH MAP ✅ COMPLETE
 
 ### Operator directive (2026-02-01)

@@ -11,13 +11,24 @@ across 500 docs — the platform has strict domain boundaries.
 
 ---
 
-## 0 · Latest Stabilization Pass + Platform Truth Map (2026-02-01)
+## 0 · Latest Stabilization Pass + Platform Truth Map + Phase 2A (2026-02-01)
 
-> The 2026-02-01 fork session (a) reverted an unauthorized design-system
-> pivot and (b) built the complete Platform Truth Map. Read these files
-> before doing ANY platform work going forward.
+> The 2026-02-01 fork session: (a) reverted an unauthorized design-system
+> pivot · (b) built the complete Platform Truth Map · (c) verified the
+> Truth Map with code + runtime evidence. Read these files before
+> doing ANY platform work going forward.
 
-### 0a · Platform Truth Map (Phase 1 · 2026-02-01)
+### 0a · Phase 2A · Truth Map Verification & Gap Triage (2026-02-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `PHASE_2A_EXECUTIVE_SUMMARY.md` | Operator-facing roll-up · 7 decisions required | ✅ ⛔ |
+| `TRUTH_MAP_VALIDATION_REPORT.md` | 10 workflows × evidence-backed verdicts (5 ✅ · 3 ⚠ · 2 ❌) | ✅ ⛔ |
+| `GAP_REVALIDATION_REPORT.md` | 19 gaps re-confirmed + 1 new (NEW-GAP-A) · re-ranked P0/P1/P2/P3 | ✅ ⛔ |
+| `FLEET_DVIR_INVESTIGATION_REPORT.md` | Partial-orphan confirmed · target-behaviour matrix recommended | ✅ ⛔ |
+| `BACKUP_SCHEDULER_READINESS_REPORT.md` | Status proven (prod dead per 2026-05-29; preview noisy but harmless) · 5-phase hardening plan ready | ✅ ⛔ |
+
+### 0b · Platform Truth Map Phase 1 (2026-02-01)
 
 | File | Purpose | Status |
 |---|---|---|
@@ -32,7 +43,7 @@ across 500 docs — the platform has strict domain boundaries.
 | `truth_map_data/` (folder) | Raw machine-extracted CSV/JSON/TXT evidence | ✅ |
 | `WORKFLOW_LIFECYCLE_MAP_2026-05-23_archived.md` | Prior dated version retained for audit history | 🟡 archived |
 
-### 0b · Stabilization Pass 8 (2026-02-01)
+### 0c · Stabilization Pass 8 (2026-02-01)
 
 | File | Purpose | Status |
 |---|---|---|
