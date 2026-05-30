@@ -276,7 +276,7 @@ export default function NotificationsDigest() {
         ) : null}
 
         {target.role === "pm" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3" data-testid="notif-pm-summary">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="notif-pm-summary">
             {[
               ["capa_overdue",       t("CAPAs past due"),    "high"],
               ["trainings_expired",  t("Expired training"),  "high"],
@@ -307,7 +307,7 @@ export default function NotificationsDigest() {
         ) : null}
 
         {target.role === "fl" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3" data-testid="notif-fl-summary">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="notif-fl-summary">
             {[
               ["trainings_expired",      t("Expired training"),  "high"],
               ["ppe_missing",            t("No PPE"),            "medium"],

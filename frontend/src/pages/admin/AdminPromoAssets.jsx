@@ -376,7 +376,7 @@ export default function AdminPromoAssets() {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
             <StatPill value={stats.total} label={t("Total Assets")} testid="promo-stat-total" />
             <StatPill value={stats.categories} label={t("Categories Used")} testid="promo-stat-categories" />
             <StatPill value={stats.public} label={t("Public")} testid="promo-stat-public" />
@@ -385,7 +385,7 @@ export default function AdminPromoAssets() {
         </div>
 
         {/* ── filters ─── */}
-        <div className="bg-white border border-slate-200 rounded-md p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+        <div className="bg-white border border-slate-200 rounded-md p-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
           <div>
             <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500">
               {t("Search")}
@@ -486,7 +486,7 @@ export default function AdminPromoAssets() {
           </div>
         ) : (
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4"
             data-testid="promo-assets-grid"
           >
             {assets.map((a) => (

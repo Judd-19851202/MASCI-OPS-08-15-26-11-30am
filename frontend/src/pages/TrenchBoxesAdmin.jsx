@@ -279,7 +279,7 @@ export default function TrenchBoxesAdmin() {
 
               <div className="border-t-2 border-slate-100 pt-3">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold mb-2">Maximum Allowable Depth (ft) — OSHA 1926.652</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                   <F k="max_depth_type_a_ft" label="Type A" type="number" />
                   <F k="max_depth_type_b_ft" label="Type B" type="number" />
                   <F k="max_depth_type_c_60_ft" label="Type C-60" type="number" />

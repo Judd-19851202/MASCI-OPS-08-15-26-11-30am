@@ -93,7 +93,7 @@ export default function SafetyDigest() {
         <LoadingState label={t("Loading…")} testId="safety-digest-loading" />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-6">
             <KPI testId="digest-kpi-open-cas" label="Open CAs" value={k.open_corrective_actions ?? 0} accent="cyan" />
             <KPI testId="digest-kpi-overdue-cas" label="Overdue CAs" value={k.overdue_corrective_actions ?? 0} accent="red" />
             <KPI testId="digest-kpi-incidents-7d" label="Incidents · 7d" value={k.incidents_last_7d ?? 0} accent="amber" />

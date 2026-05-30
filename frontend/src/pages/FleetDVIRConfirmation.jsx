@@ -133,7 +133,7 @@ export default function FleetDVIRConfirmation() {
             </div>
 
             {/* Summary chip strip */}
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
               <Chip label={t("Truck")} value={s.truckUnit || "—"} testId="dvir-summary-truck" />
               <Chip label={t("Defects")} value={String(s.defectCount || 0)} testId="dvir-summary-defects" />
               <Chip label={t("Status")} value={chipStatus(s.truckStatusAfter, t)} testId="dvir-summary-status" />

@@ -229,7 +229,7 @@ export default function AdminShopUsersPanel() {
       </div>
 
       {/* Add user row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 mb-4 p-3 bg-slate-50 rounded-md border border-slate-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-4 p-3 bg-slate-50 rounded-md border border-slate-200">
         <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name" className={inputCls} data-testid="admin-shop-add-name" />
         <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className={inputCls} data-testid="admin-shop-add-email" />
         <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone (optional)" className={inputCls} data-testid="admin-shop-add-phone" />

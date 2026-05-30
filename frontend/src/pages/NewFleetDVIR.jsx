@@ -572,7 +572,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
           </div>
 
           {truckUnit && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
               <div>
                 <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{t("Plate")}</Label>
                 <Input className="h-11 mt-1" value={truckPlate} onChange={(e) => setTruckPlate(e.target.value)} data-testid="dvir-plate" />

@@ -229,7 +229,7 @@ export default function SafetyFireExtImport() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-4">
             <Stat label="Total Rows" value={preview.total_rows} accent="slate" />
             <Stat label="Will Create" value={preview.to_create} accent="emerald" />
             <Stat label="Will Update" value={preview.to_update} accent="sky" />

@@ -133,7 +133,7 @@ export function DispatchOverviewTab() {
       {/* iter226 · end-of-day handoff coaching · Tier-2 dispatch+admin.
           Anchor: "The handoff is a conversation, not a calendar invite." */}
       <HelpTipBlock formKey="dispatch.handoff" showCounter />
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
         {cards.map((c) => (
           <div key={c.label} className={`bg-white border border-slate-200 border-l-4 ${c.stripe} rounded-md p-4`}>
             <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold">{c.label}</div>

@@ -286,7 +286,7 @@ export function EquipmentLines({ value, onChange, lang, t }) {
             </div>
 
             {/* Qty + Replacement + Condition */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-3">
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   {t("Quantity")}<span className="text-red-700 ml-1">*</span>

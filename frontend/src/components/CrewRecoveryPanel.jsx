@@ -133,7 +133,7 @@ export default function CrewRecoveryPanel() {
             <Loader2 className="w-4 h-4 animate-spin" /> Loading…
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 text-xs font-mono">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-xs font-mono">
             {Object.entries(counts).map(([k, v]) => (
               <div
                 key={k}

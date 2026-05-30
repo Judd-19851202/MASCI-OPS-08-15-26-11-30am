@@ -143,7 +143,7 @@ export default function CheatSheetCard() {
 
       {/* Office Portals — 4 pills */}
       <SectionHeader kicker="02" title={t("Office Portals")} subtitle={t("Sign-in required. Office staff, mechanics, HR.")} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-7">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-7">
         {officePortals.map((p) => (
           <PortalPillPrint key={p.title} {...p} />
         ))}

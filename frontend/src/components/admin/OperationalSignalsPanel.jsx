@@ -148,7 +148,7 @@ export default function OperationalSignalsPanel() {
       {data && (
         <>
           {/* Throughput tiles */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-4">
             {Object.entries(THROUGHPUT_LABELS).map(([sig, label]) => {
               const t = data.throughput?.[sig] || { total: 0 };
               const d = data.deltas?.[sig] || { direction: "flat", previous: 0 };

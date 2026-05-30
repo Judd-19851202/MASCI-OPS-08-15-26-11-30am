@@ -119,7 +119,7 @@ export default function HrDailyReports() {
         </header>
 
         {/* KPI strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
           <Kpi label={t("Reports")} value={totals.count} stripe="border-l-purple-700" testId="hr-dr-kpi-reports" />
           <Kpi label={t("Crews")} value={totals.crews} stripe="border-l-emerald-600" testId="hr-dr-kpi-crews" />
           <Kpi label={t("Subs")} value={totals.subs} stripe="border-l-amber-600" testId="hr-dr-kpi-subs" />
@@ -386,7 +386,7 @@ export function HrDailyReportDetail() {
 
             {Array.isArray(doc.photos) && doc.photos.length > 0 && (
               <Section title={t("Photos")} count={doc.photos.length}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                   {doc.photos.map((p, idx) => (
                     <a key={idx} href={p.url || p} target="_blank" rel="noreferrer">
                       <img src={p.url || p} alt={`photo-${idx}`} className="w-full h-32 object-cover rounded border border-slate-200" />

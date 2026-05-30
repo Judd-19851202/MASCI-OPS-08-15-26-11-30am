@@ -521,7 +521,7 @@ function EquipmentComparisonCard({ rec, details, t }) {
                     </div>
                   )}
                   {checkoutPhotos.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                       {checkoutPhotos.slice(0, 8).map((src, pi) => (
                         <PhotoLightboxLink
                           key={pi}

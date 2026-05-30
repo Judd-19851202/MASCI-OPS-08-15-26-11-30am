@@ -121,7 +121,7 @@ export default function HrTimeVerification() {
       </div>
       {/* Filter bar */}
       <Card className="p-4 mb-5 border-2 border-purple-200 bg-purple-50/30">
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 items-end">
           <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
             <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-tv-week" />
@@ -154,7 +154,7 @@ export default function HrTimeVerification() {
       </Card>
 
       {/* Stats strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 mb-5" data-testid="hr-tv-stats-strip">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-5" data-testid="hr-tv-stats-strip">
         {stats.map((s) => (
           <Card key={s.label} className={`p-4 ${s.highlight ? "border-2 border-amber-500 bg-amber-50" : "border-2 border-slate-200"}`} data-testid={`hr-tv-stat-${s.label.toLowerCase().replace(/\s+/g, "-")}`}>
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">{s.label}</div>

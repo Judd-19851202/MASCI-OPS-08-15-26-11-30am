@@ -1,54 +1,48 @@
-// FilterBar.jsx — Phase V.5+ · Platform Filter Bar Doctrine.
+// FilterBar.jsx — Phase V.5+ Pass-5 · Visual Quality Doctrine (final).
 //
-// CANONICAL responsive grid for dense filter bars (4-col / 5-col).
-// Replaces the legacy `grid grid-cols-2 md:grid-cols-{4,5} gap-x-4`
-// pattern that produced 121-152px cell widths on tablet/iPad and
-// visually mashed adjacent fields into "unreadable strips" per
-// operator-verified production evidence.
+// CANONICAL responsive grid for filter bars.
 //
-// Doctrine: GLOBAL_FORM_LAYOUT_ROOT_CAUSE_REPORT.md
+// Doctrine: VISUAL_LAYOUT_QUALITY_CORRECTION_REPORT.md
 //
-// Responsive contract:
-//   • Phone portrait (<640px)      → 1 column stack
-//   • Phone landscape / Tablet     → 2 columns (sm+)
-//   • Desktop wide (≥1280px)       → full N columns (xl+)
-//   • Horiz gap: 24px (gap-x-6) · Row gap: 12px (gap-y-3)
+// Responsive contract (Pass-5 final — operator visual standard):
+//   • Phone portrait (<640px)           → 1 column stack
+//   • Tablet+ (≥sm, 640px+)             → 2 columns ALWAYS
 //
-// Why xl: (1280px) instead of md: (768px)?
-//   A 5-cell filter bar at iPad portrait 820px gives 131px cells —
-//   unreadable for "Week Ending · Employee · Project# · Supervisor"
-//   uppercase labels + date / text inputs. Operator-verified bleed.
-//   Forcing 5-col only at xl ≥ 1280px guarantees ≥ 215px per cell.
+// Why 2-col MAX (not 3/4/5)?
+//   Operator visual standard: filter cells must be ≥ 240 px wide
+//   AND have visible breathing room. The page container is constrained
+//   to `max-w-7xl` (1280 px) by HrPageShell / common shells. Even at
+//   ultra-wide (2560 px) viewport, content area = 1280 px → 5-col
+//   would give 166 px cells. NEVER meets the 240 px floor.
 //
-// Why 24px gap instead of 16px?
-//   16px is too tight when adjacent cells share the same row.
-//   24px matches the form-row contract for visual coherence.
+//   Therefore: 2-col is the maximum density that produces readable,
+//   breathing filter cells across every viewport.
 //
-// Usage:
-//   <FilterBar columns={5}>
-//     <div>…filter 1…</div>
-//     …
-//   </FilterBar>
+// Numbers (filter cells, accounting for sidebar + padding):
+//   • phone 390px:        1 col @ 350 px
+//   • phone landscape:    2 col @ ~370 px each
+//   • iPad portrait 820:  2 col @ ~350 px each
+//   • iPad landscape:     2 col @ ~400 px each
+//   • laptop 1366:        2 col @ ~450 px each
+//   • desktop 1920+:      2 col @ ~600+ px each
+//
+// `columns` prop is now ignored — kept for API compatibility.
 
 import React from "react";
 
 export default function FilterBar({
   children,
-  columns = 5,
   className = "",
-  align = "end",  // "end" | "start" — vertical alignment of cells
+  align = "end",
+  // columns prop retained for compat but ignored — doctrine is 2-col max
+  // eslint-disable-next-line no-unused-vars
+  columns,
 }) {
-  const colsClass = ({
-    3: "xl:grid-cols-3",
-    4: "xl:grid-cols-4",
-    5: "xl:grid-cols-5",
-    6: "xl:grid-cols-6",
-  })[columns] || "xl:grid-cols-5";
   const alignClass = align === "end" ? "items-end" : "items-start";
   return (
     <div
       data-testid="filter-bar"
-      className={`grid grid-cols-1 sm:grid-cols-2 ${colsClass} gap-x-6 gap-y-3 ${alignClass} ${className}`.trim()}
+      className={`grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 ${alignClass} ${className}`.trim()}
     >
       {children}
     </div>

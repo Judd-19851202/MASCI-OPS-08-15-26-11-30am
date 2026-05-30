@@ -202,7 +202,7 @@ export default function HrPayrollVariance() {
           </div>
         </div>
         <HelpTipBlock formKey="payroll-variance.upload" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-3">
           <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
             <Input type="date" value={weekEnding} onChange={(e) => setWeekEnding(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-pv-week" />
@@ -211,7 +211,7 @@ export default function HrPayrollVariance() {
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Threshold (minutes)")}</Label>
             <Input type="number" min="1" max="120" value={threshold} onChange={(e) => setThreshold(e.target.value)} className={`${inputCls} w-full`} data-testid="hr-pv-threshold" />
           </div>
-          <div className="min-w-0 sm:col-span-2 xl:col-span-2 flex items-end justify-end gap-2">
+          <div className="min-w-0 sm:col-span-2 flex items-end justify-end gap-2">
             <Button variant="outline" onClick={() => setCsvText("")} disabled={busy || !csvText}>{t("Clear")}</Button>
             <Button onClick={upload} disabled={busy || !csvText.trim()} className="bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-pv-upload">
               {busy ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
@@ -294,7 +294,7 @@ export default function HrPayrollVariance() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 p-4 bg-slate-50 border-b border-slate-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 p-4 bg-slate-50 border-b border-slate-200">
             <Stat label={t("Total")} value={summary.total} />
             <Stat label={t("Matched")} value={summary.matched} cls="text-emerald-700" />
             <Stat label={t("Flagged")} value={summary.flagged} cls={summary.flagged > 0 ? "text-red-700" : ""} />

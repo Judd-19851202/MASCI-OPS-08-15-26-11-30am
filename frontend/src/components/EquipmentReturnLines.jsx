@@ -254,7 +254,7 @@ export function EquipmentReturnLines({ value, onChange, lang, t }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-3">
               <div>
                 <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                   {t("Serial / Asset ID")}<span className="text-red-700 ml-1">*</span>
@@ -338,7 +338,7 @@ export function EquipmentReturnLines({ value, onChange, lang, t }) {
                 <p className="text-[10px] text-emerald-800 font-mono uppercase tracking-[0.15em] mt-1">
                   {t("Use these to compare against return condition. Tap to enlarge.")}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mt-2" data-testid={`equipment-return-original-photos-${idx}`}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-2" data-testid={`equipment-return-original-photos-${idx}`}>
                   {line.original_photos.slice(0, 8).map((src, pi) => (
                     <a
                       key={pi}

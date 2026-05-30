@@ -141,7 +141,7 @@ export default function AdminOperationalInventory() {
 
         {/* Stat strip */}
         {snap && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3" data-testid="inventory-stat-strip">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="inventory-stat-strip">
             <Stat label="Portals" value={snap.totals.portals} />
             <Stat label="User types" value={snap.totals.user_types} />
             <Stat label="Public routes" value={snap.totals.public_routes} />
@@ -420,7 +420,7 @@ function WorkflowsTab({ rows }) {
 function TranslationTab({ data }) {
   return (
     <div className="space-y-4" data-testid="inventory-translation-tab">
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
         <Stat label="Total articles" value={data.total_articles} />
         <Stat label="title_es present" value={data.title_es_present} tone={data.pct_title >= 80 ? "emerald" : "red"} />
         <Stat label="body_es present"  value={data.body_es_present}  tone={data.pct_body  >= 80 ? "emerald" : "red"} />

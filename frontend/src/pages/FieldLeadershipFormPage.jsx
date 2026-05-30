@@ -230,7 +230,7 @@ function FieldRenderer({ field, value, onChange, lang, t }) {
     return (
       <div className="space-y-2 border border-slate-200 rounded-md p-3 bg-slate-50">
         {field.items.map((it) => (
-          <div key={it.key} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3.5 items-center">
+          <div key={it.key} className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5 items-center">
             <div className="lg:col-span-2 text-sm font-semibold text-slate-800">
               {l(it, lang)}
             </div>

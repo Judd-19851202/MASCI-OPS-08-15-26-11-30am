@@ -406,7 +406,7 @@ function AggregatePanel({ lang, t }) {
       <ActionRow onCalc={run} onReset={reset} onSave={onSave} saved={saved} t={t} testidPrefix="agg" />
 
       {result && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 mt-6" data-testid="agg-results">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-6" data-testid="agg-results">
           <Result label={t("Cubic Feet")} value={result.cubic_feet} unit="ft³" testid="agg-cf" />
           <Result label={t("Cubic Yards")} value={result.cubic_yards} unit={t("cy")} testid="agg-cy" />
           <Result label={t("Tons")} value={result.tons} unit={t("tons")} testid="agg-tons" />
@@ -485,7 +485,7 @@ function AsphaltPanel({ lang, t }) {
       </div>
       <ActionRow onCalc={run} onReset={reset} onSave={onSave} saved={saved} t={t} testidPrefix="asp" />
       {result && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mt-6" data-testid="asp-results">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-6" data-testid="asp-results">
           <Result label={t("Cubic Feet")} value={result.cubic_feet} unit="ft³" testid="asp-cf" />
           <Result label={t("Cubic Yards")} value={result.cubic_yards} unit={t("cy")} testid="asp-cy" />
           <Result label={t("Total Asphalt")} value={result.total_asphalt_tons} unit={t("tons")} testid="asp-total" strong />
@@ -566,7 +566,7 @@ function ConcretePanel({ lang, t }) {
       </div>
       <ActionRow onCalc={run} onReset={reset} onSave={onSave} saved={saved} t={t} testidPrefix="con" />
       {result && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mt-6" data-testid="con-results">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-6" data-testid="con-results">
           <Result label={t("Cubic Feet")} value={result.cubic_feet} unit="ft³" testid="con-cf" />
           <Result label={t("Cubic Yards")} value={result.cubic_yards} unit={t("cy")} testid="con-cy" />
           <Result label={t("CY + Waste")} value={result.cubic_yards_with_waste} unit={t("cy")} testid="con-cy-waste" strong />
@@ -659,7 +659,7 @@ function TruckLoadPanel({ lang, t }) {
       </div>
       <ActionRow onCalc={run} onReset={reset} onSave={onSave} saved={saved} t={t} testidPrefix="tl" />
       {result && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mt-6" data-testid="tl-results">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-6" data-testid="tl-results">
           <Result label={t("Adjusted Qty")} value={result.adjusted_qty} unit={t(totalUnit === "tons" ? "tons" : "cy")} testid="tl-adjusted" />
           <Result label={t("Qty in Truck Unit")} value={result.normalized_qty} unit={t(truckUnit === "tons" ? "tons" : "cy")} testid="tl-normalized" />
           <Result label={t("Truck Loads")} value={result.truck_loads} unit={t("loads")} testid="tl-loads" strong />
@@ -729,7 +729,7 @@ function YieldWastePanel({ lang, t }) {
       </div>
       <ActionRow onCalc={run} onReset={reset} onSave={onSave} saved={saved} t={t} testidPrefix="yw" />
       {result && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mt-6" data-testid="yw-results">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-6" data-testid="yw-results">
           <Result label={t("Difference")} value={result.difference} unit={t(unit === "tons" ? "tons" : unit === "cy" ? "cy" : "cf")} testid="yw-diff" />
           <Result label={t("Yield %")} value={result.yield_pct + "%"} unit="" testid="yw-yield" strong />
           <Result label={t("Waste %")} value={result.waste_pct + "%"} unit="" testid="yw-wastepct" />

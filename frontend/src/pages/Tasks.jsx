@@ -121,7 +121,7 @@ export default function Tasks() {
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         {/* Summary strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-6">
           <SummaryTile label="Open" value={summary.open_total ?? 0} icon={ClipboardList} accent="blue" />
           <SummaryTile label="Overdue" value={summary.overdue ?? 0} icon={AlertOctagon} accent="red" />
           <SummaryTile label="In Progress" value={summary.by_status?.["In Progress"] ?? 0} icon={Clock} accent="amber" />

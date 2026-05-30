@@ -26,7 +26,8 @@ The substrate that protects the platform from itself.
 | `FILTER_GRID_RESIDUAL_REGISTER.md` | **Pass 4** · 153 multi-col grids cataloged · `md:grid-cols-{4,5}` eliminated · category breakdown | ✅ ⛔ |
 | `VIEWPORT_DOM_MEASUREMENT_REPORT.md` | **Pass 4 · Runtime sweep** · 15 surfaces × 9 viewports = 135 cells · 135 PASS · 0 FAIL · 0 ERROR | ✅ ⛔ |
 | `LAYOUT_EXCEPTION_REGISTER.md` | **Pass 4** · 115 documented intentional exceptions across 7 categories (button clusters, KV display, 12-col bootstrap, admin diagnostic, thumbnails, Search-spans-2, arbitrary templates) | ✅ ⛔ |
-| `GLOBAL_LAYOUT_COMPLETION_CERTIFICATION.md` | **Pass 4 · 🟢 LAYOUT SYSTEM CERTIFIED PLATFORM-WIDE** · final verdict · proof package · audit trail Pass 1→4 | ✅ ⛔ |
+| `GLOBAL_LAYOUT_COMPLETION_CERTIFICATION.md` | **Pass 4 · ⛔ REVOKED by operator on visual grounds** · Pass-4 rules were too permissive (150 px floor + 16 px gap allowed cramped 5-col filter bars) · superseded by Pass 5 | ⛔ |
+| `VISUAL_LAYOUT_QUALITY_CORRECTION_REPORT.md` | **Pass 5 · Visual quality correction** · 240 px filter cell floor · 260 px form input floor · 24 px gap minimum on tablet+ · 2-col-max filter bars platform-wide · 58 files / 77 mechanical replacements · FilterBar.jsx 2-col doctrine | ✅ ⛔ |
 | `PRE_DEPLOY_LIVE_DEFECT_VALIDATION_REPORT.md` | **Phase V.5 · 2026-02-01** · 5-viewport × 6-defect pre-redeploy gate · 🟢 SAFE TO REDEPLOY verdict · prototype for Phase 1C | ✅ ⛔ |
 | `PHASE_1C_VIEWPORT_VALIDATION_GATE_SPEC.md` | **P1 Platform Quality Infrastructure** · 10-viewport × 11-target gate spec · binding deployment policy · APPROVED BACKLOG · implement AFTER prod validation + backup hardening | 📐 ⛔ |
 | `POST_DEPLOY_LIVE_CERTIFICATION.md` | Last production verification · post-cutover | ✅ |

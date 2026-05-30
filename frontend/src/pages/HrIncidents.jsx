@@ -130,14 +130,14 @@ export default function HrIncidents() {
           ]}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3" data-testid="hr-inc-summary">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="hr-inc-summary">
           <SummaryCard icon={FileText} label={t("In window")} value={data.summary?.total_in_window ?? 0} tint="slate" testid="hr-inc-tile-total" />
           <SummaryCard icon={AlertTriangle} label={t("Recordable")} value={data.summary?.recordable_in_window ?? 0} tint={data.summary?.recordable_in_window ? "rose" : "slate"} testid="hr-inc-tile-recordable" />
           <SummaryCard icon={CircleSlash} label={t("Open")} value={data.summary?.open_in_window ?? 0} tint={data.summary?.open_in_window ? "amber" : "slate"} testid="hr-inc-tile-open" />
           <SummaryCard icon={ShieldCheck} label={t("Shown")} value={data.count ?? 0} tint="slate" testid="hr-inc-tile-shown" />
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 items-end" data-testid="hr-inc-filters">
+        <div className="bg-white border border-slate-200 rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 items-end" data-testid="hr-inc-filters">
           <div className="lg:col-span-2">
             <label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold flex items-center gap-1.5 mb-1">
               <Search className="w-3 h-3" /> {t("Search")}
@@ -181,7 +181,7 @@ export default function HrIncidents() {
               </SelectContent>
             </Select>
           </div>
-          <div className="sm:col-span-2 xl:col-span-5 flex justify-end">
+          <div className="sm:col-span-2 flex justify-end">
             <Button variant="outline" size="sm" onClick={load} disabled={loading} data-testid="hr-inc-refresh">
               <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? "animate-spin" : ""}`} /> {t("Refresh")}
             </Button>

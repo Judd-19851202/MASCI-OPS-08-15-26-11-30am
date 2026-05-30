@@ -194,7 +194,7 @@ export default function HrDriverQualificationImport() {
               <div className="font-bold text-slate-900">{t("Preview Summary")}</div>
               <Button variant="outline" onClick={reset} size="sm" data-testid="dqi-restart-btn">{t("Start Over")}</Button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 text-center" data-testid="dqi-summary-strip">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-center" data-testid="dqi-summary-strip">
               {[
                 ["Total Rows", totalRows, "bg-slate-100 text-slate-900 border-slate-300"],
                 ["Matched", summary.matched || 0, "bg-emerald-100 text-emerald-900 border-emerald-300"],
@@ -324,7 +324,7 @@ export default function HrDriverQualificationImport() {
           <div className="flex flex-col items-center text-center gap-3">
             <CheckCircle2 className="w-12 h-12 text-emerald-700" />
             <div className="font-bold text-xl text-emerald-900">{t("Driver updates applied")}</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-x-6 gap-y-3 mt-2 w-full max-w-3xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-2 w-full max-w-3xl">
               {[
                 ["Updated", result.summary?.updated || 0, "bg-emerald-100 border-emerald-300 text-emerald-900"],
                 ["Created", result.summary?.created || 0, "bg-cyan-100 border-cyan-300 text-cyan-900"],

@@ -1,6 +1,54 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Pass 5 · VISUAL QUALITY CORRECTION 🟢 PREVIEW SHIPPED
+
+### Operator rejection of Pass 4
+> "LAYOUT CERTIFICATION REJECTED. The platform still visually looks wrong on HR-type screens. Your automated audit is passing layouts that the operator considers unacceptable. The validation standard is wrong."
+
+### Why Pass 4 was wrong
+Pass-4 declared certification based on:
+- 150 px minimum cell width on ≥ 1024 px viewport (too narrow visually)
+- 16 px minimum gap (bare minimum, not breathing room)
+- Multi-col filter bars preserved aggressively via `xl:` (1280 px)
+
+That allowed HR Time Verification's 5-col filter at iPad Pro 12.9 landscape (1366 CSS px) to render with **165-180 px cells** — operator's IMG_0019 showed it as cramped strips. The `max-w-7xl` (1280 px) page container means 4-5-col never gives readable cells at any viewport.
+
+### New standard (binding Pass 5)
+- Filter input cells: **≥ 240 px** on tablet+ (else FAIL)
+- Form input cells: **≥ 260 px** on tablet+
+- Gap: **≥ 24 px** on tablet+, **≥ 16 px** on phone landscape
+- Default-stack-sooner: iPad portrait → 1 col forms · iPad landscape → 2 col max
+- Filter bars: **2-col MAX platform-wide** (page max-w-7xl rules out 3+ col)
+
+### Fixes shipped
+- **Pass-5a**: `xl:grid-cols-{4,5,6}` → `2xl:grid-cols-{4,5,6}` (35 files, 35 replacements)
+- **Pass-5b**: `2xl:grid-cols-{4,5,6}` collapsed entirely → `sm:grid-cols-2` only (58 files, 77 replacements)
+- **`FilterBar.jsx` rewritten** to encode the 2-col-max doctrine. `columns` prop kept for API compat but ignored.
+
+### HR Time Verification DOM evidence (BEFORE → AFTER, iPad Pro 12.9 landscape 1366)
+- BEFORE: 5 col @ 166 px each (operator-rejected)
+- AFTER: **2 col @ 450 px each** with 24 px gap
+
+Every measured viewport from phone portrait through ultra-wide now produces cells ≥ 348 px — well above the 240 px floor.
+
+### Deliverable
+- `/app/memory/VISUAL_LAYOUT_QUALITY_CORRECTION_REPORT.md` — full Pass-5 report (new rules, before/after evidence, fix list, updated doctrine).
+
+### Pass 4 certification REVOKED
+The Pass-4 `GLOBAL_LAYOUT_COMPLETION_CERTIFICATION.md` standard was too permissive. New certification will only be issued when operator confirms visual quality on the rejected viewports (IMG_0019 / IMG_0020).
+
+### Stop conditions honored
+- ✅ NO backup scheduler / Approval / Pilot / RFI / Schedule / P6 / new-feature work
+- ✅ Preview-only
+
+### Status
+🟢 PREVIEW SHIPPED · awaiting operator visual review at iPad Pro 12.9 landscape.
+
+---
+
+
+
 ## 2026-02-01 (fork) — GLOBAL LAYOUT CERTIFICATION · Pass 4 🟢 CERTIFIED PLATFORM-WIDE
 
 ### Operator directive

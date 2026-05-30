@@ -246,7 +246,7 @@ export default function ProjectPnlPage() {
         {data && (
           <>
             {/* KPI tiles */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3" data-testid="pnl-kpis">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="pnl-kpis">
               <Tile
                 icon={<Calendar className="w-4 h-4" />}
                 label="Reports"

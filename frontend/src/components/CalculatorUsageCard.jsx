@@ -103,7 +103,7 @@ export default function CalculatorUsageCard() {
 
       {stats && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-4">
             <BigStat label="Total runs" value={stats.totals.total} testid="calc-total" />
             <BigStat label="English" value={stats.totals.en} tone="blue" testid="calc-en" />
             <BigStat label="Spanish" value={stats.totals.es} tone="amber" testid="calc-es" />
