@@ -34,6 +34,8 @@ The substrate that protects the platform from itself.
 | `DASHBOARD_VISUAL_QUALITY_STANDARD.md` | **Pass 6 binding contract** · stats strip = single Card with internal `sm:divide-x` grid (NOT N separate Cards) · tile dashboard contract · empty/loading/error states | ✅ ⛔ |
 | `DEVICE_CLASS_VISUAL_REVIEW_REPORT.md` | **Pass 6** · per-device review of patched surfaces · operator's 10-question visual standard applied · pattern roll-out queue | ✅ ⛔ |
 | `UX_QUALITY_FIX_CERTIFICATION.md` | **Pass 6 status: 🟡 awaiting operator verdict** · before/after summary · shared `<SectionCard>` + `<ActionFooter>` primitives · how-to-extend template | ✅ ⛔ |
+| `DESIGN_SYSTEM_PRIMITIVES.md` | **Pass 7** · 8 primitive specs (SectionCard · ActionFooter · FilterBar · FormGrid · MetricStrip · FormSection · DrawerLayout · ModalLayout) · color accent tokens · anti-patterns | ✅ ⛔ |
+| `DESIGN_FAMILY_CLASSIFICATION.md` | **Pass 7** · 4 workflow families (A Field Forms · B Approval Consoles · C Operational Status · D Configuration Consoles) · per-family doctrine + 22-surface mapping · Pass-8 rollout sequence · LIVE mockups at `/__design/family-{a,b,c,d}` | ✅ ⛔ |
 | `PRE_DEPLOY_LIVE_DEFECT_VALIDATION_REPORT.md` | **Phase V.5 · 2026-02-01** · 5-viewport × 6-defect pre-redeploy gate · 🟢 SAFE TO REDEPLOY verdict · prototype for Phase 1C | ✅ ⛔ |
 | `PHASE_1C_VIEWPORT_VALIDATION_GATE_SPEC.md` | **P1 Platform Quality Infrastructure** · 10-viewport × 11-target gate spec · binding deployment policy · APPROVED BACKLOG · implement AFTER prod validation + backup hardening | 📐 ⛔ |
 | `POST_DEPLOY_LIVE_CERTIFICATION.md` | Last production verification · post-cutover | ✅ |

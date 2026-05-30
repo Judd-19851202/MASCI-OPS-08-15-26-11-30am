@@ -1,6 +1,55 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Pass 7 · DESIGN-SYSTEM AUDIT 🟡 AWAITING APPROVAL BEFORE ROLLOUT
+
+### Operator directive
+> "Before authorizing platform-wide rollout, I want a design-system audit. DO NOT mass-apply the HR pattern to every page. Build a layout doctrine for each family. Produce visual mockups/screenshots for each family before rollout."
+
+### What shipped
+- **4 live mockup pages** (preview-only, not linked) at `/__design/family-{a,b,c,d}`:
+  - **Family A · Field Forms** (blue accent · `/daily/new`, `/meetings/new`, JHA, incidents, QA-QC): section-progress strip + numbered SectionCard ("SECTION 3 OF 6") + h-12 large touch inputs + choice-chip pickers (not dropdowns) + photo evidence tile grid + Continue · Section N+1 primary
+  - **Family B · Approval Consoles** (purple accent · HR Time Verify/Payroll/PO/Approvals): filter card with action footer + queue list with row-level Reject/Approve · Pass-6 HR Time Verification is the live reference
+  - **Family C · Operational Status** (emerald accent · Equipment/Fleet/Shop/Dispatch): metric strip with internal dividers + color-coded status cards (FAILED = red border + red-50 bg + red note · OK = emerald · DISPATCH = amber)
+  - **Family D · Configuration Consoles** (slate accent · Admin/Settings/Users): search-first action bar + compact dense list rows + responsive column-hiding + icon-only action buttons
+- **Mockup screenshots captured** at iPad Pro 12.9 landscape (1366×1024 — operator's review viewport) — each family visually distinct
+- **Component**: `components/DesignFamilyMockups.jsx` (5 mockup pages: index + 4 families)
+- **Routes added** to `App.js` (preview-only, above NotFound catch-all)
+
+### Design primitives spec
+| Primitive | Status |
+|---|---|
+| `SectionCard` | ✅ shipped Pass 6 |
+| `ActionFooter` | ✅ shipped Pass 6 |
+| `FilterBar` | ✅ shipped Pass 5 |
+| `FormGrid` | ✅ shipped Pass 2 |
+| `MetricStrip` | 📐 stub spec — implement Pass 8 |
+| `FormSection` | 📐 stub spec — implement Pass 8 |
+| `DrawerLayout` | 📐 stub spec — implement Pass 8 |
+| `ModalLayout` | 📐 stub spec — implement Pass 8 |
+
+### Deliverables (`/app/memory/`)
+- `DESIGN_SYSTEM_PRIMITIVES.md` — 8 primitive specs + color accent tokens + anti-patterns
+- `DESIGN_FAMILY_CLASSIFICATION.md` — 4 family doctrines + per-surface mapping (22 surfaces classified) + rollout sequence
+
+### Proposed Pass-8 rollout sequence (awaits operator approval)
+1. Family B remainder (HR Approvals, Time-Off, Incidents, Employees filter, PO Requests filter+drawer) — pattern proven via Pass 6
+2. Family A (DR / JHA / Safety Meeting / Incident / QA-QC) — biggest field-user impact
+3. Family C (Equipment / Fleet / Shop / Dispatch / Pre-Op)
+4. Family D (Admin surfaces last — most tolerant)
+
+### Status
+🟡 PREVIEW SHIPPED · operator review of 4 mockup pages required before Pass-8 rollout begins.
+
+### Stop conditions honored
+- ✅ No mass-apply of HR pattern (per directive)
+- ✅ No backup scheduler / Approval/Rejection / Pilot / RFI / Schedule / P6 / PM Exposure Tile / new feature work
+- ✅ Preview-only · production untouched
+
+---
+
+
+
 ## 2026-02-01 (fork) — Pass 6 · UX QUALITY RESET 🟡 PREVIEW SHIPPED · AWAITING VISUAL VERDICT
 
 ### Operator directive (P0)
