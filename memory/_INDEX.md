@@ -13,7 +13,28 @@ across 500 docs — the platform has strict domain boundaries.
 
 ## 0 · 2026-05-30 fork — Latest pass index
 
-### 00 · Batch E · Disaster Recovery Drill & Recoverability Certification (2026-05-30)
+### 00 · Batch F · Platform Recoverability Completion (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_F_EXECUTIVE_SUMMARY.md` | Operator-facing roll-up · verdict 🟢 **OPERATIONALLY RECOVERABLE** (upgrade from Batch E 🟡) | ✅ ⛔ |
+| `APPLICATION_BOOT_DRILL_REPORT.md` | Phase 1 · drill backend on :8002 against restore DB · auth + 8 boot checks | ✅ ⛔ |
+| `CRITICAL_WORKFLOW_RECOVERY_REPORT.md` | Phase 2 · 10 workflows · PDF rendering proven on DR/Incident/Meeting | ✅ ⛔ |
+| `BACKUP_GROWTH_FORENSICS_REPORT.md` | Phase 3 · root cause is `daily_reports` (69% · 3.18 MB/DR) NOT telemetry · OOM in ~3 days at current rate | ✅ ⛔ |
+| `COLLECTION_CLASSIFICATION_REPORT.md` | Phase 3 · 76 collections classified A–H · split/keep/exclude recommendations | ✅ ⛔ |
+| `PLATFORM_RECOVERY_GAP_REPORT.md` | Phase 4 · 10-gap inventory with severity/effort/action | ✅ ⛔ |
+| `PLATFORM_SAFEGUARD_AUDIT.md` | Phase 5 · 10-category safeguard audit + SPOF inventory | ✅ ⛔ |
+| `FULL_RECOVERABILITY_CERTIFICATION.md` | Phase 5 · final cert (upgrade from Batch E) · per-axis breakdown · final RTO/RPO answers | ✅ ⛔ |
+| `batch_f_evidence/` (folder) | Phase 1+2 probe JSON · growth forensics · R2 history · drill backend boot log | ✅ |
+
+🔥 **Headline corrections from Batch E**:
+- Backup-growth root cause is `daily_reports` inline base64 (NOT telemetry · validated by collStats)
+- Multi-login is **universally broken** post-restore, not "portal logins survive" as Batch E said (validated by drill backend on 8002)
+- Application boot + PDF rendering + 10 workflows now 🟢 PROVEN — converts ⚪ UNKNOWN from Batch E
+
+🚨 **Operator IMMEDIATE action recommended**: `BACKUP_R2_HOURLY=false` + `BACKUP_R2_FULL_HOUR_UTC=4` (GAP-3 OOM trajectory · ~3 days).
+
+### 0a · Batch E · Disaster Recovery Drill & Recoverability Certification (2026-05-30)
 
 | File | Purpose | Status |
 |---|---|---|
