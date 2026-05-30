@@ -1,0 +1,104 @@
+=== Production · Photo schema sample · 2026-05-30T17:53:03Z ===
+
+=== V-P4 · List 10 most-recent DRs ===
+list_size=86
+  id=346d7dfb-568d-41ae-8e32-2f289c7b3818 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=9f05e2d1-43be-4550-bc1e-9a62a3a2f106 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=15
+  id=07e54a58-61f5-46b2-a755-8dc4582a5a94 doc_id=- project=NSB Corbin Park Stormwater Imp photos_field_len=6
+  id=65b93af0-37bf-4be2-9ca3-983be63a29e4 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=e1e3c852-5901-42c7-b5c8-155d419cc6b2 doc_id=- project=Loop trail                     photos_field_len=7
+  id=2c0091a0-d843-4949-b859-e658ff0fd05b doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=8
+  id=1b2e660c-82c3-47ed-9467-ea4dbfdf6ebb doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=6
+  id=cd65dbde-6ffd-4dd9-96f5-a87dd6e764a9 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=b4850255-f01c-4859-88f1-e73e06dcdd55 doc_id=- project=NSB Corbin Park Stormwater Imp photos_field_len=6
+  id=ea10b969-bf05-4523-b110-2f14d8be7910 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=e1f9db27-e2c2-49bb-9784-e4cb492aff9a doc_id=- project=NSB Corbin Park Stormwater Imp photos_field_len=6
+  id=daf386fb-4d6c-4ce0-9b0b-fb2c76c945cc doc_id=- project=NSB Corbin Park Stormwater Imp photos_field_len=6
+  id=8f59897e-fef3-4fae-92d4-bad1d4125093 doc_id=- project=NSB Corbin Park Stormwater Imp photos_field_len=8
+  id=2deda62c-1f20-4016-8fac-5136b62e8746 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=15
+  id=14c340de-5f8b-4892-835f-fb46395932e8 doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=6
+  id=b06e08bf-a35d-4803-9e03-7846dd535666 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=e262dd96-2e68-4144-a92b-e468e0eec14c doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=6
+  id=dd773340-3cd2-4205-9282-eb427a8eaa9c doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=f1f329d2-af42-42aa-a16e-305b6b733959 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=9
+  id=c045dd2d-1c1e-430d-b686-6338197ca8e4 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=dd3dc5e0-a788-481e-8072-c67b1ea4e9d9 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=6
+  id=f067cb96-ac0f-4c3b-a883-9a6f8d3a1bc2 doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=6
+  id=d1940615-da1e-49d6-bd16-c38d4a36f976 doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=6
+  id=e000f6a2-a5f1-4d6e-bd2c-1b0c693c7dd3 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=6
+  id=28e82a8b-a876-42e6-aab0-ba4430f83fb7 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=10
+  id=b7b92567-a1d1-4973-acca-661755cb3362 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=f243262b-dcb8-48de-9d51-ee3770eb121e doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=1f52a57d-03b4-4b08-8c77-e3d1a6a0913a doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=7
+  id=28ceed60-0fbf-4f7d-8024-3ddc5616a6f0 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=77514676-603e-458d-ab4c-acd65bc888af doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=10
+  id=5aa07c2c-5138-4ed5-a9c9-2608b0ae42db doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=62f032c3-141d-4866-ab99-154e4fcd4f11 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=a7a124a2-60f2-425a-9d13-bb3a25f62126 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=7
+  id=556e978f-62ee-4f27-9eb6-540425231102 doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=6
+  id=62109194-1fd4-49e7-986d-217a928ff71f doc_id=- project=T5841 - SR 401 (Brevard Co, Ca photos_field_len=7
+  id=585cd83a-bb8d-4ca0-9f8b-76ab4b64e91f doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=8
+  id=1034ca6b-ac58-49e2-a77a-a01c503a76ff doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=7e5cf721-774f-4182-aa07-cc151816148d doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=6
+  id=26e94d28-f56f-48a1-bcf9-f69210bf1ca8 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=e337a3fb-9d92-4fc1-b71c-9572cc82d616 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=ffa11460-8cf1-4c4f-b250-97c12f7bfe73 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=6de70a0c-cb2d-468d-a868-85bece5da9fb doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=60d3d704-53ae-4452-bb0e-21303991f61a doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=36360a3e-a740-4e63-9aa1-53d7a721e8d2 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=37d95054-8b81-48c6-a2da-9afcaf6acb6e doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=7
+  id=32203835-a084-45ce-ba5d-77cf1b84e0da doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=6
+  id=e0f975d9-826e-42aa-8db2-4857dc87433c doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=dac362c8-a279-4ec3-a5d3-b867ebf7a8c1 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=628ca390-4256-455d-b05c-6bc7c098e38d doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=829cc5b5-555c-4939-9db9-ca1c37af6257 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=dc2a0896-6efb-41d4-a9e6-88f327a7c79b doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=be7d9caa-68a8-42aa-9dce-e69b30431fd1 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=ac013fac-23c3-488c-aec4-a9bc001eeca4 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=6
+  id=9a040f9a-da4d-47d1-b75f-fb1270dd93ab doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=96532112-8831-4c78-8c4d-bcfa3763ac44 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=d107b3dd-b1bf-4847-a82c-b456f8947d47 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=1f6a8adf-d4f8-4bbd-a4a4-2e1a073b59aa doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=8
+  id=a7e778ac-da11-4451-80b6-15356f65e39b doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=4f45ea58-51d4-4c14-8ee0-c877ac8e9b3b doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=99be3a75-11ca-4a48-9f98-726a21bf28d6 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=9
+  id=d827cde3-7a13-433b-9c70-ce62de2caa10 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=c97f8054-3d7b-4983-8da0-c4bc63cf8dd6 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=9
+  id=476ee04d-efd0-4dd9-b381-66dbdaee897e doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=b7f7769c-a0ff-43d8-a2d4-5f6923222522 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=76ed7070-b090-4108-b46f-aa56ae1af46c doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=9
+  id=1eab4aa7-0a97-40e3-b2ae-bbec074db0bf doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=d1cf6c77-eb65-404b-8aca-52ffee748b18 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=9
+  id=85b87e5d-7bb1-4607-8e6f-5c67c714e5d1 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=2e48286f-2c50-4c0b-8c9a-015bdcf04446 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=9
+  id=5c890252-b024-4bf7-b33f-5ebc901faf97 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=9
+  id=924878f8-dad7-4f7f-a9eb-e95e9a842093 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=877dcd07-9bd8-4544-8002-5a5f3948e90b doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=75344e3e-aff3-4542-983f-2d33cac84fbc doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=8
+  id=a457cd58-6268-435d-a48d-f0ab911fbe92 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=0fa21157-68e5-42d7-9634-343b61e28bee doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=12
+  id=3d69a346-6a12-4951-b758-8e20a430c6d2 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=3c8c87be-b85e-4a42-9d06-2b75f56580b8 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=10
+  id=8d00d645-4a15-4559-9ba6-3906dadf2af4 doc_id=- project=Vol. Co Resurface              photos_field_len=6
+  id=ac306ad5-161d-4f9c-a99a-089c0fccac55 doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=6
+  id=39af966a-5d15-4eee-b018-21f4d28c6ce1 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=8
+  id=774b6ff4-aba7-4286-8e28-b918e7a09073 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=8
+  id=ac5557d8-d1e2-4592-8dac-980cb4dd1fbd doc_id=- project=CC5744 - OXFORD RD Improvement photos_field_len=7
+  id=6cab8b26-76cb-41ae-a241-2f0d2bcf9eea doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=6
+  id=f0304967-3b03-4b4e-90a5-963368633047 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=6
+  id=02daa488-426b-4eb6-9a1b-460b6cac6c60 doc_id=- project=SJR2C - Loop Trail - Spruce Cr photos_field_len=6
+  id=4cab04c6-a17d-47d6-a02c-2942538cfcd5 doc_id=- project=T5860 SR 9 (I-95)              photos_field_len=6
+
+=== V-P5 · Inspect photo schema across recent DRs ===
+  DR-2026-00279        2026-05-29T21:23:20  photos=7  INLINE_BASE64 (NOT migrated) photo[0]_len=347559
+  DR-2026-00278        2026-05-29T20:38:24  photos=15  INLINE_BASE64 (NOT migrated) photo[0]_len=567019
+  DR-2026-00277        2026-05-29T18:52:29  photos=6  INLINE_BASE64 (NOT migrated) photo[0]_len=519383
+  DR-2026-00276        2026-05-29T15:50:04  photos=6  INLINE_BASE64 (NOT migrated) photo[0]_len=381807
+  DR-2026-00275        2026-05-29T14:14:05  photos=7  INLINE_BASE64 (NOT migrated) photo[0]_len=312911
+  DR-2026-00274        2026-05-29T11:06:12  photos=8  INLINE_BASE64 (NOT migrated) photo[0]_len=523635
+  DR-2026-00273        2026-05-29T11:04:43  photos=6  INLINE_BASE64 (NOT migrated) photo[0]_len=473835
+  DR-2026-00272        2026-05-28T22:02:18  photos=6  INLINE_BASE64 (NOT migrated) photo[0]_len=198835
+
+=== V-P6 · DR-2026-00279 (originally inline base64 per Batch J P0-B) — re-verify ===
+  doc_id=DR-2026-00279 photos.len=7
+  STILL INLINE_BASE64 len=347559  ✗ NOT MIGRATED

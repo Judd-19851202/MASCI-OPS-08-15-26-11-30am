@@ -1,0 +1,92 @@
+=== V-Phase 3+4 · Production Deployment + Fleet DVIR Verification · 2026-05-30T17:53:46Z ===
+
+=== V-P7 · Inspect prod /api/admin/audit-log for recent events ===
+{
+    "total": 240,
+    "offset": 0,
+    "limit": 10,
+    "rows": [
+        {
+            "at": "2026-05-30T17:46:12.841000+00:00",
+            "actor": "anonymous",
+            "action": "access_denied",
+            "target": "",
+            "source": "audit_events",
+            "detail": {
+                "kind": "access_denied",
+                "namespace": "admin",
+                "reason": "no_token_strict",
+                "actor": "anonymous",
+                "path": "/api/admin-strict/diag/persistence-health",
+                "method": "GET",
+                "ip": "74.235.134.162,172.70.135.222,35.227.215.211",
+                "user_agent": "curl/8.5.0"
+            }
+        },
+        {
+            "at": "2026-05-30T17:46:08.211000+00:00",
+            "actor": "anonymous",
+            "action": "access_denied",
+            "target": "",
+            "source": "audit_events",
+            "detail": {
+                "kind": "access_denied",
+                "namespace": "admin",
+                "reason": "no_token_strict",
+                "actor": "anonymous",
+                "path": "/api/admin-strict/diag/persistence-health",
+                "method": "GET",
+                "ip": "172.215.217.71,172.68.27.98,35.227.215.211",
+                "user_agent": "curl/8.5.0"
+            }
+        },
+        {
+            "at": "2026-05-30T17:18:26.003000+00:00",
+            "actor": "anonymous",
+            "action": "access_denied",
+            "target": "",
+            "source": "audit_events",
+            "detail": {
+                "kind": "access_denied",
+                "namespace": "admin",
+                "reason": "no_token_strict",
+                "actor": "anonymous",
+                "path": "/api/admin-strict/diag/persistence-health",
+                "method": "GET",
+                "ip": "135.232.224.160,104.22.64.80,35.227.215.211",
+                "user_agent": "curl/8.5.0"
+            }
+        },
+        {
+            "at": "2026-05-30T16:42:13.890000+00:00",
+            "actor": "anonymous",
+            "action": "access_denied",
+
+=== V-P8 · Notifications digest · check what source_modules are firing ===
+[/api/admin/notifications/digest]
+HTTP:200
+  count=0
+[/api/safety/notifications/digest]
+HTTP:200
+  count=0
+
+=== V-P9 · /api/tasks (admin scope · search by source_module) ===
+  source_module=fleet.dvir HTTP=200 tasks_returned=0
+  source_module=safety.meeting HTTP=200 tasks_returned=0
+  source_module=safety.jha HTTP=200 tasks_returned=0
+  source_module=field_leadership.records HTTP=200 tasks_returned=0
+  source_module=safety.form.issuance HTTP=200 tasks_returned=0
+  source_module=safety.form.training HTTP=200 tasks_returned=0
+  source_module=hr.payroll_variance HTTP=200 tasks_returned=0
+
+=== V-P10 · Most recent /api/fleet/dashboard recent activity ===
+HTTP:404
+{"detail":"Not Found"}
+=== V-P11 · Production fleet defects state ===
+HTTP:404
+{"detail":"Not Found"}
+=== V-P12 · Direct prod admin tasks endpoint shape discovery ===
+  /api/admin/tasks HTTP=404  body[:200]={"detail":"Not Found"}
+  /api/tasks HTTP=200  body[:200]={"items":[{"id":"6156526e-0b3e-4b79-8f32-9b7efe2b8932","title":"PO needs approval: 0588eff4","description":"National Trench Safety · est $1563.0 · Normal\n\nShoring tools for trench shoring ","sourc
+  /api/admin/tasks/recent HTTP=404  body[:200]={"detail":"Not Found"}
+  /api/notifications/recent HTTP=404  body[:200]={"detail":"Not Found"}

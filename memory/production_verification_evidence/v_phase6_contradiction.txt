@@ -1,0 +1,57 @@
+=== V-Phase 6 · Contradiction Hunt · 2026-05-30T17:54:45Z ===
+
+=== V-P13 · /api/auto-email/routing-table (re-verify) ===
+{
+  "always_cc": [
+    "jaymn.judd@mascigc.com",
+    "safety@mascigc.com"
+  ],
+  "compliance_kinds": [
+    "incident",
+    "inspection",
+    "jha",
+    "meeting"
+  ],
+  "pm_only_kinds": [
+    "daily-report",
+    "equipment-inspection"
+  ],
+  "auto_email_enabled": true,
+  "unassigned_jobs": [
+    {
+      "project_number": "20-07",
+      "project_name": "T5686 SR 15/SR600 (SANFORD, 17/92, LAKE MARY)"
+    },
+    {
+      "project_number": "21-06",
+      "project_name": "T5736 Oveido - (426, BROADWAY)"
+    },
+    {
+      "project_number": "22-08",
+      "project_name": "T5749 SR 436 (ALTAMONTE SPRINGS)"
+    },
+    {
+      "project_number": "24-08",
+      "project_name": "E57B2 - SR 46 (MELLONVILLE AVE)"
+    },
+    {
+      "project_number": "26-04",
+      "project_name": "E58F7 - SR 5"
+    }
+  ]
+}
+
+=== V-P14 · /api/admin/cluster-capacity (post-restore index parity check) ===
+HTTP:404
+{"detail":"Not Found"}
+=== V-P15 · /api/admin/scheduler-self-test (or equivalent) ===
+  /api/admin/scheduler-self-test HTTP=404  body[:200]={"detail":"Not Found"}
+  /api/admin/backups-self-test HTTP=404  body[:200]={"detail":"Not Found"}
+  /api/admin/diag/persistence-health HTTP=404  body[:200]={"detail":"Not Found"}
+
+=== V-P16 · Production DR count via Mongo proxy? (admin endpoint) ===
+  directory HTTP=200  count=7
+
+=== V-P17 · 5xx incident at 17:50 UTC ===
+Captured during this verification: Cloudflare 520 origin error from 17:50Z onwards, recovered by 17:52Z
+Total downtime window: ~3 minutes (transient origin error · auto-recovered)
