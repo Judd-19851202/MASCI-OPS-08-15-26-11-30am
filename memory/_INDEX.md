@@ -1,13 +1,29 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-28._
+_30-second orientation map for future agents and forks · 2026-05-28 (last updated 2026-02-01 — stabilization restoration)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
 across 500 docs — the platform has strict domain boundaries.
 
 > **Status legend:** ✅ active · 📐 planning · 🟢 implemented ·
-> 🟡 deferred · ⛔ read-before-touching
+> 🟡 deferred · ⛔ read-before-touching · 🚫 ABANDONED/DO-NOT-IMPLEMENT
+
+---
+
+## 0 · Latest Stabilization Pass (2026-02-01)
+
+> The 2026-02-01 fork session reverted an unauthorized design-system
+> pivot and restored strict stabilization mode. Read these three files
+> before doing ANY UI work going forward.
+
+| File | Purpose | Status |
+|---|---|---|
+| `MASTER_LAYOUT_DEFECT_LIST.md` | **2026-02-01** · 18 surfaces × 4 viewports audited · 5 defects found and surgically fixed · before/after evidence + DOM probes · NO redesign, NO primitives, NO workflow changes | ✅ ⛔ |
+| `DESIGN_FAMILY_CLASSIFICATION.md` | Pass 7 "design families" mockup spec — **REJECTED by operator 2026-02-01** | 🚫 ABANDONED |
+| `DESIGN_SYSTEM_PRIMITIVES.md` | Pass 7 design-system primitives spec — **REJECTED by operator 2026-02-01** | 🚫 ABANDONED |
+
+After-state screenshots: `/app/memory/audit_screenshots_2026-02-01/after/zoom/` (D1–D5).
 
 ---
 

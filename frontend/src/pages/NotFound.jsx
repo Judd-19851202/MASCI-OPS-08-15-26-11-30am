@@ -85,7 +85,7 @@ export default function NotFound() {
                 Other portals you can access
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4.5">
-                {others.map((p) => (
+                {others.filter((p) => PORTAL_LABEL[p]).map((p) => (
                   <Link
                     key={p}
                     to={PORTAL_HOME[p]}

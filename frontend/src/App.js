@@ -275,7 +275,7 @@ function App() {
   return (
     <div className="App min-h-screen flex flex-col">
       <SplashOverlay />
-      <Toaster position="top-center" richColors closeButton />
+      <Toaster position="bottom-right" richColors closeButton offset={16} />
       <GlobalKeepalive />
       <BackendStatusBanner />
       <ClusterCapacityBanner />

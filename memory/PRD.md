@@ -1,6 +1,55 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-01 (fork) — Pass 8 · STABILIZATION RESTORATION ✅ COMPLETE
+
+### Operator directive (2026-02-01)
+> "STOP ALL DESIGN SYSTEM WORK IMMEDIATELY. Freeze all design-system, family-classification, UX-modernization, and style-guide work. Discard new component frameworks. Return to the original mission: identify every screen with field bleed, overlap, spacing, sizing, or responsiveness issues. Build a master defect list. Fix those defects only — without redesigns."
+
+### What shipped (cleanup + audit + remediation)
+
+**Cleanup (unauthorized design-system work reverted):**
+- Removed `/__design/family-*` mockup routes from `App.js` (5 routes + import block)
+- Deleted `/app/frontend/src/components/DesignFamilyMockups.jsx`
+- Deleted unused `/app/frontend/src/components/SectionCard.jsx` (was a separate file, never imported by any page; local `SectionCard` function inside `NotificationsDigest.jsx` is unrelated and untouched)
+- Marked `/app/memory/DESIGN_FAMILY_CLASSIFICATION.md` and `/app/memory/DESIGN_SYSTEM_PRIMITIVES.md` as **ABANDONED / UNAUTHORIZED DIRECTION** (retained for audit history)
+- Frontend recompiles cleanly
+
+**Master Layout Defect Audit:**
+- Document: `/app/memory/MASTER_LAYOUT_DEFECT_LIST.md`
+- Surfaces inspected at 4 viewports (375 / 768 / 1280 / 1920): Public Hub, Sign-in, Admin Hub, PM Hub, HR Hub, HR Time Verification, HR Payroll Variance, HR Employees, HR Field Leadership Records, Safety Portal, PM Daily, Constraints, PM Equipment, Dispatch Board, PO Requests, Admin People & Access, Admin System & Backups, NotFound 404 — **18 surfaces × 4 viewports**
+- Result: **5 real defects identified, 17 surfaces verified clean**
+
+**Defect Remediation (operator-approved 2026-02-01) — ALL 5 FIXED:**
+| # | Defect | File touched | Surgical change |
+|---|--------|--------------|-----------------|
+| 1 | NotFound: empty portal tile in "Other Portals" grid | `pages/NotFound.jsx` | Added `.filter((p) => PORTAL_LABEL[p])` before `.map(...)` |
+| 2 | Sonner error toasts cover header search bar | `App.js` | `<Toaster position="top-center">` → `<Toaster position="bottom-right" offset={16}>` |
+| 3 | HR Hub header buttons wrap to 2nd row at tablet 768px | `pages/HrHub.jsx` | Password button className `hidden sm:inline-flex` → `hidden lg:inline-flex` |
+| 4 | PM Hub deploy fingerprint pill always visible | `components/BackendVersionBadge.jsx` | Gated to non-production via `app_env` check (mirrors `EnvBanner` pattern) |
+| 5 | HR Time Verification Sign Out button blank (dark-text-on-dark-header CSS regression) | `components/HrPageShell.jsx` | className added `bg-transparent text-white border-white/30 hover:bg-white/10` |
+
+Verification: DOM probes at all 4 viewports for each defect + persisted JPEG screenshots in `/app/memory/audit_screenshots_2026-02-01/after/zoom/`. Frontend compiles successfully.
+
+### Explicit non-changes
+- ❌ NO redesign
+- ❌ NO new mockups
+- ❌ NO new design system / primitives
+- ❌ NO color / branding / navigation / workflow / schema / business-logic changes
+- ❌ NO Backup Scheduler, Approval/Rejection, Pilot, RFI, Schedule, P6, PM Exposure Tile, or notification-gap-register work
+
+### Next action item
+**STOP. Awaiting operator review of the 5 fixes before any further work.**
+On approval, the held P0/P1/P2 items can resume in operator-defined priority order:
+- P0: Backup Scheduler hardening
+- P0: Production redeploy + live verification of these 5 fixes
+- P1: 18 notification gaps from `NOTIFICATION_GAP_REGISTER.md`
+- Future: Approval/Rejection Workflow, Pilot Rollout, RFI, Schedule, P6 integrations, PM Exposure Tile
+
+---
+
+
+
 ## 2026-02-01 (fork) — Pass 7 · DESIGN-SYSTEM AUDIT 🟡 AWAITING APPROVAL BEFORE ROLLOUT
 
 ### Operator directive

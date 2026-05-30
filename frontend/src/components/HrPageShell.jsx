@@ -38,7 +38,7 @@ export default function HrPageShell({ title, kicker, children }) {
           <div className="flex items-center gap-2">
             <LangToggle />
             <CompanyInfoDialog />
-            <Button variant="outline" size="sm" onClick={signOut} className="text-xs" data-testid="hr-sign-out">
+            <Button variant="outline" size="sm" onClick={signOut} className="text-xs bg-transparent text-white border-white/30 hover:bg-white/10" data-testid="hr-sign-out">
               <LogOut className="w-3.5 h-3.5 mr-1" /> {t("Sign out")}
             </Button>
           </div>

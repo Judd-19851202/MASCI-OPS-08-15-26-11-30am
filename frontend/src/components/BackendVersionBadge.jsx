@@ -63,7 +63,10 @@ export function BackendVersionBadge() {
     );
   }
 
-  const { source_hash, commit, uptime_s } = state.data;
+  const { source_hash, commit, uptime_s, app_env } = state.data;
+  // Gate to non-production environments — admins on production should not
+  // see the deploy fingerprint pill in the live UI. Mirrors EnvBanner gating.
+  if ((app_env || "production").toLowerCase() === "production") return null;
   const isAmber = uptime_s > WEEK_S;
   const shortHash = (source_hash || "").slice(0, 8) || "unknown";
   const shortCommit = commit && commit !== "unknown" ? commit.slice(0, 8) : null;
