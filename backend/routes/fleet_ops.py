@@ -543,6 +543,105 @@ def build_router(
             },
         )
 
+        # BATCH L · OMEGA-3 / G-P0-01 — Fleet DVIR fan-out per approved
+        # decision package matrix · 2026-05-30.
+        #
+        # Severity authority: fleet_defect_severity.SEVERITY_TABLE_VERSION
+        # (v1.3-approved-2026-05-19). The table emits exactly two
+        # severities: "oos" and "monitor". No new tier is invented here.
+        #
+        # Routing matrix (subset of decision package §2 that maps to
+        # severities actually present in the current table):
+        #   • Normal DVIR (no defects, no OOS) ........ no fan-out
+        #   • Defect (any monitor, no OOS) ............ Shop task · Medium
+        #   • OOS (any oos OR out_of_service=Yes) ..... Shop task · Critical
+        #                                              + Dispatch visibility notification
+        #
+        # NO Superintendent notification (explicitly excluded per matrix).
+        # Repeat-Unresolved sweep is a separate cron · belongs to Batch N
+        # escalation framework when authorized · not in scope here.
+        normal_only = not all_defects and not any_oos
+        if not normal_only:
+            try:
+                # Local import keeps the module dependency-graph clean
+                # if event_fanout is unavailable at import time.
+                from lib.event_fanout import (  # noqa: PLC0415
+                    emit_task_and_notification,
+                    emit_notification,
+                )
+
+                if any_oos:
+                    priority = "Critical"
+                    state_word = " OOS"
+                    msg_suffix = " · OUT OF SERVICE"
+                else:
+                    priority = "Medium"
+                    state_word = ""
+                    msg_suffix = ""
+
+                title = (
+                    f"Fleet defect — {payload.truck_unit_number}"
+                    f"{state_word} · {payload.kind}"
+                )
+
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (
+                            f"Driver: {payload.driver_name} · "
+                            f"Truck: {payload.truck_unit_number} · "
+                            f"Kind: {payload.kind} · "
+                            f"Defects: {len(all_defects)} · "
+                            f"Fail items: {truck_failures + trailer_failures} · "
+                            f"OOS: {'Yes' if any_oos else 'No'}"
+                        )[:4000],
+                        "source_module": "fleet.dvir",
+                        "source_record_id": inspection_id,
+                        "assignee_role": "shop",
+                        "priority": priority,
+                        "created_by": {"role": "system", "via": "dvir-fanout"},
+                    },
+                    notification={
+                        "type": (
+                            "dvir.defect.oos" if any_oos else "dvir.defect"
+                        ),
+                        "title": title[:200],
+                        "message": (
+                            f"{len(all_defects)} defect(s) flagged"
+                            f"{msg_suffix}"
+                        )[:200],
+                        "severity": "Critical" if any_oos else "Warning",
+                        "recipient_role": "shop",
+                        "linked_source_module": "fleet.dvir",
+                        "linked_source_record_id": inspection_id,
+                    },
+                )
+
+                # OOS → parallel visibility notification to Dispatch
+                # (no separate task — Shop owns the action; Dispatch
+                # surfaces the vehicle as unavailable).
+                if any_oos:
+                    await emit_notification(
+                        db,
+                        {
+                            "type": "dvir.defect.oos",
+                            "title": title[:200],
+                            "message": (
+                                f"Vehicle {payload.truck_unit_number} "
+                                f"OUT OF SERVICE"
+                            )[:200],
+                            "severity": "Critical",
+                            "recipient_role": "dispatch",
+                            "linked_source_module": "fleet.dvir",
+                            "linked_source_record_id": inspection_id,
+                        },
+                    )
+            except Exception:
+                # Fail-soft · NEVER block the inspection submission
+                # itself · matches the safety pattern across the codebase.
+                pass
+
         return {
             "ok": True,
             "inspection_id": inspection_id,

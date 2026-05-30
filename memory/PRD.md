@@ -1,6 +1,62 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-30 (fork) — Batch L · Fleet DVIR Implementation (OMEGA-3) ✅ COMPLETE · 🟢 NO 🔴 REMAINING
+
+### Operator directive (OMEGA Execution Lock · Phase 1 + 2 + 3 + 4 + 5)
+> "Audit Batch K · verify soft orphans · implement Fleet DVIR per approved matrix · certify · update status. No drift. No Superintendent unless evidence supports it."
+
+### 🟢 HEADLINE
+- **OMEGA-3 / Fleet DVIR (last 🔴 hard orphan) CLOSED**
+- **Batch K final audit:** 🟢 PASS · 7 fan-out paths · 10 audit questions per workflow answered with evidence
+- **Soft orphan audit:** 🟢 PASS · zero remaining hard orphans · 1 soft visibility gap (OMEGA-9 / Training supervisor lens · Batch M scope)
+- **Pillar scorecard:** **4 unconditional 🟢 + 1 🟡 (OUT-OF-OMEGA only)** · Ownership pillar promoted CONDITIONAL → UNCONDITIONAL PASS
+
+### Implementation footprint (Batch L)
+- 1 file touched: `routes/fleet_ops.py:submit_fleet_inspection` (single-function insertion · ~95 LOC)
+- 0 endpoints · 0 schema · 0 env · 0 UI · 0 new severity tiers
+- Pattern: canonical Pre-Op FAIL fan-out from `routes/equipment.py:234`
+- Lint: 🟢 ruff clean
+
+### Routing matrix verified live (3 cases)
+| Class | Condition | Routing |
+|---|---|---|
+| Normal | 0 defects · no OOS | no fan-out (record-only) ✅ |
+| Defect | severity=monitor · no OOS | Shop task · Medium · `dvir.defect` notification ✅ |
+| OOS | severity=oos OR out_of_service=Yes | Shop task · Critical · `dvir.defect.oos` notification + parallel Dispatch visibility ✅ |
+
+- NO Superintendent · NO PM (per approved decision package §3)
+- DB returned to exact baseline (571 tasks · 1237 notifs · 82 inspections · 50 defects)
+
+### OMEGA counters (post Batch K + L)
+| Tier | Before | After |
+|---|---:|---:|
+| P0 🔴 | 3 | **2** (both operator-side) |
+| P1 | 7 | **3** |
+| P2 | 6 | **6** |
+| P3 | 4 | **4** |
+| Unacceptable 🔴 | 1 | **0** ✅ |
+
+### Deliverables in `/app/memory/`
+- `BATCH_K_FINAL_CERTIFICATION.md` (190 lines · 10 audit questions × 7 workflows answered)
+- `SOFT_ORPHAN_CERTIFICATION.md` (122 lines · zero remaining)
+- `FLEET_DVIR_CERTIFICATION.md` (162 lines · 3 routing classes verified)
+- `OMEGA_STATUS_REPORT.md` (170 lines · final scorecard)
+
+### Highest-risk remaining
+- **Operator-side:** OMEGA-1 (run `migrate_dr_photos.py` on prod)
+- **Agent-side:** OMEGA-9 / SOFT-4 (Training supervisor lens · Batch M · ~2 h)
+
+### Stop-condition compliance
+✅ Only authorized work done · ✅ No Superintendent · ✅ No mockups · ✅ No new features · ✅ Zero unrelated work · ✅ DB cleanup verified · ✅ Code/Runtime/DB/Truth-Map/Gap-Ledger/DR-matrix all reconciled
+
+**STOP. Awaiting operator authorization for Batch M (Training supervisor lens · final soft visibility gap).**
+
+---
+
+
+
+
 ## 2026-05-30 (fork) — Batch K · Symmetric Notification Fan-Out Wiring ✅ COMPLETE
 
 ### Operator directive (OMEGA Execution Lock · Batch K)

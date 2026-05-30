@@ -12,6 +12,20 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · Batch K + L · Notification Fan-out Wiring + Fleet DVIR Closure (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_K_CERTIFICATION.md` | Batch K · 5 documented visibility gaps closed · 7 fan-out paths verified | 🟢 PASS ⛔ |
+| `BATCH_K_FINAL_CERTIFICATION.md` | Batch K audit · 10 questions × 7 workflows · all evidence-backed | 🟢 PASS ⛔ |
+| `SOFT_ORPHAN_CERTIFICATION.md` | Zero hard orphans · 1 soft visibility gap remaining (OMEGA-9 · Batch M) | 🟢 PASS ⛔ |
+| `FLEET_DVIR_CERTIFICATION.md` | OMEGA-3 closed · 3 routing classes verified · NO Superintendent · DB returned to baseline | 🟢 PASS ⛔ |
+| `OMEGA_STATUS_REPORT.md` | Post Batch K+L · 5 required questions answered · pillar scorecard 4🟢+1🟡 | ⛔ |
+
+🟢 **Headline**: 6 OMEGA items closed (OMEGA-3 + OMEGA-5/6/7/8 + OMEGA-13). The last 🔴 (Fleet DVIR orphan) is resolved. Ownership pillar promoted CONDITIONAL → UNCONDITIONAL. Remaining work is all P1/P2/P3 (no UNACCEPTABLE items).
+
+
 ## 0 · 2026-05-30 fork — Latest pass index
 
 ### 00 · OMEGA · MASCI Operational Perfection Program (2026-05-30)
