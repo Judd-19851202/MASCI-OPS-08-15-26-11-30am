@@ -165,7 +165,7 @@ PM_ONLY_KINDS    = {"daily-report", "equipment-inspection"}
 
 | Cron | Cadence | Owner role | Code path | Status |
 |---|---|---|---|---|
-| Backup pipeline | hourly / 2 + 18 UTC | Admin | `lib/singleton_scheduler.py` + `_backup_scheduler_loop` in `server.py` | 🟦🔴 dead in preview (P2); prod state un-probable from preview |
+| Backup pipeline | hourly / 2 + 18 UTC | Admin | `lib/singleton_scheduler.py` + `_backup_scheduler_loop` in `server.py` | 🟦🔴 dead in preview (P2); prod state un-probable from preview · iter441 (2026-05-30) shrinks per-cycle peak RSS by -57.5 % via `BACKUP_EXPLICIT_EXCLUSIONS` of telemetry collections (`usage_events`, `health_monitor_runs`, `job_photo_thumb_cache`); see `BACKUP_MEMORY_REDUCTION_CERTIFICATION.md` |
 | Safety digest | Mon 14:00 UTC | Safety | `safety_digest.py` | 🟢 |
 | Document Expirations | nightly | HR | `routes/document_expirations.py:119` | 🟢 |
 | PO Receipt-missing | nightly | requester + PM | within PO endpoints | 🟢 |

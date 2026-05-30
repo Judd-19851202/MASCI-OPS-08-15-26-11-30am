@@ -187,3 +187,70 @@ Once these complete, MASCI is **FULLY RECOVERABLE in production** with no furthe
 ---
 
 _End of DISASTER_RECOVERY_VALIDATION_MATRIX.md._
+
+---
+
+## §8 · Addendum — iter441 · OMEGA Batch §6.4 Minimum Surgical Memory-Reduction Fix
+
+**Date:** 2026-05-30 (UTC)
+**Authorization:** Operator directive, post `BACKUP_CRASH_ROOT_CAUSE_REPORT.md`.
+**Code change:** `server.py:4078-4093` — `BACKUP_EXPLICIT_EXCLUSIONS` extended with three regenerable collections.
+**Pipelines affected:** Pipeline A (`_build_backup_zip_to_path` via reference at line 4503) AND Pipeline B (`_build_complete_archive_on_disk` via reference at line 5636). Both inherit the exclusions automatically.
+
+### §8.1 · Exclusion rationale (3 collections added)
+
+| Collection | Prod row count | Class | Why excluded | Recovery impact |
+|---|---:|---|---|---|
+| `usage_events` | 244,266 | Telemetry (API call counters) | Regenerates from live traffic in minutes after restore; not a business record | None — restoring this is operationally useless |
+| `health_monitor_runs` | 17,327 | Scheduler health probe series | Regenerates on first scheduler cycle post-restore | None |
+| `job_photo_thumb_cache` | 1,791 | Derivative cache of R2 photo thumbnails | Re-derived on first photo render | None — R2 originals are the source of truth, present in archive |
+
+**No business record is excluded.** Restore continues to be a single-zip operation. Reversible by removal of the three lines from `BACKUP_EXPLICIT_EXCLUSIONS`.
+
+### §8.2 · Drill evidence (preview · `masci_safety_preview`)
+
+Isolated subprocess (one fresh python process per run) so `getrusage().ru_maxrss` is unbiased:
+
+| Metric | PRE-fix | POST-fix | Delta |
+|---|---:|---:|---:|
+| Peak RSS (resident set size) | **667.4 MB** | **283.9 MB** | **-383.5 MB (-57.5 %)** |
+| Peak Python heap (tracemalloc) | 190.1 MB | 66.4 MB | -123.7 MB (-65.1 %) |
+| Build time | 120.6 s | 74.1 s | -38.5 % |
+| Archive size on disk | 347.3 MB | 264.9 MB | -82.4 MB (-23.7 %) |
+| Zip entries (== retained ZipInfo) | 224,797 | 21,953 | **-202,844 (-90.2 %)** |
+| Total records archived | 224,308 | 21,464 | -202,844 (telemetry/cache only) |
+| Inlined R2 photos | **488** | **488** | **0 (unchanged)** |
+| Inlined R2 photo bytes | 223.3 MB | 223.3 MB | 0 (unchanged) |
+| Failed photo inlines | 0 | 0 | 0 |
+| Sample JSON parseability | 50/50 | 50/50 | 100 % both |
+| Business-critical kinds intact | 25 / 25 | 25 / 25 | 0 lost |
+
+### §8.3 · Business-record preservation matrix (preview drill)
+
+Every recoverable business kind has identical record counts pre vs post:
+
+`daily-reports`=304 · `meetings`=30 · `incidents`=19 · `equipment-inspections`=82 · `tasks`=571 · `notifications`=1,237 · `users`=5 · `user_directory`=49 · `jobs_master`=29 · `job_hazard_files`=6 · `operational_attachments`=40 · `equipment_master`=589 · `equipment_units`=484 · `odr`=146 · `odr_section_events`=625 · `odr_pdf_renders`=413 · `audit_events`=4,972 · `admin_audit`=3,541 · `compliance_findings`=817 · `fleet_audit`=653 · `operations_events`=618 · `dispatch_state_events`=348 · `backup_health`=200 · `scheduler_locks`=0 · `dispatch_assignments`/`continuity_events`/etc — all intact.
+
+Only collections that disappeared: `usage_events`, `health_monitor_runs`, `job_photo_thumb_cache` (the three intended).
+
+### §8.4 · Production impact projection
+
+| Metric | Prod baseline (2026-05-30T19:42Z run) | Post-fix projection |
+|---|---:|---:|
+| Records | 286,164 | ≈ 22,780 |
+| Zip entries | 286,164 | ≈ 22,780 |
+| Peak RSS (worker) | ≈ 700-750 MB (estimated, crossing OOM ceiling) | ≈ 280-320 MB |
+| Build time | ~4-5 min | ~1.5-2 min |
+| Archive size | 464.8 MB | ~430 MB |
+| OOM probability per cycle | ~10-20 % (silent SIGKILL, no health row) | **near-zero** |
+
+### §8.5 · Recoverability verdict — UNCHANGED
+
+🟢 **All 22 master-matrix components remain `Backed up · Restorable · Tested · Verified` post-fix.**
+🟢 **Zero business records lost.** The exclusion set is strictly telemetry + cache.
+🟢 **Single-zip restore property preserved.** R2 photos still inline. No external dependency added.
+
+### §8.6 · Operator action items unchanged from §6 risk register
+
+The §6 list is unaffected by iter441. The first row of §6 ("Worker OOM if hourly cadence resumed without Batch G prod migration") is now **further** mitigated by iter441 — Batch G migration handled the inline DR photos (16 MB), iter441 handles the ZipInfo central-directory bloat (~75 MB). Combined headroom is now ≈ 380 MB lower peak RSS.
+

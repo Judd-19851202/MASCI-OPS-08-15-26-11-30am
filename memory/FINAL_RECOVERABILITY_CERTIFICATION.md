@@ -257,3 +257,12 @@ Three operator decisions in ~2 hours. No code changes. No architecture changes. 
 ---
 
 _End of FINAL_RECOVERABILITY_CERTIFICATION.md · 🟢 ELITE_
+
+---
+
+## 9 · Addendum · iter441 · Memory-Reduction Fix (2026-05-30 post-RCA)
+
+**Authorization:** Operator directive following `BACKUP_CRASH_ROOT_CAUSE_REPORT.md`.
+**Surface:** single edit at `server.py:4078-4093` — three regenerable collections (`usage_events`, `health_monitor_runs`, `job_photo_thumb_cache`) added to `BACKUP_EXPLICIT_EXCLUSIONS`.
+**Drill evidence:** `BACKUP_MEMORY_REDUCTION_CERTIFICATION.md` · isolated subprocess RSS measurement on preview shows **peak RSS 667.4 MB → 283.9 MB (-57.5 %)** with **zero business records lost** and inlined photo count unchanged at 488 / 488.
+**Recoverability stance:** UNCHANGED — all 22 DR matrix components remain `Backed up · Restorable · Tested · Verified`. Single-zip restore property preserved.

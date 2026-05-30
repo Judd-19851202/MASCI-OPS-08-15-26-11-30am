@@ -4064,8 +4064,22 @@ BACKUP_SENSITIVE_FIELD_REDACTION = {
 # Reasons documented in /app/memory/R2_BACKUP_CONTINUITY_AUDIT.md §9.
 # We intentionally keep webauthn_challenges + dispatch_driver_sessions IN
 # for now (short-lived but harmless · keeps audit explicit · no silent drop).
+#
+# iter441 · OMEGA Batch §6.4 Minimum Surgical Memory-Reduction Fix
+# ────────────────────────────────────────────────────────────────
+# Three high-cardinality REGENERABLE collections are excluded to
+# eliminate ~92 % of `zipfile._filelist` (ZipInfo) memory retention
+# during complete-archive builds. Evidence: BACKUP_CRASH_ROOT_CAUSE_REPORT.md
+#  · usage_events         · 244,266 rows · pure API telemetry · regenerates
+#  · health_monitor_runs  ·  17,327 rows · scheduler health probe series
+#  · job_photo_thumb_cache·   1,791 rows · derivative cache of R2 photo
+# No business record is excluded. Restore continues to be a single-zip
+# operation. Reversible by deletion of the three lines below.
 BACKUP_EXPLICIT_EXCLUSIONS = {
-    "system.indexes",  # MongoDB internal
+    "system.indexes",          # MongoDB internal
+    "usage_events",            # regenerable API telemetry (iter441)
+    "health_monitor_runs",     # regenerable scheduler health series (iter441)
+    "job_photo_thumb_cache",   # regenerable derivative photo cache (iter441)
 }
 
 
