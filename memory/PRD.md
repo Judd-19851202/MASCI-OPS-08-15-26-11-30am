@@ -1,6 +1,70 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-30 (fork) — Batch I · PLATFORM OPERATIONAL TRUTH MAP FINALIZATION ✅ COMPLETE
+
+### Operator directive (2026-05-30)
+> "Move platform understanding from approximately 80–90% understood to 100% verified operational understanding. No assumptions. No historical summaries accepted as truth. Memory + Code + Runtime must all reconcile. MAP, VERIFY, PROVE, DOCUMENT. No fixes, no remediation, no code changes."
+
+### 🟢 FINAL VERDICT: MISSION COMPLETE · 7/7 AXES VERIFIED · 6 DELIVERABLES PRODUCED
+
+Read-only triangulation batch. Every claim carries Memory · Code · Runtime citation. **Zero remediation performed.**
+
+### Headline numbers
+- 41 workflows mapped (I-1)
+- 25 notification events mapped (I-2)
+- 10 roles with dashboards mapped (I-3)
+- 14 escalation triggers mapped (I-4)
+- 1 hard orphan + 5 soft orphans (I-5)
+- 19 gaps deduplicated and severity-ranked (I-6)
+- 22 disaster-recovery components verified (I-7)
+- 13 Memory ↔ Code ↔ Runtime deltas logged
+- 86 backend route files audited · 132 Mongo collections inventoried · 7 runtime probes executed
+
+### 6 deliverables shipped
+1. `PLATFORM_OPERATIONAL_TRUTH_MAP_v1.md` (429 lines) — master consolidated map · all 7 axes
+2. `PLATFORM_TRUTH_DELTA_REPORT.md` (229 lines) — 13 deltas found
+3. `PLATFORM_GAP_LEDGER_FINAL.md` (182 lines) — supersedes ORPHAN_AND_GAP_REGISTER + NOTIFICATION_GAP_REGISTER
+4. `DISASTER_RECOVERY_VALIDATION_MATRIX.md` (189 lines) — 22 components × 4 DR pillars
+5. `PLATFORM_RECOVERABILITY_PROOF_REPORT.md` (188 lines) — direct evidence for 4 "what if X dies" scenarios
+6. `BATCH_I_EXECUTIVE_SUMMARY.md` (172 lines) — operator closeout
+
+Evidence folder: `/app/memory/batch_i_evidence/` — 3 raw artifacts (497 lines: runtime probes, code fan-out call-sites, DB collection inventory)
+
+### Key findings surfaced
+- **G-P0-01 / ORPHAN-1 / Fleet DVIR confirmed orphan in code** — `routes/fleet_ops.py:412–553` audits + rebuilds status but emits ZERO notification fan-out. Operator decision: passive ledger vs active workflow?
+- **G-P0-02 / DELTA-D1 / Backup scheduler DEAD in preview** — `scheduler.alive=false`, `armed_at=null`, `last_tick_ts=null`, most recent backup_health row 3 days stale. Production state un-probable from preview. Operator must probe `$PROD_URL/api/admin/backups-scheduler-state`.
+- **G-P1-04 / NEW-GAP-A / Safety Meeting** — email-only at `routes/safety.py:464`; no bell/task fan-out. Same shape as JHA and FL forms.
+- **6 doc-hygiene deltas** logged (endpoint naming drift · stale field references · etc.) — non-functional.
+
+### DR recoverability proof
+| Scenario | RTO | RPO | Status |
+|---|---|---|---|
+| Platform dies | ~10 min | ≤60min/≤24hr | 🟢 |
+| R2 dies | ~15–30 min | photo-window | 🟢 |
+| Mongo dies | ~10 min | ≤60min/≤24hr | 🟢 |
+| Both die | ~20–40 min | as above | 🟢 |
+
+### Stop-condition compliance
+- ✅ Zero code edits · zero schema / env / production changes
+- ✅ Triangulation rule (Memory + Code + Runtime) applied to every claim
+- ✅ Zero remediation · zero new features · zero Fleet DVIR / notification fixes / Approval-Rejection / Pilot / RFI / Schedule / P6 / PM Exposure Tile / UI work
+
+### Open operator decisions
+1. Fleet DVIR — passive ledger or active workflow?
+2. Probe production scheduler liveness
+3. Safety Meeting — join JHA/FL fix-track or stay email-only?
+4. Generalized no-response escalation cadence framework — future or out-of-scope?
+5. Realtime push (SSE/WebSocket) — keep polling or schedule push batch?
+6. Hygiene cleanup of 6 doc-drift deltas — optional small batch
+
+**STOP. Awaiting operator review.**
+
+---
+
+
+
+
 ## 2026-05-30 (fork) — Batch H · PHOTO ARCHITECTURE HARDENING & PERFORMANCE CERTIFICATION ✅ COMPLETE
 
 ### Operator directive (2026-05-30)

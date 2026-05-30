@@ -1,0 +1,92 @@
+=== Batch I · Code Fan-out Call-Sites · 2026-05-30T15:39:12Z ===
+Grepping /app/backend/routes/ for all fan-out call sites
+
+--- All emit_* + schedule_auto_email call sites ---
+/app/backend/routes/asset_transfers.py:161:            from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+/app/backend/routes/asset_transfers.py:173:                await emit_task_and_notification(
+/app/backend/routes/asset_transfers.py:202:                await emit_notification(db, {
+/app/backend/routes/asset_transfers.py:214:                await emit_task_and_notification(
+/app/backend/routes/asset_transfers.py:239:                await emit_notification(db, {
+/app/backend/routes/asset_transfers.py:252:                await emit_notification(db, {
+/app/backend/routes/asset_transfers.py:263:                await emit_notification(db, {
+/app/backend/routes/asset_transfers.py:273:                await emit_notification(db, {
+/app/backend/routes/daily_reports.py:183:def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email):
+/app/backend/routes/daily_reports.py:271:            schedule_auto_email("daily-report", doc)
+/app/backend/routes/equipment.py:167:    rate_limit_public_post, schedule_auto_email, remember_unit,
+/app/backend/routes/equipment.py:199:        schedule_auto_email("equipment-inspection", doc)
+/app/backend/routes/equipment.py:234:                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+/app/backend/routes/equipment.py:247:                await emit_task_and_notification(
+/app/backend/routes/equipment.py:274:                await emit_notification(db, {
+/app/backend/routes/qaqc.py:149:def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email):
+/app/backend/routes/qaqc.py:210:        schedule_auto_email("qaqc", doc)
+/app/backend/routes/qaqc.py:217:                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+/app/backend/routes/qaqc.py:222:                await emit_task_and_notification(
+/app/backend/routes/qaqc.py:249:                await emit_notification(db, {
+/app/backend/routes/safety.py:12:routing for new records is fired via `schedule_auto_email("inspection|meeting|jha|incident", doc)`.
+/app/backend/routes/safety.py:280:def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email, require_safety_or_admin=None, require_safety_admin_or_pm=None):
+/app/backend/routes/safety.py:318:        schedule_auto_email("inspection", doc)
+/app/backend/routes/safety.py:331:                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+/app/backend/routes/safety.py:338:                await emit_task_and_notification(
+/app/backend/routes/safety.py:367:                await emit_notification(db, {
+/app/backend/routes/safety.py:464:        schedule_auto_email("meeting", doc)
+/app/backend/routes/safety.py:518:        schedule_auto_email("jha", doc)
+/app/backend/routes/safety.py:579:            schedule_auto_email("incident", doc)
+/app/backend/routes/safety.py:585:                from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+/app/backend/routes/safety.py:590:                await emit_task_and_notification(
+/app/backend/routes/safety.py:620:                from lib.event_fanout import emit_notification  # noqa: PLC0415
+/app/backend/routes/safety.py:621:                await emit_notification(db, {
+/app/backend/routes/safety_portal/fire_extinguishers.py:122:                from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+/app/backend/routes/safety_portal/fire_extinguishers.py:125:                await emit_task_and_notification(
+/app/backend/routes/training_center.py:346:            _s("Anti-Patterns", "Do NOT write to `db.tasks` or `db.notifications` directly from a new module. Import `task_service` and `notification_service` from `routes.tasks_notifications` OR call `lib.event_fanout.emit_task_and_notification(...)` instead. This keeps audit, priority normalization, TTL, and recipient routing in one auditable code path.", [
+
+--- task_service.create + notification_service.fanout direct call sites ---
+/app/backend/routes/document_expirations.py:232:                    task_id = await task_service.create(db, payload_task)
+/app/backend/routes/document_expirations.py:237:                    await notification_service.fanout(db, payload_notif)
+/app/backend/routes/employee_lifecycle.py:28:  task checklist via task_service.create() (Phase A). HR can review +
+/app/backend/routes/employee_lifecycle.py:713:            task_id = await task_service.create(db, {
+/app/backend/routes/po_requests.py:220:        await task_service.create(db, {
+/app/backend/routes/po_requests.py:242:            await notification_service.fanout(db, {
+/app/backend/routes/safety_portal/corrective_actions.py:88:            await task_service.create(db, {
+/app/backend/routes/tasks_notifications.py:150:        task_id = await task_service.create(db, {...})
+/app/backend/routes/tasks_notifications.py:191:                await notification_service.fanout(db, {
+/app/backend/routes/tasks_notifications.py:22:  await task_service.create(db, {
+/app/backend/routes/tasks_notifications.py:246:                await notification_service.fanout(db, {
+/app/backend/routes/tasks_notifications.py:35:  await notification_service.fanout(db, {
+/app/backend/routes/tasks_notifications.py:474:        task_id = await task_service.create(db, data)
+/app/backend/routes/training_center.py:340:            _s("Why Shared Infrastructure", "Before Phase E, several modules wrote tasks and notifications directly to the database — leading to inconsistent priorities, duplicate task rows, and notification drift. Phase E migrates every operational event source to call `task_service.create()` and `notification_service.fanout()` so the rules live in ONE place."),
+
+--- _audit / audit_event call sites (read-only sample top 30) ---
+/app/backend/routes/admin_directory_k4.py:292:        await ud.write_audit(
+/app/backend/routes/admin_directory_k4.py:347:        await ud.write_audit(
+/app/backend/routes/admin_directory_k4.py:409:        await ud.write_audit(
+/app/backend/routes/admin_directory_k4.py:448:        await ud.write_audit(
+/app/backend/routes/hub_banners.py:532:    async def banner_audit(banner_id: str):
+/app/backend/routes/asset_transfers.py:141:    async def _audit(transfer_id: str, action: str,
+/app/backend/routes/asset_transfers.py:145:            await append_audit(
+/app/backend/routes/asset_transfers.py:415:        await _audit(doc["id"], "requested", actor,
+/app/backend/routes/asset_transfers.py:450:        await _audit(tid, action, actor, extra or {})
+/app/backend/routes/master_lookup.py:257:    async def sot_audit():
+/app/backend/routes/fleet_ops.py:272:async def _audit(
+/app/backend/routes/fleet_ops.py:528:        await _audit(
+/app/backend/routes/fleet_ops.py:716:        await _audit(
+/app/backend/routes/fleet_ops.py:755:        await _audit(
+/app/backend/routes/fleet_ops.py:801:        await _audit(
+/app/backend/routes/fleet_ops.py:857:        await _audit(
+/app/backend/routes/fleet_ops.py:960:    async def severity_audit(
+/app/backend/routes/passkey_session_mint.py:59:                await _mfa.write_audit(
+/app/backend/routes/passkey_session_mint.py:106:            await ud_for_pk.write_audit(
+/app/backend/routes/auth_directory_routes.py:221:            await ud.write_audit(
+/app/backend/routes/auth_directory_routes.py:238:                await _mfa.write_audit(
+/app/backend/routes/auth_directory_routes.py:284:        await ud.write_audit(
+/app/backend/routes/auth_directory_routes.py:386:        await ud.write_audit(
+/app/backend/routes/auth_directory_routes.py:432:        await ud.write_audit(
+/app/backend/routes/auth_directory_routes.py:480:        await ud.write_audit(
+/app/backend/routes/auth_directory_routes.py:502:        await ud.write_audit(
+/app/backend/routes/auth_directory_routes.py:547:        await ud.write_audit(
+/app/backend/routes/auth_directory_routes.py:574:        rows = await ud.list_audit(
+/app/backend/routes/mfa_routes.py:148:        await mfa.write_audit(db, user_id=user["id"], user_email=user.get("email"),
+/app/backend/routes/mfa_routes.py:179:            await mfa.write_audit(db, user_id=user["id"], user_email=user.get("email"),
+
+--- Fleet DVIR notification check ---
+(grep for any notification/email in fleet_ops.py)
+  ZERO results — confirms ORPHAN-1
