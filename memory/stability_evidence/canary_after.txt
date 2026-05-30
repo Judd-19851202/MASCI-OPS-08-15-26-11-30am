@@ -1,0 +1,5 @@
+AFTER STATE — Canary DR DR-2026-00011 (id=0fa21157-68e5-42d7-9634-343b61e28bee)
+  Document JSON size: 32,957 bytes (32.2 KB)
+  materials[0].ticket_photos[0]: photo://masci-hub/photos/2026/05/dr_0fa21157-68e5-42d7-9634-343b61e2_mat/8cf2499cfb2e47538
+  ✅ Converted to photo:// ref (was inline base64)
+  Size delta: 397,059 → 32,957 bytes (Δ = -364,102 bytes = -355.6 KB)

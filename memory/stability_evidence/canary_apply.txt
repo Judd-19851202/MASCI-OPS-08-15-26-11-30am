@@ -1,0 +1,23 @@
+============================================================
+  GAP-1 DR PHOTO BLOAT MIGRATION
+  Target DB     : masci_safety
+  Mode          : APPLY (live)
+  Photo storage : configured
+  Backup dir    : /app/memory/dr_migration_backups
+============================================================
+  DRs to scan   : 3
+
+  [  3/3] 0fa21157: migrated  1 photos · saved 355.6 KB
+
+============================================================
+  SUMMARY (APPLIED)
+  DRs scanned         : 3
+  DRs that would change: 1
+  DRs already clean    : 2
+  DRs failed           : 0
+  Photos to migrate    : 1
+  Bytes in (base64)    :        364,211 (0.3 MB)
+  Bytes out (refs)     :            109 (0.0001 MB)
+  Net savings          : 0.3 MB (100.0%)
+  Elapsed              : 0.9 s
+============================================================
