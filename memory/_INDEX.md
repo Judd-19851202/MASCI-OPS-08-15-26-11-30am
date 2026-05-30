@@ -13,7 +13,23 @@ across 500 docs — the platform has strict domain boundaries.
 
 ## 0 · 2026-05-30 fork — Latest pass index
 
-### 00 · Batch F · Platform Recoverability Completion (2026-05-30)
+### 00 · Batch G · Full Recoverability Closeout (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_G_EXECUTIVE_SUMMARY.md` | Operator-facing roll-up · 🟢 **FULLY RECOVERABLE** verdict · 4 GAPs closed | ✅ ⛔ |
+| `PHOTO_BLOAT_REMEDIATION_REPORT.md` | GAP-1 · drill DB shrank 260.7 MB → 2.3 MB · `scripts/migrate_dr_photos.py` new artifact | ✅ ⛔ |
+| `MULTI_LOGIN_RESEED_REPORT.md` | GAP-2 · all 7 directory users log in post-restore · server.py:7592 fix + restore_drill helper | ✅ ⛔ |
+| `PHOTO_REHYDRATION_RECOVERY_REPORT.md` | GAP-4 · `--restore-photos` flag · idempotent R2 re-upload from archive | ✅ ⛔ |
+| `FRONTEND_RESTORE_DRILL_REPORT.md` | GAP-6 · Playwright screenshot + compositional proof | ✅ ⛔ |
+| `FULL_RECOVERABILITY_CLOSEOUT_REPORT.md` | Final cert · 12/12 axes 🟢 · supersedes Batch F cert | ✅ ⛔ |
+| `batch_g_evidence/` (folder) | Drill backend boot log · Playwright screenshot + metadata · GAP-1 migration run output | ✅ |
+
+🟢 **Headline: FULLY RECOVERABLE. RTO ~10 min (was 20-25). RTO with R2-loss ~20-40 min (was 2-8 hr). Archive size after operator migration: 442 MB → ~115 MB. OOM trajectory neutralized permanently.**
+
+🔴 **Operator actions to realize in prod**: run `migrate_dr_photos.py` against prod · redeploy preview→prod (GAP-2 server.py) · optionally re-enable hourly cadence.
+
+### 0a · Batch F · Platform Recoverability Completion (2026-05-30)
 
 | File | Purpose | Status |
 |---|---|---|

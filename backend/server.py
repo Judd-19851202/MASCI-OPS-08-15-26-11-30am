@@ -7591,11 +7591,16 @@ async def exports_restore(
 
     # 3. Write back to MongoDB.
     summary: Dict[str, dict] = {}
-    # If the users collection is being restored, the export redacts
-    # password_hash. Precompute the seed hash so restored rows always have
-    # a usable password (Welcome2MASCI! + must_change_password).
+    # If the users / user_directory collections are being restored, the export
+    # redacts password_hash. Precompute the seed hash so restored rows always
+    # have a usable password (Welcome2MASCI! + must_change_password).
+    # iter-batch-G (2026-05-30) extended this from `users` only to also cover
+    # `user_directory` after Batch F drill confirmed multi-login was
+    # universally broken post-restore until reseed. See GAP-2 in
+    # /app/memory/PLATFORM_RECOVERY_GAP_REPORT.md.
     _seed_hash = None
-    if "users" in bucket:
+    _NEEDS_SEED_HASH = ("users", "user_directory")
+    if any(c in bucket for c in _NEEDS_SEED_HASH):
         try:
             import bcrypt as _bc  # noqa: E402
             _seed_hash = _bc.hashpw(b"Welcome2MASCI!", _bc.gensalt()).decode("utf-8")
@@ -7611,14 +7616,14 @@ async def exports_restore(
             d.pop("_id", None)
             if "id" not in d:
                 d["id"] = str(uuid.uuid4())  # defensive — keep upsert viable
-            # Special-case: restored users lost their password_hash on export.
-            # In merge mode: keep whatever's in DB (pull it first).
-            # In replace mode (or brand-new row): stamp the seed hash +
-            # force password change so no account gets locked out.
-            if coll == "users" and "password_hash" not in d:
+            # Special-case: restored users / user_directory rows lost their
+            # password_hash on export. In merge mode: keep whatever's in DB
+            # (pull it first). In replace mode (or brand-new row): stamp the
+            # seed hash + force password change so no account gets locked out.
+            if coll in _NEEDS_SEED_HASH and "password_hash" not in d:
                 existing = None
                 if merge:
-                    existing = await db.users.find_one(
+                    existing = await db[coll].find_one(
                         {"id": d["id"]}, {"_id": 0, "password_hash": 1}
                     )
                 if existing and existing.get("password_hash"):

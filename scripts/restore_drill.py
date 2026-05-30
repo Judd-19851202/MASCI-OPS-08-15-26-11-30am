@@ -197,6 +197,95 @@ def _validate_restore(target_uri: str, target_db: str) -> dict:
     return checks
 
 
+def _seed_user_password_hashes(target_uri: str, target_db: str, verbose: bool = True) -> dict:
+    """Batch G · GAP-2 — Re-seed redacted password_hash fields on `users` and
+    `user_directory` after restore. Stamps bcrypt(Welcome2MASCI!) +
+    must_change_password=True so accounts can log in but are forced to rotate.
+    Returns counters."""
+    from pymongo import MongoClient
+    try:
+        import bcrypt as _bc  # noqa: PLC0415
+    except ImportError:
+        return {"seeded": 0, "skipped": 0, "err": "bcrypt not installed"}
+
+    seed_hash = _bc.hashpw(b"Welcome2MASCI!", _bc.gensalt()).decode("utf-8")
+    client = MongoClient(target_uri, serverSelectionTimeoutMS=5000)
+    sdb = client[target_db]
+    counters = {"seeded": 0, "skipped": 0, "by_coll": {}}
+    for coll in ("users", "user_directory"):
+        if coll not in sdb.list_collection_names():
+            counters["by_coll"][coll] = "absent"
+            continue
+        seeded = 0
+        skipped = 0
+        for row in sdb[coll].find({}, {"_id": 0, "id": 1, "email": 1, "password_hash": 1}):
+            if row.get("password_hash"):
+                skipped += 1
+                continue
+            sdb[coll].update_one(
+                {"id": row["id"]},
+                {"$set": {"password_hash": seed_hash, "must_change_password": True}},
+            )
+            seeded += 1
+        counters["by_coll"][coll] = {"seeded": seeded, "skipped": skipped}
+        counters["seeded"] += seeded
+        counters["skipped"] += skipped
+        if verbose:
+            print(f"  [{coll}] seeded={seeded} skipped={skipped}")
+    client.close()
+    return counters
+
+
+def _rehydrate_photos_to_r2(extracted: Path, env: dict, verbose: bool = True) -> dict:
+    """Batch G · GAP-4 — Re-upload photo bytes from the archive's `photos/`
+    prefix back to R2. Idempotent: skips keys that already exist in R2.
+    The archive layout is `photos/<r2_key_path>` with bytes verbatim.
+    Returns counters."""
+    photo_root = extracted / "photos"
+    if not photo_root.is_dir():
+        return {"uploaded": 0, "skipped": 0, "failed": 0, "note": "no photos/ in archive"}
+
+    import boto3  # noqa: PLC0415
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=env.get("S3_ENDPOINT_URL"),
+        aws_access_key_id=env.get("S3_ACCESS_KEY"),
+        aws_secret_access_key=env.get("S3_SECRET_KEY"),
+        region_name=env.get("S3_REGION", "auto"),
+    )
+    bucket = env.get("S3_BUCKET")
+    counters = {"uploaded": 0, "skipped": 0, "failed": 0, "bytes_uploaded": 0}
+
+    for photo_path in photo_root.rglob("*"):
+        if not photo_path.is_file():
+            continue
+        key = str(photo_path.relative_to(photo_root))
+        # idempotency: only upload if key doesn't already exist
+        try:
+            s3.head_object(Bucket=bucket, Key=key)
+            counters["skipped"] += 1
+            continue
+        except Exception:
+            pass
+        try:
+            with open(photo_path, "rb") as f:
+                body = f.read()
+            s3.put_object(Bucket=bucket, Key=key, Body=body)
+            counters["uploaded"] += 1
+            counters["bytes_uploaded"] += len(body)
+        except Exception as e:
+            counters["failed"] += 1
+            if verbose:
+                print(f"  PHOTO FAIL {key}: {type(e).__name__}: {str(e)[:80]}", file=sys.stderr)
+
+    if verbose:
+        mb = counters["bytes_uploaded"] / 1024 / 1024
+        print(f"  Photo rehydration: uploaded={counters['uploaded']} "
+              f"skipped={counters['skipped']} failed={counters['failed']} "
+              f"size={mb:.1f} MB")
+    return counters
+
+
 def cmd_restore(args, env):
     # ── safety rails ────────────────────────────────────────────────────
     live_db = env.get("DB_NAME", "")
@@ -253,6 +342,18 @@ def cmd_restore(args, env):
         for k in sorted(checks):
             print(f"    {k:<46} = {checks[k]}")
 
+        # Batch G · GAP-2 — reseed redacted password_hash fields if requested
+        if args.seed_user_passwords:
+            print("")
+            print("  Re-seeding redacted password_hash fields (GAP-2) ...")
+            _seed_user_password_hashes(args.target, args.target_db)
+
+        # Batch G · GAP-4 — re-upload photo bytes to R2 if requested
+        if args.restore_photos:
+            print("")
+            print("  Re-hydrating R2 photo bytes from archive (GAP-4) ...")
+            _rehydrate_photos_to_r2(extracted, env)
+
         total_inserted = sum(c["inserted"] for c in counters.values())
         total_bad = sum(c["skipped_bad"] for c in counters.values())
         verdict = "PASS"
@@ -281,6 +382,10 @@ def main():
                     help="print plan without downloading or writing")
     ap.add_argument("--i-know-what-i-am-doing", action="store_true",
                     help="override safety rails (do not use)")
+    ap.add_argument("--seed-user-passwords", action="store_true",
+                    help="Batch G · GAP-2: stamp Welcome2MASCI!+must_change_password on rows missing password_hash")
+    ap.add_argument("--restore-photos", action="store_true",
+                    help="Batch G · GAP-4: re-upload archive's photos/ prefix to R2 (idempotent)")
     args = ap.parse_args()
 
     if args.list:
