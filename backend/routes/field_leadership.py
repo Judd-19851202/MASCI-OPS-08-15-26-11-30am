@@ -457,6 +457,48 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                 except Exception:
                     pass
 
+            # BATCH K · OMEGA-5 / G-P1-01 — fan-out task + bell to safety
+            # for FL form submissions. Same fire-and-forget pattern.
+            try:
+                from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+                kind = (rec.get("kind") or "form").replace("_", " ")
+                emp = (
+                    (rec.get("employee_name") or "")
+                    or (rec.get("subject_name") or "")
+                    or "—"
+                )
+                title = f"FL — {kind.title()} · {emp[:60]}"
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (
+                            f"Submitted by: {rec.get('submitted_by_name') or rec.get('submitted_by') or '—'} · "
+                            f"Kind: {rec.get('kind') or '—'} · "
+                            f"Doc: {rec.get('doc_id') or rec.get('id')}"
+                        )[:4000],
+                        "source_module": "field_leadership.records",
+                        "source_record_id": rec["id"],
+                        "assignee_role": "safety",
+                        "priority": "Medium",
+                        "created_by": {"role": "system", "via": "fl-fanout"},
+                    },
+                    notification={
+                        "type": "fl.submitted",
+                        "title": title[:200],
+                        "message": (
+                            f"Kind: {rec.get('kind') or '—'} · "
+                            f"Submitted by: {rec.get('submitted_by_name') or rec.get('submitted_by') or '—'}"
+                        )[:200],
+                        "severity": "Info",
+                        "recipient_role": "safety",
+                        "linked_source_module": "field_leadership.records",
+                        "linked_source_record_id": rec["id"],
+                    },
+                )
+            except Exception:
+                pass
+
             rec.pop("_id", None)
             return {"ok": True, "id": rec["id"], "record": rec}
 

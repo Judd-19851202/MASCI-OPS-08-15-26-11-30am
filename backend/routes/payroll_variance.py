@@ -331,6 +331,27 @@ def build_payroll_variance_router(db, require_hr_user_dep: Callable) -> APIRoute
         }
         await db.payroll_variance_batches.insert_one(doc)
         doc.pop("_id", None)
+        # BATCH K · OMEGA-13 / G-P2-01 — audit-only notification to admin
+        # on every manual run. HR Manager sees the result on-screen
+        # (existing); admin gets a visibility line in the bell digest.
+        try:
+            from lib.event_fanout import emit_notification  # noqa: PLC0415
+            title = f"Payroll Variance manual run — week {doc.get('week_ending')}"
+            await emit_notification(db, {
+                "type": "payroll_variance.manual_run",
+                "title": title[:200],
+                "message": (
+                    f"Rows: {doc.get('total_rows', 0)} · "
+                    f"Flagged: {doc.get('flagged_rows', 0)} · "
+                    f"Run by: {doc.get('created_by') or '—'}"
+                )[:200],
+                "severity": "Info",
+                "recipient_role": "admin",
+                "linked_source_module": "hr.payroll_variance",
+                "linked_source_record_id": doc["id"],
+            })
+        except Exception:
+            pass
         return {"ok": True, "batch": doc}
 
     @router.get("/recent")

@@ -1,6 +1,50 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-30 (fork) — Batch K · Symmetric Notification Fan-Out Wiring ✅ COMPLETE
+
+### Operator directive (OMEGA Execution Lock · Batch K)
+> "Close the 5 documented visibility/notification gaps. Nothing else."
+
+### 🟢 VERDICT: PASS · 7 fan-out paths wired · all verified live · zero regressions
+
+**Gaps closed (5 documented · 7 fan-out paths total):**
+- OMEGA-5 / G-P1-01 — Field Leadership 10 forms (`routes/field_leadership.py:451`)
+- OMEGA-6 / G-P1-02 — Safety Equipment Issuance + Training + Return (`routes/safety_forms.py`)
+- OMEGA-7 / G-P1-03 — JHA submit (`routes/safety.py:518`)
+- OMEGA-8 / G-P1-04 / NEW-GAP-A — Safety Meeting submit (`routes/safety.py:464`)
+- OMEGA-13 / G-P2-01 — Payroll Variance manual run (`routes/payroll_variance.py:332`)
+
+**Implementation footprint:**
+- ~235 LOC added across 4 backend files (`safety.py`, `field_leadership.py`, `safety_forms.py`, `payroll_variance.py`)
+- 0 new endpoints · 0 schema changes · 0 env changes · 0 frontend changes
+- All files lint-clean (ruff)
+- Pattern: canonical `lib/event_fanout.emit_task_and_notification(...)` (proven by `routes/equipment.py:234`)
+
+**Live validation:**
+- 7 smoke submissions exercised (5 via HTTP · 1 via HTTP · 1 via Python-direct due to preview HR auth)
+- Live counts confirmed: each path emits exactly 1 task + 2 notifs (explicit + auto `task.assigned`)
+- All smoke records cleaned · DB returned to exact baseline (571 tasks · 1237 notifications)
+- Backend `/api/health` 200 OK throughout · hot-reload effective
+
+**Truth Map + Gap Ledger reconciliation:**
+- 4 soft orphans (SOFT-1/2/3 + NEW-GAP-A) → 🟢 RESOLVED
+- P1 count: 8 → 3 (5 closed)
+- P2 count: 6 → 5 (1 closed)
+- 1 🔴 remaining: OMEGA-3 / Fleet DVIR (Batch L)
+
+**Stop-condition compliance:**
+✅ Only 5 documented gaps closed · ✅ No UI · ✅ No new features · ✅ No mockups · ✅ Zero unrelated work · ✅ Cleanup verified
+
+**STOP. Awaiting operator authorization for Batch L (Fleet DVIR implementation).**
+
+Deliverable: `/app/memory/BATCH_K_CERTIFICATION.md`
+
+---
+
+
+
+
 ## 2026-05-30 (fork) — OMEGA · MASCI Operational Perfection Program ✅ COMPLETE
 
 ### Operator directive (2026-05-30)

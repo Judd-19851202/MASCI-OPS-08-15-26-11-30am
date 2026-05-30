@@ -462,6 +462,41 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         await db.meetings.insert_one(doc)
         doc.pop("_id", None)
         schedule_auto_email("meeting", doc)
+        # BATCH K · OMEGA-8 / NEW-GAP-A — fan-out task + bell to safety.
+        try:
+            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+            title = f"Safety Meeting — {(doc.get('topic') or 'topic')[:80]}"
+            await emit_task_and_notification(
+                db,
+                task={
+                    "title": title[:200],
+                    "description": (
+                        f"Project: {doc.get('project_name') or '—'} · "
+                        f"Date: {doc.get('meeting_date') or '—'} · "
+                        f"Conducted by: {doc.get('conducted_by') or '—'} · "
+                        f"Attendees: {len(doc.get('attendees') or [])}"
+                    )[:4000],
+                    "source_module": "safety.meeting",
+                    "source_record_id": meeting.id,
+                    "assignee_role": "safety",
+                    "priority": "Medium",
+                    "created_by": {"role": "system", "via": "meeting-fanout"},
+                },
+                notification={
+                    "type": "meeting.submitted",
+                    "title": title[:200],
+                    "message": (
+                        f"Project: {doc.get('project_name') or '—'} · "
+                        f"Conducted by: {doc.get('conducted_by') or '—'}"
+                    )[:200],
+                    "severity": "Info",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.meeting",
+                    "linked_source_record_id": meeting.id,
+                },
+            )
+        except Exception:
+            pass
         return meeting
 
     @api_router.get("/meetings", response_model=List[MeetingSummary])
@@ -516,6 +551,41 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         await db.jhas.insert_one(doc)
         doc.pop("_id", None)
         schedule_auto_email("jha", doc)
+        # BATCH K · OMEGA-7 — fan-out task + bell to safety.
+        try:
+            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+            title = f"JHA — {(doc.get('job_title') or 'job')[:80]}"
+            await emit_task_and_notification(
+                db,
+                task={
+                    "title": title[:200],
+                    "description": (
+                        f"Project: {doc.get('project_name') or '—'} · "
+                        f"Date: {doc.get('jha_date') or '—'} · "
+                        f"Crew lead: {doc.get('crew_lead') or '—'} · "
+                        f"Task steps: {len(doc.get('task_steps') or [])}"
+                    )[:4000],
+                    "source_module": "safety.jha",
+                    "source_record_id": jha.id,
+                    "assignee_role": "safety",
+                    "priority": "Medium",
+                    "created_by": {"role": "system", "via": "jha-fanout"},
+                },
+                notification={
+                    "type": "jha.submitted",
+                    "title": title[:200],
+                    "message": (
+                        f"Project: {doc.get('project_name') or '—'} · "
+                        f"Crew lead: {doc.get('crew_lead') or '—'}"
+                    )[:200],
+                    "severity": "Info",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.jha",
+                    "linked_source_record_id": jha.id,
+                },
+            )
+        except Exception:
+            pass
         return jha
 
     @api_router.get("/jhas", response_model=List[JhaSummary])

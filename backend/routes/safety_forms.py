@@ -938,6 +938,44 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         await db.safety_equipment_issuances.insert_one(dict(rec))
         rec.pop("_id", None)
         _schedule_email("issuance", rec)
+        # BATCH K · OMEGA-6 / G-P1-02 — fan-out task + bell to safety
+        # for PPE issuance. Fire-and-forget; never blocks save.
+        try:
+            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+            emp = rec.get("employee_name") or "—"
+            title = f"PPE Issuance — {emp[:80]}"
+            await emit_task_and_notification(
+                db,
+                task={
+                    "title": title[:200],
+                    "description": (
+                        f"Project: {rec.get('project_name') or '—'} · "
+                        f"Issued by: {rec.get('issued_by') or '—'} · "
+                        f"Items: {len(rec.get('items') or [])} · "
+                        f"Total value: ${rec.get('total_value') or 0:.2f} · "
+                        f"Doc: {rec.get('doc_id') or rec.get('id')}"
+                    )[:4000],
+                    "source_module": "safety.form.issuance",
+                    "source_record_id": rec["id"],
+                    "assignee_role": "safety",
+                    "priority": "Medium",
+                    "created_by": {"role": "system", "via": "issuance-fanout"},
+                },
+                notification={
+                    "type": "safety_form.issuance.submitted",
+                    "title": title[:200],
+                    "message": (
+                        f"Items: {len(rec.get('items') or [])} · "
+                        f"Total: ${rec.get('total_value') or 0:.2f}"
+                    )[:200],
+                    "severity": "Info",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.form.issuance",
+                    "linked_source_record_id": rec["id"],
+                },
+            )
+        except Exception:
+            pass
         return {"ok": True, "id": rec["id"], "doc_id": rec.get("doc_id"), "total_value": rec["total_value"]}
 
     @router.get("/equipment-issuances")
@@ -1055,6 +1093,27 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         # Re-fetch the updated parent for the email payload
         parent = await db.safety_equipment_issuances.find_one({"id": rec_id}, {"_id": 0})
         _schedule_email("return", parent or issuance, ret)
+        # BATCH K · OMEGA-6 / G-P1-02 — fan-out notification (no new task —
+        # return closes the existing issuance). Fire-and-forget.
+        try:
+            from lib.event_fanout import emit_notification  # noqa: PLC0415
+            chargeback = (ret.get("chargeback") or {}).get("total") or 0
+            emp = (parent or issuance).get("employee_name") or "—"
+            title = f"PPE Return — {emp[:80]}"
+            await emit_notification(db, {
+                "type": "safety_form.return.submitted",
+                "title": title[:200],
+                "message": (
+                    f"Chargeback: ${chargeback:.2f} · "
+                    f"Items: {len(ret.get('items') or [])}"
+                )[:200],
+                "severity": "Info" if chargeback == 0 else "Warning",
+                "recipient_role": "safety",
+                "linked_source_module": "safety.form.return",
+                "linked_source_record_id": rec_id,
+            })
+        except Exception:
+            pass
         return {"ok": True, "id": rec_id, "chargeback": cb}
 
     @router.get("/equipment-issuances/{rec_id}/return/pdf")
@@ -1094,6 +1153,44 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         await db.safety_equipment_trainings.insert_one(dict(rec))
         rec.pop("_id", None)
         _schedule_email("training", rec)
+        # BATCH K · OMEGA-6 / G-P1-02 — fan-out task + bell to safety
+        # for PPE training. Fire-and-forget; never blocks save.
+        try:
+            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+            emp = rec.get("employee_name") or "—"
+            title = f"PPE Training — {emp[:80]}"
+            await emit_task_and_notification(
+                db,
+                task={
+                    "title": title[:200],
+                    "description": (
+                        f"Project: {rec.get('project_name') or '—'} · "
+                        f"Instructor: {rec.get('instructor_name') or '—'} · "
+                        f"Items trained: {len(rec.get('items') or [])} · "
+                        f"Date: {rec.get('training_date') or '—'} · "
+                        f"Doc: {rec.get('doc_id') or rec.get('id')}"
+                    )[:4000],
+                    "source_module": "safety.form.training",
+                    "source_record_id": rec["id"],
+                    "assignee_role": "safety",
+                    "priority": "Medium",
+                    "created_by": {"role": "system", "via": "training-fanout"},
+                },
+                notification={
+                    "type": "safety_form.training.submitted",
+                    "title": title[:200],
+                    "message": (
+                        f"Instructor: {rec.get('instructor_name') or '—'} · "
+                        f"Items: {len(rec.get('items') or [])}"
+                    )[:200],
+                    "severity": "Info",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.form.training",
+                    "linked_source_record_id": rec["id"],
+                },
+            )
+        except Exception:
+            pass
         return {"ok": True, "id": rec["id"], "doc_id": rec.get("doc_id")}
 
     @router.get("/equipment-trainings")
