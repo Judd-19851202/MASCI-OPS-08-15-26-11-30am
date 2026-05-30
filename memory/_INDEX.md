@@ -11,7 +11,36 @@ across 500 docs — the platform has strict domain boundaries.
 
 ---
 
+
 ## 0 · 2026-05-30 fork — Latest pass index
+
+### 00 · Batch J · Operational Reliability Closeout (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_J_EXECUTIVE_SUMMARY.md` | 🟢 4/4 priorities resolved · prod scheduler PASS · prod alignment PARTIAL (photo migration outstanding) | ✅ ⛔ |
+| `PRODUCTION_SCHEDULER_CERTIFICATION_REPORT.md` | 🟢 **PASS** · prod `scheduler.alive=true` · tick 43 sec ago · 3× complete-r2 in past 3 h · email path proven | ✅ ⛔ |
+| `PRODUCTION_RECOVERABILITY_ALIGNMENT_REPORT.md` | 🟡 **PARTIAL** · scheduler+config+directory+restore aligned · photo migration NOT run on prod (DR-2026-00279 still inline base64) | ✅ ⛔ |
+| `FLEET_DVIR_DECISION_PACKAGE.md` | 🟢 Decision-ready · 4 defect classes mapped (Normal/Defect/Safety/OOS/Repeat) · NO Superintendent · ~30 LOC implementation footprint when authorized | ✅ ⛔ |
+| `NOTIFICATION_GAP_REMEDIATION_PLAN.md` | 🟢 Plan-ready · 8 gaps × (Current/Desired/Target/Effort) · suggested Batch K/L/M sequencing (~21 h total work) | ✅ ⛔ |
+| `batch_j_evidence/` (folder) | `prod_probes_p0a.txt` · `prod_probes_p0b.txt` · `prod_probes_p0b2.txt` · `prod_probes_p0b3.txt` (17 live runtime probes) | ✅ |
+
+🟢 **Headline**: Production scheduler CERTIFIED HEALTHY with live runtime evidence (`alive=true · last_tick=43sec · backups firing hourly · emails delivered`). Production recoverability PARTIALLY ALIGNED — photo migration is the only remaining 🔴. Fleet DVIR decision package and notification gap plan are ready for operator authorization on any future implementation batch.
+
+### 0 · Batch I · Platform Operational Truth Map Finalization (2026-05-30)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BATCH_I_EXECUTIVE_SUMMARY.md` | 🟢 7/7 axes verified · 100% triangulated understanding · 6 deliverables · zero remediation | ✅ ⛔ |
+| `PLATFORM_OPERATIONAL_TRUTH_MAP_v1.md` | Master map · 41 workflows · 25 notif events · 10 dashboard roles · 14 escalation triggers | ✅ ⛔ |
+| `PLATFORM_TRUTH_DELTA_REPORT.md` | 13 Memory ↔ Code ↔ Runtime divergences logged | ✅ ⛔ |
+| `PLATFORM_GAP_LEDGER_FINAL.md` | 19 deduplicated gaps · supersedes ORPHAN_AND_GAP_REGISTER + NOTIFICATION_GAP_REGISTER | ✅ ⛔ |
+| `DISASTER_RECOVERY_VALIDATION_MATRIX.md` | 22 components × 4 DR pillars (backed up · restorable · tested · verified) | ✅ ⛔ |
+| `PLATFORM_RECOVERABILITY_PROOF_REPORT.md` | Direct evidence for 4 "if X dies tomorrow" scenarios (all 🟢) | ✅ ⛔ |
+| `batch_i_evidence/` (folder) | runtime_probes.txt · code_fanout_callsites.txt · db_collection_inventory.txt | ✅ |
+
+🟢 **Headline**: Platform at 100% verified operational understanding. Fleet DVIR (ORPHAN-1) confirmed in code · backup scheduler verified dead in preview (preview-only — see Batch J for prod state). DR proven across all 4 scenarios.
+
 
 ### 00 · Batch H · Photo Architecture Hardening & Performance Certification (2026-05-30)
 

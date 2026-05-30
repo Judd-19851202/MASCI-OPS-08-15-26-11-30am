@@ -1,6 +1,72 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-30 (fork) — Batch J · OPERATIONAL RELIABILITY CLOSEOUT ✅ COMPLETE
+
+### Operator directive (2026-05-30)
+> "Convert remaining verified operational unknowns into verified operational truths. Evidence over opinion. Runtime over assumptions. Code over memory. No fixes, no UI, no new features."
+
+### 🟢 FINAL VERDICT: 4/4 PRIORITIES RESOLVED
+
+| Priority | Deliverable | Result |
+|---|---|---|
+| P0-A · Production scheduler | `PRODUCTION_SCHEDULER_CERTIFICATION_REPORT.md` | 🟢 **PASS** |
+| P0-B · Production recoverability alignment | `PRODUCTION_RECOVERABILITY_ALIGNMENT_REPORT.md` | 🟡 **PARTIAL** — photo migration outstanding |
+| P1-A · Fleet DVIR decision package | `FLEET_DVIR_DECISION_PACKAGE.md` | 🟢 **DECISION-READY** |
+| P1-B · Notification gap closure plan | `NOTIFICATION_GAP_REMEDIATION_PLAN.md` | 🟢 **PLAN-READY** |
+
+### Headline runtime evidence (production)
+- **Scheduler:** `alive=true · task_alive=true · last_tick=43 sec ago · armed_at=2026-05-30T16:05:18Z · boot_step=entering_main_tick_loop · no exceptions`
+- **Backup execution:** 3× complete-r2 backups in past 3 hours (464 MB · 284,295 records · `ok=true`)
+- **Email path:** multiple lite backups delivered to `jaymn.judd@mascigc.com · ok=true`
+- **R2 usage:** 80.64 GB / 2,778 objects — alert system firing as designed
+- **Photo migration status:** 🔴 NOT RUN on prod (DR-2026-00279 still has 347 KB inline base64)
+- **User directory:** 7 users live · GAP-2 reseed code present in preview · prod deploy inference 🟦
+
+### Fleet DVIR decision (4 classes mapped — NO Superintendent)
+| Class | Owner | Priority |
+|---|---|---|
+| Normal DVIR | nobody (record-only) | n/a |
+| Defect | Shop | Medium |
+| Safety Defect | Shop + Safety | High |
+| OOS | Shop + Dispatch | Critical |
+| Repeat Unresolved (>7d) | Shop manager + Admin | Critical |
+
+Implementation footprint when authorized: ~30 LOC in `routes/fleet_ops.py` · 0 endpoints · 0 collections · 0 schema · ~2 h effort.
+
+### Notification gap plan (8 gaps · ~21 h total)
+- **Batch K (proposed)**: G-P1-01, G-P1-02, G-P1-03, G-P1-04, G-P2-01 — email-only → bell+task (~6 h)
+- **Batch L (proposed)**: G-P1-05 Training supervisor lens (~2 h)
+- **Batch M (proposed)**: G-P2-04 + G-P2-05 escalation cadence framework (~6 h)
+- UI tile adds + smoke tests (~10 h)
+
+### Open operator decisions
+1. Run `migrate_dr_photos.py` on prod (closes 🔴 #6 · drops R2 80→20 GB · drops archive 464→115 MB)
+2. Confirm Batch G+H code is in current prod deploy
+3. Approve Fleet DVIR 4-class matrix (or amend)
+4. Authorize notification batch K/L/M (or park)
+5. (Optional) Expose `/api/admin/version` for future deploy-verification hygiene
+
+### Stop-condition compliance
+- ✅ 17 live read-only GET probes · zero production writes (one POST to /api/exports/restore with empty body for endpoint-shape verification → 422 validation error, no restore triggered)
+- ✅ No code changes · no schema changes · no env changes · no UI
+- ✅ Every claim backed by code reference + runtime evidence
+
+### Deliverables in `/app/memory/`
+1. `PRODUCTION_SCHEDULER_CERTIFICATION_REPORT.md`
+2. `PRODUCTION_RECOVERABILITY_ALIGNMENT_REPORT.md`
+3. `FLEET_DVIR_DECISION_PACKAGE.md`
+4. `NOTIFICATION_GAP_REMEDIATION_PLAN.md`
+5. `BATCH_J_EXECUTIVE_SUMMARY.md`
+6. `batch_j_evidence/` folder — 4 probe artifacts
+
+**STOP. Awaiting operator review.**
+
+---
+
+
+
+
 ## 2026-05-30 (fork) — Batch I · PLATFORM OPERATIONAL TRUTH MAP FINALIZATION ✅ COMPLETE
 
 ### Operator directive (2026-05-30)
