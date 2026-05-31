@@ -8901,6 +8901,18 @@ app.include_router(
 )
 
 
+# ─── Executive Operations Command Center (Pillar 2 · Phase A · iter500) ──
+# Single read-only Admin endpoint synthesizing 5 cards (Jobs · Safety ·
+# Equipment · Accountability · Approvals) over EXISTING collections.
+# See FINAL_PHASE_A_RECOMMENDATION.md and EXECUTIVE_SCORING_CERTIFICATION.md.
+from routes.command_center import build_command_center_router  # noqa: E402
+
+app.include_router(
+    build_command_center_router(db, require_admin_strict),
+    prefix="/api",
+)
+
+
 # ─── Deploy Readiness Aggregator (iter136) ──────────────────────────
 from routes.deploy_readiness import build_deploy_readiness_router  # noqa: E402
 

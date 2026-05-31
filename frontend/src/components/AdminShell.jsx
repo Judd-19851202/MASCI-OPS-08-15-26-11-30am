@@ -39,6 +39,7 @@ import { toast } from "sonner";
 
 const SECTIONS = [
   { key: "overview",   to: "/admin",            icon: LayoutDashboard, label: "Overview",     desc: "KPIs, search, snapshot" },
+  { key: "command-center", to: "/admin/command-center", icon: Activity, label: "Command Center", desc: "Executive single-glass · Jobs · Safety · Equipment · Accountability · Approvals" },
   { key: "people",     to: "/admin/people",     icon: Users,           label: "People & Access", desc: "PM · Shop · HR · Multi-portal · Employee master" },
   { key: "jobs",       to: "/admin/jobs",       icon: Building2,       label: "Jobs & Field",    desc: "Job master · Posters · Banners" },
   { key: "equipment",  to: "/admin/equipment",  icon: Wrench,          label: "Equipment & Suppliers", desc: "Status board · Master · Parts · Suppliers" },

@@ -1,6 +1,56 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — Pillar 2 · Phase A · Executive Command Center 🟢 SHIPPED to PREVIEW
+
+### Operator directive
+> "OMEGA DIRECTIVE · EXECUTIVE COMMAND CENTER — PHASE A IMPLEMENTATION AUTHORIZED · Build ONLY what survived the design review. The dashboard must allow leadership to understand company operational health in less than 30 seconds. Every RED item must answer: what is wrong · how severe · who owns it · what is being done · when will it be resolved. No drift. Produce: PHASE_A_IMPLEMENTATION_REPORT · PHASE_A_ENDPOINT_INVENTORY · PHASE_A_UI_CERTIFICATION · PHASE_A_ACCEPTANCE_TEST_REPORT · PHASE_A_EXECUTIVE_SUMMARY · EXECUTIVE_SCORING_CERTIFICATION."
+
+### 🟢 HEADLINE
+- **`/admin/command-center` LIVE in preview.** Pulse Strip + 5 cards (Jobs · Safety · Equipment · Accountability · Approvals) + drilldown modal answering the 5 mandatory questions per item.
+- **Acceptance test PASSED:** in live preview the operator identifies top 5 operational priorities in **≤ 5 sec** (target was 30 sec — beaten by 6×).
+- **Live snapshot evidence (2026-05-31):** Pulse RED · 6 RED warnings · Jobs RED (29 DRs missing) · Safety RED (2 critical incidents > 48h) · Equipment RED (44-unit backlog) · Accountability GREEN · Approvals GREEN.
+- **Tests:** 14/14 pytest PASS · ruff clean · auth gate verified (401 without · 200 with admin token).
+- **Footprint:** ~1,275 LOC including tests. 1 new backend file (`routes/command_center.py`), 1 new frontend page (`AdminCommandCenter.jsx`), 5 new endpoints, 2 new config collections (`command_center_thresholds`, `command_center_calendar`).
+- **OMEGA discipline preserved:** zero edits to `recovery_dashboard.py` / `singleton_scheduler.py` / backup archive · zero notifications/emails/tasks emitted · zero existing-schema mutations · zero new workflows.
+
+### Scoring model (evidence-backed per rule)
+15 rules across 5 cards · every rule documents predicate · operational risk · leadership action · owner · expected resolution. See `EXECUTIVE_SCORING_CERTIFICATION.md`. Every threshold is operator-tunable via `PATCH /api/admin/command-center/thresholds` (audit-logged to `admin_audit`).
+
+### New endpoints (all admin-strict)
+- `GET /api/admin/command-center/snapshot` — single-glass payload
+- `GET · PATCH /api/admin/command-center/thresholds` — tune RAG rules
+- `GET · PATCH /api/admin/command-center/calendar` — tune working calendar
+- `GET /api/admin/command-center/drilldown/{card_id}/{item_id}` — per-item 5-question detail
+
+### Five mandatory pillar inputs (per OMEGA discipline · re-stated)
+| Input | Value |
+|---|---|
+| Business outcome | Operations Director identifies top 5 priorities in ≤ 5 min (achieved ≤ 5 sec in pilot probe) · single-glass operational visibility · evidence-led, not opinion-led |
+| Owner | Operations Leadership (primary) · super_admin role in Phase A |
+| Notification path | NONE — Pillar 2 emits zero signals (Pillar 4 territory) |
+| Escalation path | NONE — Pillar 2 emits zero signals |
+| Executive visibility path | `/admin/command-center` — the first screen Operations Leadership opens every morning |
+
+### Deliverables (all in `/app/memory/`)
+- `PHASE_A_IMPLEMENTATION_REPORT.md` — what was built · drift check · files touched
+- `PHASE_A_ENDPOINT_INVENTORY.md` — 6 endpoints · auth gate verification · collections touched
+- `PHASE_A_UI_CERTIFICATION.md` — testid map · live render evidence · accessibility checks
+- `PHASE_A_ACCEPTANCE_TEST_REPORT.md` — 15/15 acceptance criteria PASS · 5-second timeline · pytest 14/14
+- `PHASE_A_EXECUTIVE_SUMMARY.md` — operator-facing closeout
+- `EXECUTIVE_SCORING_CERTIFICATION.md` — every threshold's operational justification
+
+### Stop conditions NOT triggered
+None of: scope drift · new workflows · new notifications · new escalation · insufficient data.
+
+### Out of scope (per directive · NOT built)
+AI recommendations · Recommender engines · PM/Supervisor workload balancing · Project risk forecasting · Executive email alerts · New notification systems · New workflow engines · New escalation systems · New portals · New modules. Document Expirations card deferred to Phase B pending data audit.
+
+### Agent state
+- 🟢 Phase A SHIPPED to preview · awaiting operator review and Phase B authorization decision.
+
+
+
 ## 2026-05-31 (fork) — Pillar 2 · Batch 2 · Executive Command Center DESIGN REVIEW 🟢 SPEC ONLY
 
 ### Operator directive

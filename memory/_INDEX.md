@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 2 design review + slim Phase A recommendation)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 2 Phase A Command Center shipped to preview)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -10,6 +10,25 @@ across 500 docs — the platform has strict domain boundaries.
 > 🟡 deferred · ⛔ read-before-touching · 🚫 ABANDONED/DO-NOT-IMPLEMENT
 
 ---
+
+
+
+### 00 · Pillar 2 · Phase A · Executive Command Center SHIPPED (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `PHASE_A_EXECUTIVE_SUMMARY.md` | One-page operator-facing closeout · live preview numbers · OMEGA scorecard | 🟢 ⛔ |
+| `PHASE_A_IMPLEMENTATION_REPORT.md` | What was built · drift check · 15/15 acceptance criteria | 🟢 ⛔ |
+| `PHASE_A_ENDPOINT_INVENTORY.md` | 6 admin-strict endpoints · auth gate verified · MongoDB collections touched | 🟢 ⛔ |
+| `PHASE_A_UI_CERTIFICATION.md` | testid map · render evidence (live preview) · accessibility checks | 🟢 ⛔ |
+| `PHASE_A_ACCEPTANCE_TEST_REPORT.md` | Timed 5-second acceptance test · pytest 14/14 · auth gate · drift verification | 🟢 ⛔ |
+| `EXECUTIVE_SCORING_CERTIFICATION.md` | 15 rules · evidence-backed thresholds · 5-question contract per rule | 🟢 ⛔ |
+
+🟢 **Headline**: Executive Operations Command Center is LIVE in preview. `/admin/command-center`. Single-glass · 30-second readable · 5 cards (Jobs/Safety/Equipment/Accountability/Approvals) · drilldown modal answers what/why/who/being-done/ETA. 14/14 tests PASS. Zero drift. Backup architecture FROZEN. Pillars 1/3/4 untouched. Awaiting operator review and Phase B authorization decision.
+
+**New endpoints (admin-strict)**: `/api/admin/command-center/snapshot · /thresholds · /calendar · /drilldown/{card}/{id}`.
+**New frontend route**: `/admin/command-center` (RequireAdmin).
+**New collections**: `command_center_thresholds` (config doc · operator-tunable RAG rules) · `command_center_calendar` (config doc · working-day awareness).
 
 
 
