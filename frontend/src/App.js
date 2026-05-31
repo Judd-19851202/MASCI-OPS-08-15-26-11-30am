@@ -56,6 +56,7 @@ import FleetVisibility from "@/pages/FleetVisibility";
 import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
+import AdminRecovery from "@/pages/admin/AdminRecovery";
 import AdminGuide from "@/pages/AdminGuide";
 import AdminLeadershipEquipment from "@/pages/AdminLeadershipEquipment";
 import AdminTerminations from "@/pages/AdminTerminations";
@@ -395,6 +396,7 @@ function App() {
             <Route path="/admin/training" element={A(<AdminTraining />)} />
             <Route path="/admin/compliance" element={A(<AdminCompliance />)} />
             <Route path="/admin/system" element={A(<AdminSystem />)} />
+            <Route path="/admin/recovery" element={A(<AdminRecovery />)} />
             <Route path="/admin/database" element={A(<AdminDatabase />)} />
             <Route path="/admin/integrations" element={A(<AdminIntegrationCenter />)} />
             <Route path="/admin/dispatch" element={A(<AdminDispatch />)} />

@@ -30412,3 +30412,26 @@ omitting them yields the same submit behavior as pre-Wave-1A. The
 5. Pick Wave-1C scope (offline hardening + DR PDF footer · ~2.5–3 dev-days)
 6. Issue authorization command — only then does the next wave begin
 
+
+---
+
+## OMEGA Operational Perfection Execution Track · 2026-05-30/31
+
+### iter441 (deployed prod) · iter442/443/444 (preview · awaiting deploy)
+
+| Phase | Outcome | Code anchor | Report |
+|---|---|---|---|
+| Phase A · iter442 photo-coverage closure | 🟢 100% photo recoverability proven on preview drill | `server.py:_iter_photo_refs:5736-5817` | `PHOTO_COVERAGE_CLOSEOUT_REPORT.md` |
+| Phase B · Unified safety fan-out (G-P1-01/02/03/04) | 🟢 closed — meeting/JHA/FL/PPE-issuance/training/return all emit task+bell+email | `routes/safety.py:466-588 · routes/field_leadership.py:460-500 · routes/safety_forms.py:941/1096/1156` | `SAFETY_FANOUT_VALIDATION_REPORT.md` |
+| Phase C · Fleet DVIR active workflow (G-P0-01) | 🟢 closed — submit fan-out Shop task + Shop bell (+Dispatch on OOS); 4-state lifecycle | `routes/fleet_ops.py:546-643` | `DVIR_WORKFLOW_CERTIFICATION.md` |
+| Phase D · iter443 Recovery Dashboard | 🟢 live on preview · `/admin/recovery` · single read-only endpoint | `routes/recovery_dashboard.py` (NEW · 269 LOC) + `pages/admin/AdminRecovery.jsx` (NEW · 313 LOC) | `RECOVERY_DASHBOARD_DEPLOY_REPORT.md` |
+| Phase E · iter444 Automated Restore Drill | 🟢 end-to-end loop verified · 10/10 axes green on iter442 archive · drill_runs row · dashboard pickup confirmed | `scripts/automated_drill.py` (NEW · 460 LOC) | `AUTOMATED_DRILL_CERTIFICATION.md` |
+
+**Preview source_hash:** `533c269640ae7153de97ac56a998089a`
+**Production source_hash:** `1102506396b6c26a71df7cf3d2a6354a` (iter441 only — Phases A-E pending operator-button deploy)
+
+**Open authorization queue (operator decisions):**
+- iter442/443/444 production deploy (single button)
+- `BACKUP_R2_HOURLY=true` enablement (still deferred per OMEGA stop-list)
+- Batch N · Repeat-Unresolved escalation framework (would close G-P2-04 + G-P2-05 + DVIR-repeat together)
+- `drill-photos/*` 7-day R2 lifecycle rule (requested in spec §1.2; needs operator R2 lifecycle authorization)

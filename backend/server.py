@@ -5735,15 +5735,35 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
 
 def _iter_photo_refs(doc):
     """Yield every photo:// reference found anywhere in a Mongo document.
-    Covers top-level ``photos`` arrays AND nested
-    ``items[].photos`` / ``items[].return_photos`` for equipment forms.
+
+    iter441 coverage:
+      • top-level ``photos`` array
+      • ``items[].photos`` / ``items[].return_photos`` / ``items[].original_photos``
+        for equipment forms.
+
+    iter442 coverage (closes 63-ref gap identified in PHOTO_COVERAGE_CERTIFICATION.md):
+      • ``materials[].ticket_photos`` for daily_reports material delivery tickets
+      • ``subcontractors[].photos`` for daily_reports subcontractor records
+      • top-level signature fields stored as ``photo://`` refs
+        (``prepared_by_signature``, ``reporter_signature``,
+        ``supervisor_signature``, ``conductor_signature``)
+
+    Any future schema additions that store photo refs at new JSON paths must
+    extend this function — the archive auto-discovery walker (Pipeline A + B)
+    is the single audit point for photo backup coverage.
     """
-    photos = doc.get("photos") if isinstance(doc, dict) else None
+    if not isinstance(doc, dict):
+        return
+
+    # iter441 — top-level photos[]
+    photos = doc.get("photos")
     if isinstance(photos, list):
         for p in photos:
             if isinstance(p, str):
                 yield p
-    items = doc.get("items") if isinstance(doc, dict) else None
+
+    # iter441 — equipment items[].photos / .return_photos / .original_photos
+    items = doc.get("items")
     if isinstance(items, list):
         for it in items:
             if not isinstance(it, dict):
@@ -5754,6 +5774,50 @@ def _iter_photo_refs(doc):
                     for p in v:
                         if isinstance(p, str):
                             yield p
+
+    # iter442 — daily_reports materials[].ticket_photos
+    materials = doc.get("materials")
+    if isinstance(materials, list):
+        for m in materials:
+            if not isinstance(m, dict):
+                continue
+            v = m.get("ticket_photos")
+            if isinstance(v, list):
+                for p in v:
+                    if isinstance(p, str):
+                        yield p
+
+    # iter442 — daily_reports subcontractors[].photos
+    subs = doc.get("subcontractors")
+    if isinstance(subs, list):
+        for s in subs:
+            if not isinstance(s, dict):
+                continue
+            v = s.get("photos")
+            if isinstance(v, list):
+                for p in v:
+                    if isinstance(p, str):
+                        yield p
+
+    # iter442 — top-level signature fields stored as photo:// refs.
+    # Generic detection: any top-level string field whose name ends with
+    # `_signature` OR is `signature` itself is yielded if it begins with
+    # `photo://`. This auto-discovers future signature fields without
+    # requiring this function to be re-touched. Empirically present in
+    # production / preview today:
+    #   • prepared_by_signature       (daily_reports)
+    #   • superintendent_signature    (daily_reports)
+    #   • operator_signature          (equipment_inspections)
+    #   • supervisor_signature        (incidents)
+    #   • reporter_signature          (incidents · top-level)
+    #   • conductor_signature         (meetings)
+    for fld, v in doc.items():
+        if not isinstance(v, str):
+            continue
+        if not (fld == "signature" or fld.endswith("_signature")):
+            continue
+        if v.startswith("photo://"):
+            yield v
 
 
 async def _log_r2_usage_warning() -> None:
@@ -8823,6 +8887,18 @@ app.include_router(build_health_router())
 from routes.static_helpers import build_static_helpers_router  # noqa: E402
 
 app.include_router(build_static_helpers_router())
+
+
+# ─── Recovery Dashboard (Phase D · iter443) ────────────────────────
+# Single read-only Admin endpoint sourcing all data from existing
+# collections. See RECOVERY_DASHBOARD_SPEC.md and
+# RECOVERY_DASHBOARD_DEPLOY_REPORT.md for the contract.
+from routes.recovery_dashboard import build_recovery_dashboard_router  # noqa: E402
+
+app.include_router(
+    build_recovery_dashboard_router(db, require_admin_strict),
+    prefix="/api",
+)
 
 
 # ─── Deploy Readiness Aggregator (iter136) ──────────────────────────
