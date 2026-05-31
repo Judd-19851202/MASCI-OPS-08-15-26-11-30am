@@ -1,6 +1,42 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — Pillar 2 · Phase A · Pre-Production CERTIFICATION 🟡 CONDITIONAL GO
+
+### Operator directive
+> "Executive Command Center Phase A is implemented in preview. Before production deployment: Perform an Executive Operations Certification. Scope: read-only review and challenge · no code changes unless defect found · verify every RED answers 5 questions · every card supports a decision · no duplicates · no noise · thresholds justified · drilldowns sufficient · readable at 5s/30s/5min · FP/FN inventory · GO/NO-GO recommendation. STOP after documentation. No deployment. No Pillar 4 work. No notifications. No drift."
+
+### 🟡 HEADLINE
+- **🟡 CONDITIONAL GO recommendation** — Phase A is functionally complete and produces clear leadership focus, but ships with 7 documented defects (3 medium, 4 low/cosmetic). Recommend a small ~45 LOC defect-remediation patch (D1+D2+D5) before production deployment.
+- **9 certification gates evaluated:** 7 PASS · 1 KNOWN (FP/FN inventory) · 1 DEFECT (Gate 4 noise-vs-actionability driven by Defect D5).
+- **Most operationally dangerous defect (D5):** Approvals + Equipment OOS sub-counts silently return 0 due to ISO-string-vs-datetime mismatch in `count_documents`. The Approvals card shows GREEN while POs aged 3+ days exist — leadership could miss an approval blocking real work. Items list correctly identifies them via `_parse_ts`; the discrepancy is in warning aggregation.
+- **Three deployment paths offered:** Path A (deploy as-is with caveats), **Path B (recommended · patch D1+D2+D5 first, ~45 LOC)**, Path C (comprehensive patch D1-D7, ~100 LOC).
+- **FP rate estimated ~22% as-is**, projected **~8% after Path B patch**.
+- **Highest-severity FN (FN-1 = D5) goes to zero after Path B patch.**
+
+### Defects identified (read-only · NOT patched in this batch)
+- **D1 (MEDIUM · FP):** SAF-CRITICAL-UNRESOLVED has no resolution-state check — aged incidents fire RED forever
+- **D2 (MEDIUM · FP):** SAF-OSHA-OPEN same — no resolution check
+- **D3 (LOW · FP):** JOBS-DR-MISSING not calendar-aware (weekend/holiday false positives)
+- **D4 (LOW · PERF):** N+1 query pattern in Jobs card builders
+- **D5 (LOW-MED · FN/coherence):** date-type mismatch in count_documents silently zeros Approvals & Equipment-OOS warnings
+- **D6 (COSMETIC):** Items inline severity mismatches card pill
+- **D7 (COSMETIC):** Pulse Strip amber_items inflated by D5 consequence
+
+### OMEGA discipline scorecard (during this batch)
+🟢 No code changes · No endpoints added · No collections added · No frontend modifications · No notifications/emails/tasks emitted · No edits to backup-frozen surface · No deployment performed · No Pillar 4 work.
+
+### Deliverables (all in `/app/memory/`)
+- `EXECUTIVE_COMMAND_CENTER_CERTIFICATION.md` — 9 certification gates with verdicts + defect inventory
+- `EXECUTIVE_COMMAND_CENTER_DEPLOYMENT_RECOMMENDATION.md` — 3 paths + Path B recommendation + post-patch readiness checklist
+- `EXECUTIVE_COMMAND_CENTER_FALSE_POSITIVE_REVIEW.md` — 5 FP classes + per-rule mechanism + remediation paths
+- `EXECUTIVE_COMMAND_CENTER_FALSE_NEGATIVE_REVIEW.md` — 9 FN classes + severity ranking + post-patch FN posture
+
+### Agent state
+- 🔴 STOPPED. No deployment. No code changes. Awaiting operator decision on deployment path (A / B / C / defer).
+
+
+
 ## 2026-05-31 (fork) — Pillar 2 · Phase A · Executive Command Center 🟢 SHIPPED to PREVIEW
 
 ### Operator directive

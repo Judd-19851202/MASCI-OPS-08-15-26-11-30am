@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 2 Phase A Command Center shipped to preview)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Phase A pre-production certification · conditional GO)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -10,6 +10,19 @@ across 500 docs — the platform has strict domain boundaries.
 > 🟡 deferred · ⛔ read-before-touching · 🚫 ABANDONED/DO-NOT-IMPLEMENT
 
 ---
+
+
+
+### 00 · Pillar 2 · Phase A · Pre-Production CERTIFICATION (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `EXECUTIVE_COMMAND_CENTER_CERTIFICATION.md` | 9 certification gates · 7 PASS · 1 DEFECT (D5 noise/coherence) · 1 KNOWN (FP/FN inventory) · 7-defect inventory | 🟡 ⛔ |
+| `EXECUTIVE_COMMAND_CENTER_DEPLOYMENT_RECOMMENDATION.md` | 🟡 **CONDITIONAL GO** · Path A (as-is) / Path B (~45 LOC patch · RECOMMENDED) / Path C (~100 LOC comprehensive) · post-patch readiness checklist | 🟡 ⛔ |
+| `EXECUTIVE_COMMAND_CENTER_FALSE_POSITIVE_REVIEW.md` | 5 FP classes · per-rule mechanism · estimated 22% FP rate as-is → ~8% after Path B | 🟡 ⛔ |
+| `EXECUTIVE_COMMAND_CENTER_FALSE_NEGATIVE_REVIEW.md` | 9 FN classes · FN-1 (D5) is MOST OPERATIONALLY DANGEROUS · zeros after Path B | 🟡 ⛔ |
+
+🟡 **Headline**: Phase A is fit for purpose with documented limitations. **7 defects identified · 3 medium (D1/D2/D5) · 4 low/cosmetic (D3/D4/D6/D7).** Path B (D1+D2+D5 fix · ~45 LOC · zero scope drift) is the recommended pre-production patch. Without it: aged Safety incidents stay RED forever (trust erosion); Approvals card silently under-reports (operational miss). OMEGA discipline preserved throughout — zero code changes during certification.
 
 
 
