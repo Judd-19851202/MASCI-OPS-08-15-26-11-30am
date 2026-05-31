@@ -1,6 +1,50 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — Pillar 1 · Phase 1A-7 · PRODUCTION CERTIFIED 🟢
+
+### Operator directive
+> "OMEGA AUTHORIZATION · Pillar 1 · Phase 1A-7 · Production Deployment. Deploy certified Pillar 1 stack (1A-2/3/4/5) preview → production. Pre-deploy verify · operator-clicks Emergent Deploy · post-deploy 12-point certification. Produce 3 reports + verdict. STOP after reports. No code · no refactors · no dashboards · no escalation · no Pillar 2/3/4 · no scope expansion."
+
+### 🟢 HEADLINE
+- **🟢 PRODUCTION CERTIFIED.** Pillar 1 (Accountability Engine — Phases 1A-2 · 1A-3 · 1A-4 · 1A-5) is **LIVE in production** at `https://mascidocs.com`.
+- **Production source_hash: `2383567f4f9735cf936d90dce26bb267`** (matches preview byte-identically · was `54b8a402…` pre-deploy).
+- **Authoritative deploy signal achieved**: `GET /api/admin/accountability/sources` returns 200 with all 6 sources (was 404 pre-deploy).
+- **All 12 cert requirements GREEN**:
+  - ✅ `/api/admin/accountability/{sources,item,snapshot}` all 200 · 23-field canonical projection · escalation_level=0
+  - ✅ Executive Command Center 5 cards · pulse reconciles · drilldown carries `accountability` sub-doc + timeline
+  - ✅ Owner fidelity: 0 mismatches across 25-record production sample (placeholders are truthful per sparse routing data — Audit-predicted baseline)
+  - ✅ `escalation_level == 0` invariant: 9/9 sampled prod projections
+  - ✅ Backup scheduler: `alive=true · armed_at=17:06:47Z · last_tick=50ms ago · boot_step=entering_main_tick_loop` (re-armed cleanly at redeploy)
+  - ✅ Recovery dashboard healthy · 1 AMBER pre-existing (R2 bucket 88.51 GB > 50 GB alert · NOT regressed)
+  - ✅ Hourly backup cadence intact · last complete-r2 archive 2026-05-31T16:02Z · 335 MB · 24,002 records · 95 archives last-30d
+  - ✅ Authentication: 7 portal `/me` endpoints all 200; admin auth gate fires 401/200 as designed
+  - ✅ API spot-check: 9 random read-only endpoints all expected codes
+- **Operator-driven deploy** per OMEGA Deploy Hold Directive. Agent did NOT initiate; agent ran pre-deploy verification, stopped, and resumed only on operator's explicit notification that production was live.
+
+### Pre-deploy gates (all 🟢)
+- Preview source_hash · Pillar 1 endpoints · 128/128 pytests · file md5s match certs · clean working tree · no unauthorized commits beyond Pillar 1 scope · production confirmed pre-Pillar-1.
+
+### Known limitations carried forward (per Path A recommendation · NOT regressions)
+- Pillar 2 Phase A defects D1/D2/D5 (un-patched · scoped to future Pillar 2 batch)
+- JOBS-ISSUE-NO-OWNER predicate/implementation mismatch (Pillar 2 rule defect · 19 ownerless incidents not surfaced)
+- Supportability "what changed" question (requires Pillar 1B Escalation Framework — out of scope)
+- 2 "Within MASCI PO SLA" strings in `command_center.py` (WL-1 batch when authorized)
+- Recovery dashboard pre-existing AMBER (R2 bucket usage · operator-side R2 storage lifecycle)
+
+### OMEGA discipline scorecard
+🟢 Zero code changes · zero refactors · zero dashboards · zero escalation · zero Pillar 2/3/4 work · zero scope expansion · zero backup-frozen-inventory edits · zero schema/collection changes · agent did not initiate deploy · certification only · STOP after reports.
+
+### Deliverables (all in `/app/memory/`)
+- `PILLAR1_PRODUCTION_DEPLOY_REPORT.md` — deploy mechanism · pre-deploy gates · source_hash transition · files reaching prod · rollback posture
+- `PILLAR1_PRODUCTION_CERTIFICATION.md` — 12 cert requirements with evidence per requirement
+- `PILLAR1_POST_DEPLOY_VERIFICATION.md` — operational-safety matrix · backup-freeze respected · pre-existing AMBER signals catalog · final verdict
+
+### Agent state
+- 🔴 STOPPED per OMEGA directive. Pillar 1 Phase 1A-7 batch closed. Production Pillar 1 is live and certified. Awaiting explicit operator authorization for the next batch (Phase 1A-6 Accountability Dashboard, Pillar 1B Escalation Framework, WL-1 white-label, or other).
+
+
+
 ## 2026-05-31 (fork) — Pillar 1 · Pre-Deployment Operational Certification 🟡 GO WITH KNOWN LIMITATIONS
 
 ### Operator directive

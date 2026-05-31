@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 1 Pre-Deployment Operational Certification 🟡 GO WITH KNOWN LIMITATIONS)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 1 Phase 1A-7 PRODUCTION CERTIFIED 🟢)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,16 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · Pillar 1 · Phase 1A-7 · PRODUCTION CERTIFIED 🟢 (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `PILLAR1_PRODUCTION_DEPLOY_REPORT.md` | Deploy mechanism · pre-deploy gates 7/7 GREEN · source_hash transition `54b8a402→2383567f` · operator-driven · files reaching prod · rollback posture | 🟢 ⛔ |
+| `PILLAR1_PRODUCTION_CERTIFICATION.md` | All 12 cert requirements GREEN · 23-field projection verified live · escalation_level=0 invariant holds · scheduler healthy · auth/API spot-checks all green | 🟢 ⛔ |
+| `PILLAR1_POST_DEPLOY_VERIFICATION.md` | Operational-safety verification matrix · backup-freeze respected · 25-record owner sample (0 mismatches) · pre-existing AMBER signals NOT regressions · final verdict | 🟢 ⛔ |
+
+🟢 **Headline**: Pillar 1 (Accountability Engine — Phases 1A-2 · 1A-3 · 1A-4 · 1A-5) is **LIVE in production** at `https://mascidocs.com` (source_hash `2383567f4f9735cf936d90dce26bb267` · `started_at=2026-05-31T17:03:15Z`). **Authoritative deploy signal**: `/api/admin/accountability/sources` returns 200 with 6 sources (was 404 pre-deploy). All 12 post-deploy gates GREEN — `escalation_level=0` invariant holds across 9 sampled production projections · scheduler `alive=true · armed_at=17:06:47Z · ticking 50ms ago` · hourly cadence intact (last complete-r2 16:02Z · 335 MB · 24,002 records) · 7 portal `/me` endpoints all 200 · no API regressions. Pre-existing AMBER signals (R2 bucket usage · no recent drill · RPO 4.8-min slip) are unchanged from pre-deploy state. Deploy was operator-driven (Emergent Deploy button) per OMEGA Deploy Hold Directive; agent did not initiate. **Backup architecture frozen-inventory untouched.** Final verdict: 🟢 PRODUCTION CERTIFIED.
 
 ### 00 · Pillar 1 · Pre-Deployment Operational Certification 🟡 GO WITH KNOWN LIMITATIONS (2026-05-31)
 
