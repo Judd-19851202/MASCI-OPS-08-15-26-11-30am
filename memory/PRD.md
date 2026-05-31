@@ -1,6 +1,43 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — Backup & Recoverability Epic CLOSEOUT 🟢 + Pillar Pivot
+
+### Operator directive
+> "OMEGA DIRECTIVE · No drift. The Backup & Recoverability Program is entering closeout. Immediate priorities: (1) Verify first automatic hourly archive lands successfully · (2) Verify RPO returns GREEN · (3) Close Backup & Recoverability Epic · (4) Freeze backup architecture except for defect remediation. After closeout: focus only on Pillar 1 Accountability Engine · Pillar 2 Executive Visibility · Pillar 3 Field Experience · Pillar 4 Escalation Framework. No new side systems. No speculative features. No platform sprawl. No architecture rewrites. Every proposed enhancement must map directly to one of the four pillars above. Before any implementation: identify business outcome · owner · notification path · escalation path · executive visibility path. Deliver work in small certifiable batches with evidence and stop conditions."
+
+### 🟢 HEADLINE
+- **First post-activation hourly complete-R2 archive LANDED**: `MASCI_complete_backup_2026-05-31_024901Z.zip · 335 MB · 23,938 records · OK · error=null` (triggered 02:49:01Z · completed 02:51:56Z · 2 min 56 sec runtime).
+- **RPO → GREEN**: `target_min=60 · actual_min=1.4 · status=GREEN` (snapped from AMBER 92.5 min during the deploy gap).
+- **All four operator closeout criteria met.** Epic is CLOSED.
+- **Backup architecture is now FROZEN.** Defect-only changes permitted under explicit batch authorization. See `/app/memory/BACKUP_RECOVERABILITY_EPIC_CLOSEOUT.md` §5 for the formal freeze declaration and frozen-inventory list.
+- **Only remaining AMBER signals** on the recovery dashboard are pre-existing, non-epic advisories: R2 bucket usage (83.93 GB > 50 GB · storage lifecycle is operator-owned outside epic) and RTO `last_drill_min=null` (will auto-populate after first Sunday 04:00 UTC weekly drill tick).
+
+### Frozen surface (defect-only)
+- Code: `server.py` iter441 + iter442, `lib/singleton_scheduler.py`, `routes/recovery_dashboard.py`, `pages/admin/AdminRecovery.jsx`, `scripts/automated_drill.py`, `scripts/weekly_drill.sh`.
+- Env: `SCHEDULER_ENABLED=true · BACKUP_LITE_MODE_ONLY=true · BACKUP_R2_HOURLY=true · BACKUP_EMAIL_TO · S3_*` (prod).
+- Cadence: twice-daily lite [02, 18 UTC] + hourly complete-R2 + weekly drill [Sun 04:00 UTC].
+
+### 4-Pillar Framework (forward focus · no drift)
+| Pillar | Description | Mandatory pre-implementation inputs |
+|---|---|---|
+| 1. Accountability Engine | Who owns what, who signed off, evidence trail | business outcome · owner · notification path · escalation path · executive visibility path |
+| 2. Executive Visibility | Single-glass view for leadership of operational state | (same 5 inputs) |
+| 3. Field Experience | Foreman/operator UX for daily forms and workflows | (same 5 inputs) |
+| 4. Escalation Framework | When/why/how operational alerts surface and get resolved | (same 5 inputs) |
+
+Every proposed enhancement must map directly to one of the four pillars. Anything that does not map is OUT OF SCOPE.
+
+### Agent state
+- 🔴 STOPPED after epic closeout.
+- 🟢 Awaiting operator pillar authorization + the five mandatory inputs for the chosen batch.
+
+### Deliverables in `/app/memory/`
+- `BACKUP_RECOVERABILITY_EPIC_CLOSEOUT.md` (this batch · formal closeout + freeze + frozen inventory)
+- `_INDEX.md` updated with closeout entry
+
+
+
 ## 2026-05-31 (fork) — OMEGA Pre-Deployment Certification Gate 🟢 GO TO DEPLOY (Low Risk · Code-No-Op)
 
 ### Operator directive

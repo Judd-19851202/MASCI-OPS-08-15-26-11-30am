@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — OMEGA pre-deploy gate)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Backup & Recoverability Epic CLOSEOUT + 4-pillar pivot)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -10,6 +10,19 @@ across 500 docs — the platform has strict domain boundaries.
 > 🟡 deferred · ⛔ read-before-touching · 🚫 ABANDONED/DO-NOT-IMPLEMENT
 
 ---
+
+
+
+### 00 · Backup & Recoverability Epic CLOSEOUT + Pillar Pivot (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `BACKUP_RECOVERABILITY_EPIC_CLOSEOUT.md` | 🟢 **EPIC CLOSED · ARCHITECTURE FROZEN** · first hourly archive `MASCI_complete_backup_2026-05-31_024901Z.zip · 335 MB · 23,938 records` landed at 02:51:56Z · RPO 1.4 min GREEN · frozen-inventory list · forward focus pivots to 4 pillars | ✅ ⛔ |
+| `POST_DEPLOY_HOURLY_ACTIVATION_VERIFICATION.md` | Hourly activation confirmed loaded after 02:40:59Z redeploy · `hourly_cadence_enabled=true` · scheduler alive · two prior warnings removed | ✅ ⛔ |
+| `OMEGA_PRE_DEPLOYMENT_CERTIFICATION_REPORT.md` | Pre-deploy gate · 12/12 PASS · code-no-op redeploy (source_hash unchanged) | ✅ ⛔ |
+| `HOURLY_BACKUP_ACTIVATION_REPORT.md` | PARTIAL → CLOSED · prior P0 (`BACKUP_R2_HOURLY` not loaded) is fully resolved | ✅ ⛔ |
+
+🟢 **Headline**: Backup & Recoverability is DONE. Architecture FROZEN (defect-only). Forward focus on 4 pillars: Accountability Engine · Executive Visibility · Field Experience · Escalation Framework. Every new enhancement must declare business outcome · owner · notification path · escalation path · executive visibility path BEFORE implementation. No drift. No sprawl. No speculative features. Awaiting operator pillar authorization.
 
 
 
