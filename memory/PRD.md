@@ -1,6 +1,50 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — OMEGA Forensic Platform Certification 🟡 (75 findings)
+
+### Operator directive
+> "OMEGA DIRECTIVE · Full Production Platform Forensic Certification. READ-ONLY. Phases 1-8 across PROD `mascidocs.com` + preview + code + collections + permissions. Evidence only. NO assumptions. NO code. NO writes. NO deletes. NO fixes. NO refactors. NO deploy. STOP after 9 reports (8 phase deliverables + EXECUTIVE_SUMMARY)."
+
+### 🟡 HEADLINE — 5 scores
+- 🟢 Production Health · **88/100** (Pillar 1 + Pillar 2 Phase A live · scheduler healthy · auth+API spotless)
+- 🟡 Production Data Cleanliness · **88/100** (6 contamination items · 44 docs · 5 collections)
+- 🔴 White-Label Readiness · **15/100** (4,431 MASCI literals · 413 files · WL-0..WL-15 backlog · 30-40 dev-days)
+- 🔴 Customer #2 Readiness · **20/100** (architecture supportable · tenant_id propagation absent)
+- 🔴 ForgedOps Support Readiness · **5/100** (no support portal · no tickets · no tenancy · ~92-108 dev-day build)
+
+### Defect register · 25 🔴 + 25 🟡 + 25 🟢 = 75 findings
+Top 5 critical:
+1. **🔴 Test FL user `fieldleader@mascigc.com` live on production** with documented password (`/app/memory/test_credentials.md`). Anyone with repo access can authenticate to production with Superintendent FL scope.
+2. **🔴 Duplicate `doc_id='INC-2026-00001'` on 2 incident rows** (`d9626eeb` + `566a38dd`). Display/delete confusion risk.
+3. **🔴 Incident DELETE workflow known fragile** (cascade-to-CA). Migrate to soft-delete.
+4. **🟡 10 payroll-variance batches null-state** (status=null · uploaded_by=null · created 2026-05-12/13). Likely failed test imports.
+5. **🟡 2 PREVIEW_POSTENV notifications** (2026-05-16 preview/prod crossover) in `db.notifications`.
+
+Plus carry-forward limitations: Pillar 2 Phase A defects D1/D2/D5 · JOBS-ISSUE-NO-OWNER predicate-vs-impl mismatch · super-admin email hardcoded · backup filename brand-coupled · etc.
+
+### OMEGA discipline (this batch)
+🟢 Zero code · zero DB writes · zero deletes · zero fixes · zero schema changes · zero deployments · zero refactors · zero cleanup · zero feature work · zero white-label remediation · zero ForgedOps implementation · certification only · STOP after reports.
+
+### Deliverables (all in `/app/memory/`)
+- `EXECUTIVE_SUMMARY.md` — one-page snapshot
+- `EXECUTIVE_PLATFORM_CERTIFICATION.md` — defect register (75 findings)
+- `PLATFORM_MASTER_INVENTORY.md` — Phase 1
+- `UI_HYGIENE_AUDIT.md` — Phase 2
+- `PRODUCTION_DATA_HYGIENE_AUDIT.md` — Phase 3
+- `WORKFLOW_CERTIFICATION.md` — Phase 4
+- `ROLE_PERMISSION_MATRIX.md` — Phase 5
+- `WHITE_LABEL_BLOCKERS.md` — Phase 6
+- `FORGEDOPS_OPERATIONS_READINESS.md` — Phase 7
+
+### Coverage candor (transparency)
+Phase 2 UI hygiene was SAMPLED (not exhaustive). Phases 1, 3, 4, 5, 6, 7 are exhaustive on code- and DB-detectable surfaces. Every finding carries location · severity · reproduction · evidence · root cause (where proven) · recommended remediation. **No remediation executed.**
+
+### Agent state
+- 🔴 STOPPED per OMEGA directive. Forensic certification batch closed. Awaiting explicit operator review and authorization for any subsequent fix or feature batch.
+
+
+
 ## 2026-05-31 (fork) — Pillar 1 · Phase 1A-7 · PRODUCTION CERTIFIED 🟢
 
 ### Operator directive

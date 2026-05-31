@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 1 Phase 1A-7 PRODUCTION CERTIFIED 🟢)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — OMEGA Forensic Platform Certification complete · 9 deliverables · 75 findings)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,22 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · OMEGA Forensic Platform Certification · 9 deliverables (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `EXECUTIVE_SUMMARY.md` | One-page snapshot · 5 scores · top-5 findings · 9-deliverable index | 🟡 ⛔ |
+| `EXECUTIVE_PLATFORM_CERTIFICATION.md` | Defect register · 25 🔴 + 25 🟡 + 25 🟢 = 75 evidence-backed findings | 🟡 ⛔ |
+| `PLATFORM_MASTER_INVENTORY.md` | Phase 1 · 8 portals · 251 routes · 546 endpoints · 141 collections · 31 templates · 7 background jobs | 🟢 ⛔ |
+| `UI_HYGIENE_AUDIT.md` | Phase 2 · sampled · operator-flagged items (HR header button · incident delete) investigated with structural evidence | 🟡 ⛔ |
+| `PRODUCTION_DATA_HYGIENE_AUDIT.md` | Phase 3 · 6 contamination items · 44 docs across 5 collections · score 88/100 · 2 🔴 (test FL user · dup incident doc_id) | 🟡 ⛔ |
+| `WORKFLOW_CERTIFICATION.md` | Phase 4 · 10 workflows × 6 verbs · 1 🔴 (incident delete) · all else 🟢/🟡 | 🟡 ⛔ |
+| `ROLE_PERMISSION_MATRIX.md` | Phase 5 · 9 roles · 31 templates · no permission leaks · 1 🔴 (test FL user · same as 3-D-2) | 🟡 ⛔ |
+| `WHITE_LABEL_BLOCKERS.md` | Phase 6 · 413 files · ~4,431 MASCI literals · 15-batch WL-0..WL-15 backlog · ~30-40 dev-days | 🔴 ⛔ |
+| `FORGEDOPS_OPERATIONS_READINESS.md` | Phase 7 · 92-108 dev-day build needed · 7 capability areas · no support portal · no tickets · no tenancy | 🔴 ⛔ |
+
+🟡 **Headline**: Read-only forensic audit complete. **Production health: 🟢 88/100** (Pillar 1 + Pillar 2 Phase A both live and healthy · scheduler ticking · auth + API spotless). **Production data cleanliness: 🟡 88/100** — six contamination items totaling 44 docs across 5 collections, with two 🔴 (test FL user `fieldleader@mascigc.com` live with documented password; duplicate `doc_id='INC-2026-00001'` on 2 incident rows). **White-label readiness: 🔴 15/100** (4,431 MASCI literals across 413 files · WL-0..WL-15 backlog ~30-40 dev-days). **Customer #2 readiness: 🔴 20/100** (architecturally supportable but no tenant_id propagation today). **ForgedOps support readiness: 🔴 5/100** (no support portal · no tickets · no tenancy · ~92-108 dev-day build needed). Master defect register: 25 🔴 + 25 🟡 + 25 🟢 = 75 evidence-backed findings, each with location · reproduction · evidence · root cause where proven · recommended remediation. **OMEGA discipline preserved**: zero code · zero DB writes · zero fixes · zero deployments. Awaiting operator authorization for any subsequent fix batch.
 
 ### 00 · Pillar 1 · Phase 1A-7 · PRODUCTION CERTIFIED 🟢 (2026-05-31)
 
