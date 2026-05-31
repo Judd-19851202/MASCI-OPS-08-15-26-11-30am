@@ -1,0 +1,25 @@
+=== PO pollution count ===
+  Total pending: 171 · TEST_ prefixed: 10 (6%)
+
+=== Incident severities distribution ===
+  'near_miss'          n=7
+  'Low'                n=7
+  'High'               n=2
+  'Medium'             n=2
+  'first_aid'          n=1
+
+=== RED SAF-CRITICAL-UNRESOLVED candidates (severity in critical/high/serious, age>=48h) ===
+  f9715e57 sev=High       rs=None ts=2026-05-27T18:57:52 title=
+  c3c17bf2 sev=High       rs=None ts=2026-05-27T19:47:14 title=
+
+=== JOBS-ISSUE-NO-OWNER candidates (open CA/incident without owner) ===
+  CAs without owner: 2  ·  Incidents without owner field: 19
+
+=== Fleet defects acknowledged_by_name population ===
+  ack_by_name=EMPTY        n=44
+
+=== Tasks assignee_name population (open tasks) ===
+  assignee_name=POPULATED    n=573
+
+=== Active jobs lacking recent DR ===
+  Total active jobs in jobs_master: 0

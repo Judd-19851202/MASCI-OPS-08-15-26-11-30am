@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 1 Phase 1A-5 Owner Fidelity CERTIFIED)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 1 Pre-Deployment Operational Certification 🟡 GO WITH KNOWN LIMITATIONS)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,19 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · Pillar 1 · Pre-Deployment Operational Certification 🟡 GO WITH KNOWN LIMITATIONS (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `PILLAR1_OPERATIONAL_CERTIFICATION_REPORT.md` | Master · Phase 1 (DQ) · Phase 2 (25-record ownership sample · 0 mismatches) · Phase 6 (Customer #2) · OMEGA scorecard | 🟡 ⛔ |
+| `PILLAR1_DEPLOYMENT_RECOMMENDATION.md` | 🟡 verdict · 3 deployment paths · Path A recommended · pre-deploy checklist · rollback plan | 🟡 ⛔ |
+| `PILLAR1_EXECUTIVE_USABILITY_REPORT.md` | Phase 3 · 6-AM walkthrough · 3 USEFUL / 3 MARGINAL / 0 NOISE cards | 🟡 ⛔ |
+| `PILLAR1_SUPPORTABILITY_AUDIT.md` | Phase 4 · 5 ForgedOps support questions · 3 GREEN / 1 PARTIAL / 1 RED · runbook | 🟡 ⛔ |
+| `PILLAR1_WHITE_LABEL_READINESS_REPORT.md` | Phase 5 · Pillar 1 modules white-label clean · platform 4,431 MASCI refs · 10-batch white-label backlog (WL-0..WL-10 · ~20-25 dev-days) | 🟡 ⛔ |
+| `pillar1_certification_evidence/` (folder) | Live snapshot JSON · 25-record ownership probe · DQ aggregations | ✅ |
+
+🟡 **Headline**: Pillar 1 itself is **🟢 CERTIFIED standalone** (128/128 pytests · 0 mismatches on 25-record owner sample · Pillar 1 modules carry 0 MASCI strings · architecture supports Customer #2 with ~3-4 dev-days of config work). The 🟡 verdict reflects **inherited Pillar 2 Phase A defects (D1, D2, D5) + JOBS-ISSUE-NO-OWNER predicate-vs-implementation mismatch + 6% TEST_iter preview pollution + supportability gap on "what changed" (Pillar 1B territory)** — none of which are addressable inside Pillar 1. **Path A recommended**: deploy Pillar 1 as-is, defer Pillar 2 D1/D2/D5 to its own authorized batch.
 
 ### 00 · Pillar 1 · Phase 1A-5 · Accountability Owner Fidelity CERTIFIED (2026-05-31)
 

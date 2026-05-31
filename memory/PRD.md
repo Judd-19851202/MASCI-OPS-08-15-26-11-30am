@@ -1,6 +1,42 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — Pillar 1 · Pre-Deployment Operational Certification 🟡 GO WITH KNOWN LIMITATIONS
+
+### Operator directive
+> "OMEGA AUTHORIZATION · Pillar 1 Pre-Deployment Operational Certification. READ-ONLY. Answer one question: 'Can leadership trust Pillar 1 in production?' Phases 1 (DQ) · 2 (Owner Fidelity 25-sample) · 3 (Executive Actionability) · 4 (Supportability) · 5 (White-Label) · 6 (Customer #2) · 7 (Deploy Recommendation). NO CODE · NO UI · NO DB · NO ENDPOINTS · NO COLLECTIONS · NO REFACTORS · NO DEPLOYMENT · NO PILLAR 2/3/4 · NO ESCALATION · NO DASHBOARD · NO SUPPORT TICKET · NO FORGEDOPS PORTAL. STOP after reports."
+
+### 🟡 HEADLINE
+- **🟡 GO WITH KNOWN LIMITATIONS recommendation.** Pillar 1 (projection library + service router) is itself 🟢 CERTIFIED — 128/128 pytests · 0/25 owner mismatches · 0 MASCI strings in projection or service router · Customer-#2-ready with ~3-4 dev-days of config work.
+- **🟡 verdict reflects inherited limitations** — Pillar 2 Phase A defects D1/D2/D5 still un-patched (drift outside Pillar 1's scope) · JOBS-ISSUE-NO-OWNER rule predicate-vs-implementation mismatch (`command_center.py:355-365` queries CAs only despite predicate text "incident OR CA"; 19 ownerless incidents silently uncounted) · 6% TEST_iter preview pollution on Approvals card (production data should be cleaner) · supportability "what changed" question requires Pillar 1B-era field-diff stream (out of Pillar 1 scope).
+- **Phase 1 DQ** — 6 RED · 1 AMBER warnings · pulse reconciles · every rule's underlying signal traceable.
+- **Phase 2 ownership fidelity** — 25 records sampled (5 each: POs · CAs · Fleet Defects · Incidents · Tasks). **0 mismatches.** Where data exists, projection surfaces named individuals; where data is sparse, placeholders are the truthful operational statement.
+- **Phase 3 actionability** — 3 USEFUL (Pulse Strip · Jobs · Safety) · 3 MARGINAL (Equipment · Accountability · Approvals) · 0 NOISE.
+- **Phase 4 supportability** — ForgedOps can answer 3/5 fundamental support questions (Why red · Who owns · When changed) directly · 1 PARTIAL (Why overdue) · 1 RED (What changed — no field-diff stream).
+- **Phase 5 white-label** — Pillar 1 modules carry 0 MASCI strings in the projection library + service router. `command_center.py` carries 2 trivially-externalizable strings ("Within MASCI PO SLA"). Surrounding platform has 4,431 MASCI references → 10-batch backlog (WL-0..WL-10 · ~20-25 dev-days) documented.
+- **Phase 6 Customer #2** — Accountability Engine architecture supports Customer #2 _without redesign_; ~3-4 dev-days of additive config work needed (Pillar 1 share of the 25-day total platform backlog).
+
+### Deployment paths offered (Phase 7)
+- **Path A · RECOMMENDED**: deploy Pillar 1 as-is, defer Pillar 2 Phase A D1/D2/D5 patch to its own authorized batch.
+- **Path B**: deploy Pillar 1 + remediate Pillar 2 Phase A D1/D2/D5 in same batch (~45 LOC extra · separate auth required).
+- **Path C**: defer Pillar 1 deployment until Phase 1A-6 (Dashboard) ships.
+
+### OMEGA discipline scorecard (during this batch)
+🟢 Zero code · zero UI · zero DB writes · zero endpoints · zero collections · zero refactors · zero deployment · zero Pillar 2/3/4 work · zero Escalation work · zero Accountability Dashboard work · zero Support Ticket System work · zero ForgedOps portal work. Read-only certification only.
+
+### Deliverables (all in `/app/memory/`)
+- `PILLAR1_OPERATIONAL_CERTIFICATION_REPORT.md` — master · Phases 1, 2, 6 · OMEGA scorecard
+- `PILLAR1_DEPLOYMENT_RECOMMENDATION.md` — Phase 7 · verdict · 3 paths · checklist · rollback
+- `PILLAR1_EXECUTIVE_USABILITY_REPORT.md` — Phase 3 · 6-AM walkthrough · per-card verdict
+- `PILLAR1_SUPPORTABILITY_AUDIT.md` — Phase 4 · 5-question matrix · ForgedOps runbook
+- `PILLAR1_WHITE_LABEL_READINESS_REPORT.md` — Phase 5 · MASCI inventory · 10-batch backlog
+- `pillar1_certification_evidence/` — raw snapshot · ownership sampling · DQ probes
+
+### Agent state
+- 🔴 STOPPED per OMEGA directive. Read-only certification batch closed. No deployment authorized. No code changes made. No Pillar 2/3/4 work begun. Awaiting explicit operator authorization for the next batch (Phase 1A-7 deployment · Phase 1A-6 Dashboard · WL-X white-label · or other).
+
+
+
 ## 2026-05-31 (fork) — Pillar 1 · Phase 1A-5 · Accountability Owner Fidelity 🟢 CERTIFIED
 
 ### Operator directive
