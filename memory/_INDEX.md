@@ -13,7 +13,29 @@ across 500 docs — the platform has strict domain boundaries.
 
 
 
-### 00 · Pillar 2 · Phase A · Path B PATCH CLOSEOUT (2026-05-31)
+### 00 · Pillar 1 · Accountability Engine · SPECIFICATION (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ACCOUNTABILITY_ENGINE_AUDIT.md` | Workflow-by-workflow inventory of ownership today · 9-row ambiguity register · 5 hardcoded Command Center owner strings | 🟢 ⛔ |
+| `ACCOUNTABILITY_ENGINE_ARCHITECTURE.md` | Universal 9-question contract · canonical status set · single new collection proposal (`db.accountability_timeline`) gated behind operator authorization | 🟢 ⛔ |
+| `ACCOUNTABILITY_LIFECYCLE_SPEC.md` | 6-state canonical machine + `overdue` overlay · allowed transitions · per-source native→canonical mapping · re-assignment & closure rules | 🟢 ⛔ |
+| `ACCOUNTABILITY_TIMELINE_SPEC.md` | Append-only event shape · 10 event_kinds · idempotency rules · indexes · size estimate (~0.5 MB/day · ~180 MB/year) | 🟢 ⛔ |
+| `EXECUTIVE_ACCOUNTABILITY_INTEGRATION.md` | Per-card plan to replace 5/9 hardcoded Command Center owner strings · additive drilldown payload · Accountability Dashboard surface (design only) | 🟢 ⛔ |
+| `ACCOUNTABILITY_ENGINE_ROADMAP.md` | 7-phase ladder (1A-1..1A-7) · acceptance criteria · risk register · STOP condition · awaits `AUTHORIZE PHASE 1A-2` | 🟢 ⛔ |
+
+🟢 **Headline**: Pillar 1 design batch complete. Engine reuses `tasks_notifications.py` as the foundation (already canonical-shaped: assignee_role/user_id/employee_id · status · priority · due_at · audit[]). Closes the executive-visibility-to-accountability gap: 5/9 Command Center owner strings will move from hardcoded literals (`"Safety"`, `"Shop"`, requester-misattributed approvers) to projection-derived values. Single new collection proposed (`db.accountability_timeline`); zero migration of existing audit/status_history arrays; zero new notifications/emails/SMS/cron; Pillar 1B escalation explicitly deferred. STOPPED awaiting operator `AUTHORIZE PHASE 1A-2`.
+
+### 00 · Pillar 2 · Phase A · Path B PRODUCTION CERTIFIED (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `COMMAND_CENTER_PATH_B_PATCH_REPORT.md` | Code-level summary of D1/D2/D5 patches · file/line evidence · pytest 20/20 · OMEGA discipline check | 🟢 ⛔ |
+| `COMMAND_CENTER_RECERTIFICATION_REPORT.md` | 12-gate re-certification on live preview · pulse aggregate reconciliation · D1/D2/D5 evidence inline | 🟢 ⛔ |
+| `COMMAND_CENTER_DEPLOY_READINESS_REPORT.md` | 🟢 GO TO DEPLOY recommendation · 12/12 pre-deploy gates · risk register | 🟢 ⛔ |
+| `COMMAND_CENTER_PRODUCTION_CERTIFICATION.md` | Post-deploy production certification · 9/9 verifications GREEN · prod source_hash=`54b8a402…` · pulse reconciles · backup/recovery/scheduler unchanged | 🟢 ⛔ |
+
+🟢 **Headline**: Path B is LIVE in production (`https://mascidocs.com` · source_hash `54b8a402de538a17579cabc2e6aaac38`). D1/D2/D5 active; pulse reconciles exactly; backup scheduler, recovery dashboard, every existing portal endpoint unchanged. Production certification complete.
 
 | File | Purpose | Status |
 |---|---|---|

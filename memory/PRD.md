@@ -30719,3 +30719,67 @@ md5 (current preview):
 - Backlog (from earlier OMEGA queue): iter442/443/444 production deploy, `BACKUP_R2_HOURLY=true`, Batch N escalation framework, R2 lifecycle rule
 
 The agent stops here. No code change. No deployment. Awaiting operator's explicit next-batch authorization.
+
+
+---
+
+## Pillar 1 · Accountability Engine · DESIGN BATCH · 2026-05-31
+
+### What was authorized
+
+Operator issued the OMEGA Pillar 1 directive: produce DESIGN deliverables only — Accountability Architecture Audit, Ownership Model, Lifecycle Model, Timeline, Executive Integration, Roadmap. **NO CODE. NO DATABASE CHANGES. NO ENDPOINTS. NO UI. NO DEPLOYMENT. NO REFACTOR.** Escalation framework, notifications, emails, SMS, cron, new dashboard cards, Pillar 3/4 explicitly OUT of scope.
+
+### Six design deliverables produced
+
+| File | Lines | Purpose |
+|---|---|---|
+| `ACCOUNTABILITY_ENGINE_AUDIT.md` | ~190 | Workflow-by-workflow ownership inventory · 10-row ambiguity register · 9 workflows mapped (W-01..W-15) · 5/9 Command Center owner strings identified as hardcoded |
+| `ACCOUNTABILITY_ENGINE_ARCHITECTURE.md` | ~240 | Universal 9-question contract · canonical status set · single new collection proposal (`db.accountability_timeline`) — gated behind operator authorization |
+| `ACCOUNTABILITY_LIFECYCLE_SPEC.md` | ~210 | 6-state canonical machine + overdue overlay · 27 transition rules · per-source native→canonical mapping for 6 collections |
+| `ACCOUNTABILITY_TIMELINE_SPEC.md` | ~220 | Append-only event log shape · 10 event_kinds · 7 idempotency rules · 5 indexes · size estimate (~0.5 MB/day · ~180 MB/year) |
+| `EXECUTIVE_ACCOUNTABILITY_INTEGRATION.md` | ~260 | Per-card plan to replace hardcoded Command Center owner strings · additive drilldown payload spec · Accountability Dashboard surface (design only) |
+| `ACCOUNTABILITY_ENGINE_ROADMAP.md` | ~290 | 7-phase ladder (1A-1..1A-7) · explicit acceptance criteria · risk register · STOP at 1A-1 |
+
+### Key architectural decisions
+
+- **Reuse `tasks_notifications.py` as the foundation** — already canonical-shaped (assignee_role/user_id/employee_id · status · priority · due_at · audit[]). 7 workflows already emit `task_service.create()`.
+- **Single new collection** — `db.accountability_timeline` (append-only) to collapse 5 divergent native audit/status_history shapes into one readable history. Additive only; no migration of existing arrays.
+- **6-state canonical lifecycle** — `open · in_progress · pending_review · resolved · closed · cancelled`, with `overdue` as a derived overlay. Native enums project into this set without forcing source collections to migrate.
+- **5 hardcoded Command Center owner strings will move to projection-derived values** in Phase 1A-4 (e.g. Approvals card stops mis-attributing the requester as the owner).
+- **Escalation explicitly deferred to Pillar 1B** — `escalation_level=0` is reserved structurally; never written in this batch.
+
+### 7-phase implementation ladder
+
+```
+1A-1 (specs · DONE)        → 1A-2 (timeline collection + write hooks)
+1A-2                       → 1A-3 (projection function · read-only)
+1A-3                       → 1A-4 (Command Center wired to projection)
+1A-4                       → 1A-5 (native assignee_* fields on incidents + fleet_defects)
+1A-5                       → 1A-6 (Accountability Dashboard page)
+1A-6                       → 1A-7 (pytest hardening + production deploy)
+```
+
+Each phase is independently authorizable, independently revertible, and ships its own pytest module. Estimated final test count ≥ 100 pytests across the Accountability Engine modules.
+
+### Open authorization queue
+
+- 🟢 `AUTHORIZE PHASE 1A-2` — begin timeline collection + write hooks
+- 🟡 Phase B Command Center scope · awaiting separate operator direction
+- 🟡 Pillar 1B Escalation Framework · awaiting separate operator direction
+- 🟡 Pillar 3 / Pillar 4 · FROZEN
+- Backlog: `BACKUP_R2_HOURLY=true`, Batch N escalation framework, R2 lifecycle rule
+
+### OMEGA discipline · this batch
+
+| Check | Verdict |
+|---|---|
+| Zero code changes | 🟢 |
+| Zero database changes | 🟢 |
+| Zero new endpoints | 🟢 |
+| Zero UI changes | 🟢 |
+| Zero deployment | 🟢 |
+| Zero notifications/emails/SMS/cron added | 🟢 |
+| Zero scope drift into Escalation / Pillar 3 / Pillar 4 | 🟢 |
+| Existing Command Center · backup · recovery · scheduler surfaces untouched | 🟢 |
+
+Agent STOPPED at end of 1A-1. Awaiting next explicit operator authorization.
