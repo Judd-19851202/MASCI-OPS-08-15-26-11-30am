@@ -1,6 +1,38 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — OMEGA Critical Fix Sprint 1 · Forensic batch 🟡 (15 ranked actions)
+
+### Operator directive
+> "OMEGA AUTHORIZATION · Critical Fix Sprint 1. Production-hardening remediation based ONLY on EXECUTIVE_PLATFORM_CERTIFICATION + PRODUCTION_DATA_HYGIENE + UI_HYGIENE + WORKFLOW_CERTIFICATION findings. 5 P0 areas (test accounts · incident integrity · incident delete root cause · payroll variance · UI hygiene). READ-ONLY. NO code · DB writes · deploys. STOP at completion."
+
+### 🟡 HEADLINE
+- **5 P0 forensic dives complete · 15 remediation actions ranked** (3 🔴 P0 · 5 🟡 P1 · 5 🟡 P2 · 2 🟢 P3)
+- **3 🔴 P0 actions remediable in ~2 hr DB-only sweep**:
+  1. Deactivate `fieldleader@mascigc.com` (documented-password test FL user live in prod with Superintendent scope)
+  2. Dedupe `doc_id='INC-2026-00001'` (2 incident rows share the ID; rename one to `INC-2026-00012`)
+  3. Delete 10 abandoned payroll-variance test batches + 7 linked decisions (created by `hrmanager@mascigc.com` 2026-05-12/13 with "John Smith" canary names)
+- **5 🟡 P1 actions** total ~3-5 dev-days: incident soft-delete migration · frontend HTTP error surfacing · password audit on 5 `user_directory` rows · `is_active=True` backfill · `test_credentials.md` doc update
+- **P0-3 root cause (incident delete)**: route is NOT broken. It's permission-gated (Safety token rejected → 401) · identifier-strict on `id` UUID (not `doc_id`) · lacks cascade to notifications/tasks/audit_events/admin_audit/corrective_actions/R2 photos · frontend swallows HTTP error codes (catch → generic "Delete failed" toast)
+- **P0-4 root cause (payroll batches)**: confirmed TEST DATA · all 10 batches by `hrmanager@mascigc.com` · 16-min window · "John Smith"/"Smith" canary · 0 matched_rows · iter238/iter282 build-out artifacts. Prior phase-3 audit's "null status/uploaded_by" was a schema misread — actual fields are `source`/`created_by`/`flagged_rows+matched_rows+total_rows`. Contamination finding STANDS.
+- **P0-5 (UI hygiene)**: no empty outlined button found by exhaustive HrHub code inspection (12 header controls · all wired). Operator viewport screenshot needed to reproduce the flagged item.
+
+### 8 deliverables (all in `/app/memory/`)
+- `CRITICAL_FIX_SPRINT1_MASTER_REPORT.md` — master ranking + execution order
+- `TEST_ACCOUNT_AUDIT.md` + `TEST_ACCOUNT_REMEDIATION_PLAN.md` — P0-1
+- `INCIDENT_INTEGRITY_REPORT.md` — P0-2
+- `INCIDENT_DELETE_ROOT_CAUSE.md` + `INCIDENT_DELETE_REMEDIATION_PLAN.md` — P0-3
+- `PAYROLL_VARIANCE_FORENSIC_REPORT.md` — P0-4
+- `UI_HYGIENE_REMEDIATION_REPORT.md` — P0-5
+
+### OMEGA discipline (this batch)
+🟢 Zero code changes · zero DB writes · zero deletes · zero deployments · zero feature work · zero white-label work · zero ForgedOps work · zero Escalation engine · zero Pillar 3/4 work · read-only forensic certification only.
+
+### Agent state
+- 🔴 STOPPED per OMEGA directive. Sprint 1 forensic batch closed. Awaiting explicit operator authorization for the remediation execution batch.
+
+
+
 ## 2026-05-31 (fork) — OMEGA Forensic Platform Certification 🟡 (75 findings)
 
 ### Operator directive

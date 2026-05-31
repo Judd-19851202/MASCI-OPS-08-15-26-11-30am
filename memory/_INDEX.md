@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — OMEGA Forensic Platform Certification complete · 9 deliverables · 75 findings)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — OMEGA Critical Fix Sprint 1 forensic batch · 15 ranked actions)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,21 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · OMEGA Critical Fix Sprint 1 · Forensic batch (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `CRITICAL_FIX_SPRINT1_MASTER_REPORT.md` | Master · 15 ranked actions (3 🔴 P0 · 5 🟡 P1 · 5 🟡 P2 · 2 🟢 P3) · execution order | 🟡 ⛔ |
+| `TEST_ACCOUNT_AUDIT.md` | P0-1 · 48 prod users inventoried · 1 🔴 test FL user · 8 🟡 hygiene items | 🟡 ⛔ |
+| `TEST_ACCOUNT_REMEDIATION_PLAN.md` | P0-1 · 5 remediation actions (3 options for FL test user · 5 audits) | 🟡 ⛔ |
+| `INCIDENT_INTEGRITY_REPORT.md` | P0-2 · 7 incidents · 1 🔴 dup doc_id · 3 ID schemas · 7 🟡 null status · 0 orphans | 🟡 ⛔ |
+| `INCIDENT_DELETE_ROOT_CAUSE.md` | P0-3 · DELETE route works · permission-gated · no cascade · no audit · frontend swallows error codes · live repro matrix | 🟡 ⛔ |
+| `INCIDENT_DELETE_REMEDIATION_PLAN.md` | P0-3 · 8 actions (dedupe · soft-delete · cascade · permission · index · backfill · counter audit) | 🟡 ⛔ |
+| `PAYROLL_VARIANCE_FORENSIC_REPORT.md` | P0-4 · 10 abandoned test batches by `hrmanager@mascigc.com` 2026-05-12/13 · "John Smith" canary confirmed | 🔴 ⛔ |
+| `UI_HYGIENE_REMEDIATION_REPORT.md` | P0-5 · 12 HrHub header controls all wired · no empty button found by code scan · viewport repro needed | 🟡 ⛔ |
+
+🟡 **Headline**: 5 P0 forensic dives complete. **3 🔴 P0 items remediable in ~2 hr of DB-only work** (deactivate FL test user · dedupe `doc_id='INC-2026-00001'` · delete 10 abandoned payroll-variance test batches). **5 🟡 P1 items** (soft-delete migration · frontend error surfacing · password audit · `user_directory.is_active` backfill · doc update) total 3-5 dev-days. Combined Sprint 1 effort: **3-5 dev-days + operator-coordination**. P0-3 incident-delete: route is NOT broken; it's permission-gated (Safety token returns 401) · identifier-strict on `id` (UUID) · lacks cascade to 6 surfaces (notifications · tasks · audit_events · admin_audit · corrective_actions · R2 photos) · frontend swallows HTTP codes. P0-4 payroll batches: confirmed test data with "John Smith" canary; prior phase-3 audit's "null status/uploaded_by/variances_count" was a schema misread — actual fields are `source`/`created_by`/`flagged_rows+matched_rows+total_rows`; the contamination finding STANDS. P0-5: no defect detected by exhaustive HrHub code inspection (12 header controls · all valid onClick + testid + icon + responsive label); operator viewport screenshot needed to reproduce. **OMEGA discipline preserved**: zero code · zero DB writes · zero deploys · zero features. Awaiting operator authorization to execute remediations.
 
 ### 00 · OMEGA Forensic Platform Certification · 9 deliverables (2026-05-31)
 
