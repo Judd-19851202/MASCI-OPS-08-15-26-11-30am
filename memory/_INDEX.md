@@ -13,6 +13,16 @@ across 500 docs — the platform has strict domain boundaries.
 
 
 
+### 00 · Pillar 2 · Phase A · Path B PATCH CLOSEOUT (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `COMMAND_CENTER_PATH_B_PATCH_REPORT.md` | Code-level summary of D1/D2/D5 patches · file/line evidence · pytest 20/20 · OMEGA discipline check | 🟢 ⛔ |
+| `COMMAND_CENTER_RECERTIFICATION_REPORT.md` | 12-gate re-certification on live preview · pulse aggregate reconciliation · D1/D2/D5 evidence inline | 🟢 ⛔ |
+| `COMMAND_CENTER_DEPLOY_READINESS_REPORT.md` | 🟢 **GO TO DEPLOY** recommendation · 12/12 pre-deploy gates · risk register · operator-authorization required | 🟢 ⛔ |
+
+🟢 **Headline**: D1 + D2 + D5 patched in `routes/command_center.py` (helpers + 4 query call-sites). Pytest expanded 14 → 20 · all green. Live preview snapshot now reconciles · Approvals card surfaces previously-invisible 139 aged POs (D5 evidence). Discipline preserved · zero frontend / collection / threshold / fan-out drift. Operator authorization required for production deploy.
+
 ### 00 · Pillar 2 · Phase A · Pre-Production CERTIFICATION (2026-05-31)
 
 | File | Purpose | Status |
@@ -22,7 +32,7 @@ across 500 docs — the platform has strict domain boundaries.
 | `EXECUTIVE_COMMAND_CENTER_FALSE_POSITIVE_REVIEW.md` | 5 FP classes · per-rule mechanism · estimated 22% FP rate as-is → ~8% after Path B | 🟡 ⛔ |
 | `EXECUTIVE_COMMAND_CENTER_FALSE_NEGATIVE_REVIEW.md` | 9 FN classes · FN-1 (D5) is MOST OPERATIONALLY DANGEROUS · zeros after Path B | 🟡 ⛔ |
 
-🟡 **Headline**: Phase A is fit for purpose with documented limitations. **7 defects identified · 3 medium (D1/D2/D5) · 4 low/cosmetic (D3/D4/D6/D7).** Path B (D1+D2+D5 fix · ~45 LOC · zero scope drift) is the recommended pre-production patch. Without it: aged Safety incidents stay RED forever (trust erosion); Approvals card silently under-reports (operational miss). OMEGA discipline preserved throughout — zero code changes during certification.
+🟡 **Headline**: Phase A is fit for purpose with documented limitations. **7 defects identified · 3 medium (D1/D2/D5) · 4 low/cosmetic (D3/D4/D6/D7).** Path B (D1+D2+D5 fix · ~45 LOC · zero scope drift) is the recommended pre-production patch. Without it: aged Safety incidents stay RED forever (trust erosion); Approvals card silently under-reports (operational miss). OMEGA discipline preserved throughout — zero code changes during certification. **Status: Path B PATCHED on preview 2026-05-31 (see Path B closeout block above).**
 
 
 

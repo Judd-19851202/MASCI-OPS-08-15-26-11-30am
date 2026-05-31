@@ -30665,3 +30665,57 @@ omitting them yields the same submit behavior as pre-Wave-1A. The
 - `BACKUP_R2_HOURLY=true` enablement (still deferred per OMEGA stop-list)
 - Batch N · Repeat-Unresolved escalation framework (would close G-P2-04 + G-P2-05 + DVIR-repeat together)
 - `drill-photos/*` 7-day R2 lifecycle rule (requested in spec §1.2; needs operator R2 lifecycle authorization)
+
+
+---
+
+## Pillar 2 · Phase A · Path B Patch Closeout · 2026-05-31
+
+### What was authorized
+
+Operator authorized Path B from `EXECUTIVE_COMMAND_CENTER_DEPLOYMENT_RECOMMENDATION.md`: patch D1 (Safety closure-state miss), D2 (OSHA closure-state miss), and D5 (cross-type date comparison) — and only those — in `/app/backend/routes/command_center.py`. No frontend, no new collections, no Pillar 1/3/4 / Phase B drift.
+
+### Code changes (scope-locked)
+
+| File | Before | After | Net |
+|---|---|---|---|
+| `/app/backend/routes/command_center.py` | 1,031 LOC | 1,111 LOC | +80 / −25 LOC (4 new helpers · 4 wrapped query call-sites · 0 surrounding code changes) |
+| `/app/backend/tests/test_command_center_phase_a.py` | 298 LOC | 403 LOC | +105 / 0 LOC (6 new D1/D2/D5 tests · 14 existing untouched) |
+
+md5 (current preview):
+- `command_center.py` → `c6f950452e45cd48c85edbb365e79fe5`
+- `test_command_center_phase_a.py` → `5815a7762fa46d989cae35d94575bc0c`
+- `AdminCommandCenter.jsx` → `4cb825b4830871d1d407d206d4ae5519` (UNCHANGED)
+
+### Evidence captured
+
+- 🟢 Pytest 20/20 PASS (`pytest tests/test_command_center_phase_a.py -v` · 0.27s)
+- 🟢 Live snapshot probe — pulse aggregates reconcile (red_w=6 amber_w=1 red_i=8 amber_i=10 all match)
+- 🟢 D5 live proof — Approvals `pending_amber=139` (was 0 pre-patch on same dataset)
+- 🟢 Auth gates intact — 401 unauth · 200 admin on `/snapshot · /thresholds · /calendar · /drilldown`
+- 🟢 Cache TTL preserved (15 sec · second call returns `cached=true`)
+- 🟢 Backend stderr clean — no Tracebacks, no `command_center` exceptions
+- 🟢 Frontend route `/admin/command-center` → 200
+
+### Three operator deliverables created
+
+| File | Purpose |
+|---|---|
+| `COMMAND_CENTER_PATH_B_PATCH_REPORT.md` | What changed, where, and why · OMEGA discipline check |
+| `COMMAND_CENTER_RECERTIFICATION_REPORT.md` | 12-gate re-certification on live preview · D1/D2/D5 evidence inline |
+| `COMMAND_CENTER_DEPLOY_READINESS_REPORT.md` | 🟢 **GO TO DEPLOY** recommendation · 12/12 pre-deploy gates · operator authorizes separately |
+
+### Status
+
+- Preview: 🟢 PATH B PATCHED · 🟢 RE-CERTIFIED · 🟢 GO recommendation issued
+- Production: 🟡 **AWAITING OPERATOR DEPLOY AUTHORIZATION** — no code change in production. Pre-patch source still live there. Operator triggers deploy when ready.
+- Pillar 1 · Pillar 3 · Pillar 4 · Phase B: 🛑 FROZEN — no work performed; no drift.
+
+### Open authorization queue (operator decisions)
+
+- 🟢 Path B production deploy (single button — preview source hash matches Path B build · code-only · no schema delta · no env mutation)
+- 🟡 Phase B Command Center scope (Pillar 2 next wave) — awaiting operator direction
+- 🟡 Pillar 1 / Pillar 3 / Pillar 4 — awaiting operator direction
+- Backlog (from earlier OMEGA queue): iter442/443/444 production deploy, `BACKUP_R2_HOURLY=true`, Batch N escalation framework, R2 lifecycle rule
+
+The agent stops here. No code change. No deployment. Awaiting operator's explicit next-batch authorization.
