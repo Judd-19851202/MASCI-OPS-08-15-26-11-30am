@@ -933,4 +933,123 @@ __all__ = [
     "project_fleet_defect",
     "project_incident",
     "project_virtual_signal",
+    # Phase 1A-5 owner-fidelity resolvers
+    "project_po_request_resolved",
+    "project_incident_resolved",
 ]
+
+
+# ════════════════════════════════════════════════════════════════════
+# Phase 1A-5 · Owner-fidelity resolvers
+# ════════════════════════════════════════════════════════════════════
+# These async wrappers consult authoritative routing data (jobs_master
+# for PO PM-routing, corrective_actions for incident CA-assignment) and
+# upgrade the projection's owner fields when an individually-named owner
+# is available. When no authoritative routing data exists, the original
+# projection's fallback owner is preserved unchanged.
+#
+# Scope discipline: these resolvers DO NOT create routing data, only
+# consume existing data. Source workflows remain unchanged.
+
+async def project_po_request_resolved(db: Any, row: Dict[str, Any]
+                                       ) -> Dict[str, Any]:
+    """PO projection with PM-routing resolution.
+
+    Routing source: db.jobs_master.primary_pm_* for the linked
+    project_number. The platform's existing PO approval fan-out
+    assigns the task to `assignee_role="pm"` (po_requests.py:568),
+    making the project's PM the de-facto pending approver.
+
+    If the PO has a non-null `project_number` AND a jobs_master row
+    matches it AND that row carries `primary_pm_name`, the projection's
+    owner_role / owner_user_id / owner_employee_id / owner_display_name
+    are upgraded from the placeholder "Pending Approver" to the named PM.
+
+    Otherwise the base projection's fallback is preserved.
+
+    Terminal-cancelled POs (status in {Rejected, Cancelled}) are not
+    resolved — the base projection's requester ownership is correct
+    for those (Lifecycle §4.3 · Audit A-05).
+    """
+    base = project_po_request(row)
+    if base["status"] in ("cancelled",):
+        return base
+    project_number = row.get("project_number")
+    if not project_number:
+        return base
+    try:
+        job = await db.jobs_master.find_one(
+            {"project_number": project_number},
+            {"_id": 0, "primary_pm_name": 1, "primary_pm_email": 1,
+             "primary_pm_user_id": 1, "primary_pm_employee_id": 1},
+        )
+    except Exception:
+        return base
+    if not job:
+        return base
+    pm_name = (job.get("primary_pm_name") or "").strip()
+    if not pm_name:
+        return base
+    base["owner_role"] = "pm"
+    base["owner_user_id"] = job.get("primary_pm_user_id") or None
+    base["owner_employee_id"] = job.get("primary_pm_employee_id") or None
+    base["owner_display_name"] = pm_name
+    return base
+
+
+async def project_incident_resolved(db: Any, row: Dict[str, Any]
+                                     ) -> Dict[str, Any]:
+    """Incident projection with linked-CA assignee resolution.
+
+    Routing source: db.corrective_actions linked to the incident by
+    `source_id` ∥ `incident_id`. When the incident has a linked CA
+    with a real `assigned_to_name`, that person is the de-facto owner
+    of the resolution path (Integration §3.2 / future-proof noted in
+    `_owner_from_incident`).
+
+    Resolution preference order:
+        1. Most-recent OPEN CA (any of Open/In Progress/Pending Review)
+           with `assigned_to_name` → promote.
+        2. Most-recent ANY CA with `assigned_to_name` → promote.
+        3. Fallback to base projection's "Safety" placeholder.
+
+    Resolved owners keep `owner_role="safety"` (the role of the
+    CA-resolver) — only the display name + employee_id are upgraded.
+    """
+    base = await project_incident(db, row)
+    inc_id = row.get("id")
+    if not inc_id:
+        return base
+    or_clause = [{"source_id": inc_id}, {"incident_id": inc_id}]
+    # Try open CAs first
+    try:
+        ca = await db.corrective_actions.find_one(
+            {"$or": or_clause,
+             "status": {"$in": ["Open", "In Progress", "Pending Review"]},
+             "assigned_to_name": {"$nin": [None, ""]}},
+            {"_id": 0, "id": 1, "assigned_to_name": 1, "assigned_to_email": 1,
+             "employee_master_id": 1, "status": 1, "created_at": 1},
+            sort=[("created_at", -1)],
+        )
+        if not ca:
+            ca = await db.corrective_actions.find_one(
+                {"$or": or_clause,
+                 "assigned_to_name": {"$nin": [None, ""]}},
+                {"_id": 0, "id": 1, "assigned_to_name": 1,
+                 "assigned_to_email": 1, "employee_master_id": 1,
+                 "status": 1, "created_at": 1},
+                sort=[("created_at", -1)],
+            )
+    except Exception:
+        return base
+    if not ca:
+        return base
+    name = (ca.get("assigned_to_name") or "").strip()
+    if not name:
+        return base
+    base["owner_display_name"] = name
+    base["owner_employee_id"] = (
+        ca.get("employee_master_id") or base.get("owner_employee_id"))
+    # owner_role stays "safety" — the CA-resolver is by definition a
+    # safety actor; we only upgrade the display + employee linkage.
+    return base

@@ -1,6 +1,45 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — Pillar 1 · Phase 1A-5 · Accountability Owner Fidelity 🟢 CERTIFIED
+
+### Operator directive
+> "AUTHORIZE PHASE 1A-5 · Accountability Owner Fidelity. Resolve placeholder ownership (`Pending Approver` · `Safety`) to actual users when authoritative routing data exists. Read-only. Additive. Preserve placeholders when the data legitimately does not exist. Three docs: Audit · Implementation Report · Certification. STOP after documentation. No Phase 1A-6. No deployment. No notifications. No escalation activation. No frontend change. No drift."
+
+### 🟢 HEADLINE
+- **Two read-only async resolver helpers shipped** in `/app/backend/lib/accountability_projection.py` (+119 LOC) — `project_po_request_resolved(db, row)` and `project_incident_resolved(db, row)`. Both wrap the base projections, consult ONLY pre-existing platform fields, fall back to the base projection on any DB exception, and preserve the 23-field canonical shape · `escalation_level == 0` · source-row immutability.
+- **Command Center wired** in 5 surgical call sites in `/app/backend/routes/command_center.py` (4 rule paths + drilldown for approvals / safety / jobs incidents). Rule logic, card schema, pulse aggregate reconciliation, and drilldown payload shape all preserved.
+- **128/128 combined pytests pass** across the Pillar suite — 20 new (Phase 1A-5) + 16 (1A-4) + 21 (1A-3) + 51 (1A-2) + 20 (Pillar 2 Phase A Path B). Zero regression.
+- **Live preview impact: zero owner-string changes today.** The Audit empirically established that 0 / 10 pending POs link to a `jobs_master` row with a populated PM, and 0 / 10 open incidents have a linked CA with an `assigned_to_name`. The placeholders ARE the truth on this dataset. On production data, and as the operator team continues to link POs to projects and create CAs for incidents, the resolvers will silently surface named individuals without further code change.
+- **Frontend untouched** — `AdminCommandCenter.jsx` md5 stable at `4cb825b428e0a4afc1a5cb7eb5b14ec1`.
+
+### Resolution rules (mechanism-level)
+| Resolver | Authoritative source | Promotion |
+|---|---|---|
+| `project_po_request_resolved` | `jobs_master.primary_pm_*` joined via `po.project_number` (non-terminal statuses only) | `owner_role="pm"` + populate `owner_display_name`/`owner_user_id`/`owner_employee_id` |
+| `project_incident_resolved` (open CA tier) | `corrective_actions.assigned_to_name` with `status ∈ {Open, In Progress, Pending Review}`, matched by `source_id` ∥ `incident_id` | preserve `owner_role="safety"`, upgrade `owner_display_name`/`owner_employee_id` |
+| `project_incident_resolved` (any-CA tier) | same as above without status filter (most recent CA) | preserve `owner_role="safety"`, upgrade `owner_display_name`/`owner_employee_id` |
+
+### OMEGA discipline scorecard
+🟢 Source workflows untouched · 🟢 Projection library extended additively · 🟢 Service router byte-stable · 🟢 Frontend untouched · 🟢 No new collection · 🟢 No new endpoint · 🟢 No notification / email / SMS / cron · 🟢 No escalation activation · 🟢 No deployment · 🟢 Phase 1A-6 / 1A-7 NOT executed · 🟢 Pillar 1B NOT executed · 🟢 Pillars 2/3/4 untouched · 🟢 Backup architecture untouched.
+
+### Deliverables (all in `/app/memory/`)
+- `ACCOUNTABILITY_OWNER_RESOLUTION_AUDIT.md` — placeholder inventory · authoritative routing source candidates per source · resolvable-vs-preserve decision · live preview baseline
+- `ACCOUNTABILITY_OWNER_FIDELITY_REPORT.md` — implementation report · resolver helpers · Command Center wiring · resolved + fallback owner inventory · pytest evidence per branch
+- `PHASE_1A5_CERTIFICATION.md` — 10/10 cert requirements GREEN · 20 new + 128 combined pytests · canonical shape · 1B reservation · immutability · DB-fail fallback · OMEGA scorecard
+
+### Files changed
+| File | Change | LOC |
+|---|---|---|
+| `/app/backend/lib/accountability_projection.py` | 2 new async resolver helpers + `__all__` export update | +119 |
+| `/app/backend/routes/command_center.py` | 5 surgical edits switching 4 rule paths + 2 drilldown call sites | +5 net |
+| `/app/backend/tests/test_accountability_owner_fidelity_phase_1a5.py` | NEW · 20 unit tests | 362 |
+
+### Agent state
+- 🔴 STOPPED per directive. Phase 1A-5 batch closed. No further code · no deploy · no Phase 1A-6 work. Awaiting explicit operator authorization for the next batch (Phase 1A-6 Dashboard, Phase 1A-7 Production deploy, or other).
+
+
+
 ## 2026-05-31 (fork) — Pillar 2 · Phase A · Pre-Production CERTIFICATION 🟡 CONDITIONAL GO
 
 ### Operator directive

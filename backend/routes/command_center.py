@@ -405,10 +405,10 @@ async def _build_jobs_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
             no_path_count += 1
             if len(items) < 8 and no_path_count <= 3:
                 age_d = _days_since(_parse_ts(inc.get("created_at")))
-                # Phase 1A-4: owner from Accountability Projection (was
-                # hardcoded "Safety"). Falls back to "Safety" when the
-                # incident has no native assignee — closes Audit A-01.
-                _proj = await _acc_proj.project_incident(db, inc)
+                # Phase 1A-5: owner via owner-fidelity resolver — if a
+                # linked CA has a real assignee, that individual is
+                # surfaced; otherwise the "Safety" fallback stands.
+                _proj = await _acc_proj.project_incident_resolved(db, inc)
                 items.append({
                     "what_wrong": f"Incident {inc.get('doc_id') or inc_id[:8]} open {int(age_d or 0)}d · no corrective action",
                     "why_red": f"Rule JOBS-ISSUE-NO-PATH · open > {stale_days}d without CA",
@@ -481,9 +481,9 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
         if age_h >= red_hours:
             crit_red_count += 1
             if len(items) < 8:
-                # Phase 1A-4: owner from Accountability Projection
-                # (was hardcoded "Safety").
-                _proj = await _acc_proj.project_incident(db, inc)
+                # Phase 1A-5: owner-fidelity resolver promotes linked-CA
+                # assignee when present; otherwise "Safety" fallback.
+                _proj = await _acc_proj.project_incident_resolved(db, inc)
                 items.append({
                     "what_wrong": f"{(inc.get('severity') or 'Unspecified').title()} incident {inc.get('doc_id') or 'unspecified'} open {_fmt_age_hours(age_h)}",
                     "why_red": f"Rule SAF-CRITICAL-UNRESOLVED · age ≥ {red_hours}h",
@@ -538,9 +538,9 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
                          "item_count": osha_open, "rule_id": "SAF-OSHA-OPEN",
                          "owner": "safety", "drill_to": "/admin/incidents?osha=yes"})
         for o in osha_unresolved_for_items:
-            # Phase 1A-4: owner from Accountability Projection
-            # (was hardcoded "Safety").
-            _proj = await _acc_proj.project_incident(db, o)
+            # Phase 1A-5: owner-fidelity resolver promotes linked-CA
+            # assignee when present; otherwise "Safety" fallback.
+            _proj = await _acc_proj.project_incident_resolved(db, o)
             items.append({
                 "what_wrong": f"OSHA-recordable incident {o.get('doc_id') or 'unspecified'} open past 24h",
                 "why_red": "Rule SAF-OSHA-OPEN · regulatory clock running",
@@ -893,11 +893,10 @@ async def _build_approvals_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any
             rule = "APP-AMBER"
         else:
             continue
-        # Phase 1A-4: owner from Accountability Projection — for pending
-        # POs this resolves to "Pending Approver" (was the requester's
-        # name, which was the wrong attribution flagged in Audit A-05 /
-        # Integration §3.5).
-        _proj = _acc_proj.project_po_request(p)
+        # Phase 1A-5: owner-fidelity resolver promotes assigned PM from
+        # jobs_master.primary_pm_* when project_number links a job;
+        # otherwise "Pending Approver" placeholder stands.
+        _proj = await _acc_proj.project_po_request_resolved(db, p)
         items.append({
             "what_wrong": f"PO {p.get('doc_id') or p.get('id', '')[:8]} · {p.get('vendor', '—')} · ${p.get('estimated_amount', 0):,.0f}",
             "why_red": f"Rule {rule} · pending {int(age_d)}d · status {p.get('status')}",
@@ -1143,26 +1142,24 @@ def build_command_center_router(
             if card_id == "accountability":
                 accountability_payload = _acc_proj.project_task(doc)
             elif card_id == "approvals":
-                accountability_payload = _acc_proj.project_po_request(doc)
+                # Phase 1A-5: use resolved variant on drilldown too.
+                accountability_payload = await _acc_proj.project_po_request_resolved(db, doc)
             elif card_id == "equipment":
                 accountability_payload = _acc_proj.project_fleet_defect(doc)
             elif card_id == "safety":
-                # Safety drilldown may have hit either an incident OR a CA.
                 if "assigned_to_name" in doc or "status_history" in doc:
                     accountability_payload = _acc_proj.project_corrective_action(doc)
                 else:
-                    accountability_payload = await _acc_proj.project_incident(db, doc)
+                    # Phase 1A-5: use resolved variant on drilldown too.
+                    accountability_payload = await _acc_proj.project_incident_resolved(db, doc)
             elif card_id == "jobs":
-                # Jobs drilldown may have hit jobs_master, incident, or CA.
                 if "primary_pm_name" in doc or "project_number" in doc and \
                         "doc_id" not in doc and "severity" not in doc:
-                    # jobs_master rows: no canonical projection (out of
-                    # scope of the 6 certified sources). Fall through.
                     accountability_payload = None
                 elif "assigned_to_name" in doc or "status_history" in doc:
                     accountability_payload = _acc_proj.project_corrective_action(doc)
                 else:
-                    accountability_payload = await _acc_proj.project_incident(db, doc)
+                    accountability_payload = await _acc_proj.project_incident_resolved(db, doc)
         except Exception:
             # Projection must never break the drilldown surface. Fall
             # back to legacy-only response.

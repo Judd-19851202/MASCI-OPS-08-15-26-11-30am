@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Phase A pre-production certification · conditional GO)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 1 Phase 1A-5 Owner Fidelity CERTIFIED)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,16 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · Pillar 1 · Phase 1A-5 · Accountability Owner Fidelity CERTIFIED (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ACCOUNTABILITY_OWNER_RESOLUTION_AUDIT.md` | Pre-implementation audit · placeholder inventory · authoritative routing source candidates per source · resolvable-vs-preserve decision · live preview baseline (0/10 PO link · 0/10 incident link) | 🟢 ⛔ |
+| `ACCOUNTABILITY_OWNER_FIDELITY_REPORT.md` | Implementation report · 2 new async resolvers (`project_po_request_resolved` · `project_incident_resolved`) · 5-call-site Command Center wiring · resolved + fallback owner inventory · pytest evidence per resolver branch | 🟢 ⛔ |
+| `PHASE_1A5_CERTIFICATION.md` | 10/10 cert requirements GREEN · 20 new + 128 combined pytests · canonical shape · 1B reservation · immutability · DB-fail fallback · frontend untouched · OMEGA scorecard | 🟢 ⛔ |
+
+🟢 **Headline**: Two read-only async resolver helpers added to `lib/accountability_projection.py` (+119 LOC) and consumed by the Command Center on 4 rule paths + 2 drilldown call sites. POs with a `project_number` joined to `jobs_master.primary_pm_name` now surface as the named PM (`owner_role="pm"`). Incidents with a linked CA (preferring OPEN over closed, matching via `source_id` ∥ `incident_id`) now surface the CA's `assigned_to_name` (`owner_role="safety"` preserved). On preview today no owner string changes — the Audit empirically established 0/10 pending POs link to a project with a PM and 0/10 open incidents have a linked CA with an assignee, so the placeholders ARE the truth. The mechanism activates automatically as operator data accrues. **23-field canonical shape · escalation_level=0 · source-row immutability · DB-fail-fallback all verified by pytest. Source workflows, frontend (`AdminCommandCenter.jsx` md5 stable at `4cb825b4…`), service router, server.py, backup architecture untouched.**
 
 ### 00 · Pillar 1 · Phase 1A-4 · Executive Command Center CONSUMES Accountability (2026-05-31)
 
