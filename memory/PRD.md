@@ -1,6 +1,45 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — Pillar 2 · Batch 1 · Executive Command Center Blueprint 🟢 SPEC ONLY
+
+### Operator directive
+> "OMEGA DIRECTIVE · Pillar 2 — Executive Visibility · This batch is DESIGN, AUDIT, and SPECIFICATION ONLY. NO CODE. NO DATABASE CHANGES. NO NEW ENDPOINTS. NO UI IMPLEMENTATION. NO NOTIFICATIONS. NO WORKFLOW CHANGES. Deliverables: Executive Command Center Audit · Spec · Heat Map Spec · Data Source Map · Implementation Roadmap. STOP after documentation."
+
+### 🟢 HEADLINE
+- **5 of 5 deliverables produced** as read-only design docs in `/app/memory/`.
+- **Audit verdict:** raw data exists across 132+ Mongo collections + 80 backend route files; what's missing is **horizontal synthesis · cross-domain RAG scoring · single-glass surface**. Today 3 of 10 operator questions are unanswerable, 5 require 10+ min of cross-portal hunting.
+- **Spec verdict:** Command Center adopts the proven `/admin/recovery/snapshot` pattern (RAG pill + `warnings[]` + `computed_at`) extended across 10 domain cards. 5-sec Pulse Strip → 60-sec Priority Stack (top 5) → 5-min 10-card grid.
+- **Heat Map verdict:** every RAG decision is rule-driven, threshold-tunable via `db.command_center_thresholds` config doc, fully auditable. Three colours only (GREEN/AMBER/RED). Overall pill = `max(card.pill)`.
+- **Data source verdict:** 9 of 10 cards reuse existing collections — **zero net-new collections** beyond `command_center_thresholds`. Zero workflow changes. Zero schema mutations.
+- **Roadmap verdict:** Phase A (7 cards · Pulse Strip · Thresholds) → Phase B (Recommender · Projects-at-Risk · CSV) → Phase C (Per-role filtered lenses). Footprint estimate Phase A < 1500 LOC total including tests.
+
+### Five mandatory pillar inputs (per OMEGA discipline)
+| Input | Value |
+|---|---|
+| Business outcome | Operations Director identifies top operational priorities in ≤ 5 min (today ≥ 60 min) · all 10 operator questions answered from a single screen · ≥ 80% reduction in time-to-insight |
+| Owner | Operations Leadership (primary) · Executive Leadership Team (audience) |
+| Notification path | NONE (this batch) — no emails, no bells, no tasks, no cron, no alerts emitted |
+| Escalation path | NONE (this batch) — escalation primitives belong to Pillar 4 and are documented as cross-pillar deferred dependencies |
+| Executive visibility path | the blueprint itself — defines the future `/admin/command-center` as the primary executive landing surface |
+
+### Deliverables (all in `/app/memory/`)
+- `EXECUTIVE_COMMAND_CENTER_AUDIT.md` — inventory existing surfaces + identify the 10-domain gap matrix
+- `EXECUTIVE_COMMAND_CENTER_SPEC.md` — 5-sec/60-sec/5-min layout · 10 cards · 5 questions answered per item
+- `EXECUTIVE_HEATMAP_SPEC.md` — Green/Amber/Red scoring methodology · 30+ tunable rules · config doc schema
+- `EXECUTIVE_DATA_SOURCE_MAP.md` — per-widget source collection · workflow · owner · existing availability · missing requirements
+- `EXECUTIVE_IMPLEMENTATION_ROADMAP.md` — Phase A/B/C sequencing · acceptance criteria · stop conditions · 8 open questions deferred to operator
+
+### What this batch is NOT
+- ❌ Not an implementation. No code written. No DB doc inserted. No endpoint added. No UI added. No notification emitted.
+- ❌ Not authorization to proceed to Phase A. Future implementation is gated on operator re-authorization with the five inputs again.
+- ❌ Not a redesign of any existing dashboard. Existing admin pages remain unchanged.
+
+### Agent state
+- 🔴 STOPPED. Awaiting operator review of the 5 deliverables and any pillar / batch authorization that follows.
+
+
+
 ## 2026-05-31 (fork) — Backup & Recoverability Epic CLOSEOUT 🟢 + Pillar Pivot
 
 ### Operator directive

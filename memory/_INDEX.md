@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Backup & Recoverability Epic CLOSEOUT + 4-pillar pivot)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 2 Executive Command Center blueprint)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -10,6 +10,20 @@ across 500 docs — the platform has strict domain boundaries.
 > 🟡 deferred · ⛔ read-before-touching · 🚫 ABANDONED/DO-NOT-IMPLEMENT
 
 ---
+
+
+
+### 00 · Pillar 2 · Executive Command Center BLUEPRINT (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `EXECUTIVE_COMMAND_CENTER_AUDIT.md` | Inventory existing exec-relevant surfaces · identify 10-domain gap matrix · raw data exists, synthesis missing | 📐 ⛔ |
+| `EXECUTIVE_COMMAND_CENTER_SPEC.md` | 5-sec Pulse Strip → 60-sec Priority Stack → 5-min 10-card grid · single-glass design answering 10 operator questions | 📐 ⛔ |
+| `EXECUTIVE_HEATMAP_SPEC.md` | GREEN/AMBER/RED scoring methodology · 30+ tunable rules · adopts proven `/admin/recovery/snapshot` `warnings[]` pattern | 📐 ⛔ |
+| `EXECUTIVE_DATA_SOURCE_MAP.md` | Per-widget source collection / workflow / owner · 0 net-new collections beyond `command_center_thresholds` config doc | 📐 ⛔ |
+| `EXECUTIVE_IMPLEMENTATION_ROADMAP.md` | Phase A (7 cards) → Phase B (Recommender · Projects) → Phase C (per-role lenses) · acceptance criteria · stop conditions · 8 deferred operator questions | 📐 ⛔ |
+
+🟢 **Headline**: Spec-only batch complete. Blueprint demonstrates that the Executive Command Center is a synthesis-and-scoring layer over existing data — **no new workflows, no schema changes, ~1500 LOC for Phase A including tests**. Pattern is the production-proven `recovery/snapshot` RAG-with-warnings shape extended to 10 operational domains. **Implementation NOT authorized** — agent stopped after documentation per operator directive.
 
 
 
