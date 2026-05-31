@@ -30927,3 +30927,73 @@ No tuning changes made in this phase. Bottleneck (incidents async lookup) is acc
 - 🟡 Pillar 1B Escalation Framework · Pillar 2 next wave · Pillar 3 · Pillar 4
 
 Agent STOPPED at end of Phase 1A-3.
+
+
+---
+
+## Pillar 1 · Phase 1A-4 · Command Center Consumes Accountability · CERTIFIED · 2026-05-31
+
+### Authorized scope
+
+Operator authorized Phase 1A-4: integrate the certified Accountability Service into Executive Command Center ownership · replace hardcoded owner strings · enrich drilldown · preserve visual design.
+
+### What was built
+
+| File | Type | LOC | md5 |
+|---|---|---|---|
+| `/app/backend/routes/command_center.py` | MODIFIED · 6 surgical edits | 1,192 (+81) | `38bae4866b672dd254f6cfc6e49b9a8d` |
+| `/app/backend/tests/test_accountability_executive_phase_1a4.py` | NEW · live HTTP cert suite | 314 | `79cc45c86740cd8b323b58640f97f367` |
+
+Zero other files modified. `lib/accountability_projection.py` (md5 `e8de1112…`) and `routes/accountability_service.py` (md5 `0e879cf9…`) and `AdminCommandCenter.jsx` (md5 `4cb825b4…`) all byte-stable.
+
+### Five hardcoded owner strings replaced
+
+| Rule | Pre-1A-4 | Post-1A-4 |
+|---|---|---|
+| APP-AMBER · APP-RED · APP-WEEK | `po.requested_by_name` (the requester · wrong attribution) | `"Pending Approver"` from `project_po_request()` |
+| SAF-CRITICAL-UNRESOLVED | literal `"Safety"` | `project_incident().owner_display_name` |
+| SAF-OSHA-OPEN | literal `"Safety"` | `project_incident().owner_display_name` |
+| JOBS-ISSUE-NO-PATH | literal `"Safety"` | `project_incident().owner_display_name` |
+| EQP-OOS-OLD | literal `"Shop"` | `project_fleet_defect().owner_display_name` |
+
+### Drilldown enriched (additive only)
+
+`GET /api/admin/command-center/drilldown/{card_id}/{item_id}` now returns:
+
+- All pre-1A-4 keys byte-stable (`card_id`, `item_id`, `source_doc`, `actions_underway`, `owner`, `expected_resolution`)
+- NEW: `accountability` — full 23-field canonical projection
+- NEW: `timeline` — last 25 canonical events translated from source
+
+### Certification evidence
+
+- 🟢 16/16 new Phase 1A-4 service pytests green
+- 🟢 108/108 combined (Path B + Phase 1A-2 + Phase 1A-3 + Phase 1A-4) — zero regression
+- 🟢 Live preview probe: 5/5 APP-AMBER items show `owner='Pending Approver'` · SAF-CA-OVERDUE surfaces real assignee names (`Alec Perkins`, `iter364 Sub Vendor Owner`) · pulse aggregates reconcile exactly
+- 🟢 Drilldown probe: legacy `owner` matches `accountability.owner_display_name` · timeline carries canonical events
+- 🟢 5/5 directive certification requirements satisfied (ownership parity · approver-not-requester · hardcoded owner removal · CC regression-free · service consumption verified)
+- 🟢 Pillar 1B reservation enforced (`escalation_level=0` across every Command Center surface)
+
+### OMEGA discipline · this batch
+
+| Check | Verdict |
+|---|---|
+| Source workflows unchanged | 🟢 |
+| Projection library / service router / frontend byte-stable | 🟢 |
+| No new collection · no new endpoint | 🟢 |
+| Card payload shape preserved (only string content changes) | 🟢 |
+| No notifications/emails/SMS/cron | 🟢 |
+| Backup · recovery · scheduler · R2 · drill framework untouched | 🟢 |
+| Escalation (Pillar 1B) reservation honored | 🟢 |
+| Phase 1A-5+ not executed | 🟢 |
+| No deployment | 🟢 |
+
+### Open authorization queue
+
+- 🟡 Phase 1A-5 (Native `assignee_*` on incidents + fleet_defects — promotes the projection's fallback owners to structural data)
+- 🟡 Phase 1A-6 (Accountability Dashboard page at `/admin/accountability`)
+- 🟡 Phase 1A-7 (Pytest hardening + production deploy of Phases 1A-2..1A-4..1A-6)
+- 🟡 Pillar 1B Escalation Framework
+- 🟡 Pillar 2 next wave · Pillar 3 · Pillar 4
+- 🟡 Production deploy of Phase 1A-2..1A-4 (currently preview-only)
+
+Agent STOPPED at end of Phase 1A-4.

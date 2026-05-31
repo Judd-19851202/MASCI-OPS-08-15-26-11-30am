@@ -34,6 +34,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
+# Phase 1A-4 · consume the certified Accountability Projection Layer for
+# canonical ownership derivation. Source workflows are NOT mutated;
+# projection is read-only.
+from lib import accountability_projection as _acc_proj
+
 
 # ─── In-memory cache (15 sec like recovery_dashboard) ────────────────
 _CACHE: Dict[str, Any] = {"computed_at": 0.0, "snapshot": None}
@@ -400,10 +405,14 @@ async def _build_jobs_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
             no_path_count += 1
             if len(items) < 8 and no_path_count <= 3:
                 age_d = _days_since(_parse_ts(inc.get("created_at")))
+                # Phase 1A-4: owner from Accountability Projection (was
+                # hardcoded "Safety"). Falls back to "Safety" when the
+                # incident has no native assignee — closes Audit A-01.
+                _proj = await _acc_proj.project_incident(db, inc)
                 items.append({
                     "what_wrong": f"Incident {inc.get('doc_id') or inc_id[:8]} open {int(age_d or 0)}d · no corrective action",
                     "why_red": f"Rule JOBS-ISSUE-NO-PATH · open > {stale_days}d without CA",
-                    "owner": "Safety",
+                    "owner": _proj["owner_display_name"],
                     "current_status": "Open · no resolution path",
                     "eta": "Within 5 business days",
                     "drill_to": f"/admin/incidents/{inc_id}",
@@ -472,10 +481,13 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
         if age_h >= red_hours:
             crit_red_count += 1
             if len(items) < 8:
+                # Phase 1A-4: owner from Accountability Projection
+                # (was hardcoded "Safety").
+                _proj = await _acc_proj.project_incident(db, inc)
                 items.append({
                     "what_wrong": f"{(inc.get('severity') or 'Unspecified').title()} incident {inc.get('doc_id') or 'unspecified'} open {_fmt_age_hours(age_h)}",
                     "why_red": f"Rule SAF-CRITICAL-UNRESOLVED · age ≥ {red_hours}h",
-                    "owner": "Safety",
+                    "owner": _proj["owner_display_name"],
                     "current_status": "Open · unresolved",
                     "eta": "Critical: 24h · High: 48h",
                     "drill_to": f"/admin/incidents/{inc.get('id')}",
@@ -526,10 +538,13 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
                          "item_count": osha_open, "rule_id": "SAF-OSHA-OPEN",
                          "owner": "safety", "drill_to": "/admin/incidents?osha=yes"})
         for o in osha_unresolved_for_items:
+            # Phase 1A-4: owner from Accountability Projection
+            # (was hardcoded "Safety").
+            _proj = await _acc_proj.project_incident(db, o)
             items.append({
                 "what_wrong": f"OSHA-recordable incident {o.get('doc_id') or 'unspecified'} open past 24h",
                 "why_red": "Rule SAF-OSHA-OPEN · regulatory clock running",
-                "owner": "Safety",
+                "owner": _proj["owner_display_name"],
                 "current_status": "Open · OSHA notification clock active",
                 "eta": "Within OSHA reporting window",
                 "drill_to": f"/admin/incidents/{o.get('id')}",
@@ -644,20 +659,28 @@ async def _build_equipment_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any
                          "owner": "shop", "drill_to": "/admin/equipment-inspections?status=oos"})
 
     if oos_red_count + oos_amber_count > 0:
+        # Phase 1A-4: expand projection so the Accountability layer can
+        # derive owner_display_name from acknowledged_by_name when present.
         oos_docs = await db.fleet_defects.find(
             {"severity": SEV_OOS, "status": {"$in": OPEN_STATES}},
             {"_id": 0, "id": 1, "truck_unit_number": 1, "trailer_unit_number": 1,
-             "created_at": 1, "status": 1, "defect_text": 1, "defect_summary": 1},
+             "created_at": 1, "reported_at": 1, "status": 1, "severity": 1,
+             "defect_text": 1, "defect_summary": 1, "item_text": 1,
+             "acknowledged_at": 1, "acknowledged_by_name": 1,
+             "repaired_at": 1, "repaired_by_name": 1},
             sort=[("created_at", 1)],
         ).limit(5).to_list(length=5)
         for d in oos_docs:
             age_h = _hours_since(_parse_ts(d.get("created_at")))
             unit = d.get("truck_unit_number") or d.get("trailer_unit_number") or "unspecified"
             sev_pill = "red" if (age_h or 0) >= red_h else "amber"
+            # Phase 1A-4: owner from Accountability Projection (was
+            # hardcoded "Shop") — closes Audit A-02.
+            _proj = _acc_proj.project_fleet_defect(d)
             items.append({
                 "what_wrong": f"Unit {unit} OOS · {d.get('defect_summary') or d.get('defect_text') or 'see defect'}",
                 "why_red": f"Rule EQP-OOS-OLD · OOS {_fmt_age_hours(age_h)}",
-                "owner": "Shop",
+                "owner": _proj["owner_display_name"],
                 "current_status": d.get("status") or "open",
                 "eta": "≤72h · sooner if production-critical",
                 "drill_to": f"/admin/equipment?defect_id={d.get('id', '')}",
@@ -850,8 +873,10 @@ async def _build_approvals_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any
     po_docs = await db.po_requests.find(
         {"status": {"$in": pending_statuses}},
         {"_id": 0, "id": 1, "vendor": 1, "description": 1, "estimated_amount": 1,
-         "status": 1, "created_at": 1, "requested_by_name": 1, "urgency": 1,
-         "project_number": 1, "doc_id": 1},
+         "status": 1, "created_at": 1, "requested_by_name": 1,
+         "requested_by_role": 1, "requested_by_user_id": 1,
+         "requested_by_employee_id": 1,
+         "urgency": 1, "project_number": 1, "doc_id": 1},
         sort=[("created_at", 1)],
     ).limit(5).to_list(length=5)
     for p in po_docs:
@@ -868,10 +893,15 @@ async def _build_approvals_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any
             rule = "APP-AMBER"
         else:
             continue
+        # Phase 1A-4: owner from Accountability Projection — for pending
+        # POs this resolves to "Pending Approver" (was the requester's
+        # name, which was the wrong attribution flagged in Audit A-05 /
+        # Integration §3.5).
+        _proj = _acc_proj.project_po_request(p)
         items.append({
             "what_wrong": f"PO {p.get('doc_id') or p.get('id', '')[:8]} · {p.get('vendor', '—')} · ${p.get('estimated_amount', 0):,.0f}",
             "why_red": f"Rule {rule} · pending {int(age_d)}d · status {p.get('status')}",
-            "owner": p.get("requested_by_name") or "Requester",
+            "owner": _proj["owner_display_name"],
             "current_status": p.get("status") or "Pending",
             "eta": "Within MASCI PO SLA",
             "drill_to": f"/po-requests/{p.get('id', '')}",
@@ -1075,7 +1105,17 @@ def build_command_center_router(
         """Return the 5-question payload (what · why · who · status · eta) for an item.
 
         Sources from existing collections by card_id. Does not invent data.
+
+        Phase 1A-4: enriched with an additive `accountability` sub-object
+        and a `timeline` field (last 25 canonical events translated from
+        the source row). Legacy keys (`owner`, `actions_underway`,
+        `expected_resolution`) are preserved byte-for-byte for backward
+        compatibility — UI consumers may switch to the projection keys.
         """
+        # Determine the source_module from card_id (Phase 1A-4 mapping).
+        # Resolve the live source document via existing per-card lookup.
+        accountability_payload: Optional[Dict[str, Any]] = None
+
         if card_id == "jobs":
             doc = await db.jobs_master.find_one({"id": item_id}, {"_id": 0}) or \
                   await db.incidents.find_one({"id": item_id}, {"_id": 0}) or \
@@ -1095,17 +1135,58 @@ def build_command_center_router(
         if not doc:
             raise HTTPException(status_code=404, detail=f"{card_id}/{item_id} not found")
 
+        # Phase 1A-4: build the canonical Accountability projection from
+        # the same document we already loaded above. Dispatch by which
+        # collection the document came from (inferred by presence of
+        # source-specific fields).
+        try:
+            if card_id == "accountability":
+                accountability_payload = _acc_proj.project_task(doc)
+            elif card_id == "approvals":
+                accountability_payload = _acc_proj.project_po_request(doc)
+            elif card_id == "equipment":
+                accountability_payload = _acc_proj.project_fleet_defect(doc)
+            elif card_id == "safety":
+                # Safety drilldown may have hit either an incident OR a CA.
+                if "assigned_to_name" in doc or "status_history" in doc:
+                    accountability_payload = _acc_proj.project_corrective_action(doc)
+                else:
+                    accountability_payload = await _acc_proj.project_incident(db, doc)
+            elif card_id == "jobs":
+                # Jobs drilldown may have hit jobs_master, incident, or CA.
+                if "primary_pm_name" in doc or "project_number" in doc and \
+                        "doc_id" not in doc and "severity" not in doc:
+                    # jobs_master rows: no canonical projection (out of
+                    # scope of the 6 certified sources). Fall through.
+                    accountability_payload = None
+                elif "assigned_to_name" in doc or "status_history" in doc:
+                    accountability_payload = _acc_proj.project_corrective_action(doc)
+                else:
+                    accountability_payload = await _acc_proj.project_incident(db, doc)
+        except Exception:
+            # Projection must never break the drilldown surface. Fall
+            # back to legacy-only response.
+            accountability_payload = None
+
+        timeline_events = (
+            (accountability_payload or {}).get("timeline_events", [])[-25:]
+        )
+
         return {
             "card_id": card_id,
             "item_id": item_id,
             "source_doc": doc,
             "actions_underway": doc.get("status") or doc.get("state") or "see source",
             "owner": (
+                (accountability_payload or {}).get("owner_display_name") or
                 doc.get("assigned_to_name") or doc.get("assignee_user_id") or
                 doc.get("requested_by_name") or doc.get("primary_pm_name") or
                 doc.get("assignee_role") or "Unassigned"
             ),
             "expected_resolution": doc.get("due_date") or doc.get("due_at") or "Not set",
+            # ── Phase 1A-4 additive payload (existing UIs ignore unknown keys) ──
+            "accountability": accountability_payload,
+            "timeline": timeline_events,
         }
 
     return router

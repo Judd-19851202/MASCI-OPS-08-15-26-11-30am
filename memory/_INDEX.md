@@ -13,6 +13,16 @@ across 500 docs — the platform has strict domain boundaries.
 
 
 
+### 00 · Pillar 1 · Phase 1A-4 · Executive Command Center CONSUMES Accountability (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ACCOUNTABILITY_EXECUTIVE_INTEGRATION_REPORT.md` | What changed · 6 surgical edits in `command_center.py` · drilldown enrichment · backward-compat guarantee · live evidence | 🟢 ⛔ |
+| `COMMAND_CENTER_ACCOUNTABILITY_CONSUMPTION_REPORT.md` | Per-card consumption map · dispatch logic · cache behavior · perf impact · frontend untouched | 🟢 ⛔ |
+| `PHASE_1A4_CERTIFICATION.md` | 5/5 cert requirements GREEN · 16 new + 108 combined pytests · approver-not-requester verified live | 🟢 ⛔ |
+
+🟢 **Headline**: 5/9 hardcoded Command Center owner strings replaced with Accountability projections. Approvals card stops misattributing the requester as owner (`owner='Pending Approver'` live on all 5 APP-AMBER items today). Drilldown endpoint enriched with additive `accountability` (23 canonical fields) + `timeline` (last 25 events) — legacy keys preserved byte-stable. **Frontend `AdminCommandCenter.jsx` untouched · md5 unchanged · zero visual change.** Pulse aggregate reconciliation intact · D1/D2/D5 Path B patches green · 108/108 pytests across Pillar suites pass · backup/recovery/scheduler unaffected. **Pillar 1B `escalation_level=0` reservation enforced across every surface.**
+
 ### 00 · Pillar 1 · Phase 1A-3 · Accountability Service CERTIFIED (2026-05-31)
 
 | File | Purpose | Status |
