@@ -13,6 +13,16 @@ across 500 docs — the platform has strict domain boundaries.
 
 
 
+### 00 · Pillar 1 · Phase 1A-2 · Projection Layer CERTIFIED (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ACCOUNTABILITY_PROJECTION_REPORT.md` | What was built · projection architecture · file locations · mapping logic · owner resolution logic | 🟢 ⛔ |
+| `ACCOUNTABILITY_CANONICAL_MAPPING_REPORT.md` | Native→canonical evidence per source · status / owner / due-date / timeline mapping with pytest refs | 🟢 ⛔ |
+| `ACCOUNTABILITY_PHASE_1A2_CERTIFICATION.md` | 7/7 cert requirements GREEN · 51/51 new pytests · 71/71 combined regression-free · OMEGA discipline scorecard | 🟢 ⛔ |
+
+🟢 **Headline**: `/app/backend/lib/accountability_projection.py` (936 LOC · md5 `e8de1112…`) is the read-only pure-function contract that projects all 6 authorized sources (tasks · CA · PO · fleet_defects · incidents · virtual signals) into one 24-field canonical accountability shape. 51 pytests cover per-source status/owner/due-date/timeline + cross-source uniformity + source-row immutability + Pillar 1B reservation invariants. Zero source workflow modified · zero new collection · zero endpoint · zero UI · zero deploy. Library is **not yet imported by any route** — passive contract awaiting Phase 1A-3 authorization.
+
 ### 00 · Pillar 1 · Accountability Engine · SPECIFICATION (2026-05-31)
 
 | File | Purpose | Status |

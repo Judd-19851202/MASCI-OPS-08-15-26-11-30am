@@ -30783,3 +30783,69 @@ Each phase is independently authorizable, independently revertible, and ships it
 | Existing Command Center · backup · recovery · scheduler surfaces untouched | 🟢 |
 
 Agent STOPPED at end of 1A-1. Awaiting next explicit operator authorization.
+
+
+---
+
+## Pillar 1 · Phase 1A-2 · Projection Layer · CERTIFIED · 2026-05-31
+
+### Authorized scope
+
+Operator authorized Phase 1A-2 (Accountability Projection Layer) covering 6 sources: Tasks · Corrective Actions · Purchase Approvals · Fleet Defects · Incidents · Virtual Signals.
+
+### What was built
+
+| File | Type | LOC | md5 |
+|---|---|---|---|
+| `/app/backend/lib/accountability_projection.py` | NEW · pure-function library | 936 | `e8de1112f0e9793b94e556e0463e58b9` |
+| `/app/backend/tests/test_accountability_projection_phase_1a2.py` | NEW · pytest suite | 660 | `47b7304e3bd10314e091ec1dd2213b16` |
+
+**No other files changed.** No route, no schema, no Command Center file, no frontend file, no `.env`.
+
+### Certification evidence
+
+- 🟢 51/51 new pytests green (per-source coverage + cross-source uniformity + source-row immutability + Pillar 1B reservation)
+- 🟢 71/71 combined (`test_command_center_phase_a.py` + projection suite) — zero regression
+- 🟢 Live preview: `/api/health` ok · `/api/admin/command-center/snapshot` 200 · backend never restarted (new library not imported by any route — by design)
+- 🟢 7/7 directive certification requirements satisfied (owner / due-date / status resolution · timeline compatibility · source preservation · no schema/workflow regressions)
+
+### Key contract details
+
+- **24-field canonical projection** identical across all 6 sources (proven by `test_all_six_sources_produce_identical_field_set`)
+- **6-state canonical lifecycle** projection (open · in_progress · pending_review · resolved · closed · cancelled · + derived `overdue` overlay)
+- **Approver-not-requester ownership** on aged POs (closes Audit A-05 false-attribution)
+- **Pillar 1B reservation invariant** enforced — `escalation_level=0` always, `escalated` kind never emitted
+- **Source rows are immutable** — projection is a pure read function (proven by 4 immutability tests)
+
+### Three operator deliverables produced
+
+| File | Purpose |
+|---|---|
+| `ACCOUNTABILITY_PROJECTION_REPORT.md` | Architecture · file locations · mapping logic · owner resolution logic |
+| `ACCOUNTABILITY_CANONICAL_MAPPING_REPORT.md` | Native→canonical evidence per source with pytest references |
+| `ACCOUNTABILITY_PHASE_1A2_CERTIFICATION.md` | 7/7 certification scorecard · OMEGA discipline check · regression evidence |
+
+### OMEGA discipline · this batch
+
+| Check | Verdict |
+|---|---|
+| Source workflows unchanged | 🟢 |
+| No new collection | 🟢 (proposed `db.accountability_timeline` deferred) |
+| No new endpoint · no UI · no deploy | 🟢 |
+| No notifications/emails/SMS/cron | 🟢 |
+| Backup · recovery · scheduler · R2 · drill framework untouched | 🟢 |
+| Command Center Phase A surface untouched | 🟢 |
+| Escalation (Pillar 1B) reservation honored | 🟢 |
+| Phase 1A-3 + beyond not executed | 🟢 |
+
+### Open authorization queue
+
+- 🟢 Phase 1A-3 (Drilldown enrichment · wire projection into existing `/api/admin/command-center/drilldown/...` endpoint as an additive `accountability` + `timeline` sub-object) — awaiting `AUTHORIZE PHASE 1A-3`
+- 🟡 Phase 1A-4 (Command Center owner-string replacement via projection)
+- 🟡 Phase 1A-5 (Native `assignee_*` on incidents + fleet_defects)
+- 🟡 Phase 1A-6 (Accountability Dashboard page)
+- 🟡 Phase 1A-7 (Pytest hardening + production deploy)
+- 🟡 Pillar 1B (Escalation Framework)
+- 🟡 Pillar 2 next wave · Pillar 3 · Pillar 4
+
+Agent STOPPED at end of Phase 1A-2.
