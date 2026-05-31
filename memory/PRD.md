@@ -30849,3 +30849,81 @@ Operator authorized Phase 1A-2 (Accountability Projection Layer) covering 6 sour
 - 🟡 Pillar 2 next wave · Pillar 3 · Pillar 4
 
 Agent STOPPED at end of Phase 1A-2.
+
+
+---
+
+## Pillar 1 · Phase 1A-3 · Accountability Service · CERTIFIED · 2026-05-31
+
+### Authorized scope
+
+Operator authorized Phase 1A-3 (Accountability Service Integration): expose the certified Phase 1A-2 projection layer through a read-only admin-strict HTTP surface · validate owner / status / parity / performance · produce certification evidence.
+
+### What was built
+
+| File | Type | LOC | md5 |
+|---|---|---|---|
+| `/app/backend/routes/accountability_service.py` | NEW · admin-strict router factory | 215 | `0e879cf9b774c41e48fe7eea38f63e71` |
+| `/app/backend/tests/test_accountability_service_phase_1a3.py` | NEW · live HTTP cert suite (21 tests) | 291 | `e5d3f84d441ea41341c9654a483b122b` |
+| `/app/backend/server.py` | +8 LOC · mount the new router next to Command Center | (existing) |
+
+Zero other files modified. Phase 1A-2 projection library (`lib/accountability_projection.py` md5 `e8de1112…`) is byte-stable.
+
+### Endpoints exposed (admin-strict)
+
+| Endpoint | Verb | Purpose |
+|---|---|---|
+| `/api/admin/accountability/sources` | GET | static metadata (6 sources + canonical statuses) |
+| `/api/admin/accountability/item` | GET | single-row projection (`?source_module=&source_record_id=`) |
+| `/api/admin/accountability/snapshot` | GET | bulk projection across all 6 sources (`?per_source=N`, default 50) · 15s cache |
+
+### Certification evidence
+
+- 🟢 21/21 service pytests green
+- 🟢 92/92 combined (Phase A Command Center + Phase 1A-2 projection + Phase 1A-3 service) — zero regression
+- 🟢 Live preview probe: 277 projections at per_source=100 · pulse roll-up matches sections · cached=true on warm calls
+- 🟢 7/7 directive certification requirements satisfied (owner / status / parity / performance + auth + no-regression)
+- 🟢 Pillar 1B reservation invariant enforced across 277 live items (`escalation_level=0` always)
+
+### Performance
+
+| Mode | Wall time | Server time |
+|---|---|---|
+| Cold (per_source=100 · 277 items) | ~1.7s | ~1.5s (90% in incidents async CA lookup) |
+| Warm (cached) | ~0.23s | ~0.05s |
+| Cache speedup | ~7.4× | scales with workload |
+
+No tuning changes made in this phase. Bottleneck (incidents async lookup) is acceptable and mitigated by 15s TTL cache. Future optimizations (batched incident closure lookup · event-driven projection cache) deferred.
+
+### Three operator deliverables produced
+
+| File | Purpose |
+|---|---|
+| `ACCOUNTABILITY_INTEGRATION_REPORT.md` | Architecture · 3 endpoints · live preview probe |
+| `ACCOUNTABILITY_SERVICE_CERTIFICATION.md` | 7/7 certification scorecard with pytest references |
+| `ACCOUNTABILITY_PERFORMANCE_REPORT.md` | Cold/warm latency · per-source breakdown · scalability projection |
+
+### OMEGA discipline · this batch
+
+| Check | Verdict |
+|---|---|
+| Source workflows unchanged | 🟢 |
+| Projection library unchanged (md5 stable) | 🟢 |
+| Command Center router unchanged | 🟢 |
+| No new collection | 🟢 |
+| No notifications/emails/SMS/cron | 🟢 |
+| No frontend change | 🟢 |
+| No deployment | 🟢 |
+| Backup · recovery · scheduler · R2 · drill framework untouched | 🟢 |
+| Escalation (Pillar 1B) reservation honored | 🟢 |
+| Phase 1A-4 + beyond not executed | 🟢 |
+
+### Open authorization queue
+
+- 🟢 Phase 1A-4 (Command Center owner-string replacement via projection — closes the 5/9 hardcoded owner strings; the Approvals card stops misattributing the requester as the owner) — awaiting `AUTHORIZE PHASE 1A-4`
+- 🟡 Phase 1A-5 (Native `assignee_*` on incidents + fleet_defects)
+- 🟡 Phase 1A-6 (Accountability Dashboard page)
+- 🟡 Phase 1A-7 (Pytest hardening + production deploy)
+- 🟡 Pillar 1B Escalation Framework · Pillar 2 next wave · Pillar 3 · Pillar 4
+
+Agent STOPPED at end of Phase 1A-3.

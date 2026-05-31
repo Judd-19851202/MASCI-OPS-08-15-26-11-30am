@@ -13,6 +13,16 @@ across 500 docs — the platform has strict domain boundaries.
 
 
 
+### 00 · Pillar 1 · Phase 1A-3 · Accountability Service CERTIFIED (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ACCOUNTABILITY_INTEGRATION_REPORT.md` | What was built · 3 admin-strict endpoints · factory pattern · live preview probe | 🟢 ⛔ |
+| `ACCOUNTABILITY_SERVICE_CERTIFICATION.md` | 7/7 cert requirements GREEN · 21 service pytests + 92 combined regression-free · per-source live-data evidence | 🟢 ⛔ |
+| `ACCOUNTABILITY_PERFORMANCE_REPORT.md` | Cold ~1.5s @ per_source=100 (90% incidents async) · warm ~0.05s · ~7× cache speedup · scalability projection · NO tuning changes in this batch | 🟢 ⛔ |
+
+🟢 **Headline**: Read-only Accountability service is live in preview. Three admin-strict endpoints (`/sources`, `/item`, `/snapshot`) expose the certified projection layer across all 6 sources (tasks · CA · PO · fleet_defects · incidents · virtual signals). 277 live projections at per_source=100. New module `/app/backend/routes/accountability_service.py` (215 LOC · md5 `0e879cf9…`) + 8-line `server.py` mount. Zero source workflow modified · zero new collection · zero Command Center integration · zero UI · zero deploy. Pillar 1B reservation invariant enforced on every live item (escalation_level=0 across 277 projections).
+
 ### 00 · Pillar 1 · Phase 1A-2 · Projection Layer CERTIFIED (2026-05-31)
 
 | File | Purpose | Status |

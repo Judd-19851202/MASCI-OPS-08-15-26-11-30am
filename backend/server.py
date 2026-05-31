@@ -8913,6 +8913,17 @@ app.include_router(
 )
 
 
+# ─── Pillar 1 · Phase 1A-3 · Accountability service surface ─────────
+# Read-only endpoints that expose the certified projection layer from
+# lib/accountability_projection.py. Source workflows are NOT modified.
+from routes.accountability_service import build_accountability_router  # noqa: E402
+
+app.include_router(
+    build_accountability_router(db, require_admin_strict),
+    prefix="/api",
+)
+
+
 # ─── Deploy Readiness Aggregator (iter136) ──────────────────────────
 from routes.deploy_readiness import build_deploy_readiness_router  # noqa: E402
 
