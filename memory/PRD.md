@@ -1,6 +1,42 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — OMEGA Pre-Deployment Certification Gate 🟢 GO TO DEPLOY (Low Risk · Code-No-Op)
+
+### Operator directive
+> "OMEGA PRE-DEPLOYMENT CERTIFICATION GATE · STOP · Do NOT redeploy production yet · Verify ALL 12 gates · No code changes unless blocker found · No env changes · No scheduler cadence changes · STOP after report."
+
+### 🟢 HEADLINE
+- **Preview & Production source_hash are byte-identical** (`533c269640ae7153de97ac56a998089a`). A redeploy is **code-no-op**; its sole material purpose is to re-roll prod env vars (notably to load `BACKUP_R2_HOURLY=true` which the prior report found NOT loaded in the running prod worker — see `HOURLY_BACKUP_ACTIVATION_REPORT.md` §3.3).
+- **12/12 gates verified.** 10 🟢 PASS · 1 🟡 ADVISORY (env-var operator-confirm) · 1 🟢 LOW-RISK classification.
+- **All iter441 (backup memory fix · `usage_events` exclusion) + iter442 (photo coverage `_iter_photo_refs`) primitives present** in current source. Automated drill tooling, weekly cron script, recovery dashboard endpoint + frontend page all present.
+- **All 7 portal frontend routes return 200** on both preview and production (`/`, `/admin/login`, `/pm/login`, `/hr/login`, `/safety-portal/login`, `/dispatch-portal/login`, `/shop/login`).
+- **Auth gate verified:** 5/5 admin endpoints return 401 unauthenticated, 200 with valid token. Per-portal `/me` endpoints return 200 for pm/hr/dispatch/shop with their respective portal tokens.
+- **Zero uncommitted source files.** Only 5 dirty paths: 2 yarn.lock + 3 drill log files (evidence folders).
+
+### 🟡 Operator pre-deploy checklist (verify prod env panel BEFORE clicking redeploy)
+1. `BACKUP_R2_HOURLY=true` — exact key, exact lowercase, no whitespace.
+2. `SCHEDULER_ENABLED=true`.
+3. `BACKUP_LITE_MODE_ONLY=true`.
+4. `AUTO_EMAIL_REPORTS=true`.
+5. `RATE_LIMITING=on`.
+6. `APP_ENV=production` · `DB_NAME=masci_safety`.
+
+### Rollback plan
+- Previous + new source_hash: identical → effective code rollback is no-op.
+- Env-var rollback: flip `BACKUP_R2_HOURLY=false` in prod env panel + redeploy if the hourly cadence causes any R2-cost / OOM signal (~2 min).
+- Twice-daily cadence (02 UTC and 18 UTC) re-asserts immediately.
+
+### Deliverables in `/app/memory/`
+- `OMEGA_PRE_DEPLOYMENT_CERTIFICATION_REPORT.md` (this batch's full evidence report)
+- Updated `_INDEX.md` entry under 2026-05-31 fork
+
+### Agent state after this batch
+- 🔴 STOPPED per operator directive. No deploy executed. No code modified. No env modified. No archive/restore triggered. No polling.
+- 🟢 Awaiting operator deploy click + post-deploy re-probe authorization.
+
+
+
 ## 2026-05-30 (fork) — Batch L · Fleet DVIR Implementation (OMEGA-3) ✅ COMPLETE · 🟢 NO 🔴 REMAINING
 
 ### Operator directive (OMEGA Execution Lock · Phase 1 + 2 + 3 + 4 + 5)

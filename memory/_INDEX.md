@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-28 (last updated 2026-02-01 — stabilization restoration)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — OMEGA pre-deploy gate)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -10,6 +10,17 @@ across 500 docs — the platform has strict domain boundaries.
 > 🟡 deferred · ⛔ read-before-touching · 🚫 ABANDONED/DO-NOT-IMPLEMENT
 
 ---
+
+
+
+### 00 · OMEGA Pre-Deployment Certification Gate (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `OMEGA_PRE_DEPLOYMENT_CERTIFICATION_REPORT.md` | 🟢 **GO TO DEPLOY (Low Risk · Code-No-Op)** · 12/12 gates · preview & prod source_hash identical (`533c269640ae7153de97ac56a998089a`) · sole material effect of redeploy is env-var re-roll (load `BACKUP_R2_HOURLY=true` into running prod worker per prior `HOURLY_BACKUP_ACTIVATION_REPORT.md` §3.3) | ✅ ⛔ |
+| `HOURLY_BACKUP_ACTIVATION_REPORT.md` | PARTIAL · scheduler alive, deployment healthy, but `BACKUP_R2_HOURLY=true` NOT loaded in running prod process (3 independent signals confirm) | ✅ ⛔ |
+
+🟢 **Headline**: Code is byte-identical between preview and prod. All iter441/iter442/drill/dashboard primitives present. Operator pre-deploy checklist (verify prod env panel values for `BACKUP_R2_HOURLY`, `SCHEDULER_ENABLED`, `BACKUP_LITE_MODE_ONLY`, `AUTO_EMAIL_REPORTS`, `RATE_LIMITING`) documented in §9 of the certification report. Rollback is trivial (identical hash + env-var flip).
 
 
 
