@@ -87,13 +87,27 @@ class _FakeCollection:
                     has = k in doc
                     if has != bool(v["$exists"]):
                         return False
-                if "$lt" in v and (actual is None or not (actual < v["$lt"])):
+                # Type-safe comparison helpers (Mongo returns False for
+                # cross-type compares between BSON Date and ISO string;
+                # the fake mimics that by reporting "no match" rather than
+                # raising TypeError).
+                def _cmp(op_key, py_op):
+                    if op_key not in v:
+                        return True
+                    if actual is None:
+                        return False
+                    try:
+                        return py_op(actual, v[op_key])
+                    except TypeError:
+                        return False
+                import operator as _op
+                if not _cmp("$lt", _op.lt):
                     return False
-                if "$lte" in v and (actual is None or not (actual <= v["$lte"])):
+                if not _cmp("$lte", _op.le):
                     return False
-                if "$gte" in v and (actual is None or not (actual >= v["$gte"])):
+                if not _cmp("$gte", _op.ge):
                     return False
-                if "$gt" in v and (actual is None or not (actual > v["$gt"])):
+                if not _cmp("$gt", _op.gt):
                     return False
                 if "$regex" in v:
                     import re as _re
@@ -296,3 +310,94 @@ def test_approvals_amber_when_po_aged_3_days():
     ])
     card = _run(_build_approvals_card(db, DEFAULT_THRESHOLDS["rules"]))
     assert card["pill"] == "AMBER"
+
+
+# ── D1 / D2 patch tests · resolution-state check on Safety incidents ──
+
+
+def test_d1_critical_incident_corrected_on_site_does_not_fire_red():
+    """D1: an aged Critical incident with `corrected_on_site=Yes` must NOT fire."""
+    db = _FakeDb()
+    db.incidents = _FakeCollection([
+        {"id": "inc1", "severity": "Critical",
+         "created_at": _hours_ago(72),
+         "corrected_on_site": "Yes"},
+    ])
+    card = _run(_build_safety_card(db, DEFAULT_THRESHOLDS["rules"]))
+    assert card["pill"] == "GREEN", \
+        "D1 regression: resolved-on-site critical incident should not fire"
+
+
+def test_d1_critical_incident_with_closed_ca_does_not_fire_red():
+    """D1: an aged Critical incident with a linked Closed CA must NOT fire."""
+    db = _FakeDb()
+    db.incidents = _FakeCollection([
+        {"id": "inc1", "severity": "Critical",
+         "created_at": _hours_ago(72)},
+    ])
+    db.corrective_actions = _FakeCollection([
+        {"id": "ca1", "incident_id": "inc1", "status": "Closed"},
+    ])
+    card = _run(_build_safety_card(db, DEFAULT_THRESHOLDS["rules"]))
+    assert card["pill"] == "GREEN", \
+        "D1 regression: critical incident with closed CA should not fire"
+
+
+def test_d2_osha_recordable_corrected_on_site_does_not_fire_red():
+    """D2: an aged OSHA-recordable incident with `corrected_on_site=Yes` must NOT fire."""
+    db = _FakeDb()
+    db.incidents = _FakeCollection([
+        {"id": "inc1", "severity": "Warning",
+         "osha_recordable": "Yes", "created_at": _hours_ago(48),
+         "corrected_on_site": "Yes"},
+    ])
+    card = _run(_build_safety_card(db, DEFAULT_THRESHOLDS["rules"]))
+    assert not any(w["rule_id"] == "SAF-OSHA-OPEN" for w in card["warnings"]), \
+        "D2 regression: resolved-on-site OSHA incident should not fire"
+
+
+def test_d2_osha_recordable_with_verified_ca_does_not_fire_red():
+    """D2: an aged OSHA-recordable incident with a linked Verified CA must NOT fire."""
+    db = _FakeDb()
+    db.incidents = _FakeCollection([
+        {"id": "inc1", "severity": "Warning",
+         "osha_recordable": "Yes", "created_at": _hours_ago(48)},
+    ])
+    db.corrective_actions = _FakeCollection([
+        {"id": "ca1", "source_id": "inc1", "status": "Verified"},
+    ])
+    card = _run(_build_safety_card(db, DEFAULT_THRESHOLDS["rules"]))
+    assert not any(w["rule_id"] == "SAF-OSHA-OPEN" for w in card["warnings"]), \
+        "D2 regression: OSHA incident with verified CA should not fire"
+
+
+# ── D5 patch tests · cross-type date comparison ──
+
+
+def test_d5_approvals_red_with_bson_datetime_created_at():
+    """D5: PO with `created_at` stored as a Python datetime (BSON Date) must fire RED."""
+    db = _FakeDb()
+    db.po_requests = _FakeCollection([
+        # NOT an ISO string — actual datetime object (mimics BSON Date)
+        {"id": "p1", "status": "Pending Approval",
+         "created_at": datetime.now(timezone.utc) - timedelta(days=6),
+         "estimated_amount": 1000, "vendor": "Acme"},
+    ])
+    card = _run(_build_approvals_card(db, DEFAULT_THRESHOLDS["rules"]))
+    assert card["pill"] == "RED", \
+        "D5 regression: BSON-Date-stored PO created_at must still fire warning"
+    assert any(w["rule_id"] in ("APP-RED", "APP-WEEK") for w in card["warnings"])
+
+
+def test_d5_equipment_red_with_bson_datetime_created_at():
+    """D5: OOS defect with datetime-typed `created_at` must fire EQP-OOS-OLD RED."""
+    db = _FakeDb()
+    db.fleet_defects = _FakeCollection([
+        {"id": "fd1", "severity": "oos", "status": "open",
+         "created_at": datetime.now(timezone.utc) - timedelta(hours=80),
+         "truck_unit_number": "T-1"},
+    ])
+    card = _run(_build_equipment_card(db, DEFAULT_THRESHOLDS["rules"]))
+    assert card["pill"] == "RED", \
+        "D5 regression: BSON-Date-stored OOS defect must still fire EQP-OOS-OLD"
+    assert any(w["rule_id"] == "EQP-OOS-OLD" for w in card["warnings"])

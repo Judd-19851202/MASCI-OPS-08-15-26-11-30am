@@ -236,6 +236,57 @@ def _fmt_age_hours(h: Optional[float]) -> str:
     return f"{int(round(h / 24))}d"
 
 
+# ─── D5 helpers (cross-type date comparison) ─────────────────────────
+# Path B patch · routes/command_center.py only · scope-locked to D1/D2/D5.
+#
+# Some collections (po_requests, fleet_defects) store `created_at` as a
+# BSON Date object; others use an ISO-string. A single-typed cutoff
+# silently fails to match the other form. These helpers fan out the
+# comparison across both representations.
+def _date_lt(field: str, dt: datetime) -> Dict[str, Any]:
+    """Match `field < dt` whether stored as BSON Date or ISO string."""
+    return {"$or": [{field: {"$lt": dt}}, {field: {"$lt": dt.isoformat()}}]}
+
+
+def _date_lte(field: str, dt: datetime) -> Dict[str, Any]:
+    """Match `field <= dt` whether stored as BSON Date or ISO string."""
+    return {"$or": [{field: {"$lte": dt}}, {field: {"$lte": dt.isoformat()}}]}
+
+
+def _date_gte(field: str, dt: datetime) -> Dict[str, Any]:
+    """Match `field >= dt` whether stored as BSON Date or ISO string."""
+    return {"$or": [{field: {"$gte": dt}}, {field: {"$gte": dt.isoformat()}}]}
+
+
+def _date_between_lt(field: str, dt_lo: datetime, dt_hi: datetime) -> Dict[str, Any]:
+    """Match `dt_lo < field <= dt_hi` (strict lower, inclusive upper) across both forms."""
+    return {"$or": [
+        {field: {"$gt": dt_lo, "$lte": dt_hi}},
+        {field: {"$gt": dt_lo.isoformat(), "$lte": dt_hi.isoformat()}},
+    ]}
+
+
+# ─── D1/D2 helper (incident resolution-state check) ──────────────────
+async def _incident_is_resolved(db: Any, inc: Dict[str, Any]) -> bool:
+    """An incident counts as RESOLVED for executive-attention purposes if any of:
+       - the incident itself was marked `corrected_on_site = Yes`, OR
+       - a linked corrective_action is in a closure state.
+    Without this check (pre-patch behavior) every aged Critical/High/OSHA
+    incident fires RED forever — defects D1 and D2.
+    """
+    if str(inc.get("corrected_on_site") or "").strip().lower() == "yes":
+        return True
+    inc_id = inc.get("id")
+    if not inc_id:
+        return False
+    closed = await db.corrective_actions.find_one(
+        {"$or": [{"source_id": inc_id}, {"incident_id": inc_id}],
+         "status": {"$in": ["Closed", "Verified", "Completed", "Closed - Verified"]}},
+        {"_id": 0, "id": 1},
+    )
+    return closed is not None
+
+
 # ─── Per-card builders ───────────────────────────────────────────────
 async def _build_jobs_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
     """Card 1: Jobs Today — missing deliverables · unowned issues · no resolution path."""
@@ -412,6 +463,11 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
         ts = _parse_ts(inc.get("created_at"))
         if not ts:
             continue
+        # D1 patch: skip incidents that have been resolved (corrected_on_site=Yes
+        # or a linked corrective_action in a closure state). Without this guard
+        # every aged Critical/High/Serious incident fires RED forever.
+        if await _incident_is_resolved(db, inc):
+            continue
         age_h = _hours_since(ts) or 0
         if age_h >= red_hours:
             crit_red_count += 1
@@ -443,23 +499,33 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
     # SAF-OSHA-OPEN
     r_osha = rules.get("SAF-OSHA-OPEN", DEFAULT_THRESHOLDS["rules"]["SAF-OSHA-OPEN"])
     osha_hours = int(r_osha.get("red_hours", 24))
-    cutoff_osha = (datetime.now(timezone.utc) - timedelta(hours=osha_hours)).isoformat()
-    osha_open = await db.incidents.count_documents({
-        "osha_recordable": {"$regex": "^Yes$", "$options": "i"},
-        "created_at": {"$lt": cutoff_osha},
-    })
+    cutoff_osha_dt = datetime.now(timezone.utc) - timedelta(hours=osha_hours)
+    # D2 patch: fetch candidates and filter out resolved incidents in-loop
+    # (was count_documents which couldn't apply the closure check).
+    # D5 patch: cross-type cutoff so BSON-Date-stored created_at is matched too.
+    osha_candidates = await db.incidents.find(
+        {"$and": [
+            {"osha_recordable": {"$regex": "^Yes$", "$options": "i"}},
+            _date_lt("created_at", cutoff_osha_dt),
+        ]},
+        {"_id": 0, "id": 1, "doc_id": 1, "severity": 1, "created_at": 1,
+         "corrected_on_site": 1},
+        sort=[("created_at", 1)],
+    ).limit(50).to_list(length=50)
+    osha_open = 0
+    osha_unresolved_for_items: List[Dict[str, Any]] = []
+    for inc in osha_candidates:
+        if await _incident_is_resolved(db, inc):
+            continue
+        osha_open += 1
+        if len(osha_unresolved_for_items) < 3:
+            osha_unresolved_for_items.append(inc)
     if osha_open > 0:
         warnings.append({"kind": "SAF-OSHA-OPEN", "severity": "red",
                          "message": f"{osha_open} OSHA-recordable incident(s) open beyond {osha_hours}h",
                          "item_count": osha_open, "rule_id": "SAF-OSHA-OPEN",
                          "owner": "safety", "drill_to": "/admin/incidents?osha=yes"})
-        osha_docs = await db.incidents.find(
-            {"osha_recordable": {"$regex": "^Yes$", "$options": "i"},
-             "created_at": {"$lt": cutoff_osha}},
-            {"_id": 0, "id": 1, "doc_id": 1, "severity": 1, "created_at": 1},
-            sort=[("created_at", 1)],
-        ).limit(3).to_list(length=3)
-        for o in osha_docs:
+        for o in osha_unresolved_for_items:
             items.append({
                 "what_wrong": f"OSHA-recordable incident {o.get('doc_id') or 'unspecified'} open past 24h",
                 "why_red": "Rule SAF-OSHA-OPEN · regulatory clock running",
@@ -551,15 +617,20 @@ async def _build_equipment_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any
     r_old = rules.get("EQP-OOS-OLD", DEFAULT_THRESHOLDS["rules"]["EQP-OOS-OLD"])
     red_h = int(r_old.get("red_hours", 72))
     amber_h = int(r_old.get("amber_hours", 24))
-    cutoff_red = (datetime.now(timezone.utc) - timedelta(hours=red_h)).isoformat()
-    cutoff_amber = (datetime.now(timezone.utc) - timedelta(hours=amber_h)).isoformat()
+    cutoff_red_dt = datetime.now(timezone.utc) - timedelta(hours=red_h)
+    cutoff_amber_dt = datetime.now(timezone.utc) - timedelta(hours=amber_h)
 
+    # D5 patch: cross-type cutoff for BSON Date vs ISO string created_at storage.
     oos_red_count = await db.fleet_defects.count_documents(
-        {"severity": SEV_OOS, "status": {"$in": OPEN_STATES},
-         "created_at": {"$lt": cutoff_red}})
+        {"$and": [
+            {"severity": SEV_OOS, "status": {"$in": OPEN_STATES}},
+            _date_lt("created_at", cutoff_red_dt),
+        ]})
     oos_amber_count = await db.fleet_defects.count_documents(
-        {"severity": SEV_OOS, "status": {"$in": OPEN_STATES},
-         "created_at": {"$lt": cutoff_amber, "$gte": cutoff_red}})
+        {"$and": [
+            {"severity": SEV_OOS, "status": {"$in": OPEN_STATES}},
+            _date_between_lt("created_at", cutoff_red_dt, cutoff_amber_dt),
+        ]})
 
     if oos_red_count > 0:
         warnings.append({"kind": "EQP-OOS-OLD", "severity": "red",
@@ -595,10 +666,12 @@ async def _build_equipment_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any
             })
 
     # EQP-OOS-NEW (any OOS defect created in last 24h with status=open, no shop ack)
+    # D5 patch: cross-type cutoff.
     new_oos_unack = await db.fleet_defects.count_documents({
-        "severity": SEV_OOS,
-        "status": "open",
-        "created_at": {"$gte": cutoff_amber},
+        "$and": [
+            {"severity": SEV_OOS, "status": "open"},
+            _date_gte("created_at", cutoff_amber_dt),
+        ]
     })
     if new_oos_unack > 0:
         warnings.append({"kind": "EQP-OOS-NEW", "severity": "red",
@@ -730,24 +803,31 @@ async def _build_approvals_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any
     red_min = int(r_red.get("red_days_min", 5))
     week_min = int(r_week.get("red_days_min", 7))
 
-    cutoff_amber_start = (datetime.now(timezone.utc) - timedelta(days=amber_max + 1)).isoformat()
-    cutoff_amber_end = (datetime.now(timezone.utc) - timedelta(days=amber_min)).isoformat()
-    cutoff_red = (datetime.now(timezone.utc) - timedelta(days=red_min)).isoformat()
-    cutoff_week = (datetime.now(timezone.utc) - timedelta(days=week_min)).isoformat()
+    cutoff_amber_start_dt = datetime.now(timezone.utc) - timedelta(days=amber_max + 1)
+    cutoff_amber_end_dt = datetime.now(timezone.utc) - timedelta(days=amber_min)
+    cutoff_red_dt = datetime.now(timezone.utc) - timedelta(days=red_min)
+    cutoff_week_dt = datetime.now(timezone.utc) - timedelta(days=week_min)
 
     pending_statuses = ["Pending Approval", "Submitted", "Clarification Needed"]
 
+    # D5 patch: cross-type cutoff (po_requests.created_at may be BSON Date or ISO string).
     amber_count = await db.po_requests.count_documents({
-        "status": {"$in": pending_statuses},
-        "created_at": {"$lte": cutoff_amber_end, "$gt": cutoff_amber_start},
+        "$and": [
+            {"status": {"$in": pending_statuses}},
+            _date_between_lt("created_at", cutoff_amber_start_dt, cutoff_amber_end_dt),
+        ]
     })
     red_count = await db.po_requests.count_documents({
-        "status": {"$in": pending_statuses},
-        "created_at": {"$lte": cutoff_red},
+        "$and": [
+            {"status": {"$in": pending_statuses}},
+            _date_lte("created_at", cutoff_red_dt),
+        ]
     })
     week_count = await db.po_requests.count_documents({
-        "status": {"$in": pending_statuses},
-        "created_at": {"$lte": cutoff_week},
+        "$and": [
+            {"status": {"$in": pending_statuses}},
+            _date_lte("created_at", cutoff_week_dt),
+        ]
     })
 
     if week_count > 0:
