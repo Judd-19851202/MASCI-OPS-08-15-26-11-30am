@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 2 Executive Command Center blueprint)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — Pillar 2 design review + slim Phase A recommendation)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -10,6 +10,19 @@ across 500 docs — the platform has strict domain boundaries.
 > 🟡 deferred · ⛔ read-before-touching · 🚫 ABANDONED/DO-NOT-IMPLEMENT
 
 ---
+
+
+
+### 00 · Pillar 2 · Executive Command Center DESIGN REVIEW (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `EXECUTIVE_COMMAND_CENTER_DESIGN_REVIEW.md` | Per-card 5-question critique · KEEP/MODIFY/REMOVE verdicts · 5 cards survive Phase A (Jobs · Safety · Equipment · Accountability · Approvals) · 5 cards removed/deferred (PM Load · Supervisor Load · Projects-at-Risk · Bottlenecks · Recommender) | 📐 ⛔ |
+| `EXECUTIVE_COMMAND_CENTER_RISK_ANALYSIS.md` | 8 missing exec questions cataloged · 6 duplicates → 0 · 6 low-value → 0 · 5 noise generators → 0 · 8 unreliable sources → 2 mitigated · 7 FP → 1 · 7 FN → 3 closed | 📐 ⛔ |
+| `EXECUTIVE_COMMAND_CENTER_OPERATOR_CHALLENGE.md` | 19 operator questions · 11 hard-blocking · cannot start Phase A without answers or default acceptance | 📐 ⛔ |
+| `FINAL_PHASE_A_RECOMMENDATION.md` | Slim Phase A contract · ~1,150 LOC · 5 cards · 3 endpoints · 2 pages · 2 config collections · acceptance criteria · stop conditions · OMEGA backup-freeze preserved | 📐 ⛔ |
+
+🟢 **Headline**: Self-critique pass complete. The original 10-card blueprint becomes a slim 5-card Phase A grounded in real data quality, with all duplicates / noise generators removed and 11 hard-blocking operator questions surfaced. Implementation NOT authorized — agent stopped after documentation per operator directive.
 
 
 

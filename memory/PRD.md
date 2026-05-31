@@ -1,6 +1,38 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — Pillar 2 · Batch 2 · Executive Command Center DESIGN REVIEW 🟢 SPEC ONLY
+
+### Operator directive
+> "OMEGA DIRECTIVE · Before any Executive Command Center implementation is authorized: Perform a Design Review and Gap Challenge of the five blueprint documents. Challenge every widget, card, KPI, threshold, heatmap rule, recommendation engine input. Identify missing exec questions, duplicate widgets, low-value widgets, noise generators, unreliable data sources, false positives, false negatives. For each card answer 5 questions (why · decision · action-if-red · owner · what-if-absent). Recommend KEEP/MODIFY/REMOVE. STOP after documentation."
+
+### 🟢 HEADLINE
+- **Slim Phase A recommended: 5 cards + Pulse Strip** (Jobs · Safety · Equipment · Accountability · Approvals + conditional Expirations). **NO Priority Stack. NO PM Load. NO Supervisor Load. NO Projects-at-Risk. NO Bottlenecks. NO Recommender** in Phase A. Each is deferred to Phase B or removed with explicit justification.
+- **Risk inventory reduced:** 6 duplicate widgets → 0 · 6 low-value widgets → 0 · 5 noise generators → 0 · 8 unreliable data sources → 2 (with mitigations) · 7 false-positive scenarios → 1 (gated on operator input) · 7 false-negative scenarios → 3 closed (SAF-1b, SAF-3b, MX-3) + 4 deferred.
+- **11 hard-blocking operator questions** identified. Phase A cannot begin until answered or defaults accepted.
+- **Implementation footprint: ~1,150 LOC** (down from 1,500 LOC blueprint estimate). 5 cards · 3 endpoints · 2 pages · 2 config collections.
+- **OMEGA backup-freeze preserved.** Stop conditions explicit on any touch to `recovery_dashboard.py` · `singleton_scheduler.py` · backup archive code.
+
+### Five mandatory pillar inputs (per OMEGA discipline)
+| Input | Value |
+|---|---|
+| Business outcome | Operations Director identifies daily priorities in ≤ 5 min · 5 honest cards beat 10 noisy ones · evidence-led, not opinion-led |
+| Owner | Operations Leadership · super_admin (Phase A) |
+| Notification path | NONE (design review batch · still spec-only) |
+| Escalation path | NONE (Pillar 4 territory) |
+| Executive visibility path | Slim Phase A blueprint defined in `FINAL_PHASE_A_RECOMMENDATION.md` |
+
+### Deliverables (all in `/app/memory/`)
+- `EXECUTIVE_COMMAND_CENTER_DESIGN_REVIEW.md` — per-card 5-question critique · KEEP/MODIFY/REMOVE verdicts
+- `EXECUTIVE_COMMAND_CENTER_RISK_ANALYSIS.md` — missing questions, duplicates, noise, FP/FN inventory
+- `EXECUTIVE_COMMAND_CENTER_OPERATOR_CHALLENGE.md` — 19 operator questions (11 hard-blocking)
+- `FINAL_PHASE_A_RECOMMENDATION.md` — slim Phase A blueprint · acceptance criteria · stop conditions · operator decision contract
+
+### Agent state
+- 🔴 STOPPED. No code. No implementation. Awaiting operator decisions on the 11 hard-blocking questions and Phase A authorization.
+
+
+
 ## 2026-05-31 (fork) — Pillar 2 · Batch 1 · Executive Command Center Blueprint 🟢 SPEC ONLY
 
 ### Operator directive
