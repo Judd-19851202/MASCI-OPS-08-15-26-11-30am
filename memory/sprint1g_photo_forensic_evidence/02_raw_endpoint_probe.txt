@@ -1,0 +1,17 @@
+=== Probe 1 · /api/job-photos/{id}/raw for the failing photo ===
+Target: daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0
+
+  HTTP: 200 · 412ms · response size: 481 bytes
+  First 200 chars of response:
+{"data_url":"photo://masci-hub/photos/2026/05/dr_07e54a58-61f5-46b2-a755-8dc4582a/85e97aff6117488789cba9ca98993c3e.jpg","meta":{"id":"daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0","source":"dai
+
+  --- Parsed response ---
+  data_url type: str · len: 105
+  data_url first 60 chars: 'photo://masci-hub/photos/2026/05/dr_07e54a58-61f5-46b2-a755-'
+  data_url starts with data:image/: False
+  data_url starts with http: False
+  meta keys: ['id', 'indexed_at', 'photo_index', 'project_name', 'project_number', 'record_date', 'source', 'source_id', 'submitter', 'week_of']
+  meta.source: daily_report
+  meta.source_id: 07e54a58-61f5-46b2-a755-8dc4582a5a94
+  meta.photo_index: 0
+  meta.project_number: 26-01 - CP

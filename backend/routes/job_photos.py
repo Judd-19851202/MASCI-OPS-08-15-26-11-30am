@@ -849,6 +849,23 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
         if not url:
             raise HTTPException(404, "source photo missing")
+        # iter445 · 2026-02 — When the source record stores an
+        # R2-backed pointer (``photo://bucket/key``) instead of a
+        # legacy inline base64 data URL, mint a short-lived presigned
+        # HTTPS URL so the browser can fetch the bytes directly from
+        # R2. The frontend lightbox's renderable check accepts strings
+        # starting with ``data:image/``, ``blob:``, or ``http``; the
+        # raw ``photo://`` scheme was rejected as "Photo data
+        # unavailable or corrupt" even though the photo was perfectly
+        # intact in storage. Legacy base64 records (pre-iter64
+        # migration) continue to pass through unchanged.
+        if isinstance(url, str) and url.startswith("photo://"):
+            try:
+                from photo_storage import presigned_get_url
+                url = await presigned_get_url(url, ttl_seconds=900)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[job-photos] presign failed for {meta.get('id')}: {e}")
+                raise HTTPException(500, "photo presign failed")
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
         response.headers["Pragma"] = "no-cache"
         return {"data_url": url, "meta": meta}
@@ -924,12 +941,28 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
             {"id": {"$in": ids}}, {"_id": 0}
         ).to_list(length=len(ids))
         out: List[Dict[str, Any]] = []
+        # iter445 · same R2-pointer presign fix as /raw above. Loop
+        # body intentionally swallows per-photo presign failures so a
+        # single bad ref doesn't fail the whole batch fetch — the
+        # lightbox preloader can still render the others.
+        try:
+            from photo_storage import presigned_get_url
+        except Exception:
+            presigned_get_url = None  # type: ignore[assignment]
         for meta in metas:
             if not scope.allows(meta.get("project_number")):
                 continue
             url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
             if not url:
                 continue
+            if isinstance(url, str) and url.startswith("photo://"):
+                if presigned_get_url is None:
+                    continue
+                try:
+                    url = await presigned_get_url(url, ttl_seconds=900)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"[job-photos] batch presign failed for {meta.get('id')}: {e}")
+                    continue
             out.append({"id": meta["id"], "data_url": url})
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
         response.headers["Pragma"] = "no-cache"

@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Sprint 1F · Production Deployment & Certification · 🟢 **PRODUCTION CERTIFIED** · 15/15 gates GREEN · Job 24-06 = David Jewett on production · zero regressions)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Sprint 1G · Photo Viewer Forensic + Remediation · 🟢 ROOT CAUSE PROVEN · +32/-2 LOC fix · 6/6 regression tests · live preview verified · DEPLOY RECOMMENDED)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,18 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · OMEGA Sprint 1G · Photo Viewer Forensic + Remediation · 4 deliverables (2026-02-27 · prod probes 2026-06-01T17:36Z)
+
+| File | Purpose | Status |
+|---|---|---|
+| `PHOTO_VIEWER_FORENSIC_REPORT.md` | End-to-end forensic narrative · 75-sample audit · operator's named target photo evidence · 10-axis storage check | 🟢 |
+| `PHOTO_STORAGE_AUDIT.md` | R2 bucket architecture · URI scheme distribution (100 % `photo://`) · permission/expiration model · orphan record inventory | 🟢 |
+| `PHOTO_ROOT_CAUSE_ANALYSIS.md` | Causal chain (post-iter64 R2 migration · /thumb updated · /raw not updated) · alternative-hypothesis elimination | 🟢 |
+| `PHOTO_REMEDIATION_PLAN.md` | Fix manifest · pre/post diff · deployment recipe · rollback procedure (<60s wall-clock) | 🟢 |
+| `sprint1g_photo_forensic_evidence/` | Raw curl probe logs (01_photo_inventory · 02_raw_endpoint_probe · 03_random_sample_audit) | 🟢 |
+
+🟢 **Headline**: Production "Photo data unavailable or corrupt" was a 100 %-affected single-defect contract mismatch between backend (`get_photo_raw` returned raw `photo://` R2 pointer) and frontend (lightbox renderable check accepts only `data:image/`, `blob:`, or `http`). Thumbnails were unaffected because `_serve_thumb` already dereferences via `_load_photo_bytes`. The fix is surgical (+32/-2 LOC across 2 functions in 1 file) and matches the existing `photo_storage.presigned_get_url` helper's documented use case ("serving full-resolution photos to the gallery lightbox so we don't proxy the bytes through FastAPI"). Post-fix `data_url` is a 15-minute presigned HTTPS URL the browser fetches directly from R2. Live preview verified. 6/6 new regression tests pass. The 3 pre-existing `test_iter47_master_validation.py::TestPhotoPerformance` failures are environment-data flakiness (orphan job_photos rows) proven pre-existing via `git stash` revert + re-run — NOT a Sprint 1G regression. Awaiting operator deploy authorization.
 
 ### 00 · OMEGA Sprint 1F · Production Deployment & Certification · 3 deliverables (2026-02-27 · prod-time 2026-06-01T02:28Z)
 

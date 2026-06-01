@@ -31467,3 +31467,48 @@ Agent STOPPED. Awaiting operator deployment authorization (P0) + follow-on decis
 | STOP AFTER REPORTS | ✅ |
 
 Agent STOPPED. Production deployment of Sprint 1F is complete, certified, and operational.
+
+---
+
+# Sprint 1G · Photo Viewer Forensic + Remediation · 2026-02-27 (prod probes 2026-06-01T17:36Z)
+
+**Authorized batch:** OMEGA Forensic Incident — Photo Viewer Failure investigation + ≤50 LOC remediation.
+
+**Final verdict:** 🟢 **ROOT CAUSE PROVEN · FIX IMPLEMENTED · PREVIEW-CERTIFIED · DEPLOY RECOMMENDED**
+
+### Root cause
+
+* Backend `get_photo_raw` returned the raw R2 pointer (`photo://masci-hub/photos/...`) as `data_url`.
+* Frontend lightbox renderable check accepts only `data:image/`, `blob:`, or `http` → the `photo://` scheme failed silently.
+* Asymmetric pipeline: `/thumb` dereferences via `_load_photo_bytes` (works ✅); `/raw` did NOT dereference (fails ❌).
+* 100% of production's 606 photos affected (audit: 73/75 random samples returned `photo://` scheme · 2/75 are pre-existing orphan rows).
+
+### Surgical fix
+
+* `backend/routes/job_photos.py` — `+32 / -2` LOC across `get_photo_raw` (line 849) and `get_photo_raw_batch` (line 906).
+* When source ref starts with `photo://`, mint a 15-min presigned HTTPS URL via `photo_storage.presigned_get_url`.
+* Legacy `data:image/` records (zero in production today; preserved for forward-compat) pass through unchanged.
+* New regression suite at `tests/test_sprint1g_photo_viewer_presign.py` · 6/6 pass.
+* Lint clean. Live preview probe returns expected `https://...r2.cloudflarestorage.com/...?X-Amz-Signature=...`.
+
+### Deliverables
+
+* `PHOTO_VIEWER_FORENSIC_REPORT.md` — end-to-end forensic narrative + 10-axis evidence matrix
+* `PHOTO_STORAGE_AUDIT.md` — R2 bucket, key pattern, permission model, URI scheme distribution
+* `PHOTO_ROOT_CAUSE_ANALYSIS.md` — causal chain + alternative-hypothesis elimination
+* `PHOTO_REMEDIATION_PLAN.md` — fix manifest, behavioural diff, deploy recipe, rollback procedure
+* `sprint1g_photo_forensic_evidence/` — raw curl probe logs (01_photo_inventory, 02_raw_endpoint_probe, 03_random_sample_audit)
+
+### OMEGA discipline
+
+| Rule | Observed |
+|---|---|
+| Evidence first, fix later | ✅ |
+| NO feature work / white label / ForgedOps / support tickets / new dashboards | ✅ |
+| ≤50 LOC | ✅ (+32 / -2 LOC) |
+| NO schema / collection / backup-architecture changes | ✅ |
+| NO risk to production data | ✅ — R2 bytes untouched; only wire format changes |
+| Production probes READ-ONLY | ✅ |
+| Single defect class | ✅ |
+
+Agent STOPPED awaiting operator's production-deploy authorization.
