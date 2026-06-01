@@ -2,6 +2,51 @@
 
 
 
+## 2026-06-01 (fork · iter445) — OMEGA · Sprint Scheduler Hardening + UX Phase 1 Elite Execution 🟢 GO
+
+### Operator directive
+> "SPRINT SCHEDULER HARDENING + UX PHASE 1 ELITE EXECUTION. Close duplicate PO digest defect with two-layer defense + audit trail. Close five 🔴 high-friction UX items (F-001..F-005). Universal fix · documentation-first · production untouched until operator deploys."
+
+### 🟢 Phase A — Scheduler Hardening
+- **L1 · Orphan cancel:** `lib/singleton_scheduler.py` heartbeat now `scheduler_task.cancel()`s the orphan on lock-loss. Closes the root race documented in `PO_DIGEST_FORENSIC_REPORT.md`.
+- **L2 · Per-slot dedup:** New `lib/scheduler_runs.py` · `claim_slot` / `mark_completed` / `mark_failed` · unique compound index on `(scheduler, slot_key)` · 90-day TTL.
+- **L3 · Audit trail:** New `routes/scheduler_runs_admin.py` exposes `GET /api/admin/scheduler-runs`. Wired into `po_digest`, `safety_digest`, `operator_digest`. Backup schedulers retain L1-only protection (fuzzy slots; `backup_runs` audits).
+- **Tests:** `test_iter445_scheduler_hardening.py` · 7/7 PASS · concurrent-claim stress test asserts atomic dedup under 20 racing workers.
+
+### 🟢 Phase B — UX Phase 1
+- **F-001 · Sandy / Per-Day Detail:** `HrPayrollVariance.jsx` now renders `→ Per-Day Detail` deep-link per row · `HrTimeVerification.jsx` accepts `?employee=&week_ending=&open_detail=daily` query string.
+- **F-002 · HR Hub copy:** Time Verification / Payroll Variance descriptions rewritten to plainly state input + action · Payroll Variance label suffixed with "(CSV)".
+- **F-003 · In-app digest replay:** New `AdminSchedulerRuns.jsx` page · AdminHub tile · `/admin/scheduler-runs` route (admin-gated read-only).
+- **F-004 · JHA in Field Leadership Hub:** New "06 · On-Site Reference" group · bilingual JHA tile (orange Shield, links `/jha`).
+- **F-005 · Asset Transfers in FL Hub:** Same group · bilingual Asset Transfers tile (blue Truck, links `/asset-transfers`).
+- **F-006 · Duplicate PO digest** — closed by Phase A.
+
+### Deliverables (in `/app/memory/`)
+- `SCHEDULER_HARDENING_REPORT.md` · `SCHEDULER_CERTIFICATION_REPORT.md` · `DIGEST_DEDUP_VERIFICATION.md`
+- `UX_PHASE1_IMPLEMENTATION_REPORT.md` · `UX_PHASE1_CERTIFICATION_REPORT.md` · `USER_FRICTION_REDUCTION_REPORT.md`
+- `DEPLOYMENT_RISK_REPORT.md` · `GO_NO_GO_DECISION.md` (single-page operator decision · Executive Operator Summary + Evidence Summary table)
+
+### Evidence summary
+| Area | Before | After | Status |
+|---|---|---|---|
+| Duplicate PO Digest | up to 22 emails/Mon (~85 % weekly probability) | 11 emails/Mon · atomic L2 dedup | 🟢 |
+| Scheduler Ownership | orphan survived hb-loss | hb cancels orphan immediately | 🟢 |
+| Digest Audit Trail | stdout logs only | `scheduler_runs` collection + admin UI | 🟢 |
+| Per-Day Detail Discovery | cross-tab retype | one-click deep link | 🟢 |
+| Payroll Variance Confusion | ambiguous copy | explicit input + action copy | 🟢 |
+| Field Leadership Visibility | no JHA / no Asset Transfers tile | new "On-Site Reference" group with both | 🟢 |
+
+### Recommendation
+🟢 **GO** · deploy window Tue–Wed daytime ET (≥48 h pre-Monday). Rollback wall-clock < 10 min. All 6 high-friction items closed; zero 🔴 residual risk; one 🟡 cosmetic (backup-scheduler L1-only).
+
+### OMEGA discipline
+🟢 Authorized batch scope only · no drift into Pillar 1B / 1A-6 / ForgedOps · no opportunistic bug fixes · no refactoring · read-only against production · documentation-first · operator owns deploy.
+
+### Agent state
+- 🛑 STOPPED. 8 deliverables complete. PRD + _INDEX updated. Awaiting operator GO/NO-GO decision and deployment authorization. No further work will be initiated until explicit batch authorization is received.
+
+
+
 ## 2026-06-01 (fork) — OMEGA · Dual Audits (P1 PO Digest + P2 UX Discoverability) 🟡 (read-only · evidence only)
 
 ### Operator directive

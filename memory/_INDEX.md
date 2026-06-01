@@ -1,6 +1,25 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Sprint 1G · Photo Viewer Forensic + Remediation · 🟢 ROOT CAUSE PROVEN · +32/-2 LOC fix · 6/6 regression tests · live preview verified · DEPLOY RECOMMENDED)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter445 · Sprint Scheduler Hardening + UX Phase 1 Elite Execution · 🟢 GO · 7/7 unit tests · 6/6 high-friction items closed · two-layer dedup defense · rollback < 10 min · awaiting operator deploy)._
+
+---
+
+### 00 · OMEGA iter445 · Sprint Scheduler Hardening + UX Phase 1 · 8 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `SCHEDULER_HARDENING_REPORT.md` | Phase A · two-layer dedup (L1 orphan-cancel · L2 unique-index `scheduler_runs` claim_slot) · coverage matrix for all 5 schedulers | 🟢 |
+| `SCHEDULER_CERTIFICATION_REPORT.md` | Phase A cert · 7/7 unit tests · admin endpoint healthy · zero regressions in adjacent surfaces | 🟢 |
+| `DIGEST_DEDUP_VERIFICATION.md` | Per-layer defense proof · concurrent-claim stress test · per-scheduler coverage · admin endpoint envelope | 🟢 |
+| `UX_PHASE1_IMPLEMENTATION_REPORT.md` | Phase B · F-001..F-005 closed (variance deep-link · HR Hub copy · in-app digest replay · JHA + Asset Transfers in FL Hub) · LOC table · bilingual coverage | 🟢 |
+| `UX_PHASE1_CERTIFICATION_REPORT.md` | Phase B cert · per-friction acceptance evidence · adjacent-surface no-regression matrix | 🟢 |
+| `USER_FRICTION_REDUCTION_REPORT.md` | Persona-level impact (Sandy · PMs · Supers · Admins · Executives) · friction-event closure table · call-pattern improvement forecast | 🟢 |
+| `DEPLOYMENT_RISK_REPORT.md` | Change inventory · risk-by-failure-mode · pre-existing risk carry-forward · rollback runbook · deploy windows | 🟢 |
+| `GO_NO_GO_DECISION.md` | **Operator one-pager · Executive Operator Summary + Evidence Summary table · final 🟢 GO recommendation** | 🟢 |
+
+🟢 **Headline**: Closes the singleton-scheduler race that caused duplicate Monday PO/safety/operator digests, and closes the entire 🔴 High-friction bucket from the persona audit (5 UX items). Backend: ~445 LOC across 7 files · new `scheduler_runs` collection with unique compound index + TTL + history index · new `/api/admin/scheduler-runs` endpoint. Frontend: ~315 LOC across 7 files · new AdminSchedulerRuns page · variance row deep-link · HR Hub tile-copy rewrite · new "On-Site Reference" group on Field Leadership Hub with bilingual JHA + Asset Transfers tiles. 7/7 unit tests pass · backend source_hash changed on restart · frontend smoke clean. Zero 🔴 residual risk; one 🟡 cosmetic (backup schedulers L1-only · fuzzy slot · `backup_runs` already audits). Rollback wall-clock < 10 min · `scheduler_runs` collection TTL-prunes at 90 days · no schema migration · no env vars. Recommended deploy window: Tue–Wed daytime ET, ≥48 h before Monday 2026-06-08 14:00 UTC. **Awaiting operator deploy authorization.**
+
+---
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
