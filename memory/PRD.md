@@ -2,6 +2,48 @@
 
 
 
+## 2026-06-01 (fork) — OMEGA · Dual Audits (P1 PO Digest + P2 UX Discoverability) 🟡 (read-only · evidence only)
+
+### Operator directive
+> "Authorize two independent audits: P1 Duplicate PO Digest Email Forensic Audit · P2 Real User Discoverability Audit. Read-only preferred. No feature implementation. No production changes. Evidence first. Recommendations second. STOP after reports."
+
+### 🔴 P1 — Duplicate PO Digest · ROOT CAUSE PROVEN
+- **Code-level race in `lib/singleton_scheduler.py:163-269`**: when the heartbeat loses the Mongo lock, the orphaned scheduler coroutine is NOT cancelled. Both orphan + new lock-owner fire at the next Monday 14:00 UTC slot → duplicate digests to all 11 PM/HR recipients.
+- **Same bug affects all 5 schedulers**: `po_digest`, `safety_digest`, `operator_digest`, `backup_verification`, `backup_scheduler`.
+- **No internal audit trail** — `po_digest_runs` collection doesn't exist; only stdout log lines.
+- **Production DB evidence**: 0 successful manual `/run-now` fires in last 30d (rules out manual+scheduled overlap); 8 active PMs + 3 active HRs (11 emails per fire, 22 per duplicate Monday).
+- **Probability of ≥1 dup-fire per week**: ~0.85 given Atlas heartbeat variance + multi-worker prod.
+- **Remediation options** (NOTHING EXECUTED): Option A (5 LOC pre-send check, PO-only), Option B (cancel orphan on hb-loss · universal · recommended), Option C (`po_digest_runs` dedup + audit trail · recommended belt+suspenders), Option D (tighter TTLs · partial), Option E (dedicated singleton worker · over-engineering).
+
+### 🟡 P2 — Real User Discoverability Audit
+- Evaluated 7 personas (Super, PM, HR, Safety, Dispatcher, Executive, Payroll) against 252 routes × 144 pages × 10 portals.
+- **6 🔴 High-friction items** anchored to operator-named events:
+  - F-001 Sandy / Per-Day Detail (no drill-through variance → time verification)
+  - F-002 Time Verification ↔ Payroll Variance copy confusion
+  - F-003 No in-app PO digest replay
+  - F-004 Super can't find JHA from Field Leadership Hub
+  - F-005 Super can't see asset transfers from FL Hub
+  - F-006 Duplicate PO digest emails (cross-ref to P1)
+- **10 🟡 Medium**, **3 🟢 Low** items in `USER_FRICTION_LOG.md`.
+- **Roadmap** (NOTHING EXECUTED): Phase 1 quick wins (~4 days · resolves 5 of 6 🔴), Phase 2 backend touches (~2 weeks), Phase 3 architectural (~5-8 weeks).
+
+### Deliverables (in `/app/memory/`)
+- `PO_DIGEST_FORENSIC_REPORT.md` · `PO_DIGEST_ROOT_CAUSE.md` · `PO_DIGEST_REMEDIATION_OPTIONS.md`
+- `REAL_USER_DISCOVERABILITY_AUDIT.md` · `USER_FRICTION_LOG.md` · `USER_EXPERIENCE_IMPROVEMENT_ROADMAP.md`
+
+### OMEGA discipline
+🟢 Read-only against production · zero code changes · zero deployments · zero DB writes · evidence-first · no feature implementation · no white-label · no ForgedOps · no dashboard expansion · no unrelated fixes.
+
+### Agent state
+- 🛑 STOPPED. 6 audit deliverables complete. Awaiting next operator Batch authorization. Possible follow-ups (operator authorization required, in recommended order):
+  1. `Sprint · PO Digest Remediation · Option B + C` (universal fix + audit trail)
+  2. `Sprint · UX Phase 1` (5 quick wins · ~4 days · resolves 5 of 6 🔴 frictions)
+  3. `Sprint · UX Phase 2 P2-A` (digest replay surface, combines with #1's `po_digest_runs` collection)
+  4. Earlier P1 backlog: orphan `job_photos` data hygiene; Pillar 1B; Pillar 1A-6; ForgedOps Operations Readiness.
+
+
+
+
 ## 2026-06-01 (fork) — OMEGA · Photo Viewer Production Certification 🟢 (PASS · re-cert after backend deploy)
 
 ### Operator directive
