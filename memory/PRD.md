@@ -32044,3 +32044,88 @@ Agent STOPPED awaiting operator's production-deploy authorization.
 
 🛑 **Agent STOPPED.** Phase 1A is fully designed, certified, and packaged. **Awaiting operator's explicit BUILD authorization message** before any code is written. Phase 1B, Phase 2, Phase 3, Phase 4, Phases 5–10, White Label, and ForgedOps Operations Center remain explicitly OUT-OF-SCOPE and FROZEN.
 
+
+---
+
+# OMEGA iter451 · Platform Completion Program · Phase 1A BUILD · OC-001 Incident Lifecycle · 2026-06-01
+
+**Authorized batch:** Operator ITER451 authorization — execute Phase 1A BUILD for OC-001 Incident Lifecycle. Canonical 5-state vocab. Audit every transition.
+
+**Final verdict:** 🟢 **PREVIEW CERTIFIED · DEPLOY RECOMMENDED**
+
+### Sprint outcome — Definition of DONE met
+
+A real MASCI user can now Create · Review · Progress · Close · Reopen · Audit · Report an incident without reaching a dead end. The lifecycle is enforced server-side and reflected client-side with role-gated UI.
+
+### Canonical 5-state model shipped
+
+```
+OPEN
+  └─→ UNDER_INVESTIGATION
+          └─→ CORRECTIVE_ACTION_REQUIRED
+                  └─→ PENDING_CLOSURE
+                          └─→ CLOSED
+                                  ⤺ REOPEN → UNDER_INVESTIGATION (reason required)
+```
+
+* PENDING_CLOSURE → CLOSED gated on (`investigation_complete` ∧ `capa_complete` ∧ `safety_review_complete`) plus `osha_recordable_ack` when applicable.
+* CLOSED → UNDER_INVESTIGATION (REOPEN) requires a written reason ≥ 5 chars.
+* All transitions restricted to Safety, Admin, Super-Admin roles. PM/public reporters cannot transition.
+
+### New endpoints (additive)
+
+| Method | Path |
+|---|---|
+| POST | `/api/incidents/{id}/transition` |
+| GET  | `/api/incidents/{id}/state-events` |
+| GET  | `/api/incidents/{id}/lifecycle` |
+
+### New collection
+
+`workflow_state_events` — append-only audit row per transition; 3 indexes; 7-year retention TTL scheduled for iter455 deployment migration.
+
+### Files shipped
+
+| Layer | File | LOC |
+|---|---|---:|
+| Backend lib | `backend/lib/workflow_state_events.py` | 168 |
+| Backend lib | `backend/lib/workflow_state_machine.py` | 137 |
+| Backend route | `backend/routes/incident_lifecycle.py` | 200 |
+| Frontend component | `frontend/src/components/IncidentLifecyclePanel.jsx` | 369 |
+| Backend tests | `backend/tests/test_iter451_incident_lifecycle.py` | 364 |
+| Backend wiring | `backend/server.py` (additive edits) | +28 |
+| Frontend wiring | `frontend/src/pages/ViewIncident.jsx` (additive edits) | +12 |
+
+**Total:** 1,238 LOC new · 40 LOC additive · 7 files touched.
+
+### Testing & certification
+
+* 17/17 pytest green (`test_iter451_incident_lifecycle.py`)
+* 12/12 design gates green (`ITER451_CERTIFICATION_REPORT.md`)
+* 0 regressions across existing surfaces (`ITER451_REGRESSION_REPORT.md`)
+* 🟢 LOW overall risk profile (`ITER451_RISK_REPORT.md`)
+* Live preview verified via curl: full 5-step lifecycle + REOPEN + audit-history retrieval
+
+### Deliverables (4 reports)
+
+* `ITER451_IMPLEMENTATION_REPORT.md`
+* `ITER451_CERTIFICATION_REPORT.md`
+* `ITER451_REGRESSION_REPORT.md`
+* `ITER451_RISK_REPORT.md`
+
+### OMEGA discipline
+
+| Rule | Observed |
+|---|---|
+| iter451 scope ONLY (OC-001 Incident Lifecycle) | ✅ |
+| Additive endpoints only — zero destructive change | ✅ |
+| Audit-trail compliant | ✅ |
+| Accountability-compatible (shim path live) | ✅ |
+| Customer #2 ready | ✅ |
+| White Label compatible | ✅ |
+| Production data hygiene | ✅ preview only |
+| NO scope drift to iter452/3/4/5 | ✅ |
+| STOP after certification | ✅ |
+
+🛑 **Agent STOPPED.** OC-001 is preview-certified. Production deploy and iter452 (OC-002 + OC-007) are gated on the operator's explicit next authorization.
+

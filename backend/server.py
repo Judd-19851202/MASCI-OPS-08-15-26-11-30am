@@ -2065,6 +2065,25 @@ register_safety_routes(
 )
 
 
+# ============================================================
+# OMEGA · Phase 1A · iter451 · OC-001 Incident Lifecycle
+# ----------------------------------------------------------
+# Additive transition endpoints (POST /incidents/{id}/transition,
+# GET /incidents/{id}/state-events, GET /incidents/{id}/lifecycle).
+# Uses the Safety/Admin/PM read gate so lifecycle reads work for the
+# Safety reviewer; closure-role gate is enforced server-side by the
+# state machine itself, not by the dependency.
+# ============================================================
+from routes.incident_lifecycle import register_incident_lifecycle_routes  # noqa: E402
+
+register_incident_lifecycle_routes(
+    api_router, db,
+    require_incident_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
+
 # QA/QC inspection routes (Concrete Form / Rebar / Subcontractor Work).
 # Same pattern as the Safety routes — single registration helper, late-bound
 # auto-email so PM routing fires after submit.
@@ -9446,6 +9465,22 @@ async def _arm_hot_id_indexes():
             await db[coll_name].create_index("id")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[id-index] {coll_name}: {e}")
+
+
+# ─── OMEGA · Phase 1A · iter451 — workflow_state_events indexes.
+#     Idempotent index battery for the new universal audit collection
+#     used by the Phase 1A lifecycle transitions. Failures are logged
+#     but never block boot (ensure_indexes swallows internally too).
+@app.on_event("startup")
+async def _arm_workflow_state_events_indexes():
+    try:
+        from lib.workflow_state_events import ensure_indexes as _wse_idx  # noqa: PLC0415
+        await _wse_idx(db)
+        # Per-record lifecycle_state lookup index on incidents so the
+        # transition endpoint never collscans.
+        await db.incidents.create_index("lifecycle_state")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[workflow_state_events] index: {e}")
 
 
 # ─── Iter142 (Phase-1 Iter D): targeted index + TTL fixes surfaced by

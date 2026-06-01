@@ -1,6 +1,29 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter450 · Platform Completion Program · Phase 1A FINAL BUILD PACKAGE · 🟢 SCOPE COMPLETE · OPTION A confirmed · OC-005 elevated · 6 workflows · 10 deliverables · zero code · awaiting operator BUILD authorization)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter451 · Phase 1A BUILD · OC-001 Incident Lifecycle · 🟢 PREVIEW CERTIFIED · 12/12 gates green · 17/17 tests green · 5 new files · 2 additive edits · 1238 LOC · zero regressions · awaiting operator deploy authorization)._
+
+---
+
+### 00 · OMEGA iter451 · Phase 1A BUILD · OC-001 Incident Lifecycle · 4 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ITER451_IMPLEMENTATION_REPORT.md` | Files shipped (5 new · 2 additive edits) · endpoint inventory · lifecycle-contract answers · 1238 LOC | 🟢 |
+| `ITER451_CERTIFICATION_REPORT.md` | 12/12 design gates green · 17/17 pytest green · Definition-of-DONE proof matrix · live-curl evidence | 🟢 |
+| `ITER451_REGRESSION_REPORT.md` | Surface-by-surface regression analysis · 0 destructive changes · auth gates preserved · existing test battery untouched | 🟢 |
+| `ITER451_RISK_REPORT.md` | 10-item risk register · 🟢 LOW overall · production-deploy assessment · iter455 open items | 🟢 |
+
+🟢 **Canonical 5-state lifecycle shipped (OC-001):** OPEN → UNDER_INVESTIGATION → CORRECTIVE_ACTION_REQUIRED → PENDING_CLOSURE → CLOSED · with audited REOPEN.
+
+🟢 **Endpoints (additive):** `POST /api/incidents/{id}/transition` · `GET /api/incidents/{id}/state-events` · `GET /api/incidents/{id}/lifecycle`. Existing CRUD unchanged.
+
+🟢 **Audit:** New `workflow_state_events` collection · append-only · 3 indexes · 7y TTL scheduled for iter455 deploy migration.
+
+🟢 **Frontend:** `<IncidentLifecyclePanel/>` on `ViewIncident.jsx` · state pill · role-gated buttons · closure attestation modal (+OSHA ack) · reopen-with-reason modal · audit-trail history drawer · print-hidden.
+
+🟢 **Tests:** `backend/tests/test_iter451_incident_lifecycle.py` · 9 unit + 8 live-HTTP integration tests.
+
+🛑 **Stopped.** Iter452 (OC-002 Daily Report Office Review + OC-007 Payroll Variance Finalization), iter453, iter454, iter455 all FROZEN until operator BUILD authorization for the next sprint or production-deploy authorization for iter451.
 
 ---
 

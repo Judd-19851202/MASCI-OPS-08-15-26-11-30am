@@ -23,6 +23,7 @@ import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { useT } from "@/lib/i18n";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
+import { IncidentLifecyclePanel } from "@/components/IncidentLifecyclePanel";
 import { AlertOctagon } from "lucide-react";
 import {
   SEVERITY_LEVELS,
@@ -312,6 +313,16 @@ export default function ViewIncident() {
             ]}
           />
         </div>
+
+        {/* OMEGA · Phase 1A · iter451 · OC-001 Incident Lifecycle controls.
+            Renders the canonical 5-state lifecycle (OPEN → UNDER_INVESTIGATION →
+            CORRECTIVE_ACTION_REQUIRED → PENDING_CLOSURE → CLOSED), role-gated
+            action buttons, closure attestation modal, reopen-with-reason
+            modal, and the audit-trail history drawer. Hidden on print. */}
+        <IncidentLifecyclePanel
+          incidentId={data.id}
+          oshaRecordable={data.osha_recordable === "Yes"}
+        />
 
         {/* Phase 5D · P1 — Tier-2 follow-up awareness banner.
             Quiet operational status derived live from severity + linked
