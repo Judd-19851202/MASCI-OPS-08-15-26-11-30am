@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — OMEGA Critical Fix Sprint 1 forensic batch · 15 ranked actions)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — OMEGA Critical Fix Sprint 1A · Forensic contamination sweep · ~104 record cleanup plan ready)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,17 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · OMEGA Critical Fix Sprint 1A · Forensic Sweep · 4 deliverables (2026-05-31)
+
+| File | Purpose | Status |
+|---|---|---|
+| `FINAL_CONTAMINATION_SWEEP_REPORT.md` | Phase 1 · 141 collections × 17 terms × 35 fields scanned · 8 collections flagged · 4 TRUE contamination categories · 4 FALSE-POSITIVE categories filtered | 🟡 ⛔ |
+| `PRODUCTION_HYGIENE_INVENTORY.md` | Full inventory · 2 duplicate doc_ids found (incidents · daily_reports) · 0 orphans · 0 referential gaps · 4 abandoned/test categories | 🟡 ⛔ |
+| `REMEDIATION_CANDIDATE_LIST.md` | Per-record cleanup table · ~104 records across 10 collections · severity-classified | 🟡 ⛔ |
+| `PRODUCTION_CLEANUP_EXECUTION_PLAN.md` | Phase 2 · P0/P1/P2/P3 categorized · DB sweep + ops actions + docs · rollback + verification gates per item · ~2-2.5 hr total effort | 🟡 ⛔ |
+
+🟡 **Headline**: Exhaustive forensic sweep of all 141 production collections complete. **Total true contamination findings: 72 docs** (1 test FL user · 1 test incident with "John Smith" canary · 2 PREVIEW_POSTENV notifications · 68 test-FL session telemetry rows). **Total duplicate findings: 2** (`incidents.doc_id='INC-2026-00001'` × 2 · `daily_reports.doc_id='DR-2026-00007'` × 2). **Total orphan findings: 0** (referential integrity intact). **Total test/demo findings: ~13 docs in 4 categories** (1 FL user · 1 incident · 10 payroll batches · presumed 7 linked decisions). **Recommended cleanup**: DB-only sweep (~60 min) executing 4 P0 items + 3 P1 items touching ~44 records across 7 collections; rollback via 2026-05-31 16:02Z archive. **Production risk rating: 🟢 LOW** — no orphans · no broken workflows · cleanup is delete-or-update only on contamination/test data with backup-restore rollback paths. **Sprint 1 P0-B correction**: the prior Sprint 1 plan recommended promoting `d9626eeb` to keep `INC-2026-00001`; Sprint 1A discovered `d9626eeb` is TEST data (`reported_by="John Smith"`) — corrected action is to DELETE `d9626eeb` and let `566a38dd` retain `INC-2026-00001`. **OMEGA discipline preserved**: zero code · zero DB writes · zero deploys · zero features · awaiting operator authorization before any execution.
 
 ### 00 · OMEGA Critical Fix Sprint 1 · Forensic batch (2026-05-31)
 

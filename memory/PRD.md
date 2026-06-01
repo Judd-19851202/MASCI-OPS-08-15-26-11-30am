@@ -1,6 +1,37 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-05-31 (fork) — OMEGA Critical Fix Sprint 1A · Forensic Sweep 🟡 (cleanup plan ready)
+
+### Operator directive
+> "OMEGA AUTHORIZATION · Critical Fix Sprint 1A. Production hygiene & contamination remediation. STOP all features · white-label · ForgedOps · Pillar 3/4. Phase 1 (read-only forensic sweep of ALL collections for 17 contamination terms + duplicates + orphans + abandoned records) → Phase 2 (categorized execution plan with rollback + verification per item) → Phase 3 (operator decision gate; NO writes/deletes/updates/deploys until explicit re-authorization). STOP after reports."
+
+### 🟡 HEADLINE — Final tallies
+- **Total contamination findings**: **72 docs across 4 collections** (1 test FL user `fieldleader@mascigc.com` · 1 test incident `d9626eeb` with `reported_by="John Smith"` · 2 PREVIEW_POSTENV notifications from 2026-05-16 crossover · 68 test-FL session telemetry rows)
+- **Total duplicate findings**: **2 doc-id duplicates** (`incidents.doc_id='INC-2026-00001'` × 2 · `daily_reports.doc_id='DR-2026-00007'` × 2 · counter race condition)
+- **Total orphan findings**: **0** (CA→incident, task→source, notification→subject all verified clean; referential integrity intact)
+- **Total test/demo findings**: **~13 docs · 4 categories** (1 FL user · 1 incident · 10 payroll batches · presumed 7 linked decisions)
+- **Recommended cleanup**: DB-only sweep (~60 min) executing 4 P0 items + 3 P1 items touching ~44 records across 7 collections
+- **Estimated effort**: ~2-2.5 hr total (1 hr DB sweep + 15 min HR screenshot + 30 min documentation + ~30 min optional retention sweep)
+- **Production risk rating**: 🟢 **LOW** — no orphans · no broken workflows · cleanup is delete-or-update only on confirmed test/contamination data · rollback path via 2026-05-31 16:02Z complete-r2 archive (335 MB · 24,002 records)
+
+### Critical correction to Sprint 1 P0-B
+Sprint 1 P0-B recommended **promoting** `d9626eeb` to keep `INC-2026-00001`. **Sprint 1A discovered `d9626eeb.reported_by="John Smith"` — it is TEST DATA.** **Corrected action: DELETE `d9626eeb`**; the surviving incident `566a38dd` naturally retains `INC-2026-00001`. This resolves both the contamination and the doc_id duplication in a single operation.
+
+### 4 deliverables (all in `/app/memory/`)
+- `FINAL_CONTAMINATION_SWEEP_REPORT.md` — Phase 1 · 141 collections × 17 terms × 35 fields · 90 raw hits · 13 false-positives filtered · 72 true contamination docs
+- `PRODUCTION_HYGIENE_INVENTORY.md` — duplicates · orphans · abandoned records inventory
+- `REMEDIATION_CANDIDATE_LIST.md` — per-record cleanup table · ~104 records across 10 collections
+- `PRODUCTION_CLEANUP_EXECUTION_PLAN.md` — Phase 2 · P0/P1/P2/P3 categorized · rollback + verification per item
+
+### OMEGA discipline (this batch)
+🟢 Zero code · zero DB writes · zero deletes · zero updates · zero deployments · zero feature work · zero white-label · zero ForgedOps · zero Pillar 3/4 · zero scope drift. Forensic certification only. Phase 3 operator decision gate respected; nothing executed.
+
+### Agent state
+- 🔴 STOPPED per OMEGA directive. Sprint 1A forensic batch closed. Awaiting explicit operator authorization to execute the cleanup sweep.
+
+
+
 ## 2026-05-31 (fork) — OMEGA Critical Fix Sprint 1 · Forensic batch 🟡 (15 ranked actions)
 
 ### Operator directive
