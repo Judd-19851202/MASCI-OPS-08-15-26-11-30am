@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Sprint 1F · Production Maturity Patch · 🟢 P0 owner-resolution PATCHED · 🟢 P1 DR drill 5.1 min PASS · 🟡 P2 R2 governance recommendations issued · 🟢 P3 usage_events closed by prior remediation)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Sprint 1F · Production Deployment & Certification · 🟢 **PRODUCTION CERTIFIED** · 15/15 gates GREEN · Job 24-06 = David Jewett on production · zero regressions)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,17 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · OMEGA Sprint 1F · Production Deployment & Certification · 3 deliverables (2026-02-27 · prod-time 2026-06-01T02:28Z)
+
+| File | Purpose | Status |
+|---|---|---|
+| `SPRINT1F_PRODUCTION_DEPLOY_REPORT.md` | Pre-deploy gates 1-5 (source · 46/46 tests · preview behaviour · clean tree · no scope drift) | 🟢 |
+| `SPRINT1F_PRODUCTION_CERTIFICATION.md` | Operator-facing final verdict · 15/15 gates GREEN · 🟢 PRODUCTION CERTIFIED | 🟢 |
+| `SPRINT1F_POST_DEPLOY_VERIFICATION.md` | 10-point post-deploy battery against `mascidocs.com` + raw evidence | 🟢 |
+| `sprint1f_postdeploy_evidence/` | Raw curl logs from production probes (2026-06-01T02:29–02:32Z) | 🟢 |
+
+🟢 **Headline**: Sprint 1F Command Center Owner Resolution Patch is live, healthy, and certified on production. Operator's primary success criterion (Job 24-06 = David Jewett) and secondary criterion (Jobs 20-07/22-08/24-08 remain Unassigned PM) both verified post-deploy. Production runtime restarted at 2026-06-01T02:28:31Z (new pod). Scheduler self-healed within 30s of pod handoff (singleton-lock TTL working as designed). All 10 post-deploy axes pass: Command Center loads (2284 ms) · accountability healthy (sources 441 ms · snapshot 1185 ms) · backup cadence intact (last backup 27.4 min old · 24,163 records · ok=True) · 5 sibling DELETE auth gates consistent · cross-portal /me identical to pre-deploy · zero new warnings · zero regressions · zero auth issues. The 2 AMBER warnings observed (R2 bucket-usage 92.38 GB · transient scheduler-quiet at first probe) are both pre-existing or self-healed artifacts, not Sprint 1F-introduced. Known limitations carried forward: RTO AMBER on production (operator activation of `drill_runs` row deferred per `DR_DRILL_REPORT.md` §7), R2 bucket governance (3 reversible options per `R2_STORAGE_GOVERNANCE_REPORT.md`), and the accountability_projection.py PO-request resolver still uses the same `primary_pm_*` field pattern (out of OMEGA Sprint 1F scope; same defect class, deferred).
 
 ### 00 · OMEGA Sprint 1F · Production Maturity Patch · 6 deliverables (2026-02-27)
 

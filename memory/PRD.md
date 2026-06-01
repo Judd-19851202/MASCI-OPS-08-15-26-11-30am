@@ -31423,3 +31423,47 @@ Agent STOPPED. Awaiting operator's next explicit authorization (likely candidate
 | P2 + P3 audit-only with no changes | ✅ |
 
 Agent STOPPED. Awaiting operator deployment authorization (P0) + follow-on decisions (P1 prod activation, P2 threshold option, P3 explicit closure acknowledgement).
+
+---
+
+# Sprint 1F · Production Deployment & Certification · 2026-02-27 (prod-time 2026-06-01T02:28Z)
+
+**Authorized batch:** OMEGA Sprint 1F Deployment + Post-Deploy Certification.
+
+**Final verdict:** 🟢 **PRODUCTION CERTIFIED**
+
+### Outcome
+
+* Pre-deploy gates: 5/5 🟢
+* Post-deploy verifications: 10/10 🟢
+* Cumulative gates: **15/15** green
+* Production runtime restarted at 2026-06-01T02:28:31Z (new pod `safety-audit-mobile-1-6545945cf5-bmx67`)
+* Sprint 1F primary success criterion met: **Job 24-06 displays "David Jewett"** on production
+* Sprint 1F secondary success criterion met: Jobs 20-07 / 22-08 / 24-08 / 21-06 correctly remain "Unassigned PM" (genuine data hygiene gaps preserved)
+* Zero new warnings, zero regressions, identical auth behaviour to pre-deploy
+* Scheduler self-healed within 30 s of pod handoff (singleton lock TTL working as designed)
+
+### Deliverables
+
+* `SPRINT1F_PRODUCTION_DEPLOY_REPORT.md` (pre-deploy gates 1-5)
+* `SPRINT1F_PRODUCTION_CERTIFICATION.md` (operator-facing final verdict · 15/15 gates green)
+* `SPRINT1F_POST_DEPLOY_VERIFICATION.md` (10-point post-deploy battery + raw evidence)
+* `sprint1f_postdeploy_evidence/01_postdeploy_probes.txt` (raw curl logs)
+
+### Known limitations carried (NOT introduced by Sprint 1F)
+
+* R2 bucket usage 92.38 GB above 50 GB ALERT (operator decision per `R2_STORAGE_GOVERNANCE_REPORT.md`)
+* RTO AMBER on production until production `drill_runs` row is activated (per `DR_DRILL_REPORT.md` §7)
+* `accountability_projection.py` same field-mismatch in PO-request owner resolver (deferred per OMEGA scope)
+
+### OMEGA discipline
+
+| Rule | Observed |
+|---|---|
+| Deploy ONLY Sprint 1F | ✅ |
+| NO other code / features / pillars / white-label / ForgedOps | ✅ |
+| R2 governance: no retention / cadence / lifecycle changes | ✅ documentation only |
+| `usage_events`: closed; no further work | ✅ acknowledged |
+| STOP AFTER REPORTS | ✅ |
+
+Agent STOPPED. Production deployment of Sprint 1F is complete, certified, and operational.

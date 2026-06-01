@@ -1,0 +1,98 @@
+=== Sprint 1F · Post-Deploy Certification Probes ===
+Timestamp: 2026-06-01T02:30:30Z
+Target: https://mascidocs.com
+Admin token len: 64
+
+--- /api/version (post-deploy runtime) ---
+  release: 2383567f4f9735cf936d90dce26bb267
+  source_hash: 2383567f4f9735cf936d90dce26bb267
+  started_at: 2026-06-01T02:28:31.537159+00:00
+  uptime_s: 118
+  sentry.enabled: True
+  session_timeouts.enabled: True
+
+--- [1] Command Center loads ---
+  HTTP: 200 · latency: 2284ms
+
+--- [2/3] Command Center JOBS-DR-MISSING owner verdicts ---
+  computed_at: 2026-06-01T02:30:32.810029+00:00
+  cached: False
+  pulse pill: RED
+  pulse: {'pill': 'RED', 'red_warnings': 2, 'amber_warnings': 0, 'red_items': 2, 'amber_items': 6, 'headline': '2 RED · 0 AMBER warnings'}
+
+  JOBS-DR-MISSING owner verdicts:
+   · 20-07: owner='Unassigned PM'
+   · 21-06: owner='Unassigned PM'
+   · 22-08: owner='Unassigned PM'
+   · 24-06: owner='David Jewett'
+   · 24-08: owner='Unassigned PM'
+
+  All card pills:
+
+  Card summary:
+   · jobs: pill=RED items=8 warnings=2
+   · safety: pill=GREEN items=0 warnings=0
+   · equipment: pill=GREEN items=0 warnings=0
+   · accountability: pill=GREEN items=0 warnings=0
+   · approvals: pill=GREEN items=0 warnings=0
+
+--- [4] Accountability endpoints ---
+  /api/admin/accountability/sources → HTTP 200 · 1231 bytes · 441ms
+  /api/admin/accountability/snapshot → HTTP 200 · 10046 bytes · 1185ms
+
+--- [5] Scheduler health (via recovery snapshot) ---
+  /api/admin/recovery/snapshot → HTTP 200 · 478ms
+  pill: AMBER
+  scheduler.alive: False
+  scheduler.last_lock_ts: 2026-06-01T01:10:20.318000Z
+  scheduler.owner_pod: safety-audit-mobile-1-59796c5d4-c9ctr
+
+--- [6] Recovery dashboard health ---
+  rpo: {'target_min': 60, 'actual_min': 27.4, 'status': 'GREEN'}
+  rto: {'target_min': 15, 'last_drill_min': None, 'status': 'AMBER'}
+  last_drill: None
+  archive_count: {'r2_total': 94, 'last_7d': 94, 'last_30d': 94}
+
+--- [7] Hourly backup cadence ---
+  last_backup.filename: MASCI_complete_backup_2026-06-01_020054Z.zip
+  last_backup.size_mb: 338.55
+  last_backup.records: 24163
+  last_backup.ok: True
+  last_backup.ts: 2026-06-01T02:03:50.983402+00:00
+  backup_age_minutes: 27.4
+
+--- [8] Warnings ---
+  total warnings: 2
+   · {'kind': 'bucket-usage', 'severity': 'amber', 'message': 'R2 bucket usage 92.38 GB above ALERT=50.0 GB threshold'}
+   · {'kind': 'scheduler-quiet', 'severity': 'amber', 'message': 'No scheduler lock heartbeat in the last 30 minutes'}
+
+--- [9] failures_7d (regression check) ---
+  failures in last 7d: 2
+   · 2026-05-25T15:18:06.582938+00:00 · mode=complete-r2-error · err=OperationFailure('Executor error during find command: masci_safety.usage_events 
+   · 2026-05-25T15:16:20.749584+00:00 · mode=complete-r2-error · err=OperationFailure("Executor error during find command: masci_safety.usage_events 
+
+--- [10] Auth · cross-portal /me + safety form endpoints ---
+  /api/admin/check → HTTP 200
+  /api/pm/me → HTTP 200
+  /api/hr/me → HTTP 401
+  /api/shop/me → HTTP 200
+  /api/auth/me-directory → HTTP 401
+
+  Safety form reads (no regression):
+  /api/incidents → HTTP 200 · records=6
+  /api/inspections → HTTP 200 · records=0
+  /api/meetings → HTTP 200 · records=23
+  /api/jhas → HTTP 200 · records=0
+  /api/daily-reports → HTTP 200 · records=86
+
+  Sibling DELETE routes (Sprint 1C consistency):
+  DELETE /api/incidents/bogus (no token) → HTTP 401
+  DELETE /api/inspections/bogus (no token) → HTTP 401
+  DELETE /api/meetings/bogus (no token) → HTTP 401
+  DELETE /api/jhas/bogus (no token) → HTTP 401
+  DELETE /api/daily-reports/bogus (no token) → HTTP 401
+
+--- Scheduler-quiet post-deploy heartbeat check (re-poll after 30s) ---
+  scheduler.alive: True
+  scheduler.last_lock_ts: 2026-06-01T02:31:53.600000Z
+  scheduler.owner_pod: safety-audit-mobile-1-6545945cf5-bmx67
