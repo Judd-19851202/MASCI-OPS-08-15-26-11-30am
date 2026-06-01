@@ -1,0 +1,221 @@
+=== Task 4 · Executive Command Center Audit ===
+Timestamp: 2026-06-01T01:18:08Z
+
+--- A · Accountability sources (catalog) ---
+  payload keys: ['canonical_statuses', 'sources']
+  source count: 6
+   · {'kind': 'first_class', 'count': None}
+   · {'kind': 'domain_workflow', 'count': None}
+   · {'kind': 'domain_workflow', 'count': None}
+   · {'kind': 'domain_workflow', 'count': None}
+   · {'kind': 'domain_workflow', 'count': None}
+   · {'kind': 'virtual', 'count': None}
+
+--- B · Accountability snapshot ---
+  latency: 1042ms
+  payload keys: ['phase', 'per_source', 'sections', 'rollup', 'timing_ms', 'cached']
+  owners surfaced: 0
+  total signals: None
+  generated_at: None
+  placeholder ownerships: 0
+
+--- C · Accountability owner drilldown ---
+  drilldown owner: 
+
+--- D · Command Center cards detail ---
+  computed_at: 2026-06-01T01:15:29.920220+00:00
+  cached: False
+  pill: RED
+  pulse: {'pill': 'RED', 'red_warnings': 2, 'amber_warnings': 0, 'red_items': 2, 'amber_items': 6, 'headline': '2 RED · 0 AMBER warnings'}
+  cards (5):
+     · None · RED · Jobs Today
+     · None · GREEN · Safety Today
+     · None · GREEN · Equipment Today
+     · None · GREEN · Accountability Overdue
+     · None · GREEN · Approvals Aging
+  calendar keys: ['version', 'timezone_offset_hours', 'working_weekdays', 'working_hour_start', 'working_hour_end', 'holidays']
+
+--- E · Accountability snapshot · sections drilldown ---
+  phase: 1A-3
+  timing_ms: {'tasks': 29.13, 'corrective_actions': 29.13, 'po_requests': 138.12, 'fleet_defects': 28.77, 'incidents': 616.38, 'virtual': 0.0, 'total': 841.54}
+  cached: False
+  rollup: {'total_items': 8, 'overdue_items': 1, 'by_status': {'open': 8, 'in_progress': 0, 'pending_review': 0, 'resolved': 0, 'closed': 0, 'cancelled': 0}}
+
+--- F · Command Center · RED card deep-dive (Jobs Today) ---
+
+--- G · Recovery scheduler heartbeat continuity ---
+  scheduler.alive: True (per recovery snapshot probe earlier)
+  last_lock_ts: 2026-06-01T01:10:20.318000Z (3min ago at probe time)
+  scheduler owner_pod: safety-audit-mobile-1-59796c5d4-c9ctr
+
+--- H · Latency summary (Phase 4 acceptance) ---
+  /api/admin/accountability/sources : 320ms
+  /api/admin/accountability/snapshot: 1042ms (re-run) · 1878ms (first)
+  /api/admin/command-center/snapshot: 2481ms
+  Acceptable threshold (operator-defined): < 3000ms · GREEN
+  per_source detail:
+snap top-level types:
+  phase: type=str value=1A-3
+  per_source: type=int value=50
+  sections: type=dict keys=['tasks', 'safety.corrective_actions', 'po.requests', 'equipment.dvir', 'safety.incidents', 'virtual.signals']
+  rollup: type=dict keys=['total_items', 'overdue_items', 'by_status']
+  timing_ms: type=dict keys=['tasks', 'corrective_actions', 'po_requests', 'fleet_defects', 'incidents', 'virtual', 'total']
+  cached: type=bool value=False
+
+--- per_source detail (raw) ---
+50
+
+--- rollup (raw) ---
+{
+  "total_items": 8,
+  "overdue_items": 1,
+  "by_status": {
+    "open": 8,
+    "in_progress": 0,
+    "pending_review": 0,
+    "resolved": 0,
+    "closed": 0,
+    "cancelled": 0
+  }
+}
+
+--- sections (raw) ---
+{
+  "tasks": {
+    "items": [
+      {
+        "accountability_id": "6156526e-0b3e-4b79-8f32-9b7efe2b8932",
+        "source_module": "tasks",
+        "source_record_id": "6156526e-0b3e-4b79-8f32-9b7efe2b8932",
+        "title": "PO needs approval: 0588eff4",
+        "owner_role": "pm",
+        "owner_user_id": null,
+        "owner_employee_id": null,
+        "owner_display_name": "PO Workflow",
+        "assigned_at": "2026-05-28T01:07:25.253000+00:00",
+        "assigned_by": {
+          "role": "system",
+          "name": "system",
+          "user_id": null,
+          "employee_id": null
+        },
+        "due_at": null,
+        "status": "open",
+        "priority": "Medium",
+        "first_viewed_at": null,
+        "first_viewed_by": null,
+        "last_activity_at": "2026-05-28T01:07:25.253000+00:00",
+        "last_activity_kind": "created",
+        "escalation_level": 0,
+        "resolved_at": null,
+        "resolved_by": null,
+        "resolution_notes": null,
+        "overdue": false,
+        "timeline_events": [
+          {
+            "event_kind": "created",
+            "event_seq": 0,
+            "actor": {
+              "role": "system",
+              "name": "PO Workflow",
+              "user_id": null,
+              "employee_id": null
+            },
+            "at": "2026-05-28T01:07:25.253000+00:00",
+            "from_status": null,
+            "to_status": null,
+            "notes": null,
+            "changes": null,
+            "linked_notification_id": null,
+
+
+=== Command Center cards raw ===
+--- card 0 ---
+{
+  "card_id": "jobs",
+  "title": "Jobs Today",
+  "pill": "RED",
+  "headline_counts": {
+    "dr_missing": 27,
+    "unowned_issues": 0,
+    "stale_incidents_no_path": 6,
+    "active_jobs_total": 28
+  },
+  "warnings": [
+    {
+      "kind": "JOBS-DR-MISSING",
+      "severity": "red",
+      "message": "27 active jobs without recent DR (RED \u2265 5)",
+      "item_count": 27,
+      "rule_id": "JOBS-DR-MISSING",
+      "owner": "pm",
+      "drill_to": "/admin/jobs"
+    },
+    {
+      "kind": "JOBS-ISSUE-NO-PATH",
+      "severity": "red",
+      "message": "6 stale incidents without a documented resolution path",
+      "item_count": 6,
+      "rule_id": "JOBS-ISSUE-NO-PATH",
+      "owner": "safety",
+      "drill_to": "/admin/incidents"
+    }
+  ],
+  "items": [
+    {
+      "what_wrong": "No daily report filed for 20-07 in last 36h",
+      "why_red": "Rule JOBS-DR-MISSING \u00b7 threshold AMBER 2 / R
+--- card 1 ---
+{
+  "card_id": "safety",
+  "title": "Safety Today",
+  "pill": "GREEN",
+  "headline_counts": {
+    "critical_unresolved_red": 0,
+    "critical_unresolved_amber": 0,
+    "osha_open": 0,
+    "ca_overdue": 0,
+    "ca_chronic": 0
+  },
+  "warnings": [],
+  "items": []
+}
+--- card 2 ---
+{
+  "card_id": "equipment",
+  "title": "Equipment Today",
+  "pill": "GREEN",
+  "headline_counts": {
+    "oos_red": 0,
+    "oos_amber": 0,
+    "new_oos_unack": 0,
+    "backlog_total": 0
+  },
+  "warnings": [],
+  "items": []
+}
+--- card 3 ---
+{
+  "card_id": "accountability",
+  "title": "Accountability Overdue",
+  "pill": "GREEN",
+  "headline_counts": {
+    "high_priority_overdue": 0,
+    "stale_over_threshold": 0
+  },
+  "warnings": [],
+  "items": []
+}
+--- card 4 ---
+{
+  "card_id": "approvals",
+  "title": "Approvals Aging",
+  "pill": "GREEN",
+  "headline_counts": {
+    "pending_amber": 0,
+    "pending_red": 0,
+    "pending_week_plus": 0
+  },
+  "warnings": [],
+  "items": []
+}

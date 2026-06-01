@@ -1,0 +1,14 @@
+=== Production Observation · Auth + Health Probes ===
+Timestamp: 2026-06-01T01:14:29Z
+URL: https://mascidocs.com
+
+--- Service-level health ---
+  /api/health → HTTP 200
+{"ok":true,"service":"masci-hub","ts":"2026-06-01T01:14:30.186512+00:00"}
+  /api/version → HTTP 200
+{"service":"masci-hub","commit":"unknown","built_at":"unknown","source_hash":"2383567f4f9735cf936d90dce26bb267","release":"2383567f4f9735cf936d90dce26bb267","started_at":"2026-06-01T01:07:04.789930+00:00","uptime_s":445,"session_timeouts":{"enabled":true,"tiers":{"ADMIN_HR":{"idle_min":15,"abs_hour":4},"OPERATIONS":{"idle_min":30,"abs_hour":8},"FIELD":{"idle_min":60,"abs_hour":12}}},"sentry":{"ena
+
+--- Multi-login (super-admin) ---
+  ok: True
+  has token: False
+  portal_tokens keys: ['admin', 'dispatch', 'field_leadership', 'hr', 'pm', 'safety', 'shop']

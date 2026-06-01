@@ -1,0 +1,16 @@
+=== Sub-task · Validate 'Unassigned PM' ownership claim ===
+Projects flagged in Command Center: 20-07, 22-08, 24-06, 24-08
+
+--- Fetching project records via /api/admin/projects ---
+  total projects: 0
+
+--- Cross-check with /api/admin/project-managers (PM directory) ---
+  total PMs in directory: 8
+   · Allen Workman · aworkman@mascigc.com · is_active= True
+   · Asphalt PM · asphaltpm@mascigc.com · is_active= True
+   · Chris Wright · chriswright@mascigc.com · is_active= True
+   · David Jewett · davidjewett@mascigc.com · is_active= True
+   · Jaymn Judd · jaymn.judd@mascigc.com · is_active= True
+   · Leo Masci · leomasci@mascigc.com · is_active= True
+   · Ramon Rodriguez · ramonrodriguez@mascigc.com · is_active= True
+   · Vincenza Massaro · pm@mascigc.com · is_active= True

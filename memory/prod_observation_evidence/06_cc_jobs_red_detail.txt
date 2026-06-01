@@ -1,0 +1,124 @@
+=== Jobs Today card (RED) ===
+{
+  "card_id": "jobs",
+  "title": "Jobs Today",
+  "pill": "RED",
+  "headline_counts": {
+    "dr_missing": 27,
+    "unowned_issues": 0,
+    "stale_incidents_no_path": 6,
+    "active_jobs_total": 28
+  },
+  "warnings": [
+    {
+      "kind": "JOBS-DR-MISSING",
+      "severity": "red",
+      "message": "27 active jobs without recent DR (RED \u2265 5)",
+      "item_count": 27,
+      "rule_id": "JOBS-DR-MISSING",
+      "owner": "pm",
+      "drill_to": "/admin/jobs"
+    },
+    {
+      "kind": "JOBS-ISSUE-NO-PATH",
+      "severity": "red",
+      "message": "6 stale incidents without a documented resolution path",
+      "item_count": 6,
+      "rule_id": "JOBS-ISSUE-NO-PATH",
+      "owner": "safety",
+      "drill_to": "/admin/incidents"
+    }
+  ],
+  "items": [
+    {
+      "what_wrong": "No daily report filed for 20-07 in last 36h",
+      "why_red": "Rule JOBS-DR-MISSING \u00b7 threshold AMBER 2 / RED 5",
+      "owner": "Unassigned PM",
+      "current_status": "DR missing",
+      "eta": "Same day",
+      "drill_to": "/admin/jobs?project_number=20-07",
+      "rule_id": "JOBS-DR-MISSING",
+      "severity": "amber"
+    },
+    {
+      "what_wrong": "No daily report filed for 21-06 in last 36h",
+      "why_red": "Rule JOBS-DR-MISSING \u00b7 threshold AMBER 2 / RED 5",
+      "owner": "Unassigned PM",
+      "current_status": "DR missing",
+      "eta": "Same day",
+      "drill_to": "/admin/jobs?project_number=21-06",
+      "rule_id": "JOBS-DR-MISSING",
+      "severity": "amber"
+    },
+    {
+      "what_wrong": "No daily report filed for 22-08 in last 36h",
+      "why_red": "Rule JOBS-DR-MISSING \u00b7 threshold AMBER 2 / RED 5",
+      "owner": "Unassigned PM",
+      "current_status": "DR missing",
+      "eta": "Same day",
+      "drill_to": "/admin/jobs?project_number=22-08",
+      "rule_id": "JOBS-DR-MISSING",
+      "severity": "amber"
+    },
+    {
+      "what_wrong": "No daily report filed for 24-06 in last 36h",
+      "why_red": "Rule JOBS-DR-MISSING \u00b7 threshold AMBER 2 / RED 5",
+      "owner": "Unassigned PM",
+      "current_status": "DR missing",
+      "eta": "Same day",
+      "drill_to": "/admin/jobs?project_number=24-06",
+      "rule_id": "JOBS-DR-MISSING",
+      "severity": "amber"
+    },
+    {
+      "what_wrong": "No daily report filed for 24-08 in last 36h",
+      "why_red": "Rule JOBS-DR-MISSING \u00b7 threshold AMBER 2 / RED 5",
+      "owner": "Unassigned PM",
+      "current_status": "DR missing",
+      "eta": "Same day",
+      "drill_to": "/admin/jobs?project_number=24-08",
+      "rule_id": "JOBS-DR-MISSING",
+      "severity": "red"
+    },
+    {
+      "what_wrong": "Incident INC-2026-00011 open 10d \u00b7 no corrective action",
+      "why_red": "Rule JOBS-ISSUE-NO-PATH \u00b7 open > 7d without CA",
+      "owner": "Safety",
+      "current_status": "Open \u00b7 no resolution path",
+      "eta": "Within 5 business days",
+      "drill_to": "/admin/incidents/87c8535b-ec64-4c06-aca0-01d5ebf9b3ec",
+      "rule_id": "JOBS-ISSUE-NO-PATH",
+      "severity": "amber"
+    },
+    {
+      "what_wrong": "Incident INC-2026-00010 open 13d \u00b7 no corrective action",
+      "why_red": "Rule JOBS-ISSUE-NO-PATH \u00b7 open > 7d without CA",
+      "owner": "Safety",
+      "current_status": "Open \u00b7 no resolution path",
+      "eta": "Within 5 business days",
+      "drill_to": "/admin/incidents/7f1eeec9-6f17-4ea6-a911-2282c270d448",
+      "rule_id": "JOBS-ISSUE-NO-PATH",
+      "severity": "amber"
+    },
+    {
+      "what_wrong": "Incident INC-2026-00004 open 19d \u00b7 no corrective action",
+      "why_red": "Rule JOBS-ISSUE-NO-PATH \u00b7 open > 7d without CA",
+      "owner": "Safety",
+      "current_status": "Open \u00b7 no resolution path",
+      "eta": "Within 5 business days",
+      "drill_to": "/admin/incidents/768ca0e4-41df-4d93-b02b-f3707ef6001a",
+      "rule_id": "JOBS-ISSUE-NO-PATH",
+      "severity": "red"
+    }
+  ]
+}
+
+=== Pulse ===
+{
+  "pill": "RED",
+  "red_warnings": 2,
+  "amber_warnings": 0,
+  "red_items": 2,
+  "amber_items": 6,
+  "headline": "2 RED \u00b7 0 AMBER warnings"
+}

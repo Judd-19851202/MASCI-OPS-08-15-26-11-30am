@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Sprint 1C/1D Pre-Deployment Certification Gate · 🟢 GO TO DEPLOY · 186/186 tests · 9/9 incident-delete checkpoints · 16/16 platform probes · LOW × 4 risk)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Production Observation Audit · 🟡 AMBER · Sprint 1C/1D live on prod with no regressions · 1 ownership-projection mismatch + recovery-pill AMBER are next-batch candidates)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,17 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · OMEGA Production Observation Audit · 3 deliverables (2026-02-27 · prod-time 2026-06-01T01:14Z)
+
+| File | Purpose | Status |
+|---|---|---|
+| `PRODUCTION_OBSERVATION_REPORT.md` | Top-level verdict 🟡 AMBER · top-10 issues · recommended-action plan (P1–P3) for future authorized batches | 🟢 |
+| `PRODUCTION_DATA_HYGIENE_REPORT.md` | Per-collection contamination scan (412/414 clean) · categorization: Safe-to-delete=0 · Operator-review=1 (deactivated `fieldleader@mascigc.com`) · System=1 (false positive `safety@mascigc.com`) | 🟢 |
+| `PRODUCTION_REGRESSION_AUDIT.md` | Sprint 1C/1D verification on production · 🟢 GREEN · 4/4 contract probes · HR Hub clean desktop+mobile · 0 console errors · 5/5 sibling DELETE routes consistent · no preview-banner leak | 🟢 |
+| `prod_observation_evidence/` | 10 curl probe logs + 2 production HR Hub viewport screenshots (`hr_hub_prod_desktop_1920.png` · `hr_hub_prod_mobile_420.png`) | 🟢 |
+
+🟡 **Headline**: Production is healthy and Sprint 1C/1D is live with zero regressions. Verdict is AMBER (not GREEN) because of **one Pillar 1A-3 ownership-projection defect** (job 24-06 has PM=David Jewett in `/api/jobs` but Command Center labels owner "Unassigned PM") and the **recovery pill is AMBER** (no DR drill recorded · R2 bucket usage 91.49 GB above ALERT threshold 50 GB · 2 transient `usage_events` backup failures from 2026-05-25 that have since recovered). Command Center pill RED is **operational** (4 daily-report-missing jobs + 3 incidents >7d without CAPA), not a technical defect. Production data hygiene is clean — 0 test-marker records across 6 incidents · 23 meetings · 86 daily reports · 245 employees · 8 PMs · all other user collections.
 
 ### 00 · OMEGA Sprint 1C/1D · Pre-Deployment Certification Gate · 3 deliverables (2026-02-27)
 

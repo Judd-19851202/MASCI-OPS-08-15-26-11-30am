@@ -1,0 +1,51 @@
+=== Task 3 · Production Data Hygiene Audit ===
+Timestamp: 2026-06-01T01:17:09Z
+Mode: READ-ONLY. No deletes. No writes.
+
+--- A · Incidents · scan for test/demo/preview markers ---
+  total incidents: 6
+  flagged: 0
+
+--- B · Inspections · scan ---
+  total inspections: 0
+  flagged: 0
+
+--- C · Meetings · scan ---
+  total meetings: 23
+  flagged: 0
+
+--- D · JHAs · scan ---
+  total jhas: 0
+  flagged: 0
+
+--- E · Daily reports · scan ---
+  total daily reports: 86
+  flagged: 0
+
+--- F · Employees · scan ---
+  total employees: 245
+  flagged: 0
+
+--- G · Field-Leadership users · scan ---
+  total FL users: 27
+  flagged: 1
+   · {'name': 'Field Leader', 'email': 'fieldleader@mascigc.com', 'role': 'Superintendent', 'is_active': False, 'id': 'd805f3d4-76c8-480e-a268-b64b274e059c'}
+
+--- H · HR users · scan ---
+  total HR users: 3
+  flagged: 0
+
+--- I · Safety users ---
+  total Safety users: 2
+  flagged: 1
+   · {'name': 'Safety Manager', 'email': 'safety@mascigc.com', 'is_active': True}
+
+--- J · Shop / PM / Dispatch users ---
+  /api/admin/shop-users → total: 2 · flagged: 0
+  /api/admin/project-managers → total: 8 · flagged: 0
+  /api/admin/dispatch-users → total: 2 · flagged: 0
+
+--- K · Duplicate doc_id check ---
+  incidents: dup doc_ids: 0 
+  daily_reports: dup doc_ids: 0 
+  meetings: dup doc_ids: 0 

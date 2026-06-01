@@ -1,0 +1,26 @@
+=== Final probes ===
+
+--- A · Audit events · incident_deleted on prod ---
+  /api/admin/audit-events?kind=incident_deleted → HTTP 404 · size 22
+  /api/admin/audit/events?kind=incident_deleted → HTTP 404 · size 22
+  /api/admin/events?kind=incident_deleted → HTTP 404 · size 22
+
+--- B · Drilldown on the open-no-CA incidents flagged by CC ---
+  · INC[87c8535b-ec64-4c06-aca0-01d5ebf9b3ec][:8]: doc_id=INC-2026-00011 type=Property / Equipment Damage sev=near_miss date=2026-05-19 project=25-22 - CP reporter=Jaymn Judd
+  · INC[7f1eeec9-6f17-4ea6-a911-2282c270d448][:8]: doc_id=INC-2026-00010 type=Vehicle / Mobile Equipment sev=near_miss date=2026-05-18 project=26-01 - CP reporter=Jaymn Judd
+  · INC[768ca0e4-41df-4d93-b02b-f3707ef6001a][:8]: doc_id=INC-2026-00004 type=Near Miss sev=near_miss date=2026-05-12 project=26-01 - CP reporter=Jaymn Judd
+
+--- C · Production environment markers ---
+  release: 2383567f4f9735cf936d90dce26bb267
+  source_hash: 2383567f4f9735cf936d90dce26bb267
+  uptime_s: 796
+  sentry: {'enabled': True}
+
+--- D · Auth gates · cross-portal /me ---
+  /api/admin/check → HTTP 200
+  /api/pm/me → HTTP 200
+  /api/safety-portal/me → HTTP 404
+  /api/hr/me → HTTP 200
+  /api/shop/me → HTTP 200
+  /api/dispatch/me → HTTP 401
+  /api/field-leadership/me → HTTP 404

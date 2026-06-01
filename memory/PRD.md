@@ -31308,3 +31308,52 @@ Agent STOPPED awaiting next OMEGA authorization.
 | CERTIFICATION ONLY | ✅ |
 
 Agent STOPPED. Awaiting operator's explicit production-deploy authorization.
+
+---
+
+# Production Observation Audit · 2026-02-27 (production-time 2026-06-01T01:14–01:18Z)
+
+**Authorized batch:** OMEGA Production Observation · read-only · no code · no deploy · no DB writes.
+
+**Final verdict:** 🟡 **AMBER** (production healthy + Sprint 1C/1D live, but 1 ownership-projection mismatch + recovery-pill AMBER)
+
+### 4-task outcome
+
+| Task | Verdict | Note |
+|---|---|---|
+| 1 · Production health | 🟡 AMBER | Scheduler alive · RPO GREEN · RTO AMBER (no DR drill) · R2 bucket 91.49 GB above ALERT threshold · 2 backup failures on 2026-05-25 (`usage_events` sort-memory) — recovered |
+| 2 · Deployment regression | 🟢 GREEN | Sprint 1C 4/4 contract probes pass · Sprint 1D HR Hub clean on desktop+mobile · 0 console errors · 5/5 sibling DELETE routes consistent · SPA bundle hash `main.ed1d4f48.js` |
+| 3 · Data hygiene | 🟢 GREEN | 412/414 records clean · 1 false-positive (`safety@mascigc.com` is canonical) · 1 deactivated test record (`fieldleader@mascigc.com` — Sprint 1B output, no new action required) |
+| 4 · Executive Command Center | 🟡 AMBER | 1 ownership-projection mismatch: job 24-06 has PM=David Jewett in `/api/jobs` but CC labels "Unassigned PM" · 3 jobs (20-07, 22-08, 24-08) genuinely without PM · CC pill RED is operational (8 actionable items: 4 DR-missing, 3 incidents>7d without CA) — not a defect |
+
+### Top 10 issues found (see `PRODUCTION_OBSERVATION_REPORT.md` §2)
+
+1. 🔴 Pillar 1A-3 ownership projection mismatch on job 24-06 (PM exists but CC shows "Unassigned PM")
+2. 🟡 Jobs 20-07, 22-08, 24-08 have empty `project_manager` field (operator action — assign PMs)
+3. 🟡 No DR drill recorded (`rto.last_drill_min=None` → RTO AMBER)
+4. 🟡 R2 bucket usage 91.49 GB above ALERT threshold 50 GB
+5. 🟡 Two backup failures on 2026-05-25 (`usage_events` sort-memory exception, recovered)
+6. 🟡 Three incidents open >7d without CAPA (INC-2026-00004/00010/00011)
+7. 🟡 Deactivated test account `fieldleader@mascigc.com` still in collection (Sprint 1B output)
+8. 🟢 Production runtime restarted ~12 min before audit (normal pod rotation)
+9. 🟢 Accountability phase confirmed `1A-3` on production
+10. 🟢 `/api/admin/audit-events` not exposed on production (Pillar 1A-6 deferred enhancement, not a regression)
+
+### Deliverables
+
+- `PRODUCTION_OBSERVATION_REPORT.md` (top-level verdict + top-10 + recommended actions)
+- `PRODUCTION_DATA_HYGIENE_REPORT.md` (per-collection scan results + categorization)
+- `PRODUCTION_REGRESSION_AUDIT.md` (Sprint 1C/1D deployment verification + sibling-surface regression check)
+- `prod_observation_evidence/` (10 curl probe logs + 2 HR Hub viewport screenshots)
+
+### OMEGA discipline
+
+| Rule | Observed |
+|---|---|
+| READ-ONLY | ✅ |
+| NO writes / deletes / updates | ✅ |
+| NO code · NO deploy · NO new features | ✅ |
+| NO pillar continuation | ✅ |
+| Evidence for every finding | ✅ |
+
+Agent STOPPED. Awaiting operator's next explicit authorization (likely candidates: Pillar 1A-3 projection fix · DR drill execution · job PM assignment · R2 retention policy adjustment).
