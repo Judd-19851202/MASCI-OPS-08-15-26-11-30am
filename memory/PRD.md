@@ -1,6 +1,41 @@
 # MASCI Safety Hub — PRD
 
 
+
+## 2026-06-01 (fork) — OMEGA Sprint 1G · Post-Deploy Status Recheck 🟢 (production healthy)
+
+### Operator directive
+> "OMEGA AUTHORIZATION · Batch (b) Sprint 1G Post-Deploy Status Recheck (current state, read-only). Verify pod inventory · run 50 photo-viewer probes · determine if split-pod state persists · confirm whether rolling restart still required. NO code changes / deployments / restarts / fixes / DB writes. STOP after reports."
+
+### 🟢 HEADLINE — Production healthy · Sprint 1G fully deployed
+- **Active production pods**: **1** (down from 2 at 2026-05-31 cert · split-pod state cleared)
+- **Photo viewer success rate**: **100 % (50/50)** — all probes returned `https://` presigned R2 URLs
+- **Stale-pod indicator** (`photo://` scheme): **0 / 50 probes** (down from ~50 % at last cert)
+- **Forensic target** (`daily_report:07e54a58…:0` · Mike · 2026-05-29 · 26-01-CP) now returns presigned `https://` URL
+- **Operator action required**: ❌ **None** — no rolling restart needed
+- **223 production calls executed · zero non-audit DB writes**
+
+### Probe methodology
+- 160 `GET /api/version` calls → single `started_at=2026-06-01T14:31:54.511951Z` · single `source_hash=2383567f4f97…`
+- 50 `GET /api/job-photos/{id}/raw` probes (seed=20260601 · 6 distinct projects · admin-scoped) → 50× HTTP 200 + 50× `https://` presigned R2 URLs
+
+### 3 deliverables (in `/app/memory/`)
+- `SPRINT1G_STATUS_RECHECK.md` — master recheck report + recommendation A
+- `SPRINT1G_PRODUCTION_POD_REPORT.md` — pod inventory + split-pod comparison
+- `SPRINT1G_PHOTO_SUCCESS_AUDIT.md` — 50-probe results + per-probe table
+- `_sprint1g_recheck_probe_data.csv` — raw per-probe data (50 rows · auditable)
+
+### OMEGA discipline (this batch)
+🟢 Zero code · zero DB writes (except inherent `admin_audit` row on the single break-glass login) · zero deletes · zero deployments · zero restarts · zero fixes · zero scope drift. Read-only recheck only.
+
+### Final recommendation
+**A) Production healthy — Sprint 1G fully deployed.** No rolling restart required.
+
+### Agent state
+- 🔴 STOPPED per OMEGA directive. Sprint 1G recheck batch closed. Awaiting explicit operator authorization for the next Batch.
+
+
+
 ## 2026-05-31 (fork) — OMEGA Critical Fix Sprint 1A · Forensic Sweep 🟡 (cleanup plan ready)
 
 ### Operator directive
