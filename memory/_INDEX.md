@@ -1,6 +1,22 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · Public-Gate Accountability Remediation Plan · 🟢 iter452.5 dedicated platform sprint recommended · 3-week effort · 1 shared lib + 1 collection + 1 UI component closes the systemic gap once · awaiting operator authorization)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · iter452.5 Tier 1 / Tier 2 Scoping Addendum · 🟢 Tier 1 realistic ~13.75 d (~2.75 wk) · Tier 1+Tier 2 realistic ~33.75 d (~6.75 wk) · iter453 BUILD safely starts on Day 9 of iter452.5 · awaiting operator GO/NO-GO authorization)._
+
+---
+
+### 00 · OMEGA · iter452.5 Tier 1 / Tier 2 Scoping Addendum (2026-06-01)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `ITER452_5_TIER1_TIER2_SCOPING.md` | Addendum to the Public-Gate Accountability Remediation Plan · operator's Tier 1 / Tier 2 split formalized · 8-field Tier-1 minimum (dropped phone, device_id, superintendent email from Tier-1) · 5 phases R1..R5 + R-CERT · Tier 1 realistic 13.75 d / buffered 18 d · Tier 2 additive realistic 20 d / buffered 26 d · combined realistic 33.75 d / buffered 44 d · earliest safe iter453 BUILD start = Day 9 of iter452.5 (after R1+R2+R3 preview-ready) · iter453 design may run in parallel from Day 1 · 5-item delta risk register, no HIGH unmitigated | 🟢 design only · awaiting GO/NO-GO |
+
+🟢 **Tier 1 scope (required for Phase 1A continuation):** submitter identity resolution · employee directory mapping · project ownership resolution (reuse `pm_routing`) · email-based revision delivery (signed JWT + `/revise/<jwt>`) · audit trail integration · reusable workflow hooks. **Single hard rule:** `submitter_email_at_submit` required; non-email crews fall back to PM-relay (Option E).
+
+🟡 **Tier 2 (deferred to Phase 1A.5 or Phase 2):** SMS (Twilio) · Web Push (VAPID + SW) · iOS PWA install flow · device-binding enhancements · per-employee channel preference UI.
+
+🟢 **Sequencing:** iter452 deploy authorization → iter452.5 platform sprint (Week 1 R1 · Week 2 R2+R3 · Week 3 R4+R5+R-CERT) → iter452.5 deploy → iter453 BUILD (already started Day 9 in parallel) completes → iter453 deploy → iter454 (OC-005) → iter455 Phase 1A Integration Certification.
+
+🛑 **Stopped.** Design decision delivered. Zero code. Awaiting operator's confirmation message authorizing Tier 1 only OR Tier 1 + Tier 2 OR deferral.
 
 ---
 
