@@ -2,6 +2,41 @@
 
 
 
+## 2026-06-01 (fork) — OMEGA · Photo Viewer Defect REOPENED 🔴 (new root cause proven)
+
+### Operator directive
+> "OMEGA BATCH — PHOTO VIEWER DEFECT REOPENED. Real operator on production reproducing 'Photo data unavailable or corrupt.' on every photo click. DO NOT assume Sprint 1G succeeded. Treat as reopened production defect. Evidence only. No assumptions. Reproduce against production. Include exact failing photo IDs, API responses, screenshots, network traces. STOP after root cause is proven. Do NOT fix anything in this batch."
+
+### 🔴 HEADLINE — Sprint 1G cert was a false positive
+- Server-side `/raw` curl probes return correct presigned R2 URLs (Sprint 1G backend code IS working). But the **browser never reaches that endpoint at that hostname.**
+- **PRIMARY ROOT CAUSE** (dual-failure): Production frontend bundle is built with `REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.emergent.host` (cross-origin from mascidocs.com), AND production backend's `CORS_ORIGIN_REGEX` doesn't match `mascidocs.com`. Browser blocks the `/raw` XHR at preflight → axios catches the error → `thumbCache='error'` → lightbox renders "Photo data unavailable or corrupt."
+- **Scope**: ALL 606 photos · ALL projects · ALL submitters. Also affects every other `axios` call from `mascidocs.com` (employees, inspections, daily-reports, meetings, suppliers, etc.) — those silently fail/render from stale cache. The photo viewer is just the most visible symptom because it surfaces an explicit error string.
+- **Why thumbnails appear healthy**: `<img>` simple GETs don't trigger CORS preflight. Only XHR does.
+- **Why Sprint 1G certification missed it**: server-side curl bypasses browser CORS entirely.
+
+### Evidence (all in `/app/memory/`)
+- `PHOTO_VIEWER_FORENSIC_REPORT.md` — 12-checkpoint forensic + end-to-end Playwright reproduction
+- `PHOTO_VIEWER_ROOT_CAUSE.md` — dual-failure causal model + truth tables
+- `PHOTO_VIEWER_REMEDIATION_PLAN.md` — 5 fix options (A/B/C/D/E) · NOTHING EXECUTED
+- `_photo_viewer_repro_lightbox.jpeg` — screenshot of "Photo data unavailable or corrupt." overlay
+- `_photo_viewer_repro_grid.jpeg` — screenshot of the prod admin photos grid
+- `_photo_viewer_repro_console.log` — verbatim browser CORS error
+- Older Sprint 1G companions archived with `_sprint1g_archived` suffix
+
+### Recommended fix (operator authorization required)
+**Option C — A + B together** (defence in depth, ~15 min):
+- A: Update prod env vars `CORS_ORIGINS="https://mascidocs.com,https://www.mascidocs.com"` and broaden `CORS_ORIGIN_REGEX` to include `mascidocs.com` · backend restart
+- B: Rebuild prod frontend with `REACT_APP_BACKEND_URL=https://mascidocs.com` (same-origin) · redeploy
+
+### OMEGA discipline (this batch)
+🟢 Zero code changes · zero deployments · zero restarts · zero fixes · zero DB writes (except inherent `admin_audit` row from one super-admin login for the Playwright reproduction). Reproduction + forensic certification only.
+
+### Agent state
+- 🔴 STOPPED per OMEGA directive. Root cause proven and documented. Awaiting explicit operator authorization for remediation.
+
+
+
+
 ## 2026-06-01 (fork) — OMEGA Sprint 1G · Post-Deploy Status Recheck 🟢 (production healthy)
 
 ### Operator directive

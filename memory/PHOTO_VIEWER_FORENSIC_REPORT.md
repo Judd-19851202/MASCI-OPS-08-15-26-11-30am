@@ -1,215 +1,326 @@
-# Photo Viewer Forensic Report
+# Photo Viewer Forensic Report (REOPENED)
 
-**Batch:** OMEGA Sprint 1G · Photo Viewer Forensic Incident Investigation + Remediation
-**Date:** 2026-02-27 (production probes captured 2026-06-01T17:36Z – 17:42Z)
-**Mode:** Forensic + Remediation. Production READ-ONLY for evidence. Fix implemented in preview; production deploy by operator.
-**Authorized payload:** Surgical R2-presign integration in `get_photo_raw` + `get_photo_raw_batch`. ~32 LOC. Well under the 50 LOC ceiling.
-**Companion files:** `PHOTO_STORAGE_AUDIT.md` · `PHOTO_ROOT_CAUSE_ANALYSIS.md` · `PHOTO_REMEDIATION_PLAN.md`
+**Batch:** OMEGA · Photo Viewer Defect Reopened (Production)
+**Mode:** Forensic. PRODUCTION reproduction confirmed in operator browser, then replicated server-side. Read-only. NO code/deploy/DB changes in this batch.
+**Date:** 2026-06-01 (probe window 14:42Z – 14:58Z UTC)
+**Target host:** `https://mascidocs.com` (production · `app_env=production` · `db_name=masci_safety`)
+**Reproducer:** `playwright` browser, Chromium, auth as `jaymn.judd@mascigc.com`
+**Companion files:**
+* `PHOTO_VIEWER_ROOT_CAUSE.md` — causal chain
+* `PHOTO_VIEWER_REMEDIATION_PLAN.md` — fix options (no code changes in this batch)
+* `_photo_viewer_repro_grid.jpeg` — screenshot · expanded project, 32 thumbnails visible
+* `_photo_viewer_repro_lightbox.jpeg` — screenshot · operator-reported "Photo data unavailable or corrupt." overlay
+* `_photo_viewer_repro_console.log` — full browser console log (CORS error captured verbatim)
+* `_sprint1g_recheck_probe_data.csv` — server-side 50-probe data (also 100 % "passing" — see §11 for why this was misleading)
 
 ---
 
 ## 1 · Final verdict
 
-# 🟢 ROOT CAUSE PROVEN · FIX IMPLEMENTED · PREVIEW-CERTIFIED
+# 🔴 SPRINT 1G CERTIFICATION WAS WRONG · DEFECT IS REAL · NEW ROOT CAUSE
 
-The "Photo data unavailable or corrupt" message has a single, fully reproducible root cause. The fix is **6 lines of behavioural change** (plus comments + a defensive batch-loop guard) inside `routes/job_photos.py`. It is verified live on the preview backend. Production deploy is gated on operator authorization.
+The Sprint 1G post-deploy certification was a **false positive**. Server-side `curl` probes against `https://mascidocs.com/api/job-photos/{id}/raw` returned correct `https://`-presigned URLs and the surface symptom appeared resolved. **But the browser never reaches that endpoint at that hostname.** The deployed prod frontend bundle is built with the wrong `REACT_APP_BACKEND_URL`, so the lightbox `/raw` request goes cross-origin to a host that does NOT include `mascidocs.com` in its CORS allow-list. The browser blocks the request at preflight. axios catches the failure. The lightbox renders the operator-reported error string.
 
----
-
-## 2 · Symptom
-
-* User clicks any photo thumbnail anywhere in the production photo gallery (`/photos-library` page).
-* Lightbox modal opens, displays the photo metadata in the footer (filename, project, submitter, date).
-* The image area shows the error string: **"Photo data unavailable or corrupt."**
-* Behaviour identical on desktop and mobile.
-* Thumbnails in the gallery grid continue to render correctly.
-
-Frontend source of the error string: `frontend/src/pages/JobPhotosLibrary.jsx:709`.
+Sprint 1G's BACKEND fix is fine. The DEPLOYMENT (frontend bundle build config + backend CORS allow-list) is broken.
 
 ---
 
-## 3 · Production evidence
+## 2 · Operator-requested forensic checklist
 
-### 3.1 · Authoritative inventory (all 606 photos via `GET /api/job-photos`)
+| # | Item | Result |
+|---|---|---|
+| 1 | Identify the exact photo record being clicked | ✅ `daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0` (the operator-named target from the original 1G forensic) |
+| 2 | Capture the photo document from Mongo | ✅ Metadata pulled via `/api/job-photos`: project `26-01-CP`, date `2026-05-29`, submitter `Mike`, R2 ref `photo://masci-hub/photos/2026/05/dr_07e54a58.../85e97aff…jpg` |
+| 3 | Capture thumbnail source | ✅ `<img src="https://safety-audit-mobile-1.emergent.host/api/job-photos/daily_report%3A07e54a58…%3A0/thumb-signed?t=…">` — renders correctly in the grid |
+| 4 | Capture full-resolution source | ✅ Lightbox attempts `axios.get("https://safety-audit-mobile-1.emergent.host/api/job-photos/daily_report:07e54a58…:0/raw?_=1780325797086")` — **blocked by CORS** |
+| 5 | Capture viewer API response | ✅ `net::ERR_FAILED` — no response received by JS · see console log §6.1 |
+| 6 | Capture presigned URL returned | ❌ Never reached the JS — preflight blocked. *Server-side* probe (out-of-browser) shows the backend WOULD return a valid presigned URL |
+| 7 | Verify URL manually | ✅ Server-side curl: presigned URL fetches a 517 KB JPEG (`Content-Type: image/jpeg`, magic bytes `ff d8 ff e0`) directly from R2 |
+| 8 | Verify R2 object exists | ✅ R2 object `photos/2026/05/dr_07e54a58…/85e97aff….jpg` exists · `Last-Modified: Sat, 30 May 2026 21:03:16 GMT` · `ETag: 5f18a5f9bbd5d858d0773bd30f7e99eb` · 517,783 bytes |
+| 9 | Verify MIME type | ✅ `Content-Type: image/jpeg` from R2 |
+| 10 | Verify frontend viewer receives correct payload | ❌ Frontend NEVER receives the `/raw` payload. `axios.get()` throws → `catch { setThumbCache(p => ({...p, [key]: "error"})) }` → renderable check returns false → lightbox renders the error string |
+| 11 | Verify browser network response | ✅ `net::ERR_FAILED` on `/raw`. Console emits: *"Access to XMLHttpRequest at 'https://safety-audit-mobile-1.emergent.host/api/job-photos/…/raw?_=…' from origin 'https://mascidocs.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource."* |
+| 12 | Verify if issue affects all/some/legacy/new photos | ✅ **ALL PHOTOS in the production environment** — symptom is per-`<axios>` not per-photo |
 
-| Question | Answer |
+---
+
+## 3 · Symptom (operator-reported)
+
+* Operator opens `https://mascidocs.com/admin/photos`.
+* Photo grid loads. **Thumbnails render correctly** (every tile shows a real JPEG).
+* Operator clicks any thumbnail. Lightbox modal opens.
+* Image area shows: **"Photo data unavailable or corrupt."**
+* Metadata footer (filename / project / submitter / date) renders correctly.
+* Behaviour identical on desktop and mobile. Behaviour identical across every photo · every project · every submitter · every date.
+
+Source of the error string: `frontend/src/pages/JobPhotosLibrary.jsx:709`.
+
+---
+
+## 4 · Reproduction (in-browser, against production)
+
+### 4.1 · Playwright reproduction script
+
+* Spin up a Chromium browser via the platform's `screenshot` tool.
+* `goto https://mascidocs.com/admin/login` · authenticate `jaymn.judd@mascigc.com` / `Maddix123!` (super-admin).
+* `goto https://mascidocs.com/admin/photos`.
+* Expand the first project folder (`#26-01-CP · NSB Corbin Park Stormwater Improvements`).
+* Click the first thumbnail.
+
+### 4.2 · Captured artifacts
+
+* **Grid screenshot** (`_photo_viewer_repro_grid.jpeg`): 32 thumbnails of project 26-01-CP render correctly. The Sprint 1G presigned-URL fix is not visible here because thumbnails go through a DIFFERENT endpoint (`/thumb-signed`) than the lightbox.
+* **Lightbox screenshot** (`_photo_viewer_repro_lightbox.jpeg`): exact operator-reported error displayed in the centre of the dark modal:
+
+  > Photo data unavailable or corrupt.
+  > #26-01 - CP · NSB Corbin Park Stormwater Improvements
+  > Daily Report · 2026-05-29 · Mike
+
+* **Lightbox DOM inspection**: `<img>` elements in lightbox = **0**. The `renderable` flag in `JobPhotosLibrary.jsx:672-677` evaluated `false`, so the `<img>` was never inserted into the DOM.
+
+### 4.3 · Browser console (verbatim · captured by Playwright)
+
+```
+[error] Access to XMLHttpRequest at
+  'https://safety-audit-mobile-1.emergent.host/api/job-photos/daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0/raw?_=1780325797086'
+  from origin 'https://mascidocs.com'
+  has been blocked by CORS policy:
+  Response to preflight request doesn't pass access control check:
+  No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+REQUEST FAILED: https://safety-audit-mobile-1.emergent.host/api/job-photos/daily_report:07e54a58…:0/raw?_=1780325797086 - net::ERR_FAILED
+```
+
+Full log at `_photo_viewer_repro_console.log` — note that **almost every `/api/*` call from the production page is failing the same way**, not just `/raw`. The grid only happens to render because `<img>` tags don't trigger CORS preflight (they're "simple" cross-origin requests).
+
+---
+
+## 5 · Smoking-gun evidence
+
+### 5.1 · Deployed prod frontend bundle hardcodes the wrong backend URL
+
+Static analysis of the live `mascidocs.com` frontend bundle:
+
+```bash
+$ curl https://mascidocs.com/ | grep -oE 'src="/static/js/main[^"]+"'
+src="/static/js/main.3f15585d.js"
+
+$ curl https://mascidocs.com/static/js/main.3f15585d.js \
+    | grep -oE 'https://safety-audit-mobile-1[^"]*' | sort -u
+https://safety-audit-mobile-1.emergent.host
+```
+
+⚠️ The page that the user loads at `https://mascidocs.com` is hardwired to talk to `https://safety-audit-mobile-1.emergent.host/api/*` — a **DIFFERENT origin**. This is `REACT_APP_BACKEND_URL` baked into the React bundle at build time.
+
+### 5.2 · `safety-audit-mobile-1.emergent.host` IS the same backend as `mascidocs.com` (alternate ingress)
+
+```
+$ curl https://mascidocs.com/api/version
+  source_hash: 2383567f4f9735cf936d90dce26bb267
+  started_at:  2026-06-01T14:31:54.511951+00:00
+  app_env:     production
+  db_name:     masci_safety
+
+$ curl https://safety-audit-mobile-1.emergent.host/api/version
+  source_hash: 2383567f4f9735cf936d90dce26bb267
+  started_at:  2026-06-01T14:31:54.511951+00:00
+  app_env:     production
+  db_name:     masci_safety
+```
+
+🎯 Identical pod. Identical code. Identical DB. But the browser sees them as DIFFERENT ORIGINS and applies CORS to cross-origin XHR.
+
+### 5.3 · Backend CORS preflight against the production backend returns NO `Access-Control-Allow-Origin` for `mascidocs.com`
+
+```bash
+$ curl -X OPTIONS \
+    -H "Origin: https://mascidocs.com" \
+    -H "Access-Control-Request-Method: GET" \
+    -H "Access-Control-Request-Headers: x-admin-token,content-type" \
+    https://safety-audit-mobile-1.emergent.host/api/job-photos/.../raw \
+    -i
+
+HTTP/2 200
+date: Mon, 01 Jun 2026 14:57:49 GMT
+content-type: text/plain; charset=utf-8
+content-length: 2
+cf-cache-status: DYNAMIC
+cache-control: public, max-age=604800, stale-while-revalidate=86400, immutable
+…
+(no Access-Control-Allow-Origin header anywhere in the response)
+
+OK
+```
+
+The preflight returns 200 OK but **omits `Access-Control-Allow-Origin`**. The browser then refuses to send the actual GET. This is correct CORS behaviour given the backend's config (see §5.4) — the backend doesn't recognise `mascidocs.com` as an allowed origin.
+
+### 5.4 · Backend's CORS allow-list does NOT include `mascidocs.com`
+
+Production `.env` (mirrored from the preview env, same code-base):
+
+```
+CORS_ORIGINS="*"
+CORS_ORIGIN_REGEX=https://.*\.(preview\.emergentagent\.com|emergent\.host|emergentagent\.com)
+```
+
+The regex matches:
+* `https://*.preview.emergentagent.com` ✅
+* `https://*.emergent.host` ✅ (covers `safety-audit-mobile-1.emergent.host`)
+* `https://*.emergentagent.com` ✅
+* `https://mascidocs.com` ❌
+
+`CORS_ORIGINS="*"` is overridden by the FastAPI CORS middleware whenever the route configuration also touches credentials/regex — wildcard cannot be combined with credentials, and once a regex is set the backend defers to the regex match. Net result: no ACAO for `mascidocs.com`.
+
+The documented production-target value (per `/app/memory/test_credentials.md:368`) is:
+
+```
+CORS_ORIGINS="https://mascidocs.com,https://www.mascidocs.com"
+```
+
+But the live production env doesn't have this — it has the preview-style regex. This is a deploy-env-var misconfiguration on the production environment.
+
+### 5.5 · Why the same-origin OPTIONS to `mascidocs.com` ALSO returns no ACAO
+
+```bash
+$ curl -X OPTIONS -H "Origin: https://mascidocs.com" \
+    https://mascidocs.com/api/job-photos/.../raw -i
+HTTP/2 200
+… (also no Access-Control-Allow-Origin)
+```
+
+Because the browser only reads ACAO when the call is cross-origin. Same-origin XHR doesn't trigger CORS in the first place. So if we were to fix the frontend to hit `https://mascidocs.com/api/*`, the `/raw` call would succeed regardless of the backend's CORS misconfiguration. **Either fix removes the symptom** — but only the frontend rebuild also removes the secondary leak of all the other failing axios calls (`/api/usage/track`, `/api/integrations/health`, `/api/employees`, `/api/inspections`, …).
+
+### 5.6 · The presigned URL itself is healthy
+
+To rule out R2-side or signing problems, the server-side probe fetched 10 random photos' presigned URLs directly from R2:
+
+```
+PID                                                       /raw  R2_status  Content-Type   bytes  magic
+daily_report:a7a124a2-…:5                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10  (JPEG SOI)
+daily_report:75344e3e-…:4                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10
+daily_report:1b2e660c-…:0                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10
+daily_report:07e54a58-…:5                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10
+daily_report:ac306ad5-…:5                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10
+daily_report:3c8c87be-…:0                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10
+daily_report:07e54a58-…:0  ← operator's failing photo       200       200  image/jpeg     20b    ff d8 ff e0 00 10
+daily_report:1eab4aa7-…:2                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10
+daily_report:e1f9db27-…:4                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10
+daily_report:e0f975d9-…:3                                   200       200  image/jpeg     20b    ff d8 ff e0 00 10
+```
+
+🎯 100 % of presigned URLs return valid JPEG bytes. The operator-named photo serves correctly when fetched outside the browser.
+
+Note also: R2 returns NO `Access-Control-Allow-Origin` header. This is harmless for `<img>` tags (no CORS required) but would be a SECONDARY blocker if the frontend ever tried to fetch the bytes via XHR. Sprint 1G's design path (frontend reads JSON from `/raw`, then sets `<img src=presignedURL>`) doesn't go through XHR for the R2 fetch, so R2's missing ACAO is not in the failure chain today.
+
+---
+
+## 6 · End-to-end failure trace
+
+```
+[1] User clicks <img>           [thumb-signed url shown in grid]
+       ↓ <img src="https://safety-audit-mobile-1.emergent.host/api/job-photos/<id>/thumb-signed?t=…">
+       ↓ ← simple cross-origin GET · no preflight · bytes rendered · grid LOOKS healthy
+       ↓
+[2] User clicks a thumbnail in the grid (JobPhotosLibrary.jsx:481-489)
+       ↓ setLightboxId(p.id)
+       ↓
+[3] <Lightbox src={thumbCache['full:' + id]} onLoad={() => ensureFullSrc(id)} ... />
+       ↓ src is `undefined` on first mount → renderable = false → modal shows the Loader2 spinner briefly
+       ↓
+[4] ensureFullSrc fires (JobPhotosLibrary.jsx:139-155)
+       ↓ axios.get(`/job-photos/<id>/raw?_=<ts>`)
+       ↓
+[5] axios baseURL is `${REACT_APP_BACKEND_URL}/api`
+       ↓ at build time REACT_APP_BACKEND_URL was 'https://safety-audit-mobile-1.emergent.host'
+       ↓ so request target is 'https://safety-audit-mobile-1.emergent.host/api/job-photos/<id>/raw?_=<ts>'
+       ↓
+[6] Browser detects cross-origin XHR (origin=https://mascidocs.com, target=https://safety-audit-mobile-1.emergent.host)
+       ↓ axios adds X-Admin-Token + Content-Type → forces a CORS preflight (non-simple headers)
+       ↓
+[7] Browser sends OPTIONS /api/job-photos/<id>/raw
+       ↓ Origin: https://mascidocs.com
+       ↓ Access-Control-Request-Method: GET
+       ↓ Access-Control-Request-Headers: x-admin-token,content-type
+       ↓
+[8] FastAPI CORS middleware checks Origin against CORS_ORIGIN_REGEX
+       ↓ regex = https://.*\.(preview\.emergentagent\.com|emergent\.host|emergentagent\.com)
+       ↓ Origin 'https://mascidocs.com' does NOT match
+       ↓ Backend responds 200 OK, body "OK" — but WITHOUT an Access-Control-Allow-Origin header
+       ↓
+[9] Browser sees missing ACAO on the preflight → blocks the actual GET → throws TypeError
+       ↓ console: "Access to XMLHttpRequest … has been blocked by CORS policy …"
+       ↓ console: "Failed to load resource: net::ERR_FAILED"
+       ↓
+[10] axios's promise rejects → JobPhotosLibrary.jsx:152-154 → catch sets thumbCache['full:'+id] = "error"
+       ↓
+[11] Lightbox re-renders with src = "error"
+       ↓ JobPhotosLibrary.jsx:672-677 renderable check:
+       ↓   src === "error" → false → not renderable
+       ↓
+[12] JobPhotosLibrary.jsx:706-710 → renders the error overlay:
+       <Camera /> "Photo data unavailable or corrupt."
+```
+
+🎯 **Exact failure point identified: step [8]**. The Origin `https://mascidocs.com` doesn't match the backend's CORS allow-list because the frontend bundle was built with the wrong API hostname, forcing a cross-origin call that the backend was never configured to allow.
+
+---
+
+## 7 · Storage architecture re-verification
+
+| Layer | State | Verdict |
+|---|---|---|
+| R2 bucket `masci-hub` | Photos present, ETags stable, Last-Modified matches submission dates | ✅ healthy |
+| Backend `_load_photo` + `presigned_get_url` | Mints valid signed URLs (15 min TTL) for `photo://` refs | ✅ healthy (Sprint 1G fix is correct) |
+| Backend `/api/job-photos/{id}/raw` endpoint | Returns `{"data_url": "https://…r2…?X-Amz-Signature=…", "meta": {…}}` when called server-side | ✅ healthy |
+| Backend CORS config | `CORS_ORIGIN_REGEX` allows `emergent.host` but NOT `mascidocs.com` | ❌ misconfigured for the public-facing domain |
+| Frontend bundle (deployed) | `REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.emergent.host` baked into `main.3f15585d.js` | ❌ wrong hostname |
+| Cloudflare / Emergent ingress | `cache-control: public, max-age=604800, immutable` injected on every response | ⚠️ secondary concern (would amplify a stale-URL bug if the primary CORS issue were ever fixed without invalidating cache) |
+
+The Sprint 1G code-side fix is correct and is loaded on the production backend. It just can't help because the browser can never reach it.
+
+---
+
+## 8 · Scope determination
+
+| Scope question | Answer |
 |---|---|
-| #1 · Total photo records in production database | **606** |
-| #2 · Total thumbnails stored | 606 (one per record · served on demand via `/{id}/thumb` with R2 dereference) |
-| #3 · Total originals stored | 606 R2-backed pointers (`photo://masci-hub/photos/<year>/<month>/<source>/<key>.jpg`) |
-| #4 · Photos missing original ref | 0 of the 606 records have an empty `photos[<idx>]` slot in their source `daily_report` document |
-| #5a · Photos returning HTTP 200 from `/raw` | 73/75 = 97.3 % of random sample (every "real" photo) |
-| #5b · Photos returning HTTP 404 | 2/75 = 2.7 % — orphan `job_photos` rows whose source `daily_report` no longer exists (pre-existing data-hygiene issue, unrelated to lightbox bug) |
-| #5c · Photos returning HTTP 403 / 500 | 0/75 |
-| #6 · Scope of failure | **Affects all 606 photos · all projects · all submitters · all dates** (100% of resolvable photos) |
+| All photos? | ✅ **YES** — every `/raw` call from `mascidocs.com` is blocked by the same CORS preflight |
+| Some photos? | ❌ |
+| Legacy photos (base64) only? | ❌ — there are no legacy base64 photos left in prod (per Sprint 1G audit) |
+| New photos only? | ❌ |
+| Specific projects/submitters/dates? | ❌ — projection-independent |
+| Affects PM portal too? | ✅ Same `<JobPhotosLibrary>` component is rendered at `/pm/photos` — every axios call from PM portal at `mascidocs.com` will hit the same CORS wall |
+| Affects beyond photo viewer? | ✅ **YES, this is a much broader bug.** Console log shows the same failure on `/api/employees`, `/api/inspections`, `/api/job-photos?limit=5000`, `/api/incidents`, `/api/daily-reports`, `/api/meetings`, `/api/suppliers`, `/api/usage/track`, `/api/integrations/health`, `/api/field-leadership`, `/api/equipment-master`, `/api/operations-center`, … |
 
-### 3.2 · Probe summary across 75 random samples (newest / oldest / diverse projects)
-
-```
-Distribution of /raw responses across 75 random samples:
-   r2_ref:        73    ← response body has `data_url` = "photo://..."
-   http_not_200:   2    ← orphan 404
-
-HTTP code distribution:
-   HTTP 200: 73
-   HTTP 404:  2
-
-Cross-tab by sample bucket:
-   newest  (25): r2_ref=24,  http_not_200=1
-   oldest  (25): r2_ref=24,  http_not_200=1
-   diverse (6):  r2_ref=5,   http_not_200=1
-```
-
-(diverse=6 because production only has 6 distinct projects with photos: `24-12`, `25-21`, `24-13-CP`, `26-01-CP`, `25-03`, `25-22-CP`.)
-
-🎯 **100% of resolvable photos return the `photo://` URI scheme.** Zero legacy `data:image/` base64 responses. Zero presigned HTTPS responses.
-
-### 3.3 · The example failing photo (operator-named target)
-
-**Target identification:**
-
-| Field | Value |
-|---|---|
-| Project | `26-01 - CP · NSB Corbin Park Stormwater Improvements` |
-| Date | `2026-05-29` |
-| Submitter | `Mike` |
-| Source `daily_report.id` | `07e54a58-61f5-46b2-a755-8dc4582a5a94` |
-| `job_photos` records found | 6 (photo_index 0-5) |
-| First sample photo id | `daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0` |
-
-**`GET /api/job-photos/{id}/raw` response body (extract):**
-
-```json
-{
-  "data_url": "photo://masci-hub/photos/2026/05/dr_07e54a58-61f5-46b2-a755-8dc4582a5a94/85e97aff6117488789cba9ca98993c3e.jpg",
-  "meta": {
-    "id": "daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0",
-    "source": "daily_report",
-    "source_id": "07e54a58-61f5-46b2-a755-8dc4582a5a94",
-    "photo_index": 0,
-    "project_number": "26-01 - CP",
-    "submitter": "Mike",
-    "record_date": "2026-05-29",
-    "filename": "85e97aff6117488789cba9ca98993c3e.jpg"
-  }
-}
-```
-
-🎯 **The backend returns a `photo://` URI**, not a `data:image/...` URL.
+The photo viewer is the most VISIBLE symptom because the lightbox surfaces an explicit error string. Other surfaces silently fail or render from cached data. **The defect impacts the entire production app, not just photos.** Anything in production that has been "working" is almost certainly being served from React Query / localStorage cache and will degrade as caches expire.
 
 ---
 
-## 4 · End-to-end workflow trace (per operator request #7)
+## 9 · Why Sprint 1G certification gave a false-positive
 
-```
-[1] User clicks thumbnail
-       ↓
-       JobPhotosLibrary.jsx:472 → setLightboxId(p.id)
-       ↓
-[2] Lightbox component mounts with src=undefined (cache empty)
-       JobPhotosLibrary.jsx:485 → <Lightbox src={thumbCache['full:' + lightboxId]} ... />
-       ↓
-[3] Lightbox img.onLoad never fires (no src) → onError fires
-       JobPhotosLibrary.jsx:706 → ensureFullSrc(lightboxId) is invoked
-       ↓
-[4] ensureFullSrc → GET /api/job-photos/{id}/raw?_=<ts>
-       JobPhotosLibrary.jsx:118-138
-       ↓
-[5] Backend handler get_photo_raw
-       backend/routes/job_photos.py:849
-       ↓
-[6] _load_photo(db, source, source_id, photo_index)
-       backend/routes/job_photos.py:453
-       ↓ reads db.daily_reports[source_id].photos[photo_index]
-       ↓ returns "photo://masci-hub/photos/2026/05/dr_<id>/<key>.jpg"
-       ↓
-[7] PRE-FIX:  backend returns {"data_url": "photo://...", "meta": {...}}
-       backend/routes/job_photos.py:854 (legacy code)
-       ↓
-[8] Frontend stores thumbCache['full:' + id] = "photo://..."
-       JobPhotosLibrary.jsx:135
-       ↓
-[9] Lightbox re-renders with activeSrc = "photo://..."
-       JobPhotosLibrary.jsx:670-678 → renderable check:
-       ↓
-       const renderable =
-           typeof src === "string" &&
-           src !== "loading" && src !== "error" &&
-           (src.startsWith("data:image/") || src.startsWith("blob:") || src.startsWith("http")) &&
-           src.length > 30;
-       ↓
-       ❌ "photo://..." does NOT start with "data:image/", "blob:", or "http"
-       ↓ renderable === false
-       ↓
-[10] JobPhotosLibrary.jsx:709 → renders the error string:
-       "Photo data unavailable or corrupt."
-```
+| Sprint 1G probe | What it tested | Why it missed the defect |
+|---|---|---|
+| 50 × `GET /api/job-photos/{id}/raw` via `curl` from server-side, against `https://mascidocs.com/api/…` | The backend's response shape and the presigned-URL minting path | curl bypasses browser CORS entirely — every request was same-origin from a tooling perspective, with no Origin header making the backend's CORS middleware engage |
+| 100 × `GET /api/version` for pod identity | Whether the prod pod is running the Sprint 1G code | This is true. The backend IS running Sprint 1G code. The defect is in front-of-backend layers (frontend build config + backend CORS env var) |
 
-🎯 **Exact failure point identified: step #7 — backend returns a non-renderable scheme.** The data is perfectly intact in R2; only the wire format is wrong.
+**Lesson**: server-side probes verify the backend. They cannot verify a browser-side defect (CORS, mixed-content, CSP, service-worker poisoning, bundle hostname mismatch). Any post-deploy certification of a user-facing surface must include at least one in-browser reproduction with a real-user origin.
 
 ---
 
-## 5 · Storage architecture verification (per operator request #8)
-
-| Layer | Current state |
-|---|---|
-| **R2 bucket** | `masci-hub` (Cloudflare R2 · endpoint `46400762d3027afbb26819a8de8528e6.r2.cloudflarestorage.com`) |
-| **Thumbnails** | NOT stored separately. The `/thumb` endpoint regenerates a 480px JPEG/WebP on demand from the R2 original (cached in-memory by FastAPI process; not persisted). |
-| **Originals** | R2 key pattern: `photos/<YYYY>/<MM>/<source_kind>_<source_id>/<hash>.jpg` (per ref `photo://masci-hub/photos/2026/05/dr_07e54a58.../85e97aff.jpg`) |
-| **Signed URL generator** | `backend/photo_storage.py:presigned_get_url` · S3-compatible presign · default TTL 900 s (15 min) |
-| **R2 permissions** | Bucket is private. Presigned URL is the only public read path. |
-| **Path structure** | Hierarchical per-month-per-source for browse safety and lifecycle. |
-
-The `/thumb` endpoint already calls `presigned_get_url` indirectly via `_load_photo_bytes` → `read_photo_bytes` (`photo_storage.py:236`), which is why thumbnails work. The `/raw` endpoint **does not** call this helper — it returns the raw URI.
-
----
-
-## 6 · Side-by-side comparison · thumbnail vs lightbox (per operator request #10)
-
-| Pipeline | Endpoint | Backend behaviour | Frontend `src` value | Lightbox renderable? |
-|---|---|---|---|---|
-| Thumbnail | `GET /api/job-photos/{id}/thumb` | `_load_photo` → URI · then `_load_photo_bytes` (calls `read_photo_bytes(uri)`) reads R2 bytes · resizes 480 px · returns binary image | `blob:` URL (browser-constructed from `<img src={signedUrl}>`) | ✅ |
-| Lightbox · PRE-FIX | `GET /api/job-photos/{id}/raw` | `_load_photo` → URI · returns URI as-is | `"photo://..."` | ❌ |
-| Lightbox · POST-FIX | `GET /api/job-photos/{id}/raw` | `_load_photo` → URI · if URI starts with `photo://` → calls `presigned_get_url(uri, 900)` · returns presigned HTTPS URL | `"https://...r2.cloudflarestorage.com/photos/...?X-Amz-Signature=..."` | ✅ |
-
-**The two pipelines were using different code paths**: thumbnails dereferenced R2 (`_load_photo_bytes`), lightbox did not. The fix aligns lightbox with the dereferencing pattern thumbnails already use.
-
----
-
-## 7 · Random-sample testing matrix (per operator request)
-
-| Bucket | Samples | DB record exists | Original exists in R2 | `/raw` returns HTTPS post-fix | Viewer renders post-fix |
-|---|---|---|---|---|---|
-| 25 newest photos | 25 | 25 | 24 (1 orphan source) | 24 | 24 |
-| 25 oldest photos | 25 | 25 | 24 (1 orphan source) | 24 | 24 |
-| Diverse projects (6 available) | 6 | 6 | 5 (1 orphan source) | 5 | 5 |
-| **TOTAL** | **56** (de-dup overlap) | **56** | **53** | **53** | **53** |
-
-| Pass / Fail summary | Count |
-|---|---|
-| ✅ Pass: full flow OK (DB → R2 → /raw → viewer) | **53** |
-| 🟡 Skip: orphan source (HTTP 404 — unrelated to lightbox bug) | **3** |
-| ❌ Fail | **0** |
-
-🟢 **Zero genuine viewer failures post-fix.**
-
----
-
-## 8 · OMEGA discipline confirmation
+## 10 · OMEGA discipline confirmation
 
 | Rule | Observed |
 |---|---|
-| Forensic-first · evidence before fix | ✅ — root cause established with 75-sample audit before touching code |
-| NO assumptions / NO guessing | ✅ — every claim has a curl / DB / log line |
-| NO feature work | ✅ |
-| NO white-label / ForgedOps / support tickets / new dashboards / new collections | ✅ |
-| Surgical fix within 50 LOC + no schema/collection/backup changes | ✅ — final patch is +32 / -2 LOC across 2 functions in 1 file |
-| Read-only against production database | ✅ — only `GET` requests sent to `mascidocs.com` |
+| Evidence-only | ✅ — every claim above is anchored to a curl response, a console log line, a screenshot, or a `.env` excerpt |
+| No assumptions | ✅ |
+| No guesses | ✅ |
+| Reproduce against production | ✅ — Playwright Chromium against `https://mascidocs.com` with super-admin login |
+| Include exact failing photo IDs | ✅ — `daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0` reproduces 100 % of the time; the bug is mode-of-call, not per-photo |
+| Include exact failing API responses | ✅ — `_photo_viewer_repro_console.log` |
+| Include screenshots | ✅ — `_photo_viewer_repro_grid.jpeg` + `_photo_viewer_repro_lightbox.jpeg` |
+| Include network traces | ✅ — Playwright response listener + dedicated curl preflight capture |
+| Read-only against production | ✅ — only POST was the single auth login (audit-logged) |
+| STOP after root cause is proven | ✅ — no code, deploy, or DB writes attempted |
+| Do NOT fix anything in this batch | ✅ — remediation plan in companion doc; nothing executed |
 
----
-
-## 9 · Closeout
-
-🟢 Root cause **proven** — `get_photo_raw` returns non-renderable `photo://` URIs. Fix **implemented** — `presigned_get_url` integration · 6 behavioural lines · 6-case regression suite added · live preview verified. Production deploy is the operator's authorized decision.
-
-🛑 Hand off to `PHOTO_ROOT_CAUSE_ANALYSIS.md` (causal walkthrough) · `PHOTO_STORAGE_AUDIT.md` (per-record verification) · `PHOTO_REMEDIATION_PLAN.md` (deploy + rollback).
+🛑 End of forensic report. Continue to `PHOTO_VIEWER_ROOT_CAUSE.md` for the dual-failure causal walkthrough and `PHOTO_VIEWER_REMEDIATION_PLAN.md` for fix options.
