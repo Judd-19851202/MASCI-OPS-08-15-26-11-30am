@@ -1,0 +1,135 @@
+=== Accountability tests ===
+test_accountability_executive_phase_1a4.py
+test_accountability_owner_fidelity_phase_1a5.py
+test_accountability_projection_phase_1a2.py
+test_accountability_service_phase_1a3.py
+test_iter223_employee_accountability_helptips.py
+test_iter353a_shared_accountability.py
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0 -- /root/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /app/backend
+plugins: timeout-2.4.0, base-url-2.1.0, playwright-0.8.0, anyio-4.13.0
+collecting ... collected 0 items
+
+============================ no tests ran in 0.01s =============================
+ERROR: file or directory not found: tests/test_accountability_owner_resolution_iter286.py
+
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0 -- /root/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /app/backend
+plugins: timeout-2.4.0, base-url-2.1.0, playwright-0.8.0, anyio-4.13.0
+collecting ... collected 108 items
+
+tests/test_accountability_service_phase_1a3.py::test_sources_endpoint_blocks_anonymous PASSED [  0%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_endpoint_blocks_anonymous PASSED [  1%]
+tests/test_accountability_service_phase_1a3.py::test_item_endpoint_blocks_anonymous PASSED [  2%]
+tests/test_accountability_service_phase_1a3.py::test_sources_returns_six_sources_with_canonical_statuses PASSED [  3%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_returns_phase_1a3_marker_and_six_sections PASSED [  4%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_rollup_arithmetic_matches_sections PASSED [  5%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_every_item_has_canonical_24_field_shape PASSED [  6%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_every_status_is_canonical PASSED [  7%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_every_item_has_escalation_level_zero PASSED [  8%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_timing_breakdown_present_and_finite PASSED [  9%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_cache_returns_cached_true_within_ttl PASSED [ 10%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_per_source_cap_respected PASSED [ 11%]
+tests/test_accountability_service_phase_1a3.py::test_item_returns_canonical_projection_for_live_task PASSED [ 12%]
+tests/test_accountability_service_phase_1a3.py::test_item_returns_404_for_unknown_id PASSED [ 12%]
+tests/test_accountability_service_phase_1a3.py::test_item_returns_400_for_unsupported_module PASSED [ 13%]
+tests/test_accountability_service_phase_1a3.py::test_item_returns_404_for_virtual_module PASSED [ 14%]
+tests/test_accountability_service_phase_1a3.py::test_snapshot_source_parity_all_non_empty_sections_match_field_set PASSED [ 15%]
+tests/test_accountability_service_phase_1a3.py::test_command_center_snapshot_still_returns_200 PASSED [ 16%]
+tests/test_accountability_service_phase_1a3.py::test_backups_scheduler_state_still_returns_200 PASSED [ 17%]
+tests/test_accountability_service_phase_1a3.py::test_recovery_snapshot_still_returns_200 PASSED [ 18%]
+tests/test_accountability_service_phase_1a3.py::test_health_still_returns_200 PASSED [ 19%]
+tests/test_accountability_projection_phase_1a2.py::test_canonical_statuses_closed_set PASSED [ 20%]
+tests/test_accountability_projection_phase_1a2.py::test_canonical_event_kinds_excludes_escalated PASSED [ 21%]
+tests/test_accountability_projection_phase_1a2.py::test_priority_enum_unchanged PASSED [ 22%]
+tests/test_accountability_projection_phase_1a2.py::test_task_open_projection_shape PASSED [ 23%]
+tests/test_accountability_projection_phase_1a2.py::test_task_status_completed_maps_to_resolved PASSED [ 24%]
+tests/test_accountability_projection_phase_1a2.py::test_task_status_closed_maps_to_closed PASSED [ 25%]
+tests/test_accountability_projection_phase_1a2.py::test_task_status_cancelled_maps_to_cancelled PASSED [ 25%]
+tests/test_accountability_projection_phase_1a2.py::test_task_legacy_overdue_native_maps_to_open PASSED [ 26%]
+tests/test_accountability_projection_phase_1a2.py::test_task_overdue_overlay_true_when_past_due PASSED [ 27%]
+tests/test_accountability_projection_phase_1a2.py::test_task_overdue_overlay_false_when_future PASSED [ 28%]
+tests/test_accountability_projection_phase_1a2.py::test_task_audit_status_change_emits_double_event PASSED [ 29%]
+tests/test_accountability_projection_phase_1a2.py::test_ca_open_projection_owner_real_name PASSED [ 30%]
+tests/test_accountability_projection_phase_1a2.py::test_ca_verified_maps_to_resolved PASSED [ 31%]
+tests/test_accountability_projection_phase_1a2.py::test_ca_closed_verified_native_maps_to_closed PASSED [ 32%]
+tests/test_accountability_projection_phase_1a2.py::test_ca_status_history_translated_to_status_changed_events PASSED [ 33%]
+tests/test_accountability_projection_phase_1a2.py::test_ca_due_date_passes_through PASSED [ 34%]
+tests/test_accountability_projection_phase_1a2.py::test_po_pending_owner_is_approver_not_requester PASSED [ 35%]
+tests/test_accountability_projection_phase_1a2.py::test_po_clarification_needed_maps_to_in_progress PASSED [ 36%]
+tests/test_accountability_projection_phase_1a2.py::test_po_pending_receipt_maps_to_pending_review PASSED [ 37%]
+tests/test_accountability_projection_phase_1a2.py::test_po_approved_maps_to_resolved_with_actor_capture PASSED [ 37%]
+tests/test_accountability_projection_phase_1a2.py::test_po_rejected_owner_is_requester PASSED [ 38%]
+tests/test_accountability_projection_phase_1a2.py::test_po_due_at_derived_from_created_plus_3_days PASSED [ 39%]
+tests/test_accountability_projection_phase_1a2.py::test_po_audit_translated_with_no_kind_loss PASSED [ 40%]
+tests/test_accountability_projection_phase_1a2.py::test_defect_open_owner_default_shop PASSED [ 41%]
+tests/test_accountability_projection_phase_1a2.py::test_defect_acknowledged_maps_to_in_progress_with_name PASSED [ 42%]
+tests/test_accountability_projection_phase_1a2.py::test_defect_repaired_maps_to_pending_review PASSED [ 43%]
+tests/test_accountability_projection_phase_1a2.py::test_defect_cleared_maps_to_closed_with_resolver PASSED [ 44%]
+tests/test_accountability_projection_phase_1a2.py::test_defect_oos_due_at_72h PASSED [ 45%]
+tests/test_accountability_projection_phase_1a2.py::test_defect_synthesized_timeline_order PASSED [ 46%]
+tests/test_accountability_projection_phase_1a2.py::test_incident_open_when_no_closure_signal PASSED [ 47%]
+tests/test_accountability_projection_phase_1a2.py::test_incident_resolved_when_corrected_on_site_yes PASSED [ 48%]
+tests/test_accountability_projection_phase_1a2.py::test_incident_resolved_via_linked_closed_ca PASSED [ 49%]
+tests/test_accountability_projection_phase_1a2.py::test_incident_resolved_via_linked_verified_ca PASSED [ 50%]
+tests/test_accountability_projection_phase_1a2.py::test_incident_in_progress_when_only_open_ca_linked PASSED [ 50%]
+tests/test_accountability_projection_phase_1a2.py::test_incident_osha_due_at_24h PASSED [ 51%]
+tests/test_accountability_projection_phase_1a2.py::test_incident_critical_due_at_48h PASSED [ 52%]
+tests/test_accountability_projection_phase_1a2.py::test_incident_priority_mapped_from_severity PASSED [ 53%]
+tests/test_accountability_projection_phase_1a2.py::test_virtual_signal_dr_missing PASSED [ 54%]
+tests/test_accountability_projection_phase_1a2.py::test_virtual_signal_default_owner_operations_leadership PASSED [ 55%]
+tests/test_accountability_projection_phase_1a2.py::test_virtual_signal_timeline_empty PASSED [ 56%]
+tests/test_accountability_projection_phase_1a2.py::test_dispatch_routes_correctly_by_source_module PASSED [ 57%]
+tests/test_accountability_projection_phase_1a2.py::test_dispatch_rejects_unknown_source_module PASSED [ 58%]
+tests/test_accountability_projection_phase_1a2.py::test_all_six_sources_produce_identical_field_set PASSED [ 59%]
+tests/test_accountability_projection_phase_1a2.py::test_all_six_sources_status_in_canonical_set PASSED [ 60%]
+tests/test_accountability_projection_phase_1a2.py::test_escalation_level_always_zero_in_phase_1a2 PASSED [ 61%]
+tests/test_accountability_projection_phase_1a2.py::test_every_projection_has_accountability_id PASSED [ 62%]
+tests/test_accountability_projection_phase_1a2.py::test_accountability_id_is_deterministic_per_source_row PASSED [ 62%]
+tests/test_accountability_projection_phase_1a2.py::test_projection_never_mutates_input_row_tasks PASSED [ 63%]
+tests/test_accountability_projection_phase_1a2.py::test_projection_never_mutates_input_row_ca PASSED [ 64%]
+tests/test_accountability_projection_phase_1a2.py::test_projection_never_mutates_input_row_po PASSED [ 65%]
+tests/test_accountability_projection_phase_1a2.py::test_projection_never_mutates_input_row_defect PASSED [ 66%]
+tests/test_accountability_executive_phase_1a4.py::test_snapshot_endpoint_still_returns_200 PASSED [ 67%]
+tests/test_accountability_executive_phase_1a4.py::test_snapshot_still_has_five_cards_unchanged PASSED [ 68%]
+tests/test_accountability_executive_phase_1a4.py::test_pulse_aggregate_still_reconciles_post_1a4 PASSED [ 69%]
+tests/test_accountability_executive_phase_1a4.py::test_approvals_pending_owner_is_not_requester_when_card_lights PASSED [ 70%]
+tests/test_accountability_executive_phase_1a4.py::test_saf_critical_unresolved_owner_no_longer_hardcoded_safety PASSED [ 71%]
+tests/test_accountability_executive_phase_1a4.py::test_saf_osha_open_owner_no_longer_hardcoded_safety PASSED [ 72%]
+tests/test_accountability_executive_phase_1a4.py::test_jobs_issue_no_path_owner_no_longer_hardcoded_safety PASSED [ 73%]
+tests/test_accountability_executive_phase_1a4.py::test_eqp_oos_old_owner_no_longer_hardcoded_shop PASSED [ 74%]
+tests/test_accountability_executive_phase_1a4.py::test_drilldown_includes_accountability_subobject PASSED [ 75%]
+tests/test_accountability_executive_phase_1a4.py::test_drilldown_accountability_has_canonical_fields_when_present PASSED [ 75%]
+tests/test_accountability_executive_phase_1a4.py::test_drilldown_owner_matches_projection_when_accountability_present PASSED [ 76%]
+tests/test_accountability_executive_phase_1a4.py::test_accountability_service_snapshot_still_200 PASSED [ 77%]
+tests/test_accountability_executive_phase_1a4.py::test_backups_scheduler_state_still_200 PASSED [ 78%]
+tests/test_accountability_executive_phase_1a4.py::test_recovery_snapshot_still_200 PASSED [ 79%]
+tests/test_accountability_executive_phase_1a4.py::test_health_still_200 PASSED [ 80%]
+tests/test_accountability_executive_phase_1a4.py::test_no_escalation_activation_phase_1a4 PASSED [ 81%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_owner_promotes_pm_when_jobs_master_links PASSED [ 82%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_falls_back_when_no_jobs_master_link PASSED [ 83%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_falls_back_when_jobs_master_pm_name_empty PASSED [ 84%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_falls_back_when_no_project_number PASSED [ 85%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_terminal_cancelled_keeps_requester PASSED [ 86%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_preserves_canonical_shape PASSED [ 87%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_never_mutates_input_row PASSED [ 87%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_pillar_1b_reservation PASSED [ 88%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_po_resolved_db_failure_falls_back_gracefully PASSED [ 89%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_promotes_open_ca_assignee PASSED [ 90%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_prefers_open_ca_over_closed PASSED [ 91%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_promotes_any_ca_when_no_open_ca PASSED [ 92%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_falls_back_when_no_linked_ca PASSED [ 93%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_falls_back_when_ca_has_no_assignee_name PASSED [ 94%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_matches_via_incident_id_field PASSED [ 95%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_preserves_canonical_shape PASSED [ 96%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_never_mutates_input_row PASSED [ 97%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_pillar_1b_reservation PASSED [ 98%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_incident_resolved_db_failure_falls_back_gracefully PASSED [ 99%]
+tests/test_accountability_owner_fidelity_phase_1a5.py::test_both_resolvers_emit_no_escalated_event_kind PASSED [100%]
+
+============================= 108 passed in 16.03s =============================

@@ -201,7 +201,7 @@ export default function HrHub() {
             <Button variant="outline" size="sm" onClick={() => nav("/hr/change-password")} className="hidden lg:inline-flex text-xs bg-transparent text-white border-white/30 hover:bg-white/10" data-testid="hr-change-password">
               <KeyRound className="w-3.5 h-3.5 sm:mr-1" /><span className="hidden sm:inline">{t("Password")}</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={signOut} className="text-xs h-8 px-2 sm:px-2.5" data-testid="hr-sign-out" title="Sign out">
+            <Button variant="outline" size="sm" onClick={signOut} className="text-xs h-8 px-2 sm:px-2.5 bg-transparent text-white border-white/30 hover:bg-white/10" data-testid="hr-sign-out" title="Sign out" aria-label="Sign out">
               <LogOut className="w-3.5 h-3.5 sm:mr-1" /><span className="hidden sm:inline">{t("Sign out")}</span>
             </Button>
           </div>

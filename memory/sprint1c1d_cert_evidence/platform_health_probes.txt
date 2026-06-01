@@ -1,0 +1,50 @@
+=== Sprint 1C/1D · Platform Health Gate · Probes ===
+Timestamp: 2026-06-01T00:48:03Z
+URL: https://safety-audit-mobile-1.preview.emergentagent.com
+
+--- Service-level health ---
+  /api/version → HTTP 200
+  /api/health → HTTP 200
+  /api/ → HTTP 404
+  /api/admin/check → HTTP 200
+
+--- Scheduler / Backup ---
+  /api/admin/scheduler → HTTP 404
+  /api/admin/backups → HTTP 200
+  /api/admin/backup-runs → HTTP 404
+  /api/admin/scheduler/health → HTTP 404
+
+--- Command Center ---
+  /api/admin/command-center/snapshot → HTTP 200
+  /api/admin/command-center → HTTP 404
+  /api/command-center/snapshot → HTTP 404
+
+--- Accountability (Pillar 1) ---
+  /api/admin/accountability/sources → HTTP 200
+  /api/admin/accountability/snapshot → HTTP 200
+  /api/admin/accountability/projection → HTTP 404
+
+--- Auth · portal /me endpoints ---
+  /api/admin/check (admin)
+  → HTTP 200
+  /api/pm/me (admin token)
+  → HTTP 200
+  /api/auth/me-directory (no token)
+  → HTTP 401
+  /api/safety-portal/me (no token)
+  → HTTP 404
+
+--- Incident workflow surfaces ---
+  /api/incidents → HTTP 200
+  /api/incidents.csv → HTTP 200
+  /api/safety/corrective-actions → HTTP 401
+
+--- Sibling form routes (delete-route consistency) ---
+  DELETE /api/incidents/cert-bogus → HTTP 401
+  DELETE /api/inspections/cert-bogus → HTTP 401
+  DELETE /api/meetings/cert-bogus → HTTP 401
+  DELETE /api/jhas/cert-bogus → HTTP 401
+  DELETE /api/daily-reports/cert-bogus → HTTP 401
+
+--- Hourly backup cadence ---
+  payload keys: ['backups', 'count', 'total_bytes', 'schedule']

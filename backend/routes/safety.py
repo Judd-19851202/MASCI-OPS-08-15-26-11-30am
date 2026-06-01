@@ -808,8 +808,102 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         )
 
     @api_router.delete("/incidents/{incident_id}")
-    async def delete_incident(incident_id: str, _: bool = Depends(require_admin)):
-        result = await db.incidents.delete_one({"id": incident_id})
-        if result.deleted_count == 0:
+    async def delete_incident(
+        incident_id: str,
+        request: Request,
+        actor=Depends(require_admin),
+    ):
+        """Sprint 1C — Safe incident delete.
+
+        Behaviour:
+          * Accepts the canonical UUID (``id``) OR the doc_id
+            (``INC-YYYY-NNNNN``) as the path argument. Doc_id lookups
+            resolve to the underlying UUID before any write.
+          * 401 → returned by ``require_admin`` for non-Admin/non-PM
+            tokens (Safety, HR, Dispatch, Shop, Field-Leadership all
+            denied — workflow safety preserved).
+          * 404 → the identifier resolves to no document.
+          * 409 → at least one corrective_action (CAPA) still cites
+            this incident as its source. Deletion is blocked until
+            the linked CAPAs are closed or relinked. Response body
+            surfaces the blocking CAPA ids/titles so the caller can
+            tell the user exactly why deletion failed.
+          * 200 → row removed and an audit_event written (kind
+            ``incident_deleted``, actor role + ip captured).
+        """
+        # 1 · Resolve identifier (UUID-first, doc_id fallback).
+        doc = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
+        if not doc:
+            # Permit doc_id callers — convert to canonical UUID.
+            doc = await db.incidents.find_one({"doc_id": incident_id}, {"_id": 0})
+        if not doc:
             raise HTTPException(status_code=404, detail="Incident not found")
-        return {"deleted": True, "id": incident_id}
+
+        canonical_id = doc.get("id")
+
+        # 2 · CAPA dependency check — block when linked corrective_actions
+        # still cite this incident as source. Safety / Operational
+        # convergence requirement: a deleted incident must not leave an
+        # orphan CAPA referencing a non-existent source record.
+        try:
+            linked = await db.corrective_actions.find(
+                {"source_kind": "incident", "source_id": canonical_id},
+                {"_id": 0, "id": 1, "title": 1, "status": 1},
+            ).to_list(50)
+        except Exception:
+            linked = []
+        if linked:
+            preview = [
+                {"id": c.get("id"), "title": (c.get("title") or "")[:120],
+                 "status": c.get("status") or "Open"}
+                for c in linked[:5]
+            ]
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "code": "incident_has_linked_capas",
+                    "message": (
+                        f"Cannot delete incident — {len(linked)} corrective "
+                        f"action(s) still reference it. Close or relink the "
+                        f"CAPAs before deleting."
+                    ),
+                    "linked_capa_count": len(linked),
+                    "linked_capas": preview,
+                },
+            )
+
+        # 3 · Execute deletion against canonical UUID.
+        result = await db.incidents.delete_one({"id": canonical_id})
+        if result.deleted_count == 0:
+            # Lost a race with another delete. Treat as not-found.
+            raise HTTPException(status_code=404, detail="Incident not found")
+
+        # 4 · Audit event — actor role from request headers; ignore audit
+        # failures so the delete contract isn't blocked by a logging glitch.
+        try:
+            actor_role = (
+                "admin" if request.headers.get("x-admin-token")
+                else ("pm" if request.headers.get("x-pm-token") else "unknown")
+            )
+            actor_id = ""
+            if isinstance(actor, dict):
+                actor_id = (actor.get("id") or actor.get("email") or "")
+            ip = (
+                request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+                or (request.client.host if request.client else "")
+            )
+            await db.audit_events.insert_one({
+                "at": datetime.now(timezone.utc),
+                "kind": "incident_deleted",
+                "actor_role": actor_role,
+                "actor_id": actor_id,
+                "incident_id": canonical_id,
+                "incident_doc_id": doc.get("doc_id") or "",
+                "project_number": doc.get("project_number") or "",
+                "ip": ip,
+                "user_agent": (request.headers.get("user-agent") or "")[:240],
+            })
+        except Exception:
+            pass
+
+        return {"deleted": True, "id": canonical_id, "doc_id": doc.get("doc_id") or ""}

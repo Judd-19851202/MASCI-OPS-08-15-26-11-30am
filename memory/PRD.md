@@ -31223,3 +31223,88 @@ Zero other files modified. `lib/accountability_projection.py` (md5 `e8de1112…`
 - 🟡 Production deploy of Phase 1A-2..1A-4 (currently preview-only)
 
 Agent STOPPED at end of Phase 1A-4.
+
+---
+
+# Sprint 1C/1D · Critical Fix · 2026-02-27
+
+**Authorized batch:** OMEGA Critical Fix Sprint 1C (Incident Delete Workflow Remediation) + 1D (UI Hygiene Remediation).
+**Status:** ✅ PREVIEW CERTIFIED · 🟢 GO TO DEPLOY (awaiting operator deploy authorization).
+
+### What shipped
+
+- Backend `DELETE /api/incidents/{id}` now resolves UUID or doc_id, blocks delete with HTTP 409 + structured detail when linked CAPAs exist, and writes an `audit_events.kind=incident_deleted` row on success. Auth gate (require_admin → Admin/PM) preserved.
+- Frontend incident-delete handlers (`IncidentsDashboard.jsx`, `ViewIncident.jsx`) now surface real HTTP codes + backend detail messages to the operator instead of generic "Delete failed".
+- HR Hub Sign Out button restyled to match the adjacent Change Password button's dark-header palette (`bg-transparent text-white border-white/30`), eliminating the "empty white outline pill" appearance on narrow viewports.
+
+### Test coverage
+
+- 7-case pytest suite at `/app/backend/tests/test_sprint1c_incident_delete.py` covering: super-admin UUID delete, super-admin doc_id delete, unknown-id → 404, safety token → 401, no token → 401, CAPA-linked → 409 with detail body, audit row written.
+- 7/7 PASS in preview.
+- 16/16 regression probes 🟢 (sibling delete routes, accountability projection, command center, backups, integrations health, audit endpoint).
+- Backend + frontend lint clean across all 4 modified files.
+
+### Deliverable reports
+
+- `SPRINT1D_UI_HYGIENE_PATCH_REPORT.md`
+- `SPRINT1C_INCIDENT_DELETE_PATCH_REPORT.md`
+- `CRITICAL_FIX_SPRINT1C1D_CERTIFICATION.md`
+- `SPRINT1C1D_PRODUCTION_DEPLOY_READINESS_REPORT.md`
+
+### OMEGA discipline
+
+| Check | Verdict |
+|---|---|
+| NO new features / dashboards / pillars | 🟢 |
+| NO production DB writes | 🟢 (preview DB only) |
+| NO backup/recovery/scheduler changes | 🟢 |
+| NO data cleanup | 🟢 |
+| NO production deploy | 🟢 (awaiting operator authorization) |
+| Preview-first | 🟢 |
+
+### Deferred (next operator authorization required)
+
+- Soft-delete migration for incidents (`INCIDENT_DELETE_REMEDIATION_PLAN.md` D-3)
+- Cascade to notifications / tasks / R2 photo blobs (D-4)
+- Production `doc_id='INC-2026-00001'` dedupe (D-1)
+- Production deploy of Sprint 1C/1D
+
+Agent STOPPED awaiting next OMEGA authorization.
+
+---
+
+# Sprint 1C/1D · Pre-Deploy Certification Gate · 2026-02-27
+
+**Authorized batch:** OMEGA Pre-Deployment Certification Gate · certification only · no code · no DB writes · no deployment.
+
+**Final verdict:** 🟢 **GO TO DEPLOY**
+
+### Six-phase gate outcome
+
+| Phase | Result |
+|---|---|
+| 1 · Build integrity | 🟢 working tree matches Sprint 1C/1D scope exactly · 0 scope drift |
+| 2 · Test certification | 🟢 186/186 (Sprint 1C 7/7 · Accountability 108/108 · Command Center+Incident 71/71) |
+| 3 · Incident Delete behaviour | 🟢 9/9 operator checkpoints (super-admin · UUID · doc_id · 409 CAPA block · audit · unknown-id 404 · safety denial · no-token denial) |
+| 4 · UI Hygiene rendering | 🟢 3 viewports (1920/900/420) captured · 0 empty outlined · 0 orphan · 0 visual regression · a11y improved |
+| 5 · Platform health | 🟢 16/16 preview probes + 2/2 production probes |
+| 6 · Risk classification | 🟢 LOW × 4 (incident workflow · UI · platform stability · rollback) |
+
+### Deliverables
+
+- `SPRINT1C1D_PRE_DEPLOY_CERTIFICATION.md` (phase evidence)
+- `SPRINT1C1D_DEPLOYMENT_RISK_REPORT.md` (risk + rollback procedure)
+- `SPRINT1C1D_GO_NO_GO_DECISION.md` (operator-facing verdict)
+- `sprint1c1d_cert_evidence/` (pytest logs · curl probe logs · 3 HR Hub viewport screenshots)
+
+### OMEGA discipline
+
+| Rule | Observed |
+|---|---|
+| NO CODE CHANGES | ✅ only reports written |
+| NO FIXES | ✅ |
+| NO DEPLOYMENT | ✅ |
+| NO DATABASE WRITES | ✅ pytest fixtures reaped; production never touched |
+| CERTIFICATION ONLY | ✅ |
+
+Agent STOPPED. Awaiting operator's explicit production-deploy authorization.

@@ -50,8 +50,25 @@ export default function IncidentsDashboard() {
       await api.delete(`/incidents/${id}`);
       toast.success("Incident deleted");
       setItems((p) => p.filter((i) => i.id !== id));
-    } catch {
-      toast.error("Delete failed");
+    } catch (err) {
+      const code = err?.response?.status;
+      const detail = err?.response?.data?.detail;
+      if (code === 401) {
+        toast.error("Permission denied. Admin or PM sign-in required to delete incidents.");
+      } else if (code === 404) {
+        toast.error("Incident not found. It may already be deleted — refreshing.");
+        setItems((p) => p.filter((i) => i.id !== id));
+      } else if (code === 409) {
+        const msg =
+          (detail && typeof detail === "object" && detail.message) ||
+          (typeof detail === "string" ? detail : null) ||
+          "Cannot delete — linked corrective actions still reference this incident.";
+        toast.error(msg);
+      } else if (code >= 500) {
+        toast.error(`Server error (HTTP ${code}). Try again or contact support.`);
+      } else {
+        toast.error(`Delete failed (HTTP ${code || "network"})`);
+      }
     }
   };
 

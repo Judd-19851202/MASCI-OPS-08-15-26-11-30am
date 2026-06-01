@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-05-31 — OMEGA Critical Fix Sprint 1A · Forensic contamination sweep · ~104 record cleanup plan ready)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Sprint 1C/1D Pre-Deployment Certification Gate · 🟢 GO TO DEPLOY · 186/186 tests · 9/9 incident-delete checkpoints · 16/16 platform probes · LOW × 4 risk)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,28 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · OMEGA Sprint 1C/1D · Pre-Deployment Certification Gate · 3 deliverables (2026-02-27)
+
+| File | Purpose | Status |
+|---|---|---|
+| `SPRINT1C1D_PRE_DEPLOY_CERTIFICATION.md` | 6-phase certification evidence (build integrity · test cert · incident-delete behaviour · UI hygiene rendering · platform health · risk classification) | 🟢 |
+| `SPRINT1C1D_DEPLOYMENT_RISK_REPORT.md` | Risk × mitigation matrix + rollback procedure (`git revert` per file · < 3 min wall-clock) | 🟢 |
+| `SPRINT1C1D_GO_NO_GO_DECISION.md` | Operator-facing sign-off bundle · 🟢 GO TO DEPLOY · post-deploy verification recipe | 🟢 |
+| `sprint1c1d_cert_evidence/` | Pytest logs · curl probe logs · 3 HR Hub viewport screenshots (1920/900/420) | 🟢 |
+
+🟢 **Headline**: Sprint 1C/1D passes pre-deployment gate with **186/186 tests** (7 Sprint-1C + 108 Accountability Pillar 1 + 71 Command Center+Incident bundle), **9/9 incident-delete behavioural checkpoints** (super-admin · UUID · doc_id · 409 CAPA block · 409 detail formatting · audit row · unknown-id 404 · safety-token 401 · no-token 401), **16/16 preview platform probes + 2/2 production health probes**, and **LOW × 4 risk classification** (incident workflow · UI · platform stability · rollback). End-to-end rollback wall-clock < 3 min (single `git revert` per file · no DB migration · no env var · no schema change). Production database **never connected** during the gate. Awaiting operator's explicit production-deploy authorization.
+
+### 00 · OMEGA Critical Fix Sprint 1C/1D · Incident Delete + UI Hygiene · 4 deliverables (2026-02-27)
+
+| File | Purpose | Status |
+|---|---|---|
+| `SPRINT1D_UI_HYGIENE_PATCH_REPORT.md` | Stage 1 · HR Sign Out button palette consistency + incident-delete error code surfacing in two frontend handlers | 🟢 |
+| `SPRINT1C_INCIDENT_DELETE_PATCH_REPORT.md` | Stage 2 · Backend `DELETE /api/incidents/{id}` remediation: id-vs-doc_id resolution, CAPA-linked 409 block, audit_events row on success; require_admin gate preserved | 🟢 |
+| `CRITICAL_FIX_SPRINT1C1D_CERTIFICATION.md` | Stage 3 · 7/7 pytest pass, 16/16 regression probes 🟢, 6/6 role-permission probes 🟢, lint clean, 0 prod writes | 🟢 |
+| `SPRINT1C1D_PRODUCTION_DEPLOY_READINESS_REPORT.md` | Deploy gate · 🟢 GO TO DEPLOY · rollback plan · post-deploy verification recipe | 🟢 |
+
+🟢 **Headline**: `DELETE /api/incidents/{id}` is now safe, observable, and integrity-preserving. The route accepts UUID or doc_id, returns HTTP 409 with structured detail when corrective_actions still cite the incident, and writes an `audit_events.kind=incident_deleted` audit row on success. Frontend toasts now expose the real backend HTTP code (401/404/409/5xx) and the 409 detail message instead of the legacy "Delete failed" swallow. HR Hub Sign Out button styled consistent with the adjacent Change Password button on the dark header. **7-case pytest suite at `tests/test_sprint1c_incident_delete.py` covers super-admin UUID + doc_id paths, Safety-token rejection, no-token rejection, unknown-id 404, CAPA-block 409, and audit-row verification — 7/7 PASS.** Sibling delete routes (inspections/meetings/jhas/daily-reports) unchanged. Accountability projection / Command Center / backups untouched. Zero production DB writes. Deploy is 4 reverts-per-file away from rollback at any time.
 
 ### 00 · OMEGA Critical Fix Sprint 1A · Forensic Sweep · 4 deliverables (2026-05-31)
 
