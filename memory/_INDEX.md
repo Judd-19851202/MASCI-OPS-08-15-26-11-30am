@@ -1,6 +1,23 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter447 · Operational Completeness Audit · 🟡 56 % overall · 22 findings · 10 🔴 CRITICAL · all 11 deliverables shipped · zero code changes · awaiting operator remediation authorization)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter448 · Platform Completion Program · Phase 1A · DESIGN · 🟡 awaits operator certification of 12 gates + 5 open questions · zero code · zero deploys · STOP/CERTIFY/BUILD discipline)._
+
+---
+
+### 00 · OMEGA iter448 · Platform Completion Program · Phase 1A DESIGN · 4 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `PHASE1A_WORKFLOW_DESIGN.md` | 10 design principles · 5 workflows (Incidents · DR · Payroll Variance · QA/QC · Site Inspection) · state maps · closure conditions · schema additions · UI changes · cross-workflow specs · 5 open questions for operator | 🟡 |
+| `PHASE1A_STATE_MACHINE.md` | Canonical 5-state vocab (OPEN · IN_PROGRESS · PENDING_REVIEW · PENDING_CLOSURE · CLOSED) · per-workflow transition tables · guards · forbidden transitions · idempotency contract · Mermaid diagrams | 🟡 |
+| `PHASE1A_ROLE_MATRIX.md` | 5 workflows × 11 transitions × 9 roles · 7 transition tables (Incident · DR · Payroll · QA/QC Inspection · QA/QC Deficiency · Site Inspection · Site Finding) · Super-Admin break-glass · scoping rules | 🟡 |
+| `PHASE1A_CERTIFICATION_PLAN.md` | 3-gate certification (Design → Build → Preview → Prod) · 12 design gates · unit/integration/regression/migration/perf tests (~30 test classes) · rollback contract · 7 success metrics · operator sign-off block | 🟡 |
+
+🟡 **Status: DESIGN COMPLETE · awaiting operator certification.** Per directive, no code will be written until operator answers 5 open questions in `PHASE1A_WORKFLOW_DESIGN.md` §9 and affirms 12 design gates in `PHASE1A_CERTIFICATION_PLAN.md` §1.
+
+🎯 **Phase 1A goal**: 5 workflows transition from 🔴 INCOMPLETE → 🟢 COMPLETE. Operational Completeness rises from 56 % → ≥ 65 %. Zero regressions. Single canonical audit collection (`workflow_state_events`). 7-year TTL aligned with OSHA + IRS retention.
+
+🛑 **Stopped.** No Build authorization issued. Phase 1B (status canonicalization across all 18 vocab) · Phase 2 (placeholders) · Phase 3 (employee lifecycle) · Phase 4 (asset/equipment lifecycle) · Phases 5-10 all explicitly out-of-scope until Phase 1A is certified, built, deployed, and operator-signed.
 
 ---
 

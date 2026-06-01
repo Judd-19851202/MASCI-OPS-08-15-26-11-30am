@@ -2,6 +2,68 @@
 
 
 
+## 2026-06-01 (fork · iter448) — OMEGA · Platform Completion Program · Phase 1A · DESIGN 🟡 awaits operator certification
+
+### Operator directive
+> "Platform Completion Program. Take the platform to 100% operational completeness. Phase 1A: Mission Critical Dead-End Removal. STOP, CERTIFY, THEN BUILD."
+
+### Scope
+Phase 1A · DESIGN ONLY · 5 workflows currently 🔴 INCOMPLETE:
+1. Incident Lifecycle
+2. Daily Report Office Review
+3. Payroll Variance Finalization
+4. QA/QC Deficiency Follow-Up
+5. Site Inspection Follow-Up
+
+### Canonical 5-state vocabulary (Phase 1B-aligned)
+`OPEN · IN_PROGRESS · PENDING_REVIEW · PENDING_CLOSURE · CLOSED` · REOPEN always returns to IN_PROGRESS with required reason.
+
+### Architecture decisions
+- **One audit collection:** `workflow_state_events` (sibling) records every transition with actor + timestamp + reason + metadata · 7-year TTL · 3 indexes
+- **Universal transition endpoint:** `POST /api/<workflow>/{id}/transition`
+- **Read-shim during Phase 1B migration:** `get_lifecycle_state()` helper returns native field or legacy-derived state
+- **Idempotency:** compound unique index `(workflow, doc_id, to_state, actor, occurred_at_minute)` → 409 on duplicate
+- **Backwards compatible:** existing Create/View/Delete unchanged · new fields are additive
+- **OSHA closure gate:** attestation suffices; Super-Admin can override with reason
+
+### Deliverables (in `/app/memory/`)
+- `PHASE1A_WORKFLOW_DESIGN.md` — 10 design principles · 5 workflows × state map · closure conditions · schema additions · UI changes · cross-workflow specs · 5 open questions
+- `PHASE1A_STATE_MACHINE.md` — 5-state canonical machine · per-workflow transition tables · role gates · forbidden transitions · required metadata · idempotency
+- `PHASE1A_ROLE_MATRIX.md` — 5 workflows × 11 transitions × 9 roles · primary/secondary/break-glass closers · per-job scoping · per-crew scoping · HR read-only
+- `PHASE1A_CERTIFICATION_PLAN.md` — 3 gates (Design → Build → Preview → Prod) · unit/integration/regression/migration/perf tests · rollback contract · success metrics
+
+### Awaiting operator certification (12 design gates + 5 open questions)
+1. 5-state vocab confirmed
+2. All 5 workflows mapped
+3. Universal transition contract
+4. Single audit collection
+5. Role matrix as documented
+6. Read-shim approach
+7. OSHA closure policy
+8. DR return-to-field notification
+9. Payroll always-explicit-finalize
+10. assigned_to free-text in 1A
+11. Reopen authority
+12. No scope leakage
+
+5 open design questions in `PHASE1A_WORKFLOW_DESIGN.md` §9 require operator answers before Build authorization.
+
+### Success criteria (when Phase 1A is complete)
+- 5 workflows: 🔴 → 🟢
+- Operational Completeness: 56 % → ≥ 65 %
+- 6 user-task dead-ends closed (0 in Phase 1A scope)
+- 5 workflows graduate from 🔴 NONE audit-trail → 🟢 dedicated
+- Source-of-Truth Confidence: 56 % → ≥ 65 %
+- 0 regressions
+
+### OMEGA discipline
+🟢 Design-only · zero code changes · zero deployments · zero new endpoints registered · no Build authorization issued · Phase 1B/2/3/4 explicitly out of scope.
+
+### Agent state
+🛑 STOPPED at gate #1 (Design → Build). Awaiting operator design certification (12 gates + 5 questions). Per the operator's "STOP / CERTIFY / THEN BUILD" directive, no Build authority will be assumed.
+
+
+
 ## 2026-06-01 (fork · iter447) — OMEGA · Operational Completeness Audit 🟡 PARTIAL · 56 % overall
 
 ### Operator directive
