@@ -1,6 +1,20 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · Public-Gate Ownership Forensic Audit + Push Notification Feasibility · 🟡 YELLOW with 🔴 RED systemic gap: field-side accountability not reachable through the platform · 6 evidence-only deliverables · zero code · operator decision required)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · Public-Gate Accountability Remediation Plan · 🟢 iter452.5 dedicated platform sprint recommended · 3-week effort · 1 shared lib + 1 collection + 1 UI component closes the systemic gap once · awaiting operator authorization)._
+
+---
+
+### 00 · OMEGA · Public-Gate Accountability Remediation Plan (2026-06-01)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `PUBLIC_GATE_ACCOUNTABILITY_REMEDIATION_PLAN.md` | Single design-decision document answering all 8 operator questions · three-layer hybrid identity model (directory anchor + per-submit contact + resolved responsibility) · 10 minimum required fields per public-gate workflow · architecture · migration · ~14.5 day effort for Tier-1 · ~25.5 day effort for full Tier-1/2/3 stack · 6 workflows affected · 6 retrofit at ~2 hrs each · iter452.5 dedicated platform sprint recommended between iter452 deploy and iter453 BUILD | 🟢 solvable once · awaiting authorization |
+
+🟢 **Recommended phase placement:** **iter452.5 dedicated platform sprint** (not iter453, not iter454, not iter455, not Phase 1B). Reasoning: cost compounds if retrofitted later; risk compounds with each iteration shipped at YELLOW; mental model aligns with OMEGA "build platform → build workflows" discipline.
+
+🟢 **Open operator decisions:** authorize iter452.5 · sprint timing · Tier-1 channel choice (email-only recommended) · retention window (90d default) · consent wording · legacy backfill policy (none-with-flag recommended) · iOS PWA install messaging.
+
+🛑 **Stopped.** Design decision delivered. Zero code. Awaiting operator authorization for iter452.5 platform sprint OR explicit deferral.
 
 ---
 
