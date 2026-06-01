@@ -2,6 +2,39 @@
 
 
 
+## 2026-06-01 (fork) — OMEGA · Photo Viewer CORS Remediation · Option C 🟡 (preview hardened, prod cert pending)
+
+### Operator directive
+> "OMEGA AUTHORIZATION — PHOTO VIEWER CORS REMEDIATION · OPTION C. Authorize recommended Option C: A + B defense-in-depth remediation. Production CORS env update (no wildcard *) + frontend rebuild with REACT_APP_BACKEND_URL=https://mascidocs.com. Post-remediation verification: 50-photo Playwright sweep · desktop + mobile · operator-named photo · auth/scheduler/backup regression."
+
+### 🟡 HEADLINE — Preview hardened, production deploy is the operator's authorized step
+- **Backend env change**: `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com` and `CORS_ORIGIN_REGEX=https://((.*\.)?mascidocs\.com|.*\.(preview\.emergentagent\.com|emergent\.host|emergentagent\.com))` — wildcard removed, mascidocs.com added, all existing emergent.* origins preserved.
+- **Backend code fix (1 LOC behavioural)**: `PhotoEdgeCacheMiddleware._THUMB_PATH_RE` narrowed from `^/api/job-photos/.+/(thumb(-signed)?|raw|raw-signed)/?$` to `^/api/job-photos/.+/thumb(-signed)?/?$`. The middleware was stripping ACAO from `/raw` responses — without this narrowing, Option A would have been a silent no-op. Sprint 1G's `no-store` directive on `/raw` is now also preserved.
+- **Frontend rebuild**: documented operator-side action — production deploy must use `REACT_APP_BACKEND_URL=https://mascidocs.com` so all API traffic stays same-origin (Option B).
+- **Preview CORS regression matrix**: ✅ mascidocs.com/www.mascidocs.com/emergent.host/preview.emergentagent.com all return ACAO; ✅ evil.com REJECTED (400); ✅ no wildcard.
+- **Preview backend health**: clean restart, all auth/scheduler/index/route mounts healthy, no regressions.
+
+### 3 deliverables (in `/app/memory/`)
+- `PHOTO_VIEWER_CORS_REMEDIATION_REPORT.md` — changes applied + operator deploy checklist
+- `PHOTO_VIEWER_BROWSER_CERTIFICATION.md` — preview Playwright + CORS regression matrix
+- `PHOTO_VIEWER_PRODUCTION_CERTIFICATION.md` — production verification plan (PENDING OPERATOR DEPLOY)
+- `_cors_remediation_preview_grid.jpeg` — preview-frontend smoke screenshot
+
+### Operator action required to complete cert
+1. Deploy current backend code (carries the middleware narrowing).
+2. Update prod env vars: `CORS_ORIGINS` + `CORS_ORIGIN_REGEX` per remediation report §3.1.
+3. Update prod frontend build env: `REACT_APP_BACKEND_URL=https://mascidocs.com` + redeploy.
+4. Signal completion → agent re-runs Phases 1-7 of `PHOTO_VIEWER_PRODUCTION_CERTIFICATION.md` and issues final 🟢 / 🔴 verdict.
+
+### OMEGA discipline (this batch)
+🟢 Zero deployments to production · zero DB writes · zero feature work · zero white-label · zero ForgedOps · zero dashboards · zero unrelated fixes. Only authorized changes: backend env CORS update + 1-LOC middleware regex narrowing required to make Option A non-trivial.
+
+### Agent state
+- 🟡 Preview hardening complete. Awaiting operator production deploy. Final 🟢 / 🔴 verdict issued after deploy verification.
+
+
+
+
 ## 2026-06-01 (fork) — OMEGA · Photo Viewer Defect REOPENED 🔴 (new root cause proven)
 
 ### Operator directive

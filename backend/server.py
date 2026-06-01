@@ -11585,7 +11585,15 @@ app.add_middleware(
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 import re as _thumb_re
 
-_THUMB_PATH_RE = _thumb_re.compile(r"^/api/job-photos/.+/(thumb(-signed)?|raw|raw-signed)/?$")
+# iter445 · 2026-06-01 · Narrowed to /thumb(-signed)? only.
+# Sprint 1G's /raw and /raw-signed endpoints return JSON with short-lived
+# (900 s) presigned R2 URLs. Edge-caching them would expose stale URLs
+# (R2 → 403) AND stripping their Access-Control-Allow-Origin header
+# breaks cross-origin XHR from mascidocs.com → emergent.host (Sprint 1G
+# CORS remediation · Option A · defense-in-depth). Thumbnail endpoints
+# still benefit from edge caching since they return image bytes
+# directly (no CORS dependency for <img>; no time-limited URLs).
+_THUMB_PATH_RE = _thumb_re.compile(r"^/api/job-photos/.+/thumb(-signed)?/?$")
 _THUMB_HEADERS_TO_STRIP = (
     "vary",
     "access-control-allow-origin",
