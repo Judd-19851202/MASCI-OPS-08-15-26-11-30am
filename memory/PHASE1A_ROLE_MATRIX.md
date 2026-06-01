@@ -1,7 +1,7 @@
 # Phase 1A · Role Matrix
 
 **Program:** OMEGA · Platform Completion Program · Phase 1A · DESIGN
-**Companion:** `PHASE1A_WORKFLOW_DESIGN.md` · `PHASE1A_STATE_MACHINE.md`
+**Companion:** `PHASE1A_WORKFLOW_DESIGN.md` · `PHASE1A_STATE_MACHINE.md` (6 workflows · OC-005 elevated iter449)
 **Mode:** Design-only · no code
 **Date:** 2026-06-01
 
@@ -116,6 +116,42 @@ Roles: **SA** = Super-Admin · **A** = Admin · **S** = Safety · **HR** = HR ·
 
 ---
 
+## 7 · Site Inspection · Finding-level
+
+| Transition | SA | A | S | HR | PM | D | Sh | FL | F | E | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| OPEN → IN_PROGRESS (assign) | 🟢 | 🟢 | 🟢 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | — |
+| IN_PROGRESS → PENDING_REVIEW (claim resolved) | 🟢 | 🟢 | 🟢 | ❌ | 🟢¹ | ❌ | ❌ | 🟢² | ❌ | ❌ | PM allowed if their job; FL allowed if their crew |
+| PENDING_REVIEW → CLOSED (verify) | 🟢 | 🟢 | 🟢 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Safety verifies |
+| PENDING_REVIEW → IN_PROGRESS (reject) | 🟢 | 🟢 | 🟢 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | reason required |
+| CLOSED → IN_PROGRESS (reopen) | 🟢 | 🟢 | 🟢 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | reason required |
+
+---
+
+## 7.5 · JHA Acknowledgement Ledger (OC-005)
+
+JHA acknowledgement is NOT a state-machine workflow. It is a single-event audit ledger. The "transitions" below are actually distinct ACTIONS on the ledger.
+
+| Action | SA | A | S | HR | PM | D | Sh | FL | F | E | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Submit acknowledgement (POST /acknowledgements) — crew member signs | 🟢 | 🟢 | 🟢 | ❌ | ❌ | ❌ | ❌ | 🟢 | 🟢¹ | 🟢² | F = via public QR-token submission; E = same as F |
+| Attest acknowledgement (verbal · FL/Safety witnesses) | 🟢 | 🟢 | 🟢 | ❌ | ❌ | ❌ | ❌ | 🟢 | ❌ | ❌ | when crew member cannot sign (gloves, tablet not available) |
+| View ledger (per-JHA, per-job) | 🟢 | 🟢 | 🟢 | 🟢 (read) | 🟢³ | ❌ | ❌ | 🟢⁴ | 🟢¹ | ❌ | HR read-only; PM job-scoped; FL crew-scoped |
+| View coverage dashboard (/safety/jha-acknowledgements) | 🟢 | 🟢 | 🟢 | 🟢 (read) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Safety/Admin only |
+| Soft-delete ack row (with reason) | 🟢 | 🟢 | 🟢 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Safety only; reason required; audit_events row written |
+| Restore soft-deleted ack | 🟢 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Super-Admin only |
+
+¹ F = crew member via signed QR token (same pattern as Daily Report public submission)
+² E = same as F via QR
+³ PM scoping = job assignment
+⁴ FL scoping = crew assignment
+
+**Read access (ledger):** SA · A · S · HR (read) · PM (job-scoped) · FL (crew-scoped) · F (own submissions via token).
+
+**No closure / no reopen / no transitions.** Each row is OSHA evidence on creation.
+
+---
+
 ## 8 · Cross-cutting role authorities
 
 ### 8.1 · Super-Admin overrides
@@ -162,6 +198,7 @@ When two roles both have authority on the same transition (e.g., PM and Admin bo
 | QA/QC Deficiencies | PM (assigned) | Admin | Super-Admin |
 | Site Inspections (inspection-level) | Safety | Admin | Super-Admin |
 | Site Findings | Safety | Admin | Super-Admin |
+| JHA Acknowledgement Ledger (OC-005) | (no closure · per-row evidence) | n/a | n/a (Safety can soft-delete with reason) |
 
 ---
 

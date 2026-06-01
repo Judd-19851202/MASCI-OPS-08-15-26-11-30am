@@ -3,7 +3,7 @@
 **Program:** OMEGA · Platform Completion Program (PCP)
 **Phase:** 1A · Mission-Critical Dead-End Removal · DESIGN STAGE
 **Mode:** Design-only · no code changes · awaits operator certification before Build stage
-**Scope:** 5 workflows currently 🔴 INCOMPLETE — Incidents · Daily Report Office Review · Payroll Variance Finalization · QA/QC Deficiency Follow-Up · Site Inspection Follow-Up
+**Scope:** **6 workflows** currently 🔴 INCOMPLETE — Incidents · Daily Report Office Review · Payroll Variance Finalization · QA/QC Deficiency Follow-Up · Site Inspection Follow-Up · **JHA Acknowledgement Ledger (OC-005 · elevated iter449)**
 **Companion:** `PHASE1A_STATE_MACHINE.md` · `PHASE1A_ROLE_MATRIX.md` · `PHASE1A_CERTIFICATION_PLAN.md`
 **Date:** 2026-06-01
 
@@ -321,6 +321,95 @@ findings: [
 | `POST` | `/api/inspections/{id}/transition` | inspection-level |
 | `POST` | `/api/inspections/{id}/findings/{finding_id}/transition` | finding-level |
 | `GET` | `/api/inspections/{id}/state-events` | combined history |
+
+---
+
+---
+
+## 5.5 · JHA Acknowledgement Ledger (OC-005 · ELEVATED iter449)
+
+### 5.5.1 · Source of friction
+* JHA library exists (`/jha` · iter445 surfaced in FL Hub) but **no per-crew per-day acknowledgement ledger exists**. OSHA 1926.21(b)(2) general-duty exposure: employer must "instruct each employee in the recognition and avoidance of unsafe conditions" — JHA acknowledgement is the documentation of that instruction.
+* ~500 crew acknowledgements/week occur verbally without platform record.
+
+### 5.5.2 · NOT a state-machine workflow
+OC-005 is **single-event** (one acknowledgement record per crew member per JHA per shift). No `OPEN/IN_PROGRESS/CLOSED` lifecycle. Each acknowledgement is born as a permanent audit record with no transitions.
+
+### 5.5.3 · Data model
+
+New collection `jha_acknowledgements`:
+
+```
+{
+  _id: ObjectId,
+  id: str (uuid),
+  jha_id: str           # FK to jhas
+  jha_doc_id: str       # JHA-YYYY-NNNNN (human-readable)
+  job_id: str           # FK to jobs_master
+  job_doc_id: str
+  shift_date: str (YYYY-MM-DD)
+  shift: "AM" | "PM" | "DAY" | "NIGHT" | null
+  crew_label: str       # free-text crew identifier (e.g., "Crew 3 - Paving North")
+  acknowledged_by: {
+    employee_id: str | null,    # if known/looked up
+    display_name: str,           # required free-text
+    role: "operator" | "laborer" | "foreman" | "other"
+  }
+  signature: str          # base64 PNG signature OR "verbal_attested" if FL attests verbally
+  attested_by: {          # if signature == "verbal_attested"
+    user_id: str,
+    role: "fl" | "safety" | "admin",
+    display_name: str
+  } | null
+  acknowledged_at: ISO ts
+  created_at: ISO ts
+  ip_address: str | null
+  user_agent: str | null
+  ttl_at: ISO ts (acknowledged_at + 7y)   # OSHA retention
+}
+```
+
+Indexes:
+* `{jha_id: 1, shift_date: -1}` — per-JHA per-day
+* `{job_id: 1, shift_date: -1}` — per-job per-day rollup
+* `{acknowledged_at: -1}` — recent
+* TTL: `{ttl_at: 1}, expireAfterSeconds: 0`
+
+### 5.5.4 · States
+
+None. Each row is immutable on write. The ONLY mutation is a soft-delete (`deleted_at`, `deleted_by`, `deletion_reason`) by Safety / Admin / Super-Admin for correction (e.g., wrong crew tagged). Deletion is an audit event in `audit_events`.
+
+### 5.5.5 · Endpoints (Build stage)
+
+| Method | Path | Purpose | Auth |
+|---|---|---|---|
+| `POST` | `/api/jhas/{jha_id}/acknowledgements` | submit single ack (signature OR verbal attestation) | FL · Safety · Admin · public-token (signed) |
+| `GET` | `/api/jhas/{jha_id}/acknowledgements` | per-JHA ack list (with shift_date filter) | FL · Safety · PM (job-scoped) · Admin |
+| `GET` | `/api/jobs/{job_id}/jha-acknowledgements` | per-job daily acknowledgement summary | Same roles |
+| `GET` | `/api/admin/jha-acknowledgements` | global admin view with date/job/jha filters | Admin · Safety |
+| `DELETE` | `/api/jhas/{jha_id}/acknowledgements/{ack_id}` | soft-delete with `deletion_reason` | Safety · Admin · Super-Admin |
+| `GET` | `/api/jha-acknowledgements/coverage` | daily coverage report (jobs ran × jobs with ack) | Safety · Admin |
+
+### 5.5.6 · UI changes (Build stage)
+
+* `JhaList.jsx` (`/jha`): per-row "Acknowledge JHA" button (FL · Safety) opens signature-capture modal
+* `FieldLeadershipHub.jsx` (iter445): JHA tile shows today's coverage badge ("3 of 4 active crews acknowledged today")
+* New page `/safety/jha-acknowledgements` (Safety · Admin): coverage dashboard + drill into per-JHA ledger
+* Public submission flow: crew member scans QR → signs → acknowledgement recorded (separate token-based route TBD)
+
+### 5.5.7 · Notifications
+* If a JHA is created for a job and **no acknowledgement is recorded within 4 hours** of job start: Safety + PM receive a notification (existing `notifications` collection · new `kind=jha_ack_missing`).
+* Coverage gap notifications batched daily at 18:00 UTC for unacknowledged JHAs of the current shift.
+
+### 5.5.8 · Audit trail
+Every ack row IS the audit. Deletions write to `audit_events` with `kind="jha_ack_deleted"`. No `workflow_state_events` involvement (no states to transition).
+
+### 5.5.9 · Closure model
+**There is no closure.** A JHA acknowledgement is a one-shot evidence record. The OSHA-required documentation exists from the moment the row is written. Daily/weekly/monthly OSHA exports filter by `acknowledged_at` window.
+
+### 5.5.10 · Accountability + Command Center impact
+* Accountability projection: new source `JHA_ACK_MISSING` (Job-day with active crew but no ack) — owner = PM
+* Command Center: new rule `SAF-JHA-ACK-MISSING` (job-day with no ack by 10:00 local) — severity Yellow
 
 ---
 

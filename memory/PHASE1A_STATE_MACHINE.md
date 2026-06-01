@@ -1,7 +1,7 @@
 # Phase 1A · State Machine Specification
 
 **Program:** OMEGA · Platform Completion Program · Phase 1A · DESIGN
-**Companion:** `PHASE1A_WORKFLOW_DESIGN.md`
+**Companion:** `PHASE1A_WORKFLOW_DESIGN.md` (6 workflows · OC-005 elevated iter449)
 **Mode:** Design-only · no code
 **Date:** 2026-06-01
 
@@ -164,6 +164,34 @@ Inspection-level auto-transitions react to deficiency state changes (eventual co
 **Inspection-level**: identical to QA/QC inspection-level (§4) with Safety officer roles instead of PM.
 
 **Finding-level**: identical to QA/QC deficiency-level (§5) with Safety officer / FL roles.
+
+---
+
+## 6 · Site Inspection state machines
+
+**Inspection-level**: identical to QA/QC inspection-level (§4) with Safety officer roles instead of PM.
+
+**Finding-level**: identical to QA/QC deficiency-level (§5) with Safety officer / FL roles.
+
+---
+
+## 6.5 · JHA Acknowledgement Ledger (OC-005)
+
+**No state machine.** Each acknowledgement row is immutable on write. The only mutation is soft-delete by Safety/Admin/Super-Admin with `deletion_reason` (audit-tracked in `audit_events`).
+
+```
+[no states]
+   │
+   │ POST /api/jhas/{jha_id}/acknowledgements
+   ▼
+ACKNOWLEDGED  ◄──── immutable evidence record (7-year TTL)
+   │
+   │ DELETE (Safety/Admin/Super-Admin only · reason required)
+   ▼
+[soft-deleted · row retains for 7y · audit row kind=jha_ack_deleted]
+```
+
+Coverage gaps (job-day with no acknowledgement) are computed live at read time — not stored as states. See `routes/jha_acknowledgements.py:_coverage_summary()` (Build stage).
 
 ---
 

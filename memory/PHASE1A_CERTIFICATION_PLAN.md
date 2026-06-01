@@ -1,7 +1,7 @@
 # Phase 1A · Certification Plan
 
 **Program:** OMEGA · Platform Completion Program · Phase 1A · DESIGN
-**Companion:** `PHASE1A_WORKFLOW_DESIGN.md` · `PHASE1A_STATE_MACHINE.md` · `PHASE1A_ROLE_MATRIX.md`
+**Companion:** `PHASE1A_WORKFLOW_DESIGN.md` · `PHASE1A_STATE_MACHINE.md` · `PHASE1A_ROLE_MATRIX.md` (6 workflows · OC-005 elevated iter449)
 **Mode:** Design-only · no code
 **Date:** 2026-06-01
 
@@ -59,6 +59,7 @@ Operator must affirm:
 | `test_osha_closure_gate.py` | OSHA-recordable incident requires attestation · Super-Admin override path works |
 | `test_reopen_paths.py` | Every workflow's reopen path requires `reason` · reopen increments counter · reopen does not zero out previous closure metadata |
 | `test_super_admin_overrides.py` | Super-Admin can perform any transition with `reason` · audit row marks `actor_role="super-admin-override"` |
+| `test_jha_acknowledgement_ledger.py` | (OC-005) **Submit ack with signature succeeds · 7y TTL on row · per-JHA/per-job filter works · coverage dashboard math correct · soft-delete by Safety w/ reason · audit_events row written · public QR-token submission path works · 4h-after-job-start notification fires · duplicate ack from same crew member rejected · Super-Admin restore works** |
 
 **Target coverage: ≥ 95 % of new code · 100 % of state machine paths.**
 
