@@ -2,6 +2,35 @@
 
 
 
+## 2026-06-01 (fork) — OMEGA · Photo Viewer Production Certification 🔴 (FAIL · deploy gap)
+
+### Operator directive
+> "Deployment complete. Run production photo viewer certification."
+
+### 🔴 HEADLINE — PHOTO VIEWER STILL FAILING (operator deploy did not apply Option C)
+- **Frontend**: new bundle hash `main.286932d0.js` (was `main.3f15585d.js`) — rebuild happened BUT built with the OLD `REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.emergent.host`. All axios calls still cross-origin.
+- **Backend**: `uptime_s=3880` (~65 min) · `source_hash=2383567f4f97…` UNCHANGED → backend was NOT redeployed/restarted. Middleware narrowing + CORS env vars not in effect.
+- **Browser repro**: identical CORS error to pre-fix (`No 'Access-Control-Allow-Origin' header is present`). Lightbox displays "Photo data unavailable or corrupt." on the operator-named target (Mike · 2026-05-29 · 26-01-CP). Screenshot at `_prod_cert_failed_lightbox.jpeg`.
+- **Certification halted after Phase 1** (rather than burn credits on Phases 5-7) — verdict is determinate from the deploy-state evidence alone.
+
+### Operator action required (corrective deploy)
+1. Frontend prod build env: `REACT_APP_BACKEND_URL=https://mascidocs.com` → rebuild + redeploy. Verify bundle no longer embeds `emergent.host`.
+2. Backend prod env vars: `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com` and `CORS_ORIGIN_REGEX=https://((.*\.)?mascidocs\.com|.*\.(preview\.emergentagent\.com|emergent\.host|emergentagent\.com))` → redeploy backend code (carries the middleware fix) + rolling restart. Verify `source_hash` changes and uptime resets.
+
+### Deliverables (in `/app/memory/`)
+- `PHOTO_VIEWER_PRODUCTION_CERTIFICATION.md` — full FAIL report with corrective deploy checklist
+- `_prod_cert_failed_lightbox.jpeg` — post-deploy lightbox screenshot still showing error overlay
+- `_prod_cert_console.log` — verbatim browser CORS error post-deploy
+
+### OMEGA discipline (this batch)
+🟢 Zero deploys · zero code changes · zero DB writes · evidence-only · halted after Phase 1 to avoid credit waste on confirmed deploy gap. Read-only against production.
+
+### Agent state
+- 🔴 STOPPED. Awaiting operator corrective deploy (frontend `REACT_APP_BACKEND_URL` + backend env vars + backend redeploy/restart). Then re-runs Phases 1-7.
+
+
+
+
 ## 2026-06-01 (fork) — OMEGA · Photo Viewer CORS Remediation · Option C 🟡 (preview hardened, prod cert pending)
 
 ### Operator directive

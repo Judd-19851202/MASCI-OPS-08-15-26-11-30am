@@ -1,306 +1,258 @@
-# Photo Viewer Production Certification
+# Photo Viewer Production Certification — FAIL
 
-**Batch:** OMEGA · Photo Viewer CORS Remediation · Option C (A + B defense-in-depth)
-**Mode:** Final production certification (executable after operator deploy)
-**Date:** 2026-06-01 (preview hardening complete · production deploy pending operator)
-**Companion:** `PHOTO_VIEWER_CORS_REMEDIATION_REPORT.md` · `PHOTO_VIEWER_BROWSER_CERTIFICATION.md`
-
----
-
-## 1 · Current verdict
-
-# 🟡 PRODUCTION CERTIFICATION PENDING OPERATOR DEPLOY
-
-The preview environment has been hardened with the operator-authorized Option C changes and verified end-to-end (`PHOTO_VIEWER_BROWSER_CERTIFICATION.md`). The same changes must be deployed to the production environment by the operator before final certification can be issued.
-
-Per OMEGA discipline, this agent cannot push to production. The operator's authorized action set is documented in §3 of `PHOTO_VIEWER_CORS_REMEDIATION_REPORT.md` and re-summarized in §2 below.
-
-This certification document is the executable verification plan; when the operator authorizes a follow-up Batch (or signals that production has been deployed), every check below will be run against `https://mascidocs.com` and the final 🟢 or 🔴 verdict will be filled in at §10.
+**Batch:** OMEGA · Photo Viewer CORS Remediation · Option C · Post-Deploy Certification
+**Mode:** Read-only certification against production · 7-phase plan halted after Phase 1 + symptom replay
+**Date:** 2026-06-01 (probe window 15:36Z – 15:38Z UTC)
+**Target:** `https://mascidocs.com`
+**Authorization:** Operator deploy-complete signal, "Run production photo viewer certification."
+**Companion files:**
+* `PHOTO_VIEWER_CORS_REMEDIATION_REPORT.md` — original remediation plan
+* `PHOTO_VIEWER_BROWSER_CERTIFICATION.md` — preview-side verification (PASSED)
+* `PHOTO_VIEWER_FORENSIC_REPORT.md` · `PHOTO_VIEWER_ROOT_CAUSE.md` — original defect documentation
+* `_prod_cert_failed_lightbox.jpeg` — post-deploy lightbox screenshot still showing the error overlay
+* `_prod_cert_console.log` — verbatim browser CORS error post-deploy
 
 ---
 
-## 2 · Operator deploy actions required (one-time)
+## 1 · Final verdict
 
-| Step | Action | Where |
+# 🔴 PHOTO VIEWER STILL FAILING
+
+The production deploy partially landed but did **not** apply Option C. Both Failure A (frontend bundle hostname) and Failure B (backend CORS allow-list + middleware narrowing) are still in their pre-fix state on `https://mascidocs.com`. The lightbox still renders **"Photo data unavailable or corrupt."** verbatim, identical to the 2026-06-01 14:56Z reproduction.
+
+The browser console captures the exact same CORS preflight failure:
+
+```
+[error] Access to XMLHttpRequest at
+  'https://safety-audit-mobile-1.emergent.host/api/job-photos/daily_report:07e54a58-…:0/raw?_=…'
+  from origin 'https://mascidocs.com'
+  has been blocked by CORS policy:
+  No 'Access-Control-Allow-Origin' header is present on the requested resource.
+[error] Failed to load resource: net::ERR_FAILED
+```
+
+Phases 2-7 of the certification were not executed because Phase 1 already evidenced the deploy did not apply the operator-authorized changes; running further phases would not change the verdict.
+
+---
+
+## 2 · Phase 1 — Pod inventory + build verification (🔴 FAIL)
+
+### 2.1 · Backend pod identity (🔴 backend NOT redeployed)
+
+```bash
+$ curl https://mascidocs.com/api/version
+
+{
+  "source_hash": "2383567f4f9735cf936d90dce26bb267",   ← UNCHANGED from pre-fix
+  "started_at": "2026-06-01T14:31:54.511951+00:00",    ← same boot time as pre-fix
+  "uptime_s": 3880,                                     ← ~65 minutes (no restart)
+  "app_env": "production",
+  "db_name": "masci_safety"
+}
+```
+
+Expected (post-deploy): `source_hash` ≠ `2383567f4f97…`, `uptime_s` < 300 s (recent restart).
+Observed: backend has not been redeployed or restarted. The middleware narrowing (`PhotoEdgeCacheMiddleware._THUMB_PATH_RE` → `thumb(-signed)?` only) is **not** running on production.
+
+### 2.2 · Frontend bundle filename (🟡 changed, but)
+
+```bash
+$ curl https://mascidocs.com/ | grep -oE 'src="/static/js/main[^"]+\.js"'
+src="/static/js/main.286932d0.js"
+```
+
+* **Pre-fix bundle**: `main.3f15585d.js`
+* **Current bundle**: `main.286932d0.js` (different hash — a rebuild DID happen)
+
+So a frontend redeploy occurred. But:
+
+### 2.3 · Embedded backend URL in new bundle (🔴 STILL WRONG)
+
+```bash
+$ curl https://mascidocs.com/static/js/main.286932d0.js \
+    | grep -oE 'https://[a-z0-9-]+\.(emergent|emergentagent|mascidocs)[a-z.]*(\.com|\.host)' | sort -u
+https://safety-audit-mobile-1.emergent.host
+```
+
+The new bundle **still** embeds `REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.emergent.host` — the production build was rebuilt **without** updating the env var to `https://mascidocs.com`. Every axios call still goes cross-origin (`mascidocs.com` → `emergent.host`). Failure A is not eliminated.
+
+| Check | Expected | Actual | Verdict |
+|---|---|---|---|
+| Backend source_hash changed | yes | no | 🔴 |
+| Backend uptime < 300 s | yes | 3880 s | 🔴 |
+| Frontend bundle hash changed | yes | yes (`286932d0`) | 🟢 |
+| Frontend bundle embeds `mascidocs.com` (not emergent.host) | yes | **no** (still `safety-audit-mobile-1.emergent.host`) | 🔴 |
+
+---
+
+## 3 · Phase 2 — CORS preflight matrix (🔴 partial · backend not restarted)
+
+```
+Origin                                                     HTTP    ACAO
+─────────────────────────────────────────────────────────── ──────  ────────────
+https://mascidocs.com                                       200     (none)        🔴
+https://www.mascidocs.com                                   200     (none)        🔴
+https://safety-audit-mobile-1.emergent.host                 400     (none)        🔴
+https://evil.com                                            400     (none)        ✅ (correctly rejected, but for the wrong reason — see note)
+```
+
+Note: All preflight responses from the prod ingress look identical (200 OK with body `OK` for "passable" paths, 400 for clearly disallowed). **None** carry `Access-Control-Allow-Origin`, which is exactly the pre-fix behaviour. The backend is still running the old CORS regex (`https://.*\.(preview\.emergentagent\.com|emergent\.host|emergentagent\.com)`), and the `PhotoEdgeCacheMiddleware` is still stripping ACAO from any /raw and /raw-signed responses. The new prod env vars `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com` did not take effect (the backend wasn't restarted to pick them up).
+
+(Concerning sub-finding: `safety-audit-mobile-1.emergent.host` now returns 400 on preflight too — even though the regex `emergent.host` would still match. This implies either an ingress-level CORS handler returning 400 unconditionally for OPTIONS to `/raw` paths, or the prod CORS regex is also different from what's documented. Investigation needed once the backend actually restarts.)
+
+---
+
+## 4 · Phase 3 — `/raw` response (Mike · 2026-05-29 · 26-01-CP) (🔴 cache-control overwritten)
+
+```
+HTTP/2 200
+content-type: application/json
+cache-control: public, max-age=604800, stale-while-revalidate=86400, immutable   🔴 (Sprint 1G `no-store` overwritten by PhotoEdgeCacheMiddleware)
+cdn-cache-control: public, max-age=2592000, stale-while-revalidate=86400, immutable   🔴
+(no access-control-allow-origin)   🔴
+pragma: no-cache
+```
+
+The body still returns a valid presigned R2 URL, and the URL fetches a real JPEG (`HTTP 206 image/jpeg` · magic bytes `ff d8 ff e0 00 10`). But because the response carries **no ACAO header**, the browser will block any cross-origin XHR before it ever sees this body. (Confirmed via the Playwright trace below.)
+
+| Check | Expected | Actual | Verdict |
+|---|---|---|---|
+| `access-control-allow-origin: https://mascidocs.com` | present | **absent** | 🔴 |
+| `cache-control: no-store, no-cache, must-revalidate, private` | present | replaced by `immutable, max-age=604800` | 🔴 |
+| Presigned URL is valid + R2 returns JPEG | yes | yes | 🟢 |
+
+---
+
+## 5 · Phase 4 — Desktop browser end-to-end (🔴 OPERATOR-NAMED TARGET FAILED)
+
+Playwright Chromium 1440×900 · super-admin · navigated to `https://mascidocs.com/admin/photos` · expanded "NSB Corbin Park Stormwater Improvements" (#26-01-CP) · clicked the first thumbnail (which IS the operator-named target `daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0` · 6 photos for this submitter in the folder).
+
+### 5.1 · Lightbox state
+
+* Lightbox modal opened.
+* `<img>` elements inside lightbox: **0** (renderable check returned false → no `<img>` ever inserted).
+* Visible text inside the lightbox:
+
+  > **Photo data unavailable or corrupt.**
+  > #26-01 - CP · NSB Corbin Park Stormwater Improvements
+  > Daily Report · 2026-05-29 · Mike
+
+  📷 Screenshot: `_prod_cert_failed_lightbox.jpeg` — identical to the pre-fix reproduction.
+
+### 5.2 · Browser console errors (verbatim · captured 2026-06-01 15:37Z)
+
+```
+[error] Access to XMLHttpRequest at
+  'https://safety-audit-mobile-1.emergent.host/api/job-photos/daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0/raw?_=1780328255069'
+  from origin 'https://mascidocs.com'
+  has been blocked by CORS policy:
+  No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+[error] Failed to load resource: net::ERR_FAILED
+```
+
+Identical to the 2026-06-01 14:56Z pre-fix capture. The fix is not in effect.
+
+### 5.3 · Thumbnail src (proves frontend still pointing at emergent.host)
+
+```
+https://safety-audit-mobile-1.emergent.host/api/job-photos/daily_report%3A07e54a58-61f5-46b2-a755-8dc4582a5a94%3A0/thumb-signed?t=1780331845
+```
+
+The bundle is `main.286932d0.js`, but its `THUMB_BASE` and `api.baseURL` still resolve to `https://safety-audit-mobile-1.emergent.host` — confirming the new bundle was built with the same wrong `REACT_APP_BACKEND_URL`.
+
+---
+
+## 6 · Phases 5-7 — Halted
+
+Per the OMEGA discipline of capturing the failure first and reporting cleanly, Phases 5-7 (mobile · 50-photo sweep · regression matrix) were not run. The deploy gap is upstream of these phases — every photo on every viewport on every browser will fail in the exact same way until the deploy is corrected. Running further phases would consume operator time and credits without changing the 🔴 verdict.
+
+---
+
+## 7 · What's missing in the deploy
+
+| Required step (from `PHOTO_VIEWER_CORS_REMEDIATION_REPORT.md` §3) | Done? | Evidence |
 |---|---|---|
-| 1 | Deploy current `/app/backend/server.py` (carries the `PhotoEdgeCacheMiddleware` regex narrowing · iter445) | Emergent production deploy |
-| 2 | Set `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com` | Emergent production env-var dashboard |
-| 3 | Set `CORS_ORIGIN_REGEX=https://((.*\.)?mascidocs\.com\|.*\.(preview\.emergentagent\.com\|emergent\.host\|emergentagent\.com))` | Emergent production env-var dashboard |
-| 4 | Rolling restart of production backend pods | Triggered automatically by env-var change |
-| 5 | Set production frontend build env: `REACT_APP_BACKEND_URL=https://mascidocs.com` | Emergent production deploy dashboard |
-| 6 | Trigger frontend rebuild + redeploy | Emergent production deploy |
+| Production backend redeployed with new code (middleware narrowing · iter445) | ❌ NO | `source_hash` unchanged · `uptime_s=3880` (no restart) |
+| Production env var `CORS_ORIGINS=https://mascidocs.com,https://www.mascidocs.com` | ❌ NO | CORS preflight from `mascidocs.com` origin returns no ACAO; matches pre-fix behaviour |
+| Production env var `CORS_ORIGIN_REGEX=https://((.*\.)?mascidocs\.com\|.*\.(preview\.emergentagent\.com\|emergent\.host\|emergentagent\.com))` | ❌ NO | Same — no ACAO returned |
+| Production backend rolling restart | ❌ NO | Pod uptime 65+ min (no restart) |
+| Production frontend build env `REACT_APP_BACKEND_URL=https://mascidocs.com` | ❌ NO | New bundle still embeds `https://safety-audit-mobile-1.emergent.host` |
+| Production frontend rebuild + redeploy | ⚠️ PARTIAL | New bundle hash exists (`main.286932d0.js`) but built with the OLD env var value |
 
-After steps 1-6, run the verification protocol below.
+🔴 **5 of 6 required steps not applied. The one step that did happen (frontend rebuild) was performed with the wrong env var, so it produced no behavioural change.**
 
 ---
 
-## 3 · Phase 1 · Pod inventory + build verification
+## 8 · Operator action required (corrective)
 
-### 3.1 · Production pod identity check
+### 8.1 · Frontend (Failure A · primary)
 
-```bash
-curl https://mascidocs.com/api/version
+In the production Emergent deploy dashboard:
+
+```
+REACT_APP_BACKEND_URL = https://mascidocs.com
 ```
 
-Expected `source_hash` ≠ `2383567f4f9735cf936d90dce26bb267` (pre-fix). Expected `started_at` ≈ within the deploy window. Expected `app_env=production`, `db_name=masci_safety`.
-
-### 3.2 · Production frontend bundle check
-
-```bash
-curl https://mascidocs.com/ | grep -oE 'src="/static/js/main[^"]+\.js"'
-```
-
-Expected: bundle filename hash ≠ `main.3f15585d.js`.
+Trigger frontend rebuild + redeploy. After redeploy verify:
 
 ```bash
 curl https://mascidocs.com/static/js/main.<NEW_HASH>.js \
   | grep -oE 'https://[a-z0-9-]+\.(emergent|emergentagent|mascidocs)[a-z.]*(\.com|\.host)' | sort -u
+# Expected: empty OR only "https://mascidocs.com" — must NOT contain emergent.host
 ```
 
-Expected: only `https://mascidocs.com` (no `emergent.host` baked in).
+This single change, on its own, eliminates the photo-viewer symptom by making every axios call same-origin (no CORS preflight required). It is the most important step.
 
-### 3.3 · Verdict — Phase 1
+### 8.2 · Backend (Failure B · defense-in-depth)
 
-🟡 To be filled in post-deploy: pod hash ____, bundle hash ____, embedded API URL ____.
+In the production Emergent deploy dashboard:
 
----
+```
+CORS_ORIGINS = https://mascidocs.com,https://www.mascidocs.com
+CORS_ORIGIN_REGEX = https://((.*\.)?mascidocs\.com|.*\.(preview\.emergentagent\.com|emergent\.host|emergentagent\.com))
+```
 
-## 4 · Phase 2 · CORS preflight verification (curl-level)
+Plus: trigger a production backend redeploy so the latest `/app/backend/server.py` (containing the `PhotoEdgeCacheMiddleware` regex narrowing · iter445) takes effect. After redeploy + restart, verify:
 
 ```bash
-# Test 1: mascidocs.com origin must succeed
+curl https://mascidocs.com/api/version
+# Expected: source_hash != 2383567f4f97… AND uptime_s < 300
+
 curl -i -X OPTIONS \
   -H "Origin: https://mascidocs.com" \
   -H "Access-Control-Request-Method: GET" \
   -H "Access-Control-Request-Headers: x-admin-token,content-type" \
-  https://mascidocs.com/api/job-photos/test/raw
-
-Expected: 200 (or 204) WITH access-control-allow-origin: https://mascidocs.com
+  https://mascidocs.com/api/job-photos/test/raw \
+  | grep -i "access-control-allow-origin"
+# Expected: access-control-allow-origin: https://mascidocs.com
 ```
 
-```bash
-# Test 2: www.mascidocs.com origin
-curl -i -X OPTIONS \
-  -H "Origin: https://www.mascidocs.com" \
-  -H "Access-Control-Request-Method: GET" \
-  -H "Access-Control-Request-Headers: x-admin-token,content-type" \
-  https://mascidocs.com/api/job-photos/test/raw
+### 8.3 · Order of operations
 
-Expected: 200 (or 204) WITH access-control-allow-origin: https://www.mascidocs.com
-```
-
-```bash
-# Test 3: emergent.host origin (legacy bundle compatibility)
-curl -i -X OPTIONS \
-  -H "Origin: https://safety-audit-mobile-1.emergent.host" \
-  -H "Access-Control-Request-Method: GET" \
-  -H "Access-Control-Request-Headers: x-admin-token,content-type" \
-  https://safety-audit-mobile-1.emergent.host/api/job-photos/test/raw
-
-Expected: 200 WITH access-control-allow-origin: https://safety-audit-mobile-1.emergent.host
-```
-
-```bash
-# Test 4 (NEGATIVE): evil.com origin must be REJECTED
-curl -i -X OPTIONS \
-  -H "Origin: https://evil.com" \
-  -H "Access-Control-Request-Method: GET" \
-  -H "Access-Control-Request-Headers: x-admin-token,content-type" \
-  https://mascidocs.com/api/job-photos/test/raw
-
-Expected: 400 Bad Request "Disallowed CORS origin" · NO access-control-allow-origin header
-```
-
-### Verdict — Phase 2
-
-🟡 Test 1 ___ · Test 2 ___ · Test 3 ___ · Test 4 ___.
+* Frontend rebuild first (§8.1) — instant symptom fix.
+* Backend redeploy + env-var update next (§8.2) — defense-in-depth + preserves Sprint 1G's `no-store` directive on `/raw`.
 
 ---
 
-## 5 · Phase 3 · `/raw` response cache + CORS verification
+## 9 · Re-certification protocol
 
-```bash
-TOKEN=<admin>
-curl -i -H "X-Admin-Token: $TOKEN" -H "Origin: https://mascidocs.com" \
-  "https://mascidocs.com/api/job-photos/daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0/raw?_=$(date +%s%N)"
+When the operator confirms BOTH §8.1 and §8.2 are done, this agent will re-run Phases 1-7 of the original certification plan (`PHOTO_VIEWER_PRODUCTION_CERTIFICATION.md` prior version, now superseded by this fail report). The verdict will be re-issued as either:
 
-Expected:
-  HTTP/2 200
-  access-control-allow-origin: https://mascidocs.com           ← MUST be present
-  cache-control: no-store, no-cache, must-revalidate, private  ← Sprint 1G directive preserved
-  pragma: no-cache
-  content-type: application/json
-  body: { "data_url": "https://46400762d3027afbb26819a8de8528e6.r2.cloudflarestorage.com/masci-hub/photos/2026/05/dr_07e54a58…/85e97aff….jpg?X-Amz-Signature=…", "meta": {…} }
-```
-
-Critical absence: NO `cache-control: public, max-age=604800, immutable` (the iter437 P0 pattern must NOT be re-introduced).
-
-### Verdict — Phase 3
-
-🟡 ACAO present ___ · cache-control no-store ___ · presigned URL valid ___.
+* 🟢 **PHOTO VIEWER PRODUCTION CERTIFIED**, or
+* 🔴 **PHOTO VIEWER STILL FAILING** (with attached failure inventory).
 
 ---
 
-## 6 · Phase 4 · End-to-end browser test (Playwright Chromium · desktop 1440×900)
-
-```python
-1. await page.goto("https://mascidocs.com/admin/login")
-2. Fill email/password, sign in as jaymn.judd@mascigc.com / Maddix123!
-3. await page.goto("https://mascidocs.com/admin/photos")
-4. Click project folder "NSB Corbin Park Stormwater Improvements" (#26-01-CP)
-5. Click first thumbnail (the operator-named target: daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0)
-6. Verify:
-   - lightbox modal opens
-   - <img> element with naturalWidth > 0 is present
-   - "Photo data unavailable or corrupt." string is NOT present
-7. Capture browser console: must be free of CORS errors
-8. Capture network log: /raw must return 200 with access-control-allow-origin
-9. Screenshot the lightbox showing the rendered photo
-```
-
-### Verdict — Phase 4 (desktop)
-
-🟡 Operator-named target renders ___ · console clean ___ · screenshot saved ___.
-
----
-
-## 7 · Phase 5 · End-to-end browser test (Playwright Chromium · mobile 375×812 iPhone 13)
-
-Same as Phase 4 but with mobile viewport:
-
-```python
-page.set_viewport_size({"width": 375, "height": 812})
-```
-
-### Verdict — Phase 5 (mobile)
-
-🟡 Lightbox renders on mobile ___ · no error overlay ___ · screenshot saved ___.
-
----
-
-## 8 · Phase 6 · 50-photo random sample sweep
-
-* Pull the full `/api/job-photos` list from production (606 photos).
-* `random.seed(20260601)` → sample 50 photo IDs (same seed as Sprint 1G's failed recheck for direct comparison).
-* For each: open lightbox in Playwright, verify `<img>` renders with `naturalWidth > 0`, verify no error overlay.
-* Tally: target = 50/50 pass.
-
-### Verdict — Phase 6
-
-🟡 Passes ___ / 50. Failure list (if any): ___.
-
----
-
-## 9 · Phase 7 · Regression matrix
-
-Check that the remediation broke nothing else:
-
-| Surface | Test | Expected | Actual |
-|---|---|---|---|
-| Thumbnail grid | `/admin/photos` loads with thumbnails rendered | All 606 photos' thumbnails visible | ___ |
-| Auth · admin login | `/admin/login` → POST `/api/admin/login` | 200 token issued | ___ |
-| Auth · PM portal | `/pm/login` → multi-login | 200 token issued | ___ |
-| Auth · HR portal | `/hr/login` | 200 token issued | ___ |
-| Auth · safety portal | `/safety-portal/login` | 200 token issued | ___ |
-| Auth · dispatch portal | `/dispatch-portal/login` | 200 token issued | ___ |
-| Auth · shop portal | `/shop/login` | 200 token issued | ___ |
-| Daily Reports list | `GET /api/daily-reports` (admin) | 200, results | ___ |
-| Incidents list | `GET /api/incidents` (admin) | 200, results | ___ |
-| Inspections list | `GET /api/inspections` (admin) | 200, results | ___ |
-| Scheduler · backup cron | Backend startup log shows `[scheduled-backup] scheduler started` | enabled on prod | ___ |
-| Scheduler · hourly R2 backup | `BACKUP_R2_HOURLY=true` task running without errors in last hour | no errors | ___ |
-| Recovery · most recent backup_runs row | `db.backup_runs.find_one(sort=[('ts',-1)])` returns status="success" within last 25h | success | ___ |
-| Sentry events | No new CORS-related Sentry events in last hour | clean | ___ |
-| Photo ZIP download | Select 3 photos · click "Download ZIP" · receive valid zip | valid zip | ___ |
-| Photo email | Select 1 photo · send to dev account · receive email | email sent | ___ |
-| Re-index button | Click `/admin/photos` re-index button | success toast | ___ |
-
-### Verdict — Phase 7
-
-🟡 ___ pass · ___ regressions.
-
----
-
-## 10 · Final verdict (to be filled in post-deploy)
-
-🟡 **PENDING OPERATOR DEPLOY**
-
-When operator confirms deploy:
-
-* If Phases 1-7 all 🟢 → 🟢 **PHOTO VIEWER PRODUCTION CERTIFIED**
-* If any Phase 🔴 → 🔴 **PHOTO VIEWER STILL FAILING** (with attached failure inventory)
-
----
-
-## 11 · Failure handling
-
-If post-deploy verification fails on any phase:
-
-1. Capture exact phase + error + browser console + network log.
-2. Roll back per `PHOTO_VIEWER_CORS_REMEDIATION_REPORT.md` §6 (env-var revert OR frontend bundle revert).
-3. Issue a follow-up forensic Batch authorization to re-investigate.
-
-No partial-success workaround is acceptable: either the photo viewer renders 100% of resolvable photos in production, or the verdict is 🔴.
-
----
-
-## 12 · OMEGA discipline confirmation (for this certification doc)
+## 10 · OMEGA discipline confirmation (this batch)
 
 | Rule | Observed |
 |---|---|
-| Read-only against production | ✅ — no deploy, no code, no DB writes attempted by the agent |
-| Verification plan deterministic | ✅ — each phase has explicit expected values and pass/fail criteria |
-| Negative tests included | ✅ — evil.com origin must be rejected (Phase 2 Test 4) |
-| Mobile included | ✅ — Phase 5 |
-| Auth + scheduler + backup regression included | ✅ — Phase 7 |
-| Operator-named target photo included | ✅ — Phase 4 |
-| 50-photo sweep included | ✅ — Phase 6 |
-| Out-of-scope topics avoided | ✅ — no orphan cleanup, no white-label, no ForgedOps, no dashboards |
+| Read-only against production | ✅ — only `/api/version`, `/api/job-photos`, `/api/admin/login` (single audit-logged break-glass), and Playwright reads |
+| No code/deploy/DB writes | ✅ — no remediation attempted from this side |
+| Evidence-only | ✅ — every claim anchored to curl output, screenshot, or browser console |
+| Stop after symptom replicated post-deploy | ✅ — Phases 5-7 deferred to avoid wasted credits on a confirmed failure mode |
+| Final verdict explicit | ✅ — 🔴 PHOTO VIEWER STILL FAILING |
+| Companion remediation report unchanged (preview state is fine; only production deploy gap to address) | ✅ |
 
-🛑 Production certification PENDING. Awaiting operator deploy signal to execute Phases 1-7 and issue the final verdict.
-
----
-
-## 13 · Quick-run script (for executing this certification post-deploy)
-
-```bash
-#!/bin/bash
-# Run with: bash post_deploy_cert.sh
-
-set -e
-PROD=https://mascidocs.com
-
-echo "Phase 1.1 · pod identity:"
-curl -s "$PROD/api/version" | python3 -m json.tool | head -10
-
-echo "Phase 1.2 · frontend bundle:"
-BUNDLE=$(curl -s "$PROD/" | grep -oE 'src="/static/js/main[^"]+\.js"' | head -1)
-echo "  $BUNDLE"
-
-echo "Phase 1.3 · embedded backend URL in bundle:"
-JSURL=$(echo "$BUNDLE" | sed 's/src="//;s/"//')
-curl -s "$PROD$JSURL" | grep -oE 'https://[a-z0-9-]+\.(emergent|emergentagent|mascidocs)[a-z.]*(\.com|\.host)' | sort -u
-
-echo "Phase 2 · CORS preflight matrix:"
-for O in "https://mascidocs.com" "https://www.mascidocs.com" "https://evil.com"; do
-  printf "  Origin %-40s -> " "$O"
-  curl -s -o /dev/null -w "%{http_code} ACAO=" -X OPTIONS \
-    -H "Origin: $O" \
-    -H "Access-Control-Request-Method: GET" \
-    -H "Access-Control-Request-Headers: x-admin-token,content-type" \
-    "$PROD/api/job-photos/test/raw"
-  curl -s -X OPTIONS -i \
-    -H "Origin: $O" \
-    -H "Access-Control-Request-Method: GET" \
-    -H "Access-Control-Request-Headers: x-admin-token,content-type" \
-    "$PROD/api/job-photos/test/raw" | grep -i "access-control-allow-origin" | head -1
-done
-
-echo "Phase 3 · /raw cache + CORS:"
-TOKEN=$(curl -s -X POST "$PROD/api/admin/login" -H "Content-Type: application/json" -d '{"password":"MASCI1982!"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
-curl -s -i -H "X-Admin-Token: $TOKEN" -H "Origin: https://mascidocs.com" \
-  "$PROD/api/job-photos/daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0/raw?_=$(date +%s%N)" \
-  | grep -iE "(HTTP|access-control-allow-origin|cache-control)" | head -5
-```
-
-Then run the Playwright phases 4-7 from the agent.
+🛑 STOPPED. Awaiting operator to (a) update `REACT_APP_BACKEND_URL=https://mascidocs.com` in the production frontend deploy env, (b) update `CORS_ORIGINS` + `CORS_ORIGIN_REGEX` in the production backend deploy env, (c) trigger frontend + backend redeploy with rolling restart. Then signal re-certification.
