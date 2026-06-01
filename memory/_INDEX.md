@@ -1,6 +1,25 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · iter452.5.1 P0 ORPHAN ELIMINATION SHIPPED · 🟢 5-tier identity ladder live · orphan corner architecturally impossible · 61/61 pytest green (52 + 9 new) · iter452.5.2 P1 authorized for next batch · Tier 2 frozen · iter453 BUILD inherits ladder natively)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · JHP Reality Audit · 🟢 3 evidence reports delivered · MASCI uses JHP not JHA · operative collection is `db.job_hazard_files` · zero acknowledgement infrastructure exists today · OC-005 (re-scoped JHP Acknowledgement Ledger) options: Minimum / Full / Rename-first · awaiting operator direction · iter452.5.2 P1 still authorized to commence next batch)._
+
+---
+
+### 00 · OMEGA · JHP REALITY AUDIT — 3 evidence reports (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `JHP_CODE_REALITY_AUDIT.md` | All 10 operator questions answered with file:line citations · two parallel "JHA" systems disambiguated (PDF library = operative, form submission = vestigial) · public-read/admin-write hybrid model documented · `JhaPlansHub.jsx` + `JhaPlansAdmin.jsx` + `/api/job-hazard-files/*` cited · live data: 0 JHP PDFs uploaded (6 trench-box rows piggybacking) · 1 vestigial JHA form row | 🟢 |
+| `JHP_DATA_MODEL_AUDIT.md` | Field-by-field schema of `db.job_hazard_files` · 8 absent fields with operator-relevance · legacy `db.job_hazard_plans` (0 rows) and vestigial `db.jhas` (1 row) inventoried · 10 reusable platform primitives enumerated (FL token · employees · workflow_state_events · FSI bindings · BilingualConsent · SignaturePad · etc) · severity-graded gap inventory | 🟢 |
+| `JHP_ACKNOWLEDGEMENT_GAP_REPORT.md` | Zero ack infrastructure exists today — verified live (no collection · no endpoint · no UI · no audit) · 4 reusable patterns (training_hits · safety_training_records · field_submitter_bindings · BilingualConsent) · 8 capability gaps in dependency order · 3 operator-visible build options (Minimum ~4d · Full ~7d · Rename-first +2d) | 🟢 |
+
+🟢 **Operator correction captured:** MASCI uses JHP (Job Hazard Plan, admin-uploaded PDFs by Safety dept), not JHA (the form-submission system that exists in code but is vestigial — only 1 row in `db.jhas`, likely test data).
+
+🟢 **OC-005 re-scoping prerequisite met:** the platform's JHP system is wired end-to-end (frontend hub + admin upload + multi-file storage + 250 MB cap + inline/disk hybrid) but has ZERO acknowledgement infrastructure. OC-005 build requires a full vertical from data-model through reporting. Eight capability gaps quantified; all closeable inside Phase-1A envelope (no Tier-2 required).
+
+🛑 **Stopped.** Operator direction required on:
+  (a) Authorize a code-level `JHA`→`JHP` rename batch FIRST, OR
+  (b) Authorize OC-005 build directly (pick Option 1 Minimum / Option 2 Full), OR
+  (c) Defer OC-005 and proceed with iter452.5.2 (P1 Resend bounce webhook) which was already authorized for the immediate-next batch.
 
 ---
 
