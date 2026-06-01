@@ -1,6 +1,31 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter449 · Phase 1A Pre-Build Priority Validation · 🟡 VERDICT B · scope INCOMPLETE · OC-005 JHA Acknowledgement Ledger recommended for ELEVATION into Phase 1A · 4 deliverables · zero code)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter450 · Platform Completion Program · Phase 1A FINAL BUILD PACKAGE · 🟢 SCOPE COMPLETE · OPTION A confirmed · OC-005 elevated · 6 workflows · 10 deliverables · zero code · awaiting operator BUILD authorization)._
+
+---
+
+### 00 · OMEGA iter450 · Platform Completion Program · Phase 1A FINAL BUILD PACKAGE · 10 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `PHASE1A_FINAL_ARCHITECTURE.md` | Final architecture · canonical 5-state vocab (OPEN · IN_PROGRESS · PENDING_REVIEW · PENDING_CLOSURE · CLOSED) · per-workflow state maps · cross-workflow contracts · OC-005 JHA ledger model | 🟢 |
+| `PHASE1A_DATABASE_IMPACT.md` | Schema additions per workflow · single canonical `workflow_state_events` audit collection · `jha_acknowledgements` ledger · indexes · TTL/retention (7y OSHA/IRS) | 🟢 |
+| `PHASE1A_UI_IMPACT.md` | Per-workflow screen changes · new action buttons · status badges · attestation modals · accountability projection deltas | 🟢 |
+| `PHASE1A_API_IMPACT.md` | New routes · payload contracts · idempotency keys · error envelope · backwards-compat guarantees | 🟢 |
+| `PHASE1A_ROLE_PERMISSION_MATRIX.md` | 6 workflows × transitions × 9 roles · scoping rules · Super-Admin break-glass | 🟢 |
+| `PHASE1A_BUILD_PLAN.md` | 5-sprint build sequence · LOC budget · risk register · checkpoints | 🟢 |
+| `PHASE1A_TEST_PLAN.md` | ~30 test classes · unit/integration/regression/migration/perf · acceptance gates per workflow | 🟢 |
+| `PHASE1A_DEPLOYMENT_PLAN.md` | Preview→Prod sequencing · feature flag plan · zero-downtime contract · migration order | 🟢 |
+| `PHASE1A_ROLLBACK_PLAN.md` | Per-sprint rollback procedure · data preservation contract · forward-only schema discipline | 🟢 |
+| `PHASE1A_GO_NO_GO.md` | Operator-facing decision matrix · 12 design gates · pre-build attestations · sign-off block | 🟢 |
+
+🟢 **Certified Phase 1A scope (6 workflows · ~12.5 engineer-days · additive-only):** OC-001 Incident Lifecycle · OC-002 Daily Report Office Review · OC-003 QA/QC Follow-Up · OC-004 Site Inspection Follow-Up · OC-005 JHA Acknowledgement Ledger · OC-007 Payroll Variance Finalization.
+
+🟢 **Certification statement #1:** "Phase 1A scope is complete."
+
+🟢 **Certification statement #2:** "No additional workflow currently ranks above the approved Phase 1A scope based on all completed operational-completeness audits and scope-challenge reviews."
+
+🛑 **Agent STOPPED.** Zero LOC written. NO build. NO deployment. **Awaiting operator's explicit BUILD authorization.** Phase 1B (status canonicalization · OC-010/014/018), Phase 2 (placeholders · OC-008/009/013/016), Phase 3 (employee lifecycle), Phase 4 (asset/equipment lifecycle), Phases 5–10, White Label, and ForgedOps Operations Center remain explicitly OUT-OF-SCOPE and FROZEN.
 
 ---
 

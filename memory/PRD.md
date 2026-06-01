@@ -31980,3 +31980,67 @@ Agent STOPPED. Production deployment of Sprint 1F is complete, certified, and op
 | Single defect class | ✅ |
 
 Agent STOPPED awaiting operator's production-deploy authorization.
+
+---
+
+# OMEGA iter450 · Platform Completion Program · Phase 1A FINAL BUILD PACKAGE · 2026-06-01
+
+**Authorized batch:** OPTION A (operator-confirmed). Elevate OC-005 (JHA Acknowledgement Ledger) into Phase 1A and produce the complete pre-build package for operator GO/NO-GO authorization.
+
+**Final verdict:** 🟢 **PHASE 1A SCOPE IS COMPLETE — AWAITING OPERATOR BUILD AUTHORIZATION**
+
+### Certified Phase 1A scope (6 workflows · ~12.5 engineer-days · additive-only)
+
+| ID | Workflow | Closure problem | Phase 1A goal |
+|---|---|---|---|
+| OC-001 | Incident Lifecycle | No closure path; status field exists but uneditable | Add canonical states + role-gated transitions + audit trail |
+| OC-002 | Daily Report Office Review | No office-side review/sign-off path | Add `PENDING_REVIEW → CLOSED` review action with attestation |
+| OC-003 | QA/QC Follow-Up | Findings created but never resolved | Add deficiency/follow-up close transitions with evidence requirement |
+| OC-004 | Site Inspection Follow-Up | Inspections created but never resolved | Add finding-resolution + inspection-close transitions |
+| OC-005 | JHA Acknowledgement Ledger | No worker acknowledgement ledger (OSHA 1926.21(b)(2) exposure) | Add JHA acknowledgement event + crew roll-up + audit trail |
+| OC-007 | Payroll Variance Finalization | Variances raised but never batch-finalized | Add finalize/close batch transitions with reviewer attestation |
+
+### Certification statements
+
+> **"Phase 1A scope is complete."**
+>
+> **"No additional workflow currently ranks above the approved Phase 1A scope based on all completed operational-completeness audits and scope-challenge reviews."**
+
+### Deliverables (10 — Phase 1A Build Package)
+
+| # | File | Purpose |
+|---|---|---|
+| 1 | `PHASE1A_FINAL_ARCHITECTURE.md` | Final architecture · canonical 5-state vocab · per-workflow state maps · cross-workflow contracts · OC-005 ledger model |
+| 2 | `PHASE1A_DATABASE_IMPACT.md` | Schema additions per workflow · single `workflow_state_events` audit collection · `jha_acknowledgements` ledger · indexes · TTL/retention |
+| 3 | `PHASE1A_UI_IMPACT.md` | Per-workflow screen changes · new action buttons · status badges · attestation modals · accountability projection deltas |
+| 4 | `PHASE1A_API_IMPACT.md` | New routes & payload contracts · idempotency keys · error envelope · backwards-compat guarantees |
+| 5 | `PHASE1A_ROLE_PERMISSION_MATRIX.md` | 6 workflows × transitions × 9 roles · scoping rules · Super-Admin break-glass |
+| 6 | `PHASE1A_BUILD_PLAN.md` | 5-sprint build sequence · LOC budget · risk register · checkpoints · daily standup template |
+| 7 | `PHASE1A_TEST_PLAN.md` | ~30 test classes · unit/integration/regression/migration/perf · acceptance gates per workflow |
+| 8 | `PHASE1A_DEPLOYMENT_PLAN.md` | Preview→Prod sequencing · feature flag plan · zero-downtime contract · migration order |
+| 9 | `PHASE1A_ROLLBACK_PLAN.md` | Per-sprint rollback procedure · data preservation contract · forward-only schema discipline |
+| 10 | `PHASE1A_GO_NO_GO.md` | Operator-facing final decision matrix · 12 design gates · pre-build attestations · sign-off block |
+
+### Scope-completeness certification basis
+
+* `OPERATIONAL_COMPLETENESS_REGISTER.md` (22 findings · OC-001..OC-022) — top-10 ranked
+* `CRITICAL_FINDING_RANKING.md` (iter449) — 22 findings rescored on 13 impact axes; top weighted = OC-001, OC-002, OC-007, OC-005, OC-003, OC-004
+* `PHASE1A_PRIORITY_VALIDATION.md` (iter449) — VERDICT B; OC-005 elevation justified
+* `PHASE1A_SCOPE_CHALLENGE_REPORT.md` (iter449) — formal challenge against 5 current workflows; OC-005 elevation passes 6/6 gates
+* `CUSTOMER2_BLOCKER_MATRIX.md` (iter449) — Customer #2 day-1 tier classification confirms current Phase 1A scope addresses all Tier-1 blockers
+
+### OMEGA discipline
+
+| Rule | Observed |
+|---|---|
+| DESIGN → AUDIT → CERTIFY → BUILD gate sequence | ✅ Currently at CERTIFY; awaiting BUILD auth |
+| NO code written | ✅ Zero LOC |
+| NO build started | ✅ |
+| NO deployment | ✅ |
+| NO opportunistic fixes / scope drift | ✅ |
+| Production data hygiene | ✅ no production touch |
+| Strict batch authorization adherence | ✅ |
+| Documentation-only output | ✅ 10 build-package deliverables |
+
+🛑 **Agent STOPPED.** Phase 1A is fully designed, certified, and packaged. **Awaiting operator's explicit BUILD authorization message** before any code is written. Phase 1B, Phase 2, Phase 3, Phase 4, Phases 5–10, White Label, and ForgedOps Operations Center remain explicitly OUT-OF-SCOPE and FROZEN.
+
