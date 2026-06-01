@@ -1,0 +1,42 @@
+=== Sprint 1G · NSB Corbin Park (26-01 - CP) project-specific audit ===
+Timestamp: 2026-06-01T14:36:48Z
+
+  NSB Corbin Park (26-01 - CP) photo count: 32
+
+  Per-photo scheme distribution across 5 retries:
+  photo_id                                                date         submitter       scheme distribution
+  daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:5     2026-05-29   Mike            {'https': 5}
+  daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:4     2026-05-29   Mike            {'https': 5}
+  daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:3     2026-05-29   Mike            {'https': 5}
+  daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:2     2026-05-29   Mike            {'https': 5}
+  daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:1     2026-05-29   Mike            {'https': 5}
+  daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0     2026-05-29   Mike            {'https': 5}
+  daily_report:b4850255-f01c-4859-88f1-e73e06dcdd55:0     2026-05-28   Mike            {'https': 5}
+  daily_report:b4850255-f01c-4859-88f1-e73e06dcdd55:2     2026-05-28   Mike            {'https': 5}
+  daily_report:b4850255-f01c-4859-88f1-e73e06dcdd55:1     2026-05-28   Mike            {'https': 5}
+  daily_report:b4850255-f01c-4859-88f1-e73e06dcdd55:3     2026-05-28   Mike            {'https': 5}
+  daily_report:b4850255-f01c-4859-88f1-e73e06dcdd55:4     2026-05-28   Mike            {'https': 5}
+  daily_report:b4850255-f01c-4859-88f1-e73e06dcdd55:5     2026-05-28   Mike            {'https': 5}
+  daily_report:8f59897e-fef3-4fae-92d4-bad1d4125093:1     2026-05-27   Rafeal          {'https': 5}
+  daily_report:8f59897e-fef3-4fae-92d4-bad1d4125093:3     2026-05-27   Rafeal          {'https': 5}
+  daily_report:8f59897e-fef3-4fae-92d4-bad1d4125093:2     2026-05-27   Rafeal          {'https': 5}
+  daily_report:8f59897e-fef3-4fae-92d4-bad1d4125093:7     2026-05-27   Rafeal          {'https': 5}
+  daily_report:8f59897e-fef3-4fae-92d4-bad1d4125093:5     2026-05-27   Rafeal          {'https': 5}
+  daily_report:8f59897e-fef3-4fae-92d4-bad1d4125093:6     2026-05-27   Rafeal          {'https': 5}
+  daily_report:8f59897e-fef3-4fae-92d4-bad1d4125093:4     2026-05-27   Rafeal          {'https': 5}
+  daily_report:8f59897e-fef3-4fae-92d4-bad1d4125093:0     2026-05-27   Rafeal          {'https': 5}
+  daily_report:e1f9db27-e2c2-49bb-9784-e4cb492aff9a:5     2026-05-27   Mike            {'https': 5}
+  daily_report:e1f9db27-e2c2-49bb-9784-e4cb492aff9a:0     2026-05-27   Mike            {'https': 5}
+  daily_report:e1f9db27-e2c2-49bb-9784-e4cb492aff9a:1     2026-05-27   Mike            {'https': 5}
+  daily_report:e1f9db27-e2c2-49bb-9784-e4cb492aff9a:2     2026-05-27   Mike            {'https': 5}
+  daily_report:e1f9db27-e2c2-49bb-9784-e4cb492aff9a:3     2026-05-27   Mike            {'https': 5}
+  daily_report:e1f9db27-e2c2-49bb-9784-e4cb492aff9a:4     2026-05-27   Mike            {'https': 5}
+  daily_report:daf386fb-4d6c-4ce0-9b0b-fb2c76c945cc:1     2026-05-26   Rafeal          {'https': 5}
+  daily_report:daf386fb-4d6c-4ce0-9b0b-fb2c76c945cc:0     2026-05-26   Rafeal          {'https': 5}
+  daily_report:daf386fb-4d6c-4ce0-9b0b-fb2c76c945cc:5     2026-05-26   Rafeal          {'https': 5}
+  daily_report:daf386fb-4d6c-4ce0-9b0b-fb2c76c945cc:4     2026-05-26   Rafeal          {'https': 5}
+  daily_report:daf386fb-4d6c-4ce0-9b0b-fb2c76c945cc:3     2026-05-26   Rafeal          {'https': 5}
+  daily_report:daf386fb-4d6c-4ce0-9b0b-fb2c76c945cc:2     2026-05-26   Rafeal          {'https': 5}
+
+  Operator's named target (Mike · 2026-05-29 on 26-01-CP): 6 photos
+  Of 6 target photos, 6 land on Sprint-1G-fixed pod ≥50% of the time

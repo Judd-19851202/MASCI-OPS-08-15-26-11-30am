@@ -1,0 +1,21 @@
+=== Sprint 1G · Post-Deploy Audit · 50 random photos ===
+Timestamp: 2026-06-01T14:33:19Z
+Target: https://mascidocs.com
+
+Inventory size: 252312 bytes
+  Total job_photos records: 606
+  Random sample size: 50
+
+  HTTP code distribution: {'200': 50}
+  Scheme distribution: {'https': 31, 'photo://': 19}
+
+  Failed (non-200): 0
+  HTTP 200 but NOT https://: 19
+    · daily_report:1b2e660c-82c3-47ed-9467-ea4dbfdf6ebb:0     · scheme=photo://
+    · daily_report:3c8c87be-b85e-4a42-9d06-2b75f56580b8:0     · scheme=photo://
+    · daily_report:07e54a58-61f5-46b2-a755-8dc4582a5a94:0     · scheme=photo://
+    · daily_report:e0f975d9-826e-42aa-8db2-4857dc87433c:3     · scheme=photo://
+    · daily_report:9f05e2d1-43be-4550-bc1e-9a62a3a2f106:6     · scheme=photo://
+
+  ✅ pass (HTTPS presigned): 31 / 50
+  ❌ fail (any reason):     19 / 50
