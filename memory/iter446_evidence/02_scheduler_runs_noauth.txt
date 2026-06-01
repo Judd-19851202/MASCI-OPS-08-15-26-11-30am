@@ -1,0 +1,3 @@
+=== A2 · /api/admin/scheduler-runs (no auth) ===
+HTTP=401
+{"detail":"Admin login required"}

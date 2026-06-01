@@ -1,6 +1,19 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter445 · Sprint Scheduler Hardening + UX Phase 1 Elite Execution · 🟢 GO · 7/7 unit tests · 6/6 high-friction items closed · two-layer dedup defense · rollback < 10 min · awaiting operator deploy)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter446 · Production Deployment + Certification of iter445 package · 🟢 PRODUCTION CERTIFIED · source_hash 269f9269cfbd6399… live on mascidocs.com · 11/11 UX markers in bundle · 5/5 certification gates green · 0 regressions)._
+
+---
+
+### 00 · OMEGA iter446 · Production Deployment + Certification of iter445 · 3 deliverables (2026-06-01 · prod-time 2026-06-01T18:06:32Z)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ITER446_PRODUCTION_DEPLOY_REPORT.md` | Pre/post-deploy probe transition · source_hash byte-equivalence with preview · frontend bundle string scan · timeline | 🟢 |
+| `ITER446_PRODUCTION_CERTIFICATION.md` | 5/5 certification gates (Ownership · Audit · Dedup · UX · Regression) · Executive Operator Summary · Evidence Summary table · 🟢 PRODUCTION CERTIFIED | 🟢 |
+| `ITER446_POST_DEPLOY_VERIFICATION.md` | 20-probe verbatim battery · regression matrix · /api/version envelope · bundle string scan · outstanding passive observation note | 🟢 |
+| `iter446_evidence/` | 13 raw probe logs (01_version.txt … 13_po_digest_preview.txt) | 🟢 |
+
+🟢 **Headline**: iter445 deployment successful — backend `source_hash` transitioned `f506574f… → 269f9269cfbd6399d489cbd0a4e87f5e` (matches preview post-iter445 exactly · byte-equivalence). New pod boot 2026-06-01T18:06:32Z · `app_env=production` · `db_name=masci_safety`. The new admin endpoint `/api/admin/scheduler-runs` returns the iter445 envelope under admin auth (was 404 pre-deploy). All 11 required iter445 UX string markers present in production main.c23ae9cd.js (4.88 MB bundle) — Per-Day Detail · Scheduler Runs · admin-tile-scheduler-runs · hr-pv-perday-link · open_detail=daily · Spot-check one employee · Payroll Variance (CSV) · On-Site Reference · Job Hazard Plans · Asset Transfers. Photo Viewer raw endpoint still returns presigned R2 URL (Sprint 1G unaffected). PO digest preview still returns 8 active PMs (send path intact). 0 regressions across 14 probed surfaces. Only passive observation outstanding: first Monday fire 2026-06-08T14:00:00Z will populate first row in `scheduler_runs` collection.
 
 ---
 

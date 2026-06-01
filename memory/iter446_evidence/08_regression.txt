@@ -1,0 +1,17 @@
+=== D · Regression battery (admin-gated) ===
+[200 · 73B] /api/health
+[200 · 460B] /api/version
+[404 · 22B] /api/admin/scheduler-locks
+[404 · 22B] /api/admin/digest-runs
+[200 · 1196B] /api/admin/po-digest/preview
+[404 · 22B] /api/admin/backup-runs
+[200 · 252312B] /api/job-photos
+[200 · 2198B] /api/incidents
+[200 · 32178B] /api/daily-reports
+[200 · 11406B] /api/admin/jobs
+[404 · 22B] /api/admin/command-center
+[200 · 13847B] /api/admin/accountability/snapshot
+[405 · 31B] /api/admin/employees
+[401 · 27B] /api/auth/me-directory
+[404 · 22B] /api/recovery/status
+[404 · 22B] /api/admin/users

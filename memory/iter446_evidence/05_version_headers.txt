@@ -1,0 +1,15 @@
+=== B3 · /api/version uname-style headers ===
+HTTP/2 405 
+date: Mon, 01 Jun 2026 18:10:10 GMT
+content-type: application/json
+content-length: 31
+cf-ray: a0502c6a4e77ba7a-ORD
+cf-cache-status: DYNAMIC
+allow: GET
+server: cloudflare
+via: 1.1 google
+set-cookie: __cf_bm=0c7Wm4l_P0fltRYs.ksmmvkaBRJnV8AKRT.JkXS88Qg-1780337409.6442251-1.0.1.1-cqNt7YBJWm.L0z_xxAMtWYMzJspsKFwzuS4fAu713UXchxxhuUCxyh.ywteK7rqbDBo4UbuoELvOftTvWSC2HHM87qphypkEQkLzNmTPS0cbuFuqa446qyAMhiytF_nU; HttpOnly; SameSite=None; Secure; Path=/; Domain=mascidocs.com; Expires=Mon, 01 Jun 2026 18:40:10 GMT
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=63072000; includeSubDomains; preload
+x-content-type-options: nosniff
+

@@ -1,0 +1,2 @@
+=== A1 · /api/version ===
+{"service":"masci-hub","commit":"unknown","built_at":"unknown","source_hash":"f506574f2992e7cd48606ce840eecb90","release":"f506574f2992e7cd48606ce840eecb90","started_at":"2026-06-01T15:35:40.822438+00:00","uptime_s":9251,"session_timeouts":{"enabled":true,"tiers":{"ADMIN_HR":{"idle_min":15,"abs_hour":4},"OPERATIONS":{"idle_min":30,"abs_hour":8},"FIELD":{"idle_min":60,"abs_hour":12}}},"sentry":{"enabled":true},"app_env":"production","db_name":"masci_safety"}

@@ -1,0 +1,41 @@
+=== H · Sample manual po-digest preview (ensures send path still intact post-deploy) ===
+{
+    "ok": true,
+    "pm": [
+        {
+            "email": "davidjewett@mascigc.com",
+            "name": "David Jewett",
+            "scoped_jobs": 8,
+            "total_open": 0,
+            "sent": false
+        },
+        {
+            "email": "chriswright@mascigc.com",
+            "name": "Chris Wright",
+            "scoped_jobs": 8,
+            "total_open": 0,
+            "sent": false
+        },
+        {
+            "email": "ramonrodriguez@mascigc.com",
+            "name": "Ramon Rodriguez",
+            "scoped_jobs": 4,
+            "total_open": 0,
+            "sent": false
+        },
+        {
+            "email": "jaymn.judd@mascigc.com",
+            "name": "Jaymn Judd",
+            "scoped_jobs": 3,
+            "total_open": 0,
+            "sent": false
+        },
+        {
+            "email": "asphaltpm@mascigc.com",
+            "name": "Asphalt PM",
+            "scoped_jobs": 1,
+            "total_open": 0,
+            "sent": false
+        },
+        {
+            "email": "leomasci@mascigc.com",

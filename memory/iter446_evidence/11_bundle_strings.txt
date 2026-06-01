@@ -1,0 +1,13 @@
+=== F2 · iter445 string scan in main bundle ===
+main.js size: 4881544
+scheduler-runs                           : 1 hit(s)
+Scheduler Runs                           : 1 hit(s)
+Per-Day Detail                           : 1 hit(s)
+On-Site Reference                        : 1 hit(s)
+Job Hazard Plans                         : 1 hit(s)
+Asset Transfers                          : 1 hit(s)
+Payroll Variance (CSV)                   : 1 hit(s)
+admin-tile-scheduler-runs                : 1 hit(s)
+hr-pv-perday-link                        : 1 hit(s)
+open_detail=daily                        : 1 hit(s)
+Spot-check one employee                  : 1 hit(s)
