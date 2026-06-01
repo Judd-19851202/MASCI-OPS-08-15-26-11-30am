@@ -2,6 +2,67 @@
 
 
 
+## 2026-06-01 (fork · iter449) — OMEGA · PCP Phase 1A Pre-Build Priority Validation 🟡 Scope challenge issued
+
+### Operator directive
+> "Before any code is written for Phase 1A, determine whether the 5 selected workflows truly represent the highest-risk operational gaps. Challenge the current Phase 1A selection. Provide one of only two conclusions: A) scope is correct OR B) scope is incomplete."
+
+### Final verdict
+# 🟡 B · The current Phase 1A scope is INCOMPLETE.
+
+**5 of the current Phase 1A workflows are correct (OC-001 Incidents · OC-002 DR Review · OC-007 Payroll Variance · OC-003 QA/QC · OC-004 Site Inspection). One workflow must be elevated into Phase 1A: OC-005 JHA Acknowledgement Ledger.**
+
+### Why OC-005 must be elevated
+- Scores **31.5** (rank #4 of 22 findings) — within Phase 1A's natural threshold
+- Carries **direct OSHA 1926.21(b)(2) general-duty exposure**
+- Highest-frequency unaddressed safety workflow (~500 acknowledgements/week)
+- Customer #2 onboarding blocker
+- Lowest build cost of any Phase 1A candidate (~3 engineer-days · additive only · no state machine)
+- Pairs naturally with OC-001 (both OSHA-touching)
+
+### Revised Phase 1A scope (6 workflows · ~12.5 engineer-days)
+| Slot | Finding | Workflow | Days |
+|---|---|---|---|
+| 1 | OC-001 + OC-020 + OC-021 | Incident lifecycle | 2.5 |
+| 2 | OC-002 | Daily Report office review | 2 |
+| 3 | OC-007 | Payroll Variance batch finalize | 1.5 |
+| 4 | OC-003 | QA/QC follow-up | 2 |
+| 5 | OC-004 | Site Inspection follow-up | 1.5 |
+| 6 | **OC-005 (ELEVATED)** | **JHA Acknowledgement Ledger** | **3** |
+
+### 15 mandatory questions · all answered with evidence
+- Q1-Q5 (current Phase 1A items): all confirmed
+- Q6 (Employee Offboarding): defer — dependency on PPE Return
+- Q7 (JHA Acknowledgement): **ELEVATE**
+- Q8 (PPE Return): Phase 2 correct
+- Q9 (Photo Janitor): Phase 2 correct
+- Q10 (Vocab canonicalization): Phase 1B correct (Phase 1A is its dress rehearsal)
+- Q11 (90-day damage): OC-001 > OC-007 > OC-002 > OC-005 > OC-010
+- Q12 (Customer #2 blocker): OC-001 + OC-005 + OC-007
+- Q13 (White Label blocker): OC-010
+- Q14 (ForgedOps blocker): OC-001/2/3/4/7 jointly
+- Q15 (top-5 picks): OC-001 · OC-007 · OC-002 · OC-005 · OC-010
+
+### Deliverables (in `/app/memory/`)
+- `CRITICAL_FINDING_RANKING.md` — 22 findings rescored on 13 axes · top-10 ranking · 90-day damage analysis
+- `PHASE1A_PRIORITY_VALIDATION.md` — 15 mandatory questions answered · binary verdict 🟡 B
+- `PHASE1A_SCOPE_CHALLENGE_REPORT.md` — formal challenge against 5 current workflows · 4 alternative scope options · recommendation
+- `CUSTOMER2_BLOCKER_MATRIX.md` — 11 findings classified by Customer #2 blocker tier · per-tenant day-1 operational expectation · sign-off checklist
+
+### Operator decision required (binary)
+- **Option A (recommended):** ELEVATE OC-005. Phase 1A = 6 workflows. Build ~12.5 engineer-days. Customer #2 OSHA loop closed.
+- **Option B:** OC-005 as Phase 1A.5 mini-sprint after Phase 1A. Two discrete batches.
+- **Option C:** Reject elevation. OC-005 sits in Phase 2 (NOT recommended; OSHA exposure continues).
+- **Option D:** Swap OC-003 or OC-004 OUT, OC-005 IN. Loses architectural-reuse (NOT recommended).
+
+### OMEGA discipline
+🟢 Read-only validation · 4 deliverables · 22 findings re-scored · zero code changes · zero deployments · no Phase 1A Build authorization issued.
+
+### Agent state
+🛑 STOPPED at scope-validation gate. Per directive: NO Phase 1A build work until this validation is complete AND operator selects Option A/B/C/D. Once selected, the existing `PHASE1A_WORKFLOW_DESIGN.md` + `PHASE1A_STATE_MACHINE.md` + `PHASE1A_ROLE_MATRIX.md` + `PHASE1A_CERTIFICATION_PLAN.md` design package can be updated to reflect the final scope before Build authorization is granted.
+
+
+
 ## 2026-06-01 (fork · iter448) — OMEGA · Platform Completion Program · Phase 1A · DESIGN 🟡 awaits operator certification
 
 ### Operator directive

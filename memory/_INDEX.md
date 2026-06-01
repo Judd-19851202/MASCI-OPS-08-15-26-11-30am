@@ -1,6 +1,23 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter448 · Platform Completion Program · Phase 1A · DESIGN · 🟡 awaits operator certification of 12 gates + 5 open questions · zero code · zero deploys · STOP/CERTIFY/BUILD discipline)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter449 · Phase 1A Pre-Build Priority Validation · 🟡 VERDICT B · scope INCOMPLETE · OC-005 JHA Acknowledgement Ledger recommended for ELEVATION into Phase 1A · 4 deliverables · zero code)._
+
+---
+
+### 00 · OMEGA iter449 · Phase 1A Pre-Build Priority Validation · 4 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `CRITICAL_FINDING_RANKING.md` | 22 register findings rescored on 13 impact axes · top-10 weighted ranking · 90-day damage analysis · OC-005 vs OC-010 elevation case | 🔴 |
+| `PHASE1A_PRIORITY_VALIDATION.md` | 15 mandatory operator questions answered with evidence · binary verdict 🟡 B · revised Phase 1A scope · Phase 1B/2/3/4 sequencing confirmed | 🟡 |
+| `PHASE1A_SCOPE_CHALLENGE_REPORT.md` | Formal challenge against 5 current workflows · OC-003/4 survive on architectural-reuse · OC-005 elevation argument · 4 alternative scope options A/B/C/D | 🟡 |
+| `CUSTOMER2_BLOCKER_MATRIX.md` | 11 of 22 findings classified by Customer #2 blocker tier (T1..T5) · per-tenant day-1 operational expectation · sign-off checklist | 🔴 |
+
+🟡 **Final verdict:** OPTION B — scope INCOMPLETE. Current 5-workflow Phase 1A scope is **correct in selecting OC-001, OC-002, OC-003, OC-004, OC-007** but **OC-005 (JHA Acknowledgement Ledger) must be elevated** because (1) it scores #4 of 22 weighted findings (31.5), (2) carries direct OSHA 1926.21(b)(2) general-duty exposure, (3) is the highest-frequency unaddressed safety workflow (~500/week), (4) is a Customer #2 blocker, (5) has the lowest build cost of any Phase 1A candidate (~3 engineer-days · additive only), (6) pairs naturally with OC-001 (both OSHA-touching).
+
+🛑 **Recommended Phase 1A revised scope:** 6 workflows · ~12.5 engineer-days. Operator decision required (A/B/C/D from scope challenge §9).
+
+🛑 **Confirmed-correct phase sequencing:** Phase 1B = OC-010 vocab canonicalization + OC-014 offboarding + OC-018 audit-trail. Phase 2 = OC-008 PPE Return + OC-009 Photo Janitor + OC-013 Onboarding + OC-016 Continuity Events. Phase 3+ = remaining cleanup. White Label and ForgedOps Operations Center remain FROZEN.
 
 ---
 
