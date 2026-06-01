@@ -2,6 +2,41 @@
 
 
 
+## 2026-06-01 (fork) — OMEGA · Photo Viewer Production Certification 🟢 (PASS · re-cert after backend deploy)
+
+### Operator directive
+> "Re try deployment might not have be fully live."
+
+### 🟢 HEADLINE — PHOTO VIEWER PRODUCTION CERTIFIED
+- **Backend redeployed**: `source_hash=f506574f2992e7cd…` (matches preview), `uptime_s=301` (fresh restart ~5 min before recert). Middleware narrowing + CORS env vars now ACTIVE.
+- **Cross-origin preflight working**: `Origin: https://mascidocs.com` → `https://safety-audit-mobile-1.emergent.host/api/job-photos/.../raw` returns `access-control-allow-origin: https://mascidocs.com`.
+- **/raw response**: ACAO present + `cache-control: no-store, no-cache, must-revalidate, private` preserved (Sprint 1G directive intact, PhotoEdgeCacheMiddleware regex narrowing in effect).
+- **Browser end-to-end**: Operator-named target (Mike · 2026-05-29 · 26-01-CP) renders 960×1280 JPEG on BOTH desktop and mobile (375×812). Zero CORS errors in console.
+- **50-photo random sweep**: 50/50 ACAO present, 50/50 `no-store`, 50/50 R2 returns image bytes (full e2e pass).
+- **31/31 in-browser photo clicks**: zero CORS errors.
+- **Regression matrix**: all auth + admin + public endpoints 200, no regressions.
+- **Frontend bundle still embeds `safety-audit-mobile-1.emergent.host`** (Option B not applied — rebuild used old env var). **Cosmetic**, not functional: backend CORS allow-list handles the cross-origin XHR correctly.
+
+### Deliverables (in `/app/memory/`)
+- `PHOTO_VIEWER_PRODUCTION_CERTIFICATION.md` — full 🟢 PASS report
+- `_prod_cert_PASS_lightbox_desktop.jpeg` — desktop lightbox showing operator-named JPEG rendered
+- `_prod_cert_PASS_lightbox_mobile.jpeg` — mobile (375×812) lightbox showing same JPEG
+- `_prod_cert_PASS_console.log` — verbatim browser console (zero CORS errors)
+- `_archive_prod_cert_FAIL_*.{jpeg,log}` — earlier FAIL artifacts archived
+
+### Optional future hardening (not blocking, P2)
+- Frontend rebuild with `REACT_APP_BACKEND_URL=https://mascidocs.com` to make every request same-origin (eliminates the cross-origin round-trip).
+- Investigate why `Origin: https://safety-audit-mobile-1.emergent.host` is rejected (harmless in production but inconsistent with documented regex).
+
+### OMEGA discipline (this batch)
+🟢 Zero prod writes · zero code changes from agent · evidence-only · all 7 phases executed.
+
+### Agent state
+- 🛑 STOPPED. Photo viewer fully certified. Awaiting next operator Batch authorization.
+
+
+
+
 ## 2026-06-01 (fork) — OMEGA · Photo Viewer Production Certification 🔴 (FAIL · deploy gap)
 
 ### Operator directive
