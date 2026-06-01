@@ -1,6 +1,31 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter446 · Production Deployment + Certification of iter445 package · 🟢 PRODUCTION CERTIFIED · source_hash 269f9269cfbd6399… live on mascidocs.com · 11/11 UX markers in bundle · 5/5 certification gates green · 0 regressions)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter447 · Operational Completeness Audit · 🟡 56 % overall · 22 findings · 10 🔴 CRITICAL · all 11 deliverables shipped · zero code changes · awaiting operator remediation authorization)._
+
+---
+
+### 00 · OMEGA iter447 · Operational Completeness Audit · 11 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `OPERATIONAL_COMPLETENESS_EXECUTIVE_SUMMARY.md` | **Start here.** Operator one-pager · scorecard · 22-finding register · Customer #2 / White Label / Ops Center readiness verdicts (all 🔴) | 🟡 |
+| `OPERATIONAL_WORKFLOW_INVENTORY.md` | 55-workflow inventory (60-row table) with portal · routes · collections · owner roles · lifecycle classification | 🟡 |
+| `OPERATIONAL_LIFECYCLE_MATRIX.md` | Per-action × per-workflow matrix (17 columns including Crt/Vw/Edt/Asn/Rsn/StC/Cls/Reo/Arc/Del/Aud/API/UI/Acc/CC/Prm/Fbk) | 🟡 |
+| `STATUS_VOCABULARY_AUDIT.md` | 18 distinct status vocabularies catalogued · 11 pairwise incompatibilities · consolidation map | 🔴 |
+| `SOURCE_OF_TRUTH_AUDIT.md` | 21 of 55 workflows show source-vs-consumer mismatch · 4 🔴 critical defects | 🔴 |
+| `ROLE_ACTIONABILITY_MATRIX.md` | 9 roles × per-workflow · UI-vs-API gap inventory | 🟡 |
+| `CLOSURE_PATH_AUDIT.md` | 24 of 41 workflows have closure path · 9 cannot exit active list · 11 flag-only · 1 placeholder | 🟡 |
+| `AUDIT_TRAIL_COVERAGE_REPORT.md` | 13 workflows with dedicated audit · 21 flag-only · 7 zero | 🟡 |
+| `COMMAND_CENTER_ACCOUNTABILITY_ALIGNMENT.md` | 9 producer-consumer pairs · 5 mismatches (status vocab + age math) | 🟡 |
+| `USER_TASK_COMPLETION_AUDIT.md` | 6 of 16 user tasks are dead-ends today | 🟡 |
+| `OPERATIONAL_COMPLETENESS_REGISTER.md` | **22 findings register** — OC-001..OC-022 · severity-assigned · phase-grouped (Phase 1A/1B/2/3/4) · Customer #2 / White Label / Ops Center impact per row | 🔴 |
+| `completeness_evidence/` | Route inventory artifacts (260 backend routes · 252 frontend routes) | — |
+
+🔴 **Top 10 operational gaps**: Incident closure · DR office review · QA/QC follow-up · Site Inspection follow-up · Payroll Variance batch finalize · PPE Return (placeholder) · Photo Janitor (placeholder) · JHA acknowledgement ledger · Employee Offboarding multi-step · Audit-trail gaps (11 workflows). Status vocabulary fragmentation (18 vocabs · 11 incompatible) is the cross-cutting blocker for White Label and ForgedOps Operations Center readiness.
+
+🟢 **Strongest surfaces**: PO Requests · Asset Transfers · Dispatch Assignments · Fleet Defects · CAPA · Tasks · Fire Extinguishers · Document Expirations · Employees · Jobs · Suppliers · MFA · Backups · Recovery · Scheduler Runs (iter445). 24 of 41 lifecycle workflows have terminal closure paths.
+
+🛑 **Operator status:** Stopped. Audit-only batch. Recommended remediation order per Executive Summary: Phase 1A (Incident/DR/Payroll closure + cosmetic alignment) → 1B (QA/QC + Inspection follow-up) → 2 (multi-step lifecycles) → 3 (vocab canonicalization) → 4 (audit-trail enrichments). Customer #2 onboarding and White Label and ForgedOps Operations Center should be gated on Phase 1A+1B completion.
 
 ---
 
