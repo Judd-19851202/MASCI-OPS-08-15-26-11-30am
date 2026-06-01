@@ -1,6 +1,28 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter452 · Phase 1A BUILD · OC-002 Daily Report Office Review + OC-007 Payroll Variance Finalization · 🟢 PREVIEW CERTIFIED · 24/24 gates green · 21/21 new pytest green · 38/38 cumulative green · zero regressions · awaiting operator deploy authorization)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · Public-Gate Ownership Forensic Audit + Push Notification Feasibility · 🟡 YELLOW with 🔴 RED systemic gap: field-side accountability not reachable through the platform · 6 evidence-only deliverables · zero code · operator decision required)._
+
+---
+
+### 00 · OMEGA · Public-Gate Ownership Forensic Audit + Push Feasibility · 6 deliverables (2026-06-01)
+
+| File | Purpose | Classification |
+|---|---|---|
+| `DAILY_REPORT_OWNERSHIP_AUDIT.md` | OC-002 evidence: 29 stored fields · `prepared_by` + `superintendent` free text only · NO email/phone/employee_id/portal_user_id/device_id captured · PM resolved via jobs_master · field-submitter unreachable | 🟡 YELLOW |
+| `QAQC_OWNERSHIP_AUDIT.md` | OC-003 evidence: 35 stored fields · NO inspector field · sub-rep is free-text only · NO sub-rep contact · CAPA owned by department string · PM resolved via jobs_master | 🟡 YELLOW |
+| `PUBLIC_GATE_WORKFLOW_ACCOUNTABILITY_REPORT.md` | Cross-workflow rollup · 6 public-gate workflows share the same accountability hole · 1/261 employees have email · 0/261 have phone · push/sms/email channels structurally unimplemented · PM-side GREEN, field-side RED | 🟡 YELLOW + 🔴 systemic |
+| `PUSH_NOTIFICATION_FEASIBILITY_REPORT.md` | iOS Safari requires PWA-install + iOS 16.4+ for push · manifest already configured · 0 push subscriptions in DB · no VAPID config · ~5 weeks engineering for full push+fallback stack | 🟡 feasible-but-expensive |
+| `PUBLIC_GATE_NOTIFICATION_ARCHITECTURE.md` | Target architecture: new `field_submitter_bindings` collection · dispatcher upgrade for delivery_log · 4-tier channel ladder · privacy/retention contract · ~20 backend + ~15 frontend files touched | 🟢 architecturally sound |
+| `REVISION_DELIVERY_OPTIONS.md` | 7 options (A=email/B=SMS/C=push/D=QR/E=PM-relay/F=portal-account/G=unsafe) · recommended tiered stack A→B→C→E · signed-JWT contract · audit-event encoding | 🟢 multiple viable paths |
+
+🔴 **CRITICAL PHASE 1A FINDING:** corrective actions raised through OC-001..OC-005 lifecycle workflows can reach the **office side** (PM/Admin/Safety via in-app bell + PM email) but **cannot reach the field submitter** through the platform. The platform does not capture submitter email/phone/device for any public-gate workflow.
+
+🟡 **Operator decision required:** authorize one of —
+- **Branch A:** Tighten field identity at the public gate (employee dropdown + per-submit contact + directory enrichment)
+- **Branch B:** Add alternative delivery channels (Web Push + SMS + email-tier)
+- **Branch C:** Accept the gap as out-of-Phase-1A and document deferred closure
+
+🛑 **Stopped.** Zero code. Zero design proposals. Evidence and options on the table. Iter453 (OC-003 + OC-004) build authorization is independent of this finding but must factor in whether the operator wants the gap closed in-flight.
 
 ---
 
