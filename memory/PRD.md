@@ -32129,3 +32129,54 @@ OPEN
 
 🛑 **Agent STOPPED.** OC-001 is preview-certified. Production deploy and iter452 (OC-002 + OC-007) are gated on the operator's explicit next authorization.
 
+
+---
+
+# OMEGA iter451 · Pre-Deploy Operational Certification · 2026-06-01
+
+**Authorized batch:** AUTHORIZE ITER451 PRE-DEPLOY OPERATIONAL CERTIFICATION — real-user workflow validation. No code, no fixes, no deployment. Certification only.
+
+**Final verdict:** 🟢 **GO TO DEPLOY**
+
+### Certification scope (operator-mandated 8-axis matrix)
+
+| Axis | Verdict |
+|---|---|
+| Permissions | ✅ 16/16 role probes pass (Safety/Admin/Super-Admin/PM/Anonymous/Field-Leadership) |
+| Audit trail | ✅ 15/15 transitions captured · append-only · field-complete · indexed |
+| OSHA handling | ✅ closure gated on explicit `osha_recordable_ack` (422 without) |
+| CAPA handling | ✅ dedicated `CORRECTIVE_ACTION_REQUIRED` state + `capa_complete` attestation flag |
+| Closure handling | ✅ triple attestation + OSHA ack enforced; partial attestations rejected with named-missing field |
+| Reopen handling | ✅ reason mandatory (≥ 5 chars); `lifecycle_closed_at` cleared; RECLOSE flow proven |
+| UI usability | ✅ panel discoverable above the fold · modals enforce contracts · history drawer surfaces full trail · print-hidden |
+| Operator discoverability | ✅ red shield iconography · color-coded state pill · self-explanatory CTAs |
+
+### Live walkthroughs executed
+
+* **Non-OSHA incident (Safety Manager)** — OPEN → UNDER_INVESTIGATION → CORRECTIVE_ACTION_REQUIRED → PENDING_CLOSURE → CLOSED → REOPEN (with reason) → PENDING_CLOSURE → **RECLOSED**. 7 audit rows written. All transitions returned expected HTTP codes.
+* **OSHA-recordable incident (Super Admin)** — Full path including OSHA-ack gate validation (422 without ack · 200 with) and REOPEN → **RECLOSED** via the OSHA path. 8 audit rows written.
+
+### Deliverables (3 reports + raw evidence)
+
+* `ITER451_OPERATIONAL_CERTIFICATION.md` — 8-axis certification with GO/NO-GO verdict
+* `ITER451_ROLE_VALIDATION.md` — 3-role simulation matrix (Safety Manager · Superintendent→PM-token analog · Super Admin) · 16/16 expectations met
+* `ITER451_USABILITY_REPORT.md` — UI walkthrough · modal-guard verification · operator-discoverability assessment
+* `iter451_cert_evidence/` — Raw curl logs (4 files). UI screenshots rendered inline to operator during the live certification session.
+
+### OMEGA discipline
+
+| Rule | Observed |
+|---|---|
+| Certification only — no code | ✅ Zero LOC changed |
+| No fixes / no redesign / no deployment | ✅ |
+| Production untouched | ✅ All probes ran against preview |
+| Test data cleaned up | ✅ Both incidents + 15 audit rows purged from preview after cert |
+| 3 mandated role simulations | ✅ Safety / Superintendent (PM analog) / Super Admin |
+| Full lifecycle including RECLOSE | ✅ proven on both non-OSHA and OSHA paths |
+
+### Caveat noted in report
+
+The platform does not currently have a dedicated `Superintendent` portal/token; Superintendents are read-only on closure transitions per the iter450 design package and the iter451 operator directive. The `X-PM-Token` is used as the closest analog and is correctly blocked (`role_not_authorized`) — this matches the certified intent. If the operator wants a Superintendent role with bespoke transition rights, that is a Phase 1B request.
+
+🛑 **Agent STOPPED.** OC-001 is operationally certified GO TO DEPLOY. Awaiting operator's explicit production-deploy authorization OR iter452 BUILD authorization (OC-002 + OC-007).
+

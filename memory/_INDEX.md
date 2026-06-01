@@ -1,6 +1,21 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter451 · Phase 1A BUILD · OC-001 Incident Lifecycle · 🟢 PREVIEW CERTIFIED · 12/12 gates green · 17/17 tests green · 5 new files · 2 additive edits · 1238 LOC · zero regressions · awaiting operator deploy authorization)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter451 · Phase 1A BUILD · OC-001 Incident Lifecycle · 🟢 OPERATIONALLY CERTIFIED · GO TO DEPLOY · 3 role simulations green · 16/16 permission probes green · 15/15 live transitions green · UI panel discoverable · awaiting operator deploy authorization)._
+
+---
+
+### 00 · OMEGA iter451 · Phase 1A BUILD · Pre-Deploy Operational Certification · 3 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ITER451_OPERATIONAL_CERTIFICATION.md` | 8-axis pre-deploy operational certification · 15 live transitions across non-OSHA + OSHA incidents · audit-trail integrity · OSHA & CAPA & closure & reopen handling proven · **VERDICT: GO TO DEPLOY** | 🟢 |
+| `ITER451_ROLE_VALIDATION.md` | 3-role simulation (Safety Manager · Superintendent → PM-token analog · Super Admin) · 16/16 permission expectations met · defence-in-depth posture | 🟢 |
+| `ITER451_USABILITY_REPORT.md` | Per-state UI walkthrough · modal-guard verification · history drawer audit-row parity · operator discoverability assessment · no HIGH/BLOCKING findings | 🟢 |
+| `iter451_cert_evidence/` | Raw curl probe logs (01_role_probes · 02_lifecycle_walk · 03_osha_walk · 04_audit_trail). UI screenshots rendered inline to operator during the live session. | — |
+
+🟢 **FINAL VERDICT: GO TO DEPLOY.** OC-001 Incident Lifecycle is operationally certified. All 8 operator-mandated verification axes (permissions · audit · OSHA · CAPA · closure · reopen · UI · discoverability) green. RECLOSE flow proven. Zero code changes this iteration — certification only.
+
+🛑 **Stopped.** Awaiting operator's explicit production-deploy authorization OR iter452 BUILD authorization (OC-002 Daily Report Office Review + OC-007 Payroll Variance Finalization).
 
 ---
 

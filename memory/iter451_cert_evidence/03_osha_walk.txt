@@ -1,0 +1,105 @@
+=== ITER451 OSHA + ADMIN BREAK-GLASS — 2026-06-01T20:04:15Z ===
+## B · OSHA-RECORDABLE INCIDENT · Admin drives (Operations Director / Super Admin role)
+## subject: 02637a7c-d62b-4587-9911-36895488d61d
+
+--- B0. Initial OSHA lifecycle view ---
+{
+    "workflow": "incident",
+    "id": "02637a7c-d62b-4587-9911-36895488d61d",
+    "doc_id": "INC-2026-00128",
+    "lifecycle_state": "OPEN",
+    "lifecycle_updated_at": "",
+    "lifecycle_closed_at": "",
+    "osha_recordable": true,
+    "actor_role": "super_admin",
+    "all_states": [
+        "OPEN",
+        "UNDER_INVESTIGATION",
+        "CORRECTIVE_ACTION_REQUIRED",
+        "PENDING_CLOSURE",
+        "CLOSED"
+    ],
+    "default_state": "OPEN",
+    "legal_next_states": [
+        {
+            "to_state": "UNDER_INVESTIGATION",
+            "allowed_for_actor": true
+        }
+    ]
+}
+
+--- B1. Admin → UNDER_INVESTIGATION (expect 200) ---
+REQ: {"to_state":"UNDER_INVESTIGATION"}
+HTTP 200
+{"ok":true,"id":"02637a7c-d62b-4587-9911-36895488d61d","doc_id":"INC-2026-00128","from_state":"OPEN","to_state":"UNDER_INVESTIGATION","lifecycle_updated_at":"2026-06-01T20:04:15.469900+00:00"}
+
+--- B2. Admin → CORRECTIVE_ACTION_REQUIRED (expect 200) ---
+REQ: {"to_state":"CORRECTIVE_ACTION_REQUIRED"}
+HTTP 200
+{"ok":true,"id":"02637a7c-d62b-4587-9911-36895488d61d","doc_id":"INC-2026-00128","from_state":"UNDER_INVESTIGATION","to_state":"CORRECTIVE_ACTION_REQUIRED","lifecycle_updated_at":"2026-06-01T20:04:15.743371+00:00"}
+
+--- B3. Admin → PENDING_CLOSURE (expect 200) ---
+REQ: {"to_state":"PENDING_CLOSURE"}
+HTTP 200
+{"ok":true,"id":"02637a7c-d62b-4587-9911-36895488d61d","doc_id":"INC-2026-00128","from_state":"CORRECTIVE_ACTION_REQUIRED","to_state":"PENDING_CLOSURE","lifecycle_updated_at":"2026-06-01T20:04:16.006736+00:00"}
+
+--- B4a. Admin → CLOSED (3 flags, missing OSHA ack) (expect 422) ---
+REQ: {"to_state":"CLOSED","evidence":{"investigation_complete":true,"capa_complete":true,"safety_review_complete":true}}
+HTTP 422
+{"detail":{"code":"closure_attestation_missing:osha_recordable_ack","from_state":"PENDING_CLOSURE","to_state":"CLOSED"}}
+
+--- B4b. Admin → CLOSED (with OSHA ack) (expect 200) ---
+REQ: {"to_state":"CLOSED","evidence":{"investigation_complete":true,"capa_complete":true,"safety_review_complete":true,"osha_recordable_ack":true}}
+HTTP 200
+{"ok":true,"id":"02637a7c-d62b-4587-9911-36895488d61d","doc_id":"INC-2026-00128","from_state":"PENDING_CLOSURE","to_state":"CLOSED","lifecycle_updated_at":"2026-06-01T20:04:16.479848+00:00"}
+
+--- B5. Admin → REOPEN (regulatory escalation) (expect 200) ---
+REQ: {"to_state":"UNDER_INVESTIGATION","reason":"OSHA inspector request — additional documentation required."}
+HTTP 200
+{"ok":true,"id":"02637a7c-d62b-4587-9911-36895488d61d","doc_id":"INC-2026-00128","from_state":"CLOSED","to_state":"UNDER_INVESTIGATION","lifecycle_updated_at":"2026-06-01T20:04:16.737739+00:00"}
+
+--- B6. Illegal direct OPEN→CLOSED skip (expect 422) ---
+REQ: {"to_state":"CLOSED","evidence":{"investigation_complete":true,"capa_complete":true,"safety_review_complete":true,"osha_recordable_ack":true}}
+HTTP 422
+{"detail":{"code":"transition_not_allowed","from_state":"UNDER_INVESTIGATION","to_state":"CLOSED"}}
+
+--- B7a. Admin → CORRECTIVE_ACTION_REQUIRED (expect 200) ---
+REQ: {"to_state":"CORRECTIVE_ACTION_REQUIRED"}
+HTTP 200
+{"ok":true,"id":"02637a7c-d62b-4587-9911-36895488d61d","doc_id":"INC-2026-00128","from_state":"UNDER_INVESTIGATION","to_state":"CORRECTIVE_ACTION_REQUIRED","lifecycle_updated_at":"2026-06-01T20:04:17.206285+00:00"}
+
+--- B7b. Admin → PENDING_CLOSURE (expect 200) ---
+REQ: {"to_state":"PENDING_CLOSURE"}
+HTTP 200
+{"ok":true,"id":"02637a7c-d62b-4587-9911-36895488d61d","doc_id":"INC-2026-00128","from_state":"CORRECTIVE_ACTION_REQUIRED","to_state":"PENDING_CLOSURE","lifecycle_updated_at":"2026-06-01T20:04:17.478938+00:00"}
+
+--- B7c. Admin → CLOSED (RECLOSE w/ OSHA ack) (expect 200) ---
+REQ: {"to_state":"CLOSED","evidence":{"investigation_complete":true,"capa_complete":true,"safety_review_complete":true,"osha_recordable_ack":true}}
+HTTP 200
+{"ok":true,"id":"02637a7c-d62b-4587-9911-36895488d61d","doc_id":"INC-2026-00128","from_state":"PENDING_CLOSURE","to_state":"CLOSED","lifecycle_updated_at":"2026-06-01T20:04:17.738765+00:00"}
+
+--- B8. POST-RECLOSE LIFECYCLE STATE (OSHA) ---
+{
+    "workflow": "incident",
+    "id": "02637a7c-d62b-4587-9911-36895488d61d",
+    "doc_id": "INC-2026-00128",
+    "lifecycle_state": "CLOSED",
+    "lifecycle_updated_at": "2026-06-01T20:04:17.738765+00:00",
+    "lifecycle_closed_at": "2026-06-01T20:04:17.738765+00:00",
+    "osha_recordable": true,
+    "actor_role": "super_admin",
+    "all_states": [
+        "OPEN",
+        "UNDER_INVESTIGATION",
+        "CORRECTIVE_ACTION_REQUIRED",
+        "PENDING_CLOSURE",
+        "CLOSED"
+    ],
+    "default_state": "OPEN",
+    "legal_next_states": [
+        {
+            "to_state": "UNDER_INVESTIGATION",
+            "allowed_for_actor": true
+        }
+    ]
+}

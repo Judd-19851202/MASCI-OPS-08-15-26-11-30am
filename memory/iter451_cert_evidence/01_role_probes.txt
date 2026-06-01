@@ -1,0 +1,47 @@
+=== ITER451 ROLE VALIDATION PROBES — 2026-06-01T20:03:23Z ===
+
+--- P1. Unauthenticated (no token) (expect 401) ---
+HTTP 401
+{"detail":"Safety, Admin, or PM login required"}
+
+--- P2. PM token transition (expect 403) ---
+HTTP 403
+{"detail":{"code":"role_not_authorized"}}
+
+--- P3. Field-Leadership token only (expect 401) ---
+HTTP 401
+{"detail":"Safety, Admin, or PM login required"}
+
+--- P4. Safety token (Safety Manager) (expect 200) ---
+HTTP 200
+{"ok":true,"id":"a0bd8bb5-86a2-4923-97e2-188c9146f86f","doc_id":"INC-2026-00127","from_state":"OPEN","to_state":"UNDER_INVESTIGATION","lifecycle_updated_at":"2026-06-01T20:03:25.027310+00:00"}
+
+--- POST-P4 LIFECYCLE STATE ---
+{
+    "workflow": "incident",
+    "id": "a0bd8bb5-86a2-4923-97e2-188c9146f86f",
+    "doc_id": "INC-2026-00127",
+    "lifecycle_state": "UNDER_INVESTIGATION",
+    "lifecycle_updated_at": "2026-06-01T20:03:25.027310+00:00",
+    "lifecycle_closed_at": "",
+    "osha_recordable": false,
+    "actor_role": "safety",
+    "all_states": [
+        "OPEN",
+        "UNDER_INVESTIGATION",
+        "CORRECTIVE_ACTION_REQUIRED",
+        "PENDING_CLOSURE",
+        "CLOSED"
+    ],
+    "default_state": "OPEN",
+    "legal_next_states": [
+        {
+            "to_state": "CORRECTIVE_ACTION_REQUIRED",
+            "allowed_for_actor": true
+        },
+        {
+            "to_state": "PENDING_CLOSURE",
+            "allowed_for_actor": true
+        }
+    ]
+}

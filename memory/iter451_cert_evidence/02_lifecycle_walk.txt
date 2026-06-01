@@ -1,0 +1,84 @@
+=== ITER451 FULL LIFECYCLE WALK — 2026-06-01T20:03:45Z ===
+## A · NON-OSHA INCIDENT · Safety Manager full lifecycle
+## subject: a0bd8bb5-86a2-4923-97e2-188c9146f86f
+
+--- A2. Safety → CORRECTIVE_ACTION_REQUIRED (expect 200) ---
+REQ: {"to_state":"CORRECTIVE_ACTION_REQUIRED"}
+HTTP 200
+{"ok":true,"id":"a0bd8bb5-86a2-4923-97e2-188c9146f86f","doc_id":"INC-2026-00127","from_state":"UNDER_INVESTIGATION","to_state":"CORRECTIVE_ACTION_REQUIRED","lifecycle_updated_at":"2026-06-01T20:03:45.766880+00:00"}
+
+--- A3. Safety → PENDING_CLOSURE (expect 200) ---
+REQ: {"to_state":"PENDING_CLOSURE"}
+HTTP 200
+{"ok":true,"id":"a0bd8bb5-86a2-4923-97e2-188c9146f86f","doc_id":"INC-2026-00127","from_state":"CORRECTIVE_ACTION_REQUIRED","to_state":"PENDING_CLOSURE","lifecycle_updated_at":"2026-06-01T20:03:46.052093+00:00"}
+
+--- A4a. Safety → CLOSED (no attestations) (expect 422) ---
+REQ: {"to_state":"CLOSED"}
+HTTP 422
+{"detail":{"code":"closure_attestation_missing:investigation_complete","from_state":"PENDING_CLOSURE","to_state":"CLOSED"}}
+
+--- A4b. Safety → CLOSED (partial attestations) (expect 422) ---
+REQ: {"to_state":"CLOSED","evidence":{"investigation_complete":true}}
+HTTP 422
+{"detail":{"code":"closure_attestation_missing:capa_complete","from_state":"PENDING_CLOSURE","to_state":"CLOSED"}}
+
+--- A4c. Safety → CLOSED (full attestations) (expect 200) ---
+REQ: {"to_state":"CLOSED","evidence":{"investigation_complete":true,"capa_complete":true,"safety_review_complete":true}}
+HTTP 200
+{"ok":true,"id":"a0bd8bb5-86a2-4923-97e2-188c9146f86f","doc_id":"INC-2026-00127","from_state":"PENDING_CLOSURE","to_state":"CLOSED","lifecycle_updated_at":"2026-06-01T20:03:46.881888+00:00"}
+
+--- A5a. PM → REOPEN (expect 403 role gate) (expect 403) ---
+REQ: {"to_state":"UNDER_INVESTIGATION","reason":"Trying to reopen as PM."}
+HTTP 403
+{"detail":{"code":"role_not_authorized"}}
+
+--- A5b. Safety → REOPEN (no reason) (expect 422) ---
+REQ: {"to_state":"UNDER_INVESTIGATION"}
+HTTP 422
+{"detail":{"code":"reopen_reason_required","from_state":"CLOSED","to_state":"UNDER_INVESTIGATION"}}
+
+--- A5c. Safety → REOPEN (short reason) (expect 422) ---
+REQ: {"to_state":"UNDER_INVESTIGATION","reason":"oops"}
+HTTP 422
+{"detail":{"code":"reopen_reason_required","from_state":"CLOSED","to_state":"UNDER_INVESTIGATION"}}
+
+--- A5d. Safety → REOPEN (valid reason) (expect 200) ---
+REQ: {"to_state":"UNDER_INVESTIGATION","reason":"New witness statement contradicts original finding."}
+HTTP 200
+{"ok":true,"id":"a0bd8bb5-86a2-4923-97e2-188c9146f86f","doc_id":"INC-2026-00127","from_state":"CLOSED","to_state":"UNDER_INVESTIGATION","lifecycle_updated_at":"2026-06-01T20:03:47.894987+00:00"}
+
+--- A6. Safety → PENDING_CLOSURE (post-reopen) (expect 200) ---
+REQ: {"to_state":"PENDING_CLOSURE"}
+HTTP 200
+{"ok":true,"id":"a0bd8bb5-86a2-4923-97e2-188c9146f86f","doc_id":"INC-2026-00127","from_state":"UNDER_INVESTIGATION","to_state":"PENDING_CLOSURE","lifecycle_updated_at":"2026-06-01T20:03:48.183380+00:00"}
+
+--- A7. Safety → CLOSED again (RECLOSE) (expect 200) ---
+REQ: {"to_state":"CLOSED","evidence":{"investigation_complete":true,"capa_complete":true,"safety_review_complete":true}}
+HTTP 200
+{"ok":true,"id":"a0bd8bb5-86a2-4923-97e2-188c9146f86f","doc_id":"INC-2026-00127","from_state":"PENDING_CLOSURE","to_state":"CLOSED","lifecycle_updated_at":"2026-06-01T20:03:48.475549+00:00"}
+
+--- A8. POST-RECLOSE STATE ---
+{
+    "workflow": "incident",
+    "id": "a0bd8bb5-86a2-4923-97e2-188c9146f86f",
+    "doc_id": "INC-2026-00127",
+    "lifecycle_state": "CLOSED",
+    "lifecycle_updated_at": "2026-06-01T20:03:48.475549+00:00",
+    "lifecycle_closed_at": "2026-06-01T20:03:48.475549+00:00",
+    "osha_recordable": false,
+    "actor_role": "safety",
+    "all_states": [
+        "OPEN",
+        "UNDER_INVESTIGATION",
+        "CORRECTIVE_ACTION_REQUIRED",
+        "PENDING_CLOSURE",
+        "CLOSED"
+    ],
+    "default_state": "OPEN",
+    "legal_next_states": [
+        {
+            "to_state": "UNDER_INVESTIGATION",
+            "allowed_for_actor": true
+        }
+    ]
+}
