@@ -345,7 +345,10 @@ def test_full_lifecycle_with_reopen(fresh_incident, admin_headers):
     )
     assert r.status_code == 200, r.text
 
-    # Verify audit history — 5 transitions written
+    # Verify audit history — 5 lifecycle transitions written.
+    # iter452.5 introduces delivery-evidence rows (notification_*,
+    # revision_link_*) in the same audit collection; filter them out
+    # for the transition-count assertion.
     r = requests.get(
         f"{API}/incidents/{fresh_incident}/state-events",
         headers=admin_headers, timeout=15,
@@ -353,13 +356,17 @@ def test_full_lifecycle_with_reopen(fresh_incident, admin_headers):
     assert r.status_code == 200
     rows = r.json()
     assert isinstance(rows, list)
-    assert len(rows) == 5
+    lifecycle_rows = [
+        x for x in rows
+        if not (x.get("evidence") or {}).get("delivery_event")
+    ]
+    assert len(lifecycle_rows) == 5
     # Newest first
-    assert rows[0]["to_state"] == "UNDER_INVESTIGATION"
-    assert rows[0]["from_state"] == "CLOSED"
-    assert rows[0]["reason"].startswith("New witness")
+    assert lifecycle_rows[0]["to_state"] == "UNDER_INVESTIGATION"
+    assert lifecycle_rows[0]["from_state"] == "CLOSED"
+    assert lifecycle_rows[0]["reason"].startswith("New witness")
     # All transitions carry actor info
-    for row in rows:
+    for row in lifecycle_rows:
         assert row["actor_role"] in {"admin", "super_admin", "safety"}
         assert "at" in row
 

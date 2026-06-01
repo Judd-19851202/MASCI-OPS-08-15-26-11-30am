@@ -648,6 +648,28 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             doc.pop("_id", None)
             schedule_auto_email("incident", doc)
 
+            # iter452.5 Tier 1 · Field Submitter Identity binding.
+            # The form may send: submitter_employee_id, submitter_email_at_submit,
+            # submitter_consent_at. All optional — legacy submissions get a
+            # legacy_submitter=True binding row so kickback routing degrades
+            # gracefully to PM-relay.
+            try:
+                from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
+                p = payload.model_dump()
+                await resolve_identity(
+                    db,
+                    workflow="incident",
+                    record_id=doc.get("id") or "",
+                    record_doc_id=doc.get("doc_id") or "",
+                    project_number=doc.get("project_number") or "",
+                    submitter_employee_id=str(p.get("submitter_employee_id") or "").strip(),
+                    submitter_email_at_submit=str(p.get("submitter_email_at_submit") or "").strip(),
+                    submitter_consent_at=p.get("submitter_consent_at"),
+                    submitter_name_fallback=str(p.get("reported_by") or "").strip(),
+                )
+            except Exception:  # pragma: no cover — best-effort audit
+                pass
+
             # Phase E · Cross-system fan-out — incidents must trigger
             # corrective follow-up tasks + safety notifications. Fire-and-forget;
             # safety form save NEVER blocks on fan-out failure.

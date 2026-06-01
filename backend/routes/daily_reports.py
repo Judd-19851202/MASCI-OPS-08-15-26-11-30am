@@ -269,6 +269,25 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             except Exception:
                 pass  # never block a submit on indexing
             schedule_auto_email("daily-report", doc)
+
+            # iter452.5 Tier 1 · Field Submitter Identity binding.
+            try:
+                from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
+                p = payload.model_dump()
+                await resolve_identity(
+                    db,
+                    workflow="daily_report",
+                    record_id=doc.get("id") or "",
+                    record_doc_id=doc.get("doc_id") or "",
+                    project_number=doc.get("project_number") or "",
+                    submitter_employee_id=str(p.get("submitter_employee_id") or "").strip(),
+                    submitter_email_at_submit=str(p.get("submitter_email_at_submit") or "").strip(),
+                    submitter_consent_at=p.get("submitter_consent_at"),
+                    submitter_name_fallback=str(p.get("prepared_by") or "").strip(),
+                )
+            except Exception:  # pragma: no cover — best-effort audit
+                pass
+
             return DailyReport(**report_dict)
 
         return await with_idempotency(db, key, {"role": "public"}, _do_create)

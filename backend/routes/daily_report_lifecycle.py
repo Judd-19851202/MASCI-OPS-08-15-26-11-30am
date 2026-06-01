@@ -154,6 +154,38 @@ def register_daily_report_lifecycle_routes(
             except Exception:
                 pass
 
+        # iter452.5 Tier 1 · Field Submitter Identity kickback dispatch.
+        # On PENDING_REVIEW → OPEN ("kicked back to field") send the
+        # submitter a signed /revise/{token} email and emit the full
+        # delivery-evidence chain so Phase 1B can prove the loop closed.
+        if from_state == "PENDING_REVIEW" and to_state == "OPEN":
+            try:
+                from lib.field_submitter_identity import (  # noqa: PLC0415
+                    get_binding, notify_field_submitter,
+                )
+                from lib.fsi_email_sender import fsi_send_email  # noqa: PLC0415
+                binding = await get_binding(
+                    db, workflow=WORKFLOW, record_id=canonical_id,
+                )
+                if binding:
+                    import os as _os  # noqa: PLC0415
+                    base = (_os.environ.get("PUBLIC_BASE_URL")
+                            or _os.environ.get("FRONTEND_BASE_URL") or "").strip()
+                    project_label = doc.get("project_name") or doc.get("project_number") or "—"
+                    await notify_field_submitter(
+                        db,
+                        workflow=WORKFLOW,
+                        record_id=canonical_id,
+                        record_doc_id=doc_id,
+                        binding=binding,
+                        subject=f"[MASCI] Daily Report revision needed — {project_label}",
+                        reason_text=(reason or "The office needs you to revise this Daily Report."),
+                        public_base_url=base,
+                        send_email_fn=fsi_send_email,
+                    )
+            except Exception:
+                pass
+
         return {
             "ok": True,
             "id": canonical_id,

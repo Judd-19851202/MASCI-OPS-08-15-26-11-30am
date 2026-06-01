@@ -2101,6 +2101,21 @@ register_daily_report_lifecycle_routes(
 )
 
 
+# ─── OMEGA · iter452.5 · Tier 1 · Field Submitter Identity (FSI) ────
+#     Shared platform service. Public-gate submissions can now anchor
+#     to an employee directory entry + per-submit reachable email so
+#     correction emails reach the responsible party. Signed JWT links
+#     enable a passwordless `/revise/:token` revision flow. Full
+#     six-event delivery-evidence chain is written into the existing
+#     workflow_state_events collection so Phase 1B can prove the
+#     accountability loop closed end-to-end.
+from routes.field_revision import register_field_revision_routes  # noqa: E402
+_fsi_ctx = register_field_revision_routes(
+    api_router, db,
+    send_email_fn=None,  # late-bound below once _safety_send_email exists
+)
+
+
 # QA/QC inspection routes (Concrete Form / Rebar / Subcontractor Work).
 # Same pattern as the Safety routes — single registration helper, late-bound
 # auto-email so PM routing fires after submit.
@@ -9499,6 +9514,9 @@ async def _arm_workflow_state_events_indexes():
         # iter452 — lifecycle_state on daily_reports and payroll_variance_batches
         await db.daily_reports.create_index("lifecycle_state")
         await db.payroll_variance_batches.create_index("lifecycle_state")
+        # iter452.5 — Field Submitter Identity bindings indexes.
+        from lib.field_submitter_identity import ensure_indexes as _fsi_idx  # noqa: PLC0415
+        await _fsi_idx(db)
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[workflow_state_events] index: {e}")
 

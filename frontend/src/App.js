@@ -29,6 +29,7 @@ import NewQaqcInspection from "@/pages/NewQaqcInspection";
 import ViewQaqcInspection from "@/pages/ViewQaqcInspection";
 import AdminQaqcList from "@/pages/AdminQaqcList";
 import Dashboard from "@/pages/Dashboard";
+import Revise from "@/pages/Revise";
 import NewInspection from "@/pages/NewInspection";
 import ViewInspection from "@/pages/ViewInspection";
 import ThankYou from "@/pages/ThankYou";
@@ -293,6 +294,7 @@ function App() {
           <Routes>
             {/* MASCI Hub — public */}
             <Route path="/" element={<Hub />} />
+            <Route path="/revise/:token" element={<Revise />} />
             <Route path="/safety" element={<SafetySection />} />
             <Route path="/safety/forms/login" element={<SafetyFormsLogin />} />
             <Route path="/safety/forms" element={<SafetyFormsHub />} />

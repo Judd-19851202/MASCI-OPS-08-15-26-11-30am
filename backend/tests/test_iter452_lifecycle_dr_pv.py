@@ -313,14 +313,19 @@ def test_dr_full_lifecycle(fresh_dr, admin_headers):
     )
     assert r.status_code == 200
 
-    # Audit
+    # Audit — filter out iter452.5 delivery-evidence rows so the
+    # lifecycle transition count remains the contract under test.
     r = requests.get(f"{API}/daily-reports/{fresh_dr}/state-events",
                      headers=admin_headers, timeout=15)
     assert r.status_code == 200
     rows = r.json()
-    assert len(rows) == 6
-    assert rows[0]["to_state"] == "PENDING_REVIEW"
-    assert rows[0]["reason"].startswith("Discovered missing")
+    lifecycle_rows = [
+        x for x in rows
+        if not (x.get("evidence") or {}).get("delivery_event")
+    ]
+    assert len(lifecycle_rows) == 6
+    assert lifecycle_rows[0]["to_state"] == "PENDING_REVIEW"
+    assert lifecycle_rows[0]["reason"].startswith("Discovered missing")
 
 
 def test_dr_lifecycle_view(fresh_dr, admin_headers):

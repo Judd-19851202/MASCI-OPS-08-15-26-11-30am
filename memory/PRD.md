@@ -1,6 +1,55 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-01 (fork · iter452.5) — OMEGA · Tier 1 Field Submitter Identity SHIPPED 🟢
+
+### Operator authorization (verbatim)
+> "PROCEED WITH ITER452 PRODUCTION DEPLOY. PROCEED WITH ITER452.5 TIER 1 ONLY. ITER453 DESIGN AUTHORIZED IN PARALLEL. ITER453 BUILD AUTHORIZED WHEN ITER452.5 REACHES DAY-9 GATE. DO NOT EXPAND INTO TIER 2 (SMS/PUSH/PWA) UNTIL PHASE 1A WORKFLOW COMPLETENESS IS ACHIEVED. PRESERVE DELIVERY-EVIDENCE CAPABILITY IN THE TIER 1 DESIGN SO PHASE 1B CAN PROVE ACCOUNTABILITY CHAIN COMPLETION."
+
+### What was delivered (this batch)
+* **R1 (Foundations)** — `backend/lib/field_submitter_identity.py` (408 LOC · `resolve_identity` + JWT mint/verify + 6-event delivery-evidence taxonomy + `notify_field_submitter` orchestration) and `backend/lib/fsi_email_sender.py` (Resend wrapper · house-style). New `field_submitter_bindings` collection with 3 indexes registered at startup.
+* **R2 (Email + Revise route)** — `backend/routes/field_revision.py` (`GET/POST /api/revise/{token}` · `GET /api/projects/{num}/team` · `GET /api/admin/field-submitter-bindings`). Email dispatcher wired through the existing Resend integration. Six events written into `workflow_state_events` per kickback: dispatch_attempted → dispatch_succeeded → revision_link_issued → revision_link_consumed → revision_saved.
+* **R3 (Shared form)** — `frontend/src/components/FieldSubmitterIdentityForm.jsx` (employee dropdown + per-submit email + consent block; uses axios to sidestep Sentry’s fetch body-reader).
+* **R4 (Retrofit OC-001 + OC-002)** — `routes/safety.py::create_incident` and `routes/daily_reports.py::create_daily_report` now call `resolve_identity()` after insert. `routes/daily_report_lifecycle.py` PENDING_REVIEW→OPEN kickback and `routes/incident_lifecycle.py` UI→CAR / CLOSED→UI reopen now emit `notify_field_submitter()`.
+* **R5 (Legacy shim)** — submissions without identity fields produce a `legacy_submitter=True` binding row so kickback degrades to PM-relay.
+* **R-CERT** — `backend/tests/test_iter452_5_field_submitter_identity.py` (6 unit + 8 integration). Two prior iter451/iter452 tests updated to filter delivery-evidence rows from the lifecycle-transition count.
+* **Frontend** — `pages/Revise.jsx` + `/revise/:token` route registered in `App.js`.
+
+### Test results
+* iter451 (incident lifecycle) — 17/17 🟢
+* iter452 (DR + Payroll Variance lifecycle) — 21/21 🟢
+* iter452.5 (Field Submitter Identity Tier 1) — 14/14 🟢
+* **Cumulative: 52/52 🟢**
+
+### Delivery-evidence chain (operator directive #6)
+The scoping doc named three event kinds. The taxonomy was expanded to six so Phase 1B can prove the full loop end-to-end without schema work:
+
+  1. `notification_dispatch_attempted`
+  2. `notification_dispatch_succeeded`
+  3. `notification_dispatch_failed`
+  4. `revision_link_issued`
+  5. `revision_link_consumed`
+  6. `revision_saved`
+
+All six are written to the existing `workflow_state_events` collection (`evidence.delivery_event = <kind>` + `binding_id` linkage). Phase 1B query: `find({workflow, record_id, "evidence.delivery_event": {$exists: true}}).sort({at:1})`.
+
+### Tier 2 explicitly frozen (8/8 components absent)
+No Twilio · no VAPID · no service-worker push · no phone-capture field · no PWA install flow · no per-employee channel preference UI · no device-revocation endpoints · no advanced opt-out audit.
+
+### iter453 BUILD unblocking
+Day-9 gate cleared (R1+R2+R3 preview-ready). iter453 (OC-003 QA/QC Follow-Up + OC-004 Site Inspection Follow-Up) BUILD authorized to commence; iter453 design may run in parallel from now.
+
+### Status
+🛑 Stopped. Awaiting operator: (a) iter452.5 production-deploy authorization, AND/OR (b) explicit "PROCEED WITH ITER453 BUILD" message.
+
+---
+
+## 2026-06-01 (fork · iter452.5 scoping) — OMEGA · Tier 1 / Tier 2 split delivered 🟢 Recommendation: Tier 1 only for Phase 1A
+[Design-only addendum. Superseded by the iter452.5 implementation above. Reference: `ITER452_5_TIER1_TIER2_SCOPING.md`.]
+
+---
+
+
 
 ## 2026-06-01 (fork · iter449) — OMEGA · PCP Phase 1A Pre-Build Priority Validation 🟡 Scope challenge issued
 

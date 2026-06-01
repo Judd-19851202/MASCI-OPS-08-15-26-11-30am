@@ -1,6 +1,30 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · iter452.5 Tier 1 / Tier 2 Scoping Addendum · 🟢 Tier 1 realistic ~13.75 d (~2.75 wk) · Tier 1+Tier 2 realistic ~33.75 d (~6.75 wk) · iter453 BUILD safely starts on Day 9 of iter452.5 · awaiting operator GO/NO-GO authorization)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · iter452.5 Tier 1 SHIPPED · 🟢 Field Submitter Identity service live in preview · 6-event delivery-evidence chain · 52/52 pytest green · iter453 BUILD authorized at Day-9 gate · iter452 production deploy awaiting operator · Tier 2 frozen)._
+
+---
+
+### 00 · OMEGA · iter452.5 Tier 1 BUILD SHIPPED · 3 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ITER452_5_BUILD_KICKOFF.md` | Build kickoff capturing 6 operator authorizations · delivery-evidence taxonomy addendum (3 → 6 event kinds) · R1..R5+R-CERT plan · Tier-2 exclusion inventory | 🟢 |
+| `ITER452_5_TIER1_TIER2_SCOPING.md` | Pre-build scoping addendum to the Public-Gate Remediation Plan · Tier 1 vs Tier 2 split · iter453 safe-start matrix · final estimates | 🟢 reference |
+| `ITER452_5_IMPLEMENTATION_REPORT.md` | What shipped · 6 new + 7 additive edits · 1 new collection · 14 new pytest (6 unit · 8 integration) · 52/52 cumulative green · Tier-2 frozen 8/8 · Day-9 gate cleared | 🟢 |
+
+🟢 **Backend shipped:** `lib/field_submitter_identity.py` (core lib · resolve_identity · JWT mint/verify · 6-event chain) + `lib/fsi_email_sender.py` (Resend wrapper) + `routes/field_revision.py` (`/api/revise/{token}` · project team helper · admin bindings list).
+
+🟢 **Frontend shipped:** `components/FieldSubmitterIdentityForm.jsx` (shared dropdown + email + consent block) + `pages/Revise.jsx` (passwordless `/revise/:token` page · uses axios to sidestep Sentry's fetch body-reader).
+
+🟢 **Database:** new `field_submitter_bindings` collection with unique `(workflow, record_id)` index + employee + project indexes (idempotent at startup).
+
+🟢 **Delivery-evidence taxonomy (operator directive #6):** `notification_dispatch_attempted` · `_succeeded` · `_failed` · `revision_link_issued` · `_consumed` · `revision_saved` — all written to existing `workflow_state_events` collection under `evidence.delivery_event`. Phase 1B can prove the chain closed end-to-end with a one-liner aggregation.
+
+🟢 **Tier 2 discipline:** 8/8 components confirmed absent (no Twilio · no VAPID · no SW push · no phone field · no PWA install · no preference UI · no device-revocation · no per-employee channel prefs).
+
+🟢 **Day-9 gate cleared:** R1+R2+R3 preview-ready → iter453 BUILD authorized to commence per operator directive #4.
+
+🛑 **Stopped.** Awaiting operator's iter452.5 production-deploy authorization OR explicit "PROCEED WITH ITER453 BUILD" (OC-003 QA/QC + OC-004 Site Inspection Follow-Up · inherits Tier-1 service natively).
 
 ---
 

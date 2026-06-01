@@ -143,6 +143,48 @@ def register_incident_lifecycle_routes(
             request=request,
         )
 
+        # iter452.5 Tier 1 · Field Submitter Identity kickback dispatch.
+        # Trigger correction email to the original incident reporter on:
+        #   * UNDER_INVESTIGATION → CORRECTIVE_ACTION_REQUIRED  (act on it)
+        #   * CLOSED              → UNDER_INVESTIGATION         (reopen)
+        kick = (
+            (from_state == "UNDER_INVESTIGATION" and to_state == "CORRECTIVE_ACTION_REQUIRED")
+            or (from_state == "CLOSED" and to_state == "UNDER_INVESTIGATION")
+        )
+        if kick:
+            try:
+                from lib.field_submitter_identity import (  # noqa: PLC0415
+                    get_binding, notify_field_submitter,
+                )
+                from lib.fsi_email_sender import fsi_send_email  # noqa: PLC0415
+                binding = await get_binding(
+                    db, workflow=WORKFLOW, record_id=canonical_id,
+                )
+                if binding:
+                    import os as _os  # noqa: PLC0415
+                    base = (_os.environ.get("PUBLIC_BASE_URL")
+                            or _os.environ.get("FRONTEND_BASE_URL") or "").strip()
+                    project_label = doc.get("project_name") or doc.get("project_number") or "—"
+                    if from_state == "CLOSED":
+                        subj = f"[MASCI] Incident reopened — {project_label}"
+                        reason_text = reason or "The incident has been reopened. Please review."
+                    else:
+                        subj = f"[MASCI] Incident corrective action requested — {project_label}"
+                        reason_text = reason or "Corrective action is required for this incident."
+                    await notify_field_submitter(
+                        db,
+                        workflow=WORKFLOW,
+                        record_id=canonical_id,
+                        record_doc_id=doc_id,
+                        binding=binding,
+                        subject=subj,
+                        reason_text=reason_text,
+                        public_base_url=base,
+                        send_email_fn=fsi_send_email,
+                    )
+            except Exception:
+                pass
+
         return {
             "ok": True,
             "id": canonical_id,
