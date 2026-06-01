@@ -1,6 +1,6 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Production Observation Audit · 🟡 AMBER · Sprint 1C/1D live on prod with no regressions · 1 ownership-projection mismatch + recovery-pill AMBER are next-batch candidates)._
+_30-second orientation map for future agents and forks · 2026-05-31 (last updated 2026-02-27 — OMEGA Sprint 1F · Production Maturity Patch · 🟢 P0 owner-resolution PATCHED · 🟢 P1 DR drill 5.1 min PASS · 🟡 P2 R2 governance recommendations issued · 🟢 P3 usage_events closed by prior remediation)._
 
 **Read this first.** Use the section headings to find the doctrine
 domain you need, then open the file(s) under it. Do NOT grep blindly
@@ -12,6 +12,20 @@ across 500 docs — the platform has strict domain boundaries.
 ---
 
 
+
+### 00 · OMEGA Sprint 1F · Production Maturity Patch · 6 deliverables (2026-02-27)
+
+| File | Purpose | Status |
+|---|---|---|
+| `OWNER_RESOLUTION_PATCH_REPORT.md` | P0 · root cause + surgical patch +8/-2 LOC for the Command Center JOBS-DR-MISSING owner resolver (legacy `project_manager` field now read) + 6-case regression suite | 🟢 |
+| `OWNER_RESOLUTION_CERTIFICATION.md` | P0 · GO/NO-GO cert · 46/46 pass · job 24-06 displays David Jewett · LOW × 4 risk · <60s rollback | 🟢 GO TO DEPLOY |
+| `DR_DRILL_REPORT.md` | P1 · automated drill `6db3c618ce69` · 10/10 axes GREEN · 5.10 min · 24,152 records · 678 photos rehydrated | 🟢 |
+| `RECOVERY_CERTIFICATION_UPDATE.md` | P1 · preview recovery dashboard RTO transitioned AMBER → GREEN · prod dashboard activation deferred to operator | 🟢 |
+| `R2_STORAGE_GOVERNANCE_REPORT.md` | P2 · audit-only · 91.49 GB above 50 GB ALERT · cadence ~6.5× config · 3 recommended options (A: raise thresholds · B: rationalize cadence · C: class-tier migration) | 🟡 AMBER |
+| `USAGE_EVENTS_FAILURE_ANALYSIS.md` | P3 · audit-only · May 25 failures closed by iter428 (sort removal) + iter441 (collection exclusion) · `allow_disk_use=True` recommendation OBSOLETE | 🟢 |
+| `DRILL_6db3c618ce69_REPORT.md` | Auto-generated per-drill artifact (axes table + restore counters + cleanup) | 🟢 |
+
+🟢 **Headline**: Production Maturity Patch closes the four highest-value findings from the Production Observation Audit. P0 owner-resolution defect surgically patched (8 LOC) and certified GO-TO-DEPLOY (preview-verified, job 24-06 now displays David Jewett; pre-existing 40 CC+owner-fidelity tests all pass alongside 6 new tests). P1 DR drill executed end-to-end against a production-origin R2 archive in 5.10 min (66 % under 15 min RTO target), all 10 verification axes green, drill DB cleanly dropped, drill_runs row written to preview Mongo (production-dashboard activation is the only outstanding operator-side step). P2 R2 governance: bucket at 91.49 GB explained by ~13/day cadence (6.5× the configured 2/day) — three reversible options offered for next batch authorization. P3 usage_events failure analysis: the May 25 failures are pre-iter441 historical artifacts; the platform already has the optimal fix (sort removal + collection exclusion); no code change required.
 
 ### 00 · OMEGA Production Observation Audit · 3 deliverables (2026-02-27 · prod-time 2026-06-01T01:14Z)
 

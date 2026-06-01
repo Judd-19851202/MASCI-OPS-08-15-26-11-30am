@@ -310,7 +310,7 @@ async def _build_jobs_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
             {"project_number": {"$ne": None}},
         ]},
         {"_id": 0, "project_number": 1, "project_name": 1, "primary_pm_email": 1,
-         "primary_pm_name": 1, "id": 1},
+         "primary_pm_name": 1, "project_manager": 1, "pm_email": 1, "id": 1},
     )
     active_jobs = await active_jobs_cursor.to_list(length=500)
 
@@ -330,7 +330,13 @@ async def _build_jobs_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
                 dr_missing_examples.append({
                     "what_wrong": f"No daily report filed for {pn} in last {lookback_hours}h",
                     "why_red": f"Rule JOBS-DR-MISSING · threshold AMBER {r_dr['amber']} / RED {r_dr['red']}",
-                    "owner": job.get("primary_pm_name") or job.get("primary_pm_email") or "Unassigned PM",
+                    "owner": (
+                        job.get("primary_pm_name")
+                        or job.get("project_manager")
+                        or job.get("primary_pm_email")
+                        or job.get("pm_email")
+                        or "Unassigned PM"
+                    ),
                     "current_status": "DR missing",
                     "eta": "Same day",
                     "drill_to": f"/admin/jobs?project_number={pn}",

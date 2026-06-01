@@ -1,0 +1,31 @@
+=== P2 · R2 Storage Governance Probe (read-only) ===
+Timestamp: 2026-06-01T02:00:24Z
+
+--- Recovery snapshot · bucket usage detail ---
+  bucket_usage:
+    gb: 91.49
+    warn_gb: 45.0
+    alert_gb: 50.0
+    status: AMBER
+    ts: 2026-06-01T01:07:54.711503+00:00
+
+  archive_count (last_7d / last_30d / total): {'r2_total': 94, 'last_7d': 94, 'last_30d': 94}
+
+  archive_size_trend type: list
+  archive_size_trend entries: 30
+   · {'ts': '2026-05-30T14:26:29.003091+00:00', 'size_mb': 442.67, 'records': 283983}
+   · {'ts': '2026-05-30T15:11:13.501398+00:00', 'size_mb': 442.76, 'records': 284295}
+   · {'ts': '2026-05-30T16:33:18.900839+00:00', 'size_mb': 442.91, 'records': 284884}
+   · {'ts': '2026-05-30T19:42:51.287498+00:00', 'size_mb': 443.26, 'records': 286164}
+   · {'ts': '2026-05-30T23:15:25.986730+00:00', 'size_mb': 310.86, 'records': 23911}
+   · {'ts': '2026-05-31T01:13:07.515696+00:00', 'size_mb': 335.18, 'records': 23926}
+   · {'ts': '2026-05-31T02:51:56.933632+00:00', 'size_mb': 335.18, 'records': 23938}
+   · {'ts': '2026-05-31T03:05:02.738052+00:00', 'size_mb': 335.18, 'records': 23946}
+
+  rpo: {'target_min': 60, 'actual_min': 52.7, 'status': 'GREEN'}
+  rto: {'target_min': 15, 'last_drill_min': None, 'status': 'AMBER'}
+  scheduler: {'alive': False, 'last_lock_ts': '2026-06-01T01:10:20.318000Z', 'owner_pod': 'safety-audit-mobile-1-59796c5d4-c9ctr'}
+
+  failures_7d:
+   · {'ts': '2026-05-25T15:18:06.582938+00:00', 'mode': 'complete-r2-error', 'error': "OperationFailure('Executor error during find command: masci_safety.usage_events :: caused by :: Sort exceeded memory limit of 33554432 bytes, but did not opt in to external sorting., full error: {\\'ok\\': 0.0, \\'errmsg\\': \\'Executor error du"}
+   · {'ts': '2026-05-25T15:16:20.749584+00:00', 'mode': 'complete-r2-error', 'error': 'OperationFailure("Executor error during find command: masci_safety.usage_events :: caused by :: Sort exceeded memory limit of 33554432 bytes, but did not opt in to external sorting., full error: {\'ok\': 0.0, \'errmsg\': \'Executor error during '}
