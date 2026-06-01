@@ -1,0 +1,81 @@
+{
+  "exported_at": "2026-06-01T00:10:53.535342+00:00",
+  "linked_test_batches": [
+    "674300c9-0839-408d-a6a8-a06f221c4cc8",
+    "48cbc60e-bd33-46ee-99cd-54ba4da65933",
+    "6590febb-8fce-469c-a07f-f28b8b26e052",
+    "f1371d01-9ecb-4062-bcea-3d318fc5bbcd",
+    "76d952ce-7c1b-438b-952c-2d3d9e78efce",
+    "f28d4b44-439b-4e63-a1c6-03c3897baac8",
+    "ed8ec430-2232-46ca-8f19-f980b529b77c",
+    "8b649f92-c0c7-4d8b-ad51-51f9614cbcef",
+    "2eb4c2d2-8aa8-494f-8783-9066cabbfc7b",
+    "d3150925-722e-4e96-a042-a3829f283188"
+  ],
+  "decision_count": 7,
+  "decisions": [
+    {
+      "id": "c04acbeb-5985-45fd-82ab-50de8ccff857",
+      "batch_id": "674300c9-0839-408d-a6a8-a06f221c4cc8",
+      "row_index": 0,
+      "decision": "approve",
+      "note": "verified with PM",
+      "decided_by": "hrmanager@mascigc.com",
+      "decided_at": "2026-05-12T23:52:33.953833+00:00"
+    },
+    {
+      "id": "150654fa-355c-423c-918e-3aca56f05fe0",
+      "batch_id": "48cbc60e-bd33-46ee-99cd-54ba4da65933",
+      "row_index": 0,
+      "decision": "approve",
+      "note": "",
+      "decided_by": "hrmanager@mascigc.com",
+      "decided_at": "2026-05-13T00:02:19.005701+00:00"
+    },
+    {
+      "id": "7bfb501b-52cf-4a91-b83a-08a2c2cf6095",
+      "batch_id": "6590febb-8fce-469c-a07f-f28b8b26e052",
+      "row_index": 0,
+      "decision": "approve",
+      "note": "looks good",
+      "decided_by": "hrmanager@mascigc.com",
+      "decided_at": "2026-05-13T00:05:20.662996+00:00"
+    },
+    {
+      "id": "22ee1878-783a-4866-81ea-1bcc30760867",
+      "batch_id": "6590febb-8fce-469c-a07f-f28b8b26e052",
+      "row_index": 1,
+      "decision": "dispute",
+      "note": "Bad OT calc",
+      "decided_by": "hrmanager@mascigc.com",
+      "decided_at": "2026-05-13T00:05:20.830608+00:00"
+    },
+    {
+      "id": "53d1b615-9a72-44d1-b5f5-f336b70199f7",
+      "batch_id": "ed8ec430-2232-46ca-8f19-f980b529b77c",
+      "row_index": 0,
+      "decision": "approve",
+      "note": "looks good",
+      "decided_by": "hrmanager@mascigc.com",
+      "decided_at": "2026-05-13T00:06:17.186916+00:00"
+    },
+    {
+      "id": "6eaab75a-33b9-43a1-b898-7e629cad2388",
+      "batch_id": "ed8ec430-2232-46ca-8f19-f980b529b77c",
+      "row_index": 1,
+      "decision": "dispute",
+      "note": "Bad OT calc",
+      "decided_by": "hrmanager@mascigc.com",
+      "decided_at": "2026-05-13T00:06:17.346162+00:00"
+    },
+    {
+      "id": "1f7d17e2-3a94-4841-b6d3-d972099e3053",
+      "batch_id": "d3150925-722e-4e96-a042-a3829f283188",
+      "row_index": 0,
+      "decision": "approve",
+      "note": "",
+      "decided_by": "hrmanager@mascigc.com",
+      "decided_at": "2026-05-13T00:08:10.634272+00:00"
+    }
+  ]
+}

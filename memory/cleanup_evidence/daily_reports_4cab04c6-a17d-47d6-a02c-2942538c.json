@@ -1,0 +1,64 @@
+{
+  "collection": "daily_reports",
+  "id": "4cab04c6-a17d-47d6-a02c-2942538cfcd5",
+  "doc_id": "DR-2026-00007",
+  "exported_at": "2026-06-01T00:10:53.563792+00:00",
+  "classification": "A",
+  "why_flagged": "Duplicate doc_id + masci_crews[0].foreman='Test' canary",
+  "reason_approved_for_removal": "Confirmed test record. Sister 'ac306ad5' (real DR) retains DR-2026-00007.",
+  "full_doc": {
+    "id": "4cab04c6-a17d-47d6-a02c-2942538cfcd5",
+    "activities": [],
+    "created_at": "2026-04-26T12:23:56.580302+00:00",
+    "equipment": [],
+    "general_notes": "",
+    "incident_notes": "",
+    "injuries_reported": "No",
+    "location": "4305 Hammock Trail Mims, FL",
+    "masci_crews": [
+      {
+        "trade": "Earthwork",
+        "foreman": "Test",
+        "count": 4,
+        "hours": 10,
+        "work_performed": "Drainage installation"
+      }
+    ],
+    "materials": [],
+    "photos": [
+      "photo://masci-hub/photos/2026/05/daily_reports_4cab04c6-a17d-47d6-a02c-2942538cfcd5/6f6394d8a33146a1b6f75e2126373a1a.png",
+      "p2",
+      "p3",
+      "p4",
+      "p5",
+      "p6"
+    ],
+    "prepared_by": "Jaymn Judd",
+    "prepared_by_signature": "photo://masci-hub/photos/2026/05/daily_reports-4cab04c6-a17d-47d6-a02c-2942538cfcd5-prepared_by_signature/9cd2394090864dad8e00e8d91917e238.png",
+    "project_name": "T5860 SR 9 (I-95)",
+    "project_number": "25-22 - CP",
+    "report_date": "2026-04-25",
+    "report_number": "",
+    "safety_incidents_today": "No",
+    "schedule_delays": "No",
+    "schedule_delays_notes": "",
+    "subcontractors": [],
+    "superintendent": "",
+    "superintendent_signature": "",
+    "visitors": [],
+    "weather_impact": "No",
+    "weather_impact_notes": "",
+    "weather_snapshots": [
+      {
+        "time": "06:00",
+        "condition": "Clear",
+        "temp_f": 64,
+        "precip_in": 0,
+        "humidity_pct": 91,
+        "wind_mph": 1
+      }
+    ],
+    "weather_summary": "Mostly Sunny, 64-82\u00b0F",
+    "doc_id": "DR-2026-00007"
+  }
+}

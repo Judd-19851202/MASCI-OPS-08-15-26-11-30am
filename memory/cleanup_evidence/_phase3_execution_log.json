@@ -1,0 +1,67 @@
+{
+  "executed_at": "2026-06-01T00:10:54.375700+00:00",
+  "executed_db": "masci_safety",
+  "dry_run": false,
+  "actions": [
+    {
+      "step": 1,
+      "op": "UPDATE",
+      "collection": "field_leadership_users",
+      "id": "d805f3d4-76c8-480e-a268-b64b274e059c",
+      "matched": 1,
+      "modified": 1
+    },
+    {
+      "step": 2,
+      "op": "DELETE",
+      "collection": "incidents",
+      "id": "d9626eeb-37a8-4e55-a5bb-3ea74f46ccd3",
+      "deleted": 1,
+      "before_total": 7,
+      "after_total": 6
+    },
+    {
+      "step": 3,
+      "op": "DELETE_MANY",
+      "collection": "payroll_variance_batches",
+      "deleted": 10,
+      "before": 10,
+      "after": 0
+    },
+    {
+      "step": 3,
+      "op": "DELETE_MANY",
+      "collection": "payroll_variance_decisions",
+      "deleted": 7,
+      "before": 7,
+      "after": 0
+    },
+    {
+      "step": 4,
+      "op": "DELETE_MANY",
+      "collection": "notifications",
+      "deleted": 2,
+      "before": 77,
+      "after": 75
+    },
+    {
+      "step": 5,
+      "op": "DELETE",
+      "collection": "daily_reports",
+      "id": "4cab04c6-a17d-47d6-a02c-2942538cfcd5",
+      "deleted": 1
+    },
+    {
+      "step": 6,
+      "op": "UPDATE_MANY",
+      "collection": "incidents",
+      "modified": 6
+    },
+    {
+      "step": 7,
+      "op": "UPDATE_MANY",
+      "collection": "user_directory",
+      "modified": 7
+    }
+  ]
+}

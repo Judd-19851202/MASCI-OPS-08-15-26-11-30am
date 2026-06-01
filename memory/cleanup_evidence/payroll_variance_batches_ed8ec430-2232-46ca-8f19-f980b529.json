@@ -1,0 +1,103 @@
+{
+  "collection": "payroll_variance_batches",
+  "id": "ed8ec430-2232-46ca-8f19-f980b529b77c",
+  "doc_id": null,
+  "created_by": "hrmanager@mascigc.com",
+  "created_at": "2026-05-13T00:06:16.529592+00:00",
+  "updated_at": "None",
+  "exported_at": "2026-06-01T00:09:01.781117+00:00",
+  "exported_db": "masci_safety",
+  "classification": "A",
+  "why_flagged": "Created by hrmanager@mascigc.com 2026-05-12/13; 'John Smith' canary",
+  "reason_approved_for_removal": "Confirmed test batch",
+  "full_doc": {
+    "id": "ed8ec430-2232-46ca-8f19-f980b529b77c",
+    "week_ending": "2026-05-12",
+    "created_at": "2026-05-13T00:06:16.529592+00:00",
+    "created_by": "hrmanager@mascigc.com",
+    "threshold_minutes": 15,
+    "total_rows": 3,
+    "matched_rows": 0,
+    "flagged_rows": 3,
+    "rows": [
+      {
+        "row_index": 0,
+        "employee_name": "Smith",
+        "employee_id": "",
+        "match_key": "smith",
+        "matched": false,
+        "exact_regular": 0.0,
+        "exact_overtime": 40.0,
+        "exact_total": 40.0,
+        "masci_total": 0.0,
+        "masci_jobs": [],
+        "masci_supervisors": [],
+        "diff_hours": 40.0,
+        "diff_minutes": 2400.0,
+        "variance_pct": null,
+        "flag": "flag",
+        "decision": "approve",
+        "decision_note": "looks good",
+        "decided_by": "hrmanager@mascigc.com",
+        "decided_at": "2026-05-13T00:06:17.186237+00:00"
+      },
+      {
+        "row_index": 1,
+        "employee_name": "Doe",
+        "employee_id": "",
+        "match_key": "doe",
+        "matched": false,
+        "exact_regular": 0.0,
+        "exact_overtime": 38.0,
+        "exact_total": 38.0,
+        "masci_total": 0.0,
+        "masci_jobs": [],
+        "masci_supervisors": [],
+        "diff_hours": 38.0,
+        "diff_minutes": 2280.0,
+        "variance_pct": null,
+        "flag": "flag",
+        "decision": "dispute",
+        "decision_note": "Bad OT calc",
+        "decided_by": "hrmanager@mascigc.com",
+        "decided_at": "2026-05-13T00:06:17.345498+00:00"
+      },
+      {
+        "row_index": 2,
+        "employee_name": "Garcia",
+        "employee_id": "",
+        "match_key": "garcia",
+        "matched": false,
+        "exact_regular": 0.0,
+        "exact_overtime": 42.5,
+        "exact_total": 42.5,
+        "masci_total": 0.0,
+        "masci_jobs": [],
+        "masci_supervisors": [],
+        "diff_hours": 42.5,
+        "diff_minutes": 2550.0,
+        "variance_pct": null,
+        "flag": "flag",
+        "decision": "pending",
+        "decision_note": ""
+      }
+    ],
+    "csv_meta": {
+      "headers": [
+        "Employee Name",
+        "Regular Hours",
+        "Overtime Hours"
+      ],
+      "detected_columns": {
+        "employee_name": "Employee Name",
+        "employee_id": null,
+        "regular_hours": "Regular Hours",
+        "overtime_hours": "Overtime Hours",
+        "total_hours": "Regular Hours",
+        "week_ending": null
+      },
+      "parse_errors": []
+    },
+    "source": "exact"
+  }
+}

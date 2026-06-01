@@ -1,0 +1,82 @@
+{
+  "collection": "payroll_variance_batches",
+  "id": "48cbc60e-bd33-46ee-99cd-54ba4da65933",
+  "doc_id": null,
+  "created_by": "hrmanager@mascigc.com",
+  "created_at": "2026-05-13T00:02:15.419152+00:00",
+  "updated_at": "None",
+  "exported_at": "2026-06-01T00:09:00.152845+00:00",
+  "exported_db": "masci_safety",
+  "classification": "A",
+  "why_flagged": "same window/batch",
+  "reason_approved_for_removal": "Confirmed test batch",
+  "full_doc": {
+    "id": "48cbc60e-bd33-46ee-99cd-54ba4da65933",
+    "week_ending": "2026-05-13",
+    "created_at": "2026-05-13T00:02:15.419152+00:00",
+    "created_by": "hrmanager@mascigc.com",
+    "threshold_minutes": 15,
+    "total_rows": 2,
+    "matched_rows": 0,
+    "flagged_rows": 2,
+    "rows": [
+      {
+        "row_index": 0,
+        "employee_name": "John Smith",
+        "employee_id": "",
+        "match_key": "smith:j",
+        "matched": false,
+        "exact_regular": 40.0,
+        "exact_overtime": 2.5,
+        "exact_total": 40.0,
+        "masci_total": 0.0,
+        "masci_jobs": [],
+        "masci_supervisors": [],
+        "diff_hours": 40.0,
+        "diff_minutes": 2400.0,
+        "variance_pct": null,
+        "flag": "flag",
+        "decision": "approve",
+        "decision_note": "",
+        "decided_by": "hrmanager@mascigc.com",
+        "decided_at": "2026-05-13T00:02:19.004899+00:00"
+      },
+      {
+        "row_index": 1,
+        "employee_name": "Maria Garcia",
+        "employee_id": "",
+        "match_key": "garcia:m",
+        "matched": false,
+        "exact_regular": 38.0,
+        "exact_overtime": 0.0,
+        "exact_total": 38.0,
+        "masci_total": 0.0,
+        "masci_jobs": [],
+        "masci_supervisors": [],
+        "diff_hours": 38.0,
+        "diff_minutes": 2280.0,
+        "variance_pct": null,
+        "flag": "flag",
+        "decision": "pending",
+        "decision_note": ""
+      }
+    ],
+    "csv_meta": {
+      "headers": [
+        "Employee Name",
+        "Regular Hours",
+        "Overtime Hours"
+      ],
+      "detected_columns": {
+        "employee_name": "Employee Name",
+        "employee_id": null,
+        "regular_hours": "Regular Hours",
+        "overtime_hours": "Overtime Hours",
+        "total_hours": "Regular Hours",
+        "week_ending": null
+      },
+      "parse_errors": []
+    },
+    "source": "exact"
+  }
+}

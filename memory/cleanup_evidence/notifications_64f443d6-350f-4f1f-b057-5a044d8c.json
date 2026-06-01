@@ -1,0 +1,50 @@
+{
+  "collection": "notifications",
+  "id": "64f443d6-350f-4f1f-b057-5a044d8c971b",
+  "doc_id": null,
+  "created_by": null,
+  "created_at": "2026-05-16 13:46:47.539000",
+  "updated_at": "None",
+  "exported_at": "2026-06-01T00:09:01.321943+00:00",
+  "exported_db": "masci_safety",
+  "classification": "A",
+  "why_flagged": "Pre-2026-05-26 preview/prod crossover artifact referencing PREVIEW_POSTENV project; project does not exist in any collection.",
+  "reason_approved_for_removal": "Confirmed crossover artifact; recipient never read it (read=null).",
+  "full_doc": {
+    "id": "64f443d6-350f-4f1f-b057-5a044d8c971b",
+    "type": "incident.created",
+    "title": "New incident reported \u2014 Near Miss",
+    "message": "PREVIEW_POSTENV \u00b7 severity first_aid \u00b7 reporter x",
+    "severity": "Warning",
+    "recipient_role": "safety",
+    "recipient_user_id": null,
+    "linked_task_id": null,
+    "linked_source_module": "safety.incidents",
+    "linked_source_record_id": "d42231e8-66d8-471b-bc95-e02a310c6f62",
+    "linked_employee_id": null,
+    "linked_equipment_id": null,
+    "linked_project_number": null,
+    "created_at": "2026-05-16T13:46:47.539000",
+    "expires_at": "2026-07-15T13:46:47.539000",
+    "read_by": [
+      {
+        "role": "admin",
+        "user_id": null,
+        "at": "2026-05-27T03:30:36.096000"
+      },
+      {
+        "role": "safety",
+        "user_id": "65004b6a-1003-43c0-bfbe-5eb28db479cf",
+        "at": "2026-05-31T22:35:34.773000"
+      }
+    ],
+    "acknowledged_by": null,
+    "acknowledged_at": null,
+    "delivery": {
+      "internal": true,
+      "email": false,
+      "push": false,
+      "sms": false
+    }
+  }
+}
