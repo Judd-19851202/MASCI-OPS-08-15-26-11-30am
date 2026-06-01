@@ -117,6 +117,13 @@ async def ensure_indexes(db) -> None:
             [("project_number", 1), ("created_at", -1)],
             name="fsi_binding_by_project",
         )
+        # iter452.5.1 (P0) — Phase-1B accountability reporting will
+        # group by resolution_tier; index pre-emptively so P2 (iter455.1)
+        # avoids a collection scan on the admin Command Center tile.
+        await db[FIELD_SUBMITTER_BINDINGS].create_index(
+            [("resolution_tier", 1), ("created_at", -1)],
+            name="fsi_binding_by_tier",
+        )
     except Exception:  # pragma: no cover — index races / pre-existing
         pass
 
@@ -133,6 +140,43 @@ async def _find_employee(db, employee_id: str) -> Optional[Dict[str, Any]]:
          "employee_id": 1, "role": 1, "trade": 1, "is_active": 1},
     )
     return doc
+
+
+# iter452.5.1 · P0-1 · Field Leadership token resolver.
+# Returns the FL-user's email + canonical name when a valid X-FL-Token
+# is supplied at submit time. Reuses the existing
+# ``is_valid_fl_user_token_async`` primitive — no new auth surface.
+async def _resolve_fl_user_email(
+    db, fl_token: str
+) -> Tuple[str, str, str]:
+    """Returns ``(email, name, fl_user_id)`` or ``("", "", "")`` if the
+    token is absent / invalid. Best-effort — never raises."""
+    if not fl_token:
+        return ("", "", "")
+    try:
+        # Local import to keep this lib startup-light and avoid a hard
+        # dep on the FL portal module at boot.
+        from field_leadership_users import is_valid_fl_user_token_async  # noqa: PLC0415
+        user = await is_valid_fl_user_token_async(db, fl_token)
+    except Exception:
+        return ("", "", "")
+    if not user:
+        return ("", "", "")
+    return (
+        (user.get("email") or "").strip().lower(),
+        (user.get("name") or "").strip()[:200],
+        (user.get("id") or user.get("user_id") or ""),
+    )
+
+
+def _dead_letter_email() -> str:
+    """Tier 5 — platform-owned dead-letter inbox. Honors operator-set
+    ``ADMIN_DEAD_LETTER_EMAIL`` env var; falls back to the
+    ``safety@mascigc.com`` mailbox already used by ``pm_routing.ALWAYS_CC``."""
+    explicit = (os.environ.get("ADMIN_DEAD_LETTER_EMAIL") or "").strip().lower()
+    if explicit:
+        return explicit
+    return "safety@mascigc.com"
 
 
 async def _resolve_project_owners(db, project_number: str) -> Dict[str, Any]:
@@ -179,30 +223,71 @@ async def resolve_identity(
     submitter_consent_at: Optional[str] = None,
     submitter_consent_text_version: str = CONSENT_TEXT_VERSION,
     submitter_name_fallback: str = "",
+    fl_token: str = "",
 ) -> Dict[str, Any]:
-    """Resolve directory identity + project ownership and persist the
-    binding row. Returns the binding (without ``_id``).
+    """Resolve a 5-tier identity ladder + project ownership and persist
+    the binding row. Returns the binding (without ``_id``).
 
-    Legacy contract: if ``submitter_employee_id`` is empty the row is
-    written with ``legacy_submitter=True`` and the resolver does not
-    fail — older callers (and net-new public submissions where the
-    field user explicitly declines the dropdown) still get a binding
-    row so kickback handlers can route to the PM as a relay.
+    iter452.5.1 (P0 orphan-elimination) · operator-mandated ladder:
+
+      Tier 1  FL token (X-FL-Token)        → fl user record email
+      Tier 2  submitter_employee_id        → employee directory email
+      Tier 3  submitter_email_at_submit    → per-submit email
+      Tier 4  project_number               → jobs_master.pm_email (PM relay)
+      Tier 5  ADMIN_DEAD_LETTER_EMAIL      → platform safety inbox (always)
+
+    Tier 5 always resolves, so the no-recipient orphan corner is
+    structurally impossible for any new submission. The binding row
+    persists ``resolution_tier`` (a literal string) AND the candidate
+    email at each tier so Phase 1B accountability reporting can
+    aggregate by which tier carried the load.
     """
     eid = (submitter_employee_id or "").strip()
     employee = await _find_employee(db, eid) if eid else None
-    legacy = employee is None
+
+    # Tier 1 · FL token
+    fl_email, fl_name, fl_user_id = await _resolve_fl_user_email(db, fl_token)
+
+    # Tier 2 · employee directory
+    emp_email = ((employee or {}).get("email") or "").strip().lower()
+
+    # Tier 3 · per-submit email
+    per_submit_email = (submitter_email_at_submit or "").strip().lower()
+
+    # Tier 4 · PM relay
+    owners = await _resolve_project_owners(db, project_number)
+
+    # Tier 5 · dead-letter
+    dead_letter = _dead_letter_email()
+
+    # Resolve the "best" email + tier (first non-empty wins).
+    if fl_email:
+        resolution_tier = "fl"
+        primary_email = fl_email
+    elif emp_email:
+        resolution_tier = "employee"
+        primary_email = emp_email
+    elif per_submit_email:
+        resolution_tier = "per_submit"
+        primary_email = per_submit_email
+    elif owners["pm_email"]:
+        resolution_tier = "pm_relay"
+        primary_email = owners["pm_email"]
+    else:
+        resolution_tier = "dead_letter"
+        primary_email = dead_letter
 
     submitter_name = (
-        (employee or {}).get("name") if employee else ""
-    ) or submitter_name_fallback or ""
-    # Email precedence: per-submit input > directory > empty
-    submitter_email = (
-        (submitter_email_at_submit or "").strip().lower()
-        or ((employee or {}).get("email") or "").strip().lower()
+        fl_name
+        or ((employee or {}).get("name") if employee else "")
+        or submitter_name_fallback
+        or ""
     )
 
-    owners = await _resolve_project_owners(db, project_number)
+    # Backward-compat semantics for `legacy_submitter`: True iff no FL
+    # token AND no employee directory match. Preserves the prior
+    # iter452.5 contract used by existing tests and admin UI badges.
+    legacy = (not fl_email) and (employee is None)
 
     binding = {
         "id": str(uuid.uuid4()),
@@ -210,20 +295,28 @@ async def resolve_identity(
         "submission_record_id": record_id,
         "submission_record_doc_id": record_doc_id or "",
         "project_number": (project_number or "").strip(),
-        # Identity (operator field set §2 of scoping doc, Tier 1 minimum)
+        # Identity
         "submitter_employee_id": eid or "",
         "submitter_canonical_id": (employee or {}).get("id") or "",
         "submitter_name": (submitter_name or "")[:200],
-        "submitter_email_at_submit": submitter_email,
-        "submitter_consent_at": (submitter_consent_at or
-                                 datetime.now(timezone.utc).isoformat()),
-        "submitter_consent_text_version": submitter_consent_text_version,
-        # Resolved ownership (denormalized for routing on kickback)
+        # The ladder · denormalized for routing on kickback
+        "fl_user_id": fl_user_id or "",
+        "fl_user_email": fl_email,
+        "employee_email": emp_email,
+        "submitter_email_at_submit": per_submit_email,
         "resolved_pm_name": owners["pm_name"],
         "resolved_pm_email": owners["pm_email"],
         "resolved_co_pm_emails": owners["co_pm_emails"],
         "resolved_superintendent_email": owners["superintendent_email"],
-        # Legacy flag — informs the kickback router and the UI badge.
+        "resolved_dead_letter_email": dead_letter,
+        # Operator-mandated resolution tier + primary recipient
+        "resolution_tier": resolution_tier,
+        "primary_recipient_email": primary_email,
+        # Consent (preserved from iter452.5 R1)
+        "submitter_consent_at": (submitter_consent_at or
+                                 datetime.now(timezone.utc).isoformat()),
+        "submitter_consent_text_version": submitter_consent_text_version,
+        # Backward-compat flag — admin UI badge depends on this.
         "legacy_submitter": bool(legacy),
         "created_at": datetime.now(timezone.utc),
     }
@@ -432,21 +525,35 @@ async def notify_field_submitter(
       {
         "token": "...", "exp": "iso",
         "dispatched": True|False, "recipient": "...",
+        "resolution_tier": "fl|employee|per_submit|pm_relay|dead_letter",
         "events_written": ["...", ...]
       }
 
-    If ``binding["legacy_submitter"]`` is True or the email is empty,
-    the function falls back to the PM-relay path (uses
-    ``resolved_pm_email``); if that is also empty, it writes a
-    ``notification_dispatch_failed`` row with ``error="no_recipient"``
-    so Phase 1B can see the dead-letter.
+    iter452.5.1 (P0): the recipient is selected by walking the
+    operator-mandated 5-tier ladder. Tier 5 (admin/safety dead-letter)
+    is always populated, so ``no_recipient`` is structurally unreachable
+    for new submissions.
     """
     binding_id = binding.get("id") or ""
-    recipient = (binding.get("submitter_email_at_submit") or "").strip().lower()
-    relay = False
-    if not recipient or binding.get("legacy_submitter"):
-        recipient = (binding.get("resolved_pm_email") or "").strip().lower()
-        relay = bool(recipient)
+
+    # Walk the 5-tier ladder live (in case the binding pre-dates this
+    # iteration — older rows lack the new fields and we degrade safely).
+    ladder = (
+        ("fl",          (binding.get("fl_user_email")            or "").strip().lower()),
+        ("employee",    (binding.get("employee_email")           or "").strip().lower()),
+        ("per_submit",  (binding.get("submitter_email_at_submit") or "").strip().lower()),
+        ("pm_relay",    (binding.get("resolved_pm_email")        or "").strip().lower()),
+        ("dead_letter", (binding.get("resolved_dead_letter_email")
+                         or _dead_letter_email()).strip().lower()),
+    )
+    resolution_tier = "dead_letter"
+    recipient = ""
+    for tier_name, candidate in ladder:
+        if candidate:
+            resolution_tier = tier_name
+            recipient = candidate
+            break
+    relay = resolution_tier in ("pm_relay", "dead_letter")
 
     events: List[str] = []
     token, exp = mint_revision_token(
@@ -459,11 +566,17 @@ async def notify_field_submitter(
         record_doc_id=record_doc_id,
         kind="revision_link_issued",
         binding_id=binding_id,
-        extra={"exp": exp.isoformat(), "relay": relay,
-               "recipient_intent": "submitter" if not relay else "pm_relay"},
+        extra={"exp": exp.isoformat(),
+               "relay": relay,
+               "resolution_tier": resolution_tier,
+               "recipient_intent": resolution_tier},
     )
     events.append("revision_link_issued")
 
+    # iter452.5.1 · Tier 5 always resolves, so the "no_recipient" early
+    # exit is no longer reachable for new submissions. Kept defensively
+    # for legacy bindings written before this iteration that lack the
+    # ladder fields AND have no PM resolution.
     if not recipient:
         await write_dispatch_event(
             db,
@@ -474,28 +587,40 @@ async def notify_field_submitter(
             binding_id=binding_id,
             channel="email",
             recipient="",
-            error="no_recipient",
+            error="no_recipient_legacy_binding",
+            extra={"resolution_tier": resolution_tier},
         )
         events.append("notification_dispatch_failed")
         return {"token": token, "exp": exp.isoformat(),
                 "dispatched": False, "recipient": "",
+                "resolution_tier": resolution_tier,
                 "events_written": events, "relay": relay}
 
     # Build the link. The PWA serves /revise/:token on the same origin
     # as the API; relative path is enough but we include the base for
     # email-client friendliness.
     link = (public_base_url.rstrip("/") + "/revise/" + token) if public_base_url else f"/revise/{token}"
-    relay_banner = (
-        ""
-        if not relay
-        else (
+    # iter452.5.1 · banner contextualizes WHICH ladder tier resolved
+    # the recipient — helps PM/Safety relay copy land correctly.
+    if resolution_tier == "pm_relay":
+        relay_banner = (
             "<p style='background:#fff3cd;border:1px solid #ffeeba;"
             "padding:8px;border-radius:4px;'>"
             "<strong>PM Relay:</strong> the field submitter did not "
             "provide a direct email at submit time. Please forward "
             "this link to them so they can apply the correction.</p>"
         )
-    )
+    elif resolution_tier == "dead_letter":
+        relay_banner = (
+            "<p style='background:#fde8e8;border:1px solid #fbb;"
+            "padding:8px;border-radius:4px;'>"
+            "<strong>Admin dead-letter:</strong> no submitter, "
+            "employee, per-submit email, or project PM resolved. "
+            "This correction needs admin triage to identify the "
+            "responsible party.</p>"
+        )
+    else:
+        relay_banner = ""
     html = (
         f"<div style='font-family:Arial,Helvetica,sans-serif;'>"
         f"<h2>Correction requested</h2>"
@@ -518,6 +643,7 @@ async def notify_field_submitter(
         binding_id=binding_id,
         channel="email",
         recipient=recipient,
+        extra={"resolution_tier": resolution_tier},
     )
     events.append("notification_dispatch_attempted")
 
@@ -553,7 +679,7 @@ async def notify_field_submitter(
             channel="email",
             recipient=recipient,
             provider_message_id=provider_msg_id,
-            extra={"relay": relay},
+            extra={"relay": relay, "resolution_tier": resolution_tier},
         )
         events.append("notification_dispatch_succeeded")
     else:
@@ -567,12 +693,13 @@ async def notify_field_submitter(
             channel="email",
             recipient=recipient,
             error=err or "unknown",
-            extra={"relay": relay},
+            extra={"relay": relay, "resolution_tier": resolution_tier},
         )
         events.append("notification_dispatch_failed")
 
     return {"token": token, "exp": exp.isoformat(),
             "dispatched": dispatched, "recipient": recipient,
+            "resolution_tier": resolution_tier,
             "events_written": events, "relay": relay,
             "provider_message_id": provider_msg_id}
 

@@ -649,13 +649,13 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             schedule_auto_email("incident", doc)
 
             # iter452.5 Tier 1 · Field Submitter Identity binding.
-            # The form may send: submitter_employee_id, submitter_email_at_submit,
-            # submitter_consent_at. All optional — legacy submissions get a
-            # legacy_submitter=True binding row so kickback routing degrades
-            # gracefully to PM-relay.
+            # iter452.5.1 (P0) · 5-tier ladder — FL token (header) is now
+            # the preferred identity source; orphan corner eliminated by
+            # tier-5 admin/safety dead-letter fallback.
             try:
                 from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
                 p = payload.model_dump()
+                fl_token = (request.headers.get("X-FL-Token") or "").strip()
                 await resolve_identity(
                     db,
                     workflow="incident",
@@ -666,6 +666,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     submitter_email_at_submit=str(p.get("submitter_email_at_submit") or "").strip(),
                     submitter_consent_at=p.get("submitter_consent_at"),
                     submitter_name_fallback=str(p.get("reported_by") or "").strip(),
+                    fl_token=fl_token,
                 )
             except Exception:  # pragma: no cover — best-effort audit
                 pass

@@ -271,9 +271,12 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             schedule_auto_email("daily-report", doc)
 
             # iter452.5 Tier 1 · Field Submitter Identity binding.
+            # iter452.5.1 (P0) · FL token from header drives tier-1
+            # resolution; orphan corner closed by tier-5 dead-letter.
             try:
                 from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
                 p = payload.model_dump()
+                fl_token = (request.headers.get("X-FL-Token") or "").strip()
                 await resolve_identity(
                     db,
                     workflow="daily_report",
@@ -284,6 +287,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                     submitter_email_at_submit=str(p.get("submitter_email_at_submit") or "").strip(),
                     submitter_consent_at=p.get("submitter_consent_at"),
                     submitter_name_fallback=str(p.get("prepared_by") or "").strip(),
+                    fl_token=fl_token,
                 )
             except Exception:  # pragma: no cover — best-effort audit
                 pass

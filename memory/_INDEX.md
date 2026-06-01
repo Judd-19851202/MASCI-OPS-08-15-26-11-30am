@@ -1,6 +1,26 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · iter452.5 Tier 1 SHIPPED · 🟢 Field Submitter Identity service live in preview · 6-event delivery-evidence chain · 52/52 pytest green · iter453 BUILD authorized at Day-9 gate · iter452 production deploy awaiting operator · Tier 2 frozen)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · iter452.5.1 P0 ORPHAN ELIMINATION SHIPPED · 🟢 5-tier identity ladder live · orphan corner architecturally impossible · 61/61 pytest green (52 + 9 new) · iter452.5.2 P1 authorized for next batch · Tier 2 frozen · iter453 BUILD inherits ladder natively)._
+
+---
+
+### 00 · OMEGA · iter452.5.1 P0 ORPHAN ELIMINATION SHIPPED (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ITER452_5_1_CERTIFICATION_REPORT.md` | What shipped (4 backend edits + 1 new test + 2 frontend edits) · per-tier ladder citations · `resolution_tier` retention design · 9/9 new + 52/52 prior pytest green · Tier-2 freeze 8/8 confirmed · iter452.5.2 (P1) authorization captured for next batch | 🟢 |
+
+🟢 **The orphan corner is architecturally impossible for new submissions.** Tier 5 (`ADMIN_DEAD_LETTER_EMAIL` → `safety@mascigc.com`) always populates `binding.primary_recipient_email`. The forensic-audit RED finding from FSI Question 8 is closed.
+
+🟢 **5-tier ladder live:** `_resolve_fl_user_email` (Tier 1 · `X-FL-Token`) → `_find_employee` (Tier 2 · employees directory) → `submitter_email_at_submit` (Tier 3) → `pm_email` (Tier 4 · jobs_master) → `_dead_letter_email` (Tier 5). Selected tier persisted as `binding.resolution_tier` AND stamped on every delivery-evidence event for Phase 1B mining.
+
+🟢 **Frontend:** `NewDailyReport.jsx` and `NewIncident.jsx` attach `X-FL-Token` header on `enqueueUpload` when a Field Leader is logged into the platform. Two-line additive changes.
+
+🟢 **Index for P2:** `(resolution_tier, created_at -1)` pre-emptively created at startup so iter455.1 aggregation is O(log n).
+
+🟢 **iter452.5.2 (P1 Resend bounce webhook) authorized to commence next batch.** iter455.1 (P2 Accountability Chain Projection) authorized as bundle with Phase 1A Integration Certification.
+
+🛑 **Stopped.** Awaiting operator: (a) iter452.5.1 production-deploy click, AND/OR (b) "PROCEED WITH ITER452.5.2" to begin P1 Resend bounce webhook (~3 realistic days).
 
 ---
 

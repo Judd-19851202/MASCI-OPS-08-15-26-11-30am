@@ -1,6 +1,41 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-01 (fork · iter452.5.1) — OMEGA · P0 Orphan Elimination SHIPPED 🟢
+
+### Operator authorization
+> "PROCEED WITH ITER452.5.1 (P0 ORPHAN ELIMINATION). ITER453 DESIGN CONTINUES IN PARALLEL. AUTHORIZE ITER452.5.2 (P1 RESEND BOUNCE WEBHOOK) IMMEDIATELY AFTER P0 CERTIFICATION. AUTHORIZE ITER455.1 (P2 ACCOUNTABILITY CHAIN PROJECTION) AS PART OF PHASE 1A INTEGRATION CERTIFICATION. RETAIN resolution_tier METRICS AND SURFACE THEM IN FUTURE ACCOUNTABILITY REPORTING. NO TIER 2 SMS/PUSH/PWA WORK UNTIL PHASE 1A OPERATIONAL COMPLETENESS IS CERTIFIED."
+
+### What was delivered
+* **5-tier identity ladder** (operator-mandated) in `backend/lib/field_submitter_identity.py::resolve_identity`:
+  1. `X-FL-Token` → `field_leadership_users.email`
+  2. `submitter_employee_id` → `employees.email`
+  3. `submitter_email_at_submit`
+  4. `project_number` → `jobs_master.pm_email`
+  5. `ADMIN_DEAD_LETTER_EMAIL` env (default `safety@mascigc.com`)
+* **Orphan corner closed by construction.** Tier 5 is deterministic and always populated, so `binding.primary_recipient_email` is never empty for new submissions.
+* **`resolution_tier` retained** on every binding row AND stamped on every delivery-evidence event. Pre-emptive `(resolution_tier, created_at -1)` index for Phase 1B aggregation.
+* **Backend routes** `routes/safety.py::create_incident` and `routes/daily_reports.py::create_daily_report` now read `X-FL-Token` from the request header and pass it through.
+* **Frontend** `pages/NewDailyReport.jsx` and `pages/NewIncident.jsx` attach `X-FL-Token` on submission (two-line additive change each).
+* **Env var added:** `ADMIN_DEAD_LETTER_EMAIL` (operator-tunable).
+* **R-CERT** `backend/tests/test_iter452_5_1_orphan_elimination.py` — 9 tests (2 unit + 7 integration).
+
+### Test results
+* iter451 — 17/17 🟢
+* iter452 — 21/21 🟢
+* iter452.5 (R1) — 14/14 🟢
+* iter452.5.1 (P0 orphan elimination) — 9/9 🟢
+* **Cumulative: 61/61 🟢**
+
+### Tier 2 still frozen (8/8 components absent)
+No SMS · no Web Push · no PWA install · no phone field · no preference UI · no service-worker push · no device binding · no Twilio dependency.
+
+### Status
+🛑 Stopped. P0 shipped to preview. Awaiting operator: (a) iter452.5.1 production deploy, AND/OR (b) "PROCEED WITH ITER452.5.2" to begin P1 (Resend bounce webhook · ~3 realistic days · already authorized for immediate sequencing after P0).
+
+---
+
+
 ## 2026-06-01 (fork · iter452.5) — OMEGA · Tier 1 Field Submitter Identity SHIPPED 🟢
 
 ### Operator authorization (verbatim)

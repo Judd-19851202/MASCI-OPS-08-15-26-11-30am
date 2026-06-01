@@ -39,7 +39,7 @@ import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { fetchDailyWeather } from "@/lib/weather";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
-import { getFlUser } from "@/lib/flAuth";
+import { getFlUser, getFlToken } from "@/lib/flAuth";
 import { isAdmin } from "@/lib/adminAuth";
 import { translateUserInput } from "@/lib/translateOnSubmit";
 import { toast } from "sonner";
@@ -749,6 +749,7 @@ export default function NewDailyReport({ publicMode = false }) {
       const r = await enqueueUpload({
         method: "POST",
         url: "/daily-reports",
+        headers: getFlToken() ? { "X-FL-Token": getFlToken() } : {},
         body: payload,
         idempotencyKey: idempotencyKeyRef.current,
         formKey: "daily-report-new",
