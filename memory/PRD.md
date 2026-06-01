@@ -32180,3 +32180,101 @@ The platform does not currently have a dedicated `Superintendent` portal/token; 
 
 🛑 **Agent STOPPED.** OC-001 is operationally certified GO TO DEPLOY. Awaiting operator's explicit production-deploy authorization OR iter452 BUILD authorization (OC-002 + OC-007).
 
+
+---
+
+# OMEGA iter452 · Phase 1A BUILD · OC-002 + OC-007 · 2026-06-01
+
+**Authorized batch:** Operator post-iter451-deploy authorization — execute ITER452 BUILD for OC-002 (Daily Report Office Review) and OC-007 (Payroll Variance Finalization). Maintain Phase 1A momentum. No new audits, no scope expansion, no Phase 1B, no White Label, no ForgedOps.
+
+**Final verdict:** 🟢 **PREVIEW CERTIFIED · DEPLOY RECOMMENDED**
+
+### Sprint outcome
+
+Two more dead-end workflows transformed into operational, auditable, role-gated lifecycles. Reused the universal `workflow_state_events` audit collection introduced in iter451 and extended the universal state-machine library.
+
+### OC-002 lifecycle (Daily Report Office Review)
+```
+OPEN → PENDING_REVIEW → REVIEWED → CLOSED
+              ↑ kickback w/ reason
+              ⤺ REOPEN w/ reason ↰
+```
+
+* PENDING_REVIEW → OPEN (kickback) requires a written reason ≥ 5 chars.
+* REVIEWED → CLOSED gated on (office_review_complete · payroll_inputs_verified).
+* CLOSED → PENDING_REVIEW (reopen) requires reason.
+* Notification fan-out on PENDING_REVIEW: PM + Safety + Admin (`daily_report.pending_review`).
+* Roles: OPEN→PENDING_REVIEW (PM/Admin/Super-Admin); all other transitions (Admin/Super-Admin).
+
+### OC-007 lifecycle (Payroll Variance Finalization · NO AUTO FINALIZE)
+```
+OPEN → UNDER_REVIEW → APPROVED → FINALIZED
+                          ↑ back-step w/ reason
+                          ⤺ REOPEN w/ reason ↰
+```
+
+* APPROVED → FINALIZED requires 3 attestations (review_complete · approval_complete · variance_decisions_complete).
+* **Server-side safety net:** even with all 3 flags ticked, the route verifies every flagged row carries `decision ∈ {approve, dispute}` before allowing FINALIZE.
+* Roles: HR/Admin can advance OPEN→UNDER_REVIEW→APPROVED. Only Admin/Super-Admin can FINALIZE / back-step / reopen.
+
+### New endpoints (6 additive)
+
+| Method | Path |
+|---|---|
+| POST | `/api/daily-reports/{id}/transition` |
+| GET | `/api/daily-reports/{id}/state-events` |
+| GET | `/api/daily-reports/{id}/lifecycle` |
+| POST | `/api/hr/payroll-variance/batches/{id}/transition` |
+| GET | `/api/hr/payroll-variance/batches/{id}/state-events` |
+| GET | `/api/hr/payroll-variance/batches/{id}/lifecycle` |
+
+### Files shipped
+
+| Layer | File | LOC |
+|---|---|---:|
+| Backend route | `backend/routes/daily_report_lifecycle.py` | 222 |
+| Backend route | `backend/routes/payroll_variance_lifecycle.py` | 222 |
+| Frontend shell | `frontend/src/components/LifecyclePanel.jsx` | 376 |
+| Frontend panel | `frontend/src/components/DailyReportLifecyclePanel.jsx` | 60 |
+| Frontend panel | `frontend/src/components/PayrollVarianceLifecyclePanel.jsx` | 65 |
+| Backend tests | `backend/tests/test_iter452_lifecycle_dr_pv.py` | 372 |
+| Backend lib (extended) | `backend/lib/workflow_state_machine.py` | +147 |
+| Backend lib (extended) | `backend/lib/workflow_state_events.py` | +12 |
+| Backend dep (additive) | `backend/routes/safety_portal/_deps.py` | +7 |
+| Backend wiring | `backend/server.py` | +35 |
+| Frontend wiring | `frontend/src/pages/ViewDailyReport.jsx` | +9 |
+| Frontend wiring | `frontend/src/pages/HrPayrollVariance.jsx` | +9 |
+
+**Total:** 1,317 LOC new + 219 LOC additive · 12 files touched.
+
+### Testing & certification
+
+* **21 / 21 new pytest green** (`test_iter452_lifecycle_dr_pv.py`)
+* **38 / 38 cumulative pytest green** (iter451 + iter452)
+* **24 / 24 design gates green** (12 per workflow)
+* **0 regressions** across existing surfaces
+* 🟢 LOW overall risk
+* Live curl walkthroughs: 13/13 DR transitions + 10/10 PV transitions captured
+
+### Deliverables (4 reports)
+
+* `ITER452_IMPLEMENTATION_REPORT.md`
+* `ITER452_CERTIFICATION_REPORT.md`
+* `ITER452_REGRESSION_REPORT.md`
+* `ITER452_RISK_REPORT.md`
+
+### OMEGA discipline
+
+| Rule | Observed |
+|---|---|
+| iter452 scope ONLY (OC-002 + OC-007) | ✅ |
+| Additive endpoints only — zero destructive change | ✅ |
+| NO new audits / scope drift | ✅ |
+| NO Phase 1B work | ✅ |
+| NO White Label | ✅ |
+| NO ForgedOps Operations Center | ✅ |
+| NO Customer #2 work | ✅ |
+| Production untouched | ✅ preview only |
+
+🛑 **Agent STOPPED.** OC-002 + OC-007 are preview-certified. Awaiting operator authorization for (a) production deploy of iter452 or (b) iter453 BUILD (OC-003 QA/QC Follow-Up + OC-004 Site Inspection Follow-Up).
+

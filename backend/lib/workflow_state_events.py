@@ -69,10 +69,21 @@ def _actor_view(actor: Any) -> Dict[str, str]:
     if actor is True:
         return {"role": "admin", "id": "", "name": "Admin"}
     if isinstance(actor, dict):
+        # Recognize the actor_kind tags that the auth deps attach so that
+        # users without a `role` field on their directory row still emit
+        # a meaningful audit-row role (iter452 — adds hr/pm/safety mapping).
+        kind = actor.get("_actor_kind")
+        kind_map = {
+            "safety_user": "safety",
+            "hr_user": "hr",
+            "pm_user": "pm",
+            "shop_user": "shop",
+            "dispatch_user": "dispatch",
+        }
         role = (
             actor.get("_actor")
+            or kind_map.get(kind)
             or actor.get("role")
-            or ("safety" if actor.get("_actor_kind") == "safety_user" else "")
             or "unknown"
         )
         actor_id = (

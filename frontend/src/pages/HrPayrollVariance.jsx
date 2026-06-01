@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { PayrollVarianceLifecyclePanel } from "@/components/PayrollVarianceLifecyclePanel";
 import HrPageShell from "@/components/HrPageShell";
 import { getHrToken } from "@/lib/hrAuth";
 import { toast } from "sonner";
@@ -305,6 +306,14 @@ export default function HrPayrollVariance() {
             <Stat label={t("Matched")} value={summary.matched} cls="text-emerald-700" />
             <Stat label={t("Flagged")} value={summary.flagged} cls={summary.flagged > 0 ? "text-red-700" : ""} />
             <Stat label={t("Pending Review")} value={summary.pending} cls={summary.pending > 0 ? "text-amber-700" : ""} />
+          </div>
+
+          {/* OMEGA · Phase 1A · iter452 · OC-007 Payroll Variance Lifecycle.
+              Operator directive: NO AUTO FINALIZE. Explicit Review → Approve
+              → Finalize flow with three attestation flags + per-row
+              decision verification before Finalize is allowed. */}
+          <div className="p-4 border-b border-slate-200">
+            <PayrollVarianceLifecyclePanel batchId={batch.id} />
           </div>
 
           <div className="px-4 pt-4">

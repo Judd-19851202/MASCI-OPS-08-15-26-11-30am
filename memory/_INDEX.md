@@ -1,6 +1,29 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter451 · Phase 1A BUILD · OC-001 Incident Lifecycle · 🟢 OPERATIONALLY CERTIFIED · GO TO DEPLOY · 3 role simulations green · 16/16 permission probes green · 15/15 live transitions green · UI panel discoverable · awaiting operator deploy authorization)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA iter452 · Phase 1A BUILD · OC-002 Daily Report Office Review + OC-007 Payroll Variance Finalization · 🟢 PREVIEW CERTIFIED · 24/24 gates green · 21/21 new pytest green · 38/38 cumulative green · zero regressions · awaiting operator deploy authorization)._
+
+---
+
+### 00 · OMEGA iter452 · Phase 1A BUILD · OC-002 + OC-007 · 4 deliverables (2026-06-01)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ITER452_IMPLEMENTATION_REPORT.md` | OC-002 (DR Office Review) + OC-007 (Payroll Variance Finalization) shipped · 6 new files · 6 additive edits · 1317 LOC · notification fan-out · server-side flagged-row decision safety net · NO AUTO FINALIZE | 🟢 |
+| `ITER452_CERTIFICATION_REPORT.md` | 24/24 design gates green (12 per workflow) · 21/21 new pytest green · 38/38 cumulative (with iter451) · live curl walkthroughs proving every transition + every gate | 🟢 |
+| `ITER452_REGRESSION_REPORT.md` | Surface-by-surface regression · 0 destructive changes · existing CRUD/CSV exports/legacy decision endpoint untouched · iter451 tests still green | 🟢 |
+| `ITER452_RISK_REPORT.md` | 10-item risk register · 🟢 LOW overall · 3 🟡 backlogged · production-deploy assessment | 🟢 |
+
+🟢 **OC-002 lifecycle:** OPEN → PENDING_REVIEW → REVIEWED → CLOSED · with kickback (PENDING_REVIEW → OPEN, reason required) and audited REOPEN. Notification fan-out on PENDING_REVIEW to PM/Safety/Admin.
+
+🟢 **OC-007 lifecycle:** OPEN → UNDER_REVIEW → APPROVED → FINALIZED · with audited REOPEN. NO AUTO FINALIZE enforced by state graph + 3-flag attestation + server-side per-row decision safety net.
+
+🟢 **Endpoints (additive):**
+- `POST /api/daily-reports/{id}/transition` · `GET /state-events` · `GET /lifecycle`
+- `POST /api/hr/payroll-variance/batches/{id}/transition` · `GET /state-events` · `GET /lifecycle`
+
+🟢 **Frontend:** New `<LifecyclePanel/>` generic shell (config-driven) + per-workflow wrappers. Reused for iter451 incident pattern; ready for iter453-454.
+
+🛑 **Stopped.** iter453 (OC-003 QA/QC Follow-Up + OC-004 Site Inspection Follow-Up), iter454 (OC-005 JHA Ledger), iter455 (Phase 1A Integration Certification) all FROZEN until operator authorization.
 
 ---
 

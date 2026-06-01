@@ -2084,6 +2084,23 @@ register_incident_lifecycle_routes(
 )
 
 
+# ─── OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review ──
+#     Additive transition endpoints. Uses the Safety/Admin/PM read gate
+#     so PMs, Office (Admin), and Safety reviewers can read the
+#     lifecycle. State-machine gate narrows write authority to:
+#       OPEN → PENDING_REVIEW   : PM/Admin/Super-Admin (field submits)
+#       PENDING_REVIEW → REVIEWED|OPEN : Admin/Super-Admin (office reviews / kicks back)
+#       REVIEWED → CLOSED       : Admin/Super-Admin (final attestation)
+#       CLOSED → PENDING_REVIEW : Admin/Super-Admin (reopen with reason)
+from routes.daily_report_lifecycle import register_daily_report_lifecycle_routes  # noqa: E402
+register_daily_report_lifecycle_routes(
+    api_router, db,
+    require_dr_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
+
 # QA/QC inspection routes (Concrete Form / Rebar / Subcontractor Work).
 # Same pattern as the Safety routes — single registration helper, late-bound
 # auto-email so PM routing fires after submit.
@@ -9479,6 +9496,9 @@ async def _arm_workflow_state_events_indexes():
         # Per-record lifecycle_state lookup index on incidents so the
         # transition endpoint never collscans.
         await db.incidents.create_index("lifecycle_state")
+        # iter452 — lifecycle_state on daily_reports and payroll_variance_batches
+        await db.daily_reports.create_index("lifecycle_state")
+        await db.payroll_variance_batches.create_index("lifecycle_state")
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[workflow_state_events] index: {e}")
 
@@ -9685,6 +9705,32 @@ async def _require_hr_user(
 
 _pv_router = _pv_module.build_payroll_variance_router(db, _require_hr_user)
 app.include_router(_pv_router)
+
+
+# ─── OMEGA · Phase 1A · iter452 · OC-007 Payroll Variance Finalization
+#     Additive transition endpoints. Mounted on a dedicated APIRouter so
+#     it can be included AFTER ``app.include_router(api_router)`` upstream.
+async def _require_hr_or_admin(
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+):
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"_actor": "admin", "name": "Admin"}
+    if x_hr_token:
+        from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+        u = await is_valid_hr_user_token_async(db, x_hr_token)
+        if u:
+            return {**u, "_actor_kind": "hr_user"}
+    raise HTTPException(401, "HR or Admin login required")
+
+
+from fastapi import APIRouter as _APIRouterIter452  # noqa: E402
+_iter452_pv_router = _APIRouterIter452(prefix="/api")
+from routes.payroll_variance_lifecycle import register_payroll_variance_lifecycle_routes  # noqa: E402
+register_payroll_variance_lifecycle_routes(
+    _iter452_pv_router, db, require_pv_actor=_require_hr_or_admin,
+)
+app.include_router(_iter452_pv_router)
 
 
 # ─── Signature migration (iter75 — base64 → R2) ─────────────────────

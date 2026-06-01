@@ -131,7 +131,11 @@ def make_require_safety_admin_or_pm(
                 from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
                 pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
                 if pm_doc:
-                    return pm_doc
+                    # iter452 — tag the PM doc so downstream role-normalizers
+                    # can identify it as a PM actor. Pre-existing consumers
+                    # spread the dict and ignore unknown keys, so this is
+                    # additive-only.
+                    return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm"}
             elif is_valid_pm_token and is_valid_pm_token(x_pm_token):
                 return True
         raise HTTPException(401, "Safety, Admin, or PM login required")
