@@ -98,6 +98,7 @@ import AdminOperationsEvents from "@/pages/admin/AdminOperationsEvents";
 import AdminDigestConfig from "@/pages/admin/AdminDigestConfig";
 import SystemHealth from "@/pages/admin/SystemHealth";
 import AdminAuditLog from "@/pages/admin/AdminAuditLog";
+import AdminSchedulerRuns from "@/pages/AdminSchedulerRuns";  // iter445 · digest execution history
 import AdminLegacyImports from "@/pages/AdminLegacyImports";
 import AdminSessions from "@/pages/admin/AdminSessions";
 import AdminGuidanceCoverage from "@/pages/admin/AdminGuidanceCoverage";
@@ -410,6 +411,8 @@ function App() {
             <Route path="/admin/digest-config" element={A(<AdminDigestConfig />)} />
             <Route path="/admin/system-health" element={A(<SystemHealth />)} />
             <Route path="/admin/audit-log" element={A(<AdminAuditLog />)} />
+            {/* iter445 · F-003 · operator-visible scheduler/digest history */}
+            <Route path="/admin/scheduler-runs" element={A(<AdminSchedulerRuns />)} />
             <Route path="/admin/legacy-imports" element={A(<AdminLegacyImports />)} />
             <Route path="/admin/sessions" element={A(<AdminSessions />)} />
             <Route path="/admin/guidance-coverage" element={A(<AdminGuidanceCoverage />)} />

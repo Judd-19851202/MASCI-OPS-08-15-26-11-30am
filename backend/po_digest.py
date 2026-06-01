@@ -396,9 +396,20 @@ async def po_digest_scheduler_loop(
     *,
     portal_url: str = "",
 ) -> None:
-    """Long-running cron. Designed to never raise out. Single-fire-per-slot
-    is guaranteed by the sleep-until-next-slot mechanic (same approach
-    as iter120 safety_digest — no separate dedup table needed)."""
+    """Long-running cron. Designed to never raise out.
+
+    iter445 · Sprint · Scheduler Hardening
+    --------------------------------------
+    Single-fire-per-slot is enforced by a two-layer defense:
+
+    1. Primary · singleton_scheduler lock (cancels orphans on hb-loss).
+    2. Belt-and-suspenders · ``scheduler_runs`` unique compound index on
+       (scheduler, slot_key) so even if the lock layer fails, the slot
+       can be claimed at most once.
+
+    The slot_key is the ISO timestamp of the Monday 14:00 UTC fire time.
+    """
+    from lib.scheduler_runs import claim_slot, mark_completed, mark_failed
     while True:
         try:
             if not _enabled():
@@ -407,15 +418,45 @@ async def po_digest_scheduler_loop(
             wait_s = _seconds_until_next_send()
             logger.info(f"[po-digest] sleeping {wait_s/3600:.1f}h until next send")
             await asyncio.sleep(max(60.0, wait_s))
-            results = await send_po_digest_once(
-                db, send_email_fn, portal_url=portal_url, dry_run=False
+            # Compute the canonical slot_key for the slot we're about to fire
+            slot_dt = datetime.now(timezone.utc).replace(
+                minute=0, second=0, microsecond=0,
             )
-            n_pm = sum(1 for r in results["pm"] if r.get("sent"))
-            n_hr = sum(1 for r in results["hr"] if r.get("sent"))
-            logger.info(
-                f"[po-digest] sent. PMs={n_pm}/{len(results['pm'])} "
-                f"HR={n_hr}/{len(results['hr'])}"
-            )
+            slot_key = slot_dt.isoformat()
+            # Atomically claim the slot. If a sibling has already claimed
+            # it (orphan-scheduler race), claim_slot returns None and we
+            # skip the send.
+            claim = await claim_slot(db, "po_digest", slot_key)
+            if claim is None:
+                logger.warning(
+                    f"[po-digest] slot {slot_key} already sent — dedup skip"
+                )
+                continue
+            try:
+                results = await send_po_digest_once(
+                    db, send_email_fn, portal_url=portal_url, dry_run=False
+                )
+                n_pm = sum(1 for r in results["pm"] if r.get("sent"))
+                n_hr = sum(1 for r in results["hr"] if r.get("sent"))
+                logger.info(
+                    f"[po-digest] sent. PMs={n_pm}/{len(results['pm'])} "
+                    f"HR={n_hr}/{len(results['hr'])}"
+                )
+                await mark_completed(
+                    db, "po_digest", slot_key,
+                    recipients=n_pm + n_hr,
+                    meta={
+                        "pm_attempted": len(results["pm"]),
+                        "pm_sent": n_pm,
+                        "hr_attempted": len(results["hr"]),
+                        "hr_sent": n_hr,
+                        "skipped": len(results.get("skipped") or []),
+                    },
+                )
+            except Exception as send_err:  # noqa: BLE001
+                logger.exception(f"[po-digest] send failed: {send_err}")
+                await mark_failed(db, "po_digest", slot_key, error=str(send_err))
+                raise
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001

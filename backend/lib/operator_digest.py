@@ -300,7 +300,11 @@ async def operator_digest_scheduler_loop(
     send_email_fn: Optional[EmailFn],
 ) -> None:
     """Long-running cron · never raises out · same shape as
-    safety_digest_scheduler_loop so it cohabits well in supervisor."""
+    safety_digest_scheduler_loop so it cohabits well in supervisor.
+
+    iter445 · Sprint · Scheduler Hardening — dedup via scheduler_runs.
+    """
+    from lib.scheduler_runs import claim_slot, mark_completed, mark_failed
     while True:
         try:
             if not _enabled():
@@ -309,33 +313,55 @@ async def operator_digest_scheduler_loop(
             wait_s = _seconds_until_next_send()
             logger.info(f"[operator-digest] sleeping {wait_s/3600:.1f}h until next send")
             await asyncio.sleep(max(60.0, wait_s))
-            payload = await build_weekly_digest_payload(db)
-            text = render_digest_plaintext(payload)
-            recipients = (os.environ.get("OPERATOR_DIGEST_RECIPIENTS")
-                          or os.environ.get("SAFETY_DIGEST_TO_EMAIL")
-                          or "safety@mascigc.com").strip()
-            recipient_list = [r.strip() for r in recipients.split(",") if r.strip()]
-            if not recipient_list:
-                logger.info(f"[operator-digest] no recipients · skipping · payload preview=\n{text}")
+            slot_dt = _now_utc().replace(minute=0, second=0, microsecond=0)
+            slot_key = slot_dt.isoformat()
+            claim = await claim_slot(db, "operator_digest", slot_key)
+            if claim is None:
+                logger.warning(f"[operator-digest] slot {slot_key} already sent — dedup skip")
                 continue
-            if send_email_fn is None:
-                logger.info(f"[operator-digest] no email fn · preview=\n{text}")
-                continue
-            # HTML-wrap the plaintext so Resend renders it as a code
-            # block (preserves alignment in mail clients).
-            html_body = (
-                "<pre style=\"font-family: ui-monospace, SFMono-Regular, "
-                "Menlo, monospace; white-space: pre-wrap; font-size: 13px; "
-                "line-height: 1.5;\">"
-                + text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                + "</pre>"
-            )
-            for r in recipient_list:
-                try:
-                    await send_email_fn(r, "[MASCI] Weekly Operations Digest", html_body)
-                    logger.info(f"[operator-digest] sent to {r}")
-                except Exception as e:  # noqa: BLE001
-                    logger.warning(f"[operator-digest] send to {r} failed: {e}")
+            try:
+                payload = await build_weekly_digest_payload(db)
+                text = render_digest_plaintext(payload)
+                recipients = (os.environ.get("OPERATOR_DIGEST_RECIPIENTS")
+                              or os.environ.get("SAFETY_DIGEST_TO_EMAIL")
+                              or "safety@mascigc.com").strip()
+                recipient_list = [r.strip() for r in recipients.split(",") if r.strip()]
+                if not recipient_list:
+                    logger.info(f"[operator-digest] no recipients · skipping · payload preview=\n{text}")
+                    await mark_completed(db, "operator_digest", slot_key, recipients=0,
+                                         meta={"reason": "no_recipients"})
+                    continue
+                if send_email_fn is None:
+                    logger.info(f"[operator-digest] no email fn · preview=\n{text}")
+                    await mark_completed(db, "operator_digest", slot_key, recipients=0,
+                                         meta={"reason": "no_email_fn"})
+                    continue
+                # HTML-wrap the plaintext so Resend renders it as a code
+                # block (preserves alignment in mail clients).
+                html_body = (
+                    "<pre style=\"font-family: ui-monospace, SFMono-Regular, "
+                    "Menlo, monospace; white-space: pre-wrap; font-size: 13px; "
+                    "line-height: 1.5;\">"
+                    + text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                    + "</pre>"
+                )
+                sent_count = 0
+                for r in recipient_list:
+                    try:
+                        await send_email_fn(r, "[MASCI] Weekly Operations Digest", html_body)
+                        logger.info(f"[operator-digest] sent to {r}")
+                        sent_count += 1
+                    except Exception as e:  # noqa: BLE001
+                        logger.warning(f"[operator-digest] send to {r} failed: {e}")
+                await mark_completed(
+                    db, "operator_digest", slot_key,
+                    recipients=sent_count,
+                    meta={"to": recipient_list, "attempted": len(recipient_list)},
+                )
+            except Exception as send_err:  # noqa: BLE001
+                logger.exception(f"[operator-digest] send failed: {send_err}")
+                await mark_failed(db, "operator_digest", slot_key, error=str(send_err))
+                raise
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001

@@ -336,6 +336,20 @@ export default function HrPayrollVariance() {
                         {(r.masci_jobs || []).length > 0 && (
                           <div className="text-xs text-slate-500 font-mono">{r.masci_jobs.join(", ")}</div>
                         )}
+                        {/* iter445 · F-001 fix — deep-link to per-day timecard
+                           detail in Time Verification. Eliminates Sandy's
+                           extra-tab/retype workflow when investigating a
+                           variance row. */}
+                        <a
+                          href={`/hr/time-verification?employee=${encodeURIComponent(r.employee_name)}&week_ending=${encodeURIComponent(batch.week_ending)}&open_detail=daily`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-0.5 inline-block text-[10px] font-mono uppercase tracking-[0.15em] text-purple-700 hover:text-purple-900 underline decoration-dotted"
+                          data-testid={`hr-pv-perday-link-${r.row_index}`}
+                          title="Open per-day timecard detail for this employee in a new tab"
+                        >
+                          → Per-Day Detail
+                        </a>
                       </td>
                       <td className="px-3 py-2 text-right font-mono">{r.exact_regular.toFixed(2)}</td>
                       <td className="px-3 py-2 text-right font-mono">{r.exact_overtime.toFixed(2)}</td>

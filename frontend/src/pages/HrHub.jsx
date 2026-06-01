@@ -59,10 +59,10 @@ const TILE_DEFS = {
 
   // ── Time & Payroll (sky-600) ─────────────────────────────────
   timeVerification: { to: "/hr/time-verification", icon: Clock, label: "Time Verification",
-    desc: "Daily report labor and payroll cross-check.",
+    desc: "Spot-check one employee's day-by-day timecard for any week.",
     stripe: "border-l-sky-600", btn: "bg-slate-800 hover:bg-slate-900" },
-  payrollVariance: { to: "/hr/payroll-variance", icon: Calculator, label: "Payroll Variance",
-    desc: "Reconcile Exact CSV against MASCI hours.",
+  payrollVariance: { to: "/hr/payroll-variance", icon: Calculator, label: "Payroll Variance (CSV)",
+    desc: "Upload a payroll CSV → flag mismatches against tracked hours.",
     stripe: "border-l-sky-600", btn: "bg-slate-800 hover:bg-slate-900" },
   timeOff: { to: "/hr/time-off", icon: CalendarOff, label: "Time Off Requests",
     desc: "Vacation, sick, medical, bereavement approvals.",

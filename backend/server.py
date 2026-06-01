@@ -56,6 +56,9 @@ from lib.singleton_scheduler import (  # noqa: E402
     run_with_singleton_lock,
     ensure_lock_indexes as _ensure_scheduler_lock_indexes,
 )
+from lib.scheduler_runs import (  # noqa: E402
+    ensure_scheduler_runs_indexes as _ensure_scheduler_runs_indexes,
+)
 
 # Session-timeout middleware (Phase 2 Initiative 4) — env-gated.
 # Default disabled. Installed during startup after db handle is ready.
@@ -8598,6 +8601,13 @@ async def _ensure_scheduler_lock_indexes_at_startup():
         await _ensure_scheduler_lock_indexes(db)
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[singleton-lock] index ensure failed (non-fatal): {e}")
+    # iter445 · Sprint · Scheduler Hardening · Option C.
+    # Unique compound index on (scheduler, slot_key) gives us atomic
+    # dedup even if the singleton-lock layer ever fails again.
+    try:
+        await _ensure_scheduler_runs_indexes(db)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[scheduler-runs] index ensure failed (non-fatal): {e}")
 
 
 @app.on_event("startup")
@@ -9614,6 +9624,12 @@ _po_digest_admin_router = build_po_digest_admin_router(
     send_email_fn=_po_digest_send_email,
 )
 app.include_router(_po_digest_admin_router)
+
+# iter445 · Sprint · Scheduler Hardening · Option C — admin scheduler-runs.
+# Read-only history of every scheduled digest fire (po / safety / operator)
+# with dedup metadata.
+from routes.scheduler_runs_admin import build_scheduler_runs_admin_router  # noqa: E402
+app.include_router(build_scheduler_runs_admin_router(db, require_admin))
 
 
 # ─── HR Payroll Variance (iter72) ────────────────────────────────────

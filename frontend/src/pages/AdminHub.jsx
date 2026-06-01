@@ -83,6 +83,25 @@ export default function AdminHub() {
         {/* Frequently-used: Doc-ID search */}
         <AdminDocIdSearch />
 
+        {/* iter445 · F-003 fix — surface scheduler/digest execution history
+           inside the platform (was email-only). Operators can answer
+           "Why did this digest send · which pod · when · who received it
+           · was a duplicate prevented" without admin DB access. */}
+        <Link
+          to="/admin/scheduler-runs"
+          data-testid="admin-tile-scheduler-runs"
+          className="block bg-white border border-slate-200 border-l-4 border-l-amber-600 hover:shadow-md hover:border-slate-300 rounded-md p-4 transition-all duration-150"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-amber-700 font-bold">audit · iter445</p>
+              <h3 className="font-display text-sm font-black tracking-tight text-slate-900 mt-0.5">Scheduler Runs · Digest History</h3>
+              <p className="text-xs text-slate-600 mt-1">Every Monday PO / safety / operator digest fire — recipient count, pod, dedup attempts. Read-only.</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+          </div>
+        </Link>
+
         {/* Integration framework health (Motive + MaintainX) */}
         <IntegrationHealthCard
           tokenHeader={{ "X-Admin-Token": getAdminToken() || "" }}

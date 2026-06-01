@@ -160,21 +160,42 @@ async def _release_lock(db: Any, lock_name: str, owner_id: str) -> None:
         pass
 
 
-async def _heartbeat_loop(db: Any, lock_name: str, owner_id: str) -> None:
+async def _heartbeat_loop(
+    db: Any,
+    lock_name: str,
+    owner_id: str,
+    scheduler_task: "asyncio.Task[Any] | None" = None,
+) -> None:
     """Background task that refreshes the lock every HEARTBEAT_INTERVAL.
-    Exits silently when the parent scheduler is cancelled."""
+
+    iter445 · Sprint · Scheduler Hardening · Option B
+    -------------------------------------------------
+    When the heartbeat detects the lock has been lost (another worker
+    stole it because our TTL expired), we MUST also cancel the parent
+    scheduler coroutine. Otherwise the orphaned scheduler would survive
+    inside its long ``asyncio.sleep(days)`` and fire at the next slot
+    in parallel with the new lock-owner — producing duplicate digests.
+
+    Caller passes the scheduler task; on lock loss we ``task.cancel()``
+    it before returning.
+
+    Exits silently when the parent scheduler is cancelled.
+    """
     while True:
         try:
             await asyncio.sleep(HEARTBEAT_INTERVAL_SECONDS)
             ok = await _refresh_lock(db, lock_name, owner_id)
             if not ok:
-                # We lost the lock (another worker stole it after our TTL expired
-                # — likely because we were stuck doing slow work). Calm exit;
-                # the scheduler's parent loop will rediscover on next iteration.
+                # Lost the lock. Cancel the orphaned scheduler so it
+                # cannot fire its scheduled side-effect (e.g. send the
+                # PO digest twice).
                 logger.warning(
-                    f"[singleton-lock:{lock_name}] lost lock during heartbeat — "
-                    f"another worker has taken over"
+                    f"[singleton-lock:{lock_name}] LOST LOCK during heartbeat — "
+                    f"another worker has taken over; cancelling orphan scheduler "
+                    f"to prevent duplicate execution"
                 )
+                if scheduler_task is not None and not scheduler_task.done():
+                    scheduler_task.cancel()
                 return
         except asyncio.CancelledError:
             raise
@@ -239,9 +260,17 @@ async def run_with_singleton_lock(
                 f"scheduler is now active on this worker"
             )
 
-            hb_task = asyncio.create_task(_heartbeat_loop(db, lock_name, owner_id))
+            # iter445 · Sprint · Scheduler Hardening · Option B
+            # ------------------------------------------------
+            # Wrap the scheduler in a task so the heartbeat can cancel
+            # it when the lock is lost. The previous pattern awaited
+            # scheduler_fn directly, leaving no handle for cancellation.
+            sched_task = asyncio.create_task(scheduler_fn(db, *fn_args, **fn_kwargs))
+            hb_task = asyncio.create_task(
+                _heartbeat_loop(db, lock_name, owner_id, sched_task)
+            )
             try:
-                await scheduler_fn(db, *fn_args, **fn_kwargs)
+                await sched_task
                 # Scheduler returned normally (rare for a `while True` loop) —
                 # release and exit.
                 logger.info(
@@ -250,9 +279,18 @@ async def run_with_singleton_lock(
                 return
             except asyncio.CancelledError:
                 logger.info(
-                    f"[singleton-lock:{lock_name}] cancelled · releasing lock"
+                    f"[singleton-lock:{lock_name}] scheduler cancelled "
+                    f"(either lock-loss or shutdown) · releasing lock"
                 )
-                raise
+                # If WE were cancelled by the outer task (e.g. app
+                # shutdown), propagate. If the heartbeat cancelled the
+                # scheduler (lock-loss), absorb so the outer while-loop
+                # can poll again and re-acquire if the situation reverses.
+                if hb_task.done():
+                    # heartbeat exited (lock-loss) → don't propagate; fall through
+                    pass
+                else:
+                    raise
             except Exception as e:  # noqa: BLE001
                 logger.exception(
                     f"[singleton-lock:{lock_name}] scheduler crashed: {e!r}"
@@ -266,6 +304,14 @@ async def run_with_singleton_lock(
                     await hb_task
                 except (asyncio.CancelledError, Exception):
                     pass
+                # Ensure the scheduler task is fully unwound. If
+                # heartbeat cancelled it, this awaits the cancellation.
+                if not sched_task.done():
+                    sched_task.cancel()
+                    try:
+                        await sched_task
+                    except (asyncio.CancelledError, Exception):
+                        pass
                 await _release_lock(db, lock_name, owner_id)
         except asyncio.CancelledError:
             raise

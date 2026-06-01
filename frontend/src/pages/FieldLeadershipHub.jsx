@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home, Receipt } from "lucide-react";
+import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home, Receipt, Shield, Truck } from "lucide-react";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import { OfflineIndicator } from "@/lib/resiliency";
@@ -89,8 +89,9 @@ const BTN = {
 };
 
 // Tiles that link to other in-app surfaces (not "/leadership/{kind}/new"
-// forms). Currently only PO Requests — but the structure scales to any
-// future cross-portal operational tile we want surfaced in FL.
+// forms). Currently PO Requests + (iter445) JHA Plans + Asset Transfers
+// — surfaces field crews routinely call the office to ask about, that
+// they can self-serve here.
 const FL_EXTERNAL_TILES = {
   po_requests: {
     kind: "po_requests",
@@ -108,6 +109,39 @@ const FL_EXTERNAL_TILES = {
       // purchase is correct Field Leadership scope.
       en: "Submit purchase requests from the field for PM, Co-PM, HR, or Accounting approval — they issue the official PO. After purchase, upload receipts (camera supported) and respond to clarification requests.",
       es: "Envía solicitudes de compra desde el campo para que el PM, Co-PM, RH o Contabilidad las aprueben — ellos emiten la OC oficial. Después de la compra, sube los recibos (compatible con cámara) y responde a las solicitudes de aclaración.",
+    },
+  },
+  // iter445 · F-004 fix · Job Hazard Plans — field crews need this on
+  // site for trenching, confined-space, hot-work, etc. Previously only
+  // surfaced on the root Hub, forcing supers to memorize the route.
+  jha_plans: {
+    kind: "jha_plans",
+    to: "/jha",
+    icon: Shield,
+    accent: "orange",
+    title: {
+      en: "Job Hazard Plans (JHA)",
+      es: "Análisis de Riesgos del Trabajo (JHA)",
+    },
+    desc: {
+      en: "Open today's JHA before high-risk work (trenching ≥ 5', confined space, hot work). Acknowledge with crew. View the full library by task type.",
+      es: "Abre el JHA del día antes de trabajo de alto riesgo (excavación ≥ 5', espacio confinado, trabajo en caliente). Confirma con el equipo. Consulta la biblioteca completa por tipo de tarea.",
+    },
+  },
+  // iter445 · F-005 fix · Asset Transfers — superintendents need to
+  // confirm equipment in/out from the yard without phoning dispatch.
+  asset_transfers: {
+    kind: "asset_transfers",
+    to: "/asset-transfers",
+    icon: Truck,
+    accent: "blue",
+    title: {
+      en: "Asset Transfers",
+      es: "Transferencias de Equipos",
+    },
+    desc: {
+      en: "See incoming and outgoing equipment for your jobs. Track in-transit deliveries from the yard, returns to storage, and inter-job moves.",
+      es: "Consulta equipos entrantes y salientes en tus obras. Sigue entregas en tránsito desde el patio, devoluciones a almacenamiento y movimientos entre obras.",
     },
   },
 };
@@ -154,6 +188,16 @@ const GROUPS = [
     subtitle: { en: "Submit purchase requests, upload receipts, respond to clarifications, and track spending tied to your jobs. The assigned PM, any Co-PMs, HR, and Admin issue the official PO.",
                 es: "Envía solicitudes de compra, sube recibos, responde aclaraciones y haz seguimiento de gastos. El PM asignado, los Co-PMs, RH y Admin emiten la OC oficial." },
     kinds: ["po_requests"],
+  },
+  // iter445 · F-004 + F-005 fixes — surfaces field crews routinely call
+  // the office to ask about. JHA must be visible BEFORE high-risk work;
+  // asset-transfer visibility eliminates "where's my roller?" phone tag.
+  {
+    kicker: "06",
+    title: { en: "On-Site Reference", es: "Referencia en Obra" },
+    subtitle: { en: "Look up before you start. Find JHAs and confirm equipment is in transit.",
+                es: "Consulta antes de comenzar. Encuentra JHAs y confirma que el equipo está en tránsito." },
+    kinds: ["jha_plans", "asset_transfers"],
   },
 ];
 

@@ -45,13 +45,21 @@ const fmtHours = (n) => (Number.isFinite(n) ? n.toFixed(2) : "0.00");
 
 export default function HrTimeVerification() {
   const { t } = useT();
-  const [weekEnding, setWeekEnding] = useState(defaultWeekEnding());
-  const [employee, setEmployee] = useState("");
+
+  // iter445 · F-001 fix — accept deep-link from Payroll Variance page.
+  // ?employee=Name&week_ending=YYYY-MM-DD&open_detail=daily
+  const _qs = (typeof window !== "undefined") ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  const _qsEmployee = _qs.get("employee") || "";
+  const _qsWeekEnding = _qs.get("week_ending") || "";
+  const _qsOpenDetail = _qs.get("open_detail") || "";
+
+  const [weekEnding, setWeekEnding] = useState(_qsWeekEnding || defaultWeekEnding());
+  const [employee, setEmployee] = useState(_qsEmployee);
   const [projectNumber, setProjectNumber] = useState("");
   const [supervisor, setSupervisor] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [view, setView] = useState("weekly"); // weekly | daily
+  const [view, setView] = useState(_qsOpenDetail === "daily" ? "daily" : "weekly"); // weekly | daily
   const [pendingFilters, setPendingFilters] = useState(0);
 
   const fetchData = useCallback(async () => {

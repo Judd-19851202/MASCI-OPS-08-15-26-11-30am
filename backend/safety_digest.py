@@ -57,7 +57,11 @@ async def safety_digest_scheduler_loop(
     send_email_fn: Optional[EmailFn],
 ) -> None:
     """Long-running cron. Designed to never raise out — if anything goes
-    wrong it logs and sleeps until the next slot."""
+    wrong it logs and sleeps until the next slot.
+
+    iter445 · Sprint · Scheduler Hardening — dedup via scheduler_runs.
+    """
+    from lib.scheduler_runs import claim_slot, mark_completed, mark_failed
     while True:
         try:
             if not _enabled():
@@ -67,17 +71,35 @@ async def safety_digest_scheduler_loop(
             wait_s = _seconds_until_next_send()
             logger.info(f"[safety-digest] sleeping {wait_s/3600:.1f}h until next send")
             await asyncio.sleep(max(60.0, wait_s))
-            payload = await build_payload()
-            html = render_html(payload)
-            recipient = (os.environ.get("SAFETY_DIGEST_TO_EMAIL") or "safety@mascigc.com").strip()
-            if send_email_fn:
-                try:
-                    await send_email_fn(recipient, "[MASCI] Weekly Safety Digest", html)
-                    logger.info(f"[safety-digest] sent to {recipient}")
-                except Exception as e:  # noqa: BLE001
-                    logger.warning(f"[safety-digest] email send failed: {e}")
-            else:
-                logger.info(f"[safety-digest] (no email fn) payload={payload['kpis']}")
+            slot_dt = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+            slot_key = slot_dt.isoformat()
+            claim = await claim_slot(db, "safety_digest", slot_key)
+            if claim is None:
+                logger.warning(f"[safety-digest] slot {slot_key} already sent — dedup skip")
+                continue
+            try:
+                payload = await build_payload()
+                html = render_html(payload)
+                recipient = (os.environ.get("SAFETY_DIGEST_TO_EMAIL") or "safety@mascigc.com").strip()
+                sent_ok = False
+                if send_email_fn:
+                    try:
+                        await send_email_fn(recipient, "[MASCI] Weekly Safety Digest", html)
+                        logger.info(f"[safety-digest] sent to {recipient}")
+                        sent_ok = True
+                    except Exception as e:  # noqa: BLE001
+                        logger.warning(f"[safety-digest] email send failed: {e}")
+                else:
+                    logger.info(f"[safety-digest] (no email fn) payload={payload['kpis']}")
+                await mark_completed(
+                    db, "safety_digest", slot_key,
+                    recipients=(1 if sent_ok else 0),
+                    meta={"to": recipient, "kpis": payload.get("kpis")},
+                )
+            except Exception as send_err:  # noqa: BLE001
+                logger.exception(f"[safety-digest] send failed: {send_err}")
+                await mark_failed(db, "safety_digest", slot_key, error=str(send_err))
+                raise
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001
