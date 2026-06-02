@@ -1,6 +1,103 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA) — FORGEDOPS NEXT PHASE DIRECTIVE (Phases 1-4) DELIVERED 🚀
+
+### Operator authorization
+> "FORGEDOPS NEXT PHASE DIRECTIVE. Move ForgedOps from audit/discovery mode into operational execution mode. Phase 1: Accept Ownership Discovery as canonical. Phase 2: Resolve 5 REVIEW items (doctrine-only). Phase 3: Prepare iter453 for build (Constitutional re-scope). Phase 4: Company Operating System Audit (classify every operational function BUILD / INTEGRATE / EXISTS / IGNORE). Success condition: ForgedOps becomes an operating system for a construction company rather than a collection of forms, dashboards, tasks, acknowledgements, and reports. Every future recommendation must answer 'Does this reduce work or create work?' — if it creates work it is presumed unconstitutional until proven otherwise."
+
+### Phase 1 · Ownership Doctrine accepted as canonical
+9 core ownership rules adopted (O-1 through O-9):
+* O-1 Ownership inferred (S1 Creator · S2 Project · S3 State-gate · S4 Manager ladder)
+* O-2 Ownership never manually assigned
+* O-3 Ownership transfers through state transitions
+* O-4 Ownership escalates automatically
+* O-5 Operational records ARE the work
+* O-6 No task-management paradigm
+* O-7 No acceptance workflow
+* O-8 No acknowledgement workflow
+* O-9 No ticket-board workflow
+
+**Ownership Doctrine Test** added as second mandatory pre-build gate (alongside Constitutional Test).
+
+### Phase 2 · 5 REVIEW items resolved · 100 % Constitutional clarity achieved
+6 new doctrine rules (O-10 through O-15) added:
+* O-10 Internal-Owner Invariant (counterparties are metadata, not owners)
+* O-11 Constrained Co-Authority (single-transition delegation for regulatory exposure)
+* O-12 Tunable Role Mapping (workflow-class defaults tenant-configurable)
+* O-13 Deputy Delegation via State Transition (bounded · auto-reversion)
+* O-14 Dual-Affordance per Action Console Row (`open_record` + `take_ownership` always available)
+* O-15 No-Standalone-Chart Rule (every chart inside Action Console row with action)
+
+**Ownership Doctrine = 15 binding rules.** Compliance: 51 PASS · 0 REVIEW · 0 CONSTITUTIONAL CONFLICT across all Ownership documents (was 46/5/0 pre-resolution).
+
+### Phase 3 · iter453 Constitutionally re-scoped · BUILD-READY
+OC-003 (QA/QC Deficiency Follow-Up) + OC-004 (Site Inspection Finding Follow-Up) re-scoped:
+* 5-state machines defined with role gates per Ownership Doctrine
+* Closure-action contract: re-inspection record OR `corrective_actions` complete OR documented exception (dual sign-off) — NO ack-click
+* Amendment 001 REPLACE-4 ("Acknowledge findings") + REPLACE-5 ("Mark Resolved") honored
+* Sub-coordination via O-10 (PM remains internal owner · sub is counterparty metadata)
+* Constrained Co-Authority (O-11) for safety-hazard findings (`escalate_to_stop_work`)
+* 10 Constitutional checks PASS per workflow
+* Build dependencies enumerated; build remains FROZEN pending explicit operator authorization
+* **Marketing-quality post-build contract:** "QA/QC and Site Inspection workflows close only when operational action is recorded · re-inspection, corrective action, or documented exception with dual sign-off."
+
+### Phase 4 · Company Operating System Audit delivered
+**Primary-question answer:** 🟡 PARTIALLY — ~22 % of operational capabilities EXIST today · ~37 % of MASCI's full operational surface when adjacent partials counted · ~63 % runs outside ForgedOps (accounting/ERP intentional INTEGRATE · spreadsheets · phone · email · tribal knowledge).
+
+**4-bucket classification across 10 functions (~104 capabilities):**
+| Class | Count |
+|---|---:|
+| ✅ EXISTS | ~22 |
+| 🔨 BUILD | ~38 |
+| 🔗 INTEGRATE | ~21 |
+| 🔨🔗 HYBRID | ~9 |
+| 🚫 IGNORE | ~14 |
+
+**5 mandatory answers:**
+* Answer 1 (What MASCI runs today): Universal state machine · DR · Incidents · FSI 5-tier · Asset Transfers · Fleet Defects · Pre-Op · DVIR · Time Verification · Payroll Variance · Training records · Toolbox Talks · JHP library · CAPA · Documents · MFA · Backups · Recovery
+* Answer 2 (What MASCI cannot run today): Executive Leadership · Accounting · PM workflow cluster · Field Clock-in · Production Tracking · Closure-action loops · Ownership glue · Notification routing · DQ-file + DOT · OSHA reporting · OC-005 JHP Evidence · PPE Return · Stop-work
+* Answer 3 (What must be BUILD): ~38 capabilities — Top 10 captures the highest-leverage subset (Ownership Layer · Field Clock-in · Production Tracking · Executive Role · iter453 · OSHA Generator · DQ-file + DOT · OC-005 · Sub-Mgmt · Notification Routing + iter452.5.2)
+* Answer 4 (What should INTEGRATE): ~21 items — EX-1 Accounting BLOCKING (single largest unblock) · Wave 2 EX-2 Payroll + EX-4 ELD/Motive · Wave 3 EX-3/6/7/8/11 + MaintainX + Fuel + Auth + MVR · Wave 4 EX-5/9/10 + CRM + HRIS · BI tooling via data export only
+* Answer 5 (What should NEVER be built): ~62 distinct items (14 in this audit + 48 in FORGEDOPS_IGNORE_LIST.md) — every ack-as-work pattern (V-1..V-14) · every mature-system replacement · every architectural anti-pattern
+
+### Reduce-work-vs-create-work test (new mandatory pre-build gate)
+Every future recommendation must answer: **"Does this reduce work or create work?"** If it creates work, it is presumed unconstitutional until proven otherwise. This is the third mandatory pre-build gate (alongside Constitutional Test + Ownership Doctrine Test).
+
+### Operational completeness ceiling projection (informational)
+| Milestone | Projection |
+|---|---:|
+| Today | ~37 % 🔴 |
+| + Ownership Layer A+B | ~50 % 🟡 |
+| + Field Clock-in + Production Tracking | ~58 % 🟡 |
+| + iter453 + OC-005 + Stop-work + PPE Return | ~63 % 🟡 |
+| + EX-1 Accounting integration | ~70 % 🟢 |
+| + Executive Role + 8 Action Consoles | ~78 % 🟢 |
+| + PM workflow cluster + INTEGRATE Waves 2-3 | ~90 % 🟢 |
+| + DQ-file + DOT + polish | ~95 % 🟢 |
+
+### Deliverables produced this batch (5 new)
+* `/app/memory/OWNERSHIP_DISCOVERY_CANONICAL_ACCEPTANCE.md` (Phase 1)
+* `/app/memory/OWNERSHIP_DISCOVERY_REVIEW_RESOLUTIONS.md` (Phase 2)
+* `/app/memory/ITER453_CONSTITUTIONAL_BUILD_PACKAGE.md` (Phase 3 · BUILD-READY)
+* `/app/memory/COMPANY_OPERATING_SYSTEM_AUDIT.md` (Phase 4 master)
+* `/app/memory/COMPANY_OPERATING_SYSTEM_EXECUTIVE_SUMMARY.md` (Phase 4 operator summary)
+
+### Operator decision matrix (6 BUILD authorization options · none auto-authorized)
+* (A) Authorize Ownership Layer A build (Top 10 Rank #1 · foundation for 70 %+ remaining gain)
+* (B) Authorize iter453 build (Phase 3 package complete · safe to issue now)
+* (C) Authorize iter452.5.2 P1 Resend Bounce Webhook (pre-authorized · ~3 realistic days)
+* (D) Authorize EX-1 Accounting integration scoping (operator must name vendor: QuickBooks · Sage · Foundation · Vista · Viewpoint)
+* (E) Authorize Field Clock-in/out scoping (heavy-civil differentiator · enables Production Tracking)
+* (F) Authorize Executive Role + 8 mandatory Action Consoles scoping (requires Ownership Layer A+B first)
+
+### Status
+🚀 **Platform transition complete: audit/discovery mode → operational execution mode.** Documentation-only batch. Zero code · zero design · zero estimates · zero build authorization. Full governance stack now active: Constitution + Override + Amendment 001 + Build/Integrate/Ignore Doctrine + Ownership Doctrine (15 rules) + Reduce-work-vs-create-work Test. **iter453 is the first BUILD-ready package since the OMEGA audit-mode era began.** Control surrendered to operator.
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA) — FORGEDOPS OWNERSHIP LAYER DISCOVERY AUDIT DELIVERED 🟢
 
 ### Operator authorization
