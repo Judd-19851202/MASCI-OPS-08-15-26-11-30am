@@ -1,6 +1,88 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA) — Operational Reality Audit "Can MASCI Run The Company Inside ForgedOps?" DELIVERED 🔴
+
+### Operator authorization
+> "OMEGA AUDIT AUTHORIZATION — CAN MASCI RUN THE COMPANY INSIDE FORGEDOPS? Determine whether MASCI could realistically operate the entire company using ForgedOps as the primary operational platform. Assume no spreadsheets, no notebooks, no whiteboards, no side databases, no text-message workflows, no email-based business processes, no tribal knowledge, no memory-based tracking. 10 operational areas × 10 questions. Apply Constitution + Override. Do NOT recommend acknowledgement workflows · unnecessary statuses · dashboard-only features · manual assignment systems · checklist software. 10 deliverables."
+
+### Primary-question answer
+🔴 **NO — MASCI cannot run the company entirely inside ForgedOps today.** Platform Operability **35/100** · approximately 37 % weighted operational surface coverage. The remaining ~63 % runs on accounting/ERP (intentional external) · spreadsheets · phone calls · email · whiteboards · tribal knowledge — exactly the substrates the audit prohibits.
+
+### At-a-glance scorecard (10 areas)
+| Area | Score |
+|---|---:|
+| Executive | 12/100 🔴 |
+| Operations | 40/100 🟠 |
+| Project Management | 34/100 🟠 |
+| **Field Operations** | **56/100 🟡** (strongest) |
+| **Safety** | **51/100 🟡** (strongest) |
+| HR | 36/100 🟠 |
+| Equipment | 40/100 🟠 |
+| Fleet | 36/100 🟠 |
+| Financial Operations | 20/100 🔴 (intentional external) |
+| Customer #2 Readiness | 29/100 🔴 |
+| **PLATFORM AGGREGATE** | **35/100 🔴** |
+
+### Gap tally
+| Cluster | Count |
+|---|---:|
+| ABSENT (greenfield build) | 22 |
+| PARTIAL (existing primitive · needs completion) | 11 |
+| EXTERNAL (integration decision) | 9 |
+| CONSTITUTIONAL (re-scope per Amendment 001) | 4 |
+| TRIBAL (capture as data) | 2 |
+| **TOTAL** | **48** |
+
+By severity: 12 G0 · 14 G1 · 15 G2 · 7 G3.
+
+### Key findings
+* **24 greenfield-build items** catalogued — 7 PM · 3 Field Ops · 4 Executive/Ops · 3 Safety · 3 HR · 2 Equipment · 2 Fleet. 14 require new collections; 10 consume existing primitives. **Every item Constitution-compliant per Amendment 001 framing.**
+* **11 external dependencies** — accounting/ERP (EX-1) is the dominant integration · supports 6 of 9 EXTERNAL gaps · operator should rank ahead of any new internal build.
+* **14 forward Constitutional violations** if greenfield items were built using construction-industry-standard patterns. All 14 addressable via Constitutional alternative framing. **Constitutional Test mandatory at every future scoping conversation.**
+* **Customer #2 reality:** architectural readiness 23/90 (existing) + operational replicability 35/100 (new) = aggregate ~36/100 🔴 NOT READY. Customer #2 inherits the same 65 % operational shortfall MASCI has today. **Constitutional sequencing: Fix MASCI → Strengthen platform → Multi-tenancy → Customer #2.**
+* **ForgedOps v1 requirement set** organized into 11 classes (A–K) · v1 NOT-included list explicitly states accounting · payroll · ELD · scheduling tool replacements are OUT-OF-SCOPE (Rule 9 Operator First · integrate don't rebuild).
+
+### Prioritized roadmap (informational · 5 priority buckets)
+* **P0 (12 items · operationally critical):** Constitutional re-scopes (OC-003/004/005/013/014) + Ownership Layers A+B + iter452.5.2 P1 + field clock-in + subcontractor management + master schedule
+* **P1 (14 items · scalability/executive visibility):** Executive role + PM workflows (Submittal/RFI/CO/Pay-App) + accounting integration + DQ-file + DOT compliance + perf review + manager_employee_id
+* **P2 (15 items · adoption/clarity):** OC-013/014 re-scope + PPE Return + Stop-work + production tracking + maintenance + lien waivers + meeting minutes + budgeting + backlog
+* **P3 (7 items · cosmetic):** Photo Janitor + status vocab canonicalization + remaining lifecycle polish
+* **Arch (5 items · parallel track):** tenant_id propagation + multi-tenant auth/SSO + onboarding wizard + brand-config + Operations Center MVP
+
+### Sequencing observation (informational only · NOT authorized)
+Wave 1 (P0) → ~50/100 · Wave 2 (P1 + Executive + Accounting integration) → ~70/100 · Wave 3 (P2 ops completion) → ~85/100 · Wave 4 (Arch multi-tenancy) → ~90/100 · Wave 5 (P3 polish).
+
+### ForgedOps v1 marketing-quality statement (when complete)
+> "Every workflow has a named human owner, a tracked SLA, an escalation path, and executive-visible reporting. Every workflow generates Tier 1 work-performed evidence — never just acknowledgement clicks. Every notification reaches one accountable person, not a department. Every closure requires operational action, not a status-pill click. The construction-operations function runs entirely inside ForgedOps; accounting · payroll · ELD · drug-test · OSHA portal · workers comp · MSDS · benefits · ATS are integrated as evidence sources — never re-implemented."
+
+### Deliverables produced (10)
+* `/app/memory/OPERATIONAL_REALITY_AUDIT.md` (master)
+* `/app/memory/COMPANY_OPERABILITY_SCORECARD.md`
+* `/app/memory/OPERATIONAL_REALITY_GAP_REGISTER.md`
+* `/app/memory/BUILD_FROM_SCRATCH_REGISTER.md`
+* `/app/memory/EXTERNAL_DEPENDENCY_REGISTER.md`
+* `/app/memory/OPERATIONAL_REALITY_CONSTITUTIONAL_VIOLATION_REGISTER.md`
+* `/app/memory/CUSTOMER2_READINESS_REALITY_ANALYSIS.md`
+* `/app/memory/FORGEDOPS_V1_REQUIREMENTS_REPORT.md`
+* `/app/memory/OPERATIONAL_REALITY_EXECUTIVE_SUMMARY.md`
+* `/app/memory/OPERATIONAL_REALITY_PRIORITIZED_ROADMAP.md`
+
+### Operator review pending status
+🛑 **AWAITING OPERATOR DECISION.** None of the 4 paths or 5 waves is auto-authorized. Specifically pending operator selection among:
+* (A) Close Phase 1A friction first (Constitutional re-scopes + Ownership v1)
+* (B) Build PM workflows + Executive surfaces
+* (C) Accounting integration first (EX-1)
+* (D) Defer multi-tenancy until operability strengthened
+* (E) Other directive
+
+### Status
+🛑 Documentation-only batch complete. Zero code · zero DB changes · zero deployment · zero re-scoring · zero solutions designed · zero implementation plans · zero authorization. OMEGA discipline preserved. Constitution + Amendment 001 + Operational Reality Audit now form the complete pre-build governance set.
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA) — Constitutional Amendment 001 "Evidence Over Acknowledgement" + Validation Sweep DELIVERED 🟡
 
 ### Operator authorization

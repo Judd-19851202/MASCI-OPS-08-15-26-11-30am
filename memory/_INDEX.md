@@ -1,8 +1,37 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · ⛔ **FORGEDOPS CONSTITUTION + AMENDMENT 001 "EVIDENCE OVER ACKNOWLEDGEMENT" active** · Validation Sweep 9 PASS · 2 FAIL · 7 REPLACE · all 7 REPLACE items addressable via existing Tier 1/2/3 primitives (Toolbox Talk · attendance · JHP download identity · corrective_actions · safety_training_records) — zero new collections required · Compliance Sweep 67/100 🟡 · 24 conflicts (4 P0 all JHP-ack family · 8 P1 · 7 P2 · 5 P3) · Ownership Maturity 18/100 🔴 · 26 ownership gaps · 0/736 user-level task assignment · Customer #2 23/90 🔴 · White-Label 23/90 🔴 · ForgedOps Foundation 42/100 🟡)._
+_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · 🔴 **OPERATIONAL REALITY VERDICT: MASCI CANNOT RUN THE COMPANY ENTIRELY INSIDE FORGEDOPS TODAY** · Platform Operability 35/100 🔴 · 10 areas scored · strongest Field Ops 56/100 + Safety 51/100 · weakest Executive 12/100 + Financial 20/100 + Customer #2 29/100 · 48 gaps catalogued (12 G0 · 14 G1 · 15 G2 · 7 G3) · 24 greenfield build items · 11 external dependencies (accounting EX-1 dominant) · 14 forward Constitutional violations · ⛔ **FORGEDOPS CONSTITUTION + AMENDMENT 001 "EVIDENCE OVER ACKNOWLEDGEMENT" active** · Validation Sweep 9 PASS · 2 FAIL · 7 REPLACE · Compliance Sweep 67/100 · 24 conflicts (4 P0 JHP-ack family · 8 P1) · Ownership Maturity 18/100 · 26 ownership gaps · 0/736 user-level task assignment · Customer #2 23/90 🔴 · White-Label 23/90 🔴 · ForgedOps Foundation 42/100 🟡)._
 
-⛔ **READ THIS FIRST** — every future audit/build/recommendation must satisfy `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` Parts I + II + III + IV (10 Friction Rules + Override + Amendment 001 Rule 11 + 4-tier Evidence Hierarchy). **Constitutional Test is now mandatory pre-build gate for every acknowledgement-workflow proposal:** *"What operational problem is solved by requiring this acknowledgement?"* If answer is "None" → shall not be built. 5 mandatory audit axes: User Friction · Click Burden · Workflow Simplicity · Operational Practicality · Field Adoption Probability. **Evidence of work always outranks evidence of acknowledgement. The platform must remain an operator's execution system, never an auditor's checklist system.**
+⛔ **READ THIS FIRST** — every future audit/build/recommendation must satisfy `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` Parts I + II + III + IV. **Constitutional Test is mandatory pre-build gate** for every acknowledgement-workflow proposal. Evidence of work always outranks evidence of acknowledgement. The platform must remain an operator's execution system, never an auditor's checklist system. **The Operational Reality Audit confirms ForgedOps today covers ~37 % of MASCI's operational surface area — the remaining 63 % runs on accounting/ERP, spreadsheets, phone, email, and tribal knowledge.**
+
+---
+
+### 00 · OMEGA · OPERATIONAL REALITY AUDIT — CAN MASCI RUN THE COMPANY INSIDE FORGEDOPS? · 10 deliverables (2026-06-02)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `OPERATIONAL_REALITY_AUDIT.md` | Master · 10 operational areas (Executive · Operations · PM · Field · Safety · HR · Equipment · Fleet · Financial · Customer #2) × 10 questions matrix · primary-question answer · aggregate ~37 % coverage | 🔴 NO |
+| `COMPANY_OPERABILITY_SCORECARD.md` | 4-component scoring per area (Coverage · Lifecycle · Accountability · Adoption) · platform aggregate **35/100** · 4 informational paths forward · per-area headline assessment | 🔴 35/100 |
+| `OPERATIONAL_REALITY_GAP_REGISTER.md` | 48 gaps (12 G0 · 14 G1 · 15 G2 · 7 G3) · 5 clusters (ABSENT 22 · PARTIAL 11 · EXTERNAL 9 · CONSTITUTIONAL 4 · TRIBAL 2) · workaround cost summary | 🟡 |
+| `BUILD_FROM_SCRATCH_REGISTER.md` | 24 greenfield-build items · 7 PM workflows · 3 Field Ops · 4 Executive/Ops · 3 Safety · 3 HR · 2 Equipment · 2 Fleet · 14 require new collections · 10 consume existing primitives · every item Constitution-compliant per Amendment 001 framing | 🟡 |
+| `EXTERNAL_DEPENDENCY_REGISTER.md` | 11 external dependencies · accounting (EX-1) dominant · 3 regulatory non-negotiable · 3 HR domain-mature · 2 safety subscription products · Constitutional posture per integration class | 📤 |
+| `OPERATIONAL_REALITY_CONSTITUTIONAL_VIOLATION_REGISTER.md` | 14 forward Constitutional violation risks if greenfield items built using construction-industry-standard patterns · 8 permitted-pattern examples for clarity · Constitutional Test mandatory at every scoping conversation | 🟡 |
+| `CUSTOMER2_READINESS_REALITY_ANALYSIS.md` | Two-dimension assessment: architectural readiness 23/90 (existing) + operational replicability 35/100 (new) · aggregate ~36/100 · Tier 1/2/3 blockers · sequencing observation (Fix MASCI → Strengthen platform → Multi-tenancy → Customer #2) | 🔴 NOT READY |
+| `FORGEDOPS_V1_REQUIREMENTS_REPORT.md` | 11 requirement classes (A Primitives · B Ownership · C Executive/Ops · D PM · E Field · F Safety · G HR · H Equipment/Fleet · I Financial · J Multi-tenancy · K Doctrine) · v1 contract marketing-quality statement · v1 NOT-included list (intentional Constitutional discipline) | 🟡 |
+| `OPERATIONAL_REALITY_EXECUTIVE_SUMMARY.md` | 3-min operator read · primary-question answer · at-a-glance scorecard · what must be Fixed/Redesigned/Built/Integrated/Architecturally-rebuilt · 4 informational paths forward | 🔴 NO |
+| `OPERATIONAL_REALITY_PRIORITIZED_ROADMAP.md` | 48 gaps prioritized: P0 12 items (operationally critical) · P1 14 items (scalability/executive visibility) · P2 15 items (adoption/clarity) · P3 7 items (cosmetic) · Architectural 5 items (multi-tenancy parallel track) · Waves 1-5 sequencing observation (informational only) | 🟡 |
+
+🔴 **Headline:** MASCI cannot run the company entirely inside ForgedOps today. The platform handles **37 %** of operational surface · the remaining 63 % runs on accounting/ERP (EX-1 dominant integration), spreadsheets (19 gap items rely on them), phone/email (12 items), tribal knowledge (8 items), paper/file (6 items), and external vendor portals (7 items).
+
+🟡 **Strongest surfaces:** Field Operations 56/100 + Safety 51/100 — these are the areas with active Phase 1A investment. Closing Constitutional re-scopes (OC-003/004/005/013/014) + Ownership Layers A+B + iter452.5.2 P1 would bring Wave 1 to ~50/100 platform-wide.
+
+🔴 **Weakest surfaces:** Executive 12/100 + Financial 20/100 + Customer #2 29/100 — Executive is structurally absent (no role, no portfolio view); Financial is intentionally external (accounting/ERP); Customer #2 requires both architectural rebuild AND operational close-out.
+
+🛑 **STOPPED.** Documentation-only batch · zero code · zero design · zero estimates · zero authorization. Awaiting operator decision among the 4 informational paths:
+* (A) Close Phase 1A friction first (Constitutional re-scopes + Ownership v1 Layers A+B) → ~50/100
+* (B) Build PM workflows + Executive surfaces → ~60/100
+* (C) Accounting integration first (EX-1) → unblocks Financial + Executive WIP
+* (D) Defer multi-tenancy until operability strengthened
 
 ---
 
