@@ -1,6 +1,63 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · FINAL HOTFIX DEPLOYMENT CLOSEOUT · 🟡 CERTIFIED WITH REMAINING LIMITATIONS)
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — FINAL HOTFIX DEPLOYMENT CLOSEOUT. Close the remaining known limitations from the ITER453.6 post-deploy certification. (1) Ship ITER453.6 startup gate · (2) Enforce RESEND_WEBHOOK_SECRET · (3) Remove audit-probe employee · (4) Short post-deploy certification. STOP after certification."
+
+### Final verdict: 🟡 **CERTIFIED WITH REMAINING LIMITATIONS**
+
+### Per-part scoreboard
+- **Part A** (webhook secret enforcement) — 🔴 **FAIL** · `POST /api/webhooks/resend -d '{}'` still returns 200 (not 401) · bad-signature probe also 200 · per directive STOP-and-report condition triggered.
+- **Part B** (redeploy to preview HEAD) — 🟢 **PASS** · source_hash=`7a6c669f9e9212286e3850fae6a0b78e` matches target exactly · commit `4f1e112`.
+- **Part C** (audit employee cleanup) — 🟡 **NOT INDEPENDENTLY VERIFIABLE** · operator must check HR portal.
+- **Part D** (startup gate) — 🟢 **PASS** · code in build · canonical warm-pod 410 preserved (5/5 burst).
+- **Part E** (regression smoke) — 🟢 **PASS** · 10/10 probes canonical · 0 regressions.
+
+### Counts
+- Gates: **18 / 21 PASS** · 2 fail (both webhook) · 1 limited (operator-verify)
+- Probes: 14 anon · 1 source_hash · 2 webhook = **17 verification points**
+- Blockers: **0**
+- Regressions: **0**
+- Risk: 🔴 0 · 🟡 1 (webhook unchanged) · 🟢 2
+
+### Production signature
+- `source_hash`: **`7a6c669f9e9212286e3850fae6a0b78e`** (= commit `4f1e112` · iter453.6 IN)
+- `app_env`: `production` · `db_name`: `masci_safety`
+- Pod started: 2026-06-02T15:27:02 UTC · uptime ≈ 14 min at audit
+
+### Risk register Δ
+| Risk | Prior | Now |
+|---|---|---|
+| iter453.6 not deployed | 🟡 MED | 🟢 CLOSED |
+| RESEND_WEBHOOK_SECRET unset | 🟡 MED | 🟡 MED (unchanged) |
+| Audit-probe employee | 🟢 LOW | 🟢 LOW (operator-verifiable only) |
+
+### Next operator actions (≤ 4 min total)
+1. 🔴 Confirm `RESEND_WEBHOOK_SECRET=whsec_<value>` is present in the **production** env-var pane (NOT preview).
+2. 🔴 If missing, set the value from Resend dashboard's "Reveal Signing Secret".
+3. 🔴 Restart the production backend.
+4. 🔴 Re-curl: `curl -s -o /dev/null -w "%{http_code}\n" -X POST https://mascidocs.com/api/webhooks/resend -d '{}'` → expect **401**.
+5. 🔴 If still 200 after restart: capture env pane screenshot + engage Emergent Support (env var may be in wrong scope or not propagated).
+6. 🟡 Log into `/hr/login` as HR Manager → `/hr/employees` → search "PROD AUDIT PROBE" → confirm absent or `Terminated`.
+
+### 3 deliverables produced
+- `/app/memory/FINAL_HOTFIX_GO_NO_GO.md` 🟡
+- `/app/memory/FINAL_HOTFIX_CERTIFICATION.md`
+- `/app/memory/FINAL_HOTFIX_DEPLOY_REPORT.md`
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### Out-of-scope honored
+- ❌ NO new features · NO iter454 · NO iter455 · NO Phase 1B · NO Accountability Chain · NO Ownership Layer · NO White Label · NO ForgedOps Operations Center · NO scope drift
+- ❌ NO code changes (READ-ONLY directive honored)
+
+🛑 **STOPPED.** Awaiting operator action on RESEND_WEBHOOK_SECRET + HR-portal cleanup verification.
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · ITER453.6 POST-DEPLOY PRODUCTION CERTIFICATION · 🟡 CERTIFIED WITH KNOWN LIMITATIONS)
 
 ### Operator authorization

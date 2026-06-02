@@ -12,6 +12,19 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
 ---
+### 00 · OMEGA · FINAL HOTFIX DEPLOYMENT CLOSEOUT (2026-06-02 · 3 deliverables · 🟡 CERTIFIED WITH REMAINING LIMITATIONS)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `FINAL_HOTFIX_GO_NO_GO.md` | **🟡 CERTIFIED WITH REMAINING LIMITATIONS** · Part B ✅ source_hash=`7a6c669f…` matches target · Part D ✅ startup gate shipped · Part E ✅ 10/10 regression canonical · **Part A 🔴 webhook secret NOT loaded** · Part C 🟡 operator-side HR portal verify needed · 18/21 gates pass · 0 blocker · 0 regression · 1 MEDIUM remaining | 🟡 GO with 1 open |
+| `FINAL_HOTFIX_CERTIFICATION.md` | Per-part scoreboard · doctrine certification · risk register Δ (iter453.6 transitioned 🟡→🟢 · webhook secret unchanged 🟡) | 🟡 |
+| `FINAL_HOTFIX_DEPLOY_REPORT.md` | Deployment signature (new `source_hash=7a6c669f9e9212286e3850fae6a0b78e` matches target exactly · pod fresh 14m · `started_at=15:27:02Z`) · 14 anon probes · 2 webhook 200-ack probes · 5-burst G-1 uniform 410 · per-part verdicts | 🟡 GAP |
+
+🟡 **HEADLINE: 🟡 CERTIFIED WITH REMAINING LIMITATIONS · iter453.6 GATE SHIPPED · WEBHOOK SECRET STILL UNLOADED · 1 OPERATOR ACTION REMAINING** — Production source_hash advanced from `d01cdedc7d934d0aeebf026609cf6ec9` (pre-hotfix commit `80927d0`) to **`7a6c669f9e9212286e3850fae6a0b78e`** (= commit **`4f1e112`** · iter453.6 startup gate IN) · matches the operator's required target exactly. Pod is fresh (uptime ≈ 14m at audit · started 2026-06-02T15:27:02Z). Part B ✅ source_hash match. Part D ✅ canonical warm-pod behaviour preserved (5/5 G-1 burst uniform 410 · /api/health 200 · /api/version 200). Part E ✅ 10/10 regression probes canonical (G-1 410 · G-2 401 · G-3 403 · G-3b/G-4 403 · HR Queue 403/422 · QA/QC 401 · Site Inspection 401 · /api/health 200 · /api/version 200). **Part A 🔴 FAIL** — `RESEND_WEBHOOK_SECRET` still NOT loaded · `POST /api/webhooks/resend -d '{}'` returns 200 (not 401) · bad-signature probe also 200 · per directive: STOP and report webhook secret is not loaded. Part C 🟡 NOT INDEPENDENTLY VERIFIABLE from anon surface · operator must verify via HR portal. **Risk register Δ**: 🔴 0 · 🟡 1 (was 2 · iter453.6-not-deployed CLOSED, webhook unchanged) · 🟢 2 (was 6 · several carry-overs absorbed). **Operator action remaining** (≤ 4 min): (1) confirm `RESEND_WEBHOOK_SECRET` is set in **production** env-var pane (not preview) · (2) restart production backend · (3) re-curl webhook → expect 401 · (4) if still 200, capture env pane screenshot + engage Emergent Support · (5) HR portal verify audit employee `f5de1e78-...` cleanup. Probes: 18 verification points · 18/21 gates pass · 2 fail (both webhook · same root cause) · 1 limited (audit employee operator-verifiable only) · 0 blocker · 0 regression.
+
+---
+
+
 ### 00 · OMEGA · ITER453.6 POST-DEPLOY PRODUCTION CERTIFICATION (2026-06-02 · 3 deliverables · 🟡 CERTIFIED WITH KNOWN LIMITATIONS)
 
 | File | Purpose | Verdict |
