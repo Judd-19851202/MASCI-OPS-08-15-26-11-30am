@@ -1,6 +1,29 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · JHP Reality Audit · 🟢 3 evidence reports delivered · MASCI uses JHP not JHA · operative collection is `db.job_hazard_files` · zero acknowledgement infrastructure exists today · OC-005 (re-scoped JHP Acknowledgement Ledger) options: Minimum / Full / Rename-first · awaiting operator direction · iter452.5.2 P1 still authorized to commence next batch)._
+_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · COMBINED PHASE 1A PRE-DEPLOY CERTIFICATION COMPLETE · 🟢 **GO TO DEPLOY** · combined preview payload (iter451 + iter452 + iter452.5 + iter452.5.1) attested safe · 88/88 pytest green · 0 RED risks · 8 YELLOW (all operator-disclosed) · 18 GREEN · awaiting operator's Emergent Deploy click)._
+
+---
+
+### 00 · OMEGA · COMBINED PHASE 1A PRE-DEPLOY CERTIFICATION — 3 evidence reports (2026-06-01)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `COMBINED_PHASE1A_PRE_DEPLOY_CERTIFICATION.md` | 10 operator-mandated objectives verified · payload presence · pytest 61/61 combined + 27/27 regression = 88/88 · backend boot clean · frontend build clean 30.64s · scope-drift 8/8 forbidden surfaces absent · 13/13 critical endpoint smoke pass · auth gates intact · zero regression on 10 enumerated surfaces · 7 operator-disclosed limitations carried forward as YELLOW (not RED) | 🟢 |
+| `COMBINED_PHASE1A_DEPLOYMENT_RISK_REPORT.md` | Per-payload risk inventory (iter451 4 · iter452 4 · iter452.5.1 10) · cross-cutting risks (8) · deploy-day timeline · rollback posture (non-destructive · one operator click) · 0 RED · 8 YELLOW · 18 GREEN · highest-residual shortlist for first-72h monitoring (Resend deliverability · Tier-5 dead-letter volume · bindings PII visibility) | 🟢 |
+| `COMBINED_PHASE1A_GO_NO_GO.md` | Synthesis · **VERDICT: 🟢 GO TO DEPLOY** · conditions-of-GO with citation sources · post-deploy operator action checklist · authorization queue (iter452.5.2 P1 next · iter453 BUILD authorized at Day-9 gate · iter454 OC-005 awaiting Option 1/2/3 scoping · iter455 + iter455.1 P2 bundled · JHA→JHP rename pending) | **🟢 GO** |
+
+🟢 **Combined Phase 1A payload (iter451 + iter452 + iter452.5 + iter452.5.1) certified safe to deploy.** Operator may click Emergent Deploy at will.
+
+🟡 **7 operator-disclosed limitations carry forward** (all pre-acknowledged in prior batches): un-gated bindings endpoint · Resend deliverability vs acceptance · post-closure revision behavior · vestigial JHA form · OC-005 absence · bundle size · passkeys index name · backup respawn log.
+
+🛑 **STOPPED after reports per operator directive.** No code changes. No fixes. No deployment. No drift.
+
+Awaiting operator's next message:
+* DEPLOY the combined Phase-1A payload (one Emergent Deploy click)
+* AND/OR authorize iter452.5.2 (P1 Resend bounce webhook · already pre-authorized for immediate next batch)
+* AND/OR authorize iter453 BUILD (OC-003 + OC-004 · Day-9 gate cleared · 5-tier ladder inherited natively)
+* AND/OR scope OC-005 JHP Acknowledgement Ledger (per `JHP_ACKNOWLEDGEMENT_GAP_REPORT.md` Options 1/2/3)
+* AND/OR authorize JHA→JHP code-level rename batch
 
 ---
 
