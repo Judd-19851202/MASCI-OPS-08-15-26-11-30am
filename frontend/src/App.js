@@ -180,6 +180,7 @@ import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import Tasks from "@/pages/Tasks";
 import DocumentExpirations from "@/pages/DocumentExpirations";
 import HrEmployees from "@/pages/HrEmployees";
+import HrEmployeeRequestsQueue from "@/pages/HrEmployeeRequestsQueue";
 import PoRequests from "@/pages/PoRequests";
 import ProjectHealth from "@/pages/ProjectHealth";
 import AssetTransfers from "@/pages/AssetTransfers";
@@ -706,6 +707,8 @@ function App() {
             <Route path="/document-expirations" element={<DocumentExpirations />} />
             {/* HR Employee Lifecycle — Iter152 (Phase 2.5 · Phase C) */}
             <Route path="/hr/employees" element={<HrEmployees />} />
+            {/* OMEGA · Employee Governance Phase Alpha · G-5 · HR Queue */}
+            <Route path="/hr/employee-requests" element={H(<HrEmployeeRequestsQueue />)} />
             {/* iter353c · Unified Employee Accountability Timeline (HR + Safety + Admin)
                 The component does its own multi-role auth check (no H/SF wrapper). */}
             <Route path="/hr/employees/:id/accountability" element={<HrEmployeeAccountabilityTimeline />} />

@@ -371,33 +371,72 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     @router.post("/employees")
     async def create_employee_inline(
         body: Dict[str, Any],
+        request: Request,
         auth: Dict[str, Any] = Depends(_is_authed),
     ):
-        """Create a new employee record on the fly when the foreman adds one
-        from inside a Field Leadership form. Lightweight — only requires a
-        name. Uses the existing employees collection so the new entry shows
-        up in HR / Safety dropdowns going forward."""
+        """OMEGA · Phase Alpha · G-2 closure — Operations cannot create
+        employees directly.
+
+        Previous behaviour (insert directly into ``db.employees``) was
+        Constitutional violation V-P0-2: Operations (Field Leadership)
+        bypassed HR's role as sole lifecycle owner.
+
+        New behaviour: submit a `new_hire` request to the HR Queue and
+        return the queue receipt. HR explicitly reviews and approves.
+        The FL UI keeps the same call-site; the foreman just sees a
+        different toast ("Submitted to HR Queue") instead of an
+        immediate roster entry.
+        """
         name = (body.get("name") or "").strip()
         if not name:
             raise HTTPException(status_code=400, detail="Name is required")
         now = datetime.now(timezone.utc).isoformat()
-        doc = {
-            "id": str(uuid.uuid4()),
-            "name": name,
-            "employee_id": (body.get("employee_id") or "").strip() or None,
-            "trade": (body.get("trade") or "").strip() or None,
-            "role": (body.get("role") or "").strip() or None,
-            "crew": (body.get("crew") or "").strip() or None,
-            "email": (body.get("email") or "").strip() or None,
-            "phone": (body.get("phone") or "").strip() or None,
-            "is_active": True,
-            "created_at": now,
-            "updated_at": now,
-            "created_via": "field_leadership_inline",
+        client_ip = (
+            (request.client.host if request.client else "")
+            or request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+            or ""
+        )
+        rid = str(__import__("uuid").uuid4())
+        req_doc = {
+            "id": rid,
+            "kind": "new_hire",
+            "status": "pending",
+            "requested_at": now,
+            "requested_by_role": auth.get("role") or "field_leadership",
+            "requested_by_label": auth.get("name") or "Field Leadership",
+            "requested_by_ip": client_ip[:64],
+            "submitted_via": "field_leadership_inline",
+            "audit_log": [{
+                "at": now,
+                "kind": "submitted",
+                "actor_role": auth.get("role") or "field_leadership",
+                "actor_label": auth.get("name") or "Field Leadership",
+                "ip": client_ip[:64],
+            }],
+            "payload": {
+                "name": name,
+                "employee_id": (body.get("employee_id") or "").strip() or None,
+                "trade": (body.get("trade") or "").strip() or None,
+                "role": (body.get("role") or "").strip() or None,
+                "crew": (body.get("crew") or "").strip() or None,
+                "email": (body.get("email") or "").strip() or None,
+                "phone": (body.get("phone") or "").strip() or None,
+            },
         }
-        await db.employees.insert_one(dict(doc))
-        doc.pop("_id", None)
-        return doc
+        await db.employee_requests.insert_one(dict(req_doc))
+        req_doc.pop("_id", None)
+        # Return a clear "pending HR review" response. Frontend should
+        # NOT treat this as a created employee.
+        return {
+            "ok": True,
+            "pending_hr_review": True,
+            "request_id": rid,
+            "request": req_doc,
+            "message": (
+                "Submitted to HR Queue. HR will review and add this person "
+                "to the roster."
+            ),
+        }
 
     # ------------------------------------------------------------
     # Records — create / list / view / pdf / delete / csv
@@ -433,6 +472,85 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
             )
 
             await db.field_leadership_records.insert_one(dict(rec))
+
+            # OMEGA · Phase Alpha · Termination Form Addendum.
+            # Field Leadership Employee Termination form remains as a
+            # Lifecycle INITIATOR — but it cannot directly alter
+            # db.employees lifecycle state. Auto-enqueue an HR review
+            # request so HR retains sole Lifecycle Authority.
+            try:
+                if (rec.get("kind") or "") == "employee_termination":
+                    from datetime import datetime as _dt, timezone as _tz  # noqa: PLC0415
+                    import uuid as _uuid  # noqa: PLC0415
+                    emp_ref = (
+                        (rec.get("employee_id_ref") or "").strip()
+                        or (rec.get("employee_id") or "").strip()
+                    )
+                    target_emp = None
+                    if emp_ref:
+                        target_emp = await db.employees.find_one(
+                            {"$or": [{"id": emp_ref}, {"employee_id": emp_ref}],
+                             "deleted_at": None},
+                            {"_id": 0},
+                        )
+                    if not target_emp and (rec.get("employee_name") or "").strip():
+                        target_emp = await db.employees.find_one(
+                            {"name": {"$regex": f"^{rec['employee_name'].strip()}$",
+                                      "$options": "i"},
+                             "deleted_at": None,
+                             "is_active": {"$ne": False}},
+                            {"_id": 0},
+                        )
+                    if target_emp:
+                        _now = _dt.now(_tz.utc).isoformat()
+                        details = rec.get("details") or {}
+                        await db.employee_requests.insert_one({
+                            "id": str(_uuid.uuid4()),
+                            "kind": "termination",
+                            "status": "pending",
+                            "requested_at": _now,
+                            "requested_by_role": auth.get("role") or "field_leadership",
+                            "requested_by_label": (
+                                rec.get("submitted_by_name")
+                                or auth.get("name")
+                                or "Field Leadership"
+                            ),
+                            "submitted_via": "field_leadership_termination_form",
+                            "linked_fl_record_id": rec.get("id"),
+                            "audit_log": [{
+                                "at": _now,
+                                "kind": "submitted",
+                                "actor_role": auth.get("role") or "field_leadership",
+                                "actor_label": (
+                                    rec.get("submitted_by_name")
+                                    or auth.get("name")
+                                    or "Field Leadership"
+                                ),
+                                "linked_fl_record_id": rec.get("id"),
+                            }],
+                            "payload": {
+                                "target_employee_id": target_emp["id"],
+                                "target_employee_name": target_emp.get("name") or "",
+                                "target_employee_id_field": target_emp.get("employee_id") or "",
+                                "requested_status": (
+                                    details.get("requested_status") or "Terminated"
+                                ),
+                                "last_day_worked": (
+                                    details.get("last_day_worked")
+                                    or rec.get("occurred_at")
+                                ),
+                                "reason": (
+                                    details.get("reason")
+                                    or details.get("description")
+                                    or rec.get("description")
+                                    or ""
+                                ),
+                            },
+                        })
+            except Exception:  # noqa: BLE001
+                # Never fail the FL record submit on queue write failure;
+                # HR can rebuild the queue entry manually if needed.
+                pass
 
             # Iter160 · Operational signal — training deficiency throughput.
             try:

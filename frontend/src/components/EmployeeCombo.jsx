@@ -139,30 +139,41 @@ export const EmployeeCombo = ({
   };
 
   const [addingNew, setAddingNew] = useState(false);
+  // OMEGA · Employee Governance Phase Alpha · G-1 closure.
+  // The legacy `/employees/add` direct-create endpoint has been
+  // closed — public/anonymous employee creation is no longer
+  // permitted. We now submit a `new_hire` request to the HR Queue
+  // (POST /api/employee-requests · kind=new_hire) and surface a
+  // clear "submitted for HR review" toast. The typed name is still
+  // returned to the parent form via onChange/onPick so the form can
+  // proceed with the free-text label; the person does NOT enter the
+  // employees roster until HR approves.
   const addToRoster = async (rawName) => {
     const name = (rawName || "").trim();
     if (name.length < 2) return;
     setAddingNew(true);
     try {
-      const r = await api.post("/employees/add", { name });
-      const created = r?.data?.created;
-      const emp = r?.data?.employee;
-      // Bust the module-level cache so subsequent combos see this person.
-      clearEmployeeCache();
-      // Refresh local roster
-      const fresh = await loadRoster();
-      setData(fresh);
+      const r = await api.post("/employee-requests", {
+        kind: "new_hire",
+        name,
+        submitted_via: "employee_combo_inline",
+      });
+      const rid = r?.data?.id || "";
       toast.success(
-        created ? `Added "${name}" to MASCI roster` : `"${name}" already on roster`
+        `Request submitted to HR Queue`,
+        { description: `HR will review and add "${name}" to the roster (request ${rid.slice(0, 8)}…). You can continue this form with the typed name.` }
       );
-      if (emp) {
-        onChange?.(emp.name || name);
-        onPick?.(emp);
-      }
+      // Hand the typed label back to the parent form so the user is
+      // not blocked. The label remains free-text until HR approves.
+      onChange?.(name);
+      onPick?.({ name, _pending_hr_review: true, request_id: rid });
       setOpen(false);
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.message || "Failed to add";
-      toast.error(msg);
+      const status = err?.response?.status;
+      const msg = (status === 410)
+        ? "Employee creation moved to HR Queue · please refresh and retry."
+        : (err?.response?.data?.detail || err?.message || "Could not submit HR request");
+      toast.error(typeof msg === "string" ? msg : "Could not submit HR request");
     } finally {
       setAddingNew(false);
     }
@@ -246,7 +257,7 @@ export const EmployeeCombo = ({
               {showCustomTag && (
                 <div className="px-3 py-2 bg-amber-50 border-b-2 border-amber-300 flex items-center gap-2">
                   <div className="flex-1 text-xs text-amber-900 font-mono truncate">
-                    {t("Will save as new entry:")}{" "}
+                    {t("Submit new-hire request to HR:")}{" "}
                     <strong className="font-bold">{value}</strong>
                   </div>
                   <button
@@ -254,7 +265,7 @@ export const EmployeeCombo = ({
                     onClick={() => addToRoster(value)}
                     disabled={addingNew}
                     onMouseDown={(e) => e.preventDefault()}
-                    className="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider text-[10px] h-7 px-2 rounded border-b-2 border-emerald-800 shrink-0"
+                    className="inline-flex items-center gap-1 bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wider text-[10px] h-7 px-2 rounded border-b-2 border-amber-800 shrink-0"
                     data-testid={`${testId}-add-btn`}
                   >
                     {addingNew ? (
@@ -262,7 +273,7 @@ export const EmployeeCombo = ({
                     ) : (
                       <Plus className="w-3 h-3" />
                     )}
-                    {t("Add to roster")}
+                    {t("Request HR add")}
                   </button>
                 </div>
               )}

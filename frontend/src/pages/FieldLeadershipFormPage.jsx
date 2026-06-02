@@ -604,18 +604,29 @@ export default function FieldLeadershipFormPage() {
   };
 
   const addInlineEmployee = async () => {
+    // OMEGA · Employee Governance Phase Alpha · G-2 closure.
+    // Operations (Field Leadership) can no longer create employees
+    // directly. The backend endpoint `/api/field-leadership/employees`
+    // now submits a new_hire request to the HR Queue and returns a
+    // pending receipt. We surface a clear toast and DO NOT add the
+    // person to the local roster — they will appear after HR approves.
     const name = newEmpName.trim();
     if (!name) return;
     try {
       const r = await api.post("/field-leadership/employees", { name });
-      const created = r.data;
-      setEmployees((prev) => [...prev, created].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
-      setEmployeeId(created.id);
+      const pending = r?.data?.pending_hr_review;
+      const rid = r?.data?.request_id || "";
       setNewEmpName("");
       setShowInlineNewEmp(false);
-      toast.success(t("Employee added"));
+      if (pending) {
+        toast.success(t("Submitted to HR Queue"), {
+          description: `${name} · HR will review and add (request ${rid.slice(0, 8)}…). Use a free-text name on this form for now.`,
+        });
+      } else {
+        toast.success(t("Employee added"));
+      }
     } catch {
-      toast.error(t("Could not add employee"));
+      toast.error(t("Could not submit HR request"));
     }
   };
 

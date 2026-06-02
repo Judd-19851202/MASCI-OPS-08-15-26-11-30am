@@ -1,0 +1,579 @@
+"""OMEGA · Employee Governance Phase Alpha · Employee Lifecycle Request Queue
+
+iter454-EGA · G-5 batch — the UX-bridge collection + endpoints introduced
+when the platform closed the 5 P0 violations identified in
+``EMPLOYEE_GOVERNANCE_AUDIT.md``.
+
+Governance contract:
+  • HR is the SOLE authoritative writer of ``db.employees`` lifecycle state.
+  • Operations (Field Leadership), Admin, public field forms, and every
+    other portal may SUBMIT requests here. They may NOT write to
+    ``db.employees`` directly.
+  • HR explicitly REVIEWS each request and either approves (which fans
+    out the actual lifecycle mutation through the canonical HR routes)
+    or rejects it (with a reason).
+  • Approval is the ONLY path from this queue into ``db.employees``.
+
+Supported request kinds (Phase Alpha · strictly bounded):
+  • ``new_hire``    — operator wants HR to add a person to the roster
+  • ``termination`` — operator wants HR to terminate an existing employee
+                      (Field Leadership Termination Form addendum:
+                      submitting the FL ``employee_termination`` record
+                      ALSO creates one of these requests automatically)
+
+Future kinds (NOT in scope for Phase Alpha; reserved for later batches):
+  ``status_change`` · ``transfer`` · ``supervisor_change`` · ``rehire``
+
+Endpoints:
+  POST /api/employee-requests                      (any token OR public · rate-limited)
+  GET  /api/hr/employee-requests                   (HR · multi-portal HR-or-admin gate)
+  GET  /api/hr/employee-requests/{id}              (HR)
+  POST /api/hr/employee-requests/{id}/approve      (HR)
+  POST /api/hr/employee-requests/{id}/reject       (HR)
+
+Wired from server.py via ``register_employee_requests_routes``.
+"""
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from pydantic import BaseModel, ConfigDict, Field
+
+# Valid request kinds for Phase Alpha
+ALLOWED_KINDS = {"new_hire", "termination"}
+
+# Valid statuses
+STATUS_PENDING = "pending"
+STATUS_APPROVED = "approved"
+STATUS_REJECTED = "rejected"
+ALL_STATUSES = {STATUS_PENDING, STATUS_APPROVED, STATUS_REJECTED}
+
+# Valid termination-status targets (HR may approve into one of these)
+TERMINATION_TARGET_STATUSES = {"Terminated", "Resigned", "Retired", "Inactive"}
+
+
+class EmployeeRequestCreate(BaseModel):
+    """Submission body. Public-tolerant — required fields are minimal."""
+    model_config = ConfigDict(extra="forbid")
+
+    kind: str = Field(..., description="new_hire | termination")
+    # Identity context — captured for HR review traceability
+    submitter_name: Optional[str] = Field(default=None, max_length=200)
+    submitter_email: Optional[str] = Field(default=None, max_length=200)
+    submitted_via: Optional[str] = Field(default=None, max_length=80)
+    # new_hire fields
+    name: Optional[str] = Field(default=None, max_length=200)
+    employee_id: Optional[str] = Field(default=None, max_length=80)
+    trade: Optional[str] = Field(default=None, max_length=120)
+    role: Optional[str] = Field(default=None, max_length=120)
+    crew: Optional[str] = Field(default=None, max_length=120)
+    email: Optional[str] = Field(default=None, max_length=200)
+    phone: Optional[str] = Field(default=None, max_length=60)
+    # termination fields
+    target_employee_id: Optional[str] = Field(default=None, max_length=120)
+    requested_status: Optional[str] = Field(default=None, max_length=40)
+    reason: Optional[str] = Field(default=None, max_length=2000)
+    last_day_worked: Optional[str] = Field(default=None, max_length=12)
+    # cross-link back to the Field Leadership record that triggered this
+    # (used by the FL employee_termination auto-create flow)
+    linked_fl_record_id: Optional[str] = Field(default=None, max_length=120)
+
+
+class EmployeeRequestApprove(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    # new_hire: HR may patch any field before creating the employee
+    name: Optional[str] = None
+    employee_id: Optional[str] = None
+    trade: Optional[str] = None
+    role: Optional[str] = None
+    crew: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    supervisor: Optional[str] = None
+    hire_date: Optional[str] = None
+    # termination: HR may override the requested status + final dates
+    requested_status: Optional[str] = None
+    termination_date: Optional[str] = None
+    last_day_worked: Optional[str] = None
+    reason: Optional[str] = None
+    # HR notes attached to the audit trail
+    hr_notes: Optional[str] = Field(default=None, max_length=2000)
+
+
+class EmployeeRequestReject(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reason: str = Field(..., min_length=5, max_length=2000)
+
+
+def _strip_id(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not doc:
+        return doc
+    out = dict(doc)
+    out.pop("_id", None)
+    return out
+
+
+def _actor_role(actor: Optional[Dict[str, Any]]) -> str:
+    if not actor:
+        return "anonymous"
+    return str(
+        actor.get("_actor") or actor.get("_actor_kind") or actor.get("role")
+        or actor.get("kind") or "authenticated"
+    )
+
+
+def _actor_label(actor: Optional[Dict[str, Any]]) -> str:
+    if not actor:
+        return "anonymous"
+    return str(
+        actor.get("name") or actor.get("email") or actor.get("user_id")
+        or actor.get("id") or _actor_role(actor)
+    )
+
+
+def register_employee_requests_routes(
+    api_router: APIRouter,
+    db,
+    *,
+    rate_limit_public_post,
+    require_optional_portal_token,
+    require_hr_or_admin,
+):
+    """Attach the queue endpoints.
+
+    For Phase Alpha, this builds its own APIRouter (prefix /api) and
+    returns it so the caller can include it on `app` directly — this
+    avoids the order-of-include problem where the main `api_router`
+    has already been mounted to `app` before this module is reachable.
+
+    Args:
+      api_router: legacy parameter retained for signature stability;
+        a fresh router is built internally and returned.
+      rate_limit_public_post: existing public-rate-limit dependency
+      require_optional_portal_token: dependency that returns the actor
+        dict if any portal token is present, or None for anonymous.
+      require_hr_or_admin: dependency that enforces HR or Admin gate
+        on the review endpoints.
+
+    Returns:
+      The new APIRouter ready to be included on `app`.
+    """
+    api_router = APIRouter(prefix="/api", tags=["employee-requests"])
+
+    @api_router.post(
+        "/employee-requests",
+        dependencies=[Depends(rate_limit_public_post)],
+    )
+    async def submit_request(
+        body: EmployeeRequestCreate,
+        request: Request,
+        actor: Optional[Dict[str, Any]] = Depends(require_optional_portal_token),
+    ) -> Dict[str, Any]:
+        """Submit a request to HR. Any portal token is accepted; public
+        submissions are accepted but rate-limited. HR explicitly reviews
+        every entry before any ``db.employees`` mutation happens."""
+        kind = (body.kind or "").strip().lower()
+        if kind not in ALLOWED_KINDS:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "invalid_kind", "allowed": sorted(ALLOWED_KINDS)},
+            )
+
+        now = datetime.now(timezone.utc).isoformat()
+        client_ip = (
+            (request.client.host if request.client else "")
+            or request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+            or ""
+        )
+
+        rid = str(uuid.uuid4())
+        doc: Dict[str, Any] = {
+            "id": rid,
+            "kind": kind,
+            "status": STATUS_PENDING,
+            "requested_at": now,
+            "requested_by_role": _actor_role(actor),
+            "requested_by_label": _actor_label(actor),
+            "requested_by_ip": client_ip[:64],
+            "submitter_name": (body.submitter_name or "").strip() or None,
+            "submitter_email": (body.submitter_email or "").strip() or None,
+            "submitted_via": (body.submitted_via or "").strip() or None,
+            "linked_fl_record_id": body.linked_fl_record_id or None,
+            "audit_log": [
+                {
+                    "at": now,
+                    "kind": "submitted",
+                    "actor_role": _actor_role(actor),
+                    "actor_label": _actor_label(actor),
+                    "ip": client_ip[:64],
+                }
+            ],
+        }
+
+        if kind == "new_hire":
+            name = (body.name or "").strip()
+            if len(name) < 2:
+                raise HTTPException(
+                    status_code=422,
+                    detail={"code": "name_required",
+                            "message": "name is required (>= 2 chars)"},
+                )
+            doc["payload"] = {
+                "name": name,
+                "employee_id": (body.employee_id or "").strip() or None,
+                "trade": (body.trade or "").strip() or None,
+                "role": (body.role or "").strip() or None,
+                "crew": (body.crew or "").strip() or None,
+                "email": (body.email or "").strip() or None,
+                "phone": (body.phone or "").strip() or None,
+            }
+        else:  # termination
+            target = (body.target_employee_id or "").strip()
+            if not target:
+                raise HTTPException(
+                    status_code=422,
+                    detail={"code": "target_required",
+                            "message": "target_employee_id is required for termination"},
+                )
+            # Resolve target employee (by uuid id OR employee_id field)
+            emp = await db.employees.find_one(
+                {"id": target, "deleted_at": None}, {"_id": 0}
+            )
+            if not emp:
+                emp = await db.employees.find_one(
+                    {"employee_id": target, "deleted_at": None}, {"_id": 0}
+                )
+            if not emp:
+                raise HTTPException(
+                    status_code=404,
+                    detail={"code": "target_not_found",
+                            "message": f"No active employee matches '{target}'"},
+                )
+            requested_status = (body.requested_status or "Terminated").strip()
+            if requested_status not in TERMINATION_TARGET_STATUSES:
+                raise HTTPException(
+                    status_code=422,
+                    detail={"code": "invalid_requested_status",
+                            "allowed": sorted(TERMINATION_TARGET_STATUSES)},
+                )
+            doc["payload"] = {
+                "target_employee_id": emp["id"],
+                "target_employee_name": emp.get("name") or "",
+                "target_employee_id_field": emp.get("employee_id") or "",
+                "requested_status": requested_status,
+                "last_day_worked": (body.last_day_worked or "").strip() or None,
+                "reason": (body.reason or "").strip() or None,
+            }
+
+        await db.employee_requests.insert_one(dict(doc))
+        return {"ok": True, "id": rid, "request": _strip_id(doc)}
+
+    @api_router.get("/hr/employee-requests")
+    async def list_requests(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        status: Optional[str] = Query(default=STATUS_PENDING),
+        kind: Optional[str] = Query(default=None),
+        limit: int = Query(default=200, ge=1, le=1000),
+    ) -> Dict[str, Any]:
+        clauses: List[Dict[str, Any]] = []
+        if status:
+            if status not in ALL_STATUSES:
+                raise HTTPException(422, "invalid_status")
+            clauses.append({"status": status})
+        if kind:
+            if kind not in ALLOWED_KINDS:
+                raise HTTPException(422, "invalid_kind")
+            clauses.append({"kind": kind})
+        q = {"$and": clauses} if clauses else {}
+        cur = db.employee_requests.find(q, {"_id": 0}).sort("requested_at", -1).limit(limit)
+        items: List[Dict[str, Any]] = []
+        async for d in cur:
+            items.append(_strip_id(d))
+        # also return pending count for badge UX
+        pending_count = await db.employee_requests.count_documents(
+            {"status": STATUS_PENDING}
+        )
+        return {
+            "items": items,
+            "count": len(items),
+            "pending_count": pending_count,
+        }
+
+    @api_router.get("/hr/employee-requests/{rid}")
+    async def get_request(
+        rid: str,
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+    ) -> Dict[str, Any]:
+        doc = await db.employee_requests.find_one({"id": rid}, {"_id": 0})
+        if not doc:
+            raise HTTPException(404, "Request not found")
+        return _strip_id(doc)
+
+    @api_router.post("/hr/employee-requests/{rid}/approve")
+    async def approve_request(
+        rid: str,
+        body: EmployeeRequestApprove = Body(default_factory=EmployeeRequestApprove),
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+    ) -> Dict[str, Any]:
+        doc = await db.employee_requests.find_one({"id": rid}, {"_id": 0})
+        if not doc:
+            raise HTTPException(404, "Request not found")
+        if doc.get("status") != STATUS_PENDING:
+            raise HTTPException(409, f"Request already {doc.get('status')}")
+
+        now = datetime.now(timezone.utc).isoformat()
+        actor_role = _actor_role(actor)
+        actor_label = _actor_label(actor)
+        kind = doc.get("kind")
+        payload = dict(doc.get("payload") or {})
+
+        # Apply HR overrides from body (only non-None fields)
+        body_dict = body.model_dump(exclude_none=True)
+        overrides = {k: v for k, v in body_dict.items() if k != "hr_notes"}
+        payload.update(overrides)
+
+        # ---- new_hire path ----
+        resulting_employee_id: Optional[str] = None
+        if kind == "new_hire":
+            name = (payload.get("name") or "").strip()
+            if not name:
+                raise HTTPException(422, "name is required to create employee")
+            # Mirror canonical employee constructor (HR-style) — keep this
+            # tight; HR retains full lifecycle authority. Duplicate guard
+            # against active matches (HR can still override by editing
+            # the name before approving).
+            existing_active = await db.employees.find_one(
+                {
+                    "name": {"$regex": f"^{name}$", "$options": "i"},
+                    "deleted_at": None,
+                    "$or": [
+                        {"lifecycle_status": {"$in": [
+                            "Active", "Pending Hire", "On Leave"
+                        ]}},
+                        {"lifecycle_status": {"$exists": False},
+                         "is_active": {"$ne": False}},
+                    ],
+                },
+                {"_id": 0},
+            )
+            if existing_active:
+                raise HTTPException(
+                    409,
+                    {
+                        "code": "duplicate_active_employee",
+                        "message": (
+                            f"An active employee named '{name}' already exists. "
+                            f"Edit the name or reject this request."
+                        ),
+                        "candidate": existing_active,
+                    },
+                )
+
+            new_id = str(uuid.uuid4())
+            emp = {
+                "id": new_id,
+                "name": name,
+                "employee_id": payload.get("employee_id") or "",
+                "trade": payload.get("trade") or "",
+                "role": payload.get("role") or "",
+                "crew": payload.get("crew") or "",
+                "email": payload.get("email") or "",
+                "phone": payload.get("phone") or "",
+                "supervisor": payload.get("supervisor") or "",
+                "department": "",
+                "default_project_number": "",
+                "hire_date": payload.get("hire_date") or None,
+                "original_hire_date": payload.get("hire_date") or None,
+                "lifecycle_status": "Active",
+                "is_active": True,
+                "added_via": "hr-queue-approval",
+                "created_at": now,
+                "updated_at": now,
+                "status_history": [{
+                    "at": now,
+                    "by": actor_label,
+                    "actor_role": actor_role,
+                    "to": "Active",
+                    "reason": f"Approved from HR Queue · request {rid}",
+                    "kind": "hr_queue_new_hire_approval",
+                    "queue_request_id": rid,
+                }],
+                "deleted_at": None,
+            }
+            await db.employees.insert_one(dict(emp))
+            resulting_employee_id = new_id
+
+            # Append to append-only lifecycle events collection
+            await db.employee_lifecycle_events.insert_one({
+                "id": str(uuid.uuid4()),
+                "employee_id": new_id,
+                "at": now,
+                "actor_role": actor_role,
+                "actor_label": actor_label,
+                "kind": "new_hire_approved",
+                "queue_request_id": rid,
+                "to_status": "Active",
+                "from_status": None,
+                "reason": body.hr_notes or "",
+                "payload_snapshot": {k: v for k, v in emp.items() if k != "_id"},
+            })
+
+        # ---- termination path ----
+        else:  # kind == "termination"
+            target_id = (payload.get("target_employee_id") or "").strip()
+            if not target_id:
+                raise HTTPException(422, "target_employee_id missing on request")
+            requested_status = (
+                payload.get("requested_status") or "Terminated"
+            ).strip()
+            if requested_status not in TERMINATION_TARGET_STATUSES:
+                raise HTTPException(
+                    422,
+                    f"Invalid status. Allowed: {sorted(TERMINATION_TARGET_STATUSES)}",
+                )
+            existing = await db.employees.find_one(
+                {"id": target_id, "deleted_at": None}, {"_id": 0}
+            )
+            if not existing:
+                raise HTTPException(404, "Target employee not found")
+            prev_status = (
+                existing.get("lifecycle_status")
+                or ("Active" if existing.get("is_active") is not False else "Inactive")
+            )
+
+            set_block: Dict[str, Any] = {
+                "lifecycle_status": requested_status,
+                "is_active": False,  # all 4 termination targets are inactive
+                "updated_at": now,
+                "termination_date": payload.get("termination_date") or now[:10],
+                "last_day_worked": payload.get("last_day_worked") or now[:10],
+                "separation_type": requested_status,
+            }
+            history_entry = {
+                "at": now,
+                "by": actor_label,
+                "actor_role": actor_role,
+                "from": prev_status,
+                "to": requested_status,
+                "reason": payload.get("reason") or body.hr_notes or "",
+                "kind": "hr_queue_termination_approval",
+                "queue_request_id": rid,
+            }
+            await db.employees.update_one(
+                {"id": target_id},
+                {"$set": set_block, "$push": {"status_history": history_entry}},
+            )
+            resulting_employee_id = target_id
+
+            await db.employee_lifecycle_events.insert_one({
+                "id": str(uuid.uuid4()),
+                "employee_id": target_id,
+                "at": now,
+                "actor_role": actor_role,
+                "actor_label": actor_label,
+                "kind": "termination_approved",
+                "queue_request_id": rid,
+                "from_status": prev_status,
+                "to_status": requested_status,
+                "reason": payload.get("reason") or body.hr_notes or "",
+            })
+
+        # Stamp the request as approved (append-only audit log entry)
+        await db.employee_requests.update_one(
+            {"id": rid},
+            {
+                "$set": {
+                    "status": STATUS_APPROVED,
+                    "resolved_at": now,
+                    "resolved_by_role": actor_role,
+                    "resolved_by_label": actor_label,
+                    "resulting_employee_id": resulting_employee_id,
+                    "hr_notes": body.hr_notes or "",
+                    "applied_payload": payload,
+                },
+                "$push": {
+                    "audit_log": {
+                        "at": now,
+                        "kind": "approved",
+                        "actor_role": actor_role,
+                        "actor_label": actor_label,
+                        "resulting_employee_id": resulting_employee_id,
+                        "hr_notes": body.hr_notes or "",
+                    }
+                },
+            },
+        )
+
+        out = await db.employee_requests.find_one({"id": rid}, {"_id": 0})
+        return {
+            "ok": True,
+            "id": rid,
+            "resulting_employee_id": resulting_employee_id,
+            "request": _strip_id(out),
+        }
+
+    @api_router.post("/hr/employee-requests/{rid}/reject")
+    async def reject_request(
+        rid: str,
+        body: EmployeeRequestReject,
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+    ) -> Dict[str, Any]:
+        doc = await db.employee_requests.find_one({"id": rid}, {"_id": 0})
+        if not doc:
+            raise HTTPException(404, "Request not found")
+        if doc.get("status") != STATUS_PENDING:
+            raise HTTPException(409, f"Request already {doc.get('status')}")
+        now = datetime.now(timezone.utc).isoformat()
+        actor_role = _actor_role(actor)
+        actor_label = _actor_label(actor)
+        await db.employee_requests.update_one(
+            {"id": rid},
+            {
+                "$set": {
+                    "status": STATUS_REJECTED,
+                    "resolved_at": now,
+                    "resolved_by_role": actor_role,
+                    "resolved_by_label": actor_label,
+                    "rejection_reason": body.reason.strip(),
+                },
+                "$push": {
+                    "audit_log": {
+                        "at": now,
+                        "kind": "rejected",
+                        "actor_role": actor_role,
+                        "actor_label": actor_label,
+                        "reason": body.reason.strip(),
+                    }
+                },
+            },
+        )
+        out = await db.employee_requests.find_one({"id": rid}, {"_id": 0})
+        return {"ok": True, "id": rid, "request": _strip_id(out)}
+
+    return api_router
+
+
+async def ensure_employee_requests_indexes(db) -> None:
+    """Idempotent index creation."""
+    try:
+        await db.employee_requests.create_index("id", unique=True)
+        await db.employee_requests.create_index("status")
+        await db.employee_requests.create_index("kind")
+        await db.employee_requests.create_index([("requested_at", -1)])
+        await db.employee_lifecycle_events.create_index("employee_id")
+        await db.employee_lifecycle_events.create_index([("at", -1)])
+        await db.employee_lifecycle_events.create_index("queue_request_id")
+    except Exception:  # noqa: BLE001
+        # idempotent — never fail boot on index drift
+        pass
+
+
+__all__ = [
+    "register_employee_requests_routes",
+    "ensure_employee_requests_indexes",
+    "ALLOWED_KINDS",
+    "TERMINATION_TARGET_STATUSES",
+]

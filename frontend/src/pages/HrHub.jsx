@@ -47,6 +47,15 @@ const TILE_DEFS = {
   employees: { to: "/hr/employees", icon: Users, label: "Employee Lifecycle",
     desc: "Add, status, offboarding, termination playbook.",
     stripe: "border-l-green-600", btn: "bg-slate-800 hover:bg-slate-900" },
+  // OMEGA · Employee Governance Phase Alpha · G-5 · HR Request Queue tile.
+  // Operators in the field (and public form users) submit new-hire and
+  // termination requests via /api/employee-requests; HR explicitly
+  // approves or rejects here. HR remains sole authority over db.employees.
+  employeeRequests: { to: "/hr/employee-requests", icon: ClipboardList,
+    label: "Employee Requests Queue",
+    desc: "Review pending new-hire and termination submissions.",
+    stripe: "border-l-green-600", btn: "bg-slate-800 hover:bg-slate-900",
+    badgeKey: "pending_employee_requests" },
   tasks: { to: "/tasks", icon: GraduationCap, label: "Tasks & Actions",
     desc: "Cross-portal accountability and follow-ups.",
     stripe: "border-l-green-600", btn: "bg-slate-800 hover:bg-slate-900" },
@@ -107,7 +116,7 @@ const TILE_GROUPS = [
     key: "people-operations",
     heading: "People Operations",
     sub: "Day-to-day employee lifecycle and field accountability.",
-    tiles: ["employees", "tasks", "accountability", "flRecords"],
+    tiles: ["employees", "employeeRequests", "tasks", "accountability", "flRecords"],
   },
   {
     key: "time-payroll",
@@ -164,6 +173,16 @@ export default function HrHub() {
           headers: { "X-HR-Token": tok },
         });
         if (r.ok) setStats(await r.json());
+        // OMEGA · Phase Alpha · pending employee-requests badge count.
+        try {
+          const r2 = await fetch(`${API}/hr/employee-requests?status=pending&limit=1`, {
+            headers: { "X-HR-Token": tok },
+          });
+          if (r2.ok) {
+            const d2 = await r2.json();
+            setStats(s => ({ ...s, pending_employee_requests: d2.pending_count || 0 }));
+          }
+        } catch { /* silent */ }
       } catch (e) { /* silent */ }
     })();
   }, []);

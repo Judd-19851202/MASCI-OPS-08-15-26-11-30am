@@ -412,6 +412,33 @@ async def require_admin_strict(
     return True
 
 
+# ───────────────────────────────────────────────────────────────────
+# OMEGA · Employee Governance Phase Alpha · gate factory
+# ───────────────────────────────────────────────────────────────────
+# Defined here (NOT later in the file) so the deprecated
+# `/api/admin/employees*` endpoints can use it. Accepts HR portal token
+# OR Admin token. The bound `_require_any_portal_token` (later in this
+# file) wraps the multi-portal aggregator; this lightweight gate avoids
+# the forward-reference problem by validating headers in-place.
+async def _require_hr_or_admin_for_queue(
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+):
+    """Accept HR portal token OR Admin token. Returns an actor dict
+    matching the multi-portal aggregator shape. Used by every deprecated
+    `/api/admin/employees*` endpoint after Phase Alpha closures."""
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"_actor": "admin", "name": "Admin", "role": "admin"}
+    if x_hr_token:
+        from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+        u = await is_valid_hr_user_token_async(db, x_hr_token)
+        if u:
+            return {**u, "_actor": "hr", "role": "hr"}
+    raise HTTPException(403, "HR or Admin token required")
+
+
+
+
 def _shop_token_for(password: str) -> str:
     msg = (f"epoch={_session_epoch()}|shop:" + password).encode()
     return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
@@ -3171,34 +3198,34 @@ class RosterAddBody(BaseModel):
     "/employees/add",
     dependencies=[Depends(rate_limit_public_post)],
 )
-async def add_employee_from_form(body: RosterAddBody):
-    """Add a new employee to the master roster directly from a form's amber
-    'Will save as new entry' button. Public + rate-limited.
+async def add_employee_from_form_deprecated(body: RosterAddBody, request: Request):
+    """OMEGA · Employee Governance Phase Alpha · G-1 closure.
 
-    Idempotent: if an employee with this exact name (case-insensitive) already
-    exists, returns the existing one.
+    This endpoint historically accepted PUBLIC employee creation —
+    Constitutional violation V-P0-1. It now forwards to the HR Request
+    Queue (POST /api/employee-requests · kind=new_hire) so HR retains
+    sole authority over db.employees lifecycle state.
+
+    Returns HTTP 410 Gone with a structured pointer to the new flow.
+    Frontend callers (EmployeeCombo.jsx) have been repointed; this
+    handler exists to surface a clear error if any legacy client
+    still hits the old URL.
     """
-    name = body.name.strip()
-    existing = await db.employees.find_one(
-        {"name": {"$regex": f"^{name}$", "$options": "i"}}, {"_id": 0}
+    raise HTTPException(
+        status_code=410,
+        detail={
+            "code": "endpoint_deprecated",
+            "message": (
+                "Direct employee creation from public field forms is "
+                "no longer permitted. Submit a new-hire request to HR "
+                "via POST /api/employee-requests (kind=new_hire). HR "
+                "will review and approve."
+            ),
+            "use_instead": "POST /api/employee-requests",
+            "kind": "new_hire",
+            "name": body.name,
+        },
     )
-    if existing:
-        return {"ok": True, "created": False, "employee": existing}
-    doc = {
-        "id": str(uuid.uuid4()),
-        "name": name,
-        "trade": "",
-        "role": "",
-        "crew": "",
-        "employee_id": "",
-        "email": "",
-        "phone": "",
-        "added_via": "field-form",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    await db.employees.insert_one(doc)
-    saved = {k: v for k, v in doc.items() if k != "_id"}
-    return {"ok": True, "created": True, "employee": saved}
 
 
 @api_router.post(
@@ -3249,7 +3276,13 @@ async def list_employees():
 
 
 @api_router.get("/admin/employees/status")
-async def employees_status(_: bool = Depends(require_admin)):
+async def employees_status(actor: Dict[str, Any] = Depends(_require_hr_or_admin_for_queue)):
+    """OMEGA · Phase Alpha · G-3 · Deprecated admin status endpoint.
+
+    Gate changed from require_admin → HR-or-Admin (legacy callers in
+    the admin panel still work via HR portal token). Phase Beta (G-6)
+    will tighten this to HR-only.
+    """
     total = await db.employees.count_documents(ACTIVE_FILTER)
     active = await db.employees.count_documents(
         {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]}
@@ -3263,12 +3296,19 @@ async def employees_status(_: bool = Depends(require_admin)):
 
 
 @api_router.get("/admin/employees/archive")
-async def employees_archive(_: bool = Depends(require_admin)):
+async def employees_archive(actor: Dict[str, Any] = Depends(_require_hr_or_admin_for_queue)):
     return {"items": await _list_archive("employees"), "retain_days": SOFT_DELETE_RETAIN_DAYS}
 
 
 @api_router.post("/admin/employees/{employee_id}/restore")
-async def restore_employee(employee_id: str, _: bool = Depends(require_admin)):
+async def restore_employee(employee_id: str, actor: Dict[str, Any] = Depends(_require_hr_or_admin_for_queue)):
+    """OMEGA · Phase Alpha · G-3 · Deprecated admin restore endpoint.
+
+    Re-gated to HR-or-Admin. Phase Beta will route this through the
+    canonical HR /reactivate endpoint (preserving original_hire_date,
+    write-once contract, and full status_history). For Phase Alpha we
+    preserve legacy behaviour but lock the gate.
+    """
     if not await _restore_row("employees", {"id": employee_id}):
         raise HTTPException(status_code=404, detail="Employee not in archive")
     doc = await db.employees.find_one({"id": employee_id}, {"_id": 0})
@@ -3278,12 +3318,27 @@ async def restore_employee(employee_id: str, _: bool = Depends(require_admin)):
 @api_router.post("/admin/employees/upload")
 async def upload_employees(
     file: UploadFile = File(...),
-    _: bool = Depends(require_admin),
+    actor: Dict[str, Any] = Depends(_require_hr_or_admin_for_queue),
 ):
-    """Replace the entire roster from an .xlsx file.
+    """OMEGA · Phase Alpha · G-5 · Append/merge bulk import (NO DELETE).
 
-    Expected columns (case-insensitive, common variations supported):
-      Name (required) · Employee ID · Trade · Role · Crew · Email · Phone
+    Operator-approved decision #5 of EMPLOYEE_GOVERNANCE_PHASE_ALPHA:
+        "Bulk import remains supported but must operate as append/merge
+        only. Destructive replace-all behavior is prohibited."
+
+    Previous behaviour (delete_many + insert_many) wiped status_history,
+    original_hire_date, lifecycle_status and re-issued UUIDs — V-P0-5.
+    This rewrite preserves every lifecycle-bearing field and only
+    touches the columns supplied in the upload file.
+
+    Match strategy:
+        1) `employee_id` (HR ID number) if present in BOTH file row + DB row
+        2) case-insensitive exact `name` match (only on still-active rows)
+
+    Expected columns: Name (required) · Employee ID · Trade · Role ·
+    Crew · Email · Phone.
+
+    Returns: { created, updated, skipped, ambiguous, total, items: [...] }
     """
     fname = (file.filename or "").lower()
     if not (fname.endswith(".xlsx") or fname.endswith(".xlsm") or fname.endswith(".csv")):
@@ -3328,47 +3383,177 @@ async def upload_employees(
                 return v
         return ""
 
+    now = datetime.now(timezone.utc).isoformat()
+    actor_role = actor.get("_actor") or actor.get("role") or "hr"
+    actor_label = actor.get("name") or actor.get("email") or actor_role
+
+    results: Dict[str, int] = {
+        "created": 0, "updated": 0, "skipped": 0,
+        "ambiguous": 0, "no_change": 0, "total": 0,
+    }
     items: List[Dict[str, Any]] = []
-    seen = set()
+    seen_keys = set()
+
     for d in rows:
         name = pick(d, "name", "full name", "employee name")
         if not name:
             continue
-        key = name.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        items.append({
-            "id": str(uuid.uuid4()),
-            "name": name,
-            "employee_id": pick(d, "employee id", "id", "emp id", "emp #", "emp#"),
+        results["total"] += 1
+        emp_id_in = pick(d, "employee id", "id", "emp id", "emp #", "emp#")
+
+        row_fields = {
+            "employee_id": emp_id_in,
             "trade": pick(d, "trade", "department"),
             "role": pick(d, "role", "title", "position"),
             "crew": pick(d, "crew", "team"),
             "email": pick(d, "email"),
             "phone": pick(d, "phone", "mobile", "cell"),
-            "is_active": True,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        # Only update fields actually supplied; empty cells do NOT
+        # overwrite existing values.
+        set_fields = {k: v for k, v in row_fields.items() if v}
+        if not set_fields and not name:
+            results["skipped"] += 1
+            items.append({"row_name": name, "action": "skipped"})
+            continue
+
+        # Match strategy
+        match = None
+        if emp_id_in:
+            match = await db.employees.find_one(
+                {"employee_id": emp_id_in, "deleted_at": None}, {"_id": 0}
+            )
+        if not match:
+            candidates = await db.employees.find(
+                {
+                    "name": {"$regex": f"^{name}$", "$options": "i"},
+                    "deleted_at": None,
+                    "is_active": {"$ne": False},
+                },
+                {"_id": 0},
+            ).to_list(5)
+            if len(candidates) > 1:
+                results["ambiguous"] += 1
+                items.append({
+                    "row_name": name, "action": "ambiguous",
+                    "candidates": [c.get("id") for c in candidates],
+                })
+                continue
+            if len(candidates) == 1:
+                match = candidates[0]
+
+        if not match:
+            # Create new employee — but mirror the HR-canonical shape
+            # (lifecycle_status, original_hire_date, status_history) so
+            # downstream consumers see a fully-formed row.
+            new_id = str(uuid.uuid4())
+            doc = {
+                "id": new_id,
+                "name": name,
+                **{k: row_fields[k] or "" for k in row_fields},
+                "supervisor": "",
+                "department": "",
+                "default_project_number": "",
+                "hire_date": None,
+                "original_hire_date": None,
+                "lifecycle_status": "Active",
+                "is_active": True,
+                "added_via": "bulk-upload-merge",
+                "created_at": now,
+                "updated_at": now,
+                "status_history": [{
+                    "at": now,
+                    "by": actor_label,
+                    "actor_role": actor_role,
+                    "to": "Active",
+                    "reason": f"Created via append/merge upload by {actor_label}",
+                    "kind": "bulk_upload_create",
+                }],
+                "deleted_at": None,
+            }
+            await db.employees.insert_one(dict(doc))
+            results["created"] += 1
+            items.append({"row_name": name, "action": "created", "id": new_id})
+            try:
+                await db.employee_lifecycle_events.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "employee_id": new_id,
+                    "at": now,
+                    "actor_role": actor_role,
+                    "actor_label": actor_label,
+                    "kind": "bulk_upload_create",
+                    "to_status": "Active",
+                    "from_status": None,
+                    "reason": "append/merge bulk upload",
+                })
+            except Exception:  # noqa: BLE001
+                pass
+            continue
+
+        # Matched — apply only the supplied non-empty fields. Never
+        # touch lifecycle_status, is_active, hire dates, status_history,
+        # or deleted_at via upload.
+        changed = {}
+        for k, v in set_fields.items():
+            if (match.get(k) or "") != v:
+                changed[k] = v
+        if not changed:
+            results["no_change"] += 1
+            items.append({"row_name": name, "action": "no_change", "id": match.get("id")})
+            continue
+        changed["updated_at"] = now
+        # Audit row appended to status_history (NOT a lifecycle_status
+        # change, but a record of which fields were touched by upload).
+        history_entry = {
+            "at": now,
+            "by": actor_label,
+            "actor_role": actor_role,
+            "kind": "bulk_upload_field_update",
+            "fields": sorted(changed.keys()),
+        }
+        await db.employees.update_one(
+            {"id": match["id"]},
+            {"$set": changed, "$push": {"status_history": history_entry}},
+        )
+        results["updated"] += 1
+        items.append({
+            "row_name": name, "action": "updated",
+            "id": match["id"], "fields": sorted(changed.keys()),
         })
+        try:
+            await db.employee_lifecycle_events.insert_one({
+                "id": str(uuid.uuid4()),
+                "employee_id": match["id"],
+                "at": now,
+                "actor_role": actor_role,
+                "actor_label": actor_label,
+                "kind": "bulk_upload_field_update",
+                "fields": sorted(changed.keys()),
+            })
+        except Exception:  # noqa: BLE001
+            pass
 
-    if not items:
-        raise HTTPException(status_code=400, detail="No valid rows found (need a 'Name' column).")
-
-    await db.employees.delete_many({})
-    await db.employees.insert_many(items)
-    return {"ok": True, "count": len(items)}
+    return {"ok": True, **results, "items": items[:1000]}
 
 
 @api_router.post("/admin/employees")
 async def create_employee(
     payload: Dict[str, Any],
-    _: bool = Depends(require_admin),
+    actor: Dict[str, Any] = Depends(_require_hr_or_admin_for_queue),
 ):
-    """Manually add a single employee."""
+    """OMEGA · Phase Alpha · G-3 · Deprecated admin create.
+
+    Now gated by HR-or-Admin (legacy admin-panel callers still work
+    via HR portal token). Mirrors the canonical HR-portal employee
+    shape so downstream consumers see fully-formed rows.
+    Phase Beta (G-6) will redirect this entirely to /api/hr/employees.
+    """
     name = (payload.get("name") or "").strip()
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
+    now = datetime.now(timezone.utc).isoformat()
+    actor_role = actor.get("_actor") or actor.get("role") or "hr"
+    actor_label = actor.get("name") or actor.get("email") or actor_role
     doc = {
         "id": str(uuid.uuid4()),
         "name": name,
@@ -3378,11 +3563,36 @@ async def create_employee(
         "crew": (payload.get("crew") or "").strip(),
         "email": (payload.get("email") or "").strip(),
         "phone": (payload.get("phone") or "").strip(),
+        # Lifecycle defaults — fully-formed
+        "lifecycle_status": "Active",
         "is_active": True,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "added_via": "admin-panel-deprecated",
+        "created_at": now,
+        "updated_at": now,
+        "status_history": [{
+            "at": now,
+            "by": actor_label,
+            "actor_role": actor_role,
+            "to": "Active",
+            "reason": "Created via deprecated admin panel (Phase Alpha)",
+            "kind": "admin_panel_create",
+        }],
+        "deleted_at": None,
     }
     await db.employees.insert_one(doc)
+    try:
+        await db.employee_lifecycle_events.insert_one({
+            "id": str(uuid.uuid4()),
+            "employee_id": doc["id"],
+            "at": now,
+            "actor_role": actor_role,
+            "actor_label": actor_label,
+            "kind": "admin_panel_create",
+            "to_status": "Active",
+            "from_status": None,
+        })
+    except Exception:  # noqa: BLE001
+        pass
     doc.pop("_id", None)
     return doc
 
@@ -3391,11 +3601,36 @@ async def create_employee(
 async def update_employee(
     employee_id: str,
     payload: Dict[str, Any],
-    _: bool = Depends(require_admin),
+    actor: Dict[str, Any] = Depends(_require_hr_or_admin_for_queue),
 ):
-    """Inline edit a single employee. Only the supplied fields are updated.
-    Soft-deleted rows are not editable — restore them first."""
-    allowed = {"name", "employee_id", "trade", "role", "crew", "email", "phone", "is_active"}
+    """OMEGA · Phase Alpha · G-4 · Silent is_active bypass eliminated.
+
+    `is_active` was previously a mutable field on this endpoint —
+    Constitutional violation V-P0-4 (silent state-machine bypass).
+    `is_active` is now a READ-ONLY mirror of `lifecycle_status` and
+    can only be altered through the HR status state machine
+    (`POST /api/hr/employees/{id}/status` or /reactivate).
+
+    Phase Beta (G-6) will lock the gate to HR-only.
+    """
+    # G-4: explicit removal of is_active + lifecycle_status from
+    # editable surface. Lifecycle mutations must go through the HR
+    # state machine.
+    allowed = {"name", "employee_id", "trade", "role", "crew", "email", "phone"}
+    # Hard reject the back-door
+    if "is_active" in payload or "lifecycle_status" in payload:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "lifecycle_field_readonly",
+                "message": (
+                    "is_active / lifecycle_status are read-only on this "
+                    "endpoint. Use POST /api/hr/employees/{id}/status "
+                    "or POST /api/hr/employees/{id}/reactivate."
+                ),
+                "blocked_fields": [k for k in ("is_active", "lifecycle_status") if k in payload],
+            },
+        )
     update = {k: payload[k] for k in allowed if k in payload}
     if "name" in update and not (update["name"] or "").strip():
         raise HTTPException(status_code=400, detail="Name cannot be blank")
@@ -3411,10 +3646,30 @@ async def update_employee(
 
 
 @api_router.delete("/admin/employees/{employee_id}")
-async def delete_employee(employee_id: str, _: bool = Depends(require_admin)):
-    if not await _soft_delete("employees", {"id": employee_id}):
-        raise HTTPException(status_code=404, detail="Employee not found")
-    return {"ok": True, "soft_deleted": True, "retain_days": SOFT_DELETE_RETAIN_DAYS}
+async def delete_employee(employee_id: str, actor: Dict[str, Any] = Depends(_require_hr_or_admin_for_queue)):
+    """OMEGA · Phase Alpha · G-3 · Deprecated admin delete.
+
+    Forbidden as a lifecycle action — termination MUST flow through
+    the HR status state machine (status_history + offboarding
+    playbook + audit event). Returns 405 with a pointer.
+    """
+    raise HTTPException(
+        status_code=405,
+        detail={
+            "code": "termination_via_status_machine_only",
+            "message": (
+                "Soft-deleting employees is no longer permitted. "
+                "Terminate via POST /api/hr/employees/{id}/status "
+                "(target: Terminated/Resigned/Retired/Inactive) or "
+                "submit a termination request to the HR Queue via "
+                "POST /api/employee-requests (kind=termination)."
+            ),
+            "use_instead": [
+                "POST /api/hr/employees/{id}/status",
+                "POST /api/employee-requests",
+            ],
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -9099,6 +9354,70 @@ app.include_router(build_employee_lifecycle_router(
 ))
 
 
+# ─── Employee Governance Phase Alpha · G-5 · HR Request Queue ───────
+# OMEGA · 2026-06-02 · The UX-bridge collection introduced when the
+# 5 P0 violations from EMPLOYEE_GOVERNANCE_AUDIT.md were closed.
+# HR remains the sole authoritative writer of db.employees lifecycle
+# state; this queue lets Operations/Public/anyone SUBMIT a request,
+# which HR explicitly reviews + approves/rejects.
+from routes.employee_requests import (  # noqa: E402
+    register_employee_requests_routes,
+    ensure_employee_requests_indexes,
+)
+
+
+# Optional-portal-token dependency — same headers as
+# _require_any_portal_token, but returns None instead of raising 401
+# when no token is present. This lets public field forms still call
+# POST /api/employee-requests under the existing rate-limit gate.
+async def _require_optional_portal_token(
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+    x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
+    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+    x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
+    x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
+):
+    """Permissive variant of _require_any_portal_token — returns None
+    when no recognized token is provided (vs 401). Required for the
+    employee-requests endpoint which must accept public field-form
+    submissions per the operator-approved G-5 design."""
+    try:
+        return await _require_any_portal_token(
+            x_admin_token=x_admin_token,
+            x_safety_token=x_safety_token,
+            x_hr_token=x_hr_token,
+            x_shop_token=x_shop_token,
+            x_pm_token=x_pm_token,
+            x_dispatch_token=x_dispatch_token,
+            x_leadership_token=x_leadership_token,
+            x_fl_token=x_fl_token,
+        )
+    except HTTPException:
+        return None
+
+
+# HR-or-Admin reviewer gate is defined earlier in this file (so the
+# deprecated /api/admin/employees* endpoints can reference it without
+# a forward declaration). Reuse it here for the queue's HR review
+# endpoints.
+
+
+# Phase Alpha · G-5 · the router is built fresh inside register_*
+# and returned so it can be mounted on `app` directly (avoiding the
+# post-`include_router(api_router)` order-of-include trap).
+_employee_requests_router = register_employee_requests_routes(
+    api_router,
+    db,
+    rate_limit_public_post=rate_limit_public_post,
+    require_optional_portal_token=_require_optional_portal_token,
+    require_hr_or_admin=_require_hr_or_admin_for_queue,
+)
+app.include_router(_employee_requests_router)
+
+
 # ─── Operational PO Request & Receipt Tracking (iter153 — Phase D) ──
 # Field Leadership submits → PM/HR/Admin approve → R2 receipt upload.
 # `MASCI-PO-YY-MM-NNN` globally unique numbering. Missing-receipt
@@ -9478,6 +9797,8 @@ async def _bootstrap_integrations():
     logger.info("[document-expirations] indexes ensured")
     await ensure_employee_lifecycle_indexes(db)
     logger.info("[employee-lifecycle] indexes ensured")
+    await ensure_employee_requests_indexes(db)
+    logger.info("[employee-requests] indexes ensured")
     await ensure_po_requests_indexes(db)
     logger.info("[po-requests] indexes ensured")
     await ensure_signatures_indexes(db)
