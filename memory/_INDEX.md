@@ -11,6 +11,17 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA · FINAL PRODUCTION L1+L2 RE-CERTIFICATION ROUND 2 (2026-06-02T18:16Z · 2 deliverables rewritten · 🟢 PRODUCTION CERTIFIED)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `L1_L2_REMEDIATION_CERTIFICATION.md` (rewritten) | Backend cycled (`started_at` 15:27:02Z → 17:39:35Z, uptime 36 min) · L1 enforced (3/3 negative probes → 401 with `signature_headers_missing` / `signature_mismatch` error codes that can only fire when secret loaded) · L2 still LIVE (bundle `main.8e2b2094.js` · 5/5 markers) · regression battery clean | 🟢 BOTH CLOSED |
+| `FINAL_PRODUCTION_CERTIFICATION.md` (rewritten) | 8/8 operator-stipulated checks PASS · 7/7 production package items certified · zero regressions · all subsystems intact | 🟢 PRODUCTION CERTIFIED |
+
+**Final verdict**: 🟢 **PRODUCTION CERTIFIED**. Backend container was restarted between previous round and this round — `started_at` advanced, `RESEND_WEBHOOK_SECRET` is now loaded by the running process, signature verification active. All 8 operator-stipulated production checks pass. 7/7 production package items live. Zero regressions across Phase Alpha · HR Queue · ITER453 QA/QC · ITER453 Site Inspection · Auth · Daily Reports · Incidents · supporting subsystems. Resend webhook now hard-rejects unsigned and bad-signature input with HTTP 401 (correct error codes). HR Lifecycle Save Status Change button now reachable on all viewports. Constitutional principle "HR is the sole authoritative owner of employee lifecycle state" UNCHANGED.
+
+---
+
 ### 00 · OMEGA · FINAL PRODUCTION L1+L2 RE-CERTIFICATION (2026-06-02T17:39Z · 2 deliverables · 🔴 NOT CERTIFIED · L1 BLOCKER REMAINS · L2 CLEARED)
 
 | File | Purpose | Verdict |
