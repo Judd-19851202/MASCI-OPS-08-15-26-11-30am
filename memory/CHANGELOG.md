@@ -18,6 +18,37 @@ Deliverables (in `memory/`):
 
 * `ITER500_RANK1_IMPLEMENTATION_REPORT.md`
 * `ITER500_RANK1_CERTIFICATION_REPORT.md`
-* `ITER500_RANK1_GO_NO_GO.md` → **🟢 RANK #1 COMPLETE**
+* `ITER500_RANK1_GO_NO_GO.md` → 🟢 RANK #1 COMPLETE
 
-Live after-screenshots captured for the two public-route forms (`/incidents/submit`, `/daily/submit`) at 1366×768 confirm the sticky footer is rendered at viewport-bottom with the disabled state and the per-page validation hint visible during mid-form scroll.
+---
+
+## 2026-06-02 · ITER500 Rank #1 · Design-Intent Audit (READ-ONLY)
+
+Authority: OMEGA DIRECTIVE — Verify form-submit design intent before any further UX changes.
+
+Read-only forensic audit of the six Rank #1 form Submit gates. Found 5 / 6 forms 🟢 safe; 1 / 6 form 🟡 needed a one-line disabled-state alignment (NewDailyReport sticky footer). No premature data-write risk on any form (architectural gate is `submit()` → `validate()` → `toast.error`).
+
+Deliverables (in `memory/`):
+
+* `ITER500_RANK1_DESIGN_INTENT_AUDIT.md`
+* `FORM_SUBMIT_GATING_MATRIX.md`
+* `RANK1_CHANGE_IMPACT_ASSESSMENT.md`
+* `RANK1_CORRECTION_RECOMMENDATION.md` → recommended single one-line corrective
+
+---
+
+## 2026-06-02 · ITER500 Rank #1 · Targeted Correction
+
+Authority: OMEGA AUTHORIZATION — ITER500 RANK #1 TARGETED CORRECTION (preview only).
+
+Applied the one-line UI-affordance alignment identified by the design-intent audit:
+
+* `frontend/src/pages/NewDailyReport.jsx` L2246 — `disabled={saving}` → `disabled={saving || photosCount < photoMin}`.
+
+Lint clean. Live preview verified at `/daily/submit` 1366×768: `submit-sticky-btn` is now `disabled: True` while photos array is empty (count 0 < min 6), matching the `NEED 6 MORE PHOTO(S)` hint. No other code, no other forms, no backend, no production touched.
+
+Deliverables (in `memory/`):
+
+* `ITER500_RANK1_TARGETED_CORRECTION_REPORT.md`
+* `ITER500_RANK1_TARGETED_CORRECTION_CERTIFICATION.md` → 8 / 8 checks ✅
+* `ITER500_RANK1_FINAL_GO_NO_GO.md` → **🟢 RANK #1 FULLY ALIGNED**

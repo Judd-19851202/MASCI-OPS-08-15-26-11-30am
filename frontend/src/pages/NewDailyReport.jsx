@@ -2243,7 +2243,7 @@ export default function NewDailyReport({ publicMode = false }) {
           </div>
           <Button
             onClick={submit}
-            disabled={saving}
+            disabled={saving || photosCount < photoMin}
             className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
             data-testid="submit-sticky-btn"
           >
