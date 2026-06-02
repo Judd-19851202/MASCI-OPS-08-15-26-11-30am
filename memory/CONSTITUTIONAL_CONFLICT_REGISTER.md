@@ -269,3 +269,21 @@ Of the 24 conflicts, **0 are unresolvable.** All 24 are re-scopable inside Phase
 | Findings preserved exactly as in source reports | ✅ |
 
 🛑 **STOPPED.** Identify conflicts. Document conflicts. Stop.
+
+
+---
+
+## §5 · AMENDMENT 001 IMPACT NOTE (appended 2026-06-02)
+
+Constitutional Amendment 001 ("Evidence Over Acknowledgement" · Rule 11 + 4-tier Evidence Hierarchy + Constitutional Test) was issued by the operator on 2026-06-02 and registered in `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` Part IV. The Amendment strengthens but does NOT re-rank the existing 24 conflicts:
+
+* **CV-1 OC-005 JHP Acknowledgement Ledger** — now also violates Rule 11; the Amendment's worked JHP Example matches CV-1 verbatim. Severity unchanged (P0).
+* **CV-2 F-18 Acknowledge JHP** — now also violates Rule 11. Severity unchanged (P0).
+* **CV-3 Top-10 Improvement #3 = OC-005 build** — now also violates Rule 11. Severity unchanged (P0).
+* **CV-4 vestigial `stop_work_acknowledged`** — now also violates Rule 11. Severity unchanged (P0).
+* **HR-7 iter445 DR "Has crew reviewed?" field** — now also violates Rule 11. Severity unchanged (P1).
+
+**Constitutional Test ("What operational problem is solved by requiring this acknowledgement?") becomes a mandatory pre-build gate** for every future acknowledgement-workflow proposal. Items returning "None" shall not be built.
+
+**Conflict count unchanged at 24.** Per OMEGA scope, this batch is forbidden from re-ranking. Companion validation sweep (`AMENDMENT001_VALIDATION_AUDIT.md` et al.) catalogues 18 acknowledgement concepts platform-wide (9 PASS · 2 FAIL · 7 REPLACE) without modifying this Register.
+

@@ -1,8 +1,55 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · ⛔ **FORGEDOPS OPERATIONAL DESIGN CONSTITUTION** active · Constitutional Compliance Sweep 67/100 🟡 · 24 conflicts (4 P0 · 8 P1 · 7 P2 · 5 P3) · 4 P0 violations all in OC-005 JHP Acknowledgement Ledger family · top re-evaluation: iter454 OC-005 · Ownership Layer A · Layer C · iter453 closure-action contract · Ownership Maturity 18/100 🔴 · 26 ownership gaps (8 P0 · 6 P1 · 5 P2 · 7 P3) · 0/736 user-level task assignment · Customer #2 23/90 🔴 · White-Label 23/90 🔴 · ForgedOps Foundation 42/100 🟡)._
+_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · ⛔ **FORGEDOPS CONSTITUTION + AMENDMENT 001 "EVIDENCE OVER ACKNOWLEDGEMENT" active** · Validation Sweep 9 PASS · 2 FAIL · 7 REPLACE · all 7 REPLACE items addressable via existing Tier 1/2/3 primitives (Toolbox Talk · attendance · JHP download identity · corrective_actions · safety_training_records) — zero new collections required · Compliance Sweep 67/100 🟡 · 24 conflicts (4 P0 all JHP-ack family · 8 P1 · 7 P2 · 5 P3) · Ownership Maturity 18/100 🔴 · 26 ownership gaps · 0/736 user-level task assignment · Customer #2 23/90 🔴 · White-Label 23/90 🔴 · ForgedOps Foundation 42/100 🟡)._
 
-⛔ **READ THIS FIRST** — every future audit/build/recommendation must satisfy `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` (10 Friction Rules + Supremacy Override + 3-criterion success test: operationally complete + accountable + simple). 5 new mandatory audit axes: User Friction · Click Burden · Workflow Simplicity · Operational Practicality · Field Adoption Probability. **The platform must remain an operator's execution system, never an auditor's checklist system.**
+⛔ **READ THIS FIRST** — every future audit/build/recommendation must satisfy `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` Parts I + II + III + IV (10 Friction Rules + Override + Amendment 001 Rule 11 + 4-tier Evidence Hierarchy). **Constitutional Test is now mandatory pre-build gate for every acknowledgement-workflow proposal:** *"What operational problem is solved by requiring this acknowledgement?"* If answer is "None" → shall not be built. 5 mandatory audit axes: User Friction · Click Burden · Workflow Simplicity · Operational Practicality · Field Adoption Probability. **Evidence of work always outranks evidence of acknowledgement. The platform must remain an operator's execution system, never an auditor's checklist system.**
+
+---
+
+### 00 · OMEGA · CONSTITUTIONAL AMENDMENT 001 "EVIDENCE OVER ACKNOWLEDGEMENT" + VALIDATION SWEEP (2026-06-02)
+
+| File | Purpose | Status |
+|---|---|---|
+| `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` (Part IV appended) | Amendment 001 verbatim · Core Principle ("Evidence of work is always superior to evidence of acknowledgement") · Rule 11 (Evidence Over Acknowledgement) · 4-tier Evidence Hierarchy (Tier 1 Work Performed strongest · Tier 2 Participation · Tier 3 Access · Tier 4 Acknowledgement weakest) · Constitutional Test ("What operational problem is solved by requiring this acknowledgement?") · 3 operator worked examples (JHP · Daily Report · Safety) · Executive Standard | ✅ active · ⛔ binding |
+| `AMENDMENT001_VALIDATION_AUDIT.md` | Constitutional Test applied verbatim to 18 acknowledgement concepts platform-wide · per-item answer to "What operational problem is solved?" · 7-cluster breakdown · 9 PASS / 2 FAIL / 7 REPLACE tally · zero solutions designed | 🟡 |
+| `AMENDMENT001_EVIDENCE_HIERARCHY_MATRIX.md` | Each acknowledgement × all 4 Tiers · evidence already captured today vs. capturable with existing primitives · cross-cutting findings (JHP ack family · closure-as-click · checklist steps · self-attestation FAILs · already-compliant patterns) · aggregate sufficiency table | 🟡 |
+| `AMENDMENT001_REPLACEMENT_CANDIDATES.md` | Per-REPLACE item: current ack → existing Tier 1/2/3 evidence available today → operator-decision options (informational only · zero design · zero implementation planning) · FAIL items distinguished (no substitute · elimination) · cross-cutting summary: 0 new collections required | 🟡 |
+| `AMENDMENT001_EXECUTIVE_SUMMARY.md` | 3-min operator read · 4-question answer set (which valid · which fake work · which eliminable by existing evidence · which workflows can use evidence instead of clicks) · operator decision matrix (8 options · none auto-authorized) | 🟡 |
+
+🔴 **Headline (FAIL · live code):** Two acknowledgement fields exist in production with NO operational consumer — pure "evidence of clicking":
+* **iter445 `NewDailyReport.jsx` "Has crew reviewed the JHP today?" Yes/No** — self-attestation boolean, no downstream consumer
+* **Vestigial `stop_work_acknowledged` on `db.jhas`** — vestigial system (operator confirmed unused), 1 row test data
+
+Constitutional answer: eliminate both. Requires separate operator-authorized code change · not authorized by this audit.
+
+🔴 **Headline (REPLACE · 7 items addressable via existing primitives):**
+| REPLACE item | Existing Tier 1/2/3 evidence | Status |
+|---|---|---|
+| OC-005 JHP Ack Ledger (P0 CV-1) | Toolbox Talk (T1) + attendance (T2) + JHP download identity (T3) | Re-scope or eliminate |
+| F-18 Acknowledge JHP gap (P0 CV-2) | Same as OC-005 | Mark Constitutionally exempt |
+| Pattern D BilingualConsent+SignaturePad on JHP | Same as OC-005 | Pattern existence does not justify the workflow |
+| Site Inspection "Acknowledge findings" (OC-004) | `corrective_actions` per finding (T1) OR re-inspection (T1) | Closure requires operational action |
+| QA/QC "Mark Resolved" (OC-003) | `corrective_actions` (T1) OR re-inspection (T1) | Resolution requires operational action |
+| OC-014 exit-interview checkbox | Interview notes captured as data (T1) | Re-scope to data capture OR eliminate |
+| OC-013 orientation checkbox | `safety_training_records` (T1) OR attendance roster (T2) | Consume existing training record |
+
+**Zero new collections required.** All 7 REPLACE items addressable using existing platform primitives.
+
+🟢 **Headline (PASS · 9 items Constitutionally valid · preserve as-is):**
+* OSHA recordable ack (legally required) · `consent_text_version` stamping (legally required)
+* DR closure attestation modal · reopen-with-reason modal · approval decisions for Time Off/PO/PV (operational decision content captured as Tier 1 data)
+* BilingualConsent on Daily Report + Incident public submissions (Tier-4 ride-along on Tier-1 work · operator-decision optional drop for FSI Tier-1 authenticated submitters)
+* `safety_training_records` credentialing · `training_hits` HelpTip telemetry (not acknowledgement — credential / telemetry by design)
+
+🛑 **STOPPED.** Documentation only · zero code · zero existing scores recomputed · zero conflicts re-ranked · zero solutions designed. The Constitutional Test is now mandatory pre-build gate for every future acknowledgement proposal. Awaiting operator decision among the 8 options in `AMENDMENT001_EXECUTIVE_SUMMARY.md §5`:
+* (a) Eliminate JHP ack family entirely
+* (b) Re-scope OC-005 to passive Tier 3 identity capture (no UI affordance)
+* (c) Re-scope iter453 OC-003 + OC-004 closure to require operational action
+* (d) Re-scope OC-013 + OC-014 multi-step to data capture
+* (e) Decommission vestigial JHA system
+* (f) Drop BilingualConsent for FSI Tier-1 authenticated submitters
+* (g) Authorize Constitutional Test as mandatory pre-build gate (doctrine binding · no code)
+* (h) Defer all the above and continue with non-acknowledgement Phase 1A items
 
 ---
 

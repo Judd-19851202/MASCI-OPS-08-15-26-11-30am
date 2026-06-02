@@ -135,3 +135,73 @@ This Constitution governs every batch initiated after 2026-06-02. The following 
 Prior audits retain their findings verbatim. The Constitution applies forward-only via the Constitutional Compliance Sweep (`CONSTITUTIONAL_CONFLICT_REGISTER.md` · `CONSTITUTIONAL_COMPLIANCE_SCORECARD.md` · `CONSTITUTIONAL_EXECUTIVE_SUMMARY.md`).
 
 🛑 Operator signature on this doctrine: 2026-06-02 (verbatim two-part directive delivered in conversation · registered without modification).
+
+
+---
+
+## PART IV · AMENDMENTS
+
+### AMENDMENT 001 · Evidence Over Acknowledgement (2026-06-02 · operator-issued · verbatim)
+
+#### Core Principle
+
+Evidence of work is always superior to evidence of acknowledgement.
+
+The platform should prefer proving that work occurred rather than proving that a button was clicked.
+
+#### Rule 11 — Evidence Over Acknowledgement
+
+ForgedOps shall never require acknowledgements when objective operational evidence already exists.
+
+The system should capture evidence naturally from work being performed.
+
+The system should avoid creating separate acknowledgement workflows whose only purpose is documenting awareness.
+
+#### Preferred Evidence Hierarchy
+
+##### Tier 1 — Work Performed (Strongest Evidence)
+Examples: Daily Report submitted · QA/QC correction completed · Site Inspection deficiency corrected · Payroll variance resolved · Incident investigation completed · Equipment inspection submitted · Safety meeting conducted · Training completed · Production entered · Revision submitted.
+These actions are evidence. No acknowledgement required.
+
+##### Tier 2 — Participation Evidence (Acceptable Evidence)
+Examples: Safety Meeting attendance · Toolbox Talk attendance · Sign-in roster · Training attendance · QR attendance scan · Device attendance capture.
+Participation creates evidence. No additional acknowledgement should be required.
+
+##### Tier 3 — Access Evidence (Conditional Evidence)
+Examples: JHP opened · PDF downloaded · Revision viewed · Correction notice opened · Notification consumed.
+Access may provide evidence. Additional acknowledgement should only be required when legally necessary.
+
+##### Tier 4 — Acknowledgement Evidence (Weakest Evidence)
+Examples: I Agree · I Understand · I Have Read This · I Acknowledge · Confirm.
+Acknowledgement alone is not proof of understanding. Acknowledgement alone is not proof of compliance. Acknowledgement alone is not proof of work. ForgedOps should treat acknowledgement as a last resort.
+
+#### Constitutional Test
+
+Before any acknowledgement workflow is approved, the following question must be answered:
+
+> "What operational problem is solved by requiring this acknowledgement?"
+
+If the answer is "None" — the acknowledgement shall not be built.
+
+#### Worked examples (operator-issued)
+
+**JHP Example**
+Bad: Open JHP → Click Acknowledge → Click Confirm
+Good: Worker accesses JHP → System records User · Project · Timestamp · Device · Version → Evidence automatically captured · no acknowledgement required.
+
+**Daily Report Example**
+Bad: Report Returned → Acknowledge Return → Fix Report
+Good: Report Returned → Fix Report → Resubmit. The correction itself is evidence.
+
+**Safety Example**
+Bad: Attend Meeting → Acknowledge Attendance → Acknowledge Understanding
+Good: Attend Meeting → Attendance captured. The attendance is evidence.
+
+#### Executive Standard
+
+ForgedOps shall favor **Evidence of Work** over **Evidence of Clicks** at every layer of the platform. The goal is operational execution. Not acknowledgement collection.
+
+---
+
+🛑 Amendment 001 binding from 2026-06-02 · operator-verbatim · zero paraphrase. Companion validation sweep: `AMENDMENT001_VALIDATION_AUDIT.md` · `AMENDMENT001_EVIDENCE_HIERARCHY_MATRIX.md` · `AMENDMENT001_REPLACEMENT_CANDIDATES.md` · `AMENDMENT001_EXECUTIVE_SUMMARY.md`.
+

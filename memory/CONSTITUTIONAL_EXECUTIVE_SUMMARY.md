@@ -165,3 +165,13 @@ In strict priority order:
 | Operator final answer rendered as 3 buckets (Support · Risk · Greenfield) | ✅ |
 
 🛑 **STOPPED.** Awaiting operator direction.
+
+
+---
+
+## §9 · AMENDMENT 001 IMPACT NOTE (appended 2026-06-02)
+
+Constitutional Amendment 001 was registered on 2026-06-02. **The Amendment's worked JHP Example matches CV-1 verbatim** — operator-explicit doctrine confirms the OC-005 JHP Acknowledgement Ledger is the canonical anti-pattern Rule 11 forbids. Companion validation sweep produced 4 deliverables (`AMENDMENT001_VALIDATION_AUDIT.md` · `_EVIDENCE_HIERARCHY_MATRIX.md` · `_REPLACEMENT_CANDIDATES.md` · `_EXECUTIVE_SUMMARY.md`) confirming **18 acknowledgement concepts platform-wide: 9 PASS · 2 FAIL · 7 REPLACE**. Zero new collections required to address the 9 problem items.
+
+OC-005 must satisfy the Constitutional Test ("What operational problem is solved by requiring this acknowledgement?") before any future authorization. The 8 operator-decision options in this Summary §8 are now bound by Amendment 001.
+

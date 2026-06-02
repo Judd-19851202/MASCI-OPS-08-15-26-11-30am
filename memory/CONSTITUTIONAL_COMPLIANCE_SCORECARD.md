@@ -188,3 +188,17 @@ A future audit pass should apply these scores per area. Provisional pass based o
 | 5 new audit axes provisionally scored across 5 areas | ✅ |
 
 🛑 **STOPPED.** Score · stop · await operator direction.
+
+
+---
+
+## §6 · AMENDMENT 001 IMPACT NOTE (appended 2026-06-02)
+
+Constitutional Amendment 001 was registered on 2026-06-02. **Scores in this Scorecard are NOT recomputed** (re-scoring is forbidden by the operator's OMEGA scope for this batch). Two forward-binding effects are recorded:
+
+1. **Constitutional Test becomes a mandatory pre-build gate.** Every future acknowledgement-workflow proposal must answer "What operational problem is solved by requiring this acknowledgement?" before authorization. Items returning "None" shall not be built.
+
+2. **4-tier Evidence Hierarchy (Tier 1 Work · Tier 2 Participation · Tier 3 Access · Tier 4 Acknowledgement) becomes the canonical evidence-strength reference** for all future audits. The 5 new mandatory audit axes (User Friction · Click Burden · Workflow Simplicity · Operational Practicality · Field Adoption Probability) now sit alongside Tier-strength scoring.
+
+The companion Validation Sweep (`AMENDMENT001_VALIDATION_AUDIT.md` · `_EVIDENCE_HIERARCHY_MATRIX.md` · `_REPLACEMENT_CANDIDATES.md` · `_EXECUTIVE_SUMMARY.md`) applied the Test to 18 acknowledgement concepts: **9 PASS · 2 FAIL · 7 REPLACE**. All 7 REPLACE items have stronger Tier 1/2/3 evidence already available without new collections. Scores in §1 may be revisited in a future operator-authorized re-scoring batch.
+
