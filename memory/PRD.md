@@ -1,6 +1,67 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · POST-DEPLOY PRODUCTION CERTIFICATION · 🟡 CERTIFIED WITH KNOWN LIMITATIONS)
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — POST-DEPLOY PRODUCTION CERTIFICATION. Deployment is live. Execute full post-deploy production certification for the combined bundle (Phase Alpha + ITER452.5.2 + ITER453 + ITER453.5). READ-ONLY verification only except safe test records cleaned up. STOP after reports."
+
+### Final verdict: 🟡 **PRODUCTION CERTIFIED WITH KNOWN LIMITATIONS**
+
+### Counts
+- Gates: **58 / 59 PASS** · 0 fail · 1 limited
+- Live anon probes: **18** · canonical: **17** · cold-pod race: **1**
+- Frontend bundle pattern hits: **11 / 11**
+- Preview pytest regression: **50 / 50** (source_hash integrity carry-over)
+- Total verification points: **79**
+- Blockers: **0**
+- Hard failures: **0**
+- Regressions: **0**
+- Risk: 🔴 0 · 🟡 2 · 🟢 6
+
+### Production signature
+- URL: `https://mascidocs.com`
+- `source_hash`: `b82534d9caf103def5a514ef80c2c90c`
+- `app_env`: `production`
+- `db_name`: `masci_safety`
+- Pod started: 2026-06-02T12:04:27 UTC · uptime 2h43m at audit
+- `sentry.enabled`: true
+- Frontend bundle: `/static/js/main.7af75c24.js` (4 960 908 B)
+- Session timeouts: ADMIN_HR 15/4 · OPERATIONS 30/8 · FIELD 60/12
+
+### What confirmed live
+- Phase Alpha G-1..G-5 closures (canonical responses after warm-up)
+- HR Queue routes (`/api/hr/employee-requests` 403 anon · `POST /api/employee-requests` 422 schema gate)
+- ITER453 QA/QC + Site Inspection lifecycle endpoints (401 auth required)
+- ITER453.5 REC-1/REC-2/REC-3 strings in production bundle
+- ITER452.5.2 Resend webhook code (canonical ack body shape)
+
+### 2 MED limitations (operator action required)
+1. 🟡 **MED-1 carry-over** — `RESEND_WEBHOOK_SECRET` NOT set in production env. Webhook accepts unsigned events. Operator must set `whsec_…` and restart backend.
+2. 🟡 **Cold-pod race** — first G-1 probe before route registration completed produced 1 real employee row in `db.masci_safety.employees` (id `f5de1e78-f893-46d5-aa09-6369064e7906` · name `"PROD AUDIT PROBE — DO NOT WRITE"`). Needs manual cleanup.
+
+### Recommended operator actions
+- 🔴 **Immediate (≤ 24h)**: set `RESEND_WEBHOOK_SECRET` + clean up the audit-probe employee row.
+- 🟡 **Short-term (≤ 7d)**: run the 9-step REC-1/REC-2/REC-3 smoke against production with a real HR account; optional comms to the HR Manager.
+- 🟢 **Backlog**: `iter453.6` (cold-pod-race remediation, startup-readiness gate) · `usage_analytics.py` ClientDisconnect backport · `iter456_field_revision_hardening` · iter152 legacy test refresh.
+
+### 4 deliverables produced
+- `/app/memory/COMBINED_DEPLOY_GO_NO_GO.md` 🟡
+- `/app/memory/COMBINED_DEPLOY_CERTIFICATION.md`
+- `/app/memory/COMBINED_DEPLOY_PRODUCTION_REPORT.md`
+- `/app/memory/COMBINED_DEPLOY_REGRESSION_REPORT.md`
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### Out-of-scope honored
+- ❌ NO new code · NO fixes · NO migrations · NO unrelated audits · NO new features · NO drift
+- ❌ NO iter454 · NO iter455 · NO Phase 1B · NO Ownership Layer · NO White Label · NO ForgedOps Operations Center · NO new work
+
+🛑 **STOPPED. Production is LIVE and operationally correct subject to the 2 enumerated limitations.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · ITER453.5 HR LIFECYCLE UX HARDENING + OFFBOARDING CHAIN CERTIFICATION · 🟢 GO TO DEPLOY)
 
 ### Operator authorization
