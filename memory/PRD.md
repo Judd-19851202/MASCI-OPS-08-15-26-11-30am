@@ -1,6 +1,75 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · ITER453.5 HR LIFECYCLE UX HARDENING + OFFBOARDING CHAIN CERTIFICATION · 🟢 GO TO DEPLOY)
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — ITER453.5 HR LIFECYCLE UX HARDENING + OFFBOARDING CHAIN CERTIFICATION. Execute the smallest possible high-impact UX hardening batch (REC-1 Save label · REC-2 Status tab discoverability · REC-3 vocabulary HelpTip). Audit offboarding chain (10 checks). Run regression. Final GO/NO-GO. No scope creep. No Phase 1B. No Ownership Layer A. No Accountability Chain. No White Label. No ForgedOps. STOP after reports."
+
+### Final verdict: 🟢 **GO TO DEPLOY** (layered on prior `DEEP_PRE_DEPLOY_GO_NO_GO.md` 🟢 GO)
+
+### Implementation summary
+- **REC-1** (Save label): `HrEmployees.jsx:941` "Update status" → "Save Status Change" (1 LOC).
+- **REC-2** (Discoverability): `editTab` state + `initialTab` prop on `EmployeeDrawer` + `<button>`-wrapped `StatusBadge` with `aria-label="Edit status"` + `stopPropagation`. Clicking the badge on a roster row jumps the drawer directly to the Status tab. (~12 LOC)
+- **REC-3** (Vocabulary HelpTip): inline static `<HelpTip kind="example" testId="lifecycle-vocabulary">` above the lifecycle dropdown with the operator-approved Employee Lifecycle Guide. Collapsible, mobile-friendly, no modal/popup. (~21 LOC)
+- **Total scope**: 1 file changed (`frontend/src/pages/HrEmployees.jsx` · +41 / -7). Zero backend touch.
+
+### Phase 4 · Offboarding Chain Certification (10/10 PASS)
+| # | Check | Status |
+|---:|---|---|
+| 1 | Employee lifecycle updates | ✅ |
+| 2 | status_history updates | ✅ |
+| 3 | 8-task offboarding playbook generates | ✅ |
+| 4 | HR queue (by-design no-enqueue when HR is actor) | ✅ |
+| 5 | Employee removed from active lists (`_ACTIVE_STATUSES`) | ✅ |
+| 6 | Removed from Field Leadership routing (`is_active!=False`) | ✅ |
+| 7 | Notification routing (job-level via `jobs_master.co_pm_emails`, architectural separation) | ✅ |
+| 8 | Accountability ownership routing (record-attached identifiers) | ✅ |
+| 9 | Approval routing (project-PM bound, architectural separation) | ✅ |
+| 10 | Dispatch driver pick excludes `lifecycle_status ∈ {TERMINATED, OFFBOARDED, DECEASED}` | ✅ |
+
+### Phase 5 · Regression
+- ESLint `HrEmployees.jsx`: ✅ Clean
+- Pytest pending-deploy regression bundle (50 tests): ✅ **50/50 pass**
+- Phase Alpha live curl probes: ✅ Unchanged
+- iter152 legacy 4 failures: **pre-existing technical debt** (tests call Terminated without `separation_type`, fail iter285 strict-validation enforced for months) — NOT caused by this batch (proven by `git diff HEAD --stat` showing exactly 1 file changed, frontend only). OUT OF SCOPE per directive.
+
+### Success-criteria scoreboard
+- "Did my change save?" → ✅ YES (Save Status Change verb)
+- "Where do I change status?" → ✅ YES (badge click jumps to Status tab)
+- "Quit vs Resigned vs Terminated vs Layoff?" → ✅ YES (inline vocabulary guide)
+- Employee Governance Alpha intact → ✅ YES (50/50 pytest pass)
+- Offboarding chain certified → ✅ YES (10/10 PASS)
+
+### 8 deliverables produced
+- `/app/memory/ITER453_5_GO_NO_GO.md` 🟢 GO
+- `/app/memory/ITER453_5_CERTIFICATION_REPORT.md`
+- `/app/memory/ITER453_5_IMPLEMENTATION_REPORT.md`
+- `/app/memory/HR_SAVE_LABEL_AUDIT.md`
+- `/app/memory/HR_STATUS_DISCOVERABILITY_REPORT.md`
+- `/app/memory/HR_LIFECYCLE_VOCABULARY_REPORT.md`
+- `/app/memory/OFFBOARDING_CHAIN_CERTIFICATION.md`
+- `/app/memory/HR_LIFECYCLE_REGRESSION_CERTIFICATION.md`
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### Out-of-scope honored (per directive)
+- ❌ NO iter454 OC-005 JHP Acknowledgement Ledger
+- ❌ NO iter455.1 Phase 1B Accountability Chain
+- ❌ NO Ownership Layer A
+- ❌ NO Accountability Chain
+- ❌ NO White Label
+- ❌ NO ForgedOps Operations Center
+- ❌ NO unrelated UX work
+- ❌ NO backend code changes
+- ❌ NO fix on pre-existing iter152 legacy test debt
+- ❌ NO cleanup of audit-probe residuals
+
+🛑 **STOPPED. ITER453.5 batch complete. Combined production deploy bundle now awaiting explicit operator authorization.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · HR EMPLOYEE LIFECYCLE SAVE DEFECT AUDIT · P0 PRE-DEPLOY HOLD · 🟡 B · NO HOLD)
 
 ### Operator authorization

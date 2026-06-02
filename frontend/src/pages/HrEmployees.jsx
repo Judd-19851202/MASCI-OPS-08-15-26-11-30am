@@ -49,7 +49,7 @@ import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
 import GlobalSearch from "@/components/GlobalSearch";
 import { LIFECYCLE_STATUS_TINTS } from "@/lib/statusBadges";
-import { HelpTipBlock } from "@/components/HelpTip";
+import { HelpTip, HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 
 const SEPARATION_TYPES = ["voluntary", "involuntary", "layoff"];
@@ -84,6 +84,8 @@ export default function HrEmployees() {
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editId, setEditId] = useState(null);
+  // iter453.5 REC-2 · StatusBadge click → open drawer focused on Status tab.
+  const [editTab, setEditTab] = useState("details");
 
   const fetchAll = useCallback(async () => {
     if (!allowed) { setLoading(false); return; }
@@ -233,12 +235,20 @@ export default function HrEmployees() {
                   return (
                     <tr
                       key={e.id}
-                      onClick={() => setEditId(e.id)}
+                      onClick={() => { setEditTab("details"); setEditId(e.id); }}
                       className="hover:bg-slate-50 cursor-pointer"
                       data-testid={`hremp-row-${e.id}`}
                     >
                       <td className="px-4 py-2.5">
-                        <StatusBadge kind="lifecycle" value={status} size="sm" />
+                        <button
+                          type="button"
+                          onClick={(ev) => { ev.stopPropagation(); setEditTab("status"); setEditId(e.id); }}
+                          className="cursor-pointer"
+                          data-testid={`hremp-status-badge-${e.id}`}
+                          aria-label="Edit status"
+                        >
+                          <StatusBadge kind="lifecycle" value={status} size="sm" />
+                        </button>
                       </td>
                       <td className="px-4 py-2.5 font-bold text-slate-900">{e.name}</td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.trade || "—"} {e.role && <span className="text-slate-400">· {e.role}</span>}</td>
@@ -264,7 +274,11 @@ export default function HrEmployees() {
         )}
       </main>
 
-      <EmployeeDrawer id={editId} onClose={() => { setEditId(null); fetchAll(); }} />
+      <EmployeeDrawer
+        id={editId}
+        initialTab={editTab}
+        onClose={() => { setEditId(null); setEditTab("details"); fetchAll(); }}
+      />
     </div>
   );
 }
@@ -459,11 +473,14 @@ function AddDialog({ open, setOpen, onSaved }) {
   );
 }
 
-function EmployeeDrawer({ id, onClose }) {
+function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
   const { t } = useT();
   const [employee, setEmployee] = useState(null);
   const [summary, setSummary] = useState(null);
-  const [tab, setTab] = useState("details");
+  // iter453.5 REC-2 · honour caller's requested initial tab; re-seed when id changes
+  // so successive drawer opens (Edit row vs Status badge click) land on the right tab.
+  const [tab, setTab] = useState(initialTab || "details");
+  useEffect(() => { setTab(initialTab || "details"); }, [id, initialTab]);
   const [statusForm, setStatusForm] = useState({
     lifecycle_status: "Active",
     reason: "",
@@ -807,6 +824,23 @@ function EmployeeDrawer({ id, onClose }) {
                 </TabsContent>
                 <TabsContent value="status" className="mt-0 space-y-3">
                   <HelpTipBlock formKey="employee-lifecycle.separation" />
+                  {/* iter453.5 REC-3 · Lifecycle vocabulary guide (operator-approved copy) */}
+                  <HelpTip
+                    kind="example"
+                    title="Employee Lifecycle Guide — pick the right status"
+                    defaultOpen={false}
+                    testId="lifecycle-vocabulary"
+                    body={
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        <li><b>Resigned</b> — Employee voluntarily quit</li>
+                        <li><b>Terminated</b> — Company initiated separation</li>
+                        <li><b>Layoff</b> — Workforce reduction / business decision (pick Terminated + Layoff)</li>
+                        <li><b>Active</b> — Current employee</li>
+                        <li><b>Leave of Absence</b> — Temporarily inactive</li>
+                        <li><b>Reactivated</b> — Returned to active employment (use Reactivate button)</li>
+                      </ul>
+                    }
+                  />
                   <div>
                     <Label>{t("New status")}</Label>
                     <Select value={statusForm.lifecycle_status} onValueChange={(v) => setStatusForm({ ...statusForm, lifecycle_status: v })}>
@@ -904,7 +938,7 @@ function EmployeeDrawer({ id, onClose }) {
                     </div>
                   )}
                   <Button onClick={submitStatusChange} disabled={saving} data-testid="hremp-status-save">
-                    {saving ? "Saving…" : "Update status"}
+                    {saving ? "Saving…" : "Save Status Change"}
                   </Button>
 
                   {summary?.last_status_change && (

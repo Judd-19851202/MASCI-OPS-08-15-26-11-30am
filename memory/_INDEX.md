@@ -12,6 +12,24 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
 ---
+### 00 · OMEGA · ITER453.5 HR LIFECYCLE UX HARDENING + OFFBOARDING CHAIN CERTIFICATION (2026-06-02 · 8 deliverables · 🟢 GO TO DEPLOY · 1 frontend file changed)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `ITER453_5_GO_NO_GO.md` | **🟢 GO TO DEPLOY** combined w/ prior OMEGA verdict · 9-step production smoke checklist · combined env-var checklist (APP_ENV · DB_NAME · RATE_LIMITING=on · RESEND_WEBHOOK_SECRET) · rollback playbook · explicit out-of-scope list | 🟢 GO |
+| `ITER453_5_CERTIFICATION_REPORT.md` | Success-criteria scoreboard (all 5 ✅) · code/UX/doctrine certification matrices · residuals disclosure | 🟢 CERTIFIED |
+| `ITER453_5_IMPLEMENTATION_REPORT.md` | Files changed (1 FE · +41/-7) · diff highlights · new data-testids inventory · explicit out-of-scope list | 🟢 IMPLEMENTED |
+| `HR_SAVE_LABEL_AUDIT.md` | Phase 1 / REC-1 — "Update status" → "Save Status Change" · single-occurrence grep · zero test impact | 🟢 PASS |
+| `HR_STATUS_DISCOVERABILITY_REPORT.md` | Phase 2 / REC-2 — StatusBadge click opens drawer directly on Status tab · `editTab` state · `initialTab` prop · `aria-label="Edit status"` · stopPropagation on inner button | 🟢 PASS |
+| `HR_LIFECYCLE_VOCABULARY_REPORT.md` | Phase 3 / REC-3 — Static `<HelpTip>` with operator-approved Lifecycle Guide (Resigned/Terminated/Layoff/Active/Leave of Absence/Reactivated) · collapsible · mobile-friendly · no modal/popup | 🟢 PASS |
+| `OFFBOARDING_CHAIN_CERTIFICATION.md` | Phase 4 — 10-check matrix (lifecycle update · status_history · 8-task playbook · HR queue · active list exclusion · FL routing · notification routing · accountability ownership · approval routing · dispatch driver pick) | 🟢 10/10 PASS |
+| `HR_LIFECYCLE_REGRESSION_CERTIFICATION.md` | Phase 5 — ESLint clean · pytest 50/50 pass · Phase Alpha doctrine unchanged · iter152 legacy 4 failures **pre-existing technical debt** (NOT caused by this batch · proven by `git diff HEAD --stat` = 1 file only) | 🟢 NO REGRESSION |
+
+🟢 **HEADLINE: ITER453.5 🟢 GO TO DEPLOY · 1 FILE CHANGED · 0 BACKEND TOUCH · 0 BLOCKER · 0 REGRESSION** — Three coordinated frontend tweaks fix HR's "did my change save?" perception report from the prior P0 audit. **REC-1**: button verb "Update status" → "Save Status Change" (1 LOC). **REC-2**: clicking the StatusBadge on a roster row now opens the drawer directly on the Status tab (`editTab` state + `initialTab` prop · `<button>`-wrapped badge with `aria-label="Edit status"` · stopPropagation prevents row-default Details). **REC-3**: inline static `<HelpTip kind="example" testId="lifecycle-vocabulary">` above the lifecycle dropdown carries the operator-approved Employee Lifecycle Guide (Resigned=voluntarily quit · Terminated=company initiated · Layoff=RIF · Active=current · Leave of Absence=temporary · Reactivated=via Reactivate button). **All 3 Phase Alpha protections preserved** · HR remains sole lifecycle owner · canonical `POST /api/hr/employees/{id}/status` unchanged · G-1..G-5 closures unchanged. **Offboarding chain audit: 10/10 PASS** — lifecycle update + status_history append + 8-task playbook fan-out + HR queue (by-design no-enqueue) + active list exclusion via `_ACTIVE_STATUSES` + FL routing `is_active!=False` + dispatch driver pick filter `lifecycle_status NOT IN {TERMINATED, OFFBOARDED, DECEASED}` + notification/approval routing operate on job-level (project_pm_emails) NOT employee-level (architectural separation, NOT a defect). **Regression: 50/50 pytest pass** on pending-deploy bundle (employee_governance_alpha + iter452.5.2 + iter453_lifecycle). iter152 legacy 4 failures are pre-existing technical debt (tests call Terminated without `separation_type`, fail iter285 strict-validation rule that's been live for months) — NOT caused by ITER453.5 (proven by `git diff HEAD --stat` showing exactly 1 file changed, frontend only). **Combined with prior `DEEP_PRE_DEPLOY_GO_NO_GO.md` 🟢 GO verdict, the production deploy bundle is now: Employee Governance Phase Alpha + ITER453 OC-003/OC-004 LifecyclePanels + ITER452.5.2 Resend webhook + ITER453.5 HR Lifecycle UX hardening.** Awaiting explicit operator authorization to deploy.
+
+---
+
+
 ### 00 · OMEGA · HR EMPLOYEE LIFECYCLE SAVE DEFECT AUDIT (2026-06-02 · 3 deliverables · 🟡 B · WORKING WITH BAD UX · NO DEPLOY HOLD)
 
 | File | Purpose | Verdict |
