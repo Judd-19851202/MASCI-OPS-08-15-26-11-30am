@@ -11,6 +11,18 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA · ITER453.8 RESEND_WEBHOOK_SECRET PRODUCTION REMEDIATION (2026-06-02 · 3 deliverables · 🟡 CODE CERTIFIED · PRODUCTION PENDING OPERATOR DEPLOY · 1 backend file changed · +10 LOC)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `RESEND_WEBHOOK_SECRET_FORENSIC_REPORT.md` | Phase 1 RCA · `_verify_signature()` line 102-104 fail-OPEN when secret unset · dual root cause (operator env gap + code fail-open path) · file-level + config + probe evidence | 🔴 → traced |
+| `RESEND_WEBHOOK_SECRET_REMEDIATION_REPORT.md` | Phase 2+3 · Part A code patch (10 LOC · `APP_ENV=production` + secret unset → fail-SECURE `secret_unset_in_production`) · preview fail-open preserved · 4/4 pytest pass · 6/6 in-process probes pass · ruff clean · Part B operator env action documented (Resend dashboard → `whsec_<value>` → deploy env → restart) | 🟢 CODE APPLIED · ⏳ env pending |
+| `RESEND_WEBHOOK_SECRET_CERTIFICATION.md` | Phase 4 · code-side 🟢 certified on preview · production-side 🟡 pending operator deploy + env + restart · 30-second 3×401 re-cert suite · path to upgrade integrated DEPLOYMENT_FINAL_VERDICT L1 from 🔴 to 🟢 | 🟡 → 🟢 |
+
+**Final verdict**: 🟡 **CODE FIX CERTIFIED · PRODUCTION REMEDIATION PENDING OPERATOR DEPLOY**. Diff = `backend/routes/resend_webhook.py` (1 file · +10 LOC). Production-mode fail-OPEN path eliminated. Preview backward compatibility preserved. All 4 existing hotfix-bundle-A pytests pass unchanged. Awaiting operator to (1) set `RESEND_WEBHOOK_SECRET=whsec_<from-Resend-dashboard>` in production env, (2) trigger production redeploy, (3) restart backend, (4) run 30-second 3×401 verification suite. No additional work · no drift · no new features.
+
+---
+
 ### 00 · OMEGA · PRODUCTION DEPLOY + HUMAN OPERABILITY POST-DEPLOY CERTIFICATION (2026-06-02 · 5 deliverables · 🟡 PRODUCTION CERTIFIED WITH LIMITATIONS)
 
 | File | Purpose | Verdict |

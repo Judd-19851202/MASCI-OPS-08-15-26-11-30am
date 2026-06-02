@@ -101,6 +101,16 @@ async def _verify_signature(
     """
     secret = (os.environ.get("RESEND_WEBHOOK_SECRET") or "").strip()
     if not secret:
+        # iter453.8 · Production hardening (RESEND_WEBHOOK_SECRET
+        # remediation). In dev/preview the legacy fail-open is
+        # preserved so the existing test fixtures and local probes
+        # keep working without operator config. In production the
+        # missing secret is fail-secure — the webhook rejects every
+        # request with 401 until the operator sets the env var. This
+        # converts a silent governance gap into a loud one.
+        app_env = (os.environ.get("APP_ENV") or "").strip().lower()
+        if app_env == "production":
+            return False, "secret_unset_in_production"
         return True, "no_secret_configured"
 
     # Resend supports either header set; tolerate both.

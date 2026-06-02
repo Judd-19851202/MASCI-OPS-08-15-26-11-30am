@@ -1,6 +1,49 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · ITER453.8 RESEND_WEBHOOK_SECRET PRODUCTION REMEDIATION · 🟡 CODE CERTIFIED · PRODUCTION PENDING OPERATOR DEPLOY)
+
+### Operator directive
+> "OMEGA DIRECTIVE — RESEND_WEBHOOK_SECRET PRODUCTION REMEDIATION. P0. Determine whether RESEND_WEBHOOK_SECRET is missing, misconfigured, or not enforced, and remediate. Phase 1 forensic · Phase 2 remediation · Phase 3 deployment · Phase 4 certification."
+
+### Root cause (Phase 1)
+**Dual**:
+1. **Operator-side config gap**: `RESEND_WEBHOOK_SECRET` env var not set in production (recurrence #2).
+2. **Code-side fail-OPEN path**: `backend/routes/resend_webhook.py::_verify_signature` lines 102-104 returned `(True, "no_secret_configured")` whenever secret was unset — regardless of `APP_ENV`. Production silently accepted unsigned webhooks.
+
+### Remediation performed (Phase 2 · code)
+- **File**: `backend/routes/resend_webhook.py` only (+10 LOC · 0 deletions · 1 file diff)
+- **Change**: In `_verify_signature()`, when secret is unset, check `APP_ENV`. If `production` → return `(False, "secret_unset_in_production")` (fail-SECURE, 401). If any other value → preserve fail-open (`(True, "no_secret_configured")`).
+- **Test coverage**: All 4 existing `test_hotfix_bundle_a_webhook_secret.py` tests pass; 6 in-process production-mode probes pass; 3 live preview HTTP probes confirm fail-open preserved.
+- **Lint**: ruff clean.
+
+### Deployment performed (Phase 3)
+- **Preview**: ✅ applied · backend restarted · live probes confirm preview unchanged
+- **Production**: ⏳ pending — operator must (1) set `RESEND_WEBHOOK_SECRET=whsec_<value-from-Resend-dashboard>` in production deploy env, (2) trigger production redeploy of main, (3) restart backend.
+
+### Certification results (Phase 4)
+- **Code-side**: 🟢 certified
+  - 4/4 pytest pass
+  - 6/6 in-process probes match expected behavior matrix
+  - 3/3 live preview HTTP probes preserve preview fail-open (`200`)
+  - Production-mode in-process simulation: unsigned → 401 `secret_unset_in_production` · valid signed → 200
+- **Production-side**: 🟡 pending operator deploy
+  - When operator completes Parts A+B, the 30-second curl suite (`POST /api/webhooks/resend` × 3 variants) should return **3×401**
+  - This closes Limitation **L1** from `DEPLOYMENT_FINAL_VERDICT.md`
+
+### Final verdict
+🟡 **CODE FIX CERTIFIED · PRODUCTION REMEDIATION PENDING OPERATOR DEPLOY**
+
+### Deliverables created (3)
+- `/app/memory/RESEND_WEBHOOK_SECRET_FORENSIC_REPORT.md`
+- `/app/memory/RESEND_WEBHOOK_SECRET_REMEDIATION_REPORT.md`
+- `/app/memory/RESEND_WEBHOOK_SECRET_CERTIFICATION.md`
+
+STOP. No additional work. No drift. No new features.
+
+---
+
+
 ## 2026-06-02 (fork · OMEGA · PRODUCTION DEPLOY + HUMAN OPERABILITY POST-DEPLOY CERTIFICATION · 🟡 CERTIFIED WITH LIMITATIONS)
 
 ### Operator authorization
