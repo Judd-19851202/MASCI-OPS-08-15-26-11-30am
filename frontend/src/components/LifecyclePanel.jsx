@@ -36,6 +36,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { History, Loader2, RotateCcw, Lock, ShieldAlert } from "lucide-react";
+import { UndoLastTransitionButton } from "@/components/UndoLastTransitionButton";
 
 function StatePill({ state, labels, classes, testid }) {
   const cls = classes[state] || "bg-slate-100 text-slate-800 border-slate-300";
@@ -55,6 +56,7 @@ export function LifecyclePanel({
 }) {
   const {
     workflowKey,
+    auditWorkflow,
     apiBase,
     title,
     stateLabels,
@@ -221,6 +223,16 @@ export function LifecyclePanel({
         >
           <History className="w-3.5 h-3.5 mr-1" /> History
         </Button>
+        {auditWorkflow && (
+          <UndoLastTransitionButton
+            workflow={auditWorkflow}
+            recordId={recordId}
+            onUndone={() => {
+              fetchView();
+              if (historyOpen) openHistory();
+            }}
+          />
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">

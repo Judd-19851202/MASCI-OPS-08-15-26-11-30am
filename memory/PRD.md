@@ -1,6 +1,55 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02T22:45Z (FOCP RELEASE 2 — TR-0001 + TR-0002 RETIRED · 🟢 OPERATIONAL COMPLETION ENGINEERING SURFACE CLEARED)
+
+### Operator directive
+> "OMEGA DIRECTIVE — FOCP RELEASE 2. AUTHORIZATION GRANTED. Proceed with TR-0001 JHP Acknowledgement Ledger Extension AND TR-0002 Unified Recovery Layer Extension as a single coordinated completion release."
+
+### What landed
+- **TR-0001 JHP Acknowledgement Ledger**: `db.jha_acknowledgements` collection + 5 endpoints + employee-facing acknowledge button on `/jha` + admin compliance / project drill / employee drill page on `/admin/jha-acknowledgements` + workflow_state_events audit twin (workflow=`jha_ack`) + bilingual (EN/ES) strings.
+- **TR-0002 Universal Undo / Recovery Layer**: `POST /api/workflows/{workflow}/{record_id}/undo-last-transition` admin endpoint + `GET /api/admin/recovery/transitions` cross-workflow audit stream + reusable `<UndoLastTransitionButton/>` embedded in 5 lifecycle panels (incident, daily report, QA/QC, site inspection, payroll variance) + admin Recovery Stream page on `/admin/recovery-stream`.
+- **Subsumes TR-0006** (JHP/JHA integration patchy) — JHP now carries acknowledgement ledger + audit twin + compliance reporting.
+
+### Files created
+- `/app/backend/routes/jha_acknowledgements.py`
+- `/app/backend/routes/workflow_undo.py`
+- `/app/backend/tests/test_focp_release2.py` (14 tests passing)
+- `/app/frontend/src/components/JhaAcknowledgeButton.jsx`
+- `/app/frontend/src/components/UndoLastTransitionButton.jsx`
+- `/app/frontend/src/pages/admin/AdminJhaAcknowledgements.jsx`
+- `/app/frontend/src/pages/admin/AdminRecoveryStream.jsx`
+- `/app/memory/FOCP_COMPLETION_RELEASE_2_TR0001_BUNDLE.md`
+- `/app/memory/FOCP_COMPLETION_RELEASE_2_TR0002_BUNDLE.md`
+
+### Files extended (additive only)
+- `/app/backend/server.py` — added 2 new registrations + 1 index hook
+- `/app/frontend/src/App.js` — 2 new admin routes
+- `/app/frontend/src/pages/JhaPlansHub.jsx` — identity strip + per-file ack button
+- `/app/frontend/src/components/IncidentLifecyclePanel.jsx`, `LifecyclePanel.jsx`, `QaqcLifecyclePanel.jsx`, `SiteInspectionLifecyclePanel.jsx`, `DailyReportLifecyclePanel.jsx`, `PayrollVarianceLifecyclePanel.jsx` — UndoLastTransitionButton insert
+- `/app/frontend/src/lib/i18n.js` — 20 new EN/ES strings
+- `/app/memory/TRUTH_REGISTER.md` — TR-0001/0002/0006 marked RETIRED
+
+### Verification
+- Backend unit + integration: 14 pytest cases pass
+- Live e2e: incident transition + undo cycle traced through `workflow_state_events`; JHP acknowledgement flow end-to-end with audit twin verified
+- Frontend lint: clean across all new + extended files
+- Screenshot: `/jha` renders identity strip + acknowledge buttons correctly
+
+### Truth Register status counts after FOCP Release 2
+- Engineering ACTIVE: 4 (TR-0003 sub/vendor archive · TR-0004 verb harmonization · TR-0007 constraint reopen · TR-0008 lifecycle endpoint audit)
+- Engineering RETIRED: 15 (was 12)
+- Operator-blocked DEFERRED: 5 (TR-D001..D005, unchanged)
+
+### Next backlog priority
+- TR-0003 Sub/Vendor archive workflow (P2)
+- TR-0004 Verb harmonization platform-wide (P3)
+- TR-0007 Constraint reopen (product decision required)
+- TR-0008 Verify dispatch_lifecycle.py + payroll_variance_lifecycle.py endpoints are mounted (read-only follow-up)
+
+---
+
+
 ## 2026-06-02T19:30Z (fork · OMEGA · ITER500 HUMAN OPERABILITY & WORKFLOW COMPLETENESS CERTIFICATION · 🟡 OPERATIONALLY FUNCTIONAL WITH FRICTION · READ-ONLY)
 
 ### Operator directive

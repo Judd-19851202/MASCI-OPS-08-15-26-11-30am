@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { JhaAcknowledgeButton } from "@/components/JhaAcknowledgeButton";
 import { useT } from "@/lib/i18n";
 import { JOB_LIBRARY as JOBS } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
@@ -32,6 +33,19 @@ export default function JhaPlansHub() {
   const [q, setQ] = useState("");
   const [expanded, setExpanded] = useState(() => new Set());
 
+  // FOCP Release 2 · TR-0001 — employee acknowledgement state.
+  // Remembered email (localStorage) lets the page surface a per-file
+  // ✓ "Acknowledged" pill for files this employee has already signed,
+  // and pre-fills the ack modal.
+  const [ackEmail, setAckEmail] = useState(() => {
+    try {
+      return window.localStorage.getItem("masci.jha.email") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [ackedFileIds, setAckedFileIds] = useState(() => new Set());
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -48,6 +62,36 @@ export default function JhaPlansHub() {
       alive = false;
     };
   }, []);
+
+  // Refresh acked-files set whenever the remembered email changes.
+  useEffect(() => {
+    let alive = true;
+    const e = (ackEmail || "").trim().toLowerCase();
+    if (!e) {
+      setAckedFileIds(new Set());
+      return () => {
+        alive = false;
+      };
+    }
+    (async () => {
+      try {
+        const r = await api.get("/jha-acknowledgements/me", {
+          params: { employee_email: e },
+        });
+        if (!alive) return;
+        const ids = new Set();
+        for (const row of r.data?.items || []) {
+          if (row?.jha_file_id) ids.add(row.jha_file_id);
+        }
+        setAckedFileIds(ids);
+      } catch {
+        if (alive) setAckedFileIds(new Set());
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [ackEmail]);
 
   const filesByProject = useMemo(() => {
     const m = {};
@@ -118,6 +162,46 @@ export default function JhaPlansHub() {
         <HelpTipBlock formKey="jha" className="mb-4" showCounter />
         {/* iter275 · poster coaching · how the JHA reaches the crew */}
         <HelpTipBlock formKey="jha.poster" className="mb-4" />
+
+        {/* FOCP Release 2 · TR-0001 — identity strip for acknowledgement.
+            Shows the remembered email so the employee knows which
+            identity is being used to mark plans as acknowledged. */}
+        <div
+          className="mb-5 rounded-md border-2 border-slate-200 bg-white px-3 py-2 flex flex-wrap items-center gap-2 text-xs"
+          data-testid="jha-ack-identity-strip"
+        >
+          <span className="font-mono uppercase tracking-[0.18em] text-slate-500">
+            {t("Signing as")}:
+          </span>
+          {ackEmail ? (
+            <>
+              <b className="text-slate-900">{ackEmail}</b>
+              <span className="text-slate-400">·</span>
+              <span className="text-slate-600">
+                {ackedFileIds.size} {t("plans acknowledged")}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    window.localStorage.removeItem("masci.jha.email");
+                  } catch {
+                    /* noop */
+                  }
+                  setAckEmail("");
+                }}
+                className="ml-auto text-amber-700 hover:text-amber-900 underline font-bold uppercase tracking-wide text-[10px]"
+                data-testid="jha-ack-identity-clear"
+              >
+                {t("Not me — clear")}
+              </button>
+            </>
+          ) : (
+            <span className="text-slate-600 italic">
+              {t("Acknowledge any plan below to begin — your work email is your signature key.")}
+            </span>
+          )}
+        </div>
 
         <div className="relative mb-5">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -205,16 +289,33 @@ export default function JhaPlansHub() {
                             {f.notes ? ` · ${f.notes}` : ""}
                           </div>
                         </div>
-                        <a
-                          href={fileHref(f.id)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
-                          data-testid={`download-${f.id}`}
-                        >
-                          <Download className="w-4 h-4 mr-1" />{" "}
-                          {t("Download")}
-                        </a>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <a
+                            href={fileHref(f.id)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
+                            data-testid={`download-${f.id}`}
+                          >
+                            <Download className="w-4 h-4 mr-1" />{" "}
+                            {t("Download")}
+                          </a>
+                          <JhaAcknowledgeButton
+                            projectNumber={job.project_number}
+                            fileId={f.id}
+                            filename={f.filename}
+                            acked={ackedFileIds.has(f.id)}
+                            defaultEmail={ackEmail}
+                            onAcknowledged={(_ack, email) => {
+                              setAckEmail(email);
+                              setAckedFileIds((prev) => {
+                                const n = new Set(prev);
+                                n.add(f.id);
+                                return n;
+                              });
+                            }}
+                          />
+                        </div>
                       </li>
                     ))}
                   </ul>

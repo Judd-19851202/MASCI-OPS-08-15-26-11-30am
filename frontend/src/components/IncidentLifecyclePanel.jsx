@@ -36,6 +36,7 @@ import {
   History,
   Loader2,
 } from "lucide-react";
+import { UndoLastTransitionButton } from "@/components/UndoLastTransitionButton";
 
 const STATE_LABEL = {
   OPEN: "Open",
@@ -215,6 +216,14 @@ export function IncidentLifecyclePanel({ incidentId, oshaRecordable }) {
         >
           <History className="w-3.5 h-3.5 mr-1" /> History
         </Button>
+        <UndoLastTransitionButton
+          workflow="incident"
+          recordId={incidentId}
+          onUndone={() => {
+            fetchView();
+            if (historyOpen) openHistory();
+          }}
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">

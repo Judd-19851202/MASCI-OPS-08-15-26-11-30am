@@ -2513,6 +2513,40 @@ async def delete_trench_box_file(
 
 
 # ============================================================
+# OMEGA · FOCP Release 2 · TR-0001 · JHP Acknowledgement Ledger
+# ----------------------------------------------------------
+# Additive employee-acknowledgement ledger on top of the existing
+# job_hazard_files infrastructure. Adds POST /jha-acknowledgements
+# + supervisor / employee / compliance read endpoints. Does NOT
+# touch the existing /job-hazard-files surfaces or the legacy
+# single-PDF /job-hazard-plans surfaces above.
+# ============================================================
+from routes.jha_acknowledgements import register_jha_acknowledgement_routes  # noqa: E402
+
+register_jha_acknowledgement_routes(
+    api_router, db,
+    require_admin_dep=require_admin,
+)
+
+
+# ============================================================
+# OMEGA · FOCP Release 2 · TR-0002 · Universal Undo / Recovery Layer
+# ----------------------------------------------------------
+# Single endpoint that reverses the last transition for ANY workflow
+# already wired to workflow_state_events (incident / daily_report /
+# qaqc_inspection / site_inspection / payroll_variance). Plus a
+# cross-workflow audit-stream read for the Admin Recovery Stream
+# visibility page. Admin-only — does NOT bypass any state machine.
+# ============================================================
+from routes.workflow_undo import register_workflow_undo_routes  # noqa: E402
+
+register_workflow_undo_routes(
+    api_router, db,
+    require_admin_dep=require_admin,
+)
+
+
+# ============================================================
 # Trench Box Tabulated Data (OSHA 1926 Subpart P)
 # ============================================================
 class TrenchBoxCreate(BaseModel):
@@ -9879,6 +9913,9 @@ async def _arm_workflow_state_events_indexes():
         # iter452.5 — Field Submitter Identity bindings indexes.
         from lib.field_submitter_identity import ensure_indexes as _fsi_idx  # noqa: PLC0415
         await _fsi_idx(db)
+        # FOCP Release 2 · TR-0001 — JHP Acknowledgement Ledger indexes.
+        from routes.jha_acknowledgements import ensure_indexes as _jha_ack_idx  # noqa: PLC0415
+        await _jha_ack_idx(db)
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[workflow_state_events] index: {e}")
 

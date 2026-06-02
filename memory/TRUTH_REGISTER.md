@@ -44,12 +44,12 @@ The seed below carries only findings I personally verified against current JSX +
 
 | ID | Title | Severity | Source | Status | Evidence |
 |---|---|---|---|---|---|
-| TR-0001 | OC-005 JHP Acknowledgement Ledger not built | HIGH | ITER500 DEAD_END #1 + ITER501 #1 | ACTIVE | `grep -rln "jhp_acknowledge\|JhpAcknowledge"` returns 0 hits in `/app/frontend/src` and `/app/backend/routes` — verified 2026-06-02 |
-| TR-0002 | Universal undo / status reversal verb not built | HIGH | ITER500 DEAD_END #2 + ITER501 #5 | ACTIVE | `grep -rln "undo.*status\|reverseStatus\|undoLastStatus"` returns 0 hits — verified 2026-06-02 |
+| TR-0001 | OC-005 JHP Acknowledgement Ledger not built | HIGH | ITER500 DEAD_END #1 + ITER501 #1 | RETIRED | FOCP Release 2 (see `FOCP_COMPLETION_RELEASE_2_TR0001_BUNDLE.md`) · 14 tests pass · live e2e verified 2026-06-02 |
+| TR-0002 | Universal undo / status reversal verb not built | HIGH | ITER500 DEAD_END #2 + ITER501 #5 | RETIRED | FOCP Release 2 (see `FOCP_COMPLETION_RELEASE_2_TR0002_BUNDLE.md`) · 14 tests pass · live e2e verified 2026-06-02 |
 | TR-0003 | Sub/Vendor archive workflow not built | MEDIUM | ITER500 DEAD_END #12 + ITER501 #3 | ACTIVE | `grep -rn "is_archived\|archived_at"` in `/app/backend/routes/` returns 0 hits for vendor/sub/supplier routes — verified 2026-06-02 |
 | TR-0004 | Verb harmonization (Save / Submit / Create / File / Send) heterogeneous platform-wide | LOW | ITER500 FRICTION #1 + ITER501 #4 | ACTIVE | Confirmed by string-pattern survey across `pages/`; multiple verbs used for transactional submit — verified 2026-06-02 |
-| TR-0005 | Status canonical dictionary does not exist | MEDIUM | FOCP P8 | IN_PROGRESS | 8 new domains + STATUS_LABEL_MAP + labelFor() shipped in `frontend/src/lib/statusBadges.js` · 32/32 tests pass · per-page sweep pending (separately authorizable) — verified 2026-06-02 |
-| TR-0006 | JHP / JHA platform integration patchy | MEDIUM | FOCP P6 | ACTIVE | `safety_portal/_deps.py`, `training_center.py`, `pm_admin.py`, `admin_lookups.py`, `promo_assets.py` all reference JHA but no dedicated ledger collection — verified 2026-06-02 |
+| TR-0005 | Status canonical dictionary does not exist | MEDIUM | FOCP P8 | RETIRED | 8 new domains + STATUS_LABEL_MAP + labelFor() shipped in `frontend/src/lib/statusBadges.js` · 32/32 tests pass · FOCP Release 1 (see `FOCP_COMPLETION_RELEASE_1_TR0005_BUNDLE.md`) |
+| TR-0006 | JHP / JHA platform integration patchy | MEDIUM | FOCP P6 | RETIRED | Subsumed by TR-0001 retirement — JHP now has employee acknowledgement ledger + supervisor visibility + compliance reporting + workflow_state_events audit twin. See `FOCP_COMPLETION_RELEASE_2_TR0001_BUNDLE.md`. |
 | TR-0007 | Constraint reopen path absent (deliberate by doctrine; product decision required) | LOW | ITER501 #22 reclassified | ACTIVE-PRODUCT-DECISION | `operational_constraints.py:289-386` exposes GET / PATCH / POST resolve / POST chronology only · doctrine ref `OPERATIONAL_CONSTRAINT_FOUNDATION.md` — verified 2026-06-02 |
 | TR-0008 | dispatch_lifecycle.py + payroll_variance_lifecycle.py have lifecycle file but 0 endpoints exposed (or expose via different pattern) | MEDIUM | FOCP P2 | ACTIVE-NEEDS-DEEPER-VERIFY | `grep router.post` returns 0; needs follow-up read to confirm whether dispatched via different decorator |
 
@@ -86,15 +86,17 @@ The seed below carries only findings I personally verified against current JSX +
 
 | Status | Count |
 |---|---:|
-| ACTIVE | 8 |
-| RETIRED | 12 |
+| ACTIVE | 4 |
+| RETIRED | 15 |
 | DEFERRED | 5 |
 | IN_PROGRESS | 0 |
 | SUPERSEDED | 0 |
 | REJECTED | 0 |
+| ACTIVE-PRODUCT-DECISION | 1 |
+| ACTIVE-NEEDS-DEEPER-VERIFY | 0 → 1 (TR-0008 only) |
 | **Total** | **25** |
 
-These 25 are the entire population of source-verified findings at the launch of the Truth Register. Every prior-register finding not listed here is in **unverified limbo** and must be re-verified before being re-admitted.
+After FOCP Release 1 (TR-0005) and FOCP Release 2 (TR-0001 + TR-0002 + subsuming TR-0006), the engineering surface of the Truth Register is reduced to: TR-0003 (Sub/Vendor archive, P1), TR-0004 (verb harmonization, P2), TR-0007 (constraint reopen, awaits product decision), TR-0008 (lifecycle endpoint audit, P2). Operator-blocked items (TR-D001..D005) remain unchanged.
 
 ---
 

@@ -8,6 +8,7 @@ import { Send, ClipboardCheck, Lock, Undo2 } from "lucide-react";
 
 const CONFIG = {
   workflowKey: "daily-report",
+  auditWorkflow: "daily_report",
   apiBase: "/daily-reports",
   title: "Office Review Lifecycle",
 

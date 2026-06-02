@@ -8,6 +8,7 @@ import { Search, BadgeCheck, Lock } from "lucide-react";
 
 const CONFIG = {
   workflowKey: "payroll-variance",
+  auditWorkflow: "payroll_variance",
   apiBase: "/hr/payroll-variance/batches",
   title: "Payroll Variance Lifecycle",
 

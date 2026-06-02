@@ -1351,6 +1351,39 @@ const ES = {
   "Hub": "Inicio",
 
   // ============================================================
+  // FOCP Release 2 · TR-0001 — JHP Acknowledgement Ledger strings
+  // ============================================================
+  "Acknowledge": "Confirmar Recibido",
+  "Acknowledged": "Confirmado",
+  "Acknowledge Job Hazard Plan": "Confirmar Plan de Peligros del Trabajo",
+  "I have read this Hazard Plan and understand the site hazards, PPE requirements, and emergency response.":
+    "He leído este Plan de Peligros y entiendo los peligros del sitio, los requisitos de EPP y la respuesta de emergencia.",
+  "Work email": "Correo de trabajo",
+  "Signature (type your full name)":
+    "Firma (escriba su nombre completo)",
+  "Full name": "Nombre completo",
+  "Your acknowledgement is permanent and visible to your supervisor.":
+    "Su confirmación es permanente y visible para su supervisor.",
+  "Sign and Acknowledge": "Firmar y Confirmar",
+  "You have acknowledged this Hazard Plan.":
+    "Usted ha confirmado este Plan de Peligros.",
+  "Enter your work email.": "Ingrese su correo de trabajo.",
+  "Type your full name as your signature.":
+    "Escriba su nombre completo como firma.",
+  "Acknowledgement recorded.": "Confirmación registrada.",
+  "Acknowledgement failed. Try again.":
+    "La confirmación falló. Intente de nuevo.",
+  "No employee on file matches that email. Get with your PM.":
+    "Ningún empleado en archivo coincide con ese correo. Consulte con su Gerente de Proyecto.",
+  "That email format isn't valid.":
+    "El formato del correo no es válido.",
+  "Signing as": "Firmando como",
+  "plans acknowledged": "planes confirmados",
+  "Not me — clear": "No soy yo — borrar",
+  "Acknowledge any plan below to begin — your work email is your signature key.":
+    "Confirme cualquier plan abajo para comenzar — su correo de trabajo es su llave de firma.",
+
+  // ============================================================
   // Trench Box Tabulated Data
   // ============================================================
   "Trench Box Data": "Datos de Cajas de Zanja",
