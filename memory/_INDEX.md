@@ -12,6 +12,19 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
 ---
+### 00 · OMEGA · ITER453.6 POST-DEPLOY PRODUCTION CERTIFICATION (2026-06-02 · 3 deliverables · 🟡 CERTIFIED WITH KNOWN LIMITATIONS)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `ITER453_6_POST_DEPLOY_VERIFICATION.md` | **🟡 CERTIFIED WITH KNOWN LIMITATIONS** · 42/52 gates pass · 0 blocker · 0 regression · 10 limited (7 iter453.6 gate not deployed + 3 webhook secret not set) · 5-item operator action checklist (re-deploy preview HEAD + set RESEND_WEBHOOK_SECRET + restart + curl-verify + soft-delete audit row) | 🟡 GO with limits |
+| `ITER453_6_PRODUCTION_CERTIFICATION.md` | Per-phase scoreboard · doctrine certification · risk register (0 HIGH · 2 MED · 6 LOW) · aggregate verdict | 🟡 CERTIFIED |
+| `ITER453_6_PRODUCTION_DEPLOY_REPORT.md` | Deployment signature (new `source_hash=d01cdedc7d934d0aeebf026609cf6ec9` · `started_at=14:44:14Z` · pod fresh 43m) · source_hash⇄commit reconciliation (production deployed commit `80927d0` = PRE-hotfix · current preview HEAD `4f1e112` carries iter453.6) · 15 anon probes · 6 bundle pattern hits | 🟡 GAP |
+
+🟡 **HEADLINE: 🟡 CERTIFIED WITH KNOWN LIMITATIONS · DEPLOY IS LIVE · iter453.6 GATE NOT IN BUILD · WEBHOOK SECRET STILL UNSET** — A redeploy occurred (`source_hash` transitioned `b82534d9 → d01cdedc` · `started_at` advanced from 12:04 to 14:44 UTC · frontend bundle hash advanced `7af75c24 → 037e8fa1`). Computed source hashes for each recent commit reveal: production `d01cdedc` = commit **`80927d0`** = end of ITER453.5 batch (BEFORE hotfix); current preview HEAD `4f1e112` = `7a6c669f` (POST-hotfix · iter453.6 IN). **The operator deployed the snapshot taken at HOTFIX BUNDLE A AUTHORIZATION TIME, not at HOTFIX BUNDLE A COMPLETION TIME.** What is live in production: Phase Alpha G-1..G-5 closures (8/8 burst uniform 410 on /api/employees/add) · HR Queue (403 anon GET · 422 schema POST) · ITER453 QA/QC + Site Inspection lifecycle endpoints (401 anon, both registered) · ITER453.5 HR UX strings (5/5 in bundle: Save Status Change · Employee Lifecycle Guide · hremp-status-badge- · Request HR add · "Update status" REPLACED) · ITER452.5.2 webhook code (canonical structured ack body shape). What is NOT live: iter453.6 startup readiness gate (cold-pod race window remains for next deploy) · RESEND_WEBHOOK_SECRET (webhook accepts unsigned events with 200 ack · 3 probes uniform). What remains residual: audit-probe employee `f5de1e78-f893-46d5-aa09-6369064e7906` still in `db.masci_safety.employees` awaiting HR-portal soft-delete. **42/52 gates pass · 0 failed · 10 limited · 0 blocker · 0 regression · 25 verification points · pod stable (no split-pod / no stale-build / no startup-exception)**. **Operator action remaining**: (1) re-deploy from current preview HEAD `4f1e112` to ship iter453.6 gate · (2) set `RESEND_WEBHOOK_SECRET=whsec_…` + restart backend · (3) curl-verify webhook 401 · (4) soft-delete audit employee. Total effort ≤ 5 min + 1 deploy authorization.
+
+---
+
+
 ### 00 · OMEGA · HOTFIX BUNDLE A · WEBHOOK + AUDIT-CLEANUP + ITER453.6 STARTUP READINESS GATE (2026-06-02 · 6 deliverables · 🟢 PRODUCTION HARDENING COMPLETE · 1 runtime file changed · 64/64 tests pass)
 
 | File | Purpose | Verdict |

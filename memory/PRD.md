@@ -1,6 +1,70 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · ITER453.6 POST-DEPLOY PRODUCTION CERTIFICATION · 🟡 CERTIFIED WITH KNOWN LIMITATIONS)
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — ITER453.6 PRODUCTION CERTIFICATION. Deployment is live. Execute READ-ONLY production certification against mascidocs.com. No code · no fixes · no deploys · no cleanup · no scope expansion. STOP after certification."
+
+### Final verdict: 🟡 **CERTIFIED WITH KNOWN LIMITATIONS**
+
+### Counts
+- Gates: **42 / 52 PASS** · 0 fail · 10 limited (7 iter453.6 gate + 3 webhook secret)
+- Probes: 15 anon + 6 bundle + 4 hash reconciliation = **25 verification points**
+- Blockers: **0**
+- Regressions: **0**
+- Risk: 🔴 0 · 🟡 2 · 🟢 6
+
+### Production signature
+- `source_hash`: **`d01cdedc7d934d0aeebf026609cf6ec9`** (= commit **`80927d0`** = end of ITER453.5 batch · PRE-hotfix)
+- `app_env`: `production` · `db_name`: `masci_safety` · `sentry.enabled`: true
+- Pod started: 2026-06-02T14:44:14 UTC · uptime ≈ 43 min at audit
+- Frontend bundle: `/static/js/main.037e8fa1.js`
+- New pod confirmed: `started_at` advanced 2h40m from pre-deploy
+
+### Key finding: iter453.6 gate NOT in deployed build
+Computed `_compute_source_hash()` over each recent commit's `(server.py + training_pdf.py + pdf_render.py)`:
+- HEAD / `4f1e112` (post-hotfix · iter453.6 IN) → `7a6c669f9e9212286e3850fae6a0b78e`
+- `80927d0` (end ITER453.5 · pre-hotfix) → **`d01cdedc7d934d0aeebf026609cf6ec9`** ← matches production
+- `aa0cb04` (first deploy) → `b82534d9caf103def5a514ef80c2c90c`
+
+The operator deployed `80927d0` — the snapshot at HOTFIX BUNDLE A authorization time, not at completion time. **iter453.6 startup readiness gate is NOT in this production build.** Phase Alpha + ITER453 + ITER453.5 + ITER452.5.2 ARE all in this build.
+
+### What confirmed live
+- ✅ Phase Alpha (G-1 burst 8/8 uniform 410 · G-2 401 · G-3/G-4 403 · HR Queue 403 GET / 422 POST schema)
+- ✅ ITER453 QA/QC + Site Inspection lifecycle endpoints (both 401 anon auth-required)
+- ✅ ITER453.5 HR UX strings in bundle (5/5: Save Status Change · Employee Lifecycle Guide · hremp-status-badge- · Request HR add · "Update status" REPLACED)
+- ✅ ITER452.5.2 webhook code path
+- ✅ System health (/api/health 200 · Sentry · pod stable · no split-pod / no stale-build / no startup-exception)
+- ✅ 0 regressions on public surface
+
+### What is NOT live
+- 🔴 iter453.6 startup readiness gate — cold-pod race window remains for the next deploy of this code
+- 🟡 RESEND_WEBHOOK_SECRET — webhook accepts unsigned events (3 probes uniform 200 ack)
+- 🟢 Audit-probe employee `f5de1e78-…` still in `db.employees` (Hotfix Part B not yet performed)
+
+### Remaining operator actions (≤ 5 min + 1 deploy)
+1. 🔴 Re-deploy from preview HEAD `4f1e112` to ship iter453.6 gate to production
+2. 🔴 Set `RESEND_WEBHOOK_SECRET=whsec_…` in production env-var pane + restart backend
+3. 🔴 Curl-verify `POST https://mascidocs.com/api/webhooks/resend -d '{}'` → expect **401** signature_headers_missing
+4. 🔴 Soft-delete employee `f5de1e78-f893-46d5-aa09-6369064e7906` via HR portal Status tab
+
+### 3 deliverables produced
+- `/app/memory/ITER453_6_POST_DEPLOY_VERIFICATION.md` 🟡
+- `/app/memory/ITER453_6_PRODUCTION_CERTIFICATION.md`
+- `/app/memory/ITER453_6_PRODUCTION_DEPLOY_REPORT.md`
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### Out-of-scope honored
+- ❌ NO code · NO fixes · NO deploys · NO cleanup · NO scope expansion
+- ❌ NO iter454 · NO iter455 · NO Phase 1B · NO Accountability · NO Ownership Layer · NO White Label · NO ForgedOps
+
+🛑 **STOPPED. Awaiting operator: redeploy preview HEAD + set RESEND_WEBHOOK_SECRET + cleanup audit row.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · HOTFIX BUNDLE A · WEBHOOK + AUDIT-CLEANUP + ITER453.6 · 🟢 COMPLETE)
 
 ### Operator authorization
