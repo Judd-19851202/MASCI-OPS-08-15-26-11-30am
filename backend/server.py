@@ -32,6 +32,13 @@ client = AsyncIOMotorClient(mongo_url, tz_aware=True)
 db = client[os.environ['DB_NAME']]
 
 app = FastAPI(title="MASCI Job Site Safety Inspection API")
+# iter453.6 · Startup-readiness gate. Eliminates the cold-pod race observed
+# during 2026-06-02 production deploy where /api/employees/add briefly
+# accepted public POSTs before Phase Alpha route registration completed.
+# Set False at import-time, flipped True by the final @app.on_event("startup")
+# hook below. Middleware (defined at bottom of file) returns 503 on public
+# write requests while False.
+app.state.ready = False
 api_router = APIRouter(prefix="/api")
 
 
@@ -12119,3 +12126,58 @@ async def shutdown_db_client():
     except Exception:
         pass
     client.close()
+
+
+# ──────────────────────────────────────────────────────────────────────
+# iter453.6 · Startup-readiness gate (final wiring)
+#
+# Operator authorization: OMEGA HOTFIX BUNDLE A · Part C · 2026-06-02.
+#
+# Two pieces:
+#   1. A middleware that returns HTTP 503 {"detail":"service_starting"}
+#      for public WRITE requests while `app.state.ready` is False.
+#      Read-only health/version probes always pass through so deployment
+#      readiness probes still work during warm-up.
+#   2. A startup hook (registered LAST so it runs after every other
+#      startup hook completes) that flips `app.state.ready = True`.
+#
+# Scope discipline: only POST/PUT/PATCH/DELETE on /api/* (i.e., the public
+# write surface) are gated. GETs and non-/api/* are passed through to
+# avoid breaking infrastructure health checks.
+# ──────────────────────────────────────────────────────────────────────
+_READINESS_EXEMPT_PATHS = {
+    "/api/health",
+    "/api/version",
+}
+
+
+@app.middleware("http")
+async def _iter453_6_readiness_gate(request, call_next):
+    if not getattr(request.app.state, "ready", False):
+        method = (request.method or "").upper()
+        path = request.url.path or ""
+        if (
+            method in {"POST", "PUT", "PATCH", "DELETE"}
+            and path.startswith("/api/")
+            and path not in _READINESS_EXEMPT_PATHS
+        ):
+            from fastapi.responses import JSONResponse  # noqa: PLC0415
+            return JSONResponse(
+                status_code=503,
+                content={"detail": "service_starting"},
+            )
+    return await call_next(request)
+
+
+@app.on_event("startup")
+async def _iter453_6_flip_ready_flag():
+    """Final startup hook — flip the readiness gate AFTER all other
+    @app.on_event('startup') handlers have completed. FastAPI runs
+    startup events in registration order, and this module-level
+    registration is the LAST one in server.py, so by the time this
+    runs every index/scheduler/router setup above is finished.
+    """
+    app.state.ready = True
+    logging.getLogger(__name__).info(
+        "[iter453.6] startup-readiness gate FLIPPED · public writes now accepted",
+    )

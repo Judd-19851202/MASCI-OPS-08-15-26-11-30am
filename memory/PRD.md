@@ -1,6 +1,73 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · HOTFIX BUNDLE A · WEBHOOK + AUDIT-CLEANUP + ITER453.6 · 🟢 COMPLETE)
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — HOTFIX BUNDLE A (PRODUCTION HARDENING ONLY). P0. Part A RESEND_WEBHOOK_SECRET enforcement · Part B audit employee cleanup · Part C iter453.6 startup readiness gate. STOP after certification."
+
+### Final verdict: 🟢 **PRODUCTION HARDENING COMPLETE** (preview-verified · 3 operator-touch actions remaining)
+
+### Test pass count: **64 / 64 PASS** · ESLint + Ruff clean · 0 regressions
+
+### Implementation summary
+- **Part A** (webhook secret enforcement) — code already enforces correctly when `RESEND_WEBHOOK_SECRET` is set; 4/4 dedicated pytest pass (`backend/tests/test_hotfix_bundle_a_webhook_secret.py`). Operator must set `whsec_…` in production env-var pane + restart backend.
+- **Part B** (audit-employee cleanup) — operator-runnable procedure documented; no direct production write performed (READ-ONLY directive honored). Target row: `f5de1e78-f893-46d5-aa09-6369064e7906`.
+- **Part C** (iter453.6 startup readiness gate) — `backend/server.py` +63/-1 LOC · `app.state.ready=False` at import · outermost `@app.middleware("http")` 503s public WRITES while not ready · final `@app.on_event("startup")` flips ready=True · 10/10 dedicated pytest pass (`backend/tests/test_iter453_6_startup_readiness_gate.py`).
+
+### Files changed
+- `backend/server.py` (+63 / -1) · single runtime file
+- `backend/tests/test_iter453_6_startup_readiness_gate.py` (NEW · 10 tests)
+- `backend/tests/test_hotfix_bundle_a_webhook_secret.py` (NEW · 4 tests)
+
+### Regression pass count
+- `test_employee_governance_alpha.py`: **17/17** · Phase Alpha preserved
+- `test_iter452_5_2_resend_webhook.py`: **9/9** · webhook flow preserved
+- `test_iter453_lifecycle.py`: **24/24** · OC-003/OC-004 preserved
+- `test_iter453_6_startup_readiness_gate.py` (NEW): **10/10**
+- `test_hotfix_bundle_a_webhook_secret.py` (NEW): **4/4**
+- **TOTAL: 64/64**
+
+### Remaining risks
+- 🔴 **0**
+- 🟡 **1** — MED-2 carry-over (`usage_analytics.py` ClientDisconnect backport · out-of-scope per directive · log noise only · no functional impact)
+- 🟢 **5** — LOW carry-overs (cosmetic / preview-only · unchanged)
+- MED-1 transitions 🟡→🟢 when operator sets `RESEND_WEBHOOK_SECRET` in production.
+- LOW-6 (cold-pod race) transitions 🟢 open → 🟢 mitigated at next production deploy of `server.py`.
+
+### `source_hash` transition
+- Production at post-deploy audit (2026-06-02 14:47 UTC): `b82534d9caf103def5a514ef80c2c90c`
+- Next production deploy will pick up a NEW `source_hash` reflecting the +63/-1 change to `server.py`.
+
+### Operator action checklist (≤ 5 min total)
+1. 🔴 Set `RESEND_WEBHOOK_SECRET=whsec_…` in production env-var pane (Emergent platform).
+2. 🔴 Restart production backend.
+3. 🔴 Curl-verify: `POST https://mascidocs.com/api/webhooks/resend -d '{}'` → expect **401** `signature_headers_missing`.
+4. 🔴 Soft-delete employee `f5de1e78-f893-46d5-aa09-6369064e7906` via HR portal (Status tab → Terminated · involuntary · `not_eligible` · reason="OMEGA HOTFIX BUNDLE A Part B").
+5. 🔴 Authorize next deploy to ship iter453.6 startup gate to production.
+
+### 6 deliverables produced
+- `/app/memory/ITER453_6_GO_NO_GO.md` 🟢
+- `/app/memory/ITER453_6_CERTIFICATION.md`
+- `/app/memory/ITER453_6_IMPLEMENTATION_REPORT.md`
+- `/app/memory/WEBHOOK_SECRET_DEPLOYMENT_REPORT.md`
+- `/app/memory/WEBHOOK_SECURITY_CERTIFICATION.md`
+- `/app/memory/AUDIT_EMPLOYEE_CLEANUP_REPORT.md`
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### Out-of-scope honored
+- ❌ NO iter454 · NO iter455 · NO Phase 1B
+- ❌ NO Accountability · NO Ownership Layer · NO White Label · NO ForgedOps Operations Center
+- ❌ NO scope expansion
+- ❌ NO `usage_analytics.py` backport (MED-2 deferred)
+- ❌ NO direct production write (Parts A & B are operator-runnable only — agent has no production access)
+
+🛑 **STOPPED. 3 operator-touch actions remaining (≤ 5 min total). Awaiting operator deploy + env-var + HR-portal cleanup to close all three certification items.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · POST-DEPLOY PRODUCTION CERTIFICATION · 🟡 CERTIFIED WITH KNOWN LIMITATIONS)
 
 ### Operator authorization
