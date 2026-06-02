@@ -43,6 +43,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
+from starlette.requests import ClientDisconnect
 
 from lib.field_submitter_identity import (
     _dead_letter_email,
@@ -167,7 +168,22 @@ def register_resend_webhook_routes(api_router: APIRouter, db) -> None:
 
     @api_router.post("/webhooks/resend", response_model=_AckResponse)
     async def resend_webhook(request: Request):
-        raw = await request.body()
+        # iter453 polish (2026-06-02): when an upstream client (preview-
+        # platform probe, scanner, misconfigured curl, or aborted retry)
+        # disconnects mid-body-read, Starlette's `request.body()` raises
+        # ClientDisconnect — which inherits from BaseException so generic
+        # try/except clauses can't catch it. Catch it explicitly here and
+        # return a fast 200 so the middleware chain doesn't emit the
+        # `RuntimeError("No response returned.")` noise into Sentry.
+        # Business logic is unchanged for properly-formed requests; this
+        # is strictly a noise-downgrade.
+        try:
+            raw = await request.body()
+        except ClientDisconnect:
+            return _AckResponse(
+                ok=True, kind="client_disconnect",
+                event_id="", matched=0, escalated=False,
+            )
 
         ok, sig_note = await _verify_signature(request, raw)
         if not ok:
