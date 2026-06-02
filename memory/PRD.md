@@ -1,6 +1,46 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · HR EMPLOYEE LIFECYCLE SAVE DEFECT AUDIT · P0 PRE-DEPLOY HOLD · 🟡 B · NO HOLD)
+
+### Operator authorization
+> "OMEGA P0 PRE-DEPLOY HOLD — HR EMPLOYEE LIFECYCLE SAVE DEFECT. Do NOT deploy yet. HR reported when updating an employee lifecycle/status (example: 'Quit'), they can select the value but there is no clear Save button, confirmation, success message, or proof that the change persisted. Verify before production deploy. READ ONLY unless defect confirmed + fix ≤ 25 LOC. Classify A/B/C/D/E. STOP after reports."
+
+### Final classification: 🟡 **B — Existing behavior works but has bad UX / no confirmation**
+
+### Deploy authorization: 🟢 **DEPLOY MAY PROCEED** (prior `DEEP_PRE_DEPLOY_GO_NO_GO.md` 🟢 GO verdict UNCHANGED)
+
+### Key findings
+- **Backend** (`POST /api/hr/employees/{employee_id}/status` · `employee_lifecycle.py:968`): HR-authorized (`require_hr_or_admin`) · persists `lifecycle_status` + `is_active` + dates + `status_history[]` append · fires 8-task offboarding playbook on Term/Resigned/Retired · returns full updated employee. **Live probe with HR-only token confirms 400 on missing required fields with clear `detail`, 200 on complete payload, persisted on independent re-read, reversible via `/hr/employees/{id}/reactivate`.**
+- **Frontend** (`HrEmployees.jsx::EmployeeDrawer`): Save button EXISTS (`data-testid="hremp-status-save"`), success toast fires, status_history re-renders. **Three compounding UX gaps**: (1) button labelled "Update status" not "Save" (line 906); (2) button lives on **Status tab** but drawer defaults to **Details** tab (line 466); (3) dropdown has no "Quit" label — canonical maps "Quit"→**Resigned**+voluntary.
+- **Phase Alpha impact**: NONE on this path. Alpha's G-4 422 response explicitly names this endpoint as the "use instead" canonical HR authority path.
+
+### 3 deliverables produced
+- `/app/memory/HR_EMPLOYEE_LIFECYCLE_SAVE_AUDIT.md` (forensic 7-section · 4-step live probe + reverse)
+- `/app/memory/HR_EMPLOYEE_STATUS_UI_REVIEW.md` (UI inventory + 3 hardening recs · ≤ 25 LOC total · NONE actioned)
+- `/app/memory/DEPLOYMENT_IMPACT_HR_LIFECYCLE_STATUS.md` (classification matrix + 🟢 deploy may proceed)
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### 3 optional UX hardening recommendations (each ≤ 25 LOC · deferred · operator authorization required)
+1. **REC-1** Rename button "Update status" → "Save status change" (1 LOC string change · `HrEmployees.jsx:907`).
+2. **REC-2** Auto-jump drawer to Status tab when user clicks status badge on a row (~12 LOC prop-threading).
+3. **REC-3** Inline HelpTipBlock above lifecycle dropdown clarifying Quit→Resigned · Fired→Terminated vocabulary (~10 LOC content insertion).
+
+### Audit residuals (per "NO employee data cleanup" rule)
+- 1 employee (`Alec Perkins` · `c9d7ebc3-a292-4d7a-8765-0ce2739c6029`) has 2 entries in `status_history` (Active→Resigned probe + Resigned→Active reverse · forensic chain preserved per append-only doctrine).
+- 8 offboarding tasks in `db.tasks` linked to the probe (operator may cancel via `/admin/tasks` if desired).
+- `separation_type=voluntary` and `rehire_eligibility=eligible` remain on the employee record (immutable lifecycle-stamp fields kept across reactivations by design).
+
+### Out-of-scope (NOT performed)
+- ❌ NO unrelated fixes · ❌ NO scope drift · ❌ NO deployment · ❌ NO employee data cleanup.
+- The 3 UX hardening recommendations are deferred to a potential future `iter454.x_hr_status_ux_polish` operator-authorized iter.
+
+🛑 **STOPPED. Read-only audit + one operator-authorized persistence probe (objective 9) performed and reversed. Awaiting operator authorization for the 3 UX hardening tweaks OR for production deploy of the current build.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · DAILY REPORT SHARE EMAIL FORENSIC AUDIT · P0 · 🟡 GOVERNANCE CONCERN)
 
 ### Operator authorization

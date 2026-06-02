@@ -12,6 +12,19 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
 ---
+### 00 · OMEGA · HR EMPLOYEE LIFECYCLE SAVE DEFECT AUDIT (2026-06-02 · 3 deliverables · 🟡 B · WORKING WITH BAD UX · NO DEPLOY HOLD)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `HR_EMPLOYEE_LIFECYCLE_SAVE_AUDIT.md` | 7-section forensic reconstruction · surface inventory (`/hr/employees` → drawer → "Status" tab) · end-to-end save flow trace · live HR-token persistence probe (Step A: 400 missing fields · Step B: 200 + status_history + 8 playbook tasks · Step C: independent re-read confirms persist · Step D: reverse via reactivate endpoint) · Phase Alpha impact analysis (NOT blocked · canonical path preserved) · "Quit" vocabulary mapping → Resigned + voluntary | 🟡 B |
+| `HR_EMPLOYEE_STATUS_UI_REVIEW.md` | UI inventory with all data-testids · 3 compounding UX gaps (button label "Update status" not "Save" · Save lives on Status tab not default Details tab · "Quit" not a literal dropdown value) · 3 hardening recommendations totaling ≤ 25 LOC (REC-1 label rename · REC-2 auto-jump to Status tab · REC-3 inline vocabulary HelpTipBlock) — NONE actioned, all require explicit operator authorization | 🟡 UX |
+| `DEPLOYMENT_IMPACT_HR_LIFECYCLE_STATUS.md` | Classification matrix maps to **B** · 🟢 deploy may proceed · prior `DEEP_PRE_DEPLOY_GO_NO_GO.md` 🟢 GO verdict NOT invalidated · HR communication script · residual probe disclosure (1 employee · 8 tasks · status_history preserved per audit doctrine) | 🟢 NO HOLD |
+
+🟢 **HEADLINE: 🟡 B — EXISTING BEHAVIOUR WORKS / NO DEPLOY HOLD** — Backend `POST /api/hr/employees/{id}/status` is HR-authorized (`require_hr_or_admin`), persists `lifecycle_status` + `is_active` + dates + `status_history[]` append + fires 8-task offboarding playbook on Terminated/Resigned/Retired transitions, returns full updated employee + tasks_created count. **Live probe (Alec Perkins · hrmanager@mascigc.com token) confirms 400 on missing required fields with clear field-name in detail · 200 on complete payload · persisted on independent re-read · reversible via `/hr/employees/{id}/reactivate`.** Phase Alpha does NOT block this path — Alpha's G-4 422 response explicitly names this endpoint as the "use instead" canonical authority. Frontend Save button EXISTS (`data-testid="hremp-status-save"`) but is labelled **"Update status"** (not "Save"), lives on the **Status tab** (drawer defaults to Details tab), and the dropdown has no literal **"Quit"** value (HR's mental model maps to **"Resigned"** + `separation_type=voluntary`). Success toast fires · error toast fires · status_history re-renders below button after save. **3 optional UX hardening recommendations (≤ 25 LOC total) deferred to future operator-authorized polish iter.** Probe residuals: 1 employee status_history (2 entries: Active→Resigned→Active · forensic chain preserved) + 8 offboarding tasks left in `db.tasks` (operator may cancel via `/admin/tasks`). **OMEGA Deep Pre-Deploy 🟢 GO TO DEPLOY verdict UNCHANGED.**
+
+---
+
+
 ### 00 · OMEGA · DAILY REPORT SHARE EMAIL FORENSIC AUDIT (2026-06-02 · 4 deliverables · 🟡 GOVERNANCE CONCERN · read-only)
 
 | File | Purpose | Verdict |
