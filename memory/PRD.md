@@ -1,6 +1,92 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA) — ForgedOps Operational Design Constitution + Compliance Sweep DELIVERED 🟡
+
+### Operator authorization
+> "OMEGA DIRECTIVE — FORGEDOPS CONSTITUTIONAL COMPLIANCE SWEEP. READ-ONLY audit. Zero code. Zero database changes. Zero deployments. Zero re-scoring. Zero redesign. Zero build authorization. Zero new features. Produce CONSTITUTIONAL_CONFLICT_REGISTER.md, CONSTITUTIONAL_COMPLIANCE_SCORECARD.md, CONSTITUTIONAL_EXECUTIVE_SUMMARY.md. Identify conflicts. Document conflicts. Stop. Update _INDEX.md and PRD.md. STOP. OMEGA DISCIPLINE REQUIRED. Constitution first."
+
+### Governing doctrine adopted this date
+The operator delivered two binding doctrine documents in this conversation:
+1. **ForgedOps Operational Design Constitution** — Core Principle + 10 Friction Rules (Work Over Clicks · Information Is Not A Task · Every Workflow Has One Owner · Every Workflow Must End · Public-Gate Simplicity · Minimize Human Decisions · Accountability Must Be Automatic · Reduce Operational Noise · Operator First · Space Shuttle Backend Toy Airplane Frontend)
+2. **Constitutional Override** — Supremacy clause ("Constitution prevails unless explicitly overridden by the operator") · 5 new mandatory audit axes (User Friction · Click Burden · Workflow Simplicity · Operational Practicality · Field Adoption Probability) · 3-criterion success test (Operationally Complete + Operationally Accountable + Operationally Simple) · anti-checklist clause ("The platform must never become an auditor's checklist system. The platform must remain an operator's execution system.")
+
+Both registered verbatim in `/app/memory/FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md`.
+
+### Compliance Sweep purpose
+Cross-reference every existing recommendation, workflow proposal, ownership model, escalation framework, accountability model, future-roadmap item, Customer #2 / White-Label / Operations Center / ForgedOps v1 recommendation in the Phase-1A body of work against the 10 Friction Rules + Override. Identify conflicts only. Do NOT redesign.
+
+### Sweep verdict
+🟡 **PLATFORM AGGREGATE COMPLIANCE 67 / 100.** Primitives strong by construction (state machine · 5-tier identity ladder · audit trail · tasks schema). Recommendations partially non-compliant — clustered into 5 root-cause patterns: Acknowledgement-as-work · Checklist-as-workflow · Multi-recipient notification · Dashboard-as-deliverable · Manual-assignment risk.
+
+### Conflict tally
+| Severity | Count |
+|---|---:|
+| P0 Constitutional Violation | **4** |
+| P1 High Risk | **8** |
+| P2 Moderate Risk | **7** |
+| P3 Observation | **5** |
+| **TOTAL** | **24** |
+
+**0 of 24 are unresolvable.** All re-scopable by tightening Rule 1/2/3/6/7/8 + anti-checklist contracts.
+
+### P0 Constitutional Violations (all 4 in JHP Acknowledgement family)
+1. **CV-1 iter454 OC-005 JHP Acknowledgement Ledger** — name + scope (BilingualConsent + SignaturePad ack UI · per-crew per-day "I have read this") violate Rule 1 (Work Over Clicks) · Rule 2 (Information Is Not A Task) · Rule 5 (Public-Gate Simplicity). Core Principle violation: *"ForgedOps shall never create work simply to document work."*
+2. **CV-2 F-18 row 18 "Acknowledge that I read the JHP"** — closing this 🔴 gap by adding an ack click would violate Rule 1.
+3. **CV-3 Top-10 Improvement #3 = OC-005 build authorization** — inherits CV-1.
+4. **CV-4 Vestigial `stop_work_acknowledged` boolean** on `db.jhas` form — Rule 1 + Rule 9 violation by existence.
+
+### Roadmap-area scorecard (11 areas)
+| Area | Compliance | Review Priority |
+|---|---:|---|
+| Phase 1A | 72/100 🟡 | 🔴 HIGH (iter454 OC-005) |
+| Phase 1B | 52/100 🟠 | 🟡 MEDIUM (OC-018 audit-trail) |
+| Phase 2 | 65/100 🟡 | 🟡 MEDIUM (OC-013 checklist) |
+| Phase 3 | 70/100 🟡 | 🟢 LOW |
+| Phase 4 | 45/100 🟠 | 🟡 MEDIUM |
+| Ownership Model (Layers A/B/C) | 76/100 🟡 | 🔴 HIGH (Layers A+C) |
+| Escalation Framework | 74/100 🟡 | 🟡 MEDIUM |
+| Customer #2 Readiness | 80/100 🟡 | 🟢 LOW |
+| White-Label Readiness | 80/100 🟡 | 🟢 LOW |
+| Operations Center | 50/100 🟠 | 🔴 HIGH (Constitution-led MVP) |
+| ForgedOps v1 Foundation | 74/100 🟡 | 🟡 MEDIUM |
+
+### Strongest Constitutional alignment (proceed signal)
+* **iter452.5.1 P0 Orphan Elimination** — 5-tier identity ladder · Rule 7 textbook
+* **iter452.5.2 Resend Bounce Webhook (P1)** — auto-detect-and-escalate · Rule 7
+* **Ownership Model Layer B (auto-task projection)** — tasks emerge from state-machine · Rule 6+7
+* **iter451 incident state machine + lifecycle** — Rule 4 Open→Resolution→Closure
+* **OC-009 Photo Janitor** · **OC-008 PPE Return** · **OC-017 surface relocation** (Rule 9)
+
+### Items needing re-evaluation before authorization (priority order)
+1. iter454 OC-005 — re-scope or eliminate
+2. Ownership Model Layer A — no manual-assign UI guardrail
+3. Ownership Model Layer C — Action Console replaces Dashboard
+4. iter453 OC-003 + OC-004 — closure-action contract gate
+5. OC-014 Offboarding · OC-013 Onboarding — operational-consequence-per-step
+6. OC-018 audit-trail uplift — identify operational consumer
+7. iter455 + iter455.1 — certification must feed operational surface
+8. Operations Center MVP — Constitution-led from inception
+9. Platform-wide Rule 8 notification audit — single-recipient discipline
+
+### Deliverables produced this batch
+* `/app/memory/FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` — governing doctrine (3 parts)
+* `/app/memory/CONSTITUTIONAL_CONFLICT_REGISTER.md` — 24 conflicts (Rule citations, severities, suggested reviews)
+* `/app/memory/CONSTITUTIONAL_COMPLIANCE_SCORECARD.md` — 11 roadmap areas scored + 5 new audit axes provisionally scored
+* `/app/memory/CONSTITUTIONAL_EXECUTIVE_SUMMARY.md` — 3-min operator read · 8 explicit answers
+* `/app/memory/_INDEX.md` — top-section registration with READ-FIRST doctrine notice
+* `/app/memory/PRD.md` — this entry
+
+### Supremacy contract
+The Constitution + Override now bind every future audit, recommendation, workflow design, ownership model, escalation framework, accountability framework, reporting model, Customer #2 architecture, White-Label design, Operations Center feature, and ForgedOps v1 enhancement. **Constitution prevails unless explicitly overridden by the operator.** Prior audits retain findings verbatim; Constitution applies forward-only.
+
+### Status
+🛑 Documentation-only batch complete. Zero code · zero DB changes · zero deployment · zero re-scoring · zero redesign. OMEGA discipline preserved. Awaiting operator decision on which Constitutional re-scope to authorize first.
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA) — Phase 1A Operational Ownership & Assignment Audit DELIVERED 🟡
 
 ### Operator authorization

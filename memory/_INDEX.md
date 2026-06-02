@@ -1,6 +1,35 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · Phase 1A OPERATIONAL OWNERSHIP & ASSIGNMENT AUDIT (workflow-only) · 🔴 Ownership Maturity 18/100 · 26 gaps (8 P0 · 6 P1 · 5 P2 · 7 P3) · 0/736 user-level task assignment · 0/12 escalation coverage · 0/8 executive-visibility surfaces · primitives strong 14/15 · glue layer absent 4/85 · Customer #2 readiness 23/90 🔴 · White-Label readiness 23/90 🔴 · ForgedOps Foundation readiness 42/100 🟡)._
+_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · ⛔ **FORGEDOPS OPERATIONAL DESIGN CONSTITUTION** active · Constitutional Compliance Sweep 67/100 🟡 · 24 conflicts (4 P0 · 8 P1 · 7 P2 · 5 P3) · 4 P0 violations all in OC-005 JHP Acknowledgement Ledger family · top re-evaluation: iter454 OC-005 · Ownership Layer A · Layer C · iter453 closure-action contract · Ownership Maturity 18/100 🔴 · 26 ownership gaps (8 P0 · 6 P1 · 5 P2 · 7 P3) · 0/736 user-level task assignment · Customer #2 23/90 🔴 · White-Label 23/90 🔴 · ForgedOps Foundation 42/100 🟡)._
+
+⛔ **READ THIS FIRST** — every future audit/build/recommendation must satisfy `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` (10 Friction Rules + Supremacy Override + 3-criterion success test: operationally complete + accountable + simple). 5 new mandatory audit axes: User Friction · Click Burden · Workflow Simplicity · Operational Practicality · Field Adoption Probability. **The platform must remain an operator's execution system, never an auditor's checklist system.**
+
+---
+
+### 00 · OMEGA · FORGEDOPS OPERATIONAL DESIGN CONSTITUTION + COMPLIANCE SWEEP (2026-06-02)
+
+| File | Purpose | Status |
+|---|---|---|
+| `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` | ⛔ Governing doctrine · Part I (10 Friction Rules: Work Over Clicks · Information Is Not A Task · One Owner · Every Workflow Must End · Public-Gate Simplicity · Minimize Human Decisions · Accountability Must Be Automatic · Reduce Operational Noise · Operator First · Space Shuttle Backend Toy Airplane Frontend) · Part II (Supremacy Override + 5 mandatory audit axes + 3-criterion success test + anti-checklist clause) · Part III (binding scope across audits/workflows/ownership/escalation/accountability/reporting/Customer #2/White-Label/Ops Center/ForgedOps v1) · operator-verbatim · zero paraphrase | ✅ active · ⛔ binding |
+| `CONSTITUTIONAL_CONFLICT_REGISTER.md` | 24 conflicts catalogued · per conflict: Report · Section · Recommendation · Rule(s) Impacted · Severity (P0/P1/P2/P3) · Rationale · Suggested Future Review (rank only · no design) · 4 P0 violations all in JHP-Acknowledgement family · 5 root-cause clusters (Acknowledgement-as-work · Checklist-as-workflow · Multi-recipient notification · Dashboard-as-deliverable · Manual-assignment risk) · 0/24 unresolvable | 🟡 |
+| `CONSTITUTIONAL_COMPLIANCE_SCORECARD.md` | 11 roadmap areas scored against Constitution: Phase 1A 72/100 · Phase 1B 52/100 · Phase 2 65/100 · Phase 3 70/100 · Phase 4 45/100 · Ownership Model 76/100 · Escalation 74/100 · Customer #2 80/100 · White-Label 80/100 · Ops Center 50/100 · ForgedOps v1 74/100 · **PLATFORM AGGREGATE 67/100 🟡** · 5 new audit axes provisionally scored · top-3 areas needing operator review (iter454 OC-005 · Ownership Layers A+C · Ops Center MVP) | 🟡 |
+| `CONSTITUTIONAL_EXECUTIVE_SUMMARY.md` | 3-minute operator read · 8 explicit answers (which recommendations violate the Constitution · create unnecessary clicks · acknowledgements · ownership complexity · escalation chains · risk becoming audit software · are strongest Constitutionally · need re-evaluation before authorization) · 3-bucket operator final answer (Support · Risk · Greenfield) | 🟡 |
+
+🔴 **Headline (P0 Violations):** 4 P0 Constitutional Violations, ALL in the JHP Acknowledgement family — **CV-1 iter454 OC-005 JHP Acknowledgement Ledger** (name + scope violate Rule 1 · Rule 2 · Rule 5) · **CV-2 F-18 "Acknowledge that I read the JHP" gap row** (closing this 🔴 with an ack click would violate Rule 1) · **CV-3 Top-10 Improvement #3 recommends OC-005 build** (inherits CV-1) · **CV-4 vestigial `stop_work_acknowledged` boolean** on `db.jhas` (Rule 1 + Rule 9 violation by existence). Constitution Core Principle: *"ForgedOps shall never create work simply to document work."*
+
+🟡 **Headline (P1 High Risks):** 8 P1 conflicts cluster into 5 root-cause patterns — Manual-assignment risk (Ownership Layer A `owner_assigned_by` field if exposed as dropdown UI) · Multi-recipient notifications (iter452 PENDING_REVIEW fan-out to PM+Safety+Admin violates Rule 8) · Checklist-as-workflow (OC-014 offboarding · OC-018 audit-trail uplift) · Acknowledgement-as-work (iter445 DR "Has crew reviewed JHP?" Yes/No field) · Dashboard-as-deliverable (proposed Layer C "Ownership Dashboard" without action affordances).
+
+🟢 **Headline (Strongest Constitutional Alignment):** iter452.5.1 P0 Orphan Elimination (5-tier identity ladder · Rule 7 textbook) · iter452.5.2 Resend Bounce Webhook (Rule 7 auto-detect-and-escalate) · Ownership Model Layer B (auto-task projection from state machine · Rule 6+7) · OC-009 Photo Janitor · OC-008 PPE Return · iter451 state machine + lifecycle (Rule 4 Open→Resolution→Closure).
+
+🛑 **STOPPED.** Documentation only · zero code · zero re-scoring · zero redesign · zero build authorization. Awaiting operator decision among:
+* **Re-scope iter454 OC-005** (eliminate ack-as-work · OR attendance-style auto-derivation · OR passive identity capture at download)
+* **Authorize Ownership Layers A+B+C with Constitutional guardrails** (no manual-assign UI · Action Console replaces Dashboard · single-recipient escalation hops)
+* **Authorize iter452.5.2 P1 Resend Bounce Webhook** (Constitutionally strong · already pre-authorized)
+* **Defer iter453 BUILD pending closure-action contract** (no acknowledge-findings affordance)
+* **Defer Phase 1B OC-018 audit-trail uplift** (no operational consumer identified)
+* **Authorize Operations Center scope-of-work design batch** (Constitution-led from inception)
+* **Re-evaluate iter455 + iter455.1 bundle** (certification must feed operational surface)
+* **Authorize platform-wide Rule 8 notification audit** (single-recipient discipline)
 
 ---
 
