@@ -11,6 +11,17 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA · FINAL PRODUCTION L1+L2 RE-CERTIFICATION (2026-06-02T17:39Z · 2 deliverables · 🔴 NOT CERTIFIED · L1 BLOCKER REMAINS · L2 CLEARED)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `L1_L2_REMEDIATION_CERTIFICATION.md` | Per-limitation evidence · L1 webhook 3/3 negative probes returned **HTTP 200** (still fail-open) · L2 production bundle now `main.8e2b2094.js` with all 5 markers (`hremp-status-footer`, `hremp-status-save`, `hremp-status-badge-`, `Save Status Change`, `Commits on Save`) · regression battery clean | 🟢 L2 · 🔴 L1 |
+| `FINAL_PRODUCTION_CERTIFICATION.md` | Operator's 8 stipulated checks: 1-4 🔴 (webhook 200 not 401), 5-7 🟢 (sticky footer live · save persists), 8 🟢 (zero regressions) · root cause: backend container NOT restarted (`source_hash=7a6c669f9e9212286e3850fae6a0b78e` unchanged · `started_at=2026-06-02T15:27:02Z` unchanged · uptime 133 min continuous) — operator's "Re-deploy changes" only redeployed the frontend bundle · 4-step path to 🟢 documented (cycle backend → re-probe 3×401 → optional Resend test event) | 🔴 NOT CERTIFIED |
+
+**Final verdict**: 🔴 **PRODUCTION NOT CERTIFIED** — L2 fully cleared (iter453.7 HR sticky footer LIVE on production), but L1 remains active (RESEND_WEBHOOK_SECRET enforcement NOT active because backend container was not restarted during the operator's redeploy). Root cause: frontend-only redeploy is insufficient — backend env vars are loaded only at process start, and the new iter453.8 fail-secure code is also not in the running backend. Trivial to close: operator must cycle the backend container (Restart button if present · alternative env-var toggle to force rebuild · or email `support@emergent.sh` with the build identity evidence). After backend restart, re-probe with the 3-variant webhook suite — all returning **401** → 🟢 PRODUCTION CERTIFIED.
+
+---
+
 ### 00 · OMEGA · ITER453.8 RESEND_WEBHOOK_SECRET PRODUCTION REMEDIATION (2026-06-02 · 3 deliverables · 🟡 CODE CERTIFIED · PRODUCTION PENDING OPERATOR DEPLOY · 1 backend file changed · +10 LOC)
 
 | File | Purpose | Verdict |

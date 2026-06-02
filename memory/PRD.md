@@ -1,6 +1,56 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02T17:39Z (fork · OMEGA · FINAL PRODUCTION L1+L2 RE-CERTIFICATION · 🔴 NOT CERTIFIED)
+
+### Operator directive
+> "Deployment complete. Run L1 + L2 final production recertification."
+
+### Final verdict: 🔴 **PRODUCTION NOT CERTIFIED**
+
+### Per-limitation results
+- 🟢 **L2 (iter453.7 HR sticky footer)** — CLEARED. New production bundle `main.8e2b2094.js` (was `main.037e8fa1.js`). All 5 markers present: `hremp-status-footer`, `hremp-status-save`, `hremp-status-badge-`, `Save Status Change`, `Commits on Save`. HR Save Status Change button reachable on all required viewports per preview-build certification (code now identical on production).
+- 🔴 **L1 (RESEND_WEBHOOK_SECRET enforcement)** — NOT CLEARED. 3/3 negative webhook probes still return HTTP 200 (expected 401). Production response body still `{"ok":true,"event_id":"…","kind":"…",…}` on unsigned and bad-signature input.
+
+### Root cause of L1 failure
+Backend container was NOT restarted during the operator's redeploy:
+- `source_hash=7a6c669f9e9212286e3850fae6a0b78e` UNCHANGED from pre-iter453.8
+- `started_at=2026-06-02T15:27:02.787935+00:00` UNCHANGED
+- `uptime_s=8004` (≈ 133 min, continuous from before redeploy)
+- Frontend bundle hash DID change (`main.037e8fa1.js` → `main.8e2b2094.js`) confirming the operator triggered a redeploy
+
+→ The redeploy swapped the frontend static bundle but did NOT cycle the Python backend container. Without a backend cycle:
+- `RESEND_WEBHOOK_SECRET` env var (now set in Secrets panel after iter453.8 placeholder hit `backend/.env`) is NOT loaded by the running process
+- iter453.8 `_verify_signature` fail-secure code is NOT in the running process
+
+### Regression battery — all subsystems clean
+- 🟢 Phase Alpha G-1..G-5 (Employee Governance) INTACT
+- 🟢 ITER453 QA/QC + Site Inspection lifecycle endpoints INTACT (all 401-gated)
+- 🟢 HR Queue (`/employee-requests`) INTACT
+- 🟢 Auth (`/auth/login` 422, `/auth/me` 401) INTACT
+- 🟢 Daily Reports / Incidents (anon → 401) INTACT
+- 🟢 Photo Viewer / Command Center / Scheduler / Backups / Recovery — no regressions (404s on probe paths = mounted under different prefixes, same as prior post-deploy report)
+
+### Path to upgrade 🔴 → 🟢
+1. Operator triggers a **BACKEND** container restart (frontend-only redeploy is insufficient). Options:
+   - "Restart backend" button if present in Manage Deployment panel
+   - No-op env-var toggle followed by redeploy (sometimes forces backend rebuild)
+   - Email `support@emergent.sh` with the build identity evidence and ask for a backend cycle
+2. Verify backend cycled: `/api/version` should show NEW `source_hash` AND NEW `started_at` (small uptime)
+3. Re-run the 3-probe webhook negative suite — expect **3×401**
+4. (Optional) Trigger a real Resend test event — expect **200** + new row in `db.resend_webhook_events`
+
+When steps 2+3 pass → L1 closes → 🟢 PRODUCTION CERTIFIED.
+
+### Deliverables created (2)
+- `/app/memory/L1_L2_REMEDIATION_CERTIFICATION.md`
+- `/app/memory/FINAL_PRODUCTION_CERTIFICATION.md`
+
+STOP after verdict.
+
+---
+
+
 ## 2026-06-02 (fork · OMEGA · ITER453.8 RESEND_WEBHOOK_SECRET PRODUCTION REMEDIATION · 🟡 CODE CERTIFIED · PRODUCTION PENDING OPERATOR DEPLOY)
 
 ### Operator directive
