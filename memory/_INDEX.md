@@ -13,6 +13,18 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 ---
 
+### 00 · OMEGA · EMPLOYEE LIFECYCLE GOVERNANCE AUDIT (2026-06-02 · 1 deliverable · pre-`iter455.1` gate)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `EMPLOYEE_GOVERNANCE_AUDIT.md` | HR-sole-owner audit · 8 lifecycle actions inventoried · every write-path to `db.employees` mapped · 5 P0 violations (public `POST /api/employees/add` · FL inline-create · admin CRUD · `is_active` silent state-machine bypass · destructive XLSX upload) · 6 P1 governance gaps · 10-batch remediation plan in 3 phases (Alpha closes P0 · Beta closes P1 · Gamma is Ownership Layer A FK) · Constitutional/Ownership/Reduce-Work cross-check PASS · 5 operator decision points listed · audit-and-design only · NO code changes | 🔴 NOT CONFORMANT |
+
+🔴 **HEADLINE: NOT CONFORMANT today** — Operations (Field Leadership), Admin, and public field forms can all mutate `db.employees` lifecycle state. Phase Alpha (5 batches G-1..G-5) must complete before `iter455.1` ships. Phase Beta (G-6..G-10) before Ownership Layer A. Phase Gamma (G-9) IS Ownership Layer A and is now properly sequenced behind Alpha+Beta.
+
+🛑 **Operator decision points (§8):** (1) G-5 Request HR Queue UX approval · (2) Super-Admin break-glass scope · (3) `/api/admin/employees*` deprecation strategy (delete vs redirect) · (4) HR-side bulk import requirement (keep or kill) · (5) Phase Alpha must precede iter455.1 (recommended). **No build authorized yet.**
+
+---
+
 ### 00 · OMEGA · ITER453 UI POLISH FINAL (2026-06-02 · 3 deliverables)
 
 | File | Purpose | Verdict |

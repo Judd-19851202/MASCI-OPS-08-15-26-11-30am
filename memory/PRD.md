@@ -1,6 +1,63 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · GOVERNANCE AUDIT) — EMPLOYEE LIFECYCLE GOVERNANCE: 🔴 NOT CONFORMANT
+
+### Operator authorization
+> "GOVERNANCE DIRECTIVE · EMPLOYEE LIFECYCLE SOURCE OF TRUTH. HR is the sole authoritative owner of employee lifecycle records. Only HR may create / activate / change status / transfer / assign supervisors / change reporting structure / terminate / rehire employees. Operations, Safety, Payroll, QA/QC, Fleet, Dispatch, and all future modules may consume employee data but may not alter employee lifecycle state. Before iter455.1 Accountability Chain Status or Ownership Layer A begins: perform Employee Lifecycle Governance Audit. Produce EMPLOYEE_GOVERNANCE_AUDIT.md. Deliver remediation plan ensuring HR remains the single source of truth. No code changes. Audit and design only. STOP after report delivery."
+
+### Verdict: 🔴 NOT CONFORMANT
+The platform today does NOT treat HR as the sole authoritative owner of `db.employees` lifecycle state. Operations (Field Leadership), Admin, and public field forms can all mutate the lifecycle record directly.
+
+### Findings (high-level · see audit for full detail)
+- **5 P0 violations** (must close before iter455.1):
+  1. `POST /api/employees/add` — **public · no auth** — anonymous field users create employees
+  2. `POST /api/field-leadership/employees` — **Operations** creates employees inline
+  3. `POST /api/admin/employees*` family — **Admin** has full lifecycle parity with HR
+  4. `PUT /api/admin/employees/{id}` allowing `is_active` toggle — **silent state-machine bypass**
+  5. `POST /api/admin/employees/upload` — `delete_many({})` + `insert_many` — destructive replace-all
+- **6 P1 governance gaps**:
+  - `require_hr_or_admin` accepts Admin alongside HR on all HR routes
+  - Driver-qualification import bypasses canonical employee constructor
+  - Frontend `EmployeeCombo.jsx` and `EmployeeMasterPanel.jsx` coupled to non-conformant endpoints
+  - `manager_employee_id` / `reports_to` not yet modelled (Ownership Layer A scope)
+  - No append-only `employee_lifecycle_events` audit collection
+  - No HR-side "new-hire request queue" — needed as UX bridge when P0 holes close
+
+### Remediation plan: 10 batches in 3 phases
+- **Phase Alpha (P0 closures · must precede iter455.1):** G-1 close public `/employees/add` · G-2 close FL inline create · G-3 admin paths → HR-only (or deprecated) · G-4 kill `is_active` back-door + DELETE · G-5 build HR "Request to Add" queue (UX bridge)
+- **Phase Beta (P1 closures · must precede Ownership Layer A):** G-6 `require_hr_or_admin` → `require_hr` · G-7 funnel driver-qual import through canonical constructor · G-8 `employee_lifecycle_events` append-only audit · G-10 safe bulk import (if HR wants one)
+- **Phase Gamma (Ownership Layer A):** G-9 introduce `manager_employee_id` FK — now properly sequenced behind Alpha+Beta
+
+### Constitutional / Ownership Doctrine / Reduce-Work cross-check
+🟢 **PASS** — every remediation batch is a "Reduce" move except G-5 (creates a new HR request queue surface) which is justified because it replaces 2 existing self-service create surfaces (FL inline + EmployeeCombo inline). Net workload neutral. Approved.
+
+### Operator decision points (5 · pre-build)
+1. G-5 Request HR Queue UX approval (or alternative)
+2. Super-Admin break-glass scope (`X-Break-Glass` header vs console-only)
+3. `/api/admin/employees*` deprecation strategy (delete vs redirect)
+4. HR-side bulk import requirement (keep with safe semantics or kill)
+5. Confirm Phase Alpha must precede iter455.1 (recommended)
+
+### Deliverables produced (this batch · audit-only)
+- `/app/memory/EMPLOYEE_GOVERNANCE_AUDIT.md` (the audit + remediation plan)
+- `/app/memory/_INDEX.md` (new section + headline)
+- `/app/memory/PRD.md` (this entry)
+
+### What was NOT done (per directive)
+- ❌ No code changes
+- ❌ No tests written
+- ❌ No remediation batches executed
+- ❌ No frontend changes
+- ❌ No iter455.1 work
+- ❌ No Ownership Layer A work
+
+🛑 **Yielding to operator. Awaiting decisions on §8 of the audit before any build batch is authorized.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · UI POLISH FINAL) — ITER453 + ITER452.5.2 FINAL: 🟢 PRODUCTION GO
 
 ### Operator authorization
