@@ -12,6 +12,20 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
 ---
+### 00 · OMEGA · DEEP PRE-DEPLOY CODE + OPERATIONAL CERTIFICATION (2026-06-02 · 4 deliverables · 🟢 GO TO DEPLOY)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `DEEP_PRE_DEPLOY_CODE_REVIEW.md` | 8-phase read-only audit · Source/Diff (19 code files) · Code Quality (ruff+eslint clean) · Security (G-1..G-5 live-verified) · Data Safety (5 indexes, append-only collections) · Test Cert (**50/50 pytest**) · Frontend Cert · System Health (supervisor RUNNING, /api/health 200) · Production Readiness checklist | 🟢 PASS |
+| `DEEP_PRE_DEPLOY_CERTIFICATION.md` | Certification summary · 11 live curl probes captured · pytest evidence · data snapshot (249 employees · 29 requests · 13 lifecycle events · 0 sub contamination) · Constitutional references | 🟢 CERTIFIED |
+| `DEEP_PRE_DEPLOY_RISK_REPORT.md` | Risk register · 🔴 0 HIGH · 🟡 2 MEDIUM (RESEND_WEBHOOK_SECRET production setting · usage_analytics ClientDisconnect backport) · 🟢 5 LOW · 0 blockers | 🟢 0/2/5 |
+| `DEEP_PRE_DEPLOY_GO_NO_GO.md` | **🟢 GO TO DEPLOY** · 4-var production env-var checklist (APP_ENV · DB_NAME · RATE_LIMITING=on · RESEND_WEBHOOK_SECRET) · 7-step post-deploy smoke checklist · clean rollback path (no schema migration) · explicit out-of-scope list | 🟢 GO |
+
+🟢 **HEADLINE: PRE-DEPLOY CERTIFIED · 🟢 GO TO DEPLOY** — 19 code files changed (10 backend · 9 frontend) since prod baseline · **50/50 pytest pass** · ruff + eslint clean across all changed files · 11/11 live curl probes pass · G-1..G-5 closures live-verified (410 / enqueue / 403 / 405 / 422 / merge) · webhook signature gate confirmed (401 in production once RESEND_WEBHOOK_SECRET set) · `db.employees` 249 rows clean · `db.employee_requests` 13 pending · 8 approved · 8 rejected · `db.employee_lifecycle_events` 13 (append-only) · 0 BLOCKER · 0 HIGH · 2 MEDIUM (both on production checklist) · 5 LOW (cosmetic/preview-only) · zero destructive DB paths · zero schema migrations · trivial rollback via git revert OR Emergent platform rollback. **AUDIT-ONLY · NO CODE CHANGES · NO MIGRATIONS · NO DEPLOY PERFORMED. Awaiting explicit operator authorization for production deploy.**
+
+---
+
+
 
 ### 00 · OMEGA · SUB / VENDOR IDENTITY GOVERNANCE AUDIT (2026-06-02 · 5 deliverables · pre-deployment gate)
 

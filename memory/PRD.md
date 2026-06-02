@@ -1,6 +1,46 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · DEEP PRE-DEPLOY CODE + OPERATIONAL CERTIFICATION · 🟢 GO TO DEPLOY)
+
+### Operator authorization
+> "OMEGA DIRECTIVE — DEEP PRE-DEPLOY CODE + OPERATIONAL CERTIFICATION. Read/Check only. 8 phases. Produce 4 deliverables. Run pytest. Issue final GO / GO WITH LIMITATIONS / NO GO verdict. NO code changes · NO fixes · NO migrations · NO deployment · NO cleanup."
+
+### Final verdict: 🟢 **GO TO DEPLOY** (conditional on 4-var production env-var checklist)
+
+### Metrics
+- **Code files changed**: **19** (10 backend · 9 frontend) since prod baseline
+- **Pytest**: **50 / 0** (17 employee_governance + 9 resend_webhook + 24 iter453 lifecycle)
+- **Lint**: ruff + eslint clean on all changed files
+- **Live curl probes**: 11 / 11 pass (G-1=410, G-2 enqueue, G-3=403/405, G-4=422, queue gate=403, webhook 200, health 200)
+- **Risk**: 🔴 0 HIGH · 🟡 2 MEDIUM (both on production checklist) · 🟢 5 LOW (cosmetic/preview-only)
+- **Data**: `db.employees`=249 · `db.employee_requests`=29 (13 pending · 8 approved · 8 rejected) · `db.employee_lifecycle_events`=13 · indexes verified · 0 destructive paths
+
+### Production env-var checklist (binding gate)
+1. `APP_ENV=production` (or unset)
+2. `DB_NAME=masci_safety`
+3. `RATE_LIMITING=on`
+4. `RESEND_WEBHOOK_SECRET=whsec_…` (from Resend dashboard)
+
+### 4 deliverables produced
+- `/app/memory/DEEP_PRE_DEPLOY_CODE_REVIEW.md` (8-phase audit · source/diff · code quality · security · data safety · tests · frontend · system · production readiness)
+- `/app/memory/DEEP_PRE_DEPLOY_CERTIFICATION.md` (summary + 11 live probes + data snapshot)
+- `/app/memory/DEEP_PRE_DEPLOY_RISK_REPORT.md` (0/2/5 risk register + mitigations)
+- `/app/memory/DEEP_PRE_DEPLOY_GO_NO_GO.md` (🟢 GO · checklist · smoke run · rollback)
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### Out-of-scope (NOT performed in this audit)
+- ❌ NO code changes · ❌ NO migrations · ❌ NO deletions · ❌ NO deployment · ❌ NO cleanup
+- iter454 OC-005 JHP Acknowledgement Ledger — awaiting authorization
+- iter455.1 Phase 1B Accountability Chain — awaiting authorization
+- usage_analytics.py ClientDisconnect backport — deferred to future iter
+
+🛑 **Awaiting explicit operator authorization for production deploy.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · SUB/VENDOR IDENTITY AUDIT · P0) — Identity governance complete · Phase Alpha deploy-safe 🟢
 
 ### Operator authorization
