@@ -1,6 +1,68 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · UI POLISH FINAL) — ITER453 + ITER452.5.2 FINAL: 🟢 PRODUCTION GO
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — ITER453 + ITER452.5.2 FINAL POLISH + UI + DEPLOYMENT PREP. Handle the Webhook Sentry noise, wire the UI Lifecycle Panels (QA/QC + Site Inspection), produce 3 final certification deliverables (Implementation Report + Certification Report + Final Go/No-Go), update _INDEX.md and PRD.md, then STOP. No iter454. No iter455. No new features. No drift."
+
+### Final verdict: 🟢 GO · DEPLOY TO PRODUCTION
+Supersedes the prior 🟡 GO-WITH-LIMITATIONS. Both pre-existing MEDIUM risks (R-1 Sentry `ClientDisconnect` noise · R-2 UI not wired for OC-003/OC-004) are now closed. Field operators (PM · Safety · Admin · Super-admin) can drive both workflows end-to-end from the existing view pages without touching the API.
+
+### What shipped in this batch (4 files only)
+1. **NEW** `frontend/src/components/QaqcLifecyclePanel.jsx` — OC-003 lifecycle UI · state pill · role-gated buttons · 3-path operational-evidence closure modal · reason modal for Reopen + Rework · history audit drawer · 31 `data-testid` attributes
+2. **NEW** `frontend/src/components/SiteInspectionLifecyclePanel.jsx` — OC-004 lifecycle UI · structurally symmetric to QA/QC · 31 `data-testid` attributes
+3. **EDITED** `frontend/src/pages/ViewQaqcInspection.jsx` — imports `QaqcLifecyclePanel`, renders it above the inspection content block
+4. **EDITED** `frontend/src/pages/ViewInspection.jsx` — imports `SiteInspectionLifecyclePanel`, renders it directly after `GradeBanner`
+
+### Why self-contained panels (not generic LifecyclePanel config wrappers)
+The existing `LifecyclePanel.jsx` (iter452) `closureConfig` only supports boolean checkbox attestation. OC-003 + OC-004 closure requires **operational evidence** with text inputs (record IDs, ≥20-char corrective notes, ≥10-char exception reason + dual sign-off user IDs). Extending the generic shell would have been outside the authorized batch scope; building two self-contained panels modeled on the proven `IncidentLifecyclePanel.jsx` shape isolates the closure-action contract UI to the two workflows that need it and keeps zero risk to OC-001/OC-002/OC-006.
+
+### Closure-modal validation (mirrors backend contract exactly)
+| Path | Confirm enables when… |
+|---|---|
+| A · Re-inspection passed | `re_inspection_record_id` non-empty |
+| B · Corrective action completed | `corrective_action_notes` ≥ 20 chars |
+| C · Documented exception | `exception_reason` ≥ 10 chars **AND** `pm_signoff_user_id != safety_signoff_user_id` (both non-empty) |
+
+Reopen/Rework reason modal: confirm enables when `reasonText.trim().length >= 5`.
+
+### Testing
+* Backend regression (iter453 + iter452.5.2 in isolation): **🟢 33/33 PASS**
+* ESLint on 4 changed UI files: **🟢 0 issues**
+* Frontend home smoke screenshot: **🟢 Loads cleanly**
+* `testing_agent_v3_fork` (frontend only · iteration_367): **🟢 13/13 PASS · 0 bugs · 0 action items · 0 retest needed**
+
+### Risk posture (post-polish)
+**0 BLOCKER · 0 HIGH · 0 MEDIUM · 4 LOW** (down from 0/0/2/4). R-1 mitigated, R-2 closed.
+
+### Deliverables produced in this batch
+* `/app/memory/ITER453_UI_POLISH_IMPLEMENTATION_REPORT.md`
+* `/app/memory/ITER453_UI_POLISH_CERTIFICATION_REPORT.md`
+* `/app/memory/ITER453_ITER452_5_2_FINAL_GO_NO_GO.md`
+* `/app/memory/_INDEX.md` (headline + section updated)
+* `/app/memory/PRD.md` (this entry)
+
+### Production deployment checklist (operator-owned · 5 steps)
+1. `RESEND_WEBHOOK_SECRET=whsec_…` in production env (from Resend Dashboard signing secret)
+2. Resend Dashboard webhook URL → `https://<prod-host>/api/webhooks/resend` · subscribe to 5 event types
+3. Confirm `ADMIN_DEAD_LETTER_EMAIL=safety@mascigc.com`
+4. (Optional) Sentry Inbound Filter on `RuntimeError("No response returned.")` for `/api/webhooks/resend`
+5. Send test event from Resend Dashboard · expect 200 + row in `resend_webhook_events`
+
+### Rollback plan (trivial · additive build)
+Revert 3 `server.py` wiring lines + 2 frontend imports + 2 render lines. New collection `resend_webhook_events` becomes orphan but harmless. No data migration.
+
+### What was NOT built (scope discipline · awaiting future operator authorization)
+* iter454 OC-005 JHP Acknowledgement Ledger
+* iter455.1 Phase 1B Accountability Chain Status projection
+* Ownership Layer A build (`manager_employee_id` foundation + full inference engine)
+* Executive Action Consoles · Tenant-tunable workflow defaults · Deputy delegation · `escalate_to_stop_work` SI transition · CV-1..CV-4 resolutions · non-webhook portion of Rule-8 notification routing
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · CERTIFICATION) — ITER453 + ITER452.5.2 PRE-DEPLOY: 🟡 GO WITH LIMITATIONS
 
 ### Operator authorization
