@@ -1,6 +1,27 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · Phase 1A OPERATIONAL CERTIFICATION AUDIT (workflow-only) · 🟢 18/25 in-scope rows complete · 🟡 5 require workarounds · 🔴 2 absent (JHP ack · executive rollup) · Customer #2 readiness 23/90 🔴 · White-Label readiness 23/90 🔴 · ForgedOps Foundation readiness 42/100 🟡)._
+_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · Phase 1A OPERATIONAL OWNERSHIP & ASSIGNMENT AUDIT (workflow-only) · 🔴 Ownership Maturity 18/100 · 26 gaps (8 P0 · 6 P1 · 5 P2 · 7 P3) · 0/736 user-level task assignment · 0/12 escalation coverage · 0/8 executive-visibility surfaces · primitives strong 14/15 · glue layer absent 4/85 · Customer #2 readiness 23/90 🔴 · White-Label readiness 23/90 🔴 · ForgedOps Foundation readiness 42/100 🟡)._
+
+---
+
+### 00 · OMEGA · PHASE 1A OPERATIONAL OWNERSHIP & ASSIGNMENT AUDIT (2026-06-02)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `PHASE_1A_OPERATIONAL_OWNERSHIP_AUDIT.md` | Full workflow accountability trace · 14 workflows × 10 ownership facets (Creator/Owner/Assignee/Verifier/Closer/Escalation/Executive/SLA/Overdue/Reassign) · live-data forensics (736 tasks · 0 user-level assignment · 0 closures · 128 HR offboarding open · 242 incident tasks open) · 26 gap register (8 P0 · 6 P1 · 5 P2 · 7 P3) · 3-system Corrective-Action pathology surfaced · ForgedOps Ownership v1 recommendation (Layer A primitive · Layer B auto-task projection · Layer C escalation+reporting · ~4 weeks additive) · 7 operational ownership questions answered per workflow class | 🟡 documentation-ready · 🔴 model absent on platform today |
+| `PHASE_1A_OPERATIONAL_OWNERSHIP_EXECUTIVE_SUMMARY.md` | Operator-facing one-pager · 18/100 ownership maturity score across 8 weighted dimensions · top-6 findings · 4-bucket gap breakdown · 5 explicit operational answers (14/14 workflows can become ownerless · 12/12 lack escalation · 14/14 lack lifecycle reassignment · 14/14 lack executive visibility · 8 highest-risk P0s ranked by 90-day damage) · ForgedOps implications across Customer #2 / White-Label / Operations Center / v1 lenses · remediation priority ranked (P0→P1→P2→P3) — solutions NOT designed | 🟡 |
+
+🔴 **Headline:** the MASCI platform has 4 / 4 ownership *primitives* (state machine · 5-tier identity ladder · `workflow_state_events` · `tasks` schema) and 0 ownership *glue*. Live data: **0 / 736 tasks carry a user-level assignee · 0 / 736 ever closed · 0 / 12 workflows have escalation · 0 / 8 executive-visibility surfaces exist.** Three parallel Corrective-Action systems disagree on ownership semantics. 128 HR offboarding tasks are open in production with zero closure history.
+
+🟡 **Optimistic finding:** the audit's §7 ForgedOps Ownership v1 recommendation (Layer A ownership primitive on lifecycle records · Layer B auto-task projection · Layer C escalation+reporting) is fully additive · zero Tier-2 (no SMS · no Push · no PWA) · ~4 weeks total · reuses all existing primitives · marketable claim post-completion ("every workflow has a named owner, tracked SLA, escalation path, executive reporting").
+
+🛑 **STOPPED.** Documentation only — zero code · zero database changes · zero deployment. Awaiting operator decision among the §F options:
+* Scope ForgedOps Ownership v1 design batch (Layer A · A+B · A+B+C)
+* Authorize iter452.5.2 (P1 Resend Bounce Webhook · pre-authorized · ~3d)
+* Authorize iter453 BUILD (OC-003 QA/QC + OC-004 Site Inspection · Day-9 gate cleared)
+* Authorize iter454 BUILD (OC-005 JHP Acknowledgement · per `JHP_ACKNOWLEDGEMENT_GAP_REPORT.md` Options 1/2/3)
+* Defer ownership-model work and proceed with iter455+iter455.1 Phase 1A Integration Certification
+* Begin top-4 friction closures from prior `PHASE_1A_OPERATIONAL_CERTIFICATION_AUDIT.md`
 
 ---
 

@@ -1,6 +1,76 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA) — Phase 1A Operational Ownership & Assignment Audit DELIVERED 🟡
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — PHASE 1A OPERATIONAL OWNERSHIP AUDIT FINALIZATION. Documentation only. Zero code. Zero deployment. Zero drift. Register the audit in `_INDEX.md` · update PRD with completion entry · generate `PHASE_1A_OPERATIONAL_OWNERSHIP_EXECUTIVE_SUMMARY.md` with sections A–E. Preserve all findings exactly. Forbidden: iter452.5.2 / iter453 / iter454 / JHP work / ownership-model implementation / new audits / new architecture / new collections / code changes / database changes / production changes."
+
+### Audit purpose
+Workflow accountability trace and live-data forensics on `tasks`, `corrective_actions`, `workflow_state_events`, `field_submitter_bindings` to answer the seven ownership questions (Who owns this? · How is it assigned? · Can it transfer? · Can it be lost? · Can it be audited? · Can it be escalated? · Can it be reported?) per workflow class.
+
+### Audit verdict
+🟡 **Documentation-complete · 🔴 ownership model absent on platform today.** Primitives strong (14/15: universal state machine · 5-tier identity ladder · `workflow_state_events` · `tasks` schema all live and exercised). Glue layer absent (4/85: 0/736 user-level task assignment · 0/736 closures · 0/12 escalation coverage · 0/8 executive-visibility surfaces). Overall **Ownership Maturity Score: 18/100 🔴**.
+
+### Gap totals
+| Severity | Definition | Count |
+|---|---|---:|
+| P0 | Work can become ownerless (structural) | **8** |
+| P1 | Ownership exists but cannot be tracked | **6** |
+| P2 | Ownership exists but cannot be escalated | **5** |
+| P3 | Ownership exists but lacks reporting | **7** |
+| **TOTAL** | | **26** |
+
+### Live-data forensic anchors
+* `db.tasks.count() = 736` · all status="Open" · **0 / 736 ever closed**
+* `db.tasks.count_documents({assignee_user_id: {$nin:[None,""]}}) = 0` — **0 % user-level assignment**
+* `db.tasks.count_documents({due_at: {$nin:[None,""]}}) = 26` — 3.5 % of tasks have a due date
+* `db.tasks.count_documents({source_module:"daily_report"}) = 0` — DR lifecycle never creates tasks
+* `db.tasks.count_documents({source_module:"payroll_variance"}) = 0` — PV lifecycle never creates tasks
+* 128 HR offboarding tasks open · 0 closed · ever
+* 242 incident-tagged tasks open · 0 closed · ever
+
+### Operational answers (five explicit)
+1. Workflows that can become ownerless: **14 / 14**
+2. Workflows with no escalation path: **12 / 12** enumerated
+3. Workflows lacking lifecycle reassignment: **14 / 14** (5 lack any reassignment surface; 9 have task-patch only)
+4. Workflows lacking executive visibility: **14 / 14** (0 / 8 executive surfaces exist)
+5. Highest-risk ownership gaps: all 8 P0 enumerated in `PHASE_1A_OPERATIONAL_OWNERSHIP_EXECUTIVE_SUMMARY.md §C.5`
+
+### ForgedOps implications
+* **Customer #2:** 🔴 BLOCKING · ownership gaps would replicate across new tenant
+* **White-Label:** 🔴 BLOCKING (for ownership UX surfaces — nothing yet to white-label there)
+* **Operations Center:** 🔴 BLOCKING · cannot offer "where is my work" support without an ownership graph
+* **ForgedOps v1:** 🟡 ADDRESSABLE — §7 of source audit proposes 3-layer additive ownership model (Layer A primitive · Layer B auto-task projection · Layer C escalation+reporting · ~4 weeks · zero Tier-2 · reuses all existing primitives) — **informational only, not advocated by this PRD entry**.
+
+### Future remediation references (priority rank only · no solutions designed)
+1. P0 · 8 gaps · close first (every downstream claim presupposes ownership exists)
+2. P1 · 6 gaps · close second (tracking requires ownership)
+3. P2 · 5 gaps · close third (escalation requires tracked ownership)
+4. P3 · 7 gaps · close last (reporting consumes P0+P1+P2)
+
+### Deliverables produced this batch
+* `/app/memory/PHASE_1A_OPERATIONAL_OWNERSHIP_AUDIT.md` — full audit (456 lines · 9 sections)
+* `/app/memory/PHASE_1A_OPERATIONAL_OWNERSHIP_EXECUTIVE_SUMMARY.md` — operator-facing summary (sections A–G)
+* `/app/memory/_INDEX.md` — top-section registration with verdict and decision matrix
+* `/app/memory/PRD.md` — this entry
+
+### Operator review pending status
+🛑 **AWAITING OPERATOR DECISION.** None of the §F options in the executive summary is auto-authorized. All require explicit operator instruction. Specifically pending the operator's selection among:
+* (a) Scope ForgedOps Ownership v1 design batch (Layer A / A+B / A+B+C)
+* (b) Authorize iter452.5.2 (P1 Resend Bounce Webhook · pre-authorized · ~3d)
+* (c) Authorize iter453 BUILD (OC-003 + OC-004 · Day-9 gate cleared)
+* (d) Authorize iter454 BUILD (OC-005 JHP Acknowledgement)
+* (e) Defer ownership work · proceed with iter455+iter455.1 Phase 1A Integration Certification
+* (f) Begin top-4 friction closures from `PHASE_1A_OPERATIONAL_CERTIFICATION_AUDIT.md`
+
+### Status
+🛑 Documentation-only batch complete. Zero code · zero DB changes · zero deployment. OMEGA discipline preserved.
+
+---
+
+
+
 ## 2026-06-01 (fork · iter452.5.1) — OMEGA · P0 Orphan Elimination SHIPPED 🟢
 
 ### Operator authorization
