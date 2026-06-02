@@ -1,8 +1,41 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · 🔴 **OPERATIONAL REALITY VERDICT: MASCI CANNOT RUN THE COMPANY ENTIRELY INSIDE FORGEDOPS TODAY** · Platform Operability 35/100 🔴 · 10 areas scored · strongest Field Ops 56/100 + Safety 51/100 · weakest Executive 12/100 + Financial 20/100 + Customer #2 29/100 · 48 gaps catalogued (12 G0 · 14 G1 · 15 G2 · 7 G3) · 24 greenfield build items · 11 external dependencies (accounting EX-1 dominant) · 14 forward Constitutional violations · ⛔ **FORGEDOPS CONSTITUTION + AMENDMENT 001 "EVIDENCE OVER ACKNOWLEDGEMENT" active** · Validation Sweep 9 PASS · 2 FAIL · 7 REPLACE · Compliance Sweep 67/100 · 24 conflicts (4 P0 JHP-ack family · 8 P1) · Ownership Maturity 18/100 · 26 ownership gaps · 0/736 user-level task assignment · Customer #2 23/90 🔴 · White-Label 23/90 🔴 · ForgedOps Foundation 42/100 🟡)._
+_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · 🔨 **BUILD / INTEGRATE / IGNORE AUDIT COMPLETE** · 48 gaps classified (24 BUILD · 15 INTEGRATE · 7 HYBRID · 2 IGNORE) · 24 greenfield reclassified (14 BUILD · 7 HYBRID · 3 INTEGRATE) · 11 external dependencies wave-sequenced (EX-1 accounting flagged BLOCKING) · 48 IGNORE items catalogued · Top 10 platform capabilities ranked · Top 5 greenfield surfaced · Constitutional Review 36 PASS · 12 REVIEW REQUIRED · 0 CONSTITUTIONAL CONFLICT · 4 forward-binding REVIEW clusters · 8 operator decision options · roadmap reset: BUILD lane 5 waves · INTEGRATE lane 4 waves + parallel architectural track · IGNORE lane no wave structure · 🔴 **OPERATIONAL REALITY VERDICT: MASCI CANNOT RUN THE COMPANY ENTIRELY INSIDE FORGEDOPS TODAY** · Platform Operability 35/100 🔴 · 10 areas scored · strongest Field Ops 56/100 + Safety 51/100 · weakest Executive 12/100 + Financial 20/100 + Customer #2 29/100 · 14 forward Constitutional violations · ⛔ **FORGEDOPS CONSTITUTION + AMENDMENT 001 "EVIDENCE OVER ACKNOWLEDGEMENT" + BUILD/INTEGRATE/IGNORE DOCTRINE active** · Validation Sweep 9 PASS · 2 FAIL · 7 REPLACE · Compliance Sweep 67/100 · 24 conflicts (4 P0 JHP-ack family · 8 P1) · Ownership Maturity 18/100 · 26 ownership gaps · 0/736 user-level task assignment · Customer #2 23/90 🔴 · White-Label 23/90 🔴 · ForgedOps Foundation 42/100 🟡)._
 
-⛔ **READ THIS FIRST** — every future audit/build/recommendation must satisfy `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` Parts I + II + III + IV. **Constitutional Test is mandatory pre-build gate** for every acknowledgement-workflow proposal. Evidence of work always outranks evidence of acknowledgement. The platform must remain an operator's execution system, never an auditor's checklist system. **The Operational Reality Audit confirms ForgedOps today covers ~37 % of MASCI's operational surface area — the remaining 63 % runs on accounting/ERP, spreadsheets, phone, email, and tribal knowledge.**
+⛔ **READ THIS FIRST** — every future audit/build/recommendation must satisfy `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` Parts I + II + III + IV **plus the Build/Integrate/Ignore Doctrine** (`BUILD_INTEGRATE_IGNORE_MASTER_REGISTER.md`). **Constitutional Test is mandatory pre-build gate** for every acknowledgement-workflow proposal. Evidence of work always outranks evidence of acknowledgement. The platform must remain an operator's execution system, never an auditor's checklist system. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management. The platform's strength is what it does NOT do — 48 IGNORE items are out-of-mission. **The Operational Reality Audit confirms ForgedOps today covers ~37 % of MASCI's operational surface area — the remaining 63 % runs on accounting/ERP, spreadsheets, phone, email, and tribal knowledge.**
+
+---
+
+### 00 · OMEGA · FORGEDOPS BUILD / INTEGRATE / IGNORE AUDIT · 8 deliverables (2026-06-02)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `BUILD_INTEGRATE_IGNORE_MASTER_REGISTER.md` | Master · 48 gaps × 4 buckets (24 BUILD · 15 INTEGRATE · 7 HYBRID · 2 IGNORE) · mission-boundary headlines · what ForgedOps OWNS / INTEGRATES / IGNORES per pillar | 🟢 |
+| `TOP_10_FORGEDOPS_CAPABILITIES.md` | Top 10 BUILD capabilities ranked across 8 weighted dimensions · per-item Why-own + Problem-solved + If-never-built + Would-MASCI-use answers · what is NOT in Top 10 (deferred to Wave 2 + INTEGRATE-leaning items) | 🟢 |
+| `GREENFIELD_PRIORITY_REGISTER.md` | 24 greenfield items (B-1..B-24) reclassified · Top 5 greenfield (Field Clock-in · Production Tracking · Executive Action Console · OSHA Generator · DQ-file + DOT Dashboard) · per-item what-it-unlocks + Constitutional posture | 🟢 |
+| `EXTERNAL_DEPENDENCY_STRATEGY.md` | 11 EX items strategy-classified · 4 informational integration waves · EX-1 Accounting flagged BLOCKING (single largest unblock for Executive + 5 HYBRID workflows) · Constitutional posture per integration class | 🟢 |
+| `FORGEDOPS_IGNORE_LIST.md` | 48 IGNORE items (18 Amendment 001 ack-as-work · 22 mature-system replacements · 8 architectural anti-patterns) · per-item doctrine citation · mission-fence posture | 🟢 |
+| `BUILD_INTEGRATE_IGNORE_CONSTITUTIONAL_REVIEW.md` | Per-item PASS/REVIEW REQUIRED/CONSTITUTIONAL CONFLICT verdict against Constitution Parts I–IV + Override + Amendment 001 · 36 PASS · 12 REVIEW REQUIRED · 0 CONFLICT · 4 forward-binding clusters (anti-checklist · closure-action · evidence-per-step · ack-ride-along exclusion) | 🟢 |
+| `BUILD_INTEGRATE_IGNORE_EXECUTIVE_SUMMARY.md` | 3-min operator read · primary-question answer (BUILD 24 · INTEGRATE 22 · IGNORE 48) · classification totals · Top 10 + Top 5 + EX-1 blocker · 8 operator decision options (A-Constitutional re-scope · B-Ownership · C-Field-ops · D-Executive · E-iter453 · F-iter452.5.2 · G-EX-1 · H-Roadmap Reset adoption) | 🟢 |
+| `RECOMMENDED_ROADMAP_RESET.md` | Replaces severity-ordered roadmap · 3-lane structure (BUILD 5 waves · INTEGRATE 4 waves + parallel arch · IGNORE no wave) · cross-lane dependency matrix · informational completeness projection per wave (35→50→60→65→70→80→90/100) · per-wave doctrine cross-citations | 🟢 |
+
+🔨 **Headline:** 31 of 48 gaps belong inside ForgedOps's mission boundary (24 BUILD + 7 HYBRID build-side); 15 belong to mature external systems; 2 should never have been recommended. **EX-1 Accounting integration is the single largest INTEGRATE — BLOCKING dependency** — without it, ForgedOps's operational completeness ceiling is capped at ~50 %; with it delivered by mid-roadmap, the ceiling rises to ~70 %.
+
+🟢 **Strongest 5 BUILD capabilities** (all PASS): Field Clock-in/out · Production Tracking by Activity · OSHA Generator · OC-008 PPE Return · Photo Janitor — these have zero Constitutional latent risk and zero ack-pattern temptation.
+
+🟡 **12 REVIEW REQUIRED items** cluster into 4 forward-binding doctrines that any future scoping conversation must honor: (A) anti-checklist clause enforcement on Executive/Portfolio/DOT/Meeting-minutes surfaces · (B) closure-action contract on OC-003 + OC-004 · (C) evidence-per-step on OC-013 + OC-014 · (D) ack-ride-along exclusion in Submittal / RFI / CO / Pay-App / Subcontractor builds.
+
+🚫 **The IGNORE list (48 items) is larger than the BUILD list — by design.** The Doctrine works as intended: the platform's strength is what it does NOT do. Returning items from IGNORE to BUILD requires explicit Constitutional reconsideration.
+
+🛑 **STOPPED.** Documentation-only batch · zero code · zero design · zero estimates · zero authorization. Awaiting operator decision among the 8 options in `BUILD_INTEGRATE_IGNORE_EXECUTIVE_SUMMARY.md §6`:
+* (A) Constitutional re-scope sweep (resolve 4 P0 CVs + Clusters B + C)
+* (B) Ownership Layer (Top 10 #1)
+* (C) Field-ops foundation (Top 10 #2 + #3 + greenfield #1 + #2)
+* (D) Executive Action Console (Top 10 #4)
+* (E) iter453 closure-action contract (Top 10 #5)
+* (F) iter452.5.2 P1 Resend Bounce Webhook (Top 10 #10 portion · pre-authorized)
+* (G) EX-1 Accounting integration (single largest unblock)
+* (H) Adopt RECOMMENDED_ROADMAP_RESET as authoritative sequencing reference
 
 ---
 
