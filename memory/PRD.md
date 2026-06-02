@@ -1,6 +1,60 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02T18:44Z (fork · OMEGA · ITER453.9 HR SAVE FEEDBACK POLISH · 🟢 UX FAILURE RESOLVED · GO TO DEPLOY)
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — ITER453.9 HR SAVE FEEDBACK POLISH. P0 UX FAILURE REMEDIATION. Single file only: `frontend/src/pages/HrEmployees.jsx`. Implement: auto-close drawer on non-noop save · differentiate noop vs real (Real: "Employee status changed: OLD → NEW", Noop: "No changes detected") · clear success confirmation · button shows saving state · preserve backend route, validation, permissions, status_history, employee_lifecycle_events, offboarding playbook, both testids. NO drift. STOP after certification."
+
+### Final verdict: 🟢 **UX FAILURE RESOLVED — GO TO DEPLOY**
+
+### What shipped (frontend-only · 1 file · +34/−9 LOC)
+`HrEmployees.jsx::submitStatusChange` rewrote 5 things:
+1. Capture `prevStatus` BEFORE save so toast can emit "OLD → NEW"
+2. Validation toasts get 6 s duration + "Required:" prefix
+3. Detect `r.noop` flag → blue `toast.info("No changes detected · status was already X")` (no auto-close)
+4. Real save → green `toast.success("Employee status changed · OLD → NEW [· N offboarding tasks created]")` + 400 ms beat + `onClose()` auto-close
+5. Catch path → 6 s duration on error toasts
+
+### Live preview certification (Playwright 3-scenario walk)
+- ✅ Scenario A NOOP: click Save without changing dropdown → blue toast "No changes detected · status was already Active" + drawer stays open
+- ✅ Scenario B REAL SAVE: Active → Inactive → green toast "Employee status changed · Active → Inactive" + drawer auto-closes after 400 ms + parent table count drops 266 → 265
+- ✅ Scenario C REVERT: Inactive → Active → green toast "Employee status changed · Inactive → Active" + drawer auto-closes + table count back to 266
+- ✅ 4 screenshots captured: `/tmp/iter453_9_noop_toast.png`, `/tmp/iter453_9_before_save.png`, `/tmp/iter453_9_after_save.png`, `/tmp/iter453_9_after_close.png`
+
+### Backend persistence (untouched · verified)
+- `lifecycle_status` flipped Active → Inactive → Active
+- `status_history.length` grew 6 → 7 → 7 (noop skipped append) → 8 (append-only chain alive)
+- `employee_lifecycle_events` chain alive
+- `_fan_out_offboarding_playbook` code path unchanged (8-task fan-out preserved for Resigned/Terminated/Retired)
+- Auth gate: anon → 401 (Phase Alpha G-3 intact)
+
+### Validation matrix — 13/13 PASS
+1-3 ✅ HR transition + clear feedback + drawer closes
+4-6 ✅ DB + status_history + lifecycle_events all update
+7 ✅ Offboarding playbook unchanged
+8 ✅ Noop differentiated
+9 ✅ Invalid form shows clear "Required:" error
+10 ✅ Phase Alpha intact
+11 ✅ ESLint clean
+12 ✅ No backend changes (single file diff)
+13 ✅ No unrelated UI changes
+
+### Deliverables (3)
+- `/app/memory/HR_SAVE_FEEDBACK_POLISH_REPORT.md`
+- `/app/memory/HR_SAVE_FEEDBACK_POLISH_CERTIFICATION.md`
+- `/app/memory/HR_SAVE_FEEDBACK_POLISH_GO_NO_GO.md`
+
+### Rollback complexity
+Trivial — single-file frontend revert (`git checkout HEAD -- frontend/src/pages/HrEmployees.jsx`). No backend revert. No DB revert.
+
+🟢 **UX FAILURE RESOLVED — GO TO DEPLOY**
+
+STOP. No iter454. No iter455. No White Label. No ForgedOps. No extra features. No drift.
+
+---
+
+
 ## 2026-06-02T18:33Z (fork · OMEGA P0 · HR SAVE BUTTON FORENSIC FAILURE · READ-ONLY · 🟡 UX FAILURE)
 
 ### Operator directive

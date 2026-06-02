@@ -11,6 +11,18 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA · ITER453.9 HR SAVE FEEDBACK POLISH (2026-06-02T18:44Z · 3 deliverables · 🟢 UX FAILURE RESOLVED · GO TO DEPLOY · 1 frontend file · +34/−9 LOC)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `HR_SAVE_FEEDBACK_POLISH_REPORT.md` | Single-file diff envelope (HrEmployees.jsx only · +34/−9) · 5 changes inside `submitStatusChange` (prevStatus capture · 6 s validation toast + "Required:" prefix · noop differentiation · drawer auto-close 400 ms · 6 s error duration) · 13/13 operator constraints honored | 🟢 SCOPE INTACT |
+| `HR_SAVE_FEEDBACK_POLISH_CERTIFICATION.md` | Live Playwright 3-scenario walk (NOOP · REAL SAVE Active→Inactive · REVERT Inactive→Active) · 4 screenshots · backend round-trip persistence (history 6→7→7-noop→8) · authority gate regression (anon → 401) · ESLint clean · 13/13 validations PASS | 🟢 CERTIFIED |
+| `HR_SAVE_FEEDBACK_POLISH_GO_NO_GO.md` | Risk matrix all 🟢/🟡 LOW · trivial rollback · production deploy readiness 8/8 · "no more nothing happened" experience proven by live screenshots showing "Employee status changed · Active → Inactive" toast + drawer auto-close + parent table count drop 266→265 | 🟢 GO TO DEPLOY |
+
+**Final verdict**: 🟢 **UX FAILURE RESOLVED — GO TO DEPLOY**. Single-file change to `HrEmployees.jsx::submitStatusChange`. Backend untouched. Phase Alpha intact. Audit chain alive. Both testids preserved. Live preview proved real save → "Employee status changed · Active → Inactive" + drawer auto-close, noop → "No changes detected · status was already Active" (no auto-close), validation toasts → "Required: ..." with 6 s duration. No more sparse-feedback gap. Ready for production redeploy.
+
+---
+
 ### 00 · OMEGA P0 · HR SAVE BUTTON FORENSIC FAILURE (REOPENED · READ-ONLY · 2026-06-02T18:33Z · 4 deliverables · 🟡 UX FAILURE)
 
 | File | Purpose | Verdict |

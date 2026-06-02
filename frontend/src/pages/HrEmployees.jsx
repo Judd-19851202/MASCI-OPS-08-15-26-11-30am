@@ -523,16 +523,21 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
 
   const submitStatusChange = async () => {
     if (!employee) return;
+    const prevStatus = summary?.lifecycle_status || employee.lifecycle_status || "Active";
     const isOffboarding = ["Terminated", "Resigned", "Retired"].includes(statusForm.lifecycle_status);
     const wasOffboarded = ["Terminated", "Resigned", "Retired"].includes(summary?.lifecycle_status);
     const offboardingTransition = isOffboarding && !wasOffboarded;
+    // iter453.9 · validation toasts use a 6 s duration so HR has time
+    // to perceive them before they auto-dismiss. Prefixed with the
+    // word "Required" so the user can never mistake them for a noop
+    // or a success.
+    const VALIDATION_OPTS = { duration: 6000 };
     if (offboardingTransition && !statusForm.separation_type && !employee.separation_type) {
-      toast.error(t("Pick a separation type — voluntary, involuntary, or layoff"));
+      toast.error(t("Required: pick a separation type — voluntary, involuntary, or layoff"), VALIDATION_OPTS);
       return;
     }
-    // iter316 · enforce rehire eligibility on offboarding transitions.
     if (offboardingTransition && !statusForm.rehire_eligibility && !employee.rehire_eligibility) {
-      toast.error(t("Pick a rehire eligibility — Eligible, Not Eligible, or Review Required"));
+      toast.error(t("Required: pick a rehire eligibility — Eligible, Not Eligible, or Review Required"), VALIDATION_OPTS);
       return;
     }
     if (
@@ -541,7 +546,7 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
       && !statusForm.rehire_eligibility_reason.trim()
       && !employee.rehire_eligibility_reason
     ) {
-      toast.error(t("Add a short reason for this rehire eligibility decision"));
+      toast.error(t("Required: add a short reason for this rehire eligibility decision"), VALIDATION_OPTS);
       return;
     }
     setSaving(true);
@@ -559,16 +564,36 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
       if (statusForm.rehire_eligibility_reason)
         payload.rehire_eligibility_reason = statusForm.rehire_eligibility_reason;
       const r = await changeHrEmployeeStatus(employee.id, statusForm.lifecycle_status, statusForm.reason, payload);
-      if (r.playbook_fired) {
-        toast.success(`${t("Status updated")} · ${r.tasks_created} ${t("offboarding tasks created")}`);
-      } else {
-        toast.success(t("Status updated"));
+      // iter453.9 · differentiate noop vs real save with explicit
+      // before/after labels so HR can never wonder "did it work?".
+      const newStatus = r?.employee?.lifecycle_status || statusForm.lifecycle_status;
+      if (r.noop) {
+        toast.info(
+          `${t("No changes detected")} · ${t("status was already")} ${prevStatus}`,
+          { duration: 6000 },
+        );
+        setSaving(false);
+        return;
       }
+      const transitionLabel = `${prevStatus} → ${newStatus}`;
+      const headline = r.playbook_fired
+        ? `${t("Employee status changed")} · ${transitionLabel} · ${r.tasks_created} ${t("offboarding tasks created")}`
+        : `${t("Employee status changed")} · ${transitionLabel}`;
+      toast.success(headline, { duration: 6000 });
+      // iter453.9 · refresh the drawer state BEFORE closing so the
+      // parent table picks up the new lifecycle_status on its next
+      // render cycle, then auto-close so HR sees the table row
+      // visibly reflect the change.
       const s = await offboardingSummary(employee.id);
       setSummary(s);
       setEmployee(s.employee);
+      setSaving(false);
+      // Small delay lets the toast register in the user's eye before
+      // the drawer animates closed (Sheet close animation ≈ 220 ms).
+      setTimeout(() => { onClose && onClose(); }, 400);
+      return;
     } catch (e) {
-      toast.error(friendlyError(e, t("Status change failed")));
+      toast.error(friendlyError(e, t("Status change failed")), { duration: 6000 });
     } finally { setSaving(false); }
   };
 
