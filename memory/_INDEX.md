@@ -11,6 +11,25 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA · ITER500 HUMAN OPERABILITY & WORKFLOW COMPLETENESS CERTIFICATION (2026-06-02T19:30Z · 10 deliverables · 🟡 OPERATIONALLY FUNCTIONAL WITH FRICTION)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `ITER500_EXECUTIVE_SUMMARY.md` | 5 scores (Op Completeness 88 % · Human Operability 72 % · Workflow Completion 55 % 🟢 · Customer #2 60 % · White Label 40 %) · 10-rank remediation order · TOP 25 of each: dead-ends · friction · confusion · discoverability · workflow-completion risks | 🟡 |
+| `ITER500_HUMAN_OPERABILITY_AUDIT.md` | 12-question phase-2 check per domain · mean score 8.6/12 (~72 %) · pattern recognition: every blocker this fork was a feedback-insufficiency defect, NOT a workflow defect · iter453.7+.9 template = canonical fix shape | 🟡 |
+| `ITER500_WORKFLOW_COMPLETENESS_MATRIX.md` | 18 domains × 147 pages × 254 routes · ~84 workflows · 46 🟢 + 28 🟡 + 10 🔴 · per-domain status with notable risks | 🟡 |
+| `ITER500_BUTTON_VISIBILITY_AUDIT.md` | 8 high-risk button patterns (6 form pages with below-fold Save · approve/reject under dropdown · reopen under kebab · etc.) · iter453.7+.9 canonical remediation template documented | 🟡 |
+| `ITER500_DEAD_END_REGISTER.md` | 25 dead-ends tiered: Tier 1 confirmed (OC-005 not built · universal undo gap · FL withdraw · Daily Report unlock · etc.) · Tier 2 partial · Tier 3 discoverability | 🟡 |
+| `ITER500_USER_CONFUSION_REGISTER.md` | 25 confusion areas: verb inconsistency · 5 statuses for "not working" · Reactivate vs Rehire dual-path · "Closed" overloaded across workflows · etc. | 🟡 |
+| `ITER500_STATUS_UNDERSTANDABILITY_AUDIT.md` | Per-workflow status taxonomy · cross-workflow "Closed"/"Approved"/"Reopened"/"Expired"/"Pending" overload analysis · visibility matrix list vs detail vs next-action | 🟡 |
+| `ITER500_ROLE_BASED_FRICTION_REPORT.md` | Top-3 friction per persona × 12 personas (Employee · Foreman · Supervisor · PM · Safety · HR · Payroll · Dispatcher · Fleet · Exec · Admin · Public/Field) | 🟡 |
+| `ITER500_CUSTOMER2_READINESS_REPORT.md` | 60 % out-of-box · 85 % with 2-hr onboarding · 15 tribal-knowledge blockers · onboarding journey not built | 🟡 |
+| `ITER500_WHITELABEL_READINESS_REPORT.md` | 40 % overall · multi-tenancy NOT built · branding 50 % · onboarding 20 % · MASCI doctrine hardcoded · architectural work substantial | 🔴 (white-label) |
+
+**Final verdict**: 🟡 **OPERATIONALLY FUNCTIONAL WITH FRICTION** · 88 % operational completeness · 72 % human operability · 55 % workflows fully 🟢 + 33 % 🟡 + 12 % 🔴 · Customer #2 readiness 60 % out-of-box / 85 % with onboarding · White Label readiness 40 % (multi-tenancy gap). Production deployment certification UNCHANGED (still 🟢 per `FINAL_PRODUCTION_CERTIFICATION.md`). Defect class is feedback-insufficiency + discoverability, NOT workflow-incompleteness; the iter453.7+.9 sticky-footer + OLD→NEW + auto-close template is the canonical remediation. Top-10 remediation order documented in executive summary §6. READ-ONLY directive honored: no fixes · no code · no deploy · no schema · no feature work.
+
+---
+
 ### 00 · OMEGA · HR LIFECYCLE POST-DEPLOY HUMAN OPERABILITY PROOF (2026-06-02T19:17Z · 3 deliverables · 🟢 HUMAN OPERABILITY CERTIFIED · 1 documented caveat)
 
 | File | Purpose | Verdict |

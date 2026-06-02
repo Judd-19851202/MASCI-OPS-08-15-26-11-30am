@@ -1,6 +1,62 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02T19:30Z (fork · OMEGA · ITER500 HUMAN OPERABILITY & WORKFLOW COMPLETENESS CERTIFICATION · 🟡 OPERATIONALLY FUNCTIONAL WITH FRICTION · READ-ONLY)
+
+### Operator directive
+> "OMEGA ITER500 — HUMAN OPERABILITY & WORKFLOW COMPLETENESS CERTIFICATION. Determine whether a real human can successfully operate the platform. Inventory every workflow · phase-1 through phase-10 audit · 12-question phase-2 check · button visibility · dead-end register · status understandability · role-based friction · Customer #2 + White Label readiness · 5 scoring metrics · TOP 25 of each: dead-ends · friction · confusion · discoverability · workflow-completion risks · recommended remediation order. READ ONLY. No code · no fixes · no deployment · no schema · no feature work."
+
+### Final verdict: 🟡 **OPERATIONALLY FUNCTIONAL WITH FRICTION**
+
+### Five scores
+- **Operational Completeness %**: ~ 88 %
+- **Human Operability %**: ~ 72 % (12-question phase-2 mean 8.6/12 across 18 domains)
+- **Workflow Completion %**: ~ 55 % fully 🟢 · 33 % 🟡 · 12 % 🔴 (84 distinct workflows)
+- **Customer #2 Readiness %**: ~ 60 % out-of-box · ~ 85 % with 2-hr onboarding
+- **White Label Readiness %**: ~ 40 % (single-tenant · hardcoded org name · multi-tenancy not built)
+
+### Pattern recognition (the key insight)
+Every user-reported "blocker" this fork (HR Save below fold · Resend webhook silent · HR "nothing happened") was an instance of the SAME class: **the code worked, the API worked, the DB updated, but the user couldn't FIND or PERCEIVE the action or outcome**. Defect class is feedback-insufficiency and discoverability, NOT workflow-incompleteness. The iter453.7 + iter453.9 template (sticky footer + OLD→NEW toast + drawer auto-close + noop differentiation + Required: validation prefix) is the canonical remediation shape for an estimated 25-30 surfaces still exhibiting some version of the same pattern.
+
+### Recommended remediation order (10-rank)
+1. Replicate iter453.7+.9 template on 6 "New X" form pages (~100 LOC total)
+2. Promote LifecyclePanel substrate to Constraint + Incident detail (~50 LOC)
+3. Promote Approve/Reject out of dropdowns into top-level buttons (Dispatch + PO + Time-off) (~200 LOC)
+4. OC-005 JHP Acknowledgement Ledger build (iter454 separate authorization)
+5. Verb harmonization pass: Save/Submit/Create unified (~300 LOC string sweep)
+6. "Filter active" chip-stack on admin audit log (~80 LOC)
+7. Expiring-soon visual cues on Training + Driver Qual + Equipment Inspection (~60 LOC)
+8. Hub re-grouping AdminHub + Hub + PmHub (~150 LOC)
+9. Reactivate/Rehire funnel into one dialog (~40 LOC)
+10. Per-row toast on Dispatch drag-drop (~30 LOC)
+
+### Why 🟡 not 🟢 not 🔴
+- 🟢 ruled out: too many workflows require tribal knowledge or operator hand-holding; Customer #2 can't self-onboard
+- 🔴 ruled out: every certified core workflow is operable; Phase Alpha intact; audit trails alive; production certified
+- 🟡 ✅: platform works, just not gracefully across all personas; defects are mostly < 100 LOC each
+
+### Deliverables created (10)
+- `/app/memory/ITER500_EXECUTIVE_SUMMARY.md`
+- `/app/memory/ITER500_HUMAN_OPERABILITY_AUDIT.md`
+- `/app/memory/ITER500_WORKFLOW_COMPLETENESS_MATRIX.md`
+- `/app/memory/ITER500_BUTTON_VISIBILITY_AUDIT.md`
+- `/app/memory/ITER500_DEAD_END_REGISTER.md`
+- `/app/memory/ITER500_USER_CONFUSION_REGISTER.md`
+- `/app/memory/ITER500_STATUS_UNDERSTANDABILITY_AUDIT.md`
+- `/app/memory/ITER500_ROLE_BASED_FRICTION_REPORT.md`
+- `/app/memory/ITER500_CUSTOMER2_READINESS_REPORT.md`
+- `/app/memory/ITER500_WHITELABEL_READINESS_REPORT.md`
+
+### Production deployment certification status: UNCHANGED 🟢
+This audit identifies the next batch of polish opportunities; none of them are deployment blockers. `FINAL_PRODUCTION_CERTIFICATION.md` remains in force.
+
+🟡 **OPERATIONALLY FUNCTIONAL WITH FRICTION**
+
+STOP. No fixes. No code. No deployment. Evidence only.
+
+---
+
+
 ## 2026-06-02T19:17Z (fork · OMEGA · HR LIFECYCLE POST-DEPLOY HUMAN OPERABILITY PROOF · 🟢 CERTIFIED)
 
 ### Operator directive
