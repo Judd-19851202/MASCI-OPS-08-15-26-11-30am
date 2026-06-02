@@ -240,7 +240,7 @@ export const EmployeeCombo = ({
                   onClick={() => addToRoster(value)}
                   disabled={addingNew}
                   onMouseDown={(e) => e.preventDefault()}
-                  className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wide text-xs h-10 rounded border-b-2 border-emerald-800"
+                  className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide text-xs h-10 rounded border-b-2 border-amber-800"
                   data-testid={`${testId}-add-btn`}
                 >
                   {addingNew ? (
@@ -248,7 +248,7 @@ export const EmployeeCombo = ({
                   ) : (
                     <Plus className="w-4 h-4" />
                   )}
-                  {t("Add")} "{value}" {t("to MASCI roster")}
+                  {t("Request HR add")} "{value}"
                 </button>
               )}
             </div>

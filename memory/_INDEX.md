@@ -13,6 +13,34 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 ---
 
+### 00 · OMEGA · EMPLOYEE GOVERNANCE PHASE ALPHA (2026-06-02 · 4 deliverables · 🟢 GO)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `EMPLOYEE_GOVERNANCE_ALPHA_IMPLEMENTATION_REPORT.md` | Implementation contract · 8 files changed (2 new, 6 edited) + 1 test file · per-violation closure detail (G-1..G-5) · Termination Form addendum codification · `data-testid` registry · verification results | 🟢 IMPLEMENTED |
+| `EMPLOYEE_GOVERNANCE_ALPHA_CERTIFICATION.md` | Post-Alpha cert · 7 operator-required proofs satisfied · 5 governance decisions codified · Termination addendum codified · Constitutional/Ownership/Reduce-Work cross-check · iteration_368 frontend cert results | 🟢 CERTIFIED |
+| `EMPLOYEE_GOVERNANCE_ALPHA_RISK_REPORT.md` | 5 LOW risks documented · 0 BLOCKER/HIGH/MEDIUM · mitigations · rollback plan (5-min additive) · explicit out-of-scope items | 🟢 0/0/0/5 |
+| `EMPLOYEE_GOVERNANCE_ALPHA_GO_NO_GO.md` | **🟢 GO · DEPLOY TO PRODUCTION** · all 7 proofs PASS · 50/50 backend tests · 10/12 live FE · 3-step prod smoke checklist · trivial rollback · 7-item NOT-deployed scope-discipline list | 🟢 GO |
+
+🟢 **HEADLINE: ALL 5 P0 AUDIT VIOLATIONS CLOSED · HR IS SOLE LIFECYCLE AUTHORITY** — `POST /api/employees/add` returns 410 (G-1) · FL inline create enqueues to HR Queue, doesn't write (G-2) · Admin endpoints HR-or-Admin gated · `DELETE /api/admin/employees/{id}` returns 405 (G-3) · `PUT` rejects `is_active`/`lifecycle_status` with 422 (G-4) · bulk upload is append/merge only, preserves status_history (G-5) · Termination Form addendum: FL `employee_termination` auto-enqueues HR review request (linked via `linked_fl_record_id`) · 50/50 backend tests · 0 ESLint issues · iteration_368 FE cert 10/12 live PASS · 1 FE bug fixed inline (legacy emerald button in no-matches branch) · 1 BE finding documented as working-as-designed (public termination submission intentionally requires resolved `target_employee_id`) · 0 BLOCKER · 0 HIGH · 0 MEDIUM · 5 LOW risks · trivial additive rollback · ready for prod deploy.
+
+### Approved governance decisions (binding · codified in this batch)
+1. HR is the sole owner of employee lifecycle state.
+2. Request HR Queue is APPROVED and REQUIRED → built at `/hr/employee-requests`.
+3. Super Admin break-glass = console-only (no API-side override header anywhere in the codebase).
+4. `/api/admin/employees*` routes deprecated + redirected, not removed (HR-or-Admin gate · canonical HR shape on writes).
+5. Bulk import = append/merge only (`delete_many({})` eliminated from the codebase).
+
+### Termination Form addendum (codified)
+Field Leadership Termination Form remains operational but cannot directly alter employee lifecycle state. Field Leadership is now a Lifecycle **Initiator**; HR remains the sole Lifecycle **Authority**. Workflow: FL submits Termination Form → FL record persists → HR Queue entry auto-enqueued with `linked_fl_record_id` → HR Reviews → HR Approves/Rejects → Official Lifecycle Event (status_history + lifecycle_status + termination_date + last_day_worked + separation_type + `employee_lifecycle_events` row) → Audit Trail preserved.
+
+### What this batch did NOT touch (scope discipline · awaiting future authorization)
+- Phase Beta (G-6..G-10): `require_hr_or_admin → require_hr` tightening, driver-qual canonical-constructor refactor, `employee_lifecycle_events` hardening, safe bulk import semantics polish
+- Phase Gamma (G-9): Ownership Layer A · `manager_employee_id` FK introduction
+- iter454, iter455.1, Escalation Framework, White Label, Customer #2 onboarding, ForgedOps readiness
+
+---
+
 ### 00 · OMEGA · EMPLOYEE LIFECYCLE GOVERNANCE AUDIT (2026-06-02 · 1 deliverable · pre-`iter455.1` gate)
 
 | File | Purpose | Verdict |

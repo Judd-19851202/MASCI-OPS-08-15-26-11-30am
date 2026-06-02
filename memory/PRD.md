@@ -1,6 +1,66 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · GOVERNANCE PHASE ALPHA) — HR is now SOLE LIFECYCLE AUTHORITY 🟢 GO
+
+### Operator authorization
+> "AUTHORIZE EMPLOYEE GOVERNANCE PHASE ALPHA. Close all 5 P0 audit findings (G-1..G-5). 5 binding governance decisions: (1) HR sole lifecycle owner; (2) Request HR Queue REQUIRED; (3) Super-Admin break-glass = console-only; (4) /api/admin/employees* deprecated and redirected, not removed; (5) Bulk import = append/merge only, destructive replace-all prohibited. Termination Form addendum: FL form remains operational but cannot directly alter lifecycle state; FL = Lifecycle Initiator, HR = sole Lifecycle Authority. STOP after certification. Do NOT begin Beta. Do NOT begin Ownership Layer A. Do NOT begin Accountability Chain. Do NOT begin Escalation Framework. Await operator authorization."
+
+### Final verdict: 🟢 GO · DEPLOY TO PRODUCTION
+All 5 P0 audit violations closed. Termination Form addendum implemented. 7 operator-required certifications satisfied with code-traceable evidence. 50/50 backend tests pass. 10/12 live UI tests pass via iteration_368 (1 FE bug fixed inline, 1 BE finding documented as working-as-designed). 0 BLOCKER · 0 HIGH · 0 MEDIUM · 5 LOW risks.
+
+### Files changed (8 + 1 test)
+1. **NEW** `routes/employee_requests.py` (~580 lines) — HR Queue collection + 5 endpoints
+2. **EDITED** `server.py` — G-1 (`POST /api/employees/add` → 410) · G-3 (`/api/admin/employees*` HR-or-Admin gated · DELETE 405 with pointer) · G-4 (`PUT` rejects `is_active`/`lifecycle_status` with 422 `code: "lifecycle_field_readonly"`) · G-5 (`POST /api/admin/employees/upload` rewritten as append/merge · `delete_many({})` eliminated) · queue registration · early `_require_hr_or_admin_for_queue` gate · `_require_optional_portal_token` for anonymous queue submissions
+3. **EDITED** `routes/field_leadership.py` — G-2 (`POST /api/field-leadership/employees` enqueues, doesn't write · returns `pending_hr_review`) + Termination Form addendum (`employee_termination` FL record auto-enqueues HR queue entry with `linked_fl_record_id`)
+4. **NEW** `pages/HrEmployeeRequestsQueue.jsx` (~500 lines) — HR queue review UI · filters · approve modal · reject modal
+5. **EDITED** `components/EmployeeCombo.jsx` — both no-matches and showCustomTag branches now post to `/employee-requests` with amber "Request HR add" button
+6. **EDITED** `pages/FieldLeadershipFormPage.jsx` — surfaces "Submitted to HR Queue" toast on `pending_hr_review`
+7. **EDITED** `pages/HrHub.jsx` — "Employee Requests Queue" tile with `pending_employee_requests` badge
+8. **EDITED** `App.js` — route `/hr/employee-requests`
+9. **NEW** `tests/test_employee_governance_alpha.py` (17 assertions, all PASS)
+
+### 7 required certifications (all PASS)
+1. ✅ HR is sole lifecycle owner
+2. ✅ Operations cannot create employees
+3. ✅ Anonymous users cannot create employees
+4. ✅ Admin routes cannot bypass lifecycle controls
+5. ✅ Bulk import preserves lifecycle history
+6. ✅ Request HR Queue functions correctly
+7. ✅ Audit trail is preserved (triple substrate: `audit_log` + `status_history` + new `employee_lifecycle_events`)
+
+### Constitutional / Ownership Doctrine / Reduce-Work cross-check
+🟢 **PASS** — Reduce-Work test: queue creates 1 new HR surface but eliminates 2 self-service surfaces (FL inline + EmployeeCombo inline). Net operator workload neutral.
+
+### Deliverables produced (4 + 2 governance updates)
+- `/app/memory/EMPLOYEE_GOVERNANCE_ALPHA_IMPLEMENTATION_REPORT.md`
+- `/app/memory/EMPLOYEE_GOVERNANCE_ALPHA_CERTIFICATION.md`
+- `/app/memory/EMPLOYEE_GOVERNANCE_ALPHA_RISK_REPORT.md`
+- `/app/memory/EMPLOYEE_GOVERNANCE_ALPHA_GO_NO_GO.md`
+- `/app/memory/_INDEX.md` (headline + new section)
+- `/app/memory/PRD.md` (this entry)
+
+### Production deployment checklist (operator-owned · 3-step smoke)
+1. Deploy via existing pipeline (no env changes required, no data migration)
+2. Smoke: `curl POST /api/employees/add` → expect 410 · `curl POST /api/employee-requests` → expect 200 with pending request · log into HR portal → click "Employee Requests Queue" tile → confirm queue page renders
+3. Reject the smoke request to clean up
+
+### Rollback plan
+Strictly additive build. ~5-minute revert: revert 3 backend files + 5 frontend files. New collections (`employee_requests`, `employee_lifecycle_events`) become orphan but harmless. No data migration.
+
+### What was NOT built (scope discipline · awaiting explicit operator authorization)
+- Phase Beta G-6..G-10 (HR-only tightening · driver-qual canonical-constructor refactor · `employee_lifecycle_events` hardening · safe bulk import polish)
+- Phase Gamma G-9 (Ownership Layer A · `manager_employee_id` FK)
+- iter454 OC-005 JHP Acknowledgement Ledger
+- iter455.1 Phase 1B Accountability Chain Status
+- Escalation Framework · White Label · Customer #2 onboarding · ForgedOps readiness
+
+🛑 **Yielding to operator. STOP. No Beta. No iter454. No iter455. No Escalation. No drift.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · GOVERNANCE AUDIT) — EMPLOYEE LIFECYCLE GOVERNANCE: 🔴 NOT CONFORMANT
 
 ### Operator authorization
