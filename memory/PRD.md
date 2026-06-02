@@ -1,6 +1,44 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · DAILY REPORT SHARE EMAIL FORENSIC AUDIT · P0 · 🟡 GOVERNANCE CONCERN)
+
+### Operator authorization
+> "AUTHORIZE DAILY REPORT EMAIL SHARE FORENSIC AUDIT. P0. Reported behavior: Superintendent states that after sharing a Daily Report to his email, he can later edit the Daily Report from the received email. READ ONLY · NO fixes · NO code changes · NO deployment · NO permission changes · NO data modification. Classify: 🟢 Expected Behavior / 🟡 Governance Concern / 🔴 Security/Workflow Integrity Defect. STOP after reports."
+
+### Final classification: 🟡 **GOVERNANCE CONCERN** (NOT a defect)
+- **Daily Report Share Email feature itself (`EmailReportDialog` → `POST /api/email-report`)**: 🟢 EXPECTED BEHAVIOUR — email contains a static PDF attachment + branded HTML body with **zero `<a href>` hyperlinks**. No URL is generated. No edit-capable link exists in the email.
+- **Most plausible root cause of the Superintendent's report**: persistent admin/PM browser session on the live `ViewDailyReport` page + the `EditProjectDialog` amber-pencil button (project re-tag only · narrative/signatures/photos/time immutable). Edit was granted by his **session**, not the email.
+- **Adjacent Field Revision `/revise/{token}` feature (iter452.5 Tier 1)**: 🟡 7 governance concerns — token-bearer auth (anonymous) · 168h TTL · multi-use within TTL · attribution records binding submitter not actual revising party · no per-token revocation · dev-fallback JWT secret string in code · free-form `changes` payload. Writes land in append-only `field_submitter_revisions[]` array; canonical record fields never overwritten.
+
+### 4 deliverables produced
+- `/app/memory/DAILY_REPORT_SHARE_FORENSIC_AUDIT.md` (root forensic reconstruction)
+- `/app/memory/DAILY_REPORT_SHARE_SECURITY_REVIEW.md` (7 governance concerns enumerated)
+- `/app/memory/SHARED_LINK_PERMISSION_MATRIX.md` (per-recipient-state matrix + 9-question answer table)
+- `/app/memory/DEPLOYMENT_IMPACT_ASSESSMENT.md` (does NOT change OMEGA Deep Pre-Deploy 🟢 GO verdict)
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### Sister-workflow coverage
+| Workflow | Share Email Dialog (PDF) | Revise `/revise/{token}` (edit-capable) |
+|---|---|---|
+| Daily Reports | ✅ wired | ✅ wired (PENDING_REVIEW → OPEN kickback) |
+| Incidents | ✅ wired | ✅ wired (same) |
+| Site Inspections | ✅ wired | ❌ NOT wired |
+| Safety Meetings | ✅ wired | ❌ NOT wired |
+| Equipment Inspections | ✅ wired | ❌ NOT wired |
+| QA/QC (OC-003) | ❌ NOT wired | ❌ NOT wired |
+| JHP / Time Verification / Payroll Variances | ❌ NOT wired | ❌ NOT wired |
+
+### Out-of-scope (NOT performed in this audit)
+- ❌ NO code changes · ❌ NO permission changes · ❌ NO data modification · ❌ NO deployment · ❌ NO fixes
+- The 8 operator decision points (single-use enforcement · session re-check · attribution upgrade · per-token revocation · removal of dev-fallback secret string · `changes` whitelist · "do not forward" email banner · workflow scope decision) are deferred to a potential future `iter456_field_revision_hardening` operator-authorized build.
+
+🛑 **Awaiting operator authorization for any remediation work or for production deploy of the current build.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · DEEP PRE-DEPLOY CODE + OPERATIONAL CERTIFICATION · 🟢 GO TO DEPLOY)
 
 ### Operator authorization
