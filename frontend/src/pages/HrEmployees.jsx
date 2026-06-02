@@ -628,13 +628,13 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
                 <ClipboardList className="w-3.5 h-3.5" /> View Accountability Timeline
               </Link>
             </SheetHeader>
-            <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col">
+            <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col min-h-0">
               <TabsList className="rounded-none border-b border-slate-200 px-5">
                 <TabsTrigger value="details" data-testid="hremp-tab-details">Details</TabsTrigger>
                 <TabsTrigger value="status" data-testid="hremp-tab-status">Status</TabsTrigger>
                 <TabsTrigger value="offboarding" data-testid="hremp-tab-offboarding">Offboarding Summary</TabsTrigger>
               </TabsList>
-              <div className="flex-1 overflow-y-auto px-5 py-4 text-sm">
+              <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 text-sm">
                 <TabsContent value="details" className="mt-0 space-y-3">
                   <EditField label="Trade" value={employee.trade} save={(v) => submitEdit({ trade: v })} testid="hremp-edit-trade" />
                   <EditField label="Role / Title" value={employee.role} save={(v) => submitEdit({ role: v })} />
@@ -937,9 +937,9 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
                       This status change will create 8 follow-up tasks across HR, Shop, Admin, Safety, and PM.
                     </div>
                   )}
-                  <Button onClick={submitStatusChange} disabled={saving} data-testid="hremp-status-save">
-                    {saving ? "Saving…" : "Save Status Change"}
-                  </Button>
+                  {/* iter453.7 · Save button moved to the sticky drawer footer
+                     (rendered below, outside the scrollable region) so HR
+                     can always reach it on laptop/tablet/mobile viewports. */}
 
                   {summary?.last_status_change && (
                     <div className="mt-4 pt-3 border-t border-slate-200">
@@ -1027,6 +1027,28 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
                   </Section>
                 </TabsContent>
               </div>
+              {/* iter453.7 · Sticky drawer footer · Status tab only.
+                 Pinned outside the scrollable region so HR can always
+                 reach Save Status Change at every viewport (1366×768,
+                 iPad landscape, mobile, mobile + keyboard). */}
+              {tab === "status" && (
+                <div
+                  className="shrink-0 border-t border-slate-200 bg-white px-5 py-3 flex items-center justify-between gap-3"
+                  data-testid="hremp-status-footer"
+                >
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
+                    {saving ? "Persisting status change…" : "Commits on Save"}
+                  </div>
+                  <Button
+                    onClick={submitStatusChange}
+                    disabled={saving}
+                    data-testid="hremp-status-save"
+                    className="ml-auto"
+                  >
+                    {saving ? "Saving…" : "Save Status Change"}
+                  </Button>
+                </div>
+              )}
             </Tabs>
             {/* iter316 · Reactivate / rehire dialog */}
             <Dialog open={reactivateOpen} onOpenChange={setReactivateOpen}>

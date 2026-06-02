@@ -11,6 +11,18 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA · ITER453.7 HR LIFECYCLE STICKY FOOTER HOTFIX (2026-06-02 · 3 deliverables · 🟢 BLOCKER RESOLVED · GO TO DEPLOY · 1 frontend file changed · 27 insertions)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `HR_LIFECYCLE_STICKY_FOOTER_HOTFIX_REPORT.md` | Patch envelope · diff (`HrEmployees.jsx` only · 32 LOC) · `data-testid="hremp-status-save"` preserved · new `hremp-status-footer` · `min-h-0` flex chain fix · scope-discipline matrix (10/10 operator constraints honored · 0 backend changes · 0 schema changes · 0 env changes) | 🟢 SCOPE INTACT |
+| `HR_LIFECYCLE_STICKY_FOOTER_CERTIFICATION.md` | 4-viewport bounding-box probe · 1366×768 / iPad land 1024×768 / iPhone 14 390×844 / iPhone SE 375×667 ALL `VISIBLE_WITHOUT_SCROLL=True` · live HR-token round-trip (Active→Inactive→Active · status_history 2→3→4) · authority gate regression (anon→401, fake-FL→401, HR→200) · ESLint clean | 🟢 PASS · 10/10 |
+| `HR_LIFECYCLE_DEPLOYMENT_BLOCKER_RESOLUTION.md` | 🟢 BLOCKER RESOLVED · per-symptom closure mapping · Phase Alpha G-1..G-5 INTACT · `HR is the sole authoritative owner of employee lifecycle state` UNCHANGED · rollback trivial (single-file revert) · per-workflow impact (Resigned/Terminated/Laid Off all now reachable on every viewport) | 🟢 **GO TO DEPLOY** |
+
+**Operator reclassification accepted**: prior 🟡 UX DEFECT verdict superseded by 🔴 DEPLOYMENT BLOCKER. Hotfix executed under explicit authorization: backend untouched, lifecycle validation untouched, HR permissions untouched, no scope drift. **Final verdict: 🟢 BLOCKER RESOLVED — GO TO DEPLOY**.
+
+---
+
 ### 00 · OMEGA · HR LIFECYCLE END-TO-END FORENSIC CERTIFICATION (2026-06-02 · 7 deliverables · 🟡 UX DEFECT · 🟢 GO WITH LIMITATIONS · NO DEPLOY HOLD)
 
 | File | Purpose | Verdict |
