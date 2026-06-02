@@ -1,6 +1,27 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-01 (last updated 2026-06-01 — OMEGA · COMBINED PHASE 1A PRE-DEPLOY CERTIFICATION COMPLETE · 🟢 **GO TO DEPLOY** · combined preview payload (iter451 + iter452 + iter452.5 + iter452.5.1) attested safe · 88/88 pytest green · 0 RED risks · 8 YELLOW (all operator-disclosed) · 18 GREEN · awaiting operator's Emergent Deploy click)._
+_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · COMBINED PHASE 1A PRODUCTION CERTIFIED · 🟢 **PRODUCTION CERTIFIED** at `https://mascidocs.com` · 12/12 objectives verified · live E2E binding writes prove FSI 5-tier ladder operative · orphan corner closed on production · iter452.5.2 P1 still authorized for next batch)._
+
+---
+
+### 00 · OMEGA · COMBINED PHASE 1A POST-DEPLOY CERTIFICATION (2026-06-02)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `COMBINED_PHASE1A_POST_DEPLOY_VERIFICATION.md` | Full evidence dump · production source_hash `96f05e82f30c…dea5` · uptime ~4h · 12/12 objectives evidence-cited · production E2E proof for FSI Tier 3 (per_submit) + Tier 5 (dead_letter/orphan-corner) + Incident Tier 3 · false-negative probes investigated and resolved (CDN dotted-token route + initial wrong-URL on transitions) · 3 sentinel-tagged smoke records left for operator triage | 🟢 |
+| `COMBINED_PHASE1A_PRODUCTION_CERTIFICATION.md` | Verdict synthesis · 12/12 objectives 🟢 · orphan corner architecturally closed on production · 6 distinct auth-gate copies returned verbatim · 7 operator-disclosed limitations ride forward (none are regressions) · post-cert operator action checklist · iter452.5.2 P1 + iter453 BUILD + OC-005 scoping all queued | **🟢 PRODUCTION CERTIFIED** |
+
+🟢 **Phase 1A is operationally LIVE on production.** OC-001 (Incident Lifecycle) · OC-002 (Daily Report Office Review) · OC-007 (Payroll Variance Finalization) · FSI Tier-1 ladder · FSI 5-tier ladder + orphan elimination — all proven via direct production HTTP probes and live binding writes.
+
+🟢 **Critical production proof:** DR submitted with no FL token + no employee_id + no email + no project_number → binding row written with `resolution_tier=dead_letter` and `primary_recipient_email=safety@mascigc.com`. **The FSI Q8 orphan corner is architecturally closed on production.**
+
+🛑 **STOPPED after reports.** Three sentinel-tagged smoke records left in production (project_number `_PROD_CERT_DO_NOT_USE`): `DR-2026-00283`, an unnumbered orphan-corner DR (`b3849900-…`), and `INC-2026-00302`. Operator may delete or leave as forensic evidence.
+
+Awaiting operator's next message:
+* **iter452.5.2 (P1 Resend Bounce Webhook)** — pre-authorized for immediate next batch · ~3 realistic days
+* **iter453 BUILD** (OC-003 + OC-004) — Day-9 gate cleared · inherits 5-tier ladder natively
+* **OC-005 JHP Acknowledgement Ledger** — scoping pending per `JHP_ACKNOWLEDGEMENT_GAP_REPORT.md` Options 1/2/3
+* **iter455 + iter455.1 (P2 Accountability Chain Projection)** — bundled with Phase 1A integration certification
 
 ---
 
