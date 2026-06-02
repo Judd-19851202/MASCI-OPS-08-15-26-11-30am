@@ -1,6 +1,32 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · COMBINED PHASE 1A PRODUCTION CERTIFIED · 🟢 **PRODUCTION CERTIFIED** at `https://mascidocs.com` · 12/12 objectives verified · live E2E binding writes prove FSI 5-tier ladder operative · orphan corner closed on production · iter452.5.2 P1 still authorized for next batch)._
+_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · Phase 1A OPERATIONAL CERTIFICATION AUDIT (workflow-only) · 🟢 18/25 in-scope rows complete · 🟡 5 require workarounds · 🔴 2 absent (JHP ack · executive rollup) · Customer #2 readiness 23/90 🔴 · White-Label readiness 23/90 🔴 · ForgedOps Foundation readiness 42/100 🟡)._
+
+---
+
+### 00 · OMEGA · PHASE 1A OPERATIONAL CERTIFICATION AUDIT (2026-06-02)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `PHASE_1A_OPERATIONAL_CERTIFICATION_AUDIT.md` | Role-by-role workflow trace · 25 in-scope + 5 adjacent business processes audited across Foreman/Super/PM/Payroll/Safety/QC/Executive · 27 friction items (F-1 through F-27) cited to specific page/component · 14 accountability gaps (A-1..A-14) · 9 source-of-truth violations (S-1..S-9) · 3 independent readiness scores · top-10 operator-authorizable improvements ranked by friction-impact/effort | 🟢 workflow-complete with friction · 🟡 needs assignment+routing layer for ForgedOps v1 |
+
+🟢 **Workflows complete end-to-end on production for 18/25 in-scope rows** (DR · Incident · PV · QA/QC submit · Site Inspection submit · JHP view · Toolbox Talk · Equipment Pre-Op · DVIR · Time Off · etc).
+
+🟡 **5 rows require workarounds:** corrective-action execution (CA is a STATE not a TASK · A-1) · "what's mine right now" view absent · QA/QC closure-loop · Site Inspection acknowledge findings · cross-tab cross-reference for executive-grade visibility.
+
+🔴 **2 rows structurally absent:** JHP acknowledgement (OC-005 pending scoping) · Executive portfolio rollup (no `/executive` route, no role).
+
+🔴 **Customer #2 readiness: 23/90** — single-tenant data model; tenant isolation rebuild required (~10 weeks).
+
+🔴 **White-Label readiness: 23/90** — brand strings hard-coded across UI/PDF/email; brand-config layer required (~5 weeks AFTER tenant isolation).
+
+🟡 **ForgedOps Foundation readiness: 42/100** — state machine + audit trail + identity ladder are strong (8/10 each); assignment model + cross-workflow graph + person-level routing + reporting are the 4 gaps to a marketable v1 (~6-8 sprints).
+
+🛑 **STOPPED.** Workflow audit delivered. Awaiting operator decision among:
+* Authorize **top-4 friction closures** (inline kickback-reason banner · assigned-to-me · OC-005 Option 1 · idle-workflow alerter) — all inside Phase 1A envelope
+* Authorize **iter452.5.2 (P1 Resend bounce webhook)** — already pre-authorized · ~3d
+* Authorize **iter453 BUILD** (OC-003 + OC-004) — Day-9 gate cleared · ~7d
+* Begin **white-label / Customer-#2 / ForgedOps v1 roadmap planning** (post-Phase-1A)
 
 ---
 
