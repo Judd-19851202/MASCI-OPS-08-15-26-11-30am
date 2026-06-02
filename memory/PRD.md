@@ -1,6 +1,61 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02T23:15Z (OCEP · OPERATIONAL COMPLETION EVIDENCE PROGRAM · READ-ONLY HARNESS COMPLETE)
+
+### Operator directive
+> "OMEGA DIRECTIVE — OPERATIONAL COMPLETION EVIDENCE PROGRAM (OCEP). The objective is no longer to build more software. The objective is to prove the platform can operate without tribal knowledge and without Jaymn. READ ONLY · NO CODE · NO DEPLOYS · NO NEW MODULES."
+
+### Deliverables created (7 phase artifacts + master report + final directive doctrine)
+- `/app/memory/FOCP_FINAL_DIRECTIVE_OPERATIONAL_COMPLETION_DOCTRINE.md` — operating doctrine (binding, supersedes all prior engineering-expansion instructions)
+- `/app/memory/REALITY_VALIDATION_INTERVIEW_PLAYBOOK.md` — Phase 1 · 9 personas × 10 sections each · scoring rubric · escalation matrix
+- `/app/memory/TRAINING_REALITY_MATCH_MASTER_CHECKLIST.md` — Phase 2 · 29 workflows × 8-point check · weighted overall score
+- `/app/memory/SPANISH_OPERATIONAL_PARITY_AUDIT.md` — Phase 3 · 9 domains · construction-Spanish terminology master list · verdict + severity rubric
+- `/app/memory/OPERATOR_CONFIDENCE_LAYER_SPECIFICATION.md` — Phase 4 · what it is + what it must NEVER become · 8 role models (Green/Yellow/Red) · 6-gate authorization
+- `/app/memory/TRIBAL_KNOWLEDGE_ELIMINATION_REGISTER.md` — Phase 5 · 34 workflow rows · YES/PARTIAL/NO classification harness
+- `/app/memory/ADOPTION_RISK_REGISTER.md` — Phase 6 · 23 AI-seeded CANDIDATEs across 7 categories · Critical/High/Medium/Low
+- `/app/memory/OPERATIONAL_COMPLETION_SCORECARD.md` — Phase 7 · 12 metrics · evidence-only · current point-in-time read shows Final Cert BLOCKED by 7 operator-led evidence items
+- `/app/memory/FORGEDOPS_OPERATIONAL_COMPLETION_EVIDENCE_REPORT.md` — Master · the only document that can carry a Final Operator Certification signature
+
+### Current point-in-time scorecard (pre-evidence-cycle, 2026-06-02)
+| # | Metric | Score | Threshold | Status |
+|---|---|---:|---:|:-:|
+| 1 | Engineering Completion | 71 | 85 | ⚠️ |
+| 2 | Workflow Completion | 100 | 90 | ✅ |
+| 3 | Accountability Completion | 100 | 100 | ✅ |
+| 4 | Governance Completion | 95 | 90 | ✅ |
+| 5–11 | (operator-led evidence items) | 0 | — | 🔴 |
+| 12 | 90-Day Independence | FAIL | PASS | 🔴 |
+
+### What this means
+Engineering surface is essentially complete (Workflow + Accountability + Governance metrics meet or exceed thresholds). Evidence surface is NOT. Final Certification requires:
+- 9 persona interviews conducted by the operator
+- Phase 2 training audit conducted by the operator
+- Phase 3 Spanish audit conducted by a Florida-construction-fluent native speaker
+- Phase 4 confidence gates resolved per role
+- Phase 5 new-employee dry-run conducted
+- Phase 6 adoption candidates confirmed/refuted by the operator
+- Customer #2 tabletop conducted
+
+### What this does NOT mean
+- No new modules authorized
+- No code changes authorized
+- No engineering velocity authorized
+- AI agent is in evidence-collection support mode only
+
+### Next Action Items (operator-led)
+- Schedule the 9 Phase 1 interviews (1 per persona × 60 min)
+- Engage a Florida-construction Spanish reviewer for Phase 3
+- Run the Phase 5 new-employee dry-run with a real new hire
+- Confirm/refute the 23 adoption-risk candidates in `ADOPTION_RISK_REGISTER.md`
+- When all phase artifacts are filled, sign §11 of the Master Evidence Report
+
+### What the AI agent will do next
+Nothing, until the operator directs. The AI agent will refuse any task that violates §5 STOP conditions of the Final Directive Doctrine.
+
+---
+
+
 ## 2026-06-02T22:45Z (FOCP RELEASE 2 — TR-0001 + TR-0002 RETIRED · 🟢 OPERATIONAL COMPLETION ENGINEERING SURFACE CLEARED)
 
 ### Operator directive
