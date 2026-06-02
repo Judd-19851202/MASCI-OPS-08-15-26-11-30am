@@ -11,6 +11,22 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA · HR LIFECYCLE END-TO-END FORENSIC CERTIFICATION (2026-06-02 · 7 deliverables · 🟡 UX DEFECT · 🟢 GO WITH LIMITATIONS · NO DEPLOY HOLD)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `HR_LIFECYCLE_SAVEPATH_AUDIT.md` | Phase 1-2 · Save trigger identified at `HrEmployees.jsx:940` (`hremp-status-save`) · 22-row form inventory · viewport math · root cause = below-fold scroll position on 1366×768 / mobile + keyboard | 🟡 UX DEFECT |
+| `HR_LIFECYCLE_UI_FORENSICS.md` | Phase 1 · DOM tree of Status tab · computed CSS (no `display:none` / `visibility:hidden` / `opacity:0` / overlay) · critical absence: NO `<SheetFooter sticky>` · keyboard / mobile defect chain | 🟡 BELOW-FOLD |
+| `HR_LIFECYCLE_PERSISTENCE_TRACE.md` | Phase 2 + 4 · End-to-end: Button → `submitStatusChange` → `axios.post /api/hr/employees/{id}/status` → `employee_lifecycle.py:968` → `db.employees + status_history[] + employee_lifecycle_events + tasks` · all 4 audit surfaces verified · save path WORKS when invoked | 🟢 PERSISTENCE INTACT |
+| `HR_LIFECYCLE_GOVERNANCE_CERTIFICATION.md` | Phase 3 + 5 · `require_hr_or_admin` gate verified at route level · Operations/FL/PM/Shop/Dispatch/Safety/Anonymous all 403 · G-1..G-5 live · `LIFECYCLE_GOVERNANCE.md` constitutional principle "HR is the sole authoritative owner of employee lifecycle state" INTACT | 🟢 GOVERNANCE INTACT |
+| `HR_LIFECYCLE_RESPONSIVE_CERTIFICATION.md` | Phase 6 · Per-viewport reachability matrix · Desktop FHD/XL pass · laptop 1366×768 / iPad landscape+kbd / iPhone(any) / iPhone+kbd FAIL · ≈ 60-70 % of HR device fleet affected | 🔴 RESPONSIVE FAIL |
+| `HR_LIFECYCLE_ROOT_CAUSE_REPORT.md` | Phase 8 · Falsification trace · exact file/line (`HrEmployees.jsx:940`) · failure-chain reconstructed · remediation envelope (≤ 15 LOC sticky footer pattern) + risk assessment + rollback complexity TRIVIAL | 🟡 UX DEFECT |
+| `DEPLOYMENT_BLOCKER_ASSESSMENT.md` | Phase 9 · Classification: 🟡 UX DEFECT (not 🔴 deployment blocker) · feature works · data persists · Phase Alpha intact · operator perception of "no save button" is real but viewport-dependent · 🟢 deployment GO WITH LIMITATIONS | 🟢 GO WITH LIMITATIONS |
+
+**Final Classification (audit verdict)**: 🟡 **UX DEFECT** · the Save action exists, is wired, is HR-authorized, persists end-to-end with full audit trail, but is positioned inline at the end of a scrollable status form with no sticky footer — placing it below the viewport fold on ~60-70 % of HR's device fleet during the Resigned / Terminated / Laid Off transitions (the three operator-named workflows). **No deployment blocker** (feature is functionally correct; defect is reachability, not correctness). Recommended remediation: `iter453.7_hr_status_sticky_footer` (≤ 15 LOC, single file, no backend change, trivial rollback) — **awaiting operator authorization**. READ-ONLY directive honored throughout: no code changed, no fixes shipped, no deploy.
+
+---
+
 ---
 ### 00 · OMEGA · FINAL HOTFIX DEPLOYMENT CLOSEOUT (2026-06-02 · 3 deliverables · 🟡 CERTIFIED WITH REMAINING LIMITATIONS)
 

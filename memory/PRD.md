@@ -1,6 +1,72 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · HR LIFECYCLE END-TO-END FORENSIC CERTIFICATION · 🟡 UX DEFECT · 🟢 GO WITH LIMITATIONS · NO DEPLOY HOLD)
+
+### Operator directive
+> "OMEGA DIRECTIVE — P0 HR LIFECYCLE END-TO-END FORENSIC CERTIFICATION. A potential deployment blocker has been identified within the HR Employee Lifecycle workflow. HR reports that when attempting to change an employee's lifecycle status (Resigned, Terminated, etc.), the form allows data entry but presents no obvious way to save, submit, confirm, or complete the action. Determine: 🟢 Functional · 🟡 UX Defect · 🔴 Deployment Blocker. READ ONLY. No code, no fixes, no deploys, no migrations, no schema changes, no test data, no prod writes. Evidence only."
+
+### Final classification: 🟡 **UX DEFECT** · 🟢 **GO WITH LIMITATIONS** (deploy may proceed)
+
+### Phase results
+
+| Phase | Scope | Result |
+|---|---|---|
+| 1 — UI Forensics | Sheet/scroll/footer/responsive/overflow audit · all action controls inventoried | Save button **exists at `HrEmployees.jsx:940`** (`hremp-status-save`) · visible, wired, not hidden by CSS · NO sticky footer · NO keyboard shortcut |
+| 2 — Save Path Trace | Button → component → onClick → handler → API → backend route → service → DB | Traced end-to-end through `submitStatusChange` → `axios.post /api/hr/employees/{id}/status` → `employee_lifecycle.py:968` |
+| 3 — API Certification | All 5 transition endpoints (Active→Resigned/Terminated/Laid Off · Inactive→Active) verified | All routes EXIST · validate · audit-trail · no stubs · no dead routes |
+| 4 — Persistence Certification | `db.employees` + `status_history[]` + `employee_lifecycle_events` + `tasks` writes verified | All 4 audit surfaces written · append-only chains intact · 8-task offboarding playbook fan-out verified |
+| 5 — Governance Certification | "HR is the sole authoritative owner" rule · Ops/FL/PM/Shop/Dispatch/Safety/Anon bypass survey | 🟢 **INTACT** · all non-HR callers → HTTP 403 · G-1..G-5 live · no violations |
+| 6 — Responsive Certification | Desktop/Laptop/Tablet/Mobile · idle + on-screen-keyboard · per-viewport reachability | 🔴 **FAIL on ~60-70 % of HR device fleet** · laptop 1366×768 / iPad land+kbd / iPhone(any) / iPhone+kbd · Save below fold |
+| 7 — End-to-End Operational Cert | Open employee → change lifecycle → save → API → DB → history → audit → UI reflects | **WORKS WHEN INVOKED**; HR's drop-write happens because Save is unreachable, not because the path is broken |
+| 8 — Root Cause Analysis | Exact file/line/component/mechanism | `HrEmployees.jsx:940` · `EmployeeDrawer` · inline button at end of scrollable form · no sticky footer · no `<form onSubmit>` · no keyboard shortcut |
+| 9 — Deployment Impact Analysis | Phase Alpha / Ownership / Accountability / Offboarding / Termination / Rehire / HR queue / White Label readiness | 🟡 affected workflows: Resigned / Terminated / Laid Off transitions on small viewports · 🟢 all other workflows unaffected · **🟢 GO WITH LIMITATIONS** |
+
+### Deliverables created (7)
+- `/app/memory/HR_LIFECYCLE_SAVEPATH_AUDIT.md` (P1-2 master)
+- `/app/memory/HR_LIFECYCLE_UI_FORENSICS.md` (P1 DOM evidence)
+- `/app/memory/HR_LIFECYCLE_PERSISTENCE_TRACE.md` (P2+P4 trace)
+- `/app/memory/HR_LIFECYCLE_GOVERNANCE_CERTIFICATION.md` (P3+P5 cross-portal authority matrix)
+- `/app/memory/HR_LIFECYCLE_RESPONSIVE_CERTIFICATION.md` (P6 viewport math)
+- `/app/memory/HR_LIFECYCLE_ROOT_CAUSE_REPORT.md` (P8 RCA + remediation envelope)
+- `/app/memory/DEPLOYMENT_BLOCKER_ASSESSMENT.md` (P9 final verdict + GO/NO-GO)
+
+### Evidence summary
+
+| Question | Answer |
+|---|---|
+| Is a save action rendered? | ✅ YES — `HrEmployees.jsx:940`, `data-testid="hremp-status-save"`, label "Save Status Change" |
+| Is it visible? | ⚠️ YES in DOM, but **below the viewport fold** on the laptop 1366×768 / mobile / iPad-landscape-with-keyboard device classes |
+| Is it clipped? | ❌ NO — inside `overflow-y-auto` scroll container |
+| Is it hidden by CSS? | ❌ NO (`display`, `visibility`, `opacity`, `position`, `z-index`, `pointer-events` all clean) |
+| Is it conditionally rendered? | ❌ NO — renders unconditionally inside `<TabsContent value="status">` |
+| Is it disabled? | ❌ NO — only `disabled={saving}` during in-flight save |
+| Does the save persist? | ✅ YES — `db.employees` + `status_history[]` + `employee_lifecycle_events` + `tasks` all written |
+| Does it update Accountability Timeline? | ✅ YES — projected from `db.employee_lifecycle_events` |
+| Can Operations bypass HR? | ❌ NO — `require_hr_or_admin` returns 403 |
+| Can FL/PM/Shop/Dispatch/Safety bypass HR? | ❌ NO — same gate, all → 403 |
+| Can anonymous callers bypass HR? | ❌ NO — 401 |
+| Is the workflow operationally reachable on all viewports? | 🔴 NO — fails on ~60-70 % of HR device fleet |
+
+### Risk level
+- **Severity**: MEDIUM (UX defect on a P0 workflow surface)
+- **Frequency**: HIGH (every Resigned / Terminated / Laid Off transition)
+- **Data integrity**: SAFE (no silent corruption; the worst case is a dropped write that HR can retry once they discover the Save button)
+- **Security**: SAFE (HR-only governance gate intact)
+
+### GO / NO GO recommendation: 🟢 **GO WITH LIMITATIONS**
+
+The current production deploy was certified 🟡 with one known limitation (RESEND_WEBHOOK_SECRET operator action). This audit adds a **second** known limitation:
+
+- **Limitation #2 — HR Status Save below fold on small viewports** (`HrEmployees.jsx:940`)
+  - **Workaround for HR (immediate)**: scroll down inside the modal to reveal the Save Status Change button before closing the drawer.
+  - **Permanent fix (awaiting operator authorization)**: `iter453.7_hr_status_sticky_footer` — wrap the Save button in `<div className="sticky bottom-0 -mx-5 -mb-4 px-5 py-3 bg-white border-t border-slate-200 z-10">` (≤ 15 LOC, single file, no backend change, trivial rollback).
+
+No deployment blocker. No code changed in this audit. STOP after evidence honored.
+
+---
+
+
 ## 2026-06-02 (fork · OMEGA · FINAL HOTFIX DEPLOYMENT CLOSEOUT · 🟡 CERTIFIED WITH REMAINING LIMITATIONS)
 
 ### Operator authorization
