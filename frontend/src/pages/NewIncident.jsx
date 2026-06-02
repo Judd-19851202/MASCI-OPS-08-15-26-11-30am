@@ -1331,6 +1331,40 @@ export default function NewIncident({ publicMode = false }) {
           </Button>
         </div>
       </main>
+
+      {/* iter500 · Rank #1 · Human-Operability sticky footer.
+          Always-visible submit anchor pinned to the viewport bottom so the
+          primary action is reachable on every form length and every device
+          without scroll-hunting. Mirrors the iter453.7 + iter453.9 pattern
+          proven on HrEmployees. The existing top/bottom Submit buttons are
+          retained for redundancy; this footer is the always-on path. */}
+      <div
+        className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t-2 border-red-700 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]"
+        data-testid="submit-sticky-footer"
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
+            {saving
+              ? t("Submitting incident report…")
+              : (data.photos || []).length < 4
+                ? `${t("Need")} ${4 - (data.photos || []).length} ${t("more photo(s)")}`
+                : t("Ready to submit · Safety + PM will be notified")}
+          </div>
+          <Button
+            onClick={submit}
+            disabled={saving || (data.photos || []).length < 4}
+            className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
+            data-testid="submit-sticky-btn"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            {saving ? t("Saving…") : t("Submit Incident Report")}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
