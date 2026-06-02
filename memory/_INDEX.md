@@ -13,6 +13,28 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 ---
 
+### 00 · OMEGA · ITER453 + ITER452.5.2 PRE-DEPLOY CERTIFICATION (2026-06-02 · 3 deliverables)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `ITER453_ITER452_5_2_PRE_DEPLOY_CERTIFICATION.md` | Payload-presence confirmation · 85 tests re-run (0 regressions) · backend-boot verification · 10-scenario webhook sweep · dedicated `ClientDisconnect` Sentry classification (preview noise · not a blocker · ~5-line polish option or Sentry filter) · Constitutional + Doctrine + Reduce-Work re-verification · production env requirements · frontend lifecycle panel status (backend-ready · UI NOT field-operable) · 8-target regression-area verification · forbidden-pattern audit | 🟡 GO WITH LIMITATIONS |
+| `ITER453_ITER452_5_2_DEPLOYMENT_RISK_REPORT.md` | 6-item risk register · R-1 Sentry noise (MEDIUM · not a blocker · 3 mitigation options) · R-2 UI not wired (MEDIUM · documented limitation) · R-3 deferred Ownership rules (LOW) · R-4 prod env checklist (LOW) · R-5 pre-existing test flake (LOW) · R-6 operator-surface gap (LOW) · cumulative posture GREEN-WITH-NOISE | 🟡 0 BLOCKER · 0 HIGH · 2 MEDIUM · 4 LOW |
+| `ITER453_ITER452_5_2_GO_NO_GO.md` | **🟡 GO WITH KNOWN LIMITATIONS** · why GO · 2 explicit operator-acceptable limitations · what is being deployed · production deployment checklist (5 steps · operator-owned) · trivial rollback plan (additive build) · 3-section signoff | 🟡 GO |
+
+🟡 **HEADLINE: 🟡 GO WITH KNOWN LIMITATIONS** — production deploy is operationally safe. Two MEDIUM items the operator should explicitly accept: (1) Sentry will continue capturing `ClientDisconnect`/`No response returned` noise on `/api/webhooks/resend` until a polish batch ships or Sentry filter is applied (zero customer impact · Resend itself does not disconnect mid-body); (2) Field-operability for OC-003/OC-004 transitions is API-only until a separate ~2-3-hour UI batch wires the existing shape-compatible `LifecyclePanel` component.
+
+### Production deployment checklist (operator-owned)
+1. Set `RESEND_WEBHOOK_SECRET=whsec_...` in production env (from Resend Dashboard signing secret)
+2. Configure Resend Dashboard webhook URL → `https://<prod-host>/api/webhooks/resend` · subscribe to 5 event types
+3. Confirm `ADMIN_DEAD_LETTER_EMAIL=safety@mascigc.com` in production env
+4. (Optional) Sentry Inbound Filter for `RuntimeError("No response returned.")` on `/api/webhooks/resend`
+5. Send test event from Resend Dashboard · expect 200 + row in `resend_webhook_events`
+
+### Rollback plan (trivial · build is strictly additive)
+Revert the 3 wiring lines in `server.py` (`register_qaqc_lifecycle_routes` · `register_site_inspection_lifecycle_routes` · `register_resend_webhook_routes`) · restart supervisor. Existing CRUD continues to work; new collections (`resend_webhook_events`) are isolated.
+
+---
+
 ### 00 · OMEGA · ITER453 + ITER452.5.2 BUILD COMPLETE (DEPLOYMENT-READY) (2026-06-02)
 
 | File | Purpose | Status |

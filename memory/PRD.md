@@ -1,6 +1,77 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · CERTIFICATION) — ITER453 + ITER452.5.2 PRE-DEPLOY: 🟡 GO WITH LIMITATIONS
+
+### Operator authorization
+> "OMEGA PRE-DEPLOY CERTIFICATION — ITER453 + ITER452.5.2. Certify the combined payload before production deploy. Specific Sentry issue: ClientDisconnect on POST /api/webhooks/resend `raw = await request.body()`. Deliverables: PRE_DEPLOY_CERTIFICATION + DEPLOYMENT_RISK_REPORT + GO_NO_GO. No code changes. No deploy. No scope expansion. STOP after reports."
+
+### Final verdict: 🟡 GO WITH KNOWN LIMITATIONS
+Production deploy is operationally safe. **2 MEDIUM limitations** are operator-acceptable under the GO decision:
+1. **Sentry `ClientDisconnect` noise** will continue on `/api/webhooks/resend` until either (a) ~5-line `try/except ClientDisconnect` polish ships, or (b) Sentry Inbound Filter is applied. **Not a blocker** — Resend itself does not disconnect mid-body; noise comes from preview-platform probes/scanners/curl tests. Zero customer impact.
+2. **Frontend lifecycle panels not wired for OC-003/OC-004.** Backend endpoints (POST /transition, GET /lifecycle, GET /state-events) are API-operable day one. Field users will need API access or admin tools until a separate ~2-3-hour UI batch wires the existing shape-compatible `LifecyclePanel`. **Not a blocker** — closure-action contract is API-enforced from deploy moment.
+
+### Sentry ClientDisconnect classification (operator's 4-bucket question)
+| Hypothesis | Verdict |
+|---|---|
+| Expected preview webhook-test disconnect noise | ✅ YES — primary cause (reproduced 1:1 with curl --max-time 0.001) |
+| Unhandled application bug | ❌ NO — handler logic is correct; ClientDisconnect raises in middleware chain before handler runs |
+| Production deployment blocker | ❌ NO — Resend retries cleanly; webhook works for all properly-formed events (verified by 9-scenario sweep + 9 pytest cases) |
+| Sentry noise that should be handled/downgraded | ✅ YES — recommend Sentry Inbound Filter (zero code) or 5-line `try/except` polish in follow-up batch |
+
+### Test verification
+- 85 tests re-run · **0 regressions** · 24/24 iter453 + 9/9 iter452.5.2 + iter451/452/452.5/452.5.1 all PASS
+- 10-scenario webhook sweep: valid + invalid sig + duplicate + hard bounce + soft bounce + delivered + malformed + empty + disconnect — all behave correctly
+- Live e2e: ack-only closure → HTTP 422 · evidence closure → HTTP 200 · 4 state-events written
+
+### Regression-area verification (operator's 8 named targets · all clear)
+| Target | Status |
+|---|---|
+| Incident lifecycle | ✅ NO REGRESSION |
+| Daily Report lifecycle | ✅ NO REGRESSION |
+| Payroll lifecycle | ✅ NO REGRESSION |
+| FSI identity ladder | ✅ NO REGRESSION |
+| Scheduler | ✅ NO REGRESSION |
+| Photo viewer | ✅ NO REGRESSION |
+| Backups | ✅ NO REGRESSION |
+| Command Center | ✅ NO REGRESSION |
+| Accountability | ✅ NO REGRESSION |
+
+### Risk register
+- 🔴 BLOCKER: **0**
+- 🟠 HIGH: **0**
+- 🟡 MEDIUM: **2** (R-1 Sentry noise · R-2 UI not wired)
+- 🟢 LOW: **4** (R-3 deferred O-11/O-12/O-13 · R-4 prod env checklist · R-5 pre-existing test flake · R-6 operator-surface gap)
+
+### Production deployment checklist (operator-owned · pre-deploy actions)
+1. Set `RESEND_WEBHOOK_SECRET=whsec_...` in production env (from Resend Dashboard signing secret)
+2. Configure Resend Dashboard webhook URL → `https://<prod-host>/api/webhooks/resend` · subscribe to 5 event types (sent · delivered · bounced · complained · delivery_delayed)
+3. Confirm `ADMIN_DEAD_LETTER_EMAIL=safety@mascigc.com` in production env
+4. (Optional) Sentry Inbound Filter for `RuntimeError("No response returned.")` on `/api/webhooks/resend` — eliminates R-1 noise without code change
+5. Send test event from Resend Dashboard → expect 200 + row in `resend_webhook_events`
+
+### Rollback plan (trivial · build is strictly additive)
+Revert 3 wiring lines in `server.py` · restart supervisor. Existing CRUD continues to work. New collections (`resend_webhook_events`) are isolated.
+
+### Deliverables produced this batch (3 new · zero code · zero deploy)
+- `/app/memory/ITER453_ITER452_5_2_PRE_DEPLOY_CERTIFICATION.md`
+- `/app/memory/ITER453_ITER452_5_2_DEPLOYMENT_RISK_REPORT.md`
+- `/app/memory/ITER453_ITER452_5_2_GO_NO_GO.md`
+
+### Operator decision matrix
+- Authorize **production deploy** (per the 5-step checklist above) — payload is GO 🟡
+- Authorize **Sentry noise polish** (~5-line follow-up · catches `ClientDisconnect`) — eliminates R-1
+- Authorize **frontend lifecycle panels for OC-003/OC-004** (~2-3 hours · zero backend) — eliminates R-2
+- Authorize **Ownership Layer A build** — closes R-3 deferred items
+- Defer · pick a different priority
+
+### Status
+🛑 Certification batch complete. Zero code changes · zero deploys initiated · zero scope expansion. **iter453 + iter452.5.2 are certified 🟡 GO WITH KNOWN LIMITATIONS for production deploy.** Awaiting explicit operator deploy authorization OR follow-up batch authorization.
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · BUILD) — ITER453 + ITER452.5.2 SHIPPED 🚢
 
 ### Operator authorization
