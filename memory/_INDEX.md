@@ -11,6 +11,19 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA P0 · HR SAVE BUTTON FORENSIC FAILURE (REOPENED · READ-ONLY · 2026-06-02T18:33Z · 4 deliverables · 🟡 UX FAILURE)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `HR_SAVE_BUTTON_FORENSIC.md` | 13 forensic questions answered · button DOM presence in prod bundle · onClick wired · API endpoint correct · backend route exists · gate works · DB write works · Toast mounted · drawer auto-close NOT coded | evidence-only |
+| `HR_SAVE_BUTTON_EXECUTION_TRACE.md` | 22-stage trace Button→onClick→3 FE validations→setSaving→payload build→axios POST→FastAPI→require_hr_or_admin→find_one→noop check→3 BE validations→DB write ($set+$push)→playbook fan-out→response→toast→refetch→finally · 4 live preview probes (Probe A 200+playbook=8tasks · Probe B noop · Probe C noop · Probe D Resigned→Active 200) · 10 failure-mode catalog · per-transition reproduction matrix for Resigned/Terminated/Laid Off/Rehire | evidence-only |
+| `HR_SAVE_BUTTON_ROOT_CAUSE.md` | Root cause: feedback insufficiency · 3 branches analyzed (FE validation short-circuit · backend noop · happy path) · drawer doesn't auto-close · toast bottom-right auto-dismiss · noop misleadingly says "Status updated" · 6 minimal-scope (≤5 LOC each) feedback affordances proposed (not actioned) | 🟡 UX failure |
+| `DEPLOYMENT_BLOCKER_REASSESSMENT.md` | Classification: 🟡 UX FAILURE (not 🟢 misunderstanding · not 🔴 workflow failure) · workflow + data + governance + audit + playbook all intact · perception of "nothing happened" is legitimate even though everything happened correctly · no deployment block · no rollback · no emergency | 🟡 UX FAILURE |
+
+**Final Classification**: 🟡 **UX FAILURE** · The Save Status Change button works end-to-end: API fires, backend validates, DB updates, status_history appends, employee_lifecycle_events appends, offboarding playbook fires (8 tasks), HR authority gate intact, audit trail intact. But the system's success/failure signaling is sparse: bottom-right toast auto-dismisses in ~4 s, drawer stays open without auto-close, form doesn't reset, noop returns same "Status updated" toast as real saves, and the in-drawer success acknowledgement is minimal — so HR users can legitimately perceive "nothing happened" even when the save persisted correctly. No deployment block. No rollback. The fix is a small UX feedback enhancement awaiting authorization.
+
+---
+
 ### 00 · OMEGA · FINAL PRODUCTION L1+L2 RE-CERTIFICATION ROUND 2 (2026-06-02T18:16Z · 2 deliverables rewritten · 🟢 PRODUCTION CERTIFIED)
 
 | File | Purpose | Verdict |

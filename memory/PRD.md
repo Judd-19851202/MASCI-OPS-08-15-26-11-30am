@@ -1,6 +1,64 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02T18:33Z (fork · OMEGA P0 · HR SAVE BUTTON FORENSIC FAILURE · READ-ONLY · 🟡 UX FAILURE)
+
+### Operator directive
+> "OMEGA P0 — HR LIFECYCLE SAVE BUTTON FORENSIC FAILURE. Previous blocker resolution is REOPENED. Current behavior: Save button is visible, user fills out lifecycle form, user clicks Save Status Change, nothing appears to happen. Trace Button → onClick → handler → API → response → toast → modal close → db write → lifecycle history write. READ ONLY. NO FIXES. NO CODE. NO DEPLOY. Final classification: 🟢 User Misunderstanding · 🟡 UX Failure · 🔴 Workflow Failure."
+
+### Final classification: 🟡 **UX FAILURE**
+
+### Forensic findings
+- ✅ Button click fires (`onClick={submitStatusChange}` wired at `HrEmployees.jsx:1043`)
+- ⚠️ API call fires CONDITIONALLY — three frontend pre-validations can short-circuit at lines 532/537/546 (toast.error + early return, no API call)
+- ✅ Endpoint correct: `POST /api/hr/employees/{id}/status` (`employeesApi.js:63`)
+- ✅ Backend gate intact (`require_hr_or_admin`, anon → 401, forged tokens → 401)
+- ✅ Backend route returns 200 on every valid path probed (Active→Resigned 200+8tasks, noop 200, Resigned→Active 200)
+- ✅ DB writes correctly · `status_history` grew 4→5→6 across live preview probes
+- ✅ `employee_lifecycle_events` chain alive
+- ✅ Offboarding playbook fires (8 tasks on Active→Resigned)
+- ✅ Toaster mounted (`App.js:283` · sonner · bottom-right · richColors)
+
+### Why the user perceives "nothing happened"
+The system communicates save outcome through ephemeral, peripheral, weak signals:
+1. **Toast bottom-right auto-dismisses in ~4 s** — user's eyes are on the modal Save button area, not bottom-right
+2. **Drawer does NOT auto-close** after save — breaks user expectation set by every other save dialog in the app
+3. **Form state does NOT reset** after save — visually identical to pre-save state
+4. **No in-drawer success banner** — only the brief toast signals success
+5. **StatusBadge color shift is subtle** — Active→Resigned tint change is easy to miss
+6. **Backend `noop` short-circuit** returns generic "Status updated" toast when nothing actually changed (e.g., HR re-clicks Save with same status selected)
+7. **Frontend validation short-circuits** produce ephemeral red toasts (separation_type/rehire_eligibility/reason missing) that bail BEFORE setSaving(true), so user doesn't even see the "Saving…" button flip
+
+### Reproduction matrix (Resigned · Terminated · Laid Off · Rehire)
+All four transitions execute successfully when their respective validation requirements are satisfied:
+- Resigned · Terminated · Laid Off — share `_OFFBOARDING_STATUSES` code path · 200 + 8-task playbook + status_history append
+- Rehire — two paths exist (Reactivate Dialog preferred · Status tab also accepted) — both return 200 + status_history append, but Status-tab path loses rehire_date semantics
+
+### Why NOT 🔴 Workflow Failure
+Every operational layer is intact: DB writes, history append-only, audit trail, governance gate, playbook fan-out. The previous L1+L2 certification proved this. No data at risk. No governance breach.
+
+### Why NOT 🟢 User Misunderstanding
+The user's report is internally consistent and externally reproducible. The system's success-feedback signaling is genuinely thin enough that a user under load with focus on the modal can legitimately conclude "nothing happened" without misreading anything.
+
+### Remediation envelope (NOT actioned · 6 ideas at ≤5 LOC each)
+1. Auto-close drawer after non-noop successful save (1 LOC)
+2. In-drawer "Saved at HH:MM" banner pinned in sticky footer for 3 s (8 LOC)
+3. Reset form fields after successful save (4 LOC)
+4. Make success toast top-center · manual dismiss (1 LOC)
+5. "Status changed: X → Y" banner pinned at drawer top for 5 s (10 LOC)
+6. Differentiate noop toast from real-save toast (4 LOC)
+
+### Deliverables created (4)
+- `/app/memory/HR_SAVE_BUTTON_FORENSIC.md`
+- `/app/memory/HR_SAVE_BUTTON_EXECUTION_TRACE.md`
+- `/app/memory/HR_SAVE_BUTTON_ROOT_CAUSE.md`
+- `/app/memory/DEPLOYMENT_BLOCKER_REASSESSMENT.md`
+
+🟡 **UX FAILURE** — no deployment block · no rollback · no emergency. Read-only directive honored throughout: no code changed, no fixes shipped, no deploy.
+
+---
+
+
 ## 2026-06-02T18:16Z (fork · OMEGA · FINAL PRODUCTION L1+L2 RE-CERTIFICATION ROUND 2 · 🟢 PRODUCTION CERTIFIED)
 
 ### Operator directive
