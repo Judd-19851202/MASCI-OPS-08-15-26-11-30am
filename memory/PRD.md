@@ -1,6 +1,37 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-03T00:30Z (OCEP · OPTION C · PRE-INTERVIEW BASELINE FINDINGS · READ-ONLY)
+
+### Operator directive
+> "OMEGA DIRECTIVE — OPTION C. Pre-interview baseline. Synthesize existing source-direct findings only. NO fabrication."
+
+### Deliverable
+- `/app/memory/REALITY_VALIDATION_FINDINGS_REPORT.md` — Cross-corpus synthesis. Every finding tagged `PRE-INTERVIEW · UNVERIFIED · CANDIDATE`. Zero fabricated quotes / scores / users. 34 ranked candidate findings drawn only from 7 authorized source documents.
+
+### Structure
+- §1 Executive summary (most-likely / least-likely / unknowns / interview-required)
+- §2 Top 10 Candidate Risks (cross-corpus)
+- §3 Top 10 Candidate Training Gaps (Phase 2 source)
+- §4 Top 10 Candidate Tribal Knowledge Dependencies (Phase 5 source)
+- §5 Top 10 Candidate Adoption Risks (Phase 6 source · ranked by OI/AI/FP HIGH/MED/LOW)
+- §6 Top 10 Customer #2 Risks (tabletop source)
+- §7 Ranking Matrix · 5 impact dimensions × HIGH/MEDIUM/LOW
+- §8 Interview Validation Targets · maps findings → 8 personas
+- §9 Unknowns · 26 interview agenda questions
+- Final: 5 × Top-5 lists (Most-Likely-Real · Most-Likely-False · Validate-First · Block-Independence · Block-Customer-#2)
+- Calibration / Meta-Review
+
+### Headline calibration
+- 0 fabricated quotes, 0 invented scores, 0 fictional users
+- 27 of 34 candidate findings can be confirmed/refuted by the Priority 1-4 interviews (Super → Foreman → Safety → New-Employee Dry-Run)
+
+### What the AI agent will do next
+Nothing. Awaits real interview / dry-run transcripts to be dropped in `/app/memory/interviews/`. Will then re-synthesize, retiring CANDIDATEs to CONFIRMED or REFUTED based on real operator evidence.
+
+---
+
+
 ## 2026-06-02T23:55Z (OCEP · OPERATIONAL COMPLETION SPRINT · 7 DELIVERABLES COMPLETE · READ-ONLY)
 
 ### Operator directive
