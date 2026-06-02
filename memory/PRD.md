@@ -1,6 +1,91 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA) — FORGEDOPS OWNERSHIP LAYER DISCOVERY AUDIT DELIVERED 🟢
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — FORGEDOPS OWNERSHIP LAYER DISCOVERY AUDIT. Do NOT build anything · do NOT write code · do NOT create implementation plans · do NOT estimate effort. Determine what an Ownership Layer should be under the ForgedOps Constitution. Primary question: How can ForgedOps automatically know who owns something · who should act · when action is required · when escalation occurs — WITHOUT manual task assignment · acknowledgement workflows · acceptance workflows · ticket systems · Jira-style queues · Monday-style boards · excessive notifications? Apply Constitution + Override + Amendment 001. For every major workflow (Incidents · Daily Reports · QA/QC · Site Inspections · Payroll Variances · Safety · Equipment · Fleet · HR · Project Operations) answer 10 questions. Produce 7 deliverables. Special instruction: NOT a task-management system · NOT a ticket system · NOT dashboards · the goal is to discover how ownership can be automatically inferred from operational reality. Every recommendation must satisfy Operationally Complete + Operationally Accountable + Operationally Simple. STOP after documentation. NO CODE. NO BUILD. NO AUTHORIZATIONS."
+
+### Primary-question answer
+🧭 **Ownership in ForgedOps is inferred from operational reality · never assigned by humans.** Four signals — S1 Creator (FSI 5-tier or auth session) · S2 Project (`jobs_master.primary_pm`) · S3 State role gate · S4 Manager ladder (`manager_employee_id`) — combine in one equation that returns one accountable person at every moment of every workflow's life. Default precedence: **S3 → S2 → S4 → S1**. NULL is operationally impossible because Tier 5 dead-letter (`safety@mascigc.com`) always exists. Transfers happen only when the state machine transitions; closures only when Tier 1 work-performed evidence completes a workflow; escalations only via SLA-driven `manager_employee_id` ladder. Executives see Action Console rows with one-tap affordances — never read-only dashboards.
+
+### Final-question answer
+> *If ForgedOps became the operating system for heavy civil construction, what ownership model would allow the company to run without creating more work for the people using it?*
+
+**The operational record IS the task.** No parallel task object exists. No "Assign" UI · no "Accept" UI · no "Acknowledge" UI. The state machine + project linkage + manager hierarchy resolves to one accountable person automatically. That person sees their record in their Action Console with a one-tap operational-action affordance. If they don't act within SLA, ownership escalates up the manager ladder automatically. Operational reality creates the work; ForgedOps puts each piece in front of exactly one accountable person at exactly the right moment.
+
+### The universal inference equation
+```
+Owner(record, t) =
+    role_gate( current_state(record, t) )
+    ∩ project_owner( record.project_number )    if S2 applies
+    ∩ workflow_class_default                    if S3 unspecified
+    ∩ manager_ladder( prior_owner )             if escalation_breached
+    ∩ creator( record )                         only if all above NULL
+```
+
+### The 3-question task filter (Rule 2 textbook)
+1. Does completing this require an operational action? — if NO, it's a notification only
+2. Does the action change a workflow's state? — if NO, it's a side-effect
+3. Is the action gated to one accountable person via §4 equation? — if NO, fix the inference equation first
+Three YESes → Action Console row owned by the inferred person.
+
+### Constitutional compliance summary (74 line-items across 5 reviewed documents)
+| Verdict | Count | % |
+|---|---:|---:|
+| ✅ PASS | 46 | 90 % |
+| 🟡 REVIEW REQUIRED | 5 | 10 % |
+| 🔴 CONSTITUTIONAL CONFLICT | 0 | 0 % |
+
+### 5 REVIEW REQUIRED items (each requires operator decision before any build)
+1. **Counterparty "external owner" pseudo-state** in PM workflows (Submittal · RFI · CO · Pay-App) — Rule 3 nuance
+2. **Joint-ownership exception** for DOT-exposure escalation (Operations Manager + Safety Manager) — Rule 3 nuance
+3. **Operations Manager console overload risk** at scale (delegation policy needed)
+4. **Executive visibility-vs-ownership distinction** (dual-affordance pattern: open vs take-ownership)
+5. **Drift risk** from row-metadata charts → standalone dashboards (Constitutional Test pre-build gate for charts)
+
+### 8 mandatory executive Action Consoles
+1. PM Portfolio Action Console
+2. Project Risk Lens
+3. Operations Manager Action Console
+4. Safety Action Console
+5. Fleet + DOT Action Console
+6. Accounting/EX-1 Integration Surface
+7. HR Operational Surface (field-side only · HR-side via HRIS)
+8. "What's open across the platform that I own" (Rule 3 self-view · G1-14)
+
+### Three success criteria (Override · all PASS at Discovery Layer)
+* **Operationally Complete** — deterministic owner at every moment · NULL impossible · evidence-driven transfer/closure/escalation
+* **Operationally Accountable** — single accountable person per record · `manager_employee_id` ladder + workflow-class defaults · zero "Unassigned" state
+* **Operationally Simple** — zero assignment UI · zero acknowledgement UI · zero acceptance UI · zero ticket-system parallel object
+
+### What this ownership model is NOT
+* NOT a task management system · NOT a ticket system · NOT Jira-style queue · NOT Monday-style board · NOT a dashboard · NOT a notification system · NOT checklist software
+
+### Deliverables produced this batch (7 new)
+* `/app/memory/OWNERSHIP_LAYER_DISCOVERY_AUDIT.md` (master · 10×10 matrix · inference equation · 3-question filter)
+* `/app/memory/OWNERSHIP_INFERENCE_MATRIX.md` (per-state inference rules · NULL-fallback ladder · 6 excluded patterns)
+* `/app/memory/OWNERSHIP_TRANSFER_MATRIX.md` (state-transition-only transfers · Tier 1 closure evidence · cross-workflow lifecycle proof)
+* `/app/memory/ESCALATION_DISCOVERY_REPORT.md` (manager_employee_id ladder algorithm · per-workflow SLAs · Rule-8 awareness pings · 5 forbidden patterns)
+* `/app/memory/EXECUTIVE_VISIBILITY_REQUIREMENTS.md` (Action Console contract · 8 mandatory surfaces · forbidden patterns · mobile posture)
+* `/app/memory/CONSTITUTIONAL_COMPLIANCE_REVIEW.md` (74 line-items reviewed · 46 PASS · 5 REVIEW · 0 CONFLICT · 5 REVIEW items detailed)
+* `/app/memory/OWNERSHIP_LAYER_DISCOVERY_EXECUTIVE_SUMMARY.md` (3-min operator read · 6-option decision matrix · operator's batch listed as `EXECUTIVE_SUMMARY.md` but disambiguated to preserve prior 2026-05-31 Forensic Platform Certification snapshot already at that path)
+
+### Operator decision matrix (6 options · none auto-authorized)
+* (A) Accept Ownership Layer Discovery as canonical pre-build reference
+* (B) Resolve 5 REVIEW REQUIRED items as a doctrine batch (documentation only)
+* (C) Authorize Ownership Layer A build (Top 10 Rank #1 — inference primitive on lifecycle records)
+* (D) Authorize Ownership Layer B build (auto-task projection — Action Console row materialization)
+* (E) Authorize Ownership Layer C build (escalation engine + executive Action Consoles)
+* (F) Defer Ownership Layer · pick a different priority (iter452.5.2 P1 · iter453 · EX-1 · etc.)
+
+### Status
+🛑 Documentation-only batch complete. Zero code · zero DB changes · zero deployment · zero design · zero estimates · zero authorization · zero implementation plans. OMEGA discipline preserved. Constitution + Amendment 001 + Operational Reality Audit + Build/Integrate/Ignore Doctrine + Ownership Layer Discovery now form the complete pre-build governance set. Control surrendered to operator.
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA) — FORGEDOPS BUILD / INTEGRATE / IGNORE AUDIT DELIVERED 🟢
 
 ### Operator authorization
