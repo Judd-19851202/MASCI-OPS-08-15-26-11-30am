@@ -1,14 +1,45 @@
 # `/app/memory/` — Governance Doc Index
 
-_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · 🚀 **PLATFORM TRANSITION FROM AUDIT/DISCOVERY MODE INTO OPERATIONAL EXECUTION MODE** · Phase 1 Ownership Doctrine ACCEPTED as canonical (15 binding rules O-1..O-15) · Phase 2 5 REVIEW items RESOLVED (100 % Constitutional clarity · 51 PASS · 0 REVIEW · 0 CONFLICT across all Ownership documents) · Phase 3 iter453 (OC-003 + OC-004) Constitutionally re-scoped and BUILD-READY · Phase 4 Company Operating System Audit complete (4-bucket classification BUILD/INTEGRATE/EXISTS/IGNORE · ~22 EXISTS · ~38 BUILD · ~21 INTEGRATE · ~9 HYBRID · ~14 IGNORE · ~37 % operational completeness today · EX-1 Accounting integration BLOCKING) · Reduce-work-vs-create-work test now mandatory pre-build gate · 🧭 **OWNERSHIP LAYER DISCOVERY AUDIT COMPLETE** (S1–S4 inference equation · 10 workflows × 10 questions · state-transition-only transfer model · Tier-1-evidence-required closure model · manager_employee_id escalation ladder · 8 mandatory executive Action Consoles · 46 PASS · 5 REVIEW · 0 CONFLICT in original release → 51 PASS · 0 REVIEW · 0 CONFLICT post-Phase-2) · Final-question answer: **the operational record IS the task** · 🔨 **BUILD / INTEGRATE / IGNORE AUDIT COMPLETE** (48 gaps · 24 BUILD · 15 INTEGRATE · 7 HYBRID · 2 IGNORE · Top 10 platform capabilities · Top 5 greenfield · 36 PASS · 12 REVIEW · 0 CONFLICT) · 🔴 **OPERATIONAL REALITY VERDICT: ~63 % OF MASCI'S OPERATIONAL SURFACE STILL RUNS OUTSIDE FORGEDOPS TODAY** (accounting/ERP · spreadsheets · phone · email · tribal knowledge) · Platform Operability 35–37/100 🔴 · 14 forward Constitutional violations · ⛔ **GOVERNANCE STACK NOW ACTIVE: CONSTITUTION + OVERRIDE + AMENDMENT 001 + BUILD/INTEGRATE/IGNORE DOCTRINE + OWNERSHIP DOCTRINE (O-1..O-15) + REDUCE-WORK-VS-CREATE-WORK TEST**)._
+_30-second orientation map for future agents and forks · 2026-06-02 (last updated 2026-06-02 — OMEGA · 🚢 **ITER453 + ITER452.5.2 BUILD COMPLETE · DEPLOYMENT-READY** · iter453 OC-003 QA/QC + OC-004 Site Inspection lifecycle endpoints live · closure-action contract enforces re-inspection OR corrective_action OR documented exception (dual sign-off) · ack-click closure returns HTTP 422 · `current_owner_role` inferred per state · iter452.5.2 Resend webhook POST /api/webhooks/resend live · HMAC-signed · idempotent · maps email.sent/delivered/bounced/complained/delivery_delayed → ForgedOps delivery taxonomy · hard-bounce auto-escalates to Tier 5 dead-letter (no human click) · Email Sent → Delivered → Bounced → Dead Letter chain CLOSED · 24/24 iter453 state-machine tests pass · 9/9 iter452.5.2 webhook tests pass · 93+ total tests · zero regressions · ruff clean · backend supervisor clean · live curl e2e PASS · **Mandatory pre-build gates active:** Constitutional Test + Ownership Doctrine Test (O-1..O-15) + Reduce-Work-vs-Create-Work Test · 🚀 PLATFORM TRANSITION FROM AUDIT/DISCOVERY MODE INTO OPERATIONAL EXECUTION MODE · Phase 1-4 directive complete · 🧭 OWNERSHIP DOCTRINE binding (15 rules) · 🔨 BUILD/INTEGRATE/IGNORE DOCTRINE binding · 🔴 Operational completeness now ~42-45 % (was ~37 % pre-build) · 🚫 14 forward Constitutional violations still pending operator decisions)._
 
 ⛔ **READ THIS FIRST** — every future audit/build/recommendation must satisfy the **full governance stack**:
 1. `FORGEDOPS_OPERATIONAL_DESIGN_CONSTITUTION.md` Parts I–IV (10 Friction Rules + Override + Amendment 001 Rule 11)
 2. `BUILD_INTEGRATE_IGNORE_MASTER_REGISTER.md` (Build/Integrate/Ignore Doctrine)
 3. `OWNERSHIP_LAYER_DISCOVERY_AUDIT.md` + `OWNERSHIP_DISCOVERY_CANONICAL_ACCEPTANCE.md` + `OWNERSHIP_DISCOVERY_REVIEW_RESOLUTIONS.md` (Ownership Doctrine · 15 rules O-1..O-15)
 4. `COMPANY_OPERATING_SYSTEM_AUDIT.md` (operational-capability classification + reduce-work-vs-create-work test)
+5. `ITER453_CONSTITUTIONAL_BUILD_PACKAGE.md` + `ITER453_ITER452_5_2_POST_BUILD_CERTIFICATION.md` (operational execution mode now active)
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
+
+---
+
+### 00 · OMEGA · ITER453 + ITER452.5.2 BUILD COMPLETE (DEPLOYMENT-READY) (2026-06-02)
+
+| File | Purpose | Status |
+|---|---|---|
+| `ITER453_ITER452_5_2_POST_BUILD_CERTIFICATION.md` | Post-build certification · Constitutional Compliance Verification · Ownership Doctrine Verification (12/15 PASS · 3/15 documented forward) · Regression Verification (93+ tests · 0 regressions) · Deployment Readiness Certification · production env note (`RESEND_WEBHOOK_SECRET`) · forward-binding doctrine compliance · scope-discipline NOT-built list | 🟢 SHIPPED |
+| Backend: `routes/qaqc_lifecycle.py` | iter453 OC-003 endpoints: POST /api/qaqc-inspections/{id}/transition · GET /lifecycle · GET /state-events · closure-action contract enforced · current_owner_role inferred | 🟢 SHIPPED |
+| Backend: `routes/site_inspection_lifecycle.py` | iter453 OC-004 endpoints (FINDINGS_RAISED) symmetric to OC-003 | 🟢 SHIPPED |
+| Backend: `routes/resend_webhook.py` | iter452.5.2 POST /api/webhooks/resend · HMAC-signed · idempotent · 5-event-type mapping · hard-bounce auto-escalation to Tier 5 dead-letter | 🟢 SHIPPED |
+| Backend: `lib/workflow_state_machine.py` (extended) | QAQC_STATES + SITE_INSPECTION_STATES + validators + `_qaqc_closure_evidence_ok()` shared closure-action helper | 🟢 SHIPPED |
+| Backend: `server.py` (3 wiring lines added) | Registers all 3 new route modules immediately after existing qaqc CRUD | 🟢 SHIPPED |
+| Tests: `tests/test_iter453_lifecycle.py` | 24 state-machine unit tests · OC-003 + OC-004 · closure-action contract · role gates · reopen/rework reasons · forbidden-key contract | 🟢 24/24 PASS |
+| Tests: `tests/test_iter452_5_2_resend_webhook.py` | 9 smoke + full-chain tests · hard-bounce auto-escalation · soft-bounce no-escalation · delivery confirmation · Constitutional/Doctrine assertions (no /assign/ /reassign/ /acknowledge/ /accept/ endpoints exist) | 🟢 9/9 PASS |
+
+🚢 **Headline:** First BUILD shipment since OMEGA audit-mode era began. Operational execution mode active. All Constitutional, Ownership Doctrine, and Reduce-Work tests pass. Zero regressions. Deployment-ready (preview operates clean; production needs `RESEND_WEBHOOK_SECRET` env + Resend Dashboard webhook URL configuration).
+
+🟢 **Closure-action contract live:** ack-click closure of QA/QC + Site Inspection returns HTTP 422 `closure_evidence_missing:operational_action_required`. 3-path closure: (a) re-inspection record (b) corrective_action complete (c) documented exception with dual sign-off.
+
+🟢 **Deliverability evidence chain CLOSED:** Email Sent → Delivered → Bounced → Dead Letter. No human action in the chain. Rule 7 + Ownership Doctrine O-4 fully exercised.
+
+🚫 **NOT built** (scope discipline): frontend lifecycle panels · executive Action Consoles · tenant-tunable workflow defaults · deputy delegation · `escalate_to_stop_work` Site Inspection transition · CV-1..CV-4 resolutions · non-webhook portion of Rule-8 notification routing.
+
+🛑 Awaiting next operator authorization. Recommended next batches (from `COMPANY_OPERATING_SYSTEM_EXECUTIVE_SUMMARY.md §7`):
+* (A) Ownership Layer A build (Top 10 #1 · adds `manager_employee_id` foundation + full ownership inference engine)
+* (D) EX-1 Accounting integration scoping (single largest unblock for executive + HYBRID workflows)
+* (E) Field Clock-in/out scoping (heavy-civil differentiator)
+* (F) Executive Role + 8 mandatory Action Consoles scoping (gated on Ownership Layer A+B)
+* Frontend lifecycle panels for OC-003/OC-004 (wire the existing LifecyclePanel pattern to the new endpoints)
 
 ---
 

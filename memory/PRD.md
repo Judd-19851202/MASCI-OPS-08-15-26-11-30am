@@ -1,6 +1,94 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · BUILD) — ITER453 + ITER452.5.2 SHIPPED 🚢
+
+### Operator authorization
+> "FORGEDOPS BUILD AUTHORIZATION · ITER453 + ITER452.5.2 EXECUTION ORDER. ITER453: OC-003 QA/QC Follow-Up + OC-004 Site Inspection Follow-Up. ITER452.5.2: Resend Bounce Webhook + Deliverability Evidence Chain + Dead-Letter Accountability Path. Build objective: reduce operational friction. Every design decision must answer 'Does this remove work or create work?' Forbidden: new acknowledgement workflows · new assignment workflows · new ticketing concepts · new task boards · new 'I have read this' screens · new dashboard-only features · new manual ownership controls. Success test: Operationally Complete + Operationally Accountable + Operationally Simple."
+
+### What shipped
+**iter453 — OC-003 QA/QC Follow-Up + OC-004 Site Inspection Follow-Up**
+* State machines added to `workflow_state_machine.py`: QAQC_STATES + SITE_INSPECTION_STATES + validators + shared `_qaqc_closure_evidence_ok()` closure-action helper
+* New routes: `POST /api/qaqc-inspections/{id}/transition` + `GET /lifecycle` + `GET /state-events` (and symmetric `/api/inspections/...`)
+* Closure-action contract (Amendment 001 REPLACE-4/5 binding): re-inspection record OR corrective_action complete OR documented exception with dual sign-off — ack-click closure returns HTTP 422
+* Ownership inference per state via `current_owner_role` (Inspector → PM → PM → Inspector → none for OC-003; symmetric for OC-004)
+* Reopen + rework loops require reason ≥ 5 chars
+
+**iter452.5.2 — Resend Bounce Webhook + Deliverability Evidence Chain + Dead-Letter Accountability Path**
+* New endpoint: `POST /api/webhooks/resend` · HMAC-signed (Svix-style · `RESEND_WEBHOOK_SECRET`) · idempotent on `(provider_message_id, kind)`
+* Maps Resend events: `email.sent` · `email.delivered` · `email.bounced` · `email.complained` · `email.delivery_delayed` → ForgedOps delivery taxonomy
+* Extended delivery kinds: `notification_delivery_delivered` · `notification_delivery_bounced` · `notification_delivery_complained` · `notification_delivery_deferred`
+* **Dead-Letter Accountability Path:** hard-bounce on any non-dead-letter tier auto-escalates to Tier 5 dead-letter (`safety@mascigc.com`) via `revision_link_issued` chain event + new `notification_dispatch_attempted` row — zero human clicks
+* Soft bounces recorded but do NOT escalate
+* Full chain: `Email Sent → Delivered → Bounced → Dead Letter` is now operationally complete
+
+### Constitutional / Doctrine compliance
+| Test | Result |
+|---|---|
+| Constitution Parts I–IV (Rules 1-10) | ✅ All PASS |
+| Amendment 001 Rule 11 (Evidence Over Ack) | ✅ PASS (closure-action contract = the doctrine) |
+| Ownership Doctrine O-1..O-15 | ✅ 12 PASS · 3 documented forward (O-11/O-12/O-13 deferred to Ownership Layer A · acceptable Constitutional debt per Phase 3 build-dependencies clause) |
+| Build/Integrate/Ignore Doctrine | ✅ BUILD scope honored · zero scope creep |
+| Reduce-Work-vs-Create-Work test | ✅ every component reduces work · zero create work |
+| 3-criterion success test (Operationally Complete · Accountable · Simple) | ✅ All 3 PASS |
+
+### Test results
+| Suite | Tests | Pass | Fail |
+|---|---:|---:|---:|
+| `test_iter453_lifecycle.py` (NEW) | 24 | 24 | 0 |
+| `test_iter452_5_2_resend_webhook.py` (NEW) | 9 | 9 | 0 |
+| iter451 incident lifecycle (regression) | full | pass | 0 |
+| iter452 DR + PV lifecycle (regression) | full | pass | 0 |
+| iter452.5 + iter452.5.1 FSI + orphan-elimination (regression) | full | pass | 0 |
+| **TOTAL** | **93+** | **93+** | **0** |
+
+End-to-end smoke against live preview pod:
+* `create QC inspection → transition through all 5 states → reject closure without evidence (HTTP 422 closure_evidence_missing:operational_action_required) → close with re_inspection_record_id (HTTP 200) → 4 state-events written` — all PASS
+
+### Deployment Readiness
+* Backend supervisor clean · `/api/health` 200 · ruff clean · no DB migration · no frontend changes · hot reload tested
+* **Production:** set `RESEND_WEBHOOK_SECRET` (Svix-style `whsec_…` from Resend Dashboard) + configure webhook endpoint URL pointing at `/api/webhooks/resend` + verify `ADMIN_DEAD_LETTER_EMAIL` env present
+* **Preview:** webhook operates without signature verification when `RESEND_WEBHOOK_SECRET` is unset — preview-only mode
+
+### NOT built (scope discipline)
+* Frontend lifecycle panels for OC-003/OC-004 (existing `LifecyclePanel` is shape-compatible · separate UI wiring batch)
+* Executive Action Console for QA/QC backlog (Phase 4 audit places in BUILD Wave 4)
+* Tenant-tunable workflow-class defaults (O-12 · Ownership Layer A)
+* Deputy delegation (O-13 · Ownership Layer A)
+* `escalate_to_stop_work` Site Inspection transition (O-11 · documented in spec · state-map entry deferred)
+* CV-1..CV-4 P0 Constitutional Violation resolutions (independent · awaits operator decision)
+* Non-webhook portion of Rule-8 notification routing
+
+### Deliverables produced this batch (6 new + 2 modified)
+NEW:
+* `/app/backend/routes/qaqc_lifecycle.py`
+* `/app/backend/routes/site_inspection_lifecycle.py`
+* `/app/backend/routes/resend_webhook.py`
+* `/app/backend/tests/test_iter453_lifecycle.py`
+* `/app/backend/tests/test_iter452_5_2_resend_webhook.py`
+* `/app/memory/ITER453_ITER452_5_2_POST_BUILD_CERTIFICATION.md`
+
+MODIFIED:
+* `/app/backend/lib/workflow_state_machine.py` (appended state machines · validators · closure-evidence helper · __all__ exports)
+* `/app/backend/server.py` (3 register-routes wiring lines added after existing qaqc CRUD)
+
+### Operator decision matrix (recommended next batches · none auto-authorized)
+* (A) Ownership Layer A build (Top 10 #1 · adds `manager_employee_id` + full inference engine wiring · closes the 3 deferred Ownership Doctrine items)
+* (B) Frontend lifecycle panels for OC-003/OC-004 (wire existing LifecyclePanel to new endpoints)
+* (C) EX-1 Accounting integration scoping (operator names vendor)
+* (D) Field Clock-in/out scoping (heavy-civil differentiator)
+* (E) Executive Role + 8 mandatory Action Consoles scoping
+* (F) CV-1..CV-4 P0 Constitutional Violation resolutions (per `AMENDMENT001_EXECUTIVE_SUMMARY.md §5`)
+
+### Status
+🚢 **First BUILD shipment since OMEGA audit-mode era began.** Documentation-mode era ended. Operational execution mode active. iter453 + iter452.5.2 deployment-ready. Zero regressions. Zero new screens. Zero ack workflows. Zero assignment dropdowns. Every component passes Constitutional Test + Ownership Doctrine Test + Reduce-Work-vs-Create-Work Test.
+
+Operational completeness projection: ~37 % → **~42-45 %** (closes 2 of the 5 Phase 1A workflow gaps · closes the deliverability accountability chain · primes the way for Ownership Layer A build to push toward ~50 %).
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA) — FORGEDOPS NEXT PHASE DIRECTIVE (Phases 1-4) DELIVERED 🚀
 
 ### Operator authorization

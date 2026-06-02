@@ -2127,6 +2127,40 @@ register_qaqc_routes(
 )
 
 
+# ─── OMEGA · iter453 · OC-003 + OC-004 Lifecycle (Constitutional Build Package) ─
+#     Additive transition endpoints for QA/QC and Site Inspection
+#     follow-up. Closure-action contract enforced by the state machine
+#     itself (Amendment 001 REPLACE-4 + REPLACE-5). Reads use the
+#     Safety/Admin/PM gate; closure gates narrow per-role inside the
+#     state-machine module. No assignment UI, no ack-click closure,
+#     no parallel task object — operational record IS the work.
+from routes.qaqc_lifecycle import register_qaqc_lifecycle_routes  # noqa: E402
+register_qaqc_lifecycle_routes(
+    api_router, db,
+    require_qaqc_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
+from routes.site_inspection_lifecycle import register_site_inspection_lifecycle_routes  # noqa: E402
+register_site_inspection_lifecycle_routes(
+    api_router, db,
+    require_inspection_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
+
+# ─── OMEGA · iter452.5.2 · Resend Bounce Webhook + Deliverability Evidence Chain ─
+#     Closes Email Sent → Delivered → Bounced → Dead Letter chain.
+#     Hard bounce on any non-dead-letter tier auto-escalates ownership
+#     to Tier 5 dead-letter via the existing FSI write_chain_event +
+#     write_dispatch_event helpers. No user click required. Rule 7 +
+#     Ownership Doctrine O-4 textbook.
+from routes.resend_webhook import register_resend_webhook_routes  # noqa: E402
+register_resend_webhook_routes(api_router, db)
+
+
 # ============================================================
 # Daily Job Reports
 # ----------------------------------------------------------
