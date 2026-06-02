@@ -13,6 +13,39 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 ---
 
+### 00 · OMEGA · SUB / VENDOR IDENTITY GOVERNANCE AUDIT (2026-06-02 · 5 deliverables · pre-deployment gate)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `SUB_VENDOR_IDENTITY_AUDIT.md` | Exhaustive identity-creating route inventory · 13 identity-bearing collections mapped · per-route writer table for Employee/Applicant/Field Leader/Subcontractor/Vendor/Vendor Contact/External Worker · live contamination scan against db.employees (247 rows) | 🟡 ROOT AUDIT |
+| `IDENTITY_MODEL_AUDIT.md` | Canonical 7-class identity model · source-of-truth/lifecycle-owner/create/modify/delete authority matrix · proposed FK schema · 5 operator decision points | 🟡 DESIGN |
+| `EMPLOYEE_ROSTER_CONTAMINATION_REPORT.md` | Live db.employees scan · 9 contamination rows quantified (8 test + 1 pre-Alpha FL residual) · 0 sub/vendor/external-worker contamination · 0 anonymous-public-form contamination | 🟢 CLEAN |
+| `IDENTITY_GOVERNANCE_REMEDIATION_PLAN.md` | 9-batch remediation in 3 phases · Phase α-Sub (5 batches mirror Employee Alpha for db.suppliers) · Phase α-Reconcile (employee_id FK on 5 parallel people collections) · Phase α-NewClasses (Applicant + Vendor Contact + External Worker if authorized) · sequencing binding · 5 operator decisions | 🟡 PLAN |
+| `PHASE_ALPHA_DEPLOYMENT_IMPACT_REPORT.md` | Per-downstream-system impact analysis · 9 systems assessed · 3 new LOW risks added (R-A6/R-A7/R-A8 all existing-state, not Alpha regressions) · final deploy verdict | 🟢 DEPLOY-SAFE |
+
+🟢 **HEADLINE: db.employees is CLEAN of sub/vendor/external-worker contamination · Phase Alpha is DEPLOYMENT-SAFE** — 247 employees · 0 company-shaped rows · 0 anonymous-public-form rows · 0 sub/vendor markers · 9 cosmetic rows (8 test + 1 pre-Alpha FL residual · 3.6 % of roster · post-deploy HR cleanup) · post-audit risk register 0 BLOCKER · 0 HIGH · 0 MEDIUM · 8 LOW (5 prior + 3 new existing-state) · all 3 new LOW are NOT regressions introduced by Phase Alpha. **Identity-governance gaps exist independently in `db.suppliers` (5 P0 violations mirroring pre-Alpha employees) and in 5 parallel-people collections (24 FL users + 42 HR users + 3 shop + 2 dispatch + 6 PM + 49 user_directory · 126 rows total · no employee_id FK).**
+
+### 7 identity classes proposed (canonical model · see IDENTITY_MODEL_AUDIT.md)
+1. **Employee** — `db.employees` · HR sole authority (post-Alpha)
+2. **Former Employee** — `db.employees` (terminated states) · HR authority
+3. **Applicant** (NEW · not yet built) — `db.applicants` · HR authority
+4. **Field Leader** — `db.employees` identity + `db.field_leadership_users` role-grant · HR (identity) + Admin (role grant)
+5. **Subcontractor** — `db.suppliers` (`vendor_type="subcontractor"`) · Procurement/PM authority (operator decision pending)
+6. **Vendor** — `db.suppliers` (`vendor_type="vendor"`) · Procurement authority
+7. **Vendor Contact** (NEW · not yet built) — `db.vendor_contacts` · Procurement authority
+8. **External Worker** (NEW · not yet built) — `db.external_workers` · Procurement or Safety (operator decision pending)
+
+### 5 operator decision points (gating future builds)
+1. Sub/Vendor lifecycle owner: Procurement vs PM vs Admin?
+2. External Worker lifecycle owner: Procurement vs Safety?
+3. Phase α-Sub authorization timing — now or defer?
+4. Applicant collection — build (N-1) or defer?
+5. Vendor Contact + External Worker — build (N-2) or defer?
+
+🛑 **NO code changes · NO migrations · NO deletes · NO cleanup · NO deployment in this audit. Operator decides deployment based on the 5 deliverables.**
+
+---
+
 ### 00 · OMEGA · EMPLOYEE GOVERNANCE PHASE ALPHA (2026-06-02 · 4 deliverables · 🟢 GO)
 
 | File | Purpose | Verdict |

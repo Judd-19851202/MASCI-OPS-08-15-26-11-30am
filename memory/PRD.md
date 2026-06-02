@@ -1,6 +1,58 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · SUB/VENDOR IDENTITY AUDIT · P0) — Identity governance complete · Phase Alpha deploy-safe 🟢
+
+### Operator authorization
+> "AUTHORIZE SUB/VENDOR IDENTITY GOVERNANCE AUDIT · P0 · Employee Governance Alpha is complete but SHALL NOT be deployed yet. Identify every route that creates: Employee · Applicant · Field Leader · Subcontractor · Vendor · Vendor Contact · External Worker. Identify every collection those routes write to. Determine whether any non-employee records exist in db.employees. Quantify contamination. Impact on Payroll, HR roster, Training, JHP, Safety, Accountability, Command Center, Notifications, Ownership Layer A. Produce canonical identity model. NO code changes. NO migrations. NO deletes. NO cleanup. NO deployment. Audit only. STOP after reports delivered."
+
+### Verdict: 🟢 Phase Alpha is DEPLOYMENT-SAFE · db.employees is CLEAN of sub/vendor/external-worker contamination
+247 employees · **0 company-shaped rows** · **0 anonymous-public-form rows** · **0 sub/vendor/external-worker markers** · 9 cosmetic rows (3.6 %: 8 test/canary + 1 pre-Alpha FL residual). The 3 new LOW risks added by this audit (R-A6 suppliers parallel P0s · R-A7 parallel-people FK gap · R-A8 cosmetic test rows) are existing-state observations, NOT regressions from Phase Alpha.
+
+### Identity inventory (13 identity-bearing collections + 9 employee-create paths post-Alpha)
+- `db.employees` (247) · `db.suppliers` (145) · `db.users` (5 legacy) · `db.user_directory` (49) · `db.hr_users` (42) · `db.shop_users` (3) · `db.dispatch_users` (2) · `db.project_managers` (6) · `db.field_leadership_users` (24) · `db.employee_requests` (27 · Alpha) · `db.employee_lifecycle_events` (11 · Alpha) · `db.field_leadership_records` (32) · `db.unmapped_external_records`
+
+### 5 deliverables produced
+- `/app/memory/SUB_VENDOR_IDENTITY_AUDIT.md` (root audit · 9 sections)
+- `/app/memory/IDENTITY_MODEL_AUDIT.md` (7-class canonical model · authority matrix · FK schema · 5 operator decisions)
+- `/app/memory/EMPLOYEE_ROSTER_CONTAMINATION_REPORT.md` (9 rows quantified · 3.6 % of roster · all cosmetic)
+- `/app/memory/IDENTITY_GOVERNANCE_REMEDIATION_PLAN.md` (9-batch plan in 3 phases · α-Sub · α-Reconcile · α-NewClasses)
+- `/app/memory/PHASE_ALPHA_DEPLOYMENT_IMPACT_REPORT.md` (per-downstream-system impact · 9 systems · 🟢 DEPLOY recommendation)
+- `/app/memory/_INDEX.md` updated · `/app/memory/PRD.md` (this entry)
+
+### 5 P0 violations on `db.suppliers` (mirror of pre-Alpha employee violations · NOT touched by Alpha)
+1. `POST /api/suppliers/add` — PUBLIC anonymous create
+2. `POST /api/admin/suppliers` — admin-only (no HR/Procurement gate · no lifecycle state machine)
+3. `PUT /api/admin/suppliers/{id}` — admin-only with mutable `is_active`
+4. `DELETE /api/admin/suppliers/{id}` — admin-only soft-delete (no transition state machine)
+5. `POST /api/admin/suppliers/upload` — `delete_many({})` + insert_many (DESTRUCTIVE)
+
+### 5 parallel-people collections lack FK to `db.employees` (126 affected rows)
+- `field_leadership_users` (24 foremen · `employee_id=''` everywhere)
+- `hr_users` (42) · `shop_users` (3) · `dispatch_users` (2) · `project_managers` (6) — no FK
+- `user_directory` (49 · `employee_id=None` on all rows)
+
+### 5 operator decision points (gating future Sub/Vendor and identity-class builds)
+1. Sub/Vendor lifecycle owner: Procurement vs PM vs Admin?
+2. External Worker lifecycle owner: Procurement vs Safety?
+3. Phase α-Sub authorization timing — now or defer?
+4. Applicant collection — build (N-1) or defer?
+5. Vendor Contact + External Worker — build (N-2) or defer?
+
+### Deployment recommendation
+🟢 **Phase Alpha is deployment-safe.** No identity contamination blocks deployment. Cosmetic cleanup is post-deploy. Sub/Vendor + Parallel-People + New-Classes work is sequenced into future phases (α-Sub · α-Reconcile · α-NewClasses) per `IDENTITY_GOVERNANCE_REMEDIATION_PLAN.md`. Ownership Layer A explicitly blocked on Phase α-Reconcile completion (by design).
+
+### What was NOT done (per directive)
+- ❌ No code changes · ❌ No migrations · ❌ No deletes · ❌ No cleanup · ❌ No deployment
+- ❌ No Phase α-Sub work · ❌ No Phase α-Reconcile work · ❌ No Phase α-NewClasses work
+- ❌ No Ownership Layer A · ❌ No Accountability Chain · ❌ No Escalation Framework · ❌ No iter454/iter455.1 · ❌ No White Label · ❌ No Customer #2 onboarding · ❌ No ForgedOps readiness
+
+🛑 **Audit complete. Deployment decision and next-batch authorization belong to operator.**
+
+---
+
+
+
 ## 2026-06-02 (fork · OMEGA · GOVERNANCE PHASE ALPHA) — HR is now SOLE LIFECYCLE AUTHORITY 🟢 GO
 
 ### Operator authorization
