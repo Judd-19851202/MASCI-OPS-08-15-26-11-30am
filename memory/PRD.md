@@ -1,6 +1,41 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02T23:55Z (OCEP · OPERATIONAL COMPLETION SPRINT · 7 DELIVERABLES COMPLETE · READ-ONLY)
+
+### Operator directive
+> "OMEGA DIRECTIVE — OPERATIONAL COMPLETION SPRINT (PHASES 2-6). Read-only evidence/adoption/confidence/certification sprint. NO CODE, NO DB, NO UI, NO DEPLOYS, NO NEW MODULES."
+
+### 7 Required Outputs delivered
+1. `PHASE2_TRAINING_REALITY_MATCH_REPORT.md` — Source-direct audit of 19 workflows × 8 directive questions against 461 tips in `tips.py`. **Overall Score: 52/100** (2 PASS, 14 PARTIAL, 3 FAIL). 4 root-cause patterns identified.
+2. `SPANISH_REVIEW_WORKBOOK.md` — Reviewer protocol + severity matrix + 8-domain worksheet + construction-Spanish terminology reference + findings register + signoff. No translations performed (audit framework only).
+3. `OPERATOR_CONFIDENCE_LAYER_FINAL_SPEC.md` — Final spec. 8 role models (Green/Yellow/Red), inputs/outputs/ownership/escalation/thresholds, 6-gate authorization framework, complete MUST-NEVER-BECOME list.
+4. `CUSTOMER2_TABLETOP_EXECUTION_GUIDE.md` — 12-step Customer #2 onboarding tabletop · 4 cross-cutting probes per step · severity scale · pass/fail gates · output template.
+5. `CUSTOMER2_TABLETOP_RISK_REGISTER.md` — 32 AI-seeded CANDIDATEs across 6 categories. 4 BLOCKER candidates identified (single-tenancy, hardcoded brand, hidden admin password, no tenant bootstrap). Worst-case Customer #2 Readiness Score: 0/100 (must be tabletop-confirmed).
+6. `FINAL_OPERATIONAL_CERTIFICATION_PACKAGE.md` — 10 certifications (Foreman/Super/PM/Safety/HR/Dispatch/Executive + New Employee + Customer #2 + 90-Day Independence) each with Pass Criteria + Evidence Requirements + Failure Criteria + Operator Signoff blocks.
+7. `OPERATIONAL_COMPLETION_EXECUTIVE_SUMMARY.md` — Master synthesis answering all 8 directive questions.
+
+### Headline finding
+**Engineering surface: ready. Evidence surface: not yet collected.**
+- MASCI 90-day independence: BLOCKED on ~28 hours of operator-led evidence collection (9 interviews + Spanish review + dry-run + tabletop + risk confirmation + 8 gate decisions + signatures)
+- Customer #2: BLOCKED on 4 engineering items (multi-tenancy, brand, admin bootstrap, tenant bootstrap) — currently FROZEN by FOCP Final Directive · operator must explicitly authorize OR declare "MASCI-only platform"
+- White Label: FULLY BLOCKED on multi-tenancy (entirety of work · FROZEN)
+- Final 90-Day Independence Certification: cannot start until 9 prior certifications signed
+
+### Truth Register classification of newly-discovered findings
+- Phase 2 pattern P1 (`mistake` kind missing on 14 workflows) → **ACTIVE** (engineering-supportable; gated)
+- Phase 2 pattern P2 (Approvals-class coaching absent) → **ACTIVE** (engineering-supportable; gated)
+- Phase 2 pattern P3 (Shop/Fleet coaching thinness) → **ACTIVE** (engineering-supportable; gated)
+- Phase 2 pattern P4 (QA/QC 3-path closure coaching missing) → **DEFERRED** (operator decides)
+- Customer #2 BLOCKERs C2-0001/0002/0005/0007 → **ACTIVE** (multi-tenancy class · FROZEN until explicit auth)
+- Universal Undo coaching omission → **DOCTRINE EXEMPT** (FOCP R2 § 7 declares inline copy carries the model)
+
+### What the AI agent will do next
+Nothing, until the operator directs. The AI agent is parked in evidence-collection support mode and will refuse any task violating FOCP Final Directive STOP conditions.
+
+---
+
+
 ## 2026-06-02T23:15Z (OCEP · OPERATIONAL COMPLETION EVIDENCE PROGRAM · READ-ONLY HARNESS COMPLETE)
 
 ### Operator directive
