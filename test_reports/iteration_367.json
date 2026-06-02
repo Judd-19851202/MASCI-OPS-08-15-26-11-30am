@@ -1,0 +1,47 @@
+{
+  "summary": "ITER453 + ITER452.5.2 frontend-only certification of QaqcLifecyclePanel and SiteInspectionLifecyclePanel on their host pages /admin/qaqc/{id} and /admin/inspections/{id}. Logged in as super-admin (jaymn.judd@mascigc.com) via /sign-in, walked the two seed records through OPEN -> DEFICIENCY_RAISED/FINDINGS_RAISED -> IN_REMEDIATION -> PENDING_RE_INSPECTION via API to expose all four panel surfaces (state pill, role-gated CLOSE button, REWORK button, History), then exercised the closure modal's three operational-evidence paths, the reason modal, and the history modal. All 13 UI assertions PASS for both panels; host pages still render normally with no console errors after panel injection.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_367.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Both panels are self-contained (no dependency on the generic LifecyclePanel) and correctly express the QA/QC + Site closure contract (text inputs for record id, notes, dual sign-off) that the generic checkbox-only closureConfig cannot.",
+    "Closure-modal validation gating is enforced client-side exactly per the state-machine contract: re_inspection requires non-empty record id; corrective_action requires notes >= 20 chars; exception requires reason >= 10 chars AND distinct PM and Safety user ids. Verified live in both panels.",
+    "Reason modal correctly disables confirm until >= 5 chars in both panels.",
+    "History modal correctly loads /state-events list (3 rows after API-driven transitions) and renders empty-state when none exist.",
+    "All interactive elements use stable data-testid attributes matching the contract from the review request, which makes the panels fully regression-testable.",
+    "Suggestion (non-blocking): Clearing the closure modal's evidence inputs when the user switches between the 3 radio paths would prevent stale-state confusion when the user toggles back to a previously filled path; currently the inputs persist across path switches. Behaviour is correct but minor UX nit."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (skipped per request)", "frontend": "100% (13/13)" },
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! (super_admin) via /sign-in -> multi-login; admin token surfaces in localStorage key masci.admin.token and is auto-attached by /app/frontend/src/lib/api.js as X-Admin-Token.",
+  "seed_data_creation": "No new records created. Used existing preview records QC-2026-00014 (qaqc id b472ec62-ece8-405d-9c70-78c8c24b057b) and INSP-2026-00079 (inspection id b7077762-2b46-4fb3-889b-9de2e4ba77c3). Both were transitioned via API into PENDING_RE_INSPECTION to expose the CLOSE / REWORK buttons. After testing, attempted cleanup left QAQC in DEFICIENCY_RAISED and Site in FINDINGS_RAISED (PENDING_RE_INSPECTION cannot go directly back to OPEN per the state machine - this is correct backend behaviour, not a bug). Records are not closed and remain fully usable for the next iteration.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Two screenshots saved to /app/test_reports/playwright/qaqc_panel.png and /app/test_reports/playwright/site_inspection_panel.png show the rendered panels with state pill = 'Pending Re-Inspection', both action buttons visible, and host content (QC-2026-00014 details / INSP-2026-00079 grade banner + sections) still intact above/below the panel. Two seed records are now in non-OPEN states - if next iteration needs OPEN-state assertions, pick a different record from /api/qaqc-inspections and /api/inspections listings or create a fresh one.",
+  "verified_assertions": {
+    "login_via_sign_in": "PASS",
+    "qaqc_panel_renders": "PASS - data-testid='qaqc-lifecycle-panel' present on /admin/qaqc/{id}",
+    "qaqc_state_pill": "PASS - data-testid='qaqc-lifecycle-state-pill' shows 'Pending Re-Inspection'",
+    "qaqc_role_gated_buttons": "PASS - mark-closed-btn, rework-btn, history-btn all visible for admin",
+    "qaqc_closure_modal_3_paths": "PASS - re_inspection / corrective_action / exception radios + per-path inputs all visible",
+    "qaqc_closure_re_inspection_gating": "PASS - confirm disabled when record id empty, enabled when filled",
+    "qaqc_closure_corrective_action_gating": "PASS - confirm disabled <20 chars, enabled >=20 chars",
+    "qaqc_closure_exception_gating": "PASS - confirm disabled when reason <10 chars OR PM==Safety user id, enabled with distinct ids + reason>=10",
+    "qaqc_reason_modal_gating": "PASS - rework confirm disabled <5 chars, enabled >=5 chars",
+    "qaqc_history_modal": "PASS - loaded 3 state-event rows after API transitions",
+    "site_inspection_panel_renders": "PASS - data-testid='site-inspection-lifecycle-panel' present on /admin/inspections/{id}",
+    "site_inspection_state_pill": "PASS - data-testid='site-inspection-lifecycle-state-pill' shows 'Pending Re-Inspection'",
+    "site_inspection_buttons_present": "PASS",
+    "site_inspection_closure_modal_validation": "PASS - identical 3-path gating semantics verified",
+    "site_inspection_reason_modal": "PASS",
+    "site_inspection_history_modal": "PASS - 3 rows loaded",
+    "host_page_smoke": "PASS - GradeBanner, Section 01 Project/Inspection Information, doc id badge all still render normally"
+  }
+}

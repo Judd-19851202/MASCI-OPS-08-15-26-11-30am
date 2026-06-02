@@ -1,13 +1,13 @@
 # Timestamp Doctrine Probe Report
 
-_Phase TRUST-TIME-1B · self-protection probe · 🟢 PASS_
+_Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 
-- Scanned files     : **708**
+- Scanned files     : **758**
 - Patterns           : **5**
-- New violations     : **0**
-- New warnings       : **0**
-- Baselined          : **81**
-- Scan runtime       : **246 ms**
+- New violations     : **1**
+- New warnings       : **7**
+- Baselined          : **77**
+- Scan runtime       : **144 ms**
 
 ## Pattern catalogue
 
@@ -18,6 +18,20 @@ _Phase TRUST-TIME-1B · self-protection probe · 🟢 PASS_
 | `F4·toLocaleString-bare` | frontend | med | Use formatLocalDateTime() from lib/dateUtils.js — defensively coerces naive ISO as UTC. |
 | `F5·toLocaleDateString-bare` | frontend | med | Use formatLocalDate() from lib/dateUtils.js. |
 | `B1·datetime-utcnow` | backend | high | Use datetime.now(timezone.utc) — utcnow() returns a NAIVE datetime. |
+
+## ⚠ New violations
+
+- `pages/HrPayrollVariance.jsx:272` · `F1·slice16-replaceT` · `<td className="px-3 py-2 text-slate-600 font-mono text-xs">{(b.created_at || "")` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
+
+## · New warnings (review · not deploy-blocking)
+
+- `components/LifecyclePanel.jsx:399` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `components/IncidentLifecyclePanel.jsx:406` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `components/SiteInspectionLifecyclePanel.jsx:552` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `components/QaqcLifecyclePanel.jsx:550` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `pages/ViewIncident.jsx:743` · `F4·toLocaleString-bare` · `{data.created_at ? new Date(data.created_at).toLocaleString() : ""} ·{" "}`
+- `pages/ViewInspection.jsx:483` · `F4·toLocaleString-bare` · `{t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() :`
+- `pages/ViewDailyReport.jsx:637` · `F4·toLocaleString-bare` · `{data.created_at ? new Date(data.created_at).toLocaleString() : ""} ·{" "}`
 
 ## How to clear violations
 

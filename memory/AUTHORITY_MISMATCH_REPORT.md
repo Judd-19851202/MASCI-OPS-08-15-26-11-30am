@@ -2,21 +2,27 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-05-28 23:55:41 UTC
-* Scan duration: 426 ms
+* Generated: 2026-06-02 10:46:40 UTC
+* Scan duration: 189 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 
 ## Summary
 
 * **New violations** (fail the gate): **0**
-* **New warnings** (review): 2
-* **Baselined** (previously approved): 58
+* **New warnings** (review): 8
+* **Baselined** (previously approved): 52
 
 ## 🟡 New warnings
 
 * `lib/constraintCapabilities.js:48` · ad-hoc canApprove variable · `const hasHr = isHr();`
 * `lib/constraintCapabilities.js:49` · ad-hoc canApprove variable · `const hasAdmin = isAdmin();`
+* `pages/NewIncident.jsx:313` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/NewIncident.jsx:335` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/ViewQaqcInspection.jsx:73` · ad-hoc canApprove variable · `label={isAdmin() ? "Admin · QA/QC" : "QA/QC"}`
+* `pages/ViewQaqcInspection.jsx:80` · ad-hoc canApprove variable · `{isAdmin() && (`
+* `pages/NewDailyReport.jsx:795` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/NewDailyReport.jsx:822` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 
 ## ⚪ Baselined (already reviewed)
 
@@ -42,15 +48,11 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `pages/HrEmployees.jsx:78` · token-coexistence rendering · 2-way OR
 * `pages/HrEmployees.jsx:78` · ad-hoc canApprove variable
 * `pages/HrEmployees.jsx:78` · ad-hoc canApprove variable
-* `pages/NewIncident.jsx:311` · ad-hoc canApprove variable
-* `pages/NewIncident.jsx:333` · ad-hoc canApprove variable
 * `pages/HrEmployeeAccountabilityTimeline.jsx:114` · ad-hoc canApprove variable
 * `pages/HrEmployeeAccountabilityTimeline.jsx:114` · ad-hoc canApprove variable
 * `pages/ViewEquipmentInspection.jsx:145` · ad-hoc canApprove variable
 * `pages/SafetyFormsHub.jsx:62` · ad-hoc canApprove variable
-* `pages/ViewQaqcInspection.jsx:71` · ad-hoc canApprove variable
 * `pages/ViewQaqcInspection.jsx:72` · ad-hoc canApprove variable
-* `pages/ViewQaqcInspection.jsx:79` · ad-hoc canApprove variable
 * `pages/TrainingPacketDownload.jsx:41` · ad-hoc canApprove variable
 * `pages/FieldLeadershipRecords.jsx:36` · ad-hoc canApprove variable
 * `pages/FieldLeadershipPortalLogin.jsx:18` · ad-hoc canApprove variable
@@ -67,8 +69,6 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `pages/FieldLeadershipView.jsx:31` · ad-hoc canApprove variable
 * `pages/FieldLeadershipView.jsx:111` · ad-hoc canApprove variable
 * `pages/FieldLeadershipView.jsx:116` · ad-hoc canApprove variable
-* `pages/NewDailyReport.jsx:681` · ad-hoc canApprove variable
-* `pages/NewDailyReport.jsx:708` · ad-hoc canApprove variable
 * `pages/NewInspection.jsx:231` · ad-hoc canApprove variable
 * `pages/NewInspection.jsx:250` · ad-hoc canApprove variable
 * `pages/DocumentExpirations.jsx:70` · ad-hoc canApprove variable

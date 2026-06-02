@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { formatDateLong } from "@/lib/utils";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
+import { QaqcLifecyclePanel } from "@/components/QaqcLifecyclePanel";
 
 const KIND_LABEL = {
   concrete_form: "Concrete Form Inspection",
@@ -85,6 +86,10 @@ export default function ViewQaqcInspection() {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print:border-none print:p-0">
+          {/* iter453 · OC-003 lifecycle panel (no-print) */}
+          <div className="mb-4">
+            <QaqcLifecyclePanel inspectionId={data.id} />
+          </div>
           <div className="border-b-2 border-emerald-600 pb-3 mb-5">
             <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold">
               QA / QC · {KIND_LABEL[data.inspection_kind] || "QA/QC Inspection"}

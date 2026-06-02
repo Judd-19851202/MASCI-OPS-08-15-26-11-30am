@@ -30,6 +30,7 @@ import {
 import { formatDateLong } from "@/lib/utils";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { useT } from "@/lib/i18n";
+import { SiteInspectionLifecyclePanel } from "@/components/SiteInspectionLifecyclePanel";
 
 const StatusBadge = ({ value }) => {
   const v = (value || "").toString().toLowerCase();
@@ -274,6 +275,9 @@ export default function ViewInspection() {
 
         {/* Grade banner */}
         <GradeBanner grade={grade} />
+
+        {/* iter453 · OC-004 lifecycle panel (no-print) */}
+        <SiteInspectionLifecyclePanel inspectionId={data.id} />
 
         <ReportSection number="01" title={t("Project / Inspection Information")}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
