@@ -5,12 +5,16 @@
 //
 // Usage:
 //   <StatusBadge kind="po" value="Approved" />
-//   <StatusBadge kind="task" value={t.status} />
-//   <StatusBadge kind="priority" value={t.priority} size="sm" />
+//   <StatusBadge kind="task" value={t.status} size="sm" />
+//
+// Canonical operator-target labels (TR-0005 extension):
+//   <StatusBadge kind="qaqc" value="DEFICIENCY_RAISED" useCanonicalLabel />
+//     → renders "Needs Revision" with the QA/QC amber tint.
+//   Without the flag, the raw value is rendered (backwards-compatible).
 //
 // Sizes: "sm" (compact mobile / dense lists) | "md" (default) | "lg".
 import React from "react";
-import { tintFor } from "@/lib/statusBadges";
+import { tintFor, labelFor } from "@/lib/statusBadges";
 
 const SIZE_CLASSES = {
   sm: "px-1.5 py-0.5 text-[10px]",
@@ -24,16 +28,18 @@ export function StatusBadge({
   size = "md",
   className = "",
   testId,
+  useCanonicalLabel = false,
 }) {
   if (!value) return null;
   const tint = tintFor(kind, value);
   const sz = SIZE_CLASSES[size] || SIZE_CLASSES.md;
+  const displayed = useCanonicalLabel ? labelFor(kind, value) : value;
   return (
     <span
       className={`inline-flex items-center gap-1 rounded font-mono uppercase tracking-wider font-bold border ${tint} ${sz} ${className}`}
       data-testid={testId || `status-badge-${kind}-${String(value).toLowerCase().replace(/\s+/g, '-')}`}
     >
-      {value}
+      {displayed}
     </span>
   );
 }
