@@ -1,6 +1,64 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-02 (fork · OMEGA · PRODUCTION DEPLOY + HUMAN OPERABILITY POST-DEPLOY CERTIFICATION · 🟡 CERTIFIED WITH LIMITATIONS)
+
+### Operator authorization
+> "OMEGA AUTHORIZATION — PRODUCTION DEPLOY + HUMAN OPERABILITY POST-DEPLOY CERTIFICATION. Authorize production deployment of the currently certified package (Employee Governance Alpha · HR Queue · Termination Form addendum · ITER453 QA/QC + Site Inspection Lifecycle Panels · ITER452.5.2 Resend webhook · ITER453.7 HR Sticky Footer hotfix). Pre-deploy checklist: APP_ENV=production · DB_NAME=masci_safety · RATE_LIMITING=on · RESEND_WEBHOOK_SECRET set. Deploy only after checklist confirmed. After deploy, run full post-deploy certification. STOP after reports. No new code · no new fixes · no new features · no drift."
+
+### Final verdict: 🟡 **PRODUCTION CERTIFIED WITH LIMITATIONS**
+
+### Pre-deploy checklist result
+- ✅ #1 `APP_ENV=production` (confirmed via `/api/version` → `"app_env":"production"`)
+- ✅ #2 `DB_NAME=masci_safety` (confirmed via `/api/version` → `"db_name":"masci_safety"`)
+- ⚠️ #3 `RATE_LIMITING=on` (operator-verify — not externally introspectable; translate not rate-limited)
+- 🔴 **#4 `RESEND_WEBHOOK_SECRET` NOT set** (recurrence #2 · 3/3 negative webhook probes returned 200 instead of 401)
+
+### Production probe results
+- **Build at audit**: source_hash=`7a6c669f9e9212286e3850fae6a0b78e` · frontend bundle `main.037e8fa1.js` · started_at 2026-06-02T15:27:02Z · uptime ~72 min
+- **Phase Alpha G-1..G-5**: all LIVE (anon → 401/403/410 · cross-portal bypass → 401)
+- **ITER453 lifecycle endpoints**: LIVE on `/api/qaqc-inspections/x/lifecycle` + `/api/inspections/x/lifecycle` + `/api/{qaqc-inspections|inspections}/x/transition` (all 401-gated · no 404)
+- **ITER453.5 frontend markers**: ALL PRESENT in production bundle (`hremp-status-save`, `hremp-status-badge-`, `lifecycle-vocabulary`, `Save Status Change`)
+- **iter453.7 marker `hremp-status-footer`**: 🔴 NOT in production bundle (iter453.7 hotfix not yet deployed)
+
+### 7-package scorecard
+- 🟢 Employee Governance Phase Alpha (G-1..G-5 live)
+- 🟢 HR Queue
+- 🟢 Termination Form → HR Queue addendum
+- 🟢 ITER453 QA/QC Lifecycle Panel
+- 🟢 ITER453 Site Inspection Lifecycle Panel
+- 🔴 ITER452.5.2 Resend webhook (endpoint exists; secret NOT enforced)
+- 🟡 ITER453.7 HR Sticky Footer hotfix (preview-certified, awaiting operator-triggered redeploy)
+
+### Two named limitations (operator action required)
+- **L1 🔴** `RESEND_WEBHOOK_SECRET` enforcement not active on production → set env var + restart backend → re-probe webhook with empty body should return 401 instead of 200.
+- **L2 🟡** iter453.7 sticky-footer hotfix not yet on production → trigger production redeploy of preview-certified build → re-probe bundle for `hremp-status-footer` should return ≥ 1 match.
+
+### Human operability snapshot
+- HR Lifecycle save: 🔴 on current production / 🟢 on iter453.7 build (once deployed)
+- Phase Alpha submission flows: 🟢
+- QA/QC + Site Inspection lifecycle: 🟢
+- Webhook (operator-facing env): 🟡 (procedural — recurrence #2)
+- All other workflows: 🟢
+
+### Deliverables created (5)
+- `/app/memory/POST_DEPLOY_PRODUCTION_CERTIFICATION.md`
+- `/app/memory/HUMAN_OPERABILITY_CERTIFICATION.md`
+- `/app/memory/EMPLOYEE_GOVERNANCE_POST_DEPLOY_REPORT.md`
+- `/app/memory/QAQC_SITE_INSPECTION_POST_DEPLOY_REPORT.md`
+- `/app/memory/DEPLOYMENT_FINAL_VERDICT.md`
+
+### 30-second re-certification path (upgrade to 🟢 once operator completes L1 + L2)
+1. `curl -sX POST https://mascidocs.com/api/webhooks/resend -H 'Content-Type: application/json' -d '{}' -o /dev/null -w '%{http_code}\n'` → expect **401**
+2. `BUNDLE=$(curl -s https://mascidocs.com/ | grep -oE '/static/js/main\.[a-f0-9]+\.js' | head -1) && curl -s "https://mascidocs.com$BUNDLE" | grep -c hremp-status-footer` → expect **≥ 1**
+3. Re-run Phase Alpha anon probes (G-1 410 · G-2 403 · G-3 401 · cross-portal 401) → expect same posture as today
+4. `curl -s https://mascidocs.com/api/version | grep source_hash` → expect new hash OR same hash + L2 verified
+
+STOP. No new code. No new fixes. No new features. No drift.
+
+---
+
+
 ## 2026-06-02 (fork · OMEGA · ITER453.7 HR LIFECYCLE STICKY FOOTER HOTFIX · 🟢 BLOCKER RESOLVED · GO TO DEPLOY)
 
 ### Operator authorization

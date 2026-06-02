@@ -11,6 +11,20 @@ _30-second orientation map for future agents and forks · 2026-06-02 (last updat
 
 **Mandatory pre-build gates:** (a) Constitutional Test (Amendment 001) · (b) Ownership Doctrine Test · (c) Reduce-work-vs-create-work Test. If it creates work, it is presumed unconstitutional until proven otherwise. **Ownership in ForgedOps is inferred, never assigned** — the operational record IS the task. Evidence of work always outranks evidence of acknowledgement. **ForgedOps IS** Heavy Civil Construction Field Operations · **ForgedOps IS NOT** Accounting · ERP · Payroll · CRM · HRIS · Estimating · General task management · Jira/Monday/ticket system.
 
+### 00 · OMEGA · PRODUCTION DEPLOY + HUMAN OPERABILITY POST-DEPLOY CERTIFICATION (2026-06-02 · 5 deliverables · 🟡 PRODUCTION CERTIFIED WITH LIMITATIONS)
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `POST_DEPLOY_PRODUCTION_CERTIFICATION.md` | Pre-deploy checklist (4 items · #1-2 ✅ · #3 operator-verify · **#4 🔴 RESEND_WEBHOOK_SECRET NOT enforced**) · source_hash audit · 7-package coverage · 2 named limitations (L1 + L2) · production probes against `mascidocs.com` (`app_env=production`, `db_name=masci_safety`, source_hash=`7a6c669f9e9212286e3850fae6a0b78e`) | 🟡 |
+| `HUMAN_OPERABILITY_CERTIFICATION.md` | 6 questions × 7 workflows · HR Lifecycle pre-iter453.7 = 🔴 (Save below fold) → iter453.7 build = 🟢 · Governance/QueueApprove/QAQC/SiteInsp/Webhook flows assessed · single 🔴 user blocker on HR Save reachability resolved by iter453.7 once deployed | 🟡 STRONG-PASS WITH ONE DEPLOY + ONE ENV ACTION |
+| `EMPLOYEE_GOVERNANCE_POST_DEPLOY_REPORT.md` | 6 governance checks × cross-portal matrix · all 5 Phase Alpha guards LIVE on production · audit-trail surfaces verified · constitutional principle "HR is the sole authoritative owner" INTACT | 🟢 PRODUCTION CERTIFIED |
+| `QAQC_SITE_INSPECTION_POST_DEPLOY_REPORT.md` | ITER453 OC-003 + OC-004 endpoint existence (all 401-gated, no 404s) · production bundle marker audit (ITER453.5 REC-1/2/3 + canonical labels present · iter453.7 marker absent) · 24/24 state-machine tests carried into prod · regression posture clean | 🟢 PRODUCTION CERTIFIED |
+| `DEPLOYMENT_FINAL_VERDICT.md` | Integrated scoreboard · 5/7 package items 🟢 · 1 🔴 L1 (webhook secret) · 1 🟡 L2 (iter453.7 not yet deployed) · 30-second re-cert path (4 probes) for upgrade to 🟢 once operator completes L1+L2 | 🟡 **PRODUCTION CERTIFIED WITH LIMITATIONS** |
+
+**Final integrated verdict**: 🟡 **PRODUCTION CERTIFIED WITH LIMITATIONS** · Phase Alpha + QA/QC + Site Inspection + HR Queue + Termination Form addendum all LIVE and operationally correct on `mascidocs.com`. Two operator-only remediation items: **L1** set `RESEND_WEBHOOK_SECRET` env var + restart backend (recurrence #2 · 3/3 negative webhook probes returned 200 instead of 401); **L2** trigger production redeploy to ship the preview-certified iter453.7 sticky-footer hotfix (production bundle `main.037e8fa1.js` does NOT contain `hremp-status-footer` · iter453.7 is single-file frontend change · trivial deploy + trivial rollback). No new code. No new fixes. No new features. No drift.
+
+---
+
 ### 00 · OMEGA · ITER453.7 HR LIFECYCLE STICKY FOOTER HOTFIX (2026-06-02 · 3 deliverables · 🟢 BLOCKER RESOLVED · GO TO DEPLOY · 1 frontend file changed · 27 insertions)
 
 | File | Purpose | Verdict |
