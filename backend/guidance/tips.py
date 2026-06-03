@@ -6145,20 +6145,20 @@ _TIPS.extend([
 # ─────────────────────────────────────────────────────────────────────
 _TIPS.extend([
     # ── WAVE 1 · Fleet RTS — close the platform's #1 single-decision risk
-    {"form_key": "fleet.rts", "kind": "who", "scopes": ["public"],
+    {"form_key": "fleet.rts", "kind": "who", "scopes": ["dispatch", "admin"],
      "title": "Who can authorize Return to Service",
      "body": "RTS requires joint sign-off by the assigned mechanic AND the shop "
              "supervisor. The original defect reporter has visibility of the "
              "release. The driver/operator signs receipt of RTS before the next "
              "dispatch. RED-severity defects may NOT be released on a single signature."},
-    {"form_key": "fleet.rts", "kind": "next", "scopes": ["public"],
+    {"form_key": "fleet.rts", "kind": "next", "scopes": ["dispatch", "admin"],
      "title": "What happens after RTS",
      "body": "The unit returns to the dispatch pool. The board updates within "
              "minutes; the driver receives a shift-start QR notification. The "
              "audit trail preserves defect → repair → parts → mechanic → "
              "supervisor — full chain of custody if the unit is ever in an "
              "incident."},
-    {"form_key": "fleet.rts", "kind": "escalate", "scopes": ["public"],
+    {"form_key": "fleet.rts", "kind": "escalate", "scopes": ["dispatch", "admin"],
      "title": "When to refuse RTS",
      "body": "Refuse if (a) the original defect cannot be reproduced as resolved, "
              "(b) the test cycle was incomplete, (c) any safety system (brakes, "
@@ -6166,14 +6166,14 @@ _TIPS.extend([
              "substituted were not OEM-equivalent. Escalate to Shop Manager. "
              "RTS is never negotiable under schedule pressure."},
     # Wave 1 supplement — fill the smallest fleet leaves
-    {"form_key": "fleet.repair", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "fleet.repair", "kind": "mistake", "scopes": ["shop", "admin"],
      "title": "Common mistakes during repair",
      "body": "Closing a defect because a part was changed, without retesting "
              "the system. Skipping the test cycle when the schedule is tight. "
              "Letting the original reporter sign off (separation of duties is "
              "the audit defense). Documenting parts loosely — VIN / serial / "
              "lot number matters at incident review."},
-    {"form_key": "fleet.visibility", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "fleet.visibility", "kind": "mistake", "scopes": ["shop", "dispatch", "safety", "admin"],
      "title": "Common mistakes reading the fleet board",
      "body": "Treating a unit as available because it's not RED on the board — "
              "YELLOW means a defect is logged but not yet released; "
@@ -6181,7 +6181,7 @@ _TIPS.extend([
              "the most recent repair record. Missing that today's mechanic "
              "and yesterday's mechanic disagree on whether the system was retested."},
     # ── WAVE 2 · Parent-form `mistake` kind — 28 parents
-    {"form_key": "attendance", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "attendance", "kind": "mistake", "scopes": ["leadership", "admin"],
      "title": "Common mistakes recording attendance",
      "body": "Marking a worker present because the crew lead says so without "
              "the worker on site. Forgetting the worker who left mid-shift. "
@@ -6202,7 +6202,7 @@ _TIPS.extend([
              "cannot be verified. Assigning to a role instead of a named person "
              "with a due date. Marking Verified without a re-inspection record "
              "or evidence attached."},
-    {"form_key": "crew_eval", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "crew_eval", "kind": "mistake", "scopes": ["leadership", "admin"],
      "title": "Common mistakes evaluating crew",
      "body": "Rating from memory of the last incident, not the period. Generic "
              "language ('good worker') without specific examples. Skipping "
@@ -6215,27 +6215,27 @@ _TIPS.extend([
              "narrative because 'nothing happened.' Forgetting to remove "
              "equipment that broke down mid-shift. The Daily Report is "
              "tomorrow's evidence — write it for the reader who wasn't there."},
-    {"form_key": "document-expirations", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "document-expirations", "kind": "mistake", "scopes": ["hr", "safety", "admin"],
      "title": "Common mistakes managing expirations",
      "body": "Waiting until the document is already expired before outreach. "
              "Treating CDL and medical card with the same cadence — medical "
              "renews more often. Closing an expiration entry because outreach "
              "was attempted, not because the new document is on file."},
-    {"form_key": "driver-qualification", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "driver-qualification", "kind": "mistake", "scopes": ["hr", "admin"],
      "title": "Common driver-qualification mistakes",
      "body": "Dispatching a driver whose CDL endorsement does not match the "
              "load (tanker / hazmat / doubles). Trusting the dashboard without "
              "checking the medical-card date. Restrictions ignored ('corrective "
              "lenses' is a real restriction — confirm the driver has them). "
              "DOT does not accept the platform's word — it accepts the file."},
-    {"form_key": "employee-accountability", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "employee-accountability", "kind": "mistake", "scopes": ["hr", "admin"],
      "title": "Common accountability mistakes",
      "body": "Writing up an employee without the read-first conversation. "
              "Tone that reads as anger instead of facts. Skipping the verify "
              "step ('did the behavior change?') — accountability without "
              "verification is just blame. Filing without follow-up makes the "
              "next write-up indefensible."},
-    {"form_key": "employee-lifecycle", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "employee-lifecycle", "kind": "mistake", "scopes": ["hr", "admin"],
      "title": "Common lifecycle mistakes",
      "body": "Rehiring an employee who should be reactivated — losing the "
              "original_hire_date is irreversible. Skipping day-one setup "
@@ -6291,13 +6291,13 @@ _TIPS.extend([
              "Holding the meeting verbally and never writing it down. "
              "Skipping the action items at the end — a meeting without "
              "follow-up is just a check-the-box exercise."},
-    {"form_key": "new_employee_eval", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "new_employee_eval", "kind": "mistake", "scopes": ["leadership", "admin"],
      "title": "Common new-hire eval mistakes",
      "body": "Filling out the eval from impression instead of observation. "
              "Skipping the 30/60/90 cadence. Letting the foreman speak for "
              "the new hire instead of evaluating the new hire directly. "
              "A weak eval at day 30 is much cheaper than a separation at day 91."},
-    {"form_key": "payroll-variance", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "payroll-variance", "kind": "mistake", "scopes": ["hr", "admin"],
      "title": "Common Payroll Variance mistakes",
      "body": "Ticking the 3 attestation flags without actually reviewing every "
              "flagged row. Finalizing while a row is still undecided. Treating "
@@ -6318,14 +6318,14 @@ _TIPS.extend([
              "passed, (B) corrective action ≥ 20 chars, (C) exception with "
              "PM + Safety dual sign-off ≥ 10 chars. Vague corrective text. "
              "Photos missing for path B."},
-    {"form_key": "safety-document", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "safety-document", "kind": "mistake", "scopes": ["safety", "admin"],
      "title": "Common safety-document mistakes",
      "body": "Wrong classification (SDS as 'general' instead of 'hazcom') — "
              "wrong audience, wrong retention. Uploading without the issue / "
              "effective date. Letting an expired SDS sit on the shelf because "
              "it was uploaded once. The classification IS the retention "
              "policy — get it right at upload."},
-    {"form_key": "safety-training", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "safety-training", "kind": "mistake", "scopes": ["safety", "admin"],
      "title": "Common safety-training mistakes",
      "body": "Uploading the cert without the expiration date — the system "
              "cannot warn you if it doesn't know when. Recording a generic "
@@ -6333,14 +6333,14 @@ _TIPS.extend([
              "sit on the dashboard for weeks without outreach. Operating "
              "with expired training is the platform's most common DOT/OSHA "
              "finding."},
-    {"form_key": "time-off-review", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "time-off-review", "kind": "mistake", "scopes": ["hr", "admin"],
      "title": "Common time-off-review mistakes",
      "body": "Letting a pattern of Mondays / Fridays go unreviewed — pattern "
              "is the conversation, not the discipline. Approving bereavement "
              "without confirming the policy length. Approving medical without "
              "the doctor's note when policy requires one. Vacation overlapping "
              "with mandatory project milestones — flag, don't auto-approve."},
-    {"form_key": "time-verification", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "time-verification", "kind": "mistake", "scopes": ["hr", "admin"],
      "title": "Common time-verification mistakes",
      "body": "Closing a discrepancy by accepting the foreman's count without "
              "checking the dispatch board. Treating lunch as automatic 30 "
@@ -6355,14 +6355,14 @@ _TIPS.extend([
              "reading the discussion notes — the topic IS the discussion, "
              "not the printout. Re-running the same topic month after month "
              "is how meetings become routine."},
-    {"form_key": "training_deficiency", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "training_deficiency", "kind": "mistake", "scopes": ["leadership", "admin"],
      "title": "Common training-deficiency mistakes",
      "body": "Recording a deficiency without naming the specific class. "
              "Closing because the employee 'said they'll fix it' — closure "
              "requires the new training record on file. Letting a deficiency "
              "sit while the employee continues to operate the equipment in "
              "question — that's an OSHA finding."},
-    {"form_key": "verbal_coaching", "kind": "mistake", "scopes": ["public"],
+    {"form_key": "verbal_coaching", "kind": "mistake", "scopes": ["leadership", "admin"],
      "title": "Common verbal-coaching mistakes",
      "body": "Logging the coaching after a write-up instead of before — the "
              "platform expects coaching → escalation, not the reverse. "
@@ -6379,12 +6379,12 @@ _TIPS.extend([
              "is the legal document — write it like a lawyer will read it."},
     # ── OKCP Wave 2 supplement · close the 8 remaining non-GREEN parents
     # to reach 95%+ GREEN at the parent-form-key level.
-    {"form_key": "attendance", "kind": "who", "scopes": ["public"],
+    {"form_key": "attendance", "kind": "who", "scopes": ["leadership", "admin"],
      "title": "Who attendance affects",
      "body": "Foreman owns the count. HR reconciles to payroll. Dispatch "
              "reads the count to staff tomorrow. A missed name here "
              "becomes someone's wrong paycheck on Friday."},
-    {"form_key": "attendance", "kind": "next", "scopes": ["public"],
+    {"form_key": "attendance", "kind": "next", "scopes": ["leadership", "admin"],
      "title": "What happens with attendance after submit",
      "body": "Flows to HR for payroll reconciliation. Drives the time-off "
              "pattern detector. Tagged absences feed verbal-coaching prompts. "
@@ -6402,99 +6402,99 @@ _TIPS.extend([
              "to PM with the assumption that's off. Do NOT order material "
              "based on a calculation you don't believe — material left on "
              "the project is real money lost."},
-    {"form_key": "new_employee_eval", "kind": "who", "scopes": ["public"],
+    {"form_key": "new_employee_eval", "kind": "who", "scopes": ["leadership", "admin"],
      "title": "Who evaluates",
      "body": "The direct supervisor. Foreman if the new hire is a laborer. "
              "Superintendent or PM if foreman-level. HR audits the eval, "
              "does not author it. A second observer signature is required "
              "at the 90-day mark."},
-    {"form_key": "new_employee_eval", "kind": "escalate", "scopes": ["public"],
+    {"form_key": "new_employee_eval", "kind": "escalate", "scopes": ["leadership", "admin"],
      "title": "When new-hire eval flags a problem",
      "body": "Skill gap that a class of training can't close. Repeated safety "
              "near-miss in the first 30 days. Crew complaints that line up "
              "with the eval observation. Escalate to HR with a documented "
              "Performance Improvement Plan, not a write-up. PIP at day 30 "
              "is cheaper than separation at day 91."},
-    {"form_key": "promotion_recommendation", "kind": "who", "scopes": ["public"],
+    {"form_key": "promotion_recommendation", "kind": "who", "scopes": ["leadership", "admin"],
      "title": "Who can recommend promotion",
      "body": "Direct supervisor + one senior peer review (the senior peer "
              "must have worked with the candidate). HR receives the "
              "recommendation; final authority is the operations lead and "
              "HR jointly. The candidate's foreman cannot solely advance their "
              "own crew member without independent confirmation."},
-    {"form_key": "promotion_recommendation", "kind": "next", "scopes": ["public"],
+    {"form_key": "promotion_recommendation", "kind": "next", "scopes": ["leadership", "admin"],
      "title": "What happens after recommendation",
      "body": "HR opens an accountability-timeline lookup, training-record "
              "lookup, and active-CAPA check. A recommendation with an open "
              "safety CAPA stalls until the CAPA is verified-closed. Approval "
              "triggers a pay-rate update, dispatch eligibility refresh, and "
              "training-plan adjustment."},
-    {"form_key": "promotion_recommendation", "kind": "escalate", "scopes": ["public"],
+    {"form_key": "promotion_recommendation", "kind": "escalate", "scopes": ["leadership", "admin"],
      "title": "When to decline a recommendation",
      "body": "Open disciplinary record within 6 months. Active safety CAPA "
              "owned by the candidate. Training certificate expired and not "
              "yet renewed. Pattern of write-ups across multiple supervisors. "
              "Decline cleanly with the reason on file — declined "
              "recommendations are part of the accountability timeline."},
-    {"form_key": "recognition", "kind": "who", "scopes": ["public"],
+    {"form_key": "recognition", "kind": "who", "scopes": ["leadership", "admin"],
      "title": "Who can issue recognition",
      "body": "Any supervisor, PM, Safety, or HR can issue recognition. "
              "Crew-to-crew peer recognition routes through the supervisor for "
              "the audit trail. Self-nomination is not a thing — recognition "
              "is observed, not requested."},
-    {"form_key": "recognition", "kind": "next", "scopes": ["public"],
+    {"form_key": "recognition", "kind": "next", "scopes": ["leadership", "admin"],
      "title": "What happens with recognition",
      "body": "Posts to the employee's accountability timeline as a positive "
              "event. Visible to the employee, their supervisor, HR, and "
              "the operations lead. Counts toward annual review weighting. "
              "If the recognition includes a tangible award (gift card, "
              "bonus), routes through HR for tax treatment before issuance."},
-    {"form_key": "recognition", "kind": "escalate", "scopes": ["public"],
+    {"form_key": "recognition", "kind": "escalate", "scopes": ["leadership", "admin"],
      "title": "When recognition is the wrong tool",
      "body": "Don't use recognition to soften a write-up — they need to be "
              "separate, dated events on the timeline. Don't recognize for "
              "doing the baseline job (showing up, hitting hours). Recognize "
              "for the work that prevented an incident, saved cost, or "
              "carried the team. Inflated recognition makes real recognition meaningless."},
-    {"form_key": "supervisor_notes", "kind": "who", "scopes": ["public"],
+    {"form_key": "supervisor_notes", "kind": "who", "scopes": ["leadership", "admin"],
      "title": "Who can read supervisor notes",
      "body": "The author. HR (always). The employee's direct supervisor "
              "chain. NOT peers, NOT the employee themselves by default. "
              "Notes are observations, not accusations — but legal discovery "
              "can pull them, so write them like discoverable evidence."},
-    {"form_key": "supervisor_notes", "kind": "next", "scopes": ["public"],
+    {"form_key": "supervisor_notes", "kind": "next", "scopes": ["leadership", "admin"],
      "title": "What supervisor notes become",
      "body": "Pattern-detection. A single note is data; three notes on the "
              "same topic is a pattern. HR auto-prompts a verbal-coaching "
              "step when patterns surface. Notes never auto-escalate to "
              "write-ups — that's a human decision."},
-    {"form_key": "supervisor_notes", "kind": "escalate", "scopes": ["public"],
+    {"form_key": "supervisor_notes", "kind": "escalate", "scopes": ["leadership", "admin"],
      "title": "When to escalate a note",
      "body": "Safety pattern (multiple PPE non-compliance, near-miss involvement, "
              "shortcut behavior). Pattern that may indicate impairment "
              "(absenteeism, sequence errors, judgment slips). Escalate to "
              "HR with the notes that show the pattern. Don't escalate a "
              "single incident as a pattern — that's how false claims are built."},
-    {"form_key": "training_deficiency", "kind": "who", "scopes": ["public"],
+    {"form_key": "training_deficiency", "kind": "who", "scopes": ["leadership", "admin"],
      "title": "Who flags deficiencies",
      "body": "Anyone who observes — supervisor, peer, trainer, or the "
              "employee themselves. HR receives the flag and verifies the "
              "missing record. The employee's supervisor owns the closure "
              "(scheduling the make-up training)."},
-    {"form_key": "training_deficiency", "kind": "escalate", "scopes": ["public"],
+    {"form_key": "training_deficiency", "kind": "escalate", "scopes": ["leadership", "admin"],
      "title": "When a deficiency must stop work",
      "body": "Equipment-operating training expired = the employee may NOT "
              "operate that equipment until renewed. OSHA-mandated training "
              "expired = pull from the relevant task. Escalate to the "
              "supervisor immediately when a deficiency would compound an "
              "incident if the work continued."},
-    {"form_key": "verbal_coaching", "kind": "who", "scopes": ["public"],
+    {"form_key": "verbal_coaching", "kind": "who", "scopes": ["leadership", "admin"],
      "title": "Who delivers verbal coaching",
      "body": "Direct supervisor in person, one-to-one. HR observes only "
              "when policy requires (sensitive subject, repeat issue). "
              "Coaching from a peer or skip-level supervisor is not "
              "verbal-coaching of record — it's just feedback."},
-    {"form_key": "verbal_coaching", "kind": "escalate", "scopes": ["public"],
+    {"form_key": "verbal_coaching", "kind": "escalate", "scopes": ["leadership", "admin"],
      "title": "When verbal coaching becomes a write-up",
      "body": "Behavior recurs within 30 days. Behavior recurred during the "
              "coaching conversation. New behavior emerges that is in the "

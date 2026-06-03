@@ -2,12 +2,12 @@
 
 _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 
-- Scanned files     : **758**
+- Scanned files     : **766**
 - Patterns           : **5**
 - New violations     : **1**
-- New warnings       : **7**
-- Baselined          : **77**
-- Scan runtime       : **144 ms**
+- New warnings       : **16**
+- Baselined          : **75**
+- Scan runtime       : **129 ms**
 
 ## Pattern catalogue
 
@@ -25,13 +25,22 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 
 ## · New warnings (review · not deploy-blocking)
 
-- `components/LifecyclePanel.jsx:399` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
-- `components/IncidentLifecyclePanel.jsx:406` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
-- `components/SiteInspectionLifecyclePanel.jsx:552` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
-- `components/QaqcLifecyclePanel.jsx:550` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `components/LifecyclePanel.jsx:411` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `components/IncidentLifecyclePanel.jsx:415` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `components/SiteInspectionLifecyclePanel.jsx:561` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `components/UndoLastTransitionButton.jsx:64` · `F4·toLocaleString-bare` · `const at = ev.at ? new Date(ev.at).toLocaleString() : "—";`
+- `components/QaqcLifecyclePanel.jsx:559` · `F4·toLocaleString-bare` · `{new Date(ev.at).toLocaleString()}`
+- `pages/HrEmployees.jsx:975` · `F4·toLocaleString-bare` · `<span className="text-slate-500">{new Date(h.at).toLocaleString()}</span>`
 - `pages/ViewIncident.jsx:743` · `F4·toLocaleString-bare` · `{data.created_at ? new Date(data.created_at).toLocaleString() : ""} ·{" "}`
 - `pages/ViewInspection.jsx:483` · `F4·toLocaleString-bare` · `{t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() :`
+- `pages/HrEmployeeRequestsQueue.jsx:296` · `F4·toLocaleString-bare` · `{new Date(req.requested_at).toLocaleString()}`
 - `pages/ViewDailyReport.jsx:637` · `F4·toLocaleString-bare` · `{data.created_at ? new Date(data.created_at).toLocaleString() : ""} ·{" "}`
+- `pages/JhaPlansHub.jsx:286` · `F5·toLocaleDateString-bare` · `? new Date(f.uploaded_at).toLocaleDateString()`
+- `pages/admin/AdminJhaAcknowledgements.jsx:161` · `F4·toLocaleString-bare` · `? new Date(row.latest_acknowledged_at).toLocaleString()`
+- `pages/admin/AdminJhaAcknowledgements.jsx:242` · `F4·toLocaleString-bare` · `? new Date(row.file.uploaded_at).toLocaleString()`
+- `pages/admin/AdminJhaAcknowledgements.jsx:256` · `F4·toLocaleString-bare` · `{new Date(a.acknowledged_at).toLocaleString()} · {a.locale}`
+- `pages/admin/AdminJhaAcknowledgements.jsx:341` · `F4·toLocaleString-bare` · `{new Date(a.acknowledged_at).toLocaleString()}`
+- `pages/admin/AdminRecoveryStream.jsx:167` · `F4·toLocaleString-bare` · `{ev.at ? new Date(ev.at).toLocaleString() : "—"}`
 
 ## How to clear violations
 
