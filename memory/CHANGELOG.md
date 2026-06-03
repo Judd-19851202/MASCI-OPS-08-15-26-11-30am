@@ -85,3 +85,37 @@ Deliverables (in `memory/`):
 
 **Stop Conditions Honored**: No code, no UI, no database, no new features, no new audits, no new governance programs, no new roadmaps. TCP is formally closed as a completed READ-ONLY program. No further TCP work authorized.
 
+
+---
+
+## 2026-06-03 · SOCP — Spanish Operational Certification Program · PACKAGE PREPARED
+
+**Authority**: OMEGA DIRECTIVE — Spanish Operational Certification Program (READ-ONLY).
+
+**Mission**: Verify Spanish-speaking field personnel can safely use the platform. Operational certification (NOT translation, NOT localization, NOT engineering).
+
+**Deliverables Produced** (in `/app/memory/`):
+
+* `SPANISH_SURFACE_REGISTER.md` — Phase 1 · Inventory of 33 Spanish-facing surfaces (i18n core, 23 topic dictionaries, training_es.js, glossary, 13 backend Spanish-aware files) with English source · Spanish surface · Owner · Workflow · Risk Level.
+* `CONSTRUCTION_SPANISH_TERMINOLOGY_DICTIONARY.md` — Phase 2 · 74 representative terms across 9 trade domains (Heavy Civil, Highway, Utilities, Safety, Equipment, Excavation, Incident, QC, DOT) classified APPROVED / QUESTIONABLE / REQUIRES REVIEW / SAFETY-CRITICAL.
+* `SPANISH_SAFETY_CRITICAL_REGISTER.md` — Phase 3 · 22 findings across JHP, Safety Meetings, Incident Reports, CAPA, Emergency Notifications, Hazard Communication, Excavation, Equipment Inspections (11 RED · 7 MEDIUM · 4 LOW · 4 POSITIVE).
+* `SPANISH_FIELD_REVIEW_PACKET.md` — Phase 4 · Reviewer-facing tool: assignment matrix (Superintendent / Foreman / Safety Rep) + 5-question card × 16 workflows + Spanish reviewer instructions.
+* `SPANISH_CERTIFICATION_READINESS_REPORT.md` — Phase 5 · 19 workflows × 4 dimensions (Operational / Safety / Training / Certification) GREEN-YELLOW-RED map. Three RED safety hotspots: JHP "Reconocer" attestation, Incident severity + 3-attestation labels, Fleet RTS.
+* `SPANISH_OPERATIONAL_CERTIFICATION_EXECUTIVE_SUMMARY.md` — Final deliverable answering the 7 directive questions.
+
+**Verification Method**: Source-direct codebase audit. `i18n.js` (4902 LOC · ~3218 ES entries), `topics/*.es.js` (23 files · 1579 LOC), `data/training_es.js` (1093 LOC), `AdminOperationalLanguage.jsx` (509 LOC glossary), `translateOnSubmit.js` (130 LOC submit-time round-trip), 13 backend Spanish-aware files. `excavation.es.js` end-to-end-sampled; other topic files file-counted and section-named only.
+
+**Highest single-decision risks identified**:
+
+1. Fleet Return-to-Service (RTS) Spanish attestation — highest decision-grade risk on the platform.
+2. JHP "Reconocer" semantic breadth — legal-attestation-chain risk.
+3. Incident Report severity + 3-attestation Spanish flag definitions — OSHA-recordable integrity.
+4. Spanish-only crew with no work email cannot acknowledge JHP under email-as-identity-key (FOCP R2 § C2-0014).
+5. Email / SMS Spanish template existence DOCTRINE-SILENT in source survey — operator must confirm.
+
+**Truth Register Impact**: Zero new rows · zero promotions · zero retirements. All findings map onto pre-existing Phase 2 patterns (P1–P5), `ADOPTION_RISK_REGISTER` (AR-0003/AR-0004/AR-0016/AR-0021), FOCP R2 § C2-0014, and TR-0003/TR-0007 classifications.
+
+**STOP Conditions Honored**: No new features · no new modules · no UI redesign · no white label · no multi-tenancy · no engineering work · no translation changes · no rewrites · no AI certification. Package is prepared; **final certification belongs to real Spanish-speaking field personnel, not AI**.
+
+**Next Move**: Operator — assigns reviewer slate, runs Phase 4 packet, aggregates verdicts using Phase 5 scorecard. No AI work authorized until operator returns with collected reviewer cards.
+
