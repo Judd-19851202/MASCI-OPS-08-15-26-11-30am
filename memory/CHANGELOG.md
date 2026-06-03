@@ -52,3 +52,36 @@ Deliverables (in `memory/`):
 * `ITER500_RANK1_TARGETED_CORRECTION_REPORT.md`
 * `ITER500_RANK1_TARGETED_CORRECTION_CERTIFICATION.md` → 8 / 8 checks ✅
 * `ITER500_RANK1_FINAL_GO_NO_GO.md` → **🟢 RANK #1 FULLY ALIGNED**
+
+
+---
+
+## 2026-06-03 · TCP — Training Completion Program · CLOSEOUT CERTIFIED
+
+**Authority**: OMEGA DIRECTIVE — TCP Closeout Certification (READ-ONLY).
+
+**Completion Date**: 2026-06-03
+
+**Deliverables Produced** (in `/app/memory/`):
+
+* `WORKFLOW_EXPLANATION_LIBRARY.md` — 19 workflows × 10 fields = 190 source-anchored answer cells
+* `TRAINING_COMPLETION_MASTER_REGISTER.md` — 19 × 10 status matrix + per-workflow scoring
+* `WORKFLOW_KNOWLEDGE_MATRIX.md` — 19 × 9 role grid + 10-rank leverage list
+* `TRAINING_GAP_REGISTER.md` — 33-page 30-second test register
+* `TRAINING_COMPLETION_EXECUTIVE_SUMMARY.md` — final synthesis deliverable
+* `TCP_CLOSEOUT_CERTIFICATION_REPORT.md` — closure certification (this cycle)
+
+**Verification Result**: 5 / 5 deliverables PASS the 10-criterion verification (meaningful content; references real workflows; matches codebase; no fabricated operator interviews / user feedback / support tickets / adoption metrics / invented certifications / unsupported claims; aligned with current codebase). All cited source files verified to exist in `/app/frontend/`, `/app/backend/`, and `/app/memory/`.
+
+**Certification Status**: 🟡 **CERTIFIED WITH LIMITATIONS** — see `TCP_CLOSEOUT_CERTIFICATION_REPORT.md` §6.
+
+**Known Limitations**:
+
+1. Minor filename variance — Library references "AdminDispatchBoard.jsx"; canonical file is `DispatchBoard.jsx` (route `/admin/dispatch` is real; surface/workflow is real).
+2. The 39% 30-second-test pass rate is source-direct probability, not operator-observed evidence (Library explicitly states this).
+3. The 66.6 / 100 composite Master Register score is derived arithmetic over the matrix, not a measured training-readiness number.
+
+**Truth Register Impact**: Zero new rows · zero promotions · zero retirements. All ACTIVE / DEFERRED / DOCTRINE-EXEMPT classifications align with pre-existing Phase 2, ADOPTION_RISK_REGISTER, and Truth Register entries.
+
+**Stop Conditions Honored**: No code, no UI, no database, no new features, no new audits, no new governance programs, no new roadmaps. TCP is formally closed as a completed READ-ONLY program. No further TCP work authorized.
+
