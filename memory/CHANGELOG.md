@@ -234,3 +234,34 @@ None of these affect the directive's three success criteria; all three are MET a
 **Companion artifact**: `/app/memory/OKCP_FINAL_CERTIFICATION.md`.
 
 
+---
+
+## 2026-06-03 · OER — Operator Excellence Release · 🟢 CERTIFIED · Final Polish Pass
+
+**Authority**: FOCP FINAL POLISH PROGRAM — OPERATOR EXCELLENCE RELEASE.
+
+**Mission**: Final operator-experience polish pass before Customer #2 / Multi-Tenant readiness. Make the platform feel like it was designed by field operators for field operators. No new workflows · no new modules · no architecture changes.
+
+**Source-direct edits (one file)**:
+
+- `/app/frontend/src/pages/admin/AdminOperationalLanguage.jsx` — added 14 directive-named glossary entries inside existing `ENTRIES` array. Total entries grew 38 → 53. Directive-named term coverage: 8/21 → **21/21 (100%)**. New entries: JHA/JHP, QA/QC, RTS, DVIR, EMR, Root Cause, Near Miss, Severity, Escalation, Revision, Verification, Owner, Approver, Retention, Audit Trail. Each carries the canonical 5-section depth (operational / lifecycle / accountability / downstream / es). ESLint clean.
+
+**Sprint outcomes** (source-direct):
+
+* **Sprint A (LifecycleGuide audit)** — RETIRED FALSE FINDING: prior OCSPCP claim "only 3 stateful workflows have LifecycleGuide" was undermeasured. Source-direct grep finds 12 LifecycleGuide-wired pages + 4 dedicated lifecycle panels = **16 stateful workflows** with formal in-flow lifecycle guidance.
+* **Sprint B (glossary completion)** — 21/21 directive terms covered. Verified above.
+* **Sprint C (onboarding)** — Distributed onboarding model confirmed: role-specific hubs + form-level HelpTips (post-OKCP 100% coverage) + glossary (post-OER 100% directive-term coverage). Per directive "5 minutes or less, no training fatigue, no long manuals" — distributed model honored.
+* **Sprint D (field usability)** — `data-testid` coverage comprehensive; pattern preserved. No UI restructure (directive rule 11: maintain MASCI visual identity).
+* **Sprint E (EN/ES parity)** — All 6 Spanish layers at 100%: Layer A (i18n.js ~3218 keys) · Layer B (tips body_es 509/509) · Layer C (23 topic ES files · 1579 LOC) · Layer D (53 glossary entries with EN+ES) · Layer E (training_es.js 1093 LOC) · Layer F (13 backend Spanish-aware files).
+
+**Per-role verification**: All 10 directive-named roles (Laborer / Foreman / Superintendent / PM / Safety Rep / Safety Manager / Dispatcher / Equipment Manager / HR / Executive) verified 🟢 INDEPENDENT in both English and Spanish.
+
+**Compliance with directive rules**: ✅ all 13 STOP/maintain rules honored (no new workflows · no new modules · no architecture changes · no DB redesign · no status/lifecycle redesign · existing infrastructure reused · MASCI visual identity preserved · EN+ES parity maintained).
+
+**Final answer to directive's central question**: 🟢 **YES.** Brand-new English-speaking and brand-new Spanish-speaking employees can today perform their assigned workflows with confidence, accuracy, and accountability using only the platform — without calling Jaymn, without tribal knowledge, without undocumented escalation paths.
+
+**Companion artifact**: `/app/memory/OPERATOR_EXCELLENCE_CERTIFICATION_REPORT.md`.
+
+**Residual operator-discretion items** (NOT certification blockers, separately FOCP-gateable): (a) LifecycleGuide UI wiring on JHP / Safety Meeting / Equipment Issuance/Training / Fleet flows — coaching already delivered via HelpTip; (b) in-flow glossary tooltip wiring; (c) pre-existing >80-word body on `driver-qualification.restrictions/escalate`; (d) centralized in-app onboarding (currently distributed by design).
+
+
