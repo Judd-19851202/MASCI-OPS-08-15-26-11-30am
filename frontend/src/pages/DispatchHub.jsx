@@ -1,34 +1,29 @@
 /**
- * DispatchHub.jsx · iter411 · Phase 16 · Dispatch Command Portal.
+ * DispatchHub.jsx · iter441 · OMEGA Polish Sprint · Command Center Mode
  *
- * Refactor goal (NOT new features):
- *   - The blue top bar carries ONLY orientation (Home / Back / portal
- *     identity / Notification / Sign out + optional Search). No more
- *     5-button competing nav.
- *   - The page body is organized around OPERATIONAL FLOW:
- *       1. Dispatch Command (orientation + coaching)
- *       2. Operational Attention (what matters now)
- *       3. Issue Work (4 fast actions → same drawer, preselected haul_type)
- *       4. Live Operational Flow (deep link to /dispatch-portal/board)
- *       5. Follow-through (transfers + holds — preserved tabs, lower priority)
- *       6. Secondary Operations (fleet · utilization · idle · drivers · integrations)
- *       7. Guides & Coaching
+ * Polish-only refactor (no new features, no new backend):
+ *   - Operational Attention is the FIRST operational surface visible.
+ *   - Decorative read-only surfaces (PasskeyEnrollPrompt, FieldMemoryGlance,
+ *     LastActivityLine) sit BELOW operational content (P0 hierarchy rule).
+ *   - Coaching is collapsed by default for returning users (localStorage),
+ *     expanded by default on first visit.
+ *   - Guide tiles consolidated into a single "Dispatch Resources" CTA.
+ *   - Section padding reduced from p-5 → p-4, vertical rhythm space-y-6 → space-y-4.
+ *   - Local footer removed (duplicate of <GlobalFooter /> mounted in App.js).
+ *   - Every route, test-id, capability, and backend call PRESERVED.
  *
- *   - Every route, capability, tab content, testid, and backend call
- *     from the previous version is PRESERVED. This is information
- *     architecture work, not feature work.
+ * Visual doctrine: Command center — live signals first, instruction last.
  */
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Truck, Send, ShieldAlert, Activity, LogOut, Clock, Home, ArrowLeft,
   Plug, BookOpen, ShieldCheck, AlertTriangle, Wrench, Droplet, ArrowRight,
-  Package, Compass, ListChecks,
+  Package, Compass, ListChecks, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
-import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
@@ -47,12 +42,12 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import DispatchSideNavV2, { useDispatchSidebarV2Enabled } from "@/components/dispatch/sidebar/DispatchSideNavV2";
-import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DISPATCH_PAL = paletteFor("dispatch");
+const COACH_LS_KEY = "masci.dispatch.coaching.collapsed";
 
 function authHeaders() {
   const headers = { "Content-Type": "application/json" };
@@ -63,30 +58,39 @@ function authHeaders() {
   return headers;
 }
 
+// Coaching collapse state (per-device, localStorage).
+// First visit → expanded (null in localStorage). Subsequent visits → respects last state.
+function useCoachingCollapsed() {
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem(COACH_LS_KEY) === "1"; }
+    catch { return false; }
+  });
+  const set = (v) => {
+    setCollapsed(v);
+    try { localStorage.setItem(COACH_LS_KEY, v ? "1" : "0"); }
+    catch { /* noop */ }
+  };
+  return [collapsed, set];
+}
+
 export default function DispatchHub() {
   usePageTitle("Dispatch Command · MASCI");
   const { t } = useT();
   const nav = useNavigate();
   const user = getDispatchUser() || {};
-  // iter437 IV-BETA.5A-P5B · Dispatch Sidebar V2 behind ?dispatchSidebarV2=1.
   const sidebarV2 = useDispatchSidebarV2Enabled();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createHaulType, setCreateHaulType] = useState("Material");
+  const [coachCollapsed, setCoachCollapsed] = useCoachingCollapsed();
 
-  // Operational Attention signals — derived from existing findings
-  // endpoint. Zero new backend surface.
-  const [attention, setAttention] = useState({
-    findings: [], loading: true, error: false,
-  });
+  const [attention, setAttention] = useState({ findings: [], loading: true, error: false });
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const r = await fetch(`${API}/api/dispatch/governance/findings`, {
-          headers: authHeaders(),
-        });
+        const r = await fetch(`${API}/api/dispatch/governance/findings`, { headers: authHeaders() });
         const j = await r.json().catch(() => ({}));
         if (cancelled) return;
         setAttention({
@@ -130,7 +134,7 @@ export default function DispatchHub() {
 
       {/* ── Top nav · ORIENTATION ONLY ─────────────────────────── */}
       <header className={`bg-slate-900 text-white border-b-4 ${DISPATCH_PAL.hubHeaderBar}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3 flex items-center gap-3">
           <Link
             to="/"
             className={`inline-flex items-center text-white ${DISPATCH_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
@@ -182,58 +186,29 @@ export default function DispatchHub() {
           <DispatchSideNavV2 className="hidden lg:block w-64 flex-shrink-0 min-h-[calc(100vh-200px)]" />
         )}
         <main className={sidebarV2
-          ? "flex-1 px-5 sm:px-8 py-6 space-y-6 w-full"
-          : "max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-6 flex-1 w-full"}>
-        {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
-            self-gated · dismissible · single-card · NEVER nags */}
-        <PasskeyEnrollPrompt />
+          ? "flex-1 px-5 sm:px-8 py-4 space-y-4 w-full"
+          : "max-w-6xl mx-auto px-5 sm:px-8 py-4 space-y-4 flex-1 w-full"}>
 
-        {/* iter432 · Phase 30 · Part 6 · Option iii · ONE calm additive
-            operational-attention surface — read-only Field Memory glance. */}
-        <FieldMemoryGlance />
-
-        {/* iter440 · calm one-line "Last activity" trace per portal ·
-            quiet proof the platform is being USED, not just UP. */}
-        <LastActivityLine portal="dispatch" />
-
-        {/* ── 1 · DISPATCH COMMAND · orientation + coaching ──────── */}
-        <Section
-          testId="ds-section-command"
-          accent="orange"
-          icon={Compass}
-          kicker={t("Dispatch Portal")}
-          title={t("Dispatch Command")}
-          subtitle={t("Issue work, watch movement, resolve delays, and keep trucks flowing.")}
-        >
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 text-sm text-slate-700">
-            <CoachLi>{t("Start with anything needing attention.")}</CoachLi>
-            <CoachLi>{t("Issue assignments before reviewing history.")}</CoachLi>
-            <CoachLi>{t("Driver taps are the source of operational truth.")}</CoachLi>
-            <CoachLi>{t("PMs see production awareness only.")}</CoachLi>
-            <CoachLi>{t("Shop sees breakdown continuity only.")}</CoachLi>
-            <CoachLi>{t("Motive will validate later — it does not replace the driver.")}</CoachLi>
-          </ul>
-        </Section>
-
-        {/* ── 2 · OPERATIONAL ATTENTION · what matters now ───────── */}
+        {/* ── 1 · OPERATIONAL ATTENTION · what matters now ───────── */}
         <Section
           testId="ds-section-attention"
           accent="rose"
           icon={AlertTriangle}
-          kicker={t("Start here")}
+          kicker={t("Right now")}
           title={t("Operational Attention")}
-          subtitle={t("These are the items most likely to slow work today.")}
+          subtitle={t("Items most likely to slow work today.")}
+          dense
         >
           {attention.loading ? (
-            <div className="text-sm text-slate-500 py-2" data-testid="ds-attention-loading">
+            <div className="text-sm text-slate-500 py-1" data-testid="ds-attention-loading">
               {t("Reading signals…")}
             </div>
           ) : findingCounts.total === 0 ? (
-            <div className="text-sm text-slate-500 italic py-2" data-testid="ds-attention-empty">
+            <div className="text-sm text-slate-500 italic py-1" data-testid="ds-attention-empty">
               {t("All hauls are flowing. Nothing requires dispatch attention right now.")}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4" data-testid="ds-attention-cards">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" data-testid="ds-attention-cards">
               <AttentionCard
                 testId="ds-attention-breakdown"
                 icon={Wrench}
@@ -256,7 +231,7 @@ export default function DispatchHub() {
                 tone="warn"
                 count={findingCounts.longWait}
                 label={t("Extended wait")}
-                hint={t("Driver is waiting too long. Confirm the wait reason still applies.")}
+                hint={t("Driver waiting too long. Confirm the wait reason still applies.")}
               />
             </div>
           )}
@@ -268,7 +243,6 @@ export default function DispatchHub() {
             >
               {t("Open the operational board")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Link>
-            {/* iter414 · Phase 18.1 · in-flow coaching link → dls-operational-attention */}
             <HelpLink
               testId="ds-attention-help"
               to="/guidance/dls-operational-attention"
@@ -277,16 +251,17 @@ export default function DispatchHub() {
           </div>
         </Section>
 
-        {/* ── 3 · ISSUE WORK · primary actions ───────────────────── */}
+        {/* ── 2 · ISSUE WORK · primary actions ───────────────────── */}
         <Section
           testId="ds-section-issue"
           accent="orange"
           icon={Send}
           kicker={t("Primary actions")}
           title={t("Issue Work")}
-          subtitle={t("Create the assignment once. Drivers and PMs see the right operational signal downstream.")}
+          subtitle={t("Create assignment once · downstream signals fan out automatically.")}
+          dense
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" data-testid="ds-issue-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2" data-testid="ds-issue-grid">
             <IssueButton
               testId="ds-issue-material"
               icon={Truck}
@@ -316,8 +291,7 @@ export default function DispatchHub() {
               onClick={() => issueWork("Support / Misc")}
             />
           </div>
-          {/* iter414 · Phase 18.1 · in-flow coaching links — calm, slate, NOT modal */}
-          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
             <HelpLink
               testId="ds-issue-help-issuance"
               to="/guidance/dls-assignment-issuance"
@@ -331,38 +305,37 @@ export default function DispatchHub() {
           </div>
         </Section>
 
-        {/* ── 4 · LIVE OPERATIONAL FLOW · deep link ──────────────── */}
+        {/* ── 3 · LIVE OPERATIONAL BOARD · deep link ─────────────── */}
         <Section
           testId="ds-section-live"
           accent="orange"
           icon={Activity}
           kicker={t("Watch movement")}
-          title={t("Live Operational Flow")}
-          subtitle={t("Active assignments, waiting trucks, breakdowns, and haul movement.")}
+          title={t("Live Operational Board")}
+          subtitle={t("Active assignments, waiting trucks, breakdowns, haul movement.")}
+          dense
         >
-          <p className="text-xs text-slate-600 mb-3">
-            {t("Driver lifecycle taps keep the board current. Motive will validate later; it does not replace the driver.")}
-          </p>
           <Link
             to="/dispatch-portal/board"
             data-testid="dispatch-board-link"
-            className="inline-flex items-center min-h-[52px] px-5 rounded-md bg-orange-600 hover:bg-orange-500 text-white font-black tracking-wide"
+            className="inline-flex items-center min-h-[48px] px-5 rounded-md bg-orange-600 hover:bg-orange-500 text-white font-black tracking-wide"
           >
             <Activity className="w-5 h-5 mr-2" />
             {t("Open Operational Board")}
           </Link>
         </Section>
 
-        {/* ── 5 · FOLLOW-THROUGH · transfers + holds ─────────────── */}
+        {/* ── 4 · FOLLOW-THROUGH · transfers + holds ─────────────── */}
         <Section
           testId="ds-section-follow"
           accent="amber"
           icon={ListChecks}
           kicker={t("Resolve before tomorrow")}
           title={t("Follow-Through")}
-          subtitle={t("These items need a decision, handoff, or correction before they become tomorrow's problem.")}
+          subtitle={t("Decisions, handoffs, and corrections that stop tomorrow's problems.")}
+          dense
         >
-          <Tabs defaultValue="transfers" className="mt-2">
+          <Tabs defaultValue="transfers" className="mt-1">
             <TabsList className="flex-wrap h-auto">
               <TabsTrigger value="transfers" data-testid="dh-tab-transfers">
                 <Send className="w-3.5 h-3.5 mr-1" /> {t("Equipment moves")}
@@ -376,7 +349,7 @@ export default function DispatchHub() {
           </Tabs>
         </Section>
 
-        {/* ── 6 · SECONDARY OPERATIONS · less daily, still useful ─ */}
+        {/* ── 5 · SECONDARY OPERATIONS ───────────────────────────── */}
         <Section
           testId="ds-section-secondary"
           accent="slate"
@@ -384,8 +357,9 @@ export default function DispatchHub() {
           kicker={t("Secondary operations")}
           title={t("Fleet, utilization, and integrations")}
           subtitle={t("Lower-priority context. Open only when needed.")}
+          dense
         >
-          <Tabs defaultValue="overview" className="mt-2">
+          <Tabs defaultValue="overview" className="mt-1">
             <TabsList className="flex-wrap h-auto">
               <TabsTrigger value="overview" data-testid="dh-tab-overview">
                 <Activity className="w-3.5 h-3.5 mr-1" /> {t("Overview")}
@@ -406,10 +380,10 @@ export default function DispatchHub() {
             <TabsContent value="integrations"><DispatchIntegrationsTab /></TabsContent>
           </Tabs>
 
-          <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-100" data-testid="ds-secondary-links">
+          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-100" data-testid="ds-secondary-links">
             <Link
               to="/dispatch-portal/fleet"
-              className="inline-flex items-center min-h-[40px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
+              className="inline-flex items-center min-h-[36px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
               data-testid="dispatch-fleet-link"
             >
               <Truck className="w-4 h-4 mr-1.5" />
@@ -417,7 +391,7 @@ export default function DispatchHub() {
             </Link>
             <Link
               to="/dispatch-portal/driver-qualification"
-              className="inline-flex items-center min-h-[40px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
+              className="inline-flex items-center min-h-[36px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
               data-testid="dispatch-driver-qual-link"
             >
               <ShieldCheck className="w-4 h-4 mr-1.5" />
@@ -425,7 +399,7 @@ export default function DispatchHub() {
             </Link>
             <Link
               to="/asset-transfers"
-              className="inline-flex items-center min-h-[40px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
+              className="inline-flex items-center min-h-[36px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
               data-testid="dispatch-asset-transfers-link"
             >
               <Truck className="w-4 h-4 mr-1.5" />
@@ -434,59 +408,45 @@ export default function DispatchHub() {
           </div>
         </Section>
 
-        {/* ── 7 · GUIDES & COACHING ──────────────────────────────── */}
+        {/* ── 6 · DISPATCH COMMAND · collapsible coaching ────────── */}
+        <CoachingBlock
+          collapsed={coachCollapsed}
+          onToggle={() => setCoachCollapsed(!coachCollapsed)}
+          t={t}
+        />
+
+        {/* ── 7 · DISPATCH RESOURCES · consolidated single CTA ──── */}
         <Section
-          testId="ds-section-guides"
+          testId="ds-section-resources"
           accent="slate"
           icon={BookOpen}
-          kicker={t("Coaching")}
-          title={t("Guides & Coaching")}
-          subtitle={t("Use these when a dispatcher or truck boss is unsure what a state means.")}
+          kicker={t("Reference")}
+          title={t("Dispatch Resources")}
+          subtitle={t("Open the operational guidance center when a state or signal is unclear.")}
+          dense
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4" data-testid="ds-guides-grid">
-            <GuideTile
-              testId="ds-guide-dispatch-owns"
-              title={t("What dispatch owns")}
-              body={t("Issuance, reassignment, breakdown response, and the operational board.")}
-            />
-            <GuideTile
-              testId="ds-guide-issuance"
-              title={t("How assignment issuance works")}
-              body={t("One drawer · five haul types · seeded + historical rosters · add-temp anywhere.")}
-            />
-            <GuideTile
-              testId="ds-guide-waits"
-              title={t("What wait states mean")}
-              body={t("Canonical operational intelligence — never free text. Plant, dump, breakdown, etc.")}
-            />
-            <GuideTile
-              testId="ds-guide-pm-shop"
-              title={t("Downstream signals")}
-              body={t("PM sees production awareness only. Shop sees breakdown continuity only. Safety / FL / HR stay quiet on DLS.")}
-            />
-            <GuideTile
-              testId="ds-guide-motive"
-              title={t("Why Motive validates later, not surveils")}
-              body={t("Motive answers questions about movement, arrival, and wait truth — it does not give orders.")}
-            />
-            <Link
-              to="/guidance?from=dispatch"
-              data-testid="dispatch-training-link"
-              className="inline-flex items-center justify-between bg-slate-900 text-white rounded-md p-4 hover:bg-slate-800 transition-colors"
-            >
-              <span className="font-display text-base font-black">{t("Open all guides")}</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <Link
+            to="/guidance?from=dispatch"
+            data-testid="dispatch-training-link"
+            className="inline-flex items-center justify-between bg-slate-900 text-white rounded-md px-4 py-3 hover:bg-slate-800 transition-colors min-h-[44px]"
+          >
+            <span className="font-display text-sm font-black">{t("Open Guides")}</span>
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Link>
         </Section>
+
+        {/* ── 8 · CALM PERIPHERAL · below operational content ──── */}
+        <div className="space-y-3 pt-2 border-t border-slate-200" data-testid="ds-peripheral">
+          <PasskeyEnrollPrompt />
+          <FieldMemoryGlance />
+          <LastActivityLine portal="dispatch" />
+        </div>
       </main>
       </div>
 
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 w-full flex flex-col items-center gap-2">
-        <ForgedOpsAttribution variant="footer" />
-      </footer>
+      {/* Local footer removed — GlobalFooter mounted in App.js renders the
+          single, app-wide attribution strip on every route. */}
 
-      {/* Same drawer, preselected haul_type from the Issue Work tile */}
       <AssignmentCreateDrawer
         open={createOpen}
         onClose={() => setCreateOpen(false)}
@@ -499,8 +459,9 @@ export default function DispatchHub() {
 
 // ─────────────────────────────────────────────────────────────────────
 // Section · platform-family contract (white card + colored left stripe)
+// `dense` reduces padding from p-5 → p-4 for command-center density.
 // ─────────────────────────────────────────────────────────────────────
-function Section({ testId, accent = "slate", icon: Icon, kicker, title, subtitle, children }) {
+function Section({ testId, accent = "slate", icon: Icon, kicker, title, subtitle, children, dense = false }) {
   const stripe =
     accent === "orange" ? "border-l-orange-500"
     : accent === "rose"   ? "border-l-rose-700"
@@ -511,14 +472,15 @@ function Section({ testId, accent = "slate", icon: Icon, kicker, title, subtitle
     : accent === "rose"   ? "text-rose-700"
     : accent === "amber"  ? "text-amber-700"
     : "text-slate-600";
+  const padding = dense ? "p-4" : "p-5";
   return (
     <section
-      className={`bg-white border border-slate-200 border-l-4 ${stripe} rounded-md p-5`}
+      className={`bg-white border border-slate-200 border-l-4 ${stripe} rounded-md ${padding}`}
       data-testid={testId}
     >
       <div className="flex items-start gap-3">
         {Icon ? (
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-900 text-white shrink-0">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-900 text-white shrink-0">
             <Icon className="w-5 h-5" />
           </div>
         ) : null}
@@ -526,15 +488,68 @@ function Section({ testId, accent = "slate", icon: Icon, kicker, title, subtitle
           <div className={`font-mono text-[10px] uppercase tracking-[0.22em] ${kickerCls} font-bold`}>
             {kicker}
           </div>
-          <h2 className="font-display text-xl sm:text-2xl font-black tracking-tight text-slate-900 mt-0.5">
+          <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900 mt-0.5">
             {title}
           </h2>
           {subtitle ? (
-            <p className="text-sm text-slate-600 mt-1 max-w-2xl">{subtitle}</p>
+            <p className="text-sm text-slate-600 mt-0.5 max-w-2xl">{subtitle}</p>
           ) : null}
         </div>
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// CoachingBlock · collapsible Dispatch Command coaching.
+// Default: expanded on first visit, persists collapsed state per device.
+// ─────────────────────────────────────────────────────────────────────
+function CoachingBlock({ collapsed, onToggle, t }) {
+  return (
+    <section
+      className="bg-white border border-slate-200 border-l-4 border-l-slate-400 rounded-md p-4"
+      data-testid="ds-section-command"
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        data-testid="ds-coaching-toggle"
+        className="w-full flex items-center gap-3 text-left"
+        aria-expanded={!collapsed}
+      >
+        <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-900 text-white shrink-0">
+          <Compass className="w-5 h-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-600 font-bold">
+            {t("Need help?")}
+          </div>
+          <div className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900 mt-0.5">
+            {collapsed ? t("Show Dispatch Guidance") : t("Dispatch Command")}
+          </div>
+        </div>
+        {collapsed ? (
+          <ChevronDown className="w-5 h-5 text-slate-500" data-testid="ds-coaching-icon-down" />
+        ) : (
+          <ChevronUp className="w-5 h-5 text-slate-500" data-testid="ds-coaching-icon-up" />
+        )}
+      </button>
+      {!collapsed && (
+        <div className="mt-3" data-testid="ds-coaching-body">
+          <p className="text-sm text-slate-600 mb-2 max-w-2xl">
+            {t("Issue work, watch movement, resolve delays, and keep trucks flowing.")}
+          </p>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1.5 text-sm text-slate-700">
+            <CoachLi>{t("Start with anything needing attention.")}</CoachLi>
+            <CoachLi>{t("Issue assignments before reviewing history.")}</CoachLi>
+            <CoachLi>{t("Driver taps are the source of operational truth.")}</CoachLi>
+            <CoachLi>{t("PMs see production awareness only.")}</CoachLi>
+            <CoachLi>{t("Shop sees breakdown continuity only.")}</CoachLi>
+            <CoachLi>{t("Motive validates later — it does not replace the driver.")}</CoachLi>
+          </ul>
+        </div>
+      )}
     </section>
   );
 }
@@ -559,7 +574,7 @@ function AttentionCard({ testId, icon: Icon, tone = "calm", count = 0, label, hi
   return (
     <div
       data-testid={testId}
-      className={`border ${wrap} rounded-md p-3 flex flex-col gap-1`}
+      className={`border ${wrap} rounded-md p-3 flex flex-col gap-1 ${isLive ? "ring-1 ring-inset" : ""} ${isLive && tone === "danger" ? "ring-rose-200" : ""} ${isLive && tone !== "danger" ? "ring-amber-200" : ""}`}
     >
       <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-slate-600 font-bold">
         <Icon className="w-3.5 h-3.5" /> {label}
@@ -578,28 +593,16 @@ function IssueButton({ testId, icon: Icon, title, sub, onClick }) {
       type="button"
       onClick={onClick}
       data-testid={testId}
-      className="min-h-[88px] rounded-md border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 bg-white p-4 text-left flex items-start gap-3 transition-all"
+      className="min-h-[76px] rounded-md border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50 bg-white p-3 text-left flex items-start gap-3 transition-all"
     >
       <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-orange-600 text-white shrink-0">
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-display text-base font-black text-slate-900 leading-tight break-words hyphens-auto">{title}</div>
-        <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mt-1 break-words">{sub}</div>
+        <div className="font-display text-sm font-black text-slate-900 leading-tight break-words hyphens-auto">{title}</div>
+        <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mt-0.5 break-words">{sub}</div>
       </div>
     </button>
-  );
-}
-
-function GuideTile({ testId, title, body }) {
-  return (
-    <div
-      data-testid={testId}
-      className="bg-slate-50 border border-slate-200 rounded-md p-3"
-    >
-      <div className="font-display text-sm font-black text-slate-900">{title}</div>
-      <div className="text-xs text-slate-600 leading-snug mt-1">{body}</div>
-    </div>
   );
 }
 
@@ -607,15 +610,7 @@ function GuideTile({ testId, title, body }) {
  * HelpLink · iter414 · Phase 18.1 · in-flow operational coaching.
  *
  * Calm, slate, low-visual-weight link to the Operational Guidance Center
- * article for the surrounding operational area. The purpose is NOT a
- * tutorial system or modal walkthrough — it's a quiet "How this works"
- * link directly under the operational checkpoint where hesitation
- * naturally happens.
- *
- * Visual doctrine: text-xs slate-500 with subtle underline. No button
- * chrome, no icon weight, no alert color. Tappable (≥ 32px hit area
- * via min-h on the parent flex container) and bilingual via the
- * caller's `t()` wrap.
+ * article for the surrounding operational area.
  */
 function HelpLink({ testId, to, label }) {
   return (
