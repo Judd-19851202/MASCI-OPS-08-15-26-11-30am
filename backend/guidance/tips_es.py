@@ -4415,4 +4415,402 @@ TIPS_ES: dict[tuple[str, str], dict] = {
      "body_es": "Área de trabajo: zanja en estación 12+50. Pasos: 1) Identificar y evitar utilidades. 2) Asentar caja. 3) Excavar dentro del perímetro de la caja. 4) Pila de spoil mínimo 4 pies del borde. Peligros: colapso, escombro que cae, columpio de equipo. Controles: sistema de protección, cascos, vigilante. Bilingüe. Colgado en la caja de herramientas. Leído a las 6:30 AM."},
     ("jha.poster", "escalate"): {"title_es": "Cuando el cartel necesita bajar",
      "body_es": "El área de trabajo se movió (la zanja se movió). La cuadrilla rotó con mezcla de competencia significativamente diferente. Cambio mayor de alcance. No deje el cartel de ayer arriba para el trabajo de hoy. Bájelo, archive el PDF, cuelgue la versión actual. La pared refleja lo que pasa hoy, no lo que se planeó la semana pasada."},
+
+    # ── OKCP 2026-06-03 · Wave 1 + Wave 2 Spanish operational parity ──
+    # No literal translation — heavy-civil / field / equipment / safety
+    # operational Spanish. One ES entry per new EN tip in tips.py.
+    ("fleet.rts", "who"): {
+        "title_es": "Quién autoriza el Retorno al Servicio",
+        "body_es": "El RTS requiere firma conjunta del mecánico asignado Y el "
+                   "supervisor del taller. El reportador original del defecto "
+                   "tiene visibilidad de la liberación. El conductor/operador "
+                   "firma de recibido antes del próximo despacho. Defectos de "
+                   "severidad ROJA NO pueden liberarse con una sola firma."},
+    ("fleet.rts", "next"): {
+        "title_es": "Qué pasa después del RTS",
+        "body_es": "La unidad regresa al pool de despacho. El tablero se "
+                   "actualiza en minutos; el conductor recibe notificación QR "
+                   "al inicio del turno. El rastro de auditoría conserva "
+                   "defecto → reparación → partes → mecánico → supervisor — "
+                   "cadena completa de custodia si la unidad cae en incidente."},
+    ("fleet.rts", "escalate"): {
+        "title_es": "Cuándo negar el RTS",
+        "body_es": "Niegue si (a) el defecto original no se reproduce como "
+                   "resuelto, (b) el ciclo de prueba estuvo incompleto, (c) "
+                   "cualquier sistema de seguridad (frenos, luces, dirección, "
+                   "hidráulico) muestra falla residual, (d) las partes "
+                   "sustituidas no fueron OEM-equivalentes. Escale al Gerente "
+                   "del Taller. El RTS nunca se negocia bajo presión de "
+                   "calendario."},
+    ("fleet.repair", "mistake"): {
+        "title_es": "Errores comunes en reparación",
+        "body_es": "Cerrar un defecto porque se cambió una parte, sin re-probar "
+                   "el sistema. Saltarse el ciclo de prueba cuando el calendario "
+                   "aprieta. Dejar que el reportador original firme — la "
+                   "separación de funciones es la defensa de auditoría. "
+                   "Documentar partes sin precisión — VIN / serie / lote "
+                   "importan en la revisión de incidente."},
+    ("fleet.visibility", "mistake"): {
+        "title_es": "Errores leyendo el tablero de la flota",
+        "body_es": "Tratar una unidad como disponible porque no está en ROJO — "
+                   "AMARILLO significa defecto registrado pero no liberado; no "
+                   "despache. Confiar en el historial sin revisar el registro "
+                   "de reparación más reciente. No notar que el mecánico de hoy "
+                   "y el de ayer discrepan sobre si el sistema se re-probó."},
+    ("attendance", "mistake"): {
+        "title_es": "Errores comunes registrando asistencia",
+        "body_es": "Marcar presente a un trabajador porque el líder de cuadrilla "
+                   "dice que está sin verlo en sitio. Olvidar al que salió a "
+                   "medio turno. Listar solo iniciales — la nómina no reconcilia "
+                   "iniciales a una persona. Las reglas de pago de feriado "
+                   "difieren — revise el calendario antes de marcar una "
+                   "ausencia como injustificada."},
+    ("checkout", "mistake"): {
+        "title_es": "Errores comunes en checkout de equipo",
+        "body_es": "Saltarse las fotos de condición porque la unidad luce bien. "
+                   "Dejar que el receptor firme antes de inspeccionar. "
+                   "Expectativas genéricas de retorno ('devolver limpio') — "
+                   "sea específico con fluidos, orugas y defectos conocidos. "
+                   "El checkout es la única base si la unidad regresa dañada."},
+    ("corrective", "mistake"): {
+        "title_es": "Errores comunes en CAPA",
+        "body_es": "Cerrar una CAPA el mismo día que se abrió — la verificación "
+                   "no es auto-atestación. Texto genérico ('entrenar a la "
+                   "cuadrilla') que no se puede verificar. Asignar a un rol "
+                   "en vez de a una persona con fecha. Marcar Verificado sin "
+                   "registro de re-inspección o evidencia adjunta."},
+    ("crew_eval", "mistake"): {
+        "title_es": "Errores comunes evaluando cuadrilla",
+        "body_es": "Calificar desde la memoria del último incidente, no del "
+                   "periodo. Lenguaje genérico ('buen trabajador') sin ejemplos. "
+                   "Saltarse la calibración con el periodo anterior — la "
+                   "deriva es invisible sin comparación. Evaluar el título del "
+                   "puesto en vez de a la persona."},
+    ("daily-report", "mistake"): {
+        "title_es": "Errores comunes en Reporte Diario",
+        "body_es": "Enviar antes del fin de turno — las horas cambian en los "
+                   "últimos 30 minutos. Número de proyecto equivocado en el "
+                   "día equivocado. Saltarse la narrativa porque 'no pasó "
+                   "nada'. Olvidar quitar equipo que se descompuso a mitad "
+                   "del turno. El Reporte Diario es evidencia de mañana — "
+                   "escríbalo para quien no estuvo."},
+    ("document-expirations", "mistake"): {
+        "title_es": "Errores comunes manejando vencimientos",
+        "body_es": "Esperar a que el documento esté vencido antes de hacer "
+                   "contacto. Tratar CDL y tarjeta médica con la misma "
+                   "cadencia — la médica se renueva más seguido. Cerrar una "
+                   "entrada de vencimiento porque se intentó contacto, no "
+                   "porque el nuevo documento esté en archivo."},
+    ("driver-qualification", "mistake"): {
+        "title_es": "Errores comunes en calificación del conductor",
+        "body_es": "Despachar un conductor cuyo endoso CDL no coincide con la "
+                   "carga (tanque / hazmat / dobles). Confiar en el dashboard "
+                   "sin revisar la fecha de la tarjeta médica. Ignorar "
+                   "restricciones ('lentes correctivos' es restricción real — "
+                   "confirme que el conductor los trae). DOT no acepta la "
+                   "palabra de la plataforma — acepta el archivo."},
+    ("employee-accountability", "mistake"): {
+        "title_es": "Errores comunes en accountability",
+        "body_es": "Hacer un writeup sin la conversación previa de read-first. "
+                   "Tono que se lee como enojo en vez de hechos. Saltarse el "
+                   "paso de verificar ('¿cambió el comportamiento?') — "
+                   "accountability sin verificación es solo culpa. Archivar "
+                   "sin seguimiento hace que el próximo writeup no se defienda."},
+    ("employee-lifecycle", "mistake"): {
+        "title_es": "Errores comunes de ciclo de empleado",
+        "body_es": "Recontratar a un empleado que debe ser reactivado — perder "
+                   "el original_hire_date es irreversible. Saltarse setup del "
+                   "día uno (EPP, registros de entrenamiento, elegibilidad de "
+                   "despacho). Cerrar separación sin revocar accesos. "
+                   "Documentación de bienvenida que no coincide con lo que el "
+                   "capataz le dice el lunes."},
+    ("equipment-issuance", "mistake"): {
+        "title_es": "Errores comunes de entrega de equipo",
+        "body_es": "Entregar sin la firma de acuso — no hay rastro de auditoría. "
+                   "Descripción vaga ('guantes' en vez de modelo / talla). "
+                   "Fotos sin la condición base. Entregar a un nombre con el "
+                   "que el empleado no se reconoce — use el nombre legal del "
+                   "sistema."},
+    ("equipment-training", "mistake"): {
+        "title_es": "Errores comunes en entrenamiento de equipo",
+        "body_es": "Registrar entrenamiento sin que el operador demuestre "
+                   "competencia. Contexto genérico ('entrenamiento de "
+                   "montacargas') sin la clase específica de unidad. Sin "
+                   "fecha de vencimiento — el entrenamiento sí vence y "
+                   "DOT/OSHA lo verifican. Firmas incompletas del lado del "
+                   "instructor."},
+    ("fire-extinguisher", "mistake"): {
+        "title_es": "Errores comunes en extintores",
+        "body_es": "Inspeccionar una vez al año porque eso dice la etiqueta — "
+                   "se requiere visual mensual. Ignorar el manómetro porque "
+                   "el seguro sigue puesto. Escondido detrás de herramientas "
+                   "/ cajas — debe estar accesible. Tipo equivocado para el "
+                   "peligro (Clase A en fuego eléctrico). Un extintor "
+                   "inspeccionado al que nadie llega es igual que ninguno."},
+    ("incident", "mistake"): {
+        "title_es": "Errores comunes de reporte de incidente",
+        "body_es": "Severidad equivocada (Reportable vs Primeros-Auxilios vs "
+                   "Casi-Incidente tienen criterios OSHA específicos — "
+                   "adivínelo mal y la bitácora OSHA queda mal). Narrativa "
+                   "vaga ('se lastimó el dedo' vs 'laceración al índice "
+                   "derecho con suturas'). Faltan testigos. Cerrar antes de "
+                   "completar las 3 atestaciones."},
+    ("inspection", "mistake"): {
+        "title_es": "Errores comunes en inspección de sitio",
+        "body_es": "Registrar un hallazgo sin dueño. Cerrar sin evidencia de "
+                   "re-inspección. Confundir FINDINGS_RAISED (Sitio) con "
+                   "DEFICIENCY_RAISED (QA/QC). Usar el camino equivocado de "
+                   "los tres cierres (re-inspeccionar, acción correctiva, "
+                   "excepción con doble firma). Saltarse el sub-check de "
+                   "EPP porque 'todos traen casco hoy'."},
+    ("jha", "mistake"): {
+        "title_es": "Errores comunes en JHA",
+        "body_es": "JHA genérico ('cuidado en el sitio') — debe nombrar los "
+                   "peligros DE ESTE sitio. Saltarse la cadena de acuso — sin "
+                   "ella el JHA no es defensa legal. Cuadrilla solo-español "
+                   "sin versión en español colgada. JHA viejo en la pared "
+                   "después de cambiar alcance. El JHA que no coincide con "
+                   "el trabajo de hoy es más peligroso que sin JHA."},
+    ("meeting", "mistake"): {
+        "title_es": "Errores comunes en reunión de seguridad",
+        "body_es": "Tema genérico ('cuidado') en vez del peligro específico de "
+                   "esta cuadrilla esta semana. Firmar por alguien que no "
+                   "estuvo. Tener la reunión solo verbal sin escribirla. "
+                   "Saltarse las acciones al final — una reunión sin "
+                   "seguimiento es solo marcar la casilla."},
+    ("new_employee_eval", "mistake"): {
+        "title_es": "Errores comunes en eval de nuevo empleado",
+        "body_es": "Llenar la evaluación por impresión en vez de observación. "
+                   "Saltarse la cadencia 30/60/90. Dejar que el capataz hable "
+                   "por el nuevo en vez de evaluarlo directamente. Una eval "
+                   "débil al día 30 es mucho más barata que una separación al "
+                   "día 91."},
+    ("payroll-variance", "mistake"): {
+        "title_es": "Errores comunes en Variance de Nómina",
+        "body_es": "Marcar las 3 atestaciones sin revisar cada fila marcada. "
+                   "Finalizar mientras una fila sigue sin decisión. Tratar el "
+                   "batch como automatizado — no hay auto-finalize por "
+                   "doctrina. Cerrar el batch antes de que RH + Admin firmen "
+                   "— eso es un hallazgo de auditoría de nómina esperando "
+                   "aparecer."},
+    ("preop", "mistake"): {
+        "title_es": "Errores comunes en pre-op",
+        "body_es": "Firmar sin caminar la unidad. Marcar 'bueno' en fluidos "
+                   "sin levantar el cofre. Saltarse llantas-orugas porque la "
+                   "unidad lucía bien ayer. El pre-op es el registro legal de "
+                   "que vio la unidad lista — si se descompone a las 9 AM y "
+                   "firmó a las 6, hay problema."},
+    ("qaqc", "mistake"): {
+        "title_es": "Errores comunes en QA/QC",
+        "body_es": "Cerrar sin re-inspección — el código lo bloquea; intent de "
+                   "doctrina. Escoger mal entre los tres cierres: (A) "
+                   "re-inspección pasó, (B) acción correctiva ≥ 20 char, "
+                   "(C) excepción con doble firma PM + Seguridad ≥ 10 char. "
+                   "Texto correctivo vago. Fotos faltantes en camino B."},
+    ("safety-document", "mistake"): {
+        "title_es": "Errores comunes en documento de seguridad",
+        "body_es": "Clasificación equivocada (SDS como 'general' en vez de "
+                   "'hazcom') — audiencia y retención equivocadas. Subir sin "
+                   "fecha de emisión / vigencia. Dejar una SDS vencida en el "
+                   "anaquel porque se subió una vez. La clasificación ES la "
+                   "política de retención — acierte al subir."},
+    ("safety-training", "mistake"): {
+        "title_es": "Errores comunes en entrenamiento de seguridad",
+        "body_es": "Subir la cert sin fecha de vencimiento — el sistema no "
+                   "puede avisar si no sabe cuándo. Registrar un tema "
+                   "genérico en vez de la clase real. Dejar entrenamiento "
+                   "vencido en el dashboard sin contacto. Operar con "
+                   "entrenamiento vencido es el hallazgo DOT/OSHA más común "
+                   "de la plataforma."},
+    ("time-off-review", "mistake"): {
+        "title_es": "Errores comunes en revisión de tiempo libre",
+        "body_es": "Dejar pasar un patrón de Lunes / Viernes sin revisar — el "
+                   "patrón es la conversación, no la disciplina. Aprobar "
+                   "bereavement sin confirmar largo de política. Aprobar "
+                   "médico sin la nota del doctor cuando la política la pide. "
+                   "Vacaciones encima de hitos obligatorios — marque, no "
+                   "auto-apruebe."},
+    ("time-verification", "mistake"): {
+        "title_es": "Errores comunes en verificación de tiempo",
+        "body_es": "Cerrar discrepancia aceptando el conteo del capataz sin "
+                   "revisar el tablero de despacho. Tratar el almuerzo como "
+                   "automático 30 min cuando el líder dice que trabajaron "
+                   "corrido. Tiempo extra aprobado verbalmente — cada hora "
+                   "extra necesita aprobador por escrito. 15 minutos de error "
+                   "suma miles al trimestre."},
+    ("topic-library", "mistake"): {
+        "title_es": "Errores comunes en biblioteca de temas",
+        "body_es": "Escoger el tema fácil en vez del que coincide con los "
+                   "peligros del sitio. Filtrar por dominio sin considerar la "
+                   "mezcla de cuadrilla. Imprimir el PDF y nunca leer las "
+                   "notas de discusión — el tema ES la discusión, no el "
+                   "papel. Repetir el mismo tema mes a mes es como las "
+                   "reuniones se vuelven rutina."},
+    ("training_deficiency", "mistake"): {
+        "title_es": "Errores comunes en deficiencia de entrenamiento",
+        "body_es": "Registrar deficiencia sin nombrar la clase específica. "
+                   "Cerrar porque el empleado 'dijo que lo arregla' — el "
+                   "cierre requiere el nuevo registro en archivo. Dejar la "
+                   "deficiencia abierta mientras el empleado sigue operando "
+                   "el equipo en cuestión — eso es hallazgo OSHA."},
+    ("verbal_coaching", "mistake"): {
+        "title_es": "Errores comunes en coaching verbal",
+        "body_es": "Registrar el coaching después de un writeup en vez de "
+                   "antes — la plataforma espera coaching → escalación, no "
+                   "al revés. Notas genéricas ('hablamos de seguridad') en "
+                   "vez del comportamiento específico. Sin fecha de "
+                   "seguimiento. Coaching verbal que nunca se vuelve writeup "
+                   "cuando se repite el comportamiento es documentación que "
+                   "no aguanta."},
+    ("writeup", "mistake"): {
+        "title_es": "Errores comunes en writeup",
+        "body_es": "Saltarse el paso de conversación — el debido proceso "
+                   "requiere que el empleado oiga los hechos en persona. "
+                   "Lenguaje editorial en vez de hechos. Archivar sin "
+                   "revisión de RH. Apilar writeups el mismo día en vez de "
+                   "incidentes separados con fechas. El writeup es el "
+                   "documento legal — escríbalo como si un abogado lo fuera "
+                   "a leer."},
+    # ── OKCP Wave 2 supplement — 8 final parents close to GREEN ──
+    ("attendance", "who"): {
+        "title_es": "A quién afecta la asistencia",
+        "body_es": "El capataz lleva el conteo. RH reconcilia a nómina. "
+                   "Despacho lee el conteo para armar el próximo turno. Un "
+                   "nombre faltante aquí se vuelve el cheque equivocado de "
+                   "alguien el viernes."},
+    ("attendance", "next"): {
+        "title_es": "Qué pasa con la asistencia después de enviar",
+        "body_es": "Fluye a RH para reconciliación de nómina. Alimenta el "
+                   "detector de patrones de tiempo libre. Las ausencias "
+                   "marcadas activan prompts de coaching verbal. El tablero "
+                   "de despacho saca disponibilidad para el próximo turno."},
+    ("material-calculator", "next"): {
+        "title_es": "Qué produce la calculadora",
+        "body_es": "Una hoja de orden de material con cantidades, unidades "
+                   "y vendedor o stockpile recomendado. El número es ayuda "
+                   "de planeación, no PO — el PM aún autoriza la compra. "
+                   "Guarde el cálculo como parte del proyecto para que el "
+                   "siguiente planificador vea las matemáticas."},
+    ("material-calculator", "escalate"): {
+        "title_es": "Cuando la respuesta de la calculadora está mal",
+        "body_es": "Las condiciones de campo difieren de los supuestos "
+                   "(densidad de suelo distinta, compactación atípica, "
+                   "geometría irregular). Escale al PM con el supuesto que "
+                   "falla. NO ordene material por un cálculo en el que no "
+                   "confía — material sobrante en el proyecto es dinero "
+                   "real perdido."},
+    ("new_employee_eval", "who"): {
+        "title_es": "Quién evalúa",
+        "body_es": "El supervisor directo. El capataz si el nuevo es "
+                   "laborero. Superintendente o PM si es nivel capataz. "
+                   "RH audita la eval, no la autora. Se requiere firma de "
+                   "un segundo observador al día 90."},
+    ("new_employee_eval", "escalate"): {
+        "title_es": "Cuando la eval señala un problema",
+        "body_es": "Brecha de habilidad que una clase de entrenamiento no "
+                   "cierra. Casi-incidentes de seguridad repetidos en los "
+                   "primeros 30 días. Quejas de la cuadrilla que coinciden "
+                   "con la observación. Escale a RH con un Plan de Mejora "
+                   "documentado, no con writeup. PIP al día 30 es más "
+                   "barato que separación al día 91."},
+    ("promotion_recommendation", "who"): {
+        "title_es": "Quién puede recomendar promoción",
+        "body_es": "Supervisor directo + revisión de un par senior (el par "
+                   "senior debe haber trabajado con el candidato). RH "
+                   "recibe la recomendación; la autoridad final es el "
+                   "líder de operaciones y RH conjuntamente. El capataz "
+                   "del candidato no puede solo avanzar a su propio "
+                   "elemento sin confirmación independiente."},
+    ("promotion_recommendation", "next"): {
+        "title_es": "Qué pasa después de recomendar",
+        "body_es": "RH abre una consulta a la línea de tiempo de "
+                   "responsabilidad, registro de entrenamiento y CAPAs "
+                   "activas. Una recomendación con CAPA de seguridad "
+                   "abierta se detiene hasta que la CAPA esté "
+                   "verificada-cerrada. La aprobación gatilla actualización "
+                   "de tarifa de pago, refresh de elegibilidad de despacho "
+                   "y ajuste de plan de entrenamiento."},
+    ("promotion_recommendation", "escalate"): {
+        "title_es": "Cuándo declinar una recomendación",
+        "body_es": "Registro disciplinario abierto en los últimos 6 meses. "
+                   "CAPA de seguridad activa del candidato. Certificado de "
+                   "entrenamiento vencido y sin renovar. Patrón de writeups "
+                   "de varios supervisores. Decline limpio con la razón en "
+                   "archivo — las recomendaciones declinadas son parte de "
+                   "la línea de tiempo de responsabilidad."},
+    ("recognition", "who"): {
+        "title_es": "Quién puede emitir reconocimiento",
+        "body_es": "Cualquier supervisor, PM, Seguridad o RH puede emitir "
+                   "reconocimiento. El reconocimiento peer-to-peer entre "
+                   "cuadrilla se enruta por el supervisor para el rastro "
+                   "de auditoría. Auto-nominación no aplica — el "
+                   "reconocimiento se observa, no se pide."},
+    ("recognition", "next"): {
+        "title_es": "Qué pasa con el reconocimiento",
+        "body_es": "Se publica en la línea de tiempo del empleado como "
+                   "evento positivo. Visible al empleado, su supervisor, "
+                   "RH y el líder de operaciones. Cuenta hacia el peso de "
+                   "la revisión anual. Si el reconocimiento incluye premio "
+                   "tangible (gift card, bono), se enruta por RH para "
+                   "tratamiento fiscal antes de emisión."},
+    ("recognition", "escalate"): {
+        "title_es": "Cuándo el reconocimiento es la herramienta equivocada",
+        "body_es": "No use reconocimiento para suavizar un writeup — deben "
+                   "ser eventos separados con fecha en la línea de tiempo. "
+                   "No reconozca por hacer el trabajo base (presentarse, "
+                   "completar horas). Reconozca por trabajo que previno "
+                   "incidente, ahorró costo o cargó al equipo. El "
+                   "reconocimiento inflado hace que el real pierda valor."},
+    ("supervisor_notes", "who"): {
+        "title_es": "Quién puede leer las notas de supervisor",
+        "body_es": "El autor. RH (siempre). La cadena de supervisor directa "
+                   "del empleado. NO pares, NO el empleado mismo por "
+                   "default. Las notas son observaciones, no acusaciones — "
+                   "pero el descubrimiento legal puede jalarlas, así que "
+                   "escríbalas como evidencia descubrible."},
+    ("supervisor_notes", "next"): {
+        "title_es": "Qué se vuelven las notas de supervisor",
+        "body_es": "Detección de patrones. Una nota es dato; tres notas "
+                   "sobre el mismo tema es patrón. RH auto-prompta un paso "
+                   "de coaching verbal cuando surge un patrón. Las notas "
+                   "nunca auto-escalan a writeup — esa es decisión humana."},
+    ("supervisor_notes", "escalate"): {
+        "title_es": "Cuándo escalar una nota",
+        "body_es": "Patrón de seguridad (no-compliance de EPP repetido, "
+                   "involucramiento en casi-incidentes, comportamiento de "
+                   "atajo). Patrón que pueda indicar afectación (ausentismo, "
+                   "errores de secuencia, lapsus de juicio). Escale a RH "
+                   "con las notas que muestran el patrón. No escale un "
+                   "incidente único como patrón — así se construyen "
+                   "reclamos falsos."},
+    ("training_deficiency", "who"): {
+        "title_es": "Quién marca deficiencias",
+        "body_es": "Cualquiera que observe — supervisor, par, instructor o "
+                   "el empleado mismo. RH recibe la marca y verifica el "
+                   "registro faltante. El supervisor del empleado es "
+                   "dueño del cierre (calendarizar el entrenamiento de "
+                   "recuperación)."},
+    ("training_deficiency", "escalate"): {
+        "title_es": "Cuándo una deficiencia debe parar el trabajo",
+        "body_es": "Entrenamiento de operación de equipo vencido = el "
+                   "empleado NO puede operar ese equipo hasta renovar. "
+                   "Entrenamiento mandatorio de OSHA vencido = sacar de la "
+                   "tarea relevante. Escale al supervisor de inmediato "
+                   "cuando una deficiencia agravaría un incidente si el "
+                   "trabajo continuara."},
+    ("verbal_coaching", "who"): {
+        "title_es": "Quién entrega coaching verbal",
+        "body_es": "Supervisor directo en persona, uno-a-uno. RH solo "
+                   "observa cuando la política lo requiere (tema sensible, "
+                   "asunto repetido). El coaching de un par o supervisor "
+                   "de skip-level no es coaching verbal de registro — es "
+                   "solo retroalimentación."},
+    ("verbal_coaching", "escalate"): {
+        "title_es": "Cuándo el coaching verbal se vuelve writeup",
+        "body_es": "El comportamiento se repite dentro de 30 días. El "
+                   "comportamiento se repitió durante la conversación de "
+                   "coaching. Surge nuevo comportamiento en la misma "
+                   "categoría de riesgo. Escale a writeup con el log de "
+                   "coaching adjunto — el coaching ES el paso de debido "
+                   "proceso que el writeup necesita."},
 }
