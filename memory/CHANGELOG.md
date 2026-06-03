@@ -151,3 +151,40 @@ Deliverables (in `memory/`):
 **Next Move (operator-owned)**: Six discrete FOCP-gateable decisions identified (Section 7 of final certification). Highest-leverage single engagement: close Fleet RTS gap (3 missing tip kinds + LifecycleGuide wire-up + body_es + glossary entry). All recommendations reuse existing form_keys / components / registry slots — no new workflow proposed.
 
 
+---
+
+## 2026-06-03 · OCSPCP — Operational Coaching & Spanish Parity Completion Program · EVIDENCE PACKAGE PREPARED
+
+**Authority**: OMEGA / FOCP DIRECTIVE — OCSPCP (READ-ONLY).
+
+**Mission**: Drive the platform from operationally functional to operationally self-sustaining for both English-speaking and Spanish-speaking operators across every workflow.
+
+**Deliverables Produced** (in `/app/memory/`):
+
+1. `OPERATIONAL_COACHING_COMPLETION_REGISTER.md` — 36-workflow inventory × 13 attributes (Owner / Type / EN-Help / EN-Coach / EN-Mistakes / EN-Lifecycle / EN-Accountability / 5 ES counterparts) with source-direct GREEN/YELLOW/RED verdicts.
+2. `SPANISH_OPERATIONAL_PARITY_REGISTER.md` — Three-layer Spanish parity model (Layer A i18n.js ~3218 ES keys ≈ 🟢 · Layer B tips.py body_es ≈ 0.24% 🔴 · Layers C/D/E/F 🟢). Composite: 3 🟢 / 8 🟡 / 24 🔴.
+3. `SAFETY_COACHING_COMPLETION_REGISTER.md` — Directive's 14 safety workflow list verified; Near Miss / QA/QC Hold / Heat Illness / Excavation / Utility Exposure / PPE confirmed as sub-states or topic-library items (no new workflows). Fleet RTS confirmed as the single 🔴.
+4. `ACCOUNTABILITY_COACHING_REGISTER.md` — Owner/Approver/Escalation/Audit/Retention/Reopen × 35 workflows × 2 languages = 420 cells. EN composite 68% GREEN; ES coaching layer 14% GREEN.
+5. `TRIBAL_KNOWLEDGE_ELIMINATION_REGISTER_OCSPCP.md` — Direct grep audit: **0 hits** on "Jaymn / supervisor will / ask your / call the office" patterns. Direct externalization at directive target state (0 RED). 18 implicit-dependency items catalogued for closure.
+6. `OPERATOR_INDEPENDENCE_REPORT.md` — YES/PARTIAL/NO verdict per workflow × language. EN: 57% YES · 40% PARTIAL · 3% NO. ES: 23% YES · 74% PARTIAL · 3% NO. 22-item Remediation Register identifies exactly what is missing for every PARTIAL/NO.
+7. `FINAL_OPERATIONAL_COACHING_CERTIFICATION.md` — Final synthesis answering the directive's central question.
+
+**Headline Verdict**:
+
+🟡 **PARTIALLY YES**, with **one provable NO** (Fleet Return-to-Service) common to both English and Spanish operators. Target state (0 RED · ≤5% YELLOW · 95%+ GREEN) is one operator-authorized engagement away (Fleet RTS closure) plus a Layer-B ES content batch (~412 tip body_es authorings) plus glossary in-flow wiring plus an onboarding decision (TCP Library reuse vs in-app build).
+
+**Highest discoveries**:
+
+* **Tribal-knowledge direct externalization is already at target state (0 RED)** — the coaching surface contains zero "ask Jaymn / supervisor / office" patterns. This retires the inherited assumption that coaching is verbally dependent.
+* **Spanish parity is bimodal**: Layer A (UI strings) ≈ comprehensive; Layer B (coaching bodies) ≈ 0.24%. The inherited "52% Spanish" figure conflated these two independent layers.
+* **EN operator-independence is 57% TODAY** — the platform is closer to self-sustaining than inherited findings suggested.
+
+**Retired False Findings**: 13 inherited claims retired or refined across the 7 deliverables, including: "Coaching directly references Jaymn" (RETIRED), "Spanish coverage is ~52%" (REFINED to two-layer model), "Submittals/QA-QC-Hold/Near-Miss/Heat-Illness/Excavation/Utility-Exposure/PPE need new workflows" (CONFIRMED no new workflows — all are sub-states or topic-library items).
+
+**Truth Register Impact**: Zero new rows · zero promotions · zero retirements. All gaps map onto pre-existing Phase 2 P1–P5, ADOPTION_RISK_REGISTER (AR-0003/AR-0004/AR-0007/AR-0016), SOCP, STCP, TCP, and FOCP R2 § C2-0014 classifications.
+
+**STOP Conditions Honored**: ✅ No new workflows · ✅ no new modules · ✅ no roadmap expansion · ✅ existing infrastructure reused (tips registry, LifecycleGuide, glossary, body_es field, i18n.js) · ✅ operational meaning prioritized over literal translation · ✅ source-verified · ✅ false findings retired · ✅ evidence-backed gaps only · ✅ no AI certification.
+
+**Next Move (operator-owned, NOT AI)**: 22 discrete remediations identified across the 7 deliverables, each FOCP-gateable (7-test + 4-proof). Highest-leverage single engagement = close Fleet RTS gap (3 missing tip kinds + LifecycleGuide wire-up + body_es + glossary entry). Operator decides authorization.
+
+
