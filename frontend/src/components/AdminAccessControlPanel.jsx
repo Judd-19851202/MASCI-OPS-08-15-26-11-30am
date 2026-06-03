@@ -254,6 +254,7 @@ export default function AdminAccessControlPanel() {
                       <div>
                         <div className="font-bold text-slate-900">{u.name || u.email.split("@")[0]}</div>
                         <div className="text-xs text-slate-500">{u.email}</div>
+                        <IamStandardCells user={u} portal="access-control" compact />
                       </div>
                     </div>
                   </td>

@@ -33,6 +33,7 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { IamStandardCells } from "@/components/iam/IamStandardCells";
 
 /**
  * AdminPMPanel — manage MASCI Project Managers (the email routing roster).
@@ -486,7 +487,12 @@ export default function AdminPMPanel() {
                           data-testid={`pm-edit-email-${p.id}`}
                         />
                       ) : (
-                        <span className="font-mono">{p.email}</span>
+                        <>
+                          <span className="font-mono">{p.email}</span>
+                          <div className="mt-1">
+                            <IamStandardCells user={p} portal="pm" compact />
+                          </div>
+                        </>
                       )}
                     </td>
                     <td className="px-3 py-2 text-xs text-slate-600">

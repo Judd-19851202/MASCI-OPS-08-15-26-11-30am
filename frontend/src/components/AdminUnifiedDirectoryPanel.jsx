@@ -360,6 +360,9 @@ export default function AdminUnifiedDirectoryPanel() {
                           must rotate pw
                         </div>
                       )}
+                      <div className="mt-1">
+                        <IamStandardCells user={u} portal="directory" compact />
+                      </div>
                     </td>
                   </tr>
                 );
