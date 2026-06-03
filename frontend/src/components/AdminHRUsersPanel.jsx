@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { IamStandardCells } from "@/components/iam/IamStandardCells";
 
 const ROLE_OPTIONS = ["HR Manager", "HR Coordinator", "Payroll Specialist", "Other"];
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-700";
@@ -285,6 +286,7 @@ export default function AdminHRUsersPanel() {
                     >
                       {u.disabled ? <><ShieldOff className="w-3 h-3" />Disabled</> : <><ShieldCheck className="w-3 h-3" />Active</>}
                     </button>
+                    <IamStandardCells user={u} portal="hr" compact />
                   </td>
                   <td className="px-3 py-2 text-center">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono ${u.has_password ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-800"}`}>

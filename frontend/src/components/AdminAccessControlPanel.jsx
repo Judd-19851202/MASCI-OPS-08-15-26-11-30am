@@ -24,6 +24,7 @@ import {
   DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
+import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
 
 // iter332 · Phase A · expanded portal grid to include safety + dispatch.

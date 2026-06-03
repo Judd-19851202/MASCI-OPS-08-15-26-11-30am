@@ -21,6 +21,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
 
 const PORTAL_COLORS = {

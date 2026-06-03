@@ -28,6 +28,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
+import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { setDispatchToken, setDispatchUser } from "@/lib/dispatchAuth";
 import { toast } from "sonner";
 
@@ -208,7 +209,7 @@ export default function AdminDispatchUsersPanel() {
             {ROLE_OPTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button onClick={addUser} disabled={adding} className="bg-orange-700 hover:bg-cyan-800 text-white h-10" data-testid="admin-safety-add-submit">
+        <Button onClick={addUser} disabled={adding} className="bg-orange-700 hover:bg-orange-800 text-white h-10" data-testid="admin-dispatch-add-submit">
           {adding ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />}
           Add User
         </Button>
@@ -271,10 +272,11 @@ export default function AdminDispatchUsersPanel() {
                       onClick={() => toggleDisabled(u)}
                       disabled={savingId === u.id}
                       className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold uppercase ${u.disabled ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"}`}
-                      data-testid={`admin-safety-toggle-disabled-${u.id}`}
+                      data-testid={`admin-dispatch-toggle-disabled-${u.id}`}
                     >
                       {u.disabled ? <><ShieldOff className="w-3 h-3" />Disabled</> : <><ShieldCheck className="w-3 h-3" />Active</>}
                     </button>
+                    <IamStandardCells user={u} portal="dispatch" compact />
                   </td>
                   <td className="px-3 py-2 text-center">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono ${u.has_password ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-800"}`}>
