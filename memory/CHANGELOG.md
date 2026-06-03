@@ -119,3 +119,35 @@ Deliverables (in `memory/`):
 
 **Next Move**: Operator — assigns reviewer slate, runs Phase 4 packet, aggregates verdicts using Phase 5 scorecard. No AI work authorized until operator returns with collected reviewer cards.
 
+---
+
+## 2026-06-03 · STCP — Safety Training Completion Program · EVIDENCE PACKAGE PREPARED
+
+**Authority**: OMEGA / FOCP DIRECTIVE — Safety Training Completion Program (READ-ONLY).
+
+**Mission**: Raise Safety Training Completeness from the inherited ~52% composite to a verifiable, source-direct completion picture — without new workflows, duplicate docs, or training bloat. Verify every safety workflow against 11 directive-mandated criteria.
+
+**Deliverables Produced** (in `/app/memory/`):
+
+* `SAFETY_TRAINING_COMPLETION_REGISTER.md` — Register 1 · 14 safety workflows × 11-criteria matrix (Owner / Help / Coaching / EN / ES / Mistakes / Related / Audit / Approval / Onboarding / Status / Gap / Remediation) with source-direct verdicts.
+* `SAFETY_COACHING_GAP_REGISTER.md` — Register 2 · AST-style walk of `tips.py` (47 safety form_keys × kind distribution). Identifies 13 RED form_keys (≤ 2 tips or missing `mistake` on high-stakes form).
+* `SAFETY_SPANISH_GAP_REGISTER.md` — Register 3 · Two-layer Spanish model. Layer A (i18n.js · ~3218 ES entries) ≈ comprehensive; Layer B (tips.py body_es) ≈ < 1% across safety scope.
+* `SAFETY_HELP_CONTENT_REGISTER.md` — Register 4 · Five help-content mechanisms (HelpTip · LifecycleGuide · static helps · AdminOperationalLanguage glossary · Topic Library) × 14 workflows. Identifies 5 stateful workflows lacking in-flow LifecycleGuide despite multi-stage lifecycles.
+* `SAFETY_CERTIFICATION_READINESS_REPORT.md` — Register 5 · 14 workflows × 4 dimensions (Operational / Safety / Training / Certification) GREEN-YELLOW-RED map. Aggregate: 33 GREEN cells (59%) / 20 YELLOW (36%) / 3 RED (5%).
+* `SAFETY_OPERATIONAL_TRAINING_CERTIFICATION.md` — Final deliverable answering the directive's central question.
+
+**Headline Verdict**:
+
+🟡 **PARTIALLY YES, with one provable NO**. A newly hired laborer, foreman, superintendent, safety rep, and safety manager can perform MOST required safety workflows without outside assistance. Five of fourteen are field-review-ready today (Incident, Site Inspection, QA/QC, Safety Topic Library, Safety Training Record). One workflow (Fleet Return-to-Service) is provably 🔴 RED — cannot be certified for unassisted operator use today.
+
+**Highest-leverage single-decision risk identified**: Fleet RTS (per SOCP §8.2 + STCP Coaching Gap Register §4 row 1 + STCP Help Content Register §3). `fleet.rts` form_key has only 2 tips; no `who` / `next` / `escalate`; no LifecycleGuide; no body_es; no unified workflow_state_events audit row.
+
+**Retired False Findings**: 9 inherited claims verified and either RETIRED or REFINED with precise evidence (Final §4). Key correction: the "Spanish coverage ~52%" composite figure conflated Layer A (UI strings, broad) with Layer B (coaching bodies, ≈ 0%) — now reported as two independent scores.
+
+**Truth Register Impact**: Zero new rows · zero promotions · zero retirements at the Truth Register level. All findings map onto pre-existing Phase 2 P1–P5, ADOPTION_RISK_REGISTER (AR-0007, AR-0016), SOCP, and FOCP R2 § C2-0014 classifications.
+
+**STOP Conditions Honored**: No new safety workflows · no duplicate docs · no training bloat · no engineering work · 11-criteria verification against source · false findings retired · evidence-backed gaps only · no AI certification (certification belongs to operator + real field reviewers).
+
+**Next Move (operator-owned)**: Six discrete FOCP-gateable decisions identified (Section 7 of final certification). Highest-leverage single engagement: close Fleet RTS gap (3 missing tip kinds + LifecycleGuide wire-up + body_es + glossary entry). All recommendations reuse existing form_keys / components / registry slots — no new workflow proposed.
+
+
