@@ -3306,11 +3306,22 @@ async def add_supplier_from_form(body: RosterAddBody):
 # ---------------------------------------------------------------------------
 @api_router.get("/employees")
 async def list_employees():
-    """Public — returns the full MASCI crew roster (sorted by name)."""
+    """Public — returns the MASCI crew roster (sorted by name).
+
+    OMEGA · Public Employee Roster Projection Hardening (2026-06-03):
+    Projection narrowed to the allow-list of fields actually rendered
+    by the 5 public-form pickers (Daily Report, Incident, Safety
+    Meeting, Equipment Inspection, Fleet DVIR). CDL, medical-card,
+    status_history, email, phone, and timestamp fields are no longer
+    returned on this public endpoint. The full record set remains
+    available to authenticated callers via /api/hr/employees and
+    /api/admin/employees/*. No employee data was modified.
+    """
     await _purge_expired("employees")
     cursor = db.employees.find(
         {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]},
-        {"_id": 0},
+        {"_id": 0, "id": 1, "name": 1, "employee_id": 1,
+         "crew": 1, "role": 1, "trade": 1, "is_active": 1},
     ).sort("name", 1)
     docs = await cursor.to_list(2000)
     return {"items": docs, "count": len(docs)}
