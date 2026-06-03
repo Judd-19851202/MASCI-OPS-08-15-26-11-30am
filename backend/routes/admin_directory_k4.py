@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 
 # Portals the directory recognises. Keep aligned with
 # user_directory.ALLOWED_PORTALS + identity_mirror.PORTAL_COLLECTIONS.
-KNOWN_PORTALS = ("admin", "pm", "shop", "hr", "safety", "dispatch")
+KNOWN_PORTALS = ("admin", "pm", "shop", "hr", "safety", "dispatch", "field_leadership")
 
 
 def _directory_full_view(row: Dict[str, Any]) -> Dict[str, Any]:
