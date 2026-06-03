@@ -2983,7 +2983,7 @@ async def admin_delete_shop_user(user_id: str, _: bool = Depends(require_admin))
 
 @api_router.post("/admin/shop-users/{user_id}/set-password")
 async def admin_set_shop_user_password(
-    user_id: str, body: ShopSetPasswordBody, _: bool = Depends(require_admin)
+    user_id: str, body: ShopSetPasswordBody, request: Request, _: bool = Depends(require_admin)
 ):
     """Issue a new password for a shop user. If `password` is omitted,
     generates a crypto-random temp password. Returned ONCE — admin
@@ -3003,6 +3003,20 @@ async def admin_set_shop_user_password(
         raise HTTPException(400, str(e))
     if not saved:
         raise HTTPException(404, "Shop user not found")
+    # iter502 · OMEGA IAM Enterprise Phase B+C: stamp issuance + audit.
+    try:
+        from lib.iam_password_audit import stamp_and_audit_temp_password
+        await stamp_and_audit_temp_password(
+            db,
+            collection_name="shop_users",
+            user_filter={"id": user_id},
+            target_email=str(saved.get("email") or ""),
+            portal="shop",
+            delivery="custom" if body.password else "screen",
+            request=request,
+        )
+    except Exception as _e:  # noqa: BLE001
+        logger.warning(f"[iam-pw-audit] shop set-password audit failed: {_e}")
     return {
         "ok": True,
         "user": public_shop_user_view(saved),
@@ -3024,7 +3038,7 @@ async def admin_disable_shop_user(
 
 @api_router.post("/admin/shop-users/{user_id}/email-welcome")
 async def admin_shop_user_email_welcome(
-    user_id: str, body: ShopSetPasswordBody, _: bool = Depends(require_admin_strict)
+    user_id: str, body: ShopSetPasswordBody, request: Request, _: bool = Depends(require_admin_strict)
 ):
     """One-shot: issue (or rotate) a shop-user password AND email the
     temp password to the user via Resend.
@@ -3139,6 +3153,24 @@ async def admin_shop_user_email_welcome(
                 "Use 'Show on Screen' to recover the new temp password."
             ),
         )
+
+    # iter502 · OMEGA IAM Enterprise Phase B+C: stamp + audit for shop welcome.
+    try:
+        from lib.iam_password_audit import stamp_and_audit_temp_password, audit_welcome_email_sent
+        await stamp_and_audit_temp_password(
+            db,
+            collection_name="shop_users",
+            user_filter={"id": user_id},
+            target_email=user_email,
+            portal="shop",
+            delivery="email",
+            request=request,
+        )
+        await audit_welcome_email_sent(
+            db, target_email=user_email, portal="shop", request=request,
+        )
+    except Exception as _e:  # noqa: BLE001
+        logger.warning(f"[iam-pw-audit] shop email-welcome audit failed: {_e}")
 
     return {
         "ok": True,

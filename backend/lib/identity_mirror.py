@@ -45,16 +45,19 @@ import bcrypt
 
 logger = logging.getLogger(__name__)
 
-# Per-portal collections that feed the mirror. The leadership portal is
-# intentionally absent — it currently uses a shared password (MASCIGC)
-# and named accounts are introduced in Phase K7.
+# Per-portal collections that feed the mirror.
+# iter502 · OMEGA IAM Enterprise Phase A: PM uses `project_managers` (not
+# `pm_users` which never existed), and `field_leadership_users` is now
+# mirrored too so FL identities surface in the Unified Directory. Both
+# mirrored as unguessable-hash rows so legacy logins remain authoritative.
 PORTAL_COLLECTIONS: List[Tuple[str, str]] = [
     ("admin", "admin_users"),          # may not exist; safe if empty
     ("hr",    "hr_users"),
-    ("pm",    "pm_users"),
+    ("pm",    "project_managers"),     # iter502 · OMEGA IAM Enterprise Phase A
     ("shop",  "shop_users"),
     ("safety", "safety_users"),
     ("dispatch", "dispatch_users"),
+    ("field_leadership", "field_leadership_users"),  # iter502 · OMEGA IAM Enterprise Phase A
 ]
 
 # Random per-row hash for mirrored entries. Computed once at module

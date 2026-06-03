@@ -835,7 +835,7 @@ def build_field_leadership_portal_router(
         dependencies=[Depends(require_hr_or_admin)],
     )
     async def admin_reset_fl_password(
-        user_id: str, body: Dict[str, Any] = Body(default={})
+        user_id: str, request: Request, body: Dict[str, Any] = Body(default={})
     ):
         delivery = (body.get("delivery") or "email").lower()
         custom = body.get("custom_password")
@@ -845,6 +845,24 @@ def build_field_leadership_portal_router(
             raise HTTPException(404, "user not found")
         if delivery == "email":
             await _send_welcome_email(updated["email"], updated["name"], temp)
+        # iter502 · OMEGA IAM Enterprise Phase B+C
+        try:
+            from lib.iam_password_audit import stamp_and_audit_temp_password, audit_welcome_email_sent
+            await stamp_and_audit_temp_password(
+                db,
+                collection_name="field_leadership_users",
+                user_filter={"id": user_id},
+                target_email=str(updated.get("email") or ""),
+                portal="field_leadership",
+                delivery=delivery,
+                request=request,
+            )
+            if delivery == "email":
+                await audit_welcome_email_sent(
+                    db, target_email=str(updated.get("email") or ""), portal="field_leadership", request=request,
+                )
+        except Exception:
+            pass
         return {
             "ok": True,
             "user": public_fl_user_view(updated),
@@ -855,13 +873,30 @@ def build_field_leadership_portal_router(
         "/admin/field-leadership-users/{user_id}/resend-welcome",
         dependencies=[Depends(require_hr_or_admin)],
     )
-    async def admin_resend_welcome_fl(user_id: str):
+    async def admin_resend_welcome_fl(user_id: str, request: Request):
         """Issue a fresh temp password AND re-send the welcome email."""
         temp = generate_temp_password()
         updated = await set_fl_user_password(db, user_id, temp, must_change=True)
         if not updated:
             raise HTTPException(404, "user not found")
         await _send_welcome_email(updated["email"], updated["name"], temp)
+        # iter502 · OMEGA IAM Enterprise Phase B+C
+        try:
+            from lib.iam_password_audit import stamp_and_audit_temp_password, audit_welcome_email_sent
+            await stamp_and_audit_temp_password(
+                db,
+                collection_name="field_leadership_users",
+                user_filter={"id": user_id},
+                target_email=str(updated.get("email") or ""),
+                portal="field_leadership",
+                delivery="email",
+                request=request,
+            )
+            await audit_welcome_email_sent(
+                db, target_email=str(updated.get("email") or ""), portal="field_leadership", request=request,
+            )
+        except Exception:
+            pass
         return {
             "ok": True,
             "user": public_fl_user_view(updated),

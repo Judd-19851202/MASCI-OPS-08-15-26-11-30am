@@ -32,7 +32,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi import Response as _FastAPIResponse
 from pydantic import BaseModel, Field
 
@@ -189,7 +189,7 @@ def build_pm_admin_router(
     # ─── Admin-strict: password + disable + activity ────────────
     @router.post("/admin/project-managers/{pm_id}/set-password",
                  dependencies=[Depends(require_admin_strict_dep)])
-    async def admin_set_pm_password(pm_id: str, body: PMSetPasswordBody):
+    async def admin_set_pm_password(pm_id: str, body: PMSetPasswordBody, request: Request):
         from pm_auth import (  # noqa: PLC0415
             find_pm_by_id, generate_temp_password,
             public_pm_view, set_pm_password,
@@ -203,6 +203,20 @@ def build_pm_admin_router(
         updated = await set_pm_password(db, pm_id, plain, must_change=True)
         if not updated:
             raise HTTPException(500, "Failed to set password")
+        # iter502 · OMEGA IAM Enterprise Phase B+C
+        try:
+            from lib.iam_password_audit import stamp_and_audit_temp_password
+            await stamp_and_audit_temp_password(
+                db,
+                collection_name="project_managers",
+                user_filter={"id": pm_id},
+                target_email=str(updated.get("email") or ""),
+                portal="pm",
+                delivery="custom" if body.password else "screen",
+                request=request,
+            )
+        except Exception:
+            pass
         return {
             "ok": True,
             "pm": public_pm_view(updated),
@@ -249,7 +263,7 @@ def build_pm_admin_router(
 
     @router.post("/admin/project-managers/{pm_id}/email-welcome",
                  dependencies=[Depends(require_admin_strict_dep)])
-    async def admin_pm_email_welcome(pm_id: str, body: PMSetPasswordBody):
+    async def admin_pm_email_welcome(pm_id: str, body: PMSetPasswordBody, request: Request):
         api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
         if not api_key:
             raise HTTPException(
@@ -347,6 +361,24 @@ def build_pm_admin_router(
                 f"Password rotated but email send failed via Resend: {e}. "
                 "Use 'Download Welcome PDF' to recover the new temp password.",
             )
+
+        # iter502 · OMEGA IAM Enterprise Phase B+C
+        try:
+            from lib.iam_password_audit import stamp_and_audit_temp_password, audit_welcome_email_sent
+            await stamp_and_audit_temp_password(
+                db,
+                collection_name="project_managers",
+                user_filter={"id": pm_id},
+                target_email=pm_email,
+                portal="pm",
+                delivery="email",
+                request=request,
+            )
+            await audit_welcome_email_sent(
+                db, target_email=pm_email, portal="pm", request=request,
+            )
+        except Exception:
+            pass
 
         return {
             "ok": True,

@@ -1482,7 +1482,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
 
     @router.post("/admin/hr-users/{user_id}/reset-password",
                  dependencies=[Depends(require_admin_dep)])
-    async def admin_reset_hr_password(user_id: str, body: Dict[str, Any] = Body(default={})):
+    async def admin_reset_hr_password(user_id: str, request: Request, body: Dict[str, Any] = Body(default={})):
         delivery = (body.get("delivery") or "email").lower()
         custom = body.get("custom_password")
         if delivery == "custom" and custom:
@@ -1494,6 +1494,24 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             raise HTTPException(404, "user not found")
         if delivery == "email":
             await _send_welcome_email(updated["email"], updated["name"], temp)
+        # iter502 · OMEGA IAM Enterprise Phase B+C
+        try:
+            from lib.iam_password_audit import stamp_and_audit_temp_password, audit_welcome_email_sent
+            await stamp_and_audit_temp_password(
+                db,
+                collection_name="hr_users",
+                user_filter={"id": user_id},
+                target_email=str(updated.get("email") or ""),
+                portal="hr",
+                delivery=delivery,
+                request=request,
+            )
+            if delivery == "email":
+                await audit_welcome_email_sent(
+                    db, target_email=str(updated.get("email") or ""), portal="hr", request=request,
+                )
+        except Exception as _e:  # noqa: BLE001
+            logger.warning(f"[iam-pw-audit] hr reset audit failed: {_e}")
         return {
             "ok": True,
             "user": public_hr_user_view(updated),

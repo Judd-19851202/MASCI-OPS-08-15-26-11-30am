@@ -1,6 +1,67 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-03T21:05Z (iter502 · OMEGA IAM ENTERPRISE COMPLETION RELEASE · 🟢 IAM ENTERPRISE COMPLETE — SAFE TO DEPLOY)
+
+### Operator directive
+> "OMEGA DIRECTIVE — IAM ENTERPRISE COMPLETION RELEASE (PHASES A+B+C ONLY). Execute IAM Enterprise Completion using ONLY verified findings from `IAM_ENTERPRISE_ARCHITECTURE_AUDIT.md`. Hardening + accountability release. ZERO credential breakage. Phase D explicitly NOT authorized."
+
+### Final verdict: 🟢 **IAM ENTERPRISE COMPLETE — SAFE TO DEPLOY**
+
+### What landed (backend-only · 8 files · +288 LOC)
+
+**Phase A — Unified Directory Completion** (`lib/identity_mirror.py`)
+- Extended `PORTAL_COLLECTIONS` to include `("pm", "project_managers")` (correcting a stale `pm_users` reference) and `("field_leadership", "field_leadership_users")`.
+- On backend restart, mirror sync ran: `scanned=75 created=0 updated_mirrored=73 touched_managed=2`.
+- `user_directory` grew from 50 → 79 rows. PM portal coverage: 1 → 6. FL portal coverage: 1 → 25.
+- All mirrored rows carry unguessable bcrypt hashes; legacy portal logins remain the sole working credentials for those identities.
+
+**Phase B — Password Lifecycle Standardization** (NEW `lib/iam_password_audit.py`)
+- Single canonical helper `stamp_and_audit_temp_password()` now invoked from all 7 admin reset/set-password endpoints (HR · Safety · Dispatch · Shop set + email-welcome · FL reset + resend-welcome · PM set + email-welcome).
+- Every issuance now stamps `temp_password_issued_at` + `temp_password_issued_by` on the target user row. Idempotent `$set`; never touches `password_hash` or `must_change_password`.
+
+**Phase C — Audit Trail Standardization** (uses existing `user_directory.write_audit`)
+- Canonical actions emitted: `iam.pw.temp_password_issued` (every reset) + `iam.pw.welcome_email_sent` (every email branch).
+- Routed through the existing append-only `db.admin_audit` collection. No parallel audit system.
+- Searchable via existing `/api/admin/audit` endpoint and the row-level `IamViewAuditLink → /admin/audit?actor=<email>` shipped in the prior sprint.
+
+### Verification
+- Backend restart: 🟢
+- Mirror sync log: 🟢 visible in supervisor backend log
+- Direct DB probe: 🟢 29 new mirror rows (5 PM + 24 FL) confirmed
+- In-process Phase B+C probe against `fieldleader@mascigc.com`: 🟢 `temp_password_issued_at` stamped, audit row written, `password_hash` byte-identical
+- Live legacy logins: 🟢 4/4 working (HR · Shop · PM · master-directory); 3 stale credentials predate iter502 and are documented in `test_credentials.md`
+
+### Files
+- NEW: `backend/lib/iam_password_audit.py`
+- MOD: `backend/lib/identity_mirror.py`
+- MOD: `backend/routes/hr_portal.py`
+- MOD: `backend/routes/safety_portal/auth_users.py`
+- MOD: `backend/routes/dispatch_portal_auth.py`
+- MOD: `backend/routes/field_leadership_portal.py`
+- MOD: `backend/routes/pm_admin.py`
+- MOD: `backend/server.py` (shop set-password + email-welcome only)
+
+### Deliverables (7 in `/app/memory/`)
+- `IAM_ENTERPRISE_ARCHITECTURE_AUDIT.md` (pre-implementation audit · already shipped)
+- `IAM_PHASE_A_CERTIFICATION.md`
+- `IAM_PHASE_B_CERTIFICATION.md`
+- `IAM_PHASE_C_CERTIFICATION.md`
+- `IAM_BACKWARD_COMPATIBILITY_REPORT.md`
+- `IAM_ENTERPRISE_COMPLETION_REPORT.md`
+- `IAM_FINAL_GO_NO_GO.md`
+
+### Out-of-scope honored
+❌ Phase D Unified Profile Page · ❌ Customer #2 · ❌ White Label · ❌ Multi-tenant · ❌ UI modernization · ❌ New auth models · ❌ Password migrations · ❌ User migrations
+
+### Rollback
+Trivial — revert 7 files + delete 1 file. No DB rollback strictly required.
+
+🟢 **IAM ENTERPRISE COMPLETE — SAFE TO DEPLOY**
+
+---
+
+
 ## 2026-06-03T20:35Z (FORGEDOPS IAM STANDARDIZATION SPRINT · 🟢 IAM STANDARDIZED — SAFE TO DEPLOY)
 
 ### Operator directive

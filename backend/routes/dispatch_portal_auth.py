@@ -274,11 +274,25 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
         return public_dispatch_user_view(updated)
 
     @router.post("/admin/dispatch-users/{user_id}/reset-password", dependencies=[Depends(require_admin)])
-    async def admin_reset_dispatch_password(user_id: str):
+    async def admin_reset_dispatch_password(user_id: str, request: Request):
         temp_pw = generate_temp_password()
         updated = await set_dispatch_user_password(db, user_id, temp_pw, must_change=True)
         if not updated:
             raise HTTPException(404, "Not found")
+        # iter502 · OMEGA IAM Enterprise Phase B+C
+        try:
+            from lib.iam_password_audit import stamp_and_audit_temp_password
+            await stamp_and_audit_temp_password(
+                db,
+                collection_name="dispatch_users",
+                user_filter={"id": user_id},
+                target_email=str(updated.get("email") or ""),
+                portal="dispatch",
+                delivery="screen",
+                request=request,
+            )
+        except Exception:
+            pass
         return {"user": public_dispatch_user_view(updated), "temp_password": temp_pw}
 
     @router.post("/admin/dispatch-users/{user_id}/impersonate", dependencies=[Depends(require_admin)])

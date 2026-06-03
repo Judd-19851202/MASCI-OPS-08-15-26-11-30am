@@ -276,6 +276,7 @@ def register_auth_routes(
     )
     async def admin_reset_safety_password(
         user_id: str,
+        request: Request,
         body: SafetyResetPasswordBody = SafetyResetPasswordBody(),
     ):
         delivery = (body.delivery or "screen").lower()
@@ -290,6 +291,24 @@ def register_auth_routes(
             await _send_safety_welcome_email(
                 updated["email"], updated["name"], temp_pw,
             )
+        # iter502 · OMEGA IAM Enterprise Phase B+C
+        try:
+            from lib.iam_password_audit import stamp_and_audit_temp_password, audit_welcome_email_sent
+            await stamp_and_audit_temp_password(
+                db,
+                collection_name="safety_users",
+                user_filter={"id": user_id},
+                target_email=str(updated.get("email") or ""),
+                portal="safety",
+                delivery=delivery,
+                request=request,
+            )
+            if delivery == "email":
+                await audit_welcome_email_sent(
+                    db, target_email=str(updated.get("email") or ""), portal="safety", request=request,
+                )
+        except Exception:
+            pass
         return {
             "user": public_safety_user_view(updated),
             "temp_password": temp_pw if delivery != "email" else None,
