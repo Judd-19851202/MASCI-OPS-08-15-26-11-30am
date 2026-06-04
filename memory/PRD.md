@@ -1,6 +1,44 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-04T19:10Z (iter510 · OMEGA MAINTAINX EQUIPMENT DEFECT PIPELINE AUDIT · 🟡 PLAN COMPLETE)
+
+### Verdict: 🟡 **PLAN COMPLETE — IMPLEMENTATION NOT STARTED** (Read-first asset layer remains LIVE)
+
+### Sprint outcome
+Audited every equipment-defect source in ForgedOps (not just DVIR) and produced a complete 8-phase blueprint for MaintainX coverage. Zero code, zero DB writes, zero MaintainX traffic, zero deploys. Strictly read-only planning.
+
+### Hard direct answers
+- DVIR covered at MX boundary: **NO** (internal lifecycle only)
+- Heavy Equipment Pre-Op covered: **NO** (full internal fan-out, MaintainX stub returns `{status:"stub"}`)
+- Equipment Inspection covered: **NO**
+- Shop / Dispatch / Manual OOS covered: **NO**
+- RTS gated by MaintainX WO closure: **NO**
+- Read-first asset layer (P0-A/P0-B + Admin UI): **LIVE** (zero defects, no writes occurring)
+
+### 9 deliverables in `/app/memory/`
+1. `MAINTAINX_DEFECT_SOURCE_INVENTORY.md` — Phase 1
+2. `MAINTAINX_SOURCE_TO_WO_MATRIX.md` — Phase 2 (18 rows, P0/P1/NO classification)
+3. `MAINTAINX_CANONICAL_DEFECT_PAYLOAD.md` — Phase 3
+4. `MAINTAINX_WORK_ORDER_MAPPING.md` — Phase 4
+5. `MAINTAINX_RTS_GATE_PLAN.md` — Phase 5
+6. `MAINTAINX_DEFECT_PIPELINE_GAP_REGISTER.md` — Phase 6 (10/10 questions answered)
+7. `MAINTAINX_EQUIPMENT_DEFECT_BUILD_SEQUENCE.md` — Phase 7 (9 stages, operator-gated)
+8. `MAINTAINX_WO_DUPLICATE_PROTECTION_PLAN.md` — Phase 8 (7-layer dedup)
+9. `MAINTAINX_EQUIPMENT_HEALTH_INTEGRATION_MASTER_PLAN.md` — Final master plan
+
+### Critical correction captured
+Scope corrected from "DVIR → MaintainX" to **"Equipment Health / Defect Intake → MaintainX Work Order"** — Heavy Equipment Pre-Op is structurally equivalent to DVIR (same fail_count + checklist + photos shape) and MUST be a first-class P0 source, not an afterthought.
+
+### Hard invariants for every future stage
+- Read-first stays read-first (write methods raise `MaintainxWriteDisabled` until Stage 6)
+- `correlation_id` is the canonical idempotency key
+- RTS gate is a READ check (never auto-closes MX WOs)
+- Operational collections get `external_refs.*` writes only
+- DVIR-OOS first, then per-source expansion with fresh GO/NO-GO doc each
+
+
+
 ## 2026-06-04T18:50Z (iter509 · OMEGA MAINTAINX ADMIN INTEGRATION CENTER · 🟢 READY)
 
 ### Verdict: 🟢 **MAINTAINX ADMIN CENTER READY**
