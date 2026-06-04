@@ -34821,3 +34821,40 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 
 🛑 **Agent STOPPED.** OC-002 + OC-007 are preview-certified. Awaiting operator authorization for (a) production deploy of iter452 or (b) iter453 BUILD (OC-003 QA/QC Follow-Up + OC-004 Site Inspection Follow-Up).
 
+
+---
+
+## 2026-06-04 · LIVE PRODUCTION POST-DEPLOY AUDIT (OMEGA DIRECTIVE)
+
+**Mode:** VERIFY-ONLY · No code changes · No DB writes · No deploys
+**Target:** `https://mascidocs.com`
+
+**Deliverables (all in `/app/memory/`):**
+- LIVE_PRODUCTION_PUBLIC_AUDIT.md
+- LIVE_PRODUCTION_API_AUDIT.md
+- LIVE_PRODUCTION_AUTH_AUDIT.md
+- LIVE_PRODUCTION_IAM_AUDIT.md
+- LIVE_PRODUCTION_DISPATCH_AUDIT.md
+- LIVE_PRODUCTION_MAINTAINX_AUDIT.md
+- LIVE_PRODUCTION_DATA_LEAK_AUDIT.md
+- LIVE_PRODUCTION_OPERATIONAL_AUDIT.md
+- LIVE_PRODUCTION_PERFORMANCE_AUDIT.md
+- LIVE_PRODUCTION_FINAL_CERTIFICATION.md ← contains verdict
+
+**Verdict:** ✅ **PRODUCTION CERTIFIED — GO** (with 6 non-blocking advisories).
+
+**NO-GO triggers (all CLEAR):**
+- Anonymous PII exposure: NONE (employees hardened to name+role tuple).
+- 5xx on critical paths: NONE on 29 endpoints + 7 token gates + 9 surfaces.
+- MaintainX write_enabled in prod: FALSE (also `api_key_present=false` — dual lock).
+
+**Optional follow-up sprint (backlog):**
+1. Gate `/api/employees` and `/api/jobs` behind any-portal-token (kill DATA-LEAK advisories).
+2. Backfill `actor_ip` capture in `admin_audit` writes (AUTH-ADV-2).
+3. Raise static-asset Cache-Control to `max-age=31536000, immutable` (PERF-ADV-1).
+4. Ship a real `/robots.txt` (PUBLIC-ADV).
+5. Reconcile API map (drop 4 unregistered endpoints from docs — API-ADV-3).
+6. Document canonical prod passwords for dispatch/HR/shop test accounts (AUTH-ADV-1).
+7. Enable MFA on the super-admin account (future hardening).
+
+🛑 **Agent STOPPED.** Live production audit complete. No code was changed. Awaiting operator direction.
