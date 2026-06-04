@@ -1,6 +1,39 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-04T19:55Z (iter512 · OMEGA RELEASE CANDIDATE PRE-DEPLOY CERTIFICATION · 🟢 GO)
+
+### Verdict: 🟢 **GO — SAFE TO DEPLOY**
+
+### Scope certified
+Combined release bundle: Dispatch Production Readiness · Admin IAM Screen Completion · Unified User Detail Drawer · Employee public endpoint hardening · MaintainX read-first backend · MaintainX Admin Integration Center · MaintainX Defect Source Coverage Command Center.
+
+### Baseline → HEAD
+- Baseline: `88541da` (last good pre-bundle production commit)
+- HEAD: `8019740`
+- 74 files changed (21 code · 53 docs)
+- **0 auth · 0 password · 0 DB schema · 0 migration · 0 MaintainX-write code mutations**
+
+### Phase results (10/10 PASS)
+1. Diff / Footprint · PASS
+2. Build / Test · PASS (13/13 backend tests · `yarn build` 33.13s clean)
+3. Login / IAM Safety · PASS (required sentence signed; live multi-portal login mints all 7 tokens)
+4. Admin IAM UI · PASS
+5. Dispatch · PASS
+6. Employee Endpoint Hardening · PASS (live: 330 employees · 7/7 allow-list · 0/12 forbidden leaks)
+7. MaintainX Safety · PASS (writes_performed=0 verified live)
+8. Role Route Smoke · PASS (5 authenticated + 4 public routes)
+9. Data Safety · PASS (zero operational mutations)
+10. Rollback Readiness · GREEN (< 60s via Emergent UI)
+
+### Required attestation
+> No existing user, password, temp password, credential, login history, audit history, role assignment, or portal assignment was modified, deleted, recreated, invalidated, or migrated during this release or its certification.
+
+### 11 deliverables in `/app/memory/`
+`RELEASE_CANDIDATE_DIFF_CERTIFICATION.md` · `_BUILD_TEST_` · `_LOGIN_IAM_` · `_ADMIN_IAM_` · `_DISPATCH_` · `_EMPLOYEE_ENDPOINT_` · `_MAINTAINX_` · `_ROLE_SMOKE_` · `_DATA_SAFETY_` · `_ROLLBACK_PLAN.md` · `_FINAL_GO_NO_GO.md` ← 🟢 GO
+
+
+
 ## 2026-06-04T19:30Z (iter511 · OMEGA MAINTAINX DEFECT SOURCE COVERAGE COMMAND CENTER · 🟢 READY)
 
 ### Verdict: 🟢 **READY**
