@@ -1,6 +1,37 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-04T17:50Z (iter507 · OMEGA COMBINED FRONTEND PRE-DEPLOY CERTIFICATION · 🟢 GO)
+
+### Operator directive
+> "Run a targeted, read-only final pre-deploy certification for the combined frontend release (Dispatch Production Readiness, Admin IAM Screen Completion, and Unified User Detail Drawer). No backend, DB, auth, or credential modifications."
+
+### Verdict: 🟢 **GO — combined frontend release `88541da..01ab04b` is deploy-ready**
+
+### Scope (frontend-only · 9 files · +1866 / −117 LOC)
+- 2 NEW: `iam/IamUserDetailDrawer.jsx`, `iam/PortalUsersAccordion.jsx`
+- 7 MOD: `pages/DispatchHub.jsx`, `field_memory/FieldMemoryGlance.jsx`, `pages/admin/AdminDispatch.jsx`, `pages/admin/AdminPeople.jsx`, `components/iam/IamStandardCells.jsx`, `pages/HrFieldLeadershipUsers.jsx`, `buildVersion.generated.js`
+- 0 backend · 0 env · 0 seed · 0 migration · 0 auth surface
+
+### Certification outcomes
+- Diff: PASS · Build/Lint: PASS · Dispatch UX: PASS · Admin IAM: PASS · Drawer: PASS · Login safety: PASS
+- Authenticated smoke routes: `/dispatch-portal`, `/admin/people` (HR accordion expanded → 42 Details buttons), `/hr/field-leadership-users` (24 Details buttons → drawer opens with all 4 sections + audit deep-link `/admin/audit?actor=...`)
+
+### Deliverables in `/app/memory/`
+1. `COMBINED_FRONTEND_PRE_DEPLOY_DIFF_REPORT.md`
+2. `COMBINED_FRONTEND_PRE_DEPLOY_BUILD_REPORT.md`
+3. `COMBINED_FRONTEND_DISPATCH_CERTIFICATION.md`
+4. `COMBINED_FRONTEND_IAM_CERTIFICATION.md`
+5. `COMBINED_FRONTEND_DRAWER_CERTIFICATION.md`
+6. `COMBINED_FRONTEND_LOGIN_SAFETY_CERTIFICATION.md`
+7. `COMBINED_FRONTEND_GO_NO_GO.md` (final decision)
+
+### Rollback readiness
+- Trivial: Emergent rollback to commit `88541da` (< 60s) · no schema, env, or seed to undo
+- Per-sprint surgical rollback possible — all three sprints are independent
+
+
+
 ## 2026-06-03T21:05Z (iter502 · OMEGA IAM ENTERPRISE COMPLETION RELEASE · 🟢 IAM ENTERPRISE COMPLETE — SAFE TO DEPLOY)
 
 ### Operator directive
