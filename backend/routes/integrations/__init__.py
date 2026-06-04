@@ -24,6 +24,7 @@ from .events import register_event_routes
 from .webhooks import register_webhook_routes
 from .imports_exports import register_import_export_routes
 from .wizard import register_wizard_routes
+from .maintainx_p0 import register_maintainx_p0_routes
 
 
 def build_integrations_router(
@@ -42,6 +43,7 @@ def build_integrations_router(
     register_config_routes(api_router, db, require_admin, require_any_portal)
     register_event_routes(api_router, db, require_any_portal)
     register_webhook_routes(api_router, db)
+    register_maintainx_p0_routes(api_router, db, require_admin)
 
     return api_router
 

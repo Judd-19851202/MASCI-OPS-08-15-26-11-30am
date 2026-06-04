@@ -1,6 +1,42 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-04T18:30Z (iter508 · OMEGA MAINTAINX P0-A/P0-B READ-FIRST · 🟢 READY)
+
+### Verdict: 🟢 **MAINTAINX READ-FIRST ASSET INTEGRATION READY**
+
+### What landed (backend-only · 4 files NEW · 2 MOD · +951 LOC + tests)
+- NEW `backend/services/maintainx_client.py` — hardened httpx-based async client; 401/403/429/5xx classification; pagination + timeout caps; api-key masking; write methods raise `MaintainxWriteDisabled`
+- NEW `backend/services/maintainx_asset_sync.py` — pure read pipeline; 4-strategy matcher (existing mapping → unit_number → vin/serial → make/model similarity); duplicate-risk analyser; reverse pass (missing_in_maintainx)
+- NEW `backend/routes/integrations/maintainx_p0.py` — admin-strict routes `/api/admin/maintainx/p0/{config,test,dryrun,dryrun-reports[/{id}]}`
+- NEW `backend/tests/test_maintainx_p0_read_first.py` — 13 tests, all PASS; asserts zero writes to MaintainX, equipment_master, asset_mappings, fleet_defects
+- MOD `backend/routes/integrations/__init__.py` — wires P0 routes into Integration Center router
+- MOD `backend/.env` — 4 new keys (all empty/safe defaults): `MAINTAINX_API_KEY=`, `MAINTAINX_BASE_URL=https://api.getmaintainx.com/v1`, `MAINTAINX_SYNC_ENABLED=false`, `MAINTAINX_WRITE_ENABLED=false`
+
+### Live preview verification (no key set)
+- `GET /admin/maintainx/p0/config` → `api_key_present=false`, kill-switches off
+- `POST /admin/maintainx/p0/test` → `{ok:false, status:"missing_api_key"}` (graceful)
+- `POST /admin/maintainx/p0/dryrun` → 0 MX assets pulled · 589 MASCI rows read · all `writes_performed.*` = 0 · saved=false
+
+### Safety guarantees
+- Only new collection: `maintainx_dryrun_reports` (admin opt-in via `?save=true`)
+- Operational collections (`equipment_master`, `asset_mappings`, `fleet_defects`, RTS, DVIR, shop, dispatch) unread/unwritten by P0 pipeline
+- `MaintainxClient.{create,update,delete}_asset()` raise `MaintainxWriteDisabled` even when `MAINTAINX_WRITE_ENABLED=true`
+
+### Deliverables (in `/app/memory/`)
+1. `MAINTAINX_P0A_API_CLIENT_REPORT.md`
+2. `MAINTAINX_P0B_ASSET_PULL_REPORT.md`
+3. `MAINTAINX_ASSET_MATCH_REPORT.md`
+4. `MAINTAINX_DUPLICATE_RISK_REPORT.md`
+5. `MAINTAINX_P0_READ_FIRST_TEST_REPORT.md`
+6. `MAINTAINX_P0_GO_NO_GO.md` ← **🟢 GO**
+
+### Not in scope (carried over to roadmap)
+- Admin UI sub-section calling new endpoints (deferred — endpoints are usable as-is)
+- Write-side P0 items (P0-C status sync, P0-D DVIR→WO, P0-E RTS gate, P0-F webhook real algo, P0-G history visibility) still require explicit operator authorisation
+
+
+
 ## 2026-06-04T17:50Z (iter507 · OMEGA COMBINED FRONTEND PRE-DEPLOY CERTIFICATION · 🟢 GO)
 
 ### Operator directive
