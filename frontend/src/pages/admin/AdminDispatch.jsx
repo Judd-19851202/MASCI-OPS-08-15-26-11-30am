@@ -262,6 +262,12 @@ export function DispatchTransfersTab() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  // iter504 · OMEGA Dispatch Production Readiness Sprint:
+  // Terminal-state rows (Completed · Denied · Cancelled) are HIDDEN by
+  // default — they are historical / audit residue, not actionable work.
+  // Dispatcher sees only Submitted / Approved / Scheduled rows on the
+  // active queue. "Show history" toggle reveals them when needed.
+  const [showHistory, setShowHistory] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -280,20 +286,42 @@ export function DispatchTransfersTab() {
     }
   };
 
+  const TERMINAL = ["Completed", "Denied", "Cancelled"];
+  const activeRows = list.filter((x) => !TERMINAL.includes(x.status));
+  const historyRows = list.filter((x) => TERMINAL.includes(x.status));
+  const visible = showHistory ? list : activeRows;
+
   return (
     <div className="space-y-3" data-testid="dp-transfers">
       {/* iter216 · Tier-2 dispatcher coaching — protects schedule,
           equipment, and the crew's day. */}
       <HelpTipBlock formKey="dispatch.transfers" showCounter />
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button onClick={() => setCreating(true)} className="bg-slate-900 hover:bg-slate-800 text-white" data-testid="dp-transfer-new"><Plus className="w-3.5 h-3.5 mr-1" /> New Transfer</Button>
         <Button onClick={load} variant="outline" size="sm"><RefreshCcw className="w-3.5 h-3.5 mr-1" />Refresh</Button>
+        {historyRows.length > 0 && (
+          <Button
+            onClick={() => setShowHistory((v) => !v)}
+            variant="outline"
+            size="sm"
+            data-testid="dp-transfer-history-toggle"
+            className="ml-auto text-slate-600"
+          >
+            {showHistory
+              ? `Hide history (${historyRows.length})`
+              : `Show history (${historyRows.length})`}
+          </Button>
+        )}
       </div>
       <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
         {loading ? (
           <div className="text-center py-8 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
-        ) : list.length === 0 ? (
-          <p className="p-5 text-sm text-slate-500 italic">No transfer requests yet.</p>
+        ) : visible.length === 0 ? (
+          <p className="px-4 py-3 text-xs text-slate-500 italic" data-testid="dp-transfer-empty">
+            {activeRows.length === 0 && historyRows.length === 0
+              ? "No transfer requests yet."
+              : "No active transfers. Tap “Show history” to view past moves."}
+          </p>
         ) : (
           <table className="w-full text-xs">
             <thead className="bg-slate-100 text-slate-700 font-mono uppercase tracking-[0.15em]">
@@ -307,7 +335,7 @@ export function DispatchTransfersTab() {
               </tr>
             </thead>
             <tbody>
-              {list.map((x) => (
+              {visible.map((x) => (
                 <tr key={x.id} className="border-t border-slate-100" data-testid={`dp-transfer-row-${x.id}`}>
                   <td className="px-3 py-2 font-mono text-slate-500">{(x.created_at || "").slice(0,16).replace("T"," ")}</td>
                   <td className="px-3 py-2 font-mono font-bold">{x.masci_unit_number || x.asset_id?.slice(0,6)}</td>
@@ -326,7 +354,7 @@ export function DispatchTransfersTab() {
                       {(x.status === "Scheduled" || x.status === "Approved") && (
                         <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => decide(x.id, "complete")} data-testid={`dp-xfer-complete-${x.id}`}><CheckCircle2 className="w-3 h-3 mr-1 text-emerald-700" />Complete</Button>
                       )}
-                      {!["Completed","Denied","Cancelled"].includes(x.status) && (
+                      {!TERMINAL.includes(x.status) && (
                         <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => decide(x.id, "cancel")}>Cancel</Button>
                       )}
                       <Link to={`/admin/assets/${x.asset_id}`} className="text-xs text-slate-700 hover:text-slate-900 font-bold underline pt-1">Asset →</Link>

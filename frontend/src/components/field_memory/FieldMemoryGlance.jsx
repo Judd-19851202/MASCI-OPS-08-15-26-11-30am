@@ -109,6 +109,12 @@ export function FieldMemoryGlance({ limit = 3 }) {
   if (!_hasAnyPortalToken()) return null;
   // Until the first fetch resolves, render nothing (calm · no skeleton).
   if (!loaded) return null;
+  // iter504 · OMEGA Dispatch Production Readiness Sprint:
+  // Suppress the entire card when there is no operational signal. Empty
+  // "No recent operational notes." sections were consuming vertical space
+  // on every role hub. The dispatcher gets no value from a card that has
+  // nothing in it — collapse it completely.
+  if (!items || items.length === 0) return null;
 
   return (
     <section
@@ -120,45 +126,36 @@ export function FieldMemoryGlance({ limit = 3 }) {
         <h3 className="text-sm font-medium">{t("Recent field memory")}</h3>
       </header>
 
-      {(!items || items.length === 0) ? (
-        <p
-          data-testid="field-memory-glance-empty"
-          className="mt-2 text-xs text-slate-500 italic"
-        >
-          {t("No recent operational notes.")}
-        </p>
-      ) : (
-        <ul
-          data-testid="field-memory-glance-list"
-          className="mt-2 space-y-1.5"
-        >
-          {items.map((it) => {
-            const kindLabel = t(KIND_LABEL[it.subject_kind] || "Note");
-            const subject = (it.subject_label || it.subject_id || "").trim();
-            const excerpt = (it.body || "").length > 90
-              ? (it.body.slice(0, 90).trim() + "…")
-              : (it.body || "").trim();
-            return (
-              <li
-                key={it.id}
-                data-testid={`field-memory-glance-item-${it.id}`}
-                className="text-xs leading-snug text-slate-700"
-              >
-                <span className="text-slate-400 uppercase tracking-wide mr-1.5">
-                  {kindLabel}
-                </span>
-                {subject ? (
-                  <span className="font-medium mr-1.5">{subject}</span>
-                ) : null}
-                <span className="text-slate-600">— {excerpt}</span>
-                <span className="ml-2 text-slate-400">
-                  {_relative(it.captured_at, t)}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      <ul
+        data-testid="field-memory-glance-list"
+        className="mt-2 space-y-1.5"
+      >
+        {items.map((it) => {
+          const kindLabel = t(KIND_LABEL[it.subject_kind] || "Note");
+          const subject = (it.subject_label || it.subject_id || "").trim();
+          const excerpt = (it.body || "").length > 90
+            ? (it.body.slice(0, 90).trim() + "…")
+            : (it.body || "").trim();
+          return (
+            <li
+              key={it.id}
+              data-testid={`field-memory-glance-item-${it.id}`}
+              className="text-xs leading-snug text-slate-700"
+            >
+              <span className="text-slate-400 uppercase tracking-wide mr-1.5">
+                {kindLabel}
+              </span>
+              {subject ? (
+                <span className="font-medium mr-1.5">{subject}</span>
+              ) : null}
+              <span className="text-slate-600">— {excerpt}</span>
+              <span className="ml-2 text-slate-400">
+                {_relative(it.captured_at, t)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

@@ -59,11 +59,17 @@ function authHeaders() {
 }
 
 // Coaching collapse state (per-device, localStorage).
-// First visit → expanded (null in localStorage). Subsequent visits → respects last state.
+// iter504 · OMEGA Dispatch Production Readiness Sprint:
+// COLLAPSED BY DEFAULT for every user — operators should not see training
+// material at every visit. The block surfaces a counter and an expand affordance.
+// Operator can persist their preference via toggling (stored in localStorage).
 function useCoachingCollapsed() {
   const [collapsed, setCollapsed] = useState(() => {
-    try { return localStorage.getItem(COACH_LS_KEY) === "1"; }
-    catch { return false; }
+    try {
+      const v = localStorage.getItem(COACH_LS_KEY);
+      // null (first visit) → collapsed; "0" → expanded; "1" → collapsed
+      return v === null ? true : v === "1";
+    } catch { return true; }
   });
   const set = (v) => {
     setCollapsed(v);
@@ -408,34 +414,30 @@ export default function DispatchHub() {
           </div>
         </Section>
 
-        {/* ── 6 · DISPATCH COMMAND · collapsible coaching ────────── */}
-        <CoachingBlock
-          collapsed={coachCollapsed}
-          onToggle={() => setCoachCollapsed(!coachCollapsed)}
-          t={t}
-        />
-
-        {/* ── 7 · DISPATCH RESOURCES · consolidated single CTA ──── */}
-        <Section
-          testId="ds-section-resources"
-          accent="slate"
-          icon={BookOpen}
-          kicker={t("Reference")}
-          title={t("Dispatch Resources")}
-          subtitle={t("Open the operational guidance center when a state or signal is unclear.")}
-          dense
-        >
+        {/* ── 6 · DISPATCH COMMAND · collapsed coaching + utility pill ─── */}
+        {/* iter504 · OMEGA Dispatch Production Readiness Sprint:
+            Coaching collapsed by default · Dispatch Resources converted from
+            full operational panel to a compact inline guide button. */}
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center" data-testid="ds-utility-row">
+          <div className="flex-1 min-w-0">
+            <CoachingBlock
+              collapsed={coachCollapsed}
+              onToggle={() => setCoachCollapsed(!coachCollapsed)}
+              t={t}
+            />
+          </div>
           <Link
             to="/guidance?from=dispatch"
             data-testid="dispatch-training-link"
-            className="inline-flex items-center justify-between bg-slate-900 text-white rounded-md px-4 py-3 hover:bg-slate-800 transition-colors min-h-[44px]"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-mono text-[11px] uppercase tracking-[0.18em] font-bold whitespace-nowrap"
+            title={t("Open the operational guidance center")}
           >
-            <span className="font-display text-sm font-black">{t("Open Guides")}</span>
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <BookOpen className="w-3.5 h-3.5" />
+            {t("Guides")}
           </Link>
-        </Section>
+        </div>
 
-        {/* ── 8 · CALM PERIPHERAL · below operational content ──── */}
+        {/* ── 7 · CALM PERIPHERAL · below operational content ──── */}
         <div className="space-y-3 pt-2 border-t border-slate-200" data-testid="ds-peripheral">
           <PasskeyEnrollPrompt />
           <FieldMemoryGlance />
@@ -503,9 +505,33 @@ function Section({ testId, accent = "slate", icon: Icon, kicker, title, subtitle
 
 // ─────────────────────────────────────────────────────────────────────
 // CoachingBlock · collapsible Dispatch Command coaching.
-// Default: expanded on first visit, persists collapsed state per device.
+// iter504 · Collapsed-by-default · production-density.
+// When collapsed: single compact line — "6 coaching tips available".
+// When expanded: full Dispatch Command content.
 // ─────────────────────────────────────────────────────────────────────
 function CoachingBlock({ collapsed, onToggle, t }) {
+  // Canonical bullet count — kept in sync with the <CoachLi> entries below.
+  const TIP_COUNT = 6;
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        data-testid="ds-section-command"
+        aria-expanded="false"
+        className="w-full bg-white border border-slate-200 rounded-md px-4 py-2 flex items-center gap-3 hover:bg-slate-50 transition-colors"
+      >
+        <Compass className="w-4 h-4 text-slate-500 shrink-0" />
+        <span
+          className="flex-1 text-left font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600"
+          data-testid="ds-coaching-counter"
+        >
+          {TIP_COUNT} {t("coaching tips available · tap to expand")}
+        </span>
+        <ChevronDown className="w-4 h-4 text-slate-400" data-testid="ds-coaching-icon-down" />
+      </button>
+    );
+  }
   return (
     <section
       className="bg-white border border-slate-200 border-l-4 border-l-slate-400 rounded-md p-4"
@@ -516,7 +542,7 @@ function CoachingBlock({ collapsed, onToggle, t }) {
         onClick={onToggle}
         data-testid="ds-coaching-toggle"
         className="w-full flex items-center gap-3 text-left"
-        aria-expanded={!collapsed}
+        aria-expanded="true"
       >
         <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-900 text-white shrink-0">
           <Compass className="w-5 h-5" />
@@ -526,30 +552,24 @@ function CoachingBlock({ collapsed, onToggle, t }) {
             {t("Need help?")}
           </div>
           <div className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900 mt-0.5">
-            {collapsed ? t("Show Dispatch Guidance") : t("Dispatch Command")}
+            {t("Dispatch Command")}
           </div>
         </div>
-        {collapsed ? (
-          <ChevronDown className="w-5 h-5 text-slate-500" data-testid="ds-coaching-icon-down" />
-        ) : (
-          <ChevronUp className="w-5 h-5 text-slate-500" data-testid="ds-coaching-icon-up" />
-        )}
+        <ChevronUp className="w-5 h-5 text-slate-500" data-testid="ds-coaching-icon-up" />
       </button>
-      {!collapsed && (
-        <div className="mt-3" data-testid="ds-coaching-body">
-          <p className="text-sm text-slate-600 mb-2 max-w-2xl">
-            {t("Issue work, watch movement, resolve delays, and keep trucks flowing.")}
-          </p>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1.5 text-sm text-slate-700">
-            <CoachLi>{t("Start with anything needing attention.")}</CoachLi>
-            <CoachLi>{t("Issue assignments before reviewing history.")}</CoachLi>
-            <CoachLi>{t("Driver taps are the source of operational truth.")}</CoachLi>
-            <CoachLi>{t("PMs see production awareness only.")}</CoachLi>
-            <CoachLi>{t("Shop sees breakdown continuity only.")}</CoachLi>
-            <CoachLi>{t("Motive validates later — it does not replace the driver.")}</CoachLi>
-          </ul>
-        </div>
-      )}
+      <div className="mt-3" data-testid="ds-coaching-body">
+        <p className="text-sm text-slate-600 mb-2 max-w-2xl">
+          {t("Issue work, watch movement, resolve delays, and keep trucks flowing.")}
+        </p>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1.5 text-sm text-slate-700">
+          <CoachLi>{t("Start with anything needing attention.")}</CoachLi>
+          <CoachLi>{t("Issue assignments before reviewing history.")}</CoachLi>
+          <CoachLi>{t("Driver taps are the source of operational truth.")}</CoachLi>
+          <CoachLi>{t("PMs see production awareness only.")}</CoachLi>
+          <CoachLi>{t("Shop sees breakdown continuity only.")}</CoachLi>
+          <CoachLi>{t("Motive validates later — it does not replace the driver.")}</CoachLi>
+        </ul>
+      </div>
     </section>
   );
 }
