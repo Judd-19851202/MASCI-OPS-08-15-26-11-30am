@@ -1,6 +1,43 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-04T18:50Z (iter509 · OMEGA MAINTAINX ADMIN INTEGRATION CENTER · 🟢 READY)
+
+### Verdict: 🟢 **MAINTAINX ADMIN CENTER READY**
+
+### Scope (frontend-only · NO backend changes)
+- NEW `frontend/src/components/admin/MaintainxP0Tab.jsx` — 354 LOC; reuses 4 existing P0 endpoints
+- MOD `frontend/src/pages/admin/AdminIntegrationCenter.jsx` — +1 import, +1 tab trigger, +1 tab content
+
+### Sections shipped (5/5 per directive)
+1. **Configuration** — masked key fingerprint + base URL + sync/write flags + env safety rollup
+2. **Connection Test** — button + structured success/failure pill
+3. **Asset Dry-Run** — 11-cell counter grid + "writes performed: 0" verification panel
+4. **Saved Reports** — list of last 10 dry-run reports with status pills
+5. **Safety Banner** — explicit "Writes are disabled" notice
+
+### Live preview verification
+- Route: `/admin/integrations` → "MaintainX · Read-First" tab
+- KEY_STATUS=No (gracefully), BASE_URL shown, WRITE_FLAG=FALSE—SAFE, SYNC_FLAG=FALSE—SAFE
+- Test Connection → "Failed · missing_api_key" structured render
+- Run Dry-Run → 11 counters render, writes_performed.{maintainx, equipment_master, asset_mappings, fleet_defects}=0
+- HTML leak scan: zero secret strings in DOM
+
+### Security compliance (14/14 OMEGA rules respected)
+- Secrets live ONLY in `backend/.env` (never DB, never wire, never logs)
+- Frontend receives only masked fingerprint + last4 + present-boolean via `MaintainxConfig.public_view()`
+- No input field exists to enter/edit the key on the UI
+- All 4 endpoints behind `Depends(require_admin)`; tab inside `<AdminShell>` admin gate
+- Backend tests re-run: 13/13 PASS
+
+### Deliverables in `/app/memory/`
+1. `MAINTAINX_ADMIN_INTEGRATION_CENTER_REPORT.md`
+2. `MAINTAINX_SECRET_HANDLING_CERTIFICATION.md`
+3. `MAINTAINX_ADMIN_DRY_RUN_UI_CERTIFICATION.md`
+4. `MAINTAINX_ADMIN_INTEGRATION_GO_NO_GO.md` ← 🟢 GO
+
+
+
 ## 2026-06-04T18:30Z (iter508 · OMEGA MAINTAINX P0-A/P0-B READ-FIRST · 🟢 READY)
 
 ### Verdict: 🟢 **MAINTAINX READ-FIRST ASSET INTEGRATION READY**

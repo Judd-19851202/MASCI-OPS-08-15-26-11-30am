@@ -31,6 +31,7 @@ import AdminShell from "@/components/AdminShell";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import MaintainxP0Tab from "@/components/admin/MaintainxP0Tab";
 
 const STATUS_COLOR = {
   Connected:               "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -71,6 +72,7 @@ export default function AdminIntegrationCenter() {
           <TabsTrigger value="overview" data-testid="ic-tab-overview"><Plug className="w-3.5 h-3.5 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="motive" data-testid="ic-tab-motive">Motive</TabsTrigger>
           <TabsTrigger value="maintainx" data-testid="ic-tab-maintainx">MaintainX</TabsTrigger>
+          <TabsTrigger value="maintainx-p0" data-testid="ic-tab-maintainx-p0">MaintainX · Read-First</TabsTrigger>
           <TabsTrigger value="assets" data-testid="ic-tab-assets"><Truck className="w-3.5 h-3.5 mr-1" /> Asset Mapping</TabsTrigger>
           <TabsTrigger value="employees" data-testid="ic-tab-employees"><Users className="w-3.5 h-3.5 mr-1" /> Employee Mapping</TabsTrigger>
           <TabsTrigger value="sync" data-testid="ic-tab-sync"><FileText className="w-3.5 h-3.5 mr-1" /> Sync Logs</TabsTrigger>
@@ -82,6 +84,7 @@ export default function AdminIntegrationCenter() {
         <TabsContent value="overview"><OverviewTab /></TabsContent>
         <TabsContent value="motive"><ProviderTab provider="motive" /></TabsContent>
         <TabsContent value="maintainx"><ProviderTab provider="maintainx" /></TabsContent>
+        <TabsContent value="maintainx-p0"><MaintainxP0Tab /></TabsContent>
         <TabsContent value="assets"><AssetMappingTab /></TabsContent>
         <TabsContent value="employees"><EmployeeMappingTab /></TabsContent>
         <TabsContent value="sync"><SyncLogsTab /></TabsContent>
