@@ -32,6 +32,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import MaintainxP0Tab from "@/components/admin/MaintainxP0Tab";
+import MaintainxDefectCoverageSection from "@/components/admin/MaintainxDefectCoverageSection";
 
 const STATUS_COLOR = {
   Connected:               "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -84,7 +85,12 @@ export default function AdminIntegrationCenter() {
         <TabsContent value="overview"><OverviewTab /></TabsContent>
         <TabsContent value="motive"><ProviderTab provider="motive" /></TabsContent>
         <TabsContent value="maintainx"><ProviderTab provider="maintainx" /></TabsContent>
-        <TabsContent value="maintainx-p0"><MaintainxP0Tab /></TabsContent>
+        <TabsContent value="maintainx-p0">
+          <MaintainxP0Tab />
+          <div className="mt-4">
+            <MaintainxDefectCoverageSection />
+          </div>
+        </TabsContent>
         <TabsContent value="assets"><AssetMappingTab /></TabsContent>
         <TabsContent value="employees"><EmployeeMappingTab /></TabsContent>
         <TabsContent value="sync"><SyncLogsTab /></TabsContent>

@@ -27,11 +27,12 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from services.maintainx_client import MaintainxClient, MaintainxConfig
 from services.maintainx_asset_sync import run_asset_dryrun
+from services.maintainx_defect_coverage import run_defect_coverage
 
 logger = logging.getLogger(__name__)
 
 
-def register_maintainx_p0_routes(api_router: APIRouter, db, require_admin) -> None:
+def register_maintainx_p0_routes(api_router: APIRouter, db, require_admin, require_any_portal=None) -> None:
 
     @api_router.get(
         "/admin/maintainx/p0/config",
@@ -85,6 +86,34 @@ def register_maintainx_p0_routes(api_router: APIRouter, db, require_admin) -> No
         if not doc:
             raise HTTPException(404, "Dry-run report not found")
         return doc
+
+    # ── Defect Source Coverage (read-only intelligence layer) ─────
+    # Admin endpoint: full payload incl. defect sample.
+    @api_router.get(
+        "/admin/maintainx/defect-coverage",
+        dependencies=[Depends(require_admin)],
+    )
+    async def maintainx_defect_coverage_admin(
+        sample_limit: int = 200, since_days: int = 30,
+    ):
+        return await run_defect_coverage(
+            db, sample_limit=sample_limit, since_days=since_days,
+        )
+
+    # Shop+Admin endpoint: same payload, gated by any-portal token (Shop
+    # / Admin / Safety / HR / PM / Dispatch / Field Leadership). The
+    # frontend chooses what to render based on the actor's role.
+    if require_any_portal is not None:
+        @api_router.get(
+            "/integrations/maintainx/defect-coverage",
+            dependencies=[Depends(require_any_portal)],
+        )
+        async def maintainx_defect_coverage_portal(
+            sample_limit: int = 200, since_days: int = 30,
+        ):
+            return await run_defect_coverage(
+                db, sample_limit=sample_limit, since_days=since_days,
+            )
 
 
 __all__ = ["register_maintainx_p0_routes"]

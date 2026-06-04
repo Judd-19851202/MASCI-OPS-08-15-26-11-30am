@@ -1,6 +1,39 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-06-04T19:30Z (iter511 · OMEGA MAINTAINX DEFECT SOURCE COVERAGE COMMAND CENTER · 🟢 READY)
+
+### Verdict: 🟢 **READY**
+
+### Built
+- NEW `services/maintainx_defect_coverage.py` (320 LOC) — pure read aggregator across `fleet_defects`, `equipment_inspections`, `asset_holds`, with 4-bucket classifier (READY/BLOCKED/DUPLICATE_RISK/EXCLUDED) and 6-state MaintainX status taxonomy
+- 2 new read endpoints: `GET /api/admin/maintainx/defect-coverage` (admin) + `GET /api/integrations/maintainx/defect-coverage` (any-portal)
+- 3 new frontend surfaces:
+  - Admin: full Defect Source Coverage section inside MaintainX · Read-First tab (7-cell overview · 6-row breakdown · clickable filter · drawer)
+  - Shop: 4-cell Readiness Queue tile on Shop Hub
+  - Dispatch: small `Equipment Maintenance Issues Requiring Attention: X` indicator with link
+
+### Live data (preview)
+- 138 open defects · 110 OOS · 110 safety-critical · 2 Ready · 134 Blocked · 2 Duplicate Risk · 0 Mapped
+- All `writes_performed.*` = 0 (verified live)
+- Most blocked rows fail because `unit_number` doesn't resolve to `equipment_master` — exactly the data-quality signal the operator needs before turning on writes
+
+### Operator now answers 9/9 success-criteria questions without opening MaintainX
+
+### Compliance with 10 CRITICAL RULES
+✅ No MaintainX writes · No equipment mutations · No defect mutations · No RTS/DVIR/Pre-Op/Shop/Dispatch logic changes
+
+### Backend regression: 13/13 P0 tests still PASS
+
+### 5 deliverables in `/app/memory/`
+1. `MAINTAINX_DEFECT_SOURCE_COVERAGE_REPORT.md`
+2. `MAINTAINX_READINESS_CLASSIFICATION_REPORT.md`
+3. `MAINTAINX_SHOP_QUEUE_REPORT.md`
+4. `MAINTAINX_DEFECT_EXPLORER_CERTIFICATION.md`
+5. `MAINTAINX_DEFECT_COMMAND_CENTER_GO_NO_GO.md` ← 🟢 READY
+
+
+
 ## 2026-06-04T19:10Z (iter510 · OMEGA MAINTAINX EQUIPMENT DEFECT PIPELINE AUDIT · 🟡 PLAN COMPLETE)
 
 ### Verdict: 🟡 **PLAN COMPLETE — IMPLEMENTATION NOT STARTED** (Read-first asset layer remains LIVE)

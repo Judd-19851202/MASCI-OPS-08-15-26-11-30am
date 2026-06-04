@@ -43,7 +43,7 @@ def build_integrations_router(
     register_config_routes(api_router, db, require_admin, require_any_portal)
     register_event_routes(api_router, db, require_any_portal)
     register_webhook_routes(api_router, db)
-    register_maintainx_p0_routes(api_router, db, require_admin)
+    register_maintainx_p0_routes(api_router, db, require_admin, require_any_portal)
 
     return api_router
 

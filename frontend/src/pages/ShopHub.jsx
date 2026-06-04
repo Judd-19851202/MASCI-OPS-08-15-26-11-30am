@@ -50,6 +50,7 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
+import ShopMaintainxReadinessTile from "@/components/shop/ShopMaintainxReadinessTile";
 
 const SHOP_PAL = paletteFor("shop");
 
@@ -296,6 +297,9 @@ export default function ShopHub() {
         {/* iter440 · calm one-line "Last activity" trace per portal ·
             quiet proof the platform is being USED, not just UP. */}
         <LastActivityLine portal="shop" />
+
+        {/* iter511 · MaintainX Readiness Queue · read-only intelligence */}
+        <ShopMaintainxReadinessTile />
 
         {/* Calm operational kicker · iter423 wording: recovery, not maintenance */}
         <div>

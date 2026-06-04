@@ -43,6 +43,7 @@ import { useT } from "@/lib/i18n";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import DispatchSideNavV2, { useDispatchSidebarV2Enabled } from "@/components/dispatch/sidebar/DispatchSideNavV2";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
+import DispatchEquipmentMaintenanceIndicator from "@/components/dispatch/DispatchEquipmentMaintenanceIndicator";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -194,6 +195,9 @@ export default function DispatchHub() {
         <main className={sidebarV2
           ? "flex-1 px-5 sm:px-8 py-4 space-y-4 w-full"
           : "max-w-6xl mx-auto px-5 sm:px-8 py-4 space-y-4 flex-1 w-full"}>
+
+        {/* iter511 · MaintainX maintenance indicator (calm, count-only) */}
+        <DispatchEquipmentMaintenanceIndicator />
 
         {/* ── 1 · OPERATIONAL ATTENTION · what matters now ───────── */}
         <Section
