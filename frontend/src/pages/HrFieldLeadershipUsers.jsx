@@ -9,6 +9,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import AdminFieldLeadershipUsersPanel from "@/components/AdminFieldLeadershipUsersPanel";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { IamUserDetailDrawerHost } from "@/components/iam/IamUserDetailDrawer";
 import { clearHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
@@ -65,6 +66,8 @@ export default function HrFieldLeadershipUsers() {
         </div>
         <AdminFieldLeadershipUsersPanel />
       </main>
+      {/* iter506 · OMEGA Unified User Detail Drawer — HR Field Leadership parity */}
+      <IamUserDetailDrawerHost />
     </div>
   );
 }

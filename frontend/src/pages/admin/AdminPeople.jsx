@@ -20,6 +20,7 @@ import AdminAccessStatsTile from "@/components/AdminAccessStatsTile";
 import AdminUnifiedDirectoryPanel from "@/components/AdminUnifiedDirectoryPanel";
 import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import PortalUsersAccordion from "@/components/iam/PortalUsersAccordion";
+import { IamUserDetailDrawerHost } from "@/components/iam/IamUserDetailDrawer";
 
 export default function AdminPeople() {
   return (
@@ -67,6 +68,10 @@ export default function AdminPeople() {
         {/* Employee master roster — peripheral, kept at the bottom */}
         <EmployeeMasterPanel />
       </div>
+
+      {/* iter506 · OMEGA Unified User Detail Drawer — host mounted once;
+          every <IamStandardCells> row opens it via window.__openIamUserDrawer */}
+      <IamUserDetailDrawerHost />
     </AdminShell>
   );
 }
