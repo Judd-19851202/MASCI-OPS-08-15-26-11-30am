@@ -34991,3 +34991,33 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 - TRENCH_SAFETY_PRE_PHASE4_CLEANUP_GO_NO_GO.md
 
 🛑 **Agent STOPPED.** Awaiting operator authorization to begin Phase 4 — Equipment Inventory + Job Assignment + Project Visibility Integration.
+
+---
+
+## 2026-06-06 · TRENCH SAFETY PHASE 4 ARCHITECTURE LOCK CERTIFICATION
+
+**Mode:** Read-only certification · NO CODE CHANGES
+**Verdict:** 🟡 CERTIFIED WITH 4 FIELD-REFERENCE GAPS — correction required before Phase 4
+
+**Locked architecture confirmed:**
+- Public Safety Tile → Field Reference (read-only)
+- Safety Portal → Administration (Safety / Admin tokens)
+- Operations Integration → Assignment / Location / Utilization (Phase 4+ build)
+
+**Findings:**
+- ✅ **Hard rule intact:** Zero administrative functions exposed publicly. All 9 forbidden capabilities (create / edit / assign / retire / inspection / repair / cert / OCR / QR admin) return 401 anonymous.
+- ✅ **Safety Portal owns every administrative capability** — no drift; missing UIs are deferred-phase builds, not architectural violations.
+- ✅ **Operations Integration foundation in place** — equipment_master mirror live (7/7); asset_transfers SOT untouched.
+- ⚠ **4 field-reference gaps** on the Public Safety Tile:
+  - GAP-1: No public field-view Dashboard (only behind Safety Portal at /safety/trench-safety)
+  - GAP-2: No public asset-id Lookup form
+  - GAP-3: No standalone OSHA References / Training surface (Phase 9 deliverable)
+  - GAP-4: No Report Damage / Unsafe / Missing-Pins UI button (backend endpoint exists, button missing on QR landing)
+
+**Deliverable:** /app/memory/TRENCH_SAFETY_PHASE4_ARCHITECTURE_LOCK_CERTIFICATION.md
+
+**Two correction paths offered — operator decides:**
+- (A) Phase 3.5 — public-tile completion (~250 LOC frontend, ~5 LOC backend) closing GAP-1/2/4 before Phase 4 begins. Recommended.
+- (B) Proceed to Phase 4 now; track gaps as a Phase 9 backlog item.
+
+🛑 **Agent STOPPED.** Awaiting operator authorization on path (A) or (B) before Phase 4 starts.
