@@ -89,6 +89,7 @@ export default function AssetTransfers() {
   useEffect(() => { load(); }, [load]);
 
   const summary = useMemo(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- pure derivation inside useMemo (false positive)
     const s = { total: 0 };
     for (const it of data.items || []) {
       s[it.status] = (s[it.status] || 0) + 1;
@@ -188,7 +189,18 @@ export default function AssetTransfers() {
                       </span>
                     </td>
                     <td className="p-2 align-middle font-mono text-slate-800">
-                      <div className="font-bold">{row.equipment_unit_id || row.equipment_id}</div>
+                      <div className="font-bold flex items-center gap-1.5">
+                        {row.equipment_unit_id || row.equipment_id}
+                        {row.equipment_category === "Trench Safety" && (
+                          <span
+                            className="inline-block px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-wider font-bold bg-cyan-100 text-cyan-900 border border-cyan-300"
+                            title="Trench Safety asset"
+                            data-testid="transfer-trench-badge"
+                          >
+                            Trench Safety
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[11px] text-slate-500 truncate max-w-[200px]">{row.equipment_label}</div>
                     </td>
                     <td className="p-2 align-middle text-[11px]">
@@ -350,6 +362,7 @@ function TransferDetailDrawer({ id, onClose, onAfterAction }) {
   useEffect(() => { load(); }, [load]);
 
   const doAction = async (action, payload = {}) => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- event handler, not effect (false positive)
     setActionInFlight(action); setErr(null);
     try {
       await api.post(`/asset-transfers/${id}/${action}`, payload);

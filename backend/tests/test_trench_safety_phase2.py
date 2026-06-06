@@ -434,7 +434,11 @@ def test_dashboard_aggregate_shape(client, admin_headers):
 
 
 def test_audit_events_recorded(client, admin_headers):
-    r = client.get("/api/trench-safety/assets/TB-01/audit", headers=admin_headers)
+    r = client.get(
+        "/api/trench-safety/assets/TB-01/audit",
+        params={"limit": 1000},
+        headers=admin_headers,
+    )
     assert r.status_code == 200
     events = r.json()["items"]
     kinds = {e["kind"] for e in events}

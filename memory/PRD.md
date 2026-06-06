@@ -1,6 +1,36 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02 (OMEGA TRENCH SAFETY PHASE 5 · TRANSPORT / DISPATCH INTEGRATION · 🟢 GO)
+
+### Verdict: 🟢 PHASE 5 COMPLETE — SAFE TO CONTINUE TO SHOP REPAIR WORKFLOW (Phase 6)
+
+### Architecture
+- Existing `/api/asset-transfers` state machine is the transport authority. **No new transport endpoints, no new collections, no parallel pipeline.**
+- New `routes/trench_transport_bridge.py` is the single integration point. Hooked into the existing `in-transit`, `receive`, `cancel` handlers via three minimal callsites. Fast-exits when the asset is not Trench Safety, so zero impact on fleet/yellow iron transfers.
+- Every transition routes through the Phase 4B hold engine (`apply_resolved_status`). Safety / Certification / Maintenance / Inspection holds are NEVER silently cleared by movement.
+- `equipment_master` mirror keeps Dispatch / Project pickers / Global Search in lockstep with the new `In Transport` / `Assigned` / `Available` flow.
+- Phase 4A deployment timeline auto-synced from Dispatch receive events (source = `"Dispatch / Transport Log"`).
+
+### Built
+- `routes/trench_transport_bridge.py` (NEW) — `on_transfer_in_transit`, `on_transfer_received`, `on_transfer_cancelled`. Idempotent · hold-preserving · audit-emitting.
+- `routes/asset_transfers.py` — three callsites + `equipment_category` / `equipment_type` snapshot on every transfer doc.
+- `pages/AssetTransfers.jsx` — `Trench Safety` badge next to the equipment ID for trench rows.
+- `lib/i18n.js` — Spanish parity for In Transport, From, To, Delivered, Received, Transfer Cancelled, Hold Preserved + 4 coaching strings.
+
+### Tests (74/74 PASS · zero regressions)
+Phase 2: 28/28 · Phase 4A: 16/16 · Phase 4B: 20/20 · Phase 5: 10/10.
+
+### Audit events
+`trench_safety_transport_started`, `_completed`, `_cancelled`, `_blocked_retired`.
+
+### Certification deliverables (`/app/memory/`)
+`TRENCH_SAFETY_PHASE5_TRANSPORT_ARCHITECTURE.md` · `_DISPATCH_INTEGRATION_REPORT.md` · `_LOCATION_SYNC_REPORT.md` · `_HOLD_PRESERVATION_REPORT.md` · `_SPANISH_CERTIFICATION.md` · `_TEST_REPORT.md` · `_GO_NO_GO.md`.
+
+### Next (Phase 6 — Shop Repair Workflow)
+
+
+
 ## 2026-02 (OMEGA TRENCH SAFETY PHASE 4B · INSPECTIONS / HOLDS / CERTIFICATIONS / ALERTS · 🟢 GO)
 
 ### Verdict: 🟢 GO — Phase 4B certified. All 7 verdict domains PASS. Phase 5 (Transport/Dispatch) authorized.

@@ -1572,6 +1572,22 @@ const ES = {
     "RETENCIÓN DE SEGURIDAD — condición crítica reportada. NO USAR. Contacte a Seguridad inmediatamente.",
   "This asset is on hold. DO NOT USE.": "Este activo está retenido. NO USAR.",
 
+  // Phase 5 — Transport / Dispatch Integration
+  "In Transport": "En Transporte",
+  "Transfer Cancelled": "Transferencia Cancelada",
+  "Hold Preserved": "Retención Preservada",
+  "From": "Desde",
+  "To": "Hasta",
+  "Delivered": "Entregado",
+  "Received": "Recibido",
+  "Moving a box does not clear a hold.": "Mover una caja no elimina una retención.",
+  "A trench box on hold may be transported, but it is not available for use.":
+    "Una caja de zanja retenida puede ser transportada, pero no está disponible para uso.",
+  "Location updates when Dispatch/Transport completes the move.":
+    "La ubicación se actualiza cuando Despacho/Transporte completa el movimiento.",
+  "Scan the QR to verify the box before it goes in the trench.":
+    "Escanee el QR para verificar la caja antes de bajarla a la zanja.",
+
   // QR landing
   "MASCI Trench Safety": "Seguridad de Zanjas MASCI",
   "This QR is not linked to a known MASCI trench safety asset. Contact Safety.":

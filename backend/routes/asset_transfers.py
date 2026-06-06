@@ -388,9 +388,12 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
             "id": str(uuid.uuid4()),
             "status": "Requested",
             "equipment_id": body.equipment_id,
-            "equipment_unit_id": eq.get("unit_id"),
+            "equipment_unit_id": eq.get("unit_id") or eq.get("unit_number") or eq.get("asset_id"),
             "equipment_label": (eq.get("name") or eq.get("unit_id")
+                                or eq.get("asset_id")
                                 or body.equipment_id)[:200],
+            "equipment_category": eq.get("category") or "",
+            "equipment_type": eq.get("type") or eq.get("asset_type") or "",
             "from_project_number": from_pn,
             "from_location_label": from_loc[:200] if from_loc else None,
             "to_project_number": body.to_project_number,
@@ -492,6 +495,12 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
         )
         if did:
             await _fan(doc, "in_transit", actor)
+            # Phase 5 — trench-aware sync (safe no-op for non-trench assets)
+            try:
+                from routes.trench_transport_bridge import on_transfer_in_transit  # noqa: PLC0415
+                await on_transfer_in_transit(db, transfer=doc, actor_label=_actor_label(actor))
+            except Exception as _e:  # noqa: BLE001
+                logger.warning("[asset_transfer] trench sync (in_transit) failed: %s", _e)
         return doc
 
     @router.post("/api/asset-transfers/{tid}/receive")
@@ -553,6 +562,12 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
                 logger.warning("[asset_transfer] equipment_master sync failed: %s", e)
 
             await _fan(doc, "received", actor)
+            # Phase 5 — trench-aware sync (safe no-op for non-trench assets)
+            try:
+                from routes.trench_transport_bridge import on_transfer_received  # noqa: PLC0415
+                await on_transfer_received(db, transfer=doc, actor_label=_actor_label(actor))
+            except Exception as _e:  # noqa: BLE001
+                logger.warning("[asset_transfer] trench sync (received) failed: %s", _e)
         return doc
 
     @router.post("/api/asset-transfers/{tid}/cancel")
@@ -574,6 +589,12 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
             timestamp_field="cancelled_at",
             extra={"cancel_notes": body.notes} if body.notes else None,
         )
+        if _did:
+            try:
+                from routes.trench_transport_bridge import on_transfer_cancelled  # noqa: PLC0415
+                await on_transfer_cancelled(db, transfer=doc, actor_label=_actor_label(actor))
+            except Exception as _e:  # noqa: BLE001
+                logger.warning("[asset_transfer] trench sync (cancel) failed: %s", _e)
         return doc
 
     @router.post("/api/asset-transfers/{tid}/close")
