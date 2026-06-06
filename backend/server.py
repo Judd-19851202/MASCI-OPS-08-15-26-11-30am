@@ -4183,9 +4183,14 @@ async def _write_equipment_master(items: List[Dict[str, Any]]) -> int:
 
     Items are expected to already be in the parser's normalized shape
     (see equipment_parser.parse_equipment_xlsx).
+
+    Trench Safety mirror rows (category="Trench Safety") are PRESERVED.
+    Those rows are NOT JSON-sourced — they shadow `db.trench_safety_assets`
+    and are owned by `routes/trench_safety/_helpers.py`. Wiping them here
+    would orphan the mirror on every backend restart.
     """
     log = logging.getLogger(__name__)
-    await db.equipment_master.delete_many({})
+    await db.equipment_master.delete_many({"category": {"$ne": "Trench Safety"}})
     if not items:
         return 0
     for it in items:
@@ -4245,7 +4250,9 @@ async def _seed_equipment_master() -> None:
         log.exception(f"[equipment-master] failed to read seed: {e}")
         return
 
-    existing_count = await db.equipment_master.count_documents({})
+    existing_count = await db.equipment_master.count_documents(
+        {"category": {"$ne": "Trench Safety"}}
+    )
     if existing_count == len(seed_items) and existing_count > 0:
         return  # already seeded and matches file
 
@@ -7915,7 +7922,21 @@ _RESTORE_CREW_HUB = {
     "todo_lists", "todos", "events", "docs", "hill_scopes", "activity_log",
     "notifications",
 }
-_RESTORE_SAFETY_AUX = {"equipment_units", "job_hazard_plans", "trench_boxes"}
+_RESTORE_SAFETY_AUX = {
+    "equipment_units",
+    "job_hazard_plans",
+    "trench_boxes",
+    # ── Trench Safety Operations System (Phase 2) ────────────────────
+    # New per-physical-unit collections introduced in /app/memory/
+    # TRENCH_SAFETY_ARCHITECTURE.md §1-§2. Each is restore-essential.
+    "trench_safety_assets",
+    "trench_safety_inspections",
+    "trench_safety_repairs",
+    "trench_safety_deployments",
+    "trench_safety_certifications",
+    "trench_safety_photos",
+    "trench_safety_qr_scans",
+}
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -9275,6 +9296,30 @@ from routes.safety_portal._deps import make_require_safety_or_admin  # noqa: E40
 
 _require_safety_or_admin_library = make_require_safety_or_admin(db, _is_valid_admin_token)
 app.include_router(build_safety_topic_library_router(_require_safety_or_admin_library))
+
+
+# ─── Trench Safety Operations System — Phase 2 ──────────────────────
+# Mounts /api/trench-safety/* (dashboard, assets CRUD, inspections,
+# repairs, deployments, public QR landing + damage intake). Uses
+# existing token deps:
+#   • require_admin                    — terminal lifecycle (retire)
+#   • make_require_safety_or_admin     — write surface for assets/inspections
+#   • require_shop_or_admin            — repair workflow
+#   • make_require_any_portal_token    — read surface across all 7 portals
+# Persists into NEW collections (trench_safety_*) — does NOT touch the
+# existing trench_boxes manufacturer-reference collection.
+# Reference: /app/memory/TRENCH_SAFETY_ARCHITECTURE.md
+from routes.trench_safety import build_trench_safety_router  # noqa: E402
+from routes.integrations._deps import make_require_any_portal_token  # noqa: E402
+
+_trench_safety_router = build_trench_safety_router(
+    db,
+    require_admin=require_admin,
+    require_safety_or_admin=make_require_safety_or_admin(db, _is_valid_admin_token),
+    require_shop_or_admin=require_shop_or_admin,
+    require_any_portal=make_require_any_portal_token(db, _is_valid_admin_token),
+)
+app.include_router(_trench_safety_router)
 
 
 # ─── Admin Weekly Digest Config (iter133) ──────────────────────────
@@ -11931,6 +11976,18 @@ async def _seed_phase1():
         # units are missing it. Survives redeploys that wipe the DB.
         from data_fixes import boot_self_heal
         await boot_self_heal(db)
+        # Trench Safety Operations System — Phase 2.
+        # Must run AFTER _seed_equipment_master because the trench-safety
+        # seeder writes mirror rows into equipment_master. The JSON
+        # seeder ignores category="Trench Safety" so the mirrors persist
+        # across boots. See /app/memory/TRENCH_SAFETY_ARCHITECTURE.md.
+        from routes.trench_safety import seed_trench_safety_assets
+        try:
+            await seed_trench_safety_assets(db)
+        except Exception as ts_err:  # noqa: BLE001
+            logging.getLogger(__name__).warning(
+                f"trench_safety seed failed: {ts_err}", exc_info=True
+            )
     except Exception as e:
         logging.getLogger(__name__).exception(f"Phase 1 seed failed: {e}")
 

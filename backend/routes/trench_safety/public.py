@@ -1,0 +1,120 @@
+"""Public (unauthenticated) endpoints for QR landings + damage intake.
+
+These are the ONLY trench-safety endpoints that don't require a portal
+token. They live behind the existing platform's public-POST rate-limit
+(per-IP) and never expose admin data.
+"""
+from __future__ import annotations
+
+import uuid
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, Header, HTTPException, Request
+
+from ._helpers import now_iso, public_view, write_audit
+from ._models import DamageReportPublic
+
+
+def register_public_routes(api_router: APIRouter, db) -> None:
+
+    # ──────────────────────────────────────────────────────────────────
+    # QR landing — field-safe projection by asset_id
+    # ──────────────────────────────────────────────────────────────────
+    @api_router.get("/trench-safety/public/assets/{asset_id}")
+    async def public_qr_landing(
+        asset_id: str,
+        request: Request,
+        x_forwarded_for: Optional[str] = Header(default=None),
+    ):
+        doc = await db.trench_safety_assets.find_one(
+            {"asset_id": asset_id}, {"_id": 0}
+        )
+        if not doc:
+            raise HTTPException(404, "Asset not found")
+
+        # Record the scan (best-effort, never fail the landing)
+        try:
+            ip = (x_forwarded_for or "").split(",")[0].strip() or (
+                request.client.host if request.client else None
+            )
+            await db.trench_safety_qr_scans.insert_one({
+                "id": str(uuid.uuid4()),
+                "asset_id": asset_id,
+                "scanned_at": now_iso(),
+                "scanned_by": None,
+                "user_agent": request.headers.get("user-agent", ""),
+                "ip": ip,
+            })
+        except Exception:  # noqa: BLE001
+            pass
+
+        return public_view(doc)
+
+    # ──────────────────────────────────────────────────────────────────
+    # Damage report intake (PUBLIC POST — mirrors existing public-POST
+    # pattern; relies on the platform-level per-IP rate-limit applied
+    # in CORS/limiter middleware)
+    # ──────────────────────────────────────────────────────────────────
+    @api_router.post("/trench-safety/public/damage-report")
+    async def public_damage_report(
+        payload: DamageReportPublic,
+        request: Request,
+        x_forwarded_for: Optional[str] = Header(default=None),
+    ):
+        asset = await db.trench_safety_assets.find_one(
+            {"asset_id": payload.asset_id},
+            {"_id": 0, "id": 1, "asset_id": 1, "operational_status": 1},
+        )
+        if not asset:
+            raise HTTPException(404, "Asset not found")
+
+        ip = (x_forwarded_for or "").split(",")[0].strip() or (
+            request.client.host if request.client else None
+        )
+
+        doc = {
+            "id": str(uuid.uuid4()),
+            "asset_id": payload.asset_id,
+            "asset_uuid": asset["id"],
+            "description": payload.description,
+            "reported_by_name": payload.reported_by_name,
+            "contact": payload.contact,
+            "received_at": now_iso(),
+            "source": "Public QR Damage Report",
+            "status": "Open",
+            "ip": ip,
+            "user_agent": request.headers.get("user-agent", ""),
+        }
+        # Persist as an Open repair so Shop sees it in their queue.
+        # Status Open (not 'In Progress') because Shop hasn't reviewed yet.
+        # Asset is NOT auto-moved to Repair — that would let an
+        # anonymous caller take a box out of service. Shop reviews and
+        # promotes via the authenticated repairs endpoint.
+        repair_doc = {
+            "id": str(uuid.uuid4()),
+            "asset_id": payload.asset_id,
+            "asset_uuid": asset["id"],
+            "status": "Open",
+            "issue_description": payload.description,
+            "reported_by": payload.reported_by_name or "anonymous",
+            "photo_refs": [],
+            "repair_vendor": None,
+            "repair_cost": None,
+            "completion_notes": "",
+            "requires_reinspection": True,
+            "opened_at": now_iso(),
+            "opened_by": f"public:{ip or 'unknown'}",
+            "closed_at": None,
+            "closed_by": None,
+            "pending_shop_review": True,
+            "public_intake_id": doc["id"],
+        }
+        await db.trench_safety_repairs.insert_one(repair_doc)
+        await write_audit(
+            db, kind="trench_asset_damage_reported_public",
+            asset_id=payload.asset_id,
+            actor={"_actor": "public", "name": payload.reported_by_name or "anonymous"},
+            detail={"repair_id": repair_doc["id"], "ip": ip},
+        )
+        # We deliberately return a minimal envelope — no PII echo.
+        return {"ok": True, "received_at": doc["received_at"]}

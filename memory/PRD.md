@@ -34858,3 +34858,40 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 7. Enable MFA on the super-admin account (future hardening).
 
 🛑 **Agent STOPPED.** Live production audit complete. No code was changed. Awaiting operator direction.
+
+---
+
+## 2026-06-06 · TRENCH SAFETY OPERATIONS SYSTEM — PHASE 2 COMPLETE (Backend + Seed + Tests)
+
+**Mode:** Build · Backend-only · No deployment · No frontend
+**Operator scope:** Phase 2 only of 11 (decisions 1a / 2c / 3a / 4a / 5a)
+**Verdict:** 🟢 PHASE 2 COMPLETE — SAFE TO CONTINUE TO UI
+
+**Delivered:**
+- New backend package `/app/backend/routes/trench_safety/` (10 modules)
+- 7 collections persisted: `trench_safety_assets`, `_photos`, `_inspections`, `_repairs`, `_deployments`, `_certifications`, `_qr_scans`
+- Idempotent seed of TB-01 … TB-07 (verbatim from directive; TB-05 carries `missing_serial_number=true` and `needs_review=true` per spec)
+- equipment_master mirror rows for all 7 active assets (one-way; `category="Trench Safety"`)
+- `_write_equipment_master` scoped so JSON re-seed preserves Trench Safety mirrors
+- 22 new REST endpoints under `/api/trench-safety/*` (public QR landing + cross-portal reads + Safety/Shop/Admin/Dispatch writes)
+- `db.audit_events` extended with `kind=trench_*` (no new audit collection)
+- `_RESTORE_SAFETY_AUX` extended with the 7 new collection names
+- 28/28 pytest cases green (`/app/backend/tests/test_trench_safety_phase2.py`)
+
+**Deliverables in `/app/memory/`:**
+- `TRENCH_SAFETY_EXISTING_SURFACE_REVIEW.md` (Phase 1)
+- `TRENCH_SAFETY_ARCHITECTURE.md` (Phase 1)
+- `TRENCH_SAFETY_PHASE2_CERTIFICATION.md` (Phase 2 verdict)
+
+**Next phases (UI/Integration — NOT started, per operator):**
+- Phase 3 — Safety Portal UI (hub, list, detail, tabulated-data relocation)
+- Phase 4 — Equipment Inventory integration (supervisor pickers + project dashboards)
+- Phase 5 — Transport / Dispatch integration via existing `/api/asset-transfers`
+- Phase 6 — Inspection / Repair / Hold UI
+- Phase 7 — Photos + QR PNG generator + mobile QR landing
+- Phase 8 — Admin + Shop + Project surfaces
+- Phase 9 — Reports + Global Search + Training + Spanish parity
+- Phase 10 — OCR (OpenAI Vision via Emergent universal key)
+- Phase 11 — Final 11-phase certification
+
+🛑 **Agent STOPPED.** Phase 2 backend foundation is locked. Awaiting operator authorization for Phase 3 UI work.
