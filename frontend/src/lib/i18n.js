@@ -1542,6 +1542,52 @@ const ES = {
   "Asset not found": "Activo no encontrado",
   "Safety": "Seguridad",
   "Dashboard": "Panel",
+
+  // ============================================================
+  // Phase 3.5 — Public Trench Safety Dashboard / Lookup / Report
+  // ============================================================
+  "Field reference for every MASCI trench safety asset. Look up a box, open its tabulated data, or report a problem.":
+    "Referencia de campo para cada activo de seguridad de zanjas MASCI. Busque una caja, abra sus datos tabulados o reporte un problema.",
+  "Fleet Overview": "Resumen de Flota",
+  "Loading overview…": "Cargando resumen…",
+  "Could not load overview.": "No se pudo cargar el resumen.",
+  "Asset Lookup": "Búsqueda de Activo",
+  "Type an Asset ID printed on the box (TB-07, EP-001, SP-001…) to see its status, last inspection, and tabulated data.":
+    "Escriba el ID de Activo impreso en la caja (TB-07, EP-001, SP-001…) para ver su estado, última inspección y datos tabulados.",
+  "Enter Asset ID (e.g. TB-07)": "Ingrese ID de Activo (ej. TB-07)",
+  "Look Up": "Buscar",
+  "Safety References": "Referencias de Seguridad",
+  "Plain-English / Spanish primer · what tabulated data is and how to read it in the field.":
+    "Manual claro · qué son los datos tabulados y cómo leerlos en el campo.",
+  "Report a Problem": "Reportar un Problema",
+  "Damage · Unsafe Condition · Missing Pins · Missing Labels. Goes straight to Safety.":
+    "Daño · Condición Insegura · Pines Faltantes · Etiquetas Faltantes. Va directo a Seguridad.",
+  "QR Scan:": "Escaneo QR:",
+  "Scan the QR label on any MASCI trench box to open its asset record. Scanning does not move the asset — location updates when the asset is assigned, transported, or returned.":
+    "Escanee la etiqueta QR de cualquier caja de zanja MASCI para abrir su registro. El escaneo no mueve el activo — la ubicación se actualiza cuando el activo se asigna, transporta o devuelve.",
+
+  // Report modal
+  "What's wrong?": "¿Qué pasó?",
+  "Damage": "Daño",
+  "Unsafe Condition": "Condición Insegura",
+  "Missing Pins": "Pines Faltantes",
+  "Missing Labels": "Etiquetas Faltantes",
+  "What did you see? (5+ characters)": "¿Qué observó? (5+ caracteres)",
+  "e.g. crack near top rail on the east side; missing R-pin on spreader…":
+    "ej. grieta cerca del riel superior en el lado este; pin R faltante en el separador…",
+  "Your name (optional)": "Su nombre (opcional)",
+  "Contact (optional)": "Contacto (opcional)",
+  "phone or email": "teléfono o email",
+  "Your report goes to MASCI Safety for review. Submitting does not change the asset's status — Shop and Safety decide next steps.":
+    "Su reporte va a Seguridad MASCI para revisión. Enviar no cambia el estado del activo — Taller y Seguridad deciden los siguientes pasos.",
+  "Submit Report": "Enviar Reporte",
+  "Could not submit report. Please try again.": "No se pudo enviar el reporte. Intente de nuevo.",
+  "Could not submit report.": "No se pudo enviar el reporte.",
+  "Report Received": "Reporte Recibido",
+  "Safety has been notified. The asset has NOT been moved or changed — Shop and Safety will review and take it from here.":
+    "Seguridad ha sido notificada. El activo NO ha sido movido ni cambiado — Taller y Seguridad revisarán y se encargarán a partir de aquí.",
+  "Close": "Cerrar",
+  "Home": "Inicio",
   "Know Before You Dig": "Conozca Antes de Excavar",
   "This is where your trench shield's life-safety data lives. Every box in the MASCI fleet has a manufacturer-engineered data sheet that tells you exactly how deep you can dig, in what soil, with what spreaders, and under what conditions. Read it. Understand it. It's the difference between a safe shift and a collapse.":
     "Aquí viven los datos de seguridad de su escudo de zanja. Cada caja en la flota MASCI tiene una hoja de datos diseñada por el fabricante que le dice exactamente qué tan profundo puede excavar, en qué tipo de suelo, con qué separadores y bajo qué condiciones. Léala. Entiéndala. Es la diferencia entre un turno seguro y un colapso.",

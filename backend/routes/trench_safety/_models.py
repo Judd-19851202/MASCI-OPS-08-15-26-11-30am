@@ -247,10 +247,14 @@ class DeploymentReturn(BaseModel):
 # Damage report (public intake)
 # ────────────────────────────────────────────────────────────────────────
 
+DAMAGE_REPORT_KINDS = ("Damage", "Unsafe Condition", "Missing Pins", "Missing Labels")
+
+
 class DamageReportPublic(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     asset_id: str = Field(min_length=1, max_length=64)
+    kind: str = Field(default="Damage", max_length=64)
     description: str = Field(min_length=5, max_length=2000)
     reported_by_name: Optional[str] = Field(default=None, max_length=200)
     contact: Optional[str] = Field(default=None, max_length=200)

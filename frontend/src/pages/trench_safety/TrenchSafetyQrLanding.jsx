@@ -16,6 +16,7 @@ import {
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
+import PublicReportModal from "@/pages/trench_safety/PublicReportModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -45,6 +46,7 @@ export default function TrenchSafetyQrLanding() {
   const [doc, setDoc] = useState(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,6 +171,17 @@ export default function TrenchSafetyQrLanding() {
               {t("Open Tabulated Data")}
             </Link>
 
+            {/* Report a Problem — Phase 3.5 GAP-4 */}
+            <button
+              type="button"
+              onClick={() => setReportOpen(true)}
+              data-testid="qr-report-btn"
+              className="mt-2 w-full bg-white border-2 border-amber-400 hover:bg-amber-50 text-amber-900 text-center rounded-md py-3 font-bold uppercase tracking-[0.12em] text-sm inline-flex items-center justify-center gap-2"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              {t("Report a Problem")}
+            </button>
+
             {/* Coaching */}
             <div className="mt-5 p-3 border border-slate-200 bg-white rounded text-xs text-slate-600 leading-relaxed" data-testid="qr-coaching">
               <ShieldAlert className="w-3.5 h-3.5 inline -mt-0.5 mr-1 text-cyan-700" />
@@ -182,6 +195,13 @@ export default function TrenchSafetyQrLanding() {
           {t("MASCI Operations Platform")} · {t("Field-safe view")}
         </footer>
       </main>
+
+      <PublicReportModal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        defaultAssetId={doc?.asset_id || assetId || ""}
+        lockAssetId={true}
+      />
     </div>
   );
 }

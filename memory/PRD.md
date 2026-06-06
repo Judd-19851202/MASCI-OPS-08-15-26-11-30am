@@ -35021,3 +35021,35 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 - (B) Proceed to Phase 4 now; track gaps as a Phase 9 backlog item.
 
 🛑 **Agent STOPPED.** Awaiting operator authorization on path (A) or (B) before Phase 4 starts.
+
+---
+
+## 2026-06-06 · TRENCH SAFETY PHASE 3.5 PUBLIC COMPLETION COMPLETE
+
+**Mode:** Correction sprint · closes 3 architecture gaps · No deploy
+**Verdict:** 🟢 PHASE 3.5 COMPLETE — SAFE TO START PHASE 4
+
+**Closed gaps:**
+- GAP-1 Public Trench Safety Dashboard at `/trench-safety` — fleet overview (counts only, no PII), coaching strip, asset lookup, 3 action tiles (Tabulated Data · Safety References · Report a Problem), QR helper, EN/ES toggle
+- GAP-2 Public Asset Lookup card — type ID → navigate to QR landing
+- GAP-4 Public Field Reporting modal — 4-kind enum (Damage / Unsafe Condition / Missing Pins / Missing Labels) wired into both the dashboard and the existing QR landing; creates pending-shop-review repair, asset NOT auto-moved, audit event written
+
+**Backend (minimal):**
+- Added `GET /api/trench-safety/public/overview` (counts only)
+- Extended `POST /api/trench-safety/public/damage-report` with `kind` enum (backwards-compatible default = "Damage", invalid → 422)
+- 0 collections added, 0 admin surfaces exposed, 0 schema changes
+
+**Frontend (3 new modules):**
+- `PublicTrenchSafetyDashboard.jsx`
+- `PublicAssetLookup.jsx`
+- `PublicReportModal.jsx`
+- + Report button wired onto existing `TrenchSafetyQrLanding.jsx`
+- 30 EN/ES key pairs added to i18n.js
+
+**Validation:** 9/9 directive items pass. 28/28 backend pytest. Lint clean. Mobile verified at 420×900. Backwards-compat damage reports continue to work.
+
+**Forbidden items confirmed NOT added:** scan counters, statistics, usage metrics, engagement widgets, new dashboards beyond GAP-1, analytics, gamification, new reports, new admin functions.
+
+**Deliverable:** /app/memory/TRENCH_SAFETY_PHASE3_5_GO_NO_GO.md
+
+🛑 **Agent STOPPED.** Awaiting operator authorization for Phase 4 build.

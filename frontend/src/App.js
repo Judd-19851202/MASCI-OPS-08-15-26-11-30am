@@ -44,6 +44,7 @@ import TrenchSafetyAssetsList from "@/pages/trench_safety/TrenchSafetyAssetsList
 import TrenchSafetyAssetDetail from "@/pages/trench_safety/TrenchSafetyAssetDetail";
 import TrenchSafetyTabulatedData from "@/pages/trench_safety/TrenchSafetyTabulatedData";
 import TrenchSafetyQrLanding from "@/pages/trench_safety/TrenchSafetyQrLanding";
+import PublicTrenchSafetyDashboard from "@/pages/trench_safety/PublicTrenchSafetyDashboard";
 import TrenchBoxesAdmin from "@/pages/TrenchBoxesAdmin";
 import TrenchBoxPoster from "@/pages/TrenchBoxPoster";
 import JhaPlansPoster from "@/pages/JhaPlansPoster";
@@ -354,6 +355,8 @@ function App() {
             <Route path="/jha/new" element={<Navigate to="/jha" replace />} />
 
             <Route path="/trench-boxes" element={<TrenchBoxes />} />
+            {/* Phase 3.5 · Public Trench Safety Dashboard (GAP-1) */}
+            <Route path="/trench-safety" element={<PublicTrenchSafetyDashboard />} />
             {/* Phase 3 · Trench Safety Operations System — public mobile QR landing */}
             <Route path="/trench-safety/assets/:assetId" element={<TrenchSafetyQrLanding />} />
 

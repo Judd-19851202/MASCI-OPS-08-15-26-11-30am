@@ -12,10 +12,54 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Header, HTTPException, Request
 
 from ._helpers import now_iso, public_view, write_audit
-from ._models import DamageReportPublic
+from ._models import DAMAGE_REPORT_KINDS, DamageReportPublic
 
 
 def register_public_routes(api_router: APIRouter, db) -> None:
+
+    # ──────────────────────────────────────────────────────────────────
+    # PUBLIC OVERVIEW — counts only · no PII · no names · no IDs
+    # Used by the public Trench Safety Dashboard (Phase 3.5 GAP-1).
+    # ──────────────────────────────────────────────────────────────────
+    @api_router.get("/trench-safety/public/overview")
+    async def public_overview():
+        """Anonymous fleet shape. Counts only — no asset identities."""
+        # Single in-memory rollup (fleet ≤ 250 indefinitely; see audit §5).
+        docs = await db.trench_safety_assets.find(
+            {"is_active": True},
+            {"_id": 0, "operational_status": 1, "asset_type": 1},
+        ).to_list(5000)
+
+        counts_by_status = {
+            "Available": 0,
+            "Assigned": 0,
+            "In Transport": 0,
+            "Inspection Hold": 0,
+            "Repair": 0,
+        }
+        counts_by_type = {
+            "Trench Box": 0,
+            "End Panel": 0,
+            "Spreader Bar": 0,
+            "Hydraulic Shore": 0,
+            "Slide Rail System": 0,
+            "Trench Jack": 0,
+            "Ladder": 0,
+            "Accessory": 0,
+        }
+        for d in docs:
+            s = d.get("operational_status") or "Available"
+            if s in counts_by_status:
+                counts_by_status[s] += 1
+            t = d.get("asset_type") or "Trench Box"
+            if t in counts_by_type:
+                counts_by_type[t] += 1
+
+        return {
+            "total_active_assets": len(docs),
+            "counts_by_status": counts_by_status,
+            "counts_by_type": counts_by_type,
+        }
 
     # ──────────────────────────────────────────────────────────────────
     # QR landing — field-safe projection by asset_id
@@ -61,6 +105,10 @@ def register_public_routes(api_router: APIRouter, db) -> None:
         request: Request,
         x_forwarded_for: Optional[str] = Header(default=None),
     ):
+        if payload.kind not in DAMAGE_REPORT_KINDS:
+            raise HTTPException(
+                422, f"kind must be one of {list(DAMAGE_REPORT_KINDS)}"
+            )
         asset = await db.trench_safety_assets.find_one(
             {"asset_id": payload.asset_id},
             {"_id": 0, "id": 1, "asset_id": 1, "operational_status": 1},
@@ -76,6 +124,7 @@ def register_public_routes(api_router: APIRouter, db) -> None:
             "id": str(uuid.uuid4()),
             "asset_id": payload.asset_id,
             "asset_uuid": asset["id"],
+            "kind": payload.kind,
             "description": payload.description,
             "reported_by_name": payload.reported_by_name,
             "contact": payload.contact,
@@ -95,7 +144,8 @@ def register_public_routes(api_router: APIRouter, db) -> None:
             "asset_id": payload.asset_id,
             "asset_uuid": asset["id"],
             "status": "Open",
-            "issue_description": payload.description,
+            "issue_description": f"[{payload.kind}] {payload.description}",
+            "report_kind": payload.kind,
             "reported_by": payload.reported_by_name or "anonymous",
             "photo_refs": [],
             "repair_vendor": None,
@@ -114,7 +164,6 @@ def register_public_routes(api_router: APIRouter, db) -> None:
             db, kind="trench_asset_damage_reported_public",
             asset_id=payload.asset_id,
             actor={"_actor": "public", "name": payload.reported_by_name or "anonymous"},
-            detail={"repair_id": repair_doc["id"], "ip": ip},
+            detail={"repair_id": repair_doc["id"], "report_kind": payload.kind, "ip": ip},
         )
-        # We deliberately return a minimal envelope — no PII echo.
-        return {"ok": True, "received_at": doc["received_at"]}
+        return {"ok": True, "received_at": doc["received_at"], "kind": payload.kind}
