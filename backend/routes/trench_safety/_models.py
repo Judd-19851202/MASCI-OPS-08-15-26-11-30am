@@ -229,6 +229,9 @@ class DeploymentAssign(BaseModel):
 
     project_id: str = Field(min_length=1)
     project_name: str = Field(min_length=1)
+    project_number: Optional[str] = None
+    superintendent: Optional[str] = None
+    foreman: Optional[str] = None
     assigned_by: Optional[str] = None
     source: str = "Manual Assignment"
     condition_at_assign: Optional[str] = None

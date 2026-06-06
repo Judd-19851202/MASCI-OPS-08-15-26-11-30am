@@ -9,11 +9,16 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Loader2, ArrowLeft, AlertTriangle, FileWarning, ShieldAlert,
-  ScanLine, BookOpen, Boxes,
+  ScanLine, BookOpen, Send, ArrowDownToLine, History,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import TrenchSafetyShell from "@/pages/trench_safety/TrenchSafetyShell";
+import {
+  AssignToProjectDialog,
+  ReturnFromProjectDialog,
+} from "@/pages/trench_safety/TrenchSafetyAssignDialogs";
 
 const STATUS_COLOR = {
   "Available":       "bg-emerald-50 text-emerald-900 border-emerald-300",
@@ -42,8 +47,13 @@ export default function TrenchSafetyAssetDetail() {
   const [insp, setInsp] = useState([]);
   const [reps, setReps] = useState([]);
   const [deps, setDeps] = useState([]);
+  const [allDeps, setAllDeps] = useState([]);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = () => setReloadKey((k) => k + 1);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,18 +61,19 @@ export default function TrenchSafetyAssetDetail() {
       setLoading(true);
       setErr("");
       try {
-        const [aRes, iRes, rRes, dRes] = await Promise.all([
+        const [aRes, iRes, rRes, dRes, dAllRes] = await Promise.all([
           api.get(`/trench-safety/assets/${assetId}`),
           api.get(`/trench-safety/assets/${assetId}/inspections`, { params: { limit: 5 } }).catch(() => ({ data: { items: [] } })),
           api.get(`/trench-safety/assets/${assetId}/repairs`,    { params: { limit: 5 } }).catch(() => ({ data: { items: [] } })),
           api.get(`/trench-safety/assets/${assetId}/deployments`,{ params: { limit: 5 } }).catch(() => ({ data: { items: [] } })),
+          api.get(`/trench-safety/assets/${assetId}/deployments`,{ params: { limit: 200 } }).catch(() => ({ data: { items: [] } })),
         ]);
-        if (!cancelled) {
-          setDoc(aRes.data);
-          setInsp(iRes.data?.items || []);
-          setReps(rRes.data?.items || []);
-          setDeps(dRes.data?.items || []);
-        }
+        if (cancelled) return;
+        setDoc(aRes.data);
+        setInsp(iRes.data?.items || []);
+        setReps(rRes.data?.items || []);
+        setDeps(dRes.data?.items || []);
+        setAllDeps(dAllRes.data?.items || []);
       } catch (e) {
         if (!cancelled) setErr(e?.response?.data?.detail || e?.message || "Failed to load asset");
       } finally {
@@ -70,7 +81,13 @@ export default function TrenchSafetyAssetDetail() {
       }
     })();
     return () => { cancelled = true; };
-  }, [assetId]);
+  }, [assetId, reloadKey]);
+
+  const canAssign =
+    doc &&
+    !["Inspection Hold", "Repair", "Retired"].includes(doc.operational_status);
+  const canReturn =
+    doc && doc.operational_status === "Assigned";
 
   return (
     <TrenchSafetyShell active="assets">
@@ -98,6 +115,36 @@ export default function TrenchSafetyAssetDetail() {
             <span className={`inline-block px-3 py-1.5 rounded border text-xs font-bold uppercase tracking-[0.12em] ${STATUS_COLOR[doc.operational_status] || "bg-slate-50 text-slate-700 border-slate-300"}`} data-testid="trench-detail-status-badge">
               {t(doc.operational_status || "Available")}
             </span>
+          </div>
+
+          {/* Phase 4A action bar */}
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="trench-detail-actions">
+            <Button
+              type="button"
+              onClick={() => setAssignOpen(true)}
+              disabled={!canAssign}
+              className="bg-cyan-700 hover:bg-cyan-800 text-white"
+              data-testid="btn-assign-to-project"
+            >
+              <Send className="w-3.5 h-3.5 mr-1.5" />
+              {t("Assign to Project")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setReturnOpen(true)}
+              disabled={!canReturn}
+              className="border-cyan-700 text-cyan-800 hover:bg-cyan-50"
+              data-testid="btn-return-from-project"
+            >
+              <ArrowDownToLine className="w-3.5 h-3.5 mr-1.5" />
+              {t("Return from Project")}
+            </Button>
+            {!canAssign && doc.operational_status !== "Assigned" && (
+              <span className="text-[11px] text-slate-500 self-center font-mono">
+                {t("Asset is")} {t(doc.operational_status)} — {t("clear before assigning")}.
+              </span>
+            )}
           </div>
 
           {/* Needs-Review / Missing-SN alerts */}
@@ -158,6 +205,9 @@ export default function TrenchSafetyAssetDetail() {
               <Field label={t("Status")}            value={t(doc.operational_status || "Available")} testId="f-status" />
               <Field label={t("Current Location")}  value={doc.current_location} testId="f-location" />
               <Field label={t("Current Project")}   value={doc.current_project_name} testId="f-project" />
+              <Field label={t("Project Number")}    value={doc.current_project_number} mono testId="f-project-number" />
+              <Field label={t("Superintendent")}    value={doc.current_superintendent} testId="f-superintendent" />
+              <Field label={t("Foreman")}           value={doc.current_foreman} testId="f-foreman" />
               <Field label={t("Yard")}              value={doc.yard_location} testId="f-yard" />
               <Field label={t("Last Inspection")}   value={doc.last_inspection_at ? doc.last_inspection_at.slice(0, 10) : null} testId="f-last-insp" />
               <Field label={t("Next Inspection Due")} value={doc.next_inspection_due ? doc.next_inspection_due.slice(0, 10) : null} testId="f-next-insp" />
@@ -229,6 +279,49 @@ export default function TrenchSafetyAssetDetail() {
             </div>
           </section>
 
+          {/* Full Deployment History timeline (Phase 4A) */}
+          <section className="mt-4 bg-white border border-slate-200 rounded-md p-4" data-testid="trench-detail-deployment-history">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2 inline-flex items-center gap-1">
+              <History className="w-3.5 h-3.5" /> {t("Deployment History")}
+            </div>
+            {allDeps.length === 0 ? (
+              <div className="text-xs text-slate-400 py-2">{t("No deployments recorded.")}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm" data-testid="deployment-history-table">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Project")}</th>
+                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Project #")}</th>
+                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Superintendent")}</th>
+                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Foreman")}</th>
+                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Assigned By")}</th>
+                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Assigned")}</th>
+                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Returned")}</th>
+                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Source")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allDeps.map((d) => (
+                      <tr key={d.id} className="border-t border-slate-100" data-testid={`deployment-row-${d.id}`}>
+                        <td className="px-3 py-2 text-slate-900 font-medium">{d.project_name || "—"}</td>
+                        <td className="px-3 py-2 font-mono text-xs text-slate-700">{d.project_number || "—"}</td>
+                        <td className="px-3 py-2 text-slate-700 text-xs">{d.superintendent || "—"}</td>
+                        <td className="px-3 py-2 text-slate-700 text-xs">{d.foreman || "—"}</td>
+                        <td className="px-3 py-2 text-slate-700 text-xs">{d.assigned_by || "—"}</td>
+                        <td className="px-3 py-2 text-xs font-mono text-slate-700">{d.assigned_at?.slice(0, 16) || "—"}</td>
+                        <td className="px-3 py-2 text-xs font-mono text-slate-700">
+                          {d.returned_at ? d.returned_at.slice(0, 16) : <span className="text-emerald-700 font-bold">{t("Active")}</span>}
+                        </td>
+                        <td className="px-3 py-2 text-xs text-slate-500">{d.source || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
           {/* Coaching */}
           <div className="mt-6 p-3 border border-amber-300 bg-amber-50 rounded text-sm text-amber-900" data-testid="trench-detail-coaching">
             <ShieldAlert className="w-4 h-4 inline mr-1.5 -mt-0.5" />
@@ -236,11 +329,19 @@ export default function TrenchSafetyAssetDetail() {
             {t("Report damage before the box goes into the trench. A box on Inspection Hold is not available for use.")}
           </div>
 
-          {/* Phase note */}
-          <div className="mt-4 p-3 border border-slate-200 bg-slate-50 rounded text-xs text-slate-600" data-testid="trench-detail-phase-note">
-            <Boxes className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-            {t("Inspection, repair, assign/return and edit actions land in later certified phases. This Phase 3 view is read-only.")}
-          </div>
+          {/* Modals */}
+          <AssignToProjectDialog
+            open={assignOpen}
+            onOpenChange={setAssignOpen}
+            asset={doc}
+            onAssigned={reload}
+          />
+          <ReturnFromProjectDialog
+            open={returnOpen}
+            onOpenChange={setReturnOpen}
+            asset={doc}
+            onReturned={reload}
+          />
         </>
       )}
     </TrenchSafetyShell>

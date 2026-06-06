@@ -28,6 +28,7 @@ from .assets import register_asset_routes
 from .dashboard import register_dashboard_routes
 from .deployments import register_deployment_routes
 from .inspections import register_inspection_routes
+from .operations import register_operations_routes
 from .public import register_public_routes
 from .repairs import register_repair_routes
 from .seed import seed_trench_safety_assets
@@ -71,6 +72,11 @@ def build_trench_safety_router(
         require_any_portal=require_any_portal,
     )
     register_deployment_routes(
+        api_router,
+        db,
+        require_any_portal=require_any_portal,
+    )
+    register_operations_routes(
         api_router,
         db,
         require_any_portal=require_any_portal,

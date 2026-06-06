@@ -15,6 +15,7 @@ import { useParams, Link } from "react-router-dom";
 import { Briefcase } from "lucide-react";
 import PmShell from "@/components/PmShell";
 import OperationalTimelineSidecar from "@/components/operational/OperationalTimelineSidecar";
+import TrenchSafetyOnProjectPanel from "@/components/trench/TrenchSafetyOnProjectPanel";
 
 export default function PmProjectDetail() {
   const { projectNumber } = useParams();
@@ -57,6 +58,9 @@ export default function PmProjectDetail() {
       </div>
 
       <OperationalTimelineSidecar projectNumber={pn} />
+
+      {/* Phase 4A — Trench Safety Operations Integration */}
+      <TrenchSafetyOnProjectPanel projectNumber={pn} />
     </PmShell>
   );
 }

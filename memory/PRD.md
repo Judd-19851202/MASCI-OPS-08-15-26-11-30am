@@ -1,6 +1,42 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02 (OMEGA TRENCH SAFETY PHASE 4A · EQUIPMENT INVENTORY + OPERATIONS INTEGRATION · 🟢 GO)
+
+### Verdict: 🟢 GO — Phase 4A certified. Phase 4B (Inspections / Holds) authorized.
+
+### Built
+- `routes/trench_safety/operations.py` (NEW) — `GET /api/trench-safety/by-project` (`project_id|project_number|project_name`, optional `include_history`); `GET /api/trench-safety/operations/picker` with `available_only`/`asset_type`/`operational_status` filters.
+- Enriched `equipment_master` mirror so TB-01…TB-07 render with `unit_number`, `make_model`, `display_label`, `preop_equipment_type`, `current_project_*`, `operational_status` — they now appear as first-class units in the existing Equipment Master Fleet table.
+- `DeploymentAssign` accepts `project_number` + `superintendent` + `foreman`; assign endpoint propagates these onto the asset doc, the deployment row, the equipment_master mirror, and the audit event.
+- Frontend: `AssignToProjectDialog` + `ReturnFromProjectDialog`, status-gated action bar on Asset Detail, full Deployment History timeline, new `Current Project` column on the assets list, new `TrenchSafetyOnProjectPanel` mounted on `PmProjectDetail`.
+- Full English/Spanish i18n coverage for every new Phase 4A string.
+
+### Tests (44 / 44 PASS)
+- `tests/test_trench_safety_phase4a.py` — 16 / 16 PASS (assign+return cycle, mirror sync, by-project lookups, inspection-hold guard, audit, deployment history growth, picker projection, equipment_master no-regression).
+- `tests/test_trench_safety_phase2.py` — 28 / 28 PASS (regression — clean).
+
+### Architecture compliance
+- No duplicate systems · single mirror direction · public/field view untouched · existing dispatch / projects / equipment routes untouched.
+
+### Certification
+`/app/memory/TRENCH_SAFETY_PHASE4A_GO_NO_GO.md` (10 / 10 PASS).
+
+### Next (Phase 4B — Inspections / Holds / Certifications)
+- Daily / Monthly / Annual inspection workflows.
+- Auto Inspection Hold on Fail; clear-by-Monthly-Pass; certification expiry tracking; due-soon / expired alerts.
+
+### Future (OMEGA ordering)
+- Phase 5 — Transport / Dispatch Integration
+- Phase 6 — Shop Repair Workflow
+- Phase 7 — QR Labels (server PNG) + Photo Management
+- Phase 8 — Safety / Shop / Admin Portal surface polish
+- Phase 9 — Reports · Training · OSHA References · Global Search · Final Spanish sweep
+- Phase 10 — OCR / Vision (Emergent LLM key — OpenAI Vision)
+- Phase 11 — Final Certification + Production Deploy
+
+
+
 ## 2026-06-04T19:55Z (iter512 · OMEGA RELEASE CANDIDATE PRE-DEPLOY CERTIFICATION · 🟢 GO)
 
 ### Verdict: 🟢 **GO — SAFE TO DEPLOY**

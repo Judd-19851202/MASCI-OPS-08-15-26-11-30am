@@ -178,6 +178,7 @@ export default function TrenchSafetyAssetsList() {
                 <th className="px-3 py-2">{t("Condition")}</th>
                 <th className="px-3 py-2">{t("Status")}</th>
                 <th className="px-3 py-2 hidden md:table-cell">{t("Location")}</th>
+                <th className="px-3 py-2 hidden lg:table-cell">{t("Current Project")}</th>
                 <th className="px-3 py-2 hidden lg:table-cell">{t("Last Inspection")}</th>
                 <th className="px-3 py-2 hidden xl:table-cell">{t("Alerts")}</th>
               </tr>
@@ -203,6 +204,16 @@ export default function TrenchSafetyAssetsList() {
                     </span>
                   </td>
                   <td className="px-3 py-2 hidden md:table-cell">{a.current_location || "—"}</td>
+                  <td className="px-3 py-2 hidden lg:table-cell text-xs">
+                    {a.current_project_name ? (
+                      <div>
+                        <div className="font-medium text-slate-900">{a.current_project_name}</div>
+                        {a.current_project_number ? <div className="font-mono text-[10px] text-slate-500">#{a.current_project_number}</div> : null}
+                      </div>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </td>
                   <td className="px-3 py-2 hidden lg:table-cell font-mono text-xs">
                     {a.last_inspection_at ? a.last_inspection_at.slice(0, 10) : <span className="text-amber-700">{t("never")}</span>}
                   </td>

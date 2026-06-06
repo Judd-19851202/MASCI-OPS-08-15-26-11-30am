@@ -62,22 +62,45 @@ async def upsert_equipment_master_mirror(
     Idempotent: safe to call on every create/update.
     """
     asset_id = asset["asset_id"]
+    mfr = asset.get("manufacturer") or ""
+    mdl = asset.get("model") or ""
+    make_model = " ".join([s for s in [mfr, mdl] if s]).strip() or asset.get("asset_type") or "Trench Safety"
+    year = asset.get("year_manufactured")
+    display_label = _label_for(asset)
     payload = {
         "id": asset["id"],                       # primary key shared
         "asset_id": asset_id,                    # MASCI tag
         "category": "Trench Safety",
         "type": asset.get("asset_type") or "Trench Box",
-        "label": _label_for(asset),
-        "manufacturer": asset.get("manufacturer") or "",
-        "model": asset.get("model") or "",
+        "label": display_label,
+        # Phase 4A — populate the canonical equipment_master columns so the
+        # existing Fleet table (Unit # · Year · Make · Model · Pre-Op Type)
+        # renders trench safety assets identically to fleet vehicles.
+        "unit_number": asset_id,
+        "year": str(year) if year else "",
+        "make": mfr,
+        "model": mdl,
+        "make_model": make_model,
+        "display_label": display_label,
+        "vin_serial_number": asset.get("serial_number") or "",
+        "preop_equipment_type": "Other",
+        "company": asset.get("owner") or "MASCI",
+        "comments": asset.get("notes") or "",
+        # Trench-specific extras kept for safety/dispatch consumers
+        "manufacturer": mfr,
         "serial_number": asset.get("serial_number") or "",
         "size": asset.get("size") or "",
         "color": asset.get("color") or "",
         "condition": asset.get("condition") or "",
         "status": asset.get("operational_status") or "Available",
+        "operational_status": asset.get("operational_status") or "Available",
         "location": asset.get("current_location") or asset.get("yard_location") or "",
+        "current_location": asset.get("current_location") or asset.get("yard_location") or "",
         "current_project_id": asset.get("current_project_id"),
         "current_project_name": asset.get("current_project_name"),
+        "current_project_number": asset.get("current_project_number"),
+        "last_inspection_at": asset.get("last_inspection_at"),
+        "next_inspection_due": asset.get("next_inspection_due"),
         "is_active": bool(asset.get("is_active", True)),
         "retired_at": asset.get("retired_at"),
         "linked_collection": "trench_safety_assets",
