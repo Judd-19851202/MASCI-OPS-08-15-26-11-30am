@@ -27,7 +27,7 @@ import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
 import {
   ShieldAlert, AlertOctagon, ClipboardCheck, Users, FileText,
-  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap, Truck, BookOpen, Package,
+  Award, Flame, FolderArchive, BarChart3, Loader2, Mail, GraduationCap, Truck, BookOpen, Package, Boxes,
 } from "lucide-react";
 import SafetyShell from "@/components/SafetyShell";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
@@ -418,6 +418,16 @@ export default function SafetyHub() {
             accent="audits"
             ctaLabel={t("OPEN FLEET VIEW")}
             testId="safety-tile-fleet"
+          />
+          {/* Phase 3 · Trench Safety Operations System */}
+          <SafetyTile
+            to="/safety/trench-safety"
+            icon={Boxes}
+            title={t("Trench Safety")}
+            desc={t("Trench boxes, end panels, spreaders, hydraulic shores · tabulated data, inspections, holds, repairs, QR field view.")}
+            accent="audits"
+            ctaLabel={t("OPEN")}
+            testId="safety-tile-trench-safety"
           />
         </div>
       </section>

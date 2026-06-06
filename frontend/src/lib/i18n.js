@@ -1390,6 +1390,158 @@ const ES = {
   "MASCI trench-shield fleet. Size, weight, OSHA max-depth by soil type, and manufacturer tabulated-data PDFs.":
     "Flota de escudos de zanja MASCI. Tamaño, peso, profundidad máxima OSHA por tipo de suelo, y PDFs de datos tabulados del fabricante.",
   "Trench Box Tabulated Data": "Datos Tabulados de Cajas de Zanja",
+
+  // ============================================================
+  // Trench Safety Operations System — Phase 3 UI
+  // ============================================================
+  "Trench Safety": "Seguridad de Zanjas",
+  "Trench boxes, end panels, spreaders, hydraulic shores · tabulated data, inspections, holds, repairs, QR field view.":
+    "Cajas de zanja, paneles, separadores, apuntalamientos hidráulicos · datos tabulados, inspecciones, retenciones, reparaciones, vista QR en campo.",
+  "Operational hub for every MASCI trench safety asset — inspections, holds, repairs, tabulated data, and field QR access. Real counts from the platform — no static numbers.":
+    "Centro operativo para cada activo de seguridad de zanjas de MASCI — inspecciones, retenciones, reparaciones, datos tabulados y acceso QR en campo. Conteos reales de la plataforma — sin números estáticos.",
+  "Coaching:": "Recomendación:",
+  "Match the box to the correct tabulated data before use. If the serial plate or tabulated data is missing, stop and contact Safety. A box on Inspection Hold is not available for use.":
+    "Verifique que la caja coincida con sus datos tabulados antes de usarla. Si falta la placa de serie o los datos tabulados, deténgase y contacte a Seguridad. Una caja en Retención de Inspección no está disponible para uso.",
+  "Loading dashboard…": "Cargando panel…",
+  "Unable to load dashboard.": "No se pudo cargar el panel.",
+  "Active Assets": "Activos Activos",
+  "Available": "Disponible",
+  "Inspection Hold": "Retención de Inspección",
+  "Open Repairs": "Reparaciones Abiertas",
+  "By Type": "Por Tipo",
+  "By Status": "Por Estado",
+  "By Condition": "Por Condición",
+  "Alerts": "Alertas",
+  "Missing Serial Number": "Falta Número de Serie",
+  "Missing Manufacturer": "Falta Fabricante",
+  "Needs Review": "Necesita Revisión",
+  "Inspections Due": "Inspecciones Pendientes",
+  "Missing Tabulated Data": "Faltan Datos Tabulados",
+  "Trench Equipment": "Equipo de Zanjas",
+  "Filterable list of every MASCI trench safety asset.":
+    "Lista filtrable de cada activo de seguridad de zanjas de MASCI.",
+  "Tabulated Data": "Datos Tabulados",
+  "OSHA tabulated data PDFs · per-box folders + general library.":
+    "PDFs de datos tabulados OSHA · carpetas por caja + biblioteca general.",
+  "Coming in later certified phases:": "Próximamente en fases certificadas posteriores:",
+  "Inspections workflow · Repairs workflow · Certifications · Deployments history · Reports · QR PNG label generator · OCR for serial plates.":
+    "Flujo de inspecciones · Flujo de reparaciones · Certificaciones · Historial de despliegues · Reportes · Generador de etiquetas QR PNG · OCR para placas de serie.",
+
+  // Asset list
+  "Live roster of every MASCI trench safety asset. Tap an asset to see its full record.":
+    "Lista en vivo de cada activo de seguridad de zanjas de MASCI. Toque un activo para ver su registro completo.",
+  "asset(s)": "activo(s)",
+  "Search by ID, serial, size, location…": "Buscar por ID, serie, tamaño, ubicación…",
+  "Asset Type": "Tipo de Activo",
+  "All Types": "Todos los Tipos",
+  "Status": "Estado",
+  "All Statuses": "Todos los Estados",
+  "Condition": "Condición",
+  "All Conditions": "Todas las Condiciones",
+  "All": "Todas",
+  "Yes": "Sí",
+  "No": "No",
+  "Loading assets…": "Cargando activos…",
+  "No trench safety assets match the current filters.":
+    "Ningún activo de seguridad de zanjas coincide con los filtros actuales.",
+  "Asset ID": "ID de Activo",
+  "Size": "Tamaño",
+  "Serial #": "N° Serie",
+  "Color": "Color",
+  "Location": "Ubicación",
+  "Last Inspection": "Última Inspección",
+  "missing": "faltante",
+  "never": "nunca",
+
+  // Asset types / statuses / conditions  (already translatable above)
+  "Trench Box": "Caja de Zanja",
+  "End Panel": "Panel Lateral",
+  "Spreader Bar": "Barra Separadora",
+  "Hydraulic Shore": "Apuntalamiento Hidráulico",
+  "Slide Rail System": "Sistema de Riel Deslizante",
+  "Trench Jack": "Gato de Zanja",
+  "Ladder": "Escalera",
+  "Accessory": "Accesorio",
+  "Assigned": "Asignado",
+  "In Transport": "En Tránsito",
+  "Repair": "Reparación",
+  "Retired": "Retirado",
+  "Excellent": "Excelente",
+  "Good": "Bueno",
+  "Fair": "Regular",
+  "Poor": "Malo",
+  "Out Of Service": "Fuera de Servicio",
+
+  // Asset detail
+  "Back to Trench Equipment": "Volver al Equipo de Zanjas",
+  "Loading asset…": "Cargando activo…",
+  "Asset not found.": "Activo no encontrado.",
+  "Physical plate verification required before use.":
+    "Se requiere verificación de la placa física antes de usar.",
+  "Manufacturer or model data not yet verified.":
+    "Datos del fabricante o modelo aún no verificados.",
+  "Tabulated Data Missing": "Faltan Datos Tabulados",
+  "No manufacturer PDF linked to this asset yet. ":
+    "Aún no se ha vinculado un PDF del fabricante a este activo. ",
+  "Browse library": "Explorar biblioteca",
+  "Identification": "Identificación",
+  "Manufacturer": "Fabricante",
+  "Model": "Modelo",
+  "Operational": "Operativo",
+  "Current Location": "Ubicación Actual",
+  "Current Project": "Proyecto Actual",
+  "Yard": "Patio",
+  "Next Inspection Due": "Próxima Inspección",
+  "Certification Expires": "Vence Certificación",
+  "Last Repair": "Última Reparación",
+  "Field View": "Vista de Campo",
+  "Open QR Field View": "Abrir Vista QR de Campo",
+  "Mobile-first read-only crew view. Safe to scan in the field.":
+    "Vista de solo lectura optimizada para móvil. Segura para escanear en campo.",
+  "Reference": "Referencia",
+  "Browse Tabulated Data Library": "Explorar Biblioteca de Datos Tabulados",
+  "Manufacturer-engineered OSHA tabulated PDFs.":
+    "PDFs de datos tabulados OSHA diseñados por el fabricante.",
+  "Recent Inspections": "Inspecciones Recientes",
+  "Recent Repairs": "Reparaciones Recientes",
+  "Recent Deployments": "Despliegues Recientes",
+  "No inspections yet.": "Aún no hay inspecciones.",
+  "No repairs on file.": "Sin reparaciones registradas.",
+  "No deployments recorded.": "Sin despliegues registrados.",
+  "Pass": "Aprobado",
+  "Fail": "Rechazado",
+  "Pending Review": "Revisión Pendiente",
+  "active": "activo",
+  "Report damage before the box goes into the trench. A box on Inspection Hold is not available for use.":
+    "Reporte daños antes de que la caja entre a la zanja. Una caja en Retención de Inspección no está disponible para uso.",
+  "Inspection, repair, assign/return and edit actions land in later certified phases. This Phase 3 view is read-only.":
+    "Las acciones de inspección, reparación, asignar/devolver y editar llegarán en fases certificadas posteriores. Esta vista de Fase 3 es de solo lectura.",
+  "Open": "Abrir",
+
+  // QR landing
+  "MASCI Trench Safety": "Seguridad de Zanjas MASCI",
+  "This QR is not linked to a known MASCI trench safety asset. Contact Safety.":
+    "Este QR no está vinculado a un activo de seguridad de zanjas conocido de MASCI. Contacte a Seguridad.",
+  "Do not use": "No usar",
+  "This asset is on Inspection Hold. A competent person must clear it before use.":
+    "Este activo está en Retención de Inspección. Una persona competente debe liberarlo antes de usar.",
+  "This asset is under Repair. It is not available for the field.":
+    "Este activo está en Reparación. No está disponible para uso en campo.",
+  "Serial number not on file — verify the physical plate before use.":
+    "Número de serie no registrado — verifique la placa física antes de usar.",
+  "This asset is flagged for Safety review.":
+    "Este activo está marcado para revisión por Seguridad.",
+  "Asset Details": "Detalles del Activo",
+  "Current Use": "Uso Actual",
+  "on file": "registrado",
+  "Open Tabulated Data": "Abrir Datos Tabulados",
+  "Scanning confirms the asset record — it does not move the asset. Location updates when the asset is assigned, transported, or returned. Report damage before the box goes into the trench.":
+    "El escaneo confirma el registro del activo — no mueve el activo. La ubicación se actualiza cuando el activo se asigna, transporta o devuelve. Reporte daños antes de que la caja entre a la zanja.",
+  "MASCI Operations Platform": "Plataforma de Operaciones MASCI",
+  "Field-safe view": "Vista segura de campo",
+  "Asset not found": "Activo no encontrado",
+  "Safety": "Seguridad",
+  "Dashboard": "Panel",
   "Know Before You Dig": "Conozca Antes de Excavar",
   "This is where your trench shield's life-safety data lives. Every box in the MASCI fleet has a manufacturer-engineered data sheet that tells you exactly how deep you can dig, in what soil, with what spreaders, and under what conditions. Read it. Understand it. It's the difference between a safe shift and a collapse.":
     "Aquí viven los datos de seguridad de su escudo de zanja. Cada caja en la flota MASCI tiene una hoja de datos diseñada por el fabricante que le dice exactamente qué tan profundo puede excavar, en qué tipo de suelo, con qué separadores y bajo qué condiciones. Léala. Entiéndala. Es la diferencia entre un turno seguro y un colapso.",

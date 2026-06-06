@@ -39,6 +39,11 @@ import ViewMeeting from "@/pages/ViewMeeting";
 import JhaPlansHub from "@/pages/JhaPlansHub";
 import JhaPlansAdmin from "@/pages/JhaPlansAdmin";
 import TrenchBoxes from "@/pages/TrenchBoxes";
+import TrenchSafetyHub from "@/pages/trench_safety/TrenchSafetyHub";
+import TrenchSafetyAssetsList from "@/pages/trench_safety/TrenchSafetyAssetsList";
+import TrenchSafetyAssetDetail from "@/pages/trench_safety/TrenchSafetyAssetDetail";
+import TrenchSafetyTabulatedData from "@/pages/trench_safety/TrenchSafetyTabulatedData";
+import TrenchSafetyQrLanding from "@/pages/trench_safety/TrenchSafetyQrLanding";
 import TrenchBoxesAdmin from "@/pages/TrenchBoxesAdmin";
 import TrenchBoxPoster from "@/pages/TrenchBoxPoster";
 import JhaPlansPoster from "@/pages/JhaPlansPoster";
@@ -349,6 +354,8 @@ function App() {
             <Route path="/jha/new" element={<Navigate to="/jha" replace />} />
 
             <Route path="/trench-boxes" element={<TrenchBoxes />} />
+            {/* Phase 3 · Trench Safety Operations System — public mobile QR landing */}
+            <Route path="/trench-safety/assets/:assetId" element={<TrenchSafetyQrLanding />} />
 
             <Route path="/incidents/new" element={<NewIncident />} />
             <Route path="/incidents/submit" element={<NewIncident publicMode />} />
@@ -379,6 +386,15 @@ function App() {
             <Route path="/reports/daily/new" element={<Navigate to="/daily/new" replace />} />
             <Route path="/safety/jha" element={<Navigate to="/jha" replace />} />
             <Route path="/safety/trench-boxes" element={<Navigate to="/trench-boxes" replace />} />
+            {/* Phase 3 · Trench Safety inside the Safety portal */}
+            <Route path="/safety/trench-safety"                       element={SF(<TrenchSafetyHub />)} />
+            <Route path="/safety/trench-safety/assets"                element={SF(<TrenchSafetyAssetsList />)} />
+            <Route path="/safety/trench-safety/assets/:assetId"       element={SF(<TrenchSafetyAssetDetail />)} />
+            <Route path="/safety/trench-safety/tabulated-data"        element={SF(<TrenchSafetyTabulatedData />)} />
+            {/* Legacy alias inside the safety-portal namespace */}
+            <Route path="/safety-portal/trench-safety"                element={<Navigate to="/safety/trench-safety" replace />} />
+            <Route path="/safety-portal/trench-safety/assets"         element={<Navigate to="/safety/trench-safety/assets" replace />} />
+            <Route path="/safety-portal/trench-safety/tabulated-data" element={<Navigate to="/safety/trench-safety/tabulated-data" replace />} />
 
             {/* ============================================================
                 Crew Hub — REMOVED 2026-04-28 (replaced by Basecamp link).

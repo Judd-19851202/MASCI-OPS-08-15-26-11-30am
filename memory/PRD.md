@@ -34895,3 +34895,47 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 - Phase 11 — Final 11-phase certification
 
 🛑 **Agent STOPPED.** Phase 2 backend foundation is locked. Awaiting operator authorization for Phase 3 UI work.
+
+---
+
+## 2026-06-06 · TRENCH SAFETY OPERATIONS SYSTEM — PHASE 3 COMPLETE (Safety Portal UI)
+
+**Mode:** UI build · No backend changes · No deploy
+**Operator scope:** Phase 3 only of 11
+**Verdict:** 🟢 PHASE 3 COMPLETE — SAFE TO CONTINUE TO EQUIPMENT INTEGRATION
+
+**Delivered:**
+- 6 new React modules in `/app/frontend/src/pages/trench_safety/`
+  • TrenchSafetyShell (tab strip wrap)
+  • TrenchSafetyHub (Dashboard landing — real Phase 2 data)
+  • TrenchSafetyAssetsList (filterable roster · q/type/status/condition/needs-review)
+  • TrenchSafetyAssetDetail (READ-ONLY · 60+ data-testids)
+  • TrenchSafetyTabulatedData (relocated wrapper — primer + library UNCHANGED)
+  • TrenchSafetyQrLanding (PUBLIC mobile-first · field-safe projection)
+- 7 new routes in App.js (4 Safety + 1 public QR + 2 portal aliases)
+- New "Trench Safety" tile in SafetyHub Operational Output group
+- ~120 new EN→ES keys in `lib/i18n.js` — full Spanish parity
+- TB-05 missing-serial alert surfaced on Hub + List + Detail + QR (4 surfaces)
+- Legacy `/trench-boxes` route PRESERVED (zero broken field QR posters)
+
+**Deliverables in `/app/memory/`:**
+- TRENCH_SAFETY_PHASE3_UI_REPORT.md
+- TRENCH_SAFETY_TABULATED_DATA_MIGRATION_REPORT.md
+- TRENCH_SAFETY_PHASE3_SPANISH_CERTIFICATION.md
+- TRENCH_SAFETY_PHASE3_MOBILE_QR_CERTIFICATION.md
+- TRENCH_SAFETY_PHASE3_TEST_REPORT.md
+- TRENCH_SAFETY_PHASE3_GO_NO_GO.md
+
+**Validation:** 19/19 directive validation items met. Backend regression 28/28. Frontend lint clean. All 6 new routes 200 over the wire. Mobile QR screenshot captured.
+
+**Next phases (NOT started, per operator):**
+- Phase 4 — Equipment Inventory integration
+- Phase 5 — Transport / Dispatch via /api/asset-transfers
+- Phase 6 — Inspection / Repair / Hold UI (lifecycle buttons)
+- Phase 7 — Photos + QR PNG label generator
+- Phase 8 — Admin / Shop / Project surfaces
+- Phase 9 — Reports + Global search + Training + final Spanish sweep
+- Phase 10 — OCR (OpenAI Vision)
+- Phase 11 — Final 11-phase certification
+
+🛑 **Agent STOPPED.** Phase 3 UI is locked. Awaiting operator authorization for Phase 4.
