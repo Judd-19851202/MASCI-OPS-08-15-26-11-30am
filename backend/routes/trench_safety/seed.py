@@ -93,6 +93,26 @@ async def seed_trench_safety_assets(db) -> Dict[str, int]:
 
     Idempotent. Safe to call at every backend boot.
     """
+    # Phase 4B — idempotent migration: rename legacy "Repair" status to
+    # "Maintenance Hold" on both the source-of-truth collection and the
+    # equipment_master mirror. Single source of truth lives in
+    # trench_safety_assets; mirror follows.
+    try:
+        await db.trench_safety_assets.update_many(
+            {"operational_status": "Repair"},
+            {"$set": {"operational_status": "Maintenance Hold"}},
+        )
+        await db.equipment_master.update_many(
+            {"category": "Trench Safety", "operational_status": "Repair"},
+            {"$set": {"operational_status": "Maintenance Hold", "status": "Maintenance Hold"}},
+        )
+        await db.equipment_master.update_many(
+            {"category": "Trench Safety", "status": "Repair"},
+            {"$set": {"status": "Maintenance Hold"}},
+        )
+    except Exception:  # noqa: BLE001 — migration is best-effort
+        pass
+
     inserted = 0
     mirrored = 0
     skipped = 0
@@ -133,6 +153,11 @@ async def seed_trench_safety_assets(db) -> Dict[str, int]:
         await db.trench_safety_repairs.create_index([("asset_id", 1), ("status", 1)])
         await db.trench_safety_deployments.create_index([("asset_id", 1), ("assigned_at", -1)])
         await db.trench_safety_qr_scans.create_index([("asset_id", 1), ("scanned_at", -1)])
+        # Phase 4B indexes
+        await db.trench_safety_holds.create_index([("asset_id", 1), ("is_active", 1)])
+        await db.trench_safety_holds.create_index([("asset_id", 1), ("kind", 1), ("is_active", 1)])
+        await db.trench_safety_certifications.create_index([("asset_id", 1), ("status", 1)])
+        await db.trench_safety_certifications.create_index([("asset_id", 1), ("expires_at", 1)])
     except Exception:  # noqa: BLE001 — indexes are best-effort; never fail boot
         pass
 

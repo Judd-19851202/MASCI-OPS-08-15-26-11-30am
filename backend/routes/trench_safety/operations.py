@@ -33,10 +33,44 @@ def _project_view(asset: Dict[str, Any]) -> Dict[str, Any]:
         "current_foreman": asset.get("current_foreman"),
         "current_location": asset.get("current_location") or "",
         "last_inspection_at": asset.get("last_inspection_at"),
+        "last_inspection_result": asset.get("last_inspection_result"),
+        "last_inspection_severity": asset.get("last_inspection_severity"),
         "next_inspection_due": asset.get("next_inspection_due"),
         "certification_expires_at": asset.get("certification_expires_at"),
+        "requires_certification": bool(asset.get("requires_certification")),
         "qr_url": asset.get("qr_url") or f"/trench-safety/assets/{asset.get('asset_id')}",
     }
+
+
+async def _enrich_with_holds_and_certs(db, projections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    if not projections:
+        return projections
+    asset_ids = [p["asset_id"] for p in projections]
+    open_holds = await db.trench_safety_holds.find(
+        {"asset_id": {"$in": asset_ids}, "is_active": True},
+        {"_id": 0, "asset_id": 1, "kind": 1, "opened_at": 1},
+    ).to_list(2000)
+    holds_by_asset: Dict[str, List[Dict]] = {}
+    for h in open_holds:
+        holds_by_asset.setdefault(h["asset_id"], []).append({
+            "kind": h["kind"], "opened_at": h.get("opened_at"),
+        })
+    active_certs = await db.trench_safety_certifications.find(
+        {"asset_id": {"$in": asset_ids}, "status": "Active"},
+        {"_id": 0, "asset_id": 1, "expires_at": 1},
+    ).to_list(2000)
+    from ._helpers import certification_status_for
+    certs_by_asset: Dict[str, List[Dict]] = {}
+    for c in active_certs:
+        certs_by_asset.setdefault(c["asset_id"], []).append(c)
+    for p in projections:
+        aid = p["asset_id"]
+        p["active_holds"] = holds_by_asset.get(aid, [])
+        p["certification_status"] = certification_status_for(
+            bool(p.get("requires_certification")),
+            certs_by_asset.get(aid, []),
+        )
+    return projections
 
 
 def register_operations_routes(
@@ -80,7 +114,9 @@ def register_operations_routes(
         ).sort("asset_id", 1).to_list(2000)
 
         out: Dict[str, Any] = {
-            "current": [_project_view(d) for d in current_docs],
+            "current": await _enrich_with_holds_and_certs(
+                db, [_project_view(d) for d in current_docs]
+            ),
             "current_count": len(current_docs),
         }
 
@@ -130,6 +166,8 @@ def register_operations_routes(
         ).sort("asset_id", 1).to_list(2000)
 
         return {
-            "items": [_project_view(d) for d in docs],
+            "items": await _enrich_with_holds_and_certs(
+                db, [_project_view(d) for d in docs]
+            ),
             "count": len(docs),
         }

@@ -29,14 +29,50 @@ OPERATIONAL_STATUSES = (
     "Assigned",
     "In Transport",
     "Inspection Hold",
-    "Repair",
+    "Maintenance Hold",
+    "Certification Hold",
+    "Safety Hold",
     "Retired",
 )
 
-INSPECTION_TYPES = ("Daily Visual", "Monthly Competent Person", "Annual Review")
+# Phase 4B — priority resolver. Higher number wins when multiple
+# holds are concurrently active. Retired is terminal and never wins
+# in the resolver (it is only set by the explicit retire endpoint).
+HOLD_PRIORITY = {
+    "Safety Hold":         100,
+    "Certification Hold":   90,
+    "Maintenance Hold":     80,
+    "Inspection Hold":      70,
+    "In Transport":         20,
+    "Assigned":             10,
+    "Available":             0,
+    "Retired":              -1,
+}
+
+HOLD_KINDS = ("Safety Hold", "Certification Hold", "Maintenance Hold", "Inspection Hold")
+
+INSPECTION_TYPES = (
+    "Daily Visual",
+    "Monthly Competent Person",
+    "Annual Review",
+    "Special Inspection",
+    "Damage Inspection",
+    "Return Inspection",
+)
 INSPECTION_RESULTS = ("Pass", "Fail", "Pending Review")
+SEVERITIES = ("None", "Minor", "Major", "Critical")
+
+CERTIFICATION_KINDS = (
+    "Manufacturer",
+    "Annual Inspection",
+    "Engineering Letter",
+    "Repair Certification",
+    "Special",
+)
+CERTIFICATION_STATUSES = ("Active", "Expired", "Superseded", "Revoked")
 
 REPAIR_STATUSES = ("Open", "In Progress", "Completed")
+REPAIR_KINDS = ("damage", "wear", "scheduled", "repair_recommendation")
 
 DEPLOYMENT_SOURCES = (
     "Manual Assignment",
@@ -116,6 +152,59 @@ class TrenchSafetyAssetCreate(BaseModel):
     missing_serial_number: bool = False
     missing_manufacturer: bool = False
     needs_review: bool = False
+    requires_certification: bool = False
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Phase 4B — Holds (history collection)
+# ────────────────────────────────────────────────────────────────────────
+
+class HoldOpenBody(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    kind: str = Field(min_length=1)              # one of HOLD_KINDS
+    reason: str = Field(min_length=1, max_length=2000)
+    source: str = "manual"                        # inspection | certification | manual | damage_report | repair
+    source_ref: Optional[str] = None
+
+
+class HoldClearBody(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    clear_reason: str = Field(min_length=1, max_length=2000)
+    clear_source: str = "manual"                  # monthly_pass | cert_added | repair_completed | manual
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Phase 4B — Certifications
+# ────────────────────────────────────────────────────────────────────────
+
+class CertificationCreate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    kind: str = Field(min_length=1)               # one of CERTIFICATION_KINDS
+    issuer: str = Field(min_length=1, max_length=300)
+    issued_at: str = Field(min_length=1)          # ISO date or datetime
+    expires_at: str = Field(min_length=1)         # ISO date or datetime
+    document_ref: Optional[str] = ""
+    notes: Optional[str] = ""
+
+
+class CertificationUpdate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    issuer: Optional[str] = None
+    issued_at: Optional[str] = None
+    expires_at: Optional[str] = None
+    document_ref: Optional[str] = None
+    notes: Optional[str] = None
+    status: Optional[str] = None                  # Active | Expired | Superseded | Revoked
+
+
+class CertificationRevoke(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    reason: str = Field(min_length=1, max_length=2000)
 
 
 class TrenchSafetyAssetUpdate(BaseModel):
@@ -158,6 +247,7 @@ class TrenchSafetyAssetUpdate(BaseModel):
     missing_serial_number: Optional[bool] = None
     missing_manufacturer: Optional[bool] = None
     needs_review: Optional[bool] = None
+    requires_certification: Optional[bool] = None
 
 
 class RetireAssetBody(BaseModel):
@@ -190,8 +280,14 @@ class InspectionSubmit(BaseModel):
     checklist: List[InspectionChecklistItem] = Field(default_factory=list)
     findings: str = ""
     corrective_actions: str = ""
-    result: str = "Pass"  # Pass | Fail | Pending Review
+    result: str = "Pass"
+    severity: str = "None"
     photo_refs: List[str] = Field(default_factory=list)
+    signature: Optional[str] = None
+    project_id: Optional[str] = None
+    project_name: Optional[str] = None
+    location: Optional[str] = None
+    follow_up_action: Optional[str] = None
 
 
 # ────────────────────────────────────────────────────────────────────────

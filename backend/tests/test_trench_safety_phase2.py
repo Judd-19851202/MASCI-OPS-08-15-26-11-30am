@@ -312,7 +312,7 @@ def test_repair_open_and_complete_with_reinspection(client, admin_headers, tmp_a
     )
     assert r.status_code == 200, r.text
     repair_id = r.json()["repair"]["id"]
-    assert r.json()["asset"]["operational_status"] == "Repair"
+    assert r.json()["asset"]["operational_status"] == "Maintenance Hold"
 
     r2 = client.post(
         f"/api/trench-safety/repairs/{repair_id}/complete",

@@ -69,7 +69,7 @@ def register_deployment_routes(
         if not asset:
             raise HTTPException(404, "Trench safety asset not found")
 
-        if asset.get("operational_status") in {"Inspection Hold", "Repair", "Retired"}:
+        if asset.get("operational_status") in {"Inspection Hold", "Maintenance Hold", "Safety Hold", "Certification Hold", "Retired"}:
             raise HTTPException(
                 409,
                 f"asset is {asset.get('operational_status')} — clear before assigning",
@@ -170,13 +170,14 @@ def register_deployment_routes(
                 }},
             )
 
-        # Asset goes back to Available UNLESS already Inspection Hold / Repair / Retired
+        # Asset returns to highest remaining hold via the resolver; if no
+        # holds, falls back to Available.
+        HOLD_STATUSES = {
+            "Inspection Hold", "Maintenance Hold",
+            "Safety Hold", "Certification Hold",
+        }
         cur_status = asset.get("operational_status")
-        new_status = (
-            cur_status
-            if cur_status in {"Inspection Hold", "Repair", "Retired"}
-            else "Available"
-        )
+        new_status = cur_status if cur_status in HOLD_STATUSES or cur_status == "Retired" else "Available"
         update = {
             "operational_status": new_status,
             "current_project_id": None,

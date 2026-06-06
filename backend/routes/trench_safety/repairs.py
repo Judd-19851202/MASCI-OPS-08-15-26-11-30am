@@ -7,8 +7,11 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ._helpers import (
+    apply_resolved_status,
+    clear_hold,
     has_open_repair,
     now_iso,
+    open_hold,
     upsert_equipment_master_mirror,
     write_audit,
 )
@@ -89,12 +92,17 @@ def register_repair_routes(
         await db.trench_safety_repairs.insert_one(doc)
         doc.pop("_id", None)
 
-        # Move asset to Repair (unless already Retired)
+        # Move asset to Maintenance Hold via the hold engine (unless retired)
         if asset.get("operational_status") != "Retired":
+            await open_hold(
+                db, asset_id=asset["asset_id"], kind="Maintenance Hold",
+                reason=f"Repair opened: {payload.issue_description[:200]}",
+                source="repair", source_ref=f"repair:{doc['id']}",
+                opened_by=actor_email,
+            )
             await db.trench_safety_assets.update_one(
                 {"id": asset["id"]},
                 {"$set": {
-                    "operational_status": "Repair",
                     "last_repair_at": doc["opened_at"],
                     "updated_at": now_iso(),
                     "updated_by": actor_email,
@@ -103,7 +111,6 @@ def register_repair_routes(
             fresh = await db.trench_safety_assets.find_one(
                 {"id": asset["id"]}, {"_id": 0}
             )
-            await upsert_equipment_master_mirror(db, fresh)
         else:
             fresh = asset
 
@@ -188,12 +195,7 @@ def register_repair_routes(
             {"id": repair_id}, {"_id": 0}
         )
 
-        # Decide new asset status:
-        # - If requires_reinspection → Inspection Hold (Safety must clear)
-        # - Else → Available (subject to no other open repairs)
-        any_other_open = await has_open_repair(db, asset["asset_id"])
-        # has_open_repair counts THIS one too if still Open/In Progress; we just closed it
-        # so re-check excluding it
+        # Decide new asset status via the hold engine:
         any_other_open = bool(
             await db.trench_safety_repairs.find_one(
                 {
@@ -204,25 +206,25 @@ def register_repair_routes(
                 {"_id": 0, "id": 1},
             )
         )
-        if any_other_open:
-            new_status = "Repair"
-        elif fresh_repair.get("requires_reinspection"):
-            new_status = "Inspection Hold"
-        else:
-            new_status = "Available"
+        if not any_other_open:
+            # All repairs closed → clear Maintenance Hold
+            await clear_hold(
+                db, asset_id=asset["asset_id"], kind="Maintenance Hold",
+                clear_reason="All open repairs completed",
+                clear_source="repair_completed", cleared_by=actor_email,
+            )
+        # If this repair requires reinspection → open Inspection Hold
+        if fresh_repair.get("requires_reinspection"):
+            await open_hold(
+                db, asset_id=asset["asset_id"], kind="Inspection Hold",
+                reason=f"Reinspection required after repair {repair_id}",
+                source="repair", source_ref=f"repair:{repair_id}",
+                opened_by=actor_email,
+            )
 
-        await db.trench_safety_assets.update_one(
-            {"id": asset["id"]},
-            {"$set": {
-                "operational_status": new_status,
-                "updated_at": now_iso(),
-                "updated_by": actor_email,
-            }},
-        )
-        fresh_asset = await db.trench_safety_assets.find_one(
-            {"id": asset["id"]}, {"_id": 0}
-        )
-        await upsert_equipment_master_mirror(db, fresh_asset)
+        # Recompute final operational_status from the hold engine.
+        fresh_asset = await apply_resolved_status(db, asset["asset_id"], actor_email)
+        new_status = fresh_asset.get("operational_status")
         await write_audit(
             db, kind="trench_asset_repair_completed",
             asset_id=asset["asset_id"],

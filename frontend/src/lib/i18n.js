@@ -1560,6 +1560,18 @@ const ES = {
   "Excellent": "Excelente",
   "Out Of Service": "Fuera de Servicio",
 
+  // Phase 4B — Holds / Certifications / Alerts
+  "Maintenance Hold":   "Retención de Mantenimiento",
+  "Certification Hold": "Retención de Certificación",
+  "Safety Hold":        "Retención de Seguridad",
+  "This asset is under Maintenance. It is not available for the field.":
+    "Este activo está en Mantenimiento. No está disponible para uso en campo.",
+  "This asset's required certification is missing or expired. DO NOT USE.":
+    "Falta la certificación requerida o ha expirado. NO USAR.",
+  "SAFETY HOLD — critical condition reported. DO NOT USE. Contact Safety immediately.":
+    "RETENCIÓN DE SEGURIDAD — condición crítica reportada. NO USAR. Contacte a Seguridad inmediatamente.",
+  "This asset is on hold. DO NOT USE.": "Este activo está retenido. NO USAR.",
+
   // QR landing
   "MASCI Trench Safety": "Seguridad de Zanjas MASCI",
   "This QR is not linked to a known MASCI trench safety asset. Contact Safety.":

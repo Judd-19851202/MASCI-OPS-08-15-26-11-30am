@@ -176,6 +176,11 @@ def register_asset_routes(
 
         await db.trench_safety_assets.update_one({"id": existing["id"]}, {"$set": update})
         fresh = await db.trench_safety_assets.find_one({"id": existing["id"]}, {"_id": 0})
+        # Phase 4B — if requires_certification was touched, recompute hold
+        if "requires_certification" in update:
+            from ._helpers import recompute_certification_hold
+            await recompute_certification_hold(db, fresh["asset_id"], actor_email)
+            fresh = await db.trench_safety_assets.find_one({"id": existing["id"]}, {"_id": 0})
         await upsert_equipment_master_mirror(db, fresh)
         await write_audit(
             db, kind="trench_asset_edited", asset_id=fresh["asset_id"],

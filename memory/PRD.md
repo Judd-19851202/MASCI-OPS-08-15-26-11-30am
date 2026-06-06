@@ -1,6 +1,45 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02 (OMEGA TRENCH SAFETY PHASE 4B · INSPECTIONS / HOLDS / CERTIFICATIONS / ALERTS · 🟢 GO)
+
+### Verdict: 🟢 GO — Phase 4B certified. All 7 verdict domains PASS. Phase 5 (Transport/Dispatch) authorized.
+
+### Operator-locked architecture
+- **Single enum extended.** Maintenance Hold renames Repair; Safety Hold + Certification Hold added. `trench_safety_holds` collection is history/audit only (NOT a parallel status system). Priority resolver: Safety > Certification > Maintenance > Inspection > In Transport > Assigned > Available.
+- **Per-asset `requires_certification` flag** (default false). Fleet is NOT auto-locked.
+- **Severity matrix.** Pass / Fail+Minor (Inspection Hold) / Fail+Major (+ auto Repair stub + Maintenance Hold) / Fail+Critical (+ Safety Hold + Repair stub + `critical_damage` alert).
+- **In-app alerts only.** No Resend, no Twilio.
+
+### Built
+- `routes/trench_safety/_models.py` — extended enums (OPERATIONAL_STATUSES, INSPECTION_TYPES, SEVERITIES, CERTIFICATION_KINDS, HOLD_KINDS, HOLD_PRIORITY). New Hold/Certification models.
+- `routes/trench_safety/_helpers.py` — `resolve_operational_status`, `apply_resolved_status`, `open_hold`, `clear_hold`, `recompute_certification_hold` (auto-flips expired Active certs), `certification_status_for`.
+- `routes/trench_safety/holds.py` (NEW) — `GET/POST /api/trench-safety/assets/{id}/holds` + `POST /api/trench-safety/holds/{id}/clear`. Idempotent open by `(asset_id, kind)`.
+- `routes/trench_safety/certifications.py` (NEW) — Add / Update / Revoke flow. Triggers recompute on every write.
+- `routes/trench_safety/alerts.py` (NEW) — Derived `GET /api/trench-safety/alerts` (no new collection). Kinds: failed_inspection, critical_damage, hold_applied, expired_certification, missing_certification, due_soon_30/60/90, inspection_overdue.
+- `routes/trench_safety/inspections.py` — Extended types (Special / Damage / Return) + severity + signature + project/location capture; severity matrix; auto repair-stub creation.
+- `routes/trench_safety/repairs.py` — Refactored to drive holds through the hold engine (no direct status writes).
+- `routes/trench_safety/operations.py` — `by-project` + `operations/picker` enriched with `active_holds` + `certification_status`.
+- `routes/trench_safety/seed.py` — Idempotent migration of legacy `Repair` → `Maintenance Hold` in both source-of-truth and mirror.
+- `equipment_master` mirror carries `active_holds`, `certification_status`, `requires_certification`, `last_inspection_result`, `last_inspection_severity` — Dispatch / Search / Project pickers all inherit Phase 4B state.
+
+### Frontend
+- Status badges across Asset Detail / Assets List / On-Project Panel / Public QR Landing extended to all 4 new hold kinds with distinct color signal (purple/orange/red).
+- Public field-view "DO NOT USE" banner extended to Safety / Certification / Maintenance holds.
+- Full Spanish translations for every new string.
+
+### Tests — 64/64 PASS
+- Phase 2 regression: 28/28
+- Phase 4A regression: 16/16
+- Phase 4B: 20/20 (severity matrix, hold lifecycle, priority resolver, certification holds, alerts, by-project enrichment, audit chain, public banner)
+
+### Certification deliverables
+`/app/memory/PHASE4B_FORENSIC_AUDIT.md` · `PHASE4B_ARCHITECTURE.md` · `PHASE4B_HOLD_ENGINE_CERT.md` · `PHASE4B_CERTIFICATION_ENGINE_CERT.md` · `PHASE4B_ALERT_CERT.md` · `PHASE4B_PROJECT_IMPACT_CERT.md` · `PHASE4B_REALITY_CERTIFICATION.md` · `PHASE4B_FINAL_GO_NO_GO.md` ← 🟢 GO
+
+### Next (Phase 5 — Transport / Dispatch Integration)
+
+
+
 ## 2026-02 (OMEGA TRENCH SAFETY PHASE 4A · EQUIPMENT INVENTORY + OPERATIONS INTEGRATION · 🟢 GO)
 
 ### Verdict: 🟢 GO — Phase 4A certified. Phase 4B (Inspections / Holds) authorized.

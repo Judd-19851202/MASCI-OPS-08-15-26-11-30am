@@ -21,12 +21,25 @@ import PublicReportModal from "@/pages/trench_safety/PublicReportModal";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const STATUS_STYLE = {
-  "Available":       { bg: "bg-emerald-100", text: "text-emerald-900", ring: "ring-emerald-300" },
-  "Assigned":        { bg: "bg-blue-100",    text: "text-blue-900",    ring: "ring-blue-300" },
-  "In Transport":    { bg: "bg-cyan-100",    text: "text-cyan-900",    ring: "ring-cyan-300" },
-  "Inspection Hold": { bg: "bg-amber-100",   text: "text-amber-900",   ring: "ring-amber-400" },
-  "Repair":          { bg: "bg-red-100",     text: "text-red-900",     ring: "ring-red-300" },
-  "Retired":         { bg: "bg-slate-200",   text: "text-slate-700",   ring: "ring-slate-300" },
+  "Available":          { bg: "bg-emerald-100", text: "text-emerald-900", ring: "ring-emerald-300" },
+  "Assigned":           { bg: "bg-blue-100",    text: "text-blue-900",    ring: "ring-blue-300" },
+  "In Transport":       { bg: "bg-cyan-100",    text: "text-cyan-900",    ring: "ring-cyan-300" },
+  "Inspection Hold":    { bg: "bg-amber-100",   text: "text-amber-900",   ring: "ring-amber-400" },
+  "Maintenance Hold":   { bg: "bg-orange-100",  text: "text-orange-900",  ring: "ring-orange-400" },
+  "Certification Hold": { bg: "bg-purple-100",  text: "text-purple-900",  ring: "ring-purple-400" },
+  "Safety Hold":        { bg: "bg-red-100",     text: "text-red-900",     ring: "ring-red-500" },
+  "Retired":            { bg: "bg-slate-200",   text: "text-slate-700",   ring: "ring-slate-300" },
+};
+
+const HOLD_STATUSES = new Set([
+  "Inspection Hold", "Maintenance Hold", "Certification Hold", "Safety Hold",
+]);
+
+const HOLD_MESSAGE = {
+  "Inspection Hold":    "This asset is on Inspection Hold. A competent person must clear it before use.",
+  "Maintenance Hold":   "This asset is under Maintenance. It is not available for the field.",
+  "Certification Hold": "This asset's required certification is missing or expired. DO NOT USE.",
+  "Safety Hold":        "SAFETY HOLD — critical condition reported. DO NOT USE. Contact Safety immediately.",
 };
 
 function Row({ label, value, mono, danger, testId }) {
@@ -66,7 +79,7 @@ export default function TrenchSafetyQrLanding() {
   }, [assetId]);
 
   const status = doc?.operational_status || "Available";
-  const onHold = status === "Inspection Hold" || status === "Repair";
+  const onHold = HOLD_STATUSES.has(status);
   const sStyle = STATUS_STYLE[status] || STATUS_STYLE["Available"];
 
   return (
@@ -123,9 +136,7 @@ export default function TrenchSafetyQrLanding() {
               <div className="mt-4 p-4 border-2 border-amber-400 bg-amber-50 rounded text-amber-900" data-testid="qr-hold-warning">
                 <AlertTriangle className="w-5 h-5 inline -mt-1 mr-1.5" />
                 <strong className="uppercase tracking-[0.08em]">{t("Do not use")}.</strong>{" "}
-                {status === "Inspection Hold"
-                  ? t("This asset is on Inspection Hold. A competent person must clear it before use.")
-                  : t("This asset is under Repair. It is not available for the field.")}
+                {t(HOLD_MESSAGE[status] || "This asset is on hold. DO NOT USE.")}
               </div>
             )}
 

@@ -7,13 +7,17 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ._helpers import (
+    apply_resolved_status,
+    clear_hold,
     now_iso,
+    open_hold,
     upsert_equipment_master_mirror,
     write_audit,
 )
 from ._models import (
     INSPECTION_RESULTS,
     INSPECTION_TYPES,
+    SEVERITIES,
     InspectionSubmit,
 )
 
@@ -53,7 +57,7 @@ def register_inspection_routes(
         return {"items": await cursor.to_list(limit)}
 
     # ──────────────────────────────────────────────────────────────────
-    # Submit inspection (Safety + Admin)
+    # Submit inspection (Safety + Admin) — Phase 4B severity matrix
     # ──────────────────────────────────────────────────────────────────
     @api_router.post(LIST_PATH)
     async def submit_inspection(
@@ -68,6 +72,10 @@ def register_inspection_routes(
         if payload.result not in INSPECTION_RESULTS:
             raise HTTPException(
                 422, f"result must be one of {list(INSPECTION_RESULTS)}"
+            )
+        if payload.severity not in SEVERITIES:
+            raise HTTPException(
+                422, f"severity must be one of {list(SEVERITIES)}"
             )
 
         asset = await db.trench_safety_assets.find_one(
@@ -101,6 +109,12 @@ def register_inspection_routes(
             "findings": payload.findings,
             "corrective_actions": payload.corrective_actions,
             "result": payload.result,
+            "severity": payload.severity,
+            "signature": payload.signature,
+            "project_id": payload.project_id or asset.get("current_project_id"),
+            "project_name": payload.project_name or asset.get("current_project_name"),
+            "location": payload.location or asset.get("current_location"),
+            "follow_up_action": payload.follow_up_action,
             "photo_refs": list(payload.photo_refs),
             "submitted_at": now_iso(),
             "submitted_by": actor_email,
@@ -108,42 +122,98 @@ def register_inspection_routes(
         await db.trench_safety_inspections.insert_one(doc)
         doc.pop("_id", None)
 
-        # Side-effects on the asset row
-        update: Dict[str, Any] = {
-            "last_inspection_at": doc["submitted_at"],
-            "updated_at": now_iso(),
-            "updated_by": actor_email,
-        }
+        # Persist last_inspection_* on the asset; hold transitions go through
+        # the hold engine (single source of truth).
+        await db.trench_safety_assets.update_one(
+            {"id": asset["id"]},
+            {"$set": {
+                "last_inspection_at": doc["submitted_at"],
+                "last_inspection_result": payload.result,
+                "last_inspection_severity": payload.severity,
+                "updated_at": now_iso(),
+                "updated_by": actor_email,
+            }},
+        )
+
         audit_kind = "trench_asset_inspection_submitted"
+        repair_stub_id: Optional[str] = None
+
         if payload.result == "Fail":
-            update["operational_status"] = "Inspection Hold"
             audit_kind = "trench_asset_inspection_failed"
+            # Always open Inspection Hold on Fail
+            await open_hold(
+                db, asset_id=asset["asset_id"], kind="Inspection Hold",
+                reason=f"Failed {payload.inspection_type}: {payload.findings or 'no findings recorded'}",
+                source="inspection", source_ref=f"inspection:{doc['id']}",
+                opened_by=actor_email,
+            )
+            # Critical severity → also open Safety Hold
+            if payload.severity == "Critical":
+                await open_hold(
+                    db, asset_id=asset["asset_id"], kind="Safety Hold",
+                    reason=f"Critical damage observed in {payload.inspection_type}: {payload.findings or 'no findings'}",
+                    source="inspection", source_ref=f"inspection:{doc['id']}",
+                    opened_by=actor_email,
+                )
+            # Major or Critical severity → auto Repair stub (Shop visibility)
+            if payload.severity in {"Major", "Critical"}:
+                stub = {
+                    "id": str(uuid.uuid4()),
+                    "asset_id": asset["asset_id"],
+                    "asset_uuid": asset["id"],
+                    "status": "Open",
+                    "kind": "repair_recommendation",
+                    "source": f"inspection:{doc['id']}",
+                    "severity_at_creation": payload.severity,
+                    "issue_description": payload.findings
+                        or f"{payload.severity} severity finding in {payload.inspection_type}",
+                    "reported_by": actor_email,
+                    "photo_refs": list(payload.photo_refs),
+                    "repair_vendor": None,
+                    "repair_cost": None,
+                    "completion_notes": "",
+                    "requires_reinspection": True,
+                    "opened_at": now_iso(),
+                    "opened_by": actor_email,
+                    "closed_at": None,
+                    "closed_by": None,
+                }
+                await db.trench_safety_repairs.insert_one(stub)
+                stub.pop("_id", None)
+                repair_stub_id = stub["id"]
+                # Opening a repair stub also opens Maintenance Hold
+                await open_hold(
+                    db, asset_id=asset["asset_id"], kind="Maintenance Hold",
+                    reason=f"Auto repair stub from {payload.inspection_type} (severity {payload.severity})",
+                    source="repair", source_ref=f"repair:{stub['id']}",
+                    opened_by=actor_email,
+                )
+
         elif payload.result == "Pass":
             audit_kind = "trench_asset_inspection_passed"
-            # If asset was on Inspection Hold and this is a clearing
-            # monthly/annual, lift the hold back to Available.
+            # Monthly/Annual Pass with competent person → clear Inspection Hold
             if (
-                asset.get("operational_status") == "Inspection Hold"
-                and payload.inspection_type
-                in {"Monthly Competent Person", "Annual Review"}
+                payload.inspection_type in {"Monthly Competent Person", "Annual Review"}
                 and payload.competent_person_confirmed
             ):
-                update["operational_status"] = "Available"
+                await clear_hold(
+                    db, asset_id=asset["asset_id"], kind="Inspection Hold",
+                    clear_reason=f"Cleared by {payload.inspection_type} Pass (competent person confirmed)",
+                    clear_source="monthly_pass", cleared_by=actor_email,
+                )
 
-        await db.trench_safety_assets.update_one(
-            {"id": asset["id"]}, {"$set": update}
-        )
-        fresh = await db.trench_safety_assets.find_one(
-            {"id": asset["id"]}, {"_id": 0}
-        )
-        await upsert_equipment_master_mirror(db, fresh)
+        # Recompute final operational_status from the hold engine and mirror.
+        fresh = await apply_resolved_status(db, asset["asset_id"], actor_email)
+
         await write_audit(
             db, kind=audit_kind, asset_id=asset["asset_id"], actor=actor,
             detail={
                 "inspection_id": doc["id"],
                 "inspection_type": payload.inspection_type,
                 "result": payload.result,
+                "severity": payload.severity,
                 "status_after": fresh.get("operational_status"),
+                "repair_stub_id": repair_stub_id,
             },
         )
-        return {"inspection": doc, "asset": fresh}
+        return {"inspection": doc, "asset": fresh, "repair_stub_id": repair_stub_id}

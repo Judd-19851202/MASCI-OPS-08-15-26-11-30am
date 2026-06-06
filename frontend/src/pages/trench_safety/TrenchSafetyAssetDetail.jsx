@@ -21,12 +21,14 @@ import {
 } from "@/pages/trench_safety/TrenchSafetyAssignDialogs";
 
 const STATUS_COLOR = {
-  "Available":       "bg-emerald-50 text-emerald-900 border-emerald-300",
-  "Assigned":        "bg-blue-50 text-blue-900 border-blue-300",
-  "In Transport":    "bg-cyan-50 text-cyan-900 border-cyan-300",
-  "Inspection Hold": "bg-amber-50 text-amber-900 border-amber-400",
-  "Repair":          "bg-red-50 text-red-900 border-red-300",
-  "Retired":         "bg-slate-100 text-slate-600 border-slate-300",
+  "Available":          "bg-emerald-50 text-emerald-900 border-emerald-300",
+  "Assigned":           "bg-blue-50 text-blue-900 border-blue-300",
+  "In Transport":       "bg-cyan-50 text-cyan-900 border-cyan-300",
+  "Inspection Hold":    "bg-amber-50 text-amber-900 border-amber-400",
+  "Maintenance Hold":   "bg-orange-50 text-orange-900 border-orange-400",
+  "Certification Hold": "bg-purple-50 text-purple-900 border-purple-400",
+  "Safety Hold":        "bg-red-50 text-red-900 border-red-500",
+  "Retired":            "bg-slate-100 text-slate-600 border-slate-300",
 };
 
 function Field({ label, value, mono, testId }) {

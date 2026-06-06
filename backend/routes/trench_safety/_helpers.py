@@ -2,10 +2,280 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 import uuid
 
-from ._models import OPERATIONAL_STATUSES, CONDITIONS
+from ._models import (
+    OPERATIONAL_STATUSES,
+    CONDITIONS,
+    HOLD_PRIORITY,
+    HOLD_KINDS,
+)
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Phase 4B — Hold engine helpers
+# ────────────────────────────────────────────────────────────────────────
+
+async def list_open_holds(db, asset_id: str) -> list:
+    return await db.trench_safety_holds.find(
+        {"asset_id": asset_id, "is_active": True},
+        {"_id": 0},
+    ).to_list(50)
+
+
+def resolve_operational_status(asset: dict, open_holds: list) -> str:
+    """Single source of truth for the asset's operational state.
+
+    Inputs:
+      - asset.operational_status: current persisted value (the resolver
+        respects Assigned / In Transport / Retired as the non-hold base).
+      - open_holds: list of {kind, ...} rows from trench_safety_holds where
+        is_active=True.
+
+    Returns the highest-priority status. Retired is terminal — if asset is
+    Retired, the resolver returns Retired regardless of holds (a retired
+    asset is removed from service entirely).
+    """
+    base = asset.get("operational_status") or "Available"
+    if base == "Retired":
+        return "Retired"
+
+    hold_kinds = [h.get("kind") for h in (open_holds or [])]
+    hold_kinds = [k for k in hold_kinds if k in HOLD_KINDS]
+    if hold_kinds:
+        return max(hold_kinds, key=lambda k: HOLD_PRIORITY.get(k, 0))
+
+    # No active holds — preserve Assigned / In Transport / Available
+    if base in ("Assigned", "In Transport", "Available"):
+        return base
+    # Any legacy non-Operational base without an open hold normalises back
+    # to Available (this is what fires after the last hold is cleared on
+    # an asset that was previously parked in a hold state).
+    return "Available"
+
+
+async def apply_resolved_status(db, asset_id: str, actor_email: str = "system") -> dict:
+    """Recompute and persist operational_status for an asset based on its
+    open holds. Mirrors to equipment_master. Returns the fresh asset doc.
+    """
+    asset = await db.trench_safety_assets.find_one(
+        {"asset_id": asset_id}, {"_id": 0}
+    )
+    if not asset:
+        return None
+    open_holds = await list_open_holds(db, asset_id)
+    new_status = resolve_operational_status(asset, open_holds)
+    if new_status != asset.get("operational_status"):
+        await db.trench_safety_assets.update_one(
+            {"id": asset["id"]},
+            {"$set": {
+                "operational_status": new_status,
+                "updated_at": now_iso(),
+                "updated_by": actor_email,
+            }},
+        )
+        asset = await db.trench_safety_assets.find_one(
+            {"id": asset["id"]}, {"_id": 0}
+        )
+    await upsert_equipment_master_mirror(db, asset)
+    return asset
+
+
+async def open_hold(
+    db,
+    *,
+    asset_id: str,
+    kind: str,
+    reason: str,
+    source: str,
+    source_ref: Optional[str] = None,
+    opened_by: str = "system",
+) -> dict:
+    """Idempotent open. If an active hold of (asset_id, kind) already
+    exists, return it without duplicating. Recomputes operational_status.
+    """
+    if kind not in HOLD_KINDS:
+        raise ValueError(f"unknown hold kind: {kind}")
+    existing = await db.trench_safety_holds.find_one(
+        {"asset_id": asset_id, "kind": kind, "is_active": True},
+        {"_id": 0},
+    )
+    if existing:
+        # Update reason / source if changed (latest-write-wins)
+        await db.trench_safety_holds.update_one(
+            {"id": existing["id"]},
+            {"$set": {
+                "reason": reason or existing.get("reason"),
+                "source": source or existing.get("source"),
+                "source_ref": source_ref or existing.get("source_ref"),
+            }},
+        )
+        await apply_resolved_status(db, asset_id, opened_by)
+        return await db.trench_safety_holds.find_one({"id": existing["id"]}, {"_id": 0})
+
+    doc = {
+        "id": str(uuid.uuid4()),
+        "asset_id": asset_id,
+        "kind": kind,
+        "reason": reason,
+        "source": source,
+        "source_ref": source_ref,
+        "opened_at": now_iso(),
+        "opened_by": opened_by,
+        "cleared_at": None,
+        "cleared_by": None,
+        "clear_reason": None,
+        "clear_source": None,
+        "is_active": True,
+    }
+    await db.trench_safety_holds.insert_one(doc)
+    doc.pop("_id", None)
+    await apply_resolved_status(db, asset_id, opened_by)
+    await write_audit(
+        db, kind="trench_asset_hold_opened", asset_id=asset_id,
+        actor={"_actor": "system", "email": opened_by},
+        detail={"hold_id": doc["id"], "hold_kind": kind, "source": source},
+    )
+    return doc
+
+
+async def clear_hold(
+    db,
+    *,
+    asset_id: str,
+    kind: str,
+    clear_reason: str,
+    clear_source: str = "manual",
+    cleared_by: str = "system",
+) -> Optional[dict]:
+    """Close any active hold of (asset_id, kind). Recomputes status."""
+    existing = await db.trench_safety_holds.find_one(
+        {"asset_id": asset_id, "kind": kind, "is_active": True},
+        {"_id": 0},
+    )
+    if not existing:
+        return None
+    await db.trench_safety_holds.update_one(
+        {"id": existing["id"]},
+        {"$set": {
+            "is_active": False,
+            "cleared_at": now_iso(),
+            "cleared_by": cleared_by,
+            "clear_reason": clear_reason,
+            "clear_source": clear_source,
+        }},
+    )
+    await apply_resolved_status(db, asset_id, cleared_by)
+    await write_audit(
+        db, kind="trench_asset_hold_cleared", asset_id=asset_id,
+        actor={"_actor": "system", "email": cleared_by},
+        detail={"hold_id": existing["id"], "hold_kind": kind, "clear_source": clear_source},
+    )
+    return await db.trench_safety_holds.find_one({"id": existing["id"]}, {"_id": 0})
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Phase 4B — Certification status helpers
+# ────────────────────────────────────────────────────────────────────────
+
+def certification_status_for(
+    requires_cert: bool,
+    active_certs: list,
+    now_dt: Optional[datetime] = None,
+) -> str:
+    """Returns one of: Not Required | Missing | Expired | Due Soon | OK.
+
+    active_certs: rows from trench_safety_certifications with status in
+    {Active}. Caller is responsible for filtering out Revoked/Superseded.
+    """
+    if not requires_cert:
+        return "Not Required"
+    if not active_certs:
+        return "Missing"
+    now_dt = now_dt or datetime.now(timezone.utc)
+    expirations = []
+    for c in active_certs:
+        exp = c.get("expires_at")
+        if not exp:
+            continue
+        try:
+            # Accept either YYYY-MM-DD or ISO datetime
+            if len(exp) == 10:
+                dt = datetime.strptime(exp, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            else:
+                dt = datetime.fromisoformat(exp.replace("Z", "+00:00"))
+        except Exception:  # noqa: BLE001
+            continue
+        expirations.append(dt)
+    if not expirations:
+        return "Missing"
+    soonest = min(expirations)
+    if soonest < now_dt:
+        return "Expired"
+    days_left = (soonest - now_dt).days
+    if days_left <= 90:
+        return "Due Soon"
+    return "OK"
+
+
+async def recompute_certification_hold(db, asset_id: str, actor_email: str = "system") -> None:
+    """Open or clear the Certification Hold for an asset based on the
+    current state of its certifications + the requires_certification flag.
+
+    Auto-marks any expired Active cert rows as status=Expired so the
+    derived status calculation is correct.
+    """
+    asset = await db.trench_safety_assets.find_one(
+        {"asset_id": asset_id}, {"_id": 0}
+    )
+    if not asset:
+        return
+    if not asset.get("requires_certification"):
+        await clear_hold(
+            db, asset_id=asset_id, kind="Certification Hold",
+            clear_reason="requires_certification flag cleared",
+            clear_source="manual", cleared_by=actor_email,
+        )
+        return
+
+    # First — sweep Active certs and flip past-due to Expired so the
+    # derived status calculation reflects reality.
+    now_dt = datetime.now(timezone.utc)
+    active = await db.trench_safety_certifications.find(
+        {"asset_id": asset_id, "status": "Active"}, {"_id": 0}
+    ).to_list(200)
+    for c in active:
+        exp = c.get("expires_at") or ""
+        try:
+            if len(exp) == 10:
+                dt = datetime.strptime(exp, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            else:
+                dt = datetime.fromisoformat(exp.replace("Z", "+00:00"))
+        except Exception:  # noqa: BLE001
+            continue
+        if dt < now_dt:
+            await db.trench_safety_certifications.update_one(
+                {"id": c["id"]}, {"$set": {"status": "Expired", "updated_at": now_iso()}}
+            )
+
+    # Re-read after the sweep
+    active_certs = await db.trench_safety_certifications.find(
+        {"asset_id": asset_id, "status": "Active"}, {"_id": 0}
+    ).to_list(200)
+    status = certification_status_for(True, active_certs, now_dt)
+    if status in ("Missing", "Expired"):
+        await open_hold(
+            db, asset_id=asset_id, kind="Certification Hold",
+            reason=f"Certification status: {status}",
+            source="certification", source_ref=None, opened_by=actor_email,
+        )
+    else:
+        await clear_hold(
+            db, asset_id=asset_id, kind="Certification Hold",
+            clear_reason=f"Certification status now: {status}",
+            clear_source="cert_added", cleared_by=actor_email,
+        )
 
 
 def now_iso() -> str:
@@ -62,6 +332,25 @@ async def upsert_equipment_master_mirror(
     Idempotent: safe to call on every create/update.
     """
     asset_id = asset["asset_id"]
+    # Phase 4B — enrich the mirror with hold + certification snapshots so
+    # Dispatch / Project / Search consumers see the same state.
+    try:
+        open_holds = await db.trench_safety_holds.find(
+            {"asset_id": asset_id, "is_active": True},
+            {"_id": 0, "kind": 1, "opened_at": 1, "source": 1},
+        ).to_list(20)
+    except Exception:  # noqa: BLE001 — collection may not exist on first boot
+        open_holds = []
+    try:
+        active_certs = await db.trench_safety_certifications.find(
+            {"asset_id": asset_id, "status": "Active"},
+            {"_id": 0, "expires_at": 1},
+        ).to_list(50)
+    except Exception:  # noqa: BLE001
+        active_certs = []
+    cert_status = certification_status_for(
+        bool(asset.get("requires_certification")), active_certs
+    )
     mfr = asset.get("manufacturer") or ""
     mdl = asset.get("model") or ""
     make_model = " ".join([s for s in [mfr, mdl] if s]).strip() or asset.get("asset_type") or "Trench Safety"
@@ -101,6 +390,12 @@ async def upsert_equipment_master_mirror(
         "current_project_number": asset.get("current_project_number"),
         "last_inspection_at": asset.get("last_inspection_at"),
         "next_inspection_due": asset.get("next_inspection_due"),
+        # Phase 4B fields
+        "requires_certification": bool(asset.get("requires_certification")),
+        "certification_status": cert_status,
+        "active_holds": open_holds,
+        "last_inspection_result": asset.get("last_inspection_result"),
+        "last_inspection_severity": asset.get("last_inspection_severity"),
         "is_active": bool(asset.get("is_active", True)),
         "retired_at": asset.get("retired_at"),
         "linked_collection": "trench_safety_assets",
@@ -139,22 +434,27 @@ def _label_for(asset: Dict[str, Any]) -> str:
 def validate_status_transition(current: str, target: str) -> Optional[str]:
     """Return None if the transition is allowed, else an error string.
 
+    Phase 4B — extended for new hold kinds.
     Rules:
       - Retired is terminal (only admin can un-retire via explicit edit).
-      - Cannot leave Inspection Hold or Repair into Available without
-        going through inspect/repair endpoints (server enforces the gate).
+      - Cannot leave Inspection / Maintenance / Safety / Certification Hold
+        directly to Available — must clear the hold through the proper path.
       - Available ↔ Assigned ↔ In Transport are free moves.
     """
+    HOLD_STATUSES = {
+        "Inspection Hold", "Maintenance Hold",
+        "Safety Hold", "Certification Hold",
+    }
     if target not in OPERATIONAL_STATUSES:
         return f"unknown status: {target}"
     if current == target:
         return None
     if current == "Retired":
         return "asset is retired — re-activation requires admin edit"
-    if current in {"Inspection Hold", "Repair"} and target == "Available":
+    if current in HOLD_STATUSES and target == "Available":
         return (
             f"cannot move from {current} to Available directly — "
-            "submit a clearing inspection or close the repair first"
+            "clear the hold through the proper workflow"
         )
     return None
 
