@@ -156,7 +156,15 @@ def test_auth_wall_anonymous_and_bogus(client, method, path, body):
 
 @pytest.fixture
 def tmp_asset(client, admin_headers):
-    """Create a throwaway asset and clean up by retiring at end of test."""
+    """Create a throwaway asset and DELETE it at end of test.
+
+    Per OMEGA pre-Phase-4 cleanup directive: pytest must remove test
+    rows from both trench_safety_assets and equipment_master so the
+    fleet inventory stays clean. We do this by retiring (which is the
+    public lifecycle) and then issuing a direct Mongo delete via the
+    admin db connection. This is the ONLY place in the test-suite
+    permitted to write to the DB directly.
+    """
     asset_id = f"TST-{int(time.time() * 1000) % 1_000_000}"
     r = client.post(
         "/api/trench-safety/assets",
@@ -170,13 +178,36 @@ def tmp_asset(client, admin_headers):
         headers=admin_headers,
     )
     assert r.status_code == 200, r.text
-    yield r.json()
-    # cleanup — retire (terminal but allowed)
+    doc = r.json()
+    yield doc
+    # ── cleanup ────────────────────────────────────────────────────
+    # 1. Retire via the public lifecycle (idempotent if already retired)
     client.post(
         f"/api/trench-safety/assets/{asset_id}/retire",
         json={"retired_reason": "test-cleanup"},
         headers=admin_headers,
     )
+    # 2. Hard-delete the rows from BOTH collections so the equipment
+    #    inventory mirror stays clean. Uses the same Mongo connection
+    #    string the backend uses — no extra credentials required.
+    try:
+        import os
+        from pymongo import MongoClient
+        from dotenv import load_dotenv
+        load_dotenv("/app/backend/.env")
+        mc = MongoClient(os.environ['MONGO_URL'])
+        db = mc[os.environ['DB_NAME']]
+        db.trench_safety_assets.delete_many({"asset_id": asset_id})
+        db.equipment_master.delete_many({"id": doc.get("id")})
+        # Sub-collections (test smoke may have written some)
+        db.trench_safety_inspections.delete_many({"asset_id": asset_id})
+        db.trench_safety_repairs.delete_many({"asset_id": asset_id})
+        db.trench_safety_deployments.delete_many({"asset_id": asset_id})
+        db.trench_safety_qr_scans.delete_many({"asset_id": asset_id})
+        mc.close()
+    except Exception:
+        # Best-effort — never fail teardown
+        pass
 
 
 def test_create_then_get_then_update(client, admin_headers, tmp_asset):

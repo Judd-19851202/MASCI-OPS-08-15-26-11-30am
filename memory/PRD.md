@@ -34963,3 +34963,31 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 🛑 **Agent STOPPED.** Awaiting operator authorization to either:
   a. Proceed with Phase 4 build (no preparatory work required), or
   b. First execute pre-Phase-4 cleanup of TST-* rows (~30 lines).
+
+---
+
+## 2026-06-06 · TRENCH SAFETY PRE-PHASE-4 CLEANUP COMPLETE
+
+**Mode:** Narrow data-hygiene · NOT Phase 4 · No deployment
+**Verdict:** 🟢 CLEANUP COMPLETE — SAFE TO START PHASE 4
+
+**Performed (6 authorized actions):**
+- Removed 16 retired TST-* pytest test artifacts from `trench_safety_assets`
+- Removed 16 matching mirror rows from `equipment_master`
+- Updated `tests/test_trench_safety_phase2.py::tmp_asset` fixture to hard-DELETE on teardown (was retire-only)
+- Re-ran pytest: 28/28 green
+- Re-verified all 7 MASCI fleet assets (TB-01..TB-07) intact post-cleanup
+- Produced 3 deliverable markdowns
+
+**Safety gate:** Every candidate verified against (TST- prefix + is_active=false + operational_status=Retired + no protected-fleet prefix). 16/16 passed. Refusal would have been automatic on any single failure. Independent fleet-count safeguard verified TB-01..TB-07 = 7 before any delete.
+
+**Forensic trail:** 16 audit_events written with kind=trench_asset_test_artifact_purged.
+
+**State delta:** trench_safety_assets 23→7 · equipment_master Trench Safety mirrors 23→7 · TST-* leakage 16→0 · TB-05 alert flags preserved.
+
+**Deliverables in `/app/memory/`:**
+- TRENCH_SAFETY_TEST_ARTIFACT_CLEANUP_REPORT.md
+- TRENCH_SAFETY_PRE_PHASE4_SEED_RECHECK.md
+- TRENCH_SAFETY_PRE_PHASE4_CLEANUP_GO_NO_GO.md
+
+🛑 **Agent STOPPED.** Awaiting operator authorization to begin Phase 4 — Equipment Inventory + Job Assignment + Project Visibility Integration.
