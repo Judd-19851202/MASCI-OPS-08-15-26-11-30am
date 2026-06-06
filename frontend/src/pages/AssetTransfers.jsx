@@ -89,7 +89,6 @@ export default function AssetTransfers() {
   useEffect(() => { load(); }, [load]);
 
   const summary = useMemo(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- pure derivation inside useMemo (false positive)
     const s = { total: 0 };
     for (const it of data.items || []) {
       s[it.status] = (s[it.status] || 0) + 1;
@@ -362,7 +361,6 @@ function TransferDetailDrawer({ id, onClose, onAfterAction }) {
   useEffect(() => { load(); }, [load]);
 
   const doAction = async (action, payload = {}) => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- event handler, not effect (false positive)
     setActionInFlight(action); setErr(null);
     try {
       await api.post(`/asset-transfers/${id}/${action}`, payload);

@@ -148,12 +148,12 @@ export default function SafetySection() {
             testId="safety-tile-jha"
           />
           <SafetyTile
-            to="/trench-boxes"
+            to="/trench-safety"
             icon={Box}
-            title={t("Trench Box Tabulated Data")}
-            desc={t("Learn what tabulated data is, why it keeps you alive, and pull the exact manufacturer data sheet for every shield in the MASCI fleet — bilingual.")}
+            title={t("Trench Safety")}
+            desc={t("Field-facing entry point for the MASCI Trench Safety system — asset lookup, QR scan landing, tabulated data, safety reference, and damage / unsafe / missing-pin / missing-label reporting. Bilingual.")}
             accent="slate"
-            ctaLabel={t("OPEN LIBRARY")}
+            ctaLabel={t("OPEN TRENCH SAFETY")}
             testId="safety-tile-trench"
           />
           <SafetyTile

@@ -1588,6 +1588,11 @@ const ES = {
   "Scan the QR to verify the box before it goes in the trench.":
     "Escanee el QR para verificar la caja antes de bajarla a la zanja.",
 
+  // Public Safety Tile — corrected to surface the full Trench Safety field portal
+  "OPEN TRENCH SAFETY": "ABRIR SEGURIDAD DE ZANJA",
+  "Field-facing entry point for the MASCI Trench Safety system — asset lookup, QR scan landing, tabulated data, safety reference, and damage / unsafe / missing-pin / missing-label reporting. Bilingual.":
+    "Punto de entrada en campo para el sistema de Seguridad de Zanja de MASCI — búsqueda de activos, escaneo QR, datos tabulados, referencia de seguridad y reportes de daños / inseguro / pasadores faltantes / etiquetas faltantes. Bilingüe.",
+
   // QR landing
   "MASCI Trench Safety": "Seguridad de Zanjas MASCI",
   "This QR is not linked to a known MASCI trench safety asset. Contact Safety.":
