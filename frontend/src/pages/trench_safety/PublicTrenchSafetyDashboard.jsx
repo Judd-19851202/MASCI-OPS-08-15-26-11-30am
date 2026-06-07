@@ -194,7 +194,6 @@ export default function PublicTrenchSafetyDashboard() {
             icon={AlertTriangle}
             title={t("Excavation Operations")}
             body={t("Submit a field excavation record. Coaching first. EN / ES.")}
-            tone="info"
             testId="public-dash-excavation"
           />
           <ActionTile

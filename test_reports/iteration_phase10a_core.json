@@ -1,0 +1,52 @@
+{
+  "summary": "Phase 10A Core — UI Parity + backend regression verified. Backend 25/25 pytest cases pass. Public Excavation Form shell matches MASCI public trench safety standard. Public submit flow + OSHA flag (PROTECTIVE_SYSTEM) verified end-to-end.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "PublicExcavationHeader (and dashboard shell)", "issues": ["EN/ES toggle does NOT translate the header back-link label. After clicking ES, form labels (Project→Proyecto), submit button (ENVIAR REGISTRO), and form copy translate correctly, but the header back link still reads 'BACK TO TRENCH SAFETY' in English. The review_request explicitly asks: 'back-link text also translates'. Minor parity gap. Likely the i18n dict is missing the 'Back to Trench Safety' key, or PublicTrenchHeader is wrapping the label in t() but the key is not present in es.json."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_trench_safety_phase10a.py",
+    "/app/backend/tests/test_trench_safety_phase10a_flags.py",
+    "/app/test_reports/pytest/phase10a_results.xml"
+  ],
+  "verified_parity_checks": {
+    "public-excavation-header": "OK",
+    "public-excavation-back": "OK (routes to /trench-safety; dashboard public-dash-page visible after click)",
+    "public-excavation-home": "OK",
+    "public-excavation-title": "Excavation Operations — OK",
+    "public-excavation-stopwork": "OK (red strip)",
+    "public-excavation-coaching": "OK (amber strip)",
+    "sections_1_to_14": "All 14 sections render (exc-section-1..14)",
+    "LangToggle_in_header": "Visible (EN/ES toggle present)",
+    "EN_to_ES_translation": "Form labels translate (Proyecto x2 found); submit button → 'ENVIAR REGISTRO'; back-link did NOT translate (see design_issues)",
+    "dashboard_tile": "public-dash-excavation present on /trench-safety; click routes to /trench-safety/excavation/new",
+    "submit_flow": "POST /api/trench-safety/excavations/public/submit succeeded; excavation-success card rendered ID EX-2026-100 with Status 'Action Required'",
+    "osha_flag_display": "exc-flag-PROTECTIVE_SYSTEM rendered with level 'Action Required' (depth=6, ge5=Yes, protective='Not Required')",
+    "success_page_shell_parity": "public-excavation-header preserved on success page; caution-stripe + footer preserved",
+    "coaching_language_only": "Pytest test_flag_coaching_language_only PASSED — no 'Failed/Rejected/Violation' vocabulary in any of the 10 OSHA flags"
+  },
+  "untested": [
+    "Admin Safety Oversight surface at /safety/trench-safety/excavations (exc-filters, exc-list, exc-review-{id}, exc-review-dialog, exc-action-close) — not executed via Playwright in this run due to token budget; backend equivalents (list, filter, review_action_closes_record, review_action_matrix) are GREEN in pytest, so the API contract is verified — only the admin UI wiring of those endpoints was not visually walked.",
+    "Mobile viewport (375x812) parity screenshot — not captured this run; desktop parity confirmed."
+  ],
+  "action_items": [
+    "Minor: add an i18n key for the 'Back to Trench Safety' string in es.json (or wherever the public-trench LangToggle dictionary lives) so the header back-link translates to Spanish (e.g., 'Volver a Seguridad de Zanjas') alongside the form labels. This is the only gap against the directive’s EN/ES parity bullet.",
+    "Optional follow-up retest: walk /safety/trench-safety/excavations review dialog via Playwright (exc-review-dialog → exc-action-close) once an admin token is available in the live preview shell."
+  ],
+  "critical_code_review_comments": [
+    "PublicExcavationForm.jsx is ~440 lines — under the 700-line soft cap, but the inline `Bool` and `Section` sub-components plus the dual EN/ES success and main shells are getting close. Consider extracting `Bool`, `Section`, and the success card into /components/trench/excavation/ if Phase 10B grows the file further.",
+    "All ten OSHA flags use coaching vocabulary (verified by test_flag_coaching_language_only). No remediation needed."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100% (25/25)", "frontend": "95% (parity OK; 1 minor i18n gap on header back-link)" },
+  "test_credentials": "Backend pytest uses admin self-bootstrap via X-Admin-Token (ADMIN_PASSWORD=MASCI1982! from /app/memory/test_credentials.md). No new seed data created.",
+  "seed_data_creation": "1 TEST excavation record created via public submit (ID EX-2026-100); auto-cleanup not implemented but record is in preview DB only (DB_NAME=masci_safety_preview).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 10A backend is locked at 25/25 — re-run /app/backend/tests/test_trench_safety_phase10a*.py for any regression. UI parity verified at desktop 1920x1080. Only outstanding item: header back-link i18n key. Splash overlay can be bypassed by sessionStorage.setItem('masci.splash.seen.2026','1') then reload.",
+  "rca of the issue": "Header back-link (PublicTrenchHeader.jsx line 41) wraps label in t(backLabel). PublicExcavationForm passes backLabel='Back to Trench Safety'. Other form labels translate via t() too, so the call site is correct. Most likely cause: missing 'Back to Trench Safety' entry in the Spanish translation dictionary, so t() falls back to the English source string. Fix is a one-line addition in the i18n es dict."
+}

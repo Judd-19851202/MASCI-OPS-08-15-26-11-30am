@@ -237,6 +237,25 @@ def register_excavation_routes(
         flags = compute_osha_flags(rec)
         rec["flags"] = flags
         rec["status"] = derive_status(rec, flags)
+        # Daily Report cross-reference — non-invasive lookup by project + date.
+        # We do NOT modify the daily_reports collection; we store candidate
+        # daily report IDs on the excavation record for Safety to confirm.
+        rec["daily_report_links"] = []
+        try:
+            if body.project_name and body.date_of_work:
+                dr_cursor = db.daily_reports.find(
+                    {"project_name": {"$regex": f"^{body.project_name}$", "$options": "i"},
+                     "report_date": body.date_of_work},
+                    {"_id": 0, "id": 1, "report_number": 1},
+                ).limit(5)
+                async for dr in dr_cursor:
+                    rec["daily_report_links"].append({
+                        "daily_report_id": dr.get("id"),
+                        "report_number": dr.get("report_number"),
+                        "linked_at": now_iso(),
+                    })
+        except Exception as e:  # noqa: BLE001
+            logger.warning("excavation daily-report lookup failed: %s", e)
         await db.trench_excavations.insert_one(rec)
         rec.pop("_id", None)
         # Audit
@@ -247,6 +266,7 @@ def register_excavation_routes(
                 "excavation_id": ex_id, "source": body.source,
                 "flag_count": len(flags), "status": rec["status"],
                 "project_name": body.project_name,
+                "daily_report_link_count": len(rec["daily_report_links"]),
             },
         )
         # Notification fanout — reuse existing event_fanout
