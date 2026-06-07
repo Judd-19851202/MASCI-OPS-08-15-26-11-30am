@@ -386,3 +386,34 @@ None of these affect the directive's three success criteria; all three are MET a
 
 **Known findings (queued for Phase 10D.2):** Deep progressive disclosure of Sections 04–11; equipment-registry source; per-kind photo requirements.
 
+
+
+---
+
+## 2026-02-07 · Daily Report Rollback + Excavation Trigger ✅ CERTIFIED
+
+**Scope (OMEGA Rollback Directive):** Restore the Daily Report to pre-today working state. Keep ONLY the Phase 10A-B excavation/trenching question and linkage.
+
+**Rolled back (deleted today's additions):**
+- `DailyReportStatusCard.jsx` · `PreviousReportSuggestions.jsx` · `DayActivityTriggers.jsx` · `LinkedExcavationCompliance.jsx` (today's `components/dailyreport/` directory)
+- `lib/dailyReportCompliance.js` + its smoke test
+- All Phase 10D / Phase 10D.2 / Path A inserts into `NewDailyReport.jsx` (status card, day-activity chips, silent auto-apply hook, paragraph removals, CollapseCard trigger guards)
+- `NewDailyReport.jsx` reverted to pre-today commit `4c56f96`
+- `lib/dailyReportSchema.js` reverted then re-patched ONLY with `excavation_activity_today` + `linked_excavation_ids` fields
+- `DailyReportExcavationActivity.jsx` restored to Phase 10A-B verbose version (`e5b7263`)
+
+**Preserved (untouched):**
+- Backend `daily_reports.py` 422 gate (the authorized Phase 10A-B addition) and `trench_excavations.py` linkage.
+- Phase 10A-B Excavation Activity gate component wired into Section 03 (General Information).
+- Phase 10C Excavation Form work (separate surface — not Daily Report).
+- Autosave / device recognition / draft restore-discard subsystem (verified live).
+- Original 5-tip coaching panel, original section order, original CollapseCards, original sub-header paragraph, original sticky submit bar, original EN/ES, original photo requirements, original signature behavior.
+
+**Behavior:**
+- `Excavation Activity Today? = No` → Daily Report behaves exactly as it did before today.
+- `= Yes` → reveals Create New / Link Existing buttons. Submit blocked client (toast) + server (422 `excavation_record_required`) until ≥1 record linked. Two-way linkage written via `$addToSet`.
+
+**Testing:** 41/41 Phase 10A-B backend tests green. Live screenshot (`/tmp/dr_rollback_top.png`) confirms restored layout + autosave/restore-discard subsystem visible + zero residual Path A elements in DOM.
+
+**Certification doc:** `/app/memory/DAILY_REPORT_ROLLBACK_EXCAVATION_TRIGGER_CERTIFICATION.md`.
+
