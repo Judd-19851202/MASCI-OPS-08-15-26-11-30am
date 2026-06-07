@@ -1,6 +1,31 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-08 (OMEGA · FV-7.1A ASSET METADATA BACKFILL + FIELD TRIAL AUTHORIZATION · 🟢 COMPLETE)
+
+### Verdict: 🟢 READY FOR FIELD TRIAL — Excavation Operations: TRUSTED ✅ (PROVEN gates on 3×3×3 trial)
+
+### Scope (validation only · zero new features)
+- Idempotent backfill of all 15 Trench Box assets (rated_depth_ft, dimensions, manufacturer="MASCI Field Inventory · pending tabulated-data verification", model, shield_type, height_ft/length_ft, weight_lbs) and all 81 Road Plate assets (length_ft=8, width_ft=5, thickness_in=1, weight_lbs=1600, load_rating="HS-20"). Every backfilled row stamped `metadata_backfilled_from=FV-7.1A` for traceability.
+- Real-asset verification: TB-03 (rated 6 ft) at 9 ft → ACTION REQUIRED · TB-04 (rated 10 ft) at 9 ft → silent · TB-03 + acknowledgement reason → downgrade to Needs Review · RP-901 (5×8 ft) on 12×10 opening → ACTION REQUIRED · RP-901 on 4×4 opening → silent.
+- Oversight chip counts now non-zero against real inventory: flag_depth=3 · flag_road_plate=2 (was 0/0).
+
+### Tests
+`tests/test_fv7_safety_gaps.py` — **20/20 passing** (was 15 passing, 5 skipped). All FV-7 deterministic rules verified against real MASCI inventory.
+
+### Deliverables
+- `/app/backend/scripts/fv7_1a_asset_metadata_backfill.py` (NEW · idempotent backfill)
+- `/app/memory/FV7A_ASSET_METADATA_BACKFILL_CERTIFICATION.md`
+- `/app/memory/FV7A_REAL_ASSET_VALIDATION_REPORT.md`
+- `/app/memory/FIELD_TRIAL_EXECUTION_PLAN.md` (3 foremen × 3 jobs × 3 days · 10 pass criteria · 5-day schedule)
+
+### Out of scope (confirmed not touched)
+No new features · workflows · dashboards · portals · reports · analytics · OSHA systems · trench safety functionality · excavation functionality.
+
+### Next gate
+Execute the 3×3×3 field trial per `FIELD_TRIAL_EXECUTION_PLAN.md`. PASS → PROVEN ✅.
+
+
 ## 2026-02-08 (OMEGA · FV-7 SAFETY GAP CLOSURE SPRINT · 🟢 COMPLETE)
 
 ### Verdict: 🟢 PASS — Excavation Operations elevated CONDITIONALLY READY → PROVEN (pending 3×3×3 field trial)
