@@ -1,6 +1,40 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-11 (OMEGA · FIELD TRIAL AUTHORIZATION · 🟡 CONDITIONALLY READY)
+
+### Verdict: **CONDITIONALLY READY ✅** — Excavation Operations · NOT PROVEN.
+
+PROVEN ✅ requires real human field validation by 3 real foremen on 3 real jobs over 3 real consecutive working days. An AI agent cannot conduct that — so per the directive's own STOP CONDITION ("Do not claim PROVEN unless field evidence supports it"), this iteration ran the strongest **automated proxy** possible against the real production platform and real backfilled assets.
+
+### Automated proxy results
+- **100 / 100 PASS** (90 structured workflow runs across 3 simulated foremen × 3 days × 10 workflows + 10 edge-case probes)
+- **Latency**: avg 201.9 ms · P95 445.7 ms · field-acceptable
+- **Flag accuracy**: zero false flags · zero missed expected flags
+- **Mobile viewport**: iPhone 14 / Pixel 6 / iPad Air — critical elements all render (one overflow metric requires human-device verification)
+- **EN/ES toggle**: works · one minor untranslated block (Emergency Excavation copy)
+- **Test suite**: 20/20 FV-7 + 16/16 Phase 10A-B regression GREEN
+- **Zero P0 bugs · zero code changes during trial**
+
+### Open items (post-trial polish · neither blocks human trial)
+- `FT-D1-001` P2 · headless `body.scrollWidth=1920` on mobile viewport — verify on physical device during human trial; if real, file small UI fix
+- `FT-D1-002` P3 · ES translation strings missing on Emergency Excavation block — 2-line i18n bundle update
+
+### Deliverables (six required documents — all written)
+- `/app/memory/FIELD_TRIAL_DAY_1_REPORT.md`
+- `/app/memory/FIELD_TRIAL_DAY_2_REPORT.md`
+- `/app/memory/FIELD_TRIAL_DAY_3_REPORT.md`
+- `/app/memory/FIELD_TRIAL_FOREMAN_FEEDBACK.md` (template · human verbatim outstanding)
+- `/app/memory/FIELD_TRIAL_ISSUE_LOG.md`
+- `/app/memory/FIELD_TRIAL_FINAL_CERTIFICATION.md`
+
+Plus observation tool: `/app/backend/scripts/field_trial_runner.py` (NEW · 90 workflow runs · zero source-file changes).
+Plus raw data: `/app/memory/field_trial_results.json`.
+
+### Next gate
+Schedule and run the real 3 × 3 × 3 human trial per `FIELD_TRIAL_EXECUTION_PLAN.md`. **Only that trial closes PROVEN ✅.**
+
+
 ## 2026-02-08 (OMEGA · FV-7.1A ASSET METADATA BACKFILL + FIELD TRIAL AUTHORIZATION · 🟢 COMPLETE)
 
 ### Verdict: 🟢 READY FOR FIELD TRIAL — Excavation Operations: TRUSTED ✅ (PROVEN gates on 3×3×3 trial)
