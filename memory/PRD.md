@@ -1,6 +1,32 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (TRENCH SAFETY · FINAL OPERATIONAL CERTIFICATION · 🟢 GO)
+
+### Verdict: 🟢 PASS — System operationally certified
+
+### Evidence collected (verification-only sprint — zero code changes)
+- **Pytest:** 105 passed across Phase 4A/4B/5/6/7/7.5C suites. One stale Phase 2 fixture-count assertion (13 ≠ 7 due to retired Phase 7.5C test fixtures; canonical TB-01..TB-07 intact). Not a behavioural regression.
+- **Live curl:** TB-01..TB-07 all `Available` with correct seed serial numbers (TB-05 intentional missing). Dashboard, public overview, public projection, QR PNG (812 bytes), Safety digest with live trench section — all green.
+- **Playwright smoke:** Daily Posture, Repair Review, Field Reports, Asset Detail (QR + Photo panels) all render with `data-testid` confirmation.
+
+### Surface ownership preserved
+Public Tile · Safety Portal · Admin Portal · Shop Portal boundaries respected. Non-negotiable rules ("Repair Complete ≠ Safe To Use", "Internal photos never leak", "Scanning does not move asset") enforced at the DB projection layer.
+
+### Deliverables (9 markdown certifications in `/app/memory/`)
+OPERATIONAL · NOTIFICATION · QR · PHOTO · SEARCH · DATA_INTEGRITY · MOBILE · SPANISH · FINAL_GO_NO_GO.
+
+### Open findings
+- F-1 (LOW): Phase 2 seed-count test asserts == 7; live DB has 13 (retired test fixtures). Update test to "≥ 7 with TB-01..TB-07 present" in a future sprint.
+- F-2 (INFO): Preview env has `AUTO_EMAIL_REPORTS=false` — real email deliverability inherited from platform-wide pattern; production flip-on is a separate change-management item.
+
+### STOP per directive
+Phase 8, OCR, Reports paused. No expansion permitted without operator authorisation.
+
+---
+
+
+
 ## 2026-02-07 (TRENCH SAFETY · PHASE 7.5B + PHASE 7 · 🟢 GO)
 
 ### Verdict: 🟢 PASS — Production-ready
