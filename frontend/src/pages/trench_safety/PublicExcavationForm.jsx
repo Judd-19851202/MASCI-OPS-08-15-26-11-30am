@@ -27,7 +27,9 @@ import PublicTrenchHeader from "@/components/trench/PublicTrenchHeader";
 import OshaCoachingBlock from "@/components/trench/OshaCoachingBlock";
 import EmployeePicker from "@/components/trench/EmployeePicker";
 import TrenchAssetPicker from "@/components/trench/TrenchAssetPicker";
+import ExcavationComplianceCard from "@/components/trench/ExcavationComplianceCard";
 import { JobPicker } from "@/components/JobPicker";
+import { computeExcavationCompliance } from "@/lib/excavationCompliance";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 
@@ -139,24 +141,20 @@ export default function PublicExcavationForm() {
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
   const onText = (k) => (e) => set(k, e.target.value);
 
-  // Smart OSHA triggers (Correction 7) — derived UI highlights
-  const depthNum = Number(f.depth_ft) || 0;
-  const isGe4 = depthNum >= 4 || f.depth_ge_4ft === true;
-  const isGe5 = depthNum >= 5 || f.depth_ge_5ft === true;
-  const triggers = useMemo(() => ({
-    access:     isGe4,                                                  // Access/egress required
-    protective: isGe5,                                                  // Protective system review
-    cp:         isGe5,                                                  // Competent person validation
-    soilC:      f.soil_classification === "Type C",                     // Extra soil coaching
-    water:      f.water_present === true,                               // Water hazard
-    atmos:      f.hazardous_atmosphere_concern === true,                // Atmospheric testing
-    rain:       f.rain_event_observed === true,                         // Auto-reinspection
-    utility:    String(f.work_type || "").includes("Utility"),
-  }), [isGe4, isGe5, f.soil_classification, f.water_present, f.hazardous_atmosphere_concern, f.rain_event_observed, f.work_type]);
-
-  // Mirror depth flags from numeric input (avoid setState-in-effect by
-  // recomputing as derived values during submit instead).
-  // The Bool toggles below give the user the final say.
+  // Phase 10C · Live compliance state — single source of truth for the
+  // operational decision-support panel AND for which sections render.
+  const compliance = useMemo(() => computeExcavationCompliance(f), [f]);
+  const visible = compliance.visibleSections;
+  const triggers = {
+    access:     visible.has("7"),
+    protective: (Number(f.depth_ft) || 0) >= 5,
+    cp:         (Number(f.depth_ft) || 0) >= 5,
+    soilC:      f.soil_classification === "Type C",
+    water:      visible.has("10"),
+    atmos:      visible.has("11"),
+    rain:       f.rain_event_observed === true,
+    utility:    visible.has("8"),
+  };
 
   function onJobSelect(job) {
     if (!job) {
@@ -192,14 +190,16 @@ export default function PublicExcavationForm() {
     }
     setSaving(true);
     try {
+      const depthNum = Number(f.depth_ft) || 0;
       const payload = {
         ...f,
         length_ft: f.length_ft ? Number(f.length_ft) : null,
         width_ft: f.width_ft ? Number(f.width_ft) : null,
         depth_ft: f.depth_ft ? Number(f.depth_ft) : null,
-        // Auto-derive depth flags from numeric input when user hasn't toggled
-        depth_ge_4ft: f.depth_ge_4ft != null ? f.depth_ge_4ft : (depthNum > 0 ? depthNum >= 4 : null),
-        depth_ge_5ft: f.depth_ge_5ft != null ? f.depth_ge_5ft : (depthNum > 0 ? depthNum >= 5 : null),
+        // Phase 10C · Auto-derive depth flags. The form no longer asks
+        // the foreman to do this arithmetic.
+        depth_ge_4ft: depthNum > 0 ? depthNum >= 4 : f.depth_ge_4ft,
+        depth_ge_5ft: depthNum > 0 ? depthNum >= 5 : f.depth_ge_5ft,
         // ensure supervisor_name mirror for backwards compat
         supervisor_name: f.supervisor_name || f.foreman_name,
         language: currentLang,
@@ -293,9 +293,12 @@ export default function PublicExcavationForm() {
             {t("Excavation Operations")}
           </h1>
           <p className="text-slate-600 text-sm max-w-2xl mx-auto mt-2" data-testid="public-excavation-purpose">
-            {t("The platform does the work. You verify. Pick the MASCI Job and the field roster — project number, customer, PM, and assets auto-populate from the certified registries.")}
+            {t("The platform thinks first. You verify. Compliance is calculated live — only the sections that apply to your trench will appear below.")}
           </p>
         </div>
+
+        {/* Phase 10C · Live operational decision-support panel */}
+        <ExcavationComplianceCard result={compliance} />
 
         {/* Stop-Work + Coaching */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4" data-testid="public-excavation-coaching-row">
@@ -374,17 +377,24 @@ export default function PublicExcavationForm() {
         </Section>
 
         {/* Section 2 — Dimensions */}
-        <Section num="2" title={t("Excavation Dimensions")} testId="exc-section-2" highlight={isGe4}>
+        <Section num="2" title={t("Excavation Dimensions")} testId="exc-section-2" highlight={(Number(f.depth_ft) || 0) >= 4}>
           <div className="grid grid-cols-3 gap-2">
             <div><Label className="text-xs font-bold">{t("Length (ft)")}</Label><Input type="number" value={f.length_ft} onChange={onText("length_ft")} data-testid="exc-length" /></div>
             <div><Label className="text-xs font-bold">{t("Width (ft)")}</Label><Input type="number" value={f.width_ft} onChange={onText("width_ft")} data-testid="exc-width" /></div>
             <div><Label className="text-xs font-bold">{t("Depth (ft)")}</Label><Input type="number" value={f.depth_ft} onChange={onText("depth_ft")} data-testid="exc-depth" /></div>
           </div>
-          <div className="mt-2 space-y-2">
-            <div><Label className="text-xs">{t("Is excavation 4 feet or deeper?")}</Label><Bool value={f.depth_ge_4ft} onChange={(v) => set("depth_ge_4ft", v)} testId="exc-ge4" /></div>
-            <div><Label className="text-xs">{t("Is excavation 5 feet or deeper?")}</Label><Bool value={f.depth_ge_5ft} onChange={(v) => set("depth_ge_5ft", v)} testId="exc-ge5" /></div>
-            <div><Label className="text-xs">{t("Cave-in hazard under 5 ft?")}</Label><Bool value={f.cave_in_hazard_under_5ft} onChange={(v) => set("cave_in_hazard_under_5ft", v)} testId="exc-cavein" /></div>
-          </div>
+          {/* Phase 10C · Depth flags are now auto-derived. Show as a read-only chip. */}
+          {(Number(f.depth_ft) || 0) > 0 && (
+            <div className="mt-2 inline-flex flex-wrap items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.12em]" data-testid="exc-depth-derived">
+              <span className={(Number(f.depth_ft) || 0) >= 4 ? "bg-cyan-700 text-white px-2 py-0.5 rounded" : "bg-slate-200 text-slate-700 px-2 py-0.5 rounded"}>
+                {t(((Number(f.depth_ft) || 0) >= 4) ? "≥ 4 ft (access required)" : "< 4 ft")}
+              </span>
+              <span className={(Number(f.depth_ft) || 0) >= 5 ? "bg-red-700 text-white px-2 py-0.5 rounded" : "bg-slate-200 text-slate-700 px-2 py-0.5 rounded"}>
+                {t(((Number(f.depth_ft) || 0) >= 5) ? "≥ 5 ft (protective system required)" : "< 5 ft")}
+              </span>
+              <span className="text-slate-500">{t("Auto-derived from depth — no toggle needed.")}</span>
+            </div>
+          )}
         </Section>
 
         {/* Section 3 — Work type */}
@@ -417,6 +427,17 @@ export default function PublicExcavationForm() {
 
         {/* Section 5 — Protective system */}
         <Section num="5" title={t("Protective System")} testId="exc-section-5" highlight={triggers.protective}>
+          {/* Phase 10C · Smart suggestion based on soil + depth */}
+          {compliance.suggestedPs && f.protective_system !== compliance.suggestedPs && (
+            <button
+              type="button"
+              onClick={() => set("protective_system", compliance.suggestedPs)}
+              className="mb-2 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.10em] bg-cyan-50 hover:bg-cyan-100 border border-cyan-300 text-cyan-900 rounded px-2 py-1"
+              data-testid="exc-protective-suggest"
+            >
+              💡 {t("Suggested:")} {t(compliance.suggestedPs)} <span className="opacity-70 ml-1">→ {t("apply")}</span>
+            </button>
+          )}
           <Select value={f.protective_system} onValueChange={(v) => set("protective_system", v)}>
             <SelectTrigger data-testid="exc-protective"><SelectValue /></SelectTrigger>
             <SelectContent>{PROTECT.map((x) => <SelectItem key={x} value={x}>{t(x)}</SelectItem>)}</SelectContent>
@@ -454,7 +475,8 @@ export default function PublicExcavationForm() {
           />
         </Section>
 
-        {/* Section 6b — Road Plates */}
+        {/* Section 6b — Road Plates (Phase 10C: only when relevant) */}
+        {visible.has("6b") && (
         <Section num="6b" title={t("Road Plates")} testId="exc-section-6b">
           <div className="flex items-center gap-2 mb-2 text-xs text-slate-600">
             <Layers className="w-4 h-4 text-cyan-700" />
@@ -474,8 +496,10 @@ export default function PublicExcavationForm() {
             </div>
           )}
         </Section>
+        )}
 
         {/* Section 7 — Access / Egress */}
+        {visible.has("7") && (
         <Section num="7" title={t("Access / Egress")} testId="exc-section-7" highlight={triggers.access}>
           {[
             ["access_egress_required", "Access/egress required?"],
@@ -499,8 +523,10 @@ export default function PublicExcavationForm() {
             tone={triggers.access ? "red" : "amber"}
           />
         </Section>
+        )}
 
         {/* Section 8 — Utility locate */}
+        {visible.has("8") && (
         <Section num="8" title={t("Utility Locate")} testId="exc-section-8" highlight={triggers.utility}>
           <div className="mt-1"><Label className="text-xs">{t("Utility locate required?")}</Label><Bool value={f.utility_locate_required} onChange={(v) => set("utility_locate_required", v)} testId="exc-locate-req" /></div>
           <div className="grid grid-cols-2 gap-2 mt-2">
@@ -528,6 +554,7 @@ export default function PublicExcavationForm() {
             tone="amber"
           />
         </Section>
+        )}
 
         {/* Section 9 — Spoils / Edge */}
         <Section num="9" title={t("Spoils / Edge Protection")} testId="exc-section-9">
@@ -541,7 +568,8 @@ export default function PublicExcavationForm() {
           ))}
         </Section>
 
-        {/* Section 10 — Water */}
+        {/* Section 10 — Water (Phase 10C: only when applicable) */}
+        {visible.has("10") && (
         <Section num="10" title={t("Water Conditions")} testId="exc-section-10" highlight={triggers.water}>
           {[
             ["water_present", "Water present?"],
@@ -565,8 +593,10 @@ export default function PublicExcavationForm() {
             tone="amber"
           />
         </Section>
+        )}
 
         {/* Section 11 — Atmosphere */}
+        {visible.has("11") && (
         <Section num="11" title={t("Atmosphere / Hazard Conditions")} testId="exc-section-11" highlight={triggers.atmos}>
           {[
             ["deep_or_confined_concern", "Deep / confined hazard concern?"],
@@ -590,6 +620,7 @@ export default function PublicExcavationForm() {
             tone={triggers.atmos ? "red" : "amber"}
           />
         </Section>
+        )}
 
         {/* Section 12 — Competent Person */}
         <Section num="12" title={t("Competent Person")} testId="exc-section-12" highlight={triggers.cp}>
