@@ -333,10 +333,10 @@ export default function PublicExcavationForm() {
               {f.location && <div className="bg-slate-50 border border-slate-200 rounded px-2 py-1.5"><span className="font-bold uppercase tracking-[0.08em] text-slate-500 mr-1">{t("Location")}</span>{f.location}</div>}
             </div>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
-            <div><Label className="text-xs font-bold">{t("Work Area")}</Label><Input value={f.work_area} onChange={onText("work_area")} data-testid="exc-workarea" /></div>
-            <div><Label className="text-xs font-bold">{t("Date of Work")}</Label><Input type="date" value={f.date_of_work} onChange={onText("date_of_work")} data-testid="exc-date" /></div>
-            <div><Label className="text-xs font-bold">{t("Crew")}</Label><Input value={f.crew} onChange={onText("crew")} data-testid="exc-crew" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+            <div className="min-w-0"><Label className="text-xs font-bold">{t("Work Area")}</Label><Input value={f.work_area} onChange={onText("work_area")} data-testid="exc-workarea" /></div>
+            <div className="min-w-0"><Label className="text-xs font-bold">{t("Date of Work")}</Label><Input type="date" value={f.date_of_work} onChange={onText("date_of_work")} data-testid="exc-date" /></div>
+            <div className="min-w-0"><Label className="text-xs font-bold">{t("Crew")}</Label><Input value={f.crew} onChange={onText("crew")} data-testid="exc-crew" /></div>
           </div>
           {/* FV-7.5 · Emergency excavation toggle (surfaces on Superintendent chip) */}
           <div className="mt-3 bg-red-50 border border-red-200 rounded p-2" data-testid="exc-emergency-block">
