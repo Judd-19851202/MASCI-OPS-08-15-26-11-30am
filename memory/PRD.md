@@ -1,6 +1,49 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-12 (OMEGA · PRODUCTION CLEANLINESS + SECURITY GATE · 🛑 NO GO)
+
+### Final verdict: **NO GO — production deployment NOT AUTHORIZED**
+
+Per OMEGA's binary rule: unverified ≠ verified. Gate has 0 hard failures but 6 of 10 criteria require explicit operator confirmation before they can be ticked green.
+
+### Gate roll-up
+- ✅ **Verified (4/10)**: No automated preview→prod data flow · No deployment/migration script writes contamination · Frontend bundle architecture cannot leak backend secrets (REACT_APP_* prefix discipline) · Rollback reference documented.
+- ⏳ **Requires operator action (6/10)**: production env values · TB-NTF-* placeholder policy · FV-7.1A backfill policy on prod · R2 bucket separation · Resend separation · post-cutover empty-state inventory.
+- ❌ **Failed (0/10)**.
+
+### Critical findings
+- Preview DB is heavily (and intentionally) contaminated: 641/641 excavations carry markers · 461/551 daily reports · 96/96 trench assets are FV-7.1A backfilled. **The preview DB must NEVER be copied to production.**
+- Mongo cluster shared between preview and production (`masci-prod.1nduwmg.mongodb.net`); only DB_NAME separates them.
+- `CORS_ORIGINS="*"` currently in `/app/backend/.env` — acceptable for preview, **forbidden for production**.
+- TB-NTF-* placeholder rows (7) seed in `routes/trench_safety/seed.py` on every boot — operator decision required.
+- R2 bucket `masci-hub` is shared between preview and production — operator decision required.
+- Resend uses single API key shared across envs — operator decision required.
+
+### Six required deliverables — all written
+- `/app/memory/PRODUCTION_CLEANLINESS_GATE.md` (10-criterion gate)
+- `/app/memory/PRODUCTION_DATA_SEPARATION_REPORT.md`
+- `/app/memory/PRODUCTION_TEST_DATA_SCAN_REPORT.md`
+- `/app/memory/PRODUCTION_ENV_SECURITY_REVIEW.md`
+- `/app/memory/PRODUCTION_EMPTY_STATE_CERTIFICATION.md` (template + post-cutover inventory script)
+- `/app/memory/PRODUCTION_GO_NO_GO_DECISION.md` (this verdict)
+
+### Operator action queue (sequenced)
+1. Confirm production env values (`APP_ENV=production`, `DB_NAME` ≠ preview, `CORS_ORIGINS` explicit allowlist, `RATE_LIMITING=on`, `SCHEDULER_ENABLED=true`).
+2. Decide TB-NTF-* policy (gate by APP_ENV recommended).
+3. Decide FV-7.1A backfill on prod (skip recommended).
+4. Decide R2 bucket separation.
+5. Decide Resend separation.
+6. Rotate JWT_SECRET, ADMIN_HMAC_SECRET, MFA_ENCRYPTION_KEY, SUPER_ADMIN_BOOTSTRAP_PASSWORD.
+7. Execute post-cutover empty-state inventory script; re-issue certification with real numbers.
+8. Confirm DB backup current.
+
+Until operator re-issues `PRODUCTION_GO_NO_GO_DECISION.md` with verdict GO and a signature line: **production stays NO GO**.
+
+### Out of scope (NOT touched)
+No new features · No new portals · No new analytics · No new modules · No production deployment.
+
+
 ## 2026-02-12 (OMEGA · PREVIEW DEPLOYMENT · 🟢 READY FOR HUMAN FIELD TRIAL)
 
 ### Verdict: **READY FOR HUMAN FIELD TRIAL ✅** — NOT production certified, NOT proven.
