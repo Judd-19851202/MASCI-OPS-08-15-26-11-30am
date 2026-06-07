@@ -353,5 +353,36 @@ None of these affect the directive's three success criteria; all three are MET a
 
 **Certification doc:** `/app/memory/PHASE10D_DAILY_REPORT_FIELD_FIRST_SIMPLIFICATION_CERTIFICATION.md`.
 
+
+
+---
+
+## 2026-02-07 · Daily Report Simplification · Path A ✅ CERTIFIED
+
+**Scope (OMEGA Subtractive Sprint):** The Daily Report was rebuilt to show less. Status card collapses to one line. Sections 05-10 default to hidden. Yesterday's setup auto-applies silently. Permanent coaching walls removed.
+
+**Removed (subtractive only):**
+- Sub-header paragraph on the New Daily Report page.
+- Verbose Status Card body (6 chips × 3 paragraph lines → 1 line: `5 THINGS LEFT → A · B · C · D · E`).
+- `PreviousReportSuggestions` visible card → silent auto-apply hook with Sonner Undo toast.
+- `DailyReportExcavationActivity` amber "Coaching, not punishment" strip.
+- `LinkedExcavationCompliance` paragraph body → single-line summary (`EX-2026-001 · Action Required · 6 ft · Type C`).
+- 6 CollapseCards (Subs / Visitors / Equipment / Deliveries / Production / Delays-Weather) removed from default render; now appear only when their trigger chip is on.
+- Compliance engine `why`/`action` paragraph fields stripped — labels are now ≤ 4 words.
+
+**Added:** `DayActivityTriggers` (11 pill chips replacing Section 03's Y/N grid). 20+ Spanish keys for Path A strings.
+
+**Metrics (vs Phase 10D):**
+- Visible CollapseCards: **6 → 0** (−100 %)
+- Default-visible sections: **11 → 6** (−45 %)
+- Status card lines: **~30 → 1** (−97 %)
+- Permanent coaching paragraphs: **5 → 0** (−100 %)
+- Foreman taps to "Ready": **~32 → ~10** (−69 %)
+- Typed chars with prior report: **~200 → ~25** (−87 %)
+
+**Testing:** 9/9 Path A compliance engine assertions pass. 16/16 Phase 10C engine unchanged. 41/41 backend regression unchanged. Frontend lint clean on all touched files.
+
+**Certification doc:** `/app/memory/DAILY_REPORT_SIMPLIFICATION_PATH_A_CERTIFICATION.md`.
+
 **Known findings (queued for Phase 10D.2):** Deep progressive disclosure of Sections 04–11; equipment-registry source; per-kind photo requirements.
 

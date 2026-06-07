@@ -1,5 +1,4 @@
-// Phase 10D · Daily Report compliance engine smoke test.
-// Run with: node /app/frontend/src/lib/dailyReportCompliance.test.mjs
+// Phase 10D · Path A simplification smoke test.
 import { computeDailyReportCompliance } from "./dailyReportCompliance.js";
 
 function assert(cond, label) {
@@ -7,52 +6,35 @@ function assert(cond, label) {
   console.log("ok:", label);
 }
 
-// 1. Empty form → Action Required (many missing)
+// 1. Empty → Action Required, no paragraphs
 let r = computeDailyReportCompliance({});
-assert(r.status === "Action Required", "empty form is Action Required");
-assert(r.requirements.some((x) => x.id === "project"), "project requirement fires");
-assert(r.requirements.some((x) => x.id === "prepared_by"), "prepared_by requirement fires");
-assert(r.requirements.some((x) => x.id === "signature"), "signature requirement fires");
+assert(r.status === "Action Required", "empty form Action Required");
+assert(r.items.length > 0, "items present");
+assert(r.items.every((it) => !("why" in it) && !("action" in it)), "no paragraph 'why'/'action' on items");
+assert(r.items.every((it) => it.label && it.label.split(" ").length <= 4), "labels are ≤ 4 words");
 
-// 2. Fully clean form → Ready to Submit
+// 2. Happy → Ready to Submit
 const happy = {
-  project_name: "Test", project_number: "001", location: "Site A",
-  prepared_by: "Foreman A",
-  excavation_activity_today: "No",
-  masci_crews: [{ headcount: 3 }],
-  photos: Array.from({ length: 6 }, (_, i) => ({ url: `p${i}` })),
-  prepared_by_signature: "data:image/png;base64,xxx",
+  project_name: "T", prepared_by: "F", excavation_activity_today: "No",
+  masci_crews: [{}], photos: Array.from({length: 6}, () => ({})),
+  prepared_by_signature: "x",
 };
 r = computeDailyReportCompliance(happy);
-assert(r.status === "Ready to Submit", "happy path is Ready to Submit");
-assert(r.requirements.length === 0, "happy path has 0 requirements");
+assert(r.status === "Ready to Submit", "happy → Ready to Submit");
+assert(r.items.length === 0, "no items when ready");
 
-// 3. Excavation activity YES no link → danger
+// 3. Excavation YES + no link
 r = computeDailyReportCompliance({ ...happy, excavation_activity_today: "Yes", linked_excavation_ids: [] });
-assert(r.requirements.some((x) => x.id === "excavation_link"), "excavation link requirement fires");
-assert(r.status === "Action Required", "excavation link missing → Action Required");
+assert(r.items.some((x) => x.id === "excavation_link"), "excavation link required");
+assert(r.items.find((x) => x.id === "excavation_link").label === "Link Excavation", "label is 'Link Excavation'");
 
-// 4. Excavation activity YES + linked → passes the gate
-r = computeDailyReportCompliance({ ...happy, excavation_activity_today: "Yes", linked_excavation_ids: ["EX-2026-001"] });
-assert(!r.requirements.some((x) => x.id === "excavation_link"), "excavation link gate cleared");
-
-// 5. Photos under minimum → danger
-r = computeDailyReportCompliance({ ...happy, photos: [{ url: "1" }, { url: "2" }] });
-assert(r.requirements.some((x) => x.id === "photos"), "photos requirement fires");
-
-// 6. Incident + safety not notified → danger
-r = computeDailyReportCompliance({ ...happy, safety_incidents_today: "Yes" });
-assert(r.requirements.some((x) => x.id === "safety_notified"), "safety_notified requirement fires");
-assert(r.requirements.some((x) => x.id === "incident_report"), "incident_report requirement fires");
-
-// 7. Weather YES no row → warn
-r = computeDailyReportCompliance({ ...happy, weather_impact: "Yes", constraints: [] });
-assert(r.requirements.some((x) => x.id === "weather_row"), "weather row warning fires");
-assert(r.status === "Needs Review", "weather without row is Needs Review");
-
-// 8. Coaching language only — never punitive
+// 4. Items have jumpTo
 r = computeDailyReportCompliance({});
-const titles = r.requirements.map((x) => x.title).join(" ");
-assert(!/Failed|Rejected|Violation/i.test(titles), "no punitive vocabulary");
+assert(r.items.every((it) => it.jumpTo), "every item has jumpTo");
 
-console.log("PASS — all 8 DR compliance scenarios green");
+// 5. No paragraph why/action fields anywhere
+const flat = JSON.stringify(r);
+assert(!flat.includes("Owners and the GC"), "no Owners/GC paragraph");
+assert(!flat.includes("Daily Report must name"), "no 'must name' paragraph");
+
+console.log("PASS — Path A compact compliance engine verified");

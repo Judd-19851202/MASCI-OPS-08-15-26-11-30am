@@ -1,109 +1,87 @@
-// Phase 10D · Previous Report Suggestions.
+// Phase 10D · Previous Report Suggestions — Path A.
 //
-// One-tap "use yesterday's crew / equipment / activity" component.
-// Reads the most recent Daily Report for the chosen MASCI Job and offers
-// one-tap apply chips. Reuses the existing /api/daily-reports GET.
-import React, { useEffect, useState } from "react";
-import { Sparkles, Users, Truck, ClipboardCheck, X } from "lucide-react";
+// AUTO-APPLY on first job-select. No card. No buttons. Just a tiny
+// "Yesterday's setup applied · Undo" toast for 6 seconds.
+//
+// Foreman opens the form, picks a job, the form fills itself. Done.
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { useT } from "@/lib/i18n";
 
 async function _loadPrevious(projectNumber) {
   if (!projectNumber) return null;
   try {
     const r = await api.get("/daily-reports", { params: { project_number: projectNumber, limit: 5 } });
-    // api may return list directly or {items}
     const items = Array.isArray(r.data) ? r.data : (r.data?.items || []);
-    // Sort by report_date desc just to be safe
     items.sort((a, b) => String(b.report_date || "").localeCompare(String(a.report_date || "")));
     return items[0] || null;
   } catch { return null; }
 }
 
-export default function PreviousReportSuggestions({ projectNumber, onApply, testId = "dr-previous-suggestions" }) {
-  const { t } = useT();
-  const [state, setState] = useState({ prev: null, dismissed: false });
-  const { prev, dismissed } = state;
+// Pure hook: no UI. Auto-applies once per (projectNumber, mount) pair.
+export default function usePreviousReportAutofill({ projectNumber, currentData, setData, enabled = true }) {
+  const appliedFor = useRef(null);
+  const [snapshot, setSnapshot] = useState(null);
 
   useEffect(() => {
+    if (!enabled) return undefined;
     if (!projectNumber) return undefined;
+    if (appliedFor.current === projectNumber) return undefined;
     let alive = true;
-    _loadPrevious(projectNumber).then((p) => { if (alive) setState({ prev: p, dismissed: false }); });
-    return () => { alive = false; };
-  }, [projectNumber]);
 
-  if (!prev || dismissed) return null;
-
-  const crewCount = (prev.masci_crews || []).reduce((sum, c) => sum + (Number(c.headcount) || (c.workers?.length || 0)), 0);
-  const equipCount = (prev.equipment || []).length;
-  const activityLen = (prev.work_performed || prev.activity_summary || "").length;
-
-  const applyAll = () => {
-    onApply({
-      masci_crews: prev.masci_crews || [],
-      subcontractors: prev.subcontractors || [],
-      equipment: prev.equipment || [],
-      work_performed: prev.work_performed || prev.activity_summary || "",
-      production: prev.production || [],
+    _loadPrevious(projectNumber).then((prev) => {
+      if (!alive || !prev) return;
+      // Don't overwrite if the form already has crew + activity + equipment
+      const hasContent =
+        (currentData.masci_crews || []).length > 0 ||
+        (currentData.equipment || []).length > 0 ||
+        String(currentData.work_performed || "").trim().length > 20;
+      if (hasContent) {
+        appliedFor.current = projectNumber;
+        return;
+      }
+      const before = {
+        masci_crews: currentData.masci_crews,
+        subcontractors: currentData.subcontractors,
+        equipment: currentData.equipment,
+        work_performed: currentData.work_performed,
+        production: currentData.production,
+      };
+      const patch = {
+        masci_crews: prev.masci_crews || [],
+        subcontractors: prev.subcontractors || [],
+        equipment: prev.equipment || [],
+        work_performed: prev.work_performed || prev.activity_summary || "",
+        production: prev.production || [],
+      };
+      const counts = [
+        (patch.masci_crews || []).length && `${patch.masci_crews.length} crew`,
+        (patch.equipment || []).length && `${patch.equipment.length} equipment`,
+        String(patch.work_performed || "").trim().length && "activity",
+      ].filter(Boolean).join(" · ");
+      if (!counts) {
+        appliedFor.current = projectNumber;
+        return;
+      }
+      setSnapshot(before);
+      setData((d) => ({ ...d, ...patch }));
+      appliedFor.current = projectNumber;
+      toast(`Yesterday's setup applied · ${counts}`, {
+        duration: 6000,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            setData((d) => ({ ...d, ...before }));
+            setSnapshot(null);
+            toast.dismiss();
+          },
+        },
+        // Smaller, lower-friction
+      });
     });
-    setState((p) => ({ ...p, dismissed: true }));
-  };
-  const applyCrew = () => onApply({ masci_crews: prev.masci_crews || [], subcontractors: prev.subcontractors || [] });
-  const applyEquip = () => onApply({ equipment: prev.equipment || [] });
-  const applyActivity = () => onApply({ work_performed: prev.work_performed || prev.activity_summary || "" });
 
-  return (
-    <div className="border-2 border-cyan-400 bg-cyan-50 rounded-md p-3 mt-3" data-testid={testId}>
-      <div className="flex items-start gap-2">
-        <Sparkles className="w-5 h-5 text-cyan-700 mt-0.5 shrink-0" />
-        <div className="flex-1">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold">{t("Previous Daily Report Found")}</div>
-              <div className="text-sm text-cyan-900 font-bold">
-                {prev.report_date || prev.doc_id || "Last report"} · {prev.prepared_by || t("Last foreman")}
-              </div>
-              <div className="text-[11px] text-cyan-800">
-                {crewCount > 0 && <>{crewCount} {t("crew members")} · </>}
-                {equipCount > 0 && <>{equipCount} {t("equipment items")} · </>}
-                {activityLen > 0 && <>{t("work-performed text available")}</>}
-              </div>
-            </div>
-            <button type="button" onClick={() => setState((p) => ({ ...p, dismissed: true }))}
-              className="text-cyan-700 hover:text-cyan-900" data-testid={`${testId}-dismiss`} aria-label="Dismiss">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <button type="button" onClick={applyAll}
-              className="bg-cyan-700 hover:bg-cyan-800 text-white text-xs font-bold uppercase tracking-[0.10em] px-3 py-1.5 rounded inline-flex items-center gap-1"
-              data-testid={`${testId}-apply-all`}>
-              <Sparkles className="w-3.5 h-3.5" /> {t("Use Everything from Yesterday")}
-            </button>
-            {crewCount > 0 && (
-              <button type="button" onClick={applyCrew}
-                className="bg-white border-2 border-cyan-700 text-cyan-800 hover:bg-cyan-100 text-xs font-bold uppercase tracking-[0.10em] px-3 py-1.5 rounded inline-flex items-center gap-1"
-                data-testid={`${testId}-apply-crew`}>
-                <Users className="w-3.5 h-3.5" /> {t("Use Crew")}
-              </button>
-            )}
-            {equipCount > 0 && (
-              <button type="button" onClick={applyEquip}
-                className="bg-white border-2 border-cyan-700 text-cyan-800 hover:bg-cyan-100 text-xs font-bold uppercase tracking-[0.10em] px-3 py-1.5 rounded inline-flex items-center gap-1"
-                data-testid={`${testId}-apply-equipment`}>
-                <Truck className="w-3.5 h-3.5" /> {t("Use Equipment")}
-              </button>
-            )}
-            {activityLen > 0 && (
-              <button type="button" onClick={applyActivity}
-                className="bg-white border-2 border-cyan-700 text-cyan-800 hover:bg-cyan-100 text-xs font-bold uppercase tracking-[0.10em] px-3 py-1.5 rounded inline-flex items-center gap-1"
-                data-testid={`${testId}-apply-activity`}>
-                <ClipboardCheck className="w-3.5 h-3.5" /> {t("Copy Last Activity")}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    return () => { alive = false; };
+  }, [projectNumber, enabled]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  return snapshot;
 }

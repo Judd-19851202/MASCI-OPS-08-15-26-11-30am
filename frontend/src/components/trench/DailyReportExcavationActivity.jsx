@@ -80,28 +80,25 @@ export default function DailyReportExcavationActivity({
 
   return (
     <div className="bg-white border border-slate-200 rounded-md p-3" data-testid={testId}>
-      <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-700 font-bold mb-2">
-        {t("Excavation Activity Today?")}
-      </div>
-      <div className="text-xs text-slate-600 mb-2">
-        {t("If your crew opened or worked in any trench, hole, or excavation today, select YES and link the excavation record.")}
-      </div>
-      <div className="flex gap-2" data-testid={`${testId}-yesno`}>
-        {[
-          ["Yes", "exc-act-yes"],
-          ["No", "exc-act-no"],
-        ].map(([v, tid]) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(v)}
-            className={"px-4 h-10 rounded border-2 text-sm font-bold uppercase tracking-[0.12em] transition " +
-              (String(value) === v ? "border-cyan-700 bg-cyan-700 text-white" : "border-slate-300 bg-white text-slate-700 hover:border-cyan-500")}
-            data-testid={tid}
-          >
-            {t(v)}
-          </button>
-        ))}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="font-bold text-sm text-slate-900">{t("Excavation Today?")}</div>
+        <div className="flex gap-2" data-testid={`${testId}-yesno`}>
+          {[
+            ["Yes", "exc-act-yes"],
+            ["No", "exc-act-no"],
+          ].map(([v, tid]) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => onChange(v)}
+              className={"px-4 h-9 rounded border-2 text-sm font-bold uppercase tracking-[0.10em] transition " +
+                (String(value) === v ? "border-cyan-700 bg-cyan-700 text-white" : "border-slate-300 bg-white text-slate-700 hover:border-cyan-500")}
+              data-testid={tid}
+            >
+              {t(v)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {isYes && (

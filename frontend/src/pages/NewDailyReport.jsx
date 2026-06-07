@@ -38,8 +38,9 @@ import { formatApiError } from "@/lib/apiErrors";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import DailyReportExcavationActivity from "@/components/trench/DailyReportExcavationActivity";
 import DailyReportStatusCard from "@/components/dailyreport/DailyReportStatusCard";
-import PreviousReportSuggestions from "@/components/dailyreport/PreviousReportSuggestions";
+import usePreviousReportAutofill from "@/components/dailyreport/PreviousReportSuggestions";
 import LinkedExcavationCompliance from "@/components/dailyreport/LinkedExcavationCompliance";
+import DayActivityTriggers, { isTriggerOn } from "@/components/dailyreport/DayActivityTriggers";
 import { computeDailyReportCompliance } from "@/lib/dailyReportCompliance";
 import { fetchDailyWeather } from "@/lib/weather";
 import { HelpTipBlock } from "@/components/HelpTip";
@@ -447,10 +448,18 @@ export default function NewDailyReport({ publicMode = false }) {
   const [recentlyLoadedSetup, setRecentlyLoadedSetup] = React.useState(null);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
-  // Phase 10D · helper for "Use yesterday's …" suggestions
+  // Phase 10D · helper for previous-report autofill
   const applyPrevSuggestion = (patch) => setData((p) => ({ ...p, ...patch }));
+  // Phase 10D.2 (Path A) · activity trigger state (component-local)
+  const [dayTriggers, setDayTriggers] = useState({});
   // Phase 10D · live compliance state (read-only — no setState in render)
   const dailyReportCompliance = computeDailyReportCompliance(data);
+  // Phase 10D · auto-apply yesterday's setup silently when job selected
+  usePreviousReportAutofill({
+    projectNumber: data.project_number,
+    currentData: data,
+    setData,
+  });
 
   // Auto-fetch the next sequential report number on mount (or when the
   // report_date changes). The user can still edit it manually if desired.
@@ -982,19 +991,17 @@ export default function NewDailyReport({ publicMode = false }) {
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Daily Job Report")}
           </h1>
-          {/* iter333 · operational sub-header · iter327 voice */}
-          <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
-            {t("One report per crew, per day. Capture labor, subs, materials, weather, and photos so payroll and PM coordination run clean tomorrow.")}
-          </p>
         </div>
 
-        {/* Phase 10D · Live Submit Status (decision-support, sticky at top) */}
+        {/* Phase 10D · Live Submit Status (compact, single-line, Path A) */}
         <DailyReportStatusCard result={dailyReportCompliance} />
 
-        {/* Phase 10D · One-tap "Use yesterday's …" suggestions */}
-        <PreviousReportSuggestions
-          projectNumber={data.project_number}
-          onApply={applyPrevSuggestion}
+        {/* Phase 10D.2 (Path A) · What happened today? — chips control section visibility */}
+        <DayActivityTriggers
+          data={data}
+          triggers={dayTriggers}
+          setTriggers={setDayTriggers}
+          setData={setData}
         />
 
         {/* iter437 · Phase 31.1 · device-local crew setup restore.
@@ -1752,6 +1759,7 @@ export default function NewDailyReport({ publicMode = false }) {
             attachment_note) remain intact. */}
         <div className="space-y-2" data-testid="dr-collapse-cards">
 
+          {isTriggerOn(dayTriggers, data, "subs_today") && (
           <CollapseCard
             title={t("Subcontractors on Site")}
             testId="dr-subcontractors"
@@ -1802,7 +1810,9 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="sub"
             />
           </CollapseCard>
+          )}
 
+          {isTriggerOn(dayTriggers, data, "visitors_today") && (
           <CollapseCard
             title={t("Site Visitors")}
             testId="dr-visitors"
@@ -1836,7 +1846,9 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="visitor"
             />
           </CollapseCard>
+          )}
 
+          {isTriggerOn(dayTriggers, data, "equipment_today") && (
           <CollapseCard
             title={t("Equipment Log")}
             testId="dr-equipment"
@@ -1871,7 +1883,9 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="equipment"
             />
           </CollapseCard>
+          )}
 
+          {isTriggerOn(dayTriggers, data, "deliveries_today") && (
           <CollapseCard
             title={t("Material Deliveries")}
             testId="dr-materials"
@@ -1910,7 +1924,9 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="material"
             />
           </CollapseCard>
+          )}
 
+          {/* Activity / Production Log — always visible (work narrative is the day's story) */}
           <CollapseCard
             title={t("Activity / Production Log")}
             testId="dr-activities"
@@ -1949,6 +1965,7 @@ export default function NewDailyReport({ publicMode = false }) {
           {/* Phase V.2 · Wave-1B · Structured Production rows.
               ADDITIVE · operator-approved · 7-unit closed enum.
               Doctrine: PRODUCTION_UI_CERTIFICATION.md */}
+          {isTriggerOn(dayTriggers, data, "production_today") && (
           <CollapseCard
             title={t("Production Quantities")}
             testId="dr-production"
@@ -1991,6 +2008,7 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="production"
             />
           </CollapseCard>
+          )}
 
           {/* Phase V.2 · Wave-1B · Structured Constraint rows (chip-style).
               ADDITIVE · operator-approved · 11-type closed enum.
@@ -2000,7 +2018,7 @@ export default function NewDailyReport({ publicMode = false }) {
               construction ("delays / extra work") while backend
               models / enums / APIs keep "constraint" terminology.
               Doctrine: CONSTRAINT_UI_CERTIFICATION.md */}
-          {(() => {
+          {(isTriggerOn(dayTriggers, data, "schedule_delays") || isTriggerOn(dayTriggers, data, "weather_impact")) && (() => {
             // Phase V.2 · Weather Impact Cleanup — merged-gate logic.
             // The Delays / Extra Work card surfaces attention when
             // EITHER directive 03 question is YES and the matching
