@@ -1,6 +1,47 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (OMEGA PHASE 8C · OPERATIONAL INTELLIGENCE · TRENCH SAFETY PULSE · 🟢 GO)
+
+### Verdict: 🟢 PASS — Weekly leadership briefing live on the certified architecture
+
+### Scope
+5-feature operational intelligence sprint: weekly Pulse email (8-section briefing) · Safety + Admin Hub Pulse card · 52-week pulse history · deterministic Operational Health Score · mobile-optimised HTML. All data flows through existing certified collections; only one new collection (`trench_safety_pulses`) follows the audit/snapshot pattern.
+
+### Built
+**Backend (1 new module · 1 wire · 1 new test)**
+- `pulse.py` **NEW** (~430 LOC) — snapshot builder, deterministic Operational Health Score (0-100), HTML email renderer (table-based inline styles, mobile-first), 5 endpoints: `POST /pulse/generate?send=` · `GET /pulse/current` · `GET /pulse/history` · `GET /pulse/{id}` · `GET /pulse/{id}/html`
+- `routes/trench_safety/__init__.py` — wires `register_pulse_routes`
+- `tests/test_trench_safety_phase8c.py` **NEW** — 7/7 PASS
+
+**Frontend (1 new · 1 wire)**
+- `TrenchSafetyPulse.jsx` **NEW** — `TrenchSafetyPulseCard` (Safety+Admin parity via shared shell) · `PulseViewerDialog` (sandboxed iframe of the HTML email body) · `PulseHistoryDialog`
+- `TrenchSafetyHub.jsx` — mounts the Pulse card above Executive Summary
+- `lib/i18n.js` — 25+ EN→ES translations
+
+### 8-section briefing
+Fleet Overview · Asset Type Breakdown (9 types incl. Road Plate) · Inspection Health · Hold Activity (top-5 by days-on-hold) · Repair Activity (with "Repair Complete ≠ Safe To Use" reminder) · Road Plate Program · Top 3 Operational Alerts · Activity Summary Last 7 Days.
+
+### Operational Health Score
+Weighted, deterministic, explainable — never AI. 0-100 with 4 ratings (Excellent ≥90 · Good 75-89 · Needs Attention 60-74 · Critical <60). Components: inspection compliance 30% · hold health 25% · repair backlog 20% · missing critical data 15% · availability 10%.
+
+### Delivery
+Email routes through the existing `_trench_send_email` wrapper (Phase 7.5C · Resend with `[MASCI · TRENCH SAFETY]` subject tag). Every generation writes a `trench_safety_pulse_generated` audit row with delivery_status + recipient_count + score + rating.
+
+### Validation
+- **Phase 8C pytest**: 7/7 PASS
+- **Recent regression** (Phase 7 · 8A · 8B · 8C): **37/37 PASS** — zero drift
+- **Frontend smoke**: Pulse card renders with live score (CRITICAL 51/100 on preview fixtures), 4 stats, 4 actions, history dialog working
+
+### Deliverable
+`/app/memory/PHASE8C_OPERATIONAL_INTELLIGENCE_CERTIFICATION.md` — 12 sections · PASS recommendation.
+
+### STOP per directive
+Phase 9 · Reports · Training · OSHA Library · Search Expansion · OCR · Vision · Phase 10 · Phase 11 — NOT started.
+
+---
+
+
 ## 2026-02-07 (OMEGA PHASE 8B · OPERATIONAL POLISH · 🟢 GO)
 
 ### Verdict: 🟢 PASS — Operational adoption polish on the certified architecture

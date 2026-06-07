@@ -18,6 +18,7 @@ import {
   OperationalSummaryPanel,
   CSVImportDialog,
 } from "@/pages/trench_safety/TrenchSafetyPolish";
+import { TrenchSafetyPulseCard } from "@/pages/trench_safety/TrenchSafetyPulse";
 
 function KPI({ label, value, sub, valueClass = "text-slate-900", testId }) {
   return (
@@ -127,6 +128,14 @@ export default function TrenchSafetyHub() {
               {t("Daily Posture")}
             </div>
             <DailyPosturePanel />
+          </section>
+
+          {/* Phase 8C — Trench Safety Pulse (Operational Intelligence) */}
+          <section className="mt-6" data-testid="trench-hub-pulse">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
+              {t("Operational Intelligence")}
+            </div>
+            <TrenchSafetyPulseCard />
           </section>
 
           {/* Phase 8B — Executive Operational Summary */}
