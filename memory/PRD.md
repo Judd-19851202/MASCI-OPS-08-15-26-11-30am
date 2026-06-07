@@ -1,6 +1,39 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-08 (OMEGA · FV-7 SAFETY GAP CLOSURE SPRINT · 🟢 COMPLETE)
+
+### Verdict: 🟢 PASS — Excavation Operations elevated CONDITIONALLY READY → PROVEN (pending 3×3×3 field trial)
+
+### Scope (FV-7 · 6 deterministic gap closures, ZERO scope creep)
+**FV-7.1** Trench Box Rated Depth Validation — ACTION REQUIRED flag (never blocks), foreman acknowledgement with reason OR tabulated-data exception, Safety override endpoint with full audit trail (who/when/why); flag downgrades to Needs Review on acknowledgement.
+**FV-7.2** Competent Person Validation — employee profile now carries `competent_person_designated`, `cp_approved_by`, `cp_approval_date`, `cp_active`, `cp_training_date`, `cp_expiration_date`, `cp_notes`, `cp_designation_history[]`. `PUT /api/admin/employees/{id}/cp-designation` (admin-only) + `GET /api/employees/competent-persons` (public filtered list). EmployeePicker `role="competent"` now pulls from designated list only.
+**FV-7.3** Foreman Reinspection Trigger — `POST /api/trench-safety/excavations/{id}/public/reinspection-request` (no auth) accepts all 7 directive reasons (Rain Event · Water Intrusion · Cave-In · Protective System Changed · Utility Conflict · Near Miss · Other). Notifies Safety + Superintendent + Admin via proper event_fanout payload. No Safety approval needed. Success-screen UI exposes the trigger to foremen.
+**FV-7.4** Road Plate Dimension Sanity — backend rule fixed to compare opening L↔plate L AND opening W↔plate W (was axis-mismatched). No engineering — sanity only.
+**FV-7.5** Superintendent Oversight Chips — 7 top-row chips (Open · Reinspection · No CP · No PS · Trench Boxes Deployed · Road Plates Deployed · Emergency) on existing Oversight page. `emergency_excavation` field added to submit payload.
+**FV-7.6** Safety OSHA Rollup Chips — 5 second-row chips (No CP · Protective System Issue · Depth Validation Issue · Road Plate Validation Issue · Reinspection Required). Single tap filter. No drill-down maze.
+
+### New endpoints
+- `GET /api/employees/competent-persons`
+- `PUT /api/admin/employees/{id}/cp-designation`
+- `GET /api/admin/employees/{id}/cp-designation`
+- `POST /api/trench-safety/excavations/{id}/rated-depth-acknowledge`
+- `GET /api/trench-safety/excavations/oversight-chips`
+- `GET /api/trench-safety/excavations?chip=<key>` (extended)
+
+### Tests
+`/app/backend/tests/test_fv7_safety_gaps.py` — 15 passing, 5 skipped (seed-data guards). Phase 10A-B regression: 16/16 green.
+
+### Deliverable
+`/app/memory/FV7_SAFETY_GAP_CLOSURE_CERTIFICATION.md`
+
+### Next
+3 Foremen × 3 Jobs × 3 Days field validation trial. That is what determines whether Excavation Operations is actually PROVEN.
+
+### Out of scope (confirmed not touched)
+No new portals · No new dashboards · No new reports · No new analytics · No new training · No new OSHA library · No new workflows.
+
+
 ## 2026-02-07 (OMEGA PHASE 10A CORE · PUBLIC EXCAVATION WORKFLOW · 🟢 GO · G-1 CLOSED)
 
 ### Verdict: 🟢 PASS — G-1 Excavation Record gap closed at the regulatory-critical spine
