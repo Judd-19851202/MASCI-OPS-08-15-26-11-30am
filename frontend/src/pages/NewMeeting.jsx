@@ -447,7 +447,7 @@ export default function NewMeeting({ publicMode = false }) {
                 <SelectContent>
                   {TOPIC_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
-                      {c}
+                      {t(c)}
                     </SelectItem>
                   ))}
                 </SelectContent>

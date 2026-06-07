@@ -250,7 +250,7 @@ export default function ViewMeeting() {
             <KV label={t("Date")} value={formatDateLong(data.meeting_date)} />
             <KV label={t("Time")} value={data.meeting_time} />
             <KV label={t("Conducted By")} value={data.conducted_by} />
-            <KV label={t("Category")} value={data.topic_category} />
+            <KV label={t("Category")} value={t(data.topic_category)} />
             {/* iter260 · E1 · operational context */}
             {data.crew_size != null && (
               <KV label={t("Crew Size")} value={String(data.crew_size)} />
