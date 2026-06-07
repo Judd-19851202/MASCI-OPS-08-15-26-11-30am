@@ -30,6 +30,7 @@ from .certifications import register_certification_routes
 from .csv_import import register_import_routes
 from .dashboard import register_dashboard_routes
 from .pulse import register_pulse_routes
+from .reports import register_report_routes
 from .deployments import register_deployment_routes
 from .holds import register_hold_routes
 from .inspections import register_inspection_routes
@@ -122,6 +123,11 @@ def build_trench_safety_router(
         db,
         require_safety_or_admin=require_safety_or_admin,
         require_any_portal=require_any_portal,
+    )
+    register_report_routes(
+        api_router,
+        db,
+        require_safety_or_admin=require_safety_or_admin,
     )
 
     return api_router

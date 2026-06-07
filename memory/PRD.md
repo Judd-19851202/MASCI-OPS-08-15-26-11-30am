@@ -1,6 +1,61 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (OMEGA PHASE 9A · REPORTING & ANALYTICS · 🟢 GO)
+
+### Verdict: 🟢 PASS — 9 operational reports + CSV export, on certified data
+
+### Scope
+9-report Reporting & Analytics Command Center: Executive Asset Health · Road Plate Command · Inspection Compliance · Repair Backlog · Hold Management · Asset Utilization · Missing Data · Project Asset · Activity & Audit. Plus universal CSV export, global filter bar (date / asset_type / project / location / status / condition), Safety+Admin parity, EN/ES coverage. Zero new collections, zero analytics engine, zero new dashboards outside Trench Safety.
+
+### Built (additive only)
+**Backend**
+- `reports.py` **NEW** (~600 LOC) — 9 report builders, registry-driven route registration, common `Filters` parser, universal CSV exporter; reads directly from `trench_safety_assets/_holds/_repairs/_inspections`, `audit_events`, latest `trench_safety_pulses`
+- `routes/trench_safety/__init__.py` — wires `register_report_routes`
+- `tests/test_trench_safety_phase9a.py` **NEW** — 17/17 PASS
+
+**Frontend**
+- `TrenchSafetyReports.jsx` **NEW** — page · global filter bar · 9 collapsible report sections · per-section CSV button · 9 renderer components
+- `TrenchSafetyShell.jsx` — Reports tab added; portal-aware (Safety + Admin parity)
+- `App.js` — `/safety/trench-safety/reports` + `/admin/trench-safety/reports` routes
+- `lib/i18n.js` — 70+ EN→ES translations
+
+### Endpoints
+```
+GET /api/trench-safety/reports/list
+GET /api/trench-safety/reports/executive
+GET /api/trench-safety/reports/road-plate            (forces asset_type=Road Plate)
+GET /api/trench-safety/reports/inspection-compliance
+GET /api/trench-safety/reports/repair-backlog
+GET /api/trench-safety/reports/holds
+GET /api/trench-safety/reports/utilization
+GET /api/trench-safety/reports/missing-data
+GET /api/trench-safety/reports/project-assets
+GET /api/trench-safety/reports/activity
+GET /api/trench-safety/reports/{id}/export.csv
+```
+
+### Visualization
+Cards · tables · color-coded percentages · status indicators. No fancy charts. 5:30 AM Superintendent Test passes — Executive section opens by default with 7 stat cards above the fold.
+
+### Validation
+- **Phase 9A pytest**: 17/17 PASS
+- **Recent-phase regression** (8A · 8B · 8C · 9A): **40/40 PASS** — zero drift
+- **Frontend smoke**: Reports tab live on `/safety/trench-safety/reports` with Executive Asset Health (53% availability / 84% inspection compliance / 116% repair backlog / 51% Critical health) and 8 collapsible report sections
+
+### Known notes
+- PDF + XLSX exports deferred to Phase 9B (CSV covers universal Excel/Sheets/Numbers use case; ships today)
+- Project-health formula is deterministic and re-tunable (`100 − 8·holds − 5·repairs − 3·inspections_due`)
+
+### Deliverable
+`/app/memory/PHASE9A_REPORTING_ANALYTICS_CERTIFICATION.md` (13 sections · PASS recommendation)
+
+### STOP per directive
+Training · OSHA Library · Search Expansion · OCR · Vision · Phase 10 · Phase 11 — NOT started.
+
+---
+
+
 ## 2026-02-07 (OMEGA PHASE 8C · OPERATIONAL INTELLIGENCE · TRENCH SAFETY PULSE · 🟢 GO)
 
 ### Verdict: 🟢 PASS — Weekly leadership briefing live on the certified architecture

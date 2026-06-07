@@ -44,6 +44,7 @@ import TrenchSafetyAssetsList from "@/pages/trench_safety/TrenchSafetyAssetsList
 import TrenchSafetyAssetDetail from "@/pages/trench_safety/TrenchSafetyAssetDetail";
 import TrenchSafetyTabulatedData from "@/pages/trench_safety/TrenchSafetyTabulatedData";
 import TrenchSafetyRepairReviewPage from "@/pages/trench_safety/TrenchSafetyRepairReviewPage";
+import TrenchSafetyReports from "@/pages/trench_safety/TrenchSafetyReports";
 import TrenchSafetyFieldReportsPage from "@/pages/trench_safety/TrenchSafetyFieldReportsPage";
 import TrenchSafetyQrLanding from "@/pages/trench_safety/TrenchSafetyQrLanding";
 import PublicTrenchSafetyDashboard from "@/pages/trench_safety/PublicTrenchSafetyDashboard";
@@ -404,6 +405,7 @@ function App() {
             <Route path="/safety/trench-safety/assets"                element={SF(<TrenchSafetyAssetsList />)} />
             <Route path="/safety/trench-safety/assets/:assetId"       element={SF(<TrenchSafetyAssetDetail />)} />
             <Route path="/safety/trench-safety/tabulated-data"        element={SF(<TrenchSafetyTabulatedData />)} />
+            <Route path="/safety/trench-safety/reports"               element={SF(<TrenchSafetyReports />)} />
             {/* Phase 7.5B — Safety Repair Review + Field Reports inbox */}
             <Route path="/safety/trench-safety/repair-review"          element={SF(<TrenchSafetyRepairReviewPage />)} />
             <Route path="/safety/trench-safety/field-reports"          element={SF(<TrenchSafetyFieldReportsPage />)} />
@@ -499,6 +501,7 @@ function App() {
             <Route path="/admin/trench-safety/assets"           element={AP(<TrenchSafetyAssetsList />)} />
             <Route path="/admin/trench-safety/assets/:assetId"  element={AP(<TrenchSafetyAssetDetail />)} />
             <Route path="/admin/trench-safety/tabulated-data"   element={AP(<TrenchSafetyTabulatedData />)} />
+            <Route path="/admin/trench-safety/reports"          element={AP(<TrenchSafetyReports />)} />
             <Route path="/admin/trench-safety/repair-review"    element={AP(<TrenchSafetyRepairReviewPage adminPortal={true} />)} />
             <Route path="/admin/trench-safety/field-reports"    element={AP(<TrenchSafetyFieldReportsPage adminPortal={true} />)} />
 
