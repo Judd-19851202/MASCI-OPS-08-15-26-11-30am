@@ -1,7 +1,11 @@
 // Phase 10A · Safety/Admin Excavation Oversight Surface
+// Phase 10A-B · OMEGA Correction Directive integration:
+//   • Reinspection Queue tab (Correction 10)
+//   • Spanish ↔ English notes toggle (Correction 9)
+//   • Daily Report linkage display (Correction 1)
+//   • Personnel + job linkage display (Corrections 2 + 3)
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Loader2, AlertTriangle, CheckCircle2, MessageSquare } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle2, MessageSquare, Languages, CalendarClock, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,56 +17,114 @@ import { useT } from "@/lib/i18n";
 import TrenchSafetyShell from "@/pages/trench_safety/TrenchSafetyShell";
 
 const STATUSES = ["Submitted", "Needs Review", "Action Required", "Pending Verification", "Reviewed", "Closed", "Reopened"];
+const TABS = [
+  { key: "all", label: "All Records" },
+  { key: "reinspection", label: "Reinspection Queue" },
+];
 
 export default function ExcavationOversight() {
   const { t } = useT();
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("all");
+  const [state, setState] = useState({ items: [], loading: true });
+  const { items, loading } = state;
   const [filters, setFilters] = useState({});
   const [reviewing, setReviewing] = useState(null);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const params = {};
-      Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
-      const r = await api.get("/trench-safety/excavations", { params });
-      setItems(r.data?.items || []);
-    } catch { /* swallow */ }
-    finally { setLoading(false); }
-  };
+  useEffect(() => {
+    let alive = true;
+    const fetchData = async () => {
+      try {
+        let r;
+        if (tab === "reinspection") {
+          r = await api.get("/trench-safety/excavations/reinspection-queue");
+        } else {
+          const params = {};
+          Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
+          r = await api.get("/trench-safety/excavations", { params });
+        }
+        if (alive) setState({ items: r.data?.items || [], loading: false });
+      } catch {
+        if (alive) setState({ items: [], loading: false });
+      }
+    };
+    fetchData();
+    return () => { alive = false; };
+  }, [JSON.stringify(filters), tab, state._bust]);
 
-  useEffect(() => { load(); }, [JSON.stringify(filters)]); // eslint-disable-line
+  const reload = () => setState((s) => ({ ...s, loading: true, _bust: Math.random() }));
 
   return (
-    <TrenchSafetyShell active="excavations" title={t("Excavation Oversight")} kicker={t("Public field submissions · review and close")}>
+    <TrenchSafetyShell active="excavations" title={t("Excavation Oversight")} kicker={t("Public field submissions · review and close · reinspection queue")}>
       <p className="text-slate-700 mb-3 text-sm">{t("Field crews submit excavation records from the Public Safety Tile. Coaching language. No punitive vocabulary.")}</p>
 
-      <div className="bg-white border border-slate-200 rounded p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2" data-testid="exc-filters">
-        <Input placeholder={t("Project name")} value={filters.project_name || ""} onChange={(e) => setFilters({ ...filters, project_name: e.target.value })} data-testid="exc-filter-project" />
-        <Input placeholder={t("Supervisor")} value={filters.supervisor_name || ""} onChange={(e) => setFilters({ ...filters, supervisor_name: e.target.value })} data-testid="exc-filter-supervisor" />
-        <Select value={filters.status || "__all"} onValueChange={(v) => setFilters({ ...filters, status: v === "__all" ? "" : v })}>
-          <SelectTrigger data-testid="exc-filter-status"><SelectValue placeholder={t("Status")} /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all">{t("All Statuses")}</SelectItem>
-            {STATUSES.map((s) => <SelectItem key={s} value={s}>{t(s)}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Input type="number" placeholder={t("Min depth ft")} value={filters.depth_min || ""} onChange={(e) => setFilters({ ...filters, depth_min: e.target.value })} data-testid="exc-filter-depth" />
-        <Button variant="outline" size="sm" onClick={() => setFilters({})} data-testid="exc-filter-reset">{t("Reset")}</Button>
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-slate-200 mb-3" data-testid="exc-tabs">
+        {TABS.map((tabDef) => (
+          <button
+            key={tabDef.key}
+            type="button"
+            onClick={() => setTab(tabDef.key)}
+            className={"px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] border-b-2 transition " +
+              (tab === tabDef.key ? "border-cyan-700 text-cyan-900" : "border-transparent text-slate-500 hover:text-slate-900")}
+            data-testid={`exc-tab-${tabDef.key}`}
+          >
+            {tabDef.key === "reinspection" && <CalendarClock className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />}
+            {t(tabDef.label)}
+          </button>
+        ))}
       </div>
+
+      {tab === "all" && (
+        <div className="bg-white border border-slate-200 rounded p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2" data-testid="exc-filters">
+          <Input placeholder={t("Project name")} value={filters.project_name || ""} onChange={(e) => setFilters({ ...filters, project_name: e.target.value })} data-testid="exc-filter-project" />
+          <Input placeholder={t("Supervisor")} value={filters.supervisor_name || ""} onChange={(e) => setFilters({ ...filters, supervisor_name: e.target.value })} data-testid="exc-filter-supervisor" />
+          <Select value={filters.status || "__all"} onValueChange={(v) => setFilters({ ...filters, status: v === "__all" ? "" : v })}>
+            <SelectTrigger data-testid="exc-filter-status"><SelectValue placeholder={t("Status")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">{t("All Statuses")}</SelectItem>
+              {STATUSES.map((s) => <SelectItem key={s} value={s}>{t(s)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Input type="number" placeholder={t("Min depth ft")} value={filters.depth_min || ""} onChange={(e) => setFilters({ ...filters, depth_min: e.target.value })} data-testid="exc-filter-depth" />
+          <Button variant="outline" size="sm" onClick={() => setFilters({})} data-testid="exc-filter-reset">{t("Reset")}</Button>
+        </div>
+      )}
 
       <div className="mt-3" data-testid="exc-list">
         {loading ? <Loader2 className="w-5 h-5 animate-spin text-cyan-700" /> :
-          items.length === 0 ? <div className="text-sm italic text-slate-500" data-testid="exc-list-empty">— {t("no excavation records")} —</div> :
+          items.length === 0 ? <div className="text-sm italic text-slate-500" data-testid="exc-list-empty">— {t(tab === "reinspection" ? "no open reinspections" : "no excavation records")} —</div> :
           <ul className="space-y-2">
             {items.map((d) => (
               <li key={d.id} className="bg-white border border-slate-200 rounded p-3" data-testid={`exc-row-${d.id}`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="font-mono font-black text-lg text-slate-900">{d.id}</div>
-                    <div className="text-sm text-slate-700">{d.project_name} · {d.supervisor_name} · {d.date_of_work}</div>
-                    <div className="text-xs text-slate-500">{t("Depth")}: {d.depth_ft ?? "—"} ft · {t("Protective")}: {d.protective_system} · {t("Soil")}: {d.soil_classification}</div>
+                    <div className="text-sm text-slate-700">
+                      {d.project_name || "—"}
+                      {d.project_number && <span className="font-mono text-xs text-slate-500"> · #{d.project_number}</span>}
+                    </div>
+                    <div className="text-xs text-slate-600">
+                      {[
+                        d.foreman_name && `Foreman: ${d.foreman_name}`,
+                        d.superintendent_name && `Super: ${d.superintendent_name}`,
+                        d.competent_person_name && `CP: ${d.competent_person_name}`,
+                        d.date_of_work,
+                      ].filter(Boolean).join(" · ")}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {t("Depth")}: {d.depth_ft ?? "—"} ft · {t("Protective")}: {d.protective_system} · {t("Soil")}: {d.soil_classification}
+                    </div>
+                    {(d.assigned_asset_ids?.length || d.road_plate_ids?.length) > 0 && (
+                      <div className="text-[11px] mt-1 text-cyan-800 flex flex-wrap gap-1" data-testid={`exc-row-${d.id}-assets`}>
+                        {(d.assigned_asset_ids || []).map((a) => <span key={a} className="bg-cyan-100 px-1.5 py-0.5 rounded font-mono">{a}</span>)}
+                        {(d.road_plate_ids || []).map((a) => <span key={a} className="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-mono">{a}</span>)}
+                      </div>
+                    )}
+                    {d.daily_report_links?.length > 0 && (
+                      <div className="text-[11px] mt-1 text-emerald-800 inline-flex items-center gap-1" data-testid={`exc-row-${d.id}-dr-links`}>
+                        <Link2 className="w-3 h-3" /> {t("Daily Report:")} {d.daily_report_links.map((l) => l.report_number || l.daily_report_id).join(", ")}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className={"text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded border font-bold " +
@@ -70,6 +132,11 @@ export default function ExcavationOversight() {
                        d.status === "Needs Review" ? "border-amber-300 bg-amber-50 text-amber-800" :
                        d.status === "Closed" ? "border-emerald-300 bg-emerald-50 text-emerald-800" :
                        "border-slate-300 bg-slate-50 text-slate-700")}>{t(d.status)}</div>
+                    {d.reinspection_required && !d.reinspection_completed && (
+                      <div className="mt-1 inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] font-bold text-amber-800" data-testid={`exc-row-${d.id}-reinspection-flag`}>
+                        <CalendarClock className="w-3 h-3" /> {t("Reinspection")}
+                      </div>
+                    )}
                     <Button size="sm" variant="outline" onClick={() => setReviewing(d)} data-testid={`exc-review-${d.id}`} className="mt-2"><MessageSquare className="w-3.5 h-3.5 mr-1" /> {t("Review")}</Button>
                   </div>
                 </div>
@@ -88,7 +155,7 @@ export default function ExcavationOversight() {
           </ul>
         }
       </div>
-      <ReviewDialog rec={reviewing} onClose={(refresh) => { setReviewing(null); if (refresh) load(); }} />
+      <ReviewDialog rec={reviewing} onClose={(refresh) => { setReviewing(null); if (refresh) reload(); }} />
     </TrenchSafetyShell>
   );
 }
@@ -96,8 +163,13 @@ export default function ExcavationOversight() {
 function ReviewDialog({ rec, onClose }) {
   const { t } = useT();
   const [note, setNote] = useState("");
+  const [reinspectReason, setReinspectReason] = useState("Manual");
+  const [transText, setTransText] = useState("");
+  const [showTranslated, setShowTranslated] = useState(false);
+  const [savedTranslation, setSavedTranslation] = useState("");
   const [busy, setBusy] = useState(false);
   if (!rec) return null;
+
   async function act(action) {
     setBusy(true);
     try {
@@ -108,13 +180,106 @@ function ReviewDialog({ rec, onClose }) {
       toast.error(e?.response?.data?.detail || e?.message || "Failed");
     } finally { setBusy(false); }
   }
+
+  async function triggerReinspection() {
+    setBusy(true);
+    try {
+      await api.post(`/trench-safety/excavations/${rec.id}/reinspection-trigger`, {
+        reason: reinspectReason, note,
+      });
+      toast.success(t("Reinspection triggered"));
+      onClose(true);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || e?.message || "Failed");
+    } finally { setBusy(false); }
+  }
+
+  async function saveTranslation() {
+    setBusy(true);
+    try {
+      await api.post(`/trench-safety/excavations/${rec.id}/translate-notes`, { translated_text: transText });
+      toast.success(t("Translation saved"));
+      setSavedTranslation(transText);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || e?.message || "Failed");
+    } finally { setBusy(false); }
+  }
+
+  const translatedText = savedTranslation || rec.field_notes_translated_text || "";
+  const isSpanish = (rec.field_notes_original_language || rec.language || "").toLowerCase() === "es";
+  const displayedNotes = showTranslated && translatedText ? translatedText : (rec.field_notes_original_text || rec.field_notes || "");
+
   return (
     <Dialog open={true} onOpenChange={() => onClose(false)}>
-      <DialogContent className="max-w-lg" data-testid="exc-review-dialog">
+      <DialogContent className="max-w-2xl" data-testid="exc-review-dialog">
         <DialogHeader><DialogTitle>{rec.id} · {t("Review")}</DialogTitle></DialogHeader>
-        <div className="space-y-2 text-sm">
-          <div>{rec.project_name} · {rec.supervisor_name}</div>
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("Coaching note (optional)")} rows={3} data-testid="exc-review-note" />
+        <div className="space-y-3 text-sm max-h-[60vh] overflow-y-auto pr-2">
+          <div className="text-xs text-slate-600 grid grid-cols-2 gap-2">
+            <div><b>{t("Project")}:</b> {rec.project_name}</div>
+            <div><b>{t("Project #")}:</b> {rec.project_number || "—"}</div>
+            <div><b>{t("Foreman")}:</b> {rec.foreman_name || rec.supervisor_name || "—"}</div>
+            <div><b>{t("Superintendent")}:</b> {rec.superintendent_name || "—"}</div>
+            <div><b>{t("Competent Person")}:</b> {rec.competent_person_name || "—"}</div>
+            <div><b>{t("Date")}:</b> {rec.date_of_work || "—"}</div>
+            <div><b>{t("Customer")}:</b> {rec.customer || "—"}</div>
+            <div><b>{t("PM")}:</b> {rec.project_manager || "—"}</div>
+          </div>
+
+          {/* Field notes with EN/ES toggle */}
+          {(rec.field_notes_original_text || rec.field_notes) && (
+            <div className="bg-slate-50 border border-slate-200 rounded p-2" data-testid="exc-review-notes">
+              <div className="flex items-center justify-between mb-1">
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold inline-flex items-center gap-1">
+                  <Languages className="w-3 h-3" /> {t("Field Notes")} ({isSpanish ? "ES" : "EN"})
+                </div>
+                {translatedText && (
+                  <button type="button" onClick={() => setShowTranslated((p) => !p)}
+                    className="text-[10px] uppercase tracking-[0.12em] font-bold text-cyan-700 hover:text-cyan-900"
+                    data-testid="exc-review-toggle-translation">
+                    {showTranslated ? t("Show Original") : t("Show Translated")}
+                  </button>
+                )}
+              </div>
+              <div className="text-xs text-slate-800 whitespace-pre-wrap">{displayedNotes}</div>
+            </div>
+          )}
+
+          {/* Translation override (Correction 9) */}
+          {isSpanish && (
+            <details className="bg-amber-50 border border-amber-300 rounded p-2" data-testid="exc-review-translate-panel">
+              <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.12em] text-amber-900">{t("Add / Update English Translation")}</summary>
+              <Textarea
+                className="mt-2"
+                value={transText}
+                onChange={(e) => setTransText(e.target.value)}
+                placeholder={t("English translation (original Spanish is preserved)")}
+                rows={3}
+                data-testid="exc-review-translation-input"
+              />
+              <Button size="sm" onClick={saveTranslation} disabled={busy || !transText.trim()} className="mt-2 bg-cyan-700 hover:bg-cyan-800" data-testid="exc-review-translation-save">{t("Save Translation")}</Button>
+            </details>
+          )}
+
+          {/* Coaching note */}
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("Coaching note (optional)")} rows={2} data-testid="exc-review-note" />
+
+          {/* Reinspection trigger */}
+          <div className="bg-cyan-50 border border-cyan-200 rounded p-2" data-testid="exc-review-reinspect-panel">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-1">{t("Trigger Reinspection")}</div>
+            <div className="flex items-stretch gap-2">
+              <Select value={reinspectReason} onValueChange={setReinspectReason}>
+                <SelectTrigger className="flex-1" data-testid="exc-review-reinspect-reason"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["Rain", "Soil Change", "Water Intrusion", "Utility Strike", "Protective System Change", "Excavation Expansion", "Manual"].map((r) => (
+                    <SelectItem key={r} value={r}>{t(r)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button size="sm" variant="outline" onClick={triggerReinspection} disabled={busy} data-testid="exc-review-reinspect-trigger">
+                <CalendarClock className="w-3.5 h-3.5 mr-1" /> {t("Trigger")}
+              </Button>
+            </div>
+          </div>
         </div>
         <DialogFooter className="flex-wrap gap-2">
           <Button variant="outline" onClick={() => act("request_clarification")} disabled={busy} data-testid="exc-action-clarify">{t("Request Clarification")}</Button>

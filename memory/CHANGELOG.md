@@ -289,3 +289,27 @@ None of these affect the directive's three success criteria; all three are MET a
 **Deferred to Phase 10A.2 / Phase 11 (NOT built):** PM portal visibility, admin advanced configuration, LLM ES→EN translation, CSV import, advanced analytics, Training Center, OSHA Library, Global Search, OCR/Vision.
 
 
+
+
+
+---
+
+## 2026-02-07 · Phase 10A-B — Excavation Operations Integration Hardening ✅ CERTIFIED
+
+**Scope (OMEGA Correction Directive):** Re-architect the Public Excavation Workflow from a standalone form into a first-class platform integration. All 10 mandatory corrections delivered.
+
+**Delivered:**
+- **Correction 1:** Daily Report two-way linkage + hard `excavation_activity_today=YES` gate (backend 422 + frontend toast). UI gate component embedded in NewDailyReport Section 03 with Create New / Link Existing buttons.
+- **Correction 2:** `JobPicker` (same source as Daily Reports) — `jobs_master` registry. Auto-populates project_number, customer, PM, location.
+- **Correction 3:** `EmployeePicker` dropdowns for Prepared By, Foreman, Leadman, Superintendent, Competent Person — sourced from `employees` roster.
+- **Correction 4:** `TrenchAssetPicker` multi-select + new public roster endpoint `/api/trench-safety/excavations/public/asset-roster` with field-safe projection (asset_id, status, serial, holds, tab-data flag).
+- **Correction 5:** Dedicated Road Plate selector filtered by `asset_type=Road Plate`.
+- **Correction 6:** `OshaCoachingBlock` component — 8 inline coaching blocks (Why / Requirement / Example / Mistakes / Escalate / If Unsure).
+- **Correction 7:** Smart OSHA triggers — section highlights + coaching auto-open on depth, soil, water, atmosphere, rain, utility conditions. **3 new flags:** `SOIL_TYPE_C`, `RAIN_REINSPECTION`, `COMPETENT_PERSON` (total now 12).
+- **Correction 8:** Structured photo kinds (Overall / Protective / Access / Utility / Soil / Water / Traffic) with required vs optional markers.
+- **Correction 9:** Spanish original-language preservation (`field_notes_original_language` + `field_notes_original_text` + `field_notes_translated_text`) plus admin translate endpoint and EN/ES toggle in oversight review dialog.
+- **Correction 10:** Reinspection automation — `POST /reinspection-trigger` (Rain · Soil Change · Water Intrusion · Utility Strike · Protective System Change · Excavation Expansion · Manual) + `GET /reinspection-queue` + Safety Oversight tab.
+
+**Testing:** 91/91 pytest cases pass (8 + 17 + 16 + 50 regression). Screenshot evidence captured for all four key surfaces (form parity shell, JobPicker dropdown with 28 live jobs, registry asset rows + Road Plates section + coaching blocks, Daily Report excavation gate).
+
+**Certification doc:** `/app/memory/PHASE10A_B_INTEGRATION_HARDENING_CERTIFICATION.md`.

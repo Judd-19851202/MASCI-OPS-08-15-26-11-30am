@@ -42,6 +42,12 @@ export function buildDailyReportDefaults() {
     incident_report_time: "",
     general_notes: "",
 
+    // Phase 10A-B · Excavation Activity Today (OMEGA Correction 1)
+    // When YES, the Daily Report cannot be submitted until at least one
+    // excavation record is created or linked. Backend enforces (422).
+    excavation_activity_today: "No",
+    linked_excavation_ids: [],
+
     // Distribution list — extra emails to CC on the PDF (PM/GC/DOT/insurance)
     distribution_list: [],
 

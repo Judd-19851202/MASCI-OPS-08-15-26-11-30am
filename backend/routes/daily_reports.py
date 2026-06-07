@@ -238,6 +238,27 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         #   "Restore POST /api/daily-reports. Keep DELETE = 410."
         # Doctrine: /app/memory/WAVE_1A_IMPLEMENTATION_REPORT.md
         # Idempotent submit (Phase J · Field Resiliency) preserved.
+        # ── Phase 10A-B · OMEGA Correction Directive · Correction 1 ──
+        # Excavation Activity gate: if the foreman selects "Excavation
+        # Activity Today? = YES" the Daily Report MUST be linked to at
+        # least one excavation record (existing or freshly created).
+        _p = payload.model_dump()
+        _exc_activity = str(_p.get("excavation_activity_today") or "").strip().lower()
+        _linked_excs = _p.get("linked_excavation_ids") or []
+        if _exc_activity in ("yes", "true", "y", "1"):
+            if not _linked_excs:
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "error": "excavation_record_required",
+                        "message": (
+                            "Excavation Activity Today is YES but no Excavation "
+                            "Record is linked. Create a new excavation record "
+                            "or link an existing one before submitting the Daily Report."
+                        ),
+                    },
+                )
+
         from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
         key = idem_key_from_request(request)
 
@@ -262,6 +283,24 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             report_dict = dict(doc)
             await db.daily_reports.insert_one(doc)
             doc.pop("_id", None)
+            # ── Phase 10A-B · Correction 1 · two-way Excavation linkage ──
+            # Stamp this daily report ID onto every linked excavation
+            # record so the relationship is queryable from both sides.
+            try:
+                _linked_ids = doc.get("linked_excavation_ids") or []
+                if _linked_ids:
+                    await db.trench_excavations.update_many(
+                        {"id": {"$in": list(_linked_ids)}},
+                        {"$addToSet": {
+                            "daily_report_links": {
+                                "daily_report_id": doc.get("id"),
+                                "report_number": doc.get("doc_id") or doc.get("report_number") or "",
+                                "linked_at": doc.get("created_at"),
+                            },
+                        }},
+                    )
+            except Exception:
+                pass  # never block a submit on linkage
             # Mirror photos into the Job Photos library (Phase 1 read-only).
             try:
                 from routes.job_photos import index_record_photos

@@ -36,6 +36,7 @@ import { useRememberedFormValue } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { formatApiError } from "@/lib/apiErrors";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
+import DailyReportExcavationActivity from "@/components/trench/DailyReportExcavationActivity";
 import { fetchDailyWeather } from "@/lib/weather";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
@@ -714,6 +715,18 @@ export default function NewDailyReport({ publicMode = false }) {
         `At least ${data.photo_min || 6} photos are required (you have ${
           (data.photos || []).length
         })`
+      );
+      return false;
+    }
+    // Phase 10A-B · OMEGA Correction 1 · Excavation activity gate.
+    // Mirror the backend 422 enforcement here so the foreman sees a
+    // calm in-form toast instead of a generic submit-failed error.
+    if (
+      String(data.excavation_activity_today || "No").toLowerCase() === "yes" &&
+      (data.linked_excavation_ids || []).length === 0
+    ) {
+      toast.error(
+        "Excavation Activity Today is YES — create or link at least one Excavation Record before submitting"
       );
       return false;
     }
@@ -1450,6 +1463,21 @@ export default function NewDailyReport({ publicMode = false }) {
               className="min-h-[100px] text-base border-2 border-slate-300"
               placeholder={t("Anything else worth noting from today...")}
               data-testid="input-general-notes"
+            />
+          </div>
+          {/* Phase 10A-B · OMEGA Correction 1 — Excavation Activity Gate */}
+          <div className="mt-3">
+            <DailyReportExcavationActivity
+              value={data.excavation_activity_today}
+              onChange={(v) => set("excavation_activity_today", v)}
+              linkedIds={data.linked_excavation_ids || []}
+              onLinkedChange={(arr) => set("linked_excavation_ids", arr)}
+              projectNumber={data.project_number}
+              projectName={data.project_name}
+              reportDate={data.report_date}
+              preparedBy={data.prepared_by}
+              attemptedSubmit={attemptedSubmit}
+              testId="dr-excavation-activity"
             />
           </div>
         </Section>
