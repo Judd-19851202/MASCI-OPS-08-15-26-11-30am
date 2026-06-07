@@ -187,8 +187,16 @@ export default function PublicTrenchSafetyDashboard() {
           </div>
         </section>
 
-        {/* Action tiles — Tabulated Data · References · Report */}
-        <section className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2" data-testid="public-dash-actions">
+        {/* Action tiles — Tabulated Data · References · Report · Excavation Ops */}
+        <section className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2" data-testid="public-dash-actions">
+          <ActionTile
+            to="/trench-safety/excavation/new"
+            icon={AlertTriangle}
+            title={t("Excavation Operations")}
+            body={t("Submit a field excavation record. Coaching first. EN / ES.")}
+            tone="info"
+            testId="public-dash-excavation"
+          />
           <ActionTile
             to="/trench-safety/tabulated-data"
             icon={BookOpen}

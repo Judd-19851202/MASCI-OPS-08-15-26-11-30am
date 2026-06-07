@@ -12,10 +12,11 @@ import SafetyShell from "@/components/SafetyShell";
 import { useT } from "@/lib/i18n";
 
 const TABS = [
-  { key: "hub",       slug: "",                icon: LayoutDashboard, label: "Dashboard" },
-  { key: "assets",    slug: "/assets",         icon: Boxes,           label: "Trench Equipment" },
-  { key: "reports",   slug: "/reports",        icon: BarChart3,       label: "Reports" },
-  { key: "tabulated", slug: "/tabulated-data", icon: BookOpen,        label: "Tabulated Data" },
+  { key: "hub",         slug: "",                icon: LayoutDashboard, label: "Dashboard" },
+  { key: "assets",      slug: "/assets",         icon: Boxes,           label: "Trench Equipment" },
+  { key: "excavations", slug: "/excavations",    icon: BarChart3,       label: "Excavations" },
+  { key: "reports",     slug: "/reports",        icon: BarChart3,       label: "Reports" },
+  { key: "tabulated",   slug: "/tabulated-data", icon: BookOpen,        label: "Tabulated Data" },
 ];
 
 export default function TrenchSafetyShell({ active, title, kicker, children }) {

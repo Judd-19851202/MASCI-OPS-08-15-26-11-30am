@@ -45,6 +45,8 @@ import TrenchSafetyAssetDetail from "@/pages/trench_safety/TrenchSafetyAssetDeta
 import TrenchSafetyTabulatedData from "@/pages/trench_safety/TrenchSafetyTabulatedData";
 import TrenchSafetyRepairReviewPage from "@/pages/trench_safety/TrenchSafetyRepairReviewPage";
 import TrenchSafetyReports from "@/pages/trench_safety/TrenchSafetyReports";
+import PublicExcavationForm from "@/pages/trench_safety/PublicExcavationForm";
+import ExcavationOversight from "@/pages/trench_safety/ExcavationOversight";
 import TrenchSafetyFieldReportsPage from "@/pages/trench_safety/TrenchSafetyFieldReportsPage";
 import TrenchSafetyQrLanding from "@/pages/trench_safety/TrenchSafetyQrLanding";
 import PublicTrenchSafetyDashboard from "@/pages/trench_safety/PublicTrenchSafetyDashboard";
@@ -406,6 +408,9 @@ function App() {
             <Route path="/safety/trench-safety/assets/:assetId"       element={SF(<TrenchSafetyAssetDetail />)} />
             <Route path="/safety/trench-safety/tabulated-data"        element={SF(<TrenchSafetyTabulatedData />)} />
             <Route path="/safety/trench-safety/reports"               element={SF(<TrenchSafetyReports />)} />
+            <Route path="/safety/trench-safety/excavations"           element={SF(<ExcavationOversight />)} />
+            <Route path="/admin/trench-safety/excavations"            element={AP(<ExcavationOversight />)} />
+            <Route path="/trench-safety/excavation/new"               element={<PublicExcavationForm />} />
             {/* Phase 7.5B — Safety Repair Review + Field Reports inbox */}
             <Route path="/safety/trench-safety/repair-review"          element={SF(<TrenchSafetyRepairReviewPage />)} />
             <Route path="/safety/trench-safety/field-reports"          element={SF(<TrenchSafetyFieldReportsPage />)} />

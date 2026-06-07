@@ -1,6 +1,36 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (OMEGA PHASE 10A CORE · PUBLIC EXCAVATION WORKFLOW · 🟢 GO · G-1 CLOSED)
+
+### Verdict: 🟢 PASS — G-1 Excavation Record gap closed at the regulatory-critical spine
+
+### Scope (Phase 10A Core)
+Public Excavation form (14 sections · EN/ES) · 10 deterministic OSHA coaching flags · Safety + Admin oversight (filter / review / close / audit) · asset linkage to certified `trench_safety_assets` · notification + audit + reporting integration · Daily Report trigger via URL params · 8/8 tests · regression 35/35.
+
+### Built
+**Backend** — `excavations.py` NEW (~400 LOC): public submit (no auth) · list/filter · review · summary report · OSHA flag engine. `audit_events` and `event_fanout` reused.
+**Frontend** — `PublicExcavationForm.jsx` NEW (~330 LOC · 14 sections · Bool tri-state · URL auto-populate) · `ExcavationOversight.jsx` NEW · Excavation tile on Public Safety dashboard · Excavations tab on TrenchSafetyShell · App routes (`/trench-safety/excavation/new` public + Safety+Admin parity).
+**i18n** — 100+ EN→ES translations.
+
+### OSHA flag engine (deterministic, coaching language)
+ACCESS_EGRESS · PROTECTIVE_SYSTEM · SOIL_UNKNOWN · UTILITY_LOCATE · WATER · ATMOSPHERE · TRENCH_BOX_ASSIGN · ROAD_PLATE_ASSIGN · SPOIL_SETBACK · REINSPECTION
+
+### Subpart P uplift
+Closes ~10 previously-RED OSHA IDs: 651.3 / 651.4 / 651.11 / 651.16 / 651.9 / 652.1 / 652.4 / 651.17 / 651.1-2 → now GREEN. Exactly the leverage predicted in Phase 9C-A Gap Analysis.
+
+### Deferred to Phase 10A.2 (formally scoped)
+PM Portal read-only · Admin advanced config · Spanish→English LLM translation (free-text Spanish preserved verbatim today) · CSV import · Photo upload UI · advanced saved views.
+
+### Deliverable
+`/app/memory/PHASE10A_CORE_PUBLIC_EXCAVATION_WORKFLOW_CERTIFICATION.md` (13 sections · PASS recommendation).
+
+### STOP per directive
+Soil Classification advanced · Utility Locate advanced · OSHA Library · Training Center · Global Search · OCR · Vision · Phase 11 — NOT started.
+
+---
+
+
 ## 2026-02-07 (OMEGA PHASE 9C-A · OSHA SUBPART P COMPLIANCE ASSAULT · 🟡 PARTIAL PASS)
 
 ### Verdict: 🟡 PARTIAL PASS — verification objective met; OSHA compliance objective NOT yet met
