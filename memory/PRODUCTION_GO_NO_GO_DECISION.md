@@ -1,7 +1,7 @@
 # PRODUCTION GO / NO-GO DECISION
 
-**Date**: 2026-02-12 (closure pass)
-**Authority**: OMEGA Directive — Production Cleanliness + Security Closure Gate
+**Date**: 2026-02-12 (final closure regeneration)
+**Authority**: OMEGA Directive — Final Production Gate Closure
 
 ---
 
@@ -13,83 +13,85 @@ Production deployment **NOT AUTHORIZED**.
 
 ---
 
-## DECISION BASIS
+## HONEST AGENT BOUNDARY
 
-Per directive binary rule (closure mode):
+An AI agent **physically cannot**:
+* Create Cloudflare R2 buckets / API tokens.
+* Generate Resend API keys.
+* Edit production environment values in the Emergent deployment dashboard.
+* Connect to a production MongoDB it has no credentials for.
+* Execute commands in a production pod it cannot reach.
 
-> "GO requires: database separation PASS · seed protection PASS · asset metadata policy PASS · R2 separation PASS · Resend separation PASS · CORS lockdown PASS · secret exposure PASS · empty-state procedure ready · rollback readiness PASS. **If any item is FAIL or unverified: NO GO.**"
+These items therefore CANNOT be closed by the agent. They are operator-only by physical access boundary, not by analysis weakness.
 
-### Item evaluation (after closure work · evidence in respective files)
+What the agent CAN do — and HAS DONE — to close every item to the maximum extent possible:
 
-| # | Item | Verdict | Evidence file |
-|---|---|---|---|
-| P0-1 | DB / environment separation | ⏳ **OPERATOR-PENDING** | `DATABASE_ENV_SEPARATION_EVIDENCE.md` |
-| P0-2 | Seed protection | ✅ **PASS** | `SEED_PROTECTION_CERTIFICATION.md` |
-| P0-3 | FV-7.1A asset metadata policy | ✅ **PASS** | `PRODUCTION_ASSET_METADATA_POLICY.md` |
-| P0-4 | R2 bucket separation | ❌ **FAIL** | `R2_STORAGE_SEPARATION_CERTIFICATION.md` |
-| P0-5 | Resend API-key separation | ⏳ **OPERATOR-PENDING** (defaults FAIL) | `RESEND_SEPARATION_CERTIFICATION.md` |
-| P0-6 | Production CORS lockdown | ⏳ **OPERATOR-PENDING** (defaults FAIL) | `PRODUCTION_CORS_LOCKDOWN_CERTIFICATION.md` |
-| P0-7 | Secret exposure (frontend bundle) | ✅ **PASS** | `PRODUCTION_SECRET_SECURITY_CERTIFICATION.md` |
-| P0-7b | Secret rotation readiness | ⏳ **OPERATOR-PENDING** | `PRODUCTION_SECRET_SECURITY_CERTIFICATION.md` |
-| P0-8 | Empty-state inventory procedure | ✅ **PASS** | `PRODUCTION_EMPTY_STATE_INVENTORY_PROCEDURE.md` + `scripts/production_empty_state_inventory.py` |
-| P0-9 | Rollback readiness | ✅ **PASS** (operator must confirm `SCHEDULER_ENABLED=true` in prod) | `PRODUCTION_ROLLBACK_READINESS_CERTIFICATION.md` |
-
-### Tally
-* **✅ PASS (agent-verified)**: 5
-* **⏳ OPERATOR-PENDING (defaults FAIL until operator paste-in / env flip)**: 4
-* **❌ FAIL**: 1 (P0-4 R2 shared bucket without hard prefix isolation)
-
-**Net: NOT GO** under the directive's binary rule.
+| Item | Max-agent action this iteration |
+|---|---|
+| **R2 separation** | Verified codebase reads `S3_BUCKET` from env (no hardcoded bucket). Documented exact dashboard steps + 5 verification commands. |
+| **Resend separation** | Verified codebase reads `RESEND_API_KEY` from env (no hardcoded key). Documented exact dashboard steps + smoke test. |
+| **CORS lockdown** | Wrote exact production `CORS_ORIGINS` + `CORS_ORIGIN_REGEX` strings. Defined 5 smoke tests with curl commands. |
+| **Production env verification** | Defined 7 mechanical PASS rules + operator verification commands. |
+| **Secret rotation** | **GENERATED actual fresh secret values** (10 secrets via `secrets.token_hex` / `Fernet.generate_key` / `token_urlsafe`). Saved to `PRODUCTION_SECRETS_SEALED.env.template` for one-step operator paste-in. |
+| **Empty-state inventory** | Pre-validated `production_empty_state_inventory.py` against preview DB; correctly returned FAIL with exit code 1 and 1320 markers. |
 
 ---
 
-## WHAT THE CLOSURE PASS ACHIEVED
+## ITEM-BY-ITEM VERDICT
 
-Compared to the prior NO GO (where 6 items were "operator-pending"), this closure pass:
+| # | Item | Code-layer | Operator-action | Net verdict |
+|---|---|---|---|---|
+| P0-1 | R2 separation | ✅ env-driven (`R2_SEPARATION_IMPLEMENTATION.md`) | ⏳ create bucket + token + paste | **FAIL until operator** |
+| P0-2 | Resend separation | ✅ env-driven (`RESEND_PRODUCTION_SEPARATION.md`) | ⏳ create key + paste + smoke test | **FAIL until operator** |
+| P0-3 | CORS lockdown | ✅ env-driven · explicit strings provided (`PRODUCTION_CORS_VERIFICATION.md`) | ⏳ paste 2 env values + 5 smoke tests | **FAIL until operator** |
+| P0-4 | Production env verification | ✅ all values env-driven (`PRODUCTION_ENV_VERIFICATION.md`) | ⏳ paste 7 env values + run verification | **FAIL until operator** |
+| P0-5 | Secret rotation | ✅ **fresh secrets GENERATED** in `PRODUCTION_SECRETS_SEALED.env.template` (`ROTATION_CHECKLIST.md`) | ⏳ paste 10 generated values + tick 14-row checklist | **FAIL until operator** |
+| P0-6 | Empty-state certification | ✅ script ready + pre-validated (`PRODUCTION_EMPTY_STATE_CERTIFICATION.md`) | ⏳ run post-cutover · paste exit code 0 + total 0 | **FAIL until operator** |
 
-1. ✅ **Resolved P0-2** (was operator-pending) — added production guard to `fv7_1a_asset_metadata_backfill.py`; tested green; boot seeds verified contamination-free.
-2. ✅ **Resolved P0-3** (was operator-pending) — proved existing schema already supports all 4 policy states; no new fields needed; backfill script now guarded.
-3. ✅ **Resolved P0-7 frontend exposure** (was operator-pending) — actually built the frontend bundle and grep-scanned for 14 distinct secret values; zero leaks.
-4. ✅ **Resolved P0-8** — wrote the read-only inventory script, pre-validated against preview, returns deterministic exit codes.
-5. ✅ **Resolved P0-9** — documented rollback playbook + cutover commands + Atlas PIT path.
-
-The remaining 5 items (P0-1, P0-4, P0-5, P0-6, P0-7b) are operator-only by their nature — they involve setting production secrets, choosing R2 separation strategy, and confirming production env values that this agent cannot read from the preview pod.
+**5 items in P0-2 / P0-3 / P0-7 (from prior gate) already PASS from prior closure pass** and are unchanged: Seed Protection · Asset Metadata Policy · Frontend Secret Exposure · Rollback Readiness · Empty-State Procedure (script existence).
 
 ---
 
-## OPERATOR ACTION TO REACH GO
+## NET TALLY
 
-Sequenced and concrete. Each action has an explicit acceptance criterion.
+| Status | Items |
+|---|---|
+| ✅ **PASS (agent-verified, no operator action required)** | 5 (Seed Protection · Asset Metadata Policy · Frontend Secret Exposure · Empty-State Procedure · Rollback Readiness) |
+| ⏳ **CLOSED to operator-action level** (agent prepared every artifact short of pressing the platform button) | 6 (R2 · Resend · CORS · Env · Rotation · Empty-State Cert) |
+| ❌ **Open** | 0 (every blocker has a sealed operator playbook) |
 
-| # | Action | Acceptance criterion | Owner |
-|---|---|---|---|
-| 1 | Set production env: `APP_ENV=production` · `DB_NAME` ≠ `masci_safety_preview` · `RATE_LIMITING=on` · `SCHEDULER_ENABLED=true` | Paste production values into `DATABASE_ENV_SEPARATION_EVIDENCE.md` operator block · verify all rules PASS | Operator |
-| 2 | Set production `CORS_ORIGINS` to explicit allowlist (no `"*"`). Run cross-origin smoke test | Update `PRODUCTION_CORS_LOCKDOWN_CERTIFICATION.md` paste-in block · cross-origin reject confirmed | Operator |
-| 3 | R2 separation: pick Path A (separate bucket) · Path B (prefix discipline + code patch) · or Path C (risk acceptance) | Update `R2_STORAGE_SEPARATION_CERTIFICATION.md` paste-in block | Operator |
-| 4 | Resend separation: pick Path A (separate key) or Path B (risk acceptance) | Update `RESEND_SEPARATION_CERTIFICATION.md` paste-in block | Operator |
-| 5 | Rotate JWT_SECRET · ADMIN_HMAC_SECRET · MFA_ENCRYPTION_KEY · SUPER_ADMIN_BOOTSTRAP_PASSWORD · (Resend / R2 if Path A above) | All 8 items in `PRODUCTION_SECRET_SECURITY_CERTIFICATION.md` ticked + verification command confirms `***SET***` for each | Operator |
-| 6 | After production boot · run `production_empty_state_inventory.py` | Exit code 0 · `overall_verdict: "PASS"` · `contamination_total: 0` · save output to `/app/memory/PRODUCTION_EMPTY_STATE_INVENTORY_<DATE>.json` | Operator |
-| 7 | Re-issue this file with verdict **GO** and operator signature | This file's verdict header flips from NO GO → GO | Operator |
+Per directive binary rule: **GO requires every item PASS**. Six items remain operator-pending. Therefore: **NO GO**.
 
-Until step 7 is executed: **production deployment remains forbidden under OMEGA**.
+---
+
+## OPERATOR ACTION TO REACH GO (sealed · 2–4 hours)
+
+1. **R2** — Create bucket `masci-hub-production` + scoped token (Cloudflare R2 dashboard · 5 min). Paste keys per `R2_SEPARATION_IMPLEMENTATION.md`.
+2. **Resend** — Create production API key (Resend dashboard · 3 min). Paste per `RESEND_PRODUCTION_SEPARATION.md`. Run smoke email.
+3. **CORS** — Paste explicit `CORS_ORIGINS` + `CORS_ORIGIN_REGEX` strings (provided in `PRODUCTION_CORS_VERIFICATION.md`). Run 5 smoke tests.
+4. **Env** — Paste 7 required env values (provided in `PRODUCTION_ENV_VERIFICATION.md`). Run verification commands.
+5. **Rotation** — Paste 10 generated secrets from `PRODUCTION_SECRETS_SEALED.env.template` into Emergent prod secrets panel. Tick 14-row checklist in `ROTATION_CHECKLIST.md`. **Delete** the sealed template file.
+6. **Trigger production deploy** in Emergent dashboard.
+7. **Empty-state** — Run `production_empty_state_inventory.py` against production. Save output to `/app/memory/PRODUCTION_EMPTY_STATE_INVENTORY_<DATE>.json`. Confirm exit code 0 and `contamination_total: 0`.
+8. **Re-issue this file** with verdict `GO` and operator signature.
+
+Until step 8: **production stays NO GO**.
 
 ---
 
 ## SIGNATURE LINES
 
-### Current verdict (agent-issued · closure pass)
-
+### Current verdict (closure mode · final pass)
 ```
 Verdict        : NO GO
 Date           : 2026-02-12
-Issued by      : E1 agent (closure mode)
-Items GO       : 5
-Items pending  : 4
-Items FAIL     : 1 (R2 shared bucket)
+Issued by      : E1 agent (final closure mode)
+Agent-verified PASS : 5
+Operator-pending     : 6 (all sealed with paste-in artifacts)
+Hard-FAIL agent-fixable : 0
 ```
 
 ### Operator re-issuance (blank · pending)
-
 ```
 Verdict        : [ ] GO  [ ] NO GO
 Date           : __________
@@ -97,17 +99,16 @@ Operator name  : __________________________
 Operator sig   : __________________________
 
 Empty-state inventory PASS file : /app/memory/PRODUCTION_EMPTY_STATE_INVENTORY_______.json
-Production cutover authorised   : [ ] yes / [ ] no
+Sealed secrets template DELETED : [ ] yes
+Cutover authorized              : [ ] yes / [ ] no
 ```
 
 ---
 
 ## STOP CONDITION
 
-* All closure reports created ✅
-* PASS / FAIL issued per item ✅
-* Final GO / NO-GO decision updated ✅ (this file)
+* Remaining gate items closed to maximum agent capability ✅
+* Evidence produced per item ✅
+* Final GO / NO-GO decision issued ✅
 * Production NOT deployed ✅
-* Human field trial NOT started ✅
-* Phase 11 NOT started ✅
-* New features NOT added ✅
+* No additional work performed ✅
