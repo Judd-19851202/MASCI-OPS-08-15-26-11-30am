@@ -1,8 +1,11 @@
 // Phase 10A-B · Employee Picker (Correction 3)
-// Pulls from the certified /api/employees public roster.
-// Single-select with name + role/trade subline.
+// FV-7.2 · When role="competent" we pull from the dedicated
+// designated-CP roster (`/api/employees/competent-persons`) so the
+// foreman cannot pick an undesignated employee from the normal list.
+// All other roles still pull from the certified `/api/employees`
+// public roster.
 import React, { useEffect, useMemo, useState } from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, ChevronsUpDown, Search, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -20,23 +23,41 @@ async function loadEmployees() {
   return _employeePromise;
 }
 
+let _cpCache = null;
+let _cpPromise = null;
+async function loadCompetentPersons() {
+  if (_cpCache) return _cpCache;
+  if (_cpPromise) return _cpPromise;
+  _cpPromise = api.get("/employees/competent-persons")
+    .then((r) => { _cpCache = Array.isArray(r.data?.items) ? r.data.items : []; return _cpCache; })
+    .catch(() => { _cpCache = []; return _cpCache; });
+  return _cpPromise;
+}
+
 export default function EmployeePicker({ value, onSelect, placeholder = "Select…", testId = "employee-picker", role }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [roster, setRoster] = useState([]);
+  const isCpMode = (role || "").toLowerCase() === "competent";
 
-  useEffect(() => { loadEmployees().then(setRoster); }, []);
+  useEffect(() => {
+    if (isCpMode) loadCompetentPersons().then(setRoster);
+    else loadEmployees().then(setRoster);
+  }, [isCpMode]);
 
   const filtered = useMemo(() => {
-    if (!role) return roster;
+    if (!role || isCpMode) return roster;
     const r = role.toLowerCase();
     // Loose match on role/trade — but always return full list so foreman
     // can pick anyone if the roster doesn't have explicit role tagging.
     const tagged = roster.filter((e) => (e.role || "").toLowerCase().includes(r) || (e.trade || "").toLowerCase().includes(r));
     return tagged.length ? tagged : roster;
-  }, [roster, role]);
+  }, [roster, role, isCpMode]);
 
   const selected = roster.find((e) => e.id === value);
+  const headingLabel = isCpMode
+    ? `${t("Designated Competent Persons")} · ${filtered.length}`
+    : `${t("MASCI Roster")} · ${filtered.length}`;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -50,7 +71,7 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Select�
           data-testid={`${testId}-trigger`}
         >
           <span className="flex items-center gap-2 truncate">
-            <Search className="w-4 h-4 text-slate-500 shrink-0" />
+            {isCpMode ? <ShieldCheck className="w-4 h-4 text-cyan-700 shrink-0" /> : <Search className="w-4 h-4 text-slate-500 shrink-0" />}
             <span className="truncate text-slate-900 text-left">
               {selected ? `${selected.name}${selected.role ? `  ·  ${selected.role}` : selected.trade ? `  ·  ${selected.trade}` : ""}` : t(placeholder)}
             </span>
@@ -64,10 +85,14 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Select�
         data-testid={`${testId}-content`}
       >
         <Command filter={(itemValue, search) => itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0}>
-          <CommandInput placeholder={t("Search by name, role, or trade…")} className="h-11" data-testid={`${testId}-search`} />
+          <CommandInput placeholder={t(isCpMode ? "Search designated CPs…" : "Search by name, role, or trade…")} className="h-11" data-testid={`${testId}-search`} />
           <CommandList className="max-h-[55vh]">
-            <CommandEmpty>{t("No employee matches that search.")}</CommandEmpty>
-            <CommandGroup heading={`${t("MASCI Roster")} · ${filtered.length}`}>
+            <CommandEmpty>
+              {isCpMode
+                ? t("No designated Competent Persons. Ask Admin to designate one.")
+                : t("No employee matches that search.")}
+            </CommandEmpty>
+            <CommandGroup heading={headingLabel}>
               {filtered.map((e) => (
                 <CommandItem
                   key={e.id}
@@ -78,9 +103,14 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Select�
                 >
                   <div className="flex items-start gap-2 w-full">
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-slate-900 leading-snug truncate">{e.name}</div>
+                      <div className="font-medium text-slate-900 leading-snug truncate">
+                        {e.name}
+                        {isCpMode && <span className="ml-1 inline-flex items-center gap-0.5 text-[10px] font-mono uppercase tracking-[0.1em] text-cyan-700"><ShieldCheck className="w-3 h-3" /> CP</span>}
+                      </div>
                       <div className="text-[11px] text-slate-500 mt-0.5 truncate">
-                        {[e.role, e.trade, e.crew && `Crew: ${e.crew}`, e.employee_id && `#${e.employee_id}`].filter(Boolean).join(" · ")}
+                        {[e.role, e.trade, e.crew && `Crew: ${e.crew}`, e.employee_id && `#${e.employee_id}`,
+                          isCpMode && e.cp_approval_date && `Approved ${e.cp_approval_date}`,
+                          isCpMode && e.cp_expiration_date && `Exp ${e.cp_expiration_date}`].filter(Boolean).join(" · ")}
                       </div>
                     </div>
                     {selected?.id === e.id && <Check className="w-4 h-4 text-cyan-700 shrink-0 mt-0.5" />}

@@ -133,10 +133,26 @@ export default function PublicExcavationForm() {
     field_notes_original_text: "",
     source: sp.get("source") || "public_tile",
     triggered_from_daily_report_id: sp.get("daily_report_id") || "",
+    // FV-7.1 · Rated-depth acknowledgement (foreman-side)
+    rated_depth_acknowledged: null,
+    rated_depth_acknowledgement_reason: "",
+    rated_depth_tabulated_data_exception: false,
+    // FV-7.5 · Emergency excavation flag
+    emergency_excavation: null,
   }));
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(null);
   const [err, setErr] = useState("");
+  // FV-7.1 · in-form roster cache so the rated-depth check is deterministic
+  // without an extra round-trip. Roster items already include rated_depth_ft.
+  const [assetRoster, setAssetRoster] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    api.get("/trench-safety/excavations/public/asset-roster")
+      .then((r) => { if (alive) setAssetRoster(Array.isArray(r.data?.items) ? r.data.items : []); })
+      .catch(() => { if (alive) setAssetRoster([]); });
+    return () => { alive = false; };
+  }, []);
 
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
   const onText = (k) => (e) => set(k, e.target.value);
@@ -155,6 +171,26 @@ export default function PublicExcavationForm() {
     rain:       f.rain_event_observed === true,
     utility:    visible.has("8"),
   };
+
+  // FV-7.1 · Compute rated-depth gap from selected trench-box assets.
+  // The roster items carry rated_depth_ft + asset_type; the foreman
+  // sees a red ACTION REQUIRED panel only when there is a real gap.
+  const ratedDepthGap = useMemo(() => {
+    const depthN = Number(f.depth_ft) || 0;
+    if (!depthN) return null;
+    const ids = f.assigned_asset_ids || [];
+    if (!ids.length) return null;
+    const offenders = [];
+    for (const id of ids) {
+      const a = assetRoster.find((x) => x.asset_id === id);
+      if (!a) continue;
+      if (!["Trench Box", "Shielding"].includes(a.asset_type)) continue;
+      if (a.rated_depth_ft != null && Number(a.rated_depth_ft) < depthN) {
+        offenders.push({ asset_id: a.asset_id, rated_depth_ft: Number(a.rated_depth_ft) });
+      }
+    }
+    return offenders.length ? { depth: depthN, offenders } : null;
+  }, [f.depth_ft, f.assigned_asset_ids, assetRoster]);
 
   function onJobSelect(job) {
     if (!job) {
@@ -188,6 +224,19 @@ export default function PublicExcavationForm() {
       setErr(t("Submitted By is required."));
       return;
     }
+    // FV-7.1 · Soft-gate: if a rated-depth gap is present, foreman must
+    // acknowledge with a reason (or tick the tabulated-data exception).
+    // We never hard-block — we require deliberate acknowledgement.
+    if (ratedDepthGap && !f.rated_depth_acknowledged) {
+      setErr(t("Acknowledge the trench-box rated-depth gap with a reason before submitting."));
+      return;
+    }
+    if (ratedDepthGap && f.rated_depth_acknowledged &&
+        !(f.rated_depth_acknowledgement_reason || "").trim() &&
+        !f.rated_depth_tabulated_data_exception) {
+      setErr(t("Add a reason or check the tabulated-data exception."));
+      return;
+    }
     setSaving(true);
     try {
       const depthNum = Number(f.depth_ft) || 0;
@@ -218,62 +267,7 @@ export default function PublicExcavationForm() {
 
   // ── Success shell ──────────────────────────────────────────────
   if (done) {
-    return (
-      <div className="min-h-screen bg-slate-50" data-testid="public-excavation-page">
-        <div className="caution-stripe" />
-        <PublicTrenchHeader backTo="/trench-safety" backLabel="Back to Trench Safety" testIdPrefix="public-excavation" accent="cyan" />
-        <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
-          <div className="text-center mb-4">
-            <CheckCircle2 className="w-7 h-7 mx-auto text-emerald-700" />
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold mt-1">
-              {t("MASCI Trench Safety")} · {t("Field Submission")}
-            </div>
-            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-excavation-success-title">
-              {t("Excavation Record Submitted")}
-            </h1>
-          </div>
-          <div className="bg-white border-2 border-emerald-300 rounded-md p-4" data-testid="excavation-success">
-            <div className="font-mono text-2xl font-black text-slate-900" data-testid="public-excavation-success-id">{done.id}</div>
-            <div className="mt-1 text-sm text-slate-700">{t("Status")}: <b className="text-cyan-900">{t(done.status)}</b></div>
-            {done.daily_report_links?.length > 0 && (
-              <div className="mt-2 text-xs text-slate-700" data-testid="excavation-success-dr-links">
-                <span className="font-bold uppercase tracking-[0.08em] mr-1">{t("Linked Daily Report(s):")}</span>
-                {done.daily_report_links.map((l) => l.report_number || l.daily_report_id).join(", ")}
-              </div>
-            )}
-            {done.flags?.length > 0 && (
-              <div className="mt-3">
-                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800 font-bold">{t("Coaching Flags")}</div>
-                <ul className="mt-1 space-y-1">
-                  {done.flags.map((fl, i) => (
-                    <li key={i} className="text-xs text-amber-900 flex gap-2" data-testid={`exc-flag-${fl.code}`}>
-                      <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                      <span><b>{t(fl.level)}</b> — {t(fl.message)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div className="mt-4 text-xs text-slate-600 leading-relaxed">
-              {t("Safety has been notified. A competent person will follow up on any coaching flag above. The job site is not changed by this submission — keep working safely.")}
-            </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between gap-2">
-            <Link to="/trench-safety" className="inline-flex items-center gap-1 text-cyan-800 underline text-xs font-bold uppercase tracking-[0.12em]" data-testid="public-excavation-back-link">
-              {t("Back to Trench Safety")} <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-            <button type="button" onClick={() => { setDone(null); window.scrollTo({ top: 0 }); }}
-              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-[0.12em] text-xs px-4 py-2 rounded"
-              data-testid="public-excavation-new-record">
-              {t("Submit Another Record")}
-            </button>
-          </div>
-          <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
-            {t("MASCI Operations Platform")} · {t("Field-safe view")}
-          </footer>
-        </main>
-      </div>
-    );
+    return <SuccessScreen done={done} setDone={setDone} t={t} />;
   }
 
   // ── Main form shell ─────────────────────────────────────────────
@@ -343,6 +337,14 @@ export default function PublicExcavationForm() {
             <div><Label className="text-xs font-bold">{t("Work Area")}</Label><Input value={f.work_area} onChange={onText("work_area")} data-testid="exc-workarea" /></div>
             <div><Label className="text-xs font-bold">{t("Date of Work")}</Label><Input type="date" value={f.date_of_work} onChange={onText("date_of_work")} data-testid="exc-date" /></div>
             <div><Label className="text-xs font-bold">{t("Crew")}</Label><Input value={f.crew} onChange={onText("crew")} data-testid="exc-crew" /></div>
+          </div>
+          {/* FV-7.5 · Emergency excavation toggle (surfaces on Superintendent chip) */}
+          <div className="mt-3 bg-red-50 border border-red-200 rounded p-2" data-testid="exc-emergency-block">
+            <Label className="text-xs font-bold text-red-900">{t("Emergency Excavation?")}</Label>
+            <p className="text-[10px] text-red-800 leading-snug mb-1">
+              {t("Unscheduled, life-safety, utility-strike, water-main break, or after-hours excavation. Yes routes this to the Superintendent's Emergency chip immediately.")}
+            </p>
+            <Bool value={f.emergency_excavation} onChange={(v) => set("emergency_excavation", v)} testId="exc-emergency" />
           </div>
         </Section>
 
@@ -473,6 +475,47 @@ export default function PublicExcavationForm() {
             onChange={(arr) => set("assigned_asset_ids", arr)}
             testId="exc-assets"
           />
+          {/* FV-7.1 · Rated-depth gap — never blocks submit, requires acknowledgement */}
+          {ratedDepthGap && (
+            <div className="mt-3 bg-red-50 border-2 border-red-400 rounded-md p-3" data-testid="exc-rated-depth-gap">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-red-800 font-bold mb-1 inline-flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5" /> {t("Action Required · Trench Box Rated Depth")}
+              </div>
+              <p className="text-[12px] text-red-900 leading-snug">
+                {t("Your excavation depth")} <b>{ratedDepthGap.depth} ft</b> {t("exceeds the rated depth of:")}
+              </p>
+              <ul className="text-[11px] text-red-900 font-mono mt-1 mb-2 list-disc list-inside">
+                {ratedDepthGap.offenders.map((o) => (
+                  <li key={o.asset_id} data-testid={`exc-rated-depth-offender-${o.asset_id}`}>
+                    {o.asset_id} · {t("rated")} {o.rated_depth_ft} ft
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[11px] text-red-900 leading-snug mb-2">
+                {t("Stacked boxes, engineered systems, or approved tabulated-data exceptions can legitimately exceed a simple rated-depth check. Acknowledge with a reason — Safety will verify.")}
+              </p>
+              <Label className="text-[11px] font-bold text-red-900">{t("Acknowledgement Reason")} *</Label>
+              <Textarea
+                value={f.rated_depth_acknowledgement_reason}
+                onChange={onText("rated_depth_acknowledgement_reason")}
+                placeholder={t("e.g. Stacked TB-04 over TB-06, engineered shoring per PE-stamped drawing 23-A4, manufacturer tabulated data ref…")}
+                rows={2}
+                data-testid="exc-rated-depth-ack-reason"
+              />
+              <label className="flex items-center gap-2 mt-1 text-[11px] text-red-900">
+                <input type="checkbox" checked={!!f.rated_depth_tabulated_data_exception}
+                  onChange={(e) => set("rated_depth_tabulated_data_exception", e.target.checked)}
+                  data-testid="exc-rated-depth-ack-tabulated" />
+                {t("Approved tabulated-data exception (manufacturer or PE-stamped engineering)")}
+              </label>
+              <label className="flex items-start gap-2 mt-2 text-[12px] font-bold text-red-900 cursor-pointer">
+                <input type="checkbox" checked={!!f.rated_depth_acknowledged}
+                  onChange={(e) => set("rated_depth_acknowledged", e.target.checked)}
+                  data-testid="exc-rated-depth-ack-confirm" />
+                {t("I acknowledge the rated-depth gap and the justification above is accurate.")}
+              </label>
+            </div>
+          )}
         </Section>
 
         {/* Section 6b — Road Plates (Phase 10C: only when relevant) */}
@@ -721,6 +764,147 @@ export default function PublicExcavationForm() {
           </Button>
         </div>
 
+        <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
+          {t("MASCI Operations Platform")} · {t("Field-safe view")}
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+// FV-7.3 · Foreman reinspection-request reasons (directive list)
+const FV73_REASONS = [
+  "Rain Event",
+  "Water Intrusion",
+  "Cave-In",
+  "Protective System Changed",
+  "Utility Conflict",
+  "Near Miss",
+  "Other",
+];
+
+function SuccessScreen({ done, setDone, t }) {
+  const [showReinspect, setShowReinspect] = useState(false);
+  const [reason, setReason] = useState("Rain Event");
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [reinspectResult, setReinspectResult] = useState(null);
+
+  async function triggerReinspect() {
+    setSubmitting(true);
+    try {
+      const r = await api.post(`/trench-safety/excavations/${done.id}/public/reinspection-request`,
+        { reason, note });
+      setReinspectResult({ ok: true, data: r.data });
+      setShowReinspect(false);
+    } catch (e) {
+      setReinspectResult({ ok: false, msg: e?.response?.data?.detail || e?.message || "Failed" });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50" data-testid="public-excavation-page">
+      <div className="caution-stripe" />
+      <PublicTrenchHeader backTo="/trench-safety" backLabel="Back to Trench Safety" testIdPrefix="public-excavation" accent="cyan" />
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
+        <div className="text-center mb-4">
+          <CheckCircle2 className="w-7 h-7 mx-auto text-emerald-700" />
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold mt-1">
+            {t("MASCI Trench Safety")} · {t("Field Submission")}
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-excavation-success-title">
+            {t("Excavation Record Submitted")}
+          </h1>
+        </div>
+        <div className="bg-white border-2 border-emerald-300 rounded-md p-4" data-testid="excavation-success">
+          <div className="font-mono text-2xl font-black text-slate-900" data-testid="public-excavation-success-id">{done.id}</div>
+          <div className="mt-1 text-sm text-slate-700">{t("Status")}: <b className="text-cyan-900">{t(done.status)}</b></div>
+          {done.daily_report_links?.length > 0 && (
+            <div className="mt-2 text-xs text-slate-700" data-testid="excavation-success-dr-links">
+              <span className="font-bold uppercase tracking-[0.08em] mr-1">{t("Linked Daily Report(s):")}</span>
+              {done.daily_report_links.map((l) => l.report_number || l.daily_report_id).join(", ")}
+            </div>
+          )}
+          {done.flags?.length > 0 && (
+            <div className="mt-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800 font-bold">{t("Coaching Flags")}</div>
+              <ul className="mt-1 space-y-1">
+                {done.flags.map((fl, i) => (
+                  <li key={i} className="text-xs text-amber-900 flex gap-2" data-testid={`exc-flag-${fl.code}`}>
+                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                    <span><b>{t(fl.level)}</b> — {t(fl.message)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div className="mt-4 text-xs text-slate-600 leading-relaxed">
+            {t("Safety has been notified. A competent person will follow up on any coaching flag above. The job site is not changed by this submission — keep working safely.")}
+          </div>
+        </div>
+
+        {/* FV-7.3 · Foreman reinspection trigger — no Safety approval needed */}
+        <div className="mt-4 bg-white border-2 border-amber-300 rounded-md p-4" data-testid="exc-success-reinspect">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800 font-bold mb-1 inline-flex items-center gap-1">
+            <OctagonAlert className="w-3.5 h-3.5" /> {t("Condition Changed? Request Reinspection.")}
+          </div>
+          <p className="text-xs text-amber-900 leading-snug mb-2">
+            {t("Rain, water, cave-in, protective system change, utility conflict, near miss — request a reinspection. No approval needed. Safety and the Superintendent are notified immediately.")}
+          </p>
+          {reinspectResult?.ok ? (
+            <div className="text-xs text-emerald-800 font-bold inline-flex items-center gap-1" data-testid="exc-success-reinspect-confirm">
+              <CheckCircle2 className="w-3.5 h-3.5" /> {t("Reinspection requested — Safety and Superintendent notified.")}
+            </div>
+          ) : !showReinspect ? (
+            <Button onClick={() => setShowReinspect(true)} variant="outline"
+              className="border-amber-400 text-amber-900 hover:bg-amber-50"
+              data-testid="exc-success-reinspect-open">
+              {t("Request Reinspection")}
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1.5" data-testid="exc-success-reinspect-reasons">
+                {FV73_REASONS.map((r) => (
+                  <button key={r} type="button" onClick={() => setReason(r)}
+                    className={"px-2.5 h-8 rounded-full border text-[11px] font-bold uppercase tracking-[0.08em] transition " +
+                      (reason === r ? "border-amber-700 bg-amber-700 text-white" : "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100")}
+                    data-testid={`exc-success-reinspect-reason-${r.toLowerCase().replace(/[^a-z]+/g, "-")}`}>
+                    {t(r)}
+                  </button>
+                ))}
+              </div>
+              <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2}
+                placeholder={t("What changed? (Optional but helpful)")}
+                data-testid="exc-success-reinspect-note" />
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={triggerReinspect} disabled={submitting}
+                  className="bg-amber-700 hover:bg-amber-800 text-white"
+                  data-testid="exc-success-reinspect-submit">
+                  {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t("Send Reinspection Request")}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowReinspect(false)} data-testid="exc-success-reinspect-cancel">
+                  {t("Cancel")}
+                </Button>
+              </div>
+              {reinspectResult && !reinspectResult.ok && (
+                <div className="text-xs text-red-800">{reinspectResult.msg}</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <Link to="/trench-safety" className="inline-flex items-center gap-1 text-cyan-800 underline text-xs font-bold uppercase tracking-[0.12em]" data-testid="public-excavation-back-link">
+            {t("Back to Trench Safety")} <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+          <button type="button" onClick={() => { setDone(null); window.scrollTo({ top: 0 }); }}
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-[0.12em] text-xs px-4 py-2 rounded"
+            data-testid="public-excavation-new-record">
+            {t("Submit Another Record")}
+          </button>
+        </div>
         <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
           {t("MASCI Operations Platform")} · {t("Field-safe view")}
         </footer>

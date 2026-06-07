@@ -27,6 +27,7 @@ from fastapi import APIRouter
 from .alerts import register_alerts_routes
 from .assets import register_asset_routes
 from .certifications import register_certification_routes
+from .competent_persons import register_competent_person_routes
 from .csv_import import register_import_routes
 from .dashboard import register_dashboard_routes
 from .excavations import register_excavation_routes
@@ -139,6 +140,12 @@ def build_trench_safety_router(
     register_excavation_routes(
         api_router,
         db,
+        require_safety_or_admin=require_safety_or_admin,
+    )
+    register_competent_person_routes(
+        api_router,
+        db,
+        require_admin=require_admin,
         require_safety_or_admin=require_safety_or_admin,
     )
 
