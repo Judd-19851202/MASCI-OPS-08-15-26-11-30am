@@ -1,6 +1,35 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-12 (OMEGA · PRODUCTION CUTOVER AUTHORIZED · 🟡 OPERATOR-EXECUTION REQUIRED)
+
+### Status: **AGENT READY · awaiting operator cutover · production not yet deployed**
+
+R2 separation decision **CLOSED by operator authorization**: MASCI accepts shared `masci-hub` bucket. No new bucket created. No code change.
+
+### What this commit captures (Git HEAD `47af5b0d`)
+- Field-trial materials (5 templates) — ready
+- Production secrets — generated and sealed in `/app/memory/PRODUCTION_SECRETS_SEALED.env.template`
+- Production smoke-test script — NEW at `/app/backend/scripts/production_smoke_test.py` (9 directive checks · CP roster · Excavation creation · FV-7.1 + FV-7.4 flags · reinspection no-auth · Daily Report + linkage · photo endpoint · oversight chip rollup)
+- Empty-state inventory — already exists at `/app/backend/scripts/production_empty_state_inventory.py`
+- Cutover handoff doc — `/app/memory/PRODUCTION_CUTOVER_HANDOFF.md` with 5-step operator playbook
+- 36/36 regression tests GREEN
+- No source code changes this iteration · platform behaviour unchanged
+
+### Operator 5-step cutover
+1. Paste env block from `PRODUCTION_CUTOVER_HANDOFF.md` Step 1 into Emergent prod env panel.
+2. Click Deploy to Production.
+3. Run `production_empty_state_inventory.py` → confirm exit 0, contamination_total 0.
+4. Run `production_smoke_test.py` → confirm exit 0, 9/9 PASS.
+5. Sign the operator paste-in block in `PRODUCTION_CUTOVER_HANDOFF.md`.
+
+### Status after operator completes the 5 steps
+**PRODUCTION DEPLOYED — READY FOR HUMAN FIELD TRIAL**. NOT PROVEN. PROVEN remains gated on the real 3 × 3 × 3 human trial.
+
+### Agent's remaining role
+Once operator supplies the production URL + admin token, I will execute `production_smoke_test.py` from this pod against the live production URL and save evidence JSON. That is the final agent-executable step before the human trial.
+
+
 ## 2026-02-12 (OMEGA · FINAL PRODUCTION GATE CLOSURE · 🛑 NO GO · sealed for operator)
 
 ### Final verdict: **NO GO**. Six items remain operator-only by physical access boundary. Agent has closed every artifact to the maximum extent possible.
