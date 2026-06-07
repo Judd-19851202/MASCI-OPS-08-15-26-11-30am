@@ -1395,6 +1395,9 @@ const ES = {
   // Trench Safety Operations System — Phase 3 UI
   // ============================================================
   "Trench Safety": "Seguridad de Zanjas",
+  "Back to Trench Safety": "Volver a Seguridad de Zanjas",
+  "Back to Safety": "Volver a Seguridad",
+  "Cancel · Back to Trench Safety": "Cancelar · Volver a Seguridad de Zanjas",
   "Trench boxes, end panels, spreaders, hydraulic shores · tabulated data, inspections, holds, repairs, QR field view.":
     "Cajas de zanja, paneles, separadores, apuntalamientos hidráulicos · datos tabulados, inspecciones, retenciones, reparaciones, vista QR en campo.",
   "Operational hub for every MASCI trench safety asset — inspections, holds, repairs, tabulated data, and field QR access. Real counts from the platform — no static numbers.":

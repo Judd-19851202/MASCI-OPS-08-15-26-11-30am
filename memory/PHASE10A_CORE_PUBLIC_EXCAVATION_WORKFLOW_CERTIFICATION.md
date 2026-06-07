@@ -1,195 +1,168 @@
-# PHASE 10A · CORE PUBLIC EXCAVATION WORKFLOW · CERTIFICATION
+# PHASE 10A CORE — PUBLIC EXCAVATION OPERATIONS WORKFLOW
 
+**OMEGA DIRECTIVE · G-1 OSHA SUBPART P CLOSURE**
+
+**Status:** ✅ CERTIFIED
 **Date:** 2026-02-07
-**Sprint:** OMEGA DIRECTIVE — PHASE 10A CORE · Public Excavation Workflow (G-1 closure)
-**Verdict:** 🟢 **PASS — G-1 Excavation Record gap closed at the regulatory-critical spine**
+**Sprint:** Phase 10A Core (Public Excavation Operations Workflow + UI Parity Correction)
+**Scope discipline:** Phase 10A Core ONLY. No deferred 10A.2 features (PM portal visibility, LLM translation, CSV import, advanced analytics) were touched.
 
 ---
 
-## 1 · Scope Delivered
+## EXECUTIVE SUMMARY
 
-| # | Feature | Status |
-|---|---|---|
-| 1 | Public Excavation Form · all 14 sections · field-friendly · EN/ES | ✅ |
-| 2 | OSHA Deterministic Rule Engine · all 10 flags · coaching language | ✅ |
-| 3 | Daily Report trigger hook (URL params · auto-populate) | ✅ trigger surface |
-| 4 | Safety Portal Oversight (list · filter · review · close · audit) | ✅ |
-| 5 | Asset Linkage (reuses certified `trench_safety_assets`; no duplicate inventory) | ✅ |
-| 6 | Notification Integration (existing `event_fanout`) | ✅ |
-| 7 | Audit Integration (existing `write_audit` · 6 new kinds) | ✅ |
-| 8 | Reporting Integration (`/excavations/reports/summary`) | ✅ |
-| 9 | Testing + Certification | ✅ |
+The Public Excavation Operations Workflow is live, certified, and visually consistent with the rest of the MASCI Public Trench Safety surface. Field crews can now submit a complete 14-section excavation record from the Public Safety Tile — coaching-first, EN/ES bilingual, asset-linked, and deterministically OSHA-flagged. Safety and Admin can triage and close submissions from the existing Trench Safety oversight shell. Daily Report cross-references are written on submit (non-invasive, read-only lookup). All notifications and audit writes reuse the certified Phase 7.5C event-fanout / audit infrastructure — no parallel pipelines built.
 
-### Deferred per OMEGA STOP → Phase 10A.2
-- PM Portal read-only surface
-- Admin advanced configuration UI
-- Spanish→English LLM translation (free-text Spanish is **preserved** today; auto-translation is a documented Phase 10A.2 gap)
-- Excavation-record CSV import
-- Photo upload UI (backend `photo_ids[]` slot exists; UI is Phase 10A.2)
-- Advanced saved views · advanced analytics
+**Backend regression:** 25/25 Phase 10A pytest cases pass. 50/50 Phase 8–9B cases continue to pass.
+**Frontend parity:** Verified by testing_agent_v3_fork (`/app/test_reports/iteration_phase10a_core.json`). 100% of UI parity bullets confirmed after the one-line Spanish-translation patch (see §4).
 
 ---
 
-## 2 · Files Touched
+## 1 · UI PARITY CORRECTION (per operator directive)
 
-**Backend (1 new · 1 modified · 1 new test)**
-- `routes/trench_safety/excavations.py` **NEW** (~400 LOC) — model, OSHA flag engine, public submit, list/filter, review, summary report
-- `routes/trench_safety/__init__.py` — wires `register_excavation_routes`
-- `tests/test_trench_safety_phase10a.py` **NEW** — 8/8 PASS
+The Public Excavation Form was refactored to use the **same shared public shell** as the rest of the Public Trench Safety surface.
 
-**Frontend (2 new · 3 modified)**
-- `pages/trench_safety/PublicExcavationForm.jsx` **NEW** (~330 LOC) — 14-section public form · Bool tri-state buttons · auto-populate from URL params · EN/ES
-- `pages/trench_safety/ExcavationOversight.jsx` **NEW** (~140 LOC) — Safety + Admin oversight list/filter/review
-- `pages/trench_safety/PublicTrenchSafetyDashboard.jsx` — Excavation Operations action tile added (4-up grid)
-- `pages/trench_safety/TrenchSafetyShell.jsx` — Excavations tab added (Safety + Admin parity)
-- `App.js` — `/trench-safety/excavation/new` (public) + `/safety|admin/trench-safety/excavations` routes
-- `lib/i18n.js` — 100+ EN→ES translations
+| Standard element                              | Source pattern                                  | Phase 10A status |
+|-----------------------------------------------|--------------------------------------------------|------------------|
+| `<PublicTrenchHeader>` (back · MASCI · HOME · LangToggle) | `PublicTrenchSafetyDashboard.jsx` line 119–124 | ✅ Adopted (testid `public-excavation-header`) |
+| Caution stripe banner                         | `caution-stripe` className above header          | ✅ Adopted         |
+| Title block (icon · eyebrow · h1 · description) | Dashboard line 128–139                          | ✅ Adopted (`public-excavation-title`) |
+| Red Stop-Work + amber Coaching strips         | Dashboard line 142–157                           | ✅ Adopted (`public-excavation-stopwork`, `public-excavation-coaching`) |
+| Section card style (`bg-white border border-slate-200 rounded-md p-4 mt-3` + cyan-700 font-mono eyebrow) | Dashboard sections | ✅ Adopted (14 sections, `exc-section-1..14`) |
+| Submit button (`bg-cyan-700 hover:bg-cyan-800 h-12 px-6 uppercase tracking-[0.12em]`) | Public Report submit button | ✅ Adopted (`exc-submit`) |
+| Footer (`MASCI Operations Platform · Field-safe view`) | Dashboard line 269–271 | ✅ Adopted |
+| Success state — same shell preserved          | New behavior, parity confirmed                   | ✅ Verified |
+| EN/ES toggle in header                        | `LangToggle` inside `PublicTrenchHeader`         | ✅ Inherited |
+| Mobile spacing (`max-w-3xl mx-auto px-4 sm:px-6 py-5`) | Dashboard main container | ✅ Adopted |
+
+**Standalone-looking form pattern: ELIMINATED.** The form now feels native to the platform.
 
 ---
 
-## 3 · OSHA Deterministic Flag Engine (10 flags · coaching language)
+## 2 · BACKEND DELIVERABLES
+
+### 2.1 Routes (`/app/backend/routes/trench_safety/excavations.py`)
+
+- `POST /api/trench-safety/excavations/public/submit` — public, no auth
+- `GET  /api/trench-safety/excavations` — Safety/Admin only, filter by project / supervisor / status / soil / protective system / depth_min / has_action_required
+- `GET  /api/trench-safety/excavations/{ex_id}` — detail
+- `POST /api/trench-safety/excavations/{ex_id}/review` — actions: `review` · `request_clarification` · `close` · `reopen`
+- `GET  /api/trench-safety/excavations/reports/summary` — Safety/Admin oversight roll-up
+
+### 2.2 Data Model — `trench_excavations` collection
+
+Year-scoped permanent IDs: `EX-YYYY-###` (never reused). Status state machine: `Submitted` → `Needs Review` / `Action Required` → `Pending Verification` → `Reviewed` / `Closed` / `Reopened`. Free-text fields preserved verbatim (EN or ES) per directive.
+
+### 2.3 Reused certified infrastructure (no architecture drift)
+
+- **Audit:** every submit and review writes `audit_events` via `write_audit`.
+- **Notifications:** `event_fanout.emit_notification(kind="trench_excavation_submitted" | "trench_excavation_{action}")` — same fanout pipeline as Phase 7.5C.
+- **Asset linkage:** `assigned_asset_ids` references the certified `trench_safety_assets` registry; no duplicate inventory created.
+- **Daily Report tie-in:** on submit, the workflow performs a read-only lookup against `daily_reports` matching `project_name` + `report_date` and stores any matches in `daily_report_links` on the excavation document. The `daily_reports` collection is **not** modified.
+
+---
+
+## 3 · DETERMINISTIC OSHA FLAG ENGINE (10 FLAGS — COACHING LANGUAGE)
+
+Source: `/app/memory/OSHA_SUBPART_P_GAP_ANALYSIS.md`. All flags use coaching language (`Needs Review` or `Action Required`); punitive vocabulary is forbidden and pytest-guarded.
+
+| # | Code                    | Trigger                                                        | Level             |
+|---|-------------------------|----------------------------------------------------------------|-------------------|
+| 1 | `ACCESS_EGRESS`         | depth ≥ 4 ft AND access/egress not installed                   | Action Required   |
+| 2 | `PROTECTIVE_SYSTEM`     | depth ≥ 5 ft AND protective system unset/Not Required          | Action Required   |
+| 3 | `SOIL_UNKNOWN`          | soil = "Unknown / Needs Review"                                | Needs Review      |
+| 4 | `UTILITY_LOCATE`        | work_type contains "Utility" AND locate_status = "Pending"     | Action Required   |
+| 5 | `WATER`                 | water present AND dewatering not active                        | Needs Review      |
+| 6 | `ATMOSPHERE`            | atmospheric concern AND testing not completed                  | Action Required   |
+| 7 | `TRENCH_BOX_ASSIGNMENT` | Trench Box / Shielding selected with no asset ID linked        | Needs Review      |
+| 8 | `ROAD_PLATE_ASSIGNMENT` | Roadway excavation with no asset ID linked                     | Needs Review      |
+| 9 | `SPOIL_SETBACK`         | spoils less than 2 ft from edge                                | Action Required   |
+| 10 | `REINSPECTION`         | reinspection required AND reinspection not completed           | Action Required   |
+
+Status derivation: `Action Required` overrides `Needs Review`; clean records resolve to `Submitted`. Verified by `test_status_action_required_takes_priority` and `test_clean_record_submitted_status`.
+
+---
+
+## 4 · TESTING EVIDENCE
+
+### 4.1 Backend pytest — 25/25 GREEN
 
 ```
-ACCESS_EGRESS         Action Required  depth≥4 ft + no access installed
-PROTECTIVE_SYSTEM     Action Required  depth≥5 ft + ps in (Not Required, Needs Review)
-SOIL_UNKNOWN          Needs Review     soil_classification == "Unknown / Needs Review"
-UTILITY_LOCATE        Action Required  utility work + locate Pending
-WATER                 Needs Review     water_present + dewatering not active
-ATMOSPHERE            Action Required  hazardous concern + testing not completed
-TRENCH_BOX_ASSIGN.    Needs Review     PS=Trench Box/Combination + no asset linked
-ROAD_PLATE_ASSIGN.    Needs Review     Roadway work + no asset linked
-SPOIL_SETBACK         Action Required  spoils_2ft_from_edge == False
-REINSPECTION          Action Required  reinspection_required + not completed
+tests/test_trench_safety_phase10a.py        ........  (8 passed)
+tests/test_trench_safety_phase10a_flags.py  .................  (17 passed)
 ```
 
-Every flag is **deterministic** (pure function of the record) and uses **coaching language only**. Verified by 4 dedicated unit tests.
+Coverage: public submit (no auth) · EX-YYYY-### ID format + uniqueness · all 10 OSHA flags individually · coaching-language-only guard · status priority · clean-record path · asset-ID persistence · Spanish-text persistence · full review action matrix · reports summary shape · list filter by status.
+
+### 4.2 Regression — 50/50 Phase 8–9B continue to pass
+
+`tests/test_trench_safety_phase8a..9b.py` — 50 tests, 0 failures.
+
+### 4.3 UI parity validation — testing_agent_v3_fork
+
+See `/app/test_reports/iteration_phase10a_core.json`. All directive bullets verified:
+
+| Directive bullet                          | Test agent verdict |
+|--------------------------------------------|---------------------|
+| Existing public safety header              | ✅ `public-excavation-header` present |
+| Back button / Back to Safety navigation    | ✅ `public-excavation-back` routes to `/trench-safety` |
+| MASCI/ForgedOps theme consistency          | ✅ Slate-900 / cyan-700 palette adopted |
+| EN/ES toggle in same location              | ✅ Inside `PublicTrenchHeader`, identical placement |
+| Same button + card styling                 | ✅ |
+| Same section header style                  | ✅ font-mono cyan-700 eyebrow |
+| Same alert/banner styling                  | ✅ Red Stop-Work + Amber Coaching |
+| Same mobile spacing                        | ✅ `max-w-3xl mx-auto px-4 sm:px-6 py-5` |
+| Footer/help language                       | ✅ "MASCI Operations Platform · Field-safe view" |
+| Public Safety Tile shell consistency       | ✅ Excavation tile lives on `/trench-safety` dashboard |
+| End-to-end public submit                   | ✅ EX-2026-### returned with status + flags rendered |
+| OSHA flag rendered on success card         | ✅ `exc-flag-PROTECTIVE_SYSTEM` verified |
+| Coaching language only                     | ✅ Pytest `test_flag_coaching_language_only` GREEN |
+
+### 4.4 Minor i18n patch applied during certification
+
+The testing agent flagged one detail: the header back-link did not translate to Spanish. Patched by adding three i18n keys to `/app/frontend/src/lib/i18n.js`:
+- `"Back to Trench Safety"` → `"Volver a Seguridad de Zanjas"`
+- `"Back to Safety"` → `"Volver a Seguridad"`
+- `"Cancel · Back to Trench Safety"` → `"Cancelar · Volver a Seguridad de Zanjas"`
 
 ---
 
-## 4 · Public Submit Validation
+## 5 · FILES TOUCHED / CREATED THIS SPRINT
 
-```
-POST /api/trench-safety/excavations/public/submit   (no auth)
-```
-- ID format `EX-2026-001` year-scoped, never reused (verified `test_excavation_id_unique`)
-- Status auto-derived from flags: Action Required > Needs Review > Submitted
-- Notification + audit fire on submit
-- Field-safe — no token required; matches the existing Public Safety Tile pattern
-
----
-
-## 5 · Safety Oversight Validation
-
-`/safety/trench-safety/excavations` (and admin parity at `/admin/...`):
-- Filter: project_name · supervisor_name · status · depth_min · soil · protective_system
-- Per-row flags rendered inline with coaching color (amber for Action Required)
-- Review dialog actions: `request_clarification` · `review` · `close` · `reopen`
-- Coaching note attached to every review action
-- Each review writes an audit row and emits a notification
+| Path                                                                      | Status     |
+|---------------------------------------------------------------------------|------------|
+| `/app/backend/routes/trench_safety/excavations.py`                       | Hardened (daily-report linkage added) |
+| `/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx`         | **Refactored to parity shell** |
+| `/app/frontend/src/pages/trench_safety/ExcavationOversight.jsx`          | Verified (uses `TrenchSafetyShell`) |
+| `/app/frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx`  | Tile tone cleanup (removed invalid `tone="info"`) |
+| `/app/frontend/src/lib/i18n.js`                                          | +3 ES keys for back-link |
+| `/app/backend/tests/test_trench_safety_phase10a_flags.py`                | New — 17 OSHA + status + persistence tests |
+| `/app/memory/PHASE10A_CORE_PUBLIC_EXCAVATION_WORKFLOW_CERTIFICATION.md`  | New — this file |
 
 ---
 
-## 6 · Audit Integration
+## 6 · OUT OF SCOPE — DEFERRED (per directive)
 
-6 new audit kinds, all in `audit_events`:
-- `excavation_record_created`
-- `excavation_record_review`
-- `excavation_record_request_clarification`
-- `excavation_record_close`
-- `excavation_record_reopen`
-- (notification side: `trench_excavation_submitted` etc. through `event_fanout`)
+The following remain on the Phase 10A.2 / Phase 11 backlog and were **intentionally not built** in this sprint:
 
----
-
-## 7 · Reporting Integration
-
-`GET /api/trench-safety/excavations/reports/summary` returns:
-- `total`, `active`, `by_status` map
-- `action_required[]`, `missing_protective_system[]`, `missing_access_egress[]`
-- `soil_unknown[]`, `utility_locate_review[]`, `reinspection_required[]`
-
-These map 1:1 to the 7 reporting categories required by the directive.
+- PM Portal read-only excavation surface
+- Admin advanced configuration (custom flag thresholds, custom statuses)
+- Spanish-to-English LLM translation of free-text notes
+- CSV import for excavation records
+- Advanced analytics dashboards
+- Training Center, OSHA Library, Global Search, OCR / Vision
 
 ---
 
-## 8 · EN/ES Validation
+## 7 · RECOMMENDATION
 
-- Public form labels · dropdowns · helper text · Yes/No/N/A · validation messages · confirmation screen · coaching flags — all translated
-- Free-text Spanish notes preserved as submitted in `field_notes` + `utility_notes` + `atmospheric_notes` + coaching notes
-- `language` field on submission captures the EN/ES toggle state
-- Spanish→English LLM translation: **deferred to Phase 10A.2** (documented gap; no fake translation)
+✅ **PASS** — Phase 10A Core is certified production-ready. G-1 (Excavation Record gap) of OSHA Subpart P is now closed. Proceed when authorized to:
 
----
+1. Phase 10A.2 (deferred items above), OR
+2. Phase 11 — Final Certification of the Trench Safety Operations System.
 
-## 9 · Mobile Validation
-
-- Form sections collapse to 1-up below 640 px · 2-up on tablets
-- Tri-state Bool buttons are ≥ 36 px tall (Yes/No/N/A · finger-friendly)
-- Submit button is `h-12 px-6` — meets 44 px tap target
-- Public landing dashboard tile is touch-first
-- 5:30 AM Superintendent Test passes — supervisor can submit a record in ~60 seconds with minimal typing
+The single pre-existing P2 issue (`test_trench_safety_phase2.py::test_dashboard_seed_data` stale fixture) remains untouched per directive — it does not block Phase 10A and is queued for a post-certification fixture-isolation pass.
 
 ---
 
-## 10 · Regression Results
-
-```
-Phase 9A (Reports):  17 PASS
-Phase 9B (Distribution): 10 PASS
-Phase 10A (Excavation):  8 PASS
-─────────────────────────────────────
-Combined recent suite:  35 / 35 PASS
-```
-
-No drift. No duplicate systems. No broken public forms. Existing Daily Posture / Pulse / Reports / Subscriptions intact.
-
----
-
-## 11 · Known Findings
-
-- **F-1 (INFO):** Daily Report inline integration is wired through URL query parameters (`?project_name=...&supervisor=...&date=...&source=daily_report`). Direct inline embedding inside the existing Daily Report React component is a small Phase 10A.2 polish — the data round-trip is complete today.
-- **F-2 (INFO):** Photo upload UI is Phase 10A.2; backend already has the `photo_ids[]` slot to receive uploads.
-- **F-3 (INFO):** PM Portal read-only surface is Phase 10A.2 — the data already supports project filtering (`?project_name=...`); no schema work needed to add the view.
-- **F-4 (INFO):** Free-text Spanish → English auto-translation is Phase 10A.2 — Spanish is preserved verbatim; no fake translation today.
-
----
-
-## 12 · Compliance Closure of G-1
-
-| OSHA ID | Pre-Phase-10A | Post-Phase-10A |
-|---|---|---|
-| R-651.3 access/egress depth-aware enforcement | 🔴 | 🟢 — checklist + flag |
-| R-651.4 ladder ≥ 3 ft above landing | 🔴 | 🟢 — checkbox + soft validation |
-| R-651.11 water accumulation | 🔴 | 🟢 — water section + flag |
-| R-651.13 stability of adjacent structures | 🔴 | 🟡 — work-area + utility-notes free text |
-| R-651.16 spoil pile ≥ 2 ft setback | 🔴 | 🟢 — checkbox + flag |
-| R-651.9 hazardous atmosphere | 🔴 | 🟢 — section + flag |
-| R-652.1 protective system at ≥ 5 ft | 🔴 | 🟢 — depth-aware flag |
-| R-652.4 soil classification by CP | 🔴 | 🟢 — required dropdown + Unknown → flag |
-| R-651.17 post-rain reinspection | 🔴 | 🟢 — Reinspection-Required flag |
-| R-651.1 / .2 utility locating | 🔴 | 🟢 — ticket + status + flag |
-
-**Net Subpart P coverage uplift:** ~10 RED → GREEN/YELLOW from this single sprint, exactly as predicted in the Phase 9C-A Gap Analysis.
-
----
-
-## 13 · PASS / FAIL Recommendation
-
-**🟢 PASS — Phase 10A Core is production-ready and closes G-1.**
-
-MASCI now models the excavation itself (depth · dimensions · soil class · protective system · access/egress · utility locate · spoils · water · atmosphere · competent-person attestation · asset linkage), captures it from the Public Safety Tile in field-friendly EN/ES, computes a 10-flag deterministic OSHA coaching layer at submit time, surfaces every record for Safety/Admin review and closure, audits every action, fires through the certified notification fanout, and reports through a structured summary endpoint compatible with the existing Phase 9A/9B reporting infrastructure.
-
-The deferred Phase 10A.2 items (PM view · Admin config · Spanish translation · CSV import · photo UI) are pure polish — none of them are blockers to the OSHA Subpart P regulatory claim. The hard part is shipped.
-
----
-
-### STOP CONDITIONS HONORED
-- ✅ Core implementation complete
-- ✅ Core testing complete (8 / 8 + 35 / 35 regression)
-- ✅ Core certification complete
-- ✅ PASS recommendation issued
-- ✅ Phase 10A.2 explicitly scoped and deferred
-
-No Soil Classification advanced module · Utility Locate advanced module · OSHA Library · Training Center · Global Search · OCR · Vision · Phase 11 started.
-
-— END OF CERTIFICATION —
+*Certified under the OMEGA Directive · Public Excavation Operations Workflow Sprint · MASCI Operations Platform.*

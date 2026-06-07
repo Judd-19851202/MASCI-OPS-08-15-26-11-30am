@@ -265,3 +265,27 @@ None of these affect the directive's three success criteria; all three are MET a
 **Residual operator-discretion items** (NOT certification blockers, separately FOCP-gateable): (a) LifecycleGuide UI wiring on JHP / Safety Meeting / Equipment Issuance/Training / Fleet flows — coaching already delivered via HelpTip; (b) in-flow glossary tooltip wiring; (c) pre-existing >80-word body on `driver-qualification.restrictions/escalate`; (d) centralized in-app onboarding (currently distributed by design).
 
 
+
+
+---
+
+## 2026-02-07 · Phase 10A Core — Public Excavation Operations Workflow ✅ CERTIFIED
+
+**Scope (OMEGA Directive · Phase 10A Core ONLY):** Close OSHA Subpart P G-1 gap (Excavation Record).
+
+**Delivered:**
+- Backend `/app/backend/routes/trench_safety/excavations.py` — public submit (no auth), Safety/Admin list+filter+detail, review actions (review · request_clarification · close · reopen), reports summary, year-scoped `EX-YYYY-###` IDs.
+- 10 deterministic OSHA Subpart P flags (coaching language only — no punitive vocabulary): ACCESS_EGRESS · PROTECTIVE_SYSTEM · SOIL_UNKNOWN · UTILITY_LOCATE · WATER · ATMOSPHERE · TRENCH_BOX_ASSIGNMENT · ROAD_PLATE_ASSIGNMENT · SPOIL_SETBACK · REINSPECTION.
+- Public 14-section form refactored to use the **shared MASCI public shell** (`PublicTrenchHeader`, caution-stripe, title block, red Stop-Work + amber Coaching strips, footer). EN/ES toggle in header. Asset-linkage to certified `trench_safety_assets` registry.
+- Safety/Admin Excavation Oversight surface using existing `TrenchSafetyShell`.
+- Non-invasive Daily Report cross-reference on submit (read-only lookup by project + date).
+- Audit + notification fanout reuse certified Phase 7.5C infrastructure — no architecture drift.
+- 3 new Spanish i18n keys for header back-link parity.
+
+**Testing:** 25/25 Phase 10A pytest cases pass (8 core + 17 OSHA flag/persistence/status). Regression: 50/50 Phase 8–9B continue to pass. testing_agent_v3_fork verified UI parity 100% (`/app/test_reports/iteration_phase10a_core.json`).
+
+**Certification doc:** `/app/memory/PHASE10A_CORE_PUBLIC_EXCAVATION_WORKFLOW_CERTIFICATION.md`.
+
+**Deferred to Phase 10A.2 / Phase 11 (NOT built):** PM portal visibility, admin advanced configuration, LLM ES→EN translation, CSV import, advanced analytics, Training Center, OSHA Library, Global Search, OCR/Vision.
+
+
