@@ -166,4 +166,15 @@ def register_public_routes(api_router: APIRouter, db) -> None:
             actor={"_actor": "public", "name": payload.reported_by_name or "anonymous"},
             detail={"repair_id": repair_doc["id"], "report_kind": payload.kind, "ip": ip},
         )
+        # Phase 7.5C — bell fanout (no email per routing matrix)
+        try:
+            from routes.trench_safety.notifications import notify_damage_report  # noqa: PLC0415
+            report_for_notif = {
+                "id": doc["id"],
+                "kind": payload.kind,
+                "description": payload.description,
+            }
+            await notify_damage_report(db, asset, report_for_notif)
+        except Exception:  # noqa: BLE001
+            pass
         return {"ok": True, "received_at": doc["received_at"], "kind": payload.kind}

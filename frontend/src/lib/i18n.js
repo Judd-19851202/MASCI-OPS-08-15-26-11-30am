@@ -1517,6 +1517,42 @@ const ES = {
   "Repair Certification": "Certificación de Reparación",
   "Special": "Especial",
 
+  // ============================================================
+  // Trench Safety · Phase 7.5C Notification strings
+  // ============================================================
+  // Bell titles
+  "Safety Hold opened": "Retención de Seguridad abierta",
+  "Inspection Hold opened": "Retención de Inspección abierta",
+  "Maintenance Hold opened": "Retención de Mantenimiento abierta",
+  "Certification Hold opened": "Retención de Certificación abierta",
+  "Hold released": "Retención liberada",
+  "Critical Inspection Failure": "Fallo Crítico de Inspección",
+  "Major Inspection Failure": "Fallo Mayor de Inspección",
+  "Damage reported": "Daño reportado",
+  "Unsafe Condition reported": "Condición Insegura reportada",
+  "Certification due ≤ 30 days": "Certificación vence ≤ 30 días",
+  "Certification due ≤ 14 days": "Certificación vence ≤ 14 días",
+  "Certification due ≤ 7 days": "Certificación vence ≤ 7 días",
+  "Certification EXPIRED": "Certificación EXPIRADA",
+  "Repair complete · awaiting Safety verification": "Reparación completa · esperando verificación de Seguridad",
+  "Asset returned to service": "Activo devuelto al servicio",
+  // Coaching template fragments
+  "What happened:": "Qué ocurrió:",
+  "Why it matters:": "Por qué importa:",
+  "What to do next:": "Qué hacer a continuación:",
+  "Open Asset": "Abrir Activo",
+  "Review Inspection": "Revisar Inspección",
+  // Digest section
+  "Open Safety Holds": "Retenciones de Seguridad Abiertas",
+  "Open Certification Holds": "Retenciones de Certificación Abiertas",
+  "Open Inspection Holds": "Retenciones de Inspección Abiertas",
+  "Open Maintenance Holds": "Retenciones de Mantenimiento Abiertas",
+  "Repairs Awaiting Verification": "Reparaciones Esperando Verificación",
+  "Expiring Certifications (30d)": "Certificaciones por Expirar (30d)",
+  "New Damage Reports (7d)": "Nuevos Reportes de Daño (7d)",
+  "Failed Inspections (7d)": "Inspecciones Fallidas (7d)",
+
+
   "Inspection failed.": "Inspección fallida.",
   "A Fail with Major or Critical severity automatically opens an Inspection Hold and stubs a repair recommendation.":
     "Un Fallo con severidad Mayor o Crítica abre automáticamente una Retención de Inspección y crea una recomendación de reparación.",

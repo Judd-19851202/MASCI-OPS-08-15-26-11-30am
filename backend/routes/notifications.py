@@ -39,11 +39,14 @@ Payload shape (every role returns the same envelope):
 """
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -329,6 +332,42 @@ async def _build_safety_digest(db) -> Dict[str, Any]:
             "rule_ids": ["TRN_EXPIRED"],
             "items": await _sample_open_findings(db, ["TRN_EXPIRED"], 5),
         })
+
+    # 7 · Trench Safety section (Phase 7.5C)
+    try:
+        from routes.trench_safety.notifications import build_trench_digest_section  # noqa: PLC0415
+        ts = await build_trench_digest_section(db)
+        ts_total = sum(
+            int(ts.get(k) or 0) for k in (
+                "open_safety_holds", "open_certification_holds",
+                "repairs_awaiting_verification", "new_damage_reports_7d",
+                "failed_inspections_7d", "expiring_certifications_30d",
+            )
+        )
+        # Always emit the section so Trench Safety is visible in the digest,
+        # even when counts are all zero (per directive — digest integration
+        # must be present).
+        sections.append({
+            "key": "trench_safety",
+            "severity": "high" if ts.get("open_safety_holds", 0) > 0 else "medium",
+            "title": f"Trench Safety — {ts_total} item(s) requiring attention",
+            "body": (
+                f"Open Safety Holds: {ts['open_safety_holds']} · "
+                f"Cert Holds: {ts['open_certification_holds']} · "
+                f"Inspection Holds: {ts['open_inspection_holds']} · "
+                f"Repairs awaiting verification: {ts['repairs_awaiting_verification']} · "
+                f"Expiring certs (30d): {ts['expiring_certifications_30d']} · "
+                f"New damage reports (7d): {ts['new_damage_reports_7d']} · "
+                f"Failed inspections (7d): {ts['failed_inspections_7d']}"
+            ),
+            "count": ts_total,
+            "action_url": "/safety/trench-safety",
+            "rule_ids": ["TRENCH_SAFETY_OPEN_WORK"],
+            "items": [],
+            "trench_safety": ts,
+        })
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[notifications-digest] trench section failed: {e}")
 
     total = sum(s["count"] for s in sections)
 

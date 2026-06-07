@@ -9299,6 +9299,33 @@ _safety_router = build_safety_router(
 app.include_router(_safety_router)
 
 
+# Phase 7.5C — Trench Safety transactional email wrapper.
+# Identical gating + Resend wiring as `_safety_send_email`; lives at
+# module scope so `routes/trench_safety/notifications.py` can resolve
+# it via a late `from server import _trench_send_email` import.
+# Branded "MASCI Trench Safety" so Gmail/Outlook threading is clean.
+async def _trench_send_email(to_email: str, subject: str, html: str) -> bool:
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        logger.info(f"[trench-email-stub] to={to_email} subject={subject}")
+        return False
+    if (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() not in ("true", "1", "yes"):
+        logger.info(f"[trench-email-preview] to={to_email} subject={subject}")
+        return False
+    import resend as _resend  # noqa: PLC0415
+    _resend.api_key = api_key
+    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    params = {
+        "from": f"MASCI Trench Safety <{sender}>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html,
+    }
+    await asyncio.to_thread(_resend.Emails.send, params)
+    return True
+
+
+
 # ─── Safety Reports & Exports (iter133) ────────────────────────────
 # Wires the 10 export endpoints SafetyReports.jsx already calls. Safety
 # / HR / Admin tokens accepted via make_require_safety_or_hr_or_admin.

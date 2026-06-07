@@ -1,6 +1,48 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (TRENCH SAFETY · PHASE 7.5C · 🟢 GO)
+
+### Verdict: 🟢 NOTIFICATION WIRING PASS — Production-ready
+
+Trench Safety now participates in every existing notification engine: Unified Notification Fanout (bell), Email (Resend via `_trench_send_email`), Weekly + Live Safety Digest (new trench section), Resend Webhook bounce chain, Audit pipeline. No new systems created.
+
+### Built
+- **NEW** `backend/routes/trench_safety/notifications.py` — central `ROUTING_MATRIX` (15 routing keys) + 7 emitter helpers + `build_trench_digest_section`.
+- **NEW** `backend/tests/test_trench_safety_phase75c.py` — 5/5 pass.
+- Wired emitters into `_helpers.open_hold` / `_helpers.clear_hold` / `_helpers.recompute_certification_hold` / `inspections.submit_inspection` / `public.public_damage_report` / `repairs.complete_repair`.
+- Added `_trench_send_email` wrapper in `server.py` (mirrors `_safety_send_email` exactly).
+- Added `"trench-safety": "TRENCH SAFETY"` subject tag in `pdf_render.SUBJECT_TYPE_TAGS`.
+- Extended `routes/notifications.py:_build_safety_digest` with a live `trench_safety` section (read by both the live digest endpoint and the weekly cron renderer).
+- Added ~24 EN→ES translation keys in `frontend/src/lib/i18n.js`.
+
+### Validation (directive matrix · all ✅)
+- Bell, Email, Digest delivery verified.
+- Role routing single-source-of-truth (`ROUTING_MATRIX`).
+- EN + ES.
+- Deep links on every bell row + email body.
+- Audit records via existing `task_service` / `notification_service` engines + Resend webhook.
+- No duplicate notifications, no loops, no regression — full Phase 7 / 4B / 6 suites green.
+
+### Live evidence
+`/api/safety/notifications/digest` returns the new `trench_safety` section with live counts pulled from `trench_safety_holds`, `trench_safety_certifications`, `trench_safety_repairs`, `trench_safety_inspections`.
+
+### Deliverables
+- `TRENCH_SAFETY_NOTIFICATION_ARCHITECTURE.md`
+- `TRENCH_SAFETY_NOTIFICATION_ROUTING_MATRIX.md`
+- `TRENCH_SAFETY_EMAIL_CERTIFICATION.md`
+- `TRENCH_SAFETY_DIGEST_CERTIFICATION.md`
+- `TRENCH_SAFETY_TRANSLATION_CERTIFICATION.md`
+- `TRENCH_SAFETY_NOTIFICATION_TEST_REPORT.md`
+- `TRENCH_SAFETY_NOTIFICATION_GO_NO_GO.md`
+
+### STOP per directive
+Phase 8, OCR, Reports paused. Awaiting operator authorisation.
+
+---
+
+
+
 ## 2026-02-07 (TRENCH SAFETY · PHASE 7.5A · 🟢 GO)
 
 ### Verdict: 🟢 COMMAND CENTER FOUNDATION COMPLETE

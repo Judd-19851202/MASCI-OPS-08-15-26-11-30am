@@ -216,4 +216,15 @@ def register_inspection_routes(
                 "repair_stub_id": repair_stub_id,
             },
         )
+        # Phase 7.5C — bell + email fanout for Fail Major/Critical
+        if payload.result == "Fail" and payload.severity in {"Major", "Critical"}:
+            try:
+                from routes.trench_safety.notifications import notify_inspection_failed  # noqa: PLC0415
+                # Construct an inspector_name surrogate from actor for the email body
+                doc_for_notif = dict(doc)
+                doc_for_notif.setdefault("inspector_name", actor_email)
+                doc_for_notif.setdefault("notes", payload.findings or "")
+                await notify_inspection_failed(db, fresh or asset, doc_for_notif)
+            except Exception:  # noqa: BLE001
+                pass
         return {"inspection": doc, "asset": fresh, "repair_stub_id": repair_stub_id}

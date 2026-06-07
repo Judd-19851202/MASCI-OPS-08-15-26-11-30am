@@ -251,6 +251,13 @@ def register_repair_routes(
                 "requires_reinspection": fresh_repair.get("requires_reinspection"),
             },
         )
+        # Phase 7.5C — bell fanout when Safety verification is required.
+        if fresh_repair.get("requires_reinspection"):
+            try:
+                from routes.trench_safety.notifications import notify_repair_awaiting_safety  # noqa: PLC0415
+                await notify_repair_awaiting_safety(db, fresh_asset, fresh_repair)
+            except Exception:  # noqa: BLE001
+                pass
         return {"repair": fresh_repair, "asset": fresh_asset}
 
     # ──────────────────────────────────────────────────────────────────

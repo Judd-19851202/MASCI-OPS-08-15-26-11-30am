@@ -137,6 +137,13 @@ async def open_hold(
         actor={"_actor": "system", "email": opened_by},
         detail={"hold_id": doc["id"], "hold_kind": kind, "source": source},
     )
+    # Phase 7.5C — bell + email fanout (fire-and-forget, never raises)
+    try:
+        from routes.trench_safety.notifications import notify_hold_opened  # noqa: PLC0415
+        asset = await db.trench_safety_assets.find_one({"asset_id": asset_id}, {"_id": 0}) or {"asset_id": asset_id}
+        await notify_hold_opened(db, asset, doc)
+    except Exception:  # noqa: BLE001
+        pass
     return doc
 
 
@@ -172,7 +179,21 @@ async def clear_hold(
         actor={"_actor": "system", "email": cleared_by},
         detail={"hold_id": existing["id"], "hold_kind": kind, "clear_source": clear_source},
     )
-    return await db.trench_safety_holds.find_one({"id": existing["id"]}, {"_id": 0})
+    cleared = await db.trench_safety_holds.find_one({"id": existing["id"]}, {"_id": 0})
+    # Phase 7.5C — fanout
+    try:
+        from routes.trench_safety.notifications import (  # noqa: PLC0415
+            notify_hold_cleared, notify_asset_returned_to_service,
+        )
+        asset = await db.trench_safety_assets.find_one({"asset_id": asset_id}, {"_id": 0}) or {"asset_id": asset_id}
+        await notify_hold_cleared(db, asset, cleared or {"id": existing["id"], "kind": kind})
+        # If the cleared hold was the last active hold, the asset is back to service.
+        any_active = await db.trench_safety_holds.count_documents({"asset_id": asset_id, "is_active": True})
+        if any_active == 0 and (asset.get("operational_status") in ("Available", "Assigned")):
+            await notify_asset_returned_to_service(db, asset)
+    except Exception:  # noqa: BLE001
+        pass
+    return cleared
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -245,6 +266,7 @@ async def recompute_certification_hold(db, asset_id: str, actor_email: str = "sy
     active = await db.trench_safety_certifications.find(
         {"asset_id": asset_id, "status": "Active"}, {"_id": 0}
     ).to_list(200)
+    just_expired: List[dict] = []
     for c in active:
         exp = c.get("expires_at") or ""
         try:
@@ -258,6 +280,16 @@ async def recompute_certification_hold(db, asset_id: str, actor_email: str = "sy
             await db.trench_safety_certifications.update_one(
                 {"id": c["id"]}, {"$set": {"status": "Expired", "updated_at": now_iso()}}
             )
+            just_expired.append({**c, "status": "Expired"})
+
+    # Phase 7.5C — bell + email for any cert that just expired in this sweep.
+    if just_expired:
+        try:
+            from routes.trench_safety.notifications import notify_certification_event  # noqa: PLC0415
+            for c in just_expired:
+                await notify_certification_event(db, asset, c, days=-1)
+        except Exception:  # noqa: BLE001
+            pass
 
     # Re-read after the sweep
     active_certs = await db.trench_safety_certifications.find(

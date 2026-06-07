@@ -806,6 +806,8 @@ SUBJECT_TYPE_TAGS: Dict[str, str] = {
     "supervisor_notes": "LEADERSHIP",
     "employee_termination": "TERMINATION",
     "time_off_request": "TIME OFF",
+    # Phase 7.5C — Trench Safety notification subjects
+    "trench-safety": "TRENCH SAFETY",
 }
 
 
