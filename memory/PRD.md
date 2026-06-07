@@ -1,6 +1,47 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-12 (OMEGA · PRE-FIELD TRIAL HARDENING · 🟢 READY FOR HUMAN FIELD TRIAL)
+
+### Verdict: **READY FOR HUMAN FIELD TRIAL ✅**
+
+### Defects resolved (2 only — strict scope discipline)
+- **FT-D1-001** Mobile horizontal-overflow metric → **CLOSED · headless artifact**. Re-verified at 3 viewport profiles; `window.innerWidth` reports 1920 on all (Playwright sandbox not actually downscaling). Per-element offender scan returned empty. Viewport meta tag correct (`width=device-width, initial-scale=1`). No real overflow. Physical-device verification deferred to the human trial.
+- **FT-D1-002** Spanish translation gap on Emergency Excavation block → **FIXED**. Added 2 entries to `/app/frontend/src/lib/i18n.js`. Live-verified: heading "¿Excavación de Emergencia?", helper paragraph in ES, buttons "SÍ / NO / N/D". No other i18n touched.
+
+### Asset metadata (re-confirmed idempotent)
+15/15 trench boxes have `rated_depth_ft` + dimensions + shield_type. 81/81 road plates have length/width/thickness/weight/load_rating. Zero rows in Missing/Needs-Verification state. `flag_depth=3` and `flag_road_plate=2` (was 0/0).
+
+### Real-asset validation (8/8 verified)
+- FV-7.1 rated-depth fires on TB-03 @ 9 ft (Action Required)
+- FV-7.1 silent on TB-04 @ 9 ft (compliant)
+- FV-7.1 acknowledgement downgrades flag to Needs Review
+- FV-7.4 road plate undersized fires on RP-901 5×8 with 12×10 opening
+- FV-7.4 silent on RP-901 with 4×4 opening
+- FV-7.2 CP selector returns designated-only list
+- FV-7.3 foreman reinspection works no-auth, all 7 directive reasons
+- FV-7.5/7.6 chip counts populated from real inventory
+
+### Tests
+`tests/test_fv7_safety_gaps.py` + `tests/test_trench_safety_phase10ab_integration.py` → **36/36 GREEN**.
+
+### 8 deliverables written
+- `PRE_FIELD_TRIAL_HARDENING_CERTIFICATION.md`
+- `ASSET_METADATA_BACKFILL_REPORT.md`
+- `REAL_ASSET_VALIDATION_REPORT.md`
+- `FIELD_TRIAL_FOREMAN_SCRIPT.md`
+- `FIELD_TRIAL_OBSERVER_CHECKLIST.md`
+- `FIELD_TRIAL_FEEDBACK_FORM.md`
+- `FIELD_TRIAL_ISSUE_LOG_TEMPLATE.md`
+- `FIELD_TRIAL_FINAL_VERDICT_TEMPLATE.md`
+
+### Out of scope (confirmed not touched)
+No new modules · dashboards · reports · analytics · portals · PM portal excavation surfaces · Training Center · OSHA Library · OCR/Vision · Global Search · UI redesign · workflow redesign.
+
+### Next gate
+Execute the 3-foreman × 3-job × 3-day human field trial using the 5 ready-to-print templates. Verdict will be one of NOT READY · CONDITIONALLY READY · PROVEN per the framework.
+
+
 ## 2026-02-11 (OMEGA · FIELD TRIAL AUTHORIZATION · 🟡 CONDITIONALLY READY)
 
 ### Verdict: **CONDITIONALLY READY ✅** — Excavation Operations · NOT PROVEN.

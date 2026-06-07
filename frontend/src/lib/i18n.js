@@ -2111,6 +2111,10 @@ const ES = {
   // Phase 10A — Public Excavation Workflow
   "Excavation Operations": "Operaciones de Excavación",
   "Operaciones de Excavación": "Operaciones de Excavación",
+  // FV-7.5 · Emergency Excavation block (FT-D1-002 translation gap)
+  "Emergency Excavation?": "¿Excavación de Emergencia?",
+  "Unscheduled, life-safety, utility-strike, water-main break, or after-hours excavation. Yes routes this to the Superintendent's Emergency chip immediately.":
+    "Excavación no programada, de emergencia, golpe a servicio, ruptura de tubería principal o fuera de horario. Sí enruta esto inmediatamente al chip de Emergencia del Superintendente.",
   "Excavation Operations Record": "Registro de Operaciones de Excavación",
   "Excavation Record Submitted": "Registro de Excavación Enviado",
   "Submit Excavation Record": "Enviar Registro",
