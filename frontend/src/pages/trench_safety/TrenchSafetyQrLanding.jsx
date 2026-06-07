@@ -2,19 +2,21 @@
 //
 // Reads from /api/trench-safety/public/assets/{asset_id} (Phase 2,
 // field-safe projection). Shows only the operational data a crew
-// member needs to confirm the box is safe to use. Does NOT expose
-// admin controls, full inventory, or internal audit data.
+// member needs to confirm the box is safe to use.
+//
+// Sprint: Public Trench Safety UX Correction — adds prominent Serial
+// Number near the top, prominent "missing — action required" banner
+// when serial is absent, and contextual back-to-trench-safety nav.
 //
 // Route: /trench-safety/assets/:assetId
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import {
   Loader2, AlertTriangle, FileWarning, ShieldAlert,
-  BookOpen, ScanLine, ArrowLeft,
+  BookOpen, ScanLine,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import PublicTrenchHeader from "@/components/trench/PublicTrenchHeader";
 import { useT } from "@/lib/i18n";
 import PublicReportModal from "@/pages/trench_safety/PublicReportModal";
 
@@ -81,19 +83,24 @@ export default function TrenchSafetyQrLanding() {
   const status = doc?.operational_status || "Available";
   const onHold = HOLD_STATUSES.has(status);
   const sStyle = STATUS_STYLE[status] || STATUS_STYLE["Available"];
+  // Serial-missing decision: trust the explicit projection flag first;
+  // fall back to an empty/whitespace serial_number value.
+  const serialMissing = doc
+    ? Boolean(doc.missing_serial_number) || !(doc.serial_number && String(doc.serial_number).trim())
+    : false;
+  const serialDisplay = serialMissing
+    ? t("Missing — Action Required")
+    : doc?.serial_number;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50" data-testid="qr-landing-page">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-cyan-700">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <Link to="/" className="inline-flex items-center text-white hover:text-cyan-300 text-xs font-bold uppercase tracking-wide" data-testid="qr-home-link">
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
+      <PublicTrenchHeader
+        backTo="/trench-safety"
+        backLabel="Back to Trench Safety"
+        testIdPrefix="qr"
+        accent="cyan"
+      />
 
       <main className="max-w-md mx-auto px-4 py-5">
         <div className="text-center mb-3">
@@ -129,6 +136,34 @@ export default function TrenchSafetyQrLanding() {
                   {t(status)}
                 </span>
               </div>
+
+              {/* Serial Number — prominent, near the top */}
+              <div
+                className={`mt-4 rounded-md border-2 px-3 py-2 text-left ${
+                  serialMissing
+                    ? "border-red-400 bg-red-50"
+                    : "border-slate-200 bg-slate-50"
+                }`}
+                data-testid="qr-serial-block"
+              >
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
+                  {t("Serial Number")}
+                </div>
+                <div
+                  className={`font-mono text-lg font-black tracking-tight mt-0.5 ${
+                    serialMissing ? "text-red-700" : "text-slate-900"
+                  }`}
+                  data-testid="qr-serial-value"
+                >
+                  {serialDisplay || "—"}
+                </div>
+                {serialMissing && (
+                  <div className="mt-1 text-[11px] text-red-800 font-bold uppercase tracking-[0.08em] inline-flex items-center gap-1" data-testid="qr-serial-missing-alert">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {t("Verify the physical serial plate before use · Report to Safety")}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Hold warning */}
@@ -140,25 +175,32 @@ export default function TrenchSafetyQrLanding() {
               </div>
             )}
 
-            {/* Needs review / missing serial */}
-            {(doc.missing_serial_number || doc.needs_review) && (
+            {/* Needs review / extra flags (serial already surfaced above) */}
+            {doc.needs_review && !serialMissing && (
               <div className="mt-4 p-4 border border-amber-300 bg-amber-50 rounded text-amber-900 text-sm" data-testid="qr-needs-review">
-                {doc.missing_serial_number && (
-                  <div className="inline-flex items-start gap-1.5"><FileWarning className="w-4 h-4 mt-0.5" />{t("Serial number not on file — verify the physical plate before use.")}</div>
-                )}
-                {doc.needs_review && !doc.missing_serial_number && (
-                  <div className="inline-flex items-start gap-1.5"><AlertTriangle className="w-4 h-4 mt-0.5" />{t("This asset is flagged for Safety review.")}</div>
-                )}
+                <div className="inline-flex items-start gap-1.5">
+                  <AlertTriangle className="w-4 h-4 mt-0.5" />
+                  {t("This asset is flagged for Safety review.")}
+                </div>
               </div>
             )}
 
             {/* Identification card */}
             <div className="mt-4 bg-white border border-slate-200 rounded-md p-3" data-testid="qr-id-card">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-1">{t("Asset Details")}</div>
+              <Row label={t("Asset ID")}     value={doc.asset_id} mono testId="qr-f-asset-id" />
+              <Row label={t("Asset Type")}   value={t(doc.asset_type || "Trench Box")} testId="qr-f-type" />
               <Row label={t("Manufacturer")} value={doc.manufacturer} testId="qr-f-mfr" />
               <Row label={t("Model")}        value={doc.model} testId="qr-f-model" />
               <Row label={t("Size")}         value={doc.size} testId="qr-f-size" />
               <Row label={t("Color")}        value={doc.color} testId="qr-f-color" />
+              <Row
+                label={t("Serial Number")}
+                value={serialMissing ? t("Missing — Action Required") : doc.serial_number}
+                mono={!serialMissing}
+                danger={serialMissing}
+                testId="qr-f-serial"
+              />
               <Row label={t("Condition")}    value={t(doc.condition || "Good")} testId="qr-f-cond" />
             </div>
 
@@ -172,15 +214,25 @@ export default function TrenchSafetyQrLanding() {
               <Row label={t("Tabulated Data")}    value={doc.tabulated_data_missing ? t("missing") : t("on file")} danger={doc.tabulated_data_missing} testId="qr-f-tabdata" />
             </div>
 
-            {/* Tabulated data link */}
-            <Link
-              to="/safety/trench-safety/tabulated-data"
+            {/* Tabulated data link — now points to the public surface */}
+            <a
+              href="/trench-safety/tabulated-data"
               className="mt-4 block bg-cyan-700 hover:bg-cyan-800 text-white text-center rounded-md py-3 font-bold uppercase tracking-[0.12em] text-sm"
               data-testid="qr-tabdata-link"
             >
               <BookOpen className="w-4 h-4 inline -mt-0.5 mr-1.5" />
               {t("Open Tabulated Data")}
-            </Link>
+            </a>
+
+            {/* Safety References link */}
+            <a
+              href="/trench-safety/references"
+              className="mt-2 block bg-white border-2 border-slate-300 hover:border-cyan-600 text-slate-800 text-center rounded-md py-3 font-bold uppercase tracking-[0.12em] text-sm"
+              data-testid="qr-references-link"
+            >
+              <FileWarning className="w-4 h-4 inline -mt-0.5 mr-1.5" />
+              {t("Open Safety References")}
+            </a>
 
             {/* Report a Problem — Phase 3.5 GAP-4 */}
             <button

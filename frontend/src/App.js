@@ -45,6 +45,9 @@ import TrenchSafetyAssetDetail from "@/pages/trench_safety/TrenchSafetyAssetDeta
 import TrenchSafetyTabulatedData from "@/pages/trench_safety/TrenchSafetyTabulatedData";
 import TrenchSafetyQrLanding from "@/pages/trench_safety/TrenchSafetyQrLanding";
 import PublicTrenchSafetyDashboard from "@/pages/trench_safety/PublicTrenchSafetyDashboard";
+import PublicTrenchSafetyTabulatedData from "@/pages/trench_safety/PublicTrenchSafetyTabulatedData";
+import PublicTrenchSafetyReferences from "@/pages/trench_safety/PublicTrenchSafetyReferences";
+import PublicTrenchSafetyReport from "@/pages/trench_safety/PublicTrenchSafetyReport";
 import TrenchBoxesAdmin from "@/pages/TrenchBoxesAdmin";
 import TrenchBoxPoster from "@/pages/TrenchBoxPoster";
 import JhaPlansPoster from "@/pages/JhaPlansPoster";
@@ -358,6 +361,10 @@ function App() {
             <Route path="/trench-boxes" element={<TrenchBoxes />} />
             {/* Phase 3.5 · Public Trench Safety Dashboard (GAP-1) */}
             <Route path="/trench-safety" element={<PublicTrenchSafetyDashboard />} />
+            {/* Sprint · Public Trench Safety UX Correction — distinct public surfaces */}
+            <Route path="/trench-safety/tabulated-data" element={<PublicTrenchSafetyTabulatedData />} />
+            <Route path="/trench-safety/references"     element={<PublicTrenchSafetyReferences />} />
+            <Route path="/trench-safety/report"         element={<PublicTrenchSafetyReport />} />
             {/* Phase 3 · Trench Safety Operations System — public mobile QR landing */}
             <Route path="/trench-safety/assets/:assetId" element={<TrenchSafetyQrLanding />} />
 

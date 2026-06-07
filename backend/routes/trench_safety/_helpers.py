@@ -486,6 +486,10 @@ def public_view(asset: Dict[str, Any]) -> Dict[str, Any]:
         "missing_serial_number",
         "needs_review",
         "qr_url",
+        # Serial number is field-safe — crews verify the physical plate
+        # against the record. TB-05 etc. expose "" to surface the missing
+        # serial alert.
+        "serial_number",
     }
     return {k: asset.get(k) for k in keep}
 

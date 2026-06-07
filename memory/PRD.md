@@ -1,6 +1,57 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (TRENCH SAFETY · PUBLIC UX CORRECTION SPRINT · 🟢 GO)
+
+### Verdict: 🟢 PUBLIC TRENCH SAFETY UX FIXED — SAFE TO RESUME PHASE 7
+
+### Scope (operator directive — pre-Phase-7 correction)
+1. Upgrade the thin `/trench-safety` public landing into a real field-command surface.
+2. Split Tabulated Data and Safety References into two clearly different experiences (they were both pointing at `/trench-boxes`).
+3. Surface Serial Number prominently on every public asset / QR view; TB-05 must read `Missing — Action Required`.
+4. Add contextual back navigation on every public trench page (`Back to Safety`, `Back to Trench Safety`), preserving HOME as a separate affordance.
+5. Do not disturb the Phase 7 backend test fix or any authenticated portal surface.
+
+### Built
+- **NEW** `frontend/src/components/trench/PublicTrenchHeader.jsx` — reusable contextual header (back link · MASCI mark · HOME · LangToggle).
+- **NEW** `frontend/src/pages/trench_safety/PublicTrenchSafetyTabulatedData.jsx` (`/trench-safety/tabulated-data`).
+- **NEW** `frontend/src/pages/trench_safety/PublicTrenchSafetyReferences.jsx` (`/trench-safety/references`) — OSHA, competent person, stop-work, missing pins/labels, safe-use cards.
+- **NEW** `frontend/src/pages/trench_safety/PublicTrenchSafetyReport.jsx` (`/trench-safety/report`) — standalone report surface.
+- **REWRITTEN** `frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx` — purpose · stop-work · primary lookup panel · QR guidance · 3 distinct tiles · two-row fleet overview · competent person.
+- **REWRITTEN** `frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx` — Serial Number hero block + details-table row; missing serial → red alert with `Missing — Action Required` + verify-physical-plate line.
+- `frontend/src/App.js` — three new public routes registered.
+- `backend/routes/trench_safety/_helpers.py` — `public_view` keep set extended with `serial_number` (no other behavioural change).
+
+### Validation
+| # | Requirement | Status |
+|---|---|---|
+| 1 | Landing upgraded | ✅ |
+| 2 | Tabulated Data ≠ Safety References | ✅ |
+| 3 | TB-01 shows serial `C080102` | ✅ |
+| 4 | TB-05 shows `Missing — Action Required` | ✅ |
+| 5 | Contextual back works on all surfaces | ✅ |
+| 6 | HOME still works separately | ✅ |
+| 7 | No admin functions on public routes | ✅ |
+| 8 | English | ✅ |
+| 9 | Spanish (`Seguridad de Zanjas`, `Atrás`, `Datos Tabulados`) | ✅ |
+| 10 | Mobile (480×700) | ✅ |
+| 11 | Phase 7 backend tests still pass (14/14) | ✅ |
+| 12 | No deployment | ✅ |
+
+### Certifications
+- `TRENCH_SAFETY_PUBLIC_UX_CORRECTION_REPORT.md`
+- `TRENCH_SAFETY_PUBLIC_NAVIGATION_REPORT.md`
+- `TRENCH_SAFETY_REFERENCE_SPLIT_REPORT.md`
+- `TRENCH_SAFETY_SERIAL_VISIBILITY_CERTIFICATION.md`
+- `TRENCH_SAFETY_PUBLIC_UX_GO_NO_GO.md`
+
+### Next
+- ⏸ Phase 7 (QR Labels + Photo Management) is paused per directive. Resume only on explicit operator authorisation. Backend tests are green (14/14); frontend UI + Phase 7 markdown certification still pending.
+
+---
+
+
+
 ## 2026-02 (OMEGA TRENCH SAFETY PHASE 6 · SHOP REPAIR WORKFLOW · 🟢 GO)
 
 ### Verdict: 🟢 PHASE 6 COMPLETE — SAFE TO CONTINUE TO QR LABELS + PHOTO MANAGEMENT
