@@ -27,6 +27,7 @@ from fastapi import APIRouter
 from .alerts import register_alerts_routes
 from .assets import register_asset_routes
 from .certifications import register_certification_routes
+from .csv_import import register_import_routes
 from .dashboard import register_dashboard_routes
 from .deployments import register_deployment_routes
 from .holds import register_hold_routes
@@ -110,6 +111,11 @@ def build_trench_safety_router(
         require_shop_or_admin=require_shop_or_admin,
     )
     register_public_routes(api_router, db)
+    register_import_routes(
+        api_router,
+        db,
+        require_safety_or_admin=require_safety_or_admin,
+    )
 
     return api_router
 

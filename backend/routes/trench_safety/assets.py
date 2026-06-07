@@ -70,6 +70,11 @@ def register_asset_routes(
                 {"color": esc},
                 {"current_location": esc},
                 {"current_project_name": esc},
+                # Phase 8B — extend search to QR code value + Road Plate
+                # markings so a crew can find a plate by its label too.
+                {"qr_code_value": esc},
+                {"markings": esc},
+                {"current_project_number": esc},
             ]
 
         docs = (

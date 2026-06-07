@@ -6,11 +6,18 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ShieldAlert, Wrench, Boxes, FileWarning, ScanLine, AlertTriangle, Loader2,
+  Plus, Upload,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import TrenchSafetyShell from "@/pages/trench_safety/TrenchSafetyShell";
 import { DailyPosturePanel } from "@/pages/trench_safety/TrenchSafetyOpsCenter";
+import {
+  QuickAddAssetDialog,
+  OperationalSummaryPanel,
+  CSVImportDialog,
+} from "@/pages/trench_safety/TrenchSafetyPolish";
 
 function KPI({ label, value, sub, valueClass = "text-slate-900", testId }) {
   return (
@@ -50,6 +57,9 @@ export default function TrenchSafetyHub() {
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +74,7 @@ export default function TrenchSafetyHub() {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [reloadKey]);
 
   const counts_status = data?.counts_by_status || {};
   const counts_type = data?.counts_by_type || {};
@@ -88,6 +98,18 @@ export default function TrenchSafetyHub() {
         </p>
       </div>
 
+      {/* Phase 8B — Quick Add + CSV Import actions */}
+      <div className="mt-4 flex flex-wrap gap-2" data-testid="trench-hub-actions">
+        <Button onClick={() => setQuickAddOpen(true)} className="bg-cyan-700 hover:bg-cyan-800" data-testid="trench-hub-quick-add">
+          <Plus className="w-4 h-4 mr-1" /> {t("Quick Add Asset")}
+        </Button>
+        <Button onClick={() => setCsvOpen(true)} variant="outline" data-testid="trench-hub-csv-import">
+          <Upload className="w-4 h-4 mr-1" /> {t("Import CSV")}
+        </Button>
+      </div>
+      <QuickAddAssetDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} onCreated={() => setReloadKey((k) => k + 1)} />
+      <CSVImportDialog open={csvOpen} onOpenChange={setCsvOpen} onImported={() => setReloadKey((k) => k + 1)} />
+
       {loading ? (
         <div className="flex items-center gap-2 mt-8 text-slate-500" data-testid="trench-hub-loading">
           <Loader2 className="w-5 h-5 animate-spin" />
@@ -105,6 +127,14 @@ export default function TrenchSafetyHub() {
               {t("Daily Posture")}
             </div>
             <DailyPosturePanel />
+          </section>
+
+          {/* Phase 8B — Executive Operational Summary */}
+          <section className="mt-6" data-testid="trench-hub-ops-summary">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
+              {t("Executive Summary")}
+            </div>
+            <OperationalSummaryPanel assetsBasePath="/safety/trench-safety/assets" />
           </section>
 
           {/* Headline KPIs */}

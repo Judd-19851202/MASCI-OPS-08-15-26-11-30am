@@ -80,6 +80,47 @@ def register_dashboard_routes(
             and d["certification_expires_at"] <= cert_cutoff
         )
 
+        # Phase 8B — additional operational alerts derived from existing
+        # collections. No new collections, no parallel state.
+        # Active assets only — retired plates don't generate work.
+        active_docs = [d for d in docs if d.get("is_active")]
+
+        on_hold_count = sum(
+            1 for d in active_docs
+            if d.get("operational_status") in {
+                "Inspection Hold", "Maintenance Hold",
+                "Safety Hold", "Certification Hold",
+            }
+        )
+
+        no_project = sum(
+            1 for d in active_docs
+            if not d.get("current_project_id") and not d.get("current_project_name")
+        )
+
+        # Photos: assets that have zero rows in trench_safety_photos
+        photo_rows = await db.trench_safety_photos.aggregate([
+            {"$group": {"_id": "$asset_id", "n": {"$sum": 1}}},
+        ]).to_list(5000)
+        assets_with_photos = {r["_id"] for r in photo_rows}
+        missing_photos = sum(
+            1 for d in active_docs
+            if d.get("asset_id") not in assets_with_photos
+        )
+
+        # Road Plates without rated_capacity_lb captured
+        road_plate_missing_capacity = sum(
+            1 for d in active_docs
+            if d.get("asset_type") == "Road Plate"
+            and not d.get("rated_capacity_lb")
+        )
+
+        # Recent activity — events in audit_events within last 7 days
+        seven_days_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        recent_activity_7d = await db.audit_events.count_documents(
+            {"kind": {"$regex": "^trench_"}, "ts": {"$gte": seven_days_ago}}
+        )
+
         return {
             "total_active_assets": active,
             "total_all_assets": len(docs),
@@ -94,6 +135,12 @@ def register_dashboard_routes(
                 "open_repairs": open_repairs,
                 "inspections_due": inspections_due,
                 "certifications_expiring": certs_expiring,
+                # Phase 8B additions
+                "on_hold": on_hold_count,
+                "no_project_assignment": no_project,
+                "missing_photos": missing_photos,
+                "road_plate_missing_capacity": road_plate_missing_capacity,
             },
+            "recent_activity_7d": recent_activity_7d,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }

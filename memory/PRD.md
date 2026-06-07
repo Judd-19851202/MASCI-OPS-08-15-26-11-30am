@@ -1,6 +1,62 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (OMEGA PHASE 8B · OPERATIONAL POLISH · 🟢 GO)
+
+### Verdict: 🟢 PASS — Operational adoption polish on the certified architecture
+
+### Sprint scope
+9-feature adoption sprint: Quick Add Asset · Asset Count Command Cards · Search Enhancement · Filter Chips · Operational Alerts · Mobile Superintendent Mode · CSV Import · Road Plate polish · Executive Summary Panel. All consume EXISTING certified endpoints — zero new collections, zero new engines, zero new portals, zero new workflows.
+
+### Built (additive only)
+**Backend**
+- `dashboard.py` — 4 new alert fields (`on_hold` · `no_project_assignment` · `missing_photos` · `road_plate_missing_capacity`) + `recent_activity_7d` (7-day audit count)
+- `assets.py` — search `$or` extended with `qr_code_value` · `markings` · `current_project_number`
+- `csv_import.py` **NEW** (270 LOC) — preview + commit endpoints; tolerant CSV parser; per-row diagnosis; inline-duplicate detection; 500-row cap; same insert→mirror→audit chain as single create
+- `tests/test_trench_safety_phase8b.py` **NEW** — 6/6 PASS
+
+**Frontend**
+- `TrenchSafetyPolish.jsx` **NEW** — single shared module: `QuickAddAssetDialog` · `OperationalSummaryPanel` · `TrenchAssetFilterChips` · `CSVImportDialog`
+- `TrenchSafetyHub.jsx` — Quick Add + CSV Import buttons + Executive Summary panel
+- `TrenchSafetyAssetsList.jsx` — Quick Add + Full + CSV buttons; filter chip strip (mobile-safe)
+- `lib/i18n.js` — 40+ EN→ES translations
+
+### Quick Add Asset
+- Pick a type → backend suggests next permanent ID (RP-001, TB-08, etc.)
+- 6 fields (id · type · serial · size · manufacturer · condition)
+- One `POST /trench-safety/assets` — same audit + mirror as the long form
+
+### Operational Summary Panel
+- 7-card Executive Summary strip (Total · Available · Assigned · On Hold · Open Repairs · Inspections Due · Recent 7d)
+- Count-by-Status (8 cards) + Count-by-Type (9 cards · Road Plate included)
+- 9-row Operational Alerts grid with severity colors
+
+### CSV Import
+- `POST /import/preview` — never writes; per-row `will_insert` / `duplicate` / `error` diagnosis
+- `POST /import` — same write path as single create; batch audit row + per-row `trench_asset_created`
+- 500-row cap (HTTP 413)
+- Header-alias-tolerant parser (e.g., "Asset ID" → `asset_id`)
+- Inline duplicate detection within the file itself
+
+### Filter chips (mobile)
+- One-tap status chips (Available · Assigned · Transport · Safety · Inspection · Maint · Retired)
+- One-tap type chips (TB · EP · SP · HS · SR · TJ · LD · RP · AC)
+- No horizontal scroll at any width 375 px → desktop
+
+### Validation
+- **Phase 8B pytest**: 6/6 PASS
+- **Recent-phase regression** (6 · 7 · 8A · 8B): **43/43 PASS** — zero drift
+- **Frontend smoke**: Hub renders Quick Add + Import CSV buttons, Executive Summary strip, Count by Status, Count by Type (Road Plate visible), Operational Alerts
+
+### Deliverable
+`/app/memory/PHASE8B_OPERATIONAL_POLISH_CERTIFICATION.md` — 13 sections · PASS recommendation.
+
+### STOP per directive
+Phase 9 · Reports · Training · OSHA Library · Global Search Expansion · OCR · Vision · Phase 10 · Phase 11 — NOT started.
+
+---
+
+
 ## 2026-02-07 (OMEGA PHASE 8A · ROAD PLATE INTEGRATION · 🟢 GO)
 
 ### Verdict: 🟢 PASS — Road Plates operational as a native Trench Safety asset type
