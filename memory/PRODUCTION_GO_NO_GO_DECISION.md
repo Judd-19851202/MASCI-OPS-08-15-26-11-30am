@@ -1,8 +1,7 @@
 # PRODUCTION GO / NO-GO DECISION
 
-**Date**: 2026-02-12
-**Subject**: Excavation Operations · MASCI Operations Platform · Production Cutover
-**Authority**: OMEGA Directive — Production Cleanliness + Security Gate
+**Date**: 2026-02-12 (closure pass)
+**Authority**: OMEGA Directive — Production Cleanliness + Security Closure Gate
 
 ---
 
@@ -10,115 +9,105 @@
 
 # 🛑 **NO GO**
 
-Production deployment is **NOT AUTHORIZED** at this point in time.
+Production deployment **NOT AUTHORIZED**.
 
 ---
 
-## REASON
+## DECISION BASIS
 
-Per the directive's binary rule:
+Per directive binary rule (closure mode):
 
-> "Production is GO **only if** zero test data found · zero preview data found · zero demo data found · zero smoke data found · production DB is separate · production CORS is locked down · production secrets are not client exposed · production seed scripts are disabled or operator-gated · rollback is documented · production empty-state certification passes."
->
-> "If anything fails: Final verdict: **NO GO**. Do not deploy production."
+> "GO requires: database separation PASS · seed protection PASS · asset metadata policy PASS · R2 separation PASS · Resend separation PASS · CORS lockdown PASS · secret exposure PASS · empty-state procedure ready · rollback readiness PASS. **If any item is FAIL or unverified: NO GO.**"
 
-The gate evaluation in `PRODUCTION_CLEANLINESS_GATE.md` shows:
+### Item evaluation (after closure work · evidence in respective files)
 
-* **✅ Verified**: 4 of 10 criteria
-* **⏳ Requires operator action / confirmation**: 6 of 10
-* **❌ Failed (hard fail)**: 0 of 10
+| # | Item | Verdict | Evidence file |
+|---|---|---|---|
+| P0-1 | DB / environment separation | ⏳ **OPERATOR-PENDING** | `DATABASE_ENV_SEPARATION_EVIDENCE.md` |
+| P0-2 | Seed protection | ✅ **PASS** | `SEED_PROTECTION_CERTIFICATION.md` |
+| P0-3 | FV-7.1A asset metadata policy | ✅ **PASS** | `PRODUCTION_ASSET_METADATA_POLICY.md` |
+| P0-4 | R2 bucket separation | ❌ **FAIL** | `R2_STORAGE_SEPARATION_CERTIFICATION.md` |
+| P0-5 | Resend API-key separation | ⏳ **OPERATOR-PENDING** (defaults FAIL) | `RESEND_SEPARATION_CERTIFICATION.md` |
+| P0-6 | Production CORS lockdown | ⏳ **OPERATOR-PENDING** (defaults FAIL) | `PRODUCTION_CORS_LOCKDOWN_CERTIFICATION.md` |
+| P0-7 | Secret exposure (frontend bundle) | ✅ **PASS** | `PRODUCTION_SECRET_SECURITY_CERTIFICATION.md` |
+| P0-7b | Secret rotation readiness | ⏳ **OPERATOR-PENDING** | `PRODUCTION_SECRET_SECURITY_CERTIFICATION.md` |
+| P0-8 | Empty-state inventory procedure | ✅ **PASS** | `PRODUCTION_EMPTY_STATE_INVENTORY_PROCEDURE.md` + `scripts/production_empty_state_inventory.py` |
+| P0-9 | Rollback readiness | ✅ **PASS** (operator must confirm `SCHEDULER_ENABLED=true` in prod) | `PRODUCTION_ROLLBACK_READINESS_CERTIFICATION.md` |
 
-The 6 "requires operator action" items have NOT been independently verified yet. **Under OMEGA discipline, unverified ≠ verified.** Therefore the gate is failed by definition.
+### Tally
+* **✅ PASS (agent-verified)**: 5
+* **⏳ OPERATOR-PENDING (defaults FAIL until operator paste-in / env flip)**: 4
+* **❌ FAIL**: 1 (P0-4 R2 shared bucket without hard prefix isolation)
 
----
-
-## ITEMS REQUIRING OPERATOR ACTION BEFORE GO
-
-Sequenced for clarity:
-
-| # | Action | Owner |
-|---|---|---|
-| 1 | Confirm production env values match the required set: `APP_ENV=production`, `DB_NAME ≠ masci_safety_preview`, `CORS_ORIGINS = explicit allowlist (no wildcard)`, `RATE_LIMITING=on`, `SCHEDULER_ENABLED=true`. | Operator |
-| 2 | Decide TB-NTF-* placeholder rows policy: gate-by-APP_ENV (recommended), remove from seed, or accept. Apply the chosen change in `/app/backend/routes/trench_safety/seed.py`. | Operator + main agent on operator's call |
-| 3 | Decide FV-7.1A backfill policy on production: skip entirely (recommended), or run only after real manufacturer data substitution. | Operator |
-| 4 | Decide R2 bucket separation: prefer separate prod bucket or prefix discipline. | Operator |
-| 5 | Decide Resend separation: prefer sandbox sender for preview. | Operator |
-| 6 | Rotate `JWT_SECRET`, `ADMIN_HMAC_SECRET`, `MFA_ENCRYPTION_KEY`, `SUPER_ADMIN_BOOTSTRAP_PASSWORD` per MASCI policy. | Operator |
-| 7 | After production boot: execute the inventory script in `PRODUCTION_EMPTY_STATE_CERTIFICATION.md` and re-issue certification with real prod numbers. | Operator |
-| 8 | Confirm DB backup current + restorable. | Operator |
+**Net: NOT GO** under the directive's binary rule.
 
 ---
 
-## ITEMS THAT WILL BLOCK GO PERMANENTLY IF FOUND ON PRODUCTION
+## WHAT THE CLOSURE PASS ACHIEVED
 
-After cutover the operator empty-state inventory **must** return:
+Compared to the prior NO GO (where 6 items were "operator-pending"), this closure pass:
 
-| Counter | Expected | If non-zero → |
-|---|---|---|
-| `trench_excavations_contaminated` | 0 | 🛑 NO GO · operator must purge and re-cutover |
-| `daily_reports_contaminated` | 0 | 🛑 NO GO |
-| Users with `@test`, `@example`, `@demo` domains | 0 | 🛑 NO GO |
-| `metadata_backfilled_from = "FV-7.1A"` rows | 0 (unless operator-authorized) | 🛑 NO GO |
-| `TB-NTF-*` rows | per operator decision | NO GO if not authorized |
-| `CORS_ORIGINS` containing `"*"` | empty wildcard | 🛑 NO GO |
-| Frontend bundle grep for: `mongodb`, Resend prefix `re_CfHQ9`, `S3_SECRET`, `JWT_SECRET`, `ADMIN_HMAC` | 0 hits | 🛑 NO GO |
+1. ✅ **Resolved P0-2** (was operator-pending) — added production guard to `fv7_1a_asset_metadata_backfill.py`; tested green; boot seeds verified contamination-free.
+2. ✅ **Resolved P0-3** (was operator-pending) — proved existing schema already supports all 4 policy states; no new fields needed; backfill script now guarded.
+3. ✅ **Resolved P0-7 frontend exposure** (was operator-pending) — actually built the frontend bundle and grep-scanned for 14 distinct secret values; zero leaks.
+4. ✅ **Resolved P0-8** — wrote the read-only inventory script, pre-validated against preview, returns deterministic exit codes.
+5. ✅ **Resolved P0-9** — documented rollback playbook + cutover commands + Atlas PIT path.
+
+The remaining 5 items (P0-1, P0-4, P0-5, P0-6, P0-7b) are operator-only by their nature — they involve setting production secrets, choosing R2 separation strategy, and confirming production env values that this agent cannot read from the preview pod.
 
 ---
 
-## WHAT IS VERIFIED ✅ (so the operator knows the work that IS done)
+## OPERATOR ACTION TO REACH GO
 
-* No automated preview→production data flow exists in the codebase.
-* No deployment/migration script writes contamination to production.
-* Frontend bundle architecture (only `REACT_APP_*` env passes through) means backend secrets are structurally incapable of reaching the client (assuming operator verifies post-build grep).
-* Rollback reference documented in `DEPLOYMENT_ROLLBACK_REFERENCE.md` (HEAD commit, previous-stable commit, Emergent rollback path, DB-safety checklist).
-* `DEPLOYMENT_REPORT.md` documents the current Preview deployment state.
-* `PRE_FIELD_TRIAL_HARDENING_CERTIFICATION.md` documents the two known field-trial defects (one closed as headless artifact, one fixed).
-* 36/36 regression tests GREEN.
-* The 5 field-trial templates are ready for the 3 × 3 × 3 human trial.
+Sequenced and concrete. Each action has an explicit acceptance criterion.
 
----
+| # | Action | Acceptance criterion | Owner |
+|---|---|---|---|
+| 1 | Set production env: `APP_ENV=production` · `DB_NAME` ≠ `masci_safety_preview` · `RATE_LIMITING=on` · `SCHEDULER_ENABLED=true` | Paste production values into `DATABASE_ENV_SEPARATION_EVIDENCE.md` operator block · verify all rules PASS | Operator |
+| 2 | Set production `CORS_ORIGINS` to explicit allowlist (no `"*"`). Run cross-origin smoke test | Update `PRODUCTION_CORS_LOCKDOWN_CERTIFICATION.md` paste-in block · cross-origin reject confirmed | Operator |
+| 3 | R2 separation: pick Path A (separate bucket) · Path B (prefix discipline + code patch) · or Path C (risk acceptance) | Update `R2_STORAGE_SEPARATION_CERTIFICATION.md` paste-in block | Operator |
+| 4 | Resend separation: pick Path A (separate key) or Path B (risk acceptance) | Update `RESEND_SEPARATION_CERTIFICATION.md` paste-in block | Operator |
+| 5 | Rotate JWT_SECRET · ADMIN_HMAC_SECRET · MFA_ENCRYPTION_KEY · SUPER_ADMIN_BOOTSTRAP_PASSWORD · (Resend / R2 if Path A above) | All 8 items in `PRODUCTION_SECRET_SECURITY_CERTIFICATION.md` ticked + verification command confirms `***SET***` for each | Operator |
+| 6 | After production boot · run `production_empty_state_inventory.py` | Exit code 0 · `overall_verdict: "PASS"` · `contamination_total: 0` · save output to `/app/memory/PRODUCTION_EMPTY_STATE_INVENTORY_<DATE>.json` | Operator |
+| 7 | Re-issue this file with verdict **GO** and operator signature | This file's verdict header flips from NO GO → GO | Operator |
 
-## STOP CONDITION SATISFIED
-
-Per OMEGA directive's STOP CONDITION:
-
-> "Stop after reports are complete and GO / NO-GO decision is issued. Do not deploy production unless explicitly authorized after this gate passes."
-
-* 6 required deliverables: **all written**.
-* GO / NO-GO decision: **NO GO**.
-* Production deployment: **NOT AUTHORIZED**.
-
-The gate is paused at the operator-confirmation step. When the operator has:
-1. Confirmed all the operator-action items above, AND
-2. Successfully executed the post-cutover empty-state inventory with all-zero contamination,
-
-then this file can be re-issued with verdict **GO**.
-
-Until that re-issuance, production deployment is forbidden under OMEGA.
+Until step 7 is executed: **production deployment remains forbidden under OMEGA**.
 
 ---
 
-## SIX REQUIRED DELIVERABLES — REGISTRY
+## SIGNATURE LINES
 
-| # | Document | Status |
-|---|---|---|
-| 1 | `PRODUCTION_CLEANLINESS_GATE.md` | ✅ written |
-| 2 | `PRODUCTION_DATA_SEPARATION_REPORT.md` | ✅ written |
-| 3 | `PRODUCTION_TEST_DATA_SCAN_REPORT.md` | ✅ written |
-| 4 | `PRODUCTION_ENV_SECURITY_REVIEW.md` | ✅ written |
-| 5 | `PRODUCTION_EMPTY_STATE_CERTIFICATION.md` | ✅ written (template + operator action plan; real numbers post-cutover) |
-| 6 | `PRODUCTION_GO_NO_GO_DECISION.md` | ✅ this file |
+### Current verdict (agent-issued · closure pass)
+
+```
+Verdict        : NO GO
+Date           : 2026-02-12
+Issued by      : E1 agent (closure mode)
+Items GO       : 5
+Items pending  : 4
+Items FAIL     : 1 (R2 shared bucket)
+```
+
+### Operator re-issuance (blank · pending)
+
+```
+Verdict        : [ ] GO  [ ] NO GO
+Date           : __________
+Operator name  : __________________________
+Operator sig   : __________________________
+
+Empty-state inventory PASS file : /app/memory/PRODUCTION_EMPTY_STATE_INVENTORY_______.json
+Production cutover authorised   : [ ] yes / [ ] no
+```
 
 ---
 
-## SIGNATURE LINE FOR OPERATOR
+## STOP CONDITION
 
-When the operator-action items are complete and the empty-state inventory passes:
-
-* Operator name: ____________________
-* Operator signature: ____________________
-* Production cutover date: __________
-* Empty-state inventory file: `/app/memory/PRODUCTION_EMPTY_STATE_CERTIFICATION_<YYYY-MM-DD>.md`
-* Final verdict (re-issued by operator): GO / NO GO
-
-Until that signature: **production stays NO GO**.
+* All closure reports created ✅
+* PASS / FAIL issued per item ✅
+* Final GO / NO-GO decision updated ✅ (this file)
+* Production NOT deployed ✅
+* Human field trial NOT started ✅
+* Phase 11 NOT started ✅
+* New features NOT added ✅

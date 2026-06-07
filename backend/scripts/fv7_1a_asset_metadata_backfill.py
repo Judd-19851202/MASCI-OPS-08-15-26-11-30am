@@ -190,6 +190,18 @@ def _now_iso() -> str:
 
 
 async def main():
+    # P0-2 production guard — refuse to run against production DB unless
+    # operator explicitly overrides with FV7_FORCE_PRODUCTION=1. The backfill
+    # writes transparent "pending tabulated-data verification" labels which
+    # are appropriate for preview but NOT for production without an
+    # explicit operator decision (see PRODUCTION_ASSET_METADATA_POLICY.md).
+    if os.environ.get("APP_ENV") == "production" or os.environ.get("ENVIRONMENT") == "production":
+        if os.environ.get("FV7_FORCE_PRODUCTION") != "1":
+            print("REFUSED: APP_ENV/ENVIRONMENT == production.")
+            print("This script writes transparent 'pending tabulated-data verification' labels")
+            print("which must not land on production without an operator decision.")
+            print("To override, set FV7_FORCE_PRODUCTION=1 and re-run.")
+            return
     client = AsyncIOMotorClient(os.environ["MONGO_URL"])
     db = client[os.environ["DB_NAME"]]
     tb_res = await backfill_trench_boxes(db)

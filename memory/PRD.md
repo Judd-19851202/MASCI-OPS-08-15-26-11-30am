@@ -1,6 +1,38 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-12 (OMEGA · PRODUCTION CLEANLINESS CLOSURE PASS · 🛑 STILL NO GO · 5/10 PASS · 1 FAIL · 4 operator-pending)
+
+### Final verdict: **NO GO** — production deployment NOT AUTHORIZED.
+
+Per OMEGA's binary rule: any FAIL or unverified item = NO GO. After closure work: 5 items PASS agent-verified · 1 FAIL (R2 shared bucket) · 4 OPERATOR-PENDING.
+
+### Closure progress (compared to prior gate · 6 pending → 4 pending + 1 hard FAIL)
+- ✅ **P0-2 Seed protection PASS** — production guard added to `fv7_1a_asset_metadata_backfill.py`; tested with `APP_ENV=production` (REFUSED) and `APP_ENV=preview` (idempotent no-op). Boot seeds verified contamination-free (only 7 real TB rows seeded; TB-NTF-* / road plates / FV-7.1A backfill all admin-created preview-only artifacts).
+- ✅ **P0-3 Asset metadata policy PASS** — existing schema (`metadata_backfilled_from`, `needs_review`, `manufacturer` placeholder string, `cp_designation_history`) supports all 4 policy states; no new fields required.
+- ✅ **P0-7 Secret exposure PASS** — built frontend bundle and grep-scanned 14 distinct secret values; **zero actual values leaked**. 3 documentation-only references (temp password literal, retired password, env var NAME) flagged as advisory hygiene, not security.
+- ✅ **P0-8 Empty-state inventory PASS** — `scripts/production_empty_state_inventory.py` (read-only, deterministic exit codes) ready; pre-validated against preview (correctly returns FAIL with 1320 contamination markers).
+- ✅ **P0-9 Rollback readiness PASS** — full operator playbook + cutover-binder commands + Atlas PIT path documented.
+- ❌ **P0-4 R2 separation FAIL** — shared `masci-hub` bucket without hard prefix isolation; operator must pick Path A/B/C.
+- ⏳ **P0-1, P0-5, P0-6, P0-7b** — operator-only (set production env, choose Resend separation strategy, lock CORS, rotate secrets); each has explicit paste-in block with mechanical rules.
+
+### Tests
+36/36 regression GREEN. Seed guard tested both directions. Inventory script dry-run validated.
+
+### 9 closure deliverables + 1 updated final verdict (all written)
+- `DATABASE_ENV_SEPARATION_EVIDENCE.md` · `SEED_PROTECTION_CERTIFICATION.md` · `PRODUCTION_ASSET_METADATA_POLICY.md` · `R2_STORAGE_SEPARATION_CERTIFICATION.md` · `RESEND_SEPARATION_CERTIFICATION.md` · `PRODUCTION_CORS_LOCKDOWN_CERTIFICATION.md` · `PRODUCTION_SECRET_SECURITY_CERTIFICATION.md` · `PRODUCTION_EMPTY_STATE_INVENTORY_PROCEDURE.md` · `PRODUCTION_ROLLBACK_READINESS_CERTIFICATION.md` · `PRODUCTION_CLEANLINESS_CLOSURE_REPORT.md` · `PRODUCTION_GO_NO_GO_DECISION.md` (updated)
+- New code: `/app/backend/scripts/production_empty_state_inventory.py` (read-only) + production guard in `fv7_1a_asset_metadata_backfill.py`
+
+### 7-step operator action queue to reach GO
+1. Set production env (APP_ENV, DB_NAME, RATE_LIMITING, SCHEDULER_ENABLED).
+2. Lock production CORS_ORIGINS to explicit allowlist (no wildcard).
+3. R2 separation: pick Path A/B/C.
+4. Resend separation: pick Path A/B.
+5. Rotate 8 secrets per checklist.
+6. Run inventory script after production boot · save PASS output.
+7. Re-issue PRODUCTION_GO_NO_GO_DECISION.md with verdict GO + signature.
+
+
 ## 2026-02-12 (OMEGA · PRODUCTION CLEANLINESS + SECURITY GATE · 🛑 NO GO)
 
 ### Final verdict: **NO GO — production deployment NOT AUTHORIZED**
