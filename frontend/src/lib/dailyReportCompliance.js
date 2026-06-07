@@ -1,16 +1,54 @@
-// Phase 10D · Daily Report compliance engine (pure function).
-//
-// Same pattern as /lib/excavationCompliance.js. Reads the Daily Report
-// form state and returns a live operational summary.
-//
-//   {
-//     status: "Ready to Submit" | "Needs Review" | "Action Required",
-//     statusReason: "…",
-//     requirements: [ { id, severity, title, why, action } ],
-//     counts: { danger, warn, info }
-//   }
-//
-// Coaching language — no punitive vocabulary.
+// Phase 10D · Daily Report compliance engine (pure function)
+// Phase 10D.2 · Extended with photo-category intelligence + section
+// completion chips.
+
+const REQUIRED_PHOTO_KINDS = [
+  { key: "overall",   label: "Overall Work Area" },
+  { key: "work",      label: "Work Performed" },
+  { key: "crew",      label: "Crew / Equipment" },
+  { key: "material",  label: "Materials / Production" },
+  { key: "safety",    label: "Safety Condition" },
+  { key: "closeout",  label: "End-of-Day / Closeout" },
+];
+
+const EXCAVATION_PHOTO_KINDS = [
+  { key: "exc_overview",  label: "Excavation Overview" },
+  { key: "exc_protect",   label: "Protective System" },
+  { key: "exc_access",    label: "Access / Egress" },
+  { key: "exc_utility",   label: "Utility Markings" },
+];
+
+function _photoTagMatches(photo, kind) {
+  const cand = String(photo?.kind || photo?.category || photo?.tag || photo?.label || "").toLowerCase();
+  return cand.includes(kind);
+}
+
+function computeRequiredPhotoCategories(d, opts) {
+  const required = [...REQUIRED_PHOTO_KINDS];
+  const isExc = String(d.excavation_activity_today || "").toLowerCase() === "yes";
+  const isIncident = d.safety_incidents_today === "Yes" || d.injuries_reported === "Yes";
+  const isWeather = d.weather_impact === "Yes";
+  if (isExc) required.push(...EXCAVATION_PHOTO_KINDS);
+  if (isIncident) required.push({ key: "incident", label: "Incident / Near Miss" });
+  if (isWeather) required.push({ key: "weather", label: "Weather Impact" });
+
+  const photos = d.photos || [];
+  // If a photo has no kind tag, count it against the first missing required slot.
+  const taggedRemaining = photos.filter((p) => !p?.kind && !p?.category && !p?.tag);
+  let untaggedPool = taggedRemaining.length;
+
+  return required.map(({ key, label }) => {
+    const matched = photos.filter((p) => _photoTagMatches(p, key)).length;
+    if (matched > 0) {
+      return { key, label, matched, status: "ok" };
+    }
+    if (untaggedPool > 0) {
+      untaggedPool -= 1;
+      return { key, label, matched: 0, status: "ok-untagged" };
+    }
+    return { key, label, matched: 0, status: "missing" };
+  });
+}
 
 export function computeDailyReportCompliance(d, opts = {}) {
   const photoMin = opts.photoMin || d.photo_min || 6;
@@ -35,7 +73,7 @@ export function computeDailyReportCompliance(d, opts = {}) {
       "Add the work area / street / station.");
   }
 
-  // Excavation activity gate (Phase 10A-B Correction 1)
+  // Excavation activity gate
   const exc = String(d.excavation_activity_today || "No").toLowerCase();
   if (exc === "yes" && (d.linked_excavation_ids || []).length === 0) {
     add("excavation_link", "danger", "Excavation Activity is YES — link a record",
@@ -75,12 +113,23 @@ export function computeDailyReportCompliance(d, opts = {}) {
       "Add MASCI crew rows, or use the 'Use yesterday's crew' button if available.");
   }
 
-  // Photos
-  const photoCount = (d.photos || []).length;
-  if (photoCount < photoMin) {
-    add("photos", "danger", `Need ${photoMin - photoCount} more photo${(photoMin - photoCount) !== 1 ? "s" : ""}`,
+  // Phase 10D.2 · Photo category intelligence
+  const photoCategories = computeRequiredPhotoCategories(d, opts);
+  const photoMissing = photoCategories.filter((p) => p.status === "missing");
+  if ((d.photos || []).length < photoMin) {
+    const need = photoMin - (d.photos || []).length;
+    add("photos", "danger", `Need ${need} more photo${need !== 1 ? "s" : ""}`,
       `Daily Reports need at least ${photoMin} photos showing the day's work.`,
       "Open the Photos section and capture the missing shots.");
+  }
+  if (photoMissing.length > 0) {
+    // One requirement chip per missing category — tells the foreman WHAT,
+    // not just HOW MANY, photos are needed.
+    photoMissing.slice(0, 6).forEach((cat) => {
+      add(`photo_${cat.key}`, "warn", `Photo missing · ${cat.label}`,
+        "The platform expects this category for a complete Daily Report.",
+        `Add a photo and tag it '${cat.label}'.`);
+    });
   }
 
   // Signature
@@ -103,10 +152,27 @@ export function computeDailyReportCompliance(d, opts = {}) {
     statusReason = "You can submit — Safety/PM may follow up on the items below.";
   }
 
+  // Phase 10D.2 · Section completion chips
+  const sections = [
+    { key: "job",       label: "Job Ready",        ok: !!String(d.project_name || "").trim() },
+    { key: "people",    label: "People Ready",     ok: !!String(d.prepared_by || "").trim() },
+    { key: "crew",      label: "Crew Ready",       ok: (d.masci_crews || []).length > 0 || (d.subcontractors || []).length > 0 },
+    { key: "work",      label: "Work Ready",       ok: !!String(d.work_performed || d.activity_summary || "").trim() },
+    { key: "photos",    label: photoMissing.length > 0 ? `Photos · ${photoMissing.length} missing category${photoMissing.length !== 1 ? "ies" : ""}` : "Photos Ready",
+                         ok: (d.photos || []).length >= photoMin && photoMissing.length === 0 },
+    { key: "excavation", label: exc === "yes" ? ((d.linked_excavation_ids || []).length > 0 ? "Excavation Linked" : "Excavation NOT Linked") : "No Excavation Today",
+                          ok: exc !== "yes" || (d.linked_excavation_ids || []).length > 0 },
+    { key: "incident", label: hasIncident ? (d.safety_notified === "Yes" && d.incident_report_filled === "Yes" ? "Incident Linked" : "Incident Pending") : "No Incident Today",
+                        ok: !hasIncident || (d.safety_notified === "Yes" && d.incident_report_filled === "Yes") },
+    { key: "signature", label: "Signature Ready",  ok: !!d.prepared_by_signature },
+  ];
+
   return {
     status,
     statusReason,
     requirements,
+    sections,
+    photoCategories,
     counts: {
       danger: requirements.filter((r) => r.severity === "danger").length,
       warn:   requirements.filter((r) => r.severity === "warn").length,
