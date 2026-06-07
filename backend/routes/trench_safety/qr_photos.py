@@ -204,7 +204,7 @@ def register_qr_and_photo_routes(
     async def upload_photo(
         ident: str,
         payload: PhotoUploadBody,
-        actor: dict = Depends(require_shop_or_admin),
+        actor: dict = Depends(require_safety_or_admin),
     ):
         if payload.category not in PHOTO_CATEGORIES:
             raise HTTPException(422, f"category must be one of {list(PHOTO_CATEGORIES)}")

@@ -520,6 +520,28 @@ async def require_shop_or_admin(
     raise HTTPException(status_code=401, detail="Shop, PM, or admin login required")
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# Phase 7.5A — Safety-or-Admin gate at module level
+# ─────────────────────────────────────────────────────────────────────────
+# Tabulated-data CRUD (`/api/trench-boxes`) was previously admin-only.
+# Per OMEGA Surface Ownership directive it is now Safety-or-Admin.
+# The Safety side checks X-Safety-Token via the safety_users module; the
+# Admin side checks X-Admin-Token via _is_valid_admin_token.
+async def require_safety_or_admin(
+    request: Request,
+    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+):
+    if x_safety_token:
+        from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
+        u = await is_valid_safety_user_token_async(db, x_safety_token)
+        if u:
+            return {**u, "_actor": "safety"}
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"_actor": "admin", "name": "Admin"}
+    raise HTTPException(status_code=401, detail="Safety or Admin auth required")
+
+
 class AdminLoginRequest(BaseModel):
     password: str
 
@@ -2652,7 +2674,7 @@ async def download_trench_box_file(box_id: str):
 @api_router.post("/trench-boxes", response_model=TrenchBox)
 async def create_trench_box(
     payload: TrenchBoxCreate,
-    _: bool = Depends(require_admin),
+    _: bool = Depends(require_safety_or_admin),
 ):
     if not payload.manufacturer.strip() or not payload.model.strip():
         raise HTTPException(
@@ -2681,7 +2703,7 @@ async def create_trench_box(
 async def update_trench_box(
     box_id: str,
     payload: TrenchBoxCreate,
-    _: bool = Depends(require_admin),
+    _: bool = Depends(require_safety_or_admin),
 ):
     if payload.tabulated_data_file:
         raw, _ = _data_url_to_bytes(payload.tabulated_data_file)
@@ -2705,7 +2727,7 @@ async def update_trench_box(
 
 
 @api_router.delete("/trench-boxes/{box_id}")
-async def delete_trench_box(box_id: str, _: bool = Depends(require_admin)):
+async def delete_trench_box(box_id: str, _: bool = Depends(require_safety_or_admin)):
     res = await db.trench_boxes.delete_one({"id": box_id})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Trench box not found")

@@ -358,7 +358,7 @@ function App() {
             <Route path="/jha/submit" element={<Navigate to="/jha" replace />} />
             <Route path="/jha/new" element={<Navigate to="/jha" replace />} />
 
-            <Route path="/trench-boxes" element={<TrenchBoxes />} />
+            <Route path="/trench-boxes" element={<Navigate to="/trench-safety/tabulated-data" replace />} />
             {/* Phase 3.5 · Public Trench Safety Dashboard (GAP-1) */}
             <Route path="/trench-safety" element={<PublicTrenchSafetyDashboard />} />
             {/* Sprint · Public Trench Safety UX Correction — distinct public surfaces */}
@@ -486,6 +486,14 @@ function App() {
 
             <Route path="/admin/trench-boxes" element={AP(<TrenchBoxesAdmin />)} />
             <Route path="/admin/trench-boxes/poster" element={AP(<PosterErrorBoundary><TrenchBoxPoster /></PosterErrorBoundary>)} />
+            {/* Phase 7.5A — Admin Portal mirror of Safety Portal Trench Safety
+                Command Center. Admin Portal is a superset of Safety Portal;
+                routes reuse the same components and the backend `safety_or_admin`
+                gate accepts the X-Admin-Token. */}
+            <Route path="/admin/trench-safety"                  element={AP(<TrenchSafetyHub />)} />
+            <Route path="/admin/trench-safety/assets"           element={AP(<TrenchSafetyAssetsList />)} />
+            <Route path="/admin/trench-safety/assets/:assetId"  element={AP(<TrenchSafetyAssetDetail />)} />
+            <Route path="/admin/trench-safety/tabulated-data"   element={AP(<TrenchSafetyTabulatedData />)} />
 
             <Route path="/admin/jha-plans/poster" element={AP(<PosterErrorBoundary><JhaPlansPoster /></PosterErrorBoundary>)} />
 

@@ -4,12 +4,14 @@
 // Phase 3 · MASCI Trench Safety Operations System.
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Search, AlertTriangle, FileWarning } from "lucide-react";
+import { Loader2, Search, AlertTriangle, FileWarning, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import TrenchSafetyShell from "@/pages/trench_safety/TrenchSafetyShell";
+import { CreateAssetDialog } from "@/pages/trench_safety/TrenchSafetyActions";
 
 const TYPES = [
   "Trench Box", "End Panel", "Spreader Bar", "Hydraulic Shore",
@@ -51,6 +53,8 @@ export default function TrenchSafetyAssetsList() {
   const [fStatus, setFStatus] = useState("__all");
   const [fCondition, setFCondition] = useState("__all");
   const [fNeeds, setFNeeds] = useState("__all");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,7 +78,7 @@ export default function TrenchSafetyAssetsList() {
       }
     })();
     return () => { cancelled = true; };
-  }, [q, fType, fStatus, fCondition, fNeeds]);
+  }, [q, fType, fStatus, fCondition, fNeeds, reloadKey]);
 
   const count = items.length;
 
@@ -93,6 +97,17 @@ export default function TrenchSafetyAssetsList() {
           {count} {t("asset(s)")}
         </div>
       </div>
+
+      <div className="flex flex-wrap items-center gap-2 mt-2" data-testid="trench-list-actions">
+        <Button onClick={() => setCreateOpen(true)} className="bg-cyan-700 hover:bg-cyan-800" data-testid="trench-list-create-btn">
+          <Plus className="w-4 h-4 mr-1" /> {t("New Asset")}
+        </Button>
+        <p className="text-xs text-slate-500">
+          {t("Asset IDs (TB-01, EP-001…) are permanent once created. Safety and Admin can both create, edit, and retire.")}
+        </p>
+      </div>
+
+      <CreateAssetDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => setReloadKey((k) => k + 1)} />
 
       {/* Filters strip */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mt-4" data-testid="trench-list-filters">

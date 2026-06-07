@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Loader2, ArrowLeft, AlertTriangle, FileWarning, ShieldAlert,
-  ScanLine, BookOpen, Send, ArrowDownToLine, History,
+  ScanLine, BookOpen, Send, ArrowDownToLine, History, Pencil, Power, Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -19,6 +19,15 @@ import {
   AssignToProjectDialog,
   ReturnFromProjectDialog,
 } from "@/pages/trench_safety/TrenchSafetyAssignDialogs";
+import {
+  EditAssetDialog,
+  RetireAssetDialog,
+  StatusChangeDialog,
+  HoldsPanel,
+  InspectionsPanel,
+  CertificationsPanel,
+  AuditTimelinePanel,
+} from "@/pages/trench_safety/TrenchSafetyActions";
 
 const STATUS_COLOR = {
   "Available":          "bg-emerald-50 text-emerald-900 border-emerald-300",
@@ -54,6 +63,9 @@ export default function TrenchSafetyAssetDetail() {
   const [loading, setLoading] = useState(true);
   const [assignOpen, setAssignOpen] = useState(false);
   const [returnOpen, setReturnOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [retireOpen, setRetireOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = () => setReloadKey((k) => k + 1);
 
@@ -147,6 +159,16 @@ export default function TrenchSafetyAssetDetail() {
                 {t("Asset is")} {t(doc.operational_status)} — {t("clear before assigning")}.
               </span>
             )}
+            <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
+            <Button type="button" variant="outline" onClick={() => setEditOpen(true)} className="border-slate-400 text-slate-800 hover:bg-slate-50" data-testid="btn-edit-asset">
+              <Pencil className="w-3.5 h-3.5 mr-1.5" /> {t("Edit Asset")}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setStatusOpen(true)} className="border-slate-400 text-slate-800 hover:bg-slate-50" data-testid="btn-change-status">
+              <Activity className="w-3.5 h-3.5 mr-1.5" /> {t("Change Status")}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setRetireOpen(true)} className="border-red-300 text-red-700 hover:bg-red-50" disabled={doc.operational_status === "Retired"} data-testid="btn-retire-asset">
+              <Power className="w-3.5 h-3.5 mr-1.5" /> {t("Retire")}
+            </Button>
           </div>
 
           {/* Needs-Review / Missing-SN alerts */}
@@ -324,6 +346,14 @@ export default function TrenchSafetyAssetDetail() {
             )}
           </section>
 
+          {/* Phase 7.5A Command Center panels */}
+          <section className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3" data-testid="trench-detail-cmd-panels">
+            <HoldsPanel asset={doc} onChange={reload} />
+            <CertificationsPanel asset={doc} onChange={reload} />
+            <InspectionsPanel asset={doc} onChange={reload} />
+            <AuditTimelinePanel asset={doc} />
+          </section>
+
           {/* Coaching */}
           <div className="mt-6 p-3 border border-amber-300 bg-amber-50 rounded text-sm text-amber-900" data-testid="trench-detail-coaching">
             <ShieldAlert className="w-4 h-4 inline mr-1.5 -mt-0.5" />
@@ -344,6 +374,9 @@ export default function TrenchSafetyAssetDetail() {
             asset={doc}
             onReturned={reload}
           />
+          <EditAssetDialog open={editOpen} onOpenChange={setEditOpen} asset={doc} onSaved={reload} />
+          <StatusChangeDialog open={statusOpen} onOpenChange={setStatusOpen} asset={doc} onChanged={reload} />
+          <RetireAssetDialog open={retireOpen} onOpenChange={setRetireOpen} asset={doc} onRetired={reload} />
         </>
       )}
     </TrenchSafetyShell>

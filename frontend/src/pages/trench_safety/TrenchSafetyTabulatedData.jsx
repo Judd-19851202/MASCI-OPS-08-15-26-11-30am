@@ -36,7 +36,10 @@ export default function TrenchSafetyTabulatedData() {
       </div>
 
       <div className="mt-8">
-        <TrenchBoxTabulatedLibrary adminMode={false} />
+        {/* Phase 7.5A — Tabulated Data CRUD ownership moved from Admin Console
+            to the Safety Portal (Admin Portal inherits the same UI via the
+            shared component). Upload / Replace / Delete are visible here. */}
+        <TrenchBoxTabulatedLibrary adminMode={true} />
       </div>
     </TrenchSafetyShell>
   );

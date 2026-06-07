@@ -1,6 +1,49 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (TRENCH SAFETY · PHASE 7.5A · 🟢 GO)
+
+### Verdict: 🟢 COMMAND CENTER FOUNDATION COMPLETE
+
+### Scope (operator directive)
+Build the Safety + Admin Trench Safety Command Center foundation. Six sections only: Assets · Tabulated Data · Inspections · Holds · Certifications · Audit. Build once, reuse everywhere (Safety + Admin share components, auth, business logic, translations).
+
+### Built
+- **Backend**
+  - `server.py` — module-level `require_safety_or_admin`; re-gated `POST/PUT/DELETE /api/trench-boxes` (DRIFT-1).
+  - `qr_photos.py` — re-gated `POST /…/photos` to `safety_or_admin` (DRIFT-2).
+- **Frontend (NEW)**
+  - `pages/trench_safety/TrenchSafetyActions.jsx` — shared dialogs + panels:
+    CreateAssetDialog · EditAssetDialog · RetireAssetDialog · StatusChangeDialog · OpenHoldDialog · ClearHoldDialog · HoldsPanel · CreateInspectionDialog · InspectionsPanel · UploadCertificationDialog · CertificationsPanel · AuditTimelinePanel.
+- **Frontend (modified)**
+  - `pages/trench_safety/TrenchSafetyAssetsList.jsx` — `+ New Asset` CTA.
+  - `pages/trench_safety/TrenchSafetyAssetDetail.jsx` — Edit / Retire / Change Status + four new panels.
+  - `pages/trench_safety/TrenchSafetyTabulatedData.jsx` — `adminMode={true}` (Upload/Delete visible).
+  - `App.js` — Admin Portal mirror routes `/admin/trench-safety/*` + redirect `/trench-boxes` → `/trench-safety/tabulated-data` (DRIFT-4).
+  - `lib/i18n.js` — ~100 new EN→ES translation keys.
+
+### Validation (21/21 ✅)
+Full validation matrix in `TRENCH_SAFETY_PHASE75A_TEST_REPORT.md`.
+
+### Certifications
+- `TRENCH_SAFETY_PHASE75A_ARCHITECTURE.md`
+- `TRENCH_SAFETY_PHASE75A_ASSET_MANAGEMENT.md`
+- `TRENCH_SAFETY_PHASE75A_TABULATED_DATA.md`
+- `TRENCH_SAFETY_PHASE75A_INSPECTIONS_HOLDS_CERTIFICATIONS.md`
+- `TRENCH_SAFETY_PHASE75A_AUDIT_HISTORY.md`
+- `TRENCH_SAFETY_PHASE75A_SEARCH_AND_COACHING.md`
+- `TRENCH_SAFETY_PHASE75A_SPANISH_CERTIFICATION.md`
+- `TRENCH_SAFETY_PHASE75A_TEST_REPORT.md`
+- `TRENCH_SAFETY_PHASE75A_GO_NO_GO.md`
+
+### Out of scope / next
+- **Phase 7.5B** — Safety-side Repair Review queue + Verify dialog (DRIFT-3); Field Reports inbox; paused Phase 7 QR + Photo frontend.
+- **Phase 8/9/10/11** — held per directive.
+
+---
+
+
+
 ## 2026-02-07 (TRENCH SAFETY · PUBLIC UX CORRECTION SPRINT · 🟢 GO)
 
 ### Verdict: 🟢 PUBLIC TRENCH SAFETY UX FIXED — SAFE TO RESUME PHASE 7
