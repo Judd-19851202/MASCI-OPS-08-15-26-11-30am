@@ -1,6 +1,47 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (OMEGA PHASE 9C-A · OSHA SUBPART P COMPLIANCE ASSAULT · 🟡 PARTIAL PASS)
+
+### Verdict: 🟡 PARTIAL PASS — verification objective met; OSHA compliance objective NOT yet met
+
+### Sprint scope (verification-only · ZERO CODE CHANGES)
+Evidence-based audit of the certified MASCI Trench Safety Operations System against 29 CFR 1926 Subpart P (§1926.650 / .651 / .652) plus utility-construction / DOT best-practice for road plates. 8 markdown deliverables produced; no code modifications per OMEGA STOP.
+
+### Headline numbers (47 distinct requirement IDs)
+- 🟢 **14 GREEN** — fully covered (30 %)
+- 🟡 **6 YELLOW** — partially covered (13 %)
+- 🔴 **27 RED** — not covered (57 %)
+- Sub-domain rankings: Road Plate 86 % · Trench Box 67 % · Competent Person 64 % some coverage · §1926.652 33 % · §1926.651 8 %
+
+### What MASCI can defensibly claim today
+Asset-level OSHA discipline: registration · serial tracking · tabulated-data enforcement (Cert Hold) · CP-attested inspection cadence (server-side enforcement) · inspection → hold → repair workflow · "Repair Complete ≠ Safe To Use" hold-priority resolver · field-safe public QR · `event_fanout` notifications · Pulse + Reports + Distribution suite.
+
+### What MASCI cannot claim today
+Excavation-level OSHA discipline: dig record · soil classification · protective-system selection rationale · pre-dig utility locate · atmospheric testing · access/egress placement · spoil setback · post-rain re-inspection trigger.
+
+### Strongest sub-domain
+**Road Plate program · 86 % coverage** — 6 of 7 RP items GREEN. Only RP-5 (cold-mix taper) is open, and it lives logically on the future excavation record. Phase 9B Road Plate Leadership Package automates weekly Command + Missing Data + Repairs + Holds delivery to Safety / Shop / Ops leadership. Production-ready.
+
+### Highest-leverage future work (NOT authorised in this sprint)
+G-1 Excavation Record (P0 · closes ~10 RED items) → G-5 Soil Classification (P0) → G-2 Pre-Dig Utility Locate (P0) → G-3/4/6 site/atmosphere checklists (P1) → G-7 OSHA Reference Library (P1) → Training Center (P2 · depends on G-1).
+
+### Deliverables (8 markdown files in `/app/memory/`)
+- `OSHA_SUBPART_P_REQUIREMENTS_MATRIX.md`
+- `OSHA_SUBPART_P_EXISTING_COVERAGE_MATRIX.md`
+- `OSHA_SUBPART_P_GAP_ANALYSIS.md`
+- `ROAD_PLATE_COMPLIANCE_ANALYSIS.md`
+- `TRENCH_BOX_COMPLIANCE_ANALYSIS.md`
+- `COMPETENT_PERSON_COMPLIANCE_ANALYSIS.md`
+- `OSHA_COMPLIANCE_CERTIFICATION.md`
+- `PHASE9CA_OSHA_COMPLIANCE_ASSAULT_CERTIFICATION.md`
+
+### STOP per directive
+Training · OSHA Library · Search · OCR · Vision · Phase 10 · Phase 11 — NOT started. Verification only.
+
+---
+
+
 ## 2026-02-07 (OMEGA PHASE 9B · REPORT AUTOMATION & DISTRIBUTION · 🟢 GO)
 
 ### Verdict: 🟢 PASS — Reports automate + distribute themselves on certified infrastructure
