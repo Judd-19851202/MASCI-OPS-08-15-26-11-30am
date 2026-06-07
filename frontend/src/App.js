@@ -43,6 +43,8 @@ import TrenchSafetyHub from "@/pages/trench_safety/TrenchSafetyHub";
 import TrenchSafetyAssetsList from "@/pages/trench_safety/TrenchSafetyAssetsList";
 import TrenchSafetyAssetDetail from "@/pages/trench_safety/TrenchSafetyAssetDetail";
 import TrenchSafetyTabulatedData from "@/pages/trench_safety/TrenchSafetyTabulatedData";
+import TrenchSafetyRepairReviewPage from "@/pages/trench_safety/TrenchSafetyRepairReviewPage";
+import TrenchSafetyFieldReportsPage from "@/pages/trench_safety/TrenchSafetyFieldReportsPage";
 import TrenchSafetyQrLanding from "@/pages/trench_safety/TrenchSafetyQrLanding";
 import PublicTrenchSafetyDashboard from "@/pages/trench_safety/PublicTrenchSafetyDashboard";
 import PublicTrenchSafetyTabulatedData from "@/pages/trench_safety/PublicTrenchSafetyTabulatedData";
@@ -402,6 +404,9 @@ function App() {
             <Route path="/safety/trench-safety/assets"                element={SF(<TrenchSafetyAssetsList />)} />
             <Route path="/safety/trench-safety/assets/:assetId"       element={SF(<TrenchSafetyAssetDetail />)} />
             <Route path="/safety/trench-safety/tabulated-data"        element={SF(<TrenchSafetyTabulatedData />)} />
+            {/* Phase 7.5B — Safety Repair Review + Field Reports inbox */}
+            <Route path="/safety/trench-safety/repair-review"          element={SF(<TrenchSafetyRepairReviewPage />)} />
+            <Route path="/safety/trench-safety/field-reports"          element={SF(<TrenchSafetyFieldReportsPage />)} />
             {/* Legacy alias inside the safety-portal namespace */}
             <Route path="/safety-portal/trench-safety"                element={<Navigate to="/safety/trench-safety" replace />} />
             <Route path="/safety-portal/trench-safety/assets"         element={<Navigate to="/safety/trench-safety/assets" replace />} />
@@ -494,6 +499,8 @@ function App() {
             <Route path="/admin/trench-safety/assets"           element={AP(<TrenchSafetyAssetsList />)} />
             <Route path="/admin/trench-safety/assets/:assetId"  element={AP(<TrenchSafetyAssetDetail />)} />
             <Route path="/admin/trench-safety/tabulated-data"   element={AP(<TrenchSafetyTabulatedData />)} />
+            <Route path="/admin/trench-safety/repair-review"    element={AP(<TrenchSafetyRepairReviewPage adminPortal={true} />)} />
+            <Route path="/admin/trench-safety/field-reports"    element={AP(<TrenchSafetyFieldReportsPage adminPortal={true} />)} />
 
             <Route path="/admin/jha-plans/poster" element={AP(<PosterErrorBoundary><JhaPlansPoster /></PosterErrorBoundary>)} />
 

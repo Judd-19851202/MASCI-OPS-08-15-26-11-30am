@@ -10,6 +10,7 @@ import {
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import TrenchSafetyShell from "@/pages/trench_safety/TrenchSafetyShell";
+import { DailyPosturePanel } from "@/pages/trench_safety/TrenchSafetyOpsCenter";
 
 function KPI({ label, value, sub, valueClass = "text-slate-900", testId }) {
   return (
@@ -98,6 +99,14 @@ export default function TrenchSafetyHub() {
         </div>
       ) : (
         <>
+          {/* Phase 7.5B — Daily Posture Dashboard (top of portal, no scrolling) */}
+          <section className="mt-2" data-testid="trench-hub-posture">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
+              {t("Daily Posture")}
+            </div>
+            <DailyPosturePanel />
+          </section>
+
           {/* Headline KPIs */}
           <section className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3" data-testid="trench-hub-kpis">
             <KPI label={t("Active Assets")} value={data.total_active_assets ?? 0} testId="kpi-active" />

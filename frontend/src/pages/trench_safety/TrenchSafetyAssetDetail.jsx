@@ -28,6 +28,10 @@ import {
   CertificationsPanel,
   AuditTimelinePanel,
 } from "@/pages/trench_safety/TrenchSafetyActions";
+import {
+  QRManagementPanel,
+  PhotoManagementPanel,
+} from "@/pages/trench_safety/TrenchSafetyOpsCenter";
 
 const STATUS_COLOR = {
   "Available":          "bg-emerald-50 text-emerald-900 border-emerald-300",
@@ -352,6 +356,12 @@ export default function TrenchSafetyAssetDetail() {
             <CertificationsPanel asset={doc} onChange={reload} />
             <InspectionsPanel asset={doc} onChange={reload} />
             <AuditTimelinePanel asset={doc} />
+          </section>
+
+          {/* Phase 7 — QR + Photos */}
+          <section className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3" data-testid="trench-detail-phase7-panels">
+            <QRManagementPanel asset={doc} />
+            <PhotoManagementPanel asset={doc} />
           </section>
 
           {/* Coaching */}
