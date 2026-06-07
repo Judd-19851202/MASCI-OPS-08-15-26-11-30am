@@ -1,6 +1,41 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-12 (OMEGA · PREVIEW DEPLOYMENT · 🟢 READY FOR HUMAN FIELD TRIAL)
+
+### Verdict: **READY FOR HUMAN FIELD TRIAL ✅** — NOT production certified, NOT proven.
+
+### Deployment mechanics (Emergent platform)
+Preview environment auto-deploys from the live working tree via hot-reload. Current commit (`d00a56f`) is live at https://safety-audit-mobile-1.preview.emergentagent.com. Production deployment (`*.emergent.host`) is **NOT** triggered.
+
+### Pre-deployment blockers resolved
+- `CORS_ORIGINS` widened to `"*"` (CORS_ORIGIN_REGEX still in place as belt-and-braces)
+- `.gitignore` `.env` blocking patterns stripped — env files now ship with the deployment bundle
+- `deployment_agent` static analysis: **PASS** · zero blockers
+
+### 10 health checks (all green)
+- Preview URL responds 200 on all public + auth endpoints (avg latency 222–618 ms)
+- 156 mongo collections present incl. trench_safety_assets, trench_excavations, daily_reports, employees
+- 15/15 trench boxes have rated_depth_ft (100%)
+- 81/81 road plates have length/width (100%)
+- Daily Report rollback intact (2291 lines · 4 excavation-gate references)
+- Excavation linkage workflow live-verified end-to-end (EX-2026-641 created via external POST)
+- 36/36 regression tests GREEN
+
+### 2 deliverables written
+- `/app/memory/DEPLOYMENT_REPORT.md`
+- `/app/memory/DEPLOYMENT_ROLLBACK_REFERENCE.md` (git SHA + Emergent rollback path + safe-to-rollback checklist)
+
+### Rollback reference
+Current: `d00a56fb9b15f51b57990a67fd91d3b03de54047`. Use Emergent platform's Rollback feature (free) to revert to `3fb5c3a` if needed. No DB rollback required — schema unchanged.
+
+### Out of scope (NOT deployed, NOT started)
+Phase 11 · PM Portal expansion · Analytics · OSHA Library · OCR/Vision · Search · Training Center · all new features.
+
+### Next gate
+Execute the 3-foreman × 3-job × 3-day human field trial. PROVEN ✅ is gated only on that.
+
+
 ## 2026-02-12 (OMEGA · PRE-FIELD TRIAL HARDENING · 🟢 READY FOR HUMAN FIELD TRIAL)
 
 ### Verdict: **READY FOR HUMAN FIELD TRIAL ✅**
