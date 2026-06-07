@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Loader2, Download, FileBarChart, AlertTriangle, ChevronDown, ChevronRight,
   Boxes, ClipboardCheck, Wrench, ShieldAlert, Activity, FileQuestion,
-  MapPin, History, Layers,
+  MapPin, History, Layers, Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import TrenchSafetyShell from "@/pages/trench_safety/TrenchSafetyShell";
 import { ASSET_TYPES } from "@/pages/trench_safety/TrenchSafetyActions";
+import { SubscriptionManagerDialog, LeadershipDigestButton } from "@/pages/trench_safety/TrenchSafetyReportDistribution";
 
 const REPORTS = [
   { id: "executive",             icon: FileBarChart,    title: "Executive Asset Health" },
@@ -476,6 +477,13 @@ function ReportSection({ report, filters, defaultOpen = false }) {
     const url = `${apiBase}/api/trench-safety/reports/${report.id}/export.csv${qs ? "?" + qs : ""}`;
     window.open(url, "_blank");
   };
+  const downloadFormat = (fmt) => {
+    // Phase 9B — same params, just swap the extension
+    const apiBase = process.env.REACT_APP_BACKEND_URL;
+    const qs = new URLSearchParams(params).toString();
+    const url = `${apiBase}/api/trench-safety/reports/${report.id}/export.${fmt}${qs ? "?" + qs : ""}`;
+    window.open(url, "_blank");
+  };
 
   return (
     <section className="border border-slate-200 rounded-md overflow-hidden" data-testid={`report-section-${report.id}`}>
@@ -489,13 +497,17 @@ function ReportSection({ report, filters, defaultOpen = false }) {
           <Icon className="w-4 h-4 text-cyan-700" />
           <h2 className="font-display font-black text-slate-900">{t(report.title)}</h2>
         </div>
-        <Button
-          size="sm" variant="outline"
-          onClick={(e) => { e.stopPropagation(); downloadCsv(); }}
-          data-testid={`report-csv-${report.id}`}
-        >
-          <Download className="w-3.5 h-3.5 mr-1" /> {t("CSV")}
-        </Button>
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <Button size="sm" variant="outline" onClick={() => downloadFormat("csv")} data-testid={`report-csv-${report.id}`}>
+            <Download className="w-3.5 h-3.5 mr-1" /> CSV
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => downloadFormat("xlsx")} data-testid={`report-xlsx-${report.id}`}>
+            <Download className="w-3.5 h-3.5 mr-1" /> XLSX
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => downloadFormat("pdf")} data-testid={`report-pdf-${report.id}`}>
+            <Download className="w-3.5 h-3.5 mr-1" /> PDF
+          </Button>
+        </div>
       </header>
       {open && (
         <div className="p-3 bg-white">
@@ -520,11 +532,19 @@ function ReportSection({ report, filters, defaultOpen = false }) {
 export default function TrenchSafetyReports() {
   const { t } = useT();
   const [filters, setFilters] = useState({});
+  const [subOpen, setSubOpen] = useState(false);
   return (
     <TrenchSafetyShell active="reports" title={t("Trench Safety Reports")} kicker={t("Operational reporting on certified data")}>
       <p className="text-slate-700 mb-4 max-w-3xl" data-testid="reports-intro">
-        {t("Nine read-only operational reports computed from the certified asset registry. Apply filters once — they cascade across every report. CSV export available on each section.")}
+        {t("Nine read-only operational reports computed from the certified asset registry. Apply filters once — they cascade across every report. CSV / XLSX / PDF export available on each section.")}
       </p>
+      <div className="flex flex-wrap items-center gap-2 mb-3" data-testid="reports-actions">
+        <Button size="sm" variant="outline" onClick={() => setSubOpen(true)} data-testid="open-subscriptions">
+          <Mail className="w-3.5 h-3.5 mr-1" /> {t("Subscriptions")}
+        </Button>
+        <LeadershipDigestButton />
+      </div>
+      <SubscriptionManagerDialog open={subOpen} onOpenChange={setSubOpen} />
       <GlobalFilterBar filters={filters} onChange={setFilters} />
       <div className="mt-4 space-y-3" data-testid="reports-list">
         {REPORTS.map((r, idx) => (

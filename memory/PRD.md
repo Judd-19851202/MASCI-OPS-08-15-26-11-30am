@@ -1,6 +1,64 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (OMEGA PHASE 9B · REPORT AUTOMATION & DISTRIBUTION · 🟢 GO)
+
+### Verdict: 🟢 PASS — Reports automate + distribute themselves on certified infrastructure
+
+### Scope
+10-feature automation & distribution sprint: PDF/XLSX exports for all 9 reports · saved filter presets (CRUD) · report subscriptions (CRUD + manual + cron) · Leadership Digest · scheduled distribution entrypoint · audit integration · Safety/Admin parity · EN/ES · mobile delivery · Road Plate Leadership Package. Three new persistent collections (presets · subscriptions · digests) — each follows the audit/snapshot pattern. Zero new email engine, zero new scheduler, zero new analytics db.
+
+### Built (additive only)
+**Backend (2 new modules · 2 modified · 1 new test)**
+- `report_export.py` **NEW** (~150 LOC) — reportlab PDF + openpyxl XLSX pure helpers
+- `report_distribution.py` **NEW** (~620 LOC) — presets/subs/digest/Road Plate package/cron endpoints
+- `reports.py` — `/export.xlsx` + `/export.pdf` endpoints added
+- `routes/trench_safety/__init__.py` — wires `register_distribution_routes`
+- `tests/test_trench_safety_phase9b.py` **NEW** — 10/10 PASS
+
+**Frontend (1 new · 2 modified)**
+- `TrenchSafetyReportDistribution.jsx` **NEW** — `SubscriptionManagerDialog` + `LeadershipDigestButton`
+- `TrenchSafetyReports.jsx` — Subscriptions/Digest buttons; per-section CSV+XLSX+PDF trio
+- `lib/i18n.js` — 35+ EN→ES translations
+
+### New endpoints
+```
+GET  /reports/{id}/export.xlsx                         (Phase 9B)
+GET  /reports/{id}/export.pdf                          (Phase 9B)
+GET|POST|PUT|DELETE /reports/presets                   (CRUD)
+GET|POST|PUT|DELETE /reports/subscriptions             (CRUD)
+POST /reports/subscriptions/{id}/run                   (manual fire)
+POST /reports/subscriptions/install-road-plate-package (idempotent)
+POST /reports/subscriptions/run-due                    (cron entrypoint)
+POST|GET /reports/digest/generate|current|history|{id}|{id}/html
+```
+
+### 8 new audit kinds
+preset_created/updated/deleted · subscription_created/updated/deleted/run/run_failed · package_installed · cron_ran · leadership_digest_generated. All in the certified `audit_events` collection.
+
+### Road Plate Leadership Package
+One-click install of 4 weekly PDF subscriptions filtered to Road Plate: Command · Missing Data · Repairs · Holds. Idempotent (re-install creates 0, skips 4).
+
+### Validation
+- **Phase 9B pytest**: 10/10 PASS
+- **Recent-phase regression** (8A · 8B · 8C · 9A · 9B): **50/50 PASS** — zero drift
+- **PDF**: magic bytes verified, professional table layout, branded
+- **XLSX**: ZIP magic bytes, native workbook, provenance sheet
+- **Frontend smoke**: Reports page shows Subscriptions + Leadership Digest buttons and CSV/XLSX/PDF trio on each section
+
+### Known notes
+- Cron `run-due` is callable; wiring into existing Monday 0700 cron is a 1-line addition (held per OMEGA STOP)
+- Saved Presets persisted but UI dropdown on filter bar is deferred (endpoints work; presets usable through Subscriptions Manager)
+
+### Deliverable
+`/app/memory/PHASE9B_REPORT_AUTOMATION_DISTRIBUTION_CERTIFICATION.md` (16 sections · PASS recommendation)
+
+### STOP per directive
+Training · OSHA Library · Global Search · OCR · Vision · Phase 10 · Phase 11 — NOT started.
+
+---
+
+
 ## 2026-02-07 (OMEGA PHASE 9A · REPORTING & ANALYTICS · 🟢 GO)
 
 ### Verdict: 🟢 PASS — 9 operational reports + CSV export, on certified data

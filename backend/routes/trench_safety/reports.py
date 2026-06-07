@@ -800,3 +800,50 @@ def register_report_routes(
             media_type="text/csv",
             headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
+
+    # ──────────────────────────────────────────────────────────────────
+    # Phase 9B — XLSX export (openpyxl, native Excel) and PDF export
+    # (reportlab, simple table layout). Both reuse the SAME flattened
+    # report payload as CSV so the contract is uniform.
+    # ──────────────────────────────────────────────────────────────────
+    @api_router.get(PREFIX + "/{report_id}/export.xlsx")
+    async def export_xlsx(
+        report_id: str,
+        f: Filters = Depends(_filter_dep),
+        actor: dict = Depends(require_safety_or_admin),
+    ):
+        from .report_export import render_xlsx  # noqa: PLC0415
+        fn = _REPORT_REGISTRY.get(report_id)
+        if not fn:
+            raise HTTPException(404, f"Unknown report {report_id!r}")
+        payload = await fn(db, f)
+        rows = _flatten_for_csv(report_id, payload)
+        actor_email = (actor or {}).get("email") or "system"
+        buf = render_xlsx(report_id, rows, actor_email)
+        filename = f"trench_safety_{report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.xlsx"
+        return StreamingResponse(
+            iter([buf.getvalue()]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
+    @api_router.get(PREFIX + "/{report_id}/export.pdf")
+    async def export_pdf(
+        report_id: str,
+        f: Filters = Depends(_filter_dep),
+        actor: dict = Depends(require_safety_or_admin),
+    ):
+        from .report_export import render_pdf  # noqa: PLC0415
+        fn = _REPORT_REGISTRY.get(report_id)
+        if not fn:
+            raise HTTPException(404, f"Unknown report {report_id!r}")
+        payload = await fn(db, f)
+        rows = _flatten_for_csv(report_id, payload)
+        actor_email = (actor or {}).get("email") or "system"
+        buf = render_pdf(report_id, rows, actor_email, payload.get("filters") or {})
+        filename = f"trench_safety_{report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.pdf"
+        return StreamingResponse(
+            iter([buf.getvalue()]),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
