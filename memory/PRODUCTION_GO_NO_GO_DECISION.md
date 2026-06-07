@@ -41,7 +41,7 @@ What the agent CAN do — and HAS DONE — to close every item to the maximum ex
 
 | # | Item | Code-layer | Operator-action | Net verdict |
 |---|---|---|---|---|
-| P0-1 | R2 separation | ✅ env-driven (`R2_SEPARATION_IMPLEMENTATION.md`) | ⏳ create bucket + token + paste | **FAIL until operator** |
+| P0-1 | R2 separation | ✅ env-driven (`R2_SEPARATION_IMPLEMENTATION.md`) | ⏳ operator sets distinct `S3_BUCKET` value | **UNDETERMINED · NOT FAIL** (see `R2_SEPARATION_EVIDENCE_REASSESSMENT.md` for retraction of prior FAIL) |
 | P0-2 | Resend separation | ✅ env-driven (`RESEND_PRODUCTION_SEPARATION.md`) | ⏳ create key + paste + smoke test | **FAIL until operator** |
 | P0-3 | CORS lockdown | ✅ env-driven · explicit strings provided (`PRODUCTION_CORS_VERIFICATION.md`) | ⏳ paste 2 env values + 5 smoke tests | **FAIL until operator** |
 | P0-4 | Production env verification | ✅ all values env-driven (`PRODUCTION_ENV_VERIFICATION.md`) | ⏳ paste 7 env values + run verification | **FAIL until operator** |
