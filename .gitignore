@@ -183,9 +183,6 @@ credentials.json
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -195,9 +192,6 @@ frontend/node_modules/.cache/default-development/63.pack
 frontend/node_modules/.cache/default-development/1.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -219,9 +213,6 @@ backend/backups/MASCI_full_backup_2026-04-29_173803Z.zip
 backend/backups/MASCI_full_backup_2026-04-29_180252Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -235,9 +226,6 @@ frontend/node_modules/.cache/default-development/53.pack
 backend/backups/MASCI_full_backup_2026-04-29_200429Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -248,9 +236,6 @@ backend/backups/MASCI_full_backup_2026-04-29_204938Z.zip
 backend/backups/MASCI_full_backup_2026-04-29_205329Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -265,9 +250,6 @@ backend/backups/MASCI_full_backup_2026-04-29_221334Z.zip
 frontend/node_modules/.cache/default-development/65.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -279,9 +261,6 @@ backend/backups/MASCI_full_backup_2026-04-29_230645Z.zip
 frontend/node_modules/.cache/default-development/0.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -292,9 +271,6 @@ backend/backups/MASCI_full_backup_2026-04-30_111339Z.zip
 frontend/node_modules/.cache/default-development/4.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -317,9 +293,6 @@ backend/backups/MASCI_full_backup_2026-05-01_011602Z.zip
 frontend/node_modules/.cache/default-development/14.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -331,27 +304,18 @@ frontend/node_modules/.cache/default-development/22.pack
 frontend/node_modules/.cache/default-development/21.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -361,18 +325,12 @@ frontend/node_modules/.cache/default-development/10.pack
 frontend/node_modules/.cache/default-development/30.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -385,9 +343,6 @@ backend/backups/MASCI_full_backup_2026-05-02_144430Z.zip
 backend/backups/MASCI_full_backup_2026-05-02_150239Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -401,9 +356,6 @@ frontend/node_modules/.cache/default-development/40.pack
 frontend/node_modules/.cache/default-development/40.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -419,18 +371,12 @@ frontend/node_modules/.cache/default-development/44.pack
 frontend/node_modules/.cache/default-development/46.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -441,9 +387,6 @@ frontend/node_modules/.cache/default-development/41.pack
 frontend/node_modules/.cache/default-development/52.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -452,27 +395,18 @@ frontend/node_modules/.cache/default-development/3.pack
 frontend/node_modules/.cache/default-development/7.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -480,9 +414,6 @@ credentials.json
 backend/backups/MASCI_full_backup_2026-05-04_180024Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -493,36 +424,24 @@ frontend/node_modules/.cache/default-development/5.pack
 backend/backups/MASCI_full_backup_2026-05-05_020155Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -530,27 +449,18 @@ credentials.json
 frontend/node_modules/.cache/default-development/23.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -559,18 +469,12 @@ backend/backups/MASCI_full_backup_2026-05-07_094615Z.zip
 backend/backups/MASCI_full_backup_2026-05-07_095348Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -579,27 +483,18 @@ backend/backups/MASCI_full_backup_2026-05-07_213848Z.zip
 backend/backups/MASCI_full_backup_2026-05-08_100933Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -609,36 +504,24 @@ backend/backups/MASCI_full_backup_2026-05-11_093453Z.zip
 backend/backups/MASCI_full_backup_2026-05-11_110925Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -647,18 +530,12 @@ backend/backups/MASCI_full_backup_2026-05-12_161104Z.zip
 backend/backups/MASCI_full_backup_2026-05-12_161557Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -667,18 +544,12 @@ frontend/node_modules/.cache/default-development/38.pack
 frontend/node_modules/.cache/default-development/33.pack_
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -686,9 +557,6 @@ credentials.json
 frontend/node_modules/.cache/default-development/56.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -696,18 +564,12 @@ credentials.json
 frontend/node_modules/.cache/default-development/58.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -717,9 +579,6 @@ frontend/node_modules/.cache/default-development/61.pack_
 frontend/node_modules/.cache/default-development/67.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -727,9 +586,6 @@ credentials.json
 frontend/node_modules/.cache/default-development/69.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -749,9 +605,6 @@ frontend/node_modules/.cache/default-development/92.pack
 frontend/node_modules/.cache/default-development/93.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -767,9 +620,6 @@ frontend/node_modules/.cache/default-development/110.pack
 frontend/node_modules/.cache/default-development/77.pack
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -777,9 +627,6 @@ credentials.json
 backend/backups/MASCI_full_backup_2026-05-16_021039Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -787,90 +634,60 @@ credentials.json
 frontend/node_modules/.cache/default-development/11.pack_
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -881,45 +698,30 @@ backend/backups/MASCI_full_backup_2026-05-18_105211Z.zip
 walkthrough_reports/
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -927,18 +729,12 @@ credentials.json
 backend/backups/MASCI_full_backup_2026-05-19_021232Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -946,18 +742,12 @@ credentials.json
 backend/backups/MASCI_full_backup_2026-05-19_154611Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
 .credentials
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
@@ -965,9 +755,6 @@ credentials.json
 backend/backups/MASCI_full_backup_2026-05-19_205819Z.zip
 -e 
 # Environment and credential files
-.env
-.env.*
-*.env
 credentials.json
 *.pem
 *.key
