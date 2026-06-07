@@ -37,6 +37,10 @@ import { friendlyError } from "@/lib/friendlyErrors";
 import { formatApiError } from "@/lib/apiErrors";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import DailyReportExcavationActivity from "@/components/trench/DailyReportExcavationActivity";
+import DailyReportStatusCard from "@/components/dailyreport/DailyReportStatusCard";
+import PreviousReportSuggestions from "@/components/dailyreport/PreviousReportSuggestions";
+import LinkedExcavationCompliance from "@/components/dailyreport/LinkedExcavationCompliance";
+import { computeDailyReportCompliance } from "@/lib/dailyReportCompliance";
 import { fetchDailyWeather } from "@/lib/weather";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
@@ -443,6 +447,10 @@ export default function NewDailyReport({ publicMode = false }) {
   const [recentlyLoadedSetup, setRecentlyLoadedSetup] = React.useState(null);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
+  // Phase 10D · helper for "Use yesterday's …" suggestions
+  const applyPrevSuggestion = (patch) => setData((p) => ({ ...p, ...patch }));
+  // Phase 10D · live compliance state (read-only — no setState in render)
+  const dailyReportCompliance = computeDailyReportCompliance(data);
 
   // Auto-fetch the next sequential report number on mount (or when the
   // report_date changes). The user can still edit it manually if desired.
@@ -980,6 +988,15 @@ export default function NewDailyReport({ publicMode = false }) {
           </p>
         </div>
 
+        {/* Phase 10D · Live Submit Status (decision-support, sticky at top) */}
+        <DailyReportStatusCard result={dailyReportCompliance} />
+
+        {/* Phase 10D · One-tap "Use yesterday's …" suggestions */}
+        <PreviousReportSuggestions
+          projectNumber={data.project_number}
+          onApply={applyPrevSuggestion}
+        />
+
         {/* iter437 · Phase 31.1 · device-local crew setup restore.
             Shown BEFORE the draft prompt because crew/equipment is the
             highest-friction repetitive entry · prompt always visible
@@ -1479,6 +1496,14 @@ export default function NewDailyReport({ publicMode = false }) {
               attemptedSubmit={attemptedSubmit}
               testId="dr-excavation-activity"
             />
+            {/* Phase 10D · Live compliance summary for every linked excavation */}
+            {(data.linked_excavation_ids || []).length > 0 && (
+              <div className="mt-2 space-y-1.5" data-testid="dr-linked-excavation-compliance">
+                {(data.linked_excavation_ids || []).map((id) => (
+                  <LinkedExcavationCompliance key={id} excavationId={id} />
+                ))}
+              </div>
+            )}
           </div>
         </Section>
 

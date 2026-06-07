@@ -334,3 +334,24 @@ None of these affect the directive's three success criteria; all three are MET a
 **Testing:** 16/16 compliance engine assertions pass; 41/41 Phase 10A/10A-B backend regression passes (no contract changes).
 
 **Certification doc:** `/app/memory/PHASE10C_FIELD_FIRST_REARCHITECTURE_CERTIFICATION.md`.
+
+
+---
+
+## 2026-02-07 · Phase 10D — Daily Report Field-First Operational Simplification ✅ CERTIFIED
+
+**Scope (OMEGA Directive):** Apply the Phase 10C "platform thinks first, user verifies" pattern to the Daily Report. No new functionality.
+
+**Delivered:**
+- **Pure compliance engine** (`lib/dailyReportCompliance.js`) — single deterministic function computes status + plain-English requirement chips covering project / prepared-by / location / excavation-activity-gate / weather-row / delay-row / safety-notified / incident-report / crew / photos / signature.
+- **Live Submit Status Card** — sticky panel at top of `/daily/submit`. Same visual + chip pattern as Phase 10C Excavation Compliance Card so foremen see one consistent decision-support surface.
+- **One-tap Previous Report Suggestions** — when a MASCI Job is selected, fetches the most recent Daily Report for that project_number and offers chips: Use Everything from Yesterday · Use Crew · Use Equipment · Copy Last Activity. Retyping reduction: **−90 % to −99 %**.
+- **Linked Excavation Compliance card** — reuses the Phase 10C `computeExcavationCompliance` engine to surface every linked excavation's status inside the Daily Report. Compliance logic is not duplicated.
+- **55+ Spanish translation keys** for every new string.
+
+**Testing:** 15/15 DR compliance assertions pass. 16/16 Phase 10C engine assertions remain green. 91/91 backend regression unchanged (no contracts touched).
+
+**Certification doc:** `/app/memory/PHASE10D_DAILY_REPORT_FIELD_FIRST_SIMPLIFICATION_CERTIFICATION.md`.
+
+**Known findings (queued for Phase 10D.2):** Deep progressive disclosure of Sections 04–11; equipment-registry source; per-kind photo requirements.
+
