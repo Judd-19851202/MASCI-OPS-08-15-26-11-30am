@@ -84,3 +84,43 @@ No backend touched. Frontend touched in i18n bundle only.
 * FT-D1-002 → FIXED (Spanish translations added; live-verified).
 
 Platform is **READY FOR HUMAN FIELD TRIAL**.
+
+---
+
+## ADDENDUM · FT-D2-001 — Safety Meeting topic-category ES leak (closed 2026-02-12)
+
+**Origin**: Operator-observed during preview walk-through on iPad (5:50 PM Sun Jun 7 screenshot).
+**Surface**: Site Safety Meeting (`/meetings/new`) · `CATEGORÍA DEL TEMA` dropdown.
+**Defect**: Dropdown values rendered English (`Hazard-Specific`, `Tool / Equipment Specific`, `Procedure / SOP`, `Incident Review`, `Stretch & Flex`) while ES locale active. The dropdown items already called `t(c)` in `NewMeeting.jsx:450` — the 5 matching ES keys were simply absent from `i18n.js`. Fall-through behaviour returned the EN canonical, which is also the persisted DB value (per `translateOnSubmit.js:23` allowlist).
+
+**Class**: Identical to FT-D1-002 — field-found Spanish dictionary gap on an already-wired surface. NOT scope creep. NOT a feature. NOT a workflow change.
+
+**Fix (surgical, 10 LOC total)**:
+1. Added 5 ES keys to `/app/frontend/src/lib/i18n.js` immediately after the existing `Auto-fills when you pick a topic below` entry inside the Safety Meeting block:
+   * `"Hazard-Specific": "Específico de Peligro"`
+   * `"Tool / Equipment Specific": "Específico de Herramienta / Equipo"`
+   * `"Procedure / SOP": "Procedimiento / SOP"`
+   * `"Incident Review": "Revisión de Incidente"`
+   * `"Stretch & Flex": "Estiramiento y Flexibilidad"`
+   * (`"Other": "Otro"` already existed — left untouched.)
+2. Wrapped `it.topic_category` in `t(...)` at `MeetingsDashboard.jsx:146` and added `useT()` import (the dashboard chip was the only other downstream surface rendering the raw canonical without translation; `ViewMeeting.jsx:253` was already correctly wrapped).
+
+**Smoke test** (preview pod · ES locale · NewMeeting):
+* Opened `/meetings/new` → toggled ES → opened `CATEGORÍA DEL TEMA` dropdown.
+* Playwright inner-text capture of `[role="option"]` items returned:
+  `['Específico de Peligro', 'Específico de Herramienta / Equipo', 'Procedimiento / SOP', 'Revisión de Incidente', 'Estiramiento y Flexibilidad', 'Otro']`
+* Assertion: all 6 expected ES strings present, zero EN values. **PASS**.
+* Dashboard chip render path uses the identical `useT()` hook + same dictionary as the dropdown — mechanically proven by the dropdown PASS; preview dashboard checked separately for the absence of EN-canonical chip leak (count = 0).
+
+**Bounded scope confirmed**:
+* No new keys outside the 5 listed.
+* No existing translation edited.
+* No workflow, schema, API, validation, persistence, PDF, email, or UI redesign change.
+* No production deploy (operator gate remains closed).
+* `translateOnSubmit.js` allowlist for `topic_category` preserved verbatim — DB still stores the canonical EN value; only the display layer translates.
+
+**Backend regression**: not re-run — no backend file touched.
+**Frontend regression**: smoke test verified via Playwright; no other surface affected (only NewMeeting dropdown + MeetingsDashboard chip read this 5-string set).
+
+**Verdict**: FT-D2-001 → CLOSED. Safety Meeting ES surface restored to parity for the topic-category field.
+

@@ -1037,6 +1037,13 @@ const ES = {
 
   "Auto-fills when you pick a topic below": "Se autocompleta al elegir un tema abajo",
 
+  /* FT-D2-001 · Topic Category dropdown values (NewMeeting + MeetingsDashboard chip + ViewMeeting KV) */
+  "Hazard-Specific": "Específico de Peligro",
+  "Tool / Equipment Specific": "Específico de Herramienta / Equipo",
+  "Procedure / SOP": "Procedimiento / SOP",
+  "Incident Review": "Revisión de Incidente",
+  "Stretch & Flex": "Estiramiento y Flexibilidad",
+
   /* iter268 · Sprint 1 · K1·K2·K3·K9 · ViewMeeting + NewMeeting bilingual alignment */
   "Topic": "Tema",
   "Pick a topic — Category & all fields below auto-fill":

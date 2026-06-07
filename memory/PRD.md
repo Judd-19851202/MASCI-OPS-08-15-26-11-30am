@@ -1,6 +1,19 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-12 (FT-D2-001 · Safety Meeting ES topic-category leak · CLOSED)
+
+Field-observed Spanish translation defect on `/meetings/new` `CATEGORÍA DEL TEMA` dropdown. Same class as authorized FT-D1-002. Surgical fix shipped under OMEGA authorization:
+
+- `/app/frontend/src/lib/i18n.js` · +5 ES keys (`Hazard-Specific`, `Tool / Equipment Specific`, `Procedure / SOP`, `Incident Review`, `Stretch & Flex`)
+- `/app/frontend/src/pages/MeetingsDashboard.jsx` · `useT()` import + chip wrap (1 line at L146)
+- Live ES smoke test passed via Playwright (all 6 dropdown values render ES).
+- Audit trail appended to `/app/memory/PRE_FIELD_TRIAL_HARDENING_CERTIFICATION.md` as FT-D2-001 addendum.
+- No workflow / schema / API / deploy changes. DB still stores canonical EN per `translateOnSubmit.js` allowlist.
+
+Platform remains **READY · awaiting operator production cutover** (no change to that gate).
+
+
 ## 2026-02-12 (OMEGA · PRODUCTION CUTOVER AUTHORIZED · 🟡 OPERATOR-EXECUTION REQUIRED)
 
 ### Status: **AGENT READY · awaiting operator cutover · production not yet deployed**

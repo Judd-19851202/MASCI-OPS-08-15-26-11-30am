@@ -14,9 +14,11 @@ import { ShareFormDialog } from "@/components/ShareFormDialog";
 import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
 export default function MeetingsDashboard() {
+  const t = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -141,7 +143,7 @@ export default function MeetingsDashboard() {
                       </span>
                       {it.topic_category && (
                         <span className="inline-flex items-center px-2 py-0.5 bg-slate-200 text-slate-700 text-[10px] font-mono uppercase tracking-wider rounded">
-                          {it.topic_category}
+                          {t(it.topic_category)}
                         </span>
                       )}
                     </div>
