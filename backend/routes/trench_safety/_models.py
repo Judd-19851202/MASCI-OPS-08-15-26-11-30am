@@ -71,7 +71,14 @@ CERTIFICATION_KINDS = (
 )
 CERTIFICATION_STATUSES = ("Active", "Expired", "Superseded", "Revoked")
 
-REPAIR_STATUSES = ("Open", "In Progress", "Completed")
+REPAIR_STATUSES = (
+    "Open",
+    "In Progress",
+    "Waiting on Parts",
+    "Vendor Repair",
+    "Completed",
+    "Closed After Verification",
+)
 REPAIR_KINDS = ("damage", "wear", "scheduled", "repair_recommendation")
 
 DEPLOYMENT_SOURCES = (
@@ -308,12 +315,20 @@ class RepairCreate(BaseModel):
 class RepairUpdate(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    status: Optional[str] = None        # Open | In Progress | Completed
+    status: Optional[str] = None        # Phase 6 — 6 canonical statuses
     completion_notes: Optional[str] = None
     repair_vendor: Optional[str] = None
     repair_cost: Optional[float] = None
     photo_refs: Optional[List[str]] = None
     requires_reinspection: Optional[bool] = None
+    note: Optional[str] = None          # Phase 6 — appends to notes_history[]
+
+
+class RepairVerify(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    verification_notes: str = Field(min_length=1, max_length=2000)
+    reinspection_passed: bool = True
 
 
 # ────────────────────────────────────────────────────────────────────────

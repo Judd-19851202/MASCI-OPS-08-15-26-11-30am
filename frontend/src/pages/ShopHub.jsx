@@ -447,6 +447,7 @@ export default function ShopHub() {
           {showMore ? (
             <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4" data-testid="shop-more-grid">
               <MoreLink to="/shop/fleet" icon={Truck} label="MASCI Fleet · DVIR queue" testId="shop-more-fleet" />
+              <MoreLink to="/shop/trench-safety-repairs" icon={Wrench} label="Trench Safety Repairs" testId="shop-more-trench-safety" />
               <MoreLink to="/shop/equipment" icon={ClipboardList} label="Recent Pre-Op Inspections" testId="shop-more-recent" />
               <MoreLink to="?legacy=trends" icon={History} label="Equipment Trends" testId="shop-more-trends" disabled />
               <MoreLink to="?legacy=activity" icon={Clock} label="Shop Activity" testId="shop-more-activity" disabled />

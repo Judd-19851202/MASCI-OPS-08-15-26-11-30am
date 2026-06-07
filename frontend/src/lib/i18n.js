@@ -1590,6 +1590,25 @@ const ES = {
 
   // Public Safety Tile — corrected to surface the full Trench Safety field portal
   "OPEN TRENCH SAFETY": "ABRIR SEGURIDAD DE ZANJA",
+
+  // Phase 6 — Shop Repair Workflow
+  "Trench Safety Repairs": "Reparaciones de Seguridad de Zanja",
+  "Waiting on Parts": "Esperando Repuestos",
+  "Vendor Repair": "Reparación por Proveedor",
+  "Closed After Verification": "Cerrado tras Verificación",
+  "Pending Safety Verification": "Pendiente de Verificación de Seguridad",
+  "Reinspection Required": "Reinspección Requerida",
+  "Repair Notes": "Notas de Reparación",
+  "Repair Cost": "Costo de Reparación",
+  "Repair Vendor": "Proveedor de Reparación",
+  "Mark Repair Completed": "Marcar Reparación Completada",
+  "Do Not Use": "No Usar",
+  "Under Repair": "En Reparación",
+  "Awaiting Verification": "Esperando Verificación",
+  "Verify Repair": "Verificar Reparación",
+  "Verification Notes": "Notas de Verificación",
+  "Start Repair": "Iniciar Reparación",
+  "Add Note": "Agregar Nota",
   "Field-facing entry point for the MASCI Trench Safety system — asset lookup, QR scan landing, tabulated data, safety reference, and damage / unsafe / missing-pin / missing-label reporting. Bilingual.":
     "Punto de entrada en campo para el sistema de Seguridad de Zanja de MASCI — búsqueda de activos, escaneo QR, datos tabulados, referencia de seguridad y reportes de daños / inseguro / pasadores faltantes / etiquetas faltantes. Bilingüe.",
 

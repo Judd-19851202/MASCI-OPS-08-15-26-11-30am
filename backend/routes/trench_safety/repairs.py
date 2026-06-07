@@ -15,7 +15,7 @@ from ._helpers import (
     upsert_equipment_master_mirror,
     write_audit,
 )
-from ._models import REPAIR_STATUSES, RepairCreate, RepairUpdate
+from ._models import REPAIR_STATUSES, RepairCreate, RepairUpdate, RepairVerify
 
 
 def register_repair_routes(
@@ -139,15 +139,27 @@ def register_repair_routes(
         update = {k: v for k, v in payload.model_dump().items() if v is not None}
         if "status" in update and update["status"] not in REPAIR_STATUSES:
             raise HTTPException(422, f"status must be one of {list(REPAIR_STATUSES)}")
-        if not update:
+        # Phase 6 — note appending. The PATCH accepts a single 'note' string
+        # which is pushed onto repairs.notes_history[]; the field itself
+        # never persists as a top-level key.
+        note = update.pop("note", None)
+        if not update and not note:
             return existing
 
         actor_email = _extract_actor_email(actor)
         update["updated_at"] = now_iso()
         update["updated_by"] = actor_email
 
+        ops: Dict[str, Any] = {"$set": update}
+        if note:
+            ops["$push"] = {"notes_history": {
+                "at": now_iso(),
+                "by": actor_email,
+                "text": note,
+            }}
+
         await db.trench_safety_repairs.update_one(
-            {"id": repair_id}, {"$set": update}
+            {"id": repair_id}, ops
         )
         fresh_repair = await db.trench_safety_repairs.find_one(
             {"id": repair_id}, {"_id": 0}
@@ -156,7 +168,11 @@ def register_repair_routes(
             db, kind="trench_asset_repair_updated",
             asset_id=existing["asset_id"],
             actor={"_actor": "shop", "email": actor_email},
-            detail={"repair_id": repair_id, "fields": sorted(update.keys())},
+            detail={
+                "repair_id": repair_id,
+                "fields": sorted([k for k in update.keys() if k not in ("updated_at", "updated_by")]),
+                "note_appended": bool(note),
+            },
         )
         return fresh_repair
 
@@ -233,6 +249,138 @@ def register_repair_routes(
                 "repair_id": repair_id,
                 "status_after": new_status,
                 "requires_reinspection": fresh_repair.get("requires_reinspection"),
+            },
+        )
+        return {"repair": fresh_repair, "asset": fresh_asset}
+
+    # ──────────────────────────────────────────────────────────────────
+    # Phase 6 — Shop Repair queue + Safety verification
+    # ──────────────────────────────────────────────────────────────────
+
+    @api_router.get("/trench-safety/shop/repairs")
+    async def shop_repair_queue(
+        status: Optional[str] = Query(default=None),
+        severity: Optional[str] = Query(default=None),
+        requires_reinspection: Optional[bool] = Query(default=None),
+        include_closed: bool = Query(default=False),
+        limit: int = Query(default=200, ge=1, le=1000),
+        _actor: dict = Depends(require_shop_or_admin),
+    ):
+        """Shop-facing queue. By default surfaces every repair NOT in a
+        terminal state (Closed After Verification), sorted by severity
+        then opened_at. Joins minimal asset metadata so the queue UI
+        does not need a second roundtrip per row.
+        """
+        q: Dict[str, Any] = {}
+        if status:
+            if status not in REPAIR_STATUSES:
+                raise HTTPException(422, f"status must be one of {list(REPAIR_STATUSES)}")
+            q["status"] = status
+        elif not include_closed:
+            q["status"] = {"$ne": "Closed After Verification"}
+        if severity:
+            q["severity_at_creation"] = severity
+        if requires_reinspection is not None:
+            q["requires_reinspection"] = requires_reinspection
+
+        repairs = await db.trench_safety_repairs.find(q, {"_id": 0}).sort([
+            ("opened_at", -1),
+        ]).limit(limit).to_list(limit)
+
+        # Enrich with asset metadata (single batch fetch)
+        asset_ids = list({r["asset_id"] for r in repairs})
+        assets = await db.trench_safety_assets.find(
+            {"asset_id": {"$in": asset_ids}}, {"_id": 0}
+        ).to_list(2000) if asset_ids else []
+        by_id = {a["asset_id"]: a for a in assets}
+
+        rows = []
+        for r in repairs:
+            a = by_id.get(r["asset_id"], {})
+            rows.append({
+                **r,
+                "asset_type": a.get("asset_type"),
+                "size": a.get("size"),
+                "serial_number": a.get("serial_number"),
+                "operational_status": a.get("operational_status"),
+                "current_project_name": a.get("current_project_name"),
+                "current_project_number": a.get("current_project_number"),
+                "current_location": a.get("current_location"),
+            })
+        # Severity sort: Critical > Major > Minor > None > unset
+        sev_order = {"Critical": 0, "Major": 1, "Minor": 2, "None": 3, None: 4}
+        rows.sort(key=lambda r: (
+            sev_order.get(r.get("severity_at_creation"), 4),
+            r.get("opened_at") or "",
+        ))
+        # Counts for the queue header
+        counts: Dict[str, int] = {}
+        for r in rows:
+            counts[r["status"]] = counts.get(r["status"], 0) + 1
+        return {"items": rows, "count": len(rows), "counts": counts}
+
+    @api_router.post(ITEM_PATH + "/verify")
+    async def verify_repair(
+        repair_id: str,
+        body: RepairVerify,
+        actor: dict = Depends(require_safety_or_admin),
+    ):
+        """Safety/Admin closes a Completed repair after verification.
+
+        Rules:
+          - Repair must be in Completed status.
+          - If repair.requires_reinspection AND reinspection_passed is True,
+            attempt to clear Inspection Hold via the hold engine.
+          - If reinspection_passed is False, the Inspection Hold remains.
+          - Repair status is moved to "Closed After Verification".
+          - Higher-priority holds (Safety / Certification) are NEVER touched
+            by this endpoint — the hold engine resolver enforces that.
+        """
+        existing = await db.trench_safety_repairs.find_one(
+            {"id": repair_id}, {"_id": 0}
+        )
+        if not existing:
+            raise HTTPException(404, "Repair not found")
+        if existing.get("status") != "Completed":
+            raise HTTPException(409, f"Repair must be Completed before verification (current: {existing.get('status')})")
+
+        actor_email = _extract_actor_email(actor)
+        await db.trench_safety_repairs.update_one(
+            {"id": repair_id},
+            {
+                "$set": {
+                    "status": "Closed After Verification",
+                    "verified_at": now_iso(),
+                    "verified_by": actor_email,
+                    "verification_notes": body.verification_notes,
+                    "reinspection_passed": bool(body.reinspection_passed),
+                    "updated_at": now_iso(),
+                    "updated_by": actor_email,
+                },
+            },
+        )
+        fresh_repair = await db.trench_safety_repairs.find_one(
+            {"id": repair_id}, {"_id": 0}
+        )
+
+        # If reinspection was required AND it passed, Safety has cleared
+        # the Inspection Hold gate that the repair complete-handler opened.
+        if existing.get("requires_reinspection") and body.reinspection_passed:
+            await clear_hold(
+                db, asset_id=existing["asset_id"], kind="Inspection Hold",
+                clear_reason=f"Reinspection passed by Safety verification of repair {repair_id}",
+                clear_source="repair_completed", cleared_by=actor_email,
+            )
+        fresh_asset = await apply_resolved_status(db, existing["asset_id"], actor_email)
+
+        await write_audit(
+            db, kind="trench_asset_repair_verified",
+            asset_id=existing["asset_id"],
+            actor={"_actor": "safety", "email": actor_email},
+            detail={
+                "repair_id": repair_id,
+                "reinspection_passed": bool(body.reinspection_passed),
+                "status_after": fresh_asset.get("operational_status"),
             },
         )
         return {"repair": fresh_repair, "asset": fresh_asset}

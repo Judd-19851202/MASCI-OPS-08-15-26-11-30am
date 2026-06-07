@@ -1,6 +1,40 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02 (OMEGA TRENCH SAFETY PHASE 6 · SHOP REPAIR WORKFLOW · 🟢 GO)
+
+### Verdict: 🟢 PHASE 6 COMPLETE — SAFE TO CONTINUE TO QR LABELS + PHOTO MANAGEMENT
+
+### Architecture
+- Single REPAIR_STATUSES enum extended to 6 canonical states: `Open · In Progress · Waiting on Parts · Vendor Repair · Completed · Closed After Verification`. **No parallel state machine.**
+- Phase 4B auto-stubs (Fail+Major / Fail+Critical → `repair_recommendation` rows) feed the Shop queue directly — zero schema change required.
+- New endpoint `GET /api/trench-safety/shop/repairs` provides a slim, severity-sorted queue with joined asset metadata (no second roundtrip per row).
+- New endpoint `POST /api/trench-safety/repairs/{id}/verify` is the **only** new release route for Inspection Hold (when `requires_reinspection=true`).
+- **Repair Complete ≠ Safe To Use.** Higher-priority Safety / Certification Holds survive every repair endpoint. Verify-with-`reinspection_passed=false` leaves the Inspection Hold active.
+- Hold engine (Phase 4B `apply_resolved_status`) remains the single source of truth.
+- Equipment_master mirror, by-project endpoint, and public QR field view inherit Phase 6 state automatically.
+
+### Built
+- `routes/trench_safety/repairs.py` — Shop queue + Safety verify endpoints; PATCH now appends to `notes_history[]`.
+- `routes/trench_safety/_models.py` — REPAIR_STATUSES extended; new `RepairVerify` model; `RepairUpdate.note` field.
+- `pages/shop/ShopTrenchSafetyRepairs.jsx` (NEW) — calm Shop queue page (filter chips, severity dot, hold badge, reinspection badge, coaching footer).
+- `App.js` — new route under Shop auth gate.
+- `pages/ShopHub.jsx` — discreet "More" footer link (calm-doctrine).
+- `lib/i18n.js` — 17 new EN→ES translation keys.
+
+### Tests — 87/87 PASS · zero regressions
+- Phase 2: 28/28 · Phase 4A: 16/16 · Phase 4B: 20/20 · Phase 5: 10/10 · **Phase 6: 13/13** (queue · status workflow · notes_history · complete preserves hold · Safety Hold survives · verify clears Inspection Hold · reinspection-failed keeps hold · 409 on uncompleted verify · mirror reflects hold · public QR safe · audit chain).
+
+### Audit events added
+`trench_asset_repair_updated`, `trench_asset_repair_verified`.
+
+### Certification deliverables (`/app/memory/`)
+`TRENCH_SAFETY_PHASE6_SHOP_REPAIR_ARCHITECTURE.md` · `_REPAIR_QUEUE_REPORT.md` · `_HOLD_RELEASE_REPORT.md` · `_PROJECT_EQUIPMENT_VISIBILITY_REPORT.md` · `_SPANISH_CERTIFICATION.md` · `_TEST_REPORT.md` · `_GO_NO_GO.md`.
+
+### Next (Phase 7 — QR Labels + Photo Management)
+
+
+
 ## 2026-02 (OMEGA TRENCH SAFETY PHASE 5 · TRANSPORT / DISPATCH INTEGRATION · 🟢 GO)
 
 ### Verdict: 🟢 PHASE 5 COMPLETE — SAFE TO CONTINUE TO SHOP REPAIR WORKFLOW (Phase 6)

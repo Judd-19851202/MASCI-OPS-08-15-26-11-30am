@@ -83,6 +83,7 @@ import {
 import PmQaqcList from "@/pages/PmQaqcList";
 import ShopLogin from "@/pages/ShopLogin";
 import ShopHub from "@/pages/ShopHub";
+import ShopTrenchSafetyRepairs from "@/pages/shop/ShopTrenchSafetyRepairs";
 import ShopChangePassword from "@/pages/ShopChangePassword";
 import ShopResetPassword from "@/pages/ShopResetPassword";
 import HrLogin from "@/pages/HrLogin";
@@ -567,6 +568,7 @@ function App() {
             <Route path="/shop/reset/:token" element={<ShopResetPassword />} />
             <Route path="/shop/change-password" element={S(<ShopChangePassword />)} />
             <Route path="/shop" element={S(<ShopHub />)} />
+            <Route path="/shop/trench-safety-repairs" element={S(<ShopTrenchSafetyRepairs />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
             {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is
                 now reachable from /shop/equipment (was previously buried as a
