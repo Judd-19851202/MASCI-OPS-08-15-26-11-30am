@@ -236,10 +236,11 @@ export default function PublicTrenchSafetyDashboard() {
                 <Stat label={t("Inspection Hold")}  value={totals["Inspection Hold"] ?? 0} tone={(totals["Inspection Hold"] ?? 0) > 0 ? "warn" : "default"} testId="stat-hold" />
                 <Stat label={t("Repair")}           value={totals["Repair"] ?? 0} tone={(totals["Repair"] ?? 0) > 0 ? "danger" : "default"} testId="stat-repair" />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2" data-testid="public-dash-type-stats">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2" data-testid="public-dash-type-stats">
                 <Stat label={t("Trench Boxes")}     value={typeTotals["Trench Box"] ?? 0}      testId="stat-tb" />
                 <Stat label={t("End Panels")}       value={typeTotals["End Panel"] ?? 0}       testId="stat-ep" />
                 <Stat label={t("Spreader Bars")}    value={typeTotals["Spreader Bar"] ?? 0}    testId="stat-sp" />
+                <Stat label={t("Road Plates")}      value={typeTotals["Road Plate"] ?? 0}      testId="stat-rp" />
                 <Stat label={t("Other Assets")}     value={(typeTotals["Hydraulic Shore"] ?? 0) + (typeTotals["Slide Rail System"] ?? 0) + (typeTotals["Trench Jack"] ?? 0) + (typeTotals["Ladder"] ?? 0) + (typeTotals["Accessory"] ?? 0)} testId="stat-other" />
               </div>
             </>

@@ -16,6 +16,8 @@ import { CreateAssetDialog } from "@/pages/trench_safety/TrenchSafetyActions";
 const TYPES = [
   "Trench Box", "End Panel", "Spreader Bar", "Hydraulic Shore",
   "Slide Rail System", "Trench Jack", "Ladder", "Accessory",
+  // Phase 8A — Road Plate
+  "Road Plate",
 ];
 const STATUSES = [
   "Available", "Assigned", "In Transport", "Inspection Hold", "Repair", "Retired",

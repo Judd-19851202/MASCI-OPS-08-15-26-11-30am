@@ -46,6 +46,8 @@ def register_public_routes(api_router: APIRouter, db) -> None:
             "Trench Jack": 0,
             "Ladder": 0,
             "Accessory": 0,
+            # Phase 8A — Road Plate is a first-class native asset type.
+            "Road Plate": 0,
         }
         for d in docs:
             s = d.get("operational_status") or "Available"

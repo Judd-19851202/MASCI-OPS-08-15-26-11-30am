@@ -1,6 +1,56 @@
 # MASCI Safety Hub — PRD
 
 
+## 2026-02-07 (OMEGA PHASE 8A · ROAD PLATE INTEGRATION · 🟢 GO)
+
+### Verdict: 🟢 PASS — Road Plates operational as a native Trench Safety asset type
+
+### Architecture compliance (OMEGA mandate)
+Road Plate is implemented as an **`asset_type` discriminator** on the certified Trench Safety registry — NOT a parallel system. Zero new modules, portals, status engines, repair workflows, inspection engines, or notification systems. Every Road Plate event routes through the same code paths already proven on Trench Boxes since Phases 4A–7.5C.
+
+### What landed (additive only)
+**Backend (4 modified · 1 test new)**
+- `_models.py` — 10 Road Plate fields on Create/Update; `ROAD_PLATE_REPAIR_KINDS` (Weld · Structural · Surface · Edge · Anti-Skid Restoration)
+- `_helpers.py::public_view` — field-safe Road Plate specs (length / width / thickness / material / rated_capacity / anti_skid / markings) added to projection
+- `assets.py` — new `GET /api/trench-safety/assets/next-id` (RP-001, RP-002 …; walks registry, never reuses)
+- `public.py::counts_by_type` — includes `"Road Plate"`
+- `tests/test_trench_safety_phase8a.py` — 10/10 PASS
+
+**Frontend (5 modified)**
+- `TrenchSafetyActions.jsx` — Road Plate physical + condition panel; auto-suggest asset_id; `ROAD_PLATE_CHECKLIST` (20 OSHA-grade items) wired into the inspection dialog
+- `TrenchSafetyAssetDetail.jsx` — Road Plate Specs & Condition section (Safety/Admin only)
+- `TrenchSafetyQrLanding.jsx` — public field-safe Road Plate Specs card
+- `TrenchSafetyAssetsList.jsx` — Road Plate added to type filter
+- `PublicTrenchSafetyDashboard.jsx` — ROAD PLATES stat tile (5-column fleet overview grid)
+- `lib/i18n.js` — 60+ new EN→ES translations including "Placa de Acero", all checklist items, all repair kinds
+
+### Asset ID standard
+`RP-001 · RP-002 · RP-003 …` — 3-digit zero-padded, permanent, never reused (registry walk includes retired assets).
+
+### Inspection checklist (20 items, 7 groups)
+Structural (Bent / Warped / Cracks / Deformation) · Surface (Slick / Anti-Skid / Damage) · Corrosion (Rust / Corrosion) · Edges (Sharp / Damaged) · Lifting Features (Lift Hole / Lifting Point) · Placement (Bearing / Overlap / Anchoring / Pinning) · Operational Safety (Traffic / Pedestrian / Markings)
+
+### Field-safe public projection (verified)
+Exposes: length / width / thickness / material / rated_capacity / anti_skid / markings
+Hides: surface_condition / edge_condition / lifting_point_condition / cost / audit detail
+
+### Testing evidence
+- **Phase 8A pytest**: 10/10 PASS (`tests/test_trench_safety_phase8a.py`)
+- **Trench Safety regression**: 88/88 PASS across Phases 4A · 4B · 5 · 6 · 7 · 7.5C · 8A
+- **Frontend smoke**: ROAD PLATES tile renders on public `/trench-safety` (count = 4 live)
+
+### Compliance scorecard
+✅ existing registry · ✅ existing mirror · ✅ existing inspection engine · ✅ existing hold engine · ✅ existing repair engine · ✅ existing notifications · ✅ existing QR · ✅ existing photo · ✅ existing audit · ✅ existing dispatch · ✅ existing project assignment · ✅ Safety/Admin parity · ✅ Shop portal · ✅ EN/ES · ✅ Repair Complete ≠ Safe To Use · ✅ Internal photos never leak · ✅ Scans don't move assets
+
+### Deliverable
+`/app/memory/ROAD_PLATE_PHASE8A_CERTIFICATION.md` — full 14-section certification with PASS recommendation.
+
+### STOP per directive
+Phase 9 · OCR · Reports · Search Expansion · Training · OSHA Library · additional asset classes — NOT started. Road Plates only.
+
+---
+
+
 ## 2026-02-07 (TRENCH SAFETY · FINAL OPERATIONAL CERTIFICATION · 🟢 GO)
 
 ### Verdict: 🟢 PASS — System operationally certified

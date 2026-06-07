@@ -41,6 +41,8 @@ import { useT } from "@/lib/i18n";
 export const ASSET_TYPES = [
   "Trench Box", "End Panel", "Spreader Bar", "Hydraulic Shore",
   "Slide Rail System", "Trench Jack", "Ladder", "Accessory",
+  // Phase 8A — Road Plate (native asset type)
+  "Road Plate",
 ];
 export const CONDITIONS = ["Excellent", "Good", "Fair", "Poor", "Out Of Service"];
 export const STATUSES = [
@@ -65,6 +67,52 @@ export const SEVERITIES = ["Minor", "Major", "Critical"];
 export const CERTIFICATION_KINDS = [
   "Manufacturer", "Annual Inspection", "Engineering Letter",
   "Repair Certification", "Special",
+];
+
+// Phase 8A — Road Plate inspection checklist (per OMEGA directive).
+// Items group: Structural · Surface · Corrosion · Edges · Lifting
+// Features · Placement · Operational Safety. Routed through the
+// existing Inspection Engine — checklist[] is the same shape every
+// trench safety inspection uses.
+export const ROAD_PLATE_CHECKLIST = [
+  // Structural
+  { key: "bent_plate",            label: "Bent Plate" },
+  { key: "warped_plate",          label: "Warped Plate" },
+  { key: "cracks",                label: "Cracks" },
+  { key: "unsafe_deformation",    label: "Unsafe Deformation" },
+  // Surface
+  { key: "slick_surface",         label: "Slick Surface" },
+  { key: "missing_anti_skid",     label: "Missing Anti-Skid" },
+  { key: "surface_damage",        label: "Surface Damage" },
+  // Corrosion
+  { key: "rust",                  label: "Rust" },
+  { key: "corrosion",             label: "Corrosion" },
+  // Edges
+  { key: "sharp_edge",            label: "Sharp Edge" },
+  { key: "damaged_edge",          label: "Damaged Edge" },
+  // Lifting features
+  { key: "damaged_lift_hole",     label: "Damaged Lift Hole" },
+  { key: "damaged_lifting_point", label: "Damaged Lifting Point" },
+  // Placement
+  { key: "proper_bearing",        label: "Proper Bearing" },
+  { key: "proper_overlap",        label: "Proper Overlap" },
+  { key: "proper_anchoring",      label: "Proper Anchoring" },
+  { key: "proper_pinning",        label: "Proper Pinning" },
+  // Operational safety
+  { key: "traffic_safe",          label: "Traffic Safe" },
+  { key: "pedestrian_safe",       label: "Pedestrian Safe" },
+  { key: "markings_visible",      label: "Markings Visible" },
+];
+
+// Phase 8A — Road Plate repair kind taxonomy (Shop write surface).
+// Plugged into the existing certified repair engine — these are kind
+// values for `trench_safety_repairs.kind`, not a new collection.
+export const ROAD_PLATE_REPAIR_KINDS = [
+  "Weld Repair",
+  "Structural Repair",
+  "Surface Repair",
+  "Edge Repair",
+  "Anti-Skid Restoration",
 ];
 
 function extractErr(e, fallback) {
@@ -161,6 +209,83 @@ function AssetForm({ value, onChange, isEdit }) {
         />
         <Label htmlFor="rc" className="text-xs">{t("This asset requires a certification (engineered shore, slide rail, etc.)")}</Label>
       </div>
+      {value.asset_type === "Road Plate" && (
+        <>
+          <div className="sm:col-span-2 -mt-1 mb-1 text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold font-mono">
+            {t("Road Plate · Physical Specs")}
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Length (in)")}</Label>
+            <Input type="number" value={value.length_in ?? ""} onChange={(e) => set("length_in", e.target.value ? Number(e.target.value) : null)} data-testid="rp-length" />
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Width (in)")}</Label>
+            <Input type="number" value={value.width_in ?? ""} onChange={(e) => set("width_in", e.target.value ? Number(e.target.value) : null)} data-testid="rp-width" />
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Thickness (in)")}</Label>
+            <Input type="number" step="0.125" value={value.thickness_in ?? ""} onChange={(e) => set("thickness_in", e.target.value ? Number(e.target.value) : null)} data-testid="rp-thickness" />
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Weight (lb)")}</Label>
+            <Input type="number" value={value.weight_lbs ?? ""} onChange={(e) => set("weight_lbs", e.target.value ? Number(e.target.value) : null)} data-testid="rp-weight" />
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Rated Capacity (lb)")}</Label>
+            <Input type="number" value={value.rated_capacity_lb ?? ""} onChange={(e) => set("rated_capacity_lb", e.target.value ? Number(e.target.value) : null)} data-testid="rp-capacity" />
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Material")}</Label>
+            <Input value={value.material || ""} onChange={(e) => set("material", e.target.value)} placeholder="A36 Steel" data-testid="rp-material" />
+          </div>
+          <div className="sm:col-span-2">
+            <Label className="text-xs font-bold">{t("Color / Markings")}</Label>
+            <Input value={value.markings || ""} onChange={(e) => set("markings", e.target.value)} placeholder={t("e.g., Yellow paint, MASCI stencil")} data-testid="rp-markings" />
+          </div>
+          <div className="sm:col-span-2 mt-1 mb-1 text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold font-mono">
+            {t("Road Plate · Condition Detail")}
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Surface Condition")}</Label>
+            <Select value={value.surface_condition || "Good"} onValueChange={(v) => set("surface_condition", v)}>
+              <SelectTrigger data-testid="rp-surface"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CONDITIONS.map((x) => <SelectItem key={x} value={x}>{t(x)}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Edge Condition")}</Label>
+            <Select value={value.edge_condition || "Good"} onValueChange={(v) => set("edge_condition", v)}>
+              <SelectTrigger data-testid="rp-edge"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CONDITIONS.map((x) => <SelectItem key={x} value={x}>{t(x)}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Lifting Point Condition")}</Label>
+            <Select value={value.lifting_point_condition || "Good"} onValueChange={(v) => set("lifting_point_condition", v)}>
+              <SelectTrigger data-testid="rp-lifting"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CONDITIONS.map((x) => <SelectItem key={x} value={x}>{t(x)}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs font-bold">{t("Anti-Skid Status")}</Label>
+            <Select value={value.anti_skid_status || "Present"} onValueChange={(v) => set("anti_skid_status", v)}>
+              <SelectTrigger data-testid="rp-antiskid"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Present">{t("Present")}</SelectItem>
+                <SelectItem value="Worn">{t("Worn")}</SelectItem>
+                <SelectItem value="Missing">{t("Missing")}</SelectItem>
+                <SelectItem value="N/A">{t("N/A")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -169,6 +294,23 @@ export function CreateAssetDialog({ open, onOpenChange, onCreated }) {
   const { t } = useT();
   const [value, setValue] = useState({ asset_type: "Trench Box", condition: "Good" });
   const [saving, setSaving] = useState(false);
+  // Phase 8A — when the dialog opens or the asset_type changes, fetch a
+  // suggested permanent asset_id from the backend (RP-001, TB-08, etc.).
+  // The user can still type their own value; the suggestion is just a
+  // calm default so road plates flow as RP-001, RP-002, … automatically.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await api.get("/trench-safety/assets/next-id", { params: { asset_type: value.asset_type } });
+        if (!cancelled && r.data?.next_id) {
+          setValue((v) => (v.asset_id ? v : { ...v, asset_id: r.data.next_id }));
+        }
+      } catch { /* swallow — user can type their own */ }
+    })();
+    return () => { cancelled = true; };
+  }, [open, value.asset_type]);
   async function save() {
     if (!value.asset_id || !value.asset_type) {
       toast.error(t("Asset ID and Asset Type are required."));
@@ -187,6 +329,10 @@ export function CreateAssetDialog({ open, onOpenChange, onCreated }) {
       setSaving(false);
     }
   }
+  // Reset suggested id when user changes the type so the prefix refreshes.
+  const onTypeChange = (next) => {
+    setValue((v) => ({ ...v, asset_type: next, asset_id: "" }));
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl" data-testid="create-asset-dialog">
@@ -194,9 +340,13 @@ export function CreateAssetDialog({ open, onOpenChange, onCreated }) {
           <DialogTitle>{t("Create Trench Safety Asset")}</DialogTitle>
         </DialogHeader>
         <div className="text-xs text-slate-600 -mt-2 mb-2">
-          {t("Asset ID is permanent. Choose deliberately — TB-01, EP-001, SP-001, etc.")}
+          {t("Asset ID is permanent. Suggested IDs follow the certified registry — TB-XX, RP-001, EP-001, etc.")}
         </div>
-        <AssetForm value={value} onChange={setValue} isEdit={false} />
+        <AssetForm value={value} onChange={(next) => {
+          // Intercept asset_type changes to reseed the suggested ID
+          if (next.asset_type !== value.asset_type) onTypeChange(next.asset_type);
+          else setValue(next);
+        }} isEdit={false} />
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} data-testid="create-asset-cancel">{t("Cancel")}</Button>
           <Button onClick={save} disabled={saving} className="bg-cyan-700 hover:bg-cyan-800" data-testid="create-asset-save">
@@ -500,29 +650,75 @@ export function HoldsPanel({ asset, onChange }) {
 // Inspections
 // ═════════════════════════════════════════════════════════════════════
 export function CreateInspectionDialog({ open, onOpenChange, asset, onCreated }) {
+  if (!open || !asset) return null;
+  return (
+    <CreateInspectionDialogInner
+      key={`insp-${asset.asset_id}`}
+      asset={asset}
+      onOpenChange={onOpenChange}
+      onCreated={onCreated}
+    />
+  );
+}
+
+function CreateInspectionDialogInner({ asset, onOpenChange, onCreated }) {
   const { t } = useT();
-  const [form, setForm] = useState({ inspection_type: "Daily Visual", result: "Pass", severity: "Minor", inspector_name: "", notes: "" });
+  const isRoadPlate = (asset?.asset_type || "") === "Road Plate";
+  const [form, setForm] = useState(() => ({
+    inspection_type: "Daily Visual",
+    result: "Pass",
+    severity: "Minor",
+    inspector_name: "",
+    findings: "",
+    corrective_actions: "",
+    competent_person_confirmed: false,
+    checklist: isRoadPlate
+      ? ROAD_PLATE_CHECKLIST.map((c) => ({ key: c.key, label: c.label, result: "Pass", note: "" }))
+      : [],
+  }));
+  const setChecklistItem = (idx, patch) => {
+    setForm((f) => {
+      const next = [...(f.checklist || [])];
+      next[idx] = { ...next[idx], ...patch };
+      return { ...f, checklist: next };
+    });
+  };
   const [saving, setSaving] = useState(false);
   async function go() {
     if (!form.inspector_name.trim()) {
       toast.error(t("Inspector name is required."));
       return;
     }
+    if (
+      (form.inspection_type === "Monthly Competent Person" || form.inspection_type === "Annual Review")
+      && !form.competent_person_confirmed
+    ) {
+      toast.error(t("Competent person confirmation is required for this inspection type."));
+      return;
+    }
     setSaving(true);
     try {
-      await api.post(`/trench-safety/assets/${asset.asset_id}/inspections`, form);
+      const payload = {
+        inspection_type: form.inspection_type,
+        inspector_name: form.inspector_name,
+        result: form.result,
+        severity: form.result === "Fail" ? form.severity : "None",
+        competent_person_confirmed: Boolean(form.competent_person_confirmed),
+        checklist: form.checklist,
+        findings: form.findings,
+        corrective_actions: form.corrective_actions,
+      };
+      await api.post(`/trench-safety/assets/${asset.asset_id}/inspections`, payload);
       toast.success(t("Inspection recorded."));
       onOpenChange(false);
       onCreated?.();
-      setForm({ inspection_type: "Daily Visual", result: "Pass", severity: "Minor", inspector_name: "", notes: "" });
     } catch (e) {
       toast.error(extractErr(e, t("Inspection failed.")));
     } finally { setSaving(false); }
   }
-  if (!asset) return null;
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg" data-testid="create-inspection-dialog">
+    <Dialog open={true} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="create-inspection-dialog">
         <DialogHeader><DialogTitle>{t("Record Inspection")} · {asset.asset_id}</DialogTitle></DialogHeader>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -539,22 +735,71 @@ export function CreateInspectionDialog({ open, onOpenChange, asset, onCreated })
               <SelectContent>{INSPECTION_RESULTS.map((x) => <SelectItem key={x} value={x}>{t(x)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div>
-            <Label className="text-xs font-bold">{t("Severity")}</Label>
-            <Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v })}>
-              <SelectTrigger data-testid="insp-severity"><SelectValue /></SelectTrigger>
-              <SelectContent>{SEVERITIES.map((x) => <SelectItem key={x} value={x}>{t(x)}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div>
+          {form.result === "Fail" && (
+            <div>
+              <Label className="text-xs font-bold">{t("Severity")}</Label>
+              <Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v })}>
+                <SelectTrigger data-testid="insp-severity"><SelectValue /></SelectTrigger>
+                <SelectContent>{SEVERITIES.map((x) => <SelectItem key={x} value={x}>{t(x)}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className={form.result === "Fail" ? "" : "col-span-2"}>
             <Label className="text-xs font-bold">{t("Inspector Name")} *</Label>
             <Input value={form.inspector_name} onChange={(e) => setForm({ ...form, inspector_name: e.target.value })} data-testid="insp-inspector" />
           </div>
-          <div className="col-span-2">
-            <Label className="text-xs font-bold">{t("Notes")}</Label>
-            <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} data-testid="insp-notes" />
-          </div>
+          {(form.inspection_type === "Monthly Competent Person" || form.inspection_type === "Annual Review") && (
+            <div className="col-span-2 flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="cp-confirm"
+                checked={Boolean(form.competent_person_confirmed)}
+                onChange={(e) => setForm({ ...form, competent_person_confirmed: e.target.checked })}
+                data-testid="insp-competent"
+              />
+              <Label htmlFor="cp-confirm" className="text-xs">{t("I am the designated competent person for this inspection.")}</Label>
+            </div>
+          )}
         </div>
+
+        {isRoadPlate && (
+          <div className="mt-2 border-t pt-3" data-testid="rp-checklist">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
+              {t("Road Plate · Inspection Checklist")}
+            </div>
+            <ul className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+              {form.checklist.map((item, idx) => (
+                <li key={item.key} className="grid grid-cols-12 items-center gap-2 text-sm" data-testid={`rp-checklist-row-${item.key}`}>
+                  <div className="col-span-7 text-slate-800">{t(item.label)}</div>
+                  <div className="col-span-5">
+                    <Select value={item.result} onValueChange={(v) => setChecklistItem(idx, { result: v })}>
+                      <SelectTrigger className="h-8" data-testid={`rp-checklist-${item.key}`}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pass">{t("Pass")}</SelectItem>
+                        <SelectItem value="Fail">{t("Fail")}</SelectItem>
+                        <SelectItem value="N/A">{t("N/A")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-3 mt-2">
+          <div>
+            <Label className="text-xs font-bold">{t("Findings")}</Label>
+            <Textarea value={form.findings} onChange={(e) => setForm({ ...form, findings: e.target.value })} rows={2} data-testid="insp-notes" />
+          </div>
+          {form.result === "Fail" && (
+            <div>
+              <Label className="text-xs font-bold">{t("Corrective Actions")}</Label>
+              <Textarea value={form.corrective_actions} onChange={(e) => setForm({ ...form, corrective_actions: e.target.value })} rows={2} data-testid="insp-corrective" />
+            </div>
+          )}
+        </div>
+
         <div className="bg-amber-50 border border-amber-300 rounded p-2 text-xs text-amber-900">
           <AlertTriangle className="w-3 h-3 inline -mt-0.5 mr-1" />
           {t("A Fail with Major or Critical severity automatically opens an Inspection Hold and stubs a repair recommendation.")}

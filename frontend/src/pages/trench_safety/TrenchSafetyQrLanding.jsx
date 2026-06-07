@@ -204,6 +204,23 @@ export default function TrenchSafetyQrLanding() {
               <Row label={t("Condition")}    value={t(doc.condition || "Good")} testId="qr-f-cond" />
             </div>
 
+            {/* Road Plate specs — Phase 8A. Field-safe physical detail
+                so the crew can confirm they have the right plate. */}
+            {doc.asset_type === "Road Plate" && (
+              <div className="mt-3 bg-white border border-slate-200 rounded-md p-3" data-testid="qr-roadplate-card">
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-1">
+                  {t("Road Plate · Specs")}
+                </div>
+                <Row label={t("Length (in)")}        value={doc.length_in} mono testId="qr-rp-length" />
+                <Row label={t("Width (in)")}         value={doc.width_in} mono testId="qr-rp-width" />
+                <Row label={t("Thickness (in)")}     value={doc.thickness_in} mono testId="qr-rp-thickness" />
+                <Row label={t("Material")}           value={doc.material} testId="qr-rp-material" />
+                <Row label={t("Rated Capacity (lb)")} value={doc.rated_capacity_lb} mono testId="qr-rp-capacity" />
+                <Row label={t("Anti-Skid Status")}   value={doc.anti_skid_status ? t(doc.anti_skid_status) : null} testId="qr-rp-antiskid" />
+                <Row label={t("Markings")}           value={doc.markings} testId="qr-rp-markings" />
+              </div>
+            )}
+
             {/* Operational card */}
             <div className="mt-3 bg-white border border-slate-200 rounded-md p-3" data-testid="qr-op-card">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-1">{t("Current Use")}</div>

@@ -226,6 +226,28 @@ export default function TrenchSafetyAssetDetail() {
             </div>
           </section>
 
+          {/* Road Plate Specs · Phase 8A — only rendered when type matches */}
+          {doc.asset_type === "Road Plate" && (
+            <section className="mt-4 bg-white border border-slate-200 rounded-md p-4" data-testid="trench-detail-roadplate">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
+                {t("Road Plate · Specs & Condition")}
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
+                <Field label={t("Length (in)")}             value={doc.length_in} mono testId="f-rp-length" />
+                <Field label={t("Width (in)")}              value={doc.width_in} mono testId="f-rp-width" />
+                <Field label={t("Thickness (in)")}          value={doc.thickness_in} mono testId="f-rp-thickness" />
+                <Field label={t("Weight (lb)")}             value={doc.weight_lbs} mono testId="f-rp-weight" />
+                <Field label={t("Material")}                value={doc.material} testId="f-rp-material" />
+                <Field label={t("Rated Capacity (lb)")}     value={doc.rated_capacity_lb} mono testId="f-rp-capacity" />
+                <Field label={t("Surface Condition")}       value={doc.surface_condition ? t(doc.surface_condition) : null} testId="f-rp-surface" />
+                <Field label={t("Edge Condition")}          value={doc.edge_condition ? t(doc.edge_condition) : null} testId="f-rp-edge" />
+                <Field label={t("Lifting Point Condition")} value={doc.lifting_point_condition ? t(doc.lifting_point_condition) : null} testId="f-rp-lifting" />
+                <Field label={t("Anti-Skid Status")}        value={doc.anti_skid_status ? t(doc.anti_skid_status) : null} testId="f-rp-antiskid" />
+                <Field label={t("Color / Markings")}        value={doc.markings} testId="f-rp-markings" />
+              </div>
+            </section>
+          )}
+
           {/* Operational */}
           <section className="mt-4 bg-white border border-slate-200 rounded-md p-4" data-testid="trench-detail-operational">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">{t("Operational")}</div>

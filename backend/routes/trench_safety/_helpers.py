@@ -522,6 +522,17 @@ def public_view(asset: Dict[str, Any]) -> Dict[str, Any]:
         # against the record. TB-05 etc. expose "" to surface the missing
         # serial alert.
         "serial_number",
+        # Phase 8A — Road Plate physical specs are field-safe (a crew
+        # member needs to know what plate they are looking at). Condition
+        # detail and lifting-point detail stay internal until a competent
+        # person has verified them.
+        "length_in",
+        "width_in",
+        "thickness_in",
+        "material",
+        "rated_capacity_lb",
+        "anti_skid_status",
+        "markings",
     }
     return {k: asset.get(k) for k in keep}
 

@@ -81,6 +81,57 @@ def register_asset_routes(
         return {"items": docs, "count": len(docs)}
 
     # ──────────────────────────────────────────────────────────────────
+    # Phase 8A — Suggest next available asset_id for a given asset type.
+    # Used by the New Asset dialog (Road Plate → RP-001/RP-002, Trench
+    # Box → TB-XX, etc.). Permanent, never-reused numbering controls —
+    # walks the existing collection (active + retired) to find the next
+    # free integer. Does NOT mutate state; safe to call repeatedly.
+    # ──────────────────────────────────────────────────────────────────
+    @api_router.get("/trench-safety/assets/next-id")
+    async def suggest_next_id(
+        asset_type: str = Query(default="Road Plate"),
+        _actor: dict = Depends(require_safety_or_admin),
+    ):
+        # Map type → asset_id prefix. Permanent, never reused.
+        prefix_map = {
+            "Road Plate": "RP",
+            "Trench Box": "TB",
+            "End Panel": "EP",
+            "Spreader Bar": "SP",
+            "Hydraulic Shore": "HS",
+            "Slide Rail System": "SR",
+            "Trench Jack": "TJ",
+            "Ladder": "LD",
+            "Accessory": "AC",
+        }
+        prefix = prefix_map.get(asset_type, "AS")
+        # Look at ALL rows (active + retired) so we never reuse a number.
+        cursor = db.trench_safety_assets.find(
+            {"asset_id": {"$regex": f"^{prefix}-"}},
+            {"_id": 0, "asset_id": 1},
+        )
+        used: set[int] = set()
+        async for d in cursor:
+            tail = (d.get("asset_id") or "").split("-", 1)[-1]
+            try:
+                used.add(int(tail))
+            except ValueError:
+                continue
+        n = 1
+        while n in used:
+            n += 1
+        # 3-digit zero-padding for Road Plate (RP-001) per directive.
+        # Keep Trench Box at 2-digit (TB-01) to preserve historical
+        # numbering.
+        pad = 2 if prefix == "TB" else 3
+        return {
+            "asset_type": asset_type,
+            "prefix": prefix,
+            "next_id": f"{prefix}-{str(n).zfill(pad)}",
+            "next_number": n,
+        }
+
+    # ──────────────────────────────────────────────────────────────────
     # Get by asset_id (preferred) OR by uuid
     # ──────────────────────────────────────────────────────────────────
     @api_router.get(PREFIX + "/{ident}")

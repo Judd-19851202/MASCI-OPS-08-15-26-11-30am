@@ -20,6 +20,10 @@ ASSET_TYPES = (
     "Trench Jack",
     "Ladder",
     "Accessory",
+    # Phase 8A — Road Plate as a native asset type in the certified
+    # Trench / Excavation Safety registry. Same status engine, same
+    # hold engine, same inspection engine, same QR + photo pipeline.
+    "Road Plate",
 )
 
 CONDITIONS = ("Excellent", "Good", "Fair", "Poor", "Out Of Service")
@@ -80,6 +84,17 @@ REPAIR_STATUSES = (
     "Closed After Verification",
 )
 REPAIR_KINDS = ("damage", "wear", "scheduled", "repair_recommendation")
+
+# Phase 8A — Road Plate-specific repair classifications. These plug into
+# the existing certified repair engine (no new collection, no new
+# workflow) — they only refine the kind taxonomy when Shop logs work.
+ROAD_PLATE_REPAIR_KINDS = (
+    "Weld Repair",
+    "Structural Repair",
+    "Surface Repair",
+    "Edge Repair",
+    "Anti-Skid Restoration",
+)
 
 DEPLOYMENT_SOURCES = (
     "Manual Assignment",
@@ -160,6 +175,20 @@ class TrenchSafetyAssetCreate(BaseModel):
     missing_manufacturer: bool = False
     needs_review: bool = False
     requires_certification: bool = False
+
+    # Phase 8A — Road Plate-specific physical + condition fields. Stored
+    # on every asset row (sparse / null for non-Road-Plate types) so the
+    # certified asset registry remains the single source of truth.
+    length_in: Optional[float] = None
+    width_in: Optional[float] = None
+    thickness_in: Optional[float] = None
+    material: Optional[str] = None
+    rated_capacity_lb: Optional[float] = None
+    markings: Optional[str] = None
+    surface_condition: Optional[str] = None         # Excellent | Good | Fair | Poor | Out Of Service
+    edge_condition: Optional[str] = None
+    lifting_point_condition: Optional[str] = None
+    anti_skid_status: Optional[str] = None          # Present | Worn | Missing | N/A
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -255,6 +284,18 @@ class TrenchSafetyAssetUpdate(BaseModel):
     missing_manufacturer: Optional[bool] = None
     needs_review: Optional[bool] = None
     requires_certification: Optional[bool] = None
+
+    # Phase 8A — Road Plate physical/condition fields (editable)
+    length_in: Optional[float] = None
+    width_in: Optional[float] = None
+    thickness_in: Optional[float] = None
+    material: Optional[str] = None
+    rated_capacity_lb: Optional[float] = None
+    markings: Optional[str] = None
+    surface_condition: Optional[str] = None
+    edge_condition: Optional[str] = None
+    lifting_point_condition: Optional[str] = None
+    anti_skid_status: Optional[str] = None
 
 
 class RetireAssetBody(BaseModel):
