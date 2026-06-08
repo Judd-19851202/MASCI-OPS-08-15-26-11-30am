@@ -374,12 +374,12 @@ async def _trust_score(db) -> Dict[str, Any]:
     drivers_resolved = drivers_linked + drivers_resolved_no_link
     assets_resolved = assets_linked + assets_resolved_no_link
 
-    weight_total = drivers_total + assets_total + max(1, conflict_total)
-    weight_resolved = drivers_resolved + assets_resolved + (
-        # Conflicts subtract from trust — count each open conflict as
-        # 1 unresolved unit. When count is zero, contribution is zero.
-        max(0, max(1, conflict_total) - conflict_total)
-    )
+    # Trust math · open conflicts are unresolved units that reduce trust.
+    # weight_total = drivers + assets + conflicts. weight_resolved sums
+    # resolved on each axis. Conflicts contribute 0 to resolved until
+    # the operator clears them.
+    weight_total = drivers_total + assets_total + conflict_total
+    weight_resolved = drivers_resolved + assets_resolved
     trust_pct = round((weight_resolved / weight_total) * 100, 1) if weight_total else 100.0
 
     drivers_pct = round((drivers_resolved / drivers_total) * 100, 1) if drivers_total else 100.0
@@ -417,32 +417,61 @@ async def _trust_score(db) -> Dict[str, Any]:
 
 
 # ── HTTP routes ─────────────────────────────────────────────────────
-def register_cleanup_routes(api_router: APIRouter, db, require_admin) -> None:
+def register_cleanup_routes(api_router: APIRouter, db, require_admin, require_hr_or_admin=None) -> None:
+    """Register MCC-1 routes.
+
+    Access matrix (MCC-1 HR Access Extension · 2026-06-08):
+
+      * Admin           — full access (all GETs + all POSTs).
+      * HR (or Admin)   — driver queue + trust score + asset/conflict
+                          read-only views + driver action endpoints.
+      * Anyone else     — 401.
+
+    Asset and conflict mutation endpoints remain admin-strict. If the
+    caller doesn't supply `require_hr_or_admin` (legacy call sites),
+    we fall back to `require_admin` so behaviour is unchanged."""
 
     BASE = "/admin/integrations/cleanup"
 
-    @api_router.get(f"{BASE}/trust-score", dependencies=[Depends(require_admin)])
+    # Default the shared dep to admin-only when the caller hasn't
+    # provided an HR-aware variant. Keeps backwards-compat.
+    require_read = require_hr_or_admin or require_admin
+    require_driver_write = require_hr_or_admin or require_admin
+
+    @api_router.get(f"{BASE}/trust-score", dependencies=[Depends(require_read)])
     async def get_trust_score():
         return await _trust_score(db)
 
-    @api_router.get(f"{BASE}/drivers", dependencies=[Depends(require_admin)])
+    @api_router.get(f"{BASE}/drivers", dependencies=[Depends(require_read)])
     async def get_driver_queue():
         return await _build_driver_queue(db)
 
-    @api_router.get(f"{BASE}/assets", dependencies=[Depends(require_admin)])
+    @api_router.get(f"{BASE}/assets", dependencies=[Depends(require_read)])
     async def get_asset_queue():
         return await _build_asset_queue(db)
 
-    @api_router.get(f"{BASE}/conflicts", dependencies=[Depends(require_admin)])
+    @api_router.get(f"{BASE}/conflicts", dependencies=[Depends(require_read)])
     async def get_conflicts():
         return await _find_conflicts(db)
 
     # ── DRIVER ACTIONS ─────────────────────────────────────────────
+    def _actor_label(actor) -> str:
+        if isinstance(actor, dict):
+            kind = actor.get("_actor") or actor.get("_actor_kind") or ""
+            if kind == "admin" or kind == "":
+                return "admin"
+            return f"hr:{actor.get('email') or actor.get('name') or 'unknown'}"[:80]
+        return "admin"
+
     @api_router.post(
         f"{BASE}/drivers/{{mapping_id}}/link",
-        dependencies=[Depends(require_admin)],
+        dependencies=[Depends(require_driver_write)],
     )
-    async def link_driver(mapping_id: str, body: Dict[str, Any] = Body(...)):
+    async def link_driver(
+        mapping_id: str,
+        body: Dict[str, Any] = Body(...),
+        actor: Any = Depends(require_driver_write),
+    ):
         emp_id = (body.get("employee_id") or "").strip()
         if not emp_id:
             raise HTTPException(400, "employee_id required")
@@ -477,7 +506,7 @@ def register_cleanup_routes(api_router: APIRouter, db, require_admin) -> None:
         }})
         await write_sync_log(
             db, integration="motive", sync_type="mcc1_driver_link",
-            status="Success", triggered_by="admin",
+            status="Success", triggered_by=_actor_label(actor),
             records_created=0, records_updated=1, records_skipped=0, records_failed=0,
             notes=f"mapping_id={mapping_id} employee_id={emp_id}",
         )
@@ -485,9 +514,13 @@ def register_cleanup_routes(api_router: APIRouter, db, require_admin) -> None:
 
     @api_router.post(
         f"{BASE}/drivers/{{mapping_id}}/ignore",
-        dependencies=[Depends(require_admin)],
+        dependencies=[Depends(require_driver_write)],
     )
-    async def ignore_driver(mapping_id: str, body: Dict[str, Any] = Body(default={})):
+    async def ignore_driver(
+        mapping_id: str,
+        body: Dict[str, Any] = Body(default={}),
+        actor: Any = Depends(require_driver_write),
+    ):
         m = await db.employee_mappings.find_one({"id": mapping_id}, {"_id": 0})
         if not m:
             raise HTTPException(404, "mapping not found")
@@ -498,7 +531,7 @@ def register_cleanup_routes(api_router: APIRouter, db, require_admin) -> None:
         }})
         await write_sync_log(
             db, integration="motive", sync_type="mcc1_driver_ignore",
-            status="Success", triggered_by="admin",
+            status="Success", triggered_by=_actor_label(actor),
             records_created=0, records_updated=1, records_skipped=0, records_failed=0,
             notes=f"mapping_id={mapping_id}",
         )
@@ -506,9 +539,13 @@ def register_cleanup_routes(api_router: APIRouter, db, require_admin) -> None:
 
     @api_router.post(
         f"{BASE}/drivers/{{mapping_id}}/former-employee",
-        dependencies=[Depends(require_admin)],
+        dependencies=[Depends(require_driver_write)],
     )
-    async def mark_former_employee(mapping_id: str, body: Dict[str, Any] = Body(default={})):
+    async def mark_former_employee(
+        mapping_id: str,
+        body: Dict[str, Any] = Body(default={}),
+        actor: Any = Depends(require_driver_write),
+    ):
         m = await db.employee_mappings.find_one({"id": mapping_id}, {"_id": 0})
         if not m:
             raise HTTPException(404, "mapping not found")
@@ -519,7 +556,7 @@ def register_cleanup_routes(api_router: APIRouter, db, require_admin) -> None:
         }})
         await write_sync_log(
             db, integration="motive", sync_type="mcc1_driver_former",
-            status="Success", triggered_by="admin",
+            status="Success", triggered_by=_actor_label(actor),
             records_created=0, records_updated=1, records_skipped=0, records_failed=0,
             notes=f"mapping_id={mapping_id}",
         )

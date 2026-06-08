@@ -148,6 +148,7 @@ import HrEmployeeAccountabilityTimeline from "@/pages/HrEmployeeAccountabilityTi
 import HrIncidents from "@/pages/HrIncidents";
 import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrDailyReports, { HrDailyReportDetail } from "@/pages/HrDailyReports";
+import HrMotiveDrivers from "@/pages/HrMotiveDrivers";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
 import HrDriverQualificationDashboard from "@/pages/HrDriverQualificationDashboard";
 import HrDriverQualificationImport from "@/pages/HrDriverQualificationImport";
@@ -633,6 +634,8 @@ function App() {
             {/* iter332 · HR read-only Daily Reports Review */}
             <Route path="/hr/daily-reports" element={H(<HrDailyReports />)} />
             <Route path="/hr/daily-reports/:id" element={H(<HrDailyReportDetail />)} />
+            {/* MCC-1 HR Access Extension · 2026-06-08 · HR-scoped driver cleanup */}
+            <Route path="/hr/motive-drivers" element={H(<HrMotiveDrivers />)} />
             <Route path="/time-off/public/:token" element={<PublicTimeOff />} />
 
             {/* ============================================================

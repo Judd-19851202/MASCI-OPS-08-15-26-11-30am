@@ -9829,8 +9829,27 @@ from routes.integrations import (  # noqa: E402
     ensure_integrations_indexes_and_seed,
 )
 
+# MCC-1 HR Access Extension · HR users can work the driver cleanup
+# queue alongside admins. Defined inline here (BEFORE the integrations
+# router is built) because the existing `_require_hr_or_admin` further
+# down in this file is registered after this point.
+async def _require_hr_or_admin_for_mcc1(
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+):
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"_actor": "admin", "name": "Admin"}
+    if x_hr_token:
+        from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+        u = await is_valid_hr_user_token_async(db, x_hr_token)
+        if u:
+            return {**u, "_actor": "hr", "_actor_kind": "hr_user"}
+    raise HTTPException(401, "HR or Admin login required")
+
+
 _integrations_router = build_integrations_router(
     db, require_admin, _is_valid_admin_token,
+    require_hr_or_admin=_require_hr_or_admin_for_mcc1,
 )
 app.include_router(_integrations_router)
 

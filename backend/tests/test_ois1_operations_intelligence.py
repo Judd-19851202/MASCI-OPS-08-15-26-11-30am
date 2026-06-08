@@ -56,7 +56,7 @@ class TestOIS1E_OperationsIntelligence:
         r = requests.get(
             f"{BASE_URL}/api/operations/intelligence",
             timeout=15,
-            headers={},
+            headers={"X-Admin-Token": "not-a-real-token"},
         )
         # backend's require_admin rejects with 401 (or 403)
         assert r.status_code in (401, 403), f"got {r.status_code}: {r.text[:200]}"
@@ -107,7 +107,7 @@ class TestOIS1E_OperationsIntelligence:
 class TestOIS1D_ShopIntelligence:
     def test_admin_strict(self):
         r = requests.get(
-            f"{BASE_URL}/api/operations/intelligence/shop", timeout=15, headers={}
+            f"{BASE_URL}/api/operations/intelligence/shop", timeout=15, headers={"X-Admin-Token": "not-a-real-token"}
         )
         assert r.status_code in (401, 403)
 
@@ -152,7 +152,7 @@ class TestOIS1D_ShopIntelligence:
 class TestOIS1A_FleetGPS:
     def test_admin_strict(self):
         r = requests.get(
-            f"{BASE_URL}/api/operations/intelligence/fleet-gps", timeout=15, headers={}
+            f"{BASE_URL}/api/operations/intelligence/fleet-gps", timeout=15, headers={"X-Admin-Token": "not-a-real-token"}
         )
         assert r.status_code in (401, 403)
 
@@ -195,7 +195,7 @@ class TestOIS1C_DriverIntel:
         r = requests.get(
             f"{BASE_URL}/api/operations/intelligence/driver/foo",
             timeout=15,
-            headers={},
+            headers={"X-Admin-Token": "not-a-real-token"},
         )
         assert r.status_code in (401, 403)
 

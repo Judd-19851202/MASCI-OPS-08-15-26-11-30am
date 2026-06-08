@@ -1,3 +1,65 @@
+## 2026-06-08 (MCC-1 HR Access Extension · 🟢 CERTIFIED)
+
+OMEGA role/access extension shipped. HR can now resolve every Motive driver mapping issue end-to-end via the HR portal, while Admin keeps ownership of asset cleanup and equipment-conflict resolution.
+
+### Backend (3 files touched · no schema changes)
+- `routes/integrations/cleanup.py` — driver GETs + driver POSTs (link / ignore / former-employee) accept HR-or-Admin via injected `require_hr_or_admin`. Asset POSTs + conflict-resolve POST remain admin-strict. Actor identity now flows into `integration_sync_logs.triggered_by` (recorded as `admin` or `hr:{email}`).
+- `routes/integrations/__init__.py` — `build_integrations_router` accepts an optional `require_hr_or_admin` kwarg (backwards-compatible).
+- `server.py` — defined `_require_hr_or_admin_for_mcc1` BEFORE the integrations router is built, then passed it into `build_integrations_router(...)`.
+
+### Frontend (4 files touched)
+- `components/admin/MappingCleanupTab.jsx` — added `mode` prop. HR mode hides the Conflict Panel, marks Asset rows as `view only · admin owns`, and shows an `HR scope` badge in the header.
+- `pages/HrMotiveDrivers.jsx` (new) — HR portal page that mounts `<MappingCleanupTab mode="hr" />`.
+- `pages/HrHub.jsx` — added the `motiveDrivers` tile to the "Compliance & Records" group.
+- `App.js` — registered `/hr/motive-drivers` behind the HR auth wrapper.
+
+### Verification
+- 18/18 new HR access regression tests pass (`/app/backend/tests/test_mcc1_hr_access.py`).
+- 12/12 original MCC-1 regression tests still pass.
+- 8/8 OIS-1 + autolink + wizard regression suites still green.
+- HR portal /hr/motive-drivers live screenshot confirms the `HR scope` badge, 40 driver-action buttons, 36 view-only asset chips, and conflict panel hidden.
+- Sync log audit confirmed: HR ignore action recorded `triggered_by: hr:hrmanager@mascigc.com`.
+
+### Certification
+`/app/memory/MCC1_HR_ACCESS_EXTENSION_CERTIFICATION.md`
+
+### Next deferred (NOT started · OMEGA gate)
+- **M-2** Webhook event-type router → Dispatch state transitions
+- **M-3** Geocode `jobs_master` + plant/yard addresses
+- **P2** `test_trench_safety_phase2::test_dashboard_seed_data` stale-fixture failure
+
+
+## 2026-06-08 (MCC-1 · Motive Mapping Cleanup Center · 🟢 CERTIFIED)
+
+OMEGA MCC-1 sprint closed green. Admins now resolve every Motive mapping issue from a single Integration Center tab — no Mongo touch, no audits, no support escalation.
+
+### Backend (1 new file · 11 endpoints · admin-strict)
+- `/app/backend/routes/integrations/cleanup.py`
+  - GETs: `/cleanup/trust-score`, `/cleanup/drivers`, `/cleanup/assets`, `/cleanup/conflicts`
+  - POSTs: driver `link` / `ignore` / `former-employee`, asset `link` / `retire` / `ignore-gateway`, conflicts `resolve`
+- State persists on existing mapping docs via two new fields: `cleanup_status` and `cleanup_notes`. Zero new collections.
+- Reuses `_propose_asset_links` / `_propose_driver_links` from autolink.py for candidate matching.
+- Every action writes `integration_sync_logs` with `mcc1_*` prefix for audit.
+
+### Frontend (1 new tab · 1 new file)
+- `components/admin/MappingCleanupTab.jsx` — Trust Score header + 3 queues (drivers, assets, conflicts).
+- Mounted as new "Mapping Cleanup" tab inside `AdminIntegrationCenter.jsx`.
+- Reuses OIS-1F universal Green/Amber/Red language.
+
+### Verification
+- 12/12 pytest cases passed (`/app/backend/tests/test_mcc1_mapping_cleanup.py`).
+- OIS-1 regression (8/8) and integrations regression (autolink/wizard) all green.
+- Smoke screenshot confirms 4 sub-sections render correctly with live numbers (Trust 69.1% → 70.2% red · 22/65 drivers · 154/190 assets · 0 active conflicts).
+- 1:1 enforcement (HTTP 409) verified for both driver and asset link endpoints.
+
+### Certification
+`/app/memory/MCC1_MAPPING_CLEANUP_CERTIFICATION.md`
+
+### Next deferred (NOT started · OMEGA gate)
+- **M-2** Webhook event-type router → Dispatch state transitions
+- **M-3** Geocode `jobs_master` + plant/yard addresses
+
+
 ## 2026-06-08 (OIS-1 · Operations Intelligence Sprint · ✅ CERTIFIED)
 
 OMEGA OIS-1 sprint closed green. Live Motive telematics now powers single-pane executive intelligence across AdminHub, ShopHub, DispatchBoard, AssetProfile, and a new read-only Driver Command Profile — without violating OMEGA discipline (no automation, no new portals, no state mutation).

@@ -39,8 +39,9 @@ function pct(n) {
   return `${n}%`;
 }
 
-function TrustScoreHeader({ data, onRefresh, refreshing }) {
+function TrustScoreHeader({ data, onRefresh, refreshing, mode = "admin" }) {
   if (!data) return null;
+  const isHR = mode === "hr";
   const bandCls = BAND_PILL[data.trust?.band] || BAND_PILL.red;
   return (
     <section
@@ -54,13 +55,15 @@ function TrustScoreHeader({ data, onRefresh, refreshing }) {
         <div className="flex-1 min-w-0">
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-700 font-bold">
             MCC-1D · Motive Mapping Health
+            {isHR ? <span className="ml-2 px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-900" data-testid="mcc-hr-scope-badge">HR scope</span> : null}
           </span>
           <h3 className="font-display text-2xl font-black tracking-tight text-slate-900 mt-0.5">
-            Mapping Cleanup Center
+            {isHR ? "Motive Driver Cleanup" : "Mapping Cleanup Center"}
           </h3>
           <p className="text-xs text-slate-600 mt-1 max-w-2xl">
-            Single screen to close the remaining trust gap with Motive — link unmapped drivers,
-            link unmapped assets, resolve mapping conflicts. Watch the trust score climb to 100%.
+            {isHR
+              ? "Resolve every Motive driver mapping issue without admin intervention — link, mark former, or ignore. Asset cleanup remains with Admin."
+              : "Single screen to close the remaining trust gap with Motive — link unmapped drivers, link unmapped assets, resolve mapping conflicts. Watch the trust score climb to 100%."}
           </p>
         </div>
         <Button
@@ -393,7 +396,8 @@ function DriverQueue({ data, onRefresh }) {
   );
 }
 
-function AssetQueue({ data, onRefresh }) {
+function AssetQueue({ data, onRefresh, mode = "admin" }) {
+  const isHR = mode === "hr";
   const [filter, setFilter] = useState("unresolved");
   const [picker, setPicker] = useState({ open: false, mappingId: null });
   const counts = data?.counts || { operational: 0, retired: 0, unlinked: 0, resolved: 0 };
@@ -515,6 +519,13 @@ function AssetQueue({ data, onRefresh }) {
                   {r.is_resolved ? (
                     <span className="inline-flex items-center text-emerald-700 text-[10px] font-bold font-mono uppercase tracking-wider">
                       <CheckCircle2 className="w-3 h-3 mr-1" /> {r.cleanup_status || "linked"}
+                    </span>
+                  ) : isHR ? (
+                    <span
+                      className="inline-flex items-center text-slate-400 text-[10px] font-mono uppercase tracking-wider italic"
+                      data-testid={`mcc-ast-view-only-${r.mapping_id}`}
+                    >
+                      view only · admin owns
                     </span>
                   ) : (
                     <div className="inline-flex gap-1 flex-wrap justify-end">
@@ -644,7 +655,8 @@ function ConflictPanel({ data, onRefresh }) {
   );
 }
 
-export default function MappingCleanupTab() {
+export default function MappingCleanupTab({ mode = "admin" }) {
+  const isHR = mode === "hr";
   const [trust, setTrust] = useState(null);
   const [drivers, setDrivers] = useState(null);
   const [assets, setAssets] = useState(null);
@@ -689,11 +701,11 @@ export default function MappingCleanupTab() {
   );
 
   return (
-    <div className="space-y-5" data-testid="mcc-cleanup-tab">
-      <TrustScoreHeader data={trust} onRefresh={load} refreshing={refreshing} />
+    <div className="space-y-5" data-testid={isHR ? "mcc-cleanup-tab-hr" : "mcc-cleanup-tab"}>
+      <TrustScoreHeader data={trust} onRefresh={load} refreshing={refreshing} mode={mode} />
       <DriverQueue data={drivers} onRefresh={load} />
-      <AssetQueue data={assets} onRefresh={load} />
-      <ConflictPanel data={conflicts} onRefresh={load} />
+      <AssetQueue data={assets} onRefresh={load} mode={mode} />
+      {!isHR ? <ConflictPanel data={conflicts} onRefresh={load} /> : null}
     </div>
   );
 }

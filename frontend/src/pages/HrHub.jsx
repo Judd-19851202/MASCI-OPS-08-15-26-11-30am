@@ -91,6 +91,10 @@ const TILE_DEFS = {
   driverQual: { to: "/hr/driver-qualification", icon: Truck, label: "Driver Qualification",
     desc: "CDL holders, endorsements, tanker capability.",
     stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
+  // MCC-1 HR Access Extension · 2026-06-08 · Motive driver mapping cleanup
+  motiveDrivers: { to: "/hr/motive-drivers", icon: Truck, label: "Motive Driver Cleanup",
+    desc: "Link, ignore, mark former Motive drivers without admin.",
+    stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
   safetyRecords: { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
     desc: "Read-only Safety library and per-employee training.",
     stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
@@ -128,7 +132,7 @@ const TILE_GROUPS = [
     key: "compliance-records",
     heading: "Compliance & Records",
     sub: "Certifications, driver qualification, safety overlap.",
-    tiles: ["docExpirations", "trainingRecords", "driverQual", "safetyRecords", "dailyReports"],
+    tiles: ["docExpirations", "trainingRecords", "driverQual", "motiveDrivers", "safetyRecords", "dailyReports"],
   },
   {
     key: "access-identity",

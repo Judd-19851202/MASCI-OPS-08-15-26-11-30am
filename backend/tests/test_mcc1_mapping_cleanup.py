@@ -18,6 +18,10 @@ def h(admin_token):
 
 
 # === Admin-strict gating ===
+# conftest auto-attaches X-Admin-Token to every requests call; the only
+# way to verify the gate truly works is to send an explicitly INVALID
+# token and confirm 401. Sending an empty header would just be skipped
+# by setdefault inside the conftest patch.
 @pytest.mark.parametrize("path", [
     "/api/admin/integrations/cleanup/trust-score",
     "/api/admin/integrations/cleanup/drivers",
@@ -25,8 +29,8 @@ def h(admin_token):
     "/api/admin/integrations/cleanup/conflicts",
 ])
 def test_admin_strict_no_token(path):
-    r = requests.get(f"{BASE}{path}", timeout=30)
-    assert r.status_code in (401, 403)
+    r = requests.get(f"{BASE}{path}", headers={"X-Admin-Token": "not-a-real-token"}, timeout=30)
+    assert r.status_code in (401, 403), r.text
 
 
 # === GET trust-score shape ===

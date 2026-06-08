@@ -31,9 +31,15 @@ from .cleanup import register_cleanup_routes
 
 def build_integrations_router(
     db, require_admin, is_valid_admin_token: Callable[[str], bool],
+    require_hr_or_admin=None,
 ) -> APIRouter:
     """Build the Integration Center HTTP router. Caller must
-    `app.include_router(...)` the return value AFTER calling this."""
+    `app.include_router(...)` the return value AFTER calling this.
+
+    `require_hr_or_admin` is optional (legacy callers pass admin-only).
+    When provided, MCC-1 driver cleanup + read-only queues are
+    accessible to HR users in addition to admins. Asset mutation +
+    conflict resolution stay admin-strict regardless."""
     api_router = APIRouter(prefix="/api", tags=["integrations"])
 
     require_any_portal = make_require_any_portal_token(db, is_valid_admin_token)
@@ -47,7 +53,7 @@ def build_integrations_router(
     register_webhook_routes(api_router, db)
     register_maintainx_p0_routes(api_router, db, require_admin, require_any_portal)
     register_autolink_routes(api_router, db, require_admin)
-    register_cleanup_routes(api_router, db, require_admin)
+    register_cleanup_routes(api_router, db, require_admin, require_hr_or_admin)
 
     return api_router
 
