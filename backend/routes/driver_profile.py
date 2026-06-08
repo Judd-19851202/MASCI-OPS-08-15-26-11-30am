@@ -260,7 +260,10 @@ async def _safety(db, employee_uuid: str, motive_user_id: str):
 
 async def _training(db, employee_uuid: str):
     if not employee_uuid:
-        return {"records": [], "expirations": {"current": 0, "expiring_30d": 0, "expired": 0}}
+        return {"records": [], "expirations": {
+            "current": 0, "expiring_30d": 0, "expiring_60d": 0,
+            "expiring_90d": 0, "expired": 0,
+        }}
 
     rows: List[Dict[str, Any]] = []
     async for r in db.safety_training_records.find(
@@ -274,6 +277,8 @@ async def _training(db, employee_uuid: str):
     now = _now()
     today = now.date().isoformat()
     cut_30d = (now + timedelta(days=30)).date().isoformat()
+    cut_60d = (now + timedelta(days=60)).date().isoformat()
+    cut_90d = (now + timedelta(days=90)).date().isoformat()
     exp_rows: List[Dict[str, Any]] = []
     async for d in db.document_expirations.find(
         {"linked_employee_id": employee_uuid, "deleted_at": None},
@@ -282,14 +287,22 @@ async def _training(db, employee_uuid: str):
     ).sort("expiration_date", 1):
         exp_rows.append(d)
 
-    current = sum(1 for d in exp_rows if d.get("expiration_date", "") > cut_30d)
-    expiring = sum(1 for d in exp_rows if today <= d.get("expiration_date", "") <= cut_30d)
     expired = sum(1 for d in exp_rows if d.get("expiration_date", "") and d.get("expiration_date", "") < today)
+    in_30 = sum(1 for d in exp_rows if today <= d.get("expiration_date", "") <= cut_30d)
+    in_60 = sum(1 for d in exp_rows if cut_30d < d.get("expiration_date", "") <= cut_60d)
+    in_90 = sum(1 for d in exp_rows if cut_60d < d.get("expiration_date", "") <= cut_90d)
+    current = sum(1 for d in exp_rows if d.get("expiration_date", "") > cut_90d)
 
     return {
         "records": rows,
         "documents": exp_rows,
-        "expirations": {"current": current, "expiring_30d": expiring, "expired": expired},
+        "expirations": {
+            "current": current,
+            "expiring_30d": in_30,
+            "expiring_60d": in_60,
+            "expiring_90d": in_90,
+            "expired": expired,
+        },
     }
 
 

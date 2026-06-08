@@ -235,12 +235,16 @@ function SafetySection({ safety }) {
 function TrainingSection({ training }) {
   if (!training) return null;
   const exp = training.expirations || {};
+  // Sprint A · DOCEXP-60/90 — universal 5-band palette
+  // (matches /api/operations/expirations/summary semantics)
   return (
-    <Section title="Training & Certifications" code="DCP-1B · TRAINING" icon={GraduationCap} accent="amber" testid="dcp-section-training">
-      <div className="grid grid-cols-3 gap-2 mb-3">
-        <CountTile testid="dcp-train-current" label="Current" value={exp.current} tone="emerald" />
-        <CountTile testid="dcp-train-expiring" label="Expiring · 30d" value={exp.expiring_30d} tone={exp.expiring_30d > 0 ? "amber" : "slate"} />
+    <Section title="Training & Certifications" code="DCP-1B · TRAINING · DOCEXP-60/90" icon={GraduationCap} accent="amber" testid="dcp-section-training">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3" data-testid="dcp-train-bands">
         <CountTile testid="dcp-train-expired" label="Expired" value={exp.expired} tone={exp.expired > 0 ? "rose" : "slate"} />
+        <CountTile testid="dcp-train-in-30" label="≤30 days" value={exp.expiring_30d} tone={exp.expiring_30d > 0 ? "rose" : "slate"} />
+        <CountTile testid="dcp-train-in-60" label="≤60 days" value={exp.expiring_60d} tone={exp.expiring_60d > 0 ? "amber" : "slate"} />
+        <CountTile testid="dcp-train-in-90" label="≤90 days" value={exp.expiring_90d} tone={exp.expiring_90d > 0 ? "amber" : "slate"} />
+        <CountTile testid="dcp-train-current" label="Healthy" value={exp.current} tone="emerald" />
       </div>
       {Array.isArray(training.documents) && training.documents.length > 0 ? (
         <ul className="bg-slate-50 border border-slate-200 rounded-md px-3 py-1 max-h-48 overflow-auto" data-testid="dcp-train-docs">

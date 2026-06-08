@@ -39,6 +39,7 @@ import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
+import ExpirationsSummary from "@/components/ExpirationsSummary";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -221,6 +222,11 @@ export default function SafetyHub() {
       {/* iter440 · calm "Last activity" trace. */}
       <div className="mb-6">
         <LastActivityLine portal="safety" />
+      </div>
+
+      {/* Sprint A · DocExp-60/90 · Safety-scoped certification expirations */}
+      <div className="mb-6" data-testid="safety-expirations-section">
+        <ExpirationsSummary title="Training & Certification Expirations" />
       </div>
 
       {/* KPI strip — neutral chrome per Rule 5. Colored value text for

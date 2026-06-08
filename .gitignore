@@ -812,3 +812,4 @@ frontend/node_modules/.cache/default-development/16.pack_
 .env
 .env.*
 *.env
+backend/backups/MASCI_full_backup_2026-06-08_214855Z.zip.tmp.63dacc97
