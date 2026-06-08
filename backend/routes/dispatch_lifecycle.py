@@ -129,6 +129,50 @@ class ReassignRequest(BaseModel):
     reason: Optional[str] = ""
 
 
+# ─── Phase D-1.1 · Driver acknowledgement ──────────────────────────
+class AcknowledgementRequest(BaseModel):
+    """D-1.1 · Explicit assignment acknowledgement.
+
+    method:   "tap" | "auto-transition" | "dispatcher-on-behalf"
+    device:   free-text user-agent / device label (best-effort)
+    note:     optional driver note at ack time
+    """
+    method: Optional[str] = "tap"
+    device: Optional[str] = ""
+    note: Optional[str] = ""
+
+
+# ─── Phase D-1.5 · In-flight revision ──────────────────────────────
+class RevisionRequest(BaseModel):
+    """D-1.5 · Dispatcher revises mutable fields on an active assignment.
+
+    Only these fields may be revised. Truck/driver changes still go
+    through /reassign (the audit + history shape is different).
+    """
+    source_location: Optional[str] = None
+    destination: Optional[str] = None
+    dropoff_location: Optional[str] = None
+    material: Optional[str] = None
+    liquid_product: Optional[str] = None
+    load_count: Optional[int] = None          # additive — new field
+    scheduled_at: Optional[str] = None        # ISO timestamp · additive
+    note: Optional[str] = None                # dispatcher note
+    reason: str = Field(..., min_length=1, max_length=240)
+
+
+# Fields revision is allowed to mutate (used by route + audit).
+REVISABLE_FIELDS = (
+    "source_location",
+    "destination",
+    "dropoff_location",
+    "material",
+    "liquid_product",
+    "load_count",
+    "scheduled_at",
+    "note",
+)
+
+
 # ════════════════════════════════════════════════════════════════════
 # Index setup
 # ════════════════════════════════════════════════════════════════════
@@ -156,6 +200,12 @@ async def ensure_dispatch_lifecycle_indexes(db) -> None:
                 name="da_tenant_project_assigned",
             ),
             db.dispatch_assignments.create_index("id", unique=True, name="da_id_unique"),
+            # D-1.4 · Reminder scan index — finds un-acked active
+            # assignments efficiently for the reminder scheduler.
+            db.dispatch_assignments.create_index(
+                [("tenant_id", 1), ("current_state", 1), ("acked_at", 1), ("assigned_at", 1)],
+                name="da_unacked_scan",
+            ),
 
             # dispatch_state_events — append-only audit/analytics truth
             db.dispatch_state_events.create_index(
@@ -302,6 +352,366 @@ async def _record_transition(
     return updated or {}
 
 
+# ════════════════════════════════════════════════════════════════════
+# Phase D-1 · Acknowledgement, Revision, and Notification helpers
+# ════════════════════════════════════════════════════════════════════
+async def _record_acknowledgement(
+    db,
+    *,
+    assignment: Dict[str, Any],
+    actor: Dict[str, Any],
+    method: str,
+    device: str,
+    note: str,
+    target_revision: Optional[int] = None,
+) -> Dict[str, Any]:
+    """D-1.1 · Stamp ACK on the assignment and emit one audit event.
+
+    If ``target_revision`` is provided, the ack is for that revision_seq
+    (D-1.5 re-ack flow). Otherwise it's the initial assignment ack.
+
+    Idempotent — calling twice with the same target_revision just
+    refreshes acked_at (and adds another audit event so dispatch can
+    see double-taps if they happen).
+    """
+    tenant_id = assignment.get("tenant_id") or DEFAULT_TENANT_ID
+    at_iso = _now_iso()
+    by_name = _actor_label(actor)
+    by_role = _actor_role(actor)
+    target_rev = (
+        target_revision
+        if target_revision is not None
+        else int(assignment.get("revision_seq") or 0)
+    )
+
+    set_fields: Dict[str, Any] = {
+        "acked_at": at_iso,
+        "acked_by": by_name,
+        "ack_method": method or "tap",
+        "ack_device": (device or "")[:240],
+        "ack_revision_seq": target_rev,
+        "updated_at": at_iso,
+    }
+    # Clear the pending-revision banner once driver acks the latest rev.
+    if target_rev >= int(assignment.get("revision_seq") or 0):
+        set_fields["revision_pending"] = False
+
+    history_entry = {
+        "from_state": assignment.get("current_state"),
+        "to_state": assignment.get("current_state"),
+        "at": at_iso,
+        "by_name": by_name,
+        "by_role": by_role,
+        "standard": True,
+        "warning_tag": "ACKNOWLEDGED",
+        "warning_tags": ["ACKNOWLEDGED"],
+        "note": note or "",
+        "correction_reason": "",
+        "wait_reason": "",
+        "geo": None,
+        "ack_method": method or "tap",
+        "ack_device": (device or "")[:240],
+        "ack_revision_seq": target_rev,
+    }
+
+    await db.dispatch_assignments.update_one(
+        {"id": assignment["id"]},
+        {"$set": set_fields, "$push": {"state_history": history_entry}},
+    )
+    await db.dispatch_state_events.insert_one({
+        "id": _new_id(),
+        "tenant_id": tenant_id,
+        "assignment_id": assignment["id"],
+        "truck_id": assignment.get("truck_id"),
+        "driver_id": assignment.get("driver_id"),
+        "driver_name": assignment.get("driver_name") or "",
+        "project_number": assignment.get("project_number") or "",
+        "from_state": assignment.get("current_state"),
+        "to_state": assignment.get("current_state"),
+        "standard": True,
+        "warning_tag": "ACKNOWLEDGED",
+        "warning_tags": ["ACKNOWLEDGED"],
+        "at": at_iso,
+        "by_name": by_name,
+        "by_role": by_role,
+        "note": note or "",
+        "correction_reason": "",
+        "wait_reason": "",
+        "geo": None,
+        "ack_method": method or "tap",
+        "ack_device": (device or "")[:240],
+        "ack_revision_seq": target_rev,
+    })
+    return await db.dispatch_assignments.find_one(
+        {"id": assignment["id"]}, {"_id": 0},
+    ) or {}
+
+
+async def _record_revision(
+    db,
+    *,
+    assignment: Dict[str, Any],
+    actor: Dict[str, Any],
+    changes: Dict[str, Any],
+    reason: str,
+) -> Dict[str, Any]:
+    """D-1.5 · Persist a revision and emit one audit event.
+
+    - Stamps the new field values on the assignment.
+    - Appends a row to ``revision_history[]`` capturing before/after.
+    - Increments ``revision_seq`` (starts at 0; first revise → 1).
+    - Resets ``acked_at = None`` and sets ``revision_pending = True``
+      so the driver must re-acknowledge.
+    - Writes one ``dispatch_state_events`` row tagged REVISED.
+    """
+    tenant_id = assignment.get("tenant_id") or DEFAULT_TENANT_ID
+    at_iso = _now_iso()
+    by_name = _actor_label(actor)
+    by_role = _actor_role(actor)
+    new_seq = int(assignment.get("revision_seq") or 0) + 1
+
+    before: Dict[str, Any] = {}
+    after: Dict[str, Any] = {}
+    set_fields: Dict[str, Any] = {
+        "revision_seq": new_seq,
+        "revision_pending": True,
+        "acked_at": None,
+        "acked_by": None,
+        "ack_method": None,
+        "ack_device": None,
+        "ack_revision_seq": None,
+        "last_revised_at": at_iso,
+        "last_revised_by_name": by_name,
+        "last_revised_by_role": by_role,
+        "updated_at": at_iso,
+    }
+    for fld in REVISABLE_FIELDS:
+        if fld in changes and changes[fld] is not None:
+            before[fld] = assignment.get(fld)
+            new_val = changes[fld]
+            if isinstance(new_val, str):
+                new_val = new_val.strip()
+            after[fld] = new_val
+            set_fields[fld] = new_val
+
+    revision_entry = {
+        "revision_seq": new_seq,
+        "at": at_iso,
+        "by_name": by_name,
+        "by_role": by_role,
+        "reason": reason or "",
+        "before": before,
+        "after": after,
+    }
+
+    await db.dispatch_assignments.update_one(
+        {"id": assignment["id"]},
+        {
+            "$set": set_fields,
+            "$push": {
+                "revision_history": revision_entry,
+                "state_history": {
+                    "from_state": assignment.get("current_state"),
+                    "to_state": assignment.get("current_state"),
+                    "at": at_iso,
+                    "by_name": by_name,
+                    "by_role": by_role,
+                    "standard": True,
+                    "warning_tag": "REVISED",
+                    "warning_tags": ["REVISED"],
+                    "note": reason or "",
+                    "correction_reason": "",
+                    "wait_reason": "",
+                    "geo": None,
+                    "revision_seq": new_seq,
+                    "revision_before": before,
+                    "revision_after": after,
+                },
+            },
+        },
+    )
+    await db.dispatch_state_events.insert_one({
+        "id": _new_id(),
+        "tenant_id": tenant_id,
+        "assignment_id": assignment["id"],
+        "truck_id": assignment.get("truck_id"),
+        "driver_id": assignment.get("driver_id"),
+        "driver_name": assignment.get("driver_name") or "",
+        "project_number": assignment.get("project_number") or "",
+        "from_state": assignment.get("current_state"),
+        "to_state": assignment.get("current_state"),
+        "standard": True,
+        "warning_tag": "REVISED",
+        "warning_tags": ["REVISED"],
+        "at": at_iso,
+        "by_name": by_name,
+        "by_role": by_role,
+        "note": reason or "",
+        "correction_reason": "",
+        "wait_reason": "",
+        "geo": None,
+        "revision_seq": new_seq,
+        "revision_before": before,
+        "revision_after": after,
+    })
+    return await db.dispatch_assignments.find_one(
+        {"id": assignment["id"]}, {"_id": 0},
+    ) or {}
+
+
+async def _fire_assignment_notification(
+    db,
+    *,
+    assignment: Dict[str, Any],
+    event: str,
+    send_email_fn: Optional[Callable[..., Awaitable[bool]]] = None,
+    magic_link_url: Optional[str] = None,
+) -> Dict[str, Any]:
+    """D-1.3 · Best-effort notification fan-out for an assignment.
+
+    Reuses existing rails:
+      - bell: writes to ``db.tasks`` (the same collection the rest of
+        the platform uses for the bell feed). assignee_role="dispatch"
+        so dispatchers see it; we never spam the driver's bell because
+        drivers don't have a portal account.
+      - email: optional ``send_email_fn`` (server.py passes
+        ``_safety_send_email`` — same Resend wrapper used everywhere).
+
+    Records the attempt + outcome in ``delivery_log[]`` on the
+    assignment. Never raises — notification failure must not crash
+    assignment creation/revision.
+    """
+    tenant_id = assignment.get("tenant_id") or DEFAULT_TENANT_ID
+    at_iso = _now_iso()
+    delivery_entries: List[Dict[str, Any]] = []
+
+    # ─── 1. Bell task (dispatcher inbox) ───────────────────────────
+    try:
+        title = (
+            f"Dispatch {event} · {assignment.get('truck_id') or '—'}"
+            f" → {assignment.get('driver_name') or 'unassigned'}"
+        )
+        body_bits = []
+        if assignment.get("project_number"):
+            body_bits.append(f"#{assignment.get('project_number')}")
+        if assignment.get("source_location"):
+            body_bits.append(f"Plant: {assignment.get('source_location')}")
+        if assignment.get("destination"):
+            body_bits.append(f"Dest: {assignment.get('destination')}")
+        if assignment.get("material"):
+            body_bits.append(f"Material: {assignment.get('material')}")
+        bell_task = {
+            "id": _new_id(),
+            "tenant_id": tenant_id,
+            "kind": f"dispatch_{event}",
+            "title": title[:200],
+            "description": " · ".join(body_bits)[:400],
+            "assignee_role": "dispatch",
+            "assignee_id": None,
+            "assignment_id": assignment.get("id"),
+            "truck_id": assignment.get("truck_id"),
+            "driver_id": assignment.get("driver_id"),
+            "magic_link_url": magic_link_url,
+            "status": "open",
+            "created_at": at_iso,
+            "updated_at": at_iso,
+            "source": "dispatch_lifecycle_v1",
+        }
+        await db.tasks.insert_one(bell_task)
+        delivery_entries.append({
+            "channel": "bell",
+            "target": "dispatch",
+            "at": at_iso,
+            "ok": True,
+            "error": None,
+        })
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[dispatch-notify] bell write failed: {e}")
+        delivery_entries.append({
+            "channel": "bell",
+            "target": "dispatch",
+            "at": at_iso,
+            "ok": False,
+            "error": f"{type(e).__name__}: {e}",
+        })
+
+    # ─── 2. Email (driver, if email exists on employees row) ───────
+    driver_email: Optional[str] = None
+    try:
+        if send_email_fn and assignment.get("driver_id"):
+            emp = await db.employees.find_one(
+                {"id": assignment["driver_id"]},
+                {"_id": 0, "email": 1, "full_name": 1},
+            )
+            if emp and emp.get("email"):
+                driver_email = emp["email"]
+    except Exception:
+        driver_email = None
+
+    if driver_email and send_email_fn:
+        try:
+            subject = f"MASCI Dispatch · {event.replace('_', ' ').title()}"
+            html_lines = [
+                f"<p>Hello {assignment.get('driver_name') or 'driver'},</p>",
+                f"<p>You have a dispatch assignment ({event}):</p>",
+                "<ul>",
+            ]
+            for k_label, k_field in (
+                ("Project", "project_number"),
+                ("Project name", "project_name"),
+                ("Truck", "truck_id"),
+                ("Plant / load site", "source_location"),
+                ("Destination", "destination"),
+                ("Material", "material"),
+                ("Note", "note"),
+            ):
+                v = assignment.get(k_field)
+                if v:
+                    html_lines.append(f"<li><strong>{k_label}:</strong> {v}</li>")
+            html_lines.append("</ul>")
+            if magic_link_url:
+                html_lines.append(
+                    f'<p><a href="{magic_link_url}">Open assignment</a> · '
+                    "single-use, expires in 15 minutes.</p>"
+                )
+            html_lines.append(
+                "<p>This is an automated dispatch message. Reply to your "
+                "dispatcher for changes.</p>"
+            )
+            sent = await send_email_fn(driver_email, subject, "".join(html_lines))
+            delivery_entries.append({
+                "channel": "email",
+                "target": driver_email,
+                "at": _now_iso(),
+                "ok": bool(sent),
+                "error": None if sent else "send_email_fn returned False (gated)",
+            })
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[dispatch-notify] email failed: {e}")
+            delivery_entries.append({
+                "channel": "email",
+                "target": driver_email,
+                "at": _now_iso(),
+                "ok": False,
+                "error": f"{type(e).__name__}: {e}",
+            })
+
+    # ─── 3. Append delivery log on the assignment ──────────────────
+    try:
+        await db.dispatch_assignments.update_one(
+            {"id": assignment["id"]},
+            {"$push": {"delivery_log": {"$each": delivery_entries}}},
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[dispatch-notify] delivery_log append failed: {e}")
+
+    return {
+        "ok": True,
+        "event": event,
+        "entries": delivery_entries,
+    }
+
+
 async def _materialize_haul_cycle(db, *, assignment_id: str, tenant_id: str) -> None:
     """Build the haul_cycles summary row for a completed assignment.
 
@@ -402,6 +812,7 @@ def build_dispatch_lifecycle_router(
     db,
     require_dispatch_or_admin_dep: Callable[..., Awaitable[Dict[str, Any]]],
     require_any_portal_token_dep: Callable[..., Awaitable[Dict[str, Any]]],
+    send_email_fn: Optional[Callable[..., Awaitable[bool]]] = None,
 ) -> APIRouter:
     """Build the DLS router.
 
@@ -412,6 +823,9 @@ def build_dispatch_lifecycle_router(
       require_any_portal_token_dep: READ gate. Lets PMs / Safety / HR /
         Shop / FL / Admin see haul activity tied to their portal — no
         new auth surface introduced.
+      send_email_fn: Optional async Resend wrapper for D-1.3 driver
+        email notification. When None (e.g. in tests), bell-only
+        notification is emitted and no email is attempted.
     """
     router = APIRouter(prefix="/api/dispatch", tags=["dispatch-lifecycle"])
 
@@ -482,6 +896,23 @@ def build_dispatch_lifecycle_router(
             "state_history": [seed_history_entry],
             "wait_events": [],
             "motive_validation": None,
+            # ─── Phase D-1 · ack + revision + delivery fields ──────
+            "acked_at": None,
+            "acked_by": None,
+            "ack_method": None,
+            "ack_device": None,
+            "ack_revision_seq": None,
+            "revision_seq": 0,
+            "revision_pending": False,
+            "revision_history": [],
+            "last_revised_at": None,
+            "last_revised_by_name": None,
+            "last_revised_by_role": None,
+            "load_count": None,
+            "scheduled_at": None,
+            "delivery_log": [],
+            "reminder_sent_at": None,
+            "reminder_count": 0,
             "created_at": at_iso,
             "updated_at": at_iso,
             "source": "dispatch_lifecycle_v1",
@@ -514,6 +945,24 @@ def build_dispatch_lifecycle_router(
 
         # Re-read to drop _id (insert_one mutates the input dict).
         out = await db.dispatch_assignments.find_one({"id": assignment_id}, {"_id": 0})
+
+        # ─── D-1.3 · Auto-notify on new assignment (best-effort) ───
+        # Never crash create on notification failure.
+        try:
+            await _fire_assignment_notification(
+                db,
+                assignment=out or doc,
+                event="new_assignment",
+                send_email_fn=send_email_fn,
+                magic_link_url=None,
+            )
+            # Re-read so the response carries delivery_log.
+            out = await db.dispatch_assignments.find_one(
+                {"id": assignment_id}, {"_id": 0},
+            )
+        except Exception as _notify_err:  # noqa: BLE001
+            logger.warning(f"[dispatch-create-notify] {_notify_err}")
+
         return {"ok": True, "assignment": out}
 
     # ────────────────────────────────────────────────────────────────
@@ -797,7 +1246,100 @@ def build_dispatch_lifecycle_router(
         return {"ok": True, "assignment": out}
 
     # ────────────────────────────────────────────────────────────────
-    # STATE EVENTS (append-only stream — read)
+    # D-1.1 · ACKNOWLEDGE (dispatcher-on-behalf)
+    # The primary driver-side path lives in routes/dispatch_driver.py
+    # (driver session token). This endpoint lets a dispatcher record
+    # an ack on behalf of a driver who confirmed by phone/radio.
+    # ────────────────────────────────────────────────────────────────
+    @router.post("/assignments/{assignment_id}/acknowledge")
+    async def acknowledge_on_behalf(
+        assignment_id: str,
+        body: AcknowledgementRequest,
+        actor: Dict[str, Any] = Depends(require_dispatch_or_admin_dep),
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        tenant_id = _resolve_tenant(x_tenant_id)
+        assignment = await db.dispatch_assignments.find_one(
+            {"id": assignment_id, "tenant_id": tenant_id}, {"_id": 0},
+        )
+        if not assignment:
+            raise HTTPException(404, "Assignment not found")
+        if assignment.get("cancelled_at"):
+            raise HTTPException(409, "Cannot acknowledge a cancelled assignment")
+        method = (body.method or "dispatcher-on-behalf").strip() or "dispatcher-on-behalf"
+        updated = await _record_acknowledgement(
+            db,
+            assignment=assignment,
+            actor=actor,
+            method=method,
+            device=body.device or "",
+            note=body.note or "",
+        )
+        return {"ok": True, "assignment": updated}
+
+    # ────────────────────────────────────────────────────────────────
+    # D-1.5 · REVISE in-flight
+    # Mutable fields only — truck/driver changes still flow through
+    # /reassign. Resets ack and sets revision_pending=True.
+    # ────────────────────────────────────────────────────────────────
+    @router.post("/assignments/{assignment_id}/revise")
+    async def revise_assignment(
+        assignment_id: str,
+        body: RevisionRequest,
+        actor: Dict[str, Any] = Depends(require_dispatch_or_admin_dep),
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        tenant_id = _resolve_tenant(x_tenant_id)
+        assignment = await db.dispatch_assignments.find_one(
+            {"id": assignment_id, "tenant_id": tenant_id}, {"_id": 0},
+        )
+        if not assignment:
+            raise HTTPException(404, "Assignment not found")
+        if assignment.get("cancelled_at"):
+            raise HTTPException(409, "Cannot revise a cancelled assignment")
+        if assignment.get("current_state") in DLS.TERMINAL_STATES:
+            raise HTTPException(
+                409,
+                "Cannot revise an assignment in a terminal state",
+            )
+
+        # Build the changes dict from the request body, including only
+        # the explicitly-set fields. Pydantic gives us model_dump with
+        # exclude_unset=True.
+        body_dump = body.model_dump(exclude_unset=True, exclude={"reason"})
+        changes = {k: v for k, v in body_dump.items() if k in REVISABLE_FIELDS}
+        if not changes:
+            raise HTTPException(
+                422,
+                "Provide at least one revisable field to change",
+            )
+
+        updated = await _record_revision(
+            db,
+            assignment=assignment,
+            actor=actor,
+            changes=changes,
+            reason=body.reason or "",
+        )
+
+        # Fire notification for the revision so dispatch sees a bell
+        # entry + driver gets an email (re-ack required). Same
+        # best-effort gate as create.
+        try:
+            await _fire_assignment_notification(
+                db,
+                assignment=updated,
+                event="revision",
+                send_email_fn=send_email_fn,
+                magic_link_url=None,
+            )
+            updated = await db.dispatch_assignments.find_one(
+                {"id": assignment_id}, {"_id": 0},
+            )
+        except Exception as _notify_err:  # noqa: BLE001
+            logger.warning(f"[dispatch-revise-notify] {_notify_err}")
+
+        return {"ok": True, "assignment": updated}
     # ────────────────────────────────────────────────────────────────
     @router.get("/state-events")
     async def list_state_events(

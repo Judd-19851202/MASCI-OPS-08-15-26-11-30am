@@ -22,13 +22,14 @@
  *   - POST /api/dispatch/assignments                 (extended in iter408)
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { X, Send, Plus, Truck as TruckIcon, Wrench, ArrowRight, Package, Droplet } from "lucide-react";
+import { X, Send, Plus, Truck as TruckIcon, Wrench, ArrowRight, Package, Droplet, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { DraftRestorePrompt } from "@/lib/resiliency";
+import { JobPicker } from "@/components/JobPicker";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -541,8 +542,12 @@ export default function AssignmentCreateDrawer({
 
     const isEquipMove = haulType === "Equipment Move";
     const isTanker = haulType === "Tanker / Liquid Asphalt";
-    const pickedProjectOpt = projectOptions.find((o) => o.refId === project?.refId);
-    const projectName = pickedProjectOpt?.project_name || "";
+    // D-1.2 · project carries its own name now (JobPicker payload).
+    // Fall back to projectOptions only for legacy paths.
+    const projectName =
+      project?.project_name
+      || (projectOptions.find((o) => o.refId === project?.refId)?.project_name)
+      || "";
 
     // For Equipment Move we map pickup/dropoff into the canonical
     // source/destination fields ALSO — so iter392's existing board
@@ -557,7 +562,7 @@ export default function AssignmentCreateDrawer({
       trailer_id: trailer?.refId || "",
       trailer_label: trailer?.label || "",
       carrier: carrier?.label || "",
-      project_number: project?.label || "",
+      project_number: project?.project_number || project?.label || "",
       project_name: projectName,
       note: note || "",
     };
@@ -742,24 +747,90 @@ export default function AssignmentCreateDrawer({
             emptyHint={t("Add a one-time carrier.")}
           />
 
-          {/* Project */}
-          <ComboboxField
-            testId="ac-project"
-            label={
-              isEquipMove
-                ? t("Receiving job / project")
-                : isTanker
-                  ? t("Plant / job / project")
-                  : t("Project")
-            }
-            optionalHint={t("optional")}
-            placeholder={t("Project number")}
-            value={project}
-            onChange={setProject}
-            options={projectOptions}
-            tempPrefix={t("Add temporary project:")}
-            emptyHint={t("Recent projects appear here as operations build memory.")}
-          />
+          {/* D-1.2 · Project — uses the same JobPicker as Daily
+              Reports and Excavations so the dispatcher gets the same
+              certified job library, custom-job escape hatch, and
+              autofill behaviour. */}
+          <div data-testid="ac-job-picker-row">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-bold uppercase tracking-[0.08em] text-slate-600">
+                {isEquipMove
+                  ? t("Receiving job / project")
+                  : isTanker
+                    ? t("Plant / job / project")
+                    : t("Project")}
+              </label>
+              <span className="text-[10px] uppercase tracking-wider text-slate-400">
+                {t("optional")}
+              </span>
+            </div>
+            <JobPicker
+              projectNumber={project?.project_number || project?.label || ""}
+              projectName={project?.project_name || ""}
+              onSelect={(job) => {
+                if (!job) {
+                  setProject(null);
+                  return;
+                }
+                // Adapt JobPicker payload → ComboboxField-compatible
+                // shape so existing form code (label, refId, isTemp)
+                // continues to work alongside the richer metadata.
+                const next = {
+                  label: job.project_number || "",
+                  refId: job.project_number || "",
+                  isTemp: !!job.isCustom,
+                  project_number: job.project_number || "",
+                  project_name: job.project_name || "",
+                  location: job.location || "",
+                  customer: job.customer || job.client || "",
+                  project_manager: job.project_manager || job.pm || "",
+                };
+                setProject(next);
+                // Source-location autofill — Material haul only, and
+                // only when the dispatcher has not yet picked a plant.
+                if (!isEquipMove && !isTanker && !source?.label && job.location) {
+                  setSource({ label: job.location, refId: job.location, isTemp: true });
+                }
+              }}
+              allowCustom={true}
+              emptyHint={t("Pick a MASCI job — auto-fills number, name, location, customer, PM.")}
+            />
+            {(project?.project_name
+              || project?.customer
+              || project?.project_manager
+              || project?.location) && (
+              <div
+                data-testid="ac-job-autofill"
+                className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px]"
+              >
+                {project.project_name && (
+                  <div className="bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                    <Building2 className="inline w-3 h-3 mr-1 text-slate-500" />
+                    <span className="font-semibold uppercase tracking-wider text-slate-500 mr-1">{t("Name")}</span>
+                    <span>{project.project_name}</span>
+                  </div>
+                )}
+                {project.customer && (
+                  <div className="bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                    <span className="font-semibold uppercase tracking-wider text-slate-500 mr-1">{t("Customer")}</span>
+                    <span>{project.customer}</span>
+                  </div>
+                )}
+                {project.project_manager && (
+                  <div className="bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                    <span className="font-semibold uppercase tracking-wider text-slate-500 mr-1">{t("PM")}</span>
+                    <span>{project.project_manager}</span>
+                  </div>
+                )}
+                {project.location && (
+                  <div className="bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                    <span className="font-semibold uppercase tracking-wider text-slate-500 mr-1">{t("Location")}</span>
+                    <span>{project.location}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Conditional · Material / Equipment Move / Tanker */}
           {isEquipMove ? (

@@ -45,6 +45,7 @@ from dispatch_assignment_seeds import (
 from routes.dispatch_lifecycle import (
     DEFAULT_TENANT_ID,
     _record_transition,                                            # reuse
+    _record_acknowledgement,                                       # D-1.1
 )
 
 logger = logging.getLogger("dispatch_driver_routes")
@@ -89,6 +90,20 @@ class DriverTransitionRequest(BaseModel):
     wait_reason: Optional[str] = ""
     correction_reason: Optional[str] = ""
     geo: Optional[Dict[str, Any]] = None
+
+
+# ─── Phase D-1.1 / D-1.5 · Driver acknowledgement request ──────────
+class DriverAckRequest(BaseModel):
+    """Driver taps ACK from `DriverShift.jsx`. Both fields optional —
+    server records sensible defaults if omitted.
+
+    target_revision_seq: if present, the driver is acknowledging
+    revision_seq=N (D-1.5 re-ack path). Omit for initial ack.
+    """
+    method: Optional[str] = "tap"
+    device: Optional[str] = ""
+    note: Optional[str] = ""
+    target_revision_seq: Optional[int] = None
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -963,6 +978,67 @@ def build_driver_router(
             "ok": True,
             "assignment": updated,
             "transition": latest,
+            "allowed_next_states": DLS.allowed_next_states(
+                (updated or {}).get("current_state") or "",
+            ),
+        }
+
+    # ────────────────────────────────────────────────────────────────
+    # D-1.1 / D-1.5 · DRIVER ACKNOWLEDGEMENT
+    # ────────────────────────────────────────────────────────────────
+    @router.post("/assignments/{assignment_id}/acknowledge")
+    async def driver_acknowledge(
+        assignment_id: str,
+        body: DriverAckRequest,
+        request: Request,
+        session: Dict[str, Any] = Depends(require_driver),
+    ):
+        """Driver taps the ACK card. Reuses ``_record_acknowledgement``
+        from the lifecycle router so the audit pipeline stays
+        single-sourced.
+
+        Re-ack flow (D-1.5): when ``target_revision_seq`` is provided,
+        the driver is confirming they read revision N. Server only
+        clears revision_pending when the target matches the current
+        revision_seq on the assignment.
+        """
+        tenant_id = session["tenant_id"]
+        assignment = await db.dispatch_assignments.find_one(
+            {"id": assignment_id, "tenant_id": tenant_id}, {"_id": 0},
+        )
+        if not assignment:
+            raise HTTPException(404, "Assignment not found")
+        # Same scope check as transition: driver tied to assignment OR
+        # owning the truck this driver is shifted onto.
+        if assignment.get("driver_id") and assignment["driver_id"] != session["driver_id"]:
+            truck_id = (session.get("truck_id") or "").strip()
+            if not truck_id or assignment.get("truck_id") != truck_id:
+                raise HTTPException(
+                    403,
+                    "Driver session is not authorized for this assignment",
+                )
+        if assignment.get("cancelled_at"):
+            raise HTTPException(409, "Assignment is cancelled")
+
+        # Device default = User-Agent (truncated).
+        device = (body.device or request.headers.get("User-Agent") or "")[:240]
+        method = (body.method or "tap").strip() or "tap"
+        actor = {
+            "_actor": "driver",
+            "name": session.get("driver_name") or "Driver",
+        }
+        updated = await _record_acknowledgement(
+            db,
+            assignment=assignment,
+            actor=actor,
+            method=method,
+            device=device,
+            note=body.note or "",
+            target_revision=body.target_revision_seq,
+        )
+        return {
+            "ok": True,
+            "assignment": updated,
             "allowed_next_states": DLS.allowed_next_states(
                 (updated or {}).get("current_state") or "",
             ),

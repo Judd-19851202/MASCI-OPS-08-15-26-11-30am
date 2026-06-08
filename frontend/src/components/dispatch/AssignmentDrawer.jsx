@@ -14,7 +14,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  X, Link2, Copy, Ban, Replace, ShieldOff, Clock, CheckCircle2, AlertTriangle,
+  X, Link2, Copy, Ban, Replace, ShieldOff, Clock, CheckCircle2, AlertTriangle, Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getDispatchToken } from "@/lib/dispatchAuth";
@@ -109,6 +109,15 @@ export default function AssignmentDrawer({
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
 
+  // D-1.5 · Revise form
+  const [reviseOpen, setReviseOpen] = useState(false);
+  const [rSource, setRSource] = useState("");
+  const [rDestination, setRDestination] = useState("");
+  const [rMaterial, setRMaterial] = useState("");
+  const [rLoadCount, setRLoadCount] = useState("");
+  const [rNote, setRNote] = useState("");
+  const [rReason, setRReason] = useState("");
+
   const open = !!assignment;
 
   // Load active driver sessions for this assignment's driver (for the
@@ -139,6 +148,9 @@ export default function AssignmentDrawer({
     setCancelOpen(false);
     setNewDriverId(""); setNewDriverName(""); setNewTruckId(""); setReassignReason("");
     setCancelReason("");
+    setReviseOpen(false);
+    setRSource(""); setRDestination(""); setRMaterial("");
+    setRLoadCount(""); setRNote(""); setRReason("");
     setBusy(null);
   }, []);
 
@@ -220,6 +232,57 @@ export default function AssignmentDrawer({
       setBusy(null);
     }
   }, [assignment?.id, cancelReason, onRemoved, tenantOverride]);
+
+  // D-1.5 · Revise in-flight · POST /assignments/{id}/revise
+  const reviseAssignment = useCallback(async () => {
+    if (!rReason.trim()) {
+      toast.error("Provide a revision reason.");
+      return;
+    }
+    // Build the patch from non-empty fields.
+    const patch = { reason: rReason.trim() };
+    if (rSource.trim()) patch.source_location = rSource.trim();
+    if (rDestination.trim()) patch.destination = rDestination.trim();
+    if (rMaterial.trim()) patch.material = rMaterial.trim();
+    if (rLoadCount.trim()) {
+      const n = Number(rLoadCount);
+      if (!Number.isFinite(n) || n < 0) {
+        toast.error("Load count must be a non-negative number.");
+        return;
+      }
+      patch.load_count = n;
+    }
+    if (rNote.trim()) patch.note = rNote.trim();
+    if (Object.keys(patch).length === 1) {
+      toast.error("Change at least one field.");
+      return;
+    }
+    setBusy("revise");
+    try {
+      const r = await fetch(
+        `${API}/api/dispatch/assignments/${assignment.id}/revise`,
+        {
+          method: "POST",
+          headers: authHeaders(tenantOverride),
+          body: JSON.stringify(patch),
+        },
+      );
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        toast.error(j.detail || "Revise failed.");
+        return;
+      }
+      onChanged && onChanged(j.assignment);
+      setReviseOpen(false);
+      setRSource(""); setRDestination(""); setRMaterial("");
+      setRLoadCount(""); setRNote(""); setRReason("");
+      toast.success("Assignment revised · driver must re-acknowledge.");
+    } catch {
+      toast.error("Network error revising.");
+    } finally {
+      setBusy(null);
+    }
+  }, [assignment?.id, rSource, rDestination, rMaterial, rLoadCount, rNote, rReason, onChanged, tenantOverride]);
 
   const reassignAssignment = useCallback(async () => {
     if (!newDriverId && !newDriverName && !newTruckId) {
@@ -391,6 +454,81 @@ export default function AssignmentDrawer({
               </div>
             ) : null}
           </div>
+
+          {/* D-1.5 · Revise (mutable fields only) */}
+          {!cancelOpen && !reassignOpen ? (
+            <div>
+              {!reviseOpen ? (
+                <Button
+                  variant="outline" size="sm" className="w-full justify-start"
+                  onClick={() => setReviseOpen(true)}
+                  data-testid="drawer-open-revise"
+                >
+                  <Pencil className="w-4 h-4 mr-2" /> Revise assignment
+                </Button>
+              ) : (
+                <div className="border border-slate-200 rounded p-3 space-y-2">
+                  <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Revise · driver will re-acknowledge
+                  </div>
+                  <input
+                    className="w-full text-sm border border-slate-300 rounded px-2 py-1"
+                    placeholder={`Load site (current: ${assignment.source_location || "—"})`}
+                    value={rSource} onChange={(e) => setRSource(e.target.value)}
+                    data-testid="revise-source"
+                  />
+                  <input
+                    className="w-full text-sm border border-slate-300 rounded px-2 py-1"
+                    placeholder={`Dump / destination (current: ${assignment.destination || "—"})`}
+                    value={rDestination} onChange={(e) => setRDestination(e.target.value)}
+                    data-testid="revise-destination"
+                  />
+                  <input
+                    className="w-full text-sm border border-slate-300 rounded px-2 py-1"
+                    placeholder={`Material (current: ${assignment.material || "—"})`}
+                    value={rMaterial} onChange={(e) => setRMaterial(e.target.value)}
+                    data-testid="revise-material"
+                  />
+                  <input
+                    className="w-full text-sm border border-slate-300 rounded px-2 py-1"
+                    placeholder={`Load count (current: ${assignment.load_count ?? "—"})`}
+                    inputMode="numeric"
+                    value={rLoadCount} onChange={(e) => setRLoadCount(e.target.value)}
+                    data-testid="revise-load-count"
+                  />
+                  <input
+                    className="w-full text-sm border border-slate-300 rounded px-2 py-1"
+                    placeholder="Dispatcher note (optional)"
+                    value={rNote} onChange={(e) => setRNote(e.target.value)}
+                    data-testid="revise-note"
+                  />
+                  <input
+                    className="w-full text-sm border border-slate-300 rounded px-2 py-1"
+                    placeholder="Reason for revision (required)"
+                    value={rReason} onChange={(e) => setRReason(e.target.value)}
+                    data-testid="revise-reason"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm" className="flex-1"
+                      disabled={busy === "revise"}
+                      onClick={reviseAssignment}
+                      data-testid="revise-confirm"
+                    >
+                      Save revision
+                    </Button>
+                    <Button
+                      size="sm" variant="ghost" className="flex-1"
+                      onClick={() => setReviseOpen(false)}
+                      data-testid="revise-cancel"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
 
           {/* Reassign */}
           {!cancelOpen ? (

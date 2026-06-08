@@ -175,6 +175,8 @@ export default function DriverShift() {
   const [breakdownProofBusy, setBreakdownProofBusy] = useState(false);
   // iter421 · Phase 23.0 · offline pending count
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  // D-1.1 · acknowledgement state
+  const [ackBusy, setAckBusy] = useState(false);
 
   const session = useMemo(() => getDriverSession(), []);
 
@@ -257,6 +259,43 @@ export default function DriverShift() {
       setWaitSheetOpen(false);
     }
   }, [assignment, goSignedOut, t]);
+
+  // D-1.1 · driver ACK · single POST · refreshes assignment on success
+  // so the ACK card disappears and the next-state buttons take over.
+  const acknowledge = useCallback(async (targetRev = null) => {
+    if (!assignment || ackBusy) return;
+    setAckBusy(true);
+    try {
+      const r = await fetch(
+        `${API}/api/dispatch/driver/assignments/${assignment.id}/acknowledge`,
+        {
+          method: "POST",
+          headers: driverHeaders(),
+          body: JSON.stringify({
+            method: "tap",
+            device: navigator.userAgent || "",
+            target_revision_seq: targetRev,
+          }),
+        },
+      );
+      if (r.status === 401) {
+        goSignedOut();
+        return;
+      }
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setErrorMsg(j.detail || t("Could not record acknowledgement. Try again."));
+        return;
+      }
+      setAssignment(j.assignment || assignment);
+      setAllowed(Array.isArray(j.allowed_next_states) ? j.allowed_next_states : allowed);
+      setErrorMsg("");
+    } catch {
+      setErrorMsg(t("Connection failed — try again."));
+    } finally {
+      setAckBusy(false);
+    }
+  }, [assignment, ackBusy, allowed, goSignedOut, t]);
 
   // iter421 · Phase 23.0 · Replay queued transitions when signal returns.
   // Invisible · operational · no retry chrome. Runs on mount AND on the
@@ -386,6 +425,87 @@ export default function DriverShift() {
           </p>
         )}
       </section>
+
+      {/* D-1.1 · ACK card · prominent · pre-transition · shown only
+          when (a) initial ACK is missing OR (b) a revision is pending
+          and the driver has not re-acknowledged. */}
+      {assignment && (!assignment.acked_at || assignment.revision_pending) && (
+        <section
+          data-testid="driver-ack-card"
+          className={
+            "mx-5 mt-5 rounded-2xl border p-5 "
+            + (assignment.revision_pending
+              ? "border-amber-500 bg-amber-950/40"
+              : "border-emerald-500 bg-emerald-950/40")
+          }
+        >
+          <div
+            className="text-xs uppercase tracking-wide font-bold"
+            style={{ color: assignment.revision_pending ? "#fbbf24" : "#34d399" }}
+          >
+            {assignment.revision_pending
+              ? t("Revision pending · please re-acknowledge")
+              : t("Acknowledge this assignment")}
+          </div>
+          <p className="text-sm text-slate-100 mt-1.5 leading-snug">
+            {assignment.revision_pending
+              ? t("Dispatch has revised your assignment. Tap ACKNOWLEDGE to confirm you've seen the changes before you move.")
+              : t("Tap ACKNOWLEDGE so dispatch knows you've received this assignment. Then start your run.")}
+          </p>
+          {/* D-1.5 · show the revision delta when revision_pending */}
+          {assignment.revision_pending && Array.isArray(assignment.revision_history)
+            && assignment.revision_history.length > 0 && (() => {
+              const last = assignment.revision_history[assignment.revision_history.length - 1];
+              const after = last?.after || {};
+              const changedKeys = Object.keys(after);
+              if (changedKeys.length === 0) return null;
+              return (
+                <div
+                  data-testid="driver-revision-delta"
+                  className="mt-3 bg-slate-950/60 border border-amber-700/60 rounded-lg p-3 space-y-1.5"
+                >
+                  <div className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">
+                    {t("What changed")}
+                  </div>
+                  {changedKeys.map((k) => (
+                    <div key={k} className="text-sm text-slate-100">
+                      <span className="text-amber-300 font-semibold mr-1">{k.replace(/_/g, " ")}:</span>
+                      <span className="font-mono">{String(after[k] ?? "")}</span>
+                    </div>
+                  ))}
+                  {last?.reason ? (
+                    <div className="text-xs text-slate-400 italic mt-2">
+                      {t("Reason")} · {last.reason}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })()}
+          <button
+            type="button"
+            data-testid="driver-ack-button"
+            disabled={ackBusy}
+            onClick={() => acknowledge(
+              assignment.revision_pending
+                ? (assignment.revision_seq || 0)
+                : null,
+            )}
+            className={
+              "mt-4 w-full min-h-[64px] rounded-xl text-base font-bold uppercase tracking-wider "
+              + "transition active:scale-[0.99] disabled:opacity-60 "
+              + (assignment.revision_pending
+                ? "bg-amber-500 text-amber-950 hover:bg-amber-400"
+                : "bg-emerald-500 text-emerald-950 hover:bg-emerald-400")
+            }
+          >
+            {ackBusy
+              ? t("Recording…")
+              : assignment.revision_pending
+                ? t("ACKNOWLEDGE REVISION")
+                : t("ACKNOWLEDGE")}
+          </button>
+        </section>
+      )}
 
       {/* iter418 · Phase 20.1 · Optional breakdown-proof prompt */}
       {breakdownProofPrompt && (

@@ -291,6 +291,40 @@ function AssignmentRow({ a, onOpen }) {
 
       <div className="flex flex-col gap-1 min-w-[180px]">
         <StateChip state={a.current_state} />
+        {/* D-1.1 · ACKED / NOT ACKED chip · only shown for ASSIGNED rows
+            because once the driver has transitioned past ASSIGNED, the
+            state itself proves they engaged. Revision pending also surfaces. */}
+        {a.revision_pending ? (
+          <span
+            className="inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-amber-100 text-amber-800 border border-amber-300"
+            data-testid={`row-ack-${a.id}`}
+          >
+            {t("Revision pending")}
+          </span>
+        ) : a.current_state === "ASSIGNED" ? (
+          a.acked_at ? (
+            <span
+              className="inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-emerald-100 text-emerald-800 border border-emerald-300"
+              data-testid={`row-ack-${a.id}`}
+            >
+              {t("Acked")}
+            </span>
+          ) : (
+            <span
+              className="inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-rose-100 text-rose-800 border border-rose-300"
+              data-testid={`row-ack-${a.id}`}
+            >
+              {t("Not acked")}
+            </span>
+          )
+        ) : a.acked_at ? (
+          <span
+            className="inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-slate-100 text-slate-600 border border-slate-300"
+            data-testid={`row-ack-${a.id}`}
+          >
+            {t("Acked")}
+          </span>
+        ) : null}
         {isWaiting && a.current_wait_reason ? (
           <span className="text-[11px] text-rose-700 font-bold tracking-wide" data-testid={`row-wait-${a.id}`}>
             {a.current_wait_reason.replace(/_/g, " ")}

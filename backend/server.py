@@ -10520,6 +10520,10 @@ _dls_router = build_dispatch_lifecycle_router(
     db,
     require_dispatch_or_admin_dep=_require_dispatch_or_admin,
     require_any_portal_token_dep=_require_any_portal_token,
+    # D-1.3 · auto-notify on new assignment + revision uses the same
+    # Resend wrapper Safety / Trench Safety already use. Passing the
+    # function (not a new email engine) keeps OMEGA scope intact.
+    send_email_fn=_safety_send_email,
 )
 app.include_router(_dls_router)
 
@@ -12367,3 +12371,22 @@ async def _iter453_6_flip_ready_flag():
     logging.getLogger(__name__).info(
         "[iter453.6] startup-readiness gate FLIPPED · public writes now accepted",
     )
+
+
+# ────────────────────────────────────────────────────────────────────
+# Phase D-1.4 · Dispatch reminder scheduler · MUST register AFTER the
+# readiness flag so the loop only runs in a fully-booted process. The
+# loop itself short-circuits when SCHEDULER_ENABLED is off.
+# ────────────────────────────────────────────────────────────────────
+@app.on_event("startup")
+async def _dispatch_reminder_scheduler_start():
+    try:
+        from dispatch_reminders import reminder_scheduler_loop  # noqa: PLC0415
+        asyncio.create_task(reminder_scheduler_loop(db))
+        logging.getLogger(__name__).info(
+            "[dispatch-reminders] background task scheduled",
+        )
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[dispatch-reminders] failed to schedule background task: {e}",
+        )
