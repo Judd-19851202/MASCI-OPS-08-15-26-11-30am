@@ -208,7 +208,11 @@ def build_auth_directory_router(
         # iter345 · FL Phase B · Hybrid · directory-granted FL token
         if "field_leadership" in portals and field_leadership_token_minter:
             try:
-                tokens["field_leadership"] = await _maybe_await(field_leadership_token_minter(row))
+                fl_tok = await _maybe_await(field_leadership_token_minter(row))
+                tokens["field_leadership"] = fl_tok
+                # OA-1 polish: alias under "fl" so it matches the X-FL-Token
+                # header naming used by Operations Actions + other surfaces.
+                tokens["fl"] = fl_tok
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[multi-login] field_leadership minter failed: {e}")
         return tokens

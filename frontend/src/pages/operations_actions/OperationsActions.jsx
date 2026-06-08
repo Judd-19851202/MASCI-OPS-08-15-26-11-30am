@@ -155,7 +155,12 @@ export default function OperationsActions() {
               <Loader2 className="w-5 h-5 inline animate-spin mr-2" /> {t("Loading operational visibility…") || "Loading…"}
             </div>
           ) : err ? (
-            <div className="text-center text-rose-700 py-10" data-testid="oa-list-error">{err}</div>
+            <div className="text-center py-10" data-testid="oa-list-error">
+              <div className="inline-block bg-amber-50 border border-amber-200 rounded-md px-4 py-3 text-amber-900 text-sm max-w-md">
+                <div className="font-mono text-[10px] uppercase tracking-wider font-bold mb-1 text-amber-700">Sign-in required</div>
+                {err}
+              </div>
+            </div>
           ) : actions.length === 0 ? (
             <div className="text-center text-slate-500 py-10" data-testid="oa-list-empty">
               <LayoutGrid className="w-8 h-8 mx-auto mb-2 text-slate-400" />

@@ -1,3 +1,29 @@
+## 2026-06-08 (OA-1 · Operations Actions Phase 1 · CERTIFIED 🟢)
+
+ForgedOps cross-portal CRUD-only operational coordination layer **shipped exactly as authorized** by the OA-1 BUILD DIRECTIVE. OMEGA-class discipline maintained — no automation, no AI, no email/SMS, no SLA, no integrations, no export, no bulk.
+
+### Highlights
+- New collection `operations_actions` with 11 API endpoints, atomic `OA-YYYY-NNNNNN` ledger, 6 approved statuses, append-only audit history, R2 photo upload + magic-byte validation, cross-directory owner typeahead.
+- 7-directory owner pool (user_directory + project_managers + dispatch_users + hr_users + safety_users + field_leadership_users + shop_users) — structured ref only, never free-text.
+- New top-level portal `/operations-actions` (list / new / detail), reachable from a tile on every one of the 7 hubs.
+- Mandatory 5-block coaching strip on every screen (Why / Who / What / When / Mistakes).
+- Day-One bilingual (EN/ES) via existing `useT()` — labels, buttons, 6 statuses, 11 categories, 4 priorities, validation, empty states, coaching content all covered.
+- Multi-login response now also exposes `portal_tokens.fl` as an alias of `field_leadership` for header-naming parity.
+
+### Certification
+- Backend: **71/71 pytest green** (24 OA-1 + 15 OA-1 cross-portal + 5 Sprint A + 9 DCP-1 + 18 MCC-1).
+- Frontend: **100% smoke testids present** across list (13/13), new (10/10), detail (13/13).
+- 30-second creation benchmark: **<1s measured**.
+- Certification doc: `/app/memory/OA1_CERTIFICATION.md`.
+
+### Deferred (locked under OA-1 directive)
+- FW-1 Ticket Ingest sprint
+- OA-2 expansion (AI routing, SLA, auto-assign, email-on-assign, exports, bulk, MaintainX/FleetWatcher/Motive/Vista live link-back, push notifications)
+- M-2 Motive webhook router · M-3 geocoding · P3 Vista bridge · P4 change-orders
+- Stale `test_trench_safety_phase2.py::test_dashboard_seed_data` (deferred per OMEGA)
+
+
+
 ## 2026-06-08 (Sprint A · DocExp-60/90 + Future-Day Dispatch · FULL CERTIFICATION 🟢🟢🟢🟢🟢)
 
 OMEGA Sprint A closed across **all five** intended surfaces. Read-only, zero-new-collection, zero-automation visibility for 5-band document expiration windows and future-day dispatch buckets.
