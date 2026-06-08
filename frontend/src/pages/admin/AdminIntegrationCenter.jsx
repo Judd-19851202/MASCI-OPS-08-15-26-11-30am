@@ -12,7 +12,7 @@ import {
   Cable, Plug, Truck, Users, FileText, AlertOctagon, FileUp, FileDown,
   Loader2, RefreshCcw, Save, X, Pencil, Trash2, AlertTriangle,
   CheckCircle2, ExternalLink, Eye, EyeOff, Wand2, ChevronRight, Undo2,
-  MapPin, Zap, Activity, Gauge,
+  MapPin, Zap, Activity, Gauge, ShieldCheck,
 } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import MaintainxP0Tab from "@/components/admin/MaintainxP0Tab";
 import MaintainxDefectCoverageSection from "@/components/admin/MaintainxDefectCoverageSection";
+import MappingCleanupTab from "@/components/admin/MappingCleanupTab";
 
 const STATUS_COLOR = {
   Connected:               "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -78,6 +79,7 @@ export default function AdminIntegrationCenter() {
           <TabsTrigger value="maintainx-p0" data-testid="ic-tab-maintainx-p0">MaintainX · Read-First</TabsTrigger>
           <TabsTrigger value="assets" data-testid="ic-tab-assets"><Truck className="w-3.5 h-3.5 mr-1" /> Asset Mapping</TabsTrigger>
           <TabsTrigger value="employees" data-testid="ic-tab-employees"><Users className="w-3.5 h-3.5 mr-1" /> Employee Mapping</TabsTrigger>
+          <TabsTrigger value="cleanup" data-testid="ic-tab-cleanup"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Mapping Cleanup</TabsTrigger>
           <TabsTrigger value="sync" data-testid="ic-tab-sync"><FileText className="w-3.5 h-3.5 mr-1" /> Sync Logs</TabsTrigger>
           <TabsTrigger value="errors" data-testid="ic-tab-errors"><AlertOctagon className="w-3.5 h-3.5 mr-1" /> Error Logs</TabsTrigger>
           <TabsTrigger value="csv" data-testid="ic-tab-csv"><FileUp className="w-3.5 h-3.5 mr-1" /> CSV Import / Export</TabsTrigger>
@@ -96,6 +98,7 @@ export default function AdminIntegrationCenter() {
         </TabsContent>
         <TabsContent value="assets"><AssetMappingTab /></TabsContent>
         <TabsContent value="employees"><EmployeeMappingTab /></TabsContent>
+        <TabsContent value="cleanup"><MappingCleanupTab /></TabsContent>
         <TabsContent value="sync"><SyncLogsTab /></TabsContent>
         <TabsContent value="errors"><ErrorLogsTab /></TabsContent>
         <TabsContent value="csv"><CsvTab /></TabsContent>
