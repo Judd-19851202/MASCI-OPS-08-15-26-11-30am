@@ -1,126 +1,99 @@
-# MASCI · Motive M-1 Activation · Live Certification
+# M-1 Motive Activation — Certification
 
-**Date**: 2026-02-12 · **Mode**: EXECUTION (no further audits) · **Verdict**: ✅ **M-1 IMPLEMENTATION COMPLETE**
-
----
-
-## Phase 1 · Credential discovery — PASS
-
-| Item | Status | Source |
-|---|---|---|
-| MASCI Motive API key | ✅ provided | `MASCI MOTIVE API Key Info.pdf` — `56239d0d-…-685fe6` (MASCI Operations Platform key, separate from FleetWatcher's `5bdff00b-…`) |
-| Motive webhook secret | ✅ provided | `MASCI MOTIVE Webhook Info.pdf` — `004350cc…c106` |
-| Webhook URL | ✅ provided | `https://mascidocs.com/api/integrations/motive/webhook` |
-| Subscribed event | ✅ confirmed | `Vehicle Location Received` |
-
-Seeded into the existing `integration_settings` Mongo row for `provider=motive`. No new env vars, no new collections. **No code change needed to "accept" the key** — the field was already wired.
-
-## Phase 2 · Live connectivity — PASS (4/4 endpoints)
-
-| Endpoint | Status |
-|---|---|
-| `GET /v3/vehicle_locations` | ✅ 200 |
-| `GET /v1/driver_locations` | ✅ 200 |
-| `GET /v1/geofences` | ✅ 200 |
-| `GET /v1/assets` | ✅ 200 |
-
-Auth header confirmed: `X-API-KEY: <key>`.
-
-## Phase 3 · Inventory pulled from Motive
-
-| Object | Count | Sample fields captured |
-|---|---|---|
-| Vehicles | **90** | id · number · vin · make · model · year · current_location (lat/lon/located_at/city/state/kph) · current_driver |
-| Drivers | **65** | id · first_name · last_name · username · email · current_vehicle.id · current_location |
-| Geofences | **67** | id · name · status · address · category · location_points (polygon) |
-| Assets (Asset Gateway) | **235** *(documented total)* / 190 *(synced to MASCI on first run · pagination cap respected)* | id · name · vin · make · model · type · status · asset_gateway.serial |
-
-## Phase 4 · Gap confirmation
-
-| `MotiveService` method | Before | After | Effort |
-|---|---|---|---|
-| `test_connection` | stub | ✅ live · `X-API-KEY` GET `/v3/vehicle_locations?per_page=1` | 5 LOC |
-| `sync_assets` | stub | ✅ live · paginates `/v3/vehicle_locations` + `/v1/assets` · upserts `asset_mappings` keyed on `motive.vehicle_id` / `motive.asset_id` | 80 LOC |
-| `sync_users` | stub | ✅ live · paginates `/v1/driver_locations` · upserts `employee_mappings` keyed on `motive.driver_id` | 35 LOC |
-| `sync_geofences` (new method) | — | ✅ live · paginates `/v1/geofences` · upserts new `motive_geofences` collection | 30 LOC |
-| `sync_events` | stub | ✅ live · backfill webhook drops via `vehicle_locations` snapshot into `motive_events` | 25 LOC |
-| `process_webhook` | stub | ✅ live · persists event to `motive_events` · hydrates last-known GPS on `asset_mappings` | 35 LOC |
-| `create_corrective_action_from_event` | stub | ✅ live seam · returns event reference for downstream wiring | 5 LOC |
-
-## Phase 5 · Implementation — COMPLETE
-
-### Changed (existing files only · no new portal · no new collection except `motive_geofences`)
-- `/app/backend/services/motive_service.py` — fully rewritten as live `httpx.AsyncClient` implementation. Reuses existing `asset_mappings` / `employee_mappings` / `motive_events` / `integration_sync_logs` collections.
-- `/app/backend/routes/integrations/config.py` — added 4 admin sync trigger endpoints:
-  - `POST /api/admin/integrations/motive/sync-assets`
-  - `POST /api/admin/integrations/motive/sync-users`
-  - `POST /api/admin/integrations/motive/sync-geofences`
-  - `POST /api/admin/integrations/motive/sync-events`
-- `integration_settings` Mongo row for `provider=motive` — upserted with the operator-supplied credentials (API key + webhook secret + endpoint URL + enabled=true).
-- `motive_geofences` Mongo collection — created with unique index on `motive_geofence_id`.
-
-### Untouched (reused verbatim)
-Dispatch lifecycle · asset registry · webhook receiver route · scheduler pattern · auth · admin integration center UI · dispatch integrations tab · health card · events card · mapping CRUD · 14 existing integration modules · Daily Reports · Excavations · Trench Safety · driver magic-link · SMS adapter (D-2).
-
-## Live verification (executed against real Motive + real Atlas Mongo)
-
-```
-test_connection:    Motive live · vehicle_locations probe returned 1 row(s).
-sync_assets:        records_created=190 errors=0   (90 vehicles + 100 assets first page)
-sync_users:         records_created=65  errors=0
-sync_geofences:     records_created=67  errors=0
-sync_events:        records_created=90  errors=0
-
-Webhook · valid HMAC-SHA256 signature → 200 {"ok":true,"status":"stored","event_kind":"vehicle_gps","vehicle_id":"smoke-atlas"}
-Webhook · wrong signature              → 401 {"detail":"Invalid webhook signature"}
-
-Atlas state after run:
-  motive_events:        91   (90 polled + 1 webhook)
-  asset_mappings:       190
-  employee_mappings:    65
-  motive_geofences:     67
-```
-
-## Regression — full dispatch suite
-
-```
-tests/test_dispatch_d1_activation.py        ·  8 passed
-tests/test_dispatch_d2_sms_magic_link.py    · 21 passed
-tests/test_iter437_magic_link_hardening.py  ·  7 passed
-tests/test_iter409_haul_activity.py         ·  9 passed
-TOTAL                                       · 45 passed in 31.6s
-```
-
-Zero regressions.
-
-## OMEGA compliance check
-
-| Rule | Status |
-|---|---|
-| No new portal | ✅ |
-| No new auth | ✅ — Motive credentials live in existing `integration_settings` framework |
-| No new dispatch system | ✅ |
-| No new fleet system | ✅ |
-| No new asset system | ✅ — `asset_mappings` is the same collection that was already shipped |
-| No new lifecycle | ✅ |
-| No new notification framework | ✅ — uses existing bell + email + delivery_log |
-| No new audit | ✅ — uses existing `integration_sync_logs` + `integration_error_logs` + `motive_events` |
-| Reuses existing webhook receiver | ✅ — `routes/integrations/webhooks.py` untouched |
-| Reuses existing scheduler pattern | ✅ — polling helpers are available via the 4 admin endpoints, ready for the D-1.4-style scheduler if/when needed |
-| Reuses existing integration framework | ✅ |
-
-## Operator next steps
-
-1. **Production env**: paste the same two values into the production env panel (or directly into the production `integration_settings` row via Admin Integration Center):
-   - `api_key_value = 56239d0d-…-685fe6`
-   - `webhook_secret_value = 004350cc…c106`
-   - `enabled = true`
-2. **Redeploy** (standard Emergent dashboard step).
-3. **Confirm** with `POST /api/admin/integrations/motive/test-connection` from the production admin panel.
-4. Optional next sprint: M-2 (webhook event-type router → dispatch state transitions) once the operator subscribes the remaining Motive webhook events (geofence enter/exit, harsh events, fault codes).
+**Date:** 2026-06-08
+**Sprint:** M-1 (Motive live-data activation)
+**Status:** ✅ GREEN — live data flowing into MASCI schemas, signed webhooks routing, Integration Center UI hydrated.
 
 ---
 
-# **Verdict: A) M-1 IMPLEMENTATION COMPLETE**
+## What changed (subtractive · OMEGA-compliant)
 
-Live Motive API integration is functioning end-to-end against production Motive credentials and production Atlas Mongo. Vehicles, drivers, geofences, and assets sync. Webhooks ingest with HMAC-SHA256 signature verification. Zero regressions in the 45-test dispatch suite.
+Two files touched, no new portals, no schema changes:
+
+1. `/app/backend/services/motive_service.py`
+   - Replaced placeholder `_write_sync_log` with the canonical schema
+     (`integration_sync_logs` with `started_at` / `completed_at` /
+     `records_*` / `status` ∈ {Success, Partial, Failed}) so the
+     existing Integration Center sync-log table renders correctly.
+   - After every sync, stamp `last_sync_at` /
+     `last_successful_sync_at` / `last_failed_sync_at` on
+     `integration_settings` so the overview tile and `/api/integrations/health`
+     reflect reality.
+   - Added `_asset_mapping_defaults()` and `_employee_mapping_defaults()`
+     so newly-discovered Motive rows match the canonical schema
+     produced by the CSV import path (`masci_*` placeholders +
+     `maintainx` block + `active` / `mapping_confidence`). Existing
+     rows backfilled in place via one-shot `update_many`.
+
+2. `/app/backend/routes/integrations/wizard.py`
+   - Made the existing-mapping lookup defensive
+     (`mm.get("masci_equipment_id")` + filter empty) so legacy /
+     auto-discovered docs don't crash the wizard preview endpoint.
+     No behaviour change for mapped rows.
+
+No frontend changes. No new endpoints. No new collections.
+
+---
+
+## Live verification — preview env
+
+| Step | Endpoint | Result |
+| --- | --- | --- |
+| Connectivity | `POST /api/admin/integrations/motive/test` | `ok=true · status=live · vehicle_locations probe returned 1 row` |
+| Sync vehicles + asset gateway | `POST /api/admin/integrations/motive/sync-assets` | 190 updated · 0 errors |
+| Sync drivers | `POST /api/admin/integrations/motive/sync-users` | 65 updated · 0 errors |
+| Sync geofences | `POST /api/admin/integrations/motive/sync-geofences` | 67 updated · 0 errors |
+| Sync events (GPS backfill) | `POST /api/admin/integrations/motive/sync-events` | 90 created · 0 errors |
+| Health card hydrate | `GET /api/integrations/health` | `asset_mappings_total=191 · employee_mappings_total=65` |
+| Webhook signed | `POST /api/integrations/motive/webhook` (HMAC valid) | `stored=true · event_kind=vehicle_gps · vehicle_id=1438259` |
+| Webhook bad sig | `POST /api/integrations/motive/webhook` (bad HMAC) | `HTTP 401 · Invalid webhook signature` |
+
+Sync log rows (`integration_sync_logs`, freshly written):
+```
+sync_events          Success    C=90  U=0   F=0  by=admin
+sync_geofences       Success    C=0   U=67  F=0  by=admin
+sync_users           Success    C=0   U=65  F=0  by=admin
+sync_assets          Success    C=0   U=190 F=0  by=admin
+```
+
+---
+
+## Regression suite
+
+| Suite | Result |
+| --- | --- |
+| `test_integrations_iter122.py` | ✅ pass |
+| `test_iter123_mappings_wizard.py` | ✅ pass (was failing with `KeyError: 'masci_equipment_id'` before wizard.py defensive fix + backfill) |
+| `test_integration_health_iter142.py` | ✅ pass |
+| `test_iter132_final.py` | ✅ pass |
+| `test_dispatch_d1_activation.py` | ✅ pass |
+| `test_dispatch_d2_sms_magic_link.py` | ✅ pass |
+| `test_iter251_fleet_ops_foundation.py` | ✅ pass |
+
+Pre-existing failures (NOT caused by M-1, confirmed by stash-and-retest;
+deferred per OMEGA):
+- `test_iter286_driver_qualification_foundation::test_section_keys_present_with_expected_kinds`
+- `test_iter286_driver_qualification_foundation::test_all_dq_tips_use_hr_or_admin_scope_only`
+- `test_trench_safety_phase2::test_dashboard_seed_data` (stale fixture)
+
+---
+
+## Credentials (preview · `integration_settings` row, operator-managed)
+
+- `provider=motive` · `status=Connected` · `enabled=true`
+- `api_key_value` ends in `5fe6` (full key: `56239d0d-3c26-4cef-8d15-3e56ec685fe6`)
+- `webhook_secret_value` ends in `c106` (full secret: `004350ccc20b4851b20ca7f5b0bfc106`)
+- Webhook URL path: `/api/integrations/motive/webhook`
+- Signature header: `X-Motive-Signature` — HMAC-SHA256 hex of the raw body using the webhook secret.
+
+Operator can rotate either secret from `/admin/integrations` → Motive tile → PATCH; nothing else touches the value.
+
+---
+
+## Out of scope (deferred per OMEGA)
+
+- **M-2** Webhook event-type router → Dispatch transitions
+- **M-3** Geocode `jobs_master` + plant/yard addresses
+- **Phase 4** Production post-deploy verification
+- `test_trench_safety_phase2::test_dashboard_seed_data` cleanup
+- iter286 DQ scope tests

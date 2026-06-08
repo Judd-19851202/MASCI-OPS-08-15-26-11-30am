@@ -1,3 +1,37 @@
+## 2026-06-08 (M-1 · Motive Live Activation · ✅ CERTIFIED)
+
+OMEGA M-1 sprint closed green. Motive telematics now flows live into MASCI's existing integration schemas — no new portals, no new collections, no schema migrations. Operator-managed credentials live in the `integration_settings` Mongo row, rotated via the existing `/admin/integrations` Motive tile PATCH.
+
+### Surface deltas (2 files)
+- `/app/backend/services/motive_service.py` — canonical sync-log writer (`integration_sync_logs` matches Integration Center schema), settings-row timestamp stamping after each sync, and `masci_*` placeholder defaults on first discovery so auto-created rows are wizard-compatible.
+- `/app/backend/routes/integrations/wizard.py` — defensive `mm.get("masci_equipment_id")` lookup so legacy/auto-discovered docs no longer crash `/api/admin/integrations/mappings/wizard/preview`.
+
+### Live verification (preview env)
+- `test_connection` → live (vehicle_locations probe returned 1 row)
+- `sync_assets` → 190 updated · 0 errors
+- `sync_users` → 65 updated · 0 errors
+- `sync_geofences` → 67 updated · 0 errors
+- `sync_events` → 90 GPS rows persisted to `motive_events`
+- `/api/integrations/health` → asset_mappings_total=191 · employee_mappings_total=65 · last_successful_sync_at populated
+- Webhook (signed) → `stored=true · vehicle_gps · vehicle_id=1438259`
+- Webhook (bad sig) → `HTTP 401 · Invalid webhook signature`
+
+### Regression
+✅ `test_integrations_iter122` · `test_iter123_mappings_wizard` · `test_integration_health_iter142` · `test_iter132_final` · `test_dispatch_d1_activation` · `test_dispatch_d2_sms_magic_link` · `test_iter251_fleet_ops_foundation` — all green.
+
+Pre-existing failures unrelated to M-1 (confirmed clean-tree before touching), still deferred per OMEGA:
+- `test_iter286_driver_qualification_foundation` (2 tests · DQ scope)
+- `test_trench_safety_phase2::test_dashboard_seed_data` (stale fixture)
+
+### Certification
+`/app/memory/MOTIVE_M1_ACTIVATION_CERTIFICATION.md`
+
+### Next deferred (NOT started · awaiting authorization)
+- **M-2** Webhook event-type router → Dispatch state transitions
+- **M-3** Geocode `jobs_master` + plant/yard addresses
+- **Phase 4** Production post-deploy verification
+
+
 # MASCI Safety Hub — PRD
 
 

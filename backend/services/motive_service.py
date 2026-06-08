@@ -148,7 +148,7 @@ class MotiveService:
                     }
                     res = await self.db.asset_mappings.update_one(
                         {"provider": PROVIDER, "motive.vehicle_id": vid},
-                        {"$set": payload, "$setOnInsert": {"id": _new_id(), "created_at": _now_iso()}},
+                        {"$set": payload, "$setOnInsert": _asset_mapping_defaults()},
                         upsert=True,
                     )
                     if res.upserted_id:
@@ -197,7 +197,7 @@ class MotiveService:
                     }
                     res = await self.db.asset_mappings.update_one(
                         {"provider": PROVIDER, "motive.asset_id": aid},
-                        {"$set": payload, "$setOnInsert": {"id": _new_id(), "created_at": _now_iso()}},
+                        {"$set": payload, "$setOnInsert": _asset_mapping_defaults()},
                         upsert=True,
                     )
                     if res.upserted_id:
@@ -255,7 +255,7 @@ class MotiveService:
                     }
                     res = await self.db.employee_mappings.update_one(
                         {"provider": PROVIDER, "motive.driver_id": did},
-                        {"$set": payload, "$setOnInsert": {"id": _new_id(), "created_at": _now_iso()}},
+                        {"$set": payload, "$setOnInsert": _employee_mapping_defaults()},
                         upsert=True,
                     )
                     if res.upserted_id:
@@ -429,26 +429,88 @@ class MotiveService:
 
 # ── helpers ──────────────────────────────────────────────────────────
 async def _write_sync_log(db, op: str, triggered_by: str, created: int, updated: int, errors: int):
+    """Persist a sync log in the canonical Integration Center schema
+    AND stamp last_sync_at + last_successful_sync_at/last_failed_sync_at
+    on the integration_settings row so the Admin UI overview tile
+    reflects reality without a page reload."""
+    now = _now_iso()
+    status = "Success" if errors == 0 else ("Partial" if (created + updated) > 0 else "Failed")
     try:
         await db.integration_sync_logs.insert_one({
             "id": _new_id(),
             "integration": PROVIDER,
             "sync_type": op,
-            "status": "ok" if errors == 0 else "partial",
-            "triggered_by": triggered_by,
+            "status": status,
+            "started_at": now,
+            "completed_at": now,
+            "duration_ms": 0,
             "records_created": created,
             "records_updated": updated,
-            "errors": errors,
-            "at": _now_iso(),
+            "records_skipped": 0,
+            "records_failed": errors,
+            "error_message": None,
+            "triggered_by": triggered_by,
+            "environment": (os.environ.get("APP_ENV") or os.environ.get("ENVIRONMENT") or "preview").strip(),
+            "notes": "",
         })
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[motive sync_log] {e}")
+
+    # Stamp the settings row so /api/admin/integrations/overview
+    # reflects the latest sync without recomputing from logs.
+    try:
+        patch = {"last_sync_at": now, "updated_at": now}
+        if errors == 0:
+            patch["last_successful_sync_at"] = now
+            patch["last_sync_error"] = None
+        else:
+            patch["last_failed_sync_at"] = now
+        await db.integration_settings.update_one(
+            {"provider": PROVIDER}, {"$set": patch}
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[motive sync_stamp] {e}")
 
 
 def _awaiting(op: str) -> Dict[str, Any]:
     return {"ok": False, "status": "awaiting_credentials", "operation": op,
             "records_created": 0, "records_updated": 0,
             "message": f"{op} skipped — Motive credentials not configured."}
+
+
+def _asset_mapping_defaults() -> Dict[str, Any]:
+    """Inserted only on first discovery so docs match the canonical
+    schema produced by Integration Center CSV import — keeps the
+    mappings wizard + cross-provider join logic happy."""
+    return {
+        "id": _new_id(),
+        "created_at": _now_iso(),
+        "masci_equipment_id": "",
+        "masci_unit_number": "",
+        "masci_equipment_name": "",
+        "masci_equipment_type": "",
+        "maintainx": {"asset_id": "", "location_id": "", "pm_schedule_id": "",
+                      "last_sync_at": None, "mapping_status": "Unmapped"},
+        "mapping_confidence": "low",
+        "mapping_notes": "Auto-discovered by Motive sync.",
+        "active": True,
+    }
+
+
+def _employee_mapping_defaults() -> Dict[str, Any]:
+    return {
+        "id": _new_id(),
+        "created_at": _now_iso(),
+        "masci_employee_id": "",
+        "masci_employee_name": "",
+        "masci_employee_trade": "",
+        "masci_employee_role": "",
+        "masci_employee_email": "",
+        "maintainx": {"user_id": "", "name": "", "email": "", "role": "",
+                      "last_sync_at": None, "mapping_status": "Unmapped"},
+        "mapping_notes": "Auto-discovered by Motive sync.",
+        "active": True,
+    }
 
 
 __all__ = ["MotiveService", "PROVIDER"]

@@ -110,8 +110,14 @@ def register_wizard_routes(
         # DIFFERENT equipment record).
         existing_mappings_cursor = db.asset_mappings.find({}, {"_id": 0})
         existing_mappings = await existing_mappings_cursor.to_list(20000)
+        # `.get()` guards against legacy / auto-discovered docs that
+        # may not carry a masci_equipment_id yet — those rows simply
+        # never match by master id (they'll only match by external id
+        # via `external_owner` below).
         mapping_by_master: Dict[str, Dict[str, Any]] = {
-            mm["masci_equipment_id"]: mm for mm in existing_mappings
+            mm.get("masci_equipment_id"): mm
+            for mm in existing_mappings
+            if mm.get("masci_equipment_id")
         }
 
         def _existing_external_id(mm: dict) -> str:
