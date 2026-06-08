@@ -26,11 +26,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, Header, Query, Request
 from pydantic import BaseModel, Field
 
 import dispatch_lifecycle as DLS
@@ -355,6 +356,186 @@ async def _record_transition(
 # ════════════════════════════════════════════════════════════════════
 # Phase D-1 · Acknowledgement, Revision, and Notification helpers
 # ════════════════════════════════════════════════════════════════════
+def _auto_sms_enabled() -> bool:
+    """D-2.5 · Env-driven gate for auto-SMS on assignment create.
+
+    Returns True only when ``DISPATCH_AUTO_SMS_ON_ASSIGN`` is truthy AND
+    the underlying SMS provider is configured (sms_enabled). Operator
+    keeps both knobs to avoid spurious sends in preview / pre-prod.
+    """
+    raw = (os.environ.get("DISPATCH_AUTO_SMS_ON_ASSIGN") or "").strip().lower()
+    if raw not in ("1", "true", "yes", "on"):
+        return False
+    # Late import to avoid a hard dependency at module load — the
+    # services package is optional in test environments.
+    try:
+        from services.sms_provider import sms_enabled  # noqa: PLC0415
+        return sms_enabled()
+    except Exception:
+        return False
+
+
+def _twilio_creds_configured() -> bool:
+    """D-2.7 · For webhook signature enforcement. Returns True when
+    Twilio SID + token + from-number are all present. We use this so
+    the webhook only enforces signature checks when the operator has
+    actually wired credentials — otherwise the route is callable for
+    smoke tests in preview.
+    """
+    return all(
+        (os.environ.get(k) or "").strip()
+        for k in ("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER")
+    )
+
+
+async def _issue_link_and_sms(
+    db,
+    *,
+    assignment: Dict[str, Any],
+    triggered_by: str,
+    issued_by_name: str,
+    issued_by_role: str,
+) -> Dict[str, Any]:
+    """D-2 · Compose the SMS pipeline for one assignment.
+
+    1. Look up driver employee record for phone number.
+    2. Issue a fresh magic link tied to (driver_id, assignment_id).
+    3. Build the SMS body and dispatch via the provider adapter.
+    4. Return ``{magic_link_url, sms_result}`` for the caller to feed
+       into ``_fire_assignment_notification(... sms_result=...)``.
+
+    Never raises — returns ``sms_result`` with status='skipped'/'failed'
+    on any error. Caller decides whether to surface fallback messaging.
+    """
+    # Lazy imports keep the lifecycle module portable in test runs.
+    from services.sms_provider import (  # noqa: PLC0415
+        send_sms,
+        build_magic_link_body,
+        sms_enabled,
+        normalize_phone,
+        mask_phone,
+    )
+    import driver_sessions as DS  # noqa: PLC0415
+
+    out: Dict[str, Any] = {"magic_link_url": None, "sms_result": None}
+    tenant_id = assignment.get("tenant_id") or DEFAULT_TENANT_ID
+    driver_id = (assignment.get("driver_id") or "").strip()
+
+    # 1. Look up driver phone (best effort)
+    phone: Optional[str] = None
+    if driver_id:
+        try:
+            emp = await db.employees.find_one(
+                {"id": driver_id},
+                {"_id": 0, "phone": 1, "mobile_phone": 1, "personal_phone": 1, "full_name": 1},
+            )
+            if emp:
+                phone = (
+                    (emp.get("phone") or "").strip()
+                    or (emp.get("mobile_phone") or "").strip()
+                    or (emp.get("personal_phone") or "").strip()
+                ) or None
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[issue-link-and-sms] employee lookup failed: {e}")
+
+    # If SMS provider not available, skip the link issuance to avoid
+    # minting unused tokens — return early with a skipped marker.
+    if not sms_enabled():
+        out["sms_result"] = {
+            "ok": False,
+            "status": "skipped",
+            "provider": None,
+            "provider_message_id": None,
+            "destination_phone_masked": mask_phone(phone or ""),
+            "triggered_by": triggered_by,
+            "error_summary": "SMS disabled or credentials missing",
+        }
+        return out
+
+    # Normalize before we even mint the link — invalid phone means
+    # "fall back to copy-link" and we save the magic-token budget.
+    norm_phone = normalize_phone(phone)
+    if not norm_phone:
+        out["sms_result"] = {
+            "ok": False,
+            "status": "skipped",
+            "provider": (os.environ.get("SMS_PROVIDER") or "twilio"),
+            "provider_message_id": None,
+            "destination_phone_masked": mask_phone(phone or ""),
+            "triggered_by": triggered_by,
+            "error_summary": "Phone missing or not E.164-normalizable",
+        }
+        return out
+
+    # 2. Issue magic link via existing iter393 helper.
+    magic_link_url = None
+    try:
+        result = await DS.issue_magic_link(
+            db,
+            tenant_id=tenant_id,
+            driver_id=driver_id,
+            driver_name=assignment.get("driver_name") or "",
+            truck_id=assignment.get("truck_id") or None,
+            assignment_id=assignment.get("id"),
+            issued_by_name=issued_by_name or "Dispatch",
+            issued_by_role=issued_by_role or "dispatch",
+        )
+        # Compose the public driver landing URL. Backend doesn't know
+        # the frontend host directly — operator config injects it via
+        # PUBLIC_FRONTEND_URL. Falling back to a relative path is OK:
+        # the link still works behind any proxy that serves both.
+        host = (os.environ.get("PUBLIC_FRONTEND_URL") or "").rstrip("/")
+        token = result["token"]
+        magic_link_url = (f"{host}/d/{token}") if host else f"/d/{token}"
+        out["magic_link_url"] = magic_link_url
+    except DS.DriverIneligibleError as e:
+        out["sms_result"] = {
+            "ok": False,
+            "status": "failed",
+            "provider": None,
+            "provider_message_id": None,
+            "destination_phone_masked": mask_phone(norm_phone),
+            "triggered_by": triggered_by,
+            "error_summary": f"Driver ineligible: {e.code}",
+        }
+        return out
+    except Exception as e:  # noqa: BLE001
+        out["sms_result"] = {
+            "ok": False,
+            "status": "failed",
+            "provider": None,
+            "provider_message_id": None,
+            "destination_phone_masked": mask_phone(norm_phone),
+            "triggered_by": triggered_by,
+            "error_summary": f"Magic link issuance failed: {type(e).__name__}",
+        }
+        return out
+
+    # 3. Dispatch SMS.
+    body = build_magic_link_body(
+        assignment=assignment,
+        magic_link_url=magic_link_url,
+    )
+    # D-2.7 · forward Twilio status callbacks back to ourselves so the
+    # board sees queued → sent → delivered transitions land in
+    # delivery_log[] without a separate sync pass.
+    status_callback_url: Optional[str] = None
+    backend_host = (os.environ.get("PUBLIC_BACKEND_URL") or "").rstrip("/")
+    if backend_host and assignment.get("id"):
+        status_callback_url = (
+            f"{backend_host}/api/dispatch/sms/twilio-status-callback"
+            f"?assignment_id={assignment['id']}"
+        )
+    sms_result = await send_sms(
+        to_phone=norm_phone,
+        body=body,
+        triggered_by=triggered_by,
+        status_callback_url=status_callback_url,
+    )
+    out["sms_result"] = sms_result
+    return out
+
+
 async def _record_acknowledgement(
     db,
     *,
@@ -566,8 +747,9 @@ async def _fire_assignment_notification(
     event: str,
     send_email_fn: Optional[Callable[..., Awaitable[bool]]] = None,
     magic_link_url: Optional[str] = None,
+    sms_result: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """D-1.3 · Best-effort notification fan-out for an assignment.
+    """D-1.3 / D-2.6 · Best-effort notification fan-out for an assignment.
 
     Reuses existing rails:
       - bell: writes to ``db.tasks`` (the same collection the rest of
@@ -576,6 +758,9 @@ async def _fire_assignment_notification(
         drivers don't have a portal account.
       - email: optional ``send_email_fn`` (server.py passes
         ``_safety_send_email`` — same Resend wrapper used everywhere).
+      - sms (D-2): caller may pass a pre-computed ``sms_result`` from
+        ``services.sms_provider.send_sms`` so the SMS attempt is part
+        of the same delivery_log fan-out + audit event.
 
     Records the attempt + outcome in ``delivery_log[]`` on the
     assignment. Never raises — notification failure must not crash
@@ -697,6 +882,18 @@ async def _fire_assignment_notification(
             })
 
     # ─── 3. Append delivery log on the assignment ──────────────────
+    if sms_result:
+        delivery_entries.append({
+            "channel": "sms",
+            "target": sms_result.get("destination_phone_masked") or "",
+            "at": _now_iso(),
+            "ok": bool(sms_result.get("ok")),
+            "status": sms_result.get("status"),
+            "provider": sms_result.get("provider"),
+            "provider_message_id": sms_result.get("provider_message_id"),
+            "triggered_by": sms_result.get("triggered_by") or "auto",
+            "error": sms_result.get("error_summary"),
+        })
     try:
         await db.dispatch_assignments.update_one(
             {"id": assignment["id"]},
@@ -704,6 +901,43 @@ async def _fire_assignment_notification(
         )
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[dispatch-notify] delivery_log append failed: {e}")
+
+    # ─── 4. SMS audit event in dispatch_state_events ───────────────
+    # The bell + email already touch the assignment doc; the state
+    # event stream is the dispatcher-side audit trail.
+    if sms_result:
+        try:
+            tenant_id = assignment.get("tenant_id") or DEFAULT_TENANT_ID
+            at_iso = _now_iso()
+            await db.dispatch_state_events.insert_one({
+                "id": _new_id(),
+                "tenant_id": tenant_id,
+                "assignment_id": assignment.get("id"),
+                "truck_id": assignment.get("truck_id"),
+                "driver_id": assignment.get("driver_id"),
+                "driver_name": assignment.get("driver_name") or "",
+                "project_number": assignment.get("project_number") or "",
+                "from_state": assignment.get("current_state"),
+                "to_state": assignment.get("current_state"),
+                "standard": True,
+                "warning_tag": "SMS_ATTEMPTED",
+                "warning_tags": ["SMS_ATTEMPTED"],
+                "at": at_iso,
+                "by_name": sms_result.get("triggered_by") or "auto",
+                "by_role": "dispatch_sms",
+                "note": "",
+                "correction_reason": "",
+                "wait_reason": "",
+                "geo": None,
+                "sms_status": sms_result.get("status"),
+                "sms_provider": sms_result.get("provider"),
+                "sms_provider_message_id": sms_result.get("provider_message_id"),
+                "sms_destination_phone_masked": sms_result.get("destination_phone_masked"),
+                "sms_error_summary": sms_result.get("error_summary"),
+                "sms_triggered_by": sms_result.get("triggered_by") or "auto",
+            })
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[dispatch-notify] sms audit insert failed: {e}")
 
     return {
         "ok": True,
@@ -946,15 +1180,29 @@ def build_dispatch_lifecycle_router(
         # Re-read to drop _id (insert_one mutates the input dict).
         out = await db.dispatch_assignments.find_one({"id": assignment_id}, {"_id": 0})
 
-        # ─── D-1.3 · Auto-notify on new assignment (best-effort) ───
+        # ─── D-1.3 + D-2.5 · Auto-notify + optional auto-SMS ───────
         # Never crash create on notification failure.
         try:
+            sms_result = None
+            magic_link_url = None
+            if _auto_sms_enabled() and out:
+                # Build magic link + SMS body, ship it.
+                sms_outcome = await _issue_link_and_sms(
+                    db,
+                    assignment=out,
+                    triggered_by="auto",
+                    issued_by_name=by_name,
+                    issued_by_role=by_role,
+                )
+                sms_result = sms_outcome.get("sms_result")
+                magic_link_url = sms_outcome.get("magic_link_url")
             await _fire_assignment_notification(
                 db,
                 assignment=out or doc,
                 event="new_assignment",
                 send_email_fn=send_email_fn,
-                magic_link_url=None,
+                magic_link_url=magic_link_url,
+                sms_result=sms_result,
             )
             # Re-read so the response carries delivery_log.
             out = await db.dispatch_assignments.find_one(
@@ -1276,6 +1524,180 @@ def build_dispatch_lifecycle_router(
             note=body.note or "",
         )
         return {"ok": True, "assignment": updated}
+
+    # ────────────────────────────────────────────────────────────────
+    # D-2.4 · MANUAL "Text Magic Link" · dispatcher-triggered
+    # ────────────────────────────────────────────────────────────────
+    @router.post("/assignments/{assignment_id}/send-magic-sms")
+    async def send_magic_sms(
+        assignment_id: str,
+        actor: Dict[str, Any] = Depends(require_dispatch_or_admin_dep),
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+    ):
+        """Dispatcher taps "Text Magic Link" in AssignmentDrawer.
+
+        Returns a structured payload so the frontend can:
+          - show a success toast when ``sms_result.status == "sent"``
+          - fall back to copy-link when SMS is disabled, phone is
+            missing, or the provider failed (status != "sent")
+
+        Always returns 200 — the operational outcome lives in the body.
+        Failure scenarios are not HTTP errors because the system has a
+        clean fallback (copy-link) in every case.
+        """
+        tenant_id = _resolve_tenant(x_tenant_id)
+        assignment = await db.dispatch_assignments.find_one(
+            {"id": assignment_id, "tenant_id": tenant_id}, {"_id": 0},
+        )
+        if not assignment:
+            raise HTTPException(404, "Assignment not found")
+        if assignment.get("cancelled_at"):
+            raise HTTPException(409, "Assignment is cancelled")
+
+        outcome = await _issue_link_and_sms(
+            db,
+            assignment=assignment,
+            triggered_by="dispatcher",
+            issued_by_name=_actor_label(actor),
+            issued_by_role=_actor_role(actor),
+        )
+        # Persist + audit via the existing fan-out helper.
+        try:
+            await _fire_assignment_notification(
+                db,
+                assignment=assignment,
+                event="manual_sms",
+                send_email_fn=None,                     # email not duplicated for manual SMS
+                magic_link_url=outcome.get("magic_link_url"),
+                sms_result=outcome.get("sms_result"),
+            )
+        except Exception as _e:  # noqa: BLE001
+            logger.warning(f"[send-magic-sms-notify] {_e}")
+
+        sms_result = outcome.get("sms_result") or {}
+        return {
+            "ok": True,
+            "sms_status": sms_result.get("status"),
+            "sms_ok": bool(sms_result.get("ok")),
+            "destination_phone_masked": sms_result.get("destination_phone_masked"),
+            "error_summary": sms_result.get("error_summary"),
+            "magic_link_url": outcome.get("magic_link_url"),
+            "fallback": (
+                "copy-link"
+                if not sms_result.get("ok")
+                else None
+            ),
+        }
+
+    # ────────────────────────────────────────────────────────────────
+    # D-2.7 · Twilio status callback receiver
+    # ────────────────────────────────────────────────────────────────
+    # Twilio POSTs a form-encoded body with these key fields:
+    #   MessageSid, MessageStatus, To, From, ErrorCode (optional),
+    #   ErrorMessage (optional). We accept the request, verify the
+    #   X-Twilio-Signature header, then update the matching
+    #   delivery_log[] entry on the assignment_id passed as query
+    #   string. No new collection. No new schema.
+    # ────────────────────────────────────────────────────────────────
+    @router.post("/sms/twilio-status-callback")
+    async def twilio_status_callback(
+        request: Request,
+        assignment_id: str = Query(default=""),
+    ):
+        from services.sms_provider import verify_twilio_signature  # noqa: PLC0415
+
+        # Twilio sends application/x-www-form-urlencoded.
+        try:
+            form = await request.form()
+            form_params: Dict[str, Any] = dict(form)
+        except Exception:
+            form_params = {}
+
+        # Verify signature.
+        signature = request.headers.get("X-Twilio-Signature")
+        # We must reconstruct the full URL Twilio used (including the
+        # query string) for the signature to validate. Behind an
+        # ingress, request.url already reflects the public URL.
+        full_url = str(request.url)
+        verified = verify_twilio_signature(
+            signature=signature, full_url=full_url, form_params=form_params,
+        )
+        if not verified:
+            # Soft-fail when the operator has not yet provisioned creds
+            # (e.g. preview env) so the route is still introspectable.
+            # In production with creds set, an unverified request is
+            # rejected with 403.
+            if _twilio_creds_configured():
+                raise HTTPException(403, "Invalid Twilio signature")
+
+        message_sid = str(form_params.get("MessageSid") or "").strip()
+        message_status = str(form_params.get("MessageStatus") or "").strip().lower()
+        error_code = str(form_params.get("ErrorCode") or "").strip()
+        error_message = str(form_params.get("ErrorMessage") or "").strip()
+        if not message_sid or not message_status:
+            raise HTTPException(400, "Missing MessageSid/MessageStatus")
+        if not assignment_id:
+            # No assignment context — silently ack so Twilio doesn't
+            # keep retrying.
+            return {"ok": True, "ignored": "no assignment_id"}
+
+        # Atomically patch the matching delivery_log[] entry. We use
+        # the array-filter positional operator to target exactly the
+        # row with this provider_message_id.
+        update_fields = {
+            "delivery_log.$[entry].status": message_status,
+            "delivery_log.$[entry].provider_status_at": _now_iso(),
+        }
+        if error_code or error_message:
+            update_fields["delivery_log.$[entry].error"] = (
+                f"Twilio {error_code}: {error_message}".strip(": ")
+            )[:240]
+        await db.dispatch_assignments.update_one(
+            {"id": assignment_id},
+            {"$set": update_fields},
+            array_filters=[{"entry.provider_message_id": message_sid}],
+        )
+
+        # Append a one-line audit row to dispatch_state_events so the
+        # board's audit drawer surfaces the carrier-side transitions.
+        try:
+            assignment = await db.dispatch_assignments.find_one(
+                {"id": assignment_id}, {"_id": 0, "tenant_id": 1, "truck_id": 1,
+                                         "driver_id": 1, "driver_name": 1,
+                                         "project_number": 1, "current_state": 1},
+            )
+            if assignment:
+                await db.dispatch_state_events.insert_one({
+                    "id": _new_id(),
+                    "tenant_id": assignment.get("tenant_id") or DEFAULT_TENANT_ID,
+                    "assignment_id": assignment_id,
+                    "truck_id": assignment.get("truck_id"),
+                    "driver_id": assignment.get("driver_id"),
+                    "driver_name": assignment.get("driver_name") or "",
+                    "project_number": assignment.get("project_number") or "",
+                    "from_state": assignment.get("current_state"),
+                    "to_state": assignment.get("current_state"),
+                    "standard": True,
+                    "warning_tag": "SMS_STATUS",
+                    "warning_tags": ["SMS_STATUS"],
+                    "at": _now_iso(),
+                    "by_name": "twilio",
+                    "by_role": "dispatch_sms",
+                    "note": "",
+                    "correction_reason": "",
+                    "wait_reason": "",
+                    "geo": None,
+                    "sms_provider_message_id": message_sid,
+                    "sms_status": message_status,
+                    "sms_error_summary": (
+                        f"Twilio {error_code}: {error_message}".strip(": ")
+                        if (error_code or error_message) else None
+                    ),
+                })
+        except Exception as _e:  # noqa: BLE001
+            logger.warning(f"[twilio-status-audit] {_e}")
+
+        return {"ok": True, "message_sid": message_sid, "status": message_status}
 
     # ────────────────────────────────────────────────────────────────
     # D-1.5 · REVISE in-flight

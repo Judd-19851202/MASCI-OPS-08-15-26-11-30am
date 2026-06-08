@@ -291,6 +291,49 @@ function AssignmentRow({ a, onOpen }) {
 
       <div className="flex flex-col gap-1 min-w-[180px]">
         <StateChip state={a.current_state} />
+        {/* D-2.5 · SMS delivery chip · derived from delivery_log[] last
+            sms entry. Renders only when SMS was actually attempted OR
+            when the operator hasn't configured SMS yet (helpful
+            visibility either way). */}
+        {(() => {
+          const log = Array.isArray(a.delivery_log) ? a.delivery_log : [];
+          const smsEntries = log.filter((e) => e && e.channel === "sms");
+          const last = smsEntries.length ? smsEntries[smsEntries.length - 1] : null;
+          if (!last) return null;
+          const status = String(last.status || "").toLowerCase();
+          // Map provider/skipped/failed states → operator-readable chip.
+          let cls = "bg-slate-100 text-slate-600 border border-slate-300";
+          let label = `SMS ${status}`;
+          if (status === "delivered" || status === "sent") {
+            cls = "bg-emerald-100 text-emerald-800 border border-emerald-300";
+            label = status === "delivered" ? t("SMS delivered") : t("SMS sent");
+          } else if (status === "queued" || status === "accepted") {
+            cls = "bg-blue-100 text-blue-800 border border-blue-300";
+            label = t("SMS queued");
+          } else if (status === "failed" || status === "undelivered") {
+            cls = "bg-rose-100 text-rose-800 border border-rose-300";
+            label = t("SMS failed");
+          } else if (status === "skipped") {
+            const err = String(last.error || "").toLowerCase();
+            cls = "bg-amber-100 text-amber-800 border border-amber-300";
+            if (err.includes("phone")) {
+              label = t("No driver phone");
+            } else if (err.includes("disabled") || err.includes("credentials")) {
+              label = t("SMS not configured");
+            } else {
+              label = t("SMS skipped");
+            }
+          }
+          return (
+            <span
+              className={`inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded ${cls}`}
+              data-testid={`row-sms-${a.id}`}
+              title={last.error || ""}
+            >
+              {label}
+            </span>
+          );
+        })()}
         {/* D-1.1 · ACKED / NOT ACKED chip · only shown for ASSIGNED rows
             because once the driver has transitioned past ASSIGNED, the
             state itself proves they engaged. Revision pending also surfaces. */}

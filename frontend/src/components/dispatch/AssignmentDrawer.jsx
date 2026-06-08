@@ -14,7 +14,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  X, Link2, Copy, Ban, Replace, ShieldOff, Clock, CheckCircle2, AlertTriangle, Pencil,
+  X, Link2, Copy, Ban, Replace, ShieldOff, Clock, CheckCircle2, AlertTriangle, Pencil, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getDispatchToken } from "@/lib/dispatchAuth";
@@ -204,6 +204,57 @@ export default function AssignmentDrawer({
       toast.error("Could not copy — long-press the link to copy manually.");
     }
   }, [magic]);
+
+  // D-2.4 · "Text Magic Link" · backend issues link + sends SMS in one call.
+  // Always returns 200 — body carries sms_status. Any non-"sent" result
+  // surfaces the copy-link fallback.
+  const sendMagicSms = useCallback(async () => {
+    if (!assignment?.id) return;
+    setBusy("sms");
+    try {
+      const r = await fetch(
+        `${API}/api/dispatch/assignments/${assignment.id}/send-magic-sms`,
+        { method: "POST", headers: authHeaders(tenantOverride) },
+      );
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        toast.error(j.detail || "Could not send SMS — copy the link instead.");
+        // Still try to populate the link for fallback if backend included it.
+        if (j.magic_link_url) {
+          const path = (j.magic_link_url || "").split("/d/").pop();
+          const publicHost = window.location.origin;
+          setMagic({ public_url: `${publicHost}/d/${path}` });
+        }
+        return;
+      }
+      // Always update the magic state so copy-link is still available
+      // as fallback if user wants it.
+      if (j.magic_link_url) {
+        const path = (j.magic_link_url || "").split("/d/").pop();
+        const publicHost = window.location.origin;
+        setMagic({ public_url: `${publicHost}/d/${path}` });
+      }
+      if (j.sms_status === "sent") {
+        toast.success(
+          `SMS sent to ${j.destination_phone_masked || "driver"}.`,
+        );
+      } else if (j.sms_status === "skipped" && /phone/i.test(j.error_summary || "")) {
+        toast.error("No valid driver phone on file — copy link manually.");
+      } else if (j.sms_status === "skipped") {
+        toast.message("SMS disabled — copy link to hand off manually.");
+      } else {
+        toast.error(
+          j.error_summary
+            ? `SMS failed (${j.error_summary}) — copy link instead.`
+            : "SMS failed — copy link instead.",
+        );
+      }
+    } catch {
+      toast.error("Network error — copy link instead.");
+    } finally {
+      setBusy(null);
+    }
+  }, [assignment?.id, tenantOverride]);
 
   const cancelAssignment = useCallback(async () => {
     if (!cancelReason.trim()) {
@@ -433,6 +484,21 @@ export default function AssignmentDrawer({
             >
               <Link2 className="w-4 h-4 mr-2" />
               Issue driver magic link
+            </Button>
+            {/* D-2.4 · Resend SMS Link · sends SMS via existing rails.
+                Backend regenerates the magic link if expired, otherwise
+                reuses the active token. Falls back to copy-link on any
+                non-"sent" outcome. */}
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full justify-start"
+              disabled={busy === "sms"}
+              onClick={sendMagicSms}
+              data-testid="drawer-text-magic-sms"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {busy === "sms" ? "Sending…" : "Resend SMS Link"}
             </Button>
             {magic ? (
               <div className="border border-emerald-300 bg-emerald-50 rounded p-2 space-y-1.5" data-testid="drawer-magic-output">
