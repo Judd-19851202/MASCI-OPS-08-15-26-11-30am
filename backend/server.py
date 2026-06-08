@@ -9844,6 +9844,14 @@ from routes.operations import (  # noqa: E402
 app.include_router(build_operations_router(db, require_admin, _is_valid_admin_token))
 
 
+# OIS-1 · Operations Intelligence Aggregator (single-pane intelligence)
+from routes.operations_intelligence import register_operations_intelligence_routes  # noqa: E402
+from fastapi import APIRouter as _APIRouter  # noqa: E402
+_ois_router = _APIRouter(prefix="/api", tags=["operations-intelligence"])
+register_operations_intelligence_routes(_ois_router, db, require_admin)
+app.include_router(_ois_router)
+
+
 # ─── Dispatch Portal portal-auth (iter126) ──────────────────────────
 from routes.dispatch_portal_auth import build_dispatch_router  # noqa: E402
 from dispatch_users import seed_dispatch_users  # noqa: E402
