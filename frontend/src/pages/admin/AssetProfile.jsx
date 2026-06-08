@@ -236,10 +236,16 @@ function MotiveLiveTab({ live, mapping, operator }) {
 
   const isLive = live.status === "live";
   const sb = live.staleness?.bucket || "offline";
+  // OIS-1F · Universal GPS health colors (Green = Reporting, Amber = Stale, Red = Not Reporting)
   const STALE_PILL = {
-    fresh: "bg-emerald-100 text-emerald-900 border-emerald-300",
-    stale: "bg-amber-100 text-amber-900 border-amber-300",
-    offline: "bg-slate-200 text-slate-700 border-slate-300",
+    fresh:   "bg-emerald-100 text-emerald-900 border-emerald-300",
+    stale:   "bg-amber-100 text-amber-900 border-amber-300",
+    offline: "bg-rose-100 text-rose-900 border-rose-300",
+  };
+  const STALE_LABEL = {
+    fresh: "Reporting",
+    stale: "Stale",
+    offline: "Not Reporting",
   };
   const cls = STALE_PILL[sb] || STALE_PILL.offline;
   const mins = live.staleness?.minutes;
@@ -256,7 +262,7 @@ function MotiveLiveTab({ live, mapping, operator }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">Motive · Live Telematics</span>
             <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-[0.15em] font-bold ${cls}`} data-testid="ap-motive-stale-badge">
-              {sb === "fresh" ? "Live" : sb === "stale" ? "Stale" : "Offline"} · {sinceLabel}
+              {STALE_LABEL[sb] || STALE_LABEL.offline} · {sinceLabel}
             </span>
             {!live.gps_enabled && (
               <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 border border-slate-300 text-[10px] font-mono uppercase tracking-[0.15em] font-bold">No GPS</span>

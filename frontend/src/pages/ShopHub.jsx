@@ -51,6 +51,7 @@ import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 import ShopMaintainxReadinessTile from "@/components/shop/ShopMaintainxReadinessTile";
+import ShopOpsIntelPanel from "@/components/ShopOpsIntelPanel";
 
 const SHOP_PAL = paletteFor("shop");
 
@@ -300,6 +301,9 @@ export default function ShopHub() {
 
         {/* iter511 · MaintainX Readiness Queue · read-only intelligence */}
         <ShopMaintainxReadinessTile />
+
+        {/* OIS-1D · Motive equipment intelligence (faults, gateway, DVIR, GPS health) */}
+        <ShopOpsIntelPanel />
 
         {/* Calm operational kicker · iter423 wording: recovery, not maintenance */}
         <div>

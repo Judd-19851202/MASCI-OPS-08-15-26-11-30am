@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import AssignmentDrawer from "@/components/dispatch/AssignmentDrawer";
 import AssignmentCreateDrawer from "@/components/dispatch/AssignmentCreateDrawer";
 import { useT } from "@/lib/i18n";
+import { gpsBand, gpsBandClass } from "@/lib/gpsBand";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DISPATCH_PAL = paletteFor("dispatch");
@@ -258,7 +259,7 @@ function SummaryStrip({ assignments }) {
   );
 }
 
-function AssignmentRow({ a, onOpen }) {
+function AssignmentRow({ a, onOpen, gpsInfo }) {
   const { t } = useT();
   const m = minutesSince(a.last_transition_at);
   const isStuck = m !== null && m >= STUCK_THRESHOLD_MIN;
@@ -269,6 +270,18 @@ function AssignmentRow({ a, onOpen }) {
     isWaiting   ? "border-rose-200 bg-rose-50/60" :
     isStuck     ? "border-amber-300 bg-amber-50" :
                   "border-slate-200 bg-white";
+
+  // OIS-1A · GPS band derived from fleet-gps map (matched on truck_id /
+  // unit_number, case-insensitive). Falls back to assignment.gps_located_at
+  // if the row carries it, otherwise renders Not Reporting.
+  const gpsBandInfo = (() => {
+    if (gpsInfo) {
+      return { band: gpsInfo.band, label: gpsInfo.label, moving: gpsInfo.moving };
+    }
+    const located = a.gps_located_at || a.located_at || null;
+    const b = gpsBand(located);
+    return { band: b.band, label: b.label, moving: false };
+  })();
 
   return (
     <button
@@ -291,6 +304,14 @@ function AssignmentRow({ a, onOpen }) {
 
       <div className="flex flex-col gap-1 min-w-[180px]">
         <StateChip state={a.current_state} />
+        {/* OIS-1A · GPS health band (universal Green / Amber / Red) */}
+        <span
+          className={`inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border ${gpsBandClass(gpsBandInfo.band)}`}
+          data-testid={`row-gps-${a.id}`}
+          title={gpsBandInfo.label}
+        >
+          {gpsBandInfo.band === "green" && gpsBandInfo.moving ? t("Moving · GPS") : gpsBandInfo.band === "green" ? t("GPS Active") : gpsBandInfo.band === "amber" ? t("GPS Stale") : t("Not Reporting")}
+        </span>
         {/* D-2.5 · SMS delivery chip · derived from delivery_log[] last
             sms entry. Renders only when SMS was actually attempted OR
             when the operator hasn't configured SMS yet (helpful
@@ -403,6 +424,7 @@ export default function DispatchBoard() {
   const [assignments, setAssignments] = useState([]);
   const [findings, setFindings] = useState([]);
   const [findingCounts, setFindingCounts] = useState({});
+  const [gpsByUnit, setGpsByUnit] = useState({});  // OIS-1A · fleet-gps map
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -418,7 +440,7 @@ export default function DispatchBoard() {
   const refresh = useCallback(async ({ silent } = {}) => {
     if (!silent) setRefreshing(true);
     try {
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         fetch(
           `${API}/api/dispatch/assignments/board?limit=300`,
           { headers: authHeaders(tenantOverride) },
@@ -427,6 +449,11 @@ export default function DispatchBoard() {
           `${API}/api/dispatch/governance/findings`,
           { headers: authHeaders(tenantOverride) },
         ),
+        // OIS-1A · fleet GPS health (best-effort · never blocks board)
+        fetch(
+          `${API}/api/operations/intelligence/fleet-gps`,
+          { headers: authHeaders(tenantOverride) },
+        ).catch(() => null),
       ]);
       if (r1.status === 401) {
         nav("/dispatch-portal/login", { replace: true });
@@ -442,6 +469,16 @@ export default function DispatchBoard() {
         // Findings is best-effort — never break the board if it fails.
         setFindings([]);
         setFindingCounts({});
+      }
+      // OIS-1A · build unit_number → gps info lookup (case-insensitive)
+      if (r3 && r3.ok) {
+        const j3 = await r3.json().catch(() => ({}));
+        const map = {};
+        for (const row of (j3.assets || [])) {
+          const key = String(row.unit_number || "").trim().toUpperCase();
+          if (key) map[key] = row;
+        }
+        setGpsByUnit(map);
       }
       setErrorMsg("");
     } catch {
@@ -646,9 +683,17 @@ export default function DispatchBoard() {
           </div>
         ) : (
           <div className="space-y-2" data-testid="board-rows">
-            {assignments.map((a) => (
-              <AssignmentRow key={a.id} a={a} onOpen={setDrawerAssignment} />
-            ))}
+            {assignments.map((a) => {
+              const key = String(a.truck_id || "").trim().toUpperCase();
+              return (
+                <AssignmentRow
+                  key={a.id}
+                  a={a}
+                  onOpen={setDrawerAssignment}
+                  gpsInfo={gpsByUnit[key] || null}
+                />
+              );
+            })}
           </div>
         )}
       </main>

@@ -12,8 +12,9 @@ import {
   Cable, Plug, Truck, Users, FileText, AlertOctagon, FileUp, FileDown,
   Loader2, RefreshCcw, Save, X, Pencil, Trash2, AlertTriangle,
   CheckCircle2, ExternalLink, Eye, EyeOff, Wand2, ChevronRight, Undo2,
-  MapPin, Zap, Activity,
+  MapPin, Zap, Activity, Gauge,
 } from "lucide-react";
+import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -506,6 +507,16 @@ function MappingTab({ kind }) {
                 </td>
                 <td className="px-3 py-2 text-right">
                   <div className="inline-flex gap-1">
+                    {!isAsset && (m.motive?.driver_id || m.motive?.user_id || m.masci_employee_id) ? (
+                      <RouterLink
+                        to={`/admin/driver-intel/${encodeURIComponent(m.motive?.driver_id || m.motive?.user_id || m.masci_employee_id)}`}
+                        title="Open driver intel (OIS-1C)"
+                        className="inline-flex items-center h-8 px-2 rounded border border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                        data-testid={`ic-${kind}-intel-${m.id}`}
+                      >
+                        <Gauge className="w-3.5 h-3.5" />
+                      </RouterLink>
+                    ) : null}
                     <Button size="sm" variant="outline" onClick={() => openEdit(m)} className="h-8" data-testid={`ic-${kind}-edit-${m.id}`}><Pencil className="w-3.5 h-3.5" /></Button>
                     <Button size="sm" variant="outline" onClick={() => remove(m)} className="h-8 border-red-300 text-red-700" data-testid={`ic-${kind}-delete-${m.id}`}><Trash2 className="w-3.5 h-3.5" /></Button>
                   </div>

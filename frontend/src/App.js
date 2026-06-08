@@ -108,6 +108,7 @@ import AdminSystem from "@/pages/admin/AdminSystem";
 import AdminDatabase from "@/pages/admin/AdminDatabase";
 import AdminIntegrationCenter from "@/pages/admin/AdminIntegrationCenter";
 import AssetProfile from "@/pages/admin/AssetProfile";
+import AdminDriverIntel from "@/pages/admin/AdminDriverIntel";
 import AdminDispatch from "@/pages/admin/AdminDispatch";
 import AdminDlsShiftQR from "@/pages/admin/AdminDlsShiftQR";
 import AdminDlsDay1Debrief from "@/pages/admin/AdminDlsDay1Debrief";
@@ -478,6 +479,7 @@ function App() {
             <Route path="/guidance/:articleId" element={<OperationalGuidanceCenter />} />
             <Route path="/admin/deploy-recovery" element={A(<DeployRecovery />)} />
             <Route path="/admin/assets/:assetId" element={A(<AssetProfile />)} />
+            <Route path="/admin/driver-intel/:driverKey" element={A(<AdminDriverIntel />)} />
             <Route path="/admin/equipment/:id/history" element={A(<AdminMasterHistory kind="equipment" />)} />
             <Route path="/admin/employees/:id/history" element={A(<AdminMasterHistory kind="employee" />)} />
             <Route path="/admin/analytics" element={A(<AdminAnalytics />)} />

@@ -14,6 +14,8 @@ Powers:
 Exposed routes:
   GET  /api/operations/intelligence            — full single-pane payload
   GET  /api/operations/intelligence/shop       — shop-only slice
+  GET  /api/operations/intelligence/fleet-gps  — per-asset GPS band map
+  GET  /api/operations/intelligence/driver/{driver_id} — driver intel
 """
 from __future__ import annotations
 from datetime import datetime, timezone, timedelta
@@ -260,6 +262,152 @@ def register_operations_intelligence_routes(api_router: APIRouter, db, require_a
                 "recent_fault_closures": len(fault_closed),
                 "equipment_not_reporting": len(not_reporting),
             },
+        }
+
+    @api_router.get(
+        "/operations/intelligence/fleet-gps",
+        dependencies=[Depends(require_admin)],
+    )
+    async def fleet_gps_health():
+        """OIS-1A · Per-asset GPS health band map.
+
+        Powers DispatchBoard row badges and any per-vehicle band lookup.
+        Returns lightweight rows keyed by unit_number (case-insensitive)
+        and motive vehicle_id so the consumer can match on either.
+        Read-only. No writes, no automation."""
+        rows: List[Dict[str, Any]] = []
+        async for am in db.asset_mappings.find(
+            {"provider": "motive"},
+            {
+                "_id": 0,
+                "masci_equipment_id": 1,
+                "masci_unit_number": 1,
+                "motive.vehicle_id": 1,
+                "motive.asset_id": 1,
+                "motive.number": 1,
+                "motive.located_at": 1,
+                "motive.speed_kph": 1,
+                "motive.gps_enabled": 1,
+            },
+        ):
+            mv = am.get("motive") or {}
+            located = mv.get("located_at")
+            band = _gps_band(located)
+            speed = mv.get("speed_kph")
+            moving = isinstance(speed, (int, float)) and speed > 5 and band["band"] == "green"
+            rows.append({
+                "masci_equipment_id": am.get("masci_equipment_id") or "",
+                "unit_number": (am.get("masci_unit_number") or mv.get("number") or "").strip(),
+                "vehicle_id": mv.get("vehicle_id") or "",
+                "asset_id": mv.get("asset_id") or "",
+                "band": band["band"],
+                "label": band["label"],
+                "minutes": band["minutes"],
+                "located_at": located,
+                "speed_kph": speed,
+                "moving": bool(moving),
+                "gps_enabled": bool(mv.get("gps_enabled")),
+            })
+        return {
+            "as_of": datetime.now(timezone.utc).isoformat(),
+            "assets": rows,
+            "count": len(rows),
+            "gps_band_thresholds": {
+                "green_max_minutes": GPS_GREEN_MAX_MIN,
+                "amber_max_minutes": GPS_AMBER_MAX_MIN,
+            },
+        }
+
+    @api_router.get(
+        "/operations/intelligence/driver/{driver_key}",
+        dependencies=[Depends(require_admin)],
+    )
+    async def driver_intel(driver_key: str):
+        """OIS-1C · Driver Command profile intel.
+
+        `driver_key` accepts either the Motive user_id or the linked
+        masci_employee_id. Returns the driver mapping plus a 30-day
+        rollup of HOS, harsh events, and DVIR linked to this driver
+        via motive_events.driver_id."""
+        now = datetime.now(timezone.utc)
+        cut_30d = (now - timedelta(days=30)).isoformat()
+        cut_24h = (now - timedelta(hours=24)).isoformat()
+
+        # Resolve mapping (lookup by motive user_id OR masci_employee_id)
+        mapping = await db.employee_mappings.find_one(
+            {
+                "provider": "motive",
+                "$or": [
+                    {"motive.user_id": driver_key},
+                    {"motive.id": driver_key},
+                    {"masci_employee_id": driver_key},
+                ],
+            },
+            {"_id": 0},
+        )
+
+        motive_user_id = ""
+        if mapping:
+            mv = mapping.get("motive") or {}
+            motive_user_id = str(mv.get("user_id") or mv.get("id") or "")
+
+        # Build event lookup using all known driver identifiers
+        driver_ids = [d for d in [driver_key, motive_user_id] if d]
+        ev_match: Dict[str, Any] = {"received_at": {"$gte": cut_30d}}
+        if driver_ids:
+            ev_match["driver_id"] = {"$in": driver_ids}
+
+        async def _count(family, cut=cut_30d, sev=None):
+            q = dict(ev_match)
+            q["event_family"] = family
+            q["received_at"] = {"$gte": cut}
+            if sev:
+                q["severity"] = sev
+            return await db.motive_events.count_documents(q) if driver_ids else 0
+
+        hos_30d = await _count("hos_violation")
+        hos_24h = await _count("hos_violation", cut=cut_24h)
+        harsh_30d = await _count("harsh_event")
+        harsh_24h_high = 0
+        if driver_ids:
+            harsh_24h_high = await db.motive_events.count_documents({
+                **ev_match,
+                "event_family": "harsh_event",
+                "severity": {"$in": ["high", "critical"]},
+                "received_at": {"$gte": cut_24h},
+            })
+        dvir_30d = await _count("dvir")
+
+        # Recent events feed (top 10, newest first)
+        recent: List[Dict[str, Any]] = []
+        if driver_ids:
+            async for r in db.motive_events.find(
+                ev_match, {"_id": 0}
+            ).sort("received_at", -1).limit(10):
+                recent.append({
+                    "event_family": r.get("event_family"),
+                    "severity": r.get("severity"),
+                    "priority": r.get("priority"),
+                    "received_at": r.get("received_at"),
+                    "vehicle_id": r.get("vehicle_id"),
+                    "headline": r.get("headline") or r.get("decorated_label"),
+                })
+
+        return {
+            "as_of": now.isoformat(),
+            "driver_key": driver_key,
+            "mapping": mapping,
+            "motive_user_id": motive_user_id,
+            "counts_30d": {
+                "hos_violations": hos_30d,
+                "harsh_events": harsh_30d,
+                "dvir_inspections": dvir_30d,
+            },
+            "counts_24h": {
+                "hos_violations": hos_24h,
+                "harsh_events_high": harsh_24h_high,
+            },
+            "recent_events": recent,
         }
 
 

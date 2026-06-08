@@ -13,6 +13,7 @@ import AdminDocIdSearch from "@/components/AdminDocIdSearch";
 import AdminKpiStrip from "@/components/AdminKpiStrip";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import OperationsCenter from "@/components/OperationsCenter";
+import MotiveOpsIntelPanel from "@/components/MotiveOpsIntelPanel";
 import { getAdminToken } from "@/lib/adminAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
@@ -76,6 +77,9 @@ export default function AdminHub() {
 
         {/* Operations Center — real-time aggregated operational visibility */}
         <OperationsCenter />
+
+        {/* OIS-1E · Motive Operations Intelligence (single-pane fleet/driver/safety snapshot) */}
+        <MotiveOpsIntelPanel />
 
         {/* Records-on-file count strip — at-a-glance KPIs */}
         <AdminKpiStrip />
