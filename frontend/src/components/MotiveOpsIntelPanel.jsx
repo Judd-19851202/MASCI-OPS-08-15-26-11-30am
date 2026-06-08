@@ -7,10 +7,10 @@
  * NO writes, NO automation, NO state transitions. Pure visibility.
  * Source: GET /api/operations/intelligence
  */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Activity, Truck, AlertTriangle, ShieldAlert, MapPin, RefreshCw, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
-import { gpsBandClass } from "@/lib/gpsBand";
+import { gpsBand, gpsBandClass } from "@/lib/gpsBand";
 
 function StatTile({ label, value, sublabel, testid, tone = "slate" }) {
   const toneCls = {
@@ -65,6 +65,7 @@ function EventBadge({ ev }) {
 
 export default function MotiveOpsIntelPanel({ className = "" }) {
   const [data, setData] = useState(null);
+  const [reliab, setReliab] = useState(null);  // OIS-1 Trust Pill · reliability state
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
@@ -72,8 +73,12 @@ export default function MotiveOpsIntelPanel({ className = "" }) {
     setLoading(true);
     setErr("");
     try {
-      const r = await api.get("/operations/intelligence");
-      setData(r.data);
+      const [intel, rel] = await Promise.all([
+        api.get("/operations/intelligence"),
+        api.get("/admin/integrations/motive/reliability-state").catch(() => null),
+      ]);
+      setData(intel.data);
+      setReliab(rel && rel.data ? rel.data : null);
     } catch (e) {
       setErr(e?.response?.data?.detail || "Failed to load operations intelligence");
     } finally {
@@ -82,6 +87,37 @@ export default function MotiveOpsIntelPanel({ className = "" }) {
   };
 
   useEffect(() => { load(); }, []);
+
+  // OIS-1 Trust Pill · derive newest last_tick across loops, apply OIS-1F band.
+  const trustPill = useMemo(() => {
+    if (!reliab) return null;  // gracefully hide when unavailable
+    const loops = reliab.loops || {};
+    let newest = null;
+    for (const k of Object.keys(loops)) {
+      const t = loops[k]?.last_tick;
+      if (t && (!newest || t > newest)) newest = t;
+    }
+    // Fall back to started_at if no loop has ticked yet (process just spun up).
+    const ref = newest || reliab.started_at || null;
+    if (!ref) {
+      return { band: "red", label: "Motive status unavailable", source: "no-data" };
+    }
+    const b = gpsBand(ref);  // reuses OIS-1F universal classifier
+    const ageLabel = b.minutes == null
+      ? "never"
+      : b.minutes < 60
+        ? `${b.minutes} min ago`
+        : b.minutes < 60 * 24
+          ? `${Math.floor(b.minutes / 60)} hr ago`
+          : `${Math.floor(b.minutes / (60 * 24))}d ago`;
+    const statusWord = b.band === "green" ? "Healthy" : b.band === "amber" ? "Stale" : "Failed";
+    const sourceWord = newest ? "synced" : "started";
+    return {
+      band: b.band,
+      label: `Motive ${sourceWord} ${ageLabel} · ${statusWord}`,
+      source: newest ? "last_tick" : "started_at",
+    };
+  }, [reliab]);
 
   if (loading) return (
     <div className={`bg-white border border-slate-200 rounded-md p-4 ${className}`} data-testid="ois-panel-loading">
@@ -98,9 +134,25 @@ export default function MotiveOpsIntelPanel({ className = "" }) {
   return (
     <section className={`bg-white border border-slate-200 border-l-4 border-l-emerald-700 rounded-md p-5 ${className}`} data-testid="ois-ops-intel-panel">
       <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Activity className="w-4 h-4 text-emerald-700" />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-700 font-bold">OIS-1E · Operations Intelligence</span>
+          {trustPill ? (
+            <span
+              className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-[0.15em] font-bold ${gpsBandClass(trustPill.band)}`}
+              data-testid="ois-trust-pill"
+              title={`Reliability source: ${trustPill.source}`}
+            >
+              {trustPill.label}
+            </span>
+          ) : reliab === null && !loading ? (
+            <span
+              className="inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-[0.15em] font-bold bg-slate-100 text-slate-600 border-slate-300"
+              data-testid="ois-trust-pill-missing"
+            >
+              Motive status unavailable
+            </span>
+          ) : null}
         </div>
         <button
           type="button"
