@@ -1179,6 +1179,28 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
             {"asset_id": asset_id}, {"_id": 0},
         ).sort("created_at", -1).to_list(events_limit)
 
+        # P1.5-H · Motive event timeline for this asset (read-only · no
+        # workflow side-effects). Resolves via the existing
+        # asset_mappings join, decorated to operational language.
+        motive_events_recent = []
+        try:
+            mv = (mapping or {}).get("motive") or {}
+            vid = (mv.get("vehicle_id") or "").strip()
+            aid = (mv.get("asset_id") or "").strip()
+            if vid or aid:
+                q: Dict[str, Any] = {"is_demo": {"$ne": True}}
+                if vid and aid:
+                    q["$or"] = [{"vehicle_id": vid}, {"raw.asset.id": aid}]
+                elif vid:
+                    q["vehicle_id"] = vid
+                else:
+                    q["raw.asset.id"] = aid
+                motive_events_recent = await db.motive_events.find(
+                    q, {"_id": 0},
+                ).sort("event_at", -1).to_list(25)
+        except Exception:  # noqa: BLE001
+            pass
+
         # Transfer history
         transfers = await db.transfer_requests.find(
             {"asset_id": asset_id}, {"_id": 0},
@@ -1194,6 +1216,7 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
             "in_transit": status_block["in_transit"],
             "mapping": mapping,
             "motive_live": motive_live,
+            "motive_events": motive_events_recent,
             "current_operator": current_operator,
             "recent_preops": recent_preops,
             "safety_corrective_actions": safety_cas,

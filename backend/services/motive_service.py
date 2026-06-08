@@ -385,18 +385,31 @@ class MotiveService:
         vehicle = body.get("vehicle") or {}
         vehicle_id = str(vehicle.get("id") or body.get("vehicle_id") or "").strip()
         loc = body.get("location") or vehicle.get("current_location") or {}
+
+        # P1.5 · Extract operationally meaningful fields per the
+        # Webhook Intelligence Audit. Storage only — NO workflow
+        # transitions, NO holds, NO work-order creation. Each family
+        # writes into the same `motive_events` doc with a normalized
+        # `classification` so MASCI surfaces can render them without
+        # parsing raw JSON.
+        family = _classify_family(event_kind)
+        classification = _classify_event(family, event_kind, body, vehicle, loc)
+
         await self.db.motive_events.insert_one({
             "id": _new_id(),
             "provider": PROVIDER,
             "event_kind": event_kind,
+            "event_family": family,
             "source": "webhook",
-            "event_at": body.get("event_time") or loc.get("located_at") or _now_iso(),
+            "event_at": body.get("event_time") or body.get("occurred_at") or loc.get("located_at") or _now_iso(),
             "received_at": _now_iso(),
             "vehicle_id": vehicle_id,
+            "driver_id": str((body.get("driver") or {}).get("id") or body.get("driver_id") or "").strip(),
             "lat": loc.get("lat"),
             "lon": loc.get("lon"),
             "raw": body,
             "test_mode": test_mode,
+            **classification,
         })
 
         # Light routing for vehicle_gps — keep hydrated mapping row fresh
@@ -415,7 +428,9 @@ class MotiveService:
                 logger.warning(f"[motive webhook hydrate] {e}")
 
         return {"ok": True, "status": "stored", "stored": True,
-                "event_kind": event_kind, "vehicle_id": vehicle_id or None}
+                "event_kind": event_kind, "event_family": family,
+                "severity": classification.get("severity"),
+                "vehicle_id": vehicle_id or None}
 
     async def create_corrective_action_from_event(self, motive_event_id: str) -> Dict[str, Any]:
         evt = await self.db.motive_events.find_one({"id": motive_event_id})
@@ -511,6 +526,108 @@ def _employee_mapping_defaults() -> Dict[str, Any]:
         "mapping_notes": "Auto-discovered by Motive sync.",
         "active": True,
     }
+
+
+# ── P1.5 · Event classifier (read-only · no workflow side-effects) ──
+def _classify_family(event_kind: str) -> str:
+    """Map raw Motive event_type to the 5 authorized families + the
+    pre-existing GPS family + 'other'. Per the Webhook Intelligence
+    Audit, anything not in the 5 authorized + GPS stays 'other' for
+    forensic storage but never surfaces."""
+    k = (event_kind or "").lower()
+    if k in ("vehicle_gps", "vehicle_location_received"):
+        return "vehicle_gps"
+    if k.startswith("harsh") or k in ("hard_brake", "hard_braking", "speeding", "harsh_acceleration", "harsh_cornering"):
+        return "harsh_event"
+    if k in ("fault_code", "fault_code_raised", "dtc") or k.startswith("fault"):
+        return "fault_code"
+    if k.startswith("dvir"):
+        return "dvir"
+    if k in ("geofence_enter", "geofence_entered", "geofence_entry"):
+        return "geofence_enter"
+    if k in ("geofence_exit", "geofence_exited", "geofence_left"):
+        return "geofence_exit"
+    return "other"
+
+
+_SEVERITY_BY_SUBTYPE = {
+    # harsh_event subtypes
+    "hard_brake": "high", "hard_braking": "high",
+    "harsh_acceleration": "medium",
+    "harsh_cornering": "medium",
+    "speeding": "medium",
+    "seatbelt_violation": "low",
+    # dvir
+    "dvir_submitted": "info",
+    "dvir_defect": "high",
+    "dvir_out_of_service": "critical",
+    "dvir_signed": "info",
+    # geofence
+    "geofence_enter": "info",
+    "geofence_exit": "info",
+    # vehicle_gps
+    "vehicle_gps": "info",
+}
+
+
+def _classify_event(family: str, event_kind: str, body: Dict[str, Any],
+                    vehicle: Dict[str, Any], loc: Dict[str, Any]) -> Dict[str, Any]:
+    """Return a flat dict of normalized visibility fields. Pure data
+    extraction — never mutates other collections, never opens work
+    orders or holds. Surfaces consume these fields directly."""
+    sev_hint = body.get("severity") or _SEVERITY_BY_SUBTYPE.get((event_kind or "").lower(), "info")
+    out: Dict[str, Any] = {
+        "severity": sev_hint,
+        "subtype": body.get("subtype") or body.get("type") or "",
+        "address": loc.get("address") or loc.get("current_location") or "",
+        "city": loc.get("city") or "",
+        "state": loc.get("state") or "",
+        "speed_kph": loc.get("kph") or body.get("speed_kph"),
+    }
+    if family == "harsh_event":
+        out["harsh"] = {
+            "subtype": (body.get("subtype") or event_kind or "").lower(),
+            "speed_mph": body.get("speed_mph"),
+            "coaching_required": bool(body.get("coaching_required")),
+            "video_url": body.get("video_url") or "",
+            "duration_seconds": body.get("duration_seconds"),
+        }
+    elif family == "fault_code":
+        out["fault"] = {
+            "dtc_code": body.get("dtc_code") or body.get("code") or "",
+            "mil_status": bool(body.get("mil_status")),
+            "description": body.get("description") or body.get("dtc_description") or "",
+            "set_at": body.get("set_at") or body.get("event_time"),
+            "cleared_at": body.get("cleared_at"),
+        }
+        # Heuristic: red-band severity if MIL is on or severity explicitly red
+        if (body.get("severity") or "").lower() in ("red", "critical", "severe") or body.get("mil_status"):
+            out["severity"] = "critical"
+    elif family == "dvir":
+        defects = body.get("defects") or []
+        oos = bool(body.get("out_of_service"))
+        out["dvir"] = {
+            "status": body.get("status") or "",
+            "defect_count": len(defects),
+            "defects": defects[:25],
+            "out_of_service": oos,
+            "mechanic_signed_by": (body.get("mechanic") or {}).get("name") or "",
+        }
+        if oos:
+            out["severity"] = "critical"
+        elif defects:
+            out["severity"] = "high"
+    elif family in ("geofence_enter", "geofence_exit"):
+        g = body.get("geofence") or {}
+        out["geofence"] = {
+            "id": str(g.get("id") or "").strip(),
+            "name": g.get("name") or "",
+            "category": g.get("category") or "",
+            "address": g.get("address") or "",
+            "dwell_seconds": body.get("dwell_seconds") if family == "geofence_exit" else None,
+            "transition": "enter" if family == "geofence_enter" else "exit",
+        }
+    return out
 
 
 __all__ = ["MotiveService", "PROVIDER"]

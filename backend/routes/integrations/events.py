@@ -34,12 +34,65 @@ async def _provider_demo_mode(db, provider: str) -> bool:
 _EVENT_TYPE_LABELS = {
     "vehicle_gps": "GPS Update",
     "vehicle_location_received": "GPS Update",
+    "hard_brake": "Hard Braking",
     "hard_braking": "Hard Braking",
-    "speeding": "Speeding",
     "harsh_acceleration": "Harsh Acceleration",
     "harsh_cornering": "Harsh Cornering",
+    "speeding": "Speeding",
     "seatbelt_violation": "Seatbelt Violation",
+    "fault_code": "Engine Fault Code",
+    "dvir_submitted": "DVIR Submitted",
+    "dvir_defect": "DVIR · Defect",
+    "dvir_out_of_service": "DVIR · OUT OF SERVICE",
+    "dvir_signed": "DVIR · Mechanic Signed",
+    "geofence_enter": "Arrived",
+    "geofence_exit": "Departed",
 }
+
+
+def _humanize_event(row: dict, unit_number: str, driver_name: str) -> str:
+    """P1.5-G · Operational-language summary for the 5 authorized
+    families. NEVER renders raw JSON."""
+    fam = row.get("event_family") or ""
+    truck = unit_number or row.get("vehicle_id") or "Unknown vehicle"
+    drv = driver_name or "Unknown driver"
+    if fam == "harsh_event":
+        h = row.get("harsh") or {}
+        sub = (h.get("subtype") or row.get("event_kind") or "harsh event").replace("_", " ").title()
+        spd = h.get("speed_mph")
+        spd_str = f" at {spd} mph" if isinstance(spd, (int, float)) else ""
+        addr = row.get("address") or ", ".join(p for p in [row.get("city"), row.get("state")] if p)
+        return f"{sub}: {drv} in {truck}{spd_str}" + (f" near {addr}" if addr else "")
+    if fam == "fault_code":
+        f = row.get("fault") or {}
+        code = f.get("dtc_code") or "DTC"
+        desc = f.get("description") or ""
+        mil = " · CHECK-ENGINE ON" if f.get("mil_status") else ""
+        return f"Fault {code} on {truck}{mil}" + (f" — {desc}" if desc else "")
+    if fam == "dvir":
+        d = row.get("dvir") or {}
+        if d.get("out_of_service"):
+            return f"OUT OF SERVICE: {drv} flagged {truck} ({d.get('defect_count', 0)} defect{'s' if d.get('defect_count', 0) != 1 else ''})"
+        if d.get("defect_count", 0) > 0:
+            return f"DVIR defect: {drv} flagged {truck} with {d.get('defect_count')} item{'s' if d.get('defect_count') != 1 else ''}"
+        if d.get("status") == "signed":
+            return f"DVIR signed: {d.get('mechanic_signed_by') or 'Mechanic'} cleared {truck}"
+        return f"DVIR submitted: {drv} on {truck}"
+    if fam == "geofence_enter":
+        g = row.get("geofence") or {}
+        site = g.get("name") or "geofence"
+        return f"{truck} arrived at {site}" + (f" · {drv}" if drv != "Unknown driver" else "")
+    if fam == "geofence_exit":
+        g = row.get("geofence") or {}
+        site = g.get("name") or "geofence"
+        dwell = g.get("dwell_seconds")
+        dwell_str = ""
+        if isinstance(dwell, (int, float)) and dwell > 0:
+            h_, m_ = divmod(int(dwell // 60), 60)
+            dwell_str = f" · {h_} h {m_} m on site" if h_ else f" · {m_} m on site"
+        return f"{truck} departed {site}{dwell_str}"
+    # vehicle_gps + other → fall back to coarse label
+    return _EVENT_TYPE_LABELS.get(row.get("event_kind") or "", "Motive event")
 
 
 async def _decorate_motive_event_rows(db, rows: list) -> list:
@@ -95,7 +148,8 @@ async def _decorate_motive_event_rows(db, rows: list) -> list:
             "masci_equipment_id": ctx.get("masci_equipment_id", ""),
             "speed_mph": round(skph_num * 0.621371, 1) if skph_num is not None else None,
             "location": {"address": addr, "lat": r.get("lat"), "lon": r.get("lon")},
-            "coaching_required": bool(r.get("coaching_required")),
+            "coaching_required": bool((r.get("harsh") or {}).get("coaching_required") or r.get("coaching_required")),
+            "summary": _humanize_event(r, ctx.get("unit_number", ""), driver_by_vid.get(vid, "")),
         })
     return decorated
 
@@ -111,13 +165,16 @@ def register_event_routes(
     async def list_motive_events(
         limit: int = 50,
         severity: Optional[str] = None,
+        family: Optional[str] = None,
         coaching_only: bool = False,
     ):
         q: dict = {"is_demo": {"$ne": True}}
         if severity:
             q["severity"] = severity
+        if family:
+            q["event_family"] = family
         if coaching_only:
-            q["coaching_required"] = True
+            q["$or"] = [{"coaching_required": True}, {"harsh.coaching_required": True}]
         limit = max(1, min(limit, 500))
         real = await db.motive_events.find(q, {"_id": 0}).sort("event_at", -1).to_list(limit)
 
@@ -136,8 +193,71 @@ def register_event_routes(
                 demo = [d for d in demo if d.get("severity") == severity]
             if coaching_only:
                 demo = [d for d in demo if d.get("coaching_required")]
+            if family:
+                # Demo rows pre-date P1.5 family taxonomy — only show
+                # them when no family filter is applied. Family-scoped
+                # views must always be real data.
+                demo = []
             return demo + real
         return real
+
+    # P1.5-H · Per-asset event history (Asset Profile → Events tab)
+    # Filters by the MASCI equipment id → resolves to motive vehicle_id
+    # via existing asset_mappings, then reads motive_events.
+    @api_router.get(
+        "/integrations/motive/assets/{masci_equipment_id}/events",
+        dependencies=[Depends(require_safety_or_hr_or_admin)],
+    )
+    async def asset_motive_events(masci_equipment_id: str, limit: int = 50):
+        mapping = await db.asset_mappings.find_one(
+            {"masci_equipment_id": masci_equipment_id},
+            {"_id": 0, "motive.vehicle_id": 1, "motive.asset_id": 1},
+        )
+        if not mapping:
+            return []
+        mv = mapping.get("motive") or {}
+        vid = (mv.get("vehicle_id") or "").strip()
+        aid = (mv.get("asset_id") or "").strip()
+        if not vid and not aid:
+            return []
+        q: dict = {"is_demo": {"$ne": True}}
+        if vid and aid:
+            q["$or"] = [{"vehicle_id": vid}, {"raw.asset.id": aid}, {"raw.asset.id": int(aid) if aid.isdigit() else aid}]
+        elif vid:
+            q["vehicle_id"] = vid
+        else:
+            q["$or"] = [{"raw.asset.id": aid}, {"raw.asset.id": int(aid) if aid.isdigit() else aid}]
+        limit = max(1, min(limit, 200))
+        rows = await db.motive_events.find(q, {"_id": 0}).sort("event_at", -1).to_list(limit)
+        if rows:
+            rows = await _decorate_motive_event_rows(db, rows)
+        return rows
+
+    # P1.5-H · Per-driver event history (when MASCI Driver Profile screen exists)
+    @api_router.get(
+        "/integrations/motive/drivers/{masci_employee_id}/events",
+        dependencies=[Depends(require_safety_or_hr_or_admin)],
+    )
+    async def driver_motive_events(masci_employee_id: str, limit: int = 50):
+        mapping = await db.employee_mappings.find_one(
+            {"masci_employee_id": masci_employee_id},
+            {"_id": 0, "motive.driver_id": 1},
+        )
+        if not mapping:
+            return []
+        did = ((mapping.get("motive") or {}).get("driver_id") or "").strip()
+        if not did:
+            return []
+        q = {"is_demo": {"$ne": True}, "$or": [
+            {"driver_id": did},
+            {"raw.driver.id": did},
+            {"raw.driver.id": int(did) if did.isdigit() else did},
+        ]}
+        limit = max(1, min(limit, 200))
+        rows = await db.motive_events.find(q, {"_id": 0}).sort("event_at", -1).to_list(limit)
+        if rows:
+            rows = await _decorate_motive_event_rows(db, rows)
+        return rows
 
     @api_router.get(
         "/integrations/maintainx/work-orders",

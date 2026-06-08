@@ -124,6 +124,59 @@ export default function DispatchIntegrationsTab() {
         external Motive / MaintainX IDs without ever mutating <code>equipment_master</code> or <code>employees</code>.
         Dispatch reads the live numbers here; Admin manages the mappings at <Link to="/admin/integrations" className="font-bold text-slate-900 underline">/admin/integrations</Link>.
       </div>
+
+      <MotiveActivityStrip />
+    </div>
+  );
+}
+
+/* P1.5-F · Live Motive geofence activity panel for Dispatch.
+   Reads /api/integrations/motive/events?family=geofence_enter|exit.
+   Display-only. No state transitions. No dispatch automation. */
+function MotiveActivityStrip() {
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [r1, r2] = await Promise.all([
+          axios.get(`${API}/integrations/motive/events?family=geofence_enter&limit=8`, { headers: dispatchHeaders() }),
+          axios.get(`${API}/integrations/motive/events?family=geofence_exit&limit=8`, { headers: dispatchHeaders() }),
+        ]);
+        const merged = [...(r1.data || []), ...(r2.data || [])]
+          .filter((e) => !e.is_demo)
+          .sort((a, b) => String(b.event_at || "").localeCompare(String(a.event_at || "")))
+          .slice(0, 10);
+        setRows(merged);
+      } catch { setRows([]); }
+    };
+    load();
+  }, []);
+  if (rows === null) return null;
+  return (
+    <div className="bg-white border border-slate-200 rounded-md overflow-hidden" data-testid="dispatch-motive-activity">
+      <div className="flex items-center gap-2 p-3 border-b border-slate-200">
+        <MapPin className="w-4 h-4 text-slate-600" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Live Motive · Arrivals & Departures</span>
+        <span className="ml-auto text-[10px] text-slate-500">{rows.length} recent</span>
+      </div>
+      {rows.length === 0 ? (
+        <div className="p-4 text-xs text-slate-500 italic">No recent geofence activity. Once Motive sends arrival/departure events they&apos;ll appear here.</div>
+      ) : (
+        <ul className="divide-y divide-slate-100 text-xs">
+          {rows.map((e) => (
+            <li key={e.id} className="py-2 px-3 flex items-center gap-2" data-testid={`dispatch-motive-row-${e.id}`}>
+              <span className={`w-20 text-center px-1.5 py-0.5 rounded font-mono text-[9px] uppercase tracking-[0.15em] font-bold shrink-0 ${e.event_family === "geofence_enter" ? "bg-emerald-100 text-emerald-900 border border-emerald-300" : "bg-blue-100 text-blue-900 border border-blue-300"}`}>
+                {e.event_family === "geofence_enter" ? "Arrived" : "Departed"}
+              </span>
+              <span className="flex-1 truncate">{e.summary || `${e.unit_number || "Vehicle"} · ${e.geofence?.name || ""}`}</span>
+              <span className="font-mono text-[10px] text-slate-400 shrink-0">{(e.event_at || "").slice(11, 16)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="bg-slate-50 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500 border-t border-slate-200">
+        Visibility only · no dispatch automation
+      </div>
     </div>
   );
 }

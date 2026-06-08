@@ -425,24 +425,90 @@ function FieldOpsSection({ data }) {
 
 function EventsSection({ data }) {
   const events = data.events || [];
+  const motiveEvents = data.motive_events || [];
   return (
-    <div className="bg-white border border-slate-200 rounded-md p-5" data-testid="ap-events">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Operations event history</h3>
-        <span className="text-xs text-slate-500">Showing {events.length} of {data.events_total_for_asset}</span>
+    <div className="space-y-4" data-testid="ap-events">
+      {/* P1.5-H · Motive event timeline (read-only) */}
+      <div className="bg-white border border-slate-200 rounded-md p-5" data-testid="ap-motive-events">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Motive event timeline</h3>
+          <span className="text-xs text-slate-500">Last {motiveEvents.length} signed events</span>
+        </div>
+        {motiveEvents.length === 0 ? (
+          <p className="text-sm text-slate-500 italic">No Motive events recorded for this asset.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100 text-xs" data-testid="ap-motive-events-list">
+            {motiveEvents.map((e) => (
+              <li key={e.id} className="py-2 flex items-start gap-3" data-testid={`ap-motive-event-${e.id}`}>
+                <span className="font-mono text-slate-500 w-32 shrink-0">{(e.event_at || e.received_at || "").slice(0, 16).replace("T", " ")}</span>
+                <MotiveFamilyChip family={e.event_family} severity={e.severity} />
+                <span className="font-bold text-slate-900 truncate flex-1">{motiveSummary(e)}</span>
+                {e.source === "webhook" && <span className="text-[9px] uppercase tracking-[0.15em] font-mono font-bold text-emerald-700 px-1.5 py-0.5 bg-emerald-50 border border-emerald-200 rounded">Live</span>}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      {events.length === 0 ? <p className="text-sm text-slate-500 italic">No events recorded for this asset.</p> : (
-        <ul className="divide-y divide-slate-100 text-xs">
-          {events.map((e) => (
-            <li key={e.id} className="py-2 flex items-start gap-3" data-testid={`ap-event-row-${e.id}`}>
-              <span className="font-mono text-slate-500 w-32 shrink-0">{(e.created_at || "").slice(0,16).replace("T"," ")}</span>
-              <span className="font-mono text-slate-700 w-44 shrink-0 truncate">{e.event_type}</span>
-              <span className="font-bold text-slate-900 truncate">{e.event_title}</span>
-              <span className="ml-auto text-[9px] uppercase tracking-[0.15em] font-mono font-bold text-slate-500">{e.severity} · {e.status}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+
+      <div className="bg-white border border-slate-200 rounded-md p-5">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">MASCI operations events</h3>
+          <span className="text-xs text-slate-500">Showing {events.length} of {data.events_total_for_asset}</span>
+        </div>
+        {events.length === 0 ? <p className="text-sm text-slate-500 italic">No events recorded for this asset.</p> : (
+          <ul className="divide-y divide-slate-100 text-xs">
+            {events.map((e) => (
+              <li key={e.id} className="py-2 flex items-start gap-3" data-testid={`ap-event-row-${e.id}`}>
+                <span className="font-mono text-slate-500 w-32 shrink-0">{(e.created_at || "").slice(0, 16).replace("T", " ")}</span>
+                <span className="font-mono text-slate-700 w-44 shrink-0 truncate">{e.event_type}</span>
+                <span className="font-bold text-slate-900 truncate">{e.event_title}</span>
+                <span className="ml-auto text-[9px] uppercase tracking-[0.15em] font-mono font-bold text-slate-500">{e.severity} · {e.status}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
+  );
+}
+
+function motiveSummary(e) {
+  // Fall back to a constructed sentence if the backend `summary` field
+  // isn't populated for an older row.
+  if (e.summary) return e.summary;
+  const fam = e.event_family || e.event_kind || "event";
+  const unit = e.unit_number || e.vehicle_id || "vehicle";
+  if (fam === "geofence_enter") return `${unit} arrived at ${e.geofence?.name || "geofence"}`;
+  if (fam === "geofence_exit") return `${unit} departed ${e.geofence?.name || "geofence"}`;
+  if (fam === "harsh_event") return `${(e.harsh?.subtype || "Harsh event").replace(/_/g, " ")} on ${unit}`;
+  if (fam === "fault_code") return `Fault ${e.fault?.dtc_code || ""} on ${unit}`;
+  if (fam === "dvir") return e.dvir?.out_of_service ? `OUT OF SERVICE: ${unit}` : `DVIR: ${unit}`;
+  return `${fam} · ${unit}`;
+}
+
+const FAMILY_PILL = {
+  harsh_event:    "bg-red-100 text-red-900 border-red-300",
+  fault_code:     "bg-amber-100 text-amber-900 border-amber-300",
+  dvir:           "bg-purple-100 text-purple-900 border-purple-300",
+  geofence_enter: "bg-emerald-100 text-emerald-900 border-emerald-300",
+  geofence_exit:  "bg-blue-100 text-blue-900 border-blue-300",
+  vehicle_gps:    "bg-slate-100 text-slate-700 border-slate-300",
+};
+const FAMILY_LABEL = {
+  harsh_event: "SAFETY",
+  fault_code: "SHOP",
+  dvir: "DVIR",
+  geofence_enter: "ARRIVED",
+  geofence_exit: "DEPARTED",
+  vehicle_gps: "GPS",
+};
+
+function MotiveFamilyChip({ family, severity }) {
+  const cls = FAMILY_PILL[family] || "bg-slate-100 text-slate-700 border-slate-300";
+  const lbl = FAMILY_LABEL[family] || (family || "event").toUpperCase();
+  return (
+    <span className={`px-1.5 py-0.5 rounded border font-mono text-[9px] uppercase tracking-[0.15em] font-bold w-24 text-center shrink-0 ${cls}`} data-testid={`ap-motive-chip-${family}`}>
+      {lbl}{severity && severity !== "info" ? ` · ${severity.toUpperCase()}` : ""}
+    </span>
   );
 }

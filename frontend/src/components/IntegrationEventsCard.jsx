@@ -166,9 +166,8 @@ function MotiveRow({ row }) {
             </span>
           )}
         </div>
-        <div className="text-xs text-slate-600 truncate">
-          {row.driver_name || "—"} · {row.unit_number || "—"}
-          {row.location?.address ? ` · ${row.location.address}` : ""}
+        <div className="text-xs text-slate-600 truncate" data-testid="motive-event-summary">
+          {row.summary || `${row.driver_name || "—"} · ${row.unit_number || "—"}${row.location?.address ? ` · ${row.location.address}` : ""}`}
         </div>
         {row.details && (
           <div className="text-[11px] text-slate-500 mt-0.5 truncate">{row.details}</div>
