@@ -55,6 +55,143 @@ def _now_iso() -> str:
 
 
 # ════════════════════════════════════════════════════════════════════
+# P1-D / P1-C · Motive visibility helpers (read-only, reuse-first)
+# ════════════════════════════════════════════════════════════════════
+def _stale_for(iso: Optional[str]) -> Dict[str, Any]:
+    """Return staleness banding for a Motive `located_at` timestamp.
+    Buckets: fresh (<30 min) · stale (30 min-24 h) · offline (>24 h)."""
+    if not iso:
+        return {"bucket": "offline", "minutes": None}
+    try:
+        from datetime import datetime as _dt, timezone as _tz  # noqa: PLC0415
+        ts = _dt.fromisoformat(iso.replace("Z", "+00:00"))
+        delta = _dt.now(_tz.utc) - ts
+        mins = int(delta.total_seconds() / 60)
+        bucket = "fresh" if mins < 30 else ("stale" if mins < 60 * 24 else "offline")
+        return {"bucket": bucket, "minutes": mins}
+    except Exception:  # noqa: BLE001
+        return {"bucket": "offline", "minutes": None}
+
+
+async def _build_motive_live_block(db, mapping: Optional[dict]) -> Dict[str, Any]:
+    """Live Motive telemetry payload for the AssetProfile UI. Reads
+    only `asset_mappings.motive.*` — no external API calls. Returns a
+    consistent shape even when the asset has no Motive mapping yet so
+    the React side can render `awaiting`/`live`/`offline` states from
+    one source."""
+    if not mapping or not (mapping.get("motive") or {}).get("vehicle_id") and not (mapping.get("motive") or {}).get("asset_id"):
+        return {"status": "not_mapped"}
+    mv = mapping.get("motive") or {}
+    located = mv.get("located_at")
+    staleness = _stale_for(located)
+    has_gps = bool(mv.get("lat") and mv.get("lon"))
+    speed_kph = mv.get("speed_kph")
+    return {
+        "status": "live" if has_gps and staleness["bucket"] != "offline" else "offline",
+        "external_kind": "vehicle" if mv.get("vehicle_id") else "asset",
+        "vehicle_id": mv.get("vehicle_id") or None,
+        "asset_id": mv.get("asset_id") or None,
+        "fleet_number": mv.get("number") or mv.get("name") or "",
+        "vin": mv.get("vin") or "",
+        "make": mv.get("make") or "",
+        "model": mv.get("model") or "",
+        "year": mv.get("year") or "",
+        "lat": mv.get("lat"),
+        "lon": mv.get("lon"),
+        "located_at": located,
+        "city": mv.get("city") or "",
+        "state": mv.get("state") or "",
+        "speed_kph": speed_kph,
+        "speed_mph": round(speed_kph * 0.621371, 1) if isinstance(speed_kph, (int, float)) else None,
+        "moving": isinstance(speed_kph, (int, float)) and speed_kph > 5,
+        "gps_enabled": bool(mv.get("gps_enabled")),
+        "dashcam_enabled": bool(mv.get("dashcam_enabled")),
+        "staleness": staleness,
+    }
+
+
+async def _resolve_current_operator(db, *, asset_id: str,
+                                    motive_vehicle_id: Optional[str],
+                                    active_assignment: Optional[dict]) -> Dict[str, Any]:
+    """Source-attributed current-driver hierarchy (P1-C). Walks four
+    sources in priority order and returns the first hit with its
+    provenance label so the UI can show *who* says this driver is in
+    this asset. No new collections — everything below already exists.
+
+    Priority:
+      1. Motive driver currently in this vehicle (`employee_mappings.motive.current_vehicle_id`)
+      2. Active asset_assignments.operator_name (Dispatch)
+      3. Today's most-recent equipment_inspection (DVIR/preop)
+      4. Most-recent equipment_inspection of any age
+    """
+    # 1 — Motive's "currently driving" link
+    if motive_vehicle_id:
+        em = await db.employee_mappings.find_one(
+            {"provider": "motive", "motive.current_vehicle_id": str(motive_vehicle_id)},
+            {"_id": 0, "masci_employee_id": 1, "masci_employee_name": 1,
+             "motive.first_name": 1, "motive.last_name": 1,
+             "motive.email": 1, "motive.located_at": 1},
+        )
+        if em:
+            name = em.get("masci_employee_name") or " ".join(filter(None, [
+                (em.get("motive") or {}).get("first_name"),
+                (em.get("motive") or {}).get("last_name"),
+            ])).strip()
+            if name:
+                return {
+                    "name": name,
+                    "source": "motive",
+                    "source_label": "Motive (currently in vehicle)",
+                    "as_of": (em.get("motive") or {}).get("located_at"),
+                    "masci_employee_id": em.get("masci_employee_id") or "",
+                }
+
+    # 2 — Dispatch active assignment
+    if active_assignment and active_assignment.get("operator_name"):
+        return {
+            "name": active_assignment.get("operator_name"),
+            "source": "dispatch_assignment",
+            "source_label": "Dispatch (active assignment)",
+            "as_of": active_assignment.get("assigned_at"),
+            "masci_employee_id": active_assignment.get("operator_id") or "",
+        }
+
+    # 3/4 — Equipment inspection trail
+    try:
+        from datetime import datetime as _dt, timezone as _tz, timedelta as _td  # noqa: PLC0415
+        since_today = (_dt.now(_tz.utc) - _td(hours=24)).isoformat()
+        recent = await db.equipment_inspections.find_one(
+            {"$or": [{"equipment_id": asset_id}, {"unit_id": asset_id}],
+             "created_at": {"$gte": since_today}},
+            {"_id": 0, "operator_name": 1, "submitted_by": 1, "created_at": 1},
+            sort=[("created_at", -1)],
+        )
+        if recent:
+            nm = recent.get("operator_name") or recent.get("submitted_by") or ""
+            if nm:
+                return {"name": nm, "source": "dvir_today",
+                        "source_label": "Today's Pre-Op / DVIR",
+                        "as_of": recent.get("created_at"), "masci_employee_id": ""}
+        any_recent = await db.equipment_inspections.find_one(
+            {"$or": [{"equipment_id": asset_id}, {"unit_id": asset_id}]},
+            {"_id": 0, "operator_name": 1, "submitted_by": 1, "created_at": 1},
+            sort=[("created_at", -1)],
+        )
+        if any_recent:
+            nm = any_recent.get("operator_name") or any_recent.get("submitted_by") or ""
+            if nm:
+                return {"name": nm, "source": "dvir_recent",
+                        "source_label": "Most-recent Pre-Op / DVIR",
+                        "as_of": any_recent.get("created_at"), "masci_employee_id": ""}
+    except Exception:  # noqa: BLE001
+        pass
+
+    return {"name": "", "source": "none", "source_label": "", "as_of": None,
+            "masci_employee_id": ""}
+
+
+
+# ════════════════════════════════════════════════════════════════════
 # Pydantic models
 # ════════════════════════════════════════════════════════════════════
 class EventCreate(BaseModel):
@@ -882,13 +1019,45 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
         motive = await _provider("motive")
         maintainx = await _provider("maintainx")
 
-        # Motive-specific placeholder rollups derived from internal data
-        # (true Motive idle/not-reporting waits for live API integration)
+        # P1-E · Live Motive rollups from `asset_mappings.motive.*`
+        # — replaces the hard-coded zeros so Operations/Dispatch tiles
+        # finally reflect telematics ground truth. Stale/idle thresholds
+        # match operator convention (idle = parked >30 min; not-reporting
+        # = no telemetry within 24 h).
+        from datetime import datetime as _dt, timedelta as _td, timezone as _tz  # noqa: PLC0415
+        now_utc = _dt.now(_tz.utc)
+        idle_after = (now_utc - _td(minutes=30)).isoformat()
+        stale_after = (now_utc - _td(hours=24)).isoformat()
         try:
-            motive["idle_count"] = await db.asset_idle_flags.count_documents({"flagged": True})
+            motive["gps_enabled_assets"] = await db.asset_mappings.count_documents(
+                {"provider": "motive", "motive.gps_enabled": True}
+            )
+            motive["moving_count"] = await db.asset_mappings.count_documents({
+                "provider": "motive", "motive.gps_enabled": True,
+                "motive.speed_kph": {"$gt": 5},
+                "motive.located_at": {"$gte": idle_after},
+            })
+            motive["idle_count"] = await db.asset_mappings.count_documents({
+                "provider": "motive", "motive.gps_enabled": True,
+                "motive.speed_kph": {"$lte": 5},
+                "motive.located_at": {"$gte": idle_after},
+            })
+            motive["not_reporting"] = await db.asset_mappings.count_documents({
+                "provider": "motive", "motive.gps_enabled": True,
+                "$or": [
+                    {"motive.located_at": {"$lt": stale_after}},
+                    {"motive.located_at": None},
+                ],
+            })
+            motive["linked_to_masci"] = await db.asset_mappings.count_documents(
+                {"provider": "motive", "masci_equipment_id": {"$ne": ""}}
+            )
+            motive["linked_drivers"] = await db.employee_mappings.count_documents(
+                {"provider": "motive", "masci_employee_id": {"$ne": ""}}
+            )
         except Exception:  # noqa: BLE001
-            motive["idle_count"] = 0
-        motive["not_reporting"] = 0  # placeholder until Motive webhook fires
+            motive.setdefault("idle_count", 0)
+            motive.setdefault("not_reporting", 0)
 
         # MaintainX-specific placeholder rollups from internal holds
         maintainx["equipment_down"] = await db.asset_holds.count_documents(
@@ -968,6 +1137,22 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
         # asset_mappings — never the master record)
         mapping = await db.asset_mappings.find_one({"masci_equipment_id": asset_id}, {"_id": 0})
 
+        # P1-D · Live Motive telemetry block for the AssetProfile UI.
+        # All data is sourced from `asset_mappings.motive.*` (no new
+        # APIs, no live external calls). UI replaces the legacy
+        # `MotivePlaceholder` with this payload.
+        # P1-C · Source-attributed current driver/operator hierarchy:
+        #   1. Motive `current_vehicle_id` join → driver in this truck
+        #      RIGHT NOW (most authoritative)
+        #   2. Active asset_assignments.operator_name (Dispatch ground truth)
+        #   3. Most recent equipment_inspections operator (today's DVIR/preop)
+        motive_live = await _build_motive_live_block(db, mapping)
+        current_operator = await _resolve_current_operator(
+            db, asset_id=asset_id,
+            motive_vehicle_id=(mapping or {}).get("motive", {}).get("vehicle_id"),
+            active_assignment=status_block["active_assignment"],
+        )
+
         # Field operations — recent preops, daily-report references,
         # equipment checkout/returns (best-effort: these collections may
         # or may not exist in older deployments — guard with try/except).
@@ -1008,6 +1193,8 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
             "pending_transfer": status_block["pending_transfer"],
             "in_transit": status_block["in_transit"],
             "mapping": mapping,
+            "motive_live": motive_live,
+            "current_operator": current_operator,
             "recent_preops": recent_preops,
             "safety_corrective_actions": safety_cas,
             "transfers": transfers,

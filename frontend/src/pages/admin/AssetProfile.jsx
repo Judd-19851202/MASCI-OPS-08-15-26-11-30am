@@ -105,7 +105,7 @@ export default function AssetProfile() {
 
           <TabsContent value="overview"><OverviewSection overview={overview} /></TabsContent>
           <TabsContent value="dispatch"><DispatchSection data={data} /></TabsContent>
-          <TabsContent value="motive"><MotivePlaceholder mapping={data.mapping} /></TabsContent>
+          <TabsContent value="motive"><MotiveLiveTab live={data.motive_live} mapping={data.mapping} operator={data.current_operator} /></TabsContent>
           <TabsContent value="maintainx"><MaintainXPlaceholder mapping={data.mapping} /></TabsContent>
           <TabsContent value="safety"><SafetySection data={data} /></TabsContent>
           <TabsContent value="field"><FieldOpsSection data={data} /></TabsContent>
@@ -211,6 +211,126 @@ function PlaceholderCard({ icon: Icon, title, sub, fields }) {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 text-xs">
         {fields.map((f) => (<div key={f}><div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-400 font-bold">{f}</div><div className="text-slate-400 italic">—</div></div>))}
+      </div>
+    </div>
+  );
+}
+
+function MotiveLiveTab({ live, mapping, operator }) {
+  // P1-D · Replaces the legacy "Awaiting integration" placeholder
+  // with the real telemetry data already in `asset_mappings.motive.*`.
+  // P1-C · Renders source-attributed current operator.
+  if (!live || live.status === "not_mapped") {
+    return (
+      <div className="space-y-3" data-testid="ap-motive">
+        <div className="bg-amber-50 border border-amber-300 rounded-md p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
+          <div>
+            <div className="font-display font-black text-sm text-amber-900">No Motive mapping</div>
+            <p className="text-xs text-amber-800 mt-1">This MASCI equipment record is not yet linked to a Motive vehicle or Asset Gateway unit. Use Admin → Integration Center → Auto-Link or Mappings to connect it.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isLive = live.status === "live";
+  const sb = live.staleness?.bucket || "offline";
+  const STALE_PILL = {
+    fresh: "bg-emerald-100 text-emerald-900 border-emerald-300",
+    stale: "bg-amber-100 text-amber-900 border-amber-300",
+    offline: "bg-slate-200 text-slate-700 border-slate-300",
+  };
+  const cls = STALE_PILL[sb] || STALE_PILL.offline;
+  const mins = live.staleness?.minutes;
+  const sinceLabel = mins == null ? "never" : (mins < 60 ? `${mins} min ago` : `${Math.round(mins/60)} h ago`);
+
+  return (
+    <div className="space-y-3" data-testid="ap-motive">
+      {/* Header banner */}
+      <div className="bg-white border-2 border-slate-700 rounded-md p-4 flex items-start gap-3">
+        <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-900 text-white shrink-0">
+          <MapPin className="w-5 h-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">Motive · Live Telematics</span>
+            <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-[0.15em] font-bold ${cls}`} data-testid="ap-motive-stale-badge">
+              {sb === "fresh" ? "Live" : sb === "stale" ? "Stale" : "Offline"} · {sinceLabel}
+            </span>
+            {!live.gps_enabled && (
+              <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 border border-slate-300 text-[10px] font-mono uppercase tracking-[0.15em] font-bold">No GPS</span>
+            )}
+          </div>
+          <h3 className="font-display text-lg font-black mt-0.5 leading-tight" data-testid="ap-motive-title">
+            {live.fleet_number || live.vehicle_id || live.asset_id}
+          </h3>
+          <div className="text-xs text-slate-500 mt-0.5">
+            {[live.year, live.make, live.model].filter(Boolean).join(" ").trim() || "—"}
+            {live.vin ? <> · <span className="font-mono">VIN {live.vin}</span></> : null}
+          </div>
+        </div>
+      </div>
+
+      {/* Operator card */}
+      <OperatorCard operator={operator} />
+
+      {/* Live telemetry grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" data-testid="ap-motive-grid">
+        <Tile label="Last GPS" testid="ap-motive-gps" value={
+          live.lat != null && live.lon != null
+            ? <span className="font-mono">{live.lat.toFixed(5)}, {live.lon.toFixed(5)}</span>
+            : null
+        } />
+        <Tile label="City / State" testid="ap-motive-city" value={[live.city, live.state].filter(Boolean).join(", ")} />
+        <Tile label="Last Seen" testid="ap-motive-located" value={live.located_at ? new Date(live.located_at).toLocaleString() : null} />
+        <Tile label="Speed" testid="ap-motive-speed" value={
+          live.speed_mph != null
+            ? `${live.speed_mph} mph${live.moving ? " · Moving" : " · Parked"}`
+            : (live.speed_kph != null ? `${Math.round(live.speed_kph)} kph` : null)
+        } />
+        <Tile label="External Type" testid="ap-motive-kind" value={live.external_kind === "vehicle" ? "Vehicle (ELD)" : "Asset Gateway"} />
+        <Tile label="Motive ID" testid="ap-motive-id" value={<span className="font-mono">{live.vehicle_id || live.asset_id}</span>} />
+        <Tile label="GPS Enabled" testid="ap-motive-gpsflag" value={live.gps_enabled ? "Yes" : "No"} />
+        <Tile label="Dashcam" testid="ap-motive-dashcam" value={live.dashcam_enabled ? "Yes" : "No"} />
+        <Tile label="Mapping" testid="ap-motive-mapped" value={mapping?.masci_equipment_id ? "Linked to MASCI" : "Unlinked"} />
+      </div>
+
+      {/* Source footer */}
+      <div className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.18em]">
+        Source: Motive sync · `asset_mappings.motive.*` · live polling + signed webhooks
+      </div>
+    </div>
+  );
+}
+
+function OperatorCard({ operator }) {
+  const has = operator && operator.name;
+  return (
+    <div className="bg-white border border-slate-200 rounded-md p-4 flex items-start gap-3" data-testid="ap-motive-operator">
+      <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-100 text-slate-700 shrink-0">
+        <Truck className="w-4 h-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Current Driver / Operator</div>
+        <div className="font-display text-base font-black mt-0.5" data-testid="ap-motive-operator-name">{has ? operator.name : <span className="text-slate-400 font-normal">Unknown</span>}</div>
+        {has && (
+          <div className="text-[11px] text-slate-500 mt-0.5">
+            <span className="font-mono uppercase tracking-[0.15em]">Source:</span> {operator.source_label || operator.source}
+            {operator.as_of ? <> · <span className="font-mono">{new Date(operator.as_of).toLocaleString()}</span></> : null}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Tile({ label, value, testid }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-md p-3" data-testid={testid}>
+      <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold">{label}</div>
+      <div className="text-sm font-bold text-slate-900 mt-0.5 break-words">
+        {value || <span className="text-slate-400 font-normal italic">—</span>}
       </div>
     </div>
   );

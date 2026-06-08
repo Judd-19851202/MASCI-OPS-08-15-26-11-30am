@@ -12,6 +12,7 @@ import {
   Cable, Plug, Truck, Users, FileText, AlertOctagon, FileUp, FileDown,
   Loader2, RefreshCcw, Save, X, Pencil, Trash2, AlertTriangle,
   CheckCircle2, ExternalLink, Eye, EyeOff, Wand2, ChevronRight, Undo2,
+  MapPin, Zap, Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +81,7 @@ export default function AdminIntegrationCenter() {
           <TabsTrigger value="errors" data-testid="ic-tab-errors"><AlertOctagon className="w-3.5 h-3.5 mr-1" /> Error Logs</TabsTrigger>
           <TabsTrigger value="csv" data-testid="ic-tab-csv"><FileUp className="w-3.5 h-3.5 mr-1" /> CSV Import / Export</TabsTrigger>
           <TabsTrigger value="wizard" data-testid="ic-tab-wizard"><Wand2 className="w-3.5 h-3.5 mr-1" /> Mappings Wizard</TabsTrigger>
+          <TabsTrigger value="geofences" data-testid="ic-tab-geofences"><MapPin className="w-3.5 h-3.5 mr-1" /> Geofences</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -97,6 +99,7 @@ export default function AdminIntegrationCenter() {
         <TabsContent value="errors"><ErrorLogsTab /></TabsContent>
         <TabsContent value="csv"><CsvTab /></TabsContent>
         <TabsContent value="wizard"><WizardTab /></TabsContent>
+        <TabsContent value="geofences"><GeofencesTab /></TabsContent>
       </Tabs>
     </AdminShell>
   );
@@ -452,6 +455,7 @@ function MappingTab({ kind }) {
           <Button onClick={openCreate} className="bg-slate-900 hover:bg-slate-800 text-white h-10" data-testid={`ic-${kind}-new`}>
             + Add Mapping
           </Button>
+          <AutoLinkButton kind={kind} onDone={refresh} />
         </div>
       </div>
 
@@ -1219,3 +1223,221 @@ function WizardTab() {
     </div>
   );
 }
+
+/* ──────────────────────────────────────────────────────────────────
+ * P1-A / P1-B · Motive ↔ MASCI Auto-Link button.
+ * Re-uses POST /api/admin/integrations/motive/auto-link?kind={assets|drivers}
+ * Idempotent · never overwrites manual mappings · logs to sync_logs.
+ * ────────────────────────────────────────────────────────────────── */
+function AutoLinkButton({ kind, onDone }) {
+  const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const target = kind === "asset" ? "assets" : "drivers";
+
+  const doPreview = async () => {
+    setBusy(true);
+    try {
+      const r = await api.get(`/admin/integrations/motive/auto-link/preview?kind=${target}`);
+      setPreview(r.data);
+    } catch (e) { toast.error(operationalError(e, "Preview failed")); }
+    finally { setBusy(false); }
+  };
+  const doRun = async () => {
+    setBusy(true);
+    try {
+      const r = await api.post(`/admin/integrations/motive/auto-link?kind=${target}`);
+      toast.success(`Auto-linked ${r.data.linked} · ${r.data.skipped_manual} kept · ${r.data.conflicts} conflict${r.data.conflicts === 1 ? "" : "s"}`);
+      setPreview(null);
+      onDone && onDone();
+    } catch (e) { toast.error(operationalError(e, "Auto-link failed")); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <>
+      <Button
+        onClick={doPreview}
+        disabled={busy}
+        variant="outline"
+        className="h-10 border-emerald-300 text-emerald-800 hover:bg-emerald-50"
+        data-testid={`ic-${kind}-autolink-preview`}
+      >
+        <Zap className="w-3.5 h-3.5 mr-1.5" /> Auto-Link from Motive
+      </Button>
+      {preview && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setPreview(null)}>
+          <div className="bg-white rounded-md max-w-xl w-full p-5 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()} data-testid={`ic-${kind}-autolink-dialog`}>
+            <div className="flex items-start gap-3 mb-3">
+              <Zap className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-display text-lg font-black">Auto-Link Preview · {target}</h3>
+                <p className="text-xs text-slate-600 mt-1">
+                  This will link Motive {target} to MASCI {kind === "asset" ? "equipment" : "employees"} using
+                  high-confidence matches only (VIN / unit-number for assets · email / full-name for drivers).
+                  <strong> Existing manual links are never overwritten.</strong>
+                </p>
+              </div>
+              <button onClick={() => setPreview(null)} className="text-slate-400 hover:text-slate-700"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              <AutoLinkStat label="Will Link" value={preview.counts?.link ?? 0} cls="bg-emerald-50 border-emerald-300 text-emerald-900" />
+              <AutoLinkStat label="Manual (skip)" value={preview.counts?.skip_manual_link ?? 0} cls="bg-amber-50 border-amber-300 text-amber-900" />
+              <AutoLinkStat label="Same (noop)" value={preview.counts?.skip_already_linked_same ?? 0} cls="bg-slate-50 border-slate-300 text-slate-800" />
+              <AutoLinkStat label="No Match" value={preview.counts?.no_match ?? 0} cls="bg-slate-50 border-slate-300 text-slate-700" />
+            </div>
+            <div className="border border-slate-200 rounded-md overflow-x-auto max-h-72">
+              <table className="w-full text-xs">
+                <thead className="bg-slate-100 text-[10px] uppercase tracking-[0.15em] font-mono text-slate-700">
+                  <tr>
+                    <th className="text-left px-2 py-1.5">Motive</th>
+                    <th className="text-left px-2 py-1.5">MASCI</th>
+                    <th className="text-left px-2 py-1.5">Method</th>
+                    <th className="text-left px-2 py-1.5">Decision</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(preview.proposals || []).slice(0, 50).map((p, i) => (
+                    <tr key={i} className="border-t border-slate-100">
+                      <td className="px-2 py-1 font-mono">{p.motive_number || p.motive_name || p.motive_vehicle_id || p.motive_driver_id}</td>
+                      <td className="px-2 py-1 font-mono">{p.candidate_unit_number || p.candidate_employee_name || <span className="text-slate-400">—</span>}</td>
+                      <td className="px-2 py-1 font-mono uppercase tracking-[0.1em]">{p.match_method || "—"}</td>
+                      <td className="px-2 py-1">
+                        {p.decision === "link" && <span className="text-emerald-700 font-bold">Link</span>}
+                        {p.decision === "skip_manual_link" && <span className="text-amber-700">Manual</span>}
+                        {p.decision === "skip_already_linked_same" && <span className="text-slate-500">Same</span>}
+                        {p.decision === "no_match" && <span className="text-slate-400">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setPreview(null)} disabled={busy} data-testid={`ic-${kind}-autolink-cancel`}>Cancel</Button>
+              <Button onClick={doRun} disabled={busy || (preview.counts?.link ?? 0) === 0} className="bg-emerald-700 hover:bg-emerald-800 text-white" data-testid={`ic-${kind}-autolink-confirm`}>
+                {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Zap className="w-3.5 h-3.5 mr-1.5" />}
+                Link {preview.counts?.link ?? 0} now
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function AutoLinkStat({ label, value, cls }) {
+  return (
+    <div className={`rounded-md border-2 px-2 py-2 ${cls}`}>
+      <div className="font-mono text-[9px] uppercase tracking-[0.15em] font-bold">{label}</div>
+      <div className="font-display text-xl font-black mt-0.5">{value}</div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ * P1-G · Geofences tab (read-only). Surfaces the 67 ingested
+ * Motive geofences with their "currently inside" vehicle count
+ * (point-in-polygon at request time — no schema changes).
+ * ────────────────────────────────────────────────────────────────── */
+function GeofencesTab() {
+  const [rows, setRows] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("all");
+  const [category, setCategory] = useState("all");
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (status !== "all") params.set("status", status);
+      if (category !== "all") params.set("category", category);
+      const r = await api.get(`/integrations/motive/geofences${params.toString() ? `?${params}` : ""}`);
+      setRows(Array.isArray(r.data) ? r.data : []);
+    } catch (e) { toast.error(operationalError(e, "Could not load geofences")); setRows([]); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status, category]);
+
+  const categories = ["all", ...Array.from(new Set((rows || []).map((g) => g.category).filter(Boolean)))];
+  const totalActive = (rows || []).filter((g) => g.status === "active").length;
+  const totalInside = (rows || []).reduce((acc, g) => acc + (g.linked_assets_count || 0), 0);
+
+  return (
+    <div className="space-y-4" data-testid="ic-geofences">
+      <div className="bg-white border border-slate-200 rounded-md p-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h3 className="font-display text-lg font-black">Motive Geofences</h3>
+            <p className="text-sm text-slate-600">
+              {rows ? rows.length : "…"} geofences synced · {totalActive} active · <strong>{totalInside}</strong> vehicle{totalInside === 1 ? "" : "s"} currently inside a polygon. Read-only.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-36 h-9" data-testid="ic-geofence-status"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="deactivated">Deactivated</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-44 h-9" data-testid="ic-geofence-category"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {categories.map((c) => <SelectItem key={c} value={c}>{c === "all" ? "All Categories" : c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={load} className="h-9" data-testid="ic-geofence-refresh">
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCcw className="w-3.5 h-3.5" />}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {loading && !rows ? (
+        <div className="text-center py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400" /></div>
+      ) : !rows || rows.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-md p-8 text-center text-slate-500">
+          No geofences match the current filter.
+        </div>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-100 text-[10px] uppercase tracking-[0.15em] font-mono text-slate-700">
+              <tr>
+                <th className="text-left px-3 py-2">Name</th>
+                <th className="text-left px-3 py-2">Category</th>
+                <th className="text-left px-3 py-2">Status</th>
+                <th className="text-left px-3 py-2">Address</th>
+                <th className="text-right px-3 py-2">Inside Now</th>
+                <th className="text-left px-3 py-2">Last Activity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((g) => (
+                <tr key={g.id} className="border-t border-slate-100" data-testid={`ic-geofence-row-${g.id}`}>
+                  <td className="px-3 py-2 font-bold">{g.name || <span className="text-slate-400">—</span>}</td>
+                  <td className="px-3 py-2 text-xs">{g.category || "Uncategorized"}</td>
+                  <td className="px-3 py-2 text-xs">
+                    <span className={`px-1.5 py-0.5 rounded font-mono uppercase tracking-[0.12em] text-[10px] font-bold ${g.status === "active" ? "bg-emerald-100 text-emerald-900 border border-emerald-300" : "bg-slate-100 text-slate-600 border border-slate-300"}`}>{g.status}</span>
+                  </td>
+                  <td className="px-3 py-2 text-xs text-slate-600">{g.address || "—"}</td>
+                  <td className="px-3 py-2 text-right">
+                    {g.linked_assets_count > 0
+                      ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-300 font-mono text-[11px] font-bold"><Activity className="w-3 h-3" /> {g.linked_assets_count}</span>
+                      : <span className="text-slate-300 font-mono text-xs">0</span>}
+                  </td>
+                  <td className="px-3 py-2 text-xs text-slate-500 font-mono">
+                    {g.last_activity_at ? new Date(g.last_activity_at).toLocaleString() : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+

@@ -87,10 +87,13 @@ export default function DispatchIntegrationsTab() {
           settings={motive}
           rows={[
             { label: "Tracked Assets",        value: motive.tracked_assets,          tip: "Equipment with a Motive mapping." },
+            { label: "GPS-Enabled",           value: motive.gps_enabled_assets,      tip: "Vehicles + assets currently reporting GPS." },
+            { label: "Moving Now",            value: motive.moving_count,            tip: "Speed >5 kph in the last 30 min." },
+            { label: "Idle",                  value: motive.idle_count,              tip: "Reporting but stationary in the last 30 min." },
+            { label: "Not Reporting (24h)",   value: motive.not_reporting,           tip: "No telemetry within 24 h." },
+            { label: "Linked to MASCI",       value: motive.linked_to_masci,         tip: "Motive units joined to equipment_master." },
+            { label: "Linked Drivers",        value: motive.linked_drivers,          tip: "Motive drivers joined to employees." },
             { label: "Last Telemetry Sync",   value: motive.last_sync_at || "—",     tip: "Most recent location/telemetry pull." },
-            { label: "Idle Assets",           value: motive.idle_count,              tip: "Reporting but no movement >7d." },
-            { label: "Not Reporting",         value: motive.not_reporting,           tip: "Mapped but no recent telemetry." },
-            { label: "Unmapped Motive Units", value: motive.unmapped_external,       tip: "External units not yet tied to a MASCI asset." },
           ]}
           emptyLabel="Awaiting Motive integration configuration. GPS, telematics, and asset tracking data will appear here once Admin enables the integration."
           adminLink="/admin/integrations"

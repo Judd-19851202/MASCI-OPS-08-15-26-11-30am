@@ -150,7 +150,7 @@ function MotiveRow({ row }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-bold text-sm capitalize">
-            {(row.event_type || "").replace(/_/g, " ")}
+            {row.event_type_label || (row.event_type || "").replace(/_/g, " ")}
           </span>
           <span className={`px-1.5 py-0.5 rounded border text-[9px] font-mono uppercase tracking-[0.15em] font-bold ${sev}`}>
             {row.severity}
