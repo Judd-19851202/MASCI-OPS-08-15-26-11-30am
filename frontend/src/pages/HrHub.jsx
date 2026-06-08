@@ -13,6 +13,7 @@ import GlobalSearch from "@/components/GlobalSearch";
 import { OfflineIndicator } from "@/lib/resiliency";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
+import ExpirationsSummary from "@/components/ExpirationsSummary";
 import OperationsCenter from "@/components/OperationsCenter";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
@@ -308,6 +309,11 @@ export default function HrHub() {
               </section>
             );
           })}
+        </div>
+
+        {/* Sprint A · DocExp-60/90 · expiration intelligence for HR */}
+        <div className="mt-6" data-testid="hr-expirations-section">
+          <ExpirationsSummary title="Employee Document & Certification Expirations" />
         </div>
 
         {/* Cross-portal integration strip — Motive driver-safety roll-up

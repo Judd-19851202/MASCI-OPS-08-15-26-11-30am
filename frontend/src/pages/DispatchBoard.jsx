@@ -451,6 +451,7 @@ export default function DispatchBoard() {
   const [findings, setFindings] = useState([]);
   const [findingCounts, setFindingCounts] = useState({});
   const [gpsByUnit, setGpsByUnit] = useState({});  // OIS-1A · fleet-gps map
+  const [dayBucket, setDayBucket] = useState("today");  // Sprint A · Track B
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -709,17 +710,46 @@ export default function DispatchBoard() {
           </div>
         ) : (
           <div className="space-y-2" data-testid="board-rows">
-            {assignments.map((a) => {
-              const key = String(a.truck_id || "").trim().toUpperCase();
-              return (
-                <AssignmentRow
-                  key={a.id}
-                  a={a}
-                  onOpen={setDrawerAssignment}
-                  gpsInfo={gpsByUnit[key] || null}
-                />
-              );
-            })}
+            {/* Sprint A · Track B — Future-Day Dispatch filter */}
+            <div className="flex items-center gap-2 mb-2 flex-wrap" data-testid="board-day-tabs">
+              <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">View:</span>
+              {[["today", t("Today")], ["tomorrow", t("Tomorrow")], ["upcoming", t("Upcoming")], ["all", t("All")]].map(([k, label]) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setDayBucket(k)}
+                  data-testid={`board-day-tab-${k}`}
+                  className={`px-2 py-1 rounded border text-[11px] font-mono uppercase tracking-wider ${dayBucket === k ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {assignments
+              .filter((a) => {
+                if (dayBucket === "all") return true;
+                const at = a.assigned_at || a.last_transition_at;
+                if (!at) return dayBucket === "today";
+                const d = new Date(at);
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+                const dayAfter = new Date(today); dayAfter.setDate(dayAfter.getDate() + 2);
+                if (dayBucket === "today")    return d >= today && d < tomorrow;
+                if (dayBucket === "tomorrow") return d >= tomorrow && d < dayAfter;
+                if (dayBucket === "upcoming") return d >= dayAfter;
+                return true;
+              })
+              .map((a) => {
+                const key = String(a.truck_id || "").trim().toUpperCase();
+                return (
+                  <AssignmentRow
+                    key={a.id}
+                    a={a}
+                    onOpen={setDrawerAssignment}
+                    gpsInfo={gpsByUnit[key] || null}
+                  />
+                );
+              })}
           </div>
         )}
       </main>

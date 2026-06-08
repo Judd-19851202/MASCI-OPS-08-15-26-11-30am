@@ -9885,8 +9885,10 @@ async def _require_driver_profile_actor(
 
 
 from routes.driver_profile import register_driver_profile_routes  # noqa: E402
+from routes.sprint_a import register_sprint_a_routes  # noqa: E402
 _dcp_router = APIRouter(prefix="/api", tags=["driver-profile"])
 register_driver_profile_routes(_dcp_router, db, _require_driver_profile_actor)
+register_sprint_a_routes(_dcp_router, db, _require_driver_profile_actor)
 app.include_router(_dcp_router)
 
 
