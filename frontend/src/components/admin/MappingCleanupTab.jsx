@@ -16,8 +16,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Activity, AlertTriangle, ShieldCheck, Truck, Users, RefreshCcw,
-  Link2, Ban, UserX, Archive, Layers, CheckCircle2, X, Loader2,
+  Link2, Ban, UserX, Archive, Layers, CheckCircle2, X, Loader2, IdCard,
 } from "lucide-react";
+import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -231,7 +232,9 @@ function PickerDialog({ open, kind, onClose, onPick }) {
   );
 }
 
-function DriverQueue({ data, onRefresh }) {
+function DriverQueue({ data, onRefresh, mode = "admin" }) {
+  const isHR = mode === "hr";
+  const profileBase = isHR ? "/hr/driver" : "/admin/driver-intel";
   const [filter, setFilter] = useState("all");
   const [picker, setPicker] = useState({ open: false, mappingId: null });
   const counts = data?.counts || { active_unlinked: 0, deactivated: 0, resolved: 0 };
@@ -318,6 +321,15 @@ function DriverQueue({ data, onRefresh }) {
                 <td className="px-2 py-2 align-top">
                   <div className="font-bold text-slate-900">{r.motive_name}</div>
                   <div className="text-[10px] text-slate-500 font-mono">{r.motive_driver_id}</div>
+                  {(r.existing_employee_id || r.motive_driver_id || r.motive_user_id) ? (
+                    <RouterLink
+                      to={`${profileBase}/${encodeURIComponent(r.existing_employee_id || r.motive_user_id || r.motive_driver_id)}`}
+                      className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-indigo-700 hover:text-indigo-900 mt-1"
+                      data-testid={`mcc-drv-profile-${r.mapping_id}`}
+                    >
+                      <IdCard className="w-3 h-3" /> Profile
+                    </RouterLink>
+                  ) : null}
                 </td>
                 <td className="px-2 py-2 align-top">
                   <div className="text-slate-700">{r.motive_email || <span className="text-slate-400 italic">—</span>}</div>
@@ -703,7 +715,7 @@ export default function MappingCleanupTab({ mode = "admin" }) {
   return (
     <div className="space-y-5" data-testid={isHR ? "mcc-cleanup-tab-hr" : "mcc-cleanup-tab"}>
       <TrustScoreHeader data={trust} onRefresh={load} refreshing={refreshing} mode={mode} />
-      <DriverQueue data={drivers} onRefresh={load} />
+      <DriverQueue data={drivers} onRefresh={load} mode={mode} />
       <AssetQueue data={assets} onRefresh={load} mode={mode} />
       {!isHR ? <ConflictPanel data={conflicts} onRefresh={load} /> : null}
     </div>

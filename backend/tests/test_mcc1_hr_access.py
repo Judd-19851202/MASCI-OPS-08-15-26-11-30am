@@ -78,7 +78,7 @@ def test_hr_driver_ignore_roundtrip(hr_token):
     mid = target["mapping_id"]
     r = requests.post(
         f"{BASE}/api/admin/integrations/cleanup/drivers/{mid}/ignore",
-        headers={"X-HR-Token": hr_token, "Content-Type": "application/json"},
+        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
         json={"note": "MCC-1 HR access regression"},
         timeout=30,
     )
@@ -102,7 +102,7 @@ def test_hr_driver_ignore_roundtrip(hr_token):
 def test_hr_cannot_retire(hr_token):
     r = requests.post(
         f"{BASE}/api/admin/integrations/cleanup/assets/dummy-id/retire",
-        headers={"X-HR-Token": hr_token, "Content-Type": "application/json"},
+        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
         json={},
         timeout=30,
     )
@@ -113,7 +113,7 @@ def test_hr_cannot_retire(hr_token):
 def test_hr_cannot_ignore_gateway(hr_token):
     r = requests.post(
         f"{BASE}/api/admin/integrations/cleanup/assets/dummy-id/ignore-gateway",
-        headers={"X-HR-Token": hr_token, "Content-Type": "application/json"},
+        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
         json={},
         timeout=30,
     )
@@ -124,7 +124,7 @@ def test_hr_cannot_ignore_gateway(hr_token):
 def test_hr_cannot_resolve_conflict(hr_token):
     r = requests.post(
         f"{BASE}/api/admin/integrations/cleanup/conflicts/resolve",
-        headers={"X-HR-Token": hr_token, "Content-Type": "application/json"},
+        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
         json={"kind": "asset", "action": "dismiss", "mapping_a_id": "x"},
         timeout=30,
     )
@@ -135,7 +135,7 @@ def test_hr_cannot_resolve_conflict(hr_token):
 def test_hr_cannot_link_asset(hr_token):
     r = requests.post(
         f"{BASE}/api/admin/integrations/cleanup/assets/dummy-id/link",
-        headers={"X-HR-Token": hr_token, "Content-Type": "application/json"},
+        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
         json={"equipment_id": "dummy"},
         timeout=30,
     )

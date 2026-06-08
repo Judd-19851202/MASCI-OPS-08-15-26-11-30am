@@ -9854,6 +9854,42 @@ _integrations_router = build_integrations_router(
 app.include_router(_integrations_router)
 
 
+# ─── DCP-1 · Driver Command Profile ─────────────────────────────────
+# Multi-portal actor resolver. Returns {_role, name, ...}. Order of
+# precedence: Admin > Safety > HR > Dispatch. The endpoint's per-section
+# redactor honours `_role` to shape the response.
+async def _require_driver_profile_actor(
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+):
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"_role": "admin", "name": "Admin"}
+    if x_safety_token:
+        from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
+        u = await is_valid_safety_user_token_async(db, x_safety_token)
+        if u:
+            return {**u, "_role": "safety"}
+    if x_hr_token:
+        from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+        u = await is_valid_hr_user_token_async(db, x_hr_token)
+        if u:
+            return {**u, "_role": "hr"}
+    if x_dispatch_token:
+        from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
+        u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+        if u:
+            return {**u, "_role": "dispatch"}
+    raise HTTPException(401, "Admin, Safety, HR, or Dispatch login required")
+
+
+from routes.driver_profile import register_driver_profile_routes  # noqa: E402
+_dcp_router = APIRouter(prefix="/api", tags=["driver-profile"])
+register_driver_profile_routes(_dcp_router, db, _require_driver_profile_actor)
+app.include_router(_dcp_router)
+
+
 # ─── Operations layer (Asset Profile · Event Log · Dispatch · Utilization · iter124) ─
 from routes.operations import (  # noqa: E402
     build_operations_router,

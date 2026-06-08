@@ -1,3 +1,48 @@
+## 2026-06-08 (DCP-1 + FWA-1 · Driver Command Profile + FleetWatcher Forensic Audit · 🟢🟢 BOTH CERTIFIED)
+
+OMEGA twin-track sprint closed green. DCP-1 ships a single Driver Command Profile reused across Admin, HR, Safety, Dispatch portals with server-side role redaction. FWA-1 delivers a read-only forensic audit of FleetWatcher with phased ROI ranking — zero code written for FWA.
+
+### DCP-1 Backend (1 new file · 1 endpoint · multi-portal auth)
+- `routes/driver_profile.py` — `GET /api/operations/drivers/{driver_key}/profile`. Resolves by employees.id / employees.employee_id / motive user_id|driver_id|id. Returns identity / operations / safety / training / equipment_usage / motive / mapping_health, then redacts by role: Admin sees everything, HR strips mapping_health, Safety strips mapping_health, Dispatch strips everything except identity/operations/equipment.
+- `server.py` — `_require_driver_profile_actor` multi-portal resolver (Admin · Safety · HR · Dispatch via X-*-Token headers).
+- Source collections reused: employees · employee_mappings · motive_events · dispatch_assignments · incidents · corrective_actions · safety_training_records · document_expirations · asset_mappings · equipment_master. **Zero new collections.**
+
+### DCP-1 Frontend (5 new files · 2 edits)
+- `components/DriverCommandProfile.jsx` (shared, ~330 lines) — Identity, Operations, Safety, Training, Equipment Usage, Motive, Mapping Health sections.
+- `pages/admin/AdminDriverIntel.jsx` — rewritten to mount the shared component (replaces legacy OIS-1C panel).
+- `pages/HrDriverProfile.jsx` · `pages/SafetyDriverProfile.jsx` · `pages/DispatchDriverProfile.jsx` — thin portal-shell wrappers.
+- `components/admin/MappingCleanupTab.jsx` — added per-row "Profile" link in DriverQueue.
+- `App.js` — registered `/hr/driver/:driverKey`, `/safety-portal/driver/:driverKey`, `/dispatch-portal/driver/:driverKey`.
+
+### DCP-1 Verification
+- 7/7 DCP-1 regression tests pass (`test_dcp1_driver_profile.py`).
+- Regression: 18/18 MCC-1 HR + 12/12 MCC-1 + 8/8 OIS-1 still green = **44 / 44 across all sprints**.
+- Live HR screenshot `/hr/driver/{id}` confirms 6 sections render with `mapping_health` correctly omitted.
+- Server-side redaction verified: HR-as-driver-fetch returns `_role:"hr"` and `mapping_health` is absent from the JSON payload.
+
+### FWA-1 Audit (Read-only · zero code)
+- `/app/memory/FWA1_FLEETWATCHER_FORENSIC_AUDIT.md` (~270 lines).
+- Inventory: tickets · cycle states (Loaded/Enroute/Arrived/Dumped) · weights · plants · trucks · production · KPIs.
+- Integration capability: Command Cloud open-API (yes) · native webhooks (not advertised — likely API polling) · CSV export (yes).
+- Role mapping: P0 = Dispatch + Operations, P1 = PM + Superintendent, P2 = Accounting + Safety, P3 = Shop.
+- Overlap with Motive: zero overlap on production data. Recommended SOT split — Motive = vehicle/driver/safety, FleetWatcher = load/material/production.
+- Phased roadmap: FW-1 Ticket Ingest → FW-2 Cycle Status Badge → FW-3 Production Rollup → FW-4 DCP-1 Production tab → FW-5 Mix/Yield → FW-6 Webhook.
+
+### Certifications
+- `/app/memory/DCP1_DRIVER_COMMAND_PROFILE_CERTIFICATION.md`
+- `/app/memory/FWA1_FLEETWATCHER_FORENSIC_AUDIT.md`
+
+### Open questions for operator (FWA next steps)
+1. Does MASCI's FleetWatcher contract include Command Cloud API access?
+2. Legacy FleetWatcher tenant vs AlignOps / Digital Fleet rebrand?
+3. Who owns ticket-reconciliation pain currently (Dispatch lead / Accounting / PM)?
+
+### Next deferred (NOT started · OMEGA gate)
+- **FW-1** Ticket Ingest sprint (operator must answer the 3 questions above)
+- **M-2** Webhook event-type router → Dispatch state transitions
+- **M-3** Geocode `jobs_master` + plant/yard addresses
+
+
 ## 2026-06-08 (MCC-1 HR Access Extension · 🟢 CERTIFIED)
 
 OMEGA role/access extension shipped. HR can now resolve every Motive driver mapping issue end-to-end via the HR portal, while Admin keeps ownership of asset cleanup and equipment-conflict resolution.

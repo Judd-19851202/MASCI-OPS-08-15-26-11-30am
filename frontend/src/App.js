@@ -149,6 +149,9 @@ import HrIncidents from "@/pages/HrIncidents";
 import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrDailyReports, { HrDailyReportDetail } from "@/pages/HrDailyReports";
 import HrMotiveDrivers from "@/pages/HrMotiveDrivers";
+import HrDriverProfile from "@/pages/HrDriverProfile";
+import SafetyDriverProfile from "@/pages/SafetyDriverProfile";
+import DispatchDriverProfile from "@/pages/DispatchDriverProfile";
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
 import HrDriverQualificationDashboard from "@/pages/HrDriverQualificationDashboard";
 import HrDriverQualificationImport from "@/pages/HrDriverQualificationImport";
@@ -636,6 +639,8 @@ function App() {
             <Route path="/hr/daily-reports/:id" element={H(<HrDailyReportDetail />)} />
             {/* MCC-1 HR Access Extension · 2026-06-08 · HR-scoped driver cleanup */}
             <Route path="/hr/motive-drivers" element={H(<HrMotiveDrivers />)} />
+            {/* DCP-1 · Driver Command Profile · per-portal landing */}
+            <Route path="/hr/driver/:driverKey" element={H(<HrDriverProfile />)} />
             <Route path="/time-off/public/:token" element={<PublicTimeOff />} />
 
             {/* ============================================================
@@ -676,6 +681,8 @@ function App() {
             <Route path="/safety-portal/library" element={SF(<SafetyTopicLibrary />)} />
             <Route path="/safety-portal/employees" element={SF(<SafetyEmployeeProfiles />)} />
             <Route path="/safety-portal/digest" element={SF(<SafetyDigest />)} />
+            {/* DCP-1 · Driver Command Profile · Safety scope */}
+            <Route path="/safety-portal/driver/:driverKey" element={SF(<SafetyDriverProfile />)} />
 
             {/* HR cross-portal read-only safety view (uses X-HR-Token) */}
             <Route path="/hr/safety-records" element={H(<HrSafetyRecords />)} />
@@ -703,6 +710,8 @@ function App() {
             <Route path="/dispatch-portal/fleet" element={DP(<FleetVisibility scope="dispatch" />)} />
             {/* iter353b · Dispatch read-only Approved Drivers / CDL Readiness */}
             <Route path="/dispatch-portal/driver-qualification" element={DP(<DispatchDriverQualification />)} />
+            {/* DCP-1 · Driver Command Profile · Dispatch scope */}
+            <Route path="/dispatch-portal/driver/:driverKey" element={DP(<DispatchDriverProfile />)} />
 
             {/* ============================================================
                 Training Hub — landing is public, tracks gate per audience
