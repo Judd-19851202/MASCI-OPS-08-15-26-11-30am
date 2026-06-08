@@ -1,3 +1,33 @@
+## 2026-06-08 (Sprint A · DocExp-60/90 + Future-Day Dispatch · FULL CERTIFICATION 🟢🟢🟢🟢🟢)
+
+OMEGA Sprint A closed across **all five** intended surfaces. Read-only, zero-new-collection, zero-automation visibility for 5-band document expiration windows and future-day dispatch buckets.
+
+### Backend
+- `routes/sprint_a.py` — `/api/operations/expirations/summary` (5-band counts + ≤25-row sample per band) and `/api/operations/dispatch/by-day` (today/tomorrow/upcoming/all bucket + coverage + conflicts).
+- `routes/driver_profile.py` — `_training()` extended to return `expiring_60d` and `expiring_90d` alongside existing `expiring_30d`, `current`, `expired` for per-driver universal-palette parity.
+
+### Frontend (5 surfaces)
+- `components/ExpirationsSummary.jsx` — shared 5-band panel reused on all hubs.
+- `pages/AdminHub.jsx`, `pages/HrHub.jsx`, `pages/SafetyHub.jsx` — mount the shared panel (Safety Hub added this iteration).
+- `pages/DispatchBoard.jsx` — Today / Tomorrow / Upcoming / All tab strip with client-side date filter.
+- `components/DriverCommandProfile.jsx` · `TrainingSection` — 5-tile band (Expired · ≤30 · ≤60 · ≤90 · Healthy) matching universal palette.
+
+### Verification
+- Backend pytest: **14/14 pass** (test_sprint_a.py 5 + test_dcp1_driver_profile.py 9).
+- `testing_agent_v3_fork` certified all 5 surfaces live (HR, Admin, Safety, Dispatch, DCP).
+- Live counts on preview: `expired=20 · in_30=4 · in_60=10 · in_90=6 · healthy=68`.
+
+### Certification doc
+`/app/memory/SPRINTA_DOCEXP_FUTUREDISPATCH_CERTIFICATION.md`
+
+### Next (DEFERRED · OMEGA gate)
+- **FW-1** Ticket Ingest sprint
+- **M-2** Webhook event-type router
+- **M-3** Geocode `jobs_master` + plant/yard addresses
+- `test_trench_safety_phase2.py::test_dashboard_seed_data` stale-fixture (deferred under OMEGA)
+
+
+
 ## 2026-06-08 (DSI-1 · Dispatch Situational Intelligence · 🟢 CERTIFIED)
 
 OMEGA DSI-1 sprint closed green. Live Motive intelligence is now operational decision-making infrastructure — dispatchers no longer need to open Motive / FleetWatcher / MaintainX or call a driver to answer the 8 core operational questions.
