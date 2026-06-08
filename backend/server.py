@@ -9155,6 +9155,28 @@ async def _log_operational_hygiene_at_startup():
     await _log_operational_hygiene(reason="startup", db=db)
 
 
+@app.on_event("startup")
+async def _start_motive_reliability_loop():
+    """M-1R · Motive reliability supervisor.
+
+    Reuses the existing asyncio scheduler doctrine. Fires four periodic
+    sync loops (events / assets / users / geofences) at the cadences
+    defined in `lib.motive_reliability`. Singleton-locked so only one
+    worker ticks across a multi-worker fleet. Visibility-only — never
+    mutates dispatch/maintenance state, never triggers workflow.
+    """
+    try:
+        from lib.motive_reliability import motive_reliability_supervisor  # noqa: PLC0415
+        asyncio.create_task(motive_reliability_supervisor(db))
+        logging.getLogger(__name__).info(
+            "[motive-reliability] supervisor task scheduled"
+        )
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).exception(
+            f"[motive-reliability] failed to schedule supervisor: {e}"
+        )
+
+
 
 @app.on_event("startup")
 async def _clear_super_admin_force_pw_change():

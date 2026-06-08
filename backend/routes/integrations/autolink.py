@@ -356,5 +356,50 @@ def register_autolink_routes(api_router: APIRouter, db, require_admin) -> None:
         )
         return {"ok": True, "kind": kind, **result}
 
+    # M-1R · Reliability supervisor state (read-only)
+    @api_router.get(
+        "/admin/integrations/motive/reliability-state",
+        dependencies=[Depends(require_admin)],
+    )
+    async def get_reliability_state():
+        from lib.motive_reliability import reliability_state_snapshot  # noqa: PLC0415
+        snap = reliability_state_snapshot()
+        # Plus a derived staleness rollup so the existing IC tile can
+        # render "X assets stale >24h / >7d / >30d" without any new
+        # collection.
+        from datetime import datetime, timezone, timedelta  # noqa: PLC0415
+        now = datetime.now(timezone.utc)
+        stale = {}
+        for label, hrs in (("over_24h", 24), ("over_7d", 24 * 7), ("over_30d", 24 * 30)):
+            cut = (now - timedelta(hours=hrs)).isoformat()
+            stale[label] = await db.asset_mappings.count_documents({
+                "provider": "motive",
+                "motive.gps_enabled": True,
+                "$or": [
+                    {"motive.located_at": {"$lt": cut}},
+                    {"motive.located_at": None},
+                    {"motive.located_at": {"$exists": False}},
+                ],
+            })
+        snap["staleness"] = stale
+        snap["total_gps_enabled"] = await db.asset_mappings.count_documents(
+            {"provider": "motive", "motive.gps_enabled": True}
+        )
+        return snap
+
+    # M-1R · Force-tick (preview verification when SCHEDULER_ENABLED=false)
+    # Production runs the scheduled loop; this endpoint is the manual
+    # equivalent of one cadence tick. NEVER performs workflow side-
+    # effects beyond the underlying sync method.
+    @api_router.post(
+        "/admin/integrations/motive/reliability-tick",
+        dependencies=[Depends(require_admin)],
+    )
+    async def force_reliability_tick(kind: str = Query(..., regex="^(events|assets|users|geofences)$")):
+        from lib.motive_reliability import _tick, reliability_state_snapshot  # noqa: PLC0415
+        await _tick(db, kind)
+        snap = reliability_state_snapshot()
+        return {"ok": True, "kind": kind, "tick_state": snap["loops"][kind]}
+
 
 __all__ = ["register_autolink_routes"]
