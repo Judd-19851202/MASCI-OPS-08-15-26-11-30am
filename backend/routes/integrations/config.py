@@ -119,6 +119,50 @@ def register_config_routes(
                                   message=f"test_connection raised: {e}")
             return {"ok": False, "status": "error", "message": str(e)}
 
+    # ── M-1 · Manual sync triggers (Motive only — Maintainx has its own) ──
+    async def _run_sync(provider: str, op: str):
+        if provider not in PROVIDERS:
+            raise HTTPException(404, "Unknown provider")
+        doc = await db.integration_settings.find_one({"provider": provider}, {"_id": 0})
+        svc = _service_for(db, provider, doc)
+        method = getattr(svc, op, None)
+        if method is None:
+            raise HTTPException(400, f"Operation {op} not supported by {provider}")
+        try:
+            return await method(triggered_by="admin")
+        except Exception as e:  # noqa: BLE001
+            await write_error_log(db, integration=provider, kind="api",
+                                  message=f"{op} raised: {e}")
+            return {"ok": False, "status": "error", "message": str(e)}
+
+    @api_router.post(
+        "/admin/integrations/{provider}/sync-assets",
+        dependencies=[Depends(require_admin)],
+    )
+    async def admin_integration_sync_assets(provider: str):
+        return await _run_sync(provider, "sync_assets")
+
+    @api_router.post(
+        "/admin/integrations/{provider}/sync-users",
+        dependencies=[Depends(require_admin)],
+    )
+    async def admin_integration_sync_users(provider: str):
+        return await _run_sync(provider, "sync_users")
+
+    @api_router.post(
+        "/admin/integrations/{provider}/sync-geofences",
+        dependencies=[Depends(require_admin)],
+    )
+    async def admin_integration_sync_geofences(provider: str):
+        return await _run_sync(provider, "sync_geofences")
+
+    @api_router.post(
+        "/admin/integrations/{provider}/sync-events",
+        dependencies=[Depends(require_admin)],
+    )
+    async def admin_integration_sync_events(provider: str):
+        return await _run_sync(provider, "sync_events")
+
     # ── Public-to-portals (Safety/HR/Admin) health card ─────────────
     @api_router.get(
         "/integrations/health", dependencies=[Depends(require_safety_or_hr_or_admin)],
