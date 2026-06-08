@@ -9892,6 +9892,78 @@ register_sprint_a_routes(_dcp_router, db, _require_driver_profile_actor)
 app.include_router(_dcp_router)
 
 
+# ─── OA-1 · Operations Actions · cross-portal CRUD layer ────────────
+# Accepts ANY real portal token (Admin · Safety · HR · Dispatch · PM ·
+# Shop · Field-Leadership). See /app/memory/OA1_OPERATIONS_ACTIONS_CONSTITUTION.md.
+async def _require_oa_actor(
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+    x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
+    x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
+):
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"_role": "admin", "name": "Admin", "id": "admin", "email": ""}
+    if x_safety_token:
+        from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
+        u = await is_valid_safety_user_token_async(db, x_safety_token)
+        if u:
+            return {**u, "_role": "safety"}
+    if x_hr_token:
+        from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+        u = await is_valid_hr_user_token_async(db, x_hr_token)
+        if u:
+            return {**u, "_role": "hr"}
+    if x_dispatch_token:
+        from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
+        u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+        if u:
+            return {**u, "_role": "dispatch"}
+    if x_pm_token:
+        from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
+        u = await is_valid_pm_user_token_async(db, x_pm_token)
+        if u:
+            return {**u, "_role": "pm"}
+    if x_shop_token:
+        from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
+        u = await is_valid_shop_user_token_async(db, x_shop_token)
+        if u:
+            return {**u, "_role": "shop"}
+    if x_fl_token:
+        from field_leadership_users import is_valid_fl_user_token_async  # noqa: PLC0415
+        u = await is_valid_fl_user_token_async(db, x_fl_token)
+        if u:
+            return {**u, "_role": "fl"}
+    raise HTTPException(401, "Portal authentication required")
+
+
+from routes.operations_actions import register_operations_actions_routes  # noqa: E402
+_oa_router = APIRouter(prefix="/api", tags=["operations-actions"])
+register_operations_actions_routes(_oa_router, db, _require_oa_actor)
+app.include_router(_oa_router)
+
+
+# Ensure indexes for operations_actions
+async def _ensure_oa_indexes():
+    try:
+        await db.operations_actions.create_index("id", unique=True, name="oa_id_unique")
+        await db.operations_actions.create_index("oa_number", unique=True, sparse=True,
+                                                 name="oa_number_unique")
+        await db.operations_actions.create_index("status", name="oa_status")
+        await db.operations_actions.create_index("current_owner.id", name="oa_owner_id")
+        await db.operations_actions.create_index("job_number", name="oa_job")
+        await db.operations_actions.create_index([("created_at", -1)], name="oa_created_desc")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[oa-1] index ensure failed: {e}")
+
+
+@app.on_event("startup")
+async def _oa_startup():
+    await _ensure_oa_indexes()
+
+
 # ─── Operations layer (Asset Profile · Event Log · Dispatch · Utilization · iter124) ─
 from routes.operations import (  # noqa: E402
     build_operations_router,

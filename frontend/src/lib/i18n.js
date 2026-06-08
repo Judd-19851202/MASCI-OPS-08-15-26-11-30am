@@ -5967,6 +5967,125 @@ const ES = {
   "Back running": "De vuelta en operación",
   "Parts arriving tomorrow": "Piezas llegan mañana",
   "Sensor swapped · running clean": "Sensor cambiado · operando limpio",
+
+  // ── OA-1 · Operations Actions · Day-One bilingual (per constitution) ──
+  // Headings & navigation
+  "Operations Actions": "Acciones Operacionales",
+  "Operations Action": "Acción Operacional",
+  "New Action": "Nueva Acción",
+  "Create Action": "Crear Acción",
+  "Action Detail": "Detalle de Acción",
+  "Actions assigned to me": "Acciones asignadas a mí",
+  "All actions": "Todas las acciones",
+  "No actions yet.": "Aún no hay acciones.",
+  "No actions match these filters.": "Ninguna acción coincide con estos filtros.",
+
+  // Fields
+  "Title": "Título",
+  "Category": "Categoría",
+  "Priority": "Prioridad",
+  "Job": "Trabajo",
+  "Job Number": "Número de Trabajo",
+  "Location": "Ubicación",
+  "Description": "Descripción",
+  "Due Date": "Fecha Límite",
+  "Owner": "Responsable",
+  "Photos": "Fotos",
+  "Notes": "Notas",
+  "History": "Historial",
+  "Add a note": "Agregar una nota",
+  "Add note": "Agregar nota",
+  "Add Photo": "Agregar Foto",
+  "OA Number": "Número OA",
+  "Created By": "Creado Por",
+  "Created": "Creado",
+  "Assigned": "Asignada",
+  "Last Updated": "Última Actualización",
+  "Current Owner": "Responsable Actual",
+
+  // Categories
+  "Truck Down": "Camión Fuera de Servicio",
+  "Utility Conflict": "Conflicto de Servicios",
+  "Missing MOT": "Falta MOT",
+  "GPS Equipment Issue": "Problema GPS de Equipo",
+  "Plant Delay": "Retraso en Planta",
+  "Survey Required": "Requiere Topografía",
+  "Near Miss": "Casi Incidente",
+  "Safety Concern": "Inquietud de Seguridad",
+  "Material Shortage": "Escasez de Material",
+  "Customer Request": "Solicitud de Cliente",
+  "Other": "Otro",
+
+  // Statuses (6 approved only)
+  "Open": "Abierta",
+  "In Progress": "En Progreso",
+  "Waiting": "En Espera",
+  "Completed": "Completada",
+  "Closed": "Cerrada",
+
+  // Priorities
+  "Low": "Baja",
+  "Normal": "Normal",
+  "High": "Alta",
+  "Critical": "Crítica",
+
+  // Buttons
+  "Save": "Guardar",
+  "Cancel": "Cancelar",
+  "Assign": "Asignar",
+  "Reassign": "Reasignar",
+  "Update": "Actualizar",
+  "Close Action": "Cerrar Acción",
+  "Mark In Progress": "Marcar En Progreso",
+  "Mark Waiting": "Marcar En Espera",
+  "Mark Completed": "Marcar Completada",
+  "Reopen": "Reabrir",
+  "Upload": "Subir",
+  "Delete": "Eliminar",
+  "Search owner…": "Buscar responsable…",
+  "Search actions…": "Buscar acciones…",
+  "Pick an owner": "Elige un responsable",
+
+  // Coaching panel (5 mandatory blocks · concise)
+  "Why This Matters": "Por Qué Importa",
+  "Who Sees This": "Quién Lo Ve",
+  "What Happens Next": "Qué Sucede Después",
+  "When To Escalate": "Cuándo Escalar",
+  "Common Mistakes": "Errores Comunes",
+  "Operations Actions give every operator a single place to coordinate, own, and close out field issues — without spreadsheets or radio chains.":
+    "Las Acciones Operacionales dan a cada operador un único lugar para coordinar, responsabilizarse y cerrar problemas de campo — sin hojas de cálculo ni cadenas de radio.",
+  "Every operator portal — Admin, HR, Safety, Dispatch, PM, Shop, Field Leadership — sees actions visible to their role.":
+    "Cada portal de operador — Admin, RH, Seguridad, Despacho, PM, Taller, Liderazgo de Campo — ve las acciones visibles para su rol.",
+  "You pick the owner. The owner gets a bell notification. They drive it to completion. You can update status, add notes, attach photos at any time.":
+    "Tú eliges al responsable. El responsable recibe una notificación. Él lo lleva hasta la finalización. Puedes actualizar el estado, agregar notas y adjuntar fotos en cualquier momento.",
+  "Escalate by raising priority to High or Critical and reassigning to the right operator. Do not invent new statuses — use the six approved.":
+    "Escala subiendo la prioridad a Alta o Crítica y reasignando al operador adecuado. No inventes nuevos estados — usa los seis aprobados.",
+  "Vague titles · no owner · missing job number · no photos · using as a help-desk ticket. Operations Actions are for operational ownership, not support requests.":
+    "Títulos vagos · sin responsable · falta el número de trabajo · sin fotos · usarlo como un ticket de soporte. Las Acciones Operacionales son para responsabilidad operacional, no solicitudes de soporte.",
+
+  // Validation
+  "Title is required.": "El título es obligatorio.",
+  "Category is required.": "La categoría es obligatoria.",
+  "Note cannot be empty.": "La nota no puede estar vacía.",
+  "Photo must be JPEG, PNG, WebP, or HEIC.": "La foto debe ser JPEG, PNG, WebP o HEIC.",
+  "Photo exceeds size limit.": "La foto excede el límite de tamaño.",
+  "Could not save. Please try again.": "No se pudo guardar. Intente de nuevo.",
+
+  // Empty / filter states
+  "Filter by status": "Filtrar por estado",
+  "Filter by category": "Filtrar por categoría",
+  "Filter by priority": "Filtrar por prioridad",
+  "Filter by job": "Filtrar por trabajo",
+  "All statuses": "Todos los estados",
+  "All categories": "Todas las categorías",
+  "All priorities": "Todas las prioridades",
+  "Mine only": "Solo las mías",
+
+  // Tooltip / help
+  "Operations Action — operational ownership, not a ticket.":
+    "Acción Operacional — responsabilidad operacional, no un ticket.",
+  "Required": "Obligatorio",
+  "Optional": "Opcional",
 };
 
 const DICTS = { es: ES, en: {} };

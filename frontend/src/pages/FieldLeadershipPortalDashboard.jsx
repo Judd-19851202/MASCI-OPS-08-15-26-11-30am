@@ -13,6 +13,7 @@ import { api } from "@/lib/api";
 import { getFlUser, clearFlToken, getFlToken } from "@/lib/flAuth";
 import { toast } from "sonner";
 import FlAccountabilityWidget from "@/components/FlAccountabilityWidget";
+import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 
 // iter353d · inline lookup helper (queries the FL DQ endpoint to
 // resolve a name → employee_id, then renders the mini-widget).
@@ -146,6 +147,7 @@ export default function FieldLeadershipPortalDashboard() {
       </div>
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 space-y-4">
         <HelpTipBlock formKey="field-leadership.portal-dashboard" showCounter />
+        <OperationsActionsTile />
         {error && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded p-3 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" /> {error}

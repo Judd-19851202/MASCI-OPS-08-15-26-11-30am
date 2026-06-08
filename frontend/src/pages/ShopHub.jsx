@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
 import DispatchLifecycleTile from "@/components/dispatch/DispatchLifecycleTile";
+import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import { RecoveryActionRow } from "@/components/shop/RecoveryActionRow";
 import { LangToggle } from "@/components/LangToggle";
 import PortalSwitcher from "@/components/PortalSwitcher";
@@ -332,6 +333,7 @@ export default function ShopHub() {
           <div className="space-y-4">
             <DispatchLifecycleTile scope="shop" testId="shop-dispatch-lifecycle" />
             <OpenItemsPanel baseHref="/shop/equipment" testIdPrefix="shop-open" />
+            <OperationsActionsTile />
           </div>
         </section>
 

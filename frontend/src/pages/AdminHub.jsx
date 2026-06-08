@@ -15,6 +15,7 @@ import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import OperationsCenter from "@/components/OperationsCenter";
 import MotiveOpsIntelPanel from "@/components/MotiveOpsIntelPanel";
 import ExpirationsSummary from "@/components/ExpirationsSummary";
+import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import { getAdminToken } from "@/lib/adminAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
@@ -84,6 +85,9 @@ export default function AdminHub() {
 
         {/* Sprint A · DocExp-60/90 · universal expiration intelligence */}
         <ExpirationsSummary title="Document & Certification Expirations · Fleetwide" />
+
+        {/* OA-1 · Operations Actions tile (cross-portal entry) */}
+        <OperationsActionsTile />
 
         {/* Records-on-file count strip — at-a-glance KPIs */}
         <AdminKpiStrip />

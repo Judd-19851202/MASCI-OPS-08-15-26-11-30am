@@ -23,6 +23,7 @@ import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 import { isPmSidebarV2Enabled } from "@/components/pm/sidebar/SideNavV2";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
+import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import { setPortalContext } from "@/lib/portalContext";
 
 const FORM_TILES = [
@@ -266,6 +267,9 @@ export default function PmHub() {
           {/* Tier 0 · Operational KPI signal */}
           <OperationsCenter compact />
 
+          {/* OA-1 · Operations Actions tile */}
+          <div className="mt-3"><OperationsActionsTile /></div>
+
           {/* Tier 1 · Crew Compliance — calm slate + orange stripe (Compliance domain) */}
           <Link
             to="/pm/crew-compliance"
@@ -400,6 +404,9 @@ export default function PmHub() {
           </div>
 
           <OperationsCenter compact className="mt-5" />
+
+          {/* OA-1 · Operations Actions tile · legacy hub */}
+          <div className="mt-3"><OperationsActionsTile /></div>
 
           {/* iter353e-UI · My Crew Compliance — operational accountability awareness */}
           <Link

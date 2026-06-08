@@ -40,6 +40,7 @@ import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import ExpirationsSummary from "@/components/ExpirationsSummary";
+import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -227,6 +228,11 @@ export default function SafetyHub() {
       {/* Sprint A · DocExp-60/90 · Safety-scoped certification expirations */}
       <div className="mb-6" data-testid="safety-expirations-section">
         <ExpirationsSummary title="Training & Certification Expirations" />
+      </div>
+
+      {/* OA-1 · Operations Actions cross-portal tile */}
+      <div className="mb-6" data-testid="safety-oa-tile">
+        <OperationsActionsTile />
       </div>
 
       {/* KPI strip — neutral chrome per Rule 5. Colored value text for

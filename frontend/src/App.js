@@ -11,6 +11,9 @@ import OdrPublicViewer from "@/pages/odr/OdrPublicViewer";
 import OdrDone from "@/pages/odr/OdrDone";
 import OdrDetail from "@/pages/odr/OdrDetail";
 import OperationalRecords from "@/pages/operational_records/OperationalRecords";
+import OperationsActions from "@/pages/operations_actions/OperationsActions";
+import OperationsActionNew from "@/pages/operations_actions/OperationsActionNew";
+import OperationsActionDetail from "@/pages/operations_actions/OperationsActionDetail";
 import DriverMagicLanding from "@/pages/driver/DriverMagicLanding";
 import DriverShift from "@/pages/driver/DriverShift";
 import ShiftStart from "@/pages/driver/ShiftStart";
@@ -823,6 +826,11 @@ function App() {
                 One search · one timeline across ODR + frozen Daily Reports.
                 Doctrine: M1_OPTION_C_IMPLEMENTATION_PLAN.md */}
             <Route path="/operational-records" element={<OperationalRecords />} />
+            {/* OA-1 · Operations Actions · cross-portal CRUD coordination layer.
+                Doctrine: OA1_OPERATIONS_ACTIONS_CONSTITUTION.md */}
+            <Route path="/operations-actions" element={<OperationsActions />} />
+            <Route path="/operations-actions/new" element={<OperationsActionNew />} />
+            <Route path="/operations-actions/:id" element={<OperationsActionDetail />} />
             {/* Catch-all — any path that doesn't match an explicit route
                 renders the 404 NotFound page (Iter181). Previously such
                 URLs rendered only the global navbar + footer with an

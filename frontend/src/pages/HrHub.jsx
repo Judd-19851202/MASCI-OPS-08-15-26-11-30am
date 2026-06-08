@@ -14,6 +14,7 @@ import { OfflineIndicator } from "@/lib/resiliency";
 import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import ExpirationsSummary from "@/components/ExpirationsSummary";
+import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import OperationsCenter from "@/components/OperationsCenter";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
@@ -245,6 +246,11 @@ export default function HrHub() {
         </div>
 
         <OperationsCenter compact className="mt-6" />
+
+        {/* OA-1 · Operations Actions cross-portal tile */}
+        <div className="mt-4" data-testid="hr-oa-tile">
+          <OperationsActionsTile />
+        </div>
 
         {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
             self-gated · dismissible · single-card · NEVER nags */}

@@ -41,6 +41,7 @@ import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import DispatchSideNavV2, { useDispatchSidebarV2Enabled } from "@/components/dispatch/sidebar/DispatchSideNavV2";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import DispatchEquipmentMaintenanceIndicator from "@/components/dispatch/DispatchEquipmentMaintenanceIndicator";
@@ -443,6 +444,7 @@ export default function DispatchHub() {
 
         {/* ── 7 · CALM PERIPHERAL · below operational content ──── */}
         <div className="space-y-3 pt-2 border-t border-slate-200" data-testid="ds-peripheral">
+          <OperationsActionsTile />
           <PasskeyEnrollPrompt />
           <FieldMemoryGlance />
           <LastActivityLine portal="dispatch" />
