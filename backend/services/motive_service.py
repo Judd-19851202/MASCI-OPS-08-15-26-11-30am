@@ -530,23 +530,42 @@ def _employee_mapping_defaults() -> Dict[str, Any]:
 
 # ── P1.5 · Event classifier (read-only · no workflow side-effects) ──
 def _classify_family(event_kind: str) -> str:
-    """Map raw Motive event_type to the 5 authorized families + the
-    pre-existing GPS family + 'other'. Per the Webhook Intelligence
-    Audit, anything not in the 5 authorized + GPS stays 'other' for
-    forensic storage but never surfaces."""
+    """Map raw Motive event_type to the authorized event families.
+    P1.5: harsh_event, fault_code, dvir, geofence_enter/exit, vehicle_gps.
+    P1.6: + hos_violation, gateway_disconnected, gateway_reconnected,
+           asset_geofence_enter, asset_geofence_exit, ai_coach_recap,
+           fault_code_closed (closed variant of fault_code).
+    Anything else stays 'other' for forensic storage."""
     k = (event_kind or "").lower()
     if k in ("vehicle_gps", "vehicle_location_received"):
         return "vehicle_gps"
     if k.startswith("harsh") or k in ("hard_brake", "hard_braking", "speeding", "harsh_acceleration", "harsh_cornering"):
         return "harsh_event"
-    if k in ("fault_code", "fault_code_raised", "dtc") or k.startswith("fault"):
+    # Fault code: keep close events in their own band so the decorator
+    # can render "resolved" language and the priority model can rank
+    # them differently.
+    if k in ("fault_code_closed", "fault_closed", "fault_code_resolved", "dtc_closed"):
+        return "fault_code_closed"
+    if k in ("fault_code", "fault_code_raised", "fault_code_opened", "dtc") or k.startswith("fault"):
         return "fault_code"
-    if k.startswith("dvir"):
+    if k.startswith("dvir") or k in ("inspection_report_created", "inspection_report_updated", "inspection_report"):
         return "dvir"
-    if k in ("geofence_enter", "geofence_entered", "geofence_entry"):
+    if k in ("asset_geofence_enter", "asset_geofence_entered", "asset_geofence_entry"):
+        return "asset_geofence_enter"
+    if k in ("asset_geofence_exit", "asset_geofence_exited", "asset_geofence_left"):
+        return "asset_geofence_exit"
+    if k in ("geofence_enter", "geofence_entered", "geofence_entry", "vehicle_geofence_enter"):
         return "geofence_enter"
-    if k in ("geofence_exit", "geofence_exited", "geofence_left"):
+    if k in ("geofence_exit", "geofence_exited", "geofence_left", "vehicle_geofence_exit"):
         return "geofence_exit"
+    if k in ("hos_violation", "hos_violation_created", "hos_violation_updated", "hos_violation_raised"):
+        return "hos_violation"
+    if k in ("vehicle_gateway_disconnected", "gateway_disconnected"):
+        return "gateway_disconnected"
+    if k in ("vehicle_gateway_disconnect_ended", "gateway_disconnect_ended", "gateway_reconnected"):
+        return "gateway_reconnected"
+    if k in ("ai_coach_recap_created", "ai_coach_recap", "ai_coach_recap_updated"):
+        return "ai_coach_recap"
     return "other"
 
 
@@ -565,8 +584,36 @@ _SEVERITY_BY_SUBTYPE = {
     # geofence
     "geofence_enter": "info",
     "geofence_exit": "info",
+    "asset_geofence_enter": "info",
+    "asset_geofence_exit": "info",
     # vehicle_gps
     "vehicle_gps": "info",
+    # P1.6 priority ladder
+    "hos_violation": "critical",
+    "vehicle_gateway_disconnected": "critical",
+    "vehicle_gateway_disconnect_ended": "low",
+    "fault_code_closed": "medium",
+    "ai_coach_recap": "medium",
+}
+
+# P1.6 · Operational priority bands (display order + notification gating).
+# Used by surfaces to decide whether a row deserves the Notifications bell
+# vs the historical timeline. Pure metadata — never auto-triggers action.
+_PRIORITY_BY_FAMILY = {
+    "hos_violation": "critical",
+    "gateway_disconnected": "critical",
+    "dvir": "high",                    # high when defect or OOS (raised by classifier)
+    "asset_geofence_exit": "high",     # exit of job site is the billable signal
+    "fault_code": "high",
+    "harsh_event": "high",
+    "geofence_enter": "medium",
+    "geofence_exit": "medium",
+    "asset_geofence_enter": "medium",
+    "ai_coach_recap": "medium",
+    "fault_code_closed": "medium",
+    "gateway_reconnected": "low",
+    "vehicle_gps": "low",
+    "other": "low",
 }
 
 
@@ -576,8 +623,17 @@ def _classify_event(family: str, event_kind: str, body: Dict[str, Any],
     extraction — never mutates other collections, never opens work
     orders or holds. Surfaces consume these fields directly."""
     sev_hint = body.get("severity") or _SEVERITY_BY_SUBTYPE.get((event_kind or "").lower(), "info")
+    # P1.6 fallback for new families
+    if (not body.get("severity")) and family in _PRIORITY_BY_FAMILY:
+        # Use priority as severity hint when payload omits one
+        pri = _PRIORITY_BY_FAMILY[family]
+        sev_hint = {
+            "critical": "critical", "high": "high",
+            "medium": "medium", "low": "low",
+        }.get(pri, sev_hint)
     out: Dict[str, Any] = {
         "severity": sev_hint,
+        "priority": _PRIORITY_BY_FAMILY.get(family, "low"),
         "subtype": body.get("subtype") or body.get("type") or "",
         "address": loc.get("address") or loc.get("current_location") or "",
         "city": loc.get("city") or "",
@@ -599,10 +655,22 @@ def _classify_event(family: str, event_kind: str, body: Dict[str, Any],
             "description": body.get("description") or body.get("dtc_description") or "",
             "set_at": body.get("set_at") or body.get("event_time"),
             "cleared_at": body.get("cleared_at"),
+            "state": "opened",
         }
-        # Heuristic: red-band severity if MIL is on or severity explicitly red
         if (body.get("severity") or "").lower() in ("red", "critical", "severe") or body.get("mil_status"):
             out["severity"] = "critical"
+    elif family == "fault_code_closed":
+        # P1.6 · Decorate "Fault X resolved" — mirrors fault_code shape
+        # so the same UI row template renders without branching.
+        out["fault"] = {
+            "dtc_code": body.get("dtc_code") or body.get("code") or "",
+            "mil_status": bool(body.get("mil_status")),
+            "description": body.get("description") or body.get("dtc_description") or "",
+            "set_at": body.get("set_at"),
+            "cleared_at": body.get("cleared_at") or body.get("event_time"),
+            "state": "closed",
+            "duration_seconds": body.get("duration_seconds"),
+        }
     elif family == "dvir":
         defects = body.get("defects") or []
         oos = bool(body.get("out_of_service"))
@@ -612,20 +680,72 @@ def _classify_event(family: str, event_kind: str, body: Dict[str, Any],
             "defects": defects[:25],
             "out_of_service": oos,
             "mechanic_signed_by": (body.get("mechanic") or {}).get("name") or "",
+            "is_update": (event_kind or "").lower() in ("dvir_updated", "inspection_report_updated"),
         }
         if oos:
             out["severity"] = "critical"
         elif defects:
             out["severity"] = "high"
-    elif family in ("geofence_enter", "geofence_exit"):
+    elif family in ("geofence_enter", "geofence_exit",
+                    "asset_geofence_enter", "asset_geofence_exit"):
         g = body.get("geofence") or {}
+        asset_side = family.startswith("asset_")
+        transition = "enter" if family.endswith("enter") else "exit"
         out["geofence"] = {
             "id": str(g.get("id") or "").strip(),
             "name": g.get("name") or "",
             "category": g.get("category") or "",
             "address": g.get("address") or "",
-            "dwell_seconds": body.get("dwell_seconds") if family == "geofence_exit" else None,
-            "transition": "enter" if family == "geofence_enter" else "exit",
+            "dwell_seconds": body.get("dwell_seconds") if transition == "exit" else None,
+            "transition": transition,
+            "side": "asset" if asset_side else "vehicle",
+        }
+        if asset_side:
+            a = body.get("asset") or {}
+            out["asset"] = {
+                "id": str(a.get("id") or "").strip(),
+                "name": a.get("name") or "",
+                "kind": a.get("type") or a.get("kind") or "",
+                "battery_level": (body.get("gateway") or {}).get("battery_level"),
+            }
+    elif family == "hos_violation":
+        d = body.get("driver") or {}
+        out["hos"] = {
+            "violation_type": body.get("violation_type") or body.get("type") or "",
+            "duty_status": body.get("duty_status") or "",
+            "cycle": body.get("cycle") or "",
+            "driver_id": str(d.get("id") or body.get("driver_id") or "").strip(),
+            "driver_name": d.get("name") or "",
+            "threshold_minutes": body.get("threshold_minutes"),
+            "exceeded_by_minutes": body.get("exceeded_by_minutes"),
+            "is_update": (event_kind or "").lower().endswith("_updated"),
+        }
+    elif family == "gateway_disconnected":
+        out["gateway"] = {
+            "device_id": str((body.get("device") or {}).get("id") or body.get("device_id") or "").strip(),
+            "last_reported_at": body.get("last_reported_at") or (vehicle.get("current_location") or {}).get("located_at"),
+            "last_known_address": (body.get("last_known_location") or {}).get("address") or out["address"],
+            "since": body.get("disconnect_event_time") or body.get("event_time"),
+        }
+    elif family == "gateway_reconnected":
+        out["gateway"] = {
+            "device_id": str((body.get("device") or {}).get("id") or body.get("device_id") or "").strip(),
+            "offline_duration_seconds": body.get("offline_duration_seconds") or body.get("duration_seconds"),
+            "reconnected_at": body.get("reconnect_event_time") or body.get("event_time"),
+        }
+    elif family == "ai_coach_recap":
+        d = body.get("driver") or {}
+        period = body.get("period") or {}
+        out["ai_coach"] = {
+            "driver_id": str(d.get("id") or body.get("driver_id") or "").strip(),
+            "driver_name": d.get("name") or "",
+            "score": body.get("score"),
+            "score_delta": body.get("score_delta"),
+            "period_start": period.get("start") or body.get("period_start"),
+            "period_end": period.get("end") or body.get("period_end"),
+            "event_counts": body.get("event_counts") or {},
+            "trend": body.get("trend") or "",
+            "recommendation": body.get("recommendation") or "",
         }
     return out
 

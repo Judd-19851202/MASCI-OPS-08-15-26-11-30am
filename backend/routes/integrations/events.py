@@ -41,12 +41,26 @@ _EVENT_TYPE_LABELS = {
     "speeding": "Speeding",
     "seatbelt_violation": "Seatbelt Violation",
     "fault_code": "Engine Fault Code",
+    "fault_code_closed": "Fault Resolved",
     "dvir_submitted": "DVIR Submitted",
+    "dvir_updated": "DVIR Updated",
+    "inspection_report_updated": "DVIR Updated",
     "dvir_defect": "DVIR · Defect",
     "dvir_out_of_service": "DVIR · OUT OF SERVICE",
     "dvir_signed": "DVIR · Mechanic Signed",
     "geofence_enter": "Arrived",
     "geofence_exit": "Departed",
+    "asset_geofence_enter": "Asset Arrived",
+    "asset_geofence_exit": "Asset Departed",
+    "hos_violation": "HOS Violation",
+    "hos_violation_created": "HOS Violation",
+    "hos_violation_updated": "HOS Violation · Updated",
+    "vehicle_gateway_disconnected": "Gateway Disconnected",
+    "vehicle_gateway_disconnect_ended": "Gateway Restored",
+    "gateway_disconnected": "Gateway Disconnected",
+    "gateway_reconnected": "Gateway Restored",
+    "ai_coach_recap_created": "AI Coach Recap",
+    "ai_coach_recap": "AI Coach Recap",
 }
 
 
@@ -91,6 +105,74 @@ def _humanize_event(row: dict, unit_number: str, driver_name: str) -> str:
             h_, m_ = divmod(int(dwell // 60), 60)
             dwell_str = f" · {h_} h {m_} m on site" if h_ else f" · {m_} m on site"
         return f"{truck} departed {site}{dwell_str}"
+    # P1.6 · Asset geofence transitions (construction equipment)
+    if fam == "asset_geofence_enter":
+        g = row.get("geofence") or {}
+        a = row.get("asset") or {}
+        name = a.get("name") or truck
+        site = g.get("name") or "geofence"
+        batt = a.get("battery_level")
+        batt_str = f" · battery {batt}%" if isinstance(batt, (int, float)) else ""
+        return f"{name} arrived at {site}{batt_str}"
+    if fam == "asset_geofence_exit":
+        g = row.get("geofence") or {}
+        a = row.get("asset") or {}
+        name = a.get("name") or truck
+        site = g.get("name") or "geofence"
+        dwell = g.get("dwell_seconds")
+        dwell_str = ""
+        if isinstance(dwell, (int, float)) and dwell > 0:
+            h_, m_ = divmod(int(dwell // 60), 60)
+            dwell_str = f" · {h_} h {m_} m on site" if h_ else f" · {m_} m on site"
+        return f"{name} departed {site}{dwell_str}"
+    # P1.6 · HOS violation
+    if fam == "hos_violation":
+        h = row.get("hos") or {}
+        vt = (h.get("violation_type") or "HOS").replace("_", " ")
+        dname = h.get("driver_name") or drv
+        over = h.get("exceeded_by_minutes")
+        over_str = f" · exceeded by {over} min" if isinstance(over, (int, float)) else ""
+        upd = " (updated)" if h.get("is_update") else ""
+        return f"{vt} violation: {dname} on {truck}{over_str}{upd}"
+    # P1.6 · Vehicle gateway disconnected / reconnected
+    if fam == "gateway_disconnected":
+        gw = row.get("gateway") or {}
+        addr = gw.get("last_known_address") or row.get("address") or ""
+        last = (gw.get("last_reported_at") or "")[:16].replace("T", " ")
+        last_str = f" · last reported {last}" if last else ""
+        addr_str = f" from {addr}" if addr else ""
+        return f"Gateway disconnected on {truck}{last_str}{addr_str}"
+    if fam == "gateway_reconnected":
+        gw = row.get("gateway") or {}
+        off = gw.get("offline_duration_seconds")
+        off_str = ""
+        if isinstance(off, (int, float)) and off > 0:
+            h_, m_ = divmod(int(off // 60), 60)
+            off_str = f" · offline for {h_} h {m_} m" if h_ else f" · offline for {m_} m"
+        return f"Gateway restored on {truck}{off_str}"
+    # P1.6 · AI Coach recap
+    if fam == "ai_coach_recap":
+        ai = row.get("ai_coach") or {}
+        dname = ai.get("driver_name") or drv
+        score = ai.get("score")
+        delta = ai.get("score_delta")
+        trend = ai.get("trend") or ""
+        score_str = f" · score {score}/100" if score is not None else ""
+        delta_str = ""
+        if isinstance(delta, (int, float)) and delta != 0:
+            delta_str = f" ({'+' if delta > 0 else ''}{delta})"
+        trend_str = f" · {trend}" if trend else ""
+        return f"AI Coach recap for {dname}{score_str}{delta_str}{trend_str}"
+    # P1.6 · Fault code resolved
+    if fam == "fault_code_closed":
+        f = row.get("fault") or {}
+        code = f.get("dtc_code") or "DTC"
+        dur = f.get("duration_seconds")
+        dur_str = ""
+        if isinstance(dur, (int, float)) and dur > 0:
+            h_, m_ = divmod(int(dur // 60), 60)
+            dur_str = f" after {h_} h {m_} m" if h_ else f" after {m_} m"
+        return f"Fault {code} resolved on {truck}{dur_str}"
     # vehicle_gps + other → fall back to coarse label
     return _EVENT_TYPE_LABELS.get(row.get("event_kind") or "", "Motive event")
 
@@ -143,15 +225,44 @@ async def _decorate_motive_event_rows(db, rows: list) -> list:
             "event_type": kind,
             "event_type_label": _EVENT_TYPE_LABELS.get(kind, kind.replace("_", " ").title()),
             "severity": r.get("severity") or ("info" if kind in ("vehicle_gps", "vehicle_location_received") else "medium"),
-            "driver_name": driver_by_vid.get(vid, ""),
+            "priority": r.get("priority") or "low",
+            "driver_name": driver_by_vid.get(vid, "") or (r.get("hos") or {}).get("driver_name") or (r.get("ai_coach") or {}).get("driver_name") or "",
             "unit_number": ctx.get("unit_number", ""),
             "masci_equipment_id": ctx.get("masci_equipment_id", ""),
             "speed_mph": round(skph_num * 0.621371, 1) if skph_num is not None else None,
             "location": {"address": addr, "lat": r.get("lat"), "lon": r.get("lon")},
             "coaching_required": bool((r.get("harsh") or {}).get("coaching_required") or r.get("coaching_required")),
-            "summary": _humanize_event(r, ctx.get("unit_number", ""), driver_by_vid.get(vid, "")),
+            "notify": _needs_notification(r),
+            "summary": _humanize_event(r, ctx.get("unit_number", ""), driver_by_vid.get(vid, "") or (r.get("hos") or {}).get("driver_name") or ""),
         })
     return decorated
+
+
+def _needs_notification(row: dict) -> bool:
+    """P1.6 · Conservative gate for the Notifications bell. Bell fires
+    ONLY for: HOS violations · gateway_disconnected · DVIR critical
+    (OOS) · high-severity harsh events · red fault codes. Everything
+    else flows through the timeline silently — no notification storm."""
+    fam = row.get("event_family") or ""
+    sev = (row.get("severity") or "").lower()
+    if fam == "hos_violation":
+        return True
+    if fam == "gateway_disconnected":
+        return True
+    if fam == "dvir" and sev == "critical":
+        return True
+    if fam == "fault_code" and sev == "critical":
+        return True
+    if fam == "harsh_event" and sev in ("high", "critical"):
+        return True
+    if fam == "ai_coach_recap":
+        # Only when the recap signals adverse trend
+        ai = row.get("ai_coach") or {}
+        if (ai.get("trend") or "").lower() in ("declining", "worsening", "negative") or (
+            isinstance(ai.get("score_delta"), (int, float)) and ai.get("score_delta") <= -10
+        ):
+            return True
+    return False
 
 
 def register_event_routes(

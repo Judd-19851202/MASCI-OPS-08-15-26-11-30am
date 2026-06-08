@@ -138,14 +138,27 @@ function MotiveActivityStrip() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [r1, r2] = await Promise.all([
-          axios.get(`${API}/integrations/motive/events?family=geofence_enter&limit=8`, { headers: dispatchHeaders() }),
-          axios.get(`${API}/integrations/motive/events?family=geofence_exit&limit=8`, { headers: dispatchHeaders() }),
-        ]);
-        const merged = [...(r1.data || []), ...(r2.data || [])]
+        // P1.6 · Surface vehicle + asset geofence transitions + gateway
+        // disconnect/restore events together as one "Live Activity"
+        // strip — Dispatch sees arrivals, departures, and trucks that
+        // went dark in one read.
+        const families = [
+          "geofence_enter", "geofence_exit",
+          "asset_geofence_enter", "asset_geofence_exit",
+          "gateway_disconnected", "gateway_reconnected",
+        ];
+        const responses = await Promise.all(
+          families.map((f) =>
+            axios.get(`${API}/integrations/motive/events?family=${f}&limit=8`, { headers: dispatchHeaders() })
+              .then((r) => r.data || [])
+              .catch(() => [])
+          )
+        );
+        const merged = responses
+          .flat()
           .filter((e) => !e.is_demo)
           .sort((a, b) => String(b.event_at || "").localeCompare(String(a.event_at || "")))
-          .slice(0, 10);
+          .slice(0, 12);
         setRows(merged);
       } catch { setRows([]); }
     };
@@ -163,15 +176,27 @@ function MotiveActivityStrip() {
         <div className="p-4 text-xs text-slate-500 italic">No recent geofence activity. Once Motive sends arrival/departure events they&apos;ll appear here.</div>
       ) : (
         <ul className="divide-y divide-slate-100 text-xs">
-          {rows.map((e) => (
-            <li key={e.id} className="py-2 px-3 flex items-center gap-2" data-testid={`dispatch-motive-row-${e.id}`}>
-              <span className={`w-20 text-center px-1.5 py-0.5 rounded font-mono text-[9px] uppercase tracking-[0.15em] font-bold shrink-0 ${e.event_family === "geofence_enter" ? "bg-emerald-100 text-emerald-900 border border-emerald-300" : "bg-blue-100 text-blue-900 border border-blue-300"}`}>
-                {e.event_family === "geofence_enter" ? "Arrived" : "Departed"}
-              </span>
-              <span className="flex-1 truncate">{e.summary || `${e.unit_number || "Vehicle"} · ${e.geofence?.name || ""}`}</span>
-              <span className="font-mono text-[10px] text-slate-400 shrink-0">{(e.event_at || "").slice(11, 16)}</span>
-            </li>
-          ))}
+          {rows.map((e) => {
+            // P1.6 · Pill palette per family (visibility only · no auto-actions)
+            const PILL = {
+              geofence_enter:        { lbl: "Arrived",  cls: "bg-emerald-100 text-emerald-900 border-emerald-300" },
+              geofence_exit:         { lbl: "Departed", cls: "bg-blue-100 text-blue-900 border-blue-300" },
+              asset_geofence_enter:  { lbl: "Asset In", cls: "bg-teal-100 text-teal-900 border-teal-300" },
+              asset_geofence_exit:   { lbl: "Asset Out",cls: "bg-cyan-100 text-cyan-900 border-cyan-300" },
+              gateway_disconnected:  { lbl: "Offline",  cls: "bg-orange-200 text-orange-950 border-orange-400" },
+              gateway_reconnected:   { lbl: "Restored", cls: "bg-slate-100 text-slate-700 border-slate-300" },
+            };
+            const p = PILL[e.event_family] || { lbl: e.event_family, cls: "bg-slate-100 text-slate-700 border-slate-300" };
+            return (
+              <li key={e.id} className="py-2 px-3 flex items-center gap-2" data-testid={`dispatch-motive-row-${e.id}`}>
+                <span className={`w-20 text-center px-1.5 py-0.5 rounded font-mono text-[9px] uppercase tracking-[0.15em] font-bold shrink-0 border ${p.cls}`}>
+                  {p.lbl}
+                </span>
+                <span className="flex-1 truncate">{e.summary || `${e.unit_number || "Vehicle"} · ${e.geofence?.name || ""}`}</span>
+                <span className="font-mono text-[10px] text-slate-400 shrink-0">{(e.event_at || "").slice(11, 16)}</span>
+              </li>
+            );
+          })}
         </ul>
       )}
       <div className="bg-slate-50 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500 border-t border-slate-200">

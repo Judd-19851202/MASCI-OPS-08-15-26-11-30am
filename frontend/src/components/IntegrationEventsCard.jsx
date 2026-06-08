@@ -165,6 +165,11 @@ function MotiveRow({ row }) {
               Coach
             </span>
           )}
+          {row.notify && (
+            <span className="px-1.5 py-0.5 rounded bg-red-700 text-white text-[9px] font-mono uppercase tracking-[0.15em] font-bold" data-testid="motive-event-notify">
+              Bell
+            </span>
+          )}
         </div>
         <div className="text-xs text-slate-600 truncate" data-testid="motive-event-summary">
           {row.summary || `${row.driver_name || "—"} · ${row.unit_number || "—"}${row.location?.address ? ` · ${row.location.address}` : ""}`}

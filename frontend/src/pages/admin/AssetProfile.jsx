@@ -487,20 +487,34 @@ function motiveSummary(e) {
 }
 
 const FAMILY_PILL = {
-  harsh_event:    "bg-red-100 text-red-900 border-red-300",
-  fault_code:     "bg-amber-100 text-amber-900 border-amber-300",
-  dvir:           "bg-purple-100 text-purple-900 border-purple-300",
-  geofence_enter: "bg-emerald-100 text-emerald-900 border-emerald-300",
-  geofence_exit:  "bg-blue-100 text-blue-900 border-blue-300",
-  vehicle_gps:    "bg-slate-100 text-slate-700 border-slate-300",
+  harsh_event:           "bg-red-100 text-red-900 border-red-300",
+  fault_code:            "bg-amber-100 text-amber-900 border-amber-300",
+  fault_code_closed:     "bg-emerald-100 text-emerald-900 border-emerald-300",
+  dvir:                  "bg-purple-100 text-purple-900 border-purple-300",
+  geofence_enter:        "bg-emerald-100 text-emerald-900 border-emerald-300",
+  geofence_exit:         "bg-blue-100 text-blue-900 border-blue-300",
+  asset_geofence_enter:  "bg-teal-100 text-teal-900 border-teal-300",
+  asset_geofence_exit:   "bg-cyan-100 text-cyan-900 border-cyan-300",
+  hos_violation:         "bg-red-200 text-red-950 border-red-400",
+  gateway_disconnected:  "bg-orange-100 text-orange-900 border-orange-300",
+  gateway_reconnected:   "bg-slate-100 text-slate-700 border-slate-300",
+  ai_coach_recap:        "bg-indigo-100 text-indigo-900 border-indigo-300",
+  vehicle_gps:           "bg-slate-100 text-slate-700 border-slate-300",
 };
 const FAMILY_LABEL = {
-  harsh_event: "SAFETY",
-  fault_code: "SHOP",
-  dvir: "DVIR",
-  geofence_enter: "ARRIVED",
-  geofence_exit: "DEPARTED",
-  vehicle_gps: "GPS",
+  harsh_event:          "SAFETY",
+  fault_code:           "SHOP",
+  fault_code_closed:    "RESOLVED",
+  dvir:                 "DVIR",
+  geofence_enter:       "ARRIVED",
+  geofence_exit:        "DEPARTED",
+  asset_geofence_enter: "ASSET IN",
+  asset_geofence_exit:  "ASSET OUT",
+  hos_violation:        "HOS",
+  gateway_disconnected: "OFFLINE",
+  gateway_reconnected:  "RESTORED",
+  ai_coach_recap:       "AI COACH",
+  vehicle_gps:          "GPS",
 };
 
 function MotiveFamilyChip({ family, severity }) {
