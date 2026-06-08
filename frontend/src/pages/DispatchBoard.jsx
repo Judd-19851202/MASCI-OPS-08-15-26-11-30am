@@ -312,6 +312,32 @@ function AssignmentRow({ a, onOpen, gpsInfo }) {
         >
           {gpsBandInfo.band === "green" && gpsBandInfo.moving ? t("Moving · GPS") : gpsBandInfo.band === "green" ? t("GPS Active") : gpsBandInfo.band === "amber" ? t("GPS Stale") : t("Not Reporting")}
         </span>
+        {/* DSI-1A · Universal Health chips (gateway / fault / DVIR) — only render when not normal */}
+        {gpsInfo?.gateway_status === "offline" ? (
+          <span className="inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border bg-amber-100 text-amber-900 border-amber-300"
+            data-testid={`row-gw-${a.id}`}
+            title="Motive gateway disconnected"
+          >Gateway Offline</span>
+        ) : null}
+        {gpsInfo?.fault_status === "critical" ? (
+          <span className="inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border bg-rose-100 text-rose-900 border-rose-300"
+            data-testid={`row-fault-${a.id}`}
+            title="Open critical fault"
+          >Critical Fault</span>
+        ) : null}
+        {gpsInfo?.dvir_status === "needs_attention" ? (
+          <span className="inline-flex items-center self-start px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border bg-amber-100 text-amber-900 border-amber-300"
+            data-testid={`row-dvir-${a.id}`}
+            title="DVIR needs attention"
+          >DVIR Attn</span>
+        ) : null}
+        {gpsInfo?.last_event?.headline ? (
+          <span className="self-start text-[10px] font-mono text-slate-500 truncate max-w-[220px]" data-testid={`row-last-event-${a.id}`}
+            title={gpsInfo.last_event.headline}
+          >
+            {gpsInfo.last_event.headline}
+          </span>
+        ) : null}
         {/* D-2.5 · SMS delivery chip · derived from delivery_log[] last
             sms entry. Renders only when SMS was actually attempted OR
             when the operator hasn't configured SMS yet (helpful

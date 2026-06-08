@@ -167,6 +167,15 @@ export default function MotiveOpsIntelPanel({ className = "" }) {
 
       <FleetStrip fleet={data.fleet} />
 
+      {/* DSI-1D · Dispatch context strip */}
+      {data.dispatch ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4" data-testid="ois-dispatch-strip">
+          <StatTile testid="ois-disp-assignments" label="Active assignments" value={data.dispatch.active_assignments} />
+          <StatTile testid="ois-disp-drivers" label="Active drivers" value={data.dispatch.active_drivers} />
+          <StatTile testid="ois-disp-equipment" label="Active equipment" value={data.dispatch.active_equipment} />
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
         {/* Drivers */}
         <div className="bg-slate-50 border border-slate-200 rounded-md p-3" data-testid="ois-drivers-card">

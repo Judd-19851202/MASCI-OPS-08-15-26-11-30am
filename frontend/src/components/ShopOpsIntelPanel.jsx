@@ -154,7 +154,11 @@ export default function ShopOpsIntelPanel({ className = "" }) {
                     <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-wider font-bold ${gpsBandClass(eq.band || "red")}`}>
                       {eq.band === "red" ? "Not Reporting" : eq.band === "amber" ? "Stale" : "Reporting"}
                     </span>
-                    <span className="text-[10px] font-mono text-slate-500 shrink-0 ml-auto">Last: {last}</span>
+                    <span className="text-[10px] text-slate-600 truncate flex-1">
+                      {eq.assigned_operator ? <span>op {eq.assigned_operator} · </span> : null}
+                      {eq.last_known_location || ""}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500 shrink-0">Last: {last}</span>
                   </li>
                 );
               })}

@@ -119,6 +119,21 @@ def register_operations_intelligence_routes(api_router: APIRouter, db, require_a
             "received_at": {"$gte": cut_24h},
         })
 
+        # DSI-1D · Active dispatch context
+        active_assignments = await db.dispatch_assignments.count_documents({
+            "current_state": {"$nin": ["COMPLETE", "CANCELLED"]},
+        })
+        active_drivers_dispatch = len(await db.dispatch_assignments.distinct(
+            "driver_id",
+            {"current_state": {"$nin": ["COMPLETE", "CANCELLED"]},
+             "driver_id": {"$nin": [None, ""]}},
+        ))
+        active_equipment_dispatch = len(await db.dispatch_assignments.distinct(
+            "truck_id",
+            {"current_state": {"$nin": ["COMPLETE", "CANCELLED"]},
+             "truck_id": {"$nin": [None, ""]}},
+        ))
+
         # Geofence presence (assets currently inside any geofence —
         # approximated by their last-known-position being inside a
         # geofence polygon · cheap heuristic via category counts of
@@ -167,6 +182,11 @@ def register_operations_intelligence_routes(api_router: APIRouter, db, require_a
             },
             "safety": {
                 "high_severity_events_24h": safety_24h,
+            },
+            "dispatch": {
+                "active_assignments": active_assignments,
+                "active_drivers": active_drivers_dispatch,
+                "active_equipment": active_equipment_dispatch,
             },
             "geofences": {
                 "enters_7d": active_geo,
@@ -230,7 +250,21 @@ def register_operations_intelligence_routes(api_router: APIRouter, db, require_a
         }, {"_id": 0}).sort("received_at", -1).limit(50):
             fault_closed.append(r)
 
-        # Equipment not reporting (>24h)
+        # Equipment not reporting (>24h) · DSI-1E enriched
+        # Pre-fetch active assigned operator per truck.
+        driver_by_truck: Dict[str, Dict[str, str]] = {}
+        async for a in db.dispatch_assignments.find(
+            {"current_state": {"$nin": ["COMPLETE", "CANCELLED"]},
+             "truck_id": {"$nin": [None, ""]}},
+            {"_id": 0, "truck_id": 1, "driver_name": 1, "driver_id": 1},
+        ).sort("last_transition_at", -1):
+            key = str(a.get("truck_id") or "").strip().upper()
+            if key and key not in driver_by_truck:
+                driver_by_truck[key] = {
+                    "driver_name": a.get("driver_name") or "",
+                    "driver_id": a.get("driver_id") or "",
+                }
+
         not_reporting: List[Dict[str, Any]] = []
         cut_24h = (now - timedelta(hours=24)).isoformat()
         async for am in db.asset_mappings.find({
@@ -240,12 +274,23 @@ def register_operations_intelligence_routes(api_router: APIRouter, db, require_a
                 {"motive.located_at": None},
             ],
         }, {"_id": 0, "masci_equipment_id": 1, "masci_unit_number": 1,
-            "motive.number": 1, "motive.located_at": 1}).limit(100):
+            "motive.number": 1, "motive.located_at": 1,
+            "motive.city": 1, "motive.state": 1,
+            "motive.location_summary": 1}).limit(100):
+            mv = am.get("motive") or {}
+            unit = am.get("masci_unit_number") or mv.get("number") or ""
+            asgn = driver_by_truck.get(str(unit).strip().upper())
+            loc = mv.get("location_summary") or (
+                f"{mv.get('city') or ''}{', ' if mv.get('city') and mv.get('state') else ''}{mv.get('state') or ''}".strip(", ")
+            )
             not_reporting.append({
                 "masci_equipment_id": am.get("masci_equipment_id") or "",
-                "unit_number": am.get("masci_unit_number") or (am.get("motive") or {}).get("number") or "",
-                "last_seen": (am.get("motive") or {}).get("located_at"),
-                "band": _gps_band((am.get("motive") or {}).get("located_at"))["band"],
+                "unit_number": unit,
+                "last_seen": mv.get("located_at"),
+                "band": _gps_band(mv.get("located_at"))["band"],
+                "last_known_location": loc or None,
+                "assigned_operator": (asgn or {}).get("driver_name") or None,
+                "assigned_operator_id": (asgn or {}).get("driver_id") or None,
             })
 
         return {
@@ -269,12 +314,65 @@ def register_operations_intelligence_routes(api_router: APIRouter, db, require_a
         dependencies=[Depends(require_admin)],
     )
     async def fleet_gps_health():
-        """OIS-1A · Per-asset GPS health band map.
+        """OIS-1A · Per-asset GPS health band map (DSI-1A enriched).
 
-        Powers DispatchBoard row badges and any per-vehicle band lookup.
-        Returns lightweight rows keyed by unit_number (case-insensitive)
-        and motive vehicle_id so the consumer can match on either.
+        Powers DispatchBoard row badges + Equipment cards. Each row
+        now also carries:
+          - gateway_status  → "online" | "offline"
+          - fault_status    → "normal"  | "critical"
+          - dvir_status     → "pass"    | "needs_attention"
+          - last_event      → {family, headline, severity, received_at}
+          - assigned_driver → {employee_id, name} or null
+
         Read-only. No writes, no automation."""
+        now_iso_ = datetime.now(timezone.utc).isoformat()
+        cut_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+        cut_72h = (datetime.now(timezone.utc) - timedelta(hours=72)).isoformat()
+
+        # Pre-build per-vehicle lookups via aggregation (only newest event
+        # per family per vehicle in the last 72h).
+        family_status: Dict[str, Dict[str, Dict[str, Any]]] = {
+            "gateway_disconnected": {},
+            "gateway_reconnected": {},
+            "fault_code": {},
+            "fault_code_closed": {},
+            "dvir": {},
+            "_any": {},
+        }
+        async for ev in db.motive_events.find(
+            {
+                "received_at": {"$gte": cut_72h},
+                "is_demo": {"$ne": True},
+                "vehicle_id": {"$nin": [None, ""]},
+            },
+            {"_id": 0, "vehicle_id": 1, "event_family": 1, "severity": 1,
+             "received_at": 1, "headline": 1, "decorated_label": 1, "priority": 1},
+        ).sort("received_at", -1):
+            vid = str(ev.get("vehicle_id"))
+            fam = ev.get("event_family") or ""
+            if fam in family_status and vid not in family_status[fam]:
+                family_status[fam][vid] = ev
+            if vid not in family_status["_any"]:
+                family_status["_any"][vid] = ev
+
+        # Pre-build per-vehicle current driver lookup from dispatch
+        # (most recent active assignment per truck).
+        driver_by_truck: Dict[str, Dict[str, str]] = {}
+        async for a in db.dispatch_assignments.find(
+            {"current_state": {"$nin": ["COMPLETE", "CANCELLED"]},
+             "truck_id": {"$nin": [None, ""]}},
+            {"_id": 0, "truck_id": 1, "driver_id": 1, "driver_name": 1,
+             "project_number": 1, "project_name": 1, "last_transition_at": 1},
+        ).sort("last_transition_at", -1):
+            key = str(a.get("truck_id") or "").strip().upper()
+            if key and key not in driver_by_truck:
+                driver_by_truck[key] = {
+                    "employee_id": a.get("driver_id") or "",
+                    "name": a.get("driver_name") or "",
+                    "project_number": a.get("project_number") or "",
+                    "project_name": a.get("project_name") or "",
+                }
+
         rows: List[Dict[str, Any]] = []
         async for am in db.asset_mappings.find(
             {"provider": "motive"},
@@ -288,6 +386,9 @@ def register_operations_intelligence_routes(api_router: APIRouter, db, require_a
                 "motive.located_at": 1,
                 "motive.speed_kph": 1,
                 "motive.gps_enabled": 1,
+                "motive.location_summary": 1,
+                "motive.city": 1,
+                "motive.state": 1,
             },
         ):
             mv = am.get("motive") or {}
@@ -295,21 +396,68 @@ def register_operations_intelligence_routes(api_router: APIRouter, db, require_a
             band = _gps_band(located)
             speed = mv.get("speed_kph")
             moving = isinstance(speed, (int, float)) and speed > 5 and band["band"] == "green"
+            vid = str(mv.get("vehicle_id") or "")
+
+            # Gateway: offline iff the latest event in 72h is disconnected
+            gw_off_ev = family_status["gateway_disconnected"].get(vid)
+            gw_on_ev = family_status["gateway_reconnected"].get(vid)
+            gateway_status = "online"
+            if gw_off_ev and (not gw_on_ev or gw_off_ev.get("received_at", "") > gw_on_ev.get("received_at", "")):
+                gateway_status = "offline"
+
+            # Fault: critical iff there's an open critical fault not since
+            # closed.
+            fault_open = family_status["fault_code"].get(vid)
+            fault_closed_ev = family_status["fault_code_closed"].get(vid)
+            fault_status = "normal"
+            if fault_open and (fault_open.get("severity") == "critical") and \
+                (not fault_closed_ev or fault_open.get("received_at", "") > fault_closed_ev.get("received_at", "")):
+                fault_status = "critical"
+
+            # DVIR: needs_attention iff the most recent DVIR in 72h has
+            # severity high/critical.
+            dvir_ev = family_status["dvir"].get(vid)
+            dvir_status = "pass"
+            if dvir_ev and dvir_ev.get("severity") in ("high", "critical"):
+                dvir_status = "needs_attention"
+
+            last_ev = family_status["_any"].get(vid)
+            last_event = None
+            if last_ev:
+                last_event = {
+                    "family": last_ev.get("event_family"),
+                    "headline": last_ev.get("headline") or last_ev.get("decorated_label"),
+                    "severity": last_ev.get("severity"),
+                    "received_at": last_ev.get("received_at"),
+                }
+
+            unit = (am.get("masci_unit_number") or mv.get("number") or "").strip()
+            key_up = unit.upper()
+            asgn = driver_by_truck.get(key_up)
+
             rows.append({
                 "masci_equipment_id": am.get("masci_equipment_id") or "",
-                "unit_number": (am.get("masci_unit_number") or mv.get("number") or "").strip(),
-                "vehicle_id": mv.get("vehicle_id") or "",
+                "unit_number": unit,
+                "vehicle_id": vid,
                 "asset_id": mv.get("asset_id") or "",
                 "band": band["band"],
                 "label": band["label"],
                 "minutes": band["minutes"],
                 "located_at": located,
+                "location_summary": mv.get("location_summary") or
+                    (f"{mv.get('city') or ''}{', ' if mv.get('city') and mv.get('state') else ''}{mv.get('state') or ''}".strip(", ") or ""),
                 "speed_kph": speed,
                 "moving": bool(moving),
                 "gps_enabled": bool(mv.get("gps_enabled")),
+                # DSI-1A · enriched per-asset intel
+                "gateway_status": gateway_status,
+                "fault_status": fault_status,
+                "dvir_status": dvir_status,
+                "last_event": last_event,
+                "assigned_driver": asgn,
             })
         return {
-            "as_of": datetime.now(timezone.utc).isoformat(),
+            "as_of": now_iso_,
             "assets": rows,
             "count": len(rows),
             "gps_band_thresholds": {

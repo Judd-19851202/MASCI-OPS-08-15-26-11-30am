@@ -173,8 +173,24 @@ function OperationsSection({ operations }) {
 
 function SafetySection({ safety }) {
   if (!safety) return null;
+  const hosCls = safety.hos_status === "violation_active"
+    ? "bg-rose-100 text-rose-900 border-rose-300"
+    : safety.hos_status === "clean"
+      ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+      : "bg-slate-100 text-slate-700 border-slate-300";
+  const hosLabel = safety.hos_status === "violation_active" ? "HOS Violation Active"
+    : safety.hos_status === "clean" ? "HOS Clean"
+    : "HOS Unknown";
   return (
     <Section title="Safety" code="DCP-1B · SAFETY" icon={ShieldCheck} accent="rose" testid="dcp-section-safety">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className={`inline-flex items-center px-2 py-1 rounded border text-[11px] font-mono uppercase tracking-wider font-bold ${hosCls}`} data-testid="dcp-safe-hos-status">{hosLabel}</span>
+        {safety.ai_coach_trend ? (
+          <span className="inline-flex items-center px-2 py-1 rounded border text-[11px] font-mono uppercase tracking-wider font-bold bg-slate-100 text-slate-700 border-slate-300" data-testid="dcp-safe-ai-coach">
+            AI Coach · {safety.ai_coach_trend}
+          </span>
+        ) : null}
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3">
         <CountTile testid="dcp-safe-harsh-30d" label="Harsh · 30d" value={safety.harsh_events_30d} tone={safety.harsh_events_30d > 0 ? "amber" : "slate"} />
         <CountTile testid="dcp-safe-hos-30d" label="HOS · 30d" value={safety.hos_violations_30d} tone={safety.hos_violations_30d > 0 ? "rose" : "slate"} />
@@ -325,6 +341,32 @@ function MappingHealthSection({ mapping_health }) {
   );
 }
 
+function ActivitySection({ activity }) {
+  if (!Array.isArray(activity) || activity.length === 0) return null;
+  return (
+    <Section title="Activity · Last Events" code="DCP-1C · ACTIVITY" icon={Activity} accent="slate" testid="dcp-section-activity">
+      <ul className="bg-slate-50 border border-slate-200 rounded-md px-3 py-1 max-h-60 overflow-auto" data-testid="dcp-activity-list">
+        {activity.map((ev, i) => {
+          const sev = ev.severity || ev.priority || "info";
+          const sevCls = sev === "critical" || sev === "high"
+            ? "bg-rose-100 text-rose-900 border-rose-300"
+            : "bg-slate-100 text-slate-700 border-slate-300";
+          const when = ev.received_at ? new Date(ev.received_at).toLocaleString() : "—";
+          return (
+            <li key={`ev-${i}`} className="flex items-start gap-2 py-1.5 border-b border-slate-100 last:border-0 text-xs">
+              <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-wider font-bold ${sevCls}`}>
+                {String(ev.event_family || "").replace(/_/g, " ")}
+              </span>
+              <span className="text-slate-700 truncate flex-1">{ev.headline || (ev.vehicle_id ? `Veh ${ev.vehicle_id}` : "—")}</span>
+              <span className="text-[10px] font-mono text-slate-500 shrink-0">{when}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </Section>
+  );
+}
+
 export default function DriverCommandProfile({ driverKey, className = "" }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -382,6 +424,7 @@ export default function DriverCommandProfile({ driverKey, className = "" }) {
       <SafetySection safety={data.safety} />
       <TrainingSection training={data.training} />
       <MotiveSection motive={data.motive} />
+      <ActivitySection activity={data.activity} />
       <MappingHealthSection mapping_health={data.mapping_health} />
     </div>
   );

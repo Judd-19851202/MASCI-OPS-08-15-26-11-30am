@@ -7,14 +7,38 @@ Verifies the access matrix:
 - Bogus token         → 401 across the board
 """
 from __future__ import annotations
+import json as _json
 import os
+import urllib.request
+import urllib.error
 import pytest
 import requests
+
 
 BASE = os.environ.get(
     "REACT_APP_BACKEND_URL",
     "https://safety-audit-mobile-1.preview.emergentagent.com",
 ).rstrip("/")
+
+
+def _raw_request(method: str, path: str, headers: dict, body: dict | None = None):
+    """Bypass conftest's requests-patch via urllib. The patch injects a
+    real X-Admin-Token whenever the test doesn't supply one — but we
+    *want* to send X-HR-Token alone to actually exercise the HR auth
+    gate. urllib is not patched."""
+    url = f"{BASE}{path}"
+    data = None
+    # Cloudflare blocks bare urllib UAs; mimic a standard browser-like header.
+    headers = {**headers, "User-Agent": "Mozilla/5.0 (MASCI-pytest)"}
+    if body is not None:
+        data = _json.dumps(body).encode("utf-8")
+        headers = {**headers, "Content-Type": "application/json"}
+    req = urllib.request.Request(url, data=data, method=method, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return resp.status, resp.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode("utf-8")
 
 
 @pytest.fixture(scope="module")
@@ -28,7 +52,7 @@ def admin_token() -> str:
     return r.json()["portal_tokens"]["admin"]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def hr_token() -> str:
     r = requests.post(
         f"{BASE}/api/hr/login",
@@ -57,34 +81,32 @@ def test_admin_read_all(admin_token, path):
 # 2. HR can read everything (asset + conflict are view-only)
 @pytest.mark.parametrize("path", READ_PATHS)
 def test_hr_read_all(hr_token, path):
-    r = requests.get(f"{BASE}{path}", headers={"X-HR-Token": hr_token}, timeout=30)
-    assert r.status_code == 200, r.text
+    status, body = _raw_request("GET", path, headers={"X-HR-Token": hr_token})
+    assert status == 200, body
 
 
 # 3. HR can perform driver actions (ignore on a known driver, then revert)
 def test_hr_driver_ignore_roundtrip(hr_token):
-    q = requests.get(
-        f"{BASE}/api/admin/integrations/cleanup/drivers",
+    status, body = _raw_request(
+        "GET", "/api/admin/integrations/cleanup/drivers",
         headers={"X-HR-Token": hr_token},
-        timeout=30,
-    ).json()
+    )
+    assert status == 200, body
+    q = _json.loads(body)
     target = next(
-        (r for r in q["rows"]
-         if not r.get("is_resolved") and r.get("motive_status") == "deactivated"),
+        (row for row in q["rows"]
+         if not row.get("is_resolved") and row.get("motive_status") == "deactivated"),
         None,
     )
     if not target:
         pytest.skip("no deactivated unresolved driver available")
     mid = target["mapping_id"]
-    r = requests.post(
-        f"{BASE}/api/admin/integrations/cleanup/drivers/{mid}/ignore",
-        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
-        json={"note": "MCC-1 HR access regression"},
-        timeout=30,
+    status, body = _raw_request(
+        "POST", f"/api/admin/integrations/cleanup/drivers/{mid}/ignore",
+        headers={"X-HR-Token": hr_token},
+        body={"note": "MCC-1 HR access regression"},
     )
-    assert r.status_code == 200, r.text
-    # revert via the admin endpoint (no clean "undo" endpoint by design)
-    # so that the test leaves state untouched.
+    assert status == 200, body
     import asyncio
     from motor.motor_asyncio import AsyncIOMotorClient
     from dotenv import load_dotenv
@@ -100,46 +122,39 @@ def test_hr_driver_ignore_roundtrip(hr_token):
 
 # 4. HR forbidden on asset-retire
 def test_hr_cannot_retire(hr_token):
-    r = requests.post(
-        f"{BASE}/api/admin/integrations/cleanup/assets/dummy-id/retire",
-        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
-        json={},
-        timeout=30,
+    status, _ = _raw_request(
+        "POST", "/api/admin/integrations/cleanup/assets/dummy-id/retire",
+        headers={"X-HR-Token": hr_token}, body={},
     )
-    assert r.status_code == 401, r.text
+    assert status in (401, 403)
 
 
 # 5. HR forbidden on asset ignore-gateway
 def test_hr_cannot_ignore_gateway(hr_token):
-    r = requests.post(
-        f"{BASE}/api/admin/integrations/cleanup/assets/dummy-id/ignore-gateway",
-        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
-        json={},
-        timeout=30,
+    status, _ = _raw_request(
+        "POST", "/api/admin/integrations/cleanup/assets/dummy-id/ignore-gateway",
+        headers={"X-HR-Token": hr_token}, body={},
     )
-    assert r.status_code == 401, r.text
+    assert status in (401, 403)
 
 
 # 6. HR forbidden on conflict resolve
 def test_hr_cannot_resolve_conflict(hr_token):
-    r = requests.post(
-        f"{BASE}/api/admin/integrations/cleanup/conflicts/resolve",
-        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
-        json={"kind": "asset", "action": "dismiss", "mapping_a_id": "x"},
-        timeout=30,
+    status, _ = _raw_request(
+        "POST", "/api/admin/integrations/cleanup/conflicts/resolve",
+        headers={"X-HR-Token": hr_token},
+        body={"kind": "asset", "action": "dismiss", "mapping_a_id": "x"},
     )
-    assert r.status_code == 401, r.text
+    assert status in (401, 403)
 
 
 # 7. HR forbidden on asset-link (HR has no equipment authority)
 def test_hr_cannot_link_asset(hr_token):
-    r = requests.post(
-        f"{BASE}/api/admin/integrations/cleanup/assets/dummy-id/link",
-        headers={"X-HR-Token": hr_token, "X-Admin-Token": "neutralize-conftest-patch", "Content-Type": "application/json"},
-        json={"equipment_id": "dummy"},
-        timeout=30,
+    status, _ = _raw_request(
+        "POST", "/api/admin/integrations/cleanup/assets/dummy-id/link",
+        headers={"X-HR-Token": hr_token}, body={"equipment_id": "dummy"},
     )
-    assert r.status_code == 401, r.text
+    assert status in (401, 403)
 
 
 # 8. Unauthenticated callers still rejected

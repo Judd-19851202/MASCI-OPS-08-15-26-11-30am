@@ -1,12 +1,31 @@
-"""DCP-1 · Driver Command Profile regression suite (2026-06-08).
-
-Tests the unified `/api/operations/drivers/{driver_key}/profile`
-endpoint across all four portal scopes (Admin · Safety · HR · Dispatch).
-"""
+"""DCP-1 · Driver Command Profile regression suite (2026-06-08)."""
 from __future__ import annotations
+import json as _json
 import os
+import urllib.request
+import urllib.error
 import pytest
 import requests
+
+
+def _raw_request(method: str, path: str, headers: dict, body: dict | None = None):
+    """Bypass the conftest requests-patch by using urllib directly.
+
+    This is the ONLY way to send a request with X-HR-Token but NO
+    X-Admin-Token in this test setup."""
+    url = f"{BASE}{path}"
+    data = None
+    headers = {**headers, "User-Agent": "Mozilla/5.0 (MASCI-pytest)"}
+    if body is not None:
+        data = _json.dumps(body).encode("utf-8")
+        headers = {**headers, "Content-Type": "application/json"}
+    req = urllib.request.Request(url, data=data, method=method, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return resp.status, resp.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode("utf-8")
+
 
 BASE = os.environ.get(
     "REACT_APP_BACKEND_URL",
@@ -25,7 +44,7 @@ def admin_token() -> str:
     return r.json()["portal_tokens"]["admin"]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def hr_token() -> str:
     r = requests.post(
         f"{BASE}/api/hr/login",
@@ -70,25 +89,19 @@ def test_admin_full_payload(admin_token, sample_driver):
 
 # ── Role redaction ──────────────────────────────────────────────────
 def test_hr_redacts_mapping_health(hr_token, sample_driver):
-    r = requests.get(
-        f"{BASE}/api/operations/drivers/{sample_driver}/profile",
-        headers={
-            "X-HR-Token": hr_token,
-            # Neutralize the conftest auto-injected X-Admin-Token so we
-            # actually exercise the HR path (otherwise admin wins and
-            # the role redaction never triggers).
-            "X-Admin-Token": "neutralize-conftest-patch",
-        },
-        timeout=30,
+    status, body = _raw_request(
+        "GET",
+        f"/api/operations/drivers/{sample_driver}/profile",
+        headers={"X-HR-Token": hr_token},
     )
-    assert r.status_code == 200
-    body = r.json()
-    assert body["_role"] == "hr"
-    assert "mapping_health" not in body
+    assert status == 200, body
+    payload = _json.loads(body)
+    assert payload["_role"] == "hr"
+    assert "mapping_health" not in payload
     # HR still sees safety + training + motive
-    assert "safety" in body
-    assert "training" in body
-    assert "motive" in body
+    assert "safety" in payload
+    assert "training" in payload
+    assert "motive" in payload
 
 
 # ── Identity resolution by employee UUID ────────────────────────────

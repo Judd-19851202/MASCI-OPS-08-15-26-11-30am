@@ -1,3 +1,33 @@
+## 2026-06-08 (DSI-1 · Dispatch Situational Intelligence · 🟢 CERTIFIED)
+
+OMEGA DSI-1 sprint closed green. Live Motive intelligence is now operational decision-making infrastructure — dispatchers no longer need to open Motive / FleetWatcher / MaintainX or call a driver to answer the 8 core operational questions.
+
+### Backend
+- `routes/operations_intelligence.py` — `fleet-gps` endpoint now enriches every asset with `gateway_status`, `fault_status`, `dvir_status`, `last_event`, `assigned_driver`. Main `/operations/intelligence` payload adds a `dispatch` block (active_assignments / active_drivers / active_equipment). Shop `not_reporting` rows carry `assigned_operator` + `last_known_location`.
+- `routes/driver_profile.py` — `safety.hos_status` + `safety.ai_coach_trend` fields; new `activity[]` block (last 15 Motive events) for DSI-1C timeline.
+- `tests/test_dsi1_dispatch_intelligence.py` — 5-case regression suite.
+
+### Frontend
+- `lib/gpsBand.js` — universal `GATEWAY_PILL` / `DVIR_PILL` / `FAULT_PILL` constants + helpers (DSI-1F).
+- `pages/DispatchBoard.jsx` — per-row Gateway Offline / Critical Fault / DVIR Attn chips + Last Motive Event line (operational language).
+- `components/MotiveOpsIntelPanel.jsx` — Dispatch strip (Active Assignments / Drivers / Equipment) above existing fleet/drivers/equipment cards.
+- `components/ShopOpsIntelPanel.jsx` — operator + location inline on GPS-not-reporting list.
+- `components/DriverCommandProfile.jsx` — HOS status pill + new ActivitySection timeline.
+
+### Verification
+- **49/49 tests pass** (DSI-1 5 + DCP-1 7 + MCC-1 HR 18 + MCC-1 12 + OIS-1 8 with 1 skip).
+- Test infrastructure hardened: HR-only tests now use `urllib.request` to bypass conftest's auto-admin-token patch; function-scoped HR fixture prevents idle-timeout drift.
+- Live preview: Admin Hub Dispatch strip showing 216 active assignments · 16 active drivers · 121 active equipment. Trust pill green.
+
+### Certification
+`/app/memory/DSI1_DISPATCH_SITUATIONAL_INTELLIGENCE_CERTIFICATION.md`
+
+### Next deferred (NOT started · OMEGA gate)
+- **FW-1** Ticket Ingest (operator must answer the FleetWatcher capability questions first)
+- **M-2** Webhook event-type router → Dispatch state transitions
+- **M-3** Geocode `jobs_master` + plant/yard addresses
+
+
 ## 2026-06-08 (DCP-1 + FWA-1 · Driver Command Profile + FleetWatcher Forensic Audit · 🟢🟢 BOTH CERTIFIED)
 
 OMEGA twin-track sprint closed green. DCP-1 ships a single Driver Command Profile reused across Admin, HR, Safety, Dispatch portals with server-side role redaction. FWA-1 delivers a read-only forensic audit of FleetWatcher with phased ROI ranking — zero code written for FWA.

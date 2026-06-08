@@ -249,8 +249,10 @@ async def _safety(db, employee_uuid: str, motive_user_id: str):
     return {
         "harsh_events_30d": harsh_30d,
         "hos_violations_30d": hos_30d,
+        "hos_status": "violation_active" if hos_30d > 0 and motive_user_id else ("clean" if motive_user_id else "unknown"),
+        "ai_coach_trend": None,  # Not currently captured upstream (see audit).
         "dvir_inspections_30d": dvir_30d,
-        "ai_coach_score": ai_coach_score,  # not currently captured upstream
+        "ai_coach_score": ai_coach_score,  # legacy field, retained for compat
         "incidents_365d": incident_rows,
         "open_corrective_actions": ca_rows,
     }
@@ -419,6 +421,24 @@ def register_driver_profile_routes(api_router: APIRouter, db, require_actor) -> 
         motive = _motive_block(mapping)
         mapping_health = _mapping_health(mapping)
 
+        # DSI-1C · Last-event timeline (motive activity for this driver)
+        activity_rows: List[Dict[str, Any]] = []
+        if motive_user_id:
+            async for ev in db.motive_events.find(
+                {"driver_id": motive_user_id},
+                {"_id": 0, "event_family": 1, "severity": 1, "priority": 1,
+                 "received_at": 1, "headline": 1, "decorated_label": 1,
+                 "vehicle_id": 1},
+            ).sort("received_at", -1).limit(15):
+                activity_rows.append({
+                    "event_family": ev.get("event_family"),
+                    "severity": ev.get("severity"),
+                    "priority": ev.get("priority"),
+                    "received_at": ev.get("received_at"),
+                    "vehicle_id": ev.get("vehicle_id"),
+                    "headline": ev.get("headline") or ev.get("decorated_label"),
+                })
+
         payload = {
             "as_of": _iso(_now()),
             "driver_key": driver_key,
@@ -429,6 +449,7 @@ def register_driver_profile_routes(api_router: APIRouter, db, require_actor) -> 
             "equipment_usage": equipment_usage,
             "motive": motive,
             "mapping_health": mapping_health,
+            "activity": activity_rows,
         }
 
         role = (actor or {}).get("_role") or ROLE_ADMIN

@@ -58,3 +58,31 @@ export function gpsBandShort(band) {
   if (band === "amber") return "Stale";
   return "No GPS";
 }
+
+// ── DSI-1F · Universal Health System ────────────────────────────────
+// Use these helpers everywhere. Never invent additional status systems.
+
+export const GATEWAY_PILL = {
+  online:  "bg-emerald-100 text-emerald-900 border-emerald-300",
+  offline: "bg-amber-100 text-amber-900 border-amber-300",
+};
+
+export const DVIR_PILL = {
+  pass:             "bg-emerald-100 text-emerald-900 border-emerald-300",
+  needs_attention:  "bg-amber-100 text-amber-900 border-amber-300",
+};
+
+export const FAULT_PILL = {
+  normal:   "bg-emerald-100 text-emerald-900 border-emerald-300",
+  critical: "bg-rose-100 text-rose-900 border-rose-300",
+};
+
+export function gatewayClass(status) {
+  return GATEWAY_PILL[status] || GATEWAY_PILL.offline;
+}
+export function dvirClass(status) {
+  return DVIR_PILL[status] || DVIR_PILL.pass;
+}
+export function faultClass(status) {
+  return FAULT_PILL[status] || FAULT_PILL.normal;
+}
