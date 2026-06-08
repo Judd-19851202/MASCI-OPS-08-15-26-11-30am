@@ -1,3 +1,42 @@
+## 2026-06-08 (OIS-1 · Operations Intelligence Sprint · ✅ CERTIFIED)
+
+OMEGA OIS-1 sprint closed green. Live Motive telematics now powers single-pane executive intelligence across AdminHub, ShopHub, DispatchBoard, AssetProfile, and a new read-only Driver Command Profile — without violating OMEGA discipline (no automation, no new portals, no state mutation).
+
+### Backend (1 file · 4 endpoints · all admin-strict · read-only)
+- `/app/backend/routes/operations_intelligence.py`
+  - `GET /api/operations/intelligence`             — single-pane fleet/driver/equipment/safety/geofence rollup (OIS-1E)
+  - `GET /api/operations/intelligence/shop`        — equipment-side critical faults / gateway / DVIR / not-reporting (OIS-1D)
+  - `GET /api/operations/intelligence/fleet-gps`   — per-asset GPS band map for row badges (OIS-1A)
+  - `GET /api/operations/intelligence/driver/{key}` — driver-level HOS / harsh / DVIR rollup (OIS-1C)
+- Shared `_gps_band()` helper enforces universal Green<30min / Amber<24h / Red≥24h thresholds (OIS-1F).
+
+### Frontend (6 new files · 6 edits)
+- `lib/gpsBand.js` (OIS-1F universal classifier)
+- `components/MotiveOpsIntelPanel.jsx` (OIS-1E, mounted on AdminHub)
+- `components/ShopOpsIntelPanel.jsx` (OIS-1D, mounted on ShopHub)
+- `components/MotiveDriverIntelPanel.jsx` (OIS-1C, used by AdminDriverIntel)
+- `pages/admin/AdminDriverIntel.jsx` + new admin route `/admin/driver-intel/:driverKey`
+- DispatchBoard row chip + fleet-gps fetch (OIS-1A)
+- AssetProfile Motive tab label normalization to "Reporting / Stale / Not Reporting" (OIS-1F)
+- AdminIntegrationCenter per-driver Gauge link → driver intel page
+
+### Verification
+- 8/8 backend pytest cases passed (`/app/backend/tests/test_ois1_operations_intelligence.py`).
+- Admin-strict negative tests confirmed (401/403 without `X-Admin-Token`).
+- Live AdminHub: 158 GPS-enabled assets · 94 not-reporting · 53 active drivers · 12 deactivated · 1 HOS / 1 critical fault / 1 gateway / 1 DVIR / 1 harsh-event 24h.
+- ShopHub list shows real not-reporting unit numbers with red Universal-Health pills.
+- DispatchBoard renders 18 GPS chips (universal Green/Amber/Red).
+- AssetProfile Motive tab confirms `NOT REPORTING · NEVER` red pill.
+
+### Certification
+`/app/memory/OIS1_OPERATIONS_INTELLIGENCE_CERTIFICATION.md`
+
+### Next deferred (NOT started · OMEGA gate)
+- **M-2** Webhook event-type router → Dispatch state transitions
+- **M-3** Geocode `jobs_master` + plant/yard addresses
+- **P2** `test_trench_safety_phase2::test_dashboard_seed_data` stale fixture
+
+
 ## 2026-06-08 (M-1 · Motive Live Activation · ✅ CERTIFIED)
 
 OMEGA M-1 sprint closed green. Motive telematics now flows live into MASCI's existing integration schemas — no new portals, no new collections, no schema migrations. Operator-managed credentials live in the `integration_settings` Mongo row, rotated via the existing `/admin/integrations` Motive tile PATCH.
