@@ -11381,6 +11381,14 @@ _op_locations_router = build_operational_locations_router(db, require_admin)
 app.include_router(_op_locations_router)
 
 
+# M-DR-1 · Equipment Auto-Discovery · /api/equipment-detection/* (read-only
+# suggestion API for the Daily Report form). Motive suggests; foreman
+# verifies; foreman authors. No DR mutations from this module.
+from routes.equipment_detection import build_equipment_detection_router  # noqa: E402
+_equipment_detection_router = build_equipment_detection_router(db)
+app.include_router(_equipment_detection_router)
+
+
 # iter382 · /admin/project-managers/* (10 routes) + public /project-managers
 # extracted to routes/pm_admin.py.
 from routes.pm_admin import build_pm_admin_router  # noqa: E402
