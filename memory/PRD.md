@@ -37313,3 +37313,32 @@ No fuzzy matching · no auto-mapping · no auto-correction · no auto-merge · n
 - Stale `test_trench_safety_phase2.py::test_dashboard_seed_data` (P2, deferred since Feb 2026).
 - ESLint cleanup pass on the seven pre-existing flagged files.
 
+
+---
+
+## PROJECT-IDENTITY-006 · Governance Center Operator Clarity Pass (Feb 2026)
+
+**Type:** UI · READ-SIDE PRIORITIZATION · OMEGA · P0  
+**Status:** COMPLETE — CERTIFIED  
+**Deliverable:** `/app/memory/PROJECT_IDENTITY_006_GOVERNANCE_OPERATOR_CLARITY_CERTIFICATION.md`
+
+### What shipped
+- **Governance status language**: HEALTHY · NEEDS REVIEW · CRITICAL REVIEW NEEDED with operator-facing prose.
+- **Priority sorting**: queue + Top-10 list sorted by operational impact tier (Payroll → Daily Reports → Job Photos → Safety → Dispatch → Material/Equipment → Admin → Cert/Test).
+- **Impact badges**: per-item module badges colored by tier.
+- **Prominent Affected Records count** on every card.
+- **Top 10 cleanup section** — red-bordered card above the full queue with full action buttons inline.
+- **Zero-state explainer** — amber callout when health score is 0%, prevents "platform broken" misread.
+- **"Why this matters" expandable panel** with five concise bullets.
+- **Metric card captions** clarifying every number's meaning.
+
+### Files changed
+- `frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx` (UI-only rewrite, no backend changes)
+
+### Verification
+- Resolver: 19/19 PASS · Compliance blocker: 5/5 PASS · Lint: clean · UI probe verified all new test-ids present (`identity-governance-status`, `identity-why-panel`, `identity-zero-state`, `identity-top10` etc.) · Status badge correctly derived `CRITICAL REVIEW NEEDED` on current preview data.
+- Before/after screenshots captured: `/app/memory/identity_governance_BEFORE.jpg` · `/app/memory/identity_governance_AFTER.jpg`.
+
+### OMEGA invariants honoured
+No resolver / detector / conflict-creation logic touched · no auto-resolution · no auto-mapping · no jobs_master mutation · no historical record changes · no record deletes · no module sources hidden (cert/test tier still visible, just sorted last) · no Daily Reports / Job Photos / Payroll / Dispatch / Motive / FleetWatcher / Material Movement touched.
+
