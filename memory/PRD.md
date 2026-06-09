@@ -1,3 +1,38 @@
+## 2026-02-09 (DR-PDF-001 · DAILY REPORT PDF CONSTITUTIONAL AUDIT · DELIVERED 🟢)
+
+Audit-only sprint. Zero code changes. Complete evidence-based map of the Daily Report PDF against the 5 ForgedOps pillars (Powerful · Simple · Beautiful · Trusted · Proven), produced from:
+- Full read of `pdf_render.py::_render_daily` and `render_record_pdf`
+- Live PDF render of a fully-populated realistic paving-day Daily Report
+- Per-page visual analysis (independent analyzer corroborated findings)
+
+### Key findings
+- **The PDF is information-flat.** Data layer is solid (DR-FIX-1/2/3 + MM-001B); render layer presents every section at equal weight in historical numbering order, not executive-value order.
+- **60-second comprehension target: NOT MET** on a typical day. Executive must scan all 4 pages to assemble a mental model.
+- **R5 (DR-AUDIT-001 SHA256 audit footer) already shipped** via Wave-1C — visible on every page; remove from open backlog.
+- **Crew section bloat** — inline gross/net math repeats under every crew member (~25% of P2 wasted when all crews share a schedule).
+- **Empty `10 · Photos` header** when photo refs fail to resolve.
+- **09 Activities vs 09b Production duplication** — two parallel tables describing the same day.
+- **No Executive Summary surface** — single largest improvement opportunity.
+
+### Constitutional scorecard (overall weighted)
+Powerful 3.5 · Simple 3.4 · Beautiful 3.0 · Trusted 4.6 · Proven 4.5 · **Overall 3.8 / 5**
+
+### Recommendations delivered (17, with ID · risk · effort · priority)
+**HIGH priority (4):** R-PDF-1 Executive Summary Card · R-PDF-2 Safe Day Badge · R-PDF-3 Collapse crew gross/net math · R-PDF-10 Excavation activity surface
+**MEDIUM priority (7):** R-PDF-4 hide empty Photos · R-PDF-5 deprecate legacy 09 when 09b populated · R-PDF-6 Production totals row · R-PDF-7 title-case constraint enums · R-PDF-8 severity color on advisory flags · R-PDF-11 General Notes up to top · R-PDF-16 lifecycle stamp in audit footer
+**LOW priority (6):** R-PDF-9 renumber · R-PDF-12 photo captions · R-PDF-13 submit timestamp · R-PDF-14 signature placement · R-PDF-15 footer attribution dedup · R-PDF-17 day-over-day context
+
+### "Do not touch" list (7 items) — including the certified audit footer, MM-001B 09d render, DR-FIX-3 single signer, DR-FIX-1 Production/Constraints render, and the subcontractor/material photo patterns (which should become the model for Section 10).
+
+### Deliverable
+`/app/memory/DR_PDF_001_CONSTITUTIONAL_AUDIT.md` (sections A–O + 17 recommendations + do-not-touch list)
+
+### STOP CONDITION OBSERVED
+No code changes performed. No PDFs modified. No data altered. All 17 recommendations await explicit OMEGA authorization before implementation.
+
+
+
+
 ## 2026-02-09 (DR-FIX-3 · IDENTITY + SIGNATURE SIMPLIFICATION · PASS 🟢)
 
 Closed two trust / governance gaps from DR-AUDIT-001 under strict OMEGA discipline. R9 + R13 only — every other DR-AUDIT-001 item remains deferred.
