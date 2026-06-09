@@ -124,22 +124,21 @@ export default function HrTimeVerification() {
       title="Time Verification"
       kicker="HR · Payroll Cross-Check"
     >
-      {/* HR-TIME-001 / 001B / 001C / 001D · Print stylesheet — portrait,
-          upright, one page, professional layout (intentional spacing, true
-          totals cards, readable table, balanced footer). */}
+      {/* HR-TIME-001E · FINAL executive-quality print lock.
+          Restructured for stronger title hierarchy, prominent totals, balanced
+          page utilization (~70-80% of letter page), readable footer. */}
       <style>{`
         @media print {
-          @page { size: letter portrait; margin: 0.55in 0.5in; }
+          @page { size: letter portrait; margin: 0.45in; }
           html, body {
             background: #fff !important; color: #0f172a !important;
             margin: 0 !important; padding: 0 !important;
             font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial !important;
           }
-          /* Force backgrounds + colors to render */
           * { -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important; }
 
-          /* Hide chrome (preserved from 001C) */
+          /* Hide chrome */
           .caution-stripe, header, nav, aside,
           [role="navigation"], [role="banner"],
           [data-testid="env-banner"],
@@ -159,110 +158,155 @@ export default function HrTimeVerification() {
           main { display: block !important; }
           [data-print-only] { display: block !important; }
 
-          /* ── Print-only header — three balanced lines ─────────────── */
-          .pr-head { margin-bottom: 22px; padding-bottom: 12px;
-                     border-bottom: 2px solid #6d28d9; }
-          .pr-head .brand-row {
-            display: flex; align-items: baseline; justify-content: space-between;
-            gap: 12px;
-          }
-          .pr-head .brand {
-            font-family: ui-sans-serif, system-ui, sans-serif;
-            font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
-            text-transform: uppercase; color: #0f172a;
-          }
-          .pr-head .gen {
-            font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-            font-size: 9.5px; color: #64748b; letter-spacing: 0.02em;
+          /* ── A · Report header — TITLE is dominant ─────────────── */
+          .pr-head { margin-bottom: 26px; padding-bottom: 14px;
+                     border-bottom: 3px solid #6d28d9; }
+          .pr-head .top-row {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 16px;
           }
           .pr-head .title {
-            font-size: 22px; font-weight: 900; color: #0f172a;
-            margin-top: 6px; letter-spacing: -0.01em; line-height: 1.15;
+            font-size: 30px; font-weight: 900; color: #0f172a;
+            letter-spacing: -0.02em; line-height: 1.05;
+            text-transform: uppercase;
           }
-          .pr-head .kicker {
+          .pr-head .subtitle {
+            font-size: 12px; font-weight: 600; color: #334155;
+            margin-top: 8px; letter-spacing: 0.01em;
+          }
+          .pr-head .subtitle .sep { color: #94a3b8; margin: 0 6px; }
+          .pr-head .gen-block {
+            text-align: right; flex-shrink: 0;
+          }
+          .pr-head .gen-lbl {
             font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-            font-size: 9.5px; letter-spacing: 0.18em;
-            text-transform: uppercase; color: #6d28d9;
-            margin-top: 4px;
+            font-size: 8px; letter-spacing: 0.2em;
+            text-transform: uppercase; color: #64748b;
+          }
+          .pr-head .gen-val {
+            font-family: ui-monospace, monospace; font-size: 11px;
+            font-weight: 700; color: #0f172a; margin-top: 2px;
+          }
+          .pr-head .env-label {
+            display: inline-block; margin-top: 6px;
+            font-family: ui-monospace, monospace; font-size: 8.5px;
+            font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+            color: #b45309; padding: 2px 6px;
+            border: 1px solid #f59e0b; border-radius: 3px;
+            background: #fffbeb !important;
           }
 
-          /* ── Filter / window metadata band ────────────────────────── */
-          .pr-meta { margin-bottom: 18px;
-                     background: #f8fafc !important; border: 1px solid #e2e8f0;
-                     border-radius: 4px; padding: 10px 14px; }
-          .pr-meta .row { display: flex; flex-wrap: wrap; gap: 18px 26px; }
-          .pr-meta .cell { min-width: 130px; }
-          .pr-meta .lbl {
+          /* ── B · Compact metadata pills ────────────────────────── */
+          .pr-meta { margin-bottom: 22px;
+                     display: flex; flex-wrap: wrap; gap: 8px 10px;
+                     padding: 0; }
+          .pr-meta .pill {
+            display: inline-flex; align-items: baseline; gap: 6px;
+            padding: 5px 11px; border: 1px solid #cbd5e1; border-radius: 999px;
+            background: #f8fafc !important;
+          }
+          .pr-meta .pill .lbl {
             font-family: ui-monospace, monospace; font-size: 8px;
-            letter-spacing: 0.18em; text-transform: uppercase; color: #64748b;
+            letter-spacing: 0.16em; text-transform: uppercase; color: #64748b;
           }
-          .pr-meta .val { font-size: 11px; font-weight: 700; color: #0f172a;
-                          margin-top: 1px; }
+          .pr-meta .pill .val {
+            font-size: 11px; font-weight: 700; color: #0f172a;
+          }
 
-          /* ── Totals as 5 balanced cards ───────────────────────────── */
+          /* ── C · Prominent totals cards ────────────────────────── */
           [data-print-region] .pr-stats {
             display: grid !important;
             grid-template-columns: repeat(5, 1fr) !important;
-            gap: 8px !important;
-            margin-bottom: 20px !important;
+            gap: 10px !important;
+            margin-bottom: 26px !important;
           }
           [data-print-region] .pr-stats .cell {
-            border: 1px solid #cbd5e1; border-radius: 4px;
-            padding: 8px 10px; background: #fff !important;
+            border: 1px solid #cbd5e1; border-radius: 6px;
+            padding: 14px 12px; background: #fff !important;
+            text-align: center;
           }
           [data-print-region] .pr-stats .lbl {
-            font-family: ui-monospace, monospace; font-size: 8px;
-            letter-spacing: 0.18em; text-transform: uppercase; color: #64748b;
+            font-family: ui-monospace, monospace; font-size: 8.5px;
+            letter-spacing: 0.2em; text-transform: uppercase; color: #64748b;
           }
           [data-print-region] .pr-stats .val {
-            font-size: 18px; font-weight: 900; color: #0f172a;
-            margin-top: 3px; line-height: 1; letter-spacing: -0.01em;
+            font-size: 28px; font-weight: 900; color: #0f172a;
+            margin-top: 6px; line-height: 1; letter-spacing: -0.02em;
           }
           [data-print-region] .pr-stats .cell.ot .val { color: #b45309; }
+          [data-print-region] .pr-stats .cell.ot {
+            border-color: #f59e0b; background: #fffbeb !important;
+          }
 
-          /* ── Table styling — readable, generous ───────────────────── */
+          /* ── D · Employee table ─────────────────────────────────── */
           [data-print-region] table {
-            font-size: 11px !important; width: 100%;
+            font-size: 11.5px !important; width: 100%;
             border-collapse: collapse;
-            margin-top: 4px;
+            margin-top: 6px;
           }
           [data-print-region] th, [data-print-region] td {
-            padding: 7px 8px !important;
+            padding: 10px 9px !important;
             border-bottom: 1px solid #e2e8f0 !important;
             vertical-align: middle;
           }
           [data-print-region] thead th {
-            background: #f1f5f9 !important; color: #0f172a !important;
-            border-bottom: 1.5px solid #94a3b8 !important;
-            font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
-            font-weight: 800;
+            background: #0f172a !important; color: #fff !important;
+            border-bottom: none !important;
+            font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em;
+            font-weight: 700; padding: 9px 9px !important;
           }
           [data-print-region] tbody tr { page-break-inside: avoid; }
-          [data-print-region] tbody tr td { line-height: 1.35; }
+          [data-print-region] tbody tr:nth-child(even) td {
+            background: #f8fafc !important;
+          }
+          [data-print-region] tbody tr td { line-height: 1.4; }
+          [data-print-region] tbody tr td:first-child {
+            font-weight: 700; color: #0f172a;
+          }
           [data-print-region] thead { display: table-header-group; }
-          /* Flag pills readable */
+          /* Right-align numeric columns (Reg/OT/Lunch/Total) */
+          [data-print-region] th:nth-child(4),
+          [data-print-region] th:nth-child(5),
+          [data-print-region] th:nth-child(6),
+          [data-print-region] th:nth-child(7),
+          [data-print-region] td:nth-child(4),
+          [data-print-region] td:nth-child(5),
+          [data-print-region] td:nth-child(6),
+          [data-print-region] td:nth-child(7) {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+          }
+          [data-print-region] td:nth-child(7) { font-weight: 700; }
+          /* Flag pills */
           [data-print-region] .inline-flex { font-size: 9.5px !important;
-                                              padding: 2px 6px !important; }
+                                              padding: 3px 8px !important;
+                                              border-radius: 999px; }
 
-          /* Hide the live React stats strip + the React-side print header (we
-             render dedicated print-only blocks instead). */
+          /* Hide the live React stats strip + filter card */
           [data-print-region] [data-testid="hr-tv-stats-strip"] { display: none !important; }
           [data-print-region] [data-testid="hr-tv-filter-card"] { display: none !important; }
 
-          /* ── Footer ───────────────────────────────────────────────── */
+          /* ── E · Readable executive footer ──────────────────────── */
           .pr-footer {
-            margin-top: 22px; padding-top: 10px;
-            border-top: 1px solid #cbd5e1;
+            margin-top: 34px; padding-top: 14px;
+            border-top: 2px solid #0f172a;
             text-align: center; line-height: 1.5;
             page-break-inside: avoid;
           }
-          .pr-footer .brand { font-size: 11px; font-weight: 800;
-                              color: #0f172a; letter-spacing: 0.04em; }
-          .pr-footer .powered { font-family: ui-monospace, monospace;
-                                font-size: 9px; color: #6d28d9;
-                                letter-spacing: 0.18em;
-                                text-transform: uppercase; margin-top: 2px; }
-          .pr-footer .sub { font-size: 8.5px; color: #64748b; margin-top: 6px; }
+          .pr-footer .brand {
+            font-size: 13px; font-weight: 800; color: #0f172a;
+            letter-spacing: 0.04em;
+          }
+          .pr-footer .powered {
+            font-family: ui-monospace, monospace; font-size: 10.5px;
+            font-weight: 700; color: #6d28d9;
+            letter-spacing: 0.22em; text-transform: uppercase;
+            margin-top: 4px;
+          }
+          .pr-footer .sub {
+            font-size: 9.5px; color: #475569; margin-top: 10px;
+            letter-spacing: 0.02em;
+          }
         }
         @media not print {
           [data-print-only] { display: none; }
@@ -270,53 +314,36 @@ export default function HrTimeVerification() {
       `}</style>
 
       <div data-print-region>
-        {/* Print-only · professional report header */}
+        {/* A · Print-only · executive report header */}
         <div data-print-only className="pr-head">
-          <div className="brand-row">
-            <div className="brand">MASCI Operations Platform</div>
-            <div className="gen">Generated {new Date().toISOString().replace("T", " ").slice(0, 16)} UTC</div>
+          <div className="top-row">
+            <div>
+              <div className="title">Time Verification Report</div>
+              <div className="subtitle">
+                MASCI Operations Platform <span className="sep">·</span> HR Payroll Cross-Check
+              </div>
+            </div>
+            <div className="gen-block">
+              <div className="gen-lbl">Generated</div>
+              <div className="gen-val">{new Date().toISOString().replace("T", " ").slice(0, 16)} UTC</div>
+              {typeof window !== "undefined" && window.location?.host?.includes("preview") ? (
+                <div className="env-label">Preview · Not Operational Data</div>
+              ) : null}
+            </div>
           </div>
-          <div className="title">Time Verification Report</div>
-          <div className="kicker">HR · Payroll Cross-Check</div>
         </div>
 
-        {/* Print-only · filter / window metadata band */}
+        {/* B · Print-only · compact metadata pills */}
         <div data-print-only className="pr-meta">
-          <div className="row">
-            <div className="cell">
-              <div className="lbl">Window</div>
-              <div className="val">{(data?.week_start || "—") + "  →  " + (data?.week_end || "—")}</div>
-            </div>
-            <div className="cell">
-              <div className="lbl">Week Ending</div>
-              <div className="val">{weekEnding || "—"}</div>
-            </div>
-            <div className="cell">
-              <div className="lbl">View</div>
-              <div className="val">{view === "weekly" ? "Weekly Rollup" : "Per-Day Detail"}</div>
-            </div>
-            {employee ? (
-              <div className="cell">
-                <div className="lbl">Employee</div>
-                <div className="val">{employee}</div>
-              </div>
-            ) : null}
-            {projectNumber ? (
-              <div className="cell">
-                <div className="lbl">Project #</div>
-                <div className="val">{projectNumber}</div>
-              </div>
-            ) : null}
-            {supervisor ? (
-              <div className="cell">
-                <div className="lbl">Supervisor</div>
-                <div className="val">{supervisor}</div>
-              </div>
-            ) : null}
-          </div>
+          <div className="pill"><span className="lbl">Window</span><span className="val">{(data?.week_start || "—") + " → " + (data?.week_end || "—")}</span></div>
+          <div className="pill"><span className="lbl">Week Ending</span><span className="val">{weekEnding || "—"}</span></div>
+          <div className="pill"><span className="lbl">View</span><span className="val">{view === "weekly" ? "Weekly Rollup" : "Per-Day Detail"}</span></div>
+          <div className="pill"><span className="lbl">Employee</span><span className="val">{employee || "All"}</span></div>
+          <div className="pill"><span className="lbl">Project #</span><span className="val">{projectNumber || "All"}</span></div>
+          <div className="pill"><span className="lbl">Supervisor</span><span className="val">{supervisor || "All"}</span></div>
         </div>
 
-        {/* Print-only · totals summary as 5 balanced cards */}
+        {/* C · Print-only · prominent totals cards */}
         <div data-print-only className="pr-stats">
           <div className="cell"><div className="lbl">Total Employees</div><div className="val">{summary.total_employees || 0}</div></div>
           <div className="cell"><div className="lbl">Total Hours</div><div className="val">{fmtHours(summary.total_hours)}</div></div>
@@ -423,7 +450,7 @@ export default function HrTimeVerification() {
         <DailyTable rows={rows} />
       )}
 
-        {/* Print-only · professional footer */}
+        {/* E · Print-only · executive footer */}
         <div data-print-only className="pr-footer">
           <div className="brand">MASCI Operations Platform</div>
           <div className="powered">Powered by ForgedOps</div>
