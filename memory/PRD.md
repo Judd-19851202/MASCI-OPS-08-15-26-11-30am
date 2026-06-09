@@ -1,3 +1,41 @@
+## 2026-02-09 (MOTIVE-DATA-003 · OPERATIONAL IMPACT COMMAND CARD · CERTIFIED 🟢)
+
+OMEGA MOTIVE-DATA-003 sprint closed. Single 30-second-answer card at the top of `/admin/asset-mapping` that tells an Operations Manager: Are we ready? · What's blocking us? · What to fix first? · What happens if we fix it? Read-only visibility · zero automation · zero new collections.
+
+### Shipped (R1–R5 all green)
+- **R1** Operational Impact card with 8 metrics (Current Trust · Potential Trust · HIGH Matches Waiting · Est. Dispatches Impacted · Est. Assets Confirmed · Coverage % · Mapped · Unmapped)
+- **R2** "Review HIGH Confidence Matches" button — sets local band filter on existing queue + smooth-scrolls. New chip row (`am-queue-filter-{BAND}`) lets operator pivot bands in-place. No new endpoint.
+- **R3** Impact Preview Summary — Current State vs Projected State side-by-side panels
+- **R4** Executive Readiness Banner: NOT_READY / PARTIALLY_READY / READY_FOR_ACTIVATION per directive thresholds (cov ≥75% AND high==0 / cov >25% / else)
+- **R5** "Open Activation Runbook" shortcut — reuses existing `MOTIVE_DAY1_ACTIVATION_RUNBOOK.md` (no new document generated)
+
+### Endpoint added (1, read-only, admin-gated)
+- `GET /api/admin/asset-mapping/operational-impact` — pure derivation aggregate. Zero new collections, zero writes.
+
+### Live verification (real preview backend)
+- Banner: **NOT_READY** (correct: coverage 0% < 25%, 0 HIGH waiting, 219 unmapped trucks)
+- Current: 0% trust · 0% coverage · 0 mapped · 219 unmapped
+- Potential: **79.3% trust** · 0% projected coverage (no HIGH proposals scored yet in preview)
+- Reason line surfaces directly on screen: "Coverage 0.0% < 25% · 0 HIGH match(es) waiting · 219 unmapped truck(s)"
+
+### Verification
+- **80/80 pytest green** (9 new MOTIVE-DATA-003 + 15 MOTIVE-DATA-001 + VER-1 + M-2 + M-3 + M-DR-1)
+- Lint ✅ ruff clean · ✅ eslint clean (0 blocking)
+- Smoke screenshot on `/admin/asset-mapping` confirms 18 data-testid surfaces render: `am-operational-impact` · `am-readiness-banner` (NOT_READY) · 8 impact metric tiles · `am-impact-preview` w/ current+projected · `am-review-high-btn` · `am-runbook-link` · `am-queue-filter` chip row · existing 002 surfaces preserved
+
+### Deliverables
+- `/app/memory/MOTIVE_DATA_003_CERTIFICATION.md` (spec ↔ build matrix · 5 requirements · pillar scorecard · constitutional adherence)
+- `/app/memory/MOTIVE_DATA_003_AUDIT.md` (live numbers · readiness verdict · interpretation)
+- `/app/backend/tests/test_motive_data_003.py` (9 cases)
+
+### Constitutional adherence
+🛑 No FleetWatcher · No dispatch automation · No material automation · No auto-link · No auto-approve · No write to Motive · No driver scoring / route optimization · Operator approves every action · Banner is visibility-only.
+
+### STOP CONDITION OBSERVED
+Awaiting next OMEGA authorization. FleetWatcher / Dispatch Automation / Material Movement Automation NOT initiated.
+
+
+
 ## 2026-02-09 (MOTIVE-DATA-002 · PRODUCTION ACTIVATION & COVERAGE OPERATIONS · CERTIFIED 🟢)
 
 OMEGA MOTIVE-DATA-002 sprint closed. Single operational workspace at `/admin/asset-mapping` that answers all 4 operator questions in one screen: what's mapped · what's not · what to fix first · expected operational impact. Read-mostly · approve/reject only · zero automation · zero new collections.

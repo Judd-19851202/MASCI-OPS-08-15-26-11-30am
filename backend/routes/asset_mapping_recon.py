@@ -498,6 +498,120 @@ def build_asset_mapping_router(db, require_admin_dep: Callable) -> APIRouter:
                 "after_approval_state":
                     f"+{affected} dispatches now eligible for CONFIRMED on next M-2 materialize"}
 
+    # ── Operational Impact (MOTIVE-DATA-003) ──────────────────────────
+    @router.get("/admin/asset-mapping/operational-impact",
+                dependencies=[Depends(require_admin_dep)])
+    async def operational_impact():
+        """Aggregate read-only rollup for the Operational Impact Command
+        Card. Pure derivation across coverage, queue, and verification
+        signals — zero writes, zero new collections, zero workflow changes.
+        """
+        # Distinct dispatch trucks + currently-mapped set
+        trucks = [t for t in (await db.dispatch_assignments.distinct("truck_id")) if t]
+        total = len(trucks)
+        mapped_set: set = set()
+        async for m in db.asset_mappings.find(
+            {"masci_equipment_id": {"$nin": [None, ""]}},
+            {"masci_equipment_id": 1}
+        ):
+            mapped_set.add(m["masci_equipment_id"])
+        mapped = sum(1 for t in trucks if t in mapped_set)
+        unmapped = total - mapped
+        cur_cov_pct = round(100.0 * mapped / max(1, total), 1)
+
+        # HIGH-confidence proposals waiting (the operator action queue)
+        high_props: List[Dict[str, Any]] = []
+        async for p in db.asset_mapping_proposals.find(
+            {"confidence_band": "HIGH", "status": "Matched"}
+        ):
+            p.pop("_id", None)
+            high_props.append(p)
+        high_waiting = len(high_props)
+
+        # Sum of active dispatches impacted by approving those HIGH proposals
+        high_truck_ids = [p.get("truck_id") for p in high_props if p.get("truck_id")]
+        impacted = 0
+        if high_truck_ids:
+            impacted = await db.dispatch_assignments.count_documents({
+                "truck_id": {"$in": high_truck_ids},
+                "current_state": {"$nin": ["COMPLETE", "CANCELLED", "CANCELED"]},
+            })
+
+        # Projected state if every HIGH proposal were approved
+        projected_mapped = mapped + high_waiting
+        projected_unmapped = max(0, total - projected_mapped)
+        projected_cov_pct = round(100.0 * projected_mapped / max(1, total), 1)
+
+        # Trust score (current + potential) — same derivation VER-1 / 002G use
+        verified_disp = 0
+        considered = 0
+        async for d in db.dispatch_assignments.find({
+            "current_state": {"$nin": ["COMPLETE", "CANCELLED", "CANCELED"]}
+        }).limit(500):
+            considered += 1
+            mm = await db.asset_mappings.find_one(
+                {"masci_equipment_id": d.get("truck_id"), "provider": "motive"}
+            )
+            if not mm:
+                continue
+            mot = mm.get("motive") or {}
+            actor_key = (f"vehicle:{mot.get('vehicle_id')}"
+                         if mm.get("asset_kind") == "vehicle" and mot.get("vehicle_id")
+                         else f"equipment:{mot.get('asset_id')}"
+                         if mot.get("asset_id") else None)
+            if not actor_key:
+                continue
+            if await db.operational_events.find_one({
+                "asset_key": actor_key,
+                "project_number": d.get("project_number") or "",
+                "location_type": "JOB",
+            }):
+                verified_disp += 1
+        cur_trust_pct = round(100.0 * verified_disp / max(1, considered), 1)
+        # Potential = projected verifiable assignments / considered
+        potential_trust_pct = round(
+            100.0 * (verified_disp + projected_unmapped) / max(1, considered), 1
+        )
+
+        # Readiness banner (strict rules per directive)
+        if cur_cov_pct >= 75.0 and high_waiting == 0:
+            readiness = "READY_FOR_ACTIVATION"
+            readiness_reason = f"Coverage {cur_cov_pct}% ≥ 75% · HIGH queue empty"
+        elif cur_cov_pct > 25.0:
+            readiness = "PARTIALLY_READY"
+            readiness_reason = (f"Coverage {cur_cov_pct}% · "
+                                f"{high_waiting} HIGH match(es) waiting")
+        else:
+            readiness = "NOT_READY"
+            readiness_reason = (f"Coverage {cur_cov_pct}% < 25% · "
+                                f"{high_waiting} HIGH match(es) waiting · "
+                                f"{unmapped} unmapped truck(s)")
+
+        return {
+            "ok": True,
+            "current": {
+                "trust_score_pct":      cur_trust_pct,
+                "coverage_pct":         cur_cov_pct,
+                "mapped_assets":        mapped,
+                "unmapped_assets":      unmapped,
+                "total_dispatch_trucks": total,
+            },
+            "potential": {
+                "trust_score_pct":      potential_trust_pct,
+                "coverage_pct":         projected_cov_pct,
+                "mapped_assets":        projected_mapped,
+                "unmapped_assets":      projected_unmapped,
+            },
+            "actions": {
+                "high_confidence_waiting":         high_waiting,
+                "estimated_dispatches_impacted":   impacted,
+                "estimated_assets_confirmed":      high_waiting,
+            },
+            "readiness":        readiness,
+            "readiness_reason": readiness_reason,
+            "runbook_path":     "/app/memory/MOTIVE_DAY1_ACTIVATION_RUNBOOK.md",
+        }
+
     # ── Executive summary (002G) ──────────────────────────────────────
     @router.get("/admin/executive-summary",
                 dependencies=[Depends(require_admin_dep)])
