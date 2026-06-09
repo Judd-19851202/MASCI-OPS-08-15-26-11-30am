@@ -36669,3 +36669,27 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 **Deliverable:** /app/memory/TRENCH_SAFETY_PHASE3_5_GO_NO_GO.md
 
 🛑 **Agent STOPPED.** Awaiting operator authorization for Phase 4 build.
+
+---
+
+## R-BL-3 · QUEUE VISIBILITY & DELIVERY STATUS · COMPLETE · 2026-02-09
+
+**Sprint:** R-BL-3 (extension of DR-BLOCKER-001B platform-wide trust visibility).
+**Doctrine:** OMEGA — visibility-only, zero scope creep, no backend/API/DB changes.
+
+**What shipped:**
+- `/app/frontend/src/components/QueueStatusPill.jsx` — global pill + drawer (component was authored in prior session).
+- `/app/frontend/src/App.js` line 244 — added the **missing import statement** (`import QueueStatusPill from "@/components/QueueStatusPill";`). This was the only code change this session; without it, the `<QueueStatusPill />` reference on line 310 would throw at runtime.
+
+**Surface contract:**
+- Three visual states driven by existing `resiliencyQueue.js` exports (`onQueueChange`, `getQueueItems`, `drainQueue`) — read-only consumers, no mutations.
+  - `synced` (queue empty + ever-synced): green "All Reports Synced" disabled pill (persistent trust signal).
+  - `synced` (queue empty + never-synced): suppressed entirely (fresh app boot is quiet).
+  - `queued` (1+ pending, 0 failed): amber pill "Pending Uploads: N", drawer with retry.
+  - `failed` (any item status === 'failed'): red pill "Attention Required", drawer with red retry-all.
+- Last-sync timestamp persisted to `localStorage['masci.last_successful_sync.v1']`; auto-updated when queue depth decreases.
+
+**Testing:** `testing_agent_v3_fork` validated all 3 functional states + non-regression (0 console errors). Report: `/app/test_reports/iteration_RBL3_queue_visibility.json`.
+
+**OMEGA discipline maintained:** Zero changes to `resiliencyQueue.js`, `draftStore.js`, backend routes, models, or DB. Single one-line `import` addition in `App.js`.
+
