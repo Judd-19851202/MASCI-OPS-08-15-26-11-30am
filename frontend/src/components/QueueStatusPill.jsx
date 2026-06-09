@@ -17,6 +17,7 @@ import {
   onQueueChange,
   getQueueItems,
   drainQueue,
+  retryAllFailed,
 } from "@/lib/resiliency/resiliencyQueue";
 import { useT } from "@/lib/i18n";
 
@@ -127,9 +128,19 @@ export default function QueueStatusPill() {
 
   const onRetry = useCallback(async () => {
     setRetrying(true);
-    try { await drainQueue(); } catch {/* */}
+    try {
+      // DR-QUEUE-RETRY-001 · Manual "Retry All" is the ONLY path that
+      // re-arms `failed` items (resets status→pending, tries→0,
+      // lastError→null) before draining. Background drains continue
+      // to skip failed items unchanged.
+      if (stats.failed > 0) {
+        await retryAllFailed();
+      } else {
+        await drainQueue();
+      }
+    } catch {/* */}
     setTimeout(() => setRetrying(false), 1500);
-  }, []);
+  }, [stats.failed]);
 
   // Suppress entirely on synced + no last-sync (i.e., quiet for fresh app loads).
   if (state === "synced" && !lastSync) return null;

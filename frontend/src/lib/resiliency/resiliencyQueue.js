@@ -179,6 +179,45 @@ function _scheduleDrain() {
 }
 
 /**
+ * DR-QUEUE-RETRY-001 · Manual re-arm path.
+ *
+ * Resets EVERY item currently in the `failed` terminal state back to
+ * `pending` (tries=0, lastError cleared), then triggers a drain so the
+ * re-armed items get a fresh retry lifecycle.
+ *
+ * Contract:
+ *   • ONLY called from the operator's "Retry All" affordance — never
+ *     from background drains or the `online` / `focus` listeners.
+ *   • Automatic drainQueue() behavior is unchanged: it continues to
+ *     skip items with status === "failed".
+ *   • Idempotency-Key is still attached on every _attempt(), so a
+ *     re-armed item that was actually delivered server-side will be
+ *     deduplicated by the backend on the next try — no duplicates.
+ *   • No backend, schema, or IndexedDB structure change.
+ *
+ * Returns { reset: <count>, drained: true } so callers can show a
+ * confirmation toast if desired.
+ */
+export async function retryAllFailed() {
+  await _load();
+  let reset = 0;
+  for (const it of _queue) {
+    if (it.status === "failed") {
+      it.status = "pending";
+      it.tries = 0;
+      it.lastError = null;
+      reset += 1;
+    }
+  }
+  if (reset > 0) {
+    await _persist();
+    _notify();
+  }
+  await drainQueue();
+  return { reset, drained: true };
+}
+
+/**
  * Attempt every pending item in the queue. Items that exhaust
  * MAX_TRIES move to `failed` status.
  */

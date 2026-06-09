@@ -1,3 +1,28 @@
+## 2026-06-09 (POST-DEPLOY-002 + DR-QUEUE-RETRY-001 · PRODUCTION VALIDATION + FAILED-QUEUE RECOVERY · CERTIFIED 🟢)
+
+### A · POST-DEPLOY-002 (production validation audit — read-only)
+- Section 1 Motive: **PASS** — prod row pristine seed (created/updated 2026-05-26 by `system`, never operator-touched); `enabled=false`, `api_key_value=""`, `motive_events=0`, `asset_mappings=0`. Credentials were NEVER lost; they were never configured.
+- Section 2 MaintainX: **PASS** — same posture as Motive. Pristine seed.
+- Section 3 DR-QUEUE-RETRY-001: **FAIL** — confirmed defect; `drainQueue()` permanently skipped `failed` items; "Retry All" was inert against them. (Fixed in Sprint B below.)
+- Section 4 Production Data: **PASS** — prod `masci_safety` shows continuous 2026-04-27 → 2026-06-09 activity; 113 daily reports, 776 job photos, 262 employees, 33 meetings, 596 equipment master, 1936 admin_audit rows, 423,556 usage_events, full R2 backup 419MB 2026-06-05.
+- Section 5 Preview contamination: **PASS** — zero test/demo markers found in prod; only preview-only artifact is `SD-6909db / "SD test"` (contained in preview).
+- Section 6 Configuration matrix: documented (Auth/MFA/Resend/R2/Lite-backups/Scheduler operational; Motive+MaintainX standalone-mode-by-design).
+- Evidence file: `/app/memory/POST_DEPLOY_002_PRODUCTION_VALIDATION_AUDIT.md`
+
+### B · DR-QUEUE-RETRY-001 (production fix · operator-authorized)
+- **NEW** `retryAllFailed()` export in `frontend/src/lib/resiliency/resiliencyQueue.js`. Resets every `failed` item: `status→pending`, `tries→0`, `lastError→null`, then drains.
+- `QueueStatusPill.onRetry` now branches: when `stats.failed > 0` → `retryAllFailed()`, else → `drainQueue()`. Manual Retry All is the ONLY path that re-arms failed items.
+- `drainQueue()` body **unchanged** — background (`online`/`focus`) drains continue to skip failed items.
+- Idempotency-Key still attached on every `_attempt()` → backend `idempotency_keys` collection dedupes any re-delivered records → no duplicate submissions.
+- 7/7 Jest tests pass in `resiliencyQueue.test.js` (background skip, reset semantics, success removes item, failed re-arm runs through normal 0→5 lifecycle, idempotency header on every retry, drain-alone cannot re-arm, production-style stuck Daily Report recovery).
+- Backend: untouched. Schema: untouched. IDB structure: untouched. DR payload: untouched.
+- Files: `resiliencyQueue.js` (+39 lines), `resiliency/index.js` (+1 word), `QueueStatusPill.jsx` (+11 lines), `resiliencyQueue.test.js` (NEW · 296 lines).
+- Certification: `/app/memory/DR_QUEUE_RETRY_001_CERTIFICATION.md`
+
+🛑 STOPPED per OMEGA. Deploy when ready (frontend-only ship; existing autoDeploy pipeline picks it up).
+
+
+
 ## 2026-02-09 (HR-EMPLOYEE-002 + DR-JOB-002/003 · TWO-WORKSTREAM TRUST FIX · CERTIFIED 🟢)
 
 ### A · HR-EMPLOYEE-002 (preferred name)
