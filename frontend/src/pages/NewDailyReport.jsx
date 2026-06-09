@@ -42,6 +42,8 @@ import { fetchDailyWeather } from "@/lib/weather";
 import { HelpTipBlock } from "@/components/HelpTip";
 // M-DR-1 · Equipment Auto-Discovery — Motive suggests, foreman verifies.
 import EquipmentDetectedToday from "@/components/daily-report/EquipmentDetectedToday";
+// M-2-5 · Motive Verification (read-only).
+import MotiveVerificationPanel from "@/components/daily-report/MotiveVerificationPanel";
 import { api } from "@/lib/api";
 import { getFlUser, getFlToken } from "@/lib/flAuth";
 import { isAdmin } from "@/lib/adminAuth";
@@ -1876,6 +1878,12 @@ export default function NewDailyReport({ publicMode = false }) {
               projectNumber={data.project_number}
               date={data.report_date}
               onAccept={(row) => eq.add(row)}
+            />
+            {/* M-2-5 · MOTIVE VERIFICATION read-only summary (per-asset
+                first arrival / last departure). Visibility only. */}
+            <MotiveVerificationPanel
+              projectNumber={data.project_number}
+              date={data.report_date}
             />
             <RepeatBlock
               title={t("Equipment")}

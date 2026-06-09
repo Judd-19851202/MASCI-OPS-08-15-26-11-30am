@@ -11389,6 +11389,15 @@ _equipment_detection_router = build_equipment_detection_router(db)
 app.include_router(_equipment_detection_router)
 
 
+# M-2 · Event Router · /api/operational-events/* + /api/admin/operational-events/*
+# Derives normalized operational arrival/departure events from Motive
+# telemetry. Visibility / verification only — no DR / dispatch / Motive
+# writes. Storage enforced through the M-2-8 allowed-fields gate.
+from routes.operational_events import build_operational_events_router  # noqa: E402
+_operational_events_router = build_operational_events_router(db, require_admin)
+app.include_router(_operational_events_router)
+
+
 # iter382 · /admin/project-managers/* (10 routes) + public /project-managers
 # extracted to routes/pm_admin.py.
 from routes.pm_admin import build_pm_admin_router  # noqa: E402
