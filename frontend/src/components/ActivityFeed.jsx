@@ -91,7 +91,7 @@ export function ActivityFeed({ projectId, scope, limit = 15, compact = false }) 
                 <div className="text-xs text-slate-500 mt-0.5 line-clamp-1">{it.preview}</div>
               )}
               {it.image_url && (
-                <img src={it.image_url} alt="" className="mt-2 max-h-28 rounded border border-slate-200" />
+                <img src={it.image_url} alt="" loading="lazy" decoding="async" className="mt-2 max-h-28 rounded border border-slate-200" />
               )}
               <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-400 mt-1">
                 {relativeTime(it.created_at)}

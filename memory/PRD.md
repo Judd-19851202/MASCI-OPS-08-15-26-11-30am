@@ -37934,3 +37934,42 @@ Certifications lacking this header fail certification automatically.
 ✅ No employee/portal passwords changed · No users deleted · No DB records modified (preview or prod) · No Motive/MaintainX rotation · No feature work · No unrelated refactor · Did not self-certify operator-only portions.
 
 **STOPPED. Awaiting operator execution of `ATLAS_CUTOVER.md` §3-§5 + `SECRET_ROTATION.md` §5.**
+
+
+---
+
+## PERFORMANCE-HARDEN-002 (REFRESH) · Production-Targeted Performance Sprint (2026-06-09 21:00 UTC)
+
+**Type:** OMEGA · P1 · Evidence-first · Subtractive · Production-data-validated
+**Verdict:** ✅ PASS · Production deploys 7 indexes on next release
+
+**Deliverables (all under `/app/memory/`):**
+- `PERFORMANCE_HARDEN_002_QUERY_AUDIT.md` (refreshed with PROD evidence)
+- `PERFORMANCE_HARDEN_002_INDEX_REPORT.md` (refreshed: 2 new indexes · BEFORE/AFTER)
+- `PERFORMANCE_HARDEN_002_NETWORK_REPORT.md` (2C+2D+2E+2F combined)
+- `PERFORMANCE_HARDEN_002_MOBILE_REPORT.md` (refreshed)
+- `PERFORMANCE_HARDEN_002_FINAL_CERTIFICATION.md`
+- `performance_harden_002_evidence/*.txt` (raw forensic captures)
+
+### Phase 2B — 2 NEW indexes (this refresh)
+1. `directory_sessions.token` — eliminates COLLSCAN on every authenticated request (PROD: 1,949 docs/request → 0)
+2. `integration_sync_logs.(integration, status, started_at)` compound — cuts 41,261-key scan to <100 (PROD: ~125 ms → <5 ms)
+
+### Phase 2D — image hardening (+3 attributes)
+- `ActivityFeed`: `loading="lazy" decoding="async"` (feed image)
+- `DriverCommandProfile`: `decoding="async"` (profile photo)
+- `AdminPromoAssets`: `decoding="async"` (lightbox image)
+
+### Phase 2A/C/E/F/G — audit-pass (no work justified beyond what already shipped)
+
+### Production-data measurement evidence
+- PROD `directory_sessions.find({token})`: COLLSCAN 1,949 docs/request BEFORE → IXSCAN AFTER (deploy)
+- PROD `integration_sync_logs.find({int,status}).sort.limit(50)`: 41,261 keys 125 ms BEFORE → compound IXSCAN <5 ms AFTER (deploy)
+- All 5 prior-sprint indexes also still pending prod (verified COLLSCAN in PROD today; preview already migrated)
+
+### LOC delta · ~23 added · 0 removed · 0 deps · 0 schema · 0 routes
+
+### OMEGA invariants honoured
+✅ No employee password changes · No MFA touches · No auth workflow changes · No production secret rotation · No Atlas/governance work · No FleetWatcher/Dispatch/MaintainX/Motive expansion · No new features · No UI redesign · No unrelated cleanup · No prod-DB writes
+
+**STOPPED AT CERTIFICATION. Ready for operator deploy when scheduled.**

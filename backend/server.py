@@ -12409,6 +12409,24 @@ async def _create_safety_indexes():
         await db.motive_events.create_index("id")
         await db.motive_events.create_index([("event_family", 1), ("event_at", 1)])
 
+        # PERFORMANCE-HARDEN-002 (refresh): hot session-validation path.
+        # /app/backend/user_directory.py:427 calls
+        #   db.directory_sessions.find_one({"token": token})
+        # on EVERY authenticated request. Production has 1,949 session rows
+        # → COLLSCAN per request. Token values are unique in prod (verified
+        # 2026-06-09 via $group aggregate · zero duplicates). Adding as a
+        # non-unique index for boot safety; operator may promote to unique
+        # in a future maintenance window.
+        await db.directory_sessions.create_index("token")
+        # PERFORMANCE-HARDEN-002 (refresh): integration sync log filter path.
+        # /app/backend/routes/integrations/logs.py:30 filters by
+        # {integration, status?} then sorts by started_at desc. Current
+        # integration_1 index scans 41k keys when status is added; compound
+        # cuts to ~status-cardinality keys.
+        await db.integration_sync_logs.create_index(
+            [("integration", 1), ("status", 1), ("started_at", -1)]
+        )
+
         await db.incidents.create_index("created_at")
         await db.incidents.create_index("incident_date")
         await db.incidents.create_index("severity")

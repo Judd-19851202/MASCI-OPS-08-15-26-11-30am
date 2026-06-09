@@ -1,0 +1,12 @@
+
+=== PREVIEW (masci_safety_preview) ===
+BEFORE directory_sessions.find({token})           stages=['COLLSCAN'] docs=2192 keys=0 ms=1
+BEFORE int_sync.find({int,status}).sort.limit(50)   stages=['SORT', 'FETCH', 'IXSCAN'] docs=109 keys=109 ms=3
+  → indexes created in PREVIEW only
+AFTER  directory_sessions.find({token})           stages=['FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+AFTER  int_sync.find({int,status}).sort.limit(50)   stages=['LIMIT', 'FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+
+=== PROD (read-only — projected impact) (masci_safety) ===
+BEFORE directory_sessions.find({token})           stages=['COLLSCAN'] docs=1949 keys=0 ms=1
+BEFORE int_sync.find({int,status}).sort.limit(50)   stages=['LIMIT', 'FETCH', 'IXSCAN'] docs=41261 keys=41261 ms=102
+  → indexes NOT created in PROD (will land on next deploy via ensure_safety_indexes)

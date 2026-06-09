@@ -808,7 +808,7 @@ function PreviewDialog({ asset, onClose, t }) {
               data-testid="promo-preview-video"
             />
           ) : isImage ? (
-            <img src={playbackUrl} alt={asset?.name || ""} className="w-full h-full object-contain" />
+            <img src={playbackUrl} alt={asset?.name || ""} decoding="async" className="w-full h-full object-contain" />
           ) : (
             <a
               href={playbackUrl}

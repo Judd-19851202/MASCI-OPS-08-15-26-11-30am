@@ -90,7 +90,7 @@ function IdentitySection({ identity }) {
       <div className="flex items-start gap-4">
         <div className="shrink-0 w-16 h-16 rounded-md bg-slate-100 border border-slate-200 inline-flex items-center justify-center overflow-hidden">
           {identity.photo_url ? (
-            <img src={identity.photo_url} alt={identity.name} className="w-full h-full object-cover" />
+            <img src={identity.photo_url} alt={identity.name} decoding="async" className="w-full h-full object-cover" />
           ) : (
             <IdCard className="w-7 h-7 text-slate-400" />
           )}

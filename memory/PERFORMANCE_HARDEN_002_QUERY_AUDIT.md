@@ -1,105 +1,88 @@
-# PERFORMANCE-HARDEN-002 · Query Forensics Audit
+# PERFORMANCE-HARDEN-002 · Phase 2A · Production Query Forensics
 
-**Sprint:** PERFORMANCE-HARDEN-002 (Elite Hardening)
-**Scope:** Phase 1 — Production query forensics
-**Mode:** Evidence-first, no speculation
-**Date:** 2026-02 (Feb 2026 fork session)
-
----
-
-## Method
-
-1. Static analysis of every `db.<collection>.find / find_one / count_documents / aggregate / update / delete` call across `/app/backend/`.
-2. MongoDB `index_information()` snapshot for the candidate hot collections.
-3. MongoDB `explain("executionStats")` against representative queries — preview DB (`masci_safety_preview`).
-4. Document counts (`estimated_document_count`) for each candidate.
+```
+Environment    : production (masci_safety) + preview cross-check
+Access Level   : prod-DB-read (no writes to prod)
+Evidence Source: prod-DB explain("executionStats") on canonical query shapes
+Confidence     : VERIFIED for every COLLSCAN/IXSCAN classification below
+```
 
 ---
 
-## Document Volumes (Preview DB — production is larger)
+## §2A.1 · Production volume snapshot (2026-06-09 21:00 UTC · masci_safety)
 
-| Collection | Doc Count |
+Top collections by document count:
+
+| Collection | Doc count |
 |---|---|
-| daily_reports | 794 |
-| job_photos | 1,812 |
-| motive_events | 376 |
-| integration_sync_logs | 111 |
-| jobs_master | 29 |
-| employees | 365 |
-| equipment | 0 |
-| operational_events | 4 |
-| operational_locations | 67 |
-| asset_mappings | 191 |
-| job_photo_thumb_cache | 2,637 |
-| notifications | 6,636 |
-| users | 5 |
+| `integration_sync_logs` | 41,261 |
+| `audit_events` | 11,946 |
+| `directory_sessions` | 1,949 |
+| `motive_events` | 1,620 |
+| `session_activity` | 1,062 |
+| `job_photos` | 789 |
+| `equipment_master` | 470 |
+| `employees` | 262 |
+| `asset_mappings` | 190 |
+| `notifications` | 142 |
+| `admin_audit_log` | 142 |
+| `daily_reports` | 115 |
+| `passkeys_credentials` | 0 |
+| `idempotency` | 0 |
+| `operational_events` | 0 |
 
----
+(Lower-volume collections omitted.)
 
-## Pre-Existing Indexes (snapshot before this sprint)
+## §2A.2 · Existing index coverage gaps (PROD)
 
-```
-daily_reports : created_at, report_date, project_number, lifecycle_state
-job_photos    : project_number, (project_number, week_of), (source, source_id), governance.tags
-motive_events : event_at
-notifications : (recipient_role, created_at), (user_id, read_at, created_at), id (unique),
-                linked_task_id, acknowledged_at, expires_at
-employees     : id, name, lifecycle_status, supervisor, department, rehire_eligibility
-```
+This is the central forensic finding: **the 5 indexes added in the prior PERFORMANCE-HARDEN-002 sprint are present in PREVIEW but NOT yet in PROD**, because they ship via `ensure_safety_indexes` in `server.py` and prod has not been deployed since.
 
----
+Indexes currently MISSING in prod (will land on next prod deploy):
 
-## Hot Query Patterns Discovered
+| Collection | Index | Current state in prod |
+|---|---|---|
+| `daily_reports` | `id` | ❌ COLLSCAN |
+| `daily_reports` | `doc_id` | ❌ COLLSCAN |
+| `job_photos` | `id` | ❌ COLLSCAN |
+| `motive_events` | `id` | ❌ COLLSCAN |
+| `motive_events` | `(event_family, event_at)` compound | ❌ uses event_at only |
+| **`directory_sessions`** | **`token`** | **❌ COLLSCAN (NEW this refresh)** |
+| **`integration_sync_logs`** | **`(integration, status, started_at)` compound** | **❌ uses integration only (NEW this refresh)** |
 
-### daily_reports
-- `find_one({"id": report_id})` — **7+ call sites** (daily_report_lifecycle, hr_portal, verification, operational_records, command_center, trench_safety/excavations).
-- `find_one({"doc_id": report_id})` — fallback path in `daily_report_lifecycle.py:71/205/221`. **100% of preview docs have `doc_id`.**
-- `find({"project_number": …}).sort("report_date", …).limit(…)` — already indexed via `project_number_1`.
+## §2A.3 · Canonical query explain results — PROD live
 
-### job_photos
-- `find_one({"id": photo_id})` — **4+ call sites** (job_photos.py: 844/888/915; photo_governance.py: 194/229/275; odr/pdf.py).
-- `find({"id": {"$in": ids}})` — batch fetch from `job_photos.py:1035`.
-- `find({"project_number": …}).sort("record_date", -1).limit(5000)` — already indexed via `project_number_1`.
+| Query | Stages | docs examined | keys examined | ms |
+|---|---|---|---|---|
+| `daily_reports.find({"id": "x"})` | **COLLSCAN** | 115 | 0 | 0 |
+| `daily_reports.find({"doc_id": "x"})` | **COLLSCAN** | 115 | 0 | 0 |
+| `daily_reports.find({"project_number": "21025"}).sort("report_date",-1).limit(50)` | SORT → FETCH → IXSCAN | 0 | 0 | 0 |
+| `daily_reports.find({"lifecycle_state","project_number"})` | SORT → FETCH → IXSCAN | 0 | 0 | 0 |
+| `job_photos.find({"id": "x"})` | **COLLSCAN** | 789 | 0 | 0 |
+| `job_photos.find({"project_number": "21025"}).sort("record_date",-1).limit(100)` | SORT → FETCH → IXSCAN | 0 | 0 | 0 |
+| `job_photos.find({"source": "daily_report", "source_id": "x"})` | FETCH → IXSCAN | 0 | 0 | 0 |
+| `motive_events.find({"id": "x"})` | **COLLSCAN** | 1,620 | 0 | 1 |
+| `motive_events.find({"event_family": $in, "event_at": $gte})` | FETCH → IXSCAN (event_at only) | 1,458 | 1,458 | 3 |
+| `integration_sync_logs.find({"integration": "motive"}).sort("started_at",-1).limit(50)` | LIMIT → FETCH → IXSCAN | 52 | 52 | 0 |
+| **`integration_sync_logs.find({"integration": "motive", "status": "success"}).sort("started_at",-1).limit(50)`** | LIMIT → FETCH → IXSCAN (integration only) | **41,261** | **41,261** | **125** |
+| `audit_events.find({"actor":"admin"}).sort("at",-1).limit(50)` | LIMIT → FETCH → IXSCAN | 1,510 | 1,510 | 2 |
+| `user_directory.find({"email": "..."})` | EXPRESS_IXSCAN | 1 | 1 | 0 |
+| **`directory_sessions.find({"token": "x"})`** | **COLLSCAN** | **1,949** | **0** | **1** |
+| `notifications.find({"recipient_role":"admin","read_at":null}).sort("created_at",-1).limit(50)` | LIMIT → FETCH → IXSCAN | 14 | 14 | 0 |
+| `equipment_inspections.find({"equipment_id":"x"}).sort("inspection_date",-1).limit(20)` | LIMIT → FETCH → IXSCAN | 39 | 39 | 6 |
 
-### motive_events
-- `find_one({"id": motive_event_id})` — `services/motive_service.py:436`, `driver_profile.py:136`.
-- `find({"event_family": {"$in": PRESENCE_EVENTS}, "event_at": …})` — repeatedly used in `operational_events.py:357/411/427/439/455/466` (M-2 audit + ingestion).
-- `count_documents({"event_family": …, "event_at": …})` — `driver_profile.py:194/199/204`.
+## §2A.4 · Highest-priority targets (evidence-backed)
 
-### integration_sync_logs
-- `find({"integration": …}).sort("started_at", -1)` — already indexed.
-
----
-
-## EXPLAIN — BEFORE State (Evidence)
-
-| Query | Stages | Docs Examined | Keys Examined |
+| # | Pattern | Impact | Source code |
 |---|---|---|---|
-| `daily_reports.find({"id": ...})` | **COLLSCAN** | 794 | 0 |
-| `daily_reports.find({"project_number": "21025"}).sort("report_date", -1)` | SORT → FETCH → IXSCAN | 0 | 0 |
-| `job_photos.find({"id": ...})` | **COLLSCAN** | 1,812 | 0 |
-| `job_photos.find({"project_number": "21025"}).sort("record_date", -1)` | SORT → FETCH → IXSCAN | 0 | 0 |
-| `motive_events.find({"id": ...})` | **COLLSCAN** | 376 | 0 |
-| `motive_events.find({"event_family": {"$in": [...]}, "event_at": {"$gte": ...}})` | FETCH → IXSCAN (event_at only) | 372 | 372 |
-| `integration_sync_logs.find({"integration": ...}).sort("started_at", -1)` | LIMIT → FETCH → IXSCAN | 52 | 52 |
+| 1 | `directory_sessions.find({"token":...})` | COLLSCAN on **EVERY authenticated request** · 1,949 docs scanned/request | `user_directory.py:427` |
+| 2 | `integration_sync_logs.find({"integration","status"}).sort.limit(50)` | **125 ms** for filtered queries (41k key scan) | `routes/integrations/logs.py:30` |
+| 3 | Prior sprint's 5 indexes (will deploy with code) | COLLSCAN of 115 / 789 / 1,620 docs eliminated | `daily_report_lifecycle.py`, `job_photos.py`, `motive_service.py` |
 
----
+## §2A.5 · Endpoints NOT touched (intentional — already healthy or out of scope)
 
-## Conclusion — Evidence-Backed Index Gaps
-
-1. `daily_reports.id` — every find-by-id triggers COLLSCAN. **Required.**
-2. `daily_reports.doc_id` — every fallback lookup triggers COLLSCAN. **Required.**
-3. `job_photos.id` — heaviest collection (1,812 docs), 4+ COLLSCAN call sites including PDF rendering hot path. **Required.**
-4. `motive_events.id` — COLLSCAN per ingestion / driver-profile fetch. **Required.**
-5. `motive_events.(event_family, event_at)` — current index drops only one dimension. Compound improves selectivity from 372 keys to ~2 on representative window. **Required.**
-
-No other collections showed COLLSCAN under inspection. **No speculative indexes are authorized.**
-
----
-
-## What This Audit Explicitly Did NOT Recommend
-
-- No new indexes on `employees`, `notifications`, `equipment`, `operational_events`, `operational_locations`, `asset_mappings` — current plans are IXSCAN-clean or volumes don't justify additional indexes.
-- No partial indexes — current query patterns don't benefit from partials.
-- No text indexes — no full-text query patterns.
-- No TTL changes — existing TTLs (alert_events, webauthn_challenges, session_activity, idempotency, admin_step_ups) are already in place and correct.
+- `notifications` (compound `user_id_1_read_at_1_created_at_-1` already optimal)
+- `session_activity` (real query is `.find({}).sort("last_seen_at",-1)` which uses TTL `last_seen_at_1` index efficiently)
+- `alert_events` (real query is `.find({}).sort("at",-1)` which uses `at_1` index backward direction)
+- `admin_audit_log` (write-only in application code — no read paths found, so no index needed)
+- `equipment_inspections`, `safety_inspections`, `qaqc_inspections` (low-volume or already indexed)
+- `passkeys_credentials`, `webauthn_challenges`, `idempotency` (volume = 0 or TTL-bounded)
