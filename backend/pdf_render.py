@@ -203,11 +203,394 @@ def _signature(label: str, sig: Optional[str], name: str = "") -> str:
     )
 
 
+# ── DR-PDF-002 · R-PDF-1/2/10 · Executive comprehension helpers ─────
+# Pure-derivation. NO new fields, NO writes, NO new collections.
+# Doctrine: DR_PDF_001_CONSTITUTIONAL_AUDIT.md · DR-PDF-002 directive.
+
+def _safe_day_badge(d: Dict[str, Any]) -> Dict[str, str]:
+    """R-PDF-2 · Derive a single safety-status badge from existing DR data.
+
+    Returns: {"state": "green"|"amber"|"red", "label": "...", "tone": "..."}
+    """
+    inc = str(d.get("safety_incidents_today") or "").strip().lower()
+    inj = str(d.get("injuries_reported") or "").strip().lower()
+    notified = str(d.get("safety_notified") or "").strip()
+    yes = {"yes", "y", "true", "1"}
+
+    if inc in yes:
+        return {
+            "state": "red", "label": "STOP WORK / INCIDENT",
+            "tone": "#7f1d1d", "bg": "#fef2f2", "border": "#c8102e",
+        }
+    if inj in yes:
+        return {
+            "state": "amber", "label": "ATTENTION REQUIRED",
+            "tone": "#78350f", "bg": "#fffbeb", "border": "#d97706",
+        }
+    # Safety contact made even without a "Yes" incident flag → amber.
+    if notified and notified.lower() in yes:
+        return {
+            "state": "amber", "label": "ATTENTION REQUIRED",
+            "tone": "#78350f", "bg": "#fffbeb", "border": "#d97706",
+        }
+    return {
+        "state": "green", "label": "SAFE DAY",
+        "tone": "#14532d", "bg": "#f0fdf4", "border": "#16a34a",
+    }
+
+
+def _fetch_dr_render_extras(
+    proj_num: str, rpt_date: str, linked_exc_ids: List[str],
+) -> Dict[str, Any]:
+    """One-shot async fetch for the data needed by R-PDF-1 (Exec Summary
+    Card), R-PDF-10 (Excavation Activity Surface), and the existing
+    MM-001B Section 09d (MASCI Hauling Today). Replaces the inline async
+    block previously embedded in `_render_daily`.
+
+    Returns:
+        {
+          "dispatch_rows": [...],          # dispatch_assignments for (proj, date)
+          "excavation_rows": [...],        # trench_excavations for linked_exc_ids
+        }
+
+    Best-effort — returns empty lists on any failure so the render
+    pipeline never blocks on visibility data.
+    """
+    empty = {"dispatch_rows": [], "excavation_rows": []}
+    proj_num = (proj_num or "").strip()
+    rpt_date = (rpt_date or "").strip()
+    linked = [x for x in (linked_exc_ids or []) if x]
+    if not (proj_num or rpt_date or linked):
+        return empty
+    try:
+        from motor.motor_asyncio import AsyncIOMotorClient  # noqa: PLC0415
+        import os as _os  # noqa: PLC0415
+        import asyncio as _asyncio  # noqa: PLC0415
+        mongo_url = _os.environ.get("MONGO_URL")
+        db_name = _os.environ.get("DB_NAME")
+        if not (mongo_url and db_name):
+            return empty
+
+        async def _fetch():
+            client = AsyncIOMotorClient(mongo_url)
+            db_ = client[db_name]
+            disp: List[Dict[str, Any]] = []
+            excs: List[Dict[str, Any]] = []
+            if proj_num and rpt_date:
+                async for a in db_.dispatch_assignments.find(
+                    {"project_number": proj_num, "scheduled_date": rpt_date},
+                    {"_id": 0, "haul_type": 1, "material": 1,
+                     "source_location": 1, "destination": 1,
+                     "load_count": 1, "carrier": 1, "truck_id": 1, "id": 1},
+                ).limit(200):
+                    disp.append(a)
+            if linked:
+                async for e in db_.trench_excavations.find(
+                    {"id": {"$in": linked}},
+                    {"_id": 0, "id": 1, "excavation_number": 1,
+                     "work_area": 1, "soil_classification": 1,
+                     "protective_system": 1, "depth_ft": 1, "length_ft": 1,
+                     "competent_person_name": 1, "status": 1,
+                     "operational_state": 1, "review_status": 1,
+                     "depth_ge_5ft": 1, "utility_conflicts_observed": 1,
+                     "water_present": 1, "hazardous_atmosphere_concern": 1},
+                ).limit(50):
+                    excs.append(e)
+            client.close()
+            return disp, excs
+
+        try:
+            loop = _asyncio.get_event_loop()
+            if loop.is_running():
+                return empty
+            disp, excs = loop.run_until_complete(_fetch())
+        except RuntimeError:
+            disp, excs = _asyncio.run(_fetch())
+        return {"dispatch_rows": disp, "excavation_rows": excs}
+    except Exception:  # noqa: BLE001 — best-effort
+        return empty
+
+
+def _exec_summary_lines(
+    d: Dict[str, Any],
+    dispatch_rows: List[Dict[str, Any]],
+    excavation_rows: List[Dict[str, Any]],
+) -> List[Dict[str, str]]:
+    """R-PDF-1 · Build the condensed lines for the Executive Summary Card.
+
+    Returns a list of `{label, value}` dicts in render order. Empty
+    lines are omitted by the caller so the card adapts to the day.
+    """
+    out: List[Dict[str, str]] = []
+
+    # — Work performed: top crew work-performed strings (deduped, first 2)
+    crews = d.get("masci_crews") or d.get("crews") or []
+    works: List[str] = []
+    for c in crews:
+        wp = (c.get("work_performed") or "").strip()
+        if wp and wp not in works:
+            works.append(wp)
+        if len(works) >= 2:
+            break
+    if works:
+        out.append({"label": "WORK", "value": " · ".join(works)})
+
+    # — Production: top items from production[] (V.2 structured rows)
+    prods = d.get("production") or []
+    prod_summaries: List[str] = []
+    for p in prods[:3]:
+        desc = (p.get("description") or "").strip()
+        qty = p.get("quantity")
+        unit = (p.get("unit") or "").strip()
+        if unit == "OTHER" and p.get("custom_unit_label"):
+            unit = p["custom_unit_label"]
+        if desc and qty not in (None, "", 0, 0.0):
+            prod_summaries.append(f"{qty} {unit} {desc}".strip())
+        elif desc:
+            prod_summaries.append(desc)
+    if prod_summaries:
+        out.append({"label": "PRODUCTION", "value": " · ".join(prod_summaries)})
+
+    # — Constraints: list types + advisory flags; "None" otherwise
+    cons = d.get("constraints") or []
+    if cons:
+        # Title-case map for the few enum codes most likely to appear.
+        nice = {
+            "weather": "Weather", "utility": "Utility", "survey": "Survey",
+            "material": "Material", "equipment": "Equipment",
+            "trucking": "Trucking", "mot": "MOT",
+            "cei_inspection": "CEI Inspection",
+            "owner_engineer": "Owner / Engineer",
+            "safety": "Safety", "other": "Other",
+        }
+        bits: List[str] = []
+        rfi_n = sched_n = 0
+        for c in cons:
+            t = nice.get((c.get("constraint_type") or "").lower(),
+                         (c.get("constraint_type") or "").title())
+            if t and t not in bits:
+                bits.append(t)
+            if c.get("may_require_rfi"):
+                rfi_n += 1
+            if c.get("may_affect_schedule"):
+                sched_n += 1
+        flag_bits = []
+        if rfi_n:
+            flag_bits.append(f"{rfi_n} RFI")
+        if sched_n:
+            flag_bits.append(f"{sched_n} Schedule")
+        value = " · ".join(bits[:4])
+        if flag_bits:
+            value += "  (" + " · ".join(flag_bits) + ")"
+        out.append({"label": "CONSTRAINTS", "value": value})
+    else:
+        out.append({"label": "CONSTRAINTS", "value": "None"})
+
+    # — Material movement: dispatch (MASCI hauling) + DR materials[]
+    mm_bits: List[str] = []
+    if dispatch_rows:
+        total_loads = 0
+        for r in dispatch_rows:
+            try:
+                total_loads += int(r.get("load_count") or 0)
+            except (TypeError, ValueError):
+                pass
+        mm_bits.append(
+            f"{len(dispatch_rows)} dispatch · {total_loads} loads"
+        )
+    mats = d.get("materials") or []
+    if mats:
+        mat_bits: List[str] = []
+        for m in mats[:2]:
+            desc = (m.get("description") or "").strip()
+            qty = m.get("quantity")
+            unit = (m.get("unit") or "").strip()
+            if desc and qty not in (None, ""):
+                mat_bits.append(f"{qty} {unit} {desc}".strip())
+            elif desc:
+                mat_bits.append(desc)
+        if mat_bits:
+            mm_bits.append("Inbound: " + ", ".join(mat_bits))
+    if mm_bits:
+        out.append({"label": "MATERIAL", "value": " · ".join(mm_bits)})
+
+    # — Excavation (R-PDF-10): count + highest risk descriptor
+    active = str(d.get("excavation_activity_today") or "").strip().lower()
+    if active in {"yes", "y", "true", "1"} or excavation_rows:
+        n = len(excavation_rows) or len(d.get("linked_excavation_ids") or [])
+        # Highest-risk descriptor: depth ≥5ft trumps soil class C trumps utility conflicts.
+        risk_bits = []
+        for e in excavation_rows:
+            if e.get("depth_ge_5ft") or (
+                isinstance(e.get("depth_ft"), (int, float)) and e["depth_ft"] >= 5
+            ):
+                risk_bits.append("depth ≥5ft")
+                break
+        for e in excavation_rows:
+            soil = (e.get("soil_classification") or "").strip()
+            if soil and "C" in soil.upper() and "lass" in soil.lower():
+                risk_bits.append(soil)
+                break
+        for e in excavation_rows:
+            if e.get("utility_conflicts_observed"):
+                risk_bits.append("utility conflict")
+                break
+        risk = " · ".join(dict.fromkeys(risk_bits)) or "active"
+        out.append({
+            "label": "EXCAVATION",
+            "value": f"{n} excavation{'s' if n != 1 else ''} · {risk}",
+        })
+
+    # — General notes: only if substantive (> 12 chars)
+    gn = (d.get("general_notes") or "").strip()
+    if len(gn) > 12:
+        snippet = gn if len(gn) <= 240 else gn[:237].rsplit(" ", 1)[0] + "…"
+        out.append({"label": "NOTES", "value": snippet})
+
+    return out
+
+
+def _render_exec_summary_card(d: Dict[str, Any], summary_lines, badge) -> str:
+    """R-PDF-1 + R-PDF-2 · Single-page comprehension card.
+
+    HTML/CSS uses inline styles so it survives the upstream render with
+    no additions to the @page CSS in `render_record_pdf`.
+    """
+    proj = escape((d.get("project_name") or "").strip() or "—")
+    proj_no = escape((d.get("project_number") or "").strip())
+    date_s = escape(_fmt_date(d.get("report_date")) or "")
+    doc_id = escape((d.get("doc_id") or d.get("report_number") or "").strip())
+
+    badge_html = (
+        f'<div style="text-align:right;">'
+        f'<div style="display:inline-block;padding:6px 12px;'
+        f'border:2px solid {badge["border"]};background:{badge["bg"]};'
+        f'color:{badge["tone"]};font-family:\'Courier New\',monospace;'
+        f'font-size:10pt;font-weight:bold;letter-spacing:0.18em;'
+        f'text-transform:uppercase;border-radius:3px;">'
+        f'{escape(badge["label"])}'
+        f'</div>'
+        f'</div>'
+    )
+
+    lines_html = ""
+    for ln in summary_lines:
+        lines_html += (
+            f'<div style="display:flex;gap:10px;padding:3px 0;'
+            f'border-bottom:1px dotted #e2e8f0;">'
+            f'<div style="flex:0 0 24%;font-family:\'Courier New\',monospace;'
+            f'font-size:8pt;letter-spacing:0.14em;text-transform:uppercase;'
+            f'color:#64748b;font-weight:bold;">{escape(ln["label"])}</div>'
+            f'<div style="flex:1;font-size:10pt;color:#0f172a;">{escape(ln["value"])}</div>'
+            f'</div>'
+        )
+
+    title_row = (
+        f'<div style="display:flex;align-items:flex-start;'
+        f'justify-content:space-between;gap:12px;margin-bottom:6px;">'
+        f'<div>'
+        f'<div style="font-family:\'Courier New\',monospace;font-size:7.5pt;'
+        f'letter-spacing:0.25em;text-transform:uppercase;color:#c8102e;'
+        f'font-weight:bold;">Executive Summary · {date_s}</div>'
+        f'<div style="font-size:13pt;font-weight:900;color:#0f172a;'
+        f'line-height:1.15;margin-top:2px;">{proj}</div>'
+        f'<div style="font-family:\'Courier New\',monospace;font-size:7.5pt;'
+        f'letter-spacing:0.18em;text-transform:uppercase;color:#64748b;'
+        f'margin-top:2px;">{proj_no}{(" · " + doc_id) if doc_id else ""}</div>'
+        f'</div>'
+        f'{badge_html}'
+        f'</div>'
+    )
+
+    return (
+        f'<section class="sec exec-card" style="border:2px solid #0f172a;'
+        f'padding:10px 12px 6px;margin-bottom:14px;background:#f8fafc;">'
+        f'{title_row}'
+        f'{lines_html}'
+        f'</section>'
+    )
+
+
+def _render_excavation_surface(excavation_rows: List[Dict[str, Any]]) -> str:
+    """R-PDF-10 · Dedicated condensed excavation summary.
+
+    Renders only when there is excavation activity to surface. Pulls
+    from the `trench_excavations` documents already linked to the DR
+    (no schema change, no field added).
+    """
+    if not excavation_rows:
+        return ""
+
+    body_rows: List[List[Any]] = []
+    for e in excavation_rows:
+        # Compose a compact risk descriptor
+        risk_bits = []
+        depth = e.get("depth_ft")
+        if e.get("depth_ge_5ft") or (
+            isinstance(depth, (int, float)) and depth >= 5
+        ):
+            risk_bits.append("≥5 ft")
+        soil = (e.get("soil_classification") or "").strip()
+        if soil and soil.lower() != "unknown / needs review":
+            risk_bits.append(soil)
+        if e.get("utility_conflicts_observed"):
+            risk_bits.append("Utility conflict")
+        if e.get("hazardous_atmosphere_concern"):
+            risk_bits.append("Hazardous atm.")
+        if e.get("water_present"):
+            risk_bits.append("Water")
+        body_rows.append([
+            e.get("excavation_number") or e.get("id") or "",
+            e.get("work_area") or "",
+            f"{depth} ft" if depth not in (None, "") else "",
+            " · ".join(risk_bits) or "—",
+            e.get("competent_person_name") or "",
+            e.get("status") or e.get("review_status") or "",
+        ])
+    return _section(
+        "03b · Excavation Activity",
+        "<p style='font-size:10px;color:#475569;margin:0 0 6px;'>"
+        "Linked excavations from today's Daily Report — visibility only · "
+        "see Trench Safety records for full forms.</p>"
+        + _table(
+            ["Excavation #", "Work Area", "Depth", "Risk", "Competent Person", "Status"],
+            body_rows,
+        ),
+    )
+
+
+def _crew_schedule_signature(c: Dict[str, Any]) -> tuple:
+    """Normalize (start, stop, lunch) into a hashable key used by
+    R-PDF-3 to detect the common-schedule majority. Empty/None values
+    collapse to an empty string so partial rows still group sensibly."""
+    return (
+        str(c.get("start_time") or "").strip(),
+        str(c.get("stop_time") or "").strip(),
+        str(c.get("lunch_minutes") or "").strip(),
+    )
+
+
 # ----------------------------- per-type renderers ---------------------------
 
 
 def _render_daily(d: Dict[str, Any]) -> str:
     rows = []
+
+    # ── DR-PDF-002 · One-shot fetch for Exec Summary + Excavation +
+    # MM-001B (replaces the inline async block previously in this fn).
+    _extras = _fetch_dr_render_extras(
+        (d.get("project_number") or "").strip(),
+        (d.get("report_date") or "").strip(),
+        d.get("linked_excavation_ids") or [],
+    )
+    _dispatch_rows = _extras["dispatch_rows"]
+    _excavation_rows = _extras["excavation_rows"]
+
+    # ── R-PDF-1 + R-PDF-2 · Executive Summary Card (page 1, before 01) ──
+    _badge = _safe_day_badge(d)
+    _summary_lines = _exec_summary_lines(d, _dispatch_rows, _excavation_rows)
+    rows.append(_render_exec_summary_card(d, _summary_lines, _badge))
+
     rows.append(
         _section(
             "01 · Project Information",
@@ -265,8 +648,36 @@ def _render_daily(d: Dict[str, Any]) -> str:
         )
     )
 
+    # ── R-PDF-10 · Excavation Activity Surface (after 03 · before 04) ──
+    # Renders only when there are linked excavation records to surface.
+    _exc_html = _render_excavation_surface(_excavation_rows)
+    if _exc_html:
+        rows.append(_exc_html)
+
     crews = d.get("masci_crews") or d.get("crews") or []
     if crews:
+        # ── R-PDF-3 · Collapse common-schedule gross/net math ──────────
+        # Detect the majority (start, stop, lunch) signature. Emit one
+        # caption line ABOVE the table for the common pattern. Per-row
+        # gross/net inline summaries are kept ONLY for rows whose
+        # schedule differs from the common pattern. Hours column and
+        # totals row preserved verbatim.
+        sig_counts: Dict[tuple, int] = {}
+        for c in crews:
+            s = _crew_schedule_signature(c)
+            sig_counts[s] = sig_counts.get(s, 0) + 1
+        common_sig: Optional[tuple] = None
+        if sig_counts:
+            top_sig, top_n = max(sig_counts.items(), key=lambda kv: kv[1])
+            # Require ≥2 crew sharing the schedule to bother emitting the caption.
+            if top_n >= 2 and all(top_sig):
+                common_sig = top_sig
+        common_summary_text = ""
+        if common_sig is not None:
+            common_summary_text = _gross_net_summary(
+                common_sig[0], common_sig[1], common_sig[2],
+            )
+
         total_hours = 0.0
         body_rows = []
         for c in crews:
@@ -274,17 +685,20 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 total_hours += float(c.get("hours") or 0)
             except (TypeError, ValueError):
                 pass
-            # Build the work-performed cell with an inline gross/net math
-            # line underneath, so a PM reading the printed PDF can verify
-            # the hours math at a glance without a calculator.
             wp = c.get("work_performed") or ""
-            summary = _gross_net_summary(
-                c.get("start_time"), c.get("stop_time"), c.get("lunch_minutes")
+            sig = _crew_schedule_signature(c)
+            # Only attach the per-row gross/net summary when this crew's
+            # schedule differs from the common pattern (or when no common
+            # pattern was detected).
+            include_inline = (common_sig is None) or (sig != common_sig)
+            summary = (
+                _gross_net_summary(
+                    c.get("start_time"), c.get("stop_time"),
+                    c.get("lunch_minutes"),
+                )
+                if include_inline
+                else ""
             )
-            # The cell mixes the foreman's free-text (escape-safe) with an
-            # inline gross/net summary div (raw HTML) — wrap the whole thing
-            # in _RawHtml so the table renderer does not double-escape the
-            # markup we intentionally added.
             if summary:
                 wp_cell: Any = _RawHtml(
                     f"{escape(wp)}<div style='margin-top:4px;font-family:monospace;"
@@ -302,9 +716,6 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 c.get("hours") or "",
                 wp_cell,
             ])
-        # Append a totals row. Show "Total Hours" label alongside the
-        # numeric total so the field reader can sanity-check the math
-        # against the Start → Stop columns above.
         body_rows.append([
             "",
             "",
@@ -314,10 +725,22 @@ def _render_daily(d: Dict[str, Any]) -> str:
             _RawHtml(f"<b>{total_hours:.2f}</b>"),
             "",
         ])
+        # R-PDF-3 · Common-schedule caption ABOVE the table.
+        common_caption_html = ""
+        if common_sig is not None and common_summary_text:
+            common_caption_html = (
+                f'<div style="font-family:\'Courier New\',monospace;'
+                f'font-size:9pt;letter-spacing:0.04em;color:#0f172a;'
+                f'background:#f1f5f9;border-left:3px solid #c8102e;'
+                f'padding:5px 8px;margin:0 0 6px;">'
+                f'Common schedule · {escape(common_summary_text)}'
+                f'</div>'
+            )
         rows.append(
             _section(
                 "04 · MASCI Crews on Site",
-                _table(
+                common_caption_html
+                + _table(
                     ["Name", "Trade / Role", "Start", "Stop", "Lunch", "Hours", "Work Performed"],
                     body_rows,
                 ),
@@ -552,83 +975,49 @@ def _render_daily(d: Dict[str, Any]) -> str:
         )
 
     # E-1 · MM-001B · Material Movement visibility tile.
-    # Read-only · derived · queries dispatch_assignments synchronously
-    # at render time for the same (project_number, report_date).
+    # DR-PDF-002 refactor: dispatch rows are now fetched ONCE at the top
+    # of `_render_daily` (alongside excavation rows for R-PDF-10) via
+    # `_fetch_dr_render_extras`. This block reuses the cached rows.
     # NO new field on the DR. NO new collection. NO synchronization.
     # Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md
-    proj_num = (d.get("project_number") or "").strip()
-    rpt_date = (d.get("report_date") or "").strip()
-    if proj_num and rpt_date:
-        try:
-            from motor.motor_asyncio import AsyncIOMotorClient  # noqa: PLC0415
-            import os as _os  # noqa: PLC0415
-            import asyncio as _asyncio  # noqa: PLC0415
-            mongo_url = _os.environ.get("MONGO_URL")
-            db_name = _os.environ.get("DB_NAME")
-            if mongo_url and db_name:
-                async def _fetch_dispatch():
-                    client = AsyncIOMotorClient(mongo_url)
-                    db_ = client[db_name]
-                    rows = []
-                    async for a in db_.dispatch_assignments.find(
-                        {"project_number": proj_num, "scheduled_date": rpt_date},
-                        {"_id": 0, "haul_type": 1, "material": 1,
-                         "source_location": 1, "destination": 1,
-                         "load_count": 1, "carrier": 1, "truck_id": 1,
-                         "id": 1},
-                    ).limit(200):
-                        rows.append(a)
-                    client.close()
-                    return rows
-                try:
-                    loop = _asyncio.get_event_loop()
-                    if loop.is_running():
-                        dispatch_rows = []
-                    else:
-                        dispatch_rows = loop.run_until_complete(_fetch_dispatch())
-                except RuntimeError:
-                    dispatch_rows = _asyncio.run(_fetch_dispatch())
-                if dispatch_rows:
-                    by_haul: Dict[str, int] = {}
-                    trucks: set = set()
-                    total_loads = 0
-                    table_rows = []
-                    for r in dispatch_rows:
-                        ht = (r.get("haul_type") or "Material").strip() or "Material"
-                        by_haul[ht] = by_haul.get(ht, 0) + 1
-                        if r.get("truck_id"):
-                            trucks.add(r["truck_id"])
-                        try:
-                            total_loads += int(r.get("load_count") or 0)
-                        except (TypeError, ValueError):
-                            pass
-                        table_rows.append([
-                            ht,
-                            r.get("material") or "",
-                            r.get("source_location") or "",
-                            r.get("destination") or "",
-                            str(r.get("load_count") or ""),
-                            r.get("carrier") or "",
-                        ])
-                    summary = (
-                        f"Assignments: {len(dispatch_rows)} · "
-                        f"Loads: {total_loads} · "
-                        f"Trucks: {len(trucks)} · "
-                        + " · ".join(f"{k}: {v}" for k, v in sorted(by_haul.items()))
-                    )
-                    rows.append(
-                        _section(
-                            "09d · MASCI Hauling Today",
-                            f"<p style='font-size:11px;color:#475569;margin:2px 0 6px;'>{summary}</p>"
-                            + _table(
-                                ["Haul Type", "Material", "Source", "Destination", "Loads", "Carrier"],
-                                table_rows,
-                            ),
-                        )
-                    )
-        except Exception:
-            # Visibility tile is best-effort — never block PDF render.
-            pass
+    if _dispatch_rows:
+        by_haul: Dict[str, int] = {}
+        trucks: set = set()
+        total_loads = 0
+        table_rows = []
+        for r in _dispatch_rows:
+            ht = (r.get("haul_type") or "Material").strip() or "Material"
+            by_haul[ht] = by_haul.get(ht, 0) + 1
+            if r.get("truck_id"):
+                trucks.add(r["truck_id"])
+            try:
+                total_loads += int(r.get("load_count") or 0)
+            except (TypeError, ValueError):
+                pass
+            table_rows.append([
+                ht,
+                r.get("material") or "",
+                r.get("source_location") or "",
+                r.get("destination") or "",
+                str(r.get("load_count") or ""),
+                r.get("carrier") or "",
+            ])
+        summary = (
+            f"Assignments: {len(_dispatch_rows)} · "
+            f"Loads: {total_loads} · "
+            f"Trucks: {len(trucks)} · "
+            + " · ".join(f"{k}: {v}" for k, v in sorted(by_haul.items()))
+        )
+        rows.append(
+            _section(
+                "09d · MASCI Hauling Today",
+                f"<p style='font-size:11px;color:#475569;margin:2px 0 6px;'>{summary}</p>"
+                + _table(
+                    ["Haul Type", "Material", "Source", "Destination", "Loads", "Carrier"],
+                    table_rows,
+                ),
+            )
+        )
 
     rows.append(_section("10 · Photos", _photos_block(d.get("photos"))))
 
