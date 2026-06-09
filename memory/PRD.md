@@ -1,3 +1,64 @@
+## 2026-06-09 (PLATFORM-EXCELLENCE · PHASE 1 CLOSEOUT · OPERATOR-BLOCKED ITEMS · 🟡 AGENT PORTION 🟢 PASS · OPS PORTION PENDING)
+
+**Sprint:** Phase 1 Closeout — Cloudflare cache + Atlas governance separation
+**Authorization:** Operator chat 2026-06-09 — *"PLATFORM-EXCELLENCE · PHASE 1 CLOSEOUT · OPERATOR-BLOCKED ITEMS ONLY · STATUS: AUTHORIZED"*
+**Verdict:** 🟡 **Agent verification + runbooks + validation harness COMPLETE. Cloudflare deploy + Atlas user separation PENDING operator (credentials not in Preview container).**
+
+### Why agent stopped at verification (per OMEGA safety clause)
+Phase 1A (Cloudflare cache rule) and Phase 1B (Atlas user separation) require credentials the Preview container does not have: a Cloudflare zone API token and an Atlas project API key. Direct execution without those credentials would either silently fail or take an unauthorised path. The directive's *"if any action introduces risk to existing workflows, STOP and report"* mandates the verification + runbook + validation-harness deliverable.
+
+### BEFORE state — captured live 2026-06-09
+
+**Cloudflare** (`https://mascidocs.com/static/js/main.0c1c410f.js`):
+- `cache-control: public, max-age=300, immutable` (max-age contradicts immutable)
+- 3× sequential probes: **no `cf-cache-status` header** → edge not caching at all (likely `__cf_bm` cookie disabling default cache)
+- Field LTE iPad re-downloads ~5.7 MB JS every 5 minutes
+
+**Atlas:**
+- Single shared user `admin_db_user@admin`
+- Roles: `atlasAdmin + readWriteAnyDatabase + dbAdminAnyDatabase + backup + clusterMonitor + enableSharding`
+- Reach: full RW on `masci_safety` (PROD) AND `masci_safety_preview` from same credential
+
+**Production data counts (baseline · 25 tracked collections · 159 total in `masci_safety`):**
+daily_reports=115 · job_photos=789 · employees=262 · equipment_master=596 · motive_events=2,430 · directory_sessions=1,949 · admin_audit_log=142 · incidents=8 · meetings=33 · trench_safety_assets=7 · tasks=69 · field_leadership_users=27 · user_directory=42 · HR/Safety/Shop/Dispatch/PM users intact · **TOTAL TRACKED: 6,520 docs**
+
+### AFTER (target — when operator deploys)
+
+**Cloudflare:** `/static/*` → Cache Everything · Edge TTL 1y · Browser TTL 1y · `Cache-Control: public, max-age=31536000, immutable` · `cf-cache-status: HIT` on warm probes.
+
+**Atlas:** Two new users created (`masci_prod_user` RW@masci_safety only · `masci_preview_user` RW@masci_safety_preview only) · prod and preview `.env` files migrated · cross-DB negative test PASS · `admin_db_user` password disabled (NOT deleted).
+
+### Deliverables shipped (5)
+- `/app/memory/PHASE1_CLOUDFLARE_REPORT.md` — verification + exact CF dashboard runbook + curl verification
+- `/app/memory/PHASE1_ATLAS_SEPARATION_REPORT.md` — verification + exact Atlas UI runbook + positive/negative tests
+- `/app/memory/PHASE1_VALIDATION_REPORT.md` — production baseline + post-change harness (data-count parity · 10-step functional smoke · cache-cure verification · Atlas-isolation verification)
+- `/app/memory/PHASE1_PROD_DATA_BASELINE.txt` — raw data-count snapshot
+- `/app/memory/PHASE1_FINAL_CERTIFICATION.md` — overall verdict + scorecard forecast
+
+### Scorecard
+| Pillar | Now | After CF deploy | After Atlas deploy | After both |
+| --- | ---: | ---: | ---: | ---: |
+| Production Readiness | 91 | **92** | 92 | **92** |
+| Platform Health | 94 | 94 | 94 | 94 |
+| Mobile Experience | 79 | 79 | 79 | 79 |
+| Operational Reliability | 92 | 92 | 92 | 92 |
+| Security | 88 | 88 | **90** | **90** |
+| **Weighted avg** | **91.0** | 91.6 | 92.4 | **93.0** |
+
+### What the agent did NOT touch (per OMEGA safety rule)
+Employee passwords · portal passwords · user passwords · MFA · employee accounts · permissions · roles · users (no deletions or creations attempted) · production data · workflows · forms · APIs · integrations · backups · alerts.
+
+### Next action
+1. Operator deploys Cloudflare Cache Rule per `PHASE1_CLOUDFLARE_REPORT.md §3`
+2. Operator deploys Atlas user separation per `PHASE1_ATLAS_SEPARATION_REPORT.md §3`
+3. Operator runs validation harness from `PHASE1_VALIDATION_REPORT.md §3`
+4. Operator updates `PHASE1_FINAL_CERTIFICATION.md` with AFTER capture and flips verdict to 🟢
+
+🛑 STOPPED per OMEGA. REAL-DEVICE-LCP-001, ODR fixture, FleetWatcher, MaintainX, Dispatch Automation, Material Movement, ID-007, new features, UI redesign, workflow changes NOT started. Awaiting operator execution of Phase 1 deploys.
+
+
+
+
 ## 2026-06-09 (LIST-VIRT-001 · TARGETED LARGE-LIST VIRTUALIZATION · EQUIPMENT MASTER WINDOWED · 🟢 PASS)
 
 **Sprint:** OMEGA DIRECTIVE — Platform Excellence Mode · Targeted list virtualization

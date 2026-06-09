@@ -1,0 +1,34 @@
+=== PHASE 1C · PRODUCTION DATA-COUNT BASELINE ===
+Captured: 2026-06-09  · DB: masci_safety  · purpose: pre-phase-1 validation baseline
+
+collection                                     count
+-------------------------------------------------------
+daily_reports                                    115
+job_photos                                       789
+employees                                        262
+equipment_master                                 596
+equipment_inspections                             39
+motive_events                                   2430
+directory_sessions                              1949
+admin_audit_log                                  142
+incidents                                          8
+meetings                                          33
+inspections                                        0
+trench_safety_assets                               7
+operations_actions                                 0
+tasks                                             69
+document_expirations                               1
+po_requests                                        1
+asset_transfers                                    0
+field_leadership_records                           0
+qaqc_inspections                                   0
+user_directory                                    42
+shop_users                                         2
+hr_users                                           3
+safety_users                                       2
+dispatch_users                                     3
+field_leadership_users                            27
+-------------------------------------------------------
+TOTAL (tracked colls)                           6520
+
+Total collections in masci_safety: 159
