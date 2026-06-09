@@ -2,7 +2,10 @@
 
 Server-derived visibility layer combining:
   • dispatch_assignments        — Category A · MASCI-controlled hauling
-  • daily_reports.materials[]   — Category B · foreman-authored external deliveries
+  • daily_reports.materials[]   — Category B · foreman-authored external deliveries (INBOUND)
+  • daily_reports.outbound_materials[]
+                                — Category C · foreman-authored material LEAVING the project
+                                  (MM-ENTRY-002 / K-MM-2)
 
 MM-001B-F1 (2026-02-09) · False-Outgoing Defect Fix
   • `daily_reports.production[]` is EXPLICITLY EXCLUDED from this rollup.
@@ -10,9 +13,16 @@ MM-001B-F1 (2026-02-09) · False-Outgoing Defect Fix
     grading, etc.) — they are NOT material movement. Production renders only
     in its own Production section on the read view and PDF.
 
+MM-ENTRY-002 (2026-02-09) · Outbound capture sprint
+  • `outgoing[]` is now populated from `daily_reports.outbound_materials[]`
+    (the new foreman-authored outbound section). Dispatch outbound (when
+    the haul is MASCI-dispatched) continues to surface inside the
+    `dispatch` sub-object, unchanged.
+
 NO new collection. NO duplicate persistence. NO background jobs.
 Pure read · derived only.
 Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md
+         MM_ENTRY_001_DAILY_REPORT_MATERIAL_CAPTURE_AUDIT.md
 """
 from __future__ import annotations
 from typing import Any, Dict, List
@@ -56,16 +66,18 @@ def register_material_movement_routes(router: APIRouter, db) -> None:
             except (TypeError, ValueError):
                 pass
 
-        # ── Category B · Daily Report materials[] (deliveries / removals) ──
+        # ── Category B · Daily Report materials[] (inbound deliveries) ──
         # MM-001B-F1: production[] is intentionally NOT read here. Production
         # rows describe installed work, not material movement, and surfacing
         # them as "Outgoing" produced false hauling visibility in the field.
+        # MM-ENTRY-002: outgoing[] is now populated from `outbound_materials[]`
+        # below (K-MM-2). Production stays excluded.
         incoming: List[Dict[str, Any]] = []
         outgoing: List[Dict[str, Any]] = []
         async for d in db.daily_reports.find(
             {"project_number": project_number, "report_date": date,
              "deleted_at": {"$in": [None, "", False]}},
-            {"_id": 0, "id": 1, "materials": 1},
+            {"_id": 0, "id": 1, "materials": 1, "outbound_materials": 1},
         ):
             for m in d.get("materials") or []:
                 incoming.append({
@@ -74,6 +86,23 @@ def register_material_movement_routes(router: APIRouter, db) -> None:
                     "unit": m.get("unit") or "",
                     "source": m.get("supplier") or "",
                     "ticket_number": m.get("ticket_number") or "",
+                    "dr_id": d.get("id"),
+                })
+            # K-MM-2 · Foreman-authored outbound material rows.
+            for o in d.get("outbound_materials") or []:
+                outgoing.append({
+                    "material": o.get("material") or o.get("description") or "",
+                    "quantity": o.get("quantity"),
+                    "unit": o.get("unit") or "",
+                    "hauler": o.get("hauler") or "",
+                    "destination": o.get("destination") or "",
+                    "ticket_or_manifest": (
+                        o.get("ticket_or_manifest")
+                        or o.get("manifest_number")
+                        or o.get("ticket_number")
+                        or ""
+                    ),
+                    "notes": o.get("notes") or "",
                     "dr_id": d.get("id"),
                 })
 

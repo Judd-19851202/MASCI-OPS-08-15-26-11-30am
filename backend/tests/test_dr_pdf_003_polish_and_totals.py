@@ -375,5 +375,6 @@ def test_compat_mm_001b_section_unchanged(monkeypatch):
         }
     monkeypatch.setattr(pdf_render, "_fetch_dr_render_extras", _stub)
     html = pdf_render._render_daily(_full_doc())
-    assert "09d · MASCI Hauling Today" in html
+    # MM-ENTRY-002 retitled Section 09d to "Material Movement Today"
+    assert "09d · Material Movement Today" in html
     assert "Lopez" in html

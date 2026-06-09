@@ -1,3 +1,29 @@
+## 2026-02-09 (MM-ENTRY-002 · OUTBOUND MATERIAL CAPTURE · PASS 🟢)
+
+Closed the MM-ENTRY-001 entry gap. Foremen can now document material LEAVING the project (millings to recycling, unsuitable dirt offsite, demo debris, trees removed, contaminated material, etc.) as structured data — no more Notes workarounds.
+
+### Shipped (K-MM-1 + K-MM-2 + K-MM-3 + K-MM-5)
+- **K-MM-1** New `outbound_materials: List[Dict]` field on `DailyReportCreate`. New "Outbound Materials / Hauled Off" CollapseCard on `NewDailyReport.jsx` (data-testid `dr-outbound-materials`), positioned right after the existing inbound Materials section.
+- **K-MM-2** `GET /api/material-movement/daily/{proj}/{date}` now populates the `outgoing[]` array from `daily_reports.outbound_materials[]`. Production exclusion preserved (MM-001B-F1 doctrine intact). No new collection, no writes.
+- **K-MM-3** PDF Section 09d retitled `09d · Material Movement Today` with two sub-tables (MASCI Hauling · Outbound Material). MaterialMovementTile outgoing block now shows Material/Qty/Unit/Hauler/Destination/Ticket / Manifest. Executive Summary MATERIAL line adds `Out: …` when outbound exists, shortens `Inbound:` → `In:`. All sections auto-hide when empty.
+- **K-MM-5** Vocabulary pickers for Material Type (10 options: Millings · Dirt · Unsuitable Material · Concrete Debris · Trees / Stumps · Vegetation · Trash · Demo Debris · Contaminated Material · Other) and Unit (8 options: Loads · CY · TON · EA · LF · SY · LB · Other).
+
+### Verification
+- Pytest **19/19 green** (`tests/test_mm_entry_002_outbound_capture.py`)
+- Full regression **101/101 green** (DR-FIX-1 + DR-FIX-2 + DR-FIX-3 + MM-001B + F1 + DR-PDF-002 + DR-PDF-003 + MM-ENTRY-002)
+- Live API roundtrip: POST DR with outbound rows → GET rollup → `outgoing[]` populated with full row shape
+- F1 doctrine preserved: production rows still NEVER appear in outgoing
+- Certification: `/app/memory/MM_ENTRY_002_OUTBOUND_CAPTURE_CERTIFICATION.md`
+
+### Files
+- `routes/daily_reports.py` (+ field) · `routes/material_movement.py` (rollup wiring) · `pdf_render.py` (Section 09d + Exec Summary) · `NewDailyReport.jsx` (new CollapseCard + RepeatBlock + helpers) · `MaterialMovementTile.jsx` (outgoing columns)
+
+### Out of scope (deferred — OMEGA freeze)
+K-MM-4 · K-MM-6 · K-MM-7 · K-MM-8 · K-MM-9 · all MM E-6 through E-9 · FW-1 · DR-PDF R-PDF-7 → R-PDF-17 · FleetWatcher · Motive · MaintainX · DR/PDF redesign · `test_trench_safety_phase2.py::test_dashboard_seed_data` (recurrence #5)
+
+
+
+
 ## 2026-02-09 (MM-ENTRY-001 · DAILY REPORT MATERIAL MOVEMENT CAPTURE AUDIT · DELIVERED 🟢)
 
 Audit-only sprint. Zero code changes. Definitive evidence-based answer to the contradictory-evidence question raised in the directive.

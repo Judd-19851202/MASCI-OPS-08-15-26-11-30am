@@ -625,6 +625,7 @@ export default function NewDailyReport({ publicMode = false }) {
   const vis = useList(data, setData, "visitors");
   const eq = useList(data, setData, "equipment");
   const mat = useList(data, setData, "materials");
+  const outbound = useList(data, setData, "outbound_materials");
   const act = useList(data, setData, "activities");
   // Phase V.2 · Wave-1B · structured production + constraints (operator-approved).
   // Both lists are ADDITIVE · foreman workflow unchanged · 9-step contract preserved.
@@ -1917,6 +1918,75 @@ export default function NewDailyReport({ publicMode = false }) {
                 { key: "ticket_photos", label: "Ticket Photo(s)", full: true, type: "photo" },
               ]}
               testIdBase="material"
+            />
+          </CollapseCard>
+
+          {/* MM-ENTRY-002 · K-MM-1 + K-MM-5 · Outbound Material Capture */}
+          <CollapseCard
+            title={t("Outbound Materials / Hauled Off")}
+            testId="dr-outbound-materials"
+            statusLabel={
+              (data.outbound_materials?.length || 0) > 0
+                ? `${data.outbound_materials.length} ${t("entered")}`
+                : t("Optional")
+            }
+          >
+            <p className="text-xs text-slate-600 mb-3">
+              {t(
+                "Document material leaving the project — millings hauled to recycling, "
+                + "unsuitable dirt offsite, demo debris, trees removed, contaminated material, etc. "
+                + "Use the dedicated dispatch portal for MASCI-controlled hauling."
+              )}
+            </p>
+            <RepeatBlock
+              title={t("Outbound")}
+              list="outbound_materials"
+              rows={data.outbound_materials || []}
+              helpers={outbound}
+              t={t}
+              defaults={{
+                material: "",
+                quantity: "",
+                unit: "Loads",
+                hauler: "",
+                destination: "",
+                ticket_or_manifest: "",
+                notes: "",
+              }}
+              fields={[
+                {
+                  key: "material",
+                  label: "Material Type",
+                  full: true,
+                  type: "select",
+                  options: [
+                    "",
+                    "Millings",
+                    "Dirt",
+                    "Unsuitable Material",
+                    "Concrete Debris",
+                    "Trees / Stumps",
+                    "Vegetation",
+                    "Trash",
+                    "Demo Debris",
+                    "Contaminated Material",
+                    "Other",
+                  ],
+                },
+                { key: "quantity", label: "Quantity" },
+                {
+                  key: "unit",
+                  label: "Unit",
+                  type: "select",
+                  options: ["Loads", "CY", "TON", "EA", "LF", "SY", "LB", "Other"],
+                },
+                { key: "hauler", label: "Hauler", full: true },
+                { key: "destination", label: "Destination", full: true,
+                  placeholder: "Recycling facility, landfill, stockpile, etc." },
+                { key: "ticket_or_manifest", label: "Ticket / Manifest #" },
+                { key: "notes", label: "Notes", full: true, type: "textarea" },
+              ]}
+              testIdBase="outbound-material"
             />
           </CollapseCard>
 

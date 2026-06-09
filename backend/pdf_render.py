@@ -386,7 +386,7 @@ def _exec_summary_lines(
     else:
         out.append({"label": "CONSTRAINTS", "value": "None"})
 
-    # — Material movement: dispatch (MASCI hauling) + DR materials[]
+    # — Material movement: dispatch (MASCI hauling) + DR materials[] + outbound_materials[]
     mm_bits: List[str] = []
     if dispatch_rows:
         total_loads = 0
@@ -410,7 +410,21 @@ def _exec_summary_lines(
             elif desc:
                 mat_bits.append(desc)
         if mat_bits:
-            mm_bits.append("Inbound: " + ", ".join(mat_bits))
+            mm_bits.append("In: " + ", ".join(mat_bits))
+    # K-MM-3 · Outbound summary on the Exec card (concise — first 2 rows).
+    outbound = d.get("outbound_materials") or []
+    if outbound:
+        out_bits: List[str] = []
+        for o in outbound[:2]:
+            mat = (o.get("material") or o.get("description") or "").strip()
+            qty = o.get("quantity")
+            unit = (o.get("unit") or "").strip()
+            if mat and qty not in (None, ""):
+                out_bits.append(f"{qty} {unit} {mat}".strip())
+            elif mat:
+                out_bits.append(mat)
+        if out_bits:
+            mm_bits.append("Out: " + ", ".join(out_bits))
     if mm_bits:
         out.append({"label": "MATERIAL", "value": " · ".join(mm_bits)})
 
@@ -1044,46 +1058,85 @@ def _render_daily(d: Dict[str, Any]) -> str:
     # DR-PDF-002 refactor: dispatch rows are now fetched ONCE at the top
     # of `_render_daily` (alongside excavation rows for R-PDF-10) via
     # `_fetch_dr_render_extras`. This block reuses the cached rows.
+    # MM-ENTRY-002 / K-MM-3: outbound material table is rendered after
+    # the dispatch hauling table when `outbound_materials[]` is present.
     # NO new field on the DR. NO new collection. NO synchronization.
     # Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md
-    if _dispatch_rows:
-        by_haul: Dict[str, int] = {}
-        trucks: set = set()
-        total_loads = 0
-        table_rows = []
-        for r in _dispatch_rows:
-            ht = (r.get("haul_type") or "Material").strip() or "Material"
-            by_haul[ht] = by_haul.get(ht, 0) + 1
-            if r.get("truck_id"):
-                trucks.add(r["truck_id"])
-            try:
-                total_loads += int(r.get("load_count") or 0)
-            except (TypeError, ValueError):
-                pass
-            table_rows.append([
-                ht,
-                r.get("material") or "",
-                r.get("source_location") or "",
-                r.get("destination") or "",
-                str(r.get("load_count") or ""),
-                r.get("carrier") or "",
-            ])
-        summary = (
-            f"Assignments: {len(_dispatch_rows)} · "
-            f"Loads: {total_loads} · "
-            f"Trucks: {len(trucks)} · "
-            + " · ".join(f"{k}: {v}" for k, v in sorted(by_haul.items()))
-        )
-        rows.append(
-            _section(
-                "09d · MASCI Hauling Today",
+    #          MM_ENTRY_001_DAILY_REPORT_MATERIAL_CAPTURE_AUDIT.md
+    _outbound = d.get("outbound_materials") or []
+    if _dispatch_rows or _outbound:
+        mm_html = ""
+
+        if _dispatch_rows:
+            by_haul: Dict[str, int] = {}
+            trucks: set = set()
+            total_loads = 0
+            table_rows = []
+            for r in _dispatch_rows:
+                ht = (r.get("haul_type") or "Material").strip() or "Material"
+                by_haul[ht] = by_haul.get(ht, 0) + 1
+                if r.get("truck_id"):
+                    trucks.add(r["truck_id"])
+                try:
+                    total_loads += int(r.get("load_count") or 0)
+                except (TypeError, ValueError):
+                    pass
+                table_rows.append([
+                    ht,
+                    r.get("material") or "",
+                    r.get("source_location") or "",
+                    r.get("destination") or "",
+                    str(r.get("load_count") or ""),
+                    r.get("carrier") or "",
+                ])
+            summary = (
+                f"Assignments: {len(_dispatch_rows)} · "
+                f"Loads: {total_loads} · "
+                f"Trucks: {len(trucks)} · "
+                + " · ".join(f"{k}: {v}" for k, v in sorted(by_haul.items()))
+            )
+            mm_html += (
+                "<div style='font-family:\"Courier New\",monospace;font-size:9px;"
+                "letter-spacing:0.12em;text-transform:uppercase;color:#475569;"
+                "margin:0 0 4px;'>MASCI Hauling (dispatch)</div>"
                 f"<p style='font-size:11px;color:#475569;margin:2px 0 6px;'>{summary}</p>"
                 + _table(
                     ["Haul Type", "Material", "Source", "Destination", "Loads", "Carrier"],
                     table_rows,
-                ),
+                )
             )
-        )
+
+        # K-MM-3 · Outbound material table (foreman-authored hauled-off rows)
+        if _outbound:
+            out_rows = []
+            for o in _outbound:
+                out_rows.append([
+                    o.get("material") or o.get("description") or "",
+                    o.get("quantity") if o.get("quantity") not in (None, "") else "",
+                    o.get("unit") or "",
+                    o.get("hauler") or "",
+                    o.get("destination") or "",
+                    (
+                        o.get("ticket_or_manifest")
+                        or o.get("manifest_number")
+                        or o.get("ticket_number")
+                        or ""
+                    ),
+                    o.get("notes") or "",
+                ])
+            spacer = "<div style='height:10px;'></div>" if mm_html else ""
+            mm_html += (
+                spacer
+                + "<div style='font-family:\"Courier New\",monospace;font-size:9px;"
+                "letter-spacing:0.12em;text-transform:uppercase;color:#475569;"
+                "margin:0 0 4px;'>Outbound Material (hauled off)</div>"
+                + _table(
+                    ["Material", "Qty", "Unit", "Hauler", "Destination", "Ticket / Manifest", "Notes"],
+                    out_rows,
+                )
+            )
+
+        rows.append(_section("09d · Material Movement Today", mm_html))
 
     # R-PDF-4 · DR-PDF-003 · Hide empty Photos section.
     # `_photos_block` returns "" when no photo refs resolve. Skip the

@@ -336,7 +336,9 @@ def test_mm_001b_section_still_present_when_dispatch_exists(monkeypatch):
         }
     monkeypatch.setattr(pdf_render, "_fetch_dr_render_extras", _stub)
     html = pdf_render._render_daily(_make_doc())
-    assert "09d · MASCI Hauling Today" in html
+    # MM-ENTRY-002 retitled Section 09d to "Material Movement Today"
+    # (now covers both MASCI hauling and foreman-authored outbound).
+    assert "09d · Material Movement Today" in html
     assert "SP-12.5 Asphalt" in html
     assert "Lopez Trucking" in html
     # Executive Summary card should also pull dispatch into MATERIAL line.

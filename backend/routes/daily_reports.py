@@ -109,6 +109,18 @@ class DailyReportCreate(BaseModel):
     materials: List[Dict[str, Any]] = Field(default_factory=list)
     activities: List[Dict[str, Any]] = Field(default_factory=list)
 
+    # MM-ENTRY-002 · K-MM-1 · Outbound material capture.
+    # Foreman-authored rows describing material physically LEAVING the
+    # project (millings hauled to recycling, unsuitable dirt offsite,
+    # demo debris, trees, contaminated material, etc.). Each row:
+    #   {material, quantity, unit, hauler, destination,
+    #    ticket_or_manifest, notes}
+    # Required-at-form-time: material, quantity, unit. Other fields
+    # optional so the field workflow stays fast.
+    # NO new collection. NO direction toggle on `materials[]` (which
+    # remains inbound-only). NO production[] reuse (MM-001B-F1 doctrine).
+    outbound_materials: List[Dict[str, Any]] = Field(default_factory=list)
+
     # Phase V.2 · Wave-1A · structured production + constraints.
     production: List[ProductionRow] = Field(default_factory=list)
     constraints: List[ConstraintRow] = Field(default_factory=list)

@@ -112,11 +112,11 @@ export default function MaterialMovementTile({ projectNumber, reportDate }) {
         </div>
       )}
 
-      {/* Outgoing */}
+      {/* Outgoing — MM-ENTRY-002 / K-MM-3 · foreman-authored outbound */}
       {outgoingTotal > 0 && (
         <div data-testid="mm-tile-outgoing">
           <div className="text-[10px] font-mono uppercase tracking-wider text-slate-600 font-bold mb-1 flex items-center gap-1">
-            <ArrowUpCircle className="w-3 h-3 text-rose-700" /> {t("Outgoing")} ({t("from Production")})
+            <ArrowUpCircle className="w-3 h-3 text-rose-700" /> {t("Outgoing")} ({t("Hauled Off")})
           </div>
           <table className="w-full text-xs border border-slate-200">
             <thead className="bg-slate-50">
@@ -124,7 +124,9 @@ export default function MaterialMovementTile({ projectNumber, reportDate }) {
                 <th className="px-2 py-1 text-left">{t("Material")}</th>
                 <th className="px-2 py-1 text-left">{t("Qty")}</th>
                 <th className="px-2 py-1 text-left">{t("Unit")}</th>
-                <th className="px-2 py-1 text-left">{t("Notes")}</th>
+                <th className="px-2 py-1 text-left">{t("Hauler")}</th>
+                <th className="px-2 py-1 text-left">{t("Destination")}</th>
+                <th className="px-2 py-1 text-left">{t("Ticket / Manifest")}</th>
               </tr>
             </thead>
             <tbody>
@@ -133,7 +135,9 @@ export default function MaterialMovementTile({ projectNumber, reportDate }) {
                   <td className="px-2 py-1">{r.material}</td>
                   <td className="px-2 py-1">{r.quantity ?? ""}</td>
                   <td className="px-2 py-1">{r.unit}</td>
-                  <td className="px-2 py-1 text-slate-500">{r.station_from}{r.station_to ? ` → ${r.station_to}` : ""}</td>
+                  <td className="px-2 py-1">{r.hauler || ""}</td>
+                  <td className="px-2 py-1">{r.destination || ""}</td>
+                  <td className="px-2 py-1 text-slate-500">{r.ticket_or_manifest || ""}</td>
                 </tr>
               ))}
             </tbody>
