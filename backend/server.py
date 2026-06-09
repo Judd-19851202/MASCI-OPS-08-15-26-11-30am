@@ -11407,6 +11407,14 @@ _verification_router = build_verification_router(db, require_admin)
 app.include_router(_verification_router)
 
 
+# MOTIVE-DATA-001 · Asset Mapping Reconciliation · /api/admin/asset-mapping/*
+# Data-quality sprint to close the dispatch.truck_id ↔ asset_mappings link
+# that VER-1 audit identified as the bottleneck.
+from routes.asset_mapping_recon import build_asset_mapping_router  # noqa: E402
+_asset_mapping_router = build_asset_mapping_router(db, require_admin)
+app.include_router(_asset_mapping_router)
+
+
 # iter382 · /admin/project-managers/* (10 routes) + public /project-managers
 # extracted to routes/pm_admin.py.
 from routes.pm_admin import build_pm_admin_router  # noqa: E402

@@ -36,6 +36,18 @@ export default function AdminOperationsDashboard() {
   const [running, setRunning] = useState(false);
   const [audit, setAudit] = useState(null);
   const [tick, setTick] = useState(0);
+  const [coverage, setCoverage] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await api.get("/admin/asset-mapping/coverage");
+        if (!cancelled) setCoverage(r.data || null);
+      } catch { /* fail-quiet */ }
+    })();
+    return () => { cancelled = true; };
+  }, [tick]);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,6 +152,33 @@ export default function AdminOperationsDashboard() {
         <div className="text-xs text-slate-500 font-mono">
           Tracking {total} asset{total === 1 ? "" : "s"} with at least one routed event.
         </div>
+
+        {/* MOTIVE-DATA-001E · Verification Coverage tile */}
+        {coverage && (
+          <div
+            className="rounded border-2 border-slate-300 bg-white p-4 flex items-center justify-between gap-4"
+            data-testid="verification-coverage-tile"
+          >
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700 font-bold">
+                Verification Coverage
+              </div>
+              <div className="text-xl font-black text-slate-900 mt-1">
+                {coverage.mapped_assets} / {coverage.total_dispatch_trucks} assets linked
+              </div>
+              <div className="text-sm text-slate-600 mt-1">
+                {coverage.coverage_pct}% coverage · {coverage.unmapped_assets} unmapped
+              </div>
+            </div>
+            <a
+              href="/admin/asset-mapping"
+              className="px-4 py-2 rounded border-2 border-slate-900 text-slate-900 hover:bg-slate-50 font-mono text-xs uppercase tracking-wider font-bold"
+              data-testid="verification-coverage-link"
+            >
+              Open Mapping Queue →
+            </a>
+          </div>
+        )}
 
         {/* Trust audit panel */}
         {audit && (
