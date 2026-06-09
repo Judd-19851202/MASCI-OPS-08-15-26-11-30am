@@ -37854,3 +37854,42 @@ Certifications lacking this header fail certification automatically.
 ✅ No code changes · No DB writes · No deploys · No fixes · No new features · No certification passes based on assumptions · Read-only forensic audit only.
 
 **STOPPED. Awaiting operator review.**
+
+
+---
+
+## GOVERNANCE-HARDEN-001 · Production Governance & Trust Sprint (2026-06-09 20:30 UTC)
+
+**Type:** OMEGA · P0 · Read-only forensic audit + governance documentation
+**Outcome:** ✅ PASS as an audit · ❌ FAIL as a control posture (operator remediation required)
+
+**Deliverables (all under `/app/memory/`):**
+- `GOVERNANCE_HARDEN_001_EXECUTIVE_SUMMARY.md` (Risk Register + Findings + PASS/FAIL)
+- `GOVERNANCE_HARDEN_001_ATLAS_ACCESS_REPORT.md` (Workstream A)
+- `GOVERNANCE_HARDEN_001_PROD_WRITE_AUDIT.md` (Workstream B)
+- `GOVERNANCE_HARDEN_001_ACCESS_MATRIX.md` (Workstream C)
+- `GOVERNANCE_HARDEN_001_CREDENTIAL_AUDIT.md` (Workstream D)
+- `GOVERNANCE_HARDEN_001_CERT_STANDARD.md` (Workstream E)
+- `GOVERNANCE_HARDEN_001_DEPLOYMENT_CHAIN.md` (Workstream F)
+- `governance_harden_001_evidence/*.txt` (raw forensic outputs)
+
+### P0 findings requiring operator action
+1. **Cluster-level Atlas user shared between preview and prod** (`admin_db_user` with `atlasAdmin` role). Single compromise = total cluster reach.
+2. **Second customer Atlas user with `readWriteAnyDatabase`** (`Password`). Parallel compromise path.
+3. **Shared super-admin login** (`jaymn.judd@mascigc.com` / `Maddix123!`) documented as working in both preview and prod.
+
+### P1 findings
+4. Likely-shared cross-env secrets (`JWT_SECRET` / `ADMIN_HMAC_SECRET` / `MFA_ENCRYPTION_KEY`).
+5. No automated certification-header enforcement (Workstream E doctrine relies on operator review today).
+6. 141 of 159 prod collections lack any actor field — agent visibility blind spot.
+
+### Forensic positives
+- Only **1 agent-attributed write in production** across all 159 collections (the documented MOTIVE-PROD-INCIDENT-001 remediation row).
+- Production Motive currently Connected, last sync 2026-06-09T20:17:41Z, 1,170 events.
+- Production externally healthy: TLS, HSTS, auth gates, env-correct `/api/version`, env-correct `db_name`.
+- All certifications in this bundle carry the mandatory four-field header (Environment / Access Level / Evidence Source / Confidence).
+
+### OMEGA invariants honoured
+✅ No code changes · No DB writes · No deploys · No fixes · No feature work · No UI · No FleetWatcher/Dispatch/Material/MaintainX/Motive expansion · No self-certification — every claim cites primary evidence.
+
+**STOPPED. Awaiting operator review.**

@@ -1,0 +1,38 @@
+Total collections in masci_safety: 159
+
+Total actor-field-bearing docs examined (capped 500/coll/field): 3345
+Collections containing any actor field: 18
+
+=== ACTOR FIELD INVENTORY (collection → field → count sampled) ===
+  admin_audit_log: {'actor': 142}
+  asset_holds: {'created_by': 2}
+  audit_events: {'actor': 500, 'user_id': 94}
+  directory_sessions: {'user_id': 500}
+  equipment_parts: {'updated_by': 2}
+  fleet_audit: {'actor': 500}
+  hill_scopes: {'created_by': 3}
+  hub_banner_audit: {'actor': 500}
+  hub_banners: {'created_by': 1}
+  idempotency_keys: {'actor_id': 51}
+  incident_snapshots: {'updated_by': 1}
+  integration_settings: {'updated_by': 2}
+  operations_events: {'created_by': 500}
+  project_memberships: {'user_id': 1}
+  session_activity: {'user_id': 500}
+  transfer_requests: {'created_by': 30}
+  trench_safety_assets: {'updated_by': 7, 'created_by': 7}
+  workflow_state_events: {'actor_id': 2}
+
+=== SUSPECT FINDINGS: 15 ===
+  trench_safety_assets.updated_by = 'system:seed'  · count=7
+  trench_safety_assets.created_by = 'system:seed'  · count=7
+  integration_settings.updated_by = 'motive_prod_incident_001:remediation'  · count=1
+
+=== SAMPLE RECORDS (max 3 per unique value, full doc_id + timestamps) ===
+  integration_settings.updated_by = 'motive_prod_incident_001:remediation'  doc_id=9d721d37-34c3-408a-ad71-83a2eca18c53  created=2026-05-26T10:56:42.369877+00:00  updated=2026-06-09T20:17:41.174316+00:00
+  trench_safety_assets.created_by = 'system:seed'  doc_id=97766703-7f0f-41b0-8d39-ba344c6f7cb5  created=2026-06-07T22:38:47.580580+00:00  updated=2026-06-07T22:38:47.580615+00:00
+  trench_safety_assets.created_by = 'system:seed'  doc_id=28e5099b-ae94-4535-84ca-c285fffb48ca  created=2026-06-07T22:38:47.817597+00:00  updated=2026-06-07T22:38:47.817640+00:00
+  trench_safety_assets.created_by = 'system:seed'  doc_id=187fb718-c143-47fb-aa61-f30ad10c5f54  created=2026-06-07T22:38:48.024364+00:00  updated=2026-06-07T22:38:48.024383+00:00
+  trench_safety_assets.updated_by = 'system:seed'  doc_id=97766703-7f0f-41b0-8d39-ba344c6f7cb5  created=2026-06-07T22:38:47.580580+00:00  updated=2026-06-07T22:38:47.580615+00:00
+  trench_safety_assets.updated_by = 'system:seed'  doc_id=28e5099b-ae94-4535-84ca-c285fffb48ca  created=2026-06-07T22:38:47.817597+00:00  updated=2026-06-07T22:38:47.817640+00:00
+  trench_safety_assets.updated_by = 'system:seed'  doc_id=187fb718-c143-47fb-aa61-f30ad10c5f54  created=2026-06-07T22:38:48.024364+00:00  updated=2026-06-07T22:38:48.024383+00:00
