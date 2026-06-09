@@ -11373,6 +11373,14 @@ _admin_lookups_router = build_admin_lookups_router(db, require_admin)
 app.include_router(_admin_lookups_router)
 
 
+# M-3 · Geocode Foundation · /api/admin/locations/* (canonical location
+# registry that links MASCI jobs ↔ Motive geofences). Visibility-only;
+# never writes to Motive; never auto-assigns projects.
+from routes.operational_locations import build_operational_locations_router  # noqa: E402
+_op_locations_router = build_operational_locations_router(db, require_admin)
+app.include_router(_op_locations_router)
+
+
 # iter382 · /admin/project-managers/* (10 routes) + public /project-managers
 # extracted to routes/pm_admin.py.
 from routes.pm_admin import build_pm_admin_router  # noqa: E402

@@ -103,6 +103,7 @@ import AdminPeople from "@/pages/admin/AdminPeople";
 import AdminMfa from "@/pages/admin/AdminMfa";
 import AdminPromoAssets from "@/pages/admin/AdminPromoAssets";
 import AdminJobs from "@/pages/admin/AdminJobs";
+import AdminGeofenceReconciliation from "@/pages/admin/AdminGeofenceReconciliation";
 import AdminEquipment from "@/pages/admin/AdminEquipment";
 import AdminEmail from "@/pages/admin/AdminEmail";
 import AdminTraining from "@/pages/admin/AdminTraining";
@@ -449,6 +450,8 @@ function App() {
             <Route path="/admin/mfa" element={A(<AdminMfa />)} />
             <Route path="/admin/promo-assets" element={A(<AdminPromoAssets />)} />
             <Route path="/admin/jobs" element={A(<AdminJobs />)} />
+            {/* M-3 · Geocode Foundation · Motive Geofence Reconciliation */}
+            <Route path="/admin/geofence-reconciliation" element={A(<AdminGeofenceReconciliation />)} />
             <Route path="/admin/equipment" element={A(<AdminEquipment />)} />
             <Route path="/admin/email" element={A(<AdminEmail />)} />
             <Route path="/admin/training" element={A(<AdminTraining />)} />

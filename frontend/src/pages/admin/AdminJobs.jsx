@@ -4,6 +4,7 @@ import AdminShell from "@/components/AdminShell";
 import AdminJobMasterPanel from "@/components/AdminJobMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import AdminBannersPanel from "@/components/AdminBannersPanel";
+import LocationIntelligencePanel from "@/components/admin/LocationIntelligencePanel";
 
 export default function AdminJobs() {
   return (
@@ -20,6 +21,7 @@ export default function AdminJobs() {
     >
       <div className="space-y-4">
         <AdminJobMasterPanel />
+        <LocationIntelligencePanel />
         <SitePostersPanel />
         <AdminBannersPanel />
       </div>
