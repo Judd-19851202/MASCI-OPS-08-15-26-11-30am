@@ -58,6 +58,12 @@
         <meta name="twitter:image:alt" content="MASCI Operations Platform" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <!-- PERFORMANCE-HARDEN-002: warm sockets to known critical 3rd-party
+             origins so first-paint / first-event latency drops on cold mobile
+             networks (LTE/5G handshake savings of ~100-300ms each). -->
+        <link rel="preconnect" href="https://assets.emergent.sh" crossorigin />
+        <link rel="preconnect" href="https://us.i.posthog.com" crossorigin />
+        <link rel="dns-prefetch" href="https://us-assets.i.posthog.com" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
         <!--
         manifest.json provides metadata used when your web app is installed on a

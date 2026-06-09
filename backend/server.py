@@ -12389,6 +12389,25 @@ async def _create_safety_indexes():
         await db.daily_reports.create_index("created_at")
         await db.daily_reports.create_index("report_date")
         await db.daily_reports.create_index("project_number")
+        # PERFORMANCE-HARDEN-002: eliminate COLLSCAN on hot find_one({"id": ...})
+        # patterns used across daily_report_lifecycle, hr_portal, verification,
+        # operational_records, command_center, etc. Evidence: 794 docs scanned
+        # per call (preview); production volume is materially higher.
+        await db.daily_reports.create_index("id")
+        # PERFORMANCE-HARDEN-002: same gap for the doc_id fallback path
+        # (daily_report_lifecycle.py lines 71/205/221 retry by doc_id when the
+        # canonical id lookup misses). 100% of preview docs have doc_id.
+        await db.daily_reports.create_index("doc_id")
+        # PERFORMANCE-HARDEN-002: hot job_photos.id COLLSCAN (1,812 docs in
+        # preview) across job_photos.py find_one/find({id:{$in:...}}) and
+        # photo_governance.py / odr/pdf.py.
+        await db.job_photos.create_index("id")
+        # PERFORMANCE-HARDEN-002: motive_events.id COLLSCAN
+        # (motive_service.find_one, driver_profile.find_one). Also add a
+        # compound (event_family, event_at) for the M-2 audit / ingestion
+        # path which filters event_family $in [...] + event_at range.
+        await db.motive_events.create_index("id")
+        await db.motive_events.create_index([("event_family", 1), ("event_at", 1)])
 
         await db.incidents.create_index("created_at")
         await db.incidents.create_index("incident_date")

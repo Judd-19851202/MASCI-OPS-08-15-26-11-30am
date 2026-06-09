@@ -100,9 +100,33 @@ api.interceptors.request.use((config) => {
 // `/api/admin/*` only clear the admin token; non-admin session tokens (PM,
 // Shop, HR, etc.) survive. Otherwise a single failed admin-side widget
 // inside a PM-or-Shop dashboard would kick the user out of their portal.
+// PROD-FRONTEND-ERROR-001 · Defense-in-depth: normalise Pydantic
+// validation-detail arrays into a renderable string at the response
+// interceptor BEFORE any caller's `catch` block touches `err.response
+// .data.detail`. Prevents the "Objects are not valid as a React child"
+// crash that occurred on production Safari 26.5 from arrays of
+// {type, loc, msg, input, url} objects being passed to <toast.error>.
+import { safeErrorMessage } from "./safeErrorMessage";
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    // Normalise validation-detail BEFORE the caller's catch sees it.
+    const data = err?.response?.data;
+    if (data && typeof data === "object") {
+      const d = data.detail;
+      const isPydantic =
+        Array.isArray(d) || (d && typeof d === "object" && (d.msg || d.type));
+      if (isPydantic) {
+        try {
+          // Store the safe string on `detail`. Keep the original raw
+          // shape on `detail_raw` so debugging tools / Sentry breadcrumbs
+          // can still inspect it without ever flowing into React.
+          data.detail_raw = d;
+          data.detail = safeErrorMessage(d, "Validation error — check your input");
+        } catch { /* never crash the interceptor */ }
+      }
+    }
     if (err?.response?.status === 401) {
       const cfg = err.config || {};
       const url = String(cfg.url || "");

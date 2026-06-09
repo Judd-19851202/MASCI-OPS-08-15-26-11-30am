@@ -389,7 +389,7 @@ export function HrDailyReportDetail() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                   {doc.photos.map((p, idx) => (
                     <a key={idx} href={p.url || p} target="_blank" rel="noreferrer">
-                      <img src={p.url || p} alt={`photo-${idx}`} className="w-full h-32 object-cover rounded border border-slate-200" />
+                      <img src={p.url || p} alt={`photo-${idx}`} loading="lazy" decoding="async" className="w-full h-32 object-cover rounded border border-slate-200" />
                     </a>
                   ))}
                 </div>

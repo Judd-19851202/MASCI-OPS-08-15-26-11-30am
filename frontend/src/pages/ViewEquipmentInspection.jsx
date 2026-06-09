@@ -338,7 +338,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
                   className="block w-full"
                   testId={`equip-photo-${i}`}
                 >
-                  <img src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} className="w-full aspect-[4/3] object-cover rounded border border-slate-200" />
+                  <img src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} loading="lazy" decoding="async" className="w-full aspect-[4/3] object-cover rounded border border-slate-200" />
                 </PhotoLightbox>
               ))}
             </div>

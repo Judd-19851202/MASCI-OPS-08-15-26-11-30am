@@ -574,7 +574,7 @@ export function PhotoManagementPanel({ asset }) {
             {photos.map((p) => (
               <div key={p.id} className="border border-slate-200 rounded p-2" data-testid={`photo-row-${p.id}`}>
                 {p.image_data_url && (
-                  <img src={p.image_data_url} alt={p.caption || "photo"} className="w-full h-32 object-cover rounded" />
+                  <img src={p.image_data_url} alt={p.caption || "photo"} loading="lazy" decoding="async" className="w-full h-32 object-cover rounded" />
                 )}
                 <div className="text-xs font-bold text-slate-900 mt-1">{t(p.category || "Other")}</div>
                 <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500 font-mono">

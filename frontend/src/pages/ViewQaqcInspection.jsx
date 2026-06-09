@@ -185,7 +185,7 @@ export default function ViewQaqcInspection() {
               <Heading>{t("Photos")} ({data.photos.length})</Heading>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
                 {data.photos.map((p, i) => (
-                  <img key={i} src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} className="w-full h-32 object-cover rounded border border-slate-300" />
+                  <img key={i} src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} loading="lazy" decoding="async" className="w-full h-32 object-cover rounded border border-slate-300" />
                 ))}
               </div>
             </>

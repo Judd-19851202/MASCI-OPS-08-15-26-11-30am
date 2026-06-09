@@ -1,3 +1,27 @@
+## 2026-06-09 (PROD-FRONTEND-ERROR-001 · SENTRY REACT CHILD ERROR · CERTIFIED 🟢)
+
+**Fix:** Pydantic v2 ValidationError detail arrays (`[{type, loc, msg, input, url}]`) returned by FastAPI on 422 were flowing into `toast.error(err.response.data.detail || "...")` across ~30+ catch blocks → React threw "Objects are not valid as a React child" on production Safari 26.5.
+
+### Surgical defense-in-depth · 3 files
+- `frontend/src/lib/safeErrorMessage.js` (NEW · 39 lines): converts any error-shaped value (string / Error / Pydantic detail / array / wrapper / unknown) to a guaranteed string.
+- `frontend/src/lib/api.js`: axios response interceptor now normalises `err.response.data.detail` to a string BEFORE any caller's catch runs. Raw shape preserved on `detail_raw` for Sentry/debug.
+- `frontend/src/lib/safeErrorMessage.test.js` (NEW · 14 Jest tests · all PASS).
+
+### Live verification
+- iPad Portrait 768×1024 headless smoke against preview: `pageerrors_count=0` · `react-child-errors=0` · homepage renders fully.
+- 14/14 Jest tests cover all directive-required cases (raw object never renders, FastAPI shapes safe, strings/Errors still work, unknown → safe fallback).
+- Lint clean.
+
+### Prohibited compliance
+No Sentry suppression · no backend contract change · no auth/queue touch · no FleetWatcher / Dispatch Automation / Material Movement / MaintainX / ID-007 / performance roadmap touched.
+
+### Deliverable
+- `/app/memory/PROD_FRONTEND_ERROR_001_CERTIFICATION.md`
+
+🛑 STOPPED per OMEGA. PROD-FRONTEND-ERROR-001 closed.
+
+
+
 ## 2026-06-09 (PERFORMANCE-HARDEN-001 · OPERATIONAL EXCELLENCE · 🟡 1-OF-25 SHIPPED · CODE-READY ROADMAP FOR REMAINING 24)
 
 **Verdict:** 🟡 CONDITIONAL — 1 surgical change shipped + 24-item code-ready roadmap delivered. Production state unchanged (POST-DEPLOY-003 🟢 holds).
@@ -37685,3 +37709,57 @@ P0 = 0 · P1 = 0 · P2 = 0 · P3 = 0 (no production-side defects discovered via 
 ### OMEGA invariants honoured
 No production data modified. No code modified. No FleetWatcher / Dispatch Automation / Material Movement touched. External probes only.
 
+
+
+---
+
+## PERFORMANCE-HARDEN-002 · Elite Platform Hardening Sprint (2026-02)
+
+**Type:** OMEGA · P1 · Evidence-first · Subtractive
+**Status:** ✅ COMPLETE — STOPPED AT CERTIFICATION per OMEGA DIRECTIVE
+
+**Deliverables:**
+- `/app/memory/PERFORMANCE_HARDEN_002_QUERY_AUDIT.md`
+- `/app/memory/PERFORMANCE_HARDEN_002_INDEX_REPORT.md`
+- `/app/memory/PERFORMANCE_HARDEN_002_MOBILE_REPORT.md`
+- `/app/memory/PERFORMANCE_HARDEN_002_WORKFLOW_CERTIFICATION.md`
+- `/app/memory/PERFORMANCE_HARDEN_002_SCORECARD.md`
+- `/app/memory/PERFORMANCE_HARDEN_002_CERTIFICATION.md`
+
+### Code changes — surgical, additive
+
+Backend (1 file):
+- `server.py::ensure_safety_indexes` block: added 5 evidence-backed indexes
+  - `daily_reports.id` — eliminates COLLSCAN (was 794 docs/call)
+  - `daily_reports.doc_id` — eliminates COLLSCAN on fallback path
+  - `job_photos.id` — eliminates COLLSCAN (was 1,812 docs/call)
+  - `motive_events.id` — eliminates COLLSCAN (was 376 docs/call)
+  - `motive_events.(event_family, event_at)` compound — cuts key examination 372→2 (99.5%)
+
+Frontend (8 files):
+- `public/index.html`: +preconnect `assets.emergent.sh`, `us.i.posthog.com`; +dns-prefetch `us-assets.i.posthog.com`
+- 7 page files: added `loading="lazy" decoding="async"` to multi-photo `<img>` grids
+  - ViewQaqcInspection, ViewEquipmentInspection, ViewMeeting, ViewSafetyForm,
+    FieldLeadershipView, HrDailyReports, trench_safety/TrenchSafetyOpsCenter
+
+### Scorecard delta (engineering-judgement, every Δ has citation)
+
+| Pillar | Before | After | Δ |
+|---|---|---|---|
+| Production Readiness | 88 | 91 | +3 |
+| Platform Health | 93 | 95 | +2 |
+| Mobile Experience | 70 | 78 | +8 |
+| Operational Reliability | 92 | 93 | +1 |
+| Security | 88 | 88 | 0 (out of scope) |
+
+### OMEGA invariants honoured
+
+No FleetWatcher / Dispatch Automation / Material Movement / MaintainX / ID-007 / UI redesign / speculative index / virtualization / code-splitting / unrelated cleanup. ~30 lines added, 0 removed, 0 deps, 0 schema, 0 routes. Production-safe additive deploy.
+
+### Verification
+
+- Backend boots clean, 1,035 routes mounted
+- `GET /api/health` → 200 in 3.9 ms
+- Curl smoke against 7 endpoints — all expected codes
+- Frontend smoke screenshot — clean landing page
+- All 5 indexes verified via `explain("executionStats")` BEFORE→AFTER

@@ -186,7 +186,7 @@ export default function FieldLeadershipView() {
             <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Photos")}</h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
               {rec.photos.map((p, i) => (
-                <img key={i} src={resolvePhotoSrc(p)} alt={`photo ${i}`} className="w-full rounded border border-slate-200 object-contain max-h-48 bg-slate-50" />
+                <img key={i} src={resolvePhotoSrc(p)} alt={`photo ${i}`} loading="lazy" decoding="async" className="w-full rounded border border-slate-200 object-contain max-h-48 bg-slate-50" />
               ))}
             </div>
           </Card>

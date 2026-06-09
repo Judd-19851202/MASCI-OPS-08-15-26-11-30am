@@ -380,7 +380,7 @@ export default function ViewMeeting() {
                   className="relative w-full aspect-square rounded-md overflow-hidden border border-slate-200 bg-white"
                   testId={`view-photo-${i}`}
                 >
-                  <img src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
                 </PhotoLightbox>
               ))}
             </div>
