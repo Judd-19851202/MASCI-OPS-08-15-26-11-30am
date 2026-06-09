@@ -632,20 +632,19 @@ def _render_daily(d: Dict[str, Any]) -> str:
 
     rows.append(_section("10 · Photos", _photos_block(d.get("photos"))))
 
-    sigs = (
-        _signature(
-            "Prepared By",
-            d.get("prepared_by_signature"),
-            d.get("prepared_by") or "",
-        )
-        + _signature(
-            "Superintendent",
-            d.get("superintendent_signature"),
-            d.get("superintendent") or "",
-        )
+    # DR-FIX-3 · R13 · Daily Report Signature Simplification.
+    # Single accountable signer = Prepared By. Superintendent remains
+    # informational project context (rendered earlier in Section 01)
+    # but is NO LONGER a signer. Historical reports keep their stored
+    # superintendent_signature in MongoDB untouched; the signature
+    # block is simply absent from every rendered PDF going forward.
+    sigs = _signature(
+        "Prepared By",
+        d.get("prepared_by_signature"),
+        d.get("prepared_by") or "",
     )
     if sigs:
-        rows.append(_section("11 · Signatures", sigs))
+        rows.append(_section("11 · Signature", sigs))
 
     return "".join(rows)
 

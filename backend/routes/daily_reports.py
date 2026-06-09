@@ -126,6 +126,17 @@ class DailyReport(DailyReportCreate):
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     # Wave-1A · audit envelope. Computed at insert; never client-supplied.
     audit_envelope_sha256: Optional[str] = ""
+    # DR-FIX-3 · R9 · Prepared By Directory Binding.
+    #   prepared_by_identity   structured identity when a portal token
+    #                          is presented (admin, pm, fl, hr, safety,
+    #                          shop, dispatch, leadership). None / empty
+    #                          when FSI fallback path (public submit).
+    #   prepared_by_bound      True when prepared_by_identity is populated.
+    #                          Lets audits discriminate directory-bound
+    #                          submissions from FSI fallback without
+    #                          exposing structured identity in UI.
+    prepared_by_identity: Optional[Dict[str, Any]] = None
+    prepared_by_bound: bool = False
 
 
 # ── Phase V.2 · Wave-1A · helpers ───────────────────────────────────
@@ -264,6 +275,18 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
 
         async def _do_create():
             report = DailyReport(**payload.model_dump())
+            # ── DR-FIX-3 · R9 · Prepared By Directory Binding ──────
+            # Inspect incoming portal tokens; if one resolves to a
+            # known directory user, attach structured identity for
+            # audit. FSI/public path: prepared_by_bound stays False.
+            try:
+                from lib.prepared_by_resolver import resolve_prepared_by_identity  # noqa: PLC0415
+                _identity = await resolve_prepared_by_identity(db, request)
+                if _identity:
+                    report.prepared_by_identity = _identity
+                    report.prepared_by_bound = True
+            except Exception:  # noqa: BLE001 — best-effort audit binding
+                pass
             # Wave-1A · advisory flag derivation (deterministic · operator-defined).
             _derive_advisory_flags(report)
             doc = report.model_dump()

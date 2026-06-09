@@ -653,44 +653,26 @@ export default function ViewDailyReport() {
         )}
 
         <ReportSection number="11" title="Sign-Off">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                Prepared By
-              </div>
-              <div className="text-base font-bold text-slate-900 mb-2">
-                {data.prepared_by || "—"}
-              </div>
-              <div className="border border-slate-200 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
-                {data.prepared_by_signature ? (
-                  <img
-                    src={data.prepared_by_signature}
-                    alt="Prepared By signature"
-                    className="max-h-[120px]"
-                  />
-                ) : (
-                  <span className="text-slate-400 text-sm">No signature</span>
-                )}
-              </div>
+          {/* DR-FIX-3 · R13 · Single accountable signer.
+              Superintendent block removed; Superintendent name remains
+              as informational context in Section 01. */}
+          <div className="max-w-md" data-testid="dr-view-signoff">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
+              Prepared By
             </div>
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-                Superintendent
-              </div>
-              <div className="text-base font-bold text-slate-900 mb-2">
-                {data.superintendent || "—"}
-              </div>
-              <div className="border border-slate-200 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
-                {data.superintendent_signature ? (
-                  <img
-                    src={data.superintendent_signature}
-                    alt="Superintendent signature"
-                    className="max-h-[120px]"
-                  />
-                ) : (
-                  <span className="text-slate-400 text-sm">No signature</span>
-                )}
-              </div>
+            <div className="text-base font-bold text-slate-900 mb-2">
+              {data.prepared_by || "—"}
+            </div>
+            <div className="border border-slate-200 rounded-md bg-white p-2 min-h-[120px] flex items-center justify-center">
+              {data.prepared_by_signature ? (
+                <img
+                  src={data.prepared_by_signature}
+                  alt="Prepared By signature"
+                  className="max-h-[120px]"
+                />
+              ) : (
+                <span className="text-slate-400 text-sm">No signature</span>
+              )}
             </div>
           </div>
         </ReportSection>

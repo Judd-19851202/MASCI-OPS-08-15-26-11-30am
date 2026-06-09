@@ -1,3 +1,31 @@
+## 2026-02-09 (DR-FIX-3 · IDENTITY + SIGNATURE SIMPLIFICATION · PASS 🟢)
+
+Closed two trust / governance gaps from DR-AUDIT-001 under strict OMEGA discipline. R9 + R13 only — every other DR-AUDIT-001 item remains deferred.
+
+### R9 · Prepared By Directory Binding
+- **NEW** `lib/prepared_by_resolver.py` — pure-read helper that inspects request portal tokens (X-PM-Token, X-FL-Token, X-HR-Token, X-Safety-Token, X-Shop-Token, X-Dispatch-Token, X-Admin-Token, X-Leadership-Token) and returns structured identity `{directory, user_id, name, email, role}` via the existing `is_valid_*_token_async` primitives. Returns `None` when no recognized token is present (FSI/public path remains unchanged).
+- `DailyReport` model gains `prepared_by_identity: Optional[Dict]` + `prepared_by_bound: bool`; populated on `create_daily_report` before insert.
+- Audit can distinguish directory-bound from FSI fallback via `prepared_by_bound`; UI/PDF rendering surface no GUIDs (display still uses the `prepared_by` string verbatim).
+
+### R13 · Single Accountable Signer
+- `pdf_render.py::_render_daily` — signature block now emits Prepared By only. Section header `11 · Signature` (singular). Doctrine comment in place.
+- `NewDailyReport.jsx` — Superintendent SignaturePad removed; Superintendent NAME input preserved (informational only).
+- `ViewDailyReport.jsx` — Sign-Off section now single-column with `data-testid="dr-view-signoff"`; Section 01 still shows Superintendent name as KV context.
+- Historical reports with stored `superintendent_signature` keep their data in MongoDB untouched; the new rendering pipeline simply doesn't read it. Non-destructive backward compatibility verified.
+
+### Verification
+- Pytest **11/11 green** (`tests/test_dr_fix_3_identity_and_signature.py`)
+- Full regression **37/37 green** (DR-FIX-1 + DR-FIX-2 + MM-001B + MM-001B-F1 + DR-FIX-3)
+- Frontend smoke screenshots — submission form (single Prepared By Signature) and read view (single sign-off block)
+- Certification: `/app/memory/DR_FIX_3_IDENTITY_AND_SIGNATURE_CERTIFICATION.md`
+
+### Out of scope (deferred — OMEGA freeze)
+- R4 Exec Summary · R5 SHA256 footer · R6 Excavation PDF · R8 silent auto-apply · R10 kickback fallback · R11 Motive M-DR-1 · RM-1…RM-5
+- MM follow-ons E-3 → E-9 · FW-1 · FleetWatcher · Motive · MaintainX · DR/PDF redesign
+
+
+
+
 ## 2026-02-09 (MM-001B-F1 · FALSE OUTGOING DEFECT FIX · PASS 🟢)
 
 Surgical defect fix to the MM-001B Material Movement rollup. The derived endpoint was misclassifying `daily_reports.production[]` rows (e.g., "RCP install · 100 LF · 10+00 → 11+00") as Material Movement / Outgoing. Production is installed work, not hauling — this produced false outgoing visibility in the field.

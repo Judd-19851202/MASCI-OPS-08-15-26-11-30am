@@ -2193,17 +2193,10 @@ export default function NewDailyReport({ publicMode = false }) {
               testId="prepared-by-sig"
             />
           </div>
-          <div>
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("Superintendent Signature")}
-            </Label>
-            <SignaturePad
-              value={data.superintendent_signature}
-              onChange={(v) => set("superintendent_signature", v)}
-              label={t("Superintendent")}
-              testId="superintendent-sig"
-            />
-          </div>
+          {/* DR-FIX-3 · R13 · Superintendent signature removed.
+              One accountable signer = Prepared By. Superintendent
+              remains informational project context (name only,
+              captured higher in Section 01). */}
         </Section>
 
         <div className="pt-4">
