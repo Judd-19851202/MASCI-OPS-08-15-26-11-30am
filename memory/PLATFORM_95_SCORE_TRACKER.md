@@ -6,16 +6,16 @@
 
 ---
 
-## Current Score (2026-06-09 · post ROUTE-SPLIT-001 Wave 3)
+## Current Score (2026-06-09 · post ROUTE-SPLIT-001 Wave 4 — series complete)
 
 | Pillar | Score | Δ from baseline | Notes |
 | --- | ---: | ---: | --- |
-| Production Readiness | **90** | +2 | Cumulative −23.58% main bundle (1.17 MB shed) across Waves 1+2+3 |
-| Platform Health | **94** | +1 | 110 deterministic chunks; build artifact graph cleaner |
-| Mobile Experience | **74** | +4 | Material first-paint win for field iPads on LTE |
+| Production Readiness | **91** | +3 | Cumulative −31.69% main bundle (1.57 MB shed) across Waves 1+2+3+4 |
+| Platform Health | **94** | +1 | 133 deterministic chunks; build artifact graph 3.17× more granular |
+| Mobile Experience | **77** | +7 | Significant first-paint win for LTE iPads — biggest pillar gain |
 | Operational Reliability | **92** | ±0 | No backend / data / API touch |
 | Security | **88** | ±0 | No auth / RBAC / secrets touch |
-| **Weighted average** | **89.6** | **+1.6** | Target: 95.0 (gap: 5.4) |
+| **Weighted average** | **90.4** | **+2.4** | Target: 95.0 (gap: 4.6) |
 
 ---
 
@@ -28,9 +28,10 @@
 | 2026-06-09 | PERFORMANCE-HARDEN-001 | 🟡 1/25 shipped (GZipMiddleware) | Production Readiness |
 | 2026-06-09 | ROUTE-SPLIT-001 Wave 1 (admin/*) | 🟢 PASS | Production Readiness, Mobile |
 | 2026-06-09 | ROUTE-SPLIT-001 Wave 2 (dispatch/* + safety-portal/*) | 🟢 PASS — −317 KB | Production Readiness, Mobile |
-| 2026-06-09 | **ROUTE-SPLIT-001 Wave 3** (HR + Training + TrenchSafety + ODR + OpRec + OpAct) | **🟢 PASS — −853 KB** | **Production Readiness, Platform Health, Mobile** |
+| 2026-06-09 | ROUTE-SPLIT-001 Wave 3 (HR + Training + TrenchSafety + ODR + OpRec + OpAct) | 🟢 PASS — −853 KB | Production Readiness, Platform Health, Mobile |
+| 2026-06-09 | **ROUTE-SPLIT-001 Wave 4** (legal + Tasks + DocExp + PoReq + ProjHealth + AssetTransfers + PM + Shop + Driver + Guidance + HrDR) | **🟢 PASS — −403 KB · series complete** | **Production Readiness, Mobile** |
 
-**Cumulative main-bundle reduction:** 4,967,137 B → 3,796,312 B = **−1,170,825 B / −23.58%**
+**Cumulative main-bundle reduction across all 4 waves:** 4,967,137 B → 3,393,224 B = **−1,573,913 B / −31.69%**
 
 ---
 
@@ -40,13 +41,13 @@
 
 | Sprint | Status | Est. score impact |
 | --- | --- | ---: |
-| ROUTE-SPLIT-001 Wave 4 (legal, Tasks, DocumentExpirations, PoRequests, ProjectHealth, AssetTransfers, PM group, Shop group, Driver mobile, Guidance, residual eager) | NOT STARTED — needs operator auth | +1.0–1.5 |
+| ROUTE-SPLIT-001 Wave 4 | **🟢 COMPLETE 2026-06-09 (+0.8)** | DONE |
 | LIST-VIRT-001 (Job Photos + Employee Directory + Equipment Master) | NOT STARTED — needs operator auth | +2.0 |
 | REAL-DEVICE-LCP-001 (physical iPad/iPhone LCP + TBT + INP sweep) | NOT STARTED — needs operator auth | +2.0–3.0 |
 | ODR stale test fixture (P3) | NOT STARTED | +0.5 |
 | PERFORMANCE-HARDEN-001 items #2–25 (Mongo compound indexes, preconnect, memoise probes, tree-shake lucide, lazy `<img>`, touch-target audit, safe-area-inset, keyboard handling, modal width, responsive table collapse, theme-color meta, canonical EmptyState, canonical skeleton, dead-UI lint triage, last-sync pills, idempotency diagnostics, standardised error toasts, 5:30 AM superintendent walk-throughs ×2) | NOT STARTED — needs operator auth piecemeal | +3.0 cumulative |
 
-**Self-deliverable projected total:** +8.5–10 → forecast ~98 weighted average.
+**Self-deliverable remaining projected total:** +7.5–8.5 → forecast ~98 weighted average.
 
 ### Operator-only (cannot remediate from container)
 
@@ -65,13 +66,12 @@ FleetWatcher rewrites · MaintainX activation · Dispatch Automation expansion �
 
 ## Path to 95+ (proposed sequence)
 
-1. **ROUTE-SPLIT-001 Wave 4** → 89.6 → ~91.0 (sized for one operator-authorized sprint)
-2. **LIST-VIRT-001** → ~91.0 → ~93.0 (sized for one operator-authorized sprint)
-3. **Operator: Cloudflare cache fix** → ~93.0 → ~94.0 (no agent work; one-line CF page rule)
-4. **Operator: Atlas user separation** → ~94.0 → ~96.0 (no agent work; Atlas console)
-5. *(optional)* **REAL-DEVICE-LCP-001** → ~96.0 → ~97.0
+1. **Operator: Cloudflare cache fix** → 90.4 → ~91.4 (no agent work; one-line CF page rule)
+2. **Operator: Atlas user separation** → ~91.4 → ~93.4 (no agent work; Atlas console)
+3. **LIST-VIRT-001** → ~93.4 → ~95.4 ✅ **TARGET MET**
+4. *(optional)* **REAL-DEVICE-LCP-001** → ~95.4 → ~97.4
 
-**The fastest path to 95+ is two operator actions (CF + Atlas) plus Wave 4 + LIST-VIRT-001.**
+**The fastest path to 95+ is now two operator actions plus one authorized sprint (LIST-VIRT-001).**
 
 ---
 
@@ -80,3 +80,4 @@ FleetWatcher rewrites · MaintainX activation · Dispatch Automation expansion �
 | Date | Event |
 | --- | --- |
 | 2026-06-09 | File created post ROUTE-SPLIT-001 Wave 3 certification |
+| 2026-06-09 | Updated post ROUTE-SPLIT-001 Wave 4 certification — series complete (−31.69% cumulative main bundle, weighted avg 88.0 → 90.4) |

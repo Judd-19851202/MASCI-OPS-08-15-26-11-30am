@@ -15,9 +15,10 @@ const OperationalRecords = React.lazy(() => import("@/pages/operational_records/
 const OperationsActions = React.lazy(() => import("@/pages/operations_actions/OperationsActions"));
 const OperationsActionNew = React.lazy(() => import("@/pages/operations_actions/OperationsActionNew"));
 const OperationsActionDetail = React.lazy(() => import("@/pages/operations_actions/OperationsActionDetail"));
-import DriverMagicLanding from "@/pages/driver/DriverMagicLanding";
-import DriverShift from "@/pages/driver/DriverShift";
-import ShiftStart from "@/pages/driver/ShiftStart";
+// ROUTE-SPLIT-001 Wave 4 — Driver mobile lazy.
+const DriverMagicLanding = React.lazy(() => import("@/pages/driver/DriverMagicLanding"));
+const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
+const ShiftStart = React.lazy(() => import("@/pages/driver/ShiftStart"));
 import SafetySection from "@/pages/SafetySection";
 import SafetyFormsLogin from "@/pages/SafetyFormsLogin";
 import SafetyFormsHub from "@/pages/SafetyFormsHub";
@@ -87,16 +88,20 @@ import ProjectPnlPage from "@/pages/ProjectPnlPage";
 import PmLogin from "@/pages/PmLogin";
 import PmChangePassword from "@/pages/PmChangePassword";
 import PmResetPassword from "@/pages/PmResetPassword";
-import PmHub from "@/pages/PmHub";
-import PmCrewCompliance from "@/pages/PmCrewCompliance";
-import PmFieldLeadership from "@/pages/PmFieldLeadership";
-import {
-  PmJobs, PmFleet, PmPeople, PmSuppliers, PmPosters,
-} from "@/pages/pm/PmSections";
-import PmQaqcList from "@/pages/PmQaqcList";
+// ROUTE-SPLIT-001 Wave 4 — PM portal group lazy (PmSections named exports via wrapper).
+const PmHub = React.lazy(() => import("@/pages/PmHub"));
+const PmCrewCompliance = React.lazy(() => import("@/pages/PmCrewCompliance"));
+const PmFieldLeadership = React.lazy(() => import("@/pages/PmFieldLeadership"));
+const PmJobs = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmJobs })));
+const PmFleet = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmFleet })));
+const PmPeople = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmPeople })));
+const PmSuppliers = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmSuppliers })));
+const PmPosters = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmPosters })));
+const PmQaqcList = React.lazy(() => import("@/pages/PmQaqcList"));
 import ShopLogin from "@/pages/ShopLogin";
-import ShopHub from "@/pages/ShopHub";
-import ShopTrenchSafetyRepairs from "@/pages/shop/ShopTrenchSafetyRepairs";
+// ROUTE-SPLIT-001 Wave 4 — Shop portal group lazy.
+const ShopHub = React.lazy(() => import("@/pages/ShopHub"));
+const ShopTrenchSafetyRepairs = React.lazy(() => import("@/pages/shop/ShopTrenchSafetyRepairs"));
 import ShopChangePassword from "@/pages/ShopChangePassword";
 import ShopResetPassword from "@/pages/ShopResetPassword";
 import HrLogin from "@/pages/HrLogin";
@@ -135,8 +140,9 @@ const AdminProjectIdentityGovernance = React.lazy(() => import("@/pages/admin/Ad
 const SelfProtection = React.lazy(() => import("@/pages/admin/SelfProtection"));
 const AdminComplianceFindings = React.lazy(() => import("@/pages/admin/AdminComplianceFindings"));
 const AdminOperationalLanguage = React.lazy(() => import("@/pages/admin/AdminOperationalLanguage"));
-import NotificationsDigest from "@/pages/NotificationsDigest";
-import OperationalGuidanceCenter from "@/pages/guidance/OperationalGuidanceCenter";
+// ROUTE-SPLIT-001 Wave 4 — Notifications + Guidance lazy.
+const NotificationsDigest = React.lazy(() => import("@/pages/NotificationsDigest"));
+const OperationalGuidanceCenter = React.lazy(() => import("@/pages/guidance/OperationalGuidanceCenter"));
 const DeployRecovery = React.lazy(() => import("@/pages/admin/DeployRecovery"));
 const AdminMasterHistory = React.lazy(() => import("@/pages/admin/AdminMasterHistory"));
 const AdminAnalytics = React.lazy(() => import("@/pages/admin/AdminAnalytics"));
@@ -157,7 +163,9 @@ const HrEmployeeAccountability = React.lazy(() => import("@/pages/HrEmployeeAcco
 const HrEmployeeAccountabilityTimeline = React.lazy(() => import("@/pages/HrEmployeeAccountabilityTimeline"));
 const HrIncidents = React.lazy(() => import("@/pages/HrIncidents"));
 const HrTrainingRecords = React.lazy(() => import("@/pages/HrTrainingRecords"));
-import HrDailyReports, { HrDailyReportDetail } from "@/pages/HrDailyReports";
+// ROUTE-SPLIT-001 Wave 4 — HR Daily Reports (default + named-export wrapper) lazy.
+const HrDailyReports = React.lazy(() => import("@/pages/HrDailyReports"));
+const HrDailyReportDetail = React.lazy(() => import("@/pages/HrDailyReports").then(m => ({ default: m.HrDailyReportDetail })));
 const HrMotiveDrivers = React.lazy(() => import("@/pages/HrMotiveDrivers"));
 const HrDriverProfile = React.lazy(() => import("@/pages/HrDriverProfile"));
 // ROUTE-SPLIT-001 Wave 2 — dispatch/* and safety-portal/* lazy-loaded.
@@ -209,22 +217,24 @@ import FieldLeadershipHub from "@/pages/FieldLeadershipHub";
 import FieldLeadershipFormPage from "@/pages/FieldLeadershipFormPage";
 import FieldLeadershipRecords from "@/pages/FieldLeadershipRecords";
 import FieldLeadershipView from "@/pages/FieldLeadershipView";
-import TermsOfService from "@/pages/legal/TermsOfService";
-import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
-import Tasks from "@/pages/Tasks";
-import DocumentExpirations from "@/pages/DocumentExpirations";
+// ROUTE-SPLIT-001 Wave 4 — Legal + Tasks + DocumentExpirations lazy.
+const TermsOfService = React.lazy(() => import("@/pages/legal/TermsOfService"));
+const PrivacyPolicy = React.lazy(() => import("@/pages/legal/PrivacyPolicy"));
+const Tasks = React.lazy(() => import("@/pages/Tasks"));
+const DocumentExpirations = React.lazy(() => import("@/pages/DocumentExpirations"));
 const HrEmployees = React.lazy(() => import("@/pages/HrEmployees"));
 const HrEmployeeRequestsQueue = React.lazy(() => import("@/pages/HrEmployeeRequestsQueue"));
-import PoRequests from "@/pages/PoRequests";
-import ProjectHealth from "@/pages/ProjectHealth";
-import AssetTransfers from "@/pages/AssetTransfers";
+// ROUTE-SPLIT-001 Wave 4 — Workflow tool surfaces lazy.
+const PoRequests = React.lazy(() => import("@/pages/PoRequests"));
+const ProjectHealth = React.lazy(() => import("@/pages/ProjectHealth"));
+const AssetTransfers = React.lazy(() => import("@/pages/AssetTransfers"));
 // Phase V-Prelude · Wave 1 · Substrate — Operational Constraints.
 import Constraints from "@/pages/Constraints";
 import NewConstraint from "@/pages/NewConstraint";
 import ConstraintDetail from "@/pages/ConstraintDetail";
 // Phase V-Prelude · Wave 1.1 — PM Project Detail (hosts the
 // Operational Timeline sidecar). Read-only, calm, single-project.
-import PmProjectDetail from "@/pages/PmProjectDetail";
+const PmProjectDetail = React.lazy(() => import("@/pages/PmProjectDetail"));
 import AccessDenied from "@/pages/AccessDenied";
 import NotFound from "@/pages/NotFound";
 import GlobalFooter from "@/components/GlobalFooter";
