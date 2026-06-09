@@ -1,3 +1,39 @@
+## 2026-02-09 (MM-ENTRY-001 · DAILY REPORT MATERIAL MOVEMENT CAPTURE AUDIT · DELIVERED 🟢)
+
+Audit-only sprint. Zero code changes. Definitive evidence-based answer to the contradictory-evidence question raised in the directive.
+
+### FINAL VERDICT
+**NO.** A MASCI superintendent CANNOT today document all material entering AND leaving a project without using notes, workarounds, or duplicate entry. Inbound is fully captured via `daily_reports.materials[]` (Section 08). Outbound has **no structured surface on the Daily Report form** — only `dispatch_assignments` (when MASCI dispatches) or `general_notes` (free text).
+
+### Evidence reconciliation
+- **Evidence A (MM-001B certified):** TRUE — E-1 (tile + PDF), E-2 (taxonomy), E-5 (rollup endpoint) all shipped. Visibility layer is solid.
+- **Evidence B (operator sees no place to record exports):** ALSO TRUE — Materials section is delivery-oriented (supplier, ticket #), no direction toggle, no outbound RepeatBlock.
+- **Reconciliation:** MM-001B is the VISIBILITY layer. The ENTRY layer (deferred E-3/E-4 per F1 doctrine) was never shipped. `outgoing: []` is structurally always empty in the derived rollup today.
+
+### Findings (sections A–K)
+- **Form inventory:** 7 material-adjacent blocks, none captures outbound flow
+- **Material capture matrix:** Inbound = ✅ 12/13 materials · Outbound = ❌ 0/13 materials structurally captured
+- **Direction audit verdict:** **NOT SUPPORTED**
+- **6 real-world scenarios:** 2 fully capturable (asphalt delivery, limerock delivery) · 4 force workarounds (millings, dirt, debris, trees)
+- **Storage audit:** `materials[]` (inbound only) · `dispatch_assignments` (both directions but MASCI-only) · no third-party outbound source
+- **MM-001B validation:** E-1 ✅ · E-2 ✅ · E-5 ✅ · **E-3 ❌ DEFERRED** · **E-4 ❌ DEFERRED**
+- **Gap classification:** 4 gaps closed · 5 gaps still exist (including critical hazmat chain-of-custody)
+
+### Recommendations (9, scoped — await authorization)
+**CRITICAL (3):** K-MM-1 Outbound Material section on DR form · K-MM-2 wire `outbound_materials[]` into MM rollup · K-MM-3 render outbound on tile + PDF
+**HIGH (2):** K-MM-4 alternative direction column on materials[] · K-MM-5 outbound vocabulary picker
+**MEDIUM (3):** K-MM-6 reconciliation link to dispatch (E-4) · K-MM-7 hazmat manifest number requirement · K-MM-9 material balance line on Exec Summary
+**LOW (1):** K-MM-8 cumulative job material balance endpoint (E-8)
+
+### Deliverable
+`/app/memory/MM_ENTRY_001_DAILY_REPORT_MATERIAL_CAPTURE_AUDIT.md` (sections A–K with evidence, code references, storage references, scenario walk-throughs, 9 recommendations)
+
+### STOP CONDITION OBSERVED
+No code changes. No schemas changed. No forms changed. No PDFs changed. E-3 and E-4 remain deferred. All 9 recommendations await explicit OMEGA authorization.
+
+
+
+
 ## 2026-02-09 (DR-PDF-003 · PDF POLISH & PRODUCTION INTELLIGENCE · PASS 🟢)
 
 Implemented the next three DR-PDF-001 recommendations under strict OMEGA discipline. Three surgical edits to `pdf_render.py::_render_daily` only.
