@@ -37425,3 +37425,43 @@ No FleetWatcher / Dispatch Automation / Material Movement / unrelated refactor t
 ### Live deployment verdict
 **FULL PASS — DEPLOY.** Both P0 and P1 gates clear without requiring written acceptance per the OMEGA deployment rule.
 
+
+---
+
+## POST-DEPLOY-001 · Live Production Operational Certification (2026-06-09 · 16:00 UTC)
+
+**Type:** Live production verification · OMEGA · P0  
+**Target:** `https://mascidocs.com`  
+**Status:** COMPLETE — verdict 🟡 PRODUCTION HEALTHY WITH MINOR ISSUES (certification gap, not platform defect)
+
+**Deliverables:**
+- `/app/memory/POST_DEPLOY_001_EXECUTIVE_SUMMARY.md`
+- `/app/memory/POST_DEPLOY_001_DEFECT_REGISTER.md`
+- `/app/memory/POST_DEPLOY_001_PRODUCTION_HEALTH_REPORT.md`
+- `/app/memory/POST_DEPLOY_001_OPERATIONAL_CERTIFICATION.md`
+- `/app/memory/POST_DEPLOY_001_GO_LIVE_RECOMMENDATION.md`
+
+### Externally-observable production signals (live · GREEN)
+- TLS valid (Google Trust Services, expires 2026-07-25), HSTS preload, Cloudflare edge.
+- `/api/health` 200 with proper service identifier + ISO timestamp.
+- Auth gate enforces `401` on every admin / HR / identity / DR endpoint.
+- Frontend renders Admin Sign-In page with full MASCI brand + ForgedOps footer.
+- Performance < 500 ms on `/`, `/api/health`, `/api/jobs-master`, `/admin/login`.
+- Public Hub `/hub` returns 200 (field-crew entry path open by design).
+- Production screenshot saved at `/app/memory/post_deploy_001_prod_login.jpg`.
+
+### Certification gap (not a defect)
+Fork agent has no production admin credentials. Authenticated end-to-end flows (DR create, HR edit, Time Verification print, Project Identity Governance counts, Motive dashboards, mobile login) require operator collaboration. A **10-step authenticated runbook** is included in `POST_DEPLOY_001_EXECUTIVE_SUMMARY.md` — completing it promotes the verdict to 🟢.
+
+### Inherited from DEPLOY-FIX-001 (🟢 FULL PASS)
+Backup orphan-tmp cleanup A1–A5 · Project Identity Governance Center + 5-gate deployment blocker · Resolver doctrine · DR DELETE 410-Gone lock-in · HR fixture credential-drift-proof · Trench Safety seed-subset assertion · 191 verified green preview datapoints.
+
+### Defect counts
+P0 = 0 · P1 = 0 · P2 = 0 · P3 = 0 (no production-side defects discovered via external probes)
+
+### Final verdict
+🟡 **PRODUCTION HEALTHY WITH MINOR ISSUES** — promotes to 🟢 PRODUCTION HEALTHY after operator runbook completion.
+
+### OMEGA invariants honoured
+No production data modified. No code modified. No FleetWatcher / Dispatch Automation / Material Movement touched. External probes only.
+
