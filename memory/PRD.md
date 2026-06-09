@@ -1,3 +1,37 @@
+## 2026-02-09 (DR-RECOVERY-001 · JAYMN DR RECOVERY RUNBOOK · DELIVERED 🟢)
+
+P0 recovery operation. Preview-pod agent cannot reach live MongoDB or Jaymn's physical device, so the deliverable is a **paste-ready runbook** with copy-paste commands for each of the four required phases.
+
+### Deliverable
+`/app/memory/DR_RECOVERY_001_JAYMN_RECOVERY_RUNBOOK.md` — complete runbook with:
+
+**Phase 1 (Live MongoDB verification)** — 4 `mongosh` queries:
+- 1.1 Window query (today 6:00–7:30 PM)
+- 1.2 `prepared_by ~= /jaymn/i` in last 24h
+- 1.3 Soft-delete + hidden states sweep
+- 1.4 `workflow_state_events` + `audit_events` window check
+
+**Phase 2 (Jaymn's device IDB recovery)** — single Console-paste JS snippet that:
+- Dumps `masci.resiliency.queue.v1` (the queue store key per `resiliencyQueue.js:24`)
+- Lists all `masci.draft.*.daily-report-new` keys (per `draftStore.js:31-33`)
+- Auto-downloads a `jaymn-dr-recovery-<timestamp>.json` with queue + drafts
+
+**Phase 3 (Replay)** — `curl` command using extracted `body` + `idempotencyKey` from Phase 2 export. Replays via `POST /api/daily-reports` with `Idempotency-Key` header (so if the original somehow did reach the backend, no duplicate is created). Includes mongosh verification, PDF render verification (in-process via `pdf_render.render_record_pdf`), and visibility check. Includes device queue cleanup snippet for post-recovery.
+
+**Phase 4 (Evidence template)** — fill-in-the-blank certification block (Recovered Y/N · Source · Record ID · Doc ID · Project · Replay timestamp · Mongo verified · PDF verified · Audit SHA256 · Visibility verified).
+
+### Honest disclosure
+This document is the **complete recovery deliverable from the preview pod**. Actual execution requires:
+- Live MongoDB credentials (Phase 1 + 3 + 4) — DevOps / Emergent prod admin
+- Jaymn's exact device + browser (Phase 2) — Jaymn guided by Safety/IT
+- Live admin token (Phase 3) — production admin
+
+### Fallback path
+If Jaymn's device IDB is empty (data cleared, different device, iOS site-data eviction), the data is unrecoverable and re-entry is required. The DR-BLOCKER-001B fix shipped earlier today prevents this scenario from recurring.
+
+
+
+
 ## 2026-02-09 (DR-BLOCKER-001B · QUEUED-SUBMISSION TRUST FIX · PASS 🟢)
 
 P0 trust + submission-integrity remediation. Fixed the queued-vs-delivered ambiguity that caused the missing 6:34 PM live Daily Report. **Delivered means delivered. Queued means queued. Failed means failed.**
