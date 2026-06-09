@@ -661,6 +661,13 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
               </TabsList>
               <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 text-sm">
                 <TabsContent value="details" className="mt-0 space-y-3">
+                  {/* HR-EMPLOYEE-001 · P0 — Employee name is editable here.
+                      Backend audit-trails every change as kind=name_changed
+                      under employee_lifecycle_events (old_value/new_value/
+                      actor/timestamp). Historical records (DRs, meetings,
+                      inspections, signatures) are NOT rewritten — they keep
+                      whatever name was captured at the time. */}
+                  <EditField label={t("Name")} value={employee.name} save={(v) => submitEdit({ name: v })} testid="hremp-edit-name" />
                   <EditField label="Trade" value={employee.trade} save={(v) => submitEdit({ trade: v })} testid="hremp-edit-trade" />
                   <EditField label="Role / Title" value={employee.role} save={(v) => submitEdit({ role: v })} />
                   <EditField label="Crew" value={employee.crew} save={(v) => submitEdit({ crew: v })} />

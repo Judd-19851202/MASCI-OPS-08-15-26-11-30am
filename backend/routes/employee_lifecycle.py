@@ -950,7 +950,39 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         }
         for k, v in incoming.items():
             update[k] = v
+
+        # HR-EMPLOYEE-001 · P0 · Name-change audit trail.
+        # If the patch carries a `name` and the value actually changed,
+        # write an employee_lifecycle_events row capturing old/new/actor
+        # so the Accountability Timeline and audit_events surface the
+        # correction. Historical records (DRs, meetings, etc.) are NOT
+        # rewritten — they keep whatever name string was captured at
+        # the time.
+        old_name = (existing.get("name") or "").strip()
+        new_name = (incoming.get("name") or "").strip() if "name" in incoming else None
+        name_changed = bool(new_name) and new_name != old_name
+
         await db.employees.update_one({"id": employee_id}, {"$set": update})
+
+        if name_changed:
+            try:
+                actor_email = (actor or {}).get("email") or (actor or {}).get("actor_email") or "hr"
+                actor_role = (actor or {}).get("role") or (actor or {}).get("actor_role") or "hr"
+                await db.employee_lifecycle_events.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "employee_id": employee_id,
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                    "kind": "name_changed",
+                    "actor_email": actor_email,
+                    "actor_role": actor_role,
+                    "actor_label": (actor or {}).get("actor_label") or actor_email,
+                    "old_value": old_name or None,
+                    "new_value": new_name,
+                    "from_status": None,
+                    "to_status": None,
+                })
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[hr-employee-001] audit write failed: {e}")
 
         # iter286 · mirror CDL + medical-card expirations into the
         # existing `document_expirations` collection so the platform's

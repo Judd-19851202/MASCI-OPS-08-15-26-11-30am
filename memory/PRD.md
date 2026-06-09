@@ -1,3 +1,39 @@
+## 2026-02-09 (HR-EMPLOYEE-001 · EMPLOYEE NAME CORRECTION CAPABILITY · CERTIFIED 🟢)
+
+P0 surgical fix. HR can now correct misspelled employee names through the existing Employee drawer; every change creates an `employee_lifecycle_events` audit row capturing old/new/actor/timestamp.
+
+### Root cause (single line)
+`pages/HrEmployees.jsx` Details tab never wired an `EditField` for `name` — even though backend `EmployeePatch.name` and `patchHrEmployee` helper supported it all along. Name appeared only in the read-only `SheetTitle`.
+
+### Fix delivered (2 surgical changes)
+- **Frontend** `pages/HrEmployees.jsx`: added `EditField` for Name at the top of the Details tab (`data-testid="hremp-edit-name"`)
+- **Backend** `routes/employee_lifecycle.py::patch_employee`: on `name` change, insert `employee_lifecycle_events` row with `kind="name_changed"`, `old_value`, `new_value`, `actor_email`, `actor_role`, `ts`
+
+### Live verification
+- HR login → PATCH `/api/hr/employees/{id}` with `{name: "..."}` → 200 OK, name applied
+- Audit row landed in `employee_lifecycle_events` with all required fields (verified via direct Mongo query)
+- Rollback PATCH (revert to original name) → 200 OK, second audit row created — full reversal trail
+- Unauthorized: no-token → HTTP 401 confirmed
+- UI screenshot confirms Name field renders FIRST in Details tab, populated, ready to edit
+
+### Identity-doctrine confirmation
+Already compliant. `employees.id` (UUID) and `employees.employee_id` (HR business code) are the immutable identifiers. `name` is purely a display string — verified NOT used as a join key anywhere across `daily_reports`, `meetings`, `incidents`, `signatures`, `safety_training_records`, etc.
+
+### Historical-record protection (audited)
+`daily_reports.crew_members[]` · `meetings.attendees[]` · `incidents.subject_employee_name` · `signatures` · `safety_training_records` · `inspections.inspector_name` · `employee_lifecycle_events.actor_label` all snapshot the name at sign-time and are NOT touched by a `name` PATCH on `employees`. Past records remain historically accurate.
+
+### Deliverables
+- `/app/memory/HR_EMPLOYEE_001_ROOT_CAUSE.md` (7-hypothesis investigation + identity doctrine + historical safety)
+- `/app/memory/HR_EMPLOYEE_001_CERTIFICATION.md` (fix + live verification + 8/8 success criteria + OMEGA adherence)
+- `/app/memory/PRD.md` updated
+
+### OMEGA adherence
+- Scope strictly limited to name-correction defect — no fields added beyond what schema supports (single `name` field), no refactor of pre-existing lints (4 `react-hooks/set-state-in-effect` warnings confirmed pre-existing via `git stash` baseline), no schema/migration changes, no auth-model changes (gate was already correct).
+
+🛑 **STOP CONDITION OBSERVED.** Sprint closed.
+
+
+
 ## 2026-02-09 (BACKUP-FIX-001 · COMPLETE-R2 VERIFIER FIX + PLATFORM-WIDE COVERAGE CERTIFICATION · CERTIFIED 🟢)
 
 Surgical fix to backup verification: widen the "successful full backup" acceptance set to include the R2 hourly pipeline. Paired with a full platform coverage audit proving every collection (existing + newly-built-today) is captured by auto-discovery.
