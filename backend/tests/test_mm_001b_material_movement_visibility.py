@@ -85,8 +85,11 @@ def test_e5_endpoint_validates_inputs():
 
 
 def test_e5_endpoint_reflects_dr_materials(admin_token):
-    """Submit a DR with a materials row, then assert the derived endpoint
-    surfaces it under 'incoming'."""
+    """Submit a DR with a materials row + a production row, then assert:
+      • materials[] appears under 'incoming'
+      • production[] is EXCLUDED from outgoing (MM-001B-F1 defect fix —
+        installed work is never material movement).
+    """
     body = {
         "project_name": "MM-001B · E-5 fixture",
         "project_number": "JOB-MM-E5",
@@ -110,13 +113,90 @@ def test_e5_endpoint_reflects_dr_materials(admin_token):
     assert sub["status"] == 200
     r = _req("GET", "/material-movement/daily/JOB-MM-E5/2026-06-08")
     assert r["status"] == 200
+    # incoming: materials[] surfaces normally
     assert len(r["json"]["incoming"]) >= 1
     inc = r["json"]["incoming"][0]
     assert inc["material"] == "SP-12.5 Asphalt"
     assert inc["unit"] == "TON"
     assert inc["source"] == "Pytest Plant"
-    # production row appears under outgoing group
-    assert len(r["json"]["outgoing"]) >= 1
+
+
+# ── MM-001B-F1 · False-Outgoing defect regression ──────────────────
+def test_f1_production_never_appears_in_outgoing(admin_token):
+    """RCP Install (and all production work) MUST NEVER appear under
+    Material Movement / Outgoing. Production is installed work, not
+    trucking. This regression locks the fix in place."""
+    body = {
+        "project_name": "MM-001B-F1 · false-outgoing fixture",
+        "project_number": "JOB-MM-F1",
+        "location": "Yard",
+        "report_date": "2026-06-08",
+        "prepared_by": "Pytest",
+        "photos": [
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII="
+        ] * 6,
+        "prepared_by_signature": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=",
+        "production": [
+            {"description": "RCP Install", "quantity": 100, "unit": "LF",
+             "station_from": "10+00", "station_to": "11+00"},
+            {"description": "Curb installed", "quantity": 220, "unit": "LF"},
+            {"description": "Milling performed", "quantity": 1500, "unit": "SY"},
+        ],
+    }
+    sub = _req("POST", "/daily-reports", token=admin_token, body=body)
+    assert sub["status"] == 200
+
+    r = _req("GET", "/material-movement/daily/JOB-MM-F1/2026-06-08")
+    assert r["status"] == 200
+    outgoing = r["json"]["outgoing"]
+    incoming = r["json"]["incoming"]
+
+    # Defect lock: zero production descriptions can appear in either group.
+    forbidden = {"RCP Install", "Curb installed", "Milling performed"}
+    for row in outgoing + incoming:
+        assert row.get("material") not in forbidden, (
+            f"REGRESSION: production row '{row.get('material')}' leaked "
+            f"into Material Movement rollup."
+        )
+
+    # Belt-and-suspenders: station_from/station_to and source_kind=production
+    # used to be the production-leakage tells. Neither may ever appear.
+    for row in outgoing:
+        assert "station_from" not in row, "station_from leaked into outgoing"
+        assert "station_to" not in row, "station_to leaked into outgoing"
+        assert row.get("source_kind") != "production"
+
+
+def test_f1_production_still_renders_in_dr_response(admin_token):
+    """Production rows MUST still come back on the Daily Report itself —
+    only Material Movement excludes them. Reading the same DR back must
+    return the original production rows unchanged."""
+    body = {
+        "project_name": "MM-001B-F1 · production-retention fixture",
+        "project_number": "JOB-MM-F1B",
+        "location": "Yard",
+        "report_date": "2026-06-08",
+        "prepared_by": "Pytest",
+        "photos": [
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII="
+        ] * 6,
+        "prepared_by_signature": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=",
+        "production": [
+            {"description": "RCP Install", "quantity": 100, "unit": "LF",
+             "station_from": "10+00", "station_to": "11+00"},
+        ],
+    }
+    sub = _req("POST", "/daily-reports", token=admin_token, body=body)
+    assert sub["status"] == 200
+    dr_id = sub["json"]["id"]
+
+    # Production must still be present on the DR document itself.
+    fetched = _req("GET", f"/daily-reports/{dr_id}", token=admin_token)
+    assert fetched["status"] == 200
+    prod = fetched["json"].get("production") or []
+    assert len(prod) == 1
+    assert prod[0]["description"] == "RCP Install"
+    assert prod[0]["quantity"] == 100
 
 
 # ── E-1 · Frontend source-level guard ──────────────────────────────

@@ -1,12 +1,18 @@
 """MM-001B · E-5 · Material Movement Rollup (derived view).
 
 Server-derived visibility layer combining:
-  • dispatch_assignments  (MASCI-controlled hauling — Category A)
-  • daily_reports.materials[]  (vendor/external inbound — Category B in)
-  • daily_reports.production[]  (foreman-authored haul-flavor rows)
+  • dispatch_assignments        — Category A · MASCI-controlled hauling
+  • daily_reports.materials[]   — Category B · foreman-authored external deliveries
+
+MM-001B-F1 (2026-02-09) · False-Outgoing Defect Fix
+  • `daily_reports.production[]` is EXPLICITLY EXCLUDED from this rollup.
+    Production rows describe work performed (RCP installed, asphalt placed,
+    grading, etc.) — they are NOT material movement. Production renders only
+    in its own Production section on the read view and PDF.
 
 NO new collection. NO duplicate persistence. NO background jobs.
-Pure read · derived only. Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md
+Pure read · derived only.
+Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md
 """
 from __future__ import annotations
 from typing import Any, Dict, List
@@ -50,13 +56,16 @@ def register_material_movement_routes(router: APIRouter, db) -> None:
             except (TypeError, ValueError):
                 pass
 
-        # ── Category B · Daily Report materials[] / production[] ───
+        # ── Category B · Daily Report materials[] (deliveries / removals) ──
+        # MM-001B-F1: production[] is intentionally NOT read here. Production
+        # rows describe installed work, not material movement, and surfacing
+        # them as "Outgoing" produced false hauling visibility in the field.
         incoming: List[Dict[str, Any]] = []
         outgoing: List[Dict[str, Any]] = []
         async for d in db.daily_reports.find(
             {"project_number": project_number, "report_date": date,
              "deleted_at": {"$in": [None, "", False]}},
-            {"_id": 0, "id": 1, "materials": 1, "production": 1},
+            {"_id": 0, "id": 1, "materials": 1},
         ):
             for m in d.get("materials") or []:
                 incoming.append({
@@ -66,21 +75,6 @@ def register_material_movement_routes(router: APIRouter, db) -> None:
                     "source": m.get("supplier") or "",
                     "ticket_number": m.get("ticket_number") or "",
                     "dr_id": d.get("id"),
-                })
-            for p in d.get("production") or []:
-                # Production rows are foreman-authored haul-flavor data
-                # today (until E-3 ships direction toggle). Surface them
-                # as a separate "production" group rather than guessing
-                # in vs out — keeps trust intact.
-                outgoing.append({
-                    "material": p.get("description") or "",
-                    "quantity": p.get("quantity"),
-                    "unit": p.get("unit") or "",
-                    "destination": "",
-                    "station_from": p.get("station_from") or "",
-                    "station_to": p.get("station_to") or "",
-                    "dr_id": d.get("id"),
-                    "source_kind": "production",
                 })
 
         return {

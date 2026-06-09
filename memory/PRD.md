@@ -1,3 +1,27 @@
+## 2026-02-09 (MM-001B-F1 · FALSE OUTGOING DEFECT FIX · PASS 🟢)
+
+Surgical defect fix to the MM-001B Material Movement rollup. The derived endpoint was misclassifying `daily_reports.production[]` rows (e.g., "RCP install · 100 LF · 10+00 → 11+00") as Material Movement / Outgoing. Production is installed work, not hauling — this produced false outgoing visibility in the field.
+
+### Fix (single file, single function)
+- `routes/material_movement.py::daily_material_movement` no longer reads or projects `daily_reports.production`. The `outgoing` key on the response remains as an empty array (contract stable) and will be populated only when a true direction-tagged outgoing source ships (deferred E-3/E-4).
+- No PDF change (PDF section 09d only rendered dispatch hauling — it never read production).
+- No frontend change (`MaterialMovementTile.jsx` conditionally hides the outgoing block when empty, so production no longer surfaces in the UI).
+
+### Verification
+- Pytest **10/10 green** (`tests/test_mm_001b_material_movement_visibility.py` — 8 original + 2 new F1 regressions)
+- Updated `test_e5_endpoint_reflects_dr_materials` to reflect new (correct) contract
+- Added `test_f1_production_never_appears_in_outgoing` and `test_f1_production_still_renders_in_dr_response` to lock the fix
+- Live API on JOB-MM-E5: `incoming: 4 · outgoing: 0` (was outgoing: 3 false rows)
+- UI screenshot on `/admin/daily/5fea62a0-…`: outgoing section absent, Production Quantities section 09B still renders RCP install correctly
+- Certification: `/app/memory/MM_001B_F1_FALSE_OUTGOING_FIX_CERTIFICATION.md`
+
+### Out of scope (held — OMEGA freeze)
+- E-3 direction toggle (would be the future legitimate source of outgoing rows)
+- All other MM follow-on phases · FW-1 · Motive · DR/PDF redesign
+
+
+
+
 ## 2026-02-09 (MM-001B · MATERIAL MOVEMENT VISIBILITY SPRINT · PASS 🟢)
 
 Shipped the read-only Material Movement visibility surface on the Daily Report (web + PDF) under OMEGA strict subtractive discipline. Three phases delivered exactly as authorized — E-1 (web/PDF tile), E-2 (taxonomy expansion), E-5 (derived rollup endpoint). All other phases (E-3, E-4, E-6 → E-9) remain DEFERRED.
