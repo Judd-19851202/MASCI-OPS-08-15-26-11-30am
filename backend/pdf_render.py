@@ -236,7 +236,12 @@ def _render_daily(d: Dict[str, Any]) -> str:
         _section(
             "03 · General Information",
             (
-                _kv("Schedule Delay Today", d.get("schedule_delay_today"))
+                # R3 · DR-FIX-1 · canonical key is `schedule_delays`
+                # (matches schema, form, Mongo, ViewDailyReport, CSV).
+                # Earlier render mistakenly read `schedule_delay_today`
+                # which never existed in storage — silent blank rendering.
+                # Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md
+                _kv("Schedule Delays", d.get("schedule_delays"))
                 + _kv("Weather Impact", d.get("weather_impact"))
                 + _kv("Accidents on Site", d.get("safety_incidents_today"))
                 + _kv("Injuries Reported", d.get("injuries_reported"))
@@ -479,6 +484,68 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 "09 · Activities Performed",
                 _table(
                     ["Activity", "% Done", "From", "To", "Notes"],
+                    body_rows,
+                ),
+            )
+        )
+
+    # R1 · DR-FIX-1 · Production V.2 (Wave-1B structured rows).
+    # Stored in `production[]` by daily_reports.py · invisible to PDF
+    # readers until now. NO schema change · pure surface.
+    # Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md
+    prods = d.get("production") or []
+    if prods:
+        body_rows = []
+        for p in prods:
+            unit = p.get("unit") or ""
+            if unit == "OTHER" and p.get("custom_unit_label"):
+                unit = f"OTHER · {p.get('custom_unit_label')}"
+            qty = p.get("quantity")
+            qty_str = "" if qty in (None, "", 0, 0.0) else str(qty)
+            body_rows.append([
+                p.get("description") or "",
+                qty_str,
+                unit,
+                p.get("station_from") or "",
+                p.get("station_to") or "",
+                p.get("notes") or "",
+            ])
+        rows.append(
+            _section(
+                "09b · Production Quantities",
+                _table(
+                    ["Description", "Qty", "Unit", "From", "To", "Notes"],
+                    body_rows,
+                ),
+            )
+        )
+
+    # R2 · DR-FIX-1 · Constraints V.2 (Wave-1B structured rows).
+    # Same as R1 — stored but invisible until now. Surfaces the
+    # server-derived advisory flags (RFI / Schedule).
+    cons = d.get("constraints") or []
+    if cons:
+        body_rows = []
+        for c in cons:
+            flags = []
+            if c.get("may_require_rfi"):
+                flags.append("RFI")
+            if c.get("may_affect_schedule"):
+                flags.append("Schedule")
+            flag_cell = " · ".join(flags) if flags else ""
+            hi = c.get("hours_impact")
+            hi_cell = "" if hi in (None, "") else f"{hi} h"
+            body_rows.append([
+                c.get("constraint_type") or "",
+                hi_cell,
+                flag_cell,
+                c.get("notes") or "",
+            ])
+        rows.append(
+            _section(
+                "09c · Delays / Extra Work · Constraints",
+                _table(
+                    ["Type", "Hours Impact", "Advisory", "Notes"],
                     body_rows,
                 ),
             )

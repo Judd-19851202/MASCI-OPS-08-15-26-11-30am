@@ -559,6 +559,56 @@ export default function ViewDailyReport() {
           />
         </ReportSection>
 
+        {/* R1 · DR-FIX-1 · Production V.2 (Wave-1B). Stored on the
+            record but previously invisible to consumers. NO schema
+            change · NO workflow change · pure surface.
+            Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md */}
+        {(data.production?.length || 0) > 0 && (
+          <div data-testid="dr-view-production">
+          <ReportSection number="09b" title={`${t("Production Quantities")} (${data.production.length})`}>
+            <Table
+              headers={[t("Description"), t("Quantity"), t("Unit"), t("From"), t("To"), t("Notes")]}
+              rows={(data.production || []).map((r) => [
+                r.description,
+                r.quantity != null && r.quantity !== "" ? String(r.quantity) : "",
+                r.unit === "OTHER" && r.custom_unit_label
+                  ? `OTHER · ${r.custom_unit_label}`
+                  : (r.unit || ""),
+                r.station_from || "",
+                r.station_to || "",
+                r.notes || "",
+              ])}
+              emptyText={t("No production rows.")}
+            />
+          </ReportSection>
+          </div>
+        )}
+
+        {/* R2 · DR-FIX-1 · Constraints V.2 (Wave-1B). Stored on the
+            record but previously invisible to consumers. Surfaces the
+            server-derived RFI / Schedule advisory flags. */}
+        {(data.constraints?.length || 0) > 0 && (
+          <div data-testid="dr-view-constraints">
+          <ReportSection number="09c" title={`${t("Delays / Extra Work")} (${data.constraints.length})`}>
+            <Table
+              headers={[t("Type"), t("Hours Impact"), t("Advisory"), t("Notes")]}
+              rows={(data.constraints || []).map((r) => {
+                const flags = [];
+                if (r.may_require_rfi) flags.push("RFI");
+                if (r.may_affect_schedule) flags.push(t("Schedule"));
+                return [
+                  r.constraint_type || "",
+                  r.hours_impact != null && r.hours_impact !== "" ? `${r.hours_impact} h` : "",
+                  flags.join(" · "),
+                  r.notes || "",
+                ];
+              })}
+              emptyText={t("No constraints recorded.")}
+            />
+          </ReportSection>
+          </div>
+        )}
+
         {data.photos?.length > 0 && (
           <ReportSection number="10" title={`${t("Photos")} (${data.photos.length})`}>
             <div className="flex justify-end mb-2 print:hidden">

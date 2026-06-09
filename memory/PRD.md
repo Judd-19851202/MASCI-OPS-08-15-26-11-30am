@@ -1,3 +1,23 @@
+## 2026-06-08 (DR-FIX-1 · Constitutional Remediation · PASS 🟢)
+
+Closed the three constitutional failures identified in DR-AUDIT-001:
+- **R1** `production[]` rows (V.2 Wave-1B) now render on PDF Section 09b + ViewDailyReport.
+- **R2** `constraints[]` rows render on PDF Section 09c + ViewDailyReport with server-derived RFI / Schedule advisory flags.
+- **R3** `schedule_delays` canonical key fix — PDF Section 03 now reads the correct key (was silently blank for every report).
+
+**Scope held exactly** — no fields added/removed, no workflow changes, no schema changes, no integrations, no automation. Pure rendering remediation.
+
+### Verification
+- Pytest **9/9 green** (`tests/test_dr_fix_1_constitutional_remediation.py`).
+- Full regression **47/47 green** (DR-FIX-1 + OA-1 + Sprint A + DCP-1).
+- Frontend lint clean.
+- Certification: `/app/memory/DR_FIX_1_CONSTITUTIONAL_REMEDIATION_CERTIFICATION.md`.
+
+### Remaining DR-AUDIT-001 backlog (NOT authorized)
+- R4–R12 + RM-1…RM-5 deferred per directive — see `DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md` §13.
+
+
+
 ## 2026-06-08 (OA-1 · Operations Actions Phase 1 · CERTIFIED 🟢)
 
 ForgedOps cross-portal CRUD-only operational coordination layer **shipped exactly as authorized** by the OA-1 BUILD DIRECTIVE. OMEGA-class discipline maintained — no automation, no AI, no email/SMS, no SLA, no integrations, no export, no bulk.
