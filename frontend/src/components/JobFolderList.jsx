@@ -34,28 +34,65 @@ export default function JobFolderList({
   renderItem,
   testIdPrefix = "job-folder",
   emptyMsg = null,
+  jobsMaster = null,         // DR-JOB-002 · canonical { project_number → project_name } map (optional)
+  showCert = false,          // DR-JOB-003 · admin opt-in for cert/test pollution tier
 }) {
   const { t } = useT();
   const [search, setSearch] = useState("");
   const [openMap, setOpenMap] = useState({}); // { "25-03": true, ... }
 
-  // ── Group records by project_number ──────────────────────────────────
+  // DR-JOB-003 · conservative cert/test pollution matcher. Returns true when
+  // the row appears to be a smoke/cert/test artefact that should NOT show
+  // in the default operational hub.
+  const isCertOrTest = (it) => {
+    const blob = `${it.project_number || ""} ${it.project_name || ""}`.toUpperCase();
+    if (!blob.trim()) return false;
+    return (
+      blob.includes("_PROD_CERT_DO_NOT_USE") ||
+      blob.includes("PROD-POST-DEPLOY-CERT-SMOKE") ||
+      blob.includes("PROD-ORPHAN-CORNER-VERIFY") ||
+      /(^|[_\s-])(TEST|SMOKE|VERIFY|CERT|DEMO|SEED|SAMPLE|PREVIEW|QA-)([_\s-]|$)/.test(blob) ||
+      /^ITER\d+/i.test(blob)
+    );
+  };
+
+  // ── DR-JOB-002 · Group records by CANONICAL project_number ──────────
   const folders = useMemo(() => {
     const byKey = new Map();
+    const ORPHAN = "__ORPHAN__";
     for (const it of items || []) {
-      const num = (it.project_number || "").trim() || "—";
-      const name = (it.project_name || "").trim() || t("(No Job)");
-      const key = num + "::" + name;
+      if (!showCert && isCertOrTest(it)) continue;
+      const rawNum = (it.project_number || "").trim();
+      const submittedName = (it.project_name || "").trim();
+      // canonical number = jobs_master match (case-insensitive) → else raw → else orphan bucket
+      const canonicalNum = rawNum || ORPHAN;
+      // canonical display name preference:
+      //   1. jobs_master canonical name when a row exists for this pn
+      //   2. submitted project_name from this row
+      //   3. fallback "Unmatched Project · {pn}" or "(No Job)"
+      let canonicalName = "";
+      if (jobsMaster && rawNum) {
+        canonicalName = jobsMaster[rawNum] || jobsMaster[rawNum.toUpperCase()] || "";
+      }
+      if (!canonicalName) canonicalName = submittedName;
+      if (!canonicalName) canonicalName = rawNum
+        ? `${t("Unmatched Project")} · ${rawNum}`
+        : t("Unmatched / Needs Project Review");
+
+      const key = canonicalNum;  // KEY IS NOW PROJECT NUMBER ONLY
       if (!byKey.has(key)) {
         byKey.set(key, {
           key,
-          number: num,
-          name,
+          number: rawNum || "—",
+          name: canonicalName,
+          isOrphan: !rawNum,
+          submittedNames: new Set(),
           items: [],
           mostRecent: null,
         });
       }
       const folder = byKey.get(key);
+      if (submittedName) folder.submittedNames.add(submittedName);
       folder.items.push(it);
       const d = it[dateField];
       if (d && (!folder.mostRecent || d > folder.mostRecent)) {
@@ -82,7 +119,7 @@ export default function JobFolderList({
       });
     }
     return arr;
-  }, [items, dateField, t]);
+  }, [items, dateField, t, jobsMaster, showCert]);
 
   // ── Filter by search ─────────────────────────────────────────────────
   const visibleFolders = useMemo(() => {

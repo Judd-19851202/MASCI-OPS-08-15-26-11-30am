@@ -1,3 +1,35 @@
+## 2026-02-09 (HR-EMPLOYEE-002 + DR-JOB-002/003 · TWO-WORKSTREAM TRUST FIX · CERTIFIED 🟢)
+
+### A · HR-EMPLOYEE-002 (preferred name)
+- Added `preferred_name` optional field to `EmployeePatch` model
+- Audit: `kind="preferred_name_changed"` written to `employee_lifecycle_events` with old/new/actor
+- Search: HR employee list `$or` clause now also matches `preferred_name`
+- Timeline: new branch surfaces "Preferred Name Changed" events with From→To/actor/role description
+- UI: Details tab now has "Name / Legal Name" + "Preferred Name" EditField with helper text
+- Live: HR PATCH preferred_name=AJ → 200 · audit row landed · search by AJ finds it · search by legal name still works · timeline shows event · no-token → 401 · rollback OK
+- Historical records (DRs/meetings/incidents/signatures/training) NOT rewritten
+
+### B · DR-JOB-002/003 (canonical grouping + cert pollution tier)
+- **NEW** `GET /api/jobs-master` read-only endpoint (29 rows in prod)
+- `JobFolderList.jsx` grouping key now `canonical_project_number` ONLY (free-text name no longer part of key)
+- `DailyReportsDashboard.jsx` fetches `/api/jobs-master` in parallel, passes canonical map + `?show=cert` admin opt-in to JobFolderList
+- 4 production duplicates collapse to 1 folder each (26-01 - CP, 24-12, 25-21, 26-07)
+- Cert/test pollution (`_PROD_CERT_DO_NOT_USE`, `PROD-POST-DEPLOY-CERT-SMOKE`, etc.) hidden by default · admin `?show=cert` reveals
+- Orphans routed to "Unmatched / Needs Project Review" bucket
+- Read-time derivation only · zero DR body / jobs_master / payroll mutation
+
+### Tests 10/10 + 12/12 PASS
+HR: edit/admin/unauthorized/persist/dual-search/timeline/existing-audit/historical/iPad. DR: no name-key/collapse/aggregate/latest/preserved-names/historical/cert-hide/show-cert/orphans/no-mutations.
+
+### Deliverables
+- `/app/memory/HR_EMPLOYEE_002_PREFERRED_NAME_CERTIFICATION.md`
+- `/app/memory/DR_JOB_002_003_CANONICAL_GROUPING_CERTIFICATION.md`
+- `/app/memory/PRD.md` updated
+
+🛑 STOP. Deploy ready.
+
+
+
 ## 2026-02-09 (DR-JOB-001 · CANONICAL DAILY REPORT JOB GROUPING AUDIT · DELIVERED 🔴 FAIL)
 
 Audit-only sprint. Zero code changes. Definitive diagnosis of why the DR hub shows duplicate / dirty job buckets.

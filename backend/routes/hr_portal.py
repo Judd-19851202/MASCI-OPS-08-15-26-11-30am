@@ -706,6 +706,16 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                     f"From: {old}  →  To: {new}   ·   "
                     f"Changed by {actor_email} ({actor_role_label})"
                 )
+            elif kind == "preferred_name_changed":
+                title = "Preferred Name Changed"
+                old = (h.get("old_value") or "—").strip() or "—"
+                new = (h.get("new_value") or "—").strip() or "—"
+                actor_email = h.get("actor_email") or h.get("actor_label") or "—"
+                actor_role_label = h.get("actor_role") or "HR"
+                desc = (
+                    f"From: {old}  →  To: {new}   ·   "
+                    f"Changed by {actor_email} ({actor_role_label})"
+                )
             else:
                 title = (kind or "Lifecycle Event").replace("_", " ").title()
                 desc = " · ".join(

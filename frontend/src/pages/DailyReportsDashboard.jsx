@@ -26,15 +26,27 @@ export default function DailyReportsDashboard() {
   const { t } = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [jobsMaster, setJobsMaster] = useState({});  // DR-JOB-002 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const hubHome = useHubHome();
+  // DR-JOB-003 admin opt-in for cert/test pollution tier
+  const showCert = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("show") === "cert";
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/daily-reports");
+      const [res, jm] = await Promise.all([
+        api.get("/daily-reports"),
+        api.get("/jobs-master").catch(() => ({ data: [] })),
+      ]);
       setItems(res.data || []);
+      const map = {};
+      for (const j of (jm.data || [])) {
+        const pn = (j.project_number || "").trim();
+        if (pn) map[pn] = j.project_name || "";
+      }
+      setJobsMaster(map);
     } catch {
       toast.error("Could not load daily reports");
     } finally {
@@ -159,6 +171,8 @@ export default function DailyReportsDashboard() {
               items={items}
               dateField="report_date"
               testIdPrefix="daily-folders"
+              jobsMaster={jobsMaster}
+              showCert={showCert}
               renderItem={(it) => (
                 <div
                   onClick={() => navigate(`${pathname}/${it.id}`)}

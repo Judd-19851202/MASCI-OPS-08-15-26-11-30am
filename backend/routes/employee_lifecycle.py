@@ -462,6 +462,7 @@ class EmployeeCreate(BaseModel):
 
 class EmployeePatch(BaseModel):
     name: Optional[str] = None
+    preferred_name: Optional[str] = None  # HR-EMPLOYEE-002
     trade: Optional[str] = None
     role: Optional[str] = None
     crew: Optional[str] = None
@@ -795,6 +796,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         if q:
             clauses.append({"$or": [
                 {"name": {"$regex": q, "$options": "i"}},
+                {"preferred_name": {"$regex": q, "$options": "i"}},  # HR-EMPLOYEE-002
                 {"employee_id": {"$regex": q, "$options": "i"}},
                 {"trade": {"$regex": q, "$options": "i"}},
             ]})
@@ -962,6 +964,11 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         new_name = (incoming.get("name") or "").strip() if "name" in incoming else None
         name_changed = bool(new_name) and new_name != old_name
 
+        # HR-EMPLOYEE-002 · preferred-name audit
+        old_pref = (existing.get("preferred_name") or "").strip()
+        new_pref = (incoming.get("preferred_name") or "").strip() if "preferred_name" in incoming else None
+        pref_changed = ("preferred_name" in incoming) and (new_pref != old_pref)
+
         await db.employees.update_one({"id": employee_id}, {"$set": update})
 
         if name_changed:
@@ -983,6 +990,26 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 })
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[hr-employee-001] audit write failed: {e}")
+
+        if pref_changed:
+            try:
+                actor_email = (actor or {}).get("email") or (actor or {}).get("actor_email") or "hr"
+                actor_role = (actor or {}).get("role") or (actor or {}).get("actor_role") or "hr"
+                await db.employee_lifecycle_events.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "employee_id": employee_id,
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                    "kind": "preferred_name_changed",
+                    "actor_email": actor_email,
+                    "actor_role": actor_role,
+                    "actor_label": (actor or {}).get("actor_label") or actor_email,
+                    "old_value": old_pref or None,
+                    "new_value": new_pref or None,
+                    "from_status": None,
+                    "to_status": None,
+                })
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[hr-employee-002] audit write failed: {e}")
 
         # iter286 · mirror CDL + medical-card expirations into the
         # existing `document_expirations` collection so the platform's

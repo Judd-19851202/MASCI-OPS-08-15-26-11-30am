@@ -4052,6 +4052,17 @@ def _coerce_float(v: Any, default: float = 0.0) -> float:
         return default
 
 
+@api_router.get("/jobs-master")
+async def get_jobs_master():
+    """DR-JOB-002 · public read-only canonical jobs list. Used by the DR hub
+    to group reports under canonical project identity instead of free-text
+    submitter names. Read-only · no auth required for client-side display."""
+    rows = []
+    async for j in db.jobs_master.find({}, {"_id": 0, "project_number": 1, "project_name": 1, "status": 1}):
+        rows.append(j)
+    return rows
+
+
 @api_router.get("/admin/projects/list")
 async def list_projects_in_dailies(actor=Depends(require_admin)):
     """Return distinct {project_number, project_name} tuples seen across all

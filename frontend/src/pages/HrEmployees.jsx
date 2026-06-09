@@ -667,7 +667,12 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
                       actor/timestamp). Historical records (DRs, meetings,
                       inspections, signatures) are NOT rewritten — they keep
                       whatever name was captured at the time. */}
-                  <EditField label={t("Name")} value={employee.name} save={(v) => submitEdit({ name: v })} testid="hremp-edit-name" />
+                  <EditField label={t("Name") + " / " + t("Legal Name")} value={employee.name} save={(v) => submitEdit({ name: v })} testid="hremp-edit-name" />
+                  {/* HR-EMPLOYEE-002 · Preferred name */}
+                  <EditField label={t("Preferred Name")} value={employee.preferred_name || ""} save={(v) => submitEdit({ preferred_name: v })} testid="hremp-edit-preferred-name" />
+                  <div className="text-[11px] text-slate-500 -mt-1 pl-1" data-testid="hremp-pref-name-hint">
+                    Preferred name is used for display/search where appropriate. Legal/current name remains the HR record.
+                  </div>
                   <EditField label="Trade" value={employee.trade} save={(v) => submitEdit({ trade: v })} testid="hremp-edit-trade" />
                   <EditField label="Role / Title" value={employee.role} save={(v) => submitEdit({ role: v })} />
                   <EditField label="Crew" value={employee.crew} save={(v) => submitEdit({ crew: v })} />
