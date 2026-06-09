@@ -23,6 +23,7 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from services.motive_service import MotiveService
 from services.maintainx_service import MaintainxService
@@ -46,7 +47,10 @@ def register_webhook_routes(api_router: APIRouter, db) -> None:
         test_mode = bool(doc.get("test_mode"))
         secret = doc.get("webhook_secret_value") or ""
 
-        # 1. No secret AND not in test_mode → 503 (always-safe, never crashes)
+        # 1. No secret AND not in test_mode → retryable 503 (so providers
+        #    such as Motive treat the failure as a delivery error and
+        #    retry, instead of treating a 2xx body as acknowledgement).
+        #    WEBHOOK-HARDEN-001 fixes WEBHOOK-2XX-ON-MISCONFIG-001.
         if not secret and not test_mode:
             await write_sync_log(
                 db, integration=provider, sync_type="webhook",
@@ -58,11 +62,21 @@ def register_webhook_routes(api_router: APIRouter, db) -> None:
             # one-shot email (cooldown-gated) so the operator hears about
             # the misconfiguration without the webhook stream blocking.
             asyncio.create_task(record_credential_missing(db, provider=provider))
-            return {
-                "ok": False, "status": "awaiting_credentials",
-                "stored": False,
-                "message": f"{provider} webhook is awaiting credentials.",
-            }
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "ok": False,
+                    "status": "awaiting_credentials",
+                    "stored": False,
+                    "provider": provider,
+                    "message": (
+                        f"{provider} integration is missing required credentials "
+                        f"on this MASCI environment. Webhook delivery NOT accepted. "
+                        f"Please retry; the platform will accept once an operator "
+                        f"configures the webhook secret via Admin → Integration Center."
+                    ),
+                },
+            )
 
         # 2. Secret configured → verify signature
         if secret:

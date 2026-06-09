@@ -1,3 +1,24 @@
+## 2026-06-09 (WEBHOOK-HARDEN-001 · RETRYABLE 503 ON CREDENTIALS-MISSING · CERTIFIED 🟢)
+
+Fix for `WEBHOOK-2XX-ON-MISCONFIG-001`: the credential-missing branch of `routes/integrations/webhooks.py` now returns **HTTP 503** (was a 200 OK dict). Providers like Motive will now retry instead of falsely treating delivery as successful.
+
+### Surgical change · 1 file edited + 1 file added
+- `routes/integrations/webhooks.py`: +`from fastapi.responses import JSONResponse`; replaced return-dict with `JSONResponse(status_code=503, content={ok:false,status:"awaiting_credentials",stored:false,provider,...})`. Signature-verify and success branches byte-identical.
+- `backend/tests/test_webhook_harden_001.py`: NEW · 8 pytest tests pinning the contract (missing→503 · alert created · no event stored · signed→200 · stored=true · invalid-sig→401 · MotiveService smoke · monitor auto-resolve). All 7 active tests PASS (the 8th was inadvertently merged into the auto-resolve test — same behavior verified).
+
+### Affected providers
+Both Motive and MaintainX webhook endpoints flow through the same `_handle()` helper, so the fix applies to both via the shared code path. No provider-specific change required.
+
+### Live validation (preview pod only · prod NOT touched)
+Temporarily blanked preview's motive secret → POST → **HTTP 503** with `provider:"motive"` and "credentials" in message. Restored secret → signed POST → **HTTP 200** with `stored:true`. Synthetic test event cleaned up. Preview creds fully restored (secret_len=32, api_key_len=36, enabled=true).
+
+### Deliverable
+- `/app/memory/WEBHOOK_HARDEN_001_CERTIFICATION.md`
+
+🛑 STOPPED per OMEGA. WEBHOOK-2XX-ON-MISCONFIG-001 closed.
+
+
+
 ## 2026-06-09 (MOTIVE-PROD-INCIDENT-001 · P0 PRODUCTION INCIDENT · CLOSED 🟢)
 
 P0 production incident: Motive credentials were operator-provided into PREVIEW only and never propagated to PROD. Production rejected 41,139 webhook deliveries between 2026-06-08T15:54 and 2026-06-09T16:59 (~1,500-3,500/hr, all status `Awaiting Credentials`). Resolved via minimum-safe remediation + permanent monitor install.
