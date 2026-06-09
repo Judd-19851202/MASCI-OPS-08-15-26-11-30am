@@ -139,11 +139,20 @@ export default function HrTimeVerification() {
               print-color-adjust: exact !important; }
 
           /* Hide known chrome — must enumerate; "hide-all-then-restore"
-             collapses table/grid semantics in webkit. */
+             collapses table/grid semantics in webkit. HR-TIME-001C adds:
+               · EnvBanner preview warning
+               · HrPageShell HR-Hub back link + kicker + live h1 title */
           .caution-stripe, header, nav, aside,
           [role="navigation"], [role="banner"],
+          [data-testid="env-banner"],
           [data-testid="forgedops-attr-global"],
+          main > a[href="/hr"],
+          main > div.font-mono.text-purple-700,
+          main > h1.font-display,
           [data-print-hide] { display: none !important; }
+
+          /* Strip the blueprint-grid background — print mode prints flat white. */
+          .blueprint-bg { background: #fff !important; background-image: none !important; }
 
           /* Neutralise layout constraints inherited from the page shell so the
              printed region is the natural height of its content (no phantom page). */
@@ -327,6 +336,9 @@ export default function HrTimeVerification() {
           <div>Powered by ForgedOps</div>
           <div className="sub">
             Generated {new Date().toISOString().replace("T", " ").slice(0, 19)} UTC · Confidential payroll cross-check
+            {typeof window !== "undefined" && window.location?.host?.includes("preview") ? (
+              <> · Preview Environment · Not Operational Data</>
+            ) : null}
           </div>
         </div>
       </div>

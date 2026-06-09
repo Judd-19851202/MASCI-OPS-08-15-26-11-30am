@@ -1,3 +1,36 @@
+## 2026-02-09 (HR-TIME-001C · FINAL PRINT CLEANUP · CERTIFIED 🟢)
+
+P0 print-CSS-only cleanup completing HR-TIME-001 / 001B. PDF now renders as a clean standalone HR report — no screen-shell artefacts.
+
+### Five shell artefacts that were still bleeding through, now hidden
+1. HR Hub back-link `main > a[href="/hr"]`
+2. Live page kicker `main > div.font-mono.text-purple-700` ("HR · PAYROLL CROSS-CHECK · HR MANAGER")
+3. Live h1 page title `main > h1.font-display`
+4. Orange preview environment banner `[data-testid="env-banner"]` — replaced with discreet footer text "Preview Environment · Not Operational Data" (renders only when host includes "preview"; nothing in prod)
+5. Blueprint grid background `.blueprint-bg { background: #fff; background-image: none }`
+
+### Live evidence
+- Real print-to-PDF: **123,835 bytes · exactly 1 page** (verified by `/Type /Page` object count)
+- DOM under print emulation: all 5 selectors confirmed `display: none`
+- Print preview shows: kicker · bold title · filter line · purple separator · 5-cell totals · 8-column data table with No Lunch pills · centered MASCI/ForgedOps footer
+- iPad portrait 820×1180: identical clean layout
+- Screen mode: Export CSV and Print Report buttons both intact (testid=1)
+
+### Doctrine adherence
+- One file edited · zero backend / schema / data / permission / screen-layout changes
+- Pre-existing ESLint warnings on lines 83, 85 confirmed pre-existing · left untouched per OMEGA
+
+### Tests 14/14 PASS
+One page · upright · no HR-Hub nav · no orange banner · no duplicated screen title · no grid background · MASCI visible · ForgedOps visible · totals/table/flags readable · footer compact · CSV still works · iPad OK.
+
+### Deliverable
+- `/app/memory/HR_TIME_001C_FINAL_PRINT_CLEANUP_CERTIFICATION.md`
+- `/app/memory/PRD.md` updated
+
+🛑 **STOP CONDITION OBSERVED.** Deploy ready.
+
+
+
 ## 2026-02-09 (HR-TIME-001B · TIME VERIFICATION PRINT LAYOUT FIX + FORGEDOPS BRANDING · CERTIFIED 🟢)
 
 P0 print-layout-only fix correcting HR-TIME-001's sideways/rotated/blank-second-page output. Added ForgedOps platform credit per addendum.
