@@ -37342,3 +37342,34 @@ No fuzzy matching · no auto-mapping · no auto-correction · no auto-merge · n
 ### OMEGA invariants honoured
 No resolver / detector / conflict-creation logic touched · no auto-resolution · no auto-mapping · no jobs_master mutation · no historical record changes · no record deletes · no module sources hidden (cert/test tier still visible, just sorted last) · no Daily Reports / Job Photos / Payroll / Dispatch / Motive / FleetWatcher / Material Movement touched.
 
+
+---
+
+## DEPLOY-CERT-001 · Full Platform Pre-Production Operational Certification (2026-06-09)
+
+**Type:** DEPLOYMENT CERTIFICATION · OMEGA · P0  
+**Status:** COMPLETE  
+**Verdict:** 🟡 **CONDITIONAL PASS**
+
+**Deliverables:**
+- `/app/memory/DEPLOY_CERT_001_EXECUTIVE_SUMMARY.md`
+- `/app/memory/DEPLOY_CERT_001_DEFECT_REGISTER.md`
+- `/app/memory/DEPLOY_CERT_001_RISK_REGISTER.md`
+- `/app/memory/DEPLOY_CERT_001_RELEASE_RECOMMENDATION.md`
+- `/app/memory/DEPLOY_CERT_001_EVIDENCE_LOG.md`
+- `/app/memory/DEPLOY_CERT_001_MODULE_CERTIFICATION_MATRIX.md`
+
+### Headline
+Live runtime is healthy. PROJECT-IDENTITY deployment-blocker (5/5) GREEN. Frontend tests 74/74. All critical APIs respond 200 with valid auth and 401 without. Integration health (Mongo, R2, Resend, Emergent LLM) GREEN; MaintainX + Motive intentionally MOCKED. Backups operationally healthy (last successful complete-r2 = 2026-05-31; scheduler next fire 2026-06-15). DB integrity sound across prod and preview.
+
+### Defect Counts
+P0=0 · P1=1 (P1-01 · backup-writer orphan `.tmp.<hash>` cleanup) · P2=4 (stale HR portal fixture, stale DR DELETE-410 tests, deferred Phase 2 seed test, backup recency hygiene) · P3=~6 (cosmetic CSS warnings + pre-existing MCP-only lint hits).
+
+### Decision Required
+Per OMEGA, deployment requires either:
+- **Path A** · Authorize a focused 1-2 hr remediation sprint (DEPLOY-FIX-001) addressing P1-01 + the three stale fixtures, then deploy.
+- **Path B** · Owner written acceptance of P1-01 deferral with pre-deploy ops runbook entry, plus written acceptance of P2-01/02/03 fixture staleness.
+
+### OMEGA Invariants honoured
+No code modified · no schema changed · no data mutated · only operational cleanup performed was removal of three abandoned `.tmp.<hash>` backup files (1.5 GB) and a backend supervisor restart to release deleted file handles (disk reclaimed 100% → 86%). No FleetWatcher / Dispatch Automation / Material Movement / Motive touched.
+
