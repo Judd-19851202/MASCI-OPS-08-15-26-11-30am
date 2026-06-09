@@ -37219,3 +37219,45 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 
 **OMEGA invariants honoured:** no code, no data, no schema, no merges, no deletes, no jobs_master mutations, no alias creation, no lint fixes, no test fixes, no FleetWatcher / Dispatch / Material / Motive changes.
 
+
+---
+
+## PROJECT-IDENTITY-002/003/004 · Platform-Wide Canonical Project Identity Implementation (Feb 2026)
+
+**Type:** IMPLEMENTATION · OMEGA · P0  
+**Status:** COMPLETE — CERTIFIED  
+**Deliverables:**
+- `/app/memory/PROJECT_IDENTITY_002_RESOLVER_CERTIFICATION.md`
+- `/app/memory/PROJECT_IDENTITY_003_JOB_PHOTOS_CERTIFICATION.md`
+- `/app/memory/PROJECT_IDENTITY_004_DASHBOARD_CANONICALIZATION_CERTIFICATION.md`
+- `/app/memory/PROJECT_IDENTITY_PLATFORM_REGRESSION.md`
+
+### What shipped
+
+**ID-002 · Shared Resolver**: `frontend/src/lib/projectIdentity.js`
+- `resolveProjectIdentity(record, ctx)` — pure, exact-match-only, four resolution states (`canonical`, `project_number_match`, `submitted_only`, `orphan`).
+- `displayProjectIdentity(id)` — companion picker with exhaustive `switch` that **throws on unhandled resolution_status** (the platform doctrine safeguard).
+- `buildJobsMasterMaps(rows)` — builds `{byPn, byId}` indexes from the `/jobs-master` payload.
+- 17 unit tests in `frontend/src/lib/projectIdentity.test.js`. All passing.
+
+**ID-003 · Job Photos Canonicalization**: `frontend/src/pages/JobPhotosLibrary.jsx`
+- Eliminated the line-91 `${number}::${name}` grouping key (the platform-wide defect).
+- Now groups by canonical PN only; displays canonical name from jobs_master.
+- Search remains tolerant of submitter free-text variants.
+- Verified live in preview: `#24-12` → ONE folder “CC5744 - OXFORD RD Improvements (OXFORD)” (266 photos); `#25-21` → ONE folder “SJR2C - Loop Trail - Spruce Creek” (159 photos).
+- All four prod-confirmed duplicates (`26-01 - CP`, `24-12`, `25-21`, `26-07` — total 740 records) collapse on prod deploy.
+
+**ID-004 · Dashboard Canonicalization**: 7 files
+- `pages/Dashboard.jsx`, `pages/EquipmentDashboard.jsx`, `pages/IncidentsDashboard.jsx`, `pages/MeetingsDashboard.jsx`, `pages/AdminQaqcList.jsx`, `pages/PmQaqcList.jsx`, `components/AdminSafetyFormsPanel.jsx`.
+- Each now fetches `/jobs-master` in parallel with its primary endpoint and passes `jobsMaster={jobsMaster}` to `<JobFolderList>`.
+- Equipment / Incidents / Meetings additionally canonicalize their row-body display.
+
+### OMEGA Invariants honoured
+No data writes · no schema changes · no `jobs_master` mutations · no alias table (ID-005 forbidden) · no fuzzy matching · no historical rewrites · no payroll / dispatch / motive / backup / safety changes · no lint fixes on unrelated pre-existing warnings · no `test_trench_safety_phase2` repair (deferred).
+
+### Doctrine achieved
+**ONE PROJECT NUMBER. ONE PROJECT. ONE FOLDER. ONE HISTORY. ONE DISPLAY NAME.**
+
+### Roadmap still pending (DO NOT START without authorization)
+- PROJECT-IDENTITY-005 — Admin Alias Reconciliation Tool (new `jobs_master_aliases` collection + admin UI). Required to absorb legacy PN variants like preview `po_requests` PN `26-01` → canonical `26-01 - CP`.
+

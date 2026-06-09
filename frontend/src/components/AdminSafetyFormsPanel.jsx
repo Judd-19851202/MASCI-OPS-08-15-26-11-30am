@@ -39,6 +39,22 @@ export default function AdminSafetyFormsPanel() {
   });
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
+
+  // Load canonical jobs_master once on mount.
+  useEffect(() => {
+    api
+      .get("/jobs-master")
+      .then((r) => {
+        const map = {};
+        for (const j of (r.data || [])) {
+          const pn = (j.project_number || "").trim();
+          if (pn) map[pn] = j.project_name || "";
+        }
+        setJobsMaster(map);
+      })
+      .catch(() => {});
+  }, []);
 
   const apiBase =
     tab === "issuance"
@@ -237,6 +253,7 @@ export default function AdminSafetyFormsPanel() {
             }))}
             dateField="_sf_date"
             testIdPrefix={`admin-sf-folders-${tab}`}
+            jobsMaster={jobsMaster}
             renderItem={(row) => {
               const date = tab === "issuance" ? row.issued_date : row.training_date;
               return (

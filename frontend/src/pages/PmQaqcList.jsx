@@ -43,6 +43,7 @@ export default function PmQaqcList() {
   const [err, setErr] = useState(null);
   const [kindFilter, setKindFilter] = useState("");
   const [q, setQ] = useState("");
+  const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
 
   // Load active PM roster (public endpoint).
   useEffect(() => {
@@ -50,6 +51,18 @@ export default function PmQaqcList() {
       .get("/project-managers")
       .then((r) => setPms(r.data?.items || []))
       .catch(() => setPms([]));
+    // PROJECT-IDENTITY-004 · canonical map for folder display
+    api
+      .get("/jobs-master")
+      .then((r) => {
+        const map = {};
+        for (const j of (r.data || [])) {
+          const pn = (j.project_number || "").trim();
+          if (pn) map[pn] = j.project_name || "";
+        }
+        setJobsMaster(map);
+      })
+      .catch(() => {});
   }, []);
 
   // Load filtered records whenever the picked PM changes.
@@ -215,6 +228,7 @@ export default function PmQaqcList() {
                   items={filtered}
                   dateField="inspection_date"
                   testIdPrefix="pm-qaqc-folders"
+                  jobsMaster={jobsMaster}
                   renderItem={(r) => (
                     <Link
                       to={`/qaqc/${r.id}`}

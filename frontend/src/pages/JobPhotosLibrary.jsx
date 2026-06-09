@@ -21,6 +21,11 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import {
+  buildJobsMasterMaps,
+  resolveProjectIdentity,
+  displayProjectIdentity,
+} from "@/lib/projectIdentity";
 
 /**
  * <JobPhotosLibrary>
@@ -59,11 +64,19 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
   const [thumbCache, setThumbCache] = useState({}); // id -> data_url
   const [lightboxId, setLightboxId] = useState(null);
   const [busy, setBusy] = useState(false);
+  // PROJECT-IDENTITY-003 · canonical jobs_master maps for read-time resolution
+  const [jmMaps, setJmMaps] = useState({ byPn: {}, byId: {} });
 
-  // Load metadata
+  // Load metadata + canonical jobs_master in parallel
   useEffect(() => {
-    api.get("/job-photos").then(
-      (res) => setItems(res.data.items || []),
+    Promise.all([
+      api.get("/job-photos"),
+      api.get("/jobs-master").catch(() => ({ data: [] })),
+    ]).then(
+      ([res, jm]) => {
+        setItems(res.data.items || []);
+        setJmMaps(buildJobsMasterMaps(jm.data || []));
+      },
       () => {
         toast.error(t("Failed to load photos"));
         setItems([]);
@@ -72,25 +85,68 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
   }, [t]);
 
   // Group: jobKey -> { number, name, weeks: { weekTag -> [items] } }
+  // PROJECT-IDENTITY-003 · grouping key is canonical project_number ONLY.
+  // Display name comes from resolveProjectIdentity() — canonical when
+  // jobs_master has the PN, submitted otherwise. One PN = one folder.
   const folders = useMemo(() => {
     const map = new Map();
     const q = filter.search.trim().toLowerCase();
     for (const it of items || []) {
       if (filter.source && it.source !== filter.source) continue;
-      if (
-        q &&
-        !(
-          (it.project_name || "").toLowerCase().includes(q) ||
-          (it.project_number || "").toLowerCase().includes(q) ||
-          (it.submitter || "").toLowerCase().includes(q)
-        )
-      )
-        continue;
-      const number = (it.project_number || "—").trim();
-      const name = (it.project_name || t("(No Job)")).trim();
-      const key = `${number}::${name}`;
-      if (!map.has(key))
-        map.set(key, { key, number, name, weeks: new Map(), latest: null });
+
+      const identity = resolveProjectIdentity(it, {
+        jobsMasterByPn: jmMaps.byPn,
+        jobsMasterById: jmMaps.byId,
+      });
+      const display = displayProjectIdentity(identity, {
+        orphanLabel: t("(No Job)"),
+        submittedFallbackPrefix: t("Unmatched Project"),
+      });
+
+      // Search filter — match against canonical AND submitted AND submitter,
+      // so users can still find a photo by typing the free-text name a
+      // submitter once used (the row still carries it).
+      if (q) {
+        const hay = `${display.name} ${display.number} ${
+          identity.submitted_project_name || ""
+        } ${identity.submitted_project_number || ""} ${
+          it.submitter || ""
+        }`.toLowerCase();
+        if (!hay.includes(q)) continue;
+      }
+
+      // PROJECT-IDENTITY-003 · folder key is canonical PN only.
+      // canonical / project_number_match → canonical_project_number
+      // submitted_only                   → submitted_project_number
+      // orphan                           → __ORPHAN__ bucket
+      let key;
+      switch (identity.resolution_status) {
+        case "canonical":
+        case "project_number_match":
+          key = identity.canonical_project_number;
+          break;
+        case "submitted_only":
+          key = identity.submitted_project_number;
+          break;
+        case "orphan":
+          key = "__ORPHAN__";
+          break;
+        default:
+          // Doctrine safeguard — see displayProjectIdentity().
+          throw new Error(
+            `JobPhotosLibrary: unhandled resolution_status "${identity.resolution_status}"`
+          );
+      }
+
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          number: display.number,
+          name: display.name,
+          weeks: new Map(),
+          latest: null,
+        });
+      }
       const folder = map.get(key);
       const week = it.week_of || "unknown-week";
       if (!folder.weeks.has(week)) folder.weeks.set(week, []);
@@ -113,7 +169,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
       a.latest && b.latest ? (a.latest < b.latest ? 1 : -1) : 0
     );
     return arr;
-  }, [items, filter, t]);
+  }, [items, filter, t, jmMaps]);
 
   const total = items?.length || 0;
 
@@ -478,15 +534,31 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
       )}
 
       {/* Lightbox — uses full-resolution /raw, not the small /thumb */}
-      {lightboxId && (
-        <Lightbox
-          id={lightboxId}
-          src={thumbCache[`full:${lightboxId}`]}
-          meta={(items || []).find((i) => i.id === lightboxId)}
-          onClose={() => setLightboxId(null)}
-          onLoad={() => ensureFullSrc(lightboxId)}
-        />
-      )}
+      {lightboxId && (() => {
+        const meta = (items || []).find((i) => i.id === lightboxId);
+        const identity = meta
+          ? resolveProjectIdentity(meta, {
+              jobsMasterByPn: jmMaps.byPn,
+              jobsMasterById: jmMaps.byId,
+            })
+          : null;
+        const display = identity
+          ? displayProjectIdentity(identity, {
+              orphanLabel: t("(No Job)"),
+              submittedFallbackPrefix: t("Unmatched Project"),
+            })
+          : null;
+        return (
+          <Lightbox
+            id={lightboxId}
+            src={thumbCache[`full:${lightboxId}`]}
+            meta={meta}
+            display={display}
+            onClose={() => setLightboxId(null)}
+            onLoad={() => ensureFullSrc(lightboxId)}
+          />
+        );
+      })()}
 
       {/* Email dialog */}
       {emailDialog && (
@@ -661,7 +733,7 @@ function PhotoTile({ photo, src, selected, onToggle, onZoom }) {
   );
 }
 
-function Lightbox({ src, meta, onClose, onLoad }) {
+function Lightbox({ src, meta, display, onClose, onLoad }) {
   useEffect(() => {
     onLoad();
     const onEsc = (e) => e.key === "Escape" && onClose();
@@ -714,7 +786,9 @@ function Lightbox({ src, meta, onClose, onLoad }) {
         {meta && (
           <div className="mt-3 text-white/90 text-sm font-mono text-center">
             <div className="font-bold">
-              #{meta.project_number} · {meta.project_name}
+              {display
+                ? `#${display.number} · ${display.name}`
+                : `#${meta.project_number} · ${meta.project_name}`}
             </div>
             <div className="text-white/60 text-xs mt-1">
               {SOURCE_LABELS[meta.source] || meta.source} · {meta.record_date} ·{" "}

@@ -26,9 +26,22 @@ export default function AdminQaqcList() {
   const [kindFilter, setKindFilter] = useState("");
   const [q, setQ] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
 
   useEffect(() => {
-    api.get("/qaqc-inspections").then((r) => setRows(r.data))
+    Promise.all([
+      api.get("/qaqc-inspections"),
+      api.get("/jobs-master").catch(() => ({ data: [] })),
+    ])
+      .then(([r, jm]) => {
+        setRows(r.data);
+        const map = {};
+        for (const j of (jm.data || [])) {
+          const pn = (j.project_number || "").trim();
+          if (pn) map[pn] = j.project_name || "";
+        }
+        setJobsMaster(map);
+      })
       .catch((e) => setErr(e?.response?.data?.detail || "Failed to load"))
       .finally(() => setLoading(false));
   }, []);
@@ -124,6 +137,7 @@ export default function AdminQaqcList() {
               items={filtered}
               dateField="inspection_date"
               testIdPrefix="qaqc-folders"
+              jobsMaster={jobsMaster}
               renderItem={(r) => (
                 <Link
                   to={`/qaqc/${r.id}`}

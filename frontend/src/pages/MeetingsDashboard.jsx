@@ -21,6 +21,7 @@ export default function MeetingsDashboard() {
   const t = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const hubHome = useHubHome();
@@ -28,8 +29,17 @@ export default function MeetingsDashboard() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/meetings");
+      const [res, jm] = await Promise.all([
+        api.get("/meetings"),
+        api.get("/jobs-master").catch(() => ({ data: [] })),
+      ]);
       setItems(res.data || []);
+      const map = {};
+      for (const j of (jm.data || [])) {
+        const pn = (j.project_number || "").trim();
+        if (pn) map[pn] = j.project_name || "";
+      }
+      setJobsMaster(map);
     } catch {
       toast.error("Could not load meetings");
     } finally {
@@ -130,6 +140,7 @@ export default function MeetingsDashboard() {
               items={items}
               dateField="meeting_date"
               testIdPrefix="meeting-folders"
+              jobsMaster={jobsMaster}
               renderItem={(it) => (
                 <div
                   onClick={() => navigate(`${pathname}/${it.id}`)}
@@ -148,7 +159,7 @@ export default function MeetingsDashboard() {
                       )}
                     </div>
                     <div className="text-sm text-slate-600 mt-1">
-                      {it.project_name || "—"} · Conducted by: {it.conducted_by || "—"}
+                      {(jobsMaster[((it.project_number || "").trim())] || it.project_name || "—")} · Conducted by: {it.conducted_by || "—"}
                     </div>
                     <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-1">
                       {formatDateLong(it.meeting_date)} · {it.attendee_count || 0} attendee

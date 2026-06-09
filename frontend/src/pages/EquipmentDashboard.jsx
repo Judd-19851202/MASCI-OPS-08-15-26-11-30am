@@ -16,6 +16,7 @@ import { toast } from "sonner";
 export default function EquipmentDashboard() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const hubHome = useHubHome();
@@ -33,8 +34,17 @@ export default function EquipmentDashboard() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/equipment-inspections");
+      const [res, jm] = await Promise.all([
+        api.get("/equipment-inspections"),
+        api.get("/jobs-master").catch(() => ({ data: [] })),
+      ]);
       setItems(res.data || []);
+      const map = {};
+      for (const j of (jm.data || [])) {
+        const pn = (j.project_number || "").trim();
+        if (pn) map[pn] = j.project_name || "";
+      }
+      setJobsMaster(map);
     } catch {
       toast.error("Could not load equipment inspections");
     } finally {
@@ -166,6 +176,7 @@ export default function EquipmentDashboard() {
               items={items}
               dateField="inspection_date"
               testIdPrefix="equipment-folders"
+              jobsMaster={jobsMaster}
               renderItem={(it) => {
                 const fail = (it.fail_count || 0) > 0;
                 const cleared = it.cleared || (fail && (it.signoff_count || 0) >= it.fail_count);
@@ -194,7 +205,7 @@ export default function EquipmentDashboard() {
                         )}
                       </div>
                       <div className="text-sm text-slate-600 mt-1">
-                        {it.project_name || "—"} {it.project_number ? `· #${it.project_number}` : ""} · Operator: {it.operator_name || "—"}
+                        {(jobsMaster[((it.project_number || "").trim())] || it.project_name || "—")} {it.project_number ? `· #${it.project_number}` : ""} · Operator: {it.operator_name || "—"}
                       </div>
                       <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-1">
                         {formatDateLong(it.inspection_date)} · {it.location || "—"}

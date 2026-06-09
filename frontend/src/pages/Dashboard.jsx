@@ -35,6 +35,7 @@ const StatPill = ({ icon: Icon, value, label, tone = "slate" }) => {
 export default function Dashboard() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const hubHome = useHubHome();
@@ -42,8 +43,17 @@ export default function Dashboard() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/inspections");
+      const [res, jm] = await Promise.all([
+        api.get("/inspections"),
+        api.get("/jobs-master").catch(() => ({ data: [] })),
+      ]);
       setItems(res.data || []);
+      const map = {};
+      for (const j of (jm.data || [])) {
+        const pn = (j.project_number || "").trim();
+        if (pn) map[pn] = j.project_name || "";
+      }
+      setJobsMaster(map);
     } catch (e) {
       toast.error("Could not load inspections");
     } finally {
@@ -169,6 +179,7 @@ export default function Dashboard() {
               items={items}
               dateField="inspection_date"
               testIdPrefix="inspection-folders"
+              jobsMaster={jobsMaster}
               renderItem={(it) => {
                 const flagged = it.hazards_observed === "Yes" || it.stop_work_issued === "Yes";
                 const grade = it.score != null

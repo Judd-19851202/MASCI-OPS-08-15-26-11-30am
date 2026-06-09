@@ -23,6 +23,7 @@ const severityOf = (key) =>
 export default function IncidentsDashboard() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const hubHome = useHubHome();
@@ -30,8 +31,17 @@ export default function IncidentsDashboard() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/incidents");
+      const [res, jm] = await Promise.all([
+        api.get("/incidents"),
+        api.get("/jobs-master").catch(() => ({ data: [] })),
+      ]);
       setItems(res.data || []);
+      const map = {};
+      for (const j of (jm.data || [])) {
+        const pn = (j.project_number || "").trim();
+        if (pn) map[pn] = j.project_name || "";
+      }
+      setJobsMaster(map);
     } catch {
       toast.error("Could not load incidents");
     } finally {
@@ -151,6 +161,7 @@ export default function IncidentsDashboard() {
               items={items}
               dateField="incident_date"
               testIdPrefix="incident-folders"
+              jobsMaster={jobsMaster}
               renderItem={(it) => {
                 const sev = severityOf(it.severity);
                 return (
@@ -185,7 +196,7 @@ export default function IncidentsDashboard() {
                         </span>
                       </div>
                       <div className="text-sm text-slate-600 mt-1">
-                        {it.project_name || "—"}
+                        {(jobsMaster[((it.project_number || "").trim())] || it.project_name || "—")}
                         {it.person_name ? ` · Involved: ${it.person_name}` : ""}
                       </div>
                       <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-1">
