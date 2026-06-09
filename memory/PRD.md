@@ -1,3 +1,40 @@
+## 2026-02-09 (BACKUP-AUDIT-001 · BACKUP VERIFICATION FORENSIC INVESTIGATION · DELIVERED 🟢)
+
+Audit-only sprint. Zero code changes. Definitive root cause for the recurring "WARNING — No successful full backup recorded in last 20 runs" verification email despite R2 holding 1,750 archives and 167 GB of healthy hourly backups.
+
+### ROOT CAUSE (single sentence)
+`backup_verification.py::build_verification_report` line 196 sets `last_full` only when `mode in ("full","lite")`. The actual production R2 backup writer (`_run_complete_archive_to_r2`, server.py:6515) records `mode="complete-r2"` — which the verifier excludes. Combined with the hourly cadence (2 rows/hr fills the 20-row window in 10 hours) and the OOM watermark auto-downgrading the disk pipeline to lite-mode (zero `full` rows in 30 days), the verifier rarely sees a `lite` row in its window and emits the warning despite a fully-healthy backup pipeline.
+
+### Verdict matrix (per directive A–E)
+- ✅ A. Backup system is healthy and reporting is wrong (PRIMARY)
+- ✅ C. Success state is not being recorded as the verifier expects (SECONDARY)
+- ✅ E. Disk-based and R2-based pipelines are definitionally out of sync at the verifier layer (TERTIARY)
+
+### Live evidence captured at audit time
+- R2 prefix `backups/`: **1,750 archives · 167.03 GB** · newest **0.0h old**
+- Production DB last 20 rows: 10× `complete-r2` + 10× `r2-usage-alert` · **0× `full|lite`**
+- 30-day mode distribution: `complete-r2` × 95 · `r2-usage-alert` × 95 · `lite` × 8 · `full` × 0 · `complete-r2-error` × 1
+- Restore drill DBs alive on same cluster: `masci_restore_drill_2026_05_30` (123 collections) + `masci_restore_drill_auto_20260601_015003` (73 collections, 10,162 audit_events) → restore path proven
+
+### Operational Risk Assessment
+🟢 **GREEN.** Backups are working. **If production died right now: YES, MASCI can be restored.** RPO ≤ 1 hour · RTO ≤ 30 min.
+
+### Deliverables
+- `/app/memory/BACKUP_AUDIT_001_FORENSIC_REPORT.md` (Q1–Q10 with evidence)
+- `/app/memory/BACKUP_AUDIT_001_TIMELINE.md` (30-day chronology + warning recurrence math)
+- `/app/memory/BACKUP_AUDIT_001_ARCHITECTURE.md` (7-component inventory + diagram + env vars + bug-location pinpoint)
+- `/app/memory/BACKUP_AUDIT_001_RISK_ASSESSMENT.md` (risk matrix · restore feasibility · residual risk inventory)
+
+### Three remediation options described (NOT IMPLEMENTED — await authorization)
+- Option α · widen verifier whitelist to include `"complete-r2"`
+- Option β · rename writer mode (would break 95-row historical audit comparability)
+- Option γ · introduce tier-aware ledger doctrine
+
+### STOP CONDITION OBSERVED
+No code changes performed. No fixes pushed. No improvements proposed beyond the 3 options listed for situational awareness. Operator must explicitly authorize remediation as a follow-up sprint.
+
+
+
 ## 2026-02-09 (MOTIVE-DATA-003 · OPERATIONAL IMPACT COMMAND CARD · CERTIFIED 🟢)
 
 OMEGA MOTIVE-DATA-003 sprint closed. Single 30-second-answer card at the top of `/admin/asset-mapping` that tells an Operations Manager: Are we ready? · What's blocking us? · What to fix first? · What happens if we fix it? Read-only visibility · zero automation · zero new collections.
