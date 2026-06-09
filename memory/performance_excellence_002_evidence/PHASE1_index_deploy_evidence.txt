@@ -1,0 +1,67 @@
+=== PROD DB: masci_safety @ 2026-06-09T21:49:40Z ===
+
+--- BEFORE explain ---
+  daily_reports(id): stages=['COLLSCAN'] docs=115 keys=0 ms=0
+  daily_reports(doc_id): stages=['COLLSCAN'] docs=115 keys=0 ms=0
+  job_photos(id): stages=['COLLSCAN'] docs=789 keys=0 ms=0
+  motive_events(id): stages=['COLLSCAN'] docs=1800 keys=0 ms=1
+  motive_events([('event_family', 1), ('event_at', 1)]): stages=['FETCH', 'IXSCAN'] docs=1620 keys=1620 ms=3
+  directory_sessions(token): stages=['COLLSCAN'] docs=1949 keys=0 ms=1
+  integration_sync_logs([('integration', 1), ('status', 1), ('started_at', -1)]): stages=['LIMIT', 'FETCH', 'IXSCAN'] docs=41263 keys=41263 ms=98
+
+--- create_index (idempotent) ---
+  daily_reports.create_index(id) → id_1
+  daily_reports.create_index(doc_id) → doc_id_1
+  job_photos.create_index(id) → id_1
+  motive_events.create_index(id) → id_1
+  motive_events.create_index([('event_family', 1), ('event_at', 1)]) → event_family_1_event_at_1
+  directory_sessions.create_index(token) → token_1
+  integration_sync_logs.create_index([('integration', 1), ('status', 1), ('started_at', -1)]) → integration_1_status_1_started_at_-1
+
+--- AFTER explain ---
+  daily_reports(id): stages=['FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+  daily_reports(doc_id): stages=['FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+  job_photos(id): stages=['FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+  motive_events(id): stages=['FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+  motive_events(compound): stages=['FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+  directory_sessions(token): stages=['FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+  integration_sync_logs(compound): stages=['LIMIT', 'FETCH', 'IXSCAN'] docs=0 keys=0 ms=1
+
+--- final index inventory for affected collections ---
+  daily_reports:
+    _id_: [('_id', 1)] 
+    created_at_1: [('created_at', 1)] 
+    report_date_1: [('report_date', 1)] 
+    project_number_1: [('project_number', 1)] 
+    report_date_-1: [('report_date', -1)] 
+    lifecycle_state_1: [('lifecycle_state', 1)] 
+    id_1: [('id', 1)] 
+    doc_id_1: [('doc_id', 1)] 
+  job_photos:
+    _id_: [('_id', 1)] 
+    project_number_1: [('project_number', 1)] 
+    project_number_1_week_of_-1: [('project_number', 1), ('week_of', -1)] 
+    source_1_source_id_1: [('source', 1), ('source_id', 1)] 
+    governance.tags_1: [('governance.tags', 1)] 
+    id_1: [('id', 1)] 
+  motive_events:
+    _id_: [('_id', 1)] 
+    event_at_1: [('event_at', 1)] 
+    id_1: [('id', 1)] 
+    event_family_1_event_at_1: [('event_family', 1), ('event_at', 1)] 
+  directory_sessions:
+    _id_: [('_id', 1)] 
+    token_1: [('token', 1)] 
+  integration_sync_logs:
+    _id_: [('_id', 1)] 
+    started_at_1: [('started_at', 1)] 
+    integration_1: [('integration', 1)] 
+    integration_1_status_1_started_at_-1: [('integration', 1), ('status', 1), ('started_at', -1)] 
+
+--- data counts unchanged ---
+  masci_safety.daily_reports: 115
+  masci_safety.job_photos: 789
+  masci_safety.employees: 262
+  masci_safety.motive_events: 1800
+  masci_safety.integration_sync_logs: 41263
+  masci_safety.directory_sessions: 1949
