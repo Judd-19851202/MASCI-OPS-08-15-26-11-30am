@@ -1,3 +1,37 @@
+## 2026-02-09 (DR-JOB-001 · CANONICAL DAILY REPORT JOB GROUPING AUDIT · DELIVERED 🔴 FAIL)
+
+Audit-only sprint. Zero code changes. Definitive diagnosis of why the DR hub shows duplicate / dirty job buckets.
+
+### Root cause (one line)
+`/app/frontend/src/components/JobFolderList.jsx:48` builds the grouping key as `project_number + "::" + project_name`. Same project_number with different free-text name strings creates duplicate folders. `jobs_master` exists but is never consulted by the DR hub.
+
+### Production-DB evidence (`masci_safety`)
+- 4 production project_numbers each generate 2 folders today: `26-01 - CP` (Corbin park / NSB Corbin Park Stormwater Improvements) · `24-12` (Oxford coping / CC5744 - OXFORD RD Improvements) · `25-21` (Loop trail / SJR2C - Loop Trail - Spruce Creek) · `26-07` (University high school / University High Parent Loop Ext)
+- Cert/test pollution in prod: `_PROD_CERT_DO_NOT_USE / PROD-POST-DEPLOY-CERT-SMOKE` + `(empty) / PROD-ORPHAN-CORNER-VERIFY`
+- 24 of 28 prod DR project_numbers are NOT in `jobs_master` — canonical registry under-populated relative to active jobs
+
+### Verdict
+🔴 **FAIL** — current DR hub groups by submitter free-text, surfaces cert/test reports in operational view, ignores canonical jobs_master.
+
+### Build plan delivered
+- **DR-JOB-002** Canonical Grouping Fix (~80 lines): read-time join to jobs_master, group by `canonical_project_number`, display `canonical_project_name`, preserve historical submitted name in detail page only
+- **DR-JOB-003** Cert Pollution Visibility Tier (~20 lines): conservative matcher (`TEST`/`PROD-`/`_PROD_CERT_`/etc) routes cert rows to admin-only `?show=cert` filter — never auto-archive, never auto-delete
+- **DR-JOB-004** Admin Alias Reconciliation (optional ~150 lines): UI to pre-populate jobs_master from observed unmapped DR project_numbers
+
+### Doctrine recommendation
+Daily Reports keep submitted text as historical snapshot · canonical fields (canonical_project_number / canonical_project_name / jobs_master_id) are **derived at read time**, never persisted · historical body stays frozen.
+
+### Risk assessment
+HIGH if historical bodies are mutated (mitigated by doctrine §6) · MEDIUM if cert matcher hides legitimate rows (mitigated by conservative prefix matching + `?show=cert` audit path) · LOW everywhere else.
+
+### Deliverable
+- `/app/memory/DR_JOB_001_CANONICAL_GROUPING_AUDIT.md` (12 sections: root cause, code path, canonical source, duplicate matrix, pollution list, doctrine, DR-JOB-002/003/004 scopes, risk, verdict)
+- `/app/memory/PRD.md` updated
+
+🛑 **STOP CONDITION OBSERVED.** No code changes. Awaiting authorization for DR-JOB-002 (and optionally DR-JOB-003/004).
+
+
+
 ## 2026-02-09 (HR-TIME-001E · FINAL EXECUTIVE PRINT REPORT LOCK · CERTIFIED 🟢)
 
 P0 final design lock completing the HR-TIME-001 series. Time Verification print output is now executive-review quality and locked.
