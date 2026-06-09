@@ -1,0 +1,14 @@
+HTTP/2 405 
+date: Tue, 09 Jun 2026 19:44:35 GMT
+content-type: application/json
+content-length: 31
+cf-ray: a092a1b23967706b-ORD
+cf-cache-status: DYNAMIC
+allow: GET
+server: cloudflare
+via: 1.1 google
+set-cookie: __cf_bm=3HikSxxwAlmekwGSV9iyDEjWBMkzgSz8nOPlUcmDGaY-1781034273.6332812-1.0.1.1-gIhQtt50wAgj1WxW8gXyXKeaUFi1u06mCeU4o8iqSPV8QOAz2seTxZqHi.5ggw5FpvERdFjdkkqSwnfHEIvJYfeGiulZQvjzkO9EZqgiENsHWo1LUqd.AKQ507eQH92M; HttpOnly; SameSite=None; Secure; Path=/; Domain=mascidocs.com; Expires=Tue, 09 Jun 2026 20:14:35 GMT
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=63072000; includeSubDomains; preload
+x-content-type-options: nosniff
+

@@ -37763,3 +37763,41 @@ No FleetWatcher / Dispatch Automation / Material Movement / MaintainX / ID-007 /
 - Curl smoke against 7 endpoints — all expected codes
 - Frontend smoke screenshot — clean landing page
 - All 5 indexes verified via `explain("executionStats")` BEFORE→AFTER
+
+
+---
+
+## PROD-STABILIZE-001 · Live Production Stabilization Audit (2026-06-09 19:47 UTC)
+
+**Type:** OMEGA · P0 · Read-only · Evidence-first
+**Verdict:** 🟡 **CONDITIONAL PASS** — production externally healthy; authenticated flows deferred to operator runbook.
+
+**Deliverables:**
+- `/app/memory/PROD_STABILIZE_001_CERTIFICATION.md`
+- `/app/memory/PROD_STABILIZE_001_PHASE_1_MOTIVE.md`
+- `/app/memory/PROD_STABILIZE_001_PHASE_2_WEBHOOK.md`
+- `/app/memory/PROD_STABILIZE_001_PHASE_3_QUEUE.md`
+- `/app/memory/PROD_STABILIZE_001_PHASE_4_5_DATA.md`
+- `/app/memory/PROD_STABILIZE_001_PHASE_6_PERFORMANCE.md`
+- `/app/memory/prod_stabilize_001_evidence/*.{txt,json}` — raw curl captures
+
+### Externally-verified PROD signals (live · GREEN)
+- TLS valid · HSTS preload · Cloudflare edge · `/api/health` 200 in 174 ms mean
+- `/api/version` reports `app_env=production`, `db_name=masci_safety`, uptime 4,519s, source_hash `7f68853f…`
+- 28 jobs in `/api/jobs-master` · zero contamination strings matched
+- Motive webhook: 401 "Invalid webhook signature" on bad sig (**proves secret IS configured**)
+- MaintainX webhook: 503 "awaiting_credentials" with exact playbook message (**proves credential monitor functions**)
+- Resiliency queue: 7/7 jest tests PASS (idempotency, retry-all, no-dup, queue-clear)
+- Auth gate: 8/8 admin endpoints return 401 to unauthenticated probes
+- Performance: /api/jobs-master mean 164 ms (Mongo path · 28 docs)
+
+### Defect counts
+- P0 = 0 · P1 = 0 · P2 = 1 (auth-flow certification gap — operator-only) · P3 = 2 (commit=unknown, pre-existing ruff advisories)
+
+### Operator runbook (closes 🟡 → 🟢)
+6 of 10 Motive items + 6 of 7 data-integrity items require operator login at `https://mascidocs.com/admin/login` to capture authenticated dashboard counts. Detailed in `PROD_STABILIZE_001_CERTIFICATION.md` § 8.
+
+### OMEGA invariants honoured
+✅ No production data modified · No code modified · No deploy triggered · No new features started · No FleetWatcher/Dispatch/Material/MaintainX/ID-007 work · Read-only audit only.
+
+**STOPPED AT CERTIFICATION** as directed. Awaiting operator authorization.
