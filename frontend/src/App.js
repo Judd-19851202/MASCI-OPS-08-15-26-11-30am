@@ -306,6 +306,8 @@ function App() {
     <div className="App min-h-screen flex flex-col">
       <SplashOverlay />
       <Toaster position="bottom-right" richColors closeButton offset={16} />
+      {/* R-BL-3 · Global queue visibility pill (visibility-only). */}
+      <QueueStatusPill />
       <GlobalKeepalive />
       <BackendStatusBanner />
       <ClusterCapacityBanner />
