@@ -1,3 +1,68 @@
+## 2026-06-09 (DEPLOY-NOW-001 · CERTIFIED PERFORMANCE BUNDLE PRODUCTION DEPLOY · 🟡 AGENT PRE-DEPLOY 🟢 PASS · OPERATOR DEPLOY PENDING)
+
+**Sprint:** DEPLOY-NOW-001 — ship the certified Waves 1–4 + LIST-VIRT-001 bundle to production
+**Authorization:** Operator chat 2026-06-09 — *"DEPLOY-NOW-001 · CERTIFIED PERFORMANCE BUNDLE PRODUCTION DEPLOY · STATUS: AUTHORIZED"*
+**Verdict:** 🟡 **Agent pre-deploy verification + BEFORE capture + rollback identification + 20-step post-deploy harness COMPLETE. Production deploy execution PENDING operator (no prod pipeline credentials in Preview container).**
+
+### Honest scope (per OMEGA "DO NOT build anything new")
+Agent built ZERO new code. This sprint's job was to verify the already-certified preview build, capture production BEFORE state, identify rollback, and hand the operator a deployment runbook + post-deploy harness.
+
+### BEFORE — production state captured live 2026-06-09T23:44Z
+| Aspect | Value |
+| --- | --- |
+| Production main bundle | `main.0c1c410f.js` · **5,704,899 B (5.44 MB)** · etag `3ad26742...` |
+| Production main CSS | `main.7a3dbc01.css` · 163,440 B |
+| `GET /api/health` | `{"ok":true,"service":"masci-hub",...}` ✅ |
+| `POST /api/integrations/maintainx/webhook` | **503** (WEBHOOK-HARDEN-001 active) ✅ |
+| `POST /api/integrations/motive/webhook` | **401** (signature gate active) ✅ |
+| Cache header | `public, max-age=300, immutable` (Phase 1A not yet deployed — expected) |
+| Production data counts | 6,520 docs across 25 tracked collections (full baseline `/app/memory/PHASE1_PROD_DATA_BASELINE.txt`) |
+
+### AFTER (target — certified preview build, awaiting deploy)
+| Aspect | Value |
+| --- | --- |
+| Certified preview main bundle | `main.fefe7e48.js` · **3,393,224 B (3.24 MB)** |
+| Lazy chunks | **132** (vs 42 pre-Wave-1) |
+| Equipment Master DOM rows | **27 windowed** (vs 693 always painted) |
+| Preview commit | `95f7bfbf50d7356bd7e539764e2b601ed4e20398` |
+
+### Bundle delta (one-deploy uplift — largest in platform history)
+**Production main 5,704,899 B → 3,393,224 B = −2,311,675 B / −40.5 %** (single release ships Waves 1+2+3+4 + LIST-VIRT-001 together).
+
+### Rollback readiness
+| Aspect | Status |
+| --- | --- |
+| Previous bundle identified | ✅ `main.0c1c410f.js` (etag `3ad26742...`) |
+| Method | Cloud Run "revert to revision" |
+| Time | < 3 min |
+| Data rollback needed? | ❌ No — zero data migration / schema / Atlas change in this deploy |
+
+### Bundle composition (every sprint already certified)
+- ROUTE-SPLIT-001 Wave 1 (admin/*) — `ROUTE_SPLIT_001_WAVE1_CERTIFICATION.md`
+- ROUTE-SPLIT-001 Wave 2 (dispatch + safety-portal) — `ROUTE_SPLIT_001_WAVE_2_CERTIFICATION.md`
+- ROUTE-SPLIT-001 Wave 3 (HR + Training + TrenchSafety + ODR + OpRec + OpAct) — `ROUTE_SPLIT_001_WAVE_3_CERTIFICATION.md`
+- ROUTE-SPLIT-001 Wave 4 (legal + Tasks + DocExp + PoReq + ProjHealth + AssetTransfers + PM + Shop + Driver + Guidance + HrDR) — `ROUTE_SPLIT_001_WAVE_4_CERTIFICATION.md`
+- LIST-VIRT-001 (Equipment Master windowing) — `LIST_VIRT_001_CERTIFICATION.md`
+- WEBHOOK-HARDEN-001 + PROD-FRONTEND-ERROR-001 + PERFORMANCE-HARDEN-001 (already in prod or rolling forward identically)
+
+### Deliverable
+- `/app/memory/DEPLOY_NOW_001_CERTIFICATION.md` (created — 11 sections: build composition, pre-deploy checks, BEFORE state, AFTER target, deploy runbook, 20-step verification, performance verification, data-safety verification, rollback readiness, scorecard forecast, provenance)
+
+### What the agent did NOT touch (per OMEGA)
+Passwords · MFA · production data · Atlas users · Mongo users · code changes · UI redesign · workflow changes · new features · FleetWatcher · MaintainX expansion · Dispatch Automation · Material Movement · ID-007.
+
+### Next action (operator)
+1. Trigger production deploy via standard pipeline (Emergent platform's *Save to Github* + Cloud Run deploy, or equivalent)
+2. Run 20-step post-deploy verification (`DEPLOY_NOW_001_CERTIFICATION.md §6`)
+3. Capture new prod bundle hash + size (`§5.4`) and confirm `~3,393,224 B`
+4. Run data-safety verification harness (`PHASE1_VALIDATION_REPORT.md §3.1`)
+5. Flip cert verdict 🟡 → 🟢 with AFTER capture
+
+🛑 STOPPED per OMEGA. REAL-DEVICE-LCP-001, ODR fixture, FleetWatcher, MaintainX, Dispatch Automation, Material Movement, ID-007, new features, UI redesign, workflow changes NOT started. Awaiting operator deploy execution.
+
+
+
+
 ## 2026-06-09 (PLATFORM-EXCELLENCE · PHASE 1 CLOSEOUT · OPERATOR-BLOCKED ITEMS · 🟡 AGENT PORTION 🟢 PASS · OPS PORTION PENDING)
 
 **Sprint:** Phase 1 Closeout — Cloudflare cache + Atlas governance separation

@@ -31,7 +31,8 @@
 | 2026-06-09 | ROUTE-SPLIT-001 Wave 3 (HR + Training + TrenchSafety + ODR + OpRec + OpAct) | 🟢 PASS — −853 KB | Production Readiness, Platform Health, Mobile |
 | 2026-06-09 | ROUTE-SPLIT-001 Wave 4 (legal + Tasks + DocExp + PoReq + ProjHealth + AssetTransfers + PM + Shop + Driver + Guidance + HrDR) | 🟢 PASS — −403 KB · series complete | Production Readiness, Mobile |
 | 2026-06-09 | LIST-VIRT-001 (Equipment Master windowing) | 🟢 PASS — Equipment table −96% in-table DOM (693→27 rows) | Mobile |
-| 2026-06-09 | **PHASE 1 CLOSEOUT** — Cloudflare cache verification + runbook · Atlas separation verification + runbook · prod data baseline + post-change harness | **🟡 AGENT-PORTION 🟢 PASS · OPERATOR PORTION PENDING** | **Production Readiness +1 (post-CF deploy) · Security +2 (post-Atlas deploy)** |
+| 2026-06-09 | PHASE 1 CLOSEOUT — Cloudflare cache verification + runbook · Atlas separation verification + runbook · prod data baseline + post-change harness | 🟡 AGENT-PORTION 🟢 PASS · OPERATOR PORTION PENDING | Production Readiness +1 (post-CF deploy) · Security +2 (post-Atlas deploy) |
+| 2026-06-09 | **DEPLOY-NOW-001** — certified performance bundle production deploy (Waves 1–4 + LIST-VIRT-001 + webhook-harden + frontend-error + gzip) | **🟡 AGENT PRE-DEPLOY 🟢 PASS · OPERATOR DEPLOY PENDING** | **Production main bundle 5.44 MB → 3.24 MB = −40.5% in ONE release** |
 
 **Cumulative main-bundle reduction across all 4 waves:** 4,967,137 B → 3,393,224 B = **−1,573,913 B / −31.69%**
 **LIST-VIRT-001 in-table DOM reduction (Equipment Master):** 19,933 → 3,927 nodes = **−80.3% page-level, −96.1% rows**
@@ -53,9 +54,10 @@
 | Pre-existing `set-state-in-effect` false-positive lint on `EquipmentMasterPanel.jsx:141` | OPEN | +0 (hygiene) |
 | PERFORMANCE-HARDEN-001 items #2–25 (Mongo indexes, preconnect, memoise probes, tree-shake lucide, lazy `<img>`, touch-target audit, safe-area-inset, keyboard handling, modal width, responsive table collapse, theme-color meta, canonical EmptyState, canonical skeleton, dead-UI lint triage, last-sync pills, idempotency diagnostics, standardised error toasts) | NOT STARTED — needs operator auth piecemeal | +3.0 cumulative |
 
-### Operator-pending (Phase 1 closeout deployments)
+### Operator-pending (Phase 1 closeout + DEPLOY-NOW-001 deployments)
 | Action | Owner | Est. impact |
 | --- | --- | ---: |
+| **DEPLOY-NOW-001** — push certified Waves 1–4 + LIST-VIRT-001 bundle to prod (`DEPLOY_NOW_001_CERTIFICATION.md §5`) | Operator | Realises already-counted gains for live users (−40.5% prod main bundle, Equipment Master windowed) |
 | Cloudflare Cache Rule deploy (`PHASE1_CLOUDFLARE_REPORT.md §3`) | Operator | +1.0 (Production Readiness) |
 | Atlas user separation deploy (`PHASE1_ATLAS_SEPARATION_REPORT.md §3`) | Operator | +2.0 (Security) |
 
@@ -94,3 +96,4 @@ FleetWatcher rewrites · MaintainX activation · Dispatch Automation expansion �
 | 2026-06-09 | Updated post ROUTE-SPLIT-001 Wave 4 certification — series complete (−31.69% cumulative main bundle, weighted avg 88.0 → 90.4) |
 | 2026-06-09 | Updated post LIST-VIRT-001 certification — Equipment Master virtualized (−96.1% in-table rows, −80.3% page-level DOM nodes); weighted avg 90.4 → 91.0 |
 | 2026-06-09 | Updated post PHASE 1 CLOSEOUT — agent verification + runbooks shipped; CF + Atlas deploys pending operator; forecast 91.0 → 93.0 once ops executes |
+| 2026-06-09 | Updated post DEPLOY-NOW-001 certification — production bundle 5.44 MB → 3.24 MB (−40.5%) certified ready to deploy; rollback build identified (`main.0c1c410f.js`); 20-step post-deploy harness ready; awaiting operator deploy execution |
