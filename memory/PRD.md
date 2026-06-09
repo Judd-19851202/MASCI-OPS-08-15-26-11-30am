@@ -1,3 +1,43 @@
+## 2026-06-09 (ROUTE-SPLIT-001 · WAVE 2 · DISPATCH + SAFETY PORTAL LAZY · 🟢 PASS)
+
+**Sprint:** OMEGA DIRECTIVE — Platform Excellence Mode · Route Code-Split Wave 2 of 4
+**Authorization:** Operator chat 2026-06-09 — *"Authorize Option A. Proceed with ROUTE-SPLIT-001 Wave 2 only."*
+**Verdict:** 🟢 **PASS** — main bundle shed **317 KB (−6.39%)**; 18 components lazified; zero regressions.
+
+### Build metrics — before vs after
+| Metric | Before (Wave 1) | After (Wave 2) | Δ |
+| --- | ---: | ---: | ---: |
+| main bundle | 4,967,137 B | **4,649,787 B** | **−317,350 B (−6.39%)** |
+| JS chunks | 42 | 63 | +21 lazy chunks |
+| Total JS | 6,240,680 B | 6,260,820 B | +0.32% (gzip envelope cost) |
+
+### Routes lazified (18)
+- **Dispatch portal (4):** `DispatchHub`, `DispatchBoard`, `DispatchDriverQualification`, `DispatchDriverProfile`
+- **Safety portal (14):** `SafetyHub`, `SafetyCorrectiveActions`, `SafetyFireExtinguishers`, `SafetyFireExtImport`, `SafetyDocuments`, `SafetyTrainingRecords`, `SafetyEmployeeProfiles`, `SafetyDigest`, `SafetyIncidents`, `SafetyAudits`, `SafetyFormsRecords`, `SafetyReports`, `SafetyTopicLibrary`, `SafetyDriverProfile`
+
+### Files changed
+- `/app/frontend/src/App.js` — 18 `import` → `React.lazy()` declarations. **JSX, routes, guards, permissions, APIs, schema untouched.** Wave 1 `<Suspense fallback={null}>` boundary reused.
+
+### Tests run (all PASS, console clean)
+- Build: `yarn build` exit 0 in 34.52s; lint 0 findings.
+- Desktop 1920×800: `/`, `/admin/login`, `/safety-portal/login`, `/dispatch-portal/login`, `/safety-portal` (lazy gated), `/dispatch-portal` (lazy gated), `/daily/new` (SUBMIT flow untouched) — all PASS.
+- iPad 768×1024: `/`, `/safety-portal/login`, `/dispatch-portal/login` — all PASS.
+- iPhone 390×844: `/`, `/safety-portal/login`, `/admin/login` — all PASS.
+- Suspense / blank-screen: none observed.
+- Auth redirect: unauthenticated portal roots cleanly redirect to login funnels via `EnforcePortalScope`.
+- Console: only telemetry-beacon aborts (Sentry, CF RUM, usage-track) — no React/Suspense/chunk errors.
+
+### Explicitly NOT touched (per OMEGA)
+Hub · all login/forgot/reset/change-password screens · Daily Report SUBMIT flow (`NewDailyReport`) · queue/offline upload · Motive integration · auth/session/guards · API routes · DB schema · FleetWatcher · Material Movement · Dispatch Automation expansion · MaintainX expansion · Wave 3/4 candidates.
+
+### Deliverable
+- `/app/memory/ROUTE_SPLIT_001_WAVE_2_CERTIFICATION.md`
+
+🛑 STOPPED per OMEGA. Wave 3 NOT begun. Awaiting next explicit operator authorization.
+
+
+
+
 ## 2026-06-09 (PROD-FRONTEND-ERROR-001 · SENTRY REACT CHILD ERROR · CERTIFIED 🟢)
 
 **Fix:** Pydantic v2 ValidationError detail arrays (`[{type, loc, msg, input, url}]`) returned by FastAPI on 422 were flowing into `toast.error(err.response.data.detail || "...")` across ~30+ catch blocks → React threw "Objects are not valid as a React child" on production Safari 26.5.
@@ -38149,3 +38189,31 @@ Atlas Console required. Runbook unchanged at `GOVERNANCE_REMEDIATE_001_ATLAS_CUT
 **No code changes · no prod-DB writes this sprint.**
 
 **STOPPED.**
+
+
+---
+
+## ROUTE-SPLIT-001 · Wave 1 EXECUTED (2026-06-09 22:18 UTC)
+
+**Type:** OMEGA · Excellence-mode · Wave 1 only (admin/*)
+**Verdict:** ✅ PASS
+
+### Changes
+- Single file: `/app/frontend/src/App.js`
+- 39 admin imports converted: `import AdminX from "@/pages/admin/AdminX"` → `const AdminX = React.lazy(() => import("@/pages/admin/AdminX"))`
+- `<Routes>` wrapped in `<React.Suspense fallback={null}>`
+
+### Measurements
+- Main bundle raw: 5,704,899 B → 4,967,174 B (**-12.9%**, -737 KB)
+- Main bundle gzip: ~1.4 MB → ~1.3 MB (**-7%**)
+- 39 admin chunks emitted (18 KB – 110 KB each, loaded on demand)
+- Field-crew users (non-admin) skip the 700 KB of admin code entirely
+- `curl /` 303 ms · `curl /admin/login` 145 ms · screenshots both clean
+
+### Per directive
+✅ No Daily Reports / Photos / HR / Safety / Dispatch / Equipment touched · No API / schema / permission changes · No UI redesign · STOPPED at Wave 1 awaiting authorization for Wave 2.
+
+### Deliverable
+`/app/memory/ROUTE_SPLIT_001_WAVE1_CERTIFICATION.md`
+
+**Awaiting operator authorization for Wave 2 (safety + QA/QC).**

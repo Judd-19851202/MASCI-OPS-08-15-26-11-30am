@@ -74,10 +74,10 @@ import FleetVisibility from "@/pages/FleetVisibility";
 import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
-import AdminRecovery from "@/pages/admin/AdminRecovery";
-import AdminRecoveryStream from "@/pages/admin/AdminRecoveryStream";
-import AdminJhaAcknowledgements from "@/pages/admin/AdminJhaAcknowledgements";
-import AdminCommandCenter from "@/pages/admin/AdminCommandCenter";
+const AdminRecovery = React.lazy(() => import("@/pages/admin/AdminRecovery"));
+const AdminRecoveryStream = React.lazy(() => import("@/pages/admin/AdminRecoveryStream"));
+const AdminJhaAcknowledgements = React.lazy(() => import("@/pages/admin/AdminJhaAcknowledgements"));
+const AdminCommandCenter = React.lazy(() => import("@/pages/admin/AdminCommandCenter"));
 import AdminGuide from "@/pages/AdminGuide";
 import AdminLeadershipEquipment from "@/pages/AdminLeadershipEquipment";
 import AdminTerminations from "@/pages/AdminTerminations";
@@ -99,45 +99,45 @@ import ShopChangePassword from "@/pages/ShopChangePassword";
 import ShopResetPassword from "@/pages/ShopResetPassword";
 import HrLogin from "@/pages/HrLogin";
 import SignIn from "@/pages/SignIn";
-import AdminPeople from "@/pages/admin/AdminPeople";
-import AdminMfa from "@/pages/admin/AdminMfa";
-import AdminPromoAssets from "@/pages/admin/AdminPromoAssets";
-import AdminJobs from "@/pages/admin/AdminJobs";
-import AdminGeofenceReconciliation from "@/pages/admin/AdminGeofenceReconciliation";
-import AdminOperationsDashboard from "@/pages/admin/AdminOperationsDashboard";
-import AdminAssetMapping from "@/pages/admin/AdminAssetMapping";
-import AdminEquipment from "@/pages/admin/AdminEquipment";
-import AdminEmail from "@/pages/admin/AdminEmail";
-import AdminTraining from "@/pages/admin/AdminTraining";
-import AdminCompliance from "@/pages/admin/AdminCompliance";
-import AdminSystem from "@/pages/admin/AdminSystem";
-import AdminDatabase from "@/pages/admin/AdminDatabase";
-import AdminIntegrationCenter from "@/pages/admin/AdminIntegrationCenter";
-import AssetProfile from "@/pages/admin/AssetProfile";
-import AdminDriverIntel from "@/pages/admin/AdminDriverIntel";
-import AdminDispatch from "@/pages/admin/AdminDispatch";
-import AdminDlsShiftQR from "@/pages/admin/AdminDlsShiftQR";
-import AdminDlsDay1Debrief from "@/pages/admin/AdminDlsDay1Debrief";
-import AdminProfile from "@/pages/admin/AdminProfile";
-import AdminOperationsEvents from "@/pages/admin/AdminOperationsEvents";
-import AdminDigestConfig from "@/pages/admin/AdminDigestConfig";
-import SystemHealth from "@/pages/admin/SystemHealth";
-import AdminAuditLog from "@/pages/admin/AdminAuditLog";
+const AdminPeople = React.lazy(() => import("@/pages/admin/AdminPeople"));
+const AdminMfa = React.lazy(() => import("@/pages/admin/AdminMfa"));
+const AdminPromoAssets = React.lazy(() => import("@/pages/admin/AdminPromoAssets"));
+const AdminJobs = React.lazy(() => import("@/pages/admin/AdminJobs"));
+const AdminGeofenceReconciliation = React.lazy(() => import("@/pages/admin/AdminGeofenceReconciliation"));
+const AdminOperationsDashboard = React.lazy(() => import("@/pages/admin/AdminOperationsDashboard"));
+const AdminAssetMapping = React.lazy(() => import("@/pages/admin/AdminAssetMapping"));
+const AdminEquipment = React.lazy(() => import("@/pages/admin/AdminEquipment"));
+const AdminEmail = React.lazy(() => import("@/pages/admin/AdminEmail"));
+const AdminTraining = React.lazy(() => import("@/pages/admin/AdminTraining"));
+const AdminCompliance = React.lazy(() => import("@/pages/admin/AdminCompliance"));
+const AdminSystem = React.lazy(() => import("@/pages/admin/AdminSystem"));
+const AdminDatabase = React.lazy(() => import("@/pages/admin/AdminDatabase"));
+const AdminIntegrationCenter = React.lazy(() => import("@/pages/admin/AdminIntegrationCenter"));
+const AssetProfile = React.lazy(() => import("@/pages/admin/AssetProfile"));
+const AdminDriverIntel = React.lazy(() => import("@/pages/admin/AdminDriverIntel"));
+const AdminDispatch = React.lazy(() => import("@/pages/admin/AdminDispatch"));
+const AdminDlsShiftQR = React.lazy(() => import("@/pages/admin/AdminDlsShiftQR"));
+const AdminDlsDay1Debrief = React.lazy(() => import("@/pages/admin/AdminDlsDay1Debrief"));
+const AdminProfile = React.lazy(() => import("@/pages/admin/AdminProfile"));
+const AdminOperationsEvents = React.lazy(() => import("@/pages/admin/AdminOperationsEvents"));
+const AdminDigestConfig = React.lazy(() => import("@/pages/admin/AdminDigestConfig"));
+const SystemHealth = React.lazy(() => import("@/pages/admin/SystemHealth"));
+const AdminAuditLog = React.lazy(() => import("@/pages/admin/AdminAuditLog"));
 import AdminSchedulerRuns from "@/pages/AdminSchedulerRuns";  // iter445 · digest execution history
 import AdminLegacyImports from "@/pages/AdminLegacyImports";
-import AdminSessions from "@/pages/admin/AdminSessions";
-import AdminGuidanceCoverage from "@/pages/admin/AdminGuidanceCoverage";
-import AdminOperationalInventory from "@/pages/admin/AdminOperationalInventory";
-import AdminGovernance from "@/pages/admin/AdminGovernance";
-import AdminProjectIdentityGovernance from "@/pages/admin/AdminProjectIdentityGovernance";
-import SelfProtection from "@/pages/admin/SelfProtection";
-import AdminComplianceFindings from "@/pages/admin/AdminComplianceFindings";
-import AdminOperationalLanguage from "@/pages/admin/AdminOperationalLanguage";
+const AdminSessions = React.lazy(() => import("@/pages/admin/AdminSessions"));
+const AdminGuidanceCoverage = React.lazy(() => import("@/pages/admin/AdminGuidanceCoverage"));
+const AdminOperationalInventory = React.lazy(() => import("@/pages/admin/AdminOperationalInventory"));
+const AdminGovernance = React.lazy(() => import("@/pages/admin/AdminGovernance"));
+const AdminProjectIdentityGovernance = React.lazy(() => import("@/pages/admin/AdminProjectIdentityGovernance"));
+const SelfProtection = React.lazy(() => import("@/pages/admin/SelfProtection"));
+const AdminComplianceFindings = React.lazy(() => import("@/pages/admin/AdminComplianceFindings"));
+const AdminOperationalLanguage = React.lazy(() => import("@/pages/admin/AdminOperationalLanguage"));
 import NotificationsDigest from "@/pages/NotificationsDigest";
 import OperationalGuidanceCenter from "@/pages/guidance/OperationalGuidanceCenter";
-import DeployRecovery from "@/pages/admin/DeployRecovery";
-import AdminMasterHistory from "@/pages/admin/AdminMasterHistory";
-import AdminAnalytics from "@/pages/admin/AdminAnalytics";
+const DeployRecovery = React.lazy(() => import("@/pages/admin/DeployRecovery"));
+const AdminMasterHistory = React.lazy(() => import("@/pages/admin/AdminMasterHistory"));
+const AdminAnalytics = React.lazy(() => import("@/pages/admin/AdminAnalytics"));
 import HrHub from "@/pages/HrHub";
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
@@ -157,8 +157,9 @@ import HrTrainingRecords from "@/pages/HrTrainingRecords";
 import HrDailyReports, { HrDailyReportDetail } from "@/pages/HrDailyReports";
 import HrMotiveDrivers from "@/pages/HrMotiveDrivers";
 import HrDriverProfile from "@/pages/HrDriverProfile";
-import SafetyDriverProfile from "@/pages/SafetyDriverProfile";
-import DispatchDriverProfile from "@/pages/DispatchDriverProfile";
+// ROUTE-SPLIT-001 Wave 2 — dispatch/* and safety-portal/* lazy-loaded.
+const SafetyDriverProfile = React.lazy(() => import("@/pages/SafetyDriverProfile"));
+const DispatchDriverProfile = React.lazy(() => import("@/pages/DispatchDriverProfile"));
 import HrPayrollVariance from "@/pages/HrPayrollVariance";
 import HrDriverQualificationDashboard from "@/pages/HrDriverQualificationDashboard";
 import HrDriverQualificationImport from "@/pages/HrDriverQualificationImport";
@@ -167,28 +168,28 @@ import PublicTimeOff from "@/pages/PublicTimeOff";
 import SafetyLogin from "@/pages/SafetyLogin";
 import DispatchLogin from "@/pages/DispatchLogin";
 import LeadershipLogin from "@/pages/LeadershipLogin";
-import DispatchHub from "@/pages/DispatchHub";
-import DispatchBoard from "@/pages/DispatchBoard";
-import DispatchDriverQualification from "@/pages/DispatchDriverQualification";
+const DispatchHub = React.lazy(() => import("@/pages/DispatchHub"));
+const DispatchBoard = React.lazy(() => import("@/pages/DispatchBoard"));
+const DispatchDriverQualification = React.lazy(() => import("@/pages/DispatchDriverQualification"));
 import DispatchChangePassword from "@/pages/DispatchChangePassword";
 import DispatchForgotPassword from "@/pages/DispatchForgotPassword";
 import DispatchResetPassword from "@/pages/DispatchResetPassword";
-import SafetyHub from "@/pages/SafetyHub";
+const SafetyHub = React.lazy(() => import("@/pages/SafetyHub"));
 import SafetyChangePassword from "@/pages/SafetyChangePassword";
 import SafetyForgotPassword from "@/pages/SafetyForgotPassword";
 import SafetyResetPassword from "@/pages/SafetyResetPassword";
-import SafetyCorrectiveActions from "@/pages/SafetyCorrectiveActions";
-import SafetyFireExtinguishers from "@/pages/SafetyFireExtinguishers";
-import SafetyFireExtImport from "@/pages/SafetyFireExtImport";
-import SafetyDocuments from "@/pages/SafetyDocuments";
-import SafetyTrainingRecords from "@/pages/SafetyTrainingRecords";
-import SafetyEmployeeProfiles from "@/pages/SafetyEmployeeProfiles";
-import SafetyDigest from "@/pages/SafetyDigest";
-import SafetyIncidents from "@/pages/SafetyIncidents";
-import SafetyAudits from "@/pages/SafetyAudits";
-import SafetyFormsRecords from "@/pages/SafetyFormsRecords";
-import SafetyReports from "@/pages/SafetyReports";
-import SafetyTopicLibrary from "@/pages/SafetyTopicLibrary";
+const SafetyCorrectiveActions = React.lazy(() => import("@/pages/SafetyCorrectiveActions"));
+const SafetyFireExtinguishers = React.lazy(() => import("@/pages/SafetyFireExtinguishers"));
+const SafetyFireExtImport = React.lazy(() => import("@/pages/SafetyFireExtImport"));
+const SafetyDocuments = React.lazy(() => import("@/pages/SafetyDocuments"));
+const SafetyTrainingRecords = React.lazy(() => import("@/pages/SafetyTrainingRecords"));
+const SafetyEmployeeProfiles = React.lazy(() => import("@/pages/SafetyEmployeeProfiles"));
+const SafetyDigest = React.lazy(() => import("@/pages/SafetyDigest"));
+const SafetyIncidents = React.lazy(() => import("@/pages/SafetyIncidents"));
+const SafetyAudits = React.lazy(() => import("@/pages/SafetyAudits"));
+const SafetyFormsRecords = React.lazy(() => import("@/pages/SafetyFormsRecords"));
+const SafetyReports = React.lazy(() => import("@/pages/SafetyReports"));
+const SafetyTopicLibrary = React.lazy(() => import("@/pages/SafetyTopicLibrary"));
 import HrSafetyRecords from "@/pages/HrSafetyRecords";
 import TrainingHub from "@/pages/TrainingHub";
 import AdminDeployReadiness from "@/pages/AdminDeployReadiness";
@@ -325,7 +326,7 @@ function App() {
         <MultiPortalHydrator />
         <IdleTimeout />
         <div className="flex-1 flex flex-col">
-          <Routes>
+          <React.Suspense fallback={null}><Routes>
             {/* MASCI Hub — public */}
             <Route path="/" element={<Hub />} />
             <Route path="/revise/:token" element={<Revise />} />
@@ -855,7 +856,7 @@ function App() {
             {/* Pass-7 · Design-system family mockups removed (unauthorized direction; reverted per operator stabilization directive) */}
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
-          </Routes>
+          </Routes></React.Suspense>
           <GlobalFooter />
         </div>
       </BrowserRouter>
