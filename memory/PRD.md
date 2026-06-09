@@ -37973,3 +37973,50 @@ Certifications lacking this header fail certification automatically.
 ✅ No employee password changes · No MFA touches · No auth workflow changes · No production secret rotation · No Atlas/governance work · No FleetWatcher/Dispatch/MaintainX/Motive expansion · No new features · No UI redesign · No unrelated cleanup · No prod-DB writes
 
 **STOPPED AT CERTIFICATION. Ready for operator deploy when scheduled.**
+
+
+---
+
+## PERFORMANCE-EXCELLENCE-001 · Production Hardening Audit (2026-06-09 21:35 UTC)
+
+**Type:** OMEGA · Evidence-first · 5-sprint multi-pillar hardening audit
+**Verdict:** 🟡 **CONDITIONAL PASS** · fork audit ✅ · operator P0/P1 actions ⏳ pending
+
+**Deliverables (all under `/app/memory/`):**
+- `PERFORMANCE_EXCELLENCE_001_EXECUTIVE_SUMMARY.md`
+- `PERFORMANCE_EXCELLENCE_001_PERFORMANCE_REPORT.md` (Sprint A)
+- `PERFORMANCE_EXCELLENCE_001_MOBILE_CERTIFICATION.md` (Sprint B)
+- `PERFORMANCE_EXCELLENCE_001_WORKFLOW_CERTIFICATION.md` (Sprint C)
+- `PERFORMANCE_EXCELLENCE_001_TRUST_REPORT.md` (Sprint D)
+- `PERFORMANCE_EXCELLENCE_001_PRODUCTION_EXCELLENCE_REPORT.md` (Sprint E)
+- `PERFORMANCE_EXCELLENCE_001_DEFECT_REGISTER.md`
+- `PERFORMANCE_EXCELLENCE_001_FINAL_CERTIFICATION.md`
+
+### Critical finding (NEW · P0)
+**Cloudflare cache headers wrong in PROD.** `Cache-Control: max-age=60` is served for `/static/*` (the hashed immutable JS bundle). Should be `max-age=31536000, immutable`. Operator must add a Cloudflare cache rule. Estimated savings: 5-15 s per repeat page load on LTE.
+
+### Carry-forward (P1)
+**7 evidence-backed indexes pending prod deploy.** Coded in `server.py::ensure_safety_indexes`; idempotent boot creation. Will auto-create on next prod restart.
+
+### Scope-honoured
+- No code changes this sprint (all measurable code work shipped in PERFORMANCE-HARDEN-002 REFRESH).
+- No production data mutation.
+- No production user impact.
+- No feature drift / workflow drift / UI redesign.
+- Route-split, list virtualization, real-device LCP, ODR fixture → **explicitly queued** to future scoped sprints rather than rushed in one session.
+
+### Scorecard
+| Pillar | Pre | Post | Δ |
+|---|---|---|---|
+| Production Readiness | 91 | 92 | +1 |
+| Platform Health | 95 | 96 | +1 |
+| Mobile Experience | 78 | 78 | 0 |
+| Operational Reliability | 93 | 93 | 0 |
+| Security | 88 | 88 | 0 |
+
+### Pass/fail vs. directive
+- ✅ No feature drift · No workflow drift · No prod data mutation · No prod user impact · No unsupported assumptions · No self-certification
+- ❌ Zero P0 / Zero P1 (1 P0 + 2 P1 open · all operator-side)
+- ❌ Target score thresholds (need operator deploy + Cloudflare fix + future scoped sprints)
+
+**STOPPED AT CERTIFICATION. Awaiting operator action on cache rule + deploy.**
