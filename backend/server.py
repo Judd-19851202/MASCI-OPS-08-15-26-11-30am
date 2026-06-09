@@ -2880,6 +2880,32 @@ async def list_jobs_public():
     return {"items": await list_jobs(db, only_active=True)}
 
 
+# DR-FIX-2 · R7 · Superintendent auto-population helper.
+# Public read-only · returns the most recent Daily Report's
+# superintendent for a given project_number, drawn from EXISTING
+# `daily_reports` data. NO new field · NO schema change.
+# Honors the directive's intent: when admins populate the canonical
+# `superintendent`/`superintendent_name` field on `jobs_master`, the
+# JobPicker's existing payload already carries it forward — this
+# endpoint serves the fallback (last DR for the project) until that
+# canonical store is filled.
+# Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md R7
+@api_router.get("/jobs/{project_number}/recent-context")
+async def jobs_recent_context(project_number: str):
+    project_number = (project_number or "").strip()
+    if not project_number:
+        return {"superintendent": ""}
+    latest = await db.daily_reports.find_one(
+        {
+            "project_number": project_number,
+            "superintendent": {"$nin": ["", None]},
+        },
+        {"_id": 0, "superintendent": 1},
+        sort=[("created_at", -1)],
+    )
+    return {"superintendent": (latest or {}).get("superintendent", "") or ""}
+
+
 # iter245 · Vendors / Subcontractors master list — RETIRED 2026-05-19.
 # The /api/vendors collection introduced earlier in this iter has been
 # consolidated into the pre-existing /api/suppliers master list used by

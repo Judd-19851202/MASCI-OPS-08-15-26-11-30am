@@ -1,3 +1,25 @@
+## 2026-06-08 (DR-FIX-2 · Trust & Usability Remediation · PASS 🟢)
+
+Closed two trust gaps from DR-AUDIT-001:
+- **R7 Superintendent auto-population** — new public `GET /api/jobs/{n}/recent-context` helper + `applyJob` extension. Reads `jobs_master.superintendent_name/superintendent` first, falls back to the most recent DR for that project_number. Foreman override always wins. No new field on any collection.
+- **R12 Inert "Close Window" button replaced** by browser-independent "Done" button using react-router `Link`. Routes to `/submit` for public submitters and `/` for everyone else.
+
+### Honest caveats
+- Directive premise stated `jobs_master.superintendent` exists today. It does not. Implementation reads BOTH potential `jobs_master` keys AND falls back to existing DR data — no schema change. When admins fill the canonical store later, precedence already handles it.
+
+### Verification
+- Pytest **8/8 green** (`tests/test_dr_fix_2_trust_remediation.py`).
+- Full regression **48/48 green** (DR-FIX-2 + DR-FIX-1 + OA-1 + Sprint A).
+- Playwright Done button → confirmed navigation to `/` succeeds with no browser block.
+- Frontend lint clean.
+- Certification: `/app/memory/DR_FIX_2_TRUST_REMEDIATION_CERTIFICATION.md`.
+
+### Remaining DR-AUDIT-001 backlog (NOT authorized)
+- R4 PDF executive summary · R5 PDF audit footer (SHA256 + lifecycle) · R6 Excavation on PDF · R8 silent crew/equipment auto-apply · R9 prepared_by directory bind · R10 kickback in-app fallback · R11 Motive M-DR-1
+- RM-1…RM-5 (removals — pending one DR cycle)
+
+
+
 ## 2026-06-08 (DR-FIX-1 · Constitutional Remediation · PASS 🟢)
 
 Closed the three constitutional failures identified in DR-AUDIT-001:

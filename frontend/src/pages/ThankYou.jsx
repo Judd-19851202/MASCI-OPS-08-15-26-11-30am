@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CheckCircle2, ClipboardCheck } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
@@ -43,6 +43,19 @@ export default function ThankYou() {
   // is present, the reference line is gracefully omitted — no
   // placeholder, no fake/random client-side ID.
   const recordId = state?.recordId || "";
+
+  // R12 · DR-FIX-2 · "Done" button is the safe, browser-independent
+  // return path. The previous "Close Window" button called
+  // window.close() which is silently ignored by every major browser
+  // unless the window was opened by a script — which is never the
+  // case for field crews arriving via QR code / email link. The new
+  // button navigates back to the public-form home for public
+  // submitters or to "/" for everyone else (the SPA router then
+  // decides where "/" lands per role).
+  // Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md R12
+  const homeHref = (returnTo && returnTo.startsWith("/daily/submit"))
+    ? "/submit"
+    : "/";
 
   const continuityLine = CONTINUITY_LINE[formType]
     || "The right people have visibility. You're done unless contacted.";
@@ -118,11 +131,12 @@ export default function ThankYou() {
               asChild
               variant="outline"
               className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide"
-              data-testid="close-btn"
+              data-testid="done-btn"
             >
-              <a href="#" onClick={(e) => { e.preventDefault(); window.close(); }}>
-                {t("Close Window")}
-              </a>
+              <Link to={homeHref}>
+                <Home className="w-4 h-4 mr-2" />
+                {t("Done")}
+              </Link>
             </Button>
           </div>
         </div>

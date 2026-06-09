@@ -510,13 +510,45 @@ export default function NewDailyReport({ publicMode = false }) {
   };
 
   const applyJob = (job) => {
+    // R7 · DR-FIX-2 · Superintendent auto-population.
+    // Source-of-truth precedence (each step preserves the foreman's
+    // override if they have already typed a value):
+    //   1. jobs_master.superintendent_name / .superintendent  (when admins maintain it)
+    //   2. most recent DR for the same project_number          (fallback)
+    // No new field anywhere — this uses the existing
+    // `daily_reports.superintendent` value from prior reports.
+    // Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md R7
+    const jobSuper = job
+      ? (job.superintendent_name || job.superintendent || "").trim()
+      : "";
     setData((p) => ({
       ...p,
       project_name: job ? job.project_name : "",
       project_number: job ? job.project_number : "",
       location: p.location || (job && job.location) || "",
+      // Auto-fill only when the foreman has not already typed something.
+      superintendent: (p.superintendent && p.superintendent.trim())
+        ? p.superintendent
+        : jobSuper,
     }));
-    if (job) toast.success(`Job loaded: #${job.project_number}`);
+    if (job) {
+      toast.success(`Job loaded: #${job.project_number}`);
+      // Fallback fetch — only when jobs_master didn't carry the value
+      // and the foreman has not already typed a name.
+      if (!jobSuper && job.project_number) {
+        api
+          .get(`/jobs/${encodeURIComponent(job.project_number)}/recent-context`)
+          .then((r) => {
+            const recent = (r?.data?.superintendent || "").trim();
+            if (!recent) return;
+            setData((p) => {
+              if (p.superintendent && p.superintendent.trim()) return p;
+              return { ...p, superintendent: recent };
+            });
+          })
+          .catch(() => { /* silent — keep the field empty for manual entry */ });
+      }
+    }
   };
 
   const useGps = async () => {
