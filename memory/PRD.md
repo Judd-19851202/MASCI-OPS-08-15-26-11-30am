@@ -1,3 +1,38 @@
+## 2026-02-09 (MOTIVE-DATA-002 · PRODUCTION ACTIVATION & COVERAGE OPERATIONS · CERTIFIED 🟢)
+
+OMEGA MOTIVE-DATA-002 sprint closed. Single operational workspace at `/admin/asset-mapping` that answers all 4 operator questions in one screen: what's mapped · what's not · what to fix first · expected operational impact. Read-mostly · approve/reject only · zero automation · zero new collections.
+
+### Shipped (002A-G all green)
+- **002A** Asset Mapping Admin Center (`pages/admin/AdminAssetMapping.jsx`) — coverage tile + Top 10 unmapped + reconciliation queue + bulk approve HIGH + executive summary, all in one page
+- **002B/C** `GET /api/admin/asset-mapping/top-unmapped?limit=N` — ROI-sorted Top-N unmapped trucks (by active-dispatch volume)
+- **002D** Coverage tile renders current Trust + Potential Trust (headroom)
+- **002E** `GET /api/admin/asset-mapping/impact-preview/{prop_id}` — "+N dispatches eligible for CONFIRMED" preview
+- **002F** `/app/memory/MOTIVE_DAY1_ACTIVATION_RUNBOOK.md` — 10-step Day-1 production activation playbook
+- **002G** `GET /api/admin/executive-summary` — projects verified/pending · mapped/unmapped · trust/potential/coverage · highest risk gaps
+
+### Live verification (real preview backend)
+- Coverage: 219 dispatch trucks · 0 mapped · 0% coverage · **79.3% potential trust ceiling**
+- Top risk: `T-IT417` (24 active dispatches → biggest single ROI)
+- 10 projects already verified, 52 pending (from prior M-3 + MOTIVE-DATA-001 sprints)
+
+### Verification
+- **71/71 pytest green** (M-3 + M-DR-1 + M-2 + VER-1 + MOTIVE-DATA-001 combined regression)
+- Lint ✅ ruff clean · ✅ eslint clean
+- Live screenshot on `/admin/asset-mapping` confirms 5 data-testid surfaces render (asset-mapping-page · am-coverage · am-top-unmapped · am-queue · am-exec-summary) with real production numbers
+
+### Deliverables
+- `/app/memory/MOTIVE_DATA_002_CERTIFICATION.md` (spec ↔ build matrix · 7 brief items · pillar scorecard · constitutional adherence)
+- `/app/memory/MOTIVE_DATA_002_AUDIT.md` (live numbers · interpretation)
+- `/app/memory/MOTIVE_DAY1_ACTIVATION_RUNBOOK.md` (10-step operator playbook)
+
+### Constitutional adherence
+🛑 No FleetWatcher · No dispatch automation · No material automation · No auto-link · No write to Motive · No daily-report mutation · Operator approves every action.
+
+### STOP CONDITION OBSERVED
+Awaiting next OMEGA authorization. FleetWatcher / Dispatch Automation / Material Movement Automation NOT initiated.
+
+
+
 ## 2026-02-09 (DR-RECOVERY-001 · JAYMN DR RECOVERY RUNBOOK · DELIVERED 🟢)
 
 P0 recovery operation. Preview-pod agent cannot reach live MongoDB or Jaymn's physical device, so the deliverable is a **paste-ready runbook** with copy-paste commands for each of the four required phases.

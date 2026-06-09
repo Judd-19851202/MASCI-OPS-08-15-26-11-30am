@@ -440,6 +440,139 @@ def build_asset_mapping_router(db, require_admin_dep: Callable) -> APIRouter:
             "high_pending_proposals":    high_pending,
         }}
 
+    # ── Top-N unmapped (002C) ─────────────────────────────────────────
+    @router.get("/admin/asset-mapping/top-unmapped",
+                dependencies=[Depends(require_admin_dep)])
+    async def top_unmapped(limit: int = Query(default=10, ge=1, le=50)):
+        # Active dispatch volume per truck, only those without masci link
+        mapped_set = set()
+        async for m in db.asset_mappings.find(
+            {"masci_equipment_id": {"$nin": [None, ""]}},
+            {"masci_equipment_id": 1}
+        ):
+            mapped_set.add(m["masci_equipment_id"])
+        pipe = [
+            {"$match": {"current_state": {"$nin": ["COMPLETE", "CANCELLED", "CANCELED"]},
+                        "truck_id": {"$nin": [None, ""]}}},
+            {"$group": {"_id": "$truck_id", "n": {"$sum": 1}}},
+            {"$sort": {"n": -1}},
+            {"$limit": 200},
+        ]
+        rows: List[Dict[str, Any]] = []
+        async for r in db.dispatch_assignments.aggregate(pipe):
+            tid = r["_id"]
+            if tid in mapped_set:
+                continue
+            prop = await db.asset_mapping_proposals.find_one(
+                {"truck_id": tid, "status": {"$ne": "Rejected"}}
+            )
+            rows.append({
+                "truck_id": tid,
+                "active_dispatch_count": r["n"],
+                "suggested_match": (prop or {}).get("motive_label"),
+                "confidence_band":  (prop or {}).get("confidence_band") or "UNKNOWN",
+                "confidence_score": (prop or {}).get("confidence_score") or 0,
+                "proposal_id":      (prop or {}).get("id"),
+                "estimated_verification_gain_dispatches": r["n"],
+            })
+            if len(rows) >= limit:
+                break
+        return {"ok": True, "rows": rows, "limit": limit}
+
+    # ── Impact preview (002E) ─────────────────────────────────────────
+    @router.get("/admin/asset-mapping/impact-preview/{prop_id}",
+                dependencies=[Depends(require_admin_dep)])
+    async def impact_preview(prop_id: str):
+        p = await db.asset_mapping_proposals.find_one({"id": prop_id}, {"_id": 0})
+        if not p:
+            raise HTTPException(404, "Proposal not found")
+        # Currently — count of active dispatches affected by approving this
+        affected = await db.dispatch_assignments.count_documents({
+            "truck_id": p.get("truck_id"),
+            "current_state": {"$nin": ["COMPLETE", "CANCELLED", "CANCELED"]},
+        })
+        return {"ok": True, "proposal_id": prop_id,
+                "truck_id": p.get("truck_id"),
+                "affected_active_dispatches": affected,
+                "current_state": "pending_to_confirm",
+                "after_approval_state":
+                    f"+{affected} dispatches now eligible for CONFIRMED on next M-2 materialize"}
+
+    # ── Executive summary (002G) ──────────────────────────────────────
+    @router.get("/admin/executive-summary",
+                dependencies=[Depends(require_admin_dep)])
+    async def executive_summary():
+        # Projects verified / pending
+        proj_verified = await db.operational_locations.count_documents(
+            {"location_type": "JOB", "geocode_status": "Verified"}
+        )
+        proj_pending = await db.operational_locations.count_documents(
+            {"location_type": "JOB", "geocode_status": "Matched"}
+        )
+        # Mapping coverage
+        trucks = [t for t in (await db.dispatch_assignments.distinct("truck_id")) if t]
+        total = len(trucks)
+        mapped_set = set()
+        async for m in db.asset_mappings.find(
+            {"masci_equipment_id": {"$nin": [None, ""]}},
+            {"masci_equipment_id": 1}
+        ):
+            mapped_set.add(m["masci_equipment_id"])
+        mapped = sum(1 for t in trucks if t in mapped_set)
+        unmapped = total - mapped
+        coverage_pct = round(100.0 * mapped / max(1, total), 1)
+
+        # Trust score from VER-1 (re-derive a quick scan)
+        verified_disp = 0
+        considered = 0
+        async for d in db.dispatch_assignments.find({
+            "current_state": {"$nin": ["COMPLETE", "CANCELLED", "CANCELED"]}
+        }).limit(500):
+            considered += 1
+            mm = await db.asset_mappings.find_one(
+                {"masci_equipment_id": d.get("truck_id"), "provider": "motive"}
+            )
+            if not mm:
+                continue
+            mot = mm.get("motive") or {}
+            actor_key = (f"vehicle:{mot.get('vehicle_id')}"
+                         if mm.get("asset_kind") == "vehicle" and mot.get("vehicle_id")
+                         else f"equipment:{mot.get('asset_id')}"
+                         if mot.get("asset_id") else None)
+            if not actor_key:
+                continue
+            if await db.operational_events.find_one({
+                "asset_key": actor_key,
+                "project_number": d.get("project_number") or "",
+                "location_type": "JOB",
+            }):
+                verified_disp += 1
+        trust_pct = round(100.0 * verified_disp / max(1, considered), 1)
+        # Potential trust if all top unmapped were approved AND telemetry caught up
+        potential_pct = round(100.0 * (verified_disp + unmapped) / max(1, considered), 1)
+        # Top 3 risk gaps via the existing pipe
+        pipe = [
+            {"$match": {"current_state": {"$nin": ["COMPLETE", "CANCELLED", "CANCELED"]},
+                        "truck_id": {"$nin": [None, ""]}}},
+            {"$group": {"_id": "$truck_id", "n": {"$sum": 1}}},
+            {"$sort": {"n": -1}},
+            {"$limit": 10},
+        ]
+        risks = []
+        async for r in db.dispatch_assignments.aggregate(pipe):
+            if r["_id"] not in mapped_set:
+                risks.append({"truck_id": r["_id"], "active_dispatches": r["n"]})
+        return {"ok": True,
+                "projects_verified":  proj_verified,
+                "projects_pending":   proj_pending,
+                "mapped_assets":      mapped,
+                "unmapped_assets":    unmapped,
+                "coverage_pct":       coverage_pct,
+                "trust_score_pct":    trust_pct,
+                "potential_trust_score_pct": potential_pct,
+                "highest_risk_gaps":  risks[:5],
+                "top_opportunities":  risks[:3]}
+
     return router
 
 
