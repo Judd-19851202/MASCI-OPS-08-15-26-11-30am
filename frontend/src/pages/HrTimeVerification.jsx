@@ -11,7 +11,7 @@
 // submitted_at. Notes, photos, materials, etc. are intentionally
 // stripped out server-side.
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, FileDown, Filter, Clock, AlertCircle } from "lucide-react";
+import { Loader2, FileDown, Filter, Clock, AlertCircle, Printer } from "lucide-react";
 import { api, API } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,11 +124,64 @@ export default function HrTimeVerification() {
       title="Time Verification"
       kicker="HR · Payroll Cross-Check"
     >
-      <div className="mb-4">
+      {/* HR-TIME-001 · Print stylesheet — hides chrome, formats report. */}
+      <style>{`
+        @media print {
+          @page { size: landscape; margin: 0.45in; }
+          html, body { background: #fff !important; }
+          /* Hide every non-printable region of the page */
+          body * { visibility: hidden !important; }
+          [data-print-region], [data-print-region] * { visibility: visible !important; }
+          [data-print-region] { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+          /* Squeeze chrome */
+          .caution-stripe, header, nav, aside, .hidden.lg\\:block, [role="navigation"] { display: none !important; }
+          /* Color-print friendly tweaks */
+          [data-print-region] table { font-size: 11px; }
+          [data-print-region] th, [data-print-region] td { padding: 4px 6px !important; }
+          [data-print-region] .text-3xl { font-size: 1.1rem !important; }
+          [data-print-region] .border-2 { border-width: 1px !important; }
+          /* Hide the on-screen filter inputs / buttons */
+          [data-print-hide] { display: none !important; }
+          /* Show the print-only header / footer / filter-summary */
+          [data-print-only] { display: block !important; }
+          /* Page numbers via running counter on a footer block */
+          .print-footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 10px;
+                          color: #64748b; padding-top: 4px; border-top: 1px solid #cbd5e1; }
+          .print-footer::after { content: "Page " counter(page) " of " counter(pages); float: right; }
+          /* Force backgrounds to print */
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+        @media not print {
+          [data-print-only] { display: none; }
+        }
+      `}</style>
+
+      <div data-print-region>
+        {/* Print-only report header (hidden on screen) */}
+        <div data-print-only style={{ marginBottom: 12, borderBottom: "2px solid #6d28d9", paddingBottom: 8 }}>
+          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "#64748b" }}>
+            MASCI Operations Platform · HR · Payroll Cross-Check
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a", marginTop: 2 }}>
+            Time Verification Report
+          </div>
+          <div style={{ fontSize: 11, color: "#334155", marginTop: 6, lineHeight: 1.5 }}>
+            <strong>Window:</strong> {data?.week_start || "—"} → {data?.week_end || "—"}
+            {" · "}
+            <strong>Week Ending:</strong> {weekEnding || "—"}
+            {employee ? <> · <strong>Employee:</strong> {employee}</> : null}
+            {projectNumber ? <> · <strong>Project #:</strong> {projectNumber}</> : null}
+            {supervisor ? <> · <strong>Supervisor:</strong> {supervisor}</> : null}
+            {" · "}
+            <strong>View:</strong> {view === "weekly" ? "Weekly Rollup" : "Per-Day Detail"}
+          </div>
+        </div>
+
+      <div className="mb-4" data-print-hide>
         <HelpTipBlock formKey="time-verification" showCounter />
       </div>
       {/* Filter bar — Pass-6 UX quality: clear input grid + dedicated action footer with window context */}
-      <Card className="p-5 mb-5 border-2 border-purple-200 bg-purple-50/30" data-testid="hr-tv-filter-card">
+      <Card className="p-5 mb-5 border-2 border-purple-200 bg-purple-50/30" data-testid="hr-tv-filter-card" data-print-hide>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
           <div className="min-w-0">
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Week Ending")}</Label>
@@ -151,9 +204,13 @@ export default function HrTimeVerification() {
           <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-slate-500" data-testid="hr-tv-window-chip">
             {data?.week_start ? <>{t("Window")} · <span className="text-slate-700 font-bold">{data.week_start} → {data.week_end}</span></> : t("Set a week to begin")}
           </div>
-          <div className="flex gap-2 sm:ml-auto">
+          <div className="flex gap-2 sm:ml-auto print:hidden">
             <Button variant="outline" onClick={downloadCsv} disabled={!data || loading} data-testid="hr-tv-csv" title={t("Export CSV")} className="h-10">
               <FileDown className="w-4 h-4 mr-1" />{t("Export CSV")}
+            </Button>
+            {/* HR-TIME-001 · Print Report button */}
+            <Button variant="outline" onClick={() => window.print()} disabled={!data || loading} data-testid="hr-tv-print" title={t("Print Report")} className="h-10">
+              <Printer className="w-4 h-4 mr-1" />{t("Print Report")}
             </Button>
             <Button onClick={() => setPendingFilters((n) => n + 1)} disabled={loading} className="h-10 px-6 bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-tv-apply">
               {loading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Filter className="w-4 h-4 mr-1" />}
@@ -181,7 +238,7 @@ export default function HrTimeVerification() {
       </Card>
 
       {/* View toggle */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4" data-print-hide>
         <Button
           size="sm"
           variant={view === "weekly" ? "default" : "outline"}
@@ -205,7 +262,7 @@ export default function HrTimeVerification() {
       {/* iter213 · operational coaching surface for the discrepancy
           conversation — sits above the table because that's where HR
           actually catches the numbers that don't match. */}
-      <div className="mb-4">
+      <div className="mb-4" data-print-hide>
         <HelpTipBlock formKey="time-verification.discrepancy" />
       </div>
 
@@ -217,6 +274,13 @@ export default function HrTimeVerification() {
       ) : (
         <DailyTable rows={rows} />
       )}
+
+        {/* Print footer (hidden on screen) — generated timestamp + page counter via CSS */}
+        <div data-print-only className="print-footer">
+          Generated {new Date().toISOString().replace("T", " ").slice(0, 19)} UTC
+          {" · "}MASCI Operations Platform · Confidential payroll cross-check
+        </div>
+      </div>
     </HrPageShell>
   );
 }

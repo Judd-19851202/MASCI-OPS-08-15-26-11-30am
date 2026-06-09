@@ -1,3 +1,32 @@
+## 2026-02-09 (HR-TIME-001 · TIME VERIFICATION PRINT OPTION · CERTIFIED 🟢)
+
+P1 UI-only fix. Added Print Report button beside Export CSV on HR Time Verification page; print output is clean, landscape, branded, paginated, and respects all active filters.
+
+### The fix (1 file · 1 button + 1 print stylesheet)
+- `/app/frontend/src/pages/HrTimeVerification.jsx` (+59 lines): added Printer icon import · added `<Button data-testid="hr-tv-print" onClick={() => window.print()}>` next to the existing Export CSV button · added scoped `<style>` with `@media print { @page { size: landscape } … }` rules · wrapped the report body in `<div data-print-region>` · added `[data-print-only]` header (MASCI Operations Platform kicker + "Time Verification Report" title + live filter summary) · added `[data-print-only]` footer (Generated UTC timestamp + `Page N of M` via CSS counter)
+- Zero backend changes, zero schema changes, zero auth changes, no PDF system introduced
+
+### Live verification
+- Both buttons present in same row (CSV x=1103, Print x=1243, both y=715, h=40)
+- Print preview confirms: MASCI kicker · "Time Verification Report" bold title · filter summary line · totals strip · footer with timestamp + page counter
+- All non-printable chrome hidden in print mode (header `display: none` confirmed via getComputedStyle)
+- iPad 1180×820 landscape print preview matches desktop layout — no horizontal scroll
+- Export CSV still works (untouched handler)
+
+### Test results 27/27 PASS
+Print button visible · respects every filter (week ending · employee · project # · supervisor · view selection) · MASCI header · title · filter summary · totals · employee rows · flags · timestamp · page numbers · sidebar/nav/coaching/buttons/preview banner all hidden · uses `window.print()` · no PDF rebuild · desktop + iPad + landscape · Export CSV still works · no backend changes · unauthorized blocked.
+
+### Doctrine adherence
+- Pre-existing ESLint warnings (line 83 `exhaustive-deps`, line 85 `set-state-in-effect`) confirmed pre-existing via `git stash` baseline; left untouched per OMEGA discipline.
+
+### Deliverable
+- `/app/memory/HR_TIME_001_PRINT_OPTION_CERTIFICATION.md`
+- `/app/memory/PRD.md` updated
+
+🛑 **STOP CONDITION OBSERVED.** Deploy ready.
+
+
+
 ## 2026-02-09 (HR-EMPLOYEE-001C · NAME-CHANGE AUDIT SURFACED IN ACCOUNTABILITY TIMELINE · CERTIFIED 🟢)
 
 Read-only visibility fix following the minor gap noted in HR-EMPLOYEE-001B. The `kind="name_changed"` audit rows in `employee_lifecycle_events` are now visible to HR through the standard Accountability Timeline page — no developer tools, no database access required.
