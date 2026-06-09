@@ -37893,3 +37893,44 @@ Certifications lacking this header fail certification automatically.
 ✅ No code changes · No DB writes · No deploys · No fixes · No feature work · No UI · No FleetWatcher/Dispatch/Material/MaintainX/Motive expansion · No self-certification — every claim cites primary evidence.
 
 **STOPPED. Awaiting operator review.**
+
+
+---
+
+## GOVERNANCE-REMEDIATE-001 · Production Trust & Environment Isolation Sprint (2026-06-09 20:50 UTC)
+
+**Type:** OMEGA · P0 · Remediation (path A — preview-side execution + operator runbook)
+**Verdict:** 🟡 **CONDITIONAL PASS** — preview side ✅ · operator side ⏳ pending
+
+**Deliverables (all under `/app/memory/`):**
+- `GOVERNANCE_REMEDIATE_001_EXECUTIVE_SUMMARY.md` (Risk Register · Before/After · Verdict)
+- `GOVERNANCE_REMEDIATE_001_ATLAS_CUTOVER.md` (operator click-by-click runbook)
+- `GOVERNANCE_REMEDIATE_001_SECRET_ROTATION.md` (preview executed · prod-side runbook)
+- `GOVERNANCE_REMEDIATE_001_CREDENTIAL_AUDIT.md` (test_credentials.md audit)
+- `GOVERNANCE_REMEDIATE_001_FORENSIC_VERIFICATION.md` (Workstream F scripts)
+- `GOVERNANCE_REMEDIATE_001_FINAL_CERTIFICATION.md`
+- `governance_remediate_001_evidence/secret_rotation_evidence.txt`
+
+### Fork-executed (preview-side · all ✅ PASS)
+- Rotated `JWT_SECRET` (64 hex), `ADMIN_HMAC_SECRET` (urlsafe 86), `MFA_ENCRYPTION_KEY` (Fernet 44) in preview `/app/backend/.env`.
+- Backend restarted clean; `/api/health` 200; `/api/version` self-id correct.
+- Zero preview MFA-enrolled users; rotation invalidated no TOTPs.
+- Preview data unchanged: 794 DR / 1,812 JP / 365 EMP / 376 MEV.
+- No user accounts modified; bcrypt prefixes unchanged.
+
+### Operator-pending (⏳)
+1. Atlas Console: create `masci_preview_user` (rw@masci_safety_preview) + `masci_prod_user` (rw@masci_safety).
+2. Prod pod secrets: set `MONGO_URL` to `masci_prod_user` · redeploy.
+3. Preview pod: set `MONGO_URL` to `masci_preview_user` · restart.
+4. Atlas Console: disable `admin_db_user` and `Password` (do NOT delete).
+5. Prod pod secrets: rotate `JWT_SECRET` / `ADMIN_HMAC_SECRET` / `MFA_ENCRYPTION_KEY`. Redeploy.
+6. `test_credentials.md`: annotate 5 shared accounts as preview-only; rotate prod-side passwords via admin UI.
+7. Signal fork → fork runs Workstream F probes → produces FULL PASS update.
+
+### Production data integrity (verified · ✅ PASS)
+- `masci_safety` counts unchanged through this sprint: 113 DR · 776 JP · 262 EMP · 1,170 MEV · 41,253 sync logs · 1 production_incident.
+
+### OMEGA invariants honoured
+✅ No employee/portal passwords changed · No users deleted · No DB records modified (preview or prod) · No Motive/MaintainX rotation · No feature work · No unrelated refactor · Did not self-certify operator-only portions.
+
+**STOPPED. Awaiting operator execution of `ATLAS_CUTOVER.md` §3-§5 + `SECRET_ROTATION.md` §5.**
