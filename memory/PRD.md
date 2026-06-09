@@ -1,3 +1,39 @@
+## 2026-02-09 (HR-EMPLOYEE-001B · HUMAN USABILITY VERIFICATION · DEPLOY GATE GO 🟢)
+
+VERIFICATION ONLY sprint (no code changes). Simulated Sandy/HR-user end-to-end against the live preview backend with a real HR Manager token (no admin escalation).
+
+### Result: 🟢 **PASS** — DEPLOY GATE GO
+18/18 directive workflow steps verified. None of the FAIL conditions triggered.
+
+### Live evidence (10 screenshots saved · `/tmp/hr001b_*.png`)
+- Login as HR Manager · `/hr` reached without admin help
+- Name field visible WITHOUT devtools · pre-filled `Alejandro Escobedo`
+- Save button materializes inline the moment value becomes dirty
+- Toast `"Employee updated"` captured after Save
+- Full page refresh → list shows persisted value · drawer pre-fills persisted value
+- Search by `HR-001B TEST` → exactly 1 row · count tiles update 353 → 1
+- Rollback persists · original name reappears · 0 residual test tags
+- iPad 1024×768: name + save fully in viewport (Save bbox y=212, ample headroom for soft keyboard), zero horizontal scroll
+- iPhone 390×844: drawer responsive, name visible
+- Audit: BOTH forward and rollback rows landed in `employee_lifecycle_events` with all 5 required fields (`old_value`, `new_value`, `actor`, `ts`, `kind="name_changed"`)
+- Access: HR ✅, Admin ✅ (via `require_hr_or_admin`), no-token → 401, foreign-portal tokens → blocked
+
+### Minor finding (NOT a blocker, NOT fixed)
+`employee_lifecycle_events` row IS written by every PATCH, but the existing Accountability Timeline UI at `/hr/employees/{id}/accountability` does not yet read from this collection. The audit is recorded; it's just not surfaced to HR via the existing timeline page. Recommended follow-up (~10-line read-only addition to `hr_portal.py::hr_employee_accountability_timeline`) described in the verification doc · NOT IMPLEMENTED · awaits separate OMEGA authorization.
+
+### Deliverable
+- `/app/memory/HR_EMPLOYEE_001B_HUMAN_USABILITY_VERIFICATION.md` (full 11-section verification with role · employee tested · before/after evidence · save evidence · refresh evidence · search evidence · audit evidence · iPad/iPhone evidence · PASS verdict)
+
+### Constitutional adherence
+- Zero code changes
+- Verification driven by visible UI affordances (labels, testids, no admin tricks)
+- Test data fully cleaned up (rollback verified, no residual strings)
+- Minor finding reported, not fixed — STOP condition honored
+
+🛑 **STOP CONDITION OBSERVED.** Deploy gate is GO.
+
+
+
 ## 2026-02-09 (HR-EMPLOYEE-001 · EMPLOYEE NAME CORRECTION CAPABILITY · CERTIFIED 🟢)
 
 P0 surgical fix. HR can now correct misspelled employee names through the existing Employee drawer; every change creates an `employee_lifecycle_events` audit row capturing old/new/actor/timestamp.
