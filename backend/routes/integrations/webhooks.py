@@ -18,6 +18,7 @@ These routes are mounted under /api/integrations/{provider}/webhook
 integration routes ARE authenticated.
 """
 from __future__ import annotations
+import asyncio
 import logging
 from typing import Optional
 
@@ -26,6 +27,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from services.motive_service import MotiveService
 from services.maintainx_service import MaintainxService
 
+from ._credential_alerts import record_credential_missing
 from ._storage import (
     write_error_log, write_sync_log, verify_webhook_signature_stub,
 )
@@ -51,6 +53,11 @@ def register_webhook_routes(api_router: APIRouter, db) -> None:
                 status="Awaiting Credentials", triggered_by="webhook",
                 notes="Webhook hit with no secret configured.",
             )
+            # MOTIVE-PROD-INCIDENT-001 · permanent detection.
+            # Open / increment a production_incidents row and fire a
+            # one-shot email (cooldown-gated) so the operator hears about
+            # the misconfiguration without the webhook stream blocking.
+            asyncio.create_task(record_credential_missing(db, provider=provider))
             return {
                 "ok": False, "status": "awaiting_credentials",
                 "stored": False,

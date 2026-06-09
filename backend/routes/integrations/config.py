@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from services.motive_service import MotiveService
 from services.maintainx_service import MaintainxService
 
+from ._credential_alerts import mark_resolved as _resolve_credential_missing
 from ._models import IntegrationSettingsUpdate
 from ._storage import (
     PROVIDERS,
@@ -102,6 +103,13 @@ def register_config_routes(
         if res.matched_count == 0:
             raise HTTPException(404, "Settings not found")
         doc = await db.integration_settings.find_one({"provider": provider}, {"_id": 0})
+        # MOTIVE-PROD-INCIDENT-001 · auto-resolve any open credential_missing
+        # incident for this provider when a secret is now present.
+        if (doc or {}).get("webhook_secret_value") or (doc or {}).get("api_key_value"):
+            try:
+                await _resolve_credential_missing(db, provider=provider, resolved_by="operator")
+            except Exception:  # noqa: BLE001
+                pass
         return settings_public_view(doc)
 
     @api_router.post(

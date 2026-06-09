@@ -1,3 +1,40 @@
+## 2026-06-09 (MOTIVE-PROD-INCIDENT-001 · P0 PRODUCTION INCIDENT · CLOSED 🟢)
+
+P0 production incident: Motive credentials were operator-provided into PREVIEW only and never propagated to PROD. Production rejected 41,139 webhook deliveries between 2026-06-08T15:54 and 2026-06-09T16:59 (~1,500-3,500/hr, all status `Awaiting Credentials`). Resolved via minimum-safe remediation + permanent monitor install.
+
+### Remediation (no code change to existing behavior; configuration only)
+- Copied PREVIEW's known-working Motive credentials → PROD `integration_settings.motive` (NO rotation, NO regeneration, NO URL change).
+- Pre-state snapshot stored in `masci_safety.incident_snapshots` for forensic audit trail.
+- Audit row written to `masci_safety.admin_audit`.
+
+### Validation (all PASS, evidence-first)
+- V1 webhook received · V2 webhook accepted (`stored:true`) · V3 signature validated (3 sub-tests) · V4 data persisted (190 vehicles, 65 drivers, 67 geofences, 90 events) · V5 no Awaiting Credentials post-cutoff · V6 no "no secret" notes post-cutoff · V7 sync healthy · V8 no duplicate data.
+
+### Phase 7 — Permanent detection monitor (new code, lint-clean, restart-verified)
+- NEW `/app/backend/routes/integrations/_credential_alerts.py` (148 lines): `record_credential_missing()` + `mark_resolved()`. Idempotent upsert into `production_incidents` collection; fires ONE admin_audit + ONE cooldown-gated email via `outage_alerts.send_outage_alert` on first discovery only.
+- Hook added to `webhooks.py`: fire-and-forget call from the "Awaiting Credentials" branch (does not block the webhook response).
+- Auto-resolve in `config.py`: on credential save, any open `credential_missing` incident for that provider is closed and audit-trailed.
+- Unit-tested: open → 5 increments (no duplicate audits) → mark_resolved → new hit opens new incident → lab cleanup.
+
+### Platform-wide audit (post-remediation)
+9 🟢 / 0 🟡 / 1 🔴 (MaintainX — intentional standalone): Motive · Resend · MongoDB · R2 Backups · GPS Services · Project Identity Governance · Daily Reports Queue · Job Photos · HR all GREEN.
+
+### Deliverables
+- `/app/memory/MOTIVE_PROD_INCIDENT_001_FORENSIC_REPORT.md`
+- `/app/memory/MOTIVE_PROD_INCIDENT_001_RECOVERY_REPORT.md`
+- `/app/memory/MOTIVE_PROD_INCIDENT_001_REMEDIATION_REPORT.md`
+- `/app/memory/MOTIVE_PROD_INCIDENT_001_VALIDATION_REPORT.md`
+- `/app/memory/MOTIVE_PROD_INCIDENT_001_PLATFORM_INTEGRATION_AUDIT.md`
+- `/app/memory/MOTIVE_PROD_INCIDENT_001_FINAL_CERTIFICATION.md`
+
+### Anomaly noted (not remediated under this sprint — flagged for operator)
+- Post-remediation, the first 10 webhook arrivals all had `signature_present: False` (no X-Motive-Signature header). Real Motive deliveries are always signed. Either the bulk of the 41,139 pre-remediation hits were never Motive (unsigned scanner/probe traffic) OR Motive's signature header is being stripped by a proxy. Operator should review Motive Admin's outbound webhook delivery log to confirm.
+- `webhooks.py:48-58` returns HTTP 200 (not 503) on credentials-missing — providers don't retry on 2xx. Documented as `WEBHOOK-2XX-ON-MISCONFIG-001`. Deferred per OMEGA.
+
+🛑 STOPPED per OMEGA. P0 incident CLOSED. Awaiting operator next directive.
+
+
+
 ## 2026-06-09 (POST-DEPLOY-002 + DR-QUEUE-RETRY-001 · PRODUCTION VALIDATION + FAILED-QUEUE RECOVERY · CERTIFIED 🟢)
 
 ### A · POST-DEPLOY-002 (production validation audit — read-only)
