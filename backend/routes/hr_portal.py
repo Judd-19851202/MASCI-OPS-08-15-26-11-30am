@@ -688,6 +688,47 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 },
             )
 
+        # 9 · HR-EMPLOYEE-001C · employee_lifecycle_events
+        # Surface lifecycle audit rows (name changes, etc.) inside the
+        # existing HR Lifecycle category. Read-only — the audit collection
+        # is the canonical write-once source.
+        async for h in db.employee_lifecycle_events.find(
+            {"employee_id": emp_id}, {"_id": 0}
+        ).limit(500):
+            kind = (h.get("kind") or "lifecycle_event").lower()
+            if kind == "name_changed":
+                title = "Name Changed"
+                old = (h.get("old_value") or "—").strip() or "—"
+                new = (h.get("new_value") or "—").strip() or "—"
+                actor_email = h.get("actor_email") or h.get("actor_label") or "—"
+                actor_role_label = h.get("actor_role") or "HR"
+                desc = (
+                    f"From: {old}  →  To: {new}   ·   "
+                    f"Changed by {actor_email} ({actor_role_label})"
+                )
+            else:
+                title = (kind or "Lifecycle Event").replace("_", " ").title()
+                desc = " · ".join(
+                    p for p in (
+                        (f"From: {h['old_value']}" if h.get("old_value") else None),
+                        (f"To: {h['new_value']}" if h.get("new_value") else None),
+                        (f"From status: {h['from_status']}" if h.get("from_status") else None),
+                        (f"To status: {h['to_status']}" if h.get("to_status") else None),
+                    ) if p
+                )
+            _push(
+                ts=h.get("ts"),
+                kind=kind, category="HR Lifecycle",
+                title=title,
+                description=desc,
+                source="employee_lifecycle_events", source_id=h.get("id"),
+                src_doc={
+                    "created_by": h.get("actor_email") or h.get("actor_label"),
+                    "created_by_role": (h.get("actor_role") or "hr").lower(),
+                    "originating_portal": "hr",
+                },
+            )
+
         # Sort DESC by ts (string ISO-8601 sort is stable for dates)
         events.sort(key=lambda e: (e.get("ts") or ""), reverse=True)
 

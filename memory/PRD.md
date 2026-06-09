@@ -1,3 +1,32 @@
+## 2026-02-09 (HR-EMPLOYEE-001C · NAME-CHANGE AUDIT SURFACED IN ACCOUNTABILITY TIMELINE · CERTIFIED 🟢)
+
+Read-only visibility fix following the minor gap noted in HR-EMPLOYEE-001B. The `kind="name_changed"` audit rows in `employee_lifecycle_events` are now visible to HR through the standard Accountability Timeline page — no developer tools, no database access required.
+
+### The fix (1 file · 1 source loop added)
+- `/app/backend/routes/hr_portal.py::hr_employee_accountability_timeline` — added new source loop "#9 · employee_lifecycle_events" after the existing `status_history` loop. Reads up to 500 audit rows per employee, calls the existing `_push(...)` helper with `category="HR Lifecycle"`, `title="Name Changed"`, and a single-line description carrying old → new + actor email + role.
+- **Zero frontend changes** — the existing `HrEmployeeAccountabilityTimeline.jsx` render path already maps `category="HR Lifecycle"` to the HR Lifecycle tab and renders title + description + RolePill + source.
+
+### Live verification
+- API: `/api/hr/employees/{id}/accountability/timeline` now returns the 2 historical audit rows (from 001B test) with `category="HR Lifecycle"`, `title="Name Changed"`, full description, `created_by="hrmanager@mascigc.com"`, `created_by_role="hr manager"`, `source="employee_lifecycle_events"`. No duplicates across 3 consecutive GETs (count 2→2). No-token → 401.
+- UI: All tab shows `2`, HR Lifecycle tab shows `2`. Desktop table shows Date · Category · Event (title + description) · Expires · Source · By columns populated correctly with `HR MANAGER` role pill. iPad: no horizontal scroll. iPhone: mobile card layout activates with 2 `acct-card-name_changed` cards visible.
+
+### Doctrine adherence
+- ✅ Read-only: pre/post count proves zero writes
+- ✅ No new collections, no new fields, no schema changes
+- ✅ No PATCH behavior change · no audit-write change · no historical-record mutation
+- ✅ Footer note "Aggregated view · source records remain authoritative" preserves canonical-truth doctrine
+
+### Deliverable
+- `/app/memory/HR_EMPLOYEE_001C_ACCOUNTABILITY_TIMELINE_CERTIFICATION.md` (root cause · files changed · API + UI evidence · 11/11 test results · OMEGA adherence)
+- `/app/memory/PRD.md` updated
+
+### Test results 11/11 PASS
+Audit row appears · old/new/actor/role/timestamp/kind all visible · HR can view · unauthorized blocked · existing timeline events still render · employee edit still works · no duplicates from repeated reads.
+
+🛑 **STOP CONDITION OBSERVED.** Deploy gate: GO.
+
+
+
 ## 2026-02-09 (HR-EMPLOYEE-001B · HUMAN USABILITY VERIFICATION · DEPLOY GATE GO 🟢)
 
 VERIFICATION ONLY sprint (no code changes). Simulated Sandy/HR-user end-to-end against the live preview backend with a real HR Manager token (no admin escalation).
