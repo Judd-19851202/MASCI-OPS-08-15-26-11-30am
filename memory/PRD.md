@@ -38129,3 +38129,23 @@ Atlas Console required. Runbook unchanged at `GOVERNANCE_REMEDIATE_001_ATLAS_CUT
 **Deliverable:** `/app/memory/PLATFORM_EXCELLENCE_004_FINAL_CERTIFICATION.md`
 
 **STOPPED. Awaiting operator authorization for scoped follow-on sprints OR Cloudflare/Atlas operator actions.**
+
+
+---
+
+## PLATFORM-EXCELLENCE-005 · Execution material (2026-06-09 22:30 UTC)
+
+**Type:** OMEGA · Excellence-mode · execution-material only (no narrative, no theory)
+**Deliverable:** `/app/memory/PLATFORM_EXCELLENCE_005_EXECUTION_MATERIAL.md`
+
+**Six phases produced:**
+- Phase 1: exact click paths for Cloudflare rule (1A), Atlas user split (1B), real-device cert (1C)
+- Phase 2: ROUTE-SPLIT-001 wave plan (4 independently-deployable waves with rollback)
+- Phase 3: LIST-VIRT-001 — single target = JobPhotosLibrary
+- Phase 4: Security closure paths per defect
+- Phase 5: Minimum-path 95+ roadmap per sub-95 pillar (Mobile +17, OpRel +2, Sec +8)
+- Phase 6: SAFE NOW / OPERATOR / INFRASTRUCTURE / DEFER / DO NOT TOUCH authorization matrix
+
+**No code changes · no prod-DB writes this sprint.**
+
+**STOPPED.**
