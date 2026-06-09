@@ -124,32 +124,75 @@ export default function HrTimeVerification() {
       title="Time Verification"
       kicker="HR · Payroll Cross-Check"
     >
-      {/* HR-TIME-001 · Print stylesheet — hides chrome, formats report. */}
+      {/* HR-TIME-001 / 001B · Print stylesheet — portrait, upright, no blank
+          trailing page. Targeted-hide approach (NOT body>*:not(...)) so it
+          works inside the deeply-nested HrPageShell DOM. */}
       <style>{`
         @media print {
-          @page { size: landscape; margin: 0.45in; }
-          html, body { background: #fff !important; }
-          /* Hide every non-printable region of the page */
-          body * { visibility: hidden !important; }
-          [data-print-region], [data-print-region] * { visibility: visible !important; }
-          [data-print-region] { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
-          /* Squeeze chrome */
-          .caution-stripe, header, nav, aside, .hidden.lg\\:block, [role="navigation"] { display: none !important; }
-          /* Color-print friendly tweaks */
-          [data-print-region] table { font-size: 11px; }
-          [data-print-region] th, [data-print-region] td { padding: 4px 6px !important; }
-          [data-print-region] .text-3xl { font-size: 1.1rem !important; }
-          [data-print-region] .border-2 { border-width: 1px !important; }
-          /* Hide the on-screen filter inputs / buttons */
+          @page { size: letter portrait; margin: 0.4in 0.45in; }
+          html, body {
+            background: #fff !important;
+            margin: 0 !important; padding: 0 !important;
+          }
+          /* Force backgrounds + colors to render */
+          * { -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important; }
+
+          /* Hide known chrome — must enumerate; "hide-all-then-restore"
+             collapses table/grid semantics in webkit. */
+          .caution-stripe, header, nav, aside,
+          [role="navigation"], [role="banner"],
+          [data-testid="forgedops-attr-global"],
           [data-print-hide] { display: none !important; }
-          /* Show the print-only header / footer / filter-summary */
+
+          /* Neutralise layout constraints inherited from the page shell so the
+             printed region is the natural height of its content (no phantom page). */
+          .min-h-screen { min-height: 0 !important; }
+          .pb-16 { padding-bottom: 0 !important; }
+          main, .max-w-7xl, .max-w-6xl, .max-w-5xl {
+            max-width: none !important;
+            padding: 0 !important; margin: 0 !important;
+          }
+          main { display: block !important; }
+
+          /* Reveal print-only header & footer */
           [data-print-only] { display: block !important; }
-          /* Page numbers via running counter on a footer block */
-          .print-footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 10px;
-                          color: #64748b; padding-top: 4px; border-top: 1px solid #cbd5e1; }
-          .print-footer::after { content: "Page " counter(page) " of " counter(pages); float: right; }
-          /* Force backgrounds to print */
-          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+          /* Compact tables for portrait letter */
+          [data-print-region] { width: 100%; }
+          [data-print-region] table {
+            font-size: 10px; width: 100%;
+            border-collapse: collapse;
+          }
+          [data-print-region] th, [data-print-region] td {
+            padding: 3px 5px !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            vertical-align: top;
+          }
+          [data-print-region] thead th {
+            background: #f1f5f9 !important; color: #0f172a !important;
+            border-bottom: 1px solid #94a3b8 !important;
+            font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em;
+          }
+          [data-print-region] tr { page-break-inside: avoid; }
+          [data-print-region] thead { display: table-header-group; }
+          [data-print-region] .text-3xl { font-size: 13px !important; }
+          [data-print-region] .border-2 { border-width: 1px !important; }
+          [data-print-region] .grid { gap: 6px !important; }
+          [data-print-region] .p-5 { padding: 6px 0 !important; }
+          [data-print-region] .mb-5, [data-print-region] .mb-4 { margin-bottom: 8px !important; }
+
+          /* Print footer · flows in document (NOT fixed) so it never spawns
+             a phantom trailing page. */
+          .print-footer {
+            margin-top: 14px; padding-top: 6px;
+            border-top: 1px solid #cbd5e1;
+            font-size: 9px; color: #475569;
+            text-align: center; line-height: 1.45;
+            page-break-inside: avoid;
+          }
+          .print-footer .brand { font-weight: 700; color: #0f172a; }
+          .print-footer .sub   { color: #64748b; font-size: 8.5px; }
         }
         @media not print {
           [data-print-only] { display: none; }
@@ -158,14 +201,14 @@ export default function HrTimeVerification() {
 
       <div data-print-region>
         {/* Print-only report header (hidden on screen) */}
-        <div data-print-only style={{ marginBottom: 12, borderBottom: "2px solid #6d28d9", paddingBottom: 8 }}>
-          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "#64748b" }}>
+        <div data-print-only style={{ marginBottom: 10, borderBottom: "1.5px solid #6d28d9", paddingBottom: 6 }}>
+          <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "#64748b" }}>
             MASCI Operations Platform · HR · Payroll Cross-Check
           </div>
-          <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a", marginTop: 2 }}>
+          <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a", marginTop: 2 }}>
             Time Verification Report
           </div>
-          <div style={{ fontSize: 11, color: "#334155", marginTop: 6, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 10, color: "#334155", marginTop: 4, lineHeight: 1.5 }}>
             <strong>Window:</strong> {data?.week_start || "—"} → {data?.week_end || "—"}
             {" · "}
             <strong>Week Ending:</strong> {weekEnding || "—"}
@@ -174,6 +217,8 @@ export default function HrTimeVerification() {
             {supervisor ? <> · <strong>Supervisor:</strong> {supervisor}</> : null}
             {" · "}
             <strong>View:</strong> {view === "weekly" ? "Weekly Rollup" : "Per-Day Detail"}
+            {" · "}
+            <strong>Generated:</strong> {new Date().toISOString().replace("T", " ").slice(0, 16)} UTC
           </div>
         </div>
 
@@ -275,10 +320,14 @@ export default function HrTimeVerification() {
         <DailyTable rows={rows} />
       )}
 
-        {/* Print footer (hidden on screen) — generated timestamp + page counter via CSS */}
+        {/* Print footer (hidden on screen) · ForgedOps platform credit. Flows in
+            document, never fixed-position, so it does not generate a phantom page. */}
         <div data-print-only className="print-footer">
-          Generated {new Date().toISOString().replace("T", " ").slice(0, 19)} UTC
-          {" · "}MASCI Operations Platform · Confidential payroll cross-check
+          <div className="brand">MASCI Operations Platform</div>
+          <div>Powered by ForgedOps</div>
+          <div className="sub">
+            Generated {new Date().toISOString().replace("T", " ").slice(0, 19)} UTC · Confidential payroll cross-check
+          </div>
         </div>
       </div>
     </HrPageShell>

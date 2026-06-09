@@ -1,3 +1,43 @@
+## 2026-02-09 (HR-TIME-001B · TIME VERIFICATION PRINT LAYOUT FIX + FORGEDOPS BRANDING · CERTIFIED 🟢)
+
+P0 print-layout-only fix correcting HR-TIME-001's sideways/rotated/blank-second-page output. Added ForgedOps platform credit per addendum.
+
+### Root cause (3 coupled defects in the original print CSS)
+1. `body * { visibility: hidden }` + `[data-print-region] { position: absolute }` left ancestors at full viewport height (HrPageShell uses `min-h-screen`) → blank second page · floating mis-positioned content
+2. `@page { size: landscape }` against directive's preferred portrait
+3. `.print-footer { position: fixed }` + Chromium `counter(page)` interaction → phantom page
+
+### The fix (one file · `frontend/src/pages/HrTimeVerification.jsx`)
+- Switched to **targeted-hide** (`display: none`) on enumerated chrome selectors — never `visibility: hidden`
+- `@page { size: letter portrait; margin: 0.4in }` (was landscape)
+- Neutralised ancestor shell: `.min-h-screen { min-height: 0 }`, `.pb-16 { padding-bottom: 0 }`, `main, .max-w-7xl/.max-w-6xl/.max-w-5xl { padding: 0; margin: 0; max-width: none }`
+- Removed `position: absolute` from print region · removed `position: fixed` from print footer · removed `counter(page)`/`counter(pages)` (page numbers were the directive's explicit "remove if causing blank page" guidance)
+- Print-friendly table: `font-size: 10px`, `tr { page-break-inside: avoid }`, `thead { display: table-header-group }` to repeat headers across long lists
+- New centered footer renders: **MASCI Operations Platform** / Powered by ForgedOps / Generated UTC timestamp · Confidential payroll cross-check
+- Hide global `forgedops-attr-global` in print to keep one clean credit
+
+### Live verification
+- Real print-to-PDF via Playwright: **149,960 bytes · exactly 1 page** (verified by counting `/Type /Page` objects)
+- Print preview: clean portrait letter with kicker, bold "Time Verification Report" title, filter-summary line, 5-cell totals strip, full 8-column data table (EMPLOYEE · JOBS · SUPERVISOR(S) · REG · OT · LUNCH · TOTAL · FLAGS) with "No Lunch" flag pills, centered ForgedOps footer
+- DOM checks under print emulation: `header { display: none }` · `forgedops-attr-global { display: none }` · `[data-print-only] { display: block }` all confirmed
+- Screen mode: Export CSV button still present (testid=1) · Print Report button still present (testid=1)
+- iPad portrait 820×1180: identical clean layout · no horizontal scroll
+
+### Test results 12/12 + 8/8 PASS (verification + branding addendum)
+Page 1 upright · content top-aligned · title readable · filters readable · totals readable · table readable · no rotation · no blank second page · no nav/sidebar/coaching/buttons/preview banner · Export CSV still works · iPad & desktop print previews acceptable · MASCI identity preserved · ForgedOps credited · no Emergent branding · no clutter · no extra page from branding.
+
+### Doctrine adherence
+- Zero backend / schema / endpoint / auth / payroll-logic changes
+- Pre-existing ESLint warnings (lines 83, 85) confirmed pre-existing via `git stash` baseline · left untouched per OMEGA
+
+### Deliverable
+- `/app/memory/HR_TIME_001B_PRINT_LAYOUT_FIX_CERTIFICATION.md`
+- `/app/memory/PRD.md` updated
+
+🛑 **STOP CONDITION OBSERVED.** Deploy ready.
+
+
+
 ## 2026-02-09 (HR-TIME-001 · TIME VERIFICATION PRINT OPTION · CERTIFIED 🟢)
 
 P1 UI-only fix. Added Print Report button beside Export CSV on HR Time Verification page; print output is clean, landscape, branded, paginated, and respects all active filters.
