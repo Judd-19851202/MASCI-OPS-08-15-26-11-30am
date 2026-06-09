@@ -840,12 +840,21 @@ export default function NewDailyReport({ publicMode = false }) {
         idempotencyKeyRef.current = null;
         if (payload.project_number) rememberLastProject(String(payload.project_number));
         if (publicMode || !isAdmin()) {
+          // DR-BLOCKER-001B · R-BL-1 + R-BL-5 · explicit queued state.
+          // Previously this branch navigated to the SAME thank-you screen
+          // used for delivered submissions, falsely telling the user the
+          // DR had been filed. The queued state is now propagated so the
+          // ThankYou page renders the amber "Saved Locally — Not Yet
+          // Delivered" variant with a Retry Now button.
           navigate("/thank-you", {
             state: {
               projectName: payload.project_name,
               formType: "Daily Report",
               returnTo: "/daily/submit",
-              recordId: r.data?.report_number || r.data?.id || "",
+              recordId: "",  // no canonical id yet — backend hasn't run
+              submissionState: "queued",
+              idempotencyKey: idemKey,
+              lastError: r.error || "",
             },
             replace: true,
           });
@@ -867,12 +876,14 @@ export default function NewDailyReport({ publicMode = false }) {
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/daily-reports", true, "daily-report-new")).catch(() => {});
       if (publicMode || !isAdmin()) {
+        // DR-BLOCKER-001B · R-BL-5 · explicit delivered state.
         navigate("/thank-you", {
           state: {
             projectName: payload.project_name,
             formType: "Daily Report",
             returnTo: "/daily/submit",
             recordId: r.data?.report_number || r.data?.id || "",
+            submissionState: "delivered",
           },
           replace: true,
         });

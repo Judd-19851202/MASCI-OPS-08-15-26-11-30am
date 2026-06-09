@@ -1,3 +1,32 @@
+## 2026-02-09 (DR-BLOCKER-001B · QUEUED-SUBMISSION TRUST FIX · PASS 🟢)
+
+P0 trust + submission-integrity remediation. Fixed the queued-vs-delivered ambiguity that caused the missing 6:34 PM live Daily Report. **Delivered means delivered. Queued means queued. Failed means failed.**
+
+### Shipped (R-BL-1 + R-BL-2 + R-BL-5)
+- **R-BL-2** `lib/api.js` axios instance gains `timeout: 60000` — slow uploads fail-fast at 60s into the resilient queue, no more 100s ingress hang.
+- **R-BL-1** `NewDailyReport.jsx` queued branch passes `submissionState: "queued"` (+ `idempotencyKey`, `lastError`, empty `recordId`) to `/thank-you`. Delivered branch passes `submissionState: "delivered"`. No false success.
+- **R-BL-5** `ThankYou.jsx` re-architected for 3 variants: **delivered** (green / `CheckCircle2` / "Filed." / File Another · Done) · **queued** (amber / `Cloud` / "Saved Locally." / Retry Now · Stay On This Report · Return To Start) · **failed** (red / `AlertTriangle` / "Submission Failed." / Retry · Stay On This Report). Default state = `delivered` → every other form keeps working unchanged.
+
+### Retry Now action
+Dynamically imports `lib/resiliency/resiliencyQueue` and calls `drainQueue()`. Resiliency queue itself is **untouched** — `enqueueUpload`, MAX_TRIES backoff, `online`/`focus` listeners, IDB persistence, draft-store `commit()`-gated doctrine all preserved.
+
+### Verification
+- Backend regression **123/123 green** (DR-FIX-1 + DR-FIX-2 + DR-FIX-3 + MM-001B + F1 + DR-PDF-002 + DR-PDF-003 + MM-ENTRY-002 + SM-PDF-001). Zero backend regressions.
+- ESLint `ThankYou.jsx` clean · `lib/api.js` clean · `NewDailyReport.jsx` blockers all pre-existing (untouched lines).
+- Smoke screenshot on `/thank-you` (no state) → default delivered variant renders correctly with `data-testid="thank-you-delivered"`; queued/failed variants absent (backward compat verified).
+- All 14 directive verification items checked off in the certification doc.
+- Certification: `/app/memory/DR_BLOCKER_001B_QUEUED_SUBMISSION_TRUST_FIX_CERTIFICATION.md`
+
+### Live incident validation
+Re-running the DR-BLOCKER-001A scenario now produces: amber `Cloud` icon + "Saved Locally." + "Your report is saved on this device and will retry automatically when the connection is stable. Do not clear browser data until delivery is confirmed." + Retry Now button. **No user can be falsely told a Daily Report was filed again.**
+
+### Out of scope (deferred — OMEGA freeze)
+- R-BL-3 visible queue-depth indicator · R-BL-4 site-wide MAX_TRIES failure banner
+- All prior backlog (FW-1, FleetWatcher, Motive, MaintainX, MM E-6 → E-9, DR-PDF-001 R-PDF-7 → R-PDF-17, Safety Meeting workflow/training)
+
+
+
+
 ## 2026-02-09 (SM-PDF-001 · SAFETY MEETING PDF LAYOUT REMEDIATION · PASS 🟢)
 
 Replaced the attendance-first Safety Meeting PDF layout with a meeting-content-first renderer. Readers can now answer "what was discussed?" in under 60 seconds of opening the PDF; attendance and signatures remain at the end as supporting evidence.

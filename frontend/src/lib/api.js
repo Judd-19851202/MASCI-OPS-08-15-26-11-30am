@@ -24,6 +24,15 @@ export const api = axios.create({
   // Photos as base64 can be large — bump limits
   maxContentLength: 50 * 1024 * 1024,
   maxBodyLength: 50 * 1024 * 1024,
+  // DR-BLOCKER-001B · R-BL-2 · client-side timeout.
+  // Before this fix the axios instance had no `timeout`, so slow uploads
+  // waited indefinitely for the Cloudflare/ingress 524 (~100s) before
+  // throwing. That window let users mistake a hung upload for a working
+  // one. 60s is a tighter, predictable budget — the resilient client
+  // catches the abort and queues the payload to IDB. Field crews on
+  // slow links now fail fast and get the queued banner immediately.
+  // Doctrine: /app/memory/DR_BLOCKER_001A_FORENSIC_INVESTIGATION.md
+  timeout: 60000,
 });
 
 // Attach Crew-Hub JWT, Safety-Admin token, and Shop token to every request.

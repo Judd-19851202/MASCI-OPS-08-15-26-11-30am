@@ -1,23 +1,19 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { CheckCircle2, ClipboardCheck, Home } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  CheckCircle2, ClipboardCheck, Home, Cloud, RefreshCw, AlertTriangle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 
 // iter334 · Public Submission Thank-You Continuity Refinement
-// ────────────────────────────────────────────────────────────
-// Per-formType continuity messaging that matches the iter327
-// homepage capability voice: calm, direct, field-proven, no fake
-// positivity, no corporate SaaS phrasing. The user lands here after
-// public form submission and should feel: filed correctly, the right
-// people have visibility, you're done unless contacted.
-//
-// The HEADLINE collapses to one word ("Filed.") which lets the
-// continuity sub-line carry the operational specifics.
-//
-// Both EN and ES strings live in i18n.js and translate via t().
+// DR-BLOCKER-001B · R-BL-1 + R-BL-5 · 3-state submission completion.
+//   • delivered → green · "Filed." · backend confirmed persistence
+//   • queued    → amber · "Saved Locally — Not Yet Delivered" · IDB queue
+//                 with auto-retry + manual Retry Now button
+//   • failed    → red   · "Daily Report Not Submitted"
 
 const CONTINUITY_LINE = {
   "Incident Report":              "Safety has it. If additional information is needed, the team will follow up.",
@@ -35,24 +31,17 @@ const CONTINUITY_LINE = {
 export default function ThankYou() {
   const { t } = useT();
   const { state } = useLocation();
+  const navigate = useNavigate();
   const projectName = state?.projectName || "";
   const formType = state?.formType || "Inspection";
   const returnTo = state?.returnTo || "/submit";
-  // iter335 · Submission tracking reference. Forms pass the canonical
-  // identifier (report_number / incident_number / id fallback). If none
-  // is present, the reference line is gracefully omitted — no
-  // placeholder, no fake/random client-side ID.
   const recordId = state?.recordId || "";
+  // DR-BLOCKER-001B · submission state — defaults to "delivered" for
+  // backward compatibility with the dozens of other forms that route
+  // through this page on success without passing the flag.
+  const submissionState = state?.submissionState || "delivered";
+  const lastError = state?.lastError || "";
 
-  // R12 · DR-FIX-2 · "Done" button is the safe, browser-independent
-  // return path. The previous "Close Window" button called
-  // window.close() which is silently ignored by every major browser
-  // unless the window was opened by a script — which is never the
-  // case for field crews arriving via QR code / email link. The new
-  // button navigates back to the public-form home for public
-  // submitters or to "/" for everyone else (the SPA router then
-  // decides where "/" lands per role).
-  // Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md R12
   const homeHref = (returnTo && returnTo.startsWith("/daily/submit"))
     ? "/submit"
     : "/";
@@ -60,8 +49,131 @@ export default function ThankYou() {
   const continuityLine = CONTINUITY_LINE[formType]
     || "The right people have visibility. You're done unless contacted.";
 
+  const [retrying, setRetrying] = useState(false);
+  const [retryNote, setRetryNote] = useState("");
+
+  const onRetryNow = useCallback(async () => {
+    setRetrying(true);
+    setRetryNote("");
+    try {
+      const mod = await import("@/lib/resiliency/resiliencyQueue");
+      await mod.drainQueue();
+      // Brief grace period for the drain to attempt + resolve.
+      setTimeout(() => {
+        setRetrying(false);
+        setRetryNote(t("Retry attempted · check your Daily Reports list to confirm delivery."));
+      }, 1500);
+    } catch (e) {
+      setRetrying(false);
+      setRetryNote(t("Retry could not be triggered — please return to the form."));
+    }
+  }, [t]);
+
+  // ──────────────────────────────────────────────────────────────────
+  // Variant assembly
+  // ──────────────────────────────────────────────────────────────────
+  const VARIANTS = {
+    delivered: {
+      iconBg: "bg-green-700",
+      Icon: CheckCircle2,
+      kicker: `${t(formType)} · ${t("On file")}`,
+      kickerColor: "text-red-700",
+      headline: t("Filed."),
+      message: continuityLine,
+      showRecordId: true,
+      buttons: (
+        <>
+          <Button asChild className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide border-b-2 border-red-900" data-testid="another-inspection-btn">
+            <Link to={returnTo}><ClipboardCheck className="w-4 h-4 mr-2" />{t("File Another")}</Link>
+          </Button>
+          <Button asChild variant="outline" className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide" data-testid="done-btn">
+            <Link to={homeHref}><Home className="w-4 h-4 mr-2" />{t("Done")}</Link>
+          </Button>
+        </>
+      ),
+    },
+    queued: {
+      iconBg: "bg-amber-600",
+      Icon: Cloud,
+      kicker: `${t(formType)} · ${t("Queued · Not Yet Delivered")}`,
+      kickerColor: "text-amber-700",
+      headline: t("Saved Locally."),
+      message: (
+        t("Your report is saved on this device and will retry automatically "
+          + "when the connection is stable. Do not clear browser data until "
+          + "delivery is confirmed.")
+      ),
+      showRecordId: false,
+      buttons: (
+        <>
+          <Button
+            onClick={onRetryNow}
+            disabled={retrying}
+            className="h-12 bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide border-b-2 border-amber-800"
+            data-testid="thank-you-retry-now"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${retrying ? "animate-spin" : ""}`} />
+            {retrying ? t("Retrying...") : t("Retry Now")}
+          </Button>
+          <Button
+            onClick={() => navigate(returnTo, { replace: false })}
+            variant="outline"
+            className="h-12 border-2 border-amber-300 font-bold uppercase tracking-wide text-amber-800"
+            data-testid="thank-you-stay-on-report"
+          >
+            {t("Stay On This Report")}
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide lg:col-span-2"
+            data-testid="thank-you-return-to-start"
+          >
+            <Link to={homeHref}><Home className="w-4 h-4 mr-2" />{t("Return To Start")}</Link>
+          </Button>
+        </>
+      ),
+    },
+    failed: {
+      iconBg: "bg-red-700",
+      Icon: AlertTriangle,
+      kicker: `${t(formType)} · ${t("Not Delivered")}`,
+      kickerColor: "text-red-700",
+      headline: t("Submission Failed."),
+      message: (
+        t("Your report was not delivered. Please retry or contact support.")
+        + (lastError ? `  (${lastError})` : "")
+      ),
+      showRecordId: false,
+      buttons: (
+        <>
+          <Button
+            onClick={onRetryNow}
+            disabled={retrying}
+            className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide border-b-2 border-red-900"
+            data-testid="thank-you-retry-failed"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${retrying ? "animate-spin" : ""}`} />
+            {retrying ? t("Retrying...") : t("Retry")}
+          </Button>
+          <Button
+            onClick={() => navigate(returnTo, { replace: false })}
+            variant="outline"
+            className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide"
+            data-testid="thank-you-stay-on-report-failed"
+          >
+            {t("Stay On This Report")}
+          </Button>
+        </>
+      ),
+    },
+  };
+
+  const v = VARIANTS[submissionState] || VARIANTS.delivered;
+  const IconEl = v.Icon;
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col" data-testid={`thank-you-${submissionState}`}>
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
@@ -76,20 +188,20 @@ export default function ThankYou() {
           className="max-w-xl w-full bg-white border border-slate-200 rounded-md p-8 sm:p-12 text-center"
           data-testid="thank-you-card"
         >
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-700 mb-6">
-            <CheckCircle2 className="w-12 h-12 text-white" />
+          <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${v.iconBg} mb-6`}>
+            <IconEl className="w-12 h-12 text-white" />
           </div>
           <span
-            className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold"
+            className={`font-mono text-xs uppercase tracking-[0.25em] font-bold ${v.kickerColor}`}
             data-testid="thank-you-kicker"
           >
-            {t(formType)} · {t("On file")}
+            {v.kicker}
           </span>
           <h1
             className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2"
             data-testid="thank-you-headline"
           >
-            {t("Filed.")}
+            {v.headline}
           </h1>
           {projectName && (
             <p className="text-slate-700 text-base mt-3" data-testid="thank-you-project">
@@ -100,13 +212,10 @@ export default function ThankYou() {
             className="text-slate-600 text-sm mt-4 leading-relaxed max-w-md mx-auto"
             data-testid="thank-you-continuity"
           >
-            {t(continuityLine)}
+            {t(v.message)}
           </p>
 
-          {/* iter335 · subdued tracking reference · field crews can
-              screenshot this for proof-of-submission. Only renders when
-              a stable identifier was passed by the form. */}
-          {recordId && (
+          {v.showRecordId && recordId && (
             <p
               className="mt-4 font-mono text-xs uppercase tracking-[0.18em] text-slate-500"
               data-testid="thank-you-reference"
@@ -116,28 +225,17 @@ export default function ThankYou() {
             </p>
           )}
 
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-            <Button
-              asChild
-              className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide border-b-2 border-red-900"
-              data-testid="another-inspection-btn"
+          {retryNote && (
+            <p
+              className="mt-4 text-xs text-slate-600"
+              data-testid="thank-you-retry-note"
             >
-              <Link to={returnTo}>
-                <ClipboardCheck className="w-4 h-4 mr-2" />
-                {t("File Another")}
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide"
-              data-testid="done-btn"
-            >
-              <Link to={homeHref}>
-                <Home className="w-4 h-4 mr-2" />
-                {t("Done")}
-              </Link>
-            </Button>
+              {retryNote}
+            </p>
+          )}
+
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-4">
+            {v.buttons}
           </div>
         </div>
       </main>
