@@ -1,0 +1,35 @@
+{
+  "summary": "Frontend-only validation of R-BL-3 QueueStatusPill visibility layer after main agent added the missing import in App.js. All 3 functional states (Synced/Queued/Failed) plus last-sync timestamp behavior validated via IndexedDB seed + reload. The import fix is working — no 'QueueStatusPill is not defined' or ReferenceError. UI renders as designed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "STATE_1_synced_no_lastsync": "PASS — pill hidden (no [data-testid^='queue-status-pill-'] in DOM)",
+    "STATE_2_queued_2_items": "PASS — amber [data-testid='queue-status-pill-queued'] renders with aria-label 'Pending Uploads: 2'. Drawer opens on click. Both queue-item-TEST_q1 and queue-item-TEST_q2 render with form type ('Daily Report', 'Incident Report'), project names ('Project Alpha', 'Project Bravo'), queued time ('QUEUED 3:44 AM'), retry count ('RETRY 1 OF 5' / 'RETRY 2 OF 5'), PENDING badge, and lastError shown. queue-drawer-retry-all is enabled (no disabled attr). queue-drawer-close successfully closes the drawer. Screenshot confirms full layout.",
+    "STATE_3_failed_item": "PASS — red [data-testid='queue-status-pill-failed'] renders with aria-label 'Attention Required'. Drawer shows 'NEEDS ATTENTION' red badge, italic notice 'This submission could not be delivered automatically.', and lastError 'HTTP 500 — service unreachable'. Retry-all button has bg-red-700 styling.",
+    "STATE_4_last_sync_timestamp": "PARTIAL — queue-last-sync renders formatted date 'Jan 12, 2026, 2:30 PM' (not '—'/'Never Synced') when lastSync set in localStorage. HOWEVER: reviewer's stated expectation ('after queue empties + lastSync present, pill should be hidden again') CONTRADICTS the component code. Per QueueStatusPill.jsx line 135 (`if (state === 'synced' && !lastSync) return null;`), the synced state IS shown when lastSync exists — a green disabled 'All Reports Synced' pill renders. Observed: data-testid='queue-status-pill-synced' is present after clearing queue while lastSync remains. This is a spec-vs-code discrepancy — the code's behavior appears intentional (doctrine comment refers to platform-wide trust visibility), but it does not match the reviewer's written assertion. Main agent should clarify desired semantics.",
+    "NON_REGRESSION_console_errors": "PASS — Total console errors: 0. No 'QueueStatusPill is not defined' or ReferenceError. Hub home page renders cleanly with the import addition."
+  },
+  "spec_vs_code_observation": "Reviewer's STATE 4 final clause expects synced+lastSync to hide the pill, but component code only hides when synced AND !lastSync. When lastSync exists, a non-interactive green 'All Reports Synced' pill is rendered (button disabled, cursor-default). This is likely intentional design (persistent trust signal once sync has ever occurred) and is NOT a regression — but it is a documentation discrepancy in the testing request.",
+  "test_report_links": [],
+  "action_items": [
+    "Decide whether the persistent green 'All Reports Synced' pill (queue empty + lastSync present) is the intended final-state behavior. If reviewer's spec is authoritative, change QueueStatusPill.jsx line 135 to `if (state === 'synced') return null;`. If the code is authoritative, update the spec wording. NO functional bug; visibility-only decision."
+  ],
+  "critical_code_review_comments": [
+    "QueueStatusPill.jsx correctly isolates as a pure visibility layer — only calls onQueueChange / getQueueItems / drainQueue exports; never mutates queue state. Doctrine respected.",
+    "All required data-testids present: queue-status-pill-{synced|queued|failed}, queue-status-drawer, queue-status-drawer-backdrop, queue-drawer-close, queue-last-sync, queue-items, queue-item-{id}, queue-drawer-retry-all.",
+    "Successful-drain heuristic (line 87: `prev.length > next.length`) writes lastSync timestamp. This is reasonable but will also fire on any depth-decrease event including a user manually purging the queue from devtools — minor edge case, acceptable.",
+    "drainQueue() called from onRetry catches errors silently; the only feedback is the spinning icon. Acceptable for a visibility-only layer.",
+    "i18n keys (`t('Pending Uploads')`, `t('Attention Required')`, etc.) wired correctly; aria-labels carry the translated text for screen readers."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (all 3 functional states behave correctly; STATE 4 has a spec-vs-code discrepancy only)"},
+  "test_credentials": "n/a — public Hub home page tested, no auth required",
+  "seed_data_creation": "Seeded IndexedDB key 'masci.resiliency.queue.v1' in db 'keyval-store' / store 'keyval' with TEST_-prefixed items for each state; cleared at end. localStorage 'masci.last_successful_sync.v1' set/unset per scenario.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Use raw IndexedDB (not idb-keyval skypack import which may be blocked by CSP) to seed the queue: db='keyval-store', store='keyval', key='masci.resiliency.queue.v1'. Reload after seeding to trigger re-load+notify. CSS `uppercase` class on form-type meta text means inner_text returns uppercase strings — write case-insensitive assertions for 'QUEUED'/'RETRY'/'NEEDS ATTENTION'."
+}

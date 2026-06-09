@@ -236,6 +236,8 @@ import ClusterCapacityBanner from "@/components/ClusterCapacityBanner";
 import BannerStrip from "@/components/BannerStrip";
 import EnvBanner from "@/components/EnvBanner";
 import SplashOverlay from "@/components/SplashOverlay";
+// R-BL-3 · Global queue visibility pill + drawer (visibility-only).
+import QueueStatusPill from "@/components/QueueStatusPill";
 import { validateStoredTokens } from "@/lib/tokenValidation";
 import EnforcePortalScope from "@/components/EnforcePortalScope";
 import MultiPortalHydrator from "@/components/MultiPortalHydrator";
