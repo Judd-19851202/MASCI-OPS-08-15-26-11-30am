@@ -124,24 +124,22 @@ export default function HrTimeVerification() {
       title="Time Verification"
       kicker="HR · Payroll Cross-Check"
     >
-      {/* HR-TIME-001 / 001B · Print stylesheet — portrait, upright, no blank
-          trailing page. Targeted-hide approach (NOT body>*:not(...)) so it
-          works inside the deeply-nested HrPageShell DOM. */}
+      {/* HR-TIME-001 / 001B / 001C / 001D · Print stylesheet — portrait,
+          upright, one page, professional layout (intentional spacing, true
+          totals cards, readable table, balanced footer). */}
       <style>{`
         @media print {
-          @page { size: letter portrait; margin: 0.4in 0.45in; }
+          @page { size: letter portrait; margin: 0.55in 0.5in; }
           html, body {
-            background: #fff !important;
+            background: #fff !important; color: #0f172a !important;
             margin: 0 !important; padding: 0 !important;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial !important;
           }
           /* Force backgrounds + colors to render */
           * { -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important; }
 
-          /* Hide known chrome — must enumerate; "hide-all-then-restore"
-             collapses table/grid semantics in webkit. HR-TIME-001C adds:
-               · EnvBanner preview warning
-               · HrPageShell HR-Hub back link + kicker + live h1 title */
+          /* Hide chrome (preserved from 001C) */
           .caution-stripe, header, nav, aside,
           [role="navigation"], [role="banner"],
           [data-testid="env-banner"],
@@ -150,58 +148,121 @@ export default function HrTimeVerification() {
           main > div.font-mono.text-purple-700,
           main > h1.font-display,
           [data-print-hide] { display: none !important; }
-
-          /* Strip the blueprint-grid background — print mode prints flat white. */
           .blueprint-bg { background: #fff !important; background-image: none !important; }
 
-          /* Neutralise layout constraints inherited from the page shell so the
-             printed region is the natural height of its content (no phantom page). */
+          /* Neutralise shell layout */
           .min-h-screen { min-height: 0 !important; }
           .pb-16 { padding-bottom: 0 !important; }
           main, .max-w-7xl, .max-w-6xl, .max-w-5xl {
-            max-width: none !important;
-            padding: 0 !important; margin: 0 !important;
+            max-width: none !important; padding: 0 !important; margin: 0 !important;
           }
           main { display: block !important; }
-
-          /* Reveal print-only header & footer */
           [data-print-only] { display: block !important; }
 
-          /* Compact tables for portrait letter */
-          [data-print-region] { width: 100%; }
+          /* ── Print-only header — three balanced lines ─────────────── */
+          .pr-head { margin-bottom: 22px; padding-bottom: 12px;
+                     border-bottom: 2px solid #6d28d9; }
+          .pr-head .brand-row {
+            display: flex; align-items: baseline; justify-content: space-between;
+            gap: 12px;
+          }
+          .pr-head .brand {
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+            text-transform: uppercase; color: #0f172a;
+          }
+          .pr-head .gen {
+            font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+            font-size: 9.5px; color: #64748b; letter-spacing: 0.02em;
+          }
+          .pr-head .title {
+            font-size: 22px; font-weight: 900; color: #0f172a;
+            margin-top: 6px; letter-spacing: -0.01em; line-height: 1.15;
+          }
+          .pr-head .kicker {
+            font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+            font-size: 9.5px; letter-spacing: 0.18em;
+            text-transform: uppercase; color: #6d28d9;
+            margin-top: 4px;
+          }
+
+          /* ── Filter / window metadata band ────────────────────────── */
+          .pr-meta { margin-bottom: 18px;
+                     background: #f8fafc !important; border: 1px solid #e2e8f0;
+                     border-radius: 4px; padding: 10px 14px; }
+          .pr-meta .row { display: flex; flex-wrap: wrap; gap: 18px 26px; }
+          .pr-meta .cell { min-width: 130px; }
+          .pr-meta .lbl {
+            font-family: ui-monospace, monospace; font-size: 8px;
+            letter-spacing: 0.18em; text-transform: uppercase; color: #64748b;
+          }
+          .pr-meta .val { font-size: 11px; font-weight: 700; color: #0f172a;
+                          margin-top: 1px; }
+
+          /* ── Totals as 5 balanced cards ───────────────────────────── */
+          [data-print-region] .pr-stats {
+            display: grid !important;
+            grid-template-columns: repeat(5, 1fr) !important;
+            gap: 8px !important;
+            margin-bottom: 20px !important;
+          }
+          [data-print-region] .pr-stats .cell {
+            border: 1px solid #cbd5e1; border-radius: 4px;
+            padding: 8px 10px; background: #fff !important;
+          }
+          [data-print-region] .pr-stats .lbl {
+            font-family: ui-monospace, monospace; font-size: 8px;
+            letter-spacing: 0.18em; text-transform: uppercase; color: #64748b;
+          }
+          [data-print-region] .pr-stats .val {
+            font-size: 18px; font-weight: 900; color: #0f172a;
+            margin-top: 3px; line-height: 1; letter-spacing: -0.01em;
+          }
+          [data-print-region] .pr-stats .cell.ot .val { color: #b45309; }
+
+          /* ── Table styling — readable, generous ───────────────────── */
           [data-print-region] table {
-            font-size: 10px; width: 100%;
+            font-size: 11px !important; width: 100%;
             border-collapse: collapse;
+            margin-top: 4px;
           }
           [data-print-region] th, [data-print-region] td {
-            padding: 3px 5px !important;
+            padding: 7px 8px !important;
             border-bottom: 1px solid #e2e8f0 !important;
-            vertical-align: top;
+            vertical-align: middle;
           }
           [data-print-region] thead th {
             background: #f1f5f9 !important; color: #0f172a !important;
-            border-bottom: 1px solid #94a3b8 !important;
-            font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em;
+            border-bottom: 1.5px solid #94a3b8 !important;
+            font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+            font-weight: 800;
           }
-          [data-print-region] tr { page-break-inside: avoid; }
+          [data-print-region] tbody tr { page-break-inside: avoid; }
+          [data-print-region] tbody tr td { line-height: 1.35; }
           [data-print-region] thead { display: table-header-group; }
-          [data-print-region] .text-3xl { font-size: 13px !important; }
-          [data-print-region] .border-2 { border-width: 1px !important; }
-          [data-print-region] .grid { gap: 6px !important; }
-          [data-print-region] .p-5 { padding: 6px 0 !important; }
-          [data-print-region] .mb-5, [data-print-region] .mb-4 { margin-bottom: 8px !important; }
+          /* Flag pills readable */
+          [data-print-region] .inline-flex { font-size: 9.5px !important;
+                                              padding: 2px 6px !important; }
 
-          /* Print footer · flows in document (NOT fixed) so it never spawns
-             a phantom trailing page. */
-          .print-footer {
-            margin-top: 14px; padding-top: 6px;
+          /* Hide the live React stats strip + the React-side print header (we
+             render dedicated print-only blocks instead). */
+          [data-print-region] [data-testid="hr-tv-stats-strip"] { display: none !important; }
+          [data-print-region] [data-testid="hr-tv-filter-card"] { display: none !important; }
+
+          /* ── Footer ───────────────────────────────────────────────── */
+          .pr-footer {
+            margin-top: 22px; padding-top: 10px;
             border-top: 1px solid #cbd5e1;
-            font-size: 9px; color: #475569;
-            text-align: center; line-height: 1.45;
+            text-align: center; line-height: 1.5;
             page-break-inside: avoid;
           }
-          .print-footer .brand { font-weight: 700; color: #0f172a; }
-          .print-footer .sub   { color: #64748b; font-size: 8.5px; }
+          .pr-footer .brand { font-size: 11px; font-weight: 800;
+                              color: #0f172a; letter-spacing: 0.04em; }
+          .pr-footer .powered { font-family: ui-monospace, monospace;
+                                font-size: 9px; color: #6d28d9;
+                                letter-spacing: 0.18em;
+                                text-transform: uppercase; margin-top: 2px; }
+          .pr-footer .sub { font-size: 8.5px; color: #64748b; margin-top: 6px; }
         }
         @media not print {
           [data-print-only] { display: none; }
@@ -209,26 +270,59 @@ export default function HrTimeVerification() {
       `}</style>
 
       <div data-print-region>
-        {/* Print-only report header (hidden on screen) */}
-        <div data-print-only style={{ marginBottom: 10, borderBottom: "1.5px solid #6d28d9", paddingBottom: 6 }}>
-          <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "#64748b" }}>
-            MASCI Operations Platform · HR · Payroll Cross-Check
+        {/* Print-only · professional report header */}
+        <div data-print-only className="pr-head">
+          <div className="brand-row">
+            <div className="brand">MASCI Operations Platform</div>
+            <div className="gen">Generated {new Date().toISOString().replace("T", " ").slice(0, 16)} UTC</div>
           </div>
-          <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a", marginTop: 2 }}>
-            Time Verification Report
+          <div className="title">Time Verification Report</div>
+          <div className="kicker">HR · Payroll Cross-Check</div>
+        </div>
+
+        {/* Print-only · filter / window metadata band */}
+        <div data-print-only className="pr-meta">
+          <div className="row">
+            <div className="cell">
+              <div className="lbl">Window</div>
+              <div className="val">{(data?.week_start || "—") + "  →  " + (data?.week_end || "—")}</div>
+            </div>
+            <div className="cell">
+              <div className="lbl">Week Ending</div>
+              <div className="val">{weekEnding || "—"}</div>
+            </div>
+            <div className="cell">
+              <div className="lbl">View</div>
+              <div className="val">{view === "weekly" ? "Weekly Rollup" : "Per-Day Detail"}</div>
+            </div>
+            {employee ? (
+              <div className="cell">
+                <div className="lbl">Employee</div>
+                <div className="val">{employee}</div>
+              </div>
+            ) : null}
+            {projectNumber ? (
+              <div className="cell">
+                <div className="lbl">Project #</div>
+                <div className="val">{projectNumber}</div>
+              </div>
+            ) : null}
+            {supervisor ? (
+              <div className="cell">
+                <div className="lbl">Supervisor</div>
+                <div className="val">{supervisor}</div>
+              </div>
+            ) : null}
           </div>
-          <div style={{ fontSize: 10, color: "#334155", marginTop: 4, lineHeight: 1.5 }}>
-            <strong>Window:</strong> {data?.week_start || "—"} → {data?.week_end || "—"}
-            {" · "}
-            <strong>Week Ending:</strong> {weekEnding || "—"}
-            {employee ? <> · <strong>Employee:</strong> {employee}</> : null}
-            {projectNumber ? <> · <strong>Project #:</strong> {projectNumber}</> : null}
-            {supervisor ? <> · <strong>Supervisor:</strong> {supervisor}</> : null}
-            {" · "}
-            <strong>View:</strong> {view === "weekly" ? "Weekly Rollup" : "Per-Day Detail"}
-            {" · "}
-            <strong>Generated:</strong> {new Date().toISOString().replace("T", " ").slice(0, 16)} UTC
-          </div>
+        </div>
+
+        {/* Print-only · totals summary as 5 balanced cards */}
+        <div data-print-only className="pr-stats">
+          <div className="cell"><div className="lbl">Total Employees</div><div className="val">{summary.total_employees || 0}</div></div>
+          <div className="cell"><div className="lbl">Total Hours</div><div className="val">{fmtHours(summary.total_hours)}</div></div>
+          <div className="cell"><div className="lbl">Regular Hours</div><div className="val">{fmtHours(summary.total_regular)}</div></div>
+          <div className={`cell ${(summary.total_overtime || 0) > 0 ? "ot" : ""}`}><div className="lbl">Overtime Hours</div><div className="val">{fmtHours(summary.total_overtime)}</div></div>
+          <div className="cell"><div className="lbl">Lunch Hours</div><div className="val">{fmtHours(summary.total_lunch)}</div></div>
         </div>
 
       <div className="mb-4" data-print-hide>
@@ -329,11 +423,10 @@ export default function HrTimeVerification() {
         <DailyTable rows={rows} />
       )}
 
-        {/* Print footer (hidden on screen) · ForgedOps platform credit. Flows in
-            document, never fixed-position, so it does not generate a phantom page. */}
-        <div data-print-only className="print-footer">
+        {/* Print-only · professional footer */}
+        <div data-print-only className="pr-footer">
           <div className="brand">MASCI Operations Platform</div>
-          <div>Powered by ForgedOps</div>
+          <div className="powered">Powered by ForgedOps</div>
           <div className="sub">
             Generated {new Date().toISOString().replace("T", " ").slice(0, 19)} UTC · Confidential payroll cross-check
             {typeof window !== "undefined" && window.location?.host?.includes("preview") ? (

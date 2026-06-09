@@ -1,3 +1,39 @@
+## 2026-02-09 (HR-TIME-001D · FINAL PRINT DESIGN PASS · CERTIFIED 🟢)
+
+P0 print-design polish completing the HR-TIME-001 series. Output is now deploy-final.
+
+### The fix (one file · dedicated print-only markup + 4 new CSS section classes)
+- `.pr-head` — balanced brand-row (MASCI left, Generated UTC right) · 22px bold "Time Verification Report" · purple uppercase kicker · 2px purple separator
+- `.pr-meta` — light-slate metadata band with 6 labelled cells (Window · Week Ending · View · Employee · Project # · Supervisor) — value-conditional cells
+- `.pr-stats` — 5 bordered cards in a CSS grid · uppercase mono labels · 18px bold values · OT cell ambers when > 0
+- Table — 11px font · 7px row padding · grey-band header · 0.08em tracking · No Lunch pills sized to read
+- `.pr-footer` — centered: **MASCI Operations Platform** · "POWERED BY FORGEDOPS" (purple uppercase) · 8.5px sub-line (timestamp · confidentiality · preview-env marker)
+- Hides screen `data-testid="hr-tv-stats-strip"` and `hr-tv-filter-card` in print (dedicated print-only blocks render instead)
+- Removed leftover orphan markup from 001C cleanup (the trailing duplicate "Time Verification Report" + filter line fragment) — confirmed via screen DOM check that "Time Verification Report" appears exactly 1× in screen body
+
+### Live evidence
+- Real print-to-PDF: **80,451 bytes · exactly 1 page** (verified by `/Type /Page` object count)
+- Print preview: header band → metadata band → 5 totals cards → readable table → centered branded footer · intentional 18-22px vertical rhythm · uses natural top half of letter page
+- iPad portrait 820×1180: identical clean layout · zero horizontal scroll
+- Screen mode: both Export CSV (testid=1) and Print Report (testid=1) buttons present and functional
+- Lint: pre-existing warnings (lines 83, 85) confirmed pre-existing via earlier `git stash` baseline · left untouched per OMEGA
+
+### Tests 15/15 PASS
+One page · upright · no screen chrome · no orange banner · no grid bg · professional header · readable filters / totals / table / flags · Powered by ForgedOps in footer · no squeeze · no dead space · iPad OK · CSV still works.
+
+### Doctrine adherence
+- Zero backend / schema / data / permission / screen-layout changes
+- One file modified (`HrTimeVerification.jsx`) · all changes inside `@media print` or `[data-print-only]` blocks
+- Screen mode visually identical to before
+
+### Deliverable
+- `/app/memory/HR_TIME_001D_FINAL_PRINT_DESIGN_CERTIFICATION.md`
+- `/app/memory/PRD.md` updated
+
+🛑 **STOP CONDITION OBSERVED.** Deploy final.
+
+
+
 ## 2026-02-09 (HR-TIME-001C · FINAL PRINT CLEANUP · CERTIFIED 🟢)
 
 P0 print-CSS-only cleanup completing HR-TIME-001 / 001B. PDF now renders as a clean standalone HR report — no screen-shell artefacts.
