@@ -150,7 +150,7 @@ async def write_sync_log(db, *, integration: str, sync_type: str, status: str,
         "records_failed": records_failed,
         "error_message": error_message,
         "triggered_by": triggered_by,
-        "environment": (os.environ.get("ENVIRONMENT") or "preview").strip(),
+        "environment": (os.environ.get("APP_ENV") or os.environ.get("ENVIRONMENT") or "production").strip(),
         "notes": notes,
     }
     await db.integration_sync_logs.insert_one(log)

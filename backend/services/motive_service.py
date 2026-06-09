@@ -465,7 +465,7 @@ async def _write_sync_log(db, op: str, triggered_by: str, created: int, updated:
             "records_failed": errors,
             "error_message": None,
             "triggered_by": triggered_by,
-            "environment": (os.environ.get("APP_ENV") or os.environ.get("ENVIRONMENT") or "preview").strip(),
+            "environment": (os.environ.get("APP_ENV") or os.environ.get("ENVIRONMENT") or "production").strip(),
             "notes": "",
         })
     except Exception as e:  # noqa: BLE001

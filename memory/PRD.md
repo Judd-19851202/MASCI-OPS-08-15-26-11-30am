@@ -1,3 +1,29 @@
+## 2026-06-09 (APP-ENV-001 · PRODUCTION ENVIRONMENT LABEL CORRECTION · CERTIFIED 🟢)
+
+**Root cause was code-level**, not env-var: `_storage.py:153 (write_sync_log)` read only `ENVIRONMENT` env var and defaulted to `"preview"`, while `motive_service.py:468 (_write_sync_log)` correctly read `APP_ENV → ENVIRONMENT → ...`. Production sets `APP_ENV` (not `ENVIRONMENT`), so the webhook writer fell to its `"preview"` default. (`server.py`'s startup safety guard makes it structurally impossible for prod to run with `APP_ENV="preview"`, ruling out a runtime env-var mismatch.)
+
+### Surgical change · 2 single-line edits · 0 history mutation
+- `routes/integrations/_storage.py:153`: env chain now `APP_ENV → ENVIRONMENT → "production"` (was `ENVIRONMENT → "preview"`).
+- `services/motive_service.py:468`: default fallback `"preview" → "production"` (chain unchanged · aligns both writers).
+
+### 10/10 verifications PASS
+- Preview restart: APP_ENV=preview honored — newest sync_log entry `environment: "preview"` ✅
+- 41,203 historical PROD `"preview"`-labelled rows **UNCHANGED** (no `update_many` executed) ✅
+- PROD Motive still Connected (`last_successful_sync_at: 17:21:26Z`) ✅
+- PROD backup health green ✅
+- Health endpoint 200 OK ✅
+- No secrets exposed, no business logic touched, no FleetWatcher/Dispatch/Material Movement contact.
+
+### Deploy posture
+Fix is live in preview. Production will pick up the corrected environment label on the next backend deploy/restart — **no operator env-var change required.** Historical incident-window rows preserved as forensic artefacts.
+
+### Deliverable
+- `/app/memory/APP_ENV_001_PRODUCTION_LABEL_CERTIFICATION.md`
+
+🛑 STOPPED per OMEGA. APP-ENV-LABEL-001 closed.
+
+
+
 ## 2026-06-09 (WEBHOOK-HARDEN-001 · RETRYABLE 503 ON CREDENTIALS-MISSING · CERTIFIED 🟢)
 
 Fix for `WEBHOOK-2XX-ON-MISCONFIG-001`: the credential-missing branch of `routes/integrations/webhooks.py` now returns **HTTP 503** (was a 200 OK dict). Providers like Motive will now retry instead of falsely treating delivery as successful.
