@@ -37192,3 +37192,30 @@ OPEN → UNDER_REVIEW → APPROVED → FINALIZED
 
 **OMEGA discipline maintained:** Zero changes to `resiliencyQueue.js`, `draftStore.js`, backend routes, models, or DB. Single one-line `import` addition in `App.js`.
 
+
+---
+
+## PROJECT-IDENTITY-001 · Platform-Wide Canonical Project Identity Audit (Feb 2026)
+
+**Type:** AUDIT ONLY · OMEGA · P0  
+**Status:** COMPLETE — awaiting authorization for follow-on work  
+**Deliverable:** `/app/memory/PROJECT_IDENTITY_001_PLATFORM_AUDIT.md`
+
+**Mandate:** Determine whether the duplicate-folder defect verified in Daily Reports and Job Photos exists elsewhere across the platform. Read-only scan of both `masci_safety` (prod) and `masci_safety_preview` databases, all 161 collections, and every project-grouped UI screen.
+
+**Findings (headline):**
+1. `jobs_master` is structurally sufficient as the canonical source today (29/28 active rows, no blanks, no duplicates, unique `project_number` index). Verdict: **PASS**.
+2. **35 collections** carry project references. Of those, only ~7 use a canonical FK (`project_id` → `jobs_master.id`); the rest mirror submitter-typed `project_number` + `project_name`.
+3. **One module is broken (FAIL):** `pages/JobPhotosLibrary.jsx` line 91 — `key = ${number}::${name}` — same defect family as DR-JOB-001. **Confirmed live in prod** for PNs `26-01 - CP`, `24-12`, `25-21`, `26-07` (matches user-supplied screenshots exactly).
+4. **Six modules are PARTIAL:** All consumers of `JobFolderList` other than Daily Reports group correctly (by `project_number` only — DR-JOB-002 fix) but display submitter free-text names because they don't pass the `jobsMaster` prop (Site Inspections, Equipment, Incidents, Meetings, Admin QA/QC, PM QA/QC, Admin Safety Forms).
+5. **Cert/Test pollution:** 5 records in prod (already hidden by default), 1,222 records in preview across 19 collections (also hidden by default). No action needed.
+6. **Orphans:** Prod is essentially clean. Preview has 998 unmatched `job_photos` rows, 623 unmatched `daily_reports` rows — all cert/test fixtures.
+
+**Roadmap (proposed, not authorized):**
+- `PROJECT-IDENTITY-002` — Shared `resolveProjectIdentity()` resolver in `frontend/src/lib/projectIdentity.js`.
+- `PROJECT-IDENTITY-003` — Convert Job Photos Library (closes the highest-visibility defect).
+- `PROJECT-IDENTITY-004` — Wire `jobsMaster` prop to the remaining 6 dashboards + per-row UIs.
+- `PROJECT-IDENTITY-005` — Admin Alias Reconciliation Tool (new `jobs_master_aliases` collection + admin UI).
+
+**OMEGA invariants honoured:** no code, no data, no schema, no merges, no deletes, no jobs_master mutations, no alias creation, no lint fixes, no test fixes, no FleetWatcher / Dispatch / Material / Motive changes.
+
