@@ -882,56 +882,122 @@ def _render_daily(d: Dict[str, Any]) -> str:
             )
         )
 
+    # ── R-PDF-5 · Legacy Section 09 Rationalization ────────────────
+    # Analysis (DR-PDF-001 / DR-PDF-003 evidence):
+    #   • Legacy `activities[]` columns: activity, percent_complete,
+    #     station_from, station_to, notes
+    #   • Wave-1B `production[]` columns: description, quantity, unit,
+    #     station_from, station_to, notes, custom_unit_label
+    #   • Unique to legacy 09: `percent_complete` (progress signal)
+    #   • Unique to 09b:       quantity + structured unit
+    #   • Shared:              station + notes + activity/description overlap
+    # Decision: when BOTH 09 and 09b are populated, retitle legacy to
+    #   "09a · Activity Progress" and render only its unique columns
+    #   (Activity, % Done, Notes). This eliminates the duplicated
+    #   station/from/to columns without deleting a single datapoint.
+    #   When only legacy 09 exists (pre-Wave-1B docs), render in full.
     acts = d.get("activities") or []
+    prods = d.get("production") or []
+    has_production = bool(prods)
     if acts:
-        # Foremen fill these 5 fields on the daily-report Activity Log
-        # (frontend keys: activity / percent_complete / station_from /
-        # station_to / notes). Earlier versions of this PDF expected a
-        # single `description` key — which silently rendered as empty
-        # cells and made the section appear blank in printed PDFs.
         body_rows = []
         for a in acts:
             pct = a.get("percent_complete")
             pct_cell = (
                 f"{pct}%" if pct not in (None, "", []) else ""
             )
-            body_rows.append([
-                a.get("activity") or "",
-                pct_cell,
-                a.get("station_from") or "",
-                a.get("station_to") or "",
-                a.get("notes") or "",
-            ])
-        rows.append(
-            _section(
-                "09 · Activities Performed",
-                _table(
-                    ["Activity", "% Done", "From", "To", "Notes"],
-                    body_rows,
-                ),
+            if has_production:
+                # Slimmed view — unique columns only.
+                body_rows.append([
+                    a.get("activity") or "",
+                    pct_cell,
+                    a.get("notes") or "",
+                ])
+            else:
+                # Legacy full-table render preserved for pre-Wave-1B docs.
+                body_rows.append([
+                    a.get("activity") or "",
+                    pct_cell,
+                    a.get("station_from") or "",
+                    a.get("station_to") or "",
+                    a.get("notes") or "",
+                ])
+        if has_production:
+            rows.append(
+                _section(
+                    "09a · Activity Progress",
+                    "<p style='font-size:10px;color:#475569;margin:0 0 6px;'>"
+                    "Progress complement to Production Quantities (09b). "
+                    "Station ranges and quantities live in 09b.</p>"
+                    + _table(
+                        ["Activity", "% Done", "Notes"],
+                        body_rows,
+                    ),
+                )
             )
-        )
+        else:
+            rows.append(
+                _section(
+                    "09 · Activities Performed",
+                    _table(
+                        ["Activity", "% Done", "From", "To", "Notes"],
+                        body_rows,
+                    ),
+                )
+            )
 
     # R1 · DR-FIX-1 · Production V.2 (Wave-1B structured rows).
     # Stored in `production[]` by daily_reports.py · invisible to PDF
     # readers until now. NO schema change · pure surface.
     # Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md
-    prods = d.get("production") or []
+    # R-PDF-6 · DR-PDF-003 · Production Totals row appended at bottom of
+    # the table, mirroring the Crews "Total Hours" pattern. Pure
+    # derivation — no new fields, no persistence.
     if prods:
         body_rows = []
+        # Aggregate quantities by unit label for the totals row.
+        unit_totals: Dict[str, float] = {}
         for p in prods:
-            unit = p.get("unit") or ""
-            if unit == "OTHER" and p.get("custom_unit_label"):
-                unit = f"OTHER · {p.get('custom_unit_label')}"
+            unit_raw = (p.get("unit") or "").strip()
+            unit_label = unit_raw
+            if unit_raw == "OTHER":
+                custom = (p.get("custom_unit_label") or "").strip()
+                unit_label = custom or "OTHER"
             qty = p.get("quantity")
+            try:
+                qty_num = float(qty) if qty not in (None, "") else 0.0
+            except (TypeError, ValueError):
+                qty_num = 0.0
+            if qty_num and unit_label:
+                unit_totals[unit_label] = unit_totals.get(unit_label, 0.0) + qty_num
+            # Row render (existing behavior preserved).
+            unit_cell = unit_raw
+            if unit_raw == "OTHER" and p.get("custom_unit_label"):
+                unit_cell = f"OTHER · {p.get('custom_unit_label')}"
             qty_str = "" if qty in (None, "", 0, 0.0) else str(qty)
             body_rows.append([
                 p.get("description") or "",
                 qty_str,
-                unit,
+                unit_cell,
                 p.get("station_from") or "",
                 p.get("station_to") or "",
                 p.get("notes") or "",
+            ])
+        # R-PDF-6 · Totals row (only when at least one unit accumulated).
+        if unit_totals:
+            def _fmt_qty(v: float) -> str:
+                # Drop trailing .0 for whole numbers; keep 2-decimal otherwise.
+                return f"{v:.0f}" if abs(v - round(v)) < 1e-9 else f"{v:.2f}"
+            totals_line = " · ".join(
+                f"{_fmt_qty(v)} {k}" for k, v in sorted(unit_totals.items())
+            )
+            body_rows.append([
+                _RawHtml("<b>Production Totals</b>"),
+                "",
+                "",
+                "",
+                "",
+                _RawHtml(f"<b>{escape(totals_line)}</b>"),
             ])
         rows.append(
             _section(
@@ -1019,7 +1085,13 @@ def _render_daily(d: Dict[str, Any]) -> str:
             )
         )
 
-    rows.append(_section("10 · Photos", _photos_block(d.get("photos"))))
+    # R-PDF-4 · DR-PDF-003 · Hide empty Photos section.
+    # `_photos_block` returns "" when no photo refs resolve. Skip the
+    # entire 10 · Photos section render in that case — emitting an
+    # empty header signals "missing photos / failed render" to readers.
+    _photos_html = _photos_block(d.get("photos"))
+    if _photos_html:
+        rows.append(_section("10 · Photos", _photos_html))
 
     # DR-FIX-3 · R13 · Daily Report Signature Simplification.
     # Single accountable signer = Prepared By. Superintendent remains

@@ -1,3 +1,29 @@
+## 2026-02-09 (DR-PDF-003 · PDF POLISH & PRODUCTION INTELLIGENCE · PASS 🟢)
+
+Implemented the next three DR-PDF-001 recommendations under strict OMEGA discipline. Three surgical edits to `pdf_render.py::_render_daily` only.
+
+### R-PDF-4 · Hide Empty Photos
+Gate `10 · Photos` section emission on `_photos_block` returning content. No data, workflow, upload, or storage change. **PDF drops from 4 → 3 pages when photos are absent.**
+
+### R-PDF-5 · Legacy Section 09 Rationalization
+Evidence-based slim of legacy `activities[]` section when Wave-1B `production[]` is populated. Retitled to `09a · Activity Progress` with only its unique columns (Activity · % Done · Notes); duplicated station columns dropped (they live in 09b). Pre-Wave-1B reports (production[] empty) still render in the full legacy 5-column form — no data deletion. Explanatory note guides readers to 09b for station/quantity.
+
+### R-PDF-6 · Production Totals
+Bold "Production Totals" row appended at the bottom of Section 09b, aggregating `quantity` by canonical unit (and by `custom_unit_label` when `unit=="OTHER"`). Mirrors the Crews "Total Hours" pattern. Pure derivation — `unit_totals` is a local dict, never persisted. Zero-quantity rows excluded; whole vs fractional formatting respected.
+
+### Verification
+- Pytest **23/23 green** (`tests/test_dr_pdf_003_polish_and_totals.py`)
+- Full regression **82/82 green** (DR-FIX-1 + DR-FIX-2 + DR-FIX-3 + MM-001B + F1 + DR-PDF-002 + DR-PDF-003)
+- Before/after PDF render comparison captured. Sample: `SP-12.5 placed 240 TON + SP-12.5 lift 2 140 TON → Production Totals: 380 TON · 0.21 Lane-Mi`
+- Audit footer (Wave-1C sha256), Exec Summary, Safe Day Badge, Crew Math collapse, Excavation surface, MM-001B 09d, DR-FIX-3 single signer — ALL preserved
+- Certification: `/app/memory/DR_PDF_003_POLISH_AND_TOTALS_CERTIFICATION.md`
+
+### Out of scope (deferred — OMEGA freeze)
+R-PDF-7 through R-PDF-17 minus 4/5/6 (just shipped) · MM follow-ons E-3 → E-9 · FW-1 · FleetWatcher · Motive · MaintainX · DR/PDF redesign · Stale `test_trench_safety_phase2.py::test_dashboard_seed_data`
+
+
+
+
 ## 2026-02-09 (DR-PDF-002 · EXECUTIVE COMPREHENSION SPRINT · PASS 🟢)
 
 Implemented the four highest-priority recommendations from the DR-PDF-001 audit (R-PDF-1 + R-PDF-2 + R-PDF-3 + R-PDF-10). Page 1 of the Daily Report PDF now tells the story of the day in under 60 seconds — independently verified by visual analyzer (95% confidence).
