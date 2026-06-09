@@ -37261,3 +37261,55 @@ No data writes · no schema changes · no `jobs_master` mutations · no alias ta
 ### Roadmap still pending (DO NOT START without authorization)
 - PROJECT-IDENTITY-005 — Admin Alias Reconciliation Tool (new `jobs_master_aliases` collection + admin UI). Required to absorb legacy PN variants like preview `po_requests` PN `26-01` → canonical `26-01 - CP`.
 
+
+---
+
+## PROJECT-IDENTITY-005 · Project Identity Governance & Drift Prevention (Feb 2026)
+
+**Type:** PLATFORM GOVERNANCE · OMEGA · P0  
+**Status:** COMPLETE — CERTIFIED  
+**Deliverables:**
+- `/app/memory/PROJECT_IDENTITY_005_GOVERNANCE_CERTIFICATION.md`
+- `/app/memory/PROJECT_IDENTITY_005_PLATFORM_AUDIT.md`
+- `/app/memory/PROJECT_IDENTITY_005_DEPLOYMENT_BLOCKERS.md`
+- `/app/memory/PROJECT_IDENTITY_005_HEALTH_REPORT.md`
+
+### What shipped
+
+**Backend Governance Center** (`backend/routes/project_identity_governance.py`)
+- `POST /api/admin/project-identity/scan` · `GET /queue` · `POST /queue/{key}/resolve` · `GET /metrics`.
+- Six conflict types (A · same PN diff name · B · same name diff PN · C · normalizable variant · D · unknown PN · E · blank PN · F · blank name).
+- Four allowed operator resolutions: `match | leave_unmatched | intentional | dismiss`. No deletes, merges, or rewrites exist anywhere on the surface.
+- New collection `project_identity_conflicts` (key/status/conflict_type indexed). Operator resolutions persist across re-scans.
+
+**Resolver extension** (`frontend/src/lib/projectIdentity.js`)
+- Added fifth resolution state `project_number_normalized` — whitespace + dash + casing only (rule: "if certainty is not 100%, remain unmatched"). Ambiguous normalizations fall through to `submitted_only`.
+- `normalizePn()` mirror-paired with the backend `normalize_pn()`.
+- Doctrine safeguard `default: throw` in `displayProjectIdentity()` preserved.
+
+**Admin Governance Center page** (`frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx`)
+- All eight metric cards: Canonical Projects · Governance Queue · Unmatched Records · Normalized Matches · Intentional Variants · Projects Requiring Review · Last Governance Action · Identity Health Score.
+- Full filter/search toolbar + Re-scan platform button.
+- Verified live: preview shows 28 canonical, 1242 governance items, 2105 unmatched records, 500 visible items in default render. Resolution endpoint tested end-to-end (Type A `25-15` → Mark Intentional).
+
+**Deployment blocker** (`backend/tests/test_project_identity_compliance.py`)
+- 5 pytest tests, all PASS:
+  1. No `${number}::${name}` grouping.
+  2. Every `<JobFolderList>` callsite passes `jobsMaster`.
+  3. Every JobFolderList consumer fetches `/jobs-master`.
+  4. Resolver doctrine safeguard present.
+  5. Only the five authorized resolution states.
+
+### OMEGA invariants honoured
+No fuzzy matching · no auto-mapping · no auto-correction · no auto-merge · no jobs_master writes · no submitted-record mutation · no historical rewrites · no aliases / `jobs_master_aliases` table · no payroll / dispatch / motive / backup / safety touched · pre-existing unrelated lint warnings still untouched.
+
+### Doctrine status
+**ONE PROJECT NUMBER. ONE PROJECT. ONE NAME. ONE HISTORY. ONE IDENTITY** — now self-governing across the platform.
+
+### Backlog still untouched (DO NOT START)
+- FleetWatcher rewrites.
+- Dispatch Automation.
+- Material Movement Automation.
+- Stale `test_trench_safety_phase2.py::test_dashboard_seed_data` (P2, deferred since Feb 2026).
+- ESLint cleanup pass on the seven pre-existing flagged files.
+

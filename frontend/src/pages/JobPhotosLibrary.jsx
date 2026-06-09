@@ -96,6 +96,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
 
       const identity = resolveProjectIdentity(it, {
         jobsMasterByPn: jmMaps.byPn,
+        jobsMasterByNorm: jmMaps.byNorm,
         jobsMasterById: jmMaps.byId,
       });
       const display = displayProjectIdentity(identity, {
@@ -116,13 +117,15 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
       }
 
       // PROJECT-IDENTITY-003 · folder key is canonical PN only.
-      // canonical / project_number_match → canonical_project_number
+      // canonical / project_number_match / project_number_normalized
+      //                                  → canonical_project_number
       // submitted_only                   → submitted_project_number
       // orphan                           → __ORPHAN__ bucket
       let key;
       switch (identity.resolution_status) {
         case "canonical":
         case "project_number_match":
+        case "project_number_normalized":
           key = identity.canonical_project_number;
           break;
         case "submitted_only":
@@ -539,6 +542,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
         const identity = meta
           ? resolveProjectIdentity(meta, {
               jobsMasterByPn: jmMaps.byPn,
+              jobsMasterByNorm: jmMaps.byNorm,
               jobsMasterById: jmMaps.byId,
             })
           : null;

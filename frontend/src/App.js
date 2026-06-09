@@ -129,6 +129,7 @@ import AdminSessions from "@/pages/admin/AdminSessions";
 import AdminGuidanceCoverage from "@/pages/admin/AdminGuidanceCoverage";
 import AdminOperationalInventory from "@/pages/admin/AdminOperationalInventory";
 import AdminGovernance from "@/pages/admin/AdminGovernance";
+import AdminProjectIdentityGovernance from "@/pages/admin/AdminProjectIdentityGovernance";
 import SelfProtection from "@/pages/admin/SelfProtection";
 import AdminComplianceFindings from "@/pages/admin/AdminComplianceFindings";
 import AdminOperationalLanguage from "@/pages/admin/AdminOperationalLanguage";
@@ -488,6 +489,7 @@ function App() {
             <Route path="/notifications" element={<NotificationsDigest />} />
             {/* Phase 2 · Compliance Gap Detector + Governance Health (admin-strict) */}
             <Route path="/admin/governance" element={A(<AdminGovernance />)} />
+            <Route path="/admin/project-identity" element={A(<AdminProjectIdentityGovernance />)} />
             <Route path="/admin/governance/self-protection" element={A(<SelfProtection />)} />
             <Route path="/admin/compliance-findings" element={A(<AdminComplianceFindings />)} />
             <Route path="/admin/operational-language" element={A(<AdminOperationalLanguage />)} />

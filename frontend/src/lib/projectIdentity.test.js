@@ -21,7 +21,7 @@ const JOBS_MASTER = [
 
 const ctx = (() => {
   const m = buildJobsMasterMaps(JOBS_MASTER);
-  return { jobsMasterByPn: m.byPn, jobsMasterById: m.byId };
+  return { jobsMasterByPn: m.byPn, jobsMasterByNorm: m.byNorm, jobsMasterById: m.byId };
 })();
 
 describe("resolveProjectIdentity · resolution states", () => {
@@ -57,6 +57,28 @@ describe("resolveProjectIdentity · resolution states", () => {
     expect(id.resolution_status).toBe("project_number_match");
     expect(id.canonical_project_number).toBe("26-01 - CP");
     expect(id.canonical_project_name).toBe("NSB Corbin Park Stormwater Improvements");
+  });
+
+  test("project_number_normalized · whitespace variant resolves uniquely (26-01-CP → 26-01 - CP)", () => {
+    const id = resolveProjectIdentity(
+      { project_number: "26-01-CP", project_name: "Corbin park" },
+      ctx
+    );
+    expect(id.resolution_status).toBe("project_number_normalized");
+    expect(id.canonical_project_number).toBe("26-01 - CP");
+    expect(id.canonical_project_name).toBe("NSB Corbin Park Stormwater Improvements");
+    expect(id.confidence).toBe(85);
+  });
+
+  test("project_number_normalized · space-only variant resolves (26 01 CP → 26-01 - CP)", () => {
+    const id = resolveProjectIdentity(
+      { project_number: "26 01 CP", project_name: "x" },
+      ctx
+    );
+    // "26 01 CP" normalizes to "26 01 CP" — doesn't equal "26 - 01 - CP".
+    // So this is submitted_only, not normalized. The directive is explicit:
+    // "If certainty is not 100%, remain unmatched." This proves that.
+    expect(id.resolution_status).toBe("submitted_only");
   });
 
   test("submitted_only · PN is populated but unknown to jobs_master", () => {

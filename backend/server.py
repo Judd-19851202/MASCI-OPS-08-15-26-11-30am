@@ -11426,6 +11426,15 @@ _asset_mapping_router = build_asset_mapping_router(db, require_admin)
 app.include_router(_asset_mapping_router)
 
 
+# PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
+# Detection-only drift sentinel. Never auto-mutates source records or jobs_master.
+# Operator controls every resolution (match / leave_unmatched / intentional / dismiss).
+from routes.project_identity_governance import build_project_identity_router  # noqa: E402
+_project_identity_router = build_project_identity_router(db, require_admin)
+app.include_router(_project_identity_router)
+
+
+
 # iter382 · /admin/project-managers/* (10 routes) + public /project-managers
 # extracted to routes/pm_admin.py.
 from routes.pm_admin import build_pm_admin_router  # noqa: E402

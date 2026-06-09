@@ -20,13 +20,19 @@
  *
  * ──────────────────────────────────────────────────────────────────
  *
- * @typedef {("canonical"|"project_number_match"|"submitted_only"|"orphan")}
+ * @typedef {("canonical"|"project_number_match"|"project_number_normalized"|"submitted_only"|"orphan")}
  *   ProjectIdentityStatus
  *
  *   • canonical             — record carries jobs_master_id (or project_id)
  *                             that matches an entry in jobs_master.
  *   • project_number_match  — record.project_number (case-insensitive,
  *                             trimmed) exactly matches a jobs_master row.
+ *   • project_number_normalized — record.project_number does not exact-match
+ *                             but after whitespace/dash/casing normalization
+ *                             resolves to exactly one jobs_master row. 100%
+ *                             deterministic — no fuzzy logic. Surfaced in
+ *                             the Governance Center as a Type C item so the
+ *                             operator can confirm or reject the inference.
  *   • submitted_only        — project_number is populated but no
  *                             jobs_master match. Display submitted values.
  *                             Surface to admin for reconciliation.
@@ -48,6 +54,35 @@
  */
 
 /**
+ * Read-time PN normalization for the `project_number_normalized` state.
+ *
+ * Doctrine: ONLY whitespace, dash, and casing. NOTHING else.
+ * No suffix stripping. No phonetic matching. No fuzzy logic.
+ * Deterministic. Idempotent.
+ *
+ * Used in two places:
+ *   1. The frontend resolver (this file) — surfaces a confident
+ *      `project_number_normalized` state when EXACTLY one canonical row
+ *      matches the normalized form.
+ *   2. The backend Governance Center (Python mirror of this function in
+ *      routes/project_identity_governance.py:normalize_pn) — Type C
+ *      conflicts use the same rule.
+ *
+ * @param {string} pn
+ * @returns {string}
+ */
+export function normalizePn(pn) {
+  if (!pn) return "";
+  // upper-case + outer trim
+  let s = String(pn).trim().toUpperCase();
+  // collapse runs of whitespace
+  s = s.replace(/\s+/g, " ");
+  // normalize " - " / " -" / "- " variants to consistent " - "
+  s = s.replace(/\s*-\s*/g, " - ");
+  return s.trim();
+}
+
+/**
  * Build a canonical lookup map from a /jobs-master payload.
  * Keys are uppercased & trimmed so callers don't have to.
  *
@@ -57,14 +92,25 @@
  */
 export function buildJobsMasterMaps(rows) {
   const byPn = {};
+  const byNorm = {};
   const byId = {};
   for (const j of rows || []) {
     if (!j) continue;
     const pn = (j.project_number || "").trim();
-    if (pn) byPn[pn.toUpperCase()] = j;
+    if (pn) {
+      byPn[pn.toUpperCase()] = j;
+      const n = normalizePn(pn);
+      // only index normalized → row when it's unique; if two canonical
+      // PNs collide after normalization we record `__AMBIGUOUS__`
+      if (byNorm[n] === undefined) {
+        byNorm[n] = j;
+      } else if (byNorm[n] !== "__AMBIGUOUS__" && byNorm[n].id !== j.id) {
+        byNorm[n] = "__AMBIGUOUS__";
+      }
+    }
     if (j.id) byId[j.id] = j;
   }
-  return { byPn, byId };
+  return { byPn, byNorm, byId };
 }
 
 /**
@@ -110,6 +156,25 @@ export function resolveProjectIdentity(record, ctx) {
         submitted_project_name: submittedName,
         resolution_status: "project_number_match",
         confidence: 95,
+        source: "project_number",
+      };
+    }
+    // 2b · normalized PN match (whitespace/dash/case only — see normalizePn).
+    //      Only succeeds when EXACTLY one canonical row matches the
+    //      normalized form. Ambiguous normalizations fall through to
+    //      submitted_only and surface in the Governance Center.
+    const byNorm = (ctx && ctx.jobsMasterByNorm) || {};
+    const norm = normalizePn(submittedPn);
+    const jn = byNorm[norm];
+    if (jn && jn !== "__AMBIGUOUS__") {
+      return {
+        jobs_master_id: jn.id || null,
+        canonical_project_number: jn.project_number || null,
+        canonical_project_name: jn.project_name || null,
+        submitted_project_number: submittedPn,
+        submitted_project_name: submittedName,
+        resolution_status: "project_number_normalized",
+        confidence: 85,
         source: "project_number",
       };
     }
@@ -162,6 +227,7 @@ export function displayProjectIdentity(id, opts) {
   switch (id.resolution_status) {
     case "canonical":
     case "project_number_match":
+    case "project_number_normalized":
       return {
         number: id.canonical_project_number || id.submitted_project_number || "—",
         name:
