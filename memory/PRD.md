@@ -38091,3 +38091,41 @@ PE002-D02 ✅ CLOSED · PE003-D01 NEW (governance: 3rd fork-side prod write — 
 **Deliverable:** `/app/memory/PLATFORM_EXCELLENCE_003_FINAL_CERTIFICATION.md`
 
 **STOPPED.**
+
+
+---
+
+## PLATFORM-EXCELLENCE-004 · Excellence-mode audit + runbooks (2026-06-09 22:15 UTC)
+
+**Type:** OMEGA · Excellence mode · 📋 Phase 1 & 2 runbooks delivered · ✅ Phase 3 checklist · ⏳ Phase 4 operator-blocked · ✅ Phase 5 scorecard
+**Verdict:** 🟡 CONDITIONAL PASS
+
+### Phase 1 — Route-split runbook delivered (not executed in-session)
+App.js measured: 871 lines · 242 eager page imports · 294 routes. Full route-split requires ~6-8 dedicated sessions per the §2 sequenced groups in the certification. **Honest reason for deferring:** rushing 294 routes in one session with no per-portal test bed violates production-stability-first. Runbook + per-group acceptance criteria delivered.
+
+### Phase 2 — List-virt runbook delivered (not executed)
+Single qualifying candidate: `JobPhotosLibrary` (789 prod photos, growing). Implementation requires new `react-window` dependency + thumb-token pagination verification. Runbook delivered.
+
+### Phase 3 — Real-device checklist delivered ✅
+Per-device + per-workflow checklist for iPhone Safari, iPad Safari, Android Chrome, Windows Chrome/Edge. LCP ≤ 2.5 s · INP ≤ 200 ms · CLS ≤ 0.1 acceptance. Fork cannot execute (no device bed) — operator runs via BrowserStack / WebPageTest / own devices.
+
+### Phase 4 — Governance closeout still operator-blocked
+Atlas Console required. Runbook unchanged at `GOVERNANCE_REMEDIATE_001_ATLAS_CUTOVER.md`.
+
+### Phase 5 — Scorecard
+| Pillar | PE-003 | PE-004 | Target |
+|---|---|---|---|
+| Production Readiness | 96 | 96 | ≥95 ✅ |
+| Platform Health | 98 | 98 | ≥95 ✅ |
+| Mobile Experience | 78 | 78 | ❌ — checklist out, run pending |
+| Operational Reliability | 94 | 94 | ❌ — scoped sprints |
+| Security | 88 | 88 | ❌ — Atlas user split |
+
+### Risk register unchanged (0 P0 · 2 P1 · 2 P2 · 3 P3)
+
+### OMEGA invariants honoured
+✅ No code changes this sprint · No production data mutated · No production user impact · No password/MFA/account changes · No feature/workflow drift · Honest deferral of route-split rather than rushed execution · Phase 3 produced executable checklist instead of fake results.
+
+**Deliverable:** `/app/memory/PLATFORM_EXCELLENCE_004_FINAL_CERTIFICATION.md`
+
+**STOPPED. Awaiting operator authorization for scoped follow-on sprints OR Cloudflare/Atlas operator actions.**
