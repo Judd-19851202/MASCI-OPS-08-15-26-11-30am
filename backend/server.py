@@ -11398,6 +11398,15 @@ _operational_events_router = build_operational_events_router(db, require_admin)
 app.include_router(_operational_events_router)
 
 
+# VER-1 · Operational Verification Layer · /api/verification/* +
+# /api/admin/verification/*. Compute-on-read only — stores nothing,
+# mutates nothing, authors nothing. Reads M-1 / M-3 / M-DR-1 / M-2 to
+# emit 4 trust states: CONFIRMED, PENDING_CONFIRMATION, MISMATCH, QUIET.
+from routes.verification import build_verification_router  # noqa: E402
+_verification_router = build_verification_router(db, require_admin)
+app.include_router(_verification_router)
+
+
 # iter382 · /admin/project-managers/* (10 routes) + public /project-managers
 # extracted to routes/pm_admin.py.
 from routes.pm_admin import build_pm_admin_router  # noqa: E402
