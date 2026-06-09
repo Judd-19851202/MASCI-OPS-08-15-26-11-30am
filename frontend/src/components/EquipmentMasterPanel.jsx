@@ -39,6 +39,12 @@ import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import WhereUsedPanel from "@/components/WhereUsedPanel";
 import AssetHistoryTimeline from "@/components/AssetHistoryTimeline";
+import { useWindowedRows } from "@/lib/useWindowedRows";
+
+// LIST-VIRT-001 — Equipment master table virtualization.
+// Fixed row height measured live in preview at 50px (px-3 py-2 + text-sm + 1px border).
+// Bumping this constant requires re-measuring after any row-padding/font change.
+const EQUIP_ROW_HEIGHT_PX = 50;
 
 /**
  * EquipmentMasterPanel — manage the MASCI equipment fleet.
@@ -148,6 +154,22 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
       );
     });
   }, [items, filter, cat]);
+
+  // LIST-VIRT-001 — Window the active-fleet table rows so we never paint
+  // more than ~viewport-worth at once. Behaviour, filter, and scroll UX
+  // are unchanged; the only DOM impact is fewer offscreen <tr>s.
+  const fleetTableScrollerRef = useRef(null);
+  const { range: fleetRange, paddingTop: fleetPadTop, paddingBottom: fleetPadBottom } =
+    useWindowedRows({
+      count: filtered.length,
+      rowHeight: EQUIP_ROW_HEIGHT_PX,
+      scrollerRef: fleetTableScrollerRef,
+    });
+  // Reset the scroll position to the top when the filter/category changes so
+  // the user never lands in the middle of a freshly-filtered list.
+  useEffect(() => {
+    if (fleetTableScrollerRef.current) fleetTableScrollerRef.current.scrollTop = 0;
+  }, [filter, cat]);
 
   const openNew = () => {
     setEditing(null);
@@ -519,7 +541,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
             Fleet is empty — click <strong>Add Unit</strong> or <strong>Bulk Replace</strong>.
           </p>
         ) : (
-          <div className="overflow-x-auto border-2 border-slate-200 rounded max-h-[480px]">
+          <div ref={fleetTableScrollerRef} className="overflow-x-auto border-2 border-slate-200 rounded max-h-[480px]">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-slate-50 z-[1]">
                 <tr>
@@ -535,7 +557,12 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((u) => {
+                {fleetPadTop > 0 && (
+                  <tr aria-hidden="true" data-testid="equipment-row-pad-top" style={{ height: fleetPadTop }}>
+                    <td colSpan={writeAllowed ? 7 : 6} />
+                  </tr>
+                )}
+                {filtered.slice(fleetRange.start, fleetRange.end).map((u) => {
                   const id = u.id || u.unit_number;
                   return (
                     <tr key={id} className="border-t border-slate-100 hover:bg-slate-50" data-testid={`equipment-row-${id}`}>
@@ -583,6 +610,11 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                     </tr>
                   );
                 })}
+                {fleetPadBottom > 0 && (
+                  <tr aria-hidden="true" data-testid="equipment-row-pad-bottom" style={{ height: fleetPadBottom }}>
+                    <td colSpan={writeAllowed ? 7 : 6} />
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

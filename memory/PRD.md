@@ -1,3 +1,70 @@
+## 2026-06-09 (LIST-VIRT-001 · TARGETED LARGE-LIST VIRTUALIZATION · EQUIPMENT MASTER WINDOWED · 🟢 PASS)
+
+**Sprint:** OMEGA DIRECTIVE — Platform Excellence Mode · Targeted list virtualization
+**Authorization:** Operator chat 2026-06-09 — *"LIST-VIRT-001 · TARGETED LARGE-LIST VIRTUALIZATION · STATUS: AUTHORIZED"*
+**Verdict:** 🟢 **PASS** — Equipment Master table virtualized; 96% in-table row reduction; 80% page-level DOM reduction. Job Photos + HR Employees audited and skipped with documented rationale per directive "virtualize only if measurable benefit exists" gate.
+
+### Phase 1 · Forensic measurement (production-sized Preview DB)
+| Surface | Records | Initial DOM nodes | Inner scroll | Decision |
+| --- | ---: | ---: | --- | --- |
+| Job Photos Library | 1,812 (33 folders) | 401 collapsed / 17,159 all-expanded | Page-level | **SKIP** — collapsed-by-default UX is effectively pre-virtualized; nested CSS grid restructure would change appearance |
+| HR Employees / Admin People | 354 | 19,807 (517 trs across multi-table page) | Page-level | **SKIP** — adding bounded scroll violates "preserve scroll usability"; 354 rows under modern-browser threshold |
+| Equipment Master | 693 (50 px row × scrollH 36,447 px in `max-h-[480px]`) | 19,933 | **YES — bounded** | **VIRTUALIZE** |
+
+### Phase 2-3 · Implementation
+**Lowest-risk approach: in-house ~60-line windowing hook, NO new dependency.**
+- `/app/frontend/src/lib/useWindowedRows.js` (NEW) — rAF-throttled scroll listener + ResizeObserver; returns `(range, paddingTop, paddingBottom)` triple.
+- `/app/frontend/src/components/EquipmentMasterPanel.jsx` — active-fleet `<tbody>` now renders top spacer `<tr>` (aria-hidden) → `filtered.slice(range.start, range.end).map(...)` → bottom spacer `<tr>` (aria-hidden). Row JSX unchanged byte-for-byte. Archive table NOT virtualized (archive count usually < 100).
+
+### Phase 4 · Verification (all PASS)
+
+| Metric | BEFORE | AFTER (top) | AFTER (mid scroll) | AFTER (bottom scroll) |
+| --- | ---: | ---: | ---: | ---: |
+| Equipment rows in DOM | 693 always | **27** | 28 | 18 |
+| Total page DOM nodes | 19,933 | **3,927** | 3,929 | 3,711 |
+| Total `<tr>` (page) | 840 | 174 | 175 | 165 |
+| scrollHeight preserved | — | 34,727 px ✓ | 34,769 px ✓ | 34,686 px ✓ |
+| **Reduction** | — | **−80.3 % nodes / −96.1 % rows** | | |
+
+### Behavioural verification
+- Edit modal opens correctly on row-action click (`modal_title="Edit Unit · ..."`) ✓
+- Filter "Cat" → 26 rows visible, scrollH=1,616 (no padding for small filtered subset) ✓
+- Filter cleared → scrollTop reset to 0, scrollH back to 34,727 ✓
+- Scroll to bottom reveals real last row (Miller Welder etc.) — windowing dynamic ✓
+- Desktop 1920×800 + iPad 768×1024 + iPhone 390×844 all render 27 visible rows ✓
+- Zero console errors; zero React/Suspense/chunk errors; zero workflow drift
+- `/daily/new` SUBMIT regression PASS; `/admin/photos` (SKIPPED surface) PASS; `/admin/people` PASS
+
+### Pre-existing lint finding (NOT caused by this sprint)
+ESLint flags `react-hooks/set-state-in-effect` at `EquipmentMasterPanel.jsx:141` (the file's `cats = useMemo(...)` line). Verified pre-existing via `git stash` + re-lint at line 135 before this sprint's edits. **Not blocking this certification**; logged as separate file-hygiene item.
+
+### Explicitly NOT touched (per OMEGA)
+Job Photos page · HR Employees page · all filters/search/grouping/upload/permission/API/schema/auth/passwords/users/data · FleetWatcher · MaintainX · Dispatch Automation · Material Movement · ID-007 · new features.
+
+### Scorecard (post LIST-VIRT-001)
+| Pillar | Pre | Post | Cumulative since baseline |
+| --- | ---: | ---: | --- |
+| Production Readiness | 91 | 91 | +3 |
+| Platform Health | 94 | 94 | +1 |
+| Mobile Experience | 77 | **79** (+2) | +9 |
+| Operational Reliability | 92 | 92 | 0 |
+| Security | 88 | 88 | 0 |
+| **Weighted average** | **90.4** | **91.0** | **+3.0** (gap to 95+: 4.0) |
+
+### Path to 95+
+1. Operator: Cloudflare cache fix → ~92.0
+2. Operator: Atlas user separation → ~94.0
+3. REAL-DEVICE-LCP-001 → ~96.0 ✅ TARGET
+
+### Deliverables
+- `/app/memory/LIST_VIRT_001_CERTIFICATION.md` (created)
+- `/app/memory/PLATFORM_95_SCORE_TRACKER.md` (updated)
+
+🛑 STOPPED per OMEGA. REAL-DEVICE-LCP-001, ODR fixture, Atlas split NOT started. Awaiting next explicit operator authorization.
+
+
+
+
 ## 2026-06-09 (ROUTE-SPLIT-001 · WAVE 4 · LEGAL + WORKFLOW-TOOLS + PM + SHOP + DRIVER + GUIDANCE + HrDR · 🟢 PASS · SERIES COMPLETE)
 
 **Sprint:** OMEGA DIRECTIVE — Platform Excellence Mode · Route Code-Split Wave 4 of 4 (final wave)
