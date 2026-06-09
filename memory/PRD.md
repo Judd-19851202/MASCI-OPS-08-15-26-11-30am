@@ -38020,3 +38020,29 @@ Certifications lacking this header fail certification automatically.
 - ❌ Target score thresholds (need operator deploy + Cloudflare fix + future scoped sprints)
 
 **STOPPED AT CERTIFICATION. Awaiting operator action on cache rule + deploy.**
+
+
+---
+
+## PERFORMANCE-EXCELLENCE-002 · P0/P1 closeout sprint (2026-06-09 21:50 UTC)
+
+**Type:** OMEGA · re-measurement + honest correction of prior finding
+**Verdict:** 🟡 CONDITIONAL PASS · fork audit ✅ · operator P1 actions ⏳ pending
+
+**Honest correction:** PE-001-D01 claimed `cache-control: max-age=60` on the prod main bundle (P0). Re-curl with the correct prod bundle hash (`main.0c1c410f.js`, not the stale `main.0ab42eae.js` from a local build) shows `cache-control: public, max-age=300, immutable`. **Defect downgraded P0 → P2.** Apologies for the prior mis-classification — what TRUSTED demands.
+
+**Phase A1:** Cloudflare cache re-measured. Exact Cloudflare Rule documented for operator to apply if they want the `_headers`-declared 1y TTL.
+
+**Phase A2:** 7 indexes still pending prod deploy. NOT executed via direct prod-DB write — would re-exercise the central governance gap (PE-001-D07). Awaiting operator decision (normal deploy OR explicit single-purpose audit-logged authorization).
+
+**Phase B:** 12 production endpoints measured live · all <500 ms mean · no bottleneck warrants in-session fix.
+
+**Phases C/D:** Mobile + workflow carry-forward; no new defects.
+
+**Phase E:** Scorecard +1 Production Readiness (defect correction). All other pillars unchanged. Real targets (≥95/98) still gated on operator-side actions.
+
+**Open defects:** 0 P0 · 2 P1 (PE002-D02 deploy · PE002-D05 governance) · 2 P2 · 3 P3.
+
+**Deliverable:** `/app/memory/PERFORMANCE_EXCELLENCE_002_FINAL_CERTIFICATION.md`
+
+**STOPPED. Awaiting operator action.**

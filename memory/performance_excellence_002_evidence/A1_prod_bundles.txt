@@ -1,0 +1,2 @@
+/static/css/main.7a3dbc01.css
+/static/js/main.0c1c410f.js
