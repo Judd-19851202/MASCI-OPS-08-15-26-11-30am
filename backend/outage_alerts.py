@@ -40,6 +40,55 @@ def _cooldown_minutes() -> int:
         return 15
 
 
+def _env_tag() -> str:
+    """ALERT-ENV-001 · Return the canonical environment label for
+    operator-facing alert emails. Reads `APP_ENV` then `ENVIRONMENT`
+    then defaults to `PRODUCTION` (matches the server.py default at
+    line 837 and `_storage.py` after APP-ENV-001).
+
+    Always returns an uppercase token: PRODUCTION or PREVIEW. Any
+    non-`preview` value normalises to PRODUCTION so that operators only
+    ever see two possibilities in their inbox.
+    """
+    raw = (os.environ.get("APP_ENV") or os.environ.get("ENVIRONMENT") or "production").strip().lower()
+    return "PREVIEW" if raw == "preview" else "PRODUCTION"
+
+
+def _decorate_subject(subject: str, tag: str) -> str:
+    """Prepend `[TAG]` to subject. Idempotent — if the subject already
+    begins with `[TAG]` we leave it alone (so callers that pre-tag won't
+    end up with two prefixes)."""
+    s = subject or ""
+    expected = f"[{tag}]"
+    return s if s.lstrip().startswith(expected) else f"{expected} {s}".strip()
+
+
+_ENV_BANNER_COLORS = {
+    "PRODUCTION": ("#0f172a", "#fef2f2", "#dc2626"),   # slate text, light-red bg, red accent
+    "PREVIEW":    ("#0f172a", "#fef9c3", "#a16207"),   # slate text, light-yellow bg, amber accent
+}
+
+
+def render_env_banner_html(tag: Optional[str] = None) -> str:
+    """ALERT-ENV-001 · Standardised env banner injected at the top of
+    HTML alert bodies. Mobile-readable (560px max-width container is
+    assumed; the banner uses 100% width and inline styles)."""
+    t = (tag or _env_tag()).upper()
+    text_c, bg_c, accent = _ENV_BANNER_COLORS.get(t, _ENV_BANNER_COLORS["PRODUCTION"])
+    return (
+        f"<div style='margin:0 0 14px;padding:10px 14px;border-left:4px solid {accent};"
+        f"background:{bg_c};color:{text_c};border-radius:4px;font:600 12px/1.4 system-ui,sans-serif;"
+        f"letter-spacing:.12em;text-transform:uppercase'>"
+        f"Environment: <span style='color:{accent}'>{t}</span>"
+        "</div>"
+    )
+
+
+def render_env_banner_text(tag: Optional[str] = None) -> str:
+    t = (tag or _env_tag()).upper()
+    return f"Environment: {t}"
+
+
 def _alert_to() -> str:
     return (os.environ.get("OUTAGE_ALERT_TO") or "").strip()
 
@@ -81,8 +130,17 @@ async def send_outage_alert(
     reply_to = (os.environ.get("REPLY_TO_EMAIL") or "").strip()
     timestamp = datetime.now(timezone.utc).isoformat()
 
+    # ALERT-ENV-001 · Decorate subject with [PRODUCTION] / [PREVIEW] and
+    # inject an env banner into the HTML + plain text so operators can
+    # instantly tell which environment fired the alert.
+    env_tag = _env_tag()
+    subject = _decorate_subject(subject, env_tag)
+    env_banner_html = render_env_banner_html(env_tag)
+    env_banner_text = render_env_banner_text(env_tag)
+
     html = f"""
 <!doctype html><html><body style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
+  {env_banner_html}
   <div style="background:#dc2626;color:white;padding:14px 18px;border-radius:8px;margin-bottom:18px">
     <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.85">MASCI Hub</div>
     <div style="font-size:20px;font-weight:900;margin-top:2px">⚠ Outage Detected</div>
@@ -99,6 +157,8 @@ async def send_outage_alert(
 """.strip()
 
     plain = f"""MASCI Hub — Outage detected.
+
+{env_banner_text}
 
 {summary}
 

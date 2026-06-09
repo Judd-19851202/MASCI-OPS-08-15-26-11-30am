@@ -1,3 +1,31 @@
+## 2026-06-09 (ALERT-ENV-001 · ENVIRONMENT TAGS ON OPERATOR-FACING ALERT EMAILS · CERTIFIED 🟢)
+
+Operator-facing alert emails (credential-missing monitor, platform-outage badges, backup verification) now carry `[PREVIEW]` / `[PRODUCTION]` in the subject and a visible `Environment: PREVIEW|PRODUCTION` banner at the top of HTML and plain-text bodies.
+
+### Surgical change · 2 backend files + 1 new test file
+- `outage_alerts.py`: new helpers `_env_tag()`, `_decorate_subject()`, `render_env_banner_html()`, `render_env_banner_text()`. `send_outage_alert()` now decorates subject + injects banner. Idempotent (caller pre-tagging won't double-stack).
+- `backup_verification.py`: `render_verification_subject()` prepends `[<env>]`; HTML body inserts shared env banner above the brand eyebrow.
+- `tests/test_alert_env_001.py`: NEW · 15 tests · all pass.
+
+### Audit · only 2 of the 25+ Resend callsites are operator alerts
+The other 23+ callsites are user-facing functional emails (magic links, daily report distribution, dispatch confirms, PO/safety digests, trench/HR notifications) and remain unchanged per directive scope.
+
+### 8/8 operator-required behaviors PASS
+Preview→`[PREVIEW]`, prod→`[PRODUCTION]`, body env line, existing delivery preserved, no secrets exposed, backup alerts covered, no unrelated templates changed.
+
+### Existing suites pass
+WEBHOOK-HARDEN-001 (7) + ALERT-ENV-001 (15) = 22/22.
+
+### Backend restart verified
+Preview pod restarted clean. `/api/health` → 200. No regressions.
+
+### Deliverable
+- `/app/memory/ALERT_ENV_001_CERTIFICATION.md`
+
+🛑 STOPPED per OMEGA. ALERT-ENV-001 closed.
+
+
+
 ## 2026-06-09 (APP-ENV-001 · PRODUCTION ENVIRONMENT LABEL CORRECTION · CERTIFIED 🟢)
 
 **Root cause was code-level**, not env-var: `_storage.py:153 (write_sync_log)` read only `ENVIRONMENT` env var and defaulted to `"preview"`, while `motive_service.py:468 (_write_sync_log)` correctly read `APP_ENV → ENVIRONMENT → ...`. Production sets `APP_ENV` (not `ENVIRONMENT`), so the webhook writer fell to its `"preview"` default. (`server.py`'s startup safety guard makes it structurally impossible for prod to run with `APP_ENV="preview"`, ruling out a runtime env-var mismatch.)

@@ -312,13 +312,23 @@ def _verdict_color(verdict: str) -> str:
 def render_verification_subject(report: Dict[str, Any]) -> str:
     # iter437 IV-BETA.3A · doctrine A.I (no non-reserved emoji) + A.III
     # severe-tier prefix on hard failure. See COMMUNICATION_UNIFICATION_DOCTRINE.md.
+    # ALERT-ENV-001 · prepend env tag for operator clarity.
+    from outage_alerts import _env_tag
+    env_prefix = f"[{_env_tag()}]"
     verdict = report.get("verdict") or "info"
     archives = report["r2"]["archive_count"]
     if verdict == "pass":
-        return f"[MASCI \u00b7 BACKUP] Weekly Verification \u00b7 {archives} archives healthy"
+        return f"{env_prefix} [MASCI \u00b7 BACKUP] Weekly Verification \u00b7 {archives} archives healthy"
     if verdict == "fail":
-        return "\U0001F6A8 BACKUP VERIFICATION FAILED \u00b7 check immediately"
-    return f"[MASCI \u00b7 BACKUP] Weekly Verification \u00b7 {archives} archives \u00b7 issues detected"
+        return f"{env_prefix} \U0001F6A8 BACKUP VERIFICATION FAILED \u00b7 check immediately"
+    return f"{env_prefix} [MASCI \u00b7 BACKUP] Weekly Verification \u00b7 {archives} archives \u00b7 issues detected"
+
+
+def _env_banner_for_backup() -> str:
+    """ALERT-ENV-001 · Thin wrapper so the verification HTML can call
+    the shared banner helper from `outage_alerts`."""
+    from outage_alerts import render_env_banner_html
+    return render_env_banner_html()
 
 
 def render_verification_email_html(report: Dict[str, Any]) -> str:
@@ -415,6 +425,7 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
 <html><body style="margin:0;padding:24px;background:#f8fafc;font-family:Helvetica,Arial,sans-serif;color:#0f172a;">
   <table style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:24px;">
     <tr><td>
+      {_env_banner_for_backup()}
       <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#c8102e;font-weight:700;">MASCI Operations Platform</div>
       <h1 style="margin:8px 0 4px;font-size:24px;font-weight:900;letter-spacing:-0.02em;">Backup Verification Report</h1>
       <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#475569;">
