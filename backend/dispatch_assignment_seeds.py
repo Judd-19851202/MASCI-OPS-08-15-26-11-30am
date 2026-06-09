@@ -163,6 +163,37 @@ MATERIAL_CATALOG: List[dict] = [
             "Other Material",
         ],
     },
+    # MM-001B · E-2 · Material Taxonomy Expansion (additive only).
+    # Closes the 5 gaps identified in MM-001A-A §2.2:
+    #   • Sod, Striping, Trees, Stumps, Contaminated Material
+    # Single canonical catalog · NO secondary taxonomy.
+    {
+        "category": "Landscape / Site",
+        "items": [
+            "Sod",
+            "Trees",
+            "Stumps",
+            "Vegetation Debris",
+        ],
+    },
+    {
+        "category": "Striping / Markings",
+        "items": [
+            "Striping Materials",
+            "Thermoplastic",
+            "Paint",
+            "RPMs / Reflectors",
+        ],
+    },
+    {
+        "category": "Regulated / Hazmat",
+        "items": [
+            "Contaminated Material",
+            "Petroleum-Contaminated Soil",
+            "Asbestos-Containing Material",
+            "Other Regulated Waste",
+        ],
+    },
 ]
 
 # Flat list view — preserves category order, lets the lookups

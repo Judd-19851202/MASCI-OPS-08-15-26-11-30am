@@ -1,3 +1,34 @@
+## 2026-02-09 (MM-001B · MATERIAL MOVEMENT VISIBILITY SPRINT · PASS 🟢)
+
+Shipped the read-only Material Movement visibility surface on the Daily Report (web + PDF) under OMEGA strict subtractive discipline. Three phases delivered exactly as authorized — E-1 (web/PDF tile), E-2 (taxonomy expansion), E-5 (derived rollup endpoint). All other phases (E-3, E-4, E-6 → E-9) remain DEFERRED.
+
+### Highlights
+- **E-1** `MaterialMovementTile` renders inside `ViewDailyReport` between Production Quantities (09B) and Photos (10). PDF `_render_daily` prints a matching `09d · MATERIAL MOVEMENT TODAY` block. Tile conditionally hides when nothing to show.
+- **E-2** `MATERIAL_CATALOG` expanded by three new categories — Landscape/Site (Sod, Trees, Stumps, Topsoil-Compost Blend, Mulch), Striping/Markings (Striping Materials, Thermoplastic, Paint, Beads), Regulated/Hazmat (Contaminated Material, Petroleum-Impacted Soil, Asbestos-Containing Material). All six original categories preserved.
+- **E-5** New endpoint `GET /api/material-movement/daily/{project_number}/{date}` — pure derivation across `dispatch_assignments` + `daily_reports.materials[]` + `daily_reports.production[]`. ZERO new collections. ZERO writes (statically verified by test).
+
+### Verification
+- Pytest **8/8 green** (`tests/test_mm_001b_material_movement_visibility.py`)
+- Frontend smoke test (screenshot on `/admin/daily/{id}` with JOB-MM-E5 fixture) — `mm-tile-root` + `dr-view-material-movement` rendered, Incoming + Outgoing tables populated as expected
+- Certification: `/app/memory/MM_001B_VISIBILITY_CERTIFICATION.md`
+
+### Files of record
+- `/app/backend/routes/material_movement.py` (new — derived endpoint)
+- `/app/backend/dispatch_assignment_seeds.py` (taxonomy +5 items, +3 categories)
+- `/app/backend/pdf_render.py` (PDF section 09d)
+- `/app/frontend/src/components/MaterialMovementTile.jsx` (new)
+- `/app/frontend/src/pages/ViewDailyReport.jsx` (wiring)
+- `/app/backend/tests/test_mm_001b_material_movement_visibility.py` (8 cases)
+
+### Remaining MM backlog (NOT authorized · OMEGA freeze)
+- E-3 direction toggle · E-4 ticket reconciliation · E-6 plant/yard geocoding · E-7 carrier rollup · E-8 material balance ledger · E-9 Vista bridge
+
+### Deferred outside this sprint (unchanged)
+- `test_trench_safety_phase2.py::test_dashboard_seed_data` (stale fixture, recurrence #5) — explicitly excluded per OMEGA.
+
+
+
+
 ## 2026-06-08 (DR-FIX-2 · Trust & Usability Remediation · PASS 🟢)
 
 Closed two trust gaps from DR-AUDIT-001:

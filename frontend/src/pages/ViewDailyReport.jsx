@@ -28,6 +28,7 @@ import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
+import MaterialMovementTile from "@/components/MaterialMovementTile";
 import { useT } from "@/lib/i18n";
 
 // 24-hour HH:MM → 12-hour h:MM AM/PM (returns the original string if
@@ -606,6 +607,18 @@ export default function ViewDailyReport() {
               emptyText={t("No constraints recorded.")}
             />
           </ReportSection>
+          </div>
+        )}
+
+        {/* E-1 · MM-001B · Material Movement visibility tile.
+            Read-only · derived from dispatch_assignments + DR rows.
+            Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md */}
+        {data.project_number && data.report_date && (
+          <div data-testid="dr-view-material-movement">
+            <MaterialMovementTile
+              projectNumber={data.project_number}
+              reportDate={data.report_date}
+            />
           </div>
         )}
 

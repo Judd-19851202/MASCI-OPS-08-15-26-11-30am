@@ -551,6 +551,85 @@ def _render_daily(d: Dict[str, Any]) -> str:
             )
         )
 
+    # E-1 · MM-001B · Material Movement visibility tile.
+    # Read-only · derived · queries dispatch_assignments synchronously
+    # at render time for the same (project_number, report_date).
+    # NO new field on the DR. NO new collection. NO synchronization.
+    # Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md
+    proj_num = (d.get("project_number") or "").strip()
+    rpt_date = (d.get("report_date") or "").strip()
+    if proj_num and rpt_date:
+        try:
+            from motor.motor_asyncio import AsyncIOMotorClient  # noqa: PLC0415
+            import os as _os  # noqa: PLC0415
+            import asyncio as _asyncio  # noqa: PLC0415
+            mongo_url = _os.environ.get("MONGO_URL")
+            db_name = _os.environ.get("DB_NAME")
+            if mongo_url and db_name:
+                async def _fetch_dispatch():
+                    client = AsyncIOMotorClient(mongo_url)
+                    db_ = client[db_name]
+                    rows = []
+                    async for a in db_.dispatch_assignments.find(
+                        {"project_number": proj_num, "scheduled_date": rpt_date},
+                        {"_id": 0, "haul_type": 1, "material": 1,
+                         "source_location": 1, "destination": 1,
+                         "load_count": 1, "carrier": 1, "truck_id": 1,
+                         "id": 1},
+                    ).limit(200):
+                        rows.append(a)
+                    client.close()
+                    return rows
+                try:
+                    loop = _asyncio.get_event_loop()
+                    if loop.is_running():
+                        dispatch_rows = []
+                    else:
+                        dispatch_rows = loop.run_until_complete(_fetch_dispatch())
+                except RuntimeError:
+                    dispatch_rows = _asyncio.run(_fetch_dispatch())
+                if dispatch_rows:
+                    by_haul: Dict[str, int] = {}
+                    trucks: set = set()
+                    total_loads = 0
+                    table_rows = []
+                    for r in dispatch_rows:
+                        ht = (r.get("haul_type") or "Material").strip() or "Material"
+                        by_haul[ht] = by_haul.get(ht, 0) + 1
+                        if r.get("truck_id"):
+                            trucks.add(r["truck_id"])
+                        try:
+                            total_loads += int(r.get("load_count") or 0)
+                        except (TypeError, ValueError):
+                            pass
+                        table_rows.append([
+                            ht,
+                            r.get("material") or "",
+                            r.get("source_location") or "",
+                            r.get("destination") or "",
+                            str(r.get("load_count") or ""),
+                            r.get("carrier") or "",
+                        ])
+                    summary = (
+                        f"Assignments: {len(dispatch_rows)} · "
+                        f"Loads: {total_loads} · "
+                        f"Trucks: {len(trucks)} · "
+                        + " · ".join(f"{k}: {v}" for k, v in sorted(by_haul.items()))
+                    )
+                    rows.append(
+                        _section(
+                            "09d · MASCI Hauling Today",
+                            f"<p style='font-size:11px;color:#475569;margin:2px 0 6px;'>{summary}</p>"
+                            + _table(
+                                ["Haul Type", "Material", "Source", "Destination", "Loads", "Carrier"],
+                                table_rows,
+                            ),
+                        )
+                    )
+        except Exception:
+            # Visibility tile is best-effort — never block PDF render.
+            pass
+
     rows.append(_section("10 · Photos", _photos_block(d.get("photos"))))
 
     sigs = (

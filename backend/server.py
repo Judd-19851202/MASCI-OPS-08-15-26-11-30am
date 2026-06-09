@@ -9971,6 +9971,13 @@ register_operations_actions_routes(_oa_router, db, _require_oa_actor)
 app.include_router(_oa_router)
 
 
+# MM-001B · E-5 · Material Movement Rollup (derived view · public read).
+from routes.material_movement import register_material_movement_routes  # noqa: E402
+_mm_router = APIRouter(prefix="/api", tags=["material-movement"])
+register_material_movement_routes(_mm_router, db)
+app.include_router(_mm_router)
+
+
 # Ensure indexes for operations_actions
 async def _ensure_oa_indexes():
     try:
