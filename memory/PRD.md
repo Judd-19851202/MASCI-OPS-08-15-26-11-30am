@@ -37801,3 +37801,56 @@ No FleetWatcher / Dispatch Automation / Material Movement / MaintainX / ID-007 /
 ✅ No production data modified · No code modified · No deploy triggered · No new features started · No FleetWatcher/Dispatch/Material/MaintainX/ID-007 work · Read-only audit only.
 
 **STOPPED AT CERTIFICATION** as directed. Awaiting operator authorization.
+
+
+---
+
+## TRUTH-AUDIT-001 · Environment / Access / Deployment / Evidence Reconciliation (2026-06-09)
+
+**Type:** OMEGA · P0 · Read-only forensic reconciliation
+**Outcome:** ✅ COMPLETE · awaiting operator review
+
+**Deliverables (all under `/app/memory/`):**
+- `TRUTH_AUDIT_001_EXECUTIVE_SUMMARY.md`
+- `TRUTH_AUDIT_001_ENVIRONMENT_MATRIX.md`
+- `TRUTH_AUDIT_001_ACCESS_MATRIX.md`
+- `TRUTH_AUDIT_001_DEPLOYMENT_CHAIN.md`
+- `TRUTH_AUDIT_001_REPORT_RECONCILIATION.md`
+- `TRUTH_AUDIT_001_MOTIVE_RECONCILIATION.md`
+- `TRUTH_AUDIT_001_CERTIFICATION_STANDARD.md`
+- `TRUTH_AUDIT_001_FINAL_VERDICT.md`
+
+### Critical findings
+
+1. **Fork's MONGO_URL credential is cluster-level on `masci-prod.1nduwmg.mongodb.net`** — read/write reach across `masci_safety` (PROD), `masci_safety_preview` (PREVIEW), 21 ephemeral test DBs, 2 restore-drill DBs, Atlas system DBs (32 total).
+2. **Prior fork sessions have written to the production DB** — verified by `masci_safety.integration_settings.motive.updated_by="motive_prod_incident_001:remediation"` (2026-06-09T20:01:25Z).
+3. **AUDIT-ACCESS-VERIFY-001 Q6/Q7/Q8 answers were factually incorrect** (correct answers: YES, YES, YES). Q4/Q5 downgraded to UNVERIFIED. Formally withdrawn.
+4. **PROD-STABILIZE-001 access disclosure was incomplete** — its verdict (🟡 CONDITIONAL PASS) stands but its scope statement is corrected here.
+5. **All Motive claims reconcile cleanly** — no Motive claim from prior reports survives this audit as UNSUPPORTED.
+
+### Mandatory certification doctrine (effective immediately)
+
+Every future certification MUST include this four-field header at the top:
+
+```
+Environment    : <preview | production | both | other>
+Access Level   : <see TRUTH_AUDIT_001_CERTIFICATION_STANDARD.md §2>
+Evidence Source: <see TRUTH_AUDIT_001_CERTIFICATION_STANDARD.md §3>
+Confidence     : VERIFIED | INFERRED | ASSUMED
+```
+
+Certifications lacking this header fail certification automatically.
+
+### Operator-required actions (none auto-remediated · all P0/P1)
+
+1. **HIGH** — Atlas credential governance: separate preview vs prod Atlas users, OR rotate the shared credential to break preview→prod write capability.
+2. **HIGH** — `test_credentials.md` hygiene: rotate prod-side passwords so shared accounts become preview-only.
+3. **MEDIUM** — Sweep prod DB for agent-attributed writes (look for `updated_by` matching `_001` or `fork` patterns).
+4. **MEDIUM** — Verify production MFA posture for super-admin.
+5. **LOW** — Carry-forward: PROD-STABILIZE-001 § 8 operator runbook for dashboard counts.
+
+### OMEGA invariants honoured
+
+✅ No code changes · No DB writes · No deploys · No fixes · No new features · No certification passes based on assumptions · Read-only forensic audit only.
+
+**STOPPED. Awaiting operator review.**
