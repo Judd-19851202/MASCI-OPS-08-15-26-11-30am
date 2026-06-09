@@ -131,20 +131,34 @@ class TestDailyReportCRUD:
         assert r.status_code == 404
 
     def test_delete_and_verify_removed(self):
-        # create a fresh one to delete
+        # DEPLOY-FIX-001 · Workstream C3 — DR delete is permanently frozen
+        # at HTTP 410 Gone. Daily Reports are historical-immutable records
+        # (see /app/backend/routes/daily_reports.py:580). Hard delete is
+        # no longer permitted; records remain accessible via GET. The test
+        # name "delete_and_verify_removed" is retained for backwards-grep,
+        # but the contract it locks in is now "delete-is-gone, record-stays."
         payload = _full_payload(prefix="TEST_DR_DEL")
         r = requests.post(f"{API}/daily-reports", json=payload, timeout=30)
         assert r.status_code == 200
         rid = r.json()["id"]
         d = requests.delete(f"{API}/daily-reports/{rid}", timeout=30)
-        assert d.status_code == 200
-        assert d.json().get("deleted") is True
+        assert d.status_code == 410, (
+            f"DR delete must return 410 Gone (historical-immutable doctrine); got {d.status_code}"
+        )
+        # Record must STILL be present — deletion is forbidden.
         g = requests.get(f"{API}/daily-reports/{rid}", timeout=30)
-        assert g.status_code == 404
+        assert g.status_code == 200, (
+            f"DR record must persist after DELETE attempt; got {g.status_code}"
+        )
 
     def test_delete_404_for_unknown(self):
+        # DEPLOY-FIX-001 · Workstream C3 — even for unknown ids the
+        # endpoint returns 410 (the operation itself is gone, not the
+        # record). 404 is no longer reachable.
         r = requests.delete(f"{API}/daily-reports/nope-{os.urandom(4).hex()}", timeout=30)
-        assert r.status_code == 404
+        assert r.status_code == 410, (
+            f"DR delete must return 410 Gone for any id; got {r.status_code}"
+        )
 
 
 # --- Validation ---

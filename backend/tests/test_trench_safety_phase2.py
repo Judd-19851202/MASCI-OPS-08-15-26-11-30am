@@ -62,13 +62,19 @@ def client() -> httpx.Client:
 # ──────────────────────────────────────────────────────────────────────
 
 def test_seven_seeded_assets_present(client, admin_headers):
+    """The seven seed assets TB-01..TB-07 must always be present after
+    boot-time self-heal. Operator may add additional assets via the
+    admin UI; this test asserts the seed subset, not exact equality.
+    DEPLOY-FIX-001 · Workstream C1 — stale-fixture remediation."""
     r = client.get("/api/trench-safety/assets", headers=admin_headers)
     assert r.status_code == 200
     data = r.json()
     items = data["items"]
-    assert data["count"] == 7, f"expected 7, got {data['count']}"
-    ids = sorted(i["asset_id"] for i in items)
-    assert ids == ["TB-01", "TB-02", "TB-03", "TB-04", "TB-05", "TB-06", "TB-07"]
+    ids = {i["asset_id"] for i in items}
+    required = {"TB-01", "TB-02", "TB-03", "TB-04", "TB-05", "TB-06", "TB-07"}
+    missing = required - ids
+    assert not missing, f"seed assets missing: {sorted(missing)}"
+    assert data["count"] >= 7, f"expected ≥ 7 assets; got {data['count']}"
 
 
 def test_tb05_has_missing_serial_alert(client, admin_headers):

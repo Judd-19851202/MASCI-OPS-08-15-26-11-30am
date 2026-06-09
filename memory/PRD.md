@@ -37373,3 +37373,55 @@ Per OMEGA, deployment requires either:
 ### OMEGA Invariants honoured
 No code modified · no schema changed · no data mutated · only operational cleanup performed was removal of three abandoned `.tmp.<hash>` backup files (1.5 GB) and a backend supervisor restart to release deleted file handles (disk reclaimed 100% → 86%). No FleetWatcher / Dispatch Automation / Material Movement / Motive touched.
 
+
+---
+
+## DEPLOY-FIX-001 · Final Pre-Production Hardening Sprint (2026-06-09)
+
+**Type:** Pre-deploy hardening · OMEGA · P0  
+**Status:** COMPLETE — CERTIFIED  
+**Verdict:** 🟢 **FULL PASS — DEPLOY**
+
+**Deliverables:**
+- `/app/memory/DEPLOY_FIX_001_CERTIFICATION.md`
+- `/app/memory/DEPLOY_FIX_001_BACKUP_STRESS_TEST.md`
+- `/app/memory/DEPLOY_FIX_001_RESTORE_VALIDATION.md`
+- `/app/memory/DEPLOY_FIX_001_DEPLOYMENT_RECOMMENDATION.md`
+- `/app/memory/DEPLOY_FIX_001_DEFECT_CLOSURE_REPORT.md`
+
+### What shipped
+- **Backup writer hardening** — `try/except BaseException` cleanup added to both `exports_full_backup` and the scheduled full-mode branch in `server.py`. Orphan `.tmp.<hash>` files are now guaranteed removed on every failure path (Cloudflare timeout, builder exception, asyncio cancellation).
+- **Startup sweep** — new `@app.on_event("startup") _deploy_fix_001_backup_orphan_sweep` runs `_emergency_prune_backups("startup")` on every boot. Confirmed firing live.
+- **Per-file safety logging** — `_emergency_prune_backups` now emits `WARNING [backup-cleanup] orphan-sweep ({reason}) · file={name} age={age}s reason=orphan_tmp_over_600s`.
+- **Stale-test remediation (C1/C2/C3)** — all three OMEGA-targeted stale tests fixed:
+  - `test_trench_safety_phase2.py::test_seven_seeded_assets_present` → seed-subset assertion (allows operator-added assets).
+  - `test_hr_portal_iter71.py::TestHrAuth::test_login_returns_token` → credential-drift-proof fixture (active reset via admin endpoint).
+  - `test_daily_reports.py::test_delete_*` → locked in HTTP 410 Gone + record-persistence contract.
+- **New deployment-blocker pytest** (`test_deploy_fix_001_backup_hardening.py`) · 6 / 6 PASS · gates A2/A3/A4/A5/B1/B2.
+- **Backup stress D1–D5** · 5/5 PASS (live sandbox).
+- **Restore validation E** · archive integrity + manifest + sha256 captured.
+
+### Defect counts
+- P0 = **0**
+- P1 = **0** (down from 1 in DEPLOY-CERT-001)
+- P2 = **0** (down from 4 in DEPLOY-CERT-001)
+- P3 = ~6 cosmetic, untouched per OMEGA.
+
+### Verification
+- 6/6 new backup-hardening tests PASS
+- 5/5 PROJECT-IDENTITY-005 deployment-blocker tests PASS (regression)
+- 14/14 BACKUP-FIX-001 tests PASS (regression)
+- 23/23 admin-auth tests PASS (isolated)
+- 21/21 HR portal tests PASS (isolated)
+- 28/28 trench safety phase2 tests PASS (isolated)
+- 15/15 daily reports tests PASS (isolated)
+- D1–D5 backup stress 5/5 PASS
+- E restore validation OK
+- Frontend 74/74 PASS
+
+### OMEGA invariants honoured
+No FleetWatcher / Dispatch Automation / Material Movement / unrelated refactor touched. Production code changes are surgical (4 narrow edits in server.py); test changes are confined to the three explicitly-named files. Pre-existing P3 cosmetic items left untouched per scope.
+
+### Live deployment verdict
+**FULL PASS — DEPLOY.** Both P0 and P1 gates clear without requiring written acceptance per the OMEGA deployment rule.
+

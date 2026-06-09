@@ -4847,8 +4847,24 @@ async def exports_full_backup(_: bool = Depends(require_admin_strict)):
     # Per-call unique tmp suffix so concurrent requests within the same
     # second can't clobber each other's stream (or each other's rename).
     tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
-    total_records, _ = await _build_backup_zip_to_path(db, tmp)
-    tmp.replace(out)
+    # DEPLOY-FIX-001 · Workstream A2/A3 — guarantee the .tmp.<hash> is
+    # removed on ANY failure path (build raise, gateway disconnect, cancel,
+    # client abort). Without this guard, abandoned ~500 MB tmp files can
+    # fill local disk to 100% and silently break subsequent runs.
+    try:
+        total_records, _ = await _build_backup_zip_to_path(db, tmp)
+        tmp.replace(out)
+    except BaseException:
+        try:
+            if tmp.exists():
+                logger.warning(
+                    f"[backup-cleanup] failure path · removing orphan tmp "
+                    f"{tmp.name} (age=fresh)"
+                )
+                tmp.unlink()
+        except Exception:
+            pass
+        raise
     size_bytes = out.stat().st_size
     return FileResponse(
         path=str(out),
@@ -5319,6 +5335,10 @@ def _emergency_prune_backups(reason: str) -> int:
     NOTE: .tmp files younger than 10 minutes are KEPT — they may be a backup
     actively streaming to disk in another worker / concurrent request.
     Deleting them would break the rename step at the end of the build.
+
+    DEPLOY-FIX-001 · Workstream A5 — emits a per-file WARNING log for every
+    orphan .tmp file removed (file name + age + reason) so operators can
+    confirm the sweep is doing useful work.
     """
     pruned = 0
     _now_ts = datetime.now(timezone.utc).timestamp()
@@ -5327,8 +5347,13 @@ def _emergency_prune_backups(reason: str) -> int:
         BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
         for p in BACKUPS_DIR.glob("*.zip.tmp*"):
             try:
-                if (_now_ts - p.stat().st_mtime) < _ORPHAN_TMP_AGE_SEC:
+                age_s = _now_ts - p.stat().st_mtime
+                if age_s < _ORPHAN_TMP_AGE_SEC:
                     continue  # active stream — leave alone
+                logger.warning(
+                    f"[backup-cleanup] orphan-sweep ({reason}) · "
+                    f"file={p.name} age={int(age_s)}s reason=orphan_tmp_over_600s"
+                )
                 p.unlink()
                 pruned += 1
             except Exception:
@@ -5581,10 +5606,25 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
         # Per-call unique tmp suffix so concurrent backup requests can't
         # clobber each other's stream (or rename).
         tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
-        # Build directly into the .tmp; rename atomically when done.
-        total_records, _name = await _build_backup_zip_to_path(db, tmp)
-        # Use the timestamp-stamped name we computed above (consistent with prior behavior)
-        tmp.replace(out)
+        # DEPLOY-FIX-001 · Workstream A2/A3 — guarantee removal of the
+        # .tmp.<hash> file when the scheduled full-mode build raises.
+        # Mirrors the lite-mode escape hatch a few branches above.
+        try:
+            # Build directly into the .tmp; rename atomically when done.
+            total_records, _name = await _build_backup_zip_to_path(db, tmp)
+            # Use the timestamp-stamped name we computed above (consistent with prior behavior)
+            tmp.replace(out)
+        except BaseException:
+            try:
+                if tmp.exists():
+                    logger.warning(
+                        f"[backup-cleanup] scheduled full-build failure · "
+                        f"removing orphan tmp {tmp.name}"
+                    )
+                    tmp.unlink()
+            except Exception:
+                pass
+            raise
         size_bytes = out.stat().st_size
         logger.info(
             f"[scheduled-backup] wrote {out.name} ({size_bytes/1024/1024:.1f} MB · {total_records} records)"
@@ -9152,6 +9192,36 @@ async def _seed_field_leadership_equipment_catalog():
 async def _seed_shop_users():
     from shop_users import seed_shop_users
     await seed_shop_users(db)
+
+
+@app.on_event("startup")
+async def _deploy_fix_001_backup_orphan_sweep():
+    """DEPLOY-FIX-001 · Workstream A4 — startup sweep.
+
+    On every backend boot, scan ``BACKUPS_DIR`` and delete any
+    ``MASCI_*backup_*.zip.tmp.<hash>`` file older than 10 minutes. These
+    are abandoned by gateway timeouts (Cloudflare disconnects at 60 s
+    while the writer keeps streaming for several more minutes) and would
+    silently fill local disk over time.
+
+    Reuses ``_emergency_prune_backups`` (which already implements the
+    correct 10-minute age guard and per-file logging) so behavior stays
+    in lockstep with the existing emergency-prune contract.
+    """
+    try:
+        pruned = await asyncio.to_thread(_emergency_prune_backups, "startup")
+        if pruned:
+            logger.info(
+                f"[backup-cleanup] startup-sweep removed {pruned} orphan "
+                f"tmp file(s); disk now at {_disk_pct_used()}%"
+            )
+        else:
+            logger.info(
+                "[backup-cleanup] startup-sweep · no orphan tmp files found"
+            )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backup-cleanup] startup-sweep failed (non-fatal): {e}")
+
 
 
 
