@@ -1,3 +1,30 @@
+## 2026-02-09 (SM-PDF-001 · SAFETY MEETING PDF LAYOUT REMEDIATION · PASS 🟢)
+
+Replaced the attendance-first Safety Meeting PDF layout with a meeting-content-first renderer. Readers can now answer "what was discussed?" in under 60 seconds of opening the PDF; attendance and signatures remain at the end as supporting evidence.
+
+### Shipped (SM-PDF-1 + SM-PDF-2 + SM-PDF-3 + SM-PDF-4)
+- **SM-PDF-1** New `_render_meeting` ordering: Executive Summary card → 01 Meeting Details → 02 Hazards → 03 Discussion → 04 Action Items → 05 Additional Notes → 06 Photos → 07 Attendance → 08 Sign-Off
+- **SM-PDF-2** Section 06 Photos auto-hides when `_photos_block` returns empty (no blank pages, no orphan headers)
+- **SM-PDF-3** Attendance table compacted — 28px signature thumbnails (was 38px), 2px row padding (was 4px), added `Acknowledged` timestamp column, attendees count line above table. 12-attendee stress-tested.
+- **SM-PDF-4** First-page Executive Summary card with status badge (COMPLETED / RECORDED / DRAFT — derived from attendee + signature presence; no new fields). 6 lines (TOPIC · MEETING TYPE · ATTENDEES · HAZARDS · ACTION ITEMS · PHOTOS). Hazards accept 3 input shapes (list/dict/string).
+
+### Surgical implementation
+- `/app/backend/pdf_render.py` — added `_render_meeting()` (~245 lines, pure render). Wired `kind == "meeting"` into the dispatch in `render_record_pdf`. `_render_generic` preserved for inspection/jha/incident.
+- **Zero** schema, collection, workflow, approval, signature, audit-footer, notification, or integration changes.
+
+### Verification
+- Pytest **22/22 green** (`tests/test_sm_pdf_001_meeting_layout.py`)
+- Full regression **123/123 green** (DR-FIX-1 + DR-FIX-2 + DR-FIX-3 + MM-001B + F1 + DR-PDF-002 + DR-PDF-003 + MM-ENTRY-002 + SM-PDF-001)
+- Audit footer / sha256 / DR renderer / other kinds (inspection routes to `_render_generic`) — all preserved
+- Static guard: `_render_meeting` contains zero write operations
+- Certification: `/app/memory/SM_PDF_001_SAFETY_MEETING_PDF_LAYOUT_REMEDIATION_CERTIFICATION.md`
+
+### Out of scope (deferred — OMEGA freeze)
+Safety Meeting form / workflow / approval / attendee enrollment / notifications / training catalog / OSHA reporting export · DR-PDF-001 remaining recs · MM-ENTRY-002 follow-ons (K-MM-4/6/7/8/9) · FW-1 · FleetWatcher · Motive · MaintainX
+
+
+
+
 ## 2026-02-09 (MM-ENTRY-002 · OUTBOUND MATERIAL CAPTURE · PASS 🟢)
 
 Closed the MM-ENTRY-001 entry gap. Foremen can now document material LEAVING the project (millings to recycling, unsuitable dirt offsite, demo debris, trees removed, contaminated material, etc.) as structured data — no more Notes workarounds.

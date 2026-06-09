@@ -1163,6 +1163,284 @@ def _render_daily(d: Dict[str, Any]) -> str:
     return "".join(rows)
 
 
+def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
+    """SM-PDF-001 · Safety Meeting renderer · meeting-content-first.
+
+    Replaces the attendance-first `_render_generic` flow for safety
+    meetings only. Ships SM-PDF-1 (reorder), SM-PDF-2 (hide empty
+    photos), SM-PDF-3 (compact attendance), and SM-PDF-4 (Executive
+    Summary card).
+
+    Pure-render. NO schema, NO collections, NO workflow change, NO
+    signature semantics changed. All meeting fields and lists are read
+    from the existing record dict and rendered in the new order.
+
+    Doctrine: SM_PDF_001_SAFETY_MEETING_PDF_LAYOUT_REMEDIATION_CERTIFICATION.md
+    """
+    rows: List[str] = []
+
+    # ── SM-PDF-4 · Executive Summary card (first surface) ───────────
+    topic = (d.get("topic") or d.get("meeting_topic")
+             or d.get("subject") or "").strip()
+    meeting_type = (d.get("meeting_type")
+                    or d.get("type") or "Safety Meeting").strip()
+    project_name = (d.get("project_name") or "").strip()
+    project_no = (d.get("project_number") or "").strip()
+    date_s = _fmt_date(d.get("meeting_date") or d.get("date")
+                       or d.get("created_at") or "")
+
+    attendees = d.get("attendees") if isinstance(d.get("attendees"), list) else []
+    attendee_count = len(attendees)
+    hazards_raw = d.get("hazards") or d.get("hazards_discussed") or []
+    hazard_names: List[str] = []
+    if isinstance(hazards_raw, list):
+        for h in hazards_raw:
+            if isinstance(h, str):
+                hazard_names.append(h.strip())
+            elif isinstance(h, dict):
+                name = h.get("name") or h.get("hazard") or h.get("title") or ""
+                if name:
+                    hazard_names.append(str(name).strip())
+    elif isinstance(hazards_raw, str) and hazards_raw.strip():
+        hazard_names = [s.strip() for s in hazards_raw.split(",") if s.strip()]
+
+    action_items = d.get("action_items") if isinstance(d.get("action_items"), list) else []
+    photos = d.get("photos") or []
+    # Status derivation — completed when meeting has attendees + signatures.
+    has_sigs = any(
+        (isinstance(a, dict) and a.get("signature"))
+        for a in attendees
+    )
+    status = "Completed" if (attendee_count >= 1 and has_sigs) else (
+        "Recorded" if attendee_count >= 1 else "Draft"
+    )
+    status_tone = "#14532d" if status == "Completed" else (
+        "#0c4a6e" if status == "Recorded" else "#78350f"
+    )
+    status_bg = "#f0fdf4" if status == "Completed" else (
+        "#f0f9ff" if status == "Recorded" else "#fffbeb"
+    )
+    status_border = "#16a34a" if status == "Completed" else (
+        "#0284c7" if status == "Recorded" else "#d97706"
+    )
+
+    badge_html = (
+        f'<div style="text-align:right;">'
+        f'<div style="display:inline-block;padding:6px 12px;'
+        f'border:2px solid {status_border};background:{status_bg};'
+        f'color:{status_tone};font-family:\'Courier New\',monospace;'
+        f'font-size:10pt;font-weight:bold;letter-spacing:0.18em;'
+        f'text-transform:uppercase;border-radius:3px;">'
+        f'{escape(status.upper())}'
+        f'</div></div>'
+    )
+
+    def _line(label: str, value: str) -> str:
+        if not value:
+            return ""
+        return (
+            f'<div style="display:flex;gap:10px;padding:3px 0;'
+            f'border-bottom:1px dotted #e2e8f0;">'
+            f'<div style="flex:0 0 24%;font-family:\'Courier New\',monospace;'
+            f'font-size:8pt;letter-spacing:0.14em;text-transform:uppercase;'
+            f'color:#64748b;font-weight:bold;">{escape(label)}</div>'
+            f'<div style="flex:1;font-size:10pt;color:#0f172a;">{escape(value)}</div>'
+            f'</div>'
+        )
+
+    summary_lines = (
+        _line("TOPIC", topic or "—")
+        + _line("MEETING TYPE", meeting_type)
+        + _line("ATTENDEES", str(attendee_count) if attendee_count else "—")
+        + _line("HAZARDS",
+                " · ".join(hazard_names[:6]) if hazard_names else "None recorded")
+        + _line("ACTION ITEMS", str(len(action_items)) if action_items else "0")
+        + _line("PHOTOS", str(len(photos)) if photos else "0")
+    )
+
+    title_row = (
+        f'<div style="display:flex;align-items:flex-start;'
+        f'justify-content:space-between;gap:12px;margin-bottom:6px;">'
+        f'<div>'
+        f'<div style="font-family:\'Courier New\',monospace;font-size:7.5pt;'
+        f'letter-spacing:0.25em;text-transform:uppercase;color:#c8102e;'
+        f'font-weight:bold;">Safety Meeting · {escape(date_s)}</div>'
+        f'<div style="font-size:13pt;font-weight:900;color:#0f172a;'
+        f'line-height:1.15;margin-top:2px;">{escape(topic or "Safety Meeting")}</div>'
+        f'<div style="font-family:\'Courier New\',monospace;font-size:7.5pt;'
+        f'letter-spacing:0.18em;text-transform:uppercase;color:#64748b;'
+        f'margin-top:2px;">{escape(project_name)}'
+        f'{(" · " + escape(project_no)) if project_no else ""}</div>'
+        f'</div>'
+        f'{badge_html}</div>'
+    )
+
+    rows.append(
+        f'<section class="sec exec-card" style="border:2px solid #0f172a;'
+        f'padding:10px 12px 6px;margin-bottom:14px;background:#f8fafc;">'
+        f'{title_row}{summary_lines}'
+        f'</section>'
+    )
+
+    # ── SM-PDF-1 · Meeting Details (KV block) ───────────────────────
+    detail_kvs = (
+        _kv("Topic", topic or None)
+        + _kv("Meeting Type", meeting_type if meeting_type != "Safety Meeting" else None)
+        + _kv("Project", project_name or None)
+        + _kv("Project #", project_no or None)
+        + _kv("Date", date_s or None)
+        + _kv("Location", d.get("location") or d.get("meeting_location"))
+        + _kv("Facilitator", d.get("facilitator") or d.get("led_by")
+              or d.get("presenter") or d.get("prepared_by"))
+        + _kv("Crew / Team", d.get("crew") or d.get("team"))
+        + _kv("Duration", d.get("duration_minutes")
+              and f"{d['duration_minutes']} min" or None)
+    )
+    if detail_kvs:
+        rows.append(_section("01 · Meeting Details", detail_kvs))
+
+    # ── SM-PDF-1 · Hazards Discussed ────────────────────────────────
+    if hazard_names:
+        hazards_html = (
+            "<ul style='margin:4px 0 0 18px;padding:0;font-size:10pt;color:#0f172a;'>"
+            + "".join(f"<li style='margin:2px 0;'>{escape(h)}</li>" for h in hazard_names)
+            + "</ul>"
+        )
+        rows.append(_section("02 · Hazards Discussed", hazards_html))
+
+    # ── SM-PDF-1 · Discussion / Topic Body ──────────────────────────
+    discussion = (
+        d.get("discussion") or d.get("topic_discussion")
+        or d.get("notes") or d.get("meeting_notes")
+        or d.get("summary") or d.get("topic_details") or ""
+    )
+    if isinstance(discussion, str) and discussion.strip():
+        rows.append(_section(
+            "03 · Discussion",
+            f'<div style="font-size:10pt;color:#0f172a;line-height:1.45;'
+            f'white-space:pre-wrap;">{escape(discussion.strip())}</div>',
+        ))
+
+    # ── SM-PDF-1 · Action Items ─────────────────────────────────────
+    if isinstance(action_items, list) and action_items:
+        ai_rows: List[List[Any]] = []
+        for a in action_items:
+            if isinstance(a, dict):
+                ai_rows.append([
+                    a.get("title") or a.get("action") or a.get("description") or "",
+                    a.get("owner") or a.get("assignee") or "",
+                    a.get("due_date") or a.get("due") or "",
+                    a.get("status") or "",
+                ])
+            elif isinstance(a, str):
+                ai_rows.append([a, "", "", ""])
+        if ai_rows:
+            rows.append(_section(
+                "04 · Action Items",
+                _table(["Action", "Owner", "Due", "Status"], ai_rows),
+            ))
+
+    # ── SM-PDF-1 · Notes (only if distinct from discussion) ─────────
+    notes_other = d.get("additional_notes") or d.get("comments") or ""
+    if isinstance(notes_other, str) and notes_other.strip() \
+            and notes_other.strip() != (discussion or "").strip():
+        rows.append(_section(
+            "05 · Additional Notes",
+            f'<div style="font-size:10pt;color:#0f172a;line-height:1.45;'
+            f'white-space:pre-wrap;">{escape(notes_other.strip())}</div>',
+        ))
+
+    # ── SM-PDF-2 · Photos · auto-hide when empty ────────────────────
+    photos_html = _photos_block(photos) if photos else ""
+    if photos_html:
+        rows.append(_section("06 · Photos", photos_html))
+
+    # ── SM-PDF-3 · Compact Attendance · last surface ────────────────
+    if attendees:
+        att_rows = []
+        for a in attendees:
+            if not isinstance(a, dict):
+                continue
+            name = a.get("name") or a.get("attendee_name") or "—"
+            company = a.get("company") or a.get("trade") or a.get("role") or ""
+            sig = a.get("signature") or a.get("sig") or ""
+            timestamp = (a.get("signed_at") or a.get("acknowledged_at")
+                         or a.get("timestamp") or "")
+            # iter75: resolve photo:// signatures inline
+            if isinstance(sig, str) and sig.startswith("photo://"):
+                try:
+                    from photo_storage import resolve_to_data_url_sync as _r2d  # noqa: PLC0415
+                    sig = _r2d(sig) or ""
+                except Exception:  # noqa: BLE001
+                    sig = ""
+            sig_cell = (
+                f'<img src="{sig}" style="max-height:28px;max-width:110px;'
+                'display:block;" />'
+                if sig and isinstance(sig, str) and sig.startswith("data:image/")
+                else (escape(sig) if sig else "—")
+            )
+            att_rows.append(
+                "<tr>"
+                f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
+                f"font-size:9pt;'>{escape(str(name))}</td>"
+                f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
+                f"font-size:9pt;color:#475569;'>{escape(str(company))}</td>"
+                f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;'>"
+                f"{sig_cell}</td>"
+                f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
+                f"font-family:Courier New,monospace;font-size:8pt;color:#64748b;'>"
+                f"{escape(str(timestamp))}</td>"
+                "</tr>"
+            )
+        attendance_html = (
+            f"<p style='font-size:9pt;color:#475569;margin:0 0 4px;'>"
+            f"Attendees: <b>{attendee_count}</b></p>"
+            "<table style='width:100%;border-collapse:collapse;'>"
+            "<thead><tr>"
+            "<th style='text-align:left;padding:3px 6px;border-bottom:2px solid #cbd5e1;"
+            "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+            "text-transform:uppercase;color:#64748b;'>Name</th>"
+            "<th style='text-align:left;padding:3px 6px;border-bottom:2px solid #cbd5e1;"
+            "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+            "text-transform:uppercase;color:#64748b;'>Company / Trade</th>"
+            "<th style='text-align:left;padding:3px 6px;border-bottom:2px solid #cbd5e1;"
+            "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+            "text-transform:uppercase;color:#64748b;'>Signature</th>"
+            "<th style='text-align:left;padding:3px 6px;border-bottom:2px solid #cbd5e1;"
+            "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+            "text-transform:uppercase;color:#64748b;'>Acknowledged</th>"
+            "</tr></thead><tbody>"
+            + "".join(att_rows) + "</tbody></table>"
+        )
+        rows.append(_section("07 · Attendance and Acknowledgement", attendance_html))
+
+    # ── Signatures (facilitator / supervisor) appended at end ───────
+    sig_blocks: List[str] = []
+    for sk in ("facilitator_signature", "led_by_signature",
+               "prepared_by_signature", "supervisor_signature",
+               "signature"):
+        if d.get(sk):
+            sig_blocks.append(
+                _signature(
+                    sk.replace("_", " ").title(),
+                    d.get(sk),
+                    d.get(sk.replace("_signature", "")) if isinstance(d.get(sk.replace("_signature", "")), str) else "",
+                )
+            )
+    if d.get("signatures") and isinstance(d.get("signatures"), list):
+        for s in d["signatures"]:
+            if isinstance(s, dict) and s.get("signature"):
+                sig_blocks.append(_signature(
+                    s.get("name") or "Signed",
+                    s.get("signature"),
+                    s.get("name") or "",
+                ))
+    if sig_blocks:
+        rows.append(_section("08 · Sign-Off", "".join(sig_blocks)))
+
+    return "".join(rows)
+
+
 def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
     """Fallback renderer for inspection/meeting/jha/incident — covers the
     common fields. Each module is structured similarly enough that a
@@ -1916,6 +2194,9 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
         body = _render_equipment(record)
     elif kind == "qaqc":
         body = _render_qaqc(record)
+    elif kind == "meeting":
+        # SM-PDF-001 · meeting-content-first renderer.
+        body = _render_meeting(title, record)
     else:
         body = _render_generic(title, record)
 
