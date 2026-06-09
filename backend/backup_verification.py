@@ -184,6 +184,15 @@ async def build_verification_report(db) -> Dict[str, Any]:
         )
 
     # ── 2. Local backup_health ledger ──────────────────────────────
+    # BACKUP-FIX-001 · Option α — widen the "successful full backup"
+    # acceptance set to also include the R2 hourly pipeline.
+    #   • full          → disk-based full zip (legacy)
+    #   • lite          → disk-based slim zip (OOM-watermark fallback)
+    #   • complete-r2   → R2 hourly archive (current production cadence)
+    # Historical rows untouched; writer modes unchanged; archive naming
+    # unchanged. See /app/memory/BACKUP_AUDIT_001_FORENSIC_REPORT.md.
+    FULL_BACKUP_MODES = ("full", "lite", "complete-r2")
+
     last_full: Optional[Dict[str, Any]] = None
     last_r2: Optional[Dict[str, Any]] = None
     last_failure: Optional[Dict[str, Any]] = None
@@ -193,7 +202,7 @@ async def build_verification_report(db) -> Dict[str, Any]:
             recent_runs.append(r)
             if r.get("ok"):
                 mode = (r.get("mode") or "").lower()
-                if last_full is None and mode in ("full", "lite"):
+                if last_full is None and mode in FULL_BACKUP_MODES:
                     last_full = r
                 if last_r2 is None and "r2" in mode:
                     last_r2 = r

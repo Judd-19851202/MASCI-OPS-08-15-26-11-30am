@@ -1,3 +1,50 @@
+## 2026-02-09 (BACKUP-FIX-001 · COMPLETE-R2 VERIFIER FIX + PLATFORM-WIDE COVERAGE CERTIFICATION · CERTIFIED 🟢)
+
+Surgical fix to backup verification: widen the "successful full backup" acceptance set to include the R2 hourly pipeline. Paired with a full platform coverage audit proving every collection (existing + newly-built-today) is captured by auto-discovery.
+
+### The fix (one constant, one comparison · `/app/backend/backup_verification.py`)
+- Introduced `FULL_BACKUP_MODES = ("full", "lite", "complete-r2")`
+- Changed `if last_full is None and mode in ("full", "lite"):` → `if last_full is None and mode in FULL_BACKUP_MODES:`
+- Writer modes, archive naming, retention, schedules — all untouched per directive
+
+### Live verification (against production DB after fix)
+- `verdict: pass` (previously `warn`)
+- `ledger.issues: []` (previously `["No successful full backup recorded in last 20 runs."]`)
+- `last_full.mode = "complete-r2"` · 0.18 h old (the actual hourly R2 archive)
+- Email subject would render: `[MASCI · BACKUP] Weekly Verification · 1750 archives healthy`
+
+### Coverage audit results
+- **Production DB**: 155 non-system collections · **152 captured · 3 intentionally excluded (98.1%)**
+- **Preview DB**: 161 non-system collections · 158 captured · 3 excluded (98.1%)
+- Excluded by intent: `usage_events`, `health_monitor_runs`, `job_photo_thumb_cache` — all regenerable caches, all logged on every backup run
+- **Auto-discovery model** (server.py:6113 `list_collection_names()`) — every new collection automatically included; no allowlist maintenance
+- Today's new collections (asset_mapping_proposals · operational_locations · operational_events · operations_actions · operational_attachments · motive_geofences · etc.) — ALL covered without code changes
+- R2 prefix coverage: every business-data-bearing prefix is either inlined into the archive (photos via `_iter_photo_refs`) or is the archive destination itself
+
+### Restore readiness
+- 🟢 **GREEN** · RPO ≤ 1 h · RTO ≤ 30 min
+- Two empirical restore-drill databases (`masci_restore_drill_2026_05_30` · `masci_restore_drill_auto_20260601_015003`) prove the path works against real archive bytes
+- Latest archive: 447.9 MB · 0.18 h old at audit time · self-contained (manifest declares zero external dependency)
+
+### Tests
+- `/app/backend/tests/test_backup_fix_001.py` — **8/8 green** (complete-r2 acceptance · regression coverage for full/lite · stale detection · failure-row detection · no-write guarantee · constant-presence guard)
+- Full backup-resilience suite: **25/25 green** (8 new + 17 existing)
+
+### Deliverables (5)
+- `/app/memory/BACKUP_FIX_001_CERTIFICATION.md` (fix + verification + 10/10 success criteria)
+- `/app/memory/BACKUP_PLATFORM_COVERAGE_CERTIFICATION.md` (auto-discovery proof · per-area census · future-proof guarantee)
+- `/app/memory/BACKUP_COLLECTION_COVERAGE_MATRIX.md` (live per-collection table · both DBs)
+- `/app/memory/BACKUP_R2_PREFIX_COVERAGE_MATRIX.md` (per-prefix · 6 prefixes accounted for)
+- `/app/memory/BACKUP_RESTORE_READINESS_REPORT.md` (RPO/RTO · drill evidence · disaster matrix)
+
+### Constitutional adherence
+🛑 Surgical verifier fix · No backup-system redesign · No mode renames · No archive-naming change · No retention/schedule changes · No deletions · Verification standards strengthened (added 8-test regression).
+
+### STOP CONDITION OBSERVED
+Sprint closed. No drift into FleetWatcher / Motive / DR / Safety / Dispatch / Material Movement / UI polish.
+
+
+
 ## 2026-02-09 (BACKUP-AUDIT-001 · BACKUP VERIFICATION FORENSIC INVESTIGATION · DELIVERED 🟢)
 
 Audit-only sprint. Zero code changes. Definitive root cause for the recurring "WARNING — No successful full backup recorded in last 20 runs" verification email despite R2 holding 1,750 archives and 167 GB of healthy hourly backups.
