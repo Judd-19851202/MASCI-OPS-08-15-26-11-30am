@@ -1,0 +1,39 @@
+{
+  "as_of": "2026-06-10T21:08:35.795337+00:00",
+  "users": [],
+  "errors": [
+    "usersInfo failed: not authorized on admin to execute command { usersInfo: 1, lsid: { id: UUID(\"0a8d9950-093c-49ec-b16c-5083c93c5239\") }, $clusterTime: { clusterTime: Timestamp(1781125709, 5), signature: { hash: BinData"
+  ],
+  "authenticated_as": [
+    {
+      "user": "admin_db_user",
+      "db": "admin"
+    }
+  ],
+  "authenticated_roles": [
+    {
+      "role": "atlasAdmin",
+      "db": "admin"
+    },
+    {
+      "role": "backup",
+      "db": "admin"
+    },
+    {
+      "role": "clusterMonitor",
+      "db": "admin"
+    },
+    {
+      "role": "dbAdminAnyDatabase",
+      "db": "admin"
+    },
+    {
+      "role": "enableSharding",
+      "db": "admin"
+    },
+    {
+      "role": "readWriteAnyDatabase",
+      "db": "admin"
+    }
+  ]
+}

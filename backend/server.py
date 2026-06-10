@@ -9154,6 +9154,30 @@ async def _ensure_scheduler_lock_indexes_at_startup():
         logger.warning(f"[scheduler-runs] index ensure failed (non-fatal): {e}")
 
 
+# ─── FORGEDOPS P0-B · DB isolation startup failsafe ─────────────────
+# Probes whether the pod can access the OTHER environment's MongoDB
+# namespace. Currently runs in "bridge" mode (loud warning on
+# violation, pod still boots) because the Atlas user separation
+# runbook has not yet been executed by the operator. When
+# ENFORCE_DB_ISOLATION=true is set in env, this hook FAILS FAST
+# (sys.exit(99)) on any violation. See db_isolation_failsafe.py +
+# /app/memory/STARTUP_FAILSAFE_CERTIFICATION.md.
+from db_isolation_failsafe import assert_db_isolation as _assert_db_isolation  # noqa: E402
+
+
+@app.on_event("startup")
+async def _db_isolation_failsafe():
+    try:
+        await _assert_db_isolation(client)
+    except SystemExit:
+        # When ENFORCE_DB_ISOLATION=true and a violation is detected,
+        # assert_db_isolation calls sys.exit(99). Re-raise so the pod
+        # actually dies (don't swallow it).
+        raise
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[db-isolation] probe failed (non-fatal): {e}")
+
+
 @app.on_event("startup")
 async def _tune_asyncio_thread_pool():
     # iter441 · Phase 31.4 · concurrent-load hardening.

@@ -1,0 +1,245 @@
+{
+  "as_of": "2026-06-10T21:08:36.736732+00:00",
+  "fleet_gap": {
+    "trucks": {
+      "preview": 65,
+      "production": 65,
+      "delta": 0
+    },
+    "semis": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "trailers": {
+      "preview": 53,
+      "production": 53,
+      "delta": 0
+    },
+    "misc_trucks": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "service_trucks": {
+      "preview": 20,
+      "production": 20,
+      "delta": 0
+    },
+    "pickup_trucks": {
+      "preview": 11,
+      "production": 11,
+      "delta": 0
+    }
+  },
+  "heavy_equipment_gap": {
+    "mills": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "rollers": {
+      "preview": 27,
+      "production": 27,
+      "delta": 0
+    },
+    "loaders": {
+      "preview": 29,
+      "production": 29,
+      "delta": 0
+    },
+    "graders": {
+      "preview": 4,
+      "production": 4,
+      "delta": 0
+    },
+    "dozers": {
+      "preview": 3,
+      "production": 3,
+      "delta": 0
+    },
+    "excavators": {
+      "preview": 35,
+      "production": 35,
+      "delta": 0
+    },
+    "pavers": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "backhoes": {
+      "preview": 2,
+      "production": 2,
+      "delta": 0
+    },
+    "skid_steers": {
+      "preview": 13,
+      "production": 13,
+      "delta": 0
+    },
+    "misc": {
+      "preview": 27,
+      "production": 27,
+      "delta": 0
+    },
+    "compactors": {
+      "preview": 7,
+      "production": 7,
+      "delta": 0
+    }
+  },
+  "specialty_gap": {
+    "portable_signals": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "arrow_boards": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "generators": {
+      "preview": 10,
+      "production": 10,
+      "delta": 0
+    },
+    "message_boards": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "road_plates": {
+      "preview": 88,
+      "production": 0,
+      "delta": -88
+    },
+    "spreaders": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "end_panels": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "light_towers": {
+      "preview": 24,
+      "production": 24,
+      "delta": 0
+    },
+    "air_compressors": {
+      "preview": 5,
+      "production": 5,
+      "delta": 0
+    },
+    "pumps": {
+      "preview": 36,
+      "production": 36,
+      "delta": 0
+    },
+    "trench_boxes": {
+      "preview": 16,
+      "production": 7,
+      "delta": -9
+    },
+    "water_tanks": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "fuel_tanks": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "shields": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    }
+  },
+  "by_family_gap": {
+    "traffic_control": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "access_protection": {
+      "preview": 88,
+      "production": 0,
+      "delta": -88
+    },
+    "trench_safety": {
+      "preview": 16,
+      "production": 7,
+      "delta": -9
+    },
+    "support": {
+      "preview": 75,
+      "production": 75,
+      "delta": 0
+    }
+  },
+  "totals": {
+    "preview_total": 693,
+    "production_total": 596,
+    "preview_motive_mapped": 0,
+    "production_motive_mapped": 0,
+    "preview_motive_unmapped": 693,
+    "production_motive_unmapped": 596
+  },
+  "ops_gap": {
+    "projects_active": {
+      "preview": 28,
+      "production": 28,
+      "delta": 0
+    },
+    "drivers_in_employees": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "employees": {
+      "preview": 365,
+      "production": 262,
+      "delta": -103
+    },
+    "defects_open": {
+      "preview": 82,
+      "production": 0,
+      "delta": -82
+    },
+    "pms_in_jobs": {
+      "preview": 5,
+      "production": 6,
+      "delta": 1
+    },
+    "projects_inactive": {
+      "preview": 0,
+      "production": 0,
+      "delta": 0
+    },
+    "incidents_open": {
+      "preview": 43,
+      "production": 8,
+      "delta": -35
+    },
+    "label": {
+      "preview": "preview",
+      "production": "production"
+    },
+    "active_dispatches": {
+      "preview": 364,
+      "production": 0,
+      "delta": -364
+    },
+    "capas_open": {
+      "preview": 24,
+      "production": 0,
+      "delta": -24
+    }
+  }
+}

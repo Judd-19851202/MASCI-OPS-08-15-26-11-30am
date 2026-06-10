@@ -27,6 +27,54 @@ Full forensics: `/app/memory/ATLAS_CLUSTER_SPLIT_RECONCILIATION.md`.
 
 ---
 
+## 2026-02-10 (FORGEDOPS · P0 TRUST SPRINT · A+B+C+D+E · 🔴 MAP NO-GO + 🟢 INVENTORY VERIFIED)
+
+**Trigger:** Operator chat 2026-02-10 — *"P0 CRITICAL · ENVIRONMENT ISOLATION + PRODUCTION TRUTH CERTIFICATION"*.
+**Verdict:** Five P0 phases executed.
+
+| Phase | Area | Verdict |
+|---|---|---|
+| **P0-A** | Atlas User Isolation | 🔴 FAIL — preview pod credential is cluster-wide; can read AND list production. `admin_db_user` still active. Atlas user separation runbook NOT executed. |
+| **P0-B** | Startup Failsafe | 🟢 PASS (code shipped) — `db_isolation_failsafe.py` wired into server.py startup hook; loud bridge-mode banner until operator rotates credentials, then `ENFORCE_DB_ISOLATION=true` flips to FAIL-FAST. |
+| **P0-C** | Production Truth Audit | 🟢 PASS — production inventory documented from first-party reads of `masci_safety`. |
+| **P0-D** | Truth Gap Analysis | 🟡 MIXED — 2 CRITICAL · 2 HIGH · 2 MEDIUM · 2 LOW gaps documented with severities. |
+| **P0-E** | Map GO/NO-GO | 🔴 **NO-GO** — Phase 5B blocked on (B1) Atlas user separation + (B2) Motive coverage = 0%. |
+
+### Production truth (verified · `masci_safety` · 2026-02-10)
+- **596 total assets** (vs 693 preview)
+- **0 road plates in production** (vs 88 preview fixtures · entirely preview-only)
+- **7 trench boxes in production** (vs 16 preview)
+- **75 support assets** (10 generators · 36 pumps · 24 light towers · 5 air compressors · MATCH preview exactly)
+- **262 employees · 28 active projects · 6 PMs**
+- **0 active dispatches · 0 open CAPAs · 0 open defects · 8 open incidents**
+- **0 Motive-mapped assets** in both production and preview
+
+### Code shipped
+- NEW: `backend/db_isolation_failsafe.py` (startup probe)
+- NEW: `backend/scripts/p0_trust_audit.py` (read-only audit driver)
+- EDIT: `backend/server.py` (+30 LOC · `@app.on_event("startup") _db_isolation_failsafe`)
+
+### Documents written
+- `/app/memory/ATLAS_USER_ISOLATION_CERTIFICATION.md` (P0-A)
+- `/app/memory/STARTUP_FAILSAFE_CERTIFICATION.md` (P0-B)
+- `/app/memory/PRODUCTION_TRUTH_AUDIT.md` (P0-C)
+- `/app/memory/TRUTH_GAP_ANALYSIS.md` (P0-D)
+- `/app/memory/MAP_GO_NO_GO_CERTIFICATION.md` (P0-E)
+- `/app/memory/p0_audit_atlas_users.json` · `/app/memory/p0_audit_production_truth.json` · `/app/memory/p0_audit_truth_gap.json` (raw audit JSON)
+
+### STOP CONDITION ENFORCED
+- 🛑 Phase 5B Live Operations Map UI: **NO-GO** (P0-E verdict).
+- 🛑 FleetWatcher activation: NOT authorized.
+- 🛑 MaintainX activation: NOT authorized.
+- 🛑 No new dashboards, portals, or analytics until P0 closes.
+
+### What unlocks GO
+1. Operator executes Atlas user separation runbook (`/app/memory/PHASE1_ATLAS_SEPARATION_REPORT.md`).
+2. Operator sets `ENFORCE_DB_ISOLATION=true` in both pods.
+3. Motive activation reaches ≥20% production fleet coverage.
+
+---
+
 ## 2026-02-10 (FORGEDOPS · ATLAS CLUSTER SPLIT RECONCILIATION · 🟢 RESOLVED + 🔴 P0 OPENED)
 
 **Trigger:** Operator chat 2026-02-10 — *"ATLAS CLUSTER SPLIT RECONCILIATION · STOP. There is a contradiction."*

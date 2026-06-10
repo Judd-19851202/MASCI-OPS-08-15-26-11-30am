@@ -1,0 +1,133 @@
+{
+  "as_of": "2026-06-10T21:08:36.736435+00:00",
+  "audit_authorized_by": "operator OMEGA directive \u00b7 P0 Trust Sprint \u00b7 2026-02-10",
+  "method": "READ-ONLY \u00b7 production DB read from preview pod via shared admin_db_user credential (the very gap being audited; this audit is the one-time authorized exception per directive).",
+  "production": {
+    "assets": {
+      "label": "production:masci_safety",
+      "fleet": {
+        "trucks": 65,
+        "trailers": 53,
+        "pickup_trucks": 11,
+        "service_trucks": 20,
+        "semis": 0,
+        "misc_trucks": 0
+      },
+      "heavy_equipment": {
+        "excavators": 35,
+        "dozers": 3,
+        "loaders": 29,
+        "rollers": 27,
+        "graders": 4,
+        "pavers": 0,
+        "mills": 0,
+        "skid_steers": 13,
+        "compactors": 7,
+        "backhoes": 2,
+        "misc": 27
+      },
+      "specialty": {
+        "trench_boxes": 7,
+        "road_plates": 0,
+        "end_panels": 0,
+        "spreaders": 0,
+        "shields": 0,
+        "arrow_boards": 0,
+        "message_boards": 0,
+        "portable_signals": 0,
+        "water_tanks": 0,
+        "fuel_tanks": 0,
+        "generators": 10,
+        "pumps": 36,
+        "light_towers": 24,
+        "air_compressors": 5
+      },
+      "by_family": {
+        "trench_safety": 7,
+        "access_protection": 0,
+        "traffic_control": 0,
+        "support": 75
+      },
+      "motive_mapped": 0,
+      "motive_unmapped": 596,
+      "total_assets": 596,
+      "unknown_kind": 218
+    },
+    "ops": {
+      "label": "production",
+      "employees": 262,
+      "drivers_in_employees": 0,
+      "pms_in_jobs": 6,
+      "projects_active": 28,
+      "projects_inactive": 0,
+      "active_dispatches": 0,
+      "incidents_open": 8,
+      "capas_open": 0,
+      "defects_open": 0
+    }
+  },
+  "preview": {
+    "assets": {
+      "label": "preview:masci_safety_preview",
+      "fleet": {
+        "trucks": 65,
+        "trailers": 53,
+        "pickup_trucks": 11,
+        "service_trucks": 20,
+        "semis": 0,
+        "misc_trucks": 0
+      },
+      "heavy_equipment": {
+        "excavators": 35,
+        "dozers": 3,
+        "loaders": 29,
+        "rollers": 27,
+        "graders": 4,
+        "pavers": 0,
+        "mills": 0,
+        "skid_steers": 13,
+        "compactors": 7,
+        "backhoes": 2,
+        "misc": 27
+      },
+      "specialty": {
+        "trench_boxes": 16,
+        "road_plates": 88,
+        "end_panels": 0,
+        "spreaders": 0,
+        "shields": 0,
+        "arrow_boards": 0,
+        "message_boards": 0,
+        "portable_signals": 0,
+        "water_tanks": 0,
+        "fuel_tanks": 0,
+        "generators": 10,
+        "pumps": 36,
+        "light_towers": 24,
+        "air_compressors": 5
+      },
+      "by_family": {
+        "trench_safety": 16,
+        "access_protection": 88,
+        "traffic_control": 0,
+        "support": 75
+      },
+      "motive_mapped": 0,
+      "motive_unmapped": 693,
+      "total_assets": 693,
+      "unknown_kind": 218
+    },
+    "ops": {
+      "label": "preview",
+      "employees": 365,
+      "drivers_in_employees": 0,
+      "pms_in_jobs": 5,
+      "projects_active": 28,
+      "projects_inactive": 0,
+      "active_dispatches": 364,
+      "incidents_open": 43,
+      "capas_open": 24,
+      "defects_open": 82
+    }
+  }
+}

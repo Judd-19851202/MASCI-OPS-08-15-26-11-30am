@@ -12,6 +12,31 @@
 
 ---
 
+---
+
+## 2026-02-10 · FORGEDOPS · P0 Trust Sprint · Phases A+B+C+D+E
+
+Authority: OMEGA — *"P0 CRITICAL · ENVIRONMENT ISOLATION + PRODUCTION TRUTH"*.
+
+**Five certifications:**
+
+- **P0-A · Atlas User Isolation** (`ATLAS_USER_ISOLATION_CERTIFICATION.md`): 🔴 **FAIL** — preview pod can read AND list production. `admin_db_user` cluster-wide; operator must execute Atlas user separation runbook.
+- **P0-B · Startup Failsafe** (`STARTUP_FAILSAFE_CERTIFICATION.md`): 🟢 **PASS** — `db_isolation_failsafe.py` wired into server.py startup. Bridge mode (loud banner) by default; `ENFORCE_DB_ISOLATION=true` enables FAIL-FAST after rotation.
+- **P0-C · Production Truth Audit** (`PRODUCTION_TRUTH_AUDIT.md`): 🟢 **PASS** — verified production inventory: 596 assets, 7 trench boxes, **0 road plates** (preview had 88 fixtures), 75 support assets, 262 employees, 28 projects, 0 dispatches, 8 incidents, 0 Motive-mapped.
+- **P0-D · Truth Gap Analysis** (`TRUTH_GAP_ANALYSIS.md`): 🟡 2 CRITICAL · 2 HIGH · 2 MEDIUM · 2 LOW gaps documented.
+- **P0-E · Map GO/NO-GO** (`MAP_GO_NO_GO_CERTIFICATION.md`): 🔴 **NO-GO** — Phase 5B blocked on Atlas user separation + Motive coverage 0%.
+
+**Code shipped:** `backend/db_isolation_failsafe.py` · `backend/scripts/p0_trust_audit.py` · `server.py` startup hook.
+
+**STOP CONDITION:** Phase 5B map UI NO-GO. FleetWatcher activation NOT authorized. MaintainX activation NOT authorized.
+
+**Unlocks GO:** (1) operator executes Atlas user separation runbook · (2) sets `ENFORCE_DB_ISOLATION=true` · (3) Motive coverage ≥20% production fleet.
+
+**Deliverables:** 5 certifications + 3 raw audit JSON files + 2 new backend files + 1 edit.
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · Atlas Cluster Split Reconciliation · 🔴 P0 OPENED
 
 Authority: OMEGA — *"ATLAS CLUSTER SPLIT RECONCILIATION · VERIFY YESTERDAY'S CLAIM"*.
