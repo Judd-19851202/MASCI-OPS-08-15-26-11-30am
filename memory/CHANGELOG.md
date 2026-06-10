@@ -14,6 +14,27 @@
 
 ---
 
+---
+
+## 2026-02-10 · FORGEDOPS · P0 Trust Sprint Continuation · Execution Doctrine + Operator Package
+
+Authority: OMEGA — *"OPTION A APPROVED · FORGEDOPS EXECUTION DOCTRINE"*.
+
+**Doctrine locked in:** Implementation ≠ completion. Certification ≠ completion. Completion requires proof (BUILD · INTEGRATION · VERIFICATION · TRUTH · CERTIFICATION · PROVEN · CLOSEOUT). No "future sprint" / "potential improvement" justifications for P0/security/trust items.
+
+**Operator package staged (PRE-EXECUTION · OPERATOR ACTION REQUIRED · NOT VERIFIED):**
+- 10 docs: `ATLAS_USER_INVENTORY.md` · `ATLAS_NAMESPACE_INVENTORY.md` · `ATLAS_PERMISSION_ANALYSIS.md` · `ATLAS_USER_SEPARATION_OPERATOR_RUNBOOK.md` · `PREVIEW_CREDENTIAL_ROTATION_RUNBOOK.md` · `PRODUCTION_CREDENTIAL_ROTATION_RUNBOOK.md` · `POST_ROTATION_VERIFICATION_RUNBOOK.md` · `PRODUCTION_STABILITY_VALIDATION_RUNBOOK.md` · `TRUST_SPRINT_REEXECUTION_RUNBOOK.md` · `FINAL_CLOSEOUT_CHECKLIST.md`.
+- 7 verification scripts (prepared, NOT auto-run): `verify_isolation_suite.py` + 6 named wrappers.
+
+**Workstream STATUS: 🟡 OPEN.** Cannot close until 25-box `FINAL_CLOSEOUT_CHECKLIST.md` is fully 🟢. Operator-gated boxes: Atlas user creation · MONGO_URL rotation (both pods) · ENFORCE_DB_ISOLATION=true · post-rotation verification · 24h soak · `admin_db_user` deletion.
+
+**Non-negotiable:** zero user impact. No passwords. No logouts. No sessions. No RBAC. No auth changes. Service-account rotation only.
+
+**STOP CONDITION (unchanged):** Map UI NO-GO · FleetWatcher BLOCKED · MaintainX BLOCKED.
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · P0 Trust Sprint · Phases A+B+C+D+E
 
 Authority: OMEGA — *"P0 CRITICAL · ENVIRONMENT ISOLATION + PRODUCTION TRUTH"*.

@@ -27,6 +27,44 @@ Full forensics: `/app/memory/ATLAS_CLUSTER_SPLIT_RECONCILIATION.md`.
 
 ---
 
+# 🔴 OPEN WORKSTREAM · PRODUCTION TRUST & ENVIRONMENT ISOLATION (2026-02-10)
+
+Per FORGEDOPS Execution Doctrine (locked in 2026-02-10), this workstream remains **OPEN** until every gate in `/app/memory/FINAL_CLOSEOUT_CHECKLIST.md` is 🟢. The complete operator-ready execution package (10 runbooks/inventory docs + 7 verification scripts) is staged; operator action is required for Phases 2-6 of the Atlas user separation. **Map UI · FleetWatcher · MaintainX all remain BLOCKED.**
+
+---
+
+## 2026-02-10 (FORGEDOPS · P0 TRUST SPRINT · EXECUTION DOCTRINE LOCKED IN · OPERATOR PACKAGE STAGED)
+
+**Authorization:** Operator chat 2026-02-10 — *"OPTION A APPROVED · FORGEDOPS EXECUTION DOCTRINE"*.
+**Verdict:** 🟡 **PRE-EXECUTION PACKAGE COMPLETE · OPERATOR-GATED · NOT EXECUTED.**
+
+### What was prepared (no production touches)
+- **Inventory:** `ATLAS_USER_INVENTORY.md`, `ATLAS_NAMESPACE_INVENTORY.md`, `ATLAS_PERMISSION_ANALYSIS.md`.
+- **Operator runbooks:** `ATLAS_USER_SEPARATION_OPERATOR_RUNBOOK.md` (Atlas Admin commands + API equivalents), `PREVIEW_CREDENTIAL_ROTATION_RUNBOOK.md`, `PRODUCTION_CREDENTIAL_ROTATION_RUNBOOK.md`, `POST_ROTATION_VERIFICATION_RUNBOOK.md`, `PRODUCTION_STABILITY_VALIDATION_RUNBOOK.md`, `TRUST_SPRINT_REEXECUTION_RUNBOOK.md`.
+- **Closeout gate:** `FINAL_CLOSEOUT_CHECKLIST.md` with 25 individually-tickable BUILD/INTEGRATION/VERIFICATION/TRUTH/CERTIFICATION/PROVEN/CLOSEOUT boxes — none may be ticked without operator-verifiable evidence.
+- **Verification scripts (prepared, NOT auto-run):** `backend/scripts/verify_isolation_suite.py` (single source) + 6 wrappers (`verify_preview_cannot_read_production.py` · `verify_production_cannot_read_preview.py` · `verify_db_isolation.py` · `verify_post_rotation_health.py` · `verify_production_stability.py` · `verify_trust_sprint_completion.py`).
+
+### What was NOT done (per directive — operator must execute)
+- ❌ Atlas user creation (`masci_preview_user` / `masci_prod_user`) — requires Atlas Admin authority.
+- ❌ `MONGO_URL` rotation in preview pod — requires Emergent env edit.
+- ❌ `MONGO_URL` rotation in production pod — requires Emergent env edit.
+- ❌ `ENFORCE_DB_ISOLATION=true` set in pod env — requires Emergent env edit.
+- ❌ `admin_db_user` deletion — requires Atlas Admin authority.
+
+### Non-negotiable guarantees re-stated
+- NO user passwords changed · NO forced logouts · NO session invalidation · NO RBAC changes · NO authentication code changes · NO portal access changes · NO user-facing impact.
+
+### FORGEDOPS Execution Doctrine (locked in)
+Implementation ≠ completion. Certification ≠ completion. **Completion requires proof.** A workstream is CLOSED only when BUILD · INTEGRATION · VERIFICATION · TRUTH · CERTIFICATION · PROVEN · CLOSEOUT are all 🟢. "Future sprint" / "potential improvement" are NOT acceptable justifications for unchecking any P0 item.
+
+### STOP CONDITION (unchanged)
+- 🛑 Phase 5B Live Operations Map UI: **NO-GO**.
+- 🛑 FleetWatcher activation: **NOT authorized**.
+- 🛑 MaintainX activation: **NOT authorized**.
+- 🛑 No new dashboards / portals / analytics until this workstream CLOSES.
+
+---
+
 ## 2026-02-10 (FORGEDOPS · P0 TRUST SPRINT · A+B+C+D+E · 🔴 MAP NO-GO + 🟢 INVENTORY VERIFIED)
 
 **Trigger:** Operator chat 2026-02-10 — *"P0 CRITICAL · ENVIRONMENT ISOLATION + PRODUCTION TRUTH CERTIFICATION"*.
