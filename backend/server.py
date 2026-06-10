@@ -10852,6 +10852,22 @@ _pm_cc_router = build_pm_command_center_router(
 )
 app.include_router(_pm_cc_router)
 
+# ─── FORGEDOPS Operations Center · Phase 4C ───────────────────────
+# Cross-company command board. Composes Asset Spine + Dispatch + PM
+# Command Center + Shop + Safety + Motive into 10 read-only endpoints
+# under /api/operations-center/command/*. Doctrine:
+#   - No new collection, no schema mutation, no FleetWatcher activation
+#   - Specialty Asset normalization (Phase 4C architecture correction):
+#     road plates are ONE family member, not privileged
+#   - Map-ready field set on every operational row (preps Live Ops Map)
+#   - any-portal token read (executive mode is a UI filter, not a gate)
+from routes.operations_center_command import build_operations_center_command_router  # noqa: E402
+_oc_cmd_router = build_operations_center_command_router(
+    db,
+    require_any_portal_token_dep=_require_any_portal_token,
+)
+app.include_router(_oc_cmd_router)
+
 # iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
 # Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.
 # No database storage · no analytics · no scoring · no charts. Closes the

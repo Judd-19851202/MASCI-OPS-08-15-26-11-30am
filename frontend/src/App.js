@@ -246,6 +246,13 @@ const PmProjectDetail = React.lazy(() => import("@/pages/PmProjectDetail"));
 // duplicate single-project surface.
 const PmCommandCenter = React.lazy(() => import("@/pages/PmCommandCenter"));
 const PmProjectRedirect = React.lazy(() => import("@/pages/PmProjectRedirect"));
+// Operations Center · Phase 4C · 2026-02-10
+// Cross-company command board. Composes Asset Spine + Dispatch CC +
+// PM CC + Shop + Safety + Motive into 10 read-only endpoints. Uses
+// Specialty Asset terminology (Phase 4C correction — road plates are
+// ONE family member, NOT privileged).
+const OperationsCenterCommand = React.lazy(() => import("@/pages/OperationsCenterCommand"));
+const PmHomeRedirect = React.lazy(() => import("@/pages/PmHomeRedirect"));
 import AccessDenied from "@/pages/AccessDenied";
 import NotFound from "@/pages/NotFound";
 import GlobalFooter from "@/components/GlobalFooter";
@@ -607,7 +614,8 @@ function App() {
             <Route path="/pm/login" element={<PmLogin />} />
             <Route path="/pm/reset/:token" element={<PmResetPassword />} />
             <Route path="/pm/change-password" element={P(<PmChangePassword />)} />
-            <Route path="/pm" element={P(<PmHub />)} />
+            <Route path="/pm" element={P(<PmHomeRedirect />)} />
+            <Route path="/pm/hub" element={P(<PmHub />)} />
             {/* iter353e-UI · PM Crew Compliance Lens (read-only) */}
             <Route path="/pm/crew-compliance" element={P(<PmCrewCompliance />)} />
             {/* iter105 — PM Console sub-routes (mirrors AdminConsole layout)
@@ -634,6 +642,11 @@ function App() {
                 Backed by /api/pm/command-center/* (Phase 4A). One
                 page · seven tabs · iPad-friendly. */}
             <Route path="/pm/command-center" element={P(<PmCommandCenter />)} />
+            {/* Operations Center · Phase 4C · 2026-02-10.
+                Cross-company command board · 9 layers · Specialty
+                Asset normalization · backed by /api/operations-center/
+                command/* (admin / any portal token). */}
+            <Route path="/operations-center" element={A(<OperationsCenterCommand />)} />
             <Route path="/pm/field-leadership"   element={P(<PmFieldLeadership />)} />
             <Route path="/pm/fleet"              element={P(<PmFleet />)} />
             <Route path="/pm/people"             element={P(<PmPeople />)} />

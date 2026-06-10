@@ -1,0 +1,39 @@
+{
+  "summary": "Phase 4C Operations Center · backend regression 98 passed + 1 skipped (as expected, motive map-contract). Frontend smoke: /pm→/pm/command-center redirect works, /pm/hub legacy preserved, /operations-center renders all 9 layers with real backend data. Specialty family taxonomy verified (trench=16, access_protection=88, support=75, traffic_control=0). Family filter narrows table correctly (16 / 88 rows). Executive mode toggle hides Allocation + Timeline and restores them. iPad portrait+landscape have no page-level horizontal scroll. One minor data contract issue: oc-brief-specialty tile shows 0 instead of expected 179 (component reads `b.specialty_assets_deployed` which counts only currently-deployed assets, not the family-total of 179 reflected in family chips).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "OperationsCenterCommand · Brief tile",
+        "issue": "oc-brief-specialty-value renders '0' but spec expects 179 (specialty-assets total). Component reads brief.specialty_assets_deployed, which is the count of specialty assets currently assigned/deployed to a project. Family filter chips correctly aggregate to 179 (16+88+75+0). Suggest: either change brief field to specialty_assets_total OR rename the tile label from 'Specialty Assets' to 'Specialty Deployed' for honesty.",
+        "selector": "[data-testid='oc-brief-specialty-value']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_operations_center_command_phase_4c.py",
+    "/app/backend/tests/test_pm_command_center_phase_4a.py",
+    "/app/backend/tests/test_dispatch_command_center_phase_1.py",
+    "/app/backend/tests/test_asset_spine_p0_1.py",
+    "/app/test_reports/pytest/phase4c_results.xml"
+  ],
+  "action_items": [
+    "Decide whether oc-brief-specialty should display family-total (179) or current-deployed (0). If total, update brief endpoint or component to use sum(by_family). If deployed, update spec/label."
+  ],
+  "critical_code_review_comments": [
+    "OperationsCenterCommand.jsx polls every 60s — acceptable. useEffect deps include both familyFilter and loadAll (loadAll already depends on familyFilter), slight redundancy but harmless.",
+    "BriefTile renders em-dash when value is null/undefined; all values came back as integers on preview, no em-dashes observed in live test.",
+    "Risk sort order verified: 3 red first, then green (no yellow on preview DB)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (98/98 non-skipped)", "frontend": "94% (1 minor data-contract mismatch on specialty brief tile)"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! (multi-login) — works on preview.",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend Phase 4C contract is solid. Frontend Operations Center renders correctly. Only nit: brief specialty tile shows deployed count (0), not family-total (179). Family filter chips DO show the 179 split correctly. Project Health risk sort red-first verified. iPad layout clean (no page-level horizontal scroll). All other Phase 4C acceptance criteria pass.",
+  "rca of the issue": "OperationsCenterCommand.jsx line 137 reads `b.specialty_assets_deployed` for the brief tile. Backend brief endpoint computes deployed = assets with project_number set. Preview DB has 179 specialty assets total (sum of family chips 16+88+75+0) but none flagged as deployed, so the brief returns 0. Frontend label says 'Specialty Assets' implying total. Mismatch is either a label or a field selection issue. Mitigation: either (a) component should sum by_family or read a new specialty_assets_total field, or (b) label should read 'Specialty Deployed' to match the deployed metric."
+}

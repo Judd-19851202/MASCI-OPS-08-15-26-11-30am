@@ -60,6 +60,68 @@ def normalize_asset_kind(raw: Optional[str]) -> Optional[str]:
     return v
 
 
+# ════════════════════════════════════════════════════════════════════
+# Specialty Asset Family — Phase 4C architecture correction
+# ════════════════════════════════════════════════════════════════════
+# Road plates are NOT a privileged operational category. They are ONE
+# member of the Specialty Asset family. The platform tracks the whole
+# family equally; downstream UIs surface family-level counts and let
+# operators drill into a specific kind.
+#
+# Doctrine: Specialty Assets are NON-fleet, NON-driver resources that
+# get deployed/recovered/inspected as units. They count as company
+# capacity but do not appear in the truck/trailer fleet rosters.
+SPECIALTY_ASSET_FAMILY: Dict[str, List[str]] = {
+    "trench_safety": [
+        "trench_box", "trench box", "trench boxes",
+        "end_panel", "end panel", "end panels",
+        "spreader", "spreaders",
+        "shield", "shields",
+        "trench safety", "trench safety component", "trench safety components",
+    ],
+    "access_protection": [
+        ROAD_PLATE_CANONICAL,  # canonical
+        "steel plate", "temporary mat", "temporary mats",
+        "crossing protection", "crossing protection system",
+    ],
+    "traffic_control": [
+        "arrow_board", "arrow board", "arrow boards",
+        "message_board", "message board", "message boards",
+        "portable signal", "portable signals",
+        "specialty mot", "specialty mot device", "mot device",
+    ],
+    "support": [
+        "pump", "pumps",
+        "generator", "generators",
+        "fuel_tank", "fuel tank", "fuel tanks",
+        "water_tank", "water tank", "water tanks",
+        "light tower", "light towers",
+        "temporary utility", "temporary utility asset",
+        "air compressor", "air compressors",
+    ],
+}
+
+# Reverse lookup: normalized_kind → family_key. Cheaper than scanning.
+_SPECIALTY_KIND_TO_FAMILY: Dict[str, str] = {}
+for _fam, _kinds in SPECIALTY_ASSET_FAMILY.items():
+    for _k in _kinds:
+        _SPECIALTY_KIND_TO_FAMILY[_k.lower()] = _fam
+
+
+def specialty_family_of(asset_kind: Optional[str]) -> Optional[str]:
+    """Return family key (trench_safety/access_protection/traffic_control/
+    support) for an asset kind, or None if not a specialty asset."""
+    if not asset_kind:
+        return None
+    k = str(asset_kind).strip().lower()
+    return _SPECIALTY_KIND_TO_FAMILY.get(k)
+
+
+def is_specialty_asset(asset_kind: Optional[str]) -> bool:
+    return specialty_family_of(asset_kind) is not None
+
+
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -193,12 +255,24 @@ def build_pm_command_center_router(
         equipment_assigned = await db.equipment_master.count_documents(em_assigned_q)
 
         # Road plates assigned (canonical + legacy normalization in code)
+        # AND specialty-asset family counts (Phase 4C correction — road
+        # plates are ONE member of Specialty Assets, not privileged).
         road_plates_assigned = 0
+        specialty_assets_assigned = 0
+        specialty_by_family: Dict[str, int] = {
+            "trench_safety": 0, "access_protection": 0,
+            "traffic_control": 0, "support": 0,
+        }
         async for em in db.equipment_master.find(em_assigned_q,
                                                   {"_id": 0, "type": 1, "asset_type": 1,
                                                    "category": 1, "asset_category": 1}):
-            if _classify_asset_kind(em) == ROAD_PLATE_CANONICAL:
+            kind = _classify_asset_kind(em)
+            if kind == ROAD_PLATE_CANONICAL:
                 road_plates_assigned += 1
+            fam = specialty_family_of(kind)
+            if fam:
+                specialty_assets_assigned += 1
+                specialty_by_family[fam] = specialty_by_family.get(fam, 0) + 1
 
         # Defects impacting project (via truck_id of recent assignment)
         defects_open = 0
@@ -248,6 +322,8 @@ def build_pm_command_center_router(
                 "drivers_assigned": len(drivers),
                 "trailers_assigned": len(trailers),
                 "road_plates_assigned": int(road_plates_assigned),
+                "specialty_assets_assigned": int(specialty_assets_assigned),
+                "specialty_by_family": specialty_by_family,
                 "active_assignments": int(active_assns),
                 "active_hauls": int(active_hauls),
                 "loads_today": int(loads_today),
@@ -652,6 +728,9 @@ def _empty_overview(project_number: Optional[str]) -> Dict[str, Any]:
             "equipment_assigned": 0, "trucks_assigned": 0,
             "drivers_assigned": 0, "trailers_assigned": 0,
             "road_plates_assigned": 0, "active_assignments": 0,
+            "specialty_assets_assigned": 0,
+            "specialty_by_family": {"trench_safety": 0, "access_protection": 0,
+                                      "traffic_control": 0, "support": 0},
             "active_hauls": 0, "loads_today": 0, "defects_open": 0,
             "incidents_open": 0, "capas_open": 0,
             "materials_in_today": 0, "materials_out_today": 0,
@@ -662,4 +741,6 @@ def _empty_overview(project_number: Optional[str]) -> Dict[str, Any]:
 
 
 __all__ = ["build_pm_command_center_router", "normalize_asset_kind",
-           "ROAD_PLATE_CANONICAL", "ROAD_PLATE_LEGACY_VALUES"]
+           "ROAD_PLATE_CANONICAL", "ROAD_PLATE_LEGACY_VALUES",
+           "SPECIALTY_ASSET_FAMILY", "specialty_family_of",
+           "is_specialty_asset"]

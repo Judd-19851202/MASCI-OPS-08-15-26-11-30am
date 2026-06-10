@@ -28,6 +28,7 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
+from typing import Dict
 
 import httpx
 import pytest
@@ -128,6 +129,7 @@ def test_overview_envelope():
             required = {
                 "equipment_assigned", "trucks_assigned", "drivers_assigned",
                 "trailers_assigned", "road_plates_assigned",
+                "specialty_assets_assigned", "specialty_by_family",
                 "active_assignments", "active_hauls", "loads_today",
                 "defects_open", "incidents_open", "capas_open",
                 "materials_in_today", "materials_out_today",
@@ -135,6 +137,10 @@ def test_overview_envelope():
             missing = required - set(counts.keys())
             assert not missing, f"overview counts missing keys: {missing}"
             for k, v in counts.items():
+                # specialty_by_family is a nested dict; every other count is int.
+                if k == "specialty_by_family":
+                    assert isinstance(v, dict), f"counts.{k} not dict: {v!r}"
+                    continue
                 assert isinstance(v, int), f"counts.{k} not int: {v!r}"
     _run(go())
 
@@ -222,7 +228,15 @@ def test_overview_project_filter_respected():
             assert j.get("project_number_filter") == "ZZ-NONEXISTENT-99999"
             counts = j["counts"]
             # Every count should be 0 since no records match.
-            non_zero = {k: v for k, v in counts.items() if v != 0}
+            # specialty_by_family is a dict of family→0 — flatten to scalars
+            # for the zero-check.
+            flat: Dict[str, int] = {}
+            for k, v in counts.items():
+                if isinstance(v, dict):
+                    flat.update({f"{k}.{kk}": vv for kk, vv in v.items()})
+                else:
+                    flat[k] = v
+            non_zero = {k: v for k, v in flat.items() if v != 0}
             assert not non_zero, f"non-zero counts on unknown project: {non_zero}"
     _run(go())
 
