@@ -1,5 +1,46 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 3.2 · Comms Handoff (preview)
+
+Authority: OMEGA DIRECTIVE — Phase 3.2 Authorization. Frontend-only hotfix. Closes the Phase 3.1 pre-fill UX gap.
+
+### Approach
+- `publishCommandAction` stamps unique `id` per action
+- `<SendForm key={preset?.id} … />` re-mounts the form whenever a new preset arrives → useState initializers apply preset directly
+- `useRef` guard ensures `onPresetApplied` fires once per preset; `sessionStorage` cleared in the parent callback
+- Survives Radix Tabs lazy mount + React StrictMode double-mount
+
+### Verified live
+| Behavior | Result |
+|---|---|
+| Contact → switches to Comms tab | ✅ |
+| Audience preselected (`project:9999` for the Test Driver) | ✅ |
+| Message prefilled ("Hi Test Driver, please start your shift…") | ✅ |
+| Pre-filled banner explains source | ✅ |
+| Provider Not Configured stays calm | ✅ |
+| Send remains stub-safe | ✅ |
+| Pending handoff clears after apply | ✅ (sessionStorage = None) |
+| Page reload does not duplicate pre-fill | ✅ |
+
+### Files
+- FRONTEND: `components/dispatch/command/commandActions.js`, `components/dispatch/command/CommunicationsTab.jsx`
+- BACKEND: none
+
+### Tests
+Phase 1 contracts 18/18 + Asset Spine 8/8 = **26/26 regression intact**.
+
+### Doctrine honored
+No new messaging system · no new routes · no Twilio activation · no real SMS · no backend change · no Command Center redesign · no duplicate broadcasts on refresh.
+
+### STOP CONDITION
+Phase 4 NOT authorized.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_3_2_COMMS_HANDOFF_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 3.1 · Close the Loop (preview)
 
 Authority: OMEGA DIRECTIVE — Phase 3.1 Authorization. Frontend-only actionability hotfix. Phase 3 made the truth visible; Phase 3.1 makes it actionable.

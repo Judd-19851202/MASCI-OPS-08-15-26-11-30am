@@ -1,18 +1,31 @@
 /**
  * CommunicationsTab.jsx · Broadcast history + send form.
  *
- * Reads /api/dispatch/command/broadcasts. Lets dispatcher send a new
- * broadcast via /api/dispatch/command/broadcast-sms. Provider status
- * surfaced clearly. NO error spam when Twilio is absent — we render
- * "Provider Not Configured" and let the operator proceed with stub
- * sends (audited but not transmitted).
+ * Phase 3.2 — Comms handoff completion. The SendForm now reliably
+ * pre-fills audience + message when a cross-tab `contact_driver` action
+ * arrives. Approach:
+ *
+ *   1. Every publish gets a unique `id`.
+ *   2. CommunicationsTab subscribes + holds the latest action in state.
+ *   3. SendForm is REMOUNTED via React `key={preset?.id || "empty"}` so
+ *      its useState initializers run fresh with the new preset — this
+ *      bypasses the Radix-Tabs-lazy-mount × StrictMode timing problem.
+ *   4. A useRef guard prevents the same `id` from being applied twice.
+ *   5. `clearPendingCommandAction()` runs after the SendForm applies the
+ *      preset (so a page refresh doesn't re-prefill the same action).
+ *   6. Form is fully editable after pre-fill; Send still stub-safe when
+ *      provider is absent.
  */
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Send, MessageSquare, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { commandApi } from "./commandApi";
-import { consumePendingCommandAction, clearPendingCommandAction, subscribeCommandAction } from "./commandActions";
+import {
+  consumePendingCommandAction,
+  clearPendingCommandAction,
+  subscribeCommandAction,
+} from "./commandActions";
 import { BoardShell, StatusChip } from "./BoardShell";
 
 const POLL_MS = 60000;
@@ -28,12 +41,40 @@ function fmtAgo(iso) {
   } catch { return "—"; }
 }
 
-function SendForm({ provider, onSent }) {
-  const [audience, setAudience] = useState("all_active");
-  const [audienceText, setAudienceText] = useState("");
-  const [kind, setKind] = useState("general");
-  const [message, setMessage] = useState("");
+function _audienceFromPreset(presetAudience) {
+  if (!presetAudience) return { sel: "all_active", text: "" };
+  if (presetAudience.startsWith("project:")) {
+    return { sel: "project", text: presetAudience.slice("project:".length) };
+  }
+  if (presetAudience.startsWith("drivers:")) {
+    return { sel: "drivers", text: presetAudience.slice("drivers:".length) };
+  }
+  return { sel: "all_active", text: "" };
+}
+
+function SendForm({ provider, onSent, preset, onPresetApplied }) {
+  // useState INITIALIZERS run when this component mounts. Because the
+  // parent re-keys SendForm whenever `preset?.id` changes, this is the
+  // canonical place to apply the preset — no useEffect race with Radix
+  // lazy mount / React StrictMode double-mount.
+  const init = _audienceFromPreset(preset?.audience);
+  const [audience, setAudience] = useState(init.sel);
+  const [audienceText, setAudienceText] = useState(init.text);
+  const [kind, setKind] = useState(
+    preset?.kind && preset.kind !== "contact_driver" ? preset.kind : "general"
+  );
+  const [message, setMessage] = useState(preset?.suggested_message || "");
   const [sending, setSending] = useState(false);
+
+  // Tell the parent the preset is consumed (clears sessionStorage so a
+  // refresh doesn't re-prefill the same context).
+  const appliedRef = useRef(null);
+  useEffect(() => {
+    if (preset?.id && appliedRef.current !== preset.id) {
+      appliedRef.current = preset.id;
+      onPresetApplied && onPresetApplied(preset.id);
+    }
+  }, [preset?.id, onPresetApplied]);
 
   const onSend = async () => {
     if (!message.trim()) {
@@ -59,7 +100,6 @@ function SendForm({ provider, onSent }) {
         : `Provider not configured · ${res.recipient_count} recipient(s) audited only`;
       toast.success(`Broadcast ${res.broadcast_id?.slice(0, 8)} · ${label}`);
       setMessage("");
-      clearPendingCommandAction();
       onSent && onSent();
     } catch (e) {
       toast.error(`Broadcast failed: ${e.message || e}`);
@@ -79,6 +119,20 @@ function SendForm({ provider, onSent }) {
           {provider?.status === "active" ? "Provider Active" : "Provider Not Configured"}
         </StatusChip>
       </div>
+
+      {preset?.driver_name ? (
+        <div
+          data-testid="broadcast-preset-summary"
+          className="bg-sky-50 border border-sky-200 text-sky-900 rounded px-2.5 py-1.5 text-xs flex items-center justify-between"
+        >
+          <span>
+            Pre-filled from <b>Contact →</b> on <b>{preset.driver_name}</b>
+            {preset.truck_id ? <> · truck <span className="font-mono">{preset.truck_id}</span></> : null}
+            {preset.project_number && preset.project_number !== "no_job"
+              ? <> · job <span className="font-mono">{preset.project_number}</span></> : null}
+          </span>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div>
@@ -153,10 +207,11 @@ export default function CommunicationsTab() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  // Consume any pending action synchronously on mount so the SendForm
-  // initial state reflects the cross-tab handoff (e.g. Contact Driver
-  // from the Drivers tab). After consumption the pending slot is
-  // cleared so a refresh doesn't repeatedly pre-fill the form.
+
+  // Pull any pending action from sessionStorage on first mount so the
+  // SendForm initial useState gets the preset. We do NOT clear it here
+  // — clearing happens in onPresetApplied so React StrictMode's
+  // double-mount cannot consume the action before the visible mount.
   const [preset, setPreset] = useState(() => consumePendingCommandAction());
 
   const load = useCallback(async () => {
@@ -174,11 +229,20 @@ export default function CommunicationsTab() {
     return () => clearInterval(id);
   }, [load]);
 
+  // Subscribe to LIVE contact_driver events (e.g. operator stays on the
+  // Comms tab and clicks Contact on another driver).
   useEffect(() => {
     const unsub = subscribeCommandAction((a) => {
       if (a && a.kind === "contact_driver") setPreset(a);
     });
     return unsub;
+  }, []);
+
+  // Called by SendForm once it has applied the preset — clear the
+  // sessionStorage slot so a page refresh doesn't re-apply the same
+  // context (a stale broadcast is worse than no pre-fill).
+  const onPresetApplied = useCallback((_id) => {
+    clearPendingCommandAction();
   }, []);
 
   const rows = data?.rows || [];
@@ -197,9 +261,11 @@ export default function CommunicationsTab() {
       empty={false}
     >
       <SendForm
+        key={preset?.id || "default"}
         provider={provider}
         onSent={load}
         preset={preset}
+        onPresetApplied={onPresetApplied}
       />
 
       <div className="mt-4">

@@ -23,9 +23,10 @@ function _write(a) {
 }
 
 export function publishCommandAction(action) {
-  _write(action);
+  const withId = { ...action, id: action?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` };
+  _write(withId);
   for (const fn of subs) {
-    try { fn(action); } catch (_e) { /* noop */ }
+    try { fn(withId); } catch (_e) { /* noop */ }
   }
 }
 

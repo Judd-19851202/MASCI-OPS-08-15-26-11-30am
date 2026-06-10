@@ -1,3 +1,46 @@
+## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 3.2 · COMMS HANDOFF · 🟢 PASS · preview)
+
+**Sprint:** Phase 3.2 hotfix — close the documented Phase 3.1 UX gap. Frontend-only. `Contact →` from a Driver row now fully pre-fills the Comms form audience + suggested message + descriptor banner.
+**Authorization:** Operator chat 2026-02-10 — *"PHASE 3.2 · COMMUNICATION HANDOFF COMPLETION · OMEGA ENFORCED"*
+**Verdict:** 🟢 **PASS · all 8 required behaviors verified · 26/26 backend regression intact · operator action loop fully closed.**
+
+### What changed
+- `commandActions.publishCommandAction` now stamps every action with a unique `id`
+- `CommunicationsTab` re-mounts `SendForm` via `key={preset?.id}` so useState initializers see the new preset directly (bypasses Radix lazy-mount × StrictMode timing race)
+- `SendForm` reads preset in useState initializers (not useEffect) — controlled select + textarea reflect the preset on first paint
+- `useRef`-guarded `onPresetApplied` callback runs once per preset id and clears `sessionStorage` after the form mounts with the preset → no duplicate pre-fill on reload
+- New informational "Pre-filled from Contact → on {driver} · truck {truck} · job {project}" banner
+
+### Verified live
+- Audience select: `Specific project` · text `9999`
+- Message: "Hi Test Driver, please start your shift in the driver app and acknowledge your dispatch." (88/280)
+- Preset banner present
+- sessionStorage cleared after apply (= `None`)
+- After reload: form returns to defaults (no duplicate pre-fill)
+- Provider chip: `Provider Not Configured` (calm)
+- Send button enabled, stub-safe path preserved
+
+### Files
+- FRONTEND: `components/dispatch/command/commandActions.js`, `components/dispatch/command/CommunicationsTab.jsx`
+- BACKEND: none
+
+### Tests
+- Phase 1 contracts 18/18 ✅
+- Asset Spine 8/8 ✅
+- Live Playwright: 8/8 required behaviors ✅
+
+### Doctrine honored
+No new messaging system · no new routes · no Twilio activation · no real SMS · no backend change · no Command Center redesign · pending handoff clears after apply · refresh does not duplicate broadcasts · safe with missing driver/assignment.
+
+### STOP CONDITION
+Phase 4 NOT authorized.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_3_2_COMMS_HANDOFF_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 3.1 · CLOSE THE LOOP · 🟢 PASS · preview)
 
 **Sprint:** Phase 3.1 hotfix — make Phase 3 trust states actionable. Frontend-only. Every primary warning now carries an obvious owner + one-tap action that opens an existing route.
