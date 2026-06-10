@@ -1,3 +1,50 @@
+## 2026-02-10 (FORGEDOPS · PM COMMAND CENTER · PHASE 4B · UI SHELL · 🟢 PASS · preview)
+
+**Sprint:** Phase 4B. PM Command Center UI shell. 1 page · 12-KPI command strip · 7 tabs · 6 operational boards. Backed exclusively by Phase 4A endpoints. Road Plates first-class. iPad-friendly. Honest empty states. No new backend route · no duplicate PM project page.
+**Authorization:** Operator chat 2026-02-10 — *"PHASE 4B · UI SHELL · OMEGA ENFORCED"*
+**Verdict:** 🟢 **PASS · live preview verified by testing_agent_v3_fork · 12 KPI tiles render real backend integers (trucks=135, road_plates=88, drivers=30, equipment=693, active_hauls=272, incidents=43) · Road Plates tile cross-links to filtered Resources tab · PM scope guard verified · legacy `/pm/projects/:pn` redirects · iPad portrait + landscape both clean · 63/63 backend regression intact.**
+
+### What ships
+- `/pm/command-center` (one page, 7 tabs: overview · resources · hauls · materials · shop · safety · timeline)
+- `/pm/command-center?project_number=...` (filter every section to one project)
+- `/pm/projects/:projectNumber` now redirects to `/pm/command-center?project_number=:pn` (no duplicate PM project page)
+- 12-KPI clickable command strip (every tile → relevant tab, road-plates and trucks/trailers carry the kind filter through)
+- Road plates surfaced as first-class assets (KPI tile + Resources filter chip + backend counts_by_kind)
+- FleetWatcher / MaintainX render `Pending Integration` chips calmly everywhere
+- Honest empty states ("No material movement…", "No active hauls…", "No shop issues…", "No open safety items…", "No recent activity…")
+
+### Files (13 new · 0 backend · zero schema change)
+- NEW frontend page: `pages/PmCommandCenter.jsx` (~310 LOC) + `pages/PmProjectRedirect.jsx` (~14 LOC)
+- NEW components/pm/command/: `pmCommandApi.js` · `PmCommandStrip.jsx` · `PmBoardShell.jsx` · `PmProjectSelector.jsx` · `PmResourcesBoard.jsx` · `PmHaulsBoard.jsx` · `PmMaterialsBoard.jsx` · `PmShopImpactBoard.jsx` · `PmSafetyImpactBoard.jsx` · `PmTimelineBoard.jsx`
+- EDIT `frontend/src/App.js` (+5 LOC, 2 lazy imports + 3 routes)
+
+### Doctrine honored
+No new backend route · no schema change · no FleetWatcher activation · no MaintainX activation · no map · no charts-first analytics · no duplicate PM project page · no production data mutation · iPad portrait + landscape verified · PM scope guarded (`compute_pm_scope` + frontend `project_number` filter).
+
+### Live verification (testing_agent_v3_fork · 2026-02-10)
+- 12/12 KPI tiles show backend integers (NOT em-dashes)
+- Road Plates tile click → Resources tab + road_plate filter active
+- `?project_number=ZZ-NONEXISTENT-99999` → every tile = 0 (scope guard)
+- `/pm/projects/9999` → final URL `/pm/command-center?project_number=9999`
+- iPad portrait (768×1024) + landscape (1024×768): no horizontal page-level scroll
+- Backend `/api/pm/command-center/overview` returned 200 throughout
+- Regression `pytest tests/test_pm_command_center_phase_4a.py tests/test_dispatch_command_center_phase_1.py tests/test_asset_spine_p0_1.py` → 63/63 PASS
+
+### Known nit (MEDIUM · not blocking)
+- Hauls per-row FleetWatcher chip data-testid `pm-cc-hauls-fw-<assignment>` is present in code but only renders when the Hauls tab is active (testing agent looked on Overview tab). Resolution: no code change required.
+
+### STOP CONDITION
+Phase 4C (Operations Center cross-company board) NOT authorized.
+FleetWatcher activation NOT authorized.
+MaintainX activation NOT authorized.
+
+### Deliverable
+`/app/memory/PM_COMMAND_CENTER_PHASE_4B_UI_CERTIFICATION.md`
+Test report: `/app/test_reports/iteration_pm_cc_phase4b.json`
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · PM COMMAND CENTER · PHASE 4A · BACKEND FOUNDATION · 🟢 PASS · preview)
 
 **Sprint:** Phase 4A of 4. PM Command Center backend aggregation. 7 read-only endpoints under `/api/pm/command-center/*` (overview · resources · hauls · materials · shop-impact · safety-impact · timeline). Road plates canonicalized as `road_plate`. PM scope enforced via `compute_pm_scope()`. Map-ready fields on every operational row. FleetWatcher / MaintainX returned `not_connected`. Zero UI · zero schema mutation · zero new collection.

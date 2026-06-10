@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · PM Command Center · Phase 4B · UI Shell (preview)
+
+Authority: OMEGA DIRECTIVE — Phase 4B Authorization. Frontend-only. Consumed Phase 4A endpoints exclusively.
+
+**Added (frontend):**
+- Page `/pm/command-center` — one operational command screen with 12-KPI clickable command strip + 7 tabs (overview · resources · hauls · materials · shop · safety · timeline).
+- Per-project filter via `?project_number=...` (URL state + dropdown selector backed by `/api/pm/jobs`).
+- 6 board components in `components/pm/command/`: PmResourcesBoard (road_plate filter chip + first-class road plate KPI), PmHaulsBoard, PmMaterialsBoard, PmShopImpactBoard (per-row MaintainX chip), PmSafetyImpactBoard, PmTimelineBoard.
+- Shared `PmBoardShell` + `TrustChip` + `IntegrationChip` (calm "Pending Integration" for FleetWatcher/MaintainX).
+- REST client `pmCommandApi.js` (sends X-Admin-Token AND X-PM-Token both).
+- `PmProjectRedirect` — legacy `/pm/projects/:projectNumber` now React-Navigate-replaces to `/pm/command-center?project_number=:pn`. The old timeline-only page is parked at `/pm/projects-legacy/:pn` as an escape hatch.
+
+**Doctrine honored:**
+- No new backend route · no schema change · no duplicate PM project page · no FleetWatcher activation · no MaintainX activation · no map · no charts-first analytics · no production data mutation.
+- Road plates first-class (KPI tile + Resources filter chip + backend `counts_by_kind`).
+- PM scope guarded by `compute_pm_scope` (backend) + `project_number` query param (frontend).
+- Honest empty states everywhere. No fake green status.
+- iPad portrait + landscape verified — no horizontal page-level scroll.
+
+**Live verification:**
+- Testing agent confirmed 12/12 KPI tiles render real backend integers (trucks=135, road_plates=88, drivers=30, equipment=693, active_hauls=272, incidents_open=43, CAPAs=24).
+- Road Plates tile → Resources tab + road_plate filter chip active.
+- `?project_number=ZZ-NONEXISTENT` → every tile = 0 (scope guard).
+- Legacy `/pm/projects/9999` → `/pm/command-center?project_number=9999`.
+- Regression: 63/63 backend tests still green.
+
+**Deliverable:** `/app/memory/PM_COMMAND_CENTER_PHASE_4B_UI_CERTIFICATION.md`
+**Test report:** `/app/test_reports/iteration_pm_cc_phase4b.json`
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · PM Command Center · Phase 4A · Backend Foundation (preview)
 
 Authority: OMEGA DIRECTIVE — Phase 4A Authorization. Backend-only. PM-scoped read-only aggregation.
