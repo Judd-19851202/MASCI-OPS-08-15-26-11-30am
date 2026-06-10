@@ -10,6 +10,23 @@
 
 ---
 
+---
+
+## 2026-02-10 · FORGEDOPS · Atlas Cluster Split Reconciliation · 🔴 P0 OPENED
+
+Authority: OMEGA — *"ATLAS CLUSTER SPLIT RECONCILIATION · VERIFY YESTERDAY'S CLAIM"*.
+
+**Apparent contradiction resolved.** Yesterday's "Atlas split" work (2026-06-09 `PHASE1_ATLAS_SEPARATION_REPORT.md`) was about **Atlas USER separation** (governance), not **cluster topology** separation. The Trust Sprint T1 statement ("shared Atlas cluster, DB-namespace separation") is correct and consistent with every prior doc that mentions it (`PRODUCTION_ENV_VERIFICATION.md`, `PRODUCTION_ALIGNMENT_REPORT.md`, `PHASE26_2_ATLAS_CROSSOVER_CERTIFICATION.md`).
+
+**🔴 P0 INCIDENT OPENED:** preview pod's MongoDB credential (`admin_db_user`) has cluster-wide `readWriteAnyDatabase`. Direct runtime probe from inside `/app/backend/` returned 596 rows of `masci_safety.equipment_master` (production) and listed 159 production collections. Application code is safe (every route uses `client[DB_NAME]`, env-pinned to preview), but the credential is not scoped. The Atlas user separation runbook authored 2026-06-09 must be executed by the operator (requires Atlas Admin API keys).
+
+**Blocked:** Phase 5B Live Operations Map UI · FleetWatcher activation · MaintainX activation — all gated on P0 closure.
+
+**Deliverable:** `/app/memory/ATLAS_CLUSTER_SPLIT_RECONCILIATION.md`
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · Trust Sprint · T1+T2+T3+T4+T5 (preview)
 
 Authority: OMEGA — *"TRUST BEFORE VISUALIZATION · PROVE BEFORE DISPLAY"*. No feature work; trust certification only.

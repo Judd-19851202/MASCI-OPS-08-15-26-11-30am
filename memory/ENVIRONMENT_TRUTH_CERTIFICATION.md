@@ -1,5 +1,7 @@
 # FORGEDOPS · TRUST SPRINT · T1 · ENVIRONMENT TRUTH CERTIFICATION
 
+> 🔴 **P0 SUPPLEMENT — 2026-02-10**: a direct cross-DB read probe from the preview pod (run as part of `ATLAS_CLUSTER_SPLIT_RECONCILIATION.md` later the same day) revealed that the preview pod's MongoDB credential is **cluster-wide** (`admin_db_user` with `readWriteAnyDatabase`). The preview pod CAN read production data (`masci_safety.equipment_master` → 596 rows visible). Application code is safe because every route uses `client[DB_NAME]` (env-pinned to preview), but the credential is not scoped. **See `/app/memory/ATLAS_CLUSTER_SPLIT_RECONCILIATION.md` for the operator-action runbook and Phase 5B blocker.**
+
 > ⚠️ **PREVIEW ENVIRONMENT** — `DB_NAME="masci_safety_preview"` · `APP_ENV="preview"`. Counts and integration flags below describe the preview deployment only. Production parity must be verified separately (operator action).
 
 **Date:** 2026-02-10

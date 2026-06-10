@@ -13,6 +13,47 @@ No future agent or operator may quote a count from this PRD as a production fact
 
 ---
 
+# 🔴 P0 INCIDENT — ATLAS USER SEPARATION NOT EXECUTED (2026-02-10)
+
+**Discovered:** 2026-02-10 during Atlas Cluster Split Reconciliation. **Status: OPEN · operator action required.**
+
+The preview pod's MongoDB credential (`admin_db_user`) has **cluster-wide `readWriteAnyDatabase` privileges**. Direct runtime probe confirms the preview pod CAN read `masci_safety` (production · 596 equipment rows visible) AND list its 159 collections. Application code is safe because every route opens the DB via `client[DB_NAME]` (env-pinned to `masci_safety_preview`), but the **credential itself** is not scoped.
+
+This was identified in `/app/memory/PHASE1_ATLAS_SEPARATION_REPORT.md` on 2026-06-09 (authored as a VERIFICATION-ONLY runbook). The operator action — create `masci_preview_user` + `masci_prod_user`, rotate MONGO_URL in both pods, delete `admin_db_user` — was **never executed**.
+
+**Phase 5B Live Operations Map UI is BLOCKED** until either (a) the Atlas user separation runbook is executed and re-verified, OR (b) the operator explicitly accepts the residual risk in writing.
+
+Full forensics: `/app/memory/ATLAS_CLUSTER_SPLIT_RECONCILIATION.md`.
+
+---
+
+## 2026-02-10 (FORGEDOPS · ATLAS CLUSTER SPLIT RECONCILIATION · 🟢 RESOLVED + 🔴 P0 OPENED)
+
+**Trigger:** Operator chat 2026-02-10 — *"ATLAS CLUSTER SPLIT RECONCILIATION · STOP. There is a contradiction."*
+**Verdict:** 🟢 **CONTRADICTION RESOLVED.** The apparent contradiction was misremembered framing: yesterday's 2026-06-09 work was about **Atlas USER separation** (governance), not **cluster topology** separation. Verified by reading `PHASE1_ATLAS_SEPARATION_REPORT.md`, `PHASE26_2_ATLAS_CROSSOVER_CERTIFICATION.md`, `PRODUCTION_ENV_VERIFICATION.md`, `PRODUCTION_ALIGNMENT_REPORT.md`, all of which confirm: **single Atlas cluster (`masci-prod.1nduwmg.mongodb.net`), separate DB namespaces (`masci_safety_preview` vs `masci_safety`).**
+
+🔴 **P0 INCIDENT OPENED** during the reconciliation: direct cross-DB read probe from the preview pod succeeded (596 rows of `masci_safety.equipment_master` returned). Cluster-wide `admin_db_user` credential allows it; only the application's `client[DB_NAME]` scoping prevents misuse in normal operation. Atlas user separation runbook (already written 2026-06-09) must be executed by the operator.
+
+### Reconciliation matrix
+| Claim | Source | Verdict |
+|---|---|---|
+| Atlas USER separation (preview_user + prod_user) | Phase 1B 2026-06-09 | **PLANNED BUT NOT EXECUTED** |
+| Atlas cluster topology split | (no doc ever claimed this) | **NEVER CLAIMED** |
+| Preview cannot read prod DB | implicit assumption | **OVERTURNED — credential allows it** |
+| App code uses preview DB only | server.py + routers | **CONFIRMED** |
+| Trust Sprint T1 "shared cluster, DB-namespace isolation" | T1 cert | **CONFIRMED** |
+
+### STOP CONDITION
+- Phase 5B Live Operations Map UI: BLOCKED on Atlas user separation execution.
+- FleetWatcher activation: BLOCKED.
+- MaintainX activation: BLOCKED.
+
+### Deliverable
+- `/app/memory/ATLAS_CLUSTER_SPLIT_RECONCILIATION.md`
+- Operator runbook (linked, already authored): `/app/memory/PHASE1_ATLAS_SEPARATION_REPORT.md`
+
+---
+
 ## 2026-02-10 (FORGEDOPS · TRUST SPRINT · T1+T2+T3+T4+T5 · 🟢 ALL PASS · preview)
 
 **Sprint:** Trust certification sprint before Live Operations Map UI. Five certifications. NO feature work. NO FleetWatcher/MaintainX activation. NO map render.
