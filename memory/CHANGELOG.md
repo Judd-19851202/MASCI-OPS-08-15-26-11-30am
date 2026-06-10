@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · P0.1 · Asset Spine Foundation (preview)
+
+Authority: OMEGA DIRECTIVE — P0.1 Asset Spine Execution. Pillar contract honored (Powerful · Simple · Beautiful · Trusted · Proven).
+
+Canonical Asset Spine — single source-of-truth API + service + detection engine + admin health dashboard — shipped against the existing `equipment_master` collection. No new collections. Audited write boundary.
+
+* NEW `backend/services/asset_spine.py` — `AssetSpine(db)` class with `project_asset`, `list_assets`, `get_asset`, `get_profile`, `create_asset`, `update_asset`, `retire_asset`, `activate_asset`, `health`, `scan_health`. Every mutation triple-audited.
+* NEW `backend/services/asset_spine_detection.py` — four read-only detectors (duplicates / retired_but_active / orphaned / unsynced).
+* NEW `backend/routes/asset_spine.py` — REST surface at `/api/asset-spine/*`: assets list, single, profile, create, patch, retire, activate, health, health/scan, health/runs.
+* NEW `backend/tests/test_asset_spine_p0_1.py` — 8 pytest cases, all PASS in 74s against live preview DB.
+* NEW `frontend/src/pages/admin/AdminAssetSpineHealth.jsx` — dashboard at `/admin/asset-spine` showing fleet counts, posture, detector findings, unsynced actionable list, recent scan audit.
+* `backend/server.py` — late-mount registration. `frontend/src/App.js` — lazy route.
+
+Live verification on preview against 693 real assets: 31.4% Motive coverage measured, 4 duplicates auto-detected, scan persisted in 71s.
+
+Named follow-up sprints (NOT placeholders): P0.2 Asset Spine Cadence (nightly cron), P0.3 Profile Convergence (UI), P0.4 Portal Re-bind (Dispatch/PM/Shop/Safety/Field), P0.5 OC tile, P0.6 Onboarding wizard, P0.7 Retirement surface. Operator authorisation required for each.
+
+Deliverable: `memory/FORGEDOPS_P0_1_ASSET_SPINE_CERTIFICATION.md`. No production deploy yet.
+
+---
+
+
 ## 2026-02-10 · TRUST-DIAGNOSTICS-001 · Session / Network / Backend error clarity (preview)
 
 Authority: OMEGA DIRECTIVE — P1 trusted-platform reliability fix; triggered by PROD-RELIABILITY-INCIDENT-001 where an expired session looked like an outage.

@@ -1,3 +1,49 @@
+## 2026-02-10 (FORGEDOPS · P0.1 · ASSET SPINE FOUNDATION · 🟢 SHIPPED · preview)
+
+**Sprint:** Asset Spine Execution — single source-of-truth API + service + detection engine + admin health dashboard. Pillar contract honored (Powerful · Simple · Beautiful · Trusted · Proven). No new collections; `equipment_master` remains canonical with audited write boundary.
+**Authorization:** Operator chat 2026-02-10 — *"FORGEDOPS P0.1 — ASSET SPINE EXECUTION · EXECUTE NOW"*
+**Verdict:** 🟢 **Foundation complete. 8/8 backend pytest. Live on preview against 693 real assets (31.4% Motive coverage, 4 duplicates auto-detected, 71s scan). Cross-portal UI re-bind is the named P0.2–P0.7 follow-up sprints.**
+
+### Files changed (7)
+- NEW `backend/services/asset_spine.py` — canonical CRUD + profile aggregation + health (468 lines)
+- NEW `backend/services/asset_spine_detection.py` — duplicate / retired-but-active / orphaned / unsynced detectors (174 lines)
+- NEW `backend/routes/asset_spine.py` — REST surface at `/api/asset-spine/*` (209 lines)
+- `backend/server.py` — late-mount registration via `app.include_router` (3 lines)
+- NEW `backend/tests/test_asset_spine_p0_1.py` — 8 pytest cases, all PASS
+- NEW `frontend/src/pages/admin/AdminAssetSpineHealth.jsx` — dashboard at `/admin/asset-spine` (306 lines)
+- `frontend/src/App.js` — lazy route registration (2 lines)
+
+### Live verification
+```
+GET /api/asset-spine/health   → {total:693, active:609, retired:84, motive_coverage_pct:31.4, mapped:191, unmapped:418, conflicts:1243}
+POST /api/asset-spine/health/scan  → {findings_summary:{duplicates:4, retired_but_active:0, orphaned:609, unsynced:208}, persisted to asset_spine_health_runs in 71s}
+```
+
+### Doctrine enforced
+- Every mutation audited 3 ways: admin_audit_log + audit_events + asset_transfers
+- Admin-only writes; any-portal reads
+- Retire is idempotent; activate is admin-only undo
+- Legacy fields mirrored (`label`/`type`/`category`/`company`/`vin_serial_number`) so existing readers continue to work
+- No duplicate asset creation paths — `create_asset` rejects duplicate `asset_number` with 409
+- ForgedOps owns identity / ownership / classification / status / assignment / history / lifecycle; Motive / FleetWatcher / MaintainX are read-only mirrors
+
+### Named follow-up sprints (NOT placeholders — scoped P0 extensions)
+- **P0.2** Asset Spine Cadence — nightly scheduled scan at 02:00 UTC
+- **P0.3** Profile Convergence — upgrade `AssetProfile.jsx` to read `/profile`
+- **P0.4** Portal Re-bind — Dispatch / PM / Shop / Safety / Field-Leadership read from `/asset-spine/assets`
+- **P0.5** Operations Center "Asset Spine Health" tile
+- **P0.6** Onboarding wizard
+- **P0.7** Retirement surface + transfer ledger viewer
+
+### Out-of-scope (per OMEGA STOP CONDITION)
+No Dispatch Command Center, no PM Dashboard, no Operations Center board, no Shop Command Board, no FleetWatcher activation, no MaintainX activation until Asset Spine is certified, trusted, and the named follow-up sprints are authorised by the operator.
+
+### Deliverables
+- `memory/FORGEDOPS_P0_1_ASSET_SPINE_CERTIFICATION.md` — full architecture, validation matrix, pillar scorecard, file inventory, named follow-up sprints.
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · MASTER OPERATIONS + ASSET GOVERNANCE AUDIT · 🟢 ARCHITECTURE-LOCKED · read-only)
 
 **Sprint:** Zero-drift architecture review — Logistics, Dispatch, Fleet, Materials & Operations Master Audit (13 phases) plus Master Asset Governance contract. Read-only. No code changes. No new collections. No new endpoints. No vendor activation.

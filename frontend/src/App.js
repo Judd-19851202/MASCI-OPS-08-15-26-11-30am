@@ -113,6 +113,8 @@ const AdminJobs = React.lazy(() => import("@/pages/admin/AdminJobs"));
 const AdminGeofenceReconciliation = React.lazy(() => import("@/pages/admin/AdminGeofenceReconciliation"));
 const AdminOperationsDashboard = React.lazy(() => import("@/pages/admin/AdminOperationsDashboard"));
 const AdminAssetMapping = React.lazy(() => import("@/pages/admin/AdminAssetMapping"));
+// FORGEDOPS-P0.1 · Asset Spine Health dashboard.
+const AdminAssetSpineHealth = React.lazy(() => import("@/pages/admin/AdminAssetSpineHealth"));
 const AdminEquipment = React.lazy(() => import("@/pages/admin/AdminEquipment"));
 const AdminEmail = React.lazy(() => import("@/pages/admin/AdminEmail"));
 const AdminTraining = React.lazy(() => import("@/pages/admin/AdminTraining"));
@@ -484,6 +486,7 @@ function App() {
             <Route path="/admin/operations-dashboard" element={A(<AdminOperationsDashboard />)} />
             {/* MOTIVE-DATA-002 · Asset Mapping Admin Center */}
             <Route path="/admin/asset-mapping" element={A(<AdminAssetMapping />)} />
+            <Route path="/admin/asset-spine" element={A(<AdminAssetSpineHealth />)} />
             <Route path="/admin/equipment" element={A(<AdminEquipment />)} />
             <Route path="/admin/email" element={A(<AdminEmail />)} />
             <Route path="/admin/training" element={A(<AdminTraining />)} />

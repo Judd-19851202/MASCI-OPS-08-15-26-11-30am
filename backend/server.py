@@ -11496,6 +11496,16 @@ _asset_mapping_router = build_asset_mapping_router(db, require_admin)
 app.include_router(_asset_mapping_router)
 
 
+# FORGEDOPS-P0.1 · Canonical Asset Spine · /api/asset-spine/*
+# Single source-of-truth API over equipment_master with audit, profile
+# aggregation, and read-only detection engine. Doctrine in
+# /app/memory/MASTER_ASSET_GOVERNANCE_ARCHITECTURE.md.
+from routes.asset_spine import register_asset_spine_routes  # noqa: E402
+# Late-mount via `app` directly because api_router has already been
+# attached by line 9016 — adding to api_router post-mount is a no-op.
+register_asset_spine_routes(app, db, require_admin, _require_any_portal_token)
+
+
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
 # Detection-only drift sentinel. Never auto-mutates source records or jobs_master.
 # Operator controls every resolution (match / leave_unmatched / intentional / dismiss).
