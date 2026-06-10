@@ -1,3 +1,43 @@
+## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 1 · BACKEND AGGREGATION FOUNDATION · 🟢 PASS · preview)
+
+**Sprint:** Phase 1 of 8. Backend aggregation foundation. ONE clean read-feed per concern (fleet / drivers / jobs / haul / shop) plus a one-shot `/summary` rollup plus a broadcast-SMS write endpoint that stubs safely. No UI, no Phase 2 work, no FleetWatcher/MaintainX activation, no tenant catalog migration.
+**Authorization:** Operator chat 2026-02-10 — *"FORGEDOPS DISPATCH COMMAND CENTER V1 · PHASE 1 AUTHORIZATION · STATUS: AUTHORIZED · OMEGA ENFORCED"*
+**Verdict:** 🟢 **PASS · 18/18 Phase 1 contract tests + 8/8 Asset Spine regression. Zero data mutation. Zero duplicate systems. SMS safely stubbed. FleetWatcher / MaintainX fields template-ready but null.**
+
+### Endpoints shipped (7)
+- `GET  /api/dispatch/command/summary`
+- `GET  /api/dispatch/command/fleet`
+- `GET  /api/dispatch/command/drivers`
+- `GET  /api/dispatch/command/jobs`
+- `GET  /api/dispatch/command/haul`
+- `POST /api/dispatch/command/broadcast-sms`   (dispatch + admin only)
+- `GET  /api/shop/command-feed`
+
+### Files
+- NEW `backend/routes/dispatch_command_center.py` (~610 LOC)
+- NEW `backend/routes/shop_command_feed.py` (~210 LOC)
+- NEW `backend/tests/test_dispatch_command_center_phase_1.py` (18 tests)
+- `backend/server.py` (12-line router wiring after existing DLS admin health router)
+
+### New collection
+- `dispatch_broadcasts` (append-only audit log for broadcast SMS sends; mirrored to `admin_audit_log`)
+
+### Live verification (preview)
+```
+GET /summary → 693 assets · motive_coverage=31.4% · 24 active hauls · 82 open defects · 71 oos · 43 incidents open
+POST /broadcast-sms (all_active) → recipient_count=24, sent=0, skipped=24, provider_status=provider_not_configured
+```
+No real SMS was sent from preview (doctrine honored).
+
+### STOP CONDITION (held)
+Phase 2 (UI) is NOT authorized. Awaiting operator approval.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_1_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · ARCHITECTURE AUDIT · 🟢 COMPLETE · awaiting approval)
 
 **Sprint:** Architecture-only audit prior to Dispatch Command Center construction. Operator-mandated STOP CONDITION honored: no code, no UI, no endpoint, no schema changes. Platform-first / tenant-configurable doctrine enforced throughout.

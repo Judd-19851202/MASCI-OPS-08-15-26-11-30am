@@ -1,5 +1,51 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 1 · Backend Aggregation Foundation (preview)
+
+Authority: OMEGA DIRECTIVE — Phase 1 Authorization. Backend-only.
+
+Backend aggregation layer that will power the future Dispatch Command Center UI. ONE clean read-feed per concern instead of stitching 15 disconnected queries on the client. SMS broadcast tile stubs cleanly when Twilio credentials are absent. FleetWatcher / MaintainX fields template-ready but never populated until activation.
+
+### Endpoints (7 new)
+- `GET  /api/dispatch/command/summary` — one-shot rollup (any portal)
+- `GET  /api/dispatch/command/fleet` — Live Fleet Board (any portal)
+- `GET  /api/dispatch/command/drivers` — Live Driver Board (any portal)
+- `GET  /api/dispatch/command/jobs` — Live Job Board (any portal)
+- `GET  /api/dispatch/command/haul` — Live Haul Board (any portal)
+- `POST /api/dispatch/command/broadcast-sms` — audience-targeted broadcast (dispatch+admin)
+- `GET  /api/shop/command-feed` — Shop Command Feed (any portal)
+
+### Files
+- NEW `backend/routes/dispatch_command_center.py`
+- NEW `backend/routes/shop_command_feed.py`
+- NEW `backend/tests/test_dispatch_command_center_phase_1.py` (18 tests, all pass)
+- `backend/server.py` (12-line wiring block)
+
+### New collection
+- `dispatch_broadcasts` (audit log, append-only; mirrored to `admin_audit_log`)
+
+### Doctrine honored
+- Platform-first / tenant-configurable: every endpoint accepts `X-Tenant-Id`.
+- Asset Spine canonical: `_asset_spine_health` calls `AssetSpine.health()`; no parallel asset store.
+- FleetWatcher / MaintainX absent → `not_connected` status + null fields on every row.
+- SMS provider missing → `provider_not_configured`; all sends `status="skipped"`; no real SMS sent from preview.
+- Zero production data mutation. Zero duplicate systems.
+
+### Tests
+18/18 contract tests pass. 8/8 Asset Spine regression intact. **26/26 total · zero regressions.**
+
+### Live preview verification
+693 assets · motive_coverage=31.4% · 24 active hauls · 82 open defects · 71 oos · 43 incidents open · broadcast all_active resolved 24 recipients, 24 skipped (no creds), audit row written.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_1_CERTIFICATION.md`
+
+### STOP CONDITION
+Phase 2 (UI) is NOT authorized. Awaiting operator approval.
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · P0.1 · Asset Spine Foundation (preview)
 
 Authority: OMEGA DIRECTIVE — P0.1 Asset Spine Execution. Pillar contract honored (Powerful · Simple · Beautiful · Trusted · Proven).

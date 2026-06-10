@@ -10807,6 +10807,30 @@ _dls_admin_health_router = build_dls_admin_health_router(
 )
 app.include_router(_dls_admin_health_router)
 
+# ─── FORGEDOPS Dispatch Command Center V1 · Phase 1 ────────────────
+# Backend aggregation foundation. Composes Asset Spine + dispatch
+# lifecycle + driver sessions + fleet defects + haul_cycles + projects
+# + daily_reports into one read-only feed. SMS broadcast uses the
+# existing sms_provider abstraction and stubs safely if Twilio creds
+# are absent. Doctrine: /app/memory/DISPATCH_COMMAND_CENTER_ARCHITECTURE.md.
+from routes.dispatch_command_center import build_dispatch_command_center_router  # noqa: E402
+_dcc_router = build_dispatch_command_center_router(
+    db,
+    require_any_portal_token_dep=_require_any_portal_token,
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+)
+app.include_router(_dcc_router)
+
+# Shop Command Feed — single read endpoint consumed by ShopHub and by
+# the DCC "Shop" tile. Reads only from canonical defect / recovery
+# collections. Doctrine: /app/memory/SHOP_COMMAND_ARCHITECTURE.md.
+from routes.shop_command_feed import build_shop_command_feed_router  # noqa: E402
+_shop_feed_router = build_shop_command_feed_router(
+    db,
+    require_any_portal_token_dep=_require_any_portal_token,
+)
+app.include_router(_shop_feed_router)
+
 # iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
 # Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.
 # No database storage · no analytics · no scoring · no charts. Closes the
