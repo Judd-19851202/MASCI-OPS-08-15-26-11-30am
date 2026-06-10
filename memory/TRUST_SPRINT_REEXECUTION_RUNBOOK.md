@@ -27,3 +27,28 @@ cd /app/backend && python scripts/p0_trust_audit.py
 
 ## Step 5 · Continue Workstream
 Workstream remains OPEN until Map GO/NO-GO flips to 🟢. That requires Motive activation, which is a separate workstream the operator must authorize.
+
+---
+
+## Step 6 · Failure modes (cross-reference)
+
+| Symptom | Failure mode | Recovery |
+|---|---|---|
+| Audit JSON shows `admin_db_user` after rotation | F-21 (env-var didn't apply or pod not restarted) | Restart pod, re-run audit. |
+| T1/P0-A certs still 🔴 after script PASS | F-22 (operator forgot to flip markdown) | Edit certs per Step 2. |
+| Audit script raises `NetworkTimeout` | F-17 | Retry; check Atlas IP allowlist (F-28). |
+
+See `ATLAS_ISOLATION_FAILURE_ANALYSIS.md` for full matrix.
+
+---
+
+## Step 7 · Sign-off
+
+```
+Step 1 (audit JSON shows new user)        ☐ PASS   ____  ____
+Step 2 (T1 + P0-A flipped 🟢)             ☐ DONE   ____  ____
+Step 3 (Map GO/NO-GO re-evaluated)         ☐ DONE   ____  ____
+Step 4 (PRD + CHANGELOG appended)          ☐ DONE   ____  ____
+```
+
+When all four are signed, the Trust Sprint side of this workstream is complete. The workstream itself only closes after Gates 6–9 of `ATLAS_ISOLATION_WORKSTREAM_CLOSEOUT_PLAN.md` also flip 🟢.

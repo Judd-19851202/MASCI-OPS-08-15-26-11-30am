@@ -1006,3 +1006,30 @@ None of these affect the directive's three success criteria; all three are MET a
 
 **Certification doc:** `/app/memory/DAILY_REPORT_ROLLBACK_EXCAVATION_TRIGGER_CERTIFICATION.md`.
 
+
+---
+
+## 2026-02-10 · Atlas User Isolation · Final Completion Sprint (Phases 1–6)
+
+**Workstream:** P0 Trust · Atlas User Isolation
+**Status before:** 🟡 OPEN (operator runbooks shipped, execution pending)
+**Status after:**  🟡 OPEN (execution still pending; documentation sprint COMPLETE)
+
+**Created (3 master artifacts):**
+- `/app/memory/ATLAS_ISOLATION_FAILURE_ANALYSIS.md` · 32 failure modes (F-01..F-32) covering Atlas user mgmt, rotation, startup failsafe, verification scripts, Trust Sprint re-exec, stability validation, `admin_db_user` retirement, operator-mistake catalogue, connectivity/auth/permission baselines, and workstream closure.
+- `/app/memory/ATLAS_ISOLATION_EXECUTION_PACKAGE.md` · single-page Phases A–H with gates A–H; supersedes individual runbooks for the operator.
+- `/app/memory/ATLAS_ISOLATION_WORKSTREAM_CLOSEOUT_PLAN.md` · 9 closure gates; only two statuses permitted (OPEN / CLOSED).
+
+**Hardened (2 existing runbooks):**
+- `PRODUCTION_STABILITY_VALIDATION_RUNBOOK.md` · added API depth sweep, worker sanity, 24h soak template, rollback steps, 8-step sign-off block.
+- `TRUST_SPRINT_REEXECUTION_RUNBOOK.md` · added failure-mode cross-reference table, 4-step sign-off block.
+
+**Updated:**
+- `FINAL_CLOSEOUT_CHECKLIST.md` · CERTIFICATION-COMPLETE section now references the three new artifacts; PROVEN-COMPLETE expanded to include evidence-file + `mongosh` post-deletion check; added closure-authority block + final signature block.
+
+**Honest status:**
+- BUILD ✅ · INTEGRATION ✅ · documentation sprint ✅
+- VERIFICATION 🟡 (operator-gated) · STABILITY 🟡 (operator-gated) · TRUST-SPRINT-REEXEC 🟡 (operator-gated) · `admin_db_user` retirement 🟡 (operator-gated) · EVIDENCE FILE 🟡 (operator-gated) · WORKSTREAM STATUS 🟡 OPEN.
+- All downstream workstreams (Map UI 5B, FleetWatcher, MaintainX, Executive dashboards) remain BLOCKED.
+
+**No code changed.** No service restart. No user impact.
