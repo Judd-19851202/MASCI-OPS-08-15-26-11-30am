@@ -106,7 +106,10 @@ def test_daily_report_create_and_persist(base_url: str, super_admin_creds: dict,
         timeout=15,
     )
     # Cleanup is best-effort — some installs don't expose DELETE. Acceptable.
-    assert cleanup.status_code in (200, 204, 404, 405), \
+    # 410 (Gone) added 2026-06-10 (DEPLOY-GATE-FIX-002): the API now
+    # responds 410 when soft-deletion is enabled and the row was already
+    # tombstoned by a prior run. Same semantic as 404 for our purposes.
+    assert cleanup.status_code in (200, 204, 404, 405, 410), \
         f"cleanup unexpected status {cleanup.status_code}"
 
 

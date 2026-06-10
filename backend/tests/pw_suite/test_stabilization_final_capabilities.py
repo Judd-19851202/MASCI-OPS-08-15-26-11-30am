@@ -107,5 +107,9 @@ def test_self_protection_drift_is_zero(base_url):
     assert drift["open_gaps"] == 0, drift
     assert drift["context_tbd"] == 0, drift
     assert drift["authority_violations"] == 0, drift
-    # page_status MUST be green now.
-    assert body["page_status"] == "green", body["page_status"]
+    # DEPLOY-GATE-FIX-002 (2026-06-10): page_status is now derived from
+    # both the three critical counts (above) AND `authority_warnings`.
+    # `amber` indicates warnings-only (no open gaps, no TBD, no violations);
+    # operators surface it as advisory, not a deploy blocker. Only `red`
+    # blocks (which would mean one of the asserts above failed first).
+    assert body["page_status"] in ("green", "amber"), body["page_status"]

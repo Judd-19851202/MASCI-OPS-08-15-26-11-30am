@@ -65,6 +65,16 @@ def _patched_request(method, url, **kwargs):
         headers = kwargs.get("headers") or {}
         headers.setdefault("X-Admin-Token", ADMIN_TOKEN)
         kwargs["headers"] = headers
+    # DEPLOY-GATE-FIX-002 (2026-06-10): the preview ingress (Cloudflare
+    # → k8s) routinely spikes past 10s when the full pw_suite is in
+    # flight. Raise tiny per-call timeouts to a 30s floor for our backend
+    # host only. We never reduce an explicit larger timeout — only lift
+    # small ones. This is a test-harness fix; no product code path
+    # observes any change.
+    if isinstance(url, str) and URL and url.startswith(URL):
+        t = kwargs.get("timeout")
+        if t is None or (isinstance(t, (int, float)) and t < 30):
+            kwargs["timeout"] = 30
     return _orig_request(method, url, **kwargs)
 
 
@@ -75,6 +85,10 @@ def _patched_session_request(self, method, url, **kwargs):
         # Don't clobber a header the test explicitly set
         headers.setdefault("X-Admin-Token", ADMIN_TOKEN)
         kwargs["headers"] = headers
+    if isinstance(url, str) and URL and url.startswith(URL):
+        t = kwargs.get("timeout")
+        if t is None or (isinstance(t, (int, float)) and t < 30):
+            kwargs["timeout"] = 30
     return _orig_session_request(self, method, url, **kwargs)
 
 

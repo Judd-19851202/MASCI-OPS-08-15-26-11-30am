@@ -7,7 +7,7 @@ _Phase TRUST-TIME-1B · self-protection probe · 🟢 PASS_
 - New violations     : **0**
 - New warnings       : **0**
 - Baselined          : **116**
-- Scan runtime       : **153 ms**
+- Scan runtime       : **152 ms**
 
 ## Pattern catalogue
 

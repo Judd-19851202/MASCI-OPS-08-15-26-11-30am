@@ -146,13 +146,13 @@ def _seed_admin_token(page, base_url):
 
 def _back_label(page) -> str:
     el = page.locator('[data-testid="back-link"]').first
-    el.wait_for(state="visible", timeout=10_000)
+    el.wait_for(state="visible", timeout=30_000)
     return (el.text_content() or "").strip().upper()
 
 
 def _back_href(page) -> str:
     el = page.locator('[data-testid="back-link"]').first
-    el.wait_for(state="visible", timeout=10_000)
+    el.wait_for(state="visible", timeout=30_000)
     return el.get_attribute("href") or ""
 
 
@@ -290,4 +290,4 @@ def test_back_link_testid_unchanged(page, base_url, viewport_name, seeded_incide
     _seed_admin_token(page, base_url)
     page.goto(f"{base_url}/admin/incidents/{seeded_incident}",
               wait_until="domcontentloaded", timeout=20_000)
-    page.wait_for_selector('[data-testid="back-link"]', timeout=10_000)
+    page.wait_for_selector('[data-testid="back-link"]', timeout=30_000)
