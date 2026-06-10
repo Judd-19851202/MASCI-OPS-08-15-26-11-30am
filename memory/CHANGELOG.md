@@ -1,5 +1,54 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 3.1 · Close the Loop (preview)
+
+Authority: OMEGA DIRECTIVE — Phase 3.1 Authorization. Frontend-only actionability hotfix. Phase 3 made the truth visible; Phase 3.1 makes it actionable.
+
+### Trust-state action matrix (now wired)
+| Trust state | Action | Existing route used |
+|---|---|---|
+| `not_in_spine` / `needs_mapping` (banner) | Open Mapping Queue | `/admin/asset-mapping` |
+| `not_in_spine` (fleet row) | Map Asset | `/admin/asset-mapping` |
+| `not_mapped` (fleet row) | Map Motive | `/admin/asset-mapping` |
+| `failed_dvir` / open defects (fleet row) | Open Shop | `/shop` |
+| spine row, no issues | Profile | `/admin/asset-spine/{id}` |
+| `assignment_only` / `no_session` (driver row) | Contact Driver | Comms tab (auto-switch) |
+| Job row (active project) | Open Project | `/pm/projects/{n}` |
+| Job row (unassigned) | (honest `project_view_pending` label) | none |
+| Shop feed row | Open Shop | `/shop` |
+| Provider absent | calm `Provider Not Configured` chip | (informational) |
+
+### Files
+- FRONTEND new: `components/dispatch/command/commandActions.js`
+- FRONTEND edited: `CommandStrip.jsx`, `FleetBoard.jsx`, `DriverBoard.jsx`, `JobBoard.jsx`, `ShopFeedBoard.jsx`, `CommunicationsTab.jsx`, `pages/DispatchCommandCenter.jsx`
+- BACKEND: none
+- MEMORY: `DISPATCH_COMMAND_CENTER_V1_PHASE_3_1_CLOSE_THE_LOOP_CERTIFICATION.md`
+
+### Verified live
+- Needs-Mapping banner shows "Open Mapping Queue" (amber-filled) + "Open Fleet" (underline)
+- Fleet `T-IT417` row carries `Map Asset →` action
+- Driver `Test Driver` row carries `Contact →` action that switches to Comms tab
+- 82 shop feed rows each carry `Open Shop →` action
+- Job rows carry `Open Project →` action
+
+### Tests
+Phase 1 backend contracts 18/18 ✅ · zero regression (no backend change).
+
+### Doctrine honored
+No fake routes · no new mapping/shop/PM workflow · no backend change · no real SMS · iPad-friendly inline action links · no MASCI-only hardcoding.
+
+### Honest UX gap (parked)
+Comms form auto pre-fill after Contact click does not populate inputs under Radix Tabs + StrictMode in dev. Tab switch works; sessionStorage stays primed; operator workflow not blocked. Phase 3.2 target if authorized.
+
+### STOP CONDITION
+Phase 4 NOT authorized.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_3_1_CLOSE_THE_LOOP_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 3 · Operational Truth (preview)
 
 Authority: OMEGA DIRECTIVE — Phase 3 Authorization. Backend aggregator refactor + frontend trust-state rendering. No new collection, no schema change, no new auth, no integration activation.

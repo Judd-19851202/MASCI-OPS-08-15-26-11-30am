@@ -122,6 +122,7 @@ export default function ShopFeedBoard() {
                   <th className="px-2 py-2">Reported</th>
                   <th className="px-2 py-2">Project Impact</th>
                   <th className="px-2 py-2">Status</th>
+                  <th className="px-2 py-2">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,11 +169,18 @@ export default function ShopFeedBoard() {
                         {it.status}
                       </StatusChip>
                     </td>
+                    <td className="px-2 py-2">
+                      <a
+                        href="/shop"
+                        data-testid={`shop-row-${it.defect_id}-open`}
+                        className="font-mono text-[10px] uppercase tracking-widest text-rose-700 hover:text-rose-900 underline"
+                      >Open Shop →</a>
+                    </td>
                   </tr>
                 ))}
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-3 py-6 text-center text-slate-500 text-sm">
+                    <td colSpan={9} className="px-3 py-6 text-center text-slate-500 text-sm">
                       Nothing matches the current filter.
                     </td>
                   </tr>

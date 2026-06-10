@@ -1,3 +1,44 @@
+## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 3.1 · CLOSE THE LOOP · 🟢 PASS · preview)
+
+**Sprint:** Phase 3.1 hotfix — make Phase 3 trust states actionable. Frontend-only. Every primary warning now carries an obvious owner + one-tap action that opens an existing route.
+**Authorization:** Operator chat 2026-02-10 — *"PHASE 3.1 · CLOSE THE LOOP · OPERATIONAL ACTIONABILITY HOTFIX · OMEGA ENFORCED"*
+**Verdict:** 🟢 **PASS · all 5 directive actions wired · existing routes reused · Phase 1 contracts 18/18 intact.**
+
+### Actions shipped
+- Needs-Mapping banner → **Open Mapping Queue →** (amber-filled button to `/admin/asset-mapping`)
+- Fleet `not_in_spine` row → **Map Asset →** to `/admin/asset-mapping`
+- Fleet `not_mapped` row → **Map Motive →** to `/admin/asset-mapping`
+- Fleet row with defects → **Open Shop →** to `/shop`
+- Fleet row in spine → **Profile →** to `/admin/asset-spine/{id}`
+- Driver row (any driver_id or `assignment_only`) → **Contact →** publishes cross-tab handoff, auto-switches to Comms tab
+- Job row → **Open Project →** to `/pm/projects/{project_number}` (or honest `project_view_pending` label when unrouteable)
+- Shop feed row → **Open Shop →** to `/shop`
+- Provider absent → calm `Provider Not Configured` chip (no error spam)
+
+### Files
+- FRONTEND: `components/dispatch/command/{commandActions.js (NEW), CommandStrip.jsx, FleetBoard.jsx, DriverBoard.jsx, JobBoard.jsx, ShopFeedBoard.jsx, CommunicationsTab.jsx}` + `pages/DispatchCommandCenter.jsx`
+- BACKEND: none (zero change)
+- MEMORY: this cert + `PRD.md` + `CHANGELOG.md`
+
+### Doctrine honored
+No fake routes · no new mapping/shop/PM workflow · no real SMS · no modal explosion · no backend change · no production data mutation · iPad-friendly small text links inside the Action column.
+
+### Known UX polish gap (honest)
+Cross-tab Comms pre-fill (audience + suggested message after a `Contact →` click) currently fails to populate the form inputs under Radix Tabs + React StrictMode. Tab-switch works, the pending action persists in `sessionStorage`, the Send button still functions in stub-only mode — operator workflow is not blocked. Parked as **Phase 3.2** if authorized.
+
+### Tests
+- Phase 1 backend contracts 18/18 ✅
+- Live Playwright smoke 8/9 actions verified ✅ · 1 partial (pre-fill UX gap)
+
+### STOP CONDITION
+Phase 4 NOT authorized. Awaiting operator approval.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_3_1_CLOSE_THE_LOOP_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 3 · OPERATIONAL TRUTH · 🟢 PASS · preview)
 
 **Sprint:** Phase 3 of 8. Eliminate KPI contradictions, surface phantom trucks, render trust states everywhere a blank used to be. Backend aggregator-only refactor + frontend trust-chip rendering. Zero schema change, zero new collection, zero new auth.

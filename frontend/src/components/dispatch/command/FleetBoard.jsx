@@ -167,6 +167,7 @@ export default function FleetBoard() {
                 <th className="px-2 py-2 text-center">Motive</th>
                 <th className="px-2 py-2">Last DVIR</th>
                 <th className="px-2 py-2 text-right">Defects</th>
+                <th className="px-2 py-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -256,11 +257,40 @@ export default function FleetBoard() {
                       <span className="text-slate-300">0</span>
                     )}
                   </td>
+                  <td className="px-2 py-2 text-right">
+                    {!r.in_asset_spine ? (
+                      <a
+                        href="/admin/asset-mapping"
+                        data-testid={`fleet-row-${r.unit_number}-map-asset`}
+                        className="font-mono text-[10px] uppercase tracking-widest text-amber-700 hover:text-amber-900 underline"
+                      >Map Asset →</a>
+                    ) : !r.motive?.mapped ? (
+                      <a
+                        href="/admin/asset-mapping"
+                        data-testid={`fleet-row-${r.unit_number}-map-motive`}
+                        className="font-mono text-[10px] uppercase tracking-widest text-slate-600 hover:text-slate-900 underline"
+                      >Map Motive →</a>
+                    ) : r.open_defect_count > 0 || r.last_dvir_fail_count > 0 ? (
+                      <a
+                        href="/shop"
+                        data-testid={`fleet-row-${r.unit_number}-open-shop`}
+                        className="font-mono text-[10px] uppercase tracking-widest text-rose-700 hover:text-rose-900 underline"
+                      >Open Shop →</a>
+                    ) : r.asset_id ? (
+                      <a
+                        href={`/admin/asset-spine/${r.asset_id}`}
+                        data-testid={`fleet-row-${r.unit_number}-open-profile`}
+                        className="font-mono text-[10px] uppercase tracking-widest text-slate-500 hover:text-slate-900 underline"
+                      >Profile →</a>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-3 py-8 text-center text-slate-500 text-sm">
+                  <td colSpan={10} className="px-3 py-8 text-center text-slate-500 text-sm">
                     No matching assets.
                   </td>
                 </tr>

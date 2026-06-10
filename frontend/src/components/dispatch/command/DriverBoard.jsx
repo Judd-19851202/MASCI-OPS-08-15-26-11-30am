@@ -5,10 +5,13 @@
  * SOS / DVIR / assignment / communication state, and an attention chip
  * when something is off (UN_ACKED · WAITING_LONG · BREAKDOWN · DVIR_FAIL).
  *
+ * Phase 3.1 · added "Contact Driver" action that hands off to Comms tab.
+ *
  * Polls every 30s.
  */
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { commandApi } from "./commandApi";
+import { publishCommandAction } from "./commandActions";
 import {
   BoardShell, StatusChip, SearchBar, FilterChips,
 } from "./BoardShell";
@@ -123,6 +126,7 @@ export default function DriverBoard() {
                 <th className="px-2 py-2">Comms</th>
                 <th className="px-2 py-2">Last Activity</th>
                 <th className="px-2 py-2">Attention</th>
+                <th className="px-2 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -186,11 +190,36 @@ export default function DriverBoard() {
                       <span className="text-slate-300">—</span>
                     )}
                   </td>
+                  <td className="px-2 py-2">
+                    {r.driver_id || r.source === "assignment_only" ? (
+                      <button
+                        type="button"
+                        data-testid={`driver-row-${r.session_id || r.current_assignment_id}-contact`}
+                        onClick={() => publishCommandAction({
+                          kind: "contact_driver",
+                          audience: r.driver_id ? `drivers:${r.driver_id}` :
+                                    r.current_project_number && r.current_project_number !== "no_job"
+                                      ? `project:${r.current_project_number}` : "all_active",
+                          driver_name: r.driver_name,
+                          truck_id: r.truck_id,
+                          project_number: r.current_project_number,
+                          suggested_message: r.attention_tag === "BREAKDOWN"
+                            ? `Hi ${r.driver_name}, dispatch is reaching out about a breakdown on truck ${r.truck_id}. Please call dispatch.`
+                            : r.source === "assignment_only"
+                            ? `Hi ${r.driver_name}, please start your shift in the driver app and acknowledge your dispatch.`
+                            : `Hi ${r.driver_name}, please reach out to dispatch.`,
+                        })}
+                        className="font-mono text-[10px] uppercase tracking-widest text-sky-700 hover:text-sky-900 underline"
+                      >Contact →</button>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-3 py-8 text-center text-slate-500 text-sm">
+                  <td colSpan={11} className="px-3 py-8 text-center text-slate-500 text-sm">
                     No matching drivers.
                   </td>
                 </tr>

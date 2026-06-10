@@ -12,6 +12,7 @@ import { Send, MessageSquare, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { commandApi } from "./commandApi";
+import { consumePendingCommandAction, clearPendingCommandAction, subscribeCommandAction } from "./commandActions";
 import { BoardShell, StatusChip } from "./BoardShell";
 
 const POLL_MS = 60000;
@@ -58,6 +59,7 @@ function SendForm({ provider, onSent }) {
         : `Provider not configured · ${res.recipient_count} recipient(s) audited only`;
       toast.success(`Broadcast ${res.broadcast_id?.slice(0, 8)} · ${label}`);
       setMessage("");
+      clearPendingCommandAction();
       onSent && onSent();
     } catch (e) {
       toast.error(`Broadcast failed: ${e.message || e}`);
@@ -151,6 +153,11 @@ export default function CommunicationsTab() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  // Consume any pending action synchronously on mount so the SendForm
+  // initial state reflects the cross-tab handoff (e.g. Contact Driver
+  // from the Drivers tab). After consumption the pending slot is
+  // cleared so a refresh doesn't repeatedly pre-fill the form.
+  const [preset, setPreset] = useState(() => consumePendingCommandAction());
 
   const load = useCallback(async () => {
     try {
@@ -167,6 +174,13 @@ export default function CommunicationsTab() {
     return () => clearInterval(id);
   }, [load]);
 
+  useEffect(() => {
+    const unsub = subscribeCommandAction((a) => {
+      if (a && a.kind === "contact_driver") setPreset(a);
+    });
+    return unsub;
+  }, []);
+
   const rows = data?.rows || [];
   const provider = data?.provider;
 
@@ -182,7 +196,11 @@ export default function CommunicationsTab() {
       error={error}
       empty={false}
     >
-      <SendForm provider={provider} onSent={load} />
+      <SendForm
+        provider={provider}
+        onSent={load}
+        preset={preset}
+      />
 
       <div className="mt-4">
         <h3 className="font-display text-sm font-black text-slate-900 mb-2 flex items-center gap-1.5">

@@ -27,6 +27,7 @@ import HaulBoard from "@/components/dispatch/command/HaulBoard";
 import ShopFeedBoard from "@/components/dispatch/command/ShopFeedBoard";
 import CommunicationsTab from "@/components/dispatch/command/CommunicationsTab";
 import { commandApi } from "@/components/dispatch/command/commandApi";
+import { subscribeCommandAction } from "@/components/dispatch/command/commandActions";
 
 const DISPATCH_PAL = paletteFor("dispatch");
 const SUMMARY_POLL_MS = 30000;
@@ -55,6 +56,16 @@ export default function DispatchCommandCenter() {
     const id = setInterval(loadSummary, SUMMARY_POLL_MS);
     return () => clearInterval(id);
   }, [loadSummary]);
+
+  // Phase 3.1 — cross-tab actionability: when a row in another tab
+  // dispatches a "contact_driver" action, jump to the Comms tab so the
+  // operator sees the pre-filled broadcast form.
+  useEffect(() => {
+    const unsub = subscribeCommandAction((a) => {
+      if (a && a.kind === "contact_driver") setTab("comms");
+    });
+    return unsub;
+  }, []);
 
   return (
     <div

@@ -95,23 +95,31 @@ export default function CommandStrip({ summary, loading, onJumpTo }) {
       </div>
 
       {/* Phase 3 · Operational trust strip — explicit reconciliation
-          warnings so the dispatcher never sees a false zero. */}
+          warnings so the dispatcher never sees a false zero.
+          Phase 3.1 · banner now links directly to the mapping queue. */}
       {!skeleton && needsMapping > 0 ? (
         <div
           data-testid="command-strip-needs-mapping"
-          className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md p-2 text-xs flex items-center justify-between"
+          className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md p-2 text-xs flex items-center justify-between gap-2"
         >
           <span>
             <b>{needsMapping}</b> active dispatch truck{needsMapping === 1 ? "" : "s"}{" "}
             {needsMapping === 1 ? "is" : "are"} not in the Asset Spine yet — surface them in the Fleet tab as
             <span className="font-mono"> not_in_spine</span> rows.
           </span>
-          <button
-            type="button"
-            onClick={() => onJumpTo("fleet")}
-            data-testid="command-strip-needs-mapping-link"
-            className="font-mono uppercase tracking-widest text-[10px] underline"
-          >Open Fleet →</button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onJumpTo("fleet")}
+              data-testid="command-strip-needs-mapping-link"
+              className="font-mono uppercase tracking-widest text-[10px] underline"
+            >Open Fleet →</button>
+            <a
+              href="/admin/asset-mapping"
+              data-testid="command-strip-mapping-queue-link"
+              className="font-mono uppercase tracking-widest text-[10px] bg-amber-900 text-white rounded px-2 py-1 hover:bg-amber-800"
+            >Open Mapping Queue →</a>
+          </div>
         </div>
       ) : null}
     </div>

@@ -96,6 +96,7 @@ export default function JobBoard() {
                 <th className="px-2 py-2 text-right">Breakdowns</th>
                 <th className="px-2 py-2 text-right">Waiting</th>
                 <th className="px-2 py-2">Attention</th>
+                <th className="px-2 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -139,11 +140,22 @@ export default function JobBoard() {
                       <span className="text-slate-300">—</span>
                     )}
                   </td>
+                  <td className="px-2 py-2">
+                    {r.project_number && r.project_number !== "(unassigned)" ? (
+                      <a
+                        href={`/pm/projects/${encodeURIComponent(r.project_number)}`}
+                        data-testid={`job-row-${r.project_number}-open-project`}
+                        className="font-mono text-[10px] uppercase tracking-widest text-sky-700 hover:text-sky-900 underline"
+                      >Open Project →</a>
+                    ) : (
+                      <span className="text-slate-300 font-mono text-[10px] uppercase tracking-widest">project_view_pending</span>
+                    )}
+                  </td>
                 </tr>
               ))}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="px-3 py-8 text-center text-slate-500 text-sm">
+                  <td colSpan={14} className="px-3 py-8 text-center text-slate-500 text-sm">
                     No matching projects.
                   </td>
                 </tr>
