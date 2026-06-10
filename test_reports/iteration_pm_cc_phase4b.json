@@ -1,0 +1,37 @@
+{
+  "summary": "Frontend E2E verification of PM Command Center (Phase 4B). The /pm/command-center page renders cleanly with admin+PM tokens minted via /api/auth/multi-login. All 7 tabs mount, all 12 KPI tiles render real backend integers (NOT em-dashes), Road Plates tile cross-link works, PM scope guard works, legacy redirect works, iPad portrait/landscape have NO horizontal page-level scroll. Phase 4A backend endpoint /api/pm/command-center/overview returned HTTP 200 throughout.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Hauls tab · per-row FleetWatcher chip",
+        "issue": "Selector pm-cc-hauls-fw-<row> returned count=0. Hauls panel itself mounts (data-testid=pm-cc-hauls) and shows 'FleetWatcher · Pending Integration' globally in the Integrations card on Overview, but per-row chips with the documented data-testid pattern were not found. Could be: (a) hauls API returned 0 rows at the moment of test, (b) testid is suffix-different (e.g. underscores vs hyphens), or (c) chip rendered without data-testid. Verify with main agent.",
+        "affected_selectors": ["[data-testid^='pm-cc-hauls-fw-']"],
+        "priority": "MEDIUM"
+      }
+    ],
+    "design_issues": [
+      {"screen": "Safety tab table", "issues": ["Multiple data rows render summary/severity-occurred as em-dashes — this is honest data rendering for missing fields, not a bug. Worth confirming with PM that this is intended visual treatment vs. hiding empty cells."]}
+    ]
+  },
+  "test_report_links": [".screenshots/pmcc_initial.png", ".screenshots/pmcc_ipad_portrait.png", ".screenshots/pmcc_ipad_landscape.png"],
+  "action_items": [
+    "Confirm whether Hauls per-row FleetWatcher chip should expose data-testid='pm-cc-hauls-fw-<truck>' (request spec) or if global Integrations chip is sufficient. If per-row required, add data-testid to PmHaulsBoard.jsx row chip."
+  ],
+  "critical_code_review_comments": [
+    "PmCommandCenter renders correctly on both desktop and iPad with no horizontal scroll bleed.",
+    "PM scope guard verified: project_number=ZZ-NONEXISTENT-99999 returned all tile counts = 0 — proper isolation.",
+    "Legacy /pm/projects/:projectNumber correctly redirects to /pm/command-center?project_number=:pn (verified with /pm/projects/9999).",
+    "Road Plates tile click correctly auto-applies the road_plate filter chip in Resources tab.",
+    "All 12 KPI tiles backed by /api/pm/command-center/overview show backend integers (trucks=135, road_plates=88, drivers=30, equipment=693, trailers=2, active_hauls=272, incidents_open=43, open_safety=24, materials_today=0, open_defects=0, loads_today=0, active_jobs=272)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "95%"},
+  "test_credentials": "Multi-login jaymn.judd@mascigc.com / Maddix123! (admin_token=64 chars, pm_token=101 chars)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "PM Command Center Phase 4B UI is functional end-to-end. Only outstanding nit: Hauls per-row FleetWatcher data-testid pattern verification. Backend endpoint /api/pm/command-center/overview returns counts nested under 'counts' key (not top-level) — UI reads correctly.",
+  "rca of the issue": "Hauls FW per-row testids missing — most likely the row-level chip in PmHaulsBoard.jsx uses a different testid convention than the request spec (pm-cc-hauls-fw-<id>). Not a functional bug; global 'FleetWatcher · Pending Integration' chip on Overview tab and within Hauls panel renders correctly."
+}

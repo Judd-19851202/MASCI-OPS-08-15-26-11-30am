@@ -3,5 +3,5 @@
 //
 // Field crews / PMs / support: when reporting an issue, include this version
 // so we can pin the exact deployed code.
-export const BUILD_VERSION = "v2026.06.10-8e86c24";
-export const BUILT_AT_ISO = "2026-06-10T03:18:12.118Z";
+export const BUILD_VERSION = "v2026.06.10-ace6910";
+export const BUILT_AT_ISO = "2026-06-10T19:28:29.320Z";

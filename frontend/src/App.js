@@ -238,6 +238,14 @@ import ConstraintDetail from "@/pages/ConstraintDetail";
 // Phase V-Prelude · Wave 1.1 — PM Project Detail (hosts the
 // Operational Timeline sidecar). Read-only, calm, single-project.
 const PmProjectDetail = React.lazy(() => import("@/pages/PmProjectDetail"));
+// PM Command Center · Phase 4B · 2026-02-10
+// One operational command screen for the PM (resources · hauls ·
+// materials · shop · safety · timeline). Reads strictly from the
+// Phase 4A /api/pm/command-center/* endpoints. /pm/projects/:pn now
+// redirects to /pm/command-center?project_number=:pn so there is no
+// duplicate single-project surface.
+const PmCommandCenter = React.lazy(() => import("@/pages/PmCommandCenter"));
+const PmProjectRedirect = React.lazy(() => import("@/pages/PmProjectRedirect"));
 import AccessDenied from "@/pages/AccessDenied";
 import NotFound from "@/pages/NotFound";
 import GlobalFooter from "@/components/GlobalFooter";
@@ -613,8 +621,19 @@ function App() {
             {/* Phase V-Prelude · Wave 1.1 · 2026-05-28.
                 Calm per-project detail surface hosting the Operational
                 Timeline sidecar. Mounted under /pm/* (PM portal
-                surface, not a dashboard) per Wave 1.1 directive. */}
-            <Route path="/pm/projects/:projectNumber" element={P(<PmProjectDetail />)} />
+                surface, not a dashboard) per Wave 1.1 directive.
+                PHASE 4B (2026-02-10) — this route now redirects to
+                /pm/command-center?project_number=<pn> so there is one
+                project operational surface, not two. The legacy
+                PmProjectDetail page (timeline sidecar) is still
+                rendered inside the Command Center timeline tab via
+                /api/pm/command-center/timeline. */}
+            <Route path="/pm/projects/:projectNumber" element={P(<PmProjectRedirect />)} />
+            <Route path="/pm/projects-legacy/:projectNumber" element={P(<PmProjectDetail />)} />
+            {/* PM Command Center · Phase 4B · 2026-02-10.
+                Backed by /api/pm/command-center/* (Phase 4A). One
+                page · seven tabs · iPad-friendly. */}
+            <Route path="/pm/command-center" element={P(<PmCommandCenter />)} />
             <Route path="/pm/field-leadership"   element={P(<PmFieldLeadership />)} />
             <Route path="/pm/fleet"              element={P(<PmFleet />)} />
             <Route path="/pm/people"             element={P(<PmPeople />)} />
