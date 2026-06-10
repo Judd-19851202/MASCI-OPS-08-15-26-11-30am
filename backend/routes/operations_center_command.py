@@ -175,7 +175,9 @@ def build_operations_center_command_router(
         equipment_total = await db.equipment_master.count_documents(
             {"$or": [{"is_active": {"$ne": False}}, {"active": {"$ne": False}}]})
         trucks_total = 0
+        road_plates_total = 0
         road_plates_deployed = 0
+        specialty_assets_total = 0
         specialty_assets_deployed = 0
         async for em in db.equipment_master.find(
             {"$or": [{"is_active": {"$ne": False}}, {"active": {"$ne": False}}]},
@@ -183,15 +185,18 @@ def build_operations_center_command_router(
         ):
             raw = em.get("type") or em.get("asset_type") or em.get("category") or ""
             k = normalize_asset_kind(raw) or ""
+            has_proj = bool(em.get("current_project_number"))
             if k in ("truck", "dump trucks", "dump truck", "haul truck",
                       "tractor trailer trucks", "service trucks", "flatbed trucks",
                       "pickup trucks", "water trucks", "misc trucks",
                       "supervisor / mgmt trucks"):
                 trucks_total += 1
-            if k == ROAD_PLATE_CANONICAL and em.get("current_project_number"):
-                road_plates_deployed += 1
-            if is_specialty_asset(k) and em.get("current_project_number"):
-                specialty_assets_deployed += 1
+            if k == ROAD_PLATE_CANONICAL:
+                road_plates_total += 1
+                if has_proj: road_plates_deployed += 1
+            if is_specialty_asset(k):
+                specialty_assets_total += 1
+                if has_proj: specialty_assets_deployed += 1
 
         drivers_assigned: Set[str] = set()
         async for a in db.dispatch_assignments.find(assn_q,
@@ -241,7 +246,9 @@ def build_operations_center_command_router(
                 "trucks_active": int(trucks_total),
                 "drivers_active": len(drivers_assigned),
                 "equipment_active": int(equipment_total),
+                "road_plates_total": int(road_plates_total),
                 "road_plates_deployed": int(road_plates_deployed),
+                "specialty_assets_total": int(specialty_assets_total),
                 "specialty_assets_deployed": int(specialty_assets_deployed),
                 "materials_in_today": int(materials_in),
                 "materials_out_today": int(materials_out),

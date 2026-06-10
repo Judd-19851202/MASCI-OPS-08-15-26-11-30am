@@ -148,7 +148,8 @@ def test_brief_envelope():
             required = {
                 "active_projects", "active_hauls", "trucks_active",
                 "drivers_active", "equipment_active",
-                "road_plates_deployed", "specialty_assets_deployed",
+                "road_plates_total", "road_plates_deployed",
+                "specialty_assets_total", "specialty_assets_deployed",
                 "materials_in_today", "materials_out_today", "loads_today",
                 "open_shop_defects", "oos_assets", "incidents_open",
                 "capas_open", "critical_safety_events", "resource_conflicts",

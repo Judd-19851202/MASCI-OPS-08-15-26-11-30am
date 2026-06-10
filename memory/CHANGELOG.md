@@ -1,5 +1,55 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · Operations Center · Phase 4C + Specialty Asset Normalization (preview)
+
+Authority: OMEGA DIRECTIVE — Phase 4C + Architecture Correction Order. Cross-company command board + architecture normalization for Specialty Assets.
+
+**Added (backend):**
+- 10 endpoints under `/api/operations-center/command/*`: brief · project-health · allocation · conflicts · specialty-assets · shop-impact · safety-impact · telematics · timeline · map-contract
+- `SPECIALTY_ASSET_FAMILY` taxonomy + `specialty_family_of()` classifier in `pm_command_center.py` — 4 families (trench_safety / access_protection / traffic_control / support)
+- Production-priority classifier for shop defects (high/medium/low based on asset kind × severity)
+- Safety tier classifier (critical/warning/informational)
+- Motive operational state classifier (9 buckets)
+- Conflict detector (truck_multi_project / driver_multi_truck / haul_inactive_project)
+- Map-ready field set on every operational row across all endpoints (preps Live Operations Map)
+- 24 new pytest contract tests at `backend/tests/test_operations_center_command_phase_4c.py`
+
+**Added (frontend):**
+- Page `/operations-center` — cross-company command board, 9 layers, Executive Mode toggle, family filter chips, risk-sorted Project Health
+- `PmHomeRedirect.jsx` — `/pm` now Navigate-replaces to `/pm/command-center` (PM portal home is the PM CC)
+
+**Augmented:**
+- PM CC `/overview.counts` now exposes `specialty_assets_assigned` + `specialty_by_family{trench_safety, access_protection, traffic_control, support}` alongside existing `road_plates_assigned`
+- App routes: `/pm` → PmHomeRedirect, `/pm/hub` → legacy PmHub (preserved), `/operations-center` → OperationsCenterCommand
+
+**Architecture correction (in-flight, documented):**
+- Road plates are NO LONGER privileged. They are ONE member of the Specialty Asset family (`access_protection`).
+- Trench Boxes are now first-class citizens (family=`trench_safety`).
+- All existing road plate functionality is preserved: legacy normalizer, KPI counts, filter chips, per-project rollups, top-level `road_plate_count` shim on `/specialty-assets`.
+- Renamed OC endpoint from `/road-plates` → `/specialty-assets` (with `?family=` / `?kind=` filters).
+- UI section renamed "Road Plate Command" → "Specialty Asset Command" with 4-family filter row.
+
+**Doctrine honored:**
+- No new collection · no schema mutation · no FleetWatcher activation · no MaintainX activation · no map render · no duplicate dispatch/PM/shop/safety logic · no fake green status · no production data mutation.
+
+**Live verification (preview DB):**
+- Brief: 179 specialty_assets_total · 88 road_plates_total · 28 active_projects · 96 trucks · 82 defects · 43 incidents
+- Specialty by_family: trench_safety=16 · access_protection=88 · traffic_control=0 · support=75
+- Project Health risk: 3 red · 25 green
+- Conflicts: 8 detected
+- `/pm` → `/pm/command-center` redirect verified
+- iPad portrait + landscape: no horizontal page-level scroll
+
+**Regression:** 98/98 tests pass (Phase 4C contract + PM CC Phase 4A + Dispatch Phase 1 + Asset Spine P0.1), 1 skipped (motive map-contract row test — no `motive_truck_id` populated in preview DB).
+
+**Deliverables:**
+- `/app/memory/OPERATIONS_CENTER_PHASE_4C_CERTIFICATION.md`
+- `/app/memory/PHASE_4C_SPECIALTY_ASSET_NORMALIZATION_CERTIFICATION.md`
+- `/app/test_reports/iteration_oc_command_phase4c.json`
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · PM Command Center · Phase 4B · UI Shell (preview)
 
 Authority: OMEGA DIRECTIVE — Phase 4B Authorization. Frontend-only. Consumed Phase 4A endpoints exclusively.

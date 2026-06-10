@@ -1,3 +1,42 @@
+## 2026-02-10 (FORGEDOPS · OPERATIONS CENTER · PHASE 4C · 🟢 PASS · preview)
+
+**Sprint:** Phase 4C. Operations Center cross-company command board (10 backend endpoints + 9-layer UI) + Specialty Asset architecture correction + PM portal home redirect (`/pm` → `/pm/command-center`).
+**Authorization:** Operator chat 2026-02-10 — *"PHASE 4C · OPERATIONS CENTER + SPECIALTY ASSET NORMALIZATION · OMEGA ENFORCED"*
+**Verdict:** 🟢 **PASS · 98/98 backend regression · 9-layer UI verified live · Specialty Asset families canonical · Trench Boxes first-class · Road Plate functionality preserved · 0 schema change · 0 new collection.**
+
+### What ships
+- **Backend (10 endpoints under `/api/operations-center/command/*`):** `/brief` · `/project-health` · `/allocation` · `/conflicts` · `/specialty-assets` · `/shop-impact` · `/safety-impact` · `/telematics` · `/timeline` · `/map-contract`
+- **Frontend (1 new page · 9 layers):** `/operations-center` — Morning Brief (12 KPI tiles) · Project Health (risk-sorted) · Specialty Asset Command (family-filterable) · Resource Allocation · Operational Conflicts · Shop Impact (production priority) · Safety Impact (tiered) · Telematics (9 motive buckets) · Operational Timeline. Executive Mode toggle hides row-level noise.
+- **PM portal home:** `/pm` now Navigate-replaces to `/pm/command-center`. Legacy PmHub preserved at `/pm/hub`.
+- **Architecture correction:** Specialty Asset family taxonomy canonical (trench_safety · access_protection · traffic_control · support). Road plates are ONE family member, NOT privileged. Trench Boxes first-class. All existing road plate functionality preserved (backward-compat shims documented in PHASE_4C_SPECIALTY_ASSET_NORMALIZATION_CERTIFICATION.md).
+
+### Live preview verification (testing_agent_v3_fork)
+- 12/12 brief tiles render real backend integers (179 specialty assets total · 28 active projects · 96 trucks · 30 drivers · 82 defects · 43 incidents · 24 CAPAs · 8 conflicts)
+- Family filter chips show correct split (Trench Safety=16 · Access/Protection=88 · Support=75)
+- Trench Safety filter → 16 trench-box rows
+- Access/Protection filter → 88 road plate rows
+- Project Health risk-sorted red → green
+- Executive Mode toggle hides Allocation + Timeline
+- `/pm` → `/pm/command-center` redirect verified
+- iPad portrait + landscape clean
+
+### Regression
+`pytest tests/test_operations_center_command_phase_4c.py tests/test_pm_command_center_phase_4a.py tests/test_dispatch_command_center_phase_1.py tests/test_asset_spine_p0_1.py` → **98 passed · 1 skipped (motive map-contract, no `motive_truck_id` in DB) · zero regression**
+
+### Doctrine honored
+No new collection · no schema change · no FleetWatcher activation · no MaintainX activation · no map render (contract staged for future) · no production data mutation · road plate functionality preserved · Trench Boxes first-class · Specialty Asset family is the operational grouping · executive view is same data different view (no second system).
+
+### STOP CONDITION
+FleetWatcher activation NOT authorized · MaintainX activation NOT authorized · Live Operations Map render NOT authorized.
+
+### Deliverables
+- `/app/memory/OPERATIONS_CENTER_PHASE_4C_CERTIFICATION.md`
+- `/app/memory/PHASE_4C_SPECIALTY_ASSET_NORMALIZATION_CERTIFICATION.md`
+- `/app/test_reports/iteration_oc_command_phase4c.json`
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · PM COMMAND CENTER · PHASE 4B · UI SHELL · 🟢 PASS · preview)
 
 **Sprint:** Phase 4B. PM Command Center UI shell. 1 page · 12-KPI command strip · 7 tabs · 6 operational boards. Backed exclusively by Phase 4A endpoints. Road Plates first-class. iPad-friendly. Honest empty states. No new backend route · no duplicate PM project page.

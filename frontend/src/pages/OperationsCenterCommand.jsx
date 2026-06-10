@@ -134,7 +134,7 @@ export default function OperationsCenterCommand() {
             <BriefTile testId="oc-brief-trucks" label="Trucks Active" value={b.trucks_active} icon={Truck} />
             <BriefTile testId="oc-brief-drivers" label="Drivers Active" value={b.drivers_active} icon={Activity} />
             <BriefTile testId="oc-brief-equipment" label="Equipment" value={b.equipment_active} icon={Truck} />
-            <BriefTile testId="oc-brief-specialty" label="Specialty Assets" value={b.specialty_assets_deployed} icon={Boxes} highlight />
+            <BriefTile testId="oc-brief-specialty" label="Specialty Assets" value={b.specialty_assets_total} icon={Boxes} highlight />
             <BriefTile testId="oc-brief-defects" label="Shop Defects" value={b.open_shop_defects} icon={Wrench} tone={b.open_shop_defects > 0 ? "amber" : null} />
             <BriefTile testId="oc-brief-oos" label="OOS Assets" value={b.oos_assets} icon={AlertTriangle} tone={b.oos_assets > 0 ? "rose" : null} />
             <BriefTile testId="oc-brief-incidents" label="Incidents Open" value={b.incidents_open} icon={ShieldAlert} tone={b.incidents_open > 0 ? "rose" : null} />
