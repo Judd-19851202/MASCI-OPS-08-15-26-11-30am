@@ -87,6 +87,20 @@ class RetireBody(BaseModel):
     reason: Optional[str] = None
 
 
+class TransferBody(BaseModel):
+    to_project_id: Optional[str] = None
+    to_project_name: Optional[str] = None
+    to_department: Optional[str] = None
+    to_ownership: Optional[str] = None
+    to_location: Optional[str] = None
+    reason: Optional[str] = None
+
+
+class OnboardingAdvanceBody(BaseModel):
+    step: str = Field(..., min_length=1)
+    note: Optional[str] = None
+
+
 # ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
@@ -207,6 +221,78 @@ def register_asset_spine_routes(
         if a is None:
             raise HTTPException(status_code=404, detail=f"Asset {asset_id} not found")
         return a
+
+    # ----- P0.7 · TRANSFER ----------------------------------------------
+
+    @router.post("/assets/{asset_id}/transfer")
+    async def transfer_asset(
+        asset_id: str,
+        body: TransferBody,
+        operator=Depends(require_admin_dep),
+    ):
+        spine = AssetSpine(db)
+        a = await spine.transfer_asset(
+            asset_id,
+            actor=_actor_of(operator),
+            to_project_id=body.to_project_id,
+            to_project_name=body.to_project_name,
+            to_department=body.to_department,
+            to_ownership=body.to_ownership,
+            to_location=body.to_location,
+            reason=body.reason,
+        )
+        if a is None:
+            raise HTTPException(status_code=404, detail=f"Asset {asset_id} not found")
+        return a
+
+    @router.get("/assets/{asset_id}/transfers")
+    async def list_transfers(
+        asset_id: str,
+        _: Any = Depends(require_any_portal_dep),
+    ):
+        # P0.7 — full transfer ledger for an asset (read-only)
+        cur = db.asset_transfers.find(
+            {"asset_id": asset_id}, {"_id": 0}
+        ).sort("created_at", -1).limit(100)
+        items = [d async for d in cur]
+        return {"count": len(items), "items": items}
+
+    # ----- P0.6 · ONBOARDING --------------------------------------------
+
+    @router.post("/assets/{asset_id}/onboarding/advance")
+    async def advance_onboarding(
+        asset_id: str,
+        body: OnboardingAdvanceBody,
+        operator=Depends(require_admin_dep),
+    ):
+        spine = AssetSpine(db)
+        try:
+            a = await spine.advance_onboarding(
+                asset_id, step=body.step, actor=_actor_of(operator), note=body.note,
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        if a is None:
+            raise HTTPException(status_code=404, detail=f"Asset {asset_id} not found")
+        return a
+
+    @router.get("/assets/{asset_id}/onboarding")
+    async def get_onboarding(
+        asset_id: str,
+        _: Any = Depends(require_any_portal_dep),
+    ):
+        doc = await db.equipment_master.find_one({"id": asset_id}, {"_id": 0, "onboarding": 1})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        ob = doc.get("onboarding") or {}
+        steps = list(AssetSpine.ONBOARDING_STEPS)
+        return {
+            "asset_id": asset_id,
+            "steps": steps,
+            "completed": {s: bool(ob.get(s)) for s in steps},
+            "detail": ob,
+            "pct_complete": round(100.0 * sum(1 for s in steps if ob.get(s)) / len(steps), 1),
+        }
 
     # ----- HEALTH ----------------------------------------------------------
 

@@ -104,6 +104,39 @@ CARD_META: Dict[str, Dict[str, str]] = {
 def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
     router = APIRouter(tags=["operations-center"])
 
+    # FORGEDOPS-P0.5 · Asset Spine Health Tile for the Operations Center.
+    @router.get("/api/operations-center/asset-spine-tile")
+    async def asset_spine_tile(
+        _actor: Dict[str, Any] = Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        """One canonical tile sourced from /api/asset-spine/health plus the
+        latest persisted scan summary. Lean projection for the OC board."""
+        from services.asset_spine import AssetSpine  # noqa: PLC0415
+        spine = AssetSpine(db)
+        h = await spine.health()
+        return {
+            "title": "Asset Spine Health",
+            "url": "/admin/asset-spine",
+            "metrics": {
+                "total_assets": h.get("total_assets"),
+                "active": h.get("active_assets"),
+                "retired": h.get("retired_assets"),
+                "coverage_pct": h.get("motive_coverage_pct"),
+                "unmapped": h.get("unmapped_to_motive"),
+                "queue": h.get("mapping_queue_depth"),
+                "conflicts": h.get("conflicts"),
+            },
+            "last_scan": {
+                "at": h.get("last_scan_at"),
+                "findings": h.get("last_scan_findings"),
+            },
+            "severity": (
+                "high" if (h.get("conflicts") or 0) > 100
+                else "medium" if (h.get("motive_coverage_pct") or 0) < 75
+                else "low"
+            ),
+        }
+
     def _role(a: Dict[str, Any]) -> str:
         return a.get("_actor") or a.get("role") or "admin"
 

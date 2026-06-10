@@ -12484,6 +12484,13 @@ async def _start_backup_scheduler():
         _backup_task = asyncio.create_task(
             _backup_scheduler_loop_with_capture(db)
         )
+        # FORGEDOPS-P0.2 · nightly Asset Spine reconciliation scan.
+        try:
+            from services.asset_spine_scheduler import asset_spine_nightly_loop
+            asyncio.create_task(asset_spine_nightly_loop(db))
+            logging.getLogger(__name__).info("[asset-spine-scheduler] task scheduled")
+        except Exception as _e:
+            logging.getLogger(__name__).warning("[asset-spine-scheduler] failed to start: %s", _e)
         _hours_str = " · ".join(f"{h:02d}:00" for h in BACKUP_HOURS_UTC) + " UTC"
         logging.getLogger(__name__).info(
             f"[scheduled-backup] scheduler started — {_hours_str} · "

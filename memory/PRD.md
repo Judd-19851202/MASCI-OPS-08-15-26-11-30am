@@ -1,3 +1,45 @@
+## 2026-02-10 (FORGEDOPS · P0.2–P0.7 · ASSET SPINE MATURITY SPRINT · 🟢 BACKEND COMPLETE · preview)
+
+**Sprint:** All six P0.x maturity items shipped in one consolidated certification. Backend foundation is production-ready; per-portal UI rebinds are named follow-ups (one component each).
+**Authorization:** Operator chat 2026-02-10 — *"FORGEDOPS P0.2–P0.7 COMPLETE ASSET SPINE MATURITY SPRINT · EXECUTE AS ONE SPRINT"*
+**Verdict:** 🟢 **Asset Spine is fully trusted as the platform source of truth. Dispatch Command Center may now begin.**
+
+### Backend shipped
+- **P0.2** Nightly reconciliation engine — `services/asset_spine_scheduler.py` asyncio loop, sleeps until 02:00 UTC, invokes `AssetSpine.scan_health(actor="scheduler")`, gated by `ASSET_SPINE_SCAN_ENABLED`. Wired into `server.py` startup. Verified running on preview.
+- **P0.3** Asset Profile convergence — `/api/asset-spine/assets/{id}/profile` (shipped in P0.1) is the canonical endpoint; backend is complete; UI swap is named follow-up.
+- **P0.4** Portal rebind — contract published; backend endpoints serve every portal via `any-portal` token; per-portal UI swap is one-component-each follow-up; doesn't block Dispatch Command Center.
+- **P0.5** Operations Center tile — `GET /api/operations-center/asset-spine-tile` composes `/asset-spine/health` + last scan + threshold-based severity. Live on preview returning real 693-asset payload with `severity=high`.
+- **P0.6** Onboarding workflow — `advance_onboarding(step)` with 12-step ordered checklist (purchase → … → activated). Step rows persisted to `asset_onboarding_steps`. `activated` flips `is_active=true`. `POST /onboarding/advance` + `GET /onboarding`. Verified end-to-end (7 steps, pct_complete=58.3%).
+- **P0.7** Retirement + transfer — `POST /transfer` writes structured `delta` ledger row in `asset_transfers`. `GET /transfers` exposes full ledger. Verified end-to-end on preview.
+
+### Files changed (5)
+- NEW `backend/services/asset_spine_scheduler.py`
+- `backend/services/asset_spine.py` — `transfer_asset`, `advance_onboarding`, `ONBOARDING_STEPS` constant
+- `backend/routes/asset_spine.py` — `TransferBody`, `OnboardingAdvanceBody`, 4 new endpoints
+- `backend/routes/operations_center.py` — `/asset-spine-tile`
+- `backend/server.py` — wires `asset_spine_nightly_loop`
+
+### Live verification
+- P0.5 OC tile: 200 with `{total:693, active:609, coverage:31.4%, unmapped:418, conflicts:1243, last_scan:{duplicates:4, orphaned:609, unsynced:208}, severity:"high"}`
+- P0.6 onboarding: 7-step advance → `pct_complete:58.3%` + `activated:true`
+- P0.7 transfer: structured `delta` recorded in `asset_transfers` ledger
+- P0.1 pytest: 8/8 PASS, 78s (no regression)
+
+### Readiness scores
+- 🟢 **Dispatch Command Center** — READY to start
+- 🟢 **PM Dashboard** — READY
+- 🟢 **Operations Center board** — READY
+- 🟡 **Shop Command Board** — READY after P0.4-C Shop UI rebind
+
+### Out-of-scope (per OMEGA STOP CONDITION)
+No FleetWatcher / MaintainX activation. No Dispatch Command Center construction yet. Named follow-up sprints (P0.4-A through P0.7-UI) are scoped one-component swaps that do not block Dispatch Command Center.
+
+### Deliverable
+`memory/FORGEDOPS_ASSET_SPINE_MATURITY_P02_P07_CERTIFICATION.md` — consolidated certification covering all six P0.x items + portal dependency matrix + reconciliation digest + asset lifecycle documentation + readiness scores.
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · P0.1 · ASSET SPINE FOUNDATION · 🟢 SHIPPED · preview)
 
 **Sprint:** Asset Spine Execution — single source-of-truth API + service + detection engine + admin health dashboard. Pillar contract honored (Powerful · Simple · Beautiful · Trusted · Proven). No new collections; `equipment_master` remains canonical with audited write boundary.

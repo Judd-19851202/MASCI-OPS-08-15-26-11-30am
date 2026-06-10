@@ -587,6 +587,128 @@ class AssetSpine:
         )
         return after
 
+    async def transfer_asset(
+        self,
+        asset_id: str,
+        *,
+        actor: str,
+        to_project_id: Optional[str] = None,
+        to_project_name: Optional[str] = None,
+        to_department: Optional[str] = None,
+        to_ownership: Optional[str] = None,
+        to_location: Optional[str] = None,
+        reason: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        P0.7 · Transfer workflow. Capture ownership / department / project /
+        location changes as a single auditable event. Updates the canonical
+        asset AND writes an `asset_transfers` row of type=TRANSFER. Every
+        previous-state value is preserved in the audit chain.
+        """
+        doc = await self.db.equipment_master.find_one({"id": asset_id})
+        if not doc:
+            return None
+        before = project_asset(doc)
+        now = _now_iso()
+        upd: Dict[str, Any] = {
+            "last_modified_by": actor, "last_modified_at": now,
+            "updated_by": actor, "updated_at": now,
+        }
+        delta: Dict[str, Any] = {}
+        if to_project_id is not None:
+            upd["current_project_id"] = to_project_id
+            delta["project_id"] = {"from": doc.get("current_project_id"), "to": to_project_id}
+        if to_project_name is not None:
+            upd["current_project_name"] = to_project_name
+            delta["project_name"] = {"from": doc.get("current_project_name"), "to": to_project_name}
+        if to_department is not None:
+            upd["department"] = to_department
+            delta["department"] = {"from": doc.get("department"), "to": to_department}
+        if to_ownership is not None:
+            upd["ownership"] = to_ownership
+            upd["company"] = to_ownership
+            delta["ownership"] = {"from": doc.get("company") or doc.get("ownership"), "to": to_ownership}
+        if to_location is not None:
+            upd["current_location"] = to_location
+            delta["location"] = {"from": doc.get("current_location"), "to": to_location}
+        if not delta:
+            return before
+        await self.db.equipment_master.update_one({"id": asset_id}, {"$set": upd})
+        try:
+            await self.db.asset_transfers.insert_one({
+                "id": _new_id(), "asset_id": asset_id,
+                "unit_number": doc.get("unit_number"),
+                "type": "TRANSFER", "delta": delta,
+                "from_location": doc.get("current_location"),
+                "to_location": to_location,
+                "created_at": now, "created_by": actor,
+                "reason": reason, "state": "completed",
+            })
+        except Exception as e:
+            logger.warning("[asset_spine] transfer ledger row failed: %s", e)
+        after = await self.get_asset(asset_id)
+        await self._audit(
+            action="ASSET_TRANSFER",
+            target_id=asset_id, before=before, after=after,
+            actor=actor, reason=reason,
+        )
+        return after
+
+    # ----- ONBOARDING (P0.6) ---------------------------------------------
+
+    ONBOARDING_STEPS = (
+        "purchase", "delivery", "gps_install", "motive_mapped",
+        "fleetwatcher_mapped", "maintainx_mapped",
+        "classified", "department_assigned",
+        "dispatch_visible", "pm_visible", "operations_visible",
+        "activated",
+    )
+
+    async def advance_onboarding(
+        self,
+        asset_id: str,
+        *,
+        step: str,
+        actor: str,
+        note: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Mark a single onboarding step as complete. Persists a step row in
+        `asset_onboarding_steps` AND mirrors the latest step into
+        equipment_master.onboarding.{step}=true for fast read. Asset
+        becomes active only after `step=activated` is completed.
+        """
+        if step not in self.ONBOARDING_STEPS:
+            raise ValueError(f"unknown onboarding step: {step!r}")
+        doc = await self.db.equipment_master.find_one({"id": asset_id})
+        if not doc:
+            return None
+        now = _now_iso()
+        ob = (doc.get("onboarding") or {}).copy()
+        ob[step] = {"completed_at": now, "actor": actor, "note": note}
+        upd = {"onboarding": ob, "last_modified_by": actor, "last_modified_at": now,
+               "updated_by": actor, "updated_at": now}
+        if step == "activated":
+            upd["is_active"] = True
+            upd["active"] = True
+            upd["asset_status"] = "ACTIVE"
+            upd["status"] = "ACTIVE"
+        await self.db.equipment_master.update_one({"id": asset_id}, {"$set": upd})
+        try:
+            await self.db.asset_onboarding_steps.insert_one({
+                "id": _new_id(), "asset_id": asset_id, "unit_number": doc.get("unit_number"),
+                "step": step, "actor": actor, "note": note, "at": now,
+            })
+        except Exception as e:
+            logger.warning("[asset_spine] onboarding step persist failed: %s", e)
+        after = await self.get_asset(asset_id)
+        await self._audit(
+            action=f"ASSET_ONBOARD_{step.upper()}",
+            target_id=asset_id, before=None, after={"step": step},
+            actor=actor, reason=note,
+        )
+        return after
+
     # ----- HEALTH --------------------------------------------------------
 
     async def health(self) -> Dict[str, Any]:
