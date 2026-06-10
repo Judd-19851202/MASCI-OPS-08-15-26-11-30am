@@ -120,10 +120,22 @@ async def _make_test_user(*, mirrored: bool, with_mirror_sources: bool = True) -
 
 
 async def _cleanup_test_user(uid: str) -> None:
-    db = await _db()
-    await db.user_directory.delete_many({"id": uid})
-    # Best-effort: also nuke audit rows we wrote so the suite is hermetic
-    await db.admin_audit.delete_many({"target_email": {"$regex": "^k4btest-"}})
+    # DEPLOY-GATE-FIX-001 (2026-06-09): replaced motor cleanup with a
+    # short-lived pymongo sync handle. The previous motor-based path hit
+    # `_topology._check_implicit_session_support` intermittently because
+    # a fresh AsyncIOMotorClient is created per call and the underlying
+    # pymongo session manager wants topology discovery before any
+    # write. Using a sync MongoClient sidesteps that entirely; no
+    # behavioural change for the system under test.
+    from pymongo import MongoClient
+
+    sync_client = MongoClient(os.environ["MONGO_URL"], serverSelectionTimeoutMS=8000)
+    try:
+        sync_db = sync_client[os.environ.get("DB_NAME", "test_database")]
+        sync_db.user_directory.delete_many({"id": uid})
+        sync_db.admin_audit.delete_many({"target_email": {"$regex": "^k4btest-"}})
+    finally:
+        sync_client.close()
 
 
 async def _last_audit_for(email: str) -> Dict[str, Any]:

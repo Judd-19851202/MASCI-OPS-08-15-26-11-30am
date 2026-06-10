@@ -1,11 +1,5 @@
 {
   "viewport": "desktop",
-  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/incidents/58feead6-18d6-4d93-96d0-d8b94cb183fc",
-  "console_tail": [
-    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
-    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
-    "[info] [sentry] initialised {env: preview, release: 55652802d441442559c17feb4daed499}",
-    "[error] Failed to load resource: the server responded with a status of 401 ()",
-    "[error] Failed to load resource: the server responded with a status of 401 ()"
-  ]
+  "url": "about:blank",
+  "console_tail": []
 }

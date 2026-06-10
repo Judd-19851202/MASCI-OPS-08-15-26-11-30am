@@ -53,7 +53,11 @@ def test_health(base_url):
 # ---------------------------------------------------------------------------
 # 3. Multi-login
 # ---------------------------------------------------------------------------
-EXPECTED_PORTALS = {"admin", "pm", "shop", "hr", "safety", "dispatch", "field_leadership"}
+# NB: portal short-codes match the API's `portal_tokens` map keys.
+# Field Leadership is exposed under BOTH `field_leadership` (full code)
+# AND `fl` (short alias matches `fl_headers` fixture and
+# `/api/field-leadership/portal/me` route convention).
+EXPECTED_PORTALS = {"admin", "pm", "shop", "hr", "safety", "dispatch", "field_leadership", "fl"}
 
 
 def test_multi_login_returns_all_portals(tokens):

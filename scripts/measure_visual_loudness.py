@@ -171,7 +171,7 @@ def run(base_url: str, routes: list[str], iteration: str) -> dict:
     )
     return {
         "iteration": iteration,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "base_url": base_url,
         "viewports": [v[0] for v in VIEWPORTS],
         "routes": routes,

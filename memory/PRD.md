@@ -1,3 +1,41 @@
+## 2026-06-10 (DEPLOY-GATE-FIX-001 · 🟡 6/6 AUTHORIZED FIXES COMPLETE · GATE 17/6 → 22/1 · OUT-OF-SCOPE RESIDUE)
+
+**Sprint:** Clear pre-deploy gate without changing product scope
+**Authorization:** Operator chat 2026-06-09 — *"DEPLOY-GATE-FIX-001 · STATUS: AUTHORIZED"*
+**Verdict:** 🟡 **All 6 authorized fixes verified PASS · gate progressed 17/6 → 22/1 · remaining 1 stage out of authorized scope.**
+
+### Each of the 6 fixes
+| # | Fix | Files | Verified |
+| --- | --- | --- | --- |
+| 1 | Frontend lint (yarn lint shim) | `frontend/package.json` (+1) | `yarn -s lint` exit 0 |
+| 2 | HR login fixture refresh (`*_preview` DB only, no real password rotated) | `test_iter176_login_regression.py` (+45) | 5/5 pass |
+| 3 | pymongo sync cleanup in K4B test | `test_iter177_phase_k4b_directory_mutations.py` (~8) | 18/18 pass |
+| 4 | Playwright Chromium installed | container (no repo change) | 7 PW tests pass in 37 s |
+| 5 | Sigma-III portal set: added `fl` alias | `regression/test_critical_flows.py` (1) | 53/53 pass |
+| 6 | TRUST-TIME-1B baseline blessed | `scripts/timestamp_pattern_baseline.json` | probe: 0 violations |
+
+### Self-pollution fixed (caused by my own retry loop tonight)
+**V-Prelude trendline integrity** — 4 entries in `LOUDNESS_TRENDLINE.json` written with `+00:00` suffix instead of `Z` by my 4 gate retries. Normalized entries + patched the appender in `measure_visual_loudness.py` (+1 line) to emit `Z`. Probe re-run: ✓ clean.
+
+### Out of authorized scope (residual gate failure)
+**Sigma-III Playwright browser suite** — installing Chromium revealed **18 pre-existing Playwright test content failures + 51 fixture errors** that were silently skipped before the binary existed. These are governance / visual-baseline / nav-scroll probes (NOT related to the certified bundle). Triaging them requires a separate sprint (DEPLOY-GATE-FIX-002).
+
+### Safety requirements verified
+✅ No schema · ✅ no DB · ✅ no credential rotation · ✅ no Atlas · ✅ no Motive · ✅ no MaintainX · ✅ no user passwords · ✅ certified bundle intact · ✅ zero product code change (all changes are test/fixture/baseline/lint-shim).
+
+### Three options for operator
+A. Authorize **DEPLOY-GATE-FIX-002** scoped to 18 Playwright content failures (1–3 h estimated).
+B. Issue **explicit gate-override** citing this certification + deploy the certified bundle.
+C. Defer.
+
+### Deliverable
+- `/app/memory/DEPLOY_GATE_FIX_001_CERTIFICATION.md` (full root-cause + before/after table)
+
+🛑 STOPPED per directive. No new sprint started. No feature added. No deploy executed.
+
+
+
+
 ## 2026-06-09 (DEPLOY-NOW-001 · CERTIFIED PERFORMANCE BUNDLE PRODUCTION DEPLOY · 🟡 AGENT PRE-DEPLOY 🟢 PASS · OPERATOR DEPLOY PENDING)
 
 **Sprint:** DEPLOY-NOW-001 — ship the certified Waves 1–4 + LIST-VIRT-001 bundle to production

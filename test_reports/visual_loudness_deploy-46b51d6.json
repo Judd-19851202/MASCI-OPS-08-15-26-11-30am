@@ -1,0 +1,155 @@
+{
+  "iteration": "deploy-46b51d6",
+  "timestamp": "2026-06-10T01:13:37.337223Z",
+  "base_url": "https://safety-audit-mobile-1.preview.emergentagent.com",
+  "viewports": [
+    "mobile",
+    "ipad",
+    "desktop"
+  ],
+  "routes": [
+    "/admin",
+    "/pm",
+    "/pm/jobs",
+    "/hr",
+    "/hr/time-verification?hrSidebarV2=1"
+  ],
+  "per_route": {
+    "/admin@mobile": {
+      "above_fold_clickables": 7,
+      "badge_count": 0,
+      "typo_combos": 11,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 8
+    },
+    "/pm@mobile": {
+      "above_fold_clickables": 7,
+      "badge_count": 0,
+      "typo_combos": 11,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 8
+    },
+    "/pm/jobs@mobile": {
+      "above_fold_clickables": 7,
+      "badge_count": 0,
+      "typo_combos": 11,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 8
+    },
+    "/hr@mobile": {
+      "above_fold_clickables": 8,
+      "badge_count": 0,
+      "typo_combos": 11,
+      "animating": 0,
+      "red_amber_saturated_elements": 2,
+      "hue_families": 3,
+      "loudness_score": 7
+    },
+    "/hr/time-verification?hrSidebarV2=1@mobile": {
+      "above_fold_clickables": 8,
+      "badge_count": 0,
+      "typo_combos": 11,
+      "animating": 0,
+      "red_amber_saturated_elements": 2,
+      "hue_families": 3,
+      "loudness_score": 7
+    },
+    "/admin@ipad": {
+      "above_fold_clickables": 11,
+      "badge_count": 0,
+      "typo_combos": 12,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 9
+    },
+    "/pm@ipad": {
+      "above_fold_clickables": 10,
+      "badge_count": 0,
+      "typo_combos": 10,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 7
+    },
+    "/pm/jobs@ipad": {
+      "above_fold_clickables": 10,
+      "badge_count": 0,
+      "typo_combos": 10,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 7
+    },
+    "/hr@ipad": {
+      "above_fold_clickables": 11,
+      "badge_count": 0,
+      "typo_combos": 10,
+      "animating": 0,
+      "red_amber_saturated_elements": 2,
+      "hue_families": 3,
+      "loudness_score": 6
+    },
+    "/hr/time-verification?hrSidebarV2=1@ipad": {
+      "above_fold_clickables": 11,
+      "badge_count": 0,
+      "typo_combos": 10,
+      "animating": 0,
+      "red_amber_saturated_elements": 2,
+      "hue_families": 3,
+      "loudness_score": 6
+    },
+    "/admin@desktop": {
+      "above_fold_clickables": 10,
+      "badge_count": 0,
+      "typo_combos": 12,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 9
+    },
+    "/pm@desktop": {
+      "above_fold_clickables": 8,
+      "badge_count": 0,
+      "typo_combos": 10,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 7
+    },
+    "/pm/jobs@desktop": {
+      "above_fold_clickables": 8,
+      "badge_count": 0,
+      "typo_combos": 10,
+      "animating": 0,
+      "red_amber_saturated_elements": 5,
+      "hue_families": 3,
+      "loudness_score": 7
+    },
+    "/hr@desktop": {
+      "above_fold_clickables": 8,
+      "badge_count": 0,
+      "typo_combos": 10,
+      "animating": 0,
+      "red_amber_saturated_elements": 2,
+      "hue_families": 3,
+      "loudness_score": 6
+    },
+    "/hr/time-verification?hrSidebarV2=1@desktop": {
+      "above_fold_clickables": 8,
+      "badge_count": 0,
+      "typo_combos": 10,
+      "animating": 0,
+      "red_amber_saturated_elements": 2,
+      "hue_families": 3,
+      "loudness_score": 6
+    }
+  },
+  "portal_average_loudness": 7.2
+}
