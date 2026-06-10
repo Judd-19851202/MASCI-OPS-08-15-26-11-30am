@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 2026-02-10 · OFFLINE-UPLOAD-001 · P1 production-incident fix (preview)
+
+Authority: OMEGA DIRECTIVE — P1 incident response, scope strictly limited to OFFLINE-UPLOAD-001.
+
+Clicking the lower-right "Pending Uploads: 1" pill caused the entire React tree to unmount to a blank white screen when the IndexedDB resiliency queue contained a Daily Report whose legacy `lastError` value was an OBJECT. Root cause: `QueueStatusPill.jsx` rendered `{it.lastError}` directly → React threw "Objects are not valid as a React child" with no boundary to contain the failure. Users had no way to retry or delete the stuck item.
+
+Fix scope (no retry/backoff/MAX_TRIES change, no backend change):
+
+* `frontend/src/components/QueueStatusPill.jsx` — full hardening pass:
+  * Defensive helpers `_errorTextOf`, `_safeId`, `_safeTries`, `_formTypeOf`, `_projectOf` coerce every rendered value to a string/number, regardless of legacy IDB shape (string | number | Error | axios-like | nested object).
+  * New `DrawerErrorBoundary` class scoped to the items list — header/footer/Retry All stay interactive even if the boundary trips. Fallback offers "Clear corrupted items".
+  * New `QueueItemRow` with a per-item Discard (Trash2) icon + inline "Are you sure?" confirm (Cancel / Discard) — no native browser `confirm()`.
+  * `closeDrawer` resets `confirmingId` so the confirm box never lingers across opens.
+* `frontend/src/lib/resiliency/resiliencyQueue.js`:
+  * New `discardQueueItem(id)` export — removes a single entry by id, persists, notifies subscribers. Pure operator path; never touches retry state.
+  * New `clearQueue()` export — last-resort wipe used only by the ErrorBoundary fallback when per-item discard cannot be trusted (synthetic ids on broken entries).
+
+Verification: `testing_agent_v3_fork` exercised all 5 flows (render with malformed payload, inline Cancel, inline Discard, Retry All on remaining item, ErrorBoundary path with `[null, deeply-malformed]`). 100% PASS, 0 blockers. Lint clean.
+
+Deliverables:
+
+* `test_reports/iteration_OFFLINE_UPLOAD_001.json` → success_rate.frontend = 100%, retest_needed = false.
+
+No production deploy — operator deploys the fix to `mascidocs.com` after preview sign-off.
+
+---
+
+
 ## 2026-06-02 · ITER500 Rank #1 · Human-Operability sticky-footer roll-out
 
 Authority: OMEGA AUTHORIZATION — ITER500 RANK #1 REMEDIATION (preview environment only).

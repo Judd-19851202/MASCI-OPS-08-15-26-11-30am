@@ -22,6 +22,7 @@ import {
   drainQueue,
   retryAllFailed,
   discardQueueItem,
+  clearQueue,
 } from "@/lib/resiliency/resiliencyQueue";
 import { useT } from "@/lib/i18n";
 
@@ -326,16 +327,14 @@ export default function QueueStatusPill() {
   }, []);
 
   // OFFLINE-UPLOAD-001 · Last-resort fallback when items can't be
-  // rendered at all (ErrorBoundary path). Clears every entry by id.
+  // rendered at all (ErrorBoundary path). Wipes the entire persisted
+  // queue so the user is never stuck — per-item discard cannot be
+  // trusted here because some items may lack a real id.
   const onClearAll = useCallback(async () => {
     try {
-      const snapshot = Array.isArray(items) ? items : [];
-      for (let i = 0; i < snapshot.length; i += 1) {
-        const safeId = _safeId(snapshot[i], i);
-        await discardQueueItem(safeId);
-      }
+      await clearQueue();
     } catch {/* */}
-  }, [items]);
+  }, []);
 
   // Suppress entirely on synced + no last-sync (i.e., quiet for fresh app loads).
   if (state === "synced" && !lastSync) return null;

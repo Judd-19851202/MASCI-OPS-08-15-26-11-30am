@@ -179,6 +179,23 @@ function _scheduleDrain() {
 }
 
 /**
+ * OFFLINE-UPLOAD-001 · Last-resort recovery.
+ *
+ * Wipes the entire queue. Only invoked from the DrawerErrorBoundary
+ * fallback in QueueStatusPill when rendering individual items has
+ * already failed — at that point per-item discard is unreliable
+ * because synthetic ids may not match persisted entries.
+ */
+export async function clearQueue() {
+  await _load();
+  const before = _queue.length;
+  _queue = [];
+  await _persist();
+  _notify();
+  return { removed: before };
+}
+
+/**
  * OFFLINE-UPLOAD-001 · Manual discard path.
  *
  * Removes a single queue item by id (idempotency key or generated id).
