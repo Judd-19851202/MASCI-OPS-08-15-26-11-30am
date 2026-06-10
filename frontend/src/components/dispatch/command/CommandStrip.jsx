@@ -56,38 +56,64 @@ export default function CommandStrip({ summary, loading, onJumpTo }) {
   const safety = summary?.safety || {};
 
   const dispatches = (haul.active_hauls != null) ? haul.active_hauls : null;
+  // Operational truth: active assets = spine-active + phantom trucks
+  // in active dispatch (handled inside fleet.active already in Phase 3).
   const activeAssets = (fleet.active != null) ? fleet.active : null;
-  const activeDrivers = (drivers.shifted != null) ? drivers.shifted : null;
+  // Operational truth: active drivers = sessions ∪ assignment-named drivers
+  const activeDrivers = (drivers.active_total != null)
+    ? drivers.active_total
+    : (drivers.shifted != null ? drivers.shifted : null);
   const assetsInShop = (shop.oos_units != null && shop.defect_open_units != null)
     ? (shop.oos_units + shop.defect_open_units) : null;
   const failedDvirs = shop.defects_open != null ? shop.defects_open : null;
   const openDefects = (shop.defects_open != null && shop.defects_acknowledged != null)
     ? (shop.defects_open + shop.defects_acknowledged) : null;
   const incidents = safety.incidents_open != null ? safety.incidents_open : null;
+  const needsMapping = fleet.needs_mapping || 0;
 
   const skeleton = !summary && loading;
 
   return (
-    <div
-      data-testid="command-strip"
-      className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3"
-    >
-      <Tile icon={User}   label="Drivers"    value={skeleton ? "…" : activeDrivers}
-        sub="active"    tone="sky"     onClick={() => onJumpTo("drivers")} testId="strip-drivers" />
-      <Tile icon={Truck}  label="Assets"     value={skeleton ? "…" : activeAssets}
-        sub="active"    tone="emerald" onClick={() => onJumpTo("fleet")}   testId="strip-assets" />
-      <Tile icon={Send}   label="Dispatches" value={skeleton ? "…" : dispatches}
-        sub="active"    tone="indigo"  onClick={() => onJumpTo("hauls")}   testId="strip-dispatches" />
-      <Tile icon={Activity} label="Hauls"    value={skeleton ? "…" : haul.active_hauls ?? null}
-        sub="in-flight" tone="indigo"  onClick={() => onJumpTo("hauls")}   testId="strip-hauls" />
-      <Tile icon={Wrench} label="In Shop"    value={skeleton ? "…" : assetsInShop}
-        sub="oos + defect" tone="amber" onClick={() => onJumpTo("shop")}   testId="strip-in-shop" />
-      <Tile icon={ShieldAlert} label="DVIR Open" value={skeleton ? "…" : failedDvirs}
-        sub="needs attn" tone="amber"  onClick={() => onJumpTo("shop")}    testId="strip-dvir-open" />
-      <Tile icon={AlertOctagon} label="Defects"  value={skeleton ? "…" : openDefects}
-        sub="open + ack" tone="rose"   onClick={() => onJumpTo("shop")}    testId="strip-defects" />
-      <Tile icon={AlertTriangle} label="Incidents" value={skeleton ? "…" : incidents}
-        sub="open"       tone="rose"   onClick={() => onJumpTo("shop")}    testId="strip-incidents" />
+    <div data-testid="command-strip" className="space-y-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
+        <Tile icon={User}   label="Drivers"    value={skeleton ? "…" : activeDrivers}
+          sub={drivers.assignment_only ? `${drivers.assignment_only} no_session` : "active"} tone="sky"     onClick={() => onJumpTo("drivers")} testId="strip-drivers" />
+        <Tile icon={Truck}  label="Assets"     value={skeleton ? "…" : activeAssets}
+          sub={needsMapping > 0 ? `${needsMapping} needs map` : "active"}    tone="emerald" onClick={() => onJumpTo("fleet")}   testId="strip-assets" />
+        <Tile icon={Send}   label="Dispatches" value={skeleton ? "…" : dispatches}
+          sub="active"    tone="indigo"  onClick={() => onJumpTo("hauls")}   testId="strip-dispatches" />
+        <Tile icon={Activity} label="Hauls"    value={skeleton ? "…" : haul.active_hauls ?? null}
+          sub="in-flight" tone="indigo"  onClick={() => onJumpTo("hauls")}   testId="strip-hauls" />
+        <Tile icon={Wrench} label="In Shop"    value={skeleton ? "…" : assetsInShop}
+          sub="oos + defect" tone="amber" onClick={() => onJumpTo("shop")}   testId="strip-in-shop" />
+        <Tile icon={ShieldAlert} label="DVIR Open" value={skeleton ? "…" : failedDvirs}
+          sub="needs attn" tone="amber"  onClick={() => onJumpTo("shop")}    testId="strip-dvir-open" />
+        <Tile icon={AlertOctagon} label="Defects"  value={skeleton ? "…" : openDefects}
+          sub="open + ack" tone="rose"   onClick={() => onJumpTo("shop")}    testId="strip-defects" />
+        <Tile icon={AlertTriangle} label="Incidents" value={skeleton ? "…" : incidents}
+          sub="open"       tone="rose"   onClick={() => onJumpTo("shop")}    testId="strip-incidents" />
+      </div>
+
+      {/* Phase 3 · Operational trust strip — explicit reconciliation
+          warnings so the dispatcher never sees a false zero. */}
+      {!skeleton && needsMapping > 0 ? (
+        <div
+          data-testid="command-strip-needs-mapping"
+          className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md p-2 text-xs flex items-center justify-between"
+        >
+          <span>
+            <b>{needsMapping}</b> active dispatch truck{needsMapping === 1 ? "" : "s"}{" "}
+            {needsMapping === 1 ? "is" : "are"} not in the Asset Spine yet — surface them in the Fleet tab as
+            <span className="font-mono"> not_in_spine</span> rows.
+          </span>
+          <button
+            type="button"
+            onClick={() => onJumpTo("fleet")}
+            data-testid="command-strip-needs-mapping-link"
+            className="font-mono uppercase tracking-widest text-[10px] underline"
+          >Open Fleet →</button>
+        </div>
+      ) : null}
     </div>
   );
 }

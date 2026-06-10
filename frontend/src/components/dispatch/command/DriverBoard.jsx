@@ -132,10 +132,17 @@ export default function DriverBoard() {
                   data-testid={`driver-row-${r.session_id}`}
                   className="border-b border-slate-100 hover:bg-slate-50"
                 >
-                  <td className="px-3 py-2 font-bold text-slate-900">{r.driver_name || "—"}</td>
+                  <td className="px-3 py-2 font-bold text-slate-900">
+                    {r.driver_name || "—"}
+                    {r.source === "assignment_only" ? (
+                      <div className="text-[10px] font-mono uppercase tracking-widest text-amber-700">assignment_only · needs_session</div>
+                    ) : null}
+                  </td>
                   <td className="px-2 py-2">
                     {r.shift_started_at ? (
                       <StatusChip tone="info">SHIFTED · {fmtAgo(r.shift_started_at)}</StatusChip>
+                    ) : r.source === "assignment_only" ? (
+                      <StatusChip tone="waiting">NO SESSION</StatusChip>
                     ) : (
                       <StatusChip tone="attention">MISSING</StatusChip>
                     )}

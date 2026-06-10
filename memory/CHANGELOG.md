@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 3 · Operational Truth (preview)
+
+Authority: OMEGA DIRECTIVE — Phase 3 Authorization. Backend aggregator refactor + frontend trust-state rendering. No new collection, no schema change, no new auth, no integration activation.
+
+### Root cause closed
+Three independent gaps masked the truth: (1) Drivers KPI used sessions only; (2) Assets KPI used spine-only; (3) status classifier was simplistic. Result: 24 active hauls coexisted with 0 drivers / 0 assets — operationally impossible.
+
+### What changed
+- `_build_fleet` — 10-rule status priority chain · phantom-truck surfacing · counts include `needs_mapping`, `motive_only`, `not_in_spine`, `available`, `failed_dvir`, `maintenance_hold`
+- `_build_drivers` — UNION of sessions ∪ assignment-named drivers · `source` classified per row
+- `_build_jobs` — added per-project defect & OOS-equipment impact joins
+- Trust states: every blank carrying operational meaning now uses an explicit token (`no_assignment`, `no_driver`, `no_job`, `no_session`, `no_recent_activity`, `not_mapped`, `not_in_spine`, …)
+- Frontend: Needs-Mapping banner on Overview · Fleet filter chips expanded · Drivers board `ASSIGNMENT_ONLY · NEEDS_SESSION` badge
+
+### Reconciliation (live preview)
+Drivers 0→1, Assets 0→1, Dispatches 24, Hauls 24. Math holds: 24 dupe assignments → 1 distinct truck (T-IT417, phantom) → 1 named driver (Test Driver, no session).
+
+### Tests
+Phase 1 contracts 18/18 + Asset Spine P0.1 8/8 = **26/26 regression intact**.
+
+### Files
+- BACKEND: `routes/dispatch_command_center.py`
+- FRONTEND: `components/dispatch/command/{CommandStrip,BoardShell,FleetBoard,DriverBoard}.jsx`
+- MEMORY: `DISPATCH_COMMAND_CENTER_V1_PHASE_3_OPERATIONAL_TRUTH_CERTIFICATION.md`
+
+### iPad verification
+Portrait 1024×1366 · Landscape 1366×1024 · Operator 1920×800 — all responsive.
+
+### Doctrine honored
+No fake data · no charts · no maps · no analytics · no FleetWatcher activation · no MaintainX activation · no real SMS · no new platform engines · no duplicate stores · no production data mutation · no auth/role change · no MASCI-only hardcoding.
+
+### STOP CONDITION
+Phase 4 NOT authorized. Awaiting operator approval.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_3_OPERATIONAL_TRUTH_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 2 · Live Operational UI (preview)
 
 Authority: OMEGA DIRECTIVE — Phase 2 Authorization. Frontend command center on top of the Phase 1 aggregation feed.

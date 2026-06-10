@@ -1,3 +1,53 @@
+## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 3 · OPERATIONAL TRUTH · 🟢 PASS · preview)
+
+**Sprint:** Phase 3 of 8. Eliminate KPI contradictions, surface phantom trucks, render trust states everywhere a blank used to be. Backend aggregator-only refactor + frontend trust-chip rendering. Zero schema change, zero new collection, zero new auth.
+**Authorization:** Operator chat 2026-02-10 — *"FORGEDOPS DISPATCH COMMAND CENTER V1 · PHASE 3 · OPERATIONAL TRUTH SPRINT · OMEGA ENFORCED"*
+**Verdict:** 🟢 **PASS · KPIs reconcile · 26/26 regression intact · live preview confirms trust-state contract.**
+
+### Root cause (3-way failure)
+1. Drivers KPI used `sessions` only — missed `driver_name` on assignments without `driver_id`.
+2. Assets KPI used spine-only — missed phantom trucks (T-IT417 not in `equipment_master`).
+3. Fleet status classifier was simplistic — 586 spine assets defaulted to `unknown` because `fleet_status` is sparse / test-only.
+
+### Fixes
+- `_build_fleet`: 10-rule priority chain (oos > in_shop > failed_dvir > maintenance_hold > active_haul > active_shift > available > motive_only > not_in_spine > unknown). Phantom trucks surfaced as synthetic rows with `in_asset_spine: false` and `status: "not_in_spine"`.
+- `_build_drivers`: UNION of `dispatch_driver_sessions` ∪ `dispatch_assignments` named drivers. Source classified as `session` / `session_only_no_assignment` / `assignment_only`.
+- `_build_jobs`: added per-project defect-impact + OOS-equipment-impact joins.
+- Trust states everywhere: `no_assignment`, `no_driver`, `no_job`, `no_session`, `no_trailer`, `no_truck`, `no_recent_activity`, `no_status`, `not_mapped`, `not_in_spine`, `motive_only`, `pending_integration`, `not_connected`, `provider_not_configured`, `assignment_only`.
+- Frontend: Needs-Mapping banner appears on Overview when `fleet.counts.needs_mapping > 0`. Fleet filter chips include `In Shop` / `Available` / `Needs Map` / `Unknown`. Drivers board renders `ASSIGNMENT_ONLY · NEEDS_SESSION` source badge + `NO SESSION` SOS chip.
+
+### Before → After (live preview)
+| KPI | Before | After |
+|---|---|---|
+| Drivers | 0 | **1 (1 no_session)** |
+| Assets | 0 | **1 (1 needs map)** |
+| Dispatches | 24 | 24 |
+| Hauls | 24 | 24 |
+Reconciles: 24 dispatches → 1 distinct truck → 1 active driver. The remaining 23 are duplicate test assignments against the same truck.
+
+### Files touched
+- BACKEND: `routes/dispatch_command_center.py` (refactored `_build_fleet`, `_build_drivers`, `_build_jobs`)
+- FRONTEND: `components/dispatch/command/{CommandStrip,BoardShell,FleetBoard,DriverBoard}.jsx`
+- MEMORY: this cert · `PRD.md` · `CHANGELOG.md`
+
+### Tests
+- Phase 1 contract suite: 18/18 ✅
+- Asset Spine P0.1 regression: 8/8 ✅
+- Total: **26/26 zero regressions**
+- Live Playwright smoke: KPI reconciliation, Needs-Mapping banner, Fleet `Needs Map` filter, Driver `assignment_only` badge — all verified
+
+### iPad verification
+1024×1366 portrait · 1366×1024 landscape · 1920×800 operator — all responsive layouts honored.
+
+### STOP CONDITION
+Phase 4 is **NOT authorized**. Awaiting operator approval.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_3_OPERATIONAL_TRUTH_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 2 · LIVE OPERATIONAL UI · 🟢 PASS · preview)
 
 **Sprint:** Phase 2 of 8. The operational heartbeat goes live for dispatchers. Seven-tab single-page command center (Overview · Fleet · Drivers · Jobs · Hauls · Shop · Comms) consuming the Phase 1 aggregation feed. Real preview data (294 fleet assets · 24 active hauls · 82 open defects · 43 incidents · 693 canonical assets · 31.4% Motive coverage) renders calmly with explicit "Pending Integration" / "Not Configured" chips for FleetWatcher / MaintainX / Twilio.

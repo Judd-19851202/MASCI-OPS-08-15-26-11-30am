@@ -11,19 +11,25 @@ import React from "react";
 import { RefreshCw, Loader2, Inbox, AlertCircle, Search } from "lucide-react";
 
 const TONE = {
-  active:       "bg-emerald-100 text-emerald-900 border-emerald-300",
-  available:    "bg-slate-100 text-slate-800 border-slate-300",
-  oos:          "bg-rose-100 text-rose-900 border-rose-300",
-  in_shop:      "bg-amber-100 text-amber-900 border-amber-300",
-  defect_open:  "bg-amber-100 text-amber-900 border-amber-300",
-  unknown:      "bg-slate-50 text-slate-600 border-slate-200",
-  attention:    "bg-rose-100 text-rose-900 border-rose-300",
-  waiting:      "bg-amber-100 text-amber-900 border-amber-300",
-  breakdown:    "bg-rose-200 text-rose-900 border-rose-400",
-  pass:         "bg-emerald-50 text-emerald-800 border-emerald-200",
-  fail:         "bg-rose-50 text-rose-800 border-rose-200",
-  pending:      "bg-slate-50 text-slate-700 border-slate-200",
-  info:         "bg-sky-50 text-sky-900 border-sky-200",
+  active:           "bg-emerald-100 text-emerald-900 border-emerald-300",
+  active_haul:      "bg-emerald-100 text-emerald-900 border-emerald-300",
+  active_shift:     "bg-sky-100 text-sky-900 border-sky-300",
+  available:        "bg-slate-100 text-slate-800 border-slate-300",
+  oos:              "bg-rose-100 text-rose-900 border-rose-300",
+  in_shop:          "bg-amber-100 text-amber-900 border-amber-300",
+  defect_open:      "bg-amber-100 text-amber-900 border-amber-300",
+  failed_dvir:      "bg-amber-100 text-amber-900 border-amber-300",
+  maintenance_hold: "bg-amber-50 text-amber-800 border-amber-200",
+  motive_only:      "bg-indigo-50 text-indigo-800 border-indigo-200",
+  not_in_spine:     "bg-amber-50 text-amber-900 border-amber-300",
+  unknown:          "bg-slate-50 text-slate-600 border-slate-200",
+  attention:        "bg-rose-100 text-rose-900 border-rose-300",
+  waiting:          "bg-amber-100 text-amber-900 border-amber-300",
+  breakdown:        "bg-rose-200 text-rose-900 border-rose-400",
+  pass:             "bg-emerald-50 text-emerald-800 border-emerald-200",
+  fail:             "bg-rose-50 text-rose-800 border-rose-200",
+  pending:          "bg-slate-50 text-slate-700 border-slate-200",
+  info:             "bg-sky-50 text-sky-900 border-sky-200",
 };
 
 export function StatusChip({ tone = "available", children, testId }) {

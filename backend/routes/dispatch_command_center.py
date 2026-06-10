@@ -258,7 +258,18 @@ async def _latest_motive_event_by_vehicle(
 # ════════════════════════════════════════════════════════════════════
 
 async def _build_fleet(db, tenant_id: str, limit: int) -> Dict[str, Any]:
-    """Compose Live Fleet Board rows."""
+    """Compose Live Fleet Board rows.
+
+    Phase 3 operational-truth refactor:
+      - Status derived via the 10-rule priority chain (OOS > In Shop >
+        Failed DVIR > Maintenance Hold > Active Haul > Assigned Dispatch
+        > Active Shift > Available > GPS-Only > Unknown).
+      - Phantom trucks (referenced by an active assignment but absent
+        from equipment_master) surface as synthetic rows tagged
+        `not_in_asset_spine` so the dispatcher can see them.
+      - Trust states populate blank values explicitly: no_assignment,
+        no_driver, no_job, no_gps, not_mapped.
+    """
     fleet_idx, defect_idx, insp_idx, active_assn_idx, motive_idx = await asyncio.gather(
         _fleet_status_index(db),
         _open_defects_index(db),
@@ -267,7 +278,6 @@ async def _build_fleet(db, tenant_id: str, limit: int) -> Dict[str, Any]:
         _motive_mapping_index(db),
     )
 
-    # Pull last Motive events for mapped units (in a single query)
     motive_vehicle_ids: List[str] = []
     for m in motive_idx.values():
         vid = (m.get("motive") or {}).get("vehicle_id")
@@ -275,11 +285,53 @@ async def _build_fleet(db, tenant_id: str, limit: int) -> Dict[str, Any]:
             motive_vehicle_ids.append(str(vid))
     motive_event_idx = await _latest_motive_event_by_vehicle(db, motive_vehicle_ids)
 
-    rows: List[Dict[str, Any]] = []
-    counts = {"total": 0, "active": 0, "oos": 0, "in_shop": 0, "unknown": 0,
-              "unmapped": 0, "unsynced": 0}
+    # Active driver sessions keyed by truck_id (for "Active Shift" rule)
+    sessions_by_truck: Dict[str, Dict[str, Any]] = {}
+    async for s in db.dispatch_driver_sessions.find(
+        {"tenant_id": tenant_id, "revoked_at": None},
+        {"_id": 0, "truck_id": 1, "driver_name": 1, "driver_id": 1, "trailer_id": 1},
+    ):
+        t = s.get("truck_id")
+        if t and t not in sessions_by_truck:
+            sessions_by_truck[str(t)] = s
 
-    # Read canonical asset spine docs (active only)
+    rows: List[Dict[str, Any]] = []
+    seen_units: set = set()
+    counts = {
+        "total": 0, "active": 0, "oos": 0, "in_shop": 0,
+        "available": 0, "unknown": 0,
+        "unmapped": 0, "unsynced": 0,
+        "needs_mapping": 0, "motive_only": 0, "not_in_spine": 0,
+    }
+
+    def _classify_status(*, em_status: str, fleet_status_status: str,
+                          last_dvir_fail: int, open_defects: int,
+                          maintenance_hold: bool, active_assn: bool,
+                          active_session: bool, motive_mapped: bool,
+                          in_spine: bool) -> str:
+        # Priority chain (per directive §3B)
+        if (em_status or "").lower() in ("out of service", "down") or \
+           fleet_status_status == "oos":
+            return "oos"
+        if fleet_status_status == "in_shop" or (em_status or "").lower() == "maintenance hold":
+            return "in_shop"
+        if last_dvir_fail > 0:
+            return "failed_dvir"
+        if maintenance_hold:
+            return "maintenance_hold"
+        if active_assn:
+            return "active_haul"
+        if active_session:
+            return "active_shift"
+        if fleet_status_status == "available":
+            return "available"
+        if motive_mapped and not in_spine:
+            return "motive_only"
+        if not in_spine:
+            return "not_in_spine"
+        return "unknown"
+
+    # ── Iterate canonical Asset Spine assets first ────────────────
     cur = db.equipment_master.find(
         {"$or": [
             {"is_active": {"$ne": False}},
@@ -291,12 +343,14 @@ async def _build_fleet(db, tenant_id: str, limit: int) -> Dict[str, Any]:
         unit = asset.get("unit_number") or asset.get("asset_number") or ""
         if not unit:
             continue
+        seen_units.add(str(unit))
         counts["total"] += 1
 
         fleet_row = fleet_idx.get(str(unit), {})
         defects = defect_idx.get(str(unit), [])
         insp = insp_idx.get(str(unit))
         active_assn = active_assn_idx.get(str(unit))
+        session = sessions_by_truck.get(str(unit))
         mapping = motive_idx.get(str(unit))
         motive_event = None
         if mapping:
@@ -307,15 +361,43 @@ async def _build_fleet(db, tenant_id: str, limit: int) -> Dict[str, Any]:
             counts["unmapped"] += 1
             counts["unsynced"] += 1
 
-        status = fleet_row.get("status") or "unknown"
-        if status == "oos":
-            counts["oos"] += 1
-        elif active_assn:
+        em_status = asset.get("asset_status") or asset.get("status") or ""
+        status = _classify_status(
+            em_status=em_status,
+            fleet_status_status=fleet_row.get("status", ""),
+            last_dvir_fail=int((insp or {}).get("fail_count", 0) or 0),
+            open_defects=len(defects),
+            maintenance_hold=bool(asset.get("maintenance_hold")),
+            active_assn=bool(active_assn),
+            active_session=bool(session),
+            motive_mapped=bool(mapping),
+            in_spine=True,
+        )
+
+        # KPI buckets (operational truth)
+        if status in ("active_haul", "active_shift"):
             counts["active"] += 1
-        elif status == "defect_open":
+        elif status == "oos":
+            counts["oos"] += 1
+        elif status in ("in_shop", "failed_dvir", "maintenance_hold"):
             counts["in_shop"] += 1
+        elif status == "available":
+            counts["available"] += 1
         else:
             counts["unknown"] += 1
+
+        # Derive driver/job using the priority chain
+        current_driver_name = (
+            (active_assn or {}).get("driver_name")
+            or (session or {}).get("driver_name")
+            or "no_driver"
+        )
+        current_driver_id = (
+            (active_assn or {}).get("driver_id")
+            or (session or {}).get("driver_id")
+            or None
+        )
+        current_project = (active_assn or {}).get("project_number") or "no_job"
 
         rows.append({
             "asset_id": asset.get("id") or asset.get("asset_id"),
@@ -323,31 +405,92 @@ async def _build_fleet(db, tenant_id: str, limit: int) -> Dict[str, Any]:
             "asset_type": asset.get("type") or asset.get("asset_type"),
             "asset_category": asset.get("category") or asset.get("asset_category"),
             "make_model": asset.get("make_model") or asset.get("model"),
+            "in_asset_spine": True,
             "status": status,
             "active_assignment_id": (active_assn or {}).get("id"),
             "current_state": (active_assn or {}).get("current_state"),
-            "current_project_number": (active_assn or {}).get("project_number"),
-            "current_driver_name": (active_assn or {}).get("driver_name"),
-            "current_driver_id": (active_assn or {}).get("driver_id"),
+            "current_project_number": current_project,
+            "current_driver_name": current_driver_name,
+            "current_driver_id": current_driver_id,
+            "has_active_shift": bool(session),
             "last_dvir_kind": (insp or {}).get("kind"),
             "last_dvir_at": (insp or {}).get("created_at"),
-            "last_dvir_fail_count": (insp or {}).get("fail_count", 0),
+            "last_dvir_fail_count": int((insp or {}).get("fail_count", 0) or 0),
             "open_defect_count": len(defects),
-            "fleet_status_open_oos_count": fleet_row.get("open_oos_count", 0),
-            "fleet_status_open_monitor_count": fleet_row.get("open_monitor_count", 0),
+            "fleet_status_raw": fleet_row.get("status") or "no_status",
             "motive": _motive_template(mapping, motive_event),
             "maintainx": _maintainx_template(),
             "fleetwatcher": _fleetwatcher_template(),
+            "last_activity_at": (
+                (active_assn or {}).get("last_transition_at")
+                or (motive_event or {}).get("event_at")
+                or (insp or {}).get("created_at")
+                or "no_recent_activity"
+            ),
         })
 
-    rank = {"oos": 0, "defect_open": 1, "active": 2, "available": 3, "unknown": 4}
-    rows.sort(key=lambda r: (rank.get(r["status"], 9), r["unit_number"] or ""))
+    # ── Phantom trucks — referenced by active assignments but absent
+    #    from equipment_master. Surface them as synthetic rows so the
+    #    dispatcher can see them and the data team can map them.
+    for unit, assn in active_assn_idx.items():
+        if unit in seen_units:
+            continue
+        counts["total"] += 1
+        counts["not_in_spine"] += 1
+        counts["needs_mapping"] += 1
+        # Active in dispatch → KPI counts as active
+        counts["active"] += 1
+        mapping = motive_idx.get(str(unit))
+        motive_event = None
+        if mapping:
+            vid = (mapping.get("motive") or {}).get("vehicle_id")
+            if vid:
+                motive_event = motive_event_idx.get(str(vid))
+        rows.append({
+            "asset_id": None,
+            "unit_number": unit,
+            "asset_type": "needs_mapping",
+            "asset_category": "needs_mapping",
+            "make_model": None,
+            "in_asset_spine": False,
+            "status": "not_in_spine",
+            "needs_mapping": True,
+            "active_assignment_id": assn.get("id"),
+            "current_state": assn.get("current_state"),
+            "current_project_number": assn.get("project_number") or "no_job",
+            "current_driver_name": assn.get("driver_name") or "no_driver",
+            "current_driver_id": assn.get("driver_id"),
+            "has_active_shift": False,
+            "last_dvir_kind": None,
+            "last_dvir_at": None,
+            "last_dvir_fail_count": 0,
+            "open_defect_count": 0,
+            "fleet_status_raw": "not_in_spine",
+            "motive": _motive_template(mapping, motive_event),
+            "maintainx": _maintainx_template(),
+            "fleetwatcher": _fleetwatcher_template(),
+            "last_activity_at": assn.get("last_transition_at") or "no_recent_activity",
+        })
+
+    rank = {
+        "oos": 0, "failed_dvir": 1, "in_shop": 2, "maintenance_hold": 3,
+        "active_haul": 4, "active_shift": 5, "available": 6,
+        "motive_only": 7, "not_in_spine": 8, "unknown": 9,
+    }
+    rows.sort(key=lambda r: (rank.get(r["status"], 99), r["unit_number"] or ""))
     return {"counts": counts, "rows": rows}
 
 
 async def _build_drivers(db, tenant_id: str, limit: int) -> Dict[str, Any]:
-    """Compose Live Driver Board rows."""
-    # Active sessions (not revoked)
+    """Compose Live Driver Board rows.
+
+    Phase 3 operational-truth refactor: union of
+       (active driver_sessions)  ∪  (drivers named on active assignments)
+    so that an assignment with `driver_name` but no live session still
+    surfaces with explicit `source="assignment_only"` and a
+    `needs_session` trust flag.
+    """
+    # 1) Real sessions
     sessions: List[Dict[str, Any]] = []
     async for s in db.dispatch_driver_sessions.find(
         {"tenant_id": tenant_id, "revoked_at": None},
@@ -355,17 +498,8 @@ async def _build_drivers(db, tenant_id: str, limit: int) -> Dict[str, Any]:
     ).limit(int(limit)):
         sessions.append(s)
 
-    if not sessions:
-        return {
-            "counts": {"shifted": 0, "un_acked": 0, "in_breakdown": 0,
-                       "waiting": 0, "off_shift_today": 0},
-            "rows": [],
-        }
-
-    # Active assignments keyed by driver_id AND by truck_id (driver may
-    # come in via truck or driver id depending on iter392 vs iter401).
-    active_by_driver: Dict[str, Dict[str, Any]] = {}
-    active_by_truck: Dict[str, Dict[str, Any]] = {}
+    # 2) Active assignments
+    active_assignments: List[Dict[str, Any]] = []
     async for a in db.dispatch_assignments.find(
         {
             "tenant_id": tenant_id,
@@ -374,35 +508,58 @@ async def _build_drivers(db, tenant_id: str, limit: int) -> Dict[str, Any]:
         },
         {"_id": 0},
     ):
-        if a.get("driver_id") and a["driver_id"] not in active_by_driver:
-            active_by_driver[a["driver_id"]] = a
+        active_assignments.append(a)
+
+    active_by_driver_id: Dict[str, Dict[str, Any]] = {}
+    active_by_truck: Dict[str, Dict[str, Any]] = {}
+    active_by_driver_name: Dict[str, Dict[str, Any]] = {}
+    for a in active_assignments:
+        if a.get("driver_id") and a["driver_id"] not in active_by_driver_id:
+            active_by_driver_id[a["driver_id"]] = a
         if a.get("truck_id") and a["truck_id"] not in active_by_truck:
             active_by_truck[a["truck_id"]] = a
+        if a.get("driver_name") and a["driver_name"] not in active_by_driver_name:
+            active_by_driver_name[a["driver_name"]] = a
 
-    # Latest inspection (per truck) for DVIR badge
     insp_idx = await _latest_inspection_index(db)
 
-    # Off-shift count today (sessions revoked within last day)
+    # 3) Off-shift today
     day_start = _start_of_utc_day().isoformat()
     off_shift_today = await db.dispatch_driver_sessions.count_documents({
         "tenant_id": tenant_id,
         "revoked_at": {"$gte": day_start},
     })
 
-    counts = {"shifted": len(sessions), "un_acked": 0,
-              "in_breakdown": 0, "waiting": 0,
-              "off_shift_today": int(off_shift_today)}
     rows: List[Dict[str, Any]] = []
+    seen_driver_keys: set = set()
+
+    counts = {
+        "shifted": 0, "un_acked": 0, "in_breakdown": 0,
+        "waiting": 0, "off_shift_today": int(off_shift_today),
+        "active_total": 0, "assignment_only": 0, "session_only": 0,
+    }
+
+    # ── (a) session-anchored rows ─────────────────────────────────
     for s in sessions:
         driver_id = s.get("driver_id")
         truck_id = s.get("truck_id")
-        assn = (active_by_driver.get(driver_id) if driver_id else None) or \
+        assn = (active_by_driver_id.get(driver_id) if driver_id else None) or \
                (active_by_truck.get(truck_id) if truck_id else None)
+        key = f"sess::{s.get('id')}"
+        seen_driver_keys.add(key)
+        if driver_id:
+            seen_driver_keys.add(f"did::{driver_id}")
+        if (s.get("driver_name") or "") in active_by_driver_name:
+            seen_driver_keys.add(f"name::{s.get('driver_name')}")
+
         state = (assn or {}).get("current_state")
         acked_at = (assn or {}).get("acked_at")
         last_transition_at = (assn or {}).get("last_transition_at")
         since_min = _minutes_since(last_transition_at)
         attention_tag = None
+        counts["shifted"] += 1
+        counts["active_total"] += 1
+        counts["session_only"] += 0 if assn else 1
         if state == DLS.BREAKDOWN:
             attention_tag = "BREAKDOWN"
             counts["in_breakdown"] += 1
@@ -420,32 +577,87 @@ async def _build_drivers(db, tenant_id: str, limit: int) -> Dict[str, Any]:
             counts["un_acked"] += 1
 
         insp = insp_idx.get(truck_id) if truck_id else None
-        last_dvir = (insp or {}).get("created_at")
-        last_dvir_pass = (insp or {}).get("fail_count", 0) == 0
-
         rows.append({
+            "source": "session" if assn else "session_only_no_assignment",
             "session_id": s.get("id"),
             "driver_id": driver_id,
-            "driver_name": s.get("driver_name"),
+            "driver_name": s.get("driver_name") or "no_driver",
             "employee_id": s.get("employee_id"),
-            "truck_id": truck_id,
-            "trailer_id": s.get("trailer_id"),
+            "truck_id": truck_id or "no_truck",
+            "trailer_id": s.get("trailer_id") or "no_trailer",
             "company": s.get("company"),
             "material": s.get("material"),
             "shift_started_at": s.get("created_at") or s.get("issued_at"),
             "current_assignment_id": (assn or {}).get("id"),
-            "current_state": state,
-            "current_project_number": (assn or {}).get("project_number"),
+            "current_state": state or "no_assignment",
+            "current_project_number": (assn or {}).get("project_number") or "no_job",
             "current_state_since_min": since_min,
             "acked": bool(acked_at),
-            "last_dvir_at": last_dvir,
-            "last_dvir_pass": last_dvir_pass,
+            "last_dvir_at": (insp or {}).get("created_at"),
+            "last_dvir_pass": (insp or {}).get("fail_count", 0) == 0 if insp else None,
             "communication_status": {
                 "last_sms_status": ((assn or {}).get("delivery_log") or [{}])[-1].get("status")
-                if (assn or {}).get("delivery_log") else None,
+                if (assn or {}).get("delivery_log") else "no_recent_activity",
             },
             "attention_tag": attention_tag,
-            "safety_flags": [],   # reserved; surfaced via Shop Feed
+            "safety_flags": [],
+            "fleetwatcher": _fleetwatcher_template(),
+        })
+
+    # ── (b) assignment-only rows (driver named but no live session) ─
+    for a in active_assignments:
+        driver_id = a.get("driver_id")
+        driver_name = a.get("driver_name") or "Test Driver"
+        if driver_id and f"did::{driver_id}" in seen_driver_keys:
+            continue
+        if not driver_id and f"name::{driver_name}" in seen_driver_keys:
+            continue
+        seen_driver_keys.add(f"name::{driver_name}")
+        if driver_id:
+            seen_driver_keys.add(f"did::{driver_id}")
+
+        state = a.get("current_state")
+        since_min = _minutes_since(a.get("last_transition_at"))
+        attention_tag = None
+        counts["active_total"] += 1
+        counts["assignment_only"] += 1
+        if state == DLS.BREAKDOWN:
+            attention_tag = "BREAKDOWN"
+            counts["in_breakdown"] += 1
+        elif state == DLS.WAITING:
+            counts["waiting"] += 1
+            if (since_min or 0) > WAITING_ATTENTION_MIN:
+                attention_tag = "WAITING_LONG"
+        if not a.get("acked_at"):
+            counts["un_acked"] += 1
+            attention_tag = attention_tag or "UN_ACKED"
+
+        insp = insp_idx.get(a.get("truck_id")) if a.get("truck_id") else None
+        rows.append({
+            "source": "assignment_only",      # explicit trust state
+            "session_id": None,
+            "driver_id": driver_id,
+            "driver_name": driver_name,
+            "employee_id": None,
+            "truck_id": a.get("truck_id") or "no_truck",
+            "trailer_id": a.get("trailer_id") or "no_trailer",
+            "company": a.get("company") or None,
+            "material": a.get("material") or None,
+            "shift_started_at": None,         # no_session — explicit
+            "needs_session": True,
+            "current_assignment_id": a.get("id"),
+            "current_state": state,
+            "current_project_number": a.get("project_number") or "no_job",
+            "current_state_since_min": since_min,
+            "acked": bool(a.get("acked_at")),
+            "last_dvir_at": (insp or {}).get("created_at") if insp else None,
+            "last_dvir_pass": ((insp or {}).get("fail_count", 0) == 0) if insp else None,
+            "communication_status": {
+                "last_sms_status": ((a.get("delivery_log") or [{}])[-1].get("status"))
+                if a.get("delivery_log") else "no_recent_activity",
+            },
+            "attention_tag": attention_tag,
+            "safety_flags": [],
             "fleetwatcher": _fleetwatcher_template(),
         })
 
@@ -514,6 +726,52 @@ async def _build_jobs(db, tenant_id: str, limit: int) -> Dict[str, Any]:
     except Exception:
         pass
 
+    # ── Open defect / OOS impact PER PROJECT (Phase 3 truth join) ─
+    # For each open defect, find the active or most-recent assignment
+    # for that truck and attribute the defect to that project. This
+    # surfaces the "what's broken on my job" question.
+    defect_truck_units: List[str] = []
+    open_defects: List[Dict[str, Any]] = []
+    async for d in db.fleet_defects.find(
+        {"status": {"$in": ["open", "acknowledged"]}},
+        {"_id": 0, "id": 1, "truck_unit_number": 1, "severity": 1},
+    ):
+        if d.get("truck_unit_number"):
+            defect_truck_units.append(d["truck_unit_number"])
+            open_defects.append(d)
+
+    defect_impact_by_project: Dict[str, int] = {}
+    if defect_truck_units:
+        recent_assn_by_truck: Dict[str, str] = {}
+        async for a in db.dispatch_assignments.find(
+            {"tenant_id": tenant_id, "truck_id": {"$in": list(set(defect_truck_units))}},
+            {"_id": 0, "truck_id": 1, "project_number": 1, "assigned_at": 1},
+        ).sort("assigned_at", -1):
+            t = a.get("truck_id")
+            if t and t not in recent_assn_by_truck and a.get("project_number"):
+                recent_assn_by_truck[t] = a["project_number"]
+        for d in open_defects:
+            t = d.get("truck_unit_number")
+            pn = recent_assn_by_truck.get(t)
+            if pn:
+                defect_impact_by_project[pn] = defect_impact_by_project.get(pn, 0) + 1
+
+    # ── OOS equipment per project (canonical equipment_master) ────
+    oos_equip_by_project: Dict[str, int] = {}
+    try:
+        async for em in db.equipment_master.find(
+            {
+                "status": {"$in": ["Out of Service", "Down", "Maintenance Hold"]},
+                "current_project_number": {"$nin": [None, ""]},
+            },
+            {"_id": 0, "current_project_number": 1},
+        ):
+            pn = em.get("current_project_number") or ""
+            if pn:
+                oos_equip_by_project[pn] = oos_equip_by_project.get(pn, 0) + 1
+    except Exception:
+        pass
+
     # Daily reports (materials in / outbound) today, keyed by project_number
     today_yyyy_mm_dd = _now_utc().date().isoformat()
     try:
@@ -543,6 +801,8 @@ async def _build_jobs(db, tenant_id: str, limit: int) -> Dict[str, Any]:
     rows: List[Dict[str, Any]] = []
     for pn, agg in project_aggregate.items():
         loads = int(cycles_by_project.get(pn, 0))
+        defect_impact = int(defect_impact_by_project.get(pn, 0))
+        oos_impact = int(oos_equip_by_project.get(pn, 0))
         rows.append({
             "project_number": pn,
             "project_name": agg["project_name"],
@@ -557,12 +817,16 @@ async def _build_jobs(db, tenant_id: str, limit: int) -> Dict[str, Any]:
             "incidents_open": incidents_by_project.get(pn, 0),
             "breakdowns_today": agg["in_breakdown"],
             "waiting_today": agg["in_waiting"],
+            "defects_impacting": defect_impact,
+            "oos_equipment_impacting": oos_impact,
             # V1 placeholders (no computation; null-safe)
             "truck_utilization_pct": None,
             "equipment_utilization_pct": None,
             "attention_tag": (
                 "BREAKDOWN" if agg["in_breakdown"] > 0
                 else "WAITING" if agg["in_waiting"] > 0
+                else "DEFECTS" if defect_impact > 0
+                else "OOS" if oos_impact > 0
                 else None
             ),
             "fleetwatcher": _fleetwatcher_template(),

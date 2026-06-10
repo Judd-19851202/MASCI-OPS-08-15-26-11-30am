@@ -57,18 +57,26 @@ export default function FleetBoard() {
   const counts = data?.counts || {};
 
   const filterOptions = useMemo(() => [
-    { value: "all",         label: "All",       count: counts.total },
-    { value: "active",      label: "Active",    count: counts.active },
-    { value: "oos",         label: "OOS",       count: counts.oos },
-    { value: "defect_open", label: "Defects",   count: counts.in_shop },
-    { value: "unknown",     label: "Unknown",   count: counts.unknown },
+    { value: "all",            label: "All",          count: counts.total },
+    { value: "active",         label: "Active",       count: counts.active },
+    { value: "oos",            label: "OOS",          count: counts.oos },
+    { value: "in_shop",        label: "In Shop",      count: counts.in_shop },
+    { value: "available",      label: "Available",    count: counts.available },
+    { value: "needs_mapping",  label: "Needs Map",    count: counts.needs_mapping },
+    { value: "unknown",        label: "Unknown",      count: counts.unknown },
   ], [counts]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     let r = rows;
-    if (statusFilter !== "all") {
-      r = r.filter((x) => x.status === statusFilter);
+    if (statusFilter === "active") {
+      r = r.filter(x => x.status === "active_haul" || x.status === "active_shift");
+    } else if (statusFilter === "in_shop") {
+      r = r.filter(x => ["in_shop", "failed_dvir", "maintenance_hold"].includes(x.status));
+    } else if (statusFilter === "needs_mapping") {
+      r = r.filter(x => x.status === "not_in_spine" || x.status === "motive_only");
+    } else if (statusFilter !== "all") {
+      r = r.filter(x => x.status === statusFilter);
     }
     if (q) {
       r = r.filter((x) => {
@@ -80,7 +88,11 @@ export default function FleetBoard() {
       });
     }
     const sorted = [...r];
-    const rank = { oos: 0, defect_open: 1, active: 2, available: 3, unknown: 4 };
+    const rank = {
+      oos: 0, failed_dvir: 1, in_shop: 2, maintenance_hold: 3,
+      active_haul: 4, active_shift: 5, available: 6,
+      motive_only: 7, not_in_spine: 8, unknown: 9,
+    };
     sorted.sort((a, b) => {
       if (sortBy === "unit") {
         return String(a.unit_number || "").localeCompare(String(b.unit_number || ""));
@@ -88,9 +100,8 @@ export default function FleetBoard() {
       if (sortBy === "type") {
         return String(a.asset_type || "").localeCompare(String(b.asset_type || ""));
       }
-      // status
-      const ra = rank[a.status] ?? 9;
-      const rb = rank[b.status] ?? 9;
+      const ra = rank[a.status] ?? 99;
+      const rb = rank[b.status] ?? 99;
       if (ra !== rb) return ra - rb;
       return String(a.unit_number || "").localeCompare(String(b.unit_number || ""));
     });
@@ -165,7 +176,12 @@ export default function FleetBoard() {
                   data-testid={`fleet-row-${r.unit_number}`}
                   className="border-b border-slate-100 hover:bg-slate-50"
                 >
-                  <td className="px-3 py-2 font-bold text-slate-900">{r.unit_number || "—"}</td>
+                  <td className="px-3 py-2 font-bold text-slate-900">
+                    {r.unit_number || "—"}
+                    {r.in_asset_spine === false ? (
+                      <div className="text-[10px] font-mono uppercase tracking-widest text-amber-700">not_in_spine</div>
+                    ) : null}
+                  </td>
                   <td className="px-2 py-2 text-slate-700">
                     <div>{r.asset_type || r.asset_category || "—"}</div>
                     {r.make_model ? (
@@ -177,16 +193,33 @@ export default function FleetBoard() {
                       tone={r.status}
                       testId={`fleet-row-${r.unit_number}-status`}
                     >
-                      {r.status || "—"}
+                      {(r.status || "—").replace(/_/g, " ")}
                     </StatusChip>
                     {r.current_state ? (
                       <div className="text-[10px] text-slate-500 mt-0.5">{r.current_state}</div>
                     ) : null}
                   </td>
-                  <td className="px-2 py-2 text-slate-700">{r.current_driver_name || "—"}</td>
-                  <td className="px-2 py-2 text-slate-700">{r.current_project_number || "—"}</td>
+                  <td className="px-2 py-2 text-slate-700">
+                    {r.current_driver_name === "no_driver" ? (
+                      <span className="font-mono text-[10px] text-slate-400 uppercase">no_driver</span>
+                    ) : (
+                      <>
+                        {r.current_driver_name}
+                        {!r.has_active_shift && r.current_driver_name !== "no_driver" ? (
+                          <div className="text-[10px] font-mono text-slate-500">no_session</div>
+                        ) : null}
+                      </>
+                    )}
+                  </td>
+                  <td className="px-2 py-2 text-slate-700">
+                    {r.current_project_number === "no_job" ? (
+                      <span className="font-mono text-[10px] text-slate-400 uppercase">no_job</span>
+                    ) : r.current_project_number}
+                  </td>
                   <td className="px-2 py-2 text-slate-700 font-mono text-[10px]">
-                    {r.active_assignment_id ? r.active_assignment_id.slice(0, 8) : "—"}
+                    {r.active_assignment_id ? r.active_assignment_id.slice(0, 8) : (
+                      <span className="text-slate-400 uppercase">no_assignment</span>
+                    )}
                   </td>
                   <td className="px-2 py-2 text-center">
                     <IntegrationDot
@@ -197,7 +230,9 @@ export default function FleetBoard() {
                       testId={`fleet-row-${r.unit_number}-motive`}
                     />
                     <div className="text-[10px] text-slate-500 mt-0.5">
-                      {r.motive?.connected ? fmtAgo(r.motive.last_event_at) : "—"}
+                      {r.motive?.connected ? fmtAgo(r.motive.last_event_at) : (
+                        <span className="text-slate-400 font-mono">not_mapped</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-2 py-2 text-slate-700">
@@ -211,7 +246,7 @@ export default function FleetBoard() {
                         </div>
                       </>
                     ) : (
-                      <span className="text-slate-400 text-[10px] uppercase">none</span>
+                      <span className="text-slate-400 text-[10px] font-mono uppercase">no_recent_activity</span>
                     )}
                   </td>
                   <td className="px-2 py-2 text-right">
