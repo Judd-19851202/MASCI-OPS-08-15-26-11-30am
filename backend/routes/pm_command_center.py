@@ -1,0 +1,665 @@
+"""
+routes/pm_command_center.py · FORGEDOPS PM Command Center · Phase 4A.
+
+PM-scoped read-only aggregation that powers the future PM Command
+Center UI. Composes Asset Spine + dispatch lifecycle + driver sessions
++ fleet defects + haul cycles + projects + daily reports + incidents
+into 7 endpoints under /api/pm/command-center/*.
+
+Doctrine:
+  - Asset Spine canonical (no parallel asset store, no road-plate-only
+    collection).
+  - Road plates are first-class asset type "road_plate" — the
+    normalizer recognizes the canonical value AND legacy strings
+    (Road Plate, Steel Plate, Plate, Plates, Trench Plate,
+    Traffic Plate, Roadplate, ROAD PLATE).
+  - compute_pm_scope() is the PM authorization boundary.
+  - Every operational row carries the map-ready field set:
+    asset_id · project_id · project_number · assignment_id · status ·
+    location_ref · timestamp · operational_state · trust_state ·
+    source_system.
+  - No production data mutation. No new collection.
+  - FleetWatcher / MaintainX templates returned `not_connected`.
+"""
+from __future__ import annotations
+
+import asyncio
+import logging
+from datetime import datetime, timedelta, timezone
+from typing import Any, Awaitable, Callable, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from pm_auth import compute_pm_scope, PmScope
+import dispatch_lifecycle as DLS
+
+logger = logging.getLogger("pm_command_center")
+
+
+# ════════════════════════════════════════════════════════════════════
+# Road Plate canonical normalization
+# ════════════════════════════════════════════════════════════════════
+ROAD_PLATE_CANONICAL = "road_plate"
+ROAD_PLATE_LEGACY_VALUES = {
+    "road plate", "steel plate", "plate", "plates",
+    "trench plate", "traffic plate", "roadplate", "road_plate",
+}
+
+
+def normalize_asset_kind(raw: Optional[str]) -> Optional[str]:
+    """Lowercase + map legacy plate names → 'road_plate'.
+
+    Anything else returns the lowercased original (or None when empty)
+    so callers can do simple equality comparisons.
+    """
+    if not raw:
+        return None
+    v = str(raw).strip().lower()
+    if v in ROAD_PLATE_LEGACY_VALUES:
+        return ROAD_PLATE_CANONICAL
+    return v
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _start_of_utc_day() -> datetime:
+    return datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def _maintainx_tpl() -> Dict[str, Any]:
+    return {"connected": False, "status": "not_connected", "work_order_id": None}
+
+
+def _fleetwatcher_tpl() -> Dict[str, Any]:
+    return {"connected": False, "status": "not_connected",
+            "ticket_number": None, "tons": None, "loads": None}
+
+
+def _map_ready(*, asset_id=None, project_id=None, project_number=None,
+                assignment_id=None, status=None, location_ref=None,
+                timestamp=None, operational_state=None,
+                trust_state=None, source_system="forgedops") -> Dict[str, Any]:
+    """Mandatory map-ready field set on every operational row."""
+    return {
+        "asset_id": asset_id,
+        "project_id": project_id,
+        "project_number": project_number,
+        "assignment_id": assignment_id,
+        "status": status,
+        "location_ref": location_ref,
+        "timestamp": timestamp,
+        "operational_state": operational_state,
+        "trust_state": trust_state,
+        "source_system": source_system,
+    }
+
+
+# ════════════════════════════════════════════════════════════════════
+# Helpers
+# ════════════════════════════════════════════════════════════════════
+
+def _scope_filter_q(scope: PmScope, project_number: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Return the project_number Mongo filter. None when no projects."""
+    if scope.is_admin:
+        if project_number:
+            return {"project_number": project_number}
+        return {}
+    nums = list(scope.project_numbers or [])
+    if not nums:
+        return None
+    if project_number:
+        if project_number not in nums:
+            return None
+        return {"project_number": project_number}
+    return {"project_number": {"$in": nums}}
+
+
+async def _pm_scope_project_numbers(scope: PmScope,
+                                     project_number: Optional[str]) -> List[str]:
+    if scope.is_admin and project_number:
+        return [project_number]
+    if scope.is_admin:
+        return []  # admin without filter → return [] = "any"
+    nums = list(scope.project_numbers or [])
+    if project_number and project_number in nums:
+        return [project_number]
+    return nums
+
+
+def _classify_asset_kind(em: Dict[str, Any]) -> str:
+    """Asset Spine kind classifier with road-plate normalization."""
+    raw = em.get("type") or em.get("asset_type") or em.get("category") or em.get("asset_category") or ""
+    k = normalize_asset_kind(raw)
+    return k or "unknown"
+
+
+# ════════════════════════════════════════════════════════════════════
+# Router factory
+# ════════════════════════════════════════════════════════════════════
+def build_pm_command_center_router(
+    db,
+    require_pm_or_admin_dep: Callable[..., Awaitable[Dict[str, Any]]],
+) -> APIRouter:
+    router = APIRouter(prefix="/api/pm/command-center", tags=["pm-command-center"])
+
+    async def _scope(actor) -> PmScope:
+        return await compute_pm_scope(db, actor)
+
+    # ────────────────────────────────────────────────────────────
+    # /overview — top strip KPIs
+    # ────────────────────────────────────────────────────────────
+    @router.get("/overview")
+    async def overview(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        if not scope.is_admin and not nums:
+            return _empty_overview(project_number)
+
+        pn_filter = {"project_number": {"$in": nums}} if nums else {}
+        day_start = _start_of_utc_day().isoformat()
+
+        # Active assignments scoped to project(s)
+        assn_q = {"current_state": {"$nin": list(DLS.TERMINAL_STATES)},
+                  "cancelled_at": None}
+        assn_q.update(pn_filter)
+        trucks: set = set()
+        drivers: set = set()
+        equipment: set = set()
+        trailers: set = set()
+        active_assns = 0
+        active_hauls = 0
+        async for a in db.dispatch_assignments.find(assn_q, {
+            "_id": 0, "truck_id": 1, "driver_id": 1, "driver_name": 1,
+            "trailer_id": 1, "equipment_id": 1, "current_state": 1,
+        }):
+            active_assns += 1
+            if a.get("current_state") not in DLS.TERMINAL_STATES:
+                active_hauls += 1
+            if a.get("truck_id"): trucks.add(a["truck_id"])
+            if a.get("driver_id"): drivers.add(a["driver_id"])
+            elif a.get("driver_name"): drivers.add(a["driver_name"])
+            if a.get("trailer_id"): trailers.add(a["trailer_id"])
+            if a.get("equipment_id"): equipment.add(a["equipment_id"])
+
+        # Equipment assigned via equipment_master.current_project_number
+        em_assigned_q: Dict[str, Any] = {}
+        if nums:
+            em_assigned_q["current_project_number"] = {"$in": nums}
+        equipment_assigned = await db.equipment_master.count_documents(em_assigned_q)
+
+        # Road plates assigned (canonical + legacy normalization in code)
+        road_plates_assigned = 0
+        async for em in db.equipment_master.find(em_assigned_q,
+                                                  {"_id": 0, "type": 1, "asset_type": 1,
+                                                   "category": 1, "asset_category": 1}):
+            if _classify_asset_kind(em) == ROAD_PLATE_CANONICAL:
+                road_plates_assigned += 1
+
+        # Defects impacting project (via truck_id of recent assignment)
+        defects_open = 0
+        if nums:
+            recent_trucks = await db.dispatch_assignments.distinct("truck_id", pn_filter)
+            if recent_trucks:
+                defects_open = await db.fleet_defects.count_documents({
+                    "status": {"$in": ["open", "acknowledged"]},
+                    "truck_unit_number": {"$in": [t for t in recent_trucks if t]},
+                })
+
+        # Incidents
+        inc_q: Dict[str, Any] = {"resolution_status": {"$ne": "Closed"}}
+        if nums: inc_q["project_number"] = {"$in": nums}
+        incidents_open = await db.incidents.count_documents(inc_q)
+
+        # CAPAs
+        capas_q: Dict[str, Any] = {"status": {"$nin": ["Completed", "Closed", "Cancelled"]}}
+        if nums: capas_q["project_number"] = {"$in": nums}
+        capas_open = await db.corrective_actions.count_documents(capas_q)
+
+        # Material movement today (daily_reports)
+        today_yyyymmdd = datetime.now(timezone.utc).date().isoformat()
+        materials_in = 0
+        materials_out = 0
+        dr_q: Dict[str, Any] = {"report_date": today_yyyymmdd,
+                                "deleted_at": {"$in": [None, "", False]}}
+        if nums: dr_q["project_number"] = {"$in": nums}
+        async for d in db.daily_reports.find(dr_q,
+                                             {"_id": 0, "materials": 1, "outbound_materials": 1}):
+            materials_in += len(d.get("materials") or [])
+            materials_out += len(d.get("outbound_materials") or [])
+
+        # Loads today
+        hc_q: Dict[str, Any] = {"completed_at": {"$gte": day_start}}
+        if nums: hc_q["project_number"] = {"$in": nums}
+        loads_today = await db.haul_cycles.count_documents(hc_q)
+
+        return {
+            "ok": True,
+            "as_of": _now_iso(),
+            "project_number_filter": project_number,
+            "scoped_projects": nums or "all",
+            "counts": {
+                "equipment_assigned": int(equipment_assigned),
+                "trucks_assigned": len(trucks),
+                "drivers_assigned": len(drivers),
+                "trailers_assigned": len(trailers),
+                "road_plates_assigned": int(road_plates_assigned),
+                "active_assignments": int(active_assns),
+                "active_hauls": int(active_hauls),
+                "loads_today": int(loads_today),
+                "defects_open": int(defects_open),
+                "incidents_open": int(incidents_open),
+                "capas_open": int(capas_open),
+                "materials_in_today": int(materials_in),
+                "materials_out_today": int(materials_out),
+            },
+            "integration_readiness": {
+                "fleetwatcher": "not_connected",
+                "maintainx": "not_connected",
+            },
+        }
+
+    # ────────────────────────────────────────────────────────────
+    # /resources — Section 1
+    # ────────────────────────────────────────────────────────────
+    @router.get("/resources")
+    async def resources(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+        kind: Optional[str] = Query(default=None,
+            description="filter to one of: equipment|truck|trailer|road_plate|safety|support"),
+        limit: int = Query(default=1000, ge=1, le=5000),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        if not scope.is_admin and not nums:
+            return {"ok": True, "rows": [], "counts_by_kind": {}, "as_of": _now_iso()}
+
+        em_q: Dict[str, Any] = {"$or": [
+            {"is_active": {"$ne": False}}, {"active": {"$ne": False}},
+        ]}
+        if nums:
+            em_q["current_project_number"] = {"$in": nums}
+
+        # Active assignments per truck (for live driver/job binding)
+        assn_q = {"current_state": {"$nin": list(DLS.TERMINAL_STATES)},
+                  "cancelled_at": None}
+        if nums:
+            assn_q["project_number"] = {"$in": nums}
+        assn_by_truck: Dict[str, Dict[str, Any]] = {}
+        async for a in db.dispatch_assignments.find(assn_q, {"_id": 0}):
+            t = a.get("truck_id")
+            if t and t not in assn_by_truck:
+                assn_by_truck[str(t)] = a
+
+        # Open defects per unit
+        defects_by_unit: Dict[str, int] = {}
+        async for d in db.fleet_defects.find(
+            {"status": {"$in": ["open", "acknowledged"]}},
+            {"_id": 0, "truck_unit_number": 1},
+        ):
+            u = d.get("truck_unit_number")
+            if u: defects_by_unit[str(u)] = defects_by_unit.get(str(u), 0) + 1
+
+        rows: List[Dict[str, Any]] = []
+        counts_by_kind: Dict[str, int] = {}
+        async for em in db.equipment_master.find(em_q, {"_id": 0}).limit(int(limit)):
+            unit = em.get("unit_number") or em.get("asset_number")
+            if not unit:
+                continue
+            asset_kind = _classify_asset_kind(em)
+            if kind and kind != asset_kind:
+                # also allow shorthand
+                if not (kind == "equipment" and asset_kind not in {"truck", "trailer", "road_plate", "safety"}):
+                    continue
+            counts_by_kind[asset_kind] = counts_by_kind.get(asset_kind, 0) + 1
+            a = assn_by_truck.get(str(unit))
+            map_ready = _map_ready(
+                asset_id=em.get("id") or em.get("asset_id"),
+                project_id=em.get("current_project_id"),
+                project_number=em.get("current_project_number") or (a or {}).get("project_number"),
+                assignment_id=(a or {}).get("id"),
+                status=em.get("status") or em.get("asset_status") or "unknown",
+                location_ref=em.get("current_location") or em.get("yard"),
+                timestamp=em.get("updated_at") or em.get("last_modified_at"),
+                operational_state=(a or {}).get("current_state") or "no_assignment",
+                trust_state=("active_haul" if a else "no_assignment"),
+                source_system="asset_spine",
+            )
+            rows.append({
+                "unit_number": unit,
+                "asset_kind": asset_kind,
+                "make_model": em.get("make_model") or em.get("model"),
+                "current_driver_name": (a or {}).get("driver_name") or "no_driver",
+                "assigned_crew": em.get("assigned_crew") or "no_crew",
+                "last_activity_at": (a or {}).get("last_transition_at")
+                    or em.get("updated_at") or "no_recent_activity",
+                "open_defect_count": defects_by_unit.get(str(unit), 0),
+                "dvir_status": "no_recent_activity",  # joined separately by 4B UI
+                "inspection_status": "no_recent_activity",
+                "fleetwatcher": _fleetwatcher_tpl(),
+                "maintainx": _maintainx_tpl(),
+                **map_ready,
+            })
+
+        return {"ok": True, "as_of": _now_iso(),
+                "project_number_filter": project_number,
+                "rows": rows, "counts_by_kind": counts_by_kind}
+
+    # ────────────────────────────────────────────────────────────
+    # /hauls — Section 2
+    # ────────────────────────────────────────────────────────────
+    @router.get("/hauls")
+    async def hauls(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+        limit: int = Query(default=500, ge=1, le=2000),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        if not scope.is_admin and not nums:
+            return {"ok": True, "rows": [], "as_of": _now_iso()}
+        q = {"current_state": {"$nin": list(DLS.TERMINAL_STATES)},
+             "cancelled_at": None}
+        if nums:
+            q["project_number"] = {"$in": nums}
+        rows: List[Dict[str, Any]] = []
+        async for a in db.dispatch_assignments.find(q, {"_id": 0}).sort("assigned_at", -1).limit(int(limit)):
+            rows.append({
+                "truck_id": a.get("truck_id") or "no_truck",
+                "driver_name": a.get("driver_name") or "no_driver",
+                "material": a.get("material") or a.get("liquid_product"),
+                "source": a.get("source_location") or a.get("pickup_location"),
+                "destination": a.get("destination") or a.get("dropoff_location"),
+                "current_state": a.get("current_state"),
+                "cycle_count": a.get("load_count") or 0,
+                "waiting_plant": (a.get("current_state") == DLS.WAITING and "PLANT" in (a.get("current_wait_reason") or "").upper()),
+                "waiting_dump": (a.get("current_state") == DLS.WAITING and any(k in (a.get("current_wait_reason") or "").upper() for k in ("DUMP", "SITE"))),
+                "breakdown_impact": a.get("current_state") == DLS.BREAKDOWN,
+                "last_activity_at": a.get("last_transition_at"),
+                "fleetwatcher": _fleetwatcher_tpl(),
+                **_map_ready(
+                    asset_id=a.get("truck_id"),
+                    project_number=a.get("project_number"),
+                    assignment_id=a.get("id"),
+                    status=a.get("current_state"),
+                    timestamp=a.get("last_transition_at"),
+                    operational_state=a.get("current_state"),
+                    trust_state=("breakdown" if a.get("current_state") == DLS.BREAKDOWN
+                                  else "active_haul"),
+                    source_system="dispatch_lifecycle",
+                ),
+            })
+        return {"ok": True, "as_of": _now_iso(),
+                "project_number_filter": project_number, "rows": rows}
+
+    # ────────────────────────────────────────────────────────────
+    # /materials — Section 3
+    # ────────────────────────────────────────────────────────────
+    @router.get("/materials")
+    async def materials(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+        days: int = Query(default=7, ge=1, le=90),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        if not scope.is_admin and not nums:
+            return {"ok": True, "as_of": _now_iso(), "rows": [],
+                    "totals": {"deliveries": 0, "removals": 0, "hauls": 0}}
+        cutoff = (datetime.now(timezone.utc).date() - timedelta(days=days)).isoformat()
+        dr_q: Dict[str, Any] = {"report_date": {"$gte": cutoff},
+                                 "deleted_at": {"$in": [None, "", False]}}
+        if nums: dr_q["project_number"] = {"$in": nums}
+        rows: List[Dict[str, Any]] = []
+        deliveries = 0
+        removals = 0
+        async for d in db.daily_reports.find(dr_q,
+            {"_id": 0, "report_date": 1, "project_number": 1,
+             "materials": 1, "outbound_materials": 1}):
+            for m in (d.get("materials") or []):
+                deliveries += 1
+                rows.append({
+                    "report_date": d.get("report_date"),
+                    "direction": "in",
+                    "material": (m or {}).get("type") or (m or {}).get("name"),
+                    "source": (m or {}).get("source"),
+                    "destination": (m or {}).get("destination") or d.get("project_number"),
+                    "estimated_quantity": (m or {}).get("quantity"),
+                    "actual_quantity": (m or {}).get("actual_quantity"),
+                    **_map_ready(project_number=d.get("project_number"),
+                                  status="delivered", trust_state="material_in",
+                                  timestamp=d.get("report_date"),
+                                  source_system="daily_reports"),
+                })
+            for m in (d.get("outbound_materials") or []):
+                removals += 1
+                rows.append({
+                    "report_date": d.get("report_date"),
+                    "direction": "out",
+                    "material": (m or {}).get("type") or (m or {}).get("name"),
+                    "source": d.get("project_number"),
+                    "destination": (m or {}).get("destination"),
+                    "estimated_quantity": (m or {}).get("quantity"),
+                    "actual_quantity": (m or {}).get("actual_quantity"),
+                    **_map_ready(project_number=d.get("project_number"),
+                                  status="removed", trust_state="material_out",
+                                  timestamp=d.get("report_date"),
+                                  source_system="daily_reports"),
+                })
+        hc_q: Dict[str, Any] = {"completed_at": {"$gte": cutoff}}
+        if nums: hc_q["project_number"] = {"$in": nums}
+        hauls_count = await db.haul_cycles.count_documents(hc_q)
+        return {"ok": True, "as_of": _now_iso(),
+                "project_number_filter": project_number, "rows": rows,
+                "totals": {"deliveries": deliveries, "removals": removals,
+                            "hauls": int(hauls_count)}}
+
+    # ────────────────────────────────────────────────────────────
+    # /shop-impact — Section 4
+    # ────────────────────────────────────────────────────────────
+    @router.get("/shop-impact")
+    async def shop_impact(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        if not scope.is_admin and not nums:
+            return {"ok": True, "as_of": _now_iso(), "rows": [],
+                    "counts": {"oos": 0, "open_defects": 0, "maintenance_holds": 0}}
+        impacted_units: set = set()
+        if nums:
+            async for a in db.dispatch_assignments.find(
+                {"project_number": {"$in": nums}},
+                {"_id": 0, "truck_id": 1},
+            ):
+                if a.get("truck_id"): impacted_units.add(a["truck_id"])
+        defects_q: Dict[str, Any] = {"status": {"$in": ["open", "acknowledged"]}}
+        if impacted_units:
+            defects_q["truck_unit_number"] = {"$in": list(impacted_units)}
+        rows: List[Dict[str, Any]] = []
+        open_defects = 0
+        async for d in db.fleet_defects.find(defects_q, {"_id": 0}):
+            open_defects += 1
+            rows.append({
+                "unit_number": d.get("truck_unit_number"),
+                "severity": d.get("severity"),
+                "item_text": d.get("item_text"),
+                "category": d.get("category"),
+                "reported_at": d.get("reported_at"),
+                "status": d.get("status"),
+                "maintainx": _maintainx_tpl(),
+                **_map_ready(asset_id=d.get("truck_unit_number"),
+                              status=d.get("status"),
+                              timestamp=d.get("reported_at"),
+                              trust_state="failed_dvir" if d.get("kind") == "dvir" else "open_defect",
+                              source_system="fleet_defects"),
+            })
+        oos = await db.equipment_master.count_documents({
+            "status": {"$in": ["Out of Service", "Down", "Maintenance Hold"]},
+            **({"current_project_number": {"$in": nums}} if nums else {}),
+        })
+        return {"ok": True, "as_of": _now_iso(),
+                "project_number_filter": project_number,
+                "rows": rows,
+                "counts": {"oos": int(oos), "open_defects": open_defects,
+                            "maintenance_holds": 0}}
+
+    # ────────────────────────────────────────────────────────────
+    # /safety-impact — Section 5
+    # ────────────────────────────────────────────────────────────
+    @router.get("/safety-impact")
+    async def safety_impact(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        if not scope.is_admin and not nums:
+            return {"ok": True, "as_of": _now_iso(),
+                    "incidents": [], "capas": [],
+                    "counts": {"incidents": 0, "capas": 0}}
+        inc_q: Dict[str, Any] = {"resolution_status": {"$ne": "Closed"}}
+        if nums: inc_q["project_number"] = {"$in": nums}
+        capa_q: Dict[str, Any] = {"status": {"$nin": ["Completed", "Closed", "Cancelled"]}}
+        if nums: capa_q["project_number"] = {"$in": nums}
+        incidents: List[Dict[str, Any]] = []
+        async for i in db.incidents.find(inc_q, {"_id": 0}).limit(200):
+            incidents.append({
+                "incident_id": i.get("id"),
+                "summary": i.get("summary"),
+                "severity": i.get("severity"),
+                "occurred_at": i.get("occurred_at"),
+                "resolution_status": i.get("resolution_status"),
+                **_map_ready(project_number=i.get("project_number"),
+                              status=i.get("resolution_status"),
+                              timestamp=i.get("occurred_at"),
+                              trust_state="incident_open",
+                              source_system="incidents"),
+            })
+        capas: List[Dict[str, Any]] = []
+        async for c in db.corrective_actions.find(capa_q, {"_id": 0}).limit(200):
+            capas.append({
+                "capa_id": c.get("id"),
+                "summary": c.get("summary") or c.get("description"),
+                "status": c.get("status"),
+                "due_at": c.get("due_at"),
+                **_map_ready(project_number=c.get("project_number"),
+                              status=c.get("status"),
+                              timestamp=c.get("due_at"),
+                              trust_state="capa_open",
+                              source_system="corrective_actions"),
+            })
+        return {"ok": True, "as_of": _now_iso(),
+                "project_number_filter": project_number,
+                "incidents": incidents, "capas": capas,
+                "counts": {"incidents": len(incidents), "capas": len(capas)}}
+
+    # ────────────────────────────────────────────────────────────
+    # /timeline — Section 6
+    # ────────────────────────────────────────────────────────────
+    @router.get("/timeline")
+    async def timeline(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+        days: int = Query(default=7, ge=1, le=90),
+        limit: int = Query(default=300, ge=1, le=1000),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        if not scope.is_admin and not nums:
+            return {"ok": True, "as_of": _now_iso(), "events": []}
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        events: List[Dict[str, Any]] = []
+
+        # Asset transfers
+        try:
+            xt_q: Dict[str, Any] = {"created_at": {"$gte": cutoff}}
+            if nums:
+                xt_q["$or"] = [{"to_project_number": {"$in": nums}},
+                                {"from_project_number": {"$in": nums}}]
+            async for t in db.asset_transfers.find(xt_q, {"_id": 0}).limit(limit):
+                events.append({
+                    "kind": "asset_transfer",
+                    "timestamp": t.get("created_at"),
+                    "summary": f"{t.get('kind') or 'TRANSFER'} · {t.get('unit_number') or t.get('asset_id')}",
+                    **_map_ready(asset_id=t.get("asset_id"),
+                                  project_number=t.get("to_project_number") or t.get("from_project_number"),
+                                  timestamp=t.get("created_at"),
+                                  trust_state="asset_transfer",
+                                  source_system="asset_transfers"),
+                })
+        except Exception: pass
+
+        # Dispatch state events
+        try:
+            de_q: Dict[str, Any] = {"recorded_at": {"$gte": cutoff}}
+            if nums:
+                de_q["project_number"] = {"$in": nums}
+            async for e in db.dispatch_state_events.find(de_q, {"_id": 0}).sort("recorded_at", -1).limit(limit):
+                events.append({
+                    "kind": "dispatch_state",
+                    "timestamp": e.get("recorded_at"),
+                    "summary": f"{e.get('to_state')} · {e.get('truck_id') or e.get('driver_name') or 'haul'}",
+                    **_map_ready(asset_id=e.get("truck_id"),
+                                  assignment_id=e.get("assignment_id"),
+                                  project_number=e.get("project_number"),
+                                  status=e.get("to_state"),
+                                  timestamp=e.get("recorded_at"),
+                                  trust_state="dispatch_state_event",
+                                  source_system="dispatch_state_events"),
+                })
+        except Exception: pass
+
+        # Incidents
+        try:
+            inc_q: Dict[str, Any] = {"occurred_at": {"$gte": cutoff}}
+            if nums: inc_q["project_number"] = {"$in": nums}
+            async for i in db.incidents.find(inc_q, {"_id": 0}).limit(limit):
+                events.append({
+                    "kind": "incident",
+                    "timestamp": i.get("occurred_at"),
+                    "summary": i.get("summary") or "incident",
+                    **_map_ready(project_number=i.get("project_number"),
+                                  status=i.get("resolution_status"),
+                                  timestamp=i.get("occurred_at"),
+                                  trust_state="incident",
+                                  source_system="incidents"),
+                })
+        except Exception: pass
+
+        events.sort(key=lambda x: x.get("timestamp") or "", reverse=True)
+        events = events[:limit]
+        return {"ok": True, "as_of": _now_iso(),
+                "project_number_filter": project_number,
+                "events": events}
+
+    return router
+
+
+def _empty_overview(project_number: Optional[str]) -> Dict[str, Any]:
+    return {
+        "ok": True,
+        "as_of": _now_iso(),
+        "project_number_filter": project_number,
+        "scoped_projects": [],
+        "counts": {
+            "equipment_assigned": 0, "trucks_assigned": 0,
+            "drivers_assigned": 0, "trailers_assigned": 0,
+            "road_plates_assigned": 0, "active_assignments": 0,
+            "active_hauls": 0, "loads_today": 0, "defects_open": 0,
+            "incidents_open": 0, "capas_open": 0,
+            "materials_in_today": 0, "materials_out_today": 0,
+        },
+        "integration_readiness": {"fleetwatcher": "not_connected",
+                                    "maintainx": "not_connected"},
+    }
+
+
+__all__ = ["build_pm_command_center_router", "normalize_asset_kind",
+           "ROAD_PLATE_CANONICAL", "ROAD_PLATE_LEGACY_VALUES"]
