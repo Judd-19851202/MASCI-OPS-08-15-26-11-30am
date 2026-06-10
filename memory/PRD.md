@@ -13,6 +13,51 @@ No future agent or operator may quote a count from this PRD as a production fact
 
 ---
 
+## 2026-02-10 (FORGEDOPS · TRUST SPRINT · T1+T2+T3+T4+T5 · 🟢 ALL PASS · preview)
+
+**Sprint:** Trust certification sprint before Live Operations Map UI. Five certifications. NO feature work. NO FleetWatcher/MaintainX activation. NO map render.
+**Authorization:** Operator chat 2026-02-10 — *"OMEGA · ENVIRONMENT TRUTH + SPECIALTY ASSET AUDIT + MAP READINESS GATE · TRUST BEFORE VISUALIZATION"*
+**Verdict:** 🟢 **ALL FIVE PASS** (preview side).
+
+| # | Area | Verdict | Cert |
+|---|---|---|---|
+| T1 | Environment Truth (Atlas isolation · integration separation · code-enforced gates) | 🟢 PASS | `ENVIRONMENT_TRUTH_CERTIFICATION.md` |
+| T2 | Data Truth Enforcement (`/api/platform/data-truth` canonical endpoint) | 🟢 PASS | `DATA_TRUTH_ENFORCEMENT_CERTIFICATION.md` |
+| T3 | Specialty Asset Audit (100% classification accuracy · 56/56 sampled) | 🟢 PASS | `SPECIALTY_ASSET_AUDIT_CERTIFICATION.md` |
+| T4 | Map Readiness (`/api/operations-map/contract` honesty + edge cases) | 🟢 PASS | `MAP_READINESS_CERTIFICATION.md` |
+| T5 | Map Confidence Model (LIVE / DELAYED / UNKNOWN classifier) | 🟢 PASS | `MAP_CONFIDENCE_MODEL_CERTIFICATION.md` |
+
+### What ships (no UI map yet)
+- **NEW endpoint** `GET /api/platform/data-truth` — public, no secrets, returns environment + database + integration health flags + UI banner contract.
+- **NEW envelope field** on `/api/operations-map/contract`: `environment` · `database` · `confidence_model`.
+- **NEW row fields** on every map-contract row: `confidence` (LIVE/DELAYED/UNKNOWN) · `confidence_age_minutes` · `last_update_human` · refined `location_trust_state` driven by confidence age.
+- **Audit script** `backend/scripts/audit_specialty_assets.py` + verbatim findings JSON.
+
+### Regression
+124/124 backend tests pass · 1 skipped (motive map-contract row, no Motive data in preview). Zero regression across PM CC Phase 4A + Dispatch Phase 1 + Asset Spine + Operations Center Phase 4C + Operations Map Phase 5A.
+
+### Known gaps (operator awareness)
+- Preview & production share an Atlas *cluster*; isolation is at the **database namespace** layer, not the cluster layer. Acceptable for current stage, recommended to split before GA.
+- `traffic_control` family had **zero rows** in preview to audit (classifier code path unit-tested only).
+- No `LIVE`/`DELAYED` confidence examples in preview (Motive not connected). Classifier verified by thresholds; live demo awaits Motive activation.
+- Frontend consumer wiring of `/api/platform/data-truth` (banner hook in each portal shell) is **queued**, not blocking T2 certification.
+
+### STOP CONDITION ENFORCED
+- Phase 5B Live Operations Map UI: **NOT authorized**.
+- FleetWatcher activation: **NOT authorized**.
+- MaintainX activation: **NOT authorized**.
+- Live Operations Map certification: **PASSED foundation gates (T1–T5)**; UI build awaits explicit operator authorization.
+
+### Deliverables
+- `/app/memory/ENVIRONMENT_TRUTH_CERTIFICATION.md`
+- `/app/memory/DATA_TRUTH_ENFORCEMENT_CERTIFICATION.md`
+- `/app/memory/SPECIALTY_ASSET_AUDIT_CERTIFICATION.md`
+- `/app/memory/MAP_READINESS_CERTIFICATION.md`
+- `/app/memory/MAP_CONFIDENCE_MODEL_CERTIFICATION.md`
+- `/app/memory/audit_specialty_assets_output.json`
+
+---
+
 ## 2026-02-10 (FORGEDOPS · DATA TRUTH CORRECTION · PREVIEW vs PRODUCTION · 🟢 APPLIED)
 
 **Trigger:** Operator chat 2026-02-10 — *"DATA TRUTH CORRECTION · PREVIEW TEST DATA VS LIVE PRODUCTION TRUTH"*

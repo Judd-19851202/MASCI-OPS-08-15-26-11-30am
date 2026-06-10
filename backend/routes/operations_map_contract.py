@@ -34,6 +34,7 @@ portal without privileging any one.
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Set, Tuple
 
@@ -92,6 +93,26 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _human_age(minutes: Optional[float]) -> str:
+    """Render a confidence age as a calm human label.
+
+    Used by the Phase T5 confidence model so map markers can show
+    "2 min ago" / "1 hr ago" / "unknown" without each consumer
+    re-implementing the formatting.
+    """
+    if minutes is None:
+        return "unknown"
+    if minutes < 1:
+        return "just now"
+    if minutes < 60:
+        return f"{int(minutes)} min ago"
+    hours = minutes / 60
+    if hours < 24:
+        return f"{int(hours)} hr ago"
+    days = hours / 24
+    return f"{int(days)} day{'s' if days >= 2 else ''} ago"
+
+
 def _missing(*fields: Optional[Any]) -> List[str]:
     """Return list of field-name keys whose value is None/empty (helper
     for `missing_fields` trust signal)."""
@@ -128,10 +149,28 @@ def _build_row(
     lon = (motive_event or {}).get("lon")
     last_loc_time = (motive_event or {}).get("timestamp")
     location_label = em.get("current_location") or em.get("yard") or None
+    # ── Confidence model (Phase T5) ──────────────────────────────────
+    # LIVE   = last_loc_time within 5 minutes
+    # DELAYED = 5–60 minutes
+    # UNKNOWN = no last_loc_time OR > 60 minutes
+    confidence = "UNKNOWN"
+    confidence_age_minutes: Optional[float] = None
+    if last_loc_time:
+        try:
+            ts = datetime.fromisoformat(str(last_loc_time).replace("Z", "+00:00"))
+            confidence_age_minutes = (datetime.now(timezone.utc) - ts).total_seconds() / 60.0
+            if confidence_age_minutes <= 5:
+                confidence = "LIVE"
+            elif confidence_age_minutes <= 60:
+                confidence = "DELAYED"
+            else:
+                confidence = "UNKNOWN"
+        except Exception:
+            confidence = "UNKNOWN"
     if lat is not None and lon is not None:
         location_source = "motive"
         location_confidence = "high"
-        location_trust_state = "live_location"
+        location_trust_state = "live_location" if confidence == "LIVE" else "last_known_location"
     elif last_loc_time:
         location_source = "motive_stale"
         location_confidence = "low"
@@ -267,6 +306,10 @@ def _build_row(
         "last_location_time": last_loc_time,
         "location_confidence": location_confidence,
         "location_trust_state": location_trust_state,
+        # Phase T5 — confidence model (LIVE / DELAYED / UNKNOWN)
+        "confidence": confidence,
+        "confidence_age_minutes": confidence_age_minutes,
+        "last_update_human": _human_age(confidence_age_minutes),
 
         # ── Assignment ───────────────────────────────────────────────
         "project_id": project_id,
@@ -527,6 +570,9 @@ def build_operations_map_contract_router(
         return {
             "ok": True,
             "as_of": _now_iso(),
+            # Phase T2/T5 — environment stamp on every contract response.
+            "environment": (os.environ.get("APP_ENV") or "preview").strip().lower(),
+            "database": os.environ.get("DB_NAME") or "unknown",
             "scope": scope,
             "project_number_filter": project_number,
             "asset_family_filter": asset_family,
@@ -539,6 +585,11 @@ def build_operations_map_contract_router(
                 "fleetwatcher": "not_connected",
                 "maintainx": "not_connected",
                 "motive": "active" if latest_by_motive else "partial",
+            },
+            "confidence_model": {
+                "live_window_minutes": 5,
+                "delayed_window_minutes": 60,
+                "states": ["LIVE", "DELAYED", "UNKNOWN"],
             },
         }
 

@@ -10,6 +10,35 @@
 
 ---
 
+## 2026-02-10 · FORGEDOPS · Trust Sprint · T1+T2+T3+T4+T5 (preview)
+
+Authority: OMEGA — *"TRUST BEFORE VISUALIZATION · PROVE BEFORE DISPLAY"*. No feature work; trust certification only.
+
+**Five certifications, ALL PASS (preview side):**
+
+- **T1 · Environment Truth** (`ENVIRONMENT_TRUTH_CERTIFICATION.md`) — preview/production DB namespace isolation documented; all dangerous integrations gated off in preview (`MAINTAINX_SYNC_ENABLED=false`, `SCHEDULER_ENABLED=false`, no Motive/FleetWatcher/Mapbox keys in pod). Known: preview & prod share Atlas *cluster*, separation is at DB-namespace layer.
+- **T2 · Data Truth Enforcement** (`DATA_TRUTH_ENFORCEMENT_CERTIFICATION.md`) — NEW endpoint `GET /api/platform/data-truth` (public, no secrets, returns environment + integration health + UI banner contract). Frontend consumer hook queued (≤50 LOC, next sprint).
+- **T3 · Specialty Asset Audit** (`SPECIALTY_ASSET_AUDIT_CERTIFICATION.md`) — random-sample 20/family, deterministic seed. **100.00% classification accuracy** (56/56 sampled · 0 questionable · 0 incorrect · gate ≥95%). `traffic_control` had 0 rows in preview (classifier unit-tested separately). Verbatim findings: `/app/memory/audit_specialty_assets_output.json`.
+- **T4 · Map Readiness** (`MAP_READINESS_CERTIFICATION.md`) — `/api/operations-map/contract` is map-ready, every required field present (asset_id, operational_state, location_source, last_location_time, lat, lon, project, assignment, environment), `lat`/`lon` NEVER fabricated (verified by `test_no_fake_lat_lon`). Trust states cover unknown/missing GPS/no assignment/OOS/in-shop/unmapped honestly.
+- **T5 · Map Confidence Model** (`MAP_CONFIDENCE_MODEL_CERTIFICATION.md`) — every row carries `confidence ∈ {LIVE, DELAYED, UNKNOWN}` (5min / 60min / >60min thresholds), `confidence_age_minutes`, and human-readable `last_update_human`. Thresholds exposed on envelope so consumers don't hardcode.
+
+**Added:**
+- `routes/platform_data_truth.py` (T2 endpoint, no auth, no secrets)
+- `routes/operations_map_contract.py` augmented with confidence model + environment/database envelope fields
+- `backend/scripts/audit_specialty_assets.py` (T3 audit)
+- 5 certification docs + audit output JSON
+
+**Regression:** 124/124 tests pass · 1 skipped (motive map-contract row, no `motive_truck_id` in preview DB) · zero regression across PM CC 4A + Dispatch 1 + Asset Spine + Operations Center 4C + Operations Map 5A.
+
+**STOP CONDITION ENFORCED:**
+- Phase 5B map UI: NOT authorized.
+- FleetWatcher activation: NOT authorized.
+- MaintainX activation: NOT authorized.
+- Live Operations Map certification: gates T1–T5 passed; UI build awaits explicit operator authorization.
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · Data Truth Correction · preview-vs-production rules (corrective)
 
 Authority: OMEGA DIRECTIVE — *"DATA TRUTH CORRECTION · PREVIEW TEST DATA VS LIVE PRODUCTION TRUTH"*.

@@ -1,0 +1,400 @@
+{
+  "environment": "preview",
+  "database": "masci_safety_preview",
+  "sample_size_per_family_target": 20,
+  "population_by_family": {
+    "trench_safety": 16,
+    "access_protection": 88,
+    "traffic_control": 0,
+    "support": 75
+  },
+  "actual_sample_by_family": {
+    "trench_safety": 16,
+    "access_protection": 20,
+    "traffic_control": 0,
+    "support": 20
+  },
+  "non_specialty_assets_in_db": 514,
+  "findings": {
+    "trench_safety": {
+      "correct_count": 16,
+      "questionable_count": 0,
+      "incorrect_count": 0,
+      "samples": {
+        "correct": [
+          {
+            "asset_id": "ca47a1b0-19c3-438b-af64-2d07c7fa11f5",
+            "asset_number": "TB-NTF-12003",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Safety Hold"
+          },
+          {
+            "asset_id": "8bc22544-6bae-45f2-85de-06158dde348a",
+            "asset_number": "TB-P75A",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Safety Hold"
+          },
+          {
+            "asset_id": "39a8f4b4-06fc-488b-9319-7c5b1acc6544",
+            "asset_number": "TB-05",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Available"
+          },
+          {
+            "asset_id": "798a9580-51df-4308-ae8d-1f98cbad47d7",
+            "asset_number": "TB-NTF-39394",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Safety Hold"
+          },
+          {
+            "asset_id": "f93c8df6-b06f-4345-b0d1-bf03c253f98c",
+            "asset_number": "TB-NTF-E1654",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Safety Hold"
+          },
+          {
+            "asset_id": "3fb8d7fd-7654-4bc9-8fdd-d76764e0cfc6",
+            "asset_number": "TB-NTF-1AE3E",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Safety Hold"
+          },
+          {
+            "asset_id": "4a4c40b4-7407-4b70-8731-b39752281f04",
+            "asset_number": "TB-06",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Available"
+          },
+          {
+            "asset_id": "6da872e6-7dac-4c6a-aee3-5968d3e747c1",
+            "asset_number": "TB-01",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Available"
+          },
+          {
+            "asset_id": "53f67bb7-b0d5-4d06-a864-4110329837af",
+            "asset_number": "TB-NTF-C6E31",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Safety Hold"
+          },
+          {
+            "asset_id": "eba38333-e578-4adb-b41e-8bd9c3e920ff",
+            "asset_number": "TB-NTF-90E6D",
+            "raw_type": "Trench Box",
+            "description": "",
+            "normalized_kind": "trench box",
+            "classified_family": "trench_safety",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Safety Hold"
+          }
+        ],
+        "questionable": [],
+        "incorrect": []
+      }
+    },
+    "access_protection": {
+      "correct_count": 20,
+      "questionable_count": 0,
+      "incorrect_count": 0,
+      "samples": {
+        "correct": [
+          {
+            "asset_id": "bede6ae3-6283-4d0b-9480-ee75604b1a4d",
+            "asset_number": "RP-CIE91B",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "42ca29c6-ab65-4efe-97e9-104c1af83712",
+            "asset_number": "RP-CI501B",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "22a48cba-cd08-437a-aa56-41902e733bc3",
+            "asset_number": "RP-T7014C",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "d159c02c-aa3d-4cd7-bc53-c47ee4b0b4c5",
+            "asset_number": "RP-T53C68",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "abc7a5a5-410c-4d64-be26-444284a5eb1c",
+            "asset_number": "RP-TEF72D",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "633ce377-bb9a-4b5f-8368-e8e793820dd0",
+            "asset_number": "RP-T90A44",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "792801c5-bf87-4d37-b9e3-7f747066fd9c",
+            "asset_number": "RP-T0E759",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "bd347a9d-3b45-4b6b-a974-f318d35ac622",
+            "asset_number": "RP-T2601D",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "6ba423f4-2dca-439e-9b9c-95f007ba612a",
+            "asset_number": "RP-CID6CA",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          },
+          {
+            "asset_id": "adbfd176-279b-400c-9e84-701fba2e2916",
+            "asset_number": "RP-CI519A",
+            "raw_type": "Road Plate",
+            "description": "",
+            "normalized_kind": "road_plate",
+            "classified_family": "access_protection",
+            "current_project": null,
+            "current_driver": null,
+            "status": "Retired"
+          }
+        ],
+        "questionable": [],
+        "incorrect": []
+      }
+    },
+    "traffic_control": {
+      "correct_count": 0,
+      "questionable_count": 0,
+      "incorrect_count": 0,
+      "samples": {
+        "correct": [],
+        "questionable": [],
+        "incorrect": []
+      }
+    },
+    "support": {
+      "correct_count": 20,
+      "questionable_count": 0,
+      "incorrect_count": 0,
+      "samples": {
+        "correct": [
+          {
+            "asset_id": "c9eb5d15-8804-4d98-aed0-0bec7e343380",
+            "asset_number": null,
+            "raw_type": "Pumps",
+            "description": "",
+            "normalized_kind": "pumps",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "05415590-830b-4077-9148-21e15335c1d4",
+            "asset_number": null,
+            "raw_type": "Pumps",
+            "description": "",
+            "normalized_kind": "pumps",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "dec15385-cfe8-444f-8a58-eb20fa00770e",
+            "asset_number": "LT004-4781",
+            "raw_type": "Light Towers",
+            "description": "",
+            "normalized_kind": "light towers",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "e2aac9ed-60c7-4802-957b-48e322439a9b",
+            "asset_number": null,
+            "raw_type": "Pumps",
+            "description": "",
+            "normalized_kind": "pumps",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "8bd44cc2-25b3-4517-afb3-9c00b3a0f13d",
+            "asset_number": "LT008-2371",
+            "raw_type": "Light Towers",
+            "description": "",
+            "normalized_kind": "light towers",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "1be2e603-cc66-445d-a0da-29bc10ed3d17",
+            "asset_number": null,
+            "raw_type": "Generators",
+            "description": "",
+            "normalized_kind": "generators",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "c81b4bae-562e-4312-b191-58fe7bd2ab53",
+            "asset_number": "LT002-4799",
+            "raw_type": "Light Towers",
+            "description": "",
+            "normalized_kind": "light towers",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "a8f2c2ac-4ad3-4880-b469-c59067cd81ba",
+            "asset_number": null,
+            "raw_type": "Generators",
+            "description": "",
+            "normalized_kind": "generators",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "231647c2-f576-402a-bafe-ae5537785424",
+            "asset_number": null,
+            "raw_type": "Pumps",
+            "description": "",
+            "normalized_kind": "pumps",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          },
+          {
+            "asset_id": "7d213300-9108-498b-a3e3-8ec170670ab3",
+            "asset_number": null,
+            "raw_type": "Pumps",
+            "description": "",
+            "normalized_kind": "pumps",
+            "classified_family": "support",
+            "current_project": null,
+            "current_driver": null,
+            "status": null
+          }
+        ],
+        "questionable": [],
+        "incorrect": []
+      }
+    }
+  },
+  "accuracy": {
+    "total_sampled": 56,
+    "total_correct": 56,
+    "accuracy_pct": 100.0,
+    "gate": ">=95.0%",
+    "pass": true
+  }
+}

@@ -10880,6 +10880,14 @@ _op_map_router = build_operations_map_contract_router(
 )
 app.include_router(_op_map_router)
 
+# ─── FORGEDOPS Trust Sprint · T2 · Platform Data Truth ────────────
+# ONE endpoint, no auth gate, returns environment + integration health
+# (no secrets, flags only). Every operational surface consumes this to
+# render the preview / production banner. No page may hardcode its own
+# banner — single source of truth.
+from routes.platform_data_truth import build_platform_data_truth_router  # noqa: E402
+app.include_router(build_platform_data_truth_router())
+
 # iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
 # Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.
 # No database storage · no analytics · no scoring · no charts. Closes the
