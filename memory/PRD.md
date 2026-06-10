@@ -1,3 +1,43 @@
+## 2026-02-10 (TRUST-DIAGNOSTICS-001 · SESSION / NETWORK / BACKEND ERROR CLARITY · 🟢 PASS · preview)
+
+**Sprint:** P1 trusted-platform reliability fix triggered by PROD-RELIABILITY-INCIDENT-001. An expired admin session masqueraded as a backend outage (SERVER UNREACHABLE banner + cascading "Failed to load…" cards + fake 0-record displays). Unacceptable for a trusted pillar.
+**Authorization:** Operator chat 2026-02-10 — *"TRUST-DIAGNOSTICS-001 · STATUS: AUTHORIZED"*
+**Verdict:** 🟢 **Shared classifier (`session_expired | access_restricted | network_unreachable | backend_unavailable | success_empty | success_loaded`) wired into the central axios interceptor. ONE global modal explains each condition. The cascade-storm of "Failed to load…" + banner is now a single, clear, actionable message.**
+
+### Files changed (6 — zero per-page loader touches, zero backend / auth / token / role changes)
+- NEW `frontend/src/lib/errorClassification.js` — pure `classifyApiError(err, opts)` + 15 unit tests.
+- NEW `frontend/src/lib/sessionStatusBus.js` — debounced pub/sub; exposes `window.__masciSessionBus = {publish, clear, get}` for ops + tests + 7 unit tests.
+- NEW `frontend/src/components/SessionStatusOverlay.jsx` — single global modal with 4 states. Suppressed on login/portal routes; "Log Back In" routes by current pathname.
+- `frontend/src/lib/api.js` — interceptor now publishes `success_loaded` on every 2xx (auto-clears stale modal) and the classified failure on every reject. `config.skipSessionStatus` opt-out for diagnostic probes.
+- `frontend/src/components/BackendStatusBanner.jsx` — defers when the overlay already owns the message; pre-existing apostrophe escape fixed.
+- `frontend/src/App.js` — mounts the overlay inside `<BrowserRouter>`.
+
+### End-to-end verification (Playwright against live preview)
+22/22 unit tests + 9/9 E2E scenarios PASS:
+- S1 401 → Session Expired modal (amber lock); banner suppressed
+- S2 403 → Access Restricted modal (slate triangle)
+- S3 network failure → Connection Problem modal (sky wifi-off)
+- S4 5xx → MASCI Services Temporarily Unavailable modal (red server-crash)
+- S5 200 success → no overlay
+- S6 5 rapid identical 401s → ONE modal (debounce collapses storm)
+- S7 iPad 1024×768 landscape and 768×1024 portrait — modal centered, buttons tappable
+- S8 `success_loaded` clears any active modal automatically
+
+### Why one central hook instead of per-loader edits
+The directive explicitly prohibits "duplicate random per-page error handling". The axios response interceptor in `api.js` is the single point every protected request already flows through. Hooking it once gives every loader (Admin Overview / Operations Center / Intelligence / Expirations / Daily Reports / Job Photos / Safety / HR / Equipment / Dispatch / PM / Shop / Field portals) the unified behavior without editing them individually.
+
+### Production recovery for users currently experiencing the symptom
+After the preview is promoted: any signed-in admin who has been idle past the ADMIN_HR 15-min timeout will, on their next click, see the new "Session Expired" modal with a "Log Back In" button instead of the alarming cascade. No backend or session changes — just clarity.
+
+### Out-of-scope (per OMEGA DIRECTIVE)
+No auth-token rules, no session-duration extension, no security weakening, no role changes, no passwords, no Atlas/Motive/MaintainX/FleetWatcher/Dispatch Automation/Material Movement, no new dashboards/analytics/redesigns.
+
+### Deliverable
+`memory/TRUST_DIAGNOSTICS_001_CERTIFICATION.md` — root cause, shared contract, file inventory, audit sweep, test matrix, iPad verification, final verdict.
+
+---
+
+
 ## 2026-06-10 (PROD-RELIABILITY-INCIDENT-001 · LIVE BACKEND HEALTH · 🟢 STABLE · NO ROLLBACK)
 
 **Sprint:** P0 production incident response. Operator reported "SERVER UNREACHABLE" banner + multiple admin cards showing "Failed to load operations center / intelligence / expirations" + 0-record displays on `mascidocs.com`.

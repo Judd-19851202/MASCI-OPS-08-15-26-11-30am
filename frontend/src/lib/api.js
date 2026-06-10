@@ -107,9 +107,22 @@ api.interceptors.request.use((config) => {
 // crash that occurred on production Safari 26.5 from arrays of
 // {type, loc, msg, input, url} objects being passed to <toast.error>.
 import { safeErrorMessage } from "./safeErrorMessage";
+// TRUST-DIAGNOSTICS-001 · Classify every rejection and publish a
+// single global signal so a multi-card storm becomes one clear modal
+// instead of "SERVER UNREACHABLE" + N × "Failed to load…" toasts.
+import { classifyApiError } from "./errorClassification";
+import { publishSessionStatus } from "./sessionStatusBus";
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // Positive signal: clears any active session-expired / outage modal
+    // the moment the backend responds with a real payload. Cheap to do
+    // on every successful 2xx.
+    try {
+      publishSessionStatus({ kind: "success_loaded", status: res?.status ?? 200 });
+    } catch { /* never break the response path */ }
+    return res;
+  },
   (err) => {
     // Normalise validation-detail BEFORE the caller's catch sees it.
     const data = err?.response?.data;
@@ -165,6 +178,21 @@ api.interceptors.response.use(
       if (cfg.headers?.["X-FL-Token"]) clearFlToken();
       if (cfg.headers?.Authorization) clearJwt();
     }
+    // TRUST-DIAGNOSTICS-001 · Publish the classified failure to the
+    // global session-status bus. The overlay component renders ONE
+    // modal regardless of how many parallel loaders fail. Per-call
+    // 4xx (404/422 etc.) are classified `kind: null` and skipped.
+    //
+    // Suppress the publish if the request opted out via
+    // `config.skipSessionStatus === true` (used by health probes,
+    // version checks, and queue replays — see BackendStatusBanner).
+    try {
+      const cfg = err?.config || {};
+      if (!cfg.skipSessionStatus) {
+        const classification = classifyApiError(err);
+        publishSessionStatus(classification);
+      }
+    } catch { /* never break the response path */ }
     return Promise.reject(err);
   }
 );

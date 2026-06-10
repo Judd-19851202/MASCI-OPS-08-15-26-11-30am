@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useCaptureMode } from "@/lib/captureMode";
+import { subscribeSessionStatus } from "@/lib/sessionStatusBus";
+import { ERROR_KINDS } from "@/lib/errorClassification";
 
 /**
  * BackendStatusBanner
@@ -23,6 +25,21 @@ export default function BackendStatusBanner() {
   // null = unknown, "up" = healthy, "down" = unreachable, "recovered" = just came back
   const [status, setStatus] = useState(null);
   const captureMode = useCaptureMode();
+  // TRUST-DIAGNOSTICS-001 · Track the global session-status bus so we
+  // can suppress this banner when the overlay is already showing a
+  // clearer per-condition message (Session Expired / Access Restricted /
+  // Connection Problem / Services Unavailable). Prevents the same
+  // network/5xx event from producing both a banner AND a modal.
+  const [overlayOwnsView, setOverlayOwnsView] = useState(false);
+  useEffect(() => {
+    const unsub = subscribeSessionStatus((s) => {
+      setOverlayOwnsView(s.kind === ERROR_KINDS.SESSION_EXPIRED ||
+                         s.kind === ERROR_KINDS.ACCESS_RESTRICTED ||
+                         s.kind === ERROR_KINDS.NETWORK_UNREACHABLE ||
+                         s.kind === ERROR_KINDS.BACKEND_UNAVAILABLE);
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     const url = `${process.env.REACT_APP_BACKEND_URL}/api/health`;
@@ -72,6 +89,10 @@ export default function BackendStatusBanner() {
   // iter347 · capture-mode hides chrome so promo clips stay clean.
   if (captureMode) return null;
   if (status !== "down" && status !== "recovered") return null;
+  // TRUST-DIAGNOSTICS-001 · Defer to the overlay when it's already
+  // explaining the same condition. Only one platform-wide message
+  // about reachability/auth should ever be on screen.
+  if (overlayOwnsView) return null;
 
   const isDown = status === "down";
 
@@ -96,7 +117,7 @@ export default function BackendStatusBanner() {
                 Server Unreachable —
               </span>{" "}
               The MASCI backend is down. Your form data is safe — wait ~60s and
-              try again. Reports won't save until this banner disappears.
+              try again. Reports won&apos;t save until this banner disappears.
             </>
           ) : (
             <>

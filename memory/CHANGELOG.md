@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## 2026-02-10 · TRUST-DIAGNOSTICS-001 · Session / Network / Backend error clarity (preview)
+
+Authority: OMEGA DIRECTIVE — P1 trusted-platform reliability fix; triggered by PROD-RELIABILITY-INCIDENT-001 where an expired session looked like an outage.
+
+Shared error classifier + one global modal replace the per-card "Failed to load…" storm and the misleading "SERVER UNREACHABLE" banner cascade. Six classifications: `session_expired (401) | access_restricted (403) | network_unreachable (offline/timeout/no-response) | backend_unavailable (5xx) | success_empty (2xx + empty) | success_loaded (2xx + data)`.
+
+* NEW `frontend/src/lib/errorClassification.js` — pure `classifyApiError(err, opts)`; offline-aware; per-call 4xx (404/422) yields `kind:null` to never preempt globally; 15 unit tests.
+* NEW `frontend/src/lib/sessionStatusBus.js` — debounced pub/sub (800ms collapses storms); `success_loaded` auto-clears stale modal; `window.__masciSessionBus` exposed for ops/tests; 7 unit tests.
+* NEW `frontend/src/components/SessionStatusOverlay.jsx` — ONE global modal with 4 distinct states. Suppressed on login/portal routes. "Log Back In" picks the right login by current path prefix.
+* `frontend/src/lib/api.js` — central axios interceptor publishes `success_loaded` on every 2xx and the classified failure on every reject. `config.skipSessionStatus` opt-out for diagnostic probes.
+* `frontend/src/components/BackendStatusBanner.jsx` — defers to the overlay when it already owns the message.
+* `frontend/src/App.js` — mounts the overlay inside `<BrowserRouter>`.
+
+Verified end-to-end on live preview: 22/22 unit tests + 9 E2E scenarios PASS (4 modal states, success-empty no-overlay, storm-collapses-to-one, success_loaded clears modal, iPad 1024×768 + 768×1024). Screenshots in `/tmp/trust_s*.png`. No backend / schema / auth-token / role / session-duration changes. Zero per-page loader edits per the directive's "do not duplicate random per-page error handling" rule.
+
+Deliverable: `memory/TRUST_DIAGNOSTICS_001_CERTIFICATION.md`.
+
+No production deploy.
+
+---
+
+
 ## 2026-02-10 · OFFLINE-UPLOAD-002 · Stuck Daily Report payload repair (preview)
 
 Authority: OMEGA DIRECTIVE — P1 field recovery bugfix, scope strictly limited.

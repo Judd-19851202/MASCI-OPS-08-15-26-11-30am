@@ -251,6 +251,12 @@ import { RequireDev } from "@/components/RequireDev";
 import { FormPasswordGate } from "@/components/FormPasswordGate";
 import GlobalKeepalive from "@/components/GlobalKeepalive";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
+// TRUST-DIAGNOSTICS-001 · Global session/error overlay. Renders ONE
+// modal (Session Expired / Access Restricted / Connection Problem /
+// Services Unavailable) when the central axios interceptor classifies
+// a rejection — so a cascade of failing card-loaders never produces
+// a multi-card storm or a misleading "SERVER UNREACHABLE" banner.
+import SessionStatusOverlay from "@/components/SessionStatusOverlay";
 import ClusterCapacityBanner from "@/components/ClusterCapacityBanner";
 import BannerStrip from "@/components/BannerStrip";
 import EnvBanner from "@/components/EnvBanner";
@@ -339,6 +345,10 @@ function App() {
         <EnforcePortalScope />
         <MultiPortalHydrator />
         <IdleTimeout />
+        {/* TRUST-DIAGNOSTICS-001 · Global session/error overlay.
+            Mounted inside BrowserRouter so it can read location +
+            navigate to the right login route on "Log Back In". */}
+        <SessionStatusOverlay />
         <div className="flex-1 flex flex-col">
           <React.Suspense fallback={null}><Routes>
             {/* MASCI Hub — public */}
