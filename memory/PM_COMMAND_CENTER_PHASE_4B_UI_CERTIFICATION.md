@@ -1,5 +1,9 @@
 # FORGEDOPS · PM COMMAND CENTER · PHASE 4B · UI SHELL CERTIFICATION
 
+> ⚠️ **DATA TRUTH — PREVIEW VS PRODUCTION** (added 2026-02-10 via Data Truth Correction)
+>
+> Counts cited herein (trucks=135, road_plates=88, drivers=30, equipment=693, active_hauls=272, incidents=43, CAPAs=24) come from the **preview database** (test/staged fixtures). They prove the UI binds to the contract and the contract returns coherent data; they do **not** represent MASCI's live production inventory. See `/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md`.
+
 **Date:** 2026-02-10
 **Authorization:** Operator chat — *"PHASE 4B · PM COMMAND CENTER UI SHELL · OMEGA ENFORCED"*
 **Verdict:** 🟢 **PASS · 1 page · 12-tile command strip · 7 tabs · 6 boards · backed strictly by Phase 4A endpoints · road plates first-class · honest empty states · iPad portrait + landscape verified · 63/63 backend regression intact.**

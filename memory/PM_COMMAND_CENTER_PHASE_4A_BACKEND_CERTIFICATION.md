@@ -1,5 +1,9 @@
 # FORGEDOPS · PM COMMAND CENTER · PHASE 4A · BACKEND FOUNDATION · CERTIFICATION
 
+> ⚠️ **DATA TRUTH — PREVIEW VS PRODUCTION** (added 2026-02-10 via Data Truth Correction)
+>
+> Counts cited herein (693 equipment · 88 road plates · 272 active hauls · 30 drivers · 43 incidents · 24 CAPAs) come from the **preview database** (test/staged fixtures). They prove the code works; they do **not** represent MASCI's live production inventory. See `/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md`.
+
 **Date:** 2026-02-10
 **Authorization:** Operator chat — *"PHASE 4A · PM COMMAND CENTER BACKEND ONLY · OMEGA ENFORCED"*
 **Verdict:** 🟢 **PASS · 7 endpoints live · 37/37 PM-CC contract tests · 26/26 Dispatch + Asset Spine regression intact · live preview 7/7 endpoints 200 · zero data mutation · zero new collections.**

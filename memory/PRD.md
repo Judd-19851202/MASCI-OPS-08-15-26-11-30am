@@ -1,8 +1,47 @@
-## 2026-02-10 (FORGEDOPS · OPERATIONS CENTER · PHASE 4C · 🟢 PASS · preview)
+# ⚠️ DATA TRUTH — PREVIEW vs PRODUCTION (2026-02-10)
+
+**Every numeric count in this PRD (trucks, drivers, road plates, specialty assets, active hauls, incidents, CAPAs, defects, conflicts, etc.) originates from the *preview database* — i.e. test / staged / validation fixtures.**
+
+These figures prove the code, contracts, and UI work. **They do NOT reflect MASCI's live production inventory or operational reality.**
+
+> "Preview counts are validation fixtures / staged data and must not be used as production operational inventory."
+
+For the full rules and remaining unknowns, see:
+- `/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md`
+
+No future agent or operator may quote a count from this PRD as a production fact without re-verifying against the live MASCI database.
+
+---
+
+## 2026-02-10 (FORGEDOPS · DATA TRUTH CORRECTION · PREVIEW vs PRODUCTION · 🟢 APPLIED)
+
+**Trigger:** Operator chat 2026-02-10 — *"DATA TRUTH CORRECTION · PREVIEW TEST DATA VS LIVE PRODUCTION TRUTH"*
+**Verdict:** 🟢 **CORRECTED** · DATA TRUTH banners inserted into 5 certifications + this PRD + CHANGELOG. Phase 5A Live Operations Map certification paused pending operator decision on production-read authorization. Counts cited in prior preview certifications are re-labeled as preview/staged fixtures, NOT production inventory.
+
+### What changed
+- New certification: `/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md` — documents audited, standardized correction language, production-vs-preview rules, map-build rule (preview banner + production-only render), verification protocol, and remaining unknowns.
+- Banner added to top of: `OPERATIONS_CENTER_PHASE_4C_CERTIFICATION.md`, `PHASE_4C_SPECIALTY_ASSET_NORMALIZATION_CERTIFICATION.md`, `PM_COMMAND_CENTER_PHASE_4A_BACKEND_CERTIFICATION.md`, `PM_COMMAND_CENTER_PHASE_4B_UI_CERTIFICATION.md`.
+- Phase 5A (`LIVE_OPERATIONS_MAP_PHASE_5A_CONTRACT_CERTIFICATION.md`) certification **paused** — code is complete and the `/api/operations-map/contract` endpoint is wired and live, but the certification document is not authored until the operator decides whether to (a) certify against preview only (with DATA TRUTH banner) or (b) defer until live production read is authorized and counts are dual-cited.
+
+### Map-build rule going forward
+- **Preview env:** Phase 5B map UI MUST display a `PREVIEW / TEST DATA` banner; staged assets render normally, clearly labeled.
+- **Production env:** map renders ONLY production records; no preview backfill.
+- Phase 5A contract endpoint is environment-agnostic; banner is a UI concern.
+
+### STOP CONDITION
+- Phase 5A certification document NOT authored (awaiting operator gate).
+- Phase 5B map UI NOT authorized.
+- No claim about MASCI's live operational inventory may be made until a production read is executed.
+
+---
+
+## 2026-02-10 (FORGEDOPS · OPERATIONS CENTER · PHASE 4C · 🟢 PASS · preview dataset)
 
 **Sprint:** Phase 4C. Operations Center cross-company command board (10 backend endpoints + 9-layer UI) + Specialty Asset architecture correction + PM portal home redirect (`/pm` → `/pm/command-center`).
 **Authorization:** Operator chat 2026-02-10 — *"PHASE 4C · OPERATIONS CENTER + SPECIALTY ASSET NORMALIZATION · OMEGA ENFORCED"*
-**Verdict:** 🟢 **PASS · 98/98 backend regression · 9-layer UI verified live · Specialty Asset families canonical · Trench Boxes first-class · Road Plate functionality preserved · 0 schema change · 0 new collection.**
+**Verdict:** 🟢 **PASS (preview dataset) · 98/98 backend regression · 9-layer UI rendered against the preview dataset · Specialty Asset families canonical · Trench Boxes first-class · Road Plate functionality preserved · 0 schema change · 0 new collection.**
+
+> ⚠️ All numeric counts referenced in this Phase 4C entry are preview/test/staged fixtures, NOT production inventory.
 
 ### What ships
 - **Backend (10 endpoints under `/api/operations-center/command/*`):** `/brief` · `/project-health` · `/allocation` · `/conflicts` · `/specialty-assets` · `/shop-impact` · `/safety-impact` · `/telematics` · `/timeline` · `/map-contract`

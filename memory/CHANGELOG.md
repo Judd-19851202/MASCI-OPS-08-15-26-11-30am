@@ -1,6 +1,44 @@
 # CHANGELOG
 
-## 2026-02-10 · FORGEDOPS · Operations Center · Phase 4C + Specialty Asset Normalization (preview)
+> ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
+>
+> Every numeric count in this changelog is sourced from the **preview database** (test/staged validation fixtures). Counts prove the code, contracts, and UI work — they do **not** represent MASCI's live production inventory or operational reality.
+>
+> See `/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md`.
+>
+> No agent or operator may quote a changelog count as a production fact without re-verifying against the live MASCI database.
+
+---
+
+## 2026-02-10 · FORGEDOPS · Data Truth Correction · preview-vs-production rules (corrective)
+
+Authority: OMEGA DIRECTIVE — *"DATA TRUTH CORRECTION · PREVIEW TEST DATA VS LIVE PRODUCTION TRUTH"*.
+
+**Added:** `/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md` — documents audited, corrected language, production-vs-preview rules, map-build rule (preview banner + production-only render), verification protocol, remaining unknowns.
+
+**Banners inserted at top of:**
+- `OPERATIONS_CENTER_PHASE_4C_CERTIFICATION.md`
+- `PHASE_4C_SPECIALTY_ASSET_NORMALIZATION_CERTIFICATION.md`
+- `PM_COMMAND_CENTER_PHASE_4A_BACKEND_CERTIFICATION.md`
+- `PM_COMMAND_CENTER_PHASE_4B_UI_CERTIFICATION.md`
+- `PRD.md`
+- This CHANGELOG
+
+**Phase 5A status:** Live Operations Map backend contract (`/api/operations-map/contract`) is code-complete and wired (responds 401 unauthed, 200 with admin token), but the certification document is **paused** pending operator decision: (a) certify preview-only with DATA TRUTH banner, OR (b) defer until live production read is authorized and counts are dual-cited.
+
+**Map-build rule going forward:**
+- Preview env: Phase 5B map UI MUST display a `PREVIEW / TEST DATA` banner.
+- Production env: map renders ONLY production records; no preview backfill; honest empty/trust states when data is missing.
+
+**Doctrine reinforced:**
+- Production operational claims require production evidence.
+- Preview verification proves: code works, contracts work, UI renders.
+- Preview verification does NOT prove: MASCI's inventory or live operational data.
+
+---
+
+
+## 2026-02-10 · FORGEDOPS · Operations Center · Phase 4C + Specialty Asset Normalization (preview dataset)
 
 Authority: OMEGA DIRECTIVE — Phase 4C + Architecture Correction Order. Cross-company command board + architecture normalization for Specialty Assets.
 
@@ -32,9 +70,9 @@ Authority: OMEGA DIRECTIVE — Phase 4C + Architecture Correction Order. Cross-c
 **Doctrine honored:**
 - No new collection · no schema mutation · no FleetWatcher activation · no MaintainX activation · no map render · no duplicate dispatch/PM/shop/safety logic · no fake green status · no production data mutation.
 
-**Live verification (preview DB):**
-- Brief: 179 specialty_assets_total · 88 road_plates_total · 28 active_projects · 96 trucks · 82 defects · 43 incidents
-- Specialty by_family: trench_safety=16 · access_protection=88 · traffic_control=0 · support=75
+**Live verification (preview DB · test/staged fixtures · NOT production):**
+- Brief: 179 specialty_assets_total · 88 road_plates_total · 28 active_projects · 96 trucks · 82 defects · 43 incidents (preview fixture counts — NOT MASCI live inventory)
+- Specialty by_family: trench_safety=16 · access_protection=88 · traffic_control=0 · support=75 (preview fixtures)
 - Project Health risk: 3 red · 25 green
 - Conflicts: 8 detected
 - `/pm` → `/pm/command-center` redirect verified

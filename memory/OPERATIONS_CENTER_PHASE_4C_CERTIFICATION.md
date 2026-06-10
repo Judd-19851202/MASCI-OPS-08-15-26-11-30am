@@ -1,5 +1,15 @@
 # FORGEDOPS · OPERATIONS CENTER · PHASE 4C · CERTIFICATION
 
+> ⚠️ **DATA TRUTH — PREVIEW VS PRODUCTION** (added 2026-02-10 via Data Truth Correction)
+>
+> **Every count, row total, and KPI cited in this document originates from the *preview database* (test/staged/validation fixtures).** They are **not** verified against the live MASCI production Asset Spine, dispatch lifecycle, shop, or safety collections.
+>
+> Numbers below prove: ✅ the code works, ✅ the contracts deserialize, ✅ the UI renders, ✅ filters/counts/classifiers behave correctly on the dataset.
+>
+> Numbers below do **NOT** prove: ❌ MASCI's actual production inventory, ❌ live operational reality, ❌ how many road plates / specialty assets / hauls MASCI has in the field.
+>
+> See `/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md` for the standardized rules. "Preview counts are validation fixtures / staged data and must not be used as production operational inventory."
+
 **Date:** 2026-02-10
 **Authorization:** Operator chat — *"PHASE 4C · OPERATIONS CENTER · OMEGA ENFORCED"*
 **Verdict:** 🟢 **PASS · 10 backend endpoints live · 9-layer cross-company command board · Specialty Asset normalization applied · Executive Mode toggle · PM home redirect · 98/98 backend regression intact.**

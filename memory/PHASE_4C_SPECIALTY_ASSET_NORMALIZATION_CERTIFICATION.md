@@ -1,5 +1,13 @@
 # FORGEDOPS · PHASE 4C SPECIALTY ASSET NORMALIZATION · CERTIFICATION
 
+> ⚠️ **DATA TRUTH — PREVIEW VS PRODUCTION** (added 2026-02-10 via Data Truth Correction)
+>
+> **Every count cited in this document — "179 specialty assets · 16 trench boxes · 88 road plates · 75 support assets · etc." — originates from the *preview database*.** These are **test / staged / validation fixtures**, not verified production figures.
+>
+> The taxonomy itself (4 specialty asset families, `specialty_family_of()` classifier, road-plate normalizer, backward-compat shims) is the platform contract — that is real. The **counts** are preview fixtures.
+>
+> "Preview counts are validation fixtures / staged data and must not be used as production operational inventory." — see `/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md`.
+
 **Date:** 2026-02-10
 **Authorization:** Operator chat — *"PHASE 4C ARCHITECTURE CORRECTION ORDER · SPECIALTY ASSET NORMALIZATION · OMEGA ENFORCED"*
 **Verdict:** 🟢 **PASS · Road plate functionality preserved · Trench Boxes first-class · 4 Specialty Asset families canonical · 98/98 regression intact · zero data loss.**

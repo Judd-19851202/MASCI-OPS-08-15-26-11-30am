@@ -10868,6 +10868,18 @@ _oc_cmd_router = build_operations_center_command_router(
 )
 app.include_router(_oc_cmd_router)
 
+# ─── FORGEDOPS Live Operations Map · Phase 5A · contract ──────────
+# ONE canonical map-ready endpoint composing Asset Spine + Dispatch +
+# PM + Motive + Shop + Safety. Backend-only Phase 5A (no UI map).
+# Trust states explain every missing field. Phase 5B (map render)
+# requires explicit authorization.
+from routes.operations_map_contract import build_operations_map_contract_router  # noqa: E402
+_op_map_router = build_operations_map_contract_router(
+    db,
+    require_any_portal_token_dep=_require_any_portal_token,
+)
+app.include_router(_op_map_router)
+
 # iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
 # Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.
 # No database storage · no analytics · no scoring · no charts. Closes the
