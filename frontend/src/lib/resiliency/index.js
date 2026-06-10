@@ -19,6 +19,7 @@ export { useOnlineStatus } from "./useOnlineStatus";
 export {
   enqueueUpload, getQueueDepth, getQueueItems,
   onQueueChange, onQueueItemSettled, drainQueue, retryAllFailed,
+  discardQueueItem, clearQueue,
 } from "./resiliencyQueue";
 export {
   enqueue as enqueueOffline,

@@ -1,3 +1,34 @@
+## 2026-02-10 (OFFLINE-RESILIENCY-AUDIT-001 · FIELD RECOVERY CERTIFICATION · 🟢 PASS · preview)
+
+**Sprint:** Cross-form audit triggered by OFFLINE-UPLOAD-001 escaping into production. Prove the white-screen / hidden-error / no-recovery class cannot recur in any other queued workflow.
+**Authorization:** Operator chat 2026-02-10 — *"OFFLINE-RESILIENCY-AUDIT-001 · STATUS: AUTHORIZED"*
+**Verdict:** 🟢 **No additional P0/P1 defects of the OFFLINE-UPLOAD-001 class. Two P3 defense-in-depth fixes applied. iPad Safari verified. Production stuck-report recovery path documented.**
+
+### Coverage
+- Surfaces audited (10): QueueStatusPill drawer (the offending file), NotificationBell, StagedPhotoBadge, DraftStatusPill, DraftRestorePrompt, DraftRecoveryNotice, OfflineIndicator, QuotaWarningChip, PriorUsageBanner, DriverShift offline queue.
+- Producers audited (5): NewDailyReport, NewIncident, FieldLeadershipFormPage (10 dynamic FL kinds), DriverShift (`driver_shift_transition`), photoStaging (per-actor IDB blobs).
+- Storage backends audited (2): IDB `keyval-store/keyval` @ `masci.resiliency.queue.v1`, plus localStorage `masci.offline-queue.*`.
+- Viewports verified: desktop 1920×800, iPad landscape 1024×768, iPad portrait 768×1024.
+
+### Files changed (2 · zero retry/backoff/doctrine change)
+- `frontend/src/lib/resiliency/index.js` — barrel re-exports `discardQueueItem` + `clearQueue` for consistency.
+- `frontend/src/components/QueueStatusPill.jsx` — `_formTypeOf` recognises `fl-<kind>-new` Field-Leadership formKey family and renders "Field Leadership · <Humanized Kind>"; added `_humanizeFlKind` helper.
+
+### Defects found (full register in cert doc)
+- **OFFLINE-UPLOAD-001 (P0):** already fixed in prior step (drawer white-screen on object `lastError`).
+- **AUDIT-001-A (P3):** barrel exports missing — FIXED.
+- **AUDIT-001-B (P3):** `fl-*-new` formKeys showed generic "Submission" — FIXED.
+- **AUDIT-001-C / D:** photoStaging + offlineQueue lack manual retry/discard UI by existing doctrine — accepted (no white-screen risk, caps + 4xx clears protect against runaway).
+
+### Out-of-scope (per OMEGA DIRECTIVE)
+MaintainX, FleetWatcher, Dispatch Automation, Material Movement, ID-007, UI polish, unrelated refactors — none touched.
+
+### Deliverable
+`memory/OFFLINE_RESILIENCY_AUDIT_001_CERTIFICATION.md` — full workflow matrix, payload-shape catalog, defect register, 9-test verification matrix, iPad screenshots, production recovery procedure.
+
+---
+
+
 ## 2026-06-10 (DEPLOY-GATE-FIX-002 · SIGMA-III PLAYWRIGHT CONTENT DRIFT REMEDIATION · 🟢 PASS)
 
 **Sprint:** Remediate the 18 PW content failures + 51 fixture errors revealed by DEPLOY-GATE-FIX-001's Chromium install.

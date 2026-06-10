@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## 2026-02-10 · OFFLINE-RESILIENCY-AUDIT-001 · Cross-form field-recovery certification (preview)
+
+Authority: OMEGA DIRECTIVE — P0 audit + bugfix, strict scope limit.
+
+Triggered by OFFLINE-UPLOAD-001 escaping into production. Audited every offline/queue rendering surface, every queued workflow producer, both storage backends (IDB resiliencyQueue + localStorage offlineQueue), photo staging, and every satellite resiliency UI (DraftStatusPill / DraftRestorePrompt / DraftRecoveryNotice / NotificationBell / OfflineIndicator / QuotaWarningChip / PriorUsageBanner / StagedPhotoBadge). iPad Safari 1024×768 and 768×1024 verified.
+
+Two minor defense-in-depth fixes applied (no new features):
+
+* `frontend/src/lib/resiliency/index.js` — barrel now re-exports `discardQueueItem` + `clearQueue` (consistency fix; direct imports already worked).
+* `frontend/src/components/QueueStatusPill.jsx` — `_formTypeOf` now humanizes the `fl-<kind>-new` Field-Leadership formKey family ("Field Leadership · Crew Eval", etc.) instead of falling back to generic "Submission". New helper `_humanizeFlKind`.
+
+Verified end-to-end via Playwright in the live preview: 9 test scenarios across desktop + iPad landscape + iPad portrait, including hostile seeds (null entries, deeply nested object lastError, NaN tries, invalid enqueuedAt). Drawer never blanks. Per-item Discard with inline confirm works across `daily-report-new`, `incident-new`, `inspection-new`, `fl-*-new`. ErrorBoundary path never required (defensive renderer copes with every observed corruption shape).
+
+Documented but accepted as designed (per existing field doctrine, "NO retry panel UI"):
+
+* `photoStaging` (per-actor IDB blobs) — count badge only; cap 20 + 4xx auto-clear protects against runaway.
+* `offlineQueue.replayQueue` (DriverShift localStorage) — no MAX_TRIES; cap 3 entries + 4xx auto-clear protects against runaway.
+
+Deliverable:
+
+* `memory/OFFLINE_RESILIENCY_AUDIT_001_CERTIFICATION.md` — full workflow matrix, payload-shape catalog, defect register, test matrix, iPad verification, production stuck-report recovery procedure → 🟢 PASS.
+
+No production deploy. No backend, schema, route, retry-logic, or doctrine change.
+
+---
+
+
 ## 2026-02-10 · OFFLINE-UPLOAD-001 · P1 production-incident fix (preview)
 
 Authority: OMEGA DIRECTIVE — P1 incident response, scope strictly limited to OFFLINE-UPLOAD-001.

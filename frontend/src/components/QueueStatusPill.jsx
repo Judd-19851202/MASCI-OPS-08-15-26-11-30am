@@ -71,9 +71,31 @@ const FORM_TYPE_FROM_KEY = {
   "dvir-new": "DVIR",
 };
 
+// Field-Leadership uses dynamic formKeys of shape `fl-<kind>-new`
+// (kind ∈ equipment_checkout, write_up, crew_eval, verbal_coaching,
+// attendance, recognition, new_employee_eval,
+// promotion_recommendation, training_deficiency, supervisor_notes).
+// Render a human label without enumerating every kind.
+function _humanizeFlKind(kind) {
+  if (!kind || typeof kind !== "string") return "";
+  return kind
+    .split("_")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function _formTypeOf(item) {
   const k = item && typeof item.formKey === "string" ? item.formKey : null;
-  return (k && FORM_TYPE_FROM_KEY[k]) || "Submission";
+  if (!k) return "Submission";
+  if (FORM_TYPE_FROM_KEY[k]) return FORM_TYPE_FROM_KEY[k];
+  // Field Leadership pattern: fl-<kind>-new
+  const flMatch = /^fl-(.+)-new$/.exec(k);
+  if (flMatch) {
+    const label = _humanizeFlKind(flMatch[1]);
+    return label ? `Field Leadership · ${label}` : "Field Leadership";
+  }
+  return "Submission";
 }
 
 function _projectOf(item) {
