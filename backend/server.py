@@ -10831,6 +10831,27 @@ _shop_feed_router = build_shop_command_feed_router(
 )
 app.include_router(_shop_feed_router)
 
+# ─── FORGEDOPS PM Command Center · Phase 4A ────────────────────────
+# PM-scoped read-only aggregation. Composes Asset Spine + dispatch
+# lifecycle + daily reports + haul cycles + fleet defects + incidents
+# + CAPAs + asset transfers + state events into 7 endpoints under
+# /api/pm/command-center/*. Doctrine:
+#   - Road plates are canonical Asset Spine assets ("road_plate")
+#   - PM scope enforced via compute_pm_scope() — admin sees all,
+#     PMs see only their assigned projects, empty-scope PMs see []
+#   - Every operational row carries the map-ready field set
+#   - FleetWatcher / MaintainX returned as `not_connected` templates
+# Doctrine doc: /app/memory/PM_VISIBILITY_ARCHITECTURE.md.
+# ``require_admin`` already accepts Admin or PM tokens and returns the
+# PM doc when a per-PM token authenticates — compute_pm_scope() then
+# turns that doc into the project_numbers filter. No new auth gate.
+from routes.pm_command_center import build_pm_command_center_router  # noqa: E402
+_pm_cc_router = build_pm_command_center_router(
+    db,
+    require_pm_or_admin_dep=require_admin,
+)
+app.include_router(_pm_cc_router)
+
 # iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
 # Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.
 # No database storage · no analytics · no scoring · no charts. Closes the

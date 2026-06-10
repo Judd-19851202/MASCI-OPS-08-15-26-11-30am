@@ -1,3 +1,46 @@
+## 2026-02-10 (FORGEDOPS · PM COMMAND CENTER · PHASE 4A · BACKEND FOUNDATION · 🟢 PASS · preview)
+
+**Sprint:** Phase 4A of 4. PM Command Center backend aggregation. 7 read-only endpoints under `/api/pm/command-center/*` (overview · resources · hauls · materials · shop-impact · safety-impact · timeline). Road plates canonicalized as `road_plate`. PM scope enforced via `compute_pm_scope()`. Map-ready fields on every operational row. FleetWatcher / MaintainX returned `not_connected`. Zero UI · zero schema mutation · zero new collection.
+**Authorization:** Operator chat 2026-02-10 — *"PHASE 4A · PM COMMAND CENTER BACKEND ONLY · OMEGA ENFORCED"*
+**Verdict:** 🟢 **PASS · 37/37 contract tests + 26/26 Dispatch & Asset Spine regression (63/63) · live preview 7/7 endpoints 200 · 693 assets · 88 road plates · 272 active hauls · 30 drivers · empty-scope guard verified.**
+
+### Endpoints shipped (7)
+- `GET /api/pm/command-center/overview` — top-strip KPIs (13 counts)
+- `GET /api/pm/command-center/resources` — PM-scoped asset roster (446 rows live)
+- `GET /api/pm/command-center/hauls` — active dispatch hauls (272 rows live)
+- `GET /api/pm/command-center/materials` — daily report material in/out + cycles
+- `GET /api/pm/command-center/shop-impact` — defects + OOS scoped to PM projects
+- `GET /api/pm/command-center/safety-impact` — open incidents + CAPAs
+- `GET /api/pm/command-center/timeline` — cross-source recent feed
+
+### Doctrine honored
+- Road plates normalized (`Steel Plate · Trench Plate · Plate · Plates · Traffic Plate · Roadplate · Road Plate · road_plate` → `road_plate`)
+- `compute_pm_scope()` is the PM auth boundary — empty-scope PMs see `[]` not all data
+- Every operational row carries map-ready fields (asset_id · project_id · project_number · assignment_id · status · location_ref · timestamp · operational_state · trust_state · source_system)
+- FleetWatcher / MaintainX templates returned `not_connected` (Phase 4 prep, no activation)
+- No production data mutation · no new collection · no schema change
+
+### Files
+- BACKEND: `routes/pm_command_center.py` (already present, intact), `server.py` (+21 LOC router wiring)
+- TESTS: `backend/tests/test_pm_command_center_phase_4a.py` (NEW · 37 pytest cases)
+- MEMORY: this entry · `PM_COMMAND_CENTER_PHASE_4A_BACKEND_CERTIFICATION.md`
+
+### Live preview verification (preview DB)
+- `/overview.counts`: 693 equip · 135 trucks · 30 drivers · 88 road_plates · 272 active hauls · 0 loads_today · 43 incidents_open · 24 capas_open
+- `/resources.counts_by_kind`: 25 distinct asset kinds, `road_plate=88` aggregated correctly
+- `/overview?project_number=ZZ-NONEXISTENT` → 200 with every count=0 (no leakage)
+
+### STOP CONDITION
+Phase 4B (PM Command Center UI Shell) NOT authorized.
+Phase 4C (Operations Center cross-company board) NOT authorized.
+FleetWatcher / MaintainX activation NOT authorized.
+
+### Deliverable
+`/app/memory/PM_COMMAND_CENTER_PHASE_4A_BACKEND_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 3.2 · COMMS HANDOFF · 🟢 PASS · preview)
 
 **Sprint:** Phase 3.2 hotfix — close the documented Phase 3.1 UX gap. Frontend-only. `Contact →` from a Driver row now fully pre-fills the Comms form audience + suggested message + descriptor banner.

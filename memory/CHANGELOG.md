@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · PM Command Center · Phase 4A · Backend Foundation (preview)
+
+Authority: OMEGA DIRECTIVE — Phase 4A Authorization. Backend-only. PM-scoped read-only aggregation.
+
+**Added (backend):**
+- 7 endpoints under `/api/pm/command-center/*`: overview · resources · hauls · materials · shop-impact · safety-impact · timeline
+- Road-plate canonical normalizer (`Steel Plate`, `Trench Plate`, `Plate`, `Plates`, `Traffic Plate`, `Roadplate`, `Road Plate`, `road_plate` → `road_plate`)
+- Map-ready field set (`asset_id`, `project_id`, `project_number`, `assignment_id`, `status`, `location_ref`, `timestamp`, `operational_state`, `trust_state`, `source_system`) on every operational row
+- FleetWatcher / MaintainX `not_connected` templates (Phase 4 prep, no activation)
+- 37 pytest contract tests at `backend/tests/test_pm_command_center_phase_4a.py`
+
+**Wired:**
+- `server.py` mounts `build_pm_command_center_router(db, require_admin)` after the Shop Command Feed router.
+
+**Regression:** 26/26 Dispatch CC Phase 1 + Asset Spine P0.1 tests still green (63/63 total).
+
+**Live verification:** 7/7 endpoints respond 200 on preview against real DB (693 assets · 88 road plates · 272 active hauls · 30 drivers · 43 incidents open).
+
+**Not touched:** UI, FleetWatcher activation, MaintainX activation, schema, collections, auth gates, production data.
+
+**Deliverable:** `/app/memory/PM_COMMAND_CENTER_PHASE_4A_BACKEND_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 3.2 · Comms Handoff (preview)
 
 Authority: OMEGA DIRECTIVE — Phase 3.2 Authorization. Frontend-only hotfix. Closes the Phase 3.1 pre-fill UX gap.
