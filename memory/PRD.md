@@ -1,3 +1,30 @@
+## 2026-06-10 (PROD-RELIABILITY-INCIDENT-001 · LIVE BACKEND HEALTH · 🟢 STABLE · NO ROLLBACK)
+
+**Sprint:** P0 production incident response. Operator reported "SERVER UNREACHABLE" banner + multiple admin cards showing "Failed to load operations center / intelligence / expirations" + 0-record displays on `mascidocs.com`.
+**Authorization:** Operator chat 2026-06-10 — *"PROD-RELIABILITY-INCIDENT-001 · STATUS: AUTHORIZED"*
+**Verdict:** 🟢 **Backend is fully healthy. Rollback NOT required. The user-visible symptoms were a transient deploy-window cold-start blip on the BackendStatusBanner (which now self-clears) PLUS a silent ADMIN_HR session-expiry that surfaces clean 401s as "Failed to load…" per card.**
+
+### Investigation summary (read-only, no mutation)
+- `/api/health` on prod: **15/15 consecutive 200 OK** in 118–785 ms (cold→warm).
+- `/api/version` on prod: `app_env=production`, `started_at=14:41:05Z`, `uptime_s=554` (steady, no crash-loop), `source_hash=7009bc171abeda4010ed884b916b09bf` (identical to preview → current intended revision).
+- Every "broken" admin endpoint (`/api/operations-center`, `/api/operations/intelligence`, `/api/operations/expirations/summary`, `/api/admin/integrations/overview`, `/api/admin/safety/overview`, `/api/document-expirations`, `/api/daily-reports`) returns a clean **401** with FastAPI `detail` body in <1 s. No 5xx, no timeouts, no CORS errors.
+- Session timeouts in `/api/version` confirm `ADMIN_HR.idle_min=15` — explains why admin pages started returning 401 during the deploy window.
+
+### Operator recovery action
+Hard-refresh `mascidocs.com`, log back in. That is the entire remediation. No code change, no deploy, no revision rollback. The banner cannot be currently active for any newly-loaded session.
+
+### Data safety
+Backend uptime continuous, Mongo connection healthy (health endpoint touches DB init), all data endpoints reach the auth middleware cleanly (would 5xx if DB broke). No mutation events, no loss vector observed.
+
+### Out-of-scope (per OMEGA STOP CONDITION)
+No new features, no audits, no Atlas governance, no MaintainX / FleetWatcher / Dispatch / Material Movement, no UX hardening of the 401 cards (noted as P3 follow-up only).
+
+### Deliverable
+`memory/PROD_RELIABILITY_INCIDENT_001.md` — full timeline, endpoint matrix, runtime evidence, deploy comparison, data-safety verification, rollback decision, operator action.
+
+---
+
+
 ## 2026-02-10 (OFFLINE-UPLOAD-002 · STUCK DAILY REPORT PAYLOAD REPAIR · 🟢 PASS · preview)
 
 **Sprint:** P1 field-recovery bugfix — Jaymn's stuck Monday Daily Report (project *University High Parent Loop Ext*, queued 6:42 PM, retry 4/5) failed every upload with *"Input should be a valid number, unable to parse string as a …"*. The OFFLINE-UPLOAD-001 fix made the drawer visible but the report still couldn't upload.
