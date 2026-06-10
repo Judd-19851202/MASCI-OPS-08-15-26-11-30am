@@ -2,8 +2,8 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-06-08 21:46:06 UTC
-* Scan duration: 127 ms
+* Generated: 2026-06-09 23:59:15 UTC
+* Scan duration: 107 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 
@@ -21,8 +21,8 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `pages/NewIncident.jsx:335` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/ViewQaqcInspection.jsx:73` · ad-hoc canApprove variable · `label={isAdmin() ? "Admin · QA/QC" : "QA/QC"}`
 * `pages/ViewQaqcInspection.jsx:80` · ad-hoc canApprove variable · `{isAdmin() && (`
-* `pages/NewDailyReport.jsx:809` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
-* `pages/NewDailyReport.jsx:836` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/NewDailyReport.jsx:846` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/NewDailyReport.jsx:882` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 
 ## ⚪ Baselined (already reviewed)
 

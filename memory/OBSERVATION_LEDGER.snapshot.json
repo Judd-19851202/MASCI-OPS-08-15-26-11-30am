@@ -1,8 +1,8 @@
 {
-  "entry_count": 1,
-  "checksum_prefix": "16d005733bbc750843c99e311d8ef028284676898595ec6d25b9d96469502b0c",
-  "newest_ts": "2026-05-28T23:59:28.748000Z",
+  "entry_count": 2,
+  "checksum_prefix": "dcadc81cb2f5124b489d17487e0522a4bbb13409591a479f4086507b4741d738",
+  "newest_ts": "2026-05-29T10:33:10.039000Z",
   "oldest_ts": "2026-05-28T23:59:28.748000Z",
-  "refreshed_at": "2026-05-28T23:59:31.865Z",
+  "refreshed_at": "2026-06-09T23:59:16.688Z",
   "trendline": "OBSERVATION_LEDGER"
 }
