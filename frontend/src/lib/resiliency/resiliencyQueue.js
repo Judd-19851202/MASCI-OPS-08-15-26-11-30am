@@ -179,6 +179,35 @@ function _scheduleDrain() {
 }
 
 /**
+ * OFFLINE-UPLOAD-001 · Manual discard path.
+ *
+ * Removes a single queue item by id (idempotency key or generated id).
+ * Used by the operator's per-item "Discard" affordance in the
+ * QueueStatusPill drawer so users can recover from a stuck or
+ * malformed submission without blanking the UI.
+ *
+ * Contract:
+ *   • ONLY called from operator UI; never from drains or listeners.
+ *   • If the id matches no entry, this is a no-op.
+ *   • Persists immediately and notifies subscribers.
+ *   • Does NOT touch retry/backoff/MAX_TRIES logic.
+ *
+ * Returns { removed: <0|1> } so callers can show a toast if desired.
+ */
+export async function discardQueueItem(id) {
+  if (!id) return { removed: 0 };
+  await _load();
+  const before = _queue.length;
+  _queue = _queue.filter((it) => it && it.id !== id);
+  const removed = before - _queue.length;
+  if (removed > 0) {
+    await _persist();
+    _notify();
+  }
+  return { removed };
+}
+
+/**
  * DR-QUEUE-RETRY-001 · Manual re-arm path.
  *
  * Resets EVERY item currently in the `failed` terminal state back to
