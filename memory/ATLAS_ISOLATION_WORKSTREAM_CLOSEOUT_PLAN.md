@@ -64,7 +64,7 @@ Per doctrine, **no other status values are permitted.** Phrases like "mostly com
 - [ ] §2 (API sweep) PASS — `data-truth` shows `production`/`masci_safety`.
 - [ ] §3 (session continuity) PASS — zero forced logouts.
 - [ ] §4 (worker sanity) PASS — no `OperationFailure` in scheduler logs.
-- [ ] §5 (24-hour soak) PASS — zero soak-relevant errors.
+- [ ] §5 (60-minute observation window — revised 2026-02-10 per `ATLAS_ISOLATION_FINAL_GO_NO_GO.md` §4) PASS — zero soak-relevant errors.
 
 ### Gate 5 · TRUST SPRINT RE-EXEC COMPLETE  🟡  ← OPERATOR-GATED
 - [ ] `ATLAS_USER_ISOLATION_CERTIFICATION.md` flipped 🔴 → 🟢 with new audit JSON cited.

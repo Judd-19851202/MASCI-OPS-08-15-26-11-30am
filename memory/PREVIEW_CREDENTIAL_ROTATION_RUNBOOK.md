@@ -44,3 +44,6 @@ curl -s "$REACT_APP_BACKEND_URL/api/platform/data-truth" | jq '.environment, .da
 
 ## Non-negotiable
 - NO user logout · NO password reset · NO session invalidation.
+- `JWT_SECRET` MUST remain unchanged. Touching it triggers F-24 (forced logout = P0 incident).
+- `DB_NAME` MUST remain `masci_safety_preview`. Changing it triggers F-08 (cross-environment write risk).
+- `APP_ENV` MUST remain `preview`. Changing it disables the failsafe's preview-side probe.

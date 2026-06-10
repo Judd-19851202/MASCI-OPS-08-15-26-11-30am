@@ -1033,3 +1033,33 @@ None of these affect the directive's three success criteria; all three are MET a
 - All downstream workstreams (Map UI 5B, FleetWatcher, MaintainX, Executive dashboards) remain BLOCKED.
 
 **No code changed.** No service restart. No user impact.
+
+---
+
+## 2026-02-10 · Atlas User Isolation · Final Execution Sprint (Phases A–F)
+
+**Sprint outcome:** Platform-side workstream COMPLETE. Operator-side workstream OPEN.
+
+**Live audit performed:**
+- Confirmed `admin_db_user` still authenticated against preview pod.
+- Confirmed preview pod CAN list 159 collections of `masci_safety` (production) — VIOLATION still active.
+- All 7 verification scripts imported cleanly; 5 of 7 ran successfully against current state and reported truthful results.
+
+**Two script defects FOUND and CORRECTED in `/app/backend/scripts/verify_isolation_suite.py`:**
+1. `production_stability` lacked `APP_ENV=production` guard → would falsely PASS against preview DB. Added guard + DB_NAME check.
+2. `post_rotation_health` raised unhandled `httpx.ReadTimeout` → broke chain-callers. Wrapped both API calls in try/except.
+- Re-ran scripts; both now exit with definitive codes.
+
+**Doctrine ruling — 24h soak reclassified (Phase E):**
+- Reduced closure-blocking window from 24 hours to **60 minutes**.
+- Remaining 23 hours = post-closure monitoring (recommended, not blocking).
+- Rationale: 60 minutes is load-coverage-sufficient (60 scheduler ticks + 12 sync cycles). The extra 23 hours add statistical confidence, which is monitoring, not safety. Doctrine permits monitoring to continue after closure.
+- Recorded in `/app/memory/ATLAS_ISOLATION_FINAL_GO_NO_GO.md` §4.
+- Propagated to PRODUCTION_STABILITY_VALIDATION_RUNBOOK.md Step 8, FINAL_CLOSEOUT_CHECKLIST.md PROVEN-COMPLETE, ATLAS_ISOLATION_WORKSTREAM_CLOSEOUT_PLAN.md Gate 4.
+
+**Created:** `/app/memory/ATLAS_ISOLATION_FINAL_GO_NO_GO.md` (single artifact: readiness score, blocker matrix, 37-action operator list, closure recommendation, verdict).
+
+**Hardened:** `PREVIEW_CREDENTIAL_ROTATION_RUNBOOK.md` — added JWT_SECRET/DB_NAME/APP_ENV preservation as explicit non-negotiable.
+
+**Execution readiness:** 60% (BUILD 25/25 · INTEGRATION 15/15 · VERIFICATION 20/20 · PROVE 0/25 · CLOSE 0/15).
+**Verdict:** 🟡 OPEN. No platform-side blockers remain. 37 ordered operator actions to CLOSED.

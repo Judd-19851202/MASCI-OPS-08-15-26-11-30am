@@ -89,36 +89,63 @@ async def db_isolation() -> int:
 
 
 async def post_rotation_health() -> int:
-    """API + DB + isolation triple check."""
+    """API + DB + isolation triple check.
+
+    Hardened 2026-02-10: every httpx call is wrapped so a network
+    blip does not raise an unhandled exception and the chain caller
+    (trust_sprint_completion) sees a definitive exit code.
+    """
     import httpx
     base = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8001")
     all_ok = True
-    async with httpx.AsyncClient(timeout=15) as c:
-        r = await c.get(f"{base}/api/health")
-        if r.status_code == 200:
-            _stamp("api/health = 200")
-        else:
-            _stamp(f"api/health = {r.status_code}", ok=False); all_ok = False
-        r = await c.get(f"{base}/api/platform/data-truth")
-        if r.status_code == 200:
-            j = r.json()
-            env = j.get("environment"); db = j.get("database")
-            _stamp(f"data-truth env={env} db={db}")
-            expected_db = (PREVIEW_DB if env == "preview"
-                            else PROD_DB if env == "production" else None)
-            if expected_db and db != expected_db:
-                _stamp(f"db mismatch: got {db}, expected {expected_db}", ok=False); all_ok = False
-        else:
-            _stamp(f"data-truth = {r.status_code}", ok=False); all_ok = False
+    try:
+        async with httpx.AsyncClient(timeout=15) as c:
+            try:
+                r = await c.get(f"{base}/api/health")
+                if r.status_code == 200:
+                    _stamp("api/health = 200")
+                else:
+                    _stamp(f"api/health = {r.status_code}", ok=False); all_ok = False
+            except Exception as e:  # noqa: BLE001
+                _stamp(f"api/health unreachable: {type(e).__name__}: {e}", ok=False); all_ok = False
+            try:
+                r = await c.get(f"{base}/api/platform/data-truth")
+                if r.status_code == 200:
+                    j = r.json()
+                    env = j.get("environment"); db = j.get("database")
+                    _stamp(f"data-truth env={env} db={db}")
+                    expected_db = (PREVIEW_DB if env == "preview"
+                                   else PROD_DB if env == "production" else None)
+                    if expected_db and db != expected_db:
+                        _stamp(f"db mismatch: got {db}, expected {expected_db}", ok=False); all_ok = False
+                else:
+                    _stamp(f"data-truth = {r.status_code}", ok=False); all_ok = False
+            except Exception as e:  # noqa: BLE001
+                _stamp(f"data-truth unreachable: {type(e).__name__}: {e}", ok=False); all_ok = False
+    except Exception as e:  # noqa: BLE001
+        _stamp(f"httpx client init failed: {type(e).__name__}: {e}", ok=False); all_ok = False
     iso_ok = (await db_isolation()) == 0
     if not iso_ok: all_ok = False
     return 0 if all_ok else 1
 
 
 async def production_stability() -> int:
-    """Spot-check critical endpoints respond + DB queries succeed."""
+    """Spot-check critical endpoints respond + DB queries succeed.
+
+    Must run ONLY from a production pod. Without this guard the script
+    silently passes against the preview DB, masking F-20 (wrong-env false
+    positive). Audit 2026-02-10 confirmed the guard was missing.
+    """
+    env = os.environ.get("APP_ENV", "").strip().lower()
+    if env != "production":
+        _stamp(f"refusing to run · APP_ENV={env!r} · production_stability is production-only", ok=False)
+        return 2
+    db_name = os.environ.get("DB_NAME", "").strip()
+    if db_name != PROD_DB:
+        _stamp(f"refusing to run · DB_NAME={db_name!r} ≠ {PROD_DB!r}", ok=False)
+        return 2
     client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-    db = client[os.environ["DB_NAME"]]
+    db = client[db_name]
     all_ok = True
     for col in ("employees", "jobs_master", "equipment_master",
                 "dispatch_assignments", "fleet_defects", "incidents"):

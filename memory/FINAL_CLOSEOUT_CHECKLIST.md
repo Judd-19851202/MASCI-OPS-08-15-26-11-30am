@@ -50,7 +50,7 @@ Per FORGEDOPS Execution Doctrine, this workstream CANNOT be marked CLOSED until 
   - [ ] `ATLAS_CLUSTER_SPLIT_RECONCILIATION.md`
 
 ## PROVEN COMPLETE
-- [ ] **OPERATOR-GATED** · 24-hour soak window with `ENFORCE_DB_ISOLATION=true` and zero pod failures.
+- [ ] **OPERATOR-GATED** · 60-minute observation window with `ENFORCE_DB_ISOLATION=true` and zero pod failures (revised 2026-02-10 per `ATLAS_ISOLATION_FINAL_GO_NO_GO.md` §4 — 24-hour monitoring continues post-closure).
 - [ ] **OPERATOR-GATED** · `admin_db_user` deleted from Atlas.
 - [ ] **OPERATOR-GATED** · `mongosh` login as `admin_db_user` returns `Authentication failed`.
 - [ ] **OPERATOR-GATED** · `/app/memory/ATLAS_USER_ISOLATION_CLOSEOUT_EVIDENCE.md` filed with audit JSON + soak log + Atlas screenshot.

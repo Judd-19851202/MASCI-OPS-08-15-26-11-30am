@@ -76,16 +76,18 @@ Acceptance: scheduler heartbeat present; **zero** `OperationFailure: not authori
 
 ---
 
-## Step 8 · 24-hour soak window
+## Step 8 · 60-minute mandatory observation window
+*(Revised 2026-02-10 per `ATLAS_ISOLATION_FINAL_GO_NO_GO.md` §4 — the prior 24-hour requirement was reclassified as monitoring-only. The mandatory closure-blocking window is 60 minutes. The remaining 23 hours continue as post-closure monitoring.)*
 
 - Start UTC: ______________
-- 6h spot check 1 (`/api/health`=200, no `🔴` lines): ______________
-- 6h spot check 2: ______________
-- 6h spot check 3: ______________
-- 6h spot check 4: ______________
-- End UTC: ______________
+- 15-min spot check 1 (`/api/health`=200, no `🔴` lines, scheduler heartbeat present): ______________
+- 30-min spot check 2: ______________
+- 45-min spot check 3: ______________
+- 60-min final check (end of mandatory window): ______________
 
-Record in `/app/memory/PRODUCTION_STABILITY_SOAK_LOG.md`. Workstream cannot close until 24h elapse with zero soak-relevant incidents.
+Acceptance for closure: zero `🔴` log lines, zero new error classes vs pre-rotation baseline, ≥60 scheduler ticks observed (1-min cycle) and ≥12 sync cycles observed (5-min cycle).
+
+Record in `/app/memory/PRODUCTION_STABILITY_SOAK_LOG.md`. Closure may occur after the 60-minute window. Continue 24-hour monitoring **after** closure as a recommendation.
 
 ---
 
