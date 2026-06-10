@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 2026-02-10 · OFFLINE-UPLOAD-002 · Stuck Daily Report payload repair (preview)
+
+Authority: OMEGA DIRECTIVE — P1 field recovery bugfix, scope strictly limited.
+
+Jaymn's stuck Monday Daily Report (project *University High Parent Loop Ext*, queued 6:42 PM, retry 4/5) failed every upload because `production[].quantity` and `constraints[].hours_impact` were serialised as empty strings, which Pydantic v2 floats reject with *"Input should be a valid number, unable to parse string as a number"*. The OFFLINE-UPLOAD-001 fix made the drawer survive; this fix actually heals the payload.
+
+* NEW `frontend/src/lib/dailyReportPayloadRepair.js` — pure `normalizeDailyReportPayload(body) → {body, warnings, errors, repaired}`. Blank → 0 for required floats / null for Optional; numeric strings → numbers; non-numeric strings → recorded as field-named errors, never silently overwritten. Plus `formatUnrepairableErrors()`.
+* NEW `frontend/src/lib/dailyReportPayloadRepair.test.js` — 17 Jest unit tests, all PASS.
+* `frontend/src/lib/resiliency/resiliencyQueue.js` — `_attempt()` applies normaliser when `formKey === "daily-report-new"`. `DR_PAYLOAD_UNREPAIRABLE` Error carries `repairErrors[]` for the drawer. New `_prettyPydantic(detail)` formats FastAPI 422 arrays as readable `<path>: <msg> (got <input>)` lines. Persisted entry body never mutated; Idempotency-Key never rotated; MAX_TRIES/backoff doctrine untouched.
+
+Verified live against `safety-audit-mobile-1.preview.emergentagent.com`: Jaymn-shaped DR payload seeded into IDB, Retry All clicked → wire body normalised (`"quantity":0`, `"hours_impact":null`), backend returned **HTTP 200**, queue cleared to "All Reports Synced", exactly 1 request captured for `jaymn-monday-idem-001` (no duplicate). Companion unrepairable `"abc"` item displays field-named error and respects Discard.
+
+Deliverable: `memory/OFFLINE_UPLOAD_002_PAYLOAD_REPAIR_CERTIFICATION.md` — full RCA, normalisation rules, test matrix, production recovery procedure.
+
+No production deploy. No backend / schema / route / retry-doctrine / business-rule change.
+
+---
+
+
 ## 2026-02-10 · OFFLINE-RESILIENCY-AUDIT-001 · Cross-form field-recovery certification (preview)
 
 Authority: OMEGA DIRECTIVE — P0 audit + bugfix, strict scope limit.

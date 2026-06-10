@@ -1,3 +1,29 @@
+## 2026-02-10 (OFFLINE-UPLOAD-002 · STUCK DAILY REPORT PAYLOAD REPAIR · 🟢 PASS · preview)
+
+**Sprint:** P1 field-recovery bugfix — Jaymn's stuck Monday Daily Report (project *University High Parent Loop Ext*, queued 6:42 PM, retry 4/5) failed every upload with *"Input should be a valid number, unable to parse string as a …"*. The OFFLINE-UPLOAD-001 fix made the drawer visible but the report still couldn't upload.
+**Authorization:** Operator chat 2026-02-10 — *"OFFLINE-UPLOAD-002 · STATUS: AUTHORIZED"*
+**Verdict:** 🟢 **Root cause: UI initialises `production[].quantity` and `constraints[].hours_impact` as empty strings, which Pydantic v2 floats reject. Pure-function payload normaliser added to the retry path. Jaymn's seeded payload now uploads HTTP 200 on first retry, no duplicate.**
+
+### Files changed (3 · zero backend / schema / retry-doctrine touch)
+- NEW `frontend/src/lib/dailyReportPayloadRepair.js` — pure `normalizeDailyReportPayload(body) → {body, warnings, errors, repaired}` + `formatUnrepairableErrors()`. Operates on deep clone. Blank → 0 for required floats / null for Optional; numeric strings → numbers; non-numeric strings → never silently replaced, recorded as field-named errors.
+- NEW `frontend/src/lib/dailyReportPayloadRepair.test.js` — 17 Jest unit tests, all PASS.
+- `frontend/src/lib/resiliency/resiliencyQueue.js` — `_attempt()` now applies the normaliser when `formKey === "daily-report-new"`. Unrepairable inputs throw `DR_PAYLOAD_UNREPAIRABLE` with field path attached. `_errMsg()` upgraded with `_prettyPydantic(detail)` to convert FastAPI 422 arrays into readable `<path>: <msg> (got <input>)` strings. Persisted entry body never mutated; Idempotency-Key never changes; MAX_TRIES/backoff doctrine untouched.
+
+### Real-backend verification
+Playwright against `safety-audit-mobile-1.preview.emergentagent.com`. Jaymn-shaped DR payload seeded into IDB, Retry All clicked → wire body normalised (`"quantity":0`, `"hours_impact":null`), backend returned **HTTP 200**, queue cleared to "All Reports Synced", exactly 1 request captured (no duplicate). Unrepairable companion item (`"abc"`) now displays *"production[0].quantity: not a number (got "abc"). Edit the report and resubmit."* in the drawer and respects per-item Discard.
+
+### Production recovery
+Once this build is promoted to `mascidocs.com`, Jaymn opens the app, clicks the amber Pending Upload pill, clicks Retry All. The normaliser repairs the empty-string numerics, the same Idempotency-Key is reused, the backend responds 200, the row disappears. No clear-cache, no incognito, no admin intervention needed. Detailed steps in `OFFLINE_UPLOAD_002_PAYLOAD_REPAIR_CERTIFICATION.md` §6.
+
+### Out-of-scope (per OMEGA DIRECTIVE)
+No auto-discard, no auto-clear, no schema change, no business-rule change, no Motive/MaintainX/Atlas/FleetWatcher/Dispatch/Material Movement, no analytics, no new feature.
+
+### Deliverable
+`memory/OFFLINE_UPLOAD_002_PAYLOAD_REPAIR_CERTIFICATION.md` — full RCA, normalisation rules table, test matrix, production recovery steps.
+
+---
+
+
 ## 2026-02-10 (OFFLINE-RESILIENCY-AUDIT-001 · FIELD RECOVERY CERTIFICATION · 🟢 PASS · preview)
 
 **Sprint:** Cross-form audit triggered by OFFLINE-UPLOAD-001 escaping into production. Prove the white-screen / hidden-error / no-recovery class cannot recur in any other queued workflow.

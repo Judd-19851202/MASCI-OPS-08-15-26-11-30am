@@ -20,6 +20,7 @@
 
 import { get, set, del } from "idb-keyval";
 import { api } from "@/lib/api";
+import { normalizeDailyReportPayload, formatUnrepairableErrors } from "../dailyReportPayloadRepair";
 
 const QUEUE_KEY = "masci.resiliency.queue.v1";
 const MAX_TRIES = 5;
@@ -144,6 +145,26 @@ export async function enqueueUpload(item) {
 }
 
 async function _attempt(entry) {
+  // OFFLINE-UPLOAD-002 · Per-formKey payload repair on every attempt.
+  // The repaired body is sent to the network but the persisted entry
+  // body is NEVER mutated, so a discard+restore round-trip remains
+  // possible and no user-entered text is lost.
+  let bodyToSend = entry.body;
+  if (entry.formKey === "daily-report-new") {
+    const repair = normalizeDailyReportPayload(entry.body);
+    if (repair.errors.length > 0) {
+      // Surface a field-level, human-readable failure instead of letting
+      // the backend reply with a truncated Pydantic message. The drawer
+      // already coerces and displays `lastError`.
+      const err = new Error(
+        `Daily Report has fields we can't auto-fix — ${formatUnrepairableErrors(repair.errors)}. Edit the report and resubmit.`,
+      );
+      err.code = "DR_PAYLOAD_UNREPAIRABLE";
+      err.repairErrors = repair.errors;
+      throw err;
+    }
+    bodyToSend = repair.body;
+  }
   const config = {
     method: entry.method,
     url: entry.url,
@@ -153,15 +174,50 @@ async function _attempt(entry) {
         ? { "Idempotency-Key": entry.idempotencyKey }
         : {}),
     },
-    data: entry.body,
+    data: bodyToSend,
   };
   const r = await api.request(config);
   return r.data;
 }
 
+// OFFLINE-UPLOAD-002 · Pretty-print FastAPI / Pydantic 422 validation
+// detail arrays into "<path>: <msg> (got <input>)". Falls through to
+// whatever string-like message exists for non-422 errors.
+function _prettyPydantic(detail) {
+  if (!Array.isArray(detail)) return null;
+  const parts = [];
+  for (const d of detail) {
+    if (!d || typeof d !== "object") continue;
+    const loc = Array.isArray(d.loc) ? d.loc.filter((x) => x !== "body") : [];
+    const path = loc.length > 0 ? loc.join(".") : "(body)";
+    const msg = typeof d.msg === "string" ? d.msg : "invalid";
+    const inputStr = d.input !== undefined
+      ? ` (got ${typeof d.input === "string" ? `"${String(d.input).slice(0, 24)}"` : JSON.stringify(d.input).slice(0, 24)})`
+      : "";
+    parts.push(`${path}: ${msg}${inputStr}`);
+  }
+  if (parts.length === 0) return null;
+  const head = parts.slice(0, 2).join("; ");
+  const tail = parts.length > 2 ? ` (+${parts.length - 2} more)` : "";
+  return head + tail;
+}
+
 function _errMsg(e) {
   if (!e) return "unknown";
-  return (e.response?.data?.detail || e.message || String(e)).slice(0, 240);
+  // FastAPI 422: detail is an array of { loc, msg, type, input }
+  const detail = e.response?.data?.detail;
+  if (Array.isArray(detail)) {
+    const pretty = _prettyPydantic(detail);
+    if (pretty) return pretty.slice(0, 240);
+  }
+  // Single-string detail (most other 4xx/5xx)
+  if (typeof detail === "string" && detail.length > 0) return detail.slice(0, 240);
+  // Object detail — coerce to JSON safely
+  if (detail && typeof detail === "object") {
+    try { return JSON.stringify(detail).slice(0, 240); } catch { /* */ }
+  }
+  if (typeof e.message === "string" && e.message.length > 0) return e.message.slice(0, 240);
+  try { return String(e).slice(0, 240); } catch { return "error"; }
 }
 
 function _randId() {
