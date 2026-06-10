@@ -1,5 +1,63 @@
 # CHANGELOG
 
+## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 2 · Live Operational UI (preview)
+
+Authority: OMEGA DIRECTIVE — Phase 2 Authorization. Frontend command center on top of the Phase 1 aggregation feed.
+
+### Route
+- `/dispatch-portal/command` (RequireDispatch)
+
+### Tabs (7)
+Overview · Fleet · Drivers · Jobs · Hauls · Shop · Communications.
+
+### Always-on KPI strip (8 tiles)
+Drivers · Assets · Dispatches · Hauls · In Shop · DVIR Open · Defects · Incidents — color-coded, clickable, jump to relevant tab.
+
+### Live preview verification (1920×800)
+- Page title `Dispatch Command Center · MASCI`
+- Overview: 294 fleet assets · 24 active hauls · 82 open defects · 43 incidents · Asset Spine 693 · 31.4% Motive coverage
+- Fleet tab: 446 active asset rows with search / filter / sort, smooth scroll on iPad
+- Hauls tab: 24 active hauls with FleetWatcher "Pending Integration" chip
+- Comms tab: 3 historical broadcasts + send form with "Provider Not Configured" status
+- All integration absence states render calmly ("Pending Integration" / "Not Configured") with zero error toasts
+
+### Backend touched
+`routes/dispatch_command_center.py` — added `GET /api/dispatch/command/broadcasts` (broadcast history).
+
+### Frontend new files
+1. `pages/DispatchCommandCenter.jsx`
+2. `components/dispatch/command/commandApi.js`
+3. `components/dispatch/command/BoardShell.jsx`
+4. `components/dispatch/command/CommandStrip.jsx`
+5. `components/dispatch/command/FleetBoard.jsx`
+6. `components/dispatch/command/DriverBoard.jsx`
+7. `components/dispatch/command/JobBoard.jsx`
+8. `components/dispatch/command/HaulBoard.jsx`
+9. `components/dispatch/command/ShopFeedBoard.jsx`
+10. `components/dispatch/command/CommunicationsTab.jsx`
+
+### Frontend edited
+- `App.js` (2 lines)
+
+### Tests
+Phase 1 backend contracts 18/18 + Asset Spine P0.1 8/8 = **26/26** regression intact.
+Live Playwright smoke confirms all 7 tabs render with real preview data.
+
+### Credentials
+`dispatch@mascigc.com` / `DispatchTest2026!` (re-rotated to working state during Phase 2 smoke).
+
+### Doctrine honored
+Asset Spine canonical · Motive null-safe · FleetWatcher / MaintainX template-only · Twilio stub-only · no charts, no maps, no analytics, no FleetWatcher activation, no MaintainX activation, no PM Command Center, no Operations Center extension.
+
+### STOP CONDITION
+Phase 3 is NOT authorized. Awaiting operator approval.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_2_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 · FORGEDOPS · Dispatch Command Center V1 · Phase 1 · Backend Aggregation Foundation (preview)
 
 Authority: OMEGA DIRECTIVE — Phase 1 Authorization. Backend-only.

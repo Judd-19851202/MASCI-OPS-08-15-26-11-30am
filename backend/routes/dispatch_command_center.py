@@ -961,11 +961,47 @@ def build_dispatch_command_center_router(
             "results": results,
         }
 
+    # ────────────────────────────────────────────────────────────
+    # GET /broadcasts — recent broadcast SMS history for the Communications tab
+    # ────────────────────────────────────────────────────────────
+    @router.get("/broadcasts")
+    async def list_broadcasts(
+        _actor: Dict[str, Any] = Depends(require_any_portal_token_dep),  # noqa: ARG001
+        x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
+        limit: int = Query(50, ge=1, le=500),
+    ) -> Dict[str, Any]:
+        tenant_id = _resolve_tenant(x_tenant_id)
+        rows: List[Dict[str, Any]] = []
+        cur = db.dispatch_broadcasts.find(
+            {"tenant_id": tenant_id}, {"_id": 0},
+        ).sort("issued_at", -1).limit(int(limit))
+        async for d in cur:
+            # Strip per-recipient `results` array down to summary fields for
+            # the list view (drawer fetches full row on demand).
+            rows.append({
+                "id": d.get("id"),
+                "tenant_id": d.get("tenant_id"),
+                "kind": d.get("kind"),
+                "audience": d.get("audience"),
+                "message": d.get("message"),
+                "recipient_count": d.get("recipient_count", 0),
+                "sent": d.get("sent", 0),
+                "skipped": d.get("skipped", 0),
+                "failed": d.get("failed", 0),
+                "provider_status": d.get("provider_status"),
+                "issued_by_name": d.get("issued_by_name"),
+                "issued_by_role": d.get("issued_by_role"),
+                "issued_at": d.get("issued_at"),
+            })
+        # SMS provider snapshot
+        comm = _communication_status()
+        return {
+            "ok": True, "tenant_id": tenant_id, "as_of": _now_iso(),
+            "count": len(rows), "rows": rows,
+            "provider": comm["sms_provider"],
+        }
+
     return router
-
-
-# ════════════════════════════════════════════════════════════════════
-# Helpers for the /summary rollup
 # ════════════════════════════════════════════════════════════════════
 async def _asset_spine_health(db) -> Dict[str, Any]:
     """Lean snapshot of Asset Spine health — reads only.

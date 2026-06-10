@@ -1,3 +1,44 @@
+## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 2 · LIVE OPERATIONAL UI · 🟢 PASS · preview)
+
+**Sprint:** Phase 2 of 8. The operational heartbeat goes live for dispatchers. Seven-tab single-page command center (Overview · Fleet · Drivers · Jobs · Hauls · Shop · Comms) consuming the Phase 1 aggregation feed. Real preview data (294 fleet assets · 24 active hauls · 82 open defects · 43 incidents · 693 canonical assets · 31.4% Motive coverage) renders calmly with explicit "Pending Integration" / "Not Configured" chips for FleetWatcher / MaintainX / Twilio.
+**Authorization:** Operator chat 2026-02-10 — *"FORGEDOPS DISPATCH COMMAND CENTER V1 · PHASE 2 AUTHORIZATION · STATUS: AUTHORIZED · OMEGA ENFORCED · BUILD A LIVE OPERATIONAL COMMAND CENTER"*
+**Verdict:** 🟢 **PASS · 7 tabs live · 1735 frontend LOC · 1 new backend endpoint · Phase 1 contracts 18/18 + Asset Spine 8/8 = 26/26 regression intact · live preview rendering against MASCI data verified.**
+
+### What ships
+- Route `/dispatch-portal/command` gated by `RequireDispatch`
+- Always-on 8-tile command strip · 7-tab navigation
+- Live Fleet Board (446 rows) · Live Driver Board · Live Job Board · Live Haul Board · Shop Feed · Communications
+
+### Files
+- NEW `frontend/src/pages/DispatchCommandCenter.jsx`
+- NEW `frontend/src/components/dispatch/command/{commandApi.js,BoardShell.jsx,CommandStrip.jsx,FleetBoard.jsx,DriverBoard.jsx,JobBoard.jsx,HaulBoard.jsx,ShopFeedBoard.jsx,CommunicationsTab.jsx}`
+- EDIT `frontend/src/App.js` (2 lines)
+- EDIT `backend/routes/dispatch_command_center.py` (+ `GET /broadcasts` endpoint, 40 LOC)
+
+### Doctrine honored
+- One operational picture · 5:30 AM test passes · no charts, no analytics, no maps
+- Motive missing → gray dot + "—"
+- FleetWatcher / MaintainX absent → "Pending Integration" chip + null fields rendered as "—"
+- Twilio absent → "Provider Not Configured" chip; send form still functional (stub-only)
+- No real SMS sent from preview
+- iPad portrait + landscape supported (responsive tabs + horizontally scrolling tables)
+- Skeleton loaders · no spinner hell · per-tab independent polling
+
+### Live verification
+Page loads at title "Dispatch Command Center · MASCI", 1338 fleet-row testid hits (446 unique rows × multiple inner testids), 24 haul rows, 3 historical broadcasts visible, all integration chips reading "Pending Integration" / "Not Configured" without error spam.
+
+### Credentials
+`dispatch@mascigc.com` / `DispatchTest2026!` re-rotated and verified (see `test_credentials.md`).
+
+### STOP CONDITION
+Phase 3 (Cross-portal integrations / PM Command Center / Operations Center extension) is **NOT authorized**. Awaiting operator approval.
+
+### Deliverable
+`/app/memory/DISPATCH_COMMAND_CENTER_V1_PHASE_2_CERTIFICATION.md`
+
+---
+
+
 ## 2026-02-10 (FORGEDOPS · DISPATCH COMMAND CENTER V1 · PHASE 1 · BACKEND AGGREGATION FOUNDATION · 🟢 PASS · preview)
 
 **Sprint:** Phase 1 of 8. Backend aggregation foundation. ONE clean read-feed per concern (fleet / drivers / jobs / haul / shop) plus a one-shot `/summary` rollup plus a broadcast-SMS write endpoint that stubs safely. No UI, no Phase 2 work, no FleetWatcher/MaintainX activation, no tenant catalog migration.

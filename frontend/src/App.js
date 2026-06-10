@@ -183,6 +183,7 @@ import DispatchLogin from "@/pages/DispatchLogin";
 import LeadershipLogin from "@/pages/LeadershipLogin";
 const DispatchHub = React.lazy(() => import("@/pages/DispatchHub"));
 const DispatchBoard = React.lazy(() => import("@/pages/DispatchBoard"));
+const DispatchCommandCenter = React.lazy(() => import("@/pages/DispatchCommandCenter"));
 const DispatchDriverQualification = React.lazy(() => import("@/pages/DispatchDriverQualification"));
 import DispatchChangePassword from "@/pages/DispatchChangePassword";
 import DispatchForgotPassword from "@/pages/DispatchForgotPassword";
@@ -753,6 +754,7 @@ function App() {
             <Route path="/dispatch-portal/change-password" element={DP(<DispatchChangePassword />)} />
             <Route path="/dispatch-portal" element={DP(<DispatchHub />)} />
             <Route path="/dispatch-portal/board" element={DP(<DispatchBoard />)} />
+            <Route path="/dispatch-portal/command" element={DP(<DispatchCommandCenter />)} />
             <Route path="/dispatch-portal/fleet" element={DP(<FleetVisibility scope="dispatch" />)} />
             {/* iter353b · Dispatch read-only Approved Drivers / CDL Readiness */}
             <Route path="/dispatch-portal/driver-qualification" element={DP(<DispatchDriverQualification />)} />
