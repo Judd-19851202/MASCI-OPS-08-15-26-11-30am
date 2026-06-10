@@ -1,3 +1,39 @@
+## 2026-02-10 (FORGEDOPS · MASTER OPERATIONS + ASSET GOVERNANCE AUDIT · 🟢 ARCHITECTURE-LOCKED · read-only)
+
+**Sprint:** Zero-drift architecture review — Logistics, Dispatch, Fleet, Materials & Operations Master Audit (13 phases) plus Master Asset Governance contract. Read-only. No code changes. No new collections. No new endpoints. No vendor activation.
+**Authorization:** Operator chat 2026-02-10 — *"ZERO-DRIFT ARCHITECTURE REVIEW · EXECUTE BEFORE ANY NEW DEVELOPMENT"*
+**Verdict:** 🟢 **Two architecture-contract documents produced. Platform is operationally mature on the surface, fragmented underneath. Asset identity is the #1 spine to lock down; Operations Center / PM Dashboard / Dispatch Command Center are composition (not new) builds; Motive/MaintainX/FleetWatcher remain operator-gated activations.**
+
+### Inventory verified
+- 107 backend route files · 54 backend top-level modules · 39+ live Mongo collections · 154 frontend pages · 185 frontend components · 13 portals (Public, Admin, Dispatch, Driver, Shop, PM, HR, Safety, Field-Leadership, Operations, Trench-Safety, Job-Photos, Document-Expirations).
+- 5 dedicated Motive route files + `services/motive_service.py`; 100+ Motive memory documents; integration is architecture-complete + activation-gated.
+- MaintainX scaffolded (`MAINTAINX_SYNC_ENABLED=false`, key unset); FleetWatcher not started.
+- Existing reconciliation surface (`routes/asset_mapping_recon.py`) is already elite — 12 admin endpoints from scan → coverage → executive-summary.
+
+### Key findings
+- **Asset truth is fragmented across 4 collections** (`equipment`, `equipment_master`, `field_leadership_equipment_catalog`, `trench_safety_assets`). Master Asset Governance contract publishes the canonical resolution: **OPTION C · HYBRID — ForgedOps owns identity, vendors validate**.
+- **Operations Center is a single read-endpoint, not yet a board.** Composition build required to fuse it with `command_center`, `operations_intelligence`, and asset-coverage tile.
+- **PM Portal is 50% covered** for the directive's required Equipment/Trucks/Materials/Production/Financial views — building blocks exist, dashboard composition needed.
+- **Dispatch Command Center building blocks all exist** — composition over rebuild is the right move.
+- **Communications**: SMS canonical for drivers; per-portal digests already wired; in-app driver messaging explicitly OUT of scope (doctrine).
+
+### Recommended build sequence
+- **P0** — Asset spine: publish governance contract (done · this audit) → nightly reconciliation digest → AssetProfile cross-links from every portal.
+- **P1** — Dispatch Command Center (composition) → PM Dashboard (composition) → Operations Center board (composition).
+- **P2** — Shop Command Board (composition) → Material Movement read-side UI.
+- **P3** — Motive activation (operator-gated) → MaintainX activation (operator-gated) → FleetWatcher (post-MaintainX).
+- **Deferred**: In-app driver messaging, driver scoring, real-time GPS map, Accounting integration.
+
+### Deliverables (both new)
+- `memory/FORGEDOPS_MASTER_OPERATIONS_AUDIT_001.md` — 13-phase audit · 13 architecture maps · prioritized build sequence · pillar scorecard.
+- `memory/MASTER_ASSET_GOVERNANCE_ARCHITECTURE.md` — source-of-truth contract · ownership matrix · onboarding · retirement · reconciliation · detection workflows · pillar fit.
+
+### Out-of-scope (per OMEGA STOP CONDITION)
+No new features. No mockups. No code. No vendor activation. No security/role/token/session/Atlas/Motive/MaintainX/FleetWatcher/Dispatch Automation/Material Movement implementation work. Awaiting operator authorisation for the first P0 item.
+
+---
+
+
 ## 2026-02-10 (TRUST-DIAGNOSTICS-001 · SESSION / NETWORK / BACKEND ERROR CLARITY · 🟢 PASS · preview)
 
 **Sprint:** P1 trusted-platform reliability fix triggered by PROD-RELIABILITY-INCIDENT-001. An expired admin session masqueraded as a backend outage (SERVER UNREACHABLE banner + cascading "Failed to load…" cards + fake 0-record displays). Unacceptable for a trusted pillar.
