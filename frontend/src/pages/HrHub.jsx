@@ -16,6 +16,7 @@ import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import ExpirationsSummary from "@/components/ExpirationsSummary";
 import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import OperationsCenter from "@/components/OperationsCenter";
+import HrKpiStrip from "@/components/HrKpiStrip";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
@@ -245,7 +246,12 @@ export default function HrHub() {
           <GovernanceHealthChip portal="hr" />
         </div>
 
-        <OperationsCenter compact className="mt-6" />
+        {/* Track 13 · §4 — HR-native KPI strip replaces the operations-paste
+            OperationsCenter that previously surfaced Incidents/PO/CAPA (those
+            belong on Safety/Admin, not HR). HrKpiStrip pulls only HR-native
+            signals: active employees, pending employee requests, time-off
+            approvals, training/cert due, docs expired. */}
+        <HrKpiStrip className="mt-6" />
 
         {/* OA-1 · Operations Actions cross-portal tile */}
         <div className="mt-4" data-testid="hr-oa-tile">

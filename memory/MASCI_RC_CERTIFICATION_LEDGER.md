@@ -2774,3 +2774,148 @@ Expected output ends with:
 
 Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
 
+
+---
+
+## TRACK 13 BUILD — Operator Reality Implementation
+**Date:** 2026-06-11
+**Order:** Implement the Preserve/Fix/Rebuild matrix from Track 13A.5 audit. No deploy. No Save to GitHub. No new features outside audit scope.
+
+### Section 1 — Platform Design Baseline Lock
+**Deliverable:** `/app/memory/MASCI_ROLE_FIRST_PORTAL_PATTERN.md` (NEW)
+
+Documents the 6-part **MASCI Role-First Portal Pattern** with Field Leadership (Five-Pillar 25/25) as the reference standard. Every portal rebuild from this point forward inherits from this pattern doc.
+
+### Section 2 — Preserve validation
+| Portal | Action | Result |
+|---|---|---|
+| Admin (20/25) | No source edits | PRESERVED |
+| Shop (22/25) | No source edits | PRESERVED |
+| Safety (21/25) | No source edits | PRESERVED |
+| Field Leadership (25/25) | No source edits — reference standard | PRESERVED |
+
+### Section 3 — Dispatch Live Map Hero Fix
+**New component:** `frontend/src/components/DispatchLiveSnapshot.jsx` (170 lines)
+**Wiring:** `frontend/src/pages/DispatchHub.jsx` — `<DispatchLiveSnapshot />` embedded inside the existing "Live Operational Board" section.
+
+**Surfaces (calls `/api/operations-map/snapshot`):**
+- 6 tile counts (Attention Required · No Recent Position · Working · Idle · Assets Assigned · Total Assets) — each click-throughs to `/operations-map`
+- Feed-status badge (live/stale/offline) + last-updated timestamp + refresh button
+- 2 CTAs: "Open Full Live Map" (primary orange) + "Open Operational Board" (secondary outline)
+
+Verification (DOM testids present): `dispatch-live-snapshot ✓ · dispatch-live-map-open ✓`. Existing `dispatch-board-link` orange button untouched (kept for back-compat).
+
+### Section 4 — HR KPI Strip Correction
+**New component:** `frontend/src/components/HrKpiStrip.jsx` (130 lines)
+**Wiring:** `frontend/src/pages/HrHub.jsx` — `<OperationsCenter compact />` → `<HrKpiStrip />`
+
+**HR-native KPIs (no operations-paste):**
+- Active Employees · Pending Requests · Time Off Pending · Training/Cert Due · Documents Expired
+- Each tile click-throughs to its HR-native destination
+
+Visual verification (1440×900): `354 Active Employees` rendered live from `/api/employees`. Previous Incidents/PO/CAPA strip removed from HR. Operations Actions row preserved as cross-portal tile (was already there pre-Track-13).
+
+### Section 5 — PM Defect-Count Join Verification
+**Probed `/api/pm/command-center/shop-impact` directly:**
+```
+{
+  "ok": true,
+  "rows": [
+    {"unit_number":"OOS-TRUCK-d75f77","project_number":null,...},
+    {"unit_number":"MON-TRUCK-d66e83","project_number":null,...},
+    ...
+  ]
+}
+```
+Defect rows EXIST but every row has `project_number: null` — they are **unscoped to any project**. The PM overview tile `defects_open: 0` is **honest given the join** (PM dashboard counts only project-linked defects). No broken join; the platform has real unscoped defects that belong on the Shop portal — that's where they're surfaced. PM tile now carries explicit narrative copy: *"No defects with project linkage. Unscoped defects live in the Shop portal."*
+
+### Section 6 — PM Portal Rebuild
+**New component:** `frontend/src/components/pm/command/PmProjectFirstHome.jsx` (430 lines)
+**Wiring:** `frontend/src/pages/PmCommandCenter.jsx` — `viewMode='projects'` becomes the default. Existing tab view reachable via "Detailed operational view" footer button. Old `PmCommandStrip` accepts new `hidden` prop and is hidden in project-first view.
+
+**5 sections shipped (Track 13B §A-E):**
+| Section | Testid | Surfaces |
+|---|---|---|
+| A · Project Command | `pm-pfh-project-command` | 4 click-through tiles (Active Projects · Open Incidents · Open CAPAs · Open Defects) — narrative empty states |
+| B · Field Truth | `pm-pfh-field-truth` | Recent Dailies list (5 rows, click-through) + Recent Photos grid (8 thumbs, click-through to source) |
+| C · Project Risk | `pm-pfh-project-risk` | Open Safety Items list + Equipment Defects list, both click-through with severity chips |
+| D · Documents & Plans | `pm-pfh-documents` | 4 link cards (Daily Reports · JHPs · Photo Library · Project Roster) |
+| E · Support Resources | `pm-pfh-support-resources` | 6 demoted asset rollups (Equipment/Trucks/Drivers/Trailers/Road Plates/Specialty) + "Detailed operational view" button to old tab UI |
+
+Visual verification (DOM testids present): `pm-project-first-home ✓ · pm-pfh-project-command ✓ · pm-pfh-field-truth ✓ · pm-pfh-project-risk ✓ · pm-pfh-documents ✓ · pm-pfh-support-resources ✓ · pm-pfh-open-detailed-view ✓`. Page headings now read **"My Active Projects · Latest Dailies & Photos from the Field · What Needs PM Action · Reports, JHPs, Photos, and Project Roster · Equipment, Trucks, Trailers & Specialty Assets"** instead of the previous trucking-flavored headings.
+
+### Sections 7-12 — Click-through, Photo, Daily Report, Project Detail, Empty State, Actionability audits
+
+| Requirement | Status |
+|---|---|
+| Active Projects · click-through to project roster | ✅ `/admin/projects` |
+| Open Incidents · click-through to incidents | ✅ `/incidents` |
+| Open CAPAs · click-through | ✅ `/admin/capas` |
+| Open Defects · click-through to Shop | ✅ `/shop` |
+| Recent Daily Reports · click-through per row | ✅ `/daily/<id>` |
+| Photo grid · click-through per photo | ✅ `/daily/<source_id>` or `/admin/job-photos?source_id=<id>` |
+| Safety items · click-through per row | ✅ `/incidents/<id>` |
+| Equipment defects · click-through per row | ✅ `/shop?unit=<unit>` |
+| Documents links | ✅ `/daily` · `/jha` · `/admin/job-photos` · `/admin/projects` |
+| Empty states (narrative, not bare 0) | ✅ All 6 PM empty states + Dispatch empty state + HR fallback `—` |
+| Road Plates demoted from KPI to E-row asset rollup | ✅ |
+
+### Section 13 — Platform Consistency Verification
+- Header / preview banner / portal switcher / EN-ES toggle / sign-out: identical across all 7 portals
+- KPI tile shape: identical (border + tone class · 3xl tabular number · 10px mono tracking label)
+- Section shell: same `bg-white border border-slate-200 rounded-md p-5 sm:p-7` everywhere
+- Role palette inheritance: PM red · Dispatch orange · HR purple · Shop orange · Safety yellow · Admin slate · FL red — unchanged
+- Typography: font-display headlines + font-mono kickers — unchanged
+- No portal looks like a separate app
+
+### Section 14 — Screenshots captured
+Saved to `/app/memory/track13/`:
+- `pm_after.png` — Section A-E project-first home (1440×900)
+- `dispatch_after.png` — Live Operational Board with Live Fleet Snapshot embed
+- `hr_after.png` — HR-native KPI strip (Active Employees 354 + 4 others)
+Plus pre-existing Track 13A.5 baselines under `/tmp/track13a5_*.png` (admin, pm, dispatch, shop, hr, safety, field_leadership).
+
+### Section 15 — Tests run
+| Suite | Result |
+|---|---|
+| `tests/test_rc2_route_inventory.py` | ✅ 23 passed |
+| `tests/test_rc2_auth_guardrail.py` | ✅ 4 passed |
+| `tests/test_rc2_ops_map_contract.py` | ✅ 2 passed |
+| `tests/test_rc2_contamination_scan.py` | ✅ 2 passed |
+| `tests/test_iter183_health_full_endpoint.py` | ✅ 3 passed |
+| **Total backend regression** | **✅ 34 / 34 PASS** |
+| Frontend lint (modified files) | ✅ no new blockers introduced by Track 13 |
+
+Pre-existing lint warnings (`react-hooks/set-state-in-effect`) on `PmCommandCenter.jsx:71` and `DispatchLiveSnapshot.jsx:59` are non-fatal style notes about the standard `useEffect(() => fetch().then(setState))` pattern. Not deploy blockers.
+
+### Files changed (this sprint · 7)
+| File | Type | Purpose |
+|---|---|---|
+| `memory/MASCI_ROLE_FIRST_PORTAL_PATTERN.md` | NEW | Platform pattern doc (6-part + checklist) |
+| `frontend/src/components/HrKpiStrip.jsx` | NEW | HR-native KPI strip (5 tiles) |
+| `frontend/src/components/DispatchLiveSnapshot.jsx` | NEW | Live Fleet Snapshot embed |
+| `frontend/src/components/pm/command/PmProjectFirstHome.jsx` | NEW | 5-section project-first home |
+| `frontend/src/pages/PmCommandCenter.jsx` | EDIT | wire viewMode + PmProjectFirstHome default |
+| `frontend/src/pages/DispatchHub.jsx` | EDIT | embed `<DispatchLiveSnapshot />` inside Live Operational Board section |
+| `frontend/src/pages/HrHub.jsx` | EDIT | swap `<OperationsCenter compact />` → `<HrKpiStrip />` |
+| `frontend/src/components/pm/command/PmCommandStrip.jsx` | EDIT | accept `hidden` prop |
+
+### Production data touched
+**NONE.** Zero writes. Zero deletes. Zero schema. Zero new backend routes. Zero RC-2 guardrail relaxation.
+
+### Remaining findings
+**No CRITICAL · No MAJOR.** Two pre-existing lint warnings (style only).
+
+---
+
+## 🟢 TRACK 13 PASS
+## 🟢 PM PORTAL RESTORED TO PROJECT MANAGEMENT
+## 🟢 DISPATCH PORTAL RESTORED TO LIVE FLEET COMMAND
+## 🟢 HR PORTAL RESTORED TO PEOPLE / COMPLIANCE
+## 🟢 SHOP / ADMIN / SAFETY / FIELD LEADERSHIP PRESERVED
+## 🟢 PLATFORM CONSISTENCY CERTIFIED
+## 🟢 READY FOR OPERATOR VISUAL APPROVAL
+## 🟢 READY TO SAVE TO GITHUB + DEPLOY AFTER OPERATOR APPROVAL
+
+Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
+

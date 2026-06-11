@@ -31,6 +31,7 @@ import PmShopImpactBoard from "@/components/pm/command/PmShopImpactBoard";
 import PmSafetyImpactBoard from "@/components/pm/command/PmSafetyImpactBoard";
 import PmTimelineBoard from "@/components/pm/command/PmTimelineBoard";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
+import PmProjectFirstHome from "@/components/pm/command/PmProjectFirstHome";
 import { pmCommandApi } from "@/components/pm/command/pmCommandApi";
 
 const PM_PAL = paletteFor("pm");
@@ -45,6 +46,10 @@ export default function PmCommandCenter() {
   const initialKind = searchParams.get("kind") || "all";
 
   const [tab, setTab] = useState("overview");
+  // Track 13 · §6 — default view is project-first; tabs are the
+  // "detailed operational view" reachable via the support-resources
+  // section footer. The tab view still works exactly as before.
+  const [viewMode, setViewMode] = useState("projects");
   const [overview, setOverview] = useState(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [resourceKindFilter, setResourceKindFilter] = useState(initialKind);
@@ -150,7 +155,31 @@ export default function PmCommandCenter() {
           loading={loadingOverview}
           onJumpTo={jumpTo}
           onJumpToWithFilter={jumpToWithFilter}
+          hidden={viewMode === "projects"}
         />
+
+        {viewMode === "projects" ? (
+          /* Track 13 · §6 PM Portal Rebuild — project-first home.
+             Replaces the 12-tile fleet strip + 7-tab resource-typed
+             layout as the default first screen. The detailed tab view
+             is one click away via the support-resources footer. */
+          <PmProjectFirstHome
+            overview={overview}
+            loading={loadingOverview}
+            onOpenDetailedView={() => setViewMode("detailed")}
+          />
+        ) : (
+        <>
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setViewMode("projects")}
+            data-testid="pm-cc-back-to-projects"
+            className="inline-flex items-center min-h-[36px] px-3 -ml-1 text-xs font-mono uppercase tracking-widest text-slate-600 hover:text-slate-900"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to project view
+          </button>
+        </div>
 
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <TabsList
@@ -202,6 +231,8 @@ export default function PmCommandCenter() {
             <PmTimelineBoard projectNumber={projectNumber} />
           </TabsContent>
         </Tabs>
+        </>
+        )}
       </main>
     </div>
   );

@@ -45,6 +45,7 @@ import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import DispatchSideNavV2, { useDispatchSidebarV2Enabled } from "@/components/dispatch/sidebar/DispatchSideNavV2";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import DispatchEquipmentMaintenanceIndicator from "@/components/dispatch/DispatchEquipmentMaintenanceIndicator";
+import DispatchLiveSnapshot from "@/components/DispatchLiveSnapshot";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -334,6 +335,14 @@ export default function DispatchHub() {
             <Activity className="w-5 h-5 mr-2" />
             {t("Open Operational Board")}
           </Link>
+
+          {/* Track 13 · §3 — Live Fleet Snapshot embed.
+              Surface the operations-map snapshot counts directly inside
+              the Live Operational Board section so a dispatcher answers
+              "where is the fleet · what is moving · what is stuck · what
+              needs action · where do I open the full map" in one glance,
+              without needing to click through first. */}
+          <DispatchLiveSnapshot className="mt-4" />
         </Section>
 
         {/* ── 4 · FOLLOW-THROUGH · transfers + holds ─────────────── */}

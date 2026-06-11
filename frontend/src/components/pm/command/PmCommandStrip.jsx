@@ -28,7 +28,8 @@ const TILES = [
   { key: "loads_today",        label: "Loads Today", icon: ListChecks,  section: "hauls" },
 ];
 
-export default function PmCommandStrip({ overview, loading, onJumpTo, onJumpToWithFilter }) {
+export default function PmCommandStrip({ overview, loading, onJumpTo, onJumpToWithFilter, hidden = false }) {
+  if (hidden) return null;
   const counts = overview?.counts || {};
   return (
     <div
