@@ -67,10 +67,12 @@ export default function AssetCardSheet({ assetKey, onClose }) {
       {a && (
         <>
           {/* 1 · Asset Identity */}
-          <h2 data-testid="ops-map-asset-sheet-title">{a.unit_number || "Unknown"}</h2>
-          <div className="meta">
-            {ASSET_KIND_LABEL[a.marker_kind] || a.asset_kind || "asset"}
-            {a.equipment_name ? ` · ${a.equipment_name}` : ""}
+          <div data-testid="ops-map-asset-sheet-identity">
+            <h2 data-testid="ops-map-asset-sheet-title">{a.unit_number || "Unknown"}</h2>
+            <div className="meta">
+              {ASSET_KIND_LABEL[a.marker_kind] || a.asset_kind || "asset"}
+              {a.equipment_name ? ` · ${a.equipment_name}` : ""}
+            </div>
           </div>
 
           {/* 2 · Current Assignment */}

@@ -39493,3 +39493,57 @@ Atlas Console required. Runbook unchanged at `GOVERNANCE_REMEDIATE_001_ATLAS_CUT
 `/app/test_reports/iteration_502_ops_map_masci_vocab.json`
 
 **Map alignment sprint COMPLETE. Awaiting operator to push to GitHub and redeploy to mascidocs.com.**
+
+
+---
+
+## MASCI LIVE MAP · 7-ITEM DRIFT CLOSEOUT SPRINT — EXECUTED (2026-02-11)
+
+**Sprint:** MASCI Operations Center · Live Map · 7-Item Closeout (4th pass)
+**Verdict:** ✅ PASS (backend 100% · frontend 100% on all 7 acceptance items)
+
+### The seven failures — closeout table
+
+| # | Failure | Fix | Status |
+|---|---|---|---|
+| 1 | Map dominated screen | Grid rows rebalanced (60/96/168/1fr/168). Banner tiles beefed (font-size 22→30px, tone-tinted, shadow). Project Intelligence Strip given 168px row height with 240-280px tall cards. | ✅ |
+| 2 | Project Intelligence had only "Unassigned/Unknown" | 4-tier priority added: explicit_project → geofence_membership → gps_location (city/state from latest event) → missing_assignment. Preview now renders 16 buckets (5 shown + 11 overflow). | ✅ |
+| 3 | "Reporting" vocabulary too weak | Banner tile id `reporting`→`connected`, label → "Connected Assets". | ✅ |
+| 4 | "Needs Attention" too weak | Banner tile + AssetCardSheet badge + FilterRail status all use "Attention Required". `OPERATIONAL_STATE_LABEL.red` updated in eventVocab. | ✅ |
+| 5 | "Telemetry Standby" too technical | New `feed_status` block in snapshot (`live` / `delayed` / `offline`). New `[data-testid='ops-map-feed-chip']` in MapTopBar shows `Live Feed` / `Delayed Feed` / `Offline Feed`. | ✅ |
+| 6 | Project Intelligence not ranked | Backend ranks by (`attention_required_count desc`, `offline_count desc`, `total desc`). Top 5 returned + `project_rollups_overflow` + `project_rollups_total`. Frontend renders "+N more buckets" pill. | ✅ |
+| 7 | AssetCardSheet too telematics-heavy | Rewritten section order: Identity → Current Assignment → Operational State → Operator → Last Position Update → Open Issues → Recent Activity → Data Source. Backend `asset/{key}` now computes `assignment` field. | ✅ |
+
+### Backend (`/app/backend/routes/operations_map_v1.py`)
+- `snapshot()`: emits `operational_summary` (6 tiles), `feed_status` (status+label), `project_rollups` (top 5 ranked, new shape), `project_rollups_overflow`, `project_rollups_total`. Rollup keys: `name, display_name, bucket_type, total, connected_count, attention_required_count, offline_count, last_activity_at, assignment_source, assignment_confidence`.
+- `asset/{key}`: now computes `marker.assignment` using same 4-tier priority.
+- Backend pytest `test_operations_map_masci_vocab.py`: **12 passed / 1 skipped**.
+
+### Frontend changes
+- `OperationsMapPage.jsx` — passes `feedStatus`, `rollups`, `overflow`, `total`.
+- `MapTopBar.jsx` — new `[data-testid='ops-map-feed-chip']` driven by feed_status.
+- `MapOperationsBanner.jsx` — binds to operational_summary.
+- `ProjectIntelligenceStrip.jsx` — ranked cards + Connected/Attention Required/Offline chips + Source · Confidence pill + overflow indicator.
+- `MapFilterRail.jsx` — STATUS_TILES uses "Attention Required".
+- `AssetCardSheet.jsx` — new 8-section layout (Identity → Current Assignment → Operational State → Operator → Last Position Update → Open Issues → Recent Activity → Data Source); added `ops-map-asset-sheet-identity` wrapper.
+- `eventVocab.js` — `OPERATIONAL_STATE_LABEL.red = "Attention Required"`.
+- `OperationsMap.css` — grid rebalance + banner beef-up + full ProjectIntelligenceStrip styling + AssetCardSheet section styles + state-badge tones.
+
+### Performance (warm)
+- snapshot: 373-380ms  (SLA <800ms) ✅
+- search: 226ms        (SLA <250ms) ✅
+- asset detail: 451ms  (SLA <1500ms; spec asked <500ms; within) ✅
+- map page load: 3286ms cold (sprite preload), warm <1000ms (refresh chip showed 910→1179ms)
+
+### Vocabulary sweep (banned tokens in [data-testid='operations-map-page'] and asset sheet)
+`Reporting · Needs Attention · Telemetry Standby · Motive Status · GPS Status · vehicle_gps · geofence_enter · geofence_exit · event_family · motive:webhook` — **0 hits**.
+
+### Test reports
+- `/app/test_reports/iteration_503_ops_map_masci_drift_closeout.json` — PASS
+- `/app/backend/tests/test_operations_map_masci_vocab.py` — 12/13 PASS (1 expected skip)
+
+### Remaining limitations
+- Preview env has no live Motive traffic → feed_status='offline' (chip correctly says "Offline Feed"). Will read "Live Feed" on production once telemetry flows.
+- Preview env has 0 geofences in motive_geofences collection → all 16 buckets are `gps_location` source / Medium confidence. Production will populate `geofence_membership` / High confidence buckets automatically.
+
+**Sprint COMPLETE. Awaiting operator to push to GitHub and redeploy to mascidocs.com.**
