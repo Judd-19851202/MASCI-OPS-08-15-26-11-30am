@@ -25,6 +25,13 @@ from branded_portal_emails import render_portal_email
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+# Preview Secret Surface (added 2026-02-10) — operator-only file, gitignored.
+# Loads ONLY if the file exists. In production deployments the file is absent
+# (gitignored, never committed, never created), so this call is a silent no-op
+# and cannot affect production secrets. In the preview pod the operator edits
+# /app/backend/.env.preview directly via the pod terminal; values here override
+# /app/backend/.env. See /app/memory/PREVIEW_SECRET_SURFACE_CERTIFICATION.md.
+load_dotenv(ROOT_DIR / '.env.preview', override=True)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']

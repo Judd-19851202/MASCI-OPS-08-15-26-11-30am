@@ -1063,3 +1063,26 @@ None of these affect the directive's three success criteria; all three are MET a
 
 **Execution readiness:** 60% (BUILD 25/25 · INTEGRATION 15/15 · VERIFICATION 20/20 · PROVE 0/25 · CLOSE 0/15).
 **Verdict:** 🟡 OPEN. No platform-side blockers remain. 37 ordered operator actions to CLOSED.
+
+---
+
+## 2026-02-10 · Preview Secret Surface installed (Atlas Isolation enabler)
+
+**Purpose:** Provide an operator-safe surface for rotating preview-only credentials without pasting secrets into chat and without any path to overwrite production.
+
+**Created:**
+- `/app/backend/.env.preview` — operator-only file, 0600 perms, gitignored by `.env.*` pattern, currently contains only commented template lines.
+- `/app/memory/PREVIEW_SECRET_SURFACE_CERTIFICATION.md` — full certification with evidence (7-section).
+
+**Modified:**
+- `/app/backend/server.py` lines 26–34 — added `load_dotenv(ROOT_DIR / '.env.preview', override=True)` after the existing `.env` load. Silent no-op when file absent (production case).
+
+**Verified:**
+- `.env.preview` perms = 0600.
+- `git check-ignore` confirms file is excluded.
+- `git ls-files` confirms file is not tracked.
+- Backend healthy after change (preview `/api/health` = 200 on internal + external URL).
+- Override mechanism tested via `python-dotenv` direct invocation — works when file has uncommented keys, no-op when keys commented.
+- Production at https://mascidocs.com unchanged (`app_env=production`, `db_name=masci_safety`, uptime continues uninterrupted).
+
+**Workstream impact:** Atlas User Isolation remains 🟡 OPEN. Operator may now fill in `.env.preview` from the preview pod terminal without exposing credentials. After fill-in + backend restart, the agent will execute the 7-check verification.
