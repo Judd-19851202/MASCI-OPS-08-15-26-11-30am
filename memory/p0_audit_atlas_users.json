@@ -1,8 +1,8 @@
 {
-  "as_of": "2026-06-11T00:43:23.727310+00:00",
+  "as_of": "2026-06-11T00:49:08.800314+00:00",
   "users": [],
   "errors": [
-    "usersInfo failed: not authorized on admin to execute command { usersInfo: 1, lsid: { id: UUID(\"cd8ae704-dd5f-4808-ae84-6afdc904ab03\") }, $clusterTime: { clusterTime: Timestamp(1781138603, 14), signature: { hash: BinDat"
+    "usersInfo failed: not authorized on admin to execute command { usersInfo: 1, lsid: { id: UUID(\"ca4b57ca-e0cc-484b-b7c6-ff8538687e67\") }, $clusterTime: { clusterTime: Timestamp(1781138947, 18), signature: { hash: BinDat"
   ],
   "authenticated_as": [
     {
