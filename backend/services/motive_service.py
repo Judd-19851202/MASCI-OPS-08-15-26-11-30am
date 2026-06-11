@@ -14,6 +14,7 @@ NO new portal · NO new auth · NO new lifecycle · NO new fleet system.
 """
 from __future__ import annotations
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -36,6 +37,71 @@ def _now_iso() -> str:
 
 def _new_id() -> str:
     return str(uuid.uuid4())
+
+
+# ─── Webhook / sync deduplication helpers ─────────────────────────────────
+# WEBHOOK-DEDUP-001 · 2026-02-10
+# Motive uses at-least-once delivery. The same physical event can arrive
+# multiple times via:
+#   (a) Motive retrying a webhook because our 200 was slow,
+#   (b) the polling backfill (`sync_events`) re-pulling the same GPS row,
+#   (c) two MASCI workers handling concurrent deliveries.
+#
+# Solution: derive a deterministic `event_signature` (sha256 hex) from the
+# canonical event identity fields and put a UNIQUE INDEX on
+# (provider, event_signature). Both `process_webhook` and `sync_events`
+# write via `update_one({..., event_signature}, {$setOnInsert: doc}, upsert=True)`,
+# so the second insert with the same signature is a no-op upsert. The first
+# insert returns `upserted_id`; duplicates return `upserted_id=None` and we
+# log + return 200 without re-running side effects.
+def _compute_event_signature(
+    *,
+    provider: str,
+    event_kind: str,
+    vehicle_id: str,
+    driver_id: str,
+    event_at: str,
+    lat: Any = None,
+    lon: Any = None,
+    raw_event_id: Any = None,
+) -> str:
+    """Deterministic event signature for replay protection.
+
+    Order matters; never reorder these fields without coordinating with
+    the unique-index migration.
+    """
+    parts = "|".join([
+        str(provider or "motive"),
+        str(event_kind or "unknown"),
+        str(vehicle_id or ""),
+        str(driver_id or ""),
+        str(event_at or ""),
+        # Lat/lon collapse double-precision noise to 6 dp (~10 cm) so
+        # tiny float jitter on Motive's side doesn't break dedup.
+        f"{lat:.6f}" if isinstance(lat, (int, float)) else str(lat or ""),
+        f"{lon:.6f}" if isinstance(lon, (int, float)) else str(lon or ""),
+        str(raw_event_id or ""),
+    ])
+    return hashlib.sha256(parts.encode("utf-8")).hexdigest()
+
+
+async def ensure_motive_events_indexes(db) -> None:
+    """Idempotent index bootstrap. Safe to call repeatedly at startup.
+
+    Creates a unique partial index on (provider, event_signature) so the
+    dedup write path can rely on Mongo's storage-engine guarantee
+    instead of an app-side check. Partial filter ensures pre-WEBHOOK-DEDUP-001
+    rows (which have no event_signature) do NOT clash with each other.
+    """
+    try:
+        await db.motive_events.create_index(
+            [("provider", 1), ("event_signature", 1)],
+            unique=True,
+            name="uniq_provider_event_signature",
+            partialFilterExpression={"event_signature": {"$type": "string"}},
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[motive index ensure] {e}")
 
 
 class MotiveService:
@@ -327,10 +393,15 @@ class MotiveService:
         """Polling backfill for missed webhooks. Re-runs a vehicle
         location pull and persists each row to motive_events so the
         Dispatch board has a recent ground truth even if a webhook
-        was dropped."""
+        was dropped.
+
+        WEBHOOK-DEDUP-001: writes use the same `event_signature` upsert
+        pattern as the webhook path so the scheduler can never duplicate
+        a row that already arrived via webhook (or vice versa).
+        """
         if not self.is_live:
             return _awaiting("sync_events")
-        created, errors = 0, 0
+        created, skipped, errors = 0, 0, 0
         try:
             data = await self._get("/v3/vehicle_locations", {"per_page": 100})
             for wrap in data.get("vehicles", []):
@@ -338,23 +409,50 @@ class MotiveService:
                 loc = v.get("current_location") or {}
                 if not loc.get("lat"):
                     continue
-                await self.db.motive_events.insert_one({
-                    "id": _new_id(),
-                    "provider": PROVIDER,
-                    "event_kind": "vehicle_gps",
-                    "source": "poll",
-                    "event_at": loc.get("located_at") or _now_iso(),
-                    "received_at": _now_iso(),
-                    "vehicle_id": str(v.get("id") or ""),
-                    "lat": loc.get("lat"),
-                    "lon": loc.get("lon"),
-                    "speed_kph": loc.get("kph"),
-                    "bearing": loc.get("bearing"),
-                    "city": loc.get("city"),
-                    "state": loc.get("state"),
-                    "raw": v,
-                })
-                created += 1
+                vehicle_id = str(v.get("id") or "")
+                event_at = loc.get("located_at") or _now_iso()
+                signature = _compute_event_signature(
+                    provider=PROVIDER, event_kind="vehicle_gps",
+                    vehicle_id=vehicle_id, driver_id="",
+                    event_at=event_at, lat=loc.get("lat"), lon=loc.get("lon"),
+                    raw_event_id=v.get("id"),
+                )
+                set_on_insert = {
+                    "id":              _new_id(),
+                    "provider":        PROVIDER,
+                    "event_kind":      "vehicle_gps",
+                    "event_family":    "vehicle_gps",
+                    "event_signature": signature,
+                    "source":          "poll",
+                    "event_at":        event_at,
+                    "received_at":     _now_iso(),
+                    "vehicle_id":      vehicle_id,
+                    "lat":             loc.get("lat"),
+                    "lon":             loc.get("lon"),
+                    "speed_kph":       loc.get("kph"),
+                    "bearing":         loc.get("bearing"),
+                    "city":            loc.get("city"),
+                    "state":           loc.get("state"),
+                    "raw":             v,
+                }
+                try:
+                    res = await self.db.motive_events.update_one(
+                        {"provider": PROVIDER, "event_signature": signature},
+                        {"$setOnInsert": set_on_insert},
+                        upsert=True,
+                    )
+                    if res.upserted_id:
+                        created += 1
+                    else:
+                        skipped += 1
+                except Exception as inner:  # noqa: BLE001
+                    # Mongo DuplicateKeyError under concurrent write races
+                    # is the expected dedup signal — count and continue.
+                    if "duplicate" in str(inner).lower() or "E11000" in str(inner):
+                        skipped += 1
+                    else:
+                        errors += 1
+                        logger.warning(f"[motive sync_events insert] {inner}")
         except Exception as e:  # noqa: BLE001
             errors += 1
             logger.warning(f"[motive sync_events] {e}")
@@ -362,6 +460,7 @@ class MotiveService:
         await _write_sync_log(self.db, "sync_events", triggered_by, created, 0, errors)
         return {"ok": errors == 0, "status": "ok" if errors == 0 else "partial",
                 "operation": "sync_events", "records_created": created,
+                "records_skipped_duplicate": skipped,
                 "records_updated": 0, "errors": errors}
 
     # ── 6. Process webhook ───────────────────────────────────────────
@@ -369,7 +468,14 @@ class MotiveService:
                               test_mode: bool = False) -> Dict[str, Any]:
         """Route a Motive webhook by event type. Signature verification
         is handled UPSTREAM in routes/integrations/webhooks.py. This
-        method only persists + dispatches."""
+        method only persists + dispatches.
+
+        WEBHOOK-DEDUP-001: writes go through a deterministic
+        `event_signature` upsert. Duplicate retries (Motive's
+        at-least-once policy) become a single-row no-op and return
+        HTTP 200 with `status="duplicate"` so Motive won't keep
+        retrying.
+        """
         try:
             body = json.loads(raw_body.decode("utf-8") or "{}")
         except Exception:
@@ -385,6 +491,8 @@ class MotiveService:
         vehicle = body.get("vehicle") or {}
         vehicle_id = str(vehicle.get("id") or body.get("vehicle_id") or "").strip()
         loc = body.get("location") or vehicle.get("current_location") or {}
+        driver_id = str((body.get("driver") or {}).get("id") or body.get("driver_id") or "").strip()
+        event_at = body.get("event_time") or body.get("occurred_at") or loc.get("located_at") or _now_iso()
 
         # P1.5 · Extract operationally meaningful fields per the
         # Webhook Intelligence Audit. Storage only — NO workflow
@@ -395,24 +503,91 @@ class MotiveService:
         family = _classify_family(event_kind)
         classification = _classify_event(family, event_kind, body, vehicle, loc)
 
-        await self.db.motive_events.insert_one({
-            "id": _new_id(),
-            "provider": PROVIDER,
-            "event_kind": event_kind,
-            "event_family": family,
-            "source": "webhook",
-            "event_at": body.get("event_time") or body.get("occurred_at") or loc.get("located_at") or _now_iso(),
-            "received_at": _now_iso(),
-            "vehicle_id": vehicle_id,
-            "driver_id": str((body.get("driver") or {}).get("id") or body.get("driver_id") or "").strip(),
-            "lat": loc.get("lat"),
-            "lon": loc.get("lon"),
-            "raw": body,
-            "test_mode": test_mode,
-            **classification,
-        })
+        # Motive may put the per-event id in any of these fields; use
+        # whichever is present to strengthen the signature.
+        raw_event_id = (
+            body.get("event_id")
+            or body.get("id")
+            or body.get("webhook_id")
+            or body.get("delivery_id")
+            or (body.get("event") or {}).get("id")
+            or ""
+        )
+        signature = _compute_event_signature(
+            provider=PROVIDER, event_kind=event_kind,
+            vehicle_id=vehicle_id, driver_id=driver_id,
+            event_at=event_at, lat=loc.get("lat"), lon=loc.get("lon"),
+            raw_event_id=raw_event_id,
+        )
 
-        # Light routing for vehicle_gps — keep hydrated mapping row fresh
+        set_on_insert = {
+            "id":              _new_id(),
+            "provider":        PROVIDER,
+            "event_kind":      event_kind,
+            "event_family":    family,
+            "event_signature": signature,
+            "source":          "webhook",
+            "event_at":        event_at,
+            "received_at":     _now_iso(),
+            "vehicle_id":      vehicle_id,
+            "driver_id":       driver_id,
+            "lat":             loc.get("lat"),
+            "lon":             loc.get("lon"),
+            "raw":             body,
+            "test_mode":       test_mode,
+            **classification,
+        }
+
+        # Upsert keyed on the unique signature. If a doc already exists
+        # we return success without re-running side effects.
+        duplicate = False
+        try:
+            res = await self.db.motive_events.update_one(
+                {"provider": PROVIDER, "event_signature": signature},
+                {"$setOnInsert": set_on_insert},
+                upsert=True,
+            )
+            inserted = bool(res.upserted_id)
+        except Exception as e:  # noqa: BLE001
+            # Concurrent inserts under the unique index race may surface
+            # as DuplicateKeyError. That is the dedup signal.
+            if "duplicate" in str(e).lower() or "E11000" in str(e):
+                inserted = False
+                duplicate = True
+            else:
+                logger.warning(f"[motive webhook insert] {e}")
+                raise
+
+        if not inserted:
+            duplicate = True
+
+        if duplicate:
+            # Audit the duplicate without polluting motive_events.
+            try:
+                await self.db.integration_sync_logs.insert_one({
+                    "id":             _new_id(),
+                    "integration":    PROVIDER,
+                    "sync_type":      "webhook_duplicate",
+                    "status":         "Duplicate",
+                    "started_at":     _now_iso(),
+                    "completed_at":   _now_iso(),
+                    "duration_ms":    0,
+                    "records_created": 0,
+                    "records_updated": 0,
+                    "records_skipped": 1,
+                    "records_failed":  0,
+                    "triggered_by":    "webhook",
+                    "environment":     (os.environ.get("APP_ENV") or "production").strip(),
+                    "notes":           f"Duplicate suppressed by event_signature={signature[:16]}…",
+                })
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[motive webhook dup audit] {e}")
+            return {"ok": True, "status": "duplicate", "stored": False,
+                    "event_kind": event_kind, "event_family": family,
+                    "event_signature": signature,
+                    "vehicle_id": vehicle_id or None}
+
+        # First-time delivery → run the side-effects (mapping hydration).
         if event_kind in ("vehicle_gps", "vehicle_location_received") and vehicle_id and loc.get("lat"):
             try:
                 await self.db.asset_mappings.update_one(
@@ -429,6 +604,7 @@ class MotiveService:
 
         return {"ok": True, "status": "stored", "stored": True,
                 "event_kind": event_kind, "event_family": family,
+                "event_signature": signature,
                 "severity": classification.get("severity"),
                 "vehicle_id": vehicle_id or None}
 

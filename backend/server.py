@@ -10387,6 +10387,9 @@ async def _arm_workflow_state_events_indexes():
         # FOCP Release 2 · TR-0001 — JHP Acknowledgement Ledger indexes.
         from routes.jha_acknowledgements import ensure_indexes as _jha_ack_idx  # noqa: PLC0415
         await _jha_ack_idx(db)
+        # WEBHOOK-DEDUP-001 — Motive event uniqueness index (idempotent).
+        from services.motive_service import ensure_motive_events_indexes as _motive_idx  # noqa: PLC0415
+        await _motive_idx(db)
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[workflow_state_events] index: {e}")
 
