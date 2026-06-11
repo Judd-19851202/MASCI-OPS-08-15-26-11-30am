@@ -72,12 +72,14 @@ export default function AssetCardSheet({ assetKey, onClose }) {
 
           <section data-testid="ops-map-asset-sheet-health">
             <div className="kv">
-              <div className="k">Asset Health</div>
-              <div className="v">{data?.asset_health?.status || "—"}</div>
-              <div className="k">Motive Status</div>
+              <div className="k">Operational State</div>
+              <div className="v">{
+                ({ green: "Working", amber: "Idle", red: "Attention Required", gray: "Offline" }[data?.asset_health?.status] || "Unknown")
+              }</div>
+              <div className="k">Telemetry</div>
               <div className="v">
-                {data?.motive_status?.status || "unknown"}
-                {data?.motive_status?.webhook_armed && <span style={{ color: "#22c55e", marginLeft: 8 }}>· webhook armed</span>}
+                {data?.motive_status?.enabled ? "Connected" : "Disconnected"}
+                {data?.motive_status?.webhook_armed && <span style={{ color: "#0d9488", marginLeft: 8 }}>· live link armed</span>}
               </div>
               <div className="k">Open Issues</div>
               <div className="v">{(data?.open_defects?.length ?? 0)}</div>
