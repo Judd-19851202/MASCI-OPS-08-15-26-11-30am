@@ -11,7 +11,7 @@ const TILES = [
   { id: "reporting",  label: "Reporting",           tone: "slate"   },
   { id: "working",    label: "Working",             tone: "emerald" },
   { id: "idle",       label: "Idle",                tone: "amber"   },
-  { id: "attention",  label: "Attention Required",  tone: "rose"    },
+  { id: "attention",  label: "Needs Attention",     tone: "rose"    },
   { id: "offline",    label: "Offline",             tone: "slate"   },
 ];
 

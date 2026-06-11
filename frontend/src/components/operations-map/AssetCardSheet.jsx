@@ -56,16 +56,18 @@ export default function AssetCardSheet({ assetKey, onClose }) {
 
           <section data-testid="ops-map-asset-sheet-driver">
             <div className="kv">
-              <div className="k">Driver</div>
+              <div className="k">Operator</div>
               <div className="v">
                 {data?.driver?.name ? data.driver.name : <span style={{ color: "#94a3b8" }}>unassigned</span>}
                 {data?.driver?.username && <span style={{ color: "#64748b" }}> · {data.driver.username}</span>}
               </div>
-              <div className="k">Geofence</div>
+              <div className="k">Assignment</div>
               <div className="v">
                 {data?.geofence_status?.inside
-                  ? <span style={{ color: "#22c55e" }}>INSIDE · {data.geofence_status.name}</span>
-                  : <span style={{ color: "#94a3b8" }}>outside known geofences</span>}
+                  ? <span style={{ color: "#047857" }}>INSIDE · {data.geofence_status.name}</span>
+                  : data?.asset?.assignment?.name && data.asset.assignment.name !== "Unassigned / Unknown"
+                    ? <span style={{ color: "#0f172a" }}>{data.asset.assignment.name} <span style={{ color: "#94a3b8", fontSize: 11 }}>· {data.asset.assignment.source}</span></span>
+                    : <span style={{ color: "#94a3b8" }}>Unassigned / Unknown</span>}
               </div>
             </div>
           </section>
@@ -89,8 +91,10 @@ export default function AssetCardSheet({ assetKey, onClose }) {
           </section>
 
           <section data-testid="ops-map-asset-sheet-events">
-            <h4 style={{ color: "#64748b", margin: "4px 0 4px 0", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              Recent Events
+            <h4 style={{ color: "#0f172a", margin: "4px 0 4px 0", fontSize: 11,
+                         fontWeight: 900, fontFamily: "Chivo, IBM Plex Sans, sans-serif",
+                         letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              Recent Activity
             </h4>
             {(data?.recent_events || []).length === 0 && (
               <div style={{ color: "#94a3b8", fontSize: 13 }}>No events yet.</div>

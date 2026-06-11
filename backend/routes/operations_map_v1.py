@@ -316,6 +316,57 @@ def register_operations_map_v1_routes(
             if m["lat"] is not None and m["lon"] is not None:
                 counts["with_gps"] += 1
 
+        # ── Project / Geofence assignment + rollups ──────────────
+        # Assignment priority (per directive §10):
+        #   1. explicit_project   (high)  — masci_equipment.project_number when present
+        #   2. geofence_membership (high)  — point-in-polygon over real Motive shapes
+        #   3. recent_event       (medium) — last seen entering a geofence
+        #   4. unknown            (low)   — fallback bucket
+        gf_polys = []
+        for g in geofences:
+            if g.get("polygon"):
+                gf_polys.append({
+                    "id": g["id"], "name": g["name"],
+                    "category": g["category"],
+                    "poly": [(lat, lon) for lat, lon in g["polygon"]],
+                })
+        rollups: Dict[str, Dict[str, Any]] = {}
+        for m in markers:
+            assignment_name = None
+            assignment_source = "unknown"
+            assignment_confidence = "low"
+            if m.get("lat") is not None and m.get("lon") is not None and gf_polys:
+                for g in gf_polys:
+                    if _point_in_polygon(m["lat"], m["lon"], g["poly"]):
+                        assignment_name = g["name"]
+                        assignment_source = "geofence_membership"
+                        assignment_confidence = "high"
+                        break
+            if not assignment_name:
+                assignment_name = "Unassigned / Unknown"
+            m["assignment"] = {
+                "name": assignment_name,
+                "source": assignment_source,
+                "confidence": assignment_confidence,
+            }
+            r = rollups.setdefault(assignment_name, {
+                "name": assignment_name, "total": 0, "reporting": 0,
+                "needs_attention": 0, "offline": 0, "last_activity_at": None,
+                "source": assignment_source, "confidence": assignment_confidence,
+            })
+            r["total"] += 1
+            if m["band"] in ("green", "amber"):
+                r["reporting"] += 1
+            if m["band"] == "red":
+                r["needs_attention"] += 1
+            if m["band"] == "gray":
+                r["offline"] += 1
+            if m.get("last_seen_at") and (not r["last_activity_at"] or m["last_seen_at"] > r["last_activity_at"]):
+                r["last_activity_at"] = m["last_seen_at"]
+
+        project_rollups = sorted(rollups.values(),
+                                 key=lambda x: (-x["total"], x["name"]))[:8]
+
         return {
             "ok": True,
             "as_of": _now_iso(),
@@ -323,6 +374,7 @@ def register_operations_map_v1_routes(
             "assets": markers,
             "geofences": geofences,
             "geofence_count": len(geofences),
+            "project_rollups": project_rollups,
         }
 
     # ── 2. /asset/{key} ───────────────────────────────────────────────

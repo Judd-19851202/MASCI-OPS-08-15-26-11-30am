@@ -3,6 +3,7 @@ import "@/components/operations-map/OperationsMap.css";
 import MapCanvas from "@/components/operations-map/MapCanvas";
 import MapTopBar from "@/components/operations-map/MapTopBar";
 import MapOperationsBanner from "@/components/operations-map/MapOperationsBanner";
+import ProjectIntelligenceStrip from "@/components/operations-map/ProjectIntelligenceStrip";
 import MapFilterRail from "@/components/operations-map/MapFilterRail";
 import MapTimelineDock from "@/components/operations-map/MapTimelineDock";
 import AssetCardSheet from "@/components/operations-map/AssetCardSheet";
@@ -39,6 +40,7 @@ export default function OperationsMapPage() {
           motiveActive={motiveActive}
         />
         <MapOperationsBanner counts={data?.counts} />
+        <ProjectIntelligenceStrip rollups={data?.project_rollups || []} />
         <MapFilterRail
           filters={filters}
           setTypes={setTypes}
