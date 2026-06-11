@@ -1,5 +1,13 @@
 # PREVIEW SECRET SURFACE CERTIFICATION
 
+> ⛔ **SUPERSEDED 2026-02-10 BY** `/app/memory/PRODUCTION_DEPLOY_INCIDENT_RCA_2026_02_10.md`
+>
+> The Preview Secret Surface (`.env.preview` + loader) described below caused the production deploy contamination incident on 2026-02-10. The file has been **deleted**, the loader has been **removed** from `server.py` and from the verification scripts, and the preview credentials have been migrated into `/app/backend/.env` directly. A startup consistency guard now prevents this class of incident from recurring.
+>
+> The original contents are preserved below as historical record only. **Do not re-introduce `.env.preview`.**
+
+---
+
 **Status:** 🟢 **PASS** · surface installed, tested, production proven unchanged
 **Date:** 2026-02-10
 **Authority:** FORGEDOPS Execution Doctrine · Atlas User Isolation workstream
