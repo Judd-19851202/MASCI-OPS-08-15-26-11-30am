@@ -43,8 +43,9 @@ def test_snapshot_invalid_token_rejected():
 
 # --- Top-level keys ---
 def test_snapshot_top_level_keys(snapshot):
-    expected = {"ok", "as_of", "operational_summary", "counts",
-                "assets", "geofences", "geofence_count", "project_rollups"}
+    expected = {"ok", "as_of", "operational_summary", "feed_status", "counts",
+                "assets", "geofences", "geofence_count", "project_rollups",
+                "project_rollups_overflow", "project_rollups_total"}
     missing = expected - set(snapshot.keys())
     assert not missing, f"missing keys: {missing} | actual: {list(snapshot.keys())}"
     assert snapshot["ok"] is True
@@ -56,35 +57,70 @@ def test_operational_summary_structure(snapshot):
     assert isinstance(summary, list), f"expected list, got {type(summary)}"
     assert len(summary) == 6, f"expected 6 tiles, got {len(summary)}"
     by_id = {t["id"]: t for t in summary}
-    expected_ids = {"total", "reporting", "working", "idle", "attention", "offline"}
+    expected_ids = {"total", "connected", "working", "idle", "attention", "offline"}
     assert set(by_id.keys()) == expected_ids, f"ids mismatch: {set(by_id.keys())}"
 
     expected_labels = {
-        "total": "Total Assets",
-        "reporting": "Reporting",
-        "working": "Working",
-        "idle": "Idle",
-        "attention": "Needs Attention",
-        "offline": "Offline",
+        "total":     "Total Assets",
+        "connected": "Connected Assets",
+        "working":   "Working",
+        "idle":      "Idle",
+        "attention": "Attention Required",
+        "offline":   "Offline",
     }
     for tile_id, label in expected_labels.items():
         assert by_id[tile_id]["label"] == label, \
             f"tile {tile_id}: expected label '{label}', got '{by_id[tile_id]['label']}'"
-        assert "value" in by_id[tile_id] or "count" in by_id[tile_id], \
-            f"tile {tile_id} missing value/count: {by_id[tile_id]}"
+        assert "value" in by_id[tile_id], \
+            f"tile {tile_id} missing value: {by_id[tile_id]}"
+
+
+def test_feed_status_present(snapshot):
+    fs = snapshot["feed_status"]
+    assert fs["status"] in ("live", "delayed", "offline")
+    assert fs["label"] in ("Live Feed", "Delayed Feed", "Offline Feed")
 
 
 # --- project_rollups shape ---
 def test_project_rollups_shape(snapshot):
     rollups = snapshot["project_rollups"]
     assert isinstance(rollups, list), f"expected list, got {type(rollups)}"
-    # In preview with 0 geofences we expect at least the 'Unassigned / Unknown' bucket
+    assert len(rollups) <= 5, "snapshot must cap top buckets to 5"
     if len(rollups) > 0:
-        required = {"name", "total", "reporting", "needs_attention",
-                    "offline", "last_activity_at", "source", "confidence"}
+        required = {"name", "display_name", "bucket_type", "total",
+                    "connected_count", "attention_required_count",
+                    "offline_count", "last_activity_at",
+                    "assignment_source", "assignment_confidence"}
         first = rollups[0]
         missing = required - set(first.keys())
         assert not missing, f"project_rollups[0] missing: {missing} | keys={list(first.keys())}"
+
+
+def test_project_rollups_ranked_by_attention(snapshot):
+    """rollups must be sorted by attention_required_count desc (tie-broken by offline desc, total desc)."""
+    rollups = snapshot["project_rollups"]
+    if len(rollups) < 2:
+        pytest.skip("need >=2 rollups to verify ranking")
+    for i in range(len(rollups) - 1):
+        a, b = rollups[i], rollups[i + 1]
+        ka = (a["attention_required_count"], a["offline_count"], a["total"])
+        kb = (b["attention_required_count"], b["offline_count"], b["total"])
+        assert ka >= kb, f"rollups not ranked at index {i}: {a['name']}={ka} vs {b['name']}={kb}"
+
+
+def test_project_rollups_location_fallback(snapshot):
+    """When no geofences exist (preview), location buckets must materialize
+    instead of collapsing into a single Unassigned/Unknown card."""
+    if snapshot.get("geofence_count", 0) > 0:
+        pytest.skip("environment has geofences; location fallback test only runs in geofence-free env")
+    rollups = snapshot["project_rollups"]
+    if not rollups:
+        pytest.skip("no rollups to verify")
+    sources = {r.get("assignment_source") for r in rollups}
+    # When preview lacks geofences but has GPS, expect gps_location buckets.
+    if any(a.get("lat") is not None for a in snapshot.get("assets", [])):
+        assert "gps_location" in sources or "explicit_project" in sources, \
+            f"expected gps_location/explicit_project bucket, got sources={sources}"
 
 
 def test_project_rollups_no_raw_family_strings(snapshot):

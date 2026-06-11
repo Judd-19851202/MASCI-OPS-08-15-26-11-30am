@@ -50,7 +50,7 @@ export function describeSource(source) {
 export const OPERATIONAL_STATE_LABEL = {
   green: "Working",
   amber: "Idle",
-  red:   "Needs Attention",
+  red:   "Attention Required",
   gray:  "Offline",
 };
 

@@ -2,11 +2,17 @@ import React, { useEffect, useRef, useState } from "react";
 import { searchAssets } from "@/lib/operations-map/useMapSnapshot";
 import { useDebouncedValue } from "@/lib/operations-map/useMapState";
 
-/* Identity-aligned Operations Center top bar.
- * No "FORGEDOPS · LIVE OPERATIONS" lockup, no fleet-tracking terminology.
- * Title uses the platform-wide `Operations Center · Live Map` lockup
- * and the platform Chivo display face. */
-export default function MapTopBar({ onSelect, lastFetchMs, motiveActive }) {
+/* MASCI Operations Center top bar.
+ * Title uses the platform-wide `Operations Center · Live Map` lockup.
+ * Feed status chip uses operator language (Live Feed / Delayed Feed /
+ * Offline Feed) driven by `feed_status` from the snapshot payload. */
+const FEED_TONE = {
+  live:    { dot: "#10b981", text: "#047857", bg: "#ecfdf5", bd: "#a7f3d0" },
+  delayed: { dot: "#f59e0b", text: "#b45309", bg: "#fffbeb", bd: "#fde68a" },
+  offline: { dot: "#94a3b8", text: "#475569", bg: "#f1f5f9", bd: "#cbd5e1" },
+};
+
+export default function MapTopBar({ onSelect, lastFetchMs, feedStatus }) {
   const [q, setQ] = useState("");
   const dq = useDebouncedValue(q, 200);
   const [hits, setHits] = useState([]);
@@ -25,6 +31,9 @@ export default function MapTopBar({ onSelect, lastFetchMs, motiveActive }) {
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
+
+  const feed = feedStatus || { status: "offline", label: "Offline Feed" };
+  const tone = FEED_TONE[feed.status] || FEED_TONE.offline;
 
   return (
     <header className="ops-map-topbar" data-testid="ops-map-topbar">
@@ -64,13 +73,23 @@ export default function MapTopBar({ onSelect, lastFetchMs, motiveActive }) {
         )}
       </div>
 
-      <div style={{ color: "#64748b", fontSize: 12 }} data-testid="ops-map-motive-chip">
+      <div data-testid="ops-map-feed-chip"
+           style={{
+             display: "inline-flex", alignItems: "center", gap: 6,
+             padding: "4px 12px", borderRadius: 999,
+             background: tone.bg, color: tone.text, border: `1px solid ${tone.bd}`,
+             fontSize: 12, fontWeight: 700, letterSpacing: "0.02em",
+           }}>
         <span style={{
           display: "inline-block", width: 8, height: 8, borderRadius: 4,
-          background: motiveActive ? "#10b981" : "#94a3b8", marginRight: 6,
+          background: tone.dot,
         }}/>
-        Telemetry {motiveActive ? "Live" : "Standby"}
-        {lastFetchMs != null && <span style={{ marginLeft: 12 }}>· refresh {lastFetchMs} ms</span>}
+        {feed.label}
+        {lastFetchMs != null && (
+          <span style={{ marginLeft: 6, color: "#94a3b8", fontWeight: 500 }}>
+            · refresh {lastFetchMs} ms
+          </span>
+        )}
       </div>
     </header>
   );

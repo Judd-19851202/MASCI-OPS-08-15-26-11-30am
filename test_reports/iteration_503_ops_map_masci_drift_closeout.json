@@ -1,0 +1,39 @@
+{
+  "summary": "MASCI Operations Center · Live Map · 7-item drift closeout sprint regression PASSED end-to-end. Backend: pytest 12 passed / 1 skipped (skip = no preview geofences, expected). All snapshot vocabulary + shape + ranking + location-fallback + auth + regression endpoints verified. Frontend: /operations-map renders with correct layout stack order (topbar→banner→projects-strip→canvas→timeline), feed chip shows 'Offline Feed', banner shows TOTAL ASSETS / CONNECTED ASSETS / WORKING / IDLE / ATTENTION REQUIRED / OFFLINE, 5 project cards + '+11 MORE BUCKETS' overflow indicator render correctly with Connected/Attention Required/Offline chips + 'LOCATION · MEDIUM CONFIDENCE' source pill, top bucket is 'Port Orange, FL Area · 50 assets · 38 Attention Required'. Filter rail uses 'Attention Required'. AssetCardSheet for PKU-2549 opened via search dropdown and shows sections in spec order (Identity title → Current Assignment → Operational State → Operator → Last Position Update → Open Issues → Recent Activity → Data Source), Operational State badge='Attention Required', Trust='Telemetry Poll · 12h ago · LOW', Recent Activity='Position Update'. Vocabulary sweep across both [data-testid='operations-map-page'] and the sheet returned 0 hits for {Reporting, Needs Attention, Telemetry Standby, Motive Status, GPS Status, vehicle_gps, geofence_enter, geofence_exit, event_family, motive:webhook}. Performance warm: snapshot 373-380ms (<800ms target), search 226ms (<250ms target), asset detail 451ms (<1500ms target).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "AssetCardSheet", "issue": "Identity section content (unit_number, asset_kind/description) renders at top of sheet but the wrapping element does not carry data-testid='ops-map-asset-sheet-identity'. The other 7 section testids (assignment/health/operator/position/open-issues/events/trust) are all present and in correct order. Minor missing testid only — content itself is rendered correctly.", "selector": "[data-testid='ops-map-asset-sheet-identity']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_operations_map_masci_vocab.py",
+    "/app/test_reports/pytest/ops_map_masci_iter503.xml"
+  ],
+  "action_items": [
+    "[OPTIONAL/LOW] Add data-testid='ops-map-asset-sheet-identity' on the identity header block of AssetCardSheet (the block containing the unit_number + asset_kind subtitle) for symmetry with the other 7 sections. The Identity content is already rendered correctly — only the testid wrapper is missing.",
+    "[INFO] React hydration warning: <span> inside <option> in MapFilterRail.jsx ~line 44 (caused by visual-editor x-ve-dynamic instrumentation injecting a span inside the <option> for dynamic values). Console-only warning, not a runtime bug; can be silenced by rendering plain string children rather than computed expressions inside <option>."
+  ],
+  "critical_code_review_comments": [
+    "Backend snapshot endpoint correctly emits operational_summary (6 tiles with MASCI labels), feed_status with one of live/delayed/offline + matching label, project_rollups capped at 5 and properly ranked by (attention_required_count, offline_count, total) desc, project_rollups_overflow + project_rollups_total expose remaining buckets — verified.",
+    "Location-fallback verified: with 0 geofences the rollups materialize as 16 gps_location buckets (5 shown, 11 overflow) instead of a single Unassigned/Unknown card — matches sprint requirement (4) and prior iteration_502 gap.",
+    "Asset detail endpoint: assignment data is populated at asset.assignment (not marker.assignment as worded in the review). Effective behavior matches spec — assignment.name/source/confidence are all populated (e.g. {name:'Bithlo, FL Area', source:'gps_location', confidence:'medium'} for PKU-2549). If the wire contract is strictly required to live under 'marker', the field name should be reconciled, otherwise document the asset.assignment placement.",
+    "MapTrustChip renders 'Telemetry Poll' via describeSource() — no 'motive:webhook' leak confirmed in DOM.",
+    "MapTimelineDock + AssetCardSheet Recent Activity both render 'Position Update' via EVENT_FAMILY_LABEL — no 'vehicle_gps' leak in DOM.",
+    "Filter rail STATUS_TILES uses 'Attention Required' — confirmed in rail.innerText.",
+    "ProjectIntelligenceStrip overflow indicator '+11 MORE BUCKETS' renders alongside ranked cards — matches spec (6)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (12 passed / 1 expected skip)", "frontend": "100% on all sprint acceptance items; 1 cosmetic missing testid noted"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! → POST /api/auth/multi-login → portal_tokens.admin used as X-Admin-Token and stored in localStorage.masci.admin.token + masci.directory.token",
+  "seed_data_creation": "None — no data created or mutated.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 7 drift items in the sprint are validated and passing. Snapshot endpoint is performant (warm 373-380ms). Search endpoint returns {ok, as_of, count, hits[]} — note the hits key (NOT 'results') for any future tests. Asset detail places assignment at response.asset.assignment, NOT response.marker.assignment — keep that in mind. AssetCardSheet identity content is rendered without its own testid wrapper; all 7 other section testids work. React dev-mode hydration warning for <span> inside <option> in MapFilterRail.jsx is from visual-editor instrumentation, not a real bug. Preview env has feed_status='offline' because no live Motive traffic — that is expected here and the chip correctly says 'Offline Feed'.",
+  "rca of the issue": "Not applicable — sprint is complete. Prior iteration_502 had two open items (single Unassigned/Unknown bucket + AssetCardSheet flow unverified). Both are now resolved: (a) gps_location fallback materialized 16 buckets ranked correctly; (b) search dropdown now exposes [data-testid='ops-map-search-hit-{n}'] which made the AssetCardSheet flow testable end-to-end."
+}

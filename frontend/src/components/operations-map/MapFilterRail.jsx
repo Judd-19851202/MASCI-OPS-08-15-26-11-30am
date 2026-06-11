@@ -7,10 +7,10 @@ import { ASSET_KIND_LABEL, KIND_LIST } from "@/lib/operations-map/icons";
  * always visible because it's the at-a-glance triage tool.
  */
 const STATUS_TILES = [
-  { id: "green", label: "Working",          tone: "emerald" },
-  { id: "amber", label: "Idle",             tone: "amber"   },
-  { id: "red",   label: "Needs Attention",  tone: "rose"    },
-  { id: "gray",  label: "Offline",          tone: "slate"   },
+  { id: "green", label: "Working",            tone: "emerald" },
+  { id: "amber", label: "Idle",               tone: "amber"   },
+  { id: "red",   label: "Attention Required", tone: "rose"    },
+  { id: "gray",  label: "Offline",            tone: "slate"   },
 ];
 
 function toggle(list, value) {

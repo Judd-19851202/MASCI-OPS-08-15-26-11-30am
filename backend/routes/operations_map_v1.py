@@ -318,10 +318,10 @@ def register_operations_map_v1_routes(
 
         # ── Project / Geofence assignment + rollups ──────────────
         # Assignment priority (per directive §10):
-        #   1. explicit_project   (high)  — masci_equipment.project_number when present
-        #   2. geofence_membership (high)  — point-in-polygon over real Motive shapes
-        #   3. recent_event       (medium) — last seen entering a geofence
-        #   4. unknown            (low)   — fallback bucket
+        #   1. explicit_project    (high)   — masci_equipment.project_number when present
+        #   2. geofence_membership (high)   — point-in-polygon over real Motive shapes
+        #   3. gps_location        (medium) — city/state text from latest telemetry
+        #   4. missing_assignment  (low)    — final Unassigned / Unknown fallback
         gf_polys = []
         for g in geofences:
             if g.get("polygon"):
@@ -330,42 +330,124 @@ def register_operations_map_v1_routes(
                     "category": g["category"],
                     "poly": [(lat, lon) for lat, lon in g["polygon"]],
                 })
+
+        # Precompute explicit project_number lookup for assets carrying
+        # a masci_equipment_id. One short equipment_master query — keeps
+        # snapshot inside the SLA.
+        em_ids = [m.get("masci_equipment_id") for m in markers if m.get("masci_equipment_id")]
+        explicit_project_by_em: Dict[str, str] = {}
+        if em_ids:
+            try:
+                async for em in db.equipment_master.find(
+                    {"id": {"$in": em_ids}},
+                    {"_id": 0, "id": 1, "project_number": 1, "current_project": 1, "assigned_project": 1},
+                ):
+                    pn = (em.get("project_number")
+                          or em.get("current_project")
+                          or em.get("assigned_project"))
+                    if pn:
+                        explicit_project_by_em[em.get("id")] = str(pn).strip()
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[ops-map-v1 explicit-project lookup] {e}")
+
+        # Resolve latest event city for each vehicle (cheap — already
+        # loaded as `latest` map inside _load_assets_and_events).
+        def _city_bucket(city: Optional[str], state: Optional[str]) -> Optional[str]:
+            c = (city or "").strip()
+            if not c:
+                return None
+            s = (state or "").strip()
+            return f"{c}, {s} Area" if s else f"{c} Area"
+
+        latest_by_vid = latest  # alias from outer scope
+
         rollups: Dict[str, Dict[str, Any]] = {}
         for m in markers:
-            assignment_name = None
-            assignment_source = "unknown"
-            assignment_confidence = "low"
-            if m.get("lat") is not None and m.get("lon") is not None and gf_polys:
+            name = None
+            source = None
+            confidence = None
+            bucket_type = None
+
+            # 1. Explicit project
+            em_id = m.get("masci_equipment_id")
+            if em_id and explicit_project_by_em.get(em_id):
+                name = explicit_project_by_em[em_id]
+                source = "explicit_project"
+                confidence = "high"
+                bucket_type = "project"
+
+            # 2. Geofence membership
+            if not name and m.get("lat") is not None and m.get("lon") is not None and gf_polys:
                 for g in gf_polys:
                     if _point_in_polygon(m["lat"], m["lon"], g["poly"]):
-                        assignment_name = g["name"]
-                        assignment_source = "geofence_membership"
-                        assignment_confidence = "high"
+                        name = g["name"]
+                        source = "geofence_membership"
+                        confidence = "high"
+                        bucket_type = "geofence"
                         break
-            if not assignment_name:
-                assignment_name = "Unassigned / Unknown"
+
+            # 3. GPS location fallback (city from latest telemetry)
+            if not name:
+                vid = str((m.get("motive_vehicle_id") or ""))
+                ev = latest_by_vid.get(vid) if vid else None
+                if ev:
+                    cb = _city_bucket(ev.get("city"), ev.get("state"))
+                    if cb:
+                        name = cb
+                        source = "gps_location"
+                        confidence = "medium"
+                        bucket_type = "location"
+
+            # 4. Final fallback
+            if not name:
+                name = "Unassigned / Unknown"
+                source = "missing_assignment"
+                confidence = "low"
+                bucket_type = "unassigned"
+
             m["assignment"] = {
-                "name": assignment_name,
-                "source": assignment_source,
-                "confidence": assignment_confidence,
+                "name": name, "source": source,
+                "confidence": confidence, "bucket_type": bucket_type,
             }
-            r = rollups.setdefault(assignment_name, {
-                "name": assignment_name, "total": 0, "reporting": 0,
-                "needs_attention": 0, "offline": 0, "last_activity_at": None,
-                "source": assignment_source, "confidence": assignment_confidence,
+
+            r = rollups.setdefault(name, {
+                "name": name,
+                "display_name": name,
+                "bucket_type": bucket_type,
+                "total": 0,
+                "connected_count": 0,
+                "attention_required_count": 0,
+                "offline_count": 0,
+                "last_activity_at": None,
+                "assignment_source": source,
+                "assignment_confidence": confidence,
             })
             r["total"] += 1
             if m["band"] in ("green", "amber"):
-                r["reporting"] += 1
+                r["connected_count"] += 1
             if m["band"] == "red":
-                r["needs_attention"] += 1
+                r["attention_required_count"] += 1
             if m["band"] == "gray":
-                r["offline"] += 1
-            if m.get("last_seen_at") and (not r["last_activity_at"] or m["last_seen_at"] > r["last_activity_at"]):
+                r["offline_count"] += 1
+            if m.get("last_seen_at") and (
+                not r["last_activity_at"]
+                or m["last_seen_at"] > r["last_activity_at"]
+            ):
                 r["last_activity_at"] = m["last_seen_at"]
 
-        project_rollups = sorted(rollups.values(),
-                                 key=lambda x: (-x["total"], x["name"]))[:8]
+        # Rank: attention desc, offline desc, total desc, last_activity desc
+        ranked = sorted(
+            rollups.values(),
+            key=lambda x: (
+                -x["attention_required_count"],
+                -x["offline_count"],
+                -x["total"],
+                -(int(_age_seconds(x["last_activity_at"]) or 10**12) * -1
+                  if x["last_activity_at"] else 0),
+            ),
+        )
+        project_rollups_top = ranked[:5]
+        project_rollups_overflow = max(0, len(ranked) - 5)
 
         # ── Operational Summary · MASCI-native vocabulary ────────────
         # Single source of truth that the UI consumes. Maps the
@@ -380,8 +462,8 @@ def register_operations_map_v1_routes(
              "value": counts["total"],
              "tone": "slate",
              "band": None},
-            {"id": "reporting",
-             "label": "Reporting",
+            {"id": "connected",
+             "label": "Connected Assets",
              "value": counts["with_gps"],
              "tone": "slate",
              "band": None},
@@ -396,7 +478,7 @@ def register_operations_map_v1_routes(
              "tone": "amber",
              "band": "amber"},
             {"id": "attention",
-             "label": "Needs Attention",
+             "label": "Attention Required",
              "value": counts["red"],
              "tone": "rose",
              "band": "red"},
@@ -407,15 +489,34 @@ def register_operations_map_v1_routes(
              "band": "gray"},
         ]
 
+        # ── Data feed status · operator-language summary ────────────
+        # green tier present → Live; amber present → Delayed;
+        # otherwise → Offline. This bubbles up to the header chip.
+        if counts["green"] > 0:
+            feed_status = "live"
+            feed_label  = "Live Feed"
+        elif counts["amber"] > 0:
+            feed_status = "delayed"
+            feed_label  = "Delayed Feed"
+        else:
+            feed_status = "offline"
+            feed_label  = "Offline Feed"
+
         return {
             "ok": True,
             "as_of": _now_iso(),
             "operational_summary": operational_summary,
+            "feed_status": {
+                "status": feed_status,
+                "label":  feed_label,
+            },
             "counts": counts,  # kept for internal consumers; UI binds to operational_summary
             "assets": markers,
             "geofences": geofences,
             "geofence_count": len(geofences),
-            "project_rollups": project_rollups,
+            "project_rollups": project_rollups_top,
+            "project_rollups_overflow": project_rollups_overflow,
+            "project_rollups_total": len(rollups),
         }
 
     # ── 2. /asset/{key} ───────────────────────────────────────────────
@@ -483,6 +584,49 @@ def register_operations_map_v1_routes(
             )
 
         marker = _build_marker(mapping, latest_event)
+
+        # Assignment: same priority as snapshot (explicit project →
+        # geofence membership → GPS location → unassigned).
+        assignment_name = None
+        assignment_source = None
+        assignment_confidence = None
+        em_id = mapping.get("masci_equipment_id")
+        if em_id:
+            em_doc = await db.equipment_master.find_one(
+                {"id": em_id},
+                {"_id": 0, "project_number": 1, "current_project": 1, "assigned_project": 1},
+            ) or {}
+            pn = (em_doc.get("project_number")
+                  or em_doc.get("current_project")
+                  or em_doc.get("assigned_project"))
+            if pn:
+                assignment_name = str(pn).strip()
+                assignment_source = "explicit_project"
+                assignment_confidence = "high"
+        if not assignment_name and marker.get("lat") is not None and marker.get("lon") is not None:
+            async for g in db.motive_geofences.find({}, {"_id": 0}):
+                poly = _polygon_from_motive(g)
+                if poly and _point_in_polygon(marker["lat"], marker["lon"], poly):
+                    assignment_name = g.get("name")
+                    assignment_source = "geofence_membership"
+                    assignment_confidence = "high"
+                    break
+        if not assignment_name and latest_event:
+            c = (latest_event.get("city") or "").strip()
+            s = (latest_event.get("state") or "").strip()
+            if c:
+                assignment_name = f"{c}, {s} Area" if s else f"{c} Area"
+                assignment_source = "gps_location"
+                assignment_confidence = "medium"
+        if not assignment_name:
+            assignment_name = "Unassigned / Unknown"
+            assignment_source = "missing_assignment"
+            assignment_confidence = "low"
+        marker["assignment"] = {
+            "name": assignment_name,
+            "source": assignment_source,
+            "confidence": assignment_confidence,
+        }
 
         # Driver: prefer current_vehicle_id match in employee_mappings.
         driver = None

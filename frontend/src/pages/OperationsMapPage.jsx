@@ -22,8 +22,6 @@ export default function OperationsMapPage() {
   const { data, loading, error, lastFetchMs } = useMapSnapshot({ refreshMs: 15000 });
   const { rows: timelineRows } = useTimeline({ refreshMs: 15000 });
 
-  const motiveActive = !error && (data?.counts?.green ?? 0) + (data?.counts?.amber ?? 0) > 0;
-
   // V1: projects and geofences are surfaced primarily; in V2 we wire the
   // projects feed from dispatch. For now the geofence list comes from the
   // snapshot payload (real Motive geofences) so the filter is meaningful
@@ -37,10 +35,14 @@ export default function OperationsMapPage() {
         <MapTopBar
           onSelect={selectAsset}
           lastFetchMs={lastFetchMs}
-          motiveActive={motiveActive}
+          feedStatus={data?.feed_status}
         />
         <MapOperationsBanner summary={data?.operational_summary} counts={data?.counts} />
-        <ProjectIntelligenceStrip rollups={data?.project_rollups || []} />
+        <ProjectIntelligenceStrip
+          rollups={data?.project_rollups || []}
+          overflow={data?.project_rollups_overflow || 0}
+          total={data?.project_rollups_total || 0}
+        />
         <MapFilterRail
           filters={filters}
           setTypes={setTypes}
