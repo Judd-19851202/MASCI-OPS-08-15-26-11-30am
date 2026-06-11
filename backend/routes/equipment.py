@@ -7,10 +7,10 @@ Routes registered:
     GET     /equipment-inspections                                    shop or admin
     GET     /equipment-inspections/{id}                               shop or admin
     DELETE  /equipment-inspections/{id}                               admin only
-    GET     /admin/equipment-inspections/trends?days=                 shop or admin
-    GET     /admin/equipment-inspections/open-items?severity=         shop or admin
-    POST    /admin/equipment-inspections/{id}/signoff                 shop or admin
-    DELETE  /admin/equipment-inspections/{id}/signoff?section=&item=  shop or admin
+    GET     /admin/equipment-inspections/trends?days=                 admin only (iter180 P0: /api/admin/* is strict-admin)
+    GET     /admin/equipment-inspections/open-items?severity=         admin only (iter180 P0: /api/admin/* is strict-admin)
+    POST    /admin/equipment-inspections/{id}/signoff                 admin only (iter180 P0: /api/admin/* is strict-admin)
+    DELETE  /admin/equipment-inspections/{id}/signoff?section=&item=  admin only (iter180 P0: /api/admin/* is strict-admin)
 """
 from __future__ import annotations
 

@@ -28,6 +28,7 @@ import { clearHrToken } from "./hrAuth";
 import { clearSafetyToken } from "./safetyAuth";
 import { clearDispatchToken } from "./dispatchAuth";
 import { clearDevToken } from "./devAuth";
+import { clearFlToken } from "./flAuth";
 import {
   clearDirectorySession,
   getDirectoryToken,
@@ -49,6 +50,7 @@ const IDENTITY_KEYS = [
   "masci.safety.user",
   "masci.dispatch.user",
   "masci.admin.user",
+  "masci.fl.user",
   // Safety-forms standalone auth (separate from safety portal)
   "masci.safetyforms.token",
   "masci.safetyforms.user",
@@ -84,6 +86,7 @@ export async function clearAllSessions({ notifyBackend = true } = {}) {
   try { clearHrToken(); } catch { /* ignore */ }
   try { clearSafetyToken(); } catch { /* ignore */ }
   try { clearDispatchToken(); } catch { /* ignore */ }
+  try { clearFlToken(); } catch { /* ignore */ }
   try { clearDevToken(); } catch { /* ignore */ }
   try { clearDirectorySession(); } catch { /* ignore */ }
 

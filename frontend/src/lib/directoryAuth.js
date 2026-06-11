@@ -12,6 +12,7 @@ import { setHrToken } from "./hrAuth";
 import { setShopToken } from "./shopAuth";
 import { setSafetyToken } from "./safetyAuth";
 import { setDispatchToken } from "./dispatchAuth";
+import { setFlToken } from "./flAuth";
 
 const DIR_TOKEN_KEY = "masci.directory.token";
 const DIR_USER_KEY = "masci.directory.user";
@@ -84,6 +85,13 @@ export function applyMultiLoginResponse(response, rememberMe = true) {
   // operational workflows like the ViewIncident → Follow-Up CAPA CTA.
   if (t.safety) setSafetyToken(t.safety, rememberMe);
   if (t.dispatch) setDispatchToken(t.dispatch, rememberMe);
+  // RC-1 Track 2G fix (2026-02-11): fan out Field Leadership portal token.
+  // Backend has been minting `portal_tokens.field_leadership` (with `.fl`
+  // alias) since iter314 but the frontend never persisted it, so super-
+  // admins navigating to `/field-leadership/portal/*` per-user routes
+  // hit 401 even though the directory session is otherwise authorized.
+  const flToken = t.field_leadership || t.fl;
+  if (flToken) setFlToken(flToken, rememberMe);
 }
 
 /**
