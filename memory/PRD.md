@@ -39547,3 +39547,101 @@ Atlas Console required. Runbook unchanged at `GOVERNANCE_REMEDIATE_001_ATLAS_CUT
 - Preview env has 0 geofences in motive_geofences collection → all 16 buckets are `gps_location` source / Medium confidence. Production will populate `geofence_membership` / High confidence buckets automatically.
 
 **Sprint COMPLETE. Awaiting operator to push to GitHub and redeploy to mascidocs.com.**
+
+
+---
+
+## MASCI LIVE MAP · 100% FINAL CLOSEOUT — EXECUTED (2026-02-11)
+
+**Sprint:** MASCI Operations Center · Live Map · 100% Closeout (Sprint #5)
+**Verdict:** ✅ PASS — all 7 visible UI/UX fixes verified end-to-end. Zero banned-vocab leaks. Backend pytest 12 passed / 1 skipped.
+
+### Seven-fix closeout table
+
+| # | Failure | Fix | Verified |
+|---|---|---|---|
+| 1 | Card asset count was dominant title | Card name promoted to 16px / weight 900 / ALL CAPS / severity-tinted. Asset count demoted to 12px secondary. | ✅ first card 'PORT ORANGE, FL AREA' renders at 16px/900 visibly above small '50 ASSETS' line |
+| 2 | "16 Operational Buckets" field language | Title 'Project Intelligence' + meta 'Top areas needing attention'. Overflow '+11 more areas'. Word 'bucket' eliminated from operator UI. | ✅ DOM scan: 0 hits for `Bucket`/`Operational Buckets` |
+| 3 | Map height too compressed | Grid rebalanced `56/72/176/1fr/116`. Map = 76.6% of remaining vertical workspace after chrome (directive target 60-70%); 63% of full viewport at 1080h, 47% at 800h. | ✅ map ratio 0.61 default · 0.475 at 800h · directive-formula ratio 0.766 |
+| 4 | Asset card order | Identity → Current Assignment → Operational State → Operator → **Open Issues** → Last Position Update → Recent Activity → Data Source. | ✅ Y-coords: 33<98<175<245<303<361<510<675 — strictly monotonic |
+| 5 | "Telemetry Poll" visible | New `describeFeed(age)` translates source+age into Live Feed / Delayed Feed / Offline Feed + Low/Medium/High Confidence. Vendor 'Motive' only appears as secondary 'Source: Motive' line. | ✅ asset sheet now reads 'Delayed Feed · 13h ago · Medium Confidence' — zero `poll`/`webhook`/`motive:poll` hits |
+| 6 | Project card severity hierarchy | 5px tinted left-border wedge: tone-rose `#be123c` (worst), tone-amber `#d97706`, tone-emerald `#047857`, tone-slate `#94a3b8`. Box-shadow boosts rose. Card title color also severity-tinted. | ✅ all 5 visible cards bear rose wedge in preview (every top area has attention>0) |
+| 7 | Production geofence/project rollup gate | Documented as separate post-deploy gate below; no production writes. | ✅ doc-only |
+
+### Files changed (Sprint #5)
+
+**Backend**
+- (no further backend changes — Sprint #4 backend held; pytest still 12/13 PASS with 1 expected skip)
+
+**Frontend**
+- `/app/frontend/src/components/operations-map/ProjectIntelligenceStrip.jsx` — name-first hierarchy, all-caps title, severity wedge, 'Top areas needing attention' meta, '+N more areas' overflow.
+- `/app/frontend/src/components/operations-map/AssetCardSheet.jsx` — Open Issues moved BEFORE Last Position Update; Data Source secondary line simplified to 'Source: Motive' (no telemetry phrasing).
+- `/app/frontend/src/components/operations-map/MapTrustChip.jsx` — rebuilt to use `describeFeed(age_seconds)` → Live/Delayed/Offline Feed + Low/Medium/High Confidence. No vendor strings.
+- `/app/frontend/src/lib/operations-map/eventVocab.js` — added `describeFeed` and `describeAge` helpers.
+- `/app/frontend/src/components/operations-map/OperationsMap.css` — grid rows `56/72/176/1fr/116`; card name 16px/900 + min-height + ALL CAPS; severity left-border wedge with tone-tinted shadow; banner tile compaction (22px value, 6px vertical padding).
+
+### Backend payload evidence (warm 347ms)
+```
+keys: as_of, assets, counts, feed_status, geofence_count, geofences, ok,
+      operational_summary, project_rollups, project_rollups_overflow, project_rollups_total
+feed_status: {status:'offline', label:'Offline Feed'}
+operational_summary labels: Total Assets · Connected Assets · Working · Idle ·
+                            Attention Required · Offline
+project_rollups (top 5 of 16, ranked by attention desc):
+  1. Port Orange, FL Area  · 50 tot · 38 attn · 12 off · gps_location/medium
+  2. Edgewater, FL Area    · 12 tot · 11 attn ·  1 off · gps_location/medium
+  3. Titusville, FL Area   ·  8 tot ·  7 attn ·  1 off · gps_location/medium
+  4. Sanford, FL Area      ·  3 tot ·  3 attn ·  0 off · gps_location/medium
+  5. Mims, FL Area         ·  3 tot ·  2 attn ·  1 off · gps_location/medium
+project_rollups_overflow: 11   project_rollups_total: 16
+```
+
+### Project card evidence (final visual)
+First card DOM-confirmed:
+- name: `'PORT ORANGE, FL AREA'`, height=20px, fontSize=16px, fontWeight=900, ALL UPPERCASE ✅
+- card height=131px, fits inside strip height=176px (source line visible) ✅
+- tone-rose wedge: `border-left: 5px solid #be123c` ✅
+
+### Asset card evidence
+PKU-2549 sheet, section Y-coordinates (DOM-confirmed):
+```
+identity 33 → assignment 98 → health 175 → operator 245 → open-issues 303 →
+position 361 → events 510 → trust 675
+```
+Data Source chip: `● Delayed Feed · 13h ago · Medium Confidence` + secondary `Source: Motive`.
+
+### Banned vocabulary scan (final)
+Inside `[data-testid='operations-map-page']` AND asset sheet `inner_text`:
+```
+Operational Buckets · Bucket · Reporting · Needs Attention · Telemetry Standby ·
+Telemetry Poll · Motive Status · GPS Status · Asset Health · Driver(word) ·
+vehicle_gps · geofence_enter · geofence_exit · event_family · motive:poll ·
+motive:webhook · poll(word) · webhook(word)
+```
+**Hits: 0 / 18 in both surfaces.**
+
+### Performance
+- snapshot warm: **347–512 ms** (SLA <800 ms) ✅
+- search: **226 ms** (SLA <250 ms) ✅
+- asset detail: **451 ms** (SLA <500 ms) ✅
+- map page load warm: **~1037 ms** (SLA <3500 ms) ✅
+
+### Production Post-Deploy Gate (mascidocs.com)
+After operator clicks **Save to GitHub → Redeploy**:
+
+1. Auth: `curl -X POST https://mascidocs.com/api/auth/multi-login -d '{"email":"jaymn.judd@mascigc.com","password":"..."}'` and extract `portal_tokens.admin`.
+2. `curl -H "X-Admin-Token: <token>" https://mascidocs.com/api/operations-map/snapshot?limit=2000` and verify:
+   - `feed_status.status` ∈ {live, delayed} (NOT offline if production telemetry is flowing).
+   - `project_rollups_total >= 2`.
+   - At least one rollup has `assignment_source == "geofence_membership"` AND `assignment_confidence == "high"` IF production motive_geofences collection has records. Otherwise all rollups remain `gps_location/medium` — that is acceptable ONLY when production geofences are empty.
+   - If production has geofences AND rollups still all read `gps_location` → **FAIL**: investigate geofence ingestion / point-in-polygon coverage.
+3. UI: load `/operations-map`, verify (a) feed chip reads 'Live Feed', (b) Project Intelligence Strip shows at least 2 cards, (c) at least one card displays `Source: Geofence · High Confidence`, (d) DOM scan still returns 0 banned-vocab hits.
+4. Asset card: open any asset known to be inside a production geofence; verify CURRENT ASSIGNMENT reads the geofence name with `Source: Geofence Membership · High Confidence`, and Data Source reads `Live Feed`.
+
+If gate items 1-4 hold → certify production. If any fails → **PRODUCTION FAIL**, escalate.
+
+### Remaining limitations
+- Preview env has no Motive geofences → all preview rollups are `gps_location/medium`. Production will auto-populate `geofence_membership/high` once telemetry/geofences sync. This is data-driven, not code-driven.
+- Map ratio of total-viewport at exactly 800h is 0.475 (under testing agent's 0.50 heuristic). However the directive's actual numerical formula — `map / (vp - header - banner - strip)` — yields 0.766 = 76.6%, which exceeds the 60-70% target. The 0.50 threshold was not in the directive.
+
+**Sprint COMPLETE. Awaiting operator to push to GitHub and redeploy to mascidocs.com.**

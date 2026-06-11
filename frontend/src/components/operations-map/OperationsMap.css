@@ -11,7 +11,7 @@
 .ops-map-grid {
   display: grid;
   grid-template-columns: 240px 1fr;
-  grid-template-rows: 56px 80px 168px 1fr 132px;
+  grid-template-rows: 56px 72px 176px 1fr 116px;
   height: 100vh;
   width: 100vw;
 }
@@ -30,7 +30,7 @@
 }
 .ops-map-banner .tile {
   background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;
-  padding: 8px 14px;
+  padding: 6px 14px;
   display: flex; flex-direction: column; gap: 2px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
@@ -40,7 +40,7 @@
 }
 .ops-map-banner .tile .v {
   font-family: "Chivo", "IBM Plex Sans", sans-serif;
-  font-weight: 900; font-size: 26px; color: #0f172a; line-height: 1;
+  font-weight: 900; font-size: 22px; color: #0f172a; line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .ops-map-banner .tile.tone-emerald { background: #ecfdf5; border-color: #6ee7b7; }
@@ -142,7 +142,7 @@
 .ops-map-project-card-breakdown .kw-attn strong { color: #be123c; }
 .ops-map-project-card-breakdown .kw-off { color: #475569; }
 .ops-map-project-card-last {
-  font-size: 11px; color: #64748b; margin-top: auto;
+  font-size: 11px; color: #64748b;
 }
 .ops-map-project-card-source {
   font-size: 10px; color: #64748b;
