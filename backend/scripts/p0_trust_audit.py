@@ -25,7 +25,6 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import OperationFailure
 
 load_dotenv("/app/backend/.env")
-load_dotenv("/app/backend/.env.preview", override=True)  # honor Preview Secret Surface
 sys.path.insert(0, "/app/backend")
 from routes.pm_command_center import (  # noqa: E402
     normalize_asset_kind, specialty_family_of, ROAD_PLATE_CANONICAL,

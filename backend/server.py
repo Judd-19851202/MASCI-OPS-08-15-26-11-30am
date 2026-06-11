@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import sys
 import logging
 import hashlib
 import hmac
@@ -25,13 +26,42 @@ from branded_portal_emails import render_portal_email
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
-# Preview Secret Surface (added 2026-02-10) — operator-only file, gitignored.
-# Loads ONLY if the file exists. In production deployments the file is absent
-# (gitignored, never committed, never created), so this call is a silent no-op
-# and cannot affect production secrets. In the preview pod the operator edits
-# /app/backend/.env.preview directly via the pod terminal; values here override
-# /app/backend/.env. See /app/memory/PREVIEW_SECRET_SURFACE_CERTIFICATION.md.
-load_dotenv(ROOT_DIR / '.env.preview', override=True)
+# 2026-02-10 · `.env.preview` loader REMOVED following the production-deploy
+# incident where preview env-vars contaminated production. The deploy pipeline
+# snapshots the preview pod's filesystem so any preview-only override file
+# would travel to production and override System Keys via `override=True`.
+# Preview credentials now live in `.env` directly; production reads from
+# System Keys (already correct).  See:
+#   /app/memory/PRODUCTION_DEPLOY_INCIDENT_RCA_2026_02_10.md
+
+# ── Startup consistency guard (defense in depth) ────────────────────────────
+# Hard-exits if env-vars are internally inconsistent (e.g. MONGO_URL contains
+# the production user but APP_ENV says preview, or vice-versa). This catches
+# any future config-contamination class of incident at boot before the pod
+# serves any traffic. Service-account-scoped; never touches JWT/sessions/RBAC.
+_app_env = (os.environ.get('APP_ENV', '') or '').strip().lower()
+_mongo_url = os.environ.get('MONGO_URL', '') or ''
+_db_name = (os.environ.get('DB_NAME', '') or '').strip()
+_PREVIEW_USER = 'masci_preview_user'
+_PROD_USER = 'masci_prod_user'
+_PREVIEW_DB = 'masci_safety_preview'
+_PROD_DB = 'masci_safety'
+if _PREVIEW_USER in _mongo_url and (_app_env != 'preview' or _db_name != _PREVIEW_DB):
+    sys.stderr.write(
+        f"\n🔴 STARTUP CONSISTENCY VIOLATION: MONGO_URL contains '{_PREVIEW_USER}' "
+        f"but APP_ENV='{_app_env}' (expected 'preview') OR DB_NAME='{_db_name}' "
+        f"(expected '{_PREVIEW_DB}'). Pod refuses to start to prevent env contamination.\n"
+    )
+    sys.exit(98)
+if _PROD_USER in _mongo_url and (_app_env != 'production' or _db_name != _PROD_DB):
+    sys.stderr.write(
+        f"\n🔴 STARTUP CONSISTENCY VIOLATION: MONGO_URL contains '{_PROD_USER}' "
+        f"but APP_ENV='{_app_env}' (expected 'production') OR DB_NAME='{_db_name}' "
+        f"(expected '{_PROD_DB}'). Pod refuses to start to prevent env contamination.\n"
+    )
+    sys.exit(98)
+del _app_env, _mongo_url, _db_name, _PREVIEW_USER, _PROD_USER, _PREVIEW_DB, _PROD_DB
+# ────────────────────────────────────────────────────────────────────────────
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']

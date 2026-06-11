@@ -1102,3 +1102,23 @@ None of these affect the directive's three success criteria; all three are MET a
 - Deployment GO/NO-GO: 🟢 GO for code redeploy · 🔴 NO-GO for Motive activation.
 
 **No deploy performed. No production touched. No secrets read or written.**
+
+---
+
+## 2026-02-10 · P0 production deploy incident · root-cause fix shipped to preview
+
+**Incident:** First redeploy from preview→production caused mascidocs.com to report `app_env=preview, db_name=masci_safety_preview` for ~6 min before rollback.
+
+**Root cause:** `load_dotenv('/app/backend/.env.preview', override=True)` in `server.py` overwrote production System Keys. The deploy pipeline filesystem-snapshots the preview pod, so the gitignored `.env.preview` was still shipped to production.
+
+**Permanent fixes shipped (preview-side, not yet deployed):**
+1. `/app/backend/.env.preview` deleted.
+2. Loader removed from `server.py`, `verify_isolation_suite.py`, `p0_trust_audit.py`.
+3. Preview credentials migrated into `/app/backend/.env` directly.
+4. Startup consistency guard added to `server.py` (exits 98 if Atlas user, APP_ENV, DB_NAME inconsistent).
+
+**RCA filed:** `/app/memory/PRODUCTION_DEPLOY_INCIDENT_RCA_2026_02_10.md`.
+
+**Production state:** still on rolled-back build `3a5719f5618ad3801993617d8bd385f2`, healthy. Next redeploy is SAFE per the guard + file-removal fix.
+
+**No new features. No Motive activation. No secrets touched. Production untouched.**

@@ -35,7 +35,6 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import OperationFailure
 
 load_dotenv("/app/backend/.env")
-load_dotenv("/app/backend/.env.preview", override=True)  # honor Preview Secret Surface
 
 PREVIEW_DB = "masci_safety_preview"
 PROD_DB = "masci_safety"
