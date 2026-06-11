@@ -141,6 +141,18 @@ export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, t
                 )}
               </div>
 
+              {/* Line 3b · WHY — top 3 attention reasons (real data) */}
+              {Array.isArray(r.attention_breakdown) && r.attention_breakdown.length > 0 && (
+                <div className="ops-map-project-card-reasons"
+                     data-testid={`ops-map-project-card-${i}-reasons`}>
+                  {r.attention_breakdown.slice(0, 3).map((b) => (
+                    <span key={b.id} className="reason-row">
+                      <strong>{b.count}</strong> {b.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               {/* Line 4 · recency */}
               <div className="ops-map-project-card-last">
                 Last activity {fmtAge(r.last_activity_at)}

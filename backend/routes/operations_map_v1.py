@@ -316,6 +316,34 @@ def register_operations_map_v1_routes(
             if m["lat"] is not None and m["lon"] is not None:
                 counts["with_gps"] += 1
 
+        # ── Real attention-reason data (defects + inspections) ──────
+        # Single aggregation pass per collection — keeps snapshot fast.
+        # These maps drive the "why is this asset red?" breakdown so
+        # operators see WHY, not just THAT, an asset needs review.
+        open_defects_by_unit: Dict[str, int] = {}
+        try:
+            pipe = [
+                {"$match": {"status": {"$in": ["open", "acknowledged"]}}},
+                {"$group": {"_id": "$truck_unit_number", "n": {"$sum": 1}}},
+            ]
+            async for row in db.fleet_defects.aggregate(pipe):
+                if row.get("_id"):
+                    open_defects_by_unit[str(row["_id"])] = int(row.get("n") or 0)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[ops-map snapshot defects agg] {e}")
+
+        open_inspections_by_em: Dict[str, int] = {}
+        try:
+            pipe = [
+                {"$match": {"status": {"$nin": ["closed", "completed", "passed"]}}},
+                {"$group": {"_id": "$equipment_id", "n": {"$sum": 1}}},
+            ]
+            async for row in db.equipment_inspections.aggregate(pipe):
+                if row.get("_id"):
+                    open_inspections_by_em[str(row["_id"])] = int(row.get("n") or 0)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[ops-map snapshot inspections agg] {e}")
+
         # ── Project / Geofence assignment + rollups ──────────────
         # Assignment priority (per directive §10):
         #   1. explicit_project    (high)   — masci_equipment.project_number when present
@@ -410,6 +438,23 @@ def register_operations_map_v1_routes(
                 "confidence": confidence, "bucket_type": bucket_type,
             }
 
+            # ── Attention reason classification (red band only) ──────
+            # Real categories from real data — no fabrication. Reason
+            # priority: maintenance → inspection → assignment → stale.
+            reason = None
+            if m["band"] == "red":
+                un = m.get("unit_number") or ""
+                em_id = m.get("masci_equipment_id") or ""
+                if open_defects_by_unit.get(un, 0) > 0:
+                    reason = "maintenance"
+                elif open_inspections_by_em.get(em_id, 0) > 0:
+                    reason = "inspection"
+                elif bucket_type == "unassigned" or confidence == "low":
+                    reason = "assignment"
+                else:
+                    reason = "stale_position"
+            m["attention_reason"] = reason
+
             r = rollups.setdefault(name, {
                 "name": name,
                 "display_name": name,
@@ -421,12 +466,18 @@ def register_operations_map_v1_routes(
                 "last_activity_at": None,
                 "assignment_source": source,
                 "assignment_confidence": confidence,
+                "attention_breakdown": {
+                    "maintenance": 0, "inspection": 0,
+                    "assignment": 0, "stale_position": 0,
+                },
             })
             r["total"] += 1
             if m["band"] in ("green", "amber"):
                 r["connected_count"] += 1
             if m["band"] == "red":
                 r["attention_required_count"] += 1
+                if reason:
+                    r["attention_breakdown"][reason] = r["attention_breakdown"].get(reason, 0) + 1
             if m["band"] == "gray":
                 r["offline_count"] += 1
             if m.get("last_seen_at") and (
@@ -446,8 +497,40 @@ def register_operations_map_v1_routes(
                   if x["last_activity_at"] else 0),
             ),
         )
+        # Convert each rollup's breakdown dict → sorted public list.
+        REASON_LABEL = {
+            "maintenance":    "Maintenance Due",
+            "inspection":     "Inspection Overdue",
+            "assignment":     "Assignment Unknown",
+            "stale_position": "Position Update Overdue",
+        }
+        for r in ranked:
+            bd = r.pop("attention_breakdown", {}) or {}
+            r["attention_breakdown"] = [
+                {"id": rid, "label": REASON_LABEL[rid], "count": cnt}
+                for rid, cnt in sorted(bd.items(), key=lambda kv: -kv[1])
+                if cnt > 0
+            ]
         project_rollups_top = ranked[:5]
         project_rollups_overflow = max(0, len(ranked) - 5)
+
+        # ── Snapshot-level attention_breakdown summary ──────────────
+        snap_bd = {"maintenance": 0, "inspection": 0,
+                   "assignment": 0, "stale_position": 0}
+        for m in markers:
+            if m["band"] == "red" and m.get("attention_reason"):
+                snap_bd[m["attention_reason"]] = snap_bd.get(m["attention_reason"], 0) + 1
+        attention_breakdown = [
+            {"id": rid, "label": REASON_LABEL[rid], "count": cnt}
+            for rid, cnt in sorted(snap_bd.items(), key=lambda kv: -kv[1])
+            if cnt > 0
+        ]
+
+        # Assets Assigned — confidently placed (project / geofence / location).
+        assets_assigned = sum(
+            1 for m in markers
+            if (m.get("assignment") or {}).get("bucket_type") in ("project", "geofence", "location")
+        )
 
         # ── Operational Summary · MASCI-native vocabulary ────────────
         # Single source of truth that the UI consumes. Maps the
@@ -462,9 +545,9 @@ def register_operations_map_v1_routes(
              "value": counts["total"],
              "tone": "slate",
              "band": None},
-            {"id": "connected",
-             "label": "Connected Assets",
-             "value": counts["with_gps"],
+            {"id": "assigned",
+             "label": "Assets Assigned",
+             "value": assets_assigned,
              "tone": "slate",
              "band": None},
             {"id": "working",
@@ -481,7 +564,8 @@ def register_operations_map_v1_routes(
              "label": "Attention Required",
              "value": counts["red"],
              "tone": "rose",
-             "band": "red"},
+             "band": "red",
+             "breakdown": attention_breakdown},
             {"id": "offline",
              "label": "No Recent Position",
              "value": counts["gray"],
@@ -506,6 +590,7 @@ def register_operations_map_v1_routes(
             "ok": True,
             "as_of": _now_iso(),
             "operational_summary": operational_summary,
+            "attention_breakdown": attention_breakdown,
             "feed_status": {
                 "status": feed_status,
                 "label":  feed_label,
@@ -711,9 +796,48 @@ def register_operations_map_v1_routes(
             "webhook_armed": bool((motive_settings.get("webhook_secret_value") or "").strip()),
         }
 
+        # ── Action Required · action-first verdict for the asset card ──
+        # Real data only: open defects → maintenance, open inspections →
+        # inspection, low/missing assignment → assignment unknown, red
+        # band → position update overdue, gray band → no recent position.
+        action_label = "No Action Required"
+        action_tone  = "emerald"
+        action_id    = "ok"
+        if open_defects:
+            action_label = "Maintenance Due"
+            action_tone  = "rose"
+            action_id    = "maintenance"
+        elif open_inspections:
+            action_label = "Inspection Overdue"
+            action_tone  = "rose"
+            action_id    = "inspection"
+        elif marker["band"] == "gray":
+            action_label = "No Recent Position"
+            action_tone  = "slate"
+            action_id    = "no_recent_position"
+        elif (assignment_source in ("missing_assignment",) or assignment_confidence == "low"):
+            action_label = "Assignment Unknown"
+            action_tone  = "amber"
+            action_id    = "assignment"
+        elif marker["band"] == "red":
+            action_label = "Position Update Overdue"
+            action_tone  = "rose"
+            action_id    = "stale_position"
+        elif marker["band"] == "amber":
+            action_label = "Idle · Awaiting Assignment"
+            action_tone  = "amber"
+            action_id    = "idle"
+
         return {
             "ok": True, "as_of": _now_iso(),
             "asset":           marker,
+            "action_required": {
+                "id":    action_id,
+                "label": action_label,
+                "tone":  action_tone,
+                "open_defects_count":      len(open_defects),
+                "open_inspections_count":  len(open_inspections),
+            },
             "driver":          driver,
             "geofence_status": geofence_status,
             "open_inspections": open_inspections,

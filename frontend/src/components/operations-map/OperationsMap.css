@@ -11,7 +11,7 @@
 .ops-map-grid {
   display: grid;
   grid-template-columns: 240px 1fr;
-  grid-template-rows: 56px 88px 176px 1fr 116px;
+  grid-template-rows: 56px 124px 200px 1fr 116px;
   height: 100vh;
   width: 100vw;
 }
@@ -163,16 +163,60 @@
   text-transform: uppercase; font-weight: 700;
 }
 
-/* Primary card variant — first card with rose severity */
+/* Banner attention tile · embedded breakdown */
+.ops-map-banner-breakdown {
+  list-style: none; padding: 0; margin: 4px 0 0 0;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.ops-map-banner-breakdown li {
+  display: flex; align-items: baseline; gap: 6px;
+  font-size: 10px; color: #9f1239;
+}
+.ops-map-banner-breakdown .bd-count {
+  font-family: "Chivo", "IBM Plex Sans", sans-serif;
+  font-weight: 900; font-variant-numeric: tabular-nums;
+  color: #be123c; min-width: 18px; text-align: right;
+}
+.ops-map-banner-breakdown .bd-label {
+  letter-spacing: 0.02em; font-weight: 600;
+}
+.ops-map-banner .tile-attention {
+  background: #fee2e2; border-color: #fda4af;
+  border-left: 5px solid #be123c;
+  box-shadow: 0 4px 12px rgba(190, 18, 60, 0.15);
+}
+
+/* PI card · attention reasons row (top 3) */
+.ops-map-project-card-reasons {
+  display: flex; flex-direction: column; gap: 1px;
+  font-size: 10px; color: #475569;
+  border-top: 1px dashed #e2e8f0; padding-top: 3px;
+}
+.ops-map-project-card-reasons .reason-row {
+  display: flex; gap: 6px; align-items: baseline;
+}
+.ops-map-project-card-reasons strong {
+  font-family: "Chivo", "IBM Plex Sans", sans-serif;
+  font-weight: 900; color: #be123c;
+  font-variant-numeric: tabular-nums;
+  min-width: 16px; text-align: right;
+}
+.ops-map-project-card.primary .ops-map-project-card-reasons strong { color: #7f1d1d; }
 .ops-map-project-card.primary {
-  flex: 0 0 auto; min-width: 280px; max-width: 320px;
-  border-left-width: 8px;
-  box-shadow: 0 6px 14px rgba(190, 18, 60, 0.18);
+  flex: 0 0 auto; min-width: 320px; max-width: 360px;
+  border-left-width: 10px;
+  box-shadow: 0 8px 18px rgba(190, 18, 60, 0.22);
   background: #fee2e2;
 }
 .ops-map-project-card.primary .ops-map-project-card-name {
-  font-size: 18px; letter-spacing: 0.04em;
+  font-size: 20px; letter-spacing: 0.04em;
   color: #7f1d1d;
+}
+.ops-map-project-card.primary .ops-map-project-card-assets .num {
+  font-size: 18px; color: #7f1d1d;
+}
+.ops-map-project-card.primary .ops-map-project-card-reasons strong {
+  color: #7f1d1d; font-size: 12px;
 }
 .ops-map-project-card-pill {
   display: inline-block; align-self: flex-start;
@@ -324,6 +368,48 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .ops-map-asset-sheet section.assignment-block .section-title { color: #0f766e; }
+
+/* Action Required — dominant action-first verdict block */
+.ops-map-asset-sheet section.action-block {
+  border-radius: 12px;
+  padding: 12px 14px 10px 14px;
+  margin: 10px 0 2px 0;
+  border: 1px solid #fda4af;
+  box-shadow: 0 4px 12px rgba(190, 18, 60, 0.12);
+}
+.ops-map-asset-sheet section.action-block .section-title {
+  font-weight: 900; letter-spacing: 0.10em;
+}
+.ops-map-asset-sheet .action-label {
+  font-family: "Chivo", "IBM Plex Sans", sans-serif;
+  font-weight: 900; font-size: 22px; line-height: 1.15;
+  margin-top: 2px;
+}
+.ops-map-asset-sheet .action-detail {
+  font-size: 12px; color: #475569; margin-top: 4px;
+}
+.ops-map-asset-sheet section.action-tone-rose {
+  background: #fff1f2; border-color: #fda4af;
+  box-shadow: 0 6px 14px rgba(190, 18, 60, 0.18);
+}
+.ops-map-asset-sheet section.action-tone-rose .section-title { color: #be123c; }
+.ops-map-asset-sheet section.action-tone-rose .action-label   { color: #7f1d1d; }
+.ops-map-asset-sheet section.action-tone-amber {
+  background: #fffbeb; border-color: #fcd34d;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.14);
+}
+.ops-map-asset-sheet section.action-tone-amber .section-title { color: #b45309; }
+.ops-map-asset-sheet section.action-tone-amber .action-label  { color: #78350f; }
+.ops-map-asset-sheet section.action-tone-emerald {
+  background: #ecfdf5; border-color: #6ee7b7;
+}
+.ops-map-asset-sheet section.action-tone-emerald .section-title { color: #047857; }
+.ops-map-asset-sheet section.action-tone-emerald .action-label  { color: #064e3b; }
+.ops-map-asset-sheet section.action-tone-slate {
+  background: #f1f5f9; border-color: #cbd5e1;
+}
+.ops-map-asset-sheet section.action-tone-slate .section-title { color: #475569; }
+.ops-map-asset-sheet section.action-tone-slate .action-label  { color: #0f172a; }
 .ops-map-asset-sheet .assignment-name {
   font-family: "Chivo", "IBM Plex Sans", sans-serif;
   font-weight: 900; font-size: 22px; color: #0f172a; line-height: 1.15;

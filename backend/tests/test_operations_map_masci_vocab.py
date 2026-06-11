@@ -57,12 +57,12 @@ def test_operational_summary_structure(snapshot):
     assert isinstance(summary, list), f"expected list, got {type(summary)}"
     assert len(summary) == 6, f"expected 6 tiles, got {len(summary)}"
     by_id = {t["id"]: t for t in summary}
-    expected_ids = {"total", "connected", "working", "idle", "attention", "offline"}
+    expected_ids = {"total", "assigned", "working", "idle", "attention", "offline"}
     assert set(by_id.keys()) == expected_ids, f"ids mismatch: {set(by_id.keys())}"
 
     expected_labels = {
         "total":     "Total Assets",
-        "connected": "Connected Assets",
+        "assigned":  "Assets Assigned",
         "working":   "Working",
         "idle":      "Idle",
         "attention": "Attention Required",

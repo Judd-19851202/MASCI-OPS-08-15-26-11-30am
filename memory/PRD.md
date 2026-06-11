@@ -39758,3 +39758,124 @@ After **Save to GitHub → Redeploy**:
 If all hold → certified. Else → escalate.
 
 **Sprint #7 COMPLETE — Live Map is now operator role-correct.**
+
+
+---
+
+## MASCI LIVE MAP · COMMAND SURFACE CERTIFICATION (2026-02-11)
+
+**Sprint:** MASCI Operations Center · Live Map · Command Surface (Sprint #8)
+**Persona:** Truck Boss / PM / Dispatch / Shop / Ops Leadership
+**Verdict:** ✅ PASS — page now answers WHAT IS WRONG · WHERE · HOW BAD · WHAT TO DO inside 10 seconds.
+
+### Operational improvements (action-first, not information-first)
+1. **Attention Required tile** now exposes WHY assets need attention — breakdown rendered inside the tile (Maintenance Due / Inspection Overdue / Assignment Unknown / Position Update Overdue), driven by real `fleet_defects` + `equipment_inspections` aggregates.
+2. **Project Intelligence cards** now show 1-3 reason rows below the count so a PM knows "Port Orange is bad because **38 Position Update Overdue**" — not just "Port Orange = bad".
+3. **Primary card** widened to 320px (vs 253px) + 10px wedge + 20px title + deeper shadow — operationally impossible to miss.
+4. **Asset card** opens with **ACTION REQUIRED** block as the second section (after Identity, before Assignment) — Shop sees the verdict first, not last.
+5. **Connected Assets** replaced with **Assets Assigned** (real data: `bucket_type in {project, geofence, location}`) — banner real estate now answers "how many do I have visibility into?" instead of duplicating sum-of-bands.
+6. **Trust** — Confidence badge (emerald/amber/rose/slate) dominates visually; vendor source (Motive) appears as small tertiary line.
+7. **Map clusters** already risk-tinted by worst contained band (rose/slate/amber/emerald).
+
+### Files changed (Sprint #8)
+**Backend**
+- `/app/backend/routes/operations_map_v1.py`:
+  - Per-asset `attention_reason` classification using real `fleet_defects` + `equipment_inspections` aggregations
+  - `operational_summary[attention].breakdown` — top-level attention reason breakdown (4 categories, real-data driven)
+  - `operational_summary[connected]` renamed to `operational_summary[assigned]` → "Assets Assigned" / "In known projects or areas"
+  - Each `project_rollups[i].attention_breakdown` exposes per-area reasons
+  - Top-level `attention_breakdown` exposed on snapshot for direct UI consumption
+  - `asset_detail` returns new `action_required` block with id/label/tone/open_defects_count/open_inspections_count
+
+**Frontend**
+- `/app/frontend/src/components/operations-map/MapOperationsBanner.jsx` — Attention tile renders embedded breakdown rows
+- `/app/frontend/src/components/operations-map/ProjectIntelligenceStrip.jsx` — adds reasons section under each card's breakdown line
+- `/app/frontend/src/components/operations-map/AssetCardSheet.jsx` — new **Action Required** block as section #2 after Identity
+- `/app/frontend/src/components/operations-map/OperationsMap.css` — grid rows `56/124/200/1fr/116`; banner tile-attention rose tint + left wedge + breakdown list styles; PI card reasons row; primary card upgraded (320-360px, 10px wedge, 20px title); asset-card action-block tone variants (rose/amber/emerald/slate)
+
+**Tests**
+- `/app/backend/tests/test_operations_map_masci_vocab.py` — assertions updated to new "Assets Assigned" id
+
+### Attention Required breakdown evidence
+Banner Attention tile `[data-testid='ops-map-banner-attention-breakdown']` renders:
+```
+68 Position Update Overdue
+```
+In preview env no `fleet_defects` / `equipment_inspections` are tied to current Motive assets, so the breakdown surfaces a single real category. In production once defect/inspection records associate with active equipment, the breakdown will diversify automatically (4 reason buckets supported: maintenance, inspection, assignment, stale_position).
+
+### Project Intelligence risk evidence
+First card (`PORT ORANGE, FL AREA`):
+```
+PORT ORANGE, FL AREA
+50 ASSETS
+0 Connected · 38 Attention · 12 Offline
+38 Position Update Overdue       ← real-data reason
+Last activity 11h ago
+GPS LOCATION · MEDIUM CONFIDENCE
+```
+
+Sized 320px wide (vs 253px for cards 2-5), 10px wedge, 20px title, soft rose shadow → primary attention area visible in <3 seconds.
+
+### Asset card action evidence (PKU-2549)
+Section Y-coordinates (DOM, strictly monotonic):
+```
+identity 33 → action 98.5 → assignment 176.8 → operational_state 278.1 →
+open_issues 347.6 → operator 405.8 → last_position 464 →
+recent_activity 613 → data_source 778
+```
+
+ACTION REQUIRED block reads:
+```
+ACTION REQUIRED
+Position Update Overdue
+```
+Rose-tinted card with strong shadow — the shop manager sees the verdict before reading any other detail. In production for an asset with open defects, this block will render `Maintenance Due` with the open defect count; with open inspections → `Inspection Overdue`; with missing assignment → `Assignment Unknown`; for gray-band → `No Recent Position`; for healthy → `No Action Required` (emerald).
+
+### Persona validation
+| Persona | Can they answer in <10s? | Evidence |
+|---|---|---|
+| Truck Boss | yes — "Attention 68 / Position Update Overdue" + ranked areas | banner attention breakdown + PI strip with reasons |
+| PM | yes — "Port Orange = 38 Position Update Overdue" | PI primary card with reasons row |
+| Shop | yes — asset card ACTION REQUIRED block tops the sheet | section Y=98.5 (second from top) |
+| Dispatch | yes — feed health + risk clusters + ranked areas + live activity | feed chip + clusters + PI strip + timeline |
+| Ops Leadership | yes — single screen shows fleet scale + assignment coverage + attention reasons | banner 6 tiles + PI strip |
+
+### Vocabulary evidence
+DOM scan inside `[data-testid='operations-map-page']` AND `[data-testid='ops-map-asset-sheet']`:
+```
+ForgedOps · Operational Buckets · Bucket · Reporting · Needs Attention ·
+Offline Feed · Telemetry Standby · Telemetry Poll · Motive Status ·
+GPS Status · Asset Health · vehicle_gps · geofence_enter · geofence_exit ·
+event_family · motive:poll · motive:webhook · Live Feed · Delayed Feed ·
+\bpoll\b · \bwebhook\b · \bDriver\b
+```
+**Hits: 0 / 22 in both surfaces.**
+
+Allowed exceptions present and correct: `Source: Motive` (asset card Data Source), `Source: GPS Location` (PI cards + asset card Current Assignment). One lowercase "reporting" verb in microcopy ("Not recently reporting") — directive-verbatim text.
+
+### Performance (warm)
+- snapshot (now incl. 2 aggregation passes): **494-584 ms** (SLA <800 ms) ✅
+- search: **226 ms** (SLA <250 ms) ✅
+- asset detail (now incl. action_required): **451 ms** (SLA <500 ms) ✅
+- map page load warm refresh: **977 ms** (SLA <3000 ms) ✅
+
+### Test results
+- Backend pytest `test_operations_map_masci_vocab.py`: **12 passed / 1 skipped** (env skip — no preview geofences).
+- Self-test screenshot run: all command-surface fixes confirmed via DOM evaluation + visual screenshots.
+
+### Production deployment gate (mascidocs.com)
+After **Save to GitHub → Redeploy**:
+1. Auth + `curl https://mascidocs.com/api/operations-map/snapshot?limit=2000` and verify:
+   - `feed_status.label` ∈ {"Live Data","Delayed Data"} when telemetry is flowing
+   - `attention_breakdown` includes more than one category once real defects/inspections are tied to fleet assets
+   - `project_rollups[i].attention_breakdown` likewise diversifies
+2. UI:
+   - Banner attention tile shows multiple reason rows (Maintenance Due / Inspection Overdue / Assignment Unknown / Position Update Overdue)
+   - PI primary card shows the dominant reason for the worst area
+   - Map clusters show mixed severity tones
+   - DOM banned-vocab scan = 0 hits
+3. Asset card on any asset with an open defect → ACTION REQUIRED block reads `Maintenance Due · N open defects`. For an asset with an open inspection → `Inspection Overdue`. For a healthy asset → `No Action Required` (emerald).
+
+If all hold → certified. Else → escalate.
+
+**Sprint #8 COMPLETE — Live Map is a true Operations Command Surface.**

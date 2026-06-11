@@ -79,7 +79,32 @@ export default function AssetCardSheet({ assetKey, onClose }) {
             </div>
           </div>
 
-          {/* 2 · Current Assignment — visually dominant */}
+          {/* 2 · ACTION REQUIRED — answers "what should I do?" first */}
+          {data?.action_required && (
+            <section className={`action-block action-tone-${data.action_required.tone || "slate"}`}
+                     data-testid="ops-map-asset-sheet-action">
+              <div className="section-title">Action Required</div>
+              <div className="action-label"
+                   data-testid="ops-map-asset-sheet-action-label">
+                {data.action_required.label}
+              </div>
+              {(data.action_required.open_defects_count > 0 ||
+                data.action_required.open_inspections_count > 0) && (
+                <div className="action-detail">
+                  {data.action_required.open_defects_count > 0 && (
+                    <span>{data.action_required.open_defects_count} open defect{data.action_required.open_defects_count === 1 ? "" : "s"}</span>
+                  )}
+                  {data.action_required.open_defects_count > 0 &&
+                   data.action_required.open_inspections_count > 0 && <span> · </span>}
+                  {data.action_required.open_inspections_count > 0 && (
+                    <span>{data.action_required.open_inspections_count} open inspection{data.action_required.open_inspections_count === 1 ? "" : "s"}</span>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* 3 · Current Assignment — visually dominant */}
           <section className="assignment-block" data-testid="ops-map-asset-sheet-assignment">
             <div className="section-title">Current Assignment</div>
             <div className="assignment-name"
