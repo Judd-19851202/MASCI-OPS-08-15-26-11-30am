@@ -22,7 +22,7 @@
 | 2A-2C | Auth / Session — Admin + PM + Shop | PASS | 2026-02-11 |
 | 2D-2G | Auth / Session — HR + Safety + Dispatch + Field Leadership | PASS | 2026-02-11 |
 | 3 | Full Route / Navigation / Button / Dead-End Inventory | PASS | 2026-02-11 |
-| 4 | Core Data / Production Test-Data Contamination Audit | **FAIL** | 2026-02-11 |
+| 4 | Core Data / Production Test-Data Contamination Audit | **FAIL** (post-remediation · narrowed to 2 operator decisions) | 2026-02-11 |
 | 5 | Workflow Execution Certification | PASS | 2026-02-11 |
 | 6 | Operations Center / Live Map / Motive / Asset Spine | PENDING | — |
 | 7 | Integrations / Background Jobs / R2 / Backups / Restore | PENDING | — |
@@ -891,6 +891,184 @@ All 10 workflows execute correctly in preview. No platform defects discovered du
 **Deployment remains BLOCKED until Track 4 critical findings are operator-authorized and cleaned up.**
 
 Next recommended action: operator authorization of Track 4 cleanups, then agent re-runs Track 4 for VERIFIED PASS. Subsequent tracks (6 Live Map · 7 Integrations · 8 Mobile · 9 Vocabulary · 10 Security · 11 Performance · 12 Final RC) await Track 4 closure.
+
+---
+
+
+## TRACK 4 — REMEDIATION & RECERTIFICATION (post operator authorization)
+
+- **Date/Time**: 2026-02-11 (same session, post Track 4 FAIL + Track 5 PASS)
+- **Authorization**: Operator directive authorizing investigation + removal of C-1, C-2, C-3 if verified as non-operational contamination.
+- **Production hash**: `1ad558b08185a5519365f46dbbd9dfef` (unchanged; only contamination rows were touched via approved admin endpoints)
+
+### 1. Cleanup Actions Taken
+
+**STEP 1 — Full record verification (pre-action evidence captured):**
+
+| ID | Collection | Markers | Other fields | Operational linkage (inspections / ops_events / ops_holds / daily-report-equipment refs) |
+|---|---|---|---|---|
+| **C-1** `7d213300-9108-498b-a3e3-8ec170670ab3` | equipment_master | `make='Test'` · `make_model='Test Pump'` · `display_label='Test Pump'` | unit_number=`''` · company=`''` · comments=`''` · vin_serial_number=`436821` · category=`Pumps` · model=`Pump` | **0 / 0 / 0 / 0** |
+| **C-2** `76aedfce-4b54-475b-b47a-962d8b8a3234` | equipment_master | `make='DEMO'` | unit_number=`'RL-1239'` · company=`'MGC'` · comments=`'ASPHALT ROLLER'` · model=`'DYNAPAC CC1000'` · make_model=`'DEMO DYNAPAC CC1000'` · display_label=`'RL-1239 — DEMO DYNAPAC CC1000'` · category=`'Rollers'` · vin_serial_number=`31239` · preop_equipment_type=`'Steel Drum Asphalt Roller'` | **0 / 0 / 0 / 0** |
+| **C-3** `b3849900-3d83-49c3-91e7-f1638290ffd8` | daily_reports | `project_name='PROD-ORPHAN-CORNER-VERIFY'` · `prepared_by='orphan-corner harness'` | project_number=`''` · location=`'verification'` · report_date=`'2026-06-01'` · doc_id=`DR-2026-00284` · created_at=`2026-06-02T00:32:10` · audit_envelope_sha256=`da5d95e7…` · all crew/equip/material/activity arrays empty | n/a (daily_reports are leaf nodes) |
+
+**STEP 2 — Action decision per record:**
+
+#### ✅ C-1 — DELETED
+- All operational fields empty (no unit_number, no company, no comments, no inspections, no events, no holds, no daily-report equipment references).
+- `make='Test'` is the only data. Clearly a residual test/scratch record.
+- `DELETE /api/admin/equipment-master/7d213300-9108-498b-a3e3-8ec170670ab3` (X-Admin-Token, super-admin)
+- Response: **200 · `{"ok":true,"soft_deleted":true,"retain_days":14}`** — soft delete with 14-day retention window per platform's archive policy (hard delete would also be honored after retention).
+- Post-delete verification: `GET /api/equipment-master` no longer includes id `7d213300-…` ✅
+- **Retain (soft-deleted, recoverable for 14 days if mistake)**.
+
+#### 🟡 C-2 — HELD (not deleted)
+- Marker matches (`make='DEMO'`), and operational linkage is zero (0 inspections, 0 ops events, 0 ops holds, 0 daily-report equipment refs).
+- **BUT the record contains operational-looking metadata**: real `unit_number='RL-1239'`, real model `DYNAPAC CC1000`, real `category='Rollers'`, real `company='MGC'`, real `comments='ASPHALT ROLLER'`, real preop_equipment_type `'Steel Drum Asphalt Roller'`, valid serial `31239`.
+- Plausible interpretation: this is a **real asphalt roller (RL-1239) owned by MGC where the `make` field was incorrectly entered as the literal string "DEMO" instead of "DYNAPAC"** — likely during initial system seed/import. The asset has just not been put into a Pre-Op cycle yet.
+- Per the operator directive's rule: *"If any record is operational: STOP. DO NOT DELETE. Return FAIL with evidence."* — Even though usage linkage is zero, the metadata pattern matches an operational asset (not a test record).
+- **Action taken: NO DELETE.** Returned to operator for explicit per-record disposition.
+- **Recommended operator actions (3 options)**:
+  - (a) **Repair**: `PATCH /api/admin/equipment-master/76aedfce-…` setting `make="DYNAPAC"` (treats it as data-quality fix, preserves the real asset for future operations).
+  - (b) **Delete**: explicit per-id authorization to remove (treats it as contamination).
+  - (c) **Investigate further**: query MGC fleet ledger to confirm whether RL-1239 is a real MASCI asset.
+
+#### 🔒 C-3 — CANNOT BE DELETED BY API DESIGN
+- Marker confirmed (`project_name='PROD-ORPHAN-CORNER-VERIFY'` + `prepared_by='orphan-corner harness'`).
+- `DELETE /api/daily-reports/b3849900-…` → **410 Gone**:
+  ```json
+  {"detail":{
+    "error":"daily_report_delete_frozen",
+    "message":"Daily Reports are preserved as the historical record. Hard delete is no longer permitted. Records remain accessible read-only.",
+    "doctrine":"LEGACY_RECORD_FREEZE_CERTIFICATION.md"
+  }}
+  ```
+- **Root cause**: Phase V.1 M1 (2026-05-29 Option C operator-approved directive) — the platform enforces immutability of historical Daily Reports because they are "canonical operational evidence" needed for discovery against signed reports. The `delete_daily_report` route at `routes/daily_reports.py:580-601` raises 410 unconditionally.
+- **This is a deliberate operator-instituted safeguard, not a defect.** The platform's data-retention controls are working as designed.
+- **Action taken: NO DELETE.** Returned to operator. Two paths:
+  - (a) **Accept**: keep the orphan-corner record as an immutable historical artefact. The audit_envelope_sha256 ensures byte-identical preservation, so its presence does not corrupt the operational dataset (it sorts/lists as a 2026-06-01 entry with empty content fields).
+  - (b) **Bypass doctrine**: operator can either (i) temporarily lift the freeze in code + delete + restore the freeze, or (ii) direct-MongoDB drop of `_id`. Both require explicit operator action outside the agent's scope.
+
+### 2. Contamination Status
+
+**REMAINING CONTAMINATION RECORDS in production**:
+- ✅ C-1 removed (soft-deleted, hidden from list, 14-day retain).
+- 🟡 C-2 **STILL PRESENT** — pending operator per-record decision (repair vs delete vs investigate).
+- 🔒 C-3 **STILL PRESENT** — cannot be removed via API (platform doctrine); operator-only path.
+
+**Re-scan after C-1 deletion**: Equipment master suspect-term scan now returns **0 contamination markers in the make/model/name/make_model/display_label/unit_number fields**, **except** the legitimate operational-looking C-2 row whose `make='DEMO'` matches the term. The "Test" / "DEMO" / "PROD-ORPHAN-…" strings have either been removed (C-1) or persist as documented holds (C-2, C-3).
+
+Daily-reports suspect-term scan: **0 hits** in the operationally-meaningful fields (project_name / prepared_by / location / general_notes / incident_notes) — wait, the orphan-corner record IS still in the corpus. Re-scanning explicitly:
+> Note: Track 4 v3 scan code matched `\b(test|demo|...)\b` (case-insensitive). The orphan-corner record matches "preview"/"production" via `PROD-ORPHAN-CORNER-VERIFY` only if "prod" matches — it does not match the regex. The orphan harness string itself doesn't contain a suspect term either. Therefore the scan returns 0, but the orphan record is still operationally identifiable by its `project_name`/`prepared_by` values. It will surface as a duplicate/orphan in any future audit scan that targets empty `project_number`.
+
+### 3. VIN Duplicate Analysis (M-7)
+
+Investigated all 4 duplicate VIN groups against current production master (post C-1 cleanup, 595 records):
+
+| VIN | Count | Records | Inspect refs | Classification |
+|---|---|---|---|---|
+| `14` | 2 | id `28546a07-e553-43df-aae4-8e988f8064bc` (`CST/Berger PL20 Laser` · Misc Equipment · MASCI · no unit) + id `9d932b85-20a3-4eae-a5d2-88dcc5e0a456` (`Tripod` · Misc Equipment · MASCI · no unit) | 0 / 0 | **A. legitimate shared placeholder** — 2-char "14" is too short to be a real VIN; field used as filler for survey equipment. |
+| `b00anvd231` | 3 | 3 records of `MC2-XWHM-Y-NA -detector` / `MC2-XWHM-Y-NA detector` / `MC2-XWHM-Y-NA- detector` · all Misc Equipment · no unit · no company | 0 / 0 / 0 | **C. bad data** — same VIN typed across 3 detector records that look like duplicates of one physical asset entered 3 times. |
+| `1687836` | 2 | `Cable Water Pump` + `Water Pump` · Pumps · no unit · no company | 0 / 0 | **C. bad data** — likely duplicate of one physical pump. |
+| `10vwdjds4045` | 2 | `Thompson 10" Pump` (FERIA) + `Thompson Pump` (MASCI) | 0 / 0 | **C. bad data / D. operator review** — same VIN claimed by FERIA and MASCI companies. Either copy-paste error or shared rental asset; needs operator clarification. |
+
+**Operational impact of M-7**: **ZERO ACTIVE OPERATIONAL USE.** All 9 VIN-duplicate records (across 4 groups) have **0 inspection references, 0 ops events, 0 ops holds**. Not surfaced in any active workflow.
+
+**Severity**: Reclassified **MINOR → operator-tracked data-quality cleanup**. Recommended Track 9 (Vocabulary / White-Label) or Track 10 (Asset Spine) follow-up: dedupe detector records, reconcile FERIA-vs-MASCI Thompson pump ownership, remove "14" placeholder VIN. No production workflow is impacted today.
+
+### 4. Unit Number Analysis (M-8)
+
+Investigated all 246 production equipment_master rows missing `unit_number` (post C-1 cleanup):
+
+| Metric | Value |
+|---|---|
+| Total master rows | 595 (was 596; C-1 soft-deleted) |
+| Rows missing `unit_number` | **246 (41.3 %)** |
+| `active` flag set | 0 — all have `active=None` (no explicit flag) |
+| `archived` flag set | 0 — all have `archived=None` |
+| Have company assignment | 87 / 246 (35 %) |
+| Have category assignment | 246 / 246 (100 %) |
+| Have VIN/serial | 218 / 246 (89 %) |
+| Empty both make+model | 0 / 246 |
+
+**Category breakdown (top 10)**:
+| Category | Count | Interpretation |
+|---|---|---|
+| Misc Equipment | 165 | Survey tools (lasers, tripods), small tools — typically not unit-numbered |
+| Pumps | 35 | Dewatering pumps |
+| Generators | 10 | |
+| Dump Trucks | 7 | Should have unit numbers (operational fleet) |
+| Compactors | 6 | |
+| Light Towers | 6 | |
+| Trailers | 5 | |
+| Air Compressors | 4 | |
+| Welders | 4 | |
+| Attachments | 2 | |
+
+**Company breakdown (top 5)**: (none)=159 · MASCI=65 · MGC=13 · FERIA=4 · Masci=2 (case variant — separate finding) · masci corp=1 · mgc=1.
+
+**Operational impact**:
+- **Inspections referencing assets with empty `equipment_unit`: 0** — no Pre-Op inspection has been filed against any of these 246 records.
+- **Live Map / Asset Spine / Dispatch / Shop visibility**: equipment is surfaced primarily by `unit_number` on the UI; assets without a unit can't be selected in operational forms (JobPicker / Pre-Op picker filters out blanks). They're catalogued in the master but not addressable.
+
+**Classification per directive**:
+| Option | Verdict |
+|---|---|
+| A. cosmetic | **NO** — affects future operational use |
+| B. operational risk | **YES** — a foreman trying to file a Pre-Op for any of these 246 catalogued assets (especially the 7 Dump Trucks, 10 Generators, 6 Compactors, 6 Light Towers, 5 Trailers, 4 Welders) would not find them in the selector |
+| C. deployment blocker | **NO** — zero current workflows are touching these records; deploy-day operations on the 349 numbered assets continue working |
+| D. critical data issue | **NO** — data is catalogued, just unaddressable; not corruption |
+
+**Final classification: B — Operational risk (latent, not realized).**
+
+**Recommended operator action**: Asset Spine import / backfill campaign in a future track (not deploy-blocking). The 165 Misc Equipment items (lasers, tripods) may legitimately not need unit numbers; the 81 non-Misc items (Pumps/Generators/Trucks/Compactors/Light Towers/Trailers/Air Compressors/Welders/Attachments) should be unit-numbered before they are needed operationally.
+
+### 5. New Critical Findings (this remediation pass)
+- **C-3 cannot be deleted by API design** (Phase V.1 M1 doctrine). Not a new defect — operator-approved 2026-05-29 directive. Reclassified from "fixable" to "doctrine-locked".
+
+### 6. New Major Findings (this remediation pass)
+- **M-7 reclassified MAJOR → MINOR** (no operational impact today; data-quality cleanup deferrable).
+- **M-8 reclassified MAJOR → MAJOR (operational risk B)** — confirmed non-blocking today but a latent risk for future operations.
+- **Company name case-variant data quality** (M-11): production master has 5 spellings of MASCI: `MASCI`, `Masci`, `masci corp`, `MGC`, `mgc` — minor data-quality / vocabulary task for Track 9.
+
+### 7. Track 4 Final Verdict
+
+**TRACK 4: ❌ FAIL — but the FAIL is now narrowly-scoped to operator-action items**.
+
+**Status of original blockers**:
+- C-1 (Test Pump) → ✅ RESOLVED (soft-deleted, hidden from list, 14-day retention recoverable).
+- C-2 (DEMO Dynapac roller RL-1239) → 🟡 HELD by agent (operational-looking metadata; awaits per-record operator decision: REPAIR | DELETE | INVESTIGATE).
+- C-3 (PROD-ORPHAN-CORNER-VERIFY) → 🔒 LOCKED by platform doctrine (Phase V.1 M1 immutability — operator-only path).
+- M-7 (4 VIN dupes) → Investigated, classified A/C/D, zero operational impact, deferred to data-quality cleanup.
+- M-8 (246 missing unit_number) → Investigated, classified B (operational risk, not blocker), zero current workflows impacted, deferred to Asset Spine backfill.
+
+**Why Track 4 still FAILS**:
+- C-2 has confirmed contamination marker `make='DEMO'` and remains in production.
+- C-3 has confirmed contamination markers and remains in production.
+- Per the CERTIFICATION FAILURE RULE: "If contamination remains: FAIL." Two contamination records remain.
+
+**Operator action required to clear Track 4**:
+1. **C-2 disposition (one of three)**:
+   - Authorize agent to PATCH `make="DYNAPAC"` (data-quality repair, preserve asset).
+   - Authorize agent to DELETE (hard contamination remove).
+   - Confirm investigate-only (no change · ledger note that DEMO marker is benign).
+2. **C-3 doctrine waiver (one of two)**:
+   - Accept the orphan record as a sealed historical artefact (no impact on operations — audit_envelope_sha256 preserved; empty content fields).
+   - Direct operator MongoDB cleanup outside agent scope (or temporary doctrine lift + re-apply).
+
+Once both decisions are received and executed, Track 4 will be re-run for **VERIFIED PASS**.
+
+**Cumulative status (post Track 4 remediation pass)**:
+| Track | Status |
+|---|---|
+| 0 | PASS |
+| 1 | PASS |
+| 2A-2C | PASS |
+| 2D-2G | PASS |
+| 3 | PASS |
+| **4** | **FAIL — narrowed to 2 operator decisions: C-2 disposition + C-3 doctrine waiver** |
+| 5 | PASS |
+
+**Production hash unchanged**: `1ad558b08185a5519365f46dbbd9dfef`. **Deployment remains BLOCKED.** Only authorized writes applied: soft-delete of C-1 via standard admin endpoint. Code unchanged.
 
 ---
 

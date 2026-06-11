@@ -1,0 +1,168 @@
+{
+  "m7": {
+    "14": {
+      "vin": "14",
+      "count": 2,
+      "records": [
+        {
+          "id": "28546a07-e553-43df-aae4-8e988f8064bc",
+          "unit_number": "",
+          "make_model": "CST/Berger PL20 Laser",
+          "display_label": "CST/Berger PL20 Laser",
+          "category": "Misc Equipment",
+          "company": "MASCI",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        },
+        {
+          "id": "9d932b85-20a3-4eae-a5d2-88dcc5e0a456",
+          "unit_number": "",
+          "make_model": "Tripod",
+          "display_label": "Tripod",
+          "category": "Misc Equipment",
+          "company": "MASCI",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        }
+      ],
+      "classification": "A. legitimate shared placeholder (vin field used as filler)"
+    },
+    "b00anvd231": {
+      "vin": "b00anvd231",
+      "count": 3,
+      "records": [
+        {
+          "id": "cd4b7af1-db56-4871-8200-a501cc9fa8c8",
+          "unit_number": "",
+          "make_model": "MC2-XWHM-Y-NA -detector",
+          "display_label": "2014 MC2-XWHM-Y-NA -detector",
+          "category": "Misc Equipment",
+          "company": "",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        },
+        {
+          "id": "3eea312e-5ef9-4523-839f-1db940989bda",
+          "unit_number": "",
+          "make_model": "MC2-XWHM-Y-NA detector",
+          "display_label": "2014 MC2-XWHM-Y-NA detector",
+          "category": "Misc Equipment",
+          "company": "",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        },
+        {
+          "id": "6047cdd2-dbcc-4aae-90d7-f49a15404e46",
+          "unit_number": "",
+          "make_model": "MC2-XWHM-Y-NA- detector",
+          "display_label": "2014 MC2-XWHM-Y-NA- detector",
+          "category": "Misc Equipment",
+          "company": "",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        }
+      ],
+      "classification": "C. bad data \u2014 VIN typed onto multiple incomplete records"
+    },
+    "1687836": {
+      "vin": "1687836",
+      "count": 2,
+      "records": [
+        {
+          "id": "d8d78c82-bc04-478c-b427-62c273844d85",
+          "unit_number": "",
+          "make_model": "Cable Water Pump",
+          "display_label": "Cable Water Pump",
+          "category": "Pumps",
+          "company": "",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        },
+        {
+          "id": "09e14033-70d8-45ed-87b2-9e6e942377eb",
+          "unit_number": "",
+          "make_model": "Water Pump",
+          "display_label": "Water Pump",
+          "category": "Pumps",
+          "company": "",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        }
+      ],
+      "classification": "C. bad data \u2014 VIN typed onto multiple incomplete records"
+    },
+    "10vwdjds4045": {
+      "vin": "10vwdjds4045",
+      "count": 2,
+      "records": [
+        {
+          "id": "e17469f4-1300-4f6b-b2c0-90769e3ba850",
+          "unit_number": "",
+          "make_model": "Thompson 10\" Pump",
+          "display_label": "2005 Thompson 10\" Pump",
+          "category": "Pumps",
+          "company": "FERIA",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        },
+        {
+          "id": "a2051ab9-7bd7-4a67-9e58-2bd7c5561995",
+          "unit_number": "",
+          "make_model": "Thompson Pump",
+          "display_label": "2006 Thompson Pump",
+          "category": "Pumps",
+          "company": "MASCI",
+          "active": null,
+          "archived": null,
+          "inspections_referencing": 0
+        }
+      ],
+      "classification": "C. bad data \u2014 VIN typed onto multiple incomplete records"
+    }
+  },
+  "m8": {
+    "total_master": 595,
+    "missing_unit_number": 246,
+    "missing_pct": 41.34453781512605,
+    "active_breakdown": {
+      "None": 246
+    },
+    "archived_breakdown": {
+      "None": 246
+    },
+    "have_company": 87,
+    "have_category": 246,
+    "have_vin": 218,
+    "no_make_no_model": 0,
+    "category_top10": {
+      "Misc Equipment": 165,
+      "Pumps": 35,
+      "Generators": 10,
+      "Dump Trucks": 7,
+      "Compactors": 6,
+      "Light Towers": 6,
+      "Trailers": 5,
+      "Air Compressors": 4,
+      "Welders": 4,
+      "Attachments": 2
+    },
+    "company_top10": {
+      "(none)": 159,
+      "MASCI": 65,
+      "MGC": 13,
+      "FERIA": 4,
+      "Masci": 2,
+      "MC": 1,
+      "masci corp": 1,
+      "mgc": 1
+    }
+  }
+}
