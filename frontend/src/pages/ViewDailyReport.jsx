@@ -194,7 +194,7 @@ export default function ViewDailyReport() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
             to={listUrl}
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Daily Reports")}

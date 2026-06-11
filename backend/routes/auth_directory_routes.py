@@ -263,8 +263,13 @@ def build_auth_directory_router(
         # portal token. Each portal token is deterministic per
         # (user_id, pwh), so without this a stale row would expire the
         # session before the first authenticated request.
+        # RC-1 M-19 fix (2026-02-11): parallelize the 6-7 reset writes
+        # with asyncio.gather. Each reset is an independent Mongo upsert
+        # on a different `_id`, so semantics are identical. This shaves
+        # ~700-1000ms off multi-login (was the dominant serial hot spot).
         try:
             from session_timeout import reset_session_activity
+            import asyncio  # noqa: PLC0415
             _portal_tier = {
                 "admin": "ADMIN_HR", "hr": "ADMIN_HR",
                 "pm": "OPERATIONS", "shop": "OPERATIONS",
@@ -273,16 +278,20 @@ def build_auth_directory_router(
             }
             _ua = request.headers.get("user-agent") or ""
             _ip = _client_ip(request)
-            for _portal, _tok in (portal_tokens or {}).items():
-                if _tok:
-                    await reset_session_activity(
-                        db, _tok, _portal_tier.get(_portal, "OPERATIONS"),
-                        user_id=row.get("id"),
-                        email=row.get("email"),
-                        actor_label=_portal,
-                        ip=_ip,
-                        user_agent=_ua,
-                    )
+            _reset_tasks = [
+                reset_session_activity(
+                    db, _tok, _portal_tier.get(_portal, "OPERATIONS"),
+                    user_id=row.get("id"),
+                    email=row.get("email"),
+                    actor_label=_portal,
+                    ip=_ip,
+                    user_agent=_ua,
+                )
+                for _portal, _tok in (portal_tokens or {}).items()
+                if _tok
+            ]
+            if _reset_tasks:
+                await asyncio.gather(*_reset_tasks, return_exceptions=True)
         except Exception:  # noqa: BLE001
             pass
         await ud.write_audit(

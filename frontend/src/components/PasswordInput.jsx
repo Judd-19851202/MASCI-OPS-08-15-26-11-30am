@@ -8,6 +8,11 @@ import { Input } from "@/components/ui/input";
  *
  * Usage:
  *   <PasswordInput value={pw} onChange={e => setPw(e.target.value)} required />
+ *
+ * iter-RC1-FH · M-15 mobile touch-target hardening · the show/hide toggle
+ * is the most frequent control on every login page · the hit area is
+ * now a guaranteed 36×36 px (above the 32 px floor, comfortable with
+ * gloves on field iPhones).
  */
 export const PasswordInput = forwardRef(function PasswordInput(
   { className = "", toggleTestId, ...props },
@@ -21,14 +26,14 @@ export const PasswordInput = forwardRef(function PasswordInput(
         {...props}
         ref={ref}
         type={visible ? "text" : "password"}
-        className={`pr-11 ${className}`}
+        className={`pr-12 ${className}`}
       />
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
         tabIndex={-1}
         aria-label={visible ? "Hide password" : "Show password"}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+        className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex items-center justify-center min-h-[36px] min-w-[36px] rounded text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
         data-testid={toggleTestId}
       >
         <Icon className="w-4 h-4" />

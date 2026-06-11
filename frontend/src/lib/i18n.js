@@ -148,6 +148,27 @@ const ES = {
 
   "d ago": "d atrás",
 
+  // iter-RC1-FH · M-18 Spanish status badge closure (RC-1 hardening sprint).
+  // Used by lib/resiliency/DraftStatusPill, DraftRestorePrompt, and the
+  // smaller components/DraftStatusPill. All status badges, draft pills,
+  // and "Saved Xs ago" timestamps now round-trip through ES.
+  "s ago": "s atrás",
+  "m ago": "m atrás",
+  "h ago": "h atrás",
+  "Saving draft…": "Guardando borrador…",
+  "Draft saved": "Borrador guardado",
+  "Save failed — storage full": "Error al guardar — almacenamiento lleno",
+  "Save failed — storage disabled": "Error al guardar — almacenamiento desactivado",
+  "unknown": "desconocido",
+  "Saved {age} on this device.": "Guardado {age} en este dispositivo.",
+  "Recovered from a previous session.": "Recuperado de una sesión anterior.",
+  "404 · Page not found": "404 · Página no encontrada",
+  "We couldn't find that page": "No encontramos esa página",
+  "The URL doesn't match any active section of the platform. It may have moved, been renamed, or never existed. Use the buttons below to get back to a portal you have access to.":
+    "La URL no coincide con ninguna sección activa de la plataforma. Puede que se haya movido, renombrado, o que nunca haya existido. Use los botones de abajo para regresar a un portal al que tiene acceso.",
+  "The URL doesn't match any active section of the platform. Sign in to access your portal, or head back to the public home.":
+    "La URL no coincide con ninguna sección activa de la plataforma. Inicie sesión para acceder a su portal, o regrese a la página pública.",
+
   // Branding / hub
   "MASCI Safety Hub": "Centro MASCI",
   // iter239 — Legacy "MASCI Hub" platform-identity strings retired

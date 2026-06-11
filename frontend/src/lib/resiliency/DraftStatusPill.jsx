@@ -1,4 +1,5 @@
 // DraftStatusPill.jsx — iter440 · P0 field-incident remediation.
+// iter-RC1-FH · M-18 · Spanish localization closure.
 //
 // What changed at iter440
 // -----------------------
@@ -14,31 +15,36 @@
 //   - Pill no longer auto-collapses to "idle" — it shows the
 //     relative timestamp continuously so the operator can verify
 //     the work is safe BEFORE backgrounding the tab.
+//
+// iter-RC1-FH adds bilingual labels (ES bleed-through was breaking
+// the EN/ES contract on /daily/new, /jha, /sign-in, every drafted
+// form). All visible strings now route through useT().
 
 import React, { useEffect, useState } from "react";
 import { CloudUpload, Check, AlertTriangle } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
-function _formatRelative(ts) {
+function _formatRelative(ts, t) {
   if (!ts) return "";
   const secs = Math.max(0, Math.floor((Date.now() - ts) / 1000));
-  if (secs < 5) return "just now";
-  if (secs < 60) return `${secs}s ago`;
+  if (secs < 5) return t("just now");
+  if (secs < 60) return `${secs}${t("s ago")}`;
   const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return `${mins}${t("m ago")}`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return `${hrs}${t("h ago")}`;
   return new Date(ts).toLocaleString();
 }
 
-function _failedReason(err) {
-  if (!err) return "Save failed";
+function _failedReason(err, t) {
+  if (!err) return t("Save failed");
   if (err.name === "QuotaExceededError" || /quota/i.test(err.message || "")) {
-    return "Save failed — storage full";
+    return t("Save failed — storage full");
   }
   if (err.name === "InvalidStateError") {
-    return "Save failed — storage disabled";
+    return t("Save failed — storage disabled");
   }
-  return `Save failed — ${err.name || "unknown"}`;
+  return `${t("Save failed")} — ${err.name || t("unknown")}`;
 }
 
 export default function DraftStatusPill({
@@ -47,12 +53,13 @@ export default function DraftStatusPill({
   lastError,
   testId = "draft-status-pill",
 }) {
+  const { t } = useT();
   // Re-render every 5 s so the "Saved Ns ago" text stays fresh.
   const [, setTick] = useState(0);
   useEffect(() => {
     if (!lastSavedAt && status !== "saved") return undefined;
-    const t = setInterval(() => setTick((x) => x + 1), 5_000);
-    return () => clearInterval(t);
+    const tick = setInterval(() => setTick((x) => x + 1), 5_000);
+    return () => clearInterval(tick);
   }, [lastSavedAt, status]);
 
   if (status === "failed") {
@@ -62,7 +69,7 @@ export default function DraftStatusPill({
         data-testid={testId}
         data-state="failed"
       >
-        <AlertTriangle className="w-3 h-3" /> {_failedReason(lastError)}
+        <AlertTriangle className="w-3 h-3" /> {_failedReason(lastError, t)}
       </span>
     );
   }
@@ -74,13 +81,15 @@ export default function DraftStatusPill({
         data-testid={testId}
         data-state="saving"
       >
-        <CloudUpload className="w-3 h-3" /> Saving draft…
+        <CloudUpload className="w-3 h-3" /> {t("Saving draft…")}
       </span>
     );
   }
 
   if (status === "saved" || (status === "idle" && lastSavedAt)) {
-    const label = lastSavedAt ? `Saved ${_formatRelative(lastSavedAt)}` : "Saved";
+    const label = lastSavedAt
+      ? `${t("Saved")} ${_formatRelative(lastSavedAt, t)}`
+      : t("Saved");
     return (
       <span
         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-mono uppercase tracking-wider"

@@ -278,7 +278,7 @@ export default function ShopLogin() {
                   setForgotEmail(email);
                   setForgotOpen(true);
                 }}
-                className="text-xs font-bold text-orange-700 hover:text-orange-900 underline-offset-2 hover:underline"
+                className="inline-flex items-center min-h-[36px] px-1 -mx-1 text-xs font-bold text-orange-700 hover:text-orange-900 underline-offset-2 hover:underline"
                 data-testid="shop-forgot-password-link"
               >
                 {t("Forgot password?")}

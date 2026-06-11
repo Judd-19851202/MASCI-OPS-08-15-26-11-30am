@@ -7,6 +7,9 @@
 //
 // Strictly UX. Backend authorization is unchanged. Authenticated
 // users still get a route home; anon users get sign-in CTAs.
+//
+// iter-RC1-FH · M-18 closure · all visible strings now route through
+// useT() so the 404 surface honors the EN/ES contract.
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -16,8 +19,10 @@ import {
   authorizedPortals, homePortal, isSignedInAnywhere,
   PORTAL_LABEL, PORTAL_HOME,
 } from "@/lib/permissions";
+import { useT } from "@/lib/i18n";
 
 export default function NotFound() {
+  const { t } = useT();
   const location = useLocation();
   const home = homePortal();
   const others = authorizedPortals().filter((p) => p !== home);
@@ -39,17 +44,15 @@ export default function NotFound() {
           </div>
 
           <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-slate-600 font-black">
-            404 · Page not found
+            {t("404 · Page not found")}
           </span>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1.5">
-            We couldn&apos;t find that page
+            {t("We couldn't find that page")}
           </h1>
           <p className="text-slate-600 mt-3 leading-relaxed text-sm sm:text-base">
-            {signedIn ? (
-              <>The URL doesn&apos;t match any active section of the platform. It may have moved, been renamed, or never existed. Use the buttons below to get back to a portal you have access to.</>
-            ) : (
-              <>The URL doesn&apos;t match any active section of the platform. Sign in to access your portal, or head back to the public home.</>
-            )}
+            {signedIn
+              ? t("The URL doesn't match any active section of the platform. It may have moved, been renamed, or never existed. Use the buttons below to get back to a portal you have access to.")
+              : t("The URL doesn't match any active section of the platform. Sign in to access your portal, or head back to the public home.")}
           </p>
 
           <div className="mt-6 flex flex-col sm:flex-row gap-2.5">
@@ -59,7 +62,7 @@ export default function NotFound() {
                 className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-slate-900 hover:bg-red-700 text-white font-bold uppercase tracking-wide text-xs transition-colors"
                 data-testid="not-found-home-portal"
               >
-                Back to {PORTAL_LABEL[home]} <ArrowRight className="w-4 h-4" />
+                {t("Back to")} {PORTAL_LABEL[home]} <ArrowRight className="w-4 h-4" />
               </Link>
             ) : (
               <Link
@@ -67,7 +70,7 @@ export default function NotFound() {
                 className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-slate-900 hover:bg-red-700 text-white font-bold uppercase tracking-wide text-xs transition-colors"
                 data-testid="not-found-sign-in"
               >
-                <LogIn className="w-4 h-4" /> Sign in
+                <LogIn className="w-4 h-4" /> {t("Sign in")}
               </Link>
             )}
             <Link
@@ -75,14 +78,14 @@ export default function NotFound() {
               className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-white border-2 border-slate-300 hover:border-slate-400 text-slate-900 font-bold uppercase tracking-wide text-xs transition-colors"
               data-testid="not-found-home"
             >
-              <Home className="w-4 h-4" /> Public Home
+              <Home className="w-4 h-4" /> {t("Public Home")}
             </Link>
           </div>
 
           {signedIn && others.length > 0 && (
             <div className="mt-8 pt-6 border-t border-slate-200">
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2.5">
-                Other portals you can access
+                {t("Other portals you can access")}
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4.5">
                 {others.filter((p) => PORTAL_LABEL[p]).map((p) => (
@@ -103,7 +106,7 @@ export default function NotFound() {
           )}
 
           <div className="mt-8 text-[11px] text-slate-400 font-mono">
-            Path: <span className="text-slate-500">{location.pathname}</span>
+            {t("Path:")} <span className="text-slate-500">{location.pathname}</span>
           </div>
         </div>
       </main>

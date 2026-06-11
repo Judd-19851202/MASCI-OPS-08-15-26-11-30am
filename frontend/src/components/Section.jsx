@@ -1,7 +1,9 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export const Section = ({ number, title, aside, children, className = "" }) => {
+  const { t } = useT();
   return (
     <section
       className={cn(
@@ -13,7 +15,7 @@ export const Section = ({ number, title, aside, children, className = "" }) => {
       <div className="flex items-start sm:items-center justify-between gap-3 mb-5 pb-3 border-b-2 border-slate-200 flex-wrap">
         <div className="flex items-baseline gap-3 min-w-0">
           <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
-            Section {number}
+            {t("Section")} {number}
           </span>
           <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900 min-w-0 break-words">
             {title}

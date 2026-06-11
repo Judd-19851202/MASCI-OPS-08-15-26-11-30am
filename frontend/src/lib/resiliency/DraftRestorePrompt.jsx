@@ -25,16 +25,16 @@ import { ScrollText, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 
-function _humanizeAge(savedAt) {
+function _humanizeAge(savedAt, t) {
   if (!savedAt) return "";
   const secs = Math.max(0, Math.floor((Date.now() - savedAt) / 1000));
-  if (secs < 60) return `${secs}s ago`;
+  if (secs < 60) return `${secs}${t("s ago")}`;
   const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return `${mins}${t("m ago")}`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return `${hrs}${t("h ago")}`;
   const days = Math.floor(hrs / 24);
-  if (days < 14) return `${days}d ago`;
+  if (days < 14) return `${days}${t("d ago")}`;
   return new Date(savedAt).toLocaleString();
 }
 
@@ -48,7 +48,7 @@ export default function DraftRestorePrompt({
 }) {
   const { t } = useT();
   if (!pendingDraft) return null;
-  const age = savedAt ? _humanizeAge(savedAt) : null;
+  const age = savedAt ? _humanizeAge(savedAt, t) : null;
   return (
     <section
       data-testid={testId}

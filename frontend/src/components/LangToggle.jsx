@@ -11,8 +11,11 @@ import { cn } from "@/lib/utils";
 export function LangToggle({ className = "", variant = "dark" }) {
   const { lang, setLang } = useT();
 
+  // iter-RC1-FH · M-15 · guarantee a 36 px tap target for the EN/ES
+  // segmented toggle. The toggle is rendered in headers across every
+  // form/portal — operators in the field often use it with gloves on.
   const baseBtn =
-    "px-2.5 py-1 text-xs font-mono font-bold uppercase tracking-wider transition-colors duration-150";
+    "min-h-[36px] min-w-[40px] inline-flex items-center justify-center px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider transition-colors duration-150";
   const dark = {
     wrap: "border-2 border-slate-700 bg-slate-800 text-white",
     active: "bg-red-700 text-white",
@@ -30,7 +33,7 @@ export function LangToggle({ className = "", variant = "dark" }) {
       role="radiogroup"
       aria-label="Language"
       className={cn(
-        "inline-flex items-center rounded-md overflow-hidden h-9",
+        "inline-flex items-center rounded-md overflow-hidden h-10",
         styles.wrap,
         className
       )}

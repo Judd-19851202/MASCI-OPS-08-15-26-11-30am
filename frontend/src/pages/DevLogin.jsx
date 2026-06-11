@@ -69,7 +69,7 @@ export default function DevLogin() {
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link
             to="/"
-            className="inline-flex items-center text-slate-400 hover:text-white text-xs font-mono uppercase tracking-[0.2em]"
+            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-slate-400 hover:text-white text-xs font-mono uppercase tracking-[0.2em]"
             data-testid="dev-login-back"
           >
             <ArrowLeft className="w-3 h-3 mr-1" /> Home

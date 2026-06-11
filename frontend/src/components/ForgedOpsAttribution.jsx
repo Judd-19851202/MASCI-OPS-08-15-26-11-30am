@@ -89,7 +89,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
       <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-400">
         <Link
           to="/legal/terms"
-          className="hover:text-slate-700 underline-offset-2 hover:underline"
+          className="inline-flex items-center min-h-[32px] px-1 hover:text-slate-700 underline-offset-2 hover:underline"
           data-testid="footer-terms-link"
         >
           {t("Terms")}
@@ -97,7 +97,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
         ·{" "}
         <Link
           to="/legal/privacy"
-          className="hover:text-slate-700 underline-offset-2 hover:underline"
+          className="inline-flex items-center min-h-[32px] px-1 hover:text-slate-700 underline-offset-2 hover:underline"
           data-testid="footer-privacy-link"
         >
           {t("Privacy")}

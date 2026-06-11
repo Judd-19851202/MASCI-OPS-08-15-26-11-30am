@@ -62,7 +62,7 @@ export default function SafetyFormsLogin() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link
             to="/safety"
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="safety-forms-login-back"
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Safety")}

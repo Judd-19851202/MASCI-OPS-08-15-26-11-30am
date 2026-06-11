@@ -174,7 +174,7 @@ export default function AdminLogin() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link
             to="/"
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
+            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="admin-login-back"
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
@@ -308,7 +308,7 @@ export default function AdminLogin() {
 
           <p className="mt-5 pt-4 border-t border-slate-200 text-[11px] text-slate-500 leading-relaxed text-center">
             {t("Access multiple portals?")}{" "}
-            <Link to="/sign-in" className="text-slate-900 font-bold hover:underline" data-testid="admin-login-master-link">
+            <Link to="/sign-in" className="inline-flex items-center min-h-[32px] px-1 -mx-1 text-slate-900 font-bold hover:underline" data-testid="admin-login-master-link">
               {t("Use the master sign-in")}
             </Link>{" "}
             {t("to land on any portal in one step.")}

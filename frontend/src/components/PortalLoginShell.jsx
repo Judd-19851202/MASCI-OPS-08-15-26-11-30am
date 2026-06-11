@@ -60,7 +60,7 @@ export function PortalLoginShell({
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link
             to={homeLink}
-            className={`inline-flex items-center text-white ${backHoverClass} text-sm font-bold uppercase tracking-wide`}
+            className={`inline-flex items-center min-h-[44px] -ml-2 px-2 text-white ${backHoverClass} text-sm font-bold uppercase tracking-wide`}
             data-testid={backTestId}
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
