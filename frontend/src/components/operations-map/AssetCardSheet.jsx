@@ -112,7 +112,27 @@ export default function AssetCardSheet({ assetKey, onClose }) {
             )}
           </section>
 
-          {/* 5 · Last Position Update */}
+          {/* 5 · Open Issues */}
+          <section data-testid="ops-map-asset-sheet-open-issues">
+            <div className="section-title">Open Issues</div>
+            <div className="big-line">
+              {openIssues + openInspections === 0
+                ? "None"
+                : `${openIssues + openInspections} Open Item${openIssues + openInspections === 1 ? "" : "s"}`}
+            </div>
+            {openIssues > 0 && (
+              <div className="sub-line" data-testid="ops-map-asset-sheet-open-defects">
+                {openIssues} defect{openIssues === 1 ? "" : "s"}
+              </div>
+            )}
+            {openInspections > 0 && (
+              <div className="sub-line" data-testid="ops-map-asset-sheet-open-inspections">
+                {openInspections} inspection{openInspections === 1 ? "" : "s"}
+              </div>
+            )}
+          </section>
+
+          {/* 6 · Last Position Update */}
           <section data-testid="ops-map-asset-sheet-position">
             <div className="section-title">Last Position Update</div>
             <div className="big-line">
@@ -142,26 +162,6 @@ export default function AssetCardSheet({ assetKey, onClose }) {
             </div>
           </section>
 
-          {/* 6 · Open Issues */}
-          <section data-testid="ops-map-asset-sheet-open-issues">
-            <div className="section-title">Open Issues</div>
-            <div className="big-line">
-              {openIssues + openInspections === 0
-                ? "None"
-                : `${openIssues + openInspections} Open Item${openIssues + openInspections === 1 ? "" : "s"}`}
-            </div>
-            {openIssues > 0 && (
-              <div className="sub-line" data-testid="ops-map-asset-sheet-open-defects">
-                {openIssues} defect{openIssues === 1 ? "" : "s"}
-              </div>
-            )}
-            {openInspections > 0 && (
-              <div className="sub-line" data-testid="ops-map-asset-sheet-open-inspections">
-                {openInspections} inspection{openInspections === 1 ? "" : "s"}
-              </div>
-            )}
-          </section>
-
           {/* 7 · Recent Activity */}
           <section data-testid="ops-map-asset-sheet-events">
             <div className="section-title">Recent Activity</div>
@@ -186,8 +186,8 @@ export default function AssetCardSheet({ assetKey, onClose }) {
             <MapTrustChip trust={a.trust} />
             <div className="sub-line" style={{ marginTop: 6 }}>
               {data?.motive_status?.enabled
-                ? <>Telemetry connected{data?.motive_status?.webhook_armed && <> · live feed armed</>}</>
-                : <>Telemetry disconnected</>}
+                ? <>Source: Motive</>
+                : <>Source unavailable</>}
             </div>
           </section>
         </>

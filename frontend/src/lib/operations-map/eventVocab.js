@@ -57,3 +57,36 @@ export const OPERATIONAL_STATE_LABEL = {
 export function describeOperationalState(band) {
   return OPERATIONAL_STATE_LABEL[band] || "Unknown";
 }
+
+/* Feed grade from telemetry age (operator-facing).
+ *   age < 15 min   → Live Feed       (high confidence)
+ *   age < 24 hours → Delayed Feed    (medium confidence)
+ *   else / null    → Offline Feed    (low confidence)
+ *
+ * This translates the raw vendor source + age into MASCI-native trust
+ * vocabulary so operator UI never has to spell "Telemetry Poll" or
+ * "motive:webhook" in primary copy. */
+export function describeFeed(ageSeconds) {
+  if (ageSeconds == null) {
+    return { feed: "Offline Feed", confidence: "Low Confidence",
+             tone: "slate", level: "offline" };
+  }
+  if (ageSeconds < 15 * 60) {
+    return { feed: "Live Feed", confidence: "High Confidence",
+             tone: "emerald", level: "live" };
+  }
+  if (ageSeconds < 24 * 3600) {
+    return { feed: "Delayed Feed", confidence: "Medium Confidence",
+             tone: "amber", level: "delayed" };
+  }
+  return { feed: "Offline Feed", confidence: "Low Confidence",
+           tone: "slate", level: "offline" };
+}
+
+export function describeAge(ageSeconds) {
+  if (ageSeconds == null) return "No recent update";
+  if (ageSeconds < 60)    return `${Math.round(ageSeconds)}s ago`;
+  if (ageSeconds < 3600)  return `${Math.round(ageSeconds/60)}m ago`;
+  if (ageSeconds < 86400) return `${Math.round(ageSeconds/3600)}h ago`;
+  return `${Math.round(ageSeconds/86400)}d ago`;
+}
