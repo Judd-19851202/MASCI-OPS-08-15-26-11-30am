@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-06-10T21:08:36.736435+00:00",
+  "as_of": "2026-06-11T00:42:41.166223+00:00",
   "audit_authorized_by": "operator OMEGA directive \u00b7 P0 Trust Sprint \u00b7 2026-02-10",
   "method": "READ-ONLY \u00b7 production DB read from preview pod via shared admin_db_user credential (the very gap being audited; this audit is the one-time authorized exception per directive).",
   "production": {
