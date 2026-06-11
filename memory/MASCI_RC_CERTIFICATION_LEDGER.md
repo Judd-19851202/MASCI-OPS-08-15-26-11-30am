@@ -3030,3 +3030,109 @@ Verified via DOM probe: `opTruthInDom: false · cmdCtrInDom: false`. Operations-
 
 Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
 
+
+---
+
+## TRACK 13.2 — Dispatch Real Map Embed + PM Project Health Rows
+**Date:** 2026-06-11
+**Order:** Close the Track 13.1 deferred items (Dispatch real geographic map + PM project health-at-a-glance per-row).
+
+### 1 — Dispatch Real Map Embed
+**New component:** `frontend/src/components/DispatchMapHero.jsx` (160 lines).
+
+Wraps the certified `@/components/operations-map/MapCanvas` (MapLibre WebGL) inside a **fixed 320 px hero** pinned at the TOP of `DispatchHub`, directly under the `Equipment Maintenance Issues` banner and ABOVE the Operational Attention section. Re-uses:
+- `useMapSnapshot({ refreshMs: 15000 })` — certified data pipeline · 15-s refresh
+- `MapCanvas snapshot={…} filters={EMPTY_FILTERS} onSelect={…}` — same WebGL renderer the full `/operations-map` page uses
+- Asset click → deep-link to `/operations-map?asset=<unit>` (no editing in the preview)
+- 6 click-through count tiles below the canvas (Attention · No Recent Position · Working · Idle · Assigned · Total)
+- 2 CTAs at the bottom: **Open Full Live Map** + **Open Operational Board**
+- Feed status pill + Updated timestamp in the header strip
+
+**Live verification (Playwright DOM probe, super-admin token):**
+```
+dispatch-map-hero ✓
+.maplibregl-map count: 1   ← real MapLibre canvas rendered
+canvases count: 1          ← WebGL surface active
+feedStatus: "No Recent Updates"  ← honest preview-pod state
+tiles: ["attention(36)","offline(154)","working(0)","idle(0)","assigned(90)","total(190)"]
+dispatch-map-open-full ✓
+runtimeError: false
+```
+
+Screenshot saved: `/app/memory/track13_2/dispatch_map_hero_fixed.png` — header strip + 320-px WebGL canvas + 6-tile counts + 2 CTAs all visible on first screen.
+
+### 2 — PM Project Health Rows
+**File touched:** `frontend/src/components/pm/command/PmProjectFirstHome.jsx` — `ProjectCommand` rewritten as health-aware row renderer.
+
+Each project row (PM scope) now shows:
+- Project number (mono, bold)
+- **Last activity** — `Xs/Xm/Xh/Xd ago` derived from the most recent daily for that project (or *No recent activity logged*)
+- **Dailies (week)** count — derived per-project from `/api/daily-reports?limit=…`
+- **Incidents** count — derived per-project from `/api/pm/command-center/safety-impact`
+- **Next-Action chip** — practical language (Missing Daily Report · Review Safety Item · Review Daily Report) with tone-coded background (amber / rose / slate)
+- **Open Project →** terminator
+
+Admin / super-admin scope continues to render the 3-tile summary (Active Projects · Open Incidents · Open CAPAs labeled `(admin scope)`). No global project dump bypasses PM scope.
+
+### 3 — PM Click-Through Verification (preserved from Track 13.1)
+- `/daily` → "Today's site activity, captured" (842 reports, search, project tree) — verified open via real navigation
+- `/pm/photos` → "Job Photos" (1812 total photos, all-sources filter) — verified open via real navigation
+- `/incidents` and `/admin/capas` → existing scoped routes (preserved)
+- Project row → `/pm/command-center?project_number=<pn>` (existing deep-link, preserved)
+
+### 4 — PM Scope Control (still verified)
+- PM token: `scoped_projects: ["26-06", "26-05"]` → list rows render
+- Admin token: `scoped_projects: "all"` → 3-tile summary renders
+- Wrong-shape token: `401 Invalid admin/PM token`
+- `compute_pm_scope` mechanism unchanged · all PM endpoints honor it
+
+### 5 — Platform Uniformity
+- Dispatch map hero uses orange role-tint borders + the same `bg-white border-2 border-orange-300 rounded-md` envelope as every other Dispatch card.
+- PM project rows use slate border with red hover-tint, identical to every other PM row.
+- Typography (`font-mono` kicker · `font-display` headlines · tabular numerics) unchanged across PM, Dispatch, HR, Shop, Admin, Safety, Field Leadership.
+- No new color, no new theme, no separate-app feel.
+
+### 6 — Mobile / iPad
+- iPad landscape (1024×768) — both portals captured (screenshots in `/app/memory/track13_2/`); map hero stays above-the-fold, project rows wrap to vertical on narrow widths via `flex-col sm:flex-row`.
+- Touch targets ≥ 32 px (RC-1 floor) — no regression.
+
+### Files changed (this sprint · 3)
+| File | Change |
+|---|---|
+| `frontend/src/components/DispatchMapHero.jsx` | NEW (160 lines) — real MapLibre canvas + counts strip + CTAs |
+| `frontend/src/pages/DispatchHub.jsx` | EDIT — `<DispatchMapHero className="mt-3" />` pinned under the Equipment Maintenance banner |
+| `frontend/src/components/pm/command/PmProjectFirstHome.jsx` | EDIT — `ProjectCommand` rewritten as health-aware row renderer (last-activity + dailies-week + incidents + next-action chip) |
+
+### Production data touched
+**NONE.** Zero writes. Zero deletes. Zero new backend routes. Zero schema. Zero RC-2 guardrail relaxation.
+
+### Tests
+| Suite | Result |
+|---|---|
+| `test_rc2_route_inventory.py` | ✅ 23 passed |
+| `test_rc2_auth_guardrail.py` | ✅ 4 passed |
+| `test_rc2_ops_map_contract.py` | ✅ 2 passed |
+| `test_rc2_contamination_scan.py` | ✅ 2 passed |
+| `test_iter183_health_full_endpoint.py` | ✅ 3 passed |
+| **Backend RC-2 regression** | **✅ 34 / 34 PASS** |
+| Live DOM verification (Dispatch map hero, MapLibre canvas, PM project rows scope) | ✅ all testids present, no runtime errors |
+| Live HTTP probes (`/pm`, `/dispatch-portal`, `/hr`) | ✅ 200 each |
+
+### Remaining findings
+- **LOW** — One `react-hooks/purity` lint warning on the `Date.now()` call inside `relAgo()` in PM `ProjectCommand`. Pure-function lint warning only; render is correct. Acceptable for a UI helper that intentionally surfaces relative time.
+- **None Critical · None Major.**
+
+---
+
+## 🟢 TRACK 13.2 PASS
+## 🟢 DISPATCH REAL MAP EMBED COMPLETE (MapLibre canvas + counts + feed-status + CTAs · pinned at top)
+## 🟢 PM PROJECT HEALTH ROWS COMPLETE (last-activity · dailies-week · incidents · next-action chip)
+## 🟢 PM CLICK-THROUGHS VERIFIED (daily reports · photos · incidents · capas · project deep-link · all PM-scoped)
+## 🟢 PM SCOPE CONTROL HONORED (PM token → list · admin token → summary · no global dump)
+## 🟢 PM NAMING PRESERVED (Project Management Center · Projects assigned to you)
+## 🟢 PLATFORM UNIFORMITY CERTIFIED (no separate-app feel · same chrome / typography / palette / spacing)
+## 🟢 READY FOR FINAL OPERATOR VISUAL APPROVAL
+## 🟢 READY TO SAVE TO GITHUB + DEPLOY AFTER APPROVAL
+
+Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
+

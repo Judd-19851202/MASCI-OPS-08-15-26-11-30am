@@ -46,6 +46,7 @@ import DispatchSideNavV2, { useDispatchSidebarV2Enabled } from "@/components/dis
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import DispatchEquipmentMaintenanceIndicator from "@/components/dispatch/DispatchEquipmentMaintenanceIndicator";
 import DispatchLiveSnapshot from "@/components/DispatchLiveSnapshot";
+import DispatchMapHero from "@/components/DispatchMapHero";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -200,6 +201,12 @@ export default function DispatchHub() {
 
         {/* iter511 · MaintainX maintenance indicator (calm, count-only) */}
         <DispatchEquipmentMaintenanceIndicator />
+
+        {/* Track 13.2 · §2 — Live Fleet Map hero pinned at the TOP of
+            the Dispatch first screen. Real MapLibre canvas + counts +
+            feed status — dispatchers see fleet geography immediately
+            without clicking. */}
+        <DispatchMapHero className="mt-3" />
 
         {/* ── 1 · OPERATIONAL ATTENTION · what matters now ───────── */}
         <Section

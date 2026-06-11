@@ -113,13 +113,52 @@ function EmptyRow({ children, testId }) {
 }
 
 // ── Section A — Project Command (Track 13.1 — per-project rollup list)
-function ProjectCommand({ overview, loading }) {
+// Track 13.2 — project rows now include health-at-a-glance signals
+// (dailies-this-week count + next-action).
+function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop = null }) {
   const { t } = useT();
   const scopedProjects = overview?.scoped_projects;
   // "all" means super-admin / unscoped — show count only.
   const isAdminScope = scopedProjects === "all" || scopedProjects == null;
   const projects = Array.isArray(scopedProjects) ? scopedProjects : [];
   const counts = overview?.counts || {};
+
+  // Group dailies + incidents per project_number for per-project rollup.
+  function _by(arr, key) {
+    const m = {};
+    (arr || []).forEach((r) => {
+      const k = r?.[key];
+      if (!k) return;
+      m[k] = (m[k] || 0) + 1;
+    });
+    return m;
+  }
+  const dailyByPn = _by(dailies, "project_number");
+  const incidentsByPn = _by(incidents, "project_number");
+  // Latest daily per pn for "last activity" string.
+  const latestDailyByPn = {};
+  (dailies || []).forEach((d) => {
+    const pn = d?.project_number;
+    if (!pn) return;
+    const t0 = d?.created_at || d?.report_date;
+    if (!t0) return;
+    if (!latestDailyByPn[pn] || latestDailyByPn[pn] < t0) latestDailyByPn[pn] = t0;
+  });
+
+  function nextActionFor(pn) {
+    if ((incidentsByPn[pn] ?? 0) > 0) return t("Review Safety Item");
+    if ((dailyByPn[pn] ?? 0) === 0) return t("Missing Daily Report");
+    return t("Review Daily Report");
+  }
+  const _nowMs = Date.now();
+  function relAgo(iso) {
+    if (!iso) return "";
+    const secs = Math.max(0, Math.floor((_nowMs - new Date(iso).getTime()) / 1000));
+    if (secs < 60) return `${secs}s ago`;
+    if (secs < 3600) return `${Math.floor(secs/60)}m ago`;
+    if (secs < 86400) return `${Math.floor(secs/3600)}h ago`;
+    return `${Math.floor(secs/86400)}d ago`;
+  }
 
   return (
     <SectionShell
@@ -175,26 +214,58 @@ function ProjectCommand({ overview, loading }) {
         </EmptyRow>
       ) : (
         <ul className="space-y-2" data-testid="pm-pfh-project-list">
-          {projects.map((pn) => (
-            <li key={pn}>
-              <Link
-                to={`/pm/command-center?project_number=${encodeURIComponent(pn)}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 rounded-md border-2 border-slate-200 hover:border-red-400 hover:bg-red-50 transition-colors"
-                data-testid={`pm-pfh-project-row-${pn}`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Briefcase className="w-4 h-4 text-red-700 shrink-0" />
-                  <div className="min-w-0">
-                    <div className="font-bold text-slate-900 text-sm font-mono">{pn}</div>
-                    <div className="text-[11px] text-slate-500">{t("Click to open project detail")}</div>
+          {projects.map((pn) => {
+            const dailyCount = dailyByPn[pn] ?? 0;
+            const incidentCount = incidentsByPn[pn] ?? 0;
+            const lastIso = latestDailyByPn[pn];
+            const action = nextActionFor(pn);
+            const actionTone =
+              action === t("Missing Daily Report") ? "amber"
+              : action === t("Review Safety Item") ? "rose"
+              : "slate";
+            const ATONE = {
+              rose: "bg-rose-100 text-rose-800 border-rose-200",
+              amber: "bg-amber-100 text-amber-800 border-amber-200",
+              slate: "bg-slate-100 text-slate-700 border-slate-200",
+            };
+            return (
+              <li key={pn}>
+                <Link
+                  to={`/pm/command-center?project_number=${encodeURIComponent(pn)}`}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-md border-2 border-slate-200 hover:border-red-400 hover:bg-red-50 transition-colors"
+                  data-testid={`pm-pfh-project-row-${pn}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Briefcase className="w-4 h-4 text-red-700 shrink-0" />
+                    <div className="min-w-0">
+                      <div className="font-bold text-slate-900 text-sm font-mono">{pn}</div>
+                      <div className="text-[11px] text-slate-500">
+                        {lastIso
+                          ? `${t("Last activity")}: ${relAgo(lastIso)}`
+                          : t("No recent activity logged.")}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-red-700 shrink-0">
-                  {t("Open Project")} <ArrowRight className="w-3 h-3 inline ml-1" />
-                </span>
-              </Link>
-            </li>
-          ))}
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[11px]">
+                    <span className="font-mono uppercase tracking-wider text-slate-600">
+                      <span className="font-black text-base tabular-nums text-slate-900">{dailyCount}</span>{" "}
+                      {t("Dailies (week)")}
+                    </span>
+                    <span className="font-mono uppercase tracking-wider text-slate-600">
+                      <span className={`font-black text-base tabular-nums ${incidentCount > 0 ? "text-rose-700" : "text-slate-900"}`}>{incidentCount}</span>{" "}
+                      {t("Incidents")}
+                    </span>
+                    <span className={`inline-flex items-center font-mono uppercase tracking-wider text-[10px] px-2 py-0.5 rounded border ${ATONE[actionTone]}`}>
+                      {action}
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-red-700">
+                      {t("Open Project")} <ArrowRight className="w-3 h-3 inline ml-1" />
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </SectionShell>
@@ -499,7 +570,13 @@ export default function PmProjectFirstHome({ overview, loading, onOpenDetailedVi
 
   return (
     <div className="space-y-4" data-testid="pm-project-first-home">
-      <ProjectCommand overview={overview} loading={loading} />
+      <ProjectCommand
+        overview={overview}
+        loading={loading}
+        dailies={extra.dailies}
+        incidents={extra.safety?.incidents}
+        shop={extra.shop}
+      />
       <FieldTruth photos={extra.photos} dailies={extra.dailies} loading={extra.loading} />
       <ProjectRisk safety={extra.safety} shop={extra.shop} loading={extra.loading} />
       <DocumentsAndPlans />
