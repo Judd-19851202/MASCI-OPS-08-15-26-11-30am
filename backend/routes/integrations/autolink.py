@@ -402,4 +402,133 @@ def register_autolink_routes(api_router: APIRouter, db, require_admin) -> None:
         return {"ok": True, "kind": kind, "tick_state": snap["loops"][kind]}
 
 
+    # M-1B · Backfill equipment_master.motive_truck_id (and aliases) from
+    # already-committed asset_mappings. Idempotent. Required by the
+    # Operations Center · Telematics tile which reads
+    # `equipment_master.motive_truck_id` via reverse-join. Auto-link wrote
+    # the link onto asset_mappings.masci_equipment_id; this endpoint
+    # denormalises that link onto the equipment_master side without
+    # creating new mappings or overwriting manual values.
+    @api_router.post(
+        "/admin/integrations/motive/backfill-equipment-master",
+        dependencies=[Depends(require_admin)],
+    )
+    async def backfill_equipment_master():
+        """Propagate already-linked asset_mappings → equipment_master.
+
+        For every `asset_mappings` row with provider=motive and a
+        populated `masci_equipment_id`, set the corresponding
+        `equipment_master` row's Motive id fields:
+
+            motive_truck_id     ← motive.vehicle_id   (canonical — Telematics tile reads this)
+            motive_vehicle_id   ← motive.vehicle_id   (alias, same value)
+            motive_asset_id     ← motive.asset_id     (Asset Gateway id, if present)
+            motive_linked_at    ← now
+            motive_link_source  ← "auto_link"
+            updated_at          ← now
+
+        Idempotent rules:
+          • If the equipment_master row already has the *same* motive_truck_id
+            → noop (re-stamps `motive_linked_at` only).
+          • If the equipment_master row has a *different* non-empty manual
+            value → skip with conflict (preserves manual links).
+          • If both sides lack any value to propagate → skip.
+        """
+        backfilled = 0
+        already_same = 0
+        conflicts = 0
+        skipped_no_motive_id = 0
+        skipped_no_em_row = 0
+        total_seen = 0
+
+        ts = now_iso()
+        async for m in db.asset_mappings.find(
+            {"provider": "motive", "masci_equipment_id": {"$nin": [None, ""]}},
+            {"_id": 0, "id": 1, "masci_equipment_id": 1, "motive": 1, "asset_kind": 1},
+        ):
+            total_seen += 1
+            mv = m.get("motive") or {}
+            new_truck = str(mv.get("vehicle_id") or "").strip()
+            new_asset = str(mv.get("asset_id") or "").strip()
+            # Prefer vehicle_id; fall back to asset_id (Asset Gateway equipment
+            # has no vehicle_id but does have asset_id).
+            new_motive_truck_id = new_truck or new_asset
+            if not new_motive_truck_id:
+                skipped_no_motive_id += 1
+                continue
+
+            em_id = m["masci_equipment_id"]
+            em = await db.equipment_master.find_one(
+                {"id": em_id},
+                {"_id": 0, "id": 1, "motive_truck_id": 1, "motive_vehicle_id": 1,
+                 "motive_asset_id": 1, "motive_link_source": 1},
+            )
+            if not em:
+                skipped_no_em_row += 1
+                continue
+
+            existing_truck = str(em.get("motive_truck_id") or "").strip()
+            existing_source = str(em.get("motive_link_source") or "").strip()
+
+            # Conflict: existing manual link points elsewhere.
+            if existing_truck and existing_truck != new_motive_truck_id and existing_source != "auto_link":
+                conflicts += 1
+                continue
+
+            # Already correctly populated by auto_link → just re-stamp timestamps.
+            if existing_truck == new_motive_truck_id:
+                already_same += 1
+                await db.equipment_master.update_one(
+                    {"id": em_id},
+                    {"$set": {
+                        "motive_linked_at": ts,
+                        "updated_at": ts,
+                    }},
+                )
+                continue
+
+            # Backfill.
+            set_doc = {
+                "motive_truck_id":    new_motive_truck_id,
+                "motive_vehicle_id":  new_truck or new_motive_truck_id,
+                "motive_linked_at":   ts,
+                "motive_link_source": "auto_link",
+                "updated_at":         ts,
+            }
+            if new_asset:
+                set_doc["motive_asset_id"] = new_asset
+            res = await db.equipment_master.update_one(
+                {"id": em_id}, {"$set": set_doc},
+            )
+            if res.modified_count:
+                backfilled += 1
+            else:
+                # Shouldn't happen given we just read the doc, but tally just in case.
+                skipped_no_em_row += 1
+
+        await write_sync_log(
+            db, integration="motive", sync_type="backfill_equipment_master",
+            status="Success" if conflicts == 0 else "Partial",
+            triggered_by="admin",
+            records_created=0, records_updated=backfilled,
+            records_skipped=already_same + skipped_no_motive_id + skipped_no_em_row,
+            records_failed=conflicts,
+            notes=(
+                f"backfilled={backfilled} already_same={already_same} "
+                f"conflicts={conflicts} skipped_no_motive_id={skipped_no_motive_id} "
+                f"skipped_no_em_row={skipped_no_em_row} total_seen={total_seen}"
+            ),
+        )
+
+        return {
+            "ok": True,
+            "backfilled":            backfilled,
+            "already_same":          already_same,
+            "conflicts":             conflicts,
+            "skipped_no_motive_id":  skipped_no_motive_id,
+            "skipped_no_em_row":     skipped_no_em_row,
+            "total_asset_mappings_examined": total_seen,
+        }
+
+
 __all__ = ["register_autolink_routes"]

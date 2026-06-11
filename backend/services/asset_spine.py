@@ -726,9 +726,15 @@ class AssetSpine:
         inactive = max(total - active - retired, 0)
 
         # Mapping coverage to Motive.
+        # NOTE: must count rows with a *real* masci_equipment_id value,
+        # not just the field being present. Auto-link seeds the row at
+        # ingestion time with masci_equipment_id="" — those rows must
+        # not be counted as "mapped" or coverage_pct gets stuck at
+        # the count of all motive imports (e.g. 190 / 596 = 31.9 %)
+        # forever instead of reflecting actual linked count.
         try:
             mapped = await self.db.asset_mappings.count_documents({
-                "masci_equipment_id": {"$exists": True, "$ne": None},
+                "masci_equipment_id": {"$nin": [None, ""]},
             })
         except Exception:
             mapped = 0
