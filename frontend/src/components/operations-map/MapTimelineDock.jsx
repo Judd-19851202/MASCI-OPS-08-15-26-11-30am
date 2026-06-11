@@ -1,4 +1,5 @@
 import React from "react";
+import { EVENT_FAMILY_LABEL } from "@/lib/operations-map/eventVocab";
 
 /* Identity-aligned timeline.
  *
@@ -7,24 +8,26 @@ import React from "react";
  * into operational language the ForgedOps operator already uses
  * elsewhere on the platform:
  *
- *   vehicle_gps          → "Position update"
+ *   vehicle_gps          → "Position Update"
  *   geofence_enter       → "Arrived at <geofence>"
  *   geofence_exit        → "Departed <geofence>"
- *   harsh_event          → "Safety event"
- *   fault_code           → "Mechanical fault"
- *   dvir                 → "Inspection logged"
- *   ai_coach_recap       → "Coaching event"
+ *   harsh_event          → "Safety Event"
+ *   fault_code           → "Mechanical Fault"
+ *   dvir                 → "Inspection Logged"
+ *   ai_coach_recap       → "Coaching Event"
  */
-const FAMILY_PRESENTATION = {
-  vehicle_gps:           { label: "Position update",  dot: "#10b981" },
-  geofence_enter:        { label: "Arrived",          dot: "#0ea5e9" },
-  geofence_exit:         { label: "Departed",         dot: "#8b5cf6" },
-  asset_geofence_enter:  { label: "Arrived",          dot: "#0ea5e9" },
-  asset_geofence_exit:   { label: "Departed",         dot: "#8b5cf6" },
-  harsh_event:           { label: "Safety event",     dot: "#f43f5e" },
-  fault_code:            { label: "Mechanical fault", dot: "#f59e0b" },
-  dvir:                  { label: "Inspection",       dot: "#64748b" },
-  ai_coach_recap:        { label: "Coaching event",   dot: "#06b6d4" },
+const FAMILY_DOT = {
+  vehicle_gps:           "#10b981",
+  vehicle_location:      "#10b981",
+  vehicle_location_received: "#10b981",
+  geofence_enter:        "#0ea5e9",
+  geofence_exit:         "#8b5cf6",
+  asset_geofence_enter:  "#0ea5e9",
+  asset_geofence_exit:   "#8b5cf6",
+  harsh_event:           "#f43f5e",
+  fault_code:            "#f59e0b",
+  dvir:                  "#64748b",
+  ai_coach_recap:        "#06b6d4",
 };
 
 function fmtTime(iso) {
@@ -34,17 +37,20 @@ function fmtTime(iso) {
 }
 
 function describe(row) {
-  const pres = FAMILY_PRESENTATION[row.event_family] || { label: "Event", dot: "#94a3b8" };
+  const family = row.event_family || row.event_kind;
+  const label = EVENT_FAMILY_LABEL[family] || "Event";
+  const dot   = FAMILY_DOT[family] || "#94a3b8";
+  const pres  = { label, dot };
   const subject = row.unit_number || `Asset ${row.vehicle_id || "?"}`;
 
   const bits = [];
-  if (row.event_family === "vehicle_gps") {
+  if (family === "vehicle_gps" || family === "vehicle_location" || family === "vehicle_location_received") {
     if (row.speed_mph != null) bits.push(`${row.speed_mph} mph`);
     else if (row.speed_kph != null) bits.push(`${row.speed_kph} km/h`);
     if (row.city) bits.push(`${row.city}${row.state ? ", " + row.state : ""}`);
-  } else if (row.event_family === "harsh_event") {
+  } else if (family === "harsh_event") {
     if (row.severity) bits.push(`severity ${row.severity}`);
-  } else if (row.event_family === "fault_code") {
+  } else if (family === "fault_code") {
     if (row.severity) bits.push(`severity ${row.severity}`);
   } else {
     if (row.city) bits.push(`${row.city}${row.state ? ", " + row.state : ""}`);

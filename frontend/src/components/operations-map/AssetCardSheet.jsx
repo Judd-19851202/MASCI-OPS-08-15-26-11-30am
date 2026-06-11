@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { fetchAsset } from "@/lib/operations-map/useMapSnapshot";
 import MapTrustChip from "./MapTrustChip";
 import { ASSET_KIND_LABEL } from "@/lib/operations-map/icons";
+import { describeEventFamily, describeOperationalState } from "@/lib/operations-map/eventVocab";
 
 export default function AssetCardSheet({ assetKey, onClose }) {
   const [data, setData] = useState(null);
@@ -75,13 +76,11 @@ export default function AssetCardSheet({ assetKey, onClose }) {
           <section data-testid="ops-map-asset-sheet-health">
             <div className="kv">
               <div className="k">Operational State</div>
-              <div className="v">{
-                ({ green: "Working", amber: "Idle", red: "Attention Required", gray: "Offline" }[data?.asset_health?.status] || "Unknown")
-              }</div>
+              <div className="v">{describeOperationalState(data?.asset_health?.status)}</div>
               <div className="k">Telemetry</div>
               <div className="v">
                 {data?.motive_status?.enabled ? "Connected" : "Disconnected"}
-                {data?.motive_status?.webhook_armed && <span style={{ color: "#0d9488", marginLeft: 8 }}>· live link armed</span>}
+                {data?.motive_status?.webhook_armed && <span style={{ color: "#0d9488", marginLeft: 8 }}>· live feed armed</span>}
               </div>
               <div className="k">Open Issues</div>
               <div className="v">{(data?.open_defects?.length ?? 0)}</div>
@@ -105,7 +104,7 @@ export default function AssetCardSheet({ assetKey, onClose }) {
                   {e.event_at?.slice(11, 19) || ""}
                 </span>
                 <span>
-                  {e.event_family || e.event_kind}
+                  {describeEventFamily(e.event_family || e.event_kind)}
                   {e.severity && <span style={{ color: "#f87171", marginLeft: 6 }}>{e.severity}</span>}
                   {e.source === "webhook" && <span style={{ color: "#38bdf8", marginLeft: 6 }}>live</span>}
                 </span>

@@ -1,45 +1,53 @@
 import React from "react";
 
 /* Operations Banner — six-tile operational summary that sits above
- * the map canvas. Replaces the inline status legend (which used
- * fleet-tracking vocabulary). Uses platform tone tokens
- * (emerald/amber/rose/slate) for status alignment with the rest of
- * the Operations Center modules.
+ * the map canvas. Binds to `operational_summary` from
+ * /api/operations-map/snapshot — a backend-authored, MASCI-native
+ * vocabulary block (Working / Idle / Needs Attention / Offline /
+ * Total / Reporting). Falls back to raw counts only if the new field
+ * is missing, so the surface degrades safely during a partial deploy.
  */
-const TILES = [
-  { id: "total",      label: "Total Assets",        tone: "slate"   },
-  { id: "reporting",  label: "Reporting",           tone: "slate"   },
-  { id: "working",    label: "Working",             tone: "emerald" },
-  { id: "idle",       label: "Idle",                tone: "amber"   },
-  { id: "attention",  label: "Needs Attention",     tone: "rose"    },
-  { id: "offline",    label: "Offline",             tone: "slate"   },
+const FALLBACK = [
+  { id: "total",     label: "Total Assets",    tone: "slate"   },
+  { id: "reporting", label: "Reporting",       tone: "slate"   },
+  { id: "working",   label: "Working",         tone: "emerald" },
+  { id: "idle",      label: "Idle",            tone: "amber"   },
+  { id: "attention", label: "Needs Attention", tone: "rose"    },
+  { id: "offline",   label: "Offline",         tone: "slate"   },
 ];
 
-export default function MapOperationsBanner({ counts = {} }) {
-  // counts shape from /api/operations-map/snapshot:
-  //   total, green, amber, red, gray, unmapped, with_gps
-  // Re-cast to operational vocabulary:
-  const total     = counts.total ?? 0;
-  const reporting = counts.with_gps ?? 0;
-  const working   = counts.green ?? 0;
-  const idle      = counts.amber ?? 0;
-  const attention = counts.red ?? 0;
-  const offline   = counts.gray ?? 0;
+function fallbackFromCounts(counts = {}) {
+  return [
+    { id: "total",     label: "Total Assets",    tone: "slate",   value: counts.total ?? 0 },
+    { id: "reporting", label: "Reporting",       tone: "slate",   value: counts.with_gps ?? 0 },
+    { id: "working",   label: "Working",         tone: "emerald", value: counts.green ?? 0 },
+    { id: "idle",      label: "Idle",            tone: "amber",   value: counts.amber ?? 0 },
+    { id: "attention", label: "Needs Attention", tone: "rose",    value: counts.red ?? 0 },
+    { id: "offline",   label: "Offline",         tone: "slate",   value: counts.gray ?? 0 },
+  ];
+}
 
-  const values = { total, reporting, working, idle, attention, offline };
+export default function MapOperationsBanner({ summary, counts }) {
+  const tiles =
+    Array.isArray(summary) && summary.length > 0
+      ? summary
+      : fallbackFromCounts(counts);
 
   return (
     <section className="ops-map-banner" data-testid="ops-map-banner" aria-label="Operations summary">
-      {TILES.map((t) => (
-        <div key={t.id}
-             className={`tile tone-${t.tone}`}
-             data-testid={`ops-map-banner-${t.id}`}>
-          <span className="k">{t.label}</span>
-          <span className="v" data-testid={`ops-map-banner-${t.id}-value`}>
-            {values[t.id]}
-          </span>
-        </div>
-      ))}
+      {tiles.map((t) => {
+        const tone = t.tone || (FALLBACK.find((f) => f.id === t.id)?.tone) || "slate";
+        return (
+          <div key={t.id}
+               className={`tile tone-${tone}`}
+               data-testid={`ops-map-banner-${t.id}`}>
+            <span className="k">{t.label}</span>
+            <span className="v" data-testid={`ops-map-banner-${t.id}-value`}>
+              {t.value ?? 0}
+            </span>
+          </div>
+        );
+      })}
     </section>
   );
 }

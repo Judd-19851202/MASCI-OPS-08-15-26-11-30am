@@ -1,4 +1,5 @@
 import React from "react";
+import { describeSource } from "@/lib/operations-map/eventVocab";
 
 export default function MapTrustChip({ trust }) {
   if (!trust) return null;
@@ -12,7 +13,7 @@ export default function MapTrustChip({ trust }) {
     : `${Math.round(age/86400)}d ago`;
   return (
     <span className={`ops-map-trust-chip ${c}`} data-testid="ops-map-trust-chip">
-      <span>{(trust.source || "unknown").replace(/^motive:/, "motive · ")}</span>
+      <span>{describeSource(trust.source)}</span>
       <span>·</span>
       <span>{ageLabel}</span>
       <span>·</span>

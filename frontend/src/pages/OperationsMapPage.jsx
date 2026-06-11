@@ -39,7 +39,7 @@ export default function OperationsMapPage() {
           lastFetchMs={lastFetchMs}
           motiveActive={motiveActive}
         />
-        <MapOperationsBanner counts={data?.counts} />
+        <MapOperationsBanner summary={data?.operational_summary} counts={data?.counts} />
         <ProjectIntelligenceStrip rollups={data?.project_rollups || []} />
         <MapFilterRail
           filters={filters}

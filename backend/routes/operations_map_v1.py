@@ -367,10 +367,51 @@ def register_operations_map_v1_routes(
         project_rollups = sorted(rollups.values(),
                                  key=lambda x: (-x["total"], x["name"]))[:8]
 
+        # ── Operational Summary · MASCI-native vocabulary ────────────
+        # Single source of truth that the UI consumes. Maps the
+        # internal band buckets onto the operational language the
+        # rest of the Operations Center already uses (Working / Idle /
+        # Needs Attention / Offline). Raw `counts` are kept for
+        # backward-compat and internal consumers, but the banner UI
+        # binds to `operational_summary`.
+        operational_summary = [
+            {"id": "total",
+             "label": "Total Assets",
+             "value": counts["total"],
+             "tone": "slate",
+             "band": None},
+            {"id": "reporting",
+             "label": "Reporting",
+             "value": counts["with_gps"],
+             "tone": "slate",
+             "band": None},
+            {"id": "working",
+             "label": "Working",
+             "value": counts["green"],
+             "tone": "emerald",
+             "band": "green"},
+            {"id": "idle",
+             "label": "Idle",
+             "value": counts["amber"],
+             "tone": "amber",
+             "band": "amber"},
+            {"id": "attention",
+             "label": "Needs Attention",
+             "value": counts["red"],
+             "tone": "rose",
+             "band": "red"},
+            {"id": "offline",
+             "label": "Offline",
+             "value": counts["gray"],
+             "tone": "slate",
+             "band": "gray"},
+        ]
+
         return {
             "ok": True,
             "as_of": _now_iso(),
-            "counts": counts,
+            "operational_summary": operational_summary,
+            "counts": counts,  # kept for internal consumers; UI binds to operational_summary
             "assets": markers,
             "geofences": geofences,
             "geofence_count": len(geofences),
