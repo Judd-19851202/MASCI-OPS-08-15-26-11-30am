@@ -108,18 +108,7 @@ export default function AssetCardSheet({ assetKey, onClose }) {
             </div>
           </section>
 
-          {/* 4 · Operator */}
-          <section data-testid="ops-map-asset-sheet-operator">
-            <div className="section-title">Operator</div>
-            <div className="big-line">
-              {data?.driver?.name || "Unassigned"}
-            </div>
-            {data?.driver?.username && (
-              <div className="sub-line">{data.driver.username}</div>
-            )}
-          </section>
-
-          {/* 5 · Open Issues */}
+          {/* 4 · Open Issues — actionable before operator/location */}
           <section data-testid="ops-map-asset-sheet-open-issues">
             <div className="section-title">Open Issues</div>
             <div className="big-line">
@@ -136,6 +125,17 @@ export default function AssetCardSheet({ assetKey, onClose }) {
               <div className="sub-line" data-testid="ops-map-asset-sheet-open-inspections">
                 {openInspections} inspection{openInspections === 1 ? "" : "s"}
               </div>
+            )}
+          </section>
+
+          {/* 5 · Operator */}
+          <section data-testid="ops-map-asset-sheet-operator">
+            <div className="section-title">Operator</div>
+            <div className="big-line">
+              {data?.driver?.name || "Unassigned"}
+            </div>
+            {data?.driver?.username && (
+              <div className="sub-line">{data.driver.username}</div>
             )}
           </section>
 

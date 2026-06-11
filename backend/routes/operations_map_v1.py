@@ -483,7 +483,7 @@ def register_operations_map_v1_routes(
              "tone": "rose",
              "band": "red"},
             {"id": "offline",
-             "label": "Offline",
+             "label": "No Recent Position",
              "value": counts["gray"],
              "tone": "slate",
              "band": "gray"},

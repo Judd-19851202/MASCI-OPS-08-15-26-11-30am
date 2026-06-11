@@ -10,7 +10,7 @@ const STATUS_TILES = [
   { id: "green", label: "Working",            tone: "emerald" },
   { id: "amber", label: "Idle",               tone: "amber"   },
   { id: "red",   label: "Attention Required", tone: "rose"    },
-  { id: "gray",  label: "Offline",            tone: "slate"   },
+  { id: "gray",  label: "No Recent Position", tone: "slate"   },
 ];
 
 function toggle(list, value) {

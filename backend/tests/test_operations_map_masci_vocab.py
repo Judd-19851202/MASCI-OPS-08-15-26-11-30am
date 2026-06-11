@@ -66,7 +66,7 @@ def test_operational_summary_structure(snapshot):
         "working":   "Working",
         "idle":      "Idle",
         "attention": "Attention Required",
-        "offline":   "Offline",
+        "offline":   "No Recent Position",
     }
     for tile_id, label in expected_labels.items():
         assert by_id[tile_id]["label"] == label, \

@@ -14,7 +14,7 @@ const MICROCOPY = {
   working:   "Moving or active now",
   idle:      "Connected, not moving",
   attention: "Needs review",
-  offline:   "No recent position",
+  offline:   "Not recently reporting",
 };
 
 const FALLBACK = [
@@ -23,17 +23,17 @@ const FALLBACK = [
   { id: "working",   label: "Working",          tone: "emerald" },
   { id: "idle",      label: "Idle",             tone: "amber"   },
   { id: "attention", label: "Attention Required", tone: "rose"  },
-  { id: "offline",   label: "Offline",          tone: "slate"   },
+  { id: "offline",   label: "No Recent Position", tone: "slate"   },
 ];
 
 function fallbackFromCounts(counts = {}) {
   return [
-    { id: "total",     label: "Total Assets",       tone: "slate",   value: counts.total ?? 0 },
-    { id: "connected", label: "Connected Assets",   tone: "slate",   value: counts.with_gps ?? 0 },
-    { id: "working",   label: "Working",            tone: "emerald", value: counts.green ?? 0 },
-    { id: "idle",      label: "Idle",               tone: "amber",   value: counts.amber ?? 0 },
-    { id: "attention", label: "Attention Required", tone: "rose",    value: counts.red ?? 0 },
-    { id: "offline",   label: "Offline",            tone: "slate",   value: counts.gray ?? 0 },
+    { id: "total",     label: "Total Assets",        tone: "slate",   value: counts.total ?? 0 },
+    { id: "connected", label: "Connected Assets",    tone: "slate",   value: counts.with_gps ?? 0 },
+    { id: "working",   label: "Working",             tone: "emerald", value: counts.green ?? 0 },
+    { id: "idle",      label: "Idle",                tone: "amber",   value: counts.amber ?? 0 },
+    { id: "attention", label: "Attention Required",  tone: "rose",    value: counts.red ?? 0 },
+    { id: "offline",   label: "No Recent Position",  tone: "slate",   value: counts.gray ?? 0 },
   ];
 }
 

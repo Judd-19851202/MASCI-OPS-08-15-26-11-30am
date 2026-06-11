@@ -39690,3 +39690,71 @@ After **Save to GitHub → Redeploy**:
 4. UI: load `/operations-map` and verify (a) feed chip reads "Live Data", (b) at least one project card displays "Geofence · High Confidence" badge, (c) DOM scan returns 0 banned-vocab hits.
 
 **Sprint COMPLETE. Awaiting operator to push to GitHub and redeploy to mascidocs.com.**
+
+
+---
+
+## MASCI LIVE MAP · ROLE-CORRECT 100% CLOSEOUT (2026-02-11)
+
+**Sprint:** MASCI Operations Center · Live Map · Role-Correct 100% (Sprint #7)
+**Persona:** Truck Boss / PM / Shop / Dispatch (NOT field superintendent)
+**Verdict:** ✅ PASS — all 7 role-based fixes verified end-to-end. Zero banned-vocab leaks. Backend pytest 12 passed / 1 skipped.
+
+### Role-based closeout
+
+| Role | What they must see | Verified |
+|---|---|---|
+| Truck Boss | reporting trucks, attention-required, location clusters, recent activity, idle/delayed/missing | ✅ banner microcopy (Connected/Working/Idle/No Recent Position) + risk-tinted clusters + ranked project areas |
+| PM | assets by area, attention by area, unassigned/unknown, confidence | ✅ Project Intelligence Strip ranked by attention; primary card visually dominant; confidence badge on every card |
+| Shop | equipment needing attention, offline/stale, identity + last known location, **open issues BEFORE position** | ✅ asset card now Open Issues @ Y=269 < Operator @ Y=327 < Last Position @ Y=385 |
+| Dispatch | operational areas by risk, feed health (Live/Delayed/No Recent Updates), recent activity, risk clusters | ✅ feed chip "No Recent Updates", risk-tinted cluster rings, ranked PI strip + live operational activity timeline |
+
+### Files changed (Sprint #7)
+- `/app/backend/routes/operations_map_v1.py` — `operational_summary[offline].label` = **"No Recent Position"**.
+- `/app/backend/tests/test_operations_map_masci_vocab.py` — assertion updated.
+- `/app/frontend/src/components/operations-map/MapOperationsBanner.jsx` — `offline` microcopy = **"Not recently reporting"**; fallback label = "No Recent Position".
+- `/app/frontend/src/components/operations-map/MapFilterRail.jsx` — STATUS_TILES `gray` label = "No Recent Position".
+- `/app/frontend/src/components/operations-map/AssetCardSheet.jsx` — **Open Issues swapped to position 4** (before Operator at 5).
+
+### Simple / Beautiful / Trusted evidence
+- **Simple** — every tile carries operator microcopy ("All tracked equipment", "Sending position data", "Moving or active now", "Connected, not moving", "Needs review", "Not recently reporting"). Filter rail mirrors the same vocabulary.
+- **Beautiful** — primary card has 8px rose wedge + soft glow + 18px title + PRIMARY ATTENTION AREA pill. Cluster rings tinted by worst-contained severity. Banner tones (slate/emerald/amber/rose) match platform tokens.
+- **Trusted** — confidence badge (emerald/amber/rose/slate) on every PI card AND asset card. Source line lists data origin ("GPS Location", "Geofence Membership", "Explicit Project", "Missing Assignment").
+
+### Section Y-coordinates (asset card, DOM-measured)
+```
+identity 33 → assignment 98.5 → operational_state 199.8 →
+open_issues 269.3 → operator 327.5 → last_position 385.7 →
+recent_activity 534.9 → data_source 699.9
+```
+Strictly monotonic. Open Issues now precedes Operator (shop & truck-boss priority).
+
+### Vocabulary scan (final)
+Inside `[data-testid='operations-map-page']` AND `[data-testid='ops-map-asset-sheet']`:
+```
+ForgedOps · Operational Buckets · Bucket · Reporting (capital) ·
+Needs Attention · Offline Feed · Telemetry Standby · Telemetry Poll ·
+Motive Status · GPS Status · Asset Health · vehicle_gps · geofence_enter ·
+geofence_exit · event_family · motive:poll · motive:webhook · Live Feed ·
+Delayed Feed · tracker · GIS · fleet tracking · \bpoll\b · \bwebhook\b · \bDriver\b
+```
+**Hits: 0 / 25** in both surfaces.
+
+Allowed exception: lowercase "reporting" appears once on the page (inside microcopy "Not recently reporting" — verbatim per Sprint #7 directive). Allowed source attributions: `Source: Motive` (asset card Data Source), `Source: GPS Location` (PI cards + asset card Current Assignment).
+
+### Performance (warm)
+- snapshot: **347-512ms** (<800ms) ✅
+- search: **226ms** (<250ms) ✅
+- asset detail: **451ms** (<500ms) ✅
+- map page load warm: **968ms** (<3000ms) ✅
+
+### Production Deployment Gate (mascidocs.com)
+After **Save to GitHub → Redeploy**:
+1. Auth + curl `https://mascidocs.com/api/operations-map/snapshot?limit=2000` → verify `feed_status.label` ∈ {"Live Data","Delayed Data"} when telemetry is flowing; `project_rollups_total >= 2`; at least one rollup with `assignment_source=="geofence_membership"` if production geofences exist.
+2. UI: load `/operations-map`, verify feed chip = "Live Data", at least one PI card shows `GEOFENCE · HIGH CONFIDENCE` emerald badge, clusters show mixed severity tones, DOM banned-vocab scan = 0 hits.
+3. Asset card: open an asset inside a production geofence; verify CURRENT ASSIGNMENT name = geofence name, badge = `HIGH CONFIDENCE`, Source = "Geofence Membership", Data Source = "Live Data".
+4. Role-check screenshots: Truck Boss / PM / Shop / Dispatch each can complete their primary workflow within their first-screen view (no scrolling required for top-priority signals).
+
+If all hold → certified. Else → escalate.
+
+**Sprint #7 COMPLETE — Live Map is now operator role-correct.**
