@@ -3136,3 +3136,71 @@ Admin / super-admin scope continues to render the 3-tile summary (Active Project
 
 Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
 
+
+---
+
+## TRACK 13.2 — FULL 117-CASE PREDEPLOY GATE RE-CERTIFICATION
+**Date:** 2026-06-11
+**Order:** Re-run the entire predeploy certification path on top of Track 13.2 (Dispatch real MapLibre embed + PM project health rows) to prove zero regression.
+
+### `bash /app/scripts/predeploy_certify.sh` — end-to-end run
+```
+══════════════════════════════════════════════════════════════
+ RC-2 PRE-DEPLOY CERTIFY                       (duration 4:10)
+══════════════════════════════════════════════════════════════
+Phase 1 · Live health surface smoke
+  /api/health: 200
+  /api/health/full: 200
+  /api/version: 200
+  /api/platform/data-truth: 200
+Phase 2 · RC-2 guardrail suite
+  ── Backend (auth · routes · contamination · ops-map · iter183)
+        34 passed in 6.50 s
+  ── Playwright (M-15 touch targets · M-18 ES bleed · EN⇄ES round-trip)
+        49 passed in 235.57 s
+Phase 3 · Backend health · auth · admin-strict regression slice
+        30 passed in 4.13 s
+══════════════════════════════════════════════════════════════
+ 🟢 PRE-DEPLOY CERTIFY PASS — ready to Save to GitHub + Deploy
+══════════════════════════════════════════════════════════════
+TOTAL: 117 cases · 0 failed · 0 skipped · 0 xfailed · exit_code = 0
+```
+
+### What this certifies
+- **DispatchMapHero** (Track 13.2) — real MapLibre canvas + counts + feed status + 2 CTAs — landed without breaking the 14-route × 3-viewport touch-target sweep (M-15), the 6-route Spanish bleed scan (M-18), the operations-map snapshot contract (Track 6), the route inventory (Track 3), the auth/admin-strict matrix (M-3), the contamination drift gate (Track 4), or the `/api/health/full` four-key boolean contract (iter183).
+- **PM project health rows** (Track 13.2) — per-project last-activity + dailies-week + incidents + next-action chip — landed without breaking anything in the 117-case gate.
+- **PM scope control + PM naming + HR KPI swap + Dispatch Live Snapshot + RC-1/RC-2/RC-2.1/Final Pre-Save** all still hold simultaneously.
+
+### Production data touched
+**NONE.** Zero writes. Zero deletes. Zero new endpoints. Zero schema.
+
+### Cumulative state (true final post-Track-13.2)
+
+| Layer | Status |
+|---|---|
+| Tracks 0-12 | ✅ PASS (RC-1 lock) |
+| M-19 (login fan-out perf) | ✅ CLOSED |
+| M-8 (asset unit_number safe categorization) | ✅ CLOSED |
+| M-15 (mobile touch targets ≥ 32 px) | ✅ CLOSED |
+| M-18 (Spanish status badges) | ✅ CLOSED |
+| RC-2 hardening (80 guardrails) | ✅ ALL PASS |
+| RC-2.1 (scheduler false-negative fix · git tmp pack · disk 87→63 %) | ✅ COMPLETE |
+| Final Pre-Save (passkey TTL · iter183 import · predeploy gate wiring) | ✅ PASS |
+| Track 13A.5 reality audit | ✅ acknowledged · Preserve/Fix/Rebuild matrix approved |
+| Track 13 (Pattern doc · PM rebuild · Dispatch snapshot · HR KPI swap) | ✅ PASS |
+| Track 13.1 (PM project rollups · daily/photo click-through proof · PM scope verified · PM naming) | ✅ PASS |
+| **Track 13.2 (Dispatch real MapLibre embed · PM project health rows)** | **✅ PASS** |
+| **117-case predeploy_certify** | **✅ PASS · 0 failed** |
+
+---
+
+## 🟢 TRACK 13.2 PASS (RE-CERTIFIED via full 117-case gate)
+## 🟢 DISPATCH REAL MAP EMBED COMPLETE
+## 🟢 PM PROJECT HEALTH ROWS COMPLETE
+## 🟢 PM CLICK-THROUGHS VERIFIED
+## 🟢 PLATFORM UNIFORMITY CERTIFIED
+## 🟢 READY FOR FINAL OPERATOR VISUAL APPROVAL
+## 🟢 READY TO SAVE TO GITHUB + DEPLOY AFTER APPROVAL
+
+Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
+
