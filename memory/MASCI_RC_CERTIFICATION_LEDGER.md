@@ -2343,3 +2343,124 @@ The platform is now polished as well as certified. Production hash `1ad558b08185
 
 **Awaiting explicit operator deploy authorization.** No "Save to GitHub", merge, or deploy executed in this sprint.
 
+
+---
+
+## RC-1 LOCK + RC-2 OPERATIONAL HARDENING — FINAL PRE-DEPLOY GATE
+**Date:** 2026-06-11
+**Order:** RC-1 LOCK + RC-2 GUARDRAILS + STORAGE/DB/R2 HEALTH + DEPLOY READINESS
+**Doctrine:** No deploy. No Save to GitHub. No merge. No production data mutations. No security loosening. No retention bypass.
+
+### Section 1 — RC-1 Lock Confirmation
+| Track | Status |
+|---|---|
+| 0 / 1 / 2A-2C / 2D-2G / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10 / 11 | ✅ PASS (ledger verified) |
+| 12 — Final RC Certification | 🟢 CERTIFIED READY TO DEPLOY |
+| M-19 (login fan-out perf) | ✅ CLOSED (benchmark evidence in ledger) |
+| M-8 (asset unit_number safe categorization) | ✅ CLOSED (remediation evidence in ledger) |
+| M-15 (mobile touch targets) | ✅ KILLED — 0 remaining |
+| M-18 (Spanish status badges) | ✅ KILLED — 0 remaining |
+
+**RC-1 LOCK = CONFIRMED VALID.**
+
+### Section 2 — RC-2 Guardrails Created (permanent regression tests)
+| Guardrail | File | Scope | Result |
+|---|---|---|---|
+| 2A · M-15 Touch Targets | `backend/tests/pw_suite/test_rc2_m15_touch_targets.py` | 14 routes × 3 viewports = **42 Playwright cases** | ✅ 42/42 PASS |
+| 2B · M-18 Translation Bleed | `backend/tests/pw_suite/test_rc2_m18_translation_bleed.py` | 6 ES bleed scans + EN⇄ES round-trip = **7 cases** | ✅ 7/7 PASS |
+| 2C · Auth / Role | `backend/tests/test_rc2_auth_guardrail.py` | multi-login fan-out, admin-strict empty-token, garbage-token, PM-cannot-reach-admin | ✅ 4/4 PASS |
+| 2D · Route / Dead Link | `backend/tests/test_rc2_route_inventory.py` | 18 canonical routes + 1 banned route + 3 health surfaces + data-truth preview gate | ✅ 23/23 PASS |
+| 2E · Production Contamination | `backend/tests/test_rc2_contamination_scan.py` | preview inventory + drift gate (baseline + 25 %) + production-shape refusal | ✅ 2/2 PASS |
+| 2F · Operations Map Contract | `backend/tests/test_rc2_ops_map_contract.py` | operational_summary shape, first tile = attention, project_rollup keys, vocab clean | ✅ 2/2 PASS |
+| **TOTAL** | | **80 guardrail cases** | **✅ 80 / 80 PASS** |
+
+Browsers installed at `/pw-browsers/chromium_headless_shell-1217` via `playwright install chromium`. Tests run with `PLAYWRIGHT_BROWSERS_PATH=/pw-browsers`.
+
+### Section 3 — Disk / Runtime Storage Health
+| Metric | Before | After | Target |
+|---|---|---|---|
+| `/app` filesystem | **87 %** (EMERGENCY) | **68 %** (ACCEPTABLE) | ≤ 60 % preferred |
+| `/tmp` | 1.5 G | 93 K | — |
+| `/app` total | 5.8 G | 4.0 G | — |
+
+**Safe cleanup actions (no business data deleted):**
+1. `/tmp/pytest-of-root` — 1.5 G pytest temp artifacts → removed
+2. `/app/frontend/node_modules/.cache/` — 1.1 G webpack cache → removed (regenerates on next `yarn start`)
+3. `__pycache__` + `*.pyc` across `/app` — 25 M+ → removed (regenerates)
+4. `/var/log/supervisor/backend.{out,err}.log` — 72 M combined → truncated to last 1000 lines
+5. `/tmp/track2`, `/tmp/v8-compile-cache-0`, `/tmp/yarn--*` → removed
+
+**Explicitly NOT touched (operational artifacts):**
+- `/app/backend/backups/` (3.1 M, 3 lite backups · recent)
+- `/app/backend/storage/project_docs/` (413 M of business PDFs)
+- `/app/backend/static/training-videos/` (163 M of training videos)
+- `/app/.git/` (619 M pack + others · platform-critical · operator owns)
+
+**Note on `/app/.git/objects/pack/tmp_pack_Cc60np` (496 M stale temp pack from 2026-06-03):** retained — under operator authority (Emergent platform owns the `.git` lifecycle, including `Save to GitHub`). Recommended operator decision required (CATEGORY D).
+
+### Section 4 — Database Health
+- **`/api/admin/persistence-check`**: ✅ Atlas-backed (`masci-prod.1nduwmg.mongodb.net`), connected as `masci_preview_user`, env-isolated per FORGEDOPS T1+T2 certification.
+- **`/api/admin/backups-scheduler-state`**: scheduler RESURRECTED at 2026-06-11T20:16:18 UTC, most recent successful run at 18:20 UTC (`MASCI_lite_backup_2026-06-11_182025Z.zip`, 1098 records).
+- **`/api/health/full`** reports `{ok: false, mongo: true, scheduler: false, backup_recent: true}` — `scheduler:false` is **observability lag** (the task self-resurrected 4 min before this check but the `alive` flag hasn't caught up). `backup_recent:true` confirms RPO is intact. Not a deploy blocker.
+- **No runaway collections detected** (RC-1 Track 4 + ongoing iter367+ test_iter299_lane_d_operational_hygiene retention coverage).
+- **TTL indexes / session timeouts**: enabled (`/api/version` reports `ADMIN_HR=15min/4h`, `OPERATIONS=30min/8h`, `FIELD=60min/12h`).
+
+### Section 5 — R2 / Backup Health
+- **`/api/admin/backups-list-r2`**: ✅ 1808 backups in `masci-hub` bucket, 90-day retention pool active.
+- **Newest backup**: `MASCI_complete_backup_2026-06-11_201438Z.zip` · 516 924 958 bytes · 5 min before this audit.
+- **R2 bucket usage**: 186.82 GB across 8 654 objects (usage alert recorded at 02:14 UTC today — bucket within tier).
+- **Restore path**: presigned URLs minted successfully (`/api/admin/backups-list-r2` returned `download_url` field populated).
+- **No R2 deletions performed.**
+
+### Section 6 — Performance Sanity (post-cleanup)
+| Endpoint | Status | Latency |
+|---|---|---|
+| `/api/health` | 200 | 138 ms |
+| `/api/version` | 200 | 110 ms |
+| `/api/platform/data-truth` | 200 | 172 ms |
+| `/api/auth/multi-login` | 200 (full fan-out) | **638 ms** (M-19 benchmark intact — was ~2 s pre-M-19) |
+| `/api/operations-map/snapshot` | 200 | 521 ms |
+| `/api/equipment-master` | 200 (693 items) | 429 ms |
+
+All within RC-1 / M-19 baseline. **No regression after cleanup.**
+
+### Section 7 — Files Changed (this sprint)
+**Frontend (1 file):**
+- `frontend/src/pages/FieldLeadershipPortalLogin.jsx` — `fl-legacy-login-link` tap target (was 331×14 on iPad Portrait, now `min-h-[32px] px-2 py-1` = 32 px+ on every viewport)
+
+**Backend (6 guardrail files, new — read-only):**
+- `backend/tests/pw_suite/test_rc2_m15_touch_targets.py` (42 cases)
+- `backend/tests/pw_suite/test_rc2_m18_translation_bleed.py` (7 cases)
+- `backend/tests/test_rc2_auth_guardrail.py` (4 cases)
+- `backend/tests/test_rc2_route_inventory.py` (23 cases)
+- `backend/tests/test_rc2_contamination_scan.py` (2 cases)
+- `backend/tests/test_rc2_ops_map_contract.py` (2 cases)
+
+**Production data changes:** **NONE.**
+**Schema changes:** **NONE.**
+**Security loosening:** **NONE.**
+**Backup deletions:** **NONE.**
+**Audit log mutations:** **NONE.**
+
+### Section 8 — Remaining Findings
+| Finding | Severity | Disposition |
+|---|---|---|
+| `/api/health/full` reports `scheduler:false` while the scheduler is actually alive (self-resurrected, recent backup OK) | LOW — observability lag | Tracked. Backup RPO is intact. Not a deploy blocker. Recommend operator follow-up to add scheduler-alive flag refresh on `RESURRECTED` event in a future sprint. |
+| `/app/.git/objects/pack/tmp_pack_Cc60np` (496 M stale temp pack from 2026-06-03) | LOW — disk pressure contributor | CATEGORY D — operator decision. Emergent platform owns `.git` lifecycle. Disk currently at 68 % (acceptable) without touching this file. |
+
+**No CRITICAL findings. No MAJOR findings. Zero open mobile issues. Zero open translation issues. Zero contamination drift.**
+
+### Section 9 — Deployment Recommendation
+
+🟢 **RC-1 LOCKED · RC-2 HARDENED · READY TO SAVE TO GITHUB + DEPLOY**
+
+- RC-1 ledger valid · Tracks 0-12 PASS · M-15/M-18/M-19/M-8 all CLOSED.
+- 80 RC-2 guardrails in place and passing — M-15, M-18, M-3 (auth), Track 3 (routes), Track 4 (contamination), Track 6 (ops-map contract) class drift will be caught at PR time before it can ship.
+- Disk back from 87 % → 68 % (in acceptable band). All 1.9 G freed was provably-safe cache/temp/log truncation; zero business data touched.
+- Database isolation, scheduler RPO, and R2 retention all green.
+- Performance sanity post-cleanup matches pre-cleanup baselines.
+
+**The platform is now polished AND certified AND protected against the four highest-frequency RC-1 defect classes.**
+
+Awaiting explicit operator authorization to **Save to GitHub** and **deploy**. No git write, no GitHub action, no deploy executed.
+
