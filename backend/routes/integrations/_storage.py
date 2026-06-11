@@ -295,6 +295,126 @@ def demo_maintainx_work_orders() -> List[Dict[str, Any]]:
     ]
 
 
+# ─── Shared provider status (single source of truth for ALL health surfaces) ──
+# Used by: routes/integration_health.py::_probe_motive,
+#          routes/admin_ops.py::compute_system_health (Integrations card),
+#          routes/platform_data_truth.py (integrations.motive section).
+#
+# Rule (per "P0 — MOTIVE HEALTH SURFACE CORRECTION"):
+#   1. Check DB-backed integration_settings row first.
+#   2. Fall back to env var(s) second.
+#   3. NEVER report MOCKED if: enabled=true AND api_key present AND a successful sync exists.
+async def compute_provider_status(
+    db,
+    provider: str,
+    *,
+    env_api_key_var: Optional[str] = None,
+    recent_sync_window_minutes: int = 15,
+) -> Dict[str, Any]:
+    """Return a normalised status dict for a single integration provider.
+
+    Output keys:
+        provider                — "motive" | "maintainx" | ...
+        enabled                 — bool   (settings.enabled)
+        configured              — bool   (api key present anywhere — DB or env)
+        api_key_present         — bool
+        api_key_source          — "db" | "env" | None
+        webhook_secret_present  — bool
+        webhook_url_path        — str | None
+        last_successful_sync_at — ISO str | None
+        last_failed_sync_at     — ISO str | None
+        last_sync_at            — ISO str | None
+        last_sync_error         — str | None
+        recent_sync_ok          — bool   (success within recent_sync_window_minutes)
+        status                  — "ok" | "degraded" | "disabled"
+        mocked                  — bool   (only true when nothing configured anywhere)
+        message                 — human-readable summary
+    """
+    try:
+        doc = await db.integration_settings.find_one(
+            {"provider": provider}, {"_id": 0}
+        ) or {}
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[provider-status:{provider}] DB read failed: {e}")
+        doc = {}
+
+    db_api_key = (doc.get("api_key_value") or "").strip()
+    env_api_key = ""
+    if env_api_key_var:
+        env_api_key = (os.environ.get(env_api_key_var) or "").strip()
+    api_key_present = bool(db_api_key or env_api_key)
+    api_key_source = "db" if db_api_key else ("env" if env_api_key else None)
+
+    enabled = bool(doc.get("enabled"))
+    webhook_secret_present = bool((doc.get("webhook_secret_value") or "").strip())
+    webhook_url_path = doc.get("webhook_url_path")
+    last_successful_sync_at = doc.get("last_successful_sync_at")
+    last_failed_sync_at = doc.get("last_failed_sync_at")
+    last_sync_at = doc.get("last_sync_at")
+    last_sync_error = doc.get("last_sync_error")
+
+    # Determine recency of last successful sync.
+    recent_sync_ok = False
+    if last_successful_sync_at:
+        try:
+            ts = datetime.fromisoformat(str(last_successful_sync_at).replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            delta = datetime.now(timezone.utc) - ts
+            recent_sync_ok = delta.total_seconds() <= recent_sync_window_minutes * 60
+        except Exception:  # noqa: BLE001
+            recent_sync_ok = False
+
+    # Status resolution.
+    if not api_key_present and not enabled:
+        status = "disabled"
+        mocked = True
+        message = f"Not configured — no api key in integration_settings.{provider} or env"
+    elif enabled and api_key_present and recent_sync_ok:
+        status = "ok"
+        mocked = False
+        message = (
+            f"Live · enabled · synced {last_successful_sync_at}"
+            + (" · webhook armed" if webhook_secret_present else " · webhook secret missing")
+        )
+    elif enabled and api_key_present:
+        # Configured but no successful sync within the window.
+        status = "degraded"
+        mocked = False
+        if last_failed_sync_at:
+            message = f"Enabled but last sync FAILED at {last_failed_sync_at}: {last_sync_error or 'no detail'}"
+        elif last_successful_sync_at:
+            message = f"Enabled but last successful sync was stale ({last_successful_sync_at})"
+        else:
+            message = "Enabled with credentials but no sync yet — awaiting first poll"
+    elif api_key_present and not enabled:
+        status = "degraded"
+        mocked = False
+        message = "API key present but integration is disabled in settings"
+    else:
+        status = "disabled"
+        mocked = True
+        message = f"Not configured — no api key in integration_settings.{provider} or env"
+
+    return {
+        "provider":               provider,
+        "enabled":                enabled,
+        "configured":             api_key_present,
+        "api_key_present":        api_key_present,
+        "api_key_source":         api_key_source,
+        "webhook_secret_present": webhook_secret_present,
+        "webhook_url_path":       webhook_url_path,
+        "last_successful_sync_at": last_successful_sync_at,
+        "last_failed_sync_at":    last_failed_sync_at,
+        "last_sync_at":           last_sync_at,
+        "last_sync_error":        last_sync_error,
+        "recent_sync_ok":         recent_sync_ok,
+        "status":                 status,
+        "mocked":                 mocked,
+        "message":                message,
+    }
+
+
 __all__ = [
     "PROVIDERS",
     "VALID_STATUSES",
@@ -306,6 +426,7 @@ __all__ = [
     "write_sync_log",
     "write_error_log",
     "verify_webhook_signature_stub",
+    "compute_provider_status",
     "demo_motive_events",
     "demo_maintainx_work_orders",
 ]

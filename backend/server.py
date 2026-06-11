@@ -10947,7 +10947,7 @@ app.include_router(_op_map_router)
 # render the preview / production banner. No page may hardcode its own
 # banner — single source of truth.
 from routes.platform_data_truth import build_platform_data_truth_router  # noqa: E402
-app.include_router(build_platform_data_truth_router())
+app.include_router(build_platform_data_truth_router(db))
 
 # iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
 # Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.

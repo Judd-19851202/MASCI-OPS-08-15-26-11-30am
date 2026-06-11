@@ -33,7 +33,7 @@ CERTIFICATION_DATE = "2026-02-10"
 CERTIFICATION_STAMP = "FORGEDOPS Trust Sprint · T1+T2 · environment isolation certified preview-only"
 
 
-def build_platform_data_truth_router() -> APIRouter:
+def build_platform_data_truth_router(db=None) -> APIRouter:
     router = APIRouter(prefix="/api/platform", tags=["platform-data-truth"])
 
     @router.get("/data-truth")
@@ -59,6 +59,37 @@ def build_platform_data_truth_router() -> APIRouter:
             v = (os.environ.get(key) or "").strip().lower()
             return v in ("1", "true", "yes", "on")
 
+        # Motive: DB-backed truth via shared helper (matches the active
+        # motive_service which reads integration_settings.motive.api_key_value
+        # first, env var second). NO MORE hard-coded `"active": False` —
+        # that was the bug that hid the activated state.
+        motive_block: Dict[str, Any] = {
+            "configured": bool(os.environ.get("MOTIVE_API_KEY")),
+            "active":     False,
+            "status":     "not_connected",
+        }
+        if db is not None:
+            try:
+                from routes.integrations._storage import compute_provider_status  # noqa: PLC0415
+                snap = await compute_provider_status(
+                    db, "motive", env_api_key_var="MOTIVE_API_KEY",
+                )
+                motive_block = {
+                    "configured":            snap["configured"],
+                    "active":                snap["status"] == "ok",
+                    "enabled":               snap["enabled"],
+                    "api_key_present":       snap["api_key_present"],
+                    "webhook_secret_present": snap["webhook_secret_present"],
+                    "last_successful_sync_at": snap["last_successful_sync_at"],
+                    "status":                {
+                        "ok":       "active",
+                        "degraded": "degraded",
+                        "disabled": "not_connected",
+                    }.get(snap["status"], "not_connected"),
+                }
+            except Exception:  # noqa: BLE001
+                pass
+
         return {
             "ok": True,
             "as_of": datetime.now(timezone.utc).isoformat(),
@@ -81,11 +112,7 @@ def build_platform_data_truth_router() -> APIRouter:
 
             # ── Integration health (no secrets, booleans only) ───────
             "integrations": {
-                "motive": {
-                    "configured": bool(os.environ.get("MOTIVE_API_KEY")),
-                    "active": False,  # MASCI activates Motive externally
-                    "status": "external_integration_outside_platform_env",
-                },
+                "motive": motive_block,
                 "fleetwatcher": {
                     "configured": bool(os.environ.get("FLEETWATCHER_API_KEY")),
                     "active": False,

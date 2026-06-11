@@ -124,26 +124,61 @@ async def _probe_maintainx() -> Dict[str, Any]:
                    mocked=True)
 
 
-async def _probe_motive() -> Dict[str, Any]:
-    """Live probe: confirms MOTIVE_API_KEY is set AND Motive accepts it.
+async def _probe_motive(db) -> Dict[str, Any]:
+    """Single source of truth for Motive health.
 
-    Returns:
-      ok      → key present + live API responded 200 to /users/me
-      degraded→ key present + Motive returned non-200 (auth/scope problem)
-      disabled→ no key (intentional mocked state)
-    Never returns mocked=True when the key is real and works — that was the
-    bug that kept the System Health card stuck yellow even after activation.
+    Uses `compute_provider_status(db, "motive", env_api_key_var="MOTIVE_API_KEY")`
+    so this probe matches what the active Motive sync service is actually doing
+    (services/motive_service.py reads `integration_settings.motive.api_key_value`
+    first, env second). Never reports MOCKED when the integration is enabled with
+    credentials and a successful sync exists.
+
+    When the DB shows no recent successful sync, fall back to a live ping against
+    `/v1/users/me` so we don't mark an enabled-but-fresh deploy as `degraded`
+    purely on timing.
     """
-    api_key = os.environ.get("MOTIVE_API_KEY", "").strip()
-    if not api_key:
+    from routes.integrations._storage import compute_provider_status  # noqa: PLC0415
+
+    snap = await compute_provider_status(
+        db, "motive", env_api_key_var="MOTIVE_API_KEY",
+    )
+
+    # Fully unconfigured → mocked, as before.
+    if snap["status"] == "disabled" and not snap["api_key_present"]:
         return _result("motive", "Motive (Telematics)", "disabled", 0,
-                       "MOCKED — MOTIVE_API_KEY not set",
-                       mocked=True)
+                       snap["message"], mocked=True,
+                       last_successful_sync_at=snap["last_successful_sync_at"],
+                       webhook_secret_present=snap["webhook_secret_present"])
+
+    # Configured + enabled + recent sync → ok (no live ping needed; the sync
+    # service is already pinging Motive every minute).
+    if snap["status"] == "ok":
+        return _result("motive", "Motive (Telematics)", "ok", 0,
+                       snap["message"], mocked=False,
+                       last_successful_sync_at=snap["last_successful_sync_at"],
+                       webhook_secret_present=snap["webhook_secret_present"],
+                       api_key_source=snap["api_key_source"])
+
+    # Configured but no recent successful sync — do a live ping to disambiguate
+    # "just deployed, sync hasn't fired yet" from "Motive is rejecting our key".
+    api_key = ""
+    try:
+        doc = await db.integration_settings.find_one({"provider": "motive"}, {"_id": 0}) or {}
+        api_key = (doc.get("api_key_value") or "").strip() or os.environ.get("MOTIVE_API_KEY", "").strip()
+    except Exception:  # noqa: BLE001
+        api_key = os.environ.get("MOTIVE_API_KEY", "").strip()
+
+    if not api_key:
+        return _result("motive", "Motive (Telematics)", snap["status"], 0,
+                       snap["message"], mocked=snap["mocked"],
+                       last_successful_sync_at=snap["last_successful_sync_at"],
+                       webhook_secret_present=snap["webhook_secret_present"])
+
     base_url = os.environ.get("MOTIVE_BASE_URL", "https://api.gomotive.com").rstrip("/")
     t0 = time.monotonic()
     try:
-        import httpx
-        async with httpx.AsyncClient(timeout=8.0) as c:
+        import httpx  # noqa: PLC0415
+        async with httpx.AsyncClient(timeout=4.0) as c:
             r = await c.get(
                 f"{base_url}/v1/users/me",
                 headers={"X-Api-Key": api_key, "Accept": "application/json"},
@@ -151,20 +186,27 @@ async def _probe_motive() -> Dict[str, Any]:
         latency_ms = int((time.monotonic() - t0) * 1000)
         if r.status_code == 200:
             return _result("motive", "Motive (Telematics)", "ok", latency_ms,
-                           f"Live · HTTP 200 · {latency_ms}ms",
-                           mocked=False)
+                           f"Live · HTTP 200 · {latency_ms}ms (no recent sync yet)",
+                           mocked=False,
+                           last_successful_sync_at=snap["last_successful_sync_at"],
+                           webhook_secret_present=snap["webhook_secret_present"],
+                           api_key_source=snap["api_key_source"])
         if r.status_code in (401, 403):
             return _result("motive", "Motive (Telematics)", "degraded", latency_ms,
                            f"API key rejected (HTTP {r.status_code}) — check key scope",
-                           mocked=False)
+                           mocked=False,
+                           webhook_secret_present=snap["webhook_secret_present"])
         return _result("motive", "Motive (Telematics)", "degraded", latency_ms,
                        f"Unexpected HTTP {r.status_code} from /v1/users/me",
-                       mocked=False)
+                       mocked=False,
+                       webhook_secret_present=snap["webhook_secret_present"])
     except Exception as e:  # noqa: BLE001
         latency_ms = int((time.monotonic() - t0) * 1000)
         return _result("motive", "Motive (Telematics)", "degraded", latency_ms,
-                       f"Live probe error: {type(e).__name__}: {str(e)[:120]}",
-                       mocked=False)
+                       f"Live probe error: {type(e).__name__}: {str(e)[:120]} · "
+                       f"last_success={snap['last_successful_sync_at']}",
+                       mocked=False,
+                       webhook_secret_present=snap["webhook_secret_present"])
 
 
 async def _probe_emergent_llm() -> Dict[str, Any]:
@@ -226,7 +268,7 @@ async def run_all_probes(db) -> Dict[str, Any]:
         _run_with_timeout(_probe_r2(),               "r2",           "Cloudflare R2"),
         _run_with_timeout(_probe_resend(),           "resend",       "Resend Email"),
         _run_with_timeout(_probe_maintainx(),        "maintainx",    "MaintainX"),
-        _run_with_timeout(_probe_motive(),           "motive",       "Motive"),
+        _run_with_timeout(_probe_motive(db),         "motive",       "Motive"),
         _run_with_timeout(_probe_emergent_llm(),     "emergent_llm", "Emergent LLM"),
     )
     return {

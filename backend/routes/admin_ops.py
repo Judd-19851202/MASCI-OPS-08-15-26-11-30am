@@ -138,26 +138,65 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             cards.append({"key": "auth_failures", "label": "Auth failures (1h)",
                           "status": "yellow", "detail": "Audit query unavailable"})
 
-        # 5. Integration health (Motive + MaintainX placeholders)
+        # 5. Integration health (Motive + MaintainX) — DB-backed truth
+        # via shared helper. No more hard-coded yellow; surfaces last
+        # successful sync + webhook status so the admin can verify
+        # at-a-glance that an integration is actually live.
         try:
-            cfg = await db.integration_settings.find_one({}, {"_id": 0}) or {}
-            integrations = []
+            from routes.integrations._storage import compute_provider_status  # noqa: PLC0415
+            integrations: List[Dict[str, Any]] = []
+            env_var_map = {"motive": "MOTIVE_API_KEY", "maintainx": "MAINTAINX_API_KEY"}
+            colour_map = {"ok": "green", "degraded": "yellow", "disabled": "yellow"}
+            child_statuses: List[str] = []
             for prov in ("motive", "maintainx"):
-                p = cfg.get(prov, {})
-                enabled = bool(p.get("enabled"))
-                demo = bool(p.get("demo_mode"))
+                snap = await compute_provider_status(
+                    db, prov, env_api_key_var=env_var_map.get(prov),
+                )
+                colour = colour_map.get(snap["status"], "yellow")
+                detail_bits: List[str] = []
+                if snap["status"] == "ok":
+                    detail_bits.append("Live")
+                    if snap.get("last_successful_sync_at"):
+                        detail_bits.append(f"synced {snap['last_successful_sync_at']}")
+                    detail_bits.append(
+                        "webhook armed" if snap["webhook_secret_present"] else "webhook secret missing"
+                    )
+                elif snap["status"] == "degraded":
+                    detail_bits.append(snap["message"])
+                else:
+                    detail_bits.append("Stubbed" if snap["mocked"] else snap["message"])
                 integrations.append({
-                    "provider": prov,
-                    "status": "green" if enabled else "yellow" if demo else "yellow",
-                    "detail": "Enabled" if enabled else ("Demo mode" if demo else "Stubbed"),
+                    "provider":               prov,
+                    "status":                 colour,
+                    "detail":                 " · ".join(detail_bits),
+                    "enabled":                snap["enabled"],
+                    "api_key_present":        snap["api_key_present"],
+                    "webhook_secret_present": snap["webhook_secret_present"],
+                    "last_successful_sync_at": snap["last_successful_sync_at"],
+                    "last_failed_sync_at":    snap["last_failed_sync_at"],
                 })
+                child_statuses.append(colour)
+            # Outer card colour reflects the worst child (no more hard-coded yellow).
+            if "red" in child_statuses:
+                outer = "red"
+            elif "yellow" in child_statuses:
+                outer = "yellow"
+            else:
+                outer = "green"
+            outer_detail_parts: List[str] = []
+            for child in integrations:
+                outer_detail_parts.append(f"{child['provider'].title()}: {child['status']}")
+            cards.append({
+                "key":      "integrations",
+                "label":    "Integrations",
+                "status":   outer,
+                "detail":   " · ".join(outer_detail_parts) if outer_detail_parts else "No integrations configured",
+                "children": integrations,
+            })
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[system-health:integrations] {e}")
             cards.append({"key": "integrations", "label": "Integrations",
-                          "status": "yellow",  # always yellow until live
-                          "detail": "Motive + MaintainX (stubbed)",
-                          "children": integrations})
-        except Exception:
-            cards.append({"key": "integrations", "label": "Integrations",
-                          "status": "yellow", "detail": "Stubbed (no live API yet)"})
+                          "status": "yellow", "detail": "Status query failed"})
 
         # 6. Recent failed sync count (24h)
         try:
