@@ -1,0 +1,126 @@
+{
+  "track4": {
+    "c2_patch_ok": true,
+    "c2_before": {
+      "unit_number": "RL-1239",
+      "year": null,
+      "make_model": "DEMO DYNAPAC CC1000",
+      "plate": "",
+      "vin_serial_number": "31239",
+      "comments": "ASPHALT ROLLER",
+      "company": "MGC",
+      "category": "Rollers",
+      "preop_equipment_type": "Steel Drum Asphalt Roller",
+      "display_label": "RL-1239 \u2014 DEMO DYNAPAC CC1000",
+      "id": "76aedfce-4b54-475b-b47a-962d8b8a3234",
+      "make": "DEMO",
+      "model": "DYNAPAC CC1000"
+    },
+    "c2_after": {
+      "unit_number": "RL-1239",
+      "year": null,
+      "make_model": "DEMO DYNAPAC CC1000",
+      "plate": "",
+      "vin_serial_number": "31239",
+      "comments": "ASPHALT ROLLER",
+      "company": "MGC",
+      "category": "Rollers",
+      "preop_equipment_type": "Steel Drum Asphalt Roller",
+      "display_label": "RL-1239 \u2014 DEMO DYNAPAC CC1000",
+      "id": "76aedfce-4b54-475b-b47a-962d8b8a3234",
+      "make": "DYNAPAC",
+      "model": "DYNAPAC CC1000",
+      "updated_at": "2026-06-11T18:03:38.074192+00:00"
+    },
+    "track4_pass": false,
+    "eq_suspects": [
+      {
+        "id": "76aedfce-4b54-475b-b47a-962d8b8a3234",
+        "field": "make_model",
+        "value": "DEMO DYNAPAC CC1000"
+      }
+    ],
+    "dr_suspects": [
+      {
+        "id": "b3849900-3d83-49c3-91e7-f1638290ffd8",
+        "field": "project_name",
+        "value": "PROD-ORPHAN-CORNER-VERIFY"
+      },
+      {
+        "id": "f8dc6474-1596-43db-a871-b6ea9d47e4cc",
+        "field": "prepared_by",
+        "value": "post-deploy cert harness"
+      }
+    ],
+    "c3_present": true
+  },
+  "track6": {
+    "PROD": {
+      "motive": {
+        "status": 200,
+        "provider": "motive",
+        "connected": "Connected",
+        "enabled": true,
+        "demo_mode": false,
+        "test_mode": false,
+        "last_successful_sync_at": "2026-06-11T17:55:15.937149+00:00",
+        "last_failed_sync_at": null,
+        "api_key_present": true,
+        "webhook_secret_present": true,
+        "records_mapped": 0
+      },
+      "snapshot": {
+        "resolved": false
+      },
+      "recent_events": {
+        "total": 534,
+        "latency_ms": 320.5,
+        "sample_recent_event": "2026-05-25T23:03:23.892335+00:00"
+      }
+    },
+    "PREVIEW": {
+      "motive": {
+        "status": 200,
+        "provider": "motive",
+        "connected": "Connected",
+        "enabled": true,
+        "demo_mode": true,
+        "test_mode": false,
+        "last_successful_sync_at": "2026-06-11T02:06:27.860193+00:00",
+        "last_failed_sync_at": null,
+        "api_key_present": true,
+        "webhook_secret_present": true,
+        "records_mapped": 0
+      },
+      "snapshot": {
+        "endpoint": "/api/operations-map/snapshot",
+        "status": 200,
+        "latency_ms": 527.4,
+        "banner_keys": [],
+        "banner_sample": {},
+        "attention_keys": "list",
+        "projects_count": 0,
+        "projects_sample": [],
+        "top_level_keys": [
+          "ok",
+          "as_of",
+          "operational_summary",
+          "attention_breakdown",
+          "feed_status",
+          "counts",
+          "assets",
+          "geofences",
+          "geofence_count",
+          "project_rollups",
+          "project_rollups_overflow",
+          "project_rollups_total"
+        ]
+      },
+      "recent_events": {
+        "total": 724,
+        "latency_ms": 216.3,
+        "sample_recent_event": "2026-06-11T17:41:05.479825+00:00"
+      }
+    }
+  }
+}

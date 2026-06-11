@@ -1,0 +1,1141 @@
+{
+  "ADMIN": {
+    "snapshot_status": 200,
+    "latency_ms": 616.1,
+    "as_of": "2026-06-11T18:09:45.324011+00:00",
+    "operational_summary": [
+      {
+        "id": "attention",
+        "label": "Attention Required",
+        "value": 66,
+        "tone": "rose",
+        "band": "red",
+        "breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 66,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ]
+      },
+      {
+        "id": "offline",
+        "label": "No Recent Position",
+        "value": 124,
+        "tone": "slate",
+        "band": "gray"
+      },
+      {
+        "id": "working",
+        "label": "Working",
+        "value": 0,
+        "tone": "emerald",
+        "band": "green"
+      },
+      {
+        "id": "idle",
+        "label": "Idle",
+        "value": 0,
+        "tone": "amber",
+        "band": "amber"
+      },
+      {
+        "id": "assigned",
+        "label": "Assets Assigned",
+        "value": 90,
+        "tone": "slate",
+        "band": null
+      },
+      {
+        "id": "total",
+        "label": "Total Assets",
+        "value": 190,
+        "tone": "slate",
+        "band": null
+      }
+    ],
+    "feed_status": {
+      "status": "offline",
+      "label": "No Recent Updates"
+    },
+    "counts": {
+      "total": 190,
+      "green": 0,
+      "amber": 0,
+      "red": 66,
+      "gray": 124,
+      "unmapped": 36,
+      "with_gps": 90
+    },
+    "attention_breakdown": [
+      {
+        "id": "stale_position",
+        "label": "Position Update Overdue",
+        "count": 66,
+        "owner": "Truck Boss / Dispatch"
+      }
+    ],
+    "attention_breakdown_keys": "list[1]",
+    "asset_count": 190,
+    "geofence_count": 0,
+    "project_rollups_count": 5,
+    "project_rollups_total": 16,
+    "project_rollups_overflow": 11,
+    "first_3_projects": [
+      {
+        "name": "Port Orange, FL Area",
+        "display_name": "Port Orange, FL Area",
+        "bucket_type": "location",
+        "total": 50,
+        "connected_count": 0,
+        "attention_required_count": 37,
+        "offline_count": 13,
+        "last_activity_at": "2026-06-11T02:06:19Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 37,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      },
+      {
+        "name": "Edgewater, FL Area",
+        "display_name": "Edgewater, FL Area",
+        "bucket_type": "location",
+        "total": 12,
+        "connected_count": 0,
+        "attention_required_count": 10,
+        "offline_count": 2,
+        "last_activity_at": "2026-06-11T02:04:07Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 10,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      },
+      {
+        "name": "Titusville, FL Area",
+        "display_name": "Titusville, FL Area",
+        "bucket_type": "location",
+        "total": 8,
+        "connected_count": 0,
+        "attention_required_count": 7,
+        "offline_count": 1,
+        "last_activity_at": "2026-06-11T02:05:58Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 7,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      }
+    ],
+    "first_3_assets": [
+      {
+        "asset_id": "7a8c8b49-4200-459e-8b02-f8a237a061f1",
+        "masci_equipment_id": "7b2580e9-87bb-4030-9abd-f34a3f64ed1d",
+        "unit_number": "DPT002-6387",
+        "equipment_name": "DPT002-6387 \u2014 2006 Mack CV713",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438250",
+        "motive_asset_id": null,
+        "vin": "1M2AG11C36M036387",
+        "lat": 28.5565366,
+        "lon": -80.8514778,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 179.71,
+        "last_seen_at": "2026-06-11T02:05:58Z",
+        "age_seconds": 57827,
+        "band": "red",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-06-11T02:05:58Z",
+          "age_seconds": 57827,
+          "confidence": "low"
+        },
+        "assignment": {
+          "name": "Titusville, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": "stale_position"
+      },
+      {
+        "asset_id": "e2664898-1aa6-4bce-a071-4c4294558bd8",
+        "masci_equipment_id": "095ba9f1-1ad5-4794-81ab-0fa77fcb2736",
+        "unit_number": "DPT007-8803",
+        "equipment_name": "DPT007-8803 \u2014 2010 Mack GU713",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438252",
+        "motive_asset_id": null,
+        "vin": "1M2AX07C2AM008803",
+        "lat": 29.1201794,
+        "lon": -80.9763211,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 50.53,
+        "last_seen_at": "2026-06-10T22:42:37Z",
+        "age_seconds": 70028,
+        "band": "red",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-06-10T22:42:37Z",
+          "age_seconds": 70028,
+          "confidence": "low"
+        },
+        "assignment": {
+          "name": "Port Orange, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": "stale_position"
+      },
+      {
+        "asset_id": "9db58749-ad6d-4f65-a2fa-c9173de4dbe6",
+        "masci_equipment_id": "dc2c405b-03eb-4edf-81a7-5872fa5f6de4",
+        "unit_number": "DPT014-7057",
+        "equipment_name": "DPT014-7057 \u2014 2009 Mack GU713 - Black",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438255",
+        "motive_asset_id": null,
+        "vin": "1M2AX04CX9M007057",
+        "lat": 28.2045701,
+        "lon": -80.662044,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 192.46,
+        "last_seen_at": "2026-04-13T04:31:31Z",
+        "age_seconds": 5146694,
+        "band": "gray",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-04-13T04:31:31Z",
+          "age_seconds": 5146694,
+          "confidence": "stale"
+        },
+        "assignment": {
+          "name": "South Patrick Shores, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": null
+      }
+    ]
+  },
+  "PM": {
+    "snapshot_status": 200,
+    "latency_ms": 552.2,
+    "as_of": "2026-06-11T18:09:45.878008+00:00",
+    "operational_summary": [
+      {
+        "id": "attention",
+        "label": "Attention Required",
+        "value": 66,
+        "tone": "rose",
+        "band": "red",
+        "breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 66,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ]
+      },
+      {
+        "id": "offline",
+        "label": "No Recent Position",
+        "value": 124,
+        "tone": "slate",
+        "band": "gray"
+      },
+      {
+        "id": "working",
+        "label": "Working",
+        "value": 0,
+        "tone": "emerald",
+        "band": "green"
+      },
+      {
+        "id": "idle",
+        "label": "Idle",
+        "value": 0,
+        "tone": "amber",
+        "band": "amber"
+      },
+      {
+        "id": "assigned",
+        "label": "Assets Assigned",
+        "value": 90,
+        "tone": "slate",
+        "band": null
+      },
+      {
+        "id": "total",
+        "label": "Total Assets",
+        "value": 190,
+        "tone": "slate",
+        "band": null
+      }
+    ],
+    "feed_status": {
+      "status": "offline",
+      "label": "No Recent Updates"
+    },
+    "counts": {
+      "total": 190,
+      "green": 0,
+      "amber": 0,
+      "red": 66,
+      "gray": 124,
+      "unmapped": 36,
+      "with_gps": 90
+    },
+    "attention_breakdown": [
+      {
+        "id": "stale_position",
+        "label": "Position Update Overdue",
+        "count": 66,
+        "owner": "Truck Boss / Dispatch"
+      }
+    ],
+    "attention_breakdown_keys": "list[1]",
+    "asset_count": 190,
+    "geofence_count": 0,
+    "project_rollups_count": 5,
+    "project_rollups_total": 16,
+    "project_rollups_overflow": 11,
+    "first_3_projects": [
+      {
+        "name": "Port Orange, FL Area",
+        "display_name": "Port Orange, FL Area",
+        "bucket_type": "location",
+        "total": 50,
+        "connected_count": 0,
+        "attention_required_count": 37,
+        "offline_count": 13,
+        "last_activity_at": "2026-06-11T02:06:19Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 37,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      },
+      {
+        "name": "Edgewater, FL Area",
+        "display_name": "Edgewater, FL Area",
+        "bucket_type": "location",
+        "total": 12,
+        "connected_count": 0,
+        "attention_required_count": 10,
+        "offline_count": 2,
+        "last_activity_at": "2026-06-11T02:04:07Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 10,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      },
+      {
+        "name": "Titusville, FL Area",
+        "display_name": "Titusville, FL Area",
+        "bucket_type": "location",
+        "total": 8,
+        "connected_count": 0,
+        "attention_required_count": 7,
+        "offline_count": 1,
+        "last_activity_at": "2026-06-11T02:05:58Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 7,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      }
+    ],
+    "first_3_assets": [
+      {
+        "asset_id": "7a8c8b49-4200-459e-8b02-f8a237a061f1",
+        "masci_equipment_id": "7b2580e9-87bb-4030-9abd-f34a3f64ed1d",
+        "unit_number": "DPT002-6387",
+        "equipment_name": "DPT002-6387 \u2014 2006 Mack CV713",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438250",
+        "motive_asset_id": null,
+        "vin": "1M2AG11C36M036387",
+        "lat": 28.5565366,
+        "lon": -80.8514778,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 179.71,
+        "last_seen_at": "2026-06-11T02:05:58Z",
+        "age_seconds": 57827,
+        "band": "red",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-06-11T02:05:58Z",
+          "age_seconds": 57827,
+          "confidence": "low"
+        },
+        "assignment": {
+          "name": "Titusville, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": "stale_position"
+      },
+      {
+        "asset_id": "e2664898-1aa6-4bce-a071-4c4294558bd8",
+        "masci_equipment_id": "095ba9f1-1ad5-4794-81ab-0fa77fcb2736",
+        "unit_number": "DPT007-8803",
+        "equipment_name": "DPT007-8803 \u2014 2010 Mack GU713",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438252",
+        "motive_asset_id": null,
+        "vin": "1M2AX07C2AM008803",
+        "lat": 29.1201794,
+        "lon": -80.9763211,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 50.53,
+        "last_seen_at": "2026-06-10T22:42:37Z",
+        "age_seconds": 70028,
+        "band": "red",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-06-10T22:42:37Z",
+          "age_seconds": 70028,
+          "confidence": "low"
+        },
+        "assignment": {
+          "name": "Port Orange, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": "stale_position"
+      },
+      {
+        "asset_id": "9db58749-ad6d-4f65-a2fa-c9173de4dbe6",
+        "masci_equipment_id": "dc2c405b-03eb-4edf-81a7-5872fa5f6de4",
+        "unit_number": "DPT014-7057",
+        "equipment_name": "DPT014-7057 \u2014 2009 Mack GU713 - Black",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438255",
+        "motive_asset_id": null,
+        "vin": "1M2AX04CX9M007057",
+        "lat": 28.2045701,
+        "lon": -80.662044,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 192.46,
+        "last_seen_at": "2026-04-13T04:31:31Z",
+        "age_seconds": 5146694,
+        "band": "gray",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-04-13T04:31:31Z",
+          "age_seconds": 5146694,
+          "confidence": "stale"
+        },
+        "assignment": {
+          "name": "South Patrick Shores, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": null
+      }
+    ]
+  },
+  "SHOP": {
+    "snapshot_status": 200,
+    "latency_ms": 495.0,
+    "as_of": "2026-06-11T18:09:46.375584+00:00",
+    "operational_summary": [
+      {
+        "id": "attention",
+        "label": "Attention Required",
+        "value": 66,
+        "tone": "rose",
+        "band": "red",
+        "breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 66,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ]
+      },
+      {
+        "id": "offline",
+        "label": "No Recent Position",
+        "value": 124,
+        "tone": "slate",
+        "band": "gray"
+      },
+      {
+        "id": "working",
+        "label": "Working",
+        "value": 0,
+        "tone": "emerald",
+        "band": "green"
+      },
+      {
+        "id": "idle",
+        "label": "Idle",
+        "value": 0,
+        "tone": "amber",
+        "band": "amber"
+      },
+      {
+        "id": "assigned",
+        "label": "Assets Assigned",
+        "value": 90,
+        "tone": "slate",
+        "band": null
+      },
+      {
+        "id": "total",
+        "label": "Total Assets",
+        "value": 190,
+        "tone": "slate",
+        "band": null
+      }
+    ],
+    "feed_status": {
+      "status": "offline",
+      "label": "No Recent Updates"
+    },
+    "counts": {
+      "total": 190,
+      "green": 0,
+      "amber": 0,
+      "red": 66,
+      "gray": 124,
+      "unmapped": 36,
+      "with_gps": 90
+    },
+    "attention_breakdown": [
+      {
+        "id": "stale_position",
+        "label": "Position Update Overdue",
+        "count": 66,
+        "owner": "Truck Boss / Dispatch"
+      }
+    ],
+    "attention_breakdown_keys": "list[1]",
+    "asset_count": 190,
+    "geofence_count": 0,
+    "project_rollups_count": 5,
+    "project_rollups_total": 16,
+    "project_rollups_overflow": 11,
+    "first_3_projects": [
+      {
+        "name": "Port Orange, FL Area",
+        "display_name": "Port Orange, FL Area",
+        "bucket_type": "location",
+        "total": 50,
+        "connected_count": 0,
+        "attention_required_count": 37,
+        "offline_count": 13,
+        "last_activity_at": "2026-06-11T02:06:19Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 37,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      },
+      {
+        "name": "Edgewater, FL Area",
+        "display_name": "Edgewater, FL Area",
+        "bucket_type": "location",
+        "total": 12,
+        "connected_count": 0,
+        "attention_required_count": 10,
+        "offline_count": 2,
+        "last_activity_at": "2026-06-11T02:04:07Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 10,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      },
+      {
+        "name": "Titusville, FL Area",
+        "display_name": "Titusville, FL Area",
+        "bucket_type": "location",
+        "total": 8,
+        "connected_count": 0,
+        "attention_required_count": 7,
+        "offline_count": 1,
+        "last_activity_at": "2026-06-11T02:05:58Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 7,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      }
+    ],
+    "first_3_assets": [
+      {
+        "asset_id": "7a8c8b49-4200-459e-8b02-f8a237a061f1",
+        "masci_equipment_id": "7b2580e9-87bb-4030-9abd-f34a3f64ed1d",
+        "unit_number": "DPT002-6387",
+        "equipment_name": "DPT002-6387 \u2014 2006 Mack CV713",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438250",
+        "motive_asset_id": null,
+        "vin": "1M2AG11C36M036387",
+        "lat": 28.5565366,
+        "lon": -80.8514778,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 179.71,
+        "last_seen_at": "2026-06-11T02:05:58Z",
+        "age_seconds": 57828,
+        "band": "red",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-06-11T02:05:58Z",
+          "age_seconds": 57828,
+          "confidence": "low"
+        },
+        "assignment": {
+          "name": "Titusville, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": "stale_position"
+      },
+      {
+        "asset_id": "e2664898-1aa6-4bce-a071-4c4294558bd8",
+        "masci_equipment_id": "095ba9f1-1ad5-4794-81ab-0fa77fcb2736",
+        "unit_number": "DPT007-8803",
+        "equipment_name": "DPT007-8803 \u2014 2010 Mack GU713",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438252",
+        "motive_asset_id": null,
+        "vin": "1M2AX07C2AM008803",
+        "lat": 29.1201794,
+        "lon": -80.9763211,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 50.53,
+        "last_seen_at": "2026-06-10T22:42:37Z",
+        "age_seconds": 70029,
+        "band": "red",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-06-10T22:42:37Z",
+          "age_seconds": 70029,
+          "confidence": "low"
+        },
+        "assignment": {
+          "name": "Port Orange, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": "stale_position"
+      },
+      {
+        "asset_id": "9db58749-ad6d-4f65-a2fa-c9173de4dbe6",
+        "masci_equipment_id": "dc2c405b-03eb-4edf-81a7-5872fa5f6de4",
+        "unit_number": "DPT014-7057",
+        "equipment_name": "DPT014-7057 \u2014 2009 Mack GU713 - Black",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438255",
+        "motive_asset_id": null,
+        "vin": "1M2AX04CX9M007057",
+        "lat": 28.2045701,
+        "lon": -80.662044,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 192.46,
+        "last_seen_at": "2026-04-13T04:31:31Z",
+        "age_seconds": 5146695,
+        "band": "gray",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-04-13T04:31:31Z",
+          "age_seconds": 5146695,
+          "confidence": "stale"
+        },
+        "assignment": {
+          "name": "South Patrick Shores, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": null
+      }
+    ]
+  },
+  "DISPATCH": {
+    "snapshot_status": 200,
+    "latency_ms": 516.7,
+    "as_of": "2026-06-11T18:09:46.877165+00:00",
+    "operational_summary": [
+      {
+        "id": "attention",
+        "label": "Attention Required",
+        "value": 66,
+        "tone": "rose",
+        "band": "red",
+        "breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 66,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ]
+      },
+      {
+        "id": "offline",
+        "label": "No Recent Position",
+        "value": 124,
+        "tone": "slate",
+        "band": "gray"
+      },
+      {
+        "id": "working",
+        "label": "Working",
+        "value": 0,
+        "tone": "emerald",
+        "band": "green"
+      },
+      {
+        "id": "idle",
+        "label": "Idle",
+        "value": 0,
+        "tone": "amber",
+        "band": "amber"
+      },
+      {
+        "id": "assigned",
+        "label": "Assets Assigned",
+        "value": 90,
+        "tone": "slate",
+        "band": null
+      },
+      {
+        "id": "total",
+        "label": "Total Assets",
+        "value": 190,
+        "tone": "slate",
+        "band": null
+      }
+    ],
+    "feed_status": {
+      "status": "offline",
+      "label": "No Recent Updates"
+    },
+    "counts": {
+      "total": 190,
+      "green": 0,
+      "amber": 0,
+      "red": 66,
+      "gray": 124,
+      "unmapped": 36,
+      "with_gps": 90
+    },
+    "attention_breakdown": [
+      {
+        "id": "stale_position",
+        "label": "Position Update Overdue",
+        "count": 66,
+        "owner": "Truck Boss / Dispatch"
+      }
+    ],
+    "attention_breakdown_keys": "list[1]",
+    "asset_count": 190,
+    "geofence_count": 0,
+    "project_rollups_count": 5,
+    "project_rollups_total": 16,
+    "project_rollups_overflow": 11,
+    "first_3_projects": [
+      {
+        "name": "Port Orange, FL Area",
+        "display_name": "Port Orange, FL Area",
+        "bucket_type": "location",
+        "total": 50,
+        "connected_count": 0,
+        "attention_required_count": 37,
+        "offline_count": 13,
+        "last_activity_at": "2026-06-11T02:06:19Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 37,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      },
+      {
+        "name": "Edgewater, FL Area",
+        "display_name": "Edgewater, FL Area",
+        "bucket_type": "location",
+        "total": 12,
+        "connected_count": 0,
+        "attention_required_count": 10,
+        "offline_count": 2,
+        "last_activity_at": "2026-06-11T02:04:07Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 10,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      },
+      {
+        "name": "Titusville, FL Area",
+        "display_name": "Titusville, FL Area",
+        "bucket_type": "location",
+        "total": 8,
+        "connected_count": 0,
+        "attention_required_count": 7,
+        "offline_count": 1,
+        "last_activity_at": "2026-06-11T02:05:58Z",
+        "assignment_source": "gps_location",
+        "assignment_confidence": "medium",
+        "attention_breakdown": [
+          {
+            "id": "stale_position",
+            "label": "Position Update Overdue",
+            "count": 7,
+            "owner": "Truck Boss / Dispatch"
+          }
+        ],
+        "next_action": "Truck Boss verify asset location",
+        "dominant_owner": "Truck Boss / Dispatch",
+        "dominant_reason": "Position Update Overdue"
+      }
+    ],
+    "first_3_assets": [
+      {
+        "asset_id": "7a8c8b49-4200-459e-8b02-f8a237a061f1",
+        "masci_equipment_id": "7b2580e9-87bb-4030-9abd-f34a3f64ed1d",
+        "unit_number": "DPT002-6387",
+        "equipment_name": "DPT002-6387 \u2014 2006 Mack CV713",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438250",
+        "motive_asset_id": null,
+        "vin": "1M2AG11C36M036387",
+        "lat": 28.5565366,
+        "lon": -80.8514778,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 179.71,
+        "last_seen_at": "2026-06-11T02:05:58Z",
+        "age_seconds": 57828,
+        "band": "red",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-06-11T02:05:58Z",
+          "age_seconds": 57828,
+          "confidence": "low"
+        },
+        "assignment": {
+          "name": "Titusville, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": "stale_position"
+      },
+      {
+        "asset_id": "e2664898-1aa6-4bce-a071-4c4294558bd8",
+        "masci_equipment_id": "095ba9f1-1ad5-4794-81ab-0fa77fcb2736",
+        "unit_number": "DPT007-8803",
+        "equipment_name": "DPT007-8803 \u2014 2010 Mack GU713",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438252",
+        "motive_asset_id": null,
+        "vin": "1M2AX07C2AM008803",
+        "lat": 29.1201794,
+        "lon": -80.9763211,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 50.53,
+        "last_seen_at": "2026-06-10T22:42:37Z",
+        "age_seconds": 70029,
+        "band": "red",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-06-10T22:42:37Z",
+          "age_seconds": 70029,
+          "confidence": "low"
+        },
+        "assignment": {
+          "name": "Port Orange, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": "stale_position"
+      },
+      {
+        "asset_id": "9db58749-ad6d-4f65-a2fa-c9173de4dbe6",
+        "masci_equipment_id": "dc2c405b-03eb-4edf-81a7-5872fa5f6de4",
+        "unit_number": "DPT014-7057",
+        "equipment_name": "DPT014-7057 \u2014 2009 Mack GU713 - Black",
+        "asset_kind": "vehicle",
+        "marker_kind": "dump_truck",
+        "motive_vehicle_id": "1438255",
+        "motive_asset_id": null,
+        "vin": "1M2AX04CX9M007057",
+        "lat": 28.2045701,
+        "lon": -80.662044,
+        "speed_kph": 0,
+        "speed_mph": null,
+        "bearing": 192.46,
+        "last_seen_at": "2026-04-13T04:31:31Z",
+        "age_seconds": 5146695,
+        "band": "gray",
+        "trust": {
+          "source": "motive:poll",
+          "timestamp": "2026-04-13T04:31:31Z",
+          "age_seconds": 5146695,
+          "confidence": "stale"
+        },
+        "assignment": {
+          "name": "South Patrick Shores, FL Area",
+          "source": "gps_location",
+          "confidence": "medium",
+          "bucket_type": "location"
+        },
+        "attention_reason": null
+      }
+    ]
+  },
+  "assets_sample": [
+    {
+      "asset_id": "7a8c8b49-4200-459e-8b02-f8a237a061f1",
+      "masci_equipment_id": "7b2580e9-87bb-4030-9abd-f34a3f64ed1d",
+      "unit_number": "DPT002-6387",
+      "equipment_name": "DPT002-6387 \u2014 2006 Mack CV713",
+      "asset_kind": "vehicle",
+      "marker_kind": "dump_truck",
+      "motive_vehicle_id": "1438250",
+      "motive_asset_id": null,
+      "vin": "1M2AG11C36M036387",
+      "lat": 28.5565366,
+      "lon": -80.8514778,
+      "speed_kph": 0,
+      "speed_mph": null,
+      "bearing": 179.71,
+      "last_seen_at": "2026-06-11T02:05:58Z",
+      "age_seconds": 57829,
+      "band": "red",
+      "trust": {
+        "source": "motive:poll",
+        "timestamp": "2026-06-11T02:05:58Z",
+        "age_seconds": 57829,
+        "confidence": "low"
+      },
+      "assignment": {
+        "name": "Titusville, FL Area",
+        "source": "gps_location",
+        "confidence": "medium",
+        "bucket_type": "location"
+      },
+      "attention_reason": "stale_position"
+    },
+    {
+      "asset_id": "e2664898-1aa6-4bce-a071-4c4294558bd8",
+      "masci_equipment_id": "095ba9f1-1ad5-4794-81ab-0fa77fcb2736",
+      "unit_number": "DPT007-8803",
+      "equipment_name": "DPT007-8803 \u2014 2010 Mack GU713",
+      "asset_kind": "vehicle",
+      "marker_kind": "dump_truck",
+      "motive_vehicle_id": "1438252",
+      "motive_asset_id": null,
+      "vin": "1M2AX07C2AM008803",
+      "lat": 29.1201794,
+      "lon": -80.9763211,
+      "speed_kph": 0,
+      "speed_mph": null,
+      "bearing": 50.53,
+      "last_seen_at": "2026-06-10T22:42:37Z",
+      "age_seconds": 70030,
+      "band": "red",
+      "trust": {
+        "source": "motive:poll",
+        "timestamp": "2026-06-10T22:42:37Z",
+        "age_seconds": 70030,
+        "confidence": "low"
+      },
+      "assignment": {
+        "name": "Port Orange, FL Area",
+        "source": "gps_location",
+        "confidence": "medium",
+        "bucket_type": "location"
+      },
+      "attention_reason": "stale_position"
+    },
+    {
+      "asset_id": "9db58749-ad6d-4f65-a2fa-c9173de4dbe6",
+      "masci_equipment_id": "dc2c405b-03eb-4edf-81a7-5872fa5f6de4",
+      "unit_number": "DPT014-7057",
+      "equipment_name": "DPT014-7057 \u2014 2009 Mack GU713 - Black",
+      "asset_kind": "vehicle",
+      "marker_kind": "dump_truck",
+      "motive_vehicle_id": "1438255",
+      "motive_asset_id": null,
+      "vin": "1M2AX04CX9M007057",
+      "lat": 28.2045701,
+      "lon": -80.662044,
+      "speed_kph": 0,
+      "speed_mph": null,
+      "bearing": 192.46,
+      "last_seen_at": "2026-04-13T04:31:31Z",
+      "age_seconds": 5146696,
+      "band": "gray",
+      "trust": {
+        "source": "motive:poll",
+        "timestamp": "2026-04-13T04:31:31Z",
+        "age_seconds": 5146696,
+        "confidence": "stale"
+      },
+      "assignment": {
+        "name": "South Patrick Shores, FL Area",
+        "source": "gps_location",
+        "confidence": "medium",
+        "bucket_type": "location"
+      },
+      "attention_reason": null
+    }
+  ],
+  "motive": {
+    "id": "9d721d37-34c3-408a-ad71-83a2eca18c53",
+    "provider": "motive",
+    "status": "Connected",
+    "enabled": true,
+    "demo_mode": true,
+    "test_mode": false,
+    "api_key_present": true,
+    "api_key_masked": "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225fe6",
+    "webhook_secret_present": true,
+    "webhook_secret_masked": "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022c106",
+    "webhook_url_path": "/api/integrations/motive/webhook",
+    "last_sync_at": "2026-06-11T02:06:27.860193+00:00",
+    "last_successful_sync_at": "2026-06-11T02:06:27.860193+00:00",
+    "last_failed_sync_at": null,
+    "last_sync_error": null,
+    "records_mapped": 0,
+    "settings": {},
+    "notes": "",
+    "updated_at": "2026-06-11T02:06:27.860193+00:00",
+    "updated_by": "system"
+  },
+  "snapshot_latencies": [
+    452.7,
+    509.8,
+    510.6,
+    462.3,
+    448.6
+  ]
+}
