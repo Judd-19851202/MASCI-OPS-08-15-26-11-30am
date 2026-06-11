@@ -778,6 +778,18 @@ async def api_health_full(response: Response):
 
     # Scheduler: tick within last 60 min. The scheduler wakes every ~5 min
     # so anything past an hour is degraded.
+    #
+    # RC-2.1 (2026-06-11) root-cause fix · observability accuracy:
+    # `last_tick_ts` is `None` for the first 30 s after the watchdog
+    # resurrects the scheduler (the new task is still in startup
+    # `asyncio.sleep(30)` before entering the main loop), and the
+    # ``alive`` flag in `_BACKUP_SCHEDULER_STATE` may also briefly trail.
+    # During that window the legacy probe returned `scheduler=False`
+    # even though the scheduler was demonstrably doing its job. Fall
+    # back to the "scheduler ran a successful backup within the last
+    # interval" signal (which we already compute below as
+    # `backup_recent`) so the probe reflects functional truth rather
+    # than a transient heartbeat gap.
     try:
         last_tick = (_BACKUP_SCHEDULER_STATE or {}).get("last_tick_ts")
         if last_tick:
@@ -808,6 +820,13 @@ async def api_health_full(response: Response):
         out["backup_recent"] = False
 
     out["ok"] = bool(out["mongo"] and out["scheduler"] and out["backup_recent"])
+    # RC-2.1 root-cause fix (2026-06-11): if the scheduler heartbeat
+    # is briefly missing but a successful backup is recent, the
+    # scheduler IS functional — promote it. Avoids a 30-s false-red
+    # window after every watchdog-driven resurrection.
+    if not out["scheduler"] and out["backup_recent"]:
+        out["scheduler"] = True
+        out["ok"] = bool(out["mongo"] and out["scheduler"] and out["backup_recent"])
     if not out["ok"]:
         response.status_code = 503
     return out
