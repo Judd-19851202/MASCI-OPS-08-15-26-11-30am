@@ -125,14 +125,46 @@ async def _probe_maintainx() -> Dict[str, Any]:
 
 
 async def _probe_motive() -> Dict[str, Any]:
+    """Live probe: confirms MOTIVE_API_KEY is set AND Motive accepts it.
+
+    Returns:
+      ok      → key present + live API responded 200 to /users/me
+      degraded→ key present + Motive returned non-200 (auth/scope problem)
+      disabled→ no key (intentional mocked state)
+    Never returns mocked=True when the key is real and works — that was the
+    bug that kept the System Health card stuck yellow even after activation.
+    """
     api_key = os.environ.get("MOTIVE_API_KEY", "").strip()
     if not api_key:
         return _result("motive", "Motive (Telematics)", "disabled", 0,
-                       "MOCKED — live API not configured",
+                       "MOCKED — MOTIVE_API_KEY not set",
                        mocked=True)
-    return _result("motive", "Motive (Telematics)", "ok", 0,
-                   "Configured (live probe not yet implemented)",
-                   mocked=True)
+    base_url = os.environ.get("MOTIVE_BASE_URL", "https://api.gomotive.com").rstrip("/")
+    t0 = time.monotonic()
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=8.0) as c:
+            r = await c.get(
+                f"{base_url}/v1/users/me",
+                headers={"X-Api-Key": api_key, "Accept": "application/json"},
+            )
+        latency_ms = int((time.monotonic() - t0) * 1000)
+        if r.status_code == 200:
+            return _result("motive", "Motive (Telematics)", "ok", latency_ms,
+                           f"Live · HTTP 200 · {latency_ms}ms",
+                           mocked=False)
+        if r.status_code in (401, 403):
+            return _result("motive", "Motive (Telematics)", "degraded", latency_ms,
+                           f"API key rejected (HTTP {r.status_code}) — check key scope",
+                           mocked=False)
+        return _result("motive", "Motive (Telematics)", "degraded", latency_ms,
+                       f"Unexpected HTTP {r.status_code} from /v1/users/me",
+                       mocked=False)
+    except Exception as e:  # noqa: BLE001
+        latency_ms = int((time.monotonic() - t0) * 1000)
+        return _result("motive", "Motive (Telematics)", "degraded", latency_ms,
+                       f"Live probe error: {type(e).__name__}: {str(e)[:120]}",
+                       mocked=False)
 
 
 async def _probe_emergent_llm() -> Dict[str, Any]:
