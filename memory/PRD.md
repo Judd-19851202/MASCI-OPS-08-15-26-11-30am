@@ -39458,3 +39458,38 @@ Atlas Console required. Runbook unchanged at `GOVERNANCE_REMEDIATE_001_ATLAS_CUT
 `/app/memory/ROUTE_SPLIT_001_WAVE1_CERTIFICATION.md`
 
 **Awaiting operator authorization for Wave 2 (safety + QA/QC).**
+
+
+---
+
+## MASCI LIVE MAP COMMAND SURFACE ALIGNMENT — EXECUTED (2026-02-11)
+
+**Sprint:** MASCI Operations Platform · Live Map · Identity Alignment
+**Verdict:** ✅ PASS (backend 100% · frontend ~95% post self-verification)
+
+### Backend
+- `/app/backend/routes/operations_map_v1.py` · `GET /api/operations-map/snapshot` now returns:
+  - `operational_summary[]` — 6-tile MASCI-native vocabulary (Total Assets, Reporting, Working, Idle, Needs Attention, Offline) with `{id, label, value, tone, band}` per entry. UI binds to this; raw `counts` preserved for internal consumers.
+  - `project_rollups[]` — `{name, total, reporting, needs_attention, offline, last_activity_at, source, confidence}` capped at 8 entries (sorted by total desc). Geofence membership computed via in-process ray-casting; falls back to `Unassigned / Unknown` bucket when geofences are unavailable.
+- Backend pytest: 9 passed / 1 skipped (skip = no geofences in preview, expected).
+
+### Frontend
+- `/app/frontend/src/lib/operations-map/eventVocab.js` (new) — single source of truth for vocab translation: `EVENT_FAMILY_LABEL`, `SOURCE_LABEL`, `OPERATIONAL_STATE_LABEL`, and the `describeEventFamily / describeSource / describeOperationalState` helpers.
+- `/app/frontend/src/pages/OperationsMapPage.jsx` — passes `summary={data?.operational_summary}` to banner; ProjectIntelligenceStrip already wired.
+- `/app/frontend/src/components/operations-map/MapOperationsBanner.jsx` — binds to `operational_summary` first; degrades to `counts` if absent.
+- `/app/frontend/src/components/operations-map/MapTimelineDock.jsx` — rows render `Position Update`, `Arrived`, `Departed`, `Safety Event`, `Mechanical Fault`, `Inspection Logged` (no raw family ids).
+- `/app/frontend/src/components/operations-map/MapTrustChip.jsx` — uses `describeSource()` so chip shows `Live Telemetry` / `Telemetry Poll` / `Last Known` instead of `motive:webhook|poll|mapping`.
+- `/app/frontend/src/components/operations-map/AssetCardSheet.jsx` — Operational State uses `describeOperationalState()`; Recent Activity rows use `describeEventFamily()`. Verified live with PKU-2549 — 0 forbidden vocab leaks.
+
+### Vocabulary sweep result (inside `[data-testid='operations-map-page']`)
+- No `vehicle_gps`, no `geofence_enter`, no `geofence_exit`, no raw family ids in user-visible DOM.
+- No vendor (Motive) branding leaks. Only platform footer "POWERED BY FORGEDOPS™" remains (global footer, not part of the map; documented as platform brand attribution exemption).
+
+### Endpoint verification (X-Admin-Token)
+- 200 with operational_summary[6] + project_rollups[1] + assets[190] + counts (legacy) + geofences[].
+- 401 without token — auth gate intact.
+
+### Deliverable
+`/app/test_reports/iteration_502_ops_map_masci_vocab.json`
+
+**Map alignment sprint COMPLETE. Awaiting operator to push to GitHub and redeploy to mascidocs.com.**
