@@ -11,7 +11,7 @@
 .ops-map-grid {
   display: grid;
   grid-template-columns: 240px 1fr;
-  grid-template-rows: 56px 124px 200px 1fr 116px;
+  grid-template-rows: 56px 124px 232px 1fr 116px;
   height: 100vh;
   width: 100vw;
 }
@@ -171,6 +171,7 @@
 .ops-map-banner-breakdown li {
   display: flex; align-items: baseline; gap: 6px;
   font-size: 10px; color: #9f1239;
+  white-space: nowrap;
 }
 .ops-map-banner-breakdown .bd-count {
   font-family: "Chivo", "IBM Plex Sans", sans-serif;
@@ -179,6 +180,9 @@
 }
 .ops-map-banner-breakdown .bd-label {
   letter-spacing: 0.02em; font-weight: 600;
+}
+.ops-map-banner-breakdown .bd-owner {
+  color: #475569; font-weight: 500; letter-spacing: 0.01em;
 }
 .ops-map-banner .tile-attention {
   background: #fee2e2; border-color: #fda4af;
@@ -218,6 +222,41 @@
 .ops-map-project-card.primary .ops-map-project-card-reasons strong {
   color: #7f1d1d; font-size: 12px;
 }
+
+/* PI card · next-action + owner line */
+.ops-map-project-card-next {
+  margin-top: 3px; padding-top: 4px;
+  border-top: 1px dashed #e2e8f0;
+  font-size: 11px; color: #0f172a;
+  line-height: 1.25;
+}
+.ops-map-project-card-next .next-prefix {
+  font-weight: 900; color: #0f766e;
+  text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px;
+}
+.ops-map-project-card-next .next-text { font-weight: 600; }
+.ops-map-project-card-owner {
+  font-size: 10px; color: #475569; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  margin-top: 2px;
+}
+.ops-map-project-card.primary .ops-map-project-card-next .next-prefix { color: #be123c; }
+.ops-map-project-card.primary .ops-map-project-card-next { border-top-color: #fda4af; }
+
+/* Asset card · owner + next */
+.ops-map-asset-sheet .action-owner {
+  margin-top: 6px; font-size: 12px; color: #0f172a;
+}
+.ops-map-asset-sheet .action-owner strong {
+  font-family: "Chivo", "IBM Plex Sans", sans-serif;
+  font-weight: 900;
+}
+.ops-map-asset-sheet .action-next {
+  font-size: 12px; color: #0f766e; font-weight: 700;
+  margin-top: 2px;
+}
+.ops-map-asset-sheet section.action-tone-rose .action-next { color: #7f1d1d; }
+.ops-map-asset-sheet section.action-tone-amber .action-next { color: #78350f; }
 .ops-map-project-card-pill {
   display: inline-block; align-self: flex-start;
   background: #be123c; color: #ffffff;

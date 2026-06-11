@@ -83,11 +83,25 @@ export default function AssetCardSheet({ assetKey, onClose }) {
           {data?.action_required && (
             <section className={`action-block action-tone-${data.action_required.tone || "slate"}`}
                      data-testid="ops-map-asset-sheet-action">
-              <div className="section-title">Action Required</div>
+              <div className="section-title">
+                {data.action_required.id === "ok" ? "No Action Required" : "Action Required"}
+              </div>
               <div className="action-label"
                    data-testid="ops-map-asset-sheet-action-label">
                 {data.action_required.label}
               </div>
+              {data.action_required.owner && (
+                <div className="action-owner"
+                     data-testid="ops-map-asset-sheet-action-owner">
+                  Owner: <strong>{data.action_required.owner}</strong>
+                </div>
+              )}
+              {data.action_required.next_step && (
+                <div className="action-next"
+                     data-testid="ops-map-asset-sheet-action-next">
+                  Next: {data.action_required.next_step}
+                </div>
+              )}
               {(data.action_required.open_defects_count > 0 ||
                 data.action_required.open_inspections_count > 0) && (
                 <div className="action-detail">

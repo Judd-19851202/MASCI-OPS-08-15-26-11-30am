@@ -89,6 +89,10 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
           has_gray:  ["+", ["case", ["==", ["get", "band"], "gray"],  1, 0]],
           has_amber: ["+", ["case", ["==", ["get", "band"], "amber"], 1, 0]],
           has_green: ["+", ["case", ["==", ["get", "band"], "green"], 1, 0]],
+          attn_maintenance:    ["+", ["case", ["==", ["get", "attention_reason"], "maintenance"],    1, 0]],
+          attn_inspection:     ["+", ["case", ["==", ["get", "attention_reason"], "inspection"],     1, 0]],
+          attn_assignment:     ["+", ["case", ["==", ["get", "attention_reason"], "assignment"],     1, 0]],
+          attn_stale_position: ["+", ["case", ["==", ["get", "attention_reason"], "stale_position"], 1, 0]],
         },
       });
       // geofences source
@@ -171,9 +175,48 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
         const f = map.queryRenderedFeatures(e.point, { layers: ["asset-clusters"] })[0];
         if (!f) return;
         const clusterId = f.properties.cluster_id;
+        const p = f.properties;
+        // Build operational popup BEFORE zoom — gives Truck Boss /
+        // Dispatch the cluster's dominant cause + owner so a single tap
+        // explains why this risk concentration exists.
+        const reasons = [
+          { id: "maintenance",    label: "Maintenance Due",        count: +p.attn_maintenance    || 0, owner: "Shop" },
+          { id: "inspection",     label: "Inspection Overdue",     count: +p.attn_inspection     || 0, owner: "Shop / Safety" },
+          { id: "assignment",     label: "Assignment Unknown",     count: +p.attn_assignment     || 0, owner: "PM / Dispatch" },
+          { id: "stale_position", label: "Position Update Overdue",count: +p.attn_stale_position || 0, owner: "Truck Boss / Dispatch" },
+        ].filter(r => r.count > 0)
+         .sort((a, b) => b.count - a.count);
+        const dominant = reasons[0];
+        const noRecent = +p.has_gray || 0;
+        const ownerLine = dominant
+          ? `Owner: ${dominant.owner}`
+          : (noRecent > 0 ? "Owner: Truck Boss / Dispatch" : "Owner: Operations");
+        const rows = [
+          `<div style="font-weight:900;font-size:13px;color:#0f172a;">${p.point_count} Assets</div>`,
+          (+p.has_red || 0) > 0
+            ? `<div style="font-size:11px;color:#be123c;font-weight:700;">${p.has_red} Attention Required</div>`
+            : null,
+          ...reasons.map(r =>
+            `<div style="font-size:11px;color:#475569;"><strong style="color:#be123c">${r.count}</strong> ${r.label}</div>`
+          ),
+          noRecent > 0
+            ? `<div style="font-size:11px;color:#475569;"><strong>${noRecent}</strong> No Recent Position</div>`
+            : null,
+          `<div style="font-size:10px;color:#0f766e;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;margin-top:4px;">${ownerLine}</div>`,
+        ].filter(Boolean).join("");
+        new maplibregl.Popup({ closeButton: true, maxWidth: "260px" })
+          .setLngLat(f.geometry.coordinates)
+          .setHTML(
+            `<div data-testid="ops-map-cluster-popup" style="padding:6px 8px 8px 8px;font-family:'Chivo','IBM Plex Sans',sans-serif;">${rows}</div>`
+          )
+          .addTo(map);
+        // Also offer expansion on a second tap by zoom-on-shift; keep default zoom UX
         const src = map.getSource("assets");
         const zoom = await src.getClusterExpansionZoom(clusterId);
-        map.easeTo({ center: f.geometry.coordinates, zoom });
+        // shift+click → expand; plain click shows popup only
+        if (e.originalEvent?.shiftKey) {
+          map.easeTo({ center: f.geometry.coordinates, zoom });
+        }
       });
 
       setReady(true);
@@ -203,6 +246,7 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
           band: a.band,
           sprite: `spr-${a.marker_kind}-${a.band}`,
           age_seconds: a.age_seconds,
+          attention_reason: a.attention_reason || "",
         },
       }));
     map.getSource("assets")?.setData({ type: "FeatureCollection", features });

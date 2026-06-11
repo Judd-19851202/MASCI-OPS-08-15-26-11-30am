@@ -497,20 +497,53 @@ def register_operations_map_v1_routes(
                   if x["last_activity_at"] else 0),
             ),
         )
-        # Convert each rollup's breakdown dict → sorted public list.
+        # Reason → operator-readable label, owner, and next-action string.
+        # Deterministic mapping — no AI, no guessing. Owners map to real
+        # MASCI operational roles only.
         REASON_LABEL = {
             "maintenance":    "Maintenance Due",
             "inspection":     "Inspection Overdue",
             "assignment":     "Assignment Unknown",
             "stale_position": "Position Update Overdue",
         }
+        OWNER_BY_REASON = {
+            "maintenance":    "Shop",
+            "inspection":     "Shop / Safety",
+            "assignment":     "PM / Dispatch",
+            "stale_position": "Truck Boss / Dispatch",
+        }
+        NEXT_BY_REASON = {
+            "maintenance":    "Shop review open issue",
+            "inspection":     "Shop review inspection",
+            "assignment":     "Assign asset to project or yard",
+            "stale_position": "Truck Boss verify asset location",
+        }
         for r in ranked:
             bd = r.pop("attention_breakdown", {}) or {}
+            ordered = sorted(bd.items(), key=lambda kv: -kv[1])
             r["attention_breakdown"] = [
-                {"id": rid, "label": REASON_LABEL[rid], "count": cnt}
-                for rid, cnt in sorted(bd.items(), key=lambda kv: -kv[1])
-                if cnt > 0
+                {"id": rid, "label": REASON_LABEL[rid],
+                 "count": cnt, "owner": OWNER_BY_REASON[rid]}
+                for rid, cnt in ordered if cnt > 0
             ]
+            # Dominant cause + operational next-action for the area
+            if r["attention_breakdown"]:
+                top = r["attention_breakdown"][0]
+                r["next_action"]     = NEXT_BY_REASON[top["id"]]
+                r["dominant_owner"]  = top["owner"]
+                r["dominant_reason"] = top["label"]
+            elif r["offline_count"] > 0:
+                r["next_action"]     = "Dispatch confirm last known location"
+                r["dominant_owner"]  = "Truck Boss / Dispatch"
+                r["dominant_reason"] = "No Recent Position"
+            elif r.get("bucket_type") == "unassigned" and r["total"] > 0:
+                r["next_action"]     = "Assign asset to project or yard"
+                r["dominant_owner"]  = "PM / Dispatch"
+                r["dominant_reason"] = "Assignment Unknown"
+            else:
+                r["next_action"]     = None
+                r["dominant_owner"]  = None
+                r["dominant_reason"] = None
         project_rollups_top = ranked[:5]
         project_rollups_overflow = max(0, len(ranked) - 5)
 
@@ -521,7 +554,8 @@ def register_operations_map_v1_routes(
             if m["band"] == "red" and m.get("attention_reason"):
                 snap_bd[m["attention_reason"]] = snap_bd.get(m["attention_reason"], 0) + 1
         attention_breakdown = [
-            {"id": rid, "label": REASON_LABEL[rid], "count": cnt}
+            {"id": rid, "label": REASON_LABEL[rid],
+             "count": cnt, "owner": OWNER_BY_REASON[rid]}
             for rid, cnt in sorted(snap_bd.items(), key=lambda kv: -kv[1])
             if cnt > 0
         ]
@@ -540,26 +574,6 @@ def register_operations_map_v1_routes(
         # backward-compat and internal consumers, but the banner UI
         # binds to `operational_summary`.
         operational_summary = [
-            {"id": "total",
-             "label": "Total Assets",
-             "value": counts["total"],
-             "tone": "slate",
-             "band": None},
-            {"id": "assigned",
-             "label": "Assets Assigned",
-             "value": assets_assigned,
-             "tone": "slate",
-             "band": None},
-            {"id": "working",
-             "label": "Working",
-             "value": counts["green"],
-             "tone": "emerald",
-             "band": "green"},
-            {"id": "idle",
-             "label": "Idle",
-             "value": counts["amber"],
-             "tone": "amber",
-             "band": "amber"},
             {"id": "attention",
              "label": "Attention Required",
              "value": counts["red"],
@@ -571,6 +585,26 @@ def register_operations_map_v1_routes(
              "value": counts["gray"],
              "tone": "slate",
              "band": "gray"},
+            {"id": "working",
+             "label": "Working",
+             "value": counts["green"],
+             "tone": "emerald",
+             "band": "green"},
+            {"id": "idle",
+             "label": "Idle",
+             "value": counts["amber"],
+             "tone": "amber",
+             "band": "amber"},
+            {"id": "assigned",
+             "label": "Assets Assigned",
+             "value": assets_assigned,
+             "tone": "slate",
+             "band": None},
+            {"id": "total",
+             "label": "Total Assets",
+             "value": counts["total"],
+             "tone": "slate",
+             "band": None},
         ]
 
         # ── Data feed status · operator-language summary ────────────
@@ -797,36 +831,49 @@ def register_operations_map_v1_routes(
         }
 
         # ── Action Required · action-first verdict for the asset card ──
-        # Real data only: open defects → maintenance, open inspections →
-        # inspection, low/missing assignment → assignment unknown, red
-        # band → position update overdue, gray band → no recent position.
+        # Real data only. Each verdict carries operational owner + next-step
+        # so the asset card answers "who has to do something, and what?".
         action_label = "No Action Required"
         action_tone  = "emerald"
         action_id    = "ok"
+        action_owner = "None"
+        action_next  = "Current status acceptable"
         if open_defects:
             action_label = "Maintenance Due"
             action_tone  = "rose"
             action_id    = "maintenance"
+            action_owner = "Shop"
+            action_next  = "Shop review open issue"
         elif open_inspections:
             action_label = "Inspection Overdue"
             action_tone  = "rose"
             action_id    = "inspection"
+            action_owner = "Shop / Safety"
+            action_next  = "Shop review inspection"
         elif marker["band"] == "gray":
             action_label = "No Recent Position"
             action_tone  = "slate"
             action_id    = "no_recent_position"
+            action_owner = "Truck Boss / Dispatch"
+            action_next  = "Verify last known location"
         elif (assignment_source in ("missing_assignment",) or assignment_confidence == "low"):
             action_label = "Assignment Unknown"
             action_tone  = "amber"
             action_id    = "assignment"
+            action_owner = "PM / Dispatch"
+            action_next  = "Assign asset to project or yard"
         elif marker["band"] == "red":
             action_label = "Position Update Overdue"
             action_tone  = "rose"
             action_id    = "stale_position"
+            action_owner = "Truck Boss / Dispatch"
+            action_next  = "Verify asset location"
         elif marker["band"] == "amber":
             action_label = "Idle · Awaiting Assignment"
             action_tone  = "amber"
             action_id    = "idle"
+            action_owner = "Dispatch"
+            action_next  = "Confirm next move"
 
         return {
             "ok": True, "as_of": _now_iso(),
@@ -835,6 +882,8 @@ def register_operations_map_v1_routes(
                 "id":    action_id,
                 "label": action_label,
                 "tone":  action_tone,
+                "owner": action_owner,
+                "next_step": action_next,
                 "open_defects_count":      len(open_defects),
                 "open_inspections_count":  len(open_inspections),
             },

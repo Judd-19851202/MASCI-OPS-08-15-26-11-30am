@@ -90,7 +90,9 @@ def test_project_rollups_shape(snapshot):
         required = {"name", "display_name", "bucket_type", "total",
                     "connected_count", "attention_required_count",
                     "offline_count", "last_activity_at",
-                    "assignment_source", "assignment_confidence"}
+                    "assignment_source", "assignment_confidence",
+                    "attention_breakdown",
+                    "next_action", "dominant_owner", "dominant_reason"}
         first = rollups[0]
         missing = required - set(first.keys())
         assert not missing, f"project_rollups[0] missing: {missing} | keys={list(first.keys())}"

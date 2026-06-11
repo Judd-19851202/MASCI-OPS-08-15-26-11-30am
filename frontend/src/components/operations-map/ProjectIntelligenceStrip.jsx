@@ -153,6 +153,21 @@ export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, t
                 </div>
               )}
 
+              {/* Line 3c · NEXT — operational next-action + owner */}
+              {r.next_action && (
+                <div className="ops-map-project-card-next"
+                     data-testid={`ops-map-project-card-${i}-next`}>
+                  <span className="next-prefix">Next:</span>{" "}
+                  <span className="next-text">{r.next_action}</span>
+                  {r.dominant_owner && (
+                    <div className="ops-map-project-card-owner"
+                         data-testid={`ops-map-project-card-${i}-owner`}>
+                      Owner: {r.dominant_owner}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Line 4 · recency */}
               <div className="ops-map-project-card-last">
                 Last activity {fmtAge(r.last_activity_at)}

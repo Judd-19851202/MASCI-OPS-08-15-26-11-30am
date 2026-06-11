@@ -65,6 +65,11 @@ export default function MapOperationsBanner({ summary, counts }) {
                       {b.count}
                     </span>
                     <span className="bd-label">{b.label}</span>
+                    {b.owner && (
+                      <span className="bd-owner" data-testid={`ops-map-banner-attention-bd-${b.id}-owner`}>
+                        — {b.owner}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

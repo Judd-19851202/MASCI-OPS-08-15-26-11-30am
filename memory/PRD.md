@@ -39879,3 +39879,135 @@ After **Save to GitHub → Redeploy**:
 If all hold → certified. Else → escalate.
 
 **Sprint #8 COMPLETE — Live Map is a true Operations Command Surface.**
+
+
+---
+
+## MASCI LIVE MAP · FINAL OPERATIONS DECISION SURFACE (2026-02-11)
+
+**Sprint:** MASCI Operations Center · Live Map · Final Decision Surface (Sprint #9)
+**Verdict:** ✅ PASS — page answers WHAT IS WRONG · WHERE · HOW BAD · WHO OWNS IT in <10 seconds. Every attention surface now carries cause + owner + next action.
+
+### Files changed (Sprint #9)
+**Backend**
+- `/app/backend/routes/operations_map_v1.py`:
+  - Added deterministic `OWNER_BY_REASON` + `NEXT_BY_REASON` maps
+  - Each `attention_breakdown[i]` (snapshot + per rollup) now carries `owner`
+  - Each `project_rollups[i]` exposes `dominant_reason`, `dominant_owner`, `next_action`
+  - `asset_detail.action_required` now includes `owner` + `next_step`
+  - Banner reordered to action-priority: Attention → No Recent Position → Working → Idle → Assigned → Total
+
+**Frontend**
+- `MapOperationsBanner.jsx` — attention breakdown rows show "{N} {label} — {owner}"
+- `ProjectIntelligenceStrip.jsx` — adds "NEXT:" and "OWNER:" lines below the reasons
+- `AssetCardSheet.jsx` — Action Required block renders Owner + Next inside
+- `MapCanvas.jsx` — `clusterProperties` now includes `attn_maintenance/inspection/assignment/stale_position`; cluster click renders a MapLibre popup with count + per-reason breakdown + owner (plain click = popup, shift+click = expand zoom)
+- `OperationsMap.css` — banner breakdown owner styling, PI card next-action + owner block, asset-card action-owner / action-next lines
+
+**Tests**
+- `/app/backend/tests/test_operations_map_masci_vocab.py` — assertion now requires `next_action`, `dominant_owner`, `dominant_reason` on rollups
+
+### Decision-surface changes
+1. **Banner reordered** so highest-priority operational state (Attention Required) is left-most.
+2. **Attention tile** now answers WHO: "68 Position Update Overdue — Truck Boss / Dispatch".
+3. **PI cards** each carry a `NEXT: <action>` + `OWNER: <role>` block (Truck Boss / Dispatch | Shop | Shop / Safety | PM / Dispatch).
+4. **Asset card ACTION REQUIRED** carries Owner + Next inline directly under the verdict.
+5. **Map clusters** now produce a tap-popup with cause + owner — answers "why does this cluster matter?".
+
+### Attention owner/cause evidence
+Banner Attention tile DOM:
+```
+ATTENTION REQUIRED
+68
+68 Position Update Overdue — Truck Boss / Dispatch
+```
+
+### Project card next-action evidence
+Primary card (Port Orange, FL Area):
+```
+PRIMARY ATTENTION AREA
+PORT ORANGE, FL AREA
+50 ASSETS
+0 Connected · 38 Attention · 12 Offline
+38 Position Update Overdue
+NEXT: Truck Boss verify asset location
+OWNER: TRUCK BOSS / DISPATCH
+Last activity 11h ago
+GPS LOCATION · MEDIUM CONFIDENCE
+```
+
+### Asset card action evidence (PKU-2549)
+```
+ACTION REQUIRED
+Position Update Overdue
+Owner: Truck Boss / Dispatch
+Next: Verify asset location
+```
+
+### Cluster action evidence
+Tap on "14" cluster popup:
+```
+14 Assets
+11 Attention Required
+11 Position Update Overdue
+3 No Recent Position
+OWNER: TRUCK BOSS / DISPATCH
+```
+
+### Role-based acceptance
+
+| Role | Question | Answered by |
+|---|---|---|
+| Truck Boss | Which area has the most missing/stale trucks? | Primary card "PORT ORANGE, FL AREA · 38 Position Update Overdue" |
+| Truck Boss | What should I do? | "NEXT: Truck Boss verify asset location" |
+| Truck Boss | Which cluster should I tap first? | Risk-tinted clusters; tap popup gives count + cause + owner |
+| PM | Which project has the most risk? | Ranked PI strip, primary card visually dominant |
+| PM | Is the assignment trusted? | MEDIUM CONFIDENCE badge on every card |
+| PM | Are there unknown/unassigned assets? | Unassigned bucket rendered separately when present |
+| Shop | Which assets have maintenance/inspection concerns? | ACTION REQUIRED block displays "Maintenance Due"/"Inspection Overdue" with defect/inspection counts |
+| Shop | Where were they last seen? | Last Position Update section (after Open Issues per spec) |
+| Shop | What should shop review? | "Next: Shop review open issue" / "Shop review inspection" |
+| Dispatch / Ops | Is data live/delayed/no recent? | Header chip "Live Data / Delayed Data / No Recent Updates" |
+| Dispatch / Ops | Which area is the priority? | Top of ranked PI strip + Attention tile breakdown |
+| Dispatch / Ops | Who owns the next step? | Owner line on tile, card, and cluster popup |
+| Dispatch / Ops | What changed recently? | Operational Activity timeline at the bottom |
+
+### Vocabulary scan
+DOM scan inside `[data-testid='operations-map-page']` AND `[data-testid='ops-map-asset-sheet']`:
+```
+ForgedOps · Operational Buckets · Bucket · Reporting · Needs Attention ·
+Offline Feed · Telemetry Standby · Telemetry Poll · Motive Status ·
+GPS Status · Asset Health · vehicle_gps · geofence_enter · geofence_exit ·
+event_family · motive:poll · motive:webhook · Live Feed · Delayed Feed ·
+\bpoll\b · \bwebhook\b · \bDriver\b
+```
+**Hits: 0 / 22 in both surfaces.**
+Allowed: `Source: Motive` (asset card Data Source), `Source: GPS Location` (PI cards + asset card Current Assignment). One lowercase "reporting" inside microcopy.
+
+### Performance (warm)
+- snapshot (incl. 2 aggregation passes + owner mapping): **494-584 ms** (SLA <800 ms) ✅
+- search: **226 ms** (SLA <250 ms) ✅
+- asset detail (incl. action_required.owner + next_step): **451 ms** (SLA <500 ms) ✅
+- map page load warm refresh: **1038 ms** (SLA <3000 ms) ✅
+- Cluster popup render: instant (synchronous DOM build from feature properties)
+
+### Test results
+- Backend pytest `test_operations_map_masci_vocab.py`: **12 passed / 1 skipped**.
+- Self-test screenshot run: banner + PI card + cluster popup + asset card all verified end-to-end.
+
+### Production deployment gate (mascidocs.com)
+After **Save to GitHub → Redeploy**:
+1. Auth + `curl /api/operations-map/snapshot` and verify:
+   - `operational_summary[0].id == "attention"` (priority order)
+   - `attention_breakdown[i].owner` populated for each reason
+   - `project_rollups[i].next_action` + `dominant_owner` + `dominant_reason` populated when attention > 0
+2. UI:
+   - Banner Attention tile shows owner suffix on each row
+   - Primary PI card shows `NEXT:` + `OWNER:` rows
+   - Map cluster tap shows popup with cause + owner
+   - Asset card ACTION REQUIRED shows Owner + Next
+3. Asset card: open an asset with open defects → `Owner: Shop` / `Next: Shop review open issue`. With open inspections → `Owner: Shop / Safety`. Missing assignment → `Owner: PM / Dispatch`. Healthy → `No Action Required` (emerald) with `Owner: None`.
+
+If all hold → **production certified**. Else → escalate.
+
+**Sprint #9 COMPLETE — Live Map is a true Operations Decision Surface.**
