@@ -1086,3 +1086,19 @@ None of these affect the directive's three success criteria; all three are MET a
 - Production at https://mascidocs.com unchanged (`app_env=production`, `db_name=masci_safety`, uptime continues uninterrupted).
 
 **Workstream impact:** Atlas User Isolation remains 🟡 OPEN. Operator may now fill in `.env.preview` from the preview pod terminal without exposing credentials. After fill-in + backend restart, the agent will execute the 7-check verification.
+
+---
+
+## 2026-02-10 · Production redeploy plan + Motive activation plan filed
+
+**Authored:**
+- `/app/memory/PRODUCTION_DEPLOYMENT_GAP_CLOSEOUT_PLAN.md` · readiness audit (10/10 PASS), route impact table for all 40+ missing prefixes, deploy sequence, rollback criteria, 6-section post-deploy certification checklist.
+- `/app/memory/MOTIVE_PRODUCTION_ACTIVATION_PLAN.md` · 12 Go/No-Go gates, required secrets, required Mongo seed, scheduler cadences, webhook setup, data flow diagram, hidden gate (live-probe upgrade for System Health).
+- `/app/memory/PRODUCTION_REDEPLOY_GO_NO_GO.md` · final verdict.
+
+**Verdict:**
+- Redeploy readiness: 🟢 PASS.
+- Motive activation readiness: 🔴 FAIL (secrets not yet provisioned).
+- Deployment GO/NO-GO: 🟢 GO for code redeploy · 🔴 NO-GO for Motive activation.
+
+**No deploy performed. No production touched. No secrets read or written.**
