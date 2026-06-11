@@ -68,18 +68,18 @@ export function describeOperationalState(band) {
  * "motive:webhook" in primary copy. */
 export function describeFeed(ageSeconds) {
   if (ageSeconds == null) {
-    return { feed: "Offline Feed", confidence: "Low Confidence",
+    return { feed: "No Recent Updates", confidence: "Low Confidence",
              tone: "slate", level: "offline" };
   }
   if (ageSeconds < 15 * 60) {
-    return { feed: "Live Feed", confidence: "High Confidence",
+    return { feed: "Live Data", confidence: "High Confidence",
              tone: "emerald", level: "live" };
   }
   if (ageSeconds < 24 * 3600) {
-    return { feed: "Delayed Feed", confidence: "Medium Confidence",
+    return { feed: "Delayed Data", confidence: "Medium Confidence",
              tone: "amber", level: "delayed" };
   }
-  return { feed: "Offline Feed", confidence: "Low Confidence",
+  return { feed: "No Recent Updates", confidence: "Low Confidence",
            tone: "slate", level: "offline" };
 }
 

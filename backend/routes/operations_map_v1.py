@@ -494,13 +494,13 @@ def register_operations_map_v1_routes(
         # otherwise → Offline. This bubbles up to the header chip.
         if counts["green"] > 0:
             feed_status = "live"
-            feed_label  = "Live Feed"
+            feed_label  = "Live Data"
         elif counts["amber"] > 0:
             feed_status = "delayed"
-            feed_label  = "Delayed Feed"
+            feed_label  = "Delayed Data"
         else:
             feed_status = "offline"
-            feed_label  = "Offline Feed"
+            feed_label  = "No Recent Updates"
 
         return {
             "ok": True,

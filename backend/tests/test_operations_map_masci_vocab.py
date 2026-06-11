@@ -78,7 +78,7 @@ def test_operational_summary_structure(snapshot):
 def test_feed_status_present(snapshot):
     fs = snapshot["feed_status"]
     assert fs["status"] in ("live", "delayed", "offline")
-    assert fs["label"] in ("Live Feed", "Delayed Feed", "Offline Feed")
+    assert fs["label"] in ("Live Data", "Delayed Data", "No Recent Updates")
 
 
 # --- project_rollups shape ---

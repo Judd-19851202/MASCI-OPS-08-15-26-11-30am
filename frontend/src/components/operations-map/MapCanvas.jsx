@@ -74,12 +74,22 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
       }
       if (!mapRef.current) return;   // unmounted during async sprite load
       // assets source — clustered
+      // Per-cluster aggregates compute the worst severity contained,
+      // so the cluster ring tone reflects operational risk (rose for
+      // any Attention Required, slate for Offline-heavy, amber for
+      // Idle, emerald for healthy) instead of generic blue.
       map.addSource("assets", {
         type: "geojson",
         data: { type: "FeatureCollection", features: [] },
         cluster: true,
         clusterMaxZoom: 12,
         clusterRadius: 44,
+        clusterProperties: {
+          has_red:   ["+", ["case", ["==", ["get", "band"], "red"],   1, 0]],
+          has_gray:  ["+", ["case", ["==", ["get", "band"], "gray"],  1, 0]],
+          has_amber: ["+", ["case", ["==", ["get", "band"], "amber"], 1, 0]],
+          has_green: ["+", ["case", ["==", ["get", "band"], "green"], 1, 0]],
+        },
       });
       // geofences source
       map.addSource("geofences", {
@@ -106,15 +116,21 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
         paint: { "line-color": "#94a3b8", "line-width": 1.4, "line-opacity": 0.55 },
       });
 
-      // Cluster bubbles
+      // Cluster bubbles — risk-tinted ring
       map.addLayer({
         id: "asset-clusters", type: "circle", source: "assets",
         filter: ["has", "point_count"],
         paint: {
-          "circle-color": "#1e293b",
+          "circle-color": "#0b1320",
           "circle-radius": ["step", ["get", "point_count"], 18, 25, 24, 100, 30],
-          "circle-stroke-color": "#38bdf8",
-          "circle-stroke-width": 2,
+          "circle-stroke-width": 3,
+          "circle-stroke-color": [
+            "case",
+            [">", ["get", "has_red"],   0], "#e11d48",   // rose · attention required
+            [">", ["get", "has_gray"],  0], "#94a3b8",   // slate · offline-heavy
+            [">", ["get", "has_amber"], 0], "#f59e0b",   // amber · idle
+            "#10b981",                                  // emerald · healthy
+          ],
         },
       });
       map.addLayer({

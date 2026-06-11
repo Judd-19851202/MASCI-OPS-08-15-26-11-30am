@@ -11,7 +11,7 @@
 .ops-map-grid {
   display: grid;
   grid-template-columns: 240px 1fr;
-  grid-template-rows: 56px 72px 176px 1fr 116px;
+  grid-template-rows: 56px 88px 176px 1fr 116px;
   height: 100vh;
   width: 100vw;
 }
@@ -30,8 +30,8 @@
 }
 .ops-map-banner .tile {
   background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;
-  padding: 6px 14px;
-  display: flex; flex-direction: column; gap: 2px;
+  padding: 6px 14px 7px 14px;
+  display: flex; flex-direction: column; gap: 1px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .ops-map-banner .tile .k {
@@ -43,15 +43,23 @@
   font-weight: 900; font-size: 22px; color: #0f172a; line-height: 1;
   font-variant-numeric: tabular-nums;
 }
+.ops-map-banner .tile .hint {
+  font-size: 10px; color: #64748b; line-height: 1.2;
+  letter-spacing: 0.01em; font-weight: 500;
+  margin-top: 1px;
+}
 .ops-map-banner .tile.tone-emerald { background: #ecfdf5; border-color: #6ee7b7; }
 .ops-map-banner .tile.tone-emerald .v { color: #047857; }
 .ops-map-banner .tile.tone-emerald .k { color: #047857; }
+.ops-map-banner .tile.tone-emerald .hint { color: #065f46; }
 .ops-map-banner .tile.tone-amber   { background: #fffbeb; border-color: #fcd34d; }
 .ops-map-banner .tile.tone-amber   .v { color: #b45309; }
 .ops-map-banner .tile.tone-amber   .k { color: #b45309; }
+.ops-map-banner .tile.tone-amber   .hint { color: #92400e; }
 .ops-map-banner .tile.tone-rose    { background: #fff1f2; border-color: #fda4af; }
 .ops-map-banner .tile.tone-rose    .v { color: #be123c; }
 .ops-map-banner .tile.tone-rose    .k { color: #be123c; }
+.ops-map-banner .tile.tone-rose    .hint { color: #9f1239; }
 .ops-map-banner .tile.tone-slate   { background: #ffffff; border-color: #e2e8f0; }
 .ops-map-banner .tile.tone-slate   .v { color: #0f172a; }
 
@@ -148,6 +156,52 @@
   font-size: 10px; color: #64748b;
   letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700;
   border-top: 1px dashed #e2e8f0; padding-top: 4px;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+}
+.ops-map-project-card-source .src-label {
+  font-size: 10px; color: #64748b; letter-spacing: 0.04em;
+  text-transform: uppercase; font-weight: 700;
+}
+
+/* Primary card variant — first card with rose severity */
+.ops-map-project-card.primary {
+  flex: 0 0 auto; min-width: 280px; max-width: 320px;
+  border-left-width: 8px;
+  box-shadow: 0 6px 14px rgba(190, 18, 60, 0.18);
+  background: #fee2e2;
+}
+.ops-map-project-card.primary .ops-map-project-card-name {
+  font-size: 18px; letter-spacing: 0.04em;
+  color: #7f1d1d;
+}
+.ops-map-project-card-pill {
+  display: inline-block; align-self: flex-start;
+  background: #be123c; color: #ffffff;
+  font-size: 9px; font-weight: 900; letter-spacing: 0.10em;
+  text-transform: uppercase; padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 2px;
+}
+
+/* Confidence badge — reused across PI cards + asset card */
+.ops-conf-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 8px; border-radius: 999px;
+  border: 1px solid #e2e8f0;
+}
+.ops-conf-badge.ops-conf-emerald {
+  background: #ecfdf5; color: #047857; border-color: #6ee7b7;
+}
+.ops-conf-badge.ops-conf-amber {
+  background: #fffbeb; color: #b45309; border-color: #fcd34d;
+}
+.ops-conf-badge.ops-conf-rose {
+  background: #fff1f2; color: #be123c; border-color: #fda4af;
+}
+.ops-conf-badge.ops-conf-slate {
+  background: #f1f5f9; color: #475569; border-color: #cbd5e1;
 }
 .ops-map-project-overflow {
   flex: 0 0 auto; min-width: 100px;
@@ -261,6 +315,28 @@
 .ops-map-asset-sheet .meta { color: #64748b; font-size: 13px; margin-bottom: 12px; }
 .ops-map-asset-sheet section { padding: 10px 0; border-top: 1px solid #e2e8f0; font-size: 13px; }
 .ops-map-asset-sheet section:first-of-type { border-top: 0; }
+.ops-map-asset-sheet section.assignment-block {
+  background: linear-gradient(180deg, #ecfeff 0%, #f0fdfa 100%);
+  border: 1px solid #99f6e4;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 10px 0 2px 0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.ops-map-asset-sheet section.assignment-block .section-title { color: #0f766e; }
+.ops-map-asset-sheet .assignment-name {
+  font-family: "Chivo", "IBM Plex Sans", sans-serif;
+  font-weight: 900; font-size: 22px; color: #0f172a; line-height: 1.15;
+  margin: 4px 0 8px 0;
+  letter-spacing: 0.01em;
+}
+.ops-map-asset-sheet .assignment-meta {
+  display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center;
+}
+.ops-map-asset-sheet .assignment-source {
+  font-size: 11px; color: #475569; font-weight: 600;
+  letter-spacing: 0.02em;
+}
 .ops-map-asset-sheet .section-title {
   font-family: "Chivo", "IBM Plex Sans", sans-serif;
   font-weight: 900; font-size: 10px; color: #475569;

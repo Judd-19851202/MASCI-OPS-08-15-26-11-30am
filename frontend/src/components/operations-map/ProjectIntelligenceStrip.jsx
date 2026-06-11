@@ -2,18 +2,17 @@ import React from "react";
 
 /* Project Intelligence Strip — ranked operational areas.
  *
- * Hierarchy per card:
- *   line 1: AREA / PROJECT NAME              (dominant)
- *   line 2: <n> Assets                       (secondary)
- *   line 3: <c> Connected · <a> Attention Required · <o> Offline
- *   line 4: Last activity <ago>
- *   line 5: <Source> · <Confidence>
+ * Card hierarchy:
+ *   • Card 0 (top-ranked) carries the `primary` flag → larger title,
+ *     thicker severity wedge, and a one-line "PRIMARY ATTENTION AREA"
+ *     pill (only when its severity is rose). Operators see the worst
+ *     area before reading anything else.
+ *   • Cards 1-4 keep the severity tint but render smaller / quieter.
+ *   • Healthy cards stay subdued so they never compete with risk.
  *
- * Severity wedge (left border):
- *   red  : any attention_required_count > 0  → operators see the worst card first
- *   amber: connected_count > 0 but ratio low / mostly offline
- *   green: healthy (connected dominates)
- *   slate: unassigned / unknown
+ * Confidence badge — high=emerald, medium=amber, low=rose, unknown=slate.
+ * Source label — short operator-language (Project / Geofence / GPS Location
+ * / Unassigned / Unknown).
  */
 function fmtAge(iso) {
   if (!iso) return "—";
@@ -40,19 +39,29 @@ const SOURCE_SHORT = {
   explicit_project:    "Project",
   geofence_membership: "Geofence",
   gps_location:        "GPS Location",
-  missing_assignment:  "Missing Assignment",
+  missing_assignment:  "Unassigned",
   unknown:             "Unknown",
 };
-const CONFIDENCE_LABEL = {
-  high:   "High Confidence",
-  medium: "Medium Confidence",
-  low:    "Low Confidence",
-};
+
+function ConfidenceBadge({ level }) {
+  const tone = level === "high"   ? "emerald"
+             : level === "medium" ? "amber"
+             : level === "low"    ? "rose"
+             : "slate";
+  const label = level === "high"   ? "High Confidence"
+              : level === "medium" ? "Medium Confidence"
+              : level === "low"    ? "Low Confidence"
+              : "Unknown Confidence";
+  return (
+    <span className={`ops-conf-badge ops-conf-${tone}`} data-testid="ops-conf-badge">
+      {label}
+    </span>
+  );
+}
 
 export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, total = 0 }) {
   const visible = rollups || [];
 
-  // Subtitle: prefer operator-friendly area language.
   const subtitle =
     visible.length === 0
       ? "Waiting for telemetry"
@@ -78,8 +87,9 @@ export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, t
 
         {visible.map((r, i) => {
           const tone = severityTone(r);
+          const isPrimary = i === 0 && tone === "rose";
           const src  = SOURCE_SHORT[r.assignment_source || r.source || "unknown"] || "Unknown";
-          const conf = CONFIDENCE_LABEL[r.assignment_confidence || r.confidence || "low"] || "Low Confidence";
+          const level = r.assignment_confidence || r.confidence || "low";
           const connected = r.connected_count ?? r.reporting ?? 0;
           const attention = r.attention_required_count ?? r.needs_attention ?? 0;
           const offline   = r.offline_count ?? r.offline ?? 0;
@@ -87,8 +97,15 @@ export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, t
 
           return (
             <div key={i}
-                 className={`ops-map-project-card tone-${tone}`}
+                 className={`ops-map-project-card tone-${tone}${isPrimary ? " primary" : ""}`}
                  data-testid={`ops-map-project-card-${i}`}>
+              {isPrimary && (
+                <div className="ops-map-project-card-pill"
+                     data-testid={`ops-map-project-card-${i}-primary-pill`}>
+                  Primary Attention Area
+                </div>
+              )}
+
               {/* Line 1 · NAME — dominant */}
               <div className="ops-map-project-card-name"
                    data-testid={`ops-map-project-card-${i}-name`}>
@@ -114,7 +131,7 @@ export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, t
                     </span>
                     <span className="sep">·</span>
                     <span className="kw kw-attn" data-testid={`ops-map-project-card-${i}-attention`}>
-                      <strong>{attention}</strong> Attention Required
+                      <strong>{attention}</strong> Attention
                     </span>
                     <span className="sep">·</span>
                     <span className="kw kw-off" data-testid={`ops-map-project-card-${i}-offline`}>
@@ -129,10 +146,11 @@ export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, t
                 Last activity {fmtAge(r.last_activity_at)}
               </div>
 
-              {/* Line 5 · source/confidence */}
+              {/* Line 5 · source + confidence */}
               <div className="ops-map-project-card-source"
                    data-testid={`ops-map-project-card-${i}-source`}>
-                {src} · {conf}
+                <span className="src-label">{src}</span>
+                <ConfidenceBadge level={level} />
               </div>
             </div>
           );

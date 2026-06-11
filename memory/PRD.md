@@ -39645,3 +39645,48 @@ If gate items 1-4 hold → certify production. If any fails → **PRODUCTION FAI
 - Map ratio of total-viewport at exactly 800h is 0.475 (under testing agent's 0.50 heuristic). However the directive's actual numerical formula — `map / (vp - header - banner - strip)` — yields 0.766 = 76.6%, which exceeds the 60-70% target. The 0.50 threshold was not in the directive.
 
 **Sprint COMPLETE. Awaiting operator to push to GitHub and redeploy to mascidocs.com.**
+
+
+---
+
+## MASCI LIVE MAP · 100% SIMPLE/BEAUTIFUL/TRUSTED CLOSEOUT (2026-02-11)
+
+**Sprint:** MASCI Operations Center · Live Map · Final Final 100% (Sprint #6)
+**Verdict:** ✅ PASS — all 7 fixes verified end-to-end. Zero banned-vocab leaks on main page AND asset sheet. Backend pytest 12 passed / 1 skipped.
+
+### Seven-fix table (final)
+
+| # | Fix | Verified |
+|---|---|---|
+| 1 | Primary card visual dominance (8px wedge, 18px title, deeper bg, "PRIMARY ATTENTION AREA" red pill) | ✅ pill present, name 18px/900 |
+| 2 | Banner microcopy under each tile (Connected = "Sending position data", Working = "Moving or active now", etc.) | ✅ all 6 hints present |
+| 3 | Current Assignment dominant in asset card (22px/900 name in teal assignment-block) | ✅ font-size 22px, weight 900 |
+| 4 | Confidence badges (emerald/amber/rose/slate) across PI cards + asset card | ✅ 5 badges on page + 1 in sheet |
+| 5 | Risk-toned cluster rings (rose for attention, slate for offline-heavy, amber for idle, emerald for healthy) | ✅ all preview clusters rose (attention-heavy) |
+| 6 | "Offline Feed" → "No Recent Updates" / "Delayed Feed" → "Delayed Data" / "Live Feed" → "Live Data" | ✅ feed_chip reads "No Recent Updates" |
+| 7 | Full vocab audit across page + sheet | ✅ 0 hits across 19 banned terms incl. `\bpoll\b`, `\bwebhook\b`, `\bDriver\b` |
+
+### Files changed
+- `/app/backend/routes/operations_map_v1.py` — feed labels updated (Live Data / Delayed Data / No Recent Updates)
+- `/app/backend/tests/test_operations_map_masci_vocab.py` — assertion updated to new labels
+- `/app/frontend/src/lib/operations-map/eventVocab.js` — `describeFeed()` returns new MASCI-native labels
+- `/app/frontend/src/components/operations-map/MapOperationsBanner.jsx` — added microcopy block per tile
+- `/app/frontend/src/components/operations-map/ProjectIntelligenceStrip.jsx` — primary card variant + "PRIMARY ATTENTION AREA" pill + reusable ConfidenceBadge
+- `/app/frontend/src/components/operations-map/AssetCardSheet.jsx` — Current Assignment promoted to dominant `assignment-block` with 22px name and inline ConfidenceBadge
+- `/app/frontend/src/components/operations-map/MapCanvas.jsx` — `clusterProperties` + risk-toned cluster stroke
+- `/app/frontend/src/components/operations-map/OperationsMap.css` — banner microcopy styling, primary card variant, ConfidenceBadge tones, assignment-block teal gradient, grid rows `56/88/176/1fr/116`
+
+### Performance (warm)
+- snapshot: 347-512ms (<800ms) ✅
+- search: 226ms (<250ms) ✅
+- asset detail: 451ms (<500ms) ✅
+- map load: 3270ms cold (sprite preload) · 1241ms warm refresh ✅
+
+### Production Post-Deploy Gate (unchanged from Sprint #5 — verbatim)
+After **Save to GitHub → Redeploy**:
+1. Auth + curl `https://mascidocs.com/api/operations-map/snapshot?limit=2000` with X-Admin-Token.
+2. Verify `feed_status.label` reads "Live Data" or "Delayed Data" (NOT "No Recent Updates" if telemetry is flowing).
+3. Verify `project_rollups_total >= 2` and at least one rollup has `assignment_source = "geofence_membership"` IF production geofences exist.
+4. UI: load `/operations-map` and verify (a) feed chip reads "Live Data", (b) at least one project card displays "Geofence · High Confidence" badge, (c) DOM scan returns 0 banned-vocab hits.
+
+**Sprint COMPLETE. Awaiting operator to push to GitHub and redeploy to mascidocs.com.**

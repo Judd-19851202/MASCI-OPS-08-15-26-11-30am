@@ -7,19 +7,6 @@ import {
   describeOperationalState,
 } from "@/lib/operations-map/eventVocab";
 
-const SOURCE_LABEL = {
-  explicit_project:    "Explicit Project",
-  geofence_membership: "Geofence Membership",
-  gps_location:        "GPS Location",
-  missing_assignment:  "Missing Assignment",
-  unknown:             "Unknown",
-};
-const CONFIDENCE_LABEL = {
-  high:   "High Confidence",
-  medium: "Medium Confidence",
-  low:    "Low Confidence",
-};
-
 function fmtAge(iso) {
   if (!iso) return null;
   const ms = Date.now() - new Date(iso).getTime();
@@ -58,6 +45,23 @@ export default function AssetCardSheet({ assetKey, onClose }) {
   const opState = describeOperationalState(data?.asset_health?.status);
   const openIssues = data?.open_defects?.length ?? 0;
   const openInspections = data?.open_inspections?.length ?? 0;
+  const confLevel = assignment.confidence || "low";
+  const confBadgeTone =
+    confLevel === "high"   ? "emerald" :
+    confLevel === "medium" ? "amber"   :
+    confLevel === "low"    ? "rose"    : "slate";
+  const confLabel = {
+    high:   "High Confidence",
+    medium: "Medium Confidence",
+    low:    "Low Confidence",
+  }[confLevel] || "Unknown Confidence";
+  const SOURCE_LABEL_LOCAL = {
+    explicit_project:    "Explicit Project",
+    geofence_membership: "Geofence Membership",
+    gps_location:        "GPS Location",
+    missing_assignment:  "Missing Assignment",
+    unknown:             "Unknown",
+  };
 
   return (
     <aside className="ops-map-sheet ops-map-asset-sheet" data-testid="ops-map-asset-sheet">
@@ -75,20 +79,23 @@ export default function AssetCardSheet({ assetKey, onClose }) {
             </div>
           </div>
 
-          {/* 2 · Current Assignment */}
-          <section data-testid="ops-map-asset-sheet-assignment">
+          {/* 2 · Current Assignment — visually dominant */}
+          <section className="assignment-block" data-testid="ops-map-asset-sheet-assignment">
             <div className="section-title">Current Assignment</div>
-            <div className="big-line">
+            <div className="assignment-name"
+                 data-testid="ops-map-asset-sheet-assignment-name">
               {data?.geofence_status?.inside
                 ? data.geofence_status.name
                 : assignment.name || "Unassigned / Unknown"}
             </div>
-            <div className="sub-line">
-              <span className="conf">
-                {CONFIDENCE_LABEL[assignment.confidence] || "Low Confidence"}
+            <div className="assignment-meta">
+              <span className={`ops-conf-badge ops-conf-${confBadgeTone}`}
+                    data-testid="ops-map-asset-sheet-confidence-badge">
+                {confLabel}
               </span>
-              {" · "}
-              <span>Source: {SOURCE_LABEL[assignment.source] || "Unknown"}</span>
+              <span className="assignment-source">
+                Source: {SOURCE_LABEL_LOCAL[assignment.source] || "Unknown"}
+              </span>
             </div>
           </section>
 
