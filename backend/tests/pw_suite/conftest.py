@@ -48,8 +48,15 @@ def super_admin_creds() -> dict:
 
 @pytest.fixture(scope="session", autouse=True)
 def env_safety_check(base_url: str):
-    """REFUSE to run unless target is a *_preview database."""
-    r = requests.get(f"{base_url}/api/version", timeout=10)
+    """REFUSE to run unless target is a *_preview database.
+
+    RC-2.1+ (2026-06-11) — bumped the preflight request timeout from
+    10 s to 30 s to absorb the preview pod's occasional cold-start
+    latency, which was causing intermittent ReadTimeout errors when
+    the predeploy script kicked off the suite immediately after a
+    backend restart.
+    """
+    r = requests.get(f"{base_url}/api/version", timeout=30)
     r.raise_for_status()
     v = r.json()
     if v.get("app_env") != "preview" or not v.get("db_name", "").endswith("_preview"):

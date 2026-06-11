@@ -2629,3 +2629,148 @@ All within RC-1 / M-19 baselines. **No storage-related degradation. No regressio
 
 Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
 
+
+---
+
+## FINAL PRE-SAVE HARDENING (Items 1 · 2 · 3)
+**Date:** 2026-06-11
+**Order:** Close the last two LOW drifts (passkey TTL log noise + iter183 test collection error) and wire RC-2 guardrails into a permanent pre-deploy command.
+**Doctrine honored:** No deploy · no Save to GitHub · no merge · no feature work · no production-data mutation · no test-skipping/xfail/silencing.
+
+### Item 1 — Passkey TTL `IndexOptionsConflict` (root cause + fix)
+
+**Root cause:** Two TTL indexes target the same key (`created_at`) on `webauthn_challenges`:
+| Name | TTL | Source |
+|---|---|---|
+| `ttl_webauthn_challenges_created_at` (legacy) | **86 400 s (24 h)** | legacy seed (pre-iter422) |
+| `ix_webauthn_challenges_ttl` (canonical) | **300 s (5 min)** | `routes/passkeys.py:ensure_passkey_indexes` |
+
+MongoDB rejects the canonical create on every boot with `IndexOptionsConflict` because the existing legacy index has equivalent key + different options. The legacy index continued to cleanup, just at 24 h instead of the intended 5 min, so functional impact stayed LOW — but boot logs surfaced a WARNING on every restart.
+
+**Fix (surgical, self-healing — `backend/routes/passkeys.py:ensure_passkey_indexes`):**
+1. Read `index_information()` on `webauthn_challenges`.
+2. Detect the legacy index by name **AND** verify its key matches `created_at`.
+3. If the canonical TTL does not yet exist and the legacy key is equivalent, drop the legacy index ONLY (audited via `logger.info`).
+4. Create the canonical TTL afresh.
+5. No challenge data mutated. No collection dropped.
+
+**Index inventory BEFORE / AFTER:**
+
+| Collection | Before | After |
+|---|---|---|
+| `webauthn_challenges` | `_id_`, `ttl_webauthn_challenges_created_at` (TTL 86 400 s) | `_id_`, **`ix_webauthn_challenges_ttl` (TTL 300 s)** |
+
+**Boot log verification (post-restart, freshly-truncated err.log):**
+```
+2026-06-11 20:49:06,292 - passkeys - INFO - [passkeys] migrated legacy TTL index
+  'ttl_webauthn_challenges_created_at' → 'ix_webauthn_challenges_ttl' (5-min TTL)
+2026-06-11 20:50:18,821 - server - INFO - [passkeys] iter422 router mounted · indexes ensured
+```
+**Zero `IndexOptionsConflict` warnings remaining.** Subsequent reload/restart cycles run silently (canonical index already present → ensure is a no-op).
+
+**Auth/session regression check:** `/api/auth/multi-login` returns full 7-portal fan-out, RC-2 auth guardrail PASS (4/4), full RC-2 suite PASS — no auth/passkey/session regression.
+
+### Item 2 — `test_iter183_health_full_endpoint.py` collection error
+
+**Root cause:** Test imported `URL` from `conftest`, but `/app/backend/tests/conftest.py` only defines an `event_loop` fixture (no `URL` symbol). The import failed at collection time, blocking the entire 3-case test from running. The contract was verified manually via curl in RC-2.1; the test infrastructure remained broken.
+
+**Fix (no skip, no xfail, no deletion):**
+- Replaced `from conftest import URL` with a self-contained resolution from `/app/frontend/.env` via `dotenv_values`.
+- Added a small `_require_url` autouse fixture so the suite degrades gracefully (`pytest.skip` only when the env var is literally missing — never when it is present).
+
+**Test result:**
+```
+tests/test_iter183_health_full_endpoint.py::test_api_health_full_contract       PASSED
+tests/test_iter183_health_full_endpoint.py::test_api_health_full_no_leak         PASSED
+tests/test_iter183_health_full_endpoint.py::test_api_health_still_lightweight    PASSED
+============================== 3 passed in 0.61s ==============================
+```
+Live `/api/health/full` contract verified by the test: `{ok:true, mongo:true, scheduler:true, backup_recent:true}` and the AND-of-subsystems rule holds.
+
+### Item 3 — RC-2 Guardrails wired into permanent pre-deploy command
+
+**Two scripts added (set -euo pipefail; no `|| true`; no skip; no xfail):**
+
+| Script | Purpose | Cases run |
+|---|---|---|
+| `scripts/rc2_guardrails.sh` | All 80 RC-2 guardrails + iter183 health contract | Backend 34 + Playwright 49 = **83 cases** |
+| `scripts/predeploy_certify.sh` | Live health smoke + RC-2 guardrails + backend regression slice | 4 health surfaces + 83 RC-2 + 30 regression = **117 cases** |
+
+`predeploy_certify.sh` is the canonical command the operator runs before clicking **Save to GitHub** and **Deploy**:
+```bash
+bash /app/scripts/predeploy_certify.sh
+```
+
+It exits non-zero on any failure and never silences errors. The Playwright suite uses `PLAYWRIGHT_BROWSERS_PATH=/pw-browsers/chromium_headless_shell-1217` (already installed). The pw_suite conftest preflight timeout was bumped from 10 s → 30 s to absorb preview-pod cold-start latency.
+
+**Flake hardening in `test_rc2_m18_ee_round_trip`:** Replaced a fixed 800-ms post-reload wait with a 6-s polling helper that waits for the H1 i18n value to settle. Eliminates the race window observed when the test chained behind the 42-case M-15 sweep.
+
+### Full retest results (this sprint, post-fix)
+
+```
+══════════════════════════════════════════════════════════════
+ bash /app/scripts/predeploy_certify.sh   (4 min 23 s)
+══════════════════════════════════════════════════════════════
+Phase 1 · Live health surface smoke
+  /api/health: 200
+  /api/health/full: 200
+  /api/version: 200
+  /api/platform/data-truth: 200
+Phase 2 · RC-2 guardrail suite
+  Backend guardrails (auth · routes · contamination · ops-map · iter183):
+    ============================== 34 passed in 6.55s ==============================
+  Playwright guardrails (M-15 touch targets · M-18 ES bleed · EN⇄ES round-trip):
+    ======================== 49 passed in 230.51s (0:03:50) =========================
+Phase 3 · Backend health · auth · admin-strict regression slice
+    ============================== 30 passed in 4.21s ==============================
+══════════════════════════════════════════════════════════════
+ 🟢 PRE-DEPLOY CERTIFY PASS — ready to Save to GitHub + Deploy
+══════════════════════════════════════════════════════════════
+TOTAL: 113 cases passed · 0 failed · 0 skipped · 0 xfailed
+```
+
+Live endpoint sanity (post-restart, post-cleanup):
+| Endpoint | Status | Note |
+|---|---|---|
+| `/api/health` | 200 | lightweight ping |
+| `/api/health/full` | 200 | `{ok:true,mongo:true,scheduler:true,backup_recent:true}` — scheduler reporting accurate |
+| `/api/version` | 200 | preview env confirmed |
+| `/api/auth/multi-login` | 200 | full 7-portal fan-out · M-19 benchmark intact |
+| `/api/operations-map/snapshot` | 200 | contract guardrail PASS |
+
+### Files changed (this sprint · 5 files)
+| File | Change | Item |
+|---|---|---|
+| `backend/routes/passkeys.py` | Self-healing TTL index migration in `ensure_passkey_indexes` | Item 1 |
+| `backend/tests/test_iter183_health_full_endpoint.py` | Removed broken `from conftest import URL`, resolved URL from `/app/frontend/.env`, added graceful skip guard for missing env | Item 2 |
+| `backend/tests/pw_suite/conftest.py` | Preflight `/api/version` timeout 10 s → 30 s for preview pod cold-start | Item 3 (flake hardening) |
+| `backend/tests/pw_suite/test_rc2_m18_translation_bleed.py` | Round-trip H1 polling helper (6 s deadline) — replaces 800-ms fixed wait | Item 3 (flake hardening) |
+| `scripts/rc2_guardrails.sh` (new, chmod +x) | RC-2 guardrail entrypoint, set -euo pipefail | Item 3 |
+| `scripts/predeploy_certify.sh` (new, chmod +x) | Pre-deploy gate (live smoke + RC-2 + regression) | Item 3 |
+
+### Production data touched
+**NONE.** Zero writes/deletes against `daily_reports`, `equipment_master`, `user_passkeys`, `webauthn_challenges` document set, audit logs, R2 backups, or any operational record. The only Mongo write was the drop+recreate of the **index** `ttl_webauthn_challenges_created_at` → `ix_webauthn_challenges_ttl` on an operational metadata index (not user data).
+
+### Remaining findings
+**NONE.** Zero CRITICAL · zero MAJOR · zero hidden-skipped tests · no `|| true` · no xfail.
+
+---
+
+## 🟢 FINAL PRE-SAVE HARDENING PASS
+## 🟢 RC-1 LOCKED
+## 🟢 RC-2 HARDENED
+## 🟢 RC-2.1 COMPLETE
+## 🟢 RC-2 GUARDRAILS WIRED
+## 🟢 READY TO SAVE TO GITHUB + DEPLOY
+
+**Operator command before Save to GitHub:**
+```
+bash /app/scripts/predeploy_certify.sh
+```
+Expected output ends with:
+```
+🟢 PRE-DEPLOY CERTIFY PASS — ready to Save to GitHub + Deploy
+```
+
+Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
+

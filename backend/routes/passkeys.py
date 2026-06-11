@@ -511,8 +511,40 @@ def build_passkeys_router(
 # Index management (TTL on challenges)
 # ════════════════════════════════════════════════════════════════════
 async def ensure_passkey_indexes(db) -> None:
-    """Create TTL index on webauthn_challenges + unique index on user_passkeys."""
+    """Create TTL index on webauthn_challenges + unique index on user_passkeys.
+
+    RC-2.1+ (2026-06-11) · Self-healing TTL index migration.
+    The legacy `ttl_webauthn_challenges_created_at` index used a 24-hour
+    TTL on the same `created_at` key the canonical `ix_webauthn_challenges_ttl`
+    targets, so creating the canonical index failed with
+    `IndexOptionsConflict` on every boot. The conflict was harmless
+    (the legacy index still purged stale challenges, just at a much
+    looser interval than the code intended), but it poisoned boot logs
+    with a recurring WARNING. Detect the legacy index, drop it
+    surgically (key+conflict proved equivalent), then create the
+    canonical 5-minute TTL index. No challenge data is mutated.
+    """
     try:
+        existing = await db.webauthn_challenges.index_information()
+        legacy = existing.get("ttl_webauthn_challenges_created_at")
+        canonical = existing.get("ix_webauthn_challenges_ttl")
+        legacy_key_matches = bool(
+            legacy and any(k[0] == "created_at" for k in legacy.get("key", []))
+        )
+        if legacy and not canonical and legacy_key_matches:
+            # Surgical migration: drop legacy ONLY when its key matches
+            # the canonical TTL's key and the canonical doesn't yet exist.
+            try:
+                await db.webauthn_challenges.drop_index("ttl_webauthn_challenges_created_at")
+                logger.info(
+                    "[passkeys] migrated legacy TTL index "
+                    "'ttl_webauthn_challenges_created_at' → "
+                    "'ix_webauthn_challenges_ttl' (5-min TTL)"
+                )
+            except Exception as drop_exc:  # noqa: BLE001
+                logger.warning(
+                    f"[passkeys] legacy TTL index drop failed (will retry next boot): {drop_exc}"
+                )
         await db.webauthn_challenges.create_index(
             [("created_at", 1)],
             expireAfterSeconds=CHALLENGE_TTL_SECONDS,
