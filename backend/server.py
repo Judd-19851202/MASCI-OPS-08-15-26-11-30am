@@ -10942,6 +10942,13 @@ _op_map_router = build_operations_map_contract_router(
     db,
     require_any_portal_token_dep=_require_any_portal_token,
 )
+# Phase 5B V1 · live map aggregator endpoints mounted on the SAME
+# /api/operations-map router (no parallel system).
+from routes.operations_map_v1 import register_operations_map_v1_routes  # noqa: E402
+register_operations_map_v1_routes(
+    _op_map_router, db,
+    require_any_portal_token_dep=_require_any_portal_token,
+)
 app.include_router(_op_map_router)
 
 # ─── FORGEDOPS Trust Sprint · T2 · Platform Data Truth ────────────
