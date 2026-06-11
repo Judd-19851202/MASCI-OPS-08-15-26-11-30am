@@ -1,0 +1,193 @@
+{
+  "employees": {
+    "status": 200,
+    "count": 238,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "training_records_safety": {
+    "status": 200,
+    "count": 0,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "operations_events": {
+    "status": 200,
+    "count": 50,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "operations_holds": {
+    "status": 200,
+    "count": 2,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "daily_reports": {
+    "status": 200,
+    "count": 120,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "jhas": {
+    "status": 200,
+    "count": 0,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "incidents": {
+    "status": 200,
+    "count": 8,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "meetings": {
+    "status": 200,
+    "count": 34,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "inspections": {
+    "status": 200,
+    "count": 0,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "corrective_actions": {
+    "status": 200,
+    "count": 0,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "fire_extinguishers": {
+    "status": 200,
+    "count": 0,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "suppliers": {
+    "status": 200,
+    "count": 156,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "po_requests": {
+    "status": 200,
+    "count": 1,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "motive_status": {
+    "status": 200,
+    "count": 0,
+    "suspects": [],
+    "suspects_total": 0
+  },
+  "daily_reports_deep": {
+    "total": 120,
+    "missing_prepared_by": 0,
+    "empty_project_number": 1,
+    "empty_report_date": 0,
+    "duplicate_groups_by_date_project": 22,
+    "duplicate_examples": [
+      {
+        "key": "('2026-06-08', '24-12')",
+        "ids": [
+          "dab04578-c1a9-4a87-99bf-0345800e6a2d",
+          "087d2f4a-9c21-4892-9dc0-5127da1cf46d"
+        ],
+        "count": 2
+      },
+      {
+        "key": "('2026-06-04', '26-01 - CP')",
+        "ids": [
+          "c857b46e-8c38-41f6-8220-10a226cf9c6b",
+          "88147f0d-29fe-428c-8adb-0a938c798b2b"
+        ],
+        "count": 2
+      },
+      {
+        "key": "('2026-06-01', '24-12')",
+        "ids": [
+          "8e26475d-8155-4b17-8e6e-2c4a56a1d43d",
+          "2196ae74-dae9-41c7-84e0-1fdc00e47255"
+        ],
+        "count": 2
+      },
+      {
+        "key": "('2026-05-29', '24-12')",
+        "ids": [
+          "346d7dfb-568d-41ae-8e32-2f289c7b3818",
+          "9f05e2d1-43be-4550-bc1e-9a62a3a2f106"
+        ],
+        "count": 2
+      },
+      {
+        "key": "('2026-05-28', '24-12')",
+        "ids": [
+          "65b93af0-37bf-4be2-9ca3-983be63a29e4",
+          "cd65dbde-6ffd-4dd9-96f5-a87dd6e764a9"
+        ],
+        "count": 2
+      }
+    ]
+  },
+  "portal_users_detail": {
+    "admin_directory": {
+      "status": 200,
+      "count": 42,
+      "active": 42,
+      "disabled": 0,
+      "suspects": [],
+      "suspects_total": 0
+    },
+    "pms": {
+      "status": 200,
+      "count": 8,
+      "active": 8,
+      "disabled": 0,
+      "suspects": [],
+      "suspects_total": 0
+    },
+    "shop_users": {
+      "status": 200,
+      "count": 2,
+      "active": 2,
+      "disabled": 0,
+      "suspects": [],
+      "suspects_total": 0
+    },
+    "hr_users": {
+      "status": 200,
+      "count": 3,
+      "active": 3,
+      "disabled": 0,
+      "suspects": [],
+      "suspects_total": 0
+    },
+    "safety_users": {
+      "status": 200,
+      "count": 2,
+      "active": 2,
+      "disabled": 0,
+      "suspects": [],
+      "suspects_total": 0
+    },
+    "dispatch_users": {
+      "status": 200,
+      "count": 3,
+      "active": 3,
+      "disabled": 0,
+      "suspects": [],
+      "suspects_total": 0
+    },
+    "fl_users": {
+      "status": 200,
+      "count": 27,
+      "active": 26,
+      "disabled": 1,
+      "suspects": [],
+      "suspects_total": 0
+    }
+  }
+}
