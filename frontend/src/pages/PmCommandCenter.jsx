@@ -88,7 +88,7 @@ export default function PmCommandCenter() {
 
   const headerSubtitle = useMemo(() => {
     if (projectNumber) return `Project · ${projectNumber}`;
-    return "All my projects";
+    return "Projects assigned to you";
   }, [projectNumber]);
 
   return (
@@ -111,10 +111,10 @@ export default function PmCommandCenter() {
             <MasciLogo className="w-6 h-6 shrink-0" />
             <div className="min-w-0">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 truncate">
-                PM · Command Center · V1
+                PM Portal
               </div>
               <h1 className="font-display text-base sm:text-xl font-black truncate">
-                Project Operational Truth
+                Project Management Center
               </h1>
               <div className="text-[10.5px] sm:text-xs text-white/70 font-mono truncate" data-testid="pm-cc-header-subtitle">
                 {headerSubtitle}

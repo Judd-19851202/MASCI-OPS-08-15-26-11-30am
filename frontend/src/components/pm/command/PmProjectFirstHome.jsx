@@ -112,61 +112,91 @@ function EmptyRow({ children, testId }) {
   );
 }
 
-// ── Section A — Project Command ───────────────────────────────────
+// ── Section A — Project Command (Track 13.1 — per-project rollup list)
 function ProjectCommand({ overview, loading }) {
   const { t } = useT();
+  const scopedProjects = overview?.scoped_projects;
+  // "all" means super-admin / unscoped — show count only.
+  const isAdminScope = scopedProjects === "all" || scopedProjects == null;
+  const projects = Array.isArray(scopedProjects) ? scopedProjects : [];
   const counts = overview?.counts || {};
-  const active = counts.active_assignments ?? null;
-  const incidentsOpen = counts.incidents_open ?? null;
-  const capasOpen = counts.capas_open ?? null;
-  const defectsOpen = counts.defects_open ?? null;
+
   return (
     <SectionShell
-      kicker={t("Section A · Project Command")}
-      title={t("My Active Projects")}
-      lede={t("What's running, what needs PM eyes, and what to scrub before tomorrow.")}
+      kicker={t("Section A · My Projects")}
+      title={t("Projects Assigned to You")}
+      lede={isAdminScope
+        ? t("Admin / super-admin sees all MASCI projects. Click any project to drill in.")
+        : t("Each PM only sees projects they've been assigned through the Admin Project Manager Directory.")}
       testId="pm-pfh-project-command"
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <ActionTile
-          to="/admin/projects"
-          icon={Briefcase}
-          label={t("Active Projects")}
-          count={loading ? "—" : (active ?? "—")}
-          tone="slate"
-          hint={t("Active assignments scoped to your projects.")}
-          testId="pm-pfh-tile-active-projects"
-        />
-        <ActionTile
-          to="/incidents"
-          icon={ShieldAlert}
-          label={t("Open Incidents")}
-          count={loading ? "—" : (incidentsOpen ?? "—")}
-          tone={(incidentsOpen ?? 0) > 0 ? "rose" : "slate"}
-          hint={t("Incidents on jobs you own. Needs PM review.")}
-          testId="pm-pfh-tile-incidents"
-        />
-        <ActionTile
-          to="/admin/capas"
-          icon={ClipboardList}
-          label={t("Open CAPAs")}
-          count={loading ? "—" : (capasOpen ?? "—")}
-          tone={(capasOpen ?? 0) > 0 ? "amber" : "slate"}
-          hint={t("Corrective actions still open on your projects.")}
-          testId="pm-pfh-tile-capas"
-        />
-        <ActionTile
-          to="/shop"
-          icon={Wrench}
-          label={t("Open Defects")}
-          count={loading ? "—" : (defectsOpen ?? "—")}
-          tone={(defectsOpen ?? 0) > 0 ? "amber" : "slate"}
-          hint={(defectsOpen ?? 0) === 0
-            ? t("No defects with project linkage. Unscoped defects live in the Shop portal.")
-            : t("Equipment defects blocking project work.")}
-          testId="pm-pfh-tile-defects"
-        />
-      </div>
+      {loading ? (
+        <div className="space-y-1.5">
+          {[1,2,3].map((i) => (<div key={i} className="h-14 bg-slate-100 rounded animate-pulse" />))}
+        </div>
+      ) : isAdminScope ? (
+        // Admin-view summary — KPI tile (admins don't need per-project rows here).
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" data-testid="pm-pfh-admin-summary">
+          <ActionTile
+            to="/admin/projects"
+            icon={Briefcase}
+            label={t("Active Projects (admin scope)")}
+            count={counts.active_assignments ?? 0}
+            tone="slate"
+            hint={t("Admin / super-admin sees the full roster.")}
+            testId="pm-pfh-tile-admin-projects"
+          />
+          <ActionTile
+            to="/incidents"
+            icon={ShieldAlert}
+            label={t("Open Incidents")}
+            count={counts.incidents_open ?? 0}
+            tone={(counts.incidents_open ?? 0) > 0 ? "rose" : "slate"}
+            hint={t("Across every project (admin scope).")}
+            testId="pm-pfh-tile-incidents"
+          />
+          <ActionTile
+            to="/admin/capas"
+            icon={ClipboardList}
+            label={t("Open CAPAs")}
+            count={counts.capas_open ?? 0}
+            tone={(counts.capas_open ?? 0) > 0 ? "amber" : "slate"}
+            hint={t("Across every project (admin scope).")}
+            testId="pm-pfh-tile-capas"
+          />
+        </div>
+      ) : projects.length === 0 ? (
+        <EmptyRow testId="pm-pfh-projects-empty">
+          {t("No projects assigned to this PM yet. Admin can assign projects via the Project Manager Directory.")}
+          {" "}
+          <Link to="/admin/project-managers" className="underline font-bold not-italic">
+            {t("Open Project Manager Directory")} →
+          </Link>
+        </EmptyRow>
+      ) : (
+        <ul className="space-y-2" data-testid="pm-pfh-project-list">
+          {projects.map((pn) => (
+            <li key={pn}>
+              <Link
+                to={`/pm/command-center?project_number=${encodeURIComponent(pn)}`}
+                className="flex items-center justify-between gap-3 px-4 py-3 rounded-md border-2 border-slate-200 hover:border-red-400 hover:bg-red-50 transition-colors"
+                data-testid={`pm-pfh-project-row-${pn}`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Briefcase className="w-4 h-4 text-red-700 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="font-bold text-slate-900 text-sm font-mono">{pn}</div>
+                    <div className="text-[11px] text-slate-500">{t("Click to open project detail")}</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-red-700 shrink-0">
+                  {t("Open Project")} <ArrowRight className="w-3 h-3 inline ml-1" />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </SectionShell>
   );
 }
@@ -226,7 +256,7 @@ function FieldTruth({ photos, dailies, loading }) {
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2">
             {t("Recent Photos")}
-            <Link to="/admin/job-photos" data-testid="pm-pfh-photo-view-all" className="ml-2 text-red-700 hover:underline normal-case tracking-normal font-bold">
+            <Link to="/pm/photos" data-testid="pm-pfh-photo-view-all" className="ml-2 text-red-700 hover:underline normal-case tracking-normal font-bold">
               {t("View all")} →
             </Link>
           </div>
@@ -237,7 +267,7 @@ function FieldTruth({ photos, dailies, loading }) {
               {photos.slice(0, 8).map((p) => (
                 <Link
                   key={p.id}
-                  to={p.source === "daily_report" ? `/daily/${p.source_id}` : `/admin/job-photos?source_id=${p.source_id}`}
+                  to={p.source === "daily_report" ? `/daily/${p.source_id}` : `/pm/photos?source_id=${p.source_id}`}
                   className="aspect-square block bg-slate-200 rounded overflow-hidden hover:ring-2 hover:ring-red-400 transition-shadow"
                   data-testid={`pm-pfh-photo-${p.id}`}
                   title={`${p.project_number || ""} ${p.record_date || ""}`}
@@ -366,7 +396,7 @@ function DocumentsAndPlans() {
   const links = [
     { to: "/daily", icon: FileText, label: t("Daily Reports"), hint: t("All submitted dailies, filterable by project."), testId: "pm-pfh-doc-daily" },
     { to: "/jha", icon: BookMarked, label: t("Job Hazard Plans"), hint: t("Active JHPs / JHAs across your projects."), testId: "pm-pfh-doc-jhp" },
-    { to: "/admin/job-photos", icon: Camera, label: t("Photo Library"), hint: t("Every field photo submitted with a report."), testId: "pm-pfh-doc-photos" },
+    { to: "/pm/photos", icon: Camera, label: t("Photo Library"), hint: t("Every field photo submitted with a report."), testId: "pm-pfh-doc-photos" },
     { to: "/admin/projects", icon: Briefcase, label: t("Project Roster"), hint: t("All projects you can access."), testId: "pm-pfh-doc-projects" },
   ];
   return (
