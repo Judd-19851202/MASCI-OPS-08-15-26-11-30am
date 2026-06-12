@@ -4779,3 +4779,17 @@ Wrote `/app/memory/TRACK_13_9_1_ODR_CERTIFICATION_REPORT.md` · 578 lines · 12 
 **Track 13.14 · CLOSED.**
 
 After 13.14 the Track 13.9 §8 Immediate Build Queue stands at 5 of 8 items complete (3.0 + 5.0 + 4.0 + 5.0 + 8.0 = 25 of 34 hours). Remaining: BQ#6 PO-missing-receipts notification (5h), BQ#7 MaterialMovementTile embed (1.5h), BQ#8 ODR PM-Hub pending-drafts pill (2.5h).
+
+
+## 2026-06-12 · Track 13.15 — Live Portal Trust Copy Cleanup · DONE
+- Replaced stale "preview · side-by-side · no route swap · operator approval required" copy in 8 frontend files with truthful copy matching App.js route truth.
+- Live-swapped portals (HR · PM · Safety · Shop) now declare themselves live with the legacy rollback path.
+- Companion-only portals (Admin · Leadership · Dispatch V2) now declare themselves companion with classic remaining canonical.
+- V2Index per-lane status updated (`operational` → `live-swapped` for 4 portals).
+- `/driver/hub_v2` returns 404 confirmed (retirement hard lock intact).
+- Zero workflow change · zero route change · zero API change.
+- All Wave 1 + Track 13.13 + Track 13.14 surfacings verified intact.
+
+**Track 13.15 · CLOSED.**
+
+Trust state: all live portals now declare themselves live; all companion portals now declare themselves companion; route copy matches route table.

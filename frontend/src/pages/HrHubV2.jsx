@@ -188,7 +188,7 @@ export default function HrHubV2() {
             textTransform: "uppercase", fontWeight: 700, textAlign: "center",
           }}
         >
-          HR Hub V2 · Live HR data · Side-by-side with /hr · No route swap until operator approval
+          HR Hub V2 · Live HR operations hub · Real HR data · Real workflows · Legacy rollback at /hr/hub_legacy
         </div>
       )}
 
@@ -390,8 +390,8 @@ export default function HrHubV2() {
         >
           <strong style={{ color: "var(--ink-strong)" }}>HR Hub V2 · Track 13.6C · first real portal conversion.</strong>
           {" "}This hub renders live HR data through the Phase B1 design-system primitives.
-          {" "}It does NOT replace <code>/hr</code> — both routes are live in parallel.
-          {" "}Operator approval via <code>/_internal/v2-compare/hr</code> is required before any route swap.
+          {" "}This hub is the live HR operations surface at <code>/hr</code> — real APIs, real workflows.
+          {" "}Legacy rollback route remains available at <code>/hr/hub_legacy</code> during the operator signoff window.
         </div>
       </PortalShell>
     </div>

@@ -169,7 +169,7 @@ export default function DispatchHubV2() {
             textTransform: "uppercase", fontWeight: 700, textAlign: "center",
           }}
         >
-          Dispatch Hub V2 · Live Dispatch data · Side-by-side with /dispatch-portal · No route swap until operator approval
+          Dispatch Hub V2 · Companion action-queue lane · Map-first Dispatch at /dispatch-portal remains canonical
         </div>
       )}
 

@@ -75,7 +75,7 @@ export default function AdminHubV2() {
     <div data-testid="admin-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       {isPreview && (
         <div data-testid="admin-hub-v2-preview-banner" style={{ background: "var(--brand-primary)", color: "var(--brand-on-primary)", padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 700, textAlign: "center" }}>
-          Admin Hub V2 · Operations Control Center · Side-by-side with /admin · No route swap until operator approval
+          Admin Hub V2 · Operations Control Center · Companion lane to /admin · Classic Admin Hub remains canonical
         </div>
       )}
       <PortalShell

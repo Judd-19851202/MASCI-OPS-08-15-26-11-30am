@@ -1492,3 +1492,22 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 - Driver no-login lock preserved (dispatcher-side flow only).
 - Dispatch map · Shop Recovery Map · ODR · PO Requests card · Operations Actions · Project-Day Events panel all verified intact.
 
+
+## 2026-06-12 · Track 13.15 — Live Portal Trust Copy Cleanup · DONE
+
+### Implemented (copy-only · zero workflow change)
+- `HrHubV2.jsx` · `PmHubV2.jsx` · `SafetyHubV2.jsx` · `ShopHubV2.jsx`: replaced "Side-by-side · No route swap until operator approval" subtitles with "Live ... operations hub · Legacy rollback at /xxx/hub_legacy".
+- `PmHubV2.jsx` · `HrHubV2.jsx`: removed footer "Operator approval via /_internal/v2-compare/* required" lines and updated "does NOT replace" framing to truthful "This hub is the live ... surface ... Legacy rollback preserved during signoff window".
+- `AdminHubV2.jsx` · `LeadershipHubV2.jsx` · `DispatchHubV2.jsx`: subtitles now declare "Companion lane ... Classic ... remains canonical".
+- `ShopHubV2.jsx` · `SafetyHubV2.jsx`: header dev-comments updated from "(preview lane)" to "(live hub)".
+- `V2Index.jsx`: per-lane status `operational` → `live-swapped` for the 4 swapped portals; track tags now include the route-swap track number; preview-language banner replaced with truthful "live + companion + retired" framing.
+
+### Verified
+- All 8 live + companion surfaces (HR · PM · Safety · Shop · Dispatch classic · AdminHubV2 · LeadershipHubV2 · DispatchHubV2): zero operator-visible stale terms (Playwright body-text scan).
+- `/driver/hub_v2` returns 404 (DriverHubV2 retirement hard lock intact).
+- Dispatch MapLibre canvas, Driver `/shift` no-auth, PM Hub V2 PO card, ODR sidebar entries, Operations Actions sidebar, Operational Events panel, Scale-ticket extension — all intact.
+- ESLint clean on all 8 touched files.
+
+### NOT changed
+- Zero backend touch · zero route change · zero API change · zero auth change · zero workflow change.
+- Legitimate environment / health / capacity / outage banners preserved.

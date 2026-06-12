@@ -647,3 +647,19 @@ No deploy · no Save to GitHub · no merge · no new portals / APIs / auth / map
 - ODR PM-Hub pending-drafts pill (2.5h · Op-Value 40 · only meaningful AFTER Track 13.10 sidebar lands — which it did).
 
 After 13.15 + 13.16 + 13.17 land, the full 34-hour Immediate Build Queue from Track 13.9 §8 is closed. The platform's "collection of dashboards → operational heavy-civil OS" transition is complete.
+
+## 2026-06-12 update · post Track 13.15
+
+### Completed
+- ✅ Track 13.15 — Live Portal Trust Copy Cleanup · DONE (copy alignment to App.js route truth · 8 files · zero workflow change).
+
+### Critical-path next step (Build Queue #6 — unchanged)
+- **Track 13.16 — PO Missing-Receipts → tasks_notifications wire-up** (~5h · Op-Value 60 · LOW risk).
+
+### Remaining Build Queue items (7–8)
+- MaterialMovementTile embed in PM Hub V2 daily-rollup (~1.5h).
+- ODR PM-Hub pending-drafts pill (~2.5h).
+
+### Hard locks intact post-13.15
+- Dispatch map-first · Driver no-login · Shop Repair Complete ≠ Returned-To-Service · One map engine · One source of truth.
+- DriverHubV2 retirement: `/driver/hub_v2` returns 404 by route-table absence (verified this track).

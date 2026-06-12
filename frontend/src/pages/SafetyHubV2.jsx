@@ -1,4 +1,4 @@
-// Track 13.6H · Phase 4 — Safety Recovery (preview lane).
+// Track 13.6H · Phase 4 — Safety Recovery (live hub).
 //
 // MOUNTED AT: /safety-portal/hub_v2 (behind RequireSafety — same gate
 // as /safety-portal). Classic /safety-portal hub preserved unchanged.
@@ -151,7 +151,7 @@ export default function SafetyHubV2() {
             textTransform: "uppercase", fontWeight: 700, textAlign: "center",
           }}
         >
-          Safety Hub V2 · Live Safety data · Side-by-side with /safety-portal · No route swap until operator approval
+          Safety Hub V2 · Live Safety operations hub · Trench Safety remains untouched · Legacy rollback at /safety-portal/hub_legacy
         </div>
       )}
 

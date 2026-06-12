@@ -1,8 +1,8 @@
 // Track 13.6B · Operator Review Hub.
 //
-// Internal-only landing that lists every V2 preview lane, plus links to the
-// side-by-side comparison view per portal. NOT linked from any operator nav.
-// Mounted at /_internal/v2-index.
+// Internal-only landing that lists every V2 lane (live-swapped, companion,
+// or retired) plus links to the side-by-side comparison view per portal.
+// NOT linked from any operator nav. Mounted at /_internal/v2-index.
 
 import React from "react";
 import { Link } from "react-router-dom";
@@ -13,27 +13,27 @@ const PREVIEW_LANES = [
     id: "pm-v2",
     portal: "PM",
     title: "PM Portal · V2",
-    track: "13.6B / 13.6D",
+    track: "13.6B / 13.6D / 13.6F",
     builtOn: "2026-06-12",
-    status: "operational",
-    score: { powerful: 9, simple: 9, beautiful: 9, trusted: 9, proven: 8 },
+    status: "live-swapped",
+    score: { powerful: 9, simple: 9, beautiful: 9, trusted: 9, proven: 9 },
     previewTo: "/_internal/pm-v2-preview",
     compareTo: "/_internal/v2-compare/pm",
     currentTo: "/pm/hub",
-    summary: "Action-queue PM preview (13.6B mock) AND first real PM migration (13.6D live at /pm/hub_v2). Project Risks PERMANENTLY renamed to Project Constraints. RFIs and Submittals removed (no engine).",
+    summary: "LIVE — PmHubV2 is mounted at /pm/hub (Track 13.6F route swap). Project Risks PERMANENTLY renamed to Project Constraints. RFIs and Submittals removed (no engine). Legacy rollback preserved at /pm/hub_legacy during the operator signoff window.",
   },
   {
     id: "hr-v2",
     portal: "HR",
     title: "HR Portal · V2",
-    track: "13.6B / 13.6C",
+    track: "13.6B / 13.6C / 13.6E",
     builtOn: "2026-06-12",
-    status: "operational",
-    score: { powerful: 9, simple: 9, beautiful: 9, trusted: 9, proven: 8 },
+    status: "live-swapped",
+    score: { powerful: 9, simple: 9, beautiful: 9, trusted: 9, proven: 9 },
     previewTo: "/_internal/hr-v2-preview",
     compareTo: "/_internal/v2-compare/hr",
     currentTo: "/hr",
-    summary: "Action-queue HR preview AND first real portal migration. 13.6B preview at /_internal/hr-v2-preview (mock data). 13.6C LIVE hub at /hr/hub_v2 (real APIs, same HR auth, side-by-side with /hr).",
+    summary: "LIVE — HrHubV2 is mounted at /hr (Track 13.6E route swap). Real APIs · real workflows · same HR auth. Legacy rollback preserved at /hr/hub_legacy during the operator signoff window.",
   },
   {
     id: "design-system",
@@ -59,7 +59,7 @@ const PREVIEW_LANES = [
     previewTo: "/admin/hub_v2",
     compareTo: null,
     currentTo: "/admin",
-    summary: "COMPANION LANE (Track 13.6L retained). Provides cross-portal operational awareness (integrations health · expirations · safety / fleet attention) that classic /admin does not surface. Classic /admin remains the canonical settings / users / audit hub. No swap.",
+    summary: "COMPANION LANE (Track 13.6L retained). Provides cross-portal operational awareness (integrations health · expirations · safety / fleet attention) that classic /admin does not surface. Classic /admin remains the canonical settings / users / audit hub.",
   },
   {
     id: "dispatch-v2",
@@ -72,7 +72,7 @@ const PREVIEW_LANES = [
     previewTo: "/dispatch-portal/hub_v2",
     compareTo: null,
     currentTo: "/dispatch-portal",
-    summary: "COMPANION LANE ONLY (Track 13.6L hard lock). The map-dominant classic Dispatcher at /dispatch-portal is the canonical Dispatch experience — MapLibre + Motive + FleetWatcher are operationally critical. Dispatch V2 at /dispatch-portal/hub_v2 is a supplementary action-queue read; NEVER a swap target. No V2 redesign may hide / minimize / move-behind-tabs / replace the operational map.",
+    summary: "COMPANION LANE ONLY (Track 13.6L hard lock). The map-dominant classic Dispatcher at /dispatch-portal is the canonical Dispatch experience — MapLibre + Motive + FleetWatcher are operationally critical. Dispatch V2 at /dispatch-portal/hub_v2 is a supplementary action-queue read; never a swap target. No V2 redesign may hide / minimize / move-behind-tabs / replace the operational map.",
   },
   {
     id: "safety-v2",
@@ -80,12 +80,12 @@ const PREVIEW_LANES = [
     title: "Safety Portal · V2",
     track: "13.6H",
     builtOn: "2026-06-12",
-    status: "operational",
-    score: { powerful: 9, simple: 9, beautiful: 9, trusted: 9, proven: 8 },
+    status: "live-swapped",
+    score: { powerful: 9, simple: 9, beautiful: 9, trusted: 9, proven: 9 },
     previewTo: "/safety-portal/hub_v2",
     compareTo: null,
     currentTo: "/safety-portal",
-    summary: "Track 13.6H preview lane — Safety Hub V2 live at /safety-portal/hub_v2. Fed by /api/safety/overview, 8 action queues across CAPAs / compliance / incidents. Trench Safety benchmark module preserved at /safety/trench-safety (zero touch).",
+    summary: "LIVE — SafetyHubV2 is mounted at /safety-portal. Fed by /api/safety/overview, 8 action queues across CAPAs / compliance / incidents. Trench Safety benchmark module preserved at /safety/trench-safety (zero touch). Legacy rollback preserved at /safety-portal/hub_legacy during the operator signoff window.",
   },
   {
     id: "shop-v2",
@@ -93,12 +93,12 @@ const PREVIEW_LANES = [
     title: "Shop Portal · V2",
     track: "13.6I",
     builtOn: "2026-06-12",
-    status: "operational",
-    score: { powerful: 9, simple: 9, beautiful: 9, trusted: 9, proven: 8 },
+    status: "live-swapped",
+    score: { powerful: 9, simple: 9, beautiful: 9, trusted: 9, proven: 9 },
     previewTo: "/shop/hub_v2",
     compareTo: null,
     currentTo: "/shop",
-    summary: "Track 13.6I preview lane — Shop Hub V2 live at /shop/hub_v2. Fed by /api/dispatch/command/summary.shop, 7 action queues across attention, recovery pipeline. Repair Complete ≠ Safe To Use rule preserved via separate Returned-To-Service queue.",
+    summary: "LIVE — ShopHubV2 is mounted at /shop. Fed by /api/dispatch/command/summary.shop, 7 action queues across attention, recovery pipeline. Repair Complete ≠ Returned-To-Service rule preserved via separate Returned-To-Service queue. Recovery Map lens added by Track 13.7B. Legacy rollback preserved at /shop/hub_legacy during the operator signoff window.",
   },
   {
     id: "driver-v2",
@@ -232,8 +232,8 @@ export default function V2Index() {
       <PortalShell
         portalName="MASCI"
         portalRole="V2 Preview Review Hub"
-        pageTitle="Active V2 preview lanes"
-        subtitle="Every preview built so far · operator review before any migration · no route swap can happen from this page."
+        pageTitle="V2 lanes · live + companion + retired"
+        subtitle="Live-swapped portals are mounted at their canonical routes with legacy rollback preserved. Companion lanes supplement the classic portal. Retired lanes are documented for history only."
         lastActivity={<span data-testid="v2-index-last-activity">Updated by Track 13.6B</span>}
       >
         <section data-testid="v2-index-section-operational" style={{ marginBottom: 28 }}>

@@ -308,7 +308,7 @@ export default function PmHubV2() {
             textTransform: "uppercase", fontWeight: 700, textAlign: "center",
           }}
         >
-          PM Hub V2 · Live PM data · Side-by-side with /pm/hub · No route swap until operator approval
+          PM Hub V2 · Live PM operations hub · Real PM queues · Real workflow links · Legacy rollback at /pm/hub_legacy
         </div>
       )}
 
@@ -516,9 +516,9 @@ export default function PmHubV2() {
         >
           <strong style={{ color: "var(--ink-strong)" }}>PM Hub V2 · Track 13.6D · second real portal conversion.</strong>
           {" "}This hub renders live PM data through the Phase B1 design-system primitives.
-          {" "}It does NOT replace <code>/pm/hub</code> — both routes are live in parallel.
+          {" "}This hub is the live PM operations surface at <code>/pm/hub</code> — real APIs, real workflow links.
+          {" "}Legacy rollback route remains available at <code>/pm/hub_legacy</code> during the operator signoff window.
           {" "}Project Risks are permanently relabelled as Project Constraints. Surfaces without a backing MASCI engine are not rendered.
-          {" "}Operator approval via <code>/_internal/v2-compare/pm</code> is required before any route swap.
         </div>
       </PortalShell>
     </div>

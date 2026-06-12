@@ -1,7 +1,7 @@
-// Track 13.6I · Phase 5 — Shop Recovery (preview lane).
+// Track 13.6I · Phase 5 — Shop Recovery (live hub).
 //
 // MOUNTED AT: /shop/hub_v2 (behind RequireShop — same gate as /shop).
-// Classic Shop hub at /shop is preserved unchanged. No route swap.
+// Classic Shop hub remains available as the legacy rollback at /shop/hub_legacy.
 //
 // REAL DATA ONLY:
 //   /api/dispatch/command/summary  (existing cross-portal-read engine)
@@ -352,7 +352,7 @@ export default function ShopHubV2() {
           padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em",
           textTransform: "uppercase", fontWeight: 700, textAlign: "center",
         }}>
-          Shop Hub V2 · Live Shop data · Side-by-side with /shop · No route swap until operator approval
+          Shop Hub V2 · Live Shop operations hub · Repair Complete and Returned-To-Service remain separate · Legacy rollback at /shop/hub_legacy
         </div>
       )}
       <PortalShell
