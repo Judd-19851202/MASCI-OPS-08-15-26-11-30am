@@ -3352,3 +3352,36 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Deployment verdict (this phase)
 **Not Ready — Continue Audit (now closed pending operator authorisation).** All implementation tracks (Design System V1 / Recovery Plan / White-Label Architecture Roadmap / Standardisation Program) remain blocked pending explicit operator authorisation per track.
+
+---
+
+## Track 13.4F — Discovery Closure & Proven-Pillar Validation (FINAL DISCOVERY TRACK)
+
+**Mode honoured:** closure only — NO implementation, NO design, NO standardisation, NO recovery work, NO white-label building, NO fix, NO deploy, NO GitHub save, NO merge.
+
+### Three documents produced
+- `/app/memory/MASCI_DISCOVERY_CLOSURE_REPORT.md`
+- `/app/memory/MASCI_PROVEN_PILLAR_VALIDATION.md`
+- `/app/memory/MASCI_DISCOVERY_FINAL_VERDICT.md`
+
+### Final results
+- **Mobile evidence (V-13): RESOLVED.** 48 additional captures for Safety / Leadership / Field Leadership / Driver session entry points across desktop · iPad LS · iPad PT · phone in `/app/memory/track_13_4f_evidence/`.
+- **Driver portal (V-15 / R-13): INVALIDATED.** The finding was wrong — `DriverShift.jsx` at `/driver`, `DriverMagicLanding.jsx`, `ShiftStart.jsx`, plus 11 backend driver routes in `dispatch_driver.py` all exist.
+- **Proven pillar:** 7 Verified · 1 Resolved · 1 Invalidated · **3 Cannot Verify from preview** (D-01 · D-03 · D-04 production Motive — 7-point production checklist remains ready).
+- **Active findings registry:** 78 (down from 80 pre-closure: 1 invalidated + 1 resolved archived).
+- **Discovery completeness across implementation tracks:** Design System V1 · Recovery Plan · Standardisation Program · White-Label Architecture Roadmap — **all four can begin scope work with current evidence.**
+
+### Final verdict
+**DISCOVERY COMPLETE.** Tracks 13.4A → 13.4F discovery phase is permanently closed and archived. One open gap explicitly named: production Motive activity verification, which is not a scoping blocker.
+
+### Recommended next-track sequence (operator-authorisation gated)
+1. Production Motive Audit (operator-led)  
+2. MASCI Design System V1  
+3. MASCI Operational Recovery Plan Phase 1  
+4. MASCI Operational Recovery Plan Phase 2  
+5. ForgedOps Productisation Phase 1  
+6. Standardisation Program  
+7. ForgedOps Productisation Phase 2
+
+### Deployment verdict
+**Not Ready — Awaiting Operator Authorisation.** No implementation track begins without explicit per-track authorisation.
