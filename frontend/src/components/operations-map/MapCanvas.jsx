@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+// Track 13.4A · co-locate the `.ops-map-canvas` CSS with the
+// component that owns the class so styling travels with the
+// component whenever it's re-used (e.g. DispatchMapHero) and
+// doesn't depend on the parent page importing OperationsMap.css.
+import "./OperationsMap.css";
 import { spriteUrl, KIND_LIST } from "@/lib/operations-map/icons";
 
 /* MapCanvas
