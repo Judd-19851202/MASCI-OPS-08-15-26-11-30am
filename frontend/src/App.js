@@ -6,6 +6,8 @@ import { Toaster } from "sonner";
 import Hub from "@/pages/Hub";
 // Track 13.5A · Phase B1 — Internal design-system showcase (lazy, isolated).
 const DesignSystemDemo = React.lazy(() => import("@/pages/DesignSystemDemo"));
+// Track 13.5A · Phase B2 — Internal PM Portal V2 preview lane (lazy, mock data only).
+const PmV2Preview = React.lazy(() => import("@/pages/PmV2Preview"));
 // ROUTE-SPLIT-001 Wave 3 — ODR + Operational Records + Operations Actions lazy.
 const OdrNew = React.lazy(() => import("@/pages/odr/OdrNew"));
 const OdrCenter = React.lazy(() => import("@/pages/odr/OdrCenter"));
@@ -923,6 +925,7 @@ function App() {
                 Mounted under `_internal` to keep it out of operator nav. No links exist
                 pointing here from any portal. Authorized 2026-02 by operator. */}
             <Route path="/_internal/design-system" element={<DesignSystemDemo />} />
+            <Route path="/_internal/pm-v2-preview" element={<PmV2Preview />} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>

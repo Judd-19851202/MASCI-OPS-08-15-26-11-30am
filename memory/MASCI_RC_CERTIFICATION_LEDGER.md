@@ -3461,3 +3461,27 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Deployment verdict
 **Not Ready — Awaiting Operator Authorisation for Phase B2 (Pilot Portal Migration).** Primitives sit dormant until B2 is authorised.
+
+---
+
+## Track 13.5A · Phase B2 — PM Portal V2 Preview Lane
+
+**Mode honoured:** preview-only · mock data · NO portal migration · NO PM workflow change · NO PM API touched · NO route swap · NO deploy · NO GitHub save · NO merge.
+
+### Files created
+- `/app/frontend/src/pages/PmV2Preview.jsx` — single preview page built entirely on B1 primitives. Renders all 11 requested PM surfaces (Command Center pulse · Project list · Project Health · Risks · RFIs · Submittals · Incidents · CAPAs · Photos · Daily Reports · Empty states) from local mock fixtures. No `/api/pm/*` calls.
+
+### File edited
+- `/app/frontend/src/App.js` — added one lazy import and one `<Route path="/_internal/pm-v2-preview">` immediately before the catch-all. Not linked from any operator navigation.
+
+### Verification
+- ESLint clean over the new file.
+- All 12 V2-preview `data-testid` markers asserted present at all three viewports (1920×1080 / 1180×820 / 820×1180).
+- Logged-in PM journey re-walked through `/pm/hub`, `/pm/command-center`, `/pm/jobs`, `/pm/daily`, `/pm/incidents`, `/pm/photos`: every design-system marker count = 0, every PM-V2 marker count = 0. Live PM portal is byte-for-byte unaffected.
+
+### Evidence
+- Report: `/app/memory/TRACK_13_5A_PHASE_B2_PM_V2_PREVIEW_REPORT.md`
+- Screenshots: `/app/memory/screenshots/track_13_5A_B2_side_by_side/` (21 files — 3 V2 viewports + 18 current-PM viewports across 6 surfaces × 3 viewports)
+
+### Verdict
+**PM V2 Preview Approved For Migration Planning.** Next gate is Phase B3 (Pilot Migration of PM Portal), which is BLOCKED pending explicit operator authorization.

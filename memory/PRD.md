@@ -40035,3 +40035,19 @@ If all hold → **production certified**. Else → escalate.
 **Next gate:** Phase B2 (Pilot Portal Migration) — BLOCKED pending explicit operator authorization. When authorized, operator must name a single pilot portal; primitives will be applied side-by-side and operator visually compares before any route swap.
 
 **Standing rules still in force:** No deploy. No GitHub save. No merge.
+
+---
+
+## 2026-06-12 · Track 13.5A · Phase B2 — PM Portal V2 Preview Lane (COMPLETE · approved for migration planning)
+
+**Mode:** preview-only · mock data · no portal swap · no PM workflow touched · no API called · no deploy.
+
+**Created:** `/app/frontend/src/pages/PmV2Preview.jsx` — mounts at `/_internal/pm-v2-preview` via a single lazy `<Route>` added to App.js. Renders 11 PM surfaces (Command Center pulse · Project list · Project Health · Risks · RFIs · Submittals · Incidents · CAPAs · Photos · Daily Reports · Empty states) entirely from local mock fixtures using only the Phase B1 design-system primitives.
+
+**Isolation guardrail:** Logged-in PM walk through `/pm/hub`, `/pm/command-center`, `/pm/jobs`, `/pm/daily`, `/pm/incidents`, `/pm/photos` shows zero design-system markers and zero PM-V2 markers on the live PM portal. Live behavior unchanged.
+
+**Side-by-side evidence:** `/app/memory/screenshots/track_13_5A_B2_side_by_side/` — 3 V2 viewports + 18 current-PM viewports (6 surfaces × 3 viewports each: 1920×1080, 1180×820, 820×1180).
+
+**Verdict:** PM V2 Preview Approved For Migration Planning. Next gate is Phase B3 (Pilot Migration of PM Portal), BLOCKED pending explicit operator authorization to begin per-surface `*_v2` mounts and swaps.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge.
