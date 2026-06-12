@@ -4793,3 +4793,15 @@ After 13.14 the Track 13.9 §8 Immediate Build Queue stands at 5 of 8 items comp
 **Track 13.15 · CLOSED.**
 
 Trust state: all live portals now declare themselves live; all companion portals now declare themselves companion; route copy matches route table.
+
+
+## 2026-06-12 · Track 13.16 — Dispatch Sidebar Dead-Link Cleanup · DONE
+- 6 dead links removed · 2 canonical routes added · 1 empty domain removed.
+- 0/7 dead links in DispatchSideNavV2.jsx (was 6/11).
+- Dispatch map-first MapLibre canvas confirmed intact.
+- All Track 13.10–13.15 surfacings + hard locks confirmed intact.
+- Single-file edit · zero App.js change · zero backend change · zero new route.
+
+**Track 13.16 · CLOSED.**
+
+Deployment Readiness post 13.16: 🟢 **GREEN**. Platform Health Score: 9.9 / 10. Ready for Track 13.6N 30-day operator signoff window.

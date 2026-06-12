@@ -663,3 +663,17 @@ After 13.15 + 13.16 + 13.17 land, the full 34-hour Immediate Build Queue from Tr
 ### Hard locks intact post-13.15
 - Dispatch map-first · Driver no-login · Shop Repair Complete ≠ Returned-To-Service · One map engine · One source of truth.
 - DriverHubV2 retirement: `/driver/hub_v2` returns 404 by route-table absence (verified this track).
+
+## 2026-06-12 · Post Track 13.16
+- ✅ Track 13.16 — Dispatch sidebar dead-link cleanup · DONE.
+- 🟢 Deployment readiness now GREEN.
+
+### Critical-path next step
+- **Track 13.17 — Build Queue #6 — PO Missing-Receipts → tasks_notifications wire-up** (~5h · Op-Value 60 · LOW risk).
+  Bind existing `POST /api/admin/po-requests/scan-missing-receipts` output into per-assignee `tasks_notifications` rows.
+
+### Remaining Build Queue items
+- BQ #7 — MaterialMovementTile embed in PM Hub V2 daily-rollup (~1.5h · Op-Value 45).
+- BQ #8 — ODR PM-Hub pending-drafts pill (~2.5h · Op-Value 40).
+
+After 13.17 + 13.18 + 13.19 land, the entire 34-hour Immediate Build Queue from Track 13.9 §8 is closed. Then Track 13.6N opens the 30-day operator signoff window → Track 13.6O legacy retirement.

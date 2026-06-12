@@ -13,12 +13,22 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  AlertOctagon, ClipboardCheck, Plus, Truck, IdCard, KeyRound,
-  Activity, FileClock, BarChart3, GraduationCap, ShieldEllipsis,
+  AlertOctagon, ClipboardCheck, Truck, IdCard, KeyRound,
+  Radar, GraduationCap, ShieldEllipsis,
 } from "lucide-react";
 
 // Domain groups · ordered by operational velocity (highest first).
 // `stripe` colour communicates the domain; red is the ONE live-board domain.
+//
+// Track 13.16 (2026-06-12) — Dead-link cleanup. Six previously stale paths
+// (`/dispatch-portal/assignments/new` · `/dispatch-portal/drivers` ·
+// `/dispatch-portal/history` · `/dispatch-portal/lifecycle` ·
+// `/dispatch-portal/reports` · `/dispatch-portal/sessions`) were never
+// mounted in App.js. They are REMOVED here per TRACK_X integrity
+// certification finding. Two canonical mounted routes that benefit
+// operators are added: `/dispatch-portal/command` (Dispatch Command
+// Center) in Live Board and `/dispatch-portal/fleet` (Fleet Visibility)
+// in Driver Coordination. No new routes invented. No backend touched.
 export const DISPATCH_DOMAINS_V2 = [
   {
     id: "live-board",
@@ -27,33 +37,20 @@ export const DISPATCH_DOMAINS_V2 = [
     stripe: "#b91c1c", // red-700 — the only red domain (live operations)
     icon: AlertOctagon,
     routes: [
-      { to: "/dispatch-portal/board",           label: "Haul Board",         desc: "Five-second silent refresh. Severity-first.",        icon: AlertOctagon },
-      { to: "/dispatch-portal",                 label: "Dispatch Hub",       desc: "Operational moments and primary actions.",            icon: ClipboardCheck, end: true },
-      { to: "/dispatch-portal/assignments/new", label: "Create Assignment",  desc: "Issue a new haul to a truck and driver.",            icon: Plus },
+      { to: "/dispatch-portal/board",   label: "Haul Board",            desc: "Five-second silent refresh. Severity-first.",        icon: AlertOctagon },
+      { to: "/dispatch-portal",         label: "Dispatch Hub",          desc: "Operational moments and primary actions.",            icon: ClipboardCheck, end: true },
+      { to: "/dispatch-portal/command", label: "Dispatch Command",      desc: "Command Center · live map + assignments.",            icon: Radar },
     ],
   },
   {
     id: "driver-coordination",
     label: "Driver Coordination",
-    subline: "Drivers, qualifications, magic-link sessions.",
+    subline: "Fleet visibility, driver qualifications, MVR windows.",
     stripe: "#0e7490", // cyan-700 — Dispatch chrome
     icon: Truck,
     routes: [
-      { to: "/dispatch-portal/drivers",                label: "Drivers Directory",     desc: "Active roster, contact, status.",               icon: Truck },
-      { to: "/dispatch-portal/driver-qualification",   label: "Driver Qualification",  desc: "Eligibility, qualifications, MVR windows.",     icon: IdCard },
-      { to: "/dispatch-portal/sessions",                label: "Active Sessions",       desc: "Live magic-link sessions and revocations.",     icon: KeyRound },
-    ],
-  },
-  {
-    id: "lifecycle-records",
-    label: "Lifecycle & Records",
-    subline: "Truck lifecycle, history, transition trails.",
-    stripe: "#7c3aed", // violet-600
-    icon: Activity,
-    routes: [
-      { to: "/dispatch-portal/lifecycle",   label: "Truck Lifecycle",   desc: "Current state and per-truck transitions.",       icon: Activity },
-      { to: "/dispatch-portal/history",     label: "Assignment History", desc: "Past assignments, cancellations, outcomes.",     icon: FileClock },
-      { to: "/dispatch-portal/reports",     label: "Reports & Exports", desc: "Utilization, dwell, deadhead summaries.",        icon: BarChart3 },
+      { to: "/dispatch-portal/fleet",                label: "Fleet Visibility",      desc: "Live asset roster · per-truck status.",          icon: Truck },
+      { to: "/dispatch-portal/driver-qualification", label: "Driver Qualification",  desc: "Eligibility, qualifications, MVR windows.",     icon: IdCard },
     ],
   },
   {

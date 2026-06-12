@@ -63,3 +63,7 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 ## Health
 - Green · stable · governed · no regressions
 - Testing: bypass for pytest-playwright Chromium 1217/1208 mismatch (use screenshot tool + bash)
+
+## 2026-06-12 · Track 13.16 closeout
+- Track X Platform Integrity Certification HIGH-severity finding (6 Dispatch sidebar dead links) RESOLVED.
+- Deployment readiness 🟡 YELLOW → 🟢 **GREEN**.

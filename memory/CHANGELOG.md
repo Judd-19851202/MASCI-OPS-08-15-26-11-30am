@@ -1511,3 +1511,18 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 ### NOT changed
 - Zero backend touch · zero route change · zero API change · zero auth change · zero workflow change.
 - Legitimate environment / health / capacity / outage banners preserved.
+
+## 2026-06-12 · Track 13.16 — Dispatch Sidebar Dead-Link Cleanup · DONE
+
+### Implemented (single-file edit)
+- `frontend/src/components/dispatch/sidebar/DispatchSideNavV2.jsx`: removed 6 dead entries pointing at non-existent routes (`/dispatch-portal/assignments/new`, `/drivers`, `/history`, `/lifecycle`, `/reports`, `/sessions`). Removed the empty Lifecycle & Records domain. Added 2 canonical mounted routes (`/dispatch-portal/command` + `/dispatch-portal/fleet`).
+
+### Verified
+- DOM dead-link scan: all 6 stale paths absent post-edit.
+- Source-grep scan vs App.js: 7/7 remaining sidebar destinations resolve to mounted routes.
+- Dispatch map-first MapLibre canvas intact at `/dispatch-portal`.
+- Each new canonical destination loads without 404.
+- All hard locks + Wave 1 + 13.13/13.14/13.15 surfacings intact.
+
+### Deployment Readiness
+🟡 YELLOW → 🟢 **GREEN** · platform health 9.6 → 9.9.
