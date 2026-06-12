@@ -84,6 +84,40 @@
 
 ---
 
+## 2026-06-12 · Track 13.22 — Material Movement Ledger · Phase D · Admin Data-Quality + CSV Export
+
+**Mode:** Controlled implementation · additive backend (`format=csv`) + new admin page + Admin Hub V2 card.
+
+- Extended existing endpoint `GET /api/dispatch/haul-ledger` with optional `format=csv` query parameter. CSV streams 20 whitelisted operational fields (`date`, `project_number`, `project_name`, `material_code`, `material_description`, `haul_type`, `truck_id`, `driver_name`, `source_location`, `destination_location`, `haul_cycle_id`, `assignment_id`, `scale_ticket_count`, `net_lbs`, `net_tons`, `verification_status`, `source_system`, `started_at`, `completed_at`, `fleetwatcher_connected`). NO cost / pay / contract / billing / invoice / accounting / margin fields. `fleetwatcher_connected` is always `false`.
+- New admin route `/admin/material-ledger-quality` (admin-gated via `RequireAdmin`). Page defaults to last-30-days `verification_status=missing_proof` queue.
+- New Admin Hub V2 `Section 05 · Material data quality · admin` card surfaces the page (link-only, no hub count fetch).
+- 4 files touched: `backend/routes/dispatch_haul_ledger.py` (CSV branch + `_csv_response()` helper + 20-field whitelist) · `frontend/src/pages/AdminMaterialLedgerQuality.jsx` (NEW · ~430 lines · 25+ unique data-testids) · `frontend/src/App.js` (lazy import + Route) · `frontend/src/pages/AdminHubV2.jsx` (Section 05 card).
+- Backend curl smoke: JSON 200 · CSV 200 with 93 lines · `Content-Type: text/csv; charset=utf-8` · `Content-Disposition: attachment; filename="masci_haul_ledger_2026-05-15_to_2026-06-12.csv"` · `X-MASCI-Export: haul-ledger-phase-d` · 422 on invalid `format` · 422 on 91-day range (Phase C cap preserved) · FleetWatcher hard-zero.
+- Live admin browser smoke: 92 missing-proof rows surfaced as default queue across 13 projects, 83 trucks, 4 materials. Export CSV button + 10 rollup tiles + filterable rows table all confirmed rendered. FleetWatcher trust footer verbatim.
+- Admin Hub V2 Section 05 card mounted and discoverable.
+- Dispatch MapLibre canvas at `/dispatch-portal` confirmed still mounted post-deploy.
+- Phase A/B/C surfaces untouched and verified intact.
+- ESLint clean. All hard locks intact.
+- **Material Movement Ledger phased plan (Phases A–D) is now COMPLETE.** Phase E (FleetWatcher ingestion) remains BLOCKED on `FLEETWATCHER_API_KEY` + service credentials.
+- Report: `/app/memory/TRACK_13_22_MATERIAL_MOVEMENT_LEDGER_PHASE_D_ADMIN_DATA_QUALITY_CSV.md`.
+
+---
+
+## 2026-06-12 · Track 13.23 — ODR PM-Hub Pending-Drafts Pill (last IBQ item)
+
+**Mode:** Controlled implementation · single-file frontend additive.
+
+- Added `ODR Pending` QueueCard to PM Hub V2 Section 01 directly after the PO Requests card. testid `pm-hub-v2-queue-odr`. Click destination `/pm/odr`.
+- Count source: existing `GET /api/odr?limit=200` (PM scope applied server-side via `build_odr_scope_filter`). Attention count = `items[]` filtered to `status ∈ {draft, returned}` (the two states needing PM rework). `submitted` is awaiting senior signoff (out of PM hands); `approved` is closed.
+- `usePmSignals` extended with `odr_attention` + `odr_loaded` state keys plus an additive parallel fetch task. Added to the `allZero` calm-state guard so the all-clear banner waits for ODR too.
+- Single file changed: `frontend/src/pages/PmHubV2.jsx`. Zero backend touch · zero new endpoint · zero new collection · zero new route · zero new auth.
+- ESLint clean. Backend curl smoke confirms `/api/odr` returns honest empty `{count:0, items:[]}` for the PM demo scope. Browser smoke confirms pill mount, all-clear chip, click navigates to live `/pm/odr` page, and the Track 13.11 PO Requests card still mounts alongside.
+- **Immediate Build Queue (Track 13.9 §8) is now EMPTY.** All 8 items shipped.
+- All hard locks intact (Dispatch Map-First · Driver no-login · DriverHubV2 retired · Shop RTS · one map engine · Material Movement Phases A/B/C/D untouched · Track 13.11/13.13/13.14/13.17 untouched · ODR workflows untouched · no new collection).
+- Report: `/app/memory/TRACK_13_23_ODR_PM_HUB_PENDING_DRAFTS_PILL.md`.
+
+---
+
 ---
 
 ---

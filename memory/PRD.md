@@ -35,6 +35,11 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **13.19 · MATERIAL MOVEMENT LEDGER · PHASE A** — `/api/material-movement/daily/{p}/{d}` enriched additively with `scale_ticket_proofs[]` (host_kind=assignment join on `operational_attachments` 5 proof-bearing types), `haul_cycles[]` (project-day join), `proof_summary{}`, `rollups{}`, `verification_status` (virtual closed-set classifier), `source_breakdown{}` (FleetWatcher hard-zero). Single file: `backend/routes/material_movement.py`. 9/9 targeted pytest pass. Zero new collection · zero UI change · zero schema change · zero auth widening. Backward-compat verified against `MaterialMovementTile.jsx`. All Track 13.13–13.17 surfaces + hard locks intact.
 - **13.20 · MATERIAL MOVEMENT LEDGER · PHASE B** — Read-only project-scoped `ProjectMaterialMovementPanel` added to `PmProjectDetail.jsx`. Consumes Phase A endpoint. Renders verification chip · 5 counters · Materials In · Materials Out · Haul Cycles · Scale-Ticket Proof · source breakdown footer (FleetWatcher honestly "not connected"). Honest empty + error states. ESLint clean. Live browser smoke confirms mount + coexistence with Track 13.13 Operational Events panel. Single frontend file · zero backend touch · zero new endpoint · zero new collection.
 - **13.21 · MATERIAL MOVEMENT LEDGER · PHASE C** — Dispatch companion haul ledger live at `/dispatch-portal/haul-ledger`. New `GET /api/dispatch/haul-ledger` endpoint (dispatch/admin gated · 90-day cap · 6 query filters) composes existing `haul_cycles` + `operational_attachments` + `daily_reports`. New page `DispatchHaulLedger.jsx` + sidebar link in Driver Coordination domain. NO new collection · NO writes · NO map overlay · MapLibre `/dispatch-portal` map-first hard-lock confirmed intact. FleetWatcher honestly `not_connected`. Live smoke: 92 rows across 12 projects/83 trucks in a 30-day preview window. ESLint clean.
+- **13.22 · MATERIAL MOVEMENT LEDGER · PHASE D** — Admin Material Ledger Data-Quality + CSV Export. Extended `/api/dispatch/haul-ledger` with `?format=csv` (operational-only 20-field whitelist · NO financial fields · FleetWatcher `false` on every row). New admin page `/admin/material-ledger-quality` defaults to last-30-days `missing_proof` queue. New Admin Hub V2 Section 05 card. Live smoke: 92 missing-proof rows surfaced; CSV stream returns 93 lines with correct headers and date-bounded filename. ESLint clean. Map-first hard lock intact.
+- **13.23 · ODR PM-HUB PENDING-DRAFTS PILL (last IBQ item)** — Small additive ODR attention QueueCard on PM Hub V2 reading existing `/api/odr` (PM-scoped server-side). Counts ODRs in `{draft, returned}` (the two states needing PM rework). Single-file frontend additive (`PmHubV2.jsx`). Zero backend touch · zero new endpoint · zero new collection. ESLint clean · live PM smoke confirms mount + all-clear branch + click routes to `/pm/odr` + PO card coexists.
+
+### Material Movement Ledger phased plan (Track 13.18 → 13.22) — COMPLETE through Phase D. Phase E (FleetWatcher) BLOCKED on credentials.
+### Immediate Build Queue (Track 13.9 §8) — EMPTY. Recommended next move: operator sign-off window, not new feature builds.
 
 ## Backlog (P0/P1/P2)
 ### P0 — Immediate Build Queue (from Track 13.9 §8)
@@ -45,13 +50,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 5. ~~Scale Ticket 4-field extension on `operational_attachments.scale_ticket`~~ ✅ **DONE 2026-06-12 · Track 13.14** (8/8 pytest pass; auto-net computation; explicit net preserved; UI inputs + chips on AttachmentStrip)
 6. ~~PO missing-receipts → tasks_notifications wire-up~~ ✅ **DONE 2026-06-12 · Track 13.17**
 7. ~~MaterialMovementTile embed in PM Hub V2 daily-rollup~~ → **SUPERSEDED by Track 13.18 architecture.** Tile already on `ViewDailyReport.jsx`; PM project material panel deferred to Track 13.20 (Phase B).
-8. ODR PM-Hub pending-drafts pill (2.5h)
+8. ~~ODR PM-Hub pending-drafts pill~~ ✅ **DONE 2026-06-12 · Track 13.23**
+
+**Immediate Build Queue (Track 13.9 §8) is now EMPTY.** All 8 items shipped.
 
 ### P0.5 — Material Movement Ledger (Track 13.18 phased plan)
 - ~~**Track 13.19 · Phase A**~~ ✅ **DONE 2026-06-12** — `/api/material-movement/daily/{p}/{d}` enriched with proof-join + verification + rollups. Single file. 9/9 tests pass.
 - ~~**Track 13.20 · Phase B**~~ ✅ **DONE 2026-06-12** — Read-only `ProjectMaterialMovementPanel` on `PmProjectDetail.jsx`. ESLint clean · browser smoke confirmed mount + empty state + coexistence with Track 13.13.
 - ~~**Track 13.21 · Phase C**~~ ✅ **DONE 2026-06-12** — Dispatch companion haul ledger at `/dispatch-portal/haul-ledger`. Endpoint `/api/dispatch/haul-ledger` + new page + sidebar link. MapLibre map-first hard-lock confirmed intact.
-- **Track 13.22 · Phase D · NEXT (recommended)** — Admin Material Data-Quality page + CSV export. Admin Hub V2 card. (~5h)
+- ~~**Track 13.22 · Phase D**~~ ✅ **DONE 2026-06-12** — Admin Data-Quality + CSV Export. Endpoint extended with `?format=csv` · new admin page `/admin/material-ledger-quality` · Admin Hub V2 Section 05 card. Map-first hard lock intact.
+- **Phase E (FleetWatcher)** — remains BLOCKED on `FLEETWATCHER_API_KEY` + active service credentials.
+- **Track 13.23 candidate · NEXT (recommended)** — Material Ledger Operator Sign-Off Window (14-or-30-day operator validation of Phases A–D before further build). Alternative: ODR PM-Hub pending-drafts pill (BQ#8, ~2.5h).
 - **Track 13.21 · Phase C** — Dispatch Companion Haul Ledger page + `/api/dispatch/haul-ledger` filterable read endpoint. Outside MapLibre canvas. (~6h)
 - **Track 13.22 · Phase D** — Admin Material Data-Quality page + CSV export. Admin Hub V2 card. (~5h)
 - **Phase E** — FleetWatcher ingestion. **BLOCKED on `FLEETWATCHER_API_KEY` + service credentials.**
@@ -117,3 +126,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Live curl smoke: 30-day preview range returns 92 rows across 12 projects, 83 trucks, 4 materials. 91-day range returns 422 with explicit error.
 - ESLint clean across all 5 touched files. Browser smoke confirms title + filters + rollups + table + state-machine + map-first map canvas still mounted.
 - All hard locks intact. Deployment readiness remains 🟢 **GREEN**.
+
+## 2026-06-12 · Track 13.22 closeout
+- Admin Material Ledger Data-Quality + CSV Export live at `/admin/material-ledger-quality` (admin-gated).
+- Extended `/api/dispatch/haul-ledger` with `?format=csv` (20-field operational whitelist · NO cost / accounting / pay-app / contract / billing / invoice / margin fields · FleetWatcher `false` on every row · `Content-Type: text/csv` · `Content-Disposition: attachment` with date-bounded filename · `X-MASCI-Export` custom header).
+- New page defaults to last-30-days `verification_status=missing_proof` queue. Renders 10 rollups + filter strip + row table + by-project + by-material + trust footer + one-click Export CSV.
+- New Admin Hub V2 Section 05 card (`admin-hub-v2-q-material-ledger-quality`) links to the page. No hub count fetch.
+- Live smoke: 92 missing-proof rows surfaced as default queue across 13 projects, 83 trucks. CSV returns 93 lines (header + 92 data). FleetWatcher trust footer verbatim.
+- 4 files touched: `backend/routes/dispatch_haul_ledger.py` (CSV branch) · `frontend/src/pages/AdminMaterialLedgerQuality.jsx` (new) · `frontend/src/App.js` (route) · `frontend/src/pages/AdminHubV2.jsx` (Section 05).
+- ESLint clean. Phase A/B/C surfaces untouched. Dispatch map-first hard lock confirmed.
+- **Material Movement Ledger phased plan (Phases A–D) is now COMPLETE.** Phase E (FleetWatcher) blocked on credentials.
+- Deployment readiness remains 🟢 **GREEN**.
+
+## 2026-06-12 · Track 13.23 closeout
+- ODR PM-Hub pending-drafts pill mounted on `PmHubV2.jsx` Section 01 directly after the PO Requests card.
+- Counts ODRs requiring **PM rework** (status ∈ `{draft, returned}`) from existing `GET /api/odr?limit=200` — PM scope applied server-side via `build_odr_scope_filter`.
+- Single-file frontend additive. ~12 lines added. Zero backend touch · zero new endpoint · zero new collection · zero new auth.
+- ESLint clean. Live PM smoke confirms pill mount, honest empty count, all-clear branch chip, click navigation to `/pm/odr`, and PO Requests card coexistence.
+- All hard locks intact.
+- **Immediate Build Queue (Track 13.9 §8) is now EMPTY.** All 8 items shipped across the program.
+- Recommended next move: operator sign-off window, not new feature builds.
+- Deployment readiness remains 🟢 **GREEN**.

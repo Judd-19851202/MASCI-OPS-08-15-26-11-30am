@@ -30,6 +30,7 @@ const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
 // Track 13.6L — DriverHubV2 retired (existing /shift + /d/:token + /driver already satisfy ≤ 2 taps / ≤ 30 s).
 // Track 13.6K — Admin / Leadership Hub V2 COMPANIONS (no swap). FL Hub V2 retired in 13.6L.
 const AdminHubV2 = React.lazy(() => import("@/pages/AdminHubV2"));
+const AdminMaterialLedgerQuality = React.lazy(() => import("@/pages/AdminMaterialLedgerQuality"));
 const LeadershipHubV2 = React.lazy(() => import("@/pages/LeadershipHubV2"));
 const ShiftStart = React.lazy(() => import("@/pages/driver/ShiftStart"));
 import SafetySection from "@/pages/SafetySection";
@@ -528,6 +529,8 @@ function App() {
             <Route path="/admin" element={A(<AdminHub />)} />
             {/* Track 13.6K · Phase 1 — Admin Hub V2 preview (Operations Control Center). */}
             <Route path="/admin/hub_v2" element={A(<AdminHubV2 />)} />
+            {/* Track 13.22 · Phase D · Material Movement Ledger · Admin Data-Quality + CSV. */}
+            <Route path="/admin/material-ledger-quality" element={A(<AdminMaterialLedgerQuality />)} />
             <Route path="/admin/people" element={A(<AdminPeople />)} />
             <Route path="/admin/mfa" element={A(<AdminMfa />)} />
             <Route path="/admin/promo-assets" element={A(<AdminPromoAssets />)} />

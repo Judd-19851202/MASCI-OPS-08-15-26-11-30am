@@ -24,6 +24,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 
 
 # Reuse the same proof-bearing attachment types defined in Phase A.
@@ -75,7 +76,11 @@ def build_dispatch_haul_ledger_router(
             None,
             description="Filter on derived per-row status. Closed set.",
         ),
-    ) -> Dict[str, Any]:
+        format: Optional[str] = Query(
+            None,
+            description="Track 13.22 · Phase D · 'csv' returns a CSV stream of `rows`.",
+        ),
+    ) -> Any:
         # ── Resolve + validate date range ────────────────────────────
         date_from_s = (date_from or _today_yyyymmdd()).strip()
         date_to_s   = (date_to   or date_from_s).strip()
@@ -95,6 +100,10 @@ def build_dispatch_haul_ledger_router(
         valid_status = {"no_activity", "verified", "partial", "missing_proof", "needs_review"}
         if verification_status and verification_status not in valid_status:
             raise HTTPException(422, f"verification_status must be one of {sorted(valid_status)}")
+
+        want_csv = (format or "").strip().lower() == "csv"
+        if format and not want_csv:
+            raise HTTPException(422, "format must be 'csv' or omitted (default JSON)")
 
         # ── Build the per-day prefix list for completed_at matching ──
         day_prefixes: List[str] = []
@@ -339,9 +348,64 @@ def build_dispatch_haul_ledger_router(
                 "connected": False,
                 "reason": "not_connected",
             },
-        }
+        } if not want_csv else _csv_response(
+            date_from_s, date_to_s, rows,
+        )
 
     return router
+
+
+# ── Track 13.22 · Phase D · CSV export helper ───────────────────────────
+# Operational fields ONLY. Excludes cost / price / contract / pay / margin
+# / customer / invoice / accounting per Track 13.22 hard rules.
+_CSV_FIELDS = [
+    "date", "project_number", "project_name",
+    "material_code", "material_description",
+    "haul_type",
+    "truck_id", "driver_name",
+    "source_location", "destination_location",
+    "haul_cycle_id", "assignment_id",
+    "scale_ticket_count",
+    "net_lbs", "net_tons",
+    "verification_status", "source_system",
+    "started_at", "completed_at",
+    "fleetwatcher_connected",
+]
+
+
+def _csv_escape(v: Any) -> str:
+    if v is None:
+        return ""
+    s = str(v)
+    needs_quote = "," in s or "\"" in s or "\n" in s or "\r" in s
+    if needs_quote:
+        s = s.replace("\"", "\"\"")
+        return f"\"{s}\""
+    return s
+
+
+def _csv_response(date_from_s: str, date_to_s: str, rows: List[Dict[str, Any]]) -> Response:
+    lines: List[str] = []
+    lines.append(",".join(_CSV_FIELDS))
+    for r in rows:
+        out: List[str] = []
+        for k in _CSV_FIELDS:
+            if k == "fleetwatcher_connected":
+                out.append("false")
+            else:
+                out.append(_csv_escape(r.get(k)))
+        lines.append(",".join(out))
+    body = "\n".join(lines) + "\n"
+    filename = f"masci_haul_ledger_{date_from_s}_to_{date_to_s}.csv"
+    return Response(
+        content=body,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f"attachment; filename=\"{filename}\"",
+            "X-MASCI-Export": "haul-ledger-phase-d",
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 __all__ = ["build_dispatch_haul_ledger_router"]

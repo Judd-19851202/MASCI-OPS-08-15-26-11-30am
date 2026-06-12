@@ -86,6 +86,13 @@ function usePmSignals() {
     po_pending_receipt:  null,   // /api/po-requests/summary → pending_receipt
     po_overdue_receipt:  null,   // /api/po-requests/summary → overdue_receipt
     po_loaded:           false,  // separate load-flag so card renders honest state on failure
+    // Track 13.23 · ODR PM-Hub pending-drafts pill (last IBQ item).
+    // Surfaces a small attention signal for ODRs requiring PM action.
+    // Source: /api/odr (PM-scoped via build_odr_scope_filter on the server).
+    // "Attention" = status ∈ {draft, returned}. status=submitted is awaiting
+    // senior signoff (out of PM's hands); status=approved is closed.
+    odr_attention: null,
+    odr_loaded:    false,
   });
 
   useEffect(() => {
@@ -103,11 +110,14 @@ function usePmSignals() {
       safeJson(`/api/pm/command-center/due-today`),
       // Track 13.11 — PO Requests action-queue card.
       safeJson(`/api/po-requests/summary`),
+      // Track 13.23 — ODR pending-drafts attention signal. Server applies
+      // PM scope automatically via build_odr_scope_filter.
+      safeJson(`/api/odr?limit=200`),
     ]);
 
     tasks.then((res) => {
       if (cancelled) return;
-      const [dr, inc, capa, con, jobs, qa, crew, photos, holds, due, po] = res;
+      const [dr, inc, capa, con, jobs, qa, crew, photos, holds, due, po, odr] = res;
       const drRows  = dr.ok  ? listOf(dr.body)  : [];
       const incRows = inc.ok ? listOf(inc.body) : [];
       const conRows = con.ok ? listOf(con.body) : [];
@@ -149,6 +159,12 @@ function usePmSignals() {
         po_pending_approval: po.ok && po.body && typeof po.body.pending_approval === "number" ? po.body.pending_approval : null,
         po_pending_receipt:  po.ok && po.body && typeof po.body.pending_receipt  === "number" ? po.body.pending_receipt  : null,
         po_overdue_receipt:  po.ok && po.body && typeof po.body.overdue_receipt  === "number" ? po.body.overdue_receipt  : null,
+        // Track 13.23 — ODR pending-drafts attention signal. Status enum
+        // is {draft, submitted, returned, approved}. PM attention =
+        // draft + returned (need rework to advance). submitted is awaiting
+        // senior signoff (out of PM hands); approved is closed.
+        odr_loaded:    true,
+        odr_attention: odr.ok ? listOf(odr.body).filter((r) => /^(draft|returned)$/i.test(String(r.status || ""))).length : null,
       });
     });
     return () => { cancelled = true; };
@@ -295,6 +311,8 @@ export default function PmHubV2() {
     s.unified_holds, s.due_today,
     // Track 13.11 — PO action card counts must influence the all-clear banner.
     s.po_pending_approval, s.po_pending_receipt, s.po_overdue_receipt,
+    // Track 13.23 — ODR pending-drafts pill participates in all-clear.
+    s.odr_attention,
   ].every((v) => v === null || v === 0);
 
   return (
@@ -422,6 +440,21 @@ export default function PmHubV2() {
               pendingApproval={s.po_pending_approval}
               pendingReceipt={s.po_pending_receipt}
               overdueReceipt={s.po_overdue_receipt}
+            />
+            {/* Track 13.23 · ODR PM-Hub pending-drafts pill — last IBQ item.
+                Surfaces ODRs in `draft` or `returned` status that need PM
+                rework to advance. Submitted ODRs are awaiting senior signoff
+                (out of PM hands). Approved ODRs are closed. PM scope is
+                applied server-side by build_odr_scope_filter — no client-side
+                cross-project leakage. Honest empty state when count=0. */}
+            <QueueCard
+              to="/pm/odr"
+              testid="pm-hub-v2-queue-odr"
+              title="ODR Pending"
+              why="Operational Daily Records needing PM rework (drafts + returned)"
+              source="Source: /api/odr — draft + returned (PM-scoped server-side)"
+              value={s.odr_attention}
+              loaded={s.odr_loaded}
             />
           </div>
         </Section>

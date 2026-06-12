@@ -15,8 +15,12 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 | **13.19** | A     | Proof-join (`operational_attachments` scale_ticket family) + virtual `verification_status` + rollup counters on existing `/api/material-movement/daily/{p}/{d}`. No new collection. No UI change. | `backend/routes/material_movement.py` (single file)            | 3h  | ✅ **DONE 2026-06-12** · 9/9 pytest pass |
 | 13.20     | B     | Read-only Material Movement panel on `PmProjectDetail.jsx` (project-scoped). Consumes Phase A.       | `frontend/src/pages/PmProjectDetail.jsx`                       | 2h  | ✅ **DONE 2026-06-12** · ESLint clean · live browser smoke confirmed |
 | 13.21     | C     | Dispatch Companion Haul Ledger page + `/api/dispatch/haul-ledger` filter endpoint. Outside MapLibre. | new dispatch page + `backend/routes/dispatch_lifecycle.py` ext | 6h  | ✅ **DONE 2026-06-12** · endpoint + page + sidebar live · map-first hard-lock intact |
-| 13.22     | D     | Admin Material Data-Quality page + CSV export + Admin Hub V2 card.                                   | new admin page + new endpoint                                  | 5h  | **NEXT — awaiting operator directive**  |
+| 13.22     | D     | Admin Material Data-Quality page + CSV export + Admin Hub V2 card.                                   | new admin page + new endpoint                                  | 5h  | ✅ **DONE 2026-06-12** · CSV stream + admin page + hub card live · map-first hard-lock intact |
 | —         | E     | FleetWatcher ingestion: `fleetwatcher_tickets` collection + reconciliation job + Admin unmatched queue. | new ingestion service                                          | 12h | **BLOCKED on `FLEETWATCHER_API_KEY` + service credentials** |
+
+**Material Movement Ledger phased plan (Phases A–D) is now COMPLETE.** All four phases shipped with hard locks intact (Dispatch Map-First · Driver no-login · no new collection · FleetWatcher honestly NOT_CONNECTED · no cost/accounting/pay-app/ERP fields).
+
+**Immediate Build Queue (Track 13.9 §8) is now EMPTY** as of Track 13.23 (2026-06-12). All 8 IBQ items shipped.
 
 **Hard locks enforced across all phases:** Map-First Dispatch · No-login Driver · PM scope = assigned projects · No new physical material ledger collection · No accounting / ERP / pay-app / cost / contract · No FleetWatcher fake data.
 

@@ -124,6 +124,24 @@ export default function AdminHubV2() {
           </Link>
         </Section>
 
+        {/* Track 13.22 · Phase D — Material Movement Ledger · Data-Quality + CSV.
+            Surfaces the company-wide ledger queue at /admin/material-ledger-quality.
+            Reuses the dispatch+admin gated endpoint from Track 13.21 (no new system). */}
+        <Section k="05 · Material data quality · admin" t="Material movement ledger" c="Missing proof, partial proof, and exportable material movement rows. No cost / accounting / pay-app fields.">
+          <Link to="/admin/material-ledger-quality" data-testid="admin-hub-v2-q-material-ledger-quality" style={{ textDecoration: "none", color: "inherit" }}>
+            <Card
+              title="Material Ledger Quality"
+              description="Company-wide missing-proof queue + CSV export over the Material Movement Ledger (haul cycles · scale-ticket attachments · daily report material rows). Operator-driven follow-up for hauls without ticket proof. FleetWatcher remains not connected."
+              variant="default"
+              status={<StatusChip statusKey="verified" compact label="Live workflow" />}
+            >
+              <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                Source: /admin/material-ledger-quality (Track 13.22 · admin-only · reuses /api/dispatch/haul-ledger)
+              </p>
+            </Card>
+          </Link>
+        </Section>
+
         <div data-testid="admin-hub-v2-trace-note" style={{ marginTop: 16, padding: "var(--pad-card)", background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12 }}>
           <strong style={{ color: "var(--ink-strong)" }}>Admin Hub V2 · Track 13.6K preview.</strong>{" "}
           Operations Control Center · presentation-only. Every count traces to a real source; every card opens an existing workflow. Settings, users, integrations, and audit trails remain in the classic admin surface — no rebuild.

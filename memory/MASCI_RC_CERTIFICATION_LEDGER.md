@@ -5063,3 +5063,123 @@ Powerful 9 · Simple 8 · Beautiful 8 · Trusted **10** · Proven 9.
 **Track 13.22 — Material Movement Ledger · Phase D · Admin Data-Quality + CSV Export.** New Admin Hub V2 card + `/admin/material-quality` page + CSV stream endpoint. ~5h.
 
 Deployment Readiness post 13.21: 🟢 **GREEN** (additive endpoint + new page · no schema delta · map-first hard-lock intact).
+
+
+## 2026-06-12 · Track 13.22 — Material Movement Ledger · Phase D · Admin Data-Quality + CSV Export · DONE
+
+**Mode:** Controlled implementation · additive backend (`format=csv`) + new admin page + Admin Hub card.
+
+### Backend extension
+
+`GET /api/dispatch/haul-ledger?format=csv` — same auth (dispatch+admin), same 90-day cap, same 6 query filters, same composition pipeline. New CSV branch emits 20 whitelisted operational fields (no cost / pay / contract / billing / invoice / margin / accounting). `fleetwatcher_connected` column hard-`false` on every row. CSV headers: `Content-Type: text/csv; charset=utf-8` · `Content-Disposition: attachment; filename="masci_haul_ledger_{from}_to_{to}.csv"` · `X-MASCI-Export: haul-ledger-phase-d` · `Cache-Control: no-store`. RFC-4180 minimal-quote escaping.
+
+### New admin route + page
+
+`/admin/material-ledger-quality` mounted with `RequireAdmin`. Page `AdminMaterialLedgerQuality.jsx` defaults to last-30-days `verification_status=missing_proof` queue. Renders: title + Back-to-Admin + Refresh + **Export CSV** button (slate-900 download via blob+a[download]) · filter strip (6 inputs · verification dropdown ordered `missing_proof` first) · 10 rollup tiles · main rows table (date · project · material code+description · truck · driver · source→destination · ticket count · net tons · verification chip) · By Project breakdown (top 25) · By Material breakdown (top 25) · trust footer with verbatim FleetWatcher-not-connected line.
+
+### Admin Hub V2 surfacing
+
+New `Section 05 · Material data quality · admin` card in `AdminHubV2.jsx` linking to `/admin/material-ledger-quality`. Link-only (no hub count fetch). testid `admin-hub-v2-q-material-ledger-quality`.
+
+### Files changed
+
+| File | Change |
+| ---- | ------ |
+| `backend/routes/dispatch_haul_ledger.py` | Added `Response` import + `format` query param + `_csv_response()` + `_CSV_FIELDS` + `_csv_escape()`. JSON path unchanged. |
+| `frontend/src/pages/AdminMaterialLedgerQuality.jsx` | NEW · admin page (~430 lines · 25+ unique data-testids). |
+| `frontend/src/App.js` | 1 lazy import + 1 Route line. |
+| `frontend/src/pages/AdminHubV2.jsx` | Added Section 05 card block. |
+
+### Smoke
+
+- Backend curl: JSON 200 · CSV 200 with 93 lines · headers verbatim · 422 on invalid `format` · 422 on 91-day range · Phase A regression 200 unchanged · FleetWatcher hard-zero.
+- ESLint clean across all 4 touched files.
+- Browser smoke: admin page title=True, filters=True, Export CSV button=True, state machine rendered=True, FleetWatcher trust footer verbatim, Admin Hub V2 card surfaced=True, Dispatch MapLibre canvas still mounted=True.
+
+### Hard-lock regression verified
+
+Dispatch Map-First · Driver no-login · DriverHubV2 retired · Shop Repair ≠ Returned · One map engine · Track 13.13/13.14/13.17/13.19/13.20/13.21 surfaces preserved · FleetWatcher NOT_CONNECTED enforced in JSON + CSV + UI · no new collection · no financial fields anywhere · PM stays project-scoped.
+
+### Five-pillar score
+
+Powerful 9 · Simple 9 · Beautiful 8 · Trusted **10** · Proven 9.
+
+### Rollback
+
+`git checkout HEAD~1 -- backend/routes/dispatch_haul_ledger.py frontend/src/pages/AdminMaterialLedgerQuality.jsx frontend/src/App.js frontend/src/pages/AdminHubV2.jsx` + delete the new admin page file + restart backend. Zero schema/index/collection/permission delta.
+
+**Track 13.22 · CLOSED · PASS.** Report: `/app/memory/TRACK_13_22_MATERIAL_MOVEMENT_LEDGER_PHASE_D_ADMIN_DATA_QUALITY_CSV.md`.
+
+### Material Movement Ledger phased plan — COMPLETE (Phases A → D)
+
+| Phase | Track | Status |
+| ----- | ----- | ------ |
+| A · Endpoint enrichment             | 13.19 | ✅ DONE |
+| B · PM project material panel       | 13.20 | ✅ DONE |
+| C · Dispatch companion haul ledger  | 13.21 | ✅ DONE |
+| D · Admin data-quality + CSV export | 13.22 | ✅ DONE |
+| E · FleetWatcher ingestion          | —     | **BLOCKED on `FLEETWATCHER_API_KEY` + service credentials** |
+
+### Recommended next track
+
+**Track 13.23 candidate — Material Ledger Operator Sign-Off Window.** Open Phases A–D for 14–30 days of operator validation across PM, Dispatch, and Admin users. Collect change requests. Defer further ledger phases until window closes.
+
+Alternative: **Track 13.X — ODR PM-Hub pending-drafts pill** (P0 leftover from Track 13.9 §8 BQ#8 · ~2.5h).
+
+Deployment Readiness post 13.22: 🟢 **GREEN** (additive endpoint format + new admin page · no schema delta · all hard locks intact).
+
+
+## 2026-06-12 · Track 13.23 — ODR PM-Hub Pending-Drafts Pill (last IBQ item) · DONE
+
+**Mode:** Controlled implementation · single-file frontend additive.
+
+### Implementation
+
+- Added `ODR Pending` QueueCard to PM Hub V2 Section 01 directly after the PO Requests card. testid `pm-hub-v2-queue-odr`. Click destination = existing `/pm/odr` panel (read-only PM ODR consumer).
+- Count source: existing `GET /api/odr?limit=200`. PM scope applied server-side via `build_odr_scope_filter` — no client-side cross-project leakage.
+- Attention count = `items[]` filtered to `status ∈ {draft, returned}`. `submitted` is awaiting senior signoff (out of PM hands); `approved` is closed.
+- `usePmSignals` extended with `odr_attention` + `odr_loaded` state keys plus an additive parallel fetch task. Added to the `allZero` calm-state guard.
+
+### Files changed
+
+| File | Change |
+| ---- | ------ |
+| `frontend/src/pages/PmHubV2.jsx` | 4 small additive edits: state keys + fetch task + setS branch + QueueCard mount + allZero entry. ESLint clean. ~12 lines added. |
+
+### Tests
+
+- ESLint clean.
+- Backend curl smoke (PM token via `/api/pm/login`): `GET /api/odr?limit=200` returns 200 with `{count:0, items:[]}` — honest empty for PM demo scope.
+- Browser smoke at `/pm/hub` after PM login: `pm-hub-v2-queue-odr` testid mounted, value=0, Verified chip rendered, click navigates to live `/pm/odr` panel, Track 13.11 PO Requests card coexists.
+
+### Hard-lock regression verified
+
+Dispatch Map-First · Driver no-login · DriverHubV2 retired · Shop RTS · one map engine · Material Movement Phases A/B/C/D untouched · Track 13.11/13.13/13.14/13.17 untouched · ODR workflows untouched · no new collection · PM stays project-scoped (server-enforced).
+
+### Five-pillar score
+
+Powerful 6 · Simple **10** · Beautiful 9 · Trusted **10** · Proven 9.
+
+### Rollback
+
+`git checkout HEAD~1 -- frontend/src/pages/PmHubV2.jsx` + frontend hot-reload. Zero backend/schema/endpoint/route/collection delta.
+
+**Track 13.23 · CLOSED · PASS.** Report: `/app/memory/TRACK_13_23_ODR_PM_HUB_PENDING_DRAFTS_PILL.md`.
+
+### 🏁 Program checkpoint
+
+* **Material Movement Ledger phased plan (Phases A → D) — COMPLETE.**
+* **Immediate Build Queue (Track 13.9 §8) — EMPTY (all 8 items shipped).**
+* **Phase E (FleetWatcher) — BLOCKED on credentials.**
+* **30-day operator signoff window — pending operator open.**
+
+### Recommended next track
+
+The platform has now exhausted its prescribed feature backlog within the Track 13.6+ Operational Recovery Phase boundaries. The correct next move is **operator signoff** — not more feature builds. Two viable candidates:
+
+* **Track 13.24 — Material Ledger Operator Sign-Off Window.** Open Phases A–D for 14–30 days of operator validation across PM, Dispatch, and Admin. Collect change requests via existing notification fan-out. Defer further ledger phases until the window closes.
+* **Track 13.6N — Cross-portal V2 Swap 30-day operator signoff window.** Already on the P1 backlog (HR/PM/Safety/Shop V2 swaps).
+
+Either could run in parallel since both are observation tracks, not build tracks.
+
+Deployment Readiness post 13.23: 🟢 **GREEN** (single-file frontend additive · zero backend delta · all hard locks intact).
