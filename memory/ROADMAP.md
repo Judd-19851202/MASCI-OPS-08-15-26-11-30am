@@ -305,3 +305,24 @@ Not parked, just queued for user prioritization later:
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge.
 - No new map systems · no new GPS / telematics providers · no new portals · no new APIs · no new auth · no route swaps · no UI modernization beyond what is explicitly approved.
+
+---
+
+## 2026-06-12 update · post Track 13.7B-VERIFY
+
+### Completed
+- ✅ Track 13.7B-VERIFY — Shop Recovery Map zero-marker source truth check · CLOSED (discovery only).
+
+### Open decision (operator gate)
+- **Decision A** · Accept Shop lens behaviour as truthful-but-thin until production Motive GPS proves it. No track required.
+- **Decision B (gated)** · Authorize separate track to loosen `attention_reason` gate in `operations_map_v1.py` so `maintenance` / `inspection` are set regardless of band. Must verify against Dispatch hard lock first.
+- **Decision C (preview only · safe)** · Preview-data reseed: backfill a handful of `fleet_defects` rows with truck_unit_numbers that DO match `asset_mappings.masci_unit_number`, and populate `equipment_inspections.equipment_id` for some open rows, so the lens can be visually exercised in preview without changing production architecture.
+
+### Permanent hard locks (unchanged · verified intact)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No filter widening / no architecture change to `attention_reason` without operator authorization of a new track.

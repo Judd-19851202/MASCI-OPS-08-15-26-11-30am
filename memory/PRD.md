@@ -40548,3 +40548,27 @@ Authorized by Track 13.7A. Built the first warranted non-Dispatch map lens.
 
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge · no new map systems · no new GPS / telematics providers · no new portals · no new APIs · no new auth · no route swaps · no UI modernization beyond this single section.
+
+---
+
+## 2026-06-12 · Track 13.7B-VERIFY — Shop Recovery Map zero-marker source truth check · CLOSED (DISCOVERY ONLY)
+
+**Mode**: discovery only · no code, no filter widening, no backend changes.
+
+### Evidence (live preview)
+- All 190 map assets are `band==gray` (freshest Motive GPS event: 2026-06-11T02:06:19Z ≈ 37 h stale).
+- `attention_reason` is gated on `band==red` in `operations_map_v1.py` line 445 → never set today → Shop lens filter (`maintenance|inspection`) matches nothing.
+- `fleet_defects.truck_unit_number` (synthetic preview IDs) ∩ `asset_mappings.masci_unit_number` (real fleet IDs) = **0**.
+- `equipment_inspections.equipment_id` null on all 149 open rows.
+- `fleet_status` (where the 71 OOS counts live) is NOT joined to map markers — by design.
+
+### Verdict
+**Defect chain (preview-data + data + architecture)**, not a code bug in the Shop lens. The lens correctly displays the truthful empty state. The upstream signal is genuinely empty.
+
+### Decision space (NOT authorized)
+- Accept lens-thin-but-truthful behaviour until production Motive feed proves it, OR
+- Separate workflow-discovery track to loosen the `attention_reason` gate (must verify against Dispatch hard lock).
+
+### Locked rules (unchanged)
+- No code changes were made during this track. Shop lens and `operations_map_v1.py` are byte-for-byte unchanged.
+- All three permanent hard locks from Track 13.7A remain in force.

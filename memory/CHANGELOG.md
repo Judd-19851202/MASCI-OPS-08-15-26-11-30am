@@ -1231,3 +1231,20 @@ None of these affect the directive's three success criteria; all three are MET a
 - Deploy / Save to GitHub / merge — forbidden.
 - PM lens — deferred.
 - Cross-portal deep-linking from Shop list to `/operations-map` asset card — requires its own workflow-discovery track (frontend `/operations-map` is currently Admin-only; backend already accepts Shop tokens).
+
+## 2026-06-12 · Track 13.7B-VERIFY — Shop Recovery Map zero-marker source truth check · CLOSED (DISCOVERY ONLY)
+
+### Documented (no code change)
+- `/app/memory/TRACK_13_7B_VERIFY_SHOP_MAP_ZERO_MARKER_SOURCE_TRUTH.md` — 10-section source-truth report with live count reconciliation, failure-chain table, and diagnosis.
+- Ledger entry appended.
+
+### Findings
+- Shop Recovery Map renders 0 markers because: (1) preview-data: synthetic defect unit_numbers don't match Motive-mapped fleet IDs (overlap=0), (2) data: equipment_inspections.equipment_id is null on all 149 open rows (overlap=0), (3) architecture: `attention_reason` is only set when band==red, and freshest Motive GPS is 37h stale → all 190 assets band==gray.
+- The Shop lens code is correct. The upstream signal is genuinely empty today.
+- `fleet_status` (where OOS_units=71 lives) is NOT joined to map markers by design.
+
+### Not done (per directive)
+- No code changes · no filter widening · no backend modification · no UI change · no route change.
+
+### Recommendation (deferred)
+- Operator decides: accept lens-thin behaviour until production GPS, OR authorize a separate track to loosen the `attention_reason` gate.

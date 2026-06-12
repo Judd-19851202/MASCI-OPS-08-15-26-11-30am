@@ -4361,3 +4361,45 @@ Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 · Aggregate **8.
 - If operator wants deep-linking to asset cards from Shop, that requires its own workflow-discovery track (could lift the Admin-only gate on `/operations-map` since backend already accepts Shop tokens — but a separate track).
 
 **Track 13.7B · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.7B-VERIFY · Shop Recovery Map zero-marker source truth check
+**Date**: 2026-06-12
+**Mode**: DISCOVERY ONLY · no code · no filter changes · no backend changes
+**Report**: `/app/memory/TRACK_13_7B_VERIFY_SHOP_MAP_ZERO_MARKER_SOURCE_TRUTH.md`
+
+### Question answered
+Why does `/shop` show 82 open defects + 71 OOS + 11 defect-open units but the Shop Recovery Map shows 0 markers?
+
+### Evidence (live preview DB · 2026-06-12)
+- Map total assets: 190 · bands: green 0 / amber 0 / red 0 / gray 190.
+- Freshest Motive GPS event: 2026-06-11T02:06:19Z (≈ 37 h stale at probe).
+- `attention_reason` is set ONLY when `band==red` (`operations_map_v1.py` line 445) → never set today.
+- `fleet_defects.truck_unit_number` (`COMBO-*`, `GUARD-*`, `IDENT-*`, `LIFECYCLE-*`) ∩ `asset_mappings.masci_unit_number` (real fleet IDs) = **0**.
+- `equipment_inspections.equipment_id` distinct values on 149 open rows = **0** (field empty/null).
+- `fleet_status` (where the 71 OOS lives) is NOT joined to map markers at all.
+
+### Diagnosis
+**Defect chain** — three compounding causes:
+1. Preview-data defect: synthetic defect unit_numbers do not match Motive-mapped assets.
+2. Data defect: `equipment_inspections.equipment_id` is null on every open row.
+3. Architecture defect for the Shop use-case: the `attention_reason` gate at `band==red` is too narrow — Shop wants to see ANY unit with open defects regardless of GPS freshness.
+
+**The Shop lens itself is NOT broken** — it correctly displays what the backend produces. The upstream signal is genuinely empty today.
+
+### What this means for Track 13.7B
+- The Shop Recovery Map (Track 13.7B) was built correctly per Track 13.7A architecture.
+- Its `0 units` empty state is truthful, not a code bug.
+- Its operational usefulness will remain limited until either the preview data is reseeded with realistic joins OR the backend architecture loosens the `attention_reason` gate (separate track required).
+
+### Recommendation (NOT yet authorized)
+1. Operator reviews this report.
+2. Either accept lens-thin-but-truthful behaviour pending production GPS, OR
+3. Authorize a separate track to loosen the `attention_reason` gate in `operations_map_v1.py` (must verify against Dispatch hard lock before any change).
+
+### Forbidden / blocked (all respected)
+No deploy · no Save to GitHub · no merge · no code · no filter widening · no backend logic change · no UI change · no route change.
+
+**Track 13.7B-VERIFY · CLOSED.**
