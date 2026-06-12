@@ -412,3 +412,28 @@ Not parked, just queued for user prioritization later:
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge.
 - No new portals / APIs / auth / map systems / route swaps without explicit operator authorisation tied to a discovery-then-build track.
+
+---
+
+## 2026-06-12 update · post Track 13.8C halt
+
+### Track 13.8C status
+- **HALTED · DELIVERABLE COMPLETE** — operator runbook written; awaiting production read-only execution.
+- Closes when an operator with prod read credentials executes §4 of the report and appends results to `TRACK_13_8C_LIVE_RESULTS.md`.
+
+### Pre-deploy gate (P0)
+- Cannot make an informed deploy/promote decision without §4 results.
+- Recommend authorising a single read-only `mongosh` session against prod, ~30–60 min, by a person/role that already has production access (platform engineer / DBA / authorised admin).
+
+### Pending operator decisions
+- Authorise §4 runbook execution against production (who runs it · when · where results are written).
+- Track 13.6N RC-1 operator signoff still pending.
+- Track 13.7C preview seed still in place (rollback via `python3 /app/scripts/preview_seed_13_7c.py rollback` when ready).
+
+### Hard locks reaffirmed in source (no production probe needed)
+- Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · One source of truth · MaintainX stub · FleetWatcher absent.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No code · no UI · no APIs · no auth · no routes.
+- No production touches · no preview writes.

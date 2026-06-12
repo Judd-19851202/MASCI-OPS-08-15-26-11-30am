@@ -4537,3 +4537,36 @@ Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 7 → Aggregate **8
 No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes · no implementation · no retirement.
 
 **Track 13.8B · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.8C · Live Platform Operational Intelligence Audit · HALTED (NO PRODUCTION ACCESS)
+**Date**: 2026-06-12
+**Mode**: PRODUCTION READ-ONLY AUDIT → halted at production-access gate
+**Report**: `/app/memory/TRACK_13_8C_LIVE_OPERATIONAL_INTELLIGENCE_AUDIT.md`
+
+### Why halted
+Pod environment confirmed `APP_ENV=preview` · `DB_NAME=masci_safety_preview` · cluster is the production Atlas cluster but the DB visible from this pod is preview. No `MONGO_URL_PROD`, no `PROD_READ_TOKEN`, no `.env.production`. Per the directive ("Do not use preview adoption data. Use live production data only · If you cannot confirm production read-only mode: STOP"), no live-data Phase 2–11 metrics were produced.
+
+### Safety lock confirmation
+ZERO writes · ZERO mutations · ZERO provider calls · ZERO cron triggers · ZERO emails / SMS · ZERO frontend changes · ZERO code changes · ZERO token / permission changes. Markdown only.
+
+### Deliverable contents
+- Production safety confirmation table.
+- Evidence-source code-truth inventory (collections / lifecycle fields / window fields).
+- Full operator runbook of read-only Mongo queries (`mongosh`) that an operator with production read credentials can paste-and-run to populate every Phase 2–13 section.
+- Explicit Unknowns list — every Phase 2–13 question marked UNKNOWN until §4 is run by the operator.
+- Code-truth claims that DO hold today (Map / Driver / Shop hard locks, MaintainX stub, FleetWatcher absent, PO Requests system completeness).
+- Final recommendation: do not deploy on this report alone; authorise an operator (or platform engineer) with read-only production access to execute §4 and paste results into a follow-up `TRACK_13_8C_LIVE_RESULTS.md`.
+
+### Track status
+**OPEN** — closes only when §4 runbook output is appended to a follow-up live-results doc and a Green/Yellow/Red call is recorded per Phase 13 core area.
+
+### Hard locks reaffirmed (source-truth · no production probe needed)
+- Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · One source of truth · MaintainX stub · FleetWatcher no service.
+
+### Forbidden / blocked (all respected)
+No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes · no DB mutations · no production touches · no preview writes.
+
+**Track 13.8C · HALTED but DELIVERABLE-COMPLETE.**

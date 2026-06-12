@@ -1311,3 +1311,20 @@ None of these affect the directive's three success criteria; all three are MET a
 ### Recommendation
 - Operator interview first.
 - If single recovery authorised: PO Requests action-queue card in PM Hub V2.
+
+## 2026-06-12 · Track 13.8C — Live Platform Operational Intelligence Audit · HALTED (NO PRODUCTION ACCESS)
+
+### Documented (no code change · safety-locked halt)
+- `/app/memory/TRACK_13_8C_LIVE_OPERATIONAL_INTELLIGENCE_AUDIT.md` — Halt + handoff + read-only mongosh runbook for an operator with prod access.
+- Ledger / PRD / ROADMAP appended.
+
+### Why halted
+- Pod environment confirmed preview-only (`APP_ENV=preview` · `DB_NAME=masci_safety_preview` · no production credentials).
+- Per directive, preview data must NOT substitute for production evidence.
+
+### NOT done (per directive)
+- No writes · no provider calls · no cron triggers · no emails · no frontend changes · no code changes · no deploy.
+- No production data was fabricated, inferred, or estimated from preview.
+
+### Operator handoff
+- §4 of the report contains a paste-and-run `mongosh` runbook covering portal usage, workflow volumes, reliability, stale work, integration reality, auth signals, and adoption (PO Requests · Operational Events · Operational Locations).

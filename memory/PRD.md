@@ -40664,3 +40664,27 @@ Authorized by Track 13.7A. Built the first warranted non-Dispatch map lens.
 - No code · no UI · no APIs · no routes · no retirement.
 - No deploy · no Save to GitHub · no merge.
 - Permanent do-not-revive: Driver V2 · Field Leadership V2 (Track 13.6L).
+
+---
+
+## 2026-06-12 · Track 13.8C — Live Platform Operational Intelligence Audit · HALTED (NO PRODUCTION ACCESS)
+
+**Mode**: production read-only audit · safety lock honoured · zero writes / zero provider calls / zero code changes.
+
+### Why halted
+Pod has `APP_ENV=preview` · `DB_NAME=masci_safety_preview` only. No production DB credentials, no production read-only token. Per directive ("If you cannot confirm read-only production access: STOP"), Phases 2–13 cannot be answered from this pod.
+
+### Delivered
+- Production safety confirmation (no writes / no provider calls / no code).
+- Evidence-source code-truth inventory (collections + lifecycle fields).
+- Full read-only operator runbook (`mongosh`) for Phases 2–13.
+- Explicit Unknowns list — every metric flagged UNKNOWN until operator executes §4 against prod.
+- Code-truth claims that hold without production access (hard locks · stubs · system completeness).
+
+### Track status
+**OPEN** — closes when §4 runbook output is appended to a follow-up `TRACK_13_8C_LIVE_RESULTS.md` and Green/Yellow/Red calls are recorded.
+
+### Locked rules (unchanged)
+- No deploy on this report alone.
+- No code changes · no production touches · no preview writes.
+- All five permanent hard locks confirmed in source (Map · Driver · Shop · One-engine · One source of truth).
