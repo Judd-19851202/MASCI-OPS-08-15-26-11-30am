@@ -26,6 +26,24 @@
 
 ---
 
+## 2026-06-12 · Track 13.19 — Material Movement Ledger · Phase A · Proof-Join + Verification Foundation
+
+**Mode:** Controlled implementation · single-file backend enrichment.
+
+- Enriched `GET /api/material-movement/daily/{project_number}/{date}` with 6 additive top-level keys: `scale_ticket_proofs[]`, `haul_cycles[]`, `proof_summary{}`, `rollups{}`, `verification_status`, `source_breakdown{}`. All legacy keys preserved verbatim.
+- Proof join: `operational_attachments` where `host_kind="assignment"` AND `host_id ∈ dispatch_row_ids` AND `type ∈ {scale_ticket, asphalt_ticket, delivery_receipt, dump_receipt, tanker_BOL}`. Track 13.14 structured fields (`weight_gross_lbs`/`weight_tare_lbs`/`weight_net_lbs`/`material_code`) surfaced per proof row; `net_tons` derived.
+- Haul-cycle join: `haul_cycles` where `project_number = X` AND `completed_at` prefix-match on date.
+- `verification_status` virtual classifier (closed set: `no_activity` / `verified` / `partial` / `missing_proof` / `needs_review`). No persistence. Conservative defaults to `needs_review` over `verified`.
+- FleetWatcher hard-zero in `source_breakdown`. ODR `MaterialEvent` join deferred (per Track 13.18 §7).
+- Files changed: `backend/routes/material_movement.py` (rewritten additively) · `backend/tests/test_track_13_19_material_movement_phase_a.py` (new · 9/9 pass).
+- Zero new collection · zero UI change · zero schema change · zero auth widening · zero new endpoint.
+- Backward-compat verified: `MaterialMovementTile.jsx`, `ViewDailyReport.jsx`, PM Command Center, Dispatch attachment strip — all unaffected.
+- Driver contribution: indirect today via dispatch state → haul_cycles. Driver-side scale-ticket upload remains future gap; no driver UI built.
+- Hard locks intact: Dispatch Map-First · Driver no-login · DriverHubV2 retired (404) · Shop RTS · one map engine · Track 13.13/13.14/13.17 surfaces preserved.
+- Report: `/app/memory/TRACK_13_19_MATERIAL_MOVEMENT_LEDGER_PHASE_A_PROOF_JOIN.md`.
+
+---
+
 ---
 
 ---

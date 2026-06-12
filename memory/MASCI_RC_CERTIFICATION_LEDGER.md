@@ -4853,3 +4853,85 @@ Dispatch Map-First intact · Driver no-login intact · No new collection authori
 **Track 13.18 · CLOSED.** Report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICATION_AND_ARCHITECTURE.md`.
 
 Deployment Readiness post 13.18: 🟢 **GREEN** (unchanged — certification-only track).
+
+
+## 2026-06-12 · Track 13.19 — Material Movement Ledger · Phase A · Proof-Join + Verification Foundation · DONE
+
+**Mode:** Controlled implementation · single-file backend enrichment. Zero new collection · zero UI · zero schema · zero auth widening.
+
+### Implementation
+
+- `GET /api/material-movement/daily/{project_number}/{date}` enriched with 6 additive top-level keys.
+
+| New top-level key       | Shape                                                                                     |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `scale_ticket_proofs[]` | Per-attachment proof rows joined on `host_kind="assignment"` + dispatch row ids. Includes Track 13.14 structured fields (`weight_gross_lbs/tare/net`, `material_code`) + derived `net_tons`. |
+| `haul_cycles[]`         | Derived cycle truth (one row per completed assignment) on (project_number, completed_at-day). |
+| `proof_summary{}`       | `scale_ticket_count`, `scale_ticket_net_lbs/tons`, `missing_proof_count`, `matched_proof_count`, `partial_proof_count`. |
+| `rollups{}`             | `inbound_count`, `outbound_count`, `haul_cycles_count`, `scale_ticket_count`, `loads_count`, `trucks_count`, `materials_count`, `net_lbs_from_tickets`, `net_tons_from_tickets`. |
+| `verification_status`   | Closed set: `no_activity` / `verified` / `partial` / `missing_proof` / `needs_review`. Virtual; no persistence. |
+| `source_breakdown{}`    | Per-source counts. `fleetwatcher` hard-zero (NOT_CONNECTED). `odr_events` hard-zero in Phase A. |
+
+### Proof-bearing attachment types (5 of 12 canonical)
+
+`scale_ticket`, `asphalt_ticket`, `delivery_receipt`, `dump_receipt`, `tanker_BOL`. The other 7 (`load_photo`, `damage_photo`, `breakdown_photo`, `inspection_photo`, `transfer_document`, `fuel_receipt`, `operational_note_photo`) are operational context, not material movement proof.
+
+### Verification status rules
+
+- `no_activity` — no dispatch / no DR rows / no haul cycles / no proofs.
+- `verified` — every dispatch row carries at least one proof attachment.
+- `partial` — some dispatch rows have proof, some do not.
+- `missing_proof` — dispatch rows present, zero proof.
+- `needs_review` — DR-only days, or any ambiguous combination (deliberate conservatism).
+- `mismatch` documented but **not emitted** in Phase A (quantity unit-aware comparison deferred to Phase D).
+
+### Files changed
+
+| File | Change |
+| ---- | ------ |
+| `backend/routes/material_movement.py` | Replaced with enriched implementation. All legacy keys preserved. |
+| `backend/tests/test_track_13_19_material_movement_phase_a.py` | NEW · 9-case live-preview test suite · 9/9 PASS. |
+
+### Tests
+
+```
+============================== 9 passed in 2.29s ===============================
+```
+
+1. Legacy keys preserved on empty day ✅
+2. Phase A additive keys present on empty day ✅
+3. `proof_summary` shape ✅
+4. `rollups` shape ✅
+5. `source_breakdown` shape + FleetWatcher hard-zero ✅
+6. `verification_status` in closed set ✅
+7. Input validation preserved ✅
+8. Idempotent · no side effects ✅
+9. Live-data response shape ✅
+
+### Backward compatibility
+
+`MaterialMovementTile.jsx`, `ViewDailyReport.jsx`, PM Command Center, Dispatch `AttachmentStrip.jsx` — all unaffected. Existing legacy keys (`dispatch{...}`, `incoming[]`, `outgoing[]`) preserved verbatim.
+
+### Driver contribution finding
+
+Drivers contribute **indirectly today** via dispatch state transitions → `haul_cycles` materialization (now surfaced). Driver-side scale-ticket upload requires dispatch/admin auth gate; **not widened** in this track. Future "Phase Driver-Scoped Load Confirmation" documented as gap.
+
+### Hard-lock regression verified
+
+Dispatch Map-First · Driver no-login · DriverHubV2 retired (404) · Shop Repair ≠ Returned · One map engine · Track 13.13 / 13.14 / 13.17 surfaces preserved · FleetWatcher NOT_CONNECTED enforced.
+
+### Five-pillar score
+
+Powerful 7 · Simple 9 · Beautiful 8 · Trusted 10 · Proven 9.
+
+### Rollback
+
+`git checkout HEAD~1 -- backend/routes/material_movement.py` + delete new test file + restart backend. Zero schema/index/collection delta.
+
+**Track 13.19 · CLOSED · PASS.** Report: `/app/memory/TRACK_13_19_MATERIAL_MOVEMENT_LEDGER_PHASE_A_PROOF_JOIN.md`.
+
+### Recommended next track
+
+**Track 13.20 — Material Movement Ledger · Phase B · PM Project Material Panel.** Single frontend file (`PmProjectDetail.jsx`). ~2h. Consumes Phase A endpoint. Project-scoped only.
+
+Deployment Readiness post 13.19: 🟢 **GREEN** (additive only; legacy contract preserved).
