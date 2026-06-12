@@ -27,11 +27,9 @@ const OperationsActionDetail = React.lazy(() => import("@/pages/operations_actio
 // ROUTE-SPLIT-001 Wave 4 — Driver mobile lazy.
 const DriverMagicLanding = React.lazy(() => import("@/pages/driver/DriverMagicLanding"));
 const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
-// Track 13.6J · Phase 2 — Driver V2 foundation (preview, no swap).
-const DriverHubV2 = React.lazy(() => import("@/pages/driver/DriverHubV2"));
-// Track 13.6K — Admin / FL / Leadership Hub V2 previews (no swap).
+// Track 13.6L — DriverHubV2 retired (existing /shift + /d/:token + /driver already satisfy ≤ 2 taps / ≤ 30 s).
+// Track 13.6K — Admin / Leadership Hub V2 COMPANIONS (no swap). FL Hub V2 retired in 13.6L.
 const AdminHubV2 = React.lazy(() => import("@/pages/AdminHubV2"));
-const FieldLeadershipHubV2 = React.lazy(() => import("@/pages/FieldLeadershipHubV2"));
 const LeadershipHubV2 = React.lazy(() => import("@/pages/LeadershipHubV2"));
 const ShiftStart = React.lazy(() => import("@/pages/driver/ShiftStart"));
 import SafetySection from "@/pages/SafetySection";
@@ -431,11 +429,12 @@ function App() {
 
             {/* Field Leadership — supervisor docs gated by MASCIGC password */}
             <Route path="/leadership" element={<FieldLeadershipHub />} />
-            {/* Track 13.6K · Phase 3 — Leadership Hub V2 preview (cross-portal exec attention).
+            {/* Track 13.6K · Phase 3 — Leadership Hub V2 COMPANION (cross-portal exec attention).
                 Must be declared BEFORE the dynamic /leadership/:kind/new route. */}
             <Route path="/leadership/hub_v2" element={<LeadershipHubV2 />} />
-            {/* Track 13.6K · Phase 2 — Field Leadership Hub V2 preview ("What requires field action today?"). */}
-            <Route path="/field-leadership/hub_v2" element={<FieldLeadershipHubV2 />} />
+            {/* Track 13.6L — /field-leadership/hub_v2 RETIRED.
+                Existing /field-leadership/portal/dashboard already satisfies the
+                intended field-leadership operational workflow. */}
             <Route path="/leadership/records" element={<FieldLeadershipRecords />} />
             <Route path="/leadership/records/:id" element={<FieldLeadershipView />} />
             <Route path="/leadership/:kind/new" element={<FieldLeadershipFormPage />} />
@@ -957,8 +956,8 @@ function App() {
             {/* iter393 · DLS Driver Mobile Surface — magic-link entry */}
             <Route path="/d/:token" element={<DriverMagicLanding />} />
             <Route path="/driver" element={<DriverShift />} />
-            {/* Track 13.6J · Phase 2 — Driver V2 preview lane (no auth gate change). */}
-            <Route path="/driver/hub_v2" element={<DriverHubV2 />} />
+            {/* Track 13.6L — /driver/hub_v2 RETIRED. Existing /shift + /d/:token + /driver
+                already satisfy ≤ 2 taps / ≤ 30 seconds. Hub layer added friction · no operational lift. */}
             {/* iter401 · Phase 12.8 · Driver self-start operational entry */}
             <Route path="/shift" element={<ShiftStart />} />
             <Route path="/field-leadership" element={<Navigate to="/leadership" replace />} />

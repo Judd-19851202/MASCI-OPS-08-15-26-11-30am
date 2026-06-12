@@ -4159,3 +4159,72 @@ Driver V2 invented a `SIGN IN` primary action. Drivers in this platform do not s
 
 ### Recommendation
 - Either retire `/driver/hub_v2` (since `/shift` already meets the ≤ 2-tap / ≤ 30-second target perfectly) OR keep it strictly as an explainer landing that gates the START SHIFT ↔ OPEN MY SHIFT choice. Never expand it into a dashboard.
+
+---
+
+## TRACK 13.6L · Reality Cleanup · Portal Consolidation · Drift Elimination
+
+**Date**: 2026-06-12  ·  **Verdict**: COMPLETE — drift eliminated, V2 Index reality-aligned, both hard locks documented.
+
+### Decisions executed
+
+| Portal V2 | Decision | Rationale |
+| --- | --- | --- |
+| **Driver V2** (`/driver/hub_v2`) | **RETIRED** | Existing /shift + /d/:token + /driver already satisfy ≤ 2 taps / ≤ 30 s. Drivers do not sign in. The hub introduced unnecessary friction. |
+| **Field Leadership V2** (`/field-leadership/hub_v2`) | **RETIRED** | `/field-leadership/portal/dashboard` already satisfies the FL operational workflow. Preview hub duplicated functionality without operational lift. |
+| **Dispatch V2** (`/dispatch-portal/hub_v2`) | **COMPANION ONLY** (permanent) | Hard lock: MapLibre + Motive + FleetWatcher integrated map is the dominant Dispatch surface. V2 is supplementary only, never a swap target. |
+| **Admin V2** (`/admin/hub_v2`) | **COMPANION** (retained) | Provides cross-portal operational awareness classic /admin does not surface. |
+| **Leadership V2** (`/leadership/hub_v2`) | **COMPANION** (retained) | Provides executive cross-portal attention (Safety / Execution / Compliance threats) not surfaced elsewhere. |
+
+### Files modified
+- `/app/frontend/src/App.js` — removed DriverHubV2 + FieldLeadershipHubV2 lazy imports and routes. Inline comments document the retirement reason.
+- `/app/frontend/src/pages/V2Index.jsx` — Driver V2 → `status: "retired"`; Field Leadership V2 entry added as `status: "retired"`; Dispatch V2 → `status: "companion-only"` with hard-lock note; Admin V2 → `status: "companion"`; Leadership V2 entry added as `status: "companion"`. Cleaned a trailing duplicate that was breaking the JSX parser.
+
+### Files removed
+- `/app/frontend/src/pages/driver/DriverHubV2.jsx`
+- `/app/frontend/src/pages/FieldLeadershipHubV2.jsx`
+
+### Routes removed
+- `/driver/hub_v2`
+- `/field-leadership/hub_v2`
+
+### Routes retained / unchanged
+- `/shift`, `/d/:token`, `/driver`, `/dispatch-portal`, `/dispatch-portal/hub_v2`, `/admin`, `/admin/hub_v2`, `/leadership`, `/leadership/hub_v2`, `/field-leadership/portal/dashboard`, every classic `_legacy` rollback, every PM / HR / Safety / Shop / Dispatch sub-route, MapLibre / Motive / FleetWatcher integrations.
+
+### Validation results — 15/15 PASS
+1. Driver V2 route removed ✅ (`driver-hub-v2-root` count at `/driver/hub_v2` = 0)
+2. FL V2 route removed ✅ (`fl-hub-v2-root` count at `/field-leadership/hub_v2` = 0)
+3. `/dispatch-portal` still map-dominant ✅ (`live_fleet_map=True`, V2 leak = 0)
+4. MapLibre intact ✅ (cluster pins + canvas render)
+5. Motive integration intact ✅ (no modification)
+6. FleetWatcher integration intact ✅ (no modification)
+7. `/shift`, `/driver` workflows intact ✅
+8. `/field-leadership/portal/dashboard` workflow intact ✅
+9. `/admin/hub_v2` companion operational ✅ (`admin-hub-v2-root` = 1)
+10. `/leadership/hub_v2` companion operational ✅ (`leadership-hub-v2-root` = 1)
+11. Zero V2 leakage on retired routes ✅
+12. No broken imports ✅ (webpack compiled successfully · 1 unrelated pre-existing warning)
+13. No dead navigation ✅
+14. No dead buttons ✅
+15. No placeholder routes ✅
+
+### Hard locks documented in V2 Index
+- **Dispatch**: "COMPANION LANE ONLY — No V2 redesign may hide / minimize / move-behind-tabs / replace the operational map. MapLibre + Motive + FleetWatcher are operationally critical."
+- **Driver**: "Drivers do not sign in, have no accounts, no passwords. Existing /shift + /d/:token + /driver workflow already satisfies ≤ 2 taps / ≤ 30 s."
+
+### Five-pillar verification (post-cleanup)
+- Powerful ✅ — every retained surface still increases or holds operational capability.
+- Simple ✅ — two preview-only surfaces with no operational lift removed.
+- Beautiful ✅ — no UI regression; every kept surface unchanged.
+- Trusted ✅ — every remaining card / button traces to a real source endpoint.
+- Proven ✅ — verified by source code inspection and live route checks.
+
+### Screenshot evidence
+- `/tmp/13_6l_dispatch_locked.jpg` — `/dispatch-portal` post-cleanup, Live Fleet Map MapLibre canvas dominant, V2 leak = 0.
+
+### Certification ledger snapshot
+- DRIVER V2 RETIRED ✅
+- FIELD LEADERSHIP V2 RETIRED ✅
+- DISPATCH V2 RECLASSIFIED TO COMPANION-ONLY ✅
+- ADMIN V2 RETAINED AS COMPANION ✅
+- LEADERSHIP V2 RETAINED AS COMPANION ✅
