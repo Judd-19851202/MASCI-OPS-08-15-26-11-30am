@@ -324,6 +324,65 @@ async def _project_defect(
                     "source_system": "fleet_defects",
                 })
 
+        # Track 13.28 · defect assigned (Shop Manager → Mechanic)
+        assigned_at = _coerce_iso(d.get("assigned_at"))
+        if assigned_at and _within_range(assigned_at, from_iso, to_iso):
+            out.append({
+                "event_id": _hash_id("defect_assigned", defect_id, assigned_at),
+                "event_type": "defect",
+                "event_subtype": "assigned",
+                "asset_id": None,
+                "unit_number": unit_number,
+                "timestamp": assigned_at,
+                "actor_id": d.get("assigned_by_user_id") or None,
+                "actor_name": d.get("assigned_by_user_name") or None,
+                "actor_role": "shop_manager",
+                "project_number": None,
+                "related_record_id": defect_id,
+                "related_defect_id": defect_id,
+                "related_preop_id": None,
+                "related_dvir_id": None,
+                "related_attachment_id": None,
+                "related_work_order_id": None,
+                "status_before": "open",
+                "status_after": "open",
+                "availability_before": None,
+                "availability_after": None,
+                "notes": (
+                    f"assigned to {d.get('assigned_to_mechanic_name') or '—'} "
+                    f"(id={d.get('assigned_to_mechanic_id') or '—'})"
+                ),
+                "source_system": "fleet_defects",
+            })
+
+        # Track 13.28 · defect accepted (Mechanic accepts assignment)
+        accepted_at = _coerce_iso(d.get("accepted_at"))
+        if accepted_at and _within_range(accepted_at, from_iso, to_iso):
+            out.append({
+                "event_id": _hash_id("defect_accepted", defect_id, accepted_at),
+                "event_type": "defect",
+                "event_subtype": "accepted",
+                "asset_id": None,
+                "unit_number": unit_number,
+                "timestamp": accepted_at,
+                "actor_id": d.get("assigned_to_mechanic_id") or None,
+                "actor_name": d.get("assigned_to_mechanic_name") or None,
+                "actor_role": "mechanic",
+                "project_number": None,
+                "related_record_id": defect_id,
+                "related_defect_id": defect_id,
+                "related_preop_id": None,
+                "related_dvir_id": None,
+                "related_attachment_id": None,
+                "related_work_order_id": None,
+                "status_before": "open",
+                "status_after": "acknowledged",
+                "availability_before": None,
+                "availability_after": None,
+                "notes": None,
+                "source_system": "fleet_defects",
+            })
+
         # acknowledged
         ack_at = _coerce_iso(d.get("acknowledged_at"))
         if ack_at and _within_range(ack_at, from_iso, to_iso):
@@ -352,6 +411,34 @@ async def _project_defect(
                 "source_system": "fleet_defects",
             })
 
+        # Track 13.28 · repair started (Mechanic flips in-progress)
+        repair_started_at = _coerce_iso(d.get("repair_started_at"))
+        if repair_started_at and _within_range(repair_started_at, from_iso, to_iso):
+            out.append({
+                "event_id": _hash_id("repair_started", defect_id, repair_started_at),
+                "event_type": "repair",
+                "event_subtype": "started",
+                "asset_id": None,
+                "unit_number": unit_number,
+                "timestamp": repair_started_at,
+                "actor_id": d.get("assigned_to_mechanic_id") or None,
+                "actor_name": d.get("assigned_to_mechanic_name") or None,
+                "actor_role": "mechanic",
+                "project_number": None,
+                "related_record_id": defect_id,
+                "related_defect_id": defect_id,
+                "related_preop_id": None,
+                "related_dvir_id": None,
+                "related_attachment_id": None,
+                "related_work_order_id": None,
+                "status_before": "acknowledged",
+                "status_after": "acknowledged",
+                "availability_before": "OOS",
+                "availability_after": "OOS",
+                "notes": None,
+                "source_system": "fleet_defects",
+            })
+
         # repaired
         rep_at = _coerce_iso(d.get("repaired_at"))
         if rep_at and _within_range(rep_at, from_iso, to_iso):
@@ -362,9 +449,9 @@ async def _project_defect(
                 "asset_id": None,
                 "unit_number": unit_number,
                 "timestamp": rep_at,
-                "actor_id": None,
-                "actor_name": d.get("repaired_by_name") or None,
-                "actor_role": "shop",
+                "actor_id": d.get("assigned_to_mechanic_id") or None,
+                "actor_name": d.get("repaired_by_name") or d.get("assigned_to_mechanic_name") or None,
+                "actor_role": "mechanic" if d.get("assigned_to_mechanic_id") else "shop",
                 "project_number": None,
                 "related_record_id": defect_id,
                 "related_defect_id": defect_id,
@@ -377,6 +464,34 @@ async def _project_defect(
                 "availability_before": "OOS",
                 "availability_after": "OOS",   # RTS still required
                 "notes": d.get("repair_notes") or item,
+                "source_system": "fleet_defects",
+            })
+
+        # Track 13.28 · shop manager review (after repair, before RTS)
+        reviewed_at = _coerce_iso(d.get("shop_manager_reviewed_at"))
+        if reviewed_at and _within_range(reviewed_at, from_iso, to_iso):
+            out.append({
+                "event_id": _hash_id("repair_reviewed", defect_id, reviewed_at),
+                "event_type": "repair",
+                "event_subtype": "manager_reviewed",
+                "asset_id": None,
+                "unit_number": unit_number,
+                "timestamp": reviewed_at,
+                "actor_id": d.get("shop_manager_reviewed_by_id") or None,
+                "actor_name": d.get("shop_manager_reviewed_by_name") or None,
+                "actor_role": "shop_manager",
+                "project_number": None,
+                "related_record_id": defect_id,
+                "related_defect_id": defect_id,
+                "related_preop_id": None,
+                "related_dvir_id": None,
+                "related_attachment_id": None,
+                "related_work_order_id": None,
+                "status_before": "repaired",
+                "status_after": "repaired",
+                "availability_before": "OOS",
+                "availability_after": "OOS",   # RTS still requires dispatch
+                "notes": None,
                 "source_system": "fleet_defects",
             })
 

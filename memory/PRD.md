@@ -198,3 +198,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Zero code changes · zero schema delta · zero deploy.
 - Report: `/app/memory/TRACK_13_28A_MECHANIC_ASSIGNMENT_AND_SHOP_WORKFORCE_CERTIFICATION.md`.
 - Deployment readiness remains 🟢 **GREEN**.
+
+## 2026-06-12 · Track 13.28 closeout — Mechanic Assignment Workflow
+
+- **Backend implementation LIVE.** Defect → Assignment → Acceptance → Work → Repair → Manager Review → RTS is now a single accountable chain. Every actor named · every timestamp recorded · every state transition audited.
+- **Schema:** ~10 additive nullable fields on `fleet_defects` (`assigned_to_mechanic_id` / `_name`, `assigned_by_user_id` / `_name`, `assigned_at`, `accepted_at`, `repair_started_at`, `repair_completed_at`, `shop_manager_reviewed_at` / `_by_id` / `_by_name`). Status enum unchanged · existing rows remain valid.
+- **Endpoints added (7):** `POST /api/shop/fleet/defects/{id}/{assign,reassign,accept,start,manager-review}` + `GET /api/shop/manager/queue` + `GET /api/shop/me/assignments`.
+- **Notifications:** per-user fan-out via existing `lib/event_fanout.py` — `tasks_notifications.assignee_user_id` now populated for shop work. Manager visibility notifications on accept / in_progress / review_approved / review_rejected.
+- **Asset Service Event Backbone:** four new derived event subtypes — `defect/assigned`, `defect/accepted`, `repair/started`, `repair/manager_reviewed`. Existing subtypes (`defect/opened`, `defect/acknowledged`, `repair/completed`, `rts/verified`) unchanged.
+- **Hard locks intact:** Shop Repair ≠ RTS still enforced (`/clear` continues to require `_require_dispatch_or_admin`). Manager review does NOT clear. MaintainX dormant. No fake data.
+- **Tests:** 4/4 PASSING (full seatbelt lifecycle + 3 contract tests). Regression sweep: Track 13.19 (9/9) + Track 13.26 (11/11) green.
+- **No frontend touched.** Shop Hub V2 assignment UI is a Phase 2 follow-up.
+- **Report:** `/app/memory/TRACK_13_28_MECHANIC_ASSIGNMENT_WORKFLOW.md`.
+- Deployment readiness remains 🟢 GREEN.

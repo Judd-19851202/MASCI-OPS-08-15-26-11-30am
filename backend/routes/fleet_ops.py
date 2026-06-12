@@ -32,6 +32,8 @@ Reused infrastructure (zero refactor risk):
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
 import os
 import re
@@ -39,7 +41,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 import fleet_defect_severity as _sev
@@ -107,6 +109,35 @@ class DefectActionPayload(BaseModel):
     actor_name: str
     notes: Optional[str] = ""
     photos: List[str] = Field(default_factory=list)
+
+
+# ─── Track 13.28 · Mechanic Assignment payloads ────────────────────────
+class DefectAssignPayload(BaseModel):
+    """Body for the shop manager assigning a defect to a mechanic.
+
+    Manager identity comes from the shop-user token; mechanic identity
+    must be supplied by the manager. Both names are denormalized onto
+    `fleet_defects` for queue rendering.
+    """
+    mechanic_id: str = Field(..., min_length=1, max_length=64)
+    mechanic_name: str = Field(..., min_length=1, max_length=200)
+    notes: Optional[str] = ""
+
+
+class DefectMechanicActionPayload(BaseModel):
+    """Body for mechanic-driven transitions (accept · start).
+
+    The actor's identity comes from the shop-user token; the body is
+    intentionally minimal so a mechanic on mobile can submit a single
+    tap.
+    """
+    notes: Optional[str] = ""
+
+
+class DefectManagerReviewPayload(BaseModel):
+    """Body for the shop manager signing off on a completed repair."""
+    notes: Optional[str] = ""
+    approved: bool = True
 
 
 # ─── Helper: scope guard for fleet vs other inspection kinds ──────────
@@ -1454,6 +1485,552 @@ def build_router(
             "count_units": len(groups),
             "count_defects": sum(len(g["defects"]) for g in groups),
             "groups": groups,
+        }
+
+    # ─────────────────────────────────────────────────────────────────
+    # Track 13.28 · Mechanic Assignment Workflow
+    # ─────────────────────────────────────────────────────────────────
+    # All fields on `fleet_defects` are additive nullable extensions:
+    #   assigned_to_mechanic_id / _name
+    #   assigned_by_user_id / _name
+    #   assigned_at
+    #   accepted_at
+    #   repair_started_at
+    #   repair_completed_at
+    #   shop_manager_reviewed_at
+    #   shop_manager_reviewed_by_id / _name
+    # Existing defect rows remain valid (None reads cleanly everywhere).
+    # State machine of `status` is unchanged (open → acknowledged →
+    # repaired → cleared); Track 13.28 enriches each step with named
+    # identity + intermediate timestamps without inserting new states.
+    # ─────────────────────────────────────────────────────────────────
+
+    # Rich actor resolver. The narrow `require_shop_or_admin` dep used
+    # elsewhere in this module returns only `{"role": "admin" | "shop"}`,
+    # which is insufficient for per-mechanic assignment. We read the
+    # raw headers and resolve the per-shop-user token directly via
+    # `shop_users.is_valid_shop_user_token_async`. This does NOT change
+    # the existing narrow contract used by acknowledge/repair/clear.
+    async def _resolve_rich_actor(
+        request: Request,
+        x_admin_token: Optional[str],
+        x_shop_token: Optional[str],
+    ) -> Dict[str, Any]:
+        """Return `{"kind": "admin" | "shop_manager" | "mechanic" | "shop",
+        "id": str|None, "name": str, "role": str}` or raise 401."""
+        # Admin path — fully authorized
+        from server import _is_valid_admin_token  # noqa: PLC0415
+        if x_admin_token and _is_valid_admin_token(x_admin_token):
+            return {"kind": "admin", "id": None, "name": "Admin", "role": "admin"}
+        # Per-shop-user token (preferred — carries identity)
+        if x_shop_token and "." in x_shop_token:
+            from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
+            user = await is_valid_shop_user_token_async(db, x_shop_token)
+            if user:
+                role = (user.get("role") or "").strip()
+                role_l = role.lower()
+                if role_l == "shop manager":
+                    kind = "shop_manager"
+                elif role_l == "mechanic":
+                    kind = "mechanic"
+                else:
+                    kind = "shop"
+                return {
+                    "kind": kind,
+                    "id": user.get("id"),
+                    "name": user.get("name") or user.get("email") or "Shop User",
+                    "role": role or "Shop",
+                }
+        # Legacy shared shop password — admits but with NO identity.
+        # This is the kiosk fallback; manager-only endpoints reject it.
+        shop_pw = os.environ.get("SHOP_PASSWORD", "")
+        if x_shop_token and shop_pw:
+            from server import _shop_token_for  # noqa: PLC0415
+            try:
+                expected = _shop_token_for(shop_pw)
+            except Exception:
+                expected = ""
+            if expected and hmac.compare_digest(x_shop_token, expected):
+                return {"kind": "shop", "id": None, "name": "Shop", "role": "Shop"}
+        raise HTTPException(401, "Shop or Admin auth required")
+
+    def _is_manager(actor: Dict[str, Any]) -> bool:
+        return actor.get("kind") in ("admin", "shop_manager")
+
+    async def _emit_assignment_task(
+        db,
+        *,
+        defect: Dict[str, Any],
+        mechanic_id: str,
+        mechanic_name: str,
+        unit_number: str,
+        kind: str,
+    ) -> None:
+        """Per-user fan-out using the existing tasks_notifications
+        primitive. Best-effort; never blocks the lifecycle action."""
+        try:
+            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+
+            title = f"Defect assigned — {unit_number or '—'} ({kind or 'defect'})"
+            await emit_task_and_notification(
+                db,
+                task={
+                    "title": title[:200],
+                    "description": (
+                        f"Mechanic: {mechanic_name} · "
+                        f"Unit: {unit_number or '—'} · "
+                        f"Defect: {(defect.get('item_text') or defect.get('category') or '')[:100]}"
+                    )[:4000],
+                    "source_module": "fleet.defect.assignment",
+                    "source_record_id": defect.get("id"),
+                    "assignee_role": "shop",
+                    "assignee_user_id": mechanic_id,
+                    "priority": "Critical" if (defect.get("severity") or "").lower() == "oos" else "Medium",
+                    "created_by": {"role": "system", "via": "track-13.28-assign"},
+                },
+                notification={
+                    "type": "shop_assignment",
+                    "title": title[:200],
+                    "message": f"You have been assigned a {kind} defect on {unit_number or '—'}."[:200],
+                    "severity": "Critical" if (defect.get("severity") or "").lower() == "oos" else "Info",
+                    "recipient_role": "shop",
+                    "recipient_user_id": mechanic_id,
+                    "linked_source_module": "fleet.defect.assignment",
+                    "linked_source_record_id": defect.get("id"),
+                },
+            )
+        except Exception:  # noqa: BLE001
+            # Fail-soft · NEVER block the assignment write
+            pass
+
+    async def _emit_manager_notification(
+        db,
+        *,
+        defect: Dict[str, Any],
+        event: str,
+        unit_number: str,
+        actor_name: str,
+    ) -> None:
+        """Notify shop managers when a mechanic accepts / starts /
+        completes work so the manager queue stays current. Role-level
+        fan-out (no per-user shop-manager registry today)."""
+        try:
+            from lib.event_fanout import emit_notification  # noqa: PLC0415
+            await emit_notification(
+                db,
+                {
+                    "type": f"shop_assignment.{event}",
+                    "title": f"{actor_name}: {event}"[:200],
+                    "message": (
+                        f"{actor_name} → {event} · {unit_number or '—'} · "
+                        f"{(defect.get('item_text') or defect.get('category') or '')[:80]}"
+                    )[:200],
+                    "severity": "Info",
+                    "recipient_role": "shop",
+                    "linked_source_module": "fleet.defect.assignment",
+                    "linked_source_record_id": defect.get("id"),
+                },
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
+    @router.post("/api/shop/fleet/defects/{defect_id}/assign")
+    async def assign_defect(
+        defect_id: str,
+        payload: DefectAssignPayload,
+        request: Request,
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    ):
+        """Shop Manager assigns a defect to a named mechanic.
+
+        Authorization: caller must be Admin OR a per-user shop token
+        whose `role == "Shop Manager"`. Mechanic tokens and legacy
+        shared shop tokens are rejected with 403.
+        """
+        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+        if not _is_manager(actor):
+            raise HTTPException(403, "Shop Manager role required")
+        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+        if not defect:
+            raise HTTPException(404, "defect not found")
+        if defect["status"] not in ("open", "acknowledged"):
+            raise HTTPException(
+                400,
+                f"can only assign from status=open|acknowledged "
+                f"(current={defect['status']!r})",
+            )
+        now_iso = datetime.now(timezone.utc).isoformat()
+        await db.fleet_defects.update_one(
+            {"id": defect_id},
+            {"$set": {
+                "assigned_to_mechanic_id": payload.mechanic_id,
+                "assigned_to_mechanic_name": payload.mechanic_name,
+                "assigned_by_user_id": actor["id"],
+                "assigned_by_user_name": actor["name"],
+                "assigned_at": now_iso,
+                # Re-assignment clears downstream timestamps so the queue
+                # state machine is unambiguous.
+                "accepted_at": None,
+                "repair_started_at": None,
+            }},
+        )
+        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+        await _audit(
+            db, actor=actor["name"], actor_role="shop_manager",
+            action="defect_assigned",
+            target_type="fleet_defect", target_id=defect_id,
+            payload={
+                "status_before": defect.get("status"),
+                "status_after": defect.get("status"),
+                "unit_number": unit_number,
+                "mechanic_id": payload.mechanic_id,
+                "mechanic_name": payload.mechanic_name,
+                "assigned_by_id": actor["id"],
+                "notes": payload.notes,
+                "checklist_item": defect.get("item_text"),
+            },
+        )
+        await _emit_assignment_task(
+            db,
+            defect=defect,
+            mechanic_id=payload.mechanic_id,
+            mechanic_name=payload.mechanic_name,
+            unit_number=unit_number,
+            kind=defect.get("inspection_kind") or "defect",
+        )
+        return {"ok": True, "queue_state": "assigned"}
+
+    @router.post("/api/shop/fleet/defects/{defect_id}/reassign")
+    async def reassign_defect(
+        defect_id: str,
+        payload: DefectAssignPayload,
+        request: Request,
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    ):
+        """Shop Manager re-assigns a defect to a different mechanic."""
+        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+        if not _is_manager(actor):
+            raise HTTPException(403, "Shop Manager role required")
+        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+        if not defect:
+            raise HTTPException(404, "defect not found")
+        if not defect.get("assigned_to_mechanic_id"):
+            raise HTTPException(400, "defect has no current assignment to replace")
+        if defect["status"] not in ("open", "acknowledged"):
+            raise HTTPException(
+                400,
+                f"can only reassign from status=open|acknowledged "
+                f"(current={defect['status']!r})",
+            )
+        now_iso = datetime.now(timezone.utc).isoformat()
+        previous_mechanic_id = defect.get("assigned_to_mechanic_id")
+        previous_mechanic_name = defect.get("assigned_to_mechanic_name")
+        await db.fleet_defects.update_one(
+            {"id": defect_id},
+            {"$set": {
+                "assigned_to_mechanic_id": payload.mechanic_id,
+                "assigned_to_mechanic_name": payload.mechanic_name,
+                "assigned_by_user_id": actor["id"],
+                "assigned_by_user_name": actor["name"],
+                "assigned_at": now_iso,
+                "accepted_at": None,
+                "repair_started_at": None,
+            }},
+        )
+        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+        await _audit(
+            db, actor=actor["name"], actor_role="shop_manager",
+            action="defect_reassigned",
+            target_type="fleet_defect", target_id=defect_id,
+            payload={
+                "unit_number": unit_number,
+                "previous_mechanic_id": previous_mechanic_id,
+                "previous_mechanic_name": previous_mechanic_name,
+                "mechanic_id": payload.mechanic_id,
+                "mechanic_name": payload.mechanic_name,
+                "notes": payload.notes,
+            },
+        )
+        await _emit_assignment_task(
+            db,
+            defect=defect,
+            mechanic_id=payload.mechanic_id,
+            mechanic_name=payload.mechanic_name,
+            unit_number=unit_number,
+            kind=defect.get("inspection_kind") or "defect",
+        )
+        return {"ok": True, "queue_state": "assigned"}
+
+    @router.post("/api/shop/fleet/defects/{defect_id}/accept")
+    async def accept_defect(
+        defect_id: str,
+        payload: DefectMechanicActionPayload,
+        request: Request,
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    ):
+        """Assigned mechanic acknowledges they own the work."""
+        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+        if not defect:
+            raise HTTPException(404, "defect not found")
+        if not defect.get("assigned_to_mechanic_id"):
+            raise HTTPException(400, "defect has no assigned mechanic")
+        if defect.get("accepted_at"):
+            raise HTTPException(400, "defect already accepted")
+        if defect["status"] != "open":
+            raise HTTPException(
+                400,
+                f"can only accept from status=open "
+                f"(current={defect['status']!r})",
+            )
+        if actor["kind"] != "admin":
+            if not actor.get("id") or actor["id"] != defect.get("assigned_to_mechanic_id"):
+                raise HTTPException(403, "only the assigned mechanic can accept this defect")
+        now_iso = datetime.now(timezone.utc).isoformat()
+        await db.fleet_defects.update_one(
+            {"id": defect_id},
+            {"$set": {
+                "accepted_at": now_iso,
+                "status": "acknowledged",
+                "acknowledged_at": now_iso,
+                "acknowledged_by_name": actor["name"],
+            }},
+        )
+        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+        await _audit(
+            db, actor=actor["name"], actor_role="mechanic",
+            action="defect_accepted",
+            target_type="fleet_defect", target_id=defect_id,
+            payload={
+                "status_before": "open",
+                "status_after": "acknowledged",
+                "unit_number": unit_number,
+                "mechanic_id": defect.get("assigned_to_mechanic_id"),
+                "mechanic_name": defect.get("assigned_to_mechanic_name"),
+                "notes": payload.notes,
+            },
+        )
+        await _emit_manager_notification(
+            db, defect=defect, event="accepted",
+            unit_number=unit_number, actor_name=actor["name"],
+        )
+        return {"ok": True, "queue_state": "accepted"}
+
+    @router.post("/api/shop/fleet/defects/{defect_id}/start")
+    async def start_defect(
+        defect_id: str,
+        payload: DefectMechanicActionPayload,
+        request: Request,
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    ):
+        """Mechanic records `repair_started_at` (queue → in_progress)."""
+        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+        if not defect:
+            raise HTTPException(404, "defect not found")
+        if defect["status"] != "acknowledged":
+            raise HTTPException(
+                400,
+                f"can only start from status=acknowledged "
+                f"(current={defect['status']!r})",
+            )
+        if defect.get("repair_started_at"):
+            raise HTTPException(400, "repair already started")
+        if actor["kind"] != "admin":
+            if not actor.get("id") or actor["id"] != defect.get("assigned_to_mechanic_id"):
+                raise HTTPException(403, "only the assigned mechanic can start this defect")
+        now_iso = datetime.now(timezone.utc).isoformat()
+        await db.fleet_defects.update_one(
+            {"id": defect_id},
+            {"$set": {"repair_started_at": now_iso}},
+        )
+        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+        await _audit(
+            db, actor=actor["name"], actor_role="mechanic",
+            action="defect_repair_started",
+            target_type="fleet_defect", target_id=defect_id,
+            payload={
+                "status_before": "acknowledged",
+                "status_after": "acknowledged",
+                "unit_number": unit_number,
+                "mechanic_id": defect.get("assigned_to_mechanic_id"),
+                "mechanic_name": defect.get("assigned_to_mechanic_name"),
+                "notes": payload.notes,
+            },
+        )
+        await _emit_manager_notification(
+            db, defect=defect, event="in_progress",
+            unit_number=unit_number, actor_name=actor["name"],
+        )
+        return {"ok": True, "queue_state": "in_progress"}
+
+    @router.post("/api/shop/fleet/defects/{defect_id}/manager-review")
+    async def manager_review_defect(
+        defect_id: str,
+        payload: DefectManagerReviewPayload,
+        request: Request,
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    ):
+        """Shop Manager signs off on the repair. Must follow `/repair`
+        (status=repaired) and precede Dispatch's `/clear` (RTS)."""
+        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+        if not _is_manager(actor):
+            raise HTTPException(403, "Shop Manager role required")
+        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+        if not defect:
+            raise HTTPException(404, "defect not found")
+        if defect["status"] != "repaired":
+            raise HTTPException(
+                400,
+                f"manager review requires status=repaired "
+                f"(current={defect['status']!r})",
+            )
+        if defect.get("shop_manager_reviewed_at"):
+            raise HTTPException(400, "manager review already recorded")
+        now_iso = datetime.now(timezone.utc).isoformat()
+        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+        if not payload.approved:
+            # Reject path: bounce back to acknowledged so the mechanic
+            # can re-work without losing the repair history.
+            await db.fleet_defects.update_one(
+                {"id": defect_id},
+                {"$set": {
+                    "status": "acknowledged",
+                    "repair_started_at": None,
+                    "shop_manager_reviewed_at": now_iso,
+                    "shop_manager_reviewed_by_id": actor["id"],
+                    "shop_manager_reviewed_by_name": actor["name"],
+                }},
+            )
+            await _audit(
+                db, actor=actor["name"], actor_role="shop_manager",
+                action="defect_review_rejected",
+                target_type="fleet_defect", target_id=defect_id,
+                payload={
+                    "status_before": "repaired",
+                    "status_after": "acknowledged",
+                    "unit_number": unit_number,
+                    "reviewer_id": actor["id"],
+                    "notes": payload.notes,
+                },
+            )
+            await _emit_manager_notification(
+                db, defect=defect, event="review_rejected",
+                unit_number=unit_number, actor_name=actor["name"],
+            )
+            return {"ok": True, "queue_state": "rework"}
+
+        await db.fleet_defects.update_one(
+            {"id": defect_id},
+            {"$set": {
+                "shop_manager_reviewed_at": now_iso,
+                "shop_manager_reviewed_by_id": actor["id"],
+                "shop_manager_reviewed_by_name": actor["name"],
+                "repair_completed_at": defect.get("repair_completed_at") or defect.get("repaired_at") or now_iso,
+            }},
+        )
+        await _audit(
+            db, actor=actor["name"], actor_role="shop_manager",
+            action="defect_manager_reviewed",
+            target_type="fleet_defect", target_id=defect_id,
+            payload={
+                "status_before": "repaired",
+                "status_after": "repaired",
+                "unit_number": unit_number,
+                "reviewer_id": actor["id"],
+                "notes": payload.notes,
+            },
+        )
+        await _emit_manager_notification(
+            db, defect=defect, event="review_approved",
+            unit_number=unit_number, actor_name=actor["name"],
+        )
+        return {"ok": True, "queue_state": "rts_pending"}
+
+    # ── Queue endpoints ──────────────────────────────────────────────
+
+    def _queue_state(defect: Dict[str, Any]) -> str:
+        """Derive the operator-visible queue state from defect fields."""
+        status = defect.get("status")
+        if status == "cleared":
+            return "cleared"
+        if status == "repaired":
+            if defect.get("shop_manager_reviewed_at"):
+                return "rts_pending"
+            return "pending_review"
+        if status == "acknowledged":
+            if defect.get("repair_started_at"):
+                return "in_progress"
+            return "accepted"
+        # open
+        if defect.get("assigned_to_mechanic_id"):
+            return "assigned"
+        return "unassigned"
+
+    @router.get("/api/shop/manager/queue")
+    async def shop_manager_queue(
+        request: Request,
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    ):
+        """Shop Manager visibility into the full defect queue."""
+        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+        if not _is_manager(actor):
+            raise HTTPException(403, "Shop Manager role required")
+        states = (
+            "unassigned", "assigned", "accepted", "in_progress",
+            "pending_review", "rts_pending",
+        )
+        buckets: Dict[str, List[Dict[str, Any]]] = {s: [] for s in states}
+        async for d in db.fleet_defects.find(
+            {"status": {"$in": ["open", "acknowledged", "repaired"]}},
+            {"_id": 0},
+        ).sort("reported_at", -1).limit(1000):
+            qs = _queue_state(d)
+            if qs in buckets:
+                buckets[qs].append(d)
+        return {
+            "counts": {s: len(buckets[s]) for s in states},
+            "total": sum(len(v) for v in buckets.values()),
+            "buckets": buckets,
+        }
+
+    @router.get("/api/shop/me/assignments")
+    async def shop_mechanic_assignments(
+        request: Request,
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    ):
+        """Mechanic-only queue: defects assigned TO the caller."""
+        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+        if not actor.get("id"):
+            return {
+                "actor_id": None, "actor_name": actor["name"],
+                "counts": {}, "total": 0, "buckets": {},
+            }
+        states = ("assigned", "accepted", "in_progress", "pending_review")
+        buckets: Dict[str, List[Dict[str, Any]]] = {s: [] for s in states}
+        async for d in db.fleet_defects.find(
+            {
+                "assigned_to_mechanic_id": actor["id"],
+                "status": {"$in": ["open", "acknowledged", "repaired"]},
+            },
+            {"_id": 0},
+        ).sort("assigned_at", -1).limit(500):
+            qs = _queue_state(d)
+            if qs in buckets:
+                buckets[qs].append(d)
+        return {
+            "actor_id": actor["id"],
+            "actor_name": actor["name"],
+            "counts": {s: len(buckets[s]) for s in states},
+            "total": sum(len(v) for v in buckets.values()),
+            "buckets": buckets,
         }
 
     return router

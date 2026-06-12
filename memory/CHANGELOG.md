@@ -1722,3 +1722,33 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 
 ### Hard locks reaffirmed
 - Dispatch Map-First · Driver No-Login · DriverHubV2 retired · Shop Repair Complete ≠ RTS · Dispatch/Admin RTS verification · One Map Engine · One Source of Truth · No fake MaintainX / FleetWatcher · No duplicate history / event / asset spines · No ERP / accounting / pay-app / contracts.
+
+## 2026-06-12 · Track 13.28 — Mechanic Assignment Workflow
+
+### Added
+- `memory/TRACK_13_28_MECHANIC_ASSIGNMENT_WORKFLOW.md` — implementation report.
+- `backend/tests/test_track_13_28_mechanic_assignment_workflow.py` — 4 tests · full lifecycle + 3 contract.
+
+### Modified
+- `backend/routes/fleet_ops.py` — added 3 Pydantic payload models · added 7 endpoints (5 lifecycle + 2 queue) · added rich actor resolver + queue-state helper · added `hmac` / `Request` / `Header` imports. **Pure additions** — existing endpoints unchanged.
+- `backend/routes/asset_service_events.py` — extended `_project_defect` to emit 4 new lifecycle subtypes (`defect/assigned`, `defect/accepted`, `repair/started`, `repair/manager_reviewed`). Repair event enriched with `mechanic_id`/`name` when present.
+
+### Endpoints
+- `POST /api/shop/fleet/defects/{id}/assign` · `/reassign` · `/accept` · `/start` · `/manager-review`
+- `GET /api/shop/manager/queue` · `/api/shop/me/assignments`
+
+### NOT changed
+- Zero new collection · zero schema migration · zero new auth dep · zero `.env` change · zero frontend touched · zero deploy.
+- Existing endpoints (acknowledge / repair / clear) operate exactly as before.
+- MaintainX env vars unchanged · SDK not invoked.
+
+### Tests
+- 4 / 4 NEW tests passing (`pytest tests/test_track_13_28_mechanic_assignment_workflow.py -v`).
+- Regression: Track 13.19 (9/9) + Track 13.26 (11/11) green.
+
+### Hard locks reaffirmed
+- Shop Repair Complete ≠ RTS (verified — manager-review keeps `status="repaired"`; only `/clear` flips to `cleared`).
+- Dispatch/Admin retain RTS authority.
+- Driver no-login · Dispatch map-first · One map engine · One source of truth.
+- MaintainX dormant · no fake data · no duplicate history/event/asset spine.
+- No ERP / accounting / pay-app / contracts invented.

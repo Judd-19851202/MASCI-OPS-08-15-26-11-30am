@@ -5342,3 +5342,33 @@ Authorize **Track 13.28 — Mechanic Assignment Workflow** as the next track. De
 Dispatch Map-First · Driver No-Login · DriverHubV2 retired · Shop Repair ≠ RTS · Dispatch/Admin RTS · One Map Engine · One Source of Truth · No fake MaintainX/FleetWatcher · No duplicate history/event/asset spines · No ERP/accounting/pay-app/contracts.
 
 **Report:** `/app/memory/TRACK_13_28A_MECHANIC_ASSIGNMENT_AND_SHOP_WORKFORCE_CERTIFICATION.md`.
+
+---
+
+## 2026-06-12 · Track 13.28 — Mechanic Assignment Workflow (BACKEND LIVE)
+
+**Mode:** IMPLEMENTATION · backend-only · additive-schema · no frontend · no deploy.
+
+### What shipped
+- 7 endpoints (5 lifecycle: assign · reassign · accept · start · manager-review + 2 queue: manager queue · my assignments).
+- ~10 nullable additive fields on `fleet_defects` (identity + intermediate timestamps + manager review).
+- Per-user notification fan-out via `tasks_notifications.assignee_user_id` (using existing `lib/event_fanout.py` primitive · no email invention).
+- 4 new derived event subtypes in Asset Service Event Backbone: `defect/assigned` · `defect/accepted` · `repair/started` · `repair/manager_reviewed`. Repair event enriched with mechanic_id.
+
+### Lifecycle proven end-to-end
+Seatbelt-defect test seeds → `assign` → `accept` → `start` → `repair` → `manager-review` (approved) → `dispatch /clear`. Every state recorded · every actor named · every audit-row written · every timeline-event projected. 4/4 tests pass.
+
+### Hard locks verified
+- Shop Repair Complete ≠ RTS (status remains `repaired` until `/clear`).
+- Dispatch + Admin retain RTS authority (`_require_dispatch_or_admin`).
+- Driver no-login · Dispatch map-first · DriverHubV2 retired.
+- MaintainX env unchanged · SDK never invoked.
+- No fake data · no duplicate history/event/asset spine.
+
+### Regressions
+- Zero. Track 13.19 (9 tests) and Track 13.26 (11 tests) both green.
+
+### Recommended next track
+- **Track 13.31 — PM Engine (derived)** — reuses the new assignment chain. Optional parallel: Track 13.28 Phase 2 (frontend UI).
+
+**Report:** `/app/memory/TRACK_13_28_MECHANIC_ASSIGNMENT_WORKFLOW.md`.

@@ -768,3 +768,22 @@ After Track 13.27 lands, the Asset Service Event Backbone becomes operator-visib
 - (b) Confirm K6 (per-action RBAC enforcement) defers to Track 13.28b after telemetry.
 - (c) Confirm Track 13.29 introduces "Fuel/Lube Operator" role + `fuel_service_visits` collection scope.
 - (d) MaintainX credentials still embargoed pending vendor + IT.
+
+## 2026-06-12 · Post Track 13.28 (BACKEND LIVE)
+- ✅ Mechanic Assignment Workflow shipped backend-only. Architectural prerequisite for 13.29/13.31/13.33 unlocked.
+- 🟢 Deployment readiness remains GREEN.
+
+### Critical-path next step (operator-gated)
+- **Track 13.31 — PM Engine (derived)** (~6h · LOW risk · reuses 13.28 lifecycle · ZERO new persistence in v1)
+  Read Motive hours/odometer + last PM completion from `fleet_defects` (kind=pm once defect lifecycle is extended). Validates the new assignment chain under heavier load before 13.29 introduces a brand-new collection.
+  Backbone gains real `pm` event_type instead of placeholder.
+
+### Or in parallel
+- **Track 13.28 Phase 2 — Shop Hub V2 assignment UI** (~4h · frontend only · no backend change). Adds manager assign-dropdown on `/shop/fleet/defects/{id}` + mechanic queue at `/shop/me` + manager queue at `/shop/manager`.
+
+### Future tracks (per 13.28A §11)
+- **Track 13.29** — Fuel/Lube Job Visit Form (MED risk · operator decision gate on new role + collection).
+- **Track 13.30** — Service-Truck Daily Reconciliation (depends on 13.29).
+- **Track 13.33** — Asset Care Command Center (LOW risk · pure read aggregation over 13.26/13.28/13.31).
+- **Track 13.32** — MaintainX Integration (HIGH risk · LAST · BLOCKED on `MAINTAINX_API_KEY`).
+- **Track 13.28b** — K6 per-action RBAC enforcement (deferred 30 days for telemetry).
