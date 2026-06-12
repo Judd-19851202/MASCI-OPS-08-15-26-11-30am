@@ -8,6 +8,8 @@ import Hub from "@/pages/Hub";
 const DesignSystemDemo = React.lazy(() => import("@/pages/DesignSystemDemo"));
 // Track 13.5A · Phase B2 — Internal PM Portal V2 preview lane (lazy, mock data only).
 const PmV2Preview = React.lazy(() => import("@/pages/PmV2Preview"));
+// Track 13.6A · Operational Recovery Phase 1 — Internal HR Portal V2 preview lane (lazy, mock data only).
+const HrV2Preview = React.lazy(() => import("@/pages/HrV2Preview"));
 // ROUTE-SPLIT-001 Wave 3 — ODR + Operational Records + Operations Actions lazy.
 const OdrNew = React.lazy(() => import("@/pages/odr/OdrNew"));
 const OdrCenter = React.lazy(() => import("@/pages/odr/OdrCenter"));
@@ -926,6 +928,7 @@ function App() {
                 pointing here from any portal. Authorized 2026-02 by operator. */}
             <Route path="/_internal/design-system" element={<DesignSystemDemo />} />
             <Route path="/_internal/pm-v2-preview" element={<PmV2Preview />} />
+            <Route path="/_internal/hr-v2-preview" element={<HrV2Preview />} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>

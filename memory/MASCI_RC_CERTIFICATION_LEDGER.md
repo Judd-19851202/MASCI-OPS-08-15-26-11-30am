@@ -3538,3 +3538,37 @@ Minimum implementation tracks: **T0–T16** (16 tracks). T0 (production verifica
 Operator authorization for **T0** (Track 13.4D production verification checklist) or **T2** (Phase B3 pilot migration of HR or PM). Both already scoped and ready.
 
 Standing rules still in force: No deploy. No GitHub save. No merge.
+
+---
+
+## Track 13.6A · Operational Recovery Phase 1 — PM V2 correction + HR V2 preview build
+
+**Mode honoured:** preview-only · no portal migration · no operator-route changes · no form changes · no workflow changes · no nav changes · no deploy · no GitHub save · no merge.
+
+### Files edited / created
+- `/app/frontend/src/pages/PmV2Preview.jsx` — **rewritten** to strip dead objects (RFIs · Submittals · Risks · mock photo grid). Every CTA now a real `<Link>` to a live PM route. Every pulse card bound to a real PM destination.
+- `/app/frontend/src/pages/HrV2Preview.jsx` — **new file**. Lowest-risk pilot. Every primitive bound to a real `/api/hr/*` endpoint that already ships.
+- `/app/frontend/src/App.js` — added one lazy import + one `<Route path="/_internal/hr-v2-preview">`. No nav link.
+
+### Hard-rule compliance
+- RFIs / Submittals / Risks / mock photo grid CONFIRMED ABSENT in PM V2 across all 4 viewports.
+- All required PM V2 surfaces CONFIRMED PRESENT (10 testids).
+- All HR V2 sections CONFIRMED PRESENT (9 testids).
+- Every visible button is either a `<Link to=...>` to a real route, or non-interactive by design. No fake handlers.
+
+### Zero-drift verification
+- 15 live operator routes (Hub · Admin · Dispatch · PM × 6 · HR · Safety · Shop · FL · Driver · Public Trench) confirmed zero design-system / V2-preview `data-testid` leakage.
+- Dispatch visual guardrail re-executed: `box=1084×520 · mean=24.85 · variance=275.46 · unique=103` — PASS (identical to 13.4A baseline).
+- Operator-visible Dispatch screenshot confirms live portal byte-for-byte unchanged.
+
+### Five-pillar scores (previews)
+- PM V2 corrected: Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → 8.8 avg.
+- HR V2 preview: Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → 8.8 avg.
+- Both exceed directive minimums (≥9 · ≥9 · ≥9 · ≥9 · ≥8 preview).
+
+### Evidence
+- Report: `/app/memory/TRACK_13_6A_OPERATIONAL_RECOVERY_PHASE_1_REPORT.md`
+- Screenshots: `/app/memory/screenshots/track_13_6a_recovery/` — 12 files (3 surfaces × 4 viewports: desktop · iPad landscape · iPad portrait · phone).
+
+### Verdict
+**Phase 1 Complete — Ready For Operator Visual Review.** Awaiting operator authorization for **T0** (13.4D production verification) and/or **T2** (Phase B3 pilot migration — HR recommended as lowest risk).

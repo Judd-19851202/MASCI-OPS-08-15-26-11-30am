@@ -40088,3 +40088,33 @@ If all hold → **production certified**. Else → escalate.
 **Minimum implementation tracks identified:** T0–T16. T0 (production verification) and T1 (PM scope decisions) cost zero code; T2 (Phase B3 pilot migration) is the foundation move.
 
 **Standing rules still in force:** No deploy. No GitHub save. No merge.
+
+---
+
+## 2026-06-12 · Track 13.6A — Operational Recovery Phase 1 (COMPLETE · Ready For Operator Visual Review)
+
+**Mode:** preview-only · no portal migration · no operator-route / form / workflow / nav / API changes · no deploy.
+
+**Hard rule (no dead objects) applied to PM V2:**
+- Removed RFIs (no engine), Submittals (no engine), Risks (replaced with the real Project Constraints engine at `/api/constraints/*`), mock photo grid (replaced with a real link to `/pm/photos`), and all fake buttons.
+- Every pulse card, table action, and CTA on the corrected PM V2 is a `<Link>` to a real PM route.
+
+**Built `/_internal/hr-v2-preview`:**
+- Lowest-risk pilot per Track 13.5B recommendation.
+- Every section bound to a real `/api/hr/*` endpoint that already ships in production HR (`/employees`, `/employee-requests`, `/daily-reports`, `/employee-accountability`, `/driver-qualification/dashboard`, `/training-records`).
+- HR content model, workflows, routes, data logic, role clarity preserved byte-for-byte.
+
+**Zero-drift evidence:**
+- 15 live operator routes verified zero leakage of design-system / V2-preview `data-testid`s.
+- Dispatch visual guardrail re-executed: PASS (`box=1084×520 · mean=24.85 · variance=275.46 · unique=103`).
+
+**Five-pillar scores (preview-only):**
+- PM V2 corrected: 9 · 9 · 9 · 9 · 8 → 8.8 avg.
+- HR V2 preview: 9 · 9 · 9 · 9 · 8 → 8.8 avg.
+- Both exceed the directive's preview thresholds.
+
+**Evidence:** `/app/memory/TRACK_13_6A_OPERATIONAL_RECOVERY_PHASE_1_REPORT.md` + 12 screenshots in `/app/memory/screenshots/track_13_6a_recovery/`.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge.
+
+**Next gate:** Operator authorization for **T0** (13.4D production verification — zero code, highest trust impact) and/or **T2** (Phase B3 Pilot Migration — HR recommended as lowest-risk first migration target).
