@@ -536,3 +536,29 @@
   .ops-map-sheet { left: 8px; right: 8px; width: auto; top: 8px; bottom: 148px; }
   .ops-map-project-card { min-width: 200px; max-width: 240px; }
 }
+
+/* Track 13.4A · Dispatch Map Hero embed fix.
+ *
+ * `.ops-map-canvas` normally sizes itself via grid-column/grid-row inside
+ * `.ops-map-grid` (the full-screen /operations-map page). When MapCanvas
+ * is re-used inside DispatchMapHero — a plain `position:relative; height:
+ * 320px;` wrapper — the grid placement rules don't apply, so MapLibre
+ * renders into a 0×0 box and the canvas paints black.
+ *
+ * This scoped override only fires when `.ops-map-canvas` is nested
+ * inside `[data-testid="dispatch-map-canvas-wrap"]` (the hero wrapper),
+ * so the full /operations-map page is untouched.
+ */
+[data-testid="dispatch-map-canvas-wrap"] .ops-map-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  grid-column: unset;
+  grid-row: unset;
+}
+[data-testid="dispatch-map-canvas-wrap"] .ops-map-canvas .maplibregl-map,
+[data-testid="dispatch-map-canvas-wrap"] .ops-map-canvas .maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}

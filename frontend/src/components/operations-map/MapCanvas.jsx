@@ -49,6 +49,11 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
       center: [-81.0, 28.9], // East-central Florida (MASCI service area)
       zoom: 8,
       attributionControl: true,
+      // Track 13.4A · keep WebGL drawing buffer so Playwright / browser
+      // screenshots actually capture the rendered map tiles (otherwise
+      // page.screenshot() returns blank for the canvas region even
+      // though the map is visible to human eyes).
+      preserveDrawingBuffer: true,
     });
     mapRef.current = map;
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "top-right");
