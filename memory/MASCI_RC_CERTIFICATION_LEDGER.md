@@ -4765,3 +4765,17 @@ Wrote `/app/memory/TRACK_13_9_1_ODR_CERTIFICATION_REPORT.md` · 578 lines · 12 
 - Zero backend touch · zero new route · zero new permission · zero new collection.
 
 **Track 13.13 · CLOSED.**
+
+
+## 2026-06-12 · Track 13.14 — Scale Ticket 4-Field Extension · DONE
+- `operational_attachments.scale_ticket` extended with `weight_gross_lbs / weight_tare_lbs / weight_net_lbs / material_code`.
+- Auto-net = gross - tare when net absent; explicit net preserved.
+- Numeric validation rejects non-numeric input and tare > gross (HTTP 400).
+- `_public_attachment` projection passes fields through to upload + list responses.
+- `AttachmentStrip.jsx` renders 4 inputs when type=scale_ticket and chips on existing items.
+- 8/8 pytest pass · 6/6 curl tests pass · webpack + lint clean.
+- All Wave 1 surfacings + Track 13.13 panel + hard locks verified intact.
+
+**Track 13.14 · CLOSED.**
+
+After 13.14 the Track 13.9 §8 Immediate Build Queue stands at 5 of 8 items complete (3.0 + 5.0 + 4.0 + 5.0 + 8.0 = 25 of 34 hours). Remaining: BQ#6 PO-missing-receipts notification (5h), BQ#7 MaterialMovementTile embed (1.5h), BQ#8 ODR PM-Hub pending-drafts pill (2.5h).

@@ -1469,3 +1469,26 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 
 ### NOT changed
 - Zero backend touch · zero new route · zero new permission · zero new collection · zero new test scaffolding.
+
+## 2026-06-12 · Track 13.14 — Scale Ticket 4-Field Extension · DONE
+
+### Implemented
+- `backend/routes/operational_attachments.py`: extended `POST /api/operational-attachments/upload` with 4 optional Form fields (`weight_gross_lbs`, `weight_tare_lbs`, `weight_net_lbs`, `material_code`). Added `_parse_optional_lbs(...)` safe numeric parser. Extended `_public_attachment(...)` projection to pass fields through to all consumers. Auto-net computed only when gross+tare are present and net is empty; explicit net is never overridden.
+- `frontend/src/components/dispatch/AttachmentStrip.jsx`: conditional 4-input row (Gross · Tare · Net · Material) when `uploadingType === "scale_ticket"`. Submits only non-empty values. Renders chips on existing scale_ticket items.
+- `backend/tests/test_scale_ticket_extension.py`: 8 tests · all passing (8/8 green in 8.62s).
+
+### Validated
+- Backward compat (no fields persisted on legacy uploads).
+- All 4 fields persist + project correctly.
+- Auto-net = gross - tare when net absent (60000 - 20000 = 40000).
+- Explicit net not overridden (60000 - 20000 with net=39800 → net stays 39800).
+- Invalid numeric → 400 with detail "Invalid numeric weight: '...'".
+- Tare > gross → 400 with detail "Tare weight cannot exceed gross weight."
+- Unrelated attachment kinds (load_photo etc.) ignore stray weight fields.
+- `/list` endpoint round-trips the 4 fields via `_public_attachment`.
+
+### NOT changed
+- Zero new routes · zero new collections · zero new auth · zero changes to other attachment kinds.
+- Driver no-login lock preserved (dispatcher-side flow only).
+- Dispatch map · Shop Recovery Map · ODR · PO Requests card · Operations Actions · Project-Day Events panel all verified intact.
+

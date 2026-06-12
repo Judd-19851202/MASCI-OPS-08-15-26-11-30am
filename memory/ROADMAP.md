@@ -631,3 +631,19 @@ No deploy · no Save to GitHub · no merge · no new portals / APIs / auth / map
 3. No map without workflow discovery.
 4. Driver no-login.
 5. Shop Repair ≠ Returned-To-Service.
+
+## 2026-06-12 update · post Track 13.14
+
+### Completed
+- ✅ Track 13.14 — Scale Ticket 4-field extension on `operational_attachments.scale_ticket` · 8/8 pytest pass · DONE.
+
+### Critical-path next step (Build Queue #6)
+- **Track 13.15 — PO Missing-Receipts → tasks_notifications wire-up** (~5h · Op-Value 60 · LOW risk).
+  - Bind `POST /api/admin/po-requests/scan-missing-receipts` output into per-assignee `tasks_notifications` rows.
+  - Closes the receipt-loss operational loop and reinforces the PO Requests action card from Track 13.11.
+
+### Remaining Build Queue items (7–8)
+- MaterialMovementTile embed in PM Hub V2 daily-rollup (1.5h · Op-Value 45).
+- ODR PM-Hub pending-drafts pill (2.5h · Op-Value 40 · only meaningful AFTER Track 13.10 sidebar lands — which it did).
+
+After 13.15 + 13.16 + 13.17 land, the full 34-hour Immediate Build Queue from Track 13.9 §8 is closed. The platform's "collection of dashboards → operational heavy-civil OS" transition is complete.

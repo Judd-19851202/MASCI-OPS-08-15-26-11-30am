@@ -73,6 +73,16 @@ export default function AttachmentStrip({ assignmentId, canWrite = true }) {
   const [uploadingType, setUploadingType] = useState("load_photo");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  // Track 13.14 · scale-ticket structured fields. Kept local; all optional.
+  const [scaleFields, setScaleFields] = useState({
+    weight_gross_lbs: "",
+    weight_tare_lbs:  "",
+    weight_net_lbs:   "",
+    material_code:    "",
+  });
+  const resetScaleFields = () => setScaleFields({
+    weight_gross_lbs: "", weight_tare_lbs: "", weight_net_lbs: "", material_code: "",
+  });
 
   const refresh = useCallback(async () => {
     if (!assignmentId) return;
@@ -114,6 +124,16 @@ export default function AttachmentStrip({ assignmentId, canWrite = true }) {
       form.append("host_id", assignmentId);
       form.append("attachment_type", uploadingType);
       form.append("operational_note", note.slice(0, 500));
+      // Track 13.14 · scale-ticket structured fields. Only sent when the
+      // selected attachment type is scale_ticket AND the value is non-empty.
+      // Backend treats all four as optional and never fabricates zero.
+      if (uploadingType === "scale_ticket") {
+        const sf = scaleFields;
+        if (sf.weight_gross_lbs.trim()) form.append("weight_gross_lbs", sf.weight_gross_lbs.trim());
+        if (sf.weight_tare_lbs.trim())  form.append("weight_tare_lbs",  sf.weight_tare_lbs.trim());
+        if (sf.weight_net_lbs.trim())   form.append("weight_net_lbs",   sf.weight_net_lbs.trim());
+        if (sf.material_code.trim())    form.append("material_code",    sf.material_code.trim().slice(0, 64));
+      }
       form.append("file", file);
       let r;
       try {
@@ -162,6 +182,9 @@ export default function AttachmentStrip({ assignmentId, canWrite = true }) {
       } else {
         toast.success(t("Attached."));
         setNote("");
+        // Track 13.14 · clear scale-ticket fields after a successful upload
+        // so a subsequent scale ticket starts from a clean slate.
+        if (uploadingType === "scale_ticket") resetScaleFields();
         // Opportunistic flush in case any earlier upload was staged.
         flushStaged().catch(() => { /* silent */ });
         refresh();
@@ -258,6 +281,70 @@ export default function AttachmentStrip({ assignmentId, canWrite = true }) {
               />
             </div>
           </div>
+          {/* Track 13.14 · Scale-ticket structured fields. Rendered ONLY
+              when the operator selects scale_ticket. All four fields are
+              optional · glove-friendly numeric inputs · never block photo
+              upload. Net is auto-computed server-side when gross + tare
+              are present and net is empty. */}
+          {uploadingType === "scale_ticket" && (
+            <div
+              data-testid="scale-ticket-fields"
+              className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 border-t border-slate-200 pt-3"
+            >
+              <div>
+                <Label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
+                  {t("Gross (lbs)")}
+                </Label>
+                <Input
+                  data-testid="scale-ticket-gross"
+                  inputMode="decimal"
+                  value={scaleFields.weight_gross_lbs}
+                  onChange={(e) => setScaleFields((s) => ({ ...s, weight_gross_lbs: e.target.value }))}
+                  placeholder="—"
+                  className="h-10 text-sm font-mono"
+                />
+              </div>
+              <div>
+                <Label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
+                  {t("Tare (lbs)")}
+                </Label>
+                <Input
+                  data-testid="scale-ticket-tare"
+                  inputMode="decimal"
+                  value={scaleFields.weight_tare_lbs}
+                  onChange={(e) => setScaleFields((s) => ({ ...s, weight_tare_lbs: e.target.value }))}
+                  placeholder="—"
+                  className="h-10 text-sm font-mono"
+                />
+              </div>
+              <div>
+                <Label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
+                  {t("Net (lbs)")}
+                </Label>
+                <Input
+                  data-testid="scale-ticket-net"
+                  inputMode="decimal"
+                  value={scaleFields.weight_net_lbs}
+                  onChange={(e) => setScaleFields((s) => ({ ...s, weight_net_lbs: e.target.value }))}
+                  placeholder={t("auto if gross + tare")}
+                  className="h-10 text-sm font-mono"
+                />
+              </div>
+              <div>
+                <Label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
+                  {t("Material")}
+                </Label>
+                <Input
+                  data-testid="scale-ticket-material"
+                  value={scaleFields.material_code}
+                  maxLength={64}
+                  onChange={(e) => setScaleFields((s) => ({ ...s, material_code: e.target.value }))}
+                  placeholder={t("e.g. SP-12.5")}
+                  className="h-10 text-sm"
+                />
+              </div>
+            </div>
+          )}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <label className="inline-flex">
               <input
@@ -328,6 +415,45 @@ export default function AttachmentStrip({ assignmentId, canWrite = true }) {
                   {a.operational_note && (
                     <div className="text-xs text-slate-700 mt-0.5 truncate">
                       {a.operational_note}
+                    </div>
+                  )}
+                  {/* Track 13.14 · Scale-ticket structured fields render.
+                      Only shown when present on the attachment. No fake
+                      zeros · no fabricated material code. */}
+                  {a.type === "scale_ticket" && (
+                    a.weight_gross_lbs != null
+                    || a.weight_tare_lbs != null
+                    || a.weight_net_lbs != null
+                    || a.material_code
+                  ) && (
+                    <div
+                      data-testid={`scale-ticket-meta-${a.id}`}
+                      className="mt-1 flex flex-wrap gap-1.5 text-[10px]"
+                    >
+                      {a.weight_gross_lbs != null && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-mono">
+                          <span className="uppercase tracking-wide text-slate-500">Gross</span>
+                          {a.weight_gross_lbs.toLocaleString()} lb
+                        </span>
+                      )}
+                      {a.weight_tare_lbs != null && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-mono">
+                          <span className="uppercase tracking-wide text-slate-500">Tare</span>
+                          {a.weight_tare_lbs.toLocaleString()} lb
+                        </span>
+                      )}
+                      {a.weight_net_lbs != null && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono">
+                          <span className="uppercase tracking-wide text-emerald-600">Net</span>
+                          {a.weight_net_lbs.toLocaleString()} lb
+                        </span>
+                      )}
+                      {a.material_code && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800">
+                          <span className="uppercase tracking-wide text-amber-600">Material</span>
+                          <span className="font-mono">{a.material_code}</span>
+                        </span>
+                      )}
                     </div>
                   )}
                   <div className="text-[11px] text-slate-500 mt-1">

@@ -122,7 +122,7 @@ def _public_attachment(doc: Dict[str, Any]) -> Dict[str, Any]:
     intentionally NOT exposed — the FE fetches binaries through
     `/api/operational-attachments/{id}/file` only.
     """
-    return {
+    out: Dict[str, Any] = {
         "id": doc.get("id"),
         "type": doc.get("type"),
         "host_kind": doc.get("host_kind"),
@@ -136,6 +136,37 @@ def _public_attachment(doc: Dict[str, Any]) -> Dict[str, Any]:
         "size_bytes": doc.get("size_bytes"),
         "storage_backend": doc.get("storage_backend") or ("inline_b64" if doc.get("data_b64") else None),
     }
+    # Track 13.14 · Scale Ticket 4-field extension. Pass through only when
+    # any structured value is present; never fabricate zeros, never invent
+    # categories. Older attachments without these keys remain backwards-
+    # compatible (consumer sees `undefined` and renders nothing).
+    for k in ("weight_gross_lbs", "weight_tare_lbs", "weight_net_lbs", "material_code"):
+        if k in doc and doc[k] is not None:
+            out[k] = doc[k]
+    return out
+
+
+# Track 13.14 · safe numeric parser. Returns float on success, None on
+# empty/invalid. Never raises. Never returns 0 for empty input.
+def _parse_optional_lbs(raw: Any) -> Optional[float]:
+    if raw is None:
+        return None
+    s = str(raw).strip()
+    if not s:
+        return None
+    # accept comma decimals, strip commas + "lbs" suffix
+    s = s.replace(",", "").replace(" ", "").lower()
+    if s.endswith("lbs"):
+        s = s[:-3]
+    if s.endswith("lb"):
+        s = s[:-2]
+    try:
+        val = float(s)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail=f"Invalid numeric weight: {raw!r}")
+    if val < 0:
+        raise HTTPException(status_code=400, detail=f"Weight must be non-negative: {raw!r}")
+    return val
 
 
 class AttachmentDeleteResponse(BaseModel):
@@ -185,6 +216,13 @@ def build_operational_attachments_router(
         host_id: str = Form(...),
         attachment_type: str = Form(...),
         operational_note: str = Form(""),
+        # Track 13.14 · Scale-ticket structured fields. All optional;
+        # consumers without these keys remain backwards-compatible.
+        # Backend never fabricates a zero; empty input → None.
+        weight_gross_lbs: Optional[str] = Form(default=None),
+        weight_tare_lbs:  Optional[str] = Form(default=None),
+        weight_net_lbs:   Optional[str] = Form(default=None),
+        material_code:    Optional[str] = Form(default=None),
         file: UploadFile = File(...),
         actor: Dict[str, Any] = Depends(require_dispatch_or_admin_dep),
         x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
@@ -298,6 +336,36 @@ def build_operational_attachments_router(
             doc["r2_key"] = r2_key
         else:
             doc["data_b64"] = base64.b64encode(raw).decode("ascii")
+
+        # Track 13.14 · Scale-ticket structured fields. Persist ONLY for
+        # scale_ticket attachments. Other attachment kinds are unaffected.
+        # Net is auto-computed only when gross + tare are both valid AND
+        # net is empty; an explicitly entered net is never overridden.
+        if attachment_type == "scale_ticket":
+            g = _parse_optional_lbs(weight_gross_lbs)
+            t = _parse_optional_lbs(weight_tare_lbs)
+            n = _parse_optional_lbs(weight_net_lbs)
+            if g is None and t is not None and n is None:
+                # tare alone is meaningful but yields no derived net
+                pass
+            if n is None and g is not None and t is not None:
+                computed = g - t
+                if computed < 0:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Tare weight cannot exceed gross weight.",
+                    )
+                n = round(computed, 2)
+            if g is not None:
+                doc["weight_gross_lbs"] = g
+            if t is not None:
+                doc["weight_tare_lbs"] = t
+            if n is not None:
+                doc["weight_net_lbs"] = n
+            mc = (material_code or "").strip()
+            if mc:
+                doc["material_code"] = mc[:64]
+
         await db.operational_attachments.insert_one(doc)
 
         return _public_attachment(doc)
