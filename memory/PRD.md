@@ -23,7 +23,8 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - 13.8E · Operational Locations surfacing in `AdminHubV2.jsx`
 - 13.8F · PO Requests Certification
 - 13.8G · Operator Interview Crib Sheet
-- **13.9 · FINAL DISPOSITION CERTIFICATION (this fork)** — definitive matrix of 173 systems · 8-item ruthless build queue · 34 hours total
+- **13.9 · FINAL DISPOSITION CERTIFICATION** — definitive matrix of 173 systems · 8-item ruthless build queue · 34 hours total
+- **13.9.1 · ODR CERTIFICATION REPORT (this fork)** — source-truth validation of every Track 13.9 ODR claim · verdict: AUTHORIZE Track 13.10 · all 13.9 claims VERIFIED (two minor undercounts in 13.9's favor: 22 endpoints not 13; `OperationalRecords.jsx` is a transitive consumer)
 
 ## Backlog (P0/P1/P2)
 ### P0 — Immediate Build Queue (from Track 13.9 §8)
