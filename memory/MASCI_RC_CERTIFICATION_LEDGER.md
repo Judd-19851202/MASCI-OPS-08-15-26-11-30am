@@ -4442,3 +4442,98 @@ Rollback command: `python3 /app/scripts/preview_seed_13_7c.py rollback` (refuses
 No deploy · no Save to GitHub · no merge · no production data touched · no app code changes · no filter widening · no architecture change · no MaintainX / FleetWatcher claim adjustments.
 
 **Track 13.7C · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.8A · Operational Workflow Gap Discovery
+**Date**: 2026-06-12
+**Mode**: DISCOVERY ONLY · no code · no routes · no APIs · no builds
+**Report**: `/app/memory/TRACK_13_8A_OPERATIONAL_WORKFLOW_GAP_DISCOVERY.md`
+
+### Source-truth verified inventory
+- 115 backend route modules + 245 frontend pages surveyed.
+- Built and active: PM, HR, Safety, Shop (+ Recovery Map lens), Dispatch (map-first hard lock), Driver public flow, Field Leadership, Admin, Leadership companion, Daily Reports, QA/QC, JHP, Incidents, CAPAs, Constraints, Equipment Defects, Asset Spine, Driver Qualification, Employee Requests, Time-Off, Training, Expirations, Operations Map (one engine), Trench Safety, Motive (live), Job Photos, Signatures, PO Requests, Material Movement (partial), Operational Records/Events/Timeline/Locations/Signals/Links, Notifications.
+- Stub: MaintainX (`awaiting_credentials`).
+- Reserved column only: FleetWatcher.
+- NOT BUILT (intentional doctrine): RFIs, Submittals, Change Orders, Pay Applications, Cost Management, Contract Management, formal Document Control, Plan Revision Management.
+- Partial: Material movement, Field Memory, Field Revision, Production tracking, Payroll variance, Time verification.
+
+### Gap classification (35 candidates from brief)
+- Bucket 1 (Must build now): **NONE** — no candidate meets "evidence-proven + simple + non-bloat" without operator interview.
+- Bucket 2 (Should build later · operator-interview gated): Daily Quantities per pay item · Haul/Scale structured ticket · Plan/Model Revision attach+tag · Lightweight Punchlist (as Constraint subtype).
+- Bucket 3 (Keep outside): cost · contract · pay-apps · accounting · formal document control · fuel-card reconciliation · density-lab PDF authoring.
+- Bucket 4 (DO NOT BUILD): RFIs, Submittals, Change Orders (formal), vendor location overlay, driver hub/auth, safety map lens, leadership map lens, mechanic portal, parallel map engine, cost/margin dashboards, sub-side login, AI auto-rewrite of Daily Reports.
+- Bucket 5 (Needs operator interview): MOT change tracking, weather/schedule structured, equipment rental, fuel, production rates, density/compaction, closeout binder, subcontractor coordination, utility-conflict tracking.
+
+### Top recommendation
+1. **Do not build anything from this report yet.**
+2. Authorise one operator-interview cycle (PM · Super · Foreman · Shop · Dispatch · HR · Exec · 1 Driver) — 10 prepared questions in §12.
+3. Strongest "if only one thing" candidate based on source-tailwind alone: Haul/Scale structured ticket (4 numeric inputs on existing driver attach screen · `scale_ticket` attachment kind already exists in `operational_attachments.py` line 69 · near-zero build risk). Still operator-interview gated.
+
+### Hard locks reaffirmed
+- Dispatch map-first dominance.
+- Driver no-login.
+- Shop Repair ≠ Returned-To-Service.
+- One map engine · one source of truth.
+- No map without workflow discovery.
+- No RFIs · no Submittals · no Change Orders · no vendor location overlay · no driver hub · no mechanic portal · no Safety/Leadership map lens.
+
+### Five-pillar (this track)
+Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 7 → Aggregate **8.6/10** (Proven sub-9 reflects honest absence of operator interview).
+
+### Forbidden / blocked (all respected)
+No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no routes · no auth · no implementation.
+
+**Track 13.8A · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.8B · Hidden Systems Audit & Recovery Discovery
+**Date**: 2026-06-12
+**Mode**: DISCOVERY ONLY · no code · no UI · no APIs · no routes · no implementation · no retirement
+**Report**: `/app/memory/TRACK_13_8B_HIDDEN_SYSTEMS_AUDIT.md`
+
+### Source-verified inventory
+- 115 backend route modules + 245 frontend pages + 50-entry system inventory cross-referenced.
+- 8 Operational-Records modules audited (records, events, timeline, signals, links, locations, attachments, constraints).
+- 4 partial-system markers found in production code — all `awaiting_credentials` provider stubs (Motive · MaintainX · webhook intake · motive_reliability) — expected doctrine, not partial work.
+- No `TODO`/`FIXME`/`STUB` markers found in non-test production code.
+
+### Hidden gold discovered
+1. **PO Requests** — 95% complete · 12 backend endpoints + 795-line frontend · email + receipt upload + CSV export + admin scan-missing-receipts · under-surfaced (single mount at `/po-requests`, no card in PM Hub V2 or Field Leadership Hub V2).
+2. **Operational Events project-day endpoint** — 90% complete · per-project per-day roll-up endpoint exists with zero frontend consumer.
+3. **Operational Locations admin reconciliation queue** — 100% complete · 8 admin endpoints with geofence reconciliation flow · admin-only visibility today.
+4. **MaintainX integration** — ~70% complete · column + client + service stub + p0 router + webhook intake · `awaiting_credentials`.
+5. **FleetWatcher** — ~10% complete · column reservation only · no service file.
+
+### Duplicate scan
+- One map engine confirmed (no map duplication).
+- Constraints / CAPAs / Incidents are layered, not duplicates.
+- Daily Reports / Operational Events / Timeline / Records are layered, not duplicates (latter three dormant on frontend).
+- Notification stacks (tasks_notifications + portal digests + admin digest configs) are layered, not duplicates.
+- `*_legacy` PM/HR/Safety/Shop/Dispatch routes are preserved per Track 13.6N (merge deferred to Track 13.6O after 30-day window).
+- Driver V2 + Field Leadership V2 already permanently retired (Track 13.6L).
+
+### Top 3 recovery candidates (operator-interview gated)
+1. PO Requests surfacing in PM Hub V2 + Field Leadership V2 (zero new backend).
+2. Operational Events project-day panel in PM project-detail (zero new backend).
+3. Operational Locations reconciliation visibility in Admin Hub V2 (zero new backend, link-only).
+
+### Recommendations
+- Do not build anything new.
+- Do not retire anything.
+- Authorise operator interview first (asks defined in §15 of the report).
+- Strongest single recovery if any is authorised: PO Requests surfacing.
+
+### Hard locks reaffirmed
+- Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · No map without workflow discovery.
+
+### Five-pillar (this track)
+Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 7 → Aggregate **8.6 / 10** (Proven sub-9 reflects absence of operator usage telemetry / interview).
+
+### Forbidden / blocked (all respected)
+No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes · no implementation · no retirement.
+
+**Track 13.8B · CLOSED.**

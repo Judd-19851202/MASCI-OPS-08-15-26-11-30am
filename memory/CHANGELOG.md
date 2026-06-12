@@ -1270,3 +1270,44 @@ None of these affect the directive's three success criteria; all three are MET a
 
 ### Cleanup
 - `python3 /app/scripts/preview_seed_13_7c.py rollback` returns preview DB to pre-seed state.
+
+## 2026-06-12 · Track 13.8A — Operational Workflow Gap Discovery · CLOSED (DISCOVERY ONLY)
+
+### Documented (no code change · doctrine-pure discovery)
+- `/app/memory/TRACK_13_8A_OPERATIONAL_WORKFLOW_GAP_DISCOVERY.md` — 13-section report.
+- Ledger / PRD / ROADMAP appended.
+
+### Source-truth surveyed
+- 115 backend route modules.
+- 245 frontend pages.
+- 35 candidate workflows classified into 5 buckets.
+
+### Key findings
+- Platform is operationally dense — most expected modules already exist.
+- Intentionally absent (doctrine): RFIs, Submittals, Change Orders, Cost/Contract/Pay-Apps, Formal Document Control.
+- Strongest "could build later" source-tailwind: Haul/Scale ticket structured entry (extends existing `operational_attachments.scale_ticket` kind).
+
+### NOT done
+- Deploy · GitHub push · merge — forbidden.
+- No build authorisations issued. Every priority requires operator interview.
+
+## 2026-06-12 · Track 13.8B — Hidden Systems Audit & Recovery Discovery · CLOSED (DISCOVERY ONLY)
+
+### Documented (no code change)
+- `/app/memory/TRACK_13_8B_HIDDEN_SYSTEMS_AUDIT.md` — 15-section report with 50-entry system inventory, PO Requests / Material Movement / Operational Records / Notifications / Asset Spine deep audits, duplicate scan, hidden-gold analysis, Top-10 recovery scoring.
+- Ledger + PRD + ROADMAP appended.
+
+### Key findings
+- PO Requests is 95% complete with 12 endpoints + 795-line frontend, but reachable only via a single `/po-requests` route — UNDER-SURFACED, not unfinished.
+- Operational Events / Timeline / Records family has zero frontend consumers despite full backend implementations.
+- Operational Locations admin reconciliation queue has full lifecycle (import-geofences · reconcile · approve · reject · reassign · bulk-approve) admin-only today.
+- MaintainX is ~70% built; FleetWatcher is ~10% (column-only).
+- No `TODO`/`FIXME`/`STUB` markers found in non-test production code.
+
+### NOT done (per directive)
+- No code · no UI · no retirement · no surfacing.
+- No deploy / GitHub push / merge.
+
+### Recommendation
+- Operator interview first.
+- If single recovery authorised: PO Requests action-queue card in PM Hub V2.

@@ -40605,3 +40605,62 @@ Authorized by Track 13.7A. Built the first warranted non-Dispatch map lens.
 - No app code modifications.
 - No deploy · no Save to GitHub · no merge.
 - No filter widening · no architecture change.
+
+---
+
+## 2026-06-12 · Track 13.8A — Operational Workflow Gap Discovery · CLOSED (DISCOVERY ONLY)
+
+**Mode**: discovery only · no code · no UI · no APIs · no routes · no implementation.
+
+### Verified from source (115 backend modules + 245 frontend pages)
+- Most expected platform workflows are already built and active (PM, HR, Safety, Shop+map lens, Dispatch, Driver public flow, Field Leadership, Admin, Leadership companion, Daily Reports, QA/QC, JHP, Incidents, CAPAs, Constraints, Equipment Defects, Asset Spine, Driver Qualification, Employee Requests, Time-Off, Training, Expirations, Operations Map, Trench Safety, Motive (live), Job Photos, Signatures, PO Requests, Material Movement, Operational Records family, Notifications).
+- Stub: MaintainX (awaiting credentials). Reserved column only: FleetWatcher.
+- **Intentionally NOT built**: RFIs, Submittals, Change Orders (formal), Pay Applications, Cost Management, Contract Management, formal Document Control, Plan Revision Management.
+
+### Gap classification (35-candidate brief)
+- Must build now: NONE — no candidate meets the evidence-proven + simple + non-bloat bar without operator interview.
+- Should build later (operator-gated): Daily Quantities per pay item · Haul/Scale ticket structured entry · Plan/Model Revision attach+tag · Lightweight Punchlist as Constraint subtype.
+- Keep outside: cost / contract / pay-apps / accounting / fuel-card reconciliation / formal document control.
+- DO NOT BUILD: RFIs · Submittals · Change Orders (formal) · vendor map overlay · driver hub/auth · mechanic portal · Safety/Leadership map lens · parallel map engine · cost/margin dashboards.
+- Needs operator interview: MOT change tracking · weather/schedule structured impact · equipment rental · fuel · production rates · density/compaction · closeout binder · subcontractor coordination · utility-conflict tracking.
+
+### Recommendation
+1. Do not build from this report yet.
+2. Authorise one operator-interview cycle (10 prepared questions in §12 of the report).
+3. Source-tailwind candidate IF a single build is authorised: Haul/Scale ticket structured entry (4 numeric inputs on existing driver attach screen · `scale_ticket` attachment kind already exists · near-zero build risk). Still operator-interview gated.
+
+### Hard locks reaffirmed
+- Dispatch map-first dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · No map without workflow discovery · No RFIs/Submittals/COs · No vendor overlay · No driver hub · No mechanic portal · No Safety/Leadership map lens.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no route swaps.
+
+---
+
+## 2026-06-12 · Track 13.8B — Hidden Systems Audit & Recovery Discovery · CLOSED (DISCOVERY ONLY)
+
+**Mode**: discovery only · no code · no retirement.
+
+### Hidden gold (source-verified)
+1. **PO Requests** — 95% complete · 12 backend endpoints + 795-line frontend · under-surfaced (single `/po-requests` mount, no card in PM Hub V2 or Field Leadership V2).
+2. **Operational Events project-day endpoint** — 90% complete · per-project per-day events roll-up · zero frontend consumer.
+3. **Operational Locations admin reconciliation queue** — 100% complete · 8 admin endpoints · admin-only visibility today.
+4. **MaintainX integration** — ~70% complete · stub awaiting credentials.
+5. **FleetWatcher** — ~10% (column-only · no service file).
+
+### Duplicate scan
+- One map engine confirmed.
+- Constraints / CAPAs / Incidents are layered, not duplicates.
+- Operational Records / Events / Timeline / Records are layered, latter three dormant on frontend.
+- Notification stacks are layered.
+- `*_legacy` rollback routes preserved per Track 13.6N (merge deferred to Track 13.6O).
+
+### Recommendations (operator-interview gated)
+1. Surface PO Requests as small action-queue card in PM Hub V2 + Field Leadership V2 — zero new backend.
+2. Surface Operational Events project-day on PM project-detail — zero new backend.
+3. Surface Operational Locations reconciliation in Admin Hub V2 — link only, zero new backend.
+
+### Locked rules (unchanged)
+- No code · no UI · no APIs · no routes · no retirement.
+- No deploy · no Save to GitHub · no merge.
+- Permanent do-not-revive: Driver V2 · Field Leadership V2 (Track 13.6L).

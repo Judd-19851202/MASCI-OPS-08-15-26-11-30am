@@ -352,3 +352,63 @@ Not parked, just queued for user prioritization later:
 - No deploy · no Save to GitHub · no merge.
 - No production data writes.
 - No new map systems · no new GPS / telematics providers · no new portals · no new APIs · no new auth · no route swaps.
+
+---
+
+## 2026-06-12 update · post Track 13.8A
+
+### Completed
+- ✅ Track 13.8A — Operational Workflow Gap Discovery · CLOSED (discovery only · no code).
+
+### Operator decisions pending
+- Authorise one operator-interview cycle (10 questions in §12 of the 13.8A report)?
+- If only one build is authorised, the source-tailwind candidate is **Haul/Scale ticket structured entry** — still operator-interview gated.
+
+### Permanent DO-NOT-BUILD list (reaffirmed)
+- RFIs · Submittals · Change Orders (formal) · Pay Applications · Cost Management · Contract Management · Formal Document Control · Plan Revision Management · vendor location overlay · driver hub / driver auth · mechanic portal · Safety map lens · Leadership map lens · parallel map engine · cost/margin dashboards · sub-side login · AI auto-rewrite of Daily Reports.
+
+### Permanent hard locks
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+4. Driver no-login.
+5. Shop Repair ≠ Returned-To-Service.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No new portals / APIs / auth / map systems / route swaps without explicit operator authorisation tied to a discovery-then-build track.
+
+---
+
+## 2026-06-12 update · post Track 13.8B
+
+### Completed
+- ✅ Track 13.8B — Hidden Systems Audit & Recovery Discovery · CLOSED.
+
+### Operator-interview-gated recovery candidates (in priority order)
+1. **PO Requests surfacing** (PM Hub V2 + Field Leadership V2) — 95% complete · zero new backend.
+2. **Operational Events project-day panel** (PM project-detail) — 90% complete · zero new backend.
+3. **Operational Locations reconciliation surfacing** (Admin Hub V2) — 100% complete · link-only · zero new backend.
+4. **MaterialMovementTile in PM Hub V2 daily-report context** — 100% (read-view) · zero new backend.
+5. **Scale-ticket structured entry** (Track 13.8A §7.2 reaffirmed) — 30% (schema-slot only) · operator-interview gated.
+
+### Background activation candidates (also operator-gated)
+- MaintainX credential activation (~70% built · medium recovery cost).
+- FleetWatcher (~10% built · high recovery cost · no operator pain proof).
+
+### Permanent retain
+- Legacy `*_legacy` PM/HR/Safety/Shop/Dispatch routes until Track 13.6O after 30-day signoff window.
+
+### Permanent do-not-revive
+- Driver V2 · Field Leadership V2 (Track 13.6L doctrine).
+
+### Five permanent hard locks (unchanged)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+4. Driver no-login.
+5. Shop Repair ≠ Returned-To-Service.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No new portals / APIs / auth / map systems / route swaps without explicit operator authorisation tied to a discovery-then-build track.
