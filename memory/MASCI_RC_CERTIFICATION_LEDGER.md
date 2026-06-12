@@ -3514,3 +3514,27 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Verdict
 **Discovery remains closed. Reality is now classified.** Ready for the operator's next authorization (production verification checklist OR Phase B3 pilot migration). No deploy. No GitHub save. No merge.
+
+---
+
+## Track 13.5C · MASCI Target State Architecture
+
+**Mode honoured:** architecture only · no code · no migration · no new audit branch · no new findings · no deploy · no GitHub save · no merge.
+
+### Files produced (6)
+- `/app/memory/MASCI_TARGET_STATE_ARCHITECTURE.md` — platform-wide architecture · 15 dimensions · current vs target · pillar justification per row.
+- `/app/memory/MASCI_PORTAL_TARGET_STATE_MATRIX.md` — 9 portals × {Purpose · Operator · First-screen · Above-fold · Belongs · Doesn't belong · KPIs · Workflows · Target score}.
+- `/app/memory/MASCI_COMMAND_CENTER_TARGET_STATE.md` — definitive CC spec: 5 role-landings + 1 cross-portal aggregator; current alignment audit for all 9 existing "Center" surfaces.
+- `/app/memory/MASCI_PM_TARGET_STATE.md` — all 12 PM surfaces classified Must Exist / Nice To Have / Does Not Belong + "complete PM" definition (10 items).
+- `/app/memory/MASCI_HUMAN_USABILITY_TARGET.md` — under-5-minute first task contract per role (9 roles · measurable click/time budgets).
+- `/app/memory/TRACK_13_5C_EXECUTIVE_SUMMARY.md` — final verdict + projected Five-Pillar scores + 16-track minimum implementation map.
+
+### Final verdict
+At target state: **Powerful 9.7 · Simple 9.5 · Beautiful 9.5 · Trusted 9.8 · Proven 9.6 → aggregate 9.6 / 10**. Remaining 0.4 closes only through real-world signals (30-day zero-stale-incident window · external security audit · operator-validated usability testing).
+
+Minimum implementation tracks: **T0–T16** (16 tracks). T0 (production verification) + T1 (PM scope decisions) cost zero code and unblock the rest. T2 (Phase B3 pilot migration) is the foundation move.
+
+### Next gate
+Operator authorization for **T0** (Track 13.4D production verification checklist) or **T2** (Phase B3 pilot migration of HR or PM). Both already scoped and ready.
+
+Standing rules still in force: No deploy. No GitHub save. No merge.

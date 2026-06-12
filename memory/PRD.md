@@ -40068,3 +40068,23 @@ If all hold → **production certified**. Else → escalate.
 **First-implementation priority (answer to the directive's final question):** Execute Track 13.4D 7-point production verification checklist FIRST (raises Trusted + Proven by ~1 point each at zero code cost); THEN authorize Phase B3 pilot migration of HR (lowest risk) or PM (highest impact) onto the Phase B1 primitives.
 
 **Standing rules still in force:** No deploy. No GitHub save. No merge.
+
+---
+
+## 2026-06-12 · Track 13.5C — MASCI Target State Architecture (COMPLETE)
+
+**Mode:** architecture only · no code · no migration · no design generation.
+
+**Produced (6 docs under /app/memory/):**
+1. `MASCI_TARGET_STATE_ARCHITECTURE.md` — platform-wide finish line across 15 dimensions with measurable 10/10 definitions per pillar.
+2. `MASCI_PORTAL_TARGET_STATE_MATRIX.md` — per-portal target state for all 9 portals.
+3. `MASCI_COMMAND_CENTER_TARGET_STATE.md` — 5 role-landings + 1 cross-portal aggregator (everything else loses the "Center" suffix).
+4. `MASCI_PM_TARGET_STATE.md` — 8 Must Exist / 3 Nice To Have / 0 Doesn't Belong + "complete PM" 10-item checklist.
+5. `MASCI_HUMAN_USABILITY_TARGET.md` — under-5-minute first task per role.
+6. `TRACK_13_5C_EXECUTIVE_SUMMARY.md` — projected scores + 16-track implementation map.
+
+**Projected target scores:** Powerful 9.7 · Simple 9.5 · Beautiful 9.5 · Trusted 9.8 · Proven 9.6 (aggregate 9.6 / 10).
+
+**Minimum implementation tracks identified:** T0–T16. T0 (production verification) and T1 (PM scope decisions) cost zero code; T2 (Phase B3 pilot migration) is the foundation move.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge.
