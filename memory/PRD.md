@@ -24,14 +24,15 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - 13.8F · PO Requests Certification
 - 13.8G · Operator Interview Crib Sheet
 - **13.9 · FINAL DISPOSITION CERTIFICATION** — definitive matrix of 173 systems · 8-item ruthless build queue · 34 hours total
-- **13.9.1 · ODR CERTIFICATION REPORT (this fork)** — source-truth validation of every Track 13.9 ODR claim · verdict: AUTHORIZE Track 13.10 · all 13.9 claims VERIFIED (two minor undercounts in 13.9's favor: 22 endpoints not 13; `OperationalRecords.jsx` is a transitive consumer)
+- **13.9.1 · ODR CERTIFICATION REPORT** — source-truth validation of every Track 13.9 ODR claim · verdict: AUTHORIZE Track 13.10 · all 13.9 claims VERIFIED (two minor undercounts in 13.9's favor: 22 endpoints not 13; `OperationalRecords.jsx` is a transitive consumer)
+- **13.10–13.12 · EXECUTION WAVE 1 (this fork)** — ODR sidebar surfacing in PM + Admin + Safety sidebars + FL Hub tile · PO Requests action card on PM Hub V2 with live `/api/po-requests/summary` (252 / 13 / 23 live counts in preview) · Operations Actions surfacing in Admin Sidebar V2 · all hard locks intact · zero backend touch · 5 files edited additively
 
 ## Backlog (P0/P1/P2)
 ### P0 — Immediate Build Queue (from Track 13.9 §8)
-1. ODR sidebar link surfacing in PM + FL + Safety + Admin V2 hubs (3h)
-2. PO Requests action-queue card in PM + FL Hub V2 (5h)
-3. Operations Actions hub link in PM + Shop + Safety + FL (4h)
-4. Operational Events project-day panel on PmProjectDetail (5h)
+1. ~~ODR sidebar link surfacing in PM + FL + Safety + Admin V2 hubs~~ ✅ **DONE 2026-06-12 · Track 13.10**
+2. ~~PO Requests action-queue card in PM + FL Hub V2~~ ✅ **DONE 2026-06-12 · Track 13.11** (PM only; FL already had PO tile)
+3. ~~Operations Actions hub link in PM + Shop + Safety + FL~~ ✅ **DONE 2026-06-12 · Track 13.12** (Admin only this wave; PM/Shop/Safety/FL deferred to next wave)
+4. Operational Events project-day panel on PmProjectDetail (5h · NEXT)
 5. Scale Ticket 4-field extension on `operational_attachments.scale_ticket` (8h)
 6. PO missing-receipts → tasks_notifications wire-up (5h)
 7. MaterialMovementTile embed in PM Hub V2 daily-rollup (1.5h)

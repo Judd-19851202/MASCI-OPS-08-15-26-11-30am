@@ -23,7 +23,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   AlertOctagon, ClipboardCheck, ListChecks, Award, FolderArchive,
   Package, Users, FileText, Flame, Mail, BarChart3, ShieldAlert,
-  BookOpen, Truck, GraduationCap,
+  BookOpen, Truck, GraduationCap, NotebookPen,
 } from "lucide-react";
 
 // Domain groups · ordered by escalation severity (highest first).
@@ -75,6 +75,7 @@ export const SAFETY_DOMAINS_V2 = [
     icon: ShieldAlert,
     routes: [
       { to: "/safety-portal/audits",  label: "Audits & Inspections", desc: "Job-site safety inspection review.",      icon: ShieldAlert },
+      { to: "/odr/center",            label: "Operational Daily Records", desc: "Field-day events · readiness signals.", icon: NotebookPen },
       { to: "/safety-portal/library", label: "Topic Library",        desc: "Filter and pack safety topics for prep.", icon: BookOpen },
       { to: "/safety-portal/fleet",   label: "Trucking · Fleet",     desc: "Defects, driver notes, severity context.", icon: Truck },
       { to: "/guidance?from=safety",  label: "Training Center",      desc: "Step-by-step Safety operator guides.",     icon: GraduationCap },

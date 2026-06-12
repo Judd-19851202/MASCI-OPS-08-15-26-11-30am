@@ -81,6 +81,11 @@ function usePmSignals() {
     // Track 13.6I · Phase 1 — oldest-age secondary metrics (factual).
     unified_holds_oldest_label: "",
     due_today_oldest_label:     "",
+    // Track 13.11 · PO Requests action card — real summary endpoint.
+    po_pending_approval: null,   // /api/po-requests/summary → pending_approval
+    po_pending_receipt:  null,   // /api/po-requests/summary → pending_receipt
+    po_overdue_receipt:  null,   // /api/po-requests/summary → overdue_receipt
+    po_loaded:           false,  // separate load-flag so card renders honest state on failure
   });
 
   useEffect(() => {
@@ -96,11 +101,13 @@ function usePmSignals() {
       safeJson(`/api/job-photos?limit=10`),
       safeJson(`/api/pm/command-center/holds`),
       safeJson(`/api/pm/command-center/due-today`),
+      // Track 13.11 — PO Requests action-queue card.
+      safeJson(`/api/po-requests/summary`),
     ]);
 
     tasks.then((res) => {
       if (cancelled) return;
-      const [dr, inc, capa, con, jobs, qa, crew, photos, holds, due] = res;
+      const [dr, inc, capa, con, jobs, qa, crew, photos, holds, due, po] = res;
       const drRows  = dr.ok  ? listOf(dr.body)  : [];
       const incRows = inc.ok ? listOf(inc.body) : [];
       const conRows = con.ok ? listOf(con.body) : [];
@@ -136,6 +143,12 @@ function usePmSignals() {
         photos_recent:       photos.ok ? photoRows.length : null,
         unified_holds:       holds.ok && holds.body?.counts ? (holds.body.counts.total ?? null) : null,
         due_today:           due.ok   && due.body?.counts   ? (due.body.counts.total ?? null)   : null,
+        // Track 13.11 — PO Requests summary card (real endpoint · no
+        // fabricated counts · honest offline state on failure).
+        po_loaded:           true,
+        po_pending_approval: po.ok && po.body && typeof po.body.pending_approval === "number" ? po.body.pending_approval : null,
+        po_pending_receipt:  po.ok && po.body && typeof po.body.pending_receipt  === "number" ? po.body.pending_receipt  : null,
+        po_overdue_receipt:  po.ok && po.body && typeof po.body.overdue_receipt  === "number" ? po.body.overdue_receipt  : null,
       });
     });
     return () => { cancelled = true; };
@@ -213,6 +226,60 @@ function QueueCard({ to, testid, title, why, source, value, loaded, secondary, v
   );
 }
 
+// Track 13.11 — Purchase Requests action card. Pulls /api/po-requests/summary
+// (real endpoint · no fabricated counts). Primary metric is `pending_approval`.
+// Secondary chips show `pending_receipt` + `overdue_receipt`. NO closed-count
+// is rendered (operator forbade vanity metrics). Honest offline state when
+// the summary fetch fails. Card itself never shows a placeholder.
+function PoRequestsCard({ loaded, pendingApproval, pendingReceipt, overdueReceipt }) {
+  const isOffline = loaded && pendingApproval === null && pendingReceipt === null && overdueReceipt === null;
+  const allClear  = loaded && pendingApproval === 0 && pendingReceipt === 0 && overdueReceipt === 0;
+  const isAttention = loaded && typeof pendingApproval === "number" && pendingApproval > 0;
+  const chip = (label, n, tone) => (
+    <span
+      data-testid={`pm-hub-v2-po-chip-${label.toLowerCase().replace(/\s+/g, "-")}`}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 4,
+        padding: "2px 8px", marginRight: 6, marginTop: 6,
+        background: tone === "warn" ? "rgba(217,119,6,0.12)" : "rgba(71,85,105,0.10)",
+        color: tone === "warn" ? "#b45309" : "var(--ink-strong)",
+        border: `1px solid ${tone === "warn" ? "rgba(217,119,6,0.35)" : "var(--border-bold)"}`,
+        borderRadius: 999, fontSize: 11, fontWeight: 600,
+      }}
+    >
+      <span style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
+      <span>{n}</span>
+    </span>
+  );
+  return (
+    <Link to="/po-requests" data-testid="pm-hub-v2-queue-po-requests" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+      <Card
+        title="Purchase Requests"
+        description="PO requests awaiting your approval · receipts due from the field · overdue receipts that need a chase."
+        metric={loaded ? (pendingApproval === null ? "—" : pendingApproval) : "…"}
+        variant={isAttention ? "warning" : "default"}
+        status={
+          !loaded ? <StatusChip statusKey="draft" compact label="Loading" />
+          : isOffline ? <StatusChip statusKey="offline_feed" compact />
+          : allClear ? <StatusChip statusKey="verified" compact />
+          : isAttention ? <StatusChip statusKey="pending_verification" compact />
+          : <StatusChip statusKey="verified" compact />
+        }
+      >
+        {!isOffline && loaded && (
+          <div data-testid="pm-hub-v2-po-chips" style={{ marginTop: 4 }}>
+            {pendingReceipt !== null && chip("Receipts due", pendingReceipt, "default")}
+            {overdueReceipt !== null && overdueReceipt > 0 && chip("Overdue", overdueReceipt, "warn")}
+          </div>
+        )}
+        <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+          Source: /api/po-requests/summary — pending_approval · pending_receipt · overdue_receipt
+        </p>
+      </Card>
+    </Link>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
@@ -226,6 +293,8 @@ export default function PmHubV2() {
     s.constraints_open, s.projects_attention, s.qaqc_action,
     s.crew_accountability, s.photos_recent,
     s.unified_holds, s.due_today,
+    // Track 13.11 — PO action card counts must influence the all-clear banner.
+    s.po_pending_approval, s.po_pending_receipt, s.po_overdue_receipt,
   ].every((v) => v === null || v === 0);
 
   return (
@@ -346,6 +415,13 @@ export default function PmHubV2() {
               source="Source: /api/qaqc/inspections — submitted + pending_verification + needs_revision"
               value={s.qaqc_action}
               loaded={s.loaded}
+            />
+            {/* Track 13.11 · PO Requests action card — real summary endpoint */}
+            <PoRequestsCard
+              loaded={s.po_loaded}
+              pendingApproval={s.po_pending_approval}
+              pendingReceipt={s.po_pending_receipt}
+              overdueReceipt={s.po_overdue_receipt}
             />
           </div>
         </Section>

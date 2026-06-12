@@ -12,6 +12,7 @@ import {
   Activity, Briefcase, ClipboardList, ClipboardCheck, Users, Camera, UserCheck,
   Wrench, Truck, FileText, Box, AlertOctagon, ShieldCheck,
   Mail, KeyRound, FileImage, GraduationCap, Building2,
+  NotebookPen, ListTodo,
 } from "lucide-react";
 
 export const DOMAINS_V2 = [
@@ -28,6 +29,7 @@ export const DOMAINS_V2 = [
       { to: "/pm/inspections",       label: "Inspections",       desc: "Field safety and quality checks.",             icon: ClipboardCheck },
       { to: "/pm/meetings",          label: "Meetings",          desc: "Pre-shift, toolbox, project meetings.",        icon: Users },
       { to: "/pm/field-leadership",  label: "Field Leadership",  desc: "Crew documentation across your projects.",     icon: UserCheck },
+      { to: "/pm/odr",               label: "Operational Daily Records", desc: "PM read-only consumption · today's risk picture.", icon: NotebookPen },
       { to: "/pm/photos",            label: "Job Photos",        desc: "Field photos by job and week.",                icon: Camera },
     ],
   },

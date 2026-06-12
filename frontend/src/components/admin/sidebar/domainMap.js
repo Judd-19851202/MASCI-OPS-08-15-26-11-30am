@@ -14,7 +14,7 @@
 import {
   Activity, Users, Wrench, Mail, ClipboardCheck, Shield,
   Building2, Truck, BookOpen, GraduationCap, History, Database,
-  ListChecks, ChartBar, Cable, Film, Map,
+  ListChecks, ChartBar, Cable, Film, Map, NotebookPen, ListTodo,
 } from "lucide-react";
 
 export const DOMAINS_V2 = [
@@ -28,6 +28,8 @@ export const DOMAINS_V2 = [
       { to: "/admin",                   label: "Overview",            desc: "KPIs, search, snapshot",                     icon: Activity, end: true },
       { to: "/admin/jobs",              label: "Jobs & Field",        desc: "Job master · posters · banners",             icon: Building2 },
       { to: "/admin/operations-events", label: "Operations Events",   desc: "Append-only operational record",             icon: Activity },
+      { to: "/odr/center",              label: "Operational Daily Records", desc: "Field-day system of record · FLL-aware",      icon: NotebookPen },
+      { to: "/operations-actions",      label: "Operations Actions",  desc: "Cross-portal operational tasks · owners",   icon: ListTodo },
       { to: "/admin/dispatch",          label: "Dispatch",            desc: "Transfers · holds · utilization",            icon: Truck },
       { to: "/project-health",          label: "Project Health",      desc: "Operational friction by job",                icon: Activity },
       { to: "/asset-transfers",         label: "Asset Transfers",     desc: "Equipment movement · receiving",             icon: Truck },

@@ -4709,3 +4709,49 @@ No code · no UI · no APIs · no auth · no routes · no production touches · 
 Operator team conducts interviews offline using the packet. Completed packet returns for cross-role synthesis (a separate track when authorized).
 
 **Track 13.8G · CLOSED.**
+
+
+## 2026-06-12 · Track 13.9 — Final Disposition Certification
+Wrote `/app/memory/TRACK_13_9_FINAL_DISPOSITION_CERTIFICATION.md` · 593 lines. 173-row disposition matrix · 78 systems · 8-item ranked Immediate Build Queue (34 hours total). Zero "needs operator interview" verdicts. ODR identified as #1 build candidate.
+
+**Track 13.9 · CLOSED.**
+
+## 2026-06-12 · Track 13.9.1 — ODR Certification Report
+Wrote `/app/memory/TRACK_13_9_1_ODR_CERTIFICATION_REPORT.md` · 578 lines · 12 sections + 2 appendices. Every Track 13.9 claim about ODR VERIFIED. Two minor undercounts in 13.9's favor surfaced (22 endpoints actual vs 13 claimed; OperationalRecords.jsx is a transitive consumer). Verdict: AUTHORIZE Track 13.10.
+
+**Track 13.9.1 · CLOSED.**
+
+## 2026-06-12 · Track 13.10 — ODR Sidebar Surfacing · DONE
+- Added one entry to `components/pm/sidebar/domainMap.js` (PM sidebar `project-operations` → `/pm/odr`).
+- Added one entry to `components/admin/sidebar/domainMap.js` (Admin sidebar `operations` → `/odr/center`).
+- Added one entry to `components/safety/sidebar/SafetySideNavV2.jsx` (Safety sidebar `audits-guidance` → `/odr/center`).
+- Added `operational_daily_records` tile to FL Hub `FL_EXTERNAL_TILES` + new GROUP `07 · Operational Daily Record`.
+- Verified: ODR Center loads · FLL-6 SUMMARY projection works · DRAFT records appear · 7 calm tabs render.
+- Zero backend touch · zero new route · zero new permission · zero new collection.
+
+**Track 13.10 · CLOSED.**
+
+## 2026-06-12 · Track 13.11 — PO Requests Action Card · DONE
+- Added `PoRequestsCard` component to `pages/PmHubV2.jsx` pulling `/api/po-requests/summary`.
+- Primary metric: `pending_approval` · secondary chips: `pending_receipt` (slate) + `overdue_receipt` (amber-warn).
+- No closed count rendered. Honest offline state on summary failure.
+- Verified live: 252 pending approvals · 13 receipts due · 23 overdue (preview DB).
+
+**Track 13.11 · CLOSED.**
+
+## 2026-06-12 · Track 13.12 — Operations Actions Surfacing · DONE
+- Added one entry to `components/admin/sidebar/domainMap.js` (Admin sidebar `operations` → `/operations-actions`).
+- Verified: `/operations-actions` loads with real counts (50 OPEN · 18 ASSIGNED · 9 CLOSED).
+- PM/Shop/Safety/FL surfacing deferred (admin-primary doctrine per source).
+
+**Track 13.12 · CLOSED.**
+
+## 2026-06-12 · Execution Wave 1 Hard-Lock Regression Confirmation
+- ✅ Dispatch map-first intact (MapLibre canvas · 7-cluster live fleet · CARTO basemap).
+- ✅ Driver no-login intact (`/shift` no auth gate).
+- ✅ Shop Recovery Map untouched.
+- ✅ Trench Safety untouched.
+- ✅ All five `*_legacy` routes preserved.
+- ✅ App.js unchanged.
+
+**Execution Wave 1 · CLOSED.**

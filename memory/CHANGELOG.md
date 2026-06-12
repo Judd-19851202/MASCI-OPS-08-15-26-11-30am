@@ -1400,3 +1400,56 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 
 ### NOT done
 - No code · no UI · no production touches · no deploy.
+
+## 2026-06-12 · Track 13.9 — Final Disposition Certification · CLOSED
+
+### Documented (no code change)
+- `/app/memory/TRACK_13_9_FINAL_DISPOSITION_CERTIFICATION.md` (593 lines · 11 sections + 3 appendices · 9.2/10 five-pillar).
+- 173-row disposition matrix · 78 systems classified · 8-item ranked Immediate Build Queue (34 hours total).
+- Zero "needs operator interview" verdicts per directive.
+
+### Findings
+- 113 systems LEAVE ALONE · 22 KEEP DORMANT · 12 SURFACE · 3 FINISH · 2 IMPROVE · 0 RETIRE.
+- Largest dormant asset: ODR (4,646 backend lines · 6 frontend pages · 0 sidebar links).
+
+## 2026-06-12 · Track 13.9.1 — ODR Certification Report · CLOSED
+
+### Documented (no code change)
+- `/app/memory/TRACK_13_9_1_ODR_CERTIFICATION_REPORT.md` (578 lines · 12 sections + 2 appendices).
+- Verdict: AUTHORIZE Track 13.10. Every Track 13.9 claim VERIFIED. Two minor undercounts in 13.9's favor (22 endpoints actual vs 13 claimed; OperationalRecords.jsx is a transitive consumer).
+
+## 2026-06-12 · Track 13.10 — ODR Sidebar Surfacing · DONE
+
+### Implemented
+- PM Sidebar V2 (`components/pm/sidebar/domainMap.js`): added `/pm/odr` entry to `project-operations` domain.
+- Admin Sidebar V2 (`components/admin/sidebar/domainMap.js`): added `/odr/center` entry to `operations` domain.
+- Safety Sidebar V2 (`components/safety/sidebar/SafetySideNavV2.jsx`): added `/odr/center` entry to `audits-guidance` domain.
+- FL Hub (`pages/FieldLeadershipHub.jsx`): added `operational_daily_records` tile in new GROUP `07 · Operational Daily Record`.
+
+### NOT changed
+- Zero backend touch · zero new route · zero new permission · zero new collection.
+
+### Verified
+- `/odr/center` loads with FLL-6 SUMMARY projection · DRAFT records appear · 7 calm tabs render.
+
+## 2026-06-12 · Track 13.11 — PO Requests Action Card · DONE
+
+### Implemented
+- PM Hub V2 (`pages/PmHubV2.jsx`): added `PoRequestsCard` component pulling `/api/po-requests/summary` (real endpoint).
+- Card renders primary metric `pending_approval` + secondary chips `pending_receipt` (slate) + `overdue_receipt` (amber-warn).
+- No closed count rendered (per directive).
+- Honest offline-feed state on summary failure.
+
+### Verified
+- Live counts in preview: 252 pending approvals · 13 receipts due · 23 overdue.
+
+## 2026-06-12 · Track 13.12 — Operations Actions Surfacing · DONE
+
+### Implemented
+- Admin Sidebar V2 (`components/admin/sidebar/domainMap.js`): added `/operations-actions` entry to `operations` domain.
+
+### Verified
+- `/operations-actions` loads with real counts: 50 OPEN · 18 ASSIGNED · 9 CLOSED.
+
+### NOT changed
+- PM / Shop / Safety / FL surfacing deferred to next wave (admin-primary doctrine per source).

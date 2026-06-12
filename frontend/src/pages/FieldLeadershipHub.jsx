@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home, Receipt, Shield, Truck } from "lucide-react";
+import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home, Receipt, Shield, Truck, NotebookPen } from "lucide-react";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import { OfflineIndicator } from "@/lib/resiliency";
@@ -144,6 +144,25 @@ const FL_EXTERNAL_TILES = {
       es: "Consulta equipos entrantes y salientes en tus obras. Sigue entregas en tránsito desde el patio, devoluciones a almacenamiento y movimientos entre obras.",
     },
   },
+  // Track 13.10 · Surfacing — Operational Daily Records (ODR) FL Command
+  // Center entry. ODR backend ships with FLL-1..FLL-6 role-aware projection
+  // (visibility.py). Tile is link-only; no new route, no new endpoint, no
+  // new permission. Discoverability fix for the largest dormant operational
+  // asset on the platform (Tracks 13.9 + 13.9.1 certified).
+  operational_daily_records: {
+    kind: "operational_daily_records",
+    to: "/odr/center",
+    icon: NotebookPen,
+    accent: "indigo",
+    title: {
+      en: "Operational Daily Records",
+      es: "Registros Operacionales Diarios",
+    },
+    desc: {
+      en: "Field-day operational record · one document per project · crew · date. Submit, review, amend. FLL-aware role projection · public-link continuity · 5-audience PDF.",
+      es: "Registro operacional del día · un documento por proyecto · cuadrilla · fecha. Enviar, revisar, enmendar. Proyección por rol FLL · enlaces públicos · PDF de 5 audiencias.",
+    },
+  },
 };
 
 // 4 logical groups — ordered most-used → least-used.
@@ -198,6 +217,18 @@ const GROUPS = [
     subtitle: { en: "Look up before you start. Find JHAs and confirm equipment is in transit.",
                 es: "Consulta antes de comenzar. Encuentra JHAs y confirma que el equipo está en tránsito." },
     kinds: ["jha_plans", "asset_transfers"],
+  },
+  // Track 13.10 · Operational Daily Records surfacing — FL Command Center
+  // entry for the field-day system of record (ODR). Backend ships with
+  // FLL-aware role projection so the SAME destination serves Foreman
+  // (own ODRs), Super tier (crew/project/regional), and PM (consumption
+  // panel via /pm/odr — separate). Link-only · zero backend touch.
+  {
+    kicker: "07",
+    title: { en: "Operational Daily Record", es: "Registro Operacional Diario" },
+    subtitle: { en: "The field-day system of record. One document per project · crew · date. FLL-aware projection · public-link continuity.",
+                es: "El registro del día en campo. Un documento por proyecto · cuadrilla · fecha. Proyección por rol FLL · enlaces públicos." },
+    kinds: ["operational_daily_records"],
   },
 ];
 

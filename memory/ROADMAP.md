@@ -571,3 +571,40 @@ No deploy · no Save to GitHub · no merge · no new portals / APIs / auth / map
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge.
 - No code · no UI · no route changes without explicit operator authorisation.
+
+## 2026-06-12 update · post Tracks 13.9 / 13.9.1 / 13.10–13.12
+
+### Completed this wave
+- ✅ Track 13.9 — Final Disposition Certification · CLOSED (173-row matrix · 8-item Immediate Build Queue).
+- ✅ Track 13.9.1 — ODR Certification Report · CLOSED (Track 13.10 authorised by source-truth).
+- ✅ Track 13.10 — ODR Sidebar Surfacing in PM + Admin + Safety sidebars + FL Hub tile · DONE.
+- ✅ Track 13.11 — PO Requests Action Card on PM Hub V2 · DONE (live counts: 252 / 13 / 23 in preview).
+- ✅ Track 13.12 — Operations Actions surfacing in Admin Sidebar V2 · DONE (50 OPEN · 18 ASSIGNED · 9 CLOSED).
+
+### Critical-path next step (Build Queue #4)
+- **Track 13.13 — Operational Events Project-Day Panel on `PmProjectDetail.jsx`** (4–6h · Op-Value 65 · LOW risk).
+  - Read-only panel embedding the existing `GET /api/operational-events/project-day/{project_number}/{date}` endpoint.
+  - Honest empty state when day has no events.
+  - Single file edit · zero backend touch · zero new permission.
+
+### Remaining Build Queue items (5–8)
+- Scale Ticket 4-field extension on `operational_attachments.scale_ticket` (8h · combined FINISH + IMPROVE).
+- PO missing-receipts → tasks_notifications wire-up (5h).
+- MaterialMovementTile embed in PM Hub V2 daily-rollup (1.5h).
+- ODR PM-Hub pending-drafts pill (2.5h) — only meaningful AFTER Track 13.10 lands.
+
+### Pending operator decisions (unchanged)
+- Track 13.6N RC-1 operator signoff (30-day window).
+- Track 13.6O — `*_legacy` route retirement after signoff window.
+- Track 13.7C preview seed rollback decision.
+
+### Five permanent hard locks (unchanged · verified intact this wave)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+4. Driver no-login.
+5. Shop Repair ≠ Returned-To-Service.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No new portals · no new auth · no new RFI/Submittal/Pay-App/Doc-Control/Plan-Revision/Cost/Contract/Vendor-Map/Mechanic-Portal/Safety-Map/Leadership-Map/Driver-Auth.
