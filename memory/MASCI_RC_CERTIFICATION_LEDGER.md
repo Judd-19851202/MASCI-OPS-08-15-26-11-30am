@@ -3236,3 +3236,28 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 ### Deployment verdict (this track)
 **Not Ready — Continue Audit.** No deploy / no GitHub save / no merge.
 
+
+---
+
+## Track 13.4B — Identity Recovery Audit (Phases 1, 2A, 2B, 2C appended)
+
+**Mode honoured:** discovery only — no scoring, no recommendations, no rebuild, no deploy, no GitHub save, no merge.
+
+### Documents produced
+- `/app/memory/MASCI_PLATFORM_SURFACE_INVENTORY.md` (Phase 1)
+- `/app/memory/MASCI_PLATFORM_IDENTITY_VARIANCE_AUDIT.md` (Phase 2A)
+- `/app/memory/MASCI_PLATFORM_REALITY_DISCOVERY_AUDIT.md` (Phase 2B)
+- `/app/memory/FORGEDOPS_WHITE_LABEL_READINESS_AUDIT.md` (Phase 2C)
+- `/app/memory/track_13_4b_evidence/portal_landings/` — 44 portal-landing screenshots (22 surfaces × 2 each at 1920×1080)
+
+### Headline Phase-2 findings
+- **20 distinct white-label barriers** documented (W-01 … W-20).
+- **No tenant model exists** — 0 tenant/customer/workspace/branding collections.
+- **497 source files** reference "MASCI"; **52** reference `mascigc.com`; **73** reference "ForgedOps".
+- **15 identity-variance findings** (V-01 … V-15), including 4.6× hub-file size spread, 8 distinct *Command Center surfaces, 15 status-chip components, mixed-case status verbs.
+- **15 reality-discovery findings** (R-01 … R-15), including 806 frontend strings wrapped in `t()` with NO Spanish entry (~20.5 % UI translation gap) and 1,146 unused Spanish entries.
+- All backend emails / PDFs / Excel exports are **English-only** AND **MASCI-brand-hardcoded**.
+- `tokens.css` exists but declares itself "PROPOSAL — NOT YET WIRED".
+
+### Deployment verdict (this track)
+**Not Ready — Continue Audit.** Phases 2A/2B/2C are discovery-only; scoring + Design System V1 + recovery plan + white-label architecture remain blocked until operator authorises Phase 3.
