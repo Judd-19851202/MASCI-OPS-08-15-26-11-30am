@@ -200,6 +200,14 @@ def _classify_asset_kind(em: Dict[str, Any]) -> str:
 # ════════════════════════════════════════════════════════════════════
 # Track 13.6F · helpers for PM-2 (Holds) and PM-3 (Due Today)
 # ════════════════════════════════════════════════════════════════════
+def _urlq(value: Any) -> str:
+    """Track 13.6G — safe url-quote for deep-link query params.
+    Backend owns destination paths; the browser must never reconstruct
+    them, so we pre-encode every dynamic segment here."""
+    from urllib.parse import quote
+    if value is None:
+        return ""
+    return quote(str(value), safe="")
 def _age_days(iso_ts: Optional[str], now: Optional[datetime] = None) -> int:
     if not iso_ts:
         return 0
@@ -219,22 +227,31 @@ def _constraint_row(c: Dict[str, Any], created: Optional[str],
                     project_id_to_pn: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
     """Project a real operational_constraints doc into the unified
     holds row shape. Preserves source ownership: row.source =
-    'operational_constraints', destination_path = '/constraints'."""
+    'operational_constraints', destination_path = '/constraints/<id>'
+    (true one-click drill to the source detail page)."""
     pn = None
     if project_id_to_pn and c.get("project_id"):
         pn = project_id_to_pn.get(c["project_id"])
+    c_id = c.get("id") or ""
+    dest_path = f"/constraints/{c_id}" if c_id else "/constraints"
+    title = c.get("title") or "Operational constraint"
     return {
         "kind": "constraint",
-        "id": c.get("id"),
+        "id": c_id,
         "source": "operational_constraints",
-        "title": c.get("title") or "Operational constraint",
+        # ── Track 13.6G · canonical drill fields ─────────────────────
+        "source_engine": "operational_constraints",
+        "source_id": c_id,
+        "destination_path": dest_path,
+        "destination_label": f"Open · {title[:48]}",
+        # ────────────────────────────────────────────────────────────
+        "title": title,
         "subtitle": f"{c.get('discipline') or 'other'} · {c.get('kind') or 'other'}",
         "severity": (c.get("severity") or "medium").lower(),
         "project_number": pn,
         "project_id": c.get("project_id"),
         "opened_at": created,
         "age_days": _age_days(created, now),
-        "destination_path": "/constraints",
         "status": c.get("status"),
         **_map_ready(
             project_id=c.get("project_id"),
@@ -826,21 +843,31 @@ def build_pm_command_center_router(
             em_q["current_project_number"] = {"$in": nums}
         async for em in db.equipment_master.find(em_q, {"_id": 0}).limit(int(limit)):
             opened_at = em.get("updated_at") or em.get("last_modified_at") or em.get("created_at")
+            em_id = em.get("id") or em.get("asset_id") or em.get("unit_number")
+            unit = em.get("unit_number") or em.get("asset_id") or em_id
+            # Deep-link: /pm/fleet with focus params so the page can
+            # auto-select / scroll-to the exact unit.
+            dest_path = f"/pm/fleet?focus_unit={_urlq(unit)}&focus_asset_id={_urlq(em_id)}"
             rows.append({
                 "kind": "equipment_hold",
-                "id": em.get("id") or em.get("asset_id") or em.get("unit_number"),
+                "id": em_id,
                 "source": "equipment_master",
-                "title": f"{em.get('unit_number') or em.get('asset_id') or 'Equipment'} · {em.get('status')}",
+                # ── Track 13.6G · canonical drill fields ─────────────
+                "source_engine": "equipment_master",
+                "source_id": em_id,
+                "destination_path": dest_path,
+                "destination_label": f"Open {unit}" if unit else "Open equipment",
+                # ────────────────────────────────────────────────────
+                "title": f"{unit or 'Equipment'} · {em.get('status')}",
                 "subtitle": (em.get("make_model") or em.get("model")
                              or em.get("type") or em.get("asset_type") or "Equipment"),
                 "severity": "high" if em.get("status") == "Safety Hold" else "medium",
                 "project_number": em.get("current_project_number"),
                 "opened_at": opened_at,
                 "age_days": _age_days(opened_at, now),
-                "destination_path": "/pm/fleet",
                 "status": em.get("status"),
                 **_map_ready(
-                    asset_id=em.get("id") or em.get("asset_id"),
+                    asset_id=em_id,
                     project_number=em.get("current_project_number"),
                     status=em.get("status"),
                     timestamp=opened_at,
@@ -916,20 +943,33 @@ def build_pm_command_center_router(
         if defect_q is not None:
             async for d in db.fleet_defects.find(defect_q, {"_id": 0}).limit(int(limit)):
                 opened_at = d.get("reported_at") or d.get("created_at")
+                d_id = d.get("id") or ""
+                truck = d.get("truck_unit_number") or ""
+                dest_path = (
+                    f"/pm/fleet?focus_defect_id={_urlq(d_id)}"
+                    + (f"&focus_unit={_urlq(truck)}" if truck else "")
+                )
                 rows.append({
                     "kind": "fleet_defect",
-                    "id": d.get("id"),
+                    "id": d_id,
                     "source": "fleet_defects",
-                    "title": f"{d.get('truck_unit_number') or 'Truck'} · {d.get('item_text') or 'defect'}",
+                    # ── Track 13.6G · canonical drill fields ─────────
+                    "source_engine": "fleet_defects",
+                    "source_id": d_id,
+                    "destination_path": dest_path,
+                    "destination_label": (
+                        f"Open defect on {truck}" if truck else "Open defect"
+                    ),
+                    # ────────────────────────────────────────────────
+                    "title": f"{truck or 'Truck'} · {d.get('item_text') or 'defect'}",
                     "subtitle": d.get("category") or "fleet defect",
                     "severity": (d.get("severity") or "medium").lower(),
                     "project_number": None,
                     "opened_at": opened_at,
                     "age_days": _age_days(opened_at, now),
-                    "destination_path": "/pm/fleet",
                     "status": d.get("status"),
                     **_map_ready(
-                        asset_id=d.get("truck_unit_number"),
+                        asset_id=truck or None,
                         status=d.get("status"),
                         timestamp=opened_at,
                         trust_state="open_defect",
@@ -1008,16 +1048,26 @@ def build_pm_command_center_router(
         if nums:
             ca_q["project_number"] = {"$in": nums}
         async for c in db.corrective_actions.find(ca_q, {"_id": 0}).limit(int(limit)):
+            c_id = c.get("id") or ""
+            # CAPAs anchor on the PM Incidents Dashboard (single
+            # surface housing CAPAs) — pre-select with focus_capa.
+            dest_path = f"/pm/incidents?tab=capas&focus_capa={_urlq(c_id)}"
+            title = c.get("title") or c.get("summary") or "Corrective Action"
             rows.append({
                 "kind": "capa",
-                "id": c.get("id"),
+                "id": c_id,
                 "source": "corrective_actions",
-                "title": c.get("title") or c.get("summary") or "Corrective Action",
+                # ── Track 13.6G · canonical drill fields ─────────────
+                "source_engine": "corrective_actions",
+                "source_id": c_id,
+                "destination_path": dest_path,
+                "destination_label": f"Open CAPA · {title[:48]}",
+                # ────────────────────────────────────────────────────
+                "title": title,
                 "subtitle": (c.get("linked_employee_name") or c.get("employee_name")
                              or "Open corrective action"),
                 "due_date": c.get("due_date"),
                 "project_number": c.get("project_number") or None,
-                "destination_path": "/pm/incidents?tab=capas",
                 "status": c.get("status"),
                 **_map_ready(
                     project_number=c.get("project_number") or None,
@@ -1038,16 +1088,25 @@ def build_pm_command_center_router(
         if nums:
             dr_q["project_number"] = {"$in": nums}
         async for d in db.daily_reports.find(dr_q, {"_id": 0}).limit(int(limit)):
+            dr_id = d.get("id") or d.get("doc_id") or ""
+            # /pm/daily/:id is a real React route — true one-click drill.
+            dest_path = f"/pm/daily/{_urlq(dr_id)}" if dr_id else "/pm/daily"
+            pn = d.get("project_number") or None
             rows.append({
                 "kind": "daily_report_pending",
-                "id": d.get("id") or d.get("doc_id"),
+                "id": dr_id,
                 "source": "daily_reports",
-                "title": f"Daily Report · {d.get('project_number') or 'project'}",
+                # ── Track 13.6G · canonical drill fields ─────────────
+                "source_engine": "daily_reports",
+                "source_id": dr_id,
+                "destination_path": dest_path,
+                "destination_label": f"Open report · {pn or 'project'}",
+                # ────────────────────────────────────────────────────
+                "title": f"Daily Report · {pn or 'project'}",
                 "subtitle": (d.get("project_name") or d.get("foreman_name")
                              or "Awaiting PM verify"),
                 "due_date": today_yyyymmdd,
-                "project_number": d.get("project_number") or None,
-                "destination_path": "/pm/daily",
+                "project_number": pn,
                 "status": d.get("lifecycle_state"),
                 **_map_ready(
                     project_number=d.get("project_number"),

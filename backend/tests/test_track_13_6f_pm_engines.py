@@ -240,7 +240,11 @@ def test_constraint_row_preserves_source_and_destination():
                           project_id_to_pn={"P-1": "24-06"})
     assert row["kind"] == "constraint"
     assert row["source"] == "operational_constraints"
-    assert row["destination_path"] == "/constraints"
+    # Track 13.6G — destination is the constraint detail page, not the list.
+    assert row["destination_path"] == "/constraints/C-1"
+    assert row["source_engine"] == "operational_constraints"
+    assert row["source_id"] == "C-1"
+    assert row["destination_label"].startswith("Open · ")
     assert row["project_number"] == "24-06"
     assert row["status"] == "open"
     assert row["severity"] == "high"

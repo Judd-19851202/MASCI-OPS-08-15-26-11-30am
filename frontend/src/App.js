@@ -166,6 +166,8 @@ const PmHubV2 = React.lazy(() => import("@/pages/PmHubV2"));
 // Track 13.6F · Phase 3 / 4 — PM-2 Unified Holds + PM-3 Due Today aggregators.
 const PmHoldsV2 = React.lazy(() => import("@/pages/PmHoldsV2"));
 const PmDueTodayV2 = React.lazy(() => import("@/pages/PmDueTodayV2"));
+// Track 13.6G — Dispatch Recovery (preview, no route swap).
+const DispatchHubV2 = React.lazy(() => import("@/pages/DispatchHubV2"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -638,8 +640,9 @@ function App() {
             {/* Track 13.6D · PM Hub V2 stable alias remains. */}
             <Route path="/pm/hub_v2" element={P(<PmHubV2 />)} />
             {/* Track 13.6F · PM-2 Unified Holds + PM-3 Due Today (live · real APIs). */}
-            <Route path="/pm/holds" element={P(<PmHoldsV2 />)} />
-            <Route path="/pm/due-today" element={P(<PmDueTodayV2 />)} />
+            {/* Track 13.6G — admins can browse these triage surfaces too (matches /pm/daily, /pm/incidents). */}
+            <Route path="/pm/holds" element={AP(<PmHoldsV2 />)} />
+            <Route path="/pm/due-today" element={AP(<PmDueTodayV2 />)} />
             {/* iter353e-UI · PM Crew Compliance Lens (read-only) */}
             <Route path="/pm/crew-compliance" element={P(<PmCrewCompliance />)} />
             {/* iter105 — PM Console sub-routes (mirrors AdminConsole layout)
@@ -814,6 +817,8 @@ function App() {
             <Route path="/dispatch-portal/reset/:token" element={<DispatchResetPassword />} />
             <Route path="/dispatch-portal/change-password" element={DP(<DispatchChangePassword />)} />
             <Route path="/dispatch-portal" element={DP(<DispatchHub />)} />
+            {/* Track 13.6G — Dispatch Hub V2 preview surface (gated by RequireDispatch). */}
+            <Route path="/dispatch-portal/hub_v2" element={DP(<DispatchHubV2 />)} />
             <Route path="/dispatch-portal/board" element={DP(<DispatchBoard />)} />
             <Route path="/dispatch-portal/command" element={DP(<DispatchCommandCenter />)} />
             <Route path="/dispatch-portal/fleet" element={DP(<FleetVisibility scope="dispatch" />)} />

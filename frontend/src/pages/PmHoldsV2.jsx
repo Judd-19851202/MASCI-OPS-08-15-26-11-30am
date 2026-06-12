@@ -126,17 +126,18 @@ export default function PmHoldsV2() {
         <Link
           to={row.destination_path || "/pm/hub"}
           data-testid={`pm-holds-open-${row.id}`}
+          title={`Source: ${row.source_engine || row.source} · ID: ${row.source_id || row.id}`}
           style={{
             display: "inline-block", padding: "4px 10px",
             background: "var(--paper-card)", color: "var(--ink-strong)",
             border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-            fontSize: 11, fontWeight: 600, textDecoration: "none",
+            fontSize: 11, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap",
           }}
         >
-          Open
+          {row.destination_label || "Open"}
         </Link>
       ),
-      width: 90,
+      width: 200,
     },
   ];
 

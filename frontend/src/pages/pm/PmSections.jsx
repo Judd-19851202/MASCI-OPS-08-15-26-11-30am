@@ -30,6 +30,8 @@ import EmployeeMasterPanel from "@/components/EmployeeMasterPanel";
 import SupplierMasterPanel from "@/components/SupplierMasterPanel";
 import SitePostersPanel from "@/components/SitePostersPanel";
 import PmJobsRead from "@/components/pm/PmJobsRead";
+// Track 13.6G — Deep-link triage banner (renders only when ?focus_* params are present).
+import FocusBanner from "@/components/triage/FocusBanner";
 
 // Calm doctrine-compliant subline — sentence-case slate-500, ≤14 words.
 const Subline = ({ children }) => (
@@ -49,6 +51,7 @@ export function PmFleet() {
   return (
     <PmShell title="Equipment Fleet" section="fleet"
       intro={<Subline>Equipment master and per-unit parts catalog (read-only).</Subline>}>
+      <FocusBanner />
       <EquipmentMasterPanel readOnly />
       <div className="mt-6">
         <EquipmentPartsPanel />

@@ -16,6 +16,8 @@ import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
 import { SEVERITY_LEVELS } from "@/lib/incidentSchema";
+// Track 13.6G — Deep-link triage banner (renders only when ?focus_capa is present).
+import FocusBanner from "@/components/triage/FocusBanner";
 
 const severityOf = (key) =>
   SEVERITY_LEVELS.find((s) => s.key === key) || SEVERITY_LEVELS[0];
@@ -111,6 +113,7 @@ export default function IncidentsDashboard() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <FocusBanner />
         <div className="mb-8">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             Accident / Incident Reports

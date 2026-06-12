@@ -40272,3 +40272,43 @@ project-filter narrowing, honest empty states, and pure-helper invariants.
 - DO NOT deploy. DO NOT Save to GitHub. DO NOT merge.
 - "Project Risks" permanently renamed → "Project Constraints".
 - "RFIs" and "Submittals" remain forbidden in the UI (no engine exists).
+
+---
+
+## 2026-06-12 · TRACK 13.6G — Deep-Link Triage + Dispatch Recovery (Phase 1)
+
+**Status**: PASS — deep-link triage live, Dispatch V2 preview lane live, zero drift on every legacy surface.
+
+### Track 13.6G · Deep-Link Operational Triage
+- Backend (`/app/backend/routes/pm_command_center.py`): every PM-2 / PM-3 row now carries the canonical drill quartet — `source_engine` · `source_id` · `destination_path` · `destination_label`. Backend pre-encodes the destination using `urllib.parse.quote` (`_urlq`) so the browser never reconstructs paths.
+- Deep-link encoding per kind:
+  - `equipment_hold` → `/pm/fleet?focus_unit=&focus_asset_id=`
+  - `constraint` → `/constraints/<id>` (true detail route)
+  - `fleet_defect` → `/pm/fleet?focus_defect_id=&focus_unit=`
+  - `capa` → `/pm/incidents?tab=capas&focus_capa=`
+  - `daily_report_pending` → `/pm/daily/<id>` (true detail route)
+- Frontend: new `FocusBanner` component (`/app/frontend/src/components/triage/FocusBanner.jsx`) mounted on `/pm/fleet` (`PmSections.jsx`) and `/pm/incidents` (`IncidentsDashboard.jsx`). When focus query params are present, the banner loads the originating record from its existing source API and renders a prominent context-loaded card. Honest "scope-excluded" state when the record isn't in PM scope.
+- Auth: `/pm/holds` and `/pm/due-today` gates upgraded `RequirePm → RequireAdminOrPm` (matches `/pm/daily`, `/pm/incidents`).
+
+### Track 13.6G · Dispatch Recovery (Phase 1 — preview lane)
+- New page `/app/frontend/src/pages/DispatchHubV2.jsx` mounted at `/dispatch-portal/hub_v2` (behind `RequireDispatch`, same gate as classic).
+- 14 live action-queue cards in 3 sections, all fed by the single existing `GET /api/dispatch/command/summary` engine.
+- Every card opens an existing dispatch route (`/dispatch-portal/board`, `/dispatch-portal/command`, `/dispatch-portal/fleet`, `/dispatch-portal/driver-qualification`).
+- Classic `/dispatch-portal` MapLibre command map preserved unchanged — visual guardrail confirmed by screenshot tool (`dispatch-hub-v2-root` count = 0 on classic).
+- Registered in the V2 Operator Review Hub (`V2Index.jsx`) — Dispatch promoted from `planned` to `operational`.
+
+### Tests
+- New file: `/app/backend/tests/test_track_13_6g_deep_link_triage.py` — 6 tests covering canonical drill quartet, real destination roots, source-id encoding, human-readable labels, PM scope isolation, URL safety, and `_urlq` pure-helper invariants.
+- Updated `/app/backend/tests/test_track_13_6f_pm_engines.py` to assert the new constraint deep-link contract.
+- **Combined result**: 16 / 16 pass.
+
+### Backlog / Next Tracks
+- **P1** — Track 13.6G Phase 2 / 3 / 4: operator review of Dispatch V2 → route swap (classic preserved at `/dispatch-portal/hub_legacy`) → Dispatch-specific deep-link banners.
+- **P1** — Track 13.6E Priority 4: Safety Recovery (preserve Trench Safety workflows).
+- **P2** — Shop, Admin, Field Leadership, Leadership, Driver portal V2 conversions.
+- **P3** — Remove `*_legacy` rollback routes once operators permanently sign off the V2 migrations.
+
+### Locked rules (still in force)
+- No deploy, no Save to GitHub, no merge.
+- "Project Risks" stays renamed → "Project Constraints"; RFIs / Submittals remain forbidden in the UI.
+- Backend owns routing truth; the browser must never reconstruct deep-link paths.
