@@ -3428,3 +3428,36 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Deployment verdict
 **Not Ready — Awaiting Operator Authorisation for Phase B.** Phase A is plumbing-only and complete.
+
+---
+
+## Track 13.5A · Phase B1 — Shared Design Primitives Foundation
+
+**Mode honoured:** primitives only — NO portal migration, NO form changes, NO workflow changes, NO operator-route visual changes, NO deploy, NO GitHub save, NO merge.
+
+### Files created
+- `/app/frontend/src/design-system/PortalShell.jsx`
+- `/app/frontend/src/design-system/PublicShell.jsx`
+- `/app/frontend/src/design-system/StatusChip.jsx`
+- `/app/frontend/src/design-system/Card.jsx`
+- `/app/frontend/src/design-system/EmptyState.jsx`
+- `/app/frontend/src/design-system/DataTable.jsx`
+- `/app/frontend/src/design-system/statusRegistry.js`
+- `/app/frontend/src/design-system/index.js` (barrel)
+- `/app/frontend/src/pages/DesignSystemDemo.jsx` (internal demo, mounted at `/_internal/design-system`, not linked from any nav)
+
+### File edited
+- `/app/frontend/src/App.js` — single lazy import + single `<Route>` for the internal demo, placed immediately before catch-all. No other route, layout, or import changed.
+
+### Verification
+- ESLint clean across `design-system/` and the demo page.
+- Zero-diff smoke test on 10 operator surfaces (`/`, `/admin/login`, `/dispatch-portal/login`, `/pm/login`, `/safety`, `/shop/login`, `/hr/login`, `/leadership`, `/driver`, `/trench-safety`) — every `data-testid` belonging to the design-system primitives confirmed ABSENT (count = 0).
+- Dispatch Visual Render Guardrail re-executed via the working screenshot tool (pytest-playwright browser bin mismatch unrelated to this phase): `box=1084×520 · mean=24.85 · variance=275.46 · unique=103` — PASS.
+- Internal demo page renders all 7 primitives with all section markers present.
+
+### Evidence
+- `/app/memory/TRACK_13_5A_PHASE_B1_SHARED_PRIMITIVES_REPORT.md`
+- `/app/memory/screenshots/track_13_5A_B1_zero_diff/*.jpg` (12 files including dispatch_map_guardrail and the demo screenshots)
+
+### Deployment verdict
+**Not Ready — Awaiting Operator Authorisation for Phase B2 (Pilot Portal Migration).** Primitives sit dormant until B2 is authorised.

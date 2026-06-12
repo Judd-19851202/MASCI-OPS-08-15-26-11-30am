@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 // AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
+// Track 13.5A · Phase B1 — Internal design-system showcase (lazy, isolated).
+const DesignSystemDemo = React.lazy(() => import("@/pages/DesignSystemDemo"));
 // ROUTE-SPLIT-001 Wave 3 — ODR + Operational Records + Operations Actions lazy.
 const OdrNew = React.lazy(() => import("@/pages/odr/OdrNew"));
 const OdrCenter = React.lazy(() => import("@/pages/odr/OdrCenter"));
@@ -917,6 +919,10 @@ function App() {
                 verification sweep flagged). Backend authorization is
                 untouched; this is purely the unmatched-route UX. */}
             {/* Pass-7 · Design-system family mockups removed (unauthorized direction; reverted per operator stabilization directive) */}
+            {/* Track 13.5A · Phase B1 — Internal-only design primitives showcase.
+                Mounted under `_internal` to keep it out of operator nav. No links exist
+                pointing here from any portal. Authorized 2026-02 by operator. */}
+            <Route path="/_internal/design-system" element={<DesignSystemDemo />} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>

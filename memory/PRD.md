@@ -40011,3 +40011,27 @@ After **Save to GitHub → Redeploy**:
 If all hold → **production certified**. Else → escalate.
 
 **Sprint #9 COMPLETE — Live Map is a true Operations Decision Surface.**
+
+---
+
+## 2026-06-12 · Track 13.5A · Phase B1 — Shared Design Primitives Foundation (COMPLETE)
+
+**Mode:** primitives only — no portal migration, no operator-route visual changes, no deploy.
+
+**Created:**
+- `/app/frontend/src/design-system/{PortalShell,PublicShell,StatusChip,Card,EmptyState,DataTable}.jsx`
+- `/app/frontend/src/design-system/statusRegistry.js` (18 canonical statuses across GENERAL/HOLD/ASSET families; forbidden labels Rejected/Denied/Failed deliberately absent)
+- `/app/frontend/src/design-system/index.js` (barrel)
+- `/app/frontend/src/pages/DesignSystemDemo.jsx` (internal-only showcase)
+
+**App.js touch:** one lazy import + one `<Route path="/_internal/design-system">` immediately before the catch-all. Not linked from any operator navigation.
+
+**Zero-diff smoke verification:** 10 operator-facing routes screenshotted (`/`, `/admin/login`, `/dispatch-portal/login`, `/pm/login`, `/safety`, `/shop/login`, `/hr/login`, `/leadership`, `/driver`, `/trench-safety`). Every design-system `data-testid` confirmed absent in all surveyed routes. Dispatch Visual Render Guardrail re-executed: PASS (`box=1084×520 · mean=24.85 · variance=275.46 · unique=103`).
+
+**Evidence:**
+- Report: `/app/memory/TRACK_13_5A_PHASE_B1_SHARED_PRIMITIVES_REPORT.md`
+- Screenshots: `/app/memory/screenshots/track_13_5A_B1_zero_diff/`
+
+**Next gate:** Phase B2 (Pilot Portal Migration) — BLOCKED pending explicit operator authorization. When authorized, operator must name a single pilot portal; primitives will be applied side-by-side and operator visually compares before any route swap.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge.
