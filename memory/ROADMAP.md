@@ -544,3 +544,30 @@ No deploy · no Save to GitHub · no merge · no new portals / APIs / auth / map
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge.
 - No code · no UI · no route changes without explicit operator authorisation.
+
+---
+
+## 2026-06-12 update · post Track 13.8G
+
+### Completed
+- ✅ Track 13.8G — Combined Operator Interview Crib Sheet · CLOSED. Printable packet ready.
+
+### Critical-path next step
+- **Conduct the interviews offline** using `/app/memory/TRACK_13_8G_OPERATOR_INTERVIEW_CRIB_SHEET.md`. ~45 min combined per role. 11 roles in priority order: PM · Field Leadership · Shop Manager · Superintendent · Dispatcher · Admin · HR · Safety · Foreman · Leadership · Driver.
+- After interviews complete, a new synthesis track converts the packet into authorisations for: PO Requests card destination · Material Movement future · scale_ticket structured entry · Operational Events project-day panel · Notifications cadence tuning · Field Memory / Field Revision finishing · plus the broader 13.8A workflow gap candidates.
+
+### Pending operator decisions (unchanged)
+- Track 13.6N RC-1 operator signoff.
+- Track 13.7C preview seed rollback decision.
+- Track 13.8C runbook execution against production read-only.
+
+### Five permanent hard locks (unchanged · verified intact)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+4. Driver no-login.
+5. Shop Repair ≠ Returned-To-Service.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No code · no UI · no route changes without explicit operator authorisation.

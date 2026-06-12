@@ -1388,3 +1388,15 @@ Single search-replace removing one JSX block from AdminHubV2.jsx · no backend /
 ### NOT done
 - No code · no UI · no card added · no route change.
 - No deploy / GitHub push / merge.
+
+## 2026-06-12 · Track 13.8G — Combined Operator Interview Crib Sheet · CLOSED
+
+### Documented (no code change)
+- `/app/memory/TRACK_13_8G_OPERATOR_INTERVIEW_CRIB_SHEET.md` — printable 15-section interview packet (11 roles · 5 decision blocks · scoring sheet · final decision capture · summary template · authorization checklist).
+- Ledger / PRD / ROADMAP appended.
+
+### Purpose
+Single offline-runnable packet that unlocks every operator-interview-gated roadmap candidate (Tracks 13.8A / 13.8B / 13.8D / 13.8F).
+
+### NOT done
+- No code · no UI · no production touches · no deploy.

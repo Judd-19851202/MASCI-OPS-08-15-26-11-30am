@@ -4685,3 +4685,27 @@ PO Requests as built: 8.4/10. Surfacing option A or B alone: 8.8/10.
 No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes · no production touches · no preview writes.
 
 **Track 13.8F · CLOSED. Awaiting operator interview before implementation.**
+
+
+---
+
+## ENTRY · Track 13.8G · Combined Operator Interview Crib Sheet
+**Date**: 2026-06-12 · **Mode**: documentation only · no code · no probes
+**Report**: `/app/memory/TRACK_13_8G_OPERATOR_INTERVIEW_CRIB_SHEET.md`
+
+### Delivered
+Printable 15-section interview packet covering 11 roles (PM · Super · Foreman · Dispatch · Shop · Mechanic · Safety · HR · Admin · Leadership · Driver) with 5 decision blocks (PO Requests · Material Movement · Scale Ticket · Operational Events / Project-Day · Notifications) + do-not-build confirmation + scoring sheet + final decision capture + per-person summary template + signed authorization checklist.
+
+### Purpose
+Unlock every operator-interview-gated roadmap decision from Tracks 13.8A · 13.8B · 13.8D · 13.8F in a single ~45-minute combined interview cycle.
+
+### Hard-lock check questions embedded per role
+Dispatch map-first · Driver no-login · Shop Repair ≠ RTS · Safety no-map · Leadership no-map.
+
+### Forbidden / blocked (all respected)
+No code · no UI · no APIs · no auth · no routes · no production touches · no deploy · no Save to GitHub · no merge.
+
+### Next step
+Operator team conducts interviews offline using the packet. Completed packet returns for cross-role synthesis (a separate track when authorized).
+
+**Track 13.8G · CLOSED.**

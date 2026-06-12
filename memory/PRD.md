@@ -40766,3 +40766,16 @@ Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 9 → **9.4/10**.
 ### Locked rules (unchanged)
 - No code · no UI · no surface change without operator interview.
 - No deploy · no Save to GitHub · no merge.
+
+---
+
+## 2026-06-12 · Track 13.8G — Combined Operator Interview Crib Sheet · CLOSED
+
+**Mode**: documentation only · no code · no probes.
+
+### Delivered
+Printable 15-section interview packet at `/app/memory/TRACK_13_8G_OPERATOR_INTERVIEW_CRIB_SHEET.md` covering 11 roles and 5 decision blocks. Unlocks every operator-interview-gated roadmap candidate from Tracks 13.8A / 13.8B / 13.8D / 13.8F in a single ~45-minute combined cycle.
+
+### Locked rules (unchanged)
+- No code · no UI · no surface change.
+- No deploy · no Save to GitHub · no merge.
