@@ -3261,3 +3261,37 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Deployment verdict (this track)
 **Not Ready — Continue Audit.** Phases 2A/2B/2C are discovery-only; scoring + Design System V1 + recovery plan + white-label architecture remain blocked until operator authorises Phase 3.
+
+---
+
+## Track 13.4B · Phase 3 — Master Findings + Priority + Translation Reality + Customer #2 Blockers
+
+**Mode honoured:** discovery + classification only — no solutions, no design system, no recovery plan, no architecture, no implementation, no deploy, no GitHub save, no merge.
+
+### Documents produced
+- `/app/memory/MASCI_PLATFORM_MASTER_FINDINGS_REGISTRY.md` — 77 catalogued findings (S-/V-/R-/W-/D-/T- prefixes)
+- `/app/memory/MASCI_PLATFORM_PRIORITY_MATRIX.md` — 12-axis scoring, Tier 1/2/3 assignment, top-12 composite ranking
+- `/app/memory/MASCI_TRANSLATION_READINESS_AUDIT.md` (alias of `MASCI_TRANSLATION_REALITY_AUDIT.md`) — audience-bucketed readiness with measured percentages
+- `/app/memory/FORGEDOPS_CUSTOMER_2_BLOCKER_MATRIX.md` — ranked blockers if Customer #2 signed tomorrow
+
+### Headline Phase 3 outputs
+- **77 total catalogued findings** (6 inventory · 15 identity-variance · 15 reality · 20 white-label · 9 dispatch/Motive · 12 translation).
+- **Tier 1 (existential): 12 findings.** Includes W-01 no-tenant-model, W-09 hardcoded MASCI legal text (EN+ES), D-01 production Motive webhook unverified, T-01 safety-critical UI Spanish at 75.8 %, T-08/T-09 emails+PDFs 0 % Spanish, V-04 `tokens.css` not wired.
+- **Tier 2 (major drift): 24 findings.**
+- **Tier 3 (optimisation): 30+ findings + 3 partial-positive observations (W-17 training catalog editable · W-18 digest cadence editable · D-09 cross-portal map consistency).**
+- **Top-1 composite-scored finding:** T-01 Safety-Critical UI Spanish gap (composite 14).
+
+### Translation reality (operational readiness, NOT "20.5 %")
+- Safety-Critical UI Spanish readiness: **75.8 %**
+- Field-Critical UI Spanish readiness: **82.5 %**
+- Workflow-Critical UI Spanish readiness: **82.5 %**
+- Public-Facing UI Spanish readiness: **73.6 %**
+- Administrative UI Spanish readiness: **74.0 %**
+- Technical UI Spanish readiness: **68.8 %**
+- Outbound emails / PDFs / Excel / `HTTPException` / status verbs: **0 %**
+
+### Customer #2 blocker count
+- 10 immediate breaks · 11 brand-leak families · 3 legal/compliance leaks · 7 data-assumption leaks · 4 workflow/terminology leaks · 6 onboarding-flow blockers. **0 of 12** customer-onboarding dimensions are end-to-end self-service today.
+
+### Deployment verdict (this track)
+**Not Ready — Continue Audit.** Phase 3 is discovery + classification only. Tracks 13.4C (Design System) and 13.4D (Full Reality Audit) remain blocked pending explicit operator authorisation.
