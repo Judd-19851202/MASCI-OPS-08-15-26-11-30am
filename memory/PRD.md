@@ -40717,3 +40717,29 @@ Single executive decision matrix consolidating Tracks 13.8A/B/C. No contradictio
 ### Locked rules (unchanged · reaffirmed)
 - Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · No map without workflow discovery.
 - No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes.
+
+---
+
+## 2026-06-12 · Track 13.8E — Operational Locations Recovery Surfacing · CLOSED ✅
+
+**Mode**: surfacing only · no new system · no new endpoints · no new permissions.
+
+### Outcome
+The pre-existing `AdminGeofenceReconciliation.jsx` admin workflow (mounted at `/admin/geofence-reconciliation` · backed by 9 `routes/operational_locations.py` endpoints) is now discoverable from Admin Hub V2 Section 04.
+
+### Files touched
+- `/app/frontend/src/pages/AdminHubV2.jsx` — added Section 04 (single card · 20 lines of JSX · zero new state).
+
+### Verified
+- Admin Hub V2 renders Section 04 alongside Sections 01–03.
+- Click-through navigates to destination page · 62 live reconciliation candidates render with full band/status breakdown.
+- Dispatch dominance · Shop Recovery Map · all other portals · zero regression.
+- Frontend lint clean.
+
+### Five-pillar
+Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 9 → **9.4/10**.
+
+### Locked rules (unchanged · honored)
+- Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · One source of truth.
+- No new APIs · no new collections · no new permissions · no new routes · no data invented.
+- No deploy · no Save to GitHub · no merge.

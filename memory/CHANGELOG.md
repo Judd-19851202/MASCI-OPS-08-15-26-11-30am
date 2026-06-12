@@ -1348,3 +1348,28 @@ None of these affect the directive's three success criteria; all three are MET a
 
 ### NOT done (per directive)
 - No code · no UI · no retirement · no surfacing · no deploy.
+
+## 2026-06-12 · Track 13.8E — Operational Locations Recovery Surfacing · CLOSED ✅
+
+### Implemented
+- Added Section 04 "Map data quality · admin" to `AdminHubV2.jsx` with a single card linking to the pre-existing `/admin/geofence-reconciliation` workflow.
+- 20 lines of JSX added · zero new state · zero new API calls · zero new permissions · zero new collections · zero new routes.
+- No metric invented — counts live on the destination page, not the hub card.
+
+### Verified
+- Admin Hub V2 Section 04 renders alongside Sections 01–03 (live counts intact: degraded probes=2 · expired=28 · in_30=6 · in_60=11 · incidents=44 · capas=24 · fleet OOS=0).
+- Click-through to destination page successful · 62 reconciliation candidates render with full band/status workflow (8 HIGH · 2 MEDIUM · 42 LOW · 10 VERIFIED · 0 REJECTED).
+- Dispatch dominance · Shop Recovery Map · zero regression.
+- Frontend lint clean.
+
+### Hard locks honored
+Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · One source of truth · No workflow change · No data invented · No metric fabricated.
+
+### NOT done (per directive)
+Deploy · Save to GitHub · merge · improvement beyond approved scope (live-count surfacing on the card was considered and explicitly NOT implemented per the "mission is discoverability, not improvement" rule).
+
+### Five-pillar
+9.4 / 10.
+
+### Rollback
+Single search-replace removing one JSX block from AdminHubV2.jsx · no backend / DB / permissions to roll back.

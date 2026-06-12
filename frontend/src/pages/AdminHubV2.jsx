@@ -105,6 +105,25 @@ export default function AdminHubV2() {
           <QC to="/dispatch-portal" testid="admin-hub-v2-q-fleet-oos" title="Fleet · OOS" why="Units out of service across the fleet" source="Source: dispatch.command.summary.fleet.counts.oos" value={fleetOos} loaded={s.loaded} />
         </Section>
 
+        {/* Track 13.8E — Operational Locations recovery surfacing.
+            The reconciliation workflow at /admin/geofence-reconciliation is already
+            built end-to-end (page + 9 admin endpoints). Surface as a discoverability
+            card only. No metric is invented; no queue count is fetched. */}
+        <Section k="04 · Map data quality · admin" t="Operational locations reconciliation" c="Pre-existing admin workflow surfaced for discoverability — no new system">
+          <Link to="/admin/geofence-reconciliation" data-testid="admin-hub-v2-q-geofence-reconciliation" style={{ textDecoration: "none", color: "inherit" }}>
+            <Card
+              title="Geofence Reconciliation"
+              description="Review proposed Motive geofence ↔ MASCI project matches. Approve, reject, reassign, or bulk-approve high-confidence rows. Cleaner geofences mean cleaner assignment names on every operations-map marker (PM, Shop Recovery, Dispatch all read the same source)."
+              variant="default"
+              status={<StatusChip statusKey="verified" compact label="Live workflow" />}
+            >
+              <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                Source: /admin/geofence-reconciliation (existing route · admin-only)
+              </p>
+            </Card>
+          </Link>
+        </Section>
+
         <div data-testid="admin-hub-v2-trace-note" style={{ marginTop: 16, padding: "var(--pad-card)", background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12 }}>
           <strong style={{ color: "var(--ink-strong)" }}>Admin Hub V2 · Track 13.6K preview.</strong>{" "}
           Operations Control Center · presentation-only. Every count traces to a real source; every card opens an existing workflow. Settings, users, integrations, and audit trails remain in the classic admin surface — no rebuild.

@@ -474,3 +474,37 @@ Not parked, just queued for user prioritization later:
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge.
 - No new portals / APIs / auth / map systems / route swaps without explicit operator authorisation tied to a discovery-then-build track.
+
+---
+
+## 2026-06-12 update · post Track 13.8E
+
+### Completed
+- ✅ Track 13.8E — Operational Locations Recovery Surfacing · CLOSED. Single doctrine-pure SURFACE executed without operator interview.
+
+### Remaining operator-interview-gated recovery candidates
+1. PO Requests action-queue cards in PM Hub V2 + Field Leadership Hub.
+2. Operational Events project-day panel on PM project-detail.
+3. MaterialMovementTile in PM Hub V2 daily-report context.
+4. `scale_ticket` structured-entry extension on driver attach.
+5. Field Memory · Field Revision finishing.
+6. Notifications cadence + recipient quality tuning (combined with Track 13.8C runbook).
+7. Operational Records / Operational Timeline use case validation.
+
+### Pending operator decisions
+- Track 13.6N RC-1 operator signoff still pending.
+- Track 13.7C preview seed still in place (rollback via `python3 /app/scripts/preview_seed_13_7c.py rollback` when ready).
+- Track 13.8C runbook execution against production read-only (whoever holds prod credentials).
+
+### Permanent do-not-build (unchanged · reaffirmed)
+RFIs · Submittals · formal Change Orders · Pay Applications · Cost / Contract / Document Control / Plan Revision Management · Vendor map overlay · Driver hub / Driver login · Mechanic portal · Safety map lens · Leadership map lens · Parallel map engine.
+
+### Five permanent hard locks (verified intact post-13.8E)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+4. Driver no-login.
+5. Shop Repair ≠ Returned-To-Service.
+
+### Forbidden / blocked (unchanged)
+No deploy · no Save to GitHub · no merge · no new portals / APIs / auth / map systems / route swaps without explicit operator authorisation tied to a discovery-then-build track.

@@ -4618,3 +4618,42 @@ Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 7 → Aggregate **8
 No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes · no DB mutations · no production touches.
 
 **Track 13.8D · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.8E · Operational Locations Recovery Surfacing
+**Date**: 2026-06-12
+**Mode**: DISCOVER → VERIFY → IMPLEMENT → CERTIFY · minimal surfacing card · no new system
+**Report**: `/app/memory/TRACK_13_8E_OPERATIONAL_LOCATIONS_SURFACING.md`
+
+### Implemented
+- Added Section 04 ("Map data quality · admin") to `/app/frontend/src/pages/AdminHubV2.jsx` containing a single `<Card>` link to the pre-existing `/admin/geofence-reconciliation` page.
+- Zero new state · zero new API calls · zero new permissions · zero new collections · zero new routes · 20 lines of JSX added.
+- No metric invented — destination page renders real counts (62 total · 8 HIGH · 2 MEDIUM · 42 LOW · 10 VERIFIED · 0 REJECTED in preview).
+
+### Verified
+- Admin Hub V2 renders Section 04 alongside Sections 01–03 (probes degraded=2 · expired=28 · in_30=6 · in_60=11 · incidents=44 · capas=24 · fleet OOS=0).
+- New card data-testid `admin-hub-v2-q-geofence-reconciliation` clicks through to the destination workflow.
+- Destination page (`AdminGeofenceReconciliation.jsx`) loads fully with the live reconciliation queue, filter tabs (All/High/Medium/Low/Verified/Rejected), Bulk Approve button, Import Geofences + Run Reconciliation CTAs, and per-row actions.
+- Dispatch dominance intact (`dispatch-map-hero=1` · `dispatch-map-canvas-wrap canvas=1`).
+- Shop Recovery Map intact (`shop-recovery-map-section=1`).
+- Frontend lint clean.
+
+### Screenshots
+- `/tmp/13_8e_admin_hub_v2_card.jpg`
+- `/tmp/13_8e_geofence_reconciliation_loaded.jpg`
+
+### Hard locks honored
+- Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · One source of truth · No workflow change · No data invented · No metric fabricated.
+
+### Five-pillar score
+Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 9 · Aggregate **9.4 / 10**.
+
+### Rollback
+Delete the JSX block beginning `{/* Track 13.8E — Operational Locations recovery surfacing. */}` from `AdminHubV2.jsx`. No backend / DB / permissions to roll back.
+
+### Forbidden / blocked (all respected)
+No deploy · no Save to GitHub · no merge · no new APIs · no new collections · no new auth · no new routes · no production touches.
+
+**Track 13.8E · CLOSED.**
