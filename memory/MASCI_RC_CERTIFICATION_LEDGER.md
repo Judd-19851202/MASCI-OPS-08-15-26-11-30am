@@ -3204,3 +3204,35 @@ TOTAL: 117 cases · 0 failed · 0 skipped · 0 xfailed · exit_code = 0
 
 Awaiting **explicit operator authorization** to click **Save to GitHub** and trigger deploy. No git write, no GitHub action, no deploy executed by the agent.
 
+
+---
+
+## Track 13.4A — Known Defect Correction (appended)
+
+**Status:** Conditionally Accepted by Operator · Continue Audit (13.4B / 13.4C / 13.4D pending).
+
+### Defects corrected
+1. Dispatch Live Fleet Map rendered blank to operators (DOM existed, canvas was being clipped by a 0-height parent because `OperationsMap.css` wasn't imported on the Dispatch route).
+2. Dispatch map markers were silently filtered out (empty `status` filter was treated as "show nothing" instead of "show all bands").
+
+### Surfaces touched
+- `/app/frontend/src/components/operations-map/MapCanvas.jsx` — `import "./OperationsMap.css"`; `preserveDrawingBuffer: true`; symmetric empty-array filter semantics.
+- `/app/frontend/src/components/operations-map/OperationsMap.css` — scoped override block for `[data-testid="dispatch-map-canvas-wrap"] .ops-map-canvas` (full `/operations-map` page untouched).
+- `/app/frontend/src/components/DispatchMapHero.jsx` — responsive map heights `300 / 420 / 520px`.
+- `/app/frontend/src/pages/HrHub.jsx` — removed `OperationsActionsTile` and `IntegrationHealthCard` (and their imports); kept `IntegrationEventsCard` as a single-card "Driver Safety Events (HR Review)".
+- `/app/backend/scripts/seed_pm_demo_fixture.py` — new, preview-only PM fixture `pm.demo@mascigc.com`.
+- `/app/backend/tests/test_track_13_4a_dispatch_map_visual_guardrail.py` — new pixel-level guardrail.
+- `/app/scripts/predeploy_certify.sh` — Phase 4 wires the guardrail into the gate.
+- `/app/memory/TRACK_13_4A_KNOWN_DEFECT_CORRECTION_REPORT.md` — full report.
+- `/app/memory/track_13_4a_evidence/` — desktop / iPad landscape / iPad portrait screenshots for Dispatch, HR (before + after), and PM, plus the guardrail's `_last_run` artifact.
+
+### Motive feed truth (preview, snapshot at audit time)
+- 190 motive-mapped assets, 90 with GPS coords, 100 without.
+- Newest position: `2026-06-11T02:06:19Z` (22.83h ago). Oldest: `2024-03-15`.
+- `feed_status: offline / No Recent Updates` is **truthful**; preview env does not receive live Motive webhooks.
+- 33 stale_position (red) · 157 no_recent (gray) · 0 green · 0 amber.
+- 67 geofences in `db.motive_geofences` but `/snapshot` returns 0 because circle geofences aren't being converted. **Explicitly deferred to Track 13.4D.**
+
+### Deployment verdict (this track)
+**Not Ready — Continue Audit.** No deploy / no GitHub save / no merge.
+

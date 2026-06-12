@@ -220,3 +220,19 @@ Not parked, just queued for user prioritization later:
 ---
 
 *Last updated: Feb 2026*
+
+## Next up (after Track 13.4A · Feb 2026)
+
+### P0 — Audit sequence (no new features, no deploy)
+- **Track 13.4B — MASCI Platform Identity Recovery Audit** — handoff brief in `/app/memory/TRACK_13_4B_HANDOFF_BRIEF.md`. Includes dedicated *Dispatch Data Integrity / Motive Reality* appendix.
+- **Track 13.4C — MASCI Platform Design System V1**.
+- **Track 13.4D — MASCI Platform Full Reality Audit**.
+
+### P1 — Carried defects (documented in 13.4A §7)
+- Circle-geofence conversion (67 stored, 0 rendered).
+- Production Motive webhook verification.
+- 100/190 motive-mapped assets without any GPS coords — triage expected-dark vs missing-telemetry.
+- Stale-position root causes per unit.
+
+### Blocked
+- Production deploy + Save to GitHub — explicitly forbidden by operator until 13.4B/C/D complete and operator visually approves.

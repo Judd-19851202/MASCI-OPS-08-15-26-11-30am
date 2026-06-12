@@ -11,11 +11,8 @@ import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import GlobalSearch from "@/components/GlobalSearch";
 import { OfflineIndicator } from "@/lib/resiliency";
-import IntegrationHealthCard from "@/components/IntegrationHealthCard";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import ExpirationsSummary from "@/components/ExpirationsSummary";
-import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
-import OperationsCenter from "@/components/OperationsCenter";
 import HrKpiStrip from "@/components/HrKpiStrip";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
@@ -253,11 +250,6 @@ export default function HrHub() {
             approvals, training/cert due, docs expired. */}
         <HrKpiStrip className="mt-6" />
 
-        {/* OA-1 · Operations Actions cross-portal tile */}
-        <div className="mt-4" data-testid="hr-oa-tile">
-          <OperationsActionsTile />
-        </div>
-
         {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
             self-gated · dismissible · single-card · NEVER nags */}
         <div className="mt-6">
@@ -328,17 +320,16 @@ export default function HrHub() {
           <ExpirationsSummary title="Employee Document & Certification Expirations" />
         </div>
 
-        {/* Cross-portal integration strip — Motive driver-safety roll-up
-            for HR review. Lives inside the Integrations & Systems group
-            visually (after the section divider above) to keep it from
-            competing with the operational HR sections. Empty until
-            Motive credentials land or Admin flips Demo mode. */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 mt-6" data-testid="hr-integrations-strip">
-          <IntegrationHealthCard
-            tokenHeader={{ "X-HR-Token": getHrToken() || "" }}
-            accent="purple"
-            showAdminLink={false}
-          />
+        {/* Track 13.4A · HR Cleanup — removed `IntegrationHealthCard`
+            (Motive / MaintainX sync plumbing — admin/ops concern, not
+            HR). `OperationsActionsTile` also removed: it duplicated
+            the in-grid "Tasks & Actions" tile and used cross-portal
+            operational language. Kept: `IntegrationEventsCard` for
+            Motive driver-safety events because HR uses them for
+            personnel review/coaching (literally titled "HR Review").
+            Demoted to a single full-width card so it doesn't compete
+            with HR-native tile groups above. */}
+        <div className="mt-6" data-testid="hr-driver-safety-strip">
           <IntegrationEventsCard
             provider="motive"
             title={t("Driver Safety Events (HR Review)")}

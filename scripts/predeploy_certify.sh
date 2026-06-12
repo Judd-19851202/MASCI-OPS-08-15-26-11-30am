@@ -48,6 +48,13 @@ python -m pytest \
   tests/test_rc2_route_inventory.py \
   -v --tb=short
 
+# 4. Track 13.4A visual render guardrail — catches the original failure
+#    class (DOM exists but map is blank/clipped/zero-sized). Reads the
+#    actual MapLibre canvas pixel buffer, not just selectors.
+echo ""
+echo "── Phase 4 · Track 13.4A Dispatch map visual render guardrail ──"
+python -m pytest tests/test_track_13_4a_dispatch_map_visual_guardrail.py -v --tb=short
+
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo " 🟢 PRE-DEPLOY CERTIFY PASS — ready to Save to GitHub + Deploy"

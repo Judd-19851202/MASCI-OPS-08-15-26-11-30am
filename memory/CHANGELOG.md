@@ -1122,3 +1122,32 @@ None of these affect the directive's three success criteria; all three are MET a
 **Production state:** still on rolled-back build `3a5719f5618ad3801993617d8bd385f2`, healthy. Next redeploy is SAFE per the guard + file-removal fix.
 
 **No new features. No Motive activation. No secrets touched. Production untouched.**
+
+## 2026-02 — Track 13.4A · Known Defect Correction (conditionally accepted)
+
+### Fixed
+- **Dispatch Live Fleet Map rendered blank** — `.ops-map-canvas` had no width/height rule on the Dispatch route because `OperationsMap.css` was never imported there; the 0-height parent + `overflow:hidden` clipped a fully-painted MapLibre canvas. Co-located the stylesheet into `MapCanvas.jsx` and added a scoped override for `[data-testid="dispatch-map-canvas-wrap"]`.
+- **Dispatch map markers were silently filtered out** — `MapCanvas` treated empty `status: []` as "show nothing" instead of "show all bands" (asymmetric vs how it treated `types`). Fixed by `filters?.status?.length ? filters.status : ALL_BANDS`.
+- **`preserveDrawingBuffer: true`** on MapLibre so headless screenshots/guardrails can read the canvas.
+
+### Changed
+- Dispatch map height made dominant: 300 / 420 / 520px responsive (phone / tablet / desktop).
+- HR homepage cleanup: removed `OperationsActionsTile` (cross-portal ops duplicate) and `IntegrationHealthCard` (admin/ops plumbing); kept `IntegrationEventsCard` as a single full-width "Driver Safety Events (HR Review)" card.
+
+### Added
+- Preview-only PM fixture `pm.demo@mascigc.com` / `PmTest2026!` scoped to projects `20-07` and `21-06` via `co_pm_emails`. Seed script: `/app/backend/scripts/seed_pm_demo_fixture.py`.
+- Pixel-level Dispatch map visual render guardrail at `/app/backend/tests/test_track_13_4a_dispatch_map_visual_guardrail.py`, wired into `/app/scripts/predeploy_certify.sh` (Phase 4).
+- Track 13.4A report: `/app/memory/TRACK_13_4A_KNOWN_DEFECT_CORRECTION_REPORT.md`.
+- Track 13.4B handoff brief: `/app/memory/TRACK_13_4B_HANDOFF_BRIEF.md`.
+- Evidence dir: `/app/memory/track_13_4a_evidence/` (Dispatch / HR before+after / PM screenshots at 3 viewports).
+
+### Verified (in preview)
+- Dispatch map renders real CARTO tiles + 90 GPS-coord asset markers across 33 attention / 157 stale / 0 working / 0 idle bands.
+- HR homepage shows no cross-portal Operations Actions tile and no Integration Health card.
+- PM portal renders PM-scoped view (2 projects, not 29).
+- Visual guardrail PASSES with `mean=24.67 · variance=244.11 · unique=105`.
+
+### NOT done (deferred)
+- Deploy / GitHub save / merge — forbidden by operator until Tracks 13.4B/C/D complete.
+- Circle-geofence conversion (67 circle geofences in DB currently render as 0).
+- Production Motive webhook verification (preview env has no live webhooks).
