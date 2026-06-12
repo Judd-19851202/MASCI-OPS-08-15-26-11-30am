@@ -1248,3 +1248,25 @@ None of these affect the directive's three success criteria; all three are MET a
 
 ### Recommendation (deferred)
 - Operator decides: accept lens-thin behaviour until production GPS, OR authorize a separate track to loosen the `attention_reason` gate.
+
+## 2026-06-12 · Track 13.7C — Shop Map Lens Preview Data Proof · CLOSED (PREVIEW-ONLY DATA)
+
+### Implemented
+- `/app/scripts/preview_seed_13_7c.py` — idempotent seed/rollback script for preview-only validation data (4 rows across 3 existing collections, every row tagged `_seed_track`).
+- Seed inserted: 2× `motive_events` (band=red GPS for DPT002-6387 + DPT007-8803), 1× `fleet_defects` (maintenance reason on DPT002-6387), 1× `equipment_inspections` (inspection reason on DPT007-8803).
+- Script refuses to run outside `APP_ENV=preview` / `DB_NAME=masci_safety_preview`.
+
+### Verified
+- `/api/operations-map/snapshot.counts.red`: 0 → 2.
+- `/shop` Recovery Map: now renders 2 markers + right-panel "2 UNITS · 1 MAINTENANCE · 1 INSPECTION".
+- `/dispatch-portal` map: still dominant · Attention Required 0 → 2 · header "Equipment Maintenance Issues Requiring Attention: 149 → 151" (matches seed exactly).
+- Backend contract tests: 26 + 2 + 14 = 42 PASS.
+
+### Zero changes
+- No application code modified · no schema migration · no new collection · no new endpoint · no new auth · no new route · no Dispatch UI change · no MaintainX activation · no FleetWatcher activation.
+
+### NOT done
+- Deploy · Save to GitHub · merge — forbidden.
+
+### Cleanup
+- `python3 /app/scripts/preview_seed_13_7c.py rollback` returns preview DB to pre-seed state.

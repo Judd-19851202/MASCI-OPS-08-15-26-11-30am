@@ -4403,3 +4403,42 @@ Why does `/shop` show 82 open defects + 71 OOS + 11 defect-open units but the Sh
 No deploy · no Save to GitHub · no merge · no code · no filter widening · no backend logic change · no UI change · no route change.
 
 **Track 13.7B-VERIFY · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.7C · Shop Map Lens Preview Data Proof
+**Date**: 2026-06-12
+**Mode**: PREVIEW-ONLY DATA VALIDATION · no app code touched · no architecture changes
+**Report**: `/app/memory/TRACK_13_7C_SHOP_MAP_PREVIEW_DATA_PROOF.md`
+**Seed script**: `/app/scripts/preview_seed_13_7c.py` (idempotent seed + rollback · refuses to run outside preview)
+
+### Outcome
+✅ PASS — the existing Shop Recovery Map lens (Track 13.7B) renders 2 markers (1 maintenance + 1 inspection) when valid preview data exists. Existing snapshot logic, existing filter, existing UI all unchanged.
+
+### Seed shape (4 rows · 3 existing collections · preview DB only)
+- `motive_events` ×2 — fresh GPS for vehicles 1438250 (`DPT002-6387`) at now−3h and 1438252 (`DPT007-8803`) at now−4h → band=red.
+- `fleet_defects` ×1 — `truck_unit_number = "DPT002-6387"`, `status = "open"` → triggers `attention_reason = maintenance`.
+- `equipment_inspections` ×1 — `equipment_id = "095ba9f1-..."` (matches DPT007-8803's masci_equipment_id), `status = "open"` → triggers `attention_reason = inspection`. Row also sets the existing schema field `equipment_master_id` for backwards compatibility.
+- Every row tagged `_seed_track: "13_7c_preview_proof"` for surgical rollback.
+
+### Verification
+- `/api/operations-map/snapshot`: counts.red 0→2 · attention strip 0→2 · DPT002-6387 reason=maintenance · DPT007-8803 reason=inspection.
+- `/shop` screenshot `/tmp/13_7c_shop_map_with_markers.jpg`: 2 map pins + right panel "2 UNITS · 1 MAINTENANCE · 1 INSPECTION" with both rows (`Next: Shop review open issue` / `Next: Shop review inspection`).
+- `/dispatch-portal` screenshot `/tmp/13_7c_dispatch_dominance.jpg`: map dominant · clusters 53/16/3/2/3/7 with the two largest rose-ringed · "Attention Required: 2" · header "Equipment Maintenance Issues Requiring Attention: 151" (was 149, +2 from seed).
+- Backend contract tests: 26 + 2 + 14 = 42 PASS (unchanged from pre-seed).
+
+### Hard locks intact
+- Dispatch map dominance — strengthened (single engine drives both Dispatch and Shop lens).
+- One map engine · one source of truth — proven (Dispatch attention strip and Shop lens count are computed from the same payload).
+- No map without workflow discovery — no new lens, no new surface.
+- Shop Repair ≠ Returned-To-Service — Section 02 RTS-7d queue untouched (still 3).
+- No MaintainX activation · no FleetWatcher activation · provider-truth note remains accurate.
+
+### Cleanup
+Rollback command: `python3 /app/scripts/preview_seed_13_7c.py rollback` (refuses to run outside `APP_ENV=preview` / `DB_NAME=masci_safety_preview`).
+
+### Forbidden / blocked (all respected)
+No deploy · no Save to GitHub · no merge · no production data touched · no app code changes · no filter widening · no architecture change · no MaintainX / FleetWatcher claim adjustments.
+
+**Track 13.7C · CLOSED.**

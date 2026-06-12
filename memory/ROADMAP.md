@@ -326,3 +326,29 @@ Not parked, just queued for user prioritization later:
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge.
 - No filter widening / no architecture change to `attention_reason` without operator authorization of a new track.
+
+---
+
+## 2026-06-12 update · post Track 13.7C
+
+### Completed
+- ✅ Track 13.7C — Shop Map Lens Preview Data Proof · CLOSED.
+
+### Status of decisions from 13.7B-VERIFY
+- Decision **C (preview-only seed)** has been EXECUTED — proved the lens renders correctly with valid data.
+- Decision **A (accept lens-thin until production GPS)** remains a valid posture for production.
+- Decision **B (loosen attention_reason gate)** is still deferred — requires its own workflow-discovery track if operator wants Shop lens to show units regardless of band.
+
+### Open operator decisions
+- Should the preview seed remain in place for ongoing demo/screenshots, or be rolled back after evidence capture?
+- Should Decision B be authorized as Track 13.7D? (Loosen `band==red` gate so `maintenance` / `inspection` reasons fire regardless of GPS freshness. High blast radius: would also change Dispatch attention_breakdown and project_rollups.)
+
+### Permanent hard locks (unchanged)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No production data writes.
+- No new map systems · no new GPS / telematics providers · no new portals · no new APIs · no new auth · no route swaps.

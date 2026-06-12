@@ -40572,3 +40572,36 @@ Authorized by Track 13.7A. Built the first warranted non-Dispatch map lens.
 ### Locked rules (unchanged)
 - No code changes were made during this track. Shop lens and `operations_map_v1.py` are byte-for-byte unchanged.
 - All three permanent hard locks from Track 13.7A remain in force.
+
+---
+
+## 2026-06-12 · Track 13.7C — Shop Map Lens Preview Data Proof · CLOSED (PREVIEW-ONLY DATA)
+
+**Mode**: preview-only data seed · no app code changes · no architecture changes.
+
+### Outcome
+✅ PASS — the existing Shop Recovery Map lens (Track 13.7B) renders correctly when valid preview data exists. Both attention reasons exercised end-to-end.
+
+### What was seeded (preview DB only)
+- `motive_events` ×2 (fresh GPS for DPT002-6387 + DPT007-8803 · band=red).
+- `fleet_defects` ×1 (truck_unit_number=DPT002-6387 · status=open → attention_reason=maintenance).
+- `equipment_inspections` ×1 (equipment_id=DPT007-8803's em_id · status=open → attention_reason=inspection).
+- Every row tagged `_seed_track: "13_7c_preview_proof"`.
+
+### Seed script
+`/app/scripts/preview_seed_13_7c.py` — idempotent · refuses to run outside `APP_ENV=preview` / `DB_NAME=masci_safety_preview` · `seed` and `rollback` actions.
+
+### Hard locks intact
+- Dispatch map dominance strengthened (single engine confirmed).
+- One map engine · one source of truth.
+- No map without workflow discovery.
+- Shop Repair ≠ Returned-To-Service.
+- Provider-truth note remains accurate (Motive live · MaintainX/FleetWatcher disclaimed).
+
+### Cleanup
+`python3 /app/scripts/preview_seed_13_7c.py rollback` returns the preview DB to pre-seed state.
+
+### Locked rules (unchanged)
+- No app code modifications.
+- No deploy · no Save to GitHub · no merge.
+- No filter widening · no architecture change.
