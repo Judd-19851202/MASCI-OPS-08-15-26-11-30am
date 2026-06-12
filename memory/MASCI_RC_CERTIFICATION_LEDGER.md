@@ -4935,3 +4935,76 @@ Powerful 7 · Simple 9 · Beautiful 8 · Trusted 10 · Proven 9.
 **Track 13.20 — Material Movement Ledger · Phase B · PM Project Material Panel.** Single frontend file (`PmProjectDetail.jsx`). ~2h. Consumes Phase A endpoint. Project-scoped only.
 
 Deployment Readiness post 13.19: 🟢 **GREEN** (additive only; legacy contract preserved).
+
+
+## 2026-06-12 · Track 13.20 — Material Movement Ledger · Phase B · PM Project Material Panel · DONE
+
+**Mode:** Controlled implementation · single-frontend-file consumer. Zero backend touch · zero schema change · zero new endpoint · zero new collection · zero auth widening.
+
+### Implementation
+
+- Added `ProjectMaterialMovementPanel` component to `frontend/src/pages/PmProjectDetail.jsx`. Mounted between Track 13.13 `ProjectDayEventsPanel` and `TrenchSafetyOnProjectPanel`.
+- Consumes the Phase A-enriched `GET /api/material-movement/daily/{project_number}/{date}`.
+
+### Rendered fields
+
+| Section                | Source (Phase A)                                                                                                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Verification chip      | `verification_status` (5-value closed set with color tones)                                                                  |
+| Counters row           | `proof_summary.scale_ticket_count` · `proof_summary.missing_proof_count` · `rollups.haul_cycles_count` · `rollups.net_tons_from_tickets` · `rollups.trucks_count` |
+| Materials In           | `incoming[]`                                                                                                                |
+| Materials Out          | `outgoing[]`                                                                                                                |
+| Haul Cycles            | `haul_cycles[]`                                                                                                             |
+| Scale-Ticket Proof     | `scale_ticket_proofs[]` (Track 13.14 weights + `net_tons` + `material_code` + `truck_id` + `uploaded_by`)                  |
+| Source footer          | `source_breakdown.*` with FleetWatcher honestly "(not connected)"                                                            |
+
+### Trust rules followed
+
+- `null` net tons renders `—`, never a fabricated 0.
+- Empty state copy is operationally neutral ("No material movement recorded…"), never implies missing work.
+- Error state never invents data.
+- FleetWatcher count always footnoted as "not connected".
+- Tables render only when their underlying array has rows.
+
+### Files changed
+
+| File | Change |
+| ---- | ------ |
+| `frontend/src/pages/PmProjectDetail.jsx` | Added `ProjectMaterialMovementPanel` + `Counter` helper + 4 new lucide-react icons + 1 mount line. |
+
+### Tests
+
+- ESLint: clean.
+- Live browser smoke on `/pm/projects-legacy/20-07` after PM login:
+  - `MaterialMovement panel mounted: True`
+  - `Date input present: True`
+  - `Loading/empty/data/error rendered: True`
+  - `Operational Events panel coexisting (Track 13.13 intact): True`
+- 20-07 has no current material activity in preview → honest empty banner verified end-to-end.
+
+### Backward compatibility
+
+- `MaterialMovementTile.jsx` (ViewDailyReport) untouched.
+- `ProjectDayEventsPanel` (Track 13.13) untouched and verified coexisting.
+- `TrenchSafetyOnProjectPanel` untouched and renders below the new panel.
+- PM Hub V2 / PM Command Center / Admin Hub / Dispatch Map / Driver flow — no file touched.
+
+### Hard-lock regression verified
+
+Dispatch Map-First · Driver no-login · DriverHubV2 retired · Shop Repair ≠ Returned · One map engine · Track 13.13 / 13.14 / 13.17 / 13.19 surfaces preserved · FleetWatcher NOT_CONNECTED · no new collection · PM project-scope only.
+
+### Five-pillar score
+
+Powerful 8 · Simple 9 · Beautiful 8 · Trusted **10** · Proven 8.
+
+### Rollback
+
+`git checkout HEAD~1 -- frontend/src/pages/PmProjectDetail.jsx` + frontend hot-reload. Zero backend / schema / index / permission delta.
+
+**Track 13.20 · CLOSED · PASS.** Report: `/app/memory/TRACK_13_20_MATERIAL_MOVEMENT_LEDGER_PHASE_B_PM_PANEL.md`.
+
+### Recommended next track
+
+**Track 13.21 — Material Movement Ledger · Phase C · Dispatch Companion Haul Ledger.** Companion-only page outside the MapLibre canvas. New read endpoint `/api/dispatch/haul-ledger` with filters (from/to/material/truck/driver/project). ~6h.
+
+Deployment Readiness post 13.20: 🟢 **GREEN** (additive frontend only · legacy contract preserved).

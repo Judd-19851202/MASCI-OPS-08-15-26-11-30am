@@ -44,6 +44,27 @@
 
 ---
 
+## 2026-06-12 · Track 13.20 — Material Movement Ledger · Phase B · PM Project Material Panel
+
+**Mode:** Controlled implementation · single-frontend-file consumer.
+
+- Added read-only `ProjectMaterialMovementPanel` to `frontend/src/pages/PmProjectDetail.jsx`. Consumes the Phase A-enriched `GET /api/material-movement/daily/{project_number}/{date}` endpoint.
+- Renders: verification status chip (closed-set color-coded) · 5 counters (tickets · missing proof · haul cycles · net tons · trucks) · 4 conditional tables (Materials In · Materials Out · Haul Cycles · Scale-Ticket Proof) · source breakdown footer.
+- Materials In/Out preserve foreman-authored shape from existing `MaterialMovementTile.jsx`.
+- Haul Cycles surface dispatch completion truth (truck · driver · material · haul type · source→destination · completed_at).
+- Scale-Ticket Proof surfaces Track 13.14 structured fields (`weight_gross_lbs` · `weight_tare_lbs` · `weight_net_lbs` · `material_code`) + derived `net_tons`.
+- FleetWatcher count footer always labeled "(not connected)" — honest trust line.
+- Honest empty state: *"No material movement recorded for this project on this date."* (verified live on `/pm/projects-legacy/20-07`).
+- Honest error state: *"Material movement feed unavailable ({err}). No data invented."*
+- Local date state (panel-scoped); does NOT share with Operational Events panel (per Track 13.20 §1 spec).
+- 18 unique `data-testid` attributes for full test-id coverage.
+- Single frontend file · zero backend touch · zero new endpoint · zero new collection · zero schema change · zero auth widening · ESLint clean.
+- Live browser smoke confirmed mount + state machine + coexistence with Track 13.13 `ProjectDayEventsPanel` (both render simultaneously).
+- All hard locks intact (Map-First Dispatch · Driver no-login · DriverHubV2 retired · Shop RTS · one map engine · Track 13.13/13.14/13.17/13.19 surfaces preserved · FleetWatcher NOT_CONNECTED).
+- Report: `/app/memory/TRACK_13_20_MATERIAL_MOVEMENT_LEDGER_PHASE_B_PM_PANEL.md`.
+
+---
+
 ---
 
 ---
