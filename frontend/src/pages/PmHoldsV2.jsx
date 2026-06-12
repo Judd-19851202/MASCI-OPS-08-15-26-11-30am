@@ -107,6 +107,24 @@ export default function PmHoldsV2() {
       width: 110,
     },
     {
+      // Track 13.6H — operational-truth SLA chip (real timestamps).
+      key: "sla_label",
+      header: "Age",
+      render: (row) => (
+        row.sla_label
+          ? <span data-testid={`pm-holds-sla-${row.id}`} style={{
+              display: "inline-block", padding: "2px 8px",
+              background: (row.age_days || 0) >= 7 ? "#fef3c7" : "#f1f5f9",
+              color: (row.age_days || 0) >= 7 ? "#92400e" : "#334155",
+              border: "1px solid var(--border-bold)",
+              borderRadius: 999, fontSize: 11, fontWeight: 600,
+              whiteSpace: "nowrap",
+            }}>{row.sla_label}</span>
+          : <span style={{ color: "var(--ink-faint)" }}>—</span>
+      ),
+      width: 130,
+    },
+    {
       key: "project_number",
       header: "Project",
       render: (row) => row.project_number || <span style={{ color: "var(--ink-faint)" }}>—</span>,
@@ -114,12 +132,13 @@ export default function PmHoldsV2() {
     },
     {
       key: "age_days",
-      header: "Age",
+      header: "Held",
       render: (row) => `${row.age_days ?? 0}d`,
       width: 70,
       align: "right",
     },
     {
+      // Already shown by the Age chip above — kept for back-compat.
       key: "destination_path",
       header: "Open",
       render: (row) => (

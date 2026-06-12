@@ -222,6 +222,55 @@ def _age_days(iso_ts: Optional[str], now: Optional[datetime] = None) -> int:
     return max(0, (n - d).days)
 
 
+# ════════════════════════════════════════════════════════════════════
+# Track 13.6H · Phase 1 — SLA / Age chip (operational truth only).
+# ════════════════════════════════════════════════════════════════════
+# Renders a one-phrase operational chip from REAL existing timestamps.
+# Strictly factual — no risk scores, no AI priority, no red/yellow/green.
+#
+# Inputs:
+#   - opened_at (iso str) → emits "Held N Days" / "Held Today"
+#   - due_date  (yyyy-mm-dd) → emits "Due Today" / "Due In N Days"
+#                              / "Overdue N Days"
+# Fallback: empty string when neither field is usable.
+def _sla_label_hold(opened_at_iso: Optional[str],
+                    now: Optional[datetime] = None) -> str:
+    if not opened_at_iso:
+        return ""
+    n = now or datetime.now(timezone.utc)
+    days = _age_days(opened_at_iso, n)
+    if days <= 0:
+        return "Held Today"
+    if days == 1:
+        return "Held 1 Day"
+    return f"Held {days} Days"
+
+
+def _sla_label_due(due_date_yyyymmdd: Optional[str],
+                   now: Optional[datetime] = None) -> str:
+    if not due_date_yyyymmdd:
+        return ""
+    try:
+        n = now or datetime.now(timezone.utc)
+        today = n.date()
+        d = datetime.strptime(str(due_date_yyyymmdd)[:10], "%Y-%m-%d").date()
+    except Exception:
+        return ""
+    delta = (d - today).days
+    if delta == 0:
+        return "Due Today"
+    if delta == 1:
+        return "Due Tomorrow"
+    if delta > 1:
+        return f"Due In {delta} Days"
+    overdue = -delta
+    if overdue == 1:
+        return "Overdue 1 Day"
+    return f"Overdue {overdue} Days"
+
+
+
+
 def _constraint_row(c: Dict[str, Any], created: Optional[str],
                     now: datetime,
                     project_id_to_pn: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
@@ -244,6 +293,8 @@ def _constraint_row(c: Dict[str, Any], created: Optional[str],
         "source_id": c_id,
         "destination_path": dest_path,
         "destination_label": f"Open · {title[:48]}",
+        # ── Track 13.6H · SLA chip (operational truth, real source) ──
+        "sla_label": _sla_label_hold(created, now),
         # ────────────────────────────────────────────────────────────
         "title": title,
         "subtitle": f"{c.get('discipline') or 'other'} · {c.get('kind') or 'other'}",
@@ -857,6 +908,8 @@ def build_pm_command_center_router(
                 "source_id": em_id,
                 "destination_path": dest_path,
                 "destination_label": f"Open {unit}" if unit else "Open equipment",
+                # ── Track 13.6H · SLA chip (operational truth) ───────
+                "sla_label": _sla_label_hold(opened_at, now),
                 # ────────────────────────────────────────────────────
                 "title": f"{unit or 'Equipment'} · {em.get('status')}",
                 "subtitle": (em.get("make_model") or em.get("model")
@@ -960,6 +1013,8 @@ def build_pm_command_center_router(
                     "destination_label": (
                         f"Open defect on {truck}" if truck else "Open defect"
                     ),
+                    # ── Track 13.6H · SLA chip ──────────────────────
+                    "sla_label": _sla_label_hold(opened_at, now),
                     # ────────────────────────────────────────────────
                     "title": f"{truck or 'Truck'} · {d.get('item_text') or 'defect'}",
                     "subtitle": d.get("category") or "fleet defect",
@@ -1062,6 +1117,8 @@ def build_pm_command_center_router(
                 "source_id": c_id,
                 "destination_path": dest_path,
                 "destination_label": f"Open CAPA · {title[:48]}",
+                # ── Track 13.6H · SLA chip (real due_date) ──────────
+                "sla_label": _sla_label_due(c.get("due_date")),
                 # ────────────────────────────────────────────────────
                 "title": title,
                 "subtitle": (c.get("linked_employee_name") or c.get("employee_name")
@@ -1101,6 +1158,8 @@ def build_pm_command_center_router(
                 "source_id": dr_id,
                 "destination_path": dest_path,
                 "destination_label": f"Open report · {pn or 'project'}",
+                # ── Track 13.6H · SLA chip (real report_date) ───────
+                "sla_label": _sla_label_due(today_yyyymmdd),
                 # ────────────────────────────────────────────────────
                 "title": f"Daily Report · {pn or 'project'}",
                 "subtitle": (d.get("project_name") or d.get("foreman_name")

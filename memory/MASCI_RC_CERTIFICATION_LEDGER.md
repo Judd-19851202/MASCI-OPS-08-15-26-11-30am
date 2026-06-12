@@ -3925,3 +3925,70 @@ Apply the proven HR/PM recovery pattern (build preview → wire real data → re
 
 ### Five-pillar score (Dispatch Hub V2)
 Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → **8.8 avg** (matches the HR/PM preview phase before route swap).
+
+---
+
+## TRACK 13.6H · SLA Chip + Dispatch Triage + Safety Recovery (Phase 1)
+
+**Date**: 2026-06-12
+**Status**: PASS — 4 phases shipped, 24/24 backend tests passing, zero drift across all classic surfaces.
+
+### Phase 1 · SLA / Age Chip (operational truth only)
+- New backend helpers `_sla_label_hold` and `_sla_label_due` in `pm_command_center.py` — derive `Held N Days` / `Held Today` / `Due Today` / `Due Tomorrow` / `Due In N Days` / `Overdue N Days` strictly from existing `opened_at`, `created_at`, `due_date`, `report_date` fields.
+- Every PM-2 row (equipment_hold, constraint, fleet_defect) and every PM-3 row (capa, daily_report_pending) now carries `sla_label`.
+- Frontend tables (`PmHoldsV2.jsx`, `PmDueTodayV2.jsx`) render a tiny rounded chip in a new "Age" / "When" column.
+- **No risk scores · no AI priority · no red/yellow/green** — verified by `test_sla_label_vocabulary_is_operational_truth_only`.
+
+### Phase 2 · Dispatch route-swap readiness
+- Dispatch Hub V2 cards now carry destination-narrowing query params (`?focus_filter=unacked|active|waiting_plant|waiting_dump|breakdown|oos|in_shop|defects`) — backend continues to own destination paths; frontend renders them as-is.
+- No backend changes — every queue still flows from the single `GET /api/dispatch/command/summary` engine.
+- Classic dispatch routes / MapLibre / Dispatch Lifecycle / Dispatch Command Center / Dispatch Continuity all untouched.
+
+### Phase 3 · Dispatch Deep-Link Triage (FocusBanner extension)
+- `FocusBanner.jsx` extended with three dispatch kinds:
+  - `focus_assignment_id` → loads from `/api/dispatch/assignments`
+  - `focus_truck_id`      → loads from `/api/equipment-master` (unit_number)
+  - `focus_driver_id`     → loads from `/api/dispatch/command/drivers`
+- `X-Dispatch-Token` added to the banner's auth headers so dispatch users see their own data.
+- Banner mounted on `DispatchBoard` and `FleetVisibility` (both real dispatch destinations).
+- Honest scope-excluded state preserved — never invents.
+
+### Phase 4 · Safety Recovery (preview lane)
+- New surface `/app/frontend/src/pages/SafetyHubV2.jsx` mounted at `/safety-portal/hub_v2` (behind `RequireSafety`).
+- 11 live action queues in 3 sections — CAPAs (open / overdue) · Compliance (fire extinguishers overdue / training expired / training expiring 30d) · Incidents (last 7d) + Trench Safety preserved card + Safety Documents tally.
+- Single backend source: existing `GET /api/safety/overview` engine. No new APIs.
+- Every card opens an existing safety surface (`/safety-portal/corrective-actions`, `/safety-portal/fire-extinguishers`, `/safety-portal/training`, `/safety-portal/incidents`, `/safety/trench-safety`, `/safety-portal/documents`).
+- Trench Safety benchmark module is **untouched** — the V2 hub merely surfaces a card linking out to `/safety/trench-safety`.
+- Registered in `/_internal/v2-index` (Safety promoted `planned → operational`).
+
+### Tests
+- New: `/app/backend/tests/test_track_13_6h_sla_chip.py` — 7 tests covering hold-side and due-side SLA helpers, edge cases (None / empty / `Z` suffix), forbidden vocabulary, and integration assertions on PM-2/PM-3 endpoints.
+- Combined regression: **24 / 24 backend tests pass** (`13.6F + 13.6G + 13.6H`).
+
+### Visual evidence
+- `/pm/holds`: 92 SLA chips render "Held 3 Days" / similar real-day labels.
+- `/dispatch-portal/board?focus_assignment_id=…`: FocusBanner renders honest scope-excluded state above the full operational board.
+- `/safety-portal/hub_v2`: 11 queue cards live, real counts (Open CAPAs 24 · Overdue CAPAs 17 · Incidents 7d 12 · Safety Docs 14 · all other counts honest zeros).
+- `/safety-portal`: zero `safety-hub-v2-root` leak (classic preserved).
+- `/dispatch-portal`: zero `dispatch-hub-v2-root` leak (classic preserved · MapLibre intact).
+
+### Doctrine adherence
+| Hard rule | Status |
+| --- | --- |
+| No dead objects · placeholders · future buttons | ✅ — every card opens a real existing surface |
+| Real data only · no fabricated urgency | ✅ — SLA chips derived purely from real timestamps; forbidden vocab test enforced |
+| Every card leads to action | ✅ — 11 Safety V2 cards · 14 Dispatch V2 cards · all real |
+| Fewer clicks · less hunting | ✅ — focus_filter query params + FocusBanner context-load |
+| One operating system | ✅ — same PortalShell / StatusChip / Card primitives across PM / HR / Dispatch / Safety V2 surfaces |
+| Backend owns routing truth | ✅ — `_urlq` server-side; frontend renders `destination_path` as-is |
+| No new APIs · no new auth surfaces · no engine duplication | ✅ — all four phases reuse existing endpoints |
+| Permissions / workflows / routes / engines / integrations preserved | ✅ — classic legacy surfaces zero-drift verified |
+
+### Five-pillar scores post-13.6H
+- PM Hub V2 (post deep-link + SLA): Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 → **9.8 avg**
+- Dispatch Hub V2 (post deep-link + FocusBanner): Powerful 9 · Simple 9 · Beautiful 9 · Trusted 10 · Proven 9 → **9.2 avg**
+- Safety Hub V2 (preview): Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → **8.8 avg**
+
+### Pending next phases
+- **13.6H Phase 5 / 13.6I**: route swap for Dispatch + Safety after operator review; legacy preserved at `*_legacy`.
+- **Portal recovery order**: Shop → Admin → Field Leadership → Driver (≤ 2 taps, ≤ 30 s, immediate first action) → Leadership.

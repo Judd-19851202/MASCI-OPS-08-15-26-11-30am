@@ -202,7 +202,7 @@ export default function DispatchHubV2() {
             style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}
           >
             <QueueCard
-              to="/dispatch-portal/board"
+              to="/dispatch-portal/board?focus_filter=unacked"
               testid="dispatch-hub-v2-queue-unacked"
               title="Drivers Un-Acknowledged"
               why="Assignment-only drivers without a recorded shift acknowledgement"
@@ -211,7 +211,7 @@ export default function DispatchHubV2() {
               loaded={s.loaded}
             />
             <QueueCard
-              to="/dispatch-portal/command"
+              to="/dispatch-portal/board?focus_filter=active"
               testid="dispatch-hub-v2-queue-active-hauls"
               title="Active Hauls"
               why="Hauls currently in cycle across all jobs"
@@ -220,7 +220,7 @@ export default function DispatchHubV2() {
               loaded={s.loaded}
             />
             <QueueCard
-              to="/dispatch-portal/command"
+              to="/dispatch-portal/board?focus_filter=waiting_plant"
               testid="dispatch-hub-v2-queue-waiting-plant"
               title="Waiting on Plant"
               why="Drivers stalled at plant — escalate or re-route"
@@ -229,7 +229,7 @@ export default function DispatchHubV2() {
               loaded={s.loaded}
             />
             <QueueCard
-              to="/dispatch-portal/command"
+              to="/dispatch-portal/board?focus_filter=waiting_dump"
               testid="dispatch-hub-v2-queue-waiting-dump"
               title="Waiting on Dump"
               why="Drivers stalled at dump site — escalate or re-route"
@@ -238,7 +238,7 @@ export default function DispatchHubV2() {
               loaded={s.loaded}
             />
             <QueueCard
-              to="/dispatch-portal/command"
+              to="/dispatch-portal/board?focus_filter=breakdown"
               testid="dispatch-hub-v2-queue-breakdowns"
               title="Breakdown Impacts"
               why="Active breakdowns blocking the haul plan"
@@ -261,7 +261,7 @@ export default function DispatchHubV2() {
             style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}
           >
             <QueueCard
-              to="/dispatch-portal/fleet"
+              to="/dispatch-portal/fleet?focus_filter=oos"
               testid="dispatch-hub-v2-queue-fleet-oos"
               title="Fleet · Out of Service"
               why="Units in 'oos' status across the fleet"
@@ -270,7 +270,7 @@ export default function DispatchHubV2() {
               loaded={s.loaded}
             />
             <QueueCard
-              to="/dispatch-portal/fleet"
+              to="/dispatch-portal/fleet?focus_filter=in_shop"
               testid="dispatch-hub-v2-queue-fleet-in-shop"
               title="Fleet · In Shop"
               why="Units physically routed to the shop"
@@ -279,7 +279,7 @@ export default function DispatchHubV2() {
               loaded={s.loaded}
             />
             <QueueCard
-              to="/dispatch-portal/fleet"
+              to="/dispatch-portal/fleet?focus_filter=defects"
               testid="dispatch-hub-v2-queue-shop-defects"
               title="Open Shop Defects"
               why="Defects active across the fleet (Pre-Op + fleet_defects)"

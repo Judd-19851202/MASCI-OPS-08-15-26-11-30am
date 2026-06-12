@@ -486,6 +486,7 @@ export default function FleetVisibility({ scope = "shop" }) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-16">
+        <FocusBanner />
         <div className="mb-4">
           <Link
             to={scopeHomeRoute(scope)}

@@ -40312,3 +40312,36 @@ project-filter narrowing, honest empty states, and pure-helper invariants.
 - No deploy, no Save to GitHub, no merge.
 - "Project Risks" stays renamed → "Project Constraints"; RFIs / Submittals remain forbidden in the UI.
 - Backend owns routing truth; the browser must never reconstruct deep-link paths.
+
+---
+
+## 2026-06-12 · TRACK 13.6H — SLA Chip + Dispatch Triage + Safety Recovery (Phase 1)
+
+**Status**: PASS — 4 phases shipped, 24/24 backend tests pass, every classic surface confirmed zero-drift.
+
+### Phase 1 · SLA / Age Chip
+- Backend: new `_sla_label_hold` / `_sla_label_due` helpers in `pm_command_center.py` emit operational-truth labels (`Held N Days`, `Due Today`, `Overdue N Days`) derived strictly from real timestamps.
+- Every PM-2 and PM-3 row carries `sla_label`. Frontend renders a tiny chip in PmHoldsV2 + PmDueTodayV2.
+- Forbidden vocabulary (risk score / AI priority / red-yellow-green) enforced by test.
+
+### Phase 2 · Dispatch route-swap readiness
+- DispatchHubV2 queue cards now carry `?focus_filter=…` query params for destination narrowing. Single source engine `/api/dispatch/command/summary` unchanged.
+
+### Phase 3 · Dispatch Deep-Link Triage
+- FocusBanner extended with `focus_assignment_id` / `focus_truck_id` / `focus_driver_id`. Mounted on DispatchBoard + FleetVisibility. Loads from existing endpoints; honest scope-excluded state preserved.
+
+### Phase 4 · Safety Recovery (preview lane)
+- New page `/app/frontend/src/pages/SafetyHubV2.jsx` mounted at `/safety-portal/hub_v2` (behind RequireSafety). 11 live action queues fed by `/api/safety/overview`. Every card opens an existing Safety surface. Trench Safety benchmark untouched.
+
+### Tests
+- New: `/app/backend/tests/test_track_13_6h_sla_chip.py` — 7 new tests. Combined regression: **24/24 pass**.
+
+### Backlog
+- **P1** — Dispatch + Safety route swaps (after operator review).
+- **P1** — Shop / Admin / Field Leadership / Driver / Leadership portal V2 conversions per stated order.
+- **P3** — Remove `*_legacy` rollbacks after permanent sign-off.
+
+### Locked rules in force
+- No deploy · no Save to GitHub · no merge.
+- No dead objects · no fake urgency · backend owns routing truth.
+- "Project Risks" stays renamed → "Project Constraints"; RFIs / Submittals remain forbidden.

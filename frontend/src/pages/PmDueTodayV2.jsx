@@ -99,6 +99,24 @@ export default function PmDueTodayV2() {
       width: 110,
     },
     {
+      // Track 13.6H — operational-truth SLA chip.
+      key: "sla_label",
+      header: "When",
+      render: (row) => (
+        row.sla_label
+          ? <span data-testid={`pm-due-sla-${row.id}`} style={{
+              display: "inline-block", padding: "2px 8px",
+              background: row.sla_label.startsWith("Overdue") ? "#fee2e2" : "#fef3c7",
+              color: row.sla_label.startsWith("Overdue") ? "#991b1b" : "#92400e",
+              border: "1px solid var(--border-bold)",
+              borderRadius: 999, fontSize: 11, fontWeight: 600,
+              whiteSpace: "nowrap",
+            }}>{row.sla_label}</span>
+          : <span style={{ color: "var(--ink-faint)" }}>—</span>
+      ),
+      width: 130,
+    },
+    {
       key: "project_number",
       header: "Project",
       render: (row) => row.project_number || <span style={{ color: "var(--ink-faint)" }}>—</span>,

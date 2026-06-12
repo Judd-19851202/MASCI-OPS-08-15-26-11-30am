@@ -23,6 +23,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
+import { getDispatchToken } from "@/lib/dispatchAuth";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -30,8 +31,10 @@ function authHeaders() {
   const h = {};
   const a = getAdminToken();
   const p = getPmToken();
+  const d = getDispatchToken();
   if (a) h["X-Admin-Token"] = a;
   if (p) h["X-PM-Token"] = p;
+  if (d) h["X-Dispatch-Token"] = d;
   return h;
 }
 
@@ -42,6 +45,10 @@ function readParams(search) {
     asset_id: p.get("focus_asset_id") || "",
     defect_id: p.get("focus_defect_id") || "",
     capa_id: p.get("focus_capa") || "",
+    // Track 13.6H — dispatch deep-link triage.
+    assignment_id: p.get("focus_assignment_id") || "",
+    truck_id: p.get("focus_truck_id") || "",
+    driver_id: p.get("focus_driver_id") || "",
   };
 }
 
@@ -89,6 +96,37 @@ async function fetchCapa(capa_id) {
   return null;
 }
 
+// ── Track 13.6H · dispatch fetchers ────────────────────────────────
+async function fetchAssignment(assignment_id) {
+  try {
+    const r = await fetch(`${API}/api/dispatch/assignments?limit=1000`,
+                          { headers: authHeaders() });
+    if (!r.ok) return null;
+    const body = await r.json();
+    const list = Array.isArray(body) ? body : (body?.items || body?.assignments || []);
+    return list.find((a) => a.id === assignment_id || a.assignment_id === assignment_id) || null;
+  } catch { return null; }
+}
+
+async function fetchDispatchTruck(truck_id) {
+  // Truck identity in dispatch is the unit_number from equipment_master.
+  return fetchEquipment(truck_id, truck_id);
+}
+
+async function fetchDispatchDriver(driver_id) {
+  try {
+    const r = await fetch(`${API}/api/dispatch/command/drivers?limit=2000`,
+                          { headers: authHeaders() });
+    if (!r.ok) return null;
+    const body = await r.json();
+    const list = Array.isArray(body) ? body : (body?.items || body?.drivers || []);
+    return list.find((d) => d.id === driver_id
+                            || d.driver_id === driver_id
+                            || d.employee_id === driver_id
+                            || d.name === driver_id) || null;
+  } catch { return null; }
+}
+
 function BannerShell({ kind, sourceEngine, headline, sublines, scopeNote, testId }) {
   return (
     <div
@@ -127,7 +165,9 @@ function BannerShell({ kind, sourceEngine, headline, sublines, scopeNote, testId
 export default function FocusBanner() {
   const { search } = useLocation();
   const params = readParams(search);
-  const hasFocus = !!(params.unit || params.asset_id || params.defect_id || params.capa_id);
+  const hasFocus = !!(params.unit || params.asset_id || params.defect_id
+                       || params.capa_id || params.assignment_id
+                       || params.truck_id || params.driver_id);
   const [state, setState] = useState({ loaded: false, record: null });
 
   useEffect(() => {
@@ -149,11 +189,24 @@ export default function FocusBanner() {
         rec = await fetchCapa(params.capa_id);
         kind = "capa";
         engine = "corrective_actions";
+      } else if (params.assignment_id) {
+        rec = await fetchAssignment(params.assignment_id);
+        kind = "assignment";
+        engine = "dispatch_assignments";
+      } else if (params.truck_id) {
+        rec = await fetchDispatchTruck(params.truck_id);
+        kind = "dispatch_truck";
+        engine = "equipment_master";
+      } else if (params.driver_id) {
+        rec = await fetchDispatchDriver(params.driver_id);
+        kind = "dispatch_driver";
+        engine = "dispatch_command_drivers";
       }
       if (!cancelled) setState({ loaded: true, record: rec, kind, engine });
     })();
     return () => { cancelled = true; };
-  }, [hasFocus, params.unit, params.asset_id, params.defect_id, params.capa_id]);
+  }, [hasFocus, params.unit, params.asset_id, params.defect_id, params.capa_id,
+       params.assignment_id, params.truck_id, params.driver_id]);
 
   if (!hasFocus) return null;
   if (!state.loaded) {
@@ -226,6 +279,51 @@ export default function FocusBanner() {
         ].filter(Boolean)}
         scopeNote="Loaded from real corrective_actions row"
         testId="focus-banner-capa"
+      />
+    );
+  }
+  // ── Track 13.6H · dispatch banner variants ─────────────────────────
+  if (state.kind === "assignment") {
+    return (
+      <BannerShell
+        kind="assignment"
+        sourceEngine="dispatch_assignments"
+        headline={`Assignment · ${r.driver_name || r.driver || "driver"} · ${r.status || "—"}`}
+        sublines={[
+          `Truck: ${r.truck_id || r.truck_unit_number || "—"} · Project: ${r.project_number || "—"}`,
+          r.shift_start_at ? `Shift start: ${new Date(r.shift_start_at).toLocaleString()}` : null,
+        ].filter(Boolean)}
+        scopeNote="Loaded from real dispatch_assignments row"
+        testId="focus-banner-assignment"
+      />
+    );
+  }
+  if (state.kind === "dispatch_truck") {
+    return (
+      <BannerShell
+        kind="dispatch_truck"
+        sourceEngine="equipment_master"
+        headline={`Truck · ${r.unit_number || r.asset_id || "—"} · ${r.status || "—"}`}
+        sublines={[
+          `${r.make_model || r.model || r.type || r.asset_type || "Truck"} · project ${r.current_project_number || "—"}`,
+        ]}
+        scopeNote="Loaded from real equipment_master row"
+        testId="focus-banner-dispatch-truck"
+      />
+    );
+  }
+  if (state.kind === "dispatch_driver") {
+    return (
+      <BannerShell
+        kind="dispatch_driver"
+        sourceEngine="dispatch_command_drivers"
+        headline={`Driver · ${r.name || r.driver_name || r.employee_name || "—"}`}
+        sublines={[
+          `Status: ${r.shift_state || r.status || r.state || "—"}`,
+          (r.truck_id || r.assigned_truck) ? `Assigned truck: ${r.truck_id || r.assigned_truck}` : null,
+        ].filter(Boolean)}
+        scopeNote="Loaded from real dispatch_command drivers feed"
+        testId="focus-banner-dispatch-driver"
       />
     );
   }

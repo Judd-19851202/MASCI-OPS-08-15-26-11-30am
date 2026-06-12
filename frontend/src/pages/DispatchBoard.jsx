@@ -29,6 +29,8 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { toast } from "sonner";
 import AssignmentDrawer from "@/components/dispatch/AssignmentDrawer";
 import AssignmentCreateDrawer from "@/components/dispatch/AssignmentCreateDrawer";
+// Track 13.6H — Deep-link triage banner (renders only when ?focus_* params are present).
+import FocusBanner from "@/components/triage/FocusBanner";
 import { useT } from "@/lib/i18n";
 import { gpsBand, gpsBandClass } from "@/lib/gpsBand";
 
@@ -595,6 +597,7 @@ export default function DispatchBoard() {
       </header>
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-6 flex-1 w-full">
+        <FocusBanner />
         {/* Title card matches DispatchHub convention */}
         <div className="bg-white border border-slate-200 border-l-4 border-l-orange-500 rounded-md p-5">
           <div className="flex items-start gap-3">

@@ -168,6 +168,8 @@ const PmHoldsV2 = React.lazy(() => import("@/pages/PmHoldsV2"));
 const PmDueTodayV2 = React.lazy(() => import("@/pages/PmDueTodayV2"));
 // Track 13.6G — Dispatch Recovery (preview, no route swap).
 const DispatchHubV2 = React.lazy(() => import("@/pages/DispatchHubV2"));
+// Track 13.6H · Phase 4 — Safety Recovery (preview, no route swap).
+const SafetyHubV2 = React.lazy(() => import("@/pages/SafetyHubV2"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -779,6 +781,8 @@ function App() {
             <Route path="/safety-portal/reset/:token" element={<SafetyResetPassword />} />
             <Route path="/safety-portal/change-password" element={SF(<SafetyChangePassword />)} />
             <Route path="/safety-portal" element={SF(<SafetyHub />)} />
+            {/* Track 13.6H · Phase 4 — Safety Hub V2 preview surface. */}
+            <Route path="/safety-portal/hub_v2" element={SF(<SafetyHubV2 />)} />
             <Route path="/safety-portal/fleet" element={SF(<FleetVisibility scope="safety" />)} />
             <Route path="/safety-portal/corrective-actions" element={SF(<SafetyCorrectiveActions />)} />
             <Route path="/safety-portal/fire-extinguishers" element={SF(<SafetyFireExtinguishers />)} />
