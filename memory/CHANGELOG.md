@@ -139,6 +139,24 @@
 
 ---
 
+## 2026-06-12 · Track 13.25 — Asset Care & Service Architecture Certification
+
+**Mode:** Source-truth certification + architecture design only. **NO implementation · NO code · NO schema · NO UI.**
+
+- Inventoried every asset-care source: `equipment_inspections`, `fleet_defects`, `fleet_defect_audit`, `equipment_master` (asset spine), `operational_attachments`, `tasks_notifications`, `recovery_*`, `motive_service`, MaintainX SDK (stubbed), FleetWatcher (NOT_CONNECTED).
+- **MaintainX status:** SDK ready (`services/maintainx_client.py` · bearer auth · `MAINTAINX_API_KEY` env-gated) but **NOT CONNECTED** in preview. 4 dashboard cards already reserve null-field templates.
+- **Mechanic role:** **DOES NOT EXIST** today. No `MECHANIC_ROLE`, no `require_mechanic_dep`, no `assigned_to_mechanic_id` field. Ownership today is role-based (Shop token), not per-mechanic identity.
+- **PM (preventive maintenance):** **DOES NOT EXIST** today. No `service_interval`, no `next_service_due`, no PM collection.
+- **Fuel/Lube/Grease:** **DOES NOT EXIST** today. No `fuel_visit`, no `service_truck`, no `red_diesel` reference in any route.
+- **Defect lifecycle certified:** per-defect audit trail is operationally defensible record-by-record (`/api/fleet/defects/{id}/detail`). Per-unit aggregate history is the largest unlock gap.
+- **Asset Service Event model** designed: 14 event types, 9 source systems, derived-first projection (no new collection in Phase A).
+- **8-track phased plan** authored: 13.26 backbone → 13.27 unit timeline → 13.28 mechanic assignment → 13.29 fuel/lube visit → 13.30 daily reconciliation → 13.31 PM engine → 13.32 MaintainX (BLOCKED) → 13.33 Asset Care Command Center.
+- **Recommendation: A — Build Asset Service Event Backbone first** as Track 13.26 (single backend file · derived virtual timeline · zero new collection · ~4–6h).
+- All hard locks honored: Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · one map engine · no fake MaintainX · no accounting / ERP / pay-app / cost / contract / RFI / submittal / change-order / doc-control.
+- Report: `/app/memory/TRACK_13_25_ASSET_CARE_SERVICE_ARCHITECTURE_CERTIFICATION.md`.
+
+---
+
 ---
 
 ---
@@ -1655,3 +1673,27 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 
 ### Deployment Readiness
 🟡 YELLOW → 🟢 **GREEN** · platform health 9.6 → 9.9.
+
+## 2026-06-12 · Track 13.26A + 13.26 — Asset Service Event Backbone
+
+### Added
+- `backend/routes/asset_service_events.py` — derived per-unit Asset Service Event Backbone.
+- `backend/tests/test_track_13_26_asset_service_event_backbone.py` — 11 contract tests (auth, envelope, validation, placeholders).
+- `memory/TRACK_13_26A_ASSET_EVENT_SOURCE_CERTIFICATION.md` — Phase 1 source-truth cert + Phase 2 model.
+- `memory/TRACK_13_26_ASSET_SERVICE_EVENT_BACKBONE.md` — Phase 3 implementation report.
+
+### Endpoints
+- **Added**: `GET /api/assets/{unit_number}/timeline?from=&to=&event_type=&source_system=&limit=` (Shop/Dispatch/Safety/Admin · derived · max 90 days · max 1000 events).
+- **Modified**: none.
+
+### Modified
+- `backend/server.py` — additive mount of `_ase_router` under `_require_any_fleet_portal` (~20 LOC).
+
+### NOT changed
+- Zero new collection · zero schema delta · zero frontend change · zero auth widening · zero workflow change · zero deploy.
+
+### Tests
+- 11/11 passing: `pytest tests/test_track_13_26_asset_service_event_backbone.py -v` (~24 s).
+
+### Hard locks reaffirmed
+- Dispatch Map-First · Driver No-Login · Shop Repair Complete ≠ RTS · One Map Engine · One Source of Truth · No fake MaintainX/FleetWatcher · No duplicate event spine · No duplicate asset spine · No ERP/accounting/pay-app/contracts.

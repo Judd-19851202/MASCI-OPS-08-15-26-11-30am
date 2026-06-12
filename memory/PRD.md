@@ -38,6 +38,7 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **13.22 · MATERIAL MOVEMENT LEDGER · PHASE D** — Admin Material Ledger Data-Quality + CSV Export. Extended `/api/dispatch/haul-ledger` with `?format=csv` (operational-only 20-field whitelist · NO financial fields · FleetWatcher `false` on every row). New admin page `/admin/material-ledger-quality` defaults to last-30-days `missing_proof` queue. New Admin Hub V2 Section 05 card. Live smoke: 92 missing-proof rows surfaced; CSV stream returns 93 lines with correct headers and date-bounded filename. ESLint clean. Map-first hard lock intact.
 - **13.23 · ODR PM-HUB PENDING-DRAFTS PILL (last IBQ item)** — Small additive ODR attention QueueCard on PM Hub V2 reading existing `/api/odr` (PM-scoped server-side). Counts ODRs in `{draft, returned}` (the two states needing PM rework). Single-file frontend additive (`PmHubV2.jsx`). Zero backend touch · zero new endpoint · zero new collection. ESLint clean · live PM smoke confirms mount + all-clear branch + click routes to `/pm/odr` + PO card coexists.
 - **13.24 · SHOP PORTAL REALITY AUDIT + OPERATOR ACCESS CLEANUP** — Verified `/shop` (ShopHubV2) has operational-workflow parity with `/shop/hub_legacy`. Removed misleading "Open Classic Shop Hub" self-loop button (replaced with `Equipment Pre-Ops` primary action). Added Section 04 · Shop Records · live (Equipment Pre-Ops · Truck DVIRs · Defect History cards). Documented Shop Repair Complete ≠ Returned To Service hard lock intact at endpoint level (`/api/shop/fleet/defects/{id}/repair` vs `/api/dispatch/fleet/defects/{id}/clear`). Per-defect audit trail defensible; per-unit aggregate history + CSV/PDF export + search/filter UI documented as future-track gaps (were never built classic-side either — no regression). Single-file frontend additive. Zero backend touch.
+- **13.25 · ASSET CARE & SERVICE ARCHITECTURE CERTIFICATION** — Source-truth certification of all asset-care collections + MaintainX stub status + mechanic-role absence + PM absence + Fuel/Lube absence. Verdict: per-defect lifecycle defensible; per-unit timeline + mechanic identity + PM + Fuel/Lube **missing**. **Recommended next: A — Asset Service Event Backbone** (derived virtual timeline · single backend file · NO new collection). 8-track phased plan (13.26 backbone → 13.27 unit timeline → 13.28 mechanic assignment → 13.29 fuel/lube visit → 13.30 daily reconciliation → 13.31 PM engine → 13.32 MaintainX [BLOCKED] → 13.33 Asset Care Command). Zero code · zero schema · zero UI. Report: `/app/memory/TRACK_13_25_ASSET_CARE_SERVICE_ARCHITECTURE_CERTIFICATION.md`.
 
 ### Material Movement Ledger phased plan (Track 13.18 → 13.22) — COMPLETE through Phase D. Phase E (FleetWatcher) BLOCKED on credentials.
 ### Immediate Build Queue (Track 13.9 §8) — EMPTY. Recommended next move: operator sign-off window, not new feature builds.
@@ -161,4 +162,26 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Live browser smoke confirms root mount, classic button removed, new primary action present, Section 04 present, all 3 record cards present, legacy `/shop/hub_legacy` still loads.
 - All program hard locks intact.
 - Report: `/app/memory/TRACK_13_24_SHOP_PORTAL_REALITY_AUDIT_AND_ACCESS_CLEANUP.md`.
+- Deployment readiness remains 🟢 **GREEN**.
+
+## 2026-06-12 · Track 13.26A + 13.26 closeout
+
+### Phase 1 — Asset Event Source Certification (Track 13.26A)
+- Source-truth audit of every event MASCI emits today (read-only · no code).
+- Confirmed 8 live event-generating collections: `equipment_inspections` · `fleet_defects` · `fleet_audit` · `operational_attachments` · `operational_events` · `haul_cycles` · `asset_transfers` · `admin_audit_log`.
+- Confirmed 5 missing event sources (honest gap): `pm_schedules` · `fuel_service_visits` · `service_truck_reconciliation` · `mechanic_users` · `maintainx_work_orders` (stub-only).
+- Implementation gate PASSED: backbone can be DERIVED. No new collection required.
+- Report: `/app/memory/TRACK_13_26A_ASSET_EVENT_SOURCE_CERTIFICATION.md`.
+
+### Phase 3 — Asset Service Event Backbone (Track 13.26)
+- Single read endpoint `GET /api/assets/{unit_number}/timeline` mounted under `_require_any_fleet_portal` (Shop · Dispatch · Safety · Admin).
+- 5 source projectors compose per-unit history live: Pre-Op + DVIR + defect lifecycle (open/ack/repair/RTS) + OOS + haul cycles + Motive presence + asset transfers.
+- Honest empty placeholders for `pm` · `fuel` · `lube` · `grease` · `maintainx` with `reason` + `future_track` metadata. MaintainX demo data NEVER consumed.
+- 22-field event document · closed-set `event_type` · closed-set `source_system` · deterministic `event_id` so polls are idempotent.
+- 90-day range cap (mirror Track 13.21 ledger) · 1000-event output cap.
+- Files added: `routes/asset_service_events.py` · `tests/test_track_13_26_asset_service_event_backbone.py` (11/11 passing).
+- Files modified: `server.py` (router mount only · ~20 LOC additive).
+- Zero new collection · zero schema delta · zero UI · zero deploy.
+- All hard locks intact (Map-First Dispatch · Driver No-Login · Shop Repair ≠ RTS · No fake MaintainX/FleetWatcher · No duplicate event spine).
+- Report: `/app/memory/TRACK_13_26_ASSET_SERVICE_EVENT_BACKBONE.md`.
 - Deployment readiness remains 🟢 **GREEN**.

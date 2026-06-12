@@ -5255,3 +5255,36 @@ Powerful 8 · Simple **10** · Beautiful 8 · Trusted **10** · Proven 9.
 * **Shop Records Retrieval Phase A** (proposed): date/project/unit/search filter UI on `/shop/equipment` and `/shop/fleet`.
 
 Deployment Readiness post 13.24: 🟢 **GREEN** (single-file frontend additive · zero backend delta · all hard locks intact).
+
+---
+
+## 2026-06-12 · Track 13.26A + 13.26 — Asset Service Event Backbone
+
+### Track 13.26A · Phase 1 — Asset Event Source Certification
+
+**Verdict:** ✅ GATE PASSED.
+
+- Audited every event MASCI emits today across `routes/`, `lib/`, `services/`.
+- 8 live event-generating collections confirmed (see `TRACK_13_26A_ASSET_EVENT_SOURCE_CERTIFICATION.md` §2 table).
+- 5 future event sources confirmed MISSING (PM · fuel · lube · grease · MaintainX) — honest gap, no fabrication.
+- Asset Service Event model defined: 22 fields · closed-set `event_type` · closed-set `source_system` · deterministic `event_id`.
+- Implementation gate: new collection NOT required · derivation sufficient · placeholder pattern locked.
+
+### Track 13.26 · Phase 3 — Asset Service Event Backbone (derived)
+
+**Verdict:** ✅ LIVE.
+
+- 1 endpoint added: `GET /api/assets/{unit_number}/timeline` under `_require_any_fleet_portal` (Shop/Dispatch/Safety/Admin).
+- 5 source projectors: Pre-Op (`_project_preop`) · DVIR (`_project_dvir`) · defect lifecycle (`_project_defect`) · haul cycles (`_project_haul_cycles`) · Motive presence (`_project_motive_presence`) · asset transfers (`_project_transfers`).
+- Honest empty placeholders for future event types (pm/fuel/lube/grease/maintainx) with `reason` + `future_track` metadata.
+- 90-day range cap · 1000-event output cap · 422 on invalid filters/range.
+- MaintainX demo data NEVER consumed.
+- 11/11 contract tests passing.
+- Zero new collection · zero schema delta · zero UI change · zero deploy.
+- All hard locks intact.
+
+**Reports:**
+- `/app/memory/TRACK_13_26A_ASSET_EVENT_SOURCE_CERTIFICATION.md`
+- `/app/memory/TRACK_13_26_ASSET_SERVICE_EVENT_BACKBONE.md`
+
+**Next recommended track:** Track 13.27 — Unit History Timeline (frontend page · ~4h · consumes this endpoint).

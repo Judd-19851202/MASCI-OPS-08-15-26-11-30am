@@ -22,7 +22,22 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 
 **Immediate Build Queue (Track 13.9 §8) is now EMPTY** as of Track 13.23 (2026-06-12). All 8 IBQ items shipped.
 
-**Track 13.24 (2026-06-12) · Shop Portal Reality Audit + Operator Access Cleanup** completed parity-verification of `/shop` vs `/shop/hub_legacy`. Misleading classic button removed; Section 04 · Shop Records · live added (Equipment Pre-Ops · Truck DVIRs · Defect History cards). **Shop Repair Complete ≠ RTS hard lock verified at endpoint level.** Per-defect audit trail confirmed defensible. **Documented future-track gaps** (effort estimates):
+**Track 13.25 (2026-06-12) · Asset Care & Service Architecture Certification** authored the future Asset Service Event Backbone + 8-track phased plan. NO implementation. Recommended next: **A · Track 13.26 · Asset Service Event Backbone** (derived virtual timeline · single backend file · NO new collection).
+
+### Asset Care 8-track phased plan (Track 13.25 architecture)
+
+| # | Track | Goal | Risk | Verdict |
+|---|-------|------|------|---------|
+| 1 | 13.26 | Asset Service Event Backbone (derived) | LOW | **BUILD NEXT** |
+| 2 | 13.27 | Unit History Timeline (page + endpoint) | LOW | BUILD after 13.26 |
+| 3 | 13.28 | Shop Mechanic Assignment + Repair Notes | MED | requires operator decision on mechanic login |
+| 4 | 13.29 | Fuel/Lube Job Visit Form | MED-HIGH | BUILD when operator ready |
+| 5 | 13.30 | Fuel/Lube Daily Reconciliation | MED | BUILD after 13.29 |
+| 6 | 13.31 | PM Engine (derived first) | LOW-MED | BUILD after 13.28 |
+| 7 | 13.32 | MaintainX Integration | HIGH | **BLOCKED on `MAINTAINX_API_KEY` credentials** |
+| 8 | 13.33 | Asset Care Command Center | LOW | BUILD after lower tracks |
+
+**Hard locks reaffirmed:** Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · one map engine · no fake MaintainX · no fake FleetWatcher · no accounting / ERP / pay-app / cost / contract / RFI / submittal / change-order / doc-control · no fake users / mechanics / PM / fuel totals.
 
 | # | Gap                                                | Severity | Effort |
 | - | -------------------------------------------------- | -------- | ------ |
@@ -712,3 +727,21 @@ After 13.15 + 13.16 + 13.17 land, the full 34-hour Immediate Build Queue from Tr
 - BQ #8 — ODR PM-Hub pending-drafts pill (~2.5h · Op-Value 40).
 
 After 13.17 + 13.18 + 13.19 land, the entire 34-hour Immediate Build Queue from Track 13.9 §8 is closed. Then Track 13.6N opens the 30-day operator signoff window → Track 13.6O legacy retirement.
+
+## 2026-06-12 · Post Track 13.26
+- ✅ Track 13.26A + 13.26 — Asset Service Event Backbone (derived) · DONE.
+- 🟢 Deployment readiness remains GREEN.
+
+### Critical-path next step (operator-gated)
+- **Track 13.27 — Unit History Timeline (frontend page)** (~4h · LOW risk · no backend change).
+  Consume `GET /api/assets/{unit}/timeline` from a new `/shop/equipment/{unit}/history` page. Reuse Shop Hub V2 patterns. Operator-visible value: "Show me everything that happened to Unit 152" answered from one page.
+
+### Future tracks (per Track 13.25 §13 build sequence)
+- **Track 13.28** — Shop Mechanic Assignment + Repair Notes (operator decision gate on mechanic login).
+- **Track 13.29** — Fuel/Lube Job Visit Form (new collection · multi-equipment lines · Motive geofence suggestion).
+- **Track 13.30** — Fuel/Lube Daily Service-Truck Reconciliation (depends on 13.29).
+- **Track 13.31** — PM Engine (derived first · reads Motive hours/odometer + last PM completion).
+- **Track 13.32** — MaintainX Integration (BLOCKED on `MAINTAINX_API_KEY` + active service credentials).
+- **Track 13.33** — Asset Care Command Center (Shop Hub V2 Section 05 or dedicated page · depends on 13.26–13.31).
+
+After Track 13.27 lands, the Asset Service Event Backbone becomes operator-visible. Subsequent fuel/lube/PM/mechanic systems consume the SAME endpoint shape — no duplicate history surfaces.

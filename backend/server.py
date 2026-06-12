@@ -10915,6 +10915,22 @@ _dhl_router = build_dispatch_haul_ledger_router(
 )
 app.include_router(_dhl_router)
 
+# Track 13.26 · Asset Service Event Backbone (read-only · derived).
+# Single read endpoint that composes per-unit service history across
+# equipment_inspections + fleet_defects + haul_cycles + operational_events
+# (Motive presence) + asset_transfers. NO new collection · NO writes.
+# Honest empty placeholders for pm/fuel/lube/grease/maintainx until those
+# subsystems exist.
+# Doctrine:
+#   TRACK_13_26A_ASSET_EVENT_SOURCE_CERTIFICATION.md (Phase 1 gate)
+#   TRACK_13_26_ASSET_SERVICE_EVENT_BACKBONE.md      (Phase 3 implementation)
+from routes.asset_service_events import build_asset_service_events_router  # noqa: E402
+_ase_router = build_asset_service_events_router(
+    db,
+    require_any_fleet_portal_dep=_require_any_fleet_portal,
+)
+app.include_router(_ase_router)
+
 # Shop Command Feed — single read endpoint consumed by ShopHub and by
 # the DCC "Shop" tile. Reads only from canonical defect / recovery
 # collections. Doctrine: /app/memory/SHOP_COMMAND_ARCHITECTURE.md.
