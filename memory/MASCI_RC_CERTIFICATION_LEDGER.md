@@ -4228,3 +4228,44 @@ Driver V2 invented a `SIGN IN` primary action. Drivers in this platform do not s
 - DISPATCH V2 RECLASSIFIED TO COMPANION-ONLY ✅
 - ADMIN V2 RETAINED AS COMPANION ✅
 - LEADERSHIP V2 RETAINED AS COMPANION ✅
+
+
+---
+
+## ENTRY · Track 13.6N · Operational Polish & Signoff Readiness
+**Date**: 2026-06-12
+**Status**: CLOSED — verified, documented, zero drift.
+**Report**: `/app/memory/TRACK_13_6N_OPERATIONAL_POLISH_AND_SIGNOFF_READINESS.md`
+
+### Decisions captured
+- **Shop V2 oldest-age chip — DECLINED**. Backend `summary.shop` does not expose any `oldest_*` aggregate keys. Per doctrine ("If an engine doesn't exist, DO NOT show it · No mock data"), no chip added. Honest absence preferred over fabricated polish.
+- **HR V2 oldest-age chip — DECLINED**. Backend `/api/hr/employee-requests` and `/api/hr/expirations/summary` do not expose an oldest-age aggregator. Building a new backend aggregator solely to enable a vanity metric is forbidden under the Action-First / Reality-First rule.
+- **PM V2 oldest-age chip — PRESERVED** (already wired in 13.6I; backend supports it).
+
+### Verifications performed
+- Source-truth audit of `/app/frontend/src/App.js` — all four live swaps (`/pm/hub`, `/hr`, `/safety-portal`, `/shop`) intact, all five `*_legacy` rollback routes intact, Dispatch / Driver / Field Leadership retirements intact.
+- Classification audit of `/app/frontend/src/pages/V2Index.jsx` — PREVIEW_LANES array correctly tags every V2 surface (operational / companion / companion-only / retired).
+- Live backend curl probes against `summary.shop` and `expirations/summary` — confirmed no oldest-age keys.
+- Smoke screenshot of `/_internal/v2-index` captured at `/tmp/13_6n_v2_index_smoke.jpg`.
+
+### Hard locks reaffirmed
+- **DISPATCH**: MapLibre dominance at `/dispatch-portal` — DispatchHub canonical, DispatchHubV2 companion-only.
+- **DRIVER**: No login. `/shift` · `/d/:token` · `/driver` public workflow canonical.
+- **SHOP**: Repair Complete ≠ Returned To Service — separate queues preserved.
+
+### New permanent doctrine recorded
+**"No workflow changes without workflow discovery."**
+A. Discover reality. B. Verify reality. C. Document reality. D. Then determine whether change is warranted.
+
+### Five-pillar evaluation (RC-1 swapped surfaces)
+- Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → Aggregate 8.8 / 10.
+- Proven advances to 9 after 30-day operator signoff window.
+
+### Next legitimate work
+- **OPERATOR SIGNOFF** per Section 5 of the 13.6N report (PM · HR · Safety · Shop · Dispatch map · Driver public workflow · companion lanes · legacy rollbacks).
+- **Track 13.6O** (legacy retirement) — only after all five criteria in Section 6 are satisfied (30-day window, zero regressions, zero rollback invocations, zero V2-specific incidents, explicit operator approval).
+
+### Forbidden / blocked (unchanged)
+- No new portals · no new APIs · no new auth · no new route swaps · no mock data · no Dispatch map alteration · no Driver auth · no deploy / GitHub push / merge.
+
+**Track 13.6N · CLOSED.**

@@ -236,3 +236,18 @@ Not parked, just queued for user prioritization later:
 
 ### Blocked
 - Production deploy + Save to GitHub — explicitly forbidden by operator until 13.4B/C/D complete and operator visually approves.
+
+---
+
+## 2026-06-12 update · post Track 13.6N closure
+
+### Completed
+- ✅ Track 13.6N — Operational Polish & Signoff Readiness · CLOSED.
+
+### Next (gated)
+- **OPERATOR SIGNOFF (P0)** — operator walks the Section 5 checklist in `/app/memory/TRACK_13_6N_OPERATIONAL_POLISH_AND_SIGNOFF_READINESS.md` for PM · HR · Safety · Shop · Dispatch (map) · Driver (public flow) · Admin & Leadership companion lanes · legacy rollbacks.
+- **Track 13.6O — Legacy Route Retirement (P1 · gated)** — fires ONLY after all five criteria are satisfied: 30-day window · zero regressions · zero rollback invocations · zero V2-specific incidents · explicit operator approval.
+
+### Forbidden / blocked (unchanged)
+- No new portals · no new APIs · no new auth · no new route swaps · no mock data · no Dispatch map alteration · no Driver auth · no deploy / GitHub push / merge.
+- **New permanent doctrine**: "No workflow changes without workflow discovery."

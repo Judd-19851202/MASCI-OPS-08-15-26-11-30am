@@ -1151,3 +1151,27 @@ None of these affect the directive's three success criteria; all three are MET a
 - Deploy / GitHub save / merge — forbidden by operator until Tracks 13.4B/C/D complete.
 - Circle-geofence conversion (67 circle geofences in DB currently render as 0).
 - Production Motive webhook verification (preview env has no live webhooks).
+
+## 2026-06-12 · Track 13.6N — Operational Polish & Signoff Readiness · CLOSED
+
+### Documented (no code change · doctrine-pure track)
+- `/app/memory/TRACK_13_6N_OPERATIONAL_POLISH_AND_SIGNOFF_READINESS.md` — full track report.
+- Appended Track 13.6N entry to `/app/memory/MASCI_RC_CERTIFICATION_LEDGER.md`.
+- Smoke screenshot at `/tmp/13_6n_v2_index_smoke.jpg`.
+
+### Decisions
+- Declined Shop V2 oldest-age chip: backend `summary.shop` has no `oldest_*` keys.
+- Declined HR V2 oldest-age chip: HR endpoints have no oldest-age aggregator.
+- Preserved PM V2 oldest-age chip (already wired in 13.6I).
+
+### Verified hard locks
+- Dispatch MapLibre dominance at `/dispatch-portal`.
+- Driver no-login (`/shift` · `/d/:token` · `/driver`).
+- Shop Repair Complete ≠ Returned To Service.
+
+### New permanent doctrine
+- **"No workflow changes without workflow discovery."** Discover · Verify · Document · then decide.
+
+### NOT done (deferred · per standing instruction)
+- Deploy / Save to GitHub / merge — forbidden.
+- Legacy route retirement — pending Track 13.6O after 30-day operator window.

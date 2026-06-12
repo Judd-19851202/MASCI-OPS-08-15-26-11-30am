@@ -40428,3 +40428,43 @@ Driver V2 preview was inventing a `SIGN IN` primary action. Drivers in this plat
 
 ### Locked rules
 - Drivers do not sign in. Public self-start at `/shift`. Magic-link at `/d/:token`. Tap-and-work at `/driver`. No account system in driver workflow.
+
+---
+
+## 2026-06-12 · Track 13.6N — Operational Polish & Signoff Readiness · CLOSED
+
+Closed Track 13.6N with verified operational truth and zero drift. No portals built, no APIs added, no auth introduced, no swaps performed, no mock data.
+
+### Decisions
+- **Shop V2 oldest-age chip — DECLINED**. `summary.shop` does not expose `oldest_*` aggregate keys. No fabrication permitted.
+- **HR V2 oldest-age chip — DECLINED**. `/api/hr/employee-requests` and `/api/hr/expirations/summary` lack oldest-age aggregator. New aggregator construction forbidden under Action-First / Reality-First.
+- **PM V2 oldest-age chip — PRESERVED** (already wired in 13.6I; backend supports it).
+
+### Verified (this track)
+- Live swaps intact: `/pm/hub` → PmHubV2 · `/hr` → HrHubV2 · `/safety-portal` → SafetyHubV2 · `/shop` → ShopHubV2.
+- Legacy rollbacks intact: `/pm/hub_legacy` · `/hr/hub_legacy` · `/safety-portal/hub_legacy` · `/shop/hub_legacy` · `/dispatch-portal/hub_legacy`.
+- Companion lanes intact: `/admin/hub_v2` · `/leadership/hub_v2` · `/dispatch-portal/hub_v2`.
+- Retired surfaces remain retired: Driver V2 · Field Leadership V2 (no imports, no routes).
+- Dispatch MapLibre hard lock honored. Driver no-login hard lock honored. Shop Repair-Complete ≠ Returned-To-Service hard lock honored.
+
+### Published
+- Operator signoff checklist (PM · HR · Safety · Shop · Dispatch map · Driver public workflow · companion lanes · legacy rollbacks).
+- Legacy retirement criteria (30-day window, zero regressions, zero rollback invocations, zero V2-specific incidents, explicit operator approval) → opens Track 13.6O.
+- Five-pillar evaluation: Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → Aggregate 8.8 / 10.
+- Smoke screenshot: `/tmp/13_6n_v2_index_smoke.jpg`.
+- Track report: `/app/memory/TRACK_13_6N_OPERATIONAL_POLISH_AND_SIGNOFF_READINESS.md`.
+- Ledger entry: `/app/memory/MASCI_RC_CERTIFICATION_LEDGER.md` (Track 13.6N · CLOSED).
+
+### New permanent doctrine
+**"No workflow changes without workflow discovery."** Discover → Verify → Document → then decide if change is warranted. Driver V2 episode is the permanent example.
+
+### Locked rules (unchanged · reaffirmed)
+- No deploy · no Save to GitHub · no merge.
+- Dispatch MapLibre map dominance at `/dispatch-portal` is invariant.
+- Drivers do not sign in. `/shift` · `/d/:token` · `/driver` are the only driver entry surfaces.
+- Shop Repair Complete ≠ Returned To Service — distinct queues.
+- No new portals · no new APIs · no new auth · no new route swaps · no mock data.
+
+### Next legitimate work
+- **Operator signoff** per Section 5 of the 13.6N report.
+- **Track 13.6O** (legacy retirement) — only after 30-day operator window in Section 6 is satisfied.
