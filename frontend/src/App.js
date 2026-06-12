@@ -210,6 +210,7 @@ import LeadershipLogin from "@/pages/LeadershipLogin";
 const DispatchHub = React.lazy(() => import("@/pages/DispatchHub"));
 const DispatchBoard = React.lazy(() => import("@/pages/DispatchBoard"));
 const DispatchCommandCenter = React.lazy(() => import("@/pages/DispatchCommandCenter"));
+const DispatchHaulLedger = React.lazy(() => import("@/pages/DispatchHaulLedger"));
 const DispatchDriverQualification = React.lazy(() => import("@/pages/DispatchDriverQualification"));
 import DispatchChangePassword from "@/pages/DispatchChangePassword";
 import DispatchForgotPassword from "@/pages/DispatchForgotPassword";
@@ -856,6 +857,9 @@ function App() {
             <Route path="/dispatch-portal/board" element={DP(<DispatchBoard />)} />
             <Route path="/dispatch-portal/command" element={DP(<DispatchCommandCenter />)} />
             <Route path="/dispatch-portal/fleet" element={DP(<FleetVisibility scope="dispatch" />)} />
+            {/* Track 13.21 · Phase C · Material Movement Ledger · Dispatch Companion.
+                Companion-only · OUTSIDE MapLibre canvas. /dispatch-portal remains map-first. */}
+            <Route path="/dispatch-portal/haul-ledger" element={DP(<DispatchHaulLedger />)} />
             {/* iter353b · Dispatch read-only Approved Drivers / CDL Readiness */}
             <Route path="/dispatch-portal/driver-qualification" element={DP(<DispatchDriverQualification />)} />
             {/* DCP-1 · Driver Command Profile · Dispatch scope */}

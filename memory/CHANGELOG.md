@@ -65,6 +65,25 @@
 
 ---
 
+## 2026-06-12 · Track 13.21 — Material Movement Ledger · Phase C · Dispatch Companion Haul Ledger
+
+**Mode:** Controlled implementation · new backend endpoint + new frontend page + sidebar link.
+
+- New route `/dispatch-portal/haul-ledger` (dispatch-guarded · companion-only · OUTSIDE MapLibre canvas at `/dispatch-portal`).
+- New backend endpoint `GET /api/dispatch/haul-ledger` (dispatch+admin gated, 90-day cap, 6 query filters: `date_from`, `date_to`, `project_number`, `material_code`, `truck`, `verification_status`).
+- Composes existing data only: `haul_cycles` (primary rows) + `operational_attachments` (5 proof types, Track 13.14 weights joined on assignment_id) + `daily_reports` materials/outbound_materials (DR rollup counts). NO new collection.
+- Response shape: `{ok, date_from, date_to, filters, rows[], rollups{10 counters}, by_project[], by_material[], by_truck[], source_breakdown, fleetwatcher{connected:false, reason:"not_connected"}}`.
+- Frontend page renders header + Back-to-Dispatch + Refresh · filter strip · 10 rollup tiles · row table (date · project · material · truck · driver · source→destination · tickets · net_tons · verification chip) · By Project / By Material breakdowns · honest empty/error states · FleetWatcher trust footer.
+- Sidebar link added to Driver Coordination domain (cyan stripe) AFTER `Fleet Visibility` and `Driver Qualification`. Live-board cluster (Haul Board / Dispatch Hub / Dispatch Command) untouched at the top.
+- Live curl smoke: 30-day preview range returns 92 rows across 12 projects, 83 trucks, 4 materials (all currently `missing_proof` because no scale tickets uploaded in preview yet). 91-day range correctly 422s with explicit error.
+- Live browser smoke confirms title + filters + 10 rollup tiles + 59-row haul-cycle table + verification chips + FleetWatcher trust footer verbatim copy.
+- Dispatch MapLibre canvas at `/dispatch-portal` confirmed still mounted (`canvas` element present post-deploy).
+- ESLint clean across 5 touched files.
+- All hard locks intact: Dispatch Map-First · Driver no-login · DriverHubV2 retired · Shop RTS · one map engine · Track 13.13/13.14/13.17/13.19/13.20 untouched · FleetWatcher NOT_CONNECTED · no new collection · no map overlay · no driver UI · no cost/accounting/pay-app/ERP.
+- Report: `/app/memory/TRACK_13_21_MATERIAL_MOVEMENT_LEDGER_PHASE_C_DISPATCH_HAUL_LEDGER.md`.
+
+---
+
 ---
 
 ---

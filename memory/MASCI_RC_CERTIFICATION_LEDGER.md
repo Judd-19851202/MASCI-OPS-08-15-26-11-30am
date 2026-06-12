@@ -5008,3 +5008,58 @@ Powerful 8 · Simple 9 · Beautiful 8 · Trusted **10** · Proven 8.
 **Track 13.21 — Material Movement Ledger · Phase C · Dispatch Companion Haul Ledger.** Companion-only page outside the MapLibre canvas. New read endpoint `/api/dispatch/haul-ledger` with filters (from/to/material/truck/driver/project). ~6h.
 
 Deployment Readiness post 13.20: 🟢 **GREEN** (additive frontend only · legacy contract preserved).
+
+
+## 2026-06-12 · Track 13.21 — Material Movement Ledger · Phase C · Dispatch Companion Haul Ledger · DONE
+
+**Mode:** Controlled implementation · new backend endpoint + new frontend page + sidebar link.
+
+### New endpoint
+
+`GET /api/dispatch/haul-ledger` — dispatch+admin gated · 90-day window cap · 6 query filters (`date_from`, `date_to`, `project_number`, `material_code`, `truck`, `verification_status`). Composes existing `haul_cycles` + `operational_attachments` (5 proof types) + `daily_reports` materials/outbound_materials. **NO writes · NO new collection.** Response carries `rows[]`, 10-key `rollups{}`, `by_project[]`, `by_material[]`, `by_truck[]`, `source_breakdown{}`, and an explicit `fleetwatcher: {connected: false, reason: "not_connected"}` envelope.
+
+### New route + page
+
+`/dispatch-portal/haul-ledger` mounted with `RequireDispatch` guard. Page `frontend/src/pages/DispatchHaulLedger.jsx` renders title + Back-to-Dispatch + Refresh · filter strip · 10 rollup tiles · row table (date · project · material · truck · driver · source→destination · tickets · net_tons · verification chip) · By Project + By Material breakdowns · honest empty/error states · FleetWatcher trust footer.
+
+### Sidebar surfacing
+
+`DispatchSideNavV2.jsx` Driver Coordination domain (cyan stripe) gained one entry after Fleet Visibility + Driver Qualification: `Haul Ledger · Company-wide loads, materials, scale-ticket proof.` Live Board cluster (Haul Board / Dispatch Hub / Dispatch Command) **unchanged** at the top of the sidebar per map-first hard lock.
+
+### Files changed
+
+| File | Change |
+| ---- | ------ |
+| `backend/routes/dispatch_haul_ledger.py` | NEW · single read endpoint + helpers |
+| `backend/server.py` | Added 6-line router registration block after dispatch_command_center router |
+| `frontend/src/pages/DispatchHaulLedger.jsx` | NEW · companion page (~430 lines) |
+| `frontend/src/App.js` | 1 lazy import + 1 `Route` line |
+| `frontend/src/components/dispatch/sidebar/DispatchSideNavV2.jsx` | 1 sidebar link in Driver Coordination domain + `FileCheck2` icon import |
+
+### Smoke
+
+- Backend curl: unauth=401 · auth=200 (default today, empty shape correct) · 30-day range returns 92 rows across 12 projects/83 trucks · 91-day range returns 422 with explicit error · FleetWatcher `{connected: false}` on every response.
+- Phase A endpoint regression (`/api/material-movement/daily/X/2099-01-01`) returns 200 unchanged.
+- ESLint clean across all 5 touched files.
+- Browser smoke at `/dispatch-portal/haul-ledger`: title=True, filters=True, rollups=True, FleetWatcher trust footer verbatim, 59-row haul-cycle table rendered.
+- Dispatch MapLibre canvas at `/dispatch-portal` confirmed still mounted post-deploy.
+
+### Hard-lock regression verified
+
+Dispatch Map-First (canvas confirmed) · Driver no-login · DriverHubV2 retired · Shop Repair ≠ Returned · One map engine · Track 13.13/13.14/13.17/13.19/13.20 surfaces preserved · FleetWatcher NOT_CONNECTED enforced in response + UI · no new collection · no map overlay · no driver UI · no cost/accounting/pay-app/ERP · PM stays project-scoped.
+
+### Five-pillar score
+
+Powerful 9 · Simple 8 · Beautiful 8 · Trusted **10** · Proven 9.
+
+### Rollback
+
+`git checkout HEAD~1 -- backend/routes/dispatch_haul_ledger.py backend/server.py frontend/src/pages/DispatchHaulLedger.jsx frontend/src/App.js frontend/src/components/dispatch/sidebar/DispatchSideNavV2.jsx` + restart backend. Zero schema/index/collection/permission delta.
+
+**Track 13.21 · CLOSED · PASS.** Report: `/app/memory/TRACK_13_21_MATERIAL_MOVEMENT_LEDGER_PHASE_C_DISPATCH_HAUL_LEDGER.md`.
+
+### Recommended next track
+
+**Track 13.22 — Material Movement Ledger · Phase D · Admin Data-Quality + CSV Export.** New Admin Hub V2 card + `/admin/material-quality` page + CSV stream endpoint. ~5h.
+
+Deployment Readiness post 13.21: 🟢 **GREEN** (additive endpoint + new page · no schema delta · map-first hard-lock intact).

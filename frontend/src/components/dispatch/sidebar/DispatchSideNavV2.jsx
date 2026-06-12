@@ -14,7 +14,7 @@ import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   AlertOctagon, ClipboardCheck, Truck, IdCard, KeyRound,
-  Radar, GraduationCap, ShieldEllipsis,
+  Radar, GraduationCap, ShieldEllipsis, FileCheck2,
 } from "lucide-react";
 
 // Domain groups · ordered by operational velocity (highest first).
@@ -51,6 +51,8 @@ export const DISPATCH_DOMAINS_V2 = [
     routes: [
       { to: "/dispatch-portal/fleet",                label: "Fleet Visibility",      desc: "Live asset roster · per-truck status.",          icon: Truck },
       { to: "/dispatch-portal/driver-qualification", label: "Driver Qualification",  desc: "Eligibility, qualifications, MVR windows.",     icon: IdCard },
+      // Track 13.21 · Phase C · Material Movement Ledger companion (read-only).
+      { to: "/dispatch-portal/haul-ledger",          label: "Haul Ledger",           desc: "Company-wide loads, materials, scale-ticket proof.", icon: FileCheck2 },
     ],
   },
   {

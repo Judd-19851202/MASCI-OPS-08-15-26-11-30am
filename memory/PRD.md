@@ -34,6 +34,7 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **13.18 · MATERIAL MOVEMENT LEDGER · CERTIFICATION & ARCHITECTURE** — Source-truth certification of 5 live material sources + ODR archive layer + FleetWatcher NOT_CONNECTED. Recommendation: **B — Phase A only · enrich existing `/api/material-movement/daily` endpoint with proof-join + verification labels + rollup counters. NO new collection. NO new UI.** Next: Track 13.19 (Phase A). Architecture report at `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICATION_AND_ARCHITECTURE.md`.
 - **13.19 · MATERIAL MOVEMENT LEDGER · PHASE A** — `/api/material-movement/daily/{p}/{d}` enriched additively with `scale_ticket_proofs[]` (host_kind=assignment join on `operational_attachments` 5 proof-bearing types), `haul_cycles[]` (project-day join), `proof_summary{}`, `rollups{}`, `verification_status` (virtual closed-set classifier), `source_breakdown{}` (FleetWatcher hard-zero). Single file: `backend/routes/material_movement.py`. 9/9 targeted pytest pass. Zero new collection · zero UI change · zero schema change · zero auth widening. Backward-compat verified against `MaterialMovementTile.jsx`. All Track 13.13–13.17 surfaces + hard locks intact.
 - **13.20 · MATERIAL MOVEMENT LEDGER · PHASE B** — Read-only project-scoped `ProjectMaterialMovementPanel` added to `PmProjectDetail.jsx`. Consumes Phase A endpoint. Renders verification chip · 5 counters · Materials In · Materials Out · Haul Cycles · Scale-Ticket Proof · source breakdown footer (FleetWatcher honestly "not connected"). Honest empty + error states. ESLint clean. Live browser smoke confirms mount + coexistence with Track 13.13 Operational Events panel. Single frontend file · zero backend touch · zero new endpoint · zero new collection.
+- **13.21 · MATERIAL MOVEMENT LEDGER · PHASE C** — Dispatch companion haul ledger live at `/dispatch-portal/haul-ledger`. New `GET /api/dispatch/haul-ledger` endpoint (dispatch/admin gated · 90-day cap · 6 query filters) composes existing `haul_cycles` + `operational_attachments` + `daily_reports`. New page `DispatchHaulLedger.jsx` + sidebar link in Driver Coordination domain. NO new collection · NO writes · NO map overlay · MapLibre `/dispatch-portal` map-first hard-lock confirmed intact. FleetWatcher honestly `not_connected`. Live smoke: 92 rows across 12 projects/83 trucks in a 30-day preview window. ESLint clean.
 
 ## Backlog (P0/P1/P2)
 ### P0 — Immediate Build Queue (from Track 13.9 §8)
@@ -49,7 +50,8 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 ### P0.5 — Material Movement Ledger (Track 13.18 phased plan)
 - ~~**Track 13.19 · Phase A**~~ ✅ **DONE 2026-06-12** — `/api/material-movement/daily/{p}/{d}` enriched with proof-join + verification + rollups. Single file. 9/9 tests pass.
 - ~~**Track 13.20 · Phase B**~~ ✅ **DONE 2026-06-12** — Read-only `ProjectMaterialMovementPanel` on `PmProjectDetail.jsx`. ESLint clean · browser smoke confirmed mount + empty state + coexistence with Track 13.13.
-- **Track 13.21 · Phase C · NEXT (recommended)** — Dispatch Companion Haul Ledger page + `/api/dispatch/haul-ledger` filterable read endpoint. Outside MapLibre canvas. (~6h)
+- ~~**Track 13.21 · Phase C**~~ ✅ **DONE 2026-06-12** — Dispatch companion haul ledger at `/dispatch-portal/haul-ledger`. Endpoint `/api/dispatch/haul-ledger` + new page + sidebar link. MapLibre map-first hard-lock confirmed intact.
+- **Track 13.22 · Phase D · NEXT (recommended)** — Admin Material Data-Quality page + CSV export. Admin Hub V2 card. (~5h)
 - **Track 13.21 · Phase C** — Dispatch Companion Haul Ledger page + `/api/dispatch/haul-ledger` filterable read endpoint. Outside MapLibre canvas. (~6h)
 - **Track 13.22 · Phase D** — Admin Material Data-Quality page + CSV export. Admin Hub V2 card. (~5h)
 - **Phase E** — FleetWatcher ingestion. **BLOCKED on `FLEETWATCHER_API_KEY` + service credentials.**
@@ -104,4 +106,14 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Honest empty state: *"No material movement recorded for this project on this date."* Honest error state. FleetWatcher labeled "(not connected)".
 - Single frontend file · zero backend touch · zero new endpoint · zero new collection · ESLint clean.
 - Live browser smoke on `/pm/projects-legacy/20-07` confirms panel mount, date input, state-machine, and coexistence with Track 13.13 `ProjectDayEventsPanel` (both panels render simultaneously).
+- All hard locks intact. Deployment readiness remains 🟢 **GREEN**.
+
+## 2026-06-12 · Track 13.21 closeout
+- Dispatch companion haul ledger live at `/dispatch-portal/haul-ledger` (companion-only · MapLibre `/dispatch-portal` map-first hard-lock confirmed intact via canvas smoke).
+- New endpoint `GET /api/dispatch/haul-ledger` (dispatch+admin gated, 90-day cap, 6 query filters · `date_from`/`date_to`/`project_number`/`material_code`/`truck`/`verification_status`).
+- Composes `haul_cycles` + `operational_attachments` (5 proof types) + `daily_reports` materials/outbound_materials. NO new collection. NO writes.
+- New page `frontend/src/pages/DispatchHaulLedger.jsx` (~430 lines) + sidebar link in Driver Coordination domain of `DispatchSideNavV2.jsx` + lazy import + Route in `App.js`.
+- Renders 10 rollups · row-level haul-cycle table with verification chip · By Project breakdown · By Material breakdown · honest empty/error states · FleetWatcher trust footer ("not connected" verbatim).
+- Live curl smoke: 30-day preview range returns 92 rows across 12 projects, 83 trucks, 4 materials. 91-day range returns 422 with explicit error.
+- ESLint clean across all 5 touched files. Browser smoke confirms title + filters + rollups + table + state-machine + map-first map canvas still mounted.
 - All hard locks intact. Deployment readiness remains 🟢 **GREEN**.

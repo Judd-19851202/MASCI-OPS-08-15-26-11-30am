@@ -10904,6 +10904,17 @@ _dcc_router = build_dispatch_command_center_router(
 )
 app.include_router(_dcc_router)
 
+# Track 13.21 · Phase C · Dispatch Companion Haul Ledger (read-only).
+# Composes existing haul_cycles + dispatch_assignments + operational_attachments
+# (scale-ticket family) + daily_reports. NO new collection · NO writes.
+# Doctrine: TRACK_13_21_MATERIAL_MOVEMENT_LEDGER_PHASE_C_DISPATCH_HAUL_LEDGER.md.
+from routes.dispatch_haul_ledger import build_dispatch_haul_ledger_router  # noqa: E402
+_dhl_router = build_dispatch_haul_ledger_router(
+    db,
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+)
+app.include_router(_dhl_router)
+
 # Shop Command Feed — single read endpoint consumed by ShopHub and by
 # the DCC "Shop" tile. Reads only from canonical defect / recovery
 # collections. Doctrine: /app/memory/SHOP_COMMAND_ARCHITECTURE.md.
