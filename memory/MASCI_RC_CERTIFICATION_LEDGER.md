@@ -3323,3 +3323,32 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Deployment verdict (this track)
 **Not Ready — Continue Audit.** Track 13.4C is governance / decision-framework only. All implementation tracks remain blocked pending explicit operator authorisation per track.
+
+---
+
+## Tracks 13.4D + 13.4E — Final Discovery Phase
+
+**Mode honoured:** discovery only — NO implementation, NO design, NO standardisation, NO recovery work, NO white-label building, NO deploy, NO GitHub save, NO merge.
+
+### Track 13.4D — Production Reality Audit
+- File: `/app/memory/MASCI_PRODUCTION_REALITY_AUDIT.md`
+- Honestly distinguishes preview vs production evidence.
+- Preview baseline: 466 motive_events · 0 events last 24h · 383 events last 7d · 81 unique vehicles posting in last 7d · 90/190 motive-mapped assets with GPS.
+- **Production verification checklist** (7 probes) issued — none implementable from preview.
+- *Proven* pillar gap **remains open** until production probes execute.
+
+### Track 13.4E — Visual Identity + Human Usability
+- Files: `/app/memory/MASCI_VISUAL_IDENTITY_AUDIT.md` + `/app/memory/MASCI_HUMAN_USABILITY_AUDIT.md`.
+- 30 new screenshots in `/app/memory/track_13_4e_evidence/` (Admin · Dispatch · PM · Shop · HR at iPad-landscape · iPad-portrait · phone). Partly closes V-13.
+- Visual headline: Trench Safety / HR (post-13.4A) / Dispatch (post-13.4A) / PM (post-13.4A) excel; Shop/PM theme drift + ≥4 header strategies + 15 status-chip components + 8 CommandCenter pages + public-form chrome drift remain.
+- Usability headline: 5 portals Easy/Excellent, Admin "powerful but confusing" (compliance + health duplication), **Driver portal Needs Rebuild** (no static landing).
+- New findings introduced: U-01 (PM has no CAPA list), V-13-partial closure (mobile evidence captured for 5/9 portals), P-01 (preview env motive activity bursty).
+
+### Executive summary
+- File: `/app/memory/TRACK_13_4D_E_FINAL_DISCOVERY_EXECUTIVE_SUMMARY.md`.
+- Discovery is now declared **complete** across Tracks 13.4A → 13.4E.
+- 22 governance/audit documents + 106 evidence screenshots produced over discovery.
+- 5 operator decisions remain to unlock Phase 4 implementation.
+
+### Deployment verdict (this phase)
+**Not Ready — Continue Audit (now closed pending operator authorisation).** All implementation tracks (Design System V1 / Recovery Plan / White-Label Architecture Roadmap / Standardisation Program) remain blocked pending explicit operator authorisation per track.
