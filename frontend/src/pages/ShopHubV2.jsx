@@ -362,7 +362,7 @@ export default function ShopHubV2() {
         subtitle="Every queue is live · sourced from /api/dispatch/command/summary.shop · clickable to a real Shop surface. Repair Complete ≠ Safe To Use — verification step preserved."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/shop" testid="shop-hub-v2-back-classic">Open Classic Shop Hub</RealLink>
+            <RealLink to="/shop/equipment" testid="shop-hub-v2-action-preops">Equipment Pre-Ops</RealLink>
             <RealLink to="/shop/fleet" testid="shop-hub-v2-action-fleet" intent="primary">Fleet Visibility</RealLink>
           </div>
         }
@@ -461,6 +461,65 @@ export default function ShopHubV2() {
 
         {/* Section 3 — Recovery Map · secondary lens (Track 13.7B). */}
         <ShopRecoveryMap />
+
+        {/* Section 4 · Shop Records · live (Track 13.24).
+            Direct entry points to the existing live record surfaces so
+            mechanics and shop managers don't have to hunt through hidden
+            routes. Each card links to a real mounted page backed by a real
+            endpoint. No fabricated counts here — counts live on the
+            destination pages. */}
+        <section data-testid="shop-hub-v2-section-records" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="04 · Shop Records · live"
+            title="Equipment Pre-Ops · Truck DVIRs · Defect history"
+            caption="Direct access to the existing record surfaces. No new system — links to live pages backed by real endpoints."
+          />
+          <div data-testid="shop-hub-v2-records-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+            <RealLink to="/shop/equipment" testid="shop-hub-v2-record-preops" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Equipment Pre-Ops</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  Pre-operation inspection list — opens the live Equipment Dashboard.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/equipment-inspections (newest first · 1000-row cap · shop+admin scope)
+                </div>
+              </div>
+            </RealLink>
+            <RealLink to="/shop/fleet" testid="shop-hub-v2-record-dvirs" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Truck DVIRs · Fleet Visibility</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  Per-unit DVIR + defect state. Defect detail, acknowledge, repair, RTS audit trail are reached from each unit row.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/shop/fleet/by-unit · /api/fleet/defects/{`{id}`}/detail
+                </div>
+              </div>
+            </RealLink>
+            <RealLink to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-record-defects" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Defect / Inspection History</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  Full defect list across the fleet — same source as Section 01 Open Defects tile, but unfiltered.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/shop/fleet/defects
+                </div>
+              </div>
+            </RealLink>
+          </div>
+        </section>
 
         {allZero && (
           <EmptyState

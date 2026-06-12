@@ -5183,3 +5183,75 @@ The platform has now exhausted its prescribed feature backlog within the Track 1
 Either could run in parallel since both are observation tracks, not build tracks.
 
 Deployment Readiness post 13.23: 🟢 **GREEN** (single-file frontend additive · zero backend delta · all hard locks intact).
+
+
+## 2026-06-12 · Track 13.24 — Shop Portal Reality Audit + Operator Access Cleanup · DONE
+
+**Mode:** Source-truth audit + controlled implementation · single-file frontend additive.
+
+### Findings
+
+* `/shop` (ShopHubV2) has **operational-workflow parity** with `/shop/hub_legacy` (classic). All defect / OOS / recovery / RTS / fleet / pre-op / DVIR / audit-trail workflows are reachable from live Shop.
+* The "Open Classic Shop Hub" button (testid `shop-hub-v2-back-classic`) was a **misleading self-loop** — its target was `/shop`, which IS V2 today. Pure Track 13.6I scaffolding. **Removed.**
+* True legacy route `/shop/hub_legacy` remains mounted as rollback. No longer advertised in the live hub chrome.
+
+### Implementation
+
+* Replaced the broken classic button with `Equipment Pre-Ops` primary action (links to `/shop/equipment` — the most-requested record-retrieval entry point).
+* Added **Section 04 · Shop Records · live** with three discoverability cards pointing to pre-existing live routes:
+  * Equipment Pre-Ops → `/shop/equipment` (`/api/equipment-inspections`)
+  * Truck DVIRs / Fleet Visibility → `/shop/fleet` (`/api/shop/fleet/by-unit`)
+  * Defect / Inspection History → `/shop/fleet?focus_filter=defects` (`/api/shop/fleet/defects`)
+
+### Hard lock verified
+
+**Shop Repair Complete ≠ Returned To Service** — endpoint-level proof:
+* `POST /api/shop/fleet/defects/{id}/repair` is shop+admin gated and only flips status to `repair_complete`.
+* `POST /api/dispatch/fleet/defects/{id}/clear` is **dispatch+admin gated** and performs RTS. Shop **cannot** self-RTS.
+
+### Defect lifecycle certification (Amendment B summary)
+
+* Per-defect audit trail via `/api/fleet/defects/{id}/detail` is operationally defensible record-by-record (reporter · acknowledger · repairer · clearer · timestamps · notes).
+* Notification fan-out via `tasks_notifications` (shop / PM / dispatch / admin tokens) confirmed.
+* **Per-unit aggregate history endpoint does NOT exist** — documented as future-track gap (~8h).
+* **Per-mechanic assignment field does NOT exist** on `fleet_defects` — ownership is role-based today. Future operator decision.
+
+### Files changed
+
+| File | Change |
+| ---- | ------ |
+| `frontend/src/pages/ShopHubV2.jsx` | Removed self-loop classic button; replaced with `Equipment Pre-Ops` primary action. Added Section 04 with 3 record-access cards. ESLint clean. |
+
+### Smoke
+
+- ESLint clean.
+- Live browser smoke at `/shop` (super-admin sign-in): root mounted=True, classic button removed=True, `Equipment Pre-Ops` primary action=True, Section 04=True, Pre-Ops card=True, DVIRs card=True, Defect History card=True.
+- Legacy `/shop/hub_legacy` still loads with payload (rollback intact).
+
+### Documented future-track gaps (no regression — none were built classic-side either)
+
+1. Equipment Pre-Op CSV/PDF export (~5h)
+2. DVIR CSV/PDF export (~5h)
+3. Date/project/unit/search filter UI (~12h)
+4. Per-unit unified history endpoint + page (~8h)
+5. Print stylesheets (~2h)
+6. Active reminder / overdue alert dispatch (~4h)
+7. Per-mechanic assignment field (operator decision)
+8. Auto-link Shop Parts orders to source defect (~3h)
+
+### Five-pillar score
+
+Powerful 8 · Simple **10** · Beautiful 8 · Trusted **10** · Proven 9.
+
+### Rollback
+
+`git checkout HEAD~1 -- frontend/src/pages/ShopHubV2.jsx` + frontend hot-reload. Zero backend/schema/endpoint/route/collection delta.
+
+**Track 13.24 · CLOSED · PASS.** Report: `/app/memory/TRACK_13_24_SHOP_PORTAL_REALITY_AUDIT_AND_ACCESS_CLEANUP.md`.
+
+### Recommended next track
+
+* **Material Ledger Operator Sign-Off Window** (proposed Track 13.25): 14–30-day operator validation of Phases A–D across PM / Dispatch / Admin.
+* **Shop Records Retrieval Phase A** (proposed): date/project/unit/search filter UI on `/shop/equipment` and `/shop/fleet`.
+
+Deployment Readiness post 13.24: 🟢 **GREEN** (single-file frontend additive · zero backend delta · all hard locks intact).

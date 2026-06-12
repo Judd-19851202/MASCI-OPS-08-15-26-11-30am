@@ -22,6 +22,19 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 
 **Immediate Build Queue (Track 13.9 §8) is now EMPTY** as of Track 13.23 (2026-06-12). All 8 IBQ items shipped.
 
+**Track 13.24 (2026-06-12) · Shop Portal Reality Audit + Operator Access Cleanup** completed parity-verification of `/shop` vs `/shop/hub_legacy`. Misleading classic button removed; Section 04 · Shop Records · live added (Equipment Pre-Ops · Truck DVIRs · Defect History cards). **Shop Repair Complete ≠ RTS hard lock verified at endpoint level.** Per-defect audit trail confirmed defensible. **Documented future-track gaps** (effort estimates):
+
+| # | Gap                                                | Severity | Effort |
+| - | -------------------------------------------------- | -------- | ------ |
+| 1 | Equipment Pre-Op CSV/PDF export                    | MED      | ~5h    |
+| 2 | DVIR CSV/PDF export                                | MED      | ~5h    |
+| 3 | Date-range + project + unit search filters         | HIGH     | ~12h   |
+| 4 | Per-unit unified history endpoint + page           | HIGH     | ~8h    |
+| 5 | Print stylesheets for inspection / defect detail   | LOW      | ~2h    |
+| 6 | Active reminder / overdue alert dispatch           | MED      | ~4h    |
+| 7 | Per-mechanic assignment field on `fleet_defects`   | LOW      | needs operator decision |
+| 8 | Auto-link Shop Parts orders to source defect       | LOW      | ~3h    |
+
 **Hard locks enforced across all phases:** Map-First Dispatch · No-login Driver · PM scope = assigned projects · No new physical material ledger collection · No accounting / ERP / pay-app / cost / contract · No FleetWatcher fake data.
 
 

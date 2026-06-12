@@ -37,6 +37,7 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **13.21 · MATERIAL MOVEMENT LEDGER · PHASE C** — Dispatch companion haul ledger live at `/dispatch-portal/haul-ledger`. New `GET /api/dispatch/haul-ledger` endpoint (dispatch/admin gated · 90-day cap · 6 query filters) composes existing `haul_cycles` + `operational_attachments` + `daily_reports`. New page `DispatchHaulLedger.jsx` + sidebar link in Driver Coordination domain. NO new collection · NO writes · NO map overlay · MapLibre `/dispatch-portal` map-first hard-lock confirmed intact. FleetWatcher honestly `not_connected`. Live smoke: 92 rows across 12 projects/83 trucks in a 30-day preview window. ESLint clean.
 - **13.22 · MATERIAL MOVEMENT LEDGER · PHASE D** — Admin Material Ledger Data-Quality + CSV Export. Extended `/api/dispatch/haul-ledger` with `?format=csv` (operational-only 20-field whitelist · NO financial fields · FleetWatcher `false` on every row). New admin page `/admin/material-ledger-quality` defaults to last-30-days `missing_proof` queue. New Admin Hub V2 Section 05 card. Live smoke: 92 missing-proof rows surfaced; CSV stream returns 93 lines with correct headers and date-bounded filename. ESLint clean. Map-first hard lock intact.
 - **13.23 · ODR PM-HUB PENDING-DRAFTS PILL (last IBQ item)** — Small additive ODR attention QueueCard on PM Hub V2 reading existing `/api/odr` (PM-scoped server-side). Counts ODRs in `{draft, returned}` (the two states needing PM rework). Single-file frontend additive (`PmHubV2.jsx`). Zero backend touch · zero new endpoint · zero new collection. ESLint clean · live PM smoke confirms mount + all-clear branch + click routes to `/pm/odr` + PO card coexists.
+- **13.24 · SHOP PORTAL REALITY AUDIT + OPERATOR ACCESS CLEANUP** — Verified `/shop` (ShopHubV2) has operational-workflow parity with `/shop/hub_legacy`. Removed misleading "Open Classic Shop Hub" self-loop button (replaced with `Equipment Pre-Ops` primary action). Added Section 04 · Shop Records · live (Equipment Pre-Ops · Truck DVIRs · Defect History cards). Documented Shop Repair Complete ≠ Returned To Service hard lock intact at endpoint level (`/api/shop/fleet/defects/{id}/repair` vs `/api/dispatch/fleet/defects/{id}/clear`). Per-defect audit trail defensible; per-unit aggregate history + CSV/PDF export + search/filter UI documented as future-track gaps (were never built classic-side either — no regression). Single-file frontend additive. Zero backend touch.
 
 ### Material Movement Ledger phased plan (Track 13.18 → 13.22) — COMPLETE through Phase D. Phase E (FleetWatcher) BLOCKED on credentials.
 ### Immediate Build Queue (Track 13.9 §8) — EMPTY. Recommended next move: operator sign-off window, not new feature builds.
@@ -146,4 +147,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - All hard locks intact.
 - **Immediate Build Queue (Track 13.9 §8) is now EMPTY.** All 8 items shipped across the program.
 - Recommended next move: operator sign-off window, not new feature builds.
+- Deployment readiness remains 🟢 **GREEN**.
+
+## 2026-06-12 · Track 13.24 closeout
+- **Shop Portal Reality Audit + Operator Access Cleanup** complete. `/shop` (ShopHubV2) has operational-workflow parity with `/shop/hub_legacy`.
+- Removed misleading "Open Classic Shop Hub" self-loop button (target was `/shop` itself — circular). Replaced with `Equipment Pre-Ops` primary action.
+- Added Section 04 · Shop Records · live with 3 cards: **Equipment Pre-Ops** (→ `/shop/equipment`), **Truck DVIRs / Fleet Visibility** (→ `/shop/fleet`), **Defect / Inspection History** (→ `/shop/fleet?focus_filter=defects`). All link to pre-existing live routes.
+- Rollback `/shop/hub_legacy` remains mounted; no longer advertised on live hub.
+- **Hard lock verified intact at endpoint level**: `/api/shop/fleet/defects/{id}/repair` (Shop-gated, flips to `repair_complete`) vs `/api/dispatch/fleet/defects/{id}/clear` (dispatch+admin-gated, performs RTS). Shop cannot self-RTS.
+- Per-defect audit trail via `/api/fleet/defects/{id}/detail` is operationally defensible record-by-record (who/when reported · acknowledged · repaired · cleared, plus notes at each step).
+- Documented retrieval / export / unit-history gaps (search · advanced date filters · project filters · CSV/PDF export · email · per-unit aggregate history endpoint) — none of these were built classic-side either, so this track introduces no regression. All listed as future-track candidates.
+- Single-file frontend additive (`ShopHubV2.jsx`). Zero backend touch · zero new endpoint · zero new collection · zero new route · zero new auth. ESLint clean.
+- Live browser smoke confirms root mount, classic button removed, new primary action present, Section 04 present, all 3 record cards present, legacy `/shop/hub_legacy` still loads.
+- All program hard locks intact.
+- Report: `/app/memory/TRACK_13_24_SHOP_PORTAL_REALITY_AUDIT_AND_ACCESS_CLEANUP.md`.
 - Deployment readiness remains 🟢 **GREEN**.

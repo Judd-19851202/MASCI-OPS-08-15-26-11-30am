@@ -118,6 +118,27 @@
 
 ---
 
+## 2026-06-12 · Track 13.24 — Shop Portal Reality Audit + Operator Access Cleanup
+
+**Mode:** Source-truth audit + controlled implementation · single-file frontend additive.
+
+- **Parity verified**: live `/shop` (ShopHubV2) has all operational workflows the classic `/shop/hub_legacy` had (open defects · acknowledge · OOS · recovery · waiting on parts · RTS · fleet visibility · equipment pre-op list/detail · DVIR per-unit drill-in · per-defect audit trail).
+- **Removed misleading "Open Classic Shop Hub" button** — it was a self-loop (destination `/shop` IS V2 today). Replaced with `Equipment Pre-Ops` primary action.
+- **Added Section 04 · Shop Records · live** with 3 discoverability cards linking to pre-existing live routes:
+  * Equipment Pre-Ops → `/shop/equipment` (`/api/equipment-inspections`)
+  * Truck DVIRs / Fleet Visibility → `/shop/fleet` (`/api/shop/fleet/by-unit`)
+  * Defect / Inspection History → `/shop/fleet?focus_filter=defects` (`/api/shop/fleet/defects`)
+- **Rollback `/shop/hub_legacy` remains mounted**, no longer advertised on the live hub.
+- **Defect lifecycle certified**: per-defect audit trail via `/api/fleet/defects/{id}/detail` is operationally defensible record-by-record (reported · acknowledged · repaired · cleared, plus notes at each step).
+- **Shop Repair Complete ≠ Returned-To-Service hard lock verified at endpoint level**: `/api/shop/fleet/defects/{id}/repair` (shop+admin) only flips to `repair_complete`; RTS requires `/api/dispatch/fleet/defects/{id}/clear` (dispatch+admin).
+- **Documented retrieval / export / unit-history gaps** (search · date filters · project filters · CSV/PDF export · email · per-unit aggregate history) — none were built classic-side either, so no regression introduced. All listed as future tracks (~32h total).
+- Single file changed: `frontend/src/pages/ShopHubV2.jsx`. Zero backend touch · zero new endpoint · zero new collection · zero new route · zero new auth · ESLint clean.
+- Live browser smoke confirms root mount, classic button removed, Pre-Ops primary action, Section 04 + 3 cards, and `/shop/hub_legacy` rollback still loads.
+- All program hard locks intact.
+- Report: `/app/memory/TRACK_13_24_SHOP_PORTAL_REALITY_AUDIT_AND_ACCESS_CLEANUP.md`.
+
+---
+
 ---
 
 ---
