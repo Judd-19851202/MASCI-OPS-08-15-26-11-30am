@@ -40051,3 +40051,20 @@ If all hold → **production certified**. Else → escalate.
 **Verdict:** PM V2 Preview Approved For Migration Planning. Next gate is Phase B3 (Pilot Migration of PM Portal), BLOCKED pending explicit operator authorization to begin per-surface `*_v2` mounts and swaps.
 
 **Standing rules still in force:** No deploy. No GitHub save. No merge.
+
+---
+
+## 2026-06-12 · Track 13.5B — Platform Reality Matrix (Five-Pillar Operational Reality Validation) (COMPLETE)
+
+**Mode:** analysis only — no code change, no new audit branch, no new findings, no design.
+
+**Produced (5 docs):**
+- `MASCI_PLATFORM_REALITY_MATRIX.md` — master.
+- `MASCI_PM_REALITY_MATRIX.md` — PM V2 13-object classification (5 Real · 5 Real but Partial · 1 Planned · 2 Missing).
+- `MASCI_COMMAND_CENTER_REALITY_MATRIX.md` — 9 "Center" surfaces classified; AdminCommandCenter ↔ OperationsCenterCommand identified as the cleanest collapse target.
+- `MASCI_FIVE_PILLAR_SCORECARD.md` — aggregate platform score **7.2 / 10**; gap-to-10 largest on **Simple** (6.5).
+- `MASCI_REALITY_GAP_PRIORITY_LIST.md` — Critical (5) · High (10) · Medium (13) · Low (5) + one first-implementation answer.
+
+**First-implementation priority (answer to the directive's final question):** Execute Track 13.4D 7-point production verification checklist FIRST (raises Trusted + Proven by ~1 point each at zero code cost); THEN authorize Phase B3 pilot migration of HR (lowest risk) or PM (highest impact) onto the Phase B1 primitives.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge.

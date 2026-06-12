@@ -3485,3 +3485,32 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Verdict
 **PM V2 Preview Approved For Migration Planning.** Next gate is Phase B3 (Pilot Migration of PM Portal), which is BLOCKED pending explicit operator authorization.
+
+---
+
+## Track 13.5B · Platform Reality Matrix (Five-Pillar Operational Reality Validation)
+
+**Mode honoured:** analysis only — NO code change, NO new audit branch, NO new finding registry, NO new discovery, NO design, NO portal modification, NO deploy, NO GitHub save, NO merge.
+
+### Files produced
+- `/app/memory/MASCI_PLATFORM_REALITY_MATRIX.md` — master matrix for all portals + cross-cutting concerns. 221 lines.
+- `/app/memory/MASCI_PM_REALITY_MATRIX.md` — PM V2 13-object reality classification. 247 lines.
+- `/app/memory/MASCI_COMMAND_CENTER_REALITY_MATRIX.md` — all 8 (+1) "Center" surfaces classified. 119 lines.
+- `/app/memory/MASCI_FIVE_PILLAR_SCORECARD.md` — portal + module + cross-cutting scoring with cited evidence; aggregate **7.2 / 10**. 194 lines.
+- `/app/memory/MASCI_REALITY_GAP_PRIORITY_LIST.md` — Critical / High / Medium / Low ranked gaps with first-implementation priority. 116 lines.
+
+### Source of evidence
+- `MASCI_PLATFORM_MASTER_FINDINGS_REGISTRY.md` (77 catalogued findings — single source of truth)
+- `MASCI_PLATFORM_REBUILD_LIST.md` (R-01..R-08)
+- `TRACK_13_4D_E_FINAL_DISCOVERY_EXECUTIVE_SUMMARY.md` (discovery closure)
+- `MASCI_PRODUCTION_REALITY_AUDIT.md`, `MASCI_VISUAL_IDENTITY_AUDIT.md`, `MASCI_HUMAN_USABILITY_AUDIT.md`
+- Direct codebase inspection (App.js routes, `pm_routes.py`, `pm_command_center.py`, server.py endpoint grep)
+
+### Headline verdicts
+- **Highest-scoring surface:** Trench Safety module (avg 8.8).
+- **Lowest-scoring portal:** Driver portal (avg 5.2) — anchored by V-15 / R-13 missing static landing.
+- **Platform aggregate:** ~7.2 / 10; biggest gap is **Simple** (6.5).
+- **First implementation priority:** Execute Track 13.4D 7-point production verification checklist (C-1 / C-2) before any further build; then authorize Phase B3 pilot migration (HR low-risk OR PM high-impact).
+
+### Verdict
+**Discovery remains closed. Reality is now classified.** Ready for the operator's next authorization (production verification checklist OR Phase B3 pilot migration). No deploy. No GitHub save. No merge.
