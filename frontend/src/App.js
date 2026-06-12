@@ -10,6 +10,9 @@ const DesignSystemDemo = React.lazy(() => import("@/pages/DesignSystemDemo"));
 const PmV2Preview = React.lazy(() => import("@/pages/PmV2Preview"));
 // Track 13.6A · Operational Recovery Phase 1 — Internal HR Portal V2 preview lane (lazy, mock data only).
 const HrV2Preview = React.lazy(() => import("@/pages/HrV2Preview"));
+// Track 13.6B · Operational Surface Conversion — Operator review hub + side-by-side comparison.
+const V2Index = React.lazy(() => import("@/pages/V2Index"));
+const V2Compare = React.lazy(() => import("@/pages/V2Compare"));
 // ROUTE-SPLIT-001 Wave 3 — ODR + Operational Records + Operations Actions lazy.
 const OdrNew = React.lazy(() => import("@/pages/odr/OdrNew"));
 const OdrCenter = React.lazy(() => import("@/pages/odr/OdrCenter"));
@@ -929,6 +932,8 @@ function App() {
             <Route path="/_internal/design-system" element={<DesignSystemDemo />} />
             <Route path="/_internal/pm-v2-preview" element={<PmV2Preview />} />
             <Route path="/_internal/hr-v2-preview" element={<HrV2Preview />} />
+            <Route path="/_internal/v2-index" element={<V2Index />} />
+            <Route path="/_internal/v2-compare/:portal" element={<V2Compare />} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>

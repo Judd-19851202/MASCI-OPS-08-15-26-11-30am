@@ -1,19 +1,18 @@
-// Track 13.6A · HR Portal V2 Preview — Operational Recovery Phase 1.
+// Track 13.6B · HR Portal V2 Preview — Action-Queue Conversion.
 //
-// PURPOSE
-//   Lowest-risk preview lane for a future HR portal redesign. Mounted ONLY at
-//   /_internal/hr-v2-preview. Built entirely on Phase B1 primitives. No live
-//   HR route, form, workflow, content model, or role behavior is touched.
+// PHILOSOPHY (13.6B Rules):
+//   #1 NO DEAD OBJECTS · #2 EVERY KPI LEADS SOMEWHERE · #3 ACTIONS OVER NUMBERS
+//   #4 HR purpose: MAINTAIN WORKFORCE READINESS. Nothing on this surface may
+//      exist if it does not serve workforce readiness.
 //
-// HARD RULE (13.6A):
-//   No visible object may exist unless it does something real. Every card
-//   and table on this page corresponds to a live HR API endpoint that
-//   already exists in `/app/backend/routes/hr_portal.py` and ships in
-//   production HR. RFIs, Submittals, mock dashboards, fake KPIs are
-//   absent by design.
+// EVERY VISIBLE OBJECT ANSWERS:
+//   1. What is this?       (header + caption)
+//   2. Where from?         (caption names the backing /api/hr/* endpoint)
+//   3. Why does it matter? (operator action implied by chip + variant)
+//   4. What happens when clicked? (Link to a real /hr route)
 //
 // STRICT BOUNDARIES:
-//   • No /api/hr/* fetch in this preview (mock fixtures only).
+//   • No /api/hr/* fetch (mock fixtures only).
 //   • No state mutation outside this component tree.
 //   • No portal swap. No nav link. No deploy.
 
@@ -27,92 +26,78 @@ import {
   EmptyState,
 } from "../design-system";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MOCK FIXTURES — every row mirrors data shape returned by real HR APIs.
-// ─────────────────────────────────────────────────────────────────────────────
+const MOCK_HR = { name: "Alex Rivera", role: "HR Manager", region: "All Florida regions" };
 
-const MOCK_HR = {
-  name: "Alex Rivera",
-  role: "HR Manager",
-  region: "All Florida regions",
-};
-
-// Each pulse card links to the live HR route it summarises. No card without
-// a real destination is rendered.
-const TODAY_PULSE = [
-  {
-    id: "active_employees",
-    title: "Active Employees",
-    metric: 217,
-    caption: "headcount as of today",
-    statusKey: "verified",
-    variant: "default",
-    to: "/hr",
-    api: "/api/hr/employees",
-  },
+// Action queues only — counts are queue sizes, not headcount totals.
+const ACTION_QUEUES = [
   {
     id: "pending_requests",
-    title: "Pending Employee Requests",
+    title: "Employee Requests · pending",
     metric: 5,
-    caption: "PTO + offboard + other",
+    caption: "Source: /api/hr/employee-requests?status=pending",
+    why: "PTO · offboard · reactivate · profile changes — HR action required",
     statusKey: "pending_verification",
     variant: "warning",
-    to: "/hr/time-off",
-    api: "/api/hr/employee-requests",
+    to: "/hr/time-off?status=pending",
+  },
+  {
+    id: "certs_expiring",
+    title: "Certifications Expiring in 30 d",
+    metric: 11,
+    caption: "Source: /api/hr/driver-qualification/dashboard + training-records (≤30d)",
+    why: "Renewals must be scheduled before expiry · field readiness at risk",
+    statusKey: "submitted",
+    variant: "warning",
+    to: "/hr/driver-qualification?expiring=30",
   },
   {
     id: "daily_attention",
-    title: "Daily Reports Needing HR Attention",
+    title: "Daily Reports Flagged by HR",
     metric: 2,
-    caption: "manhours discrepancies",
+    caption: "Source: /api/hr/daily-reports?status=needs_attention",
+    why: "Man-hour discrepancies · payroll variance check before lock",
     statusKey: "needs_revision",
     variant: "warning",
-    to: "/hr/daily-reports",
-    api: "/api/hr/daily-reports",
+    to: "/hr/payroll-variance",
   },
   {
-    id: "training_due",
-    title: "Training Records Expiring (30d)",
-    metric: 11,
-    caption: "renewals coming due",
+    id: "accountability_open",
+    title: "Accountability Signals Open",
+    metric: 3,
+    caption: "Source: /api/hr/employee-accountability?status=open",
+    why: "Coaching signals (positive + attention) · review and close",
     statusKey: "submitted",
     variant: "default",
-    to: "/hr/training-records",
-    api: "/api/hr/training-records",
+    to: "/hr/employee-accountability",
   },
 ];
 
-const REQUESTS = [
-  { id: "REQ-3120", employee: "Garcia, L.",  kind: "PTO",        when: "Today",     status: "submitted",            owner: "HR" },
-  { id: "REQ-3119", employee: "Patel, R.",   kind: "Offboard",   when: "Today",     status: "pending_verification", owner: "HR" },
-  { id: "REQ-3118", employee: "Nguyen, T.",  kind: "Reactivate", when: "Yesterday", status: "submitted",            owner: "HR" },
-  { id: "REQ-3117", employee: "Brown, J.",   kind: "PTO",        when: "Yesterday", status: "verified",             owner: "HR" },
-  { id: "REQ-3116", employee: "Lopez, M.",   kind: "Address",    when: "2 days",    status: "verified",             owner: "HR" },
+// Operational readiness queues — every row is a person who needs HR action.
+const READINESS_REQUESTS = [
+  { id: "REQ-3120", employee: "Garcia, L.",  kind: "PTO",         when: "Today",     status: "submitted",            owner: "HR" },
+  { id: "REQ-3119", employee: "Patel, R.",   kind: "Offboard",    when: "Today",     status: "pending_verification", owner: "HR" },
+  { id: "REQ-3118", employee: "Nguyen, T.",  kind: "Reactivate",  when: "Yesterday", status: "submitted",            owner: "HR" },
 ];
 
-const ACCOUNTABILITY = [
-  { id: "ACC-9001", employee: "Crew B · Smith, A.",    summary: "Late starts (3 in 14d)",          severity: "attention", updated: "Today" },
-  { id: "ACC-9002", employee: "Crew D · Johnson, K.",  summary: "Missing equipment return",         severity: "attention", updated: "Yesterday" },
-  { id: "ACC-9003", employee: "Crew A · Williams, P.", summary: "Coaching · positive recognition",  severity: "positive",  updated: "Mon" },
+const EXPIRING_DRIVERS = [
+  { id: "DQ-1203", driver: "Diaz, R.",   license: "CDL-B · FL", expires: "2026-06-30", days: 18,  status: "pending_verification" },
+  { id: "DQ-1202", driver: "Singh, A.",  license: "CDL-A · FL", expires: "2026-07-04", days: 22,  status: "submitted" },
 ];
 
-const DAILY_REPORTS_HR_VIEW = [
-  { id: "DR-7411", project: "20-07", crew: "Crew A", manhours: 78, status: "submitted",        updated: "12 min ago" },
-  { id: "DR-7410", project: "21-06", crew: "Crew B", manhours: 42, status: "needs_revision",  updated: "1 hr ago" },
-  { id: "DR-7409", project: "22-11", crew: "Crew C", manhours: 38, status: "submitted",        updated: "32 min ago" },
-  { id: "DR-7408", project: "23-09", crew: "Crew D", manhours: 22, status: "submitted",        updated: "4 min ago" },
-];
-
-const DRIVER_QUAL = [
-  { id: "DQ-1201", driver: "Hernandez, J.", license: "CDL-A · FL", expires: "2026-08-12", status: "verified" },
-  { id: "DQ-1202", driver: "Singh, A.",     license: "CDL-A · FL", expires: "2026-07-04", status: "submitted" },
-  { id: "DQ-1203", driver: "Diaz, R.",      license: "CDL-B · FL", expires: "2026-06-30", status: "pending_verification" },
-];
-
-const TRAINING = [
+const EXPIRING_TRAINING = [
   { id: "TR-440", topic: "Trench Safety Refresher",   audience: "All field",  due: "30 days", status: "submitted" },
-  { id: "TR-441", topic: "Hazcom · annual",            audience: "All field",  due: "60 days", status: "submitted" },
-  { id: "TR-442", topic: "Forklift recertification",   audience: "Shop",       due: "Closed",  status: "verified" },
+  { id: "TR-441", topic: "Hazcom · annual",           audience: "All field",  due: "60 days", status: "submitted" },
+];
+
+const ACCOUNTABILITY_OPEN = [
+  { id: "ACC-9001", employee: "Crew B · Smith, A.",    signal: "Late starts (3 in 14d)",          severity: "attention", updated: "Today" },
+  { id: "ACC-9002", employee: "Crew D · Johnson, K.",  signal: "Missing equipment return",         severity: "attention", updated: "Yesterday" },
+  { id: "ACC-9003", employee: "Crew A · Williams, P.", signal: "Coaching · positive recognition",  severity: "positive",  updated: "Mon" },
+];
+
+const PAYROLL_FLAGS = [
+  { id: "DR-7410", project: "21-06", crew: "Crew B", manhours: 42, flag: "−6 hrs vs Motive ELD", status: "needs_revision", updated: "1 hr ago" },
+  { id: "DR-7405", project: "23-02", crew: "Crew C", manhours: 78, flag: "Overtime threshold",   status: "needs_revision", updated: "yesterday" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -123,20 +108,8 @@ function SectionHeader({ kicker, title, caption, action }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
       <div>
-        <div
-          style={{
-            fontSize: "var(--kicker-size)",
-            letterSpacing: "var(--kicker-tracking)",
-            fontWeight: "var(--kicker-weight)",
-            textTransform: "uppercase",
-            color: "var(--ink-faint)",
-          }}
-        >
-          {kicker}
-        </div>
-        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>
-          {title}
-        </h2>
+        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{kicker}</div>
+        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{title}</h2>
         {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{caption}</p>}
       </div>
       {action}
@@ -154,39 +127,32 @@ function Section({ kicker, title, caption, action, children, testId }) {
 }
 
 function RealLink({ to, testid, children, intent = "default" }) {
-  const tone =
-    intent === "primary"
-      ? { bg: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "var(--brand-primary)" }
-      : { bg: "var(--paper-card)", color: "var(--ink-strong)", border: "var(--border-bold)" };
+  const tone = intent === "primary"
+    ? { bg: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "var(--brand-primary)" }
+    : { bg: "var(--paper-card)", color: "var(--ink-strong)", border: "var(--border-bold)" };
   return (
-    <Link
-      to={to}
-      data-testid={testid}
-      style={{
-        display: "inline-block",
-        padding: "6px 12px",
-        background: tone.bg,
-        color: tone.color,
-        border: `1px solid ${tone.border}`,
-        borderRadius: "var(--radius-card)",
-        fontSize: 12,
-        fontWeight: 600,
-        textDecoration: "none",
-      }}
-    >
-      {children}
-    </Link>
+    <Link to={to} data-testid={testid} style={{
+      display: "inline-block", padding: "6px 12px", background: tone.bg, color: tone.color,
+      border: `1px solid ${tone.border}`, borderRadius: "var(--radius-card)",
+      fontSize: 12, fontWeight: 600, textDecoration: "none",
+    }}>{children}</Link>
   );
 }
 
-function ClickableCard({ to, testid, ...cardProps }) {
+function ActionQueueCard({ to, testid, queue }) {
   return (
-    <Link
-      to={to}
-      data-testid={testid}
-      style={{ textDecoration: "none", color: "inherit", display: "block" }}
-    >
-      <Card {...cardProps} />
+    <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+      <Card
+        title={queue.title}
+        description={queue.why}
+        metric={queue.metric}
+        variant={queue.variant}
+        status={<StatusChip statusKey={queue.statusKey} compact />}
+      >
+        <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+          {queue.caption}
+        </p>
+      </Card>
     </Link>
   );
 }
@@ -195,46 +161,29 @@ function ClickableCard({ to, testid, ...cardProps }) {
 // Sections
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Pulse() {
+function ActionQueues() {
   return (
     <Section
-      kicker="01 · What requires HR attention today"
-      title="Today's pulse"
-      caption="Every card links to a real /hr route backed by a real /api/hr endpoint. No vanity metrics."
-      testId="hr-v2-section-pulse"
+      kicker="01 · What requires you today"
+      title="Open HR action queues"
+      caption="Every card opens a real /hr queue. Numbers are queue sizes (work-to-do), never inventory tallies."
+      testId="hr-v2-section-queues"
     >
-      <div
-        data-testid="hr-v2-pulse-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 16,
-        }}
-      >
-        {TODAY_PULSE.map((p) => (
-          <ClickableCard
-            key={p.id}
-            to={p.to}
-            testid={`hr-v2-pulse-${p.id}`}
-            title={p.title}
-            description={p.caption}
-            metric={p.metric}
-            variant={p.variant}
-            status={<StatusChip statusKey={p.statusKey} compact />}
-          />
+      <div data-testid="hr-v2-queue-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        {ACTION_QUEUES.map((q) => (
+          <ActionQueueCard key={q.id} to={q.to} testid={`hr-v2-queue-${q.id}`} queue={q} />
         ))}
       </div>
     </Section>
   );
 }
 
-function EmployeeRequests() {
+function RequestsQueue() {
   const [sort, setSort] = useState({ key: "id", direction: "desc" });
   const rows = useMemo(() => {
     const dir = sort.direction === "asc" ? 1 : -1;
-    return [...REQUESTS].sort((a, b) => (a[sort.key] > b[sort.key] ? dir : -dir));
+    return [...READINESS_REQUESTS].sort((a, b) => (a[sort.key] > b[sort.key] ? dir : -dir));
   }, [sort]);
-
   const cols = [
     { key: "id",       header: "ID",        width: 110, sortable: true },
     { key: "employee", header: "Employee",  sortable: true, wrap: true },
@@ -246,10 +195,10 @@ function EmployeeRequests() {
   return (
     <Section
       kicker="02 · Employee Requests"
-      title="Pending PTO, offboard, reactivation, profile changes"
-      caption="Backed by /api/hr/employee-requests in the live HR portal."
+      title="PTO · Offboard · Reactivate · Profile changes"
+      caption="Backed by /api/hr/employee-requests. Approve / reject lives inside the live HR portal."
       testId="hr-v2-section-requests"
-      action={<RealLink to="/hr/time-off" testid="hr-v2-requests-open">Open Time-Off Queue</RealLink>}
+      action={<RealLink to="/hr/time-off?status=pending" testid="hr-v2-requests-open">Open Time-Off Queue</RealLink>}
     >
       <DataTable
         data-testid="hr-v2-requests-table"
@@ -258,124 +207,114 @@ function EmployeeRequests() {
         rowKey={(r) => r.id}
         sort={sort}
         onSortChange={setSort}
+        empty={<EmptyState title="No employee requests pending." severity="good" />}
       />
     </Section>
   );
 }
 
-function EmployeeAccountability() {
+function ComplianceExpiry() {
+  const dqCols = [
+    { key: "id",       header: "ID",       width: 100 },
+    { key: "driver",   header: "Driver",   wrap: true },
+    { key: "license",  header: "License",  width: 130 },
+    { key: "expires",  header: "Expires",  width: 120 },
+    { key: "days",     header: "Days",     width: 70, align: "right" },
+    { key: "status",   header: "Status",   width: 170, render: (r) => <StatusChip statusKey={r.status} compact /> },
+  ];
+  const tCols = [
+    { key: "id",       header: "ID",        width: 80 },
+    { key: "topic",    header: "Training",  wrap: true },
+    { key: "audience", header: "Audience",  width: 120 },
+    { key: "due",      header: "Due",       width: 90 },
+    { key: "status",   header: "Status",    width: 170, render: (r) => <StatusChip statusKey={r.status} compact /> },
+  ];
+  return (
+    <Section
+      kicker="03 · Compliance expiry queue"
+      title="Driver qualification & training renewals"
+      caption="Backed by /api/hr/driver-qualification/dashboard and /api/hr/training-records — filtered to ≤ 30 day window."
+      testId="hr-v2-section-compliance"
+    >
+      <div data-testid="hr-v2-compliance-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
+        <DataTable
+          data-testid="hr-v2-driver-qual-table"
+          columns={dqCols}
+          rows={EXPIRING_DRIVERS}
+          rowKey={(r) => r.id}
+          caption="Driver Qualifications · expiring ≤ 30d"
+          empty={<EmptyState title="No driver qualifications expiring." severity="good" />}
+        />
+        <DataTable
+          data-testid="hr-v2-training-table"
+          columns={tCols}
+          rows={EXPIRING_TRAINING}
+          rowKey={(r) => r.id}
+          caption="Training · due within 60d"
+          empty={<EmptyState title="No training renewals due." severity="good" />}
+        />
+      </div>
+    </Section>
+  );
+}
+
+function PayrollVariance() {
+  const cols = [
+    { key: "id",       header: "Report",  width: 100 },
+    { key: "project",  header: "Project", width: 80 },
+    { key: "crew",     header: "Crew",    width: 80 },
+    { key: "manhours", header: "Hours",   width: 70, align: "right" },
+    { key: "flag",     header: "Flag",    wrap: true },
+    { key: "status",   header: "Status",  width: 170, render: (r) => <StatusChip statusKey={r.status} compact /> },
+    { key: "updated",  header: "Updated", width: 100, align: "right" },
+  ];
+  return (
+    <Section
+      kicker="04 · Payroll variance"
+      title="Man-hour flags before payroll lock"
+      caption="Backed by /api/hr/payroll-variance and /api/hr/daily-reports. HR reads + flags · never edits engine records."
+      testId="hr-v2-section-payroll"
+      action={<RealLink to="/hr/payroll-variance" testid="hr-v2-payroll-open">Open Payroll Variance</RealLink>}
+    >
+      <DataTable
+        data-testid="hr-v2-payroll-table"
+        columns={cols}
+        rows={PAYROLL_FLAGS}
+        rowKey={(r) => r.id}
+        empty={<EmptyState title="No payroll variance flags this week." severity="good" />}
+      />
+    </Section>
+  );
+}
+
+function Accountability() {
   const cols = [
     { key: "id",       header: "ID",       width: 110 },
     { key: "employee", header: "Employee", wrap: true },
-    { key: "summary",  header: "Signal",   wrap: true },
+    { key: "signal",   header: "Signal",   wrap: true },
     {
       key: "severity",
       header: "Severity",
       width: 140,
       render: (r) => <StatusChip label={r.severity[0].toUpperCase() + r.severity.slice(1)} severity={r.severity === "positive" ? "positive" : "attention"} compact />,
     },
-    { key: "updated",  header: "Updated",  width: 100, align: "right" },
+    { key: "updated", header: "Updated", width: 100, align: "right" },
   ];
   return (
     <Section
-      kicker="03 · Employee Accountability"
-      title="Crew signals"
-      caption="Backed by /api/hr/employee-accountability — calm, non-punitive voice (positive recognition + attention items)."
+      kicker="05 · Accountability signals"
+      title="Open coaching items (positive + attention)"
+      caption="Backed by /api/hr/employee-accountability — calm, non-punitive voice. Positive recognition has equal weight."
       testId="hr-v2-section-accountability"
       action={<RealLink to="/hr/employee-accountability" testid="hr-v2-accountability-open">Open Accountability</RealLink>}
     >
       <DataTable
         data-testid="hr-v2-accountability-table"
         columns={cols}
-        rows={ACCOUNTABILITY}
+        rows={ACCOUNTABILITY_OPEN}
         rowKey={(r) => r.id}
+        empty={<EmptyState title="No open accountability signals." severity="good" />}
       />
-    </Section>
-  );
-}
-
-function DailyReportsHrView() {
-  const cols = [
-    { key: "id",       header: "Report",   width: 110 },
-    { key: "project",  header: "Project",  width: 90 },
-    { key: "crew",     header: "Crew",     width: 90 },
-    { key: "manhours", header: "Man-hours", width: 110, align: "right" },
-    { key: "status",   header: "Status",   width: 170, render: (r) => <StatusChip statusKey={r.status} compact /> },
-    { key: "updated",  header: "Updated",  width: 110, align: "right" },
-  ];
-  return (
-    <Section
-      kicker="04 · Daily Reports · HR view"
-      title="Today's manhours signals"
-      caption="Read-only HR view of /api/daily-reports — HR verifies time but never edits engine records."
-      testId="hr-v2-section-daily"
-      action={<RealLink to="/hr/daily-reports" testid="hr-v2-daily-open">Open Daily Reports</RealLink>}
-    >
-      <DataTable
-        data-testid="hr-v2-daily-table"
-        columns={cols}
-        rows={DAILY_REPORTS_HR_VIEW}
-        rowKey={(r) => r.id}
-      />
-    </Section>
-  );
-}
-
-function Compliance() {
-  const driverCols = [
-    { key: "id",      header: "ID",       width: 100 },
-    { key: "driver",  header: "Driver",   wrap: true },
-    { key: "license", header: "License",  width: 130 },
-    { key: "expires", header: "Expires",  width: 120 },
-    { key: "status",  header: "Status",   width: 170, render: (r) => <StatusChip statusKey={r.status} compact /> },
-  ];
-  const trainingCols = [
-    { key: "id",       header: "ID",        width: 90 },
-    { key: "topic",    header: "Training",  wrap: true },
-    { key: "audience", header: "Audience",  width: 120 },
-    { key: "due",      header: "Due",       width: 100 },
-    { key: "status",   header: "Status",    width: 170, render: (r) => <StatusChip statusKey={r.status} compact /> },
-  ];
-  return (
-    <Section
-      kicker="05 · Compliance"
-      title="Driver qualification & training currency"
-      caption="Backed by /api/hr/driver-qualification/dashboard and /api/hr/training-records."
-      testId="hr-v2-section-compliance"
-    >
-      <div data-testid="hr-v2-compliance-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
-        <DataTable data-testid="hr-v2-driver-qual-table" columns={driverCols}   rows={DRIVER_QUAL} rowKey={(r) => r.id} caption="Driver Qualification" />
-        <DataTable data-testid="hr-v2-training-table"    columns={trainingCols} rows={TRAINING}    rowKey={(r) => r.id} caption="Training" />
-      </div>
-    </Section>
-  );
-}
-
-function CalmStates() {
-  return (
-    <Section
-      kicker="06 · Calm states"
-      title="What 'nothing wrong' looks like in HR"
-      caption="The HR portal does not invent anxiety. When all signals are calm, you see calm."
-      testId="hr-v2-section-empty"
-    >
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-        <EmptyState
-          title="No open offboards this week."
-          explanation="Smooth week. Routine onboarding only."
-          severity="good"
-        />
-        <EmptyState
-          title="No incident-related HR follow-ups."
-          explanation="No safety event has surfaced an HR action item."
-          severity="neutral"
-        />
-        <EmptyState
-          title="One driver qualification expiring this week."
-          explanation="Singh, A. · CDL-A · expires 2026-07-04. Renewal reminder scheduled."
-          severity="attention"
-        />
-      </div>
     </Section>
   );
 }
@@ -390,57 +329,44 @@ export default function HrV2Preview() {
       <div
         data-testid="hr-v2-preview-banner"
         style={{
-          background: "var(--brand-primary)",
-          color: "var(--brand-on-primary)",
-          padding: "10px 16px",
-          fontSize: 12,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase",
-          fontWeight: 700,
-          textAlign: "center",
+          background: "var(--brand-primary)", color: "var(--brand-on-primary)",
+          padding: "10px 16px", fontSize: 12, letterSpacing: "0.04em",
+          textTransform: "uppercase", fontWeight: 700, textAlign: "center",
         }}
       >
-        Internal · HR Portal V2 Preview · Track 13.6A Recovery · Mock pulse · Real-engine surfaces only · No live HR route changed
+        Internal · HR V2 Preview · Track 13.6B · Action queues only · No live HR route changed
       </div>
 
       <PortalShell
         portalName="MASCI"
-        portalRole="HR Portal · V2 Preview"
+        portalRole="HR Portal · V2 Preview · Action-Queue Edition"
         pageTitle={`What requires your attention today, ${MOCK_HR.name.split(" ")[0]}?`}
-        subtitle={`${MOCK_HR.role} · ${MOCK_HR.region}. HR content model, workflows, routes, and role clarity are preserved. This preview only renders the visual language.`}
+        subtitle={`${MOCK_HR.role} · ${MOCK_HR.region}. HR purpose: MAINTAIN WORKFORCE READINESS. Every surface below is a queue of people who need an HR action — never a vanity headcount.`}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/hr/employee-accountability" testid="hr-v2-action-accountability">Accountability</RealLink>
-            <RealLink to="/hr" testid="hr-v2-action-hub" intent="primary">Open HR Hub</RealLink>
+            <RealLink to="/hr/driver-qualification?expiring=30" testid="hr-v2-action-expiring">Expiring Certs</RealLink>
+            <RealLink to="/hr/employee-accountability" testid="hr-v2-action-accountability" intent="primary">Open Accountability</RealLink>
           </div>
         }
         lastActivity={<span data-testid="hr-v2-last-activity">Preview only · live HR portal continues at /hr/*</span>}
       >
-        <Pulse />
-        <EmployeeRequests />
-        <EmployeeAccountability />
-        <DailyReportsHrView />
-        <Compliance />
-        <CalmStates />
+        <ActionQueues />
+        <RequestsQueue />
+        <ComplianceExpiry />
+        <PayrollVariance />
+        <Accountability />
 
         <div
-          data-testid="hr-v2-boundary-note"
+          data-testid="hr-v2-purpose-note"
           style={{
-            marginTop: 16,
-            padding: "var(--pad-card)",
-            background: "var(--paper-card)",
-            border: "1px dashed var(--border-bold)",
-            borderRadius: "var(--radius-card)",
-            color: "var(--ink-soft)",
-            fontSize: 12,
+            marginTop: 16, padding: "var(--pad-card)",
+            background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
+            borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
           }}
         >
-          <strong style={{ color: "var(--ink-strong)" }}>Phase 13.6A boundary.</strong>
-          {" "}HR content model, workflows, routes, data logic, and role clarity are preserved byte-for-byte.
-          {" "}Every primitive on this page is backed by an HR endpoint that already ships
-          (`/api/hr/employees`, `/api/hr/employee-requests`, `/api/hr/daily-reports`, `/api/hr/employee-accountability`,
-          {" "}`/api/hr/driver-qualification/dashboard`, `/api/hr/training-records`).
-          {" "}No HR route is swapped. No HR form is touched.
+          <strong style={{ color: "var(--ink-strong)" }}>HR portal purpose · enforced in 13.6B:</strong>
+          {" "}<em>Maintain workforce readiness.</em> Every visible card and row represents a person or a person&apos;s compliance item that needs HR action.
+          {" "}Vanity headcount ({"\u201C"}217 employees{"\u201D"}) is intentionally absent — Active Employees lives in the live HR Hub for inventory; this preview is operational only.
         </div>
       </PortalShell>
     </div>

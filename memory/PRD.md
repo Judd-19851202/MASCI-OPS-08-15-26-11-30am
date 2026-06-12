@@ -40118,3 +40118,29 @@ If all hold → **production certified**. Else → escalate.
 **Standing rules still in force:** No deploy. No GitHub save. No merge.
 
 **Next gate:** Operator authorization for **T0** (13.4D production verification — zero code, highest trust impact) and/or **T2** (Phase B3 Pilot Migration — HR recommended as lowest-risk first migration target).
+
+---
+
+## 2026-06-12 · Track 13.6B — Operational Surface Conversion & Operator Review System (COMPLETE · Ready For Operator Visual Approval)
+
+**Mode:** preview-only · no portal swap · no operator-route / form / workflow / nav / API changes · no deploy.
+
+**Rules enforced:** #1 No Dead Objects · #2 Every KPI Leads Somewhere · #3 Actions Over Numbers · #4 Operator Review Visibility · #5 Side-by-Side Before Migration.
+
+**PM V2 converted to action-queue model:** every pulse card is a queue (`Daily Reports to Revise` · `Incidents Awaiting Verify` · `CAPAs Due This Week` · `Constraints to Resolve`), every card opens a real PM route via `<Link>`, vanity counts removed, RFIs/Submittals/Risks/mock-photo-grid CONFIRMED ABSENT at all 4 viewports.
+
+**HR V2 converted to action-queue model:** every pulse card is a queue (`Employee Requests pending` · `Certifications Expiring 30d` · `Daily Reports Flagged by HR` · `Accountability Signals Open`), every card opens a real `/hr/*` route, vanity headcount removed.
+
+**Operator review system stood up:**
+- `/_internal/v2-index` — Review hub listing 3 operational + 5 planned preview lanes with track metadata, 5-pillar avg, and direct links to Preview · Side-by-Side · Current Portal.
+- `/_internal/v2-compare/:portal` — Side-by-side iframe view (live current on left + V2 preview on right) for PM and HR. Unknown portal handled with calm EmptyState.
+
+**Zero-drift evidence:** 15 live operator routes verified zero leakage of any V2 / design-system / V2-index / V2-compare marker (all 7 marker categories = 0 across all 15 routes). Dispatch visual guardrail re-executed: PASS (identical signature to 13.4A baseline).
+
+**Five-pillar scores (preview-only):** PM V2, HR V2, and V2 Review System all at **9 · 9 · 9 · 9 · 8 → 8.8 avg**. Platform aggregate trajectory: 7.2 baseline → **7.5 today** → projected 8.1 after Phase B3 HR pilot.
+
+**Evidence:** 5 reports under `/app/memory/TRACK_13_6B_*.md` + 13 screenshots in `/app/memory/screenshots/track_13_6b_recovery/`.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge.
+
+**Next gate:** Operator visual approval via `/_internal/v2-compare/hr` (or `/pm`), leading to Phase B3 pilot migration authorization. HR recommended as first pilot.
