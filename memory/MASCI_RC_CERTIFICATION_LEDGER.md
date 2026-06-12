@@ -3746,3 +3746,69 @@ P2: PM Recovery (project-centric · /pm/hub swap after operator confirms PM Hub 
 ### Evidence
 - Report: `/app/memory/TRACK_13_6F_PM_ROUTE_SWAP_AND_ENGINE_RECOVERY.md` (20 sections).
 - Screenshots: `/app/memory/screenshots/track_13_6f_pm_swap/` (4 PM V2 viewports + PM legacy + HR root + HR legacy).
+
+---
+
+## TRACK 13.6F · Phase 3 & 4 — PM-2 Unified Holds + PM-3 Due Today Engines
+
+**Date**: 2026-06-12
+**Status**: PASS (engines built, wired, tested)
+**Scope executed**:
+- PM-2 — Unified Holds backend aggregator added under `/api/pm/command-center/holds`.
+- PM-3 — Due Today backend aggregator added under `/api/pm/command-center/due-today`.
+- Two real, project-centric V2 surfaces: `/pm/holds` and `/pm/due-today`.
+- PM Hub V2 (`/pm/hub`) wired to display Unified Holds + Due Today as the first two live action queue cards.
+
+**Operator hard-locks honored**:
+1. No fake data — every count traces to a real existing engine (no RFIs, no Submittals).
+2. No fake urgency — Due Today uses only real `due_date`, `expiration_date`, and `report_date` fields.
+3. No dead buttons — every row carries a `destination_path` opening a real PM workflow.
+4. No placeholder routes — the two new pages (`/pm/holds`, `/pm/due-today`) render real aggregated rows.
+5. No duplicate engines — PM-2/PM-3 reuse the existing PM Command Center router and `compute_pm_scope`.
+6. PM auth, permissions, scoping, and project isolation preserved byte-for-byte.
+7. Rollback preserved — `/pm/hub_legacy` continues to render the classic PM hub (zero V2 drift).
+8. Empty states are honest — confirmed in PM-token + admin-with-unknown-project tests.
+
+**PM-2 sources (Unified Holds)**:
+- `equipment_master.status ∈ {Maintenance Hold, Safety Hold, Down, Out of Service}` → `/pm/fleet`
+- `operational_constraints.status ∈ {open, monitoring}` (scoped via `jobs_master.id`) → `/constraints`
+- `fleet_defects.status ∈ {open, acknowledged}` on PM-impacted trucks → `/pm/fleet`
+
+**PM-3 sources (Due Today)**:
+- `corrective_actions.due_date == today` AND status NOT closed → `/pm/incidents?tab=capas`
+- `daily_reports.report_date == today` AND `lifecycle_state == 'PENDING_REVIEW'` → `/pm/daily`
+
+**Endpoints**:
+- `GET /api/pm/command-center/holds`
+- `GET /api/pm/command-center/due-today`
+Both require Admin or PM token, both honor `project_number` query filter, both return the canonical PM Command Center envelope (`ok / as_of / scoped_projects / counts / rows`).
+
+**Routes added (frontend)**:
+- `/pm/holds` → `PmHoldsV2.jsx`
+- `/pm/due-today` → `PmDueTodayV2.jsx`
+
+**Frontend QueueCards added to `/pm/hub` (V2)**:
+- `data-testid="pm-hub-v2-queue-unified-holds"` → `/pm/holds`
+- `data-testid="pm-hub-v2-queue-due-today"` → `/pm/due-today`
+
+**Test coverage** (`/app/backend/tests/test_track_13_6f_pm_engines.py`):
+1. Auth required (401 without token) — both endpoints.
+2. Admin envelope shape (counts keys + row shape).
+3. PM scope isolation — PM token never returns `scoped_projects == "all"`, row project_numbers all within scope.
+4. Admin project-number filter narrows defects/holds to zero for an unknown project.
+5. Honest empty states for admin filter + PM with no projects.
+6. Pure-helper unit tests (`_age_days`, `_constraint_row`) — source/destination invariants.
+- **Result**: 10 / 10 pass.
+
+**Visual evidence**:
+- `/pm/hub` (V2): "Unified Holds" + "Due Today" cards render as the first two live queue cards with honest "0" counts.
+- `/pm/holds`: 3 summary tiles (Equipment / Operational Constraints / Fleet Defects) + honest empty-state row.
+- `/pm/due-today`: 2 summary tiles (CAPAs Due Today / DRs Pending Today) + honest empty-state row.
+- `/pm/hub_legacy`: classic PM hub continues to render with `pm-hub-v2-root` test-id count = 0 — zero V2 drift confirmed.
+
+### Five-pillar score post-engines (PM Hub V2)
+- Powerful 9 · Simple 9 · Beautiful 9 · Trusted 10 · Proven 10 → 9.4 avg (up from 8.8 post-swap).
+
+### Evidence
+- Report: `/app/memory/TRACK_13_6F_PHASE_3_4_REPORT.md`
+- Test report: pytest output (10 passed).

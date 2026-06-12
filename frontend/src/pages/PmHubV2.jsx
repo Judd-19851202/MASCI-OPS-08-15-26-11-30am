@@ -75,6 +75,9 @@ function usePmSignals() {
     qaqc_action:        null,    // /api/qaqc/inspections?status=pending_verification
     crew_accountability:null,    // /api/pm/crew/summary
     photos_recent:      null,    // /api/job-photos?limit=10
+    // Track 13.6F · Phase 3 / 4 — unified aggregators (real engines).
+    unified_holds:      null,    // /api/pm/command-center/holds (total)
+    due_today:          null,    // /api/pm/command-center/due-today (total)
   });
 
   useEffect(() => {
@@ -88,11 +91,13 @@ function usePmSignals() {
       safeJson(`/api/qaqc/inspections?limit=200`),
       safeJson(`/api/pm/crew/summary`),
       safeJson(`/api/job-photos?limit=10`),
+      safeJson(`/api/pm/command-center/holds`),
+      safeJson(`/api/pm/command-center/due-today`),
     ]);
 
     tasks.then((res) => {
       if (cancelled) return;
-      const [dr, inc, capa, con, jobs, qa, crew, photos] = res;
+      const [dr, inc, capa, con, jobs, qa, crew, photos, holds, due] = res;
       const drRows  = dr.ok  ? listOf(dr.body)  : [];
       const incRows = inc.ok ? listOf(inc.body) : [];
       const conRows = con.ok ? listOf(con.body) : [];
@@ -126,6 +131,8 @@ function usePmSignals() {
         qaqc_action:         qa.ok  ? countWithStatus(qaRows, ["submitted","pending_verification","needs_revision"]) : null,
         crew_accountability: crew.ok? (typeof crew.body === "object" && crew.body !== null ? (crew.body.attention_count ?? null) : null) : null,
         photos_recent:       photos.ok ? photoRows.length : null,
+        unified_holds:       holds.ok && holds.body?.counts ? (holds.body.counts.total ?? null) : null,
+        due_today:           due.ok   && due.body?.counts   ? (due.body.counts.total ?? null)   : null,
       });
     });
     return () => { cancelled = true; };
@@ -209,6 +216,7 @@ export default function PmHubV2() {
     s.daily_needs_review, s.incidents_pending, s.capas_due,
     s.constraints_open, s.projects_attention, s.qaqc_action,
     s.crew_accountability, s.photos_recent,
+    s.unified_holds, s.due_today,
   ].every((v) => v === null || v === 0);
 
   return (
@@ -254,6 +262,26 @@ export default function PmHubV2() {
             data-testid="pm-hub-v2-queue-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}
           >
+            {/* Track 13.6F · Phase 3 — PM-2 Unified Holds (real aggregator). */}
+            <QueueCard
+              to="/pm/holds"
+              testid="pm-hub-v2-queue-unified-holds"
+              title="Unified Holds"
+              why="Equipment + Operational Constraints + Fleet Defects aggregated across your projects"
+              source="Source: /api/pm/command-center/holds — real engines only"
+              value={s.unified_holds}
+              loaded={s.loaded}
+            />
+            {/* Track 13.6F · Phase 4 — PM-3 Due Today (real deadline aggregator). */}
+            <QueueCard
+              to="/pm/due-today"
+              testid="pm-hub-v2-queue-due-today"
+              title="Due Today"
+              why="CAPAs dated today + Daily Reports for today awaiting your verify"
+              source="Source: /api/pm/command-center/due-today — real deadlines"
+              value={s.due_today}
+              loaded={s.loaded}
+            />
             <QueueCard
               to="/pm/daily"
               testid="pm-hub-v2-queue-daily"

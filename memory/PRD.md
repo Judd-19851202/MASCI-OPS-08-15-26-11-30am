@@ -40234,3 +40234,41 @@ If all hold → **production certified**. Else → escalate.
 **Standing rules still in force:** No deploy. No GitHub save. No merge.
 
 **Next:** Track 13.6G — PM-2 Unified Holds Aggregation (backend-first).
+
+---
+
+## 2026-06-12 · TRACK 13.6F · Phase 3 & 4 — PM-2 Unified Holds + PM-3 Due Today engines
+
+**Status**: PASS — engines built, wired, tested, zero drift confirmed.
+
+### What was implemented
+- **PM-2 Unified Holds aggregator** (`GET /api/pm/command-center/holds`): real-source aggregation of
+  `equipment_master` holds + `operational_constraints` (open/monitoring) + `fleet_defects` (open/acknowledged)
+  scoped via existing `compute_pm_scope`. Returns canonical PM Command Center envelope.
+- **PM-3 Due Today aggregator** (`GET /api/pm/command-center/due-today`): real-source aggregation of
+  `corrective_actions.due_date == today` + `daily_reports.report_date == today AND lifecycle_state == PENDING_REVIEW`.
+- **Two new V2 frontend surfaces**: `/pm/holds` (`PmHoldsV2.jsx`) and `/pm/due-today` (`PmDueTodayV2.jsx`).
+- **PM Hub V2 wiring**: two new live `QueueCard`s at the top of `/pm/hub` — "Unified Holds" and "Due Today" — backed by the new endpoints.
+
+### Operator hard-locks honored
+No fake data · no fake urgency · no dead buttons · no placeholder routes · no duplicate engines · no duplicate APIs ·
+PM auth/permissions/scope preserved · project isolation preserved · rollback intact at `/pm/hub_legacy`.
+
+### Test coverage
+`/app/backend/tests/test_track_13_6f_pm_engines.py` — 10/10 pass. Covers auth gate, envelope shape, PM scope isolation,
+project-filter narrowing, honest empty states, and pure-helper invariants.
+
+### Evidence
+- Phase report: `/app/memory/TRACK_13_6F_PHASE_3_4_REPORT.md`
+- Ledger entry: `/app/memory/MASCI_RC_CERTIFICATION_LEDGER.md` (TRACK 13.6F · Phase 3 & 4 section)
+
+### Backlog / Next Tracks
+- **P1** — Track 13.6E Priority 3: Dispatch Recovery (apply design system, preserve operational functionality).
+- **P1** — Track 13.6E Priority 4: Safety Recovery (apply unified visual language, preserve Trench Safety workflows).
+- **P2** — Shop, Admin, Field Leadership, Leadership, and Driver portal V2 conversions.
+- **P3** — Remove `*_legacy` rollback routes once operators permanently approve the V2 migrations.
+
+### Locked rules (still in force)
+- DO NOT deploy. DO NOT Save to GitHub. DO NOT merge.
+- "Project Risks" permanently renamed → "Project Constraints".
+- "RFIs" and "Submittals" remain forbidden in the UI (no engine exists).

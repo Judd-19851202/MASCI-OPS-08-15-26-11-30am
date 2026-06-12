@@ -198,6 +198,56 @@ def _classify_asset_kind(em: Dict[str, Any]) -> str:
 
 
 # ════════════════════════════════════════════════════════════════════
+# Track 13.6F · helpers for PM-2 (Holds) and PM-3 (Due Today)
+# ════════════════════════════════════════════════════════════════════
+def _age_days(iso_ts: Optional[str], now: Optional[datetime] = None) -> int:
+    if not iso_ts:
+        return 0
+    try:
+        ts = iso_ts.replace("Z", "+00:00") if iso_ts.endswith("Z") else iso_ts
+        d = datetime.fromisoformat(ts)
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=timezone.utc)
+    except Exception:
+        return 0
+    n = now or datetime.now(timezone.utc)
+    return max(0, (n - d).days)
+
+
+def _constraint_row(c: Dict[str, Any], created: Optional[str],
+                    now: datetime,
+                    project_id_to_pn: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+    """Project a real operational_constraints doc into the unified
+    holds row shape. Preserves source ownership: row.source =
+    'operational_constraints', destination_path = '/constraints'."""
+    pn = None
+    if project_id_to_pn and c.get("project_id"):
+        pn = project_id_to_pn.get(c["project_id"])
+    return {
+        "kind": "constraint",
+        "id": c.get("id"),
+        "source": "operational_constraints",
+        "title": c.get("title") or "Operational constraint",
+        "subtitle": f"{c.get('discipline') or 'other'} · {c.get('kind') or 'other'}",
+        "severity": (c.get("severity") or "medium").lower(),
+        "project_number": pn,
+        "project_id": c.get("project_id"),
+        "opened_at": created,
+        "age_days": _age_days(created, now),
+        "destination_path": "/constraints",
+        "status": c.get("status"),
+        **_map_ready(
+            project_id=c.get("project_id"),
+            project_number=pn,
+            status=c.get("status"),
+            timestamp=created,
+            trust_state="constraint_open",
+            source_system="operational_constraints",
+        ),
+    }
+
+
+# ════════════════════════════════════════════════════════════════════
 # Router factory
 # ════════════════════════════════════════════════════════════════════
 def build_pm_command_center_router(
@@ -714,6 +764,314 @@ def build_pm_command_center_router(
         return {"ok": True, "as_of": _now_iso(),
                 "project_number_filter": project_number,
                 "events": events}
+
+    # ════════════════════════════════════════════════════════════════
+    # Track 13.6F · Phase 3 — PM-2 · Unified Holds Aggregation Engine
+    # ════════════════════════════════════════════════════════════════
+    # Aggregates REAL existing hold engines into one PM-scoped surface.
+    # No new collections. No invented data. Every row traces to a real
+    # source and points to the real PM-facing workflow route.
+    #
+    # Sources (real, currently-existing engines only):
+    #   • equipment_master.status ∈ {Maintenance Hold, Safety Hold,
+    #       Out of Service, Down}             →  /pm/fleet
+    #   • operational_constraints.status ∈ {open, monitoring}
+    #       scoped via project_id → jobs_master.id  →  /constraints
+    #   • fleet_defects.status ∈ {open, acknowledged}
+    #       on trucks bound to PM-scoped projects   →  /pm/fleet
+    #
+    # Doctrine:
+    #   - PM scope preserved via compute_pm_scope (project_number set).
+    #   - Empty PM scope → empty rows, never all-data leak.
+    #   - source_system on every row preserves trace-back.
+    #   - destination_path on every row preserves "real workflow open".
+    # ────────────────────────────────────────────────────────────
+    @router.get("/holds")
+    async def unified_holds(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+        limit: int = Query(default=300, ge=1, le=1000),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        empty_payload = {
+            "ok": True,
+            "as_of": _now_iso(),
+            "project_number_filter": project_number,
+            "scoped_projects": [] if (not scope.is_admin) else "all",
+            "counts": {
+                "total": 0,
+                "equipment_holds": 0,
+                "constraint_holds": 0,
+                "fleet_defects": 0,
+            },
+            "rows": [],
+        }
+        if not scope.is_admin and not nums:
+            return empty_payload
+
+        now = datetime.now(timezone.utc)
+        rows: List[Dict[str, Any]] = []
+        equipment_count = 0
+        constraint_count = 0
+        defect_count = 0
+
+        # ── 1. Equipment holds ──────────────────────────────────────
+        EQUIPMENT_HOLD_STATUSES = [
+            "Maintenance Hold", "Safety Hold",
+            "Out of Service", "Down",
+        ]
+        em_q: Dict[str, Any] = {"status": {"$in": EQUIPMENT_HOLD_STATUSES}}
+        if nums:
+            em_q["current_project_number"] = {"$in": nums}
+        async for em in db.equipment_master.find(em_q, {"_id": 0}).limit(int(limit)):
+            opened_at = em.get("updated_at") or em.get("last_modified_at") or em.get("created_at")
+            rows.append({
+                "kind": "equipment_hold",
+                "id": em.get("id") or em.get("asset_id") or em.get("unit_number"),
+                "source": "equipment_master",
+                "title": f"{em.get('unit_number') or em.get('asset_id') or 'Equipment'} · {em.get('status')}",
+                "subtitle": (em.get("make_model") or em.get("model")
+                             or em.get("type") or em.get("asset_type") or "Equipment"),
+                "severity": "high" if em.get("status") == "Safety Hold" else "medium",
+                "project_number": em.get("current_project_number"),
+                "opened_at": opened_at,
+                "age_days": _age_days(opened_at, now),
+                "destination_path": "/pm/fleet",
+                "status": em.get("status"),
+                **_map_ready(
+                    asset_id=em.get("id") or em.get("asset_id"),
+                    project_number=em.get("current_project_number"),
+                    status=em.get("status"),
+                    timestamp=opened_at,
+                    trust_state="equipment_hold",
+                    source_system="equipment_master",
+                ),
+            })
+            equipment_count += 1
+
+        # ── 2. Operational constraints ──────────────────────────────
+        # Scope: scope.project_numbers → jobs_master.id list → project_id
+        constraint_status_filter = {"$in": ["open", "monitoring"]}
+        if scope.is_admin and not project_number:
+            # Admin · no project filter — pull everything.
+            con_q: Dict[str, Any] = {"status": constraint_status_filter}
+            async for c in db.operational_constraints.find(con_q, {"_id": 0}) \
+                    .sort("created_at", -1).limit(int(limit)):
+                created = c.get("created_at")
+                rows.append(_constraint_row(c, created, now))
+                constraint_count += 1
+        else:
+            # Resolve project_id list from scoped project_numbers.
+            scoped_pn = nums if nums else ([project_number] if project_number else [])
+            if scoped_pn:
+                project_ids: List[str] = []
+                project_id_to_pn: Dict[str, str] = {}
+                async for j in db.jobs_master.find(
+                    {"project_number": {"$in": scoped_pn}, "deleted_at": {"$in": [None, ""]}},
+                    {"_id": 0, "id": 1, "project_number": 1},
+                ):
+                    j_id = j.get("id")
+                    j_pn = j.get("project_number")
+                    if j_id:
+                        project_ids.append(j_id)
+                        if j_pn:
+                            project_id_to_pn[j_id] = j_pn
+                if project_ids:
+                    con_q = {
+                        "status": constraint_status_filter,
+                        "project_id": {"$in": project_ids},
+                    }
+                    async for c in db.operational_constraints.find(con_q, {"_id": 0}) \
+                            .sort("created_at", -1).limit(int(limit)):
+                        created = c.get("created_at")
+                        rows.append(_constraint_row(c, created, now,
+                                                     project_id_to_pn=project_id_to_pn))
+                        constraint_count += 1
+
+        # ── 3. Fleet defects on PM-impacted trucks ──────────────────
+        # Filter is in effect when caller is a PM OR admin passed a
+        # project_number — in either case, defects must be narrowed to
+        # the trucks impacted by the scoped projects.
+        filter_in_effect = (not scope.is_admin) or bool(project_number)
+        impacted_trucks: set = set()
+        if filter_in_effect:
+            scoped_pn = nums if nums else ([project_number] if project_number else [])
+            if scoped_pn:
+                async for a in db.dispatch_assignments.find(
+                    {"project_number": {"$in": scoped_pn}},
+                    {"_id": 0, "truck_id": 1},
+                ):
+                    if a.get("truck_id"):
+                        impacted_trucks.add(str(a["truck_id"]))
+        defect_q: Optional[Dict[str, Any]] = {
+            "status": {"$in": ["open", "acknowledged"]},
+        }
+        if filter_in_effect:
+            if impacted_trucks:
+                defect_q["truck_unit_number"] = {"$in": list(impacted_trucks)}
+            else:
+                # Filter in effect but zero impacted trucks → no rows.
+                defect_q = None
+        if defect_q is not None:
+            async for d in db.fleet_defects.find(defect_q, {"_id": 0}).limit(int(limit)):
+                opened_at = d.get("reported_at") or d.get("created_at")
+                rows.append({
+                    "kind": "fleet_defect",
+                    "id": d.get("id"),
+                    "source": "fleet_defects",
+                    "title": f"{d.get('truck_unit_number') or 'Truck'} · {d.get('item_text') or 'defect'}",
+                    "subtitle": d.get("category") or "fleet defect",
+                    "severity": (d.get("severity") or "medium").lower(),
+                    "project_number": None,
+                    "opened_at": opened_at,
+                    "age_days": _age_days(opened_at, now),
+                    "destination_path": "/pm/fleet",
+                    "status": d.get("status"),
+                    **_map_ready(
+                        asset_id=d.get("truck_unit_number"),
+                        status=d.get("status"),
+                        timestamp=opened_at,
+                        trust_state="open_defect",
+                        source_system="fleet_defects",
+                    ),
+                })
+                defect_count += 1
+
+        # Newest-first overall.
+        rows.sort(key=lambda r: r.get("opened_at") or "", reverse=True)
+        rows = rows[: int(limit)]
+
+        return {
+            "ok": True,
+            "as_of": _now_iso(),
+            "project_number_filter": project_number,
+            "scoped_projects": nums if (not scope.is_admin or nums) else "all",
+            "counts": {
+                "total": len(rows),
+                "equipment_holds": equipment_count,
+                "constraint_holds": constraint_count,
+                "fleet_defects": defect_count,
+            },
+            "rows": rows,
+        }
+
+    # ════════════════════════════════════════════════════════════════
+    # Track 13.6F · Phase 4 — PM-3 · Due Today Aggregation Engine
+    # ════════════════════════════════════════════════════════════════
+    # Aggregates items with a REAL existing due date / expiration /
+    # required-submission date matching today (UTC) from real engines.
+    # No invented urgency. No invented deadlines.
+    #
+    # Sources (real, currently-existing fields only):
+    #   • corrective_actions.due_date == today AND status not closed
+    #       →  /pm/incidents?tab=capas
+    #   • daily_reports.report_date == today AND
+    #       lifecycle_state == 'PENDING_REVIEW'  →  /pm/daily
+    #
+    # Project-centric scoping. PM with zero projects → empty rows.
+    # ────────────────────────────────────────────────────────────
+    @router.get("/due-today")
+    async def due_today(
+        actor=Depends(require_pm_or_admin_dep),
+        project_number: Optional[str] = Query(default=None),
+        limit: int = Query(default=300, ge=1, le=1000),
+    ) -> Dict[str, Any]:
+        scope = await _scope(actor)
+        nums = await _pm_scope_project_numbers(scope, project_number)
+        today_yyyymmdd = datetime.now(timezone.utc).date().isoformat()
+        empty_payload = {
+            "ok": True,
+            "as_of": _now_iso(),
+            "as_of_date": today_yyyymmdd,
+            "project_number_filter": project_number,
+            "scoped_projects": [] if (not scope.is_admin) else "all",
+            "counts": {
+                "total": 0,
+                "capas_due_today": 0,
+                "daily_reports_pending_today": 0,
+            },
+            "rows": [],
+        }
+        if not scope.is_admin and not nums:
+            return empty_payload
+
+        rows: List[Dict[str, Any]] = []
+        capa_count = 0
+        dr_count = 0
+
+        # ── 1. CAPAs due today ───────────────────────────────────────
+        ca_q: Dict[str, Any] = {
+            "due_date": today_yyyymmdd,
+            "status": {"$nin": ["Closed", "Completed", "Verified", "Cancelled"]},
+        }
+        if nums:
+            ca_q["project_number"] = {"$in": nums}
+        async for c in db.corrective_actions.find(ca_q, {"_id": 0}).limit(int(limit)):
+            rows.append({
+                "kind": "capa",
+                "id": c.get("id"),
+                "source": "corrective_actions",
+                "title": c.get("title") or c.get("summary") or "Corrective Action",
+                "subtitle": (c.get("linked_employee_name") or c.get("employee_name")
+                             or "Open corrective action"),
+                "due_date": c.get("due_date"),
+                "project_number": c.get("project_number") or None,
+                "destination_path": "/pm/incidents?tab=capas",
+                "status": c.get("status"),
+                **_map_ready(
+                    project_number=c.get("project_number") or None,
+                    status=c.get("status"),
+                    timestamp=c.get("due_date"),
+                    trust_state="capa_due_today",
+                    source_system="corrective_actions",
+                ),
+            })
+            capa_count += 1
+
+        # ── 2. Daily reports pending review for today ────────────────
+        dr_q: Dict[str, Any] = {
+            "report_date": today_yyyymmdd,
+            "lifecycle_state": "PENDING_REVIEW",
+            "deleted_at": {"$in": [None, "", False]},
+        }
+        if nums:
+            dr_q["project_number"] = {"$in": nums}
+        async for d in db.daily_reports.find(dr_q, {"_id": 0}).limit(int(limit)):
+            rows.append({
+                "kind": "daily_report_pending",
+                "id": d.get("id") or d.get("doc_id"),
+                "source": "daily_reports",
+                "title": f"Daily Report · {d.get('project_number') or 'project'}",
+                "subtitle": (d.get("project_name") or d.get("foreman_name")
+                             or "Awaiting PM verify"),
+                "due_date": today_yyyymmdd,
+                "project_number": d.get("project_number") or None,
+                "destination_path": "/pm/daily",
+                "status": d.get("lifecycle_state"),
+                **_map_ready(
+                    project_number=d.get("project_number"),
+                    status=d.get("lifecycle_state"),
+                    timestamp=d.get("report_date"),
+                    trust_state="daily_report_pending_review",
+                    source_system="daily_reports",
+                ),
+            })
+            dr_count += 1
+
+        return {
+            "ok": True,
+            "as_of": _now_iso(),
+            "as_of_date": today_yyyymmdd,
+            "project_number_filter": project_number,
+            "scoped_projects": nums if (not scope.is_admin or nums) else "all",
+            "counts": {
+                "total": len(rows),
+                "capas_due_today": capa_count,
+                "daily_reports_pending_today": dr_count,
+            },
+            "rows": rows,
+        }
 
     return router
 
