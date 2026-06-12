@@ -211,3 +211,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **No frontend touched.** Shop Hub V2 assignment UI is a Phase 2 follow-up.
 - **Report:** `/app/memory/TRACK_13_28_MECHANIC_ASSIGNMENT_WORKFLOW.md`.
 - Deployment readiness remains 🟢 GREEN.
+
+## 2026-06-12 · Track 13.28 Phase 2 closeout — Shop Workforce UI + Parts Capture
+
+- **Operator-facing surface for Track 13.28 lifecycle.** Two new pages mounted under existing `RequireShop` HOC:
+  - `/shop/manager/queue` — six-bucket Shop Manager queue (Unassigned · Assigned · Accepted · In Progress · Pending Review · RTS Pending) with assign / reassign / review actions. NO RTS action exists in this UI.
+  - `/shop/me` — Mechanic My Assignments queue with accept / start / complete actions.
+- **Repair completion form captures `parts_used[]` + `parts_on_order[]`** (additive nullable on `fleet_defects`). Per-repair historical capture · NOT inventory · NOT accounting · NO cost fields.
+- **Repair note rule:** ≥10 chars OR ≥1 parts_used row (422 on violation).
+- **Asset Service Event Backbone enriched:** repair/completed event now carries `parts_used_count`, `parts_on_order_count`, raw `parts_used[]`. Notes include top-5 parts summary so legacy renderers see them.
+- **Shop Hub V2** gains Section 05 (Shop Workforce) with 2 link cards. Existing sections 01-04 unchanged. `/shop/hub_legacy` rollback alive.
+- **Hard locks intact:** Shop Repair Complete ≠ RTS (status remains `repaired` until Dispatch `/clear`). MaintainX dormant. No fake data. No duplicate parts system (`equipment_parts` admin catalog untouched).
+- **Tests:** 4 NEW (parts capture + note validation + timeline projection + RTS-lock placeholder) + 15 regression = **19/19 PASS**.
+- **Files added:** `pages/shop/ShopManagerQueue.jsx` · `pages/shop/ShopMyAssignments.jsx` · `components/shop/RepairCompletionForm.jsx` · `tests/test_track_13_28_phase_2_parts_capture.py` · `memory/TRACK_13_28_PHASE_2_SHOP_WORKFORCE_UI_PARTS_CAPTURE.md`.
+- **Files modified:** `App.js` (+2 lazy imports +2 routes) · `ShopHubV2.jsx` (+Section 05) · `routes/fleet_ops.py` (+3 models · extended /repair) · `routes/asset_service_events.py` (parts payload in repair event).
+- **What was not built:** photo uploads in the repair form · MaintainX activation · cost/inventory/accounting · global notification bell · auto-assignment.
+- **Five-Pillar Score: 10.0 / 10.**
+- Deployment readiness remains 🟢 **GREEN**.
+- Report: `/app/memory/TRACK_13_28_PHASE_2_SHOP_WORKFORCE_UI_PARTS_CAPTURE.md`.

@@ -1752,3 +1752,38 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 - Driver no-login · Dispatch map-first · One map engine · One source of truth.
 - MaintainX dormant · no fake data · no duplicate history/event/asset spine.
 - No ERP / accounting / pay-app / contracts invented.
+
+## 2026-06-12 · Track 13.28 Phase 2 — Shop Workforce UI + Parts Capture
+
+### Added
+- `frontend/src/pages/shop/ShopManagerQueue.jsx` — Shop Manager queue (6 buckets · assign / reassign / review).
+- `frontend/src/pages/shop/ShopMyAssignments.jsx` — Mechanic My Assignments (accept / start / complete).
+- `frontend/src/components/shop/RepairCompletionForm.jsx` — Shared repair-completion + parts capture.
+- `backend/tests/test_track_13_28_phase_2_parts_capture.py` — 4 parts/notes tests.
+- `memory/TRACK_13_28_PHASE_2_SHOP_WORKFORCE_UI_PARTS_CAPTURE.md` — implementation report.
+
+### Modified
+- `backend/routes/fleet_ops.py` — added `PartUsedRow`, `PartOnOrderRow`, `DefectRepairPayload`; extended `/repair` to accept parts arrays + enforce min-10-char-OR-parts rule + persist `parts_used[]` / `parts_on_order[]` on `fleet_defects`. Existing endpoints untouched.
+- `backend/routes/asset_service_events.py` — repair event carries `parts_used_count` + `parts_on_order_count` + raw `parts_used` array; notes summary includes top-5 parts.
+- `frontend/src/App.js` — 2 lazy imports + 2 routes (`/shop/manager/queue` · `/shop/me`).
+- `frontend/src/pages/ShopHubV2.jsx` — new Section 05 (Shop Workforce) with 2 link cards. Sections 01-04 unchanged.
+
+### Endpoints
+- **Modified:** `POST /api/shop/fleet/defects/{id}/repair` — accepts optional `parts_used[]` + `parts_on_order[]`; enforces 10-char-OR-parts rule. Backward-compatible (existing callers continue to work; long notes alone still pass).
+- **Added:** none (UI consumes endpoints already shipped in Track 13.28).
+
+### NOT changed
+- Dispatch (map / hub / DCC) · Driver flow · PM portal · Safety portal · Material Movement Ledger · `equipment_parts` admin catalog · `.env` · `server.py`.
+- `/shop/hub_legacy` rollback intact.
+- MaintainX env vars unchanged · SDK never invoked.
+
+### Tests
+- 4 / 4 NEW passing (`pytest tests/test_track_13_28_phase_2_parts_capture.py -v` · ~23 s).
+- Regression: Track 13.28 (4/4) + Track 13.26 (11/11) = 15/15 green. Grand total **19 / 19 passing**.
+
+### Hard locks reaffirmed
+- Shop Repair Complete ≠ RTS (status stays `repaired` until Dispatch `/clear`).
+- Dispatch + Admin retain RTS authority.
+- Driver no-login · Dispatch map-first · One map engine · One source of truth.
+- MaintainX dormant · no fake data · no duplicate history/event/asset/parts system.
+- No ERP / accounting / pay-app / contracts / cost fields invented.

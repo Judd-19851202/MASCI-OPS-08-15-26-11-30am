@@ -5372,3 +5372,35 @@ Seatbelt-defect test seeds → `assign` → `accept` → `start` → `repair` �
 - **Track 13.31 — PM Engine (derived)** — reuses the new assignment chain. Optional parallel: Track 13.28 Phase 2 (frontend UI).
 
 **Report:** `/app/memory/TRACK_13_28_MECHANIC_ASSIGNMENT_WORKFLOW.md`.
+
+---
+
+## 2026-06-12 · Track 13.28 Phase 2 — Shop Workforce UI + Parts Capture (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · frontend + minimal additive backend extension · no deploy.
+
+### What shipped
+- 2 new Shop pages: Manager Queue (`/shop/manager/queue`) + My Assignments (`/shop/me`) under existing `RequireShop` HOC.
+- Repair Completion form with multi-row `parts_used` + `parts_on_order` capture (per-repair history · NOT inventory).
+- `/repair` endpoint rule: ≥10-char notes OR ≥1 parts_used row.
+- Asset Service Event Backbone repair event enriched with parts payload (count + raw arrays + notes summary).
+- Shop Hub V2 Section 05 (Shop Workforce) with 2 link cards.
+
+### Hard locks verified
+- Shop Repair Complete ≠ RTS (no RTS action surfaces in Shop UI; backend still requires `_require_dispatch_or_admin` on `/clear`).
+- Dispatch + Admin retain RTS authority.
+- Driver no-login · Map-first Dispatch · DriverHubV2 retired.
+- MaintainX env unchanged · SDK never invoked.
+- `equipment_parts` admin catalog NOT modified (no duplicate parts system).
+- `/shop/hub_legacy` rollback alive.
+- No fake data · no duplicate history/event/asset spine.
+
+### Tests
+- 4 NEW (parts capture + notes-rule + timeline projection + RTS-lock placeholder) · 15 regression · **19/19 PASS**.
+
+### Five-Pillar score · 10.0 / 10
+
+### Recommended next track
+- **Track 13.31 — PM Engine (derived)** · or in parallel **Track 13.28 Phase 3** (parts-intelligence endpoint) or **Track 13.27** (Unit History UI).
+
+**Report:** `/app/memory/TRACK_13_28_PHASE_2_SHOP_WORKFORCE_UI_PARTS_CAPTURE.md`.

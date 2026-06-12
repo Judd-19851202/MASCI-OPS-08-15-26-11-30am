@@ -140,6 +140,49 @@ class DefectManagerReviewPayload(BaseModel):
     approved: bool = True
 
 
+# ─── Track 13.28 Phase 2 · Parts capture (additive, optional) ──────────
+class PartUsedRow(BaseModel):
+    """One line of parts used during a repair.
+
+    NOT inventory — purely historical. Captured to build per-unit
+    parts intelligence ('what filters does Unit 436 need?'). Cost
+    fields are intentionally omitted (accounting is out of scope).
+    """
+    model_config = ConfigDict(extra="ignore")
+    part_name: str = Field(..., min_length=1, max_length=200)
+    part_number: Optional[str] = Field(default="", max_length=120)
+    manufacturer: Optional[str] = Field(default="", max_length=120)
+    supplier: Optional[str] = Field(default="", max_length=120)
+    quantity: float = Field(default=1.0, ge=0)
+    notes: Optional[str] = Field(default="", max_length=500)
+
+
+class PartOnOrderRow(BaseModel):
+    """One line for parts ordered but not yet installed."""
+    model_config = ConfigDict(extra="ignore")
+    part_name: str = Field(..., min_length=1, max_length=200)
+    part_number: Optional[str] = Field(default="", max_length=120)
+    manufacturer: Optional[str] = Field(default="", max_length=120)
+    supplier: Optional[str] = Field(default="", max_length=120)
+    quantity: float = Field(default=1.0, ge=0)
+    ordered_date: Optional[str] = Field(default="", max_length=40)
+    expected_date: Optional[str] = Field(default="", max_length=40)
+    order_status: Optional[str] = Field(default="open", max_length=40)
+    notes: Optional[str] = Field(default="", max_length=500)
+
+
+class DefectRepairPayload(BaseModel):
+    """Body for `/repair` — extends DefectActionPayload with optional
+    parts_used + parts_on_order arrays. Enforces a minimum note length
+    of 10 characters (parts_used or notes must justify the repair)."""
+    model_config = ConfigDict(extra="ignore")
+    actor_name: str
+    notes: str = Field(default="", max_length=4000)
+    photos: List[str] = Field(default_factory=list)
+    parts_used: List[PartUsedRow] = Field(default_factory=list)
+    parts_on_order: List[PartOnOrderRow] = Field(default_factory=list)
+
+
 # ─── Helper: scope guard for fleet vs other inspection kinds ──────────
 def _require_fleet_kind(kind: str) -> None:
     if not _ck.is_fleet_kind(kind):
@@ -859,7 +902,7 @@ def build_router(
     @router.post("/api/shop/fleet/defects/{defect_id}/repair")
     async def repair_defect(
         defect_id: str,
-        payload: DefectActionPayload,
+        payload: DefectRepairPayload,
         _actor=Depends(require_shop_or_admin),
     ):
         defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
@@ -871,15 +914,49 @@ def build_router(
                 f"can only repair from status=open|acknowledged "
                 f"(current={defect['status']!r})",
             )
+        # Track 13.28 Phase 2 · require justification: either a real
+        # note (≥10 chars) OR at least one parts_used line. This stops
+        # silent / anonymous "fixed it" closures.
+        notes_clean = (payload.notes or "").strip()
+        has_parts = len(payload.parts_used) > 0
+        if len(notes_clean) < 10 and not has_parts:
+            raise HTTPException(
+                422,
+                "repair notes must be at least 10 characters (or include at least one parts_used line)",
+            )
         now_iso = datetime.now(timezone.utc).isoformat()
+        # Pre-existing parts merged with this repair's batch so the
+        # `fleet_defects.parts_used` history grows append-style across
+        # re-work cycles.
+        existing_parts_used = list(defect.get("parts_used") or [])
+        new_parts_used = [
+            {
+                **p.model_dump(),
+                "logged_at": now_iso,
+                "logged_by": payload.actor_name,
+            }
+            for p in payload.parts_used
+        ]
+        existing_parts_on_order = list(defect.get("parts_on_order") or [])
+        new_parts_on_order = [
+            {
+                **p.model_dump(),
+                "logged_at": now_iso,
+                "logged_by": payload.actor_name,
+            }
+            for p in payload.parts_on_order
+        ]
         await db.fleet_defects.update_one(
             {"id": defect_id},
             {"$set": {
                 "status": "repaired",
                 "repaired_at": now_iso,
                 "repaired_by_name": payload.actor_name,
-                "repair_notes": payload.notes or "",
+                "repair_notes": notes_clean,
                 "repair_photos": payload.photos or [],
+                "repair_completed_at": now_iso,
+                "parts_used": existing_parts_used + new_parts_used,
+                "parts_on_order": existing_parts_on_order + new_parts_on_order,
             }},
         )
         await _audit(
@@ -891,15 +968,21 @@ def build_router(
                 "status_after": "repaired",
                 "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
                 "checklist_item": defect.get("item_text"),
-                "repair_notes": payload.notes,
+                "repair_notes": notes_clean,
                 "photo_count": len(payload.photos),
+                "parts_used_count": len(new_parts_used),
+                "parts_on_order_count": len(new_parts_on_order),
             },
         )
         # Status rebuild for the affected unit
         unit_to_rebuild = defect.get("trailer_unit_number") or defect.get("truck_unit_number")
         if unit_to_rebuild:
             await _rebuild_status(db, unit_to_rebuild)
-        return {"ok": True}
+        return {
+            "ok": True,
+            "parts_used_count": len(existing_parts_used) + len(new_parts_used),
+            "parts_on_order_count": len(existing_parts_on_order) + len(new_parts_on_order),
+        }
 
     @router.post("/api/dispatch/fleet/defects/{defect_id}/clear")
     async def clear_defect(

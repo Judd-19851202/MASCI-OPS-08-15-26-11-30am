@@ -442,6 +442,18 @@ async def _project_defect(
         # repaired
         rep_at = _coerce_iso(d.get("repaired_at"))
         if rep_at and _within_range(rep_at, from_iso, to_iso):
+            parts_used = d.get("parts_used") or []
+            parts_on_order = d.get("parts_on_order") or []
+            repair_note = d.get("repair_notes") or item
+            if parts_used:
+                parts_summary = " · ".join(
+                    f"{(p.get('quantity') or 1)}× {p.get('part_name') or 'part'}"
+                    + (f" [{p.get('part_number')}]" if p.get('part_number') else "")
+                    for p in parts_used[:5]
+                )
+                if len(parts_used) > 5:
+                    parts_summary += f" · +{len(parts_used) - 5} more"
+                repair_note = f"{repair_note} · parts: {parts_summary}"
             out.append({
                 "event_id": _hash_id("repair", defect_id, rep_at),
                 "event_type": "repair",
@@ -463,8 +475,13 @@ async def _project_defect(
                 "status_after": "repaired",
                 "availability_before": "OOS",
                 "availability_after": "OOS",   # RTS still required
-                "notes": d.get("repair_notes") or item,
+                "notes": repair_note,
                 "source_system": "fleet_defects",
+                # Track 13.28 Phase 2 · parts intelligence payload (raw)
+                "parts_used_count": len(parts_used),
+                "parts_on_order_count": len(parts_on_order),
+                "parts_used": parts_used,
+                "parts_on_order": parts_on_order,
             })
 
         # Track 13.28 · shop manager review (after repair, before RTS)

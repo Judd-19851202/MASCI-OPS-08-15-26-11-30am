@@ -177,6 +177,9 @@ const DispatchHubV2 = React.lazy(() => import("@/pages/DispatchHubV2"));
 const SafetyHubV2 = React.lazy(() => import("@/pages/SafetyHubV2"));
 // Track 13.6I · Phase 5 — Shop Recovery (preview, no route swap).
 const ShopHubV2 = React.lazy(() => import("@/pages/ShopHubV2"));
+// Track 13.28 Phase 2 — Shop Workforce surfaces.
+const ShopManagerQueue = React.lazy(() => import("@/pages/shop/ShopManagerQueue"));
+const ShopMyAssignments = React.lazy(() => import("@/pages/shop/ShopMyAssignments"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -738,6 +741,11 @@ function App() {
             <Route path="/shop" element={S(<ShopHubV2 />)} />
             <Route path="/shop/hub_legacy" element={S(<ShopHub />)} />
             <Route path="/shop/hub_v2" element={S(<ShopHubV2 />)} />
+            {/* Track 13.28 Phase 2 — Shop Workforce surfaces (Mechanic + Manager queues).
+                Backend lifecycle: assign · accept · start · repair · manager-review.
+                Repair Complete ≠ RTS preserved; Dispatch retains /clear. */}
+            <Route path="/shop/manager/queue" element={S(<ShopManagerQueue />)} />
+            <Route path="/shop/me" element={S(<ShopMyAssignments />)} />
             <Route path="/shop/trench-safety-repairs" element={S(<ShopTrenchSafetyRepairs />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
             {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is

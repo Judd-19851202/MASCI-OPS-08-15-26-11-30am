@@ -530,6 +530,46 @@ export default function ShopHubV2() {
           />
         )}
 
+        {/* Track 13.28 Phase 2 — Shop Workforce surfaces. */}
+        <section data-testid="shop-hub-v2-section-workforce" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="05 · Shop Workforce · live"
+            title="Manager queue · My assignments"
+            caption="Track 13.28 lifecycle: assign → accept → start → repair → manager review → Dispatch RTS. Every action attributable. Repair Complete ≠ RTS."
+          />
+          <div data-testid="shop-hub-v2-workforce-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+            <RealLink to="/shop/manager/queue" testid="shop-hub-v2-action-manager-queue" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Manager Queue</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  Unassigned · Assigned · Accepted · In Progress · Pending Review · RTS Pending. Assign to mechanic. Approve / reject completed repairs.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/shop/manager/queue (Track 13.28 lifecycle endpoints)
+                </div>
+              </div>
+            </RealLink>
+            <RealLink to="/shop/me" testid="shop-hub-v2-action-my-assignments" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>My Assignments</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  Mechanic-only view of work assigned to me. Accept · start · complete with repair notes + parts used.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/shop/me/assignments (Track 13.28 per-user queue)
+                </div>
+              </div>
+            </RealLink>
+          </div>
+        </section>
+
         <div data-testid="shop-hub-v2-trace-note" style={{
           marginTop: 16, padding: "var(--pad-card)",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)",

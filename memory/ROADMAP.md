@@ -787,3 +787,21 @@ After Track 13.27 lands, the Asset Service Event Backbone becomes operator-visib
 - **Track 13.33** — Asset Care Command Center (LOW risk · pure read aggregation over 13.26/13.28/13.31).
 - **Track 13.32** — MaintainX Integration (HIGH risk · LAST · BLOCKED on `MAINTAINX_API_KEY`).
 - **Track 13.28b** — K6 per-action RBAC enforcement (deferred 30 days for telemetry).
+
+## 2026-06-12 · Post Track 13.28 Phase 2 (UI + Parts Capture LIVE)
+- ✅ Shop accountability now usable from the UI: Shop Manager assigns, mechanic accepts/starts/completes with parts + notes, manager reviews. Dispatch retains RTS.
+- 🟢 Deployment readiness remains GREEN.
+
+### Critical-path next step (operator-gated)
+- **Track 13.31 — PM Engine (derived)** (~6h · LOW risk · reuses 13.28 lifecycle). PM events plug into the now-shipped assignment chain. Zero new persistence in v1.
+
+### Or in parallel
+- **Track 13.28 Phase 3 — Per-Unit Parts Intelligence read-only endpoint** (~2-3h additive). `GET /api/units/{unit_number}/parts-history` projects `fleet_defects.parts_used[]` into a frequency-ranked summary. Operator win once parts data accrues.
+- **Track 13.27 — Unit History Timeline UI** consuming `GET /api/assets/{unit}/timeline` end-to-end (~4h · frontend only).
+
+### Future tracks (per 13.28A §11)
+- Track 13.29 — Fuel/Lube Job Visit Form (MED risk · operator decision gate).
+- Track 13.30 — Service-Truck Daily Reconciliation (depends on 13.29).
+- Track 13.33 — Asset Care Command Center (LOW risk · aggregation over 13.26/13.28/13.31).
+- Track 13.32 — MaintainX Integration (HIGH risk · LAST · BLOCKED on `MAINTAINX_API_KEY`).
+- Track 13.28b — K6 per-action RBAC enforcement (deferred 30 days for telemetry).
