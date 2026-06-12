@@ -159,6 +159,8 @@ const AdminMasterHistory = React.lazy(() => import("@/pages/admin/AdminMasterHis
 const AdminAnalytics = React.lazy(() => import("@/pages/admin/AdminAnalytics"));
 // ROUTE-SPLIT-001 Wave 3 — HR portal pages lazy (excludes auth-adjacent + named-export pages).
 const HrHub = React.lazy(() => import("@/pages/HrHub"));
+// Track 13.6C · HR Hub V2 — first real portal migration (live data · same HR auth).
+const HrHubV2 = React.lazy(() => import("@/pages/HrHubV2"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -715,6 +717,8 @@ function App() {
             <Route path="/hr/reset/:token" element={<HrResetPassword />} />
             <Route path="/hr/change-password" element={H(<HrChangePassword />)} />
             <Route path="/hr" element={H(<HrHub />)} />
+            {/* Track 13.6C · HR Hub V2 lives side-by-side with /hr · same RequireHr auth gate · NO route swap. */}
+            <Route path="/hr/hub_v2" element={H(<HrHubV2 />)} />
             <Route path="/hr/field-leadership" element={H(<HrFieldLeadership />)} />
             <Route path="/hr/field-leadership-users" element={H(<HrFieldLeadershipUsers />)} />
             <Route path="/hr/employee-accountability" element={H(<HrEmployeeAccountability />)} />

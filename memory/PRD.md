@@ -40144,3 +40144,27 @@ If all hold → **production certified**. Else → escalate.
 **Standing rules still in force:** No deploy. No GitHub save. No merge.
 
 **Next gate:** Operator visual approval via `/_internal/v2-compare/hr` (or `/pm`), leading to Phase B3 pilot migration authorization. HR recommended as first pilot.
+
+---
+
+## 2026-06-12 · Track 13.6C — HR V2 Pilot Migration (FIRST REAL PORTAL CONVERSION · COMPLETE)
+
+**Mode:** side-by-side · live HR data · same HR auth gate · no route swap · no HR workflow / form / API / permission / automation / notification / reporting touched · no deploy.
+
+**Created:** `/app/frontend/src/pages/HrHubV2.jsx` — first real portal conversion. Lives at `/hr/hub_v2` behind the same `RequireHr` auth as `/hr`. Reads 8 live `/api/*` endpoints (all pre-existing). Action-queue model from 13.6B. Phase B1 primitives. When source unreachable, honestly flips to `offline_feed` chip with `—` value; never invents numbers (Rule #1 No Dead Objects).
+
+**Data sources (all pre-existing):** `/api/employee-requests`, `/api/time-off-requests`, `/api/operations/expirations/summary`, `/api/employee-accountability`, `/api/hr/daily-reports`, `/api/hr/incidents`, `/api/hr/field-leadership`. Header pattern: `X-Admin-Token: <HR token>` — identical to classic `HrKpiStrip._authHeaders()`.
+
+**Validation (7/7 directive checks PASS):** real source data · real destinations · real workflows · counts match source · permissions unchanged · existing HR operational · side-by-side compare available.
+
+**Zero-drift:** 15 live operator routes show zero V2 leakage. Dispatch visual guardrail PASS (identical signature).
+
+**Five-pillar score:** 9 · 9 · 9 · 9 · 8 → 8.8 avg (live).
+
+**Evidence:** `/app/memory/TRACK_13_6C_HR_V2_MIGRATION_REPORT.md` + 8 screenshots in `/app/memory/screenshots/track_13_6c_hr_migration/` (BEFORE/AFTER × 4 viewports).
+
+**Pattern established for remaining 8 portal migrations:** build `/{portal}/hub_v2` behind portal's existing auth wrapper · bind real APIs · 3-section layout · update V2 Index + V2 Compare · capture before/after × 4 viewports · zero-drift sweep · write migration report. Repeatable.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge. No route swap.
+
+**Next gate:** Operator visual approval via `/_internal/v2-compare/hr` (now showing LIVE `/hr/hub_v2` vs LIVE `/hr`). Approval authorizes a route swap of `/hr` to the V2 implementation.

@@ -23,8 +23,8 @@ const PORTAL_CONFIG = {
     currentTitle: "Current HR Portal · /hr",
     currentTo: "/hr",
     currentNote: "Requires HR login (hrmanager@mascigc.com). The current HR portal carries the live data; iframe may show the login page until you authenticate in another tab.",
-    v2Title: "HR V2 Preview · /_internal/hr-v2-preview",
-    v2To: "/_internal/hr-v2-preview",
+    v2Title: "HR Hub V2 · /hr/hub_v2 (live · real APIs)",
+    v2To: "/hr/hub_v2",
     purpose: "Maintain workforce readiness",
   },
 };

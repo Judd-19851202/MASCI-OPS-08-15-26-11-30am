@@ -3609,3 +3609,45 @@ Standing rules still in force: No deploy. No GitHub save. No merge.
 
 ### Verdict
 **Phase 13.6B Complete — Two pilot portals (HR · PM) Ready For Operator Visual Approval.** HR recommended as first Phase B3 pilot (lowest risk). PM pilot recommended after Holds + Due-Today engines ship.
+
+---
+
+## Track 13.6C · HR V2 Pilot Migration (FIRST REAL PORTAL CONVERSION)
+
+**Mode honoured:** side-by-side · live HR data · same HR auth gate · no route swap · no HR workflow / form / API / permission / automation / notification / reporting touched · no deploy · no GitHub save · no merge.
+
+### Files created / edited
+- `/app/frontend/src/pages/HrHubV2.jsx` — **NEW** first-real-portal-conversion page. Live `/api/*` reads (8 endpoints all already used by classic HR). Action-queue model from 13.6B. Phase B1 primitives. Honest `offline_feed` chip when source unreachable; never invents numbers.
+- `/app/frontend/src/App.js` — +2 lines (lazy import + `<Route path="/hr/hub_v2" element={H(<HrHubV2 />)} />` behind same `RequireHr` auth as `/hr`).
+- `/app/frontend/src/pages/V2Index.jsx` — HR entry updated to reflect 13.6B (preview) + 13.6C (live) lanes.
+- `/app/frontend/src/pages/V2Compare.jsx` — HR right pane now loads LIVE `/hr/hub_v2` (was loading mock preview).
+
+### Data source map (8 real endpoints, all pre-existing)
+- `/api/employee-requests?status=pending` · `/api/time-off-requests?status=pending`
+- `/api/operations/expirations/summary` (30d + 60d + expired buckets)
+- `/api/employee-accountability?limit=200`
+- `/api/hr/daily-reports?limit=10` · `/api/hr/incidents?limit=10` · `/api/hr/field-leadership?limit=10`
+Header: `X-Admin-Token: <HR token>` — identical to classic `HrKpiStrip._authHeaders()`.
+
+### Required-validation checklist (per 13.6C directive) — 7/7 PASS
+1. Every card has real source data ✅
+2. Every button has destination ✅
+3. Every queue opens real workflow ✅
+4. Every count matches source data (or honest `—`) ✅
+5. Permissions unchanged ✅
+6. Existing HR remains operational ✅
+7. Side-by-side comparison remains available ✅
+
+### Zero-drift verification
+- 15 live operator routes (Hub · Admin · Dispatch · PM ×6 · HR classic · Safety · Shop · FL · Driver · Public Trench) — `hr-hub-v2-root` count = 0 on every route except `/hr/hub_v2`.
+- Dispatch visual guardrail: `box=1084×520 · mean=24.85 · variance=275.46 · unique=103` — PASS (identical to 13.4A baseline).
+
+### Evidence
+- Report: `/app/memory/TRACK_13_6C_HR_V2_MIGRATION_REPORT.md` (12 sections).
+- Screenshots: `/app/memory/screenshots/track_13_6c_hr_migration/` — 8 files (BEFORE current HR × 4 viewports · AFTER HR Hub V2 × 4 viewports).
+
+### Five-pillar score (live)
+- HR Hub V2: 9 · 9 · 9 · 9 · 8 → **8.8 avg**.
+
+### Verdict
+**Track 13.6C Complete — HR Hub V2 is live at `/hr/hub_v2` · classic `/hr` is unchanged · operator visual approval is the next gate. Pattern established for remaining 8 portal migrations.**
