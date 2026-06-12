@@ -3295,3 +3295,31 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Deployment verdict (this track)
 **Not Ready — Continue Audit.** Phase 3 is discovery + classification only. Tracks 13.4C (Design System) and 13.4D (Full Reality Audit) remain blocked pending explicit operator authorisation.
+
+---
+
+## Track 13.4C — Governance, Prioritisation & Recovery Planning
+
+**Mode honoured:** decision framework only — NO implementation, NO design, NO standardisation, NO recovery work, NO white-label building, NO deploy, NO GitHub save, NO merge.
+
+### Eight documents produced (no code touched)
+- `/app/memory/MASCI_OPERATIONAL_RECOVERY_PRIORITY_STACK.md` — top-10 MASCI priorities (lens: MASCI operators today)
+- `/app/memory/FORGEDOPS_PRODUCTIZATION_PRIORITY_STACK.md` — top-10 ForgedOps priorities (lens: Customer #2 tomorrow) · **separated from MASCI stack by design**
+- `/app/memory/MASCI_PLATFORM_PRESERVE_LIST.md` — 12 items that must not be destroyed by recovery
+- `/app/memory/MASCI_PLATFORM_REMOVE_LIST.md` — duplications, dead surfaces, wrong-role features catalogued (NOT removed)
+- `/app/memory/MASCI_PLATFORM_REBUILD_LIST.md` — 8 rebuild blocks (NOT rebuilt)
+- `/app/memory/MASCI_PLATFORM_STANDARDIZATION_LIST.md` — 10 surfaces to eventually standardise (NOT standardised)
+- `/app/memory/MASCI_PLATFORM_FIVE_PILLAR_MATRIX.md` — every Tier-1 finding × Powerful/Simple/Beautiful/**Trusted**/**Proven** with severity grading. Headline: *Trust* and *Proven* are dominantly violated.
+- `/app/memory/MASCI_PLATFORM_MASTER_RISK_REGISTER.md` — 33 risks, all `observed`, incl. dedicated Dispatch Reality + Translation Reality sections.
+- `/app/memory/TRACK_13_4C_GOVERNANCE_EXECUTIVE_SUMMARY.md` — wraps all 8 with Top 10 MASCI + Top 10 ForgedOps + Preserve / Remove / Rebuild / Standardisation summaries + Five-Pillar summary + Risk register summary + Track 13.4D focus recommendation.
+
+### Track 13.4D recommendation (from the executive summary)
+**Production-Reality Validation & Dispatch Data Integrity Audit.** Close the *Proven* pillar gaps:
+- Validate the production Motive webhook arrival rate.
+- Validate production GPS coverage rate, triage no-GPS assets.
+- Spot-check Spanish coverage on safety-critical surfaces (lang=es real path).
+- Capture iPad + phone-viewport screenshots for the 22 Phase-1 portal landings (close V-13 mobile evidence gap).
+- Defer Design System V1 to a separate post-13.4D track.
+
+### Deployment verdict (this track)
+**Not Ready — Continue Audit.** Track 13.4C is governance / decision-framework only. All implementation tracks remain blocked pending explicit operator authorisation per track.
