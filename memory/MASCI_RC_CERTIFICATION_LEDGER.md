@@ -4755,3 +4755,13 @@ Wrote `/app/memory/TRACK_13_9_1_ODR_CERTIFICATION_REPORT.md` · 578 lines · 12 
 - ✅ App.js unchanged.
 
 **Execution Wave 1 · CLOSED.**
+
+
+## 2026-06-12 · Track 13.13 — Operational Events Project-Day Panel · DONE
+- Added `ProjectDayEventsPanel` local component to `pages/PmProjectDetail.jsx` (mounted between OperationalTimelineSidecar and TrenchSafetyOnProjectPanel).
+- Source: existing public endpoint `GET /api/operational-events/project-day/{project_number}/{date}`.
+- Empty state confirmed: "No project-day events recorded on 2026-06-12. total_events = 0" (preview DB has no events seeded).
+- All Wave 1 surfacings + hard locks verified intact post-deploy.
+- Zero backend touch · zero new route · zero new permission · zero new collection.
+
+**Track 13.13 · CLOSED.**

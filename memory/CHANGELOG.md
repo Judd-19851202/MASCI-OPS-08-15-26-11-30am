@@ -1453,3 +1453,19 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 
 ### NOT changed
 - PM / Shop / Safety / FL surfacing deferred to next wave (admin-primary doctrine per source).
+
+## 2026-06-12 · Track 13.13 — Operational Events Project-Day Panel · DONE
+
+### Implemented
+- `pages/PmProjectDetail.jsx`: added `ProjectDayEventsPanel` local component (read-only) calling existing public endpoint `GET /api/operational-events/project-day/{project_number}/{date}`.
+- Renders per-asset arrival/departure summary (Asset · Kind · First seen · Last seen · On site / Departed).
+- Honest empty state with literal `total_events = 0`. Honest amber error state with HTTP code on failure.
+- Local-only state (date defaults to today). No global state. No route param.
+
+### Verified
+- Empty state confirmed via live preview DB (no operational events seeded in preview).
+- All Wave 1 surfacings still intact (ODR sidebars · PO Requests card · Operations Actions sidebar).
+- Hard locks intact: Dispatch map-first · Driver no-login · Shop Hub V2 + Recovery Map + Repair Complete ≠ Safe To Use.
+
+### NOT changed
+- Zero backend touch · zero new route · zero new permission · zero new collection · zero new test scaffolding.

@@ -608,3 +608,26 @@ No deploy · no Save to GitHub · no merge · no new portals / APIs / auth / map
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge.
 - No new portals · no new auth · no new RFI/Submittal/Pay-App/Doc-Control/Plan-Revision/Cost/Contract/Vendor-Map/Mechanic-Portal/Safety-Map/Leadership-Map/Driver-Auth.
+
+## 2026-06-12 update · post Track 13.13
+
+### Completed
+- ✅ Track 13.13 — Operational Events Project-Day Panel surfaced on `PmProjectDetail.jsx` · honest empty/error states · DONE.
+
+### Critical-path next step (Build Queue #5)
+- **Track 13.14 — Scale Ticket 4-Field Extension** (~8h · Op-Value 75 · LOW risk).
+  - Extend existing `operational_attachments.scale_ticket` slot with `weight_gross_lbs / weight_tare_lbs / weight_net_lbs / material_code`.
+  - Accept on existing driver-attach POST. Render on PM `ViewDailyReport.jsx` Material Movement tile + dispatch detail attachment list.
+  - Schema slot already exists in `operational_attachments.py`; this is the only backend-touching item in the queue.
+
+### Remaining Build Queue items (6–8)
+- PO missing-receipts → tasks_notifications wire-up (5h · pure additive · uses existing `admin/scan-missing-receipts` endpoint).
+- MaterialMovementTile embed in PM Hub V2 daily-rollup (1.5h).
+- ODR PM-Hub pending-drafts pill (2.5h).
+
+### Hard locks (unchanged · verified intact this track)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+4. Driver no-login.
+5. Shop Repair ≠ Returned-To-Service.
