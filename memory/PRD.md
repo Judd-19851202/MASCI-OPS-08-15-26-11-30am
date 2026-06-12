@@ -40393,3 +40393,24 @@ project-filter narrowing, honest empty states, and pure-helper invariants.
 - No deploy · no Save to GitHub · no merge.
 - **Dispatch MapLibre map prominence is a hard lock.**
 - "Project Risks" stays renamed → "Project Constraints"; RFIs / Submittals remain forbidden.
+
+---
+
+## 2026-06-12 · TRACK 13.6K — Admin + Field Leadership + Leadership V2 previews
+
+**Verdict**: PASS — three preview lanes live, Driver V2 ≤ 2-tap constraint re-verified, Dispatch map-dominance intact.
+
+- `/admin/hub_v2` — Operations Control Center preview. 8 queue cards. Real sources: integrations.health · operations/expirations.summary · dispatch.command.summary.
+- `/field-leadership/hub_v2` — superintendent / foreman preview. 6 queue cards. Real sources: field-leadership · safety/overview · dispatch.command.summary.
+- `/leadership/hub_v2` — cross-portal executive attention preview. 3 sections (Safety threats · Execution threats · Compliance threats). No vanity metrics.
+- No route swaps performed. Every classic hub remains untouched.
+
+### Backlog
+- **P1** — Operator review of the 3 new preview lanes → optional swap on each (`*_legacy` rollback per established pattern).
+- **P1** — Decide future of Dispatch V2 (companion lane vs retire vs redesign with embedded MapLibre).
+- **P3** — Remove `*_legacy` rollback routes after permanent sign-off.
+
+### Locked rules
+- No deploy · no Save to GitHub · no merge.
+- **Dispatch MapLibre map prominence is a hard-lock invariant.**
+- Driver portal must remain action-first (1 primary tap target, ≤ 30 s).

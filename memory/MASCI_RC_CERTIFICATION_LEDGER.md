@@ -4098,3 +4098,34 @@ Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → **8.8 avg** (
 
 ### Recommended next portal
 - **Admin Hub V2** (P2 of the original recovery order). Admin has the most varied sub-surfaces and the highest leverage for cross-portal navigation. Following PM/HR/Safety/Shop pattern — preview lane first, no swap until operator review.
+
+---
+
+## TRACK 13.6K · Admin + Field Leadership + Leadership V2 previews
+
+**Date**: 2026-06-12  ·  **Verdict**: PASS — three preview lanes shipped, zero drift, Driver V2 ≤ 2-tap constraint re-verified, Dispatch map-dominance intact.
+
+### Files added
+- `/app/frontend/src/pages/AdminHubV2.jsx` — Operations Control Center preview at `/admin/hub_v2`. Sources: `/api/admin/integrations/health` · `/api/operations/expirations/summary` · `/api/dispatch/command/summary`. 8 queue cards across System Health, Compliance, and Cross-portal reads.
+- `/app/frontend/src/pages/FieldLeadershipHubV2.jsx` — preview at `/field-leadership/hub_v2`. Sources: `/api/field-leadership` · `/api/dispatch/command/summary` · `/api/safety/overview`. 6 queue cards across Field signals, Safety read, Fleet read.
+- `/app/frontend/src/pages/LeadershipHubV2.jsx` — preview at `/leadership/hub_v2`. Cross-portal exec-attention surface. 3 sections (Safety threats · Execution threats · Compliance threats), no vanity metrics.
+
+### Routing
+- App.js: lazy imports added, three new `<Route>` entries — all behind their existing portal gates (`A` for Admin · public-ish FL/Leadership consistent with classic). `/leadership/hub_v2` declared BEFORE the dynamic `/leadership/:kind/new` route to avoid match collision.
+
+### Driver V2 re-validation
+- `/driver/hub_v2` still has exactly ONE primary action button (`SIGN IN` for unauth, `OPEN MY SHIFT SCREEN` for authed). No dashboard creep. ≤ 2 taps · ≤ 30 seconds preserved.
+
+### Dispatch hard-lock re-verified
+- `/dispatch-portal` continues to render classic Dispatcher with the Live Fleet Map MapLibre canvas dominant. `live_fleet_map=True` confirmed in DOM text.
+
+### Doctrine adherence
+- No dead objects · real data only · every card opens an existing workflow · permissions / auth / workflows / engines / integrations preserved · no duplicate APIs · no swap performed for any new hub.
+
+### Five-pillar scores (preview lanes)
+- Admin Hub V2: Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → 8.8
+- Field Leadership Hub V2: Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → 8.8
+- Leadership Hub V2: Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → 8.8
+
+### Next portal
+- Operator review of Admin / FL / Leadership previews, then optional swap on each (with rollback). Driver V2 awaiting operator on a swap decision — current `/driver` (DriverShift) is already the high-quality tap-and-work surface, so promoting `/driver/hub_v2` to `/driver` may be unnecessary unless operators prefer the single-action landing first.

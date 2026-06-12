@@ -29,6 +29,10 @@ const DriverMagicLanding = React.lazy(() => import("@/pages/driver/DriverMagicLa
 const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
 // Track 13.6J · Phase 2 — Driver V2 foundation (preview, no swap).
 const DriverHubV2 = React.lazy(() => import("@/pages/driver/DriverHubV2"));
+// Track 13.6K — Admin / FL / Leadership Hub V2 previews (no swap).
+const AdminHubV2 = React.lazy(() => import("@/pages/AdminHubV2"));
+const FieldLeadershipHubV2 = React.lazy(() => import("@/pages/FieldLeadershipHubV2"));
+const LeadershipHubV2 = React.lazy(() => import("@/pages/LeadershipHubV2"));
 const ShiftStart = React.lazy(() => import("@/pages/driver/ShiftStart"));
 import SafetySection from "@/pages/SafetySection";
 import SafetyFormsLogin from "@/pages/SafetyFormsLogin";
@@ -427,6 +431,11 @@ function App() {
 
             {/* Field Leadership — supervisor docs gated by MASCIGC password */}
             <Route path="/leadership" element={<FieldLeadershipHub />} />
+            {/* Track 13.6K · Phase 3 — Leadership Hub V2 preview (cross-portal exec attention).
+                Must be declared BEFORE the dynamic /leadership/:kind/new route. */}
+            <Route path="/leadership/hub_v2" element={<LeadershipHubV2 />} />
+            {/* Track 13.6K · Phase 2 — Field Leadership Hub V2 preview ("What requires field action today?"). */}
+            <Route path="/field-leadership/hub_v2" element={<FieldLeadershipHubV2 />} />
             <Route path="/leadership/records" element={<FieldLeadershipRecords />} />
             <Route path="/leadership/records/:id" element={<FieldLeadershipView />} />
             <Route path="/leadership/:kind/new" element={<FieldLeadershipFormPage />} />
@@ -517,6 +526,8 @@ function App() {
                 ============================================================ */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={A(<AdminHub />)} />
+            {/* Track 13.6K · Phase 1 — Admin Hub V2 preview (Operations Control Center). */}
+            <Route path="/admin/hub_v2" element={A(<AdminHubV2 />)} />
             <Route path="/admin/people" element={A(<AdminPeople />)} />
             <Route path="/admin/mfa" element={A(<AdminMfa />)} />
             <Route path="/admin/promo-assets" element={A(<AdminPromoAssets />)} />
