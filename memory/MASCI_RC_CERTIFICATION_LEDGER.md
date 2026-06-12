@@ -3385,3 +3385,46 @@ Awaiting **explicit operator authorization** to click **Save to GitHub** and tri
 
 ### Deployment verdict
 **Not Ready — Awaiting Operator Authorisation.** No implementation track begins without explicit per-track authorisation.
+
+---
+
+## Track 13.5A — MASCI Design System V1 (BLUEPRINT ONLY)
+
+**Mode honoured:** blueprint only — NO code change, NO portal rebuild, NO form modification, NO standardisation in code, NO deploy, NO GitHub save, NO merge.
+
+### Document produced
+- `/app/memory/MASCI_DESIGN_SYSTEM_V1.md` — 31 sections covering doctrine, pillars, preserve-first rules, visual identity, brand · color · typography · header · portal home · KPI · card · status · navigation · table · form · coaching · notification · empty-state · error · modal · public · mobile · accessibility · translation · white-label slots · guardrails · anti-drift · QA checklist · preserve/standardise/rebuild verdict · implementation sequence (Phases A–H).
+
+### Key verdicts
+- **Preserve:** 14 named items (Trench Safety, Operations Map, post-13.4A PM/HR/Dispatch portals, Hub home, Guidance Center, Visual Render Guardrail, Safety Forms inline EN+ES legal text, working tenant-config plumbing).
+- **Standardise (V1 order):** wire `tokens.css` → `<PortalShell>`/`<PublicShell>` → `<StatusChip>` + verb registry → `<EmptyState>`/`<DataTable>`/`<Card>` → form-shell primitives → notification registry.
+- **Rebuild later:** R-01 → R-08 from `MASCI_PLATFORM_REBUILD_LIST.md` (separately authorised tracks).
+- **Implementation sequence:** Phase A foundation → Phase H white-label slot wiring, all operator-authorisation gated per phase.
+
+### Deployment verdict (this track)
+**Not Ready — Awaiting Operator Authorisation.** No code change. Design System V1 is a blueprint ready for implementation when operator authorises Phase A.
+
+---
+
+## Track 13.5A · Phase A — tokens.css Foundation Wiring
+
+**Mode honoured:** plumbing only — NO redesign, NO portal rebuild, NO form modification, NO standardisation, NO deploy, NO GitHub save, NO merge.
+
+### Files changed
+- `/app/frontend/src/styles/tokens.css` — header rewritten from `STATUS: PROPOSAL — NOT YET WIRED` to `STATUS: WIRED (Track 13.5A · Phase A, 2026-02)`. Token values, names, and structure unchanged.
+- All other files unchanged.
+
+### Discovery during Phase A
+`tokens.css` was already globally imported via `/app/frontend/src/index.css` line 2 (`@import "./styles/tokens.css";`). The file's own header carried a stale "NOT YET WIRED" label that powered Track 13.4B V-04. Phase A corrected the label to reflect reality and verified the wiring at runtime.
+
+### Verification
+- Frontend webpack compiles cleanly.
+- Runtime probe at `/` confirms all 15 sampled CSS custom properties resolve from `:root` (brand/ink/paper/border/portal-accent/status/spacing/radius/font/shadow/motion).
+- Track 13.4A Dispatch Visual Render Guardrail PASSES (`box=1084×520 · mean=24.67 · variance=244.11 · unique=105`).
+- Visually identical to pre-edit baseline.
+
+### Findings closed
+- **V-04** (`tokens.css` PROPOSAL — not wired) → CLOSED.
+
+### Deployment verdict
+**Not Ready — Awaiting Operator Authorisation for Phase B.** Phase A is plumbing-only and complete.

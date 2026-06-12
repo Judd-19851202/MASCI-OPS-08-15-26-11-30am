@@ -1,15 +1,24 @@
 /* ============================================================
- * tokens.css — DRAFT proposal (iter143)
+ * tokens.css — MASCI Operations Platform · Design System V1 · Phase A
  * Foundational design tokens for MASCI Operations Platform.
  *
- * STATUS: PROPOSAL — NOT YET WIRED into any component.
- * Awaiting jaymn.judd review before the focused 80% pass
- * (SectionTile + Hub + sub-hubs + portal accents).
+ * STATUS: WIRED (Track 13.5A · Phase A, 2026-02).
+ *   ✓ Imported globally via /app/frontend/src/index.css line 2:
+ *       @import "./styles/tokens.css";
+ *   ✓ Available app-wide on :root for every component.
+ *   ✓ Zero visual diff at wiring — every token's default value is
+ *     exactly the current hard-coded Tailwind color it replaces.
+ *
+ * Phase A is plumbing only. Component migration to these tokens
+ * is a future, separately-authorised phase (Phase B onward per
+ * MASCI_DESIGN_SYSTEM_V1.md). Until then, components continue to
+ * use Tailwind color literals; this file is the canonical source
+ * of truth for what those literals MEAN semantically.
  *
  * ─── Hierarchy ──────────────────────────────────────────────
- *   tokens.css         ← THIS FILE — brand + semantic primitives
- *     portal-system.css ← per-portal accents (already exists)
- *       index.css       ← shadcn theme bridge (already exists)
+ *   tokens.css         ← THIS FILE — brand + semantic primitives (WIRED)
+ *     portal-system.css ← per-portal accents (WIRED)
+ *       index.css       ← shadcn theme bridge (WIRED)
  *         Tailwind classes ← components consume via @apply or var()
  *
  * ─── Rationale ──────────────────────────────────────────────
@@ -18,11 +27,9 @@
  * rebrand or theme switch (light → dark, white-label deploy, etc.)
  * touches every JSX file.
  *
- * After: components reference semantic tokens (--brand-primary,
- * --ink-strong, --paper) and themes flip by changing this one file.
- *
- * Zero visual change on rollout — every token's default value is
- * exactly the current hard-coded color.
+ * After Phase B migration: components reference semantic tokens
+ * (--brand-primary, --ink-strong, --paper) and themes flip by
+ * changing this one file.
  * ============================================================ */
 
 :root {
