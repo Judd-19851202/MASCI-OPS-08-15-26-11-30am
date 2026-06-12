@@ -1373,3 +1373,18 @@ Deploy · Save to GitHub · merge · improvement beyond approved scope (live-cou
 
 ### Rollback
 Single search-replace removing one JSX block from AdminHubV2.jsx · no backend / DB / permissions to roll back.
+
+## 2026-06-12 · Track 13.8F — PO Requests Certification & Surfacing Plan · CLOSED (DISCOVERY ONLY)
+
+### Documented (no code change)
+- `/app/memory/TRACK_13_8F_PO_REQUESTS_CERTIFICATION.md` — 15-section certification + surfacing spec.
+- Ledger / PRD / ROADMAP appended.
+
+### Findings
+- PO Requests = operationally complete (~95%) · 13 endpoints · uniform auth · summary counts already exist · digest already exists · 3 test suites already exist.
+- Spec for surfacing is locked at §12 of the report; no design decisions remain for the implementation track.
+- Recommendation: SURFACE LATER · operator interview before PM Hub V2 vs FL Hub vs both.
+
+### NOT done
+- No code · no UI · no card added · no route change.
+- No deploy / GitHub push / merge.

@@ -508,3 +508,39 @@ RFIs · Submittals · formal Change Orders · Pay Applications · Cost / Contrac
 
 ### Forbidden / blocked (unchanged)
 No deploy · no Save to GitHub · no merge · no new portals / APIs / auth / map systems / route swaps without explicit operator authorisation tied to a discovery-then-build track.
+
+---
+
+## 2026-06-12 update · post Track 13.8F
+
+### Completed
+- ✅ Track 13.8F — PO Requests Certification & Surfacing Plan · CLOSED.
+
+### Single ready-to-execute spec
+- **PO Requests action-queue card** spec is locked at §12 of `TRACK_13_8F_PO_REQUESTS_CERTIFICATION.md`. Awaiting one operator-interview cycle (PM + FL · ~20 min total) to choose destination (PM Hub V2 vs Field Leadership Hub vs both) before implementation track is authorised.
+
+### Operator-interview-gated surfacing candidates (priority order)
+1. **PO Requests card** (spec locked · interview chooses destination).
+2. Operational Events project-day panel on PM project-detail.
+3. MaterialMovementTile in PM Hub V2 daily-report context.
+4. `scale_ticket` structured-entry extension on driver attach.
+5. Field Memory · Field Revision finishing.
+6. Notifications cadence + recipient tuning (combined with Track 13.8C runbook).
+7. Operational Records / Operational Timeline use-case validation.
+
+### Pending operator decisions
+- Track 13.6N RC-1 operator signoff.
+- Track 13.7C preview seed rollback decision.
+- Track 13.8C runbook execution against production read-only.
+- Operator interview cycle for Tracks 13.8F / 13.8A / 13.8B / 13.8D candidates.
+
+### Permanent hard locks (unchanged · verified intact)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+4. Driver no-login.
+5. Shop Repair ≠ Returned-To-Service.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No code · no UI · no route changes without explicit operator authorisation.

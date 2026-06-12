@@ -4657,3 +4657,31 @@ Delete the JSX block beginning `{/* Track 13.8E — Operational Locations recove
 No deploy · no Save to GitHub · no merge · no new APIs · no new collections · no new auth · no new routes · no production touches.
 
 **Track 13.8E · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.8F · PO Requests Operational Certification & Surfacing Plan
+**Date**: 2026-06-12
+**Mode**: discovery + certification only · no code · no UI
+**Report**: `/app/memory/TRACK_13_8F_PO_REQUESTS_CERTIFICATION.md`
+
+### Outcome
+PO Requests certified operationally complete (~95%): 13 endpoints · full lifecycle · summary endpoint already exposes real counts (`pending_approval`, `pending_receipt`, `overdue_receipt`, `by_status.*`) · 3 dedicated pytest suites · admin email digest test-locked. The `/api/po-requests/summary` already-consumed pattern satisfies the "no invented metrics" doctrine.
+
+### Decision
+**C — SURFACE LATER · operator interview required** to choose PM Hub V2 vs Field Leadership Hub vs both. Highest scoring options A (PM) and B (FL) tied at 8.8/10. Strongest risk = wrong-role surfacing; mitigation = 2× 10-minute operator interviews.
+
+### Spec locked at §12 of report
+- Card title: "Purchase Requests" · destination `/po-requests` · primary metric `pending_approval` · secondary chips `pending_receipt` + `overdue_receipt` · NO closed-vanity metric · empty state "All clear" via existing StatusChip · same `data-testid` pattern as sibling hub queue cards.
+
+### Hard locks honored
+Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · One source of truth · No RFIs/Submittals/COs/Cost/Contract/Pay-Apps/Document Control/Plan Revision.
+
+### Five-pillar
+PO Requests as built: 8.4/10. Surfacing option A or B alone: 8.8/10.
+
+### Forbidden / blocked (all respected)
+No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes · no production touches · no preview writes.
+
+**Track 13.8F · CLOSED. Awaiting operator interview before implementation.**

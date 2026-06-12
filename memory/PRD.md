@@ -40743,3 +40743,26 @@ Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 9 → **9.4/10**.
 - Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · One source of truth.
 - No new APIs · no new collections · no new permissions · no new routes · no data invented.
 - No deploy · no Save to GitHub · no merge.
+
+---
+
+## 2026-06-12 · Track 13.8F — PO Requests Certification & Surfacing Plan · CLOSED (DISCOVERY ONLY)
+
+**Mode**: discovery + certification only · no code · no UI.
+
+### Verified
+- 13 backend endpoints · `require_any_portal_token` uniform on operator endpoints · `require_admin` on scan endpoints.
+- `GET /api/po-requests/summary` returns `pending_approval`, `pending_receipt`, `overdue_receipt`, `by_status.*` — already consumed by `PoRequests.jsx` lines 250–253.
+- Admin email digest exists (`po_digest_admin.py` + `po_digest.send_po_digest_once`) · test-locked.
+- 3 pytest suites cover CRUD + completeness + digest.
+- FL sidebar already links to `/po-requests`; PM Hub V2 has no PO action queue.
+
+### Decision
+**C — SURFACE LATER · operator interview required** to choose PM Hub V2 vs Field Leadership Hub vs both. Spec locked at §12 of the report.
+
+### Spec (locked)
+- Card title "Purchase Requests" · primary metric `pending_approval` · secondary chips `pending_receipt` + `overdue_receipt` · NO closed metric · empty-state "All clear" StatusChip · destination `/po-requests` · same testid pattern as sibling cards · no new backend / auth / permission / route.
+
+### Locked rules (unchanged)
+- No code · no UI · no surface change without operator interview.
+- No deploy · no Save to GitHub · no merge.
