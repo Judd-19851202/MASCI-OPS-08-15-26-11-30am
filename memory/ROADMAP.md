@@ -278,3 +278,30 @@ Not parked, just queued for user prioritization later:
 ### Forbidden / blocked (unchanged)
 - No deploy · no Save to GitHub · no merge.
 - No new map systems · no new GPS / telematics providers · no UI modernization · no mockups · no new portals · no new APIs · no new auth.
+
+---
+
+## 2026-06-12 update · post Track 13.7B implementation
+
+### Completed
+- ✅ Track 13.7B — Shop Operational Map Lens · Implementation · CLOSED.
+
+### Pending operator decisions
+- **OPERATOR VALIDATION (P0)**: Run a real `/shop` shift with Section 3 in view. Confirm queues stay primary, map is useful but not dominant, copy is truthful.
+- **Track 13.6N OPERATOR SIGNOFF (P0)**: Still pending — RC-1 swapped portal signoff window not yet started.
+
+### Deferred (gated)
+- **PM lens (P2 · only if explicitly requested)**: Awareness panel inside `PmHubV2.jsx`. High duplication risk; do NOT build unless operator explicitly asks.
+- **Shop lens deep-link to asset card (P3 · gated)**: If operator finds the lens useful and asks for deep-link to a full asset card, the cheapest path is to enable Shop tokens on the frontend `/operations-map` guard (backend already accepts them). Requires its own workflow-discovery track per the permanent doctrine.
+
+### Permanent exclusions (unchanged)
+- Safety · Leadership · Mechanic — NO MAP. Permanently excluded by Track 13.7A.
+
+### Three permanent hard locks (unchanged · verified intact post-13.7B)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No new map systems · no new GPS / telematics providers · no new portals · no new APIs · no new auth · no route swaps · no UI modernization beyond what is explicitly approved.

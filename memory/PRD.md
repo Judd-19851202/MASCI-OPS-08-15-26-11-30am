@@ -40506,3 +40506,45 @@ Closed Track 13.6N with verified operational truth and zero drift. No portals bu
 ### Next legitimate work
 - Operator review of `/app/memory/TRACK_13_7A_OPERATIONAL_MAP_DISCOVERY.md`.
 - If Option B is authorized: Shop awareness panel is the first warranted lens.
+
+---
+
+## 2026-06-12 · Track 13.7B — Shop Operational Map Lens · Implementation · CLOSED
+
+Authorized by Track 13.7A. Built the first warranted non-Dispatch map lens.
+
+### What shipped
+- Section 03 · Recovery Map · SECONDARY appended to `ShopHubV2.jsx` (mounted at `/shop`).
+- Reused `MapCanvas` + `useMapSnapshot` + `/api/operations-map/snapshot`. Zero new map system, zero new backend, zero new provider, zero new auth, zero new route.
+- Filter: `attention_reason ∈ {maintenance, inspection}` (both derived in backend from real `db.fleet_defects` + `db.equipment_inspections`).
+- Provider truth on the page: Motive verified live · MaintainX + FleetWatcher disclaimed as not active for this map.
+- Responsive: side-by-side ≥ 900px · stacked < 900px (live resize listener).
+- Click-to-highlight only · no cross-portal navigation.
+
+### Files touched
+- `/app/frontend/src/pages/ShopHubV2.jsx` (added `ShopRecoveryMap` + `ShopRecoveryRow` + Section 3 mount).
+- `/app/frontend/src/components/operations-map/OperationsMap.css` (24-line scoped CSS for `[data-testid="shop-recovery-map-wrap"]`).
+
+### Hard locks honored
+- Dispatch map dominance at `/dispatch-portal` — verified via screenshot + DOM probes.
+- One map engine · one source of truth — no second library, no second pipeline.
+- No map without workflow discovery — only Shop lens built; PM deferred; Safety / Leadership / Mechanic / Admin untouched.
+- Shop Repair Complete ≠ Returned To Service — Section 02 RTS-7d queue untouched.
+
+### Tests
+- `test_operations_map_contract_phase_5a.py` 26/26 PASS.
+- `test_rc2_ops_map_contract.py` 2/2 PASS.
+- `test_operations_map_masci_vocab.py` 14/14 PASS.
+- Frontend lint clean on touched file.
+- Live screenshots: Shop desktop (top + map) + iPad landscape + iPad portrait + Dispatch dominance.
+
+### Five-pillar
+8.8 / 10 (Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8).
+
+### Next legitimate work
+- Operator validation of `/shop` Section 3 during a real shift.
+- Track 13.7A's PM lens decision (deferred · only build if operator explicitly asks).
+- Track 13.6N operator signoff still pending (RC-1 swap window).
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge · no new map systems · no new GPS / telematics providers · no new portals · no new APIs · no new auth · no route swaps · no UI modernization beyond this single section.

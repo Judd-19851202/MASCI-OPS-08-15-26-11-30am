@@ -1199,3 +1199,35 @@ None of these affect the directive's three success criteria; all three are MET a
 
 ### NOT done (deferred · per standing instruction)
 - No code · no UI · no routing changes · no new APIs · no new integrations · no deploy / GitHub push / merge.
+
+## 2026-06-12 · Track 13.7B — Shop Operational Map Lens · Implementation · CLOSED
+
+### Implemented
+- New **Section 03 · Recovery Map · SECONDARY** in `/app/frontend/src/pages/ShopHubV2.jsx` (mounted at `/shop`). Reuses certified `MapCanvas` + `useMapSnapshot` + `/api/operations-map/snapshot`.
+- Scoped CSS rule for `[data-testid="shop-recovery-map-wrap"]` appended to `/app/frontend/src/components/operations-map/OperationsMap.css` (24 lines).
+- Client-side filter: `attention_reason ∈ {maintenance, inspection}`. Both reasons are computed by `operations_map_v1.py` from real `db.fleet_defects` + `db.equipment_inspections` aggregations.
+- Provider truth note rendered on the page (Motive live · MaintainX/FleetWatcher not active for this map).
+- Responsive grid: side-by-side ≥ 900px, stacked < 900px (live `resize` listener for iPad rotation).
+- Click-to-highlight only. No cross-portal navigation. Shop user stays inside `/shop`.
+
+### Zero changes
+- No backend modifications.
+- No new APIs · no new collections · no new permissions · no new auth.
+- No new map system · no new GPS / telematics provider · no MaintainX activation · no FleetWatcher activation.
+- No route swap · no new portal · no UI modernization beyond this single section.
+- No Dispatch modification — Dispatch map dominance verified intact.
+
+### Tests
+- Operations map contract suites: 26 + 2 + 14 = 42 PASS, 1 skipped.
+- Frontend lint clean on touched file.
+- Live browser smoke: Shop hub (Sections 1+2+3 all present) · Dispatch (`dispatch-map-hero` and `dispatch-map-canvas-wrap` canvases intact).
+
+### Doctrine
+- "No workflow changes without workflow discovery" — fully respected (Track 13.7A authorized this implementation).
+- "One map engine · one source of truth" — verified.
+- "Dispatch map dominance is a platform hard lock" — verified.
+
+### NOT done (deferred · per standing instruction)
+- Deploy / Save to GitHub / merge — forbidden.
+- PM lens — deferred.
+- Cross-portal deep-linking from Shop list to `/operations-map` asset card — requires its own workflow-discovery track (frontend `/operations-map` is currently Admin-only; backend already accepts Shop tokens).

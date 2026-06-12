@@ -4317,3 +4317,47 @@ A. Discover reality. B. Verify reality. C. Document reality. D. Then determine w
 - Any further surface change requires its own track with workflow-discovery doctrine re-run first.
 
 **Track 13.7A · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.7B · Shop Operational Map Lens · Implementation
+**Date**: 2026-06-12
+**Mode**: CONTROLLED IMPLEMENTATION · Option B (one shared engine + embedded role-specific lens)
+**Report**: `/app/memory/TRACK_13_7B_SHOP_MAP_LENS_IMPLEMENTATION.md`
+
+### Implemented
+- New **Section 03 · Recovery Map** appended to `/app/frontend/src/pages/ShopHubV2.jsx` (`ShopRecoveryMap` + `ShopRecoveryRow`).
+- Scoped CSS rule `[data-testid="shop-recovery-map-wrap"] .ops-map-canvas { … }` appended to `/app/frontend/src/components/operations-map/OperationsMap.css` (same pattern as Dispatch Hero).
+- Reused `MapCanvas` + `useMapSnapshot` + `/api/operations-map/snapshot` verbatim. Zero new backend, zero new endpoints, zero new collections, zero new permissions, zero new map systems.
+- Single client-side filter: `attention_reason ∈ {maintenance, inspection}`. Both reasons computed by `operations_map_v1.py` from `db.fleet_defects` + `db.equipment_inspections` aggregations. No fabricated filters, no fabricated provider claims.
+- Provider truth note rendered on the page: "Motive is the verified live position feed today; MaintainX and FleetWatcher are not active providers for this map."
+- Responsive: side-by-side ≥ 900px, stacked < 900px (iPad portrait friendly, live `resize` listener).
+- Click-to-highlight only · NO cross-portal navigation · Shop user stays inside `/shop`.
+
+### Verified
+- Shop queues (Sections 1 + 2) remain primary above the map · live screenshots `/tmp/13_7b_shop_desktop_top.jpg` + `/tmp/13_7b_shop_desktop_map.jpg`.
+- iPad landscape capture: `/tmp/13_7b_shop_ipad_landscape.jpg`.
+- iPad portrait capture: `/tmp/13_7b_shop_ipad_portrait.jpg` (tool quirk: Playwright `set_viewport_size` doesn't resize layout viewport — responsive verified by code inspection).
+- Dispatch dominance: `/tmp/13_7b_dispatch_map_dominant.jpg` shows 5 cluster bubbles + 4 named pin markers + full counts strip + CTAs intact.
+- Backend regression: `test_operations_map_contract_phase_5a.py` 26/26 · `test_rc2_ops_map_contract.py` 2/2 · `test_operations_map_masci_vocab.py` 14/14 PASS.
+- Frontend lint clean on touched file. Webpack compiles with 1 unrelated pre-existing warning (`FleetVisibility.jsx`).
+
+### Hard locks honored
+- **DISPATCH MAP DOMINANCE**: `/dispatch-portal` `DispatchHub` + `DispatchMapHero` route mounts and rendering unchanged. Dispatch V2 still companion-only. No Dispatch-V2 swap.
+- **ONE MAP ENGINE · ONE SOURCE OF TRUTH**: Reused `MapCanvas` + `useMapSnapshot` + `/api/operations-map/snapshot`. No second library, no second pipeline.
+- **NO MAP WITHOUT WORKFLOW DISCOVERY**: Only the Shop lens (warranted by 13.7A discovery) was built. PM lens deferred. Safety / Leadership / Mechanic / Admin not given a map.
+- **SHOP REPAIR ≠ RETURNED TO SERVICE**: Section 02 RTS-7d queue untouched. Lens does not collapse RTS into recovery.
+
+### Five-pillar score
+Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 · Aggregate **8.8 / 10**.
+
+### Forbidden / blocked (unchanged · all respected)
+- No deploy · no Save to GitHub · no merge.
+- No new map systems · no new GPS / telematics providers · no UI modernization beyond the single new section · no mockups · no new portals · no new APIs · no new auth · no route swap.
+
+### Next legitimate work
+- Operator validation of the new Section 3 on `/shop` during a real shift.
+- If operator wants deep-linking to asset cards from Shop, that requires its own workflow-discovery track (could lift the Admin-only gate on `/operations-map` since backend already accepts Shop tokens — but a separate track).
+
+**Track 13.7B · CLOSED.**

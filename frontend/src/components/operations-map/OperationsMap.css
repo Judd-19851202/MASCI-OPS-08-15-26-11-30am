@@ -562,3 +562,23 @@
   width: 100% !important;
   height: 100% !important;
 }
+
+/* Track 13.7B · Shop Recovery Map lens embed.
+ * Same scoping pattern as the Dispatch hero — when MapCanvas is nested
+ * inside `[data-testid="shop-recovery-map-wrap"]`, force absolute
+ * fill of its parent sized box so MapLibre renders into a real
+ * viewport. /operations-map full page is untouched.
+ */
+[data-testid="shop-recovery-map-wrap"] .ops-map-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  grid-column: unset;
+  grid-row: unset;
+}
+[data-testid="shop-recovery-map-wrap"] .ops-map-canvas .maplibregl-map,
+[data-testid="shop-recovery-map-wrap"] .ops-map-canvas .maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}

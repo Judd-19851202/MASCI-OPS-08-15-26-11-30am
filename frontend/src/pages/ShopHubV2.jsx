@@ -15,13 +15,20 @@
 // One question this surface answers:
 //   "What equipment requires recovery right now?"
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
+// Track 13.7B · Shop Recovery Map lens — reuse the certified
+// MapLibre engine + 15-s snapshot. NO new map system, NO new
+// backend, NO new provider. Truthful copy enforced below.
+import MapCanvas from "@/components/operations-map/MapCanvas";
+import "@/components/operations-map/OperationsMap.css";
+import { useMapSnapshot } from "@/lib/operations-map/useMapSnapshot";
 
 const API = process.env.REACT_APP_BACKEND_URL;
+const EMPTY_MAP_FILTERS = { types: [], status: [], driver: null, project: null };
 
 function authHeaders() {
   const h = { "Content-Type": "application/json" };
@@ -118,6 +125,214 @@ function QueueCard({ to, testid, title, why, source, value, loaded }) {
         <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>{source}</p>
       </Card>
     </Link>
+  );
+}
+
+// Track 13.7B · Shop Recovery Map lens.
+// Reuses the certified MapLibre engine + 15-s snapshot.
+// Filters to Shop-relevant attention reasons ONLY (no fabrication).
+const REASON_LABEL = {
+  maintenance: "Maintenance Due",
+  inspection:  "Inspection Overdue",
+};
+const REASON_TONE = {
+  maintenance: { bg: "#fff1f2", color: "#be123c", border: "#fda4af" },
+  inspection:  { bg: "#fffbeb", color: "#b45309", border: "#fcd34d" },
+};
+// Operator-readable next-step matches `/api/operations-map/asset/{key}`
+// (operations_map_v1.py `OWNER_BY_REASON` + `NEXT_BY_REASON`).
+const REASON_NEXT = {
+  maintenance: "Shop review open issue",
+  inspection:  "Shop review inspection",
+};
+
+function ShopRecoveryRow({ asset, highlighted, onClick }) {
+  const tone = REASON_TONE[asset.attention_reason] || { bg: "#f8fafc", color: "#0f172a", border: "#e2e8f0" };
+  const where = (asset.assignment && asset.assignment.name) || "Unassigned / Unknown";
+  return (
+    <button
+      type="button"
+      data-testid={`shop-recovery-map-row-${asset.unit_number}`}
+      onClick={onClick}
+      style={{
+        textAlign: "left", cursor: "pointer", width: "100%",
+        background: highlighted ? "#fff7ed" : "var(--paper-card)",
+        border: `1px solid ${highlighted ? "#fb923c" : "var(--border-bold)"}`,
+        borderLeft: `5px solid ${tone.border}`,
+        borderRadius: "var(--radius-card)",
+        padding: "8px 12px",
+        marginBottom: 8,
+        display: "grid",
+        gridTemplateColumns: "120px 1fr auto",
+        gap: 10, alignItems: "baseline",
+      }}
+    >
+      <span style={{
+        fontFamily: "Chivo, IBM Plex Sans, sans-serif", fontWeight: 900,
+        fontSize: 14, color: "var(--ink-strong)", letterSpacing: "0.03em",
+      }}>{asset.unit_number || "—"}</span>
+      <span style={{ fontSize: 12, color: "var(--ink-soft)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {where}
+      </span>
+      <span style={{
+        fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
+        padding: "2px 8px", borderRadius: 999,
+        background: tone.bg, color: tone.color, border: `1px solid ${tone.border}`,
+      }}>{REASON_LABEL[asset.attention_reason] || asset.attention_reason}</span>
+      <span style={{ gridColumn: "1 / -1", fontSize: 11, color: "#0f766e", fontWeight: 700 }}>
+        Next: {REASON_NEXT[asset.attention_reason] || "Shop review"}
+      </span>
+    </button>
+  );
+}
+
+function ShopRecoveryMap() {
+  const { data, loading, error, lastFetchMs } = useMapSnapshot({ refreshMs: 15000 });
+  const [selectedUnit, setSelectedUnit] = useState(null);
+  // Responsive narrow detection (iPad portrait / phone). Re-evaluates on resize so
+  // rotating the device flips the layout. Side-by-side ≥ 900px, stacked < 900px.
+  const [narrow, setNarrow] = useState(
+    typeof window !== "undefined" && window.innerWidth ? window.innerWidth < 900 : false
+  );
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const onResize = () => setNarrow(window.innerWidth < 900);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Filter to Shop-owned attention reasons ONLY. Source: per-asset
+  // `attention_reason` field set by `/api/operations-map/snapshot`
+  // (operations_map_v1.py lines 444–456). NO fabricated filters.
+  const shopAssets = useMemo(() => {
+    if (!data || !Array.isArray(data.assets)) return [];
+    return data.assets.filter((a) => a.attention_reason === "maintenance" || a.attention_reason === "inspection");
+  }, [data]);
+
+  const filteredSnapshot = useMemo(() => ({
+    assets: shopAssets,
+    geofences: data?.geofences || [],
+    counts: data?.counts || {},
+  }), [shopAssets, data]);
+
+  const updated = lastFetchMs ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+  const maintenanceCount = shopAssets.filter((a) => a.attention_reason === "maintenance").length;
+  const inspectionCount  = shopAssets.filter((a) => a.attention_reason === "inspection").length;
+  const gridCols = narrow ? "minmax(0, 1fr)" : "minmax(0, 1fr) minmax(0, 360px)";
+
+  return (
+    <section data-testid="shop-recovery-map-section" style={{ marginBottom: 28 }}>
+      <SectionHeader
+        kicker="03 · Recovery Map · secondary"
+        title="Recovery Map"
+        caption="Shop-visible units needing maintenance or inspection attention. Live location from current operations-map feed."
+      />
+
+      <div
+        data-testid="shop-recovery-map-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridCols,
+          gap: 16,
+          alignItems: "stretch",
+        }}
+      >
+        {/* Map embed — sized box; CSS scope rule in OperationsMap.css
+            forces .ops-map-canvas to absolute-fill this container. */}
+        <div
+          data-testid="shop-recovery-map-wrap"
+          style={{
+            position: "relative", width: "100%", height: 360,
+            background: "#0b1320",
+            border: "1px solid var(--border-bold)",
+            borderRadius: "var(--radius-card)",
+            overflow: "hidden",
+          }}
+        >
+          {loading && !data ? (
+            <div data-testid="shop-recovery-map-loading"
+              style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#cbd5e1", fontSize: 13 }}>
+              Loading live positions…
+            </div>
+          ) : error ? (
+            <div data-testid="shop-recovery-map-error"
+              style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#fda4af", fontSize: 13, padding: 16, textAlign: "center" }}>
+              Map feed unavailable · {String(error)}
+            </div>
+          ) : (
+            <MapCanvas
+              snapshot={filteredSnapshot}
+              filters={EMPTY_MAP_FILTERS}
+              onSelect={(unit) => setSelectedUnit(unit || null)}
+            />
+          )}
+        </div>
+
+        {/* Unit list — primary interaction surface (Shop stays queue-first). */}
+        <div data-testid="shop-recovery-map-list" style={{
+          background: "var(--paper-card)",
+          border: "1px solid var(--border-bold)",
+          borderRadius: "var(--radius-card)",
+          padding: "12px 12px 8px 12px",
+          minHeight: 360, maxHeight: 360, overflowY: "auto",
+        }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 900, color: "var(--ink-strong)" }}>
+              {shopAssets.length} unit{shopAssets.length === 1 ? "" : "s"}
+            </span>
+            <span data-testid="shop-recovery-map-as-of" style={{ fontSize: 10, color: "var(--ink-faint)" }}>
+              Updated {updated}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+            <span data-testid="shop-recovery-map-maintenance-count" style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
+              padding: "2px 8px", borderRadius: 999,
+              background: REASON_TONE.maintenance.bg, color: REASON_TONE.maintenance.color,
+              border: `1px solid ${REASON_TONE.maintenance.border}`,
+            }}>{maintenanceCount} Maintenance</span>
+            <span data-testid="shop-recovery-map-inspection-count" style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
+              padding: "2px 8px", borderRadius: 999,
+              background: REASON_TONE.inspection.bg, color: REASON_TONE.inspection.color,
+              border: `1px solid ${REASON_TONE.inspection.border}`,
+            }}>{inspectionCount} Inspection</span>
+          </div>
+          {shopAssets.length === 0 ? (
+            <EmptyState
+              testId="shop-recovery-map-empty"
+              title="No Shop attention on the map."
+              explanation="No units currently carry a Shop-owned attention reason (maintenance or inspection) in the operations-map snapshot."
+              severity="good"
+            />
+          ) : (
+            shopAssets.map((a) => (
+              <ShopRecoveryRow
+                key={a.unit_number || a.asset_id}
+                asset={a}
+                highlighted={selectedUnit && a.unit_number === selectedUnit}
+                onClick={() => setSelectedUnit(a.unit_number || null)}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      <div data-testid="shop-recovery-map-truth-note" style={{
+        marginTop: 10, padding: "10px 12px",
+        background: "var(--paper-card)",
+        border: "1px dashed var(--border-bold)",
+        borderRadius: "var(--radius-card)",
+        color: "var(--ink-soft)", fontSize: 11, lineHeight: 1.5,
+      }}>
+        <strong style={{ color: "var(--ink-strong)" }}>Provider truth.</strong>{" "}
+        Maintenance and inspection attention based on existing operations-map snapshot.
+        Live location from current operations-map feed. Provider availability depends on
+        configured integrations — Motive is the verified live position feed today;
+        MaintainX and FleetWatcher are not active providers for this map.
+      </div>
+    </section>
   );
 }
 
@@ -243,6 +458,9 @@ export default function ShopHubV2() {
             />
           </div>
         </section>
+
+        {/* Section 3 — Recovery Map · secondary lens (Track 13.7B). */}
+        <ShopRecoveryMap />
 
         {allZero && (
           <EmptyState
