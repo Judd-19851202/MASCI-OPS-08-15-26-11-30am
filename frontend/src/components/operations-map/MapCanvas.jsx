@@ -239,7 +239,13 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
     if (!mapRef.current || !ready || !snapshot) return;
     const map = mapRef.current;
     const tSet = new Set(filters?.types || []);
-    const sSet = new Set(filters?.status || ["green","amber","red","gray"]);
+    // Track 13.4A · Empty status array must mean "all bands" (matches
+    // the `types` filter semantics on the line above). Without this
+    // the snapshot's assets all get filtered out and zero markers
+    // render — which is the bug that made `DispatchMapHero` look
+    // empty over the basemap.
+    const allBands = ["green", "amber", "red", "gray"];
+    const sSet = new Set(filters?.status?.length ? filters.status : allBands);
     const driver = (filters?.driver || "").toLowerCase();
 
     const features = (snapshot.assets || [])

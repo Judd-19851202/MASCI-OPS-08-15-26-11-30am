@@ -95,10 +95,14 @@ export default function DispatchMapHero({ className = "" }) {
         </div>
       </div>
 
-      {/* Real map canvas */}
+      {/* Real map canvas — Track 13.4A §Item 1 dominant operational
+       * surface on Dispatch home. Responsive height: tall on desktop
+       * (520px), medium on tablet (420px), shorter on phone (300px)
+       * so the map is the dispatcher's primary "where is my fleet?"
+       * answer without crushing the counts/CTA below it.
+       */}
       <div
-        className="relative w-full"
-        style={{ height: "320px" }}
+        className="relative w-full h-[300px] sm:h-[420px] lg:h-[520px]"
         data-testid="dispatch-map-canvas-wrap"
       >
         {loading && !data ? (
