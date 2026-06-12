@@ -4269,3 +4269,51 @@ A. Discover reality. B. Verify reality. C. Document reality. D. Then determine w
 - No new portals · no new APIs · no new auth · no new route swaps · no mock data · no Dispatch map alteration · no Driver auth · no deploy / GitHub push / merge.
 
 **Track 13.6N · CLOSED.**
+
+
+---
+
+## ENTRY · Track 13.7A · Operational Map Engine Discovery & Role-Based View Architecture
+**Date**: 2026-06-12
+**Mode**: DISCOVERY + ARCHITECTURE ONLY · NO CODE · NO ROUTE CHANGES
+**Report**: `/app/memory/TRACK_13_7A_OPERATIONAL_MAP_DISCOVERY.md`
+
+### Reality verified
+- **One map renderer**: MapLibre GL JS · CARTO dark basemap · no API key · no Mapbox/Google.
+- **One map engine**: `MapCanvas` + `useMapSnapshot` + `/api/operations-map/snapshot` (5 endpoints in `operations_map_v1.py`).
+- **One live data provider**: Motive (assets · events · geofences). MaintainX is STUB (awaiting credentials). FleetWatcher is reserved column only — no service file exists.
+- **Backend auth is already role-agnostic** (`require_any_portal_token`). Frontend `/operations-map` is currently Admin-gated; Dispatch consumes the map via `DispatchMapHero` embed.
+- **Lens metadata already in payload**: `assignment.bucket_type`, `attention_reason`, `dominant_owner` ("Shop" / "Shop / Safety" / "PM / Dispatch" / "Truck Boss / Dispatch"), `attention_breakdown`, `next_action`.
+
+### Role verdicts
+- **Dispatch**: map-first · primary · hard-lock (already in place).
+- **PM**: map = secondary at most · small awareness panel inside PmHubV2 = max warranted · no full PM map page.
+- **Shop**: map = secondary · small awareness panel inside ShopHubV2 = max warranted (strongest non-Dispatch case) · no full Shop map page.
+- **Mechanic**: no map needed · reuse Asset Card via `/operations-map?asset=<unit>` deep link if mechanic portal is ever built.
+- **Safety**: NO MAP · decisions are list-driven & time-driven, not spatial.
+- **Leadership**: NO MAP · decisions are aggregate counts & trends.
+- **Admin**: already has full map at `/operations-map` (admin-gated). No change.
+
+### Three hard locks formalised
+1. DISPATCH MAP DOMINANCE — permanent platform invariant.
+2. ONE MAP ENGINE · ONE SOURCE OF TRUTH — no second map library, no second data pipeline, no parallel map.
+3. NO MAP WITHOUT WORKFLOW DISCOVERY — Safety / Leadership / Mechanic / Admin (operationally) explicitly excluded from future map lenses by this lock.
+
+### Architecture recommendation
+**Option B · One shared map engine + embedded role-specific lenses (frontend filters + deep-links).**
+- Reuse `MapCanvas` + `useMapSnapshot` + existing snapshot payload.
+- Shop awareness panel (highest gain) and at most PM awareness panel as small embedded surfaces inside the existing V2 hubs.
+- Zero new backend endpoints · zero new collections · zero new permissions · zero new map systems.
+- Five-pillar score: 8.8 / 10.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No new map system · no new GPS provider · no new telematics provider · no UI modernization · no mockups · no new portals · no new APIs · no new auth.
+- No code changes were made during Track 13.7A.
+
+### Next legitimate work
+- Operator review of `/app/memory/TRACK_13_7A_OPERATIONAL_MAP_DISCOVERY.md`.
+- If Option B is authorized: first lens to consider is the **Shop awareness panel** — still secondary to the recovery queue.
+- Any further surface change requires its own track with workflow-discovery doctrine re-run first.
+
+**Track 13.7A · CLOSED.**

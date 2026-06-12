@@ -251,3 +251,30 @@ Not parked, just queued for user prioritization later:
 ### Forbidden / blocked (unchanged)
 - No new portals · no new APIs · no new auth · no new route swaps · no mock data · no Dispatch map alteration · no Driver auth · no deploy / GitHub push / merge.
 - **New permanent doctrine**: "No workflow changes without workflow discovery."
+
+---
+
+## 2026-06-12 update · post Track 13.7A discovery
+
+### Completed
+- ✅ Track 13.7A — Operational Map Engine Discovery & Role-Based View Architecture · CLOSED (discovery only · no code).
+
+### Pending operator decisions (gated · no code yet)
+- **REVIEW**: read `/app/memory/TRACK_13_7A_OPERATIONAL_MAP_DISCOVERY.md` and decide whether Option B is authorized.
+- **IF AUTHORIZED — first warranted lens (P1, gated)**: Shop awareness panel inside `ShopHubV2.jsx` answering "where are my OOS / open-defect units physically?" — small embed of `MapCanvas` filtered to `attention_reason∈{maintenance,inspection}`. Zero new backend work. No swap. Secondary to the recovery queue.
+- **IF AUTHORIZED — second lens (P2, gated)**: PM awareness panel inside `PmHubV2.jsx` answering "are the right assets on my project sites today?" — filtered to PM's `/api/pm/jobs` project list. Doctrine flag: high risk of duplicating PmHubV2 queues; only build if operator explicitly asks.
+
+### Permanent exclusions (this report formalised them)
+- **Safety**: NO MAP. Decisions are list-driven & time-driven.
+- **Leadership**: NO MAP. Decisions are aggregate counts & trends.
+- **Mechanic**: NO MAP. Reuse Asset Card deep link if ever needed.
+- **Admin** (operationally): full `/operations-map` already in place; no role-specific lens.
+
+### Three permanent hard locks
+1. Dispatch map dominance · MapLibre canvas must remain dominant at `/dispatch-portal`.
+2. One map engine · one source of truth · no second map library or pipeline.
+3. No map without workflow discovery.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No new map systems · no new GPS / telematics providers · no UI modernization · no mockups · no new portals · no new APIs · no new auth.

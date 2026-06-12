@@ -1175,3 +1175,27 @@ None of these affect the directive's three success criteria; all three are MET a
 ### NOT done (deferred · per standing instruction)
 - Deploy / Save to GitHub / merge — forbidden.
 - Legacy route retirement — pending Track 13.6O after 30-day operator window.
+
+## 2026-06-12 · Track 13.7A — Operational Map Engine Discovery · CLOSED (DISCOVERY ONLY)
+
+### Documented (no code change · doctrine-pure discovery track)
+- `/app/memory/TRACK_13_7A_OPERATIONAL_MAP_DISCOVERY.md` — full discovery + architecture report (13 sections).
+- Appended Track 13.7A entry to `/app/memory/MASCI_RC_CERTIFICATION_LEDGER.md`.
+- ROADMAP.md updated (below).
+
+### Reality verified
+- One MapLibre renderer · one snapshot engine · Motive is the only live data feed.
+- MaintainX is a stub. FleetWatcher is a reserved column with no live service.
+- Backend already role-agnostic. Frontend `/operations-map` is Admin-gated. Dispatch consumes via `DispatchMapHero` embed.
+- Lens metadata already present in the snapshot payload (`assignment` / `attention_reason` / `dominant_owner` / `attention_breakdown` / `next_action`).
+
+### Three hard locks formalised
+1. DISPATCH MAP DOMINANCE.
+2. ONE MAP ENGINE · ONE SOURCE OF TRUTH.
+3. NO MAP WITHOUT WORKFLOW DISCOVERY (Safety / Leadership / Mechanic / Admin excluded).
+
+### Recommendation
+- Option B (shared engine + embedded lenses) · 8.8/10. Zero new map systems. Shop awareness panel is the first warranted lens if authorized.
+
+### NOT done (deferred · per standing instruction)
+- No code · no UI · no routing changes · no new APIs · no new integrations · no deploy / GitHub push / merge.

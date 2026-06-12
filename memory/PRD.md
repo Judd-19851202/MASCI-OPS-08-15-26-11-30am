@@ -40468,3 +40468,41 @@ Closed Track 13.6N with verified operational truth and zero drift. No portals bu
 ### Next legitimate work
 - **Operator signoff** per Section 5 of the 13.6N report.
 - **Track 13.6O** (legacy retirement) — only after 30-day operator window in Section 6 is satisfied.
+
+---
+
+## 2026-06-12 · Track 13.7A — Operational Map Engine Discovery · CLOSED (DISCOVERY ONLY)
+
+**Mode**: discovery + architecture · NO CODE · NO ROUTE CHANGES.
+
+### Reality verified
+- One MapLibre renderer · one CARTO basemap · one snapshot engine (`/api/operations-map/snapshot` in `operations_map_v1.py`).
+- Motive is the ONLY live data provider feeding the map. MaintainX is a stub. FleetWatcher is a reserved column with no service file.
+- Backend `/api/operations-map/*` is already role-agnostic (`require_any_portal_token`). Frontend `/operations-map` is currently `RequireAdmin`-gated; Dispatch reaches the map via `DispatchMapHero` embed at `/dispatch-portal`.
+- Lens metadata (`assignment.bucket_type`, `attention_reason`, `dominant_owner`, `attention_breakdown`, `next_action`) is ALREADY computed inside the snapshot payload — no new backend work would be required to construct role lenses.
+
+### Role verdicts
+- Dispatch: map-first · primary · permanent hard lock.
+- PM: small awareness panel max · not a full map page · doctrine flag (risk of duplicating PmHubV2 queues).
+- Shop: small awareness panel max · strongest non-Dispatch case · still secondary to ShopHubV2 recovery queue.
+- Mechanic: no map · existing Asset Card deep link is sufficient if any mechanic portal is ever built.
+- Safety: NO MAP · decisions are list-driven & time-driven, not spatial.
+- Leadership: NO MAP · decisions are aggregate counts & trends.
+- Admin: already has full `/operations-map` page · no change.
+
+### Three hard locks formalised
+1. DISPATCH MAP DOMINANCE — permanent platform invariant.
+2. ONE MAP ENGINE · ONE SOURCE OF TRUTH — no second map library, no second pipeline, no parallel map.
+3. NO MAP WITHOUT WORKFLOW DISCOVERY — Safety / Leadership / Mechanic / Admin (operationally) explicitly excluded by this lock.
+
+### Recommendation
+**Option B · One shared engine + embedded role-specific lenses (frontend filters + deep-links).** Score 8.8/10. No new backend, no new endpoints, no new collections, no new permissions, no new map systems.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No new map system · no new GPS / telematics provider · no UI modernization · no mockups · no new portals · no new APIs · no new auth.
+- New permanent doctrine in force: "*No workflow changes without workflow discovery*."
+
+### Next legitimate work
+- Operator review of `/app/memory/TRACK_13_7A_OPERATIONAL_MAP_DISCOVERY.md`.
+- If Option B is authorized: Shop awareness panel is the first warranted lens.
