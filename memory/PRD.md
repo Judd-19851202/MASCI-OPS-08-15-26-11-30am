@@ -40688,3 +40688,32 @@ Pod has `APP_ENV=preview` · `DB_NAME=masci_safety_preview` only. No production 
 - No deploy on this report alone.
 - No code changes · no production touches · no preview writes.
 - All five permanent hard locks confirmed in source (Map · Driver · Shop · One-engine · One source of truth).
+
+---
+
+## 2026-06-12 · Track 13.8D — Hidden System Recovery & Certification · CLOSED (DECISION ONLY)
+
+**Mode**: synthesis + decision matrix · no code · no retirement.
+
+### Outcome
+Single executive decision matrix consolidating Tracks 13.8A/B/C. No contradictions found against prior facts. Two minor source surprises documented (Operational Locations has 9 admin endpoints, not 8; Operational Records family = 23 backend endpoints with 0 frontend consumers).
+
+### Top recovery candidates
+1. **Operational Locations link in Admin Hub V2** — only doctrine-pure SURFACE that does NOT require operator interview.
+2. PO Requests cards in PM Hub V2 + FL Hub (operator-gated · 95% complete).
+3. Operational Events project-day panel on PM detail (operator-gated · 90% complete).
+4. `scale_ticket` structured-entry extension (operator-gated · slot exists).
+5. MaterialMovementTile in PM Hub V2 daily-report context (operator-gated).
+
+### Decisions
+- FINISH NOW: NONE.
+- SURFACE: 5 (1 doctrine-pure · 4 operator-gated).
+- IMPROVE: 1 (operator-gated).
+- LEAVE ALONE: all COMPLETE systems + Operational Signals + Links + MaintainX stub.
+- RETIRE LATER: 5 `*_legacy` routes per Track 13.6O.
+- DO NOT TOUCH: 15+ items in §17.
+- NEEDS OPERATOR INTERVIEW: 7 items.
+
+### Locked rules (unchanged · reaffirmed)
+- Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · No map without workflow discovery.
+- No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes.

@@ -1328,3 +1328,23 @@ None of these affect the directive's three success criteria; all three are MET a
 
 ### Operator handoff
 - §4 of the report contains a paste-and-run `mongosh` runbook covering portal usage, workflow volumes, reliability, stale work, integration reality, auth signals, and adoption (PO Requests · Operational Events · Operational Locations).
+
+## 2026-06-12 · Track 13.8D — Hidden System Recovery & Certification · CLOSED (DECISION ONLY)
+
+### Documented (no code change · synthesis only)
+- `/app/memory/TRACK_13_8D_HIDDEN_SYSTEM_RECOVERY_CERTIFICATION.md` — 21-section executive decision matrix.
+- Ledger / PRD / ROADMAP appended.
+
+### Synthesis sources
+- Track 13.8A (workflow gap discovery)
+- Track 13.8B (hidden-systems audit)
+- Track 13.8C (live-platform audit · halted at production access)
+
+### Key calls
+- Only doctrine-pure SURFACE without operator interview: Operational Locations reconciliation queue link in Admin Hub V2.
+- All other recovery candidates require operator interview.
+- FINISH NOW = NONE.
+- Permanent do-not-build list (RFIs / Submittals / COs / Cost / Contract / Pay-Apps / Document Control / Plan Revision / Vendor map / Driver hub / Mechanic portal / Safety map / Leadership map / Parallel map) re-confirmed.
+
+### NOT done (per directive)
+- No code · no UI · no retirement · no surfacing · no deploy.

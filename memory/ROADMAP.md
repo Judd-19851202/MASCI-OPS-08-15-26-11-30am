@@ -437,3 +437,40 @@ Not parked, just queued for user prioritization later:
 - No deploy · no Save to GitHub · no merge.
 - No code · no UI · no APIs · no auth · no routes.
 - No production touches · no preview writes.
+
+---
+
+## 2026-06-12 update · post Track 13.8D
+
+### Completed
+- ✅ Track 13.8D — Hidden System Recovery & Certification · CLOSED.
+
+### Single doctrine-pure SURFACE candidate (no operator interview required)
+- **Operational Locations reconciliation queue link in Admin Hub V2** — link only · admin-only · zero new backend · zero new permission · improves operations-map `assignment.name` quality indirectly.
+
+### Operator-interview-gated recovery candidates
+1. PO Requests action-queue cards in PM Hub V2 + Field Leadership Hub.
+2. Operational Events project-day panel on PM project-detail.
+3. MaterialMovementTile in PM Hub V2 daily-report context.
+4. `scale_ticket` structured-entry extension on driver attach.
+5. Field Memory · Field Revision finishing (needs interview before any work).
+
+### Background activation (operator-gated)
+- MaintainX credentials + UI surface decision.
+
+### Permanent retain (until 30-day signoff window completes)
+- `*_legacy` PM/HR/Safety/Shop/Dispatch routes (Track 13.6O handles retirement).
+
+### Permanent do-not-build / do-not-revive (Section 17 of 13.8D report)
+- RFIs · Submittals · Change Orders (formal) · Pay Applications · Cost Management · Contract Management · Formal Document Control · Plan Revision Management · Vendor Map Overlay · Driver Hub · Driver Login · Mechanic Portal · Safety Map Lens · Leadership Map Lens · Parallel Map Engine · FleetWatcher full activation (no operator pain proof).
+
+### Five permanent hard locks (verified intact)
+1. Dispatch map dominance.
+2. One map engine · one source of truth.
+3. No map without workflow discovery.
+4. Driver no-login.
+5. Shop Repair ≠ Returned-To-Service.
+
+### Forbidden / blocked (unchanged)
+- No deploy · no Save to GitHub · no merge.
+- No new portals / APIs / auth / map systems / route swaps without explicit operator authorisation tied to a discovery-then-build track.

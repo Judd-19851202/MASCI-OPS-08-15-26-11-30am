@@ -4570,3 +4570,51 @@ ZERO writes · ZERO mutations · ZERO provider calls · ZERO cron triggers · ZE
 No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes · no DB mutations · no production touches · no preview writes.
 
 **Track 13.8C · HALTED but DELIVERABLE-COMPLETE.**
+
+
+---
+
+## ENTRY · Track 13.8D · Hidden System Recovery, Completion, Surfacing & Retirement Certification
+**Date**: 2026-06-12
+**Mode**: DISCOVERY · CERTIFICATION · DECISION ONLY · no code · no retirement
+**Report**: `/app/memory/TRACK_13_8D_HIDDEN_SYSTEM_RECOVERY_CERTIFICATION.md`
+
+### Synthesis outcome
+Consolidates Tracks 13.8A + 13.8B + 13.8C into a single decision matrix. No contradictions found against the Section 2 prior-track facts. Two minor source-truth surprises documented: Operational Locations has 9 admin endpoints (prior records said 8); Operational Records family totals 23 endpoints across 6 modules with 0 frontend consumers of `/api/operational-records|events|timeline|signals|links|locations`.
+
+### Top 5 recovery candidates (in priority order · all operator-interview gated except #1)
+1. **Operational Locations reconciliation queue link in Admin Hub V2** — only doctrine-pure SURFACE that does NOT require operator interview (link-only, admin-only, zero new backend, zero new permission).
+2. **PO Requests action-queue cards in PM Hub V2 + Field Leadership Hub** (95% complete · operator-interview gated).
+3. **Operational Events project-day panel on PM detail page** (90% complete · operator-interview gated).
+4. **`scale_ticket` structured-entry extension on driver attach surface** (schema slot already exists · operator-interview gated).
+5. **MaterialMovementTile inside PM Hub V2 daily-report context** (100% read-view · operator-interview gated).
+
+### Top 5 DO-NOT-TOUCH candidates
+1. RFIs · Submittals · formal Change Orders · Pay Applications · Cost Management · Contract Management · Formal Document Control · Plan Revision Management — all doctrine-locked.
+2. Driver Hub / Driver Login — Driver hard lock.
+3. Mechanic Portal · Safety Map Lens · Leadership Map Lens — Track 13.7A hard locks.
+4. Parallel map engine — permanent hard lock.
+5. Vendor map overlay — no vendor_locations source, would invent.
+
+### Systems requiring operator interview
+PO Requests adoption · Operational Records & Timeline use case · Field Memory · Field Revision · production inspection `equipment_id` data quality · notification cadence + recipient quality · `scale_ticket` operator pain · Material Movement extend-or-dormant decision.
+
+### Decision matrix (counts)
+- SURFACE: 5 candidates (1 doctrine-pure, 4 operator-gated).
+- IMPROVE: 1 candidate (operator-gated).
+- LEAVE ALONE: COMPLETE systems + Operational Signals + Operational Links + MaintainX stub.
+- RETIRE LATER: 5 `*_legacy` routes after 30-day Track 13.6N signoff window.
+- DO NOT TOUCH: 15+ items in Section 17.
+- NEEDS OPERATOR INTERVIEW: 7 items.
+- FINISH NOW: NONE.
+
+### Hard locks reaffirmed (source-truth)
+Dispatch map dominance · Driver no-login · Shop Repair ≠ RTS · One map engine · One source of truth · No map without workflow discovery · MaintainX stub · FleetWatcher absent.
+
+### Five-pillar (this track)
+Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 7 → Aggregate **8.6/10** (Proven sub-9 reflects no operator interview).
+
+### Forbidden / blocked (all respected)
+No deploy · no Save to GitHub · no merge · no code · no UI · no APIs · no auth · no routes · no DB mutations · no production touches.
+
+**Track 13.8D · CLOSED.**
