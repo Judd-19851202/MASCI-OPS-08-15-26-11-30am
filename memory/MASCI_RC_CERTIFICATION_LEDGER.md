@@ -5288,3 +5288,57 @@ Deployment Readiness post 13.24: 🟢 **GREEN** (single-file frontend additive �
 - `/app/memory/TRACK_13_26_ASSET_SERVICE_EVENT_BACKBONE.md`
 
 **Next recommended track:** Track 13.27 — Unit History Timeline (frontend page · ~4h · consumes this endpoint).
+
+---
+
+## 2026-06-12 · Track 13.28A — Mechanic Assignment & Shop Workforce Certification
+
+**Mode:** READ-ONLY · no implementation · no code · no schema · no deploy.
+
+**Readiness score: 7.0 / 10 — "READY TO BUILD WITH MINIMAL RISK."**
+
+### What already exists (Phase 9.1 evidence-backed)
+- `db.shop_users` collection · per-user bcrypt · per-user shop tokens (`shop_users.py`).
+- `POST /api/shop/login` with `{email, password}` (server.py:1789).
+- RBAC role templates: rt-shop-mechanic · rt-shop-service-writer · rt-shop-parts-coordinator · rt-shop-manager (`lib/role_templates.py:269-335`).
+- RBAC action keys: `shop.work_orders.{view,create,update,close}` (`lib/rbac.py:172-177`).
+- `tasks_notifications.assignee_user_id` (first-class · used by Safety/PO/Training).
+- `lib/event_fanout.py` canonical fan-out primitive.
+- DVIR + Pre-Op fan-out → `assignee_role="shop"` (`routes/fleet_ops.py:567-650` · `routes/equipment.py:240-280`).
+- 4-state defect lifecycle + `fleet_audit` append-only audit.
+- Dispatch RTS hard lock (`/api/dispatch/fleet/defects/{id}/clear` requires `_require_dispatch_or_admin`).
+- MaintainX SDK + readiness classifier + dry-run sync + `fleet_defects.external_refs.maintainx_work_order_id` field.
+- Asset Service Event Backbone (Track 13.26) ready to absorb new assignment sub-events with zero schema delta.
+
+### What partially exists
+- Mechanic identity in repair audit is FREE TEXT (`acknowledged_by_name`, `repaired_by_name`) · token already carries user_id but the writer never reads it.
+- Role enforcement: K6 per-action RBAC deferred · defect endpoints use broad `_require_shop_or_admin`.
+- Notifications target by role only on fleet defects · `assignee_user_id` never set.
+- No `in_progress` state on `fleet_defects` · no `repair_started_at` timestamp.
+- No `shop_manager_reviewed_by_id` field.
+
+### What is missing (Track 13.28 scope)
+- ~10 additive nullable fields on `fleet_defects` (assignment + identity + intermediate timestamps + manager review + parts/labor notes).
+- 4 new endpoints: `assign` · `reassign` · `start` · `manager-review`.
+- Per-user notification wiring.
+- Mechanic queue UI (optional · can ship Phase 2).
+
+### Recommended build order
+1. Track 13.28 — Mechanic Assignment (additive · LOW-MED risk · architectural prerequisite).
+2. Track 13.31 — PM Engine (derived · LOW risk · reuses 13.28 lifecycle).
+3. Track 13.29 — Fuel/Lube Job Visit Form (MED risk · operator decision gate).
+4. Track 13.30 — Fuel/Lube Daily Reconciliation (depends on 13.29).
+5. Track 13.33 — Asset Care Command Center (LOW risk · pure aggregation).
+6. Track 13.32 — MaintainX Integration (LAST · blocked on `MAINTAINX_API_KEY`).
+
+### Blockers
+- Track 13.28: NONE. Additive-only · all infrastructure present.
+- Track 13.32: hard blocker on `MAINTAINX_API_KEY` + `MAINTAINX_SYNC_ENABLED=true` + `MAINTAINX_WRITE_ENABLED=true`.
+
+### Operator recommendation
+Authorize **Track 13.28 — Mechanic Assignment Workflow** as the next track. Defer K6 per-action enforcement to Track 13.28b after 30 days of telemetry. Defer MaintainX activation (13.32) until at least 13.28, 13.31, and 13.29 land.
+
+### Hard locks verified
+Dispatch Map-First · Driver No-Login · DriverHubV2 retired · Shop Repair ≠ RTS · Dispatch/Admin RTS · One Map Engine · One Source of Truth · No fake MaintainX/FleetWatcher · No duplicate history/event/asset spines · No ERP/accounting/pay-app/contracts.
+
+**Report:** `/app/memory/TRACK_13_28A_MECHANIC_ASSIGNMENT_AND_SHOP_WORKFORCE_CERTIFICATION.md`.

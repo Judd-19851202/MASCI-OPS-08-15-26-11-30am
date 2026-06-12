@@ -185,3 +185,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - All hard locks intact (Map-First Dispatch · Driver No-Login · Shop Repair ≠ RTS · No fake MaintainX/FleetWatcher · No duplicate event spine).
 - Report: `/app/memory/TRACK_13_26_ASSET_SERVICE_EVENT_BACKBONE.md`.
 - Deployment readiness remains 🟢 **GREEN**.
+
+## 2026-06-12 · Track 13.28A closeout (READ-ONLY certification)
+
+- Source-truth audit of Shop workforce, auth, RBAC, assignment, and notification stack ahead of Track 13.28 (Mechanic Assignment Workflow).
+- **Readiness score: 7.0 / 10** — "READY TO BUILD WITH MINIMAL RISK."
+- **Verdict:** mechanic assignment is ~80% pre-wired. `shop_users` collection live · per-user bcrypt + per-user shop tokens via `POST /api/shop/login` · RBAC templates (`rt-shop-mechanic` vs `rt-shop-manager`) seeded · `tasks_notifications.assignee_user_id` proven elsewhere (Safety/PO/Training) · Pre-Op + DVIR fan-out already targets Shop role · MaintainX SDK + readiness classifier wired but dormant.
+- **Gaps blocking 13.28:** none. Track 13.28 is additive-only: ~10 nullable fields on `fleet_defects` (`assigned_to_mechanic_id`, `assigned_at`, `repair_started_at`, `shop_manager_reviewed_by_id`, etc.) + 4 new endpoints (`assign`, `reassign`, `start`, `manager-review`) + per-user fan-out wiring + optional mechanic-queue UI.
+- **Hard locks honored:** Dispatch RTS lock confirmed at endpoint level (`/shop/.../repair` vs `/dispatch/.../clear`). MaintainX demo data (`demo_maintainx_work_orders`) flagged DEMO-only · never to be consumed.
+- **Recommended build order:** 13.28 → 13.31 (PM) → 13.29 (Fuel/Lube) → 13.30 (Service-Truck Recon) → 13.33 (Asset Care Command) → 13.32 (MaintainX, LAST · blocked on `MAINTAINX_API_KEY`).
+- **Operator decisions pending:** (a) approve Track 13.28 implementation, (b) defer K6 per-action RBAC enforcement to 13.28b after 30-day telemetry, (c) MaintainX credentials still embargoed.
+- Zero code changes · zero schema delta · zero deploy.
+- Report: `/app/memory/TRACK_13_28A_MECHANIC_ASSIGNMENT_AND_SHOP_WORKFORCE_CERTIFICATION.md`.
+- Deployment readiness remains 🟢 **GREEN**.

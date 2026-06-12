@@ -745,3 +745,26 @@ After 13.17 + 13.18 + 13.19 land, the entire 34-hour Immediate Build Queue from 
 - **Track 13.33** — Asset Care Command Center (Shop Hub V2 Section 05 or dedicated page · depends on 13.26–13.31).
 
 After Track 13.27 lands, the Asset Service Event Backbone becomes operator-visible. Subsequent fuel/lube/PM/mechanic systems consume the SAME endpoint shape — no duplicate history surfaces.
+
+## 2026-06-12 · Post Track 13.28A (READ-ONLY cert · no implementation)
+- ✅ Source-truth certification CLOSED · readiness score 7.0/10 · LOW-RISK go-ahead for Track 13.28.
+- 🟢 Deployment readiness remains GREEN.
+
+### Recommended build order (rework-minimized · per Track 13.28A §11)
+1. **Track 13.28** — Mechanic Assignment Workflow (LOW-MED risk · additive-only schema)
+   - Add nullable assignment + identity fields on `fleet_defects` (assigned_to_mechanic_id, assigned_at, repair_started_at, shop_manager_reviewed_by_id + companions).
+   - Add 4 endpoints: `assign` · `reassign` · `start` · `manager-review`.
+   - Wire per-user fan-out (`tasks_notifications.assignee_user_id`).
+   - Optional: `/shop/me` mechanic-only queue UI + assign dropdown.
+   - Ship identity capture FIRST. Defer K6 per-action enforcement to follow-up Track 13.28b after 30 days of telemetry.
+2. **Track 13.31** — PM Engine (LOW risk · derived first · reuses 13.28 lifecycle)
+3. **Track 13.29** — Fuel/Lube Job Visit Form (MED risk · operator decision gate)
+4. **Track 13.30** — Fuel/Lube Daily Service-Truck Reconciliation (depends on 13.29)
+5. **Track 13.33** — Asset Care Command Center (LOW risk · pure read aggregation)
+6. **Track 13.32** — MaintainX Integration (HIGH risk · BLOCKED on `MAINTAINX_API_KEY` + sync/write env flags)
+
+### Decision gates pending operator approval
+- (a) Authorize Track 13.28 implementation kickoff.
+- (b) Confirm K6 (per-action RBAC enforcement) defers to Track 13.28b after telemetry.
+- (c) Confirm Track 13.29 introduces "Fuel/Lube Operator" role + `fuel_service_visits` collection scope.
+- (d) MaintainX credentials still embargoed pending vendor + IT.

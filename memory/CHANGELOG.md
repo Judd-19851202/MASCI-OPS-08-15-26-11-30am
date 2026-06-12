@@ -1697,3 +1697,28 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 
 ### Hard locks reaffirmed
 - Dispatch Map-First · Driver No-Login · Shop Repair Complete ≠ RTS · One Map Engine · One Source of Truth · No fake MaintainX/FleetWatcher · No duplicate event spine · No duplicate asset spine · No ERP/accounting/pay-app/contracts.
+
+## 2026-06-12 · Track 13.28A — Mechanic Assignment & Shop Workforce Certification (READ-ONLY)
+
+### Added
+- `memory/TRACK_13_28A_MECHANIC_ASSIGNMENT_AND_SHOP_WORKFORCE_CERTIFICATION.md` (~13 phases · readiness score · gap analysis · recommended build order).
+
+### Modified
+- `memory/PRD.md` · `memory/CHANGELOG.md` · `memory/ROADMAP.md` · `memory/MASCI_RC_CERTIFICATION_LEDGER.md` (closeout entries only).
+
+### NOT changed
+- Zero code · zero new collection · zero schema delta · zero new endpoint · zero new route · zero auth change · zero workflow change · zero UI change · zero deploy.
+
+### Findings
+- Mechanic users CAN log in today (`POST /api/shop/login` · per-user bcrypt · `make_shop_user_token`).
+- Defect lifecycle endpoints accept per-user shop tokens via `_require_shop_or_admin`, but capture identity as FREE TEXT (`acknowledged_by_name`, `repaired_by_name`) — no FK to `shop_users.id`.
+- `tasks_notifications.assignee_user_id` is first-class but never set on fleet-defect-derived tasks.
+- Role templates split Mechanic vs Manager already exists (`lib/role_templates.py:289-335`); enforcement (K6) deferred.
+- MaintainX SDK + readiness classifier wired but `MAINTAINX_API_KEY` empty + sync/write flags `false`.
+- Asset Service Event Backbone (Track 13.26) ready to consume new assignment sub-events with zero schema change.
+
+### Readiness score per dimension
+- User Model: 9/10 · Permissions: 6/10 · Assignments: 5/10 · Notifications: 8/10 · Lifecycle Ownership: 8/10 · MaintainX Readiness: 6/10. **Overall: 7.0 / 10.**
+
+### Hard locks reaffirmed
+- Dispatch Map-First · Driver No-Login · DriverHubV2 retired · Shop Repair Complete ≠ RTS · Dispatch/Admin RTS verification · One Map Engine · One Source of Truth · No fake MaintainX / FleetWatcher · No duplicate history / event / asset spines · No ERP / accounting / pay-app / contracts.
