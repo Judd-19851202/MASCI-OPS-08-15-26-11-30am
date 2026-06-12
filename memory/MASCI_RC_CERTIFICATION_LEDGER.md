@@ -4805,3 +4805,51 @@ Trust state: all live portals now declare themselves live; all companion portals
 **Track 13.16 · CLOSED.**
 
 Deployment Readiness post 13.16: 🟢 **GREEN**. Platform Health Score: 9.9 / 10. Ready for Track 13.6N 30-day operator signoff window.
+
+
+## 2026-06-12 · Track 13.18 — Material Movement Ledger · Certification & Architecture · DONE
+
+**Mode:** Source-truth certification + architecture design only. **Zero code change · zero schema change · zero UI change.**
+
+### Phase 1 — Source-Truth Inventory (verified against live codebase)
+
+| Source                                  | Disposition                          |
+| --------------------------------------- | ------------------------------------ |
+| `daily_reports.materials[]`             | Field source truth · INBOUND         |
+| `daily_reports.outbound_materials[]`    | Field source truth · OUTBOUND (K-MM-2) |
+| `dispatch_assignments`                  | Dispatch operational truth           |
+| `haul_cycles`                           | Dispatch completion truth (derived)  |
+| `operational_attachments` (scale_ticket family · Track 13.14) | Proof truth     |
+| `odr.MaterialEvent` (ODR §5.5)          | Formal archive layer                 |
+| `/api/material-movement/daily/{p}/{d}`  | **LEDGER BACKBONE (derived view)**   |
+| FleetWatcher `_fleetwatcher_template()` | **NOT_CONNECTED · reserved only**    |
+| MaintainX `_maintainx_template()`       | Out of scope for material movement   |
+
+### Phase 5 — Existing module disposition
+
+* `backend/routes/material_movement.py` + `frontend/src/components/MaterialMovementTile.jsx` → **LEDGER BACKBONE.** Keep as derived rollup. Do not introduce new collection.
+* `odr.MaterialEvent` → **SUPPORTING VIEW** (formal archive). Do not retire. Do not promote.
+* `haul_cycles` → **SUPPORTING VIEW** (Dispatch summary truth).
+* `operational_attachments` (scale_ticket) → **SUPPORTING VIEW · PROOF LAYER.**
+
+### Phase 15 — Final recommendation
+
+**B — Build Phase A only now.** Enrich the existing derived endpoint with proof-join + virtual `verification_status` + rollup counters. Single backend file. Zero new collection. Zero new UI. Zero new schema.
+
+### Phased build plan (subject to operator directive)
+
+| Track    | Phase | Status                                       |
+| -------- | ----- | -------------------------------------------- |
+| 13.19    | A     | **NEXT — awaiting operator directive**       |
+| 13.20    | B     | Queued — PM project material panel           |
+| 13.21    | C     | Queued — Dispatch Companion Haul Ledger      |
+| 13.22    | D     | Queued — Admin Data-Quality + CSV Export     |
+| —        | E     | **BLOCKED on FleetWatcher credentials**      |
+
+### Hard-lock reaffirmation
+
+Dispatch Map-First intact · Driver no-login intact · No new collection authorized · No accounting / ERP / pay-app / cost / contract · No FleetWatcher fake data · PM = assigned projects only · Admin = company-wide data-quality only · MaintainX out of scope · ODR archive layer preserved · Daily Reports remain field source truth.
+
+**Track 13.18 · CLOSED.** Report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICATION_AND_ARCHITECTURE.md`.
+
+Deployment Readiness post 13.18: 🟢 **GREEN** (unchanged — certification-only track).

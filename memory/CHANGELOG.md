@@ -10,6 +10,22 @@
 
 ---
 
+## 2026-06-12 · Track 13.18 — Material Movement Ledger · Certification & Architecture
+
+**Mode:** Source-truth certification + architecture design only. **NO implementation.**
+
+- Audited 5 live material sources: `daily_reports.materials[]` (inbound), `daily_reports.outbound_materials[]` (outbound · K-MM-2), `dispatch_assignments`, `haul_cycles`, `operational_attachments` (scale_ticket family). + ODR `MaterialEvent` archive layer.
+- FleetWatcher confirmed **NOT_CONNECTED** — `FLEETWATCHER_API_KEY` env absent; templates return null fields. Asset spine reserves `fleetwatcher_asset_id` (unpopulated).
+- MaintainX confirmed **out of scope** for material movement.
+- Existing `/api/material-movement/daily/{p}/{d}` (MM-001B · E-1) declared **LEDGER BACKBONE**. No new collection authorized.
+- Role visibility matrix locked: PM = project-scoped · Dispatch = company-wide companion (outside MapLibre canvas) · Admin = company-wide rollup + export · Driver / HR / Safety / Shop = no material ledger ownership.
+- Phased build plan defined: Phase A (proof-join + verification labels · 1 file · zero new schema · zero UI), Phase B (PM project panel), Phase C (Dispatch companion ledger), Phase D (Admin data-quality + CSV export), Phase E (FleetWatcher · blocked on credentials).
+- **Recommendation: B — build Phase A only as Track 13.19.** Then phases B–D as separate tracks.
+- Zero code · zero schema · zero UI change. Deployment readiness remains 🟢 GREEN.
+- Report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICATION_AND_ARCHITECTURE.md`.
+
+---
+
 ---
 
 ---

@@ -281,7 +281,8 @@ async def scan_missing_receipts(db, dry_run: bool = False) -> Dict[str, Any]:
             )
             await _fan_out_task(db, d, kind="receipt_missing",
                                  priority="High",
-                                 assignee_role="leadership")
+                                 assignee_role="pm",
+                                 cc_roles=["hr"])
         fired.append(d["id"])
     return {"flagged": len(fired), "ids": fired, "dry_run": dry_run}
 
@@ -705,6 +706,26 @@ def build_po_requests_router(
         await db.po_requests.update_one({"id": po_id}, {"$set": update})
         await _audit_push(db, po_id, "receipt_uploaded", actor,
                            {"filename": file.filename})
+
+        # Track 13.17 · Receipt Received notification (Event 5).
+        # Bell-feed parallel notifications to PM + HR roles so they can
+        # see the loop close. Visibility-only · no new task created.
+        try:
+            from routes.tasks_notifications import notification_service  # noqa: PLC0415
+            po_after = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
+            for cc_role in ("pm", "hr"):
+                await notification_service.fanout(db, {
+                    "type": "po.receipt_received",
+                    "title": f"Receipt received for {po_after.get('po_number') or po_id[:8]}",
+                    "message": f"{po_after.get('vendor') or ''} · uploaded by {_actor_name(actor)}",
+                    "severity": "Info",
+                    "recipient_role": cc_role,
+                    "linked_source_module": "po.receipts",
+                    "linked_source_record_id": po_id,
+                    "linked_project_number": po_after.get("project_number"),
+                })
+        except Exception as e:  # pragma: no cover
+            logger.warning("PO receipt-received notification failed: %s", e)
 
         # Iter160 · Operational signal — PO receipt cycle (approved → receipt).
         try:
