@@ -14,8 +14,8 @@ const PORTAL_CONFIG = {
     currentTitle: "Current PM Portal · /pm/hub",
     currentTo: "/pm/hub",
     currentNote: "Requires PM login (pm.demo@mascigc.com). The current PM portal carries the live data; iframe may show the login page until you authenticate in another tab.",
-    v2Title: "PM V2 Preview · /_internal/pm-v2-preview",
-    v2To: "/_internal/pm-v2-preview",
+    v2Title: "PM Hub V2 · /pm/hub_v2 (live · real APIs)",
+    v2To: "/pm/hub_v2",
     purpose: "Build projects",
   },
   hr: {

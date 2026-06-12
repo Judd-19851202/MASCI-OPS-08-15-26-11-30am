@@ -3651,3 +3651,43 @@ Header: `X-Admin-Token: <HR token>` — identical to classic `HrKpiStrip._authHe
 
 ### Verdict
 **Track 13.6C Complete — HR Hub V2 is live at `/hr/hub_v2` · classic `/hr` is unchanged · operator visual approval is the next gate. Pattern established for remaining 8 portal migrations.**
+
+---
+
+## Track 13.6D · PM V2 Live Migration (second real portal conversion)
+
+**Mode honoured:** side-by-side · live PM data · same RequirePm auth · NO route swap · NO PM workflow / form / API / permission touched · NO deploy / GitHub save / merge.
+
+### Files created / edited
+- `/app/frontend/src/pages/PmHubV2.jsx` — NEW. Reads 8 live `/api/*` endpoints (all pre-existing). Action-queue model. Phase B1 primitives. `X-PM-Token` + `X-Admin-Token` headers via `pmAuth.getPmToken()` / `adminAuth.getAdminToken()` — identical to `operations/ocCommandApi.authHeaders()`.
+- `/app/frontend/src/App.js` — +2 lines (`<Route path="/pm/hub_v2" element={P(<PmHubV2 />)} />`).
+- `/app/frontend/src/pages/V2Index.jsx` + `/V2Compare.jsx` — PM entry updated to load LIVE `/pm/hub_v2`.
+
+### Operator decisions honoured
+- Project Risks PERMANENTLY renamed to Project Constraints (real `/api/constraints` engine).
+- RFIs ABSENT (DOM scan confirms zero `rfi` occurrences).
+- Submittals ABSENT (DOM scan confirms zero `submittal` occurrences).
+
+### Data sources (8 real endpoints, all pre-existing)
+`/api/daily-reports` · `/api/incidents` · `/api/pm/crew/capas` · `/api/constraints` · `/api/pm/jobs` (joined to signals) · `/api/qaqc/inspections` · `/api/pm/crew/summary` · `/api/job-photos`.
+
+### Required-validation checklist (per 13.6D directive) — 5/5 PASS
+1. Every count from real data ✅
+2. Every queue opens real workflow ✅
+3. Every button navigates somewhere real ✅
+4. Permissions preserved ✅
+5. Current PM behavior preserved ✅
+
+### Zero-drift verification
+- 15 live operator routes — every `pm-hub-v2-root` count = 0 (and `hr-hub-v2-root` also = 0). Classic `/pm/hub` byte-for-byte unchanged.
+- Dispatch visual guardrail: `box=1084×520 · mean=24.85 · variance=275.46 · unique=103` — PASS (identical baseline).
+
+### Evidence
+- Report: `/app/memory/TRACK_13_6D_PM_V2_MIGRATION_REPORT.md` (11 sections).
+- Screenshots: `/app/memory/screenshots/track_13_6d_pm_migration/` — 8 files (BEFORE current PM × 4 viewports · AFTER PM Hub V2 × 4 viewports).
+
+### Five-pillar score (live)
+- PM Hub V2: 9 · 9 · 9 · 9 · 8 → **8.8 avg**.
+
+### Verdict
+**Track 13.6D Complete — `/pm/hub_v2` is live · classic `/pm/hub` is unchanged · operator visual approval is the next gate.** Migration pattern now proven across two independent portals (HR + PM) with two different auth systems.

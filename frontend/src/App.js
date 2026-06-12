@@ -161,6 +161,8 @@ const AdminAnalytics = React.lazy(() => import("@/pages/admin/AdminAnalytics"));
 const HrHub = React.lazy(() => import("@/pages/HrHub"));
 // Track 13.6C · HR Hub V2 — first real portal migration (live data · same HR auth).
 const HrHubV2 = React.lazy(() => import("@/pages/HrHubV2"));
+// Track 13.6D · PM Hub V2 — second real portal migration (live data · same PM auth).
+const PmHubV2 = React.lazy(() => import("@/pages/PmHubV2"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -628,6 +630,8 @@ function App() {
             <Route path="/pm/change-password" element={P(<PmChangePassword />)} />
             <Route path="/pm" element={P(<PmHomeRedirect />)} />
             <Route path="/pm/hub" element={P(<PmHub />)} />
+            {/* Track 13.6D · PM Hub V2 lives side-by-side with /pm/hub · same RequirePm auth · NO route swap. */}
+            <Route path="/pm/hub_v2" element={P(<PmHubV2 />)} />
             {/* iter353e-UI · PM Crew Compliance Lens (read-only) */}
             <Route path="/pm/crew-compliance" element={P(<PmCrewCompliance />)} />
             {/* iter105 — PM Console sub-routes (mirrors AdminConsole layout)

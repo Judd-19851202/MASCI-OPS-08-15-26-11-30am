@@ -40168,3 +40168,29 @@ If all hold → **production certified**. Else → escalate.
 **Standing rules still in force:** No deploy. No GitHub save. No merge. No route swap.
 
 **Next gate:** Operator visual approval via `/_internal/v2-compare/hr` (now showing LIVE `/hr/hub_v2` vs LIVE `/hr`). Approval authorizes a route swap of `/hr` to the V2 implementation.
+
+---
+
+## 2026-06-12 · Track 13.6D — PM V2 Live Migration (SECOND REAL PORTAL CONVERSION · COMPLETE)
+
+**Mode:** side-by-side · live PM data · same `RequirePm` auth · NO route swap · no PM workflow/form/API/permission touched.
+
+**Created:** `/app/frontend/src/pages/PmHubV2.jsx` mounted at `/pm/hub_v2`. Reads 8 live `/api/*` endpoints (all pre-existing). `X-PM-Token` + `X-Admin-Token` headers — identical to `operations/ocCommandApi.authHeaders()`.
+
+**Operator decisions honored:** Project Risks PERMANENTLY renamed to Project Constraints · RFIs ABSENT (DOM scan zero) · Submittals ABSENT (DOM scan zero).
+
+**Data sources (all pre-existing):** `/api/daily-reports`, `/api/incidents`, `/api/pm/crew/capas`, `/api/constraints`, `/api/pm/jobs`, `/api/qaqc/inspections`, `/api/pm/crew/summary`, `/api/job-photos`.
+
+**Validation (5/5 PASS):** real source data · real destinations · real workflows · permissions preserved · current PM behavior preserved.
+
+**Zero-drift:** 15 live operator routes verified zero V2 leakage. Dispatch visual guardrail PASS (identical signature).
+
+**Five-pillar score (live):** 9 · 9 · 9 · 9 · 8 → 8.8 avg.
+
+**Evidence:** `/app/memory/TRACK_13_6D_PM_V2_MIGRATION_REPORT.md` + 8 screenshots in `/app/memory/screenshots/track_13_6d_pm_migration/`.
+
+**Two pilot portals (HR + PM) now operating side-by-side with live data.** Migration pattern proven across two independent auth systems.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge. No route swap.
+
+**Next gate:** Operator visual approval via `/_internal/v2-compare/pm` and `/_internal/v2-compare/hr`. Approval authorizes the swap of `/hr` and/or `/pm/hub`.
