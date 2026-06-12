@@ -78,6 +78,9 @@ function usePmSignals() {
     // Track 13.6F · Phase 3 / 4 — unified aggregators (real engines).
     unified_holds:      null,    // /api/pm/command-center/holds (total)
     due_today:          null,    // /api/pm/command-center/due-today (total)
+    // Track 13.6I · Phase 1 — oldest-age secondary metrics (factual).
+    unified_holds_oldest_label: "",
+    due_today_oldest_label:     "",
   });
 
   useEffect(() => {
@@ -180,7 +183,7 @@ function RealLink({ to, testid, children, intent = "default" }) {
   );
 }
 
-function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenAttention = "warning" }) {
+function QueueCard({ to, testid, title, why, source, value, loaded, secondary, variantWhenAttention = "warning" }) {
   const isAttention = loaded && typeof value === "number" && value > 0;
   return (
     <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
@@ -196,6 +199,12 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
           : <StatusChip statusKey="verified" compact />
         }
       >
+        {secondary && (
+          <p data-testid={`${testid}-secondary`}
+             style={{ margin: "4px 0 0", fontSize: 11, color: "var(--ink-strong)", fontWeight: 600 }}>
+            {secondary}
+          </p>
+        )}
         <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
           {source}
         </p>
@@ -271,6 +280,7 @@ export default function PmHubV2() {
               source="Source: /api/pm/command-center/holds — real engines only"
               value={s.unified_holds}
               loaded={s.loaded}
+              secondary={s.unified_holds_oldest_label}
             />
             {/* Track 13.6F · Phase 4 — PM-3 Due Today (real deadline aggregator). */}
             <QueueCard
@@ -281,6 +291,7 @@ export default function PmHubV2() {
               source="Source: /api/pm/command-center/due-today — real deadlines"
               value={s.due_today}
               loaded={s.loaded}
+              secondary={s.due_today_oldest_label}
             />
             <QueueCard
               to="/pm/daily"

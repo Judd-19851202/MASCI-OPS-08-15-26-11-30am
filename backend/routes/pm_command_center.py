@@ -1037,6 +1037,26 @@ def build_pm_command_center_router(
         rows.sort(key=lambda r: r.get("opened_at") or "", reverse=True)
         rows = rows[: int(limit)]
 
+        # ── Track 13.6I · Phase 1 — oldest-age secondary metric ─────
+        # Pure derivation from real opened_at timestamps already on each row.
+        def _max_age(kind: str) -> int:
+            ages = [r.get("age_days") or 0 for r in rows if r.get("kind") == kind]
+            return max(ages) if ages else 0
+        oldest = {
+            "equipment_holds": _max_age("equipment_hold"),
+            "constraint_holds": _max_age("constraint"),
+            "fleet_defects": _max_age("fleet_defect"),
+            "total": max((r.get("age_days") or 0) for r in rows) if rows else 0,
+        }
+        oldest_labels = {
+            k: (f"Oldest Held {v} Days" if v > 1
+                else ("Oldest Held 1 Day" if v == 1
+                      else ("Held Today" if (rows and k != "total"
+                                              and any(r.get("kind", "").startswith(k.rstrip("s")) for r in rows))
+                            else "")))
+            for k, v in oldest.items()
+        }
+
         return {
             "ok": True,
             "as_of": _now_iso(),
@@ -1048,6 +1068,8 @@ def build_pm_command_center_router(
                 "constraint_holds": constraint_count,
                 "fleet_defects": defect_count,
             },
+            "oldest_age_days": oldest,
+            "oldest_age_label": oldest_labels,
             "rows": rows,
         }
 
@@ -1187,6 +1209,13 @@ def build_pm_command_center_router(
                 "total": len(rows),
                 "capas_due_today": capa_count,
                 "daily_reports_pending_today": dr_count,
+            },
+            # ── Track 13.6I · Phase 1 — oldest-age secondary metric ─
+            # All Due Today rows by definition fall today → label "Due Today".
+            "oldest_age_label": {
+                "capas_due_today": "Due Today" if capa_count else "",
+                "daily_reports_pending_today": "Due Today" if dr_count else "",
+                "total": "Due Today" if (capa_count or dr_count) else "",
             },
             "rows": rows,
         }

@@ -40345,3 +40345,51 @@ project-filter narrowing, honest empty states, and pure-helper invariants.
 - No deploy · no Save to GitHub · no merge.
 - No dead objects · no fake urgency · backend owns routing truth.
 - "Project Risks" stays renamed → "Project Constraints"; RFIs / Submittals remain forbidden.
+
+---
+
+## 2026-06-12 · TRACK 13.6I — Dispatch + Safety Route Swaps · Shop Recovery Start
+
+**Final verdict**: Track 13.6I Complete — Ready For Operator Review.
+
+- **Dispatch swap done**: `/dispatch-portal` now serves V2 · classic at `/dispatch-portal/hub_legacy` (MapLibre command map intact).
+- **Safety swap done**: `/safety-portal` now serves V2 · classic at `/safety-portal/hub_legacy` (Trench Safety untouched).
+- **Shop V2 preview lane**: new `/shop/hub_v2` mounted (behind RequireShop). 9 action queues from existing `summary.shop`. Repair Complete ≠ Safe To Use rule preserved via separate Returned-To-Service queue.
+- **Oldest-age secondary metric**: PM-2 / PM-3 endpoints emit `oldest_age_label` derived from real timestamps. PM Hub V2 cards render the secondary line when the count > 0.
+- Tests: 24/24 backend regression PASS.
+
+### Backlog
+- **P1** — Track 13.6J: Shop route swap · Admin / Field Leadership / Driver / Leadership preview lanes. Driver special directive: ≤ 2 taps, ≤ 30 s, immediate first action.
+- **P3** — Remove `*_legacy` rollback routes after permanent operator sign-off.
+
+### Locked rules
+- No deploy · no Save to GitHub · no merge.
+- No dead objects · no fake urgency · no duplicate engines.
+
+---
+
+## 2026-06-12 · TRACK 13.6J — Dispatch Map Protection · Shop Swap · Driver V2 Foundation
+
+**Verdict**: Track 13.6J Complete — Ready For Operator Review.
+
+### 🚨 Dispatch Map Protection enforced
+- Pre-flight detected the 13.6I `/dispatch-portal` swap had replaced the map-dominant classic with the action-queue V2 surface. Per the hard-lock directive, the swap was reverted: `/dispatch-portal` is once again the map-dominant classic Dispatcher. V2 hub remains accessible at `/dispatch-portal/hub_v2` as a companion lane. The MapLibre operational map is the canonical Dispatch experience.
+
+### Phase 1 · Shop swap
+- `/shop` → ShopHubV2 (9 action queues from real `summary.shop`). Classic preserved at `/shop/hub_legacy`. Repair Complete ≠ Returned To Service preserved via separate queues.
+
+### Phase 2 · Driver V2 foundation
+- New `/app/frontend/src/pages/driver/DriverHubV2.jsx` mounted at `/driver/hub_v2`.
+- Single-question UX ("What do you need to do right now?") · one big primary action · ≤ 2 taps · ≤ 30 s.
+- Real source: `/api/dispatch/driver/my-assignment`.
+- Classic `/driver` (DriverShift) untouched.
+
+### Backlog
+- **P1** — Track 13.6K: Admin Hub V2 preview lane · Field Leadership V2 preview · Leadership V2 preview.
+- **P2** — Re-classify Dispatch V2 in the V2 Index from "swap" to "companion lane".
+- **P3** — Remove `*_legacy` rollback routes after permanent operator sign-off.
+
+### Locked rules
+- No deploy · no Save to GitHub · no merge.
+- **Dispatch MapLibre map prominence is a hard lock.**
+- "Project Risks" stays renamed → "Project Constraints"; RFIs / Submittals remain forbidden.

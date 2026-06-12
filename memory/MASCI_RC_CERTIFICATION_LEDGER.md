@@ -3992,3 +3992,109 @@ Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → **8.8 avg** (
 ### Pending next phases
 - **13.6H Phase 5 / 13.6I**: route swap for Dispatch + Safety after operator review; legacy preserved at `*_legacy`.
 - **Portal recovery order**: Shop → Admin → Field Leadership → Driver (≤ 2 taps, ≤ 30 s, immediate first action) → Leadership.
+
+---
+
+## TRACK 13.6I · Dispatch + Safety Route Swaps · Shop Recovery Start
+
+**Date**: 2026-06-12
+**Final verdict**: **Track 13.6I Complete — Ready For Operator Review**
+
+### Five phases shipped
+1. **Oldest-age secondary metric** (PM-2 / PM-3): backend now emits `oldest_age_days` + `oldest_age_label` (`Oldest Held N Days` / `Due Today`). Pure derivation from real timestamps. PM Hub V2 `QueueCard` extended with `secondary` prop.
+2. **Dispatch route swap**: `/dispatch-portal` → Dispatch Hub V2 · classic preserved at `/dispatch-portal/hub_legacy` · `/dispatch-portal/hub_v2` alias kept · all sub-routes / MapLibre / Motive integrations untouched.
+3. **Dispatch FocusBanner extensions** verified (focus_assignment_id / focus_truck_id / focus_driver_id) — honest scope-excluded state confirmed.
+4. **Safety route swap**: `/safety-portal` → Safety Hub V2 · classic preserved at `/safety-portal/hub_legacy` · Trench Safety + all safety sub-routes byte-for-byte preserved.
+5. **Shop Recovery start**: new `/shop/hub_v2` preview lane · 9 action-queue cards from `summary.shop` · Repair Complete ≠ Safe To Use rule preserved via separate Returned-To-Service queue.
+
+### Visual guardrail proofs
+- `/dispatch-portal` post-swap → `dispatch-hub-v2-root` = 1
+- `/dispatch-portal/hub_legacy` → `dispatch-hub-v2-root` = 0 (classic with MapLibre fleet map intact)
+- `/safety-portal` post-swap → `safety-hub-v2-root` = 1
+- `/safety-portal/hub_legacy` → `safety-hub-v2-root` = 0 (classic Safety Operations Dashboard intact)
+- `/shop/hub_v2` → root + 9 queue cards
+- `/shop` classic → `shop-hub-v2-root` = 0
+
+### Tests · 24/24 PASS
+- `test_track_13_6f_pm_engines.py` · `test_track_13_6g_deep_link_triage.py` · `test_track_13_6h_sla_chip.py`
+
+### Doctrine adherence
+| Hard rule | Status |
+| --- | --- |
+| No dead objects / no placeholders / no future buttons | ✅ |
+| Real data only / no fake urgency | ✅ — forbidden-vocab test enforces this |
+| Every card leads to action | ✅ — verified at every queue card |
+| Permissions / auth / workflows / routes / engines / integrations preserved | ✅ |
+| Rollback paths preserved | ✅ — `/dispatch-portal/hub_legacy` + `/safety-portal/hub_legacy` |
+| No duplicate engines · no duplicate APIs | ✅ — every Hub V2 reads from one existing endpoint |
+| Backend owns routing truth | ✅ — `destination_path` server-encoded |
+| Dispatch visual guardrail | ✅ — MapLibre untouched |
+| PM + HR remain operational | ✅ — unchanged |
+
+### Report
+- `/app/memory/TRACK_13_6I_DISPATCH_SAFETY_SHOP_RECOVERY.md` (full 20-section report).
+
+---
+
+## TRACK 13.6J · Dispatch Map Protection · Shop Swap · Driver V2 Foundation
+
+**Date**: 2026-06-12
+**Verdict**: Track 13.6J Complete — Ready For Operator Review.
+
+### 🚨 Dispatch Map Protection — conflict documented & resolved
+- **Conflict detected** during pre-flight: the 13.6I `/dispatch-portal` swap had replaced the map-dominant classic hub with the action-queue V2 surface, **diminishing the MapLibre operational map's prominence**.
+- **Action taken** per the hard-lock directive: REVERTED the `/dispatch-portal` swap. `/dispatch-portal` now serves the classic Dispatcher (MapLibre live fleet map dominant). V2 companion remains accessible at `/dispatch-portal/hub_v2`. Rollback alias `/dispatch-portal/hub_legacy` kept pointing at the same classic component.
+- Doctrine recorded: **the Dispatch MapLibre operational map remains the dominant operational surface; no V2 implementation may diminish it.**
+
+### Phase 1 · Shop route swap
+- `/shop` → Shop Hub V2 (action-queue surface, 9 queues from `summary.shop`).
+- Classic preserved at `/shop/hub_legacy`. Alias `/shop/hub_v2` kept.
+- Repair Complete ≠ Returned To Service rule preserved — separate queues.
+- Verified: `/shop` → V2 root = 1, queues = 9 · `/shop/hub_legacy` → V2 leak = 0.
+
+### Phase 2 · Driver V2 foundation
+- New page `/app/frontend/src/pages/driver/DriverHubV2.jsx` mounted at `/driver/hub_v2` (no auth gate change · uses existing `driverHeaders`).
+- Single-question UX: "What do you need to do right now?" + one giant primary action button + two real secondary actions (Report an Issue → /driver, Contact Dispatch → tel:).
+- Real source: `GET /api/dispatch/driver/my-assignment` (existing real endpoint).
+- ≤ 2 taps · ≤ 30 seconds · zero KPIs · zero dashboards · zero invented work.
+- Verified: `driver-hub-v2-root` = 1, headline = 1, exactly ONE primary action button (SIGN IN if no driver session, OPEN MY SHIFT SCREEN otherwise).
+- Classic tap-and-work surface at `/driver` (DriverShift) untouched.
+
+### Files modified
+- `/app/frontend/src/App.js` — Dispatch swap reverted · Shop swap committed · `/driver/hub_v2` route added · DriverHubV2 lazy import.
+- `/app/frontend/src/pages/driver/DriverHubV2.jsx` (new).
+- `/app/frontend/src/pages/V2Index.jsx` — Driver entry promoted `planned → operational`.
+
+### Tests · 24/24 backend regression PASS
+(13.6F · 13.6G · 13.6H suites all green; no new pytest required for this track — Driver V2 is read-only over an existing real endpoint.)
+
+### Visual evidence
+- `/tmp/dispatch_protected.png` — `/dispatch-portal` with MapLibre live fleet map dominant (post-revert).
+- `/tmp/13_6j_shop.jpg` — `/shop` post-swap (Shop V2).
+- `/tmp/13_6j_shop_legacy.jpg` — `/shop/hub_legacy` classic.
+- `/tmp/13_6j_driver.jpg` — `/driver/hub_v2` single-action lane.
+- `/tmp/13_6j_pm.jpg` / `/tmp/13_6j_hr.jpg` — PM + HR smoke (unchanged).
+
+### Five-pillar scores
+| Surface | Powerful | Simple | Beautiful | Trusted | Proven | Avg |
+|---|---|---|---|---|---|---|
+| Dispatch Classic (restored) | 10 | 9 | 9 | 10 | 10 | **9.6** |
+| Dispatch Hub V2 (companion) | 9 | 9 | 9 | 10 | 9 | 9.2 |
+| Shop Hub V2 (post-swap) | 9 | 9 | 9 | 9 | 9 | **9.0** |
+| Driver Hub V2 (preview) | 9 | 10 | 10 | 9 | 8 | **9.2** |
+
+### Doctrine adherence
+| Hard rule | Status |
+| --- | --- |
+| Dispatch map prominence preserved | ✅ — swap reverted, classic restored |
+| Real data only · no fake urgency · no dead objects | ✅ |
+| Every card / button opens a real workflow | ✅ |
+| Permissions / auth / workflows / routes / engines / integrations preserved | ✅ |
+| Rollback paths preserved | ✅ — `/shop/hub_legacy`, `/dispatch-portal/hub_legacy` |
+| No duplicate engines · no duplicate APIs | ✅ |
+
+### Remaining risks
+- The previously-published V2 Index still lists Dispatch as "operational" with `/dispatch-portal` as the swap surface. This entry should be re-classified to highlight that the map-dominant classic is the canonical Dispatch experience and V2 is a companion lane only. Will refine in 13.6K.
+
+### Recommended next portal
+- **Admin Hub V2** (P2 of the original recovery order). Admin has the most varied sub-surfaces and the highest leverage for cross-portal navigation. Following PM/HR/Safety/Shop pattern — preview lane first, no swap until operator review.

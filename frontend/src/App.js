@@ -27,6 +27,8 @@ const OperationsActionDetail = React.lazy(() => import("@/pages/operations_actio
 // ROUTE-SPLIT-001 Wave 4 — Driver mobile lazy.
 const DriverMagicLanding = React.lazy(() => import("@/pages/driver/DriverMagicLanding"));
 const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
+// Track 13.6J · Phase 2 — Driver V2 foundation (preview, no swap).
+const DriverHubV2 = React.lazy(() => import("@/pages/driver/DriverHubV2"));
 const ShiftStart = React.lazy(() => import("@/pages/driver/ShiftStart"));
 import SafetySection from "@/pages/SafetySection";
 import SafetyFormsLogin from "@/pages/SafetyFormsLogin";
@@ -170,6 +172,8 @@ const PmDueTodayV2 = React.lazy(() => import("@/pages/PmDueTodayV2"));
 const DispatchHubV2 = React.lazy(() => import("@/pages/DispatchHubV2"));
 // Track 13.6H · Phase 4 — Safety Recovery (preview, no route swap).
 const SafetyHubV2 = React.lazy(() => import("@/pages/SafetyHubV2"));
+// Track 13.6I · Phase 5 — Shop Recovery (preview, no route swap).
+const ShopHubV2 = React.lazy(() => import("@/pages/ShopHubV2"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -712,7 +716,14 @@ function App() {
             <Route path="/shop/login" element={<ShopLogin />} />
             <Route path="/shop/reset/:token" element={<ShopResetPassword />} />
             <Route path="/shop/change-password" element={S(<ShopChangePassword />)} />
-            <Route path="/shop" element={S(<ShopHub />)} />
+            {/* Track 13.6J · Phase 1 — Shop route swap.
+                /shop → Shop Hub V2 (action-queue surface).
+                /shop/hub_legacy → classic Shop hub rollback.
+                /shop/hub_v2 alias preserved.
+                Shop has no map prominence concern — defects + recovery queues are the operational surface. */}
+            <Route path="/shop" element={S(<ShopHubV2 />)} />
+            <Route path="/shop/hub_legacy" element={S(<ShopHub />)} />
+            <Route path="/shop/hub_v2" element={S(<ShopHubV2 />)} />
             <Route path="/shop/trench-safety-repairs" element={S(<ShopTrenchSafetyRepairs />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
             {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is
@@ -780,8 +791,12 @@ function App() {
             <Route path="/safety-portal/forgot-password" element={<SafetyForgotPassword />} />
             <Route path="/safety-portal/reset/:token" element={<SafetyResetPassword />} />
             <Route path="/safety-portal/change-password" element={SF(<SafetyChangePassword />)} />
-            <Route path="/safety-portal" element={SF(<SafetyHub />)} />
-            {/* Track 13.6H · Phase 4 — Safety Hub V2 preview surface. */}
+            {/* Track 13.6I · Phase 4 — Safety route swap.
+                /safety-portal → Safety Hub V2.
+                /safety-portal/hub_legacy → classic Safety hub rollback.
+                /safety-portal/hub_v2 alias preserved. */}
+            <Route path="/safety-portal" element={SF(<SafetyHubV2 />)} />
+            <Route path="/safety-portal/hub_legacy" element={SF(<SafetyHub />)} />
             <Route path="/safety-portal/hub_v2" element={SF(<SafetyHubV2 />)} />
             <Route path="/safety-portal/fleet" element={SF(<FleetVisibility scope="safety" />)} />
             <Route path="/safety-portal/corrective-actions" element={SF(<SafetyCorrectiveActions />)} />
@@ -820,8 +835,13 @@ function App() {
             <Route path="/dispatch-portal/forgot-password" element={<DispatchForgotPassword />} />
             <Route path="/dispatch-portal/reset/:token" element={<DispatchResetPassword />} />
             <Route path="/dispatch-portal/change-password" element={DP(<DispatchChangePassword />)} />
+            {/* Track 13.6J · Dispatch Map Protection — REVERTED 13.6I swap.
+                /dispatch-portal MUST keep the MapLibre operational map as the
+                dominant operational surface. Dispatch Hub V2 remains available
+                as a companion action-queue lane at /dispatch-portal/hub_v2 but
+                does NOT replace the map-dominant classic surface. */}
             <Route path="/dispatch-portal" element={DP(<DispatchHub />)} />
-            {/* Track 13.6G — Dispatch Hub V2 preview surface (gated by RequireDispatch). */}
+            <Route path="/dispatch-portal/hub_legacy" element={DP(<DispatchHub />)} />
             <Route path="/dispatch-portal/hub_v2" element={DP(<DispatchHubV2 />)} />
             <Route path="/dispatch-portal/board" element={DP(<DispatchBoard />)} />
             <Route path="/dispatch-portal/command" element={DP(<DispatchCommandCenter />)} />
@@ -926,6 +946,8 @@ function App() {
             {/* iter393 · DLS Driver Mobile Surface — magic-link entry */}
             <Route path="/d/:token" element={<DriverMagicLanding />} />
             <Route path="/driver" element={<DriverShift />} />
+            {/* Track 13.6J · Phase 2 — Driver V2 preview lane (no auth gate change). */}
+            <Route path="/driver/hub_v2" element={<DriverHubV2 />} />
             {/* iter401 · Phase 12.8 · Driver self-start operational entry */}
             <Route path="/shift" element={<ShiftStart />} />
             <Route path="/field-leadership" element={<Navigate to="/leadership" replace />} />
