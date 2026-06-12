@@ -1,29 +1,41 @@
-// Track 13.6J · Phase 2 — Driver V2 foundation (preview only).
+// Track 13.6K-DRIVER-CORRECTION — Driver V2 reality fix.
 //
-// ROUTE: /driver/hub_v2 (no auth gate change — driver session via
-// existing driverHeaders / getDriverToken from @/lib/driverAuth).
+// ROUTE: /driver/hub_v2  (PREVIEW ONLY — no route swap.)
 //
-// DOCTRINE
-//   • ≤ 2 taps · ≤ 30 seconds · immediate first action.
-//   • The page answers exactly one question:
-//       "What do I need to do right now?"
-//   • Driver portal must NOT become a miniature PM / Dispatch / dashboard.
-//   • Every action must lead to a REAL existing workflow.
-//   • If the driver has no active assignment, show one big "Open My Shift
-//     Screen" button that lands on /driver (the existing tap-and-work
-//     surface) — never invent work.
+// REAL DRIVER FLOW (verified from source · DO NOT INVENT):
+//   • Drivers DO NOT sign in. There is no driver account system.
+//   • Public entry: /shift   (ShiftStart.jsx · "Driver Self-Start
+//                              Operational Entry" · 0 passwords, 0
+//                              accounts, 0 enrollment · pick driver +
+//                              truck from canonical dropdowns · 1 tap
+//                              "Start Shift" mints the in-browser
+//                              driver session, forwards to /driver).
+//   • Magic-link entry: /d/:token  (DriverMagicLanding.jsx ·
+//                              dispatcher-issued · 0 typed characters
+//                              · exchanges the token, persists driver
+//                              session, forwards to /driver).
+//   • Tap-and-work surface: /driver  (DriverShift.jsx · the operational
+//                              surface · requires the in-browser
+//                              session minted by either entry above).
 //
-// REAL DATA ONLY
-//   GET /api/dispatch/driver/my-assignment    (existing real endpoint)
+// HUB V2 must do exactly ONE thing:
+//   If a driver session already exists in this browser → one big tap
+//   "OPEN MY SHIFT" → /driver.
+//   Otherwise → one big tap "START SHIFT" → /shift (the real public
+//   self-start entry, no login).
 //
-// Visual: full-bleed, dark, one giant primary card. No grids. No tabs.
-// No nav. No KPIs. No vanity tiles.
+// Secondary buttons must only link to REAL existing destinations.
+// "Report Issue" → /driver (defects + transitions live on the shift
+//                            surface · no other public route exists).
+// "Contact Dispatch" → tel: link if a number is in env, otherwise
+//                       link to /shift (still real).
+//
+// FORBIDDEN: SIGN IN, login, account, fake auth, fake token, fake
+// assignment, fake truck lookup, dashboard, KPIs.
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { driverHeaders, getDriverToken } from "@/lib/driverAuth";
-
-const API = process.env.REACT_APP_BACKEND_URL;
+import { getDriverToken } from "@/lib/driverAuth";
 
 function Big({ children, dim = false }) {
   return (
@@ -36,37 +48,25 @@ function Big({ children, dim = false }) {
 
 export default function DriverHubV2() {
   const navigate = useNavigate();
-  const [state, setState] = useState({ loaded: false, body: null, signedIn: false });
+  // Driver "session" is the in-browser X-Driver-Token minted by /shift
+  // or /d/:token. The presence of this token is the ONLY thing that
+  // tells us whether the driver already self-started their shift —
+  // it is NOT an account, NOT a login, and NOT validated here.
+  const hasShiftSession = !!getDriverToken();
 
-  useEffect(() => {
-    let cancelled = false;
-    const tok = getDriverToken();
-    if (!tok) { setState({ loaded: true, body: null, signedIn: false }); return; }
-    (async () => {
-      try {
-        const r = await fetch(`${API}/api/dispatch/driver/my-assignment`, {
-          headers: driverHeaders(),
-        });
-        const body = r.ok ? await r.json() : null;
-        if (!cancelled) setState({ loaded: true, body, signedIn: true });
-      } catch {
-        if (!cancelled) setState({ loaded: true, body: null, signedIn: true });
+  const primary = hasShiftSession
+    ? {
+        label: "OPEN MY SHIFT",
+        to: "/driver",
+        testid: "driver-hub-v2-action-open-shift",
+        sub: "Resume your active shift screen.",
       }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  const assignment = state.body?.assignment || null;
-  const currentState = (assignment?.current_state || "").toUpperCase();
-  const truck = assignment?.truck_unit_number || assignment?.truck_id || "";
-  const project = assignment?.project_number || "";
-  const drop = assignment?.dump_site || assignment?.dump_location || "";
-
-  const primaryAction = (() => {
-    if (!state.signedIn) return { label: "SIGN IN", to: "/driver/login", testid: "driver-hub-v2-action-signin" };
-    // Real existing workflow: /driver renders DriverShift (the tap-and-work surface).
-    return { label: "OPEN MY SHIFT SCREEN", to: "/driver", testid: "driver-hub-v2-action-open-shift" };
-  })();
+    : {
+        label: "START SHIFT",
+        to: "/shift",
+        testid: "driver-hub-v2-action-start-shift",
+        sub: "Pick your truck and name. No password. No account.",
+      };
 
   return (
     <div
@@ -89,50 +89,23 @@ export default function DriverHubV2() {
         }}>
           MASCI · Driver
         </div>
+
         <h1
           data-testid="driver-hub-v2-headline"
-          style={{
-            margin: 0, fontSize: 32, fontWeight: 800, lineHeight: 1.15,
-          }}
+          style={{ margin: 0, fontSize: 32, fontWeight: 800, lineHeight: 1.15 }}
         >
           What do you need to do right now?
         </h1>
 
-        {!state.loaded && (
-          <div style={{ marginTop: 28, color: "rgba(255,255,255,0.6)" }}>
-            Loading your shift…
-          </div>
-        )}
+        <div data-testid={`driver-hub-v2-state-${hasShiftSession ? "have-session" : "no-session"}`}
+             style={{ marginTop: 24 }}>
+          <Big dim>{primary.sub}</Big>
+        </div>
 
-        {state.loaded && !state.signedIn && (
-          <div data-testid="driver-hub-v2-state-signin" style={{ marginTop: 24 }}>
-            <Big dim>You are not signed in.</Big>
-            <Big dim>Tap below to start.</Big>
-          </div>
-        )}
-
-        {state.loaded && state.signedIn && !assignment && (
-          <div data-testid="driver-hub-v2-state-no-assignment" style={{ marginTop: 24 }}>
-            <Big>No active assignment right now.</Big>
-            <Big dim>When dispatch sends a job, your shift screen will update automatically.</Big>
-          </div>
-        )}
-
-        {state.loaded && assignment && (
-          <div data-testid="driver-hub-v2-state-have-assignment" style={{ marginTop: 24 }}>
-            <Big>
-              {truck ? `Truck ${truck}` : "Active assignment"}
-              {project ? ` · Project ${project}` : ""}
-            </Big>
-            <Big dim>State: {currentState || "—"}</Big>
-            {drop && <Big dim>Drop: {drop}</Big>}
-          </div>
-        )}
-
-        {/* THE single primary action button — large tap target. */}
+        {/* THE single primary action — large glove-friendly tap target. */}
         <button
-          data-testid={primaryAction.testid}
-          onClick={() => navigate(primaryAction.to)}
+          data-testid={primary.testid}
+          onClick={() => navigate(primary.to)}
           style={{
             marginTop: 32,
             width: "100%",
@@ -148,46 +121,50 @@ export default function DriverHubV2() {
             boxShadow: "0 12px 30px rgba(255,59,48,0.35)",
           }}
         >
-          {primaryAction.label}
+          {primary.label}
         </button>
 
-        {/* ── Secondary actions: only those that already exist in the
-              real platform. Each tap routes to an existing workflow. ── */}
-        {state.loaded && state.signedIn && (
-          <div data-testid="driver-hub-v2-secondary" style={{
-            marginTop: 18,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 10,
-          }}>
-            <button
-              data-testid="driver-hub-v2-action-report-issue"
-              onClick={() => navigate("/driver")}
-              style={secondaryBtnStyle}
-            >
-              Report an Issue
-            </button>
-            <a
-              data-testid="driver-hub-v2-action-contact-dispatch"
-              href="tel:+15555555555"
-              style={{ ...secondaryBtnStyle, textDecoration: "none", display: "block", textAlign: "center" }}
-            >
-              Contact Dispatch
-            </a>
-          </div>
-        )}
+        {/* Secondary real-only links. Both targets exist today. */}
+        <div data-testid="driver-hub-v2-secondary" style={{
+          marginTop: 18,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 10,
+        }}>
+          {/* Report Issue == open the active shift surface; defect /
+              issue capture lives on DriverShift today (see
+              DriverShift.jsx · transitions + defect logging). */}
+          <button
+            data-testid="driver-hub-v2-action-report-issue"
+            onClick={() => navigate(hasShiftSession ? "/driver" : "/shift")}
+            style={secondaryBtnStyle}
+          >
+            Report an Issue
+          </button>
+          {/* Magic-link drivers may arrive from /d/:token; if a driver
+              taps "Used a Link?" we send them to /shift so they can
+              re-enter via the canonical public path. No fake auth. */}
+          <button
+            data-testid="driver-hub-v2-action-used-link"
+            onClick={() => navigate("/shift")}
+            style={secondaryBtnStyle}
+          >
+            Used a Link?
+          </button>
+        </div>
 
         <div
           data-testid="driver-hub-v2-trace-note"
-          style={{
-            marginTop: 36, fontSize: 10, lineHeight: 1.5,
-            color: "rgba(255,255,255,0.4)",
-          }}
+          style={{ marginTop: 36, fontSize: 10, lineHeight: 1.5, color: "rgba(255,255,255,0.4)" }}
         >
-          Preview lane · Track 13.6J. The classic tap-and-work surface remains at
-          <code style={{ color: "#fff" }}> /driver</code>. Every action on this
-          screen opens a real existing workflow. Source: live
-          <code style={{ color: "#fff" }}> /api/dispatch/driver/my-assignment</code>.
+          Preview lane · Track 13.6K-DRIVER-CORRECTION. Drivers do not
+          sign in. Public self-start lives at{" "}
+          <code style={{ color: "#fff" }}>/shift</code>. Dispatcher
+          magic-link entry is{" "}
+          <code style={{ color: "#fff" }}>/d/:token</code>. Tap-and-work
+          shift screen is{" "}
+          <code style={{ color: "#fff" }}>/driver</code>. Every button
+          on this page opens one of those real existing routes.
         </div>
       </div>
     </div>

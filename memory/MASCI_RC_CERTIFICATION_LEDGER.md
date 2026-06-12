@@ -4129,3 +4129,33 @@ Powerful 9 · Simple 9 · Beautiful 9 · Trusted 9 · Proven 8 → **8.8 avg** (
 
 ### Next portal
 - Operator review of Admin / FL / Leadership previews, then optional swap on each (with rollback). Driver V2 awaiting operator on a swap decision — current `/driver` (DriverShift) is already the high-quality tap-and-work surface, so promoting `/driver/hub_v2` to `/driver` may be unnecessary unless operators prefer the single-action landing first.
+
+---
+
+## TRACK 13.6K-DRIVER-CORRECTION · Driver V2 reality fix
+
+**Date**: 2026-06-12  ·  **Verdict**: COMPLETE — Driver V2 preview corrected to match the real public driver workflow. Zero drift on `/shift`, `/d/:token`, and `/driver`.
+
+### What was wrong
+Driver V2 invented a `SIGN IN` primary action. Drivers in this platform do not sign in — there is no driver account system. The page misread the in-browser shift-session token as an account credential.
+
+### What was corrected
+- `/app/frontend/src/pages/driver/DriverHubV2.jsx` rewritten:
+  - Removed `SIGN IN` and the `/driver/login` route reference.
+  - Primary action is now reality-aligned: **START SHIFT → /shift** (no session) or **OPEN MY SHIFT → /driver** (session present).
+  - Secondary actions point only at real existing routes (`/shift`, `/driver`).
+  - Footer copy documents the doctrine: "Drivers do not sign in. Public self-start at /shift. Magic-link entry at /d/:token. Tap-and-work at /driver."
+- Mount unchanged: `<Route path="/driver/hub_v2" element={<DriverHubV2 />} />`. Preview only. No swap.
+
+### Validation
+- No `SIGN IN` test-id present (count = 0).
+- No buttons containing forbidden words (sign in / log in / login / password).
+- Exactly one primary action (START SHIFT for unauthed state).
+- Tapping primary lands on `/shift` — the real existing Operational Check-In ("Start your shift" · Driver Name + Truck Number dropdowns · "NO PASSWORD. NO APP. JUST CHECK IN.").
+- `/driver` (DriverShift) and `/shift` (ShiftStart) and `/d/:token` (DriverMagicLanding) all unchanged.
+
+### Report
+- Full reality-correction memo: `/app/memory/TRACK_13_6K_DRIVER_REALITY_CORRECTION.md`.
+
+### Recommendation
+- Either retire `/driver/hub_v2` (since `/shift` already meets the ≤ 2-tap / ≤ 30-second target perfectly) OR keep it strictly as an explainer landing that gates the START SHIFT ↔ OPEN MY SHIFT choice. Never expand it into a dashboard.

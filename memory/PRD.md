@@ -40414,3 +40414,17 @@ project-filter narrowing, honest empty states, and pure-helper invariants.
 - No deploy · no Save to GitHub · no merge.
 - **Dispatch MapLibre map prominence is a hard-lock invariant.**
 - Driver portal must remain action-first (1 primary tap target, ≤ 30 s).
+
+---
+
+## 2026-06-12 · Track 13.6K-DRIVER-CORRECTION — Driver V2 reality fix
+
+Driver V2 preview was inventing a `SIGN IN` primary action. Drivers in this platform do not sign in — there is no driver account system. Corrected:
+- Removed `SIGN IN` and `/driver/login` reference.
+- Primary action is now **START SHIFT → /shift** (real public Operational Check-In) when no shift session exists, or **OPEN MY SHIFT → /driver** (DriverShift) when a session is already minted.
+- Secondary actions point only at `/shift` and `/driver`. No invented auth, no invented endpoints.
+- `/shift`, `/d/:token`, and `/driver` all unchanged.
+- Full reality-correction memo at `/app/memory/TRACK_13_6K_DRIVER_REALITY_CORRECTION.md`.
+
+### Locked rules
+- Drivers do not sign in. Public self-start at `/shift`. Magic-link at `/d/:token`. Tap-and-work at `/driver`. No account system in driver workflow.
