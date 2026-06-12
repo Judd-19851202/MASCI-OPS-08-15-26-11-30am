@@ -40214,3 +40214,23 @@ If all hold → **production certified**. Else → escalate.
 **Standing rules still in force:** No deploy. No GitHub save. No merge.
 
 **Next:** P2 PM Recovery (PM Hub V2 already exists at `/pm/hub_v2`; swap after operator visual confirmation). P3 Dispatch. P4 Safety.
+
+---
+
+## 2026-06-12 · Track 13.6F — PM Route Swap (engines deferred · COMPLETE)
+
+**Mode:** execution · no new audits · no deploy.
+
+**Single change:** `/app/frontend/src/App.js` — `/pm/hub` now renders `PmHubV2`. Rollback `/pm/hub_legacy`. `/pm/hub_v2` alias preserved. **Zero other files touched. `PmHub.jsx` retained for rollback.**
+
+**Verification (18/18):** `/pm/hub` V2 ✓ · `/pm/hub_legacy` classic ✓ · 5 PM sub-routes operational, no V2 leak ✓ · RFI/Submittal DOM scan = 0 ✓ · HR swap intact ✓ · Dispatch guardrail PASS ✓ · No workflow / form / permission / API regression ✓.
+
+**Deferred:** PM-2 (Unified Holds) → 13.6G · PM-3 (Due-Today) → 13.6H. Both require new backend aggregators.
+
+**Five-pillar:** 9·9·9·9·8 → 8.8 avg (up from ~7.2 classic).
+
+**Rollback:** 3-line revert of App.js.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge.
+
+**Next:** Track 13.6G — PM-2 Unified Holds Aggregation (backend-first).

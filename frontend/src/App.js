@@ -629,8 +629,10 @@ function App() {
             <Route path="/pm/reset/:token" element={<PmResetPassword />} />
             <Route path="/pm/change-password" element={P(<PmChangePassword />)} />
             <Route path="/pm" element={P(<PmHomeRedirect />)} />
-            <Route path="/pm/hub" element={P(<PmHub />)} />
-            {/* Track 13.6D · PM Hub V2 lives side-by-side with /pm/hub · same RequirePm auth · NO route swap. */}
+            {/* Track 13.6F · PM route swap — /pm/hub now renders PmHubV2 (live · real APIs · zero-drift verified). Rollback path preserved at /pm/hub_legacy. */}
+            <Route path="/pm/hub" element={P(<PmHubV2 />)} />
+            <Route path="/pm/hub_legacy" element={P(<PmHub />)} />
+            {/* Track 13.6D · PM Hub V2 stable alias remains. */}
             <Route path="/pm/hub_v2" element={P(<PmHubV2 />)} />
             {/* iter353e-UI · PM Crew Compliance Lens (read-only) */}
             <Route path="/pm/crew-compliance" element={P(<PmCrewCompliance />)} />

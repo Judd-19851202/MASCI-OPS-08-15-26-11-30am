@@ -3723,3 +3723,26 @@ Header: `X-Admin-Token: <HR token>` — identical to classic `HrKpiStrip._authHe
 
 ### Next priorities (per 13.6E directive)
 P2: PM Recovery (project-centric · /pm/hub swap after operator confirms PM Hub V2). P3: Dispatch Recovery (chrome only · preserve operations). P4: Safety Recovery (align non-Trench chrome).
+
+---
+
+## Track 13.6F · PM Route Swap (engines deferred)
+
+**Mode:** execution · no new audits/scorecards · no deploy / GitHub save / merge.
+
+### What changed
+- `/app/frontend/src/App.js` — `/pm/hub` now renders `PmHubV2`. Rollback at `/pm/hub_legacy`. `/pm/hub_v2` alias preserved. **Zero other files touched.**
+
+### Verification (all 18 directive checks PASS)
+- `/pm/hub` V2 root = 1 · `/pm/hub_v2` V2 = 1 · `/pm/hub_legacy` V2 = 0 (classic renders) · 5 PM sub-routes operational with V2 leak = 0 · RFI/Submittal DOM scan = 0 · HR `/hr` still V2 (1) · `/hr/hub_legacy` still classic (V2=0) · Dispatch guardrail `box=1084×520 · mean=24.85 · variance=275.46 · unique=103` PASS.
+
+### Deferred per directive
+- PM-2 Unified Holds aggregation → Track 13.6G (requires new backend aggregator).
+- PM-3 Due-Today aggregation → Track 13.6H (same shape, sequenced after PM-2).
+
+### Five-pillar score post-swap
+- `/pm/hub` now: 9·9·9·9·8 → 8.8 avg (up from classic ~7.2).
+
+### Evidence
+- Report: `/app/memory/TRACK_13_6F_PM_ROUTE_SWAP_AND_ENGINE_RECOVERY.md` (20 sections).
+- Screenshots: `/app/memory/screenshots/track_13_6f_pm_swap/` (4 PM V2 viewports + PM legacy + HR root + HR legacy).
