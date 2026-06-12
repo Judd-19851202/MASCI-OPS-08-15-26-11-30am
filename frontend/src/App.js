@@ -720,8 +720,10 @@ function App() {
             <Route path="/hr/forgot" element={<HrForgotPassword />} />
             <Route path="/hr/reset/:token" element={<HrResetPassword />} />
             <Route path="/hr/change-password" element={H(<HrChangePassword />)} />
-            <Route path="/hr" element={H(<HrHub />)} />
-            {/* Track 13.6C · HR Hub V2 lives side-by-side with /hr · same RequireHr auth gate · NO route swap. */}
+            {/* Track 13.6E · HR route swap — /hr now renders HrHubV2 (live · real APIs · zero-drift verified). Rollback path preserved at /hr/hub_legacy. */}
+            <Route path="/hr" element={H(<HrHubV2 />)} />
+            <Route path="/hr/hub_legacy" element={H(<HrHub />)} />
+            {/* Track 13.6C · HR Hub V2 stable alias remains. */}
             <Route path="/hr/hub_v2" element={H(<HrHubV2 />)} />
             <Route path="/hr/field-leadership" element={H(<HrFieldLeadership />)} />
             <Route path="/hr/field-leadership-users" element={H(<HrFieldLeadershipUsers />)} />

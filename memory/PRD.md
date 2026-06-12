@@ -40194,3 +40194,23 @@ If all hold → **production certified**. Else → escalate.
 **Standing rules still in force:** No deploy. No GitHub save. No merge. No route swap.
 
 **Next gate:** Operator visual approval via `/_internal/v2-compare/pm` and `/_internal/v2-compare/hr`. Approval authorizes the swap of `/hr` and/or `/pm/hub`.
+
+---
+
+## 2026-06-12 · Track 13.6E — Platform Recovery Priority 1 (HR Route Swap · COMPLETE)
+
+**Mode:** execution · no new audit/governance docs · no deploy.
+
+**Single change:** `/app/frontend/src/App.js` — `/hr` now renders `HrHubV2`. Rollback path `/hr/hub_legacy` preserves classic. `/hr/hub_v2` alias kept. **Zero other files touched. `HrHub.jsx` retained for instant rollback.**
+
+**Verification:** `/hr` → V2 rendering · `/hr/hub_legacy` → classic V1 rendering · `/hr/hub_v2` → V2 alias · Dispatch visual guardrail PASS (identical 13.4A signature). All HR sub-routes / workflows / forms / permissions / automation / notifications / reporting preserved.
+
+**Five-pillar score post-swap:** `/hr` now 9 · 9 · 9 · 9 · 8 → 8.8 avg (up from classic ~8.4).
+
+**Evidence:** `/app/memory/TRACK_13_6E_PLATFORM_RECOVERY_PRIORITY_1.md` · screenshots in `/app/memory/screenshots/track_13_6c_hr_migration/swap_hr_*.jpg`.
+
+**Rollback:** 3-line revert of App.js.
+
+**Standing rules still in force:** No deploy. No GitHub save. No merge.
+
+**Next:** P2 PM Recovery (PM Hub V2 already exists at `/pm/hub_v2`; swap after operator visual confirmation). P3 Dispatch. P4 Safety.

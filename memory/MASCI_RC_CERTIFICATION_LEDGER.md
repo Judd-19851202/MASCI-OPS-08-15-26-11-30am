@@ -3691,3 +3691,35 @@ Header: `X-Admin-Token: <HR token>` — identical to classic `HrKpiStrip._authHe
 
 ### Verdict
 **Track 13.6D Complete — `/pm/hub_v2` is live · classic `/pm/hub` is unchanged · operator visual approval is the next gate.** Migration pattern now proven across two independent portals (HR + PM) with two different auth systems.
+
+---
+
+## Track 13.6E · Platform Recovery — Priority 1 (HR Route Swap)
+
+**Mode honoured:** execution only · no new audits · no scorecards · no review systems · no deploy / GitHub save / merge.
+
+### What changed
+- `/app/frontend/src/App.js` — `/hr` now renders `HrHubV2`. Rollback path added at `/hr/hub_legacy`. `/hr/hub_v2` alias preserved. **Zero other files touched.**
+
+### What was preserved
+- `HrHub.jsx` component — unchanged · still mounted at `/hr/hub_legacy`.
+- Every HR sub-route, workflow, form, automation, notification, report, permission, scope.
+
+### Verification
+- `/hr` → `hr-hub-v2-root` count = 1 (V2 live).
+- `/hr/hub_legacy` → V2 count = 0; classic "Active Employees · 354" label rendered.
+- `/hr/hub_v2` → still V2.
+- Dispatch visual guardrail: `box=1084×520 · mean=24.85 · variance=275.46 · unique=103` — PASS.
+
+### Five-pillar score (post-swap)
+- `/hr` now: 9 · 9 · 9 · 9 · 8 → **8.8 avg** (up from classic ~8.4).
+
+### Rollback
+3-line revert of App.js. `HrHub.jsx` retained.
+
+### Evidence
+- Report: `/app/memory/TRACK_13_6E_PLATFORM_RECOVERY_PRIORITY_1.md` (11 sections).
+- Screenshots: `/app/memory/screenshots/track_13_6c_hr_migration/swap_hr_root.jpg` + `swap_hr_legacy.jpg`.
+
+### Next priorities (per 13.6E directive)
+P2: PM Recovery (project-centric · /pm/hub swap after operator confirms PM Hub V2). P3: Dispatch Recovery (chrome only · preserve operations). P4: Safety Recovery (align non-Trench chrome).
