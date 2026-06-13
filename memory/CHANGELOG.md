@@ -10,6 +10,31 @@
 
 ---
 
+## 2026-06-13 · Track 14.0 — Platform Readiness Certification (READ-ONLY · pre-deploy hard gate)
+
+**Mode:** Read-only platform audit · no code · no deploy · no GitHub save · no merge. Documentation-only.
+
+- **Verdict: CONDITIONAL PASS · NOT YET DEPLOYABLE.** Five-Pillar weighted average across audited surfaces **9.62 / 10**.
+- **3 deployment blockers identified** (each scoped, isolated, fixable in 1–2 fix tracks):
+  1. **Spanish translation gap** — ~222 strings across D3+D4+D6+D7+D33ABC components (`AddAssetDialog`, `RequiredDocsEditor`, `AssetDocumentsTab`, `ShopAssetCare`, `AdminAssetAdmin`) have **0 % Spanish coverage**. Verified via grep: no `useTranslation`/`i18n` imports in any recent asset component. Mature platform i18n dictionary exists (`lib/i18n.js` · 6126 lines) — wiring is the work, not infrastructure.
+  2. **PDF style sweep** — Asset Profile PDF + Safety/JHP PDFs share unified WeasyPrint `_BASE_CSS`. Legacy Pre-Op / DVIR / Incident / Excavation PDFs need MASCI lockup verification.
+  3. **Integration honesty banners** — MaintainX tab on Asset Profile renders without an "Awaiting integration" notice. Could mislead executive demos.
+- **Role landing certification: PASS.** `landingFor()` in `/app/frontend/src/lib/directoryAuth.js` lines 106–130 correctly routes `is_asset_admin && !admin → /shop/asset-care`, `admin → /admin`, single-portal → portal home, multi-portal → hub. Verified via code inspection.
+- **Backend live-verification:** `/api/asset-care/summary` returns Total 779 · Ready 1 · Warning 21 · Not Ready 55 · Needs Review 702 · Expired Renewals 2 · Missing Docs 187 — operational backbone fully alive.
+- **UX consistency: PASS** (9.65 avg). No portal looks like a different app. Mascot lockup, button/card/chip styling consistent across all recently audited surfaces.
+- **Form consistency: CONDITIONAL.** Recent forms (D3–D7+33ABC) consistent (9.6–9.7). Legacy forms (Daily Report · Safety · Trench) drift in spacing/labels (9.2). Fix Track 14.0-F1 recommended.
+- **Terminology: PASS with minor polish.** No "Rejected/Denied/Failed/Invalid/Migration/Taxonomy/Endpoint/API/Track 13" leaks in operator UI. Minor "Vehicle/Truck/Trailer" normalization recommended in DVIR copy. Legacy "Equipment Type" dropdown demoted (D5.4) but not renamed.
+- **Coaching: PASS.** No "Confusing" or "Conflicting" coaching surfaces. Document-types could use 1-line descriptors in upload dialog (medium-priority polish).
+- **Data quality: PASS WITH KNOWN ADMIN BACKLOG.** 702/779 assets `taxonomy_verified=false` (Review Queue surfaces this · operational not code defect). No fabrication.
+- **Integration gate: CONDITIONAL.** No fake integrations claim live functionality. MaintainX/FleetWatcher dormant correctly. Needs explicit "Awaiting integration" banner on AssetProfile MaintainX tab.
+- **Executive walkthrough: PASS.** 7-step 15-minute demo path validated end-to-end on `/shop/asset-care` → KPI → renewal alerts → Asset Administration tabs → Pre-Op canonical → Profile PDF.
+- **Recommended fix tracks**: 14.0-S1 (Spanish · single largest blocker) · 14.0-P1 (PDF sweep) · 14.0-I1 (integration banners) · 14.0-M1 (mobile re-screenshot) · 14.0-F1 (legacy form alignment) · 14.0-C1 (coaching descriptors) · 14.0-N1 (in-app notification center · optional v1).
+- **Hard locks reaffirmed**: Map · Dispatch RTS authority · Repair Complete ≠ RTS · MaintainX/FleetWatcher dormant · photos & documents never required · sensitive doc gates intact · no new collection · no auth widening.
+- **DO NOT deploy** until 14.0-S1 / 14.0-P1 / 14.0-I1 close and the audit re-runs green.
+- Ledger: `/app/memory/TRACK_14_0_PLATFORM_READINESS_CERTIFICATION.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31B-D5.3 — Frontend Smart Pre-Op + DVIR Template Rendering
 
 **Mode:** Controlled implementation + frontend template intelligence + full regression. NO deploy · NO GitHub · NO merge · NO new collection · NO new endpoint.

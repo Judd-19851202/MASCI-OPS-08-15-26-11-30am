@@ -4,6 +4,24 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## 🔴 Track 14.0 Fix Tracks — pre-deploy hard gate (Certification 2026-06-13)
+
+Source: `/app/memory/TRACK_14_0_PLATFORM_READINESS_CERTIFICATION.md` · Verdict CONDITIONAL PASS · Five-Pillar avg 9.62/10.
+
+**Three blockers must close before redeploy. No GitHub save · no merge · no production push until 14.0 re-runs green.**
+
+| Track     | Priority | Scope                                                                                                  | Est | Status |
+|-----------|----------|--------------------------------------------------------------------------------------------------------|-----|--------|
+| **14.0-S1** | P0 · blocker | Spanish translation sweep — ~222 strings across `AddAssetDialog` · `RequiredDocsEditor` · `AssetDocumentsTab` · `ShopAssetCare` · `AdminAssetAdmin` · canonical Pre-Op/DVIR section copy · document upload dialog · renewal alert copy. Wire to existing `lib/i18n.js` dictionary. | 8h | PENDING |
+| **14.0-P1** | P0 · blocker | PDF lockup sweep — verify Pre-Op · DVIR · Incident · Excavation PDFs all carry the unified `safety_forms._BASE_CSS` MASCI header/footer/page-numbering/ForgedOps provider mark. Align where drift found. | 5h | PENDING |
+| **14.0-I1** | P0 · blocker | Integration honesty banners — AssetProfile MaintainX tab gets "Awaiting integration · MAINTAINX_API_KEY required" notice. FleetWatcher gate label where surfaced. Resend renewal-cadence label. | 2h | PENDING |
+| **14.0-M1** | P1 | Mobile/iPad re-screenshot pass — every D3–D33ABC surface at 768 px + 390 px. Asset Care home gets mobile sticky header if found missing. | 4h | PENDING |
+| **14.0-F1** | P1 | Legacy form style alignment — Daily Report · Safety · Trench forms drift from recent label/spacing standard (9.2 vs 9.6–9.7). Bring to parity. | 6h | PENDING |
+| **14.0-C1** | P2 · polish | Document-type 1-line descriptors in upload dialog + inline coaching on doc list. | 3h | PENDING |
+| **14.0-N1** | P2 · v1-optional | In-app notification center delivery for the 25 asset events documented in 13.33ABC notification matrix. Email cadence (Resend). | 12h | PENDING |
+
+**Proposed deployment-gate sequence:** close S1 → P1 → I1 → spot-check M1 → re-run Track 14.0 → if green, redeploy.
+
 ---
 
 ## 🟡 Track 13.18 — Material Movement Ledger · phased plan (architecture certified 2026-06-12)

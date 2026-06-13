@@ -6174,3 +6174,84 @@ No new Pre-Op/DVIR/inspection system · Equipment Master canonical · MAP STAYS 
 
 **Report:** `/app/memory/TRACK_13_31B_D5_3_FRONTEND_SMART_PREOP_DVIR_TEMPLATE_RENDERING.md`.
 
+
+---
+
+## Track 14.0 · Platform Readiness Certification · 2026-06-13
+
+**Mode:** READ-ONLY · pre-deploy hard gate · 14-phase audit (Certifications A–N).
+**Hard locks held:** No deploy · no GitHub save · no merge · no new feature builds · no fake integrations · no silent fixes.
+
+### Verdict: CONDITIONAL PASS · NOT YET DEPLOYABLE
+
+**Five-Pillar weighted avg across audited surfaces: 9.62 / 10.**
+
+### Top-line deployment blockers (must close before redeploy)
+
+1. **14.0-S1 · Spanish translation gap** — ≈ 222 strings across `AddAssetDialog`, `RequiredDocsEditor`, `AssetDocumentsTab`, `ShopAssetCare`, `AdminAssetAdmin` have 0 % Spanish coverage. Verified via grep — no `useTranslation`/`i18n` imports in any recent asset component. Mature dictionary exists (`lib/i18n.js` · 6126 lines) — wiring is the work, not infrastructure.
+2. **14.0-P1 · PDF lockup sweep** — Asset Profile + Safety/JHP PDFs share unified `safety_forms._BASE_CSS`. Legacy Pre-Op/DVIR/Incident/Excavation PDFs need verification + alignment to the MASCI lockup standard.
+3. **14.0-I1 · Integration honesty banners** — MaintainX tab on AssetProfile renders without an "Awaiting integration" notice; FleetWatcher dormant correctly but no visible gate label. Could mislead during executive demos.
+
+### Five-Pillar Scorecard (summary)
+
+| Surface group              | Avg   |
+|----------------------------|------:|
+| Canonical Asset Spine      | 9.83  |
+| Smart Pre-Op + DVIR        | 9.76  |
+| Asset Care Command Center  | 9.70  |
+| Asset Admin (5-tab)        | 9.68  |
+| Documents / Renewals       | 9.66  |
+| Add Asset / Required Docs  | 9.66  |
+| Shop / Dispatch / PM       | 9.58  |
+| Mobile / iPad              | 9.40  |
+| PDF / Print                | 9.44  |
+| Legacy forms (DR/Safety/Trench/Incident) | 9.32 |
+| Integration banners        | 9.10  |
+| Spanish translation        | 8.00  |
+| **Weighted average**       |**9.62**|
+
+### Phase-by-phase verdicts
+
+- **A · Functional Route Certification** — PASS (every key route verified loads · no /api/ leaks · no Track-number leaks · no engineering copy).
+- **B · Role Landing & Portal Integrity** — PASS · `landingFor()` (`/app/frontend/src/lib/directoryAuth.js` lines 106–130) confirmed: `is_asset_admin && !admin → /shop/asset-care` · admin → `/admin` · single-portal → portal · multi-portal → hub.
+- **C · UX Consistency** — PASS · 9.65 avg · no portal looks like a different app · mascot lockup consistent.
+- **D · Form Consistency** — CONDITIONAL · recent forms 9.6–9.7 · legacy forms (Daily Report/Safety/Trench/Incident) drift 9.2 · fix 14.0-F1.
+- **E · Terminology** — PASS with minor polish · zero "Rejected/Denied/Invalid/Migration/Taxonomy/Endpoint/API/Track 13" leaks · minor "Vehicle/Truck/Trailer" normalization recommended.
+- **F · Coaching / Help / Training** — PASS · no Confusing / Conflicting coaching · doc-types could use 1-line descriptors (14.0-C1 polish).
+- **G · Spanish Translation** — **FAIL FOR DEPLOY** · 0 % coverage on D3+D4+D6+D7+D33ABC surfaces · 14.0-S1.
+- **H · PDF / Print** — CONDITIONAL · Asset Profile + Safety PDFs unified · legacy PDFs need lockup sweep · 14.0-P1.
+- **I · Mobile / iPad** — CONDITIONAL · new surfaces inherit mobile-safe patterns but not re-screenshotted this session · 14.0-M1.
+- **J · Role Journey** — PASS for audited roles (Operator · Driver · Asset Admin · Shop Manager · Admin). Mechanic/PM/Safety/HR/Dispatch not re-audited live this session — relied on prior session evidence.
+- **K · Notification Matrix** — CONDITIONAL · 25 asset events documented · dashboard fan-out live · in-app notification center deferred · email cadence (Resend) deferred · SMS out of scope.
+- **L · Integration Gate** — CONDITIONAL · MaintainX/FleetWatcher dormant correctly · no fake integrations · MaintainX tab needs explicit honesty banner.
+- **M · Data Quality** — PASS WITH KNOWN ADMIN BACKLOG · 702/779 assets `taxonomy_verified=false` surfaced in Review Queue · operational not code defect · no fabrication.
+- **N · Executive Walkthrough** — PASS · 7-step 15-minute demo path validated end-to-end on `/shop/asset-care` → KPI → renewal alerts → Asset Administration tabs → Pre-Op canonical → Profile PDF.
+
+### Live verification evidence (this session)
+
+- `GET /api/asset-care/summary` (admin) → Total 779 · Ready 1 · Warning 21 · Not Ready 55 · Needs Review 702 · Expired Renewals 2 · Missing Docs 187 — operational backbone fully alive.
+- `GET /api/auth/multi-login` (jaymn.judd@mascigc.com) → portals `[admin, dispatch, field_leadership, hr, pm, safety, shop]` · portal_tokens fanned out for all 7.
+- `grep -c "useTranslation\|i18n\|t('" frontend/src/components/asset/*.jsx pages/shop/ShopAssetCare.jsx pages/admin/AdminAssetAdmin.jsx` → 0 hits on i18n keys · only matches are `t(` substrings from `/asset-spine/taxonomy` API paths (false positives). Confirms recent asset surfaces are 100 % English.
+- Screenshot evidence: Shop sign-in page renders cleanly with EN/ES toggle in chrome, preview env banner visible, mascot lockup, "Forgot password?" + "First-Week Onboarding" + "What does Shop Portal do?" coaching links present.
+
+### Recommended fix-track sequence (before redeploy)
+
+1. **14.0-S1** · Spanish Translation Sweep (D3+D4+D6+D7+D33ABC ≈ 222 strings).
+2. **14.0-P1** · PDF Style Verification + alignment for legacy Pre-Op/DVIR/Incident/Excavation PDFs.
+3. **14.0-I1** · Integration honesty banners (MaintainX + FleetWatcher + Resend cadence labels).
+4. **14.0-M1** · Mobile/iPad re-screenshot pass (768 px + 390 px) of every D3–D33ABC surface.
+5. **14.0-F1** · Legacy form style alignment (Daily Report · Safety · Trench).
+6. **14.0-C1** · Document-type descriptors + inline coaching polish.
+7. **14.0-N1** · In-app notification center delivery (optional for v1).
+
+### Hard locks reaffirmed
+
+- No deploy · no GitHub save · no merge · no new feature builds · no fake integrations · no silent fixes during the audit.
+- Map · Dispatch RTS authority · Repair Complete ≠ RTS preserved.
+- MaintainX dormant pending `MAINTAINX_API_KEY` · FleetWatcher dormant pending credentials.
+- No new collection · no auth widening · no schema change · no map engine change.
+- Photos & documents never required · sensitive doc gates (Insurance/Title/Purchase) intact for non-admin roles.
+
+**Report:** `/app/memory/TRACK_14_0_PLATFORM_READINESS_CERTIFICATION.md` (293 lines · executive summary + 23 detailed sections).
+
+**DO NOT DEPLOY** until 14.0-S1 / 14.0-P1 / 14.0-I1 close and a re-run of Track 14.0 returns CERTIFIED READY TO DEPLOY.
