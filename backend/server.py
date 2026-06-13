@@ -10953,6 +10953,18 @@ _strr_router = build_service_truck_reconciliation_router(
 )
 app.include_router(_strr_router)
 
+# Track 13.30C · Shop Command Center intelligence — read-only.
+# `/api/shop/units/search` + `/api/shop/me/summary`. Two read-only
+# endpoints; zero new collection.
+from routes.shop_intel import build_shop_intel_router  # noqa: E402
+_shop_intel_router = build_shop_intel_router(
+    db,
+    require_shop_or_admin_dep=_require_shop_or_admin_fleet,
+    is_valid_admin_token_fn=_is_valid_admin_token,
+    shop_token_for_fn=_shop_token_for,
+)
+app.include_router(_shop_intel_router)
+
 # Shop Command Feed — single read endpoint consumed by ShopHub and by
 # the DCC "Shop" tile. Reads only from canonical defect / recovery
 # collections. Doctrine: /app/memory/SHOP_COMMAND_ARCHITECTURE.md.

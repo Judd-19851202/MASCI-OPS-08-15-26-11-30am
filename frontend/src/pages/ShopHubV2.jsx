@@ -130,6 +130,7 @@ const REASON_NEXT = {
 function ShopRecoveryRow({ asset, highlighted, onClick }) {
   const tone = REASON_TONE[asset.attention_reason] || { bg: "#f8fafc", color: "#0f172a", border: "#e2e8f0" };
   const where = (asset.assignment && asset.assignment.name) || "Unassigned / Unknown";
+  const hasUnit = !!asset.unit_number;
   return (
     <button
       type="button"
@@ -160,8 +161,23 @@ function ShopRecoveryRow({ asset, highlighted, onClick }) {
         padding: "2px 8px", borderRadius: 999,
         background: tone.bg, color: tone.color, border: `1px solid ${tone.border}`,
       }}>{REASON_LABEL[asset.attention_reason] || asset.attention_reason}</span>
-      <span style={{ gridColumn: "1 / -1", fontSize: 11, color: "#0f766e", fontWeight: 700 }}>
-        Next: {REASON_NEXT[asset.attention_reason] || "Shop review"}
+      <span style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 11, color: "#0f766e", fontWeight: 700 }}>
+          Next: {REASON_NEXT[asset.attention_reason] || "Shop review"}
+        </span>
+        {hasUnit && (
+          <Link
+            to={`/shop/units/${encodeURIComponent(asset.unit_number)}/history`}
+            data-testid={`shop-recovery-map-row-history-${asset.unit_number}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: ".03em",
+              color: "var(--brand-primary, #1b4965)", textDecoration: "none",
+            }}
+          >
+            Open History →
+          </Link>
+        )}
       </span>
     </button>
   );
@@ -313,12 +329,16 @@ function ShopRecoveryMap() {
   );
 }
 
-// ─── Shop Command Center (Track 13.30B) ────────────────────────────
-// Workflow-first layout: Your Queue strip → Attention Required →
-// Active Work → Parts + Waiting → Fuel / Service → Unit Intelligence →
-// Records → Recovery Map. Engineering copy removed; every link
-// resolves to a mounted route; no fake counts; preserves all hard
-// locks (Repair Complete ≠ RTS; Dispatch retains RTS authority).
+// ─── Shop Command Center (Track 13.30B + 13.30C) ──────────────────
+// Workflow-first layout: Header w/ Global Unit Search → Role-aware
+// Your Queue strip → Attention Required → Active Work → Parts +
+// Waiting → Fuel / Service → Unit Intelligence → Records → Recovery
+// Map. Engineering copy removed; every link resolves to a mounted
+// route; no fake counts; preserves all hard locks (Repair Complete ≠
+// RTS; Dispatch retains RTS authority).
+
+import UnitSearchComponent from "@/components/shop/UnitSearch";
+import YourQueueStripComponent from "@/components/shop/YourQueueStrip";
 
 function HubCard({ to, testid, title, body, metric, status, dense }) {
   const showMetric = metric !== undefined && metric !== null;
@@ -338,6 +358,42 @@ function HubCard({ to, testid, title, body, metric, status, dense }) {
         }
         compact={!!dense}
       />
+    </Link>
+  );
+}
+
+// Track 13.30C · Priority metric tile for Section 01.
+// Stronger visual hierarchy: red for live attention, amber for needs
+// review, calm for clear. Loads with "—" until live signals hydrate.
+function PriorityMetric({ to, testid, label, description, value, loaded, accent }) {
+  const hasValue = loaded && typeof value === "number";
+  const active = hasValue && value > 0;
+  const palette = active
+    ? (accent === "red"
+        ? { bg: "#fef2f2", border: "#fecaca", text: "#991b1b", chip: "pending_verification" }
+        : { bg: "#fffbeb", border: "#fde68a", text: "#92400e", chip: "pending_verification" })
+    : { bg: "var(--paper-card)", border: "var(--border-bold)", text: "var(--ink-strong)",
+        chip: loaded ? "verified" : "draft" };
+  const chipLabel = !loaded ? "Loading" : (value === null || value === undefined ? "Offline" : (active ? "Action" : "Clear"));
+  return (
+    <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+      <div style={{
+        padding: "16px 18px", background: palette.bg, border: `1px solid ${palette.border}`,
+        borderRadius: "var(--radius-card)", minHeight: 116,
+        display: "flex", flexDirection: "column", justifyContent: "space-between",
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: palette.text, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</div>
+          <StatusChip statusKey={palette.chip} compact label={chipLabel} />
+        </div>
+        <div data-testid={`${testid}-value`} style={{
+          fontSize: 38, fontWeight: 800, color: palette.text, lineHeight: 1,
+          marginTop: 6,
+        }}>
+          {!loaded ? "…" : (value == null ? "—" : value)}
+        </div>
+        <div style={{ marginTop: 6, fontSize: 11, color: "var(--ink-soft)" }}>{description}</div>
+      </div>
     </Link>
   );
 }
@@ -385,34 +441,20 @@ export default function ShopHubV2() {
           </span>
         }
       >
-        {/* Your Queue strip — role-agnostic shortcuts. Track 13.30C will
-            replace this with a role-aware variant once shop tokens are
-            resolved to a role+id at hub load time. */}
-        <section data-testid="shop-hub-v2-your-queue-strip" style={{ marginBottom: 24 }}>
-          <SectionHeader
-            kicker="Your queue"
-            title="Pick up where the shop left off"
-            caption="Manager Queue · My Assignments · Fuel / Lube Visit · Unit History."
-          />
-          <div data-testid="shop-hub-v2-your-queue-grid"
-               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-            <HubCard to="/shop/manager/queue" testid="shop-hub-v2-yq-manager-queue"
-                     title="Manager Queue"
-                     body="Unassigned · Pending Review · RTS Pending. Assign mechanics and review completed repairs." />
-            <HubCard to="/shop/me" testid="shop-hub-v2-yq-my-assignments"
-                     title="My Assignments"
-                     body="Mechanic queue — accept, start, complete repairs with parts capture." />
-            <HubCard to="/shop/fuel-lube/new" testid="shop-hub-v2-yq-fuel-lube"
-                     title="Fuel / Lube Visit"
-                     body="One job · many equipment lines. Capture fuels, fluids, grease, meter, issues." />
-            <HubCard to="/shop/units/history" testid="shop-hub-v2-yq-unit-history"
-                     title="Unit History"
-                     body="One unit · one timeline. Pre-Ops · DVIRs · defects · repairs · parts · RTS." />
-          </div>
+        {/* Global Unit Search · Track 13.30C — sits directly under the
+            primary action row so it is visible without scrolling. */}
+        <section data-testid="shop-hub-v2-unit-search-section"
+                 style={{ marginBottom: 18 }}>
+          <UnitSearchComponent inline />
         </section>
 
+        {/* Role-aware Your Queue strip · Track 13.30C — replaces the
+            generic strip when the caller resolves to manager/mechanic. */}
+        <YourQueueStripComponent />
+
         {/* 01 · Attention Required — what is down, what is open, what is
-            blocking the shop right now. Live counts only. */}
+            blocking the shop right now. Live counts only. Priority styling
+            (red/amber/calm) per count tone. */}
         <section data-testid="shop-hub-v2-section-attention" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="01 · Attention required"
@@ -421,18 +463,22 @@ export default function ShopHubV2() {
           />
           <div data-testid="shop-hub-v2-attention-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-            <HubCard to="/shop/fleet?focus_filter=oos"  testid="shop-hub-v2-queue-oos-units"
-                     title="Out-of-Service units" body="Units flagged OOS in the equipment master."
-                     metric={num(s.oos_units)} status={tone(s.oos_units)} />
-            <HubCard to="/shop/fleet?focus_filter=defects"  testid="shop-hub-v2-queue-defects-open"
-                     title="Open defects" body="Active defects across the fleet (pre-op + truck DVIR + fuel/lube)."
-                     metric={num(s.defects_open)} status={tone(s.defects_open)} />
-            <HubCard to="/shop/fleet?focus_filter=defect_open_units"  testid="shop-hub-v2-queue-defect-open-units"
-                     title="Units carrying defects" body="Distinct units with at least one open defect."
-                     metric={num(s.defect_open_units)} status={tone(s.defect_open_units)} />
-            <HubCard to="/shop/equipment"  testid="shop-hub-v2-queue-waiting-parts"
-                     title="Waiting on parts" body="Recovery work blocked pending parts arrival."
-                     metric={num(s.waiting_on_parts)} status={tone(s.waiting_on_parts)} />
+            <PriorityMetric to="/shop/fleet?focus_filter=oos" testid="shop-hub-v2-queue-oos-units"
+                     label="Out-of-Service units"
+                     description="Units flagged OOS in the equipment master."
+                     value={s.oos_units} loaded={s.loaded} accent="red" />
+            <PriorityMetric to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-queue-defects-open"
+                     label="Open defects"
+                     description="Active defects across the fleet (pre-op + DVIR + fuel/lube)."
+                     value={s.defects_open} loaded={s.loaded} accent="red" />
+            <PriorityMetric to="/shop/fleet?focus_filter=defect_open_units" testid="shop-hub-v2-queue-defect-open-units"
+                     label="Units carrying defects"
+                     description="Distinct units with at least one open defect."
+                     value={s.defect_open_units} loaded={s.loaded} accent="amber" />
+            <PriorityMetric to="/shop/equipment" testid="shop-hub-v2-queue-waiting-parts"
+                     label="Waiting on parts"
+                     description="Recovery blocked pending parts arrival."
+                     value={s.waiting_on_parts} loaded={s.loaded} accent="amber" />
           </div>
         </section>
 
@@ -525,13 +571,14 @@ export default function ShopHubV2() {
             <HubCard to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-unit-defect-history"
                      title="Defect / Inspection History"
                      body="Full defect feed across the fleet." />
-            <div data-testid="shop-hub-v2-unit-search-future-slot" style={{
+            <div data-testid="shop-hub-v2-unit-search-inline-slot" style={{
               padding: "var(--pad-card)", background: "var(--paper-card)",
-              border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)",
-              color: "var(--ink-soft)", fontSize: 12,
+              border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
             }}>
-              <strong style={{ color: "var(--ink-strong)" }}>Global unit search · coming next.</strong>
-              <div style={{ marginTop: 6 }}>One input across all units · current status · open defects · assigned mechanic · parts · last service. Live once the search endpoint is mounted.</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-strong)", marginBottom: 6 }}>
+                Quick unit search
+              </div>
+              <UnitSearchComponent inline />
             </div>
           </div>
         </section>

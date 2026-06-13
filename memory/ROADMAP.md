@@ -52,8 +52,17 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 - Five-Pillar **7.0 → 9.0** / 10.
 - Report: `/app/memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`.
 
-### Track 13.30C (next P0)
-- Global Unit Search (`GET /api/shop/units/search`) + Role-aware Your-Queue strip (`GET /api/shop/me/summary`). 1 day · LOW risk · 2 read-only backend endpoints + 1 frontend header input.
+### Track 13.30C (DONE 2026-06-12 · LIVE)
+- Shop Command Center Intelligence + Visual Hierarchy + Global Unit Search.
+- Backend: `GET /api/shop/units/search` + `GET /api/shop/me/summary` (read-only · composes from 4 existing collections · zero new collection).
+- Frontend: `UnitSearch.jsx` mounted in header + Section 05 · `YourQueueStrip.jsx` role-aware tiles · Section 01 PriorityMetric upgrade · Recovery Map per-row "Open History →" link.
+- 6 new pytest + 36 regression = **42/42 backend pass**. ESLint clean. Live counts visible (83 unassigned · 71 OOS · 83 open defects · 6 variance review).
+- Recovery Map preserved AND improved (non-negotiable directive honored).
+- Five-Pillar 9.0 → 9.8 / 10.
+- Report: `/app/memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`.
+
+### Track 13.30D (next P0)
+- Parts-On-Order + Mechanic Workload aggregators. 2 derived endpoints + 2 new hub cards. ~2 days.
 
 **Hard locks reaffirmed:** Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · one map engine · no fake MaintainX · no fake FleetWatcher · no accounting / ERP / pay-app / cost / contract / RFI / submittal / change-order / doc-control · no fake users / mechanics / PM / fuel totals.
 

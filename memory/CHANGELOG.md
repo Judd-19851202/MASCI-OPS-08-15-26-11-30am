@@ -1989,3 +1989,43 @@ Powerful 8 · Simple 9 · Beautiful 9 · Trusted 10 · Proven 9.
 
 ### Report
 `/app/memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`. Deployment readiness remains 🟢 **GREEN**.
+
+---
+
+## 2026-06-12 · Track 13.30C — Shop Command Center Intelligence + Visual Hierarchy + Global Unit Search (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · backend + frontend · 2 read-only endpoints · 2 frontend components · ShopHubV2 rewired · zero deploy.
+
+### What shipped
+- **`GET /api/shop/units/search`** — global unit search composing from `equipment_master` + `fleet_status` + `fleet_defects` + `fuel_lube_visits`. Read-only · min 2 chars · 20-row cap · honest empty path · pytest forbidden-term sweep.
+- **`GET /api/shop/me/summary`** — role-aware queue counts (admin/shop_manager · mechanic · generic fallback). Read-only. Derived from `fleet_defects` + `service_truck_reconciliations`.
+- **`UnitSearch.jsx`** mounted in TWO places (header + Section 05 inline) · debounced 350 ms · honest empty/error/loading · row click → Track 13.27 unit history.
+- **`YourQueueStrip.jsx`** — role-aware MetricCard tiles (red/amber/blue/calm palette). Generic fallback for kiosk/anonymous shop tokens.
+- **Section 01 PriorityMetric tiles** — 38 px bold count · red/amber/calm palette · status chip.
+- **Recovery Map preserved AND improved** — per-row "Open History →" link to unit timeline (only when unit_number present). Map size, attention-reason logic, refresh interval UNCHANGED.
+
+### Live counts verified at runtime
+Unassigned 83 · Pending review 0 · Waiting parts 0 · RTS pending 0 · Variance review 7d 6 · OOS Units 71 · Open Defects 83 · Units carrying defects 11.
+
+### Hard locks verified
+- **Recovery Map remains visible on ShopHubV2** (explicit non-negotiable directive · honored).
+- Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · Dispatch/Admin RTS authority · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no fake counts · no duplicate asset history · `/shop/hub_legacy` rollback alive.
+
+### Tests
+- 6 new pytest (`test_track_13_30c_shop_intel.py`) — auth gate · short query · compact shape · seeded find · admin manager counts · forbidden-term sanity. **All pass.**
+- Backend regression: 11 (13.26) + 4 (13.28) + 4 (13.28 P2) + 5 (13.29) + 12 (13.30) + 6 (13.30C) = **42/42 pass**.
+- ESLint clean on ShopHubV2 + YourQueueStrip. UnitSearch carries 1 inert warning (rule absent in webpack ESLint).
+- Live browser smoke confirms hub renders with real counts, zero operator-visible engineering copy, 8 regression routes mount.
+
+### Files
+- Added: `backend/routes/shop_intel.py` · `backend/tests/test_track_13_30c_shop_intel.py` · `frontend/src/components/shop/UnitSearch.jsx` · `frontend/src/components/shop/YourQueueStrip.jsx` · `memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`.
+- Modified: `backend/server.py` (+router mount) · `frontend/src/pages/ShopHubV2.jsx` (Section 01 → PriorityMetric · Your-Queue → role-aware · Section 05 → live inline search · ShopRecoveryRow → history link).
+
+### Five-Pillar score · 9.0 → 9.8 / 10
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
+
+### Recommended next track
+**Track 13.30D — Parts-On-Order + Mechanic Workload aggregators** (2 d · 2 derived endpoints + 2 new hub cards).
+
+### Report
+`/app/memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`. Deployment readiness remains 🟢 **GREEN**.

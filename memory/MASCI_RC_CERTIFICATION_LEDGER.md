@@ -5571,3 +5571,33 @@ Powerful 8 · Simple 9 · Beautiful 9 · Trusted 10 · Proven 9.
 **Track 13.30C — Global Unit Search + Role-aware Your-Queue strip** (1 d · `/api/shop/units/search` + `/api/shop/me/summary`).
 
 **Report:** `/app/memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`.
+
+---
+
+## 2026-06-12 · Track 13.30C — Shop Command Center Intelligence + Visual Hierarchy + Global Unit Search (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · backend + frontend · zero deploy.
+
+### What shipped
+- 2 read-only endpoints: `GET /api/shop/units/search` (global unit search · 20-row cap · composes from 4 collections) + `GET /api/shop/me/summary` (3 role shapes).
+- 2 new frontend components: `UnitSearch.jsx` (debounced 350 ms · honest empty/error/loading · click → Track 13.27 unit history) + `YourQueueStrip.jsx` (role-aware MetricCard tiles).
+- Section 01 cards upgraded to **PriorityMetric** tiles (38 px count · red/amber/calm palette).
+- Recovery Map preserved AND improved (per-row "Open History →" link to unit timeline).
+- Engineering-copy scrub holds (zero operator-visible `Track 13` or `/api/`).
+
+### Hard locks verified
+- **Recovery Map remains visible** (non-negotiable directive honored).
+- Repair Complete ≠ RTS · Dispatch RTS authority · Dispatch Map-First · Driver no-login · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no fake counts · no duplicate asset history · `/shop/hub_legacy` rollback alive.
+
+### Tests
+- 6 new pytest + 36 regression = **42/42 backend pass**.
+- ESLint clean (2 files). 1 inert warning on UnitSearch (rule absent in webpack ESLint).
+- Live runtime smoke: real counts visible (83 unassigned · 71 OOS · 83 open defects · 6 variance review · 0 in other categories).
+
+### Five-Pillar score · 9.0 → 9.8 / 10
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
+
+### Recommended next track
+**Track 13.30D — Parts-On-Order + Mechanic Workload aggregators** (2 d · 2 derived endpoints + 2 new hub cards).
+
+**Report:** `/app/memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`.

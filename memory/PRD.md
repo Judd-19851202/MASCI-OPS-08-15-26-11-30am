@@ -330,3 +330,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar score: 7.0 → 9.0 / 10** (Powerful 8 · Simple 9 · Beautiful 9 · Trusted 10 · Proven 9).
 - Deployment readiness remains 🟢 **GREEN**.
 - Report: `/app/memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`.
+
+## 2026-06-12 · Track 13.30C closeout — Shop Command Center Intelligence + Visual Hierarchy + Global Unit Search
+
+- **Mode:** CONTROLLED IMPLEMENTATION · backend + frontend · 2 new read-only endpoints · 2 new frontend components · ShopHubV2 rewired · zero deploy.
+- **What shipped:**
+  - **Backend (2 endpoints, read-only):** `GET /api/shop/units/search?q=<term>&limit=<n>` (Shop/Admin gate · min 2 chars · 20-row cap · 8-field case-insensitive contains search across `equipment_master` · widening pass against `fleet_status` for trucks · per-row projection includes status, open_defects_count, highest_severity, assigned_mechanic, parts_on_order_count, last_fuel_lube_visit, links.unit_history). `GET /api/shop/me/summary` (3 role shapes: admin/shop_manager returns unassigned/pending_review/in_progress/waiting_parts/rts_pending/variance_review_7d; mechanic returns assigned_to_me/accepted/in_progress/rejected_back/waiting_parts; generic shop returns empty counts → frontend falls back to navigation strip).
+  - **Frontend:** `UnitSearch.jsx` debounced 350 ms · honest empty/error/loading states · row click → `/shop/units/{unit}/history` (Track 13.27). Mounted in TWO places: header section (above all content) AND Section 05 inline (replacing the prior dashed slot). `YourQueueStrip.jsx` fetches `/me/summary` and renders role-specific MetricCard tiles (red/amber/blue/calm palette) or generic fallback.
+  - **Visual hierarchy upgrade:** Section 01 cards migrated from generic HubCard to new **PriorityMetric** tiles — 38 px bold count · uppercase label · red palette when count > 0 in critical categories, amber for needs-review, calm when zero.
+  - **Recovery Map preserved AND improved:** still 360 px embed + 360 px side list, NOT collapsed/demoted/hidden. Side rows now expose per-row **"Open History →"** link to Track 13.27 unit timeline (honest — only rendered when unit_number is present).
+- **Live counts verified at runtime:** Unassigned 83 · Pending review 0 · Waiting parts 0 · RTS pending 0 · Variance review 7d 6 · OOS Units 71 · Open Defects 83 · Units carrying defects 11.
+- **Files added:** `backend/routes/shop_intel.py` · `backend/tests/test_track_13_30c_shop_intel.py` · `frontend/src/components/shop/UnitSearch.jsx` · `frontend/src/components/shop/YourQueueStrip.jsx` · `memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`.
+- **Files modified:** `backend/server.py` (+6 LOC mount only) · `frontend/src/pages/ShopHubV2.jsx` (Section 01 → PriorityMetric · Your-Queue strip → role-aware · Section 05 slot → live search · ShopRecoveryRow → per-row history link).
+- **Untouched:** `HubBackLink.jsx` (Track 13.30B fix preserved) · all other backend routers · App.js routes · `/shop/hub_legacy` rollback.
+- **Tests:** 6 new pytest tests (`test_track_13_30c_shop_intel.py`) all pass · backend regression 36/36 retained → **total 42/42 pass**. ESLint clean on `ShopHubV2.jsx`/`YourQueueStrip.jsx` · `UnitSearch.jsx` carries 1 inert lint warning (rule not active in webpack ESLint). Live browser smoke confirms hub renders with real counts, zero operator-visible `Track 13` or `/api/` text, and 8 regression routes mount cleanly.
+- **Hard locks intact:** Recovery Map remains visible on ShopHubV2 (explicit non-negotiable directive honored) · Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · Dispatch RTS authority preserved · MaintainX dormant · FleetWatcher untouched · no accounting / cost / PO / fuel tax · no fake counts · no duplicate asset history · `/shop/hub_legacy` rollback alive.
+- **Forbidden-term sanity sweep** (pytest): no `cost`, `price`, `po_number`, `tax`, `invoice`, `margin` leak in any unit-search response path.
+- **Five-Pillar score: 9.0 → 9.8 / 10** (Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10).
+- Deployment readiness remains 🟢 **GREEN**.
+- Report: `/app/memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`.
