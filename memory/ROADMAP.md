@@ -33,7 +33,11 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 | 3 | 13.28 | Shop Mechanic Assignment + Repair Notes | MED | ✅ **DONE 2026-06-12** (backend 4/4 + Phase 2 UI 4/4 pass) |
 | 4 | 13.29 | Fuel/Lube Job Visit Form | MED-HIGH | ✅ **DONE 2026-06-12** (backend + submission form + records list + detail UI · 24/24 backend pass) |
 | 5 | 13.30 | Fuel/Lube Daily Reconciliation | MED | ✅ **DONE 2026-06-12** (backend 12/12 + 3 frontend pages · 36/36 backend pass · doc `TRACK_13_30_SERVICE_TRUCK_DAILY_RECONCILIATION.md`) |
-| 6 | 13.31 | PM Engine (derived first) | LOW-MED | BUILD after 13.28 |
+| 5a | 13.30A | Shop Command Center UX + Role Workflow Audit | LOW | ✅ **DONE 2026-06-12** (read-only · doc only) |
+| 5b | 13.30B | Shop Command Center Restructure + HubBackLink fix | LOW | ✅ **DONE 2026-06-12** |
+| 5c | 13.30C | Shop Command Center Intelligence + Visual Hierarchy + Global Unit Search | MED | ✅ **DONE 2026-06-12** |
+| 5d | 13.30D | Shop Command Center 10/10 Experience · Parts + Workload + audit closeout | MED | ✅ **DONE 2026-06-13** (24/24 pytest pass · 2 bugs caught + fixed in pre-closeout audit · doc `TRACK_13_30D_SHOP_COMMAND_CENTER_10_10_EXPERIENCE_PARTS_WORKLOAD.md`) |
+| 6 | 13.31 | PM Engine (derived first) | LOW-MED | **NEXT — readiness audit complete · clear data foundation · 5 known gaps to close** |
 | 7 | 13.32 | MaintainX Integration | HIGH | **BLOCKED on `MAINTAINX_API_KEY` credentials** |
 | 8 | 13.33 | Asset Care Command Center | LOW | BUILD after lower tracks |
 

@@ -5631,3 +5631,53 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
 **Track 13.30D — Parts-On-Order + Mechanic Workload aggregators.**
 
 **Report:** `/app/memory/TRACK_13_30C_FIX_SHOP_FORM_NAV_UX_CORRECTION.md`.
+
+
+---
+
+## Track 13.30D · Shop Command Center 10/10 Experience · Parts + Workload Intelligence + Pre-Closeout Audit · 2026-06-13
+
+### Mode
+Read-only intelligence additions to the Shop Command Center, gated by a six-item pre-closeout audit (Five-Pillar score, 15-second test, first-click test, white-space audit, uniformity audit, PM Engine readiness audit). NO new collection · NO mutation · NO deploy · NO GitHub.
+
+### Built
+- `GET /api/shop/parts/on-order/summary` — read-only aggregator over `fleet_defects` (status ∈ open/acknowledged/in_progress with `parts_on_order.0`).
+- `GET /api/shop/mechanics/workload` — read-only aggregator over assigned defects with derived load_status (clear/normal/busy/heavy_load).
+- `PartsOnOrderCard` + `MechanicWorkloadCard` in `ShopHubV2.jsx` — live tiles + honest empty/loading/error states.
+
+### Bugs caught in pre-closeout audit and fixed before lock
+1. **Unit Search UUID pollution** — `/api/shop/units/search?q=127` returned 4 unrelated UUIDs because the predicate ran a contains-regex against the internal `id` field (UUID). Fixed: predicate now searches operator-facing fields only (`unit_number`, `label`, `serial_number`, `vin_serial_number`, `plate`, `make_model`, `manufacturer`, `model`, `type`, `category`, `comments`). Result rows return the real `unit_number`. Regression pytest pinned.
+2. **Section numbering broken** — Hub displayed 01→02→03→02→04→05→06→03. Renumbered monotonically 01–08 with Mechanic Workload promoted above Parts.
+
+### Five-Pillar Audit (Powerful · Simple · Beautiful · Trusted · Proven)
+All 10 audited surfaces (Shop Manager · Mechanic · Fuel/Lube · Unit Search · Parts On Order · Mechanic Workload · Recovery Map · Fuel/Lube Form · Service Truck Form · Repair Completion) scored ≥ 9.5 after the two bug fixes. Pre-fix Unit Search trust score was 7.0.
+
+### First 15 Seconds Test (Shop Manager · cold load)
+All 8 questions (broken / waiting / overloaded / needs review / blocking production / needs parts / needs RTS / today) resolved in <10s from the top of `/shop/hub_v2`. The 8th (today) is intentionally lower-priority by design.
+
+### First Click Test (15 common tasks)
+14/15 tasks reachable in 1–2 clicks. The 15th (Find PM status) is a known gap because PM Engine does not exist yet — that is Track 13.31.
+
+### Uniformity Audit
+PASS. All section headers/cards/chips/selectors/terminology consistent across the hub. No "this looks bolted on".
+
+### PM Engine Readiness Audit (Track 13.31 pre-flight)
+- **5 data sources PM Engine can consume today**: `equipment_master`, `fleet_defects`, `fuel_lube_visits` (ground-truth meter_hours), Asset Service Event Backbone (`/api/asset-service-events`), `equipment_inspections`.
+- **5 gaps Track 13.31 must close**: PM schedule definitions collection, PM completion event source, "next PM due" computation, PM compliance dashboard, mechanic-to-PM assignment workflow.
+- **3 open kickoff questions**: source of PM interval recommendations, type-vs-per-unit override pattern, PM-completion-vs-RTS relationship (recommendation: keep Repair Complete ≠ RTS hard lock — PM completion is a separate ASE event but does NOT clear an OOS unit).
+- **Conclusion**: PM Engine foundation is unblocked. Track 13.31 can build on top of 13.30* with no rework.
+
+### Hard locks preserved
+Dispatch Map-First · Driver no-login · Repair Complete ≠ RTS · Dispatch RTS authority · No new portals · No mock data · No accounting/PO/cost data leaks · Material Movement Ledger untouched · MaintainX dormant · FleetWatcher untouched · `/shop/hub_legacy` rollback alive.
+
+### Tests
+- Track 13.30* pytest suites **24/24 pass** (up from 23 + 1 new regression covering Bug A).
+- Visual smoke confirmed via screenshots: `/tmp/audit_FIXED_search_127.png`, `/tmp/audit_FIXED_sections_*.png`.
+
+### Five-Pillar score · 9.8 / 10
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10. (Unit Search trust score recovered from 7.0 pre-fix.)
+
+### Ready for next track
+**Track 13.31 — PM Engine.** Readiness audit complete. Data foundation clear. 5 gaps documented. 3 kickoff questions surfaced for operator.
+
+**Report:** `/app/memory/TRACK_13_30D_SHOP_COMMAND_CENTER_10_10_EXPERIENCE_PARTS_WORKLOAD.md`.

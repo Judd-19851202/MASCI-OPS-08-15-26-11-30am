@@ -10,6 +10,24 @@
 
 ---
 
+## 2026-06-13 · Track 13.30D — Shop Command Center 10/10 Experience · Parts & Workload Intelligence (+ Pre-Closeout Audit)
+
+**Mode:** Read-only intelligence additions + pre-closeout audit pass. NO mutation, NO new collections, NO deploy.
+
+- New backend aggregator `GET /api/shop/parts/on-order/summary` — sources `fleet_defects` (status ∈ open/acknowledged/in_progress with `parts_on_order.0`). Returns totals, units waiting, defects waiting, expected today, overdue, and top-N items sorted by age.
+- New backend aggregator `GET /api/shop/mechanics/workload` — per-mechanic counts (assigned/accepted/in_progress/waiting_parts/pending_review/rejected_back), derived `load_status` (clear/normal/busy/heavy_load), current units list (capped at 5), oldest-assignment-age-hours.
+- Frontend `ShopHubV2.jsx` wires both aggregators into live Command Center cards (`PartsOnOrderCard` + `MechanicWorkloadCard`) with honest loading/error/empty states.
+- **Pre-closeout audit (Five-Pillar + 15-second + first-click + uniformity + PM-Engine-readiness)** caught and fixed two real bugs before lock:
+  - **Unit Search returned UUID `id` substrings as `unit_number`** (typing "127" returned 4 unrelated UUIDs). Fixed: predicate now searches `unit_number/label/serial/plate/make_model/...`, returns real `unit_number`. Regression test pinned.
+  - **Section numbering broken** (01→02→03→**02**→04→05→06→**03**). Renumbered monotonically 01→08 with Mechanic Workload promoted above Parts.
+- PM Engine readiness audit documents 5 data sources Track 13.31 can consume today, 5 gaps it must close, and 3 open kickoff questions. Asset Service Event Backbone already reserves a `pm` event-type slot.
+- Test suite: **24/24 Track 13.30* pytests passing** (was 23 + 1 new regression).
+- Hard locks preserved: Repair Complete ≠ RTS · Dispatch retains RTS authority · No new portals · No mock data · No accounting/PO/cost leaks · No deploy · No GitHub.
+- Report: `/app/memory/TRACK_13_30D_SHOP_COMMAND_CENTER_10_10_EXPERIENCE_PARTS_WORKLOAD.md`.
+
+---
+
+
 ## 2026-06-12 · Track 13.18 — Material Movement Ledger · Certification & Architecture
 
 **Mode:** Source-truth certification + architecture design only. **NO implementation.**

@@ -86,7 +86,8 @@ def test_units_search_finds_by_unit_when_seeded():
         db = cli[e["DB_NAME"]]
         try:
             await db.equipment_master.insert_one({
-                "id": unit, "asset_id": unit, "label": f"Test unit {suffix}",
+                "id": unit, "asset_id": unit, "unit_number": unit,
+                "label": f"Test unit {suffix}",
                 "type": "skid_steer", "category": "skid_steer", "status": "active",
                 "is_active": True,
             })
@@ -110,6 +111,74 @@ def test_units_search_finds_by_unit_when_seeded():
             await db.fleet_defects.delete_one({"id": f"itestdef-{suffix}"})
 
     asyncio.run(seed_and_clean())
+
+
+def test_units_search_does_not_match_uuid_id_substring():
+    """Regression guard for Track 13.30D closeout audit.
+
+    Pre-audit, `units_search` ran a contains-regex against the internal
+    ``id`` field (a UUID), causing accidental hits where the UUID
+    happened to contain the search digits (e.g. ``q=127`` matched a UUID
+    like ``10127b48-…``). Operators saw raw UUIDs surface as
+    "unit_number" rows. This test seeds an equipment row whose internal
+    UUID contains the search digits but whose ``unit_number`` does NOT,
+    and asserts that row is **not** returned.
+    """
+    tok = _admin()
+    headers = {"X-Admin-Token": tok}
+    suffix = uuid.uuid4().hex[:6]
+    # UUID picked so it contains the literal substring "ZZUUID987" — we
+    # use that as the search term so we can't accidentally match real data.
+    rigged_id = f"abc-ZZUUID987-{suffix}"
+    real_unit = f"REGUNIT{suffix}"  # does NOT contain ZZUUID987
+
+    from motor.motor_asyncio import AsyncIOMotorClient
+    import asyncio
+    e = {}
+    for line in open("/app/backend/.env"):
+        line = line.strip()
+        if "=" in line and not line.startswith("#"):
+            k, _, v = line.partition("=")
+            e[k.strip()] = v.strip().strip('"').strip("'")
+
+    async def seed_and_check():
+        cli = AsyncIOMotorClient(e["MONGO_URL"])
+        db = cli[e["DB_NAME"]]
+        try:
+            await db.equipment_master.insert_one({
+                "id": rigged_id, "asset_id": rigged_id,
+                "unit_number": real_unit,
+                "label": "Search regression seed",
+                "type": "skid_steer", "category": "skid_steer",
+                "status": "active", "is_active": True,
+            })
+            # Search for the UUID substring — must NOT return our row.
+            r = httpx.get(f"{API}/shop/units/search",
+                          params={"q": "ZZUUID987"},
+                          headers=headers, timeout=30)
+            assert r.status_code == 200, r.text
+            body = r.json()
+            matching = [
+                x for x in body["results"]
+                if (x.get("unit_number") == real_unit) or (x.get("links", {}).get("unit_history", "").endswith(f"/{rigged_id}/history"))
+            ]
+            assert matching == [], (
+                f"Search returned row matched only via UUID substring: {matching!r}"
+            )
+            # Sanity: searching by the REAL unit_number still returns the row.
+            r2 = httpx.get(f"{API}/shop/units/search",
+                           params={"q": real_unit},
+                           headers=headers, timeout=30)
+            assert r2.status_code == 200, r2.text
+            hits = [x for x in r2.json()["results"] if x.get("unit_number") == real_unit]
+            assert len(hits) == 1
+            assert hits[0]["links"]["unit_history"] == f"/shop/units/{real_unit}/history"
+        finally:
+            await db.equipment_master.delete_one({"id": rigged_id})
+
+    asyncio.run(seed_and_check())
+
+
 
 
 # ── /me/summary ─────────────────────────────────────────────────────────

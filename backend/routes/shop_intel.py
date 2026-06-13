@@ -53,6 +53,10 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _now_iso() -> str:
+    return _now().isoformat()
+
+
 # ── Router factory ─────────────────────────────────────────────────────
 
 
@@ -122,20 +126,26 @@ def build_shop_intel_router(
             return {"query": term, "count": 0, "results": [], "source": SHOP_INTEL_SOURCE}
 
         # ── Step 1 — locate candidate units from equipment_master ──────
-        # Search across unit_number-ish fields. Equipment_master is
-        # keyed by ``id`` (unit number on most rows); fields differ
-        # across asset types so we OR across reasonable candidates.
+        # Search the operator-friendly fields ONLY. The internal `id`
+        # field is a UUID and was previously polluting results with
+        # accidental substring matches (e.g. "127" hit any UUID
+        # containing the digits 127). Audit pre-13.30D closeout removed
+        # `id` and `asset_id` from the search predicate so that the
+        # query reflects how operators identify equipment.
         contains = _ci_contains_regex(term)
         candidate_query = {
             "$or": [
-                {"id": contains},
-                {"asset_id": contains},
+                {"unit_number": contains},
                 {"label": contains},
+                {"vin_serial_number": contains},
+                {"serial_number": contains},
+                {"plate": contains},
+                {"make_model": contains},
                 {"manufacturer": contains},
                 {"model": contains},
-                {"serial_number": contains},
                 {"type": contains},
                 {"category": contains},
+                {"comments": contains},
             ],
             # Don't include retired equipment in search by default.
             "$and": [{"$or": [
@@ -146,15 +156,16 @@ def build_shop_intel_router(
         candidates: List[Dict[str, Any]] = []
         async for d in db.equipment_master.find(
             candidate_query,
-            {"_id": 0, "id": 1, "asset_id": 1, "label": 1, "manufacturer": 1,
-             "model": 1, "serial_number": 1, "type": 1, "category": 1,
-             "status": 1, "location": 1, "current_project_name": 1},
+            {"_id": 0, "id": 1, "asset_id": 1, "unit_number": 1, "label": 1,
+             "manufacturer": 1, "model": 1, "make_model": 1, "plate": 1,
+             "vin_serial_number": 1, "serial_number": 1, "type": 1, "category": 1,
+             "status": 1, "location": 1, "current_project_name": 1, "comments": 1},
         ).limit(limit * 2):  # over-fetch a bit for de-dup
             candidates.append(d)
 
         # Also widen with fleet_status if a unit_number matches directly
         # (some trucks live in fleet_status but not equipment_master).
-        seen_units: set = {(d.get("id") or "").upper() for d in candidates}
+        seen_units: set = {((d.get("unit_number") or d.get("id") or "")).upper() for d in candidates}
         async for d in db.fleet_status.find(
             {"unit_number": _ci_contains_regex(term)},
             {"_id": 0, "unit_number": 1, "status": 1, "unit_kind": 1},
@@ -163,6 +174,7 @@ def build_shop_intel_router(
             if u and u not in seen_units:
                 candidates.append({
                     "id": d.get("unit_number"),
+                    "unit_number": d.get("unit_number"),
                     "asset_id": d.get("unit_number"),
                     "label": d.get("unit_number"),
                     "type": d.get("unit_kind") or "truck",
@@ -176,7 +188,11 @@ def build_shop_intel_router(
         if not candidates:
             return {"query": term, "count": 0, "results": [], "source": SHOP_INTEL_SOURCE}
 
-        unit_numbers = [c.get("id") or c.get("asset_id") for c in candidates if (c.get("id") or c.get("asset_id"))]
+        unit_numbers = [
+            (c.get("unit_number") or c.get("id") or c.get("asset_id"))
+            for c in candidates
+            if (c.get("unit_number") or c.get("id") or c.get("asset_id"))
+        ]
 
         # ── Step 2 — pull open defect rollups per unit ─────────────────
         # Group by truck_unit_number (case-insensitive comparison via
@@ -247,8 +263,17 @@ def build_shop_intel_router(
         # ── Step 4 — compose compact result rows ──────────────────────
         results: List[Dict[str, Any]] = []
         for c in candidates:
-            unit = c.get("id") or c.get("asset_id") or ""
-            unit_up = unit.upper()
+            # Prefer the operator-facing `unit_number` field over the
+            # internal UUID `id`. Many equipment_master rows have an
+            # empty `unit_number` (small attachments, miscellaneous
+            # tools); for those we fall back to the asset label so the
+            # row still renders something meaningful, and we keep the
+            # internal id only for the history link target.
+            unit = (c.get("unit_number") or "").strip()
+            internal_id = c.get("id") or c.get("asset_id") or ""
+            display_label = c.get("label") or c.get("make_model") or c.get("model") or ""
+            history_key = unit or internal_id
+            unit_up = (unit or internal_id).upper()
             dr = defect_rollup.get(unit_up) or {}
             fl = fl_last.get(unit_up) or {}
             status = (c.get("status") or "").lower() or "unknown"
@@ -260,10 +285,10 @@ def build_shop_intel_router(
             elif status in {"in_shop", "in-shop", "maintenance"}:
                 status = "maintenance"
             results.append({
-                "unit_number": unit,
-                "asset_name": c.get("label") or c.get("model") or "",
+                "unit_number": unit or None,
+                "asset_name": display_label or "",
                 "asset_type": c.get("type") or c.get("category") or "",
-                "serial_number": c.get("serial_number") or None,
+                "serial_number": c.get("vin_serial_number") or c.get("serial_number") or None,
                 "current_project": c.get("current_project_name") or None,
                 "status": status,
                 "open_defects_count": dr.get("open_defects_count", 0),
@@ -272,8 +297,8 @@ def build_shop_intel_router(
                 "parts_on_order_count": dr.get("parts_on_order_count", 0),
                 "last_fuel_lube_visit": fl or None,
                 "links": {
-                    "unit_history": f"/shop/units/{unit}/history" if unit else None,
-                    "defects": f"/shop/fleet?focus_filter=defects" if unit else None,
+                    "unit_history": f"/shop/units/{history_key}/history" if history_key else None,
+                    "defects": "/shop/fleet?focus_filter=defects",
                     "manager_queue": "/shop/manager/queue",
                 },
             })
@@ -456,6 +481,151 @@ def build_shop_intel_router(
                 "status": (d.get("status") or "").lower() or "unknown",
             })
         return {"items": items, "count": len(items), "source": SHOP_INTEL_SOURCE}
+
+    # ── GET /parts/on-order/summary ────────────────────────────────
+    @router.get("/parts/on-order/summary")
+    async def parts_on_order_summary(
+        limit: int = Query(default=20, ge=1, le=100),
+        _actor=Depends(require_shop_or_admin_dep),
+    ) -> Dict[str, Any]:
+        from datetime import date as _date
+        today = _now().date()
+        cursor = db.fleet_defects.find(
+            {"status": {"$in": ["open", "acknowledged", "in_progress"]},
+             "parts_on_order.0": {"$exists": True}},
+            {"_id": 0, "id": 1, "truck_unit_number": 1, "item_text": 1,
+             "assigned_to_mechanic_id": 1, "assigned_to_mechanic_name": 1,
+             "parts_on_order": 1, "reported_at": 1},
+        )
+        items: List[Dict[str, Any]] = []
+        units_set: set = set()
+        defect_ids: set = set()
+        total_parts = 0
+        expected_today = 0
+        overdue = 0
+        async for d in cursor:
+            unit = d.get("truck_unit_number") or ""
+            defect_id = d.get("id")
+            defect_ids.add(defect_id)
+            units_set.add(unit.upper())
+            for p in (d.get("parts_on_order") or []):
+                total_parts += 1
+                exp = p.get("expected_date") or ""
+                age_days = 0
+                if d.get("reported_at"):
+                    try:
+                        reported = datetime.fromisoformat(d["reported_at"].replace("Z", "+00:00"))
+                        age_days = max(0, (_now() - reported).days)
+                    except Exception:  # noqa: BLE001
+                        age_days = 0
+                is_today = (exp == today.isoformat())
+                is_overdue = False
+                if exp:
+                    try:
+                        is_overdue = _date.fromisoformat(exp) < today
+                    except ValueError:
+                        is_overdue = False
+                if is_today: expected_today += 1
+                if is_overdue: overdue += 1
+                items.append({
+                    "unit_number": unit,
+                    "defect_id": defect_id,
+                    "defect_title": d.get("item_text") or "",
+                    "assigned_mechanic_id": d.get("assigned_to_mechanic_id") or "",
+                    "assigned_mechanic_name": d.get("assigned_to_mechanic_name") or "",
+                    "part_name": p.get("name") or p.get("part_name") or "",
+                    "part_number": p.get("part_number") or "",
+                    "manufacturer": p.get("manufacturer") or "",
+                    "supplier": p.get("supplier") or "",
+                    "quantity": p.get("quantity") or 1,
+                    "ordered_date": p.get("ordered_date") or "",
+                    "expected_date": exp,
+                    "order_status": p.get("status") or "on_order",
+                    "age_days": age_days,
+                    "links": {
+                        "unit_history": f"/shop/units/{unit}/history" if unit else None,
+                        "manager_queue": "/shop/manager/queue",
+                    },
+                })
+        items.sort(key=lambda x: (-x["age_days"], x["unit_number"]))
+        return {
+            "generated_at": _now_iso(),
+            "total_parts_on_order": total_parts,
+            "units_waiting_parts": len(units_set),
+            "defects_waiting_parts": len(defect_ids),
+            "expected_today": expected_today,
+            "overdue_parts": overdue,
+            "items": items[:limit],
+            "source": SHOP_INTEL_SOURCE,
+        }
+
+    # ── GET /mechanics/workload ───────────────────────────────────
+    @router.get("/mechanics/workload")
+    async def mechanics_workload(
+        _actor=Depends(require_shop_or_admin_dep),
+    ) -> Dict[str, Any]:
+        cursor = db.fleet_defects.find(
+            {"assigned_to_mechanic_id": {"$nin": [None, ""]},
+             "status": {"$in": ["open", "acknowledged", "in_progress", "pending_review"]}},
+            {"_id": 0, "id": 1, "truck_unit_number": 1,
+             "assigned_to_mechanic_id": 1, "assigned_to_mechanic_name": 1,
+             "status": 1, "parts_on_order": 1, "manager_review_status": 1,
+             "assigned_at": 1},
+        )
+        bucket: Dict[str, Dict[str, Any]] = {}
+        async for d in cursor:
+            mid = d.get("assigned_to_mechanic_id")
+            if not mid: continue
+            m = bucket.setdefault(mid, {
+                "mechanic_id": mid,
+                "mechanic_name": d.get("assigned_to_mechanic_name") or mid,
+                "assigned": 0, "accepted": 0, "in_progress": 0,
+                "waiting_parts": 0, "pending_review": 0, "rejected_back": 0,
+                "oldest_assignment_age_hours": 0,
+                "current_units": [],
+            })
+            st = (d.get("status") or "").lower()
+            if st == "open":            m["assigned"]       += 1
+            elif st == "acknowledged":  m["accepted"]       += 1
+            elif st == "in_progress":   m["in_progress"]    += 1
+            elif st == "pending_review":m["pending_review"] += 1
+            if (d.get("parts_on_order") or []):  m["waiting_parts"]  += 1
+            if (d.get("manager_review_status") or "") == "rejected": m["rejected_back"] += 1
+            unit = d.get("truck_unit_number") or ""
+            if unit and unit not in m["current_units"] and len(m["current_units"]) < 5:
+                m["current_units"].append(unit)
+            assigned_at = d.get("assigned_at")
+            if assigned_at:
+                try:
+                    a = datetime.fromisoformat(assigned_at.replace("Z", "+00:00"))
+                    hours = (_now() - a).total_seconds() / 3600.0
+                    if hours > m["oldest_assignment_age_hours"]:
+                        m["oldest_assignment_age_hours"] = round(hours, 1)
+                except Exception:  # noqa: BLE001
+                    pass
+
+        def _load(m):
+            active = m["assigned"] + m["accepted"] + m["in_progress"]
+            if active == 0: return "clear"
+            if active <= 3: return "normal"
+            if active <= 6: return "busy"
+            return "heavy_load"
+
+        mechanics = list(bucket.values())
+        for m in mechanics:
+            m["load_status"] = _load(m)
+        mechanics.sort(key=lambda x: (-(x["assigned"] + x["in_progress"]), x["mechanic_name"]))
+
+        return {
+            "generated_at": _now_iso(),
+            "mechanic_count": len(mechanics),
+            "total_assigned":      sum(m["assigned"]       for m in mechanics),
+            "total_in_progress":   sum(m["in_progress"]    for m in mechanics),
+            "total_pending_review":sum(m["pending_review"] for m in mechanics),
+            "total_waiting_parts": sum(m["waiting_parts"]  for m in mechanics),
+            "mechanics": mechanics,
+            "source": SHOP_INTEL_SOURCE,
+        }
 
     return router
 

@@ -221,7 +221,7 @@ function ShopRecoveryMap() {
   return (
     <section data-testid="shop-recovery-map-section" style={{ marginBottom: 28 }}>
       <SectionHeader
-        kicker="03 · Recovery Map · secondary"
+        kicker="08 · Recovery Map · secondary"
         title="Recovery Map"
         caption="Shop-visible units needing maintenance or inspection attention. Live location from current operations-map feed."
       />
@@ -398,6 +398,149 @@ function PriorityMetric({ to, testid, label, description, value, loaded, accent 
   );
 }
 
+// Track 13.30D · Parts-on-order rollup card (live).
+function PartsOnOrderCard() {
+  const [d, setD] = React.useState(null);
+  const [err, setErr] = React.useState("");
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const tokA = (typeof window !== "undefined" && window.localStorage.getItem("masci.admin.token")) || "";
+        const tokS = (typeof window !== "undefined" && window.localStorage.getItem("masci.shop.token")) || "";
+        const h = { "Content-Type": "application/json" };
+        if (tokA) h["X-Admin-Token"] = tokA;
+        if (tokS) h["X-Shop-Token"] = tokS;
+        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/parts/on-order/summary?limit=5`, { headers: h });
+        const b = await r.json().catch(() => null);
+        if (!r.ok) throw new Error((b && b.detail) || `HTTP ${r.status}`);
+        if (alive) setD(b);
+      } catch (e) { if (alive) setErr(e.message || "Parts rollup unavailable."); }
+    })();
+    return () => { alive = false; };
+  }, []);
+  if (err) return <div data-testid="shop-hub-v2-parts-rollup-error" style={{ padding: 12, fontSize: 12, color: "#7f1d1d", background: "#fee2e2", borderRadius: 4 }}>{err}</div>;
+  if (!d)  return <div data-testid="shop-hub-v2-parts-rollup-loading" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)" }}>Loading…</div>;
+  return (
+    <div data-testid="shop-hub-v2-parts-rollup" style={{ display: "grid", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+        {[
+          ["Total parts on order", d.total_parts_on_order, "amber"],
+          ["Units waiting",        d.units_waiting_parts,  d.units_waiting_parts > 0 ? "amber" : "calm"],
+          ["Defects waiting",      d.defects_waiting_parts, d.defects_waiting_parts > 0 ? "amber" : "calm"],
+          ["Expected today",       d.expected_today,       "blue"],
+          ["Overdue",              d.overdue_parts,        d.overdue_parts > 0 ? "red" : "calm"],
+        ].map(([label, value, accent]) => {
+          const p = accent === "red"   ? { bg: "#fef2f2", border: "#fecaca", text: "#991b1b" }
+                  : accent === "amber" ? { bg: "#fffbeb", border: "#fde68a", text: "#92400e" }
+                  : accent === "blue"  ? { bg: "#eff6ff", border: "#bfdbfe", text: "#1e40af" }
+                                       : { bg: "var(--paper-card)", border: "var(--border-bold)", text: "var(--ink-strong)" };
+          return (
+            <div key={label} data-testid={`shop-hub-v2-parts-${label.toLowerCase().replace(/\s+/g, "-")}`}
+                 style={{ padding: "12px 14px", background: p.bg, border: `1px solid ${p.border}`,
+                          borderRadius: "var(--radius-card)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: p.text, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: p.text, lineHeight: 1, marginTop: 4 }}>{value}</div>
+            </div>
+          );
+        })}
+      </div>
+      {d.items && d.items.length > 0 && (
+        <div data-testid="shop-hub-v2-parts-rollup-list" style={{
+          background: "var(--paper-card)", border: "1px solid var(--border-bold)",
+          borderRadius: "var(--radius-card)", overflow: "hidden",
+        }}>
+          {d.items.slice(0, 5).map((it, i) => (
+            <Link key={it.defect_id + "-" + i} to={it.links?.unit_history || "/shop/manager/queue"}
+                  data-testid={`shop-hub-v2-parts-row-${it.unit_number}`}
+                  style={{ display: "block", padding: "8px 12px", textDecoration: "none", color: "inherit",
+                           borderBottom: i < d.items.length - 1 ? "1px solid #e5e7eb" : "none" }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>
+                {it.unit_number || "—"} · {it.part_name || "—"} {it.quantity > 1 ? `× ${it.quantity}` : ""}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                {it.assigned_mechanic_name ? `Mechanic: ${it.assigned_mechanic_name} · ` : ""}
+                {it.expected_date ? `Expected: ${it.expected_date} · ` : ""}
+                Age {it.age_days}d
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Track 13.30D · Mechanic workload card (live · non-punitive).
+function MechanicWorkloadCard() {
+  const [d, setD] = React.useState(null);
+  const [err, setErr] = React.useState("");
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const tokA = (typeof window !== "undefined" && window.localStorage.getItem("masci.admin.token")) || "";
+        const tokS = (typeof window !== "undefined" && window.localStorage.getItem("masci.shop.token")) || "";
+        const h = { "Content-Type": "application/json" };
+        if (tokA) h["X-Admin-Token"] = tokA;
+        if (tokS) h["X-Shop-Token"] = tokS;
+        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/mechanics/workload`, { headers: h });
+        const b = await r.json().catch(() => null);
+        if (!r.ok) throw new Error((b && b.detail) || `HTTP ${r.status}`);
+        if (alive) setD(b);
+      } catch (e) { if (alive) setErr(e.message || "Workload unavailable."); }
+    })();
+    return () => { alive = false; };
+  }, []);
+  if (err) return <div data-testid="shop-hub-v2-workload-error" style={{ padding: 12, fontSize: 12, color: "#7f1d1d", background: "#fee2e2", borderRadius: 4 }}>{err}</div>;
+  if (!d)  return <div data-testid="shop-hub-v2-workload-loading" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)" }}>Loading…</div>;
+  if (!d.mechanics || d.mechanics.length === 0) {
+    return <div data-testid="shop-hub-v2-workload-empty" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)", background: "var(--paper-card)", border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)" }}>
+      No mechanics currently assigned to active work.
+    </div>;
+  }
+  const LOAD_LABEL = { clear: "Clear", normal: "Normal", busy: "Busy", heavy_load: "Heavy load" };
+  const LOAD_TONE  = {
+    clear:      { bg: "#dcfce7", text: "#166534" },
+    normal:     { bg: "#eff6ff", text: "#1e40af" },
+    busy:       { bg: "#fffbeb", text: "#92400e" },
+    heavy_load: { bg: "#fee2e2", text: "#991b1b" },
+  };
+  return (
+    <div data-testid="shop-hub-v2-workload-grid" style={{
+      display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12,
+    }}>
+      {d.mechanics.slice(0, 12).map((m) => {
+        const t = LOAD_TONE[m.load_status] || LOAD_TONE.clear;
+        return (
+          <Link key={m.mechanic_id} to="/shop/manager/queue"
+                data-testid={`shop-hub-v2-workload-row-${m.mechanic_id}`}
+                style={{ textDecoration: "none", color: "inherit", display: "block",
+                         padding: "12px 14px", background: "var(--paper-card)",
+                         border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+              <strong style={{ fontSize: 13, color: "var(--ink-strong)" }}>{m.mechanic_name}</strong>
+              <span style={{ padding: "2px 8px", borderRadius: 3, background: t.bg, color: t.text, fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>
+                {LOAD_LABEL[m.load_status] || m.load_status}
+              </span>
+            </div>
+            <div style={{ marginTop: 6, fontSize: 11, color: "var(--ink-soft)" }}>
+              Assigned <strong>{m.assigned}</strong> · Accepted <strong>{m.accepted}</strong> ·
+              In progress <strong>{m.in_progress}</strong> · Waiting parts <strong>{m.waiting_parts}</strong> ·
+              Pending review <strong>{m.pending_review}</strong>{m.rejected_back > 0 ? <> · <span style={{ color: "#991b1b" }}>Rejected back {m.rejected_back}</span></> : null}
+            </div>
+            {m.current_units.length > 0 && (
+              <div style={{ marginTop: 4, fontSize: 11, color: "var(--ink-soft)" }}>
+                Units: {m.current_units.join(", ")}
+              </div>
+            )}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ShopHubV2() {
   const s = useShopSignals();
   const allZero = s.loaded && [
@@ -505,35 +648,32 @@ export default function ShopHubV2() {
           </div>
         </section>
 
-        {/* 03 · Parts + Waiting — single live card today; future expansion
-            slot is documented but not faked. */}
-        <section data-testid="shop-hub-v2-section-parts" style={{ marginBottom: 28 }}>
+        {/* 03 · Mechanic Workload — live per-mechanic queue. */}
+        <section data-testid="shop-hub-v2-section-mechanic-workload" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="03 · Parts and waiting"
-            title="What's blocked on parts"
-            caption="Waiting-on-parts is the single shop delay surfaced today. Parts-on-order rollups land in a later track."
+            kicker="03 · Mechanic workload"
+            title="Who's loaded right now"
+            caption="Per-mechanic open · accepted · in progress · waiting parts. Click any row to open the manager queue."
           />
-          <div data-testid="shop-hub-v2-parts-grid"
-               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-            <HubCard to="/shop/equipment" testid="shop-hub-v2-parts-waiting"
-                     title="Waiting on parts" body="Recovery blocked pending parts arrival."
-                     metric={num(s.waiting_on_parts)} status={tone(s.waiting_on_parts)} />
-            <div data-testid="shop-hub-v2-parts-future-slot" style={{
-              padding: "var(--pad-card)", background: "var(--paper-card)",
-              border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)",
-              color: "var(--ink-soft)", fontSize: 12,
-            }}>
-              <strong style={{ color: "var(--ink-strong)" }}>Parts on order · coming next.</strong>
-              <div style={{ marginTop: 6 }}>Per-mechanic and per-unit parts rollups arrive in a later track. No card built until the source aggregator is live.</div>
-            </div>
-          </div>
+          <MechanicWorkloadCard />
         </section>
 
-        {/* 04 · Fuel / Service — primary entry points for fuel/lube and
+        {/* 04 · Parts + Waiting — live rollup card replaces the prior
+            dashed placeholder. Source: /api/shop/parts/on-order/summary. */}
+        <section data-testid="shop-hub-v2-section-parts" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="04 · Parts and waiting"
+            title="What's blocked on parts"
+            caption="Total parts on order, units waiting, expected today, and overdue items."
+          />
+          <PartsOnOrderCard />
+        </section>
+
+        {/* 05 · Fuel / Service — primary entry points for fuel/lube and
             service-truck workflows. */}
         <section data-testid="shop-hub-v2-section-fuel-service" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="04 · Fuel and service"
+            kicker="05 · Fuel and service"
             title="Fuel · fluids · service-truck accountability"
             caption="Submit visits · review records · close service-truck days · acknowledge variance."
           />
@@ -554,12 +694,12 @@ export default function ShopHubV2() {
           </div>
         </section>
 
-        {/* 05 · Unit Intelligence — drill into a single unit. Future Global
+        {/* 06 · Unit Intelligence — drill into a single unit. Future Global
             Unit Search slot is reserved but NOT fake — only an inert
             placeholder until Track 13.30C provides the search backend. */}
         <section data-testid="shop-hub-v2-section-unit-intel" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="05 · Unit intelligence"
+            kicker="06 · Unit intelligence"
             title="Find a unit · open its full story"
             caption="One unit · one timeline. Pre-Ops · DVIRs · defects · repairs · parts · fuel · RTS."
           />
@@ -583,10 +723,10 @@ export default function ShopHubV2() {
           </div>
         </section>
 
-        {/* 06 · Records — archival surfaces; sit below active work. */}
+        {/* 07 · Records — archival surfaces; sit below active work. */}
         <section data-testid="shop-hub-v2-section-records" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="06 · Records"
+            kicker="07 · Records"
             title="Archive · audits · history"
             caption="Pre-Ops · Truck DVIRs · Fuel/Lube · Reconciliations. Honest empty states · no fake exports."
           />
@@ -609,7 +749,7 @@ export default function ShopHubV2() {
           </div>
         </section>
 
-        {/* 07 · Map — secondary lens, lowest priority. */}
+        {/* 08 · Map — secondary lens, lowest priority. */}
         <ShopRecoveryMap />
 
         {allZero && (

@@ -130,15 +130,22 @@ export default function UnitSearch({ inline = false }) {
           {!loading && !error && results.map((row) => {
             const sev = SEV_CHIP[row.highest_severity || "none"] || SEV_CHIP.none;
             const st = STATUS_CHIP[row.status] || STATUS_CHIP.unknown;
+            const rowKey = row.unit_number || row.links?.unit_history || row.asset_name;
+            const displayUnit = row.unit_number || row.asset_name || "—";
             return (
-              <button key={row.unit_number} data-testid={`shop-unit-search-row-${row.unit_number}`}
+              <button key={rowKey} data-testid={`shop-unit-search-row-${row.unit_number || rowKey}`}
                       type="button"
                       onClick={() => { setOpen(false); navigate(row.links?.unit_history || "/shop/units/history"); }}
                       style={{ width: "100%", textAlign: "left", padding: "10px 12px",
                                background: "transparent", border: "none", borderBottom: "1px solid var(--border-soft, #e5e7eb)",
                                cursor: "pointer", display: "block" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <strong style={{ fontSize: 13, color: "var(--ink-strong)" }}>{row.unit_number}</strong>
+                  <strong style={{ fontSize: 13, color: "var(--ink-strong)" }}>{displayUnit}</strong>
+                  {!row.unit_number && (
+                    <span style={{ padding: "1px 6px", borderRadius: 3, background: "#e5e7eb", color: "#374151", fontSize: 9, fontWeight: 700, letterSpacing: ".04em" }}>
+                      NO UNIT #
+                    </span>
+                  )}
                   <span style={{ padding: "1px 6px", borderRadius: 3, background: st.bg, color: st.fg, fontSize: 10, fontWeight: 700 }}>{st.label}</span>
                   {row.open_defects_count > 0 && (
                     <span style={{ padding: "1px 6px", borderRadius: 3, background: sev.bg, color: sev.fg, fontSize: 10, fontWeight: 700 }}>
@@ -152,7 +159,7 @@ export default function UnitSearch({ inline = false }) {
                   )}
                 </div>
                 <div style={{ marginTop: 2, fontSize: 11, color: "var(--ink-soft)" }}>
-                  {row.asset_name || "—"} · {row.asset_type || "—"}
+                  {row.unit_number ? `${row.asset_name || "—"} · ` : ""}{row.asset_type || "—"}
                   {row.assigned_mechanic ? ` · mechanic ${row.assigned_mechanic}` : ""}
                   {row.last_fuel_lube_visit?.visit_date ? ` · last fuel/lube ${row.last_fuel_lube_visit.visit_date}` : ""}
                 </div>
