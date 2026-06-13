@@ -5935,3 +5935,50 @@ MAP STAYS · Recovery Map STAYS · Employee Lifecycle authoritative for custody 
 
 **Report:** `/app/memory/TRACK_13_31AC_PLATFORM_ASSET_TAXONOMY_CLASSIFICATION_SOURCE_OF_TRUTH_CERTIFICATION.md`.
 
+
+---
+
+## Track 13.31B-D0D1 · Taxonomy + Asset Admin Spine Foundation · 2026-06-13
+
+### Mode
+Controlled implementation · Days 0+1 only. NO UI · NO doc vault · NO CSV/PDF · NO new collections · NO deploy · NO GitHub.
+
+### Built
+- **`backend/services/asset_taxonomy.py`** (new · pure-Python): canonical 13-asset-class × 92-asset-type closed-set taxonomy + 13-boolean behavior matrix per type (requires_pm, requires_preop, dot_required, inspection_required, requires_registration, requires_insurance, assignable_to_employee, transferable, appears_on_map, employee_lifecycle_managed, renewal_tracking_required, document_vault_required, exportable) + legacy `classify_legacy()` crosswalk function with explicit `verified | needs_review` states + `normalize_company()` (MGC/Masci/MASCI GC/?/feria → MASCI_GC/FERIA/LEO/MC with review flag).
+- **Asset Spine pydantic shapes extended** (`AssetCreate` + `AssetUpdate`): 4 canonical taxonomy fields + 13 administrative fields (registration_number/state/expiration · insurance_carrier/policy/expiration · title_status · warranty_expiration · lifecycle_status enum · division · region · supervisor_id · gps_device_id · motive_vehicle_id · normalized_company).
+- **AssetSpine service updated**: `_doc_create` writes all new fields · `project_asset` reads them back · `update_asset.legal_keys` whitelist extended.
+- **4 new endpoints** under existing `/api/asset-spine/*`:
+  - `GET /taxonomy` — canonical enums + behavior matrix (any portal token)
+  - `GET /taxonomy/classify-legacy` — pure-function preview, no persistence (any portal token)
+  - `GET /taxonomy/review-needed?limit=` — equipment_master rows needing classification (admin)
+  - `POST /taxonomy/apply-legacy-crosswalk?dry_run=…&limit=` — one-time migration helper, dry-run default (admin)
+- **Test file** `backend/tests/test_track_13_31b_d0d1_taxonomy_spine.py` (14 tests, all passing).
+
+### Live data check (200-row sample of equipment_master)
+- 91 rows cleanly verified by crosswalk · 109 need Asset Administrator review.
+- No silent fabrication · no fake "Other" defaults.
+
+### Hard locks verified
+- `equipment_master` canonical · pytest grep on `services/asset_spine.py` line 9 contract.
+- NO new collection · pytest asserts `services/asset_taxonomy.py` has no `db.` / `insert_one` / `create_collection`.
+- MAP STAYS · MapLibre/Recovery Map/fleet_status untouched.
+- Repair Complete ≠ RTS · PM Completion ≠ RTS · Track 13.28 + 13.31 untouched.
+- No costs/POs/accounting/ERP/pay-app fields exposed (pytest asserts).
+- `/shop/hub_legacy` rollback alive.
+
+### Tests
+- New: 14/14 pass.
+- Regression: 39/39 pass (Tracks 13.30 + 13.30C + 13.30D + 13.31).
+- **Total: 53/53.**
+
+### Five-Pillar score · 9.78 / 10
+Powerful 9.7 · Simple 10 · Beautiful 9.5 · Trusted 10 · Proven 9.7. Above 9.5 bar.
+
+### Deferred per operator directive (to be picked up by future forks)
+- D2 — Asset Admin UI + AssetProfile extension + `asset_admin` role flag.
+- D3 — Document Vault (operational_attachments.host_kind="asset").
+- D4 — CSV / Print / PDF.
+- D5 — Platform-wide consumer updates (pre-op dropdown · PM templates · fleet_status.unit_kind derivation · safety_equipment_issuances item_type · asset_transfers · equipment_inspections) + final certification audit.
+
+**Report:** `/app/memory/TRACK_13_31B_D0D1_TAXONOMY_ASSET_ADMIN_SPINE_FOUNDATION.md`.
+

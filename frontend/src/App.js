@@ -137,6 +137,7 @@ const AdminSystem = React.lazy(() => import("@/pages/admin/AdminSystem"));
 const AdminDatabase = React.lazy(() => import("@/pages/admin/AdminDatabase"));
 const AdminIntegrationCenter = React.lazy(() => import("@/pages/admin/AdminIntegrationCenter"));
 const AssetProfile = React.lazy(() => import("@/pages/admin/AssetProfile"));
+const AdminAssetAdmin = React.lazy(() => import("@/pages/admin/AdminAssetAdmin"));
 const AdminDriverIntel = React.lazy(() => import("@/pages/admin/AdminDriverIntel"));
 const AdminDispatch = React.lazy(() => import("@/pages/admin/AdminDispatch"));
 const AdminDlsShiftQR = React.lazy(() => import("@/pages/admin/AdminDlsShiftQR"));
@@ -604,6 +605,7 @@ function App() {
             <Route path="/guidance/:articleId" element={<OperationalGuidanceCenter />} />
             <Route path="/admin/deploy-recovery" element={A(<DeployRecovery />)} />
             <Route path="/admin/assets/:assetId" element={A(<AssetProfile />)} />
+            <Route path="/admin/asset-admin" element={A(<AdminAssetAdmin />)} />
             <Route path="/admin/driver-intel/:driverKey" element={A(<AdminDriverIntel />)} />
             <Route path="/admin/equipment/:id/history" element={A(<AdminMasterHistory kind="equipment" />)} />
             <Route path="/admin/employees/:id/history" element={A(<AdminMasterHistory kind="employee" />)} />

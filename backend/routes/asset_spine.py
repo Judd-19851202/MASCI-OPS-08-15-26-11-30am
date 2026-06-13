@@ -51,10 +51,31 @@ class AssetCreate(BaseModel):
     vin: Optional[str] = None
     license_plate: Optional[str] = None
     motive_asset_id: Optional[str] = None
+    motive_vehicle_id: Optional[str] = None  # Track 13.31B Day-1
     fleetwatcher_asset_id: Optional[str] = None
     maintainx_asset_id: Optional[str] = None
     purchase_date: Optional[str] = None
     in_service_date: Optional[str] = None
+    # ── Track 13.31B Day-0 canonical taxonomy ─────────────────────────
+    asset_class: Optional[str] = None
+    asset_subtype: Optional[str] = None
+    taxonomy_verified: Optional[bool] = None
+    taxonomy_source: Optional[str] = None  # system | manual | motive | import | legacy_mapped | needs_review
+    # ── Track 13.31B Day-1 administrative fields ──────────────────────
+    registration_number: Optional[str] = None
+    registration_state: Optional[str] = None
+    registration_expiration: Optional[str] = None
+    insurance_carrier: Optional[str] = None
+    insurance_policy_number: Optional[str] = None
+    insurance_expiration: Optional[str] = None
+    title_status: Optional[str] = None
+    warranty_expiration: Optional[str] = None
+    lifecycle_status: Optional[str] = None  # active|inactive|sold|retired|disposed|pending_delivery
+    division: Optional[str] = None
+    region: Optional[str] = None
+    supervisor_id: Optional[str] = None
+    gps_device_id: Optional[str] = None
+    normalized_company: Optional[str] = None
 
 
 class AssetUpdate(BaseModel):
@@ -73,6 +94,7 @@ class AssetUpdate(BaseModel):
     vin: Optional[str] = None
     license_plate: Optional[str] = None
     motive_asset_id: Optional[str] = None
+    motive_vehicle_id: Optional[str] = None  # Track 13.31B Day-1
     fleetwatcher_asset_id: Optional[str] = None
     maintainx_asset_id: Optional[str] = None
     purchase_date: Optional[str] = None
@@ -81,6 +103,26 @@ class AssetUpdate(BaseModel):
     assigned_supervisor_id: Optional[str] = None
     assigned_dispatcher_id: Optional[str] = None
     current_location: Optional[str] = None
+    # ── Track 13.31B Day-0 canonical taxonomy ─────────────────────────
+    asset_class: Optional[str] = None
+    asset_subtype: Optional[str] = None
+    taxonomy_verified: Optional[bool] = None
+    taxonomy_source: Optional[str] = None
+    # ── Track 13.31B Day-1 administrative fields ──────────────────────
+    registration_number: Optional[str] = None
+    registration_state: Optional[str] = None
+    registration_expiration: Optional[str] = None
+    insurance_carrier: Optional[str] = None
+    insurance_policy_number: Optional[str] = None
+    insurance_expiration: Optional[str] = None
+    title_status: Optional[str] = None
+    warranty_expiration: Optional[str] = None
+    lifecycle_status: Optional[str] = None
+    division: Optional[str] = None
+    region: Optional[str] = None
+    supervisor_id: Optional[str] = None
+    gps_device_id: Optional[str] = None
+    normalized_company: Optional[str] = None
 
 
 class RetireBody(BaseModel):
@@ -324,6 +366,144 @@ def register_asset_spine_routes(
         async for d in cur:
             items.append(d)
         return {"count": len(items), "items": items}
+
+    # ----- TAXONOMY (Track 13.31B Day-0) ----------------------------------
+    # All endpoints below are read-only or operator-gated.
+
+    @router.get("/taxonomy")
+    async def taxonomy_enums(_: Any = Depends(require_any_portal_dep)):
+        """Return the canonical asset_class + asset_type closed-set + behavior."""
+        from services.asset_taxonomy import (
+            ASSET_CLASSES, ASSET_TYPES_BY_CLASS, behavior_for,
+            TAXONOMY_VERSION, CANONICAL_COMPANIES,
+        )
+        behaviors = {
+            t: behavior_for(t)
+            for types in ASSET_TYPES_BY_CLASS.values() for t in types
+        }
+        return {
+            "version": TAXONOMY_VERSION,
+            "asset_classes": list(ASSET_CLASSES),
+            "asset_types_by_class": {k: list(v) for k, v in ASSET_TYPES_BY_CLASS.items()},
+            "behaviors": behaviors,
+            "canonical_companies": list(CANONICAL_COMPANIES),
+        }
+
+    @router.get("/taxonomy/classify-legacy")
+    async def taxonomy_classify_legacy(
+        category: Optional[str] = Query(default=None),
+        preop_equipment_type: Optional[str] = Query(default=None),
+        type_field: Optional[str] = Query(default=None, alias="type"),
+        _: Any = Depends(require_any_portal_dep),
+    ):
+        """Preview the canonical (asset_class, asset_type) mapping for a
+        legacy field combination. No persistence. Pure function."""
+        from services.asset_taxonomy import classify_legacy
+        return classify_legacy(
+            category=category,
+            preop_equipment_type=preop_equipment_type,
+            type_=type_field,
+        )
+
+    @router.get("/taxonomy/review-needed")
+    async def taxonomy_review_needed(
+        limit: int = Query(100, ge=1, le=500),
+        operator=Depends(require_admin_dep),
+    ):
+        """List equipment_master rows that need an Asset Administrator to
+        verify or assign canonical taxonomy.
+
+        A row needs review when ANY of:
+          * `taxonomy_verified` is missing or False
+          * `asset_class` is missing
+          * legacy mapping conflicts (taxonomy_source == "needs_review")
+        """
+        from services.asset_taxonomy import classify_legacy
+        q = {
+            "$or": [
+                {"taxonomy_verified": {"$exists": False}},
+                {"taxonomy_verified": False},
+                {"asset_class": {"$in": [None, ""]}},
+                {"asset_class": {"$exists": False}},
+            ],
+            "$and": [{"$or": [{"is_active": True}, {"is_active": {"$exists": False}}]}],
+        }
+        items = []
+        async for d in db.equipment_master.find(q, {"_id": 0}).limit(limit):
+            preview = classify_legacy(
+                category=d.get("category"),
+                preop_equipment_type=d.get("preop_equipment_type"),
+                type_=d.get("type"),
+            )
+            items.append({
+                "id": d.get("id"),
+                "unit_number": d.get("unit_number") or "",
+                "display_label": d.get("display_label") or d.get("label") or "",
+                "legacy_category": d.get("category") or "",
+                "legacy_preop_equipment_type": d.get("preop_equipment_type") or "",
+                "legacy_type": d.get("type") or "",
+                "current_asset_class": d.get("asset_class") or None,
+                "current_asset_type": d.get("asset_type") or None,
+                "current_taxonomy_verified": bool(d.get("taxonomy_verified")),
+                "suggested": preview,
+            })
+        return {"count": len(items), "items": items, "version": "1.0.0"}
+
+    @router.post("/taxonomy/apply-legacy-crosswalk")
+    async def taxonomy_apply_legacy_crosswalk(
+        dry_run: bool = Query(default=True),
+        limit: int = Query(default=1000, ge=1, le=2000),
+        operator=Depends(require_admin_dep),
+    ):
+        """One-time helper: walk equipment_master and stamp canonical
+        (asset_class, asset_type) on every row that maps cleanly.
+
+        ``dry_run=true`` (default) returns the would-be updates without
+        writing. Asset Admin must explicitly call with ``dry_run=false``
+        to persist."""
+        from services.asset_taxonomy import classify_legacy, normalize_company
+        from datetime import datetime, timezone
+        now_iso = datetime.now(timezone.utc).isoformat()
+        scanned = 0
+        verified_writes = 0
+        needs_review = 0
+        async for d in db.equipment_master.find({}, {"_id": 0, "id": 1, "category": 1,
+                                                       "preop_equipment_type": 1, "type": 1,
+                                                       "company": 1}).limit(limit):
+            scanned += 1
+            res = classify_legacy(
+                category=d.get("category"),
+                preop_equipment_type=d.get("preop_equipment_type"),
+                type_=d.get("type"),
+            )
+            company_norm, company_review = normalize_company(d.get("company"))
+            set_fields = {
+                "asset_class": res["asset_class"],
+                "asset_type": res["asset_type"],
+                "taxonomy_verified": res["taxonomy_verified"],
+                "taxonomy_source": res["taxonomy_source"],
+                "taxonomy_review_reason": res.get("taxonomy_review_reason"),
+                "asset_category_version": "1.0.0",
+                "taxonomy_verified_at": now_iso if res["taxonomy_verified"] else None,
+                "legacy_category": d.get("category") or None,
+                "legacy_preop_equipment_type": d.get("preop_equipment_type") or None,
+                "legacy_type": d.get("type") or None,
+                "normalized_company": company_norm,
+                "company_normalization_review": company_review,
+            }
+            if res["taxonomy_verified"]:
+                verified_writes += 1
+            else:
+                needs_review += 1
+            if not dry_run:
+                await db.equipment_master.update_one({"id": d["id"]}, {"$set": set_fields})
+        return {
+            "ok": True,
+            "dry_run": dry_run,
+            "scanned": scanned,
+            "would_verify": verified_writes,
+            "would_need_review": needs_review,
+        }
 
     api_router_or_app.include_router(router)
     return router

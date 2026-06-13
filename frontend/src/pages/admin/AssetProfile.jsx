@@ -1,15 +1,17 @@
 // Unified Asset Profile — read-only aggregator across MASCI master,
 // integrations, dispatch, safety, and operations event log.
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Truck, MapPin, Wrench, ShieldAlert, Activity, Clipboard,
-  AlertTriangle, CheckCircle2, Loader2, RefreshCcw,
+  AlertTriangle, CheckCircle2, Loader2, RefreshCcw, ShieldCheck,
+  Pencil, Save, X as XIcon,
 } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const STATUS_PILL = {
   Available:         "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -101,6 +103,7 @@ export default function AssetProfile() {
             <TabsTrigger value="safety" data-testid="ap-tab-safety"><ShieldAlert className="w-3.5 h-3.5 mr-1" /> Safety</TabsTrigger>
             <TabsTrigger value="field" data-testid="ap-tab-field"><Clipboard className="w-3.5 h-3.5 mr-1" /> Field Ops</TabsTrigger>
             <TabsTrigger value="events" data-testid="ap-tab-events"><Activity className="w-3.5 h-3.5 mr-1" /> Events</TabsTrigger>
+            <TabsTrigger value="admin" data-testid="ap-tab-admin"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Admin</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview"><OverviewSection overview={overview} /></TabsContent>
@@ -110,6 +113,7 @@ export default function AssetProfile() {
           <TabsContent value="safety"><SafetySection data={data} /></TabsContent>
           <TabsContent value="field"><FieldOpsSection data={data} /></TabsContent>
           <TabsContent value="events"><EventsSection data={data} /></TabsContent>
+          <TabsContent value="admin"><AdminSection assetId={assetId} /></TabsContent>
         </Tabs>
       </div>
     </AdminShell>
@@ -530,5 +534,529 @@ function MotiveFamilyChip({ family, severity }) {
     <span className={`px-1.5 py-0.5 rounded border font-mono text-[9px] uppercase tracking-[0.15em] font-bold w-24 text-center shrink-0 ${cls}`} data-testid={`ap-motive-chip-${family}`}>
       {lbl}{severity && severity !== "info" ? ` · ${severity.toUpperCase()}` : ""}
     </span>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────────────────
+// Track 13.31B Day-2 · Asset Administration tab
+//
+// Reads the canonical record from /api/asset-spine/assets/{id}, hydrates
+// the closed-set taxonomy from /api/asset-spine/taxonomy, and exposes
+// edit-and-save for the 13 administrative fields + canonical taxonomy.
+// PATCH lands on /api/asset-spine/assets/{id} (admin-gated). Read works
+// for any portal token.
+// ─────────────────────────────────────────────────────────────────────
+
+const LIFECYCLE_OPTIONS = [
+  "active", "inactive", "pending_delivery", "sold", "retired", "disposed",
+];
+
+const TITLE_OPTIONS = [
+  "owned_clear", "owned_lien", "leased", "rented", "loaned", "in_transit",
+];
+
+function LifecyclePill({ value }) {
+  if (!value) return <span className="text-slate-400 font-normal italic">—</span>;
+  const cls = {
+    active:            "bg-emerald-100 text-emerald-900 border-emerald-300",
+    inactive:          "bg-slate-200 text-slate-800 border-slate-300",
+    pending_delivery:  "bg-amber-100 text-amber-900 border-amber-300",
+    sold:              "bg-violet-100 text-violet-900 border-violet-300",
+    retired:           "bg-slate-300 text-slate-900 border-slate-400",
+    disposed:          "bg-red-100 text-red-900 border-red-300",
+  }[value] || "bg-slate-100 text-slate-700 border-slate-300";
+  return (
+    <span className={`px-1.5 py-0.5 rounded border font-mono text-[10px] uppercase tracking-[0.15em] font-bold ${cls}`}>
+      {String(value).replace(/_/g, " ")}
+    </span>
+  );
+}
+
+function TaxonomyChip({ verified, source }) {
+  const isVerified = verified === true;
+  const cls = isVerified
+    ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+    : "bg-amber-100 text-amber-900 border-amber-300";
+  const lbl = isVerified
+    ? `VERIFIED · ${(source || "manual").toUpperCase()}`
+    : `NEEDS REVIEW${source ? ` · ${source.toUpperCase()}` : ""}`;
+  return (
+    <span
+      className={`px-1.5 py-0.5 rounded border font-mono text-[10px] uppercase tracking-[0.15em] font-bold ${cls}`}
+      data-testid="ap-admin-taxonomy-chip"
+    >
+      {lbl}
+    </span>
+  );
+}
+
+function AdminSection({ assetId }) {
+  const [asset, setAsset] = useState(null);
+  const [taxonomy, setTaxonomy] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr(null);
+    try {
+      const [a, t] = await Promise.all([
+        api.get(`/asset-spine/assets/${assetId}`),
+        api.get(`/asset-spine/taxonomy`),
+      ]);
+      setAsset(a.data);
+      setTaxonomy(t.data);
+    } catch (e) {
+      setErr(e?.response?.data?.detail || e?.message || "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  }, [assetId]);
+
+  // Initial fetch — inline to satisfy react-hooks/set-state-in-effect.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [a, t] = await Promise.all([
+          api.get(`/asset-spine/assets/${assetId}`),
+          api.get(`/asset-spine/taxonomy`),
+        ]);
+        if (cancelled) return;
+        setAsset(a.data);
+        setTaxonomy(t.data);
+      } catch (e) {
+        if (cancelled) return;
+        setErr(e?.response?.data?.detail || e?.message || "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [assetId]);
+
+  const startEdit = () => {
+    if (!asset) return;
+    setForm({
+      // Canonical taxonomy
+      asset_class: asset.asset_class || "",
+      asset_type:  asset.asset_type  || "",
+      asset_subtype: asset.asset_subtype || "",
+      taxonomy_verified: asset.taxonomy_verified === true,
+      // Lifecycle & ownership
+      lifecycle_status: asset.lifecycle_status || "",
+      title_status:     asset.title_status || "",
+      warranty_expiration: asset.warranty_expiration || "",
+      // Registration
+      registration_number:     asset.registration_number || "",
+      registration_state:      asset.registration_state || "",
+      registration_expiration: asset.registration_expiration || "",
+      // Insurance
+      insurance_carrier:        asset.insurance_carrier || "",
+      insurance_policy_number:  asset.insurance_policy_number || "",
+      insurance_expiration:     asset.insurance_expiration || "",
+      // Org
+      division:           asset.division || "",
+      region:             asset.region || "",
+      supervisor_id:      asset.supervisor_id || "",
+      normalized_company: asset.normalized_company || "",
+      // Devices / external IDs
+      vin:                  asset.vin || "",
+      license_plate:        asset.license_plate || "",
+      gps_device_id:        asset.gps_device_id || "",
+      motive_vehicle_id:    asset.motive_vehicle_id || "",
+      maintainx_asset_id:   asset.maintainx_asset_id || "",
+      fleetwatcher_asset_id: asset.fleetwatcher_asset_id || "",
+    });
+    setEditing(true);
+  };
+
+  const cancelEdit = () => { setEditing(false); setForm({}); };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const payload = {};
+      Object.entries(form).forEach(([k, v]) => {
+        if (v === "" || v === null || v === undefined) return;
+        payload[k] = v;
+      });
+      // Force boolean
+      payload.taxonomy_verified = !!form.taxonomy_verified;
+      // If admin manually verifies, mark source manual.
+      if (payload.taxonomy_verified && !payload.taxonomy_source) {
+        payload.taxonomy_source = "manual";
+      }
+      const r = await api.patch(`/asset-spine/assets/${assetId}`, payload);
+      setAsset(r.data);
+      setEditing(false);
+      toast.success("Asset administration saved");
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center text-slate-500 py-12" data-testid="ap-admin-loading">
+        <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+      </div>
+    );
+  }
+  if (err) {
+    return (
+      <div className="px-4 py-3 rounded border-2 border-red-300 bg-red-50 text-sm text-red-900 font-semibold" data-testid="ap-admin-err">
+        {err}
+      </div>
+    );
+  }
+  if (!asset) return null;
+
+  const validTypes = taxonomy?.asset_types_by_class?.[editing ? form.asset_class : asset.asset_class] || [];
+  const behavior = (taxonomy?.behaviors || {})[editing ? form.asset_type : asset.asset_type] || null;
+
+  return (
+    <div className="space-y-4" data-testid="ap-admin">
+      {/* Action bar */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <TaxonomyChip verified={asset.taxonomy_verified} source={asset.taxonomy_source} />
+          <LifecyclePill value={asset.lifecycle_status} />
+          {asset.asset_category_version && (
+            <span className="px-1.5 py-0.5 rounded border bg-slate-100 text-slate-700 border-slate-300 font-mono text-[10px] uppercase tracking-[0.15em] font-bold">
+              spine v{asset.asset_category_version}
+            </span>
+          )}
+        </div>
+        {!editing ? (
+          <Button
+            size="sm"
+            onClick={startEdit}
+            data-testid="ap-admin-edit"
+            className="bg-slate-900 hover:bg-black text-white"
+          >
+            <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={cancelEdit} disabled={saving} data-testid="ap-admin-cancel">
+              <XIcon className="w-3.5 h-3.5 mr-1" /> Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={save}
+              disabled={saving}
+              data-testid="ap-admin-save"
+              className="bg-red-700 hover:bg-red-800 text-white"
+            >
+              {saving ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />}
+              Save
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Canonical Taxonomy */}
+      <AdminCard title="Canonical Taxonomy" subtitle="Single source of truth · spine v1.0.0">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <SelectOrField
+            label="Asset Class"
+            editing={editing}
+            value={editing ? form.asset_class : asset.asset_class}
+            options={taxonomy?.asset_classes || []}
+            onChange={(v) => setForm((f) => ({ ...f, asset_class: v, asset_type: "" }))}
+            testid="ap-admin-asset-class"
+          />
+          <SelectOrField
+            label="Asset Type"
+            editing={editing}
+            value={editing ? form.asset_type : asset.asset_type}
+            options={validTypes}
+            onChange={(v) => setForm((f) => ({ ...f, asset_type: v }))}
+            testid="ap-admin-asset-type"
+            disabled={editing && !form.asset_class}
+          />
+          <InputOrField
+            label="Asset Subtype (optional)"
+            editing={editing}
+            value={editing ? form.asset_subtype : asset.asset_subtype}
+            onChange={(v) => setForm((f) => ({ ...f, asset_subtype: v }))}
+            testid="ap-admin-asset-subtype"
+          />
+        </div>
+        {editing && (
+          <label className="flex items-center gap-2 mt-3 text-sm text-slate-700" data-testid="ap-admin-verified-row">
+            <input
+              type="checkbox"
+              checked={!!form.taxonomy_verified}
+              onChange={(e) => setForm((f) => ({ ...f, taxonomy_verified: e.target.checked }))}
+              className="rounded border-slate-300"
+              data-testid="ap-admin-verified-checkbox"
+            />
+            <span>Mark canonical taxonomy as <strong>verified</strong> (source: manual)</span>
+          </label>
+        )}
+        {behavior && (
+          <div className="mt-3 pt-3 border-t border-slate-100" data-testid="ap-admin-behavior">
+            <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5">Inherited behavior</div>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(behavior)
+                .filter(([, v]) => v === true)
+                .map(([k]) => (
+                  <span key={k} className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[10px] uppercase tracking-[0.15em] font-bold">
+                    {k.replace(/_/g, " ")}
+                  </span>
+                ))}
+            </div>
+          </div>
+        )}
+        {(asset.legacy_category || asset.legacy_type || asset.legacy_preop_equipment_type) && (
+          <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 font-mono" data-testid="ap-admin-legacy">
+            legacy · category=&quot;{asset.legacy_category || "—"}&quot; · type=&quot;{asset.legacy_type || "—"}&quot; · preop=&quot;{asset.legacy_preop_equipment_type || "—"}&quot;
+          </div>
+        )}
+      </AdminCard>
+
+      {/* Lifecycle & Title */}
+      <AdminCard title="Lifecycle & Title">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <SelectOrField
+            label="Lifecycle Status"
+            editing={editing}
+            value={editing ? form.lifecycle_status : asset.lifecycle_status}
+            options={LIFECYCLE_OPTIONS}
+            onChange={(v) => setForm((f) => ({ ...f, lifecycle_status: v }))}
+            testid="ap-admin-lifecycle"
+          />
+          <SelectOrField
+            label="Title Status"
+            editing={editing}
+            value={editing ? form.title_status : asset.title_status}
+            options={TITLE_OPTIONS}
+            onChange={(v) => setForm((f) => ({ ...f, title_status: v }))}
+            testid="ap-admin-title"
+          />
+          <InputOrField
+            label="Warranty Expiration"
+            editing={editing}
+            value={editing ? form.warranty_expiration : asset.warranty_expiration}
+            type="date"
+            onChange={(v) => setForm((f) => ({ ...f, warranty_expiration: v }))}
+            testid="ap-admin-warranty"
+          />
+        </div>
+      </AdminCard>
+
+      {/* Registration */}
+      <AdminCard title="Registration">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <InputOrField
+            label="Registration #"
+            editing={editing}
+            value={editing ? form.registration_number : asset.registration_number}
+            onChange={(v) => setForm((f) => ({ ...f, registration_number: v }))}
+            testid="ap-admin-reg-number"
+          />
+          <InputOrField
+            label="State"
+            editing={editing}
+            value={editing ? form.registration_state : asset.registration_state}
+            onChange={(v) => setForm((f) => ({ ...f, registration_state: v }))}
+            testid="ap-admin-reg-state"
+          />
+          <InputOrField
+            label="Expiration"
+            editing={editing}
+            value={editing ? form.registration_expiration : asset.registration_expiration}
+            type="date"
+            onChange={(v) => setForm((f) => ({ ...f, registration_expiration: v }))}
+            testid="ap-admin-reg-exp"
+          />
+        </div>
+      </AdminCard>
+
+      {/* Insurance */}
+      <AdminCard title="Insurance">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <InputOrField
+            label="Carrier"
+            editing={editing}
+            value={editing ? form.insurance_carrier : asset.insurance_carrier}
+            onChange={(v) => setForm((f) => ({ ...f, insurance_carrier: v }))}
+            testid="ap-admin-ins-carrier"
+          />
+          <InputOrField
+            label="Policy #"
+            editing={editing}
+            value={editing ? form.insurance_policy_number : asset.insurance_policy_number}
+            onChange={(v) => setForm((f) => ({ ...f, insurance_policy_number: v }))}
+            testid="ap-admin-ins-policy"
+          />
+          <InputOrField
+            label="Expiration"
+            editing={editing}
+            value={editing ? form.insurance_expiration : asset.insurance_expiration}
+            type="date"
+            onChange={(v) => setForm((f) => ({ ...f, insurance_expiration: v }))}
+            testid="ap-admin-ins-exp"
+          />
+        </div>
+      </AdminCard>
+
+      {/* Organization */}
+      <AdminCard title="Organization">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <InputOrField
+            label="Division"
+            editing={editing}
+            value={editing ? form.division : asset.division}
+            onChange={(v) => setForm((f) => ({ ...f, division: v }))}
+            testid="ap-admin-division"
+          />
+          <InputOrField
+            label="Region"
+            editing={editing}
+            value={editing ? form.region : asset.region}
+            onChange={(v) => setForm((f) => ({ ...f, region: v }))}
+            testid="ap-admin-region"
+          />
+          <SelectOrField
+            label="Normalized Company"
+            editing={editing}
+            value={editing ? form.normalized_company : asset.normalized_company}
+            options={taxonomy?.canonical_companies || []}
+            onChange={(v) => setForm((f) => ({ ...f, normalized_company: v }))}
+            testid="ap-admin-company"
+          />
+          <InputOrField
+            label="Supervisor (employee id)"
+            editing={editing}
+            value={editing ? form.supervisor_id : asset.supervisor_id}
+            onChange={(v) => setForm((f) => ({ ...f, supervisor_id: v }))}
+            testid="ap-admin-supervisor"
+          />
+        </div>
+      </AdminCard>
+
+      {/* Identifiers / Devices */}
+      <AdminCard title="Identifiers & Devices">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <InputOrField
+            label="VIN"
+            editing={editing}
+            value={editing ? form.vin : asset.vin}
+            onChange={(v) => setForm((f) => ({ ...f, vin: v }))}
+            testid="ap-admin-vin"
+          />
+          <InputOrField
+            label="License Plate"
+            editing={editing}
+            value={editing ? form.license_plate : asset.license_plate}
+            onChange={(v) => setForm((f) => ({ ...f, license_plate: v }))}
+            testid="ap-admin-plate"
+          />
+          <InputOrField
+            label="GPS Device ID"
+            editing={editing}
+            value={editing ? form.gps_device_id : asset.gps_device_id}
+            onChange={(v) => setForm((f) => ({ ...f, gps_device_id: v }))}
+            testid="ap-admin-gps"
+          />
+          <InputOrField
+            label="Motive Vehicle ID"
+            editing={editing}
+            value={editing ? form.motive_vehicle_id : asset.motive_vehicle_id}
+            onChange={(v) => setForm((f) => ({ ...f, motive_vehicle_id: v }))}
+            testid="ap-admin-motive"
+          />
+          <InputOrField
+            label="MaintainX Asset ID"
+            editing={editing}
+            value={editing ? form.maintainx_asset_id : asset.maintainx_asset_id}
+            onChange={(v) => setForm((f) => ({ ...f, maintainx_asset_id: v }))}
+            testid="ap-admin-maintainx"
+          />
+          <InputOrField
+            label="FleetWatcher Asset ID"
+            editing={editing}
+            value={editing ? form.fleetwatcher_asset_id : asset.fleetwatcher_asset_id}
+            onChange={(v) => setForm((f) => ({ ...f, fleetwatcher_asset_id: v }))}
+            testid="ap-admin-fleetwatcher"
+          />
+        </div>
+      </AdminCard>
+
+      <div className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.18em]">
+        Source: equipment_master · spine v{asset.asset_category_version || "1.0.0"} · one asset · one record
+      </div>
+    </div>
+  );
+}
+
+function AdminCard({ title, subtitle, children }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-md p-5" data-testid={`ap-admin-card-${title.toLowerCase().replace(/\s+/g, "-").replace(/&/g, "and")}`}>
+      <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-3 flex items-center justify-between gap-2">
+        <span>{title}</span>
+        {subtitle && <span className="text-slate-400 font-normal normal-case tracking-normal">{subtitle}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function InputOrField({ label, editing, value, onChange, testid, type = "text" }) {
+  if (!editing) return <Field label={label} value={value} />;
+  return (
+    <div>
+      <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold block mb-1">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full text-sm border border-slate-300 rounded px-2 py-1.5 bg-white"
+        data-testid={testid}
+      />
+    </div>
+  );
+}
+
+function SelectOrField({ label, editing, value, options, onChange, testid, disabled = false }) {
+  if (!editing) {
+    return (
+      <div>
+        <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold">{label}</div>
+        <div className="text-sm font-bold text-slate-900 mt-0.5 break-words">
+          {value ? String(value).replace(/_/g, " ") : <span className="text-slate-400 font-normal">—</span>}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold block mb-1">
+        {label}
+      </label>
+      <select
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className="w-full text-sm border border-slate-300 rounded px-2 py-1.5 bg-white disabled:bg-slate-50"
+        data-testid={testid}
+      >
+        <option value="">— select —</option>
+        {options.map((o) => (
+          <option key={o} value={o}>{String(o).replace(/_/g, " ")}</option>
+        ))}
+      </select>
+    </div>
   );
 }

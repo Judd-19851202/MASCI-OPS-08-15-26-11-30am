@@ -141,11 +141,36 @@ def project_asset(doc: Dict[str, Any]) -> Dict[str, Any]:
         "vin": _get("vin_serial_number", "vin"),
         "license_plate": doc.get("license_plate"),
         "motive_asset_id": doc.get("motive_asset_id"),
+        "motive_vehicle_id": doc.get("motive_vehicle_id"),
         "fleetwatcher_asset_id": doc.get("fleetwatcher_asset_id"),
         "maintainx_asset_id": doc.get("maintainx_asset_id"),
         "purchase_date": doc.get("purchase_date"),
         "in_service_date": doc.get("in_service_date"),
         "retirement_date": doc.get("retirement_date") or doc.get("retired_at"),
+        # ── Track 13.31B Day-0 canonical taxonomy ────────────────────────
+        "asset_class":            doc.get("asset_class"),
+        "asset_subtype":          doc.get("asset_subtype"),
+        "taxonomy_verified":      doc.get("taxonomy_verified"),
+        "taxonomy_source":        doc.get("taxonomy_source"),
+        "asset_category_version": doc.get("asset_category_version"),
+        "legacy_category":        doc.get("legacy_category") or doc.get("category"),
+        "legacy_preop_equipment_type": doc.get("legacy_preop_equipment_type") or doc.get("preop_equipment_type"),
+        "legacy_type":            doc.get("legacy_type") or doc.get("type"),
+        # ── Track 13.31B Day-1 administrative fields ────────────────────
+        "registration_number":     doc.get("registration_number"),
+        "registration_state":      doc.get("registration_state"),
+        "registration_expiration": doc.get("registration_expiration"),
+        "insurance_carrier":       doc.get("insurance_carrier"),
+        "insurance_policy_number": doc.get("insurance_policy_number"),
+        "insurance_expiration":    doc.get("insurance_expiration"),
+        "title_status":            doc.get("title_status"),
+        "warranty_expiration":     doc.get("warranty_expiration"),
+        "lifecycle_status":        doc.get("lifecycle_status"),
+        "division":                doc.get("division"),
+        "region":                  doc.get("region"),
+        "supervisor_id":           doc.get("supervisor_id"),
+        "gps_device_id":           doc.get("gps_device_id"),
+        "normalized_company":      doc.get("normalized_company"),
         "assigned_project_id": doc.get("current_project_id"),
         "assigned_project_name": doc.get("current_project_name") or doc.get("current_project_number"),
         "assigned_driver_id": doc.get("assigned_driver_id"),
@@ -408,6 +433,7 @@ class AssetSpine:
             "vin": payload.get("vin"),
             "license_plate": payload.get("license_plate"),
             "motive_asset_id": payload.get("motive_asset_id"),
+            "motive_vehicle_id": payload.get("motive_vehicle_id"),
             "fleetwatcher_asset_id": payload.get("fleetwatcher_asset_id"),
             "maintainx_asset_id": payload.get("maintainx_asset_id"),
             "purchase_date": payload.get("purchase_date"),
@@ -416,6 +442,27 @@ class AssetSpine:
             "retired_at": None,
             "is_active": True,
             "active": True,
+            # ── Track 13.31B Day-0 canonical taxonomy ────────────────────
+            "asset_class":            payload.get("asset_class"),
+            "asset_subtype":          payload.get("asset_subtype"),
+            "taxonomy_verified":      payload.get("taxonomy_verified"),
+            "taxonomy_source":        payload.get("taxonomy_source"),
+            "asset_category_version": "1.0.0",
+            # ── Track 13.31B Day-1 administrative fields ────────────────
+            "registration_number":     payload.get("registration_number"),
+            "registration_state":      payload.get("registration_state"),
+            "registration_expiration": payload.get("registration_expiration"),
+            "insurance_carrier":       payload.get("insurance_carrier"),
+            "insurance_policy_number": payload.get("insurance_policy_number"),
+            "insurance_expiration":    payload.get("insurance_expiration"),
+            "title_status":            payload.get("title_status"),
+            "warranty_expiration":     payload.get("warranty_expiration"),
+            "lifecycle_status":        payload.get("lifecycle_status"),
+            "division":                payload.get("division"),
+            "region":                  payload.get("region"),
+            "supervisor_id":           payload.get("supervisor_id"),
+            "gps_device_id":           payload.get("gps_device_id"),
+            "normalized_company":      payload.get("normalized_company"),
             "created_by": actor,
             "created_at": now,
             "last_modified_by": actor,
@@ -452,11 +499,21 @@ class AssetSpine:
             "ownership", "company", "department", "cost_center",
             "manufacturer", "make", "model", "year", "serial_number",
             "vin", "vin_serial_number", "license_plate",
-            "motive_asset_id", "fleetwatcher_asset_id", "maintainx_asset_id",
+            "motive_asset_id", "motive_vehicle_id",
+            "fleetwatcher_asset_id", "maintainx_asset_id",
             "purchase_date", "in_service_date",
             "asset_status", "status",
             "assigned_driver_id", "assigned_supervisor_id", "assigned_dispatcher_id",
             "current_location", "location",
+            # ── Track 13.31B Day-0 canonical taxonomy ────────────────────
+            "asset_class", "asset_subtype", "taxonomy_verified", "taxonomy_source",
+            "taxonomy_verified_at", "taxonomy_review_reason",
+            # ── Track 13.31B Day-1 administrative fields ────────────────
+            "registration_number", "registration_state", "registration_expiration",
+            "insurance_carrier", "insurance_policy_number", "insurance_expiration",
+            "title_status", "warranty_expiration",
+            "lifecycle_status", "division", "region", "supervisor_id",
+            "gps_device_id", "normalized_company",
         }
         for k, v in patch.items():
             if k in legal_keys:
@@ -475,6 +532,12 @@ class AssetSpine:
             update["company"] = patch["ownership"]
         if "vin" in patch:
             update["vin_serial_number"] = patch["vin"]
+        # Auto-stamp taxonomy_verified_at when verified flips True without explicit timestamp.
+        if patch.get("taxonomy_verified") is True and "taxonomy_verified_at" not in patch:
+            update["taxonomy_verified_at"] = now
+        # Clear review reason when manual verification lands.
+        if patch.get("taxonomy_verified") is True and "taxonomy_review_reason" not in patch:
+            update["taxonomy_review_reason"] = None
         if not update:
             return before
         update["last_modified_by"] = actor

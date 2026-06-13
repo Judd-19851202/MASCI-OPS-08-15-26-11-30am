@@ -43,6 +43,7 @@ const SECTIONS = [
   { key: "people",     to: "/admin/people",     icon: Users,           label: "People & Access", desc: "PM · Shop · HR · Multi-portal · Employee master" },
   { key: "jobs",       to: "/admin/jobs",       icon: Building2,       label: "Jobs & Field",    desc: "Job master · Posters · Banners" },
   { key: "equipment",  to: "/admin/equipment",  icon: Wrench,          label: "Equipment & Suppliers", desc: "Status board · Master · Parts · Suppliers" },
+  { key: "asset-admin", to: "/admin/asset-admin", icon: ShieldCheck,    label: "Asset Administration", desc: "Canonical taxonomy · review queue · registrations · insurance" },
   { key: "email",      to: "/admin/email",      icon: Mail,            label: "Email & Routing", desc: "Auto-routing · Distribution lists" },
   { key: "training",   to: "/admin/training",   icon: BookOpen,        label: "Training & Forms",desc: "Training resources · Safety forms" },
   { key: "compliance", to: "/admin/compliance", icon: ClipboardCheck,  label: "Compliance & Audits", desc: "Exports · Date audit" },

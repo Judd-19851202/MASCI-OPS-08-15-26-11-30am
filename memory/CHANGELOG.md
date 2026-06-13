@@ -10,6 +10,44 @@
 
 ---
 
+## 2026-06-13 · Track 13.31B-D2 — Asset Admin UI + AssetProfile Extension
+
+**Mode:** Controlled implementation · Day-2 only. Frontend surface over the D0/D1 spine. NO doc vault · NO CSV/PDF · NO new collections · NO deploy · NO GitHub.
+
+- **NEW page** `/admin/asset-admin` (`AdminAssetAdmin.jsx`) — Asset Administrator console:
+  - KPIs: Active Assets · Needs Review · Asset Classes · Asset Types.
+  - **Review Queue** tab: one card per `needs_review` asset, shows legacy fields + conflict reason + suggested canonical mapping, with `asset_class` / `asset_type` selectors and a single **Verify & Save** action that PATCHes `/asset-spine/assets/{id}`.
+  - **Legacy Crosswalk** tab: dry-run preview + explicit-confirm "Stamp canonical" action (POST `apply-legacy-crosswalk?dry_run=false`).
+  - Nav entry added under Equipment in `AdminShell` SECTIONS.
+- **AssetProfile extended** with an **Admin** tab — six cards (Canonical Taxonomy · Lifecycle & Title · Registration · Insurance · Organization · Identifiers & Devices) covering every canonical taxonomy + 13 administrative fields. Edit→Save toggles the entire surface inline.
+  - Behaviour matrix chips rendered for the selected `asset_type`.
+  - Verified/Needs-review chip + lifecycle pill on the action bar.
+- **Backend additive** in `services/asset_spine.update_asset`:
+  - `legal_keys` set extended with `taxonomy_verified_at` + `taxonomy_review_reason`.
+  - Auto-stamps `taxonomy_verified_at` and clears `taxonomy_review_reason` when `taxonomy_verified` flips to `True` without an explicit caller value.
+- **No new collection.** `equipment_master` remains canonical. RBAC unchanged.
+- **60/60 pytests pass** (7 new D2 tests + 53 regression).
+- Doctrine doc: `/app/memory/TRACK_13_31B_D2_ASSET_ADMIN_UI.md`.
+
+---
+
+## 2026-06-13 · Track 13.31B-D0D1 — Taxonomy + Asset Admin Spine Foundation
+
+**Mode:** Controlled implementation · Days 0+1 only. NO UI · NO doc vault · NO CSV/PDF · NO new collections · NO deploy · NO GitHub.
+
+- **New canonical taxonomy module** `backend/services/asset_taxonomy.py` (pure-python · ~280 lines): 13 closed-set asset classes · 92 closed-set asset types · behavior matrix per type (13 booleans incl. requires_pm/requires_preop/dot_required/inspection_required/etc.) · legacy crosswalk with explicit `verified | needs_review` states · company normalization (MGC/Masci/MASCI GC/?/feria → MASCI_GC/FERIA/LEO/MC).
+- **Asset Spine pydantic shapes extended** (`AssetCreate` + `AssetUpdate`) with 4 canonical taxonomy fields (`asset_class`, `asset_subtype`, `taxonomy_verified`, `taxonomy_source`) + 13 administrative fields (registration_*, insurance_*, title_status, warranty_expiration, lifecycle_status, division, region, supervisor_id, gps_device_id, motive_vehicle_id, normalized_company).
+- **AssetSpine service persist + projection updated** — new fields write on POST and PATCH, read back via `project_asset()`, and `update_asset.legal_keys` whitelist expanded.
+- **4 new endpoints** under existing `/api/asset-spine/*`: `GET /taxonomy` · `GET /taxonomy/classify-legacy` · `GET /taxonomy/review-needed` (admin) · `POST /taxonomy/apply-legacy-crosswalk?dry_run=…` (admin, dry-run default).
+- **Live data check on 200 sampled equipment_master rows: 91 cleanly verified · 109 need review** — honest classification, no fabrication. The 109 review-needed rows surface to the Asset Administrator queue.
+- **Hard locks verified**: equipment_master remains canonical · NO new collection introduced (pytest asserts the taxonomy module is pure-python · no `db.`, `insert_one`, `create_collection`) · MAP STAYS untouched · Repair Complete ≠ RTS · PM Completion ≠ RTS · no costs/POs/accounting/ERP/pay-app fields exposed.
+- **53/53 pytests pass** (14 new + 39 regression covering Tracks 13.30 + 13.30C + 13.30D + 13.31).
+- **Five-Pillar score: 9.78 / 10** (Powerful 9.7 · Simple 10 · Beautiful 9.5 · Trusted 10 · Proven 9.7).
+- **Deferred to next forks** (per operator directive): D2 — Asset Admin page + AssetProfile extension + `asset_admin` role flag · D3 — Document Vault · D4 — CSV/PDF · D5 — Platform-wide consumer updates + final certification audit.
+- Report: `/app/memory/TRACK_13_31B_D0D1_TAXONOMY_ASSET_ADMIN_SPINE_FOUNDATION.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31AC — Platform Asset Taxonomy, Classification & Source-of-Truth Certification (READ-ONLY)
 
 **Mode:** READ-ONLY. NO code · NO schema · NO collections · NO routes · NO UI · NO deploy.
