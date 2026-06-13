@@ -402,6 +402,83 @@ __all__ = [
     "is_valid_asset_type",
     "is_valid_pair",
     "classify_legacy",
+    "resolve_classification",
     "CANONICAL_COMPANIES",
     "normalize_company",
 ]
+
+
+def resolve_classification(doc: Optional[Dict[str, str]]) -> Dict[str, Optional[str]]:
+    """Track 13.31B-D5 · Single read-side classification resolver.
+
+    Every consumer (Pre-Ops · PM · Shop · Dispatch · Map · HR · Safety ·
+    Reports · Asset Admin) MUST resolve an asset's classification through
+    this function.
+
+    Resolution priority:
+        1. Canonical fields written by Asset Admin (`asset_class`+`asset_type`
+           with `taxonomy_verified=True`) — *the* source of truth.
+        2. Legacy crosswalk preview (best-effort mapping over legacy
+           `category` / `preop_equipment_type` / `type`) — surfaced with
+           ``classification_source="legacy_mapped"`` and ``verified=False``.
+        3. Nothing — ``classification_source="needs_review"`` and a clear
+           operator label fallback.
+
+    Output shape (stable for all consumers):
+        {
+            "asset_class":            str | None,
+            "asset_type":             str | None,
+            "asset_subtype":          str | None,
+            "classification_source":  "canonical" | "legacy_mapped" | "needs_review",
+            "classification_verified": bool,
+            "review_reason":          str | None,
+        }
+    """
+    if not doc:
+        return {
+            "asset_class": None,
+            "asset_type": None,
+            "asset_subtype": None,
+            "classification_source": "needs_review",
+            "classification_verified": False,
+            "review_reason": "no_doc",
+        }
+    cls = doc.get("asset_class") or None
+    typ = doc.get("asset_type") or None
+    sub = doc.get("asset_subtype") or None
+    verified = bool(doc.get("taxonomy_verified"))
+    src_stamp = doc.get("taxonomy_source")
+    # 1 · canonical + verified
+    if verified and cls and typ:
+        return {
+            "asset_class": cls,
+            "asset_type": typ,
+            "asset_subtype": sub,
+            "classification_source": "canonical",
+            "classification_verified": True,
+            "review_reason": None,
+        }
+    # 2 · legacy crosswalk
+    cw = classify_legacy(
+        category=doc.get("category") or doc.get("legacy_category"),
+        preop_equipment_type=doc.get("preop_equipment_type") or doc.get("legacy_preop_equipment_type"),
+        type_=doc.get("type") or doc.get("legacy_type"),
+    )
+    if cw.get("taxonomy_verified") and cw.get("asset_class") and cw.get("asset_type"):
+        return {
+            "asset_class": cw["asset_class"],
+            "asset_type": cw["asset_type"],
+            "asset_subtype": sub,
+            "classification_source": "legacy_mapped",
+            "classification_verified": False,
+            "review_reason": None,
+        }
+    # 3 · honest needs_review
+    return {
+        "asset_class": cls or cw.get("asset_class"),
+        "asset_type": typ or cw.get("asset_type"),
+        "asset_subtype": sub,
+        "classification_source": "needs_review",
+        "classification_verified": False,
+        "review_reason": (cw.get("taxonomy_review_reason") or src_stamp or "missing_canonical"),
+    }

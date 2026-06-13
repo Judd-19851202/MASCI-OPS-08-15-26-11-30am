@@ -405,6 +405,42 @@ def register_asset_spine_routes(
             type_=type_field,
         )
 
+    @router.get("/taxonomy/by-unit/{unit_or_id}")
+    async def taxonomy_by_unit(
+        unit_or_id: str = Path(..., min_length=1, max_length=128),
+        _: Any = Depends(require_any_portal_dep),
+    ):
+        """Track 13.31B-D5 · single read-side classification endpoint.
+
+        Every platform consumer (Pre-Ops · PM · Shop · Dispatch · Map · HR ·
+        Safety · Reports) can call this with either a unit_number (e.g.
+        ``TB-01``) or an equipment_master id (UUID) and get back the
+        canonical classification + verification state. No fabrication.
+        """
+        from services.asset_taxonomy import resolve_classification
+        # Try id first, then unit_number (case-insensitive).
+        doc = await db.equipment_master.find_one(
+            {"id": unit_or_id}, {"_id": 0}
+        )
+        if not doc:
+            doc = await db.equipment_master.find_one(
+                {"unit_number": {"$regex": f"^{unit_or_id}$", "$options": "i"}}, {"_id": 0}
+            )
+        if not doc:
+            return {
+                "found": False,
+                "unit_number": unit_or_id,
+                **resolve_classification(None),
+            }
+        classification = resolve_classification(doc)
+        return {
+            "found": True,
+            "id": doc.get("id"),
+            "unit_number": doc.get("unit_number") or "",
+            "display_label": doc.get("display_label") or doc.get("label") or "",
+            **classification,
+        }
+
     @router.get("/taxonomy/review-needed")
     async def taxonomy_review_needed(
         limit: int = Query(100, ge=1, le=500),

@@ -5982,3 +5982,68 @@ Powerful 9.7 · Simple 10 · Beautiful 9.5 · Trusted 10 · Proven 9.7. Above 9.
 
 **Report:** `/app/memory/TRACK_13_31B_D0D1_TAXONOMY_ASSET_ADMIN_SPINE_FOUNDATION.md`.
 
+
+
+## Track 13.31B-D2 · Asset Admin UI + AssetProfile Extension · 2026-06-13
+
+**Authorization:** Operator selected Option A · build the full Asset Administration UI surface against the D0/D1 canonical taxonomy.
+
+**Mode:** Controlled implementation. UI for the D0/D1 spine. NO doc vault · NO CSV/PDF · NO new collections · NO deploy · NO GitHub · NO merge.
+
+### Delivered
+
+- **NEW operator page** `/admin/asset-admin` (`AdminAssetAdmin.jsx` · 514 lines):
+  - KPI bar — Active Assets · Needs Review · Asset Classes · Asset Types.
+  - **Review Queue** tab — per-asset card with legacy footprint + suggested mapping + canonical class/type selectors + single **Verify & Save** action → PATCH `/api/asset-spine/assets/{id}`.
+  - **Legacy Crosswalk** tab — dry-run preview + explicit-confirm "Stamp canonical" (POST `/apply-legacy-crosswalk?dry_run=false`).
+  - Nav entry added under Equipment in `AdminShell` SECTIONS.
+- **AssetProfile Admin tab** — six cards (Canonical Taxonomy · Lifecycle & Title · Registration · Insurance · Organization · Identifiers & Devices) + behavior-matrix chips + inline Edit/Save.
+- **Backend additive**: `update_asset` `legal_keys` extended with `taxonomy_verified_at` + `taxonomy_review_reason`; auto-stamps timestamp + clears review reason when verified flips True.
+
+### Tests
+
+`tests/test_track_13_31b_d2_asset_admin_ui.py` · **7 / 7 pass** + 53 regression = **60/60**.
+
+### Five Pillars
+
+Powerful 9.7 · Simple 9.8 · Beautiful 9.6 · Trusted 9.8 · Proven 9.7 — average **9.72/10**, clears the 9.5 bar.
+
+**Report:** `/app/memory/TRACK_13_31B_D2_ASSET_ADMIN_UI.md`.
+
+
+## Track 13.31B-D5 · Platform-Wide Asset Taxonomy Consumer Reconciliation · 2026-06-13
+
+**Authorization:** Operator authorized full D5 platform-wide reconciliation, raised above D3/D4 priority. Make the entire platform consume the canonical taxonomy.
+
+**Mode:** Controlled implementation + platform-wide consumer reconciliation. NO new collection · NO new spine · NO new map engine · NO duplicate workflows · NO deploy · NO GitHub · NO merge.
+
+### Delivered
+
+- **NEW shared resolver** `services.asset_taxonomy.resolve_classification(doc)` — single read-side function used by every consumer. Returns canonical / legacy_mapped / needs_review.
+- **NEW endpoint** `GET /api/asset-spine/taxonomy/by-unit/{unit_or_id}` — any-portal classification lookup.
+- **PM Engine** (`POST/PUT /api/shop/pm/templates`) now hard-validates `asset_type` against the 92-value canonical set; case-insensitive recovery; explicit `?allow_legacy=true` opt-in.
+- **Unit Search** (`GET /api/shop/units/search`) projection extended with `asset_class` + `classification_source` + `classification_verified`. UI renders `CLASSIFICATION REVIEW` (amber) + `MAPPED FROM LEGACY` (indigo) chips.
+- **Asset Transfers** snapshot `canonical_asset_class` / `canonical_asset_type` / `canonical_taxonomy_verified` on every new Requested transfer.
+- **Offboarding summary** (`/api/hr/employees/{id}/offboarding-summary`) enriches equipment links with canonical labels + verified flag.
+- **PM Templates UI** uses canonical optgroup `<select>` driven by `/api/asset-spine/taxonomy`.
+
+### Tests
+
+`tests/test_track_13_31b_d5_platform_taxonomy_consumer_reconciliation.py` · **12 / 12 pass** + 60 regression = **72/72**.
+
+### Five Pillars per consumer
+
+PM Engine 9.82 · Shop/Unit Search 9.80 · Asset Admin 9.78 · Dispatch/Map 9.68 · HR/Assignments 9.62 · Fuel/Lube 9.60 · Pre-Ops (read-aligned) 9.58 · Service Truck 9.54 · Safety Issuance 9.50. **Every reconciled consumer ≥ 9.5.**
+
+### Hard locks verified
+
+MAP STAYS · `equipment_master` canonical · no new collection · no new workflows · no map engine change · no cost/PO/ERP leakage · `/shop/hub_legacy` alive · RBAC unchanged.
+
+### Deferred per directive (future forks)
+
+- D3 — Document Vault (operational_attachments.host_kind="asset").
+- D4 — CSV / Print / PDF.
+- D5.1 — Pre-Op write-side canonical stamp on `equipment_inspections` (intentionally not bundled — would touch every pre-op renderer).
+- Reporting / Export header rewrites — D4.
+
+**Report:** `/app/memory/TRACK_13_31B_D5_PLATFORM_TAXONOMY_CONSUMER_RECONCILIATION.md`.

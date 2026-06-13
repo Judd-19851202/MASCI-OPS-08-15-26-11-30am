@@ -10,6 +10,22 @@
 
 ---
 
+## 2026-06-13 · Track 13.31B-D5 — Platform-Wide Asset Taxonomy Consumer Reconciliation
+
+**Mode:** Controlled implementation + platform-wide reconciliation. NO new collection · NO new spine · NO new map engine · NO deploy · NO GitHub.
+
+- **NEW shared resolver** `services.asset_taxonomy.resolve_classification(doc)` — every platform consumer (Pre-Ops · PM · Shop · Dispatch · Map · HR · Safety · Reports) reads classification through this. Priority: canonical+verified → legacy_mapped → needs_review.
+- **NEW endpoint** `GET /api/asset-spine/taxonomy/by-unit/{unit_or_id}` — single-call lookup for any-portal consumers (returns canonical class/type/verified or honest `found:false`).
+- **PM Engine hard-gated** (`POST/PUT /api/shop/pm/templates`): rejects non-canonical `asset_type` with 422 + operator suggestions. Case-insensitive recovery. `?allow_legacy=true` opt-in for legacy values.
+- **Unit Search** (`GET /api/shop/units/search`) projection extended with canonical fields; UI renders `CLASSIFICATION REVIEW` (amber) / `MAPPED FROM LEGACY` (indigo) chips.
+- **Asset Transfers**: every new Requested transfer snapshots `canonical_asset_class` / `canonical_asset_type` / `canonical_taxonomy_verified`.
+- **Offboarding summary** (`/api/hr/employees/{id}/offboarding-summary`) enriches equipment links with canonical labels + verified flag.
+- **PM Templates UI** (`/shop/pm/templates`): asset_type input replaced with canonical optgroup `<select>` driven by `/api/asset-spine/taxonomy`.
+- **72/72 pytests pass** (12 new D5 + 60 regression). Five-Pillar ≥9.5 on every reconciled consumer. Hard locks intact: MAP STAYS · equipment_master canonical · no new collection · no cost/PO/ERP leakage.
+- Doctrine doc: `/app/memory/TRACK_13_31B_D5_PLATFORM_TAXONOMY_CONSUMER_RECONCILIATION.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31B-D2 — Asset Admin UI + AssetProfile Extension
 
 **Mode:** Controlled implementation · Day-2 only. Frontend surface over the D0/D1 spine. NO doc vault · NO CSV/PDF · NO new collections · NO deploy · NO GitHub.

@@ -32,6 +32,8 @@ export default function PmTemplates() {
   const [editingId, setEditingId] = useState("");
   const [err, setErr]     = useState("");
   const [busy, setBusy]   = useState(false);
+  // Track 13.31B-D5 · canonical asset_type selector backed by the spine.
+  const [taxonomy, setTaxonomy] = useState(null);
 
   async function refresh() {
     try {
@@ -40,7 +42,11 @@ export default function PmTemplates() {
       setItems(b.items || []);
     } catch (e) { setErr(e.message); }
   }
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    refresh();
+    fetch(`${API}/api/asset-spine/taxonomy`, { headers: authHeaders() })
+      .then(r => r.json()).then(setTaxonomy).catch(() => {});
+  }, []);
 
   function startEdit(t) {
     setEditingId(t.id);
@@ -101,9 +107,18 @@ export default function PmTemplates() {
               </div>
               <div>
                 <label style={lblStyle}>Asset type *</label>
-                <input data-testid="pm-templates-input-asset-type" required minLength={1} maxLength={80}
+                <select data-testid="pm-templates-input-asset-type" required
                        value={form.asset_type} onChange={(e) => setForm(f => ({ ...f, asset_type: e.target.value }))}
-                       style={inpStyle} placeholder="excavator" />
+                       style={inpStyle}>
+                  <option value="">— select canonical asset type —</option>
+                  {taxonomy?.asset_types_by_class
+                    ? Object.entries(taxonomy.asset_types_by_class).flatMap(([cls, types]) => [
+                        <optgroup key={cls} label={cls}>
+                          {types.map(t => <option key={`${cls}|${t}`} value={t}>{t}</option>)}
+                        </optgroup>,
+                      ])
+                    : null}
+                </select>
               </div>
               <div>
                 <label style={lblStyle}>Interval type *</label>

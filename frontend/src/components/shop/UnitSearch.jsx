@@ -160,6 +160,16 @@ export default function UnitSearch({ inline = false }) {
                 </div>
                 <div style={{ marginTop: 2, fontSize: 11, color: "var(--ink-soft)" }}>
                   {row.unit_number ? `${row.asset_name || "—"} · ` : ""}{row.asset_type || "—"}
+                  {row.classification_source === "needs_review" && (
+                    <span data-testid="unit-search-review-chip" style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 3, background: "#fef3c7", color: "#92400e", fontSize: 9, fontWeight: 700, letterSpacing: ".04em" }}>
+                      CLASSIFICATION REVIEW
+                    </span>
+                  )}
+                  {row.classification_source === "legacy_mapped" && (
+                    <span data-testid="unit-search-mapped-chip" style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 3, background: "#e0e7ff", color: "#3730a3", fontSize: 9, fontWeight: 700, letterSpacing: ".04em" }}>
+                      MAPPED FROM LEGACY
+                    </span>
+                  )}
                   {row.assigned_mechanic ? ` · mechanic ${row.assigned_mechanic}` : ""}
                   {row.last_fuel_lube_visit?.visit_date ? ` · last fuel/lube ${row.last_fuel_lube_visit.visit_date}` : ""}
                 </div>

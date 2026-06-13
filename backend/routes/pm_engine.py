@@ -463,18 +463,48 @@ def build_pm_engine_router(
             items.append(_template_out(t))
         return {"count": len(items), "items": items, "source": PM_ENGINE_SOURCE}
 
+    def _validate_canonical_asset_type(value: str, allow_legacy: bool):
+        """Track 13.31B-D5 · enforce canonical asset_type on PM templates.
+
+        Returns ``(canonical_value, is_canonical)``. Existing legacy
+        templates may opt-in via ``allow_legacy=true``; new templates
+        are pushed to canonical so the platform speaks one asset
+        language.
+        """
+        from services.asset_taxonomy import VALID_ASSET_TYPES
+        if not value:
+            raise HTTPException(422, "asset_type is required")
+        if value in VALID_ASSET_TYPES:
+            return value, True
+        lower = value.strip().lower()
+        for t in VALID_ASSET_TYPES:
+            if t.lower() == lower:
+                return t, True
+        if allow_legacy:
+            return value, False
+        suggestions = sorted(VALID_ASSET_TYPES)[:5]
+        raise HTTPException(
+            422,
+            f"asset_type '{value}' is not a canonical type. "
+            f"Use one of the spine values (e.g. {', '.join(suggestions)}, …) "
+            f"or pass ?allow_legacy=true to keep an unconstrained value.",
+        )
+
     @router.post("/templates")
     async def create_template(
         payload: TemplatePayload,
+        allow_legacy: bool = Query(default=False),
         _actor=Depends(require_shop_or_admin_dep),
     ) -> Dict[str, Any]:
         if payload.interval_type not in INTERVAL_TYPES:
             raise HTTPException(422, f"interval_type must be one of {list(INTERVAL_TYPES)}")
+        canonical_type, is_canonical = _validate_canonical_asset_type(payload.asset_type, allow_legacy)
         now = _now_iso()
         doc = {
             "id": f"pmt-{uuid.uuid4().hex[:12]}",
             "name": payload.name,
-            "asset_type": payload.asset_type,
+            "asset_type": canonical_type,
+            "asset_type_source": "canonical" if is_canonical else "legacy",
             "interval_type": payload.interval_type,
             "interval_value": float(payload.interval_value),
             "warning_threshold": float(payload.warning_threshold or 0),
@@ -493,6 +523,7 @@ def build_pm_engine_router(
     async def update_template(
         tid: str = Path(..., min_length=1, max_length=80),
         payload: TemplatePayload = ...,
+        allow_legacy: bool = Query(default=False),
         _actor=Depends(require_shop_or_admin_dep),
     ) -> Dict[str, Any]:
         if payload.interval_type not in INTERVAL_TYPES:
@@ -500,9 +531,11 @@ def build_pm_engine_router(
         existing = await db.pm_templates.find_one({"id": tid}, {"_id": 0})
         if not existing:
             raise HTTPException(404, "template not found")
+        canonical_type, is_canonical = _validate_canonical_asset_type(payload.asset_type, allow_legacy)
         upd = {
             "name": payload.name,
-            "asset_type": payload.asset_type,
+            "asset_type": canonical_type,
+            "asset_type_source": "canonical" if is_canonical else "legacy",
             "interval_type": payload.interval_type,
             "interval_value": float(payload.interval_value),
             "warning_threshold": float(payload.warning_threshold or 0),

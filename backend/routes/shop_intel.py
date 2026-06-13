@@ -159,6 +159,11 @@ def build_shop_intel_router(
             {"_id": 0, "id": 1, "asset_id": 1, "unit_number": 1, "label": 1,
              "manufacturer": 1, "model": 1, "make_model": 1, "plate": 1,
              "vin_serial_number": 1, "serial_number": 1, "type": 1, "category": 1,
+             "preop_equipment_type": 1,
+             # Track 13.31B-D5 · canonical taxonomy fields for read-side resolver.
+             "asset_class": 1, "asset_type": 1, "asset_subtype": 1,
+             "taxonomy_verified": 1, "taxonomy_source": 1,
+             "legacy_category": 1, "legacy_type": 1, "legacy_preop_equipment_type": 1,
              "status": 1, "location": 1, "current_project_name": 1, "comments": 1},
         ).limit(limit * 2):  # over-fetch a bit for de-dup
             candidates.append(d)
@@ -277,6 +282,9 @@ def build_shop_intel_router(
             dr = defect_rollup.get(unit_up) or {}
             fl = fl_last.get(unit_up) or {}
             status = (c.get("status") or "").lower() or "unknown"
+            # Track 13.31B-D5 · resolve canonical classification.
+            from services.asset_taxonomy import resolve_classification
+            classification = resolve_classification(c)
             # Map equipment_master.status to a stable enum
             if status in {"active", "available"}:
                 status = "available"
@@ -287,7 +295,11 @@ def build_shop_intel_router(
             results.append({
                 "unit_number": unit or None,
                 "asset_name": display_label or "",
-                "asset_type": c.get("type") or c.get("category") or "",
+                # Track 13.31B-D5 · canonical asset_type takes priority over legacy.
+                "asset_type": classification["asset_type"] or c.get("type") or c.get("category") or "",
+                "asset_class": classification["asset_class"],
+                "classification_source": classification["classification_source"],
+                "classification_verified": classification["classification_verified"],
                 "serial_number": c.get("vin_serial_number") or c.get("serial_number") or None,
                 "current_project": c.get("current_project_name") or None,
                 "status": status,

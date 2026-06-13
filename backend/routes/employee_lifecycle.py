@@ -1309,12 +1309,23 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             docs.append(d)
 
         # Equipment issuances — try a few common collection names.
+        # Track 13.31B-D5 · enrich each row with canonical asset_class/type
+        # so offboarding labels use one platform vocabulary.
+        from services.asset_taxonomy import resolve_classification
         equipment_links: List[Dict[str, Any]] = []
         try:
             cur = db.equipment.find(
-                {"assigned_to_id": employee_id}, {"_id": 0, "id": 1, "name": 1, "unit_number": 1}
+                {"assigned_to_id": employee_id},
+                {"_id": 0, "id": 1, "name": 1, "unit_number": 1,
+                 "asset_class": 1, "asset_type": 1, "category": 1, "type": 1,
+                 "taxonomy_verified": 1, "taxonomy_source": 1},
             ).limit(50)
             async for d in cur:
+                cls = resolve_classification(d)
+                d["canonical_asset_class"] = cls["asset_class"]
+                d["canonical_asset_type"] = cls["asset_type"]
+                d["canonical_taxonomy_verified"] = cls["classification_verified"]
+                d["classification_source"] = cls["classification_source"]
                 equipment_links.append(d)
         except Exception:
             pass

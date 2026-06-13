@@ -394,6 +394,10 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
                                 or body.equipment_id)[:200],
             "equipment_category": eq.get("category") or "",
             "equipment_type": eq.get("type") or eq.get("asset_type") or "",
+            # Track 13.31B-D5 · canonical taxonomy snapshot (read-side resolver).
+            "canonical_asset_class": eq.get("asset_class") or None,
+            "canonical_asset_type": eq.get("asset_type") or None,
+            "canonical_taxonomy_verified": bool(eq.get("taxonomy_verified")),
             "from_project_number": from_pn,
             "from_location_label": from_loc[:200] if from_loc else None,
             "to_project_number": body.to_project_number,

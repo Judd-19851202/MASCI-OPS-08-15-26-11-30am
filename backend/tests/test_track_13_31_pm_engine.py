@@ -75,7 +75,7 @@ def test_template_create_list_update(admin_tok, cleanup_pm):
     h = {"X-Admin-Token": admin_tok}
     body = {
         "name": "TEST 250-hr Excavator",
-        "asset_type": "excavator",
+        "asset_type": "Excavator",
         "interval_type": "hours",
         "interval_value": 250,
         "warning_threshold": 25,
@@ -105,7 +105,7 @@ def test_template_create_list_update(admin_tok, cleanup_pm):
 
 def test_template_invalid_interval_type(admin_tok, cleanup_pm):
     h = {"X-Admin-Token": admin_tok}
-    body = {"name": "X", "asset_type": "x", "interval_type": "fortnights",
+    body = {"name": "X", "asset_type": "Excavator", "interval_type": "fortnights",
             "interval_value": 1, "warning_threshold": 0, "active": True}
     r = httpx.post(f"{API}/shop/pm/templates", json=body, headers=h, timeout=30)
     assert r.status_code == 422
@@ -153,7 +153,7 @@ def test_schedule_unknown_meter_when_no_visit(admin_tok, cleanup_pm):
     suffix = uuid.uuid4().hex[:6]
     unit = f"PMNOM-{suffix}"
     tpl = httpx.post(f"{API}/shop/pm/templates", headers=h, json={
-        "name": "T", "asset_type": "x", "interval_type": "hours",
+        "name": "T", "asset_type": "Excavator", "interval_type": "hours",
         "interval_value": 250, "warning_threshold": 25, "active": True,
     }, timeout=30).json()["template"]
     r = httpx.post(f"{API}/shop/pm/schedules", headers=h, json={
@@ -171,7 +171,7 @@ def test_schedule_overdue_due_due_soon_ok_hours(admin_tok, cleanup_pm):
     try:
         # Template: 250 hr interval, 25-hr warning threshold
         tpl = httpx.post(f"{API}/shop/pm/templates", headers=h, json={
-            "name": "250hr", "asset_type": "excavator", "interval_type": "hours",
+            "name": "250hr", "asset_type": "Excavator", "interval_type": "hours",
             "interval_value": 250, "warning_threshold": 25, "active": True,
         }, timeout=30).json()["template"]
 
@@ -236,7 +236,7 @@ def test_schedule_days_overdue(admin_tok, cleanup_pm):
     h = {"X-Admin-Token": admin_tok}
     suffix = uuid.uuid4().hex[:6]
     tpl = httpx.post(f"{API}/shop/pm/templates", headers=h, json={
-        "name": "90-day", "asset_type": "trailer", "interval_type": "days",
+        "name": "90-day", "asset_type": "Other Trailer", "interval_type": "days",
         "interval_value": 90, "warning_threshold": 7, "active": True,
     }, timeout=30).json()["template"]
     last = (datetime.now(timezone.utc) - timedelta(days=120)).isoformat()
@@ -250,7 +250,7 @@ def test_schedule_days_overdue(admin_tok, cleanup_pm):
 def test_schedule_paused(admin_tok, cleanup_pm):
     h = {"X-Admin-Token": admin_tok}
     tpl = httpx.post(f"{API}/shop/pm/templates", headers=h, json={
-        "name": "P", "asset_type": "x", "interval_type": "hours",
+        "name": "P", "asset_type": "Excavator", "interval_type": "hours",
         "interval_value": 250, "warning_threshold": 0, "active": True,
     }, timeout=30).json()["template"]
     r = httpx.post(f"{API}/shop/pm/schedules", headers=h, json={
@@ -270,7 +270,7 @@ def test_work_order_full_lifecycle_and_rts_note(admin_tok, cleanup_pm):
     try:
         _seed_meter_visit(unit, 1300)
         tpl = httpx.post(f"{API}/shop/pm/templates", headers=h, json={
-            "name": "LC", "asset_type": "x", "interval_type": "hours",
+            "name": "LC", "asset_type": "Excavator", "interval_type": "hours",
             "interval_value": 250, "warning_threshold": 25, "active": True,
             "checklist_items": [{"label": "Drain oil", "required": True}],
         }, timeout=30).json()["template"]
@@ -349,7 +349,7 @@ def test_work_order_manager_reject(admin_tok, cleanup_pm):
     try:
         _seed_meter_visit(unit, 1300)
         tpl = httpx.post(f"{API}/shop/pm/templates", headers=h, json={
-            "name": "R", "asset_type": "x", "interval_type": "hours",
+            "name": "R", "asset_type": "Excavator", "interval_type": "hours",
             "interval_value": 250, "warning_threshold": 25, "active": True,
         }, timeout=30).json()["template"]
         sch = httpx.post(f"{API}/shop/pm/schedules", headers=h, json={
@@ -402,7 +402,7 @@ def test_ase_projects_pm_events(admin_tok, cleanup_pm):
             })
         asyncio.run(_seed_em())
         tpl = httpx.post(f"{API}/shop/pm/templates", headers=h, json={
-            "name": "ASE PM", "asset_type": "excavator", "interval_type": "hours",
+            "name": "ASE PM", "asset_type": "Excavator", "interval_type": "hours",
             "interval_value": 250, "warning_threshold": 25, "active": True,
         }, timeout=30).json()["template"]
         sch = httpx.post(f"{API}/shop/pm/schedules", headers=h, json={
@@ -491,7 +491,7 @@ def test_queue_shape(admin_tok):
 def test_no_cost_fields_in_work_order_response(admin_tok, cleanup_pm):
     h = {"X-Admin-Token": admin_tok}
     tpl = httpx.post(f"{API}/shop/pm/templates", headers=h, json={
-        "name": "HL", "asset_type": "x", "interval_type": "hours",
+        "name": "HL", "asset_type": "Excavator", "interval_type": "hours",
         "interval_value": 100, "active": True,
     }, timeout=30).json()["template"]
     sch = httpx.post(f"{API}/shop/pm/schedules", headers=h, json={
