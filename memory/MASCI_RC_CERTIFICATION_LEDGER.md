@@ -5404,3 +5404,36 @@ Seatbelt-defect test seeds → `assign` → `accept` → `start` → `repair` �
 - **Track 13.31 — PM Engine (derived)** · or in parallel **Track 13.28 Phase 3** (parts-intelligence endpoint) or **Track 13.27** (Unit History UI).
 
 **Report:** `/app/memory/TRACK_13_28_PHASE_2_SHOP_WORKFORCE_UI_PARTS_CAPTURE.md`.
+
+---
+
+## 2026-06-12 · Track 13.27 — Unit History Timeline UI (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · frontend only · no backend touch · no deploy.
+
+### What shipped
+- 2 new Shop pages: Unit History selector landing (`/shop/units/history`) + per-unit timeline (`/shop/units/:unitNumber/history`).
+- Consumes existing Track 13.26 backbone — zero new endpoint · zero new collection.
+- Honest placeholders for PM / Fuel / Lube / Grease / MaintainX with `reason` + `future_track` metadata.
+- Parts intelligence surfaced inline on `repair/completed` events (per Track 13.28 P2 payload).
+- Shop Hub V2 Section 05 now carries 3 workforce cards (Manager Queue · My Assignments · Unit History).
+
+### Hard locks verified
+- Repair Complete ≠ RTS (rendered as separate events).
+- Dispatch retains RTS authority.
+- Driver no-login · Map-first Dispatch · DriverHubV2 retired.
+- MaintainX env unchanged · SDK never invoked.
+- `/shop/hub_legacy` rollback alive.
+- No fake data · no duplicate history/event/asset spine.
+
+### Smoke evidence
+- Landing page: search input + 20 recent-units chips from `/api/shop/manager/queue`.
+- Timeline page: live unit DPT002-6387 renders 2 real events from backbone (Defect Opened + OOS DVIR), all 3 range filters, both type/source dropdowns, "Not yet tracked" block with PM + MaintainX placeholders.
+- Regression: `/shop/hub_legacy`, `/shop/manager/queue`, `/shop/me` all alive.
+
+### Five-Pillar score · 9.8 / 10 (Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10)
+
+### Recommended next track
+- **Track 13.31 — PM Engine (derived).** Plugs into the now-shipped lifecycle and immediately renders on Unit History with zero code change.
+
+**Report:** `/app/memory/TRACK_13_27_UNIT_HISTORY_TIMELINE_UI.md`.

@@ -567,6 +567,20 @@ export default function ShopHubV2() {
                 </div>
               </div>
             </RealLink>
+            <RealLink to="/shop/units/history" testid="shop-hub-v2-action-unit-history" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Unit History</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  "What happened to this unit?" — one page, one timeline. Pre-Ops · DVIRs · defects · repairs · parts · RTS. Single source of truth.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/assets/{`{unit}`}/timeline (Track 13.26 Asset Service Event Backbone)
+                </div>
+              </div>
+            </RealLink>
           </div>
         </section>
 

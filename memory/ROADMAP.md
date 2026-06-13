@@ -805,3 +805,21 @@ After Track 13.27 lands, the Asset Service Event Backbone becomes operator-visib
 - Track 13.33 — Asset Care Command Center (LOW risk · aggregation over 13.26/13.28/13.31).
 - Track 13.32 — MaintainX Integration (HIGH risk · LAST · BLOCKED on `MAINTAINX_API_KEY`).
 - Track 13.28b — K6 per-action RBAC enforcement (deferred 30 days for telemetry).
+
+## 2026-06-12 · Post Track 13.27 (Unit History UI LIVE)
+- ✅ Unit History Timeline shipped. Asset Service Event Backbone (Track 13.26) is now operator-visible end-to-end.
+- 🟢 Deployment readiness remains GREEN.
+
+### Critical-path next step (operator-gated)
+- **Track 13.31 — PM Engine (derived)** (~6h · LOW risk · reuses 13.28 lifecycle). PM events plug into the now-shipped assignment chain AND immediately render on the Unit History timeline with zero code change. Best ROI in the backlog.
+
+### Or in parallel
+- **Track 13.28 Phase 3 — Known-Parts-By-Unit endpoint** (~2-3h additive). `GET /api/units/{unit_number}/parts-history` aggregates `fleet_defects.parts_used[]` into a frequency-ranked summary. Becomes a panel on the Unit History page.
+- **Track 13.29 — Fuel/Lube Job Visit Form** (MED risk · operator decision gate · closes next-largest placeholder on the Unit History page).
+
+### Future tracks (per 13.28A §11)
+- Track 13.30 — Service-Truck Daily Reconciliation (depends on 13.29).
+- Track 13.33 — Asset Care Command Center (LOW risk · aggregation over 13.26/13.27/13.28/13.31).
+- Track 13.32 — MaintainX Integration (HIGH risk · LAST · BLOCKED on `MAINTAINX_API_KEY`).
+- Track 13.28b — K6 per-action RBAC enforcement (deferred 30 days for telemetry).
+- Track 13.27 P2 polish — equipment-list / fleet-row inline "View History" action + dedicated timeline rail aesthetic + print-friendly layout.

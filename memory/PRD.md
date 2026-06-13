@@ -229,3 +229,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar Score: 10.0 / 10.**
 - Deployment readiness remains 🟢 **GREEN**.
 - Report: `/app/memory/TRACK_13_28_PHASE_2_SHOP_WORKFORCE_UI_PARTS_CAPTURE.md`.
+
+## 2026-06-12 · Track 13.27 closeout — Unit History Timeline UI
+
+- **One-page accountability surface LIVE.** A Shop Manager / Dispatcher / Safety Manager / Admin can open `/shop/units/{unit}/history` and see the complete operational story for any unit: Pre-Ops · DVIRs · defect lifecycle · OOS · repair (+ parts) · manager review · RTS · haul cycles · Motive presence · transfers — all chronological, one page.
+- **Consumes existing Track 13.26 endpoint** (`GET /api/assets/{unit}/timeline`). Zero backend file touched. Zero new collection. Zero schema delta. Zero deploy.
+- **Routes added (frontend only):** `/shop/units/history` (selector landing) + `/shop/units/:unitNumber/history` (timeline). Both behind `RequireShop`.
+- **Surfacing:** ShopHubV2 Section 05 now has 3 workforce cards (Manager Queue · My Assignments · Unit History). Existing Sections 01-04 unchanged.
+- **Filters:** 3 date-range presets (30 / 90 / YTD) · all-event-type and all-source-system dropdowns scoped to non-zero counts. Default 90-day range (matches backend cap).
+- **Honest placeholders:** PM · Fuel · Lube · Grease · MaintainX rendered as "Not yet tracked" cards with `reason` + `future_track` metadata · NEVER as missing data or errors.
+- **Parts intelligence surfaced:** `parts_used` + `parts_on_order` from Track 13.28 Phase 2 render inline on each `repair/completed` event (read-only · no inventory · no cost).
+- **Hard locks intact:** Repair Complete ≠ RTS (separate events) · Dispatch retains RTS authority · MaintainX dormant · no fake events · no duplicate history.
+- **Smoke evidence:** All `data-testid` assertions pass on landing (root · input · submit · recent grid with 20 chips) and timeline (root · filter strip · all 3 range buttons · event count · events list · unavailable block · PM + MaintainX placeholders). Live unit `DPT002-6387` renders 2 real events.
+- **Files added:** `pages/shop/UnitHistoryTimeline.jsx` · `pages/shop/UnitHistoryLanding.jsx` · `memory/TRACK_13_27_UNIT_HISTORY_TIMELINE_UI.md`.
+- **Files modified:** `App.js` (+2 routes) · `ShopHubV2.jsx` (+1 link card in Section 05).
+- **Five-Pillar Score: 9.8 / 10** (Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10).
+- Deployment readiness remains 🟢 **GREEN**.
+- Report: `/app/memory/TRACK_13_27_UNIT_HISTORY_TIMELINE_UI.md`.

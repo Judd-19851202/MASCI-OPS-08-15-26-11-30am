@@ -1787,3 +1787,32 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 - Driver no-login · Dispatch map-first · One map engine · One source of truth.
 - MaintainX dormant · no fake data · no duplicate history/event/asset/parts system.
 - No ERP / accounting / pay-app / contracts / cost fields invented.
+
+## 2026-06-12 · Track 13.27 — Unit History Timeline UI (frontend only)
+
+### Added
+- `frontend/src/pages/shop/UnitHistoryTimeline.jsx` — per-unit timeline page (~350 LOC).
+- `frontend/src/pages/shop/UnitHistoryLanding.jsx` — selector landing with unit-number input + recent-units chips from `/api/shop/manager/queue` (~120 LOC).
+- `memory/TRACK_13_27_UNIT_HISTORY_TIMELINE_UI.md` — implementation report (Five-Pillar 9.8/10).
+
+### Modified
+- `frontend/src/App.js` — +2 lazy imports + 2 routes (`/shop/units/history` selector · `/shop/units/:unitNumber/history` timeline). Both guarded by existing `RequireShop` HOC.
+- `frontend/src/pages/ShopHubV2.jsx` — added 3rd workforce link card in Section 05 (Manager Queue · My Assignments · Unit History). No other Section / card touched.
+
+### Endpoints consumed
+- `GET /api/assets/{unit_number}/timeline?from=&to=&event_type=&source_system=&limit=500` (Track 13.26 Asset Service Event Backbone).
+- `GET /api/shop/manager/queue` (Track 13.28 — recent units chip-list source).
+
+### NOT changed
+- Zero backend file modified. Zero new collection. Zero schema delta. Zero new endpoint. Zero new auth dep. Zero `.env` change. Zero deploy.
+- Dispatch (map / hub / DCC) · Driver flow · PM portal · Safety portal · Material Movement Ledger · `equipment_parts` admin catalog UNTOUCHED.
+- MaintainX env vars unchanged · SDK never invoked.
+- `/shop/hub_legacy` rollback intact.
+
+### Tests
+- Frontend ESLint on 4 touched files: clean.
+- Browser smoke (data-testid assertions): landing + timeline + Hub V2 + 3 regression pages all PASS.
+- Backend regression: not re-run (no backend file modified · Track 13.26 + 13.28 + 13.28 P2 = 19/19 from previous closeout still authoritative).
+
+### Hard locks reaffirmed
+- Dispatch Map-First · Driver No-Login · DriverHubV2 retired · Shop Repair Complete ≠ RTS · Dispatch/Admin RTS authority · One map engine · One source of truth · MaintainX dormant · No fake Fuel/Lube · No duplicate history.
