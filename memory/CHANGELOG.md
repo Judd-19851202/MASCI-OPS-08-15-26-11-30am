@@ -1960,3 +1960,32 @@ All gaps documented; only **PM Engine due/overdue** + **parts-expected-today** r
 
 ### Report
 `/app/memory/TRACK_13_30A_SHOP_COMMAND_CENTER_UX_ROLE_WORKFLOW_ARCHITECTURE_AUDIT.md`. Deployment readiness remains 🟢 **GREEN**.
+
+---
+
+## 2026-06-12 · Track 13.30B — Shop Command Center Restructure + HubBackLink Fix (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · frontend only · 2 files · zero backend · zero deploy.
+
+### What shipped
+- **`HubBackLink` Shop-aware** — adds `(isShop() || pathname.startsWith("/shop"))` branch with `to=/shop` and label `"Shop"`. `useHubHome()` extended identically. Admin/PM/anonymous behavior unchanged.
+- **ShopHubV2 reorganized by workflow**: Header (*"Shop Command Center"* + 3 primary actions) → Your Queue strip (Manager Queue · My Assignments · Fuel/Lube Visit · Unit History) → 01 Attention required → 02 Active work → 03 Parts + waiting → 04 Fuel and service → 05 Unit intelligence → 06 Records → 07 Recovery Map.
+- **Engineering copy scrubbed:** preview banner removed · all `Track 13.x` mentions removed · all `Source: /api/...` italics removed · footer doctrine rewritten to one calm operator-readable sentence. Live smoke confirms zero operator-visible `Track 13` or `/api/` text.
+- **Honest future slots:** dashed *"Global unit search · coming next"* and *"Parts on order · coming next"* with no link — no fake buttons.
+
+### Hard locks verified
+- Repair Complete ≠ RTS · Dispatch RTS authority · Dispatch Map-First · Driver no-login · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no duplicate asset history · `/shop/hub_legacy` rollback alive.
+
+### Tests
+- ESLint clean (2 files).
+- Browser smoke: 21/21 acceptance checks pass — all sections + Your Queue strip mount; preview banner gone; engineering-copy scrub verified at runtime (`Track 13`=0, `/api/`=0 in `body.innerText`); regression on `/shop/manager/queue`, `/shop/me`, `/shop/fuel-lube/new`, `/shop/fuel-lube`, `/shop/service-truck-reconciliation`, `/shop/units/history`, `/shop/hub_legacy`, `/dispatch-portal` all load.
+- Backend suite preserved at **36/36 pass** (no router touched).
+
+### Five-Pillar score · 7.0 → 9.0 / 10
+Powerful 8 · Simple 9 · Beautiful 9 · Trusted 10 · Proven 9.
+
+### Recommended next track
+**Track 13.30C — Global Unit Search + Role-aware Your-Queue strip** (1 d · 2 new endpoints: `/api/shop/units/search` and `/api/shop/me/summary`). Then 13.30D (Parts-On-Order + Mechanic Workload aggregators), 13.31 (PM Engine), 13.33 (Asset Care Command Center). MaintainX 13.32 remains BLOCKED on `MAINTAINX_API_KEY`.
+
+### Report
+`/app/memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`. Deployment readiness remains 🟢 **GREEN**.

@@ -94,6 +94,9 @@ function SectionHeader({ kicker, title, caption }) {
 }
 
 function RealLink({ to, testid, children, intent = "default" }) {
+  // Retained as a tiny helper for the Recovery Map row; the previous
+  // top-of-hub usage was replaced by HubCard in the Command Center
+  // restructure (Track 13.30B).
   const tone = intent === "primary"
     ? { bg: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "var(--brand-primary)" }
     : { bg: "var(--paper-card)", color: "var(--ink-strong)", border: "var(--border-bold)" };
@@ -103,28 +106,6 @@ function RealLink({ to, testid, children, intent = "default" }) {
       border: `1px solid ${tone.border}`, borderRadius: "var(--radius-card)",
       fontSize: 12, fontWeight: 600, textDecoration: "none",
     }}>{children}</Link>
-  );
-}
-
-function QueueCard({ to, testid, title, why, source, value, loaded }) {
-  const isAttention = loaded && typeof value === "number" && value > 0;
-  return (
-    <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-      <Card
-        title={title}
-        description={why}
-        metric={loaded ? (value === null ? "—" : value) : "…"}
-        variant={isAttention ? "warning" : "default"}
-        status={
-          !loaded ? <StatusChip statusKey="draft" compact label="Loading" />
-          : value === null ? <StatusChip statusKey="offline_feed" compact />
-          : isAttention ? <StatusChip statusKey="pending_verification" compact />
-          : <StatusChip statusKey="verified" compact />
-        }
-      >
-        <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>{source}</p>
-      </Card>
-    </Link>
   );
 }
 
@@ -326,44 +307,76 @@ function ShopRecoveryMap() {
         borderRadius: "var(--radius-card)",
         color: "var(--ink-soft)", fontSize: 11, lineHeight: 1.5,
       }}>
-        <strong style={{ color: "var(--ink-strong)" }}>Provider truth.</strong>{" "}
-        Maintenance and inspection attention based on existing operations-map snapshot.
-        Live location from current operations-map feed. Provider availability depends on
-        configured integrations — Motive is the verified live position feed today;
-        MaintainX and FleetWatcher are not active providers for this map.
+        Live position feed from Motive. MaintainX and FleetWatcher are not active providers for this map.
       </div>
     </section>
   );
 }
 
+// ─── Shop Command Center (Track 13.30B) ────────────────────────────
+// Workflow-first layout: Your Queue strip → Attention Required →
+// Active Work → Parts + Waiting → Fuel / Service → Unit Intelligence →
+// Records → Recovery Map. Engineering copy removed; every link
+// resolves to a mounted route; no fake counts; preserves all hard
+// locks (Repair Complete ≠ RTS; Dispatch retains RTS authority).
+
+function HubCard({ to, testid, title, body, metric, status, dense }) {
+  const showMetric = metric !== undefined && metric !== null;
+  return (
+    <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+      <Card
+        title={title}
+        description={body}
+        metric={showMetric ? metric : undefined}
+        variant={status === "attention" ? "warning" : "default"}
+        status={
+          status === "loading" ? <StatusChip statusKey="draft" compact label="Loading" />
+          : status === "offline" ? <StatusChip statusKey="offline_feed" compact />
+          : status === "attention" ? <StatusChip statusKey="pending_verification" compact />
+          : status === "verified" ? <StatusChip statusKey="verified" compact />
+          : null
+        }
+        compact={!!dense}
+      />
+    </Link>
+  );
+}
+
 export default function ShopHubV2() {
   const s = useShopSignals();
-  const isPreview = (typeof window !== "undefined") && /preview/i.test(window.location.host);
   const allZero = s.loaded && [
     s.defects_open, s.defects_acked, s.oos_units, s.active_recovery,
     s.waiting_on_parts, s.returned_to_service_7d, s.defect_open_units,
   ].every((v) => v === null || v === 0);
 
+  // Live-count helpers
+  const num = (v) => (s.loaded ? (v === null || v === undefined ? "—" : v) : "…");
+  const tone = (v) => (!s.loaded ? "loading" : v === null ? "offline" : v > 0 ? "attention" : "verified");
+
   return (
     <div data-testid="shop-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      {isPreview && (
-        <div data-testid="shop-hub-v2-preview-banner" style={{
-          background: "var(--brand-primary)", color: "var(--brand-on-primary)",
-          padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em",
-          textTransform: "uppercase", fontWeight: 700, textAlign: "center",
-        }}>
-          Shop Hub V2 · Live Shop operations hub · Repair Complete and Returned-To-Service remain separate · Legacy rollback at /shop/hub_legacy
-        </div>
-      )}
       <PortalShell
         portalName="MASCI"
-        portalRole="Shop Portal · Hub V2"
-        pageTitle="What equipment requires recovery right now?"
-        subtitle="Every queue is live · sourced from /api/dispatch/command/summary.shop · clickable to a real Shop surface. Repair Complete ≠ Safe To Use — verification step preserved."
+        portalRole="Shop Portal"
+        pageTitle="Shop Command Center"
+        subtitle="What needs attention · what's assigned · what's waiting. Repair complete still requires RTS verification by Dispatch."
         primaryActions={
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/shop/equipment" testid="shop-hub-v2-action-preops">Equipment Pre-Ops</RealLink>
-            <RealLink to="/shop/fleet" testid="shop-hub-v2-action-fleet" intent="primary">Fleet Visibility</RealLink>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <Link to="/shop/equipment" data-testid="shop-hub-v2-action-preops"
+                  style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600,
+                           background: "var(--paper-card)", color: "var(--ink-strong)",
+                           border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+                           textDecoration: "none" }}>Equipment Pre-Ops</Link>
+            <Link to="/shop/fleet" data-testid="shop-hub-v2-action-fleet"
+                  style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600,
+                           background: "var(--brand-primary)", color: "var(--brand-on-primary)",
+                           border: "1px solid var(--brand-primary)", borderRadius: "var(--radius-card)",
+                           textDecoration: "none" }}>Fleet Visibility</Link>
+            <Link to="/shop/fuel-lube/new" data-testid="shop-hub-v2-action-fuel-lube-new-top"
+                  style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600,
+                           background: "var(--paper-card)", color: "var(--ink-strong)",
+                           border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+                           textDecoration: "none" }}>New Fuel/Lube Visit</Link>
           </div>
         }
         lastActivity={
@@ -372,154 +385,185 @@ export default function ShopHubV2() {
           </span>
         }
       >
-        {/* Section 1 — Equipment needing attention. */}
+        {/* Your Queue strip — role-agnostic shortcuts. Track 13.30C will
+            replace this with a role-aware variant once shop tokens are
+            resolved to a role+id at hub load time. */}
+        <section data-testid="shop-hub-v2-your-queue-strip" style={{ marginBottom: 24 }}>
+          <SectionHeader
+            kicker="Your queue"
+            title="Pick up where the shop left off"
+            caption="Manager Queue · My Assignments · Fuel / Lube Visit · Unit History."
+          />
+          <div data-testid="shop-hub-v2-your-queue-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+            <HubCard to="/shop/manager/queue" testid="shop-hub-v2-yq-manager-queue"
+                     title="Manager Queue"
+                     body="Unassigned · Pending Review · RTS Pending. Assign mechanics and review completed repairs." />
+            <HubCard to="/shop/me" testid="shop-hub-v2-yq-my-assignments"
+                     title="My Assignments"
+                     body="Mechanic queue — accept, start, complete repairs with parts capture." />
+            <HubCard to="/shop/fuel-lube/new" testid="shop-hub-v2-yq-fuel-lube"
+                     title="Fuel / Lube Visit"
+                     body="One job · many equipment lines. Capture fuels, fluids, grease, meter, issues." />
+            <HubCard to="/shop/units/history" testid="shop-hub-v2-yq-unit-history"
+                     title="Unit History"
+                     body="One unit · one timeline. Pre-Ops · DVIRs · defects · repairs · parts · RTS." />
+          </div>
+        </section>
+
+        {/* 01 · Attention Required — what is down, what is open, what is
+            blocking the shop right now. Live counts only. */}
         <section data-testid="shop-hub-v2-section-attention" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="01 · Equipment Needing Attention · live"
-            title="Open defects + OOS units"
-            caption="Real counts from real engines. Click any card to open the real shop workflow."
+            kicker="01 · Attention required"
+            title="What needs the shop's attention right now"
+            caption="Live shop counts. Click any tile to open the underlying queue."
           />
-          <div data-testid="shop-hub-v2-queue-grid-attention"
-               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-            <QueueCard
-              to="/shop/fleet?focus_filter=defects"
-              testid="shop-hub-v2-queue-defects-open"
-              title="Open Defects"
-              why="Active defects across the fleet (Pre-Op + fleet_defects)"
-              source="Source: summary.shop.defects_open"
-              value={s.defects_open}
-              loaded={s.loaded}
-            />
-            <QueueCard
-              to="/shop/fleet?focus_filter=defects_acked"
-              testid="shop-hub-v2-queue-defects-acked"
-              title="Defects Acknowledged"
-              why="Acknowledged but not yet resolved"
-              source="Source: summary.shop.defects_acknowledged"
-              value={s.defects_acked}
-              loaded={s.loaded}
-            />
-            <QueueCard
-              to="/shop/fleet?focus_filter=oos"
-              testid="shop-hub-v2-queue-oos-units"
-              title="Out-Of-Service Units"
-              why="Units currently flagged OOS in the equipment master"
-              source="Source: summary.shop.oos_units"
-              value={s.oos_units}
-              loaded={s.loaded}
-            />
-            <QueueCard
-              to="/shop/fleet?focus_filter=defect_open_units"
-              testid="shop-hub-v2-queue-defect-open-units"
-              title="Units With Open Defect"
-              why="Distinct unit count carrying at least one open defect"
-              source="Source: summary.shop.defect_open_units"
-              value={s.defect_open_units}
-              loaded={s.loaded}
-            />
+          <div data-testid="shop-hub-v2-attention-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+            <HubCard to="/shop/fleet?focus_filter=oos"  testid="shop-hub-v2-queue-oos-units"
+                     title="Out-of-Service units" body="Units flagged OOS in the equipment master."
+                     metric={num(s.oos_units)} status={tone(s.oos_units)} />
+            <HubCard to="/shop/fleet?focus_filter=defects"  testid="shop-hub-v2-queue-defects-open"
+                     title="Open defects" body="Active defects across the fleet (pre-op + truck DVIR + fuel/lube)."
+                     metric={num(s.defects_open)} status={tone(s.defects_open)} />
+            <HubCard to="/shop/fleet?focus_filter=defect_open_units"  testid="shop-hub-v2-queue-defect-open-units"
+                     title="Units carrying defects" body="Distinct units with at least one open defect."
+                     metric={num(s.defect_open_units)} status={tone(s.defect_open_units)} />
+            <HubCard to="/shop/equipment"  testid="shop-hub-v2-queue-waiting-parts"
+                     title="Waiting on parts" body="Recovery work blocked pending parts arrival."
+                     metric={num(s.waiting_on_parts)} status={tone(s.waiting_on_parts)} />
           </div>
         </section>
 
-        {/* Section 2 — Recovery pipeline. */}
-        <section data-testid="shop-hub-v2-section-recovery" style={{ marginBottom: 28 }}>
+        {/* 02 · Active Work — Manager Queue + My Assignments + acknowledged. */}
+        <section data-testid="shop-hub-v2-section-active-work" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="02 · Recovery Pipeline · live"
-            title="Active recovery + delays"
-            caption="Maintenance Hold = engine status. Waiting on parts is the real shop delay."
+            kicker="02 · Active work"
+            title="Defects in flight"
+            caption="Assign · accept · start · complete · review. Repair complete still requires RTS verification."
           />
-          <div data-testid="shop-hub-v2-queue-grid-recovery"
-               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-            <QueueCard
-              to="/shop/equipment"
-              testid="shop-hub-v2-queue-active-recovery"
-              title="Active Recovery Work"
-              why="Units currently in active repair / maintenance"
-              source="Source: summary.shop.active_recovery"
-              value={s.active_recovery}
-              loaded={s.loaded}
-            />
-            <QueueCard
-              to="/shop/equipment"
-              testid="shop-hub-v2-queue-waiting-parts"
-              title="Waiting On Parts"
-              why="Recovery blocked pending parts arrival"
-              source="Source: summary.shop.waiting_on_parts"
-              value={s.waiting_on_parts}
-              loaded={s.loaded}
-            />
-            <QueueCard
-              to="/shop/equipment"
-              testid="shop-hub-v2-queue-rts-7d"
-              title="Returned To Service (7d)"
-              why="Units verified safe-to-use and released in last 7 days — Repair Complete ≠ Safe To Use"
-              source="Source: summary.shop.returned_to_service_7d"
-              value={s.returned_to_service_7d}
-              loaded={s.loaded}
-            />
+          <div data-testid="shop-hub-v2-active-work-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+            <HubCard to="/shop/manager/queue" testid="shop-hub-v2-aw-manager-queue"
+                     title="Manager Queue" body="Six buckets · assign · reassign · review." />
+            <HubCard to="/shop/me" testid="shop-hub-v2-aw-my-assignments"
+                     title="My Assignments" body="Mechanic-only queue — accept · start · complete with parts." />
+            <HubCard to="/shop/fleet?focus_filter=defects_acked" testid="shop-hub-v2-aw-acknowledged"
+                     title="Acknowledged · not yet repaired"
+                     body="Defects accepted by shop but repair not yet complete."
+                     metric={num(s.defects_acked)} status={tone(s.defects_acked)} />
+            <HubCard to="/shop/equipment" testid="shop-hub-v2-aw-active-recovery"
+                     title="Active recovery work" body="Units currently in active repair or maintenance."
+                     metric={num(s.active_recovery)} status={tone(s.active_recovery)} />
           </div>
         </section>
 
-        {/* Section 3 — Recovery Map · secondary lens (Track 13.7B). */}
-        <ShopRecoveryMap />
+        {/* 03 · Parts + Waiting — single live card today; future expansion
+            slot is documented but not faked. */}
+        <section data-testid="shop-hub-v2-section-parts" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="03 · Parts and waiting"
+            title="What's blocked on parts"
+            caption="Waiting-on-parts is the single shop delay surfaced today. Parts-on-order rollups land in a later track."
+          />
+          <div data-testid="shop-hub-v2-parts-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+            <HubCard to="/shop/equipment" testid="shop-hub-v2-parts-waiting"
+                     title="Waiting on parts" body="Recovery blocked pending parts arrival."
+                     metric={num(s.waiting_on_parts)} status={tone(s.waiting_on_parts)} />
+            <div data-testid="shop-hub-v2-parts-future-slot" style={{
+              padding: "var(--pad-card)", background: "var(--paper-card)",
+              border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)",
+              color: "var(--ink-soft)", fontSize: 12,
+            }}>
+              <strong style={{ color: "var(--ink-strong)" }}>Parts on order · coming next.</strong>
+              <div style={{ marginTop: 6 }}>Per-mechanic and per-unit parts rollups arrive in a later track. No card built until the source aggregator is live.</div>
+            </div>
+          </div>
+        </section>
 
-        {/* Section 4 · Shop Records · live (Track 13.24).
-            Direct entry points to the existing live record surfaces so
-            mechanics and shop managers don't have to hunt through hidden
-            routes. Each card links to a real mounted page backed by a real
-            endpoint. No fabricated counts here — counts live on the
-            destination pages. */}
+        {/* 04 · Fuel / Service — primary entry points for fuel/lube and
+            service-truck workflows. */}
+        <section data-testid="shop-hub-v2-section-fuel-service" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="04 · Fuel and service"
+            title="Fuel · fluids · service-truck accountability"
+            caption="Submit visits · review records · close service-truck days · acknowledge variance."
+          />
+          <div data-testid="shop-hub-v2-fuel-service-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+            <HubCard to="/shop/fuel-lube/new" testid="shop-hub-v2-action-fuel-lube-new"
+                     title="New Fuel / Lube Visit"
+                     body="One job · many equipment lines. Issues create shop defects automatically." />
+            <HubCard to="/shop/fuel-lube" testid="shop-hub-v2-action-fuel-lube-records"
+                     title="Fuel / Lube Records"
+                     body="Submitted visits archive · filter by date · project · truck · tech · unit · issue." />
+            <HubCard to="/shop/service-truck-reconciliation/new" testid="shop-hub-v2-action-strr-new"
+                     title="Service Truck — Start / Close Day"
+                     body="Log start-of-day quantities · close day to compute variance from real fuel/lube visits." />
+            <HubCard to="/shop/service-truck-reconciliation" testid="shop-hub-v2-action-strr-records"
+                     title="Reconciliation Records"
+                     body="Truck-day variance archive · within expected range · needs review · significant variance." />
+          </div>
+        </section>
+
+        {/* 05 · Unit Intelligence — drill into a single unit. Future Global
+            Unit Search slot is reserved but NOT fake — only an inert
+            placeholder until Track 13.30C provides the search backend. */}
+        <section data-testid="shop-hub-v2-section-unit-intel" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="05 · Unit intelligence"
+            title="Find a unit · open its full story"
+            caption="One unit · one timeline. Pre-Ops · DVIRs · defects · repairs · parts · fuel · RTS."
+          />
+          <div data-testid="shop-hub-v2-unit-intel-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+            <HubCard to="/shop/units/history" testid="shop-hub-v2-unit-history"
+                     title="Unit History"
+                     body="Type a unit number to load its complete operational story." />
+            <HubCard to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-unit-defect-history"
+                     title="Defect / Inspection History"
+                     body="Full defect feed across the fleet." />
+            <div data-testid="shop-hub-v2-unit-search-future-slot" style={{
+              padding: "var(--pad-card)", background: "var(--paper-card)",
+              border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)",
+              color: "var(--ink-soft)", fontSize: 12,
+            }}>
+              <strong style={{ color: "var(--ink-strong)" }}>Global unit search · coming next.</strong>
+              <div style={{ marginTop: 6 }}>One input across all units · current status · open defects · assigned mechanic · parts · last service. Live once the search endpoint is mounted.</div>
+            </div>
+          </div>
+        </section>
+
+        {/* 06 · Records — archival surfaces; sit below active work. */}
         <section data-testid="shop-hub-v2-section-records" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="04 · Shop Records · live"
-            title="Equipment Pre-Ops · Truck DVIRs · Defect history"
-            caption="Direct access to the existing record surfaces. No new system — links to live pages backed by real endpoints."
+            kicker="06 · Records"
+            title="Archive · audits · history"
+            caption="Pre-Ops · Truck DVIRs · Fuel/Lube · Reconciliations. Honest empty states · no fake exports."
           />
           <div data-testid="shop-hub-v2-records-grid"
-               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-            <RealLink to="/shop/equipment" testid="shop-hub-v2-record-preops" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Equipment Pre-Ops</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  Pre-operation inspection list — opens the live Equipment Dashboard.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/equipment-inspections (newest first · 1000-row cap · shop+admin scope)
-                </div>
-              </div>
-            </RealLink>
-            <RealLink to="/shop/fleet" testid="shop-hub-v2-record-dvirs" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Truck DVIRs · Fleet Visibility</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  Per-unit DVIR + defect state. Defect detail, acknowledge, repair, RTS audit trail are reached from each unit row.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/shop/fleet/by-unit · /api/fleet/defects/{`{id}`}/detail
-                </div>
-              </div>
-            </RealLink>
-            <RealLink to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-record-defects" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Defect / Inspection History</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  Full defect list across the fleet — same source as Section 01 Open Defects tile, but unfiltered.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/shop/fleet/defects
-                </div>
-              </div>
-            </RealLink>
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+            <HubCard to="/shop/equipment" testid="shop-hub-v2-record-preops"
+                     title="Equipment Pre-Ops" body="Pre-operation inspection list." />
+            <HubCard to="/shop/fleet" testid="shop-hub-v2-record-dvirs"
+                     title="Truck DVIRs · Fleet Visibility" body="Per-unit DVIR and defect state." />
+            <HubCard to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-record-defects"
+                     title="Defect / Inspection History" body="Full defect feed across the fleet." />
+            <HubCard to="/shop/fuel-lube" testid="shop-hub-v2-record-fuel-lube"
+                     title="Fuel / Lube Visit Records" body="Submitted visits archive." />
+            <HubCard to="/shop/service-truck-reconciliation" testid="shop-hub-v2-record-strr"
+                     title="Reconciliation Records" body="Truck-day variance archive." />
+            <HubCard to="/shop/fleet?focus_filter=rts_pending" testid="shop-hub-v2-record-rts-7d"
+                     title="Returned to Service · last 7 days"
+                     body="Units verified safe-to-use and released in the last week."
+                     metric={num(s.returned_to_service_7d)} status={tone(s.returned_to_service_7d)} />
           </div>
         </section>
+
+        {/* 07 · Map — secondary lens, lowest priority. */}
+        <ShopRecoveryMap />
 
         {allZero && (
           <EmptyState
@@ -530,111 +574,13 @@ export default function ShopHubV2() {
           />
         )}
 
-        {/* Track 13.28 Phase 2 — Shop Workforce surfaces. */}
-        <section data-testid="shop-hub-v2-section-workforce" style={{ marginBottom: 28 }}>
-          <SectionHeader
-            kicker="05 · Shop Workforce · live"
-            title="Manager queue · My assignments"
-            caption="Track 13.28 lifecycle: assign → accept → start → repair → manager review → Dispatch RTS. Every action attributable. Repair Complete ≠ RTS."
-          />
-          <div data-testid="shop-hub-v2-workforce-grid"
-               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-            <RealLink to="/shop/manager/queue" testid="shop-hub-v2-action-manager-queue" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Manager Queue</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  Unassigned · Assigned · Accepted · In Progress · Pending Review · RTS Pending. Assign to mechanic. Approve / reject completed repairs.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/shop/manager/queue (Track 13.28 lifecycle endpoints)
-                </div>
-              </div>
-            </RealLink>
-            <RealLink to="/shop/me" testid="shop-hub-v2-action-my-assignments" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>My Assignments</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  Mechanic-only view of work assigned to me. Accept · start · complete with repair notes + parts used.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/shop/me/assignments (Track 13.28 per-user queue)
-                </div>
-              </div>
-            </RealLink>
-            <RealLink to="/shop/units/history" testid="shop-hub-v2-action-unit-history" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Unit History</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  "What happened to this unit?" — one page, one timeline. Pre-Ops · DVIRs · defects · repairs · parts · RTS. Single source of truth.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/assets/{`{unit}`}/timeline (Track 13.26 Asset Service Event Backbone)
-                </div>
-              </div>
-            </RealLink>
-            <RealLink to="/shop/fuel-lube/new" testid="shop-hub-v2-action-fuel-lube-new" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>New Fuel / Lube Visit</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  One job visit · multiple equipment lines. Capture red/clear diesel, gasoline, DEF, fluids, grease, meter, issues. Issues create Shop defects automatically.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/shop/fuel-lube/visits (Track 13.29)
-                </div>
-              </div>
-            </RealLink>
-            <RealLink to="/shop/fuel-lube" testid="shop-hub-v2-action-fuel-lube-records" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Fuel / Lube Records</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  Submitted visits archive. Filter by date · project · truck · tech · unit · issue · fuel type. Open a visit to see totals · equipment lines · linked defects · per-unit history jump.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/shop/fuel-lube/visits (Track 13.29 P2)
-                </div>
-              </div>
-            </RealLink>
-            <RealLink to="/shop/service-truck-reconciliation" testid="shop-hub-v2-action-service-truck-reconciliation" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
-              <div style={{
-                padding: "var(--pad-card)", background: "var(--paper-card)",
-                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Service Truck Reconciliation</div>
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
-                  Start/end fuel and fluid accountability by truck and day. Dispensed totals pulled from submitted Fuel/Lube Visits. Variance: <em>within range</em> · <em>needs review</em> · <em>significant</em>.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                  Source: /api/shop/service-truck-reconciliation (Track 13.30)
-                </div>
-              </div>
-            </RealLink>
-          </div>
-        </section>
-
         <div data-testid="shop-hub-v2-trace-note" style={{
           marginTop: 16, padding: "var(--pad-card)",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
           borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
         }}>
-          <strong style={{ color: "var(--ink-strong)" }}>Shop Hub V2 · Track 13.6I recovery.</strong>{" "}
-          Presentation-only modernization — every shop engine, route,
-          permission, and workflow preserved. Every count traces to a real
-          source field. Repair Complete ≠ Safe To Use rule maintained.
+          <strong style={{ color: "var(--ink-strong)" }}>Repair complete still requires RTS verification.</strong>{" "}
+          Shop completes repairs and parts capture; Dispatch verifies and clears units back to service. Legacy hub remains at /shop/hub_legacy if needed.
         </div>
       </PortalShell>
     </div>

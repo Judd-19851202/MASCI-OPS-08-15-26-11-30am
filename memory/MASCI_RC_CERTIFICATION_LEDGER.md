@@ -5547,3 +5547,27 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
 - Repair Complete ≠ RTS · Dispatch RTS authority · Map-First Dispatch · Driver no-login · One map engine · One source of truth · No fake MaintainX/FleetWatcher · No accounting · No cost · No duplicate asset history · No duplicate defect lifecycle.
 
 **Report:** `/app/memory/TRACK_13_30A_SHOP_COMMAND_CENTER_UX_ROLE_WORKFLOW_ARCHITECTURE_AUDIT.md`. Deployment readiness remains 🟢 **GREEN**.
+
+---
+
+## 2026-06-12 · Track 13.30B — Shop Command Center Restructure + HubBackLink Fix (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · frontend only · 2 files modified · zero backend · zero deploy.
+
+### What shipped
+- `HubBackLink` Shop-aware (Shop-only users on `/shop/*` now return to `/shop`, not platform `/`). `useHubHome()` extended.
+- ShopHubV2 reorganized by workflow: header + Your Queue strip + 7 workflow sections + Recovery Map. Engineering copy fully scrubbed. Honest dashed "coming next" slots for Global Unit Search and Parts-on-order.
+
+### Hard locks verified
+- Repair Complete ≠ RTS · Dispatch RTS authority · Dispatch Map-First · Driver no-login · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no duplicate asset history · `/shop/hub_legacy` rollback alive.
+
+### Tests
+- ESLint clean. 21/21 browser smoke checks pass · zero operator-visible `Track 13` or `/api/` text in `body.innerText`. Backend suite preserved at **36/36 pass**.
+
+### Five-Pillar score · 7.0 → 9.0 / 10
+Powerful 8 · Simple 9 · Beautiful 9 · Trusted 10 · Proven 9.
+
+### Recommended next track
+**Track 13.30C — Global Unit Search + Role-aware Your-Queue strip** (1 d · `/api/shop/units/search` + `/api/shop/me/summary`).
+
+**Report:** `/app/memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`.

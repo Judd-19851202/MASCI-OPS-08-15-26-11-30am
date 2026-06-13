@@ -313,3 +313,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar score (current ShopHubV2):** 7.0 / 10 (Powerful 6 · Simple 5 · Beautiful 7 · Trusted 9 · Proven 8). Strong substrate · structural drift.
 - Deployment readiness remains 🟢 **GREEN**.
 - Report: `/app/memory/TRACK_13_30A_SHOP_COMMAND_CENTER_UX_ROLE_WORKFLOW_ARCHITECTURE_AUDIT.md`.
+
+## 2026-06-12 · Track 13.30B closeout — Shop Command Center Restructure + HubBackLink Fix
+
+- **Mode:** CONTROLLED IMPLEMENTATION · frontend only · 2 files modified · zero backend · zero deploy.
+- **What shipped:**
+  - **`HubBackLink` Shop-aware** — adds `shop = !admin && !pm && (isShop() || pathname.startsWith("/shop"))` branch; Shop-only users on `/shop/equipment`, `/shop/fleet`, `/shop/equipment/:id` now return to `/shop`, not platform `/`. `useHubHome()` extended with the same logic. Admin/PM/anonymous behavior unchanged.
+  - **ShopHubV2 reorganized** around workflow, not track number. New layout: Header ("Shop Command Center" · 3 primary actions) → **Your Queue** strip (Manager Queue · My Assignments · Fuel/Lube Visit · Unit History) → **01 Attention required** (OOS · Open Defects · Units carrying defects · Waiting on parts) → **02 Active work** (Manager Queue · My Assignments · Acknowledged · Active recovery) → **03 Parts + waiting** (live Waiting-on-parts + honest dashed *"Parts on order · coming next"* slot) → **04 Fuel and service** (New Visit · Records · Start/Close Day · Reconciliation Records) → **05 Unit intelligence** (Unit History · Defect History + honest *"Global unit search · coming next"* slot) → **06 Records** (archival) → **07 Recovery Map** (secondary).
+  - **Engineering copy fully scrubbed from operator surface:** preview banner removed · all `Track 13.x` mentions removed · all `Source: /api/…` italics removed · *"Presentation-only modernization"* footer rewritten to a calm one-sentence RTS reminder. Live smoke confirms `body.innerText.count("Track 13") = 0` and `count("/api/") = 0`.
+  - **No fake counts · no dead links · no fake buttons.** Future Unit Search and Parts-on-order are dashed slots labelled *"coming next"* with no link. Every visible link resolves to a mounted route.
+- **Files modified:** `frontend/src/components/HubBackLink.jsx` (+9 LOC) · `frontend/src/pages/ShopHubV2.jsx` (full restructure · net −309 LOC).
+- **Files added:** `memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`.
+- **Untouched:** backend routers · server.py · tests · App.js routes · `/shop/hub_legacy` rollback · Recovery Map engine · all `routes/*.py`.
+- **Tests:** ESLint clean (2 files). Browser smoke 21/21 pass — root mounts · 7 sections present · Your Queue strip + 4 cards · preview banner gone · zero operator-visible `Track 13` or `/api/` text · all sub-routes still load (`/shop/manager/queue` · `/shop/me` · `/shop/fuel-lube/new` · `/shop/fuel-lube` · `/shop/service-truck-reconciliation` · `/shop/units/history` · `/shop/hub_legacy` · `/dispatch-portal`). Backend suite preserved at **36/36 pass** (no router touched).
+- **Hard locks intact:** Repair Complete ≠ RTS · Dispatch retains RTS authority · Dispatch Map-First · Driver no-login · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no duplicate asset history · `/shop/hub_legacy` rollback alive.
+- **Five-Pillar score: 7.0 → 9.0 / 10** (Powerful 8 · Simple 9 · Beautiful 9 · Trusted 10 · Proven 9).
+- Deployment readiness remains 🟢 **GREEN**.
+- Report: `/app/memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`.

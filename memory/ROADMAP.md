@@ -42,6 +42,19 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 - HIGH-severity defects identified: HubBackLink Shop-blindness (3 routes); no global unit search; overlapping defect counters; track-graveyard copy in operator surfaces; buried high-value cards.
 - Report: `/app/memory/TRACK_13_30A_SHOP_COMMAND_CENTER_UX_ROLE_WORKFLOW_ARCHITECTURE_AUDIT.md`.
 
+### Track 13.30B · Shop Command Center Restructure + HubBackLink Fix (DONE 2026-06-12 · LIVE)
+- Frontend-only · 2 files modified · zero backend · zero new endpoint · zero new collection.
+- `HubBackLink` Shop-aware (`shop = !admin && !pm && (isShop() || pathname.startsWith("/shop"))`); `useHubHome()` extended.
+- ShopHubV2 reorganized by workflow: Header → Your Queue strip → 01 Attention required → 02 Active work → 03 Parts + waiting → 04 Fuel and service → 05 Unit intelligence → 06 Records → 07 Recovery Map.
+- Engineering copy scrubbed: preview banner removed · all `Track 13.x` and `Source: /api/...` mentions gone (verified at runtime · zero operator-visible occurrences).
+- Honest dashed *"coming next"* slots for Global Unit Search and Parts-on-order — no fake buttons.
+- ESLint clean. 21/21 browser smoke checks pass. Backend suite preserved at **36/36 pass**. All hard locks intact.
+- Five-Pillar **7.0 → 9.0** / 10.
+- Report: `/app/memory/TRACK_13_30B_SHOP_COMMAND_CENTER_RESTRUCTURE.md`.
+
+### Track 13.30C (next P0)
+- Global Unit Search (`GET /api/shop/units/search`) + Role-aware Your-Queue strip (`GET /api/shop/me/summary`). 1 day · LOW risk · 2 read-only backend endpoints + 1 frontend header input.
+
 **Hard locks reaffirmed:** Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · one map engine · no fake MaintainX · no fake FleetWatcher · no accounting / ERP / pay-app / cost / contract / RFI / submittal / change-order / doc-control · no fake users / mechanics / PM / fuel totals.
 
 | # | Gap                                                | Severity | Effort |
