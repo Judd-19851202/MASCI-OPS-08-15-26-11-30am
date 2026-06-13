@@ -1044,12 +1044,15 @@ function App() {
             {/* Pass-7 · Design-system family mockups removed (unauthorized direction; reverted per operator stabilization directive) */}
             {/* Track 13.5A · Phase B1 — Internal-only design primitives showcase.
                 Mounted under `_internal` to keep it out of operator nav. No links exist
-                pointing here from any portal. Authorized 2026-02 by operator. */}
-            <Route path="/_internal/design-system" element={<DesignSystemDemo />} />
-            <Route path="/_internal/pm-v2-preview" element={<PmV2Preview />} />
-            <Route path="/_internal/hr-v2-preview" element={<HrV2Preview />} />
-            <Route path="/_internal/v2-index" element={<V2Index />} />
-            <Route path="/_internal/v2-compare/:portal" element={<V2Compare />} />
+                pointing here from any portal. Authorized 2026-02 by operator.
+                Track 14.0-A1 · 2026-06-13 — wrapped in RequireDev() so that URL-guessing
+                does not expose the showcase / V2 previews / comparison views to
+                non-developers. Dev-token holders are unaffected. */}
+            <Route path="/_internal/design-system" element={D(<DesignSystemDemo />)} />
+            <Route path="/_internal/pm-v2-preview" element={D(<PmV2Preview />)} />
+            <Route path="/_internal/hr-v2-preview" element={D(<HrV2Preview />)} />
+            <Route path="/_internal/v2-index" element={D(<V2Index />)} />
+            <Route path="/_internal/v2-compare/:portal" element={D(<V2Compare />)} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>

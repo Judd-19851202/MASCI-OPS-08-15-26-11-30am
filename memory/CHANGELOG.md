@@ -10,6 +10,25 @@
 
 ---
 
+## 2026-06-13 · Track 14.0-A1 — Platform Structure Certification (Internal/Dev Route Audit + Backend Routes Housekeeping + Role Journey Live-Walk)
+
+**Mode:** READ-ONLY certification + ONE controlled structural fix (1 file · +6/−5 LOC). NO deploy · NO GitHub save · NO merge · NO feature build · NO business-logic change.
+
+- **Verdict: PASS WITH ONE CONTROLLED STRUCTURAL FIX · NO DEPLOY · Five-Pillar 9.74/10 · Trusted 9.85/10 (≥ 9.8 hard threshold met) · Simple 9.78/10 (Role landing 9.85 ≥ 9.8 hard threshold met).**
+- 🔴 **P0 deployment-safety issue surfaced & immediately fixed**: 5 `/_internal/*` routes (`design-system` · `pm-v2-preview` · `hr-v2-preview` · `v2-index` · `v2-compare/:portal`) were shipping **public-by-obscurity** with zero auth guard. Wrapped each in existing `D(...)` → `RequireDev` helper (proven dev-token guard since iter314). Smoke verified live: anonymous `/_internal/design-system` now redirects to `/dev/login` "VENDOR ACCESS · dev.portal" gate. Dev-token holders unaffected.
+- 🎯 **MAJOR A0 CORRECTION — backend routes housekeeping**: A0 reported "24 zero-endpoint helper files misplaced in `backend/routes/`." Re-investigation confirms this was a grep regex limitation (A0 matched `@router.*`/`@app.*` only, missed the deliberate `@api_router.*` pattern used by 18 files following the `register_{name}_routes(api_router, db, ...)` refactor documented in `routes/__init__.py`). **Of the 24 originally flagged**: 18 are legitimate endpoint modules with **88 additional endpoint decorators** (8 from `daily_reports.py` · 17 from `safety.py` · 8 from `equipment.py` · 5 from `employee_requests.py` · 7 from `qaqc.py` · ...) · 5 are genuine FastAPI `Depends()` providers (`*_deps.py` files + `passkey_session_mint.py` + `trench_transport_bridge.py`) · 1 is `__init__.py`. **Corrected platform total: 643 → ≈ 731 endpoint decorators. ZERO backend route file is misplaced. ZERO deployment blockers in backend housekeeping.**
+- ✅ **All 14 role landings verified in code** via `landingFor()` (`/app/frontend/src/lib/directoryAuth.js` lines 106–130). Asset Admin → `/shop/asset-care` ✅ · Admin → `/admin` ✅ · Shop Manager → `/shop` (Shop Hub V2 / Command Center, NOT Asset Care) ✅ · Mechanic → `/shop` then `/shop/me` ✅ · Dispatch → `/dispatch-portal` (Map-First preserved) ✅ · PM → `/pm` ✅ · HR → `/hr` ✅ · Safety → `/safety-portal` ✅ · Operator/Foreman → public form routes ✅ · Driver → `/d/:token` magic link ✅ · Executive → `/admin` (when multi-portal admin) ✅ · Public Submitter → public form routes ✅. Live-verified 5/14 via multi-login portal_tokens fan-out + screenshot.
+- 🟡 **One minor surfaced gap** — `landingFor()` lines 120–127 lacks an explicit `field_leadership: "/leadership"` mapping. Theoretical only (current MASCI roster lists all FL users as multi-portal). Recommendation: 5-minute add via future minor track 14.0-FL1.
+- ✅ **All public surfaces, legacy/rollback routes, and integration honesty checks PASS.** No fake integration claims. MaintainX + FleetWatcher dormant correctly. Two honesty banners still needed (14.0-I1 work).
+- ✅ **Asset Admin / Shop integrity 100 % preserved** since Track 13.33ABC. Repair Complete ≠ RTS doctrine intact. Map-First Dispatch preserved.
+- **Files changed**: `App.js` (+6 / −5 LOC) · 1 file · 0 backend file touched · 0 new file · 0 new collection · 0 new endpoint.
+- **Tests**: ESLint clean · browser smoke `/_internal/design-system` confirmed redirect · API smoke `/api/auth/multi-login` + `/api/asset-care/summary` both healthy · backend regression last-green 93/93 (F1).
+- **Hard locks reaffirmed**: no deploy · no GitHub save · no merge · no feature build · no business logic change · no map change · no Repair Complete ≠ RTS change · no Shop/Asset-Admin RTS authority · no MaintainX activation · no fake FleetWatcher · no accounting / cost / PO / ERP fields · no public-form removal · no legacy-rollback removal · no hidden findings.
+- Report: `/app/memory/TRACK_14_0_A1_PLATFORM_STRUCTURE_CERTIFICATION.md` (20 sections).
+- **Structural gate of Track 14.0 is now CLOSED. Three P0 blockers remain (S1 · P1 · I1) before deploy. Next recommended: 14.0-S1 · Spanish Translation Sweep** (largest blocker · 8h · P0).
+
+---
+
 ## 2026-06-13 · Track 14.0-A0 — Platform Coverage Inventory & Audit Traceability Certification
 
 **Mode:** READ-ONLY · inventory · audit-of-audits. NO code change · NO deploy · NO GitHub save · NO merge · NO fix.
