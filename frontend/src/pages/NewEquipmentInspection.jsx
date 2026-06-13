@@ -209,6 +209,22 @@ export default function NewEquipmentInspection({ publicMode = false }) {
   const [unitSearch, setUnitSearch] = useState("");
   const [criticalFluidAlert, setCriticalFluidAlert] = useState(null); // {section, item} when blocking
   const [tallyCollapsed, setTallyCollapsed] = useState(false);
+  // Track 13.31B-D5.4 · structured canonical section capture
+  const [canonicalCapture, setCanonicalCapture] = useState(null);
+  const canonicalAvailable =
+    canonicalCapture?.template_status === "available" && !!canonicalCapture?.asset_type;
+
+  // Auto-set legacy equipment_type from canonical asset_type (backward compat).
+  // Operator never has to pick — canonical is the authority.
+  useEffect(() => {
+    if (
+      canonicalCapture?.template_status === "available" &&
+      canonicalCapture?.asset_type &&
+      !data.equipment_type
+    ) {
+      setData((p) => ({ ...p, equipment_type: canonicalCapture.asset_type }));
+    }
+  }, [canonicalCapture, data.equipment_type]);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -391,7 +407,8 @@ export default function NewEquipmentInspection({ publicMode = false }) {
     if (saving) return;
     if (!data.project_name) return toast.error("Project name is required");
     if (!data.operator_name) return toast.error("Operator name is required");
-    if (!data.equipment_type) return toast.error("Equipment type is required");
+    // D5.4 · equipment_type required only when canonical authority is NOT in play.
+    if (!canonicalAvailable && !data.equipment_type) return toast.error("Equipment type is required");
     if (!data.equipment_unit) return toast.error("Unit number / label is required");
     if (!String(data.hour_meter || "").trim()) {
       return toast.error("Hour Meter / Odometer reading is required");
@@ -454,6 +471,34 @@ export default function NewEquipmentInspection({ publicMode = false }) {
 
     setSaving(true);
     let payload = { ...data };
+    // D5.4 · attach structured canonical capture (additive · backend stores it
+    // alongside legacy `checklist` so existing routing keeps firing).
+    if (canonicalCapture && canonicalCapture.template_status === "available") {
+      payload.inspection_sections = {
+        template_key: canonicalCapture.template_key,
+        template_label: canonicalCapture.template_label,
+        asset_type: canonicalCapture.asset_type,
+        applies_to: canonicalCapture.applies_to || "pre_op",
+        sections: canonicalCapture.sections,
+        pass_count: canonicalCapture.pass_count,
+        fail_count: canonicalCapture.fail_count,
+        na_count: canonicalCapture.na_count,
+        total_count: canonicalCapture.total_count,
+      };
+      // Roll canonical fails into fail_count if legacy checklist is empty (so
+      // existing defect routing fires for canonical-only submissions).
+      const legacyFailTotal = Object.values(data.checklist || {}).reduce(
+        (acc, items) =>
+          acc +
+          Object.values(items || {}).filter((r) => r?.status === "fail").length,
+        0,
+      );
+      if (legacyFailTotal === 0 && canonicalCapture.fail_count > 0) {
+        payload.fail_count = canonicalCapture.fail_count;
+        payload.pass_count = canonicalCapture.pass_count;
+        payload.na_count = canonicalCapture.na_count;
+      }
+    }
     try {
       const lang = getLang();
       if (lang === "es") {
@@ -701,9 +746,20 @@ export default function NewEquipmentInspection({ publicMode = false }) {
 
         <Section number="02" title={t("Equipment")}>
           <div>
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Equipment Type *")}</Label>
+            <Label
+              className={`font-mono text-xs uppercase tracking-[0.2em] ${
+                canonicalAvailable ? "text-slate-400" : "text-slate-700"
+              }`}
+            >
+              {canonicalAvailable
+                ? t("Equipment Type (legacy compat · auto-set from canonical record)")
+                : t("Equipment Type *")}
+            </Label>
             <Select value={data.equipment_type} onValueChange={applyEquipmentType}>
-              <SelectTrigger className={`${inputCls} mt-2`} data-testid="select-equipment-type">
+              <SelectTrigger
+                className={`${inputCls} mt-2 ${canonicalAvailable ? "opacity-60" : ""}`}
+                data-testid="select-equipment-type"
+              >
                 <SelectValue placeholder={loading ? t("Loading…") : t("Select equipment type")} />
               </SelectTrigger>
               <SelectContent className="max-h-72">
@@ -714,10 +770,20 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 ))}
               </SelectContent>
             </Select>
+            {canonicalAvailable && (
+              <p
+                className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500"
+                data-testid="legacy-select-demoted"
+              >
+                {t("Canonical asset_type is authoritative · this dropdown is retained for backward compatibility only.")}
+              </p>
+            )}
           </div>
 
-          {data.equipment_type && (
-            <>
+          {/* D5.4 · Unit picker + canonical sections are always visible.
+              Legacy equipment_type is no longer the gate — canonical asset_type
+              is the authority for known assets. */}
+          <>
               {savedUnits.length > 0 && (
                 <div className="bg-slate-100 border border-slate-200 rounded-md p-3">
                   <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 flex items-center gap-2">
@@ -774,7 +840,20 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                     testId="equipment-unit"
                   />
                   <SmartUnitClassificationChip unitNumber={data.equipment_unit} testidPrefix="preop-smart-class" />
-                  <CanonicalInspectionSections unitNumber={data.equipment_unit} appliesTo="pre_op" />
+                  <CanonicalInspectionSections
+                    unitNumber={data.equipment_unit}
+                    appliesTo="pre_op"
+                    onChange={setCanonicalCapture}
+                    testidPrefix="preop-canonical-sections"
+                  />
+                  {canonicalAvailable && (
+                    <div
+                      className="mt-2 text-[10px] font-mono uppercase tracking-[0.16em] text-emerald-700"
+                      data-testid="preop-canonical-authority-note"
+                    >
+                      Canonical authority · asset_type = {canonicalCapture?.asset_type}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Make")}</Label>
@@ -803,7 +882,6 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 </div>
               </div>
             </>
-          )}
         </Section>
 
         {/* Checklist sections (one per OSHA category) */}

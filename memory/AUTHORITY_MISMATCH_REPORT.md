@@ -2,27 +2,30 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-06-10 02:02:14 UTC
-* Scan duration: 107 ms
+* Generated: 2026-06-13 17:44:56 UTC
+* Scan duration: 152 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 
 ## Summary
 
 * **New violations** (fail the gate): **0**
-* **New warnings** (review): 8
-* **Baselined** (previously approved): 52
+* **New warnings** (review): 11
+* **Baselined** (previously approved): 49
 
 ## 🟡 New warnings
 
 * `lib/constraintCapabilities.js:48` · ad-hoc canApprove variable · `const hasHr = isHr();`
 * `lib/constraintCapabilities.js:49` · ad-hoc canApprove variable · `const hasAdmin = isAdmin();`
+* `components/HubBackLink.jsx:23` · ad-hoc canApprove variable · `const admin = isAdmin();`
+* `components/HubBackLink.jsx:44` · ad-hoc canApprove variable · `if (isAdmin()) return "/admin";`
 * `pages/NewIncident.jsx:313` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/NewIncident.jsx:335` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/ViewQaqcInspection.jsx:73` · ad-hoc canApprove variable · `label={isAdmin() ? "Admin · QA/QC" : "QA/QC"}`
 * `pages/ViewQaqcInspection.jsx:80` · ad-hoc canApprove variable · `{isAdmin() && (`
 * `pages/NewDailyReport.jsx:846` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/NewDailyReport.jsx:882` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/NewEquipmentInspection.jsx:516` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 
 ## ⚪ Baselined (already reviewed)
 
@@ -36,8 +39,6 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `components/RequireHr.jsx:24` · ad-hoc canApprove variable
 * `components/RequirePm.jsx:26` · token-coexistence rendering · 2-way OR
 * `components/RequirePm.jsx:26` · ad-hoc canApprove variable
-* `components/HubBackLink.jsx:19` · ad-hoc canApprove variable
-* `components/HubBackLink.jsx:36` · ad-hoc canApprove variable
 * `components/ShopSignoffCard.jsx:34` · ad-hoc canApprove variable
 * `components/RequireAdminPmOrSafety.jsx:30` · token-coexistence rendering · 2-way OR
 * `components/RequireAdminPmOrSafety.jsx:30` · ad-hoc canApprove variable
@@ -74,7 +75,6 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `pages/DocumentExpirations.jsx:70` · ad-hoc canApprove variable
 * `pages/NewSafetyEquipmentTraining.jsx:54` · ad-hoc canApprove variable
 * `pages/NewSafetyEquipmentIssuance.jsx:73` · ad-hoc canApprove variable
-* `pages/NewEquipmentInspection.jsx:469` · ad-hoc canApprove variable
 * `pages/FieldLeadershipFormPage.jsx:309` · ad-hoc canApprove variable
 * `pages/TrainingHub.jsx:50` · ad-hoc canApprove variable
 * `pages/TrainingHub.jsx:54` · ad-hoc canApprove variable

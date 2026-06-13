@@ -239,6 +239,10 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   const [notes, setNotes] = useState("");
   const [signature, setSignature] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // Track 13.31B-D5.4 · structured canonical section capture for DVIR
+  const [canonicalCapture, setCanonicalCapture] = useState(null);
+  const canonicalAvailable =
+    canonicalCapture?.template_status === "available" && !!canonicalCapture?.asset_type;
   const errRef = useRef(null);
 
   // Auto-fill truck plate + vin when unit chosen
@@ -366,6 +370,21 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       notes,
       submitted_via: "public_tile",
     };
+    // D5.4 · attach structured canonical capture (additive · backend stores
+    // it alongside legacy `truck_checklist` so existing routing keeps firing).
+    if (canonicalCapture && canonicalCapture.template_status === "available") {
+      payload.inspection_sections = {
+        template_key: canonicalCapture.template_key,
+        template_label: canonicalCapture.template_label,
+        asset_type: canonicalCapture.asset_type,
+        applies_to: canonicalCapture.applies_to || "dvir",
+        sections: canonicalCapture.sections,
+        pass_count: canonicalCapture.pass_count,
+        fail_count: canonicalCapture.fail_count,
+        na_count: canonicalCapture.na_count,
+        total_count: canonicalCapture.total_count,
+      };
+    }
 
     let attempts = 0;
     let lastErr = "";
@@ -572,7 +591,20 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               ))}
             </select>
             <SmartUnitClassificationChip unitNumber={truckUnit} testidPrefix="dvir-truck-smart-class" />
-            <CanonicalInspectionSections unitNumber={truckUnit} appliesTo="dvir" />
+            <CanonicalInspectionSections
+              unitNumber={truckUnit}
+              appliesTo="dvir"
+              onChange={setCanonicalCapture}
+              testidPrefix="dvir-canonical-sections"
+            />
+            {canonicalAvailable && (
+              <div
+                className="mt-2 text-[10px] font-mono uppercase tracking-[0.16em] text-emerald-700"
+                data-testid="dvir-canonical-authority-note"
+              >
+                Canonical authority · asset_type = {canonicalCapture?.asset_type}
+              </div>
+            )}
           </div>
 
           {truckUnit && (

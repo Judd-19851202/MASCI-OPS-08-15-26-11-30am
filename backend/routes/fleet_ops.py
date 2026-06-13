@@ -103,6 +103,12 @@ class FleetInspectionSubmit(BaseModel):
     # Submission portal · "public_tile" | "signed_in" (audit only)
     submitted_via: Optional[str] = "public_tile"
 
+    # Track 13.31B-D5.4 · structured canonical section capture (additive).
+    # Mirror of the canonical inspection sections rendered from the
+    # /api/asset-spine/inspection-templates registry. Persisted alongside
+    # the legacy `truck_checklist` so existing defect routing keeps firing.
+    inspection_sections: Optional[Dict[str, Any]] = None
+
 
 class DefectActionPayload(BaseModel):
     """Body for defect lifecycle transitions + manual OOS flips."""
@@ -585,6 +591,8 @@ def build_router(
             "created_at": now_iso,
             # Phase F integration-ready
             "external_refs": {"motive_id": None},
+            # D5.4 · structured canonical section capture (additive)
+            "inspection_sections": payload.inspection_sections,
         }
         await db.equipment_inspections.insert_one(insp_doc)
 

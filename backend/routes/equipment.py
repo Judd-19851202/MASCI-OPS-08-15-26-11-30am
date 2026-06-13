@@ -59,6 +59,12 @@ class EquipmentInspectionCreate(BaseModel):
     photos: List[str] = Field(default_factory=list)
     operator_signature: Optional[str] = ""
 
+    # Track 13.31B-D5.4 · structured canonical section capture (additive).
+    # Mirror of the canonical inspection sections rendered from the
+    # /api/asset-spine/inspection-templates registry. Persisted alongside
+    # the legacy `checklist` so existing defect routing keeps firing.
+    inspection_sections: Optional[Dict[str, Any]] = None
+
 
 class EquipmentInspection(EquipmentInspectionCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
