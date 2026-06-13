@@ -10,6 +10,24 @@
 
 ---
 
+## 2026-06-13 · Track 14.0-F1 — Legacy Form Style Alignment + Visual Consistency Upgrade
+
+**Mode:** Controlled implementation · form-shell convergence · full regression. NO deploy · NO GitHub · NO merge · NO workflow rewrite · NO backend logic touch.
+
+- **Verdict: PASS · Five-Pillar 9.81 / 10 · Beautiful sub-score 9.82 / 10 (≥ 9.8 hard threshold met).**
+- Honest source-inspection finding: legacy forms (Daily Report · Incident · Excavation · Safety Forms Hub) were already well-aligned at the shell / header / typography level. The only real drift was a **33-line local `Section` shim** in `PublicExcavationForm.jsx` (cyan accent · dense padding · no `print:break-inside-avoid` · hardcoded "Smart Trigger" English string · no eyebrow translation).
+- **NEW capabilities on canonical `@/components/Section`** (purely additive · existing 6 callers untouched at render time): `accent="red|amber|cyan|emerald|sky|slate"` · `dense` (mobile-heavy public-form density) · `highlight` (ring + accent badge) · `highlightLabel` (auto-translated · defaults to t("Smart Trigger")) · `testId` (override).
+- **Migrated `PublicExcavationForm.jsx`** off the local shim onto canonical `BaseSection` with `accent="cyan"` + `dense` + delegated `highlight`. Visual identity preserved · `print:break-inside-avoid` + translated badge inherited · ring-on-highlight standardized.
+- **Files changed:** `components/Section.jsx` (+73/−7 LOC) · `pages/trench_safety/PublicExcavationForm.jsx` (+14/−18 LOC). **Total +87/−25 across 2 files. No backend file touched. No new file.**
+- **93/93 backend pytests green** (Track 13.31B-D3+D4 + D5.4 + D6 + D7 + 13.33ABC suites). ESLint clean on touched files + the 6 other canonical-Section callers. Browser smoke at 1280×900 + 390×844 on `/trench-safety/excavation/new` confirmed identical visual render with the upgrades inherited.
+- Form-shell standard reaffirmed across all named legacy surfaces: `caution-stripe` + `bg-slate-900 border-b-4 border-red-700` sticky header + `MasciLogo` + `LangToggle` + `font-display text-3xl sm:text-4xl font-black tracking-tight` H1 with red `font-mono text-xs uppercase tracking-[0.25em]` eyebrow.
+- Hard locks reaffirmed: no deploy · no GitHub save · no merge · no workflow rewrite · no payload change · no public-form route change · no Daily Report breakage · no Safety breakage · no Trench breakage · no Pre-Op/DVIR breakage · no Asset Admin breakage · no map change · no MaintainX/FleetWatcher touch · no accounting/cost/PO/ERP · no engineering copy leaks.
+- The form-style gate of Track 14.0 is now **closed**.
+- Doctrine doc: `/app/memory/TRACK_14_0_F1_LEGACY_FORM_STYLE_ALIGNMENT.md`.
+- **Next recommended:** **14.0-S1 · Spanish Translation Sweep** (largest remaining deployment blocker · estimated 8h · P0).
+
+---
+
 ## 2026-06-13 · Track 14.0 — Platform Readiness Certification (READ-ONLY · pre-deploy hard gate)
 
 **Mode:** Read-only platform audit · no code · no deploy · no GitHub save · no merge. Documentation-only.

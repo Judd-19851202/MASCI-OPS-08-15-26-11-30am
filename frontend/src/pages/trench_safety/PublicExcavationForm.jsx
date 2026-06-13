@@ -29,6 +29,7 @@ import EmployeePicker from "@/components/trench/EmployeePicker";
 import TrenchAssetPicker from "@/components/trench/TrenchAssetPicker";
 import ExcavationComplianceCard from "@/components/trench/ExcavationComplianceCard";
 import { JobPicker } from "@/components/JobPicker";
+import { Section as BaseSection } from "@/components/Section";
 import { computeExcavationCompliance } from "@/lib/excavationCompliance";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
@@ -58,21 +59,20 @@ function Bool({ value, onChange, testId }) {
 }
 
 function Section({ num, title, children, highlight, testId }) {
+  // Track 14.0-F1 · delegate to canonical Section primitive with cyan accent
+  // + dense mode (legacy public-form density preserved). Adds print-break,
+  // smart-trigger badge translation, and ring-on-highlight consistency.
   return (
-    <section
-      className={"bg-white border rounded-md p-4 mt-3 transition " + (highlight ? "border-cyan-500 ring-2 ring-cyan-100" : "border-slate-200")}
-      data-testid={testId || `exc-section-${num}`}
+    <BaseSection
+      number={num}
+      title={title}
+      accent="cyan"
+      dense
+      highlight={!!highlight}
+      testId={testId || `exc-section-${num}`}
     >
-      <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2 flex items-center gap-2">
-        <span>{num} · {title}</span>
-        {highlight && (
-          <span className="bg-cyan-700 text-white px-1.5 py-0.5 rounded text-[9px] tracking-[0.14em]" data-testid={`${testId || `exc-section-${num}`}-smart-trigger`}>
-            Smart Trigger
-          </span>
-        )}
-      </div>
       {children}
-    </section>
+    </BaseSection>
   );
 }
 
