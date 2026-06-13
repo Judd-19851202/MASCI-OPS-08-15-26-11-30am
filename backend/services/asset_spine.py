@@ -165,6 +165,10 @@ def project_asset(doc: Dict[str, Any]) -> Dict[str, Any]:
         "insurance_expiration":    doc.get("insurance_expiration"),
         "title_status":            doc.get("title_status"),
         "warranty_expiration":     doc.get("warranty_expiration"),
+        # D6 · additional renewal mirror fields for GPS / Survey / Tech assets
+        "dot_expiration":          doc.get("dot_expiration"),
+        "calibration_expiration":  doc.get("calibration_expiration"),
+        "inspection_expiration":   doc.get("inspection_expiration"),
         "lifecycle_status":        doc.get("lifecycle_status"),
         "division":                doc.get("division"),
         "region":                  doc.get("region"),

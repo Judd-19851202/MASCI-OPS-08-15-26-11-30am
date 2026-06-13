@@ -167,18 +167,53 @@ def required_documents_for(asset_type: str | None, behavior: Dict[str, Any] | No
     if asset_type in SUPPORT:
         return [DOC_MANUAL, DOC_WARRANTY]
 
-    # GPS / Survey / Technology
-    GPS_TECH = {
-        "GPS Base Station", "GPS Rover", "Total Station", "Laser Level",
-        "Survey Equipment", "Robotic Total Station",
+    # GPS / Survey / Machine Control / Locating · calibration assets.
+    SURVEY_GPS_LOCATING = {
+        # GPS / Machine Control
+        "GPS Base Station", "GPS Rover", "GPS Base", "GNSS Receiver",
+        "Topcon Hiper XR", "Topcon Hiper VR",
+        "Machine Receiver", "Machine Control Receiver",
+        "Machine Control Display", "Machine Control Antenna",
+        "Machine Control Mast",
+        "Radio", "Base Radio", "Rover Radio", "Repeater Radio",
+        "Antenna", "GPS Antenna", "UHF Antenna", "Survey Antenna",
+        # Survey instruments
+        "Total Station", "Robotic Total Station", "Survey Rover",
+        "Base Station", "Data Collector", "Controller", "Survey Controller",
+        "Laser Level", "Rotating Laser", "Dual-Slope Laser", "Grade Laser",
+        "Pipe Laser", "Alignment Laser", "Digital Level", "Automatic Level",
+        "Optical Level", "Dumpy Level", "Builder's Level", "Hand Level",
+        "Theodolite", "Transit", "Level",
+        # Utility locating
+        "Utility Locator", "Utility Locating Receiver",
+        "Utility Locating Transmitter", "Pipe Locator", "Cable Locator",
+        "Sonde Locator", "Ground Penetrating Radar", "GPR Cart",
+        "GPR Controller", "Magnetic Locator", "Valve Locator",
+        "Electronic Marker Locator",
     }
-    if asset_type in GPS_TECH:
-        return [DOC_CALIBRATION_CERT, DOC_MANUAL]
+    if asset_type in SURVEY_GPS_LOCATING:
+        return [DOC_CALIBRATION_CERT, DOC_MANUAL, DOC_ASSET_PHOTO]
+
+    # Survey accessories (rods, prisms, tripods) — photo + manual only
+    SURVEY_ACCESSORIES = {
+        "Prism", "Prism Pole", "Tripod", "Bipod", "Grade Rod",
+        "Level Rod", "Survey Rod", "Measuring Wheel",
+    }
+    if asset_type in SURVEY_ACCESSORIES:
+        return [DOC_ASSET_PHOTO, DOC_MANUAL]
+
+    # Technology / Communication / Drones
     TECH = {
-        "Tablet", "Laptop", "Phone", "Radio", "Camera",
+        "Tablet", "iPad", "Laptop", "Desktop", "Workstation",
+        "Monitor", "Printer", "Scanner", "Phone", "Smartphone",
+        "Hotspot", "Camera",
+        "Drone", "Drone Controller", "Drone Battery Set",
+        "Handheld Radio", "Mobile Radio", "Base Station Radio",
+        "Repeater", "Satellite Communicator", "Satellite Phone",
+        "Radio Charger", "Radio Dock", "Radio Battery Bank",
     }
     if asset_type in TECH:
-        return [DOC_WARRANTY, DOC_PURCHASE]
+        return [DOC_WARRANTY, DOC_PURCHASE, DOC_ASSET_PHOTO]
 
     # Trench safety
     if asset_type in {"Trench Box", "Road Plate", "Shoring"}:
