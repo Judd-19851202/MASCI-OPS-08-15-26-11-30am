@@ -21,6 +21,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import SmartUnitClassificationChip from "@/components/SmartUnitClassificationChip";
+import CanonicalInspectionSections from "@/components/CanonicalInspectionSections";
 import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
 import { api } from "@/lib/api";
@@ -773,6 +774,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                     testId="equipment-unit"
                   />
                   <SmartUnitClassificationChip unitNumber={data.equipment_unit} testidPrefix="preop-smart-class" />
+                  <CanonicalInspectionSections unitNumber={data.equipment_unit} appliesTo="pre_op" />
                 </div>
                 <div>
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Make")}</Label>

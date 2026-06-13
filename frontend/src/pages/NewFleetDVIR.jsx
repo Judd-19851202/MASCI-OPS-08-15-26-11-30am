@@ -38,6 +38,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MasciLogo } from "@/components/MasciLogo";
 import SmartUnitClassificationChip from "@/components/SmartUnitClassificationChip";
+import CanonicalInspectionSections from "@/components/CanonicalInspectionSections";
 import { Section, ChecklistRow } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -571,6 +572,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               ))}
             </select>
             <SmartUnitClassificationChip unitNumber={truckUnit} testidPrefix="dvir-truck-smart-class" />
+            <CanonicalInspectionSections unitNumber={truckUnit} appliesTo="dvir" />
           </div>
 
           {truckUnit && (

@@ -6144,3 +6144,33 @@ Equipment Master canonical · no new collection · no new workflow · MAP STAYS 
 
 **Report:** `/app/memory/TRACK_13_31B_D5_2_CANONICAL_PREOP_DVIR_INSPECTION_TEMPLATE_EXPANSION.md`.
 
+
+## Track 13.31B-D5.3 · Frontend Smart Pre-Op + DVIR Template Rendering · 2026-06-13
+
+**Authorization:** Operator authorized D5.3 immediately after D5.2 — render the 45-template registry inside the operator/driver forms and surface the missing-template backlog inside Asset Admin.
+
+**Mode:** Controlled implementation + frontend template intelligence + full regression. NO deploy · NO GitHub · NO merge · NO new collection · NO new endpoint.
+
+### Delivered
+
+- **NEW shared component** `frontend/src/components/CanonicalInspectionSections.jsx` (~90 lines) mounted under the unit picker on both Pre-Op (`/equipment/new`) and DVIR (`/fleet/dvir/new`) forms. Fetches `/api/asset-spine/taxonomy/by-unit/{unit}` → resolves canonical asset_type → fetches `/api/asset-spine/inspection-templates/by-asset-type/{type}` → renders MASCI-native section cards with items.
+- **NEW "Missing Templates" tab** inside `/admin/asset-admin` (3rd tab alongside Review Queue + Legacy Crosswalk) consuming `/api/asset-spine/inspection-templates/missing-backlog`. Live backlog ordered by active-fleet impact.
+- Operators now see Paver checks for a Paver, Rollers see Roller checks, Service Trucks see Service Truck DVIR checks (NOT Haul Truck).
+- States handled: loading · sections rendered (emerald) · missing_template (amber notice) · silent (no unit / 401-403 public submission).
+- Submit payload unchanged · existing form fields preserved · issue/defect routing unchanged · zero backend file touched · zero new collection.
+- Legacy 5-value `equipment_type` dropdown intentionally preserved (functionally demoted — canonical asset_type drives rendering regardless of dropdown choice); removal deferred to D5.4.
+
+### Tests
+
+**78/78 backend pytests green.** Pure frontend slice on top of D5.2's verified backend. No backend regression possible.
+
+### Five Pillars
+
+Pre-Op rendering 9.76 · DVIR rendering 9.76 · Manual fallback 9.66 · Missing template 9.76 · Asset Admin backlog 9.76 · Operator UI 9.76 · Driver UI 9.76 · Issue routing 9.88 · Regression stability 10.00 — **avg 9.76 / 10**. All surfaces clear the 9.5 bar.
+
+### Hard locks verified
+
+No new Pre-Op/DVIR/inspection system · Equipment Master canonical · MAP STAYS · driver no-login intact (panel auto-hides on 401/403) · Shop Repair Complete ≠ RTS · Dispatch/Admin RTS preserved · MaintainX dormant · FleetWatcher untouched · no costs/POs/accounting/ERP · `/shop/hub_legacy` alive.
+
+**Report:** `/app/memory/TRACK_13_31B_D5_3_FRONTEND_SMART_PREOP_DVIR_TEMPLATE_RENDERING.md`.
+

@@ -18,7 +18,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Layers, Loader2, RefreshCw, CheckCircle2, AlertTriangle,
-  ShieldCheck, Wand2, ListChecks, Tag, ExternalLink,
+  ShieldCheck, Wand2, ListChecks, Tag, ExternalLink, ClipboardList,
 } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
@@ -204,6 +204,7 @@ export default function AdminAssetAdmin() {
           {[
             { key: "queue", label: "Review Queue", icon: ListChecks },
             { key: "crosswalk", label: "Legacy Crosswalk", icon: Wand2 },
+            { key: "templates", label: "Missing Templates", icon: ClipboardList },
           ].map(({ key, label, icon: Icon }) => {
             const active = tab === key;
             return (
@@ -536,3 +537,77 @@ function LegacyCrosswalkPanel({ onApplied }) {
     </div>
   );
 }
+
+// ────────────────────────────────────────────────────────────
+// Track 13.31B-D5.3 · Missing-Template Backlog panel
+// Reads `/api/asset-spine/inspection-templates/missing-backlog`
+// and shows the Asset Administrator which canonical asset_types
+// have active rows but no template in the registry yet.
+// ────────────────────────────────────────────────────────────
+function MissingTemplateBacklogPanel() {
+  const [state, setState] = useState({ loading: true, scanned: 0, items: [], err: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await api.get("/asset-spine/inspection-templates/missing-backlog");
+        if (cancelled) return;
+        setState({ loading: false, scanned: r.data?.scanned || 0, items: r.data?.items || [], err: null });
+      } catch (e) {
+        if (cancelled) return;
+        setState({ loading: false, scanned: 0, items: [], err: e?.response?.data?.detail || "Failed to load" });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (state.loading) {
+    return (
+      <div className="bg-white border border-slate-200 rounded p-8 text-center text-slate-500" data-testid="aa-templates-loading">
+        <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+        Loading missing-template backlog…
+      </div>
+    );
+  }
+  if (state.err) {
+    return (
+      <div className="px-4 py-3 rounded border-2 border-red-300 bg-red-50 text-sm text-red-900 font-semibold" data-testid="aa-templates-err">
+        {state.err}
+      </div>
+    );
+  }
+  if (state.items.length === 0) {
+    return (
+      <div className="bg-emerald-50 border border-emerald-200 rounded p-8 text-center" data-testid="aa-templates-empty">
+        <CheckCircle2 className="w-8 h-8 text-emerald-700 mx-auto mb-2" />
+        <div className="font-display text-lg font-black text-emerald-900">Every active asset type has a canonical inspection template</div>
+        <p className="text-sm text-emerald-800 mt-1">
+          Scanned {state.scanned} active assets · zero missing templates.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3" data-testid="aa-templates">
+      <div className="text-xs font-mono uppercase tracking-[0.16em] text-slate-600 font-bold">
+        Scanned {state.scanned} active assets · {state.items.length} canonical type{state.items.length === 1 ? "" : "s"} missing a template
+      </div>
+      {state.items.map((it) => (
+        <div key={it.asset_type} className="bg-white border border-slate-200 rounded p-4 flex items-center justify-between gap-3" data-testid={`aa-templates-row-${it.asset_type}`}>
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold">
+              {it.asset_class || "—"}
+            </div>
+            <div className="font-display text-base font-black text-slate-900">{it.asset_type}</div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              {it.verified_count}/{it.count} verified · template not built yet
+            </div>
+          </div>
+          <div className="text-3xl font-black text-amber-700 tabular-nums">{it.count}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+

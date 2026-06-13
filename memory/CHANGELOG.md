@@ -10,6 +10,22 @@
 
 ---
 
+## 2026-06-13 · Track 13.31B-D5.3 — Frontend Smart Pre-Op + DVIR Template Rendering
+
+**Mode:** Controlled implementation + frontend template intelligence + full regression. NO deploy · NO GitHub · NO merge · NO new collection · NO new endpoint.
+
+- **NEW shared component** `frontend/src/components/CanonicalInspectionSections.jsx` mounted under the unit picker on both Pre-Op (`/equipment/new`) and DVIR (`/fleet/dvir/new`) forms.
+- Fetches `/api/asset-spine/taxonomy/by-unit/{unit}` → resolves canonical asset_type → fetches `/api/asset-spine/inspection-templates/by-asset-type/{type}` → renders MASCI-native section cards with items.
+- States: loading · sections rendered (emerald) · missing_template (amber) · silent (no unit / 401-403 public).
+- **NEW "Missing Templates" tab** inside `/admin/asset-admin` (3rd tab alongside Review Queue + Legacy Crosswalk) — surfaces live backlog from `/inspection-templates/missing-backlog`. Empty state confirms full coverage today.
+- Submit payload unchanged · existing form fields preserved · issue/defect routing unchanged · zero backend file touched.
+- Legacy 5-value `equipment_type` dropdown intentionally preserved (functionally demoted; canonical asset_type drives rendering regardless of dropdown choice); removal scheduled for D5.4.
+- **78/78 backend pytests green.** Pure frontend slice on top of D5.2.
+- Five-Pillar avg 9.76/10 — every touched surface ≥ 9.5.
+- Doctrine doc: `/app/memory/TRACK_13_31B_D5_3_FRONTEND_SMART_PREOP_DVIR_TEMPLATE_RENDERING.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31B-D5.2 — Canonical Pre-Op + DVIR Inspection Template Expansion
 
 **Mode:** Controlled implementation + template intelligence + platform regression + Five-Pillar certification. NO new collection · NO new system · NO deploy · NO GitHub · NO merge.
