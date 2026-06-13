@@ -20,6 +20,22 @@ Source: `/app/memory/TRACK_14_0_PLATFORM_READINESS_CERTIFICATION.md` · Verdict 
 | **14.0-C1** | P2 · polish | Document-type 1-line descriptors in upload dialog + inline coaching on doc list. | 3h | PENDING |
 | **14.0-N1** | P2 · v1-optional | In-app notification center delivery for the 25 asset events documented in 13.33ABC notification matrix. Email cadence (Resend). | 12h | PENDING |
 
+### New fix tracks surfaced by Track 14.0-A0 Platform Coverage Inventory
+
+| Track     | Priority | Scope                                                                                                  | Est | Status |
+|-----------|----------|--------------------------------------------------------------------------------------------------------|-----|--------|
+| **14.0-A0-B** | P0 · housekeeping | Backend `routes/*.py` housekeeping — classify the 24 zero-endpoint files (helpers vs unmounted) · move helpers out of `routes/` or document why they live there · update PRD. | 1h | PENDING |
+| **14.0-A0-I** | P0 · audit | `/_internal/*` + `/dev/*` route audit — 9 preview/dev routes have NO ledger. Walk operator-language grep · add ledger entry · classify as keep/retire/gate. | 1h | PENDING |
+| **14.0-R1** | P1 · audit | Role-journey live-walk for the 9 of 14 roles never re-walked at screenshot level: Shop Manager · Mechanic · Dispatcher · PM · Superintendent · Foreman · Driver · Safety · HR · Executive. Capture screenshot evidence per role + first 15-second / first-click results. | 6h | PENDING |
+| **14.0-B1** | P1 · audit | Button audit — 934 `<Button>` instances across 14 variants (518 outline · 159 mark · 57 ghost · 15 login · 5 meeting · 4 header · 3 destructive · 3 default · 2 body · 1 each warning/success/light/global/danger). Classify keep/consolidate/retire. Document button-consistency standard. | 4h | PENDING |
+| **14.0-Mod1** | P1 · audit | Modal audit — 64 dialog/sheet/alert-dialog using files · ~6 individually audited · 58 not. Per-modal Spanish + accessibility + mobile audit. | 4h | PENDING |
+| **14.0-H1** | P2 · feature | Platform-wide help-search capability. Training Center, Training Hub, Cheatsheet, AdminGuide, Site Posters, Safety Topic Library all exist as siloed surfaces — no unified search. | 8h | PENDING |
+| **14.0-T1** | P3 · audit | Toast / terminology audit — 1 440 toast calls platform-wide · no toast-language audit completed · check Spanish coverage + tone consistency. | 6h | PENDING |
+
+**Total estimated to close all named 14.0 blockers (existing + A0-surfaced): ~63 hours (~8 working days).**
+
+---
+
 **Proposed deployment-gate sequence:** close S1 → P1 → I1 → spot-check M1 → re-run Track 14.0 → if green, redeploy.
 
 ---

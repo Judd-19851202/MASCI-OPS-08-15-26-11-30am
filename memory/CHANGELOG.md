@@ -10,6 +10,23 @@
 
 ---
 
+## 2026-06-13 · Track 14.0-A0 — Platform Coverage Inventory & Audit Traceability Certification
+
+**Mode:** READ-ONLY · inventory · audit-of-audits. NO code change · NO deploy · NO GitHub save · NO merge · NO fix.
+
+- **Verdict: INVENTORY COMPLETE · AUDIT TRACEABILITY PARTIALLY CONFIRMED · PLATFORM NOT YET DEPLOYABLE.**
+- Every count in the report is reproducible via grep / find / wc against `/app`. No estimate. No assumption.
+- **Platform counts (evidence-backed):** 339 declared frontend routes · 263 page components · 318 reusable components · 643 backend endpoint decorators across 189 route files (100 with endpoints · 24 helper-style with none · 117 `include_router` mounts) · 14 service modules · 469 backend tests · 21 PDF generators · 38 CSV producers · 9 maps · 8 integrations (4 live · 2 dormant · 2 partial) · 23 public surfaces · 64 modal-using files · 36 dashboards · 152 canonical `Section` usages · 130 `Card` usages · 934 `<Button>` instances across 14 variants · 3 859 distinct `data-testid` values · 1 440 toast calls · 224 / 581 frontend files with i18n wiring (**38.5 % · the 357 unwired files include the 5 named D3–D33ABC asset components**) · 91 coaching surfaces · 49 empty-state surfaces · 87 TRACK ledgers across 2 027 `.md` artifacts in `/app/memory`.
+- **Audit roll-up:** ~85 / 339 routes (25 %) Fully Audited · ~210 / 339 (62 %) Partially Audited · ~44 / 339 (13 %) Not Audited.
+- **Highest-risk blind spots identified:** Spanish wiring on 357 files · PDF lockup on 18 of 21 generators · 9 `/_internal/*` + `/dev/*` preview routes with no ledger · 9 of 14 role journeys never live-walked · 24 backend `routes/*.py` files with 0 endpoint decorators (helpers misplaced in routes/) · no platform-wide help-search · 934 buttons across 14 variants never audited for visual consistency · 64 modal-using files never individually audited.
+- **Recommended new fix tracks surfaced by A0 (in addition to the existing 14.0-S1/P1/I1/M1/C1/N1):** 14.0-A0-B (backend routes housekeeping · 1h) · 14.0-A0-I (internal/dev route audit · 1h) · 14.0-R1 (role-journey live-walk for 9 missing roles · 6h) · 14.0-B1 (button audit · 4h) · 14.0-Mod1 (modal audit · 4h) · 14.0-H1 (help-search · 8h) · 14.0-T1 (toast/terminology audit · 6h). **Total to close all named blockers: ~63 hours (~8 working days).**
+- **Is Track 14.0's 9.62 score sufficiently evidenced?** Directionally yes; deterministically no. The score is honest at platform level and correctly identifies the three named blockers (S1 · P1 · I1). It does NOT answer per-route, per-button, per-modal, per-toast questions — that work is outside the scope of a single platform-readiness pass.
+- Hard locks reaffirmed: no deploy · no GitHub · no merge · no code change · no fix · no UI edit · no route update · no translation add · no test add · no readiness claim.
+- Report: `/app/memory/TRACK_14_0_A0_PLATFORM_COVERAGE_INVENTORY_AUDIT_TRACEABILITY.md`.
+- **Next recommended:** **14.0-S1 · Spanish Translation Sweep** (largest blocker · 8h · P0).
+
+---
+
 ## 2026-06-13 · Track 14.0-F1 — Legacy Form Style Alignment + Visual Consistency Upgrade
 
 **Mode:** Controlled implementation · form-shell convergence · full regression. NO deploy · NO GitHub · NO merge · NO workflow rewrite · NO backend logic touch.

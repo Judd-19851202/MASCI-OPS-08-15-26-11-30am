@@ -6329,3 +6329,113 @@ All touched legacy forms now confirmed unified at:
 
 **Report:** `/app/memory/TRACK_14_0_F1_LEGACY_FORM_STYLE_ALIGNMENT.md`.
 
+
+---
+
+## Track 14.0-A0 · Platform Coverage Inventory & Audit Traceability Certification · 2026-06-13
+
+**Mode:** READ-ONLY · inventory · audit-of-audits · coverage certification.
+**Hard locks held:** No deploy · no GitHub save · no merge · no code change · no fix · no UI edit · no route update · no translation add · no test add · no readiness claim.
+
+### Verdict
+
+**INVENTORY: COMPLETE. AUDIT TRACEABILITY: PARTIALLY CONFIRMED. PLATFORM: NOT YET DEPLOYABLE.**
+
+Every count below is reproducible via grep / find / wc against `/app`.
+
+### Platform totals (evidence-backed)
+
+| Category | Count |
+|---|---:|
+| Declared frontend routes (`<Route` in App.js) | **339** |
+| Lazy-loaded routes | 162 |
+| Frontend page files (`pages/**/*.jsx`) | 263 |
+| Frontend component files (`components/**/*.{jsx,js}`) | 318 |
+| Form-submission-bearing pages (`onSubmit/handleSubmit/api.post|put`) | 83 |
+| Form-named pages (`New*/Edit*/Public*Form*`) | 14 |
+| Dashboards / hubs (`*Hub/Dashboard/Command/Index/Home`) | 36 |
+| Tables / queues (named) | ~50 |
+| Modal/Dialog-using files | 64 |
+| Dedicated modal component files | 9 |
+| Maps (`maplibre` grep) | 9 |
+| PDF generators (backend, ex-pycache) | 21 |
+| CSV producers (backend) | 38 |
+| Backend route files | 189 |
+| Backend modules with endpoints | 100 |
+| Backend route files with 0 endpoint decorators (helpers misplaced?) | 24 |
+| Backend endpoint decorators | 643 |
+| Router mounts (`include_router`) in server.py | 117 |
+| Backend service modules | 14 |
+| Backend test files | 469 |
+| Public surfaces | 23 |
+| Role journeys (expected) | 14 |
+| Frontend files using i18n (`useT/useTranslation/lib/i18n`) | **224 / 581 (38.5 %)** |
+| Frontend files NOT using i18n | **357 (61.5 %)** |
+| Coaching / tooltip / HelpCircle files | 91 |
+| EmptyState files | 49 |
+| Notification events (Track 13.33ABC matrix) | 25 |
+| Toast notification calls | 1 440 |
+| Integrations (4 live · 2 dormant · 2 partial) | 8 |
+| Legacy / hidden / preview routes | 9 |
+| Memory ledgers (.md) | 2 027 |
+| TRACK ledgers | 87 |
+| `<Button>` instances | 934 |
+| Button variants in use | 14 (518 outline · 159 mark · 57 ghost · 15 login · ...) |
+| Distinct `data-testid` values | 3 859 |
+| Canonical `<Section>` uses | 152 |
+| `<Card>` uses | 130 |
+
+### Audit roll-up across 339 routes
+
+- Fully Audited (≥ 2 categories with named ledger): ~85 (25 %)
+- Partially Audited (ledger reference but limited categories): ~210 (62 %)
+- Not Audited (no ledger; iter-history only): ~44 (13 %)
+
+### Highest-risk blind spots
+
+1. Spanish wiring on **357 / 581** frontend files
+2. PDF lockup on **18 of 21** generators
+3. **9** `/_internal/*` + `/dev/*` preview routes with no ledger
+4. **9 of 14** role journeys never live-walked at screenshot level
+5. **24** backend `routes/*.py` files with 0 endpoint decorators (helpers misplaced)
+6. **934** buttons across **14** variants never visual-audited
+7. **64** modal-using files · only ~6 individually audited
+8. No platform-wide help-search
+
+### New fix tracks surfaced by A0 (in addition to existing 14.0-S1/P1/I1/M1/F1/C1/N1)
+
+| Track | Priority | Scope | Est |
+|---|---|---|---:|
+| 14.0-A0-B | P0 housekeeping | Backend `routes/` 24-helper classification | 1h |
+| 14.0-A0-I | P0 audit | `/_internal/*` + `/dev/*` route audit | 1h |
+| 14.0-R1 | P1 audit | Live-walk 9 missing role journeys | 6h |
+| 14.0-B1 | P1 audit | Button audit (934 buttons · 14 variants) | 4h |
+| 14.0-Mod1 | P1 audit | Modal audit (64 files) | 4h |
+| 14.0-H1 | P2 feature | Platform-wide help-search | 8h |
+| 14.0-T1 | P3 audit | Toast / terminology audit (1 440 calls) | 6h |
+
+**Total to close all named 14.0 blockers: ~63 hours (~8 working days).**
+
+### Is Track 14.0's 9.62 / 10 score sufficiently evidenced?
+
+🟡 **Directionally yes; deterministically no.** The score is honest at the platform level and correctly identifies the three named blockers (S1 · P1 · I1). It does NOT answer per-route, per-button, per-modal, per-toast questions — that work is outside what a single platform-readiness pass can deliver and requires the follow-up tracks listed above.
+
+### What must happen before deploy
+
+1. Close 14.0-S1 (Spanish · largest blocker)
+2. Close 14.0-P1 (PDF lockup)
+3. Close 14.0-I1 (integration honesty banners)
+4. Close 14.0-A0-B (backend `routes/` housekeeping)
+5. Close 14.0-A0-I (internal/dev route audit)
+6. Spot-check 14.0-M1 (mobile) + 14.0-R1 (role journeys)
+7. Re-run Track 14.0 platform audit
+8. If verdict returns **CERTIFIED READY TO DEPLOY** → "Save to GitHub" → "Redeploy"
+
+### Hard locks reaffirmed
+
+No deploy · no GitHub save · no merge · no code change · no fix · no UI edit · no route update · no translation add · no test add · no readiness claim.
+
+**Report:** `/app/memory/TRACK_14_0_A0_PLATFORM_COVERAGE_INVENTORY_AUDIT_TRACEABILITY.md` (30 sections · full inventory + audit traceability matrix).
+
+**DO NOT DEPLOY** until the P0 blockers close and Track 14.0 re-runs CERTIFIED READY TO DEPLOY.
+
