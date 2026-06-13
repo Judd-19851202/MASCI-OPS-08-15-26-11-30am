@@ -5797,3 +5797,41 @@ Powerful 4 · Simple 7 · Beautiful 5 · Trusted 8 · Proven 9. **Below the 9.5 
 
 **Report:** `/app/memory/TRACK_13_31A_ASSET_ADMINISTRATOR_CERTIFICATION.md`.
 
+
+---
+
+## Track 13.31AA · Employee Lifecycle + Asset Issuance Architecture Certification · 2026-06-13
+
+### Mode
+READ-ONLY CERTIFICATION. **NO code · NO schema · NO collections · NO routes · NO UI · NO deploy.** Success criterion = proved whether existing systems already cover what Track 13.31B intended to build.
+
+### Discovery
+The platform already runs **6 mature systems** that Track 13.31B's original scope would have duplicated:
+- **Employee Lifecycle** — `employee_lifecycle.py` (12 endpoints incl `/offboarding-summary`), `employees` 365, `employee_lifecycle_events` 38 (full audit trail), `employee_requests` 40, `hr_users` 57.
+- **Employee → external system FKs** — `employee_mappings` 65 rows (Motive + MaintainX).
+- **Asset Custody** — `asset_assignments` 16 live rows tracking operator_employee_id → asset_id with start/end/expected-return/notes/active/linked_transfer_id.
+- **Asset Transfer state machine** — `asset_transfers.py` 9 endpoints (POST/approve/reject/in-transit/receive/cancel/close) · `asset_transfers` 120 live rows.
+- **PPE / Safety Equipment Issuance** — `safety_forms.py` exposes `/equipment-issuances` create/list/detail/PDF + `/return` + `/return/pdf`. Collection `safety_equipment_issuances` 24 rows with items[], condition, photos, employee_signature, supervisor_signature, doc_id formatted `SEI-2026-#####`.
+- **Asset Spine endpoints** — `asset_spine.py` 11 endpoints including `/assets/{id}/retire`, `/activate`, `/transfer`, `/onboarding/advance` — **but pointing at empty `assets` collection (0 rows) while operations use `equipment_master` (693 rows)**. Duplicate-spine condition flagged.
+
+### Hard-rejected from 13.31B scope (duplication risk)
+Any new asset onboarding/retirement/transfer/custody/PPE/return/offboarding/timeline/employee-assignment system. Each one would duplicate a mature 16/24/38/65/120/365-row live collection.
+
+### Revised 13.31B scope (~60% reduction)
+- Schema-only extensions on `equipment_master` (lifecycle_status enum + 17 administrative fields)
+- Asset Administrator role flag
+- Document vault via existing `operational_attachments` (add `equipment_id` FK + extended `attachment_type` whitelist + Asset-Admin-gated upload endpoint)
+- 2 single-endpoint extensions: `/offboarding-summary` joins in outstanding assets + PPE · `/asset-transfers/{id}/receive` accepts optional condition/signature
+- Resolution of `equipment_master` vs empty `assets` collection split — either retire `asset_spine.py` or re-point its endpoints to `equipment_master`
+
+### Five-Pillar score (current Employee Lifecycle + Asset Issuance state)
+**8.4 / 10** — Powerful 9 · Simple 8 · Beautiful 8 · Trusted 9 · Proven 8. Well above the 6.6 from 13.31A because these systems are real, live, and in active use.
+
+### Hard locks reaffirmed
+MAP STAYS · Repair Complete ≠ RTS · PM Completion ≠ RTS · `employee_lifecycle_events` canonical · `asset_transfers` canonical · `safety_equipment_issuances` canonical · `equipment_master` canonical asset spine · `assets` collection (0 rows) to be retired or absorbed during 13.31B.
+
+### Authorization
+**Track 13.31B authorized at REVISED scope.** Track 13.33-A authorized only after 13.31B lands.
+
+**Report:** `/app/memory/TRACK_13_31AA_EMPLOYEE_LIFECYCLE_ASSET_ISSUANCE_CERTIFICATION.md`.
+

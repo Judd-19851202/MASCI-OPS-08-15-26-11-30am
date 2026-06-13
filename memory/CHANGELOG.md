@@ -10,6 +10,26 @@
 
 ---
 
+## 2026-06-13 · Track 13.31AA — Employee Lifecycle + Asset Issuance Architecture Certification (READ-ONLY)
+
+**Mode:** READ-ONLY. NO code · NO schema · NO collections · NO routes · NO UI · NO deploy. **Zero git changes outside memory/.**
+
+- Discovered MASCI already has mature Employee Lifecycle + Asset Custody + PPE Issuance + Return + Transfer systems. Track 13.31B's original scope would have **duplicated 6+ of them**.
+- **Live systems found**:
+  - `employees` 365 · `hr_users` 57 · `employee_lifecycle_events` 38 · `employee_requests` 40 · `employee_mappings` 65 (Motive/MaintainX FKs)
+  - `asset_assignments` 16 rows (full custody — operator_employee_id → asset_id with start/end/expected-return/notes/active)
+  - `asset_transfers` 120 rows · 9-endpoint state machine (POST/approve/reject/in-transit/receive/cancel/close)
+  - `safety_equipment_issuances` 24 rows · full PPE issuance with items[], condition, photos, employee_signature, supervisor_signature, total_value, doc_id (SEI-2026-#####), return endpoint, PDF generation, return PDF
+  - `employee_lifecycle.py` exposes `/offboarding-summary` endpoint already
+  - `asset_spine.py` exposes `/assets/{id}/retire`, `/activate`, `/transfer`, `/onboarding/advance`, `/onboarding` — **but points at empty `assets` collection (0 rows)**. Duplicate spine condition.
+- **Hard-rejected from 13.31B scope**: any new asset onboarding/retirement/transfer system · any new custody ledger · any new PPE issuance form · any new return form · any new employee offboarding workflow · any new employee timeline · any new asset assignment ledger.
+- **Revised 13.31B scope** (~60% reduction): only schema/field additions on equipment_master (lifecycle_status enum + 17 administrative fields) + Asset Administrator role flag + document vault via existing operational_attachments + 2 single-endpoint extensions (offboarding-summary join + transfer-receive condition capture) + resolution of equipment_master vs empty `assets` collection split.
+- **Five-Pillar score for current Employee Lifecycle + Asset Issuance state: 8.4/10** (well above the 6.6 for Asset Administration in 13.31A — these systems are real, mature, in active use).
+- **Track 13.31B authorized at revised scope. Track 13.33-A authorized only after 13.31B lands.**
+- Report: `/app/memory/TRACK_13_31AA_EMPLOYEE_LIFECYCLE_ASSET_ISSUANCE_CERTIFICATION.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31A — Asset Administrator Certification & Source-of-Truth Audit (READ-ONLY)
 
 **Mode:** READ-ONLY CERTIFICATION. NO code · NO UI · NO routes · NO schema · NO collections · NO deploy · NO GitHub.
