@@ -6047,3 +6047,35 @@ MAP STAYS · `equipment_master` canonical · no new collection · no new workflo
 - Reporting / Export header rewrites — D4.
 
 **Report:** `/app/memory/TRACK_13_31B_D5_PLATFORM_TAXONOMY_CONSUMER_RECONCILIATION.md`.
+
+
+## Track 13.31B-D5.1 · Platform Asset Coverage / Pre-Op / Classification / Lifecycle Certification (READ-ONLY) · 2026-06-13
+
+**Authorization:** Operator authorized read-only certification before any further Asset Administration construction. Mission: definitive Asset Coverage Matrix + gap audit + duplication audit + Five-Pillar diagnostic + future-track authorization matrix.
+
+**Mode:** READ-ONLY. ZERO code · ZERO schema · ZERO collection · ZERO route · ZERO UI · ZERO deploy · ZERO GitHub · ZERO merge · ZERO migration · ZERO seed change.
+
+### Headline findings (live preview audit)
+
+- 700 total assets · 616 active · 84 retired.
+- **500+ active rows still `taxonomy_verified=False` (~81 %)** — plumbing built (Tracks D0/D1/D2/D5), data not yet aligned.
+- **PM Engine has 0 templates created** — entire fleet currently unscheduled in the canonical PM system.
+- **Pre-Op is the platform's biggest classification weak point**: `equipment_inspections.equipment_type` is a 5-value hand-maintained list (`Skid Steer`, `Excavator`, `Loader`, `Truck`, `Other`); 60 % of 150 records have empty value; Pavers · Rollers · Dozers · Graders · Backhoes · Compactors · Light Towers · Generators · Pumps · all Truck variants · all Trailer variants **never appear in pre-op logs**.
+- **186 `Misc Equipment · Other` rows** — single largest correction bucket; manual review unavoidable.
+- **17 Service Trucks legacy-tagged `Haul Truck`** — taxonomy CONFLICT (Service Truck ≠ Dump Truck).
+- **Tech (iPad · Laptop · Phone · Hotspot · Tablet) + Survey + GPS classes declared in spine but ZERO rows in `equipment_master`.**
+- **Motive coverage 25.2 %** · **609 orphaned** · **4 duplicates** (telematics / cleanup gap, not taxonomy gap).
+
+### Health scores
+
+Asset Coverage 5.2 / 10 · Taxonomy Health 6.8 / 10 · Pre-Op Health 3.8 / 10 · Lifecycle Health 8.4 / 10 · Documentation Health 4.5 / 10 · **Five-Pillar Average 7.4 / 10 current → 9.7 / 10 projected** after D5.1 + D5.2 + D3 + D4 + first review-queue pass.
+
+### Authorization matrix
+
+**AUTHORIZED** for: D5.1 (Pre-Op canonical write stamp + canonical-driven dropdown) · D5.2 (per-canonical-type inspection templates) · D3 (Document Vault) · D4 (CSV/PDF/Renewal Alerts) · D6 (Tech/Survey/GPS rows in equipment_master) · Track 13.33-A (Asset Care Composite View) · Track 13.33-B (Renewal Alerts).
+
+**NOT AUTHORIZED**: cost/PO/accounting/pay-app/ERP work · new asset collection · new asset spine · new taxonomy collection · new custody/issuance/transfer/offboarding workflows · map engine change · MaintainX (blocked on customer creds) · FleetWatcher (blocked on customer creds) · bulk silent auto-verify.
+
+**Recommended highest-leverage next build:** Track 13.31B-D5.1 build slice — pre-op canonical write stamp via `/api/asset-spine/taxonomy/by-unit/{unit_or_id}` + canonical-driven `equipment_type` dropdown driven by `/api/asset-spine/taxonomy`. Closes the platform's biggest classification weak point at the source.
+
+**Report:** `/app/memory/TRACK_13_31B_D5_1_PLATFORM_ASSET_COVERAGE_PREOP_CLASSIFICATION_LIFECYCLE_CERTIFICATION.md`.

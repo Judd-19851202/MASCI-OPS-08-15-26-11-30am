@@ -10,6 +10,24 @@
 
 ---
 
+## 2026-06-13 · Track 13.31B-D5.1 — Platform Asset Coverage / Pre-Op / Classification / Lifecycle Certification (READ-ONLY)
+
+**Mode:** READ-ONLY certification. ZERO code · ZERO schema · ZERO collection · ZERO route · ZERO UI · ZERO deploy · ZERO GitHub · ZERO merge · ZERO migration · ZERO seed change.
+
+- **Live audit of preview DB**: 700 total assets · 616 active · 84 retired · **500+ active rows still `taxonomy_verified=False` (~81 %)**.
+- **PM Engine 0 templates created** — entire fleet currently unscheduled in the canonical PM system.
+- **Pre-Op `equipment_type`** is a 5-value hand-maintained dropdown (`Skid Steer`, `Excavator`, `Loader`, `Truck`, `Other`). 60 % of 150 records have empty value. Pavers (27 active) · Rollers (27) · Dozers (3) · Graders (4) · Backhoes (2) · Light Towers (24) · Generators (10) · Pumps (36) · Compressors (5) **never appear in pre-op logs**.
+- **186 `Misc Equipment · Other` rows** — single largest classification debt; manual review unavoidable.
+- **17 Service Trucks legacy-tagged `Haul Truck`** — CONFLICT (Service Truck ≠ Dump Truck).
+- **Tech (iPad · Laptop · Phone · Hotspot) + Survey + GPS asset classes declared in spine but ZERO rows in `equipment_master`**.
+- Asset Coverage 5.2 / 10 · Taxonomy Health 6.8 · Pre-Op Health 3.8 · Lifecycle 8.4 · Documentation 4.5.
+- **Five-Pillar 7.4 current → 9.7 projected** after D5.1 + D5.2 + D3 + D4 + first review-queue pass.
+- **AUTHORIZED next builds**: D5.1 (Pre-Op canonical write stamp), D5.2 (per-canonical-type inspection templates), D3 (Document Vault), D4 (CSV/PDF/Renewals), D6 (Tech/Survey/GPS rows), Track 13.33-A/B.
+- **NOT AUTHORIZED**: cost/PO/ERP · new asset collection · duplicate workflows · map engine change · MaintainX (blocked on creds) · FleetWatcher (blocked on creds) · bulk silent auto-verify.
+- Doctrine doc: `/app/memory/TRACK_13_31B_D5_1_PLATFORM_ASSET_COVERAGE_PREOP_CLASSIFICATION_LIFECYCLE_CERTIFICATION.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31B-D5 — Platform-Wide Asset Taxonomy Consumer Reconciliation
 
 **Mode:** Controlled implementation + platform-wide reconciliation. NO new collection · NO new spine · NO new map engine · NO deploy · NO GitHub.
