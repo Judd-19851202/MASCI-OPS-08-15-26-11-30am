@@ -5,13 +5,14 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Truck, MapPin, Wrench, ShieldAlert, Activity, Clipboard,
   AlertTriangle, CheckCircle2, Loader2, RefreshCcw, ShieldCheck,
-  Pencil, Save, X as XIcon,
+  Pencil, Save, X as XIcon, FileText,
 } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import AssetDocumentsTab from "@/components/asset/AssetDocumentsTab";
 
 const STATUS_PILL = {
   Available:         "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -104,6 +105,7 @@ export default function AssetProfile() {
             <TabsTrigger value="field" data-testid="ap-tab-field"><Clipboard className="w-3.5 h-3.5 mr-1" /> Field Ops</TabsTrigger>
             <TabsTrigger value="events" data-testid="ap-tab-events"><Activity className="w-3.5 h-3.5 mr-1" /> Events</TabsTrigger>
             <TabsTrigger value="admin" data-testid="ap-tab-admin"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Admin</TabsTrigger>
+            <TabsTrigger value="documents" data-testid="ap-tab-documents"><FileText className="w-3.5 h-3.5 mr-1" /> Documents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview"><OverviewSection overview={overview} /></TabsContent>
@@ -114,6 +116,9 @@ export default function AssetProfile() {
           <TabsContent value="field"><FieldOpsSection data={data} /></TabsContent>
           <TabsContent value="events"><EventsSection data={data} /></TabsContent>
           <TabsContent value="admin"><AdminSection assetId={assetId} /></TabsContent>
+          <TabsContent value="documents">
+            <AssetDocumentsTab assetId={assetId} unitNumber={data.unit_number || data.display_label} />
+          </TabsContent>
         </Tabs>
       </div>
     </AdminShell>

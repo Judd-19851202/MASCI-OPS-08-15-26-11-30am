@@ -2,18 +2,18 @@
   "scanned_db": "masci_safety_preview",
   "counts": {
     "equipment_make": 2,
-    "daily_project_name": 472,
+    "daily_project_name": 489,
     "daily_prepared_by": 67
   },
   "samples": {
     "equipment_make": [
       {
-        "id": "6a2b106c7de378648b5d4401",
+        "id": "6a2d988a8ddd31689fa32edb",
         "unit_number": "",
         "make": "Test"
       },
       {
-        "id": "6a2b106c7de378648b5d441f",
+        "id": "6a2d988a8ddd31689fa32ef9",
         "unit_number": "RL-1239",
         "make": "DEMO"
       }

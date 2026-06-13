@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import {
   Layers, Loader2, RefreshCw, CheckCircle2, AlertTriangle,
   ShieldCheck, Wand2, ListChecks, Tag, ExternalLink, ClipboardList,
+  FileText, Download, Camera, Calendar, FileSearch,
 } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
@@ -204,6 +205,7 @@ export default function AdminAssetAdmin() {
           {[
             { key: "queue", label: "Review Queue", icon: ListChecks },
             { key: "crosswalk", label: "Legacy Crosswalk", icon: Wand2 },
+            { key: "documents", label: "Documents & Renewals", icon: FileText },
             { key: "templates", label: "Missing Templates", icon: ClipboardList },
           ].map(({ key, label, icon: Icon }) => {
             const active = tab === key;
@@ -259,6 +261,14 @@ export default function AdminAssetAdmin() {
 
         {tab === "crosswalk" && (
           <LegacyCrosswalkPanel onApplied={reload} />
+        )}
+
+        {tab === "documents" && (
+          <DocumentsDashboard />
+        )}
+
+        {tab === "templates" && (
+          <MissingTemplateBacklogPanel />
         )}
       </div>
     </AdminShell>
@@ -610,4 +620,230 @@ function MissingTemplateBacklogPanel() {
     </div>
   );
 }
+
+// ─── Track 13.31B-D3+D4 · Documents & Renewals dashboard ───────────────────
+
+function DocumentsDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
+  const [missing, setMissing] = useState(null);
+  const [renewals, setRenewals] = useState(null);
+  const [recent, setRecent] = useState([]);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setErr(null);
+    try {
+      const [m, r, u] = await Promise.all([
+        api.get("/asset-spine/dashboard/missing-documents"),
+        api.get("/asset-spine/dashboard/renewals?bucket=all"),
+        api.get("/asset-spine/dashboard/recent-uploads?limit=12"),
+      ]);
+      setMissing(m.data);
+      setRenewals(r.data);
+      setRecent(u.data.items || []);
+    } catch (e) {
+      setErr(e?.response?.data?.detail || "Unable to load Documents dashboard.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  const downloadCsv = useCallback(async (path, filename) => {
+    try {
+      const r = await api.get(path, { responseType: "blob" });
+      const url = URL.createObjectURL(r.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Unable to generate CSV.");
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center text-slate-500" data-testid="aa-docs-loading">
+        <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+      </div>
+    );
+  }
+  if (err) {
+    return <div className="bg-red-50 border-2 border-red-200 rounded p-3 text-red-900">{err}</div>;
+  }
+
+  return (
+    <div className="space-y-4" data-testid="aa-documents-dashboard">
+      {/* Renewals cards */}
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-slate-700 font-bold">
+            Renewal Status
+          </h3>
+          <Button size="sm" variant="outline"
+            onClick={() => downloadCsv("/asset-spine/exports/renewals.csv", "MASCI_Asset_Renewals.csv")}
+            data-testid="aa-docs-export-renewals">
+            <Download className="w-3.5 h-3.5 mr-1" /> Export Renewals CSV
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <RenewalCard label="Expired" count={renewals?.counters?.expired ?? 0}
+            accent="red" testid="aa-renewal-expired" />
+          <RenewalCard label="Within 30 Days" count={renewals?.counters?.["30"] ?? 0}
+            accent="amber" testid="aa-renewal-30" />
+          <RenewalCard label="Within 60 Days" count={renewals?.counters?.["60"] ?? 0}
+            accent="sky" testid="aa-renewal-60" />
+          <RenewalCard label="Within 90 Days" count={renewals?.counters?.["90"] ?? 0}
+            accent="emerald" testid="aa-renewal-90" />
+        </div>
+        {(renewals?.items || []).length > 0 && (
+          <div className="mt-3 bg-white border border-slate-200 rounded divide-y divide-slate-100"
+            data-testid="aa-renewal-list">
+            {(renewals.items || []).slice(0, 8).map((r) => (
+              <div key={r.attachment_id} className="px-3 py-2 flex items-center gap-2 text-sm"
+                data-testid={`aa-renewal-row-${r.attachment_id}`}>
+                <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-slate-900 truncate">
+                    {r.unit_number} · {r.document_label}
+                  </div>
+                  <div className="text-xs text-slate-500">{r.asset_type || "—"}</div>
+                </div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-700">
+                  {r.expiration_date}{r.days_remaining !== null ? ` · ${r.days_remaining}d` : ""}
+                </div>
+                <Link to={`/admin/assets/${r.asset_id}?tab=documents`}
+                  className="text-xs text-red-700 hover:underline font-bold ml-2"
+                  data-testid={`aa-renewal-open-${r.attachment_id}`}>
+                  Open
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Missing documents */}
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-slate-700 font-bold">
+            Documentation Required
+          </h3>
+          <Button size="sm" variant="outline"
+            onClick={() => downloadCsv("/asset-spine/exports/missing-documents.csv", "MASCI_Missing_Documents.csv")}
+            data-testid="aa-docs-export-missing">
+            <Download className="w-3.5 h-3.5 mr-1" /> Export Missing CSV
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {(missing?.per_document_type || []).slice(0, 9).map((m) => (
+            <div key={m.document_type}
+              className="bg-white border border-slate-200 rounded p-3 flex items-center justify-between"
+              data-testid={`aa-missing-card-${m.document_type}`}>
+              <div className="font-bold text-slate-900 text-sm">{m.label}</div>
+              <div className="text-2xl font-black text-amber-700 tabular-nums">{m.count}</div>
+            </div>
+          ))}
+          {(missing?.per_document_type || []).length === 0 && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded p-3 text-emerald-900 col-span-full"
+              data-testid="aa-missing-empty">
+              All required documents on file for verified assets.
+            </div>
+          )}
+        </div>
+        {(missing?.assets || []).length > 0 && (
+          <div className="mt-3 bg-white border border-slate-200 rounded divide-y divide-slate-100"
+            data-testid="aa-missing-list">
+            {(missing.assets || []).slice(0, 8).map((a) => (
+              <div key={a.asset_id} className="px-3 py-2 flex items-center gap-2 text-sm"
+                data-testid={`aa-missing-row-${a.asset_id}`}>
+                <FileSearch className="w-3.5 h-3.5 text-slate-500" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-slate-900 truncate">
+                    {a.unit_number} · {a.asset_type || "—"}
+                  </div>
+                  <div className="text-xs text-slate-500 truncate">
+                    {a.missing_documents.join(" · ")}
+                  </div>
+                </div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-amber-800 font-bold">
+                  {a.missing_count} pending
+                </div>
+                <Link to={`/admin/assets/${a.asset_id}?tab=documents`}
+                  className="text-xs text-red-700 hover:underline font-bold ml-2"
+                  data-testid={`aa-missing-open-${a.asset_id}`}>
+                  Open
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Recent uploads */}
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-slate-700 font-bold">
+            Recently Uploaded
+          </h3>
+          <Button size="sm" variant="outline"
+            onClick={() => downloadCsv("/asset-spine/exports/assets.csv", "MASCI_Asset_Inventory.csv")}
+            data-testid="aa-docs-export-inventory">
+            <Download className="w-3.5 h-3.5 mr-1" /> Export Inventory CSV
+          </Button>
+        </div>
+        {recent.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded p-6 text-center text-slate-500" data-testid="aa-recent-empty">
+            No recent uploads.
+          </div>
+        ) : (
+          <div className="bg-white border border-slate-200 rounded divide-y divide-slate-100" data-testid="aa-recent-list">
+            {recent.map((r) => (
+              <div key={r.id} className="px-3 py-2 flex items-center gap-2 text-sm"
+                data-testid={`aa-recent-row-${r.id}`}>
+                <FileText className="w-3.5 h-3.5 text-slate-500" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-slate-900 truncate">
+                    {r.unit_number} · {r.document_label}
+                  </div>
+                  <div className="text-xs text-slate-500 truncate">
+                    {r.filename || "—"} · {r.uploaded_at?.slice(0, 10)} · {r.uploaded_by}
+                  </div>
+                </div>
+                <Link to={`/admin/assets/${r.asset_id}?tab=documents`}
+                  className="text-xs text-red-700 hover:underline font-bold"
+                  data-testid={`aa-recent-open-${r.id}`}>
+                  Open
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function RenewalCard({ label, count, accent, testid }) {
+  const accents = {
+    red: "bg-red-50 border-red-200 text-red-900",
+    amber: "bg-amber-50 border-amber-200 text-amber-900",
+    sky: "bg-sky-50 border-sky-200 text-sky-900",
+    emerald: "bg-emerald-50 border-emerald-200 text-emerald-900",
+  };
+  return (
+    <div
+      data-testid={testid}
+      className={`rounded border-2 p-3 ${accents[accent] || accents.sky}`}
+    >
+      <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold">{label}</div>
+      <div className="text-3xl font-black tabular-nums">{count}</div>
+    </div>
+  );
+}
+
 

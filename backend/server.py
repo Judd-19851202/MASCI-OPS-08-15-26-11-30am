@@ -11747,6 +11747,13 @@ from routes.asset_spine import register_asset_spine_routes  # noqa: E402
 # attached by line 9016 — adding to api_router post-mount is a no-op.
 register_asset_spine_routes(app, db, require_admin, _require_any_portal_token)
 
+# Track 13.31B-D3+D4 · Asset Documents · Renewals · CSV · MASCI PDF
+# Reuses operational_attachments storage (host_kind="asset"). Mounts
+# under the same /api/asset-spine/* prefix as the parent spine routes
+# so admin tooling consumes a single API surface.
+from routes.asset_documents import register_asset_documents_routes  # noqa: E402
+register_asset_documents_routes(app, db, require_admin, _require_any_portal_token)
+
 
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
 # Detection-only drift sentinel. Never auto-mutates source records or jobs_master.
