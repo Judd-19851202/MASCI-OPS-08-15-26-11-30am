@@ -10931,6 +10931,16 @@ _ase_router = build_asset_service_events_router(
 )
 app.include_router(_ase_router)
 
+# Track 13.29 · Fuel/Lube Visit Record router (one visit · many equipment lines).
+# Projects into Asset Service Event Backbone (via the existing fuel_lube_visits
+# collection · derived in `routes/asset_service_events.py:_project_fuel_lube`).
+from routes.fuel_lube import build_fuel_lube_router  # noqa: E402
+_fl_router = build_fuel_lube_router(
+    db,
+    require_shop_or_admin_dep=_require_shop_or_admin_fleet,
+)
+app.include_router(_fl_router)
+
 # Shop Command Feed — single read endpoint consumed by ShopHub and by
 # the DCC "Shop" tile. Reads only from canonical defect / recovery
 # collections. Doctrine: /app/memory/SHOP_COMMAND_ARCHITECTURE.md.

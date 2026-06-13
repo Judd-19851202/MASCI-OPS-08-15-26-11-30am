@@ -41,17 +41,20 @@ AVAILABLE_EVENT_TYPES: Tuple[str, ...] = (
     "preop", "dvir", "defect", "repair", "oos", "rts",
     "attachment", "note", "material", "inspection",
     "transfer", "presence",
+    # Track 13.29 · fuel/lube events sourced from `fuel_lube_visits`.
+    "fuel", "fluid", "service", "meter",
 )
 
 # Future event types — surfaced as honest empty placeholders.
 UNAVAILABLE_EVENT_TYPES: Tuple[str, ...] = (
-    "pm", "fuel", "lube", "grease", "maintainx",
+    "pm", "maintainx",
 )
 
 VALID_SOURCE_SYSTEMS: Tuple[str, ...] = (
     "equipment_inspections", "fleet_defects", "fleet_audit",
     "operational_attachments", "operational_events", "haul_cycles",
     "asset_transfers", "admin_audit_log",
+    "fuel_lube_visit",   # Track 13.29
 )
 
 _MAX_RANGE_DAYS = 90
@@ -658,6 +661,109 @@ async def _project_transfers(
     return out
 
 
+# Track 13.29 · projector for `fuel_lube_visits`. One visit doc can
+# contribute up to ~12 events per equipment line (fuel, fluids, grease,
+# meter, optional issue defect_id pointer). The defect itself is
+# surfaced via `_project_defect` because issue lines write a real row
+# into `fleet_defects`. This projector covers the service-action half.
+_FUEL_SUBTYPES = {
+    "red_diesel_gallons":         ("fuel",    "red_diesel_added",         "gallons"),
+    "clear_diesel_gallons":       ("fuel",    "clear_diesel_added",        "gallons"),
+    "gasoline_gallons":           ("fuel",    "gasoline_added",            "gallons"),
+    "def_gallons":                ("fluid",   "def_added",                 "gallons"),
+    "engine_oil_quarts":          ("fluid",   "engine_oil_added",          "quarts"),
+    "hydraulic_oil_quarts":       ("fluid",   "hydraulic_oil_added",       "quarts"),
+    "coolant_quarts":             ("fluid",   "coolant_added",             "quarts"),
+    "transmission_fluid_quarts":  ("fluid",   "transmission_fluid_added",  "quarts"),
+    "gear_oil_quarts":            ("fluid",   "gear_oil_added",            "quarts"),
+}
+
+
+async def _project_fuel_lube(
+    db, unit_number: str, from_iso: str, to_iso: str,
+) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    query = {
+        "equipment_lines.unit_number": _ci_regex(unit_number),
+    }
+    async for v in db.fuel_lube_visits.find(query, {"_id": 0}).limit(_MAX_EVENTS):
+        ts = _coerce_iso(v.get("submitted_at") or v.get("visit_date"))
+        if not _within_range(ts, from_iso, to_iso):
+            continue
+        visit_id = v.get("id")
+        project_number = v.get("project_number")
+        truck = v.get("fuel_lube_truck_unit")
+        tech_id = v.get("fuel_lube_tech_id") or None
+        tech_name = v.get("fuel_lube_tech_name") or None
+        for line in v.get("equipment_lines") or []:
+            if (line.get("unit_number") or "").strip().lower() != unit_number.strip().lower():
+                continue
+            base = {
+                "asset_id": None,
+                "unit_number": unit_number,
+                "timestamp": ts,
+                "actor_id": tech_id,
+                "actor_name": tech_name,
+                "actor_role": "fuel_lube_tech",
+                "project_number": project_number,
+                "related_record_id": visit_id,
+                "related_defect_id": None,
+                "related_preop_id": None,
+                "related_dvir_id": None,
+                "related_attachment_id": None,
+                "related_work_order_id": None,
+                "status_before": None,
+                "status_after": None,
+                "availability_before": None,
+                "availability_after": None,
+                "source_system": "fuel_lube_visit",
+                "fuel_lube_truck_unit": truck,
+                "fuel_lube_visit_id": visit_id,
+            }
+            # Fuel / fluid line items
+            for field, (etype, subtype, unit_label) in _FUEL_SUBTYPES.items():
+                qty = float(line.get(field) or 0)
+                if qty <= 0:
+                    continue
+                out.append({
+                    **base,
+                    "event_id": _hash_id(etype, subtype, visit_id, field, ts),
+                    "event_type": etype,
+                    "event_subtype": subtype,
+                    "notes": f"{qty} {unit_label} · {truck or '—'} · {project_number or '—'}",
+                    "quantity": qty,
+                    "quantity_unit": unit_label,
+                })
+            # Grease (service event)
+            if line.get("greased"):
+                out.append({
+                    **base,
+                    "event_id": _hash_id("service", "greased", visit_id, ts),
+                    "event_type": "service",
+                    "event_subtype": "greased",
+                    "notes": f"greased · {truck or '—'} · {project_number or '—'}",
+                })
+            # Meter reading
+            if line.get("meter_hours") is not None or line.get("odometer_miles") is not None:
+                parts = []
+                if line.get("meter_hours") is not None:
+                    parts.append(f"meter_hours={line['meter_hours']}")
+                if line.get("odometer_miles") is not None:
+                    parts.append(f"odometer={line['odometer_miles']}")
+                out.append({
+                    **base,
+                    "event_id": _hash_id("meter", "recorded", visit_id, ts),
+                    "event_type": "meter",
+                    "event_subtype": "recorded",
+                    "notes": " · ".join(parts),
+                    "meter_hours": line.get("meter_hours"),
+                    "odometer_miles": line.get("odometer_miles"),
+                })
+            # Issue lines surface their defect via `_project_defect` once
+            # the `fleet_defects` row exists. Nothing additional here.
+    return out
+
+
 # ── Router factory ──────────────────────────────────────────────────────
 
 
@@ -747,6 +853,9 @@ def build_asset_service_events_router(
             all_events.extend(await _project_motive_presence(db, canonical_unit, from_iso, to_iso))
         if not wanted_source or wanted_source == "asset_transfers":
             all_events.extend(await _project_transfers(db, canonical_unit, from_iso, to_iso))
+        # Track 13.29 · Fuel/Lube projector
+        if not wanted_source or wanted_source == "fuel_lube_visit":
+            all_events.extend(await _project_fuel_lube(db, canonical_unit, from_iso, to_iso))
 
         # Patch in asset_id where we can.
         if asset_id:
@@ -823,9 +932,6 @@ def build_asset_service_events_router(
 def _unavailable_reason(event_type: str) -> str:
     return {
         "pm": "No `pm_schedules` collection exists yet. PM lifecycle is unimplemented.",
-        "fuel": "No `fuel_service_visits` collection exists yet. Fuel events unimplemented.",
-        "lube": "Lube events ride on the fuel/lube visit form (not yet implemented).",
-        "grease": "Grease events ride on the fuel/lube visit form (not yet implemented).",
         "maintainx": "MaintainX integration is stubbed only. `MAINTAINX_API_KEY` not configured.",
     }.get(event_type, "Future event source — not yet implemented.")
 
@@ -833,9 +939,6 @@ def _unavailable_reason(event_type: str) -> str:
 def _future_track(event_type: str) -> str:
     return {
         "pm": "Track 13.31 (PM Engine)",
-        "fuel": "Track 13.29 (Fuel/Lube Job Visit Form)",
-        "lube": "Track 13.29 (Fuel/Lube Job Visit Form)",
-        "grease": "Track 13.29 (Fuel/Lube Job Visit Form)",
         "maintainx": "Track 13.32 (MaintainX Integration)",
     }.get(event_type, "TBD")
 

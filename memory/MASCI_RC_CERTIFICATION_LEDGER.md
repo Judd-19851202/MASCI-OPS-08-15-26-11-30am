@@ -5437,3 +5437,30 @@ Seatbelt-defect test seeds → `assign` → `accept` → `start` → `repair` �
 - **Track 13.31 — PM Engine (derived).** Plugs into the now-shipped lifecycle and immediately renders on Unit History with zero code change.
 
 **Report:** `/app/memory/TRACK_13_27_UNIT_HISTORY_TIMELINE_UI.md`.
+
+---
+
+## 2026-06-12 · Track 13.29 — Fuel/Lube Visit Record (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · backend + frontend · no deploy.
+
+### What shipped
+- New collection `fuel_lube_visits` + 3 endpoints (POST/GET list/GET detail).
+- Frontend form `/shop/fuel-lube/new` (RequireShop) with live totals + per-line issue validation.
+- Asset Service Event Backbone gains 4 real event_type families (fuel · fluid · service · meter); placeholders pm + maintainx remain only.
+- Issue lines spawn fleet_defects rows (kind=fuel_lube) → enter Track 13.28 Shop Manager queue. Critical/OOS issues notify Dispatch.
+- ShopHubV2 Section 05 now carries 4 workforce cards (Manager Queue · My Assignments · Unit History · New Fuel/Lube Visit).
+
+### Hard locks verified
+- No cost · no accounting · no PO numbers · no MaintainX activation · no driver login · no Shop RTS authority · no duplicate history · `/shop/hub_legacy` alive.
+
+### Tests
+- 5 new + 19 regression = **24/24 backend pass**.
+- Browser smoke confirms form fields/totals + ShopHubV2 4-card row + dispatch/driver regression.
+
+### Five-Pillar score · 9.8 / 10 (Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10)
+
+### Recommended next track
+- **Track 13.31 — PM Engine (derived)** · or parallel **Track 13.30 — Service-Truck Reconciliation** or **Track 13.29 P2 — Fuel/Lube list + detail UI**.
+
+**Report:** `/app/memory/TRACK_13_29_FUEL_LUBE_VISIT_RECORD.md`.

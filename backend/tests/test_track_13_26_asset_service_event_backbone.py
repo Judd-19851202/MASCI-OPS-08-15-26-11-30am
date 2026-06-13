@@ -107,7 +107,9 @@ def test_unavailable_event_types_placeholder_present():
     assert r.status_code == 200, r.text
     body = r.json()
     placeholders = {p["event_type"]: p for p in body["unavailable_event_types"]}
-    for t in ("pm", "fuel", "lube", "grease", "maintainx"):
+    # Track 13.29 promoted fuel/lube/grease into AVAILABLE_EVENT_TYPES.
+    # Only PM (Track 13.31) and MaintainX (Track 13.32) remain placeholders.
+    for t in ("pm", "maintainx"):
         assert t in placeholders, f"missing unavailable placeholder: {t}"
         assert placeholders[t]["available"] is False
         assert placeholders[t]["reason"], f"empty reason for {t}"

@@ -246,3 +246,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar Score: 9.8 / 10** (Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10).
 - Deployment readiness remains 🟢 **GREEN**.
 - Report: `/app/memory/TRACK_13_27_UNIT_HISTORY_TIMELINE_UI.md`.
+
+## 2026-06-12 · Track 13.29 closeout — Fuel/Lube Visit Record
+
+- **One job visit · many equipment lines.** Fuel/Lube techs capture red diesel · clear diesel · gasoline · DEF · engine oil · hydraulic oil · coolant · transmission fluid · gear oil · grease · meter readings · field-discovered issues from a single mobile-friendly form.
+- **Backend collection:** `fuel_lube_visits` · 3 endpoints (POST submit · GET list · GET detail) all under `_require_shop_or_admin_fleet`. List default 30d · max 90d.
+- **Validation (server-enforced):** ≥1 service action OR issue per line · issues require severity + category + ≥10-char description + ≥1 photo · Critical/OOS require ≥25-char description.
+- **Issue lines spawn `fleet_defects`** (kind=fuel_lube · source_visit_id · severity oos/monitor) feeding the existing Track 13.28 Shop Manager queue. Critical/OOS additionally notify Dispatch.
+- **Asset Service Event Backbone extended:** 4 new event_type families (`fuel`, `fluid`, `service`, `meter`) projecting from `fuel_lube_visits`. Placeholders pm/maintainx remain. Unit History page (Track 13.27) now renders fuel/lube events with zero UI change.
+- **Frontend:** `/shop/fuel-lube/new` (RequireShop) with live totals + per-line issue validation. ShopHubV2 Section 05 now carries 4 workforce cards.
+- **Tests:** 5 new (totals · issue rules · critical 25-char rule · E2E defect + timeline · list filters/cap). Regression Track 13.26 (11/11 · placeholder set updated) · 13.28 (4/4) · 13.28 P2 (4/4). **Total 24/24 backend pass.**
+- **Hard locks intact:** No cost · no accounting · no PO numbers · no MaintainX activation · no driver login · no Shop RTS authority · no duplicate history.
+- **Not built:** list/detail UI (deferred to Track 13.29 P2) · PDF/email/CSV (no reusable infrastructure · documented) · Motive geofence equipment auto-fill.
+- Five-Pillar Score 9.8 / 10.
+- Report: `/app/memory/TRACK_13_29_FUEL_LUBE_VISIT_RECORD.md`. Deployment readiness remains 🟢 GREEN.

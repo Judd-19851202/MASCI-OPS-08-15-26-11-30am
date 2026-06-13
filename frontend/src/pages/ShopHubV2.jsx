@@ -581,6 +581,20 @@ export default function ShopHubV2() {
                 </div>
               </div>
             </RealLink>
+            <RealLink to="/shop/fuel-lube/new" testid="shop-hub-v2-action-fuel-lube-new" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>New Fuel / Lube Visit</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  One job visit · multiple equipment lines. Capture red/clear diesel, gasoline, DEF, fluids, grease, meter, issues. Issues create Shop defects automatically.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/shop/fuel-lube/visits (Track 13.29)
+                </div>
+              </div>
+            </RealLink>
           </div>
         </section>
 

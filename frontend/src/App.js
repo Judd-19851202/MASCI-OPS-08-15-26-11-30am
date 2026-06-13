@@ -183,6 +183,8 @@ const ShopMyAssignments = React.lazy(() => import("@/pages/shop/ShopMyAssignment
 // Track 13.27 — Unit History Timeline (consumes Track 13.26 Asset Service Event Backbone).
 const UnitHistoryLanding = React.lazy(() => import("@/pages/shop/UnitHistoryLanding"));
 const UnitHistoryTimeline = React.lazy(() => import("@/pages/shop/UnitHistoryTimeline"));
+// Track 13.29 — Fuel / Lube Visit Record.
+const FuelLubeVisitForm = React.lazy(() => import("@/pages/shop/FuelLubeVisitForm"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -752,6 +754,8 @@ function App() {
             {/* Track 13.27 — Unit History Timeline (consumes Asset Service Event Backbone). */}
             <Route path="/shop/units/history" element={S(<UnitHistoryLanding />)} />
             <Route path="/shop/units/:unitNumber/history" element={S(<UnitHistoryTimeline />)} />
+            {/* Track 13.29 — Fuel / Lube Visit Record (one job · many equipment lines). */}
+            <Route path="/shop/fuel-lube/new" element={S(<FuelLubeVisitForm />)} />
             <Route path="/shop/trench-safety-repairs" element={S(<ShopTrenchSafetyRepairs />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
             {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is

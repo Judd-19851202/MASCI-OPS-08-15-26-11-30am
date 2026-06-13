@@ -1816,3 +1816,34 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 
 ### Hard locks reaffirmed
 - Dispatch Map-First · Driver No-Login · DriverHubV2 retired · Shop Repair Complete ≠ RTS · Dispatch/Admin RTS authority · One map engine · One source of truth · MaintainX dormant · No fake Fuel/Lube · No duplicate history.
+
+## 2026-06-12 · Track 13.29 — Fuel / Lube Visit Record
+
+### Added
+- `backend/routes/fuel_lube.py` — POST submit + GET list + GET detail (under `_require_shop_or_admin_fleet`).
+- `backend/tests/test_track_13_29_fuel_lube_visit.py` — 5 backend tests.
+- `frontend/src/pages/shop/FuelLubeVisitForm.jsx` — submit form with live totals.
+- `memory/TRACK_13_29_FUEL_LUBE_VISIT_RECORD.md` — implementation report.
+
+### Modified
+- `backend/server.py` — register `_fl_router`.
+- `backend/routes/asset_service_events.py` — added `_project_fuel_lube`; promoted `fuel/fluid/service/meter` to AVAILABLE_EVENT_TYPES; tightened UNAVAILABLE to pm + maintainx only; added `fuel_lube_visit` to VALID_SOURCE_SYSTEMS; updated reasons map.
+- `backend/tests/test_track_13_26_asset_service_event_backbone.py` — placeholder assertion updated (fuel/lube/grease promoted out of unavailable list).
+- `frontend/src/App.js` — +1 lazy import + 1 route (`/shop/fuel-lube/new`).
+- `frontend/src/pages/ShopHubV2.jsx` — 4th workforce card.
+
+### Endpoints
+- **Added:** `POST /api/shop/fuel-lube/visits` · `GET /api/shop/fuel-lube/visits` · `GET /api/shop/fuel-lube/visits/{id}`.
+- **Modified:** `GET /api/assets/{unit}/timeline` (now returns fuel/fluid/service/meter event_types when the unit has visits).
+
+### NOT changed
+- Dispatch (map / hub / DCC) · Driver flow · PM portal · Safety portal · Material Movement Ledger · `equipment_parts` admin catalog · `.env`.
+- MaintainX env unchanged · SDK never invoked.
+- `/shop/hub_legacy` rollback intact.
+
+### Tests · 24/24 backend pass
+- 5 new (`tests/test_track_13_29_fuel_lube_visit.py`).
+- Regression: 13.26 (11/11) · 13.28 (4/4) · 13.28 P2 (4/4).
+
+### Hard locks reaffirmed
+- Repair Complete ≠ RTS · Dispatch retains RTS · Driver no-login · Map-first Dispatch · One source of truth · No fake MaintainX / FleetWatcher · No fuel accounting / cost · No duplicate history.

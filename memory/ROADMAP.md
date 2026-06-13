@@ -823,3 +823,17 @@ After Track 13.27 lands, the Asset Service Event Backbone becomes operator-visib
 - Track 13.32 — MaintainX Integration (HIGH risk · LAST · BLOCKED on `MAINTAINX_API_KEY`).
 - Track 13.28b — K6 per-action RBAC enforcement (deferred 30 days for telemetry).
 - Track 13.27 P2 polish — equipment-list / fleet-row inline "View History" action + dedicated timeline rail aesthetic + print-friendly layout.
+
+## 2026-06-12 · Post Track 13.29 (Fuel/Lube Visit Record LIVE)
+- ✅ Fuel/Lube Visit Record shipped. Asset Service Event Backbone now carries real `fuel · fluid · service · meter` events. Only `pm` and `maintainx` remain as placeholders.
+- 🟢 Deployment readiness remains GREEN.
+
+### Critical-path next step (operator-gated)
+- **Track 13.31 — PM Engine (derived)** — closes the second-to-last placeholder; reuses 13.28 lifecycle.
+
+### Or in parallel
+- **Track 13.30 — Service-Truck Daily Reconciliation** — rolls up the fuel data now flowing in. Depends on 13.29 (✓ shipped).
+- **Track 13.29 Phase 2 — Fuel/Lube list + detail UI** (~3h frontend · backend ready).
+- **Track 13.33 — Asset Care Command Center** — aggregation over 13.26/13.27/13.28/13.29.
+- **Track 13.32 — MaintainX Integration** — HIGH risk · LAST · BLOCKED on `MAINTAINX_API_KEY`.
+- **Track 13.28b — K6 per-action RBAC enforcement** — 30-day telemetry deferral.
