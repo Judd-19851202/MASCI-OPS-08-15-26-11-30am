@@ -37,6 +37,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MasciLogo } from "@/components/MasciLogo";
+import SmartUnitClassificationChip from "@/components/SmartUnitClassificationChip";
 import { Section, ChecklistRow } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -569,6 +570,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                 </option>
               ))}
             </select>
+            <SmartUnitClassificationChip unitNumber={truckUnit} testidPrefix="dvir-truck-smart-class" />
           </div>
 
           {truckUnit && (

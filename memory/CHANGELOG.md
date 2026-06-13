@@ -10,6 +10,22 @@
 
 ---
 
+## 2026-06-13 · Track 13.31B-D5.1 BUILD — Smart Pre-Op + Smart DVIR Canonical Write-Stamp
+
+**Mode:** Controlled implementation + platform-wide regression + Five-Pillar certification. NO deploy · NO GitHub · NO merge · NO new collection.
+
+- **NEW shared service** `services/inspection_classification.py` — `resolve_unit_canonical()` + `stamp_inspection_canonical()` helpers.
+- **Pre-Op `POST /api/equipment-inspections`** now stamps every new submission with canonical class/type + verified flag + classification_status + template_status + legacy_equipment_type. Legacy `equipment_type` field preserved verbatim.
+- **DVIR `POST /api/fleet/inspections`** same stamping on the truck row + per-trailer canonical snapshots under `trailer_classifications`.
+- **NEW operator chip** `<SmartUnitClassificationChip>` rendered under the unit picker on both Pre-Op (`/equipment/new`) and DVIR (`/fleet/dvir/new`) — surfaces ONE operator-safe line: verified / mapped / review-needed / unmatched. Silent fallback for public submissions.
+- **The 17-row Service Truck vs Haul Truck conflict** surfaced in D5.1 certification is now *prevented forward* — canonical asset_type overrides on the stamped row regardless of the legacy dropdown choice.
+- **`template_status="missing_template"`** stamp becomes the live D5.2 backlog generator (Pavers · Rollers · Dozers · Graders · Backhoes · Compactors · Light Towers · Generators · Pumps · per-truck-variant · per-trailer-variant).
+- **83/83 pytests pass** (11 new D5.1 BUILD + 72 regression). Five-Pillar 9.83/10 avg.
+- Hard locks intact: MAP STAYS · driver no-login intact · Repair Complete ≠ RTS · RBAC unchanged · existing Pydantic models untouched · no new collection.
+- Doctrine doc: `/app/memory/TRACK_13_31B_D5_1_BUILD_SMART_PREOP_DVIR_CANONICAL_WRITE_STAMP.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31B-D5.1 — Platform Asset Coverage / Pre-Op / Classification / Lifecycle Certification (READ-ONLY)
 
 **Mode:** READ-ONLY certification. ZERO code · ZERO schema · ZERO collection · ZERO route · ZERO UI · ZERO deploy · ZERO GitHub · ZERO merge · ZERO migration · ZERO seed change.

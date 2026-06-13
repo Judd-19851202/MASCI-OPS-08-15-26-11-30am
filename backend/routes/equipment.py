@@ -186,6 +186,23 @@ def register_equipment_routes(
         insp.doc_id = doc["doc_id"]
         await db.equipment_inspections.insert_one(doc)
         doc.pop("_id", None)
+        # ── Track 13.31B-D5.1 · Smart Pre-Op canonical write stamp ──
+        # Resolve the canonical asset_class/type from equipment_master via
+        # the asset spine resolver and patch the row in place. Additive
+        # only — legacy `equipment_type` is preserved for backward compat.
+        try:
+            from services.inspection_classification import (
+                stamp_inspection_canonical, EXISTING_PREOP_TEMPLATES,
+            )
+            stamp = await stamp_inspection_canonical(
+                db, doc.get("id"), insp.equipment_unit,
+                legacy_equipment_type=insp.equipment_type or "",
+                template_set=EXISTING_PREOP_TEMPLATES,
+            )
+            if stamp:
+                doc.update(stamp)
+        except Exception:
+            pass
         # Also remember this unit so it shows up in the dropdown next time
         if insp.equipment_unit and insp.equipment_type:
             try:

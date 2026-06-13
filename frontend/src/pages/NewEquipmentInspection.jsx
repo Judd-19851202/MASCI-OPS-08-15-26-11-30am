@@ -20,6 +20,7 @@ import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
+import SmartUnitClassificationChip from "@/components/SmartUnitClassificationChip";
 import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
 import { api } from "@/lib/api";
@@ -771,6 +772,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                     placeholder="Type or pick from MASCI fleet (e.g. EXC020, Cat 308)…"
                     testId="equipment-unit"
                   />
+                  <SmartUnitClassificationChip unitNumber={data.equipment_unit} testidPrefix="preop-smart-class" />
                 </div>
                 <div>
                   <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Make")}</Label>

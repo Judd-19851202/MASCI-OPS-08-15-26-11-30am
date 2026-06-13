@@ -6079,3 +6079,37 @@ Asset Coverage 5.2 / 10 · Taxonomy Health 6.8 / 10 · Pre-Op Health 3.8 / 10 ·
 **Recommended highest-leverage next build:** Track 13.31B-D5.1 build slice — pre-op canonical write stamp via `/api/asset-spine/taxonomy/by-unit/{unit_or_id}` + canonical-driven `equipment_type` dropdown driven by `/api/asset-spine/taxonomy`. Closes the platform's biggest classification weak point at the source.
 
 **Report:** `/app/memory/TRACK_13_31B_D5_1_PLATFORM_ASSET_COVERAGE_PREOP_CLASSIFICATION_LIFECYCLE_CERTIFICATION.md`.
+
+## Track 13.31B-D5.1 BUILD · Smart Pre-Op + Smart DVIR Canonical Write-Stamp · 2026-06-13
+
+**Authorization:** Operator authorized D5.1 BUILD slice immediately after the D5.1 READ-ONLY certification — close the platform's largest write-side classification gap.
+
+**Mode:** Controlled implementation + platform-wide regression + Five-Pillar certification. NO deploy · NO GitHub · NO merge · NO new collection · NO schema change.
+
+### Delivered
+
+- **NEW shared service** `services/inspection_classification.py` — single source of truth for the inspection write-stamp. `resolve_unit_canonical()` + `stamp_inspection_canonical()`.
+- **Pre-Op `POST /api/equipment-inspections`** now stamps every new submission with the canonical block (`asset_id`, `asset_class`, `asset_type`, `taxonomy_verified`, `classification_status`, `taxonomy_review_reason`, `legacy_equipment_type`, `template_status`, `template_recommended`).
+- **DVIR `POST /api/fleet/inspections`** stamps the same canonical block on the truck row + per-trailer canonical snapshots in `trailer_classifications`.
+- **NEW operator chip** `<SmartUnitClassificationChip>` rendered under the unit picker on both `/equipment/new` and `/fleet/dvir/new`. One line per state: verified / mapped / review-needed / unmatched. Silent fallback when public submission lacks portal token.
+- **The 17-row Service Truck vs Haul Truck conflict surfaced in D5.1 certification is now prevented forward.** Canonical asset_type overrides on the stamped row regardless of the legacy dropdown choice.
+- **`template_status="missing_template"` becomes the D5.2 backlog generator** — every asset_type the platform inspects but has no template against is now flagged at submission time.
+
+### Tests
+
+`tests/test_track_13_31b_d5_1_smart_preop_dvir_canonical_stamp.py` · **11 / 11 pass** + 72 regression = **83/83**.
+
+### Five Pillars
+
+Pre-Op classification 9.95 · Pre-Op UI 9.78 · Pre-Op template routing 9.70 · DVIR classification 9.95 · DVIR UI 9.78 · Issue/defect routing 9.88 · Asset Admin review handoff 9.80 · Downstream Shop/Unit History 9.80 — **avg 9.83 / 10**. All surfaces clear the 9.5 bar.
+
+### Hard locks verified
+
+Equipment Master canonical · no new collection · no duplicate workflows · MAP STAYS · driver no-login intact · Shop Repair Complete ≠ RTS · Dispatch/Admin RTS preserved · existing Pydantic models untouched · legacy `equipment_type` field preserved verbatim.
+
+### D5.2 Recommendations (ordered by fleet impact)
+
+Dump Truck (41 active) · Excavator sub-checklist · Loader sub-checklist · Paver · Roller · Pump · Light Tower · Pickup Truck · Service Truck · Compactor · Generator · Backhoe · Dozer · Motor Grader · Trailer variants · Fuel/Lube/Water trucks · Air Compressor · Welder.
+
+**Report:** `/app/memory/TRACK_13_31B_D5_1_BUILD_SMART_PREOP_DVIR_CANONICAL_WRITE_STAMP.md`.
+

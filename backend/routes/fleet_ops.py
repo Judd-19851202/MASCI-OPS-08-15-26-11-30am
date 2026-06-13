@@ -588,6 +588,33 @@ def build_router(
         }
         await db.equipment_inspections.insert_one(insp_doc)
 
+        # ── Track 13.31B-D5.1 · Smart DVIR canonical write stamp ──
+        # Patch the truck row with the canonical class/type derived from
+        # equipment_master. Additive — legacy fields preserved. Trailers
+        # carry their own canonical stamps under `trailer_classifications`
+        # without re-shaping the existing schema.
+        try:
+            from services.inspection_classification import (
+                resolve_unit_canonical, stamp_inspection_canonical,
+                EXISTING_DVIR_TEMPLATES,
+            )
+            await stamp_inspection_canonical(
+                db, inspection_id, payload.truck_unit_number,
+                legacy_equipment_type="",
+                template_set=EXISTING_DVIR_TEMPLATES,
+            )
+            if trailer_unit_numbers:
+                trailer_classifications = []
+                for tn in trailer_unit_numbers:
+                    tstamp = await resolve_unit_canonical(db, tn, "")
+                    trailer_classifications.append({"trailer_unit_number": tn, **tstamp})
+                await db.equipment_inspections.update_one(
+                    {"id": inspection_id},
+                    {"$set": {"trailer_classifications": trailer_classifications}},
+                )
+        except Exception as _e:  # noqa: BLE001
+            logger.warning("[dvir_classification] stamp failed inspection_id=%s err=%s", inspection_id, _e)
+
         # Insert defects (if any) and rebuild status for every
         # touched unit. We do this AFTER the inspection insert so a
         # status flip references an existing inspection_id.
