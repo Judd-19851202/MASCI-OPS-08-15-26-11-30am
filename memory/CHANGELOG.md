@@ -10,6 +10,25 @@
 
 ---
 
+## 2026-06-13 · Track 13.31 — PM Engine · Preventive Maintenance Lifecycle
+
+**Mode:** CONTROLLED IMPLEMENTATION + MANDATORY SELF-AUDIT + FIVE-PILLAR CERTIFICATION. NO deploy · NO GitHub · NO merge.
+
+- 3 new collections: `pm_templates` · `pm_schedules` · `pm_work_orders`. Single-file backend router at `backend/routes/pm_engine.py` (~700 lines).
+- 18 read/write endpoints under `/api/shop/pm/*` — templates CRUD · schedules CRUD + recompute · work-order lifecycle (open → assigned → accepted → in_progress → waiting_parts → completed → reviewed/rejected) · summary · queue · meter resolver.
+- **Meter source priority**: `fuel_lube_visits.equipment_lines[].meter_hours` (Track 13.29 ground truth) → `equipment_inspections.meter_hours` → honest `unknown_meter`. No fabrication.
+- **Due-state math** deterministic: hours/miles/days with `warning_threshold` + 10%-of-interval `due_soon` band. Every status carries a human `explanation` string.
+- **Asset Service Event Backbone** (Track 13.26) extended: `pm` lifted from `UNAVAILABLE` to `AVAILABLE` event types; `pm_work_orders` added to `VALID_SOURCE_SYSTEMS`; PM events project into the existing unit-history timeline (up to 4 events per WO: assigned/started/completed/reviewed). No second history surface.
+- **Shop Command Center** gains a new "04 · Preventive maintenance" section with 8 live tiles + 3 action buttons. Hub sections renumbered monotonically 01–09.
+- 4 new operator pages under `/shop/pm`: Dashboard · Templates · Schedules · Work Orders (queue + detail). All match MASCI styling (PortalShell + Card + BackToShopLink + ShopSelector pattern).
+- **PM completion does NOT RTS** — restated at every API approve response (`rts_note` field) and every UI surface (banner). Dispatch retains RTS authority.
+- No MaintainX consumption · no fake manufacturer DB · no costs · no POs · no fake PM history.
+- Tests: **15/15 new pytests pass · 39/39 with regression suite (13.30 + 13.30C + 13.30D + 13.31)**.
+- Five-Pillar score · **9.6 / 10**. First 15-second test: 10/10 resolved. First-click test: 10/10 within 1–2 clicks.
+- Report: `/app/memory/TRACK_13_31_PM_ENGINE.md`.
+
+---
+
 ## 2026-06-13 · Track 13.30D — Shop Command Center 10/10 Experience · Parts & Workload Intelligence (+ Pre-Closeout Audit)
 
 **Mode:** Read-only intelligence additions + pre-closeout audit pass. NO mutation, NO new collections, NO deploy.

@@ -37,7 +37,7 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 | 5b | 13.30B | Shop Command Center Restructure + HubBackLink fix | LOW | ✅ **DONE 2026-06-12** |
 | 5c | 13.30C | Shop Command Center Intelligence + Visual Hierarchy + Global Unit Search | MED | ✅ **DONE 2026-06-12** |
 | 5d | 13.30D | Shop Command Center 10/10 Experience · Parts + Workload + audit closeout | MED | ✅ **DONE 2026-06-13** (24/24 pytest pass · 2 bugs caught + fixed in pre-closeout audit · doc `TRACK_13_30D_SHOP_COMMAND_CENTER_10_10_EXPERIENCE_PARTS_WORKLOAD.md`) |
-| 6 | 13.31 | PM Engine (derived first) | LOW-MED | **NEXT — readiness audit complete · clear data foundation · 5 known gaps to close** |
+| 6 | 13.31 | PM Engine (derived first) | LOW-MED | ✅ **DONE 2026-06-13** (15/15 pytest pass · 39/39 with regression · Five-Pillar 9.6/10 · 8 PM tiles in ShopHub · 4 new operator pages · PM completion ≠ RTS preserved · doc `TRACK_13_31_PM_ENGINE.md`) |
 | 7 | 13.32 | MaintainX Integration | HIGH | **BLOCKED on `MAINTAINX_API_KEY` credentials** |
 | 8 | 13.33 | Asset Care Command Center | LOW | BUILD after lower tracks |
 

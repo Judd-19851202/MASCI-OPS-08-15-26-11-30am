@@ -43,11 +43,13 @@ AVAILABLE_EVENT_TYPES: Tuple[str, ...] = (
     "transfer", "presence",
     # Track 13.29 · fuel/lube events sourced from `fuel_lube_visits`.
     "fuel", "fluid", "service", "meter",
+    # Track 13.31 · PM events sourced from `pm_work_orders`.
+    "pm",
 )
 
 # Future event types — surfaced as honest empty placeholders.
 UNAVAILABLE_EVENT_TYPES: Tuple[str, ...] = (
-    "pm", "maintainx",
+    "maintainx",
 )
 
 VALID_SOURCE_SYSTEMS: Tuple[str, ...] = (
@@ -55,6 +57,7 @@ VALID_SOURCE_SYSTEMS: Tuple[str, ...] = (
     "operational_attachments", "operational_events", "haul_cycles",
     "asset_transfers", "admin_audit_log",
     "fuel_lube_visit",   # Track 13.29
+    "pm_work_orders",    # Track 13.31
 )
 
 _MAX_RANGE_DAYS = 90
@@ -856,6 +859,13 @@ def build_asset_service_events_router(
         # Track 13.29 · Fuel/Lube projector
         if not wanted_source or wanted_source == "fuel_lube_visit":
             all_events.extend(await _project_fuel_lube(db, canonical_unit, from_iso, to_iso))
+        # Track 13.31 · PM Engine projector
+        if not wanted_source or wanted_source == "pm_work_orders":
+            try:
+                from routes.pm_engine import project_pm_events  # noqa: PLC0415
+                all_events.extend(await project_pm_events(db, canonical_unit, from_iso, to_iso))
+            except Exception:  # noqa: BLE001
+                logger.exception("[ase] pm_engine projector failed (non-fatal)")
 
         # Patch in asset_id where we can.
         if asset_id:
@@ -931,14 +941,12 @@ def build_asset_service_events_router(
 
 def _unavailable_reason(event_type: str) -> str:
     return {
-        "pm": "No `pm_schedules` collection exists yet. PM lifecycle is unimplemented.",
         "maintainx": "MaintainX integration is stubbed only. `MAINTAINX_API_KEY` not configured.",
     }.get(event_type, "Future event source — not yet implemented.")
 
 
 def _future_track(event_type: str) -> str:
     return {
-        "pm": "Track 13.31 (PM Engine)",
         "maintainx": "Track 13.32 (MaintainX Integration)",
     }.get(event_type, "TBD")
 

@@ -192,6 +192,11 @@ const FuelLubeVisitDetail = React.lazy(() => import("@/pages/shop/FuelLubeVisitD
 const ServiceTruckReconciliationForm    = React.lazy(() => import("@/pages/shop/ServiceTruckReconciliationForm"));
 const ServiceTruckReconciliationRecords = React.lazy(() => import("@/pages/shop/ServiceTruckReconciliationRecords"));
 const ServiceTruckReconciliationDetail  = React.lazy(() => import("@/pages/shop/ServiceTruckReconciliationDetail"));
+// Track 13.31 — PM Engine.
+const PmDashboard   = React.lazy(() => import("@/pages/shop/PmDashboard"));
+const PmTemplates   = React.lazy(() => import("@/pages/shop/PmTemplates"));
+const PmSchedules   = React.lazy(() => import("@/pages/shop/PmSchedules"));
+const PmWorkOrders  = React.lazy(() => import("@/pages/shop/PmWorkOrders"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -770,6 +775,12 @@ function App() {
             <Route path="/shop/service-truck-reconciliation/new"         element={S(<ServiceTruckReconciliationForm />)} />
             <Route path="/shop/service-truck-reconciliation"             element={S(<ServiceTruckReconciliationRecords />)} />
             <Route path="/shop/service-truck-reconciliation/:recId"      element={S(<ServiceTruckReconciliationDetail />)} />
+            {/* Track 13.31 — PM Engine */}
+            <Route path="/shop/pm"                              element={S(<PmDashboard />)} />
+            <Route path="/shop/pm/templates"                    element={S(<PmTemplates />)} />
+            <Route path="/shop/pm/schedules"                    element={S(<PmSchedules />)} />
+            <Route path="/shop/pm/work-orders"                  element={S(<PmWorkOrders />)} />
+            <Route path="/shop/pm/work-orders/:id"              element={S(<PmWorkOrders />)} />
             <Route path="/shop/trench-safety-repairs" element={S(<ShopTrenchSafetyRepairs />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
             {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is

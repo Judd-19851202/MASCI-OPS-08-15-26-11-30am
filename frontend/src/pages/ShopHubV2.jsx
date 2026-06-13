@@ -221,7 +221,7 @@ function ShopRecoveryMap() {
   return (
     <section data-testid="shop-recovery-map-section" style={{ marginBottom: 28 }}>
       <SectionHeader
-        kicker="08 · Recovery Map · secondary"
+        kicker="09 · Recovery Map · secondary"
         title="Recovery Map"
         caption="Shop-visible units needing maintenance or inspection attention. Live location from current operations-map feed."
       />
@@ -471,6 +471,68 @@ function PartsOnOrderCard() {
   );
 }
 
+// Track 13.31 · PM Engine summary card (live · read-only).
+function PmEngineCard() {
+  const [d, setD] = React.useState(null);
+  const [err, setErr] = React.useState("");
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const tokA = (typeof window !== "undefined" && window.localStorage.getItem("masci.admin.token")) || "";
+        const tokS = (typeof window !== "undefined" && window.localStorage.getItem("masci.shop.token")) || "";
+        const h = { "Content-Type": "application/json" };
+        if (tokA) h["X-Admin-Token"] = tokA;
+        if (tokS) h["X-Shop-Token"] = tokS;
+        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/pm/summary`, { headers: h });
+        const b = await r.json().catch(() => null);
+        if (!r.ok) throw new Error((b && b.detail) || `HTTP ${r.status}`);
+        if (alive) setD(b);
+      } catch (e) { if (alive) setErr(e.message || "PM summary unavailable."); }
+    })();
+    return () => { alive = false; };
+  }, []);
+  if (err) return <div data-testid="shop-hub-v2-pm-error" style={{ padding: 12, fontSize: 12, color: "#7f1d1d", background: "#fee2e2", borderRadius: 4 }}>{err}</div>;
+  if (!d)  return <div data-testid="shop-hub-v2-pm-loading" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)" }}>Loading…</div>;
+  const sc = d.schedule_counts || {};
+  const wo = d.work_order_counts || {};
+  const tiles = [
+    ["PM overdue",        sc.overdue,           "red",   "/shop/pm/schedules?status=overdue"],
+    ["PM due",            sc.due,               "amber", "/shop/pm/schedules?status=due"],
+    ["PM due soon",       sc.due_soon,          "blue",  "/shop/pm/schedules?status=due_soon"],
+    ["PM unassigned",     d.unassigned,         "red",   "/shop/pm/work-orders?status=open"],
+    ["PM in progress",    wo.in_progress,       "blue",  "/shop/pm/work-orders?status=in_progress"],
+    ["PM waiting parts",  wo.waiting_parts,     "amber", "/shop/pm/work-orders?status=waiting_parts"],
+    ["PM pending review", wo.completed,         "amber", "/shop/pm/work-orders?status=completed"],
+    ["PM needs meter",    sc.unknown_meter,     "grey",  "/shop/pm/schedules?status=unknown_meter"],
+  ];
+  return (
+    <div data-testid="shop-hub-v2-pm-grid" style={{
+      display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12,
+    }}>
+      {tiles.map(([label, value, accent, to]) => {
+        const active = (typeof value === "number") && value > 0;
+        const p = !active ? { bg: "var(--paper-card)", border: "var(--border-bold)", text: "var(--ink-strong)" }
+              : accent === "red"   ? { bg: "#fef2f2", border: "#fecaca", text: "#991b1b" }
+              : accent === "amber" ? { bg: "#fffbeb", border: "#fde68a", text: "#92400e" }
+              : accent === "blue"  ? { bg: "#eff6ff", border: "#bfdbfe", text: "#1e40af" }
+              :                      { bg: "#f1f5f9", border: "#cbd5e1", text: "#475569" };
+        const tid = `shop-hub-v2-pm-${label.toLowerCase().replace(/\s+/g, "-")}`;
+        return (
+          <Link key={label} to={to} data-testid={tid}
+                style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <div style={{ padding: "12px 14px", background: p.bg, border: `1px solid ${p.border}`,
+                          borderRadius: "var(--radius-card)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: p.text, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</div>
+              <div data-testid={`${tid}-value`} style={{ fontSize: 28, fontWeight: 800, color: p.text, lineHeight: 1, marginTop: 4 }}>{value ?? "—"}</div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 // Track 13.30D · Mechanic workload card (live · non-punitive).
 function MechanicWorkloadCard() {
   const [d, setD] = React.useState(null);
@@ -658,11 +720,38 @@ export default function ShopHubV2() {
           <MechanicWorkloadCard />
         </section>
 
-        {/* 04 · Parts + Waiting — live rollup card replaces the prior
+        {/* 04 · Preventive Maintenance — live PM Engine summary (Track 13.31). */}
+        <section data-testid="shop-hub-v2-section-pm" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="04 · Preventive maintenance"
+            title="PM due · overdue · in flight"
+            caption="PM completion does NOT return units to service. Dispatch retains RTS authority."
+          />
+          <PmEngineCard />
+          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Link to="/shop/pm" data-testid="shop-hub-v2-pm-dashboard-link"
+                  style={{ padding: "6px 12px", fontSize: 11, fontWeight: 700,
+                           background: "var(--brand-primary)", color: "var(--brand-on-primary)",
+                           border: "1px solid var(--brand-primary)", borderRadius: "var(--radius-card)",
+                           textDecoration: "none" }}>Open PM Dashboard</Link>
+            <Link to="/shop/pm/templates" data-testid="shop-hub-v2-pm-templates-link"
+                  style={{ padding: "6px 12px", fontSize: 11, fontWeight: 600,
+                           background: "var(--paper-card)", color: "var(--ink-strong)",
+                           border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+                           textDecoration: "none" }}>Manage PM Templates</Link>
+            <Link to="/shop/pm/schedules" data-testid="shop-hub-v2-pm-schedules-link"
+                  style={{ padding: "6px 12px", fontSize: 11, fontWeight: 600,
+                           background: "var(--paper-card)", color: "var(--ink-strong)",
+                           border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+                           textDecoration: "none" }}>Manage PM Schedules</Link>
+          </div>
+        </section>
+
+        {/* 05 · Parts + Waiting — live rollup card replaces the prior
             dashed placeholder. Source: /api/shop/parts/on-order/summary. */}
         <section data-testid="shop-hub-v2-section-parts" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="04 · Parts and waiting"
+            kicker="05 · Parts and waiting"
             title="What's blocked on parts"
             caption="Total parts on order, units waiting, expected today, and overdue items."
           />
@@ -673,7 +762,7 @@ export default function ShopHubV2() {
             service-truck workflows. */}
         <section data-testid="shop-hub-v2-section-fuel-service" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="05 · Fuel and service"
+            kicker="06 · Fuel and service"
             title="Fuel · fluids · service-truck accountability"
             caption="Submit visits · review records · close service-truck days · acknowledge variance."
           />
@@ -699,7 +788,7 @@ export default function ShopHubV2() {
             placeholder until Track 13.30C provides the search backend. */}
         <section data-testid="shop-hub-v2-section-unit-intel" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="06 · Unit intelligence"
+            kicker="07 · Unit intelligence"
             title="Find a unit · open its full story"
             caption="One unit · one timeline. Pre-Ops · DVIRs · defects · repairs · parts · fuel · RTS."
           />
@@ -726,7 +815,7 @@ export default function ShopHubV2() {
         {/* 07 · Records — archival surfaces; sit below active work. */}
         <section data-testid="shop-hub-v2-section-records" style={{ marginBottom: 28 }}>
           <SectionHeader
-            kicker="07 · Records"
+            kicker="08 · Records"
             title="Archive · audits · history"
             caption="Pre-Ops · Truck DVIRs · Fuel/Lube · Reconciliations. Honest empty states · no fake exports."
           />

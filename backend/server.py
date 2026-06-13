@@ -10953,6 +10953,16 @@ _strr_router = build_service_truck_reconciliation_router(
 )
 app.include_router(_strr_router)
 
+# Track 13.31 · PM Engine — preventive maintenance lifecycle.
+# Operator-controlled templates → per-unit schedules → work orders →
+# assign/accept/start/complete/review. PM completion does NOT RTS.
+from routes.pm_engine import build_pm_engine_router  # noqa: E402
+_pm_engine_router = build_pm_engine_router(
+    db,
+    require_shop_or_admin_dep=_require_shop_or_admin_fleet,
+)
+app.include_router(_pm_engine_router)
+
 # Track 13.30C · Shop Command Center intelligence — read-only.
 # `/api/shop/units/search` + `/api/shop/me/summary`. Two read-only
 # endpoints; zero new collection.

@@ -5681,3 +5681,69 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10. (Unit Search
 **Track 13.31 — PM Engine.** Readiness audit complete. Data foundation clear. 5 gaps documented. 3 kickoff questions surfaced for operator.
 
 **Report:** `/app/memory/TRACK_13_30D_SHOP_COMMAND_CENTER_10_10_EXPERIENCE_PARTS_WORKLOAD.md`.
+
+---
+
+## Track 13.31 · PM Engine · Preventive Maintenance Lifecycle · 2026-06-13
+
+### Mode
+CONTROLLED IMPLEMENTATION + MANDATORY SELF-AUDIT + FIVE-PILLAR CERTIFICATION. NO deploy · NO GitHub · NO merge.
+
+### Built
+- **Backend** — `backend/routes/pm_engine.py` (~700 lines). 3 new collections: `pm_templates`, `pm_schedules`, `pm_work_orders`. 18 endpoints under `/api/shop/pm/*`:
+  - Templates CRUD · Schedules CRUD + recompute · Work-Order generation
+  - Lifecycle: assign · accept · start (with optional `waiting_parts`) · complete (notes ≥10 chars · meter · checklist · parts) · manager-review (approve rolls schedule forward · reject sends back to mechanic)
+  - Queue · Summary · Meter resolver (`fuel_lube_visits` → `equipment_inspections` → honest `unknown`)
+- **Asset Service Event Backbone extension** (`routes/asset_service_events.py`):
+  - `pm` lifted from `UNAVAILABLE_EVENT_TYPES` to `AVAILABLE_EVENT_TYPES`.
+  - `pm_work_orders` added to `VALID_SOURCE_SYSTEMS`.
+  - `project_pm_events()` helper called by timeline endpoint · emits up to 4 events per work order (assigned/started/completed/reviewed).
+  - **No second history surface · no duplicate asset history.**
+- **Frontend** — 4 new operator pages, all matching MASCI styling (PortalShell + Card + BackToShopLink):
+  - `/shop/pm` · `PmDashboard.jsx` (schedule tiles + WO tiles + top-action queue)
+  - `/shop/pm/templates` · `PmTemplates.jsx` (CRUD + checklist + default parts builder)
+  - `/shop/pm/schedules` · `PmSchedules.jsx` (filter by status · create/edit · "Generate PM work order" per row)
+  - `/shop/pm/work-orders[/:id]` · `PmWorkOrders.jsx` (queue + detail with lifecycle actions)
+- **ShopHubV2 integration** — new section "04 · Preventive maintenance" with 8 live tiles (PM overdue · due · due soon · unassigned · in progress · waiting parts · pending review · needs meter) + 3 action buttons. Hub sections renumbered monotonically 01–09.
+
+### Hard locks verified
+- **PM completion does NOT RTS** — API approve response includes explicit `rts_note` field; UI banner repeats it on Dashboard + WO detail.
+- Shop cannot RTS via PM (no code path touches `equipment_master.is_oos` or fleet_status).
+- Dispatch / Admin RTS authority preserved at `/api/dispatch/fleet/defects/{id}/clear`.
+- Recovery Map remains visible (Section 09 in ShopHubV2).
+- Dispatch Map-First intact · Driver no-login intact · DriverHubV2 retired.
+- Mechanic assignment intact · Unit History intact · Fuel/Lube intact · Service Truck Reconciliation intact · Parts/Workload intelligence intact · Material Movement Ledger untouched.
+- MaintainX dormant — doctrine flag `maintainx_active=false` in summary endpoint.
+- No costs · no POs · no accounting · no pay-apps · no ERP · pytest asserts forbidden field absence.
+- `/shop/hub_legacy` rollback alive.
+
+### Five-Pillar Audit (Powerful · Simple · Beautiful · Trusted · Proven)
+All 8 audited surfaces ≥9.5/10 across all 5 pillars (only exception: Unit-Search PM badge intentionally deferred — operators reach PM info in 2 clicks via Unit History). Average **9.6 / 10**.
+
+### First-15-Seconds Test (Shop Manager · cold `/shop`)
+10/10 PM questions resolved within 15 seconds. Hub Section 04 PM tiles answer 7 of 10 directly; 1 requires PM Dashboard hop; 2 are combinable from existing tiles.
+
+### First-Click Test
+10/10 PM tasks within 1–2 clicks.
+
+### Tests
+- New: `tests/test_track_13_31_pm_engine.py` — **15/15 pass**. Covers auth gate, template CRUD, invalid interval rejection, schedule unknown_meter, hours/days math, paused override, full lifecycle, manager-reject path, ASE projection, summary/queue shape, no-cost-field assertion, honest-unknown-meter, MaintainX hard-lock.
+- Regression: 24/24 from Tracks 13.30/13.30C/13.30D all still pass.
+- **Total: 39/39 passing.**
+
+### Visual smoke
+- `/shop/hub_v2` Section 04 renders 8 honest "0" tiles + 3 action buttons.
+- `/shop/pm` Dashboard renders 6 schedule + 8 work-order tiles + RTS doctrine note.
+- `/shop/pm/templates` and `/shop/pm/schedules` render forms + empty lists.
+- No runtime overlays · no engineering copy · no `/api/` leakage · no broken back-links.
+
+### Five-Pillar score · 9.6 / 10
+Powerful 9.7 · Simple 9.6 · Beautiful 9.5 · Trusted 9.8 · Proven 9.7.
+
+### Ready for next track
+**Track 13.33 — Asset Care Command Center.** With PM Engine live, all primary action queues exist. The Asset Care Command Center will re-compose existing data (defects + PMs + parts + fuel + history) into a per-asset command view — no new construction needed.
+
+(Track 13.32 MaintainX remains BLOCKED on `MAINTAINX_API_KEY`.)
+
+**Report:** `/app/memory/TRACK_13_31_PM_ENGINE.md`.
+

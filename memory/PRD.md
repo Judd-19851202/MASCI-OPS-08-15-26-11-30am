@@ -42,6 +42,7 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **13.26–13.29** — Asset Service Event Backbone + Unit History Timeline + Shop Mechanic Assignment + Fuel/Lube Job Visit Form (all DONE 2026-06-12 — see ROADMAP table).
 - **13.30 / 13.30A–C** — Service Truck Daily Reconciliation + Shop Command Center UX audit + Restructure + Intelligence with Global Unit Search (all DONE 2026-06-12).
 - **13.30D · SHOP COMMAND CENTER 10/10 EXPERIENCE · PARTS + WORKLOAD INTELLIGENCE + PRE-CLOSEOUT AUDIT (DONE 2026-06-13)** — Two new read-only aggregators (`/api/shop/parts/on-order/summary`, `/api/shop/mechanics/workload`) + matching live `PartsOnOrderCard` and `MechanicWorkloadCard` in `ShopHubV2.jsx`. **Pre-closeout six-item audit (Five-Pillar · 15-second · first-click · white-space · uniformity · PM-Engine-readiness) caught and fixed two real bugs before lock**: (1) Unit Search returned UUID `id` substrings as `unit_number` — predicate rewritten to search operator-facing fields only, real `unit_number` returned, regression pytest pinned; (2) Section numbering broken (01→02→03→02→04→05→06→03) — renumbered monotonically 01–08 with Mechanic Workload promoted above Parts. PM Engine readiness audit documents 5 data sources Track 13.31 can consume today + 5 gaps it must close + 3 open kickoff questions. **24/24 Track 13.30* pytests pass.** Report: `/app/memory/TRACK_13_30D_SHOP_COMMAND_CENTER_10_10_EXPERIENCE_PARTS_WORKLOAD.md`.
+- **13.31 · PM ENGINE · PREVENTIVE MAINTENANCE LIFECYCLE (DONE 2026-06-13)** — Full operator-controlled PM engine: 3 new collections (`pm_templates · pm_schedules · pm_work_orders`), 18 endpoints under `/api/shop/pm/*`, 4 new operator pages (`/shop/pm`, `/templates`, `/schedules`, `/work-orders[/:id]`), 8 live PM tiles in ShopHubV2 (section 04). Meter source priority: fuel/lube → pre-op → honest `unknown_meter`. Due-state math deterministic with explanations. Asset Service Event Backbone extended to project PM events (lifted `pm` from UNAVAILABLE to AVAILABLE). **PM completion does NOT return units to service** — restated at every API approve response and UI surface. No MaintainX consumption · no fake manufacturer DB · no costs/POs. **15/15 new pytests pass · 39/39 with regression**. Five-Pillar 9.6/10. First-15-seconds 10/10 · first-click 10/10 within 2 clicks. Report: `/app/memory/TRACK_13_31_PM_ENGINE.md`.
 
 ### Material Movement Ledger phased plan (Track 13.18 → 13.22) — COMPLETE through Phase D. Phase E (FleetWatcher) BLOCKED on credentials.
 ### Immediate Build Queue (Track 13.9 §8) — EMPTY. Recommended next move: operator sign-off window, not new feature builds.
@@ -73,8 +74,7 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 ### P1 — Post-execution
 - Track 13.6N · 30-day operator signoff window
 - Track 13.6O · `*_legacy` route retirement after signoff
-- **Track 13.31 · PM Engine — NEXT** (readiness audited 2026-06-13 in Track 13.30D · 5 data sources ready · 5 gaps documented · 3 kickoff questions for operator)
-- Track 13.33 · Asset Care Command Center (after 13.31)
+- **Track 13.33 · Asset Care Command Center — NEXT** (after 13.31 PM Engine landed 2026-06-13 · re-composes existing data into per-asset command view · no new construction needed)
 
 ### P2 — Reserved
 - MaintainX credential activation (post UI-surface decision)
