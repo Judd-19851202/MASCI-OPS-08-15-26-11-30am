@@ -185,6 +185,9 @@ const UnitHistoryLanding = React.lazy(() => import("@/pages/shop/UnitHistoryLand
 const UnitHistoryTimeline = React.lazy(() => import("@/pages/shop/UnitHistoryTimeline"));
 // Track 13.29 — Fuel / Lube Visit Record.
 const FuelLubeVisitForm = React.lazy(() => import("@/pages/shop/FuelLubeVisitForm"));
+// Track 13.29 Phase 2 — Fuel / Lube Visit Records list + detail.
+const FuelLubeVisitRecords = React.lazy(() => import("@/pages/shop/FuelLubeVisitRecords"));
+const FuelLubeVisitDetail = React.lazy(() => import("@/pages/shop/FuelLubeVisitDetail"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -756,6 +759,9 @@ function App() {
             <Route path="/shop/units/:unitNumber/history" element={S(<UnitHistoryTimeline />)} />
             {/* Track 13.29 — Fuel / Lube Visit Record (one job · many equipment lines). */}
             <Route path="/shop/fuel-lube/new" element={S(<FuelLubeVisitForm />)} />
+            {/* Track 13.29 Phase 2 — Fuel / Lube Visit Records list + detail. */}
+            <Route path="/shop/fuel-lube" element={S(<FuelLubeVisitRecords />)} />
+            <Route path="/shop/fuel-lube/:visitId" element={S(<FuelLubeVisitDetail />)} />
             <Route path="/shop/trench-safety-repairs" element={S(<ShopTrenchSafetyRepairs />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
             {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is

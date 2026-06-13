@@ -595,6 +595,20 @@ export default function ShopHubV2() {
                 </div>
               </div>
             </RealLink>
+            <RealLink to="/shop/fuel-lube" testid="shop-hub-v2-action-fuel-lube-records" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Fuel / Lube Records</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  Submitted visits archive. Filter by date · project · truck · tech · unit · issue · fuel type. Open a visit to see totals · equipment lines · linked defects · per-unit history jump.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/shop/fuel-lube/visits (Track 13.29 P2)
+                </div>
+              </div>
+            </RealLink>
           </div>
         </section>
 
