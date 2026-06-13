@@ -20,6 +20,7 @@ import { useParams, Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -291,9 +292,10 @@ export default function UnitHistoryTimeline() {
         portalName="MASCI"
         portalRole="Shop Portal · Unit History"
         pageTitle={`Unit History · ${unitNumber || "(no unit)"}`}
-        subtitle="Complete operational timeline for this asset from Pre-Ops, DVIRs, defects, repairs, dispatch, and service events. Powered by the Asset Service Event Backbone (Track 13.26)."
+        subtitle="Complete operational timeline for this asset — pre-ops, DVIRs, defects, repairs, fuel/lube, return-to-service."
         primaryActions={
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <BackToShopLink testId="unit-history-back-to-shop" />
             <Link
               to="/shop/units/history"
               data-testid="unit-history-back-to-selector"

@@ -7,6 +7,7 @@ import { useParams, Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
@@ -83,7 +84,8 @@ export default function ServiceTruckReconciliationDetail() {
         pageTitle={`Reconciliation ${recId}`}
         subtitle="Start · dispensed · expected · actual · variance · linked Fuel/Lube Visits."
         primaryActions={
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <BackToShopLink testId="strr-detail-back-to-shop" />
             <Link to="/shop/service-truck-reconciliation" data-testid="strr-detail-back"
                   style={{ padding: "6px 12px", fontSize: 12, background: "#eee", color: "#222", textDecoration: "none", borderRadius: 4 }}>← Records</Link>
             <button data-testid="strr-detail-print" type="button" onClick={() => window.print()} style={{ padding: "6px 12px", fontSize: 12 }}>Print</button>
@@ -198,8 +200,7 @@ export default function ServiceTruckReconciliationDetail() {
 
             <div data-testid="strr-detail-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
                   background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
-              Doctrine · Dispensed source is Track 13.29 <code>fuel_lube_visits</code>. NO accounting · NO cost · NO fuel tax. Review notes are
-              operational context only — never disciplinary. PDF / email / CSV exports are future enhancements; Print uses the browser&apos;s native dialog.
+              Dispensed totals come from submitted Fuel/Lube Visits. Review notes are operational context only — never disciplinary. PDF / email / CSV exports are not enabled here; Print uses the browser&apos;s native dialog.
             </div>
           </>
         )}

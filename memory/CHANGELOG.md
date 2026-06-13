@@ -2029,3 +2029,41 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
 
 ### Report
 `/app/memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`. Deployment readiness remains 🟢 **GREEN**.
+
+---
+
+## 2026-06-12 · Track 13.30C-fix — Shop Form / Navigation / Runtime Correction Pass (LIVE)
+
+**Mode:** CONTROLLED CORRECTION · backend (additive) + frontend · blocks Track 13.30D until green.
+
+### Crash fixed
+`Can't find variable: FocusBanner` on `/shop/fleet` — `FleetVisibility.jsx` was using `<FocusBanner />` without importing it. One-line fix.
+
+### Endpoints added
+- `GET /api/shop/projects/list` (Shop/Admin · `daily_reports` aggregation · 500-row cap).
+- `GET /api/shop/units/list?limit=N` (Shop/Admin · active `equipment_master`).
+
+### Frontend shared components
+- `BackToShopLink.jsx` — plain "← Back to Shop" link.
+- `ShopSelector.jsx` — kind-aware (`project` / `unit`) searchable dropdown · debounced filter · honest empty/error/loading · "Type manually instead →" fallback.
+
+### Forms upgraded
+- **Fuel/Lube Visit form** — Project picker · Truck picker · per-line unit picker with auto-fill on equipment_name.
+- **Service Truck Reconciliation form** — Service-truck-unit picker.
+
+### Navigation
+"Back to Shop" link mounted on all 10 PortalShell-driven Shop subpages. `/shop/equipment`, `/shop/equipment/:id`, `/shop/fleet` continue to use the Shop-aware `HubBackLink` (Track 13.30B).
+
+### Operator copy scrub
+All visible `Track 13.x`, `Asset Service Event Backbone`, `defect lifecycle`, `Source: /api/...`, and `<code>/api/...</code>` mentions removed and replaced with plain operator language.
+
+### Tests
+- Backend regression preserved at **42/42 pass**.
+- 12 smoke routes: all `overlay=False`. Engineering-copy scrub holds (`Track 13`=0, `/api/`=0 on all routes except `/shop/manager/queue` where the single match is **seeded defect-title data**, not UI copy).
+- All four source-truth selectors render live.
+
+### Hard locks reaffirmed
+Dispatch Map-First · Driver no-login · Repair Complete ≠ RTS · Dispatch RTS authority · Material Movement Ledger untouched · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no fake counts · no duplicate asset history · `/shop/hub_legacy` rollback alive.
+
+### Report
+`/app/memory/TRACK_13_30C_FIX_SHOP_FORM_NAV_UX_CORRECTION.md`. Deployment readiness remains 🟢 **GREEN**.

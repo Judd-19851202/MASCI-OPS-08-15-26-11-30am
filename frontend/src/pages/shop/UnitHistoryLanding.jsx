@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -71,7 +72,8 @@ export default function UnitHistoryLanding() {
         portalName="MASCI"
         portalRole="Shop Portal · Unit History"
         pageTitle="Open a unit's timeline"
-        subtitle="Type a unit number to see its complete operational history. Single source · Asset Service Event Backbone (Track 13.26). No new history system."
+        subtitle="Type a unit number to see its complete operational history — pre-ops, defects, repairs, parts, fuel/lube, return-to-service."
+        primaryActions={<BackToShopLink testId="unit-history-landing-back-to-shop" />}
       >
         <Card data-testid="unit-history-landing-search-card">
           <form onSubmit={onSubmit} style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -130,7 +132,7 @@ export default function UnitHistoryLanding() {
           marginTop: 28, padding: 12, fontSize: 11, color: "#666",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4,
         }}>
-          Recent units derived from <code>/api/shop/manager/queue</code>. The timeline endpoint itself is <code>/api/assets/{`{unit}`}/timeline</code>.
+          Recent units come from the active shop queue. Click any unit to open its complete timeline.
           No master asset list query — operators with the unit number can always open its history.
         </div>
       </PortalShell>

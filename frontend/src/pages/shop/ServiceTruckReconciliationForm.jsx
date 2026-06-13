@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
+import ShopSelector from "@/components/shop/ShopSelector";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -141,6 +143,7 @@ export default function ServiceTruckReconciliationForm() {
         portalName="MASCI" portalRole="Shop Portal · Service Truck Reconciliation"
         pageTitle="Service Truck Daily Reconciliation"
         subtitle="Start-of-day and end-of-day fuel and fluid accountability by truck and day. Operational accountability — not accounting."
+        primaryActions={<BackToShopLink testId="strr-form-back-to-shop" />}
       >
         <div data-testid="strr-form-mode-toggle" style={{ display: "flex", gap: 6, marginBottom: 12 }}>
           {[
@@ -161,8 +164,14 @@ export default function ServiceTruckReconciliationForm() {
               <input data-testid="strr-form-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: 5, fontSize: 12 }} />
             </label>
             <label data-testid="strr-form-truck-label" style={{ fontSize: 12, display: "flex", flexDirection: "column", gap: 2 }}>
-              <span>Service truck unit</span>
-              <input data-testid="strr-form-truck" placeholder="FL-01" value={truck} onChange={(e) => setTruck(e.target.value)} style={{ padding: 5, fontSize: 12 }} />
+              <span>Service truck unit*</span>
+              <ShopSelector
+                kind="unit"
+                testIdPrefix="strr-form-truck"
+                value={truck}
+                onChange={(row) => setTruck(row?.unit_number || "")}
+                required
+              />
             </label>
             <label data-testid="strr-form-tech-id-label" style={{ fontSize: 12, display: "flex", flexDirection: "column", gap: 2 }}>
               <span>Tech employee id</span>
@@ -269,7 +278,7 @@ export default function ServiceTruckReconciliationForm() {
         <div data-testid="strr-form-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
               background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
           Doctrine · Operational accountability only · NO accounting · NO cost · NO fuel tax · NO PO numbers · NO theft accusations.
-          Dispensed totals are pulled from submitted Fuel/Lube Visit Records (Track 13.29) for the same truck and date. Variance language: <em>Within expected range</em> / <em>Needs review</em> / <em>Significant variance</em> / <em>Incomplete</em>.
+          Dispensed totals are pulled from submitted Fuel/Lube Visit Records for the same truck and date. Variance language: <em>Within expected range</em> / <em>Needs review</em> / <em>Significant variance</em> / <em>Incomplete</em>.
         </div>
       </PortalShell>
     </div>

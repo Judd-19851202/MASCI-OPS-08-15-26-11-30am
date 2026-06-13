@@ -36,6 +36,7 @@ import { getSafetyToken } from "@/lib/safetyAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { RepairDrawer, RtsDrawer } from "@/components/FleetRepairDrawer";
 import { HelpTipBlock } from "@/components/HelpTip";
+import FocusBanner from "@/components/triage/FocusBanner";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 

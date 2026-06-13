@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const RANGES = [
@@ -71,10 +72,13 @@ export default function FuelLubeVisitRecords() {
         pageTitle="Fuel / Lube Visit Records"
         subtitle="Submitted job-based service visits with fuel, fluids, grease, meter readings, and field-discovered issues."
         primaryActions={
-          <Link to="/shop/fuel-lube/new" data-testid="fuel-lube-records-new"
-                style={{ padding: "6px 12px", fontSize: 12, background: "var(--brand-primary,#1b4965)", color: "#fff", textDecoration: "none", borderRadius: 4 }}>
-            + New visit
-          </Link>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <BackToShopLink testId="fuel-lube-records-back-to-shop" />
+            <Link to="/shop/fuel-lube/new" data-testid="fuel-lube-records-new"
+                  style={{ padding: "6px 12px", fontSize: 12, background: "var(--brand-primary,#1b4965)", color: "#fff", textDecoration: "none", borderRadius: 4 }}>
+              + New visit
+            </Link>
+          </div>
         }
       >
         <div data-testid="fuel-lube-records-filter-strip" style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12, alignItems: "center" }}>
@@ -168,8 +172,8 @@ export default function FuelLubeVisitRecords() {
 
         <div data-testid="fuel-lube-records-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
-          Source: <code>/api/shop/fuel-lube/visits</code>. Issue lines flow to the Shop Manager Queue via the Track 13.28 lifecycle.
-          Every serviced unit also writes to the Asset Service Event Backbone (Track 13.26). No accounting · no cost · no PO numbers.
+          Submitted visits archive. Issues you flagged here become shop defects automatically.
+          Each service entry is also saved to the unit's history.
         </div>
       </PortalShell>
     </div>

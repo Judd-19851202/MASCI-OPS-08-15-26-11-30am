@@ -389,6 +389,74 @@ def build_shop_intel_router(
             "source": SHOP_INTEL_SOURCE,
         }
 
+    # ── GET /projects/list ──────────────────────────────────────────
+    # Source-truth project list for Shop forms (Fuel/Lube visit, etc.).
+    # Derived from existing daily_reports — same source the admin P&L
+    # picker uses, but Shop-accessible (read-only).
+    @router.get("/projects/list")
+    async def projects_list(
+        _actor=Depends(require_shop_or_admin_dep),
+    ) -> Dict[str, Any]:
+        pipeline = [
+            {"$match": {"project_number": {"$nin": [None, ""]}}},
+            {"$group": {
+                "_id": "$project_number",
+                "project_name": {"$last": "$project_name"},
+                "last_report_date": {"$max": "$report_date"},
+            }},
+            {"$sort": {"last_report_date": -1}},
+            {"$limit": 500},
+        ]
+        docs = await db.daily_reports.aggregate(pipeline).to_list(500)
+        items = [
+            {
+                "project_number": d["_id"],
+                "project_name": d.get("project_name") or "",
+                "last_report_date": d.get("last_report_date") or "",
+            }
+            for d in docs
+        ]
+        return {"items": items, "count": len(items), "source": SHOP_INTEL_SOURCE}
+
+    # ── GET /units/list ─────────────────────────────────────────────
+    # Lightweight active-units list for Shop dropdown selectors. Returns
+    # equipment_master rows in compact form; truck-only units come from
+    # fleet_status via a second pass to keep this single-source.
+    @router.get("/units/list")
+    async def units_list(
+        kind: Optional[str] = Query(default=None),
+        limit: int = Query(default=500, ge=1, le=1000),
+        _actor=Depends(require_shop_or_admin_dep),
+    ) -> Dict[str, Any]:
+        eq_query: Dict[str, Any] = {
+            "$and": [{"$or": [
+                {"is_active": True},
+                {"is_active": {"$exists": False}},
+            ]}],
+        }
+        if kind:
+            eq_query["$and"].append({"$or": [
+                {"type":     _ci_contains_regex(kind)},
+                {"category": _ci_contains_regex(kind)},
+            ]})
+        items: List[Dict[str, Any]] = []
+        async for d in db.equipment_master.find(
+            eq_query,
+            {"_id": 0, "id": 1, "asset_id": 1, "label": 1, "model": 1,
+             "type": 1, "category": 1, "manufacturer": 1, "status": 1},
+        ).limit(limit):
+            unit = d.get("id") or d.get("asset_id") or ""
+            if not unit:
+                continue
+            items.append({
+                "unit_number": unit,
+                "equipment_name": d.get("label") or d.get("model") or unit,
+                "equipment_type": d.get("type") or d.get("category") or "",
+                "manufacturer": d.get("manufacturer") or "",
+                "status": (d.get("status") or "").lower() or "unknown",
+            })
+        return {"items": items, "count": len(items), "source": SHOP_INTEL_SOURCE}
+
     return router
 
 

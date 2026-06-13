@@ -11,6 +11,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
 import RepairCompletionForm from "../../components/shop/RepairCompletionForm";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -184,14 +185,17 @@ export default function ShopMyAssignments() {
         portalName="MASCI"
         portalRole="Shop Portal · My Assignments"
         pageTitle="My Assignments"
-        subtitle="Defects assigned to me — Track 13.28. Accept, start, then complete with repair notes and parts used. Repair Complete ≠ RTS."
+        subtitle="Defects assigned to you. Accept, start, then complete with repair notes and parts used. Repair complete still requires return-to-service verification by Dispatch."
         primaryActions={
-          <button
-            data-testid="shop-my-assignments-refresh"
-            onClick={load}
-            type="button"
-            style={{ padding: "6px 12px", fontSize: 12 }}
-          >Refresh</button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <BackToShopLink testId="shop-my-assignments-back-to-shop" />
+            <button
+              data-testid="shop-my-assignments-refresh"
+              onClick={load}
+              type="button"
+              style={{ padding: "6px 12px", fontSize: 12 }}
+            >Refresh</button>
+          </div>
         }
       >
         {error && (

@@ -61,6 +61,16 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 - Five-Pillar 9.0 → 9.8 / 10.
 - Report: `/app/memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`.
 
+### Track 13.30C-fix (DONE 2026-06-12 · LIVE · correction pass)
+- Runtime crash fixed (`FocusBanner` import in `FleetVisibility.jsx`).
+- 2 new read-only endpoints (`/api/shop/projects/list`, `/api/shop/units/list`) for source-truth Shop dropdowns.
+- 2 new shared frontend components (`BackToShopLink`, kind-aware `ShopSelector`).
+- "Back to Shop" mounted on all 10 PortalShell-driven Shop subpages.
+- Fuel/Lube + Service Truck forms upgraded to source-truth selectors with honest manual fallback.
+- Operator-copy scrub on all Fuel/Lube, STR, Manager Queue, My Assignments, Unit History pages.
+- 12 smoke routes pass · backend regression preserved at 42/42 · `/shop/hub_legacy` rollback alive.
+- Report: `/app/memory/TRACK_13_30C_FIX_SHOP_FORM_NAV_UX_CORRECTION.md`.
+
 ### Track 13.30D (next P0)
 - Parts-On-Order + Mechanic Workload aggregators. 2 derived endpoints + 2 new hub cards. ~2 days.
 

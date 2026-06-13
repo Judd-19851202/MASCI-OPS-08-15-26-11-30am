@@ -5601,3 +5601,33 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
 **Track 13.30D — Parts-On-Order + Mechanic Workload aggregators** (2 d · 2 derived endpoints + 2 new hub cards).
 
 **Report:** `/app/memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`.
+
+---
+
+## 2026-06-12 · Track 13.30C-fix — Shop Form / Navigation / Runtime Correction Pass (LIVE)
+
+**Mode:** CONTROLLED CORRECTION · backend (additive) + frontend · zero deploy. Blocks Track 13.30D until green.
+
+### What shipped
+- **Runtime crash fixed:** missing `FocusBanner` import in `FleetVisibility.jsx` (one-line fix · `/shop/fleet` overlay gone).
+- **2 read-only backend endpoints:** `GET /api/shop/projects/list` (aggregates `daily_reports` · 500-row cap) and `GET /api/shop/units/list?limit=N` (active `equipment_master`).
+- **2 shared frontend components:** `BackToShopLink.jsx` and kind-aware `ShopSelector.jsx` (project · unit · honest empty/error states · "Type manually instead →" fallback).
+- **Forms upgraded:** Fuel/Lube Visit form gets project · truck · per-line unit pickers (with equipment_name auto-fill). STR form gets a unit picker for the service truck.
+- **"Back to Shop" link** mounted on all 10 PortalShell-driven Shop subpages.
+- **Operator copy scrub:** every `Track 13.x`, `Asset Service Event Backbone`, `defect lifecycle`, `Source: /api/...`, `<code>/api/...</code>` mention removed and replaced with plain operator language across Fuel/Lube + STR + Manager Queue + My Assignments + Unit History pages.
+
+### Hard locks verified
+Dispatch Map-First · Driver no-login · Repair Complete ≠ RTS · Dispatch RTS authority · Material Movement Ledger untouched · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no fake counts · `/shop/hub_legacy` rollback alive.
+
+### Tests
+- Backend regression preserved at **42/42 pass**.
+- 12 smoke routes load with `overlay=False`. Engineering-copy scrub holds at runtime (`Track 13`=0, `/api/`=0 on every route except `/shop/manager/queue` where the single match is **seeded defect-title data**, not UI copy).
+- 4 source-truth selectors confirmed live.
+
+### Five-Pillar score · 9.8 / 10 (unchanged from 13.30C)
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
+
+### Ready for next track
+**Track 13.30D — Parts-On-Order + Mechanic Workload aggregators.**
+
+**Report:** `/app/memory/TRACK_13_30C_FIX_SHOP_FORM_NAV_UX_CORRECTION.md`.

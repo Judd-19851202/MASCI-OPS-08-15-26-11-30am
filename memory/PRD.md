@@ -349,3 +349,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar score: 9.0 → 9.8 / 10** (Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10).
 - Deployment readiness remains 🟢 **GREEN**.
 - Report: `/app/memory/TRACK_13_30C_SHOP_COMMAND_CENTER_INTELLIGENCE_VISUAL_HIERARCHY.md`.
+
+## 2026-06-12 · Track 13.30C-fix closeout — Shop Form / Navigation / Runtime Correction Pass
+
+- **Mode:** CONTROLLED CORRECTION (block Track 13.30D until green) · backend (additive) + frontend · zero deploy.
+- **Runtime crash fixed:** `Can't find variable: FocusBanner` — `FleetVisibility.jsx` was using `<FocusBanner />` without importing it. One-line fix.
+- **2 new read-only endpoints** for source-truth Shop dropdowns: `GET /api/shop/projects/list` (aggregates `daily_reports` for project_number/name; 500-row cap) and `GET /api/shop/units/list?limit=N` (active `equipment_master` rows). Same Shop/Admin gate as the rest of `/api/shop/*`. Forbidden-term sanity preserved.
+- **2 new shared frontend components:** `BackToShopLink.jsx` (plain "← Back to Shop" link in MASCI form style) + `ShopSelector.jsx` (kind-aware searchable dropdown for `project` / `unit` with debounced filter, honest empty/error states, and "Type manually instead →" fallback so the form is never blocked by an outage).
+- **Form upgrades:**
+  - **Fuel/Lube Visit form** — Project picker · Fuel-lube-truck picker · per-equipment-line unit picker (equipment_name auto-fills on selection) · operator-friendly subtitle · Back-to-Shop link.
+  - **Service Truck Reconciliation form** — Service-truck-unit picker · Back-to-Shop link.
+- **`Back to Shop` link mounted on all 10 PortalShell-driven Shop subpages** (Fuel/Lube Form/Records/Detail, STR Form/Records/Detail, Shop Manager Queue, My Assignments, Unit History Landing, Unit History Timeline). `/shop/equipment`, `/shop/equipment/:id`, `/shop/fleet` continue to rely on the Shop-aware `HubBackLink` (Track 13.30B).
+- **Operator copy fully scrubbed** from all Fuel/Lube and Service Truck pages plus Shop Manager Queue, My Assignments, Unit History pages: removed every visible *"Track 13.x"*, *"Asset Service Event Backbone"*, *"defect lifecycle"*, *"Source: /api/..."*, and `<code>/api/...</code>` mention. Replaced with plain operator language (e.g. *"Each service entry is saved to the unit's history. Issues you flag here become shop defects automatically."*).
+- **Service-truck classification gap documented (not blocking):** `equipment_master` does not yet classify trucks, so `ShopSelector kind="unit"` returns the full active list and accepts manual entry as fallback. Future enrichment will gate via `filterFn={(u) => u.role === "fuel_truck"}`.
+- **Verification:** all 12 smoke routes (`/shop`, `/shop/fleet`, `/shop/equipment`, `/shop/fuel-lube/new`, `/shop/fuel-lube`, `/shop/service-truck-reconciliation`, `/shop/service-truck-reconciliation/new`, `/shop/units/history`, `/shop/manager/queue`, `/shop/me`, `/dispatch-portal`, `/shift`) load with `overlay=False`. Engineering-copy scrub holds at runtime (`Track 13`=0, `/api/`=0 on all routes except `/shop/manager/queue` where the single "Track 13" mention traces to **seeded defect-title data**, NOT UI copy — addressing it requires a data cleanup of legacy preview seeds, out of scope for a UI correction pass). All four source-truth selectors render live (`fuel-lube-visit-form-project-project-root`, `fuel-lube-visit-form-truck-unit-root`, `fuel-lube-line-unit-0-unit-root`, `strr-form-truck-unit-root` — each count = 1).
+- **Backend regression preserved at 42/42 pass.** ESLint clean on touched frontend files.
+- **Hard locks intact:** Dispatch Map-First · Driver no-login · Repair Complete ≠ RTS · Dispatch RTS authority · Material Movement Ledger untouched · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no fake counts · no duplicate asset history · `/shop/hub_legacy` rollback alive.
+- **Files added:** `frontend/src/components/shop/BackToShopLink.jsx` · `frontend/src/components/shop/ShopSelector.jsx` · `memory/TRACK_13_30C_FIX_SHOP_FORM_NAV_UX_CORRECTION.md`.
+- **Files modified:** `frontend/src/pages/FleetVisibility.jsx` (+1 import line) · `backend/routes/shop_intel.py` (+2 endpoints, ~80 LOC) · 10 Shop subpage files (selector wiring · Back-to-Shop link · operator-copy scrub).
+- Deployment readiness remains 🟢 **GREEN**.
+- Report: `/app/memory/TRACK_13_30C_FIX_SHOP_FORM_NAV_UX_CORRECTION.md`.

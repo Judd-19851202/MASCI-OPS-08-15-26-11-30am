@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
+import ShopSelector from "@/components/shop/ShopSelector";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -70,10 +72,19 @@ function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
         >Remove</button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, marginBottom: 6 }}>
-        <label style={{ fontSize: 11 }}>Unit #*
-          <input data-testid={`fuel-lube-line-unit-${idx}`} value={line.unit_number} onChange={(e) => setField("unit_number")(e.target.value)} style={{ padding: 5, fontSize: 12, width: "100%" }} placeholder="e.g. 152" />
+        <label style={{ fontSize: 11 }}>Unit*
+          <ShopSelector
+            kind="unit"
+            testIdPrefix={`fuel-lube-line-unit-${idx}`}
+            value={line.unit_number}
+            onChange={(row) => {
+              onPatch(idx, "unit_number", row?.unit_number || "");
+              if (row?.equipment_name) onPatch(idx, "equipment_name", row.equipment_name);
+            }}
+            required
+          />
         </label>
-        <label style={{ fontSize: 11 }}>Equipment name
+        <label style={{ fontSize: 11 }}>Equipment name (auto-fills)
           <input value={line.equipment_name} onChange={(e) => setField("equipment_name")(e.target.value)} style={{ padding: 5, fontSize: 12, width: "100%" }} placeholder="CAT 336" />
         </label>
         <label style={{ fontSize: 11 }}>Meter hours
@@ -241,7 +252,8 @@ export default function FuelLubeVisitForm() {
         portalName="MASCI"
         portalRole="Shop Portal · Fuel / Lube Visit"
         pageTitle="Fuel / Lube Visit Record"
-        subtitle="One job visit · multiple equipment lines. Each serviced unit writes to the Asset Service Event Backbone. Issue lines create Shop defects automatically. No cost / no accounting."
+        subtitle="One job visit · multiple equipment lines. Each service entry is saved to the unit's history. Issues create shop defects automatically."
+        primaryActions={<BackToShopLink testId="fuel-lube-visit-form-back-to-shop" />}
       >
         {result && (
           <div data-testid="fuel-lube-visit-form-success" style={{ background: "#e6f6ec", padding: 12, borderRadius: 4, color: "#137a48", fontSize: 12, marginBottom: 16 }}>
@@ -260,14 +272,30 @@ export default function FuelLubeVisitForm() {
               <label style={{ fontSize: 11 }}>Visit date*
                 <input data-testid="fuel-lube-visit-form-date" type="date" value={visit.visit_date} onChange={(e) => setVisit({ ...visit, visit_date: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }} required />
               </label>
-              <label style={{ fontSize: 11 }}>Project / Job #*
-                <input data-testid="fuel-lube-visit-form-project" value={visit.project_number} onChange={(e) => setVisit({ ...visit, project_number: e.target.value })} placeholder="e.g. UHS-2026" style={{ padding: 6, fontSize: 12, width: "100%" }} required />
+              <label style={{ fontSize: 11 }}>Project / Job*
+                <ShopSelector
+                  kind="project"
+                  testIdPrefix="fuel-lube-visit-form-project"
+                  value={visit.project_number}
+                  onChange={(row) => setVisit({
+                    ...visit,
+                    project_number: row?.project_number || "",
+                    project_name:   row?.project_name   || (row?.manual ? visit.project_name : ""),
+                  })}
+                  required
+                />
               </label>
-              <label style={{ fontSize: 11 }}>Project name
-                <input value={visit.project_name} onChange={(e) => setVisit({ ...visit, project_name: e.target.value })} placeholder="e.g. University High School" style={{ padding: 6, fontSize: 12, width: "100%" }} />
+              <label style={{ fontSize: 11 }}>Project name (auto-fills from selection)
+                <input data-testid="fuel-lube-visit-form-project-name" value={visit.project_name} onChange={(e) => setVisit({ ...visit, project_name: e.target.value })} placeholder="e.g. University High School" style={{ padding: 6, fontSize: 12, width: "100%" }} />
               </label>
               <label style={{ fontSize: 11 }}>Fuel/Lube truck*
-                <input data-testid="fuel-lube-visit-form-truck" value={visit.fuel_lube_truck_unit} onChange={(e) => setVisit({ ...visit, fuel_lube_truck_unit: e.target.value })} placeholder="e.g. FL-01" style={{ padding: 6, fontSize: 12, width: "100%" }} required />
+                <ShopSelector
+                  kind="unit"
+                  testIdPrefix="fuel-lube-visit-form-truck"
+                  value={visit.fuel_lube_truck_unit}
+                  onChange={(row) => setVisit({ ...visit, fuel_lube_truck_unit: row?.unit_number || "" })}
+                  required
+                />
               </label>
               <label style={{ fontSize: 11 }}>Tech name*
                 <input data-testid="fuel-lube-visit-form-tech-name" value={visit.fuel_lube_tech_name} onChange={(e) => setVisit({ ...visit, fuel_lube_tech_name: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }} required />
@@ -337,8 +365,8 @@ export default function FuelLubeVisitForm() {
           marginTop: 24, padding: 12, fontSize: 11, color: "#666",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4,
         }}>
-          Each serviced unit projects into the Asset Service Event Backbone (Track 13.26). Issue lines spawn Shop defects via the existing Track 13.28 lifecycle.
-          No cost · no accounting · no PO numbers · no MaintainX activation. Repair Complete ≠ RTS preserved — Dispatch retains the final return-to-service step.
+          Each service entry is saved to the unit's history. Issues you flag here become shop defects automatically.
+          Repair complete still requires return-to-service verification by Dispatch.
         </div>
       </PortalShell>
     </div>

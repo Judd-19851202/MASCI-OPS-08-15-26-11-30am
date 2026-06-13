@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const RANGES = [
@@ -82,10 +83,13 @@ export default function ServiceTruckReconciliationRecords() {
         pageTitle="Service Truck Reconciliation Records"
         subtitle="Start-of-day · dispensed (from Fuel/Lube Visits) · end-of-day · variance · status."
         primaryActions={
-          <Link to="/shop/service-truck-reconciliation/new" data-testid="strr-list-new"
-                style={{ padding: "6px 12px", fontSize: 12, background: "var(--brand-primary,#1b4965)", color: "#fff", textDecoration: "none", borderRadius: 4 }}>
-            + Start / Close day
-          </Link>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <BackToShopLink testId="strr-list-back-to-shop" />
+            <Link to="/shop/service-truck-reconciliation/new" data-testid="strr-list-new"
+                  style={{ padding: "6px 12px", fontSize: 12, background: "var(--brand-primary,#1b4965)", color: "#fff", textDecoration: "none", borderRadius: 4 }}>
+              + Start / Close day
+            </Link>
+          </div>
         }
       >
         <div data-testid="strr-list-filter-strip" style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12, alignItems: "center" }}>
@@ -186,7 +190,7 @@ export default function ServiceTruckReconciliationRecords() {
 
         <div data-testid="strr-list-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
               background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
-          Dispensed source: <code>fuel_lube_visits</code> (Track 13.29). NO accounting · NO cost · NO fuel tax · NO theft language.
+          Dispensed totals come from submitted Fuel/Lube Visits. No accounting · no cost · no fuel tax · no disciplinary language.
         </div>
       </PortalShell>
     </div>

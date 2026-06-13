@@ -14,6 +14,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -276,14 +277,17 @@ export default function ShopManagerQueue() {
         portalName="MASCI"
         portalRole="Shop Portal · Manager Queue"
         pageTitle="Shop Manager Queue"
-        subtitle="Every defect by assignment state · Track 13.28. Manager can assign, reassign, and review. Repair Complete ≠ RTS — Dispatch retains the final RTS step."
+        subtitle="Every defect by assignment state. Assign · reassign · review repairs. Repair complete still requires return-to-service verification by Dispatch."
         primaryActions={
-          <button
-            data-testid="shop-manager-queue-refresh"
-            onClick={load}
-            type="button"
-            style={{ padding: "6px 12px", fontSize: 12 }}
-          >Refresh</button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <BackToShopLink testId="shop-manager-queue-back-to-shop" />
+            <button
+              data-testid="shop-manager-queue-refresh"
+              onClick={load}
+              type="button"
+              style={{ padding: "6px 12px", fontSize: 12 }}
+            >Refresh</button>
+          </div>
         }
       >
         {error && (

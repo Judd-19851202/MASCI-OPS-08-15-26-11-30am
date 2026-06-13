@@ -5,6 +5,7 @@ import { useParams, Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card } from "../../design-system";
+import BackToShopLink from "@/components/shop/BackToShopLink";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
@@ -44,7 +45,8 @@ export default function FuelLubeVisitDetail() {
         pageTitle={`Visit ${visitId}`}
         subtitle="Submitted Fuel/Lube Visit Record · totals · per-equipment lines · issues · defect linkage."
         primaryActions={
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <BackToShopLink testId="fuel-lube-detail-back-to-shop" />
             <Link to="/shop/fuel-lube" data-testid="fuel-lube-detail-back" style={{ padding: "6px 12px", fontSize: 12, background: "#eee", color: "#222", textDecoration: "none", borderRadius: 4 }}>← Records</Link>
             <button data-testid="fuel-lube-detail-print" type="button" onClick={() => window.print()} style={{ padding: "6px 12px", fontSize: 12 }}>Print</button>
           </div>
@@ -129,7 +131,7 @@ export default function FuelLubeVisitDetail() {
                         </div>
                       )}
                       <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>
-                        Entered Shop defect lifecycle (Track 13.28). Visible in <Link data-testid={`fuel-lube-detail-line-mgr-queue-link-${i}`} to="/shop/manager/queue">Shop Manager Queue</Link>.
+                        Sent to the shop defect queue. Visible in <Link data-testid={`fuel-lube-detail-line-mgr-queue-link-${i}`} to="/shop/manager/queue">Shop Manager Queue</Link>.
                       </div>
                     </div>
                   )}
@@ -145,8 +147,8 @@ export default function FuelLubeVisitDetail() {
 
             <div data-testid="fuel-lube-detail-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
               background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
-              Single source · Asset Service Event Backbone (Track 13.26). Issues feed Track 13.28 lifecycle.
-              Print uses the browser's native dialog. PDF / email / CSV exports are future enhancements — no fake buttons here.
+              Each service entry is saved to the unit's history. Issues flow to the shop defect queue.
+              Print uses the browser's native dialog. PDF / email / CSV exports are not enabled here.
             </div>
           </>
         )}
