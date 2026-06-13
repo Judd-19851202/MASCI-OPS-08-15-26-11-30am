@@ -1920,3 +1920,43 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
 
 ### Report
 `/app/memory/TRACK_13_30_SERVICE_TRUCK_DAILY_RECONCILIATION.md`. Deployment readiness remains 🟢 **GREEN**.
+
+---
+
+## 2026-06-12 · Track 13.30A — Shop Command Center UX + Role Workflow Architecture Audit (READ-ONLY)
+
+**Mode:** READ-ONLY · no implementation · no code · no routes · no UI · no backend · no deploy.
+
+### What was audited
+- Current ShopHubV2 structure (5 sections · 13 nav cards · 1 map embed · 1 preview banner · 1 footer trace note).
+- All `/app/frontend/src/pages/shop/*.jsx` sub-pages and their back-button behaviors.
+- `HubBackLink.jsx` (admin/PM/anonymous-only logic — **Shop-blind**).
+- All 17 routes mounted under `/shop/*` and 23 backend endpoints actually consumed by Shop UI today.
+- Role-based first-five needs across Shop Manager, Mechanic, Fuel/Lube Tech, Service Writer (future), Dispatch viewer, Admin/Leadership.
+
+### HIGH-severity findings
+- **`HubBackLink` Shop-blind** — Shop-only users on `/shop/equipment`, `/shop/equipment/:id`, `/shop/fleet` click "← Hub" and land at platform `/`, not `/shop`. One file · 6 LOC fix.
+- **Track-graveyard drift** — operator copy leaks engineering metadata: "Track 13.6I recovery", "Track 13.28 lifecycle", "Track 13.29 P2", "Track 13.30", "Source: /api/...".
+- **No global unit search** — most-common task is 4 clicks deep; target is 1 click. Highest UX leverage gap.
+- **Overlapping counters** — Section 01 shows the same defect situation counted 3 ways.
+- **Buried high-value cards** — "My Assignments" and "Manager Queue" live in Section 05, below Records and the Recovery Map.
+
+### Role-based first-five completed for 6 roles
+All gaps documented; only **PM Engine due/overdue** + **parts-expected-today** require future tracks. **No endpoint gaps blocking 13.30B implementation** beyond the new `/api/shop/units/search` for Track 13.30C.
+
+### Recommended build queue
+1. **13.30B** — Command Center restructure + HubBackLink Shop-aware fix (2 d · LOW · zero new backend).
+2. **13.30C** — Global Unit Search (1 d · 1 new endpoint + 1 frontend component).
+3. **13.30D** — Parts-On-Order + Mechanic Workload aggregators (2 d · 2 derived endpoints).
+4. **13.31** — PM Engine (derived projector · 5 d · MED).
+5. **13.33** — Asset Care Command Center (4 d · LOW · composes 13.26 + 13.28 + 13.30 + 13.31).
+6. **13.32** — MaintainX (BLOCKED on `MAINTAINX_API_KEY`).
+
+### Five-Pillar score (current ShopHubV2)
+7.0 / 10 — Powerful 6 · Simple 5 · Beautiful 7 · Trusted 9 · Proven 8. Strong substrate · structural drift.
+
+### Hard locks reaffirmed
+- Repair Complete ≠ RTS · Dispatch RTS authority · Map-First Dispatch · Driver no-login · One map engine · One source of truth · No fake MaintainX/FleetWatcher · No accounting/cost/PO · No duplicate asset history · No duplicate defect lifecycle · No mutation from search.
+
+### Report
+`/app/memory/TRACK_13_30A_SHOP_COMMAND_CENTER_UX_ROLE_WORKFLOW_ARCHITECTURE_AUDIT.md`. Deployment readiness remains 🟢 **GREEN**.

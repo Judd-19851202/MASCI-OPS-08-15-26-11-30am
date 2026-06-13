@@ -5520,3 +5520,30 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
 - **Track 13.31 — PM Engine (derived)** or **Track 13.33 — Asset Care Command Center**. **Track 13.32 — MaintainX** remains BLOCKED on `MAINTAINX_API_KEY`.
 
 **Report:** `/app/memory/TRACK_13_30_SERVICE_TRUCK_DAILY_RECONCILIATION.md`.
+
+---
+
+## 2026-06-12 · Track 13.30A — Shop Command Center UX + Role Workflow Architecture Audit (READ-ONLY)
+
+**Mode:** READ-ONLY certification + architecture design. **No implementation.**
+
+### What shipped
+- 18-section audit covering current ShopHubV2 layout · UI defects · navigation defects (`HubBackLink` Shop-blindness) · role-based first-five needs (6 roles) · current route/source inventory (17 routes · 23 backend endpoints) · future placement architecture · target 7-section command center · global unit search architecture · 19-card source-truth map · click-depth audit · five-pillar score · build queue · what NOT to build · hard lock verification.
+
+### HIGH-severity findings
+- **`HubBackLink` Shop-blind** — 3 high-traffic Shop routes (`/shop/equipment`, `/shop/equipment/:id`, `/shop/fleet`) kick Shop-only users back to platform `/` instead of `/shop`. 6-LOC fix in 1 file.
+- **No global unit search** — most-common task is 4 clicks deep; target is 1 click. Highest UX leverage gap on the hub.
+- **Track-graveyard drift** — operator copy leaks engineering metadata everywhere (`Source: /api/...`, `Track 13.28 lifecycle`, `Track 13.29 P2`, `Track 13.30`).
+- **Overlapping defect counters** — Section 01 surfaces the same situation counted 3 ways.
+
+### Recommended next track
+- **Track 13.30B — Shop Command Center Restructure + HubBackLink Shop-aware fix** (2 d · LOW · frontend-only · ZERO new backend).
+- Followed by **13.30C** (Global Unit Search · 1 d), then **13.30D** (parts-on-order + mechanic workload aggregators · 2 d), then **13.31** (PM Engine), then **13.33** (Asset Care Command Center). MaintainX 13.32 BLOCKED on credentials.
+
+### Five-Pillar score (current ShopHubV2)
+7.0 / 10 — Powerful 6 · Simple 5 · Beautiful 7 · Trusted 9 · Proven 8.
+
+### Hard locks reaffirmed
+- Repair Complete ≠ RTS · Dispatch RTS authority · Map-First Dispatch · Driver no-login · One map engine · One source of truth · No fake MaintainX/FleetWatcher · No accounting · No cost · No duplicate asset history · No duplicate defect lifecycle.
+
+**Report:** `/app/memory/TRACK_13_30A_SHOP_COMMAND_CENTER_UX_ROLE_WORKFLOW_ARCHITECTURE_AUDIT.md`. Deployment readiness remains 🟢 **GREEN**.

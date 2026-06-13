@@ -292,3 +292,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar Score: 9.8 / 10.**
 - Deployment readiness remains 🟢 **GREEN**.
 - Report: `/app/memory/TRACK_13_30_SERVICE_TRUCK_DAILY_RECONCILIATION.md`.
+
+## 2026-06-12 · Track 13.30A closeout — Shop Command Center UX + Role Workflow Architecture Audit (READ-ONLY)
+
+- **Mode:** READ-ONLY certification + architecture design. **No implementation.** No code · no routes · no UI · no backend · no deploy.
+- **Verdict:** Stop building features. Shop substrate is strong (36/36 pytest); ShopHubV2 is drifting into a "track graveyard" (5 sections · 17 nav cards organized by track number, not by role + decision). First five things each role needs at 6 AM are not in the first viewport on any role.
+- **HIGH-severity defects found:**
+  - `HubBackLink` is **Shop-blind** — Shop-only users on `/shop/equipment`, `/shop/equipment/:id`, `/shop/fleet` click "← Hub" and land at platform `/`, not `/shop`. Fix: add `isShop()` branch (~6 LOC, 1 file).
+  - Section 01 has 4 overlapping defect counters (`defects_open`, `defects_acknowledged`, `defect_open_units`, `units_with_open_defect`) — same situation counted 3 ways.
+  - Section 02 has 3 cards all linking to `/shop/equipment` without query filters.
+  - "My Assignments" and "Manager Queue" buried in Section 05 — should be in Section 01.
+  - **No global unit search** — most-common task is 4 clicks deep; target is 1 click. Highest UX leverage gap on the hub.
+  - "Preview" banner + footer trace note leak internal track copy (`Track 13.6I`).
+- **Role-based first-five analysis** completed for: Shop Manager · Mechanic · Fuel/Lube Tech · Service Writer (future) · Dispatch viewer · Admin/Leadership. Most needs are already pytest-covered endpoints (only PM + parts-on-order aggregator are missing).
+- **Card / count source-truth map** (19 cards proposed): 13 live today · 4 derivable client-side · 2 need new aggregators · 2 await future tracks (PM, MaintainX).
+- **Click-depth audit:** Adding header Unit Search would remove 1–3 clicks from 6 of 14 most-common Shop tasks.
+- **Recommended build queue:** `13.30B` (Command Center restructure + HubBackLink fix · 2 d · LOW risk) → `13.30C` (Global Unit Search · 1 d · LOW) → `13.30D` (Parts-On-Order + Mechanic Workload aggregators · 2 d · LOW) → `13.31` (PM Engine · 5 d · MED) → `13.33` (Asset Care Command · 4 d · LOW) → `13.32` (MaintainX · BLOCKED on `MAINTAINX_API_KEY`).
+- **What NOT to build:** more Track-X cards before 13.30B ships · no accounting/cost/PO/pay-app/contract surfaces · no theft register · no parallel asset history · no MaintainX activation · no `fuel_lube_visits` mutation from search.
+- **Hard locks reaffirmed:** Repair Complete ≠ RTS · Dispatch RTS authority · Map-First Dispatch · Driver no-login · One map engine · One source of truth · No fake MaintainX/FleetWatcher · No accounting/cost/PO · No duplicate asset history · No duplicate defect lifecycle.
+- **Five-Pillar score (current ShopHubV2):** 7.0 / 10 (Powerful 6 · Simple 5 · Beautiful 7 · Trusted 9 · Proven 8). Strong substrate · structural drift.
+- Deployment readiness remains 🟢 **GREEN**.
+- Report: `/app/memory/TRACK_13_30A_SHOP_COMMAND_CENTER_UX_ROLE_WORKFLOW_ARCHITECTURE_AUDIT.md`.

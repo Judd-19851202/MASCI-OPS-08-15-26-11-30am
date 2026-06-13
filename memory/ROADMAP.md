@@ -37,6 +37,11 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 | 7 | 13.32 | MaintainX Integration | HIGH | **BLOCKED on `MAINTAINX_API_KEY` credentials** |
 | 8 | 13.33 | Asset Care Command Center | LOW | BUILD after lower tracks |
 
+### Track 13.30A · Shop Command Center UX + Role Workflow Architecture Audit (DONE 2026-06-12 · READ-ONLY)
+- 18-section audit completed · no implementation. **Verdict:** stop adding features to ShopHubV2 until **Track 13.30B** ships (Command Center restructure + HubBackLink Shop-aware fix · 2 d · LOW · frontend-only · ZERO new backend). Then **13.30C** (Global Unit Search · 1 d · 1 new endpoint), **13.30D** (Parts-On-Order + Mechanic Workload aggregators · 2 d), **13.31** (PM Engine), **13.33** (Asset Care Command Center). MaintainX 13.32 remains BLOCKED on `MAINTAINX_API_KEY`.
+- HIGH-severity defects identified: HubBackLink Shop-blindness (3 routes); no global unit search; overlapping defect counters; track-graveyard copy in operator surfaces; buried high-value cards.
+- Report: `/app/memory/TRACK_13_30A_SHOP_COMMAND_CENTER_UX_ROLE_WORKFLOW_ARCHITECTURE_AUDIT.md`.
+
 **Hard locks reaffirmed:** Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · one map engine · no fake MaintainX · no fake FleetWatcher · no accounting / ERP / pay-app / cost / contract / RFI / submittal / change-order / doc-control · no fake users / mechanics / PM / fuel totals.
 
 | # | Gap                                                | Severity | Effort |
