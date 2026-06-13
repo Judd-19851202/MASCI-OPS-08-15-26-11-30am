@@ -5747,3 +5747,53 @@ Powerful 9.7 · Simple 9.6 · Beautiful 9.5 · Trusted 9.8 · Proven 9.7.
 
 **Report:** `/app/memory/TRACK_13_31_PM_ENGINE.md`.
 
+
+---
+
+## Track 13.31A · Asset Administrator Certification & Source-of-Truth Audit · 2026-06-13
+
+### Mode
+READ-ONLY CERTIFICATION. **NO code · NO UI · NO routes · NO schema · NO collections · NO deploy.** Success criterion = produced the deliverable and proved the ownership picture; no implementation occurred.
+
+### Audited
+- 11 asset-related backend collections (equipment_master, fleet_status, fleet_defects, equipment_inspections, fuel_lube_visits, service_truck_reconciliations, pm_templates/schedules/work_orders, tasks_notifications, operational_attachments, asset_mapping).
+- 20+ asset-related backend routes including the full Motive service.
+- The MapLibre operations map (single engine, single canvas) and Recovery Map.
+- All Track 13.26–13.31 prior deliverables.
+
+### Asset Ownership Matrix (key finding)
+- **11 fields properly OWNED** (unit_number, id, year, vin, plate, status derived from fleet_status, defects, PMs, meter, location).
+- **2 DUPLICATED** (make/model/make_model triplet · category/preop_equipment_type taxonomies).
+- **18 MISSING administrative fields**: registration_*, insurance_*, title/ownership, purchase_date, GPS device serial, Motive vehicle/asset id (foreign-keys on equipment_master itself), lifecycle_status, division/supervisor/region, photos, documents, DOT certificates.
+
+### Verdicts
+- **equipment_master remains operational system of record.** Must be extended additively by Track 13.31B. Creating a parallel `asset_admin` collection is hard-rejected — would re-create the duplication risk.
+- **Motive scope verified correct** — telematics only. Recommendation: add Motive foreign-key fields directly on equipment_master rows (populated by existing sync) so the link is on the master row, not only in the asset_mapping join.
+- **Asset Administrator role designed** (NOT implemented). Owns the 18 missing administrative fields + document vault + lifecycle + GPS/Motive linkage + renewals. Does NOT own defect lifecycle, repairs, RTS, PMs, fuel/lube submissions, dispatch.
+- **MAP STAYS — non-negotiable.** Single MapLibre engine. Single canvas. Asset Administrator consumes via `useMapSnapshot` pattern; never duplicates.
+- **Document vault buildable on existing `operational_attachments` collection** but does not exist today (no equipment_id foreign key · no asset-document attachment_type values · no equipment-scoped upload endpoint).
+
+### Asset Care Command Center (Track 13.33) readiness
+**6 / 12 components ready (50%).** Composable half (defects, PMs, fuel/lube, history, meter, map) is 100% ready and could ship today as 13.33-A. Administrative half (documents, lifecycle, renewals, photos, division/supervisor, Motive foreign-keys) requires 13.31B to land first.
+
+### Five-Pillar score for current Asset Administration state · 6.6 / 10
+Powerful 4 · Simple 7 · Beautiful 5 · Trusted 8 · Proven 9. **Below the 9.5 bar.** Track 13.31B is the cheapest path to clearing it.
+
+### Hard locks reaffirmed
+- MAP STAYS · single engine · single canvas.
+- Repair Complete ≠ RTS · Dispatch retains RTS authority.
+- No new portals · no fake renewal alerts · no fake manufacturer DB.
+- No mock/duplicated asset history · ASE backbone remains the single timeline.
+- MaintainX blocked · FleetWatcher blocked.
+
+### Recommended track sequence
+1. **Track 13.31B — Asset Administration Spine** (P1, next): extend equipment_master schema additively · lifecycle enum · Motive foreign-keys · document vault · Asset Administrator role.
+2. **Track 13.33-A — Asset Care Read-Only Composite View** (P1, after 13.31B).
+3. **Track 13.33-B — Asset Care Renewal Alerts** (P2).
+4. **Track 13.32 — MaintainX** (P3, blocked on credentials).
+
+### Authorization status for Track 13.33
+**NOT YET AUTHORIZED in full ambition.** Authorized at 13.33-A read-only-composite scope ONLY AFTER Track 13.31B lands.
+
+**Report:** `/app/memory/TRACK_13_31A_ASSET_ADMINISTRATOR_CERTIFICATION.md`.
+

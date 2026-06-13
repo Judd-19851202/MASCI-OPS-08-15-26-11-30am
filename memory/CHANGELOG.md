@@ -10,6 +10,23 @@
 
 ---
 
+## 2026-06-13 · Track 13.31A — Asset Administrator Certification & Source-of-Truth Audit (READ-ONLY)
+
+**Mode:** READ-ONLY CERTIFICATION. NO code · NO UI · NO routes · NO schema · NO collections · NO deploy · NO GitHub.
+
+- Full audit of all equipment-related collections, routes, services, pages, and integrations.
+- **Asset Ownership Matrix** built for 31 audited fields: 11 properly OWNED · 2 DUPLICATED (make/model/make_model triplet · category/preop_equipment_type taxonomies) · **18 MISSING** (registration, insurance, title, ownership, lifecycle_status, photos, documents, division/supervisor/region, GPS device, Motive foreign-keys).
+- **Equipment_master certified as the system of record** but its schema is currently a thin 13-field ledger. Track 13.31B must extend it additively. **DO NOT create a parallel asset_admin collection** — would re-create the duplication risk this audit eliminates.
+- **Motive scope verified correct** — telematics only. `equipment_master` remains operational source of truth. Recommendation: add `motive_vehicle_id` / `motive_asset_id` foreign-key fields on `equipment_master` populated by existing sync.
+- **Asset Administrator role** designed (NOT implemented). Should own: 18 missing fields + document vault + lifecycle + GPS/Motive linkage + renewals. Should NOT own: defect lifecycle, repairs, RTS, PM templates, fuel/lube submissions, dispatch.
+- **MAP STAYS** — non-negotiable. Asset Administrator consumes the existing map (single MapLibre engine); does not duplicate it.
+- **Asset Care Command Center (Track 13.33) readiness: 6/12 components ready (50%).** Authorized at 13.33-A "read-only composite" scope only AFTER Track 13.31B lands. Full ambition deferred.
+- **Five-Pillar score for current Asset Administration state: 6.6/10** (Powerful 4 · Simple 7 · Beautiful 5 · Trusted 8 · Proven 9). Falls below 9.5 bar.
+- **Recommended track sequence**: 13.31B Asset Administration Spine → 13.33-A Asset Care Composite View → 13.33-B Renewal Alerts → 13.32 MaintainX (blocked on credentials).
+- Report: `/app/memory/TRACK_13_31A_ASSET_ADMINISTRATOR_CERTIFICATION.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31 — PM Engine · Preventive Maintenance Lifecycle
 
 **Mode:** CONTROLLED IMPLEMENTATION + MANDATORY SELF-AUDIT + FIVE-PILLAR CERTIFICATION. NO deploy · NO GitHub · NO merge.
