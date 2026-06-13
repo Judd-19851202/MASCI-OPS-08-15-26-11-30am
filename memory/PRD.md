@@ -260,3 +260,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Not built:** list/detail UI (deferred to Track 13.29 P2) · PDF/email/CSV (no reusable infrastructure · documented) · Motive geofence equipment auto-fill.
 - Five-Pillar Score 9.8 / 10.
 - Report: `/app/memory/TRACK_13_29_FUEL_LUBE_VISIT_RECORD.md`. Deployment readiness remains 🟢 GREEN.
+
+## 2026-06-12 · Track 13.29 Phase 2 closeout — Fuel/Lube Visit Records List + Detail UI
+
+- **Operator-facing read surface for Track 13.29 LIVE.** Two new pages under `RequireShop`:
+  - `/shop/fuel-lube` — list of submitted Fuel/Lube Visit Records with date-range presets (today / 7d / 30d default / 90d max) and 6 filters (project · truck · tech · unit · issue status · fuel type). Honest empty/error states. ISSUE pill on rows with field-discovered issues.
+  - `/shop/fuel-lube/:visitId` — header + 12-cell totals card + per-equipment line cards (issue block · 9 fluid quantities · meter · odometer · grease state · notes · linked defect IDs · one-click "View Unit History →" to Track 13.27 timeline · Shop Manager Queue link for issues). Print uses browser-native dialog. NO fake PDF/email/CSV buttons.
+- **Consumes existing Track 13.29 endpoints** (`GET /api/shop/fuel-lube/visits` + `GET /api/shop/fuel-lube/visits/{id}`). Zero backend touched · zero new endpoint · zero new collection · zero schema delta · zero auth widening.
+- **ShopHubV2 Section 05** navigation card added pointing to `/shop/fuel-lube`. Existing 4 workforce cards unchanged. `/shop/hub_legacy` rollback alive.
+- **Hard locks intact:** No cost · no accounting · no PO numbers · no MaintainX activation · no driver login · no Shop RTS authority · no duplicate history · Dispatch Map-First · Repair Complete ≠ RTS.
+- **Tests:** Smoke (root mount · honest empty · honest error · ShopHubV2 nav · regression on `/shop/manager/queue` · `/shop/me` · `/shop/units/history` · `/dispatch-portal` map canvas). Backend regression suite still **24/24 pass** (5 Track 13.29 + 4 Track 13.28 + 4 Track 13.28 P2 + 11 Track 13.26). ESLint clean.
+- **Files added:** `pages/shop/FuelLubeVisitRecords.jsx` · `pages/shop/FuelLubeVisitDetail.jsx` · `memory/TRACK_13_29_PHASE_2_FUEL_LUBE_VISIT_RECORDS_UI.md`.
+- **Files modified:** `App.js` (+2 lazy imports +2 routes) · `ShopHubV2.jsx` (+1 nav card in Section 05).
+- **Five-Pillar Score: 9.8 / 10.**
+- Deployment readiness remains 🟢 **GREEN**.
+- Report: `/app/memory/TRACK_13_29_PHASE_2_FUEL_LUBE_VISIT_RECORDS_UI.md`.

@@ -1847,3 +1847,39 @@ Single offline-runnable packet that unlocks every operator-interview-gated roadm
 
 ### Hard locks reaffirmed
 - Repair Complete ≠ RTS · Dispatch retains RTS · Driver no-login · Map-first Dispatch · One source of truth · No fake MaintainX / FleetWatcher · No fuel accounting / cost · No duplicate history.
+
+---
+
+## 2026-06-12 · Track 13.29 Phase 2 — Fuel/Lube Visit Records List + Detail UI (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · frontend only · no deploy.
+
+### What shipped
+- `/shop/fuel-lube` — Records list (RequireShop). Date presets (today/7d/30d/90d) + 6 filters (project, truck, tech, unit, issue status, fuel type). Row cards show date, project, ISSUE pill (when applicable), truck, tech, submitted timestamp, totals strip (units serviced / greased / 4 fuel gallon totals). Honest empty/error states.
+- `/shop/fuel-lube/:visitId` — Visit detail (RequireShop). Header + 12-cell totals card + per-equipment line cards (issue block, 9 fluid quantities, meter, odometer, grease state, notes, linked defect IDs, "View Unit History →" link, Shop Manager Queue link for issues). Print uses browser-native dialog only — no fake PDF/email/CSV buttons.
+- ShopHubV2 Section 05 navigation card added → `/shop/fuel-lube`. Existing 4 workforce cards unchanged.
+
+### Consumed (no backend touched)
+- `GET /api/shop/fuel-lube/visits` (Track 13.29 list endpoint).
+- `GET /api/shop/fuel-lube/visits/{id}` (Track 13.29 detail endpoint).
+
+### Files
+- Added: `frontend/src/pages/shop/FuelLubeVisitRecords.jsx` · `frontend/src/pages/shop/FuelLubeVisitDetail.jsx` · `memory/TRACK_13_29_PHASE_2_FUEL_LUBE_VISIT_RECORDS_UI.md`.
+- Modified: `frontend/src/App.js` (+2 lazy imports + 2 routes) · `frontend/src/pages/ShopHubV2.jsx` (+1 nav card).
+
+### Untouched
+- All Track 13.29 backend (`routes/fuel_lube.py`), Track 13.26 (`routes/asset_service_events.py`), Track 13.28 (`routes/fleet_ops.py`). Dispatch, Driver, PM, Safety, Material Movement Ledger, `equipment_parts`, `.env`. `/shop/hub_legacy` rollback alive.
+
+### Tests
+- Browser smoke (root mount, honest empty, honest error, ShopHubV2 nav card, regression on `/shop/manager/queue` + `/shop/me` + `/shop/units/history` + `/dispatch-portal` map canvas).
+- Backend regression suite remains **24/24 pass** (5 Track 13.29 + 4 Track 13.28 + 4 Track 13.28 P2 + 11 Track 13.26).
+- ESLint clean.
+
+### Hard locks reaffirmed
+- No cost · no accounting · no PO numbers · no MaintainX activation · no driver login · no Shop RTS authority · no duplicate history · Dispatch Map-First · Repair Complete ≠ RTS.
+
+### Five-Pillar score · 9.8 / 10
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
+
+### Report
+`/app/memory/TRACK_13_29_PHASE_2_FUEL_LUBE_VISIT_RECORDS_UI.md`. Deployment readiness remains 🟢 **GREEN**.

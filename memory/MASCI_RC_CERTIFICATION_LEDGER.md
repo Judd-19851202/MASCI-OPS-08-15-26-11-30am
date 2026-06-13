@@ -5461,6 +5461,32 @@ Seatbelt-defect test seeds → `assign` → `accept` → `start` → `repair` �
 ### Five-Pillar score · 9.8 / 10 (Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10)
 
 ### Recommended next track
-- **Track 13.31 — PM Engine (derived)** · or parallel **Track 13.30 — Service-Truck Reconciliation** or **Track 13.29 P2 — Fuel/Lube list + detail UI**.
+- **Track 13.30 — Service-Truck Reconciliation** (parallel) · or **Track 13.31 — PM Engine (derived)** · or **Track 13.33 — Asset Care Command Center**. Track 13.29 P2 (list + detail UI) is now shipped.
 
 **Report:** `/app/memory/TRACK_13_29_FUEL_LUBE_VISIT_RECORD.md`.
+
+---
+
+## 2026-06-12 · Track 13.29 Phase 2 — Fuel/Lube Visit Records List + Detail UI (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · frontend only · no deploy.
+
+### What shipped
+- `/shop/fuel-lube` (RequireShop) — Records list. Date presets (today/7d/30d default/90d max) + 6 filters (project · truck · tech · unit · issue status · fuel type). Row cards: date · project · ISSUE pill (when applicable) · truck · tech · submitted timestamp · totals strip. Honest empty/error states. `+ New visit` action.
+- `/shop/fuel-lube/:visitId` (RequireShop) — Visit detail. Header + 12-cell totals card + per-equipment line cards (issue block · 9 fluid quantities · meter · odometer · grease state · notes · linked defect IDs · "View Unit History →" to Track 13.27 timeline · Shop Manager Queue link for issues). Print = browser-native dialog only — no fake PDF / email / CSV buttons.
+- ShopHubV2 Section 05 navigation card → `/shop/fuel-lube`. Existing 4 workforce cards unchanged.
+
+### Hard locks verified
+- No cost · no accounting · no PO numbers · no MaintainX activation · no driver login · no Shop RTS authority · no duplicate history · Dispatch Map-First · Repair Complete ≠ RTS · `/shop/hub_legacy` alive.
+
+### Tests
+- Browser smoke (root mount · honest empty · honest error · ShopHubV2 nav card · regression sweep across Shop V2 surfaces · Dispatch map canvas intact).
+- Backend regression: **24/24 pass** (5 + 4 + 4 + 11). ESLint clean.
+
+### Five-Pillar score · 9.8 / 10
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
+
+### Recommended next track
+- **Track 13.30 — Service-Truck Reconciliation** (parallel) · **Track 13.31 — PM Engine (derived)** · **Track 13.33 — Asset Care Command Center**.
+
+**Report:** `/app/memory/TRACK_13_29_PHASE_2_FUEL_LUBE_VISIT_RECORDS_UI.md`.

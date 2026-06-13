@@ -28,10 +28,10 @@ Architecture report: `/app/memory/TRACK_13_18_MATERIAL_MOVEMENT_LEDGER_CERTIFICA
 
 | # | Track | Goal | Risk | Verdict |
 |---|-------|------|------|---------|
-| 1 | 13.26 | Asset Service Event Backbone (derived) | LOW | **BUILD NEXT** |
-| 2 | 13.27 | Unit History Timeline (page + endpoint) | LOW | BUILD after 13.26 |
-| 3 | 13.28 | Shop Mechanic Assignment + Repair Notes | MED | requires operator decision on mechanic login |
-| 4 | 13.29 | Fuel/Lube Job Visit Form | MED-HIGH | BUILD when operator ready |
+| 1 | 13.26 | Asset Service Event Backbone (derived) | LOW | ✅ **DONE 2026-06-12** (11/11 pytest pass) |
+| 2 | 13.27 | Unit History Timeline (page + endpoint) | LOW | ✅ **DONE 2026-06-12** (browser smoke confirmed) |
+| 3 | 13.28 | Shop Mechanic Assignment + Repair Notes | MED | ✅ **DONE 2026-06-12** (backend 4/4 + Phase 2 UI 4/4 pass) |
+| 4 | 13.29 | Fuel/Lube Job Visit Form | MED-HIGH | ✅ **DONE 2026-06-12** (backend + submission form + records list + detail UI · 24/24 backend pass) |
 | 5 | 13.30 | Fuel/Lube Daily Reconciliation | MED | BUILD after 13.29 |
 | 6 | 13.31 | PM Engine (derived first) | LOW-MED | BUILD after 13.28 |
 | 7 | 13.32 | MaintainX Integration | HIGH | **BLOCKED on `MAINTAINX_API_KEY` credentials** |
