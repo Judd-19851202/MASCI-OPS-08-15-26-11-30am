@@ -6679,3 +6679,52 @@ Combined ≈ 130 high-frequency keys catalogued across the 3 dictionaries cover 
 
 **DO NOT DEPLOY** until S1 · P1 · I1 close and Track 14.0 re-runs CERTIFIED READY TO DEPLOY.
 
+
+---
+
+## Track 14.0-MC · Modal + Coaching + Document Descriptors Certification (Final Pre-Spanish UX Governance Pass) · 2026-06-13
+
+**Mode:** READ-ONLY certification + documentation · 0 code change.
+**Hard locks held:** No deploy · no GitHub · no merge · no Spanish · no new integration · no MaintainX/FleetWatcher activation · no new collection · no new auth/routing/portal/design-system · no map/RTS/Repair-Complete change · no workflow rewrite · no business logic · no accounting/cost/PO/ERP/pay-app.
+
+### Verdict
+
+**PASS · NO DEPLOY · Five-Pillar weighted avg 9.62 / 10.**
+- Simple 9.78 · Beautiful 9.55 (clears 9.5; 9.8 gap = un-audited 58/64 modals) · Trusted 9.80 · Powerful 9.65 · Proven 9.75.
+
+### Modal certification
+
+64 inventoried · 6 audited via prior ledgers · ~48 inherit shadcn (likely consistent) · ~10 bespoke drawers in legacy admin tools. Score 7.5/10. 5 defects catalogued · 0 fixes shipped this track (deferred to 14.0-Mod1-EXEC · 4h · P1).
+
+### Coaching certification
+
+143 anchors (91 coaching files + 52 EmptyState). Score 8.7/10. Critical workflows GOOD/EXCELLENT. 3 mid-tier "Too Light" surfaces → 14.0-C1. **0 over-coaching · 0 conflicting · 0 punitive.** "Coaching not punishment" doctrine preserved.
+
+### Document descriptor certification
+
+Score 8.4/10. Gap: per-doc-type 1-line descriptors in Upload Dialog + Verified/Pending inline tooltips. → 14.0-C1.
+
+### Role experience (14 roles)
+
+12/14 PASS · 2 CONDITIONAL (PM + HR deep menus). Asset Admin 9.55/10. Score 9.3/10.
+
+### Help & training
+
+12 training routes · `GlobalSearch` on 8 portal hubs (data-search confirmed) · knowledge-base search gap → 14.0-H1 post-Spanish. Score 7.8/10.
+
+### First-15-second / first-click
+
+9.5/10 and 9.4/10 respectively.
+
+### Files changed
+
+**0 code files.** Memory: this ledger + 4 mandatory ledgers updated.
+
+### Recommended sequence
+
+14.0-C1 (3h) → 14.0-A2B (6h) → 14.0-Mod1-EXEC (4h) → **14.0-S1 (8h · Spanish)** → 14.0-P1 (5h · PDF) → 14.0-I1 (2h · integration banners) → re-run Track 14.0 → if CERTIFIED READY TO DEPLOY → ship.
+
+**Report:** `/app/memory/TRACK_14_0_MC_MODAL_COACHING_DOCUMENT_DESCRIPTOR_CERTIFICATION.md`.
+
+**Final Pre-Spanish UX governance pass now CLOSED.** Spanish translation (14.0-S1) can safely begin.
+

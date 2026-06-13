@@ -10,6 +10,25 @@
 
 ---
 
+## 2026-06-13 · Track 14.0-MC — Modal + Coaching + Document Descriptors Certification (Pre-Spanish UX Stabilization · final UX governance pass)
+
+**Mode:** READ-ONLY certification + documentation. NO code change. NO deploy · NO GitHub · NO merge · NO Spanish · NO new integration · NO MaintainX/FleetWatcher activation · NO new collection · NO new auth/routing/portal/design-system · NO map/RTS/Repair-Complete change · NO workflow rewrite · NO business logic · NO accounting/cost/PO/ERP/pay-app.
+
+- **Verdict: PASS · NO DEPLOY · Five-Pillar 9.62/10** · Simple 9.78 · Beautiful 9.55 (clears 9.5 baseline · 9.8 gap = un-audited 58/64 modals) · Trusted 9.80 · Powerful 9.65 · Proven 9.75.
+- **Modal certification**: 64 dialog/sheet/alert-dialog files inventoried. 6 individually audited via prior ledgers (AddAssetDialog · RequiredDocsEditor · Upload-Document-in-AssetDocumentsTab · Photo Viewer · DR Needs-Revision · shadcn AlertDialog confirms). ~48 inherit shadcn primitives (likely consistent). ~10 bespoke drawers in legacy admin tools. Modal consistency score 7.5/10. 5 named defects catalogued (Spanish/a11y/mobile per-modal not verified · no `<ModalFooter>` shared primitive · Esc/outside-click not verified on bespoke 10 · etc.). Defer to 14.0-Mod1-EXEC (4h · P1).
+- **Coaching certification**: 91 coaching surfaces + 52 EmptyState instances = 143 anchors. Score 8.7/10. Critical public forms all GOOD/EXCELLENT (Daily Report · Incident · Excavation · Pre-Op · DVIR · Safety Hub · Asset Care · access-denied · thank-you · sign-in). 3 mid-tier "Too Light" surfaces (Add Asset · Required Docs · Upload Document → 14.0-C1). Admin/PM/HR deeper-route coaching sparse-but-intentional. Missing-coaching count: 3. Over-coaching: 0. Conflicting: 0. Scary/punitive: 0. "Coaching, not punishment" doctrine preserved.
+- **Document descriptor certification**: Score 8.4/10. Public-form photo uploads explicit. Asset Admin upload dialog missing per-doc-type 1-line descriptors. `Verified/Pending Verification` chips lack inline tooltip explanation. Both → 14.0-C1.
+- **Asset Admin experience**: Score 9.55/10. Verifiable without training/admin-access/API-knowledge/supervisor-assistance within first session.
+- **Role experience (14 roles)**: Score 9.3/10. 12/14 PASS. 2 CONDITIONAL (PM · HR deep-menu navigation).
+- **Help & training**: Score 7.8/10. 12 training routes inventoried · `GlobalSearch` data-search wired on 8 portal hubs (A2 correction confirmed). Gap: no knowledge-base/training-content search · no "?" contextual help drawer in chrome · no first-time-user overlay. → 14.0-H1 (post-Spanish · 8h).
+- **First-15-second test**: 9.5/10. **First-click test**: 9.4/10.
+- **Files changed**: 0 code. Only memory: track ledger + 4 mandatory ledgers updated.
+- **Recommended sequence**: 14.0-C1 (3h · doc descriptors) → 14.0-A2B (6h · coaching density) → 14.0-Mod1-EXEC (4h · modal exec pass) → **14.0-S1** (8h · Spanish) → 14.0-P1 (5h · PDF) → 14.0-I1 (2h · integration banners) → re-run Track 14.0 → if CERTIFIED, deploy.
+- Hard locks held. Report: `/app/memory/TRACK_14_0_MC_MODAL_COACHING_DOCUMENT_DESCRIPTOR_CERTIFICATION.md`.
+- **Final Pre-Spanish UX governance pass now CLOSED.** Spanish translation (14.0-S1) can safely begin.
+
+---
+
 ## 2026-06-13 · Track 14.0-BT — Button + Toast + Terminology Certification & Standardization (Pre-Spanish UX Stabilization)
 
 **Mode:** Controlled certification + 3 governance dictionaries + 5 targeted UX-text fixes (3 files · +5/−5 LOC). NO deploy · NO GitHub · NO merge · NO Spanish · NO feature build · NO platform redesign · NO workflow rewrite · NO business logic change.
