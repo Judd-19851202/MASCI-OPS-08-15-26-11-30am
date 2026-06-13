@@ -10,6 +10,31 @@
 
 ---
 
+## 2026-06-13 · Track 13.31AC — Platform Asset Taxonomy, Classification & Source-of-Truth Certification (READ-ONLY)
+
+**Mode:** READ-ONLY. NO code · NO schema · NO collections · NO routes · NO UI · NO deploy.
+
+- **Catastrophic finding confirmed.** The platform currently runs **10 incompatible asset classification systems**, and none of them agree:
+  - `equipment_master.category` (28 distinct, plural form: "Excavators")
+  - `equipment_master.preop_equipment_type` (13 distinct, singular form: "Excavator") — does NOT map 1:1 to category
+  - `equipment_master.type` (2 values · legacy override for Road Plate + Trench Box)
+  - `equipment_master.company` (15 dirty spellings: MASCI / Masci / masci corp / MGC / MASCI GC / "?" / Feria / FERIA / feria...)
+  - `fleet_status.unit_kind` (only "truck"/"trailer" — heavy equipment + GPS + technology are structurally invisible to fleet visibility)
+  - `fleet_defects.category` (12 values — naming collision · these are DEFECT categories not asset categories)
+  - `pm_templates.asset_type` (unpopulated · unconstrained · invented per-template = silent fleet split risk)
+  - `safety_equipment_issuances.items[].item_type` (only 3 values · everything else logged as "Other")
+  - `equipment_inspections.equipment_type` (only 5 values · dozers/graders/rollers/pavers/trucks all logged as "Other")
+  - `asset_transfers.equipment_type` (1 value: "Trench Box" — field effectively unused)
+- **One motor grader appears simultaneously as**: `category="Road Graders"` (plural) · `preop_equipment_type="Motor Grader"` (singular) · `equipment_inspections.equipment_type="Other"` (no grader option exists) · `fleet_status.unit_kind=N/A` (only knows truck/trailer) · `pm_templates.asset_type=unpopulated`. **The platform is lying to itself.**
+- **Canonical taxonomy proposed**: 11-class Level 1 (`heavy_equipment · truck · trailer · gps_equipment · survey_equipment · technology_equipment · traffic_control_equipment · safety_equipment · support_equipment · facility_asset · temporary_asset`) + ~60-type Level 2 closed-set under each class. Behavior matrix per asset_type (Reg/Ins/PM/Pre-Op/Map/Renewal/DOT/Inspection/Export) declarative.
+- **Migration**: 29 of 30 existing `category` values map cleanly to the canonical (asset_class, asset_type) tuple. Only "Attachments" needs operator decision (likely `parent_asset_id` relation, not a class).
+- **Five-Pillar score**: current state **4.2/10** · proposed future state **9.8/10**.
+- **Track 13.31B authorization updated**: still AUTHORIZED at the 13.31AB blueprint + new **Day-0 prerequisite** (taxonomy reconciliation per §6 + §8). Net schedule impact: +1 day · 13.31B becomes 6-day build.
+- Hard locks reaffirmed: MAP STAYS · Recovery Map STAYS · Employee Lifecycle authoritative for custody · Equipment Master canonical asset record · one asset · one record · one taxonomy.
+- Report: `/app/memory/TRACK_13_31AC_PLATFORM_ASSET_TAXONOMY_CLASSIFICATION_SOURCE_OF_TRUTH_CERTIFICATION.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31AB — Asset Administration Spine Construction Audit (READ-ONLY · final blueprint)
 
 **Mode:** READ-ONLY. NO code · NO schema · NO collections · NO routes · NO UI · NO deploy. Zero git changes outside memory/.

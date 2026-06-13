@@ -5882,3 +5882,56 @@ Architecture 10 · Ownership 10 · Asset Model 10 · Role Design 9.5 · Custody 
 
 **Report:** `/app/memory/TRACK_13_31AB_ASSET_ADMINISTRATION_SPINE_CONSTRUCTION_AUDIT.md`.
 
+
+---
+
+## Track 13.31AC · Platform Asset Taxonomy, Classification & Source-of-Truth Certification · 2026-06-13
+
+### Mode
+READ-ONLY CERTIFICATION. **NO code · NO schema · NO collections · NO routes · NO UI · NO deploy.** Success criterion = proved whether classification fields agree across the platform.
+
+### Catastrophic finding
+The platform runs **10 incompatible asset classifications** simultaneously. **None of them agree.** One motor grader appears as:
+- `equipment_master.category = "Road Graders"` (plural)
+- `equipment_master.preop_equipment_type = "Motor Grader"` (singular)
+- `equipment_inspections.equipment_type = "Other"` (no grader option exists in inspection dropdown)
+- `fleet_status.unit_kind = N/A` (only knows truck/trailer)
+- `pm_templates.asset_type = unpopulated` (unconstrained free string)
+
+### Field-by-field evidence
+| System | Field | Distinct values | Verdict |
+|---|---|---:|---|
+| equipment_master | category | 28 | plural noun form |
+| equipment_master | preop_equipment_type | 13 | singular noun form · doesn't map 1:1 to category |
+| equipment_master | type | 2 | legacy override (Road Plate, Trench Box) |
+| equipment_master | company | 15 dirty | MASCI/Masci/MGC/MASCI GC/Masci GC/"?" / Feria/FERIA/feria |
+| fleet_status | unit_kind | 2 | truck + trailer only · heavy equip + GPS + tech invisible |
+| fleet_defects | category | 12 | DEFECT categories not asset · naming collision |
+| pm_templates | asset_type | 0 | unconstrained · silent-fleet-split risk |
+| safety_equipment_issuances | items[].item_type | 3 | "Other" most-used |
+| equipment_inspections | equipment_type | 5 | dozers/graders/rollers/pavers all "Other" |
+| asset_transfers | equipment_type | 1 | "Trench Box" only · field unused |
+
+### Canonical taxonomy proposed
+- **Level 1 (11 asset classes)**: heavy_equipment · truck · trailer · gps_equipment · survey_equipment · technology_equipment · traffic_control_equipment · safety_equipment · support_equipment · facility_asset · temporary_asset.
+- **Level 2 (~60 asset types)**: closed-set under each class (excavator/dozer/grader/dump_truck/service_truck/pickup_truck/gps_rover/ipad/laptop/phone/trench_box_assembly/...)
+- **Behavior matrix per asset_type**: Registration · Insurance · PM · Pre-Op · Assignable · Transferable · Map · Employee Lifecycle · Renewal · Document Vault · DOT · Inspection · Export. Declarative module — every consumer reads from one source.
+- **Migration**: 29 of 30 existing equipment_master.category values map cleanly to canonical (asset_class, asset_type) tuple. Only "Attachments" requires operator decision (likely `parent_asset_id` relation, not a class).
+
+### Five-Pillar score
+- **Current state: 4.2 / 10** (Powerful 5 · Simple 3 · Beautiful 5 · Trusted 3 · Proven 6). The platform contradicts itself.
+- **Proposed future state (after reconciliation): 9.8 / 10** (Powerful 10 · Simple 10 · Beautiful 9.5 · Trusted 10 · Proven 9.5). Above the 9.5 bar.
+
+### Impact on Track 13.31B
+13.31B remains AUTHORIZED at the 13.31AB blueprint **+ Day-0 prerequisite**: adopt the canonical taxonomy, run the migration helper on 693 live rows, constrain pm_templates / equipment_inspections / safety_equipment_issuances item_type / asset_transfers equipment_type. Net schedule impact: **+1 day** (13.31B becomes 6-day build). Worth it — alternative is shipping platform contradictions.
+
+### Hard locks reaffirmed
+MAP STAYS · Recovery Map STAYS · Employee Lifecycle authoritative for custody · Equipment Master canonical asset record · one asset · one record · one taxonomy.
+
+### Hard rejections (would re-introduce duplication)
+- Any new "asset category" field outside equipment_master.asset_class.
+- Any new free-form classification dropdown.
+- Any system that maintains its own local taxonomy without inheriting.
+
+**Report:** `/app/memory/TRACK_13_31AC_PLATFORM_ASSET_TAXONOMY_CLASSIFICATION_SOURCE_OF_TRUTH_CERTIFICATION.md`.
+
