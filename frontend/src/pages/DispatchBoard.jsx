@@ -545,7 +545,7 @@ export default function DispatchBoard() {
     try {
       const r = await fetch(`${API}${path}`, { headers: authHeaders(tenantOverride) });
       if (!r.ok) {
-        toast.error(`${t("Export failed")} (${r.status})`);
+        toast.error(t("Export failed. Try again, or contact your administrator if it keeps failing."));
         return;
       }
       const blob = await r.blob();

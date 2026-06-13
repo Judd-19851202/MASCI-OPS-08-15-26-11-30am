@@ -225,9 +225,9 @@ export default function ViewIncident() {
           t("Cannot delete — linked corrective actions still reference this incident.");
         toast.error(msg);
       } else if (code >= 500) {
-        toast.error(t(`Server error (HTTP ${code}). Try again or contact support.`));
+        toast.error(t("Could not delete right now. Try again, or contact your administrator if it keeps failing."));
       } else {
-        toast.error(t(`Delete failed (HTTP ${code || "network"})`));
+        toast.error(t("Delete failed. Try again."));
       }
     }
   };

@@ -169,7 +169,7 @@ export default function HrEmployeeRequestsQueue() {
       setApproveOpen(false);
       await fetchList();
     } catch (e) {
-      toast.error(`Approval failed · ${e.message}`);
+      toast.error("Could not approve this request. Try again, or contact your administrator if it keeps failing.");
     } finally {
       setBusy(false);
     }
@@ -197,7 +197,7 @@ export default function HrEmployeeRequestsQueue() {
       setRejectOpen(false);
       await fetchList();
     } catch (e) {
-      toast.error(`Reject failed · ${e.message}`);
+      toast.error("Could not record the revision request. Try again, or contact your administrator if it keeps failing.");
     } finally {
       setBusy(false);
     }

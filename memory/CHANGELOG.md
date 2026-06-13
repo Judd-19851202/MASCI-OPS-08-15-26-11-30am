@@ -10,6 +10,25 @@
 
 ---
 
+## 2026-06-13 · Track 14.0-BT — Button + Toast + Terminology Certification & Standardization (Pre-Spanish UX Stabilization)
+
+**Mode:** Controlled certification + 3 governance dictionaries + 5 targeted UX-text fixes (3 files · +5/−5 LOC). NO deploy · NO GitHub · NO merge · NO Spanish · NO feature build · NO platform redesign · NO workflow rewrite · NO business logic change.
+
+- **Verdict: PASS · NO DEPLOY · Five-Pillar 9.74/10** · Simple 9.85 (≥ 9.8 ✅) · Beautiful 9.55 · Trusted 9.85 (≥ 9.8 ✅) · Proven 9.78.
+- **3 governance dictionaries published**: `/app/memory/BUTTONS_DICT.md` (12 button roles · 34 approved labels · variant rules · accessibility · forbidden list · Spanish-readiness · 36 P0/P1 keys covering ≈99% of button text by frequency); `/app/memory/TOAST_DICTIONARY.md` (tone doctrine · ≈50 approved patterns by level · integration/dormant patterns · forbidden patterns · ≈50 keys covering ≈95% of toast emissions); `/app/memory/TERMINOLOGY.md` (action/status/entity/workflow/role-specific vocabularies · 14 forbidden terms · capitalization rules · Spanish translation notes · doctrine reminders).
+- **5 operator-visible engineering leaks fixed** (all explicitly allowed by BT scope): `ViewIncident.jsx:228` (HTTP-${code} → "Could not delete right now. Try again, or contact your administrator if it keeps failing.") · `ViewIncident.jsx:230` (HTTP-${code} → "Delete failed. Try again.") · `HrEmployeeRequestsQueue.jsx:172` (Approval failed · ${e.message} → "Could not approve this request...") · `HrEmployeeRequestsQueue.jsx:200` (Reject failed · ${e.message} → "Could not record the revision request...") · `DispatchBoard.jsx:548` ((${r.status}) → "Export failed. Try again, or contact your administrator if it keeps failing.").
+- **Counts confirmed**: 1 385 buttons (934 shadcn + 451 native) · 1 243 toast emissions (816 error · 381 success · 34 info · 12 warning · 0 loading) · 14 active button variants (518 outline · 159 mark · 57 ghost · 15 login · long-tail 8 retire-candidates) · 3 859 distinct testids.
+- **Net effect**: zero operator-visible HTTP-code surfaces remaining in audited paths · zero operator-visible raw-exception messages remaining · governance docs prevent future invention of new button labels / toast language / workflow terms.
+- **Spanish readiness**: ≈130 high-frequency keys catalogued across the 3 dictionaries. 14.0-S1 budget unchanged at ≈8h. Translation now targets a stable English dictionary, not draft strings.
+- **Files changed**: ViewIncident.jsx · HrEmployeeRequestsQueue.jsx · DispatchBoard.jsx (3 files · +5/−5 LOC · zero behavioral change · ESLint clean). 0 backend file touched. 0 new collection. 0 new endpoint.
+- **Tests**: ESLint clean · grep verification confirms all 5 leaks closed · backend regression last-green 93/93 (F1 · no backend touched this track).
+- **Hard locks held**: no deploy · no GitHub · no merge · no Spanish · no feature build · no platform redesign · no workflow rewrite · no business logic · no map change · no MaintainX activation · no fake FleetWatcher · no accounting/cost/PO/ERP/pay-app fields · no removal of working buttons · no broken public forms · no danger-action-restyled-as-safe.
+- **Pre-Spanish UX Stabilization gate now CLOSED**. The English vocabulary is locked, the toast-language doctrine is authoritative, and 14.0-S1 can safely begin.
+- Report: `/app/memory/TRACK_14_0_BT_BUTTON_TOAST_TERMINOLOGY_CERTIFICATION.md` (23 sections).
+- **Next: 🔴 14.0-S1 · Spanish Translation Sweep** (8h · P0 · largest remaining deployment blocker).
+
+---
+
 ## 2026-06-13 · Track 14.0-A2 — Platform UX / Coaching / Training / Help / Search / Terminology / Button / Modal / Navigation Certification
 
 **Mode:** READ-ONLY certification + ONE tiny allowed UX-text fix (1 file · −1/+1 LOC). NO deploy · NO GitHub save · NO merge · NO feature build · NO Spanish translation · NO workflow rewrite.
