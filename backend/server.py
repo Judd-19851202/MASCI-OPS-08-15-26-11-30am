@@ -11754,6 +11754,12 @@ register_asset_spine_routes(app, db, require_admin, _require_any_portal_token)
 from routes.asset_documents import register_asset_documents_routes  # noqa: E402
 register_asset_documents_routes(app, db, require_admin, _require_any_portal_token)
 
+# Track 13.31B-D7 · Asset Admin operational completion · adds Required Docs
+# editor save + asset_admin role grant pathway. Additive, single small config
+# collection (asset_required_doc_overrides).
+from routes.asset_admin_settings import register_asset_admin_settings_routes  # noqa: E402
+register_asset_admin_settings_routes(app, db, require_admin)
+
 
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
 # Detection-only drift sentinel. Never auto-mutates source records or jobs_master.

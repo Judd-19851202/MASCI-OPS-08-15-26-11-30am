@@ -19,12 +19,14 @@ import { Link } from "react-router-dom";
 import {
   Layers, Loader2, RefreshCw, CheckCircle2, AlertTriangle,
   ShieldCheck, Wand2, ListChecks, Tag, ExternalLink, ClipboardList,
-  FileText, Download, Camera, Calendar, FileSearch,
+  FileText, Download, Camera, Calendar, FileSearch, Plus, ListFilter,
 } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import AddAssetDialog from "@/components/asset/AddAssetDialog";
+import RequiredDocsEditor from "@/components/asset/RequiredDocsEditor";
 
 const SOURCE_PILL = {
   legacy_mapped: "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -75,8 +77,9 @@ export default function AdminAssetAdmin() {
   const [counts, setCounts] = useState({ total: null, verified: null, needs_review: null });
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
-  const [tab, setTab] = useState("queue");          // queue | crosswalk
+  const [tab, setTab] = useState("queue");          // queue | crosswalk | docs | required-docs | templates
   const [savingId, setSavingId] = useState(null);
+  const [showAddAsset, setShowAddAsset] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -145,17 +148,33 @@ export default function AdminAssetAdmin() {
               maps, no duplicate spines.
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={reload}
-            disabled={loading}
-            data-testid="asset-admin-refresh"
-          >
-            {loading ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => setShowAddAsset(true)}
+              className="bg-red-700 hover:bg-red-800 text-white"
+              data-testid="asset-admin-add-asset"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Asset
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={reload}
+              disabled={loading}
+              data-testid="asset-admin-refresh"
+            >
+              {loading ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+              Refresh
+            </Button>
+          </div>
         </div>
+
+        <AddAssetDialog
+          open={showAddAsset}
+          onClose={() => setShowAddAsset(false)}
+          onCreated={() => { reload(); }}
+        />
 
         {err && (
           <div className="mb-4 px-4 py-3 rounded border-2 border-red-300 bg-red-50 text-sm text-red-900 font-semibold" data-testid="asset-admin-err">
@@ -206,6 +225,7 @@ export default function AdminAssetAdmin() {
             { key: "queue", label: "Review Queue", icon: ListChecks },
             { key: "crosswalk", label: "Legacy Crosswalk", icon: Wand2 },
             { key: "documents", label: "Documents & Renewals", icon: FileText },
+            { key: "required-docs", label: "Documentation Requirements", icon: ListFilter },
             { key: "templates", label: "Missing Templates", icon: ClipboardList },
           ].map(({ key, label, icon: Icon }) => {
             const active = tab === key;
@@ -265,6 +285,10 @@ export default function AdminAssetAdmin() {
 
         {tab === "documents" && (
           <DocumentsDashboard />
+        )}
+
+        {tab === "required-docs" && (
+          <RequiredDocsEditor />
         )}
 
         {tab === "templates" && (

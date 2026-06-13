@@ -464,7 +464,23 @@ def register_asset_documents_routes(
             behavior = behavior_for(asset_type) if asset_type else {}
         except Exception:
             behavior = {}
-        required = required_documents_for(asset_type, behavior)
+        base = required_documents_for(asset_type, behavior)
+        # Apply D7 admin overrides
+        required: List[str] = list(base)
+        if asset_type:
+            ov_row = await db.asset_required_doc_overrides.find_one(
+                {"asset_type": asset_type}, {"_id": 0, "levels": 1},
+            )
+            levels = (ov_row or {}).get("levels") or {}
+            # Promote any doc_type set to "required" that isn't already in base
+            for d, lvl in levels.items():
+                if lvl == "required" and d in ASSET_DOC_TYPES and d not in required:
+                    required.append(d)
+            # Demote any base doc_type that's been moved off "required"
+            required = [
+                d for d in required
+                if levels.get(d, "required") == "required"
+            ]
         # Determine which required docs are already on file.
         present_cursor = db.operational_attachments.find(
             {"host_kind": ASSET_HOST_KIND, "host_id": asset_id, "tenant_id": DEFAULT_TENANT_ID,
