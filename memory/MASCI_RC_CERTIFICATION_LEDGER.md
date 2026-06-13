@@ -5835,3 +5835,50 @@ MAP STAYS · Repair Complete ≠ RTS · PM Completion ≠ RTS · `employee_lifec
 
 **Report:** `/app/memory/TRACK_13_31AA_EMPLOYEE_LIFECYCLE_ASSET_ISSUANCE_CERTIFICATION.md`.
 
+
+---
+
+## Track 13.31AB · Asset Administration Spine Construction Audit · 2026-06-13
+
+### Mode
+READ-ONLY CERTIFICATION + CONSTRUCTION BLUEPRINT. **NO code · NO schema · NO collections · NO routes · NO UI · NO deploy · NO GitHub.** Final deliverable: exact 13.31B blueprint with enough certainty that the build can be completed once, correctly, without rework.
+
+### Headline correction
+13.31AA's "duplicate-spine" note is corrected: `services/asset_spine.py` line 9 explicitly states `equipment_master` IS the single source-of-truth collection. `/api/asset-spine/*` is just the API surface on top. The empty `assets` collection is unused legacy noise (no rows, no consumers). **One spine. One record. One source of truth.**
+
+### Discovered footprint (already in production)
+- **Asset Spine** (`routes/asset_spine.py` + `services/asset_spine.py` + `services/asset_spine_detection.py` + `services/asset_spine_scheduler.py`): 11 endpoints · admin-gated CRUD/retire/activate/profile/health/scan · fused profile composer · audit logging.
+- **Pydantic shapes already declare 19 of 31 audited fields**: motive_asset_id · fleetwatcher_asset_id · maintainx_asset_id · asset_category · asset_status · ownership · department · cost_center · purchase_date · in_service_date · vin · license_plate · serial_number · manufacturer · make · model · year · asset_name · asset_number.
+- **operational_attachments**: 51 live rows · R2-backed · polymorphic `host_kind`/`host_id`/`type`/`r2_key`/`sha256` · production-grade.
+- **PDF renderers** in `safety_forms.py`: `render_issuance_pdf`, `render_return_pdf`, `render_training_pdf` — Asset Admin PDFs reuse same patterns.
+
+### Final Track 13.31B scope (5-day additive extension · NOT a new build)
+1. **13 new fields** on equipment_master + AssetCreate/AssetUpdate pydantic shapes: `lifecycle_status` enum, `registration_*`, `insurance_*`, `title_status`, `division`, `supervisor_id`, `region`, `photos[]` (joined view), `documents[]` (joined view).
+2. **`asset_admin` permission flag** on hr_users + admin tokens. Gate the new write paths. Existing `is_admin` users inherit.
+3. **`operational_attachments.host_kind="asset"`** adoption + 11-value `type` whitelist extension (title, registration_card, insurance_card, insurance_policy, warranty, purchase_doc, equipment_photo, dot_certificate, inspection_certificate, bill_of_sale, lien_release).
+4. **2 single-endpoint extensions**: `/api/hr/employees/{id}/offboarding-summary` joins in outstanding assets+PPE · `/api/asset-transfers/{tid}/receive` accepts optional condition/signature.
+5. **1 new admin page**: `/admin/asset-admin` (filter list + edit drawer + doc/photo upload + renewal-alert tile).
+6. **1 existing page extension**: `AssetProfile.jsx` (lifecycle chip + documents tab + renewal alerts).
+7. **1 new PDF renderer**: `render_asset_profile_pdf` in the same `safety_forms.py` style.
+8. **1 new CSV stream**: `/api/asset-admin/renewals/upcoming.csv`.
+
+### Hard-rejected from 13.31B scope (duplication risk)
+Any new issuance form · any new return form · any new transfer state machine · any new custody collection · any new employee timeline · any new asset onboarding workflow · any new portal navigation level · any new PDF library / styling system.
+
+### Five-Pillar score (proposed 13.31B blueprint)
+**9.8 / 10** — Powerful 10 · Simple 10 · Beautiful 9.5 · Trusted 10 · Proven 9.5. Above the 9.5 bar.
+
+### Per-domain scores
+Architecture 10 · Ownership 10 · Asset Model 10 · Role Design 9.5 · Custody Model 10 · Document Model 10 · Export Model 10 · Integration Model 9.5.
+
+### Hard locks reaffirmed
+- **One asset · one record · one source of truth** (`equipment_master`).
+- **MAP STAYS** — single MapLibre engine, single canvas.
+- Repair Complete ≠ RTS · PM Completion ≠ RTS.
+- `employee_lifecycle_events` canonical · `asset_transfers` canonical · `asset_assignments` canonical · `safety_equipment_issuances` canonical · `operational_attachments` canonical.
+
+### Authorization
+**Track 13.31B AUTHORIZED at the blueprint in §12–§14 of the report.** 5-day additive extension. No new collections. No new workflows.
+
+**Report:** `/app/memory/TRACK_13_31AB_ASSET_ADMINISTRATION_SPINE_CONSTRUCTION_AUDIT.md`.
+

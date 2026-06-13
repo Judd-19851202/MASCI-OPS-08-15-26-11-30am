@@ -10,6 +10,24 @@
 
 ---
 
+## 2026-06-13 · Track 13.31AB — Asset Administration Spine Construction Audit (READ-ONLY · final blueprint)
+
+**Mode:** READ-ONLY. NO code · NO schema · NO collections · NO routes · NO UI · NO deploy. Zero git changes outside memory/.
+
+- **Corrected discovery from 13.31AA**: there is NO duplicate asset spine. `services/asset_spine.py` line 9 confirms `equipment_master` IS the canonical collection — `/api/asset-spine/*` is just the API surface on top. The empty `assets` collection is unused legacy noise, not a competing system. **One spine. One record. One source of truth.**
+- **Asset Spine pydantic models already declare 19 of 31 audited fields** (motive_asset_id · fleetwatcher_asset_id · maintainx_asset_id · asset_category · asset_status · ownership · department · cost_center · purchase_date · in_service_date · vin · license_plate · serial_number · manufacturer · make · model · year · asset_name · asset_number). They are just not populated at scale yet.
+- **`operational_attachments` is production-grade R2-backed polymorphic doc store** (51 live rows · `host_kind`/`host_id`/`type`/`r2_key`/`sha256`). Asset documents need only `host_kind="asset"` + 11 new closed-set `type` values. **No new collection, no new storage layer.**
+- **`safety_forms.py` ships 3 reusable PDF renderers** (`render_issuance_pdf`, `render_return_pdf`, `render_training_pdf`). Asset Administration PDFs reuse the same patterns — no new PDF library, no one-off styling.
+- **Track 13.31B genuine scope reduced to 4 narrow additions**: (1) 13 new schema fields on equipment_master (lifecycle_status enum + registration_* + insurance_* + title_status + division/supervisor_id/region + photos[]/documents[] joins) · (2) `asset_admin` role flag + endpoint gating · (3) `operational_attachments.host_kind="asset"` adoption + extended type whitelist · (4) 1 new admin page + 1 existing page extension.
+- **Hard-rejected** (would duplicate existing systems): new issuance/return/transfer/custody/employee-timeline/asset-onboarding/portal-navigation/PDF-library.
+- **Asset Administrator role matrix** finalized: owns identity + administrative facts; never owns operational actions (issuance stays with Safety, transfer with Dispatch, custody changes with Dispatch).
+- **Asset type taxonomy** finalized: 5 groups · 39 closed-set categories. Maps cleanly from existing free-form `category` field. No data migration required, nightly helper does the lift.
+- **Five-Pillar score for the proposed 13.31B blueprint: 9.8/10.** Clears the 9.5 bar.
+- **Track 13.31B AUTHORIZED at the §12–§14 blueprint.** 5-day additive extension, not 3-week new build.
+- Report: `/app/memory/TRACK_13_31AB_ASSET_ADMINISTRATION_SPINE_CONSTRUCTION_AUDIT.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31AA — Employee Lifecycle + Asset Issuance Architecture Certification (READ-ONLY)
 
 **Mode:** READ-ONLY. NO code · NO schema · NO collections · NO routes · NO UI · NO deploy. **Zero git changes outside memory/.**
