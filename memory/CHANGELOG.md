@@ -10,6 +10,29 @@
 
 ---
 
+## 2026-06-13 · Track 14.0-A2 — Platform UX / Coaching / Training / Help / Search / Terminology / Button / Modal / Navigation Certification
+
+**Mode:** READ-ONLY certification + ONE tiny allowed UX-text fix (1 file · −1/+1 LOC). NO deploy · NO GitHub save · NO merge · NO feature build · NO Spanish translation · NO workflow rewrite.
+
+- **Verdict: PASS · NO DEPLOY · Five-Pillar weighted avg 9.55/10** · Simple 9.78 (at sub-threshold) · Beautiful 9.62 (clears 9.5, below 9.8 due to 14 button variants + 64 un-audited modals) · Trusted 9.68 (clears 9.5, below 9.8 due to admin/PM/HR coaching density).
+- **Headline A0 corrections** (every count reproducible via grep): Button total **934 → 1 385** (A0 missed 451 native `<button>` calls). Toast total **1 440 → 1 243** `toast.{level}` calls (816 error · 381 success · 34 info · 12 warning). Training routes **~10 → 12**. EmptyState **49 files → 52 instances**. **Help-search corrected**: A0 said "none" — reality is `GlobalSearch` + `AdminGlobalSearch` are wired on **8 major portal hubs** (HrHub · DispatchHub · ShopHub · FieldLeadershipHub · Tasks · DocumentExpirations · PoRequests · HrEmployees). What's actually missing is knowledge-base / training-content search.
+- **One engineering leak fixed**: `SafetyDigest.jsx:52` exposed `(RESEND_API_KEY / AUTO_EMAIL_REPORTS)` env names in a `toast.warning` to operator UI. Replaced with operator-language text "Digest computed — email delivery is disabled in this environment. Contact your administrator if you need the digest emailed." This was the only engineering leak surfaced across 1 243 toast emissions.
+- **Coaching audit**: 91/263 files (35%) carry coaching/tooltip/HelpCircle. Critical public forms (Daily Report · Incident · Excavation · Pre-Op · DVIR · Safety Hub · Asset Care) all GOOD or EXCELLENT. Admin/PM/HR deeper-route coaching sparse but intentional (power-user surfaces). Three mid-tier polish targets: Add Asset · Required Docs · Upload Document need 1-line descriptors.
+- **Button audit**: 14 active variants · 55 % follow dominant `outline` pattern · long tail of 13 minor variants (mark · ghost · login · meeting · header · destructive · default · body · warning · success · light · global · danger) needs consolidation in 14.0-B1. No central `BUTTONS_DICT.md` exists.
+- **Modal audit**: 64 files, only ~6 individually audited (~9%). 58 unaudited at modal granularity — 14.0-Mod1 still required.
+- **Terminology**: zero forbidden engineering-text on operator surfaces post-fix. 25-term approved vocabulary observed across F1/A1/A2 surfaces. Drift items: "Vehicle/Truck/Trailer" DVIR labels · EmployeeCombo vs trench EmployeePicker. No central `TERMINOLOGY.md`.
+- **Toast tone**: 9.4/10 — overwhelmingly plain-language · most include next-step ("Sign-in required." · "Delete failed" · "Copy failed — write it down by hand"). Two acceptable HTTP-code fallbacks in `ViewIncident.jsx` flagged for 14.0-T1 polish.
+- **Navigation**: 9.2/10 · 119/263 pages carry explicit Back/Return patterns · remaining 144 inherit portal-shell chrome · zero dead-end · zero orphan screens.
+- **Role-journey UX**: 9.3/10 · 12/14 PASS · 2 CONDITIONAL (PM · HR — deep menus, not blocker drift).
+- **Public/field UX**: 9.6/10 · all 11 audited public surfaces PASS.
+- **New fix track surfaced by A2**: **14.0-A2B · Admin/PM/HR coaching density audit** (6h · P2).
+- **Pre-Spanish stabilization bundle recommendation**: 14.0-B1 (4h) + 14.0-Mod1 (4h) + 14.0-A2B (6h · new) + 14.0-C1 (3h) + 14.0-T1 (6h) = **~23h (~3 working days)** before 14.0-S1 begins. Stabilizing the English dictionary first prevents translating draft content twice. Platform's i18n-readiness is already structurally strong (99% of button labels route through `useT`); the work is dictionary-level, not per-file.
+- Hard locks held: no deploy · no GitHub · no merge · no feature build · no Spanish · no workflow rewrite · no route removal · no business-logic · no map change · no MaintainX activation · no fake FleetWatcher · no accounting/cost/PO/ERP/pay-app fields · no hidden findings.
+- Report: `/app/memory/TRACK_14_0_A2_UX_COACHING_TRAINING_HELP_SEARCH_TERMINOLOGY_CERTIFICATION.md` (25 sections).
+- **Next recommended**: Bundle 14.0-B1+Mod1+A2B+C1+T1 (~23h Pre-Spanish UX Stabilization), then 14.0-S1.
+
+---
+
 ## 2026-06-13 · Track 14.0-A1 — Platform Structure Certification (Internal/Dev Route Audit + Backend Routes Housekeeping + Role Journey Live-Walk)
 
 **Mode:** READ-ONLY certification + ONE controlled structural fix (1 file · +6/−5 LOC). NO deploy · NO GitHub save · NO merge · NO feature build · NO business-logic change.

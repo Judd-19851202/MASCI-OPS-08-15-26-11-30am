@@ -49,7 +49,7 @@ export default function SafetyDigest() {
       if (r.data?.sent) {
         toast.success(`Digest sent to ${toEmail}`);
       } else {
-        toast.warning("Digest computed — email send disabled in this environment (RESEND_API_KEY / AUTO_EMAIL_REPORTS).");
+        toast.warning("Digest computed — email delivery is disabled in this environment. Contact your administrator if you need the digest emailed.");
       }
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Send failed");

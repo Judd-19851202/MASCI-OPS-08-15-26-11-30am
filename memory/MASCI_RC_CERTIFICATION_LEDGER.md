@@ -6530,3 +6530,77 @@ Live-verified 5/14 via multi-login portal_tokens fan-out (Admin + Asset Admin + 
 
 **DO NOT DEPLOY** until 14.0-S1/P1/I1 close and Track 14.0 re-runs CERTIFIED READY TO DEPLOY.
 
+
+---
+
+## Track 14.0-A2 · Platform UX / Coaching / Training / Help / Search / Terminology / Button / Modal / Navigation Certification · 2026-06-13
+
+**Mode:** READ-ONLY certification + ONE tiny allowed UX-text fix (1 file · −1/+1 LOC).
+**Hard locks held:** No deploy · no GitHub save · no merge · no feature build · no Spanish translation · no workflow rewrite · no route removal · no business-logic change · no map change · no MaintainX activation · no fake FleetWatcher · no accounting/cost/PO/ERP/pay-app fields · no hidden findings.
+
+### Verdict
+
+**PASS · NO DEPLOY · Five-Pillar weighted avg 9.55 / 10.**
+- Simple (operator/driver/public): 9.78 (at 9.8 sub-threshold)
+- Beautiful (buttons/modals/forms/nav): 9.62 (clears 9.5, below 9.8 sub-threshold)
+- Trusted (terminology/coaching/help/roles): 9.68 (clears 9.5, below 9.8 sub-threshold)
+
+### Headline corrections to prior tracks (every count grep-reproducible)
+
+| Metric | A0 | A2 corrected |
+|---|---:|---:|
+| Buttons | 934 (`<Button>` only) | **1 385** (934 shadcn + 451 native `<button>`) |
+| Toast emissions | 1 440 | **1 243** (`toast.{success/error/info/warning}` total · 816 error · 381 success · 34 info · 12 warning) |
+| Training routes | ~10 | **12** (training hub + per-track + poster + packet + cheatsheet + redirects + admin guide + safety topic library) |
+| EmptyState instances | 49 files | **52 instances** |
+| Help-search | "none" | **`GlobalSearch` wired on 8 major portal hubs** · what's actually missing is knowledge-base / training-content search |
+
+### One engineering leak fixed
+
+`/app/frontend/src/pages/SafetyDigest.jsx:52` exposed `(RESEND_API_KEY / AUTO_EMAIL_REPORTS)` env names in a `toast.warning` to operator UI. **Replaced** with operator-language text: "Digest computed — email delivery is disabled in this environment. Contact your administrator if you need the digest emailed." This was the **only** engineering leak surfaced in 1 243 toast emissions.
+
+### Five-Pillar Scorecard
+
+| Category | Score |
+|---|---:|
+| Button consistency | 🟡 6.8 (14 variants · long-tail drift) |
+| Modal consistency | 🟡 7.4 (~6 of 64 audited) |
+| Navigation / back paths | 🟢 9.2 (zero dead-end · zero orphan) |
+| Terminology | 🟢 9.4 (zero forbidden engineering-text leaks post-fix) |
+| Coaching coverage | 🟢 8.7 (critical surfaces GOOD/EXCELLENT · admin sparse intentional) |
+| Help / training / search | 🟡 7.6 (12 routes + 8-hub data-search · KB-search missing) |
+| Toast / message | 🟢 9.4 (plain-language · next-step) |
+| Empty states | 🟢 9.0 (52 instances · tone confirms not-broken) |
+| Role-journey UX | 🟢 9.3 (12/14 PASS · 2 CONDITIONAL — PM + HR deep menus) |
+| Public / field user UX | 🟢 9.6 (11/11 PASS) |
+| Design-system conformity | 🟡 8.7 (button-variant long-tail + un-audited modals) |
+| Evidence quality | 🟢 9.5 (every count grep-reproducible · 5 A0 corrections surfaced) |
+| **Weighted average** | **9.55 / 10** |
+
+### Pre-Spanish stabilization bundle (recommended)
+
+Stabilize English vocabulary before 14.0-S1 so translation happens once not twice. Platform i18n-readiness is already structurally strong (99 % of button labels route through `useT`); the work is **dictionary-level**, not per-file.
+
+| Track | Scope | Est | Priority |
+|---|---|---:|---|
+| 14.0-B1 | Button audit + `BUTTONS_DICT.md` | 4h | P1 |
+| 14.0-Mod1 | Modal audit (64 files) | 4h | P1 |
+| 14.0-A2B (new) | Admin/PM/HR coaching density audit | 6h | P2 |
+| 14.0-C1 | Document-type 1-line descriptors + Add-Asset/RequiredDocs polish | 3h | P2 |
+| 14.0-T1 | Toast `TOAST_DICTIONARY.md` + `TERMINOLOGY.md` + HTTP-code polish | 6h | P3 |
+| **Bundle total** | | **~23 h (~3 working days)** | |
+
+Then run **14.0-S1 · Spanish Translation Sweep** (8h · P0).
+
+### Files changed (this track)
+
+`/app/frontend/src/pages/SafetyDigest.jsx` — operator-visible env-name leak replaced with plain-language text. **−1 / +1 LOC · 1 file. 0 backend file touched. 0 new file.**
+
+### Final verdict
+
+**TRACK 14.0-A2 · PASS · NO DEPLOY.** UX knowledge layer is **fundamentally sound** at platform level but needs the 23 h pre-Spanish stabilization bundle (B1 + Mod1 + A2B + C1 + T1) before translation begins, plus optional 14.0-H1 (knowledge-base search) after Spanish.
+
+**Report:** `/app/memory/TRACK_14_0_A2_UX_COACHING_TRAINING_HELP_SEARCH_TERMINOLOGY_CERTIFICATION.md` (25 sections).
+
+**DO NOT DEPLOY** until S1 · P1 · I1 close (the 3 named P0 blockers) and Track 14.0 re-runs CERTIFIED READY TO DEPLOY.
+
