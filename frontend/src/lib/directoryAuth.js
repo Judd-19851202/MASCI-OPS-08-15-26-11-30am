@@ -105,6 +105,12 @@ export function applyMultiLoginResponse(response, rememberMe = true) {
  */
 export function landingFor(user) {
   const portals = user?.portals || [];
+  const isAssetAdmin = !!(user?.is_asset_admin);
+  // Asset Administrator role lands in the operational Asset Care workspace,
+  // not the Admin Console — Track 13.33ABC.
+  if (isAssetAdmin && !portals.includes("admin")) {
+    return "/shop/asset-care";
+  }
   // Super admins → admin console (skip the public hub)
   if (portals.includes("admin")) {
     return "/admin";
