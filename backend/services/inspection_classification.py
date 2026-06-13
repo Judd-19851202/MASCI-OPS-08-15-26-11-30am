@@ -37,19 +37,25 @@ import logging
 from typing import Any, Dict, Optional
 
 from services.asset_taxonomy import resolve_classification
+from services.inspection_templates import (
+    has_template as _registry_has_template,
+    template_key_for as _registry_template_key_for,
+    template_status_for as _registry_template_status_for,
+)
 
 logger = logging.getLogger(__name__)
 
-# Templates that exist today in operator-facing dropdowns. Anything outside
-# this set stamps `template_status="missing_template"` so D5.2 can target.
-EXISTING_PREOP_TEMPLATES: frozenset = frozenset({
-    "Excavator", "Skid Steer", "Loader",  # heavy templates currently in form
-})
-EXISTING_DVIR_TEMPLATES: frozenset = frozenset({
-    "Pickup Truck", "Dump Truck", "Service Truck", "Fuel Truck", "Lube Truck",
-    "Water Truck", "Flatbed Truck", "Semi Tractor", "Other Truck",
-    # Trailer templates handled per trailer record
-})
+# Track 13.31B-D5.2 retired the hand-maintained whitelists in favour of
+# the canonical registry in ``services.inspection_templates``. The two
+# constants below remain exported for backward-compat with D5.1 callers
+# (they now resolve through the registry, restricted by ``applies_to``).
+def _types_for(applies_to: str) -> frozenset:
+    from services.inspection_templates import INSPECTION_TEMPLATES as _R
+    return frozenset(at for at, t in _R.items() if t["applies_to"] == applies_to)
+
+
+EXISTING_PREOP_TEMPLATES: frozenset = _types_for("pre_op")
+EXISTING_DVIR_TEMPLATES: frozenset = _types_for("dvir")
 
 
 async def resolve_unit_canonical(
@@ -89,6 +95,7 @@ async def resolve_unit_canonical(
         status = "needs_review"
 
     asset_type = cls["asset_type"]
+    template_present = _registry_has_template(asset_type)
     return {
         "asset_id": eq.get("id"),
         "asset_class": cls["asset_class"],
@@ -99,15 +106,16 @@ async def resolve_unit_canonical(
         "classification_status": status,
         "taxonomy_review_reason": cls["review_reason"],
         "legacy_equipment_type": legacy_equipment_type or "",
-        "template_status": _template_status_for(asset_type, EXISTING_PREOP_TEMPLATES),
+        "template_status": "available" if template_present else "missing_template",
+        "template_key": _registry_template_key_for(asset_type),
+        "template_source": "canonical_asset_type" if template_present else None,
         "template_recommended": asset_type if status != "needs_review" else None,
     }
 
 
 def _template_status_for(asset_type: Optional[str], existing: frozenset) -> str:
-    if asset_type and asset_type in existing:
-        return "template_present"
-    return "missing_template"
+    # Backward-compat wrapper used only by the D5.1 callers.
+    return _registry_template_status_for(asset_type)
 
 
 def _unmatched_stamp(legacy_equipment_type: str = "") -> Dict[str, Any]:
@@ -122,6 +130,8 @@ def _unmatched_stamp(legacy_equipment_type: str = "") -> Dict[str, Any]:
         "taxonomy_review_reason": "no_equipment_master_match",
         "legacy_equipment_type": legacy_equipment_type or "",
         "template_status": "missing_template",
+        "template_key": None,
+        "template_source": None,
         "template_recommended": None,
     }
 
@@ -142,7 +152,13 @@ async def stamp_inspection_canonical(
     try:
         stamp = await resolve_unit_canonical(db, unit_number, legacy_equipment_type=legacy_equipment_type)
         if template_set is not None and stamp.get("asset_type"):
-            stamp["template_status"] = _template_status_for(stamp["asset_type"], template_set)
+            # Restrict by applies_to (pre_op vs dvir) — if the asset_type
+            # has a template that does not match the caller's surface,
+            # treat as missing_template for this call. e.g. a Skid Steer
+            # template is pre_op, so a DVIR caller would see missing.
+            if stamp["asset_type"] not in template_set:
+                stamp["template_status"] = "missing_template"
+                stamp["template_source"] = None
         await db.equipment_inspections.update_one(
             {"id": inspection_id}, {"$set": stamp},
         )

@@ -10,6 +10,23 @@
 
 ---
 
+## 2026-06-13 · Track 13.31B-D5.2 — Canonical Pre-Op + DVIR Inspection Template Expansion
+
+**Mode:** Controlled implementation + template intelligence + platform regression + Five-Pillar certification. NO new collection · NO new system · NO deploy · NO GitHub · NO merge.
+
+- **NEW pure-python registry** `services/inspection_templates.py` — 45 canonical templates spanning Heavy Equipment (18) · Support Equipment (6) · Trench Safety (2) · Truck DVIR (10) · Trailer DVIR (8). Each template carries operator-grade sections + items. Single source of truth keyed by canonical `asset_type`.
+- **D5.1 stamp helper** now sources `template_status` / `template_key` / `template_source` from the registry. Old `EXISTING_*_TEMPLATES` frozensets retained as registry-derived re-exports for BC.
+- **NEW endpoints**:
+  - `GET /api/asset-spine/inspection-templates` (with `?applies_to=pre_op|dvir`)
+  - `GET /api/asset-spine/inspection-templates/by-asset-type/{asset_type}`
+  - `GET /api/asset-spine/inspection-templates/missing-backlog` (admin)
+- **Every directive-named asset type stamps `template_status="available"`** + valid `template_key`. **Service Truck stays Service Truck.** Trailer DVIRs carry per-trailer registry-resolved template stamps.
+- **117/117 pytests pass** (34 new D5.2 + 11 D5.1 + 72 regression). Five-Pillar avg 9.87/10.
+- Hard locks intact: MAP STAYS · `equipment_master` canonical · no new collection · no Pydantic model touched · existing defect routing unchanged · Repair Complete ≠ RTS preserved.
+- Doctrine doc: `/app/memory/TRACK_13_31B_D5_2_CANONICAL_PREOP_DVIR_INSPECTION_TEMPLATE_EXPANSION.md`.
+
+---
+
 ## 2026-06-13 · Track 13.31B-D5.1 BUILD — Smart Pre-Op + Smart DVIR Canonical Write-Stamp
 
 **Mode:** Controlled implementation + platform-wide regression + Five-Pillar certification. NO deploy · NO GitHub · NO merge · NO new collection.

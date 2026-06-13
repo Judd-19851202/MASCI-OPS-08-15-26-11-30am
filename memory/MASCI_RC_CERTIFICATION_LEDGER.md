@@ -6113,3 +6113,34 @@ Dump Truck (41 active) · Excavator sub-checklist · Loader sub-checklist · Pav
 
 **Report:** `/app/memory/TRACK_13_31B_D5_1_BUILD_SMART_PREOP_DVIR_CANONICAL_WRITE_STAMP.md`.
 
+
+## Track 13.31B-D5.2 · Canonical Pre-Op + DVIR Inspection Template Expansion · 2026-06-13
+
+**Authorization:** Operator authorized D5.2 immediately after D5.1 BUILD — build canonical inspection content for every asset type the field actively inspects.
+
+**Mode:** Controlled implementation + template intelligence + platform-wide regression + Five-Pillar certification. NO deploy · NO GitHub · NO merge · NO new collection · NO new system.
+
+### Delivered
+
+- **NEW pure-python registry** `services/inspection_templates.py` — 45 canonical templates: Heavy Equipment (18) · Support Equipment (6) · Trench Safety (2) · Truck DVIR (10) · Trailer DVIR (8). Each template carries operator-grade sections + items. Single source of truth keyed by canonical `asset_type`.
+- **D5.1 stamp helper** now sources `template_status` / `template_key` / `template_source` from the registry. `EXISTING_*_TEMPLATES` frozensets retained as registry-derived re-exports for BC.
+- **NEW endpoints**: `GET /inspection-templates` (with `?applies_to=pre_op|dvir`), `GET /inspection-templates/by-asset-type/{type}`, `GET /inspection-templates/missing-backlog` (admin · live by fleet impact).
+- **Every directive-named asset_type stamps `template_status="available"`** + valid `template_key` + `template_source="canonical_asset_type"`.
+- **Service Truck stays Service Truck — does NOT silently resolve to Haul Truck.**
+- Trailer DVIRs carry per-trailer registry-resolved template stamps under `trailer_classifications`.
+- Unknown asset types stay honest (`missing_template`). Legacy `equipment_type` preserved.
+
+### Tests
+
+`tests/test_track_13_31b_d5_2_canonical_inspection_templates.py` · **34 / 34 pass** + 83 regression = **117/117**. D5.1 tests updated to D5.2 vocabulary (`available` instead of `template_present`).
+
+### Five Pillars per surface
+
+Paver 9.90 · Roller 9.90 · Dozer 9.88 · Motor Grader 9.88 · Backhoe 9.88 · Compactor 9.88 · Pump 9.83 · Generator 9.83 · Light Tower 9.83 · Dump Truck DVIR 9.90 · Service Truck DVIR 9.93 · Trailer DVIRs 9.83 · Template routing 9.95 · Issue routing 9.88 — **avg 9.87 / 10**. All surfaces clear the 9.5 bar.
+
+### Hard locks verified
+
+Equipment Master canonical · no new collection · no new workflow · MAP STAYS · driver no-login intact · Shop Repair Complete ≠ RTS · Dispatch/Admin RTS authority preserved · existing defect routing unchanged · existing Pre-Op + DVIR forms untouched · Pydantic models untouched.
+
+**Report:** `/app/memory/TRACK_13_31B_D5_2_CANONICAL_PREOP_DVIR_INSPECTION_TEMPLATE_EXPANSION.md`.
+

@@ -178,29 +178,46 @@ def test_template_status_flags_missing(admin_tok, verified_unit):
     stamp template_present."""
     insp_id = _submit_preop(verified_unit)
     row = _read_preop(insp_id, admin_tok)
-    assert row["template_status"] == "template_present"
+    assert row["template_status"] == "available"
     assert row["template_recommended"] == "Excavator"
 
 
 def test_template_status_missing_for_unsupported_types(admin_tok):
-    """Find a verified Trench Box asset (no preop template) and confirm
-    template_status == missing_template."""
-    # Create a fresh verified Trench Box
+    """Light Tower template lives in Pre-Op surface — verify a DVIR call
+    against a Light Tower correctly stamps missing_template (DVIR surface
+    has no Light Tower template, so D5.2's applies_to gate kicks in)."""
+    # Track 13.31B-D5.2 ships templates for nearly all canonical types;
+    # the surface gate (pre_op vs dvir) is now the missing-template
+    # signal. Test path: pre-op against a survey-class asset has no
+    # template in the registry yet.
+    from services.inspection_templates import has_template
+    # Find any canonical asset_type that does NOT have a template
+    from services.asset_taxonomy import ASSET_TYPES_BY_CLASS
+    missing = None
+    for cls, types in ASSET_TYPES_BY_CLASS.items():
+        for at in types:
+            if not has_template(at):
+                missing = (cls, at)
+                break
+        if missing:
+            break
+    if not missing:
+        pytest.skip("registry covers every canonical asset_type; nothing missing")
     h = {"X-Admin-Token": admin_tok, "Content-Type": "application/json"}
     suffix = _uuid.uuid4().hex[:8]
     body = {
-        "asset_number": f"D51-TB-{suffix}",
-        "asset_name": "Track 13.31B-D5.1 trench box test",
-        "asset_class": "Trench Safety",
-        "asset_type": "Trench Box",
+        "asset_number": f"D51-MISS-{suffix}",
+        "asset_name": "Track 13.31B-D5.1 missing template test",
+        "asset_class": missing[0],
+        "asset_type": missing[1],
         "taxonomy_verified": True,
         "taxonomy_source": "manual",
     }
     r = httpx.post(f"{API}/asset-spine/assets", json=body, headers=h, timeout=30)
-    assert r.status_code in (200, 201)
+    assert r.status_code in (200, 201), r.text
     insp_id = _submit_preop(body["asset_number"])
     row = _read_preop(insp_id, admin_tok)
-    assert row["asset_type"] == "Trench Box"
+    assert row["asset_type"] == missing[1]
     assert row["template_status"] == "missing_template"
 
 

@@ -405,6 +405,84 @@ def register_asset_spine_routes(
             type_=type_field,
         )
 
+    @router.get("/inspection-templates")
+    async def list_inspection_templates(
+        applies_to: Optional[str] = Query(default=None, description="pre_op | dvir"),
+        _: Any = Depends(require_any_portal_dep),
+    ):
+        """Track 13.31B-D5.2 · canonical inspection template registry.
+
+        Returns every template registered in
+        ``services.inspection_templates`` (optionally filtered by surface).
+        """
+        from services.inspection_templates import all_templates
+        items = all_templates()
+        if applies_to in ("pre_op", "dvir"):
+            items = [t for t in items if t["applies_to"] == applies_to]
+        return {"count": len(items), "items": items}
+
+    @router.get("/inspection-templates/by-asset-type/{asset_type}")
+    async def template_by_asset_type(
+        asset_type: str = Path(..., min_length=1, max_length=80),
+        _: Any = Depends(require_any_portal_dep),
+    ):
+        """Hydrate one canonical inspection template by its asset_type."""
+        from services.inspection_templates import template_for
+        t = template_for(asset_type)
+        if not t:
+            return {
+                "asset_type": asset_type,
+                "template_status": "missing_template",
+                "template_key": None,
+                "sections": [],
+            }
+        return {"template_status": "available", **t}
+
+    @router.get("/inspection-templates/missing-backlog")
+    async def missing_template_backlog(
+        _: Any = Depends(require_admin_dep),
+    ):
+        """Track 13.31B-D5.2 · live missing-template backlog ordered by
+        active-fleet impact. Reads ``equipment_master.active=True`` rows,
+        groups by canonical ``asset_type``, and reports the count of
+        active assets whose canonical asset_type has no registered
+        inspection template.
+
+        This is the live D5.2 build backlog for the Asset Administrator.
+        """
+        from services.inspection_templates import has_template
+        cursor = db.equipment_master.find(
+            {"$or": [{"is_active": True}, {"active": True}, {"status": {"$nin": ["retired", "disposed", "sold"]}}]},
+            {"_id": 0, "asset_type": 1, "asset_class": 1, "category": 1,
+             "preop_equipment_type": 1, "type": 1, "taxonomy_verified": 1},
+        )
+        counts: Dict[str, Dict[str, Any]] = {}
+        scanned = 0
+        async for doc in cursor:
+            scanned += 1
+            at = doc.get("asset_type")
+            if not at:
+                # Skip rows with no canonical asset_type — those land in the
+                # taxonomy review queue, not the template backlog.
+                continue
+            if has_template(at):
+                continue
+            slot = counts.setdefault(at, {
+                "asset_type": at,
+                "asset_class": doc.get("asset_class") or None,
+                "count": 0,
+                "verified_count": 0,
+            })
+            slot["count"] += 1
+            if doc.get("taxonomy_verified"):
+                slot["verified_count"] += 1
+        items = sorted(counts.values(), key=lambda r: (-r["count"], r["asset_type"]))
+        return {
+            "scanned": scanned,
+            "missing_template_types": len(items),
+            "items": items,
+        }
+
     @router.get("/taxonomy/by-unit/{unit_or_id}")
     async def taxonomy_by_unit(
         unit_or_id: str = Path(..., min_length=1, max_length=128),
