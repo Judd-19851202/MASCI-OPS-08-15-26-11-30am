@@ -609,6 +609,20 @@ export default function ShopHubV2() {
                 </div>
               </div>
             </RealLink>
+            <RealLink to="/shop/service-truck-reconciliation" testid="shop-hub-v2-action-service-truck-reconciliation" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <div style={{
+                padding: "var(--pad-card)", background: "var(--paper-card)",
+                border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-strong)" }}>Service Truck Reconciliation</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-soft)" }}>
+                  Start/end fuel and fluid accountability by truck and day. Dispensed totals pulled from submitted Fuel/Lube Visits. Variance: <em>within range</em> · <em>needs review</em> · <em>significant</em>.
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                  Source: /api/shop/service-truck-reconciliation (Track 13.30)
+                </div>
+              </div>
+            </RealLink>
           </div>
         </section>
 

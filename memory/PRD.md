@@ -275,3 +275,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar Score: 9.8 / 10.**
 - Deployment readiness remains 🟢 **GREEN**.
 - Report: `/app/memory/TRACK_13_29_PHASE_2_FUEL_LUBE_VISIT_RECORDS_UI.md`.
+
+## 2026-06-12 · Track 13.30 closeout — Service Truck Daily Reconciliation
+
+- **Operational accountability surface LIVE.** Fuel/lube techs can log start-of-day and end-of-day quantities per service truck/day; system pulls dispensed totals from Track 13.29 `fuel_lube_visits` (single fluid source · case-insensitive truck match · same date), computes `expected_end = start − dispensed`, `variance = actual_end − expected_end`, and classifies each product line **green / yellow / red / incomplete**. Overall variance_status is the worst per-product class.
+- **New collection:** `service_truck_reconciliations` (1 doc per truck/day). 4 fuels (gallons) + 5 fluids (quarts) · closed-set product enum. NO accounting · NO cost · NO PO · NO theft language (pytest sanity sweep enforces forbidden-term absence).
+- **5 endpoints** under `/api/shop/service-truck-reconciliation` (start · close · list · detail · `/review`). All gated by `_require_shop_or_admin_fleet`. List default 30d · cap 90d (mirror Track 13.29). Closed/needs_review days are locked from re-start (409).
+- **Variance rules:** Green if `|var| ≤ 5 gal` (fuels) or `≤ 2 qt` (fluids) OR `pct ≤ 2 %`. Yellow if `pct ∈ (2 %, 5 %]`. Red if `pct > 5 %`. Status `closed` ⇒ green / `needs_review` ⇒ yellow|red. Language: *Within expected range · Needs review · Significant variance · Incomplete*. No theft language.
+- **3 frontend pages:** `/shop/service-truck-reconciliation/new` (start/close form with mode toggle · live variance grid after close) · `/shop/service-truck-reconciliation` (filtered list with status chips · 4 range presets · 4 filters) · `/shop/service-truck-reconciliation/:recId` (detail with 7-column variance grid · linked Fuel/Lube Visits · Shop Manager review block · doctrine footer · browser-native print only · NO fake PDF/email/CSV).
+- **ShopHubV2 Section 05** gains a 6th workforce card pointing to the records list. Existing 5 cards unchanged. `/shop/hub_legacy` rollback alive.
+- **Asset Service Event Backbone:** intentionally NOT projected here — service truck reconciliation is truck-level, equipment-level events already come from Track 13.29's `_project_fuel_lube`. Preserves "no duplicate timeline" hard lock.
+- **Tests:** 12 new (`tests/test_track_13_30_service_truck_reconciliation.py`). Regression: 24/24 across 13.26 + 13.28 + 13.28 P2 + 13.29. **Total backend suite: 36/36 PASS.** ESLint clean. Live browser smoke confirmed list/detail/form mount + 11 itest reconciliations rendered with variance chips + ShopHubV2 nav card.
+- **Hard locks intact:** Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · MaintainX dormant · FleetWatcher untouched · `fuel_lube_visits` read-only (status/totals/submitted_at unchanged after close) · no driver login · no fake exports · no theft language.
+- **Files added:** `backend/routes/service_truck_reconciliation.py` · `backend/tests/test_track_13_30_service_truck_reconciliation.py` · `frontend/src/pages/shop/ServiceTruckReconciliationForm.jsx` · `frontend/src/pages/shop/ServiceTruckReconciliationRecords.jsx` · `frontend/src/pages/shop/ServiceTruckReconciliationDetail.jsx` · `memory/TRACK_13_30_SERVICE_TRUCK_DAILY_RECONCILIATION.md`.
+- **Files modified:** `backend/server.py` (+router mount only) · `frontend/src/App.js` (+3 lazy imports +3 routes) · `frontend/src/pages/ShopHubV2.jsx` (+1 nav card).
+- **Five-Pillar Score: 9.8 / 10.**
+- Deployment readiness remains 🟢 **GREEN**.
+- Report: `/app/memory/TRACK_13_30_SERVICE_TRUCK_DAILY_RECONCILIATION.md`.

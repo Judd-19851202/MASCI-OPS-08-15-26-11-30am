@@ -5490,3 +5490,33 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
 - **Track 13.30 — Service-Truck Reconciliation** (parallel) · **Track 13.31 — PM Engine (derived)** · **Track 13.33 — Asset Care Command Center**.
 
 **Report:** `/app/memory/TRACK_13_29_PHASE_2_FUEL_LUBE_VISIT_RECORDS_UI.md`.
+
+---
+
+## 2026-06-12 · Track 13.30 — Service Truck Daily Reconciliation (LIVE)
+
+**Mode:** CONTROLLED IMPLEMENTATION · backend + frontend · no deploy.
+
+### What shipped
+- New collection `service_truck_reconciliations` (1 doc per truck/day) · 4 fuels (gallons) + 5 fluids (quarts) · closed-set product enum.
+- 5 endpoints under `/api/shop/service-truck-reconciliation`: `POST /start` · `POST /close` · `POST /{id}/review` · `GET (list)` · `GET /{id}`.
+- Dispensed totals pulled read-only from Track 13.29 `fuel_lube_visits` (case-insensitive truck match · same date). Source never mutated (sanity tested).
+- Variance rules: Green `|var| ≤ 5 gal` (fuels) or `≤ 2 qt` (fluids) OR `pct ≤ 2 %`; Yellow `pct ∈ (2 %, 5 %]`; Red `pct > 5 %`. Status `needs_review` on yellow/red. Closed-set language: *Within expected range · Needs review · Significant variance · Incomplete*.
+- 3 frontend pages: form (start/close toggle · 9 product inputs · live variance grid post-close), list (4 range presets · 4 filters · variance chips · status chips), detail (7-column variance grid · linked Fuel/Lube Visits · Shop Manager review block · browser-native print only).
+- ShopHubV2 Section 05 gains a 6th workforce nav card.
+
+### Hard locks verified
+- Dispatch Map-First · Driver no-login · Shop Repair Complete ≠ RTS · MaintainX dormant · FleetWatcher untouched · no accounting · no cost · no PO · no theft language · no fake exports · no duplicate asset timeline · `fuel_lube_visits` immutable (status/totals/submitted_at unchanged after close).
+
+### Tests
+- 12 new + 24 regression = **36/36 backend pass**.
+- ESLint clean (4 frontend files).
+- Live browser smoke: list/detail/form mount + ShopHubV2 nav card + 11 itest reconciliations rendered with variance chips before data cleanup.
+
+### Five-Pillar score · 9.8 / 10
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10.
+
+### Recommended next track
+- **Track 13.31 — PM Engine (derived)** or **Track 13.33 — Asset Care Command Center**. **Track 13.32 — MaintainX** remains BLOCKED on `MAINTAINX_API_KEY`.
+
+**Report:** `/app/memory/TRACK_13_30_SERVICE_TRUCK_DAILY_RECONCILIATION.md`.

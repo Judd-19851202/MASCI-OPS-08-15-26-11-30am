@@ -188,6 +188,10 @@ const FuelLubeVisitForm = React.lazy(() => import("@/pages/shop/FuelLubeVisitFor
 // Track 13.29 Phase 2 — Fuel / Lube Visit Records list + detail.
 const FuelLubeVisitRecords = React.lazy(() => import("@/pages/shop/FuelLubeVisitRecords"));
 const FuelLubeVisitDetail = React.lazy(() => import("@/pages/shop/FuelLubeVisitDetail"));
+// Track 13.30 — Service Truck Daily Reconciliation.
+const ServiceTruckReconciliationForm    = React.lazy(() => import("@/pages/shop/ServiceTruckReconciliationForm"));
+const ServiceTruckReconciliationRecords = React.lazy(() => import("@/pages/shop/ServiceTruckReconciliationRecords"));
+const ServiceTruckReconciliationDetail  = React.lazy(() => import("@/pages/shop/ServiceTruckReconciliationDetail"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
@@ -762,6 +766,10 @@ function App() {
             {/* Track 13.29 Phase 2 — Fuel / Lube Visit Records list + detail. */}
             <Route path="/shop/fuel-lube" element={S(<FuelLubeVisitRecords />)} />
             <Route path="/shop/fuel-lube/:visitId" element={S(<FuelLubeVisitDetail />)} />
+            {/* Track 13.30 — Service Truck Daily Reconciliation. */}
+            <Route path="/shop/service-truck-reconciliation/new"         element={S(<ServiceTruckReconciliationForm />)} />
+            <Route path="/shop/service-truck-reconciliation"             element={S(<ServiceTruckReconciliationRecords />)} />
+            <Route path="/shop/service-truck-reconciliation/:recId"      element={S(<ServiceTruckReconciliationDetail />)} />
             <Route path="/shop/trench-safety-repairs" element={S(<ShopTrenchSafetyRepairs />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
             {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is

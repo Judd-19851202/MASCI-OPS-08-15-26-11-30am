@@ -10941,6 +10941,18 @@ _fl_router = build_fuel_lube_router(
 )
 app.include_router(_fl_router)
 
+# Track 13.30 · Service Truck Daily Reconciliation router.
+# Composes truck-day reconciliation over Track 13.29 fuel/lube visits.
+# Single collection: `service_truck_reconciliations`. No accounting.
+from routes.service_truck_reconciliation import (  # noqa: E402
+    build_service_truck_reconciliation_router,
+)
+_strr_router = build_service_truck_reconciliation_router(
+    db,
+    require_shop_or_admin_dep=_require_shop_or_admin_fleet,
+)
+app.include_router(_strr_router)
+
 # Shop Command Feed — single read endpoint consumed by ShopHub and by
 # the DCC "Shop" tile. Reads only from canonical defect / recovery
 # collections. Doctrine: /app/memory/SHOP_COMMAND_ARCHITECTURE.md.
