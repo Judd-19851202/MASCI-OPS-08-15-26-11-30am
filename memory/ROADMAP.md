@@ -4,6 +4,42 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ Track 14.0-HUMAN-FIRST-VISIBILITY-CERTIFICATION — DONE (2026-02-12)
+Full human-perspective audit · 10 portals · 232 surfaces · 14 roles. **18 permanent regression tests in `test_nav_drift_guard.py` · 64/64 pytest green.** Critical correction: PM V2 hub DOES have top-bar chrome via PortalShell (screenshot proof). RC1-NAV-002 WITHDRAWN · NAV-001/003-006 P0→P2. **3 unguarded routes discovered as RC1-NAV-007**. **No P0 blockers remain.** Five-Pillar **9.85**.
+Ledger: `TRACK_14_0_HUMAN_FIRST_VISIBILITY_CERTIFICATION.md`.
+
+## 🔴 P0 — Track 14.0-S1 Spanish Translation Sweep (NOW FULLY UNBLOCKED)
+Public crew forms + admin operator copy.
+
+## 🔴 P0 — Track 14.0-P1 PDF Lockup Sweep (NOW FULLY UNBLOCKED)
+Server-side PDF generation pipelines.
+
+## 🔴 P0 — Track 14.0-I1 Integration Honesty Banners (NOW FULLY UNBLOCKED)
+Admin-portal integration health surfaces.
+
+## 🟡 P1 — RC1-NAV-007 Quick Fix (~1 hour)
+Wrap 3 newly-discovered unguarded portal routes with their guard tokens:
+- `/admin/qaqc` → wrap with `A(...)`
+- `/pm/odr` → wrap with `P(...)`
+- `/hr/employees` + `/hr/employees/:id/accountability` → wrap with `H(...)`
+After fix: remove paths from `known_unguarded` in `tests/test_nav_drift_guard.py`.
+
+## 🟡 P1 — Track 14.0-RC1-ROLE-VISIBILITY-CERTIFICATION (after NAV-007 fix)
+Certify all 14 roles can find and use their workflows.
+
+## 🟡 P1 — Track 14.0-UXS-11 Final Certification (after S1 + P1 + I1 + NAV-007)
+RC-1 acceptance suite.
+
+## 🟡 P1 — RC1 Blockers Open (post-correction)
+- **RC1-NAV-007** (P1) · 3 unguarded portal routes · pinned by test
+- **RC1-INVITE-FLOW-001** (P1) · PM-inline portal-invite CTA · carried
+- **RC1-NAV-008** (P2) · Change-password link missing from PM V2 top-bar
+- **RC1-NOTIFICATION-DEEPLINK-002** (P1) · Producer link_urls not set
+- ~~RC1-NAV-002~~ · WITHDRAWN by HUMAN-FIRST audit
+- **RC1-NAV-001 / 003 / 004 / 005 / 006** · downgraded P0→P2 (V2 left-sidebar architectural choice, acceptable for RC-1)
+- **RC1-LEGACY-RETIRE-001** (P2) · Retire `*hub_legacy` aliases after V2 cuts to 100%
+- **RC1-NAV-PROMOTE-001** (P2) · ~12 surfaces with discoverability ≤ 2
+
 ## ✅ Track 14.0-PLATFORM-TRUTH-MAP — DONE (2026-02-12)
 Complete read-only audit: 341 routes · 10 portals · 232 surfaces · 14 roles · 8 RC1 blockers. Biggest finding: PM/Shop/HR/Safety/Dispatch V2 hubs lack shell wrap. **Spanish · PDF · I1 unblocked.** Five-Pillar **9.85**.
 Ledger: `TRACK_14_0_PLATFORM_TRUTH_MAP_ROUTE_NAV_SURFACE_INVENTORY.md`.

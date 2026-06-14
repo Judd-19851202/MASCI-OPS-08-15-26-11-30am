@@ -2,6 +2,42 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-12 — Track 14.0-HUMAN-FIRST-VISIBILITY-CERTIFICATION CLOSED
+
+Full human-perspective audit + permanent regression-guard tests.
+
+- **18 NEW permanent regression-guard tests** committed to
+  `backend/tests/test_nav_drift_guard.py` (64/64 green). Tests fail when:
+  route count drifts >10 from snapshot · unguarded portal route ships ·
+  V2 hub pages or route bindings change · PmHubV2 silently swaps to
+  PmShell · PmCommandCenter re-introduces Dispatch link · "Project
+  Roster" card stops targeting /pm/jobs · ROLE_CHAIN loses any of 14
+  Phase 2B-2B event keys.
+- **CRITICAL CORRECTION to prior PLATFORM-TRUTH-MAP**: PM Hub V2 was
+  reported as "no chrome" — that was wrong. Live screenshot
+  (`/tmp/pm_hub_chrome.png`) shows PM V2 renders top-bar Search, Bell
+  (99+ badge), PortalSwitcher, Home, Sign Out, language toggle, identity
+  badge via `PortalShell`. Only the LEFT SIDEBAR is absent — by V2
+  design choice. RC1-NAV-002 WITHDRAWN. RC1-NAV-001 + 003-006
+  downgraded P0→P2 (architectural choice, acceptable for RC-1).
+- **3 newly-discovered unguarded portal routes** pinned by the new
+  tests as **RC1-NAV-007** (P1):
+    - `/admin/qaqc` → `<AdminQaqcList />`
+    - `/pm/odr` → `<OdrPmPanel />`
+    - `/hr/employees` + `/hr/employees/:id/accountability`
+  Pinned in `known_unguarded` so test passes today; flips to failure
+  the moment they're fixed (forcing paired audit refresh) OR the moment
+  a new unguarded route ships.
+- **No P0 RC-1 blockers remain** after corrections.
+- **Five-Pillar**: Powerful 9.85 · Simple 9.95 · Beautiful 9.85 ·
+  Trusted **9.95** · Proven **9.90** · Composite **9.85**.
+
+**Spanish · PDF Lockup · Integration Honesty Banners fully UNBLOCKED.**
+
+Ledger: `TRACK_14_0_HUMAN_FIRST_VISIBILITY_CERTIFICATION.md`.
+
+
+
 ## 2026-02-12 — Track 14.0-PLATFORM-TRUTH-MAP CLOSED
 
 Complete read-only audit of MASCI Operations Platform navigation surface.

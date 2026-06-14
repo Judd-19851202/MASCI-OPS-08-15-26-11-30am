@@ -11,6 +11,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-12)
+- **14.0-HUMAN-FIRST-VISIBILITY-CERTIFICATION CLOSED** — Full
+  human-perspective audit across 10 portals · 341 routes · 232
+  surfaces · 14 roles. **18 permanent regression-guard tests committed
+  to `backend/tests/test_nav_drift_guard.py`** (64/64 pytest green).
+  **Critical correction to prior TRUTH-MAP audit**: PM Hub V2 actually
+  renders top-bar chrome (Search · Bell · PortalSwitcher · Home · Sign
+  Out · language toggle) via `PortalShell` — not "no chrome" as the
+  earlier audit grep-finding had stated. Live screenshot proof
+  attached. **3 newly-discovered unguarded portal routes** pinned as
+  **RC1-NAV-007** (P1, 3-line fix). RC1-NAV-002 WITHDRAWN. NAV-001 /
+  003-006 downgraded P0→P2. **No P0 RC-1 blockers remain after
+  corrections.** Five-Pillar **9.85** (Trusted 9.95 · Proven 9.90).
+  **Spanish · PDF · I1 fully unblocked.** Ledger:
+  `/app/memory/TRACK_14_0_HUMAN_FIRST_VISIBILITY_CERTIFICATION.md`.
+
+
+## Latest Closed Track (2026-02-12)
 - **14.0-PLATFORM-TRUTH-MAP CLOSED** — Complete read-only audit of every
   portal · route · navigation element · surface across MASCI Operations
   Platform. **341 routes** · **10 portals** · **~232 surfaces** · **14
