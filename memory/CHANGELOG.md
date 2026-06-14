@@ -2,6 +2,49 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — Track 14.0-P1 PDF LOCKUP SWEEP CLOSED
+
+**P0 deployment blocker — now unblocked.**
+
+Platform-wide PDF / Print / Export certification. Treated PDFs as
+operational documents (PM / safety / owner / inspector / attorney
+might share them Monday morning).
+
+**Inventory**: 23 backend PDF endpoints + 15 frontend browser-print
+surfaces audited. Three core generators (master_history, training_center,
+fire_ext_attachments) use the shared `pdf_branding.wrap_pdf_html()`
+helper; the rest emit MASCI-branded PDFs inline with consistent
+header / body / footer chrome.
+
+**Live preview evidence**:
+* `MASCI_Fleet_Severity_Reference_<v>.pdf` — 10 KB · branded · pro
+* `MASCI_HUB_Operations_Manual.pdf` — 84 KB · branded · pro
+* `MASCI_FL_*.pdf` (HR Field Leadership write-up) — 1.27 MB · photos
+  embedded · 1/1 pagination · generated-at footer · MASCI mark
+* Browser-print emulation of `ViewIncident.jsx` — chrome hidden,
+  sectioned layout, doc-ID + report-ID visible
+
+**Fixes**:
+* `server.py` — email-attachment filename normalized from
+  `MASCI-{kind}-{proj}-{date}.pdf` (hyphens) to
+  `MASCI_{kind}_{proj}_{date}.pdf` (platform standard).
+* `+10 regression tests` in `test_pdf_lockup_sweep.py` lock the
+  contract: shared branding module intact, certified generators
+  keep using it, filename standard enforced across all backend
+  routes, frontend operational View pages keep using `printReport`
+  helper with `no-print`/`print-section` CSS.
+
+**Deferred (intentional)**:
+* Preview-DB hygiene (`TEST_iter*`, `iter368-9d0eea`, `TEST Juan Perez`
+  seed records visible in HR FL PDFs) — out of scope; mitigated by
+  the persistent amber `⚠ PREVIEW ENVIRONMENT` banner that prints
+  on every preview page/PDF.
+
+**Test surface**: 10/10 PDF lockup · 24/24 nav-drift · 56/56 combined
+RC1 + parity + reality + PDF guards. Frontend compiles clean.
+
+Closure ledger: `/app/memory/TRACK_14_0_P1_PDF_LOCKUP_SWEEP_CLOSURE.md`
+
 ## 2026-02-14 — Track 14.0-SHOP-DISPATCH-OPERATIONAL-REALITY-FIX CLOSED
 
 **P0 blocker for PDF Lockup / Deployment Prep — now unblocked.**

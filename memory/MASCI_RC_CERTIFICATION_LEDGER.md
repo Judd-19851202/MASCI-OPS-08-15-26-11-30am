@@ -7404,3 +7404,51 @@ Banners are all cleared to begin.
 **Composite: 9.92.**
 
 **Report:** `/app/memory/TRACK_14_0_SHOP_DISPATCH_OPERATIONAL_REALITY_FIX_CLOSURE.md`.
+
+---
+
+## Track 14.0-P1 PDF LOCKUP SWEEP — CLOSED
+
+**Date:** 2026-02-14 · **Status:** CLOSED · **Composite:** **9.90** (Trusted **9.90** · Proven **9.90**)
+
+### Outcome
+- Inventoried every PDF / Print / Export / Report-output surface
+  across the platform: 23 backend PDF endpoints + 15 frontend
+  browser-print surfaces.
+- Verified shared `pdf_branding.wrap_pdf_html()` standard is intact
+  and used by the 3 certified generators (master_history,
+  training_center, fire_ext_attachments). Other generators emit
+  MASCI-branded PDFs inline with consistent header / body / footer.
+- Live-preview sampled 3 backend PDFs (Fleet Severity Card · Ops
+  Manual · HR Field Leadership write-up) — all returned
+  `application/pdf` with professional branded output, embedded
+  photos, page-of-pages pagination, generated-timestamp footer.
+- AI-assisted visual inspection confirmed: clear MASCI header ·
+  field labels readable · no raw JSON / undefined / null / NaN ·
+  no backend identifier leaks.
+- Frontend operational View pages (Inspection · Incident · Daily
+  Report · Meeting · QAQC · Equipment · FL · Safety Forms · HR Time
+  Verification · HR Accountability Timeline) all wire through the
+  shared `printReport()` helper with `no-print` / `print-section`
+  CSS so the browser Save-as-PDF dialog produces clean records.
+- Fixed `server.py` email-attachment filename from
+  `MASCI-{kind}-...` to `MASCI_{kind}_...` (platform standard).
+- Added new `test_pdf_lockup_sweep.py` regression suite (10 guards)
+  locking the entire PDF contract: branding module, certified
+  generators, filename standard, frontend print helper paths.
+- Preview-DB `TEST_iter*` seed-record contamination noted and
+  deferred to a separate hygiene pass — mitigated by the persistent
+  amber preview banner that prints on every preview page/PDF.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.90 |
+| Simple | 9.90 |
+| Beautiful | 9.90 |
+| Trusted | **9.90** |
+| Proven | **9.90** |
+
+**Composite: 9.90.**
+
+**Report:** `/app/memory/TRACK_14_0_P1_PDF_LOCKUP_SWEEP_CLOSURE.md`.

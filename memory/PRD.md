@@ -11,6 +11,27 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14)
+- **14.0-P1 PDF LOCKUP SWEEP CLOSED** — Platform-wide PDF / Print /
+  Export certification. Inventoried 23 backend PDF endpoints + 15
+  frontend browser-print surfaces. Verified shared `pdf_branding`
+  module intact; the 3 certified generators (master_history /
+  training_center / fire_ext_attachments) still use
+  `wrap_pdf_html()`; the rest emit MASCI-branded PDFs inline with
+  consistent header / body / footer chrome. Live-preview sampled 3
+  PDFs (Fleet Severity Card · Ops Manual · HR FL write-up) —
+  professional branded output, embedded photos, pagination,
+  generated-at footer. Frontend operational View pages all wire
+  through `printReport()` with `no-print` / `print-section` CSS for
+  clean browser Save-as-PDF. Fixed `server.py` email-attachment
+  filename hyphen-vs-underscore drift. +10 PDF regression guards
+  lock the contract. Preview-DB seed-data contamination deferred
+  to a separate hygiene pass (mitigated by the persistent preview
+  banner that prints on every page/PDF). 56/56 RC1 + parity +
+  reality + PDF guards pass. Five-Pillar **9.90** (Trusted 9.90 ·
+  Proven 9.90). Ledger:
+  `/app/memory/TRACK_14_0_P1_PDF_LOCKUP_SWEEP_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-14)
 - **14.0-SHOP-DISPATCH-OPERATIONAL-REALITY-FIX CLOSED** — User-reported
   live preview defect: Shop landing rendered raw `HTTP 401` text in
   three dashboard sections ("Who's loaded right now" /

@@ -12387,8 +12387,8 @@ async def email_report(
         safe_proj = "".join(
             c if c.isalnum() else "_" for c in project[:40]
         ).strip("_")
-        filename = f"MASCI-{body.kind}-{safe_proj}-{date_part}.pdf".replace(
-            "--", "-"
+        filename = f"MASCI_{body.kind}_{safe_proj}_{date_part}.pdf".replace(
+            "__", "_"
         )
 
         subject = body.subject or build_email_subject(body.kind, record)
