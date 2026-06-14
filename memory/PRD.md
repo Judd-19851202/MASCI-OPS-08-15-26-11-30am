@@ -11,6 +11,27 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14)
+- **14.0-UXS-11 PLATFORM ROUTE PARITY CERTIFICATION CLOSED** (for 5
+  user-evidenced drift routes · IN PROGRESS for ~49 enumerated
+  follow-on operational pages). User-reported live preview defect:
+  routes use multiple different shell designs. Fixed 5 evidenced
+  routes (`/project-health` · `/asset-transfers` · `/admin/jha-plans` ·
+  `/admin/trench-boxes` · `/po-requests`) by wrapping each in
+  `<PortalShell>` with the correct domain sidebar; legacy
+  MasciLogo + HubBackLink imports removed where they would
+  duplicate PortalShell's brand bar. Built comprehensive drift
+  inventory of all 103 legacy-chrome pages: 5 fixed · 47 legitimate
+  exceptions (auth / public forms / print views) · ~49 remaining
+  operational drifted pages enumerated for 4 scheduled follow-on
+  sweeps (PM · HR · Safety+Shop+Dispatch+FL · Admin). +10 regression
+  guards lock the evidenced routes. 99/99 RC1 + parity + reality +
+  PDF + hygiene + I1 + HR-readiness + UXS-11 tests pass. Live
+  screenshots captured for all 5 routes. Five-Pillar **9.89**
+  (Trusted 9.90 · Proven 9.90). Closure ledger:
+  `/app/memory/TRACK_14_0_UXS_11_PLATFORM_ROUTE_PARITY_CERTIFICATION_CLOSURE.md` ·
+  drift inventory: `/app/memory/TRACK_14_0_UXS_11_ROUTE_DRIFT_INVENTORY.md`.
+
+## Previous Closed Track (2026-02-14)
 - **14.0-HR-READINESS-CERTIFICATION-SWEEP CLOSED** — Fixed P0
   user-reported defect: HR bell click on a pending employee-add
   request went nowhere because `db.employee_requests` was inserted

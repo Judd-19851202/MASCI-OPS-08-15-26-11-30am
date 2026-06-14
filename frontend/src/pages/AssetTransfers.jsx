@@ -24,6 +24,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { api } from "@/lib/api";
 import { tintFor } from "@/lib/statusBadges";
 
@@ -98,19 +100,11 @@ export default function AssetTransfers() {
   }, [data]);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6" data-testid="asset-transfers-page">
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <div className="flex items-center gap-3 min-w-0">
-          <Truck className="w-5 h-5 text-slate-700 shrink-0" />
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold font-display text-slate-900 leading-tight">
-              Asset Transfers
-            </h1>
-            <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-slate-500 mt-0.5">
-              Equipment movement · live status
-            </p>
-          </div>
-        </div>
+    <PortalShell
+      portalName="MASCI" portalRole="PM Portal · Asset Transfers"
+      pageTitle="Asset Transfers"
+      subtitle="Equipment movement · live status"
+      primaryActions={
         <div className="flex items-center gap-2 flex-wrap">
           <Button onClick={() => setShowCreate(true)} size="sm" data-testid="asset-transfer-new-btn">
             <Plus className="w-3.5 h-3.5 mr-1" /> Request Transfer
@@ -119,7 +113,10 @@ export default function AssetTransfers() {
             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           </Button>
         </div>
-      </div>
+      }
+      sideNav={<PmSideNavV2 />}
+    >
+    <div className="max-w-7xl mx-auto p-4 sm:p-6" data-testid="asset-transfers-page">
 
       {/* Status chip filters */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -239,6 +236,7 @@ export default function AssetTransfers() {
         />
       )}
     </div>
+    </PortalShell>
   );
 }
 

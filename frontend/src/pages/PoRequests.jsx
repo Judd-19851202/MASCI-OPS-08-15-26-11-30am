@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogTrigger, DialogFooter,
@@ -30,7 +32,9 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
+// Track 14.0-UXS-11 (2026-02-14): PoRequests is now wrapped in PortalShell
+// which provides the MASCI brand bar; the legacy MasciLogo inline import
+// has been removed.
 import NotificationBell from "@/components/NotificationBell";
 import { JobPicker } from "@/components/JobPicker";
 import { SupplierCombo } from "@/components/SupplierCombo";
@@ -215,27 +219,13 @@ export default function PoRequests() {
   if (!signedIn) return <AccessDenied attemptedPortal="po-requests" />;
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="po-requests-page">
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
-          <Link to="/" className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="po-nav-home">
-            <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Home</span>
-          </Link>
-          <button onClick={() => nav(-1)} className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="po-nav-back">
-            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Back</span>
-          </button>
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <div className="flex-1 min-w-0">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">PO Requests · Receipt Tracking</div>
-            <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">Operational POs</div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <GlobalSearch accent="dark" />
-            <NotificationBell accent="white" />
-          </div>
-        </div>
-      </header>
-
+    <PortalShell
+      portalName="MASCI" portalRole="PM Portal · Operational POs"
+      pageTitle="Operational POs"
+      subtitle="PO requests · receipt tracking"
+      sideNav={<PmSideNavV2 />}
+    >
+    <div className="min-h-screen" data-testid="po-requests-page">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         {/* iter242 — Authority-boundary clarification banner. Field
             Leadership submits the request; PM / Co-PMs / HR / Admin
@@ -405,6 +395,7 @@ export default function PoRequests() {
 
       <PoDrawer id={openId} caps={caps} onClose={() => { setOpenId(null); fetchAll(); }} />
     </div>
+    </PortalShell>
   );
 }
 

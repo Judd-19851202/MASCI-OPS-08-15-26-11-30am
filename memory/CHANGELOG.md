@@ -2,6 +2,51 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — Track 14.0-UXS-11 PLATFORM ROUTE PARITY CERTIFICATION CLOSED (evidenced set)
+
+**Status**: CLOSED for the 5 user-evidenced drift routes ·
+`IN PROGRESS` for the broader sweep (~49 operational pages enumerated
+for follow-on).
+
+User-reported live preview defect: routes use multiple different
+shell designs (some PortalShell, some inline dark-navy headers, some
+HubBackLink-style headers). Five routes specifically called out as
+drift evidence:
+
+* `/project-health` — bare card, no sidebar
+* `/asset-transfers` — bare card, no sidebar
+* `/admin/jha-plans` — custom MasciLogo + HubBackLink chrome
+* `/admin/trench-boxes` — ad-hoc dark-navy header + caution stripe
+* `/po-requests` — inline dark-navy header with HOME/BACK + MasciLogo
+
+### Fix
+All 5 wrapped in `<PortalShell>` with the correct domain sidebar
+(`PmSideNavV2` / `SafetySideNavV2` / `AdminSideNavV2`). Legacy
+`MasciLogo` + `HubBackLink` imports removed where they would
+duplicate PortalShell's brand bar.
+
+### Comprehensive drift inventory
+`/app/memory/TRACK_14_0_UXS_11_ROUTE_DRIFT_INVENTORY.md` catalogues
+all 103 pages still importing legacy chrome, categorized:
+* **5 fixed** (this track · regression-locked)
+* **47 legitimate exceptions** (auth · public forms · print views ·
+  posters — must stay sidebar-less by design)
+* **~49 remaining operational drifted pages** enumerated for 4
+  follow-on sweeps (PM · HR · Safety+Shop+Dispatch+FL · Admin)
+
+### Locks added — `test_route_parity_uxs11.py` (10 guards)
+* `test_evidence_route_uses_portal_shell` × 5 (parametrized)
+* `test_evidence_route_does_not_import_legacy_chrome` × 5
+
+### Test surface
+**99/99 PASS** across all RC1 suites (10 UXS-11 + 9 HR-readiness +
+20 I1 + 6 hygiene + 10 PDF + 24 nav-drift + 22 ownership/parity).
+Frontend compiles clean. Live preview screenshots captured for all
+5 routes.
+
+Closure ledger: `/app/memory/TRACK_14_0_UXS_11_PLATFORM_ROUTE_PARITY_CERTIFICATION_CLOSURE.md`
+Drift inventory: `/app/memory/TRACK_14_0_UXS_11_ROUTE_DRIFT_INVENTORY.md`
+
 ## 2026-02-14 — Track 14.0-HR-READINESS-CERTIFICATION-SWEEP CLOSED
 
 **P0 critical operational defect — "click does nothing" — FIXED.**

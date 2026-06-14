@@ -17,6 +17,8 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import {
   Activity, RefreshCw, ArrowUpDown, ChevronRight,
   AlertTriangle, Loader2,
@@ -141,19 +143,11 @@ export default function ProjectHealth() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6" data-testid="project-health-page">
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <div className="flex items-center gap-3 min-w-0">
-          <Activity className="w-5 h-5 text-slate-700 shrink-0" />
-          <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold font-display text-slate-900 leading-tight">
-              Project Health
-            </h1>
-            <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-slate-500 mt-0.5">
-              Operational friction by job · live data
-            </p>
-          </div>
-        </div>
+    <PortalShell
+      portalName="MASCI" portalRole="PM Portal · Project Health"
+      pageTitle="Project Health"
+      subtitle="Operational friction by job · live data"
+      primaryActions={
         <Button
           onClick={load}
           variant="outline"
@@ -166,7 +160,10 @@ export default function ProjectHealth() {
             : <RefreshCw className="w-3.5 h-3.5" />}
           <span className="ml-1.5 text-xs">Refresh</span>
         </Button>
-      </div>
+      }
+      sideNav={<PmSideNavV2 />}
+    >
+    <div className="max-w-7xl mx-auto p-4 sm:p-6" data-testid="project-health-page">
 
       {/* Summary strip */}
       {data?.summary && (
@@ -284,6 +281,7 @@ export default function ProjectHealth() {
         Safety / PM for binding determinations.
       </div>
     </div>
+    </PortalShell>
   );
 }
 

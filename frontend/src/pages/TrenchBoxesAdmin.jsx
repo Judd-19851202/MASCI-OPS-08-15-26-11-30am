@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
-import HubBackLink, { useHubHome } from "@/components/HubBackLink";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
@@ -42,7 +42,7 @@ export default function TrenchBoxesAdmin() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
-  const hubHome = useHubHome();
+  const hubHome = "/admin"; // PortalShell now provides portal-home navigation
 
   const refresh = async () => {
     setLoading(true);
@@ -124,27 +124,27 @@ export default function TrenchBoxesAdmin() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <HubBackLink testId="back-link" />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex items-center gap-2">
-            <Link
-              to="/admin/trench-boxes/poster"
-              className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3 rounded-md border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-mono text-xs uppercase tracking-[0.15em] font-bold"
-              data-testid="open-poster-link"
-            >
-              <Printer className="w-4 h-4" /> QR Poster
-            </Link>
-            <Button onClick={openNew} className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="new-trench-btn">
-              <Plus className="w-4 h-4 mr-1" /> Add Box
-            </Button>
-          </div>
+    <PortalShell
+      portalName="MASCI" portalRole="Admin · Trench Box Library"
+      pageTitle="MASCI Trench Box Fleet"
+      subtitle="Trench shield tabulated data · OSHA compliance ready"
+      primaryActions={
+        <div className="flex items-center gap-2">
+          <Link
+            to="/admin/trench-boxes/poster"
+            className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3 rounded-md border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-mono text-xs uppercase tracking-[0.15em] font-bold"
+            data-testid="open-poster-link"
+          >
+            <Printer className="w-4 h-4" /> QR Poster
+          </Link>
+          <Button onClick={openNew} className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="new-trench-btn">
+            <Plus className="w-4 h-4 mr-1" /> Add Box
+          </Button>
         </div>
-      </header>
-
+      }
+      sideNav={<AdminSideNavV2 />}
+    >
+    <div className="min-h-screen">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="mb-6">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">Trench Box Tabulated Data</span>
@@ -307,5 +307,6 @@ export default function TrenchBoxesAdmin() {
         </Dialog>
       </main>
     </div>
+    </PortalShell>
   );
 }
