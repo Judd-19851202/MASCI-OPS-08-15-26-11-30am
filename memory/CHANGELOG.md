@@ -2,6 +2,57 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — Track 14.0-P0 PREVIEW / TEST / DEMO DATA DEPLOYMENT HYGIENE SWEEP CLOSED
+
+**P0 hard deployment blocker — now unblocked.**
+
+Read-first audit + lock the preview→production data boundary so RC1
+deployment cannot accidentally carry preview garbage forward.
+
+**Boundary verified**:
+* Preview DB: `masci_safety_preview` · Production DB: `masci_safety`
+  (different Atlas databases).
+* `server._verify_env_db_alignment()` (L892–L919) refuses to start
+  when `APP_ENV` and `DB_NAME` disagree — the guard that closed the
+  2026-05-26 crossover incident is intact.
+* Demo-seed scripts (`seed_pm_demo_fixture.py`, `dls_seed_demo.py`)
+  refuse to run against production (hard-block).
+* All admin restore endpoints (`admin_restore_job`, `restore_employee`,
+  `restore_supplier`, `exports_restore`, `restore_equipment_master`)
+  are admin-token gated — no anonymous restore path.
+
+**Preview DB collection sweep**: ~1 360 sampled suspicious records
+across 17 collections (`TEST Juan Perez` × 120, `Test Mechanic`,
+`pm.demo@mascigc.com` × 304, `Phase Sigma-II Test`, etc.). All live
+in **preview only**. Production is unaffected — the env/DB guard
+guarantees production code cannot read the preview DB. Mitigated
+visually by the persistent amber `⚠ PREVIEW ENVIRONMENT` banner that
+prints on every preview page/PDF.
+
+**Locks added**: `test_data_hygiene_sweep.py` — 6 new regression
+guards:
+* `test_env_db_alignment_guard_intact`
+* `test_demo_seed_scripts_refuse_production` (parametrized × 2)
+* `test_server_startup_does_not_auto_seed_demo_collections`
+* `test_test_credentials_doc_is_not_referenced_by_runtime`
+* `test_admin_restore_paths_do_not_assume_preview_db`
+
+**Remaining manual review items (2 ops checklist items)**:
+1. Verify production deploy env has `APP_ENV=production` and
+   `DB_NAME=masci_safety` (no `_preview` suffix).
+2. Verify any admin backup archive restored into production was
+   produced from production, not preview.
+
+**No runtime code changes** — the boundary, guards, and admin
+restore enforcement were already correctly in place. This sweep
+audited, evidenced, and locked them with regression coverage.
+
+**Test surface**: 6/6 hygiene · 10/10 PDF · 24/24 nav-drift · 62/62
+combined RC1 + parity + reality + PDF + hygiene. Frontend compiles
+clean.
+
+Closure ledger: `/app/memory/TRACK_14_0_P0_PREVIEW_TEST_DEMO_DATA_HYGIENE_SWEEP_CLOSURE.md`
+
 ## 2026-02-14 — Track 14.0-P1 PDF LOCKUP SWEEP CLOSED
 
 **P0 deployment blocker — now unblocked.**

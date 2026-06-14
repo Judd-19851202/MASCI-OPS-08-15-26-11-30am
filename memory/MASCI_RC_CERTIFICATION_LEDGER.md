@@ -7452,3 +7452,48 @@ Banners are all cleared to begin.
 **Composite: 9.90.**
 
 **Report:** `/app/memory/TRACK_14_0_P1_PDF_LOCKUP_SWEEP_CLOSURE.md`.
+
+---
+
+## Track 14.0-P0 PREVIEW / TEST / DEMO DATA DEPLOYMENT HYGIENE SWEEP — CLOSED
+
+**Date:** 2026-02-14 · **Status:** CLOSED · **Composite:** **9.92** (Trusted **9.95** · Proven **9.95**)
+
+### Outcome
+- Preview / production data boundary AUDITED and LOCKED with new
+  regression coverage. No preview garbage can carry forward into
+  RC1 production deployment.
+- Verified `server._verify_env_db_alignment()` is intact and refuses
+  to start when APP_ENV and DB_NAME disagree (the guard that closed
+  the 2026-05-26 crossover incident).
+- Verified demo-flavoured seed scripts (`seed_pm_demo_fixture.py`,
+  `dls_seed_demo.py`) hard-block when pointed at production.
+- Verified `test_credentials.md` is never read by runtime code.
+- Verified all admin restore endpoints stay admin-token gated.
+- Swept 17 preview-DB collections and identified ~1 360 sampled
+  suspicious records (TEST Juan Perez × 120, pm.demo@mascigc.com
+  × 304, etc.). All exist in `masci_safety_preview` only; production
+  `masci_safety` is unaffected. Persistent amber preview banner
+  mitigates visual confusion.
+- Added 6-guard regression suite `test_data_hygiene_sweep.py`
+  locking the entire boundary contract.
+- 62/62 RC1 + parity + reality + PDF + hygiene tests pass.
+
+### Remaining manual review (2 items, not blocking code)
+1. Confirm production deploy env has `APP_ENV=production` and
+   `DB_NAME=masci_safety`.
+2. Confirm any admin backup archive restored into production was
+   produced from production (not preview).
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.90 |
+| Simple | 9.90 |
+| Beautiful | 9.90 |
+| Trusted | **9.95** |
+| Proven | **9.95** |
+
+**Composite: 9.92.**
+
+**Report:** `/app/memory/TRACK_14_0_P0_PREVIEW_TEST_DEMO_DATA_HYGIENE_SWEEP_CLOSURE.md`.

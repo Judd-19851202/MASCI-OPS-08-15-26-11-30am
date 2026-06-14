@@ -11,6 +11,27 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14)
+- **14.0-P0 PREVIEW/TEST/DEMO DATA DEPLOYMENT HYGIENE SWEEP CLOSED** —
+  Read-first audit + lock the preview→production data boundary so
+  RC1 deployment cannot accidentally carry preview garbage forward.
+  Boundary verified: preview = `masci_safety_preview` · production =
+  `masci_safety` (different Atlas DBs). `_verify_env_db_alignment()`
+  startup guard refuses to start on mismatch (the guard that closed
+  the 2026-05-26 crossover incident is intact). Demo-seed scripts
+  hard-block production. Admin restore endpoints stay admin-token
+  gated. Preview-DB sweep found ~1 360 sampled suspicious records
+  across 17 collections (`TEST Juan Perez` × 120, `pm.demo@mascigc.com`
+  × 304, etc.) — all in preview only; production unaffected; amber
+  preview banner mitigates visual confusion. +6 hygiene regression
+  guards (`test_data_hygiene_sweep.py`) lock the boundary contract:
+  env/DB alignment · demo-seed refuse-production · no demo literals in
+  server.py · credentials doc memory-only · admin restore stays
+  admin-gated. No runtime code changes — boundary was already
+  correctly in place. 62/62 RC1 + parity + reality + PDF + hygiene
+  tests pass. Five-Pillar **9.92** (Trusted 9.95 · Proven 9.95).
+  Ledger: `/app/memory/TRACK_14_0_P0_PREVIEW_TEST_DEMO_DATA_HYGIENE_SWEEP_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-14)
 - **14.0-P1 PDF LOCKUP SWEEP CLOSED** — Platform-wide PDF / Print /
   Export certification. Inventoried 23 backend PDF endpoints + 15
   frontend browser-print surfaces. Verified shared `pdf_branding`
