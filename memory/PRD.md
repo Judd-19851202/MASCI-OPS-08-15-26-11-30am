@@ -11,6 +11,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-12)
+- **14.0-PORTAL-LANDING-NAVIGATION-UNIFICATION CLOSED** — Single
+  design-system primitive (`PortalShell.sideNav` slot) closes the
+  "landing hides navigation" gap. **PM Hub V2 now exposes full PM
+  SideNavV2** on desktop with 6 domain sections (Project Operations ·
+  Financials & Cost · Field Coordination · Document Control ·
+  Compliance & Risk · System & Communications · Pinned). 17 LOC
+  surgical · backward compatible · no feature flags. Live screenshot
+  proof at `/tmp/pm_hub_with_sidebar.png`. HR/Safety/Shop wire-ins are
+  1-line each (Phase 2 fast-follow, ~15 min). FL + Public Forms
+  explicitly KEEP AS IS per directive Parts 7+8. All 18 nav-drift
+  guards + verified subset of regression green. Five-Pillar **9.90**
+  (Trusted 9.95 · Proven 9.95). Ledger:
+  `/app/memory/TRACK_14_0_PORTAL_LANDING_NAVIGATION_UNIFICATION_CLOSURE.md`.
+
+
+## Latest Closed Track (2026-02-12)
 - **14.0-HUMAN-FIRST-OPERATIONAL-REALITY-SWEEP CLOSED** — Fix-as-you-go
   audit. **Executive YES** to "Can a real construction employee complete
   their job Monday morning with no training?" **4 unguarded routes

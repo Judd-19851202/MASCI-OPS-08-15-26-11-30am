@@ -88,6 +88,7 @@ export function PortalShell({
   portalSwitcherCurrent = null,
   hideProviderLine = false,
   onSignOut = null,
+  sideNav = null,
   children,
   className = "",
 }) {
@@ -212,6 +213,16 @@ export function PortalShell({
 
       <section style={{ padding: "var(--pad-section)" }} className="flex-1">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
+          <div className={sideNav ? "lg:grid lg:grid-cols-[260px_1fr] lg:gap-6" : ""}>
+            {sideNav && (
+              <aside
+                className="hidden lg:block sticky top-[68px] h-[calc(100vh-68px)] overflow-y-auto pr-2 border-r border-slate-200"
+                data-testid="ds-portal-shell-sidenav"
+              >
+                {sideNav}
+              </aside>
+            )}
+            <div className="min-w-0">
           <div className="flex items-start justify-between gap-4" style={{ marginBottom: 16 }}>
             <div>
               {/* Mobile-only portal kicker (already in header on desktop) */}
@@ -250,6 +261,8 @@ export function PortalShell({
           {alertSlot && <div style={{ marginBottom: 16 }}>{alertSlot}</div>}
 
           <main data-testid="ds-portal-shell-content">{children}</main>
+            </div>
+          </div>
         </div>
       </section>
 

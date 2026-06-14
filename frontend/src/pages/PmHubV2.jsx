@@ -19,6 +19,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import {
   PortalShell,
   StatusChip,
@@ -321,6 +322,7 @@ export default function PmHubV2() {
         portalRole="PM Portal"
         pageTitle="What requires your attention today?"
         subtitle="PM purpose: build projects. Every queue below is a live count — open it to see what needs your attention today."
+        sideNav={<PmSideNavV2 />}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <RealLink to="/pm/command-center" testid="pm-hub-v2-action-cc" intent="primary">Command Center</RealLink>

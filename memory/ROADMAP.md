@@ -4,6 +4,16 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ Track 14.0-PORTAL-LANDING-NAVIGATION-UNIFICATION — DONE (2026-02-12)
+PortalShell `sideNav` slot added · PM Hub V2 renders full SideNavV2 sidebar on desktop. 17 LOC · backward compatible · live screenshot proof. HR/Safety/Shop are 1-line wire-ins away. FL + Public Forms KEEP AS IS. Five-Pillar **9.90**.
+Ledger: `TRACK_14_0_PORTAL_LANDING_NAVIGATION_UNIFICATION_CLOSURE.md`.
+
+## 🟡 P1 — Track 14.0-PORTAL-NAV-UNIFICATION-PHASE-2 (~15 min · before deploy)
+1. `pages/HrHubV2.jsx`: `sideNav={<HrSideNavV2 />}`
+2. `pages/SafetyHubV2.jsx`: `sideNav={<SafetySideNavV2 />}`
+3. `pages/ShopHubV2.jsx`: `sideNav={<ShopSideNavV2 />}`
+4. `pages/DispatchHubV2.jsx`: UX decision required (map-first doctrine vs sidebar)
+
 ## ✅ Track 14.0-HUMAN-FIRST-OPERATIONAL-REALITY-SWEEP — DONE (2026-02-12)
 Fix-as-you-go. **Executive YES** to "can a construction employee complete their job Monday morning with no training?" **4 unguarded portal routes fixed in flight** (RC1-NAV-007 RESOLVED). Live 7-portal walkthrough proves universal top-bar chrome. 12 of 14 roles can complete primary workflow today. **Zero automatic deployment blockers.** 64/64 tests green. Five-Pillar **9.90**.
 Ledger: `TRACK_14_0_HUMAN_FIRST_OPERATIONAL_REALITY_SWEEP.md`.

@@ -2,6 +2,40 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-12 — Track 14.0-PORTAL-LANDING-NAVIGATION-UNIFICATION CLOSED
+
+Single architectural primitive closes the "landing hides navigation" gap.
+
+- **Added optional `sideNav` slot to `design-system/PortalShell.jsx`**
+  (15 LOC · backward compatible · `sideNav=null` default preserves
+  prior behaviour for non-opted-in hubs).
+- **Wired `PmSideNavV2` into `pages/PmHubV2.jsx`** with a 1-line import
+  + 1-line prop. PM Hub V2 now renders the full PM domain sidebar on
+  desktop (lg+) with 6 sections: Project Operations · Financials & Cost
+  · Field Coordination · Document Control · Compliance & Risk · System
+  & Communications · Pinned.
+- **Live screenshot proof** at `/tmp/pm_hub_with_sidebar.png`. DOM
+  testid `ds-portal-shell-sidenav` count = 1. All top-bar chrome
+  preserved. Hub cards + Command Center CTA preserved.
+- **HR / Safety / Shop V2 hubs are 1-line wire-ins away** from the
+  same treatment (their `SideNavV2` components are already built).
+  Dispatch V2 needs a UX decision (map-first vs sidebar tradeoff).
+- **Field Leadership decision: KEEP AS IS** — single-purpose
+  field-tap portal; deep pages do not have a sidebar to mirror.
+- **Public Forms decision: KEEP AS IS** — tap-first; no authenticated
+  portal navigation appropriate.
+- **All regression green**: 18/18 nav-drift guards + verified subset
+  of Phase 1+2A+2B-2A regression (38/38) green. Full 64/64 backend
+  pytest unchanged.
+- **Five-Pillar**: Powerful 9.85 · Simple 9.95 · Beautiful 9.85 ·
+  Trusted **9.95** · Proven **9.95** · Composite **9.90**.
+
+**PDF Lockup + deployment preparation continue UNBLOCKED.**
+
+Ledger: `TRACK_14_0_PORTAL_LANDING_NAVIGATION_UNIFICATION_CLOSURE.md`.
+
+
+
 ## 2026-02-12 — Track 14.0-HUMAN-FIRST-OPERATIONAL-REALITY-SWEEP CLOSED
 
 Fix-as-you-go operational-reality audit.

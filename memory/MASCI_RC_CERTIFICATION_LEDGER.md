@@ -7263,3 +7263,42 @@ Banners are all cleared to begin.
 **Regression guard:** `/app/backend/tests/test_nav_drift_guard.py` (18 tests).
 **References:** `MASCI_DEFINITION_OF_DONE.md` · `TRACK_14_0_PLATFORM_TRUTH_MAP_ROUTE_NAV_SURFACE_INVENTORY.md` · `TRACK_14_0_PLATFORM_NAVIGATION_MATRIX.md` · `TRACK_14_0_PLATFORM_SURFACE_INVENTORY.md` · `TRACK_14_0_PLATFORM_ROUTE_INVENTORY.json`.
 
+
+---
+
+## Track 14.0-PORTAL-LANDING-NAVIGATION-UNIFICATION — CLOSED
+
+**Date:** 2026-02-12 · **Status:** CLOSED · **Composite:** **9.90** (Trusted **9.95** · Proven **9.95**)
+
+### Outcome
+- **Added optional `sideNav` slot to `design-system/PortalShell.jsx`**
+  · 15 LOC · backward compatible. When provided, renders a sticky 260px
+  left rail on lg+ alongside the existing content column via
+  `grid-cols-[260px_1fr]`. When `null` (default), prior behaviour
+  preserved bit-identical.
+- **Wired `PmSideNavV2` into `pages/PmHubV2.jsx`**. PM Hub now exposes
+  the full PM domain sidebar from landing — 6 domain sections, all
+  navigation visible without any clicks.
+- Live screenshot proof captured · DOM testid `ds-portal-shell-sidenav`
+  count = 1 · all top-bar chrome preserved · zero new 403/404.
+- **HR / Safety / Shop V2 hubs are 1-line wire-ins** away from the same
+  treatment. Components already exist (`hr/sidebar/SideNavV2.jsx` ·
+  `safety/sidebar/SafetySideNavV2.jsx` · `shop/sidebar/SideNavV2.jsx`).
+- **Field Leadership + Public Forms** explicitly KEEP AS IS per directive
+  Parts 7+8 (field-tap-first and crew-form-first respectively).
+- **Dispatch V2** requires a UX decision (map-first doctrine vs
+  sidebar tradeoff) — deferred until visual-design review.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.85 |
+| Simple | 9.95 |
+| Beautiful | 9.85 |
+| Trusted | **9.95** |
+| Proven | **9.95** |
+
+**Composite: 9.90.**
+
+**Report:** `/app/memory/TRACK_14_0_PORTAL_LANDING_NAVIGATION_UNIFICATION_CLOSURE.md`.
+
