@@ -102,8 +102,20 @@ ALLOWED_SOURCE_MODULES = {
 # Recipient role keys — same list used by Require* guards. "all" is a
 # valid value for system-health broadcasts ("admin" only) when explicit
 # role is unknown.
+#
+# Track 14.0-NOTIFY-LOCK widening (2026-06-14):
+#   • asset_admin — dedicated routing for asset-administration alerts
+#     (document expirations, missing docs, classification review). Asset
+#     Admin authenticates via the Shop portal token AND admin token, so
+#     widening here unlocks targeted producer fan-out without breaking
+#     the existing Shop slice.
+#   • superintendent — operational routing for field-supervisor alerts.
+#     76 historical superintendent rows were admin-only; new producers
+#     may now target the role directly. Superintendent users typically
+#     authenticate via PM or Field Leadership tokens.
 ALLOWED_ROLES = {
     "admin", "safety", "hr", "pm", "shop", "dispatch", "leadership",
+    "asset_admin", "superintendent",
 }
 
 
