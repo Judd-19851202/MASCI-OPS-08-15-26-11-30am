@@ -36,6 +36,9 @@ EVIDENCE_ROUTES = {
     "MeetingsDashboard.jsx":       ("SafetySideNavV2", "Safety Portal"),
     "DocumentExpirations.jsx":     ("HrSideNavV2",     "HR Portal"),
     "Tasks.jsx":                   ("AdminSideNavV2",  "Admin"),
+    # Sweep A continuation (batch 3 · 2026-02-14)
+    "PmQaqcList.jsx":              ("PmSideNavV2",     "PM Portal"),
+    "HrEmployees.jsx":             ("HrSideNavV2",     "HR Portal"),
 }
 
 

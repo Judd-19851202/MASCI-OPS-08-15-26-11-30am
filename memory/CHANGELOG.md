@@ -2,6 +2,26 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — UXS-11C Sweep A continuation (batch 3 · partial)
+
+**2 more drifted pages wrapped + HR identity surfacing in directory**:
+* `PmQaqcList.jsx` → PmSideNavV2
+* `HrEmployees.jsx` → HrSideNavV2 + `preferred_name` now surfaces
+  in the directory table and the employee drawer header as
+  "James Fisher (Jimmy)" pattern
+
+**Total locked routes: 12** (was 10). **113/113 RC1 tests PASS.**
+
+Live preview proof: `/hr/employees` shows full HR sidebar
+(Employee Lifecycle highlighted), blueprint grid, `MASCI · HR
+PORTAL · EMPLOYEE LIFECYCLE` chrome, directory rows ready to
+render `(preferred)` parenthetical when HR populates the field
+(none populated yet in preview DB — code is in place).
+
+**Remaining drift**: ~42 operational pages (was 44).
+
+Closure ledger: `/app/memory/TRACK_14_0_UXS_11C_SWEEP_A_PARTIAL_CLOSURE.md`
+
 ## 2026-02-14 — Track 14.0-UXS-11C Sweep A · PARTIAL DELIVERY (5 of 9 PM/Safety/HR/Admin dashboards)
 
 After the user resent the UXS-11B/C directive, I started Sweep A

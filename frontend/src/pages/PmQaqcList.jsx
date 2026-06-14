@@ -8,7 +8,8 @@ import {
   UserCircle2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { LangToggle } from "@/components/LangToggle";
 import JobFolderList from "@/components/JobFolderList";
 import { EmptyState } from "@/components/ui/PortalStates";
@@ -105,14 +106,13 @@ export default function PmQaqcList() {
     "";
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <header className="bg-slate-900 border-b-4 border-amber-500">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="lg" homeLink="/pm" />
-          <LangToggle />
-        </div>
-      </header>
-
+    <PortalShell
+      portalName="MASCI" portalRole="PM Portal · QA/QC"
+      pageTitle="My Project QA / QC Records"
+      subtitle="Records filtered to jobs where you are the assigned PM"
+      sideNav={<PmSideNavV2 />}
+    >
+    <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
         <Link
           to="/pm"
@@ -267,5 +267,6 @@ export default function PmQaqcList() {
         )}
       </main>
     </div>
+    </PortalShell>
   );
 }

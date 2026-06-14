@@ -32,7 +32,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import NotificationBell from "@/components/NotificationBell";
 import {
   listHrEmployees, createHrEmployee, patchHrEmployee,
@@ -118,27 +119,13 @@ export default function HrEmployees() {
   if (!allowed) return <AccessDenied attemptedPortal="hr" />;
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="hr-employees-page">
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
-          <Link to="/" className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="hremp-nav-home">
-            <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Home</span>
-          </Link>
-          <button onClick={() => nav(-1)} className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="hremp-nav-back">
-            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Back</span>
-          </button>
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <div className="flex-1 min-w-0">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">HR · Employee Lifecycle</div>
-            <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">Employees</div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <GlobalSearch accent="dark" />
-            <NotificationBell accent="white" />
-          </div>
-        </div>
-      </header>
-
+    <PortalShell
+      portalName="MASCI" portalRole="HR Portal · Employee Lifecycle"
+      pageTitle="Employees"
+      subtitle="Directory · lifecycle · identity"
+      sideNav={<HrSideNavV2 />}
+    >
+    <div className="min-h-screen" data-testid="hr-employees-page">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         <HelpTipBlock formKey="employee-lifecycle" showCounter />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-6">
@@ -250,7 +237,12 @@ export default function HrEmployees() {
                           <StatusBadge kind="lifecycle" value={status} size="sm" />
                         </button>
                       </td>
-                      <td className="px-4 py-2.5 font-bold text-slate-900">{e.name}</td>
+                      <td className="px-4 py-2.5 font-bold text-slate-900">
+                        {e.name}
+                        {e.preferred_name ? (
+                          <span className="text-slate-500 font-normal italic ml-1">({e.preferred_name})</span>
+                        ) : null}
+                      </td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.trade || "—"} {e.role && <span className="text-slate-400">· {e.role}</span>}</td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.crew || "—"}</td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.supervisor || "—"}</td>
@@ -280,6 +272,7 @@ export default function HrEmployees() {
         onClose={() => { setEditId(null); setEditTab("details"); fetchAll(); }}
       />
     </div>
+    </PortalShell>
   );
 }
 
@@ -641,7 +634,12 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
         ) : (
           <>
             <SheetHeader className="px-5 pt-5 pb-3 border-b border-slate-200">
-              <SheetTitle className="font-display text-base leading-snug">{employee.name}</SheetTitle>
+              <SheetTitle className="font-display text-base leading-snug">
+                {employee.name}
+                {employee.preferred_name ? (
+                  <span className="text-slate-500 font-normal italic ml-1">({employee.preferred_name})</span>
+                ) : null}
+              </SheetTitle>
               <div className="flex items-center gap-2 mt-2 flex-wrap text-xs">
                 <StatusBadge kind="lifecycle" value={summary?.lifecycle_status} size="sm" />
                 {employee.trade && <span className="text-slate-600">{employee.trade}</span>}
