@@ -151,6 +151,33 @@ async def scan_asset_documents(db, dry_run: bool = False) -> Dict[str, Any]:
             except Exception:
                 pass
 
+        # Track 14.0-JOB-OWNERSHIP-FOUNDATION Phase 2B — if the asset
+        # is currently assigned to a project, walk the project's roster
+        # for asset_admin → locate_coordinator → pm. Gated by env flag.
+        snapshot = None
+        project_number = None
+        try:
+            from lib.team_routing import resolve_routing, snapshot_team, ROLE_CHAIN  # noqa: PLC0415
+            if asset_id:
+                aa = await db.asset_assignments.find_one(
+                    {"asset_id": asset_id, "active": True},
+                    {"_id": 0, "project_number": 1},
+                )
+                if aa:
+                    project_number = aa.get("project_number")
+            if project_number:
+                routing = await resolve_routing(
+                    db,
+                    project_number=project_number,
+                    role_chain=ROLE_CHAIN["asset_doc.expires"],
+                    fallback_role="asset_admin",
+                )
+                if routing.get("recipient_user_id"):
+                    recipient_user_id = routing["recipient_user_id"]
+                snapshot = await snapshot_team(db, project_number)
+        except Exception:
+            pass
+
         payload = {
             "type": ntype,
             "title": title,
@@ -163,6 +190,9 @@ async def scan_asset_documents(db, dry_run: bool = False) -> Dict[str, Any]:
             "linked_equipment_id": asset_id,
             "link_url": "/shop/asset-care",
         }
+        if snapshot:
+            payload["team_snapshot"] = snapshot
+            payload["linked_project_number"] = project_number
         if not dry_run:
             try:
                 await notification_service.fanout(db, payload)

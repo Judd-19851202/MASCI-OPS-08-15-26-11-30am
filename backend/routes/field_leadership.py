@@ -594,9 +594,30 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                 title = f"FL — {kind.title()} · {emp[:60]}"
 
                 # FL owner-routing chain per Deliverable 1 matrix.
+                #
+                # Track 14.0-JOB-OWNERSHIP-FOUNDATION Phase 2B — when
+                # OWNERSHIP_LOCK_ENABLED is on, prefer the project
+                # roster (Phase-1 source of truth) over the legacy chain.
                 recipient_user_id: Optional[str] = None
+                snapshot = None
+                project_number = rec.get("project_number")
                 try:
-                    recipient_user_id = rec.get("assigned_reviewer_id") or None
+                    from lib.team_routing import resolve_routing, snapshot_team, ROLE_CHAIN  # noqa: PLC0415
+                    if project_number:
+                        routing = await resolve_routing(
+                            db,
+                            project_number=project_number,
+                            role_chain=ROLE_CHAIN["fl.submitted"],
+                            fallback_role="safety",
+                        )
+                        recipient_user_id = routing.get("recipient_user_id")
+                        snapshot = await snapshot_team(db, project_number)
+                except Exception:
+                    pass
+
+                try:
+                    if not recipient_user_id:
+                        recipient_user_id = rec.get("assigned_reviewer_id") or None
                     if not recipient_user_id and rec.get("subject_employee_id"):
                         emp_row = await db.employees.find_one(
                             {"id": rec.get("subject_employee_id")},
@@ -616,7 +637,20 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                                 or proj.get("superintendent_user_id")
                             )
                 except Exception:
-                    recipient_user_id = None
+                    pass
+
+                # Persist team_snapshot on the FL record itself at
+                # submission time so the historical truth is preserved
+                # regardless of later roster mutations. Idempotent —
+                # only writes if the field is absent.
+                if snapshot:
+                    try:
+                        await db.field_leadership_records.update_one(
+                            {"id": rec["id"], "team_snapshot": {"$exists": False}},
+                            {"$set": {"team_snapshot": snapshot}},
+                        )
+                    except Exception:
+                        pass
 
                 await emit_task_and_notification(
                     db,

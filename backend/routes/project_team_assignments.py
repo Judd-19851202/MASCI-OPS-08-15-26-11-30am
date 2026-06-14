@@ -408,6 +408,15 @@ def register_project_team_assignments(
 ) -> APIRouter:
     router = APIRouter(tags=["project-team-roster"])
 
+    @router.get("/api/team-roster/feature-flags")
+    async def feature_flags(
+        actor=Depends(require_any_portal_token),  # noqa: ARG001
+    ):
+        """Surface Phase-2B feature-flag state so the frontend can show
+        a "person-level routing: ON/OFF" chip in admin diagnostics."""
+        from lib.team_routing import ownership_lock_enabled  # noqa: PLC0415
+        return {"ownership_lock_enabled": ownership_lock_enabled()}
+
     @router.get("/api/team-roster/role-registry")
     async def role_registry(
         actor=Depends(require_any_portal_token),  # noqa: ARG001

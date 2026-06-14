@@ -13,6 +13,7 @@ import { api } from "@/lib/api";
 import { getFlUser, clearFlToken, getFlToken } from "@/lib/flAuth";
 import { toast } from "sonner";
 import FlAccountabilityWidget from "@/components/FlAccountabilityWidget";
+import MyAssignedProjectsWidget from "@/components/team/MyAssignedProjectsWidget";
 import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 
 // iter353d · inline lookup helper (queries the FL DQ endpoint to
@@ -159,6 +160,9 @@ export default function FieldLeadershipPortalDashboard() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <MyAssignedProjectsWidget title="My assigned jobs (project roster)" />
+            </div>
             <Card data-testid="fl-card-dispatch">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-1.5">

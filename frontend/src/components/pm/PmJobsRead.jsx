@@ -126,6 +126,7 @@ export default function PmJobsRead() {
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Location</th>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Primary PM</th>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Co-PMs</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Team</th>
                 </tr>
               </thead>
               <tbody>
@@ -164,6 +165,17 @@ export default function PmJobsRead() {
                       {Array.isArray(j.co_pms) && j.co_pms.length > 0
                         ? j.co_pms.map((p) => p.name || p.email).join(", ")
                         : <span className="text-slate-400">—</span>}
+                    </td>
+                    <td className="px-3 py-2 text-slate-500 text-xs">
+                      {j.project_number ? (
+                        <Link
+                          to={`/pm/job/${encodeURIComponent(j.project_number)}/team`}
+                          className="text-amber-700 hover:underline"
+                          data-testid={`pm-jobs-team-link-${j.project_number}`}
+                        >
+                          Team
+                        </Link>
+                      ) : <span className="text-slate-400">—</span>}
                     </td>
                   </tr>
                 ))}

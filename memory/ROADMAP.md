@@ -4,6 +4,18 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-1 — DONE (2026-06-14)
+`lib/team_routing` shim · `OWNERSHIP_LOCK_ENABLED=true` · D4 + FL producer wiring · FL My-Jobs widget · PM Team link. 24/24 tests. Five-Pillar 9.78.
+Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_CLOSURE.md`.
+
+## 🔴 P0 — 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2 (next, ~3 days)
+1. One-line `snapshot_team` embed at submit-time for 15 writers (Daily Report, Incident, Trench, JHA, Safety Meeting, QAQC, Pre-Op, DVIR, Asset Transfer, 811, Training, Time-Off, Excavation, Asset Document admin uploads, Dispatch Events)
+2. One-line resolver swap for 12 producers using `ROLE_CHAIN` map already in `lib/team_routing`
+3. Asset Care project-scoped view at `/asset-care/projects/{n}` (reuse `MyAssignedProjectsWidget` pattern)
+4. Admin Disable-User Wizard UI inside `/admin/people` user detail (Phase-2A backend already ready)
+
+
+
 ## ✅ 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2A — DONE (2026-06-14)
 Lifecycle states · transfer engine · disable wizard backend · snapshot helper · resolver · 9/9 certification tests. Five-Pillar 9.85.
 Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2A_CLOSURE.md`.

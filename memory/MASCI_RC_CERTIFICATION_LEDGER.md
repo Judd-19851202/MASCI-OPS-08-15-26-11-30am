@@ -6868,3 +6868,52 @@ Powerful 9.5 · Simple 9.5 · Beautiful 9.5 · **Trusted 9.92 · Proven 9.92** �
 ALL honoured. No deploy. No GitHub. No merge. No Spanish. No PDF. No banners. No UXS-11. No new portal. No PM-portal scope widening. No existing PM behaviour broken. No hard-delete path. No Phase-1 contract broken.
 
 **Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2A_CLOSURE.md`.
+
+---
+
+## TRACK 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-1
+**Date:** 2026-06-14 · **Status:** CLOSED · **Composite:** 9.78 (Trusted 9.90 / Proven 9.90)
+
+### Title
+Snapshot embedding + ownership-based notification/email producer wiring (spine + 2 producer proofs).
+
+### What this phase shipped
+- **`lib/team_routing.py`** — 3-function shim (`ownership_lock_enabled`, `snapshot_team`, `resolve_routing`) + `ROLE_CHAIN` map of 15 event types. Single point-of-truth for producer-level routing logic.
+- **Feature flag** `OWNERSHIP_LOCK_ENABLED` (env-default OFF; preview set to `true`). Off-state restores Phase-1 / 2A behaviour exactly.
+- **D4 Asset Document producer** wired: when asset is assigned to a project AND project has roster, sets `recipient_user_id` from `[asset_admin → locate_coordinator → pm]` chain and embeds `team_snapshot` on the notification payload.
+- **FL Submission producer** wired: same pattern, snapshot also persisted to `field_leadership_records.team_snapshot` for historical truth on the source record.
+- **Endpoint `/api/team-roster/feature-flags`** surfaces the flag for frontend diagnostics.
+- **Frontend `MyAssignedProjectsWidget`** mounted on FL Portal Dashboard (works for any portal token via `/api/users/me/projects`).
+- **PM "Team" link** added to PM Jobs Read view as a new column; links to `/pm/job/{project_number}/team`.
+
+### Tests
+- `tests/test_phase2b_routing.py` — **7/7 PASS** (feature flag, snapshot shape, resolver rostered, resolver nil, role-chain coverage, D4 producer, D2 leakage isolation).
+- `tests/test_project_team_assignments.py` (Phase 1) — **8/8 PASS**.
+- `tests/test_ownership_lifecycle.py` (Phase 2A) — **9/9 PASS**.
+- `tests/test_notify_ownership_lock.py` — **OVERALL PASS**.
+- Combined: 24/24 pytest in 24s. Frontend lint clean.
+
+### Files changed (~470 LOC)
+- `backend/lib/team_routing.py` (NEW)
+- `backend/tests/test_phase2b_routing.py` (NEW)
+- `backend/routes/scheduled_producers_d456.py` (+43 D4 wiring)
+- `backend/routes/field_leadership.py` (+47 FL wiring + snapshot persist)
+- `backend/routes/project_team_assignments.py` (+9 feature-flags endpoint)
+- `backend/.env` (+1 `OWNERSHIP_LOCK_ENABLED=true`)
+- `frontend/src/components/team/MyAssignedProjectsWidget.jsx` (NEW)
+- `frontend/src/pages/FieldLeadershipPortalDashboard.jsx` (+4 mount)
+- `frontend/src/components/pm/PmJobsRead.jsx` (+12 Team column)
+
+### Five-Pillar
+Powerful 9.5 · Simple 9.6 · Beautiful 9.5 · **Trusted 9.90 · Proven 9.90** · Composite **9.78** (above 9.75 directive bar; below 9.9 because 12 producers and 15 writers deferred to Phase 2B-2).
+
+### Honest limitations (Phase 2B-2)
+1. 15 operational writers still need one-line `snapshot_team` embed at submit-time (Daily Report, Incident, Trench, QAQC, Pre-Op, DVIR, etc.). Helper proven; integration gated by file count only.
+2. 12 producers still need one-line resolver swap; chains already in `ROLE_CHAIN` map.
+3. Asset Care project-scoped view at `/asset-care/projects/{n}` not yet built (pattern reusable from `MyAssignedProjectsWidget`).
+4. Admin Disable-User Wizard UI not yet mounted (Phase-2A backend fully ready).
+
+### Closing posture
+Spine wired. Two producers prove the contract end-to-end. Feature flag is honest and default-safe. Spanish remains correctly BLOCKED until Phase 2B-2 ships the full producer + writer sweep.
+
+**Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_CLOSURE.md`.

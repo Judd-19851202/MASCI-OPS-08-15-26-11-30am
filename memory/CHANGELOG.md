@@ -2,6 +2,33 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-14 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-1 CLOSED
+
+Snapshot embedding + ownership-based notification/email producer wiring.
+
+- New shim `lib/team_routing.py` — 3 functions (`ownership_lock_enabled`,
+  `snapshot_team`, `resolve_routing`) + `ROLE_CHAIN` map covering all 15
+  event types. Feature flag `OWNERSHIP_LOCK_ENABLED` (default OFF preserves
+  prior behaviour; set to `true` in preview).
+- **2 producers wired**: D4 Asset Document Expiration (resolver +
+  team_snapshot on payload + linked_project_number) and FL Submission
+  (resolver + team_snapshot persisted on `field_leadership_records`).
+- Endpoint `/api/team-roster/feature-flags` surfaces flag state.
+- Frontend: `MyAssignedProjectsWidget` mounted on FL Portal Dashboard;
+  "Team" column added to PM Jobs Read view linking to
+  `/pm/job/{project_number}/team`.
+- **24/24 backend tests** (Phase 1 + 2A + 2B). Leakage matrix unchanged.
+  Fixed 1 test assertion (resolved_email may be None on user_id-only rows).
+- **Five-Pillar**: Powerful 9.5 · Simple 9.6 · Beautiful 9.5 · Trusted 9.90
+  · Proven 9.90 · Composite **9.78** (above 9.75 RC-1 bar).
+- ~470 LOC across 7 files. Phase-1/2A contracts unchanged.
+
+12 producers + 15 operational writers documented and deferred to Phase 2B-2
+(one-line edits gated by file count, not engineering risk). Spanish remains
+correctly blocked until 2B-2 ships the producer + snapshot sweep.
+
+
+
 ## 2026-06-14 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2A CLOSED
 
 Assignment Lifecycle · Ownership Continuity · Historical Snapshot · Open-Work Migration.

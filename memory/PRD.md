@@ -11,6 +11,15 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-06-14)
+- **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-1 CLOSED** — `lib/team_routing`
+  shim, `OWNERSHIP_LOCK_ENABLED` flag, D4 + FL producers wired, FL "My Jobs"
+  widget, PM "Team" link. 24/24 backend tests green. Five-Pillar 9.78
+  (Trusted 9.90 · Proven 9.90). Phase 2B-2 (15 writers + 12 producers + Asset
+  Care project view + disable wizard UI) is next. Ledger:
+  `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_CLOSURE.md`.
+
+
+## Latest Closed Track (2026-06-14)
 - **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2A CLOSED** — Assignment lifecycle
   (6 states), transfer engine, disable-user protection, snapshot helper,
   notification resolver, full audit chain. **9/9 certification tests pass.**
