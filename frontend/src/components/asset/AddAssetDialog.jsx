@@ -168,7 +168,7 @@ export default function AddAssetDialog({ open, onClose, onCreated }) {
             </div>
             <div className="font-bold text-lg">Add Asset</div>
           </div>
-          <Button type="button" size="sm" variant="ghost" onClick={onClose} data-testid="add-asset-close">
+          <Button type="button" size="sm" variant="ghost" onClick={onClose} aria-label="Close" title="Close" data-testid="add-asset-close">
             <XIcon className="w-4 h-4" />
           </Button>
         </div>

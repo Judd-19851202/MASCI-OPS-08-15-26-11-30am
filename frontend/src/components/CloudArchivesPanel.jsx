@@ -55,7 +55,7 @@ export default function CloudArchivesPanel() {
       if (e?.response?.status === 400) {
         setData({ configured: false, count: 0, backups: [] });
       } else {
-        toast.error("Failed to load R2 archives");
+        toast.error("Could not load cloud archives. Try again.");
       }
     }
   };

@@ -277,7 +277,7 @@ function CreateTransferDialog({ onClose, onCreated }) {
       <div className="bg-white rounded-md border-2 border-slate-300 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-3 border-b-2 border-slate-200">
           <h2 className="font-display font-bold text-slate-900">Request Asset Transfer</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-900" data-testid="asset-transfer-create-close">
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-900" aria-label="Close" title="Close" data-testid="asset-transfer-create-close">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -384,7 +384,7 @@ function TransferDetailDrawer({ id, onClose, onAfterAction }) {
       >
         <div className="flex items-center justify-between p-3 border-b-2 border-slate-200 sticky top-0 bg-white z-10">
           <h2 className="font-display font-bold text-slate-900 text-sm">Transfer Detail</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-900" data-testid="asset-transfer-detail-close">
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-900" aria-label="Close" title="Close" data-testid="asset-transfer-detail-close">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -497,7 +497,7 @@ function ActionButton({ action, busy, onRun }) {
     }
     return (
       <div className="border-2 border-slate-200 rounded p-2">
-        <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-600 mb-1">Reject reason</div>
+        <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-600 mb-1">Reason for revision</div>
         <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} data-testid={`asset-transfer-action-${action.key}-reason`} />
         <div className="flex gap-2 mt-2 justify-end">
           <Button variant="outline" size="sm" onClick={() => setShowInline(false)}>Cancel</Button>

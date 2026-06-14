@@ -33,7 +33,7 @@ export default function AdminMfa() {
       setStatus(res.data);
     } catch (err) {
       const detail = err?.response?.data?.detail;
-      toast.error(typeof detail === "string" ? detail : "Unable to load MFA status");
+      toast.error(typeof detail === "string" ? detail : "Could not load MFA status. Try again.");
     }
   };
 

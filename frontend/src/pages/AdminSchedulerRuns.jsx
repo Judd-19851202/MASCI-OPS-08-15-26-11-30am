@@ -90,7 +90,7 @@ export default function AdminSchedulerRuns() {
       });
     } catch (e) {
       console.error("[scheduler-runs] load failed", e);
-      toast.error("Failed to load scheduler runs");
+      toast.error("Could not load scheduler runs. Try again.");
     } finally { setLoading(false); }
   };
 

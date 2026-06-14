@@ -685,7 +685,7 @@ function DocumentsDashboard() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Unable to generate CSV.");
+      toast.error("Export failed. Try again.");
     }
   }, []);
 

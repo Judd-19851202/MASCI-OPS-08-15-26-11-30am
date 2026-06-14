@@ -537,7 +537,10 @@ function AddDialog({ open, setOpen, onSaved }) {
               <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
           </div>
-          <DialogFooter><Button type="submit" data-testid="po-add-submit">{t("Request PO")}</Button></DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} data-testid="po-add-cancel">{t("Cancel")}</Button>
+            <Button type="submit" data-testid="po-add-submit">{t("Request PO")}</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

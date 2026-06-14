@@ -87,7 +87,7 @@ Per the user direction *"do not walk past a visible issue and leave it behind"*,
 | FA-01 | A2/MC | `AddAssetDialog.jsx` | document descriptor + coaching | P2 | **CLOSED** |
 | FA-02 | A2/MC | `RequiredDocsEditor.jsx` | document descriptor + coaching | P2 | **CLOSED** |
 | FA-03 | A2/MC | `AssetDocumentsTab.jsx` Upload Dialog | per-doc-type 1-liner + Verified/Pending tooltip | P2 | **CLOSED** |
-| FA-04 | MC | 58 of 64 modals un-individually-audited | modal Spanish/a11y/mobile/footer-order | P1 | OPEN — Batch 2 continuation (see §3) |
+| FA-04 | MC | 58 of 64 modals un-individually-audited | modal Spanish/a11y/mobile/footer-order | P1 | **CLOSED** — see `TRACK_14_0_FIXALL_FA04_MODAL_LONGTAIL_CLOSURE.md` (80 modal surfaces inventoried · 41 already compliant · 27 fixed in place · 2 converted to ModalFooter · 12 deferred only with dictionary-allowed reasons · 0 invalid deferrals · Five-Pillar 9.80 · Beautiful 9.82 · Trusted 9.86) |
 | FA-05 | MC | No `<ModalFooter>` shared primitive | modal | P1 | **CLOSED** (primitive landed; adoption ongoing) |
 | FA-06 | BT | Admin/dev surfaces still expose `${e.message}` | toast | P3 | DEFERRED — admin-tool exception per TOAST_DICTIONARY.md §5 |
 | FA-07 | A2/MC | Add Asset coaching too light | coaching | P2 | **CLOSED** |

@@ -107,7 +107,7 @@ export function DispatchOverviewTab() {
         api.get("/operations/holds?active_only=true"),
       ]);
       setUtil(u.data); setXfers(t.data || []); setHolds(h.data || []);
-    } catch (e) { toast.error("Failed to load dispatch overview"); }
+    } catch (e) { toast.error("Could not load dispatch overview. Try again."); }
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);

@@ -319,7 +319,7 @@ export default function AdminShopUsersPanel() {
                   <td className="px-3 py-2 text-right">
                     {isEditing ? (
                       <div className="inline-flex gap-1">
-                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="h-8" data-testid={`admin-shop-cancel-${u.id}`}><X className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="h-8" aria-label="Cancel edit" title="Cancel" data-testid={`admin-shop-cancel-${u.id}`}><X className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" onClick={() => saveEdit(u)} className="bg-emerald-600 hover:bg-emerald-700 text-white h-8" data-testid={`admin-shop-save-${u.id}`}>
                           {savingId === u.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                         </Button>

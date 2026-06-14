@@ -466,7 +466,10 @@ function AddDialog({ open, setOpen, onSaved }) {
               </div>
             </div>
           )}
-          <DialogFooter><Button type="submit" data-testid="hremp-add-submit">Save</Button></DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} data-testid="hremp-add-cancel">Cancel</Button>
+            <Button type="submit" data-testid="hremp-add-submit">Save</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

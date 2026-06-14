@@ -179,7 +179,7 @@ function HrFlDetailDrawer({ rec, onClose, onPdf }) {
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => onPdf(rec)}><FileText className="w-3.5 h-3.5 mr-1" />{t("PDF")}</Button>
-            <Button size="sm" variant="outline" onClick={onClose} data-testid="hr-fl-drawer-close"><X className="w-3.5 h-3.5" /></Button>
+            <Button size="sm" variant="outline" onClick={onClose} aria-label={t("Close")} title={t("Close")} data-testid="hr-fl-drawer-close"><X className="w-3.5 h-3.5" /></Button>
           </div>
         </div>
         <div className="p-5 space-y-3 text-sm">

@@ -47,7 +47,7 @@ export default function RestoreBackupPanel() {
         if (e?.response?.status === 400) {
           setArchives({ configured: false, count: 0, backups: [] });
         } else {
-          toast.error("Failed to load R2 archives");
+          toast.error("Could not load cloud archives. Try again.");
           setArchives({ configured: true, count: 0, backups: [] });
         }
       }
@@ -58,7 +58,7 @@ export default function RestoreBackupPanel() {
     const f = e.target.files?.[0];
     if (!f) return;
     if (!f.name.toLowerCase().endsWith(".zip")) {
-      toast.error("Please pick a .zip backup file");
+      toast.error("Choose a .zip backup file.");
       e.target.value = "";
       return;
     }

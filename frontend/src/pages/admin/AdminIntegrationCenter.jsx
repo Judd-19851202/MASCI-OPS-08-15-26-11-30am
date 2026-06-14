@@ -1291,7 +1291,7 @@ function AutoLinkButton({ kind, onDone }) {
                   <strong> Existing manual links are never overwritten.</strong>
                 </p>
               </div>
-              <button onClick={() => setPreview(null)} className="text-slate-400 hover:text-slate-700"><X className="w-4 h-4" /></button>
+              <button onClick={() => setPreview(null)} className="text-slate-400 hover:text-slate-700" aria-label="Close preview" title="Close"><X className="w-4 h-4" /></button>
             </div>
             <div className="grid grid-cols-4 gap-2 mb-4">
               <AutoLinkStat label="Will Link" value={preview.counts?.link ?? 0} cls="bg-emerald-50 border-emerald-300 text-emerald-900" />

@@ -36,7 +36,7 @@ export default function StoredBackupsPanel() {
       const r = await api.get("/admin/backups");
       setData(r.data);
     } catch (e) {
-      toast.error("Failed to load backup list");
+      toast.error("Could not load backup list. Try again.");
     }
   };
 

@@ -221,7 +221,7 @@ export default function AdminProjectIdentityGovernance() {
         setQueue(q.data || []);
         setJobs(jm.data || []);
       } catch {
-        if (!cancelled) toast.error("Failed to load Project Identity Governance");
+        if (!cancelled) toast.error("Could not load Project Identity Governance. Try again.");
       } finally {
         if (!cancelled) setLoading(false);
       }

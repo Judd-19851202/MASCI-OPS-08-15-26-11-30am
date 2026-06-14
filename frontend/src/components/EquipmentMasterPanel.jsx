@@ -287,11 +287,11 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!/\.xlsx?$/i.test(file.name)) {
-      toast.error("Please pick a .xlsx file");
+      toast.error("Choose a .xlsx file.");
       return;
     }
     if (file.size > 25 * 1024 * 1024) {
-      toast.error("File too big — max 25 MB");
+      toast.error("File too big — max 25 MB.");
       return;
     }
     setUploading(true);
