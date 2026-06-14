@@ -37,7 +37,7 @@ export const STATUS_REGISTRY = {
   available:            { label: "Available",            family: STATUS_FAMILY.ASSET,   severity: "positive",  icon: "check-circle" },
   returned_to_service:  { label: "Returned to Service",  family: STATUS_FAMILY.ASSET,   severity: "positive",  icon: "log-in" },
   stale_position:       { label: "Stale Position",       family: STATUS_FAMILY.ASSET,   severity: "attention", icon: "map-pin-off" },
-  offline_feed:         { label: "Offline (Feed)",       family: STATUS_FAMILY.ASSET,   severity: "neutral",   icon: "wifi-off" },
+  offline_feed:         { label: "No Recent Data",       family: STATUS_FAMILY.ASSET,   severity: "neutral",   icon: "wifi-off" },
 };
 
 // Labels we MUST NOT introduce. Lint helper for future PRs.
