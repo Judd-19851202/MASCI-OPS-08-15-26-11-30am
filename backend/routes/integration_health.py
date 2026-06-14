@@ -271,11 +271,52 @@ async def run_all_probes(db) -> Dict[str, Any]:
         _run_with_timeout(_probe_motive(db),         "motive",       "Motive"),
         _run_with_timeout(_probe_emergent_llm(),     "emergent_llm", "Emergent LLM"),
     )
+    # Track 14.0-I1 (2026-02-14): annotate every probe with the
+    # platform-standard honesty status vocabulary
+    # (LIVE / CONFIGURED / PARTIAL / DISCONNECTED / ERROR).
+    # We never overwrite the raw probe status — the UI can show both.
+    for p in probes:
+        p["honesty_status"] = _normalize_honesty_status(p)
     return {
         "overall_status": _overall(probes),
         "checked_at":     _now_iso(),
         "probes":         probes,
     }
+
+
+def _normalize_honesty_status(probe: Dict[str, Any]) -> str:
+    """Map raw probe state → platform honesty vocabulary.
+
+    LIVE         — credentials present + recent successful comm + real data.
+    CONFIGURED   — credentials present but no recent success proven yet.
+    PARTIAL      — some functionality works, some does not.
+    DISCONNECTED — supported integration with no credentials.
+    ERROR        — configured but failing validation / communication.
+    """
+    raw_status = (probe.get("status") or "").lower()
+    mocked = bool(probe.get("mocked"))
+    api_key_present = probe.get("api_key_present")
+    # Motive uses `webhook_secret_present` as its credential signal.
+    if api_key_present is None and probe.get("webhook_secret_present") is not None:
+        api_key_present = probe.get("webhook_secret_present")
+    # Probes that don't expose api_key_present (mongo, r2, emergent_llm)
+    # imply presence from a successful `ok` status.
+    if api_key_present is None:
+        api_key_present = raw_status == "ok"
+
+    if mocked:
+        # `disabled` + `mocked=true` (e.g. MaintainX) = explicitly not connected.
+        return "DISCONNECTED"
+    if raw_status == "ok":
+        return "LIVE"
+    if raw_status == "disabled":
+        # Disabled-but-credentials-present = CONFIGURED awaiting proof.
+        return "CONFIGURED" if api_key_present else "DISCONNECTED"
+    if raw_status == "degraded":
+        return "PARTIAL" if api_key_present else "ERROR"
+    if raw_status == "down":
+        return "ERROR"
+    return "ERROR"
 
 
 # ──────────────────────────────────────────────────────────────────

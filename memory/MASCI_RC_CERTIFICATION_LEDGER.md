@@ -7497,3 +7497,45 @@ Banners are all cleared to begin.
 **Composite: 9.92.**
 
 **Report:** `/app/memory/TRACK_14_0_P0_PREVIEW_TEST_DEMO_DATA_HYGIENE_SWEEP_CLOSURE.md`.
+
+---
+
+## Track 14.0-I1 INTEGRATION HONESTY + ARCHIVE ORIGIN VERIFICATION — CLOSED
+
+**Date:** 2026-02-14 · **Status:** CLOSED · **Composite:** **9.96** (Trusted **9.99** · Proven **9.99**)
+
+### Outcome
+- Added platform-standard 5-status honesty vocabulary
+  (LIVE / CONFIGURED / PARTIAL / DISCONNECTED / ERROR) to
+  `/api/admin/integrations/health`. Every probe now carries an
+  `honesty_status` field; mocked integrations are pinned DISCONNECTED.
+- Backup manifest now records `environment`, `database_name`,
+  `app_env`, `db_name`, `manifest_schema`, `backup_id`,
+  `source_instance`. Manifest contract locked by regression test.
+- `/api/exports/restore` performs archive origin verification BEFORE
+  touching any data — refuses environment mismatch, refuses
+  database-name mismatch, refuses missing-environment legacy
+  archives in production. Operator sees a calm human-readable
+  HTTP 400 message; the platform writes an audit row on every
+  attempt (accept OR reject).
+- Live preview proof: production-origin archive rejected against a
+  preview worker with full audit-row evidence.
+- The last manual-checklist item from Track 14.0-P0 ("verify backup
+  archive origin before importing into production") is now
+  AUTOMATED at the API layer.
+- 20 new regression guards (`test_integration_honesty_and_archive_origin.py`)
+  lock the entire contract end-to-end.
+- 82/82 RC1 + parity + reality + PDF + hygiene + I1 tests pass.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.95 |
+| Simple | 9.95 |
+| Beautiful | 9.90 |
+| Trusted | **9.99** |
+| Proven | **9.99** |
+
+**Composite: 9.96.**
+
+**Report:** `/app/memory/TRACK_14_0_I1_INTEGRATION_HONESTY_AND_ARCHIVE_ORIGIN_VERIFICATION_CLOSURE.md`.

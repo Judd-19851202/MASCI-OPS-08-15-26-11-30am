@@ -5178,12 +5178,27 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
         # didn't lose anything. The integrity-check endpoint compares this
         # against the live DB and surfaces a warning if a new collection
         # exists that isn't yet in any backup.
+        #
+        # Track 14.0-I1 (2026-02-14): manifest now also records the
+        # environment + database the archive was generated from so the
+        # restore endpoint can refuse a preview-origin archive in
+        # production. This closes the cross-env restore vector that
+        # remained as a manual-checklist item after Track 14.0-P0.
+        _app_env = os.environ.get("APP_ENV", "production").lower()
+        _db_name = os.environ.get("DB_NAME", "")
         zf.writestr(
             "backup_manifest.json",
             _backup_json.dumps({
                 "source": "mascidocs.com",
                 "generated_at": now.isoformat(),
                 "version": "3",
+                "manifest_schema": "track-14.0-i1",
+                "environment": _app_env,
+                "database_name": _db_name,
+                "app_env": _app_env,
+                "db_name": _db_name,
+                "source_instance": _app_env,
+                "backup_id": uuid.uuid4().hex,
                 "total_records": total_records,
                 "captured_collections": sorted(set(captured_collections)),
                 "all_db_collections_at_backup_time": sorted(all_collections),
@@ -8188,6 +8203,82 @@ async def exports_restore(
     except Exception as e:
         raise HTTPException(400, f"Corrupt manifest: {e}")
 
+    # ---------------------------------------------------------------
+    # Track 14.0-I1 (2026-02-14) — Archive Origin Verification.
+    # Before we touch any data, refuse to restore an archive whose
+    # environment / database_name disagree with the running worker.
+    # This closes the last manual-checklist item from Track 14.0-P0
+    # ("verify backup archive origin before importing into prod").
+    # ---------------------------------------------------------------
+    current_env = os.environ.get("APP_ENV", "production").lower()
+    current_db = os.environ.get("DB_NAME", "")
+    archive_env = (manifest.get("environment") or manifest.get("app_env") or "").lower()
+    archive_db = manifest.get("database_name") or manifest.get("db_name") or ""
+
+    audit_doc = {
+        "id": str(uuid.uuid4()),
+        "kind": "exports_restore",
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "current_env": current_env,
+        "current_db": current_db,
+        "archive_env": archive_env,
+        "archive_db": archive_db,
+        "archive_backup_id": manifest.get("backup_id"),
+        "archive_generated_at": manifest.get("generated_at"),
+        "merge": merge,
+        "result": None,
+        "reason": None,
+    }
+
+    async def _record_audit(result: str, reason: str | None = None) -> None:
+        audit_doc["result"] = result
+        audit_doc["reason"] = reason
+        try:
+            await db.audit_events.insert_one(audit_doc)
+        except Exception:  # noqa: BLE001
+            logger.exception("[restore-audit] failed to persist audit event")
+
+    # Legacy archives (manifest schema before track-14.0-i1) have no
+    # environment field. In production we refuse them outright — better
+    # safe than sorry. In preview we accept them and log the legacy
+    # status so historical archives stay usable for regression work.
+    if not archive_env:
+        if current_env == "production":
+            await _record_audit("rejected", "missing-environment-field")
+            raise HTTPException(
+                400,
+                "Restore blocked. This archive was generated before the "
+                "Track 14.0-I1 manifest standard and has no recorded "
+                "environment of origin. Production restores must be "
+                "produced by a current production worker.",
+            )
+        logger.warning(
+            "[restore] legacy archive (no environment field) accepted in %s",
+            current_env,
+        )
+    elif archive_env != current_env:
+        await _record_audit(
+            "rejected",
+            f"environment-mismatch:{archive_env}-into-{current_env}",
+        )
+        raise HTTPException(
+            400,
+            f"Restore blocked. Archive originated from the "
+            f"{archive_env.title()} environment. "
+            f"{current_env.title()} restores may only use "
+            f"{current_env.title()} archives.",
+        )
+    elif archive_db and current_db and archive_db != current_db:
+        await _record_audit(
+            "rejected",
+            f"database-mismatch:{archive_db}-into-{current_db}",
+        )
+        raise HTTPException(
+            400,
+            f"Restore blocked. Archive database `{archive_db}` does not "
+            f"match the current database `{current_db}`.",
+        )
+
     # 2. Walk the ZIP and group docs by destination collection.
     bucket: Dict[str, List[dict]] = {}
 
@@ -8344,14 +8435,22 @@ async def exports_restore(
 
     logger.info(f"restore: processed {sum(s['processed'] for s in summary.values())} records across {len(summary)} collections")
 
-    return {
+    result = {
         "ok": True,
         "mode": "replace" if not merge else "merge",
         "backup_generated_at": manifest.get("generated_at"),
         "backup_version": manifest.get("version", "unknown"),
+        "archive_environment": archive_env or "unknown",
+        "archive_backup_id": manifest.get("backup_id"),
         "collections": summary,
         "total_processed": sum(s["processed"] for s in summary.values()),
     }
+    # Track 14.0-I1: success audit (counterpart to the rejection audits above).
+    await _record_audit(
+        "accepted",
+        f"merge={merge}; processed={result['total_processed']}",
+    )
+    return result
 
 
 

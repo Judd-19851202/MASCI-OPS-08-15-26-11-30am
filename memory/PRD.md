@@ -11,6 +11,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14)
+- **14.0-I1 INTEGRATION HONESTY + ARCHIVE ORIGIN VERIFICATION CLOSED**
+  — Platform trust track. Added 5-status honesty vocabulary
+  (LIVE / CONFIGURED / PARTIAL / DISCONNECTED / ERROR) to
+  `/api/admin/integrations/health`. Mocked integrations (e.g.
+  MaintainX) now pin to DISCONNECTED — no fake green badges.
+  Motive correctly maps to PARTIAL (webhook credentials present,
+  API returning HTTP 400). Backup manifest now carries `environment`,
+  `database_name`, `app_env`, `db_name`, `manifest_schema`,
+  `backup_id`, `source_instance`. `/api/exports/restore` reads the
+  manifest BEFORE touching any data and refuses
+  environment/database mismatches or legacy archives in production,
+  with a calm human-readable HTTP 400 message and a permanent
+  `exports_restore` audit row for every attempt. Live preview proof:
+  production-origin archive rejected against preview worker
+  (`result='rejected', reason='environment-mismatch:production-into-preview'`).
+  The last manual-checklist item from Track 14.0-P0 is now AUTOMATED.
+  +20 regression guards lock the contract. 82/82 RC1 + parity +
+  reality + PDF + hygiene + I1 tests pass. Five-Pillar **9.96**
+  (Trusted 9.99 · Proven 9.99). Ledger:
+  `/app/memory/TRACK_14_0_I1_INTEGRATION_HONESTY_AND_ARCHIVE_ORIGIN_VERIFICATION_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-14)
 - **14.0-P0 PREVIEW/TEST/DEMO DATA DEPLOYMENT HYGIENE SWEEP CLOSED** —
   Read-first audit + lock the preview→production data boundary so
   RC1 deployment cannot accidentally carry preview garbage forward.

@@ -2,6 +2,65 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — Track 14.0-I1 INTEGRATION HONESTY + ARCHIVE ORIGIN VERIFICATION CLOSED
+
+**P0 platform-trust track — RC1 deployment safety hardened.**
+
+### Integration honesty (UI-truth vocabulary)
+Added platform-standard 5-status vocabulary (**LIVE / CONFIGURED /
+PARTIAL / DISCONNECTED / ERROR**) via
+`_normalize_honesty_status()` in `routes/integration_health.py`.
+Every probe payload now carries an `honesty_status` field alongside
+the raw status. Mocked integrations (e.g. MaintainX) are pinned to
+DISCONNECTED regardless of the underlying raw state — the platform
+can never fake a green LIVE badge for a mock.
+
+Live preview matrix:
+* MongoDB · Cloudflare R2 · Resend · Emergent LLM → **LIVE**
+* MaintainX (mocked) → **DISCONNECTED**
+* Motive (webhook credentials present, API returning HTTP 400) → **PARTIAL**
+
+### Archive Origin Verification (the last unautomated P0-item)
+Backup manifest now carries `environment`, `database_name`, `app_env`,
+`db_name`, `manifest_schema=track-14.0-i1`, `backup_id`,
+`source_instance`. The `/api/exports/restore` endpoint reads them
+*before* touching any data and:
+
+* Refuses missing-environment legacy archives in production (fails
+  closed). Preview accepts with a warning so historical regression
+  archives stay usable.
+* Refuses environment mismatch (e.g. preview-origin archive uploaded
+  to a production worker) with a human-readable HTTP 400 message.
+* Refuses database-name mismatch when both sides are populated.
+* Writes an `exports_restore` audit row on every attempt (accept OR
+  reject) with the full context.
+
+**Live evidence**: against a preview worker, a fabricated
+production-origin archive was rejected:
+
+> Restore blocked. Archive originated from the Production environment.
+> Preview restores may only use Preview archives.
+
+Audit row written:
+`result='rejected', reason='environment-mismatch:production-into-preview'`.
+
+### Locks added — `test_integration_honesty_and_archive_origin.py` (20 guards)
+* 13 parametrized honesty-status vocabulary cases
+* "no fake LIVE for mocked" guard
+* "no LIVE without credentials" guard
+* runtime-payload-stamps-honesty-status guard
+* manifest-records-environment guard
+* restore-rejects-environment-mismatch guard
+* restore-audits-every-attempt guard
+* restore-legacy-archive-rejected-in-prod guard
+
+### Test surface
+**82/82 PASS** across all 6 RC1 suites (20 I1 + 6 hygiene + 10 PDF +
+24 nav-drift + 22 ownership). Frontend compiles clean. Backend
+restarted cleanly with env/DB guard green.
+
+Closure ledger: `/app/memory/TRACK_14_0_I1_INTEGRATION_HONESTY_AND_ARCHIVE_ORIGIN_VERIFICATION_CLOSURE.md`
+
 ## 2026-02-14 — Track 14.0-P0 PREVIEW / TEST / DEMO DATA DEPLOYMENT HYGIENE SWEEP CLOSED
 
 **P0 hard deployment blocker — now unblocked.**
