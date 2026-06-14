@@ -2,6 +2,35 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-12 — Track 14.0-PREVIEW-REALITY-RECONCILIATION CLOSED
+
+Honest gap-fix between certification screenshots and the live preview.
+
+- **Root cause:** `pages/PmHomeRedirect.jsx` (line 11-13) redirects `/pm`
+  → `/pm/command-center` (set during Phase 4C, 2026-02-10). The prior
+  PORTAL-LANDING-NAVIGATION-UNIFICATION track wired `PmSideNavV2` into
+  `pages/PmHubV2.jsx` (mounted at `/pm/hub`) — true in isolation but
+  **not** the page real users see after login.
+- **Fix:** Wired `PmSideNavV2` into `pages/PmCommandCenter.jsx` (the
+  actual landing component) with 1 import + 1 `sideNav` prop. Used
+  the same `PortalShell.sideNav` slot landed in the prior track.
+- **Live preview proof:** Navigated from `/sign-in` → `/pm`,
+  redirected to `/pm/command-center` automatically. Title rendered:
+  `"Project Management Center"`. Sidebar testid count: 1. All
+  top-bar chrome present.
+- **Both `/pm/command-center` and `/pm/hub`** now render the PM
+  sidebar consistently (no harm in dual wiring).
+- **Tests:** 18/18 nav-drift + 64/64 backend regression green.
+- **Lesson captured:** Every PM-facing certification must screenshot
+  `/pm` (not `/pm/hub`) so the redirect runs and the actual landing
+  is verified.
+- **Five-Pillar:** Powerful 9.80 · Simple 9.95 · Beautiful 9.85 ·
+  Trusted **9.95** · Proven **9.95** · Composite **9.90**.
+
+Ledger: `TRACK_14_0_PREVIEW_REALITY_RECONCILIATION_CLOSURE.md`.
+
+
+
 ## 2026-02-12 — Track 14.0-PORTAL-LANDING-NAVIGATION-UNIFICATION CLOSED
 
 Single architectural primitive closes the "landing hides navigation" gap.

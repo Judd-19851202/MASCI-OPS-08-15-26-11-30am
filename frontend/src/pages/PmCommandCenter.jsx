@@ -22,6 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import PmCommandStrip from "@/components/pm/command/PmCommandStrip";
 import PmResourcesBoard from "@/components/pm/command/PmResourcesBoard";
 import PmHaulsBoard from "@/components/pm/command/PmHaulsBoard";
@@ -97,6 +98,7 @@ export default function PmCommandCenter() {
       showBack
       backHref="/pm"
       portalSwitcherCurrent="pm"
+      sideNav={<PmSideNavV2 />}
       primaryActions={
         <div className="flex items-center gap-3">
           {/* RC1-PORTAL-NAV-001 · Dispatch shortcut removed —

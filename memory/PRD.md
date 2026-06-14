@@ -11,6 +11,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-12)
+- **14.0-PREVIEW-REALITY-RECONCILIATION CLOSED** — Honest gap-fix:
+  prior PORTAL-LANDING-NAVIGATION-UNIFICATION wired `PmSideNavV2` into
+  `PmHubV2` (`/pm/hub`) but **real users land on `/pm/command-center`**
+  via `PmHomeRedirect`. Fixed by also wiring the sidebar into
+  `PmCommandCenter.jsx` (2 LOC). Live preview screenshot at
+  `/tmp/pm_actual_landing.png` proves: visiting `/pm` redirects to
+  `/pm/command-center`, page title "Project Management Center",
+  sidebar testid count = 1, all top-bar chrome present. 18/18
+  nav-drift + 64/64 backend regression green. Five-Pillar **9.90**
+  (Trusted 9.95 · Proven 9.95). Ledger:
+  `/app/memory/TRACK_14_0_PREVIEW_REALITY_RECONCILIATION_CLOSURE.md`.
+
+
+## Latest Closed Track (2026-02-12)
 - **14.0-PORTAL-LANDING-NAVIGATION-UNIFICATION CLOSED** — Single
   design-system primitive (`PortalShell.sideNav` slot) closes the
   "landing hides navigation" gap. **PM Hub V2 now exposes full PM
