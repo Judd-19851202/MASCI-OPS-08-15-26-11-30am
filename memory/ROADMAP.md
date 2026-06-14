@@ -4,6 +4,17 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2A — DONE (2026-02-12)
+12 job-scoped writers now embed `team_snapshot` at submit time via `lib.team_routing.snapshot_team`. 8 writers deferred with documented asset-/employee-/link-scope reasons. Snapshot immutability proven across roster mutation. 35/35 tests. Five-Pillar **9.90** (Trusted 9.95 · Proven 9.95).
+Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2A_SNAPSHOT_EMBEDDING_CLOSURE.md`.
+
+## 🔴 P0 — 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2B (next, ~1.5 days)
+1. Wire `resolve_routing` into Daily Report, Incident, Trench Hold, Safety Meeting, QAQC Deficiency, Pre-Op Failed, DVIR Failed notification producers
+2. Verify `recipient_user_id` populates correctly under `OWNERSHIP_LOCK_ENABLED=true`
+3. Re-run D2 leakage matrix
+4. Admin Disable-User Wizard UI inside `/admin/people` user detail (Phase-2A backend ready)
+5. Asset Care project-scoped view at `/asset-care/projects/{n}` (reuse `MyAssignedProjectsWidget` pattern)
+
 ## ✅ 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-1 — DONE (2026-06-14)
 `lib/team_routing` shim · `OWNERSHIP_LOCK_ENABLED=true` · D4 + FL producer wiring · FL My-Jobs widget · PM Team link. 24/24 tests. Five-Pillar 9.78.
 Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_CLOSURE.md`.

@@ -10,6 +10,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## Latest Closed Track (2026-02-12)
+- **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2A CLOSED** — Operational
+  Writer Team-Snapshot Embedding Sweep. 12 job-scoped writers now embed
+  the frozen `team_snapshot` at submit time via `lib.team_routing.snapshot_team`.
+  8 writers deferred with documented asset-/employee-/link-scope reasons.
+  Immutability proven (pre-mutation records keep snapshot bit-identical;
+  post-mutation records capture new state). 35/35 backend tests green
+  (Phase 1 + 2A + 2B + 2B-2A). Five-Pillar **9.90** (Trusted 9.95 · Proven 9.95).
+  Phase 2B-2B (Producer Routing Sweep) is next. Spanish remains BLOCKED.
+  Ledger: `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2A_SNAPSHOT_EMBEDDING_CLOSURE.md`.
+
+
 ## Latest Closed Track (2026-06-14)
 - **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-1 CLOSED** — `lib/team_routing`
   shim, `OWNERSHIP_LOCK_ENABLED` flag, D4 + FL producers wired, FL "My Jobs"

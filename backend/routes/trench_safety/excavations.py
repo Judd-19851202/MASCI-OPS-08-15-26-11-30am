@@ -612,6 +612,14 @@ def register_excavation_routes(
                 })
         except Exception as e:  # noqa: BLE001
             logger.warning("excavation daily-report lookup failed: %s", e)
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, rec.get("project_number"))
+            if _snap:
+                rec["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
         await db.trench_excavations.insert_one(rec)
         rec.pop("_id", None)
         # Reverse-link: stamp excavation_id into the Daily Report doc(s) (Correction 1)

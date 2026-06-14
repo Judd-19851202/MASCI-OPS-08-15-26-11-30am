@@ -257,7 +257,7 @@ def build_fuel_lube_router(
                 pass
 
         # Insert visit document.
-        await db.fuel_lube_visits.insert_one({
+        visit_doc: Dict[str, Any] = {
             "id": visit_id,
             "visit_date": payload.visit_date,
             "project_number": payload.project_number,
@@ -276,7 +276,16 @@ def build_fuel_lube_router(
             "submitted_at": now_iso,
             "submitted_by": payload.submitted_by or payload.fuel_lube_tech_name,
             "source_system": FUEL_LUBE_VISIT_SOURCE,
-        })
+        }
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, payload.project_number)
+            if _snap:
+                visit_doc["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
+        await db.fuel_lube_visits.insert_one(visit_doc)
 
         return {"ok": True, "id": visit_id, "totals": totals, "defect_ids": defect_ids}
 

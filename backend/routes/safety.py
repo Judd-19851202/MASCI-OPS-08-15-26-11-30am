@@ -307,6 +307,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, doc, "INSP", when=doc.get("inspection_date") or doc.get("created_at"))
         inspection.doc_id = doc["doc_id"]
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, doc.get("project_number"))
+            if _snap:
+                doc["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
         await db.inspections.insert_one(doc)
         doc.pop("_id", None)
         # Mirror photos into the Job Photos library (Phase 1 read-only).
@@ -459,6 +467,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, doc, "MTG", when=doc.get("meeting_date") or doc.get("created_at"))
         meeting.doc_id = doc["doc_id"]
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, doc.get("project_number"))
+            if _snap:
+                doc["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
         await db.meetings.insert_one(doc)
         doc.pop("_id", None)
         schedule_auto_email("meeting", doc)
@@ -548,6 +564,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, doc, "JHA", when=doc.get("jha_date") or doc.get("created_at"))
         jha.doc_id = doc["doc_id"]
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, doc.get("project_number"))
+            if _snap:
+                doc["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
         await db.jhas.insert_one(doc)
         doc.pop("_id", None)
         schedule_auto_email("jha", doc)
@@ -644,6 +668,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             from doc_ids import ensure_doc_id
             await ensure_doc_id(db, doc, "INC", when=doc.get("incident_date") or doc.get("created_at"))
             incident.doc_id = doc["doc_id"]
+            # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+            try:
+                from lib.team_routing import snapshot_team  # noqa: PLC0415
+                _snap = await snapshot_team(db, doc.get("project_number"))
+                if _snap:
+                    doc["team_snapshot"] = _snap
+            except Exception:  # noqa: BLE001
+                pass
             await db.incidents.insert_one(doc)
             doc.pop("_id", None)
             schedule_auto_email("incident", doc)

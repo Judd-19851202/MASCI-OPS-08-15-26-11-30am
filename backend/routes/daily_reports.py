@@ -316,6 +316,17 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             # Build the response dict from the sanitized doc so the API
             # response matches what was persisted (refs not inline).
             report_dict = dict(doc)
+            # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+            # Freeze the active project roster at submit time so future
+            # roster changes never rewrite historical truth on this record.
+            try:
+                from lib.team_routing import snapshot_team  # noqa: PLC0415
+                _snap = await snapshot_team(db, doc.get("project_number"))
+                if _snap:
+                    doc["team_snapshot"] = _snap
+                    report_dict["team_snapshot"] = _snap
+            except Exception:  # noqa: BLE001 — snapshot is best-effort
+                pass
             await db.daily_reports.insert_one(doc)
             doc.pop("_id", None)
             # ── Phase 10A-B · Correction 1 · two-way Excavation linkage ──

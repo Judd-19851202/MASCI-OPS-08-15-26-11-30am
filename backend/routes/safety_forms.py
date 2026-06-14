@@ -935,6 +935,14 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         rec["updated_at"] = rec["created_at"]
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, rec, "SEI", when=rec.get("issued_at") or rec.get("created_at"))
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, rec.get("project_number"))
+            if _snap:
+                rec["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
         await db.safety_equipment_issuances.insert_one(dict(rec))
         rec.pop("_id", None)
         _schedule_email("issuance", rec)
@@ -1150,6 +1158,14 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         rec["updated_at"] = rec["created_at"]
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, rec, "SET", when=rec.get("training_date") or rec.get("created_at"))
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, rec.get("project_number"))
+            if _snap:
+                rec["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
         await db.safety_equipment_trainings.insert_one(dict(rec))
         rec.pop("_id", None)
         _schedule_email("training", rec)

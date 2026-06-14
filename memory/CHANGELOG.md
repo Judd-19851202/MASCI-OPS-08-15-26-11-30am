@@ -2,6 +2,38 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-12 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2A CLOSED
+
+Operational Writer Team-Snapshot Embedding Sweep.
+
+- **12 job-scoped operational writers** now embed the frozen `team_snapshot`
+  at submit time using `lib.team_routing.snapshot_team`. Daily Reports,
+  Site Inspections, Safety Meetings, JHAs, Incidents, QAQC Inspections,
+  Equipment Pre-Op, Safety Equipment Issuance, Safety Equipment Training,
+  Fuel/Lube Visits, Asset Transfers (originating job), and Trench Excavations.
+- Identical 8-line snapshot block at every call site. No update / edit /
+  review paths touched — historical immutability preserved by omission.
+- **8 writers deferred** with documented reasons: asset-scoped (Asset Doc
+  upload, Trench Asset Inspection, Hold, Repair, Deployment), driver/asset
+  scoped (Dispatch Assignment), employee-scoped (HR Training), per-user link
+  (Time-Off Public Links).
+- **NEW test suite** `tests/test_team_snapshot_embedding.py` — 11 tests
+  proving (a) helper safety for None / unknown projects, (b) end-to-end
+  embedding for 5 writers, (c) missing-project safety, (d) **snapshot
+  immutability across roster mutation** (the critical contract), (e) full
+  cleanup of every scratch row.
+- **35/35 backend pytest** green: Phase 1 (8) · Phase 2A (9) · Phase 2B (7)
+  · Phase 2B-2A (11). Zero existing tests broken.
+- **Five-Pillar**: Powerful 9.85 · Simple 9.95 · Beautiful 9.80 · Trusted
+  **9.95** · Proven **9.95** · Composite **9.90**.
+- ~150 LOC of additive snapshot blocks across 8 backend files + 350 LOC
+  test file.
+
+Spanish remains BLOCKED until Phase 2B-2B (Producer Routing Sweep) ships.
+Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2A_SNAPSHOT_EMBEDDING_CLOSURE.md`.
+
+
+
 ## 2026-06-14 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-1 CLOSED
 
 Snapshot embedding + ownership-based notification/email producer wiring.

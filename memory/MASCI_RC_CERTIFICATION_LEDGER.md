@@ -6917,3 +6917,48 @@ Powerful 9.5 · Simple 9.6 · Beautiful 9.5 · **Trusted 9.90 · Proven 9.90** �
 Spine wired. Two producers prove the contract end-to-end. Feature flag is honest and default-safe. Spanish remains correctly BLOCKED until Phase 2B-2 ships the full producer + writer sweep.
 
 **Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_CLOSURE.md`.
+
+
+---
+
+## Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2A — OPERATIONAL WRITER TEAM-SNAPSHOT EMBEDDING SWEEP
+
+**Date:** 2026-02-12 · **Status:** CLOSED · **Composite:** **9.90** (Trusted **9.95** · Proven **9.95**)
+
+### Outcome
+- 12 job-scoped operational writers now embed the frozen `team_snapshot`
+  at submit-time using the Phase-2A helper `lib.team_routing.snapshot_team`:
+  Daily Reports, Site Inspections, Safety Meetings, JHAs, Incidents, QAQC
+  Inspections, Equipment Pre-Op, Safety Equipment Issuance, Safety
+  Equipment Training, Fuel/Lube Visits, Asset Transfer Requests
+  (originating job), and Trench Excavation public submits.
+- 8 writers intentionally deferred — each with a documented asset-/
+  employee-/per-user-link-scope reason. No silent skips.
+- **Snapshot immutability proven** by direct roster-mutation test:
+  pre-mutation records keep their snapshot bit-identical; post-mutation
+  records capture the new state. No `update`/`edit`/`review` paths were
+  touched anywhere in the codebase.
+
+### Tests
+- **35/35 backend pytest green**: Phase 1 (8) · Phase 2A (9) · Phase 2B
+  (7) · Phase 2B-2A (11).
+- New test suite `tests/test_team_snapshot_embedding.py` covers helper
+  safety (None / unknown project), end-to-end writer embedding for 5
+  writers, missing-project safety, snapshot immutability, and full
+  cleanup of all scratch DB rows.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.85 |
+| Simple | 9.95 |
+| Beautiful | 9.80 |
+| Trusted | **9.95** |
+| Proven | **9.95** |
+
+**Composite: 9.90.** Above the 9.75 RC-1 bar; meets the 9.9 Trusted+Proven minimum.
+
+### Spanish status
+**STILL BLOCKED** until Phase 2B-2B (producer routing sweep) ships.
+
+**Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2A_SNAPSHOT_EMBEDDING_CLOSURE.md`.

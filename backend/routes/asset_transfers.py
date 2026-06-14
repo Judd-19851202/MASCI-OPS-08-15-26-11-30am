@@ -418,6 +418,16 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
             "updated_at": now,
             "audit": [],
         }
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        # Anchor on the originating (from) project. Cross-job moves
+        # preserve the roster at the moment of request.
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, doc.get("from_project_number"))
+            if _snap:
+                doc["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
         await db.asset_transfers.insert_one(doc)
         await _audit(doc["id"], "requested", actor,
                      {"to_project_number": body.to_project_number})

@@ -195,6 +195,14 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         doc = rec.model_dump()
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, doc, "QC", when=doc.get("inspection_date") or doc.get("created_at"))
+        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+        try:
+            from lib.team_routing import snapshot_team  # noqa: PLC0415
+            _snap = await snapshot_team(db, doc.get("project_number"))
+            if _snap:
+                doc["team_snapshot"] = _snap
+        except Exception:  # noqa: BLE001
+            pass
         await db.qaqc_inspections.insert_one(doc)
         doc.pop("_id", None)
         # Mirror photos into the Job Photos library (Phase 1 read-only).
