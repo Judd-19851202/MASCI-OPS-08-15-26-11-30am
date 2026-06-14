@@ -794,18 +794,31 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 )
             clauses.append({"rehire_eligibility": rehire_eligibility})
         if q:
+            # Track 14.0-HR-IDENTITY · search resolves legal first /
+            # middle / last, preferred name, denormalised `name`,
+            # employee_id, and trade. Any of: "James" / "Michael" /
+            # "Fisher" / "Jimmy" / "James Fisher" / "Jimmy Fisher" /
+            # "James Michael Fisher" match the same employee.
             clauses.append({"$or": [
                 {"name": {"$regex": q, "$options": "i"}},
-                {"preferred_name": {"$regex": q, "$options": "i"}},  # HR-EMPLOYEE-002
+                {"legal_first_name": {"$regex": q, "$options": "i"}},
+                {"legal_middle_name": {"$regex": q, "$options": "i"}},
+                {"legal_last_name": {"$regex": q, "$options": "i"}},
+                {"preferred_name": {"$regex": q, "$options": "i"}},
                 {"employee_id": {"$regex": q, "$options": "i"}},
                 {"trade": {"$regex": q, "$options": "i"}},
             ]})
         final = {"$and": clauses}
         cur = db.employees.find(final, {"_id": 0}).sort("name", 1).limit(limit)
+        from masci.identity import format_employee_identity
         items = []
         async for d in cur:
             d = _strip_id(d) or {}
             d["tenure_days"] = _tenure_days(d)
+            # Track 14.0-HR-IDENTITY · canonical display label so any
+            # consumer can render the right name without re-implementing
+            # the formatting rule.
+            d["display_identity"] = format_employee_identity(d)
             items.append(d)
         return {"items": items, "count": len(items)}
 
@@ -1569,8 +1582,13 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         # Header row matches the dashboard table columns one-for-one
         # (operational discipline: what HR sees on screen is what the
         # CSV ships — no extra fields, no hidden fields).
+        # Track 14.0-HR-IDENTITY · explicit identity columns so legal
+        # name, middle name, last name, and preferred name all survive
+        # the export.
         w.writerow([
-            "Name", "Employee ID", "Trade", "Supervisor", "Lifecycle Status",
+            "Display Name", "Legal First Name", "Legal Middle Name",
+            "Legal Last Name", "Preferred Name",
+            "Employee ID", "Trade", "Supervisor", "Lifecycle Status",
             "Approved Company Driver", "CDL Holder", "Driver Status",
             "CDL License #", "CDL State", "CDL Expiration",
             "Medical Card Expiration", "Endorsements", "Restrictions",
@@ -1588,9 +1606,15 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 return "; ".join(str(x) for x in v if x)
             return v or ""
 
+        from masci.identity import format_employee_identity
+
         for r in data["items"]:
             w.writerow([
-                r.get("name") or "",
+                format_employee_identity(r) or r.get("name") or "",
+                r.get("legal_first_name") or "",
+                r.get("legal_middle_name") or "",
+                r.get("legal_last_name") or "",
+                r.get("preferred_name") or "",
                 r.get("employee_id") or "",
                 r.get("trade") or "",
                 r.get("supervisor") or "",

@@ -52,6 +52,7 @@ import GlobalSearch from "@/components/GlobalSearch";
 import { LIFECYCLE_STATUS_TINTS } from "@/lib/statusBadges";
 import { HelpTip, HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const SEPARATION_TYPES = ["voluntary", "involuntary", "layoff"];
 const DRIVER_STATUSES = ["active", "suspended", "restricted", "inactive"];
@@ -237,11 +238,8 @@ export default function HrEmployees() {
                           <StatusBadge kind="lifecycle" value={status} size="sm" />
                         </button>
                       </td>
-                      <td className="px-4 py-2.5 font-bold text-slate-900">
-                        {e.name}
-                        {e.preferred_name ? (
-                          <span className="text-slate-500 font-normal italic ml-1">({e.preferred_name})</span>
-                        ) : null}
+                      <td className="px-4 py-2.5 font-bold text-slate-900" data-testid={`hremp-row-name-${e.id}`}>
+                        {formatEmployeeIdentity(e) || e.name}
                       </td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.trade || "—"} {e.role && <span className="text-slate-400">· {e.role}</span>}</td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.crew || "—"}</td>
@@ -634,11 +632,8 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
         ) : (
           <>
             <SheetHeader className="px-5 pt-5 pb-3 border-b border-slate-200">
-              <SheetTitle className="font-display text-base leading-snug">
-                {employee.name}
-                {employee.preferred_name ? (
-                  <span className="text-slate-500 font-normal italic ml-1">({employee.preferred_name})</span>
-                ) : null}
+              <SheetTitle className="font-display text-base leading-snug" data-testid="hremp-drawer-title">
+                {formatEmployeeIdentity(employee) || employee.name}
               </SheetTitle>
               <div className="flex items-center gap-2 mt-2 flex-wrap text-xs">
                 <StatusBadge kind="lifecycle" value={summary?.lifecycle_status} size="sm" />

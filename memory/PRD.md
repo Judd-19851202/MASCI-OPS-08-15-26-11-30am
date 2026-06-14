@@ -11,6 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14 · fork session)
+- **14.0-HR-IDENTITY-COMPLETION-AND-CERTIFICATION** — canonical
+  identity helper layer + regression coverage. Created
+  `backend/masci/identity.py` and `frontend/src/lib/identity.js`
+  (mirror) with `format_employee_identity` / `format_legal_name` /
+  `identity_search_blob`. Display rule:
+  **"Legal First Last (Preferred)"** when `preferred_name` set,
+  legal-only otherwise, fallback to denormalised `name` when no
+  legal parts. Never replace legal identity. Never hide it.
+  HR Directory list + drawer now render through the helper.
+  `/api/hr/employees` now ships a precomputed `display_identity`
+  field so every consumer renders the same string. Search now
+  resolves "James" / "Michael" / "Fisher" / "Jimmy" / "James Fisher" /
+  "Jimmy Fisher" / "James Michael Fisher" via `$regex` across
+  `legal_first_name`, `legal_middle_name`, `legal_last_name`,
+  `preferred_name`, denormalised `name`, employee_id, trade. Driver
+  Qualification CSV grew explicit `Legal First Name · Legal Middle
+  Name · Legal Last Name · Preferred Name` columns so identity
+  round-trips through export. **19 new regression assertions**
+  (`test_hr_identity_completion.py`) lock the helper contract, the
+  HR Directory usage, search coverage, CSV identity columns, and
+  the `display_identity` API field — future developers cannot
+  silently break the identity surface. Full RC1 suite: **158 / 158
+  pass**. Closure ledger:
+  `/app/memory/TRACK_14_0_HR_IDENTITY_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-14 · fork session)
 - **14.0-UXS-11E PLATFORM ROUTE PARITY EXECUTION SWEEP CLOSED**. 27
   additional drifted operational pages wrapped in `<PortalShell>`
   with their correct domain sidebars. The platform now renders unified
