@@ -308,7 +308,14 @@ class _NotificationService:
             "message": (payload.get("message") or "")[:2000] or None,
             "severity": sev,
             "recipient_role": (payload.get("recipient_role") or "admin"),
-            "recipient_user_id": payload.get("recipient_user_id"),
+            # Track 14.0-NOTIFY-OWNERSHIP-LOCK D2 — resolve specific
+            # human recipient via the 8-step ownership chain. When a
+            # specific human is resolved, recipient_role stays
+            # populated as the scope guard, AND recipient_user_id
+            # carries the person-level address.
+            "recipient_user_id": payload.get("recipient_user_id") or (
+                await _resolve_recipient_user_id(db, payload)
+            ),
             "linked_task_id": payload.get("linked_task_id"),
             "linked_source_module": payload.get("linked_source_module"),
             "linked_source_record_id": payload.get("linked_source_record_id"),
@@ -394,6 +401,53 @@ _LINK_BY_TYPE_PREFIX: Dict[str, str] = {
 }
 
 
+async def _resolve_recipient_user_id(db, payload: Dict[str, Any]) -> Optional[str]:
+    """Track 14.0-NOTIFY-OWNERSHIP-LOCK D2 — person-level ownership
+    resolver. Returns a specific user_id when ownership data exists on
+    the source record, applying the 8-step resolution chain from the
+    D1 Ownership Matrix:
+
+      1. assigned_user_id    (explicit single-user assignment)
+      2. submitted_by        (record author)
+      3. assigned_superintendent_id
+      4. assigned_foreman_id
+      5. project_owner_user_id  (PM-of-record on linked project)
+      6. workflow_reviewer_id
+      7. (department role bucket — caller's recipient_role)
+      8. (admin fallback     — caller default)
+
+    Returns None when no specific human is resolvable; the caller's
+    recipient_role then remains the routing key. Never overrides an
+    explicit recipient_user_id already in the payload."""
+    if payload.get("recipient_user_id"):
+        return payload["recipient_user_id"]
+    # Source-record fields the producer may have passed through.
+    owner_keys = (
+        "assigned_user_id", "submitted_by",
+        "assigned_superintendent_id", "assigned_foreman_id",
+        "project_owner_user_id", "workflow_reviewer_id",
+    )
+    for k in owner_keys:
+        v = payload.get(k)
+        if v:
+            return str(v)
+    # Project-derived owner: if linked_project_number is set, look up
+    # the PM-of-record from the projects collection. Read-only; one
+    # bounded query; cached owners arrive in payload to skip this.
+    pn = payload.get("linked_project_number")
+    if pn:
+        try:
+            proj = await db.projects.find_one(
+                {"project_number": pn},
+                {"_id": 0, "pm_user_id": 1, "superintendent_user_id": 1},
+            )
+            if proj:
+                return proj.get("pm_user_id") or proj.get("superintendent_user_id")
+        except Exception:
+            return None
+    return None
+
+
 def _resolve_link_url(payload: Dict[str, Any]) -> Optional[str]:
     """Best-effort route mapper. Prefers source-module lookup, falls
     back to type prefix. Returns None if no safe deep route is known
@@ -455,14 +509,30 @@ def build_tasks_notifications_router(db, require_any_portal_token):
     def _scope_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
         """Role-aware filter. Admin sees everything; portal users see
         tasks assigned to their role OR created by them OR linked to
-        a record in their domain (kept lightweight for v1)."""
+        a record in their domain (kept lightweight for v1).
+
+        Track 14.0-NOTIFY-OWNERSHIP-LOCK D3 — Asset Admin first-class:
+        actors with the `is_asset_admin` flag (set by the auth
+        middleware when the underlying user record carries
+        `is_asset_admin=True`) additionally see the `asset_admin`
+        scope. This is a strict OR-extension, never a downgrade — Shop
+        Managers without the flag continue to see only their shop
+        slice. No mechanic noise leaks to asset_admin because
+        notifications targeted to asset_admin are filtered by
+        recipient_role at write time."""
         role = _actor_role(actor)
         if role == "admin":
             return {}
+        extra_roles: List[str] = []
+        if actor.get("is_asset_admin") is True:
+            extra_roles.append("asset_admin")
+        scope_roles = [role] + extra_roles
         return {"$or": [
-            {"assignee_role": role},
+            {"assignee_role": {"$in": scope_roles}},
             {"created_by.role": role},
-            {"assignee_role": {"$in": [role, None]}},
+            {"assignee_role": {"$in": scope_roles + [None]}},
+            # Notification-only doc shape uses `recipient_role`.
+            {"recipient_role": {"$in": scope_roles}},
         ]}
 
     # ── Tasks ────────────────────────────────────────────────────────
