@@ -1,11 +1,12 @@
 // DCP-1 · Driver Command Profile · HR view.
 // Reuses the shared <DriverCommandProfile /> component. Role redaction
 // happens server-side based on the X-HR-Token attached by api.js.
+// UXS-11E: wrapped in PortalShell (HR Portal).
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import DriverCommandProfile from "@/components/DriverCommandProfile";
 import { usePageTitle } from "@/lib/usePageTitle";
 
@@ -14,27 +15,26 @@ export default function HrDriverProfile() {
   const nav = useNavigate();
   usePageTitle("Driver Command Profile · HR · MASCI");
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-5xl mx-auto px-4 py-6" data-testid="hr-driver-profile-page">
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <MasciLogo size="sm" />
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-indigo-700 font-bold">HR PORTAL · DRIVER</div>
-              <h1 className="font-display text-2xl font-black tracking-tight text-slate-900">Driver Command Profile</h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => nav(-1)} data-testid="hr-driver-profile-back">
-              <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => nav("/hr/motive-drivers")} data-testid="hr-driver-profile-cleanup">
-              Motive Driver Cleanup
-            </Button>
-          </div>
-        </div>
+    <PortalShell
+      portalName="MASCI"
+      portalRole="HR Portal · Driver"
+      pageTitle="Driver Command Profile"
+      subtitle="Identity · qualification · readiness"
+      sideNav={<HrSideNavV2 />}
+      primaryActions={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => nav("/hr/motive-drivers")}
+          data-testid="hr-driver-profile-cleanup"
+        >
+          Motive Driver Cleanup
+        </Button>
+      }
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6" data-testid="hr-driver-profile-page">
         <DriverCommandProfile driverKey={driverKey} />
       </div>
-    </div>
+    </PortalShell>
   );
 }

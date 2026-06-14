@@ -4,9 +4,8 @@
 // an Export button for the cumulative equipment-checkout CSV.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Plus, Pencil, Search, Save, Power, X, Download, RefreshCw,
+  Plus, Pencil, Search, Save, Power, X, Download, RefreshCw,
 } from "lucide-react";
 import { api, API } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -18,9 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { MasciLogo } from "@/components/MasciLogo";
-import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 
 const inputCls =
   "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600";
@@ -154,30 +152,14 @@ export default function AdminLeadershipEquipment() {
   };
 
   return (
-    <main className="min-h-screen blueprint-bg pb-16">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <CompanyInfoDialog />
-          </div>
-        </div>
-      </header>
-
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-6">
-        <div className="mb-6">
-          <Link
-            to="/admin"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-            data-testid="admin-equip-back"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Admin")}
-          </Link>
-        </div>
-
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · Field Leadership Equipment"
+      pageTitle={t("Equipment Catalog & Manufacturers")}
+      subtitle={t("Manage the searchable equipment list and manufacturer dropdown used by the Equipment Checkout & Accountability form.")}
+      sideNav={<AdminSideNavV2 />}
+    >
+      <section className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="admin-leadership-equipment-page">
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
           {t("Field Leadership · Admin")}
         </div>
@@ -353,6 +335,6 @@ export default function AdminLeadershipEquipment() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </main>
+    </PortalShell>
   );
 }

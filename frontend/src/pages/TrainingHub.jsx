@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   ArrowRight,
   GraduationCap,
   HardHat,
@@ -16,8 +15,8 @@ import {
   BookOpen,
   ChevronRight,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { useT } from "@/lib/i18n";
 import { TRACKS, lessonsForTrack } from "@/data/training";
 import { isAdmin } from "@/lib/adminAuth";
@@ -74,25 +73,15 @@ export default function TrainingHub() {
   const { t, lang } = useT();
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/"
-            className="inline-flex items-center text-white hover:text-red-400 text-sm font-bold uppercase tracking-wide"
-            data-testid="training-back-hub"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-        <div className="mb-10 sm:mb-14 max-w-3xl">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · Training"
+      pageTitle={t("MASCI Training")}
+      subtitle={t("Learn the Hub in minutes, not days.")}
+      sideNav={<AdminSideNavV2 />}
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="training-hub-page">
+        <div className="mb-10 max-w-3xl">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold flex items-center gap-2">
             <GraduationCap className="w-4 h-4" /> {t("MASCI Training")}
           </span>
@@ -435,7 +424,7 @@ export default function TrainingHub() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

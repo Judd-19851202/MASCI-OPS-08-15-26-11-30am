@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ClipboardCheck, Download, Loader2, Search, Eye } from "lucide-react";
+import { ClipboardCheck, Download, Loader2, Search, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -76,19 +76,19 @@ export default function AdminQaqcList() {
   }
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <header className="bg-slate-900 border-b-4 border-emerald-600">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="lg" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        <Link to="/admin" className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-emerald-700 font-bold mb-4">
-          <ArrowLeft className="w-3.5 h-3.5" /> Admin
-        </Link>
-
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · QA/QC"
+      pageTitle="All QA / QC Inspections"
+      subtitle="Admin-only list of every QA/QC inspection · filter by kind · export to CSV."
+      sideNav={<AdminSideNavV2 />}
+      primaryActions={
+        <Button onClick={onExport} disabled={exporting} className="h-9 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold" data-testid="qaqc-export-csv">
+          {exporting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1" />} Export CSV
+        </Button>
+      }
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="admin-qaqc-list-page">
         <div className="flex items-start gap-3 mb-5">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-emerald-600 text-white shrink-0">
             <ClipboardCheck className="w-6 h-6" />
@@ -119,7 +119,7 @@ export default function AdminQaqcList() {
               <option value="subcontractor_work">Subcontractor</option>
             </select>
           </div>
-          <Button onClick={onExport} variant="outline" disabled={exporting || !rows.length} data-testid="qaqc-export-csv">
+          <Button onClick={onExport} variant="outline" disabled={exporting || !rows.length} data-testid="qaqc-export-csv-body">
             {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             <span className="ml-1">Export CSV</span>
           </Button>
@@ -172,7 +172,7 @@ export default function AdminQaqcList() {
             />
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

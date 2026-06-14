@@ -1,12 +1,12 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Printer, ClipboardCheck, Users, AlertOctagon, ClipboardList,
+  Printer, ClipboardCheck, Users, AlertOctagon, ClipboardList,
   Wrench, Mail, ShieldCheck, HardDrive, QrCode, HelpCircle, Truck,
   TrendingUp, Building2, ListChecks, KeyRound, Cloud, LayoutDashboard,
   GraduationCap, Rocket, Activity, Layers, Eye, AlertTriangle, Plug,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -22,29 +22,23 @@ import { Button } from "@/components/ui/button";
  */
 export default function AdminGuide() {
   return (
-    <div className="min-h-screen bg-white" data-testid="admin-guide-page">
-      {/* Screen-only header (hidden in print) */}
-      <header className="bg-slate-900 text-white border-b-4 border-red-700 print:hidden">
-        <div className="max-w-4xl mx-auto px-5 py-3 flex items-center justify-between gap-3">
-          <Link
-            to="/admin"
-            className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide hover:text-red-300"
-            data-testid="guide-back-link"
-          >
-            <ArrowLeft className="w-4 h-4" /> Admin Console
-          </Link>
-          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/admin" />
-          <Button
-            onClick={() => window.print()}
-            className="h-9 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
-            data-testid="guide-print-btn"
-          >
-            <Printer className="w-4 h-4 mr-1" /> Print
-          </Button>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-6 sm:px-8 py-8 sm:py-12 print:py-4 print:px-0">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · Owner's Manual"
+      pageTitle="How to run this thing"
+      subtitle="One page, plain English. Print it, tape it to the wall."
+      sideNav={<AdminSideNavV2 />}
+      primaryActions={
+        <Button
+          onClick={() => window.print()}
+          className="h-9 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+          data-testid="guide-print-btn"
+        >
+          <Printer className="w-4 h-4 mr-1" /> Print
+        </Button>
+      }
+    >
+      <div className="max-w-4xl mx-auto px-6 sm:px-6 py-6 sm:py-8 print:py-4 print:px-0" data-testid="admin-guide-page">
         {/* Print header */}
         <div className="hidden print:block mb-6 pb-3 border-b-2 border-black">
           <div className="flex items-center justify-between">
@@ -57,13 +51,10 @@ export default function AdminGuide() {
         </div>
 
         {/* Screen hero */}
-        <div className="mb-10 print:hidden">
+        <div className="mb-8 print:hidden">
           <div className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
             MASCI Admin · Owner's Manual
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2">
-            How to run this thing.
-          </h1>
           <p className="text-slate-600 mt-3 max-w-2xl text-base">
             One page, plain English. Print it, tape it to the wall, hand it to whoever covers the office
             when you're out. You do not need to understand any code to run the MASCI Operations Platform.
@@ -700,7 +691,7 @@ export default function AdminGuide() {
         <div className="mt-10 pt-6 border-t-2 border-slate-200 text-center text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
           Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™
         </div>
-      </main>
+      </div>
 
       <style>{`
         @media print {
@@ -712,7 +703,7 @@ export default function AdminGuide() {
           .print\\:px-0 { padding-left: 0 !important; padding-right: 0 !important; }
         }
       `}</style>
-    </div>
+    </PortalShell>
   );
 }
 

@@ -10,15 +10,14 @@
  * Powerful · Simple · Beautiful · Trusted · Proven.
  */
 import React, { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, LayoutDashboard, Truck, User, Briefcase, Activity,
+  LayoutDashboard, Truck, User, Briefcase, Activity,
   Wrench, MessageSquare,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import DispatchSideNavV2 from "@/components/dispatch/sidebar/DispatchSideNavV2";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageTitle } from "@/lib/usePageTitle";
-import { paletteFor } from "@/lib/portalPalette";
 import CommandStrip from "@/components/dispatch/command/CommandStrip";
 import FleetBoard from "@/components/dispatch/command/FleetBoard";
 import DriverBoard from "@/components/dispatch/command/DriverBoard";
@@ -29,12 +28,10 @@ import CommunicationsTab from "@/components/dispatch/command/CommunicationsTab";
 import { commandApi } from "@/components/dispatch/command/commandApi";
 import { subscribeCommandAction } from "@/components/dispatch/command/commandActions";
 
-const DISPATCH_PAL = paletteFor("dispatch");
 const SUMMARY_POLL_MS = 30000;
 
 export default function DispatchCommandCenter() {
   usePageTitle("Dispatch Command Center · MASCI");
-  const nav = useNavigate();
 
   const [tab, setTab] = useState("overview");
   const [summary, setSummary] = useState(null);
@@ -68,44 +65,14 @@ export default function DispatchCommandCenter() {
   }, []);
 
   return (
-    <div
-      className="min-h-screen bg-slate-50"
-      data-testid="dispatch-command-center"
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Dispatch Portal · Command Center · V1"
+      pageTitle="Operational Heartbeat"
+      subtitle="One operational picture · Seven tabs · No drilling, no hunting."
+      sideNav={<DispatchSideNavV2 />}
     >
-      {/* Header */}
-      <header className={`${DISPATCH_PAL.bg} text-white border-b border-slate-800`}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <button
-              type="button"
-              onClick={() => nav(-1)}
-              className="text-white/80 hover:text-white p-1"
-              data-testid="dcc-back"
-              aria-label="Back"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <MasciLogo className="w-6 h-6 shrink-0" />
-            <div className="min-w-0">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 truncate">
-                Dispatch · Command Center · V1
-              </div>
-              <h1 className="font-display text-base sm:text-xl font-black truncate">
-                Operational Heartbeat
-              </h1>
-            </div>
-          </div>
-          <Link
-            to="/dispatch-portal"
-            className="text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest"
-            data-testid="dcc-back-hub"
-          >
-            Dispatch Hub
-          </Link>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4" data-testid="dispatch-command-center">
         {/* Always-on command strip */}
         <CommandStrip
           summary={summary}
@@ -151,8 +118,8 @@ export default function DispatchCommandCenter() {
           <TabsContent value="shop"    data-testid="dcc-tab-content-shop"><ShopFeedBoard /></TabsContent>
           <TabsContent value="comms"   data-testid="dcc-tab-content-comms"><CommunicationsTab /></TabsContent>
         </Tabs>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 

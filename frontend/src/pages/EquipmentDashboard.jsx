@@ -1,9 +1,12 @@
+// EquipmentDashboard.jsx — Shop / Admin / PM Equipment Pre-Op Inspections.
+// UXS-11E: wrapped in PortalShell with context-aware sidebar.
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Wrench, Eye, Trash2, Loader2, AlertOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import HubBackLink, { useHubHome } from "@/components/HubBackLink";
+import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
@@ -19,7 +22,6 @@ export default function EquipmentDashboard() {
   const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const hubHome = useHubHome();
 
   // Iter520 · Phase V.5 · P0-2A/2B — derive portal context from pathname so
   // we hide admin-only widgets and PM-incompatible actions when the
@@ -30,6 +32,15 @@ export default function EquipmentDashboard() {
       ? "shop"
       : "admin";
   const isPmContext = portalContext === "pm";
+  const isShopContext = portalContext === "shop";
+
+  // UXS-11E: pick sidebar matching the host portal.
+  const sideNav = isPmContext ? <PmSideNavV2 /> : <AdminSideNavV2 />;
+  const portalRole = isPmContext
+    ? "PM Portal · Equipment"
+    : isShopContext
+      ? "Shop Portal · Equipment"
+      : "Admin · Equipment";
 
   const load = async () => {
     setLoading(true);
@@ -68,50 +79,42 @@ export default function EquipmentDashboard() {
   const failCount = items.filter((i) => (i.fail_count || 0) > 0).length;
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <HubBackLink />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
+    <PortalShell
+      portalName="MASCI"
+      portalRole={portalRole}
+      pageTitle="Daily Walk-Arounds"
+      subtitle="OSHA pre-shift inspections for every truck, excavator, roller, and tool on the job."
+      sideNav={sideNav}
+      primaryActions={
+        !isPmContext ? (
           <div className="flex items-center gap-2">
-            {!isPmContext && (
-              <ShareFormDialog
-                formType="equipment-inspection"
-                path="/equipment/submit"
-                title="Share Equipment Form"
-                description="Anyone with this link can file an Equipment Pre-Op Inspection. No login required."
-                testIdPrefix="share-equipment"
-              />
-            )}
-            {!isPmContext && (
-              <Button
-                onClick={() => navigate("/equipment/new")}
-                className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
-                data-testid="new-equipment-btn"
-              >
-                <Plus className="w-5 h-5 mr-1" />
-                <span className="hidden sm:inline">New Inspection</span>
-                <span className="sm:hidden">New</span>
-              </Button>
-            )}
+            <ShareFormDialog
+              formType="equipment-inspection"
+              path="/equipment/submit"
+              title="Share Equipment Form"
+              description="Anyone with this link can file an Equipment Pre-Op Inspection. No login required."
+              testIdPrefix="share-equipment"
+            />
+            <Button
+              onClick={() => navigate("/equipment/new")}
+              className="h-9 px-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+              data-testid="new-equipment-btn"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">New Inspection</span>
+              <span className="sm:hidden">New</span>
+            </Button>
           </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-        <div className="mb-8">
+        ) : null
+      }
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="equipment-dashboard-page">
+        <div className="mb-6">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             Equipment Pre-Op Inspections
           </span>
-          <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
-            Daily Walk-Arounds
-          </h1>
-          <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            OSHA pre-shift inspections for every truck, excavator, roller, and tool on the job.
-          </p>
           {failCount > 0 && (
-            <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-700 text-red-800 font-mono text-xs font-bold uppercase tracking-[0.15em]">
+            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-700 text-red-800 font-mono text-xs font-bold uppercase tracking-[0.15em]">
               <AlertOctagon className="w-4 h-4" /> {failCount} unit{failCount === 1 ? "" : "s"} flagged FAIL
             </div>
           )}
@@ -240,7 +243,7 @@ export default function EquipmentDashboard() {
             />
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Save, Video, ExternalLink } from "lucide-react";
+import { Save, Video, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { api } from "@/lib/api";
 import { LESSONS, TRACKS } from "@/data/training";
 import { toast } from "sonner";
@@ -60,24 +60,19 @@ export default function AdminTrainingVideos() {
   const filledEs = Object.values(videos).filter((v) => norm(v).es).length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/admin"
-            className="inline-flex items-center text-white hover:text-red-400 text-sm font-bold uppercase tracking-wide"
-            data-testid="training-videos-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Admin
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <span className="w-20" />
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · Training Videos"
+      pageTitle="Paste a video URL per lesson"
+      subtitle="Supports YouTube · Loom · Vimeo · Wistia"
+      sideNav={<AdminSideNavV2 />}
+      primaryActions={
+        <Button onClick={onSave} disabled={saving} className="h-9 bg-red-700 hover:bg-red-800 text-white text-xs font-bold" data-testid="training-videos-save">
+          <Save className="w-3.5 h-3.5 mr-1" /> {saving ? "Saving…" : "Save"}
+        </Button>
+      }
+    >
+      <div className="max-w-5xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="admin-training-videos-page">
         <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold flex items-center gap-2">
@@ -181,7 +176,7 @@ export default function AdminTrainingVideos() {
             </section>
           );
         })}
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

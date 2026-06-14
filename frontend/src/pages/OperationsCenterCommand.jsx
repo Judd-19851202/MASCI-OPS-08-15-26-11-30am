@@ -25,17 +25,16 @@
  *  - Map-ready fields already on every operational row (preps Live Map).
  */
 import React, { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
-  ArrowLeft, AlertTriangle, Wrench, Activity, Boxes, Truck,
+  AlertTriangle, Wrench, Activity, Boxes, Truck,
   ShieldAlert, Layers, MapPin, Settings, ExternalLink, Eye, EyeOff,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { usePageTitle } from "@/lib/usePageTitle";
-import { paletteFor } from "@/lib/portalPalette";
 import { ocCommandApi } from "@/components/operations/command/ocCommandApi";
 
-const PAL = paletteFor("admin");
 const POLL_MS = 60000;
 
 const FAMILY_LABEL = {
@@ -47,7 +46,6 @@ const FAMILY_LABEL = {
 
 export default function OperationsCenterCommand() {
   usePageTitle("Operations Center · MASCI");
-  const nav = useNavigate();
   const [exec, setExec] = useState(false);
   const [brief, setBrief] = useState(null);
   const [ph, setPh] = useState(null);
@@ -86,45 +84,34 @@ export default function OperationsCenterCommand() {
   const b = brief?.brief || {};
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="operations-center-command">
-      <header className={`${PAL.bg} text-white border-b border-slate-800`}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <button type="button" onClick={() => nav(-1)} className="text-white/80 hover:text-white p-1" aria-label="Back" data-testid="oc-cmd-back">
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <MasciLogo className="w-6 h-6 shrink-0" />
-            <div className="min-w-0">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 truncate">
-                Operations · Command Center · V1
-              </div>
-              <h1 className="font-display text-base sm:text-xl font-black truncate">
-                Cross-Company Operational Truth
-              </h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setExec((v) => !v)}
-              data-testid="oc-cmd-exec-toggle"
-              className="text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest border border-white/20 hover:border-white/60 rounded px-2.5 py-1 inline-flex items-center gap-1.5"
-              title="Hide row-level noise"
-            >
-              {exec ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              Executive
-            </button>
-            <Link to="/dispatch-portal/command" className="hidden sm:inline-flex items-center gap-1 text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest" data-testid="oc-cmd-link-dispatch">
-              <ExternalLink className="w-3 h-3" /> Dispatch
-            </Link>
-            <Link to="/pm/command-center" className="hidden sm:inline-flex items-center gap-1 text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest" data-testid="oc-cmd-link-pm">
-              <ExternalLink className="w-3 h-3" /> PM
-            </Link>
-          </div>
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · Operations Center · V1"
+      pageTitle="Cross-Company Operational Truth"
+      subtitle="9-layer command board · brief, health, allocation, conflicts, specialty assets, shop, safety, telematics, timeline."
+      sideNav={<AdminSideNavV2 />}
+      primaryActions={
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setExec((v) => !v)}
+            data-testid="oc-cmd-exec-toggle"
+            className="text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest border border-white/20 hover:border-white/60 rounded px-2.5 py-1 inline-flex items-center gap-1.5"
+            title="Hide row-level noise"
+          >
+            {exec ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            Executive
+          </button>
+          <Link to="/dispatch-portal/command" className="hidden sm:inline-flex items-center gap-1 text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest" data-testid="oc-cmd-link-dispatch">
+            <ExternalLink className="w-3 h-3" /> Dispatch
+          </Link>
+          <Link to="/pm/command-center" className="hidden sm:inline-flex items-center gap-1 text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest" data-testid="oc-cmd-link-pm">
+            <ExternalLink className="w-3 h-3" /> PM
+          </Link>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+      }
+    >
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4" data-testid="operations-center-command">
         {/* L1 — Morning Operations Brief */}
         <section data-testid="oc-cmd-brief" className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4">
           <h2 className="font-display text-base sm:text-lg font-black text-slate-900 mb-2">Today&apos;s Operations Brief</h2>
@@ -193,8 +180,8 @@ export default function OperationsCenterCommand() {
           <span>Operations Center · Phase 4C</span>
           <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Live Map · Pending Integration</span>
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 

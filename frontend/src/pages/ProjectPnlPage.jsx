@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   TrendingUp,
   Loader2,
@@ -16,8 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
-import HubBackLink from "@/components/HubBackLink";
+import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 
 const fmtCurrency = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
@@ -95,45 +94,33 @@ export default function ProjectPnlPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
-      {/* Top bar */}
-      <div className="bg-slate-900 text-white sticky top-0 z-20 border-b-4 border-amber-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <HubBackLink
-              className="text-amber-400 hover:text-white transition-colors"
-              testId="pnl-back-link"
-            />
-            <MasciLogo variant="light" className="h-7" />
-            <span className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.25em] text-amber-400 font-bold pl-3 border-l border-slate-700">
-              Project P&amp;L Snapshot
-            </span>
-          </div>
-          <Button
-            onClick={loadProjects}
-            variant="ghost"
-            size="sm"
-            className="text-slate-300 hover:text-white hover:bg-slate-800"
-            data-testid="pnl-refresh-projects"
-          >
-            <RefreshCw className="w-4 h-4 mr-1.5" />
-            <span className="hidden sm:inline text-xs">Refresh projects</span>
-          </Button>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="PM Portal · Project P&L"
+      pageTitle="Live job-cost dashboard"
+      subtitle="Pick a project + a date range. Numbers come straight from the field — every Daily Report submitted feeds this page."
+      sideNav={<PmSideNavV2 />}
+      primaryActions={
+        <Button
+          onClick={loadProjects}
+          variant="outline"
+          size="sm"
+          className="h-9 text-xs"
+          data-testid="pnl-refresh-projects"
+        >
+          <RefreshCw className="w-3.5 h-3.5 mr-1" />
+          <span className="hidden sm:inline">Refresh projects</span>
+        </Button>
+      }
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6" data-testid="project-pnl-page">
         {/* Title */}
         <div className="flex items-end gap-4">
           <TrendingUp className="w-9 h-9 text-red-700" />
           <div>
-            <h1 className="font-display text-3xl sm:text-4xl font-black text-slate-900 leading-none">
-              Live job-cost dashboard
-            </h1>
-            <p className="text-sm text-slate-600 mt-1">
-              Pick a project + a date range. Numbers come straight from the
-              field — every Daily Report submitted feeds this page.
-            </p>
+            <span className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.25em] text-amber-600 font-bold">
+              Project P&amp;L Snapshot
+            </span>
           </div>
         </div>
 
@@ -353,7 +340,7 @@ export default function ProjectPnlPage() {
           </>
         )}
       </div>
-    </div>
+    </PortalShell>
   );
 }
 

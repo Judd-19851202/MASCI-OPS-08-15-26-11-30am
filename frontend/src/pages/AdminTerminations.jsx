@@ -8,7 +8,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, AlertOctagon, CheckCircle2, ShieldAlert, FileText,
+  AlertOctagon, CheckCircle2, ShieldAlert, FileText,
   Wrench, Loader2, Search, Download,
 } from "lucide-react";
 import { api } from "@/lib/api";
@@ -17,9 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { MasciLogo } from "@/components/MasciLogo";
-import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 
 const inputCls =
   "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
@@ -111,30 +110,14 @@ export default function AdminTerminations() {
   }, [rows]);
 
   return (
-    <div className="min-h-screen blueprint-bg pb-16">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <CompanyInfoDialog />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        <div className="mb-6">
-          <Link
-            to="/admin"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-            data-testid="terminations-back"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Admin")}
-          </Link>
-        </div>
-
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · Terminations"
+      pageTitle={t("Employee Terminations")}
+      subtitle={t("Termination documentation · resignation tracking · policy enforcement · outstanding-equipment accountability")}
+      sideNav={<AdminSideNavV2 />}
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="admin-terminations-page">
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
           {t("Restricted · HR Documentation")}
         </div>
@@ -332,7 +315,7 @@ export default function AdminTerminations() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

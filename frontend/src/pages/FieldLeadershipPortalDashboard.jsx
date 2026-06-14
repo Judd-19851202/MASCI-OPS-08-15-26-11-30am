@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, LogOut, HardHat, Truck, ShieldCheck, AlertTriangle, Search } from "lucide-react";
+import { Loader2, HardHat, Truck, ShieldCheck, AlertTriangle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MasciLogo } from "@/components/MasciLogo";
-import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
@@ -124,29 +122,14 @@ export default function FieldLeadershipPortalDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden" data-testid="fl-portal-dashboard">
-      <div className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <MasciLogo size={32} />
-            <div>
-              <div className="text-xs uppercase tracking-[0.18em] font-bold text-slate-600 flex items-center gap-1">
-                <HardHat className="w-3 h-3" /> {t("Field Leadership Portal")}
-              </div>
-              <div className="text-sm font-semibold text-slate-900">
-                {user?.name || t("Field Leader")} · <span className="text-slate-500 text-xs">{user?.role || ""}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <Button size="sm" variant="outline" onClick={signOut} data-testid="fl-signout" className="h-8 text-xs">
-              <LogOut className="w-3 h-3 mr-1" /> {t("Sign out")}
-            </Button>
-          </div>
-        </div>
-      </div>
-      <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 space-y-4">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Field Leadership Portal"
+      pageTitle={user?.name || t("Field Leader")}
+      subtitle={user?.role || t("Crew accountability · employee readiness · dispatch visibility")}
+      onSignOut={signOut}
+    >
+      <div className="max-w-6xl w-full mx-auto px-4 py-6 space-y-4" data-testid="fl-portal-dashboard">
         <HelpTipBlock formKey="field-leadership.portal-dashboard" showCounter />
         <OperationsActionsTile />
         {error && (
@@ -249,7 +232,6 @@ export default function FieldLeadershipPortalDashboard() {
           </CardContent>
         </Card>
       </div>
-      <ForgedOpsAttribution />
-    </div>
+    </PortalShell>
   );
 }

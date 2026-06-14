@@ -18,8 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import { RefKicker } from "@/components/RefKicker";
 import { getHrToken } from "@/lib/hrAuth";
 import { useT } from "@/lib/i18n";
@@ -89,35 +89,14 @@ export default function HrDailyReports() {
   }), [items]);
 
   return (
-    <div className="min-h-screen blueprint-bg pb-16">
-      <div className="caution-stripe" />
-      <header className={`bg-slate-900 border-b-4 ${HR_PAL.hubHeaderBar}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3 flex-wrap">
-          <button
-            onClick={() => nav("/hr")}
-            className={`inline-flex items-center text-white ${HR_PAL.hubLinkHover} text-sm font-bold uppercase tracking-wide`}
-            data-testid="hr-dr-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back to HR")}
-          </button>
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-5" data-testid="hr-daily-reports-page">
-        <header className="bg-white border border-slate-200 border-l-4 border-l-purple-700 rounded-md p-5">
-          <span className={`font-mono text-xs uppercase tracking-[0.22em] ${HR_PAL.hubKicker} font-bold`}>
-            {t("HR Portal")} · {t("Read-only")}
-          </span>
-          <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight mt-0.5">
-            {t("Daily Reports Review")}
-          </h1>
-          <p className="text-sm text-slate-600 mt-1">
-            {t("Read-only visibility into daily reports — labor crews, subcontractors, vendors, weather, location, and photo counts. No edit, no delete, no email, no approval.")}
-          </p>
-        </header>
-
+    <PortalShell
+      portalName="MASCI"
+      portalRole="HR Portal · Daily Reports"
+      pageTitle={t("Daily Reports Review")}
+      subtitle={t("Read-only visibility into daily reports — labor crews, subcontractors, vendors, weather, location, and photo counts. No edit, no delete, no email, no approval.")}
+      sideNav={<HrSideNavV2 />}
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 space-y-5" data-testid="hr-daily-reports-page">
         {/* KPI strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
           <Kpi label={t("Reports")} value={totals.count} stripe="border-l-purple-700" testId="hr-dr-kpi-reports" />
@@ -216,8 +195,8 @@ export default function HrDailyReports() {
         </div>
 
         <p className="text-xs text-slate-500 font-mono">{items.length} {t("of")} {totals.count} {t("records shown")}</p>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 
@@ -268,23 +247,16 @@ export function HrDailyReportDetail() {
   }, [id, t]);
 
   return (
-    <div className="min-h-screen blueprint-bg pb-16">
-      <div className="caution-stripe" />
-      <header className={`bg-slate-900 border-b-4 ${HR_PAL.hubHeaderBar}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3 flex-wrap">
-          <button
-            onClick={() => nav("/hr/daily-reports")}
-            className={`inline-flex items-center text-white ${HR_PAL.hubLinkHover} text-sm font-bold uppercase tracking-wide`}
-            data-testid="hr-dr-detail-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back to list")}
-          </button>
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 space-y-5" data-testid="hr-dr-detail-page">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="HR Portal · Daily Report"
+      pageTitle={t("Daily Report")}
+      subtitle={t("Read-only HR view. To edit or send this report, the PM must use the PM Portal.")}
+      sideNav={<HrSideNavV2 />}
+      showBack
+      backHref="/hr/daily-reports"
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 space-y-5" data-testid="hr-dr-detail-page">
         {loading ? (
           <div className="text-center py-12 text-slate-500">
             <Loader2 className="w-6 h-6 animate-spin mx-auto" />
@@ -401,8 +373,8 @@ export function HrDailyReportDetail() {
             </p>
           </>
         )}
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 

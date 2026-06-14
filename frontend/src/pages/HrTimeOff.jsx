@@ -6,7 +6,6 @@
 // platform login.
 
 import React from "react";
-import { Link } from "react-router-dom";
 import {
   CalendarOff, CheckCircle2, XCircle, AlertCircle, Send, Copy,
   FileText, Filter, Plus,
@@ -20,9 +19,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import BackLink from "@/components/BackLink";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import { useT } from "@/lib/i18n";
 import { getHrToken } from "@/lib/hrAuth";
 import { HelpTipBlock } from "@/components/HelpTip";
@@ -75,27 +73,21 @@ export default function HrTimeOff() {
   React.useEffect(() => { refresh(); }, [refresh]);
 
   return (
-    <div className="min-h-screen blueprint-bg pb-16" data-testid="hr-time-off-page">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-cyan-700">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <BackLink to="/hr" label={t("HR Hub")} testId="time-off-back" />
-          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-3 sm:px-8 py-4 sm:py-6">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="HR Portal · Time Off"
+      pageTitle={t("Time Off Requests")}
+      subtitle={t("Approve, deny, or request more information on field & office time-off requests.")}
+      sideNav={<HrSideNavV2 />}
+      primaryActions={<PublicLinkDialog onCreated={refresh} headers={headers} t={t} />}
+    >
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6" data-testid="hr-time-off-page">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0">
             <div className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
               <CalendarOff className="w-3.5 h-3.5 inline mr-1" /> {t("HR · Time Off Requests")}
             </div>
-            <h1 className="font-display text-2xl sm:text-4xl font-black mt-1">
-              {t("Time Off Requests")}
-            </h1>
           </div>
-          <PublicLinkDialog onCreated={refresh} headers={headers} t={t} />
         </div>
 
         <StatsStrip stats={stats} t={t} />
@@ -229,7 +221,7 @@ export default function HrTimeOff() {
             </table>
           )}
         </Card>
-      </main>
+      </div>
 
       {active && (
         <ReviewDialog
@@ -240,7 +232,7 @@ export default function HrTimeOff() {
           t={t}
         />
       )}
-    </div>
+    </PortalShell>
   );
 }
 

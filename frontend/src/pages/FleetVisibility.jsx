@@ -19,15 +19,16 @@
 // Mobile-first · no horizontal overflow · matches existing portal palette.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Truck, AlertOctagon, Wrench, CheckCircle2, Clock,
+  Truck, AlertOctagon, Wrench, CheckCircle2, Clock,
   RefreshCw, MessageSquareQuote, ShieldCheck, FileDown, ChevronDown, ChevronUp,
   History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import DispatchSideNavV2 from "@/components/dispatch/sidebar/DispatchSideNavV2";
+import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
 import { getShopToken } from "@/lib/shopAuth";
@@ -476,27 +477,28 @@ export default function FleetVisibility({ scope = "shop" }) {
     ? { kicker: t("Dispatch · Fleet Availability"), title: t("Fleet operational status") }
     : { kicker: t("Safety · Fleet Governance"), title: t("Open defects across fleet") };
 
-  return (
-    <div className="min-h-screen blueprint-bg" data-testid="fleet-visibility">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4" style={{ borderColor: accent }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
+  // UXS-11E · pick the right portal sidebar based on scope.
+  const sideNav = scope === "dispatch"
+    ? <DispatchSideNavV2 />
+    : scope === "safety"
+      ? <SafetySideNavV2 />
+      : <AdminSideNavV2 />;
+  const portalRole = scope === "dispatch"
+    ? "Dispatch Portal · Fleet Availability"
+    : scope === "safety"
+      ? "Safety Portal · Fleet Governance"
+      : "Shop Portal · Fleet Repair Queue";
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-16">
+  return (
+    <PortalShell
+      portalName="MASCI"
+      portalRole={portalRole}
+      pageTitle={scopeMeta.title}
+      subtitle={scopeMeta.kicker}
+      sideNav={sideNav}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-16" data-testid="fleet-visibility">
         <FocusBanner />
-        <div className="mb-4">
-          <Link
-            to={scopeHomeRoute(scope)}
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-slate-900 font-bold"
-            data-testid="fleet-visibility-back"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {scopeMeta.kicker.split(" · ")[0]}
-          </Link>
-        </div>
 
         <div className="mb-6 flex items-start gap-3 sm:gap-4">
           <div
@@ -614,7 +616,7 @@ export default function FleetVisibility({ scope = "shop" }) {
             ))}
           </div>
         )}
-      </main>
+      </div>
 
       {/* Phase 4 · repair lifecycle drawers */}
       <RepairDrawer
@@ -631,7 +633,7 @@ export default function FleetVisibility({ scope = "shop" }) {
         onClose={() => setRtsDefect(null)}
         onSubmit={submitRts}
       />
-    </div>
+    </PortalShell>
   );
 }
 

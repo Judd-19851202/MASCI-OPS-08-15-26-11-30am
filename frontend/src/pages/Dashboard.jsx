@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, ClipboardCheck, ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import HubBackLink, { useHubHome } from "@/components/HubBackLink";
-import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import { GradePill } from "@/components/Grade";
 import JobFolderList from "@/components/JobFolderList";
@@ -38,7 +38,9 @@ export default function Dashboard() {
   const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const hubHome = useHubHome();
+  const isPmContext = pathname.startsWith("/pm/");
+  const sideNav = isPmContext ? <PmSideNavV2 /> : <AdminSideNavV2 />;
+  const portalRole = isPmContext ? "PM Portal · Inspections" : "Admin · Inspections";
 
   const load = async () => {
     setLoading(true);
@@ -90,30 +92,29 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <HubBackLink />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex items-center gap-2">
-            <ShareFormDialog />
-            <CompanyInfoDialog />
-            <Button
-              onClick={() => navigate("/safety/inspections/new")}
-              className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
-              data-testid="new-inspection-btn"
-            >
-              <Plus className="w-5 h-5 mr-1" />
-              <span className="hidden sm:inline">New Inspection</span>
-              <span className="sm:hidden">New</span>
-            </Button>
-          </div>
+    <PortalShell
+      portalName="MASCI"
+      portalRole={portalRole}
+      pageTitle="Job Site Safety Inspections"
+      subtitle="OSHA pre-shift inspections — every job, every day."
+      sideNav={sideNav}
+      primaryActions={
+        <div className="flex items-center gap-2">
+          <ShareFormDialog />
+          <Button
+            onClick={() => navigate("/safety/inspections/new")}
+            className="h-9 px-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+            data-testid="new-inspection-btn"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            <span className="hidden sm:inline">New Inspection</span>
+            <span className="sm:hidden">New</span>
+          </Button>
         </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-        <div className="mb-10 sm:mb-14">
+      }
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="dashboard-inspections-page">
+        <div className="mb-6">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-500">
             MASCI Operations Platform
           </span>
@@ -246,11 +247,7 @@ export default function Dashboard() {
             />
           )}
         </div>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-        MASCI · Job Site Safety Inspection
-      </footer>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

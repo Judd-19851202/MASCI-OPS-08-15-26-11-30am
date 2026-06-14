@@ -6,14 +6,14 @@
 // export of the current filtered view.
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, Download, Search, RefreshCw, AlertTriangle, ShieldCheck, CircleSlash, Home, FileText,
+  Download, Search, RefreshCw, AlertTriangle, ShieldCheck, CircleSlash, FileText,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import { getHrToken } from "@/lib/hrAuth";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
@@ -41,7 +41,6 @@ function SummaryCard({ icon: Icon, label, value, tint = "slate", testid }) {
 
 export default function HrIncidents() {
   const { t } = useT();
-  const nav = useNavigate();
   const [data, setData] = useState({ items: [], count: 0, summary: {} });
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -91,28 +90,22 @@ export default function HrIncidents() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => nav(-1)} data-testid="hr-inc-back">
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back")}
-          </Button>
-          <Link to="/" className="hidden sm:flex items-center gap-2 ml-2">
-            <Home className="w-4 h-4 text-slate-400" />
-            <MasciLogo size={26} />
-          </Link>
-          <div className="ml-auto">
-            <Button size="sm" onClick={exportCsv} disabled={loading || !data.items?.length} className="bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-inc-export-csv">
-              <Download className="w-4 h-4 mr-1" /> {t("Export CSV")}
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-5 space-y-4">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="HR Portal · OSHA & Labor"
+      pageTitle={t("Incidents")}
+      subtitle={t("Read-only HR view of safety incidents across the OSHA window. Closeout and CAPA owned by Safety.")}
+      sideNav={<HrSideNavV2 />}
+      primaryActions={
+        <Button size="sm" onClick={exportCsv} disabled={loading || !data.items?.length} className="bg-purple-700 hover:bg-purple-800 text-white" data-testid="hr-inc-export-csv">
+          <Download className="w-4 h-4 mr-1" /> {t("Export CSV")}
+        </Button>
+      }
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-4" data-testid="hr-incidents-page">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-purple-700 font-bold">{t("HR · OSHA & Labor")}</div>
-          <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 mt-1">{t("Incidents")}</h1>
+          <h2 className="font-display text-2xl sm:text-3xl font-black text-slate-900 mt-1">{t("Incidents")}</h2>
           {/* iter367 · legacy intro paragraph replaced by the LifecycleGuide below
               to honor the "one coaching surface per page" directive. */}
         </div>
@@ -230,7 +223,7 @@ export default function HrIncidents() {
         <div className="text-[11px] text-slate-500 font-mono pt-2 border-t border-slate-200" data-testid="hr-inc-footer">
           {t("Read-only · HR labor / OSHA view · closeout owned by Safety")}
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

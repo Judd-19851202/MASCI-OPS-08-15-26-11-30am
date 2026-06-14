@@ -10,15 +10,16 @@
 // accountability between HR + Safety, iter353a).
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
-  ArrowLeft, Download, FileText, ShieldCheck, AlertTriangle,
+  Download, FileText, ShieldCheck, AlertTriangle,
   Calendar, Truck, HardHat, Activity, History, FileCheck2,
-  CircleSlash, Home, RefreshCw,
+  CircleSlash, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import AccessDenied from "@/pages/AccessDenied";
 import { isHr } from "@/lib/hrAuth";
 import { isSafety } from "@/lib/safetyAuth";
@@ -102,7 +103,6 @@ function StatusTile({ icon: Icon, label, value, tint = "slate", testid }) {
 
 export default function HrEmployeeAccountabilityTimeline() {
   const { id } = useParams();
-  const nav = useNavigate();
   const { t } = useT();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -173,41 +173,34 @@ export default function HrEmployeeAccountabilityTimeline() {
   const counts = data?.category_counts || {};
 
   return (
-    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="HR Portal · Accountability"
+      pageTitle={t("Accountability Timeline")}
+      subtitle={t("Aggregated read-only view of an employee's training, PPE, incidents, and lifecycle history.")}
+      sideNav={<HrSideNavV2 />}
+      primaryActions={
+        <div className="flex items-center gap-2" data-testid="acct-header-actions">
           <Button
-            variant="ghost" size="sm" onClick={() => nav(-1)}
-            data-testid="acct-back-btn"
+            variant="outline" size="sm" onClick={load} disabled={loading}
+            data-testid="acct-refresh-btn"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back")}
+            <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} />
+            {t("Refresh")}
           </Button>
-          <Link to="/" className="hidden sm:flex items-center gap-2 ml-2">
-            <Home className="w-4 h-4 text-slate-400" />
-            <MasciLogo size={26} />
-          </Link>
-          <div className="ml-auto flex items-center gap-2">
-            <Button
-              variant="outline" size="sm" onClick={load} disabled={loading}
-              data-testid="acct-refresh-btn"
-            >
-              <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} />
-              {t("Refresh")}
-            </Button>
-            <Button
-              size="sm" onClick={downloadPdf}
-              disabled={downloading || loading || !data}
-              className="bg-purple-700 hover:bg-purple-800 text-white"
-              data-testid="acct-download-pdf-btn"
-            >
-              <Download className="w-4 h-4 mr-1" />
-              {downloading ? t("Generating…") : t("Compliance Brief PDF")}
-            </Button>
-          </div>
+          <Button
+            size="sm" onClick={downloadPdf}
+            disabled={downloading || loading || !data}
+            className="bg-purple-700 hover:bg-purple-800 text-white"
+            data-testid="acct-download-pdf-btn"
+          >
+            <Download className="w-4 h-4 mr-1" />
+            {downloading ? t("Generating…") : t("Compliance Brief PDF")}
+          </Button>
         </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-5 space-y-5">
+      }
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-5" data-testid="hr-accountability-page">
         {/* iter365 · operational coaching uniformity — short, field-direct. */}
         <LifecycleGuide
           id="employee-accountability-timeline"
@@ -455,7 +448,7 @@ export default function HrEmployeeAccountabilityTimeline() {
             </div>
           </>
         )}
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

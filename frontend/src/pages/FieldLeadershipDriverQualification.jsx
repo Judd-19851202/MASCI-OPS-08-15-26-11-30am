@@ -1,11 +1,9 @@
 // iter353b · Field Leadership Portal · Driver Readiness page.
 // iter353d · row click opens FL Accountability Mini-Widget drawer.
+// UXS-11E: wrapped in PortalShell (Field Leadership Portal).
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, HardHat } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
 import DriverQualificationReadOnlyView from "@/components/DriverQualificationReadOnlyView";
 import FlAccountabilityWidget from "@/components/FlAccountabilityWidget";
 import { getFlToken } from "@/lib/flAuth";
@@ -13,30 +11,19 @@ import { useT } from "@/lib/i18n";
 
 export default function FieldLeadershipDriverQualification() {
   const { t } = useT();
-  const nav = useNavigate();
   const [drawerEmp, setDrawerEmp] = useState(null);
   const authHeaders = () => ({ "X-FL-Token": getFlToken() || "" });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => nav(-1)} className="text-white hover:bg-white/10" data-testid="fl-dq-back">
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back")}
-          </Button>
-          <Link to="/field-leadership/portal" className="flex items-center gap-2 ml-2">
-            <MasciLogo size={26} />
-          </Link>
-          <div className="ml-2">
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-400 font-bold flex items-center gap-1">
-              <HardHat className="w-3 h-3" /> {t("Field Leadership · Driver Readiness")}
-            </div>
-            <div className="text-white text-sm font-display font-black leading-tight">{t("Driver Qualification")}</div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-5">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Field Leadership · Driver Readiness"
+      pageTitle={t("Driver Qualification")}
+      subtitle={t("Field Leadership read-only view of approved drivers and CDL readiness.")}
+      showBack
+      backHref="/field-leadership/portal/dashboard"
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5" data-testid="fl-driver-qualification-page">
         <DriverQualificationReadOnlyView
           endpoint="/field-leadership/portal/driver-qualification"
           authHeaders={authHeaders}
@@ -44,7 +31,7 @@ export default function FieldLeadershipDriverQualification() {
           testidPrefix="dq-fl"
           onRowClick={(emp) => setDrawerEmp(emp)}
         />
-      </main>
+      </div>
 
       {/* iter353d · accountability mini-widget drawer */}
       <Sheet open={!!drawerEmp} onOpenChange={(v) => !v && setDrawerEmp(null)}>
@@ -57,6 +44,6 @@ export default function FieldLeadershipDriverQualification() {
           ) : null}
         </SheetContent>
       </Sheet>
-    </div>
+    </PortalShell>
   );
 }

@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   Download,
   Mail,
   Loader2,
@@ -16,8 +14,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -299,48 +298,29 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b-4 border-red-700 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link
-              to={portalKey === "pm" ? "/pm" : "/admin"}
-              className="p-2 -ml-2 text-slate-700 hover:text-red-700"
-              data-testid="photos-back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <MasciLogo size="sm" />
-            <div className="min-w-0">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                {portalKey === "pm" ? t("PM Portal") : t("Admin")}
-              </div>
-              <h1 className="font-display text-lg sm:text-xl font-bold text-slate-900 truncate">
-                {t("Job Photos")}
-              </h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            {portalKey === "admin" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={reindex}
-                disabled={busy}
-                className="border-2"
-                data-testid="photos-reindex"
-              >
-                <RefreshCw className={`w-4 h-4 mr-1 ${busy ? "animate-spin" : ""}`} />
-                {t("Re-index")}
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <PortalShell
+      portalName="MASCI"
+      portalRole={portalKey === "pm" ? "PM Portal · Photos" : "Admin · Photos"}
+      pageTitle={t("Job Photos")}
+      subtitle={t("Daily Reports · Site Inspections · QA/QC · multi-select, download ZIP, email packet.")}
+      sideNav={portalKey === "pm" ? <PmSideNavV2 /> : <AdminSideNavV2 />}
+      primaryActions={
+        portalKey === "admin" ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={reindex}
+            disabled={busy}
+            className="h-9 text-xs"
+            data-testid="photos-reindex"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 mr-1 ${busy ? "animate-spin" : ""}`} />
+            {t("Re-index")}
+          </Button>
+        ) : null
+      }
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6" data-testid="job-photos-library-page">
         {/* Filter bar */}
         <div
           className="bg-white border border-slate-200 rounded-md p-3 mb-4 flex flex-wrap gap-2 items-center"
@@ -489,7 +469,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
             })}
           </ul>
         )}
-      </main>
+      </div>
 
       {/* Floating action bar — only when something is selected */}
       {selected.size > 0 && (
@@ -575,7 +555,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
           busy={busy}
         />
       )}
-    </div>
+    </PortalShell>
   );
 }
 

@@ -10,7 +10,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-14)
+## Latest Closed Track (2026-02-14 · fork session)
+- **14.0-UXS-11E PLATFORM ROUTE PARITY EXECUTION SWEEP CLOSED**. 27
+  additional drifted operational pages wrapped in `<PortalShell>`
+  with their correct domain sidebars. The platform now renders unified
+  chrome (MASCI mark · portal switcher · local time · sign-out ·
+  domain sidebar · blueprint-grid bg) on every auth-gated operational
+  route. **HR (8)**: HrDriverProfile, HrMotiveDrivers,
+  HrFieldLeadershipUsers, HrIncidents, HrTimeOff, HrDailyReports (list
+  + detail), HrEmployeeAccountabilityTimeline. **Safety (2)**:
+  SafetyDriverProfile, SafetyFormsHub. **Dispatch (3)**:
+  DispatchDriverProfile, DispatchDriverQualification,
+  DispatchCommandCenter. **FL (2)**:
+  FieldLeadershipDriverQualification, FieldLeadershipPortalDashboard.
+  **Multi-context (3)**: EquipmentDashboard, FleetVisibility,
+  Dashboard (Inspections). **Admin (6)**: AdminQaqcList,
+  AdminTerminations, AdminTrainingVideos, AdminLeadershipEquipment,
+  AdminGuide, OperationsCenterCommand. **PM/Cross (3)**:
+  ProjectPnlPage, JobPhotosLibrary, TrainingHub + TrainingTrack.
+  Regression suite expanded 47 → 72 parametrized guards
+  (single-context EVIDENCE_ROUTES + dynamic-scope MULTI_CONTEXT_ROUTES
+  with relaxed portalRole match). **139 / 139 RC1 regression tests
+  pass**. Live preview screenshots evidence the parity (AdminGuide,
+  AdminQaqc, AdminTerminations, HrIncidents, HrEmployees,
+  DispatchCommandCenter, JobPhotosLibrary, ProjectPnL). Operational
+  drift remaining on auth-gated surface = **0**. Closure ledger:
+  `/app/memory/TRACK_14_0_UXS_11E_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-14)
 - **14.0-UXS-11 PLATFORM ROUTE PARITY CERTIFICATION CLOSED** (for 5
   user-evidenced drift routes · IN PROGRESS for ~49 enumerated
   follow-on operational pages). User-reported live preview defect:

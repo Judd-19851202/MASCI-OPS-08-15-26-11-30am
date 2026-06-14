@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { ArrowLeft, Printer, ExternalLink, CheckCircle2, AlertCircle, FileDown } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { TRACKS, lessonsForTrack } from "@/data/training";
@@ -105,25 +105,17 @@ export default function TrainingTrack() {
   const blurb = lang === "es" && track.blurb_es ? track.blurb_es : track.blurb;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="caution-stripe print:hidden" />
-      <header className="bg-slate-900 border-b-4 border-red-700 print:hidden">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/training"
-            className="inline-flex items-center text-white hover:text-red-400 text-sm font-bold uppercase tracking-wide"
-            data-testid="training-back-all"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("All Tracks")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-        <div className="mb-8 sm:mb-10 print:mb-4">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · Training Track"
+      pageTitle={title}
+      subtitle={blurb}
+      sideNav={<AdminSideNavV2 />}
+      showBack
+      backHref="/training"
+    >
+      <div className="max-w-4xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="training-track-page">
+        <div className="mb-8 print:mb-4">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
             {t("Training Track")}
           </span>
@@ -192,24 +184,22 @@ export default function TrainingTrack() {
             />
           ))}
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 
 function AccessDenied({ track, t, lang }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link to="/training" className="inline-flex items-center text-white hover:text-red-400 text-sm font-bold uppercase tracking-wide">
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("All Tracks")}
-          </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-        </div>
-      </header>
-      <main className="flex-1 flex items-center justify-center px-5 py-12">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin · Training Track"
+      pageTitle={t("This track is password-protected")}
+      sideNav={<AdminSideNavV2 />}
+      showBack
+      backHref="/training"
+    >
+      <div className="flex-1 flex items-center justify-center px-5 py-12">
         <div className="max-w-md w-full bg-white border border-slate-200 rounded-md p-8 text-center">
           <AlertCircle className="w-10 h-10 text-amber-600 mx-auto mb-3" />
           <h2 className="font-display text-2xl font-black text-slate-900">
@@ -245,8 +235,8 @@ function AccessDenied({ track, t, lang }) {
             </Link>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 
