@@ -75,7 +75,7 @@ export default function TrenchBoxesAdmin() {
 
   const submit = async () => {
     if (!form.manufacturer.trim() || !form.model.trim()) {
-      return toast.error("Manufacturer and model are required");
+      return toast.error("Manufacturer and model required.");
     }
     setSaving(true);
     try {
@@ -106,7 +106,7 @@ export default function TrenchBoxesAdmin() {
       toast.success("Deleted");
       refresh();
     } catch {
-      toast.error("Delete failed");
+      toast.error("Could not delete. Try again.");
     }
   };
 
@@ -223,7 +223,7 @@ export default function TrenchBoxesAdmin() {
                   <Button onClick={() => openEdit(b)} variant="outline" className="h-10 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 text-xs uppercase font-bold" data-testid={`edit-trench-${b.id}`}>
                     <Pencil className="w-4 h-4 mr-1" /> Edit
                   </Button>
-                  <Button onClick={() => onDelete(b)} variant="outline" size="icon" className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600" data-testid={`delete-trench-${b.id}`}>
+                  <Button onClick={() => onDelete(b)} variant="outline" size="icon" className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600" data-testid={`delete-trench-${b.id}`} aria-label="Delete trench box" title="Delete">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>

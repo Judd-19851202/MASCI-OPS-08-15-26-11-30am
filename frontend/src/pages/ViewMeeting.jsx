@@ -113,7 +113,7 @@ export default function ViewMeeting() {
       toast.success(t("Deleted"));
       navigate(listUrl);
     } catch {
-      toast.error(t("Delete failed"));
+      toast.error(t("Could not delete. Try again."));
     }
   };
 
@@ -150,6 +150,8 @@ export default function ViewMeeting() {
                 onClick={handleDelete}
                 className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
                 data-testid="delete-btn"
+                aria-label="Delete meeting"
+                title="Delete"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>

@@ -41,7 +41,7 @@ export default function MeetingsDashboard() {
       }
       setJobsMaster(map);
     } catch {
-      toast.error("Could not load meetings");
+      toast.error("Could not load meetings. Try again.");
     } finally {
       setLoading(false);
     }
@@ -55,10 +55,10 @@ export default function MeetingsDashboard() {
     if (!window.confirm("Delete this meeting? This cannot be undone.")) return;
     try {
       await api.delete(`/meetings/${id}`);
-      toast.success("Meeting deleted");
+      toast.success("Meeting deleted.");
       setItems((p) => p.filter((i) => i.id !== id));
     } catch {
-      toast.error("Delete failed");
+      toast.error("Could not delete. Try again.");
     }
   };
 
@@ -181,6 +181,8 @@ export default function MeetingsDashboard() {
                       className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                       onClick={(e) => handleDelete(it.id, e)}
                       data-testid={`delete-${it.id}`}
+                      aria-label="Delete meeting"
+                      title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

@@ -48,7 +48,7 @@ export default function DailyReportsDashboard() {
       }
       setJobsMaster(map);
     } catch {
-      toast.error("Could not load daily reports");
+      toast.error("Could not load daily reports. Try again.");
     } finally {
       setLoading(false);
     }
@@ -63,10 +63,10 @@ export default function DailyReportsDashboard() {
       return;
     try {
       await api.delete(`/daily-reports/${id}`);
-      toast.success("Deleted");
+      toast.success("Deleted.");
       setItems((p) => p.filter((i) => i.id !== id));
     } catch {
-      toast.error("Delete failed");
+      toast.error("Could not delete. Try again.");
     }
   };
 
@@ -227,6 +227,8 @@ export default function DailyReportsDashboard() {
                       className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                       onClick={(e) => handleDelete(it.id, e)}
                       data-testid={`delete-${it.id}`}
+                      aria-label="Delete daily report"
+                      title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

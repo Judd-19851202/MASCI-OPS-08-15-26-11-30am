@@ -177,7 +177,7 @@ export default function SafetyHubV2() {
           <SectionHeader
             kicker="01 · Corrective Actions · live"
             title="Open and overdue CAPAs"
-            caption="Counts pulled from /api/safety/overview in real time. Click a card to open the real Safety CAPA workflow."
+            caption="Counts pulled live. Click a card to open the real Safety CAPA workflow."
           />
           <div data-testid="safety-hub-v2-queue-grid-capas"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>

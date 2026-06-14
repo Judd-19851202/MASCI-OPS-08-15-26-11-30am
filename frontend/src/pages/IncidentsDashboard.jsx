@@ -77,9 +77,9 @@ export default function IncidentsDashboard() {
           "Cannot delete — linked corrective actions still reference this incident.";
         toast.error(msg);
       } else if (code >= 500) {
-        toast.error(`Server error (HTTP ${code}). Try again or contact support.`);
+        toast.error("Server problem. Try again, or contact your administrator if it keeps failing.");
       } else {
-        toast.error(`Delete failed (HTTP ${code || "network"})`);
+        toast.error("Could not delete. Try again.");
       }
     }
   };
@@ -229,6 +229,8 @@ export default function IncidentsDashboard() {
                         className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                         onClick={(e) => handleDelete(it.id, e)}
                         data-testid={`delete-${it.id}`}
+                        aria-label="Delete incident report"
+                        title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

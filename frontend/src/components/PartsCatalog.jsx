@@ -409,6 +409,7 @@ const CategoryEditor = ({ catKey, label, extras, rows, onAdd, onChange, onDelete
                   size="icon"
                   className="h-9 w-9 text-emerald-700 hover:bg-emerald-50"
                   title={t("Add to order list")}
+                  aria-label={t("Add to order list")}
                   data-testid={`parts-row-${catKey}-${idx}-cart`}
                 >
                   <ShoppingCart className="w-4 h-4" />
@@ -420,6 +421,7 @@ const CategoryEditor = ({ catKey, label, extras, rows, onAdd, onChange, onDelete
                   size="icon"
                   className="h-9 w-9 text-red-600 hover:bg-red-50"
                   title={t("Remove part")}
+                  aria-label={t("Remove part")}
                   data-testid={`parts-row-${catKey}-${idx}-del`}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -538,6 +540,8 @@ const OrderCart = ({ cart, unit, removeFromCart, updateCartQty, requestedByDefau
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-red-600 hover:bg-red-50"
+                        aria-label={t("Remove from order list")}
+                        title={t("Remove")}
                         data-testid={`parts-order-remove-${it.key}`}
                       >
                         <Trash2 className="w-4 h-4" />

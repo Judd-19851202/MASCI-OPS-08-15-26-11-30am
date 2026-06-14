@@ -495,6 +495,7 @@ export default function MasterListPanel({
                           disabled={restoringId === row[itemKey]}
                           className="h-8 w-8 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
                           data-testid={`${testIdPrefix}-restore-${row[itemKey]}`}
+                          aria-label="Restore to active list"
                           title="Restore to active list"
                         >
                           {restoringId === row[itemKey] ? (
@@ -573,6 +574,8 @@ export default function MasterListPanel({
                               disabled={busy}
                               className="h-8 w-8 mr-1 border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
                               data-testid={`${testIdPrefix}-save-${row[itemKey]}`}
+                              aria-label="Save changes"
+                              title="Save"
                             >
                               {busy ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -586,6 +589,8 @@ export default function MasterListPanel({
                               onClick={cancelEdit}
                               className="h-8 w-8 border-2 border-slate-300"
                               data-testid={`${testIdPrefix}-cancel-${row[itemKey]}`}
+                              aria-label="Cancel edit"
+                              title="Cancel"
                             >
                               <X className="w-3.5 h-3.5" />
                             </Button>
@@ -598,6 +603,8 @@ export default function MasterListPanel({
                               onClick={() => startEdit(row)}
                               className="h-8 w-8 mr-1 border-2 border-slate-300 hover:border-amber-600 hover:text-amber-700"
                               data-testid={`${testIdPrefix}-edit-${row[itemKey]}`}
+                              aria-label="Edit row"
+                              title="Edit"
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </Button>
@@ -608,6 +615,8 @@ export default function MasterListPanel({
                               disabled={busy}
                               className="h-8 w-8 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                               data-testid={`${testIdPrefix}-delete-${row[itemKey]}`}
+                              aria-label="Delete row"
+                              title="Delete"
                             >
                               {busy ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />

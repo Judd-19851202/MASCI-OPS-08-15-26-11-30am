@@ -147,7 +147,7 @@ export default function ViewDailyReport() {
         const res = await api.get(`/daily-reports/${id}`);
         if (alive) setData(res.data);
       } catch {
-        toast.error("Daily report not found");
+        toast.error("Daily report not found.");
         navigate(listUrl);
       } finally {
         if (alive) setLoading(false);
@@ -171,7 +171,7 @@ export default function ViewDailyReport() {
       toast.success(t("Deleted"));
       navigate(listUrl);
     } catch {
-      toast.error(t("Delete failed"));
+      toast.error(t("Could not delete. Try again."));
     }
   };
 
@@ -213,6 +213,8 @@ export default function ViewDailyReport() {
               onClick={handleDelete}
               className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
               data-testid="delete-btn"
+              aria-label="Delete daily report"
+              title="Delete"
             >
               <Trash2 className="w-4 h-4" />
             </Button>

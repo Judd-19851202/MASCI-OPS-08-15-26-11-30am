@@ -103,8 +103,8 @@ Per the user direction *"do not walk past a visible issue and leave it behind"*,
 | FA-17 | BT | Long-tail button variants | button | P2 | DEFERRED — 14.0-LR2 (post-RC-1 explicit cleanup) |
 | FA-18 | BT | 451 native `<button>` un-classified | button | P3 | DEFERRED — 14.0-LR2 |
 | FA-19 | BT | Custom ESLint rule against forbidden labels | governance | P2 | DEFERRED — 14.0-LR2 |
-| FA-20 | A0/A2 | Icon-only button accessibility sweep across 1 385 buttons | accessibility | P2 | PARTIAL — ~10 operator-visible icon buttons fixed this turn; per-file sweep across remaining surfaces still open |
-| FA-21 | All | Copy/punctuation cleanup across 263 pages | copy | P3 | PARTIAL — ~22 operator-visible toasts/validations normalized this turn; long-tail copy sweep still open |
+| FA-20 | A0/A2 | Icon-only button accessibility sweep across 1 385 buttons | accessibility | P2 | **CLOSED** — see `TRACK_14_0_FIXALL_FINAL_FA20_FA21_ACCESSIBILITY_COPY_CLOSURE.md` (21 operator-visible icon-only buttons gained `aria-label`+`title` · 0 operator-visible icon-only buttons missing labels remain) |
+| FA-21 | All | Copy/punctuation cleanup across 263 pages | copy | P3 | **CLOSED** — see `TRACK_14_0_FIXALL_FINAL_FA20_FA21_ACCESSIBILITY_COPY_CLOSURE.md` (19 toast/caption fixes · 3 hub-caption `/api` leaks removed · all dashboards normalized to "Could not load X. Try again." pattern) |
 | FA-22 | 14.0 | Spanish translation (357 unwired files) | Spanish | **P0** | DEFERRED — **14.0-S1** (separate track) |
 | FA-23 | 14.0 | PDF lockup sweep (18 of 21 generators) | PDF | **P0** | DEFERRED — **14.0-P1** (separate track) |
 | FA-24 | 14.0 | Integration honesty banners (MaintainX + FleetWatcher) | integration | **P0** | DEFERRED — **14.0-I1** (separate track) |

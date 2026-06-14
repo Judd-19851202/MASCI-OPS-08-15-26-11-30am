@@ -55,7 +55,7 @@ export default function Dashboard() {
       }
       setJobsMaster(map);
     } catch (e) {
-      toast.error("Could not load inspections");
+      toast.error("Could not load inspections. Try again.");
     } finally {
       setLoading(false);
     }
@@ -70,10 +70,10 @@ export default function Dashboard() {
     if (!window.confirm("Delete this inspection? This cannot be undone.")) return;
     try {
       await api.delete(`/inspections/${id}`);
-      toast.success("Inspection deleted");
+      toast.success("Inspection deleted.");
       setItems((prev) => prev.filter((i) => i.id !== id));
     } catch {
-      toast.error("Delete failed");
+      toast.error("Could not delete. Try again.");
     }
   };
 
@@ -234,6 +234,8 @@ export default function Dashboard() {
                         className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                         onClick={(e) => handleDelete(it.id, e)}
                         data-testid={`delete-${it.id}`}
+                        aria-label="Delete inspection"
+                        title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

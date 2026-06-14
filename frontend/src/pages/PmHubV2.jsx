@@ -351,7 +351,7 @@ export default function PmHubV2() {
         <Section
           kicker="01 · Action queues · live"
           title="Open PM work"
-          caption="Counts are queue sizes from real /api endpoints. Clicking a card opens the real PM workflow."
+          caption="Counts are queue sizes pulled live. Clicking a card opens the real PM workflow."
           testId="pm-hub-v2-section-queues"
         >
           <div

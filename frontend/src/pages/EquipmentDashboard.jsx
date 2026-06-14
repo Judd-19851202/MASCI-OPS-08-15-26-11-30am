@@ -227,6 +227,8 @@ export default function EquipmentDashboard() {
                           className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                           onClick={(e) => handleDelete(it.id, e)}
                           data-testid={`delete-${it.id}`}
+                          aria-label="Delete equipment"
+                          title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

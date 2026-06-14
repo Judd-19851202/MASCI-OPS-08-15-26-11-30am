@@ -213,7 +213,7 @@ export default function HrHubV2() {
         <Section
           kicker="01 · Action queues · live"
           title="Open HR work"
-          caption="Counts are queue sizes from real /api endpoints. Clicking a card opens the real HR workflow — no mock data, no synthesized values."
+          caption="Counts are queue sizes pulled live. Clicking a card opens the real HR workflow — no mock data, no synthesized values."
           testId="hr-hub-v2-section-queues"
         >
           <div

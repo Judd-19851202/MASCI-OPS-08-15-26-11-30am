@@ -520,6 +520,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                             disabled={restoringId === id}
                             className="h-8 w-8 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
                             data-testid={`equipment-restore-${id}`}
+                            aria-label="Restore unit to active fleet"
                             title="Restore to active fleet"
                           >
                             {restoringId === id ? (
@@ -578,6 +579,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                           to={`/admin/assets/${id}`}
                           className="inline-flex items-center justify-center h-8 w-8 mr-1 border border-slate-200 rounded-md hover:border-slate-700 hover:text-slate-900 text-slate-700"
                           title="Unified Asset Profile"
+                          aria-label="Open Unified Asset Profile"
                           data-testid={`equipment-profile-${id}`}
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -588,6 +590,8 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                           onClick={() => openEdit(u)}
                           className="h-8 w-8 mr-1 border-2 border-slate-300 hover:border-amber-600 hover:text-amber-700"
                           data-testid={`equipment-edit-${id}`}
+                          aria-label="Edit unit"
+                          title="Edit"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
@@ -598,6 +602,8 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                           disabled={busyRow === id}
                           className="h-8 w-8 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                           data-testid={`equipment-delete-${id}`}
+                          aria-label="Delete unit"
+                          title="Delete"
                         >
                           {busyRow === id ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
