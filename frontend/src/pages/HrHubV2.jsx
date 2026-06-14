@@ -23,15 +23,18 @@ import {
   EmptyState,
 } from "../design-system";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
+import { getHrToken } from "@/lib/hrAuth";
+import { getAdminToken } from "@/lib/adminAuth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function authHeaders() {
-  const t =
-    sessionStorage.getItem("masci.hr.token") ||
-    sessionStorage.getItem("masci.admin.token") ||
-    "";
-  return t ? { "X-Admin-Token": t } : {};
+  const hr = getHrToken();
+  const admin = getAdminToken();
+  const h = {};
+  if (hr) h["X-HR-Token"] = hr;
+  if (admin) h["X-Admin-Token"] = admin;
+  return h;
 }
 
 // Generic safe fetch — returns { ok, status, body } and never throws.

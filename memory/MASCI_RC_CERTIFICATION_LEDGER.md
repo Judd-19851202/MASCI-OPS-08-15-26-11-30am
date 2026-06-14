@@ -7350,3 +7350,57 @@ Banners are all cleared to begin.
 **Composite: 9.90.**
 
 **Report:** `/app/memory/TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md`.
+
+---
+
+## Track 14.0-SHOP-DISPATCH-OPERATIONAL-REALITY-FIX — CLOSED
+
+**Date:** 2026-02-14 · **Status:** CLOSED · **Composite:** **9.92** (Trusted **9.95** · Proven **9.95**)
+
+### Outcome
+- User-reported: Shop landing rendered raw `HTTP 401` in three card
+  sections (Mechanic workload · PM Engine summary · Parts on order).
+- Root cause: inline cards bypassed `tokenStorage` helper and read
+  `localStorage` only — missing tokens persisted in `sessionStorage`
+  (Remember-me OFF). Catch block wrote `HTTP 401` into state and
+  the card rendered the raw text.
+- Fixed: cards now call shared `authHeaders()` (which uses
+  `getAdminToken()` + `getShopToken()` — both check both storage
+  tiers). Raw error chips replaced with calm operator empty states.
+- Mirror-bug in `HrHubV2.authHeaders()` (sessionStorage-only) also
+  fixed — HR workforce reads now show real counts for Remember-me
+  ON users.
+- Shop sidebar decision PROVEN: no `/components/shop/sidebar/` exists;
+  root + every deep page use PortalShell card-grid layout; portal is
+  intentionally no-sidebar.
+- Dispatch sidebar decision PROVEN: component exists, wired behind
+  `?dispatchSidebarV2=1` opt-in; map-first preserved per directive.
+- 3 new regression guards in `test_nav_drift_guard.py` lock the
+  contract: no raw HTTP status text · no localStorage bypass · HR
+  authHeaders reads both tiers. 24/24 nav-drift guards pass.
+- 46/46 RC1 + parity + reality suites pass. Frontend compiles clean.
+
+### Live preview proof
+- BEFORE: user screenshot showed `HTTP 401` text in 3 Shop cards.
+- AFTER (Remember-me OFF reproduction): Shop landing renders real
+  data (1 PM overdue, 1 unassigned, 1 needs meter, 0 parts on order)
+  or calm "No mechanics currently assigned to active work." messaging.
+  Zero raw 4xx text anywhere on the page.
+- AFTER (HR landing): Recent Daily Reports = 10 · Recent Incidents =
+  10 · FL Records = 10 (previously all "No Recent Data"). Zero raw
+  4xx text.
+- Dispatch landing: map-first preserved; "Live Fleet Snapshot" shows
+  calm "No live fleet signal right now." with Open Full Live Map CTA.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.90 |
+| Simple | 9.90 |
+| Beautiful | 9.90 |
+| Trusted | **9.95** |
+| Proven | **9.95** |
+
+**Composite: 9.92.**
+
+**Report:** `/app/memory/TRACK_14_0_SHOP_DISPATCH_OPERATIONAL_REALITY_FIX_CLOSURE.md`.

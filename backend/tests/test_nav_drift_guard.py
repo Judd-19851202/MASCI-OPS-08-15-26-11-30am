@@ -268,3 +268,73 @@ def test_v2_hub_landings_mount_sidebar(hub_file, sidebar_import, sidebar_jsx):
         f"{hub_file.name} no longer passes sideNav={sidebar_jsx}... /> "
         "to PortalShell — landing will render without its sidebar. "
         "See TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md")
+
+
+
+# ── Track 14.0-SHOP-DISPATCH-OPERATIONAL-REALITY-FIX (2026-02-14) ───
+# Lock down the Shop/Dispatch landing operational-reality contract:
+#   • Shop hub V2 must use the proper token helpers (not raw localStorage)
+#     so cards work whether the operator chose "Remember me" ON or OFF.
+#   • Shop hub V2 must never render raw "HTTP 4xx" text — operators
+#     see calm "not available for your role" messaging instead.
+#   • HR hub V2 authHeaders() must call getHrToken() + getAdminToken()
+#     (read both localStorage AND sessionStorage) — closes the
+#     mirror-bug that caused HR workforce-readiness reads to silently
+#     fail for "Remember me" ON users.
+
+
+def test_shop_hub_v2_does_not_expose_raw_http_status_text():
+    """No card in Shop hub V2 may render raw `HTTP 401`, `HTTP 403`,
+    `HTTP 404`, or `HTTP 5xx` text — those are the exact strings the
+    user reported seeing on the Shop landing. The cards must instead
+    render an operator-friendly "not available for your role" empty
+    state when the backend rejects the request."""
+    text = SHOP_HUB_V2.read_text()
+    bad_patterns = [
+        r"setErr\(.*HTTP\s*\$\{",      # raw `HTTP ${r.status}` strings
+        r"setErr\(.*HTTP\s+4",          # raw `HTTP 401`/`HTTP 403`/`HTTP 404`
+        r"setErr\(.*HTTP\s+5",          # raw `HTTP 5xx`
+    ]
+    for pat in bad_patterns:
+        assert not re.search(pat, text), (
+            f"ShopHubV2 still renders raw HTTP status text via setErr "
+            f"(pattern {pat!r}). Replace with calm operator empty state. "
+            "See TRACK_14_0_SHOP_DISPATCH_OPERATIONAL_REALITY_FIX_CLOSURE.md")
+
+
+def test_shop_hub_v2_inline_cards_use_auth_helpers():
+    """PartsOnOrderCard / PmEngineCard / MechanicWorkloadCard must
+    NOT bypass the tokenStorage abstraction by reading
+    `localStorage.getItem("masci.admin.token")` directly. That bypass
+    is the root cause of the 401 wave: tokens stored in sessionStorage
+    (e.g. "Remember me" OFF) are never read. The cards must call the
+    shared `authHeaders()` helper which delegates to
+    `getAdminToken()` / `getShopToken()` (both check sessionStorage
+    AND localStorage)."""
+    text = SHOP_HUB_V2.read_text()
+    bypass = re.findall(r'localStorage\.getItem\("masci\.(?:admin|shop)\.token"\)', text)
+    assert not bypass, (
+        "ShopHubV2 still calls localStorage.getItem(masci.*.token) "
+        "directly — this misses tokens stored in sessionStorage "
+        "(\"Remember me\" OFF path) and reintroduces the 401 wave. "
+        "Use the authHeaders() helper instead. "
+        "See TRACK_14_0_SHOP_DISPATCH_OPERATIONAL_REALITY_FIX_CLOSURE.md")
+
+
+def test_hr_hub_v2_authheaders_reads_both_storage_tiers():
+    """HrHubV2.authHeaders() must delegate to getHrToken() /
+    getAdminToken() — these helpers read sessionStorage AND
+    localStorage. The previous implementation only checked
+    sessionStorage, silently dropping the X-HR-Token header for
+    operators using "Remember me" ON (the platform default)."""
+    text = HR_HUB_V2.read_text()
+    assert "getHrToken" in text, (
+        "HrHubV2 no longer imports getHrToken — authHeaders() will "
+        "miss tokens persisted in localStorage by 'Remember me' ON.")
+    assert "getAdminToken" in text, (
+        "HrHubV2 no longer imports getAdminToken — admin operators "
+        "browsing the HR hub will silently fail to send credentials.")
+    # The raw single-tier read must NOT come back.
+    assert 'sessionStorage.getItem("masci.hr.token")' not in text, (
+        "HrHubV2 reverted to the broken single-tier sessionStorage "
+        "read. Restore the getHrToken()/getAdminToken() helpers.")

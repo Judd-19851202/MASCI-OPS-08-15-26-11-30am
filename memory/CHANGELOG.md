@@ -2,6 +2,41 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — Track 14.0-SHOP-DISPATCH-OPERATIONAL-REALITY-FIX CLOSED
+
+**P0 blocker for PDF Lockup / Deployment Prep — now unblocked.**
+
+User-reported live preview defect: Shop landing displayed raw `HTTP 401`
+text in three dashboard sections ("Who's loaded right now" /
+"PM due · overdue · in flight" / "What's blocked on parts").
+
+**Root cause**: three inline cards in `ShopHubV2.jsx` bypassed the
+shared `tokenStorage` helper and read `localStorage.getItem(...)`
+directly, missing tokens persisted in `sessionStorage` (Remember-me OFF
+path). When auth header dropped, backend returned 401 → catch block
+wrote `HTTP 401` into state → raw text rendered to user.
+
+**Fix**:
+* Shop cards now call shared `authHeaders()` (uses `getAdminToken()` +
+  `getShopToken()` — both check sessionStorage AND localStorage).
+* Raw error chips replaced with calm operator empty states
+  ("not available for your role").
+* HR `authHeaders()` mirror-bug fixed (was only reading
+  sessionStorage → broke Remember-me ON users). HR workforce reads now
+  show real counts.
+* +3 nav-drift regression guards lock the contract.
+
+**Sidebar decisions (proven, not assumed)**:
+* Shop = no sidebar (component does not exist; portal is intentionally
+  card-grid; root + deep pages all use PortalShell card layout).
+* Dispatch = map-first (sidebar exists but opt-in via
+  `?dispatchSidebarV2=1`; user directive preserved).
+
+**Test surface**: 24/24 nav-drift guards · 46/46 RC1 + parity + reality
+suites. Frontend compiles clean.
+
+Closure ledger: `/app/memory/TRACK_14_0_SHOP_DISPATCH_OPERATIONAL_REALITY_FIX_CLOSURE.md`
+
 ## 2026-02-14 — Track 14.0-CROSS-PORTAL-LANDING-PARITY-FIX CLOSED
 
 **P0 blocker for PDF Lockup / Deployment Prep — now unblocked.**

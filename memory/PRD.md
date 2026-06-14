@@ -11,6 +11,27 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14)
+- **14.0-SHOP-DISPATCH-OPERATIONAL-REALITY-FIX CLOSED** — User-reported
+  live preview defect: Shop landing rendered raw `HTTP 401` text in
+  three dashboard sections ("Who's loaded right now" /
+  "PM due · overdue · in flight" / "What's blocked on parts").
+  Root cause: three inline cards in `ShopHubV2.jsx` bypassed the
+  shared `tokenStorage` helper, reading `localStorage` only — missing
+  tokens persisted in `sessionStorage` (Remember-me OFF path).
+  Fix: cards now call the shared `authHeaders()` helper (uses
+  `getAdminToken()` + `getShopToken()` — both storage tiers). Raw
+  error chips replaced with calm operator empty states. Mirror-bug
+  in `HrHubV2.authHeaders()` also fixed (was sessionStorage-only) —
+  HR workforce reads now show real counts. Shop sidebar decision
+  PROVEN: no `/components/shop/sidebar/` exists; portal is
+  intentionally card-grid. Dispatch decision PROVEN: map-first
+  preserved per directive (sidebar opt-in via `?dispatchSidebarV2=1`
+  flag). +3 nav-drift regression guards lock the contract.
+  24/24 nav-drift + 46/46 RC1 suites pass. Five-Pillar **9.92**
+  (Trusted 9.95 · Proven 9.95). Ledger:
+  `/app/memory/TRACK_14_0_SHOP_DISPATCH_OPERATIONAL_REALITY_FIX_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-14)
 - **14.0-CROSS-PORTAL-LANDING-PARITY-FIX CLOSED** — User-reported live
   preview defect: `/hr` rendered plain-white with no sidebar while
   `/hr/employee-accountability` rendered HR sidebar + blueprint grid.

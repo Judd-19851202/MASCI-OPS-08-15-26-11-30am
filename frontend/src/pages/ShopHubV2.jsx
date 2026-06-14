@@ -401,25 +401,30 @@ function PriorityMetric({ to, testid, label, description, value, loaded, accent 
 // Track 13.30D · Parts-on-order rollup card (live).
 function PartsOnOrderCard() {
   const [d, setD] = React.useState(null);
-  const [err, setErr] = React.useState("");
+  const [unavailable, setUnavailable] = React.useState(false);
   React.useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const tokA = (typeof window !== "undefined" && window.localStorage.getItem("masci.admin.token")) || "";
-        const tokS = (typeof window !== "undefined" && window.localStorage.getItem("masci.shop.token")) || "";
-        const h = { "Content-Type": "application/json" };
-        if (tokA) h["X-Admin-Token"] = tokA;
-        if (tokS) h["X-Shop-Token"] = tokS;
-        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/parts/on-order/summary?limit=5`, { headers: h });
+        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/parts/on-order/summary?limit=5`, { headers: authHeaders() });
+        if (!r.ok) {
+          if (alive) setUnavailable(true);
+          return;
+        }
         const b = await r.json().catch(() => null);
-        if (!r.ok) throw new Error((b && b.detail) || `HTTP ${r.status}`);
         if (alive) setD(b);
-      } catch (e) { if (alive) setErr(e.message || "Parts rollup unavailable."); }
+      } catch { if (alive) setUnavailable(true); }
     })();
     return () => { alive = false; };
   }, []);
-  if (err) return <div data-testid="shop-hub-v2-parts-rollup-error" style={{ padding: 12, fontSize: 12, color: "#7f1d1d", background: "#fee2e2", borderRadius: 4 }}>{err}</div>;
+  if (unavailable) return (
+    <div data-testid="shop-hub-v2-parts-rollup-unavailable"
+         style={{ padding: "12px 14px", fontSize: 12, color: "var(--ink-soft)",
+                  background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
+                  borderRadius: "var(--radius-card)" }}>
+      Parts rollup is not available for your role. Open the Manager Queue to see parts-on-order items directly.
+    </div>
+  );
   if (!d)  return <div data-testid="shop-hub-v2-parts-rollup-loading" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)" }}>Loading…</div>;
   return (
     <div data-testid="shop-hub-v2-parts-rollup" style={{ display: "grid", gap: 12 }}>
@@ -474,25 +479,30 @@ function PartsOnOrderCard() {
 // Track 13.31 · PM Engine summary card (live · read-only).
 function PmEngineCard() {
   const [d, setD] = React.useState(null);
-  const [err, setErr] = React.useState("");
+  const [unavailable, setUnavailable] = React.useState(false);
   React.useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const tokA = (typeof window !== "undefined" && window.localStorage.getItem("masci.admin.token")) || "";
-        const tokS = (typeof window !== "undefined" && window.localStorage.getItem("masci.shop.token")) || "";
-        const h = { "Content-Type": "application/json" };
-        if (tokA) h["X-Admin-Token"] = tokA;
-        if (tokS) h["X-Shop-Token"] = tokS;
-        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/pm/summary`, { headers: h });
+        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/pm/summary`, { headers: authHeaders() });
+        if (!r.ok) {
+          if (alive) setUnavailable(true);
+          return;
+        }
         const b = await r.json().catch(() => null);
-        if (!r.ok) throw new Error((b && b.detail) || `HTTP ${r.status}`);
         if (alive) setD(b);
-      } catch (e) { if (alive) setErr(e.message || "PM summary unavailable."); }
+      } catch { if (alive) setUnavailable(true); }
     })();
     return () => { alive = false; };
   }, []);
-  if (err) return <div data-testid="shop-hub-v2-pm-error" style={{ padding: 12, fontSize: 12, color: "#7f1d1d", background: "#fee2e2", borderRadius: 4 }}>{err}</div>;
+  if (unavailable) return (
+    <div data-testid="shop-hub-v2-pm-unavailable"
+         style={{ padding: "12px 14px", fontSize: 12, color: "var(--ink-soft)",
+                  background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
+                  borderRadius: "var(--radius-card)" }}>
+      PM Engine summary is not available for your role. Use the PM Dashboard link below to view detail.
+    </div>
+  );
   if (!d)  return <div data-testid="shop-hub-v2-pm-loading" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)" }}>Loading…</div>;
   const sc = d.schedule_counts || {};
   const wo = d.work_order_counts || {};
@@ -536,25 +546,30 @@ function PmEngineCard() {
 // Track 13.30D · Mechanic workload card (live · non-punitive).
 function MechanicWorkloadCard() {
   const [d, setD] = React.useState(null);
-  const [err, setErr] = React.useState("");
+  const [unavailable, setUnavailable] = React.useState(false);
   React.useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const tokA = (typeof window !== "undefined" && window.localStorage.getItem("masci.admin.token")) || "";
-        const tokS = (typeof window !== "undefined" && window.localStorage.getItem("masci.shop.token")) || "";
-        const h = { "Content-Type": "application/json" };
-        if (tokA) h["X-Admin-Token"] = tokA;
-        if (tokS) h["X-Shop-Token"] = tokS;
-        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/mechanics/workload`, { headers: h });
+        const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/shop/mechanics/workload`, { headers: authHeaders() });
+        if (!r.ok) {
+          if (alive) setUnavailable(true);
+          return;
+        }
         const b = await r.json().catch(() => null);
-        if (!r.ok) throw new Error((b && b.detail) || `HTTP ${r.status}`);
         if (alive) setD(b);
-      } catch (e) { if (alive) setErr(e.message || "Workload unavailable."); }
+      } catch { if (alive) setUnavailable(true); }
     })();
     return () => { alive = false; };
   }, []);
-  if (err) return <div data-testid="shop-hub-v2-workload-error" style={{ padding: 12, fontSize: 12, color: "#7f1d1d", background: "#fee2e2", borderRadius: 4 }}>{err}</div>;
+  if (unavailable) return (
+    <div data-testid="shop-hub-v2-workload-unavailable"
+         style={{ padding: "12px 14px", fontSize: 12, color: "var(--ink-soft)",
+                  background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
+                  borderRadius: "var(--radius-card)" }}>
+      Mechanic workload is not available for your role. Mechanics see their own queue at My Assignments; managers see all queues at Manager Queue.
+    </div>
+  );
   if (!d)  return <div data-testid="shop-hub-v2-workload-loading" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)" }}>Loading…</div>;
   if (!d.mechanics || d.mechanics.length === 0) {
     return <div data-testid="shop-hub-v2-workload-empty" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)", background: "var(--paper-card)", border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)" }}>
