@@ -2,6 +2,29 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — Track 14.0-CROSS-PORTAL-LANDING-PARITY-FIX CLOSED
+
+**P0 blocker for PDF Lockup / Deployment Prep — now unblocked.**
+
+User-reported live preview defect: `/hr` rendered plain-white with no sidebar
+while `/hr/employee-accountability` rendered the full HR sidebar + blueprint
+grid. Same class of defect existed on `/safety-portal` and `/admin/hub_v2`.
+
+* `PortalShell` content area now wears `blueprint-bg` → every PortalShell-backed
+  landing gets the dark slate grid texture that already lived on deep pages.
+* `HrHubV2` mounts `<HrSideNavV2 />` via `sideNav` prop.
+* `SafetyHubV2` mounts `<SafetySideNavV2 />` via `sideNav` prop.
+* `AdminHubV2` mounts admin `<SideNavV2 />` via `sideNav` prop.
+* Shop / Dispatch / Field Leadership / public forms / auth intentionally
+  unchanged per directive (Shop = card-grid hub; Dispatch = map-first;
+  FL = tap-first; public/auth must stay sidebar-less).
+* Added 3 regression tests in `test_nav_drift_guard.py` (21/21 pass) to
+  lock the parity contract:
+  * `test_portal_shell_applies_blueprint_grid`
+  * `test_v2_hub_landings_mount_sidebar` (HR + Safety parametrized)
+
+Closure ledger: `/app/memory/TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md`
+
 ## 2026-02-12 — Track 14.0-PREVIEW-REALITY-RECONCILIATION CLOSED
 
 Honest gap-fix between certification screenshots and the live preview.

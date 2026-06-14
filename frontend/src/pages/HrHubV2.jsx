@@ -22,6 +22,7 @@ import {
   Card,
   EmptyState,
 } from "../design-system";
+import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -188,6 +189,7 @@ export default function HrHubV2() {
             <RealLink to="/hr/employee-accountability" testid="hr-hub-v2-action-accountability" intent="primary">Accountability</RealLink>
           </div>
         }
+        sideNav={<HrSideNavV2 />}
         lastActivity={
           <span data-testid="hr-hub-v2-last-activity">
             {s.loaded ? `Refreshed ${new Date(s.refreshedAt).toLocaleTimeString()}` : "Loading live signals…"}

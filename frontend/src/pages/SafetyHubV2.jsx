@@ -23,6 +23,7 @@ import {
   Card,
   EmptyState,
 } from "../design-system";
+import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -151,6 +152,7 @@ export default function SafetyHubV2() {
             <RealLink to="/safety/trench-safety" testid="safety-hub-v2-action-trench" intent="primary">Trench Safety</RealLink>
           </div>
         }
+        sideNav={<SafetySideNavV2 />}
         lastActivity={
           <span data-testid="safety-hub-v2-last-activity">
             {s.loaded ? `Refreshed ${new Date(s.refreshedAt).toLocaleTimeString()}` : "Loading live signals…"}

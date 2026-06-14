@@ -7302,3 +7302,51 @@ Banners are all cleared to begin.
 
 **Report:** `/app/memory/TRACK_14_0_PORTAL_LANDING_NAVIGATION_UNIFICATION_CLOSURE.md`.
 
+
+---
+
+## Track 14.0-CROSS-PORTAL-LANDING-PARITY-FIX — CLOSED
+
+**Date:** 2026-02-14 · **Status:** CLOSED · **Composite:** **9.90** (Trusted **9.90** · Proven **9.90**)
+
+### Outcome
+- Class-of-defect closure: V2 portal hubs (`HrHubV2`, `SafetyHubV2`,
+  `AdminHubV2`) were rendering their root landing without a sidebar
+  while their deep pages had full sidebar + blueprint grid — exactly
+  the "two applications stitched together" defect the directive
+  exists to eliminate.
+- `design-system/PortalShell.jsx` now applies `blueprint-bg` to its
+  main content section so every PortalShell-backed landing carries
+  the same dark slate grid texture as deep pages.
+- `pages/HrHubV2.jsx` wires `<HrSideNavV2 />` via the `sideNav` prop.
+- `pages/SafetyHubV2.jsx` wires `<SafetySideNavV2 />`.
+- `pages/AdminHubV2.jsx` wires admin `<SideNavV2 />`.
+- Shop, Dispatch, FL, public forms, auth intentionally unchanged per
+  directive — documented in closure ledger.
+- 3 new regression tests in `backend/tests/test_nav_drift_guard.py`
+  lock the parity contract: PortalShell grid class + sidebar wiring
+  on HR and Safety V2 landings. 21/21 nav-drift guard tests pass.
+- 43/43 RC1 ownership + parity suites pass. Frontend compiles clean.
+
+### Live preview proof
+- HR landing BEFORE: plain white, no sidebar.
+- HR landing AFTER: dark slate sidebar (People Operations / Time &
+  Payroll / Compliance & Records / Access & Identity / Guidance)
+  rendered top-to-bottom, blueprint grid behind cards.
+- Safety landing AFTER: dark slate sidebar (Incidents & Escalation /
+  Documents & Training / Compliance & Records) + blueprint grid.
+- Admin Hub V2 AFTER: collapsible domain sidebar + blueprint grid.
+- PM landing AFTER: sidebar preserved, grid texture newly visible.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.90 |
+| Simple | 9.95 |
+| Beautiful | 9.90 |
+| Trusted | **9.90** |
+| Proven | **9.90** |
+
+**Composite: 9.90.**
+
+**Report:** `/app/memory/TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md`.

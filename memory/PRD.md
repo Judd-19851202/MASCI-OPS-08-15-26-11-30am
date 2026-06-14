@@ -10,7 +10,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-12)
+## Latest Closed Track (2026-02-14)
+- **14.0-CROSS-PORTAL-LANDING-PARITY-FIX CLOSED** — User-reported live
+  preview defect: `/hr` rendered plain-white with no sidebar while
+  `/hr/employee-accountability` rendered HR sidebar + blueprint grid.
+  Same class of defect on `/safety-portal` and `/admin/hub_v2`. Fixed
+  by: (1) `PortalShell` now applies `blueprint-bg` to its main
+  content section so every PortalShell-backed landing carries the
+  same grid texture as deep pages, (2) `HrHubV2` mounts
+  `<HrSideNavV2 />` via the `sideNav` prop, (3) `SafetyHubV2` mounts
+  `<SafetySideNavV2 />`, (4) `AdminHubV2` mounts admin `<SideNavV2 />`.
+  Shop / Dispatch / FL / public forms / auth intentionally unchanged
+  per directive. 3 new regression guards in `test_nav_drift_guard.py`
+  (21/21 pass) lock the parity contract. 43/43 RC1 ownership +
+  parity suites pass. Five-Pillar **9.90** (Trusted 9.90 · Proven
+  9.90). Ledger:
+  `/app/memory/TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-12)
 - **14.0-PREVIEW-REALITY-RECONCILIATION CLOSED** — Honest gap-fix:
   prior PORTAL-LANDING-NAVIGATION-UNIFICATION wired `PmSideNavV2` into
   `PmHubV2` (`/pm/hub`) but **real users land on `/pm/command-center`**

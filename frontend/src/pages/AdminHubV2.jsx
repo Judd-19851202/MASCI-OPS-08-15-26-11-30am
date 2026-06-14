@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -87,6 +88,7 @@ export default function AdminHubV2() {
             <Link to="/admin" data-testid="admin-hub-v2-back-classic" style={{ display: "inline-block", padding: "6px 12px", background: "var(--paper-card)", color: "var(--ink-strong)", border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>Open Classic Admin Hub</Link>
           </div>
         }
+        sideNav={<AdminSideNavV2 />}
       >
         <Section k="01 · System Health · live" t="Integration probes" c="Real probe results from /api/admin/integrations/health">
           <QC to="/admin/operations-dashboard" testid="admin-hub-v2-q-integrations-degraded" title="Degraded Integrations" why="Probes returning non-OK status" source="Source: integrations.health.probes" value={s.loaded ? degraded : null} loaded={s.loaded} />

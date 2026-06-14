@@ -227,3 +227,44 @@ def test_role_chain_includes_all_phase2b2b_events():
             f"ROLE_CHAIN missing required event key {key!r} — Phase 2B-2B "
             "producer routing is broken. See "
             "TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2B_PRODUCER_ROUTING_CLOSURE.md")
+
+
+
+# ── Track 14.0-CROSS-PORTAL-LANDING-PARITY-FIX (2026-02-14) ─────────
+# Lock the cross-portal landing parity so future PRs cannot silently
+# regress a V2 portal hub back to a sidebar-less, plain-white landing.
+
+PORTAL_SHELL = REPO / "frontend/src/design-system/PortalShell.jsx"
+
+
+def test_portal_shell_applies_blueprint_grid():
+    """PortalShell must render the unified blueprint-bg grid on its
+    main content area. Removing this returns landings to plain-white
+    and breaks visual parity with deep pages (HrPageShell / AdminShell
+    that already use blueprint-bg)."""
+    text = PORTAL_SHELL.read_text()
+    assert "blueprint-bg" in text, (
+        "PortalShell no longer applies the blueprint-bg grid texture — "
+        "landings will revert to flat slate-50 and break visual parity "
+        "with deep pages. See TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md")
+
+
+@pytest.mark.parametrize("hub_file,sidebar_import,sidebar_jsx", [
+    (HR_HUB_V2,      "HrSideNavV2",     "<HrSideNavV2"),
+    (SAFETY_HUB_V2,  "SafetySideNavV2", "<SafetySideNavV2"),
+])
+def test_v2_hub_landings_mount_sidebar(hub_file, sidebar_import, sidebar_jsx):
+    """HR + Safety V2 hub landings must mount their domain sidebar via
+    PortalShell's sideNav prop. Without it the landing has no
+    navigation surface while deep pages do — the exact "two different
+    applications stitched together" defect this track exists to
+    prevent."""
+    text = hub_file.read_text()
+    assert sidebar_import in text, (
+        f"{hub_file.name} no longer imports {sidebar_import} — V2 hub "
+        f"landing has lost its sidebar. See "
+        "TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md")
+    assert "sideNav={" in text and sidebar_jsx in text, (
+        f"{hub_file.name} no longer passes sideNav={sidebar_jsx}... /> "
+        "to PortalShell — landing will render without its sidebar. "
+        "See TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md")
