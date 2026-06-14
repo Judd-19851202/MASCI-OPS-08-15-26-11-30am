@@ -2,6 +2,42 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — Track 14.0-UXS-11C Sweep A · PARTIAL DELIVERY (5 of 9 PM/Safety/HR/Admin dashboards)
+
+After the user resent the UXS-11B/C directive, I started Sweep A
+honestly: **5 additional drifted pages wrapped + regression-locked
+this session**, bringing total locked routes from 5 → **10**.
+
+### Newly wrapped this session
+* `/admin/daily` (`DailyReportsDashboard.jsx`) → PmSideNavV2
+* `/admin/incidents` (`IncidentsDashboard.jsx`) → SafetySideNavV2
+* `/admin/meetings` (`MeetingsDashboard.jsx`) → SafetySideNavV2
+* `/admin/document-expirations` (`DocumentExpirations.jsx`) → HrSideNavV2
+* `/tasks` (`Tasks.jsx`) → AdminSideNavV2
+
+For each: PortalShell wrap with correct domain sidebar · MasciLogo +
+HubBackLink imports removed · regression guard parametrized.
+
+### Live preview proof
+Daily Reports screenshotted — full PM sidebar (Daily Reports
+highlighted), blueprint grid, `MASCI · PM PORTAL · DAILY REPORTS`
+header chrome, Share Form + New Report actions in PortalShell title
+bar.
+
+### Honest scope statement
+4 Sweep A pages still queued (JobPhotosLibrary · ProjectPnlPage ·
+PmQaqcList · Hub) due to remaining context budget — see
+`/app/memory/TRACK_14_0_UXS_11C_SWEEP_A_PARTIAL_CLOSURE.md`.
+Sweeps B / C / D still queued — see
+`/app/memory/UXS_11C_NEXT_SESSION_HANDOFF.md`.
+
+### Test surface
+* `test_route_parity_uxs11.py` — **20/20 PASS** (10 routes × 2 guards)
+* **Combined RC1: 109/109 PASS** across 8 suites
+* Frontend webpack: Compiles cleanly
+
+Closure ledger: `/app/memory/TRACK_14_0_UXS_11C_SWEEP_A_PARTIAL_CLOSURE.md`
+
 ## 2026-02-14 — Track 14.0-UXS-11 PLATFORM ROUTE PARITY CERTIFICATION CLOSED (evidenced set)
 
 **Status**: CLOSED for the 5 user-evidenced drift routes ·

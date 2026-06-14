@@ -8,8 +8,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import HubBackLink, { useHubHome } from "@/components/HubBackLink";
+import { PortalShell } from "@/design-system";
+import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
@@ -28,7 +28,6 @@ export default function IncidentsDashboard() {
   const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const hubHome = useHubHome();
 
   const load = async () => {
     setLoading(true);
@@ -85,33 +84,33 @@ export default function IncidentsDashboard() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <HubBackLink />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex items-center gap-2">
-            <ShareFormDialog
-              formType="incident"
-              path="/incidents/submit"
-              title="Share Incident Form"
-              description="Anyone with this link can report a Site Incident or Near Miss. No login required."
-              testIdPrefix="share-incident"
-            />
-            <Button
-              onClick={() => navigate("/incidents/new")}
-              className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
-              data-testid="new-incident-btn"
-            >
-              <Plus className="w-5 h-5 mr-1" />
-              <span className="hidden sm:inline">New Report</span>
-              <span className="sm:hidden">New</span>
-            </Button>
-          </div>
+    <PortalShell
+      portalName="MASCI" portalRole="Safety Portal · Incidents & Near Misses"
+      pageTitle="Incidents & Near Misses"
+      subtitle="Field-reported incidents · escalation tracking"
+      primaryActions={
+        <div className="flex items-center gap-2">
+          <ShareFormDialog
+            formType="incident"
+            path="/incidents/submit"
+            title="Share Incident Form"
+            description="Anyone with this link can report a Site Incident or Near Miss. No login required."
+            testIdPrefix="share-incident"
+          />
+          <Button
+            onClick={() => navigate("/incidents/new")}
+            className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+            data-testid="new-incident-btn"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            <span className="hidden sm:inline">New Report</span>
+            <span className="sm:hidden">New</span>
+          </Button>
         </div>
-      </header>
-
+      }
+      sideNav={<SafetySideNavV2 />}
+    >
+    <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <FocusBanner />
         <div className="mb-8">
@@ -243,5 +242,6 @@ export default function IncidentsDashboard() {
         </div>
       </main>
     </div>
+    </PortalShell>
   );
 }

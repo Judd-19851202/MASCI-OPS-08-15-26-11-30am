@@ -24,7 +24,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import NotificationBell from "@/components/NotificationBell";
 import { listTasks, getTaskSummary, getTask, patchTask, commentTask } from "@/lib/tasksApi";
 import { isSignedInAnywhere, homePortalUrl } from "@/lib/permissions";
@@ -98,27 +99,13 @@ export default function Tasks() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="tasks-page">
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
-          <Link to="/" className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="tasks-nav-home">
-            <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Home</span>
-          </Link>
-          <button onClick={() => nav(-1)} className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="tasks-nav-back">
-            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Back</span>
-          </button>
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <div className="flex-1 min-w-0">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">Tasks & Actions</div>
-            <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">Operational Accountability</div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <GlobalSearch accent="dark" />
-            <NotificationBell accent="white" />
-          </div>
-        </div>
-      </header>
-
+    <PortalShell
+      portalName="MASCI" portalRole="Admin · Tasks & Actions"
+      pageTitle="Operational Accountability"
+      subtitle="Open tasks · overdue items · operational follow-through"
+      sideNav={<AdminSideNavV2 />}
+    >
+    <div className="min-h-screen" data-testid="tasks-page">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         {/* Summary strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-6">
@@ -224,6 +211,7 @@ export default function Tasks() {
         onClose={() => { setOpenTaskId(null); fetchData(); searchParams.delete("id"); setSearchParams(searchParams); }}
       />
     </div>
+    </PortalShell>
   );
 }
 

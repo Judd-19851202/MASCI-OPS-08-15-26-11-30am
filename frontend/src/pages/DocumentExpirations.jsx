@@ -26,7 +26,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalShell } from "@/design-system";
+import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import NotificationBell from "@/components/NotificationBell";
 import {
   listExpirations, summary, createExpiration,
@@ -126,27 +127,13 @@ export default function DocumentExpirations() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="document-expirations-page">
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
-          <Link to="/" className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="docexp-nav-home">
-            <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Home</span>
-          </Link>
-          <button onClick={() => nav(-1)} className="inline-flex items-center text-white hover:text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="docexp-nav-back">
-            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">{t("Back")}</span>
-          </button>
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <div className="flex-1 min-w-0">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400 font-bold">{t("Document Expirations")}</div>
-            <div className="font-display text-lg sm:text-xl font-black text-white leading-tight">{t("Compliance Tracker")}</div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <GlobalSearch accent="dark" />
-            <NotificationBell accent="white" />
-          </div>
-        </div>
-      </header>
-
+    <PortalShell
+      portalName="MASCI" portalRole="HR Portal · Document Expirations"
+      pageTitle="Compliance Tracker"
+      subtitle="Document expirations · training & certification status"
+      sideNav={<HrSideNavV2 />}
+    >
+    <div className="min-h-screen" data-testid="document-expirations-page">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         {/* iter225 · operational outreach coaching for the
             document-expirations surface. Anchor: "Phone call beats
@@ -240,6 +227,7 @@ export default function DocumentExpirations() {
         )}
       </main>
     </div>
+    </PortalShell>
   );
 }
 

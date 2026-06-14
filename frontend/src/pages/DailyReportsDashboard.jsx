@@ -10,8 +10,8 @@ import {
   Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import HubBackLink, { useHubHome } from "@/components/HubBackLink";
+import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import { LangToggle } from "@/components/LangToggle";
 import JobFolderList from "@/components/JobFolderList";
@@ -29,7 +29,6 @@ export default function DailyReportsDashboard() {
   const [jobsMaster, setJobsMaster] = useState({});  // DR-JOB-002 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const hubHome = useHubHome();
   // DR-JOB-003 admin opt-in for cert/test pollution tier
   const showCert = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("show") === "cert";
 
@@ -71,34 +70,33 @@ export default function DailyReportsDashboard() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <HubBackLink />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <ShareFormDialog
-              formType="daily-report"
-              path="/daily/submit"
-              title="Share Daily Report Form"
-              description="Anyone with this link can fill out a Daily Job Report from the field."
-              testIdPrefix="share-daily"
-            />
-            <Button
-              onClick={() => navigate("/daily/new")}
-              className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
-              data-testid="new-daily-btn"
-            >
-              <Plus className="w-5 h-5 mr-1" />
-              <span className="hidden sm:inline">{t("New Report")}</span>
-              <span className="sm:hidden">{t("New")}</span>
-            </Button>
-          </div>
+    <PortalShell
+      portalName="MASCI" portalRole="PM Portal · Daily Reports"
+      pageTitle="Today's site activity, captured."
+      subtitle="Daily field reports across all active projects"
+      primaryActions={
+        <div className="flex items-center gap-2">
+          <ShareFormDialog
+            formType="daily-report"
+            path="/daily/submit"
+            title="Share Daily Report Form"
+            description="Anyone with this link can fill out a Daily Job Report from the field."
+            testIdPrefix="share-daily"
+          />
+          <Button
+            onClick={() => navigate("/daily/new")}
+            className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+            data-testid="new-daily-btn"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            <span className="hidden sm:inline">{t("New Report")}</span>
+            <span className="sm:hidden">{t("New")}</span>
+          </Button>
         </div>
-      </header>
-
+      }
+      sideNav={<PmSideNavV2 />}
+    >
+    <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div className="mb-8">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
@@ -240,5 +238,6 @@ export default function DailyReportsDashboard() {
         </div>
       </main>
     </div>
+    </PortalShell>
   );
 }

@@ -8,8 +8,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import HubBackLink, { useHubHome } from "@/components/HubBackLink";
+import { PortalShell } from "@/design-system";
+import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
@@ -24,7 +24,6 @@ export default function MeetingsDashboard() {
   const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const hubHome = useHubHome();
 
   const load = async () => {
     setLoading(true);
@@ -63,33 +62,33 @@ export default function MeetingsDashboard() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <HubBackLink />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex items-center gap-2">
-            <ShareFormDialog
-              formType="meeting"
-              path="/meetings/submit"
-              title="Share Meeting Form"
-              description="Anyone with this link can log a Site Safety Meeting. No login required."
-              testIdPrefix="share-meeting"
-            />
-            <Button
-              onClick={() => navigate("/meetings/new")}
-              className="h-12 px-5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-4 border-red-900"
-              data-testid="new-meeting-btn"
-            >
-              <Plus className="w-5 h-5 mr-1" />
-              <span className="hidden sm:inline">New Meeting</span>
-              <span className="sm:hidden">New</span>
-            </Button>
-          </div>
+    <PortalShell
+      portalName="MASCI" portalRole="Safety Portal · Safety Meetings"
+      pageTitle="Safety Meetings"
+      subtitle="Toolbox talks · jobsite safety meetings"
+      primaryActions={
+        <div className="flex items-center gap-2">
+          <ShareFormDialog
+            formType="meeting"
+            path="/meetings/submit"
+            title="Share Meeting Form"
+            description="Anyone with this link can log a Site Safety Meeting. No login required."
+            testIdPrefix="share-meeting"
+          />
+          <Button
+            onClick={() => navigate("/meetings/new")}
+            className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+            data-testid="new-meeting-btn"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            <span className="hidden sm:inline">New Meeting</span>
+            <span className="sm:hidden">New</span>
+          </Button>
         </div>
-      </header>
-
+      }
+      sideNav={<SafetySideNavV2 />}
+    >
+    <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div className="mb-8">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
@@ -194,5 +193,6 @@ export default function MeetingsDashboard() {
         </div>
       </main>
     </div>
+    </PortalShell>
   );
 }

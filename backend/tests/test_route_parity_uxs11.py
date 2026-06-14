@@ -25,11 +25,17 @@ import pytest
 REPO = Path("/app")
 
 EVIDENCE_ROUTES = {
-    "ProjectHealth.jsx":   ("PmSideNavV2",     "PM Portal"),
-    "AssetTransfers.jsx":  ("PmSideNavV2",     "PM Portal"),
-    "JhaPlansAdmin.jsx":   ("SafetySideNavV2", "Safety Portal"),
-    "TrenchBoxesAdmin.jsx": ("AdminSideNavV2", "Admin"),
-    "PoRequests.jsx":      ("PmSideNavV2",     "PM Portal"),
+    "ProjectHealth.jsx":           ("PmSideNavV2",     "PM Portal"),
+    "AssetTransfers.jsx":          ("PmSideNavV2",     "PM Portal"),
+    "JhaPlansAdmin.jsx":           ("SafetySideNavV2", "Safety Portal"),
+    "TrenchBoxesAdmin.jsx":        ("AdminSideNavV2", "Admin"),
+    "PoRequests.jsx":              ("PmSideNavV2",     "PM Portal"),
+    # Sweep A (PM Portal + Safety dashboards · 2026-02-14 batch 2)
+    "DailyReportsDashboard.jsx":   ("PmSideNavV2",     "PM Portal"),
+    "IncidentsDashboard.jsx":      ("SafetySideNavV2", "Safety Portal"),
+    "MeetingsDashboard.jsx":       ("SafetySideNavV2", "Safety Portal"),
+    "DocumentExpirations.jsx":     ("HrSideNavV2",     "HR Portal"),
+    "Tasks.jsx":                   ("AdminSideNavV2",  "Admin"),
 }
 
 
