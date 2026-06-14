@@ -106,7 +106,7 @@ function ProjectDayEventsPanel({ projectNumber }) {
       </header>
 
       <p className="text-[11px] text-slate-500 mt-2">
-        Source: <code className="font-mono">/api/operational-events/project-day/{`{project_number}`}/{`{date}`}</code> · per-asset arrival + departure summary for the chosen UTC day.
+        Per-asset arrival and departure summary for the chosen day.
       </p>
 
       {state.status === "loading" && (

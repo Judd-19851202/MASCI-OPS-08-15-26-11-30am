@@ -11,9 +11,12 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home as HomeIcon, ArrowLeft } from "lucide-react";
+import { Home as HomeIcon, ArrowLeft, LogOut } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
+import GlobalSearch from "@/components/GlobalSearch";
+import NotificationBell from "@/components/NotificationBell";
+import PortalSwitcher from "@/components/PortalSwitcher";
 
 function formatLastActivity(value) {
   if (value == null) return null;
@@ -43,11 +46,25 @@ export function PortalShell({
   backHref = null,
   showHome = true,
   showBack = false,
+  showSearch = true,
+  showNotifications = true,
+  showPortalSwitcher = true,
+  showSignOut = true,
+  portalSwitcherCurrent = null,
   hideProviderLine = false,
+  onSignOut = null,
   children,
   className = "",
 }) {
   const renderedLastActivity = formatLastActivity(lastActivity);
+  const handleSignOut = () => {
+    if (typeof onSignOut === "function") {
+      onSignOut();
+      return;
+    }
+    try { localStorage.removeItem("masci_token"); } catch { /* noop */ }
+    window.location.assign("/sign-in");
+  };
 
   return (
     <div

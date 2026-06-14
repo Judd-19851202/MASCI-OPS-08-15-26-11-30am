@@ -145,7 +145,9 @@ export default function PmCommandCenter() {
           <PmProjectSelector value={projectNumber} onChange={setProjectNumber} />
           {overview ? (
             <div className="text-[10.5px] font-mono uppercase tracking-widest text-slate-500" data-testid="pm-cc-as-of">
-              as of {String(overview.as_of || "").slice(11, 19)} UTC
+              {overview.as_of
+                ? `Updated ${new Date(overview.as_of).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+                : "Updated just now"}
             </div>
           ) : null}
         </div>
