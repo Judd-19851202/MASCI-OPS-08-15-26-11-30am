@@ -490,6 +490,7 @@ async def ensure_tasks_notifications_indexes(db) -> None:
 
         await db.notifications.create_index("id", unique=True)
         await db.notifications.create_index([("recipient_role", 1), ("created_at", -1)])
+        await db.notifications.create_index([("recipient_user_id", 1), ("created_at", -1)])
         await db.notifications.create_index("linked_task_id")
         await db.notifications.create_index("acknowledged_at")
         await db.notifications.create_index("expires_at", expireAfterSeconds=0)
@@ -666,6 +667,46 @@ def build_tasks_notifications_router(db, require_any_portal_token):
             raise HTTPException(404, "Task not found")
         return updated
 
+    def _notif_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
+        """Track 14.0-NOTIFY-OWNERSHIP-LOCK D2/D3 — read-side filter for
+        the notification feed. Two rules:
+
+        D2 (person-level routing): a notification with a populated
+        ``recipient_user_id`` is visible ONLY to that specific user.
+        Notifications with no ``recipient_user_id`` fall back to the
+        traditional role-scope visibility. This eliminates the
+        cross-role leakage where every member of a role bucket could
+        see notifications addressed to a single human.
+
+        D3 (Asset Admin OR-scope): when the actor carries
+        ``is_asset_admin=True`` (set by the auth dep on
+        ``X-Asset-Admin: 1``), the role-scope is OR-extended with
+        ``asset_admin`` so the user sees both their portal slice AND
+        the asset-admin slice. Strict OR — never a downgrade.
+        """
+        role = _actor_role(actor)
+        if role == "admin":
+            return {}
+        scope_roles = [role]
+        if actor.get("is_asset_admin") is True:
+            scope_roles.append("asset_admin")
+        user_id = actor.get("id") or actor.get("user_id")
+        # Role-only clause: notification matches my role AND has no
+        # specific user owner (so all role members see it).
+        role_clause = {
+            "$and": [
+                {"recipient_role": {"$in": scope_roles}},
+                {"$or": [
+                    {"recipient_user_id": None},
+                    {"recipient_user_id": {"$exists": False}},
+                ]},
+            ]
+        }
+        if user_id:
+            # User-targeted clause is OR'd with role clause.
+            return {"$or": [role_clause, {"recipient_user_id": user_id}]}
+        return role_clause
+
     # ── Notifications ────────────────────────────────────────────────
     @router.get("/api/notifications")
     async def list_notifications(
@@ -674,9 +715,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         limit: int = Query(default=50, ge=1, le=200),
     ) -> Dict[str, Any]:
         role = _actor_role(actor)
-        filt: Dict[str, Any] = (
-            {} if role == "admin" else {"recipient_role": role}
-        )
+        filt = _notif_filter(actor)
         cur = db.notifications.find(filt, {"_id": 0}).sort("created_at", -1).limit(limit)
         items: List[Dict[str, Any]] = []
         async for d in cur:
@@ -695,9 +734,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         role = _actor_role(actor)
-        filt: Dict[str, Any] = (
-            {} if role == "admin" else {"recipient_role": role}
-        )
+        filt = _notif_filter(actor)
         # Approximate: not-acknowledged & role-marker absent from read_by
         cnt = 0
         cur = db.notifications.find(
@@ -739,9 +776,13 @@ def build_tasks_notifications_router(db, require_any_portal_token):
             "user_id": actor.get("id"),
             "at": datetime.now(timezone.utc),
         }
-        filt: Dict[str, Any] = ({} if role == "admin"
-                                else {"recipient_role": role})
-        filt["read_by.role"] = {"$ne": role}
+        # Use the same D2/D3-aware filter as the list endpoint so users
+        # can only mark-read what they can actually see.
+        filt: Dict[str, Any] = _notif_filter(actor)
+        if filt:
+            filt = {"$and": [filt, {"read_by.role": {"$ne": role}}]}
+        else:
+            filt = {"read_by.role": {"$ne": role}}
         res = await db.notifications.update_many(
             filt, {"$push": {"read_by": marker}},
         )

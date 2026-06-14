@@ -9,6 +9,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Frontend: React + Tailwind + Shadcn (`/app/frontend`)
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
+
+## Latest Closed Track (2026-06-14)
+- **14.0-NOTIFY-OWNERSHIP-LOCK · D2-D10 CLOSED** — Person-level routing
+  (`recipient_user_id` is now read-side authoritative); Asset Admin
+  first-class scope via `X-Asset-Admin: 1` header; FL producer adopts
+  matrix owner-resolution chain; three scheduled producers built
+  (`scan_asset_documents`/`scan_hr_training`/`scan_dispatch_stale_locations`)
+  with admin trigger endpoints. D7 leakage matrix: zero cross-role bleed.
+  D8 click-through: 11/11 link_url valid. ~887 LOC across 9 files.
+  Closure ledger: `/app/memory/TRACK_14_0_NOTIFY_OWNERSHIP_LOCK_CLOSURE.md`.
+
 - Maps: MapLibre · single engine
 - Integrations: Motive (live) · MaintainX (stub) · Resend · R2
 

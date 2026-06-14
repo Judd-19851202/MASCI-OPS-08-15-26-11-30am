@@ -11760,6 +11760,12 @@ register_asset_documents_routes(app, db, require_admin, _require_any_portal_toke
 from routes.asset_admin_settings import register_asset_admin_settings_routes  # noqa: E402
 register_asset_admin_settings_routes(app, db, require_admin)
 
+from routes.notify_ownership_lock_seed import register_notify_ownership_lock_seed  # noqa: E402
+register_notify_ownership_lock_seed(app, db, require_admin)
+
+from routes.scheduled_producers_d456 import register_scheduled_producers_d456  # noqa: E402
+register_scheduled_producers_d456(app, db, require_admin)
+
 # Track 13.33ABC · Asset Care & Readiness Command Center
 from routes.asset_care import register_asset_care_routes  # noqa: E402
 register_asset_care_routes(app, db, require_admin)

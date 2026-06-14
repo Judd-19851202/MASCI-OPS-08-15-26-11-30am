@@ -21,6 +21,16 @@ function authHeaders() {
   const sh = getShopToken(); if (sh) h["X-Shop-Token"] = sh;
   const d = getDispatchToken(); if (d) h["X-Dispatch-Token"] = d;
   const fl = getFlToken(); if (fl) h["X-FL-Token"] = fl;
+  // Track 14.0-NOTIFY-OWNERSHIP-LOCK D3 — additive Asset Admin scope.
+  // When the directory record carries `is_asset_admin=true` (mirrored
+  // into localStorage on multi-login), forward the flag so backend
+  // OR-extends the notification feed with the `asset_admin` slice.
+  try {
+    if (typeof window !== "undefined" &&
+        window.localStorage.getItem("masci.is_asset_admin") === "true") {
+      h["X-Asset-Admin"] = "1";
+    }
+  } catch (e) { /* ignore */ }
   return h;
 }
 

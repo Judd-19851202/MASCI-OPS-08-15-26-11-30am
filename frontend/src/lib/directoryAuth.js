@@ -92,6 +92,18 @@ export function applyMultiLoginResponse(response, rememberMe = true) {
   // hit 401 even though the directory session is otherwise authorized.
   const flToken = t.field_leadership || t.fl;
   if (flToken) setFlToken(flToken, rememberMe);
+
+  // Track 14.0-NOTIFY-OWNERSHIP-LOCK D3 — mirror `is_asset_admin` from
+  // the directory user record so tasksApi can opt-in to the asset_admin
+  // notification slice via the `X-Asset-Admin: 1` header on every
+  // subsequent /api/notifications request.
+  try {
+    if (response.user?.is_asset_admin === true) {
+      window.localStorage.setItem("masci.is_asset_admin", "true");
+    } else {
+      window.localStorage.removeItem("masci.is_asset_admin");
+    }
+  } catch (e) { /* ignore storage errors */ }
 }
 
 /**

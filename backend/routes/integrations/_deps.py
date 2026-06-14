@@ -36,51 +36,71 @@ def make_require_any_portal_token(
         x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
         x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
         x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
+        x_asset_admin: Optional[str] = Header(default=None, alias="X-Asset-Admin"),
     ) -> dict:
+        # Resolve the base actor from whichever portal token is valid.
+        actor: Optional[dict] = None
         if x_admin_token and is_valid_admin_token(x_admin_token):
-            return {"_actor": "admin", "name": "Admin"}
-        if x_safety_token:
+            actor = {"_actor": "admin", "name": "Admin"}
+        elif x_safety_token:
             u = await is_valid_safety_user_token_async(db, x_safety_token)
             if u:
-                return {**u, "_actor": "safety"}
-        if x_hr_token:
+                actor = {**u, "_actor": "safety"}
+        if actor is None and x_hr_token:
             u = await is_valid_hr_user_token_async(db, x_hr_token)
             if u:
-                return {**u, "_actor": "hr"}
-        if x_shop_token and "." in x_shop_token:
+                actor = {**u, "_actor": "hr"}
+        if actor is None and x_shop_token and "." in x_shop_token:
             from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
             u = await is_valid_shop_user_token_async(db, x_shop_token)
             if u:
-                return {**u, "_actor": "shop"}
-        if x_pm_token and "." in x_pm_token:
+                actor = {**u, "_actor": "shop"}
+        if actor is None and x_pm_token and "." in x_pm_token:
             from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
             u = await is_valid_pm_user_token_async(db, x_pm_token)
             if u:
-                return {**u, "_actor": "pm"}
-        if x_dispatch_token and "." in x_dispatch_token:
+                actor = {**u, "_actor": "pm"}
+        if actor is None and x_dispatch_token and "." in x_dispatch_token:
             from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
             u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
             if u:
-                return {**u, "_actor": "dispatch"}
-        if x_leadership_token:
-            # Field Leadership uses an in-memory shared-password token
-            # (no user record). Validate via the field_leadership module.
+                actor = {**u, "_actor": "dispatch"}
+        if actor is None and x_leadership_token:
             try:
                 from routes.field_leadership import _check_leadership_token  # noqa: PLC0415
                 if _check_leadership_token(x_leadership_token):
-                    return {"_actor": "leadership", "name": "Field Leadership"}
+                    actor = {"_actor": "leadership", "name": "Field Leadership"}
             except Exception:
                 pass
-        if x_fl_token and "." in x_fl_token:
-            # Phase 5D · P2 — per-user Field Leadership accounts (iter314).
-            # Closes the FL notification asymmetry where per-user FL
-            # accounts could not hit /api/notifications. The unified
-            # surface now resolves FL tokens identically to other
-            # portal tokens; recipient_role filter becomes "fl".
+        if actor is None and x_fl_token and "." in x_fl_token:
             u = await is_valid_fl_user_token_async(db, x_fl_token)
             if u:
-                return {**u, "_actor": "fl"}
-        raise HTTPException(401, "Portal authentication required")
+                actor = {**u, "_actor": "fl"}
+        if actor is None:
+            raise HTTPException(401, "Portal authentication required")
+
+        # Track 14.0-NOTIFY-OWNERSHIP-LOCK D3 — Asset Admin first-class
+        # auth. When the caller opts in with `X-Asset-Admin: 1`, look up
+        # the directory record by email and surface `is_asset_admin` to
+        # downstream scope filters. Admin always implicitly qualifies
+        # (admin sees everything regardless). Header is additive — never
+        # downgrades an existing actor; never grants admin-only writes.
+        if x_asset_admin and str(x_asset_admin).strip() in ("1", "true", "True"):
+            if actor.get("_actor") == "admin":
+                actor["is_asset_admin"] = True
+            else:
+                email = (actor.get("email") or "").lower().strip()
+                if email:
+                    try:
+                        row = await db.user_directory.find_one(
+                            {"email": email},
+                            {"_id": 0, "is_asset_admin": 1},
+                        )
+                        if row and row.get("is_asset_admin") is True:
+                            actor["is_asset_admin"] = True
+                    except Exception:
+                        pass
+        return actor
 
     return _require_any_portal_token
 

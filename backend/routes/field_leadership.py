@@ -577,6 +577,12 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
             # BATCH K · OMEGA-5 / G-P1-01 — fan-out task + bell to safety
             # for FL form submissions. Same fire-and-forget pattern.
+            #
+            # Track 14.0-NOTIFY-OWNERSHIP-LOCK D2 — resolve a specific
+            # person-level recipient via the FL ownership chain. When a
+            # human owner is found, recipient_user_id is set AND
+            # recipient_role stays populated as the scope guard so
+            # downstream read filters honour both.
             try:
                 from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
                 kind = (rec.get("kind") or "form").replace("_", " ")
@@ -586,6 +592,32 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                     or "—"
                 )
                 title = f"FL — {kind.title()} · {emp[:60]}"
+
+                # FL owner-routing chain per Deliverable 1 matrix.
+                recipient_user_id: Optional[str] = None
+                try:
+                    recipient_user_id = rec.get("assigned_reviewer_id") or None
+                    if not recipient_user_id and rec.get("subject_employee_id"):
+                        emp_row = await db.employees.find_one(
+                            {"id": rec.get("subject_employee_id")},
+                            {"_id": 0, "supervisor_user_id": 1},
+                        )
+                        if emp_row and emp_row.get("supervisor_user_id"):
+                            recipient_user_id = emp_row["supervisor_user_id"]
+                    if not recipient_user_id and rec.get("project_number"):
+                        proj = await db.projects.find_one(
+                            {"project_number": rec.get("project_number")},
+                            {"_id": 0, "pm_user_id": 1,
+                             "superintendent_user_id": 1},
+                        )
+                        if proj:
+                            recipient_user_id = (
+                                proj.get("pm_user_id")
+                                or proj.get("superintendent_user_id")
+                            )
+                except Exception:
+                    recipient_user_id = None
+
                 await emit_task_and_notification(
                     db,
                     task={
@@ -598,6 +630,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                         "source_module": "field_leadership.records",
                         "source_record_id": rec["id"],
                         "assignee_role": "safety",
+                        "assignee_user_id": recipient_user_id,
                         "priority": "Medium",
                         "created_by": {"role": "system", "via": "fl-fanout"},
                     },
@@ -610,6 +643,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                         )[:200],
                         "severity": "Info",
                         "recipient_role": "safety",
+                        "recipient_user_id": recipient_user_id,
                         "linked_source_module": "field_leadership.records",
                         "linked_source_record_id": rec["id"],
                     },

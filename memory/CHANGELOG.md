@@ -1,6 +1,42 @@
 # CHANGELOG
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
+
+## 2026-06-14 — Track 14.0-NOTIFY-OWNERSHIP-LOCK · D2-D10 CLOSED
+
+- **D2 person-level routing**: read-side filter (`_notif_filter`) now honours
+  `recipient_user_id`. Notifications with a populated owner are visible
+  ONLY to that user; null-owner rows fall back to role-bucket visibility.
+  FL producer adopts the matrix owner-resolution chain
+  (`assigned_reviewer_id → employees.supervisor_user_id → projects.pm_user_id
+  → projects.superintendent_user_id`).
+- **D3 Asset Admin first-class scope**: `X-Asset-Admin: 1` header on any
+  portal token now OR-extends notifications with `recipient_role="asset_admin"`.
+  Backend gates on `user_directory.is_asset_admin=true`; frontend mirrors
+  the flag from `/api/auth/multi-login` into `masci.is_asset_admin` and
+  `tasksApi` forwards the header automatically.
+- **D4/D5/D6 producers**: `routes/scheduled_producers_d456.py` with three
+  idempotent scanners + admin trigger endpoints
+  (`/api/admin/notify-producers/{d4|d5|d6|run-all}`). D4 live run emitted
+  22 asset_doc notifications (60d/30d/expired thresholds, 60 docs scanned).
+- **D7 leakage matrix**: 6 portal roles × 200-row feed sample — zero
+  cross-role bleed. Scratch-row matrix proves person-level isolation
+  (recipient_user_id targeting another user is invisible).
+- **D8 click-through**: 11/11 unique notification types in the live admin
+  feed carry a structurally valid `link_url` (leading slash, no
+  undefined/None segments).
+- **D9 bell/chime regression**: admin console renders with `99+` badge,
+  `pytest tests/test_iter357_notifications_digest.py` 7/7 PASS.
+- **D10 closure ledger**: `/app/memory/TRACK_14_0_NOTIFY_OWNERSHIP_LOCK_CLOSURE.md`.
+- New files: `routes/scheduled_producers_d456.py`,
+  `routes/notify_ownership_lock_seed.py`,
+  `tests/test_notify_ownership_lock.py`,
+  `memory/TRACK_14_0_NOTIFY_OWNERSHIP_LOCK_CLOSURE.md`.
+- Edited: `routes/integrations/_deps.py`, `routes/tasks_notifications.py`,
+  `routes/field_leadership.py`, `server.py`,
+  `frontend/src/lib/directoryAuth.js`, `frontend/src/lib/tasksApi.js`.
+- ~887 LOC delta total. Five-Pillar: Trusted 9.9 · Proven 9.9.
+
 >
 > Every numeric count in this changelog is sourced from the **preview database** (test/staged validation fixtures). Counts prove the code, contracts, and UI work — they do **not** represent MASCI's live production inventory or operational reality.
 >
