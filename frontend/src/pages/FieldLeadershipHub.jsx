@@ -451,34 +451,35 @@ export default function FieldLeadershipHub() {
       portalSwitcherCurrent="leadership"
       onSignOut={signOut}
       primaryActions={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-testid="leadership-header-actions">
           <OfflineIndicator />
-          <LangToggle />
-          <div className="hidden sm:flex"><CompanyInfoDialog /></div>
           <Button
             asChild
             variant="outline"
             size="sm"
-            className="hidden sm:inline-flex h-9 px-3 text-xs font-bold uppercase tracking-wide"
-            data-testid="leadership-training-link"
-          >
-            <Link to="/guidance?from=leadership">
-              <BookOpen className="w-3.5 h-3.5 mr-1" />
-              {t("Guides")}
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="hidden sm:inline-flex h-9 px-3 text-xs font-bold uppercase tracking-wide"
+            className="hidden md:inline-flex h-9 px-3 text-xs font-bold uppercase tracking-wide"
             data-testid="leadership-records-link"
           >
             <Link to="/leadership/records">
-              <ListChecks className="w-3.5 h-3.5 mr-1" />
+              <ListChecks className="w-3.5 h-3.5 mr-1.5" />
               {t("Records")}
             </Link>
           </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="hidden md:inline-flex h-9 px-3 text-xs font-bold uppercase tracking-wide"
+            data-testid="leadership-training-link"
+          >
+            <Link to="/guidance?from=leadership">
+              <BookOpen className="w-3.5 h-3.5 mr-1.5" />
+              {t("Guides")}
+            </Link>
+          </Button>
+          <div className="hidden md:flex" data-testid="leadership-company-info">
+            <CompanyInfoDialog />
+          </div>
         </div>
       }
     >

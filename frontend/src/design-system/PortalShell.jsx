@@ -11,12 +11,13 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home as HomeIcon, ArrowLeft, LogOut, Clock } from "lucide-react";
+import { Home as HomeIcon, ArrowLeft, LogOut, Clock, User as UserIcon } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import PortalSwitcher from "@/components/PortalSwitcher";
+import { LangToggle } from "@/components/LangToggle";
 
 function useLocalClock() {
   const [now, setNow] = React.useState(() => new Date());
@@ -25,6 +26,31 @@ function useLocalClock() {
     return () => clearInterval(id);
   }, []);
   return now;
+}
+
+function resolveSignedInName() {
+  if (typeof window === "undefined") return null;
+  // Probe known portal identity caches without coupling to any one auth lib.
+  const keys = [
+    "masci.directory.user",
+    "masci.admin.user",
+    "masci.pm.user",
+    "masci.hr.user",
+    "masci.shop.user",
+    "masci.safety.user",
+    "masci.dispatch.user",
+    "masci.fl.user",
+  ];
+  for (const k of keys) {
+    try {
+      const raw = localStorage.getItem(k) || sessionStorage.getItem(k);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      const candidate = parsed?.name || parsed?.full_name || parsed?.email || parsed?.user?.name || parsed?.user?.email;
+      if (candidate) return candidate;
+    } catch { /* noop */ }
+  }
+  return null;
 }
 
 function formatLastActivity(value) {
@@ -68,6 +94,7 @@ export function PortalShell({
   const renderedLastActivity = formatLastActivity(lastActivity);
   const clock = useLocalClock();
   const localTimeLabel = clock.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const signedInName = React.useMemo(() => resolveSignedInName(), []);
   const handleSignOut = () => {
     if (typeof onSignOut === "function") {
       onSignOut();
@@ -132,6 +159,19 @@ export function PortalShell({
               <Clock className="w-3 h-3 opacity-70" />
               {localTimeLabel}
             </div>
+            <div className="hidden md:block" data-testid="ds-portal-shell-lang-toggle">
+              <LangToggle variant="dark" className="h-9" />
+            </div>
+            {signedInName && (
+              <div
+                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 h-9 rounded border border-slate-700 text-slate-200 text-xs font-bold tracking-wide max-w-[160px]"
+                data-testid="ds-portal-shell-user"
+                title={signedInName}
+              >
+                <UserIcon className="w-3.5 h-3.5 opacity-70" />
+                <span className="truncate">{signedInName}</span>
+              </div>
+            )}
             {showBack && backHref && (
               <Link
                 to={backHref}

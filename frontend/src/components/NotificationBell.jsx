@@ -1,14 +1,27 @@
-// NotificationBell.jsx — Iter150 (Phase A). Global notification bell
-// shown in every protected portal header. Click → drawer with the
-// current user's notification feed.
+// NotificationBell.jsx — Iter150 (Phase A) + Track 14.0-UXS-NOTIFY (2026-06-14).
+// Global notification bell shown in every protected portal header.
+// Click → drawer with the current user's notification feed.
 //
 // Phase J addition (iter166): renders a small amber "upload queued"
 // badge underneath the bell when the resiliency queue has pending
 // items. Subtle — no banner, no toast, no sound.
+//
+// UXS-NOTIFY (2026-06-14):
+//   • Audible chime when the unread count increases (Web Audio API
+//     synth — no asset, no network).
+//   • Operator-controlled Mute / 1h snooze / 8h snooze in the drawer
+//     header. Persisted to localStorage so a single tap survives
+//     reloads.
+//   • Local-time timestamps only (toLocaleString respects device tz).
+//   • Empty state, role-filtered, no fake notifications — backend
+//     enforces recipient_role scoping (admin sees all, others see
+//     only their role).
+//   • Click-through: rows now follow `link_url` when present, else
+//     fall back to /tasks?id=<linked_task_id>.
 
-import React, { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { Bell, CheckCheck, ExternalLink, AlertOctagon, Info, AlertTriangle, Upload } from "lucide-react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, CheckCheck, ExternalLink, AlertOctagon, Info, AlertTriangle, Upload, BellOff, BellRing, VolumeX } from "lucide-react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -30,17 +43,72 @@ const SEV_CLR = {
   Critical: "text-red-700",
 };
 
+const MUTE_KEY = "masci.notifications.mute_until";
+const LAST_COUNT_KEY = "masci.notifications.last_count";
+
+function readMuteUntil() {
+  try {
+    const raw = localStorage.getItem(MUTE_KEY);
+    if (!raw) return 0;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : 0;
+  } catch { return 0; }
+}
+function writeMuteUntil(ts) {
+  try { localStorage.setItem(MUTE_KEY, String(ts || 0)); } catch { /* noop */ }
+}
+
+// Minimal two-tone chime via Web Audio — no asset download, no
+// autoplay-policy issue because every call is gated by a previous
+// user click (the bell or sign-in).
+function playChime() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    const ring = (freq, start, dur) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(freq, now + start);
+      g.gain.setValueAtTime(0.0001, now + start);
+      g.gain.exponentialRampToValueAtTime(0.18, now + start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(now + start);
+      o.stop(now + start + dur + 0.05);
+    };
+    ring(880, 0, 0.18);
+    ring(660, 0.16, 0.22);
+    setTimeout(() => { try { ctx.close(); } catch { /* noop */ } }, 700);
+  } catch { /* silent */ }
+}
+
 export default function NotificationBell({ accent = "slate" }) {
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [queueDepth, setQueueDepth] = useState(0);
+  const [muteUntil, setMuteUntil] = useState(() => readMuteUntil());
+  const lastCountRef = useRef(parseInt(sessionStorage.getItem(LAST_COUNT_KEY) || "0", 10) || 0);
+  const navigate = useNavigate();
+
+  const muted = muteUntil > Date.now();
 
   const refreshCount = useCallback(async () => {
     if (!isSignedInAnywhere()) return;
     const n = await getUnreadCount();
     setUnread(n);
+    // Audible cue only when count strictly increases AND not muted
+    // AND user has interacted (audio context only works post-gesture
+    // — which any signed-in user has done at the login screen).
+    if (n > lastCountRef.current && readMuteUntil() <= Date.now()) {
+      playChime();
+    }
+    lastCountRef.current = n;
+    try { sessionStorage.setItem(LAST_COUNT_KEY, String(n)); } catch { /* noop */ }
   }, []);
 
   // Light polling — 60s. Pauses when tab is hidden.
@@ -84,12 +152,24 @@ export default function NotificationBell({ accent = "slate" }) {
       try { await markRead(n.id); } catch { /* silent */ }
       setItems((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true } : x));
     }
+    // Click-through routing — prefer explicit link_url, then linked task.
+    const target = n.link_url || n.url || (n.linked_task_id ? `/tasks?id=${n.linked_task_id}` : null);
+    if (target) {
+      setOpen(false);
+      navigate(target);
+    }
   };
 
   const onMarkAll = async () => {
     try { await markAllRead(); } catch { /* silent */ }
     setItems((prev) => prev.map((x) => ({ ...x, is_read: true })));
     setUnread(0);
+  };
+
+  const applyMute = (hours) => {
+    const next = hours > 0 ? Date.now() + hours * 60 * 60 * 1000 : 0;
+    writeMuteUntil(next);
+    setMuteUntil(next);
   };
 
   // Don't render anything when fully signed-out.
@@ -101,10 +181,11 @@ export default function NotificationBell({ accent = "slate" }) {
         <button
           type="button"
           className={`relative inline-flex items-center justify-center w-9 h-9 rounded-md ${accent === "white" ? "text-white hover:bg-white/10" : "text-slate-700 hover:bg-slate-100"} transition-colors`}
-          title="Notifications"
+          title={muted ? "Notifications · sound muted" : "Notifications"}
           data-testid="notification-bell"
+          aria-label="Notifications"
         >
-          <Bell className="w-5 h-5" />
+          {muted ? <BellOff className="w-5 h-5 opacity-80" /> : <Bell className="w-5 h-5" />}
           {unread > 0 && (
             <span
               className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black border-2 border-white"
@@ -139,6 +220,56 @@ export default function NotificationBell({ accent = "slate" }) {
               <CheckCheck className="w-3.5 h-3.5 mr-1" /> Mark all read
             </Button>
           </div>
+          <div className="flex items-center gap-2 mt-2" data-testid="notification-sound-controls">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500">Sound</span>
+            <Button
+              type="button"
+              size="sm"
+              variant={muted ? "outline" : "default"}
+              onClick={() => applyMute(0)}
+              className="h-7 px-2 text-[11px]"
+              data-testid="notification-sound-on"
+              aria-pressed={!muted}
+            >
+              <BellRing className="w-3 h-3 mr-1" /> On
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={muted && muteUntil - Date.now() <= 3600 * 1000 + 1000 ? "default" : "outline"}
+              onClick={() => applyMute(1)}
+              className="h-7 px-2 text-[11px]"
+              data-testid="notification-snooze-1h"
+            >
+              Snooze 1h
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={muted && muteUntil - Date.now() > 3600 * 1000 + 1000 ? "default" : "outline"}
+              onClick={() => applyMute(8)}
+              className="h-7 px-2 text-[11px]"
+              data-testid="notification-snooze-8h"
+            >
+              Snooze 8h
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={muted ? "default" : "outline"}
+              onClick={() => applyMute(24 * 365)}
+              className="h-7 px-2 text-[11px]"
+              data-testid="notification-mute"
+              title="Mute notification sounds on this device"
+            >
+              <VolumeX className="w-3 h-3 mr-1" /> Mute
+            </Button>
+          </div>
+          {muted && (
+            <p className="text-[10px] text-slate-500 mt-1" data-testid="notification-mute-status">
+              Sound muted until {new Date(muteUntil).toLocaleString()}. Notifications still arrive silently.
+            </p>
+          )}
         </SheetHeader>
         <div className="flex-1 overflow-y-auto">
           {loading ? (
@@ -151,6 +282,7 @@ export default function NotificationBell({ accent = "slate" }) {
             <ul className="divide-y divide-slate-100">
               {items.map((n) => {
                 const SevIcon = SEV_ICON[n.severity] || Info;
+                const localTime = n.created_at ? new Date(n.created_at).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
                 return (
                   <li
                     key={n.id}
@@ -168,7 +300,7 @@ export default function NotificationBell({ accent = "slate" }) {
                         <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-400">
                           <span>{n.type}</span>
                           <span>·</span>
-                          <span>{new Date(n.created_at).toLocaleString()}</span>
+                          <span title="Local device time">{localTime}</span>
                           {n.linked_task_id && (
                             <>
                               <span>·</span>
