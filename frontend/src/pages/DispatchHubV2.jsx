@@ -177,7 +177,7 @@ export default function DispatchHubV2() {
         portalName="MASCI"
         portalRole="Dispatch Portal · Hub V2"
         pageTitle="What requires the dispatcher's attention right now?"
-        subtitle="Every queue is live · sourced from /api/dispatch/command/summary · clickable to a real dispatch surface. MapLibre command surface preserved at /dispatch-portal/command."
+        subtitle="Every queue is a live count — open it to see what Dispatch needs to act on today. The Map command surface is one click away."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <RealLink to="/dispatch-portal" testid="dispatch-hub-v2-back-classic">Open Classic Dispatch Hub</RealLink>

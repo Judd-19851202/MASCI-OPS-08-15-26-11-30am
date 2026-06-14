@@ -334,7 +334,7 @@ export default function PmHubV2() {
         portalName="MASCI"
         portalRole="PM Portal · Hub V2"
         pageTitle="What requires your attention today?"
-        subtitle="PM purpose: build projects. Every queue below is live · sourced from a real /api endpoint · clickable to a real /pm route."
+        subtitle="PM purpose: build projects. Every queue below is a live count — open it to see what needs your attention today."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <RealLink to="/pm/hub" testid="pm-hub-v2-back-classic">Open Classic PM Hub</RealLink>

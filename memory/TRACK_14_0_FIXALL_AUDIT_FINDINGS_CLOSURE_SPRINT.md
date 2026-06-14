@@ -93,7 +93,7 @@ Per the user direction *"do not walk past a visible issue and leave it behind"*,
 | FA-07 | A2/MC | Add Asset coaching too light | coaching | P2 | **CLOSED** |
 | FA-08 | A2/MC | Required Docs coaching too light | coaching | P2 | **CLOSED** |
 | FA-09 | A2/MC | Document Upload coaching too light | coaching | P2 | **CLOSED** |
-| FA-10 | A2/MC | Admin/PM/HR deeper-route coaching sparse | coaching | P2 | OPEN — Batch 3 |
+| FA-10 | A2/MC | Admin/PM/HR deeper-route coaching sparse | coaching | P2 | **CLOSED** — see `TRACK_14_0_FIXALL_FA10_COACHING_DENSITY_CLOSURE.md` (52 Admin + 15 PM + 24 HR pages inspected · 7 portal-group sanity check · 7 coaching gaps fixed · 4 hub-subtitle engineering leaks de-engineered · HR "Reject" terminology rewritten to "Needs Revision" across HrEmployeeRequestsQueue · 0 invalid deferrals · Five-Pillar 9.82 · Beautiful 9.84 · Trusted 9.90) |
 | FA-11 | 14.0/MC | Vehicle/Truck/Trailer DVIR picker label drift | terminology | P3 | **CLOSED — no actual drift** |
 | FA-12 | MC | Verified/Pending status chips lack inline tooltip | document descriptor | P2 | **CLOSED** (chip + tooltip + backend-pending-aware) |
 | FA-13 | A2/MC | No "?" affordance in portal chrome | help discoverability | P2 | DEFERRED — 14.0-H1 (real component build) |

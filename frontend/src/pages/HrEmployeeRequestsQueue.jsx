@@ -34,6 +34,11 @@ const STATUS_PILL = {
   approved: "bg-emerald-100 text-emerald-900 border-emerald-400",
   rejected: "bg-slate-200 text-slate-800 border-slate-400",
 };
+const STATUS_LABEL = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Needs Revision",
+};
 
 function Pill({ cls, children, testId }) {
   return (
@@ -193,7 +198,7 @@ export default function HrEmployeeRequestsQueue() {
         const d = await r.json().catch(() => ({}));
         throw new Error(d?.detail || `HTTP ${r.status}`);
       }
-      toast.success("Request rejected");
+      toast.success("Sent back to submitter for revision.");
       setRejectOpen(false);
       await fetchList();
     } catch (e) {
@@ -226,6 +231,13 @@ export default function HrEmployeeRequestsQueue() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 space-y-4">
+        <div className="rounded border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-[12px] text-emerald-900 flex items-start gap-2" data-testid="hr-requests-coaching">
+          <ClipboardList className="w-4 h-4 mt-0.5 shrink-0" />
+          <div>
+            <span className="font-bold">Review pending employee requests.</span>{" "}
+            Approve to create or update the employee record. Send back for revision if anything is unclear or incomplete — the submitter and the audit log both get your note.
+          </div>
+        </div>
         <div className="flex items-center gap-2 flex-wrap" data-testid="hr-requests-filters">
           {["pending", "approved", "rejected"].map(s => (
             <Button key={s} size="sm"
@@ -235,7 +247,7 @@ export default function HrEmployeeRequestsQueue() {
                       statusFilter === s ? "bg-slate-800 text-white" : "bg-white"
                     }`}
                     data-testid={`hr-requests-filter-${s}`}>
-              {s}
+              {STATUS_LABEL[s] || s}
             </Button>
           ))}
           <span className="mx-2 h-5 w-px bg-slate-300" />
@@ -290,7 +302,7 @@ export default function HrEmployeeRequestsQueue() {
                         </Pill>
                         <Pill cls={STATUS_PILL[req.status] || "bg-slate-100 text-slate-800 border-slate-300"}
                               testId={`hr-requests-status-pill-${req.status}`}>
-                          {req.status}
+                          {STATUS_LABEL[req.status] || req.status}
                         </Pill>
                         <span className="font-mono text-[10px] text-slate-500 uppercase tracking-wider">
                           {new Date(req.requested_at).toLocaleString()}
@@ -319,8 +331,8 @@ export default function HrEmployeeRequestsQueue() {
                         <div className="text-xs text-slate-700 italic mt-1">"{p.reason}"</div>
                       )}
                       {req.status === "rejected" && req.rejection_reason && (
-                        <div className="text-xs text-rose-700 italic mt-1">
-                          Rejected: "{req.rejection_reason}"
+                        <div className="text-xs text-amber-700 italic mt-1">
+                          Sent back: "{req.rejection_reason}"
                         </div>
                       )}
                       {req.status === "approved" && req.resulting_employee_id && (
@@ -337,9 +349,9 @@ export default function HrEmployeeRequestsQueue() {
                           <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Approve
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => openReject(req)}
-                                className="h-9 px-3 border-2 border-rose-400 text-rose-700 hover:bg-rose-50 font-bold uppercase tracking-wide text-xs"
+                                className="h-9 px-3 border-2 border-amber-400 text-amber-700 hover:bg-amber-50 font-bold uppercase tracking-wide text-xs"
                                 data-testid={`hr-requests-reject-${req.id}`}>
-                          <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+                          <XCircle className="w-3.5 h-3.5 mr-1" /> Needs Revision
                         </Button>
                       </div>
                     )}
@@ -457,9 +469,9 @@ export default function HrEmployeeRequestsQueue() {
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent className="sm:max-w-md" data-testid="hr-requests-reject-modal">
           <DialogHeader>
-            <DialogTitle>Reject Request</DialogTitle>
+            <DialogTitle>Send Back for Revision</DialogTitle>
             <DialogDescription>
-              A written reason (≥5 chars) is required. Recorded permanently in the audit log.
+              A short reason (5+ characters) goes back to the submitter and stays in the audit log.
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">

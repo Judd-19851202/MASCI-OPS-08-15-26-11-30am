@@ -77,7 +77,7 @@ export default function AdminDeployReadiness() {
         {loading ? (
           <LoadingState label="Running checks…" testId="deploy-readiness-loading" />
         ) : !state ? (
-          <EmptyState title="Could not load readiness check" body="The /api/admin/deploy-readiness endpoint did not return. Check System Health." />
+          <EmptyState title="Could not load readiness check" body="The deploy readiness check did not return. Check System Health." />
         ) : (
           <>
             {/* Overall banner */}

@@ -196,7 +196,7 @@ export default function HrHubV2() {
         portalName="MASCI"
         portalRole="HR Portal · Hub V2"
         pageTitle="What requires your attention today?"
-        subtitle="HR purpose: maintain workforce readiness. Every queue below is live · sourced from a real /api endpoint · clickable to a real /hr route."
+        subtitle="HR purpose: keep the workforce ready. Every queue below is a live count — open it to see who needs your attention today."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <RealLink to="/hr" testid="hr-hub-v2-back-classic">Open Classic HR Hub</RealLink>

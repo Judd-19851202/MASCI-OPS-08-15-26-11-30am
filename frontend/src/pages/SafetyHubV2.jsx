@@ -159,7 +159,7 @@ export default function SafetyHubV2() {
         portalName="MASCI"
         portalRole="Safety Portal · Hub V2"
         pageTitle="What safety work requires attention right now?"
-        subtitle="Every queue is live · sourced from /api/safety/overview · clickable to a real Safety surface. Trench Safety workflows preserved at /safety/trench-safety."
+        subtitle="Every queue is a live count — open it to see what Safety needs to act on today. Trench Safety workflows live under Trench Safety."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <RealLink to="/safety-portal" testid="safety-hub-v2-back-classic">Open Classic Safety Hub</RealLink>
