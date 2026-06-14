@@ -169,18 +169,17 @@ export default function DispatchHubV2() {
             textTransform: "uppercase", fontWeight: 700, textAlign: "center",
           }}
         >
-          Dispatch Hub V2 · Companion action-queue lane · Map-first Dispatch at /dispatch-portal remains canonical
+          Preview Environment · MASCI Operations Platform
         </div>
       )}
 
       <PortalShell
         portalName="MASCI"
-        portalRole="Dispatch Portal · Hub V2"
+        portalRole="Dispatch Portal"
         pageTitle="What requires the dispatcher's attention right now?"
         subtitle="Every queue is a live count — open it to see what Dispatch needs to act on today. The Map command surface is one click away."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/dispatch-portal" testid="dispatch-hub-v2-back-classic">Open Classic Dispatch Hub</RealLink>
             <RealLink to="/dispatch-portal/command" testid="dispatch-hub-v2-action-cc" intent="primary">Open Command Map</RealLink>
           </div>
         }
@@ -340,20 +339,6 @@ export default function DispatchHubV2() {
           />
         )}
 
-        <div
-          data-testid="dispatch-hub-v2-trace-note"
-          style={{
-            marginTop: 16, padding: "var(--pad-card)",
-            background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
-            borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
-          }}
-        >
-          <strong style={{ color: "var(--ink-strong)" }}>Dispatch Hub V2 · Track 13.6G recovery.</strong>{" "}
-          Presentation-only modernization — every dispatch engine, route,
-          permission, and integration is preserved. Every count traces to
-          a real source field; every card opens an existing dispatch
-          workflow. No new APIs · no new auth · no new write paths.
-        </div>
       </PortalShell>
     </div>
   );

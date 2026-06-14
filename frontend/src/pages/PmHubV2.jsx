@@ -326,18 +326,17 @@ export default function PmHubV2() {
             textTransform: "uppercase", fontWeight: 700, textAlign: "center",
           }}
         >
-          PM Hub V2 · Live PM operations hub · Real PM queues · Real workflow links · Legacy rollback at /pm/hub_legacy
+          Preview Environment · MASCI Operations Platform
         </div>
       )}
 
       <PortalShell
         portalName="MASCI"
-        portalRole="PM Portal · Hub V2"
+        portalRole="PM Portal"
         pageTitle="What requires your attention today?"
         subtitle="PM purpose: build projects. Every queue below is a live count — open it to see what needs your attention today."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/pm/hub" testid="pm-hub-v2-back-classic">Open Classic PM Hub</RealLink>
             <RealLink to="/pm/command-center" testid="pm-hub-v2-action-cc" intent="primary">Command Center</RealLink>
           </div>
         }
@@ -539,20 +538,6 @@ export default function PmHubV2() {
           </Section>
         )}
 
-        <div
-          data-testid="pm-hub-v2-purpose-note"
-          style={{
-            marginTop: 16, padding: "var(--pad-card)",
-            background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
-            borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
-          }}
-        >
-          <strong style={{ color: "var(--ink-strong)" }}>PM Hub V2 · Track 13.6D · second real portal conversion.</strong>
-          {" "}This hub renders live PM data through the Phase B1 design-system primitives.
-          {" "}This hub is the live PM operations surface at <code>/pm/hub</code> — real APIs, real workflow links.
-          {" "}Legacy rollback route remains available at <code>/pm/hub_legacy</code> during the operator signoff window.
-          {" "}Project Risks are permanently relabelled as Project Constraints. Surfaces without a backing MASCI engine are not rendered.
-        </div>
       </PortalShell>
     </div>
   );

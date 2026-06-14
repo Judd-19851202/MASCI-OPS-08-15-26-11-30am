@@ -151,18 +151,17 @@ export default function SafetyHubV2() {
             textTransform: "uppercase", fontWeight: 700, textAlign: "center",
           }}
         >
-          Safety Hub V2 · Live Safety operations hub · Trench Safety remains untouched · Legacy rollback at /safety-portal/hub_legacy
+          Preview Environment · MASCI Operations Platform
         </div>
       )}
 
       <PortalShell
         portalName="MASCI"
-        portalRole="Safety Portal · Hub V2"
+        portalRole="Safety Portal"
         pageTitle="What safety work requires attention right now?"
         subtitle="Every queue is a live count — open it to see what Safety needs to act on today. Trench Safety workflows live under Trench Safety."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/safety-portal" testid="safety-hub-v2-back-classic">Open Classic Safety Hub</RealLink>
             <RealLink to="/safety/trench-safety" testid="safety-hub-v2-action-trench" intent="primary">Trench Safety</RealLink>
           </div>
         }
@@ -290,20 +289,6 @@ export default function SafetyHubV2() {
           />
         )}
 
-        <div
-          data-testid="safety-hub-v2-trace-note"
-          style={{
-            marginTop: 16, padding: "var(--pad-card)",
-            background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
-            borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
-          }}
-        >
-          <strong style={{ color: "var(--ink-strong)" }}>Safety Hub V2 · Track 13.6H recovery.</strong>{" "}
-          Presentation-only modernization — every Safety engine, route,
-          permission, and integration is preserved. Trench Safety
-          workflows untouched (the benchmark). Every count traces to a
-          real source field; every card opens an existing Safety workflow.
-        </div>
       </PortalShell>
     </div>
   );

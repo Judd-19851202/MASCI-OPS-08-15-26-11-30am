@@ -188,18 +188,17 @@ export default function HrHubV2() {
             textTransform: "uppercase", fontWeight: 700, textAlign: "center",
           }}
         >
-          HR Hub V2 · Live HR operations hub · Real HR data · Real workflows · Legacy rollback at /hr/hub_legacy
+          Preview Environment · MASCI Operations Platform
         </div>
       )}
 
       <PortalShell
         portalName="MASCI"
-        portalRole="HR Portal · Hub V2"
+        portalRole="HR Portal"
         pageTitle="What requires your attention today?"
         subtitle="HR purpose: keep the workforce ready. Every queue below is a live count — open it to see who needs your attention today."
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/hr" testid="hr-hub-v2-back-classic">Open Classic HR Hub</RealLink>
             <RealLink to="/hr/employee-accountability" testid="hr-hub-v2-action-accountability" intent="primary">Accountability</RealLink>
           </div>
         }
@@ -380,19 +379,6 @@ export default function HrHubV2() {
           </Section>
         )}
 
-        <div
-          data-testid="hr-hub-v2-purpose-note"
-          style={{
-            marginTop: 16, padding: "var(--pad-card)",
-            background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
-            borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
-          }}
-        >
-          <strong style={{ color: "var(--ink-strong)" }}>HR Hub V2 · Track 13.6C · first real portal conversion.</strong>
-          {" "}This hub renders live HR data through the Phase B1 design-system primitives.
-          {" "}This hub is the live HR operations surface at <code>/hr</code> — real APIs, real workflows.
-          {" "}Legacy rollback route remains available at <code>/hr/hub_legacy</code> during the operator signoff window.
-        </div>
       </PortalShell>
     </div>
   );
