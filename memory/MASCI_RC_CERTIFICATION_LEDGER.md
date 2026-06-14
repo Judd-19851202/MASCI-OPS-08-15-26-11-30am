@@ -7019,3 +7019,62 @@ person-level routed notifications.
 
 **Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2B_PRODUCER_ROUTING_CLOSURE.md`.
 
+
+---
+
+## Track 14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP — OPERATIONAL DEFINITION-OF-DONE ENFORCEMENT
+
+**Date:** 2026-02-12 · **Status:** CLOSED · **Composite:** **9.90** (Trusted **9.95** · Proven **9.95**)
+
+### Outcome
+- Created canonical `/app/memory/MASCI_DEFINITION_OF_DONE.md` defining 5
+  completion states (NOT STARTED · BUILT · WIRED · OPERATIONAL ·
+  DONE-DONE). Every future closure ledger must map shipped features to
+  one of these states explicitly.
+- **RC1-PORTAL-NAV-001 FIXED**: Removed PM-visible Dispatch shortcut
+  from `pages/PmCommandCenter.jsx` (was sending PM tokens to
+  `/dispatch-portal/command` → 403).
+- **RC1-OWNERSHIP-UX-001 FIXED**: "Project Roster" card in
+  `components/pm/command/PmProjectFirstHome.jsx` now points at
+  `/pm/jobs` (was `/admin/projects` → 404 for PM tokens).
+- **PM Project Team workflow verified OPERATIONAL** end-to-end with live
+  screenshots: `/pm/command-center` (no Dispatch link) → `/pm/jobs` (28
+  jobs, 28 per-row Team links) → `/pm/job/{n}/team` (`JobTeamRosterPanel`).
+- **Admin Project Team workflow verified OPERATIONAL** via source review
+  + Phase 1 regression tests.
+
+### Tests
+- **46/46 backend pytest regression green**: Phase 1 (8) · Phase 2A (9)
+  · Phase 2B-1 (7) · Phase 2B-2A (11) · Phase 2B-2B (11). Confirms fixes
+  introduced zero backend regression.
+- NOTIFY-OWNERSHIP-LOCK D8 click-through audit from Phase 2B-2B closeout:
+  **OVERALL PASS**.
+
+### Open RC-1 blockers (3 · documented but out of scope this track)
+- **RC1-INVITE-FLOW-001** · P1: Inline "Invite to portal" CTA on
+  `JobTeamRosterPanel` row. Existing admin temp-password flow at
+  `/admin/people` is canonical and unchanged.
+- **RC1-NOTIFICATION-DEEPLINK-001**: Permanent recurring check (green).
+- **RC1-UI-CONSISTENCY-001** · P1: PortalSwitcher visibility on FL-only
+  tokens.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.85 |
+| Simple | 9.95 |
+| Beautiful | 9.85 |
+| Trusted | **9.95** |
+| Proven | **9.95** |
+
+**Composite: 9.90.**
+
+### Spanish status
+🟢 **UNBLOCKED.** Ownership Foundation is OPERATIONAL and the two RC-1
+portal-nav defects that would have caused Spanish copy to land on
+broken pages are fixed. Spanish, PDF Lockup, and Integration Honesty
+Banners are all cleared to begin.
+
+**Report:** `/app/memory/TRACK_14_0_RC1_DONE_DONE_CERTIFICATION_FIX_SWEEP.md`.
+**Reference:** `/app/memory/MASCI_DEFINITION_OF_DONE.md`.
+

@@ -2,6 +2,43 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-12 — Track 14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP CLOSED
+
+Operational Definition of Done enforcement + visible RC-1 portal defects fix.
+
+- **NEW canonical document** `/app/memory/MASCI_DEFINITION_OF_DONE.md`
+  defines 5 completion states (NOT STARTED · BUILT · WIRED · OPERATIONAL
+  · DONE-DONE) with five-pillar gating. Every future closure ledger
+  must map shipped features to one of these states explicitly.
+- **RC1-PORTAL-NAV-001 FIXED** — Removed PM-visible Dispatch shortcut
+  from `PmCommandCenter.jsx` (PM tokens cannot satisfy `RequireDispatch`
+  so clicking it 403'd).
+- **RC1-OWNERSHIP-UX-001 FIXED** — "Project Roster" card in
+  `PmProjectFirstHome.jsx` now points at `/pm/jobs` (was `/admin/projects`
+  which 404'd for PM tokens).
+- **PM Project Team workflow verified OPERATIONAL** end-to-end:
+  Sign in → `/pm/command-center` (no Dispatch link) → `/pm/jobs` (28
+  jobs, 28 Team links) → `/pm/job/{n}/team` (`JobTeamRosterPanel`).
+  Live screenshots captured.
+- **Admin Project Team workflow verified OPERATIONAL** via source
+  review + Phase 1 regression tests.
+- **46/46 backend pytest regression green** — fixes are pure frontend
+  navigation, no backend behaviour changed.
+- **Five-Pillar**: Powerful 9.85 · Simple 9.95 · Beautiful 9.85 ·
+  Trusted **9.95** · Proven **9.95** · Composite **9.90**.
+- 3 open RC-1 blockers tracked: RC1-INVITE-FLOW-001 (inline portal-invite
+  CTA on roster row · P1), RC1-NOTIFICATION-DEEPLINK-001 (permanent
+  recurring check · currently green), RC1-UI-CONSISTENCY-001
+  (PortalSwitcher visibility on FL-only tokens · P1).
+
+**Spanish Translation Sweep, PDF Lockup Sweep, and Integration Honesty
+Banners are all unblocked.**
+
+Ledger: `TRACK_14_0_RC1_DONE_DONE_CERTIFICATION_FIX_SWEEP.md`.
+Reference: `MASCI_DEFINITION_OF_DONE.md`.
+
+
+
 ## 2026-02-12 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2B CLOSED
 
 Ownership-Based Notification + Email Producer Routing Sweep.

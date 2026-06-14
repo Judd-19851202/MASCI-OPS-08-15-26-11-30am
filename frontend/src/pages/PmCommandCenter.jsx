@@ -17,7 +17,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard, Truck, Boxes, Wrench, ShieldAlert,
-  Activity, ExternalLink, ArrowLeft,
+  Activity, ArrowLeft,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageTitle } from "@/lib/usePageTitle";
@@ -99,13 +99,10 @@ export default function PmCommandCenter() {
       portalSwitcherCurrent="pm"
       primaryActions={
         <div className="flex items-center gap-3">
-          <Link
-            to="/dispatch-portal/command"
-            className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 font-mono uppercase tracking-widest"
-            data-testid="pm-cc-link-dispatch"
-          >
-            <ExternalLink className="w-3 h-3" /> Dispatch
-          </Link>
+          {/* RC1-PORTAL-NAV-001 · Dispatch shortcut removed —
+              clicking it sent PM users to /dispatch-portal/command
+              and returned 403. Dispatch surface is not part of the
+              PM portal scope. */}
           <Link
             to="/pm"
             className="text-xs text-slate-600 hover:text-slate-900 font-mono uppercase tracking-widest"

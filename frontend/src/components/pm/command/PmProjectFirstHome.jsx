@@ -468,7 +468,7 @@ function DocumentsAndPlans() {
     { to: "/daily", icon: FileText, label: t("Daily Reports"), hint: t("All submitted dailies, filterable by project."), testId: "pm-pfh-doc-daily" },
     { to: "/jha", icon: BookMarked, label: t("Job Hazard Plans"), hint: t("Active JHPs / JHAs across your projects."), testId: "pm-pfh-doc-jhp" },
     { to: "/pm/photos", icon: Camera, label: t("Photo Library"), hint: t("Every field photo submitted with a report."), testId: "pm-pfh-doc-photos" },
-    { to: "/admin/projects", icon: Briefcase, label: t("Project Roster"), hint: t("All projects you can access."), testId: "pm-pfh-doc-projects" },
+    { to: "/pm/jobs", icon: Briefcase, label: t("Project Roster"), hint: t("All projects you can access."), testId: "pm-pfh-doc-projects" },
   ];
   return (
     <SectionShell

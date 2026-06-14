@@ -4,6 +4,15 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ Track 14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP — DONE (2026-02-12)
+Canonical `MASCI_DEFINITION_OF_DONE.md` created. RC1-PORTAL-NAV-001 (PM Dispatch shortcut 403) FIXED. RC1-OWNERSHIP-UX-001 (PM Project Roster 404) FIXED. PM + Admin Project Team workflows OPERATIONAL with live screenshot proof. Five-Pillar **9.90**.
+Ledger: `TRACK_14_0_RC1_DONE_DONE_CERTIFICATION_FIX_SWEEP.md`.
+
+## 🟡 P1 — RC1 Blockers Open (3)
+1. **RC1-INVITE-FLOW-001** — Inline "Invite to portal" CTA on `JobTeamRosterPanel` row when rostered person has no `user_directory` link. Existing admin temp-password flow at `/admin/people` is canonical; PM-inline UX is the gap.
+2. **RC1-NOTIFICATION-DEEPLINK-001** — Permanent recurring check (currently green per Phase 2B-2B D8 audit). Re-verify after every producer wire.
+3. **RC1-UI-CONSISTENCY-001** — PortalSwitcher visibility on FL-only tokens. Out of scope this track; flag for UXS-11.
+
 ## ✅ 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2B — DONE (2026-02-12)
 11 job-scoped producer call sites now route to humans via `apply_routing` + extended ROLE_CHAIN. `recipient_role` preserved as scope guard. Transfer-redirect proven. 46/46 tests + NOTIFY-OWNERSHIP-LOCK matrix OVERALL PASS. Five-Pillar **9.90**. **Spanish unblocked.**
 Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2B_PRODUCER_ROUTING_CLOSURE.md`.

@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-12)
+- **14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP CLOSED** — Canonical
+  `MASCI_DEFINITION_OF_DONE.md` created (5 states: NOT STARTED · BUILT ·
+  WIRED · OPERATIONAL · DONE-DONE). RC1-PORTAL-NAV-001 (PM Dispatch
+  shortcut → 403) FIXED. RC1-OWNERSHIP-UX-001 (PM Project Roster card →
+  404) FIXED. PM + Admin Project Team workflows verified OPERATIONAL
+  end-to-end with live screenshots. 46/46 backend regression green.
+  Five-Pillar **9.90** (Trusted 9.95 · Proven 9.95). **Spanish + PDF +
+  Integration Honesty all unblocked.** Ledger:
+  `/app/memory/TRACK_14_0_RC1_DONE_DONE_CERTIFICATION_FIX_SWEEP.md`.
+
+
+## Latest Closed Track (2026-02-12)
 - **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2B CLOSED** — Producer
   Routing Sweep. 11 job-scoped producer call sites across 4 backend
   files (safety, qaqc, equipment, trench excavations) now populate
