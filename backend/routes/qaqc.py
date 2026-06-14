@@ -223,10 +223,25 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         try:
             if fs > 0:
                 from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                from lib.team_routing import apply_routing  # noqa: PLC0415
                 priority = "Critical" if fs >= 3 else "High"
                 title = (f"QA/QC deficiencies ({fs}) · "
                          f"{doc.get('inspection_kind') or 'inspection'} on "
                          f"{doc.get('project_name') or pn or '—'}")
+                _qa_pm_notif = {
+                    "type": "qaqc.deficiency",
+                    "title": title[:200],
+                    "message": (f"{fs} fail item(s) · "
+                                f"{doc.get('inspection_kind') or 'inspection'}")[:200],
+                    "severity": "Critical" if priority == "Critical" else "Warning",
+                    "recipient_role": "pm",
+                    "linked_source_module": "qaqc.inspections",
+                    "linked_source_record_id": doc.get("id"),
+                    "linked_project_number": pn or None,
+                }
+                await apply_routing(db, _qa_pm_notif,
+                                    project_number=pn,
+                                    event_key="qaqc.deficiency")
                 await emit_task_and_notification(
                     db,
                     task={
@@ -241,20 +256,10 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
                         "priority": priority,
                         "created_by": {"role": "system", "via": "qaqc-fanout"},
                     },
-                    notification={
-                        "type": "qaqc.deficiency",
-                        "title": title[:200],
-                        "message": (f"{fs} fail item(s) · "
-                                    f"{doc.get('inspection_kind') or 'inspection'}")[:200],
-                        "severity": "Critical" if priority == "Critical" else "Warning",
-                        "recipient_role": "pm",
-                        "linked_source_module": "qaqc.inspections",
-                        "linked_source_record_id": doc.get("id"),
-                        "linked_project_number": pn or None,
-                    },
+                    notification=_qa_pm_notif,
                 )
                 # Safety visibility
-                await emit_notification(db, {
+                _qa_safety_notif = {
                     "type": "qaqc.deficiency",
                     "title": title[:200],
                     "message": f"{fs} QA/QC fail item(s)",
@@ -263,7 +268,11 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
                     "linked_source_module": "qaqc.inspections",
                     "linked_source_record_id": doc.get("id"),
                     "linked_project_number": pn or None,
-                })
+                }
+                await apply_routing(db, _qa_safety_notif,
+                                    project_number=pn,
+                                    event_key="qaqc.safety_visibility")
+                await emit_notification(db, _qa_safety_notif)
                 # Iter160 · Operational signal
                 try:
                     from lib.operational_signals import record_signal  # noqa: PLC0415

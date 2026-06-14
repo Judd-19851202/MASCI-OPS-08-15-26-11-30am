@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-12)
+- **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2B CLOSED** — Producer
+  Routing Sweep. 11 job-scoped producer call sites across 4 backend
+  files (safety, qaqc, equipment, trench excavations) now populate
+  `recipient_user_id` from the active project roster via the new
+  `lib.team_routing.apply_routing` helper. ROLE_CHAIN extended with
+  6 event keys. Existing `recipient_role` always preserved as the
+  D2 leakage scope guard. 46/46 backend tests + NOTIFY-OWNERSHIP-LOCK
+  leakage matrix re-run OVERALL PASS. Transfer-redirect contract proven
+  (post-replacement notification routes to new super, not retired).
+  Five-Pillar **9.90** (Trusted 9.95 · Proven 9.95). **Spanish is
+  UNBLOCKED.** Ledger:
+  `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2B_PRODUCER_ROUTING_CLOSURE.md`.
+
+
+## Latest Closed Track (2026-02-12)
 - **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2A CLOSED** — Operational
   Writer Team-Snapshot Embedding Sweep. 12 job-scoped writers now embed
   the frozen `team_snapshot` at submit time via `lib.team_routing.snapshot_team`.

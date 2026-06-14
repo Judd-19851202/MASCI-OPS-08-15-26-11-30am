@@ -91,17 +91,60 @@ async def resolve_routing(
                 "resolved_email": None}
 
 
+async def apply_routing(
+    db,
+    notification: Dict[str, Any],
+    *,
+    project_number: Optional[str],
+    event_key: str,
+) -> Dict[str, Any]:
+    """Mutate ``notification`` in place to populate ``recipient_user_id``
+    from the active project roster for the given ``event_key`` (a key
+    of ROLE_CHAIN). Returns the same dict so producers can chain.
+
+    Behaviour is gated by ``OWNERSHIP_LOCK_ENABLED``:
+      * Flag OFF / no project / no chain → no-op (notification unchanged).
+      * Flag ON → walks the role chain; on first active rostered match,
+        sets ``recipient_user_id`` AND ``linked_project_number`` (if not
+        already set). The existing ``recipient_role`` is preserved as the
+        scope/fallback guard — never removed, never broadened.
+
+    Never raises. The originating producer must always succeed even if
+    routing resolution fails — Phase-2B routing is best-effort.
+    """
+    chain = ROLE_CHAIN.get(event_key) or []
+    fallback = notification.get("recipient_role")
+    routing = await resolve_routing(
+        db, project_number=project_number,
+        role_chain=chain, fallback_role=fallback,
+    )
+    uid = routing.get("recipient_user_id")
+    if uid:
+        notification["recipient_user_id"] = uid
+    # Stamp linked_project_number defensively so consumers can scope the
+    # bell to the project even if they do not re-derive it.
+    if project_number and not notification.get("linked_project_number"):
+        notification["linked_project_number"] = project_number
+    return notification
+
+
 # Producer-event role chains (single source of truth — bug-fix here
 # propagates platform-wide).
 ROLE_CHAIN: Dict[str, List[str]] = {
     "daily_report.submitted":   ["superintendent", "co_pm", "pm"],
     "daily_report.needs_revision": ["foreman", "superintendent", "pm"],
     "incident.created":         ["safety_lead", "superintendent", "pm"],
+    "incident.pm_visibility":   ["pm", "co_pm", "superintendent"],
+    "inspection.deficiency":    ["safety_lead", "superintendent", "foreman"],
+    "inspection.pm_visibility": ["pm", "co_pm", "superintendent"],
     "trench.hold_opened":       ["safety_lead", "superintendent", "foreman", "pm"],
     "trench.reinspection":      ["safety_lead", "superintendent", "foreman"],
     "qaqc.deficiency":          ["project_engineer", "pm", "co_pm", "superintendent"],
+    "qaqc.safety_visibility":   ["safety_lead", "superintendent"],
     "safety_meeting.submitted": ["safety_lead", "superintendent", "pm"],
+    "jha.submitted":            ["safety_lead", "superintendent", "foreman"],
     "preop.failed":             ["shop_contact", "superintendent", "pm"],
+    "preop.dispatch_visibility": ["dispatcher_contact", "superintendent"],
     "dvir.failed":              ["shop_contact", "dispatcher_contact", "superintendent"],
     "asset_doc.expired":        ["asset_admin", "locate_coordinator", "pm"],
     "asset_doc.expires":        ["asset_admin", "locate_coordinator", "pm"],
@@ -116,5 +159,6 @@ __all__ = [
     "ownership_lock_enabled",
     "snapshot_team",
     "resolve_routing",
+    "apply_routing",
     "ROLE_CHAIN",
 ]

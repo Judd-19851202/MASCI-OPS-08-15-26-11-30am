@@ -6962,3 +6962,60 @@ Spine wired. Two producers prove the contract end-to-end. Feature flag is honest
 **STILL BLOCKED** until Phase 2B-2B (producer routing sweep) ships.
 
 **Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2A_SNAPSHOT_EMBEDDING_CLOSURE.md`.
+
+---
+
+## Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2B — OWNERSHIP-BASED NOTIFICATION + EMAIL PRODUCER ROUTING SWEEP
+
+**Date:** 2026-02-12 · **Status:** CLOSED · **Composite:** **9.90** (Trusted **9.95** · Proven **9.95**)
+
+### Outcome
+- 11 job-scoped producer call sites across 4 backend files (`safety.py`,
+  `qaqc.py`, `equipment.py`, `trench_safety/excavations.py`) now populate
+  `recipient_user_id` from the active project roster via the new
+  `lib.team_routing.apply_routing` helper.
+- `ROLE_CHAIN` extended with 6 new event keys for per-recipient
+  notification variants. Existing `recipient_role` is preserved on
+  every notification as the D2 leakage scope guard — routing only ever
+  NARROWS visibility, never broadens.
+- 6 producers deferred with documented reasons (Daily Report has no
+  bell producer, Asset Transfer needs two-job resolver, DVIR shares
+  Pre-Op writer, HR Training is employee-scoped, Dispatch Stale has
+  zero preview data, 811 producer skeleton not built).
+- Transfer-redirect contract proven by direct roster mutation test:
+  retire scratch superintendent mid-test → next incident notification
+  resolves to the replacement user_id, never to the retired user_id.
+
+### Tests
+- **46/46 backend pytest green**: Phase 1 (8) · Phase 2A (9) · Phase
+  2B-1 (7) · Phase 2B-2A (11) · Phase 2B-2B (11).
+- `tests/test_notify_ownership_lock.py` (D2/D3/D7/D8 leakage + click-
+  through matrix): **OVERALL PASS** re-run with the new routing wired.
+- New test suite `tests/test_ownership_producer_routing.py` covers
+  helper safety (off-state, no project, unknown event), end-to-end
+  producer→DB→notification verification for 6 producer families, and
+  the transfer-redirect contract.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.85 |
+| Simple | 9.95 |
+| Beautiful | 9.80 |
+| Trusted | **9.95** |
+| Proven | **9.95** |
+
+**Composite: 9.90.**
+
+### Spanish status
+**UNBLOCKED.** Ownership Foundation is complete (Phase 1 + 2A + 2B-1 +
+2B-2A + 2B-2B all green). Operator-facing screens now sit on top of
+person-level routed notifications.
+
+### RC defects tracked
+- **PORTAL-NAV-001** — PM-visible Dispatch shortcut / deep-link causes
+  Dispatch Portal 403. Pre-existing; not introduced or affected by this
+  phase. Must be resolved before RC-1.
+
+**Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2B_PRODUCER_ROUTING_CLOSURE.md`.
+

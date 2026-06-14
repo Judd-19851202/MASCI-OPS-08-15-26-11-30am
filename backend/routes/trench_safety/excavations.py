@@ -533,13 +533,18 @@ def register_excavation_routes(
         # Safety also gets the email.
         try:
             from lib.event_fanout import emit_notification  # noqa: PLC0415
+            from lib.team_routing import apply_routing  # noqa: PLC0415
+            # Resolve project_number for roster routing.
+            _ex = await db.trench_excavations.find_one(
+                {"id": ex_id}, {"_id": 0, "project_number": 1})
+            _pn = (_ex or {}).get("project_number")
             recipients = [
-                ("safety", "Critical", True),
-                ("superintendent", "Warning", False),
-                ("admin", "Warning", False),
+                ("safety", "Critical", True, "trench.reinspection"),
+                ("superintendent", "Warning", False, "trench.reinspection"),
+                ("admin", "Warning", False, None),  # corporate awareness only
             ]
-            for role, severity, with_email in recipients:
-                await emit_notification(db, {
+            for role, severity, with_email, event_key in recipients:
+                _notif = {
                     "type": "trench_safety.reinspection_requested",
                     "title": f"Reinspection requested by foreman · {ex_id}",
                     "message": f"{reason} · {(body.note or '')[:120]}",
@@ -548,8 +553,14 @@ def register_excavation_routes(
                     "linked_source_module": "trench_safety:reinspection_requested",
                     "linked_source_record_id": ex_id,
                     "linked_equipment_id": ex_id,
+                    "linked_project_number": _pn,
                     "email_enabled": with_email,
-                })
+                }
+                if event_key:
+                    await apply_routing(db, _notif,
+                                        project_number=_pn,
+                                        event_key=event_key)
+                await emit_notification(db, _notif)
         except Exception as e:  # noqa: BLE001
             logger.warning("foreman reinspection notify failed: %s", e)
         return await db.trench_excavations.find_one({"id": ex_id}, {"_id": 0})

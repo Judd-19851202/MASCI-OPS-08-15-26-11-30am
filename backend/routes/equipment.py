@@ -263,6 +263,7 @@ def register_equipment_routes(
             # shop and dispatch. Fire-and-forget; never blocks save.
             try:
                 from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                from lib.team_routing import apply_routing  # noqa: PLC0415
                 fail_n = int(insp.fail_count or 0)
                 priority = "Critical" if fail_n >= 3 else "High"
                 eq_id_for_link = None
@@ -275,6 +276,21 @@ def register_equipment_routes(
                 except Exception:
                     eq_id_for_link = None
                 title = f"Failed pre-op — {insp.equipment_unit or '—'} ({fail_n} item{'s' if fail_n != 1 else ''})"
+                _shop_notif = {
+                    "type": "preop.failed",
+                    "title": title[:200],
+                    "message": (f"Operator: {insp.operator_name or '—'} · "
+                                f"{fail_n} failed item(s)")[:200],
+                    "severity": "Critical" if priority == "Critical" else "Warning",
+                    "recipient_role": "shop",
+                    "linked_source_module": "equipment.preop",
+                    "linked_source_record_id": insp.id,
+                    "linked_equipment_id": eq_id_for_link,
+                    "linked_project_number": insp.project_number or None,
+                }
+                await apply_routing(db, _shop_notif,
+                                    project_number=insp.project_number,
+                                    event_key="preop.failed")
                 await emit_task_and_notification(
                     db,
                     task={
@@ -285,24 +301,15 @@ def register_equipment_routes(
                         "source_module": "equipment.preop",
                         "source_record_id": insp.id,
                         "linked_equipment_id": eq_id_for_link,
+                        "linked_project_number": insp.project_number or None,
                         "assignee_role": "shop",
                         "priority": priority,
                         "created_by": {"role": "system", "via": "preop-fanout"},
                     },
-                    notification={
-                        "type": "preop.failed",
-                        "title": title[:200],
-                        "message": (f"Operator: {insp.operator_name or '—'} · "
-                                    f"{fail_n} failed item(s)")[:200],
-                        "severity": "Critical" if priority == "Critical" else "Warning",
-                        "recipient_role": "shop",
-                        "linked_source_module": "equipment.preop",
-                        "linked_source_record_id": insp.id,
-                        "linked_equipment_id": eq_id_for_link,
-                    },
+                    notification=_shop_notif,
                 )
                 # Dispatch visibility — same event, no task assignment
-                await emit_notification(db, {
+                _dispatch_notif = {
                     "type": "preop.failed",
                     "title": title[:200],
                     "message": f"{insp.equipment_unit or '—'} flagged from pre-op",
@@ -311,7 +318,12 @@ def register_equipment_routes(
                     "linked_source_module": "equipment.preop",
                     "linked_source_record_id": insp.id,
                     "linked_equipment_id": eq_id_for_link,
-                })
+                    "linked_project_number": insp.project_number or None,
+                }
+                await apply_routing(db, _dispatch_notif,
+                                    project_number=insp.project_number,
+                                    event_key="preop.dispatch_visibility")
+                await emit_notification(db, _dispatch_notif)
                 # Iter160 · Operational signal — equipment fail throughput
                 try:
                     from lib.operational_signals import record_signal  # noqa: PLC0415

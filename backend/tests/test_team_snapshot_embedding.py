@@ -299,6 +299,7 @@ def test_snapshot_immutability_across_roster_mutation(tokens):
         cli, db = await _get_db()
         try:
             await db.project_team_assignments.insert_one({
+                "id": f"asn-{TEST_TAG}",
                 "assignment_id": f"asn-{TEST_TAG}",
                 "project_number": PROJECT_NUMBER,
                 "assignment_role": "co_pm",

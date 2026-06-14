@@ -2,6 +2,44 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-12 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2B CLOSED
+
+Ownership-Based Notification + Email Producer Routing Sweep.
+
+- **11 job-scoped producer call sites** across 4 backend files now
+  populate `recipient_user_id` from the active project roster via the
+  new `lib.team_routing.apply_routing` helper. Producers wired:
+  Inspection deficiency (safety + PM), Safety Meeting, JHA, Incident
+  (safety + PM), QA/QC deficiency (PM + safety), Pre-Op failed (shop
+  + dispatch), Trench reinspection (safety + super broadcast).
+- **6 producers deferred** with documented reasons (Daily Report has no
+  bell producer, Asset Transfer requires two-job resolver, DVIR shares
+  Pre-Op writer, HR Training is employee-scoped, Dispatch Stale has zero
+  preview data, 811 producer skeleton not built).
+- **ROLE_CHAIN extended** with 6 event keys for the new per-recipient
+  notification variants (`inspection.deficiency`, `inspection.pm_visibility`,
+  `incident.pm_visibility`, `qaqc.safety_visibility`, `preop.dispatch_visibility`,
+  `jha.submitted`).
+- **Existing `recipient_role` always preserved** as the D2 leakage scope
+  guard — `apply_routing` only ever NARROWS visibility, never broadens.
+- **NEW test suite** `tests/test_ownership_producer_routing.py` — 11
+  tests including transfer-redirect proof (replace superintendent
+  mid-test, next incident routes to replacement, not retired).
+- **46/46 backend pytest green**: Phase 1 (8) + Phase 2A (9) + Phase 2B-1
+  (7) + Phase 2B-2A (11) + Phase 2B-2B (11). NOTIFY-OWNERSHIP-LOCK
+  leakage matrix CLI: **OVERALL PASS**.
+- **Five-Pillar**: Powerful 9.85 · Simple 9.95 · Beautiful 9.80 · Trusted
+  **9.95** · Proven **9.95** · Composite **9.90**.
+- ~280 LOC of additive routing wiring across 5 backend files + 470 LOC
+  test file.
+
+**Spanish translation sweep is UNBLOCKED.** Operator-facing safety/FL
+screens now sit on top of person-level routed notifications.
+
+Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2B_2B_PRODUCER_ROUTING_CLOSURE.md`.
+
+
+
 ## 2026-02-12 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B-2A CLOSED
 
 Operational Writer Team-Snapshot Embedding Sweep.

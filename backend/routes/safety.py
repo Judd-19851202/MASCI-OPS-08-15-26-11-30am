@@ -337,12 +337,28 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             needs_task = auto_fail > 0 or stop_work or hazards_seen
             if needs_task:
                 from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                from lib.team_routing import apply_routing  # noqa: PLC0415
                 priority = "Critical" if stop_work else ("High" if auto_fail > 0 else "Medium")
                 title = ("Stop-work issued · safety inspection follow-up"
                          if stop_work
                          else (f"Auto-fail items ({auto_fail}) · safety inspection follow-up"
                                if auto_fail > 0
                                else "Safety inspection — hazards observed"))
+                _safety_notif = {
+                    "type": "inspection.deficiency" if not stop_work else "inspection.stop_work",
+                    "title": title[:200],
+                    "message": (f"{doc.get('project_name') or '—'} · "
+                                f"{doc.get('location') or '—'} · "
+                                f"{doc.get('inspection_date') or ''}")[:200],
+                    "severity": "Critical" if stop_work else "Warning",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.inspections",
+                    "linked_source_record_id": doc.get("id"),
+                    "linked_project_number": doc.get("project_number") or None,
+                }
+                await apply_routing(db, _safety_notif,
+                                    project_number=doc.get("project_number"),
+                                    event_key="inspection.deficiency")
                 await emit_task_and_notification(
                     db,
                     task={
@@ -358,21 +374,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                         "priority": priority,
                         "created_by": {"role": "system", "via": "inspection-fanout"},
                     },
-                    notification={
-                        "type": "inspection.deficiency" if not stop_work else "inspection.stop_work",
-                        "title": title[:200],
-                        "message": (f"{doc.get('project_name') or '—'} · "
-                                    f"{doc.get('location') or '—'} · "
-                                    f"{doc.get('inspection_date') or ''}")[:200],
-                        "severity": "Critical" if stop_work else "Warning",
-                        "recipient_role": "safety",
-                        "linked_source_module": "safety.inspections",
-                        "linked_source_record_id": doc.get("id"),
-                        "linked_project_number": doc.get("project_number") or None,
-                    },
+                    notification=_safety_notif,
                 )
                 # PM-side visibility
-                await emit_notification(db, {
+                _pm_notif = {
                     "type": "inspection.deficiency",
                     "title": (f"Safety inspection deficiency on {doc.get('project_name') or 'your project'}"
                               if not stop_work else
@@ -384,7 +389,11 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     "linked_source_module": "safety.inspections",
                     "linked_source_record_id": doc.get("id"),
                     "linked_project_number": doc.get("project_number") or None,
-                })
+                }
+                await apply_routing(db, _pm_notif,
+                                    project_number=doc.get("project_number"),
+                                    event_key="inspection.pm_visibility")
+                await emit_notification(db, _pm_notif)
                 # Iter160 · Operational signal
                 try:
                     from lib.operational_signals import record_signal  # noqa: PLC0415
@@ -481,7 +490,24 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         # BATCH K · OMEGA-8 / NEW-GAP-A — fan-out task + bell to safety.
         try:
             from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+            from lib.team_routing import apply_routing  # noqa: PLC0415
             title = f"Safety Meeting — {(doc.get('topic') or 'topic')[:80]}"
+            _mtg_notif = {
+                "type": "meeting.submitted",
+                "title": title[:200],
+                "message": (
+                    f"Project: {doc.get('project_name') or '—'} · "
+                    f"Conducted by: {doc.get('conducted_by') or '—'}"
+                )[:200],
+                "severity": "Info",
+                "recipient_role": "safety",
+                "linked_source_module": "safety.meeting",
+                "linked_source_record_id": meeting.id,
+                "linked_project_number": doc.get("project_number") or None,
+            }
+            await apply_routing(db, _mtg_notif,
+                                project_number=doc.get("project_number"),
+                                event_key="safety_meeting.submitted")
             await emit_task_and_notification(
                 db,
                 task={
@@ -494,22 +520,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     )[:4000],
                     "source_module": "safety.meeting",
                     "source_record_id": meeting.id,
+                    "linked_project_number": doc.get("project_number") or None,
                     "assignee_role": "safety",
                     "priority": "Medium",
                     "created_by": {"role": "system", "via": "meeting-fanout"},
                 },
-                notification={
-                    "type": "meeting.submitted",
-                    "title": title[:200],
-                    "message": (
-                        f"Project: {doc.get('project_name') or '—'} · "
-                        f"Conducted by: {doc.get('conducted_by') or '—'}"
-                    )[:200],
-                    "severity": "Info",
-                    "recipient_role": "safety",
-                    "linked_source_module": "safety.meeting",
-                    "linked_source_record_id": meeting.id,
-                },
+                notification=_mtg_notif,
             )
         except Exception:
             pass
@@ -578,7 +594,24 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         # BATCH K · OMEGA-7 — fan-out task + bell to safety.
         try:
             from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+            from lib.team_routing import apply_routing  # noqa: PLC0415
             title = f"JHA — {(doc.get('job_title') or 'job')[:80]}"
+            _jha_notif = {
+                "type": "jha.submitted",
+                "title": title[:200],
+                "message": (
+                    f"Project: {doc.get('project_name') or '—'} · "
+                    f"Crew lead: {doc.get('crew_lead') or '—'}"
+                )[:200],
+                "severity": "Info",
+                "recipient_role": "safety",
+                "linked_source_module": "safety.jha",
+                "linked_source_record_id": jha.id,
+                "linked_project_number": doc.get("project_number") or None,
+            }
+            await apply_routing(db, _jha_notif,
+                                project_number=doc.get("project_number"),
+                                event_key="jha.submitted")
             await emit_task_and_notification(
                 db,
                 task={
@@ -591,22 +624,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     )[:4000],
                     "source_module": "safety.jha",
                     "source_record_id": jha.id,
+                    "linked_project_number": doc.get("project_number") or None,
                     "assignee_role": "safety",
                     "priority": "Medium",
                     "created_by": {"role": "system", "via": "jha-fanout"},
                 },
-                notification={
-                    "type": "jha.submitted",
-                    "title": title[:200],
-                    "message": (
-                        f"Project: {doc.get('project_name') or '—'} · "
-                        f"Crew lead: {doc.get('crew_lead') or '—'}"
-                    )[:200],
-                    "severity": "Info",
-                    "recipient_role": "safety",
-                    "linked_source_module": "safety.jha",
-                    "linked_source_record_id": jha.id,
-                },
+                notification=_jha_notif,
             )
         except Exception:
             pass
@@ -708,10 +731,26 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             # safety form save NEVER blocks on fan-out failure.
             try:
                 from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+                from lib.team_routing import apply_routing  # noqa: PLC0415
                 severity = (doc.get("severity") or "").lower()
                 priority = "Critical" if severity in ("critical", "high", "serious") else "High"
                 title = (f"Incident follow-up — {doc.get('incident_type') or 'Incident'} "
                          f"({doc.get('project_name') or 'project'})")
+                _inc_notif = {
+                    "type": "incident.created",
+                    "title": f"New incident reported — {doc.get('incident_type') or 'Incident'}",
+                    "message": (f"{doc.get('project_name') or '—'} · "
+                                f"severity {doc.get('severity') or 'Unspecified'} · "
+                                f"reporter {doc.get('reported_by') or '—'}")[:200],
+                    "severity": "Critical" if priority == "Critical" else "Warning",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.incidents",
+                    "linked_source_record_id": doc.get("id"),
+                    "linked_project_number": doc.get("project_number") or None,
+                }
+                await apply_routing(db, _inc_notif,
+                                    project_number=doc.get("project_number"),
+                                    event_key="incident.created")
                 await emit_task_and_notification(
                     db,
                     task={
@@ -726,24 +765,13 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                         "priority": priority,
                         "created_by": {"role": "system", "via": "incident-fanout"},
                     },
-                    notification={
-                        "type": "incident.created",
-                        "title": f"New incident reported — {doc.get('incident_type') or 'Incident'}",
-                        "message": (f"{doc.get('project_name') or '—'} · "
-                                    f"severity {doc.get('severity') or 'Unspecified'} · "
-                                    f"reporter {doc.get('reported_by') or '—'}")[:200],
-                        "severity": "Critical" if priority == "Critical" else "Warning",
-                        "recipient_role": "safety",
-                        "linked_source_module": "safety.incidents",
-                        "linked_source_record_id": doc.get("id"),
-                        "linked_project_number": doc.get("project_number") or None,
-                    },
+                    notification=_inc_notif,
                 )
                 # Project Health surfaces — emit a second pm-side notification
                 # so the PM sees their project picked up an incident without
                 # owning the corrective action assignment.
                 from lib.event_fanout import emit_notification  # noqa: PLC0415
-                await emit_notification(db, {
+                _pm_notif = {
                     "type": "incident.created",
                     "title": f"Incident on {doc.get('project_name') or 'your project'}",
                     "message": (f"{doc.get('incident_type') or 'Incident'} · "
@@ -753,7 +781,11 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     "linked_source_module": "safety.incidents",
                     "linked_source_record_id": doc.get("id"),
                     "linked_project_number": doc.get("project_number") or None,
-                })
+                }
+                await apply_routing(db, _pm_notif,
+                                    project_number=doc.get("project_number"),
+                                    event_key="incident.pm_visibility")
+                await emit_notification(db, _pm_notif)
                 # Iter160 · Operational signal — passive throughput observation.
                 try:
                     from lib.operational_signals import record_signal  # noqa: PLC0415
