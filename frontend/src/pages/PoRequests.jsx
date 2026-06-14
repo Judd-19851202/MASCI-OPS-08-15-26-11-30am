@@ -437,7 +437,7 @@ function AddDialog({ open, setOpen, onSaved }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!form.project_number.trim() || !form.vendor.trim() || !form.description.trim()) {
-      toast.error(t("Please select a job, choose a vendor, and add a description.")); return;
+      toast.error(t("Choose a job, vendor, and description first.")); return;
     }
     // project_name is local-only (used for picker display) — strip before submit
     // so the backend PoRequestCreate schema receives only the fields it knows.

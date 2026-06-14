@@ -64,7 +64,7 @@ export default function AdminPasswordConfirm({
       await api.post("/admin/auth/verify-password", { password });
     } catch (e) {
       const detail = e?.response?.data?.detail;
-      toast.error(typeof detail === "string" ? detail : t("Wrong password"));
+      toast.error(typeof detail === "string" ? detail : t("Wrong password. Try again."));
       setBusy(false);
       return;
     }

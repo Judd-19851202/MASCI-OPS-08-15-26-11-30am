@@ -50,7 +50,7 @@ export function EditProjectDialog({ kind, recordId, current, onSaved }) {
 
   const handleSave = async () => {
     if (!job.project_name?.trim()) {
-      toast.error(t("Project name is required"));
+      toast.error(t("Project name required."));
       return;
     }
     setSaving(true);
@@ -59,11 +59,11 @@ export function EditProjectDialog({ kind, recordId, current, onSaved }) {
         `/admin/records/${kind}/${recordId}/project`,
         job,
       );
-      toast.success(t("Project updated"));
+      toast.success(t("Changes saved."));
       setOpen(false);
       onSaved?.(res.data?.record);
     } catch (e) {
-      toast.error(operationalError(e, t("Failed to update project — try again")));
+      toast.error(operationalError(e, t("Could not save changes. Try again.")));
     } finally {
       setSaving(false);
     }

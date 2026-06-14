@@ -116,7 +116,7 @@ export default function FlAccountabilityWidget({ employeeId, onClose, compact = 
           </div>
         </div>
         {onClose ? (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10" data-testid="fl-widget-close">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10" data-testid="fl-widget-close" aria-label="Close" title="Close">
             <X className="w-4 h-4" />
           </Button>
         ) : null}

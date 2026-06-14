@@ -185,6 +185,7 @@ export const SupplierCombo = ({
           }}
           data-testid={`${testId}-toggle`}
           title={t("Browse supplier list")}
+          aria-label={t("Browse supplier list")}
         >
           <ChevronsUpDown className="w-4 h-4" />
         </Button>

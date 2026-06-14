@@ -275,6 +275,8 @@ export default function ViewIncident() {
               onClick={handleDelete}
               className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
               data-testid="delete-btn"
+              aria-label="Delete incident"
+              title="Delete"
             >
               <Trash2 className="w-4 h-4" />
             </Button>

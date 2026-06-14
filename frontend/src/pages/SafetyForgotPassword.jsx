@@ -44,9 +44,9 @@ export default function SafetyForgotPassword() {
   const copyToken = async () => {
     try {
       await navigator.clipboard.writeText(devToken);
-      toast.success("Copied");
+      toast.success("Copied.");
     } catch {
-      toast.error("Copy failed");
+      toast.error("Copy failed — write it down by hand.");
     }
   };
 

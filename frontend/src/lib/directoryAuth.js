@@ -123,6 +123,7 @@ export function landingFor(user) {
         shop: "/shop",
         safety: "/safety-portal",
         dispatch: "/dispatch-portal",
+        field_leadership: "/leadership",
       }[portals[0]] || "/"
     );
   }

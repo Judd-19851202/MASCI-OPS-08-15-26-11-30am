@@ -27,7 +27,7 @@ export default function PmJobsRead() {
       setItems(Array.isArray(r.data?.items) ? r.data.items : []);
       setScope(r.data?.scope || null);
     } catch (e) {
-      toast.error(operationalError(e, "Failed to load jobs"));
+      toast.error(operationalError(e, "Could not load jobs. Try again."));
     } finally {
       setLoading(false);
     }

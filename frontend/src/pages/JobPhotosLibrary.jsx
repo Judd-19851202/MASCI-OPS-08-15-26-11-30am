@@ -78,7 +78,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
         setJmMaps(buildJobsMasterMaps(jm.data || []));
       },
       () => {
-        toast.error(t("Failed to load photos"));
+        toast.error(t("Could not load photos. Try again."));
         setItems([]);
       }
     );

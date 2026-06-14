@@ -119,11 +119,11 @@ export default function SignatureCapture({
     }
     if (refusal) {
       if (!refusalReason.trim()) {
-        toast.error("Refusal reason is required");
+        toast.error("Refusal reason required.");
         return;
       }
     } else if (!hasStrokes) {
-      toast.error("Please sign the pad or mark 'refuse to sign'");
+      toast.error("Sign the pad, or mark 'refuse to sign'.");
       return;
     }
     setSaving(true);

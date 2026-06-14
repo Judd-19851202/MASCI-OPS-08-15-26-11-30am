@@ -195,6 +195,8 @@ function EmailCardDialog({ open, onOpenChange, card, mode = "single" }) {
                     onClick={() => removeRow(i)}
                     className="h-12 w-12 text-slate-400 hover:text-red-700"
                     data-testid={`safety-card-email-rm-${i}`}
+                    aria-label="Remove email recipient"
+                    title="Remove"
                   >
                     <X className="w-4 h-4" />
                   </Button>

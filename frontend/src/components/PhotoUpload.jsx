@@ -218,6 +218,8 @@ export const PhotoUpload = ({
                 variant="destructive"
                 className="absolute top-1 right-1 h-7 w-7 z-10"
                 data-testid={`${testIdBase}-remove-${i}`}
+                aria-label="Remove photo"
+                title="Remove photo"
               >
                 <X className="w-4 h-4" />
               </Button>

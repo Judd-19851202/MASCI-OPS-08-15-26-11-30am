@@ -64,10 +64,10 @@ function PublicReportModalInner({ onClose, defaultAssetId, lockAssetId }) {
       if (r.data?.ok) {
         setDone(true);
       } else {
-        setErr(t("Could not submit report. Please try again."));
+        setErr(t("Could not submit. Try again."));
       }
     } catch (e) {
-      setErr(e?.response?.data?.detail || e?.message || t("Could not submit report."));
+      setErr(e?.response?.data?.detail || e?.message || t("Could not submit. Try again."));
     } finally {
       setBusy(false);
     }

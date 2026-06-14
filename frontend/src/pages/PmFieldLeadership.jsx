@@ -67,7 +67,7 @@ export default function PmFieldLeadership() {
       setRows(d.items || []);
       setCounts(d.counts_by_kind || {});
     } catch (e) {
-      toast.error("Failed to load Field Leadership records");
+      toast.error("Could not load Field Leadership records. Try again.");
     } finally {
       setLoading(false);
     }

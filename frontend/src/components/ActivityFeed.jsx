@@ -41,7 +41,7 @@ export function ActivityFeed({ projectId, scope, limit = 15, compact = false }) 
       } catch (e) {
         if (alive) {
           setItems([]);
-          toast.error(apiErr(e?.response?.data?.detail, "Failed to load activity"));
+          toast.error(apiErr(e?.response?.data?.detail, "Could not load activity. Try again."));
         }
       }
     })();

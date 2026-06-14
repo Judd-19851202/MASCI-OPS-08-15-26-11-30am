@@ -5,32 +5,52 @@
 // Operator-friendly language · photos never required by default.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Save, RotateCcw } from "lucide-react";
+import { Loader2, Search, RotateCcw, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 const LEVELS = [
-  { value: "required",       label: "Required",       color: "bg-red-100 text-red-900 border-red-300" },
-  { value: "recommended",    label: "Recommended",    color: "bg-amber-100 text-amber-900 border-amber-300" },
-  { value: "optional",       label: "Optional",       color: "bg-sky-100 text-sky-900 border-sky-300" },
-  { value: "not_applicable", label: "Not Applicable", color: "bg-slate-100 text-slate-700 border-slate-300" },
+  {
+    value: "required",
+    label: "Required",
+    color: "bg-red-100 text-red-900 border-red-300",
+    help: "Must be on file. Asset will show Not Ready until uploaded.",
+  },
+  {
+    value: "recommended",
+    label: "Recommended",
+    color: "bg-amber-100 text-amber-900 border-amber-300",
+    help: "Should be on file. Will appear as a soft warning until uploaded.",
+  },
+  {
+    value: "optional",
+    label: "Optional",
+    color: "bg-sky-100 text-sky-900 border-sky-300",
+    help: "Nice to have. Never blocks readiness.",
+  },
+  {
+    value: "not_applicable",
+    label: "Not Applicable",
+    color: "bg-slate-100 text-slate-700 border-slate-300",
+    help: "Does not apply to this asset type. Hidden from missing-document lists.",
+  },
 ];
 
 const DOC_TYPES = [
-  { v: "registration", l: "Registration" },
-  { v: "insurance_card", l: "Insurance Card" },
-  { v: "insurance_policy", l: "Insurance Policy" },
-  { v: "title", l: "Title" },
-  { v: "purchase_document", l: "Purchase Document" },
-  { v: "warranty", l: "Warranty" },
-  { v: "dot_document", l: "DOT Document" },
-  { v: "inspection_certificate", l: "Inspection Certificate" },
-  { v: "calibration_certificate", l: "Calibration Certificate" },
-  { v: "asset_photo", l: "Asset Photo" },
-  { v: "operator_manual", l: "Operator Manual" },
-  { v: "safety_documentation", l: "Safety Documentation" },
-  { v: "other_supporting_document", l: "Other Supporting Document" },
+  { v: "registration", l: "Registration", help: "DMV / state registration document. Renewal-tracked." },
+  { v: "insurance_card", l: "Insurance Card", help: "Wallet-size proof of insurance carried in the vehicle." },
+  { v: "insurance_policy", l: "Insurance Policy", help: "Full policy document. Restricted — admin only." },
+  { v: "title", l: "Title", help: "Vehicle title / ownership document. Restricted — admin only." },
+  { v: "purchase_document", l: "Purchase Document", help: "Bill of sale / purchase order. Restricted — admin only." },
+  { v: "warranty", l: "Warranty", help: "Manufacturer or extended warranty paperwork." },
+  { v: "dot_document", l: "DOT Document", help: "DOT inspection / authority paperwork. Annual renewal." },
+  { v: "inspection_certificate", l: "Inspection Certificate", help: "Annual or jurisdictional inspection certificate." },
+  { v: "calibration_certificate", l: "Calibration Certificate", help: "Calibration record for survey / measurement equipment." },
+  { v: "asset_photo", l: "Asset Photo", help: "Identification photos (primary, VIN plate, etc.). Always optional." },
+  { v: "operator_manual", l: "Operator Manual", help: "Manufacturer operator / service manual." },
+  { v: "safety_documentation", l: "Safety Documentation", help: "Hazard sheets, SDS, lock-out tag-out procedures." },
+  { v: "other_supporting_document", l: "Other Supporting Document", help: "Anything else worth keeping with the asset record." },
 ];
 
 export default function RequiredDocsEditor() {
@@ -45,7 +65,7 @@ export default function RequiredDocsEditor() {
       const r = await api.get("/asset-spine/dashboard/required-documents-config-effective");
       setItems(r.data.items || []);
     } catch {
-      toast.error("Unable to load Required Documents config.");
+      toast.error("Could not load Required Documents settings. Try again.");
     } finally {
       setLoading(false);
     }
@@ -66,10 +86,10 @@ export default function RequiredDocsEditor() {
         document_type: docType,
         requirement_level: level,
       });
-      toast.success(`Saved: ${docType} → ${level} for ${assetType}`);
+      toast.success("Changes saved.");
       await reload();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Unable to save.");
+      toast.error(e?.response?.data?.detail || "Could not save. Try again.");
     } finally {
       setBusy(false);
     }
@@ -79,10 +99,10 @@ export default function RequiredDocsEditor() {
     setBusy(true);
     try {
       await api.delete(`/asset-spine/dashboard/required-documents-config/${encodeURIComponent(assetType)}/${encodeURIComponent(docType)}`);
-      toast.success("Override removed — using defaults.");
+      toast.success("Reset to default.");
       await reload();
     } catch {
-      toast.error("Unable to clear override.");
+      toast.error("Could not reset. Try again.");
     } finally {
       setBusy(false);
     }
@@ -98,6 +118,41 @@ export default function RequiredDocsEditor() {
 
   return (
     <div className="space-y-3" data-testid="required-docs-editor">
+      <div
+        className="rounded border border-sky-200 bg-sky-50/70 px-3 py-2 text-[12px] text-sky-900 flex items-start gap-2"
+        data-testid="rde-coaching"
+      >
+        <Info className="w-4 h-4 mt-0.5 shrink-0" />
+        <div>
+          <span className="font-bold">Set the expected documents for each Asset Type.</span>{" "}
+          These rules drive the missing-document dashboard and the readiness engine.
+          Photos and documents are never required to create an asset.
+        </div>
+      </div>
+      <div
+        className="rounded border border-slate-200 bg-white px-3 py-2"
+        data-testid="rde-level-legend"
+      >
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2">
+          Requirement levels
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          {LEVELS.map((lv) => (
+            <div
+              key={lv.value}
+              className="flex items-start gap-2 text-[11.5px] text-slate-700"
+              data-testid={`rde-level-help-${lv.value}`}
+            >
+              <span
+                className={`px-1.5 py-0.5 rounded border font-mono text-[10px] uppercase tracking-[0.14em] font-bold ${lv.color}`}
+              >
+                {lv.label}
+              </span>
+              <span className="leading-snug">{lv.help}</span>
+            </div>
+          ))}
+        </div>
+      </div>
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs font-mono uppercase tracking-[0.18em] text-slate-700 font-bold">
           {items.length} asset types · adjust expected documents per type
@@ -183,23 +238,33 @@ function AssetTypeRow({ item, onSetLevel, onClearOverride, busy }) {
             {DOC_TYPES.map((d) => {
               const current = currentLevels[d.v] || "optional";
               return (
-                <div key={d.v} className="flex items-center gap-2 text-xs bg-slate-50 rounded p-1.5"
+                <div key={d.v} className="flex items-start gap-2 text-xs bg-slate-50 rounded p-1.5"
                   data-testid={`rde-doc-${item.asset_type}-${d.v}`}>
-                  <div className="flex-1 truncate">{d.l}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate font-semibold text-slate-800">{d.l}</div>
+                    <div
+                      className="text-[10.5px] text-slate-500 leading-snug"
+                      data-testid={`rde-doc-help-${d.v}`}
+                    >
+                      {d.help}
+                    </div>
+                  </div>
                   <select
                     value={current}
                     disabled={busy}
                     onChange={(e) => onSetLevel(item.asset_type, d.v, e.target.value)}
                     className="border-2 border-slate-300 rounded px-1 py-0.5 text-xs"
+                    title={LEVELS.find((l) => l.value === current)?.help || ""}
                     data-testid={`rde-select-${item.asset_type}-${d.v}`}
                   >
                     {LEVELS.map((l) => (
-                      <option key={l.value} value={l.value}>{l.label}</option>
+                      <option key={l.value} value={l.value} title={l.help}>{l.label}</option>
                     ))}
                   </select>
                   <Button size="sm" variant="ghost" disabled={busy}
                     onClick={() => onClearOverride(item.asset_type, d.v)}
                     title="Reset to default"
+                    aria-label="Reset to default"
                     data-testid={`rde-reset-${item.asset_type}-${d.v}`}>
                     <RotateCcw className="w-3 h-3" />
                   </Button>

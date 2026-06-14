@@ -47,7 +47,7 @@ export default function ShopAssetCare() {
       setSummary(s.data); setReadiness(r.data.items || []);
       setAlerts(a.data.items || []); setWork(w.data);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Unable to load Asset Care.");
+      toast.error(e?.response?.data?.detail || "Could not load Asset Care. Try again.");
     } finally { setLoading(false); }
   }, []);
 
@@ -59,7 +59,7 @@ export default function ShopAssetCare() {
       const url = URL.createObjectURL(r.data);
       const a = document.createElement("a"); a.href = url; a.download = fname; a.click();
       URL.revokeObjectURL(url);
-    } catch { toast.error("Unable to generate CSV."); }
+    } catch { toast.error("Export failed. Try again, or contact your administrator if it keeps failing."); }
   }, []);
 
   const filtered = readiness.filter((r) => r.readiness_status === filter);

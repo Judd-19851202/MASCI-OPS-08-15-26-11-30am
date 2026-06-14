@@ -84,14 +84,14 @@ export default function PmChangePassword() {
       });
       if (r.data?.ok && r.data?.token) {
         setPmToken(r.data.token);
-        toast.success(t("Password updated"));
+        toast.success(t("Password updated."));
         navigate(originalFrom, { replace: true });
       } else {
-        toast.error(t("Update failed"));
+        toast.error(t("Could not update password. Try again."));
       }
     } catch (err) {
       const detail = err?.response?.data?.detail;
-      toast.error(typeof detail === "string" ? detail : t("Update failed"));
+      toast.error(typeof detail === "string" ? detail : t("Could not update password. Try again."));
     } finally {
       setSubmitting(false);
     }

@@ -217,6 +217,7 @@ export const EmployeeCombo = ({
           }}
           data-testid={`${testId}-toggle`}
           title={t("Browse roster")}
+          aria-label={t("Browse roster")}
         >
           <ChevronsUpDown className="w-4 h-4" />
         </Button>

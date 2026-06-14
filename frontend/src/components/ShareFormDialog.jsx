@@ -32,10 +32,10 @@ export const ShareFormDialog = ({
     try {
       await navigator.clipboard.writeText(publicUrl);
       setCopied(true);
-      toast.success("Link copied");
+      toast.success("Copied.");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Could not copy — long-press the link to copy manually");
+      toast.error("Copy failed — write it down by hand.");
     }
   };
 
@@ -59,7 +59,7 @@ export const ShareFormDialog = ({
   const printQr = () => {
     const w = window.open("", "_blank");
     if (!w) {
-      toast.error("Pop-up blocked — allow pop-ups to print the QR poster");
+      toast.error("Pop-up blocked. Allow pop-ups to print the QR poster.");
       return;
     }
     w.document.write(`<!doctype html>

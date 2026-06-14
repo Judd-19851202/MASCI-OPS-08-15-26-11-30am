@@ -47,10 +47,10 @@ export default function OperationsActionNew() {
         due_date: dueDate || null,
         owner: owner ? { directory: owner.directory, id: owner.id, name: owner.name, email: owner.email } : null,
       });
-      toast.success(`${r.data.oa_number} ${t("Created")}`);
+      toast.success(`${r.data.oa_number} ${t("created.")}`);
       nav(`/operations-actions/${r.data.id}`);
     } catch (err) {
-      toast.error(err?.response?.data?.detail || t("Could not save. Please try again."));
+      toast.error(err?.response?.data?.detail || t("Could not save. Try again."));
     } finally {
       setSubmitting(false);
     }

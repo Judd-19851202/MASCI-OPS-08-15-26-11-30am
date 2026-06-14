@@ -66,7 +66,7 @@ export default function HrTimeOff() {
       }
       if (statsResp.ok) setStats(await statsResp.json());
     } catch (e) {
-      toast.error(t("Failed to load"));
+      toast.error(t("Could not load time-off list. Try again."));
     } finally {
       setBusy(false);
     }
@@ -284,7 +284,7 @@ function ReviewDialog({ record, onClose, onDecided, headers, t }) {
       toast.success(t(`Decision saved — ${status.replace("_", " ").toUpperCase()}`));
       onDecided();
     } catch (e) {
-      toast.error(t("Failed to save decision"));
+      toast.error(t("Could not save decision. Try again."));
     } finally {
       setBusy(false);
     }
@@ -412,10 +412,10 @@ function PublicLinkDialog({ onCreated, headers, t }) {
       const origin = window.location.origin;
       const fullUrl = `${origin}${d.url_path}`;
       setCreated({ ...d, fullUrl });
-      toast.success(email ? t("Link created · email sent") : t("Link created — copy and share"));
+      toast.success(email ? t("Link created · email sent.") : t("Link created — copy and share."));
       onCreated && onCreated();
     } catch (e) {
-      toast.error(t("Failed to create link"));
+      toast.error(t("Could not create link. Try again."));
     } finally {
       setBusy(false);
     }

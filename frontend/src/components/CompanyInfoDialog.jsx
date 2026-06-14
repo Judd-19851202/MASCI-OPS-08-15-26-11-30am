@@ -56,7 +56,7 @@ export const CompanyInfoDialog = ({ trigger, editable }) => {
   const save = () => {
     if (!canEdit) return;
     saveCompanyInfo(info);
-    toast.success(t("Company info saved — appears on every printed report"));
+    toast.success(t("Saved. Appears on every printed report."));
     setOpen(false);
   };
 

@@ -4,8 +4,9 @@
 // language throughout. Photos/documents NEVER required.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X as XIcon, Loader2, Plus, CheckCircle2, AlertTriangle } from "lucide-react";
+import { X as XIcon, Loader2, Plus, AlertTriangle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalFooter } from "@/components/ModalFooter";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -57,7 +58,7 @@ export default function AddAssetDialog({ open, onClose, onCreated }) {
         if (cancelled) return;
         setTaxonomy(r.data);
       } catch {
-        toast.error("Unable to load asset taxonomy.");
+        toast.error("Could not load asset taxonomy. Try again.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -111,10 +112,10 @@ export default function AddAssetDialog({ open, onClose, onCreated }) {
   const submit = async (e) => {
     e.preventDefault();
     if (busy) return;
-    if (!assetNumber.trim()) return toast.error("Unit Number / Asset Tag is required.");
-    if (!assetClass) return toast.error("Asset Class is required.");
-    if (!assetType) return toast.error("Asset Type is required.");
-    if (!lifecycle) return toast.error("Lifecycle Status is required.");
+    if (!assetNumber.trim()) return toast.error("Unit Number / Asset Tag required.");
+    if (!assetClass) return toast.error("Asset Class required.");
+    if (!assetType) return toast.error("Asset Type required.");
+    if (!lifecycle) return toast.error("Lifecycle Status required.");
     setBusy(true);
     try {
       const body = {
@@ -140,12 +141,12 @@ export default function AddAssetDialog({ open, onClose, onCreated }) {
         dot_expiration: dotExp || null,
       };
       const r = await api.post("/asset-spine/assets", body);
-      toast.success(`Added ${assetType} · ${assetNumber.trim()}`);
+      toast.success("Asset added.");
       reset();
       onCreated?.(r.data);
       onClose();
     } catch (e2) {
-      toast.error(e2?.response?.data?.detail || "Unable to add asset.");
+      toast.error(e2?.response?.data?.detail || "Could not add asset. Try again.");
     } finally {
       setBusy(false);
     }
@@ -179,6 +180,17 @@ export default function AddAssetDialog({ open, onClose, onCreated }) {
             </div>
           ) : (
             <>
+              <div
+                className="rounded border border-sky-200 bg-sky-50/70 px-3 py-2 text-[12px] text-sky-900 flex items-start gap-2"
+                data-testid="add-asset-coaching"
+              >
+                <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-bold">Create a canonical asset record.</span>{" "}
+                  This becomes the source of truth for taxonomy, documents, and readiness.
+                  Photos and documents are never required — you can add them after saving.
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Unit Number / Asset Tag *" required>
                   <input
@@ -282,12 +294,16 @@ export default function AddAssetDialog({ open, onClose, onCreated }) {
                 <summary className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold cursor-pointer">
                   Optional renewals
                 </summary>
+                <div className="mt-2 text-[11px] text-slate-600">
+                  Renewal dates drive the readiness engine and renewal alerts.
+                  Leave blank if not applicable; you can upload the matching document later.
+                </div>
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <Field label="Registration Expires"><input type="date" value={registrationExp} onChange={(e) => setRegistrationExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-reg-exp" /></Field>
-                  <Field label="Insurance Expires"><input type="date" value={insuranceExp} onChange={(e) => setInsuranceExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-ins-exp" /></Field>
-                  <Field label="DOT Expires"><input type="date" value={dotExp} onChange={(e) => setDotExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-dot-exp" /></Field>
-                  <Field label="Calibration Expires"><input type="date" value={calibrationExp} onChange={(e) => setCalibrationExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-cal-exp" /></Field>
-                  <Field label="Warranty Expires"><input type="date" value={warrantyExp} onChange={(e) => setWarrantyExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-war-exp" /></Field>
+                  <Field label="Registration Expires" help="When the vehicle registration / DMV record expires."><input type="date" value={registrationExp} onChange={(e) => setRegistrationExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-reg-exp" /></Field>
+                  <Field label="Insurance Expires" help="Policy or insurance-card expiration on file."><input type="date" value={insuranceExp} onChange={(e) => setInsuranceExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-ins-exp" /></Field>
+                  <Field label="DOT Expires" help="Federal DOT annual inspection / authority expiration."><input type="date" value={dotExp} onChange={(e) => setDotExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-dot-exp" /></Field>
+                  <Field label="Calibration Expires" help="Next calibration due date for survey / measurement gear."><input type="date" value={calibrationExp} onChange={(e) => setCalibrationExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-cal-exp" /></Field>
+                  <Field label="Warranty Expires" help="Manufacturer or extended warranty end date."><input type="date" value={warrantyExp} onChange={(e) => setWarrantyExp(e.target.value)} className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm" data-testid="add-asset-war-exp" /></Field>
                 </div>
               </details>
 
@@ -323,27 +339,34 @@ export default function AddAssetDialog({ open, onClose, onCreated }) {
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-slate-200 px-5 py-3 flex items-center justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
-          <Button type="submit" disabled={busy || loading}
-            className="bg-red-700 hover:bg-red-800 text-white"
-            data-testid="add-asset-submit">
-            {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Plus className="w-3.5 h-3.5 mr-1" />}
+        <ModalFooter sticky testid="add-asset-footer">
+          <ModalFooter.Cancel onClick={onClose} disabled={busy} testid="add-asset-cancel">
+            Cancel
+          </ModalFooter.Cancel>
+          <ModalFooter.Primary disabled={busy || loading} testid="add-asset-submit">
+            {busy ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+            ) : (
+              <Plus className="w-3.5 h-3.5 mr-1" />
+            )}
             Add Asset
-          </Button>
-        </div>
+          </ModalFooter.Primary>
+        </ModalFooter>
       </form>
     </div>
   );
 }
 
-function Field({ label, required, children }) {
+function Field({ label, required, help, children }) {
   return (
     <label className="block">
       <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold mb-1 ${required ? "text-slate-700" : "text-slate-600"}`}>
         {label}
       </div>
       {children}
+      {help ? (
+        <div className="text-[10.5px] text-slate-500 mt-1 leading-snug">{help}</div>
+      ) : null}
     </label>
   );
 }

@@ -174,6 +174,7 @@ export const EquipmentCombo = ({
           }}
           data-testid={`${testId}-toggle`}
           title={t("Browse fleet")}
+          aria-label={t("Browse fleet")}
         >
           <ChevronsUpDown className="w-4 h-4" />
         </Button>

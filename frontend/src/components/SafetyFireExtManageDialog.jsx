@@ -108,7 +108,7 @@ export default function SafetyFireExtManageDialog({ open, fe, onClose, onChanged
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      toast.error("Download failed");
+      toast.error("Download failed. Try again.");
     }
   };
 
@@ -129,7 +129,7 @@ export default function SafetyFireExtManageDialog({ open, fe, onClose, onChanged
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      toast.error("PDF download failed");
+      toast.error("PDF generation failed. Try again.");
     } finally {
       setDownloading(false);
     }

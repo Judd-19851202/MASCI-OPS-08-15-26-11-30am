@@ -7,27 +7,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Upload, FileText, Image as ImageIcon, Download, Trash2,
-  Calendar, AlertTriangle, CheckCircle2, Loader2, RefreshCcw,
-  ShieldAlert, Camera, FileImage,
+  Calendar, Loader2, RefreshCcw,
+  ShieldAlert, Camera, FileImage, CheckCircle2, Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalFooter } from "@/components/ModalFooter";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 const DOC_TYPES = [
-  { value: "registration", label: "Registration" },
-  { value: "insurance_card", label: "Insurance Card" },
-  { value: "insurance_policy", label: "Insurance Policy (Restricted)" },
-  { value: "title", label: "Title (Restricted)" },
-  { value: "purchase_document", label: "Purchase Document (Restricted)" },
-  { value: "warranty", label: "Warranty" },
-  { value: "dot_document", label: "DOT Document" },
-  { value: "inspection_certificate", label: "Inspection Certificate" },
-  { value: "calibration_certificate", label: "Calibration Certificate" },
-  { value: "asset_photo", label: "Asset Photo" },
-  { value: "operator_manual", label: "Operator Manual" },
-  { value: "safety_documentation", label: "Safety Documentation" },
-  { value: "other_supporting_document", label: "Other Supporting Document" },
+  { value: "registration", label: "Registration", help: "State / DMV registration document." },
+  { value: "insurance_card", label: "Insurance Card", help: "Wallet-size proof of insurance kept in the vehicle." },
+  { value: "insurance_policy", label: "Insurance Policy (Restricted)", help: "Full insurance policy. Restricted — admin only." },
+  { value: "title", label: "Title (Restricted)", help: "Vehicle title / ownership document. Restricted — admin only." },
+  { value: "purchase_document", label: "Purchase Document (Restricted)", help: "Bill of sale or purchase order. Restricted — admin only." },
+  { value: "warranty", label: "Warranty", help: "Manufacturer or extended warranty paperwork." },
+  { value: "dot_document", label: "DOT Document", help: "DOT inspection or authority paperwork. Annual renewal." },
+  { value: "inspection_certificate", label: "Inspection Certificate", help: "Annual or jurisdictional inspection certificate." },
+  { value: "calibration_certificate", label: "Calibration Certificate", help: "Most recent calibration record for survey / measurement equipment." },
+  { value: "asset_photo", label: "Asset Photo", help: "Identification photo. Choose a Photo Type below." },
+  { value: "operator_manual", label: "Operator Manual", help: "Manufacturer operator or service manual." },
+  { value: "safety_documentation", label: "Safety Documentation", help: "Hazard sheets, SDS, lock-out tag-out, safety procedures." },
+  { value: "other_supporting_document", label: "Other Supporting Document", help: "Anything else worth keeping with this asset record." },
 ];
 
 const PHOTO_KINDS = [
@@ -40,6 +41,32 @@ function daysFromIso(iso) {
   const d = new Date(iso + "T00:00:00Z");
   if (Number.isNaN(d.getTime())) return null;
   return Math.floor((d - new Date()) / 86400000);
+}
+
+function VerificationChip({ status, testid }) {
+  if (status === "verified") {
+    return (
+      <span
+        className="px-1.5 py-0.5 rounded border bg-emerald-100 text-emerald-900 border-emerald-300 font-mono text-[10px] uppercase tracking-[0.14em] font-bold inline-flex items-center gap-1"
+        title="Verified — Asset Admin reviewed and confirmed this document."
+        data-testid={testid}
+      >
+        <CheckCircle2 className="w-3 h-3" /> Verified
+      </span>
+    );
+  }
+  if (status === "pending") {
+    return (
+      <span
+        className="px-1.5 py-0.5 rounded border bg-amber-100 text-amber-900 border-amber-300 font-mono text-[10px] uppercase tracking-[0.14em] font-bold"
+        title="Pending Verification — uploaded but not yet reviewed by Asset Admin."
+        data-testid={testid}
+      >
+        Pending Verification
+      </span>
+    );
+  }
+  return null;
 }
 
 function ExpirationBadge({ iso }) {
@@ -117,7 +144,7 @@ export default function AssetDocumentsTab({ assetId, unitNumber }) {
       setRequired(r.data);
       setPhotos(p.data);
     } catch (e) {
-      setError(e?.response?.data?.detail || "Unable to load asset documents.");
+      setError(e?.response?.data?.detail || "Could not load asset documents. Try again.");
     } finally {
       setLoading(false);
     }
@@ -139,7 +166,7 @@ export default function AssetDocumentsTab({ assetId, unitNumber }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Unable to generate the profile PDF.");
+      toast.error("PDF generation failed. Try again.");
     }
   }, [assetId, unitNumber]);
 
@@ -284,7 +311,7 @@ function DocRow({ assetId, doc, onChange }) {
       window.open(url, "_blank");
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch {
-      toast.error("Unable to open the document.");
+      toast.error("Could not open the document. Try again.");
     }
   }, [assetId, doc.id]);
 
@@ -300,7 +327,7 @@ function DocRow({ assetId, doc, onChange }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Unable to download the document.");
+      toast.error("Download failed. Try again.");
     }
   }, [assetId, doc.id, doc.filename]);
 
@@ -311,11 +338,11 @@ function DocRow({ assetId, doc, onChange }) {
         effective_date: eff || "",
         expiration_date: exp || "",
       });
-      toast.success("Document dates updated.");
+      toast.success("Changes saved.");
       setEditing(false);
       onChange();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Unable to update document dates.");
+      toast.error(e?.response?.data?.detail || "Could not save. Try again.");
     } finally {
       setBusy(false);
     }
@@ -326,10 +353,10 @@ function DocRow({ assetId, doc, onChange }) {
     setBusy(true);
     try {
       await api.delete(`/asset-spine/assets/${assetId}/documents/${doc.id}`);
-      toast.success("Document removed.");
+      toast.success("Removed.");
       onChange();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Unable to remove document.");
+      toast.error(e?.response?.data?.detail || "Could not delete. Try again, or contact your administrator if it keeps failing.");
     } finally {
       setBusy(false);
     }
@@ -357,6 +384,10 @@ function DocRow({ assetId, doc, onChange }) {
               <ShieldAlert className="w-3 h-3" /> Restricted
             </span>
           )}
+          <VerificationChip
+            status={doc.verified_at || doc.is_verified ? "verified" : (doc.verification_status === "pending" ? "pending" : null)}
+            testid={`ap-doc-verify-${doc.id}`}
+          />
           <ExpirationBadge iso={doc.expiration_date} />
         </div>
         <div className="text-xs text-slate-500 mt-0.5 truncate">
@@ -385,13 +416,13 @@ function DocRow({ assetId, doc, onChange }) {
       </div>
       <div className="flex items-center gap-1 shrink-0">
         <Button size="sm" variant="ghost" onClick={view} data-testid={`ap-doc-view-${doc.id}`}>View</Button>
-        <Button size="sm" variant="ghost" onClick={download} data-testid={`ap-doc-dl-${doc.id}`}>
+        <Button size="sm" variant="ghost" onClick={download} title="Download" aria-label="Download document" data-testid={`ap-doc-dl-${doc.id}`}>
           <Download className="w-3.5 h-3.5" />
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => setEditing((v) => !v)} data-testid={`ap-doc-edit-${doc.id}`}>
+        <Button size="sm" variant="ghost" onClick={() => setEditing((v) => !v)} title="Edit dates" aria-label="Edit document dates" data-testid={`ap-doc-edit-${doc.id}`}>
           <Calendar className="w-3.5 h-3.5" />
         </Button>
-        <Button size="sm" variant="ghost" onClick={remove} disabled={busy} data-testid={`ap-doc-del-${doc.id}`}>
+        <Button size="sm" variant="ghost" onClick={remove} disabled={busy} title="Remove" aria-label="Remove document" data-testid={`ap-doc-del-${doc.id}`}>
           <Trash2 className="w-3.5 h-3.5 text-red-700" />
         </Button>
       </div>
@@ -408,11 +439,16 @@ function UploadDialog({ assetId, onClose, onUploaded }) {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const docMeta = useMemo(
+    () => DOC_TYPES.find((t) => t.value === documentType) || DOC_TYPES[0],
+    [documentType],
+  );
+
   const submit = async (e) => {
     e.preventDefault();
     const file = fileRef.current?.files?.[0];
     if (!file) {
-      toast.error("Please choose a file to upload.");
+      toast.error("Choose a file first.");
       return;
     }
     setBusy(true);
@@ -430,7 +466,7 @@ function UploadDialog({ assetId, onClose, onUploaded }) {
       toast.success("Document uploaded.");
       onUploaded();
     } catch (e2) {
-      toast.error(e2?.response?.data?.detail || "Unable to upload the document.");
+      toast.error(e2?.response?.data?.detail || "Upload failed. Try again.");
     } finally {
       setBusy(false);
     }
@@ -446,8 +482,34 @@ function UploadDialog({ assetId, onClose, onUploaded }) {
         className="bg-white rounded-lg shadow-xl p-5 max-w-md w-full space-y-3"
       >
         <div className="flex items-center justify-between">
-          <div className="font-bold text-lg">Upload Asset Document</div>
-          <Button type="button" size="sm" variant="ghost" onClick={onClose}>Close</Button>
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">
+              Asset Document Vault
+            </div>
+            <div className="font-bold text-lg">Upload Document</div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={onClose}
+            aria-label="Close"
+            title="Close"
+            data-testid="ap-doc-upload-close"
+          >
+            Close
+          </Button>
+        </div>
+        <div
+          className="rounded border border-sky-200 bg-sky-50/70 px-3 py-2 text-[12px] text-sky-900 flex items-start gap-2"
+          data-testid="ap-doc-upload-coaching"
+        >
+          <Info className="w-4 h-4 mt-0.5 shrink-0" />
+          <div>
+            Documents are attached to this asset and tracked for renewal.
+            Uploads land as <span className="font-bold">Pending Verification</span> until
+            Asset Admin reviews them.
+          </div>
         </div>
         <label className="block">
           <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-600 font-bold mb-1">
@@ -459,9 +521,15 @@ function UploadDialog({ assetId, onClose, onUploaded }) {
             data-testid="ap-doc-upload-type"
           >
             {DOC_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value} title={t.help}>{t.label}</option>
             ))}
           </select>
+          <div
+            className="text-[11px] text-slate-600 mt-1 leading-snug"
+            data-testid="ap-doc-upload-type-help"
+          >
+            {docMeta.help}
+          </div>
         </label>
         {documentType === "asset_photo" && (
           <label className="block">
@@ -490,6 +558,7 @@ function UploadDialog({ assetId, onClose, onUploaded }) {
               className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm"
               data-testid="ap-doc-upload-eff"
             />
+            <div className="text-[10.5px] text-slate-500 mt-1">When the document took effect.</div>
           </label>
           <label>
             <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-600 font-bold mb-1">
@@ -500,6 +569,7 @@ function UploadDialog({ assetId, onClose, onUploaded }) {
               className="w-full border-2 border-slate-300 rounded px-2 py-2 text-sm"
               data-testid="ap-doc-upload-exp"
             />
+            <div className="text-[10.5px] text-slate-500 mt-1">Drives renewal alerts. Leave blank if not applicable.</div>
           </label>
         </div>
         <label className="block">
@@ -527,19 +597,19 @@ function UploadDialog({ assetId, onClose, onUploaded }) {
             Images up to 10&nbsp;MB · PDFs up to 25&nbsp;MB.
           </div>
         </label>
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
+        <ModalFooter testid="ap-doc-upload-footer">
+          <ModalFooter.Cancel onClick={onClose} disabled={busy} testid="ap-doc-upload-cancel">
             Cancel
-          </Button>
-          <Button
-            type="submit" disabled={busy}
-            className="bg-red-700 hover:bg-red-800 text-white"
-            data-testid="ap-doc-upload-submit"
-          >
-            {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Upload className="w-3.5 h-3.5 mr-1" />}
+          </ModalFooter.Cancel>
+          <ModalFooter.Primary disabled={busy} testid="ap-doc-upload-submit">
+            {busy ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+            ) : (
+              <Upload className="w-3.5 h-3.5 mr-1" />
+            )}
             Upload Document
-          </Button>
-        </div>
+          </ModalFooter.Primary>
+        </ModalFooter>
       </form>
     </div>
   );

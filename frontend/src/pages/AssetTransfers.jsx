@@ -46,7 +46,7 @@ const STATUS_TINT = {
 const NEXT_ACTIONS = {
   Requested:    [
     { key: "approve",    label: "Approve",      icon: CheckCircle2 },
-    { key: "reject",     label: "Reject",       icon: XCircle, needsReason: true },
+    { key: "reject",     label: "Needs Revision", icon: XCircle, needsReason: true },
     { key: "cancel",     label: "Cancel",       icon: Ban },
   ],
   Approved:     [

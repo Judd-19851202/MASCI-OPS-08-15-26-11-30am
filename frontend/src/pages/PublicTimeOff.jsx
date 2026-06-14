@@ -82,10 +82,10 @@ export default function PublicTimeOff() {
   }, [startDate, endDate, halfStart, halfEnd]);
 
   const submit = async () => {
-    if (!reason) { toast.error("Please pick a reason"); return; }
-    if (reason === "Other" && !reasonOther.trim()) { toast.error("Please describe the reason"); return; }
-    if (!startDate || !endDate) { toast.error("Start and end dates are required"); return; }
-    if (new Date(endDate) < new Date(startDate)) { toast.error("End date is before start date"); return; }
+    if (!reason) { toast.error("Choose a reason first."); return; }
+    if (reason === "Other" && !reasonOther.trim()) { toast.error("Describe the reason."); return; }
+    if (!startDate || !endDate) { toast.error("Start and end dates required."); return; }
+    if (new Date(endDate) < new Date(startDate)) { toast.error("End date is before start date."); return; }
     setBusy(true);
     try {
       // Build the user-typed payload (only freeform fields go through the
