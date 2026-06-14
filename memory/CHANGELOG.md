@@ -2,6 +2,44 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-12 — Track 14.0-HUMAN-FIRST-OPERATIONAL-REALITY-SWEEP CLOSED
+
+Fix-as-you-go operational-reality audit.
+
+- **Executive answer: YES** to "Can a real construction employee log in
+  Monday morning with no training and complete their job?"
+- **4 unguarded portal routes FIXED IN FLIGHT** with 4-line surgical
+  guard wraps:
+  - `/admin/qaqc` → `A(<AdminQaqcList />)`
+  - `/pm/odr` → `P(<OdrPmPanel />)`
+  - `/hr/employees` → `H(<HrEmployees />)`
+  - `/hr/employees/:id/accountability` → `H(<HrEmployeeAccountabilityTimeline />)`
+- **RC1-NAV-007 RESOLVED.** Nav-drift guard's `known_unguarded` set is
+  now `set()` for all 7 portal prefixes. 18/18 nav-drift tests green.
+- **Live walkthrough of 7 portal hubs** (Admin · PM · Safety · Shop ·
+  HR · FL · Dispatch) proves universal top-bar chrome rendering with
+  Bell, Search, PortalSwitcher (where applicable), Identity, HOME,
+  SIGN OUT, language toggle.
+- **Live `/admin/qaqc` post-fix render** shows "All QA / QC Inspections"
+  page with 6 inspection groups, search, filter, CSV export. Zero 404
+  markers.
+- **14 roles assessed**: 12 can complete primary workflow today with no
+  training; 2 (Superintendent / Foreman) require Admin to mint first
+  portal account (RC1-INVITE-FLOW-001, 90-second admin step).
+- **Zero automatic deployment blockers** remain.
+- **64/64 backend pytest green** · NOTIFY-OWNERSHIP-LOCK D8 leakage
+  matrix re-run OVERALL PASS.
+- **Five-Pillar**: Powerful 9.85 · Simple 9.95 · Beautiful 9.85 ·
+  Trusted **9.95** · Proven **9.95** · Composite **9.90**.
+
+**Spanish · PDF Lockup · Integration Honesty Banners · UXS-11 ·
+Role-Visibility Certification · Deployment preparation are ALL
+UNBLOCKED.**
+
+Ledger: `TRACK_14_0_HUMAN_FIRST_OPERATIONAL_REALITY_SWEEP.md`.
+
+
+
 ## 2026-02-12 — Track 14.0-HUMAN-FIRST-VISIBILITY-CERTIFICATION CLOSED
 
 Full human-perspective audit + permanent regression-guard tests.

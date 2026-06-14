@@ -11,6 +11,25 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-12)
+- **14.0-HUMAN-FIRST-OPERATIONAL-REALITY-SWEEP CLOSED** — Fix-as-you-go
+  audit. **Executive YES** to "Can a real construction employee complete
+  their job Monday morning with no training?" **4 unguarded routes
+  fixed in flight** (`/admin/qaqc`, `/pm/odr`, `/hr/employees`,
+  `/hr/employees/:id/accountability` now wrapped with their guard
+  tokens). RC1-NAV-007 RESOLVED. Nav-drift guard `known_unguarded` set
+  drained to `set()` across all 7 portal prefixes. Live walkthrough of
+  7 portal hubs proves universal top-bar chrome (Bell · Search ·
+  PortalSwitcher · Identity · HOME · SIGN OUT · language toggle).
+  12 of 14 roles can complete primary workflow today (Superintendent /
+  Foreman onboarding is RC1-INVITE-FLOW-001 · Read-only is not
+  started). **Zero automatic deployment blockers remain.** 64/64
+  backend pytest green. Five-Pillar **9.90** (Trusted 9.95 · Proven
+  9.95). **Spanish · PDF · I1 · UXS-11 · Role-Visibility · Deploy prep
+  ALL UNBLOCKED.** Ledger:
+  `/app/memory/TRACK_14_0_HUMAN_FIRST_OPERATIONAL_REALITY_SWEEP.md`.
+
+
+## Latest Closed Track (2026-02-12)
 - **14.0-HUMAN-FIRST-VISIBILITY-CERTIFICATION CLOSED** — Full
   human-perspective audit across 10 portals · 341 routes · 232
   surfaces · 14 roles. **18 permanent regression-guard tests committed

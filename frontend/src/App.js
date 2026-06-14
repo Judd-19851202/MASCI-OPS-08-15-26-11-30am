@@ -440,7 +440,7 @@ function App() {
             <Route path="/qa-qc" element={<Navigate to="/qaqc" replace />} />
             <Route path="/qaqc/:slug/new" element={<NewQaqcInspection />} />
             <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
-            <Route path="/admin/qaqc" element={<AdminQaqcList />} />
+            <Route path="/admin/qaqc" element={A(<AdminQaqcList />)} />
             <Route path="/admin/photos" element={A(<JobPhotosLibrary portalKey="admin" />)} />
 
             {/* Phase V-Prelude · Wave 1 · Operational Constraints.
@@ -984,12 +984,12 @@ function App() {
             {/* Document Expirations — Iter151 (Phase 2.5 · Phase B) */}
             <Route path="/document-expirations" element={<DocumentExpirations />} />
             {/* HR Employee Lifecycle — Iter152 (Phase 2.5 · Phase C) */}
-            <Route path="/hr/employees" element={<HrEmployees />} />
+            <Route path="/hr/employees" element={H(<HrEmployees />)} />
             {/* OMEGA · Employee Governance Phase Alpha · G-5 · HR Queue */}
             <Route path="/hr/employee-requests" element={H(<HrEmployeeRequestsQueue />)} />
             {/* iter353c · Unified Employee Accountability Timeline (HR + Safety + Admin)
                 The component does its own multi-role auth check (no H/SF wrapper). */}
-            <Route path="/hr/employees/:id/accountability" element={<HrEmployeeAccountabilityTimeline />} />
+            <Route path="/hr/employees/:id/accountability" element={H(<HrEmployeeAccountabilityTimeline />)} />
             {/* iter353f · HR OSHA & Labor — read-only incidents list */}
             <Route path="/hr/incidents" element={H(<HrIncidents />)} />
             {/* PO Requests — Iter153 (Phase 2.5 · Phase D) */}
@@ -1026,7 +1026,7 @@ function App() {
                 no-auth — the continuity engine gates access by doc_id + link_id. */}
             <Route path="/odr/new" element={<OdrNew />} />
             <Route path="/odr/center" element={<OdrCenter />} />
-            <Route path="/pm/odr" element={<OdrPmPanel />} />
+            <Route path="/pm/odr" element={P(<OdrPmPanel />)} />
             <Route path="/odr/public/:doc_id" element={<OdrPublicViewer />} />
             <Route path="/odr/:id/done" element={<OdrDone />} />
             <Route path="/odr/:id" element={<OdrDetail />} />

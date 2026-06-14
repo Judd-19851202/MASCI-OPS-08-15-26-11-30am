@@ -88,14 +88,14 @@ def test_route_count_does_not_drift_silently():
 
 
 @pytest.mark.parametrize("prefix, guard_tokens, known_unguarded", [
-    # `known_unguarded` is the list of paths that the 2026-02-12 audit
-    # discovered are ungated. The test asserts the set of unguarded
-    # routes EQUALS this snapshot — neither more (regression) nor
-    # fewer-without-updating-this-test (silent fix without audit refresh).
-    # The known set is tracked as RC1-NAV-007 (P0).
-    ("/admin/", ["A(", "AP(", "APS("], {"/admin/qaqc"}),
-    ("/pm/", ["P(", "AP(", "APS("], {"/pm/odr"}),
-    ("/hr/", ["H("], {"/hr/employees", "/hr/employees/:id/accountability"}),
+    # `known_unguarded` is the pinned snapshot of routes the audit
+    # accepts as ungated. After Track 14.0-HUMAN-FIRST-OPERATIONAL-
+    # REALITY-SWEEP (2026-02-12) wrapped admin/qaqc, pm/odr,
+    # hr/employees, and hr/employees/:id/accountability, every portal
+    # prefix should be CLEAN.
+    ("/admin/", ["A(", "AP(", "APS("], set()),
+    ("/pm/", ["P(", "AP(", "APS("], set()),
+    ("/hr/", ["H("], set()),
     ("/safety-portal/", ["SF(", "APS("], set()),
     ("/shop/", ["S("], set()),
     ("/dispatch-portal/", ["DP("], set()),

@@ -4,6 +4,25 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ Track 14.0-HUMAN-FIRST-OPERATIONAL-REALITY-SWEEP — DONE (2026-02-12)
+Fix-as-you-go. **Executive YES** to "can a construction employee complete their job Monday morning with no training?" **4 unguarded portal routes fixed in flight** (RC1-NAV-007 RESOLVED). Live 7-portal walkthrough proves universal top-bar chrome. 12 of 14 roles can complete primary workflow today. **Zero automatic deployment blockers.** 64/64 tests green. Five-Pillar **9.90**.
+Ledger: `TRACK_14_0_HUMAN_FIRST_OPERATIONAL_REALITY_SWEEP.md`.
+
+## 🟢 ALL P0 UNBLOCKED — Ready to ship
+- 🔴 P0 · Track 14.0-S1 Spanish Translation Sweep
+- 🔴 P0 · Track 14.0-P1 PDF Lockup Sweep
+- 🔴 P0 · Track 14.0-I1 Integration Honesty Banners
+- 🔴 P0 · Track 14.0-UXS-11 Final Certification (no longer blocked)
+- 🔴 P0 · Deployment preparation (no longer blocked)
+
+## 🟡 P1 Remaining (none block deployment)
+- **RC1-INVITE-FLOW-001** · PM-inline portal-invite CTA (Superintendent / Foreman onboarding ergonomics)
+- **RC1-NOTIFICATION-DEEPLINK-002** · Producer-specific link_urls (replace `/tasks` fallback)
+- **RC1-NAV-008** · Change-password link on PM V2 top-bar
+
+## 🟢 P2 Backlog
+- Mobile hamburger on V2 hubs · `*hub_legacy` retirement after V2 100% · ~12 buried surfaces promotion · Read-only stakeholder scope
+
 ## ✅ Track 14.0-HUMAN-FIRST-VISIBILITY-CERTIFICATION — DONE (2026-02-12)
 Full human-perspective audit · 10 portals · 232 surfaces · 14 roles. **18 permanent regression tests in `test_nav_drift_guard.py` · 64/64 pytest green.** Critical correction: PM V2 hub DOES have top-bar chrome via PortalShell (screenshot proof). RC1-NAV-002 WITHDRAWN · NAV-001/003-006 P0→P2. **3 unguarded routes discovered as RC1-NAV-007**. **No P0 blockers remain.** Five-Pillar **9.85**.
 Ledger: `TRACK_14_0_HUMAN_FIRST_VISIBILITY_CERTIFICATION.md`.

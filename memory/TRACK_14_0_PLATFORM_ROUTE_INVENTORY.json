@@ -1,23 +1,16 @@
 {
   "total": 341,
   "portal_counts": {
-    "PUBLIC": 79,
-    "REDIRECT": 27,
-    "ADMIN (unguarded - check)": 6,
-    "ADMIN": 57,
+    "PUBLIC": 94,
+    "REDIRECT": 34,
+    "ADMIN": 58,
     "SAFETY": 27,
     "ADMIN/PM": 39,
-    "SAFETY (unguarded - check)": 6,
     "ADMIN/PM/SAFETY": 3,
-    "PM (unguarded - check)": 3,
-    "PM": 18,
-    "SHOP (unguarded - check)": 2,
+    "PM": 19,
     "SHOP": 24,
-    "HR (unguarded - check)": 5,
-    "HR": 20,
-    "FL (unguarded - check)": 1,
+    "HR": 22,
     "FIELD-LEADERSHIP": 4,
-    "DISPATCH (unguarded - check)": 3,
     "DISPATCH": 10,
     "DEV-INTERNAL": 6,
     "FALLBACK": 1
@@ -163,9 +156,9 @@
       "line": 443,
       "path": "/admin/qaqc",
       "component": "AdminQaqcList",
-      "guard": "PUBLIC",
-      "portal": "ADMIN (unguarded - check)",
-      "raw_element": "<AdminQaqcList />"
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminQaqcList />)"
     },
     {
       "line": 444,
@@ -596,7 +589,7 @@
       "path": "/safety-portal/trench-safety",
       "component": "Navigate",
       "guard": "PUBLIC",
-      "portal": "SAFETY (unguarded - check)",
+      "portal": "REDIRECT",
       "raw_element": "<Navigate to=\"/safety/trench-safety\" replace />"
     },
     {
@@ -604,7 +597,7 @@
       "path": "/safety-portal/trench-safety/assets",
       "component": "Navigate",
       "guard": "PUBLIC",
-      "portal": "SAFETY (unguarded - check)",
+      "portal": "REDIRECT",
       "raw_element": "<Navigate to=\"/safety/trench-safety/assets\" replace />"
     },
     {
@@ -612,7 +605,7 @@
       "path": "/safety-portal/trench-safety/tabulated-data",
       "component": "Navigate",
       "guard": "PUBLIC",
-      "portal": "SAFETY (unguarded - check)",
+      "portal": "REDIRECT",
       "raw_element": "<Navigate to=\"/safety/trench-safety/tabulated-data\" replace />"
     },
     {
@@ -628,7 +621,7 @@
       "path": "/admin/login",
       "component": "AdminLogin",
       "guard": "PUBLIC",
-      "portal": "ADMIN (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<AdminLogin />"
     },
     {
@@ -1132,7 +1125,7 @@
       "path": "/admin/jha",
       "component": "Navigate",
       "guard": "PUBLIC",
-      "portal": "ADMIN (unguarded - check)",
+      "portal": "REDIRECT",
       "raw_element": "<Navigate to=\"/admin/jha-plans\" replace />"
     },
     {
@@ -1140,7 +1133,7 @@
       "path": "/admin/jha/:id",
       "component": "Navigate",
       "guard": "PUBLIC",
-      "portal": "ADMIN (unguarded - check)",
+      "portal": "REDIRECT",
       "raw_element": "<Navigate to=\"/admin/jha-plans\" replace />"
     },
     {
@@ -1316,7 +1309,7 @@
       "path": "/pm/login",
       "component": "PmLogin",
       "guard": "PUBLIC",
-      "portal": "PM (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<PmLogin />"
     },
     {
@@ -1324,7 +1317,7 @@
       "path": "/pm/reset/:token",
       "component": "PmResetPassword",
       "guard": "PUBLIC",
-      "portal": "PM (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<PmResetPassword />"
     },
     {
@@ -1604,7 +1597,7 @@
       "path": "/shop/login",
       "component": "ShopLogin",
       "guard": "PUBLIC",
-      "portal": "SHOP (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<ShopLogin />"
     },
     {
@@ -1612,7 +1605,7 @@
       "path": "/shop/reset/:token",
       "component": "ShopResetPassword",
       "guard": "PUBLIC",
-      "portal": "SHOP (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<ShopResetPassword />"
     },
     {
@@ -1812,7 +1805,7 @@
       "path": "/hr/login",
       "component": "HrLogin",
       "guard": "PUBLIC",
-      "portal": "HR (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<HrLogin />"
     },
     {
@@ -1828,7 +1821,7 @@
       "path": "/hr/forgot",
       "component": "HrForgotPassword",
       "guard": "PUBLIC",
-      "portal": "HR (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<HrForgotPassword />"
     },
     {
@@ -1836,7 +1829,7 @@
       "path": "/hr/reset/:token",
       "component": "HrResetPassword",
       "guard": "PUBLIC",
-      "portal": "HR (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<HrResetPassword />"
     },
     {
@@ -1988,7 +1981,7 @@
       "path": "/field-leadership/portal/login",
       "component": "FieldLeadershipPortalLogin",
       "guard": "PUBLIC",
-      "portal": "FL (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<FieldLeadershipPortalLogin />"
     },
     {
@@ -2028,7 +2021,7 @@
       "path": "/safety-portal/login",
       "component": "SafetyLogin",
       "guard": "PUBLIC",
-      "portal": "SAFETY (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<SafetyLogin />"
     },
     {
@@ -2036,7 +2029,7 @@
       "path": "/safety-portal/forgot-password",
       "component": "SafetyForgotPassword",
       "guard": "PUBLIC",
-      "portal": "SAFETY (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<SafetyForgotPassword />"
     },
     {
@@ -2044,7 +2037,7 @@
       "path": "/safety-portal/reset/:token",
       "component": "SafetyResetPassword",
       "guard": "PUBLIC",
-      "portal": "SAFETY (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<SafetyResetPassword />"
     },
     {
@@ -2204,7 +2197,7 @@
       "path": "/dispatch-portal/login",
       "component": "DispatchLogin",
       "guard": "PUBLIC",
-      "portal": "DISPATCH (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<DispatchLogin />"
     },
     {
@@ -2228,7 +2221,7 @@
       "path": "/dispatch-portal/forgot-password",
       "component": "DispatchForgotPassword",
       "guard": "PUBLIC",
-      "portal": "DISPATCH (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<DispatchForgotPassword />"
     },
     {
@@ -2236,7 +2229,7 @@
       "path": "/dispatch-portal/reset/:token",
       "component": "DispatchResetPassword",
       "guard": "PUBLIC",
-      "portal": "DISPATCH (unguarded - check)",
+      "portal": "PUBLIC",
       "raw_element": "<DispatchResetPassword />"
     },
     {
@@ -2515,9 +2508,9 @@
       "line": 987,
       "path": "/hr/employees",
       "component": "HrEmployees",
-      "guard": "PUBLIC",
-      "portal": "HR (unguarded - check)",
-      "raw_element": "<HrEmployees />"
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrEmployees />)"
     },
     {
       "line": 989,
@@ -2531,9 +2524,9 @@
       "line": 992,
       "path": "/hr/employees/:id/accountability",
       "component": "HrEmployeeAccountabilityTimeline",
-      "guard": "PUBLIC",
-      "portal": "HR (unguarded - check)",
-      "raw_element": "<HrEmployeeAccountabilityTimeline />"
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrEmployeeAccountabilityTimeline />)"
     },
     {
       "line": 994,
@@ -2580,7 +2573,7 @@
       "path": "/admin/audit",
       "component": "Navigate",
       "guard": "PUBLIC",
-      "portal": "ADMIN (unguarded - check)",
+      "portal": "REDIRECT",
       "raw_element": "<Navigate to=\"/admin/audit-log\" replace />"
     },
     {
@@ -2588,7 +2581,7 @@
       "path": "/admin/health",
       "component": "Navigate",
       "guard": "PUBLIC",
-      "portal": "ADMIN (unguarded - check)",
+      "portal": "REDIRECT",
       "raw_element": "<Navigate to=\"/admin/system-health\" replace />"
     },
     {
@@ -2643,9 +2636,9 @@
       "line": 1029,
       "path": "/pm/odr",
       "component": "OdrPmPanel",
-      "guard": "PUBLIC",
-      "portal": "PM (unguarded - check)",
-      "raw_element": "<OdrPmPanel />"
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<OdrPmPanel />)"
     },
     {
       "line": 1030,
