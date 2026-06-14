@@ -50,11 +50,11 @@ function kindLabel(kind) {
 }
 
 function sourceLabel(source) {
-  // honest source attribution — preserves source ownership.
-  if (source === "equipment_master") return "Source: equipment_master";
-  if (source === "operational_constraints") return "Source: operational_constraints";
-  if (source === "fleet_defects") return "Source: fleet_defects";
-  return `Source: ${source || "—"}`;
+  // Operator language — no engineering source keys in operator-visible UI.
+  if (source === "equipment_master") return "Current equipment records";
+  if (source === "operational_constraints") return "Active hold conditions";
+  if (source === "fleet_defects") return "Open fleet defects";
+  return "Live engine";
 }
 
 export default function PmHoldsV2() {
@@ -145,7 +145,7 @@ export default function PmHoldsV2() {
         <Link
           to={row.destination_path || "/pm/hub"}
           data-testid={`pm-holds-open-${row.id}`}
-          title={`Source: ${row.source_engine || row.source} · ID: ${row.source_id || row.id}`}
+          title={sourceLabel(row.source_engine || row.source)}
           style={{
             display: "inline-block", padding: "4px 10px",
             background: "var(--paper-card)", color: "var(--ink-strong)",
@@ -200,7 +200,7 @@ export default function PmHoldsV2() {
             data-testid="pm-holds-tile-equipment"
           >
             <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-              Source: equipment_master
+              Current equipment records
             </p>
           </Card>
           <Card
@@ -211,7 +211,7 @@ export default function PmHoldsV2() {
             data-testid="pm-holds-tile-constraints"
           >
             <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-              Source: operational_constraints
+              Active hold conditions
             </p>
           </Card>
           <Card
@@ -222,7 +222,7 @@ export default function PmHoldsV2() {
             data-testid="pm-holds-tile-defects"
           >
             <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-              Source: fleet_defects
+              Open fleet defects
             </p>
           </Card>
         </div>

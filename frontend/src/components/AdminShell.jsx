@@ -9,12 +9,13 @@
 // Each section page just wraps its panels in <AdminShell title="Equipment & Suppliers" section="equipment">
 // and the chrome takes care of everything else.
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
   ShieldCheck, LogOut, Menu as MenuIcon, Home, Cable, Truck, Activity,
   Rocket, History, GraduationCap, ListChecks, ChartBar, Map, Film, Database,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -26,6 +27,7 @@ import NotificationBell from "@/components/NotificationBell";
 import { OfflineIndicator } from "@/lib/resiliency";
 import GlobalSearch from "@/components/GlobalSearch";
 import AdminGlobalSearch from "@/components/AdminGlobalSearch";
+import { LangToggle } from "@/components/LangToggle";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -108,6 +110,12 @@ function SideNav({ active, onNavigate }) {
 export default function AdminShell({ title, section, children, intro }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30 * 1000);
+    return () => clearInterval(id);
+  }, []);
+  const localTimeLabel = now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   // Phase IV.A.1 — Feature-flagged V2 sidebar. Resolved once per mount
   // so toggling the flag requires a page reload (predictable rollout).
   // Legacy <SideNav> remains the default; V2 must be opted in.
@@ -208,6 +216,17 @@ export default function AdminShell({ title, section, children, intro }) {
             </div>
             <NotificationBell accent="white" />
             <OfflineIndicator />
+            <div
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 h-8 rounded border border-slate-700 text-slate-200 text-[11px] font-mono tracking-widest tabular-nums"
+              data-testid="admin-shell-local-time"
+              title="Local device time"
+            >
+              <Clock className="w-3 h-3 opacity-70" />
+              {localTimeLabel}
+            </div>
+            <div className="hidden md:block" data-testid="admin-shell-lang-toggle">
+              <LangToggle variant="dark" className="h-8" />
+            </div>
             <div className="hidden sm:flex"><SystemHealthBadge /></div>
             <Link
               to="/"

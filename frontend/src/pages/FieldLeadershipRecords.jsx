@@ -23,11 +23,10 @@ import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
-import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { LangToggle } from "@/components/LangToggle";
 import BackLink from "@/components/BackLink";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { PortalShell } from "@/design-system";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
 
@@ -142,20 +141,23 @@ export default function FieldLeadershipRecords() {
   };
 
   return (
-    <main className="min-h-screen blueprint-bg pb-16">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <CompanyInfoDialog />
-          </div>
+    <PortalShell
+      portalName="MASCI"
+      portalRole={admin ? "Admin · Field Leadership" : pm ? "PM · Field Leadership" : "Field Leadership"}
+      pageTitle={t("Records & Submissions")}
+      subtitle={t("All Field Leadership submissions across every job.")}
+      showBack
+      backHref={backTo}
+      portalSwitcherCurrent="leadership"
+      primaryActions={
+        <div className="hidden md:flex" data-testid="leadership-records-company-info">
+          <CompanyInfoDialog />
         </div>
-      </header>
+      }
+    >
+      <div data-testid="leadership-records-root" className="pb-16">
 
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-6">
+        <section>
         <div className="mb-6">
           <BackLink
             to={backTo}
@@ -271,6 +273,7 @@ export default function FieldLeadershipRecords() {
           </table>
         </Card>
       </section>
-    </main>
+      </div>
+    </PortalShell>
   );
 }
