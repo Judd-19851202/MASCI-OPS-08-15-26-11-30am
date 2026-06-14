@@ -2,6 +2,40 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-14 — Track 14.0-TRUTHFULNESS-AND-OWNERSHIP-CERTIFICATION (READ-ONLY)
+
+Read-only audit. **No code changes. No deploys. No new fields. No new endpoints.**
+Sole output: `/app/memory/TRACK_14_0_TRUTHFULNESS_AND_OWNERSHIP_CERTIFICATION.md`.
+
+Headline findings:
+- **7 of 8 027 notifications** carry `recipient_user_id` (0.087%) — Track 14.0
+  routing contract is structurally correct but its source-data graph is empty.
+- **0 of 29 jobs** carry a `superintendent_user_id` / `foreman_user_id` / safety
+  / engineer FK. `jobs_master` schema does not contain these fields.
+- **0 of 370 employees** have `supervisor_user_id`; 124 (33%) have a free-text
+  `supervisor` string. **0 of 99 directory users** link to an `employee_id`.
+- **16 of 18 notification producers** route by `recipient_role` only.
+- 4 producers compute `recipient_user_id` (FL, mechanic-defect, D4 asset-docs,
+  D5 hr-training, D6 dispatch-stale); only the **mechanic-defect** path has
+  populated source data.
+- D4 / D5 / D6 producers are **admin-trigger only** — no cron in preview;
+  surfacing them as "automated" would be misleading.
+- The `/api/jobs/{project_number}/recent-context` endpoint **infers
+  Superintendent identity from the last DR** — heuristic, not a canonical store.
+- 235 of 370 employees carry `lifecycle_status=NULL`. 30 notifications carry
+  `recipient_role=NULL`.
+
+Five-Pillar composite for current ownership state: **5.5 / 10** (below 9.5
+RC-1 bar). Trusted pillar specifically: **4.0 / 10**.
+
+Final recommendation: **B — Fix ownership model first** before Spanish.
+Specifically, complete the project-ownership schema (superintendent / foreman
+/ safety / engineer FK fields on `jobs_master`) and the
+directory↔employee linkage. Spanish translation locked onto inferred or
+absent ownership data would harden fiction into two languages.
+
+
+
 ## 2026-06-14 — Track 14.0-NOTIFY-OWNERSHIP-LOCK · D2-D10 CLOSED
 
 - **D2 person-level routing**: read-side filter (`_notif_filter`) now honours
