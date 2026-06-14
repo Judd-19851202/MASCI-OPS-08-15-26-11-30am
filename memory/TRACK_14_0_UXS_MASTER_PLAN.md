@@ -21,7 +21,8 @@ Spanish translation (14.0-S1) is **blocked until UXS-1 is closed**. Other UXS su
 | ID | Title | Depends on | Spanish blocker? | Status |
 |---|---|---|---|---|
 | **UXS-1** | Inventory + Legacy/rollback purge + visible shell violation list | none | **YES** | ✅ **CLOSED 2026-06-14** — see `TRACK_14_0_UXS1_INVENTORY_LEGACY_PURGE_CLOSURE.md` |
-| UXS-2 | Unified authenticated portal shell (Shop · PM · HR · Safety · Dispatch · Admin · Asset Care · Field Leadership) | UXS-1 | YES | OPEN |
+| **UXS-2** | Unified authenticated portal shell (Shop · PM · HR · Safety · Dispatch · Admin · Asset Care · Field Leadership) | UXS-1 | YES | ⚠️ **PARTIAL CLOSURE 2026-06-14** — shared shell primitive locked + 4 PortalShell-consumer hubs (HR/PM/Safety/Dispatch) on unified MASCI chrome with Home + ForgedOps footer + local-time formatting. Admin/Shop/FL deferred to **UXS-2b** with valid structural-refactor reason (each already has MASCI identity in its own shell). See `TRACK_14_0_UXS_2_UNIFIED_AUTHENTICATED_PORTAL_SHELL.md`. |
+| **UXS-2b** | Admin / Shop / FL adoption of shared `<PortalShell>` | UXS-2 | YES | OPEN |
 | UXS-3 | Public form shell + field tile shell (Daily Report · Pre-Op · DVIR · Incident · Excavation · public submitters) | UXS-1 | YES | OPEN |
 | UXS-4 | Color law + severity/status chip law (publish governance doc + apply to status chips across platform) | UXS-1 | no | OPEN |
 | UXS-5 | Dashboard / KPI / card / table / queue standardization (36 dashboards) | UXS-2, UXS-4 | no | OPEN |
