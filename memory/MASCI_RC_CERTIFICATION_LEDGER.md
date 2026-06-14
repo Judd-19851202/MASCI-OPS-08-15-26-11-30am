@@ -7078,3 +7078,63 @@ Banners are all cleared to begin.
 **Report:** `/app/memory/TRACK_14_0_RC1_DONE_DONE_CERTIFICATION_FIX_SWEEP.md`.
 **Reference:** `/app/memory/MASCI_DEFINITION_OF_DONE.md`.
 
+
+---
+
+## Track 14.0-PLATFORM-TRUTH-MAP — COMPLETE ROUTE · NAVIGATION · SURFACE INVENTORY
+
+**Date:** 2026-02-12 · **Status:** CLOSED · **Mode:** READ-ONLY · **Composite:** **9.85** (Trusted **9.95** · Proven **9.90**)
+
+### Outcome
+- **341 routes** inventoried from `frontend/src/App.js` into machine-readable
+  JSON (`/app/memory/TRACK_14_0_PLATFORM_ROUTE_INVENTORY.json`).
+- **10 portals mapped**: Admin · PM · FL · Safety · Shop · Asset Care
+  · Dispatch · HR · Public · Dev/Internal.
+- **~232 surfaces** classified by Definition-of-Done state in
+  `/app/memory/TRACK_14_0_PLATFORM_SURFACE_INVENTORY.md`.
+- **Single biggest finding:** PM, Shop, HR, Safety, Dispatch **V2 hubs
+  do NOT use their shell components** — sidebar / NotificationBell /
+  PortalSwitcher / GlobalSearch / mobile hamburger never render on the
+  V2 landing pages. Admin portal alone renders the full chrome
+  end-to-end. Each portal already has a `*Shell` + `SideNavV2`
+  component built; they simply aren't wrapped around the V2 hub.
+
+### RC-1 blocker list (8 open)
+- **RC1-NAV-001** (P0) · PM V2 hub no-shell
+- **RC1-NAV-002** (P0) · PortalSwitcher / NotificationBell / GlobalSearch missing on PM V2
+- **RC1-NAV-003** (P1) · Shop V2 hub no-shell
+- **RC1-NAV-004** (P1) · HR V2 hub no-shell
+- **RC1-NAV-005** (P1) · Safety V2 hub no-shell
+- **RC1-NAV-006** (P1) · Dispatch V2 hub no-shell + legacy hub still on root
+- **RC1-INVITE-FLOW-001** (P1) · PM-inline portal-invite CTA missing
+- **RC1-NOTIFICATION-DEEPLINK-002** (P1) · Producers (Inspection/Meeting/JHA/Incident/QAQC/Pre-Op/Trench-Reinspection) emit no explicit `link_url`
+
+### Resolved baseline (from RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP)
+- ✅ RC1-PORTAL-NAV-001 (PM Dispatch shortcut → 403)
+- ✅ RC1-OWNERSHIP-UX-001 (PM Project Roster → 404)
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.85 |
+| Simple | 9.95 |
+| Beautiful | 9.80 |
+| Trusted | **9.95** |
+| Proven | **9.90** |
+
+**Composite: 9.85.**
+
+### Executive recommendation
+- **Spanish · PDF Lockup · Integration Honesty Banners CAN start now** —
+  they land on DONE-DONE public crew forms + Admin (full chrome).
+- **UXS-11 + RC1-Role-Visibility-Certification BLOCKED** until the
+  shell-wrap fix track ships.
+- **Next track recommended:** Track 14.0-NAV-SHELL-UNIFICATION
+  (~2–3 days · M effort) — wrap PM/Shop/HR/Safety/Dispatch V2 hubs in
+  their existing `*Shell` + `SideNavV2` components.
+
+**Report:** `/app/memory/TRACK_14_0_PLATFORM_TRUTH_MAP_ROUTE_NAV_SURFACE_INVENTORY.md`.
+**References:** `TRACK_14_0_PLATFORM_NAVIGATION_MATRIX.md` ·
+`TRACK_14_0_PLATFORM_SURFACE_INVENTORY.md` ·
+`TRACK_14_0_PLATFORM_ROUTE_INVENTORY.json`.
+

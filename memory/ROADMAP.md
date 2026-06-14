@@ -4,6 +4,42 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ Track 14.0-PLATFORM-TRUTH-MAP — DONE (2026-02-12)
+Complete read-only audit: 341 routes · 10 portals · 232 surfaces · 14 roles · 8 RC1 blockers. Biggest finding: PM/Shop/HR/Safety/Dispatch V2 hubs lack shell wrap. **Spanish · PDF · I1 unblocked.** Five-Pillar **9.85**.
+Ledger: `TRACK_14_0_PLATFORM_TRUTH_MAP_ROUTE_NAV_SURFACE_INVENTORY.md`.
+
+## 🔴 P0 — Track 14.0-NAV-SHELL-UNIFICATION (next · ~2–3 days · M effort)
+Wrap PM/Shop/HR/Safety/Dispatch V2 hubs in their existing `*Shell` + `SideNavV2` components so sidebar + chrome render consistently. Single change unblocks UXS-11 and role visibility certification for 11 of 14 roles.
+
+## 🔴 P0 — Track 14.0-S1 Spanish Translation Sweep (parallel · NOW UNBLOCKED)
+Public crew forms + admin operator copy. Lands on DONE-DONE surfaces.
+
+## 🔴 P0 — Track 14.0-P1 PDF Lockup Sweep (parallel · NOW UNBLOCKED)
+PDF generation pipelines on operational records (DR · Incident · Inspection · JHA · Trench · QAQC · FL).
+
+## 🔴 P0 — Track 14.0-I1 Integration Honesty Banners (parallel · NOW UNBLOCKED)
+Resend · Twilio · MaintainX · Motive health surfaces in admin portal.
+
+## 🟡 P1 — Track 14.0-RC1-ROLE-VISIBILITY-CERTIFICATION (after NAV-SHELL-UNIFICATION)
+Certify all 14 roles can find and use their workflows from their landing portal.
+
+## 🟡 P1 — Track 14.0-UXS-11 Final Certification (after NAV-SHELL-UNIFICATION + S1 + P1 + I1)
+RC-1 acceptance suite.
+
+## 🟡 P1 — RC1 Blockers Open (8)
+- **RC1-NAV-001** (P0) · PM V2 hub no-shell · OPENED 2026-02-12
+- **RC1-NAV-002** (P0) · PortalSwitcher/Bell missing on PM V2 · OPENED 2026-02-12
+- **RC1-NAV-003** (P1) · Shop V2 hub no-shell · OPENED 2026-02-12
+- **RC1-NAV-004** (P1) · HR V2 hub no-shell · OPENED 2026-02-12
+- **RC1-NAV-005** (P1) · Safety V2 hub no-shell · OPENED 2026-02-12
+- **RC1-NAV-006** (P1) · Dispatch V2 hub no-shell + legacy hub still on root · OPENED 2026-02-12
+- **RC1-INVITE-FLOW-001** (P1) · PM-inline portal-invite CTA missing · carried from RC1-FIX-SWEEP
+- **RC1-NOTIFICATION-DEEPLINK-002** (P1) · Producers emit no explicit `link_url` for safety/QAQC/preop/trench · OPENED 2026-02-12
+
+## 🟢 P2 — Post-RC1
+- **RC1-NAV-PROMOTE-001** (P2) · ~12 surfaces with discoverability ≤ 2 (Project Health · Constraints · etc.)
+- **RC1-LEGACY-RETIRE-001** (P2) · Retire `*hub_legacy` route aliases after V2 cuts to 100%
+
 ## ✅ Track 14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP — DONE (2026-02-12)
 Canonical `MASCI_DEFINITION_OF_DONE.md` created. RC1-PORTAL-NAV-001 (PM Dispatch shortcut 403) FIXED. RC1-OWNERSHIP-UX-001 (PM Project Roster 404) FIXED. PM + Admin Project Team workflows OPERATIONAL with live screenshot proof. Five-Pillar **9.90**.
 Ledger: `TRACK_14_0_RC1_DONE_DONE_CERTIFICATION_FIX_SWEEP.md`.

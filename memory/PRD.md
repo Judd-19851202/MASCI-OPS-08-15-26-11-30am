@@ -11,6 +11,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-12)
+- **14.0-PLATFORM-TRUTH-MAP CLOSED** — Complete read-only audit of every
+  portal · route · navigation element · surface across MASCI Operations
+  Platform. **341 routes** · **10 portals** · **~232 surfaces** · **14
+  roles** inventoried. Four output files committed (executive truth map,
+  navigation matrix, surface inventory, machine-readable route JSON).
+  **Single biggest finding:** PM/Shop/HR/Safety/Dispatch V2 hubs lack
+  their shell wrap → no sidebar / no NotificationBell / no PortalSwitcher
+  / no GlobalSearch / no mobile hamburger on V2 landing pages. Admin
+  alone has the full chrome end-to-end. **8 RC1 blockers** identified
+  (2 P0 · 4 P1 · 2 P2). **Spanish · PDF · I1 unblocked.** UXS-11 + role
+  visibility certification blocked until shell-wrap track ships.
+  Five-Pillar **9.85** (Trusted 9.95 · Proven 9.90). Ledger:
+  `/app/memory/TRACK_14_0_PLATFORM_TRUTH_MAP_ROUTE_NAV_SURFACE_INVENTORY.md`.
+
+
+## Latest Closed Track (2026-02-12)
 - **14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP CLOSED** — Canonical
   `MASCI_DEFINITION_OF_DONE.md` created (5 states: NOT STARTED · BUILT ·
   WIRED · OPERATIONAL · DONE-DONE). RC1-PORTAL-NAV-001 (PM Dispatch

@@ -1,0 +1,2755 @@
+{
+  "total": 341,
+  "portal_counts": {
+    "PUBLIC": 79,
+    "REDIRECT": 27,
+    "ADMIN (unguarded - check)": 6,
+    "ADMIN": 57,
+    "SAFETY": 27,
+    "ADMIN/PM": 39,
+    "SAFETY (unguarded - check)": 6,
+    "ADMIN/PM/SAFETY": 3,
+    "PM (unguarded - check)": 3,
+    "PM": 18,
+    "SHOP (unguarded - check)": 2,
+    "SHOP": 24,
+    "HR (unguarded - check)": 5,
+    "HR": 20,
+    "FL (unguarded - check)": 1,
+    "FIELD-LEADERSHIP": 4,
+    "DISPATCH (unguarded - check)": 3,
+    "DISPATCH": 10,
+    "DEV-INTERNAL": 6,
+    "FALLBACK": 1
+  },
+  "routes": [
+    {
+      "line": 426,
+      "path": "/",
+      "component": "Hub",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<Hub />"
+    },
+    {
+      "line": 427,
+      "path": "/revise/:token",
+      "component": "Revise",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<Revise />"
+    },
+    {
+      "line": 428,
+      "path": "/safety",
+      "component": "SafetySection",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<SafetySection />"
+    },
+    {
+      "line": 429,
+      "path": "/safety/forms/login",
+      "component": "SafetyFormsLogin",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<SafetyFormsLogin />"
+    },
+    {
+      "line": 430,
+      "path": "/safety/forms",
+      "component": "SafetyFormsHub",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<SafetyFormsHub />"
+    },
+    {
+      "line": 431,
+      "path": "/safety/forms/equipment-issuance/new",
+      "component": "NewSafetyEquipmentIssuance",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewSafetyEquipmentIssuance />"
+    },
+    {
+      "line": 432,
+      "path": "/safety/forms/equipment-issuance/:id",
+      "component": "ViewSafetyForm",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<ViewSafetyForm kind=\"issuance\" />"
+    },
+    {
+      "line": 433,
+      "path": "/safety/forms/equipment-issuance/:id/return",
+      "component": "ReturnEquipment",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<ReturnEquipment />"
+    },
+    {
+      "line": 434,
+      "path": "/safety/forms/equipment-training/new",
+      "component": "NewSafetyEquipmentTraining",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewSafetyEquipmentTraining />"
+    },
+    {
+      "line": 435,
+      "path": "/safety/forms/equipment-training/:id",
+      "component": "ViewSafetyForm",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<ViewSafetyForm kind=\"training\" />"
+    },
+    {
+      "line": 436,
+      "path": "/safety/cards",
+      "component": "FieldSafetyCards",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<FieldSafetyCards />"
+    },
+    {
+      "line": 437,
+      "path": "/field",
+      "component": "FieldSection",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<FieldSection />"
+    },
+    {
+      "line": 438,
+      "path": "/field/calculators",
+      "component": "MaterialCalculators",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<MaterialCalculators />"
+    },
+    {
+      "line": 439,
+      "path": "/qaqc",
+      "component": "QaqcSection",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<QaqcSection />"
+    },
+    {
+      "line": 440,
+      "path": "/qa-qc",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/qaqc\" replace />"
+    },
+    {
+      "line": 441,
+      "path": "/qaqc/:slug/new",
+      "component": "NewQaqcInspection",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewQaqcInspection />"
+    },
+    {
+      "line": 442,
+      "path": "/qaqc/:id",
+      "component": "ViewQaqcInspection",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<ViewQaqcInspection />"
+    },
+    {
+      "line": 443,
+      "path": "/admin/qaqc",
+      "component": "AdminQaqcList",
+      "guard": "PUBLIC",
+      "portal": "ADMIN (unguarded - check)",
+      "raw_element": "<AdminQaqcList />"
+    },
+    {
+      "line": 444,
+      "path": "/admin/photos",
+      "component": "JobPhotosLibrary",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<JobPhotosLibrary portalKey=\"admin\" />)"
+    },
+    {
+      "line": 452,
+      "path": "/constraints",
+      "component": "Constraints",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<Constraints />"
+    },
+    {
+      "line": 453,
+      "path": "/constraints/new",
+      "component": "NewConstraint",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewConstraint />"
+    },
+    {
+      "line": 454,
+      "path": "/constraints/:id",
+      "component": "ConstraintDetail",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<ConstraintDetail />"
+    },
+    {
+      "line": 457,
+      "path": "/leadership",
+      "component": "FieldLeadershipHub",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<FieldLeadershipHub />"
+    },
+    {
+      "line": 460,
+      "path": "/leadership/hub_v2",
+      "component": "LeadershipHubV2",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<LeadershipHubV2 />"
+    },
+    {
+      "line": 464,
+      "path": "/leadership/records",
+      "component": "FieldLeadershipRecords",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<FieldLeadershipRecords />"
+    },
+    {
+      "line": 465,
+      "path": "/leadership/records/:id",
+      "component": "FieldLeadershipView",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<FieldLeadershipView />"
+    },
+    {
+      "line": 466,
+      "path": "/leadership/:kind/new",
+      "component": "FieldLeadershipFormPage",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<FieldLeadershipFormPage />"
+    },
+    {
+      "line": 471,
+      "path": "/safety/inspections/new",
+      "component": "NewInspection",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<NewInspection />)"
+    },
+    {
+      "line": 472,
+      "path": "/inspect/new",
+      "component": "InspectionLegacyRedirect",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<InspectionLegacyRedirect />"
+    },
+    {
+      "line": 473,
+      "path": "/submit",
+      "component": "InspectionLegacyRedirect",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<InspectionLegacyRedirect />"
+    },
+    {
+      "line": 474,
+      "path": "/inspections/submit",
+      "component": "InspectionLegacyRedirect",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<InspectionLegacyRedirect />"
+    },
+    {
+      "line": 475,
+      "path": "/inspections/new",
+      "component": "InspectionLegacyRedirect",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<InspectionLegacyRedirect />"
+    },
+    {
+      "line": 477,
+      "path": "/meetings/new",
+      "component": "NewMeeting",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewMeeting />"
+    },
+    {
+      "line": 478,
+      "path": "/meetings/submit",
+      "component": "NewMeeting",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewMeeting publicMode />"
+    },
+    {
+      "line": 480,
+      "path": "/jha",
+      "component": "JhaPlansHub",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<JhaPlansHub />"
+    },
+    {
+      "line": 481,
+      "path": "/jha/submit",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "line": 482,
+      "path": "/jha/new",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "line": 484,
+      "path": "/trench-boxes",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/trench-safety/tabulated-data\" replace />"
+    },
+    {
+      "line": 486,
+      "path": "/trench-safety",
+      "component": "PublicTrenchSafetyDashboard",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PublicTrenchSafetyDashboard />"
+    },
+    {
+      "line": 488,
+      "path": "/trench-safety/tabulated-data",
+      "component": "PublicTrenchSafetyTabulatedData",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PublicTrenchSafetyTabulatedData />"
+    },
+    {
+      "line": 489,
+      "path": "/trench-safety/references",
+      "component": "PublicTrenchSafetyReferences",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PublicTrenchSafetyReferences />"
+    },
+    {
+      "line": 490,
+      "path": "/trench-safety/report",
+      "component": "PublicTrenchSafetyReport",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PublicTrenchSafetyReport />"
+    },
+    {
+      "line": 492,
+      "path": "/trench-safety/assets/:assetId",
+      "component": "TrenchSafetyQrLanding",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<TrenchSafetyQrLanding />"
+    },
+    {
+      "line": 494,
+      "path": "/incidents/new",
+      "component": "NewIncident",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewIncident />"
+    },
+    {
+      "line": 495,
+      "path": "/incidents/submit",
+      "component": "NewIncident",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewIncident publicMode />"
+    },
+    {
+      "line": 497,
+      "path": "/daily/new",
+      "component": "NewDailyReport",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewDailyReport />"
+    },
+    {
+      "line": 498,
+      "path": "/daily/submit",
+      "component": "NewDailyReport",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewDailyReport publicMode />"
+    },
+    {
+      "line": 500,
+      "path": "/equipment/new",
+      "component": "NewEquipmentInspection",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewEquipmentInspection />"
+    },
+    {
+      "line": 501,
+      "path": "/equipment/submit",
+      "component": "NewEquipmentInspection",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewEquipmentInspection publicMode />"
+    },
+    {
+      "line": 502,
+      "path": "/equipment/:id",
+      "component": "RedirectWithId",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<RedirectWithId base=\"/admin/equipment\" />"
+    },
+    {
+      "line": 505,
+      "path": "/fleet/dvir/new",
+      "component": "NewFleetDVIR",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewFleetDVIR />"
+    },
+    {
+      "line": 506,
+      "path": "/fleet/dvir/submit",
+      "component": "NewFleetDVIR",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewFleetDVIR />"
+    },
+    {
+      "line": 508,
+      "path": "/fleet/weekly-lead/new",
+      "component": "NewFleetDVIR",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewFleetDVIR kind=\"weekly_lead\" />"
+    },
+    {
+      "line": 509,
+      "path": "/fleet/weekly-emergency/new",
+      "component": "NewFleetDVIR",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NewFleetDVIR kind=\"weekly_emergency\" />"
+    },
+    {
+      "line": 510,
+      "path": "/fleet/dvir/submitted/:id",
+      "component": "FleetDVIRConfirmation",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<FleetDVIRConfirmation />"
+    },
+    {
+      "line": 512,
+      "path": "/thank-you",
+      "component": "ThankYou",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<ThankYou />"
+    },
+    {
+      "line": 513,
+      "path": "/cheatsheet",
+      "component": "PosterErrorBoundary",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PosterErrorBoundary><CheatSheet /></PosterErrorBoundary>"
+    },
+    {
+      "line": 514,
+      "path": "/cheat-sheet",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/cheatsheet\" replace />"
+    },
+    {
+      "line": 520,
+      "path": "/reports/daily/new",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/daily/new\" replace />"
+    },
+    {
+      "line": 521,
+      "path": "/safety/jha",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "line": 522,
+      "path": "/safety/trench-boxes",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/trench-boxes\" replace />"
+    },
+    {
+      "line": 524,
+      "path": "/safety/trench-safety",
+      "component": "TrenchSafetyHub",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<TrenchSafetyHub />)"
+    },
+    {
+      "line": 525,
+      "path": "/safety/trench-safety/assets",
+      "component": "TrenchSafetyAssetsList",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<TrenchSafetyAssetsList />)"
+    },
+    {
+      "line": 526,
+      "path": "/safety/trench-safety/assets/:assetId",
+      "component": "TrenchSafetyAssetDetail",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<TrenchSafetyAssetDetail />)"
+    },
+    {
+      "line": 527,
+      "path": "/safety/trench-safety/tabulated-data",
+      "component": "TrenchSafetyTabulatedData",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<TrenchSafetyTabulatedData />)"
+    },
+    {
+      "line": 528,
+      "path": "/safety/trench-safety/reports",
+      "component": "TrenchSafetyReports",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<TrenchSafetyReports />)"
+    },
+    {
+      "line": 529,
+      "path": "/safety/trench-safety/excavations",
+      "component": "ExcavationOversight",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<ExcavationOversight />)"
+    },
+    {
+      "line": 530,
+      "path": "/admin/trench-safety/excavations",
+      "component": "ExcavationOversight",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ExcavationOversight />)"
+    },
+    {
+      "line": 531,
+      "path": "/trench-safety/excavation/new",
+      "component": "PublicExcavationForm",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PublicExcavationForm />"
+    },
+    {
+      "line": 533,
+      "path": "/safety/trench-safety/repair-review",
+      "component": "TrenchSafetyRepairReviewPage",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<TrenchSafetyRepairReviewPage />)"
+    },
+    {
+      "line": 534,
+      "path": "/safety/trench-safety/field-reports",
+      "component": "TrenchSafetyFieldReportsPage",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<TrenchSafetyFieldReportsPage />)"
+    },
+    {
+      "line": 536,
+      "path": "/safety-portal/trench-safety",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "SAFETY (unguarded - check)",
+      "raw_element": "<Navigate to=\"/safety/trench-safety\" replace />"
+    },
+    {
+      "line": 537,
+      "path": "/safety-portal/trench-safety/assets",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "SAFETY (unguarded - check)",
+      "raw_element": "<Navigate to=\"/safety/trench-safety/assets\" replace />"
+    },
+    {
+      "line": 538,
+      "path": "/safety-portal/trench-safety/tabulated-data",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "SAFETY (unguarded - check)",
+      "raw_element": "<Navigate to=\"/safety/trench-safety/tabulated-data\" replace />"
+    },
+    {
+      "line": 547,
+      "path": "/app/*",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/\" replace />"
+    },
+    {
+      "line": 552,
+      "path": "/admin/login",
+      "component": "AdminLogin",
+      "guard": "PUBLIC",
+      "portal": "ADMIN (unguarded - check)",
+      "raw_element": "<AdminLogin />"
+    },
+    {
+      "line": 553,
+      "path": "/admin",
+      "component": "AdminHub",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminHub />)"
+    },
+    {
+      "line": 555,
+      "path": "/admin/hub_v2",
+      "component": "AdminHubV2",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminHubV2 />)"
+    },
+    {
+      "line": 557,
+      "path": "/admin/material-ledger-quality",
+      "component": "AdminMaterialLedgerQuality",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminMaterialLedgerQuality />)"
+    },
+    {
+      "line": 558,
+      "path": "/admin/people",
+      "component": "AdminPeople",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminPeople />)"
+    },
+    {
+      "line": 559,
+      "path": "/admin/mfa",
+      "component": "AdminMfa",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminMfa />)"
+    },
+    {
+      "line": 560,
+      "path": "/admin/promo-assets",
+      "component": "AdminPromoAssets",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminPromoAssets />)"
+    },
+    {
+      "line": 561,
+      "path": "/admin/jobs",
+      "component": "AdminJobs",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminJobs />)"
+    },
+    {
+      "line": 562,
+      "path": "/admin/jobs/:projectNumber/team",
+      "component": "AdminJobTeam",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminJobTeam />)"
+    },
+    {
+      "line": 564,
+      "path": "/admin/geofence-reconciliation",
+      "component": "AdminGeofenceReconciliation",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminGeofenceReconciliation />)"
+    },
+    {
+      "line": 566,
+      "path": "/admin/operations-dashboard",
+      "component": "AdminOperationsDashboard",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminOperationsDashboard />)"
+    },
+    {
+      "line": 568,
+      "path": "/admin/asset-mapping",
+      "component": "AdminAssetMapping",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminAssetMapping />)"
+    },
+    {
+      "line": 569,
+      "path": "/admin/asset-spine",
+      "component": "AdminAssetSpineHealth",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminAssetSpineHealth />)"
+    },
+    {
+      "line": 570,
+      "path": "/admin/equipment",
+      "component": "AdminEquipment",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminEquipment />)"
+    },
+    {
+      "line": 571,
+      "path": "/admin/email",
+      "component": "AdminEmail",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminEmail />)"
+    },
+    {
+      "line": 572,
+      "path": "/admin/training",
+      "component": "AdminTraining",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminTraining />)"
+    },
+    {
+      "line": 573,
+      "path": "/admin/compliance",
+      "component": "AdminCompliance",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminCompliance />)"
+    },
+    {
+      "line": 574,
+      "path": "/admin/system",
+      "component": "AdminSystem",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminSystem />)"
+    },
+    {
+      "line": 575,
+      "path": "/admin/recovery",
+      "component": "AdminRecovery",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminRecovery />)"
+    },
+    {
+      "line": 576,
+      "path": "/admin/recovery-stream",
+      "component": "AdminRecoveryStream",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminRecoveryStream />)"
+    },
+    {
+      "line": 577,
+      "path": "/admin/jha-acknowledgements",
+      "component": "AdminJhaAcknowledgements",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminJhaAcknowledgements />)"
+    },
+    {
+      "line": 578,
+      "path": "/admin/command-center",
+      "component": "AdminCommandCenter",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminCommandCenter />)"
+    },
+    {
+      "line": 579,
+      "path": "/admin/database",
+      "component": "AdminDatabase",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminDatabase />)"
+    },
+    {
+      "line": 580,
+      "path": "/admin/integrations",
+      "component": "AdminIntegrationCenter",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminIntegrationCenter />)"
+    },
+    {
+      "line": 581,
+      "path": "/admin/dispatch",
+      "component": "AdminDispatch",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminDispatch />)"
+    },
+    {
+      "line": 582,
+      "path": "/admin/dls/shift-qr",
+      "component": "AdminDlsShiftQR",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminDlsShiftQR />)"
+    },
+    {
+      "line": 583,
+      "path": "/admin/dls/day-1-debrief",
+      "component": "AdminDlsDay1Debrief",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminDlsDay1Debrief variant=\"day-1\" />)"
+    },
+    {
+      "line": 584,
+      "path": "/admin/dls/week-1-debrief",
+      "component": "AdminDlsDay1Debrief",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminDlsDay1Debrief variant=\"week-1\" />)"
+    },
+    {
+      "line": 585,
+      "path": "/admin/profile",
+      "component": "AdminProfile",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminProfile />)"
+    },
+    {
+      "line": 586,
+      "path": "/admin/operations-events",
+      "component": "AdminOperationsEvents",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminOperationsEvents />)"
+    },
+    {
+      "line": 587,
+      "path": "/admin/digest-config",
+      "component": "AdminDigestConfig",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminDigestConfig />)"
+    },
+    {
+      "line": 588,
+      "path": "/admin/system-health",
+      "component": "SystemHealth",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<SystemHealth />)"
+    },
+    {
+      "line": 589,
+      "path": "/admin/audit-log",
+      "component": "AdminAuditLog",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminAuditLog />)"
+    },
+    {
+      "line": 591,
+      "path": "/admin/scheduler-runs",
+      "component": "AdminSchedulerRuns",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminSchedulerRuns />)"
+    },
+    {
+      "line": 592,
+      "path": "/admin/legacy-imports",
+      "component": "AdminLegacyImports",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminLegacyImports />)"
+    },
+    {
+      "line": 593,
+      "path": "/admin/sessions",
+      "component": "AdminSessions",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminSessions />)"
+    },
+    {
+      "line": 594,
+      "path": "/admin/guidance-coverage",
+      "component": "AdminGuidanceCoverage",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminGuidanceCoverage />)"
+    },
+    {
+      "line": 595,
+      "path": "/admin/operational-inventory",
+      "component": "AdminOperationalInventory",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminOperationalInventory />)"
+    },
+    {
+      "line": 597,
+      "path": "/notifications",
+      "component": "NotificationsDigest",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<NotificationsDigest />"
+    },
+    {
+      "line": 599,
+      "path": "/admin/governance",
+      "component": "AdminGovernance",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminGovernance />)"
+    },
+    {
+      "line": 600,
+      "path": "/admin/project-identity",
+      "component": "AdminProjectIdentityGovernance",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminProjectIdentityGovernance />)"
+    },
+    {
+      "line": 601,
+      "path": "/admin/governance/self-protection",
+      "component": "SelfProtection",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<SelfProtection />)"
+    },
+    {
+      "line": 602,
+      "path": "/admin/compliance-findings",
+      "component": "AdminComplianceFindings",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminComplianceFindings />)"
+    },
+    {
+      "line": 603,
+      "path": "/admin/operational-language",
+      "component": "AdminOperationalLanguage",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminOperationalLanguage />)"
+    },
+    {
+      "line": 607,
+      "path": "/guidance",
+      "component": "OperationalGuidanceCenter",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OperationalGuidanceCenter />"
+    },
+    {
+      "line": 608,
+      "path": "/guidance/section/:sectionId",
+      "component": "OperationalGuidanceCenter",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OperationalGuidanceCenter />"
+    },
+    {
+      "line": 609,
+      "path": "/guidance/:articleId",
+      "component": "OperationalGuidanceCenter",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OperationalGuidanceCenter />"
+    },
+    {
+      "line": 610,
+      "path": "/admin/deploy-recovery",
+      "component": "DeployRecovery",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<DeployRecovery />)"
+    },
+    {
+      "line": 611,
+      "path": "/admin/assets/:assetId",
+      "component": "AssetProfile",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AssetProfile />)"
+    },
+    {
+      "line": 612,
+      "path": "/admin/asset-admin",
+      "component": "AdminAssetAdmin",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminAssetAdmin />)"
+    },
+    {
+      "line": 613,
+      "path": "/admin/driver-intel/:driverKey",
+      "component": "AdminDriverIntel",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminDriverIntel />)"
+    },
+    {
+      "line": 614,
+      "path": "/admin/equipment/:id/history",
+      "component": "AdminMasterHistory",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminMasterHistory kind=\"equipment\" />)"
+    },
+    {
+      "line": 615,
+      "path": "/admin/employees/:id/history",
+      "component": "AdminMasterHistory",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminMasterHistory kind=\"employee\" />)"
+    },
+    {
+      "line": 616,
+      "path": "/admin/analytics",
+      "component": "AdminAnalytics",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminAnalytics />)"
+    },
+    {
+      "line": 617,
+      "path": "/admin/leadership-equipment",
+      "component": "AdminLeadershipEquipment",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminLeadershipEquipment />)"
+    },
+    {
+      "line": 618,
+      "path": "/admin/terminations",
+      "component": "AdminTerminations",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminTerminations />)"
+    },
+    {
+      "line": 619,
+      "path": "/admin/guide",
+      "component": "AdminGuide",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminGuide />)"
+    },
+    {
+      "line": 620,
+      "path": "/admin/pnl",
+      "component": "ProjectPnlPage",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ProjectPnlPage />)"
+    },
+    {
+      "line": 622,
+      "path": "/admin/inspections",
+      "component": "Dashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<Dashboard />)"
+    },
+    {
+      "line": 623,
+      "path": "/admin/inspections/:id",
+      "component": "ViewInspection",
+      "guard": "RequireAdminOrPmOrSafetyToken",
+      "portal": "ADMIN/PM/SAFETY",
+      "raw_element": "APS(<ViewInspection />)"
+    },
+    {
+      "line": 625,
+      "path": "/admin/meetings",
+      "component": "MeetingsDashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<MeetingsDashboard />)"
+    },
+    {
+      "line": 626,
+      "path": "/admin/meetings/:id",
+      "component": "ViewMeeting",
+      "guard": "RequireAdminOrPmOrSafetyToken",
+      "portal": "ADMIN/PM/SAFETY",
+      "raw_element": "APS(<ViewMeeting />)"
+    },
+    {
+      "line": 628,
+      "path": "/admin/jha-plans",
+      "component": "JhaPlansAdmin",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<JhaPlansAdmin />)"
+    },
+    {
+      "line": 629,
+      "path": "/admin/jha",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "ADMIN (unguarded - check)",
+      "raw_element": "<Navigate to=\"/admin/jha-plans\" replace />"
+    },
+    {
+      "line": 630,
+      "path": "/admin/jha/:id",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "ADMIN (unguarded - check)",
+      "raw_element": "<Navigate to=\"/admin/jha-plans\" replace />"
+    },
+    {
+      "line": 632,
+      "path": "/admin/trench-boxes",
+      "component": "TrenchBoxesAdmin",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchBoxesAdmin />)"
+    },
+    {
+      "line": 633,
+      "path": "/admin/trench-boxes/poster",
+      "component": "PosterErrorBoundary",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<PosterErrorBoundary><TrenchBoxPoster /></PosterErrorBoundary>)"
+    },
+    {
+      "line": 638,
+      "path": "/admin/trench-safety",
+      "component": "TrenchSafetyHub",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchSafetyHub />)"
+    },
+    {
+      "line": 639,
+      "path": "/admin/trench-safety/assets",
+      "component": "TrenchSafetyAssetsList",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchSafetyAssetsList />)"
+    },
+    {
+      "line": 640,
+      "path": "/admin/trench-safety/assets/:assetId",
+      "component": "TrenchSafetyAssetDetail",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchSafetyAssetDetail />)"
+    },
+    {
+      "line": 641,
+      "path": "/admin/trench-safety/tabulated-data",
+      "component": "TrenchSafetyTabulatedData",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchSafetyTabulatedData />)"
+    },
+    {
+      "line": 642,
+      "path": "/admin/trench-safety/reports",
+      "component": "TrenchSafetyReports",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchSafetyReports />)"
+    },
+    {
+      "line": 643,
+      "path": "/admin/trench-safety/repair-review",
+      "component": "TrenchSafetyRepairReviewPage",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchSafetyRepairReviewPage adminPortal={true} />)"
+    },
+    {
+      "line": 644,
+      "path": "/admin/trench-safety/field-reports",
+      "component": "TrenchSafetyFieldReportsPage",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchSafetyFieldReportsPage adminPortal={true} />)"
+    },
+    {
+      "line": 646,
+      "path": "/admin/jha-plans/poster",
+      "component": "PosterErrorBoundary",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<PosterErrorBoundary><JhaPlansPoster /></PosterErrorBoundary>)"
+    },
+    {
+      "line": 648,
+      "path": "/admin/posters/print-all",
+      "component": "PosterErrorBoundary",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<PosterErrorBoundary><AllPostersPrint /></PosterErrorBoundary>)"
+    },
+    {
+      "line": 650,
+      "path": "/admin/incidents",
+      "component": "IncidentsDashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<IncidentsDashboard />)"
+    },
+    {
+      "line": 651,
+      "path": "/admin/incidents/:id",
+      "component": "ViewIncident",
+      "guard": "RequireAdminOrPmOrSafetyToken",
+      "portal": "ADMIN/PM/SAFETY",
+      "raw_element": "APS(<ViewIncident />)"
+    },
+    {
+      "line": 653,
+      "path": "/admin/daily",
+      "component": "DailyReportsDashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<DailyReportsDashboard />)"
+    },
+    {
+      "line": 654,
+      "path": "/admin/daily/:id",
+      "component": "ViewDailyReport",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewDailyReport />)"
+    },
+    {
+      "line": 660,
+      "path": "/admin/equipment-inspections",
+      "component": "EquipmentDashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<EquipmentDashboard />)"
+    },
+    {
+      "line": 661,
+      "path": "/admin/equipment/:id",
+      "component": "ViewEquipmentInspection",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewEquipmentInspection context=\"admin\" />)"
+    },
+    {
+      "line": 669,
+      "path": "/admin/qaqc/:id",
+      "component": "ViewQaqcInspection",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewQaqcInspection />)"
+    },
+    {
+      "line": 670,
+      "path": "/admin/leadership/records/:id",
+      "component": "FieldLeadershipView",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<FieldLeadershipView />)"
+    },
+    {
+      "line": 671,
+      "path": "/admin/safety/issuance/:id",
+      "component": "ViewSafetyForm",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewSafetyForm kind=\"issuance\" />)"
+    },
+    {
+      "line": 672,
+      "path": "/admin/safety/training/:id",
+      "component": "ViewSafetyForm",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewSafetyForm kind=\"training\" />)"
+    },
+    {
+      "line": 679,
+      "path": "/pm/login",
+      "component": "PmLogin",
+      "guard": "PUBLIC",
+      "portal": "PM (unguarded - check)",
+      "raw_element": "<PmLogin />"
+    },
+    {
+      "line": 680,
+      "path": "/pm/reset/:token",
+      "component": "PmResetPassword",
+      "guard": "PUBLIC",
+      "portal": "PM (unguarded - check)",
+      "raw_element": "<PmResetPassword />"
+    },
+    {
+      "line": 681,
+      "path": "/pm/change-password",
+      "component": "PmChangePassword",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmChangePassword />)"
+    },
+    {
+      "line": 682,
+      "path": "/pm",
+      "component": "PmHomeRedirect",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmHomeRedirect />)"
+    },
+    {
+      "line": 684,
+      "path": "/pm/hub",
+      "component": "PmHubV2",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmHubV2 />)"
+    },
+    {
+      "line": 685,
+      "path": "/pm/hub_legacy",
+      "component": "PmHub",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmHub />)"
+    },
+    {
+      "line": 687,
+      "path": "/pm/hub_v2",
+      "component": "PmHubV2",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmHubV2 />)"
+    },
+    {
+      "line": 690,
+      "path": "/pm/holds",
+      "component": "PmHoldsV2",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<PmHoldsV2 />)"
+    },
+    {
+      "line": 691,
+      "path": "/pm/due-today",
+      "component": "PmDueTodayV2",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<PmDueTodayV2 />)"
+    },
+    {
+      "line": 693,
+      "path": "/pm/crew-compliance",
+      "component": "PmCrewCompliance",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmCrewCompliance />)"
+    },
+    {
+      "line": 701,
+      "path": "/pm/jobs",
+      "component": "PmJobs",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmJobs />)"
+    },
+    {
+      "line": 702,
+      "path": "/pm/job/:projectNumber/team",
+      "component": "PmJobTeam",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmJobTeam />)"
+    },
+    {
+      "line": 713,
+      "path": "/pm/projects/:projectNumber",
+      "component": "PmProjectRedirect",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmProjectRedirect />)"
+    },
+    {
+      "line": 714,
+      "path": "/pm/projects-legacy/:projectNumber",
+      "component": "PmProjectDetail",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmProjectDetail />)"
+    },
+    {
+      "line": 718,
+      "path": "/pm/command-center",
+      "component": "PmCommandCenter",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmCommandCenter />)"
+    },
+    {
+      "line": 723,
+      "path": "/operations-center",
+      "component": "OperationsCenterCommand",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<OperationsCenterCommand />)"
+    },
+    {
+      "line": 724,
+      "path": "/operations-map",
+      "component": "OperationsMapPage",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<OperationsMapPage />)"
+    },
+    {
+      "line": 725,
+      "path": "/pm/field-leadership",
+      "component": "PmFieldLeadership",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmFieldLeadership />)"
+    },
+    {
+      "line": 726,
+      "path": "/pm/fleet",
+      "component": "PmFleet",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmFleet />)"
+    },
+    {
+      "line": 727,
+      "path": "/pm/people",
+      "component": "PmPeople",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmPeople />)"
+    },
+    {
+      "line": 728,
+      "path": "/pm/suppliers",
+      "component": "PmSuppliers",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmSuppliers />)"
+    },
+    {
+      "line": 729,
+      "path": "/pm/posters",
+      "component": "PmPosters",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmPosters />)"
+    },
+    {
+      "line": 730,
+      "path": "/pm/qaqc",
+      "component": "PmQaqcList",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<PmQaqcList />)"
+    },
+    {
+      "line": 731,
+      "path": "/pm/photos",
+      "component": "JobPhotosLibrary",
+      "guard": "RequirePmToken",
+      "portal": "PM",
+      "raw_element": "P(<JobPhotosLibrary portalKey=\"pm\" />)"
+    },
+    {
+      "line": 740,
+      "path": "/pm/daily",
+      "component": "DailyReportsDashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<DailyReportsDashboard />)"
+    },
+    {
+      "line": 741,
+      "path": "/pm/daily/:id",
+      "component": "ViewDailyReport",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewDailyReport />)"
+    },
+    {
+      "line": 742,
+      "path": "/pm/incidents",
+      "component": "IncidentsDashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<IncidentsDashboard />)"
+    },
+    {
+      "line": 743,
+      "path": "/pm/incidents/:id",
+      "component": "ViewIncident",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewIncident />)"
+    },
+    {
+      "line": 744,
+      "path": "/pm/meetings",
+      "component": "MeetingsDashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<MeetingsDashboard />)"
+    },
+    {
+      "line": 745,
+      "path": "/pm/meetings/:id",
+      "component": "ViewMeeting",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewMeeting />)"
+    },
+    {
+      "line": 746,
+      "path": "/pm/inspections",
+      "component": "Dashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<Dashboard />)"
+    },
+    {
+      "line": 747,
+      "path": "/pm/inspections/:id",
+      "component": "ViewInspection",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewInspection />)"
+    },
+    {
+      "line": 748,
+      "path": "/pm/jha-plans",
+      "component": "JhaPlansAdmin",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<JhaPlansAdmin />)"
+    },
+    {
+      "line": 749,
+      "path": "/pm/trench-boxes",
+      "component": "TrenchBoxesAdmin",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<TrenchBoxesAdmin />)"
+    },
+    {
+      "line": 750,
+      "path": "/pm/equipment",
+      "component": "EquipmentDashboard",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<EquipmentDashboard />)"
+    },
+    {
+      "line": 751,
+      "path": "/pm/equipment/:id",
+      "component": "ViewEquipmentInspection",
+      "guard": "RequireAdminOrPmToken",
+      "portal": "ADMIN/PM",
+      "raw_element": "AP(<ViewEquipmentInspection context=\"admin\" />)"
+    },
+    {
+      "line": 757,
+      "path": "/shop/login",
+      "component": "ShopLogin",
+      "guard": "PUBLIC",
+      "portal": "SHOP (unguarded - check)",
+      "raw_element": "<ShopLogin />"
+    },
+    {
+      "line": 758,
+      "path": "/shop/reset/:token",
+      "component": "ShopResetPassword",
+      "guard": "PUBLIC",
+      "portal": "SHOP (unguarded - check)",
+      "raw_element": "<ShopResetPassword />"
+    },
+    {
+      "line": 759,
+      "path": "/shop/change-password",
+      "component": "ShopChangePassword",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ShopChangePassword />)"
+    },
+    {
+      "line": 765,
+      "path": "/shop",
+      "component": "ShopHubV2",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ShopHubV2 />)"
+    },
+    {
+      "line": 766,
+      "path": "/shop/hub_legacy",
+      "component": "ShopHub",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ShopHub />)"
+    },
+    {
+      "line": 767,
+      "path": "/shop/hub_v2",
+      "component": "ShopHubV2",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ShopHubV2 />)"
+    },
+    {
+      "line": 771,
+      "path": "/shop/asset-care",
+      "component": "ShopAssetCare",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ShopAssetCare />)"
+    },
+    {
+      "line": 775,
+      "path": "/shop/manager/queue",
+      "component": "ShopManagerQueue",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ShopManagerQueue />)"
+    },
+    {
+      "line": 776,
+      "path": "/shop/me",
+      "component": "ShopMyAssignments",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ShopMyAssignments />)"
+    },
+    {
+      "line": 778,
+      "path": "/shop/units/history",
+      "component": "UnitHistoryLanding",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<UnitHistoryLanding />)"
+    },
+    {
+      "line": 779,
+      "path": "/shop/units/:unitNumber/history",
+      "component": "UnitHistoryTimeline",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<UnitHistoryTimeline />)"
+    },
+    {
+      "line": 781,
+      "path": "/shop/fuel-lube/new",
+      "component": "FuelLubeVisitForm",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<FuelLubeVisitForm />)"
+    },
+    {
+      "line": 783,
+      "path": "/shop/fuel-lube",
+      "component": "FuelLubeVisitRecords",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<FuelLubeVisitRecords />)"
+    },
+    {
+      "line": 784,
+      "path": "/shop/fuel-lube/:visitId",
+      "component": "FuelLubeVisitDetail",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<FuelLubeVisitDetail />)"
+    },
+    {
+      "line": 786,
+      "path": "/shop/service-truck-reconciliation/new",
+      "component": "ServiceTruckReconciliationForm",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ServiceTruckReconciliationForm />)"
+    },
+    {
+      "line": 787,
+      "path": "/shop/service-truck-reconciliation",
+      "component": "ServiceTruckReconciliationRecords",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ServiceTruckReconciliationRecords />)"
+    },
+    {
+      "line": 788,
+      "path": "/shop/service-truck-reconciliation/:recId",
+      "component": "ServiceTruckReconciliationDetail",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ServiceTruckReconciliationDetail />)"
+    },
+    {
+      "line": 790,
+      "path": "/shop/pm",
+      "component": "PmDashboard",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<PmDashboard />)"
+    },
+    {
+      "line": 791,
+      "path": "/shop/pm/templates",
+      "component": "PmTemplates",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<PmTemplates />)"
+    },
+    {
+      "line": 792,
+      "path": "/shop/pm/schedules",
+      "component": "PmSchedules",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<PmSchedules />)"
+    },
+    {
+      "line": 793,
+      "path": "/shop/pm/work-orders",
+      "component": "PmWorkOrders",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<PmWorkOrders />)"
+    },
+    {
+      "line": 794,
+      "path": "/shop/pm/work-orders/:id",
+      "component": "PmWorkOrders",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<PmWorkOrders />)"
+    },
+    {
+      "line": 795,
+      "path": "/shop/trench-safety-repairs",
+      "component": "ShopTrenchSafetyRepairs",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ShopTrenchSafetyRepairs />)"
+    },
+    {
+      "line": 796,
+      "path": "/shop/fleet",
+      "component": "FleetVisibility",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<FleetVisibility scope=\"shop\" />)"
+    },
+    {
+      "line": 800,
+      "path": "/shop/equipment",
+      "component": "EquipmentDashboard",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<EquipmentDashboard />)"
+    },
+    {
+      "line": 801,
+      "path": "/shop/equipment/:id",
+      "component": "ViewEquipmentInspection",
+      "guard": "RequireShopToken",
+      "portal": "SHOP",
+      "raw_element": "S(<ViewEquipmentInspection context=\"shop\" />)"
+    },
+    {
+      "line": 810,
+      "path": "/hr/login",
+      "component": "HrLogin",
+      "guard": "PUBLIC",
+      "portal": "HR (unguarded - check)",
+      "raw_element": "<HrLogin />"
+    },
+    {
+      "line": 811,
+      "path": "/sign-in",
+      "component": "SignIn",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<SignIn />"
+    },
+    {
+      "line": 812,
+      "path": "/hr/forgot",
+      "component": "HrForgotPassword",
+      "guard": "PUBLIC",
+      "portal": "HR (unguarded - check)",
+      "raw_element": "<HrForgotPassword />"
+    },
+    {
+      "line": 813,
+      "path": "/hr/reset/:token",
+      "component": "HrResetPassword",
+      "guard": "PUBLIC",
+      "portal": "HR (unguarded - check)",
+      "raw_element": "<HrResetPassword />"
+    },
+    {
+      "line": 814,
+      "path": "/hr/change-password",
+      "component": "HrChangePassword",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrChangePassword />)"
+    },
+    {
+      "line": 816,
+      "path": "/hr",
+      "component": "HrHubV2",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrHubV2 />)"
+    },
+    {
+      "line": 817,
+      "path": "/hr/hub_legacy",
+      "component": "HrHub",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrHub />)"
+    },
+    {
+      "line": 819,
+      "path": "/hr/hub_v2",
+      "component": "HrHubV2",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrHubV2 />)"
+    },
+    {
+      "line": 820,
+      "path": "/hr/field-leadership",
+      "component": "HrFieldLeadership",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrFieldLeadership />)"
+    },
+    {
+      "line": 821,
+      "path": "/hr/field-leadership-users",
+      "component": "HrFieldLeadershipUsers",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrFieldLeadershipUsers />)"
+    },
+    {
+      "line": 822,
+      "path": "/hr/employee-accountability",
+      "component": "HrEmployeeAccountability",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrEmployeeAccountability />)"
+    },
+    {
+      "line": 823,
+      "path": "/hr/time-verification",
+      "component": "HrTimeVerification",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrTimeVerification />)"
+    },
+    {
+      "line": 824,
+      "path": "/hr/time-off",
+      "component": "HrTimeOff",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrTimeOff />)"
+    },
+    {
+      "line": 825,
+      "path": "/hr/payroll-variance",
+      "component": "HrPayrollVariance",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrPayrollVariance />)"
+    },
+    {
+      "line": 826,
+      "path": "/hr/training-records",
+      "component": "HrTrainingRecords",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrTrainingRecords />)"
+    },
+    {
+      "line": 827,
+      "path": "/hr/driver-qualification",
+      "component": "HrDriverQualificationDashboard",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrDriverQualificationDashboard />)"
+    },
+    {
+      "line": 828,
+      "path": "/hr/driver-qualification/import",
+      "component": "HrDriverQualificationImport",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrDriverQualificationImport />)"
+    },
+    {
+      "line": 830,
+      "path": "/hr/daily-reports",
+      "component": "HrDailyReports",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrDailyReports />)"
+    },
+    {
+      "line": 831,
+      "path": "/hr/daily-reports/:id",
+      "component": "HrDailyReportDetail",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrDailyReportDetail />)"
+    },
+    {
+      "line": 833,
+      "path": "/hr/motive-drivers",
+      "component": "HrMotiveDrivers",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrMotiveDrivers />)"
+    },
+    {
+      "line": 835,
+      "path": "/hr/driver/:driverKey",
+      "component": "HrDriverProfile",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrDriverProfile />)"
+    },
+    {
+      "line": 836,
+      "path": "/time-off/public/:token",
+      "component": "PublicTimeOff",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PublicTimeOff />"
+    },
+    {
+      "line": 843,
+      "path": "/field-leadership/portal/login",
+      "component": "FieldLeadershipPortalLogin",
+      "guard": "PUBLIC",
+      "portal": "FL (unguarded - check)",
+      "raw_element": "<FieldLeadershipPortalLogin />"
+    },
+    {
+      "line": 844,
+      "path": "/field-leadership/portal/change-password",
+      "component": "FieldLeadershipPortalChangePassword",
+      "guard": "RequireFlToken",
+      "portal": "FIELD-LEADERSHIP",
+      "raw_element": "FL(<FieldLeadershipPortalChangePassword />)"
+    },
+    {
+      "line": 845,
+      "path": "/field-leadership/portal/dashboard",
+      "component": "FieldLeadershipPortalDashboard",
+      "guard": "RequireFlToken",
+      "portal": "FIELD-LEADERSHIP",
+      "raw_element": "FL(<FieldLeadershipPortalDashboard />)"
+    },
+    {
+      "line": 846,
+      "path": "/field-leadership/portal",
+      "component": "FieldLeadershipPortalDashboard",
+      "guard": "RequireFlToken",
+      "portal": "FIELD-LEADERSHIP",
+      "raw_element": "FL(<FieldLeadershipPortalDashboard />)"
+    },
+    {
+      "line": 848,
+      "path": "/field-leadership/portal/driver-qualification",
+      "component": "FieldLeadershipDriverQualification",
+      "guard": "RequireFlToken",
+      "portal": "FIELD-LEADERSHIP",
+      "raw_element": "FL(<FieldLeadershipDriverQualification />)"
+    },
+    {
+      "line": 858,
+      "path": "/safety-portal/login",
+      "component": "SafetyLogin",
+      "guard": "PUBLIC",
+      "portal": "SAFETY (unguarded - check)",
+      "raw_element": "<SafetyLogin />"
+    },
+    {
+      "line": 859,
+      "path": "/safety-portal/forgot-password",
+      "component": "SafetyForgotPassword",
+      "guard": "PUBLIC",
+      "portal": "SAFETY (unguarded - check)",
+      "raw_element": "<SafetyForgotPassword />"
+    },
+    {
+      "line": 860,
+      "path": "/safety-portal/reset/:token",
+      "component": "SafetyResetPassword",
+      "guard": "PUBLIC",
+      "portal": "SAFETY (unguarded - check)",
+      "raw_element": "<SafetyResetPassword />"
+    },
+    {
+      "line": 861,
+      "path": "/safety-portal/change-password",
+      "component": "SafetyChangePassword",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyChangePassword />)"
+    },
+    {
+      "line": 866,
+      "path": "/safety-portal",
+      "component": "SafetyHubV2",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyHubV2 />)"
+    },
+    {
+      "line": 867,
+      "path": "/safety-portal/hub_legacy",
+      "component": "SafetyHub",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyHub />)"
+    },
+    {
+      "line": 868,
+      "path": "/safety-portal/hub_v2",
+      "component": "SafetyHubV2",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyHubV2 />)"
+    },
+    {
+      "line": 869,
+      "path": "/safety-portal/fleet",
+      "component": "FleetVisibility",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<FleetVisibility scope=\"safety\" />)"
+    },
+    {
+      "line": 870,
+      "path": "/safety-portal/corrective-actions",
+      "component": "SafetyCorrectiveActions",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyCorrectiveActions />)"
+    },
+    {
+      "line": 871,
+      "path": "/safety-portal/fire-extinguishers",
+      "component": "SafetyFireExtinguishers",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyFireExtinguishers />)"
+    },
+    {
+      "line": 872,
+      "path": "/safety-portal/fire-extinguishers/import",
+      "component": "SafetyFireExtImport",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyFireExtImport />)"
+    },
+    {
+      "line": 873,
+      "path": "/safety-portal/documents",
+      "component": "SafetyDocuments",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyDocuments />)"
+    },
+    {
+      "line": 874,
+      "path": "/safety-portal/training",
+      "component": "SafetyTrainingRecords",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyTrainingRecords />)"
+    },
+    {
+      "line": 875,
+      "path": "/safety-portal/incidents",
+      "component": "SafetyIncidents",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyIncidents />)"
+    },
+    {
+      "line": 876,
+      "path": "/safety-portal/audits",
+      "component": "SafetyAudits",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyAudits />)"
+    },
+    {
+      "line": 877,
+      "path": "/safety-portal/forms-records",
+      "component": "SafetyFormsRecords",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyFormsRecords />)"
+    },
+    {
+      "line": 878,
+      "path": "/safety-portal/reports",
+      "component": "SafetyReports",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyReports />)"
+    },
+    {
+      "line": 879,
+      "path": "/safety-portal/library",
+      "component": "SafetyTopicLibrary",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyTopicLibrary />)"
+    },
+    {
+      "line": 880,
+      "path": "/safety-portal/employees",
+      "component": "SafetyEmployeeProfiles",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyEmployeeProfiles />)"
+    },
+    {
+      "line": 881,
+      "path": "/safety-portal/digest",
+      "component": "SafetyDigest",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyDigest />)"
+    },
+    {
+      "line": 883,
+      "path": "/safety-portal/driver/:driverKey",
+      "component": "SafetyDriverProfile",
+      "guard": "RequireSafetyToken",
+      "portal": "SAFETY",
+      "raw_element": "SF(<SafetyDriverProfile />)"
+    },
+    {
+      "line": 886,
+      "path": "/hr/safety-records",
+      "component": "HrSafetyRecords",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrSafetyRecords />)"
+    },
+    {
+      "line": 892,
+      "path": "/dispatch-portal/login",
+      "component": "DispatchLogin",
+      "guard": "PUBLIC",
+      "portal": "DISPATCH (unguarded - check)",
+      "raw_element": "<DispatchLogin />"
+    },
+    {
+      "line": 901,
+      "path": "/leadership/login",
+      "component": "FieldLeadershipPortalLogin",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<FieldLeadershipPortalLogin />"
+    },
+    {
+      "line": 902,
+      "path": "/leadership/legacy-login",
+      "component": "LeadershipLogin",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<LeadershipLogin />"
+    },
+    {
+      "line": 903,
+      "path": "/dispatch-portal/forgot-password",
+      "component": "DispatchForgotPassword",
+      "guard": "PUBLIC",
+      "portal": "DISPATCH (unguarded - check)",
+      "raw_element": "<DispatchForgotPassword />"
+    },
+    {
+      "line": 904,
+      "path": "/dispatch-portal/reset/:token",
+      "component": "DispatchResetPassword",
+      "guard": "PUBLIC",
+      "portal": "DISPATCH (unguarded - check)",
+      "raw_element": "<DispatchResetPassword />"
+    },
+    {
+      "line": 905,
+      "path": "/dispatch-portal/change-password",
+      "component": "DispatchChangePassword",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchChangePassword />)"
+    },
+    {
+      "line": 911,
+      "path": "/dispatch-portal",
+      "component": "DispatchHub",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchHub />)"
+    },
+    {
+      "line": 912,
+      "path": "/dispatch-portal/hub_legacy",
+      "component": "DispatchHub",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchHub />)"
+    },
+    {
+      "line": 913,
+      "path": "/dispatch-portal/hub_v2",
+      "component": "DispatchHubV2",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchHubV2 />)"
+    },
+    {
+      "line": 914,
+      "path": "/dispatch-portal/board",
+      "component": "DispatchBoard",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchBoard />)"
+    },
+    {
+      "line": 915,
+      "path": "/dispatch-portal/command",
+      "component": "DispatchCommandCenter",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchCommandCenter />)"
+    },
+    {
+      "line": 916,
+      "path": "/dispatch-portal/fleet",
+      "component": "FleetVisibility",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<FleetVisibility scope=\"dispatch\" />)"
+    },
+    {
+      "line": 919,
+      "path": "/dispatch-portal/haul-ledger",
+      "component": "DispatchHaulLedger",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchHaulLedger />)"
+    },
+    {
+      "line": 921,
+      "path": "/dispatch-portal/driver-qualification",
+      "component": "DispatchDriverQualification",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchDriverQualification />)"
+    },
+    {
+      "line": 923,
+      "path": "/dispatch-portal/driver/:driverKey",
+      "component": "DispatchDriverProfile",
+      "guard": "RequireDispatchToken",
+      "portal": "DISPATCH",
+      "raw_element": "DP(<DispatchDriverProfile />)"
+    },
+    {
+      "line": 930,
+      "path": "/training",
+      "component": "TrainingHub",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<TrainingHub />"
+    },
+    {
+      "line": 931,
+      "path": "/training-hub",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/training\" replace />"
+    },
+    {
+      "line": 932,
+      "path": "/training/:track",
+      "component": "TrainingTrack",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<TrainingTrack />"
+    },
+    {
+      "line": 933,
+      "path": "/training/:track/poster",
+      "component": "TrainingQrPoster",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<TrainingQrPoster />"
+    },
+    {
+      "line": 934,
+      "path": "/training/:track/packet",
+      "component": "TrainingPacketDownload",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<TrainingPacketDownload />"
+    },
+    {
+      "line": 935,
+      "path": "/admin/training-videos",
+      "component": "AdminTrainingVideos",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminTrainingVideos />)"
+    },
+    {
+      "line": 936,
+      "path": "/admin/deploy-readiness",
+      "component": "AdminDeployReadiness",
+      "guard": "RequireAdminToken",
+      "portal": "ADMIN",
+      "raw_element": "A(<AdminDeployReadiness />)"
+    },
+    {
+      "line": 951,
+      "path": "/ops-training",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/guidance\" replace />"
+    },
+    {
+      "line": 952,
+      "path": "/ops-training/:slug",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/guidance\" replace />"
+    },
+    {
+      "line": 961,
+      "path": "/dev/login",
+      "component": "DevLogin",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<DevLogin />"
+    },
+    {
+      "line": 962,
+      "path": "/dev",
+      "component": "DevHub",
+      "guard": "RequireDevToken",
+      "portal": "DEV-INTERNAL",
+      "raw_element": "D(<DevHub />)"
+    },
+    {
+      "line": 965,
+      "path": "/inspections",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/admin/inspections\" replace />"
+    },
+    {
+      "line": 966,
+      "path": "/inspect/:id",
+      "component": "RedirectWithId",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<RedirectWithId base=\"/admin/inspections\" />"
+    },
+    {
+      "line": 967,
+      "path": "/inspections/:id",
+      "component": "RedirectWithId",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<RedirectWithId base=\"/admin/inspections\" />"
+    },
+    {
+      "line": 968,
+      "path": "/meetings",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/admin/meetings\" replace />"
+    },
+    {
+      "line": 969,
+      "path": "/meetings/:id",
+      "component": "RedirectWithId",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<RedirectWithId base=\"/admin/meetings\" />"
+    },
+    {
+      "line": 970,
+      "path": "/incidents",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/admin/incidents\" replace />"
+    },
+    {
+      "line": 971,
+      "path": "/incidents/:id",
+      "component": "RedirectWithId",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<RedirectWithId base=\"/admin/incidents\" />"
+    },
+    {
+      "line": 972,
+      "path": "/daily",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/admin/daily\" replace />"
+    },
+    {
+      "line": 973,
+      "path": "/daily/:id",
+      "component": "RedirectWithId",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<RedirectWithId base=\"/admin/daily\" />"
+    },
+    {
+      "line": 976,
+      "path": "/legal/terms",
+      "component": "TermsOfService",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<TermsOfService />"
+    },
+    {
+      "line": 977,
+      "path": "/legal/privacy",
+      "component": "PrivacyPolicy",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PrivacyPolicy />"
+    },
+    {
+      "line": 983,
+      "path": "/tasks",
+      "component": "Tasks",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<Tasks />"
+    },
+    {
+      "line": 985,
+      "path": "/document-expirations",
+      "component": "DocumentExpirations",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<DocumentExpirations />"
+    },
+    {
+      "line": 987,
+      "path": "/hr/employees",
+      "component": "HrEmployees",
+      "guard": "PUBLIC",
+      "portal": "HR (unguarded - check)",
+      "raw_element": "<HrEmployees />"
+    },
+    {
+      "line": 989,
+      "path": "/hr/employee-requests",
+      "component": "HrEmployeeRequestsQueue",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrEmployeeRequestsQueue />)"
+    },
+    {
+      "line": 992,
+      "path": "/hr/employees/:id/accountability",
+      "component": "HrEmployeeAccountabilityTimeline",
+      "guard": "PUBLIC",
+      "portal": "HR (unguarded - check)",
+      "raw_element": "<HrEmployeeAccountabilityTimeline />"
+    },
+    {
+      "line": 994,
+      "path": "/hr/incidents",
+      "component": "HrIncidents",
+      "guard": "RequireHrToken",
+      "portal": "HR",
+      "raw_element": "H(<HrIncidents />)"
+    },
+    {
+      "line": 996,
+      "path": "/po-requests",
+      "component": "PoRequests",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<PoRequests />"
+    },
+    {
+      "line": 999,
+      "path": "/project-health",
+      "component": "ProjectHealth",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<ProjectHealth />"
+    },
+    {
+      "line": 1003,
+      "path": "/asset-transfers",
+      "component": "AssetTransfers",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<AssetTransfers />"
+    },
+    {
+      "line": 1007,
+      "path": "/access-denied",
+      "component": "AccessDenied",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<AccessDenied />"
+    },
+    {
+      "line": 1015,
+      "path": "/admin/audit",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "ADMIN (unguarded - check)",
+      "raw_element": "<Navigate to=\"/admin/audit-log\" replace />"
+    },
+    {
+      "line": 1016,
+      "path": "/admin/health",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "ADMIN (unguarded - check)",
+      "raw_element": "<Navigate to=\"/admin/system-health\" replace />"
+    },
+    {
+      "line": 1018,
+      "path": "/d/:token",
+      "component": "DriverMagicLanding",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<DriverMagicLanding />"
+    },
+    {
+      "line": 1019,
+      "path": "/driver",
+      "component": "DriverShift",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<DriverShift />"
+    },
+    {
+      "line": 1023,
+      "path": "/shift",
+      "component": "ShiftStart",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<ShiftStart />"
+    },
+    {
+      "line": 1024,
+      "path": "/field-leadership",
+      "component": "Navigate",
+      "guard": "PUBLIC",
+      "portal": "REDIRECT",
+      "raw_element": "<Navigate to=\"/leadership\" replace />"
+    },
+    {
+      "line": 1027,
+      "path": "/odr/new",
+      "component": "OdrNew",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OdrNew />"
+    },
+    {
+      "line": 1028,
+      "path": "/odr/center",
+      "component": "OdrCenter",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OdrCenter />"
+    },
+    {
+      "line": 1029,
+      "path": "/pm/odr",
+      "component": "OdrPmPanel",
+      "guard": "PUBLIC",
+      "portal": "PM (unguarded - check)",
+      "raw_element": "<OdrPmPanel />"
+    },
+    {
+      "line": 1030,
+      "path": "/odr/public/:doc_id",
+      "component": "OdrPublicViewer",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OdrPublicViewer />"
+    },
+    {
+      "line": 1031,
+      "path": "/odr/:id/done",
+      "component": "OdrDone",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OdrDone />"
+    },
+    {
+      "line": 1032,
+      "path": "/odr/:id",
+      "component": "OdrDetail",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OdrDetail />"
+    },
+    {
+      "line": 1036,
+      "path": "/operational-records",
+      "component": "OperationalRecords",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OperationalRecords />"
+    },
+    {
+      "line": 1039,
+      "path": "/operations-actions",
+      "component": "OperationsActions",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OperationsActions />"
+    },
+    {
+      "line": 1040,
+      "path": "/operations-actions/new",
+      "component": "OperationsActionNew",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OperationsActionNew />"
+    },
+    {
+      "line": 1041,
+      "path": "/operations-actions/:id",
+      "component": "OperationsActionDetail",
+      "guard": "PUBLIC",
+      "portal": "PUBLIC",
+      "raw_element": "<OperationsActionDetail />"
+    },
+    {
+      "line": 1055,
+      "path": "/_internal/design-system",
+      "component": "DesignSystemDemo",
+      "guard": "RequireDevToken",
+      "portal": "DEV-INTERNAL",
+      "raw_element": "D(<DesignSystemDemo />)"
+    },
+    {
+      "line": 1056,
+      "path": "/_internal/pm-v2-preview",
+      "component": "PmV2Preview",
+      "guard": "RequireDevToken",
+      "portal": "DEV-INTERNAL",
+      "raw_element": "D(<PmV2Preview />)"
+    },
+    {
+      "line": 1057,
+      "path": "/_internal/hr-v2-preview",
+      "component": "HrV2Preview",
+      "guard": "RequireDevToken",
+      "portal": "DEV-INTERNAL",
+      "raw_element": "D(<HrV2Preview />)"
+    },
+    {
+      "line": 1058,
+      "path": "/_internal/v2-index",
+      "component": "V2Index",
+      "guard": "RequireDevToken",
+      "portal": "DEV-INTERNAL",
+      "raw_element": "D(<V2Index />)"
+    },
+    {
+      "line": 1059,
+      "path": "/_internal/v2-compare/:portal",
+      "component": "V2Compare",
+      "guard": "RequireDevToken",
+      "portal": "DEV-INTERNAL",
+      "raw_element": "D(<V2Compare />)"
+    },
+    {
+      "line": 1060,
+      "path": "*",
+      "component": "NotFound",
+      "guard": "PUBLIC",
+      "portal": "FALLBACK",
+      "raw_element": "<NotFound />"
+    }
+  ]
+}

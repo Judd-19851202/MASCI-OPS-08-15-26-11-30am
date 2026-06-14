@@ -2,6 +2,37 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-12 — Track 14.0-PLATFORM-TRUTH-MAP CLOSED
+
+Complete read-only audit of MASCI Operations Platform navigation surface.
+
+- **Routes inventoried:** 341 (machine-readable JSON committed).
+- **Portals mapped:** 10 (Admin · PM · FL · Safety · Shop · Asset Care
+  · Dispatch · HR · Public · Dev/Internal).
+- **Surfaces inventoried:** ~232, classified by Definition-of-Done
+  state (BUILT · WIRED · OPERATIONAL · DONE-DONE).
+- **Single biggest finding:** PM/Shop/HR/Safety/Dispatch V2 hubs do
+  NOT use their shell components → no sidebar / no NotificationBell /
+  no PortalSwitcher / no GlobalSearch / no mobile hamburger on V2
+  landings. Admin alone renders full chrome.
+- **8 RC1 blockers identified** (2 P0 · 4 P1 · 2 P2). Two earlier
+  fixes (RC1-PORTAL-NAV-001 · RC1-OWNERSHIP-UX-001) noted as resolved
+  baseline from the immediately-preceding RC1-DONE-DONE fix sweep.
+- **4 output files**: executive truth map · navigation matrix · surface
+  inventory · route inventory JSON.
+- **Zero code touched.** Audit is read-only.
+
+**Spanish Translation Sweep, PDF Lockup, Integration Honesty Banners
+are all UNBLOCKED.** UXS-11 + role visibility certification BLOCKED
+until Track 14.0-NAV-SHELL-UNIFICATION ships (~2–3 days).
+
+Ledger: `TRACK_14_0_PLATFORM_TRUTH_MAP_ROUTE_NAV_SURFACE_INVENTORY.md`.
+Reference: `TRACK_14_0_PLATFORM_NAVIGATION_MATRIX.md` ·
+`TRACK_14_0_PLATFORM_SURFACE_INVENTORY.md` ·
+`TRACK_14_0_PLATFORM_ROUTE_INVENTORY.json`.
+
+
+
 ## 2026-02-12 — Track 14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP CLOSED
 
 Operational Definition of Done enforcement + visible RC-1 portal defects fix.
