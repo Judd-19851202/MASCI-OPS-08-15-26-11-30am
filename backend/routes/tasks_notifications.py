@@ -315,6 +315,11 @@ class _NotificationService:
             "linked_employee_id": payload.get("linked_employee_id"),
             "linked_equipment_id": payload.get("linked_equipment_id"),
             "linked_project_number": payload.get("linked_project_number"),
+            # Track 14.0-NOTIFY-LOCK-COMPLETION — deep-link resolution
+            # at write time so the drawer can navigate to the exact
+            # record without a runtime route lookup. Falls back to None
+            # → linked_task_id → /tasks (existing chain).
+            "link_url": payload.get("link_url") or _resolve_link_url(payload),
             "created_at": now,
             # Auto-expire 60d after creation; ackd Critical alerts can be
             # explicitly kept by setting expires_at = None on ack.
@@ -336,6 +341,80 @@ class _NotificationService:
 
 task_service = _TaskService()
 notification_service = _NotificationService()
+
+
+# ──────────────────────────────────────────────────────────────────
+# Track 14.0-NOTIFY-LOCK-COMPLETION (2026-06-14)
+# Deterministic frontend deep-link resolver. Producers already pass
+# `linked_source_module` + `linked_source_record_id`, so we centralize
+# the route mapping here once and every producer benefits without a
+# call-site edit. Returns None when no safe deep route exists; the
+# bell drawer falls back to `/tasks?id=<linked_task_id>` (existing
+# behavior) which then falls back to the generic `/tasks` queue.
+#
+# Rules: existing routes only · no invented routes · no admin-console
+# routing for non-admin recipients · no RTS-authority grant.
+# ──────────────────────────────────────────────────────────────────
+_LINK_BY_MODULE: Dict[str, str] = {
+    "safety.incidents":            "/admin/incidents/{id}",
+    "daily_reports":               "/admin/daily/{id}",
+    "qaqc.inspections":            "/qaqc/{id}",
+    "field_leadership.records":    "/leadership/records/{id}",
+    "safety.meeting":              "/meetings/{id}",
+    "po.requests":                 "/po-requests/{id}",
+    "po.receipts":                 "/po-requests/{id}",
+    "equipment.preop":             "/admin/equipment-issues/{id}",
+    "fleet.dvir":                  "/admin/equipment-issues/{id}",
+    "fleet.defect.assignment":     "/admin/equipment-issues/{id}",
+    "fuel_lube_visit.issue":       "/admin/equipment-issues/{id}",
+    "asset.transfer":              "/asset-transfers/{id}",
+    "documents.expiration":        "/shop/asset-care",
+    "hr.payroll_variance":         "/hr/payroll-variance",
+    "safety.fire_extinguishers":   "/safety/forms",
+    "safety.jha":                  "/jha",
+    "safety.form.issuance":        "/safety/forms",
+    "safety.form.return":          "/safety/forms",
+    "safety.form.training":        "/safety/forms",
+    "safety.inspections":          "/safety-portal",
+    "trench_safety:reinspection_requested": "/trench-safety",
+    # trench_safety.* type-keyed fallbacks (see resolver below)
+}
+
+_LINK_BY_TYPE_PREFIX: Dict[str, str] = {
+    "trench_safety.": "/trench-safety/assets/{id}",
+    "asset_transfer.": "/asset-transfers/{id}",
+    "preop.":          "/admin/equipment-issues/{id}",
+    "dvir.":           "/admin/equipment-issues/{id}",
+    "qaqc.":           "/qaqc/{id}",
+    "incident.":       "/admin/incidents/{id}",
+    "daily_report.":   "/admin/daily/{id}",
+    "po.":             "/po-requests/{id}",
+    "fl.":             "/leadership/records/{id}",
+    "meeting.":        "/meetings/{id}",
+}
+
+
+def _resolve_link_url(payload: Dict[str, Any]) -> Optional[str]:
+    """Best-effort route mapper. Prefers source-module lookup, falls
+    back to type prefix. Returns None if no safe deep route is known
+    (drawer then falls back to `linked_task_id` → /tasks)."""
+    record_id = payload.get("linked_source_record_id") or payload.get("linked_equipment_id")
+    if not record_id:
+        return None
+    module = payload.get("linked_source_module") or ""
+    template = _LINK_BY_MODULE.get(module)
+    if not template:
+        ntype = (payload.get("type") or "")
+        for prefix, t in _LINK_BY_TYPE_PREFIX.items():
+            if ntype.startswith(prefix):
+                template = t
+                break
+    if not template:
+        return None
+    try:
+        return template.format(id=str(record_id))
+    except (KeyError, IndexError, ValueError):
+        return None
 
 
 # ──────────────────────────────────────────────────────────────────
