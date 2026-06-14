@@ -11,12 +11,21 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home as HomeIcon, ArrowLeft, LogOut } from "lucide-react";
+import { Home as HomeIcon, ArrowLeft, LogOut, Clock } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import PortalSwitcher from "@/components/PortalSwitcher";
+
+function useLocalClock() {
+  const [now, setNow] = React.useState(() => new Date());
+  React.useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30 * 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
 
 function formatLastActivity(value) {
   if (value == null) return null;
@@ -57,6 +66,8 @@ export function PortalShell({
   className = "",
 }) {
   const renderedLastActivity = formatLastActivity(lastActivity);
+  const clock = useLocalClock();
+  const localTimeLabel = clock.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   const handleSignOut = () => {
     if (typeof onSignOut === "function") {
       onSignOut();
@@ -96,8 +107,31 @@ export function PortalShell({
             )}
           </div>
 
-          {/* Right-side nav cluster */}
+          {/* Right-side nav cluster — unified MASCI chrome */}
           <div className="ml-auto flex items-center gap-2">
+            {showSearch && (
+              <div className="hidden lg:block" data-testid="ds-portal-shell-search">
+                <GlobalSearch accent="dark" />
+              </div>
+            )}
+            {showNotifications && (
+              <div data-testid="ds-portal-shell-notifications">
+                <NotificationBell accent="white" />
+              </div>
+            )}
+            {showPortalSwitcher && (
+              <div className="hidden md:block" data-testid="ds-portal-shell-portal-switcher">
+                <PortalSwitcher current={portalSwitcherCurrent} />
+              </div>
+            )}
+            <div
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 text-xs font-mono tracking-widest tabular-nums"
+              data-testid="ds-portal-shell-local-time"
+              title="Local device time"
+            >
+              <Clock className="w-3 h-3 opacity-70" />
+              {localTimeLabel}
+            </div>
             {showBack && backHref && (
               <Link
                 to={backHref}
@@ -119,6 +153,18 @@ export function PortalShell({
               >
                 <HomeIcon className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Home</span>
               </Link>
+            )}
+            {showSignOut && (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
+                aria-label="Sign out"
+                title="Sign out"
+                data-testid="ds-portal-shell-signout"
+              >
+                <LogOut className="w-3.5 h-3.5" /> <span className="hidden lg:inline">Sign out</span>
+              </button>
             )}
           </div>
         </div>

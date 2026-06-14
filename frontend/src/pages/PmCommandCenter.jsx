@@ -14,15 +14,14 @@
  * duplicate PM project page, no map, no analytics.
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
-  ArrowLeft, LayoutDashboard, Truck, Boxes, Wrench, ShieldAlert,
-  Activity, ExternalLink,
+  LayoutDashboard, Truck, Boxes, Wrench, ShieldAlert,
+  Activity, ExternalLink, ArrowLeft,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageTitle } from "@/lib/usePageTitle";
-import { paletteFor } from "@/lib/portalPalette";
+import { PortalShell } from "@/design-system";
 import PmCommandStrip from "@/components/pm/command/PmCommandStrip";
 import PmResourcesBoard from "@/components/pm/command/PmResourcesBoard";
 import PmHaulsBoard from "@/components/pm/command/PmHaulsBoard";
@@ -34,12 +33,10 @@ import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 import PmProjectFirstHome from "@/components/pm/command/PmProjectFirstHome";
 import { pmCommandApi } from "@/components/pm/command/pmCommandApi";
 
-const PM_PAL = paletteFor("pm");
 const OVERVIEW_POLL_MS = 45000;
 
 export default function PmCommandCenter() {
   usePageTitle("PM Command Center · MASCI");
-  const nav = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const projectNumber = searchParams.get("project_number") || null;
@@ -92,55 +89,39 @@ export default function PmCommandCenter() {
   }, [projectNumber]);
 
   return (
-    <div
-      className="min-h-screen bg-slate-50"
-      data-testid="pm-command-center"
-    >
-      <header className={`${PM_PAL.bg} text-white border-b border-slate-800`}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <button
-              type="button"
-              onClick={() => nav(-1)}
-              className="text-white/80 hover:text-white p-1"
-              data-testid="pm-cc-back"
-              aria-label="Back"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <MasciLogo className="w-6 h-6 shrink-0" />
-            <div className="min-w-0">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 truncate">
-                PM Portal
-              </div>
-              <h1 className="font-display text-base sm:text-xl font-black truncate">
-                Project Management Center
-              </h1>
-              <div className="text-[10.5px] sm:text-xs text-white/70 font-mono truncate" data-testid="pm-cc-header-subtitle">
-                {headerSubtitle}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/dispatch-portal/command"
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest"
-              data-testid="pm-cc-link-dispatch"
-            >
-              <ExternalLink className="w-3 h-3" /> Dispatch
-            </Link>
-            <Link
-              to="/pm"
-              className="text-xs text-white/80 hover:text-white font-mono uppercase tracking-widest"
-              data-testid="pm-cc-back-hub"
-            >
-              PM Hub
-            </Link>
-          </div>
+    <PortalShell
+      portalName="MASCI"
+      portalRole="PM Portal"
+      pageTitle="Project Management Center"
+      subtitle={headerSubtitle}
+      showBack
+      backHref="/pm"
+      portalSwitcherCurrent="pm"
+      primaryActions={
+        <div className="flex items-center gap-3">
+          <Link
+            to="/dispatch-portal/command"
+            className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 font-mono uppercase tracking-widest"
+            data-testid="pm-cc-link-dispatch"
+          >
+            <ExternalLink className="w-3 h-3" /> Dispatch
+          </Link>
+          <Link
+            to="/pm"
+            className="text-xs text-slate-600 hover:text-slate-900 font-mono uppercase tracking-widest"
+            data-testid="pm-cc-back-hub"
+          >
+            PM Hub
+          </Link>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+      }
+      lastActivity={
+        overview?.as_of
+          ? `Updated ${new Date(overview.as_of).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+          : overview ? "Updated just now" : null
+      }
+    >
+      <div data-testid="pm-command-center" className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <PmProjectSelector value={projectNumber} onChange={setProjectNumber} />
           {overview ? (
@@ -235,8 +216,8 @@ export default function PmCommandCenter() {
         </Tabs>
         </>
         )}
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 

@@ -175,23 +175,9 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
 
 export default function HrHubV2() {
   const s = useHrSignals();
-  const isPreview = (typeof window !== "undefined") && /preview/i.test(window.location.host);
 
   return (
     <div data-testid="hr-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      {isPreview && (
-        <div
-          data-testid="hr-hub-v2-preview-banner"
-          style={{
-            background: "var(--brand-primary)", color: "var(--brand-on-primary)",
-            padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em",
-            textTransform: "uppercase", fontWeight: 700, textAlign: "center",
-          }}
-        >
-          Preview Environment · MASCI Operations Platform
-        </div>
-      )}
-
       <PortalShell
         portalName="MASCI"
         portalRole="HR Portal"
@@ -228,7 +214,7 @@ export default function HrHubV2() {
               testid="hr-hub-v2-queue-employee-requests"
               title="Employee Requests · pending"
               why="New-hire and termination submissions awaiting HR approval"
-              source="Source: /api/employee-requests?status=pending"
+              source="Live count · refreshes every visit"
               value={s.pending_requests}
               loaded={s.loaded}
             />
@@ -237,7 +223,7 @@ export default function HrHubV2() {
               testid="hr-hub-v2-queue-time-off"
               title="Time-Off Requests · pending"
               why="Vacation / sick approvals awaiting HR"
-              source="Source: /api/time-off-requests?status=pending"
+              source="Live count · refreshes every visit"
               value={s.time_off_pending}
               loaded={s.loaded}
             />
@@ -246,7 +232,7 @@ export default function HrHubV2() {
               testid="hr-hub-v2-queue-training-due"
               title="Training / Certs Due"
               why="Credentials expiring in the next 60 days"
-              source="Source: /api/operations/expirations/summary (30d + 60d buckets)"
+              source="Live count · 30-day and 60-day buckets"
               value={s.training_exp_soon}
               loaded={s.loaded}
             />
@@ -255,7 +241,7 @@ export default function HrHubV2() {
               testid="hr-hub-v2-queue-docs-expired"
               title="Documents Expired"
               why="Past expiry — must be addressed now"
-              source="Source: /api/operations/expirations/summary (expired bucket)"
+              source="Live count · past expiry"
               value={s.docs_expired}
               loaded={s.loaded}
               variantWhenAttention="danger"
@@ -265,7 +251,7 @@ export default function HrHubV2() {
               testid="hr-hub-v2-queue-accountability"
               title="Accountability Signals · open"
               why="Coaching items (positive + attention) awaiting close-out"
-              source="Source: /api/employee-accountability — non-closed states"
+              source="Live count · open accountability items"
               value={s.accountability_open}
               loaded={s.loaded}
               variantWhenAttention="warning"
@@ -293,7 +279,7 @@ export default function HrHubV2() {
               testid="hr-hub-v2-read-daily"
               title="Recent Daily Reports"
               why="Read-only HR view for man-hour + payroll variance checks"
-              source="Source: /api/hr/daily-reports (last 10)"
+              source="Live read · last 10 reports"
               value={s.daily_reports_today}
               loaded={s.loaded}
               variantWhenAttention="default"
@@ -303,7 +289,7 @@ export default function HrHubV2() {
               testid="hr-hub-v2-read-incidents"
               title="Recent Incidents · HR view"
               why="HR follow-up tracking on safety events"
-              source="Source: /api/hr/incidents (last 10)"
+              source="Live read · last 10 incidents"
               value={s.incidents_recent}
               loaded={s.loaded}
               variantWhenAttention="warning"
@@ -313,7 +299,7 @@ export default function HrHubV2() {
               testid="hr-hub-v2-read-fl"
               title="Field-Leadership Records · recent"
               why="HR has read access to FL submissions for personnel review"
-              source="Source: /api/hr/field-leadership (last 10)"
+              source="Live read · last 10 records"
               value={s.field_leadership_recent}
               loaded={s.loaded}
               variantWhenAttention="default"

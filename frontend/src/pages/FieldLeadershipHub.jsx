@@ -18,9 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Home, Receipt, Shield, Truck, NotebookPen } from "lucide-react";
-import GlobalSearch from "@/components/GlobalSearch";
-import NotificationBell from "@/components/NotificationBell";
+import { ArrowLeft, Lock, ListChecks, Loader2, BookOpen, Receipt, Shield, Truck, NotebookPen } from "lucide-react";
 import { OfflineIndicator } from "@/lib/resiliency";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -35,6 +33,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { usePageTitle } from "@/lib/usePageTitle";
+import { PortalShell } from "@/design-system";
 import {
   getLeadershipToken,
   loginLeadership,
@@ -442,97 +441,51 @@ export default function FieldLeadershipHub() {
   const admin = isAdmin();
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className={`bg-slate-900 border-b-4 ${FL_PAL.hubHeaderBar}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
-          {/* iter145 — Home + Back text-links for parity with HR / Shop /
-              Dispatch sub-hub headers. On small screens the labels
-              collapse and only the icons render so the right-hand
-              action button row keeps room. */}
-          <Link
-            to="/"
-            className={`inline-flex items-center text-white ${FL_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
-            data-testid="leadership-nav-home"
-            title="Home"
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Field Leadership"
+      pageTitle={t("Field Leadership")}
+      subtitle={t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools.")}
+      showBack
+      backHref="/"
+      portalSwitcherCurrent="leadership"
+      onSignOut={signOut}
+      primaryActions={
+        <div className="flex items-center gap-2">
+          <OfflineIndicator />
+          <LangToggle />
+          <div className="hidden sm:flex"><CompanyInfoDialog /></div>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="hidden sm:inline-flex h-9 px-3 text-xs font-bold uppercase tracking-wide"
+            data-testid="leadership-training-link"
           >
-            <Home className="w-4 h-4 sm:mr-1" />
-            <span className="hidden sm:inline">{t("Home")}</span>
-          </Link>
-          <button
-            onClick={() => navigate(-1)}
-            className={`inline-flex items-center text-white ${FL_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
-            data-testid="leadership-nav-back"
-            title="Back"
+            <Link to="/guidance?from=leadership">
+              <BookOpen className="w-3.5 h-3.5 mr-1" />
+              {t("Guides")}
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="hidden sm:inline-flex h-9 px-3 text-xs font-bold uppercase tracking-wide"
+            data-testid="leadership-records-link"
           >
-            <ArrowLeft className="w-4 h-4 sm:mr-1" />
-            <span className="hidden sm:inline">{t("Back")}</span>
-          </button>
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex-1" />
-          {/* iter319 — Mobile header collapse (matches HR/Safety iter203). */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            <div className="hidden sm:flex items-center gap-2">
-              <GlobalSearch accent="dark" />
-            </div>
-            <NotificationBell accent="white" />
-            <OfflineIndicator />
-            <LangToggle />
-            <div className="hidden sm:flex"><CompanyInfoDialog /></div>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex h-9 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-indigo-400 hover:text-white text-xs font-bold uppercase tracking-wide"
-              data-testid="leadership-training-link"
-            >
-              <Link to="/guidance?from=leadership">
-                <BookOpen className="w-3.5 h-3.5 mr-1" />
-                {t("Guides")}
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex h-9 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 hover:text-white text-xs font-bold uppercase tracking-wide"
-              data-testid="leadership-records-link"
-            >
-              <Link to="/leadership/records">
-                <ListChecks className="w-3.5 h-3.5 mr-1" />
-                {t("Records")}
-              </Link>
-            </Button>
-            <Button
-              onClick={signOut}
-              variant="outline"
-              size="sm"
-              className="text-xs h-8 px-2 sm:px-2.5"
-              data-testid="leadership-signout"
-              title="Sign out"
-            >
-              {t("Sign Out")}
-            </Button>
-          </div>
+            <Link to="/leadership/records">
+              <ListChecks className="w-3.5 h-3.5 mr-1" />
+              {t("Records")}
+            </Link>
+          </Button>
         </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        <div className="mb-8">
-          <span className={`font-mono text-xs uppercase tracking-[0.2em] ${FL_PAL.hubKicker} font-bold`}>
-            {t("Restricted · Crew Documentation")}
-          </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            {t("Field Leadership")}
-          </h1>
-          <p className="text-slate-600 text-base mt-2 max-w-2xl">
-            {t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools for MASCI field leadership.")}
-          </p>
-          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-slate-700 text-xs font-mono uppercase tracking-[0.18em] font-bold">
-            <Lock className="w-3.5 h-3.5 text-slate-500" />
-            {t("All forms must be factual, professional, and compliant with employment-documentation best practices.")}
-          </div>
+      }
+    >
+      <div data-testid="leadership-hub-root">
+        <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-slate-700 text-xs font-mono uppercase tracking-[0.18em] font-bold">
+          <Lock className="w-3.5 h-3.5 text-slate-500" />
+          {t("All forms must be factual, professional, and compliant with employment-documentation best practices.")}
         </div>
 
         {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
@@ -592,7 +545,7 @@ export default function FieldLeadershipHub() {
             </section>
           ))}
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

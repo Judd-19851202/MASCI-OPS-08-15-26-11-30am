@@ -133,7 +133,6 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
 
 export default function SafetyHubV2() {
   const s = useSafetySignals();
-  const isPreview = (typeof window !== "undefined") && /preview/i.test(window.location.host);
 
   const allZero = s.loaded && [
     s.capas_open, s.capas_overdue, s.fire_ext_overdue,
@@ -142,19 +141,6 @@ export default function SafetyHubV2() {
 
   return (
     <div data-testid="safety-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      {isPreview && (
-        <div
-          data-testid="safety-hub-v2-preview-banner"
-          style={{
-            background: "var(--brand-primary)", color: "var(--brand-on-primary)",
-            padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em",
-            textTransform: "uppercase", fontWeight: 700, textAlign: "center",
-          }}
-        >
-          Preview Environment · MASCI Operations Platform
-        </div>
-      )}
-
       <PortalShell
         portalName="MASCI"
         portalRole="Safety Portal"
@@ -185,7 +171,7 @@ export default function SafetyHubV2() {
               testid="safety-hub-v2-queue-capas-open"
               title="Open CAPAs"
               why="Corrective actions in Open / In Progress / Pending Review"
-              source="Source: corrective_actions_open"
+              source="Live count · open or in-progress"
               value={s.capas_open}
               loaded={s.loaded}
             />
@@ -194,7 +180,7 @@ export default function SafetyHubV2() {
               testid="safety-hub-v2-queue-capas-overdue"
               title="Overdue CAPAs"
               why="Open CAPAs with due_date in the past — operational truth from real timestamps"
-              source="Source: corrective_actions_overdue"
+              source="Live count · past due date"
               value={s.capas_overdue}
               loaded={s.loaded}
             />
@@ -215,7 +201,7 @@ export default function SafetyHubV2() {
               testid="safety-hub-v2-queue-fire-ext-overdue"
               title="Fire Extinguishers · Overdue"
               why="Units past next_due_date for inspection"
-              source="Source: fire_extinguishers_overdue"
+              source="Live count · past inspection date"
               value={s.fire_ext_overdue}
               loaded={s.loaded}
             />
@@ -224,7 +210,7 @@ export default function SafetyHubV2() {
               testid="safety-hub-v2-queue-training-expired"
               title="Training · Expired"
               why="Records past expiration_date — recertification needed"
-              source="Source: training_expired"
+              source="Live count · past expiration"
               value={s.training_expired}
               loaded={s.loaded}
             />
@@ -233,7 +219,7 @@ export default function SafetyHubV2() {
               testid="safety-hub-v2-queue-training-expiring"
               title="Training · Expiring in 30d"
               why="Records expiring inside 30 days — schedule recert"
-              source="Source: training_expiring_30d"
+              source="Live count · expiring inside 30 days"
               value={s.training_expiring_30d}
               loaded={s.loaded}
             />
@@ -254,7 +240,7 @@ export default function SafetyHubV2() {
               testid="safety-hub-v2-queue-incidents-7d"
               title="Incidents · last 7 days"
               why="Documented incidents reported in the past week"
-              source="Source: incidents_last_7d"
+              source="Live count · documented this week"
               value={s.incidents_last_7d}
               loaded={s.loaded}
             />
@@ -263,7 +249,7 @@ export default function SafetyHubV2() {
               testid="safety-hub-v2-queue-trench-safety"
               title="Trench Safety Module"
               why="Benchmark module — daily inspections · permits · CP signoffs"
-              source="Source: /safety/trench-safety · real engine"
+              source="Live engine · daily inspections and permits"
               value={null}
               loaded={true}
             />
@@ -272,7 +258,7 @@ export default function SafetyHubV2() {
               testid="safety-hub-v2-queue-documents"
               title="Safety Documents on file"
               why="Reference docs — JHAs · SDS · regulatory posters"
-              source="Source: safety_documents_total"
+              source="Live count · safety document library"
               value={s.safety_documents_total}
               loaded={s.loaded}
               variantWhenAttention="default"

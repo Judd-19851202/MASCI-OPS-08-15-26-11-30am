@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { PortalShell } from "@/design-system";
 
 const STATUS_COLORS = {
   "Not Ready":    "bg-red-100 text-red-900 border-red-300",
@@ -74,14 +75,15 @@ export default function ShopAssetCare() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="asset-care-home">
-      <header className="bg-white border-b-2 border-slate-200 px-5 py-4 flex items-center justify-between">
-        <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">
-            MASCI Operations
-          </div>
-          <h1 className="text-2xl font-black text-slate-900">Asset Care</h1>
-        </div>
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Shop Portal"
+      pageTitle="Asset Care"
+      subtitle="Readiness · documents · renewals · alerts across the asset spine."
+      showBack
+      backHref="/shop"
+      portalSwitcherCurrent="shop"
+      primaryActions={
         <div className="flex items-center gap-2">
           <Link to="/admin/asset-admin?tab=queue">
             <Button variant="outline" size="sm" data-testid="ac-open-admin">
@@ -92,9 +94,9 @@ export default function ShopAssetCare() {
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </Button>
         </div>
-      </header>
-
-      <main className="p-5 space-y-5 max-w-7xl mx-auto">
+      }
+    >
+      <div data-testid="asset-care-home" className="space-y-5">
         {/* KPI snapshot */}
         <section className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2" data-testid="ac-kpi-snapshot">
           <Kpi label="Total Assets" value={summary?.total_assets} testid="ac-kpi-total" />
@@ -212,8 +214,8 @@ export default function ShopAssetCare() {
             <WorkBucket label="Open Defects (Awareness)" items={work.open_defects} testid="ac-wq-defects" />
           </section>
         )}
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 

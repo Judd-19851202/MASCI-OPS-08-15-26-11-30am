@@ -289,7 +289,7 @@ function PoRequestsCard({ loaded, pendingApproval, pendingReceipt, overdueReceip
           </div>
         )}
         <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-          Source: /api/po-requests/summary — pending_approval · pending_receipt · overdue_receipt
+          Live counts · pending approval, receipts due, overdue
         </p>
       </Card>
     </Link>
@@ -302,7 +302,6 @@ function PoRequestsCard({ loaded, pendingApproval, pendingReceipt, overdueReceip
 
 export default function PmHubV2() {
   const s = usePmSignals();
-  const isPreview = (typeof window !== "undefined") && /preview/i.test(window.location.host);
 
   const allZero = s.loaded && [
     s.daily_needs_review, s.incidents_pending, s.capas_due,
@@ -317,19 +316,6 @@ export default function PmHubV2() {
 
   return (
     <div data-testid="pm-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      {isPreview && (
-        <div
-          data-testid="pm-hub-v2-preview-banner"
-          style={{
-            background: "var(--brand-primary)", color: "var(--brand-on-primary)",
-            padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em",
-            textTransform: "uppercase", fontWeight: 700, textAlign: "center",
-          }}
-        >
-          Preview Environment · MASCI Operations Platform
-        </div>
-      )}
-
       <PortalShell
         portalName="MASCI"
         portalRole="PM Portal"
@@ -363,7 +349,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-unified-holds"
               title="Unified Holds"
               why="Equipment + Operational Constraints + Fleet Defects aggregated across your projects"
-              source="Source: /api/pm/command-center/holds — real engines only"
+              source="Live count · equipment, constraints, defects"
               value={s.unified_holds}
               loaded={s.loaded}
               secondary={s.unified_holds_oldest_label}
@@ -374,7 +360,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-due-today"
               title="Due Today"
               why="CAPAs dated today + Daily Reports for today awaiting your verify"
-              source="Source: /api/pm/command-center/due-today — real deadlines"
+              source="Live count · real deadlines for today"
               value={s.due_today}
               loaded={s.loaded}
               secondary={s.due_today_oldest_label}
@@ -384,7 +370,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-daily"
               title="Daily Reports Requiring Review"
               why="Foreman-submitted reports awaiting PM verify or revise"
-              source="Source: /api/daily-reports — submitted + needs_revision + pending_verification"
+              source="Live count · submitted, returned, pending verify"
               value={s.daily_needs_review}
               loaded={s.loaded}
             />
@@ -393,7 +379,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-incidents"
               title="Incidents Awaiting Verification"
               why="Submitted by foreman · must be verified before close"
-              source="Source: /api/incidents — submitted + pending_verification"
+              source="Live count · submitted and pending verify"
               value={s.incidents_pending}
               loaded={s.loaded}
             />
@@ -402,7 +388,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-capas"
               title="CAPAs Due"
               why="Open corrective actions awaiting close-out"
-              source="Source: /api/pm/crew/capas — non-closed"
+              source="Live count · open corrective actions"
               value={s.capas_due}
               loaded={s.loaded}
             />
@@ -411,7 +397,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-constraints"
               title="Project Constraints Requiring Resolution"
               why="Open constraints blocking project work — Project Risks are permanently relabelled as Project Constraints"
-              source="Source: /api/constraints — non-closed"
+              source="Live count · open constraints"
               value={s.constraints_open}
               loaded={s.loaded}
             />
@@ -420,7 +406,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-projects"
               title="Projects Requiring Attention"
               why="Projects with ≥1 open Daily / Incident / Constraint signal"
-              source="Source: /api/pm/jobs ⨯ joined live queues"
+              source="Live count · projects with one or more open signals"
               value={s.projects_attention}
               loaded={s.loaded}
             />
@@ -429,7 +415,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-qaqc"
               title="QA/QC Requiring Action"
               why="Inspections awaiting PM verify or revise"
-              source="Source: /api/qaqc/inspections — submitted + pending_verification + needs_revision"
+              source="Live count · submitted, pending verify, returned"
               value={s.qaqc_action}
               loaded={s.loaded}
             />
@@ -451,7 +437,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-queue-odr"
               title="ODR Pending"
               why="Operational Daily Records needing PM rework (drafts + returned)"
-              source="Source: /api/odr — draft + returned (PM-scoped server-side)"
+              source="Live count · drafts plus returned (PM-scoped)"
               value={s.odr_attention}
               loaded={s.odr_loaded}
             />
@@ -474,7 +460,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-read-crew"
               title="Crew Accountability"
               why="Open accountability signals across PM-scoped crews"
-              source="Source: /api/pm/crew/summary"
+              source="Live read · crew accountability rollup"
               value={s.crew_accountability}
               loaded={s.loaded}
             />
@@ -483,7 +469,7 @@ export default function PmHubV2() {
               testid="pm-hub-v2-read-photos"
               title="Recent Field Photos"
               why="Newest photo uploads from PM-scoped jobs"
-              source="Source: /api/job-photos (last 10)"
+              source="Live read · 10 most recent uploads"
               value={s.photos_recent}
               loaded={s.loaded}
               variantWhenAttention="default"

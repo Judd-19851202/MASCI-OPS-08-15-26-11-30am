@@ -17,17 +17,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  Truck, Send, ShieldAlert, Activity, LogOut, Clock, Home, ArrowLeft,
+  Truck, Send, ShieldAlert, Activity, LogOut, Clock,
   Plug, BookOpen, ShieldCheck, AlertTriangle, Wrench, Droplet, ArrowRight,
   Package, Compass, ListChecks, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import PortalSwitcher from "@/components/PortalSwitcher";
-import NotificationBell from "@/components/NotificationBell";
-import GlobalSearch from "@/components/GlobalSearch";
 import { OfflineIndicator } from "@/lib/resiliency";
+import { PortalShell } from "@/design-system";
 import {
   DispatchOverviewTab, DispatchUtilizationTab, DispatchIdleAlertsTab,
   DispatchTransfersTab, DispatchHoldsTab,
@@ -37,7 +34,6 @@ import AssignmentCreateDrawer from "@/components/dispatch/AssignmentCreateDrawer
 import { clearDispatchToken, getDispatchUser, getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
-import { paletteFor } from "@/lib/portalPalette";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
@@ -50,7 +46,6 @@ import DispatchMapHero from "@/components/DispatchMapHero";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const API = process.env.REACT_APP_BACKEND_URL;
-const DISPATCH_PAL = paletteFor("dispatch");
 const COACH_LS_KEY = "masci.dispatch.coaching.collapsed";
 
 function authHeaders() {
@@ -139,65 +134,21 @@ export default function DispatchHub() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col" data-testid="dispatch-hub">
-      <div className="caution-stripe" />
-
-      {/* ── Top nav · ORIENTATION ONLY ─────────────────────────── */}
-      <header className={`bg-slate-900 text-white border-b-4 ${DISPATCH_PAL.hubHeaderBar}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3 flex items-center gap-3">
-          <Link
-            to="/"
-            className={`inline-flex items-center text-white ${DISPATCH_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
-            data-testid="dispatch-nav-home"
-            title="Public Hub"
-          >
-            <Home className="w-4 h-4 sm:mr-1" />
-            <span className="hidden sm:inline">{t("Home")}</span>
-          </Link>
-          <button
-            onClick={() => nav(-1)}
-            className={`inline-flex items-center text-white ${DISPATCH_PAL.hubLinkHover} text-xs sm:text-sm font-bold uppercase tracking-wide`}
-            data-testid="dispatch-nav-back"
-            title="Back"
-          >
-            <ArrowLeft className="w-4 h-4 sm:mr-1" />
-            <span className="hidden sm:inline">{t("Back")}</span>
-          </button>
-          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
-          <div className="flex-1 min-w-0">
-            <div className={`font-mono text-[10px] uppercase tracking-[0.22em] ${DISPATCH_PAL.hubKickerStatic} font-bold`}>
-              {t("Dispatch")}
-            </div>
-            <div className="font-display text-lg sm:text-xl font-black leading-tight truncate">
-              {user.name || t("Dispatcher")}
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-2">
-            <PortalSwitcher current="dispatch" />
-            <GlobalSearch accent="dark" />
-          </div>
-          <NotificationBell accent="white" />
-          <OfflineIndicator />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={logout}
-            className="bg-transparent text-white border-white/30 hover:bg-white/10"
-            data-testid="dispatch-logout"
-          >
-            <LogOut className="w-3.5 h-3.5 sm:mr-1" />
-            <span className="hidden sm:inline">{t("Sign out")}</span>
-          </Button>
-        </div>
-      </header>
-
-      <div className={sidebarV2 ? "max-w-7xl mx-auto flex w-full" : ""}>
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Dispatch Portal"
+      pageTitle={user.name || t("Dispatcher")}
+      portalSwitcherCurrent="dispatch"
+      onSignOut={logout}
+      primaryActions={<OfflineIndicator />}
+    >
+      <div data-testid="dispatch-hub" className={sidebarV2 ? "flex w-full" : "w-full"}>
         {sidebarV2 && (
           <DispatchSideNavV2 className="hidden lg:block w-64 flex-shrink-0 min-h-[calc(100vh-200px)]" />
         )}
         <main className={sidebarV2
-          ? "flex-1 px-5 sm:px-8 py-4 space-y-4 w-full"
-          : "max-w-6xl mx-auto px-5 sm:px-8 py-4 space-y-4 flex-1 w-full"}>
+          ? "flex-1 space-y-4 w-full"
+          : "space-y-4 flex-1 w-full"}>
 
         {/* iter511 · MaintainX maintenance indicator (calm, count-only) */}
         <DispatchEquipmentMaintenanceIndicator />
@@ -468,16 +419,13 @@ export default function DispatchHub() {
       </main>
       </div>
 
-      {/* Local footer removed — GlobalFooter mounted in App.js renders the
-          single, app-wide attribution strip on every route. */}
-
       <AssignmentCreateDrawer
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={() => setCreateOpen(false)}
         initialHaulType={createHaulType}
       />
-    </div>
+    </PortalShell>
   );
 }
 

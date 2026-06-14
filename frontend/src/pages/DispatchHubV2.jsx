@@ -150,8 +150,6 @@ function QueueCard({ to, testid, title, why, source, value, loaded }) {
 
 export default function DispatchHubV2() {
   const s = useDispatchSignals();
-  const isPreview = (typeof window !== "undefined") && /preview/i.test(window.location.host);
-
   const allZero = s.loaded && [
     s.drivers_unacked, s.active_hauls, s.waiting_plant, s.waiting_dump,
     s.breakdown_impacts, s.fleet_oos, s.in_shop, s.shop_defects_open,
@@ -160,19 +158,6 @@ export default function DispatchHubV2() {
 
   return (
     <div data-testid="dispatch-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      {isPreview && (
-        <div
-          data-testid="dispatch-hub-v2-preview-banner"
-          style={{
-            background: "var(--brand-primary)", color: "var(--brand-on-primary)",
-            padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em",
-            textTransform: "uppercase", fontWeight: 700, textAlign: "center",
-          }}
-        >
-          Preview Environment · MASCI Operations Platform
-        </div>
-      )}
-
       <PortalShell
         portalName="MASCI"
         portalRole="Dispatch Portal"
@@ -205,7 +190,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-unacked"
               title="Drivers Un-Acknowledged"
               why="Assignment-only drivers without a recorded shift acknowledgement"
-              source="Source: summary.drivers.counts.un_acked"
+              source="Live count · driver acknowledgements pending"
               value={s.drivers_unacked}
               loaded={s.loaded}
             />
@@ -214,7 +199,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-active-hauls"
               title="Active Hauls"
               why="Hauls currently in cycle across all jobs"
-              source="Source: summary.haul.counts.active_hauls"
+              source="Live count · hauls currently moving"
               value={s.active_hauls}
               loaded={s.loaded}
             />
@@ -223,7 +208,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-waiting-plant"
               title="Waiting on Plant"
               why="Drivers stalled at plant — escalate or re-route"
-              source="Source: summary.haul.counts.waiting_on_plant"
+              source="Live count · trucks idle at plant"
               value={s.waiting_plant}
               loaded={s.loaded}
             />
@@ -232,7 +217,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-waiting-dump"
               title="Waiting on Dump"
               why="Drivers stalled at dump site — escalate or re-route"
-              source="Source: summary.haul.counts.waiting_on_dump"
+              source="Live count · drivers stalled at dump site"
               value={s.waiting_dump}
               loaded={s.loaded}
             />
@@ -241,7 +226,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-breakdowns"
               title="Breakdown Impacts"
               why="Active breakdowns blocking the haul plan"
-              source="Source: summary.haul.counts.breakdown_impacts"
+              source="Live count · assignments held by breakdown"
               value={s.breakdown_impacts}
               loaded={s.loaded}
             />
@@ -264,7 +249,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-fleet-oos"
               title="Fleet · Out of Service"
               why="Units in 'oos' status across the fleet"
-              source="Source: summary.fleet.counts.oos"
+              source="Live count · units out of service"
               value={s.fleet_oos}
               loaded={s.loaded}
             />
@@ -273,7 +258,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-fleet-in-shop"
               title="Fleet · In Shop"
               why="Units physically routed to the shop"
-              source="Source: summary.fleet.counts.in_shop"
+              source="Live count · units currently in the shop"
               value={s.in_shop}
               loaded={s.loaded}
             />
@@ -282,7 +267,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-shop-defects"
               title="Open Shop Defects"
               why="Defects active across the fleet (Pre-Op + fleet_defects)"
-              source="Source: summary.shop.defects_open"
+              source="Live count · open shop defects"
               value={s.shop_defects_open}
               loaded={s.loaded}
             />
@@ -305,7 +290,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-incidents-open"
               title="Open Incidents"
               why="Incidents not yet closed by the Safety team"
-              source="Source: summary.safety.incidents_open"
+              source="Live count · open safety incidents"
               value={s.incidents_open}
               loaded={s.loaded}
             />
@@ -314,7 +299,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-capas-open"
               title="Open CAPAs"
               why="Corrective actions still open across the fleet"
-              source="Source: summary.safety.corrective_actions_open"
+              source="Live count · open corrective actions"
               value={s.capas_open}
               loaded={s.loaded}
             />
@@ -323,7 +308,7 @@ export default function DispatchHubV2() {
               testid="dispatch-hub-v2-queue-driver-qual"
               title="Driver Qualification"
               why="Approved-driver / CDL readiness dashboard (real Driver Qualification engine)"
-              source="Source: /api/dispatch/driver-qualification"
+              source="Live read · DOT and CDL readiness queue"
               value={null}
               loaded={true}
             />
