@@ -6728,3 +6728,41 @@ Score 8.4/10. Gap: per-doc-type 1-line descriptors in Upload Dialog + Verified/P
 
 **Final Pre-Spanish UX governance pass now CLOSED.** Spanish translation (14.0-S1) can safely begin.
 
+
+---
+
+## TRACK 14.0-JOB-OWNERSHIP-AND-PROJECT-TEAM-ROSTER-AUDIT (READ-ONLY)
+**Date:** 2026-06-14 · **Mode:** READ-ONLY design certification · **Status:** CLOSED — no code change, no schema change, no deploy
+
+### Executive question
+*If MASCI hires a person tomorrow and wants to add them to a job as Foreman, Superintendent, Safety Lead, Project Engineer, Asset Admin / 811 Locate Coordinator, Dispatcher Contact, Shop Contact, or Co-PM — can the platform do that today?*
+
+**Answer: NO, except for PM and Co-PM (both email-keyed).**
+
+### Headline findings
+- `jobs_master` has 13 keys total · **0 role-FK fields** (no `pm_user_id`, `superintendent_user_id`, `foreman_user_id`, `safety_lead_user_id`, `project_engineer_user_id`, `asset_admin_user_id`, `dispatcher_contact_user_id`, `shop_contact_user_id`, `locate_coordinator_user_id`, `executive_sponsor_user_id`, etc.). Only `pm_email` (22/29 jobs) and `co_pm_emails[]` (2/29 jobs) exist.
+- Two orphan team-skeleton collections discovered: `project_members` (0 rows) and `project_memberships` (1 stale row). Neither extends to a usable roster.
+- Identity stores are disjoint: `user_directory.employee_id` = 0/99. Only 24 FL users are 100% directory-linked.
+- 4 distinct PMs across 22 populated jobs · 1 distinct Co-PM · 0 distinct Superintendents/Foremen/Engineers/Safety Leads at the job level.
+
+### Recommended model
+**Option C — Hybrid.** Keep `pm_email`/`co_pm_emails` (existing cascade works). Build `project_team_assignments` collection for all 11 remaining roles. Score 87/100 vs 46/100 for fixed-fields.
+
+### Build envelope
+- ~3 260 LOC across 12 engineering days
+- 5-phase migration (HR emails → PM backfill → Co-PM backfill → Asset Admin auto-seed → manual admin curation for FL roles → producer rewrites behind feature flag `OWNERSHIP_LOCK_ENABLED`)
+- 18 notification producers gain person-level routing once roster is populated
+- 4 net-new UI screens · 1 audit drawer · 1 notification-chip enhancement
+
+### Five-Pillar (target post-build)
+Powerful 9 · Simple 8 · Beautiful 8 · **Trusted 10 · Proven 9.5** · Composite 8.9. Clears the 9.5 bar after Phase 1-3 backfill verification.
+
+### Files changed
+**0 code files.** Memory updated: this ledger, `PRD.md`, `CHANGELOG.md`, `ROADMAP.md`, `TRACK_14_0_JOB_OWNERSHIP_AND_PROJECT_TEAM_ROSTER_AUDIT.md`.
+
+### Final executive recommendation
+**Build the Job Ownership Foundation BEFORE Spanish.** Spanish translation locked onto screens that today display inferred or absent ownership data would harden the current fiction into two languages.
+
+Hard locks honored throughout: no code · no schema · no migration · no deploy · no GitHub · no merge · no Spanish · no PDF · no integration banners · no UXS-11.
+
+**Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_AND_PROJECT_TEAM_ROSTER_AUDIT.md`.

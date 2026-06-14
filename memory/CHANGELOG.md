@@ -2,6 +2,25 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-14 — Track 14.0-JOB-OWNERSHIP-AND-PROJECT-TEAM-ROSTER-AUDIT (READ-ONLY)
+
+Read-only design certification. **No code, schema, migration, deploy, GitHub, merge.**
+Output: `/app/memory/TRACK_14_0_JOB_OWNERSHIP_AND_PROJECT_TEAM_ROSTER_AUDIT.md`.
+
+Headline findings:
+- `jobs_master` has only 13 keys; **none** are role FKs. Only `pm_email` (22/29 populated) and `co_pm_emails[]` (2/29 populated) carry team data.
+- Two orphan team-skeleton collections discovered: `project_members` (0 rows · written by an empty data-fix loop) and `project_memberships` (1 stale row · different name · likely typo bug). Neither is usable.
+- Identity stores are disjoint: `user_directory.employee_id` populated 0 of 99; only **24 FL users** are 100% directory-linked by email. 0 of 370 employees have any `supervisor_user_id`.
+- 4 distinct PMs across 22 populated jobs. 1 distinct Co-PM. 13 ownership FK fields requested by exec: **0 exist in any collection.**
+
+Recommendation: **Option C — Hybrid.** Keep existing `pm_email` / `co_pm_emails` (working PM cascade in `pm_admin.py`). Build a new `project_team_assignments` collection for every other role (Superintendent / Foreman / Safety Lead / Project Engineer / Asset Admin / 811 Locate Coordinator / Dispatcher Contact / Shop Contact / Executive Oversight / Read-only Stakeholder / Asst PM).
+
+Estimated effort: ~3 260 LOC across 12 engineering days. 5-phase migration: Phase 0 HR fills employee emails (prerequisite); Phases 1-3 auto-backfill PM/Co-PM/Asset Admin; Phase 4-5 manual admin review + producer rewrites behind feature flag `OWNERSHIP_LOCK_ENABLED`.
+
+Final verdict: **Build the ownership model before Spanish.** Skipping this for Spanish would lock the current ownership fiction into two languages.
+
+
+
 ## 2026-06-14 — Track 14.0-TRUTHFULNESS-AND-OWNERSHIP-CERTIFICATION (READ-ONLY)
 
 Read-only audit. **No code changes. No deploys. No new fields. No new endpoints.**

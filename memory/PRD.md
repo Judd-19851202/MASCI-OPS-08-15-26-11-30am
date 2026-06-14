@@ -10,6 +10,14 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## Latest Read-Only Audit (2026-06-14)
+- **14.0-JOB-OWNERSHIP-AND-PROJECT-TEAM-ROSTER-AUDIT** — design certification for the
+  Job Ownership Foundation. Recommends Option C (Hybrid): keep `pm_email` /
+  `co_pm_emails`; build new `project_team_assignments` collection for the 11
+  remaining roles. ~3 260 LOC · ~12 engineering days. 5-phase migration. Must
+  precede Spanish. Doc: `/app/memory/TRACK_14_0_JOB_OWNERSHIP_AND_PROJECT_TEAM_ROSTER_AUDIT.md`.
+
+
 ## Latest Closed Track (2026-06-14)
 - **14.0-NOTIFY-OWNERSHIP-LOCK · D2-D10 CLOSED** — Person-level routing
   (`recipient_user_id` is now read-side authoritative); Asset Admin

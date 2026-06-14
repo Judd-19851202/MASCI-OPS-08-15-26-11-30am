@@ -4,6 +4,41 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## 🔴 P0 — Job Ownership Foundation (recommended next track)
+*Read-only audit completed 2026-06-14 — see `TRACK_14_0_JOB_OWNERSHIP_AND_PROJECT_TEAM_ROSTER_AUDIT.md`.*
+Blocking Spanish, PDF Lockup, Integration Honesty Banners, and UXS-11 final certification.
+
+Build sequence (Option C — Hybrid):
+1. Data model + indexes for `project_team_assignments` (~120 LOC · 1d)
+2. Admin Project Team Manager APIs + UI (~850 LOC · 2.5d)
+3. PM Job Team Manager APIs + UI (~750 LOC · 2d)
+4. Field Leadership roster sidebar (~200 LOC · 1d)
+5. Backfill scripts — Phases 1-3 (PM / Co-PM / Asset Admin) (~150 LOC · 0.5d)
+6. Producer rewrite sweep — 18 producers behind feature flag (~360 LOC · 2d)
+7. Asset Care project-scoped view + 811 locate collection skeleton (~600 LOC · 1.5d)
+8. Permission helper + audit mirror + tests (~430 LOC · 1.5d)
+
+Total: ~3 260 LOC / ~12 days.
+
+## 🟠 P0 — Existing Block-list (unchanged)
+- Spanish Translation Sweep (BLOCKED on Job Ownership Foundation)
+- PDF Lockup Sweep (BLOCKED on Job Ownership Foundation)
+- Integration Honesty Banners (BLOCKED on Job Ownership Foundation)
+- UXS-11 Final Certification (BLOCKED on Job Ownership Foundation)
+
+## 🟢 P2 — Backlog
+- UXS-5D D3 PM Command status chip wording bleed
+- LR2 Button variant long-tail retirement
+- Executive Oversight read-only portal (no users today)
+- Project Engineer dedicated screen (currently reuses PM portal)
+- Crews-as-a-collection migration (free-text `employees.crew` is low-volume)
+
+## ⚪ Dormant
+- MaintainX integration (Track 13.32) — `MAINTAINX_SYNC_ENABLED=false`
+- FleetWatcher integration — `NOT_CONNECTED`
+- Scheduler activation for D4 / D5 / D6 producers — currently admin-trigger only
+
+
 ## 🔴 Track 14.0 Fix Tracks — pre-deploy hard gate (Certification 2026-06-13)
 
 Source: `/app/memory/TRACK_14_0_PLATFORM_READINESS_CERTIFICATION.md` · Verdict CONDITIONAL PASS · Five-Pillar avg 9.62/10.
