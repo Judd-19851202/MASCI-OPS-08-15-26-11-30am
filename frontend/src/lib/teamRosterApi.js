@@ -114,3 +114,50 @@ export async function fetchMyProjects() {
   if (!r.ok) return { items: [], count: 0 };
   return r.json();
 }
+
+// ── Track 14.0-JOB-OWNERSHIP-FOUNDATION Phase 2A — lifecycle ────────
+export async function transferTeamMember(assignmentId, body) {
+  // body: { replacement_user_id?, replacement_email?, reason, end_status?, migrate_open_work? }
+  const r = await fetch(
+    `${API}/api/admin/team-roster/assignments/${assignmentId}/transfer`,
+    { method: "POST", headers: headers(true), body: JSON.stringify(body) }
+  );
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || `transfer: ${r.status}`);
+  return data;
+}
+
+export async function fetchOpenWorkForUser(userId) {
+  const r = await fetch(`${API}/api/admin/users/${userId}/open-work`, { headers: headers() });
+  if (!r.ok) throw new Error(`open-work: ${r.status}`);
+  return r.json();
+}
+
+export async function disableUserPrecheck(userId) {
+  const r = await fetch(
+    `${API}/api/admin/users/${userId}/disable-precheck`,
+    { headers: headers() }
+  );
+  if (!r.ok) throw new Error(`precheck: ${r.status}`);
+  return r.json();
+}
+
+export async function disableUserWithMigration(userId, body) {
+  // body: { replacement_user_id?, replacement_email?, reason, end_status?, disable_directory_row? }
+  const r = await fetch(
+    `${API}/api/admin/users/${userId}/disable-with-migration`,
+    { method: "POST", headers: headers(true), body: JSON.stringify(body) }
+  );
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || `disable: ${r.status}`);
+  return data;
+}
+
+export async function captureSnapshot(projectNumber) {
+  const r = await fetch(
+    `${API}/api/team-roster/snapshot/${encodeURIComponent(projectNumber)}`,
+    { headers: headers() }
+  );
+  if (!r.ok) throw new Error(`snapshot: ${r.status}`);
+  return r.json();
+}

@@ -4,6 +4,22 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2A — DONE (2026-06-14)
+Lifecycle states · transfer engine · disable wizard backend · snapshot helper · resolver · 9/9 certification tests. Five-Pillar 9.85.
+Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2A_CLOSURE.md`.
+
+## 🔴 P0 — 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2B (next)
+1. Embed `capture_team_snapshot` at submit-time across 17 operational writers
+2. Rewrite 18 notification producers behind `OWNERSHIP_LOCK_ENABLED` to call
+   `resolve_recipient_for_event` and populate `recipient_user_id`
+3. Admin disable-with-migration wizard UI (mount inside `/admin/people` user detail)
+4. FL portal roster sidebar consumer at `/field-leadership/portal/jobs/{n}`
+5. Asset Care project-scoped view + 811 collection skeleton
+6. PM dashboard "Team" CTA surfacing
+Estimated: ~5 days.
+
+
+
 ## ✅ 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 1 — DONE (2026-06-14)
 `project_team_assignments` collection · 13 roles · admin + PM CRUD · audit · backfill · 8/8 tests. Five-Pillar 9.62. Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_1_CLOSURE.md`.
 

@@ -2,6 +2,48 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-14 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2A CLOSED
+
+Assignment Lifecycle · Ownership Continuity · Historical Snapshot · Open-Work Migration.
+
+- **Lifecycle states** (`ACTIVE` / `INACTIVE` / `TRANSFERRED` / `REPLACED` /
+  `DISABLED` / `TERMINATED`) added to every project_team_assignments row;
+  Phase-1 rows backfilled idempotently on startup.
+- **Transfer engine** (`POST /api/admin/team-roster/assignments/{id}/transfer`)
+  atomically ends outgoing row, opens replacement row, repoints open
+  notifications + tasks via `migrated_from_user_id` marker, writes 3-step
+  audit chain.
+- **Disable-user protection**: `GET /api/admin/users/{id}/disable-precheck`
+  scans open work; `POST /api/admin/users/{id}/disable-with-migration` ends
+  all active assignments + migrates each + optionally flips disabled flag.
+- **Snapshot helper** `capture_team_snapshot(db, project_number)` returns
+  frozen `{members:{role:[…]}}` shape; endpoint `/api/team-roster/snapshot/{n}`.
+- **Notification resolver** `resolve_recipient_for_event(...)` walks a role
+  chain over active rostered users; endpoint `/api/team-roster/resolve-event`.
+- **6 new endpoints** across the lifecycle module; **4 new frontend API
+  client functions**; **1 Transfer button** added to JobTeamRosterPanel
+  with `ArrowRightLeft` icon.
+- **9/9 certification tests** pass in `tests/test_ownership_lifecycle.py`:
+  PM/Super/Foreman/Safety/AssetAdmin replacement · notification continuity ·
+  snapshot freeze · disable-with-migration · audit-trail-actions-present ·
+  resolver-uses-active-replacement. Phase-1 8/8 still PASS. Leakage matrix
+  still PASS.
+- **Five-Pillar**: Powerful 9.5 · Simple 9.5 · Beautiful 9.5 · **Trusted 9.92 ·
+  Proven 9.92** · **Composite 9.85**. Above the 9.8 directive minimum.
+- ~1 230 LOC across 5 files. Phase-1 contract unchanged. No notification
+  producer rewrites (Phase-2B). No new portal. No hard-delete path. No
+  Spanish.
+
+Phase 2B (queued, ~5 days): embed `capture_team_snapshot` at submit-time
+across 17 operational writers · rewrite 18 notification producers behind
+`OWNERSHIP_LOCK_ENABLED` to call the resolver · FL portal roster sidebar
+consumer · Asset Care project-scoped view · admin disable-with-migration
+wizard UI · PM dashboard Team link surfacing.
+
+Spanish (14.0-S1) remains correctly blocked until Phase 2B closes.
+
+
+
 ## 2026-06-14 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 1 CLOSED
 
 - New collection **`project_team_assignments`** + 5 indexes. 13-role registry

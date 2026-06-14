@@ -9301,6 +9301,16 @@ async def _ensure_project_team_assignments_indexes():
         await db.audit_events.create_index(
             [("category", 1), ("project_number", 1), ("at", -1)]
         )
+        # Track 14.0-JOB-OWNERSHIP-FOUNDATION Phase 2A — ensure every
+        # existing row has an `assignment_status` (idempotent).
+        await db.project_team_assignments.update_many(
+            {"assignment_status": {"$exists": False}, "active": True},
+            {"$set": {"assignment_status": "ACTIVE"}},
+        )
+        await db.project_team_assignments.update_many(
+            {"assignment_status": {"$exists": False}, "active": False},
+            {"$set": {"assignment_status": "INACTIVE"}},
+        )
     except Exception as exc:
         logger.warning("[team-roster] index ensure failed: %s", exc)
 
@@ -11799,6 +11809,9 @@ register_scheduled_producers_d456(app, db, require_admin)
 
 from routes.project_team_assignments import register_project_team_assignments  # noqa: E402
 register_project_team_assignments(app, db, require_admin, _require_any_portal_token)
+
+from routes.ownership_lifecycle import register_ownership_lifecycle  # noqa: E402
+register_ownership_lifecycle(app, db, require_admin, _require_any_portal_token)
 
 # Track 13.33ABC · Asset Care & Readiness Command Center
 from routes.asset_care import register_asset_care_routes  # noqa: E402

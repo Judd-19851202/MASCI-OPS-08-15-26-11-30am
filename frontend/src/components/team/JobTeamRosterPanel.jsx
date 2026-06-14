@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   fetchRoleRegistry, fetchTeam, fetchTeamAudit, addTeamMember,
   patchTeamMember, removeTeamMember, fetchDirectoryUsers,
+  transferTeamMember,
 } from "@/lib/teamRosterApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
-import { UserPlus, Users, History, AlertTriangle, X, Star } from "lucide-react";
+import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 
 const ROW_TEST = (slot) => `job-team-row-${slot}`;
@@ -122,6 +123,27 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
     } catch (e) { toast.error(e.message); }
   };
 
+  const handleTransfer = async (it) => {
+    if (!adminScope) return; // admin-only action
+    const repEmail = prompt(`Transfer ${it.display_name || it.email}'s ${it.role_label} role to another user — enter replacement EMAIL (must exist in directory):`);
+    if (!repEmail) return;
+    const reason = prompt("Reason for transfer (required):") || "(no reason supplied)";
+    try {
+      const r = await transferTeamMember(it.id, {
+        replacement_email: repEmail,
+        reason,
+        end_status: "REPLACED",
+      });
+      const mig = r.migration || {};
+      toast.success(
+        `Transferred. ${mig.notifications_repointed || 0} notifications repointed · ${mig.tasks_repointed || 0} tasks repointed.`
+      );
+      reload();
+    } catch (e) {
+      toast.error(e.message || "Transfer failed");
+    }
+  };
+
   return (
     <Card data-testid="job-team-roster-panel">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -206,6 +228,17 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                           title={it.is_primary ? "Mark secondary" : "Mark primary"}
                         >
                           <Star className={`h-3 w-3 ${it.is_primary ? "text-amber-500" : "text-slate-300"}`} />
+                        </Button>
+                      )}
+                      {adminScope && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleTransfer(it)}
+                          data-testid={`job-team-transfer-${it.id}`}
+                          title="Transfer / replace"
+                        >
+                          <ArrowRightLeft className="h-3 w-3" />
                         </Button>
                       )}
                       <Button

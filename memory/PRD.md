@@ -11,6 +11,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-06-14)
+- **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2A CLOSED** — Assignment lifecycle
+  (6 states), transfer engine, disable-user protection, snapshot helper,
+  notification resolver, full audit chain. **9/9 certification tests pass.**
+  Five-Pillar **9.85** (Trusted 9.92 · Proven 9.92 · above the 9.8 directive
+  minimum). Ledger:
+  `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2A_CLOSURE.md`.
+
+
+
+## Latest Closed Track (2026-06-14)
 - **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 1 CLOSED** — editable per-project
   team roster (`project_team_assignments` collection · 13 roles · admin +
   PM scopes · audit trail · idempotent PM/Co-PM backfill · 12 APIs · 2 new

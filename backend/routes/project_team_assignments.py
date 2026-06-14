@@ -485,6 +485,7 @@ def register_project_team_assignments(
             "is_primary": bool(payload.is_primary),
             "is_backup": bool(payload.is_backup),
             "active": True,
+            "assignment_status": "ACTIVE",
             "start_date": payload.start_date or now[:10],
             "end_date": payload.end_date,
             "assigned_by": (actor.get("id") or actor.get("name") or "admin"),
@@ -495,6 +496,10 @@ def register_project_team_assignments(
             "removed_by": None,
             "removed_at": None,
             "remove_reason": None,
+            "end_reason": None,
+            "ended_at": None,
+            "ended_by": None,
+            "replacement_user_id": None,
             "source": "admin_ui",
             "notes": payload.notes,
         }
@@ -641,6 +646,7 @@ def register_project_team_assignments(
             "is_primary": bool(payload.is_primary),
             "is_backup": bool(payload.is_backup),
             "active": True,
+            "assignment_status": "ACTIVE",
             "start_date": payload.start_date or now[:10],
             "end_date": payload.end_date,
             "assigned_by": actor.get("id") or actor.get("name") or "pm",
@@ -648,7 +654,10 @@ def register_project_team_assignments(
             "assigned_at": now,
             "updated_by": None, "updated_at": None,
             "removed_by": None, "removed_at": None,
-            "remove_reason": None, "source": "pm_ui",
+            "remove_reason": None, "end_reason": None,
+            "ended_at": None, "ended_by": None,
+            "replacement_user_id": None,
+            "source": "pm_ui",
             "notes": payload.notes,
         }
         await db.project_team_assignments.insert_one(row)

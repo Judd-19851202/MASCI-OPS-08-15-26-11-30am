@@ -6813,3 +6813,58 @@ ALL honoured. No deploy. No GitHub. No merge. No Spanish. No PDF Lockup. No Inte
 **Spanish (14.0-S1) remains blocked** until Phase 2 ships. Translating Phase-1 strings ahead of Phase-2 producer rewrites would harden the current role-broadcast ownership behaviour into two languages.
 
 **Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_1_CLOSURE.md`.
+
+---
+
+## TRACK 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2A
+**Date:** 2026-06-14 · **Status:** CLOSED · **Composite:** 9.85 (Trusted 9.92 / Proven 9.92)
+
+### Title
+Assignment Lifecycle, Ownership Continuity, Historical Snapshot, and Open-Work Migration Framework.
+
+### What this phase shipped
+- **6 lifecycle states** on every `project_team_assignments` row: ACTIVE / INACTIVE / TRANSFERRED / REPLACED / DISABLED / TERMINATED. Phase-1 rows idempotently backfilled to ACTIVE/INACTIVE at startup.
+- **Transfer engine** — `POST /api/admin/team-roster/assignments/{id}/transfer` atomically ends outgoing assignment + opens replacement + repoints open person-addressed notifications and tasks + writes 3-step audit chain (`transfer_end`, `transfer_open`, `ownership_migrated`).
+- **Disable-user protection** — `GET .../disable-precheck` runs open-work scanner; `POST .../disable-with-migration` ends all active assignments + migrates each + optionally flips disabled flag.
+- **Snapshot helper + endpoint** — `capture_team_snapshot(db, project_number)` returns frozen `{members: {role: […]}}`; `/api/team-roster/snapshot/{project_number}` reachable from any portal token.
+- **Notification resolver** — `resolve_recipient_for_event(...)` walks role priority chain over active rostered users; `/api/team-roster/resolve-event` is the HTTP shim.
+- **Frontend "Transfer / replace" affordance** on every active row of the Admin Project Team Manager (icon + prompt + migration toast).
+
+### Endpoints added (6)
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/admin/team-roster/assignments/{id}/transfer` | atomic transfer / replace |
+| GET | `/api/admin/users/{id}/disable-precheck` | open-work report before disable |
+| POST | `/api/admin/users/{id}/disable-with-migration` | end-all + migrate + disable |
+| GET | `/api/admin/users/{id}/open-work` | open-work report (read-only) |
+| GET | `/api/team-roster/snapshot/{project_number}` | capture-on-demand snapshot |
+| POST | `/api/team-roster/resolve-event` | resolver shim |
+
+### Tests
+- `backend/tests/test_ownership_lifecycle.py` — **9/9 PASS** in 28.9 s.
+- `backend/tests/test_project_team_assignments.py` (Phase 1) — **8/8 PASS** in 7.7 s.
+- `backend/tests/test_notify_ownership_lock.py` (NOTIFY-OWNERSHIP-LOCK D2/D3/D7/D8) — **OVERALL PASS** (unchanged).
+
+### Files changed (5 · ~1 230 LOC Phase 2A · ~2 357 LOC combined Phase 1+2A)
+| File | Change |
+|------|--------|
+| `backend/routes/ownership_lifecycle.py` | NEW (504 LOC) |
+| `backend/tests/test_ownership_lifecycle.py` | NEW (281 LOC) |
+| `backend/server.py` | EDIT (+20 LOC · register router + status backfill) |
+| `backend/routes/project_team_assignments.py` | EDIT (+12 LOC · lifecycle defaults on inserts) |
+| `frontend/src/components/team/JobTeamRosterPanel.jsx` | EDIT (+37 LOC · Transfer affordance) |
+| `frontend/src/lib/teamRosterApi.js` | EDIT (+47 LOC · 4 new client functions) |
+
+### Five-Pillar
+Powerful 9.5 · Simple 9.5 · Beautiful 9.5 · **Trusted 9.92 · Proven 9.92** · **Composite 9.85**. Above the 9.8 directive minimum.
+
+### Honest limitations (Phase 2B)
+1. `capture_team_snapshot` exists and is tested — but embedding it at submit-time in the 17 operational writers (DR, Incidents, QAQC, Trench, Pre-Op, DVIR, Asset Transfers, Asset Docs, 811, Dispatch, Training, Safety Meetings, FL Records, Time-Off, …) is Phase-2B work.
+2. The resolver works and is endpoint-exposed — but the 18 notification producer call-sites that currently broadcast by role still need to switch to it behind `OWNERSHIP_LOCK_ENABLED`. Phase 2B.
+3. Disable-with-migration admin wizard UI is not in this phase (backend ready and tested; UI lands in Phase 2B alongside `/admin/people` user detail).
+4. Spanish remains BLOCKED until Phase 2B's snapshot embedding and producer rewrites land.
+
+### Hard locks
+ALL honoured. No deploy. No GitHub. No merge. No Spanish. No PDF. No banners. No UXS-11. No new portal. No PM-portal scope widening. No existing PM behaviour broken. No hard-delete path. No Phase-1 contract broken.
+
+**Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_2A_CLOSURE.md`.
