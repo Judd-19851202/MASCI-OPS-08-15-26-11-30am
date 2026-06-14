@@ -66,6 +66,14 @@ class EmployeeRequestCreate(BaseModel):
     submitted_via: Optional[str] = Field(default=None, max_length=80)
     # new_hire fields
     name: Optional[str] = Field(default=None, max_length=200)
+    # Track 14.0-HR-READINESS — explicit legal name parts + preferred name
+    # so the field submission preserves identity granularity. `name`
+    # remains the canonical display name (constructed from parts when
+    # parts are supplied).
+    legal_first_name: Optional[str] = Field(default=None, max_length=120)
+    legal_middle_name: Optional[str] = Field(default=None, max_length=120)
+    legal_last_name: Optional[str] = Field(default=None, max_length=120)
+    preferred_name: Optional[str] = Field(default=None, max_length=120)
     employee_id: Optional[str] = Field(default=None, max_length=80)
     trade: Optional[str] = Field(default=None, max_length=120)
     role: Optional[str] = Field(default=None, max_length=120)
@@ -86,6 +94,11 @@ class EmployeeRequestApprove(BaseModel):
     model_config = ConfigDict(extra="forbid")
     # new_hire: HR may patch any field before creating the employee
     name: Optional[str] = None
+    # Track 14.0-HR-READINESS — legal name parts + preferred name.
+    legal_first_name: Optional[str] = None
+    legal_middle_name: Optional[str] = None
+    legal_last_name: Optional[str] = None
+    preferred_name: Optional[str] = None
     employee_id: Optional[str] = None
     trade: Optional[str] = None
     role: Optional[str] = None
@@ -132,6 +145,91 @@ def _actor_label(actor: Optional[Dict[str, Any]]) -> str:
         actor.get("name") or actor.get("email") or actor.get("user_id")
         or actor.get("id") or _actor_role(actor)
     )
+
+
+async def _notify_hr_queue_pending(db, request_doc: Dict[str, Any], kind: str) -> None:
+    """Track 14.0-HR-READINESS — fan out an in-app bell notification to
+    every HR user (and the canonical `hr_inbox` channel) so a pending
+    employee_request is clickable from the bell. Without this the
+    /api/hr/employee-requests POST silently inserted a row that no
+    operator ever saw, producing the "click does nothing" user report.
+
+    The notification carries `link_url=/hr/employee-requests?id=<rid>`
+    so the queue page can deep-link and highlight the new request.
+    Best-effort — never raises (notifications are operational sugar,
+    not a hard dependency of the request flow)."""
+    try:
+        rid = request_doc.get("id") or ""
+        if kind == "new_hire":
+            nm = ((request_doc.get("payload") or {}).get("name") or "(unnamed)")
+            title = f"New employee request · {nm}"
+            message = (
+                f"Field submitted a new-hire request for {nm}. "
+                "Open the queue to review and approve, reject, or merge."
+            )
+        else:
+            nm = ((request_doc.get("payload") or {}).get("target_employee_name")
+                  or "(employee)")
+            title = f"Termination request · {nm}"
+            message = (
+                f"Field submitted a termination request for {nm}. "
+                "Open the queue to review."
+            )
+
+        now = datetime.now(timezone.utc).isoformat()
+        link_url = f"/hr/employee-requests?id={rid}"
+
+        # Fan out one row per active HR user so the bell badge counts
+        # per-actor. Fall back to a single hr_inbox row if no hr_users
+        # exist (preview / fresh install).
+        targets: List[Dict[str, Any]] = []
+        try:
+            async for u in db.hr_users.find(
+                {"disabled": {"$ne": True}},
+                {"_id": 0, "id": 1, "email": 1, "name": 1},
+            ):
+                targets.append(u)
+        except Exception:  # noqa: BLE001
+            pass
+
+        notif_template = {
+            "kind": "hr.employee_request",
+            "title": title,
+            "message": message,
+            "link_url": link_url,
+            "url": link_url,                 # alias for older bells
+            "linked_request_id": rid,
+            "request_kind": kind,
+            "created_at": now,
+            "ts": now,
+            "read": False,
+            "severity": "info",
+            "audience": "hr",
+        }
+        if targets:
+            rows = []
+            for t in targets:
+                row = dict(notif_template)
+                row["id"] = str(uuid.uuid4())
+                row["user_id"] = t.get("id") or t.get("email") or ""
+                row["user_email"] = t.get("email") or ""
+                rows.append(row)
+            if rows:
+                await db.notifications.insert_many(rows)
+        else:
+            row = dict(notif_template)
+            row["id"] = str(uuid.uuid4())
+            row["user_id"] = "hr_inbox"
+            await db.notifications.insert_one(row)
+    except Exception as e:  # noqa: BLE001
+        # Operational-sugar contract: never block the request insert.
+        try:
+            from logging import getLogger
+            getLogger("employee_requests").warning(
+                f"[hr-notify] failed to fan out request {request_doc.get('id')}: {e}"
+            )
+        except Exception:  # noqa: BLE001
+            pass
 
 
 def register_employee_requests_routes(
@@ -269,6 +367,14 @@ def register_employee_requests_routes(
             }
 
         await db.employee_requests.insert_one(dict(doc))
+
+        # Track 14.0-HR-READINESS (2026-02-14): create an in-app
+        # notification for every HR user so the bell click-through
+        # lands on the queue with the new request highlighted. Before
+        # this change the request was silently inserted with no
+        # notification — HR would click the bell and find nothing.
+        await _notify_hr_queue_pending(db, doc, kind)
+
         return {"ok": True, "id": rid, "request": _strip_id(doc)}
 
     @api_router.get("/hr/employee-requests")
@@ -376,6 +482,14 @@ def register_employee_requests_routes(
             emp = {
                 "id": new_id,
                 "name": name,
+                # Track 14.0-HR-READINESS — preserve legal name parts +
+                # preferred name on the employee record so directory
+                # views, daily reports, and field forms can display
+                # "James Fisher (Jimmy)" without losing legal identity.
+                "legal_first_name": payload.get("legal_first_name") or "",
+                "legal_middle_name": payload.get("legal_middle_name") or "",
+                "legal_last_name": payload.get("legal_last_name") or "",
+                "preferred_name": payload.get("preferred_name") or "",
                 "employee_id": payload.get("employee_id") or "",
                 "trade": payload.get("trade") or "",
                 "role": payload.get("role") or "",

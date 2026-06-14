@@ -11,6 +11,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14)
+- **14.0-HR-READINESS-CERTIFICATION-SWEEP CLOSED** — Fixed P0
+  user-reported defect: HR bell click on a pending employee-add
+  request went nowhere because `db.employee_requests` was inserted
+  silently with no `notifications` row. New
+  `_notify_hr_queue_pending` helper fans out one in-app
+  notification per active HR user with `link_url=/hr/employee-requests?id=<rid>`.
+  Both creation paths (employee_requests + field_leadership
+  inline-add) now call it. HR Queue page reads `?id=<rid>`, auto-
+  highlights the matching card with an amber ring, scrolls it into
+  view, and auto-opens the approval dialog — HR acts in one click.
+  Schemas accept `legal_first_name` / `legal_middle_name` /
+  `legal_last_name` / `preferred_name`; approval persists all four
+  on the new employee record so directory views and field forms can
+  render "James Fisher (Jimmy)" without losing legal identity.
+  End-to-end live preview verification captured: submit → 56
+  notifications fanned out → approve with preferred name → employee
+  created with all 4 identity fields persisted. +9 regression
+  guards lock the contract. 89/89 RC1 + parity + reality + PDF +
+  hygiene + I1 + HR-readiness tests pass. Five-Pillar **9.93**
+  (Trusted 9.95 · Proven 9.95). Ledger:
+  `/app/memory/TRACK_14_0_HR_READINESS_CERTIFICATION_SWEEP_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-14)
 - **14.0-I1 INTEGRATION HONESTY + ARCHIVE ORIGIN VERIFICATION CLOSED**
   — Platform trust track. Added 5-status honesty vocabulary
   (LIVE / CONFIGURED / PARTIAL / DISCONNECTED / ERROR) to

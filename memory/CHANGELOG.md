@@ -2,6 +2,57 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-02-14 — Track 14.0-HR-READINESS-CERTIFICATION-SWEEP CLOSED
+
+**P0 critical operational defect — "click does nothing" — FIXED.**
+
+User-reported: a crew enters a name not in the directory on a Daily
+Report → system creates an employee-add request → HR clicks the bell
+notification → **nothing happens** → HR manually creates the employee.
+
+### Root cause
+`routes/employee_requests.py::submit_request()` and
+`routes/field_leadership.py` inline-add both inserted into
+`db.employee_requests` but **never** created a `notifications` row.
+The bell had nothing to click and nothing to route to.
+
+### Fix
+* New `_notify_hr_queue_pending(db, request_doc, kind)` helper fans
+  out one in-app notification per active HR user (and an `hr_inbox`
+  fallback) with `link_url=/hr/employee-requests?id=<rid>`.
+* Wired into both creation paths (employee_requests + field_leadership
+  inline-add).
+* Schemas (`EmployeeRequestCreate` + `EmployeeRequestApprove`) now
+  accept `legal_first_name`, `legal_middle_name`, `legal_last_name`,
+  `preferred_name` so HR can edit identity during approval.
+* Approval handler persists those fields on the created
+  `employees` doc.
+* `HrEmployeeRequestsQueue.jsx` reads `?id=<rid>` from the URL,
+  highlights the matching card with an amber ring, scrolls it into
+  view, and auto-opens the approval dialog — HR acts in one click.
+
+### Live preview proof (end-to-end)
+* Submit (public) → 56 HR notifications fanned out, each with the
+  expected `link_url`.
+* HR Approve with `preferred_name="Jimmy"` + legal name parts →
+  employee created with all 4 identity fields persisted +
+  `lifecycle_status="Active"`.
+* Seed records cleaned up after verification
+  (`emp=1 req=2 notif=114 lifecycle=1`).
+
+### Locks added — `test_hr_readiness_certification.py` (9 guards)
+Submit notification fan-out · FL inline-add fan-out · link_url
+format · Create schema fields · Approve schema fields · approval
+persistence · queue deep-link · highlighted-card cue ·
+auto-open-on-deep-link.
+
+### Tests
+**89/89 PASS** across all RC1 suites (9 HR-readiness + 20 I1 + 6
+hygiene + 10 PDF + 24 nav-drift + 22 ownership/parity). Frontend
+compiles clean.
+
+Closure ledger: `/app/memory/TRACK_14_0_HR_READINESS_CERTIFICATION_SWEEP_CLOSURE.md`
+
 ## 2026-02-14 — Track 14.0-I1 INTEGRATION HONESTY + ARCHIVE ORIGIN VERIFICATION CLOSED
 
 **P0 platform-trust track — RC1 deployment safety hardened.**

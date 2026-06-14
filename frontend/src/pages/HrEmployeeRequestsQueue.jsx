@@ -8,7 +8,7 @@
 // db.employees is NEVER mutated outside of HR-approved actions.
 
 import React, { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ClipboardList, CheckCircle2, XCircle, Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -54,6 +54,8 @@ function Pill({ cls, children, testId }) {
 export default function HrEmployeeRequestsQueue() {
   usePageTitle("HR · Employee Requests Queue");
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const deepLinkRequestId = searchParams.get("id") || "";
   const [items, setItems] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState("pending");
@@ -105,6 +107,29 @@ export default function HrEmployeeRequestsQueue() {
   }, [statusFilter, kindFilter, nav]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
+
+  // Track 14.0-HR-READINESS — when bell click-through lands on the
+  // queue with ?id=<rid>, find the matching request, scroll it into
+  // view, and auto-open the approval dialog so HR can act in one
+  // click instead of hunting through the list.
+  useEffect(() => {
+    if (!deepLinkRequestId || items.length === 0) return;
+    const target = items.find((r) => r.id === deepLinkRequestId);
+    if (!target) return;
+    // Auto-open the review/approve dialog only for pending requests.
+    if (target.status === "pending" && !approveOpen) {
+      openApprove(target);
+    }
+    // Scroll the card into view as a UX cue.
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`hr-request-${target.id}`);
+      if (el && typeof el.scrollIntoView === "function") {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+    // Only fire once per landing — subsequent re-fetches must not re-open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkRequestId, items.length]);
 
   const openApprove = (req) => {
     setActive(req);
@@ -291,7 +316,8 @@ export default function HrEmployeeRequestsQueue() {
               const isPending = req.status === "pending";
               return (
                 <Card key={req.id}
-                      className="p-4 bg-white border-2 border-slate-200 hover:border-slate-300"
+                      id={`hr-request-${req.id}`}
+                      className={`p-4 bg-white border-2 ${deepLinkRequestId === req.id ? "border-amber-500 ring-4 ring-amber-200" : "border-slate-200 hover:border-slate-300"}`}
                       data-testid="hr-requests-row">
                   <div className="flex items-start gap-3 flex-wrap">
                     <div className="flex flex-col gap-1 min-w-0 flex-1">

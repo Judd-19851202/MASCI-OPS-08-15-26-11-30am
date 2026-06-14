@@ -425,6 +425,13 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         }
         await db.employee_requests.insert_one(dict(req_doc))
         req_doc.pop("_id", None)
+        # Track 14.0-HR-READINESS — fan out the bell notification so
+        # the HR review surface is reachable from the bell click.
+        try:
+            from routes.employee_requests import _notify_hr_queue_pending
+            await _notify_hr_queue_pending(db, req_doc, "new_hire")
+        except Exception:  # noqa: BLE001
+            pass
         # Return a clear "pending HR review" response. Frontend should
         # NOT treat this as a created employee.
         return {

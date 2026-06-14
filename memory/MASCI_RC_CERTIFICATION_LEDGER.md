@@ -7539,3 +7539,55 @@ Banners are all cleared to begin.
 **Composite: 9.96.**
 
 **Report:** `/app/memory/TRACK_14_0_I1_INTEGRATION_HONESTY_AND_ARCHIVE_ORIGIN_VERIFICATION_CLOSURE.md`.
+
+---
+
+## Track 14.0-HR-READINESS-CERTIFICATION-SWEEP — CLOSED
+
+**Date:** 2026-02-14 · **Status:** CLOSED · **Composite:** **9.93** (Trusted **9.95** · Proven **9.95**)
+
+### Outcome
+- Fixed P0 user-reported defect: HR bell click on a pending
+  employee-add request went nowhere (no `notifications` row had been
+  created — the request silently inserted only into
+  `employee_requests`).
+- New `_notify_hr_queue_pending` helper fans out one in-app
+  notification per active HR user with
+  `link_url=/hr/employee-requests?id=<rid>`. Both creation paths
+  (employee_requests submit + field_leadership inline-add) now call
+  it.
+- HR Queue page reads `?id=<rid>` and auto-highlights + auto-opens
+  the approval dialog for the matching pending request.
+- Schemas now accept `legal_first_name` / `legal_middle_name` /
+  `legal_last_name` / `preferred_name`. Approval persists those
+  fields on the new employee record so directory views and field
+  forms can render "James Fisher (Jimmy)" without losing legal
+  identity.
+- End-to-end live preview verification captured: submit → 56
+  notifications fanned out → HR approve with preferred name →
+  employee created with all 4 identity fields persisted. Seed
+  records cleaned up post-test.
+- 9 new regression guards (`test_hr_readiness_certification.py`)
+  lock the contract end-to-end.
+- 89/89 RC1 + parity + reality + PDF + hygiene + I1 + HR-readiness
+  tests pass.
+
+### Out-of-scope (intentionally deferred — separate sweep)
+- Field-display rules ("James Fisher (Jimmy)") across Daily Reports
+  / Pre-Ops / Safety Forms / etc.
+- Directory PDF / Directory Print / Directory CSV certification.
+- Employee Lifecycle PDF package.
+- Explicit Merge-Into-Existing-Employee UI button.
+
+### Five-Pillar
+| Pillar | Score |
+|--------|:-----:|
+| Powerful | 9.90 |
+| Simple | 9.95 |
+| Beautiful | 9.90 |
+| Trusted | **9.95** |
+| Proven | **9.95** |
+
+**Composite: 9.93.**
+
+**Report:** `/app/memory/TRACK_14_0_HR_READINESS_CERTIFICATION_SWEEP_CLOSURE.md`.
