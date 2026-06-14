@@ -4,6 +4,23 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 1 — DONE (2026-06-14)
+`project_team_assignments` collection · 13 roles · admin + PM CRUD · audit · backfill · 8/8 tests. Five-Pillar 9.62. Ledger: `TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_1_CLOSURE.md`.
+
+## 🔴 P0 — 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2 (next)
+1. Producer rewrites — 18 producers replace `recipient_role=…` with `resolve_users_for_project_role(...)` behind feature flag `OWNERSHIP_LOCK_ENABLED` (~360 LOC)
+2. FL portal roster sidebar at `/field-leadership/portal/jobs/{n}` (~120 LOC)
+3. Asset Care project-scoped view `/asset-care/projects` + `/asset-care/projects/{n}` (~400 LOC + 811 collection skeleton)
+4. PM Job Team link surfaced on PM dashboard (~40 LOC)
+Estimated: ~5 days.
+
+## 🔴 P0 — 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 3
+1. Closed-record `team_snapshot` freeze on Daily Reports / Incidents / QAQC / Trench / DVIR at submit-time
+2. Disabled-user orphan migration UI in admin user detail drawer
+Estimated: ~2 days.
+
+
+
 ## 🔴 P0 — Job Ownership Foundation (recommended next track)
 *Read-only audit completed 2026-06-14 — see `TRACK_14_0_JOB_OWNERSHIP_AND_PROJECT_TEAM_ROSTER_AUDIT.md`.*
 Blocking Spanish, PDF Lockup, Integration Honesty Banners, and UXS-11 final certification.

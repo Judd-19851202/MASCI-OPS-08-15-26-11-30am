@@ -9275,6 +9275,37 @@ async def _seed_shop_users():
 
 
 @app.on_event("startup")
+async def _ensure_project_team_assignments_indexes():
+    """Track 14.0-JOB-OWNERSHIP-FOUNDATION Phase 1 — index ensure."""
+    try:
+        await db.project_team_assignments.create_index("id", unique=True)
+        await db.project_team_assignments.create_index(
+            [("project_number", 1), ("assignment_role", 1), ("active", 1)]
+        )
+        await db.project_team_assignments.create_index(
+            [("user_id", 1), ("active", 1)]
+        )
+        await db.project_team_assignments.create_index(
+            [("email", 1), ("active", 1)]
+        )
+        # Partial unique to prevent duplicate active rows for the same
+        # (project, user, role) triple. Inactive rows are exempted so
+        # historical assignments are preserved.
+        await db.project_team_assignments.create_index(
+            [("project_number", 1), ("user_id", 1), ("assignment_role", 1)],
+            unique=True,
+            partialFilterExpression={"active": True, "user_id": {"$type": "string"}},
+            name="uniq_active_project_user_role",
+        )
+        # Audit category lookup
+        await db.audit_events.create_index(
+            [("category", 1), ("project_number", 1), ("at", -1)]
+        )
+    except Exception as exc:
+        logger.warning("[team-roster] index ensure failed: %s", exc)
+
+
+@app.on_event("startup")
 async def _deploy_fix_001_backup_orphan_sweep():
     """DEPLOY-FIX-001 · Workstream A4 — startup sweep.
 
@@ -11765,6 +11796,9 @@ register_notify_ownership_lock_seed(app, db, require_admin)
 
 from routes.scheduled_producers_d456 import register_scheduled_producers_d456  # noqa: E402
 register_scheduled_producers_d456(app, db, require_admin)
+
+from routes.project_team_assignments import register_project_team_assignments  # noqa: E402
+register_project_team_assignments(app, db, require_admin, _require_any_portal_token)
 
 # Track 13.33ABC · Asset Care & Readiness Command Center
 from routes.asset_care import register_asset_care_routes  # noqa: E402

@@ -10,6 +10,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## Latest Closed Track (2026-06-14)
+- **14.0-JOB-OWNERSHIP-FOUNDATION · Phase 1 CLOSED** — editable per-project
+  team roster (`project_team_assignments` collection · 13 roles · admin +
+  PM scopes · audit trail · idempotent PM/Co-PM backfill · 12 APIs · 2 new
+  routes · 8/8 tests green · Composite 9.62). Closure ledger:
+  `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_1_CLOSURE.md`.
+  Phase 2 (producer rewrites + FL sidebar + Asset Care view) is next.
+  Spanish remains blocked until Phase 2 ships.
+
+
 ## Latest Read-Only Audit (2026-06-14)
 - **14.0-JOB-OWNERSHIP-AND-PROJECT-TEAM-ROSTER-AUDIT** — design certification for the
   Job Ownership Foundation. Recommends Option C (Hybrid): keep `pm_email` /

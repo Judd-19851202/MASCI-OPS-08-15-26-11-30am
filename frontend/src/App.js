@@ -124,6 +124,8 @@ const AdminPeople = React.lazy(() => import("@/pages/admin/AdminPeople"));
 const AdminMfa = React.lazy(() => import("@/pages/admin/AdminMfa"));
 const AdminPromoAssets = React.lazy(() => import("@/pages/admin/AdminPromoAssets"));
 const AdminJobs = React.lazy(() => import("@/pages/admin/AdminJobs"));
+const AdminJobTeam = React.lazy(() => import("@/pages/admin/AdminJobTeam"));
+const PmJobTeam = React.lazy(() => import("@/pages/pm/PmJobTeam"));
 const AdminGeofenceReconciliation = React.lazy(() => import("@/pages/admin/AdminGeofenceReconciliation"));
 const AdminOperationsDashboard = React.lazy(() => import("@/pages/admin/AdminOperationsDashboard"));
 const AdminAssetMapping = React.lazy(() => import("@/pages/admin/AdminAssetMapping"));
@@ -557,6 +559,7 @@ function App() {
             <Route path="/admin/mfa" element={A(<AdminMfa />)} />
             <Route path="/admin/promo-assets" element={A(<AdminPromoAssets />)} />
             <Route path="/admin/jobs" element={A(<AdminJobs />)} />
+            <Route path="/admin/jobs/:projectNumber/team" element={A(<AdminJobTeam />)} />
             {/* M-3 · Geocode Foundation · Motive Geofence Reconciliation */}
             <Route path="/admin/geofence-reconciliation" element={A(<AdminGeofenceReconciliation />)} />
             {/* M-2 · Event Router · Operations dashboard (visibility only) */}
@@ -696,6 +699,7 @@ function App() {
                 iter437 follow-up — `/pm/jobs` restored, now backed by
                 PmJobsRead → /api/pm/jobs (non-admin namespace). */}
             <Route path="/pm/jobs"               element={P(<PmJobs />)} />
+            <Route path="/pm/job/:projectNumber/team" element={P(<PmJobTeam />)} />
             {/* Phase V-Prelude · Wave 1.1 · 2026-05-28.
                 Calm per-project detail surface hosting the Operational
                 Timeline sidecar. Mounted under /pm/* (PM portal

@@ -2,6 +2,37 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-14 — Track 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 1 CLOSED
+
+- New collection **`project_team_assignments`** + 5 indexes. 13-role registry
+  (3 admin-only · 10 PM-assignable). Editable per-project team roster with
+  full audit trail mirrored to `audit_events`.
+- 12 new API endpoints (admin CRUD · PM-scoped CRUD · read-only public roster ·
+  reverse lookup · backfill · role registry).
+- 2 new React routes: `/admin/jobs/{n}/team` and `/pm/job/{n}/team`. Reusable
+  `JobTeamRosterPanel` component + `teamRosterApi` client.
+- Backfill ran live · created 22 PM rows + 2 Co-PM rows from existing
+  `pm_email` / `co_pm_emails[]` · 0 unmatched · re-run idempotent.
+- Server-side permission gate: PM can manage own jobs only · PM-assignable
+  role set excludes `pm` / `co_pm` / `executive_oversight` · FL portal
+  read-only · self-assignment forbidden.
+- 8/8 pytest passes (`tests/test_project_team_assignments.py`). Notification
+  leakage matrix from prior Track 14.0 still green (no regression).
+- Existing PM email cascade in `pm_admin.py` UNTOUCHED · `jobs_master` schema
+  UNTOUCHED · notification bell/chime UNTOUCHED.
+- ~1 127 LOC across 9 files. New collection · zero existing collection mutated
+  outside the new one.
+
+Five-Pillar: Powerful 9.5 · Simple 9.4 · Beautiful 9.5 · **Trusted 9.85 · Proven 9.85** · Composite **9.62** (above 9.5 RC-1 bar).
+
+Phase 2 (next): 18-producer rewrite (~360 LOC) behind `OWNERSHIP_LOCK_ENABLED`
+feature flag · FL portal roster sidebar · Asset Care project-scoped view ·
+team_snapshot freeze on closed records · disabled-user orphan migration UI.
+
+Spanish (14.0-S1) remains blocked until Phase 2 ships.
+
+
+
 ## 2026-06-14 — Track 14.0-JOB-OWNERSHIP-AND-PROJECT-TEAM-ROSTER-AUDIT (READ-ONLY)
 
 Read-only design certification. **No code, schema, migration, deploy, GitHub, merge.**

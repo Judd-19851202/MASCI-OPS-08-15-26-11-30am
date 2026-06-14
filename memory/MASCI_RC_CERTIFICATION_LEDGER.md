@@ -6766,3 +6766,50 @@ Powerful 9 · Simple 8 · Beautiful 8 · **Trusted 10 · Proven 9.5** · Composi
 Hard locks honored throughout: no code · no schema · no migration · no deploy · no GitHub · no merge · no Spanish · no PDF · no integration banners · no UXS-11.
 
 **Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_AND_PROJECT_TEAM_ROSTER_AUDIT.md`.
+
+---
+
+## TRACK 14.0-JOB-OWNERSHIP-FOUNDATION · Phase 1
+**Date:** 2026-06-14 · **Status:** CLOSED · **Composite:** 9.62 (Trusted 9.85 / Proven 9.85)
+
+### Executive purpose
+Foundation phase of the Job Ownership build. Replaces the PM-only ownership model with an editable per-project team roster, leaving the existing `pm_email` / `co_pm_emails` cascade in place. Prepares the ground for Phase-2 producer rewrites that will deliver person-level notification routing for all 18 producers.
+
+### What this phase shipped
+- **New collection** `project_team_assignments` with 5 indexes + partial-unique active-row guard.
+- **13-role registry**: `pm`, `co_pm`, `executive_oversight` (admin-only); `assistant_pm`, `superintendent`, `foreman`, `safety_lead`, `project_engineer`, `asset_admin`, `locate_coordinator`, `dispatcher_contact`, `shop_contact`, `read_only_stakeholder` (PM-assignable).
+- **12 new API endpoints** spanning admin CRUD, PM-scoped CRUD, read-only public roster, reverse lookup, role registry, and idempotent backfill.
+- **2 new UI screens** + reusable `JobTeamRosterPanel` + `teamRosterApi` client + "Team" row link in `AdminJobMasterPanel`.
+- **Backfill ran live**: 22 PM + 2 Co-PM assignment rows created from existing `pm_email` / `co_pm_emails[]` · 0 unmatched · re-run produces 0 dupes (idempotency proven).
+- **Server-side permission gate** with verified outcomes: admin → all roles; PM → own jobs + PM-assignable roles only; PM blocked on unowned jobs (403); PM blocked on admin-only roles (403); FL → read-only.
+- **Audit trail** mirrored to existing `audit_events` collection (`category="project_team_roster"`) with `before` / `after` snapshots, `actor_*` signature, optional `notes`.
+
+### Tests
+- `backend/tests/test_project_team_assignments.py` — 8/8 PASS in 25.6s.
+- `backend/tests/test_notify_ownership_lock.py` — still PASS (no leakage regression).
+
+### Files changed (9 total · ~1 127 LOC)
+| File | Change |
+|------|--------|
+| `backend/routes/project_team_assignments.py` | NEW (487 LOC) |
+| `backend/tests/test_project_team_assignments.py` | NEW (165 LOC) |
+| `backend/server.py` | EDIT (+35 LOC · router registration + startup index ensure) |
+| `frontend/src/lib/teamRosterApi.js` | NEW (105 LOC) |
+| `frontend/src/components/team/JobTeamRosterPanel.jsx` | NEW (268 LOC) |
+| `frontend/src/pages/admin/AdminJobTeam.jsx` | NEW (28 LOC) |
+| `frontend/src/pages/pm/PmJobTeam.jsx` | NEW (22 LOC) |
+| `frontend/src/App.js` | EDIT (+5 LOC · 2 lazy imports, 2 routes) |
+| `frontend/src/components/AdminJobMasterPanel.jsx` | EDIT (+12 LOC · "Team" row link) |
+
+### Five-Pillar
+Powerful 9.5 · Simple 9.4 · Beautiful 9.5 · **Trusted 9.85 · Proven 9.85** · **Composite 9.62.**
+
+### Hard locks
+ALL honoured. No deploy. No GitHub. No merge. No Spanish. No PDF Lockup. No Integration Banners. No UXS-11. No new portal. No PM-portal scope widening. No existing PM behaviour broken. No notification producer rewrites in this phase. No `pm_email` / `co_pm_emails` schema changes.
+
+### Recommended next track
+**14.0-JOB-OWNERSHIP-FOUNDATION · Phase 2** — producer rewrites (18 producers · ~360 LOC · feature-flagged `OWNERSHIP_LOCK_ENABLED`) + FL portal roster sidebar + Asset Care project-scoped view + PM dashboard Team link. ~5 days.
+
+**Spanish (14.0-S1) remains blocked** until Phase 2 ships. Translating Phase-1 strings ahead of Phase-2 producer rewrites would harden the current role-broadcast ownership behaviour into two languages.
+
+**Report:** `/app/memory/TRACK_14_0_JOB_OWNERSHIP_FOUNDATION_PHASE_1_CLOSURE.md`.

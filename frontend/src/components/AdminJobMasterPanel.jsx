@@ -630,15 +630,25 @@ export default function AdminJobMasterPanel() {
                     </button>
                   </td>
                   <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => removeJob(j)}
-                      className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
-                      title="Delete"
-                      data-testid={`job-delete-${j.project_number}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <a
+                        href={`/admin/jobs/${encodeURIComponent(j.project_number)}/team`}
+                        className="inline-flex items-center justify-center px-2 py-1 rounded text-xs text-slate-600 hover:bg-amber-50 hover:text-amber-700 border border-slate-200"
+                        title="Manage project team roster"
+                        data-testid={`job-team-link-${j.project_number}`}
+                      >
+                        Team
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => removeJob(j)}
+                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        title="Delete"
+                        data-testid={`job-delete-${j.project_number}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
