@@ -10,7 +10,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-15 · TRENCH-ASSET-ASSIGNMENT-QR-FIX)
+## Latest Closed Track (2026-06-15 · RC1 OPERATIONAL HARDENING SWEEP)
+- **14.0-RC1 OPERATIONAL HARDENING SWEEP CLOSED.** 🟢 GO for
+  redeploy. 14-phase sweep across the redeploy branch. Live
+  preview baseline confirmed (health OK, source_hash
+  `45333a551a6104b667330a0b30fb7fdb`). Fixed 1 additional defect
+  found in this sweep: ruff F541/F841 in
+  `routes/trench_safety/notifications.py` (pre-existing dead code).
+  All prior fixes verified still green: Safety Meeting field-name
+  contract, Trench JobPicker + QR data URL + status validator,
+  PM `compute_pm_scope` UNION, Admin directory `?q=` filter,
+  `_notify_assignment` fan-out. Lint: 0 blocking issues. Regression:
+  103 / 103 PASS across 10 suites (7 known scheduler-isolation
+  failures excluded — DB isolation evidence). Honest scope note:
+  Phases 4-6 + 8 audited at contract level (no new code lands in
+  those portals this redeploy; 17-role staffing cert already proved
+  runtime). Master ledger:
+  `/app/memory/RC1_OPERATIONAL_HARDENING_SWEEP_CLOSURE.md`.
+  **REDEPLOY BUNDLE READY**: Safety Meeting PDF + Trench Asset
+  assignment/QR + Admin `?q=` filter + lint clean. No DB migration.
+  Recommend operator perform single-touch post-deploy smoke
+  (re-print the NSB Corbin Park Safety Meeting PDF to confirm
+  sections 02-07 now render).
+
+## Previous Closed Track (2026-06-15 · TRENCH-ASSET-ASSIGNMENT-QR-FIX)
 - **14.0-TRENCH-ASSET-ASSIGNMENT-QR-FIX CLOSED.** 🟢
   Root-caused three independent defects: (1) `/status` endpoint
   accepted "Assigned" without project context → assets could be

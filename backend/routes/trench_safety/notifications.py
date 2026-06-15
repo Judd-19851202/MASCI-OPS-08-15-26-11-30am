@@ -331,13 +331,13 @@ async def notify_certification_event(db, asset: Dict[str, Any], cert: Dict[str, 
             return
         if days <= 7:
             routing_key = "trench_safety.cert_due_soon_7"
-            label = f"≤ 7 days"
+            label = "≤ 7 days"
         elif days <= 14:
             routing_key = "trench_safety.cert_due_soon_14"
-            label = f"≤ 14 days"
+            label = "≤ 14 days"
         elif days <= 30:
             routing_key = "trench_safety.cert_due_soon_30"
-            label = f"≤ 30 days"
+            label = "≤ 30 days"
         else:
             return
         title = f"Certification due {label} — {_asset_label(asset)}"
@@ -435,7 +435,6 @@ async def build_trench_digest_section(db) -> Dict[str, Any]:
     and `routes/notifications.py:_build_safety_digest`. NO new collection
     — every metric reads from existing trench_safety_* canonical stores."""
     now = datetime.now(timezone.utc)
-    seven_days_ago = now.replace(microsecond=0).replace(tzinfo=timezone.utc)
     from datetime import timedelta as _td  # local
     week_ago = now - _td(days=7)
     open_safety_holds = await db.trench_safety_holds.count_documents({"is_active": True, "kind": "Safety Hold"})
