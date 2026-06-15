@@ -63,12 +63,18 @@ def test_role_registry(tokens):
     )
     assert r.status_code == 200
     roles = r.json()["roles"]
-    assert len(roles) == 13
+    # Track 14.0-PM-STAFFING-COMPLETION expanded the registry from 13
+    # to 17 roles (+ project_administrator + project_coordinator +
+    # qaqc_rep + hr_rep) and relabeled safety_lead → safety_rep,
+    # dispatcher_contact → dispatch_rep.
+    assert len(roles) == 17, f"expected 17 roles, got {len(roles)}"
     by_key = {r["key"]: r for r in roles}
     for k in ("pm", "co_pm", "executive_oversight"):
         assert by_key[k]["admin_only"] is True
-    for k in ("foreman", "superintendent", "safety_lead",
-              "asset_admin", "locate_coordinator"):
+    for k in ("foreman", "superintendent", "safety_rep",
+              "asset_admin", "locate_coordinator",
+              "project_administrator", "project_coordinator",
+              "qaqc_rep", "hr_rep", "dispatch_rep"):
         assert by_key[k]["admin_only"] is False
         assert by_key[k]["pm_assignable"] is True
 

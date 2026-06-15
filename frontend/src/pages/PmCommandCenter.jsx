@@ -32,7 +32,9 @@ import PmSafetyImpactBoard from "@/components/pm/command/PmSafetyImpactBoard";
 import PmTimelineBoard from "@/components/pm/command/PmTimelineBoard";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 import PmProjectFirstHome from "@/components/pm/command/PmProjectFirstHome";
+import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
 import { pmCommandApi } from "@/components/pm/command/pmCommandApi";
+import { Users } from "lucide-react";
 
 const OVERVIEW_POLL_MS = 45000;
 
@@ -186,6 +188,9 @@ export default function PmCommandCenter() {
             <TabsTrigger value="safety" data-testid="pm-cc-tab-safety" className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <ShieldAlert className="w-3.5 h-3.5 mr-1.5" /> Safety
             </TabsTrigger>
+            <TabsTrigger value="team" data-testid="pm-cc-tab-team" className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <Users className="w-3.5 h-3.5 mr-1.5" /> Team
+            </TabsTrigger>
             <TabsTrigger value="timeline" data-testid="pm-cc-tab-timeline" className="data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Activity className="w-3.5 h-3.5 mr-1.5" /> Timeline
             </TabsTrigger>
@@ -208,6 +213,23 @@ export default function PmCommandCenter() {
           </TabsContent>
           <TabsContent value="safety" data-testid="pm-cc-tab-content-safety">
             <PmSafetyImpactBoard projectNumber={projectNumber} />
+          </TabsContent>
+          <TabsContent value="team" data-testid="pm-cc-tab-content-team">
+            {/* Track 14.0-PM-STAFFING-COMPLETION · always-visible
+                Team Card. Shows the 17-role project roster inline so
+                PMs never need to navigate to /pm/job/:pn/team. */}
+            {projectNumber ? (
+              <div data-testid="pm-cc-team-card" className="bg-white border border-slate-200 rounded-md p-4">
+                <JobTeamRosterPanel projectNumber={projectNumber} scope="pm" />
+              </div>
+            ) : (
+              <div
+                data-testid="pm-cc-team-card-empty"
+                className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-md p-4"
+              >
+                Pick a project from the selector above to see and manage its team.
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="timeline" data-testid="pm-cc-tab-content-timeline">
             <PmTimelineBoard projectNumber={projectNumber} />

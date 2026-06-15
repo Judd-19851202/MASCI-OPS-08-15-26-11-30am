@@ -38,14 +38,33 @@ ROLE_REGISTRY: Dict[str, str] = {
     "assistant_pm": "Assistant PM",
     "superintendent": "Superintendent",
     "foreman": "Foreman",
-    "safety_lead": "Safety Lead",
+    # Track 14.0-PM-STAFFING-COMPLETION · safety_lead relabeled to
+    # "Safety Representative" to match the operational vocabulary the
+    # field actually uses.
+    "safety_rep": "Safety Representative",
     "project_engineer": "Project Engineer",
+    # New project-level roles (Phase 2 mandate). These are
+    # operationally distinct slots — not aliases of existing roles.
+    "project_administrator": "Project Administrator",
+    "project_coordinator": "Project Coordinator",
+    "qaqc_rep": "QA/QC Representative",
+    "hr_rep": "HR Representative",
     "asset_admin": "Asset Admin",
     "locate_coordinator": "811 Locate Coordinator",
-    "dispatcher_contact": "Dispatcher Contact",
+    # Track 14.0-PM-STAFFING-COMPLETION · dispatcher_contact relabeled
+    # to "Dispatch Representative" for the same vocabulary reason.
+    "dispatch_rep": "Dispatch Representative",
     "shop_contact": "Shop Contact",
     "executive_oversight": "Executive Oversight",
     "read_only_stakeholder": "Read-only Stakeholder",
+}
+# Back-compat alias map — old internal keys → current canonical key.
+# Persisted assignments written under the old keys are translated to
+# the new keys when read, and a one-shot migration normalises the
+# stored value the first time the document is updated.
+LEGACY_ROLE_ALIASES: Dict[str, str] = {
+    "safety_lead": "safety_rep",
+    "dispatcher_contact": "dispatch_rep",
 }
 ALL_ROLES: Set[str] = set(ROLE_REGISTRY.keys())
 
@@ -82,9 +101,20 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _canonical_role(role: Optional[str]) -> Optional[str]:
+    """Translate legacy role keys to their current canonical key so
+    historic assignments keep rendering after a relabel."""
+    if not role:
+        return role
+    return LEGACY_ROLE_ALIASES.get(role, role)
+
+
 def _public(row: Dict[str, Any]) -> Dict[str, Any]:
     out = {k: v for k, v in row.items() if k != "_id"}
-    out["role_label"] = ROLE_REGISTRY.get(out.get("assignment_role"), out.get("assignment_role"))
+    role = _canonical_role(out.get("assignment_role"))
+    if role and role != out.get("assignment_role"):
+        out["assignment_role"] = role
+    out["role_label"] = ROLE_REGISTRY.get(role, role)
     return out
 
 
@@ -248,6 +278,7 @@ async def resolve_users_for_project_role(
 ) -> List[str]:
     """Return active user_ids assigned to (project, role). Empty list →
     no one rostered; caller should fall back to role-bucket routing."""
+    role = _canonical_role(role) or role
     if role not in ALL_ROLES:
         return []
     out: List[str] = []
@@ -389,6 +420,7 @@ async def _can_manage_project_team(
     actor_kind = (actor.get("_actor") or "").lower()
     if actor_kind == "admin":
         return (True, "admin")
+    target_role = _canonical_role(target_role) or target_role
     if target_role not in ALL_ROLES:
         return (False, "unknown role")
     if target_role in ADMIN_ONLY_ROLES:
@@ -466,6 +498,9 @@ def register_project_team_assignments(
         actor = _coerce_actor(actor)
         if not await _project_exists(db, project_number):
             raise HTTPException(404, "project not found")
+        # Accept legacy aliases (safety_lead/dispatcher_contact) on
+        # write — normalised to the canonical key before persistence.
+        payload.assignment_role = _canonical_role(payload.assignment_role)
         if payload.assignment_role not in ALL_ROLES:
             raise HTTPException(400, f"unknown role: {payload.assignment_role}")
         user_id, employee_id, email, name = await _resolve_user(db, payload)
@@ -766,6 +801,8 @@ __all__ = [
     "backfill_pm_and_co_pm",
     "ROLE_REGISTRY",
     "ALL_ROLES",
+    "LEGACY_ROLE_ALIASES",
+    "_canonical_role",
     "ADMIN_ONLY_ROLES",
     "PM_ASSIGNABLE_ROLES",
 ]

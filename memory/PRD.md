@@ -11,6 +11,33 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14 · fork session)
+- **14.0-PM-STAFFING-COMPLETION CLOSED**. Expanded the project-team
+  role registry from 13 → **17 roles** with the 4 new operationally
+  distinct slots the directive mandated: `project_administrator`,
+  `project_coordinator`, `qaqc_rep`, `hr_rep`. Relabeled
+  `safety_lead → safety_rep` (Safety Representative) and
+  `dispatcher_contact → dispatch_rep` (Dispatch Representative).
+  Added `LEGACY_ROLE_ALIASES` + `_canonical_role()` helper so
+  historic assignments stored under the old keys translate to the
+  new canonical keys at read-time, and POST/PATCH normalise on
+  write. Live API confirmed: GET `/api/team-roster/role-registry`
+  returns the 17 roles; new keys present; old keys absent;
+  PM-assignable / admin-only flags correct (only PM/Co-PM/Exec
+  remain admin-only). Mounted shared `JobTeamRosterPanel` as a
+  new **Team tab** on PM Command Center (`/pm/command-center?project_number=…`)
+  so PMs see the full project roster inline without navigating to
+  a separate `/team` route — operational "where is everyone"
+  question answerable in one click. +5 new regression assertions
+  (`test_pm_staffing_completion.py`): full 17-role registry
+  contract, legacy alias translation, admin-only set unchanged
+  (PM-assignable for all 4 new roles + both relabels), Team Card
+  test-id present on Command Center, Team tab trigger present.
+  Existing 19-test staffing suite still passes. Full RC1 sweep:
+  **213 / 213 tests pass** (was 190; +5 new + 18 pre-existing
+  staffing tests run together). Phase 1 inventory artefact:
+  `/app/memory/TRACK_14_0_PM_STAFFING_PHASE1_INVENTORY.md`.
+
+## Previous Closed Track (2026-02-14 · fork session)
 - **14.0-HR-DIRECTORY-PREFERRED-NAME-COLUMN-FIX CLOSED**. Split
   the merged HR Directory `Name` column into separate visible
   **Legal Name** and **Preferred Name** columns. Legal Name derives
