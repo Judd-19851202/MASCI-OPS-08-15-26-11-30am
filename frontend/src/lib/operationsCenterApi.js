@@ -1,34 +1,18 @@
-// lib/operationsCenterApi.js — Iter C.
-import axios from "axios";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getHrToken } from "@/lib/hrAuth";
-import { getPmToken } from "@/lib/pmAuth";
-import { getShopToken } from "@/lib/shopAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-function leadershipToken() {
-  try { return sessionStorage.getItem("masci.leadership.token") || localStorage.getItem("masci.leadership.token") || null; } catch { return null; }
-}
-
-function authHeaders() {
-  const h = {};
-  const a = getAdminToken(); if (a) h["X-Admin-Token"] = a;
-  const s = getSafetyToken(); if (s) h["X-Safety-Token"] = s;
-  const hr = getHrToken(); if (hr) h["X-HR-Token"] = hr;
-  const p = getPmToken(); if (p) h["X-PM-Token"] = p;
-  const sh = getShopToken(); if (sh) h["X-Shop-Token"] = sh;
-  const d = getDispatchToken(); if (d) h["X-Dispatch-Token"] = d;
-  const fl = leadershipToken(); if (fl) h["X-Leadership-Token"] = fl;
-  return h;
-}
+// lib/operationsCenterApi.js — Iter C + TRACK 14.0-RC1-FERRARI (2026-02-15).
+//
+// Routed through the shared `api` axios instance which auto-injects
+// every portal token AND honors the namespace-aware 401 absorption
+// rules (see /app/frontend/src/lib/api.js). `skipSessionStatus: true`
+// keeps a background widget 401 from raising the global Session
+// Expired modal — the widget surfaces its own inline error band
+// instead.
+import { api } from "@/lib/api";
 
 export async function fetchOperationsCenter({ roleOverride } = {}) {
   const params = roleOverride ? { role_override: roleOverride } : {};
-  const r = await axios.get(`${API}/operations-center`, {
-    headers: authHeaders(), params,
+  const r = await api.get("/operations-center", {
+    params,
+    skipSessionStatus: true,
   });
   return r.data;
 }

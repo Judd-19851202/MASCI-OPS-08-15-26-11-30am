@@ -11916,6 +11916,12 @@ register_ownership_lifecycle(app, db, require_admin, _require_any_portal_token)
 from routes.asset_care import register_asset_care_routes  # noqa: E402
 register_asset_care_routes(app, db, require_admin)
 
+# TRACK 14.0-RC1-FERRARI · /api/admin/perf-snapshot · 10-second
+# operator-confidence check (disk, memory, uptime, mongo ping,
+# self-probe latency, recent error counts, scheduler heartbeat).
+from routes.perf_snapshot import register_perf_snapshot_routes  # noqa: E402
+register_perf_snapshot_routes(app, db, require_admin)
+
 
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
 # Detection-only drift sentinel. Never auto-mutates source records or jobs_master.

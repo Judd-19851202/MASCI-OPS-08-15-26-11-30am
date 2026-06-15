@@ -40,6 +40,30 @@ const SLOW_THRESHOLD_MS = 2000;
 // confirmed failure before alarming.
 const FAIL_STREAK_THRESHOLD = 3;
 
+// TRACK 14.0-RC1-FERRARI (2026-02-15) · Cross-mount cache.
+//
+// The badge lives inside AdminShell + PmShell. When a super-admin
+// hops portals (Admin → PM → HR → Safety → ...) the shell re-mounts
+// on every navigation, and the previous implementation re-fired all
+// 10 probes immediately on each remount. Across a fast 7-portal
+// click-through that's ~70 redundant pings in <30s — exactly the
+// "probe storm" iter508 flagged.
+//
+// We now keep the most recent probe results in a module-level
+// cache. On remount, if the cache is fresh (< POLL_INTERVAL_MS), we
+// reuse it and skip the synchronous probe. The 60s interval timer
+// still fires on the new mount so the badge stays current — we
+// just skip the redundant first-load probe within the cache TTL.
+const _resultsCache = {
+  results: null,
+  lastChecked: null,
+  failStreak: {},
+};
+function _cacheFresh() {
+  if (!_resultsCache.lastChecked) return false;
+  return Date.now() - _resultsCache.lastChecked.getTime() < POLL_INTERVAL_MS;
+}
+
 async function pingOne(ep) {
   const t0 = performance.now();
   try {
@@ -98,20 +122,19 @@ async function pingOne(ep) {
 }
 
 export default function SystemHealthBadge() {
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // TRACK 14.0-RC1-FERRARI · Hydrate from the cross-mount cache when
+  // a fresh probe set exists. Eliminates the probe storm on portal
+  // navigation (iter508 P3 follow-up).
+  const [results, setResults] = useState(() => _resultsCache.results || []);
+  const [loading, setLoading] = useState(() => !_cacheFresh());
   const [open, setOpen] = useState(false);
-  const [lastChecked, setLastChecked] = useState(null);
+  const [lastChecked, setLastChecked] = useState(() => _resultsCache.lastChecked);
   const [alertSent, setAlertSent] = useState(null); // {ts, key} of last successful alert
   const timerRef = useRef(null);
   const prevWorstRef = useRef("ok");
-  // Per-endpoint consecutive-fail streak. We require TWO failures in a
-  // row before painting red — a single transient timeout (cold worker,
-  // brief network blip, an /api/job-photos batch saturating the worker
-  // for 1.5s) used to trigger the red "DOWN" badge mid-page-load on
-  // heavy galleries even though the backend was actually fine. Two
-  // failures in a row is closer to the truth.
-  const failStreakRef = useRef({});
+  // Per-endpoint consecutive-fail streak. Shared across mounts via
+  // the cache so streak isn't reset on portal navigation.
+  const failStreakRef = useRef(_resultsCache.failStreak);
 
   const runAll = async () => {
     setLoading(true);
@@ -135,15 +158,26 @@ export default function SystemHealthBadge() {
       }
     }
     setResults(out);
-    setLastChecked(new Date());
+    const now = new Date();
+    setLastChecked(now);
     setLoading(false);
+    // TRACK 14.0-RC1-FERRARI · publish to the cross-mount cache so
+    // the next remount (portal switch) reuses these results within
+    // the POLL_INTERVAL_MS window.
+    _resultsCache.results = out;
+    _resultsCache.lastChecked = now;
+    _resultsCache.failStreak = failStreakRef.current;
   };
 
   useEffect(() => {
-    runAll();
+    // TRACK 14.0-RC1-FERRARI · On mount, ONLY run a fresh probe if
+    // the cache is stale. A fresh cache (set < POLL_INTERVAL_MS ago)
+    // means another mount of this same component just probed; we
+    // reuse those results and skip a redundant 10-endpoint burst.
+    if (!_cacheFresh()) {
+      runAll();
+    }
     // TRACK 14.0-RC1-PERF: Pause health polling when the tab is hidden.
-    // Saves ~10 backend probes per minute per backgrounded tab, which
-    // adds up across multi-tab users and keeps logs / DB chatter calm.
     // The visibilitychange handler re-runs immediately on focus so
     // the badge is current the moment the user comes back.
     const tick = () => {
