@@ -10,7 +10,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · ELITE-OPS-B FIELD WORKFLOW HARDENING)
+## Latest Closed Track (2026-02-15 · PRODUCTION-TRUST-SUITE)
+- **14.0-PRODUCTION-TRUST-SUITE CLOSED.** 🟢 GO for RC1 production-trust
+  certification. 15-phase audit across all portals validated counts,
+  confirmations, permissions, PDFs, error/empty/loading states,
+  notification deep-links, and short active stress. **Fixed in-place**:
+  HR Hub V2 was calling 3 non-existent endpoints (`/api/employee-requests`,
+  `/api/time-off-requests`, `/api/employee-accountability`) yielding a
+  6-error console storm + silently-misleading "—" counts. Patched
+  `HrHubV2.jsx` to use the real `/api/hr/employee-requests`,
+  `/api/field-leadership/time-off/stats`, and (for accountability)
+  promoted the surface to a Section 3 destination card since
+  accountability is a search-by-employee workflow not a queue.
+  HR landing now shows real live counts (17 pending requests,
+  7 time-off pending). **Architecturally deferred (P1, own-track
+  scope)**: role-broadcast notifications inherit to brand-new fixture
+  users (cert.hr sees 529 unread on first login) — root cause documented
+  in `_notif_filter()` at `/app/backend/routes/tasks_notifications.py`
+  line 682. Remediation path: stamp `user_created_at` on actor dict and
+  AND a `created_at >= user_created_at` clause to the role-broadcast leg.
+  All other Phase 1-15 surfaces PASS. Master ledger:
+  `/app/memory/TRACK_14_PRODUCTION_TRUST_SUITE_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-15 · ELITE-OPS-B FIELD WORKFLOW HARDENING)
 - **14.0-ELITE-OPS-B FIELD WORKFLOW HARDENING CLOSED.** 🟢
   5:30 AM iPad usability deep audit of 9 workflows. Fixed friction
   as discovered: (1) 3 intuitive URLs returning 404 → added

@@ -62,11 +62,10 @@ function useHrSignals() {
   const [state, setState] = useState({
     loaded: false,
     refreshedAt: null,
-    pending_requests: null,       // /api/employee-requests?status=pending
-    time_off_pending: null,       // /api/time-off-requests?status=pending
+    pending_requests: null,       // /api/hr/employee-requests?status=pending
+    time_off_pending: null,       // /api/field-leadership/time-off/stats
     training_exp_soon: null,      // /api/operations/expirations/summary
     docs_expired: null,           // /api/operations/expirations/summary
-    accountability_open: null,    // /api/employee-accountability
     field_leadership_recent: null,// /api/hr/field-leadership
     daily_reports_today: null,    // /api/hr/daily-reports
     incidents_recent: null,       // /api/hr/incidents
@@ -77,10 +76,9 @@ function useHrSignals() {
     const headers = authHeaders();
 
     const tasks = [
-      safeJson(`${API}/employee-requests?status=pending`, headers),
-      safeJson(`${API}/time-off-requests?status=pending`, headers),
+      safeJson(`${API}/hr/employee-requests?status=pending`, headers),
+      safeJson(`${API}/field-leadership/time-off/stats`, headers),
       safeJson(`${API}/operations/expirations/summary`, headers),
-      safeJson(`${API}/employee-accountability?limit=200`, headers),
       safeJson(`${API}/hr/field-leadership?limit=10`, headers),
       safeJson(`${API}/hr/daily-reports?limit=10`, headers),
       safeJson(`${API}/hr/incidents?limit=10`, headers),
@@ -88,16 +86,17 @@ function useHrSignals() {
 
     Promise.all(tasks).then((res) => {
       if (cancelled) return;
-      const [er, to, exp, acc, fl, dr, inc] = res;
+      const [er, to, exp, fl, dr, inc] = res;
       const expBody = exp.body || {};
+      const erBody = er.body || {};
+      const toBody = to.body || {};
       setState({
         loaded: true,
         refreshedAt: new Date().toISOString(),
-        pending_requests:        er.ok  ? listOf(er.body).length  : null,
-        time_off_pending:        to.ok  ? listOf(to.body).length  : null,
+        pending_requests:        er.ok  ? (erBody.pending_count ?? (erBody.items?.length ?? 0)) : null,
+        time_off_pending:        to.ok  ? (toBody.pending ?? 0) : null,
         training_exp_soon:       exp.ok ? ((expBody.expiring_in_30 ?? 0) + (expBody.expiring_in_60 ?? 0)) : null,
         docs_expired:            exp.ok ? (expBody.expired ?? 0)  : null,
-        accountability_open:     acc.ok ? listOf(acc.body).filter((r) => !((r.status || "").toLowerCase().startsWith("clos") || (r.status || "").toLowerCase().startsWith("resol"))).length : null,
         field_leadership_recent: fl.ok  ? listOf(fl.body).length  : null,
         daily_reports_today:     dr.ok  ? listOf(dr.body).length  : null,
         incidents_recent:        inc.ok ? listOf(inc.body).length : null,
@@ -334,16 +333,6 @@ export default function HrHubV2() {
               loaded={s.loaded}
               variantWhenAttention="danger"
             />
-            <QueueCard
-              to="/hr/employee-accountability"
-              testid="hr-hub-v2-queue-accountability"
-              title="Accountability Signals · open"
-              why="Coaching items (positive + attention) awaiting close-out"
-              source="Live count · open accountability items"
-              value={s.accountability_open}
-              loaded={s.loaded}
-              variantWhenAttention="warning"
-            />
           </div>
         </Section>
 
@@ -428,6 +417,9 @@ export default function HrHubV2() {
             <Link to="/hr/field-leadership-users" data-testid="hr-hub-v2-dest-fl-users" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <Card title="Field-Leadership Users" description="Manage FL portal access (shared admin/HR panel)" status={<StatusChip statusKey="verified" compact />} />
             </Link>
+            <Link to="/hr/employee-accountability" data-testid="hr-hub-v2-dest-accountability" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+              <Card title="Employee Accountability" description="Search by employee · coaching, training, equipment, safety brief" status={<StatusChip statusKey="verified" compact />} />
+            </Link>
           </div>
         </Section>
 
@@ -436,8 +428,7 @@ export default function HrHubV2() {
           ((s.pending_requests ?? 0) +
            (s.time_off_pending ?? 0) +
            (s.training_exp_soon ?? 0) +
-           (s.docs_expired ?? 0) +
-           (s.accountability_open ?? 0)) === 0
+           (s.docs_expired ?? 0)) === 0
         ) && (
           <Section
             kicker="04 · Calm state"
@@ -447,7 +438,7 @@ export default function HrHubV2() {
           >
             <EmptyState
               title="All HR queues are clear."
-              explanation="No pending requests · no expiring credentials · no open accountability items."
+              explanation="No pending requests · no expiring credentials."
               severity="good"
             />
           </Section>
