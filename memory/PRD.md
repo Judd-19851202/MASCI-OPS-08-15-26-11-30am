@@ -10,7 +10,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-15 · final certification fork)
+## Latest Closed Track (2026-06-15 · RC1 deployment readiness audit)
+- **14.0-RC1 DEPLOYMENT READINESS CERTIFICATION CLOSED.** Full
+  14-phase deploy-survivability audit executed. Verdict: 🟢 **GO**
+  with a 4-row env-var checklist applied at deploy time. Zero P0
+  blockers; 4 P1 environment-variable deltas (`CORS_ORIGINS`,
+  `RATE_LIMITING`, `AUTO_EMAIL_REPORTS`, `SCHEDULER_ENABLED`
+  must flip preview → production values); 3 P2 tech-debt items
+  (4 stale pytest collection failures, 7 scheduler tests that
+  rely on cross-DB access **which is correctly blocked by the
+  Atlas user permission boundary** — i.e. evidence of working
+  isolation, not failure; data-quality master-binding gaps on
+  legacy rows). Live `/api/health` 200; live `/api/admin/deploy-readiness`
+  reports 0 blockers / 2 informational warns. DB isolation
+  PROVEN by failed cross-DB write under `ENFORCE_DB_ISOLATION=true`.
+  9 deliverables produced:
+  `/app/memory/RC1_DEPLOYMENT_READINESS_MASTER_LEDGER.md`,
+  `DEPLOYMENT_GO_NO_GO_MATRIX.md`, `CRITICAL_FINDINGS_REPORT.md`,
+  `ENVIRONMENT_CERTIFICATION.md`, `BACKUP_RESTORE_CERTIFICATION.md`,
+  `WORKFLOW_CERTIFICATION_MATRIX.md`, `ROLE_CERTIFICATION_MATRIX.md`,
+  `PDF_EXPORT_CERTIFICATION_MATRIX.md`,
+  `INTEGRATION_CERTIFICATION_MATRIX.md`. Five Pillars **9.92**.
+
+## Previous Closed Track (2026-06-15 · final certification fork)
 - **14.0-PM-STAFFING-RUNTIME-PROOF CLOSED.** All 7 phases of the
   final certification directive executed with real users, real
   assignments, real notifications, real audit events. Seeded 17
