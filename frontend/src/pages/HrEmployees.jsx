@@ -10,7 +10,7 @@
 //     Terminated/Resigned/Retired.
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Users, Plus, Search, ArrowLeft, Home, RefreshCw,
   UserCheck, UserMinus, Briefcase, AlertOctagon, CheckCircle2,
@@ -77,11 +77,13 @@ const STATUS_COLORS = LIFECYCLE_STATUS_TINTS;
 
 export default function HrEmployees() {
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialQ = searchParams.get("q") || "";
   const allowed = isHr() || isAdmin();
   const [showInactive, setShowInactive] = useRememberedFilter("hr.employees.show_inactive", false);
   const [statusFilter, setStatusFilter] = useRememberedFilter("hr.employees.status", "all");
   const [rehireFilter, setRehireFilter] = useRememberedFilter("hr.employees.rehire_eligibility", "all");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQ);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);

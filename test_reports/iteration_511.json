@@ -1,0 +1,44 @@
+{
+  "summary": "TRACK 14.0-ELITE-OPS-B 5:30 AM iPad usability deep round-trip cert (iteration 511, frontend-only). PASSED: all 3 router redirects (/safety-portal/meetings, /admin/daily-reports, /admin/trench-safety-assets) including hard-refresh; W4 HR Directory search input (data-testid=hr-directory-search) is visible at top of /hr above queue cards w/o Cmd+K, typing 'judd' + clicking hr-directory-search-submit lands on /hr/employees?q=judd and the employees list filters to 1 row; hr-directory-open-full link routes to /hr/employees with NO query string; W6 'Submit Field Incident →' CTA is visually prominent in /safety-portal/incidents header at 1024x768, survives refresh, links to /incidents/new and click verified. PARTIAL: W7 Safety Meeting create — blocked. PASSED: W8 Trench Asset surfaces — list filters/chips, asset detail page loads, JobPicker assign button, Return from Project, QR element, deployment-history sections all detected; deep round-trip (assign→deploy-history row→audit→QR download click→return-to-yard→reassign) was NOT executed end-to-end due to W7 token budget pressure and is left as retest scope.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "NewMeeting form (/meetings/new)", "issue": "Submit button (data-testid=submit-top-btn) remains DISABLED after filling project-name, project-number, location, date, time, conducted-by, crew-size, hazards-reviewed, discussion-notes, references, action-items. No inline validation message surfaced indicating WHICH required field is missing. Required-but-not-obvious fields appear to be: TOPIC CATEGORY select, MASCI JOB picker, Section 03 Attendees (>=1), and Conductor Signature. A 5:30 AM iPad foreman has no breadcrumb pointing at what is blocking submit.", "selector": "[data-testid='submit-top-btn']", "priority": "HIGH"},
+      {"component": "NewMeeting form vs. W7 spec mismatch", "issue": "Review request specifies 'Add a MASCI conductor (select from directory autocomplete) and 2 MASCI attendees + 1 non-MASCI attendee (typed name).' The actual form exposes only a free-text 'CONDUCTED BY' input (testid=input-conducted-by) with no directory autocomplete. Attendees section (Section 03) is below the fold and its data model could not be inspected within budget. If MASCI-directory autocomplete is a hard W7 acceptance criterion, the surface is missing today.", "selector": "[data-testid='input-conducted-by']", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/meetings/new", "issues": ["Submit-disabled state gives zero visual cue (no red field highlights, no inline 'X required fields missing' banner). Field-leadership foreman will tap Submit, nothing happens, frustration."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/it511_hr_landing.jpg",
+    "/app/test_reports/it511_hr_employees_q.jpg",
+    "/app/test_reports/it511_safety_incidents.jpg",
+    "/app/test_reports/it511_meetings_list.jpg",
+    "/app/test_reports/it511_meeting_form_filled.jpg",
+    "/app/test_reports/it511_trench_assets_list.jpg",
+    "/app/test_reports/it511_trench_asset_detail.jpg"
+  ],
+  "action_items": [
+    "W7-CRITICAL: Surface WHICH required field is blocking the Site Safety Meeting Submit button. Either (a) show inline validation under each missing required field on Submit-disabled hover/focus, or (b) render a sticky banner 'To submit, complete: TOPIC CATEGORY, MASCI JOB, Attendees, Conductor Signature'. Today the button is silently disabled — 5:30 AM foreman is stuck.",
+    "W7-SPEC-ALIGNMENT: Decide and document whether the meeting form is required to expose a MASCI directory autocomplete for the Conductor and Attendees (per W7 review request), OR update the audit spec to match the current 'Toolbox Talks' free-text model. Today they don't match.",
+    "W7-RETEST: Once Submit-disabled root cause is fixed, retest the full W7 round-trip end-to-end including PDF endpoint content-type check and PDF body containing conductor + attendees + discussion.",
+    "W8-DEEP-RETEST: Execute the W8 assign→deployment-history-row→audit-event→QR-download→return-to-yard→reassign full chain. Iter511 only validated surface presence (asset list, asset detail RP-901, Assign/Return/QR/history sections all render). Full data-flow assertions were not run due to budget.",
+    "W7-FORM-UX: Hide or below-the-fold the duplicate '5 COACHING TIPS AVAILABLE - TAP TO EXPAND' block that appears twice on /meetings/new (once at the top of Section 01 Meeting Information, once at the top of Section 03 Attendees). Two coaching panels on the same scroll surface is visual noise."
+  ],
+  "critical_code_review_comments": [
+    "/app/frontend/src/pages/NewMeeting.jsx (line ~333 per data-x attrs on the Submit button): the disabled-state predicate should expose its WHY via aria-describedby or a visible 'Missing: X, Y, Z' helper. Silently disabled CTAs violate the 5:30 AM doctrine.",
+    "/app/frontend/src/App.js redirect block (~lines 983-985): redirects work correctly and survive hard refresh. Consider promoting /safety/trench-safety/assets and /hr/daily-reports to also accept their 'intuitive' alias URLs as canonical (or at least keep the redirect block documented in BROKEN_ROUTE_FIX_PLAN.md so it isn't pruned in a refactor).",
+    "HR directory search (HrHubV2.jsx) — implementation matches spec exactly (testids present, submits to /hr/employees?q=, Open full directory link strips the query). No issues."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (frontend-only iteration)", "frontend": "62% (5/8 acceptance items fully verified: redirects×3, HR search inline + open-full, Safety CTA visible+refresh+click). W7 blocked at Submit; W8 surface-only verified, deep round-trip not executed.)" },
+  "test_credentials": "Super Admin jaymn.judd@mascigc.com / Maddix123! via POST /sign-in worked first try. Multi-login redirected to /admin. Used throughout the run.",
+  "seed_data_creation": "No persistent records created. The meeting form Submit was disabled so no /meetings/{id} row was written. No trench asset reassignment was committed.",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Cert sandbox project ZZ-RUNTIME-CERT-2026 was attempted but the meeting form requires more fields than the iter511 script filled. To get past the disabled Submit on /meetings/new, the next agent MUST also (a) pick a TOPIC CATEGORY from the topic picker (Section 02 - the 'PICK A TOPIC' button), (b) select a MASCI JOB from the dropdown labeled 'Pick a MASCI job — or choose Custom' at the top of Section 01, (c) add at least 1 attendee row in Section 03, and (d) capture a Conductor Signature. Until then, the form will silently refuse to submit. Trench asset RP-901 was reached at /safety/trench-safety/assets/RP-901 — it is AVAILABLE, has Assign to Project + Return from Project + Edit Asset + Change Status + Retire CTAs, and 21 assets total are on the list page.",
+  "rca of the issue": "W7 Submit-disabled root cause (high-confidence): NewMeeting.jsx wires its Submit button to a derived isSubmittable boolean that AND-gates topic_category, masci_job (or custom-job flag), attendees.length>=1, conductor_signature, plus the basic Section 01 fields. Iter511's script filled only the Section 01 inputs + the 4 Section 02 textareas, which is insufficient. The defect is NOT that submit doesn't work — it's that the UI gives no feedback about which field is missing, which fails the 5:30 AM iPad usability bar. Mitigation: add inline 'required' indicators on the four blocking controls, OR render a sticky 'X of Y required fields complete' progress chip near the Submit button. Reproduction: /sign-in as Super Admin → /meetings/new → fill only the testid-tagged Section 01+02 inputs → attempt to click [data-testid='submit-top-btn'] → element remains disabled with no on-screen explanation."
+}

@@ -15,7 +15,7 @@
 // HR permissions are preserved byte-for-byte.
 
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   PortalShell,
   StatusChip,
@@ -179,6 +179,14 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
 
 export default function HrHubV2() {
   const s = useHrSignals();
+  const nav = useNavigate();
+  const [dirQuery, setDirQuery] = useState("");
+
+  function onDirSubmit(e) {
+    e.preventDefault();
+    const q = dirQuery.trim();
+    nav(q ? `/hr/employees?q=${encodeURIComponent(q)}` : "/hr/employees");
+  }
 
   return (
     <div data-testid="hr-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
@@ -199,6 +207,81 @@ export default function HrHubV2() {
           </span>
         }
       >
+        {/* 5:30 AM rule · large, visible employee directory search.
+            Tired foreman should never need Cmd+K to find a person. */}
+        <section
+          data-testid="hr-hub-v2-section-directory-search"
+          style={{
+            marginBottom: 24,
+            padding: 16,
+            background: "var(--paper-card)",
+            border: "1px solid var(--border-bold)",
+            borderRadius: "var(--radius-card)",
+          }}
+        >
+          <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>
+            Employee Directory
+          </div>
+          <h2 style={{ margin: "2px 0 10px", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>
+            Find a person
+          </h2>
+          <form onSubmit={onDirSubmit} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <input
+              data-testid="hr-directory-search"
+              type="search"
+              value={dirQuery}
+              onChange={(e) => setDirQuery(e.target.value)}
+              placeholder="Search by name, preferred name, or job title…"
+              aria-label="Search employee directory"
+              style={{
+                flex: "1 1 320px",
+                minWidth: 260,
+                padding: "10px 14px",
+                fontSize: 15,
+                border: "1px solid var(--border-bold)",
+                borderRadius: "var(--radius-card)",
+                background: "var(--paper-base)",
+                color: "var(--ink-strong)",
+              }}
+            />
+            <button
+              type="submit"
+              data-testid="hr-directory-search-submit"
+              style={{
+                padding: "10px 18px",
+                fontSize: 14,
+                fontWeight: 600,
+                background: "var(--brand-primary)",
+                color: "var(--brand-on-primary)",
+                border: "1px solid var(--brand-primary)",
+                borderRadius: "var(--radius-card)",
+                cursor: "pointer",
+              }}
+            >
+              Search
+            </button>
+            <Link
+              to="/hr/employees"
+              data-testid="hr-directory-open-full"
+              style={{
+                padding: "10px 14px",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--ink-strong)",
+                background: "var(--paper-base)",
+                border: "1px solid var(--border-bold)",
+                borderRadius: "var(--radius-card)",
+                textDecoration: "none",
+              }}
+            >
+              Open full directory →
+            </Link>
+          </form>
+          <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink-faint)" }}>
+            Live search across the active HR roster. No keyboard shortcut needed.
+          </p>
+        </section>
+
         {/* Section 1 — Action queues. Real APIs, real counts, real destinations. */}
         <Section
           kicker="01 · Action queues · live"
