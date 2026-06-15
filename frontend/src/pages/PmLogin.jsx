@@ -13,8 +13,9 @@ import { AuthRequiredBanner } from "@/components/PortalContextBanner";
 import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
-import { setPmToken, clearPmToken } from "@/lib/pmAuth";
-import { clearAdminToken, setAdminToken } from "@/lib/adminAuth";
+import { setPmToken, clearPmToken, isPm } from "@/lib/pmAuth";
+import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
+import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearShopToken } from "@/lib/shopAuth";
 import { toast } from "sonner";
 import {
@@ -44,6 +45,11 @@ export default function PmLogin() {
     // when this page was reached transiently. See AdminLogin.jsx for the
     // full rationale.
   }, []);
+
+  // TRACK 14.0-SSO · If the user already holds a directory session
+  // that grants PM, silently mint the PM token and forward into /pm
+  // instead of showing a redundant login form.
+  useRedirectIfDirectoryGrant("pm", isPm() || isAdmin(), "/pm");
 
   const submitForgot = async () => {
     const e = (forgotEmail || "").trim();

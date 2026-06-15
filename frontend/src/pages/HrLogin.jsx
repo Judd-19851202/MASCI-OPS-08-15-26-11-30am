@@ -13,8 +13,9 @@ import { AuthRequiredBanner } from "@/components/PortalContextBanner";
 import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
-import { setHrToken, setHrUser, clearHrToken } from "@/lib/hrAuth";
-import { clearAdminToken, setAdminToken } from "@/lib/adminAuth";
+import { setHrToken, setHrUser, clearHrToken, isHr } from "@/lib/hrAuth";
+import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
+import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
 import { toast } from "sonner";
@@ -54,6 +55,9 @@ export default function HrLogin() {
   useEffect(() => {
     // Iter88 — Removed mount-time token wipe. See AdminLogin.jsx rationale.
   }, []);
+
+  // TRACK 14.0-SSO · Auto-forward if directory grants HR.
+  useRedirectIfDirectoryGrant("hr", isHr() || isAdmin(), "/hr");
 
   const submitForgot = async () => {
     const e = (forgotEmail || "").trim();

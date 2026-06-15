@@ -24,6 +24,7 @@ import {
   isDispatch,
 } from "@/lib/dispatchAuth";
 import { setAdminToken } from "@/lib/adminAuth";
+import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -36,9 +37,10 @@ export default function DispatchLogin() {
   const [busy, setBusy] = useState(false);
   const [remember, setRemember] = useState(true);
 
-  React.useEffect(() => {
-    if (isDispatch()) nav("/dispatch-portal", { replace: true });
-  }, [nav]);
+  // TRACK 14.0-SSO · Auto-forward if directory grants Dispatch.
+  // The hook's hasToken short-circuit preserves the original
+  // "isDispatch() → /dispatch-portal" behavior.
+  useRedirectIfDirectoryGrant("dispatch", isDispatch(), "/dispatch-portal");
 
   const submit = async (e) => {
     e.preventDefault();

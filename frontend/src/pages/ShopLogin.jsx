@@ -12,8 +12,9 @@ import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { AuthRequiredBanner } from "@/components/PortalContextBanner";
 import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { api } from "@/lib/api";
-import { setShopToken, clearShopToken } from "@/lib/shopAuth";
-import { clearAdminToken, setAdminToken } from "@/lib/adminAuth";
+import { setShopToken, clearShopToken, isShop } from "@/lib/shopAuth";
+import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
+import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
@@ -41,6 +42,9 @@ export default function ShopLogin() {
   useEffect(() => {
     // Iter88 — Removed mount-time token wipe. See AdminLogin.jsx rationale.
   }, []);
+
+  // TRACK 14.0-SSO · Auto-forward if directory grants Shop.
+  useRedirectIfDirectoryGrant("shop", isShop() || isAdmin(), "/shop");
 
   const submitForgot = async () => {
     const e = (forgotEmail || "").trim();

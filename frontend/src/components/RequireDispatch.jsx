@@ -3,16 +3,25 @@
 //
 // Iter149: signed-in-elsewhere users see AccessDenied; anonymous users
 // still get bounced to the dispatch login page.
+//
+// TRACK 14.0-SSO (2026-02-15): now uses usePortalHydration so a user
+// with an active directory session that grants Dispatch access gets
+// the Dispatch token silently minted on-demand.
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { isDispatch } from "@/lib/dispatchAuth";
+import { usePortalHydration } from "@/lib/usePortalHydration";
+import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { buildContinuity } from "@/lib/portalContinuity";
 import AccessDenied from "@/pages/AccessDenied";
 
 export function RequireDispatch({ children }) {
   const location = useLocation();
-  if (isDispatch()) return children;
+  const hasToken = isDispatch();
+  const state = usePortalHydration("dispatch", hasToken);
+  if (state === "ready") return children;
+  if (state === "hydrating") return <PortalHydratingLoader portal="dispatch" />;
   if (isSignedInAnywhere()) {
     return <AccessDenied attemptedPortal="dispatch" />;
   }

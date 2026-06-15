@@ -1,9 +1,10 @@
-// MultiPortalHydrator.jsx — iter88 self-healing layer
+// MultiPortalHydrator.jsx — iter88 + TRACK 14.0-SSO (2026-02-15)
 //
-// Purpose: keep every per-portal token (admin / pm / shop / hr) in sync
-// with the directory session for users who have multiple portals. If any
-// portal token goes missing — but the directory session is alive and
-// the user is authorized for that portal — silently call
+// Purpose: keep every per-portal token (admin / pm / shop / hr /
+// safety / dispatch / field_leadership) in sync with the directory
+// session for users who have multiple portals. If any portal token
+// goes missing — but the directory session is alive and the user is
+// authorized for that portal — silently call
 // POST /api/auth/issue-portal-token to re-mint it.
 //
 // This component runs once at app boot AND any time the directory user
@@ -23,6 +24,9 @@ import { getAdminToken, setAdminToken } from "@/lib/adminAuth";
 import { getPmToken, setPmToken } from "@/lib/pmAuth";
 import { getShopToken, setShopToken } from "@/lib/shopAuth";
 import { getHrToken, setHrToken } from "@/lib/hrAuth";
+import { getSafetyToken, setSafetyToken } from "@/lib/safetyAuth";
+import { getDispatchToken, setDispatchToken } from "@/lib/dispatchAuth";
+import { getFlToken, setFlToken } from "@/lib/flAuth";
 import { api } from "@/lib/api";
 
 const TOKEN_GETTERS = {
@@ -30,14 +34,22 @@ const TOKEN_GETTERS = {
   pm: getPmToken,
   shop: getShopToken,
   hr: getHrToken,
+  // TRACK 14.0-SSO additions.
+  safety: getSafetyToken,
+  dispatch: getDispatchToken,
+  field_leadership: getFlToken,
 };
 
 const TOKEN_SETTERS_REMEMBER = {
-  // PM/Shop/Admin take an opts object; HR takes a plain boolean.
+  // PM/Shop/Admin take an opts object; HR / safety / dispatch / fl
+  // take a plain boolean.
   admin: (t) => setAdminToken(t, { remember: true }),
   pm: (t) => setPmToken(t, { remember: true }),
   shop: (t) => setShopToken(t, { remember: true }),
   hr: (t) => setHrToken(t, true),
+  safety: (t) => setSafetyToken(t, true),
+  dispatch: (t) => setDispatchToken(t, true),
+  field_leadership: (t) => setFlToken(t, true),
 };
 
 export default function MultiPortalHydrator() {
@@ -64,7 +76,7 @@ export default function MultiPortalHydrator() {
           const r = await api.post(
             "/auth/issue-portal-token",
             { portal },
-            { headers: { "X-Directory-Token": dirToken } }
+            { headers: { "X-Directory-Token": dirToken }, skipSessionStatus: true }
           );
           if (!cancelled && r?.data?.ok && r.data.token) {
             setter(r.data.token);

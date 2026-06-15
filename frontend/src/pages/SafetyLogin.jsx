@@ -24,6 +24,7 @@ import {
   isSafety,
 } from "@/lib/safetyAuth";
 import { setAdminToken } from "@/lib/adminAuth";
+import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -36,9 +37,13 @@ export default function SafetyLogin() {
   const [busy, setBusy] = useState(false);
   const [remember, setRemember] = useState(true);
 
-  React.useEffect(() => {
-    if (isSafety()) nav("/safety-portal", { replace: true });
-  }, [nav]);
+  // TRACK 14.0-SSO · If the user already holds a directory session
+  // that grants Safety, silently mint the Safety token and forward
+  // into /safety-portal instead of showing a redundant login form.
+  // Falls back to the legacy "isSafety() → redirect" short-circuit
+  // baked into the hook so single-portal Safety users keep their
+  // existing UX.
+  useRedirectIfDirectoryGrant("safety", isSafety(), "/safety-portal");
 
   const submit = async (e) => {
     e.preventDefault();

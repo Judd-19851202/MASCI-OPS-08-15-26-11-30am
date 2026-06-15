@@ -14,6 +14,10 @@ const ACCENT = {
   pm: "border-red-600 text-red-600",
   hr: "border-purple-700 text-purple-700",
   shop: "border-orange-600 text-orange-600",
+  // TRACK 14.0-SSO additions.
+  safety: "border-cyan-700 text-cyan-700",
+  dispatch: "border-amber-600 text-amber-600",
+  field_leadership: "border-red-700 text-red-700",
 };
 
 const LABEL = {
@@ -21,6 +25,9 @@ const LABEL = {
   pm: "PM Portal",
   hr: "HR Portal",
   shop: "Shop Portal",
+  safety: "Safety Portal",
+  dispatch: "Dispatch Portal",
+  field_leadership: "Field Leadership Portal",
 };
 
 export default function PortalHydratingLoader({ portal = "admin" }) {
