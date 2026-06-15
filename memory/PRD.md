@@ -10,7 +10,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · PRODUCTION-TRUST-SUITE)
+## Latest Closed Track (2026-02-15 · NOTIF-NEW-USER-SCOPE)
+- **14.0-NOTIF-NEW-USER-SCOPE CLOSED.** 🟢 PROVEN · TRUSTED · DEPLOY-READY.
+  Resolved the P1 deferral from PRODUCTION-TRUST-SUITE F3. Added an
+  eligibility cutoff to the read-side notification filter: role-broadcast
+  notifications now require `created_at >= actor.created_at`. Direct-user
+  notifications bypass the cutoff (direct addressing always wins). Admin
+  retains the no-filter view. Runtime proof: `cert.hr@example.com` went
+  from 529 unread → **0 unread**; legacy `hrmanager@mascigc.com` stayed at
+  529 unread (valid history preserved); admin stayed at 8361 unread.
+  Refactored `_notif_filter` and `_actor_eligibility` to module-level
+  helpers (`build_notif_filter`, `actor_eligibility`, `actor_role`) so
+  regression tests can call them directly. 8 pytest tests pass (including
+  one live-MongoDB e2e). No schema, no migration, no new indexes — the
+  existing `(recipient_role, created_at DESC)` compound serves the new
+  query. Master ledger:
+  `/app/memory/TRACK_14_NOTIF_NEW_USER_SCOPE_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-15 · PRODUCTION-TRUST-SUITE)
 - **14.0-PRODUCTION-TRUST-SUITE CLOSED.** 🟢 GO for RC1 production-trust
   certification. 15-phase audit across all portals validated counts,
   confirmations, permissions, PDFs, error/empty/loading states,

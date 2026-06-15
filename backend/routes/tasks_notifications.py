@@ -503,11 +503,91 @@ async def ensure_tasks_notifications_indexes(db) -> None:
         await db.notifications.create_index("id", unique=True)
         await db.notifications.create_index([("recipient_role", 1), ("created_at", -1)])
         await db.notifications.create_index([("recipient_user_id", 1), ("created_at", -1)])
+        # TRACK 14.0-NOTIF-NEW-USER-SCOPE — supports eligibility filter
+        # on the role-broadcast leg: {recipient_role, created_at>=cutoff,
+        # no recipient_user_id}. The existing (recipient_role, created_at)
+        # index already serves this query; this is just a documentation
+        # marker — no additional index needed.
         await db.notifications.create_index("linked_task_id")
         await db.notifications.create_index("acknowledged_at")
         await db.notifications.create_index("expires_at", expireAfterSeconds=0)
     except Exception as e:  # pragma: no cover
         logger.warning("tasks/notifications index bootstrap failed: %s", e)
+
+
+def actor_role(actor: Dict[str, Any]) -> str:
+    """Public helper · returns the canonical role label for an actor
+    dict produced by ``require_any_portal_token``. Module-level so
+    tests can call it without spinning the router."""
+    return actor.get("_actor") or actor.get("role") or "admin"
+
+
+def actor_eligibility(actor: Dict[str, Any]) -> Optional[datetime]:
+    """TRACK 14.0-NOTIF-NEW-USER-SCOPE — returns the actor's
+    notification-eligibility cutoff as a timezone-aware UTC datetime,
+    or ``None`` when no cutoff applies.
+
+    Source of truth (priority order):
+      1. ``actor["created_at"]`` from the per-portal user document
+         (``hr_users.created_at``, ``safety_users.created_at``, …).
+      2. ``None`` — admins and any portal actor without a recorded
+         join date opt out of the filter (preserves backward compat).
+
+    Direct-user notifications (``recipient_user_id == actor.id``)
+    bypass this cutoff entirely — direct addressing always wins.
+    """
+    if actor_role(actor) == "admin":
+        return None
+    raw = actor.get("created_at")
+    if not raw:
+        return None
+    if isinstance(raw, datetime):
+        return raw if raw.tzinfo else raw.replace(tzinfo=timezone.utc)
+    if isinstance(raw, str):
+        try:
+            dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            return None
+    return None
+
+
+def build_notif_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
+    """Public read-side notification filter (the same logic the router
+    uses). Exposed at module scope so regression tests don't have to
+    walk into the router closure.
+
+    Rules (composed):
+      • Admin → ``{}`` (no filter).
+      • Person-level routing: ``recipient_user_id == actor.id`` is OR'd
+        with the role clause; direct-addressed notifications bypass
+        eligibility.
+      • Asset Admin OR-scope: ``asset_admin`` is appended to the role
+        list when ``actor.is_asset_admin == True``.
+      • Eligibility cutoff (NEW): role-broadcast notifications are
+        further constrained to ``created_at >= actor_eligibility(actor)``.
+    """
+    role = actor_role(actor)
+    if role == "admin":
+        return {}
+    scope_roles = [role]
+    if actor.get("is_asset_admin") is True:
+        scope_roles.append("asset_admin")
+    user_id = actor.get("id") or actor.get("user_id")
+    role_clauses: List[Dict[str, Any]] = [
+        {"recipient_role": {"$in": scope_roles}},
+        {"$or": [
+            {"recipient_user_id": None},
+            {"recipient_user_id": {"$exists": False}},
+        ]},
+    ]
+    eligibility = actor_eligibility(actor)
+    if eligibility is not None:
+        role_clauses.append({"created_at": {"$gte": eligibility}})
+    role_clause = {"$and": role_clauses}
+    if user_id:
+        return {"$or": [role_clause, {"recipient_user_id": user_id}]}
+    return role_clause
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -517,7 +597,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
     router = APIRouter(tags=["tasks-notifications"])
 
     def _actor_role(actor: Dict[str, Any]) -> str:
-        return actor.get("_actor") or actor.get("role") or "admin"
+        return actor_role(actor)
 
     def _scope_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
         """Role-aware filter. Admin sees everything; portal users see
@@ -679,45 +759,22 @@ def build_tasks_notifications_router(db, require_any_portal_token):
             raise HTTPException(404, "Task not found")
         return updated
 
-    def _notif_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
-        """Track 14.0-NOTIFY-OWNERSHIP-LOCK D2/D3 — read-side filter for
-        the notification feed. Two rules:
+    def _actor_eligibility(actor: Dict[str, Any]) -> Optional[datetime]:
+        """Inner shim → delegates to module-level :func:`actor_eligibility`.
 
-        D2 (person-level routing): a notification with a populated
-        ``recipient_user_id`` is visible ONLY to that specific user.
-        Notifications with no ``recipient_user_id`` fall back to the
-        traditional role-scope visibility. This eliminates the
-        cross-role leakage where every member of a role bucket could
-        see notifications addressed to a single human.
-
-        D3 (Asset Admin OR-scope): when the actor carries
-        ``is_asset_admin=True`` (set by the auth dep on
-        ``X-Asset-Admin: 1``), the role-scope is OR-extended with
-        ``asset_admin`` so the user sees both their portal slice AND
-        the asset-admin slice. Strict OR — never a downgrade.
+        Kept for callers inside this factory that reference the local
+        name; the real logic lives at module scope so it is testable
+        without spinning up the router.
         """
-        role = _actor_role(actor)
-        if role == "admin":
-            return {}
-        scope_roles = [role]
-        if actor.get("is_asset_admin") is True:
-            scope_roles.append("asset_admin")
-        user_id = actor.get("id") or actor.get("user_id")
-        # Role-only clause: notification matches my role AND has no
-        # specific user owner (so all role members see it).
-        role_clause = {
-            "$and": [
-                {"recipient_role": {"$in": scope_roles}},
-                {"$or": [
-                    {"recipient_user_id": None},
-                    {"recipient_user_id": {"$exists": False}},
-                ]},
-            ]
-        }
-        if user_id:
-            # User-targeted clause is OR'd with role clause.
-            return {"$or": [role_clause, {"recipient_user_id": user_id}]}
-        return role_clause
+        return actor_eligibility(actor)
+
+    def _notif_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
+        """Inner shim → delegates to module-level :func:`build_notif_filter`.
+
+        TRACK 14.0-NOTIF-NEW-USER-SCOPE made the logic module-level so
+        regression tests can verify it without walking closures.
+        """
+        return build_notif_filter(actor)
 
     # ── Notifications ────────────────────────────────────────────────
     @router.get("/api/notifications")
