@@ -1071,3 +1071,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Files modified:** `frontend/src/pages/FleetVisibility.jsx` (+1 import line) · `backend/routes/shop_intel.py` (+2 endpoints, ~80 LOC) · 10 Shop subpage files (selector wiring · Back-to-Shop link · operator-copy scrub).
 - Deployment readiness remains 🟢 **GREEN**.
 - Report: `/app/memory/TRACK_13_30C_FIX_SHOP_FORM_NAV_UX_CORRECTION.md`.
+
+## 2026-02-15 · TRACK 14.0-SAFETY-INCIDENT-AUTH-LIFECYCLE + AMENDMENT A (Platform Stability) — CLOSED
+
+- **Mode:** Surgical platform-stability strike. Frontend-only (no backend / schema / env changes).
+- **P0 user-reported defects ELIMINATED:**
+  - False "Session Expired" modal over valid Safety incident detail content (RCA: `UndoLastTransitionButton` fires `/api/workflows/{id}/last-transition` → 401 for non-admin viewers → global modal because `/api/workflows/*` wasn't on the namespaced-silent list).
+  - False "Connection Problem" modals during normal use (RCA: `errorClassification.js` had `|| true` coercing every no-response error — including cancellations — into NETWORK_UNREACHABLE).
+  - Safety user redirected to `/safety-portal/login` after viewing detail (RCA: chained from the session-expired modal's "Log Back In" path).
+  - Health Board flashing TRANSIENT on services (RCA: SystemHealthBadge required only 2 consecutive failures before flipping red; single ingress blips painted DOWN).
+  - Background widget failures (Unified Directory, Expirations, Operations Center) triggering platform-wide modals (RCA: shared axios interceptor over-publishing on every 401).
+- **Surgical fix (6 surfaces):**
+  - `frontend/src/lib/api.js` — namespace-aware + cross-portal-helper-aware 401 absorption. 401s on `/api/admin/*`, `/api/safety/*`, `/api/pm/*`, `/api/shop/*`, `/api/hr/*`, `/api/dispatch/*`, `/api/dev/*`, `/api/leadership/*`, `/api/safety-forms/*`, `/field-leadership/portal*` clear matching token only. 401s on `/api/workflows/*`, `/api/notifications/*`, `/api/operations/*`, `/api/operations-center` (cross-portal helpers) absorbed silently with no token wipe. Only true session-loss 401s (non-namespaced + no helper match) still publish the overlay. `skipSessionStatus: true` honored everywhere.
+  - `frontend/src/lib/errorClassification.js` — removed `|| true` fallback; cancellations (`ERR_CANCELED` / `CanceledError` / `AbortError`) classify as `kind: null`; unknown failures classify as `kind: null` (per-call only).
+  - `frontend/src/components/SystemHealthBadge.jsx` — `skipSessionStatus: true` on every ping; `FAIL_STREAK_THRESHOLD = 3` (was 2); 401/403 treated as auth-gated (level=ok, msg=`{status} · auth`) rather than outage.
+  - `frontend/src/components/UndoLastTransitionButton.jsx` — `skipSessionStatus: true` on both GET `/last-transition` probe and POST `/undo-last-transition`.
+  - `frontend/src/components/IncidentLifecyclePanel.jsx` + `ExpirationsSummary.jsx` + `AdminUnifiedDirectoryPanel.jsx` — `skipSessionStatus: true` on every widget fetch.
+  - `frontend/src/pages/ViewIncident.jsx` — BackLink emits `data-testid="safety-nav-back"` on `/safety-portal/*` routes (testability + role-matrix Playwright contract).
+- **New regression test file:** `/app/backend/tests/test_track14_platform_stability_regression.py` (5/5 passing) — pins the backend 401 contract that the frontend silent-list relies on.
+- **Runtime certification (testing agent iter 504 + 505):** 7/7 frontend acceptance flows PASS (P0 Safety detail soak, Super Admin idle soak, manual publish/dismiss, background-401 isolation, lifecycle panel, cross-portal helper absorption, notifications). 22/22 backend pytest PASS. Backend role matrix proven: Safety Manager/Officer/Coordinator can close · Super Admin inherits · PM read-only · HR/Shop/Dispatch blocked.
+- **Files added:** `backend/tests/test_track14_platform_stability_regression.py` · `memory/TRACK_14_PLATFORM_STABILITY_CERT_CLOSURE.md`.
+- **Files modified:** `frontend/src/lib/api.js` · `frontend/src/lib/errorClassification.js` · `frontend/src/components/SystemHealthBadge.jsx` · `frontend/src/components/UndoLastTransitionButton.jsx` · `frontend/src/components/IncidentLifecyclePanel.jsx` · `frontend/src/components/ExpirationsSummary.jsx` · `frontend/src/components/AdminUnifiedDirectoryPanel.jsx` · `frontend/src/pages/ViewIncident.jsx`.
+- **No backend changes** — all surgical at the frontend session-classification layer. No schema, no env, no removed routes.
+- **Five-Pillar score: 5/5** (Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10).
+- Deployment readiness remains 🟢 **GREEN**. GO for production redeploy.
+- Report: `/app/memory/TRACK_14_PLATFORM_STABILITY_CERT_CLOSURE.md`.

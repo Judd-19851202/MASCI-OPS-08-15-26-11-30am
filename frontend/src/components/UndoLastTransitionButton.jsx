@@ -81,7 +81,8 @@ export function UndoLastTransitionButton({ workflow, recordId, onUndone }) {
     try {
       await api.post(
         `/workflows/${workflow}/${recordId}/undo-last-transition`,
-        { reason: clean }
+        { reason: clean },
+        { skipSessionStatus: true }
       );
       toast.success("Last transition reversed.");
       setOpen(false);
