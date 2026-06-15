@@ -121,22 +121,22 @@ Full ledger: `/app/test_reports/track14_s2_defect_ledger.json`
 
 ```
 /app/backend/tests/test_track14_s2_field_mode_css.py
-  13 tests · ALL PASS
+  14 tests · ALL PASS
 
 Combined regression with prior tracks:
-  test_track14_s2_field_mode_css.py              13/13 PASS
+  test_track14_s2_field_mode_css.py              14/14 PASS
   test_track14_s1_bilingual_sidecar.py            7/7  PASS
   test_track14_s1_b1_b10_operational_certification.py 14/14 PASS
   test_track14_notif_new_user_scope.py            8/8  PASS
   ─────────────────────────────────────────────────────
-  TOTAL                                          42/42 PASS (15.16s)
+  TOTAL                                          43/43 PASS (22.33s)
 ```
 
-The 13 new S2 tests pin:
+The 14 new S2 tests pin:
 - 44px tap floor variable present
 - 16px input floor variable present
 - `@media (pointer: coarse)` block present
-- button / role=button 44px floor active
+- button / role=button 44px floor active (with `!important` cascade defense)
 - text-slate-300 / -400 contrast hardening active
 - text-xs lifted on touch
 - `.field-glance-anchor` helper present
@@ -145,6 +145,36 @@ The 13 new S2 tests pin:
 - shadcn button default kept at h-9 (desktop intact)
 - shadcn input / textarea `md:text-sm` REMOVED (focus-zoom defense)
 - shadcn input default h-9 kept (desktop intact)
+- **NEW · cascade-defense audit**: no Tailwind arbitrary `min-h-[<44px]` classes survive in `src/components` or `src/pages` (regression prevents future LangToggle-class defects)
+
+## Cascade-Defense Fixes (iteration_514 follow-up · 17 components/pages)
+
+Fixed every Tailwind arbitrary `min-h-[Xpx]` class below 44px that
+would otherwise win cascade specificity over the global field floor:
+
+```
+components/LangToggle.jsx             min-h-[36px] → 44px
+components/PasswordInput.jsx          min-h-[36px] → 44px (eye toggle)
+components/PortalLoginHelp.jsx        min-h-[32px] → 44px (3 anchors)
+components/DispatchLiveSnapshot.jsx   min-h-[32/40px] → 44px (2 buttons)
+components/DispatchMapHero.jsx        min-h-[40px] → 44px
+components/ForgedOpsAttribution.jsx   min-h-[32px] → 44px (2 anchors)
+components/daily-report/SupportIdAffordance.jsx  min-h-[32px] → 44px
+components/pm/command/PmProjectFirstHome.jsx     min-h-[40px] → 44px
+components/operational/OperationalTimelineSidecar.jsx  2× → 44px
+components/dispatch/AssignmentCreateDrawer.jsx   2× → 44px
+
+pages/DispatchHub.jsx                 3× min-h-[36px] → 44px
+pages/PmCommandCenter.jsx             min-h-[36px] → 44px
+pages/ShopLogin.jsx                   min-h-[36px] → 44px
+pages/FieldLeadershipPortalLogin.jsx  min-h-[32px] → 44px
+pages/SignIn.jsx                      8× min-h-[36px] → 44px (every portal link)
+pages/AdminLogin.jsx                  min-h-[32px] → 44px
+```
+
+PLUS: index.css coarse-pointer block now uses `!important` on
+button/role=button/icon-button min-height so future arbitrary
+`min-h-[XXpx]` overrides can't recreate this class of defect.
 
 ---
 

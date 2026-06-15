@@ -536,7 +536,7 @@ function SupportResources({ overview, onOpenDetailedView }) {
         type="button"
         onClick={onOpenDetailedView}
         data-testid="pm-pfh-open-detailed-view"
-        className="mt-4 inline-flex items-center min-h-[40px] px-4 rounded-md border-2 border-slate-300 hover:border-slate-500 text-slate-700 hover:text-slate-900 font-bold tracking-wide text-sm"
+        className="mt-4 inline-flex items-center min-h-[44px] px-4 rounded-md border-2 border-slate-300 hover:border-slate-500 text-slate-700 hover:text-slate-900 font-bold tracking-wide text-sm"
       >
         <ExternalLink className="w-4 h-4 mr-2" />
         {t("Detailed operational view (Resources · Hauls · Materials · Shop · Safety · Timeline)")}

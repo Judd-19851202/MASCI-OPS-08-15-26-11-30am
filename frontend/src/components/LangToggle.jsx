@@ -15,7 +15,7 @@ export function LangToggle({ className = "", variant = "dark" }) {
   // segmented toggle. The toggle is rendered in headers across every
   // form/portal — operators in the field often use it with gloves on.
   const baseBtn =
-    "min-h-[36px] min-w-[40px] inline-flex items-center justify-center px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider transition-colors duration-150";
+    "min-h-[44px] min-w-[44px] inline-flex items-center justify-center px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider transition-colors duration-150";
   const dark = {
     wrap: "border-2 border-slate-700 bg-slate-800 text-white",
     active: "bg-red-700 text-white",

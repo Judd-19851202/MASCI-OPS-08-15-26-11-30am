@@ -268,7 +268,7 @@ export default function SignIn() {
               <button
                 type="button"
                 onClick={() => { setMfaUseRecovery((v) => !v); setMfaCode(""); }}
-                className="inline-flex items-center min-h-[36px] px-1 -mx-1 text-xs font-mono uppercase tracking-wide text-red-700 hover:text-red-900 font-bold"
+                className="inline-flex items-center min-h-[44px] px-1 -mx-1 text-xs font-mono uppercase tracking-wide text-red-700 hover:text-red-900 font-bold"
                 data-testid="mfa-toggle-recovery"
               >
                 {mfaUseRecovery
@@ -386,25 +386,25 @@ export default function SignIn() {
               {t("Single-Portal Sign-In")}
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <Link to="/pm/login" className="inline-flex items-center min-h-[36px] py-1 text-red-700 hover:underline" data-testid="signin-pm-link">
+              <Link to="/pm/login" className="inline-flex items-center min-h-[44px] py-1 text-red-700 hover:underline" data-testid="signin-pm-link">
                 PM Portal →
               </Link>
-              <Link to="/shop/login" className="inline-flex items-center min-h-[36px] py-1 text-orange-700 hover:underline" data-testid="signin-shop-link">
+              <Link to="/shop/login" className="inline-flex items-center min-h-[44px] py-1 text-orange-700 hover:underline" data-testid="signin-shop-link">
                 Shop Portal →
               </Link>
-              <Link to="/hr/login" className="inline-flex items-center min-h-[36px] py-1 text-purple-700 hover:underline" data-testid="signin-hr-link">
+              <Link to="/hr/login" className="inline-flex items-center min-h-[44px] py-1 text-purple-700 hover:underline" data-testid="signin-hr-link">
                 HR Portal →
               </Link>
-              <Link to="/safety-portal/login" className="inline-flex items-center min-h-[36px] py-1 text-yellow-700 hover:underline" data-testid="signin-safety-link">
+              <Link to="/safety-portal/login" className="inline-flex items-center min-h-[44px] py-1 text-yellow-700 hover:underline" data-testid="signin-safety-link">
                 Safety Portal →
               </Link>
-              <Link to="/dispatch-portal/login" className="inline-flex items-center min-h-[36px] py-1 text-sky-700 hover:underline" data-testid="signin-dispatch-link">
+              <Link to="/dispatch-portal/login" className="inline-flex items-center min-h-[44px] py-1 text-sky-700 hover:underline" data-testid="signin-dispatch-link">
                 Dispatch Portal →
               </Link>
-              <Link to="/leadership/login" className="inline-flex items-center min-h-[36px] py-1 text-red-700 hover:underline" data-testid="signin-leadership-link">
+              <Link to="/leadership/login" className="inline-flex items-center min-h-[44px] py-1 text-red-700 hover:underline" data-testid="signin-leadership-link">
                 Field Leadership →
               </Link>
-              <Link to="/admin/login" className="inline-flex items-center min-h-[36px] py-1 text-slate-900 hover:underline font-bold col-span-2" data-testid="signin-admin-link">
+              <Link to="/admin/login" className="inline-flex items-center min-h-[44px] py-1 text-slate-900 hover:underline font-bold col-span-2" data-testid="signin-admin-link">
                 Admin Console →
               </Link>
             </div>

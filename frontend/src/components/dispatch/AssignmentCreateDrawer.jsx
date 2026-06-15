@@ -185,7 +185,7 @@ function ComboboxField({
                     key={`${opt.refId || ""}-${opt.label}-${idx}`}
                     onClick={() => choose(opt)}
                     data-testid={`${testId}-option`}
-                    className="w-full min-h-[40px] px-3 py-1.5 text-left flex items-center justify-between hover:bg-slate-50 active:bg-slate-100"
+                    className="w-full min-h-[44px] px-3 py-1.5 text-left flex items-center justify-between hover:bg-slate-50 active:bg-slate-100"
                   >
                     <span className="text-sm text-slate-900 truncate pr-2">{opt.label}</span>
                     <span className="text-[10px] uppercase tracking-widest text-slate-500 shrink-0 flex items-center gap-2">
@@ -202,7 +202,7 @@ function ComboboxField({
                   type="button"
                   onClick={addTemp}
                   data-testid={`${testId}-add-temp`}
-                  className="w-full min-h-[40px] px-3 py-1.5 text-left text-amber-700 hover:bg-amber-50"
+                  className="w-full min-h-[44px] px-3 py-1.5 text-left text-amber-700 hover:bg-amber-50"
                 >
                   {(tempPrefix || t("Add temporary:")) + " "}
                   <span className="font-bold">{query.trim()}</span>

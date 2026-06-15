@@ -10,7 +10,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · S1-B1-B10 BILINGUAL OPERATIONS COMPLETE)
+## Latest Closed Track (2026-02-15 · S2 IPAD FIELD FOUNDATION SHIPPED)
+- **14.0-S2 IPAD FIELD CERTIFICATION (Audit-First Global-Wins Phase).
+  🟡 OPEN WITH SPECIFIC REMAINING WORK** — global iPad foundation
+  🟢 closed; per-workflow runtime certification 🟡 open. User
+  authorized: (A) audit-first + safe global fixes, (I) yes ship
+  global CSS wins, (III) testing agent + static analysis, plus
+  amendments Phase 2A Glance Test / 3A Truck Bumper / 6A Speed
+  Perception, and **iPad wins when desktop and iPad conflict**.
+  Shipped: (1) `frontend/src/index.css` Field-Mode layer —
+  `--field-tap-min:44px`, `--field-input-min:16px`, contrast hardening
+  for `text-slate-300/400` → slate-600, `text-xs` 12px → 13.5px,
+  `@media (pointer: coarse)` 44px floor on every button / role=button /
+  link-as-button / tab / input / select / textarea / combobox with
+  `!important` cascade defense, label-wrapping checkboxes/radios with
+  44px hit area, iPad portrait grid collapse helpers, `.field-glance-
+  anchor` and `.field-busy` opt-in helpers; (2) shadcn primitives:
+  `input.jsx` / `textarea.jsx` removed `md:text-sm` (fixed iOS focus-
+  zoom hazard); button kept h-9 for desktop with CSS layer enforcing
+  iPad floor; (3) **17 cascade-defense fixes** across pages/components
+  (LangToggle, PasswordInput, PortalLoginHelp, DispatchHub, SignIn 8
+  portal links, AdminLogin, ShopLogin, FieldLeadershipPortalLogin,
+  PmCommandCenter, DispatchLiveSnapshot, DispatchMapHero,
+  ForgedOpsAttribution, SupportIdAffordance, PmProjectFirstHome,
+  OperationalTimelineSidecar, AssignmentCreateDrawer); (4) static
+  audit `track14_s2_ipad_audit.py` cataloguing 261 routes + 3,594
+  defect hits (320 CRIT) in JSON ledger; (5) 14 pytest contract tests
+  including a no-`min-h-[<44px]`-arbitrary-class regression guard.
+  **43/43 backend pytest pass (in 22.33s)**. Testing-agent iteration
+  514 confirms: backend 100% (42/42 prior to cascade fixes), frontend
+  85% — NO horizontal scroll on any iPad-viewport critical page,
+  16px input fonts confirmed (iOS focus-zoom DEFEATED), ES toggle
+  works on iPad portrait, Sign In button measures 48px on iPad,
+  hub tiles 113-268px. Master ledger:
+  `/app/memory/TRACK_14_S2_IPAD_FIELD_CLOSURE.md`. **OPEN ITEMS**:
+  Phase 4 (per-route fatigue/clarity), Phase 6 (performance metrics
+  on real iPad), Phase 7-deep (per-page portrait), Phase 9 (offline),
+  Phase 10 (trust surfaces), Phase 11 (persona walkthroughs).
+
+## Previous Closed Track (2026-02-15 · S1-B1-B10 BILINGUAL OPERATIONS COMPLETE)
 - **14.0-S1-B1 THROUGH B10 SPANISH TRANSLATION + BILINGUAL OPERATIONS
   CLOSED. 🟢 PROVEN · TRUSTED · COMPLETE** per Amendment B
   "Operational-First Certification" success criteria: a Spanish-speaking

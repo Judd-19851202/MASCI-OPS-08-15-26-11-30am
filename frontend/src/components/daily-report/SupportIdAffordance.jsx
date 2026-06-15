@@ -89,7 +89,7 @@ export default function SupportIdAffordance({ testId = "support-id-affordance" }
         ref={btnRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center justify-center min-w-[32px] min-h-[32px] rounded-full text-white/70 hover:text-white hover:bg-slate-800/40 transition-colors"
+        className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full text-white/70 hover:text-white hover:bg-slate-800/40 transition-colors"
         title="Support ID"
         aria-label="Show Support ID"
         aria-expanded={open}

@@ -159,7 +159,7 @@ export default function PmCommandCenter() {
             type="button"
             onClick={() => setViewMode("projects")}
             data-testid="pm-cc-back-to-projects"
-            className="inline-flex items-center min-h-[36px] px-3 -ml-1 text-xs font-mono uppercase tracking-widest text-slate-600 hover:text-slate-900"
+            className="inline-flex items-center min-h-[44px] px-3 -ml-1 text-xs font-mono uppercase tracking-widest text-slate-600 hover:text-slate-900"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to project view
           </button>

@@ -14,8 +14,6 @@ import re
 from pathlib import Path
 
 import pytest
-
-
 INDEX_CSS = Path("/app/frontend/src/index.css")
 BUTTON_JSX = Path("/app/frontend/src/components/ui/button.jsx")
 INPUT_JSX = Path("/app/frontend/src/components/ui/input.jsx")
@@ -124,3 +122,41 @@ def test_input_size_default_remains_h9():
     """Desktop input height unchanged."""
     src = INPUT_JSX.read_text(encoding="utf-8")
     assert "h-9" in src, "Input lost its h-9 default"
+
+
+# ── Cascade-defense audit (iteration_514 finding) ────────────────
+
+
+def test_no_arbitrary_min_h_under_44px_in_components():
+    """Ban Tailwind arbitrary `min-h-[Xpx]` classes below 44px in
+    src/components AND src/pages. These win cascade specificity over
+    the global coarse-pointer rule and recreate the LangToggle-class
+    defect surfaced in iteration_514. Allowed exceptions: progress
+    bars, skeleton placeholders (non-tap surfaces), and explicitly
+    annotated `data-field-exempt` elements (caller assumes
+    responsibility).
+    """
+    src_root = Path("/app/frontend/src")
+    rx = re.compile(r"min-h-\[(\d+)px\]")
+    offenders: list[tuple[str, int, str]] = []
+    for base in ("components", "pages"):
+        for p in (src_root / base).rglob("*.jsx"):
+            text = p.read_text(encoding="utf-8")
+            for m in rx.finditer(text):
+                px = int(m.group(1))
+                if px >= 44:
+                    continue
+                line_no = text.count("\n", 0, m.start()) + 1
+                line = text.split("\n")[line_no - 1].strip()
+                if any(
+                    hint in line.lower()
+                    for hint in ("progress", "skeleton", "data-field-exempt")
+                ):
+                    continue
+                offenders.append((str(p.relative_to(src_root.parent)), line_no, line[:120]))
+    assert not offenders, (
+        "Tailwind arbitrary min-h classes below 44px found — these defeat "
+        "the iPad field-mode floor. Bump them to min-h-[44px] or mark the "
+        "element data-field-exempt with a comment justifying:\n"
+        + "\n".join(f"  · {f}:{ln}  {snip}" for f, ln, snip in offenders)
+    )

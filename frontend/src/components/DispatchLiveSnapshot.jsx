@@ -93,7 +93,7 @@ export default function DispatchLiveSnapshot({ className = "" }) {
           <button
             type="button"
             onClick={() => setTick((x) => x + 1)}
-            className="inline-flex items-center min-h-[32px] min-w-[32px] justify-center rounded text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+            className="inline-flex items-center min-h-[44px] min-w-[44px] justify-center rounded text-slate-500 hover:text-slate-900 hover:bg-slate-100"
             aria-label={t("Refresh")}
             data-testid="dispatch-snapshot-refresh"
           >
@@ -152,7 +152,7 @@ export default function DispatchLiveSnapshot({ className = "" }) {
         <Link
           to="/dispatch-portal/board"
           data-testid="dispatch-board-link-inline"
-          className="inline-flex items-center min-h-[40px] px-4 rounded-md border-2 border-orange-300 hover:border-orange-500 text-orange-800 font-bold tracking-wide"
+          className="inline-flex items-center min-h-[44px] px-4 rounded-md border-2 border-orange-300 hover:border-orange-500 text-orange-800 font-bold tracking-wide"
         >
           <ExternalLink className="w-4 h-4 mr-2" />
           {t("Open Operational Board")}

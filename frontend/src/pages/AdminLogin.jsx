@@ -308,7 +308,7 @@ export default function AdminLogin() {
 
           <p className="mt-5 pt-4 border-t border-slate-200 text-[11px] text-slate-500 leading-relaxed text-center">
             {t("Access multiple portals?")}{" "}
-            <Link to="/sign-in" className="inline-flex items-center min-h-[32px] px-1 -mx-1 text-slate-900 font-bold hover:underline" data-testid="admin-login-master-link">
+            <Link to="/sign-in" className="inline-flex items-center min-h-[44px] px-1 -mx-1 text-slate-900 font-bold hover:underline" data-testid="admin-login-master-link">
               {t("Use the master sign-in")}
             </Link>{" "}
             {t("to land on any portal in one step.")}

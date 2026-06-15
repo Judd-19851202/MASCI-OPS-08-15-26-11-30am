@@ -157,7 +157,7 @@ export default function DispatchMapHero({ className = "" }) {
         <Link
           to="/dispatch-portal/board"
           data-testid="dispatch-map-open-board"
-          className="inline-flex items-center min-h-[40px] px-4 rounded-md border-2 border-orange-300 hover:border-orange-500 text-orange-800 font-bold tracking-wide text-sm"
+          className="inline-flex items-center min-h-[44px] px-4 rounded-md border-2 border-orange-300 hover:border-orange-500 text-orange-800 font-bold tracking-wide text-sm"
         >
           <ExternalLink className="w-4 h-4 mr-2" />
           {t("Open Operational Board")}

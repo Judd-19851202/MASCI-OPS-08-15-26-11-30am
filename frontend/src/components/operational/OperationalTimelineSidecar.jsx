@@ -103,7 +103,7 @@ export default function OperationalTimelineSidecar({ projectNumber }) {
           onClick={load}
           data-testid="operational-timeline-sidecar-refresh"
           aria-label="Refresh chronology"
-          className="ml-auto text-xs text-slate-500 hover:text-slate-700 inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-50 transition-colors min-h-[32px]"
+          className="ml-auto text-xs text-slate-500 hover:text-slate-700 inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-50 transition-colors min-h-[44px]"
         >
           <RefreshCw className="w-3 h-3" /> Refresh
         </button>
@@ -149,7 +149,7 @@ export default function OperationalTimelineSidecar({ projectNumber }) {
                 type="button"
                 onClick={() => setState((s) => ({ ...s, showAll: true }))}
                 data-testid="operational-timeline-sidecar-show-all"
-                className="mt-2 text-xs text-slate-600 hover:text-slate-900 underline-offset-2 hover:underline min-h-[32px] inline-flex items-center"
+                className="mt-2 text-xs text-slate-600 hover:text-slate-900 underline-offset-2 hover:underline min-h-[44px] inline-flex items-center"
               >
                 Show all {total} events
               </button>

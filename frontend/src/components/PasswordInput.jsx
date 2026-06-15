@@ -33,7 +33,7 @@ export const PasswordInput = forwardRef(function PasswordInput(
         onClick={() => setVisible((v) => !v)}
         tabIndex={-1}
         aria-label={visible ? "Hide password" : "Show password"}
-        className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex items-center justify-center min-h-[36px] min-w-[36px] rounded text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+        className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
         data-testid={toggleTestId}
       >
         <Icon className="w-4 h-4" />

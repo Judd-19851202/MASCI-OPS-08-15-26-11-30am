@@ -361,7 +361,7 @@ export default function DispatchHub() {
           <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-100" data-testid="ds-secondary-links">
             <Link
               to="/dispatch-portal/fleet"
-              className="inline-flex items-center min-h-[36px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
+              className="inline-flex items-center min-h-[44px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
               data-testid="dispatch-fleet-link"
             >
               <Truck className="w-4 h-4 mr-1.5" />
@@ -369,7 +369,7 @@ export default function DispatchHub() {
             </Link>
             <Link
               to="/dispatch-portal/driver-qualification"
-              className="inline-flex items-center min-h-[36px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
+              className="inline-flex items-center min-h-[44px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
               data-testid="dispatch-driver-qual-link"
             >
               <ShieldCheck className="w-4 h-4 mr-1.5" />
@@ -377,7 +377,7 @@ export default function DispatchHub() {
             </Link>
             <Link
               to="/asset-transfers"
-              className="inline-flex items-center min-h-[36px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
+              className="inline-flex items-center min-h-[44px] px-3 rounded-md border border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-bold text-slate-700"
               data-testid="dispatch-asset-transfers-link"
             >
               <Truck className="w-4 h-4 mr-1.5" />
