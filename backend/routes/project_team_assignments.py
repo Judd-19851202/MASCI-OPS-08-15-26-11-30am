@@ -35,36 +35,38 @@ logger = logging.getLogger(__name__)
 ROLE_REGISTRY: Dict[str, str] = {
     "pm": "Project Manager",
     "co_pm": "Co-PM",
-    "assistant_pm": "Assistant PM",
+    "executive_oversight": "Executive Oversight",
     "superintendent": "Superintendent",
+    # Track 14.0-PM-STAFFING-RUNTIME-CERT · added per directive.
+    "assistant_superintendent": "Assistant Superintendent",
     "foreman": "Foreman",
-    # Track 14.0-PM-STAFFING-COMPLETION · safety_lead relabeled to
-    # "Safety Representative" to match the operational vocabulary the
-    # field actually uses.
-    "safety_rep": "Safety Representative",
     "project_engineer": "Project Engineer",
-    # New project-level roles (Phase 2 mandate). These are
-    # operationally distinct slots — not aliases of existing roles.
     "project_administrator": "Project Administrator",
     "project_coordinator": "Project Coordinator",
+    "safety_rep": "Safety Representative",
     "qaqc_rep": "QA/QC Representative",
     "hr_rep": "HR Representative",
-    "asset_admin": "Asset Admin",
-    "locate_coordinator": "811 Locate Coordinator",
-    # Track 14.0-PM-STAFFING-COMPLETION · dispatcher_contact relabeled
-    # to "Dispatch Representative" for the same vocabulary reason.
     "dispatch_rep": "Dispatch Representative",
-    "shop_contact": "Shop Contact",
-    "executive_oversight": "Executive Oversight",
-    "read_only_stakeholder": "Read-only Stakeholder",
+    # Track 14.0-PM-STAFFING-RUNTIME-CERT · relabels + additions.
+    "equipment_manager": "Equipment Manager",
+    "shop_rep": "Shop Representative",
+    "survey_rep": "Survey Representative",
+    "accounting_rep": "Accounting Representative",
 }
-# Back-compat alias map — old internal keys → current canonical key.
-# Persisted assignments written under the old keys are translated to
-# the new keys when read, and a one-shot migration normalises the
-# stored value the first time the document is updated.
+# Legacy keys translated on read; POST/PATCH normalise on write.
 LEGACY_ROLE_ALIASES: Dict[str, str] = {
     "safety_lead": "safety_rep",
     "dispatcher_contact": "dispatch_rep",
+    "asset_admin": "equipment_manager",
+    "shop_contact": "shop_rep",
+    # Assistant PM rolled into Project Coordinator (operational
+    # duplicate per the new roster).
+    "assistant_pm": "project_coordinator",
+    # 811 Locate Coordinator + Read-only Stakeholder removed from
+    # the new 17-role roster; historic assignments translate to
+    # closest operational role.
+    "locate_coordinator": "project_coordinator",
+    "read_only_stakeholder": "executive_oversight",
 }
 ALL_ROLES: Set[str] = set(ROLE_REGISTRY.keys())
 

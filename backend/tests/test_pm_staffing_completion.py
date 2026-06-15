@@ -34,21 +34,21 @@ def test_role_registry_includes_all_seventeen_roles():
     expected = {
         "pm": "Project Manager",
         "co_pm": "Co-PM",
-        "assistant_pm": "Assistant PM",
+        "executive_oversight": "Executive Oversight",
         "superintendent": "Superintendent",
+        "assistant_superintendent": "Assistant Superintendent",
         "foreman": "Foreman",
-        "safety_rep": "Safety Representative",
         "project_engineer": "Project Engineer",
         "project_administrator": "Project Administrator",
         "project_coordinator": "Project Coordinator",
+        "safety_rep": "Safety Representative",
         "qaqc_rep": "QA/QC Representative",
         "hr_rep": "HR Representative",
-        "asset_admin": "Asset Admin",
-        "locate_coordinator": "811 Locate Coordinator",
         "dispatch_rep": "Dispatch Representative",
-        "shop_contact": "Shop Contact",
-        "executive_oversight": "Executive Oversight",
-        "read_only_stakeholder": "Read-only Stakeholder",
+        "equipment_manager": "Equipment Manager",
+        "shop_rep": "Shop Representative",
+        "survey_rep": "Survey Representative",
+        "accounting_rep": "Accounting Representative",
     }
     missing = {k: v for k, v in expected.items()
                if ROLE_REGISTRY.get(k) != v}
@@ -67,53 +67,42 @@ def test_legacy_role_aliases_translate_correctly():
     from routes.project_team_assignments import (
         LEGACY_ROLE_ALIASES, _canonical_role, ALL_ROLES,
     )
-    # Aliases must point at live keys.
     for legacy, current in LEGACY_ROLE_ALIASES.items():
         assert current in ALL_ROLES, (
             f"Legacy alias {legacy!r} → {current!r} but {current!r} "
             "is not in ALL_ROLES — translation would 404."
         )
-    # The two specific relabels must be aliased.
+    # The five canonical relabels / consolidations must be aliased.
     assert LEGACY_ROLE_ALIASES.get("safety_lead") == "safety_rep"
     assert LEGACY_ROLE_ALIASES.get("dispatcher_contact") == "dispatch_rep"
-    # _canonical_role passes through canonical keys unchanged.
-    assert _canonical_role("safety_rep") == "safety_rep"
-    assert _canonical_role("dispatch_rep") == "dispatch_rep"
-    # And translates legacy keys.
+    assert LEGACY_ROLE_ALIASES.get("asset_admin") == "equipment_manager"
+    assert LEGACY_ROLE_ALIASES.get("shop_contact") == "shop_rep"
+    assert LEGACY_ROLE_ALIASES.get("assistant_pm") == "project_coordinator"
+    # Canonical keys pass through untouched.
+    for k in ("safety_rep", "dispatch_rep", "equipment_manager",
+              "shop_rep", "project_coordinator"):
+        assert _canonical_role(k) == k
+    # Legacy translates.
     assert _canonical_role("safety_lead") == "safety_rep"
-    assert _canonical_role("dispatcher_contact") == "dispatch_rep"
-    # Empty / None passes through.
+    assert _canonical_role("asset_admin") == "equipment_manager"
     assert _canonical_role(None) is None
     assert _canonical_role("") == ""
 
 
-# ─────────────────────────────────────────────────────────────────────
-# Permission gate — admin-only set hasn't expanded
-# ─────────────────────────────────────────────────────────────────────
-
-
 def test_admin_only_roles_remain_locked():
-    """Only PM / Co-PM / Executive Oversight are admin-only. Everything
-    else (including the 4 new roles) must be PM-assignable so a PM can
-    actually run their project without filing an admin ticket."""
+    """Only PM / Co-PM / Executive Oversight are admin-only."""
     from routes.project_team_assignments import (
         ADMIN_ONLY_ROLES, PM_ASSIGNABLE_ROLES, ALL_ROLES,
     )
-    assert ADMIN_ONLY_ROLES == {"pm", "co_pm", "executive_oversight"}, (
-        f"ADMIN_ONLY_ROLES drifted: {ADMIN_ONLY_ROLES!r}. PM staffing "
-        "self-service is supposed to cover every other role."
-    )
-    # Every new role must be PM-assignable.
-    for new_role in ("project_administrator", "project_coordinator",
-                     "qaqc_rep", "hr_rep"):
-        assert new_role in PM_ASSIGNABLE_ROLES, (
-            f"PM cannot self-assign {new_role!r}. New role isn't wired "
-            "into PM_ASSIGNABLE_ROLES."
+    assert ADMIN_ONLY_ROLES == {"pm", "co_pm", "executive_oversight"}
+    # Every NEW + relabeled role must be PM-assignable.
+    for r in ("project_administrator", "project_coordinator",
+              "qaqc_rep", "hr_rep", "safety_rep", "dispatch_rep",
+              "assistant_superintendent", "equipment_manager",
+              "shop_rep", "survey_rep", "accounting_rep"):
+        assert r in PM_ASSIGNABLE_ROLES, (
+            f"PM cannot self-assign {r!r}. New role not wired."
         )
-    # And the relabeled keys must also be PM-assignable.
-    assert "safety_rep" in PM_ASSIGNABLE_ROLES
-    assert "dispatch_rep" in PM_ASSIGNABLE_ROLES
-    # Union check — nothing slipped through.
     assert PM_ASSIGNABLE_ROLES | ADMIN_ONLY_ROLES == ALL_ROLES
 
 

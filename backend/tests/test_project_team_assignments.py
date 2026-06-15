@@ -72,9 +72,11 @@ def test_role_registry(tokens):
     for k in ("pm", "co_pm", "executive_oversight"):
         assert by_key[k]["admin_only"] is True
     for k in ("foreman", "superintendent", "safety_rep",
-              "asset_admin", "locate_coordinator",
+              "equipment_manager", "shop_rep",
               "project_administrator", "project_coordinator",
-              "qaqc_rep", "hr_rep", "dispatch_rep"):
+              "qaqc_rep", "hr_rep", "dispatch_rep",
+              "assistant_superintendent", "survey_rep",
+              "accounting_rep"):
         assert by_key[k]["admin_only"] is False
         assert by_key[k]["pm_assignable"] is True
 
