@@ -1,0 +1,42 @@
+{
+  "summary": "Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE retest after E1 fixes — ALL CRITICAL ITEMS PASS. (1) Backend _is_pm_on_project() fix verified: GET /api/pm/job/ZZ-RUNTIME-CERT-2026/team as cert.pm now returns HTTP 200 with 20 active items (was 403). (2) Frontend /pm/project/:projectNumber route resolves and renders pm-project-team-section + pm-project-team-full-page-link + inline job-team-roster-panel (was 404). (3) Role select shows 17 options with pm/co_pm/executive_oversight DISABLED + tooltip 'Admin only — request from your administrator' and 14 enabled — exact spec match. (4) pytest test_track14_pm_staffing_e2e_iteration517.py 10/10 PASS (previously 9/10) and test_track14_pm_staffing_discoverability.py 11/11 PASS. (5) Admin /admin/jobs/ZZ-RUNTIME-CERT-2026/team regression confirmed — panel renders 18 active with all 17 role slots.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track14_pm_staffing_e2e_iteration517.py",
+    "/app/backend/tests/test_track14_pm_staffing_discoverability.py",
+    "/app/test_reports/pytest/iteration_518_pm_e2e.xml",
+    "/app/test_reports/pytest/iteration_518_pm_disc.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "_is_pm_on_project() now correctly reconciles jobs_master.pm_email + project_team_assignments. Implementation in /app/backend/routes/project_team_assignments.py:155-197 is clean (case-insensitive regex lookup, short-circuit primary+co, single async cursor). Good fix.",
+    "App.js now mounts /pm/project/:projectNumber → PmProjectDetail (line 731) alongside the legacy /pm/projects-legacy/:projectNumber (line 727). Both work as intended; consider deprecating the legacy alias after one release cycle.",
+    "JobTeamRosterPanel role select now exposes data-testid=job-team-role-option-{key} with aria-disabled + title tooltip on admin-only roles for non-admin scope — directly assertable via black-box automation. Excellent testability improvement.",
+    "FILE SIZE: /app/backend/routes/project_team_assignments.py is now 1055 lines (was 1026), still beyond the 700-line guideline. Split recommendation from iter517 stands — permissions.py + admin_router.py + pm_router.py + summary.py."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (21/21 pytest)", "frontend": "100% (all PM + admin discoverability flows verified)"},
+  "test_credentials": "Super Admin jaymn.judd@mascigc.com / Maddix123! (multi-login, all portals); PM cert.pm@example.com / CertProof2026! (multi-login, pm portal). Auth header for PM endpoints is X-PM-Token (NOT Authorization: Bearer). Admin endpoints use X-Admin-Token.",
+  "seed_data_creation": "None — used existing cert project ZZ-RUNTIME-CERT-2026 with 18 active cert.* role assignments.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE is fully GREEN. Backend 21/21 pytest, frontend PM team page renders 18 members with no errors, role select exposes 17 options with correct admin-only disable+tooltip wiring, /pm/project/:projectNumber inline section + 'Open dedicated Team page' link both resolve. PM endpoint headers: X-PM-Token (Authorization: Bearer returns 401 'Portal authentication required'). LocalStorage keys used by the frontend: masci.pm.token, masci.admin.token, masci.session.token, masci.user, masci.last_portal.",
+  "verification_evidence": {
+    "pytest_e2e": "10/10 PASS in 3.63s — including test_pm_can_assign_superintendent which was previously the lone failure",
+    "pytest_discoverability": "11/11 PASS in 0.05s",
+    "api_GET_pm_team": "HTTP 200, 20 items via X-PM-Token (>=18 required)",
+    "api_GET_admin_team": "HTTP 200, 20 items via X-Admin-Token",
+    "frontend_pm_project_route": "/pm/project/ZZ-RUNTIME-CERT-2026 resolves; pm-project-team-section + pm-project-team-full-page-link + job-team-roster-panel all present",
+    "frontend_pm_job_team": "18 active members rendered, no '403'/'team-fetch'/'not assigned' errors; 17 role options (14 enabled + 3 disabled: pm,co_pm,executive_oversight all with tooltip 'Admin only — request from your administrator')",
+    "frontend_admin_job_team": "Panel renders 18 active members; all 17 role slots labeled in DOM (cert.pm, cert.copm, cert.exec, cert.super, cert.asuper, cert.foreman, cert.pe, cert.padmin, cert.pcoord, cert.safety, cert.qaqc, cert.hr, cert.dispatch, cert.equip + others)"
+  },
+  "rca_of_the_issue": "RESOLVED. (a) _is_pm_on_project() previously only consulted jobs_master.pm_email; now also queries project_team_assignments with assignment_role IN ('pm','co_pm') AND active=True AND case-insensitive email match. cert.pm@example.com is no longer stranded out of their own roster. (b) /pm/project/:projectNumber route is now mounted in App.js (line 731). Both fixes verified via direct API, pytest, and Playwright DOM assertions on the public preview URL."
+}

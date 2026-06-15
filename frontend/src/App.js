@@ -725,6 +725,10 @@ function App() {
                 /api/pm/command-center/timeline. */}
             <Route path="/pm/projects/:projectNumber" element={P(<PmProjectRedirect />)} />
             <Route path="/pm/projects-legacy/:projectNumber" element={P(<PmProjectDetail />)} />
+            {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE: also
+                expose the inline project detail at /pm/project/{pn}
+                (singular) so external links / search results resolve. */}
+            <Route path="/pm/project/:projectNumber" element={P(<PmProjectDetail />)} />
             {/* PM Command Center · Phase 4B · 2026-02-10.
                 Backed by /api/pm/command-center/* (Phase 4A). One
                 page · seven tabs · iPad-friendly. */}

@@ -153,19 +153,48 @@ async def _project_exists(db, project_number: str) -> bool:
 
 
 async def _is_pm_on_project(db, actor_email: str, project_number: str) -> Tuple[bool, bool]:
-    """Return (is_primary_pm, is_co_pm)."""
+    """Return (is_primary_pm, is_co_pm).
+
+    Reconciles the two sources of truth:
+      1. Legacy: jobs_master.pm_email / co_pm_emails (single string + list)
+      2. Track 14.0 staffing: project_team_assignments with
+         assignment_role='pm' or 'co_pm' (active=True).
+
+    A user is treated as PM/Co-PM if either source identifies them, so
+    the new staffing workflow does not strand legitimate PMs out of
+    their own roster (Track 14.0-PM-STAFFING-UI-DISCOVERABILITY fix)."""
     if not actor_email:
         return (False, False)
+    actor_email = actor_email.lower()
+    is_primary = False
+    is_co = False
     job = await db.jobs_master.find_one(
         {"project_number": project_number},
         {"_id": 0, "pm_email": 1, "co_pm_emails": 1},
     )
-    if not job:
-        return (False, False)
-    return (
-        (job.get("pm_email") or "").lower() == actor_email,
-        actor_email in {e.lower() for e in (job.get("co_pm_emails") or [])},
-    )
+    if job:
+        if (job.get("pm_email") or "").lower() == actor_email:
+            is_primary = True
+        if actor_email in {e.lower() for e in (job.get("co_pm_emails") or [])}:
+            is_co = True
+    if not (is_primary and is_co):
+        # Fall back to the staffing roster for either role.
+        cur = db.project_team_assignments.find(
+            {
+                "project_number": project_number,
+                "active": True,
+                "assignment_role": {"$in": ["pm", "co_pm"]},
+                "email": {"$regex": f"^{re.escape(actor_email)}$", "$options": "i"},
+            },
+            {"_id": 0, "assignment_role": 1},
+        )
+        async for r in cur:
+            role = r.get("assignment_role")
+            if role == "pm":
+                is_primary = True
+            elif role == "co_pm":
+                is_co = True
+    return (is_primary, is_co)
 
 
 async def _resolve_user(
