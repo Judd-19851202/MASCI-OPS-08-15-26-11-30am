@@ -1,0 +1,503 @@
+{
+  "started": 1781558832.0461793,
+  "base": "https://safety-audit-mobile-1.preview.emergentagent.com",
+  "phases": {
+    "1_multi_viewport": {
+      "total_checks": 28,
+      "h_scroll_violations": [],
+      "console_error_routes": [],
+      "tap_target_under_44_on_coarse": [],
+      "passed": 28,
+      "failed": 0,
+      "details": [
+        {
+          "viewport": "ipad_portrait",
+          "route": "homepage",
+          "h_scroll": false,
+          "scroll_width": 768,
+          "client_width": 768,
+          "console_errors": [],
+          "btn_total": 3,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_portrait",
+          "route": "sign-in",
+          "h_scroll": false,
+          "scroll_width": 768,
+          "client_width": 768,
+          "console_errors": [],
+          "btn_total": 4,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_portrait",
+          "route": "safety-forms-login",
+          "h_scroll": false,
+          "scroll_width": 768,
+          "client_width": 768,
+          "console_errors": [],
+          "btn_total": 4,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_portrait",
+          "route": "public-excavation",
+          "h_scroll": false,
+          "scroll_width": 768,
+          "client_width": 768,
+          "console_errors": [],
+          "btn_total": 55,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_landscape",
+          "route": "homepage",
+          "h_scroll": false,
+          "scroll_width": 1024,
+          "client_width": 1024,
+          "console_errors": [],
+          "btn_total": 3,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_landscape",
+          "route": "sign-in",
+          "h_scroll": false,
+          "scroll_width": 1024,
+          "client_width": 1024,
+          "console_errors": [],
+          "btn_total": 4,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_landscape",
+          "route": "safety-forms-login",
+          "h_scroll": false,
+          "scroll_width": 1024,
+          "client_width": 1024,
+          "console_errors": [],
+          "btn_total": 4,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_landscape",
+          "route": "public-excavation",
+          "h_scroll": false,
+          "scroll_width": 1024,
+          "client_width": 1024,
+          "console_errors": [],
+          "btn_total": 55,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_mini_portrait",
+          "route": "homepage",
+          "h_scroll": false,
+          "scroll_width": 744,
+          "client_width": 744,
+          "console_errors": [],
+          "btn_total": 3,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_mini_portrait",
+          "route": "sign-in",
+          "h_scroll": false,
+          "scroll_width": 744,
+          "client_width": 744,
+          "console_errors": [],
+          "btn_total": 4,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_mini_portrait",
+          "route": "safety-forms-login",
+          "h_scroll": false,
+          "scroll_width": 744,
+          "client_width": 744,
+          "console_errors": [],
+          "btn_total": 4,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_mini_portrait",
+          "route": "public-excavation",
+          "h_scroll": false,
+          "scroll_width": 744,
+          "client_width": 744,
+          "console_errors": [],
+          "btn_total": 55,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_mini_landscape",
+          "route": "homepage",
+          "h_scroll": false,
+          "scroll_width": 1133,
+          "client_width": 1133,
+          "console_errors": [],
+          "btn_total": 3,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_mini_landscape",
+          "route": "sign-in",
+          "h_scroll": false,
+          "scroll_width": 1133,
+          "client_width": 1133,
+          "console_errors": [],
+          "btn_total": 4,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_mini_landscape",
+          "route": "safety-forms-login",
+          "h_scroll": false,
+          "scroll_width": 1133,
+          "client_width": 1133,
+          "console_errors": [],
+          "btn_total": 4,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "ipad_mini_landscape",
+          "route": "public-excavation",
+          "h_scroll": false,
+          "scroll_width": 1133,
+          "client_width": 1133,
+          "console_errors": [],
+          "btn_total": 55,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "laptop",
+          "route": "homepage",
+          "h_scroll": false,
+          "scroll_width": 1366,
+          "client_width": 1366,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "laptop",
+          "route": "sign-in",
+          "h_scroll": false,
+          "scroll_width": 1366,
+          "client_width": 1366,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "laptop",
+          "route": "safety-forms-login",
+          "h_scroll": false,
+          "scroll_width": 1366,
+          "client_width": 1366,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "laptop",
+          "route": "public-excavation",
+          "h_scroll": false,
+          "scroll_width": 1366,
+          "client_width": 1366,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "desktop",
+          "route": "homepage",
+          "h_scroll": false,
+          "scroll_width": 1920,
+          "client_width": 1920,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "desktop",
+          "route": "sign-in",
+          "h_scroll": false,
+          "scroll_width": 1920,
+          "client_width": 1920,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "desktop",
+          "route": "safety-forms-login",
+          "h_scroll": false,
+          "scroll_width": 1920,
+          "client_width": 1920,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "desktop",
+          "route": "public-excavation",
+          "h_scroll": false,
+          "scroll_width": 1920,
+          "client_width": 1920,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "large",
+          "route": "homepage",
+          "h_scroll": false,
+          "scroll_width": 2560,
+          "client_width": 2560,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "large",
+          "route": "sign-in",
+          "h_scroll": false,
+          "scroll_width": 2560,
+          "client_width": 2560,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "large",
+          "route": "safety-forms-login",
+          "h_scroll": false,
+          "scroll_width": 2560,
+          "client_width": 2560,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        },
+        {
+          "viewport": "large",
+          "route": "public-excavation",
+          "h_scroll": false,
+          "scroll_width": 2560,
+          "client_width": 2560,
+          "console_errors": [],
+          "btn_total": 0,
+          "btn_under_44_on_coarse": 0,
+          "ok": true
+        }
+      ]
+    },
+    "4_adoption": {
+      "source_audit": {
+        "NewDailyReport": {
+          "has_field_glance_anchor": true,
+          "has_aria_busy_attr": true
+        },
+        "NewMeeting": {
+          "has_field_glance_anchor": true,
+          "has_aria_busy_attr": true
+        },
+        "NewIncident": {
+          "has_field_glance_anchor": true,
+          "has_aria_busy_attr": true
+        },
+        "NewEquipmentInspection": {
+          "has_field_glance_anchor": true,
+          "has_aria_busy_attr": true
+        },
+        "NewQaqcInspection": {
+          "has_field_glance_anchor": true,
+          "has_aria_busy_attr": true
+        },
+        "SafetyCorrectiveActions": {
+          "has_field_glance_anchor": false,
+          "has_aria_busy_attr": true
+        },
+        "PublicTimeOff": {
+          "has_field_glance_anchor": true,
+          "has_aria_busy_attr": true
+        },
+        "FieldLeadershipFormPage": {
+          "has_field_glance_anchor": true,
+          "has_aria_busy_attr": true
+        },
+        "PublicExcavationForm": {
+          "has_field_glance_anchor": true,
+          "has_aria_busy_attr": true
+        }
+      },
+      "runtime_spotcheck": {
+        "public_excavation": {
+          "h1_field_glance_anchor_count": 1,
+          "exc_submit_aria_busy": "false"
+        }
+      },
+      "source_anchor_count": 8,
+      "source_aria_busy_count": 9
+    },
+    "2_multi_tab_sso": {
+      "login": {
+        "ok": true,
+        "post_login_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "tokens": [
+          {
+            "k": "masci.directory.token",
+            "v": "R3TVJHNB_gvEjETbVr0yJEBraatBSNSvNp7O8i1p"
+          },
+          {
+            "k": "masci.shop.token",
+            "v": "65004b6a-1003-43c0-bfbe-5eb28db479cf.951"
+          },
+          {
+            "k": "masci.fl.token",
+            "v": "a92c7165-7900-4b6a-a602-e82b2059fe90.edd"
+          },
+          {
+            "k": "masci.dispatch.token",
+            "v": "65004b6a-1003-43c0-bfbe-5eb28db479cf.adf"
+          },
+          {
+            "k": "masci.hr.token",
+            "v": "65004b6a-1003-43c0-bfbe-5eb28db479cf.3a8"
+          },
+          {
+            "k": "masci.admin.token",
+            "v": "56f3300f91e4f5799f91e775d0b43ce783bef110"
+          },
+          {
+            "k": "masci.pm.token",
+            "v": "0ad42ff3-630e-4a54-b5d4-6a118994177d.04b"
+          },
+          {
+            "k": "masci.safety.token",
+            "v": "65004b6a-1003-43c0-bfbe-5eb28db479cf.6ef"
+          }
+        ]
+      },
+      "tabs": [
+        {
+          "portal": "/admin/login",
+          "still_on_login": true,
+          "url_after": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/login",
+          "auto_elevated": false
+        },
+        {
+          "portal": "/pm/login",
+          "still_on_login": true,
+          "url_after": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/login",
+          "auto_elevated": false
+        },
+        {
+          "portal": "/hr/login",
+          "still_on_login": true,
+          "url_after": "https://safety-audit-mobile-1.preview.emergentagent.com/hr/login",
+          "auto_elevated": false
+        },
+        {
+          "portal": "/safety-portal/login",
+          "still_on_login": true,
+          "url_after": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal/login",
+          "auto_elevated": false
+        }
+      ],
+      "token_corruption_safe_on_close_and_reload": false,
+      "auto_elevated_count": 0
+    },
+    "3_throttled_network": {
+      "submit_posts_on_double_tap": 0,
+      "duplicate_submit_prevented": true,
+      "panic_banner_seen_during_slow": false,
+      "session_expired_during_slow": false,
+      "abort_phase_surfaced_retry_or_offline_ui": false
+    },
+    "5_persona_walk": {
+      "results": [
+        {
+          "role": "superintendent",
+          "portal_path": "/safety/forms/login",
+          "login_form_error": "Page.fill: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"input[type=\\\"email\\\"], input[name=\\\"email\\\"]\")\n"
+        },
+        {
+          "role": "foreman",
+          "portal_path": "/safety/forms/login",
+          "login_form_error": "Page.fill: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"input[type=\\\"email\\\"], input[name=\\\"email\\\"]\")\n"
+        },
+        {
+          "role": "safety",
+          "email": "cert.safety@example.com",
+          "portal_path": "/safety-portal/login",
+          "login_ok": true,
+          "url_after_login": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+          "console_errors": []
+        },
+        {
+          "role": "pm",
+          "email": "cert.pm@example.com",
+          "portal_path": "/pm/login",
+          "login_ok": true,
+          "url_after_login": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 401 ()",
+            "Failed to load resource: the server responded with a status of 401 ()",
+            "Failed to load resource: the server responded with a status of 401 ()",
+            "Failed to load resource: the server responded with a status of 401 ()",
+            "Failed to load resource: the server responded with a status of 401 ()"
+          ]
+        },
+        {
+          "role": "hr",
+          "email": "cert.hr@example.com",
+          "portal_path": "/hr/login",
+          "login_ok": true,
+          "url_after_login": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+          "console_errors": []
+        }
+      ],
+      "logged_in_count": 3
+    },
+    "6_stress_loop": {
+      "iterations": 50,
+      "cumulative_console_errors": 378,
+      "initial_heap_bytes": 44700000,
+      "final_heap_bytes": 7969840,
+      "growth_pct": -82.2,
+      "still_clickable_after_loop": false,
+      "ok": false
+    }
+  },
+  "ended": 1781559015.548473,
+  "duration_s": 183.5
+}

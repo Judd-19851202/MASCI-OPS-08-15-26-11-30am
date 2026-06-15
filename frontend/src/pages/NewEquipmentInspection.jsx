@@ -660,7 +660,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             {t("New Report")}
           </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
+          <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Equipment Pre-Op Inspection")}
           </h1>
           <p className="text-slate-600 text-sm mt-2">
@@ -1149,6 +1149,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           <Button
             onClick={submit}
             disabled={saving || failGating.blocked}
+            aria-busy={saving}
             className="h-12 px-6 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:border-slate-400"
             data-testid="submit-bottom-btn"
           >

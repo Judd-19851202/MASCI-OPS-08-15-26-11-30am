@@ -770,6 +770,7 @@ export default function SafetyCorrectiveActions() {
             <Button
               onClick={save}
               disabled={saving}
+              aria-busy={saving}
               className="bg-cyan-700 hover:bg-cyan-800 text-white border-b-2 border-cyan-900 font-bold uppercase tracking-wide"
               data-testid="safety-ca-form-save"
             >

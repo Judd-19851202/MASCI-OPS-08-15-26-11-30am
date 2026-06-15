@@ -752,7 +752,7 @@ export default function FieldLeadershipFormPage() {
         </div>
 
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
-        <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{l(form.title, lang)}</h1>
+        <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black mt-1">{l(form.title, lang)}</h1>
         <p className="text-slate-600 mt-2 max-w-xl">{l(form.desc, lang)}</p>
 
         {FL_KIND_HELPTIP_FORMKEY[kind] ? (
@@ -1054,6 +1054,7 @@ export default function FieldLeadershipFormPage() {
             <Button
               type="button"
               disabled={submitting}
+              aria-busy={submitting}
               onClick={submit}
               className="flex-1 h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
               data-testid="leadership-submit"

@@ -395,7 +395,7 @@ export default function NewMeeting({ publicMode = false }) {
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             {t("New Report")}
           </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
+          <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Site Safety Meeting")}
           </h1>
         </div>
@@ -1036,6 +1036,7 @@ export default function NewMeeting({ publicMode = false }) {
           <Button
             onClick={submit}
             disabled={saving}
+            aria-busy={saving}
             title={missingHint ? `${t("To submit, complete")}: ${missingHint}` : ""}
             className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:opacity-60"
             data-testid="submit-bottom-btn"

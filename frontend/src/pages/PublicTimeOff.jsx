@@ -185,7 +185,7 @@ export default function PublicTimeOff() {
         <div className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
           <CalendarOff className="w-3.5 h-3.5 inline mr-1" /> {t("MASCI · Time Off Request")}
         </div>
-        <h1 className="font-display text-2xl sm:text-3xl font-black mt-1">{t("Hello,")} {formatEmployeeIdentity(meta) || meta.employee_name}.</h1>
+        <h1 className="field-glance-anchor font-display text-2xl sm:text-3xl font-black mt-1">{t("Hello,")} {formatEmployeeIdentity(meta) || meta.employee_name}.</h1>
         <p className="text-slate-600 mt-2 text-sm sm:text-base">
           {meta.note || t("Fill out this form to request time off. HR will review and email you a decision.")}
         </p>
@@ -270,14 +270,14 @@ export default function PublicTimeOff() {
         </div>
 
         {/* Desktop submit (hidden on mobile — replaced by sticky bar below) */}
-        <Button onClick={submit} disabled={busy} className="hidden sm:flex w-full h-12 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide" data-testid="public-submit">
+        <Button onClick={submit} disabled={busy} aria-busy={busy} className="hidden sm:flex w-full h-12 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide" data-testid="public-submit">
           {busy ? t("Submitting…") : t("Submit Time Off Request")}
         </Button>
       </Card>
 
       {/* Mobile-only sticky submit bar */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-cyan-700 px-3 py-3 shadow-lg z-50" style={{paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))'}}>
-        <Button onClick={submit} disabled={busy}
+        <Button onClick={submit} disabled={busy} aria-busy={busy}
           className="w-full h-14 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide text-base"
           data-testid="public-submit-mobile"
         >

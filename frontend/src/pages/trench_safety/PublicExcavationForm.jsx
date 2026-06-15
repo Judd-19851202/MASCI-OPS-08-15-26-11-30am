@@ -302,7 +302,7 @@ export default function PublicExcavationForm() {
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700 font-bold mt-1">
             {t("MASCI Trench Safety")} · {t("Field Excavation Record")}
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-excavation-title">
+          <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-excavation-title">
             {t("Excavation Operations")}
           </h1>
           <p className="text-slate-600 text-sm max-w-2xl mx-auto mt-2" data-testid="public-excavation-purpose">
@@ -776,7 +776,7 @@ export default function PublicExcavationForm() {
             data-testid="public-excavation-cancel-link">
             {t("Cancel · Back to Trench Safety")}
           </Link>
-          <Button onClick={submit} disabled={saving}
+          <Button onClick={submit} disabled={saving} aria-busy={saving}
             className="bg-cyan-700 hover:bg-cyan-800 h-12 px-6 text-sm font-bold uppercase tracking-[0.12em]"
             data-testid="exc-submit">
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : t("Submit Excavation Record")}

@@ -243,7 +243,7 @@ export default function NewQaqcInspection() {
             <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold">
               {t("QA / QC")}
             </span>
-            <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+            <h1 className="field-glance-anchor font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
               {titleLabel}
             </h1>
           </div>
@@ -568,6 +568,7 @@ export default function NewQaqcInspection() {
               <Button
                 type="submit"
                 disabled={saving || data.photos.length < 4}
+                aria-busy={saving}
                 className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed h-12 px-6 font-bold"
                 data-testid="qaqc-submit"
               >
