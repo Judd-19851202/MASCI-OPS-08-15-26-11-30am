@@ -25,6 +25,7 @@ import { getHrToken } from "@/lib/hrAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { WeeklyHoursFlag, DailyHoursFlag } from "@/components/HoursSanityFlag";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
 
@@ -493,8 +494,8 @@ function WeeklyTable({ rows }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.employee_name} className="border-t border-slate-100 hover:bg-slate-50">
-              <td className="px-3 py-2 font-semibold">{r.employee_name}</td>
+            <tr key={formatEmployeeIdentity(r) || r.employee_name} className="border-t border-slate-100 hover:bg-slate-50">
+              <td className="px-3 py-2 font-semibold">{formatEmployeeIdentity(r) || r.employee_name}</td>
               <td className="px-3 py-2 text-slate-700">{(r.jobs || []).join(", ") || "—"}</td>
               <td className="px-3 py-2 text-slate-700">{(r.supervisors || []).join(", ") || "—"}</td>
               <td className="px-3 py-2 text-right font-mono">{fmtHours(r.regular_hours)}</td>
@@ -553,9 +554,9 @@ function DailyTable({ rows }) {
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={`${r.daily_report_id}-${r.employee_name}-${i}`} className="border-t border-slate-100 hover:bg-slate-50">
+            <tr key={`${r.daily_report_id}-${formatEmployeeIdentity(r) || r.employee_name}-${i}`} className="border-t border-slate-100 hover:bg-slate-50">
               <td className="px-3 py-2 font-mono text-xs">{r.date}</td>
-              <td className="px-3 py-2 font-semibold">{r.employee_name}</td>
+              <td className="px-3 py-2 font-semibold">{formatEmployeeIdentity(r) || r.employee_name}</td>
               <td className="px-3 py-2 text-slate-600">{r.trade || "—"}</td>
               <td className="px-3 py-2 text-slate-700">
                 <div className="font-mono text-xs text-slate-500">{r.project_number}</div>

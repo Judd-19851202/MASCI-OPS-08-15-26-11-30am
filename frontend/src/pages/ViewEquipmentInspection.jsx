@@ -19,6 +19,7 @@ import ShopSignoffCard from "@/components/ShopSignoffCard";
 import { itemSeverity } from "@/lib/equipmentSeverity";
 import { isAdmin } from "@/lib/adminAuth";
 import { useT } from "@/lib/i18n";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const KV = ({ label, value, full = false }) => (
   <div className={full ? "lg:col-span-2" : ""}>
@@ -200,7 +201,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
             <KV label="Project" value={data.project_name} />
             <KV label="Project #" value={data.project_number} />
             <KV label="Location" value={data.location} full />
-            <KV label="Operator" value={data.operator_name} />
+            <KV label="Operator" value={formatEmployeeIdentity(data) || data.operator_name} />
             <KV label="Date / Time" value={`${data.inspection_date} ${data.inspection_time}`} />
           </div>
         </div>
@@ -348,7 +349,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
         {data.operator_signature && (
           <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
             <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Sign-Off</h2>
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">Operator: {data.operator_name}</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">Operator: {formatEmployeeIdentity(data) || data.operator_name}</div>
             <img src={resolvePhotoSrc(data.operator_signature)} alt="Operator signature" className="max-h-32 border-b-2 border-slate-300" />
           </div>
         )}

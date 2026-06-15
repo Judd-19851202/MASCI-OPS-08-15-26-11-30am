@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import HrPageShell from "@/components/HrPageShell";
 import { getHrToken } from "@/lib/hrAuth";
 import { useT } from "@/lib/i18n";
+import { formatEmployeeIdentity } from "@/lib/identity";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -476,7 +477,7 @@ export default function HrSafetyRecords() {
                       return (
                         <tr key={r.id} className={`border-t border-slate-100 ${archived ? "opacity-50" : ""} ${st === "expired" && !archived ? "bg-red-50" : ""}`} data-testid={`hr-safety-training-row-${r.id}`}>
                           <td className="px-3 py-2 font-semibold">
-                            {r.employee_name}
+                            {formatEmployeeIdentity(r) || r.employee_name}
                             {archived && <Badge variant="outline" className="ml-2 bg-slate-200 text-slate-700 border-slate-300 text-[9px] font-mono uppercase">{t("ARCHIVED")}</Badge>}
                           </td>
                           <td className="px-3 py-2">{r.training_name}</td>

@@ -21,6 +21,7 @@ import { useT } from "@/lib/i18n";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { Users as UsersIcon } from "lucide-react";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 function SeverityPill({ value, kind = "info" }) {
   const tints = {
@@ -331,7 +332,7 @@ function CrewTrainingTable({ items, today, cutoff30, empty }) {
               else if (exp && exp <= cutoff30) sev = { v: t("≤30d"), k: "amber" };
               return (
                 <tr key={r.id}>
-                  <td className="px-3 py-2"><EmployeeLink name={r.employee_name} id={r.employee_id} /></td>
+                  <td className="px-3 py-2"><EmployeeLink name={formatEmployeeIdentity(r) || r.employee_name} id={r.employee_id} /></td>
                   <td className="px-3 py-2 text-slate-700">{r.training_name || r.certification_type || "—"}</td>
                   <td className="px-3 py-2"><DateCell value={r.completed_date} /></td>
                   <td className="px-3 py-2"><DateCell value={r.expiration_date} /></td>
@@ -351,7 +352,7 @@ function CrewTrainingTable({ items, today, cutoff30, empty }) {
           return (
             <div key={r.id} className="bg-white border border-slate-200 rounded-md p-3">
               <div className="flex items-start justify-between gap-2">
-                <EmployeeLink name={r.employee_name} id={r.employee_id} />
+                <EmployeeLink name={formatEmployeeIdentity(r) || r.employee_name} id={r.employee_id} />
                 <SeverityPill value={sev.v} kind={sev.k} />
               </div>
               <div className="text-xs text-slate-700 mt-1">{r.training_name || r.certification_type || "—"}</div>

@@ -11,6 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14 · fork session)
+- **14.0-UXS-11F HR IDENTITY COMPLETION (FINAL ROLLOUT) CLOSED**.
+  Drove identity-consumer count from 28 raw display sites down to
+  **0 remaining display surfaces**. 27 display sites across 15 pages +
+  2 components converted to `formatEmployeeIdentity(x) || x.<field>`
+  via one-shot regex rewrite. The single remaining bare reference is
+  a write-side form input (`NewEquipmentInspection` operator name),
+  correctly excluded. Backend `/api/global-search` employees probe
+  now matches `legal_first_name` / `legal_middle_name` /
+  `legal_last_name` / `preferred_name` in addition to legacy fields,
+  and result titles render through `format_employee_identity()`. The
+  helpers (backend + frontend) now treat `display_identity` as the
+  highest-priority denormalised fallback, so any future endpoint
+  projecting that field lights up correct preferred-name display
+  everywhere with zero new frontend code. Dispatch broadcast presets
+  show `James Fisher (Jimmy)` formal display; dispatch driver SMS
+  greeting now uses `preferred → legal_first → driver_name` chain so
+  texts read naturally as `Hi Jimmy, …`. Regression suite grew
+  19 → **37 parametrized identity assertions** (consumer locks +
+  structural "no bare identity render" guard + global-search lock).
+  Full RC1 sweep: **176 / 176 pass**. Closure ledger:
+  `/app/memory/TRACK_14_0_UXS_11F_CLOSURE.md`. Five Pillars 9.92.
+  One transparent follow-on flagged (single safety_forms PDF
+  renderer site — narrow `UXS-11G` track recommended rather than
+  smuggled into this closure).
+
+## Previous Closed Track (2026-02-14 · fork session)
 - **14.0-HR-IDENTITY-COMPLETION-AND-CERTIFICATION** — canonical
   identity helper layer + regression coverage. Created
   `backend/masci/identity.py` and `frontend/src/lib/identity.js`

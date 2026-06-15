@@ -53,6 +53,7 @@ import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 import ShopMaintainxReadinessTile from "@/components/shop/ShopMaintainxReadinessTile";
 import ShopOpsIntelPanel from "@/components/ShopOpsIntelPanel";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const SHOP_PAL = paletteFor("shop");
 
@@ -110,7 +111,7 @@ const RecoveryCard = ({ row, stateLabel, testIdRoot, onUpdated, enableActions = 
     // Tiny secondary operational-impact line · field-driven phrasing.
     const parts = [];
     if (row.truck_id) parts.push(`${t("Truck")} ${row.truck_id}`);
-    if (row.driver_name) parts.push(`${t("Driver")}: ${row.driver_name}`);
+    if (row.driver_name) parts.push(`${t("Driver")}: ${formatEmployeeIdentity(row) || row.driver_name}`);
     if (row.project_number) parts.push(`#${row.project_number}`);
     return parts.join(" · ");
   }, [row, t]);

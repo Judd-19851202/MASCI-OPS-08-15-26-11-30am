@@ -40,7 +40,9 @@ def format_employee_identity(obj: Optional[Mapping[str, Any]]) -> str:
     if first or last:
         legal = " ".join(p for p in (first, last) if p)
     else:
-        for k in ("name", "full_name", "display_name", "employee_name"):
+        # `display_identity` is the backend-precomputed label and
+        # takes precedence over the other denormalised aliases.
+        for k in ("display_identity", "name", "full_name", "display_name", "employee_name"):
             v = _str(obj.get(k))
             if v:
                 legal = v
@@ -61,7 +63,7 @@ def format_legal_name(obj: Optional[Mapping[str, Any]]) -> str:
     last = _str(obj.get("legal_last_name"))
     if first or last:
         return " ".join(p for p in (first, last) if p)
-    for k in ("name", "full_name", "display_name", "employee_name"):
+    for k in ("display_identity", "name", "full_name", "display_name", "employee_name"):
         v = _str(obj.get(k))
         if v:
             return v

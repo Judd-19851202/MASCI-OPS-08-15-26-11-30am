@@ -27,6 +27,7 @@ import {
   subscribeCommandAction,
 } from "./commandActions";
 import { BoardShell, StatusChip } from "./BoardShell";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const POLL_MS = 60000;
 
@@ -126,7 +127,7 @@ function SendForm({ provider, onSent, preset, onPresetApplied }) {
           className="bg-sky-50 border border-sky-200 text-sky-900 rounded px-2.5 py-1.5 text-xs flex items-center justify-between"
         >
           <span>
-            Pre-filled from <b>Contact →</b> on <b>{preset.driver_name}</b>
+            Pre-filled from <b>Contact →</b> on <b>{formatEmployeeIdentity(preset) || preset.driver_name}</b>
             {preset.truck_id ? <> · truck <span className="font-mono">{preset.truck_id}</span></> : null}
             {preset.project_number && preset.project_number !== "no_job"
               ? <> · job <span className="font-mono">{preset.project_number}</span></> : null}

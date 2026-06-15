@@ -25,6 +25,7 @@ import { useRememberedFilter, useRememberedFormValue } from "@/lib/useRemembered
 import { friendlyError } from "@/lib/friendlyErrors";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
+import { formatEmployeeIdentity } from "@/lib/identity";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -264,7 +265,7 @@ export default function SafetyTrainingRecords() {
                 const label = st === "expired" ? "Expired" : st === "soon" ? "Expiring 30d" : st === "ok" ? "Current" : "No expiry";
                 return (
                   <tr key={r.id} className={`border-t border-slate-100 ${st === "expired" ? "bg-red-50" : ""}`} data-testid={`safety-tr-row-${r.id}`}>
-                    <td className="px-3 py-2 font-semibold">{r.employee_name}</td>
+                    <td className="px-3 py-2 font-semibold">{formatEmployeeIdentity(r) || r.employee_name}</td>
                     <td className="px-3 py-2">{r.training_name}</td>
                     <td className="px-3 py-2 text-slate-600 text-xs font-mono">{r.certification_type || "—"}</td>
                     <td className="px-3 py-2">{r.completed_date || "—"}</td>

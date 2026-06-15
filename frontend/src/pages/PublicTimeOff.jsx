@@ -22,6 +22,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { translateUserInput } from "@/lib/translateOnSubmit";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -176,7 +177,7 @@ export default function PublicTimeOff() {
         <div className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
           <CalendarOff className="w-3.5 h-3.5 inline mr-1" /> {t("MASCI · Time Off Request")}
         </div>
-        <h1 className="font-display text-2xl sm:text-3xl font-black mt-1">{t("Hello,")} {meta.employee_name}.</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-black mt-1">{t("Hello,")} {formatEmployeeIdentity(meta) || meta.employee_name}.</h1>
         <p className="text-slate-600 mt-2 text-sm sm:text-base">
           {meta.note || t("Fill out this form to request time off. HR will review and email you a decision.")}
         </p>

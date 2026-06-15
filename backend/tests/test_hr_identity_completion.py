@@ -214,3 +214,99 @@ def test_employees_response_includes_display_identity():
         "/api/hr/employees no longer projects display_identity. "
         "Consumers will re-implement the formatting rule (and drift)."
     )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Track 14.0-UXS-11F · Display rollout regression
+# ─────────────────────────────────────────────────────────────────────
+#
+# Every page that previously rendered a bare ``{x.employee_name}`` etc
+# now routes through formatEmployeeIdentity(x) || x.employee_name so the
+# preferred-name surfacing kicks in the moment HR populates the data.
+# Future commits cannot silently revert these consumers.
+
+UXS11F_DISPLAY_CONSUMERS = [
+    "frontend/src/pages/ReturnEquipment.jsx",
+    "frontend/src/pages/HrSafetyRecords.jsx",
+    "frontend/src/pages/ShopHub.jsx",
+    "frontend/src/pages/ViewEquipmentInspection.jsx",
+    "frontend/src/pages/SafetyTrainingRecords.jsx",
+    "frontend/src/pages/PmCrewCompliance.jsx",
+    "frontend/src/pages/HrPayrollVariance.jsx",
+    "frontend/src/pages/FieldLeadershipView.jsx",
+    "frontend/src/pages/HrEmployeeRequestsQueue.jsx",
+    "frontend/src/pages/HrTimeOff.jsx",
+    "frontend/src/pages/HrTimeVerification.jsx",
+    "frontend/src/pages/PublicTimeOff.jsx",
+    "frontend/src/pages/admin/AdminJhaAcknowledgements.jsx",
+    "frontend/src/pages/admin/AssetProfile.jsx",
+    "frontend/src/components/AdminSafetyFormsPanel.jsx",
+]
+
+
+@pytest.mark.parametrize("relpath", UXS11F_DISPLAY_CONSUMERS)
+def test_uxs11f_consumer_uses_canonical_helper(relpath):
+    """Every display surface that renders an employee identity must
+    import and use formatEmployeeIdentity. Adding new consumers is
+    fine; removing the helper from any of these is not — the page
+    would silently render legacy labels and preferred_name would
+    drift back into invisibility."""
+    src = (REPO / relpath).read_text()
+    assert 'from "@/lib/identity"' in src, (
+        f"{relpath} no longer imports the canonical identity helper."
+    )
+    assert "formatEmployeeIdentity(" in src, (
+        f"{relpath} no longer calls formatEmployeeIdentity(). "
+        "Preferred-name rendering broken on this surface."
+    )
+
+
+def test_uxs11f_no_bare_employee_name_in_locked_consumers():
+    """Locked consumers must never reintroduce a bare
+    ``{var.employee_name}`` JSX expression — every such render now
+    has to go through the helper. This is a structural guarantee:
+    you can add the helper around it, but you can't drop the helper
+    and render the raw field."""
+    import re
+    bare_pat = re.compile(
+        r"\{\s*[a-zA-Z_][a-zA-Z0-9_]*\.(employee_name|operator_name|driver_name|full_name|submitter_name|crew_member_name)\s*\}"
+    )
+    leaks: list[tuple[str, int, str]] = []
+    for relpath in UXS11F_DISPLAY_CONSUMERS:
+        text = (REPO / relpath).read_text()
+        for i, line in enumerate(text.splitlines(), 1):
+            if bare_pat.search(line) and "formatEmployeeIdentity" not in line:
+                leaks.append((relpath, i, line.strip()[:120]))
+    assert not leaks, (
+        "Bare identity rendering detected on locked consumers — "
+        "preferred-name surfacing will silently break:\n  "
+        + "\n  ".join(f"{p}:{i}: {l}" for p, i, l in leaks)
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Track 14.0-UXS-11F · Global Search backend coverage
+# ─────────────────────────────────────────────────────────────────────
+
+
+GLOBAL_SEARCH = REPO / "backend/routes/global_search.py"
+
+
+def test_global_search_imports_canonical_identity_helper():
+    src = GLOBAL_SEARCH.read_text()
+    assert "from masci.identity import format_employee_identity" in src, (
+        "global_search no longer imports the canonical identity "
+        "formatter. Search results would lose preferred-name display."
+    )
+
+
+def test_global_search_resolves_all_identity_aliases():
+    """Global search must hit legal first / middle / last / preferred
+    in addition to legacy ``name``."""
+    src = GLOBAL_SEARCH.read_text()
+    for field in ("legal_first_name", "legal_middle_name",
+                  "legal_last_name", "preferred_name"):
+        assert f'"{field}": rx' in src, (
+            f"global_search no longer matches {field}. Searching by "
+            "preferred or middle name would silently miss employees."
+        )

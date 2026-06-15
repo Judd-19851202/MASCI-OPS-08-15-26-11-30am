@@ -24,6 +24,7 @@ import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import { useT } from "@/lib/i18n";
 import { getHrToken } from "@/lib/hrAuth";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -293,7 +294,7 @@ function ReviewDialog({ record, onClose, onDecided, headers, t }) {
         </DialogHeader>
 
         <div className="space-y-3 text-sm">
-          <Row label={t("Employee")} value={record.employee_name} />
+          <Row label={t("Employee")} value={formatEmployeeIdentity(record) || record.employee_name} />
           <Row label={t("Position")} value={record.employee_position || "—"} />
           <Row label={t("Filed By")} value={record.supervisor_name || "—"} />
           <Row label={t("Reason")} value={d.reason + (d.reason_other ? ` (${d.reason_other})` : "")} />

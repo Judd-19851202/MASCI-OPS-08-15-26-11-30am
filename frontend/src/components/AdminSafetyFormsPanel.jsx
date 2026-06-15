@@ -20,6 +20,7 @@ import { fmtMoney } from "@/lib/safetyFormsSchema";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 /**
  * AdminSafetyFormsPanel — admin dashboard tile for the new Safety Forms
@@ -266,7 +267,7 @@ export default function AdminSafetyFormsPanel() {
                       {formatDateLong(date)}
                     </span>
                     <span className="font-display text-base font-bold text-slate-900 truncate">
-                      {row.employee_name}
+                      {formatEmployeeIdentity(row) || row.employee_name}
                     </span>
                     {tab === "issuance" ? (
                       row.status === "returned" ? (

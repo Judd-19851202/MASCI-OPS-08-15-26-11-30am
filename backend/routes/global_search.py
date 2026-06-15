@@ -32,6 +32,8 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from masci.identity import format_employee_identity
+
 logger = logging.getLogger(__name__)
 
 
@@ -264,13 +266,22 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             return rows
 
         async def run_employees() -> List[Dict[str, Any]]:
+            # Track 14.0-UXS-11F · global search must resolve any of:
+            # James / Michael / Fisher / Jimmy / James Fisher /
+            # Jimmy Fisher / James Michael Fisher to the same record.
             q_doc = {"$or": [
-                {"name": rx}, {"first_name": rx}, {"last_name": rx},
+                {"name": rx},
+                {"first_name": rx}, {"last_name": rx},
+                {"legal_first_name": rx},
+                {"legal_middle_name": rx},
+                {"legal_last_name": rx},
+                {"preferred_name": rx},
                 {"employee_id": rx}, {"email": rx},
             ]}
             rows = []
             async for d in db.employees.find(q_doc, {"_id": 0}).limit(limit * 2):
-                full = d.get("name") or " ".join(p for p in [d.get("first_name"), d.get("last_name")] if p)
+                full = format_employee_identity(d) or d.get("name") \
+                    or " ".join(p for p in [d.get("first_name"), d.get("last_name")] if p)
                 rows.append(_row(
                     "employees", d,
                     title=full or d.get("employee_id") or "—",

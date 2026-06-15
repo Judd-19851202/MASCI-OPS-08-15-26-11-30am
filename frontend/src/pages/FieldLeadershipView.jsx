@@ -19,6 +19,7 @@ import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 export default function FieldLeadershipView() {
   const { t, lang } = useT();
@@ -206,13 +207,13 @@ export default function FieldLeadershipView() {
               {rec.employee_refused ? (
                 <div className="border-2 border-red-200 rounded p-3 bg-red-50">
                   <div className="text-xs font-mono uppercase tracking-[0.15em] text-red-700">{t("Employee Refused")}</div>
-                  <div className="font-bold mt-1 text-sm">{rec.employee_name}</div>
+                  <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || rec.employee_name}</div>
                 </div>
               ) : rec.employee_signature && (
                 <div className="border-2 border-slate-200 rounded p-3 bg-white">
                   <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Employee")}</div>
                   <img src={resolvePhotoSrc(rec.employee_signature)} alt="sig" className="max-h-20 mt-1" />
-                  <div className="font-bold mt-1 text-sm">{rec.employee_name}</div>
+                  <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || rec.employee_name}</div>
                 </div>
               )}
               {rec.witness_signature && (

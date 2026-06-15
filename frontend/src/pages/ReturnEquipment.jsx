@@ -21,6 +21,7 @@ import { api } from "@/lib/api";
 import { isSafetyForms } from "@/lib/safetyFormsAuth";
 import { isAdmin } from "@/lib/adminAuth";
 import { isSafety } from "@/lib/safetyAuth";
+import { formatEmployeeIdentity } from "@/lib/identity";
 import {
   RETURN_STATUSES,
   buildReturnDefaults,
@@ -184,7 +185,7 @@ export default function ReturnEquipment() {
             </h1>
             <p className="text-sm text-slate-600 mt-2">
               {t("Reviewing")}{" "}
-              <strong>{issuance.employee_name}</strong>
+              <strong>{formatEmployeeIdentity(issuance) || issuance.employee_name}</strong>
               {issuance.project_name ? <> · <span className="text-slate-700">{issuance.project_name}</span></> : null}
               {" "}— {t("issued")}{" "}
               <span className="font-mono">{issuance.issued_date}</span>

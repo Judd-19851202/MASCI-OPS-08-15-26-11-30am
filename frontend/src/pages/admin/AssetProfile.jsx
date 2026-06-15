@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AssetDocumentsTab from "@/components/asset/AssetDocumentsTab";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const STATUS_PILL = {
   Available:         "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -166,7 +167,7 @@ function DispatchSection({ data }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
             <Field label="Project #"        value={a.project_number} />
             <Field label="Project Name"     value={a.project_name} />
-            <Field label="Operator"         value={a.operator_name} />
+            <Field label="Operator"         value={formatEmployeeIdentity(a) || a.operator_name} />
             <Field label="Started"          value={(a.started_at || "").slice(0,16).replace("T"," ")} />
             <Field label="Expected return"  value={a.expected_return_date} />
             <Field label="Notes"            value={a.dispatch_notes} />

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { ClipboardCheck, FileText, User, Loader2, RefreshCw } from "lucide-react";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 export default function AdminJhaAcknowledgements() {
   const [summary, setSummary] = useState(null);
@@ -250,7 +251,7 @@ export default function AdminJhaAcknowledgements() {
                           key={a.id}
                           className="px-3 py-2 text-xs flex flex-wrap items-center gap-2"
                         >
-                          <b className="text-slate-900">{a.employee_name}</b>
+                          <b className="text-slate-900">{formatEmployeeIdentity(a) || a.employee_name}</b>
                           <span className="text-slate-500">{a.employee_email}</span>
                           <span className="ml-auto font-mono text-[10px] text-slate-500">
                             {new Date(a.acknowledged_at).toLocaleString()} · {a.locale}

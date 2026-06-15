@@ -43,8 +43,10 @@ export function formatEmployeeIdentity(obj) {
     legal = [first, last].filter(Boolean).join(" ");
   } else {
     // Fall back to denormalised legacy label so existing callers
-    // that pass only `name` keep rendering.
-    legal = _str(obj.name) || _str(obj.full_name)
+    // that pass only `name` keep rendering. `display_identity` is
+    // the backend-precomputed label and takes precedence over the
+    // other denormalised aliases.
+    legal = _str(obj.display_identity) || _str(obj.name) || _str(obj.full_name)
       || _str(obj.display_name) || _str(obj.employee_name);
   }
 
@@ -64,7 +66,7 @@ export function formatLegalName(obj) {
   const first = _str(obj.legal_first_name);
   const last = _str(obj.legal_last_name);
   if (first || last) return [first, last].filter(Boolean).join(" ");
-  return _str(obj.name) || _str(obj.full_name)
+  return _str(obj.display_identity) || _str(obj.name) || _str(obj.full_name)
     || _str(obj.display_name) || _str(obj.employee_name) || "";
 }
 

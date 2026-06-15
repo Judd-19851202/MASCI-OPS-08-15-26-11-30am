@@ -201,13 +201,24 @@ export default function DriverBoard() {
                                     r.current_project_number && r.current_project_number !== "no_job"
                                       ? `project:${r.current_project_number}` : "all_active",
                           driver_name: r.driver_name,
+                          // Track 14.0-UXS-11F · SMS greetings are
+                          // personal — pass through preferred /
+                          // first / legal so the receiver hears the
+                          // name they actually use.
+                          preferred_name: r.preferred_name,
+                          legal_first_name: r.legal_first_name,
+                          legal_last_name: r.legal_last_name,
                           truck_id: r.truck_id,
                           project_number: r.current_project_number,
-                          suggested_message: r.attention_tag === "BREAKDOWN"
-                            ? `Hi ${r.driver_name}, dispatch is reaching out about a breakdown on truck ${r.truck_id}. Please call dispatch.`
-                            : r.source === "assignment_only"
-                            ? `Hi ${r.driver_name}, please start your shift in the driver app and acknowledge your dispatch.`
-                            : `Hi ${r.driver_name}, please reach out to dispatch.`,
+                          suggested_message: (() => {
+                            // Greeting style: preferred → first → legacy
+                            const greet = (r.preferred_name || r.legal_first_name || r.driver_name || "").trim() || r.driver_name;
+                            return r.attention_tag === "BREAKDOWN"
+                              ? `Hi ${greet}, dispatch is reaching out about a breakdown on truck ${r.truck_id}. Please call dispatch.`
+                              : r.source === "assignment_only"
+                              ? `Hi ${greet}, please start your shift in the driver app and acknowledge your dispatch.`
+                              : `Hi ${greet}, please reach out to dispatch.`;
+                          })(),
                         })}
                         className="font-mono text-[10px] uppercase tracking-widest text-sky-700 hover:text-sky-900 underline"
                       >Contact →</button>

@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { getHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -341,7 +342,7 @@ export default function HrEmployeeRequestsQueue() {
                       </div>
                       <div className="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
                         <span>Submitted by <strong className="font-mono uppercase">{req.requested_by_role}</strong></span>
-                        {req.submitter_name && <span>· {req.submitter_name}</span>}
+                        {req.submitter_name && <span>· {formatEmployeeIdentity(req) || req.submitter_name}</span>}
                         {req.submitted_via && <span>· via {req.submitted_via}</span>}
                         {req.linked_fl_record_id && (
                           <span>· FL record <span className="font-mono">{req.linked_fl_record_id.slice(0, 8)}…</span></span>
