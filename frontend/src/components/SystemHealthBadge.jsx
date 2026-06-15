@@ -32,6 +32,13 @@ const ENDPOINTS = [
 
 const POLL_INTERVAL_MS = 60_000;
 const SLOW_THRESHOLD_MS = 2000;
+// TRACK 14.0-PLATFORM-STABILITY · Health board TRANSIENT fix.
+// Number of consecutive failures required before flipping a service
+// to the red "DOWN" state. Single transient blips (ingress jitter,
+// brief worker saturation, an in-flight load racing with the poll)
+// no longer poison the badge. 3 consecutive 60s polls = 2.5–3 min of
+// confirmed failure before alarming.
+const FAIL_STREAK_THRESHOLD = 3;
 
 async function pingOne(ep) {
   const t0 = performance.now();
@@ -41,7 +48,11 @@ async function pingOne(ep) {
     // Other endpoints get a tighter budget so genuine outages still
     // surface within the poll window.
     const timeout = ep.path === "/health" ? 15000 : 10000;
-    const r = await api.get(ep.path, { timeout });
+    // TRACK 14.0-PLATFORM-STABILITY · skipSessionStatus suppresses the
+    // global "Session Expired" / "Connection Problem" modals on these
+    // background polls. The badge is the modal — we don't want a
+    // probe failure to ALSO raise a platform-wide overlay.
+    const r = await api.get(ep.path, { timeout, skipSessionStatus: true });
     const ms = Math.round(performance.now() - t0);
     return {
       ...ep,
@@ -54,6 +65,21 @@ async function pingOne(ep) {
   } catch (err) {
     const ms = Math.round(performance.now() - t0);
     const status = err?.response?.status;
+    // 401/403 on a health probe means "you don't have permission" —
+    // not "service is down". Show as a neutral auth gate, not a red
+    // outage. Examples: a PM viewing /admin would see admin-only
+    // probes 401 even though the platform itself is fine.
+    if (status === 401 || status === 403) {
+      return {
+        ...ep,
+        ok: false,
+        status,
+        ms,
+        level: "ok",
+        msg: `${status} · auth`,
+        _authGated: true,
+      };
+    }
     const level =
       status && status >= 500
         ? "error"
@@ -90,15 +116,19 @@ export default function SystemHealthBadge() {
   const runAll = async () => {
     setLoading(true);
     const out = await Promise.all(ENDPOINTS.map(pingOne));
-    // Apply streak debouncing: if a result came back as "error" but the
-    // previous run was OK, demote to "warn" for this round. The next run
-    // either confirms (escalates back to "error") or recovers.
+    // Apply streak debouncing: require FAIL_STREAK_THRESHOLD (3)
+    // consecutive failures before painting the endpoint red. Earlier
+    // failures show as a calm amber "transient" but never flip the
+    // overall badge to "DOWN". A single successful poll resets the
+    // streak immediately. This eliminates the false "TRANSIENT" /
+    // "DOWN" flashes that production users were reporting from
+    // single-poll ingress hiccups.
     for (const r of out) {
       if (r.level === "error") {
         failStreakRef.current[r.path] = (failStreakRef.current[r.path] || 0) + 1;
-        if (failStreakRef.current[r.path] < 2) {
+        if (failStreakRef.current[r.path] < FAIL_STREAK_THRESHOLD) {
           r.level = "warn";
-          r.msg = `${r.msg} · transient`;
+          r.msg = `${r.msg} · transient (${failStreakRef.current[r.path]}/${FAIL_STREAK_THRESHOLD})`;
         }
       } else {
         failStreakRef.current[r.path] = 0;

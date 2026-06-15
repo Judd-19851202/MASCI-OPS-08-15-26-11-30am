@@ -32,7 +32,11 @@ export default function ExpirationsSummary({ title = "Document Expirations", cla
   const load = async () => {
     setLoading(true); setErr("");
     try {
-      const r = await api.get("/operations/expirations/summary");
+      // TRACK 14.0-PLATFORM-STABILITY · Background widget read; a 401
+      // (e.g. PM viewing admin/safety hub without portal token) must
+      // not pop the global Session Expired modal. The widget shows
+      // its own inline error band instead.
+      const r = await api.get("/operations/expirations/summary", { skipSessionStatus: true });
       setData(r.data);
     } catch (e) { setErr(e?.response?.data?.detail || "Failed to load expirations"); }
     finally { setLoading(false); }

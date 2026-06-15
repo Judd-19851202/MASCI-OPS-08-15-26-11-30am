@@ -99,7 +99,14 @@ export function IncidentLifecyclePanel({ incidentId, oshaRecordable }) {
 
   const fetchView = useCallback(async () => {
     try {
-      const r = await api.get(`/incidents/${incidentId}/lifecycle`);
+      // TRACK 14.0-PLATFORM-STABILITY · The lifecycle fetch is a
+      // background read alongside the incident detail view. A 401/403
+      // here (e.g. role lacks lifecycle permission, or stale portal
+      // token races with a successful incident GET) must NOT pop the
+      // global Session Expired overlay over already-rendered valid
+      // incident content. The panel renders its own inline "Lifecycle
+      // controls unavailable for this session." card instead.
+      const r = await api.get(`/incidents/${incidentId}/lifecycle`, { skipSessionStatus: true });
       setView(r.data);
       setError("");
     } catch (err) {

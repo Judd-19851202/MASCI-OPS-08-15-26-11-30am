@@ -140,55 +140,98 @@ api.interceptors.response.use(
         } catch { /* never crash the interceptor */ }
       }
     }
+    // TRACK 14.0-PLATFORM-STABILITY · Namespace-scoped 401 handling.
+    //
+    // The previous implementation cleared the matching portal token on
+    // a namespaced 401 BUT still let the classification flow through to
+    // `publishSessionStatus`, which raised a platform-wide "Session
+    // Expired" modal. That made every background widget call that the
+    // user wasn't authorized for (e.g. a Safety user's UI accidentally
+    // hitting an admin-only widget) pop the modal over valid content.
+    //
+    // New rule: a namespaced 401 is a *localized* auth signal — clear
+    // ONLY that namespace token and return without raising the global
+    // overlay. The route guard for that portal will bounce the user
+    // back to the correct login the next time they navigate inside it.
+    // Other portal sessions stay live.
+    const cfg = err.config || {};
+    let _namespacedHandled = false;
     if (err?.response?.status === 401) {
-      const cfg = err.config || {};
       const url = String(cfg.url || "");
       const isAdminNamespace = url.startsWith("/admin/") || url.includes("/api/admin/");
       const isShopNamespace = url.startsWith("/shop/") || url.includes("/api/shop/");
       const isHrNamespace = url.startsWith("/hr/") || url.includes("/api/hr/");
+      const isPmNamespace = url.startsWith("/pm/") || url.includes("/api/pm/");
+      const isSafetyNamespace = url.startsWith("/safety/") || url.includes("/api/safety/");
+      const isDispatchNamespace = url.startsWith("/dispatch/") || url.includes("/api/dispatch/");
+      const isFlNamespace = url.includes("/field-leadership/portal");
+      const isLeadershipNamespace = url.startsWith("/leadership/") || url.includes("/api/leadership/");
+      const isSafetyFormsNamespace = url.includes("/safety-forms/");
+      const isDevNamespace = url.startsWith("/dev/") || url.includes("/api/dev/");
 
-      // If the 401 came from a namespaced route, only clear the matching
-      // namespace token. The user's non-admin session must survive.
       if (isAdminNamespace) {
         if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
-        return Promise.reject(err);
-      }
-      if (isShopNamespace) {
+        _namespacedHandled = true;
+      } else if (isShopNamespace) {
         if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
-        return Promise.reject(err);
-      }
-      if (isHrNamespace) {
+        _namespacedHandled = true;
+      } else if (isHrNamespace) {
         if (cfg.headers?.["X-HR-Token"]) clearHrToken();
-        return Promise.reject(err);
+        _namespacedHandled = true;
+      } else if (isPmNamespace) {
+        if (cfg.headers?.["X-PM-Token"]) clearPmToken();
+        _namespacedHandled = true;
+      } else if (isSafetyNamespace) {
+        if (cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
+        _namespacedHandled = true;
+      } else if (isDispatchNamespace) {
+        if (cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
+        _namespacedHandled = true;
+      } else if (isFlNamespace) {
+        if (cfg.headers?.["X-FL-Token"]) clearFlToken();
+        _namespacedHandled = true;
+      } else if (isLeadershipNamespace) {
+        if (cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
+        _namespacedHandled = true;
+      } else if (isSafetyFormsNamespace) {
+        if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
+        _namespacedHandled = true;
+      } else if (isDevNamespace) {
+        if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
+        _namespacedHandled = true;
+      } else {
+        // Non-namespaced 401 (e.g. /api/daily-reports/{id} rejected by a
+        // top-level gate) — preserve the legacy behavior of clearing every
+        // token the request carried so the next protected click bounces to
+        // the right login.
+        if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
+        if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
+        if (cfg.headers?.["X-PM-Token"]) clearPmToken();
+        if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
+        if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
+        if (cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
+        if (cfg.headers?.["X-HR-Token"]) clearHrToken();
+        if (cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
+        if (cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
+        if (cfg.headers?.["X-FL-Token"]) clearFlToken();
+        if (cfg.headers?.Authorization) clearJwt();
       }
-
-      // Non-namespaced 401 (e.g. /api/daily-reports/{id} rejected by a
-      // top-level gate) — preserve the legacy behavior of clearing every
-      // token the request carried so the next protected click bounces to
-      // the right login.
-      if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
-      if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
-      if (cfg.headers?.["X-PM-Token"]) clearPmToken();
-      if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
-      if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
-      if (cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
-      if (cfg.headers?.["X-HR-Token"]) clearHrToken();
-      if (cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
-      if (cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
-      if (cfg.headers?.["X-FL-Token"]) clearFlToken();
-      if (cfg.headers?.Authorization) clearJwt();
     }
     // TRUST-DIAGNOSTICS-001 · Publish the classified failure to the
     // global session-status bus. The overlay component renders ONE
-    // modal regardless of how many parallel loaders fail. Per-call
-    // 4xx (404/422 etc.) are classified `kind: null` and skipped.
+    // modal regardless of how many parallel loaders fail.
     //
-    // Suppress the publish if the request opted out via
-    // `config.skipSessionStatus === true` (used by health probes,
-    // version checks, and queue replays — see BackendStatusBanner).
+    // Suppress the publish if:
+    //  • caller opted out via `config.skipSessionStatus === true`
+    //    (health probes, version checks, queue replays, background
+    //    polling loaders — all marked via the explicit flag).
+    //  • the 401 was already absorbed as a namespaced auth signal
+    //    above (`_namespacedHandled === true`). The route guard for
+    //    that portal owns the recovery UX; the global overlay would
+    //    be a duplicate, misleading "Session Expired" over a still-
+    //    valid foreground session in a different portal.
     try {
-      const cfg = err?.config || {};
-      if (!cfg.skipSessionStatus) {
+      if (!cfg.skipSessionStatus && !_namespacedHandled) {
         const classification = classifyApiError(err);
         publishSessionStatus(classification);
       }

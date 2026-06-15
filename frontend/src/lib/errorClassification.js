@@ -107,6 +107,23 @@ export function classifyApiError(errOrRes, opts = {}) {
   if (errOrRes && typeof errOrRes === "object") {
     const status = errOrRes?.response?.status;
     const code = errOrRes?.code;
+    const message = String(errOrRes.message || "");
+
+    // TRACK 14.0-PLATFORM-STABILITY · Treat cancellations as non-events.
+    // CanceledError / ERR_CANCELED fires whenever a React component
+    // unmounts mid-fetch, a route changes during a load, or a caller
+    // aborts a redundant request. The user did not encounter a real
+    // failure — surfacing "Connection Problem" for these was the #1
+    // source of false-positive disconnect modals in production.
+    const isCanceled =
+      code === "ERR_CANCELED" ||
+      code === "ECONNABORTED_USER" ||
+      errOrRes.name === "CanceledError" ||
+      errOrRes.name === "AbortError" ||
+      /canceled|aborted/i.test(message);
+    if (isCanceled && !errOrRes.response) {
+      return { kind: null, status: null, retryable: false, title: "", body: "", action: null };
+    }
 
     if (status === 401) return _decorate(T.SESSION_EXPIRED, 401);
     if (status === 403) return _decorate(T.ACCESS_RESTRICTED, 403);
@@ -115,11 +132,18 @@ export function classifyApiError(errOrRes, opts = {}) {
     }
 
     // No response at all → network failure (DNS, dropped TCP, CORS pre-flight failure, timeout).
+    // TRACK 14.0-PLATFORM-STABILITY · Removed the `|| true` fallback
+    // that previously coerced EVERY no-response error into a
+    // NETWORK_UNREACHABLE overlay (including silent aborts, browser
+    // tab-switch suspensions, and transient ingress hiccups). Now we
+    // ONLY raise the global "Connection Problem" modal when axios
+    // gives us a concrete timeout / network signal. Truly unknown
+    // failures fall through to `kind: null` (per-call toast at most).
     const noResponse = !errOrRes.response;
-    const isTimeout = code === "ECONNABORTED" || code === "ETIMEDOUT" || /timeout/i.test(String(errOrRes.message || ""));
-    const isNetwork = code === "ERR_NETWORK" || code === "ENETUNREACH" || /network/i.test(String(errOrRes.message || ""));
-    if (noResponse && (isTimeout || isNetwork || true)) {
-      return _decorate(T.NETWORK_UNREACHABLE, null, { reason: isTimeout ? "timeout" : "no_response" });
+    const isTimeout = code === "ECONNABORTED" || code === "ETIMEDOUT" || /timeout/i.test(message);
+    const isNetwork = code === "ERR_NETWORK" || code === "ENETUNREACH" || /network/i.test(message);
+    if (noResponse && (isTimeout || isNetwork)) {
+      return _decorate(T.NETWORK_UNREACHABLE, null, { reason: isTimeout ? "timeout" : "network" });
     }
 
     // 4xx that isn't 401/403/timeout is a per-call client error — not a
@@ -129,10 +153,18 @@ export function classifyApiError(errOrRes, opts = {}) {
     if (typeof status === "number" && status >= 400 && status < 500) {
       return { kind: null, status, retryable: false, title: "", body: "", action: null };
     }
+
+    // No response, no recognizable code → unknown per-call failure.
+    // Do NOT flip the global overlay; callers can render their own
+    // local error state if they care. This is the single most
+    // important change preventing false-positive disconnect storms.
+    if (noResponse) {
+      return { kind: null, status: null, retryable: false, title: "", body: "", action: null };
+    }
   }
 
-  // Unknown — treat conservatively as network so we don't mask outages.
-  return _decorate(T.NETWORK_UNREACHABLE, null, { reason: "unknown" });
+  // Truly unknown shape → per-call only.
+  return { kind: null, status: null, retryable: false, title: "", body: "", action: null };
 }
 
 export const _testing = { T, COPY };

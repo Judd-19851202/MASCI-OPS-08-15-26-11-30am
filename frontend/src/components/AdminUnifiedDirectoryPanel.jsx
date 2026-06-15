@@ -92,10 +92,15 @@ export default function AdminUnifiedDirectoryPanel() {
       if (portal) params.set("portal", portal);
       if (source) params.set("source", source);
       params.set("limit", "500");
+      // TRACK 14.0-PLATFORM-STABILITY · Background widget read.
+      // A 401/timeout here must NOT pop the global Session Expired /
+      // Connection Problem modal — the panel surfaces its own inline
+      // "Failed to load unified directory" toast.
+      const opts = { skipSessionStatus: true };
       const [uRes, sRes, tRes] = await Promise.all([
-        api.get(`/admin/directory/k4/users?${params.toString()}`),
-        api.get("/admin/directory/k4/stats"),
-        api.get("/admin/directory/k4/role-templates"),
+        api.get(`/admin/directory/k4/users?${params.toString()}`, opts),
+        api.get("/admin/directory/k4/stats", opts),
+        api.get("/admin/directory/k4/role-templates", opts),
       ]);
       setUsers(uRes.data?.users || []);
       setStats(sRes.data || null);
