@@ -10,7 +10,47 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · S2 IPAD FIELD FOUNDATION SHIPPED)
+## Latest Closed Track (2026-02-15 · S2A AUTOMATED iPad FIELD CERT)
+- **14.0-S2A IPAD FIELD CERTIFICATION · Phases 4-11 + Amendment F.
+  🟢 Automated Field Certification Complete · Physical Field UAT
+  Pending.** User-authorized scope: A (max honest automated evidence
+  + physical-device cert sheet) + i (10 critical-workflow page-headers
+  / submit-buttons only, no broad 300-page edits). Shipped:
+  (1) `.field-glance-anchor` adoption on 8 critical-workflow h1
+  (NewDailyReport, NewMeeting, NewIncident, NewEquipmentInspection,
+  NewQaqcInspection, PublicTimeOff, FieldLeadershipFormPage, Public
+  ExcavationForm; SafetyCorrectiveActions delegates via SafetyShell —
+  documented exception); (2) `aria-busy={savingFlag}` adoption on 9
+  critical-workflow submit buttons + NEW `index.css` rule
+  `button[aria-busy="true"]::after` shimmer — gives every adopting
+  button a "I'm working" cue without per-form spinner code;
+  (3) **Multi-tab SSO auto-elevation fix** for the iteration_515
+  defect — AdminLogin/PmLogin/HrLogin/SafetyLogin each gained a
+  mount-time `useEffect` that redirects to its dashboard when a valid
+  same-portal token already exists in localStorage (Iter88 token-wipe
+  contract preserved); (4) `TRACK_14_S2A_PHYSICAL_CERTIFICATION_SHEET.md`
+  documenting the 10 manual UAT tasks that automation honestly cannot
+  prove (real iPad Safari, Firefox, Edge, direct Florida sun, polarized
+  sunglasses, work gloves, fatigued-user comprehension, real jobsite
+  cell signal, iPad Mini 6 portrait, multi-day session idle).
+  **65/65 backend pytest pass** (22 new S2A parametrized contract +
+  14 S2 + 14 S1-B1-B10 + 7 bilingual + 8 notif) in 17.12s. Testing-
+  agent iteration 515: backend 100% (43/43), frontend 92% — 28/28
+  multi-viewport checks PASS (iPad portrait/landscape, iPad Mini
+  portrait/landscape, laptop, desktop, large), no horizontal scroll
+  anywhere, no false session-expired under network throttle, no heap
+  leak across 50-iter stress loop, 3/5 personas auto-walk PASS
+  (Safety/PM/HR; Super+Foreman blocked by non-standard workflow-
+  launcher login — documented as physical UAT path). Four 🟡 deferred
+  items documented with root cause / risk / impact / remediation:
+  D1 hub-page background pollers fire 401 on public routes (P2 calmness),
+  D2 PmCommandCenter race-condition 5×401 (P2), D3 throttled-abort
+  offline banner (P1 trust surface), D4 /safety/forms/login is a
+  workflow-launcher not a credential login (P3 docs).
+  Master ledger: `/app/memory/TRACK_14_S2A_IPAD_FIELD_CLOSURE.md` +
+  `/app/memory/TRACK_14_S2A_PHYSICAL_CERTIFICATION_SHEET.md`.
+
+## Previous Closed Track (2026-02-15 · S2 IPAD FIELD FOUNDATION SHIPPED)
 - **14.0-S2 IPAD FIELD CERTIFICATION (Audit-First Global-Wins Phase).
   🟡 OPEN WITH SPECIFIC REMAINING WORK** — global iPad foundation
   🟢 closed; per-workflow runtime certification 🟡 open. User

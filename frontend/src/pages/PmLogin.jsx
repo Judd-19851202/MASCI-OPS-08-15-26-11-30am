@@ -46,6 +46,19 @@ export default function PmLogin() {
     // full rationale.
   }, []);
 
+  useEffect(() => {
+    // TRACK 14.0-S2A · Multi-tab SSO auto-elevation.
+    // If a valid PM (or Admin-as-PM) token already lives in
+    // localStorage from a prior tab's multi-login, redirect to /pm
+    // and skip the login form. `useRedirectIfDirectoryGrant` covers
+    // the directory-token case below, but does not cover the plain
+    // "PM token already exists in this browser" case — which is
+    // exactly what iteration_515 caught.
+    if (isPm() || isAdmin()) {
+      navigate("/pm", { replace: true });
+    }
+  }, [navigate]);
+
   // TRACK 14.0-SSO · If the user already holds a directory session
   // that grants PM, silently mint the PM token and forward into /pm
   // instead of showing a redundant login form.

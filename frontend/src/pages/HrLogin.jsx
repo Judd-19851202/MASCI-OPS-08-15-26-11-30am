@@ -56,6 +56,15 @@ export default function HrLogin() {
     // Iter88 — Removed mount-time token wipe. See AdminLogin.jsx rationale.
   }, []);
 
+  useEffect(() => {
+    // TRACK 14.0-S2A · Multi-tab SSO auto-elevation. See PmLogin.jsx
+    // for full rationale. If a valid HR (or Admin-as-HR) token already
+    // exists, redirect to /hr instead of re-rendering the login form.
+    if (isHr() || isAdmin()) {
+      navigate("/hr", { replace: true });
+    }
+  }, [navigate]);
+
   // TRACK 14.0-SSO · Auto-forward if directory grants HR.
   useRedirectIfDirectoryGrant("hr", isHr() || isAdmin(), "/hr");
 

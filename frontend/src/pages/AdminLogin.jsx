@@ -24,7 +24,7 @@ import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { AuthRequiredBanner } from "@/components/PortalContextBanner";
 import { api } from "@/lib/api";
 import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
-import { clearAdminToken } from "@/lib/adminAuth";
+import { clearAdminToken, getAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
 import { clearHrToken } from "@/lib/hrAuth";
@@ -89,6 +89,25 @@ export default function AdminLogin() {
       setPasskeyBusy(false);
     }
   };
+
+  useEffect(() => {
+    // TRACK 14.0-S2A · Multi-tab SSO auto-elevation.
+    //
+    // If the user already has a valid Admin token (from a fresh
+    // multi-login in another tab, or from a not-yet-expired prior
+    // session), redirect them straight to the Admin Hub instead of
+    // re-rendering the login form. This is the single fix for the
+    // iteration_515 multi-tab SSO defect: tokens land in localStorage
+    // but each portal /login page must check for them on mount.
+    //
+    // Iter88 contract preserved: we do NOT clear tokens here. We
+    // ONLY redirect away when a valid token already exists. If no
+    // token exists, the login form renders as before.
+    const tok = getAdminToken();
+    if (tok) {
+      navigate("/admin/hub", { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     // Iter88 — DO NOT wipe tokens on mount.

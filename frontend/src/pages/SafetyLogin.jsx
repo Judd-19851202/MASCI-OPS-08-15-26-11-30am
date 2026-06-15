@@ -2,7 +2,7 @@
 // accent. Posts to /api/safety/login and stores the token via
 // safetyAuth.setSafetyToken so the rest of the portal can hit
 // /api/safety/* with `X-Safety-Token` headers.
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Loader2, ShieldAlert, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,18 @@ export default function SafetyLogin() {
   // baked into the hook so single-portal Safety users keep their
   // existing UX.
   useRedirectIfDirectoryGrant("safety", isSafety(), "/safety-portal");
+
+  useEffect(() => {
+    // TRACK 14.0-S2A · Multi-tab SSO auto-elevation. If a valid
+    // Safety (or Admin-as-Safety) token already exists in this
+    // browser from a prior tab's multi-login, redirect to
+    // /safety-portal and skip the login form. Iteration_515
+    // surfaced this as a real defect: tokens land in localStorage
+    // but the page re-rendered the login form anyway.
+    if (isSafety()) {
+      nav("/safety-portal", { replace: true });
+    }
+  }, [nav]);
 
   const submit = async (e) => {
     e.preventDefault();
