@@ -22,6 +22,8 @@
  * these silently when `skipSessionStatus: true` is set.
  */
 import { api } from "@/lib/api";
+import { getAdminToken } from "@/lib/adminAuth";
+import { getPmToken } from "@/lib/pmAuth";
 
 function q(params) {
   const usp = new URLSearchParams();
@@ -33,6 +35,25 @@ function q(params) {
 }
 
 async function _get(path, params) {
+  // TRACK 14.0-RC1 · D2 PM Command Center 401-race fix.
+  //
+  // Before this guard the call fired immediately on mount even if
+  // the user had no admin or PM token yet — producing a guaranteed
+  // 401 in the browser console and on the backend access log. The
+  // global interceptor silenced the modal (skipSessionStatus=true)
+  // but the noise still polluted devtools and the stress-loop
+  // console budget (iteration_515 reported 5×401 here).
+  //
+  // Rule: if NEITHER an admin token NOR a PM token exists in
+  // localStorage at fetch time, return null instead of firing. The
+  // RequirePm route guard guarantees one of these is present when
+  // the page is actually mounted — this defensive guard only
+  // matters during the millisecond between component mount and
+  // hydration completing, AND for any future caller that mounts
+  // this widget outside RequirePm.
+  if (!getAdminToken() && !getPmToken()) {
+    return null;
+  }
   // skipSessionStatus prevents background widget failures (e.g. a
   // namespaced 401 because the viewer doesn't hold the PM token)
   // from raising the global Session Expired overlay.

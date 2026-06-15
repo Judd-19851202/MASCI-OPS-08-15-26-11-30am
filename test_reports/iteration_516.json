@@ -1,0 +1,43 @@
+{
+  "summary": "TRACK 14.0-RC1-PRIORITY-ONE-DEFECT-CLOSURE certified. All four deferred defects (D1/D2/D3/D4) PASS runtime + contract tests. 79/79 backend pytests PASS (test_track14_rc1_priority_one_closure.py 14 + test_track14_s2a_field_certification.py 22 + test_track14_s2_field_mode_css.py 14 + test_track14_s1_b1_b10_operational_certification.py 14 + test_track14_s1_bilingual_sidecar.py 7 + test_track14_notif_new_user_scope.py 8 = 79). Frontend Playwright runtime proofs all green: D3 offline banner shows with correct sky-blue copy ('You're offline. Drafts and submits are queued locally and will sync when you reconnect.') and auto-dismisses on reconnect with NO Session Expired / Connection Problem modal; D3 aborted request leaves NO false modals (CanceledError correctly classified as non-event); D2 PM Command Center first-load fires ZERO /pm/command-center/overview 401 console.error after super-admin login (token-presence guard works); D1 /sign-in public route shows ZERO 401s over 10s (NotificationBell + pollers correctly early-return when !isSignedInAnywhere()); D4 /safety/forms/login title h1 reads 'Safety Forms · Password-Gated' with class 'field-glance-anchor', submit carries aria-busy='false', and Safety Portal CTA links to /safety-portal/login?from=safety-forms; condensed stress loop (10 iter of sign-in / ES↔EN / Safety link / back) produced 0 Session Expired, 0 Connection Problem, 0 offline-banner false positives, 0 console errors.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "PM Command Center initial mount as admin-only (no PM token)", "issue": "After super-admin login navigating to /pm/command-center, 8 background 401s fire at network level for /api/job-photos, /api/daily-reports, /api/pm/command-center/shop-impact, /api/pm/command-center/safety-impact (2× each = mount + remount). The pmCommandApi guard requires (!getAdminToken() && !getPmToken()) to abort — since the admin token IS present, the guard does NOT short-circuit shop-impact/safety-impact, and the backend rejects the admin token for those PM-scoped endpoints. No console.error fires (skipSessionStatus=true silences them) and no global modal appears, so D2's letter-of-contract is met. However, the spirit of 'no background 401 storms' is technically still bruised by these 4 namespace-mismatch 401s. Action: consider strengthening the guard to require getPmToken() specifically for PM-scoped endpoints, or have backend accept admin token namespace for /pm/command-center/* reads. /api/job-photos and /api/daily-reports 401s are NOT part of D2 scope — they belong to widgets elsewhere on the page (likely PmCommandCenter mounting recent-photos and recent-dailies sub-widgets) that don't yet have the same token-presence guard.", "affected_selectors": ["/pm/command-center route"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/pytest/track14_priority_one_closure.xml",
+    "/app/backend/tests/test_track14_rc1_priority_one_closure.py",
+    "/app/backend/tests/test_track14_s2a_field_certification.py",
+    "/app/backend/tests/test_track14_s2_field_mode_css.py",
+    "/app/backend/tests/test_track14_s1_b1_b10_operational_certification.py",
+    "/app/backend/tests/test_track14_s1_bilingual_sidecar.py",
+    "/app/backend/tests/test_track14_notif_new_user_scope.py"
+  ],
+  "action_items": [
+    "(Optional, not blocking RC1) Consider extending the pmCommandApi token-presence guard to require a PM token specifically (instead of accepting either admin OR PM token) so that namespace-mismatch 401s for shop-impact / safety-impact also disappear at the network layer for admin-only viewers. Currently silenced via skipSessionStatus=true so user-visible behavior is correct.",
+    "(Optional) The /api/job-photos and /api/daily-reports background fetches on /pm/command-center first-load fire 2× each before guards engage (likely React StrictMode double-mount). Consider adding the same getAdminToken-or-getPmToken guard to those widget loaders for parity."
+  ],
+  "critical_code_review_comments": [
+    "OfflineBanner.jsx (D3): clean, calm sky-blue copy, mounts globally in App.js next to QueueStatusPill, listens to navigator online/offline events, auto-dismisses correctly. Verified live.",
+    "errorClassification.js (D3): CanceledError/AbortError correctly returns kind:null sentinel so callers never see a false Session Expired/Connection Problem. Verified by routing abort on /trench-safety/excavation/new — no modal raised.",
+    "pmCommandApi.js (D2): token-presence guard works for /overview (specific endpoint cited in defect). However the same guard short-circuits BOTH admin-only and pm-only contexts equally, so it does NOT prevent admin-token-presented but pm-scoped 401s for shop-impact/safety-impact. Not a defect against D2's stated contract (overview), but worth tightening per Five Pillars 'Trusted'.",
+    "SafetyFormsLogin.jsx (D4): title text 'Safety Forms · Password-Gated', field-glance-anchor class, aria-busy on submit, Safety Portal CTA → /safety-portal/login?from=safety-forms all verified.",
+    "NotificationBell + GlobalKeepalive (D1): public /sign-in route produces ZERO 401s for 10s — guards verified live."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Super admin: jaymn.judd@mascigc.com / Maddix123! (read from /app/memory/test_credentials.md, login successful, lands at /admin)",
+  "seed_data_creation": "None — used existing super admin",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Track 14.0-RC1 Priority One Defect Closure is CERTIFIED: 79/79 backend tests + 6 runtime proofs (D1/D2/D3/D4 + stress + abort) all PASS. The OfflineBanner triggers cleanly via window.dispatchEvent(new Event('offline')) after page.context.set_offline(true) (note: set_offline alone does not always flip navigator.onLine in Chromium without the explicit event dispatch — keep this in your script). One soft observation worth tracking: PM Command Center still emits 4 namespace-mismatch 401s (shop-impact, safety-impact, job-photos, daily-reports) when viewed by an admin-only token holder. These are silenced via skipSessionStatus and produce ZERO console errors / ZERO user-visible modals, so D2's strict contract holds. Tightening the guard to require a PM token (not just any portal token) would be the next iteration if Five Pillars wants 0 network 401s.",
+  "rca of the issue": "All four defects closed; no RCA needed. The single soft finding (4 network 401s for namespace-mismatch on PM Command Center under admin-only token) has its RCA inline in integration_issues above."
+}

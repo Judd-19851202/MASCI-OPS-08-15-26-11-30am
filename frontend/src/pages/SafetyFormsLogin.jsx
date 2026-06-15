@@ -88,8 +88,8 @@ export default function SafetyFormsLogin() {
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700">
                 {t("Safety Department")}
               </div>
-              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                {t("Safety Forms")}
+              <h1 className="field-glance-anchor font-display text-2xl font-black text-slate-900 leading-none mt-1" data-testid="safety-forms-login-title">
+                {t("Safety Forms · Password-Gated")}
               </h1>
             </div>
           </div>
@@ -149,6 +149,7 @@ export default function SafetyFormsLogin() {
             <Button
               type="submit"
               disabled={submitting}
+              aria-busy={submitting}
               className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="safety-forms-login-submit"
             >

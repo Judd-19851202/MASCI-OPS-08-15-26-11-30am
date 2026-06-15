@@ -6500,6 +6500,12 @@ const ES = {
   "rows": "filas",
   "selected": "seleccionado",
   "signature": "firma",
+  // TRACK 14.0-RC1 · D3 Offline trust surface.
+  "You're offline.": "Está sin conexión.",
+  "Drafts and submits are queued locally and will sync when you reconnect.":
+    "Los borradores y envíos se guardan localmente y se sincronizarán cuando se reconecte.",
+  // TRACK 14.0-RC1 · D4 Safety Forms launcher title clarification.
+  "Safety Forms · Password-Gated": "Formularios de Seguridad · Con Contraseña",
   // Final 6 long-form critical-workflow strings that differ in exact wording.
   "Safety has been notified. A competent person will follow up on any coaching flag above. The job site is not changed by this submission — keep working safely.":
     "Seguridad ha sido notificada. Una persona competente hará seguimiento a cualquier bandera de coaching anterior. El sitio de trabajo no cambia con este envío — continúe trabajando de forma segura.",

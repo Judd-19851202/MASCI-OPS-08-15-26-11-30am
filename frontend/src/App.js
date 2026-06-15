@@ -334,6 +334,7 @@ import EnvBanner from "@/components/EnvBanner";
 import SplashOverlay from "@/components/SplashOverlay";
 // R-BL-3 · Global queue visibility pill + drawer (visibility-only).
 import QueueStatusPill from "@/components/QueueStatusPill";
+import OfflineBanner from "@/components/OfflineBanner";
 import { validateStoredTokens } from "@/lib/tokenValidation";
 import EnforcePortalScope from "@/components/EnforcePortalScope";
 import MultiPortalHydrator from "@/components/MultiPortalHydrator";
@@ -406,6 +407,11 @@ function App() {
       <Toaster position="bottom-right" richColors closeButton offset={16} />
       {/* R-BL-3 · Global queue visibility pill (visibility-only). */}
       <QueueStatusPill />
+      {/* TRACK 14.0-RC1 · D3 — Global offline trust surface. Calm sky-blue
+         ribbon that appears the moment navigator.onLine === false and
+         auto-dismisses on reconnect. Pairs with QueueStatusPill: the
+         pill shows what is queued, the banner shows why. */}
+      <OfflineBanner />
       <GlobalKeepalive />
       <BackendStatusBanner />
       <ClusterCapacityBanner />
