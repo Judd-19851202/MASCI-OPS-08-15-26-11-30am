@@ -310,3 +310,258 @@ def test_global_search_resolves_all_identity_aliases():
             f"global_search no longer matches {field}. Searching by "
             "preferred or middle name would silently miss employees."
         )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Track 14.0-UXS-11G · Safety Forms PDF / list / search identity
+# ─────────────────────────────────────────────────────────────────────
+
+
+SAFETY_FORMS = REPO / "backend/routes/safety_forms.py"
+
+
+def test_safety_forms_imports_canonical_identity_helper():
+    src = SAFETY_FORMS.read_text()
+    assert "from masci.identity import format_employee_identity" in src, (
+        "safety_forms no longer imports the canonical identity "
+        "formatter. PDF / list / notification labels would drift back "
+        "to bare employee_name."
+    )
+
+
+def test_safety_forms_pdf_uses_identity_helper():
+    """Every signature / name block in the issuance / training /
+    return PDF templates routes through the platform identity helper.
+    A bare ``rec.get('employee_name')`` render would produce a PDF
+    that ignores preferred_name and breaks the identity contract."""
+    src = SAFETY_FORMS.read_text()
+    # The PDF templates must call _identity_display() with a graceful
+    # fallback to employee_name. No bare rec.get('employee_name') in
+    # the HTML render strings.
+    import re
+    bare_pat = re.compile(
+        r"_safe\(\s*(rec|issuance|doc)\.get\(\s*['\"]employee_name['\"]\s*\)\s*\)"
+    )
+    leaks = bare_pat.findall(src)
+    assert not leaks, (
+        f"safety_forms PDF still renders bare employee_name "
+        f"({len(leaks)} sites). Preferred-name surfacing broken in PDF."
+    )
+    # And the helper must be referenced.
+    assert "_identity_display(" in src, (
+        "_identity_display() helper no longer used in safety_forms. "
+        "PDF identity contract broken."
+    )
+
+
+def test_safety_forms_persists_identity_at_write_time():
+    """`_enrich_with_identity` must be called on create_issuance,
+    create_return parent context, and create_training so future PDF
+    re-renders never need to re-join the employees collection."""
+    src = SAFETY_FORMS.read_text()
+    assert "async def _enrich_with_identity(" in src, (
+        "_enrich_with_identity helper deleted. Write-time identity "
+        "denormalisation broken."
+    )
+    # At least 2 invocations expected (issuance + training create);
+    # PDF endpoints also call it for legacy-record on-the-fly enrich.
+    assert src.count("await _enrich_with_identity(") >= 4, (
+        "_enrich_with_identity is no longer invoked at every required "
+        "site (create_issuance, create_training, +PDF endpoints)."
+    )
+
+
+def test_safety_forms_pdf_filename_uses_identity_helper():
+    """PDF download filenames must use the formatted identity (so a
+    PDF for "James Fisher (Jimmy)" reads `MASCI_..._James_Fisher_(Jimmy)_...`
+    not just the legacy denormalised employee_name)."""
+    src = SAFETY_FORMS.read_text()
+    assert "_identity_display(doc)" in src, (
+        "PDF endpoint filenames no longer derive from the identity "
+        "helper — preferred-name lost in the download filename."
+    )
+
+
+def test_safety_forms_search_covers_identity_fields():
+    """Issuance + training list endpoints must search across legal
+    first / middle / last / preferred / display_identity in addition
+    to legacy employee_name. Otherwise HR can't find a record by the
+    preferred name they actually used."""
+    src = SAFETY_FORMS.read_text()
+    for field in ("preferred_name", "legal_first_name",
+                  "legal_middle_name", "legal_last_name",
+                  "display_identity"):
+        # Should appear in the search regex blocks (we used emp_rx /
+        # q_clauses templates).
+        assert f'{{"{field}":' in src, (
+            f"safety_forms list search no longer matches {field}. "
+            "Identity search drift returned."
+        )
+
+
+def test_safety_forms_notification_label_uses_identity_helper():
+    """Fan-out notification titles (`PPE Issuance — <who>`,
+    `PPE Return — <who>`, `PPE Training — <who>`) must use the
+    canonical identity helper so the bell + email subject lines
+    carry preferred-name display."""
+    src = SAFETY_FORMS.read_text()
+    # Each branch must derive `emp` via _identity_display().
+    import re
+    branches = re.findall(
+        r"emp = _identity_display\([^)]+\) or [^\n]+\.get\(['\"]employee_name['\"]\)",
+        src,
+    )
+    assert len(branches) >= 3, (
+        f"Expected ≥3 _identity_display() notification labels "
+        f"(issuance + return + training), found {len(branches)}."
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Track 14.0-UXS-11G · Display contract round-trip
+# ─────────────────────────────────────────────────────────────────────
+
+
+def test_pdf_identity_contract_round_trip():
+    """The platform identity contract is enforced end-to-end:
+
+      * Employee with preferred name  → 'James Fisher (Jimmy)'
+      * Employee without preferred    → 'James Fisher'
+      * Legacy-only record            → 'Jimmy Fisher' (denormalised)
+      * Empty record                  → '' (caller applies '—')
+
+    No 'undefined', 'None', 'null', or 'N/A' leaks ever."""
+    from masci.identity import format_employee_identity
+
+    # 1) Full record with preferred
+    full = {
+        "legal_first_name": "James",
+        "legal_middle_name": "Michael",
+        "legal_last_name": "Fisher",
+        "preferred_name": "Jimmy",
+        "employee_name": "James Fisher",  # denormalised legacy
+    }
+    assert format_employee_identity(full) == "James Fisher (Jimmy)"
+
+    # 2) Legal-only
+    legal = {
+        "legal_first_name": "James",
+        "legal_last_name": "Fisher",
+        "employee_name": "James Fisher",
+    }
+    assert format_employee_identity(legal) == "James Fisher"
+
+    # 3) Legacy-only — falls back to denormalised
+    legacy = {"employee_name": "Jimmy Fisher"}
+    assert format_employee_identity(legacy) == "Jimmy Fisher"
+
+    # 4) Empty
+    assert format_employee_identity({}) == ""
+
+    # 5) No 'None' / 'null' / 'undefined' leak — must NEVER render
+    #    those literal strings.
+    for bad_doc in (
+        {"legal_first_name": None, "legal_last_name": None, "preferred_name": None},
+        {"employee_name": None},
+        {"display_identity": None, "employee_name": None},
+    ):
+        out = format_employee_identity(bad_doc)
+        for forbidden in ("None", "null", "undefined", "N/A"):
+            assert forbidden not in out, (
+                f"format_employee_identity leaked {forbidden!r} "
+                f"for {bad_doc!r}: {out!r}"
+            )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Track 14.0-UXS-11G · Live WeasyPrint PDF byte-stream verification
+# ─────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("case,rec,expect_present,expect_absent", [
+    (
+        "preferred",
+        {
+            "employee_name": "James Fisher",
+            "legal_first_name": "James", "legal_last_name": "Fisher",
+            "preferred_name": "Jimmy",
+        },
+        ["James Fisher (Jimmy)"],
+        ["None", "null", "undefined"],
+    ),
+    (
+        "legal_only",
+        {
+            "employee_name": "Sarah Connor",
+            "legal_first_name": "Sarah", "legal_last_name": "Connor",
+        },
+        ["Sarah Connor"],
+        ["None", "null", "undefined", "(Jimmy)", "Sarah Connor ("],
+    ),
+    (
+        "legacy_only",
+        {"employee_name": "Alec Perkins"},
+        ["Alec Perkins"],
+        ["None", "null", "undefined", "(Jimmy)", "Alec Perkins ("],
+    ),
+    (
+        "defensive",
+        {"employee_name": None, "legal_first_name": None,
+         "legal_last_name": None, "preferred_name": None},
+        [],  # empty Name field rendered as blank
+        ["None", "null", "undefined", "N/A"],
+    ),
+])
+def test_safety_issuance_pdf_renders_identity_correctly(case, rec, expect_present, expect_absent):
+    """Run the real WeasyPrint pipeline against each identity case
+    and assert the extracted PDF text contains the expected display
+    string and never leaks 'None' / 'null' / 'undefined' / 'N/A'."""
+    import importlib
+    import shutil
+    import subprocess
+    if not shutil.which("pdftotext"):
+        pytest.skip("pdftotext (poppler) not installed; can't extract PDF text")
+    m = importlib.import_module("routes.safety_forms")
+    base = {
+        "id": f"test-{case}",
+        "doc_id": f"SEI-26-CASE-{case.upper()[:6]}",
+        "employee_id": "EMP-T",
+        "project_name": "Test Project",
+        "project_number": "2026-100",
+        "issued_by": "Safety Manager",
+        "issued_date": "2026-02-14",
+        "location": "Yard",
+        "position": "Operator",
+        "items": [{"item_type": "PPE", "description": "Hard Hat",
+                   "quantity": 1, "unit_value": 25.0}],
+        "condition": "New",
+        "condition_note": "",
+        "photos": [],
+        "acknowledgment": True,
+        "employee_signature": "data:image/png;base64,iVBORw0KGgo=",
+        "supervisor_signature": "data:image/png;base64,iVBORw0KGgo=",
+        "created_at": "2026-02-14T12:00:00Z",
+        "total_value": 25.0,
+        **rec,
+    }
+    pdf = m.render_issuance_pdf(base)
+    assert pdf[:4] == b"%PDF", f"Output is not a PDF for case {case}"
+    import tempfile, pathlib
+    tmp = pathlib.Path(tempfile.mkstemp(suffix=".pdf")[1])
+    tmp.write_bytes(pdf)
+    try:
+        out = subprocess.run(
+            ["pdftotext", "-layout", str(tmp), "-"],
+            capture_output=True, text=True, check=True,
+        )
+        text = out.stdout
+        for needle in expect_present:
+            assert needle in text, (
+                f"Case {case}: expected {needle!r} in PDF text but it was missing."
+            )
+        for forbidden in expect_absent:
+            assert forbidden not in text, (
+                f"Case {case}: forbidden literal {forbidden!r} leaked into PDF."
+            )
+    finally:
+        tmp.unlink(missing_ok=True)

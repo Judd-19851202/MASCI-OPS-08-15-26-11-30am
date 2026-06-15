@@ -8,6 +8,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
+import { formatEmployeeIdentity } from "@/lib/identity";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
@@ -173,7 +174,7 @@ export default function ServiceTruckReconciliationDetail() {
             {(doc.status === "closed" || doc.status === "needs_review") && (
               <Card data-testid="strr-detail-review-block" style={{ marginTop: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
-                  Shop Manager review {doc.reviewed_by ? `(currently · ${doc.reviewed_by})` : "(optional · operational notes only)"}
+                  Shop Manager review {doc.reviewed_by ? `(currently · ${formatEmployeeIdentity(doc) || doc.reviewed_by})` : "(optional · operational notes only)"}
                 </div>
                 {doc.review_notes && (
                   <div data-testid="strr-detail-review-existing" style={{ padding: 8, background: "#fdf3f0", borderRadius: 3, fontSize: 12, marginBottom: 8 }}>

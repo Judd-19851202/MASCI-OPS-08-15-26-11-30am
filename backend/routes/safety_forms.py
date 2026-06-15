@@ -38,6 +38,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
+from masci.identity import format_employee_identity
+
 # Resolve photo:// refs (R2) → base64 data URLs at PDF render time.
 try:
     from photo_storage import resolve_to_data_url_sync as _resolve_photo_ref
@@ -187,8 +189,66 @@ class ReturnBody(BaseModel):
 
 
 # ─────────────────────────────────────────────────────────────────────
-# PDF generation (WeasyPrint, matches MASCI Hub PDF styling)
+# Track 14.0-UXS-11G · canonical identity display for PDFs.
+#
+# `format_employee_identity` is the platform-wide formatter:
+#   "James Fisher (Jimmy)" when preferred_name is set
+#   "James Fisher"         otherwise
+#   denormalised fallback through `name` / `employee_name` so legacy
+#   records keep rendering until backfilled.
+#
+# Issuance / training / return docs only carry the denormalised
+# `employee_name` field at write-time, so this helper supplements that
+# with a lookup against the `employees` collection (by employee_id or
+# by exact-match name) so the PDF, list, and signature surfaces all
+# render the same identity contract as the rest of the platform.
 # ─────────────────────────────────────────────────────────────────────
+
+
+def _identity_display(rec: Dict[str, Any]) -> str:
+    """Format an employee identity string for any safety-form record.
+
+    Returns the canonical "Legal First Last (Preferred)" when the
+    record has legal/preferred parts (either persisted directly or
+    via `display_identity`), otherwise gracefully falls back to the
+    denormalised `employee_name`. Never returns "None" / "undefined"
+    / "N/A" — empty data returns an empty string so the caller can
+    apply its own "—" placeholder.
+    """
+    return format_employee_identity(rec or {}) or ""
+
+
+async def _enrich_with_identity(db, rec: Dict[str, Any]) -> Dict[str, Any]:
+    """Look up the employee record and copy identity parts onto `rec`.
+
+    Mutates and returns the same dict for chaining. Looks up by
+    `employee_id` (UUID) first, then by exact-match `name`. Identity
+    fields persisted on the record so future PDF re-renders don't
+    have to re-join the employees collection.
+    """
+    if not rec:
+        return rec
+    emp: Optional[Dict[str, Any]] = None
+    eid = (rec.get("employee_id") or "").strip()
+    if eid:
+        emp = await db.employees.find_one(
+            {"$or": [{"id": eid}, {"employee_id": eid}]},
+            {"_id": 0},
+        )
+    if not emp:
+        name = (rec.get("employee_name") or "").strip()
+        if name:
+            emp = await db.employees.find_one(
+                {"name": name}, {"_id": 0},
+            )
+    if emp:
+        for k in ("legal_first_name", "legal_middle_name",
+                  "legal_last_name", "preferred_name"):
+            v = emp.get(k)
+            if v and not rec.get(k):
+                rec[k] = v
+    rec["display_identity"] = _identity_display(rec) or rec.get("employee_name") or ""
+    return rec
 
 
 def _logo_data_uri() -> str:
@@ -353,7 +413,7 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
       <div class='section'>
         <h2>Employee</h2>
         <div class='kv'>
-          <div class='k'>Name</div><div class='v'>{_safe(rec.get('employee_name'))}</div>
+          <div class='k'>Name</div><div class='v'>{_safe(_identity_display(rec) or rec.get('employee_name'))}</div>
           <div class='k'>Employee ID</div><div class='v'>{_safe(rec.get('employee_id') or '—')}</div>
           <div class='k'>Position</div><div class='v'>{_safe(rec.get('position') or '—')}</div>
           <div class='k'>Project</div><div class='v'>{_safe(rec.get('project_name') or '—')} {('· ' + _safe(rec.get('project_number'))) if rec.get('project_number') else ''}</div>
@@ -397,7 +457,7 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
       <div class='sigblock'>
         <div class='col'>
           {f"<img src='{_safe(emp_sig)}' />" if emp_sig else "<div style='border-bottom:1.5px solid #0f172a;height:60px'></div>"}
-          <div class='name'>Employee Signature · {_safe(rec.get('employee_name'))}</div>
+          <div class='name'>Employee Signature · {_safe(_identity_display(rec) or rec.get('employee_name'))}</div>
         </div>
         <div class='col'>
           {f"<img src='{_safe(sup_sig)}' />" if sup_sig else "<div style='border-bottom:1.5px solid #0f172a;height:60px'></div>"}
@@ -514,7 +574,7 @@ def render_return_pdf(issuance: Dict[str, Any], ret: Dict[str, Any]) -> bytes:
       <div class='section'>
         <h2>Employee</h2>
         <div class='kv'>
-          <div class='k'>Name</div><div class='v'>{_safe(issuance.get('employee_name'))}</div>
+          <div class='k'>Name</div><div class='v'>{_safe(_identity_display(issuance) or issuance.get('employee_name'))}</div>
           <div class='k'>Position</div><div class='v'>{_safe(issuance.get('position') or '—')}</div>
           <div class='k'>Project</div><div class='v'>{_safe(issuance.get('project_name') or '—')} {('· ' + _safe(issuance.get('project_number'))) if issuance.get('project_number') else ''}</div>
         </div>
@@ -555,7 +615,7 @@ def render_return_pdf(issuance: Dict[str, Any], ret: Dict[str, Any]) -> bytes:
       <div class='sigblock'>
         <div class='col'>
           {f"<img src='{_safe(emp_sig)}' />" if emp_sig else "<div style='border-bottom:1.5px solid #0f172a;height:60px'></div>"}
-          <div class='name'>Employee Signature · {_safe(issuance.get('employee_name'))}</div>
+          <div class='name'>Employee Signature · {_safe(_identity_display(issuance) or issuance.get('employee_name'))}</div>
         </div>
         <div class='col'>
           {f"<img src='{_safe(sup_sig)}' />" if sup_sig else "<div style='border-bottom:1.5px solid #0f172a;height:60px'></div>"}
@@ -622,7 +682,7 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
       <div class='section'>
         <h2>Employee</h2>
         <div class='kv'>
-          <div class='k'>Name</div><div class='v'>{_safe(rec.get('employee_name'))}</div>
+          <div class='k'>Name</div><div class='v'>{_safe(_identity_display(rec) or rec.get('employee_name'))}</div>
           <div class='k'>Employee ID</div><div class='v'>{_safe(rec.get('employee_id') or '—')}</div>
           <div class='k'>Position</div><div class='v'>{_safe(rec.get('position') or '—')}</div>
           <div class='k'>Project</div><div class='v'>{_safe(rec.get('project_name') or '—')} {('· ' + _safe(rec.get('project_number'))) if rec.get('project_number') else ''}</div>
@@ -659,7 +719,7 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
       <div class='sigblock'>
         <div class='col'>
           {f"<img src='{_safe(emp_sig)}' />" if emp_sig else "<div style='border-bottom:1.5px solid #0f172a;height:60px'></div>"}
-          <div class='name'>Employee Signature · {_safe(rec.get('employee_name'))}</div>
+          <div class='name'>Employee Signature · {_safe(_identity_display(rec) or rec.get('employee_name'))}</div>
         </div>
         <div class='col'>
           {f"<img src='{_safe(ins_sig)}' />" if ins_sig else "<div style='border-bottom:1.5px solid #0f172a;height:60px'></div>"}
@@ -748,7 +808,7 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
         if kind == "issuance":
             pdf_bytes = await asyncio.to_thread(render_issuance_pdf, rec)
             title = "Safety Equipment Issuance"
-            who = rec.get("employee_name") or "—"
+            who = _identity_display(rec) or rec.get("employee_name") or "—"
             subject = build_email_subject_for_kind(
                 type_tag_key="issuance",
                 project_name=project_name,
@@ -762,7 +822,7 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
             # extra carries the return block; rec is the parent issuance
             pdf_bytes = await asyncio.to_thread(render_return_pdf, rec, extra or {})
             title = "Equipment Check-In & Return"
-            who = rec.get("employee_name") or "—"
+            who = _identity_display(rec) or rec.get("employee_name") or "—"
             subject = build_email_subject_for_kind(
                 type_tag_key="return",
                 project_name=project_name,
@@ -781,7 +841,7 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
         else:
             pdf_bytes = await asyncio.to_thread(render_training_pdf, rec)
             title = "Equipment Use & Care Training"
-            who = rec.get("employee_name") or "—"
+            who = _identity_display(rec) or rec.get("employee_name") or "—"
             subject = build_email_subject_for_kind(
                 type_tag_key="training",
                 project_name=project_name,
@@ -933,6 +993,10 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         rec["total_value"] = round(total, 2)
         rec["created_at"] = datetime.now(timezone.utc).isoformat()
         rec["updated_at"] = rec["created_at"]
+        # Track 14.0-UXS-11G · denormalise legal/preferred identity at
+        # write-time so PDF re-renders never need to re-join the
+        # employees collection.
+        await _enrich_with_identity(db, rec)
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, rec, "SEI", when=rec.get("issued_at") or rec.get("created_at"))
         # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
@@ -950,7 +1014,7 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         # for PPE issuance. Fire-and-forget; never blocks save.
         try:
             from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
-            emp = rec.get("employee_name") or "—"
+            emp = _identity_display(rec) or rec.get("employee_name") or "—"
             title = f"PPE Issuance — {emp[:80]}"
             await emit_task_and_notification(
                 db,
@@ -998,12 +1062,26 @@ def build_safety_forms_router(db, _is_valid_admin_token):
     ):
         query: Dict[str, Any] = {}
         if employee:
-            query["employee_name"] = {"$regex": employee, "$options": "i"}
-        if project:
+            # Track 14.0-UXS-11G · search resolves preferred + legal
+            # name parts in addition to the legacy denormalised label.
+            emp_rx = {"$regex": employee, "$options": "i"}
             query["$or"] = [
+                {"employee_name": emp_rx},
+                {"preferred_name": emp_rx},
+                {"legal_first_name": emp_rx},
+                {"legal_middle_name": emp_rx},
+                {"legal_last_name": emp_rx},
+                {"display_identity": emp_rx},
+            ]
+        if project:
+            proj_or = [
                 {"project_name": {"$regex": project, "$options": "i"}},
                 {"project_number": {"$regex": project, "$options": "i"}},
             ]
+            if "$or" in query:
+                query = {"$and": [{"$or": query["$or"]}, {"$or": proj_or}]}
+            else:
+                query["$or"] = proj_or
         if date_from or date_to:
             d: Dict[str, str] = {}
             if date_from:
@@ -1012,12 +1090,21 @@ def build_safety_forms_router(db, _is_valid_admin_token):
                 d["$lte"] = date_to
             query["issued_date"] = d
         if q:
-            query.setdefault("$or", []).extend([
+            q_clauses = [
                 {"employee_name": {"$regex": q, "$options": "i"}},
+                {"preferred_name": {"$regex": q, "$options": "i"}},
+                {"legal_first_name": {"$regex": q, "$options": "i"}},
+                {"legal_middle_name": {"$regex": q, "$options": "i"}},
+                {"legal_last_name": {"$regex": q, "$options": "i"}},
+                {"display_identity": {"$regex": q, "$options": "i"}},
                 {"project_name": {"$regex": q, "$options": "i"}},
                 {"project_number": {"$regex": q, "$options": "i"}},
                 {"issued_by": {"$regex": q, "$options": "i"}},
-            ])
+            ]
+            if "$or" in query:
+                query.setdefault("$and", []).append({"$or": q_clauses})
+            else:
+                query["$or"] = q_clauses
 
         cur = db.safety_equipment_issuances.find(
             query,
@@ -1045,8 +1132,13 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         doc = await db.safety_equipment_issuances.find_one({"id": rec_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="not found")
+        # Track 14.0-UXS-11G · on-the-fly identity enrichment so legacy
+        # records (written before write-time persistence shipped) still
+        # render preferred-name in the PDF.
+        await _enrich_with_identity(db, doc)
         pdf = await asyncio.to_thread(render_issuance_pdf, doc)
-        fname = f"MASCI_Equipment_Issuance_{(doc.get('employee_name') or '').replace(' ', '_')}_{doc.get('issued_date', '')}.pdf"
+        who_slug = (_identity_display(doc) or doc.get("employee_name") or "").replace(" ", "_")
+        fname = f"MASCI_Equipment_Issuance_{who_slug}_{doc.get('issued_date', '')}.pdf"
         return Response(
             content=pdf,
             media_type="application/pdf",
@@ -1106,7 +1198,7 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         try:
             from lib.event_fanout import emit_notification  # noqa: PLC0415
             chargeback = (ret.get("chargeback") or {}).get("total") or 0
-            emp = (parent or issuance).get("employee_name") or "—"
+            emp = _identity_display(parent or issuance) or (parent or issuance).get("employee_name") or "—"
             title = f"PPE Return — {emp[:80]}"
             await emit_notification(db, {
                 "type": "safety_form.return.submitted",
@@ -1132,8 +1224,10 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         ret = doc.get("return")
         if not ret:
             raise HTTPException(status_code=404, detail="This issuance has not been returned yet")
+        await _enrich_with_identity(db, doc)
         pdf = await asyncio.to_thread(render_return_pdf, doc, ret)
-        fname = f"MASCI_Equipment_Return_{(doc.get('employee_name') or '').replace(' ', '_')}_{ret.get('check_in_date', '')}.pdf"
+        who_slug = (_identity_display(doc) or doc.get("employee_name") or "").replace(" ", "_")
+        fname = f"MASCI_Equipment_Return_{who_slug}_{ret.get('check_in_date', '')}.pdf"
         return Response(
             content=pdf,
             media_type="application/pdf",
@@ -1156,6 +1250,8 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         rec["items"] = [dict(it) for it in rec.get("items", [])]
         rec["created_at"] = datetime.now(timezone.utc).isoformat()
         rec["updated_at"] = rec["created_at"]
+        # Track 14.0-UXS-11G · denormalise legal/preferred identity.
+        await _enrich_with_identity(db, rec)
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, rec, "SET", when=rec.get("training_date") or rec.get("created_at"))
         # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
@@ -1173,7 +1269,7 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         # for PPE training. Fire-and-forget; never blocks save.
         try:
             from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
-            emp = rec.get("employee_name") or "—"
+            emp = _identity_display(rec) or rec.get("employee_name") or "—"
             title = f"PPE Training — {emp[:80]}"
             await emit_task_and_notification(
                 db,
@@ -1221,12 +1317,24 @@ def build_safety_forms_router(db, _is_valid_admin_token):
     ):
         query: Dict[str, Any] = {}
         if employee:
-            query["employee_name"] = {"$regex": employee, "$options": "i"}
-        if project:
+            emp_rx = {"$regex": employee, "$options": "i"}
             query["$or"] = [
+                {"employee_name": emp_rx},
+                {"preferred_name": emp_rx},
+                {"legal_first_name": emp_rx},
+                {"legal_middle_name": emp_rx},
+                {"legal_last_name": emp_rx},
+                {"display_identity": emp_rx},
+            ]
+        if project:
+            proj_or = [
                 {"project_name": {"$regex": project, "$options": "i"}},
                 {"project_number": {"$regex": project, "$options": "i"}},
             ]
+            if "$or" in query:
+                query = {"$and": [{"$or": query["$or"]}, {"$or": proj_or}]}
+            else:
+                query["$or"] = proj_or
         if date_from or date_to:
             d: Dict[str, str] = {}
             if date_from:
@@ -1235,12 +1343,21 @@ def build_safety_forms_router(db, _is_valid_admin_token):
                 d["$lte"] = date_to
             query["training_date"] = d
         if q:
-            query.setdefault("$or", []).extend([
+            q_clauses = [
                 {"employee_name": {"$regex": q, "$options": "i"}},
+                {"preferred_name": {"$regex": q, "$options": "i"}},
+                {"legal_first_name": {"$regex": q, "$options": "i"}},
+                {"legal_middle_name": {"$regex": q, "$options": "i"}},
+                {"legal_last_name": {"$regex": q, "$options": "i"}},
+                {"display_identity": {"$regex": q, "$options": "i"}},
                 {"project_name": {"$regex": q, "$options": "i"}},
                 {"project_number": {"$regex": q, "$options": "i"}},
                 {"instructor_name": {"$regex": q, "$options": "i"}},
-            ])
+            ]
+            if "$or" in query:
+                query.setdefault("$and", []).append({"$or": q_clauses})
+            else:
+                query["$or"] = q_clauses
 
         cur = db.safety_equipment_trainings.find(
             query,
@@ -1261,8 +1378,10 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         doc = await db.safety_equipment_trainings.find_one({"id": rec_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="not found")
+        await _enrich_with_identity(db, doc)
         pdf = await asyncio.to_thread(render_training_pdf, doc)
-        fname = f"MASCI_Equipment_Training_{(doc.get('employee_name') or '').replace(' ', '_')}_{doc.get('training_date', '')}.pdf"
+        who_slug = (_identity_display(doc) or doc.get("employee_name") or "").replace(" ", "_")
+        fname = f"MASCI_Equipment_Training_{who_slug}_{doc.get('training_date', '')}.pdf"
         return Response(
             content=pdf,
             media_type="application/pdf",

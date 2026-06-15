@@ -11,6 +11,33 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14 · fork session)
+- **14.0-UXS-11G FINAL IDENTITY CONSUMER ELIMINATION CLOSED**.
+  Eliminated the last server-side identity gap — `safety_forms.py`
+  PDF renderer + list/search + email subject + filename + fan-out
+  notifications now flow through the canonical
+  `format_employee_identity` helper. Added two-pronged refactor:
+  (1) write-time enrichment (`_enrich_with_identity`) that copies
+  legal/preferred parts onto issuance/training records at insert
+  time, and (2) read-time fallback (`_identity_display`) for legacy
+  records — with on-the-fly enrichment in the PDF endpoints so old
+  data renders correctly **without a migration**. 20 backend
+  consumer sites + 1 final frontend stray fixed. Search now
+  resolves preferred / legal first / middle / last / display_identity
+  on issuance + training lists. **Live PDF byte-stream verified
+  end-to-end** via WeasyPrint → pdftotext: `James Fisher (Jimmy)`
+  renders exactly per contract for the preferred case; legal-only
+  renders `Sarah Connor` with no `(Jimmy)` leak; legacy-only renders
+  `Alec Perkins`; defensive empty-record case produces a blank Name
+  field with **zero** `None`/`null`/`undefined`/`N/A` leaks. +11
+  new regression assertions (4 of which exercise the actual
+  WeasyPrint PDF pipeline). Full RC1 sweep: **187 / 187 pass**.
+  Five Pillars **9.948**. Closure ledger:
+  `/app/memory/TRACK_14_0_UXS_11G_CLOSURE.md`. **HR Identity
+  Rollout is COMPLETE — display drift = 0, PDF drift = 0, print
+  drift = 0, helper bypasses = 0, deploy-ready, no follow-on
+  identity work required.**
+
+## Previous Closed Track (2026-02-14 · fork session)
 - **14.0-UXS-11F HR IDENTITY COMPLETION (FINAL ROLLOUT) CLOSED**.
   Drove identity-consumer count from 28 raw display sites down to
   **0 remaining display surfaces**. 27 display sites across 15 pages +
