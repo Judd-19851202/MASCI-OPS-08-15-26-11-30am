@@ -260,7 +260,7 @@ export default function ViewIncident() {
       <div className="caution-stripe no-print" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={ret.path} label={t(ret.label)} variant="header" testId="back-link" />
+          <BackLink to={ret.path} label={t(ret.label)} variant="header" testId={pathname.startsWith("/safety-portal") ? "safety-nav-back" : "back-link"} />
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
             <EditProjectDialog

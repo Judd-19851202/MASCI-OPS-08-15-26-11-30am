@@ -168,6 +168,15 @@ api.interceptors.response.use(
       const isLeadershipNamespace = url.startsWith("/leadership/") || url.includes("/api/leadership/");
       const isSafetyFormsNamespace = url.includes("/safety-forms/");
       const isDevNamespace = url.startsWith("/dev/") || url.includes("/api/dev/");
+      // TRACK 14.0-PLATFORM-STABILITY · Cross-portal helper endpoints
+      // that legitimately 401 for non-admin viewers and whose
+      // affordances are designed to silently hide on auth failure.
+      // Treat their 401s exactly like a namespaced auth signal — no
+      // global modal, no token wipe.
+      const isWorkflowsHelper = url.startsWith("/workflows/") || url.includes("/api/workflows/");
+      const isNotificationsHelper = url.startsWith("/notifications/") || url.includes("/api/notifications/");
+      const isOperationsHelper = url.startsWith("/operations/") || url.includes("/api/operations/") || url.startsWith("/operations-center") || url.includes("/api/operations-center");
+      const isCrossPortalHelper = isWorkflowsHelper || isNotificationsHelper || isOperationsHelper;
 
       if (isAdminNamespace) {
         if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
@@ -198,6 +207,11 @@ api.interceptors.response.use(
         _namespacedHandled = true;
       } else if (isDevNamespace) {
         if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
+        _namespacedHandled = true;
+      } else if (isCrossPortalHelper) {
+        // Cross-portal helper 401 — silent. Do NOT clear any tokens
+        // (this would be wrong: the user may have a perfectly valid
+        // portal session that just doesn't satisfy this helper).
         _namespacedHandled = true;
       } else {
         // Non-namespaced 401 (e.g. /api/daily-reports/{id} rejected by a

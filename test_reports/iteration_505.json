@@ -1,0 +1,33 @@
+{
+  "summary": "TRACK 14.0-PLATFORM-STABILITY RETEST after surgical fixes. P0 bug from iteration_504 (false 'Session Expired' modal on Safety incident detail) is ELIMINATED. All 6 regression flows now PASS: STABILITY-1 (60s idle, no overlay, badge ALL OK), STABILITY-2 (Safety-only token detail page — NO modal after 5s wait, lifecycle panel + safety-nav-back testid present, back nav returns to /safety-portal/incidents), STABILITY-3 (manual publish network_unreachable → overlay appears → dismiss via session-status-secondary → reload /admin → stays dismissed), STABILITY-4 (Safety-only token + raw fetch /api/admin/jobs → 401 → no overlay, safety token preserved), LIFECYCLE-1 (admin incident detail → lifecycle panel + 'Under Investigation' state pill + next-state action buttons + Undo Last Status Change button — no false modal). NEW-CROSS-PORTAL-HELPER-401-ABSORPTION confirmed: axios-driven /api/workflows/{id}/last-transition 401 (fired via UndoLastTransitionButton on Safety detail) is silently absorbed — no overlay. NEW-NOTIFICATIONS-HELPER-401-ABSORPTION: raw fetch /api/notifications returns 401 and no overlay (raw fetch bypasses axios interceptor — silent-list only protects axios; documented as expected).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "REGRESSION_STABILITY_1_super_admin_60s_idle": "PASS — no false overlay over 60s on /admin; system-health-badge text='ALL OK'",
+    "REGRESSION_STABILITY_2_safety_detail_no_modal": "PASS (P0 FIXED) — Safety-only token, /safety-portal/incidents/:id, 5s wait → session-status-overlay NOT visible; incident-lifecycle-panel rendered; safety-nav-back testid present; back click lands on /safety-portal/incidents (NOT /login)",
+    "REGRESSION_STABILITY_3_manual_publish_dismiss_no_repop": "PASS — window.__masciSessionBus.publish({kind:'network_unreachable'}) → overlay text 'Connection Problem' visible; clicked session-status-secondary (Dismiss) → overlay cleared; reload /admin → overlay stays dismissed",
+    "REGRESSION_STABILITY_4_background_401_isolation": "PASS — Safety-only token, raw fetch /api/admin/jobs → 401; overlay NOT visible after 3s; localStorage.masci.safety.token preserved",
+    "REGRESSION_LIFECYCLE_1_admin_lifecycle_panel": "PASS — /admin/incidents/{id} renders incident-lifecycle-panel + state pill 'Under Investigation' + buttons (incident-lifecycle-mark-corrective_action_required-btn, incident-lifecycle-mark-pending_closure-btn) + 'Undo last status change'; no false modal. Note: mark-under_investigation button NOT shown because state is already Under Investigation — this is expected lifecycle behavior.",
+    "NEW_CROSS_PORTAL_HELPER_401_ABSORPTION_workflows_axios": "PASS — Axios-driven /api/workflows/incident/{id}/last-transition (via UndoLastTransitionButton.refresh on Safety detail) returns 401; overlay NOT visible. Proves api.js isCrossPortalHelper silent-list works end-to-end.",
+    "NEW_NOTIFICATIONS_HELPER_401_ABSORPTION_raw_fetch": "PASS — raw fetch /api/notifications returns 401; no overlay. CAVEAT: raw fetch bypasses axios interceptor entirely; the api.js silent-list only protects requests made via the axios `api` instance. window.__masciAxios is NOT exposed, so we cannot trigger the interceptor from raw JS — this is the correct security posture but limits standalone testing of /api/notifications via axios. The workflows test above does exercise the interceptor via UndoLastTransitionButton."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/app/frontend/src/lib/api.js: isCrossPortalHelper block (lines 176-179, 211-215) correctly handles /api/workflows/*, /api/notifications/*, /api/operations/*, /api/operations-center. Good defensive coding — no token wipe, no global modal. Recommend adding /api/incidents/*/lifecycle and any other future cross-portal helpers preemptively, or invert to an allow-list of paths that ARE permitted to publish session_expired (e.g., /api/auth/me, /api/auth/refresh) — safer default.",
+    "/app/frontend/src/pages/ViewIncident.jsx line 263: clean conditional testId via pathname.startsWith('/safety-portal') — works correctly. Consider extracting to a small useShellTestIds() hook if more shell-aware testids are added.",
+    "/app/frontend/src/components/UndoLastTransitionButton.jsx line 48-49: skipSessionStatus:true correctly applied to the GET. The POST at line 83 may also benefit from skipSessionStatus:true to prevent the same class of bug if a user without permission triggers undo (currently it returns 403 not 401, so not affected today)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only retest)", "frontend": "7/7 acceptance flows PASS"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! (super-admin via /api/auth/multi-login; payload uses field 'email' NOT 'username')",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "P0 false-modal bug on /safety-portal/incidents/:id is CONFIRMED FIXED via 3-pronged surgical fix: (a) UndoLastTransitionButton passes skipSessionStatus:true to api.get, (b) api.js isCrossPortalHelper silent-list absorbs /api/workflows/* + /api/notifications/* + /api/operations* 401s, (c) ViewIncident emits safety-nav-back testid on /safety-portal/* routes. Multi-login uses 'email' field, not 'username'. window.__masciSessionBus.publish/clear available for STABILITY-3-style tests. Existing test incident id for re-runs: c399144e-9c2b-4bae-b0da-7a59ff682308.",
+  "rca of the issue": "Previously: UndoLastTransitionButton.refresh() on every incident detail mount fired axios GET /api/workflows/{workflow}/{id}/last-transition without skipSessionStatus. For Safety-only viewers this 401'd; api.js interceptor lacked /api/workflows/* in namespaced-silent list so classifyApiError → publishSessionStatus → global session_expired overlay covered valid detail content. Fix applied and verified: (1) api.js lines 176-179 add isWorkflowsHelper/isNotificationsHelper/isOperationsHelper, line 211-215 absorbs them silently (no token wipe, no overlay publish); (2) UndoLastTransitionButton line 48-49 passes {skipSessionStatus:true} as defensive belt-and-braces; (3) ViewIncident line 263 emits safety-nav-back testid on /safety-portal/* pathname. All 7 acceptance flows now pass."
+}

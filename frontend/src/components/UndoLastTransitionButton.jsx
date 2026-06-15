@@ -38,8 +38,15 @@ export function UndoLastTransitionButton({ workflow, recordId, onUndone }) {
   const refresh = useCallback(async () => {
     if (!workflow || !recordId) return;
     try {
+      // TRACK 14.0-PLATFORM-STABILITY · This GET is a probe whose
+      // 401/403 is the *expected* signal that the viewer is not
+      // admin. We MUST NOT allow the global session-status bus to
+      // raise a "Session Expired" overlay on top of valid content
+      // for non-admin viewers — the panel's purpose is to silently
+      // hide the affordance when the actor lacks privilege.
       const r = await api.get(
-        `/workflows/${workflow}/${recordId}/last-transition`
+        `/workflows/${workflow}/${recordId}/last-transition`,
+        { skipSessionStatus: true }
       );
       const ok = !!r.data?.undoable;
       setAvailable(ok);
