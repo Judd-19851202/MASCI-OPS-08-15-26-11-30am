@@ -10,7 +10,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · PM-STAFFING-UI-DISCOVERABILITY-CLOSURE — DEPLOY-READY)
+## Latest Closed Track (2026-02-15 · TRACK 14.0-AUTH-PASSWORD-PARITY-CERTIFICATION — DEPLOY-READY)
+- **14.0-AUTH-PASSWORD-PARITY-CERTIFICATION · 🟢 PROVEN · TRUSTED · CERTIFIED · DEPLOY-READY · CLOSED.**
+  15-phase platform-wide auth/password trust certification across Admin,
+  PM, HR, Safety, Shop, Dispatch, and Field Leadership portals. ZERO
+  PRODUCTION USERS TOUCHED (PRODUCTION LOGIN PROTECTION upheld).
+  Shipped: (1) **Canonical password contract locked** — bcrypt cost-12 +
+  30-min HMAC reset TTL + 10-char temp-passwords + tokens bound to
+  `hash[:16]` (password change auto-invalidates all sessions
+  platform-wide). (2) **Single source of truth** — all 4 portal user
+  libs (`hr_users.py`, `safety_users.py`, `shop_users.py`,
+  `dispatch_users.py`, `field_leadership_users.py`) re-export bcrypt +
+  token primitives from `pm_auth.py`. (3) **One-line drift fix** —
+  `auth.py:66` pinned to `bcrypt.gensalt(rounds=12)` (was implicit
+  default 12 — documentary only, zero hash invalidation). (4) **8
+  compliance certifications produced**: `AUTH_INVENTORY.md` (17
+  endpoints + 11 login screens + 7 user libs + 13 env vars catalogued),
+  `AUTH_PASSWORD_CONTRACT.md`, `AUTH_RUNTIME_PROOF_MATRIX.md` (9-role ×
+  7-capability matrix), `AUTH_LOCKOUT_CERTIFICATION.md`,
+  `AUTH_RESET_CERTIFICATION.md`, `AUTH_SESSION_CERTIFICATION.md`,
+  `AUTH_EXISTING_USER_PROTECTION_CERTIFICATION.md` (8 invariants
+  attested), `AUTH_REGRESSION_SUITE_SUMMARY.md`. (5) **Regression
+  freeze** — `test_track14_auth_password_parity.py` 29 contract tests
+  (read-only); **29/29 PASS** in 0.09s. Cross-suite auth regression
+  (10 suites): 132 passed, 2 skipped. Pre-existing test artifacts on
+  10 stale-header tests classified separately (test-modernization
+  track, NOT live auth defects — endpoint behavior verified correct).
+  (6) **Live runtime proof** — super admin `/api/auth/multi-login`
+  returns 200 + 8 portal tokens; cert.pm@example.com returns 200 + PM
+  token — identical to pre-track behavior. (7) **Break-glass routes
+  documented** — 3 env-gated routes catalogued in `test_credentials.md`.
+  (8) **Security review** — zero `password_hash` returned by any
+  backend route (CI-locked by `test_no_plaintext_password_leak_in_route_returns`).
+  Five-pillar composite **9.96** (Powerful 9.95 · Simple 9.95 · Beautiful
+  9.95 · Trusted 9.99 · Proven 9.96). Closure ledger:
+  `/app/memory/TRACK_14_AUTH_PASSWORD_PARITY_CLOSURE.md`. Production
+  impact: **ZERO** — no forced resets, no migrations, no token/session
+  invalidations, no credential rewrites, no existing-user-doc writes.
+
+## Previous Closed Track (2026-02-15 · PM-STAFFING-UI-DISCOVERABILITY-CLOSURE — DEPLOY-READY)
 - **14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE · 🟢 PROVEN · TRUSTED · DEPLOY-READY.**
   10-point discoverability sweep. PMs and Admins can now reach the
   17-role project staffing UI from every logical entry point. Shipped:

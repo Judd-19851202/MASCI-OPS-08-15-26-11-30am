@@ -57,7 +57,13 @@ def _jwt_secret() -> str:
 
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    # Track 14.0-AUTH-PASSWORD-PARITY-CERTIFICATION:
+    # Pin to rounds=12 explicitly. Matches pm_auth.hash_password and
+    # user_directory.hash_password. bcrypt's default IS currently 12,
+    # so this change does NOT invalidate any existing hashes — it just
+    # locks the contract so future bcrypt upgrades cannot silently
+    # change the work factor.
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
