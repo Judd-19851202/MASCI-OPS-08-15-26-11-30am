@@ -12936,6 +12936,16 @@ async def _start_backup_scheduler():
         # later" recurrences caused by silent Task death.
         async def _scheduler_supervisor():
             global _backup_task
+            # TRACK 14.0-RC1-PERF (2026-02-15): Detect the
+            # "scheduler-disabled-on-this-worker" case so the watchdog
+            # doesn't spam CRITICAL logs every 5 minutes in preview
+            # (where SCHEDULER_ENABLED=false legitimately causes the
+            # backup loop to exit cleanly). The first respawn cycle
+            # captures the disabled state; subsequent cycles log at
+            # DEBUG instead of CRITICAL, keeping the operator-facing
+            # log signal real for production where a DEAD task is a
+            # genuine incident.
+            _scheduler_disabled_observed = False
             while True:
                 try:
                     await asyncio.sleep(300)
@@ -12949,10 +12959,25 @@ async def _start_backup_scheduler():
                                 exc_repr = repr(exc) if exc else "completed without error"
                         except Exception:
                             pass
-                        logging.getLogger(__name__).critical(
-                            f"[scheduled-backup] scheduler task is DEAD — respawning. "
-                            f"Last state: {exc_repr}"
-                        )
+                        # A clean exit ("completed without error") in
+                        # preview almost always means SCHEDULER_ENABLED
+                        # is false. Demote the noise after the first
+                        # cycle; real DEAD-with-exception cycles still
+                        # log CRITICAL every time.
+                        is_clean_disabled_exit = exc_repr == "completed without error"
+                        log = logging.getLogger(__name__)
+                        if is_clean_disabled_exit and _scheduler_disabled_observed:
+                            log.debug(
+                                "[scheduled-backup] scheduler task ended cleanly — respawning "
+                                "(scheduler appears disabled on this worker)"
+                            )
+                        else:
+                            log.critical(
+                                f"[scheduled-backup] scheduler task is DEAD — respawning. "
+                                f"Last state: {exc_repr}"
+                            )
+                            if is_clean_disabled_exit:
+                                _scheduler_disabled_observed = True
                         _BACKUP_SCHEDULER_STATE["alive"] = False
                         _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
                             f"RESURRECTED at {datetime.now(timezone.utc).isoformat()} "

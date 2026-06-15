@@ -1,0 +1,58 @@
+{
+  "soak4_modal_appeared": false,
+  "soak4_tokens_cleared": false,
+  "soak4_page_functional": true,
+  "soak4_still_on_admin": true,
+  "soak4_fetch_results": [
+    {
+      "idx": 0,
+      "status": 401,
+      "statusText": ""
+    },
+    {
+      "idx": 1,
+      "status": 401,
+      "statusText": ""
+    },
+    {
+      "idx": 2,
+      "status": 401,
+      "statusText": ""
+    },
+    {
+      "idx": 3,
+      "status": 401,
+      "statusText": ""
+    },
+    {
+      "idx": 4,
+      "status": 401,
+      "statusText": ""
+    }
+  ],
+  "soak4_pre_keys": [
+    "masci.directory.token",
+    "masci.shop.token",
+    "masci.fl.token",
+    "masci.dispatch.token",
+    "masci.hr.token",
+    "masci.admin.token",
+    "masci.pm.token",
+    "masci.safety.token"
+  ],
+  "soak4_post_keys": [
+    "masci.directory.token",
+    "masci.shop.token",
+    "masci.fl.token",
+    "masci.dispatch.token",
+    "masci.hr.token",
+    "masci.admin.token",
+    "masci.pm.token",
+    "masci.safety.token"
+  ],
+  "heap_at_admin_after_login": 44700000,
+  "heap_final": 44700000,
+  "console_errors": 5,
+  "critical_console_errors": 0,
+  "critical_errors": []
+}

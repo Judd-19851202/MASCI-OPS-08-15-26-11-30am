@@ -141,8 +141,23 @@ export default function SystemHealthBadge() {
 
   useEffect(() => {
     runAll();
-    timerRef.current = setInterval(runAll, POLL_INTERVAL_MS);
-    return () => clearInterval(timerRef.current);
+    // TRACK 14.0-RC1-PERF: Pause health polling when the tab is hidden.
+    // Saves ~10 backend probes per minute per backgrounded tab, which
+    // adds up across multi-tab users and keeps logs / DB chatter calm.
+    // The visibilitychange handler re-runs immediately on focus so
+    // the badge is current the moment the user comes back.
+    const tick = () => {
+      if (document.visibilityState === "visible") runAll();
+    };
+    timerRef.current = setInterval(tick, POLL_INTERVAL_MS);
+    const onVis = () => {
+      if (document.visibilityState === "visible") runAll();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(timerRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, []);
 
   // Aggregate worst level across critical endpoints.

@@ -79,9 +79,20 @@ export default function BackendStatusBanner() {
     };
 
     probe();
-    const interval = setInterval(probe, POLL_MS);
+    // TRACK 14.0-RC1-PERF: Pause when tab is hidden. The probe runs
+    // immediately on focus so backgrounded tabs that come forward see
+    // the current banner state without waiting up to 15s.
+    const tick = () => {
+      if (document.visibilityState === "visible") probe();
+    };
+    const interval = setInterval(tick, POLL_MS);
+    const onVis = () => {
+      if (document.visibilityState === "visible") probe();
+    };
+    document.addEventListener("visibilitychange", onVis);
     return () => {
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVis);
       if (recoveredTimer) clearTimeout(recoveredTimer);
     };
   }, []);
