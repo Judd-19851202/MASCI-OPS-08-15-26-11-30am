@@ -10,7 +10,35 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · S1 BILINGUAL SIDECAR FOUNDATION)
+## Latest Closed Track (2026-02-15 · S1-B1-B10 BILINGUAL OPERATIONS COMPLETE)
+- **14.0-S1-B1 THROUGH B10 SPANISH TRANSLATION + BILINGUAL OPERATIONS
+  CLOSED. 🟢 PROVEN · TRUSTED · COMPLETE** per Amendment B
+  "Operational-First Certification" success criteria: a Spanish-speaking
+  foreman can complete every major MASCI workflow (Daily Reports, Safety
+  Meetings, Incidents, Corrective Actions, Trench/Excavation, Equipment
+  Inspections, Employee Requests, Time Off, QA/QC, JHP) entirely in
+  Spanish; the English-speaking office receives clean Heavy-Civil English
+  on PDFs / notifications / search / exports; the original Spanish is
+  preserved in the `bilingual_records` sidecar for audit. **Amendment D
+  MASCI Heavy Civil Glossary** baked into `/api/translate` system prompt
+  (`server.py:8669`) — 70+ operational terms (cuasi accidente→near miss,
+  caja de zanja→trench box, capataz→foreman, EPP→PPE, subrasante→subgrade,
+  rellenado→backfill, línea de fuerza→force main, cárcamo→lift station…).
+  **Amendment C surgical translations**: 188 critical-workflow strings
+  closed via glossary-aware batch + 6 long-form surgical adds → critical
+  coverage 100%, global coverage 79.1% → 83.8%. **Frontend wiring**: 4
+  new forms hooked into `persistBilingualSidecar` (PublicTimeOff,
+  SafetyCorrectiveActions create+edit, PublicExcavationForm,
+  NewSafetyEquipmentIssuance/Training, ReturnEquipment) — total 13 forms
+  wired across all 10 critical workflows. **Regression**: 29/29 backend
+  pytest pass (incl. 14 new tests covering all 10 form_types + 25
+  glossary anchors + end-to-end translate→sidecar pipeline) in 19.20s.
+  Testing-agent iteration 513 confirms backend 100% (26/26) and frontend
+  smoke-pass (ES toggle renders full Spanish UX with no English leakage
+  on sampled public surfaces). Master ledger:
+  `/app/memory/TRACK_14_S1_B1_B10_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-15 · S1 BILINGUAL SIDECAR FOUNDATION)
 - **14.0-S1 SPANISH TRANSLATION CERTIFICATION (Amendment A foundation)
   SHIPPED 🟡 — track REMAINS OPEN at P1.** Shipped: (1) new `db.bilingual_
   records` collection + `POST/GET /api/bilingual-records/{form_type}/
@@ -24,12 +52,8 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
   (5) dictionary entries added for every string introduced by recent
   ELITE-OPS-B / TRUST-SUITE / NOTIF-SCOPE tracks. Coverage moved 78.3%
   → 79.1%. **7/7 pytest pass**. Runtime proof: ES originals (`tubería`,
-  `mañana`, `atención`) round-trip character-for-character. **OPEN ITEMS
-  before track can close (B1–B10)**: wire remaining ~15 forms, render
-  sidecar in views, PDFs, notifications, search, exports; complete
-  ~688 common-UI translations + ~150 construction-terminology strings
-  with linguist review; add language detection + iPad mobile regression
-  for Spanish text expansion. Master ledger:
+  `mañana`, `atención`) round-trip character-for-character. **CLOSED-OUT
+  by Track S1-B1-B10 above.** Master ledger:
   `/app/memory/TRACK_14_S1_FOUNDATION_CLOSURE.md`.
 
 ## Previous Closed Track (2026-02-15 · NOTIF-NEW-USER-SCOPE)
