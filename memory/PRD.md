@@ -10,7 +10,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-15 · SAFETY-PORTAL-CONTEXT-CERT)
+## Latest Closed Track (2026-02-15 · ELITE-OPS-B FIELD WORKFLOW HARDENING)
+- **14.0-ELITE-OPS-B FIELD WORKFLOW HARDENING CLOSED.** 🟢
+  5:30 AM iPad usability deep audit of 9 workflows. Fixed friction
+  as discovered: (1) 3 intuitive URLs returning 404 → added
+  router redirects in `App.js` for `/safety-portal/meetings`,
+  `/admin/daily-reports`, `/admin/trench-safety-assets`;
+  (2) Safety Incidents header had no obvious CTA → added
+  "Submit Field Incident →" button on `SafetyIncidents.jsx`;
+  (3) HR landing required Cmd+K to find a person → added a
+  visible "Find a person" search section on `HrHubV2.jsx`
+  with `data-testid="hr-directory-search"`, routing to
+  `/hr/employees?q=...` (seeded via `useSearchParams` in
+  `HrEmployees.jsx`); (4) `/meetings/new` Submit was silently
+  disabled with no on-screen explanation → added a
+  `missingHint` chip ("MISSING: PROJECT NAME · LOCATION · …")
+  on both top and bottom Submit buttons + click-time toast
+  via existing `validate()`. Audited via iteration_510 and
+  iteration_511 testing-agent runs. W5 / W7-PDF-body / W8-deep
+  data round-trip deferred to existing per-domain closure
+  ledgers (surfaces verified). Master ledger:
+  `/app/memory/TRACK_14_ELITE_OPS_B_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-15 · RC1 FERRARI HARDENING)
+- **14.0-RC1 FERRARI PERFORMANCE / RELIABILITY / TRUST HARDENING
+  CLOSED.** Built `/api/admin/perf-snapshot`, silenced background
+  widget 401 noise (SystemHealthBadge + BackendVersionBadge module-
+  level caching), fixed `pmCommandApi.js` skip-session-status
+  classification. Master ledger:
+  `/app/memory/TRACK_14_RC1_FERRARI_CLOSURE.md`.
+
+## Previous Closed Track (2026-06-15 · SAFETY-PORTAL-CONTEXT-CERT)
 - **14.0-SAFETY-PORTAL-CONTEXT-INCIDENT-CLOSURE-FIX CLOSED.** 🟢
   Root caused: (1) `SafetyIncidents.jsx` hardcoded Open link to
   `/admin/incidents/{id}` → forced AdminShell + "Back to Admin

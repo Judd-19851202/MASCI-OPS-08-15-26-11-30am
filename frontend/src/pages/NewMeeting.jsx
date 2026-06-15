@@ -311,6 +311,30 @@ export default function NewMeeting({ publicMode = false }) {
     }
   };
 
+  // 5:30 AM iPad rule · derive a short, human hint of what's blocking Submit
+  // so the sticky top button and the bottom CTA never sit silently disabled.
+  const missingHint = (() => {
+    if (saving) return "";
+    const need = [];
+    const fields = [
+      ["project_name", "Project Name"],
+      ["location", "Location"],
+      ["meeting_date", "Date"],
+      ["meeting_time", "Time"],
+      ["conducted_by", "Conducted By"],
+      ["topic", "Topic"],
+    ];
+    for (const [k, l] of fields) {
+      if (!String(data[k] || "").trim()) need.push(t(l));
+    }
+    if (!data.conductor_signature) need.push(t("Conductor Signature"));
+    if (!data.attendees || data.attendees.length === 0) need.push(t("Attendees"));
+    const photoCount = (data.photos || []).length;
+    if (photoCount < 2) need.push(`${t("Photos")} ${photoCount}/2`);
+    if (need.length === 0) return "";
+    return need.slice(0, 3).join(" · ") + (need.length > 3 ? ` +${need.length - 3}` : "");
+  })();
+
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
       <div className="caution-stripe" />
@@ -330,9 +354,19 @@ export default function NewMeeting({ publicMode = false }) {
           <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} homeLink="/" />
           <div className="flex items-center gap-2">
             <LangToggle />
+            {missingHint && (
+              <span
+                data-testid="meeting-submit-missing-hint"
+                className="hidden sm:inline-block max-w-[260px] truncate px-2 py-1 text-[10px] font-mono uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 rounded"
+                title={`${t("To submit, complete")}: ${missingHint}`}
+              >
+                {t("Missing")}: {missingHint}
+              </span>
+            )}
             <Button
               onClick={submit}
-              disabled={saving || (data.photos || []).length < 2}
+              disabled={saving}
+              title={missingHint ? `${t("To submit, complete")}: ${missingHint}` : ""}
               className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
               data-testid="submit-top-btn"
             >
@@ -978,14 +1012,18 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <div className="pt-4">
-          {(data.photos || []).length < 2 && (
-            <p className="text-xs text-red-700 font-bold text-center mb-2 font-mono uppercase tracking-[0.15em]">
-              {t("Need")} {2 - (data.photos || []).length} {t("more photo(s) before you can submit")}
+          {missingHint && (
+            <p
+              data-testid="meeting-submit-missing-hint-bottom"
+              className="text-xs text-red-700 font-bold text-center mb-2 font-mono uppercase tracking-[0.15em]"
+            >
+              {t("To submit, complete")}: {missingHint}
             </p>
           )}
           <Button
             onClick={submit}
-            disabled={saving || (data.photos || []).length < 2}
+            disabled={saving}
+            title={missingHint ? `${t("To submit, complete")}: ${missingHint}` : ""}
             className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:opacity-60"
             data-testid="submit-bottom-btn"
           >
