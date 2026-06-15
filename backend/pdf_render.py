@@ -1163,6 +1163,115 @@ def _render_daily(d: Dict[str, Any]) -> str:
     return "".join(rows)
 
 
+def _render_meeting_attendee_rows(attendees: List[Any]) -> List[str]:
+    """SAFETY-MEETING-CERT · build PDF rows for the attendance table.
+
+    Per-row priority:
+      1. If attendee dict has `employee_id`, look it up in the
+         employees collection (best-effort, sync) and pull the
+         canonical name + preferred name + company (MASCI) + trade.
+         Falls back to typed values when lookup fails.
+      2. If non-MASCI (`non_masci: True` or explicit `company` typed),
+         render the typed values directly without lookup.
+      3. Render acknowledgement column with ✓ Acknowledged + timestamp
+         when `acknowledged: True` or `acknowledged_at` set; else "—".
+    """
+    rows: List[str] = []
+    # Resolve employee_ids in a single round-trip (best-effort; we run
+    # in sync WeasyPrint context so use the cached identity mirror if
+    # available, otherwise fall back to typed strings).
+    employee_lookup: Dict[str, Dict[str, Any]] = {}
+    try:
+        emp_ids = [
+            (a.get("employee_id") or "").strip()
+            for a in attendees
+            if isinstance(a, dict)
+            and (a.get("employee_id") or "").strip()
+            and not a.get("non_masci")
+        ]
+        if emp_ids:
+            from lib.identity_lookup_sync import lookup_employees_sync  # noqa: PLC0415
+            employee_lookup = lookup_employees_sync(emp_ids) or {}
+    except Exception:
+        employee_lookup = {}
+
+    for a in attendees:
+        if not isinstance(a, dict):
+            continue
+        non_masci = bool(a.get("non_masci"))
+        emp_id = (a.get("employee_id") or "").strip()
+        emp = employee_lookup.get(emp_id) if emp_id and not non_masci else None
+
+        # Name — canonical employee identity > typed value > em-dash
+        if emp:
+            try:
+                from masci.identity import format_employee_identity  # noqa: PLC0415
+                name = format_employee_identity(emp) or emp.get("legal_last_name") or ""
+            except Exception:
+                name = (emp.get("name") or emp.get("legal_last_name") or "").strip()
+        else:
+            name = (a.get("name") or a.get("attendee_name") or "").strip()
+        if not name:
+            name = "—"
+
+        # Company — MASCI auto-filled for directory-linked employees;
+        # typed value otherwise.
+        if emp and not non_masci:
+            company = a.get("company") or "MASCI"
+        else:
+            company = (a.get("company") or "").strip() or ("—" if non_masci else "—")
+
+        # Trade / role — from HR record for MASCI, typed for non-MASCI.
+        if emp and not non_masci:
+            trade = (emp.get("trade") or emp.get("role") or emp.get("position")
+                     or a.get("trade") or a.get("role") or "").strip()
+        else:
+            trade = (a.get("trade") or a.get("role") or "").strip()
+        if not trade:
+            trade = "—"
+
+        sig = a.get("signature") or a.get("sig") or ""
+        # iter75: resolve photo:// signatures inline
+        if isinstance(sig, str) and sig.startswith("photo://"):
+            try:
+                from photo_storage import resolve_to_data_url_sync as _r2d  # noqa: PLC0415
+                sig = _r2d(sig) or ""
+            except Exception:  # noqa: BLE001
+                sig = ""
+        sig_cell = (
+            f'<img src="{sig}" style="max-height:28px;max-width:110px;'
+            'display:block;" />'
+            if sig and isinstance(sig, str) and sig.startswith("data:image/")
+            else (escape(sig) if sig else "—")
+        )
+
+        ack_at = (a.get("acknowledged_at") or a.get("signed_at")
+                  or a.get("timestamp") or "")
+        ack_flag = bool(a.get("acknowledged")) or bool(ack_at) or bool(sig)
+        if ack_flag:
+            ack_disp = "✓ Acknowledged"
+            if ack_at:
+                ack_disp += f"<br><span style='font-family:Courier New,monospace;font-size:7.5pt;color:#94a3b8;'>{escape(str(ack_at))}</span>"
+        else:
+            ack_disp = "<span style='color:#dc2626;font-weight:bold;'>✗ Not acknowledged</span>"
+
+        rows.append(
+            "<tr>"
+            f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
+            f"font-size:9pt;'>{escape(str(name))}</td>"
+            f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
+            f"font-size:9pt;color:#475569;'>{escape(str(company))}</td>"
+            f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
+            f"font-size:9pt;color:#475569;'>{escape(str(trade))}</td>"
+            f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;'>"
+            f"{sig_cell}</td>"
+            f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
+            f"font-size:8.5pt;color:#0f172a;'>{ack_disp}</td>"
+            "</tr>"
+        )
+    return rows
+
+
 def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
     """SM-PDF-001 · Safety Meeting renderer · meeting-content-first.
 
@@ -1171,11 +1280,27 @@ def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
     photos), SM-PDF-3 (compact attendance), and SM-PDF-4 (Executive
     Summary card).
 
+    SAFETY-MEETING-CERT (2026-06-15) · field-name alignment fix:
+      * read `conducted_by` (DB schema in routes/safety.py), not just
+        the legacy aliases — production meetings were storing the
+        conductor under `conducted_by` and the PDF was leaving it
+        blank.
+      * read `hazards_reviewed`, `discussion_notes`, and string-typed
+        `action_items` (current schema) in addition to the legacy
+        alias names.
+      * render sections 02-05 with "None recorded" placeholders so
+        the numbering never jumps (PDF previously skipped 02–05
+        entirely when those fields were empty).
+      * resolve MASCI employee identity from `employee_id` so the
+        attendance table shows the canonical name / company / trade
+        instead of whatever was typed.
+      * show acknowledgement status per attendee.
+
     Pure-render. NO schema, NO collections, NO workflow change, NO
-    signature semantics changed. All meeting fields and lists are read
-    from the existing record dict and rendered in the new order.
+    signature semantics changed.
 
     Doctrine: SM_PDF_001_SAFETY_MEETING_PDF_LAYOUT_REMEDIATION_CERTIFICATION.md
+              SAFETY_MEETING_WORKFLOW_PDF_CERTIFICATION.md
     """
     rows: List[str] = []
 
@@ -1191,7 +1316,10 @@ def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
 
     attendees = d.get("attendees") if isinstance(d.get("attendees"), list) else []
     attendee_count = len(attendees)
-    hazards_raw = d.get("hazards") or d.get("hazards_discussed") or []
+    # SAFETY-MEETING-CERT · read both new schema (`hazards_reviewed`) and
+    # legacy aliases so historical records keep rendering.
+    hazards_raw = (d.get("hazards_reviewed") or d.get("hazards")
+                   or d.get("hazards_discussed") or [])
     hazard_names: List[str] = []
     if isinstance(hazards_raw, list):
         for h in hazards_raw:
@@ -1202,9 +1330,26 @@ def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
                 if name:
                     hazard_names.append(str(name).strip())
     elif isinstance(hazards_raw, str) and hazards_raw.strip():
-        hazard_names = [s.strip() for s in hazards_raw.split(",") if s.strip()]
+        # `hazards_reviewed` is stored as multi-line string in current
+        # schema. Split on newlines + commas so individual hazards
+        # render as bullets.
+        bits: List[str] = []
+        for line in hazards_raw.splitlines():
+            for piece in line.split(","):
+                p = piece.strip(" -•\t")
+                if p:
+                    bits.append(p)
+        hazard_names = bits or [hazards_raw.strip()]
 
-    action_items = d.get("action_items") if isinstance(d.get("action_items"), list) else []
+    # SAFETY-MEETING-CERT · `action_items` is a free-text string in the
+    # current schema. Preserve list support for legacy/structured rows.
+    action_items_raw = d.get("action_items")
+    action_items: List[Any] = []
+    action_items_text = ""
+    if isinstance(action_items_raw, list):
+        action_items = action_items_raw
+    elif isinstance(action_items_raw, str) and action_items_raw.strip():
+        action_items_text = action_items_raw.strip()
     photos = d.get("photos") or []
     # Status derivation — completed when meeting has attendees + signatures.
     has_sigs = any(
@@ -1283,15 +1428,22 @@ def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
     )
 
     # ── SM-PDF-1 · Meeting Details (KV block) ───────────────────────
+    # SAFETY-MEETING-CERT · `conducted_by` is the canonical schema field
+    # (required by the form). `facilitator` / `led_by` / `presenter` /
+    # `prepared_by` are legacy aliases kept for historical records.
+    conducted_by = (d.get("conducted_by") or d.get("facilitator")
+                    or d.get("led_by") or d.get("presenter")
+                    or d.get("prepared_by") or "")
+
     detail_kvs = (
         _kv("Topic", topic or None)
         + _kv("Meeting Type", meeting_type if meeting_type != "Safety Meeting" else None)
         + _kv("Project", project_name or None)
         + _kv("Project #", project_no or None)
         + _kv("Date", date_s or None)
+        + _kv("Time", d.get("meeting_time") or None)
         + _kv("Location", d.get("location") or d.get("meeting_location"))
-        + _kv("Facilitator", d.get("facilitator") or d.get("led_by")
-              or d.get("presenter") or d.get("prepared_by"))
+        + _kv("Conducted By", conducted_by or None)
         + _kv("Crew / Team", d.get("crew") or d.get("team"))
         + _kv("Duration", d.get("duration_minutes")
               and f"{d['duration_minutes']} min" or None)
@@ -1299,29 +1451,41 @@ def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
     if detail_kvs:
         rows.append(_section("01 · Meeting Details", detail_kvs))
 
-    # ── SM-PDF-1 · Hazards Discussed ────────────────────────────────
+    # SAFETY-MEETING-CERT · sections 02–05 ALWAYS render so the section
+    # numbering never jumps. When the field has no data, show a clean
+    # "None recorded" placeholder rather than skipping the section.
+
+    # ── 02 · Hazards Discussed ──────────────────────────────────────
     if hazard_names:
         hazards_html = (
             "<ul style='margin:4px 0 0 18px;padding:0;font-size:10pt;color:#0f172a;'>"
             + "".join(f"<li style='margin:2px 0;'>{escape(h)}</li>" for h in hazard_names)
             + "</ul>"
         )
-        rows.append(_section("02 · Hazards Discussed", hazards_html))
+    else:
+        hazards_html = (
+            "<div style='font-size:10pt;color:#94a3b8;font-style:italic;'>None recorded</div>"
+        )
+    rows.append(_section("02 · Hazards Discussed", hazards_html))
 
-    # ── SM-PDF-1 · Discussion / Topic Body ──────────────────────────
+    # ── 03 · Discussion / Topic Body ────────────────────────────────
     discussion = (
-        d.get("discussion") or d.get("topic_discussion")
+        d.get("discussion_notes") or d.get("discussion") or d.get("topic_discussion")
         or d.get("notes") or d.get("meeting_notes")
         or d.get("summary") or d.get("topic_details") or ""
     )
     if isinstance(discussion, str) and discussion.strip():
-        rows.append(_section(
-            "03 · Discussion",
+        discussion_html = (
             f'<div style="font-size:10pt;color:#0f172a;line-height:1.45;'
-            f'white-space:pre-wrap;">{escape(discussion.strip())}</div>',
-        ))
+            f'white-space:pre-wrap;">{escape(discussion.strip())}</div>'
+        )
+    else:
+        discussion_html = (
+            "<div style='font-size:10pt;color:#94a3b8;font-style:italic;'>None recorded</div>"
+        )
+    rows.append(_section("03 · Discussion", discussion_html))
 
-    # ── SM-PDF-1 · Action Items ─────────────────────────────────────
+    # ── 04 · Action Items ───────────────────────────────────────────
     if isinstance(action_items, list) and action_items:
         ai_rows: List[List[Any]] = []
         for a in action_items:
@@ -1334,64 +1498,46 @@ def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
                 ])
             elif isinstance(a, str):
                 ai_rows.append([a, "", "", ""])
-        if ai_rows:
-            rows.append(_section(
-                "04 · Action Items",
-                _table(["Action", "Owner", "Due", "Status"], ai_rows),
-            ))
+        actions_html = _table(["Action", "Owner", "Due", "Status"], ai_rows)
+    elif action_items_text:
+        actions_html = (
+            f'<div style="font-size:10pt;color:#0f172a;line-height:1.45;'
+            f'white-space:pre-wrap;">{escape(action_items_text)}</div>'
+        )
+    else:
+        actions_html = (
+            "<div style='font-size:10pt;color:#94a3b8;font-style:italic;'>None recorded</div>"
+        )
+    rows.append(_section("04 · Action Items", actions_html))
 
-    # ── SM-PDF-1 · Notes (only if distinct from discussion) ─────────
-    notes_other = d.get("additional_notes") or d.get("comments") or ""
+    # ── 05 · Additional Notes / Follow-Up ───────────────────────────
+    notes_other = (d.get("additional_notes") or d.get("comments")
+                   or d.get("references_cited") or "")
     if isinstance(notes_other, str) and notes_other.strip() \
             and notes_other.strip() != (discussion or "").strip():
-        rows.append(_section(
-            "05 · Additional Notes",
+        notes_html = (
             f'<div style="font-size:10pt;color:#0f172a;line-height:1.45;'
-            f'white-space:pre-wrap;">{escape(notes_other.strip())}</div>',
-        ))
+            f'white-space:pre-wrap;">{escape(notes_other.strip())}</div>'
+        )
+    else:
+        notes_html = (
+            "<div style='font-size:10pt;color:#94a3b8;font-style:italic;'>None recorded</div>"
+        )
+    rows.append(_section("05 · Additional Notes / Follow-Up", notes_html))
 
     # ── SM-PDF-2 · Photos · auto-hide when empty ────────────────────
     photos_html = _photos_block(photos) if photos else ""
     if photos_html:
         rows.append(_section("06 · Photos", photos_html))
+    else:
+        rows.append(_section(
+            "06 · Photos",
+            "<div style='font-size:10pt;color:#94a3b8;font-style:italic;'>None attached</div>",
+        ))
 
     # ── SM-PDF-3 · Compact Attendance · last surface ────────────────
     if attendees:
-        att_rows = []
-        for a in attendees:
-            if not isinstance(a, dict):
-                continue
-            name = a.get("name") or a.get("attendee_name") or "—"
-            company = a.get("company") or a.get("trade") or a.get("role") or ""
-            sig = a.get("signature") or a.get("sig") or ""
-            timestamp = (a.get("signed_at") or a.get("acknowledged_at")
-                         or a.get("timestamp") or "")
-            # iter75: resolve photo:// signatures inline
-            if isinstance(sig, str) and sig.startswith("photo://"):
-                try:
-                    from photo_storage import resolve_to_data_url_sync as _r2d  # noqa: PLC0415
-                    sig = _r2d(sig) or ""
-                except Exception:  # noqa: BLE001
-                    sig = ""
-            sig_cell = (
-                f'<img src="{sig}" style="max-height:28px;max-width:110px;'
-                'display:block;" />'
-                if sig and isinstance(sig, str) and sig.startswith("data:image/")
-                else (escape(sig) if sig else "—")
-            )
-            att_rows.append(
-                "<tr>"
-                f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
-                f"font-size:9pt;'>{escape(str(name))}</td>"
-                f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
-                f"font-size:9pt;color:#475569;'>{escape(str(company))}</td>"
-                f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;'>"
-                f"{sig_cell}</td>"
-                f"<td style='padding:2px 6px;border-bottom:1px solid #e2e8f0;"
-                f"font-family:Courier New,monospace;font-size:8pt;color:#64748b;'>"
-                f"{escape(str(timestamp))}</td>"
-                "</tr>"
-            )
+        att_rows = _render_meeting_attendee_rows(attendees)
         attendance_html = (
             f"<p style='font-size:9pt;color:#475569;margin:0 0 4px;'>"
             f"Attendees: <b>{attendee_count}</b></p>"
@@ -1402,7 +1548,10 @@ def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
             "text-transform:uppercase;color:#64748b;'>Name</th>"
             "<th style='text-align:left;padding:3px 6px;border-bottom:2px solid #cbd5e1;"
             "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
-            "text-transform:uppercase;color:#64748b;'>Company / Trade</th>"
+            "text-transform:uppercase;color:#64748b;'>Company</th>"
+            "<th style='text-align:left;padding:3px 6px;border-bottom:2px solid #cbd5e1;"
+            "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+            "text-transform:uppercase;color:#64748b;'>Trade / Role</th>"
             "<th style='text-align:left;padding:3px 6px;border-bottom:2px solid #cbd5e1;"
             "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
             "text-transform:uppercase;color:#64748b;'>Signature</th>"
@@ -1412,7 +1561,11 @@ def _render_meeting(kind_label: str, d: Dict[str, Any]) -> str:
             "</tr></thead><tbody>"
             + "".join(att_rows) + "</tbody></table>"
         )
-        rows.append(_section("07 · Attendance and Acknowledgement", attendance_html))
+    else:
+        attendance_html = (
+            "<div style='font-size:10pt;color:#94a3b8;font-style:italic;'>No attendees recorded</div>"
+        )
+    rows.append(_section("07 · Attendance and Acknowledgement", attendance_html))
 
     # ── Signatures (facilitator / supervisor) appended at end ───────
     sig_blocks: List[str] = []

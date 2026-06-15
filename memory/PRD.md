@@ -10,7 +10,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-15 · RC1 LIVE PRODUCTION SMOKE)
+## Latest Closed Track (2026-06-15 · SAFETY-MEETING-WORKFLOW-PDF-CERT)
+- **14.0-SAFETY-MEETING-WORKFLOW-PDF-CERTIFICATION CLOSED.** 🟢
+  Root-caused the production PDF defect where sections jumped
+  01 → 06 → 07 with blank discussion / hazards / action-items /
+  attendance. Root cause was a **field-name mismatch in the PDF
+  renderer**: `_render_meeting` was reading `facilitator/led_by/
+  presenter` but DB stores `conducted_by`; reading `hazards/
+  hazards_discussed` but DB stores `hazards_reviewed`; reading
+  `discussion/notes` but DB stores `discussion_notes`; expecting
+  list-typed `action_items` but DB stores a string. Every section
+  rendered empty, then got SKIPPED entirely (no placeholder), so
+  numbering jumped. **Five fixes shipped end-to-end**:
+    1. `pdf_render.py::_render_meeting` rewritten to read canonical
+       schema names first + legacy aliases. Sections 02–07 always
+       render with "None recorded" placeholder. Attendance table now
+       has 5 columns (Name · Company · Trade/Role · Signature ·
+       Acknowledged). New `_render_meeting_attendee_rows` helper +
+       `lib/identity_lookup_sync.py` enrich each row from HR record.
+    2. `routes/safety.py::MeetingAttendee` Pydantic model with hard
+       validators (name + company + signature + acknowledged all
+       required). `conducted_by` validator rejects empty values.
+    3. `pages/NewMeeting.jsx` attendee row now has Company + Trade +
+       Non-MASCI/Subcontractor toggle + Acknowledgement checkbox
+       (stamps `acknowledged_at` timestamp). `Add Attendee` blocked
+       until current row complete. `validate()` walks every row.
+    4. MASCI auto-fill: picking an employee writes `company=MASCI`
+       + pulls trade from HR record onto the attendee row.
+    5. Non-MASCI / subcontractor path explicit toggle; clears
+       `employee_id` so HR roster isn't polluted.
+  Tests: **18 / 18 PASS** (`test_safety_meeting_cert.py`) +
+  Live preview cert (`phase9_safety_meeting_live_cert.py`): 19 / 19
+  contract checks PASS, real PDF rendered (1.4 MB), cleanup verified.
+  Cross-PDF audit: only `_render_meeting` had the field-name
+  mismatch + section-numbering pattern; all other renderers either
+  iterate full record dict or use explicit field maps that match
+  the schema. Master ledger:
+  `/app/memory/SAFETY_MEETING_WORKFLOW_PDF_CERTIFICATION.md`.
+
+## Previous Closed Track (2026-06-15 · RC1 LIVE PRODUCTION SMOKE)
 - **14.0-RC1 LIVE PRODUCTION SMOKE CERTIFICATION CLOSED.** 🟢
   **PASS · DEPLOY-CONFIRMED.** Full authenticated smoke executed
   against https://mascidocs.com under user authorization. Phases

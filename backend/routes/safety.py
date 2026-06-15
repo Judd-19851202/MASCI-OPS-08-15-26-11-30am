@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from pm_auth import compute_pm_scope
 
@@ -103,6 +103,64 @@ class InspectionSummary(BaseModel):
 # ============================================================
 # Meetings (Toolbox Talks)
 # ============================================================
+class MeetingAttendee(BaseModel):
+    """SAFETY-MEETING-CERT · attendee row contract.
+
+    A meeting attendee MUST carry a name, a company, a signature, and
+    must be acknowledged. Two paths are supported:
+
+      * MASCI employee — `employee_id` references the employees
+        collection; `company` is auto-locked to "MASCI" client-side.
+        `non_masci` MUST be false.
+      * Non-MASCI / subcontractor — `non_masci=True`; user types name
+        and company directly. No HR employee record is created.
+
+    `acknowledged` is REQUIRED to be True at submit-time. Accept
+    `acknowledged_at` (ISO timestamp) as supplementary proof. Signature
+    image-data is required.
+    """
+    model_config = ConfigDict(extra="allow")
+    name: str
+    employee_id: Optional[str] = ""
+    non_masci: Optional[bool] = False
+    company: str
+    trade: Optional[str] = ""
+    signature: str  # data:image/* — required
+    acknowledged: bool = False
+    acknowledged_at: Optional[str] = ""
+
+    @field_validator("name")
+    @classmethod
+    def _name_required(cls, v: str) -> str:
+        v = (v or "").strip()
+        if not v:
+            raise ValueError("attendee name is required")
+        return v
+
+    @field_validator("company")
+    @classmethod
+    def _company_required(cls, v: str) -> str:
+        v = (v or "").strip()
+        if not v:
+            raise ValueError("attendee company is required")
+        return v
+
+    @field_validator("signature")
+    @classmethod
+    def _signature_required(cls, v: str) -> str:
+        v = (v or "").strip()
+        if not v:
+            raise ValueError("attendee signature is required")
+        return v
+
+    @field_validator("acknowledged")
+    @classmethod
+    def _ack_required(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("attendee must acknowledge the meeting")
+        return v
+
+
 class MeetingCreate(BaseModel):
     model_config = ConfigDict(extra="allow")
     project_name: str
@@ -117,7 +175,7 @@ class MeetingCreate(BaseModel):
     discussion_notes: Optional[str] = ""
     references_cited: Optional[str] = ""
     action_items: Optional[str] = ""
-    attendees: List[Dict[str, Any]] = Field(default_factory=list)
+    attendees: List[MeetingAttendee] = Field(default_factory=list)
     photos: List[str] = Field(default_factory=list)
     conductor_signature: Optional[str] = ""
     # iter256 · GPS + topic provenance + submit language (promoted from extra="allow")
@@ -133,6 +191,14 @@ class MeetingCreate(BaseModel):
     subcontractor_present: Optional[bool] = False
     subcontractor_name: Optional[str] = ""
     high_risk_activity: Optional[bool] = False
+
+    @field_validator("conducted_by")
+    @classmethod
+    def _conducted_by_required(cls, v: str) -> str:
+        v = (v or "").strip()
+        if not v:
+            raise ValueError("conducted_by is required — a Safety Meeting must record who led it")
+        return v
 
 
 class Meeting(MeetingCreate):

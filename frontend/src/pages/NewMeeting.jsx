@@ -142,11 +142,25 @@ export default function NewMeeting({ publicMode = false }) {
     }
   };
 
-  const addAttendee = () =>
+  const addAttendee = () => {
+    // SAFETY-MEETING-CERT · block adding a new row until current row is complete.
+    const last = data.attendees[data.attendees.length - 1];
+    if (last) {
+      const incomplete = isAttendeeIncomplete(last);
+      if (incomplete) {
+        toast.error(t("Complete the current attendee before adding another: {missing}").replace("{missing}", incomplete));
+        return;
+      }
+    }
     setData((p) => ({
       ...p,
-      attendees: [...p.attendees, { name: "", employee_id: "", signature: "" }],
+      attendees: [...p.attendees, {
+        name: "", employee_id: "", non_masci: false,
+        company: "", trade: "", signature: "",
+        acknowledged: false, acknowledged_at: "",
+      }],
     }));
+  };
   const updateAttendee = (i, k, v) =>
     setData((p) => ({
       ...p,
@@ -157,6 +171,17 @@ export default function NewMeeting({ publicMode = false }) {
       ...p,
       attendees: p.attendees.filter((_, idx) => idx !== i),
     }));
+
+  // SAFETY-MEETING-CERT · attendee completeness gate.
+  // Returns "" when complete, otherwise the human-readable missing-field label.
+  const isAttendeeIncomplete = (a) => {
+    if (!a) return "";
+    if (!String(a.name || "").trim()) return t("name");
+    if (!String(a.company || "").trim()) return t("company");
+    if (!a.signature) return t("signature");
+    if (!a.acknowledged) return t("acknowledgement");
+    return "";
+  };
 
   const validate = () => {
     const required = [
@@ -180,6 +205,14 @@ export default function NewMeeting({ publicMode = false }) {
     if (data.attendees.length === 0) {
       toast.error(t("Add at least one attendee"));
       return false;
+    }
+    // SAFETY-MEETING-CERT · every attendee row must be complete.
+    for (let i = 0; i < data.attendees.length; i += 1) {
+      const missing = isAttendeeIncomplete(data.attendees[i]);
+      if (missing) {
+        toast.error(t("Attendee {n}: {field} required").replace("{n}", i + 1).replace("{field}", missing));
+        return false;
+      }
     }
     // Photos required — toolbox-talk photos confirm the meeting actually
     // happened (group shot + topic board). 2-photo minimum.
@@ -747,25 +780,66 @@ export default function NewMeeting({ publicMode = false }) {
                   <X className="w-4 h-4 mr-1" /> {t("Remove")}
                 </Button>
               </div>
-              <EmployeeCombo
-                value={a.name}
-                onChange={(v) => {
-                  updateAttendee(i, "name", v);
-                  // iter362 · drop stale id when name is edited after pick.
-                  if (a.employee_id && v !== a.name) {
-                    updateAttendee(i, "employee_id", "");
-                  }
-                }}
-                onPick={(emp) => {
-                  // iter362 · capture canonical employee_id on the attendee row.
-                  if (emp.id || emp.employee_id) {
-                    updateAttendee(i, "employee_id", emp.id || emp.employee_id);
-                  }
-                }}
-                placeholder={t("Type or pick an employee…")}
-                testId={`attendee-name-${i}`}
-              />
-              {(a.name || "").trim() ? (
+
+              {/* SAFETY-MEETING-CERT · MASCI vs Non-MASCI / Subcontractor toggle */}
+              <div className="flex items-center gap-3 text-xs">
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!a.non_masci}
+                    onChange={(e) => {
+                      const non = e.target.checked;
+                      updateAttendee(i, "non_masci", non);
+                      if (non) {
+                        // Clear MASCI binding so HR roster is not polluted
+                        updateAttendee(i, "employee_id", "");
+                        // Don't auto-fill company; user must type it.
+                        if (a.company === "MASCI") updateAttendee(i, "company", "");
+                      } else {
+                        // Returning to MASCI path — default company
+                        if (!a.company) updateAttendee(i, "company", "MASCI");
+                      }
+                    }}
+                    data-testid={`attendee-nonmasci-${i}`}
+                  />
+                  <span className="font-mono uppercase tracking-wide text-slate-600">
+                    {t("Non-MASCI / Subcontractor")}
+                  </span>
+                </label>
+              </div>
+
+              {a.non_masci ? (
+                <Input
+                  value={a.name}
+                  onChange={(e) => updateAttendee(i, "name", e.target.value)}
+                  placeholder={t("Type subcontractor's full name")}
+                  className={inputCls}
+                  data-testid={`attendee-name-${i}`}
+                />
+              ) : (
+                <EmployeeCombo
+                  value={a.name}
+                  onChange={(v) => {
+                    updateAttendee(i, "name", v);
+                    if (a.employee_id && v !== a.name) {
+                      updateAttendee(i, "employee_id", "");
+                    }
+                  }}
+                  onPick={(emp) => {
+                    // iter362 + SAFETY-MEETING-CERT · capture canonical id +
+                    // auto-fill company (MASCI) and trade from HR record.
+                    if (emp.id || emp.employee_id) {
+                      updateAttendee(i, "employee_id", emp.id || emp.employee_id);
+                    }
+                    updateAttendee(i, "company", "MASCI");
+                    const trade = emp.trade || emp.role || emp.position || emp.job_title || "";
+                    if (trade) updateAttendee(i, "trade", trade);
+                  }}
+                  placeholder={t("Type or pick an employee…")}
+                  testId={`attendee-name-${i}`}
+                />
+              )}
+              {(a.name || "").trim() && !a.non_masci ? (
                 a.employee_id ? (
                   <div className="text-[10px] text-emerald-700 font-mono inline-flex items-center gap-1" data-testid={`attendee-linked-${i}`}>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
@@ -778,20 +852,70 @@ export default function NewMeeting({ publicMode = false }) {
                   </div>
                 )
               ) : null}
+
+              {/* SAFETY-MEETING-CERT · Company + Trade fields */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs font-mono uppercase tracking-wide text-slate-600">
+                    {t("Company")} *
+                  </Label>
+                  <Input
+                    value={a.company || ""}
+                    onChange={(e) => updateAttendee(i, "company", e.target.value)}
+                    disabled={!a.non_masci && !!a.employee_id}
+                    placeholder={a.non_masci ? t("Subcontractor company") : "MASCI"}
+                    className={inputCls}
+                    data-testid={`attendee-company-${i}`}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-mono uppercase tracking-wide text-slate-600">
+                    {t("Trade / Role")}
+                  </Label>
+                  <Input
+                    value={a.trade || ""}
+                    onChange={(e) => updateAttendee(i, "trade", e.target.value)}
+                    placeholder={t("e.g. Foreman, Laborer, Pipe Layer")}
+                    className={inputCls}
+                    data-testid={`attendee-trade-${i}`}
+                  />
+                </div>
+              </div>
+
               <BilingualConsent variant="meeting" />
               <SignaturePad
                 value={a.signature}
                 onChange={(v) => updateAttendee(i, "signature", v)}
-                label={t("Signature")}
+                label={t("Signature") + " *"}
                 testId={`attendee-sig-${i}`}
               />
+
+              {/* SAFETY-MEETING-CERT · explicit acknowledgement */}
+              <label className="flex items-start gap-2 cursor-pointer p-2 rounded-md border border-slate-200 bg-slate-50">
+                <input
+                  type="checkbox"
+                  checked={!!a.acknowledged}
+                  onChange={(e) => {
+                    const v = e.target.checked;
+                    updateAttendee(i, "acknowledged", v);
+                    updateAttendee(i, "acknowledged_at", v ? new Date().toISOString() : "");
+                  }}
+                  className="mt-0.5 w-4 h-4"
+                  data-testid={`attendee-ack-${i}`}
+                />
+                <span className="text-sm text-slate-700">
+                  <strong>{t("I acknowledge")}</strong>{" — "}
+                  {t("I was present, understood the topic and the hazards, and agree to the safe-work commitments discussed.")}
+                </span>
+              </label>
             </div>
           ))}
           <Button
             type="button"
             variant="outline"
             onClick={addAttendee}
-            className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
+            disabled={data.attendees.length > 0 && !!isAttendeeIncomplete(data.attendees[data.attendees.length - 1])}
+            className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="attendee-add"
           >
             <UserPlus className="w-4 h-4 mr-2" /> {t("Add Attendee")}

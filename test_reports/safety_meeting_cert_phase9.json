@@ -1,0 +1,32 @@
+{
+  "api": "https://safety-audit-mobile-1.preview.emergentagent.com",
+  "meeting_id": "3cf54b06-4dcd-45af-89f2-260c96c27718",
+  "doc_id": "MTG-2026-00544",
+  "pdf_bytes": 1448972,
+  "pdf_path": "/app/test_reports/SAFETY_MEETING_CERT_smoke.pdf",
+  "html_path": "/app/test_reports/SAFETY_MEETING_CERT_smoke.html",
+  "contract": {
+    "section_01_present": true,
+    "section_02_present": true,
+    "section_03_present": true,
+    "section_04_present": true,
+    "section_05_present": true,
+    "section_06_present": true,
+    "section_07_present": true,
+    "no_section_jump_01_to_06": true,
+    "conducted_by_rendered": true,
+    "hazards_rendered": true,
+    "discussion_rendered": true,
+    "action_items_rendered": true,
+    "masci_attendee_rendered": true,
+    "masci_company_locked": true,
+    "non_masci_attendee_rendered": true,
+    "non_masci_company_typed": true,
+    "trade_rendered": true,
+    "acknowledgement_rendered": true,
+    "no_undefined_leak": true
+  },
+  "all_passed": true,
+  "cleanup_status": 200,
+  "ran_at": "2026-06-15T11:43:37Z"
+}
