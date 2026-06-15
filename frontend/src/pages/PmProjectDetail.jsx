@@ -21,10 +21,11 @@
 
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { Briefcase, Activity, Truck, CheckCircle2, AlertTriangle, FileCheck2 } from "lucide-react";
+import { Briefcase, Activity, Truck, CheckCircle2, AlertTriangle, FileCheck2, Users, ArrowRight } from "lucide-react";
 import PmShell from "@/components/PmShell";
 import OperationalTimelineSidecar from "@/components/operational/OperationalTimelineSidecar";
 import TrenchSafetyOnProjectPanel from "@/components/trench/TrenchSafetyOnProjectPanel";
+import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -573,6 +574,25 @@ export default function PmProjectDetail() {
       </div>
 
       <OperationalTimelineSidecar projectNumber={pn} />
+
+      {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE.
+          Inline Project Team panel — always visible on PM Project Detail
+          so PMs can manage staffing without leaving the project. */}
+      {pn && (
+        <div data-testid="pm-project-team-section" className="mt-4">
+          <JobTeamRosterPanel projectNumber={pn} scope="pm" />
+          <p className="mt-2 text-xs text-slate-500">
+            <Link
+              to={`/pm/job/${encodeURIComponent(pn)}/team`}
+              className="text-amber-700 hover:text-amber-900 underline inline-flex items-center gap-1"
+              data-testid="pm-project-team-full-page-link"
+            >
+              <Users className="w-3 h-3" /> Open dedicated Team page
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </p>
+        </div>
+      )}
 
       {/* Track 13.13 · Build Queue #4 — Operational Events Project-Day
           panel. Read-only · honest empty/error states · no charts ·

@@ -21,6 +21,7 @@ roster idempotently for forward use.
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
@@ -876,6 +877,135 @@ def register_project_team_assignments(
         async for r in db.project_team_assignments.find(q, {"_id": 0}):
             items.append(_public(r))
         return {"items": items, "count": len(items)}
+
+    # ── Track 14.0-PM-STAFFING-UI-DISCOVERABILITY ────────────────────
+    # Cross-project staffing summary — powers the new "Project Staffing"
+    # landing tile in Admin/PM Hubs. Returns per-project active counts,
+    # PM scope honored, and unassigned-role surface so operators see
+    # gaps at a glance.
+
+    @router.get("/api/project-staffing/summary")
+    async def project_staffing_summary(
+        actor=Depends(require_any_portal_token),
+        limit: int = Query(default=200, ge=1, le=500),
+    ):
+        """Cross-project staffing summary. Admin sees all active projects;
+        PM sees only their `compute_pm_scope` projects. Each project entry
+        returns active assignment count, unassigned canonical roles,
+        and a small primary-roles snapshot (PM/Super/Foreman/Safety/QC)."""
+        actor = _coerce_actor(actor)
+        is_admin = actor.get("_actor") == "admin"
+
+        # Pull active projects.
+        q_jobs: Dict[str, Any] = {"deleted_at": {"$in": [None, ""]}}
+        if not is_admin:
+            # PM scope — use existing compute_pm_scope helper.
+            try:
+                from pm_auth import compute_pm_scope  # noqa: PLC0415
+                scope = await compute_pm_scope(db, actor)
+                if not getattr(scope, "is_admin", False):
+                    pns = list(getattr(scope, "project_numbers", []) or [])
+                    if not pns:
+                        return {"items": [], "count": 0,
+                                "role_totals": {}, "role_keys": list(ROLE_REGISTRY.keys()),
+                                "totals": {"projects": 0, "active_assignments": 0,
+                                           "unassigned_role_slots": 0}}
+                    q_jobs["project_number"] = {"$in": pns}
+            except Exception:
+                pass
+
+        projects: List[Dict[str, Any]] = []
+        async for j in db.jobs_master.find(q_jobs, {"_id": 0}).limit(limit):
+            projects.append(j)
+
+        # Build per-project roster from project_team_assignments.
+        pn_set = [p.get("project_number") for p in projects if p.get("project_number")]
+        roster_by_pn: Dict[str, List[Dict[str, Any]]] = {p: [] for p in pn_set}
+        if pn_set:
+            cur = db.project_team_assignments.find(
+                {"project_number": {"$in": pn_set}, "active": True},
+                {"_id": 0},
+            )
+            async for r in cur:
+                pn = r.get("project_number")
+                if pn in roster_by_pn:
+                    roster_by_pn[pn].append(_public(r))
+
+        # Role-level aggregate (how many active assignments per role
+        # across the actor's scope).
+        role_totals: Dict[str, int] = {k: 0 for k in ROLE_REGISTRY.keys()}
+        total_active = 0
+        total_unassigned_slots = 0
+        items: List[Dict[str, Any]] = []
+
+        primary_role_keys = ("pm", "superintendent", "foreman",
+                             "safety_rep", "qaqc_rep", "project_engineer")
+        for j in projects:
+            pn = j.get("project_number")
+            roster = roster_by_pn.get(pn, [])
+            roles_filled: Set[str] = set()
+            primary_snapshot: Dict[str, Dict[str, Any]] = {}
+            for r in roster:
+                role = r.get("assignment_role")
+                if role in ROLE_REGISTRY:
+                    role_totals[role] = role_totals.get(role, 0) + 1
+                    roles_filled.add(role)
+                    if role in primary_role_keys and role not in primary_snapshot:
+                        primary_snapshot[role] = {
+                            "display_name": r.get("display_name") or r.get("email") or "—",
+                            "email": r.get("email"),
+                            "is_primary": bool(r.get("is_primary")),
+                        }
+            unassigned = [k for k in ROLE_REGISTRY.keys() if k not in roles_filled]
+            total_active += len(roster)
+            total_unassigned_slots += len(unassigned)
+            items.append({
+                "project_number": pn,
+                "name": j.get("name") or j.get("project_name") or "",
+                "status": "active" if (j.get("active") is not False) else "inactive",
+                "active_assignments": len(roster),
+                "unassigned_roles": unassigned,
+                "primary_snapshot": primary_snapshot,
+            })
+
+        items.sort(key=lambda i: (i.get("active_assignments") or 0, i.get("project_number") or ""))
+
+        return {
+            "items": items,
+            "count": len(items),
+            "role_keys": list(ROLE_REGISTRY.keys()),
+            "role_totals": role_totals,
+            "totals": {
+                "projects": len(items),
+                "active_assignments": total_active,
+                "unassigned_role_slots": total_unassigned_slots,
+            },
+            "actor_scope": "admin" if is_admin else (actor.get("_actor") or "pm"),
+        }
+
+    @router.get("/api/employees/{employee_key}/project-assignments")
+    async def employee_project_assignments(
+        employee_key: str,
+        actor=Depends(require_any_portal_token),  # noqa: ARG001
+    ):
+        """Reverse lookup — every active project assignment for an
+        employee. `employee_key` resolves against user_id, employee_id,
+        or email. Used by HR Employee Drawer and search."""
+        key = (employee_key or "").strip()
+        if not key:
+            return {"items": [], "count": 0, "employee_key": ""}
+        q = {
+            "active": True,
+            "$or": [
+                {"user_id": key},
+                {"employee_id": key},
+                {"email": {"$regex": f"^{re.escape(key)}$", "$options": "i"}},
+            ],
+        }
+        items: List[Dict[str, Any]] = []
+        async for r in db.project_team_assignments.find(q, {"_id": 0}):
+            items.append(_public(r))
+        return {"items": items, "count": len(items), "employee_key": key}
 
     app.include_router(router)
     return router

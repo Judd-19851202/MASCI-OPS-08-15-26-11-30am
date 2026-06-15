@@ -515,9 +515,12 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
     rehire_date: "",
     reason: "",
   });
+  // Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE — employee's
+  // active project assignments. Read-only · live · honest empty state.
+  const [projectAssignments, setProjectAssignments] = useState({ loaded: false, items: [] });
 
   useEffect(() => {
-    if (!id) { setEmployee(null); setSummary(null); return; }
+    if (!id) { setEmployee(null); setSummary(null); setProjectAssignments({ loaded: false, items: [] }); return; }
     offboardingSummary(id).then((s) => {
       setSummary(s);
       setEmployee(s.employee);
@@ -532,6 +535,21 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
         rehire_eligibility: "",
         rehire_eligibility_reason: "",
       });
+      // Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE — fetch
+      // active project_team_assignments for this employee. Use email
+      // (preferred resolution key); falls back to employee id.
+      const key = s?.employee?.email || s?.employee?.id || id;
+      const API = process.env.REACT_APP_BACKEND_URL;
+      const hrTok = (typeof window !== "undefined" && window.localStorage)
+        ? (window.localStorage.getItem("masci.hr.token") || window.localStorage.getItem("masci.admin.token"))
+        : null;
+      const headers = hrTok
+        ? { "X-HR-Token": window.localStorage.getItem("masci.hr.token") || "", "X-Admin-Token": window.localStorage.getItem("masci.admin.token") || "" }
+        : {};
+      fetch(`${API}/api/employees/${encodeURIComponent(key)}/project-assignments`, { headers })
+        .then((r) => r.ok ? r.json() : { items: [] })
+        .then((body) => setProjectAssignments({ loaded: true, items: body.items || [] }))
+        .catch(() => setProjectAssignments({ loaded: true, items: [] }));
     }).catch(() => setEmployee(null));
   }, [id]);
 
@@ -695,6 +713,57 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
                   <EditField label="Supervisor" value={employee.supervisor} save={(v) => submitEdit({ supervisor: v })} />
                   <EditField label="Department" value={employee.department} save={(v) => submitEdit({ department: v })} />
                   <EditField label="Default Project #" value={employee.default_project_number} save={(v) => submitEdit({ default_project_number: v })} />
+
+                  {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE
+                      Live project assignments for this employee. */}
+                  <div className="py-2 border-t border-slate-100" data-testid="hremp-project-assignments">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Project Assignments
+                        {projectAssignments.loaded && (
+                          <span className="ml-2 inline-block text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">
+                            {projectAssignments.items.length}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    {!projectAssignments.loaded && (
+                      <p className="text-xs text-slate-400 italic">Loading…</p>
+                    )}
+                    {projectAssignments.loaded && projectAssignments.items.length === 0 && (
+                      <p className="text-xs text-slate-500 italic">
+                        Not currently assigned to any project. Assign from{" "}
+                        <a href="/admin/project-staffing" className="underline text-amber-700" data-testid="hremp-assign-link">
+                          Project Staffing
+                        </a>
+                        {" "}or open a project&apos;s Team page.
+                      </p>
+                    )}
+                    {projectAssignments.loaded && projectAssignments.items.length > 0 && (
+                      <ul className="space-y-1 mt-1">
+                        {projectAssignments.items.map((a) => (
+                          <li
+                            key={a.id}
+                            className="text-xs flex items-center justify-between gap-2 bg-slate-50 px-2 py-1.5 rounded"
+                            data-testid={`hremp-assignment-${a.id}`}
+                          >
+                            <div>
+                              <span className="font-mono font-bold text-slate-900">{a.project_number}</span>
+                              <span className="ml-2 text-slate-600">{a.role_label || a.assignment_role}</span>
+                              {a.is_primary && <span className="ml-2 text-amber-600 font-medium">★ primary</span>}
+                            </div>
+                            <a
+                              href={`/admin/jobs/${encodeURIComponent(a.project_number)}/team`}
+                              className="text-amber-700 hover:text-amber-900 underline"
+                              data-testid={`hremp-assignment-link-${a.id}`}
+                            >
+                              Manage →
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                   <EditField label="Email" value={employee.email} save={(v) => submitEdit({ email: v })} />
                   <EditField label="Phone" value={employee.phone} save={(v) => submitEdit({ phone: v })} />
                   <EditField label="Hire Date" value={employee.hire_date} save={(v) => submitEdit({ hire_date: v })} />

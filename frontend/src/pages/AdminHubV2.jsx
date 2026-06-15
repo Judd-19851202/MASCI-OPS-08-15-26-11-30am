@@ -144,6 +144,24 @@ export default function AdminHubV2() {
           </Link>
         </Section>
 
+        {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE
+            Project Staffing cross-project overview tile. Discoverable
+            entry point #1 — Admin Hub. */}
+        <Section k="06 · Project staffing · admin" t="Project team rosters" c="Cross-project staffing — who is assigned where, who is overloaded, where roles are unassigned.">
+          <Link to="/admin/project-staffing" data-testid="admin-hub-v2-q-project-staffing" style={{ textDecoration: "none", color: "inherit" }}>
+            <Card
+              title="Project Staffing"
+              description="Cross-project staffing roster across the company. Assign all 17 roles per project. Manage Superintendents, Foremen, Project Engineers, Safety / QA-QC Representatives, and more — with audit trail and notifications."
+              variant="default"
+              status={<StatusChip statusKey="verified" compact label="Live workflow" />}
+            >
+              <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+                Source: /admin/project-staffing (Track 14.0 PM-STAFFING)
+              </p>
+            </Card>
+          </Link>
+        </Section>
+
         <div data-testid="admin-hub-v2-trace-note" style={{ marginTop: 16, padding: "var(--pad-card)", background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12 }}>
           <strong style={{ color: "var(--ink-strong)" }}>Admin Hub V2 · Track 13.6K preview.</strong>{" "}
           Operations Control Center · presentation-only. Every count traces to a real source; every card opens an existing workflow. Settings, users, integrations, and audit trails remain in the classic admin surface — no rebuild.

@@ -126,6 +126,9 @@ const AdminPromoAssets = React.lazy(() => import("@/pages/admin/AdminPromoAssets
 const AdminJobs = React.lazy(() => import("@/pages/admin/AdminJobs"));
 const AdminJobTeam = React.lazy(() => import("@/pages/admin/AdminJobTeam"));
 const PmJobTeam = React.lazy(() => import("@/pages/pm/PmJobTeam"));
+// Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE — cross-project staffing.
+const AdminProjectStaffing = React.lazy(() => import("@/pages/admin/AdminProjectStaffing"));
+const PmProjectStaffing = React.lazy(() => import("@/pages/pm/PmProjectStaffing"));
 const AdminGeofenceReconciliation = React.lazy(() => import("@/pages/admin/AdminGeofenceReconciliation"));
 const AdminOperationsDashboard = React.lazy(() => import("@/pages/admin/AdminOperationsDashboard"));
 const AdminAssetMapping = React.lazy(() => import("@/pages/admin/AdminAssetMapping"));
@@ -566,6 +569,8 @@ function App() {
             <Route path="/admin/promo-assets" element={A(<AdminPromoAssets />)} />
             <Route path="/admin/jobs" element={A(<AdminJobs />)} />
             <Route path="/admin/jobs/:projectNumber/team" element={A(<AdminJobTeam />)} />
+            {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE */}
+            <Route path="/admin/project-staffing" element={A(<AdminProjectStaffing />)} />
             {/* M-3 · Geocode Foundation · Motive Geofence Reconciliation */}
             <Route path="/admin/geofence-reconciliation" element={A(<AdminGeofenceReconciliation />)} />
             {/* M-2 · Event Router · Operations dashboard (visibility only) */}
@@ -706,6 +711,8 @@ function App() {
                 PmJobsRead → /api/pm/jobs (non-admin namespace). */}
             <Route path="/pm/jobs"               element={P(<PmJobs />)} />
             <Route path="/pm/job/:projectNumber/team" element={P(<PmJobTeam />)} />
+            {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE */}
+            <Route path="/pm/project-staffing"  element={P(<PmProjectStaffing />)} />
             {/* Phase V-Prelude · Wave 1.1 · 2026-05-28.
                 Calm per-project detail surface hosting the Operational
                 Timeline sidecar. Mounted under /pm/* (PM portal

@@ -79,8 +79,11 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   }, [items, registry]);
 
   const assignableRoles = useMemo(() => {
-    return registry.filter((r) => adminScope ? true : r.pm_assignable);
-  }, [registry, adminScope]);
+    // Track 14.0-PM-STAFFING-UI-DISCOVERABILITY: PMs see every role in
+    // the picker — admin-only roles are visible but disabled with a
+    // tooltip so PMs always know the full role set + who manages it.
+    return registry;
+  }, [registry]);
 
   const handleAdd = async () => {
     if (!newRole) { toast.error("Pick a role"); return; }
@@ -182,6 +185,19 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
             {err}
           </p>
         )}
+        {!adminScope && !loading && (
+          <p
+            className="text-xs text-slate-600 bg-amber-50 border border-amber-200 rounded p-2 mb-3"
+            data-testid="job-team-pm-scope-note"
+          >
+            <strong>PM scope:</strong> You can assign all operational roles
+            (Superintendent, Foreman, Safety, QA/QC, Project Engineer, and 11
+            more). <span className="text-amber-800">Project Manager</span>,{" "}
+            <span className="text-amber-800">Co-PM</span>, and{" "}
+            <span className="text-amber-800">Executive Oversight</span> are
+            admin-only — request changes from your administrator.
+          </p>
+        )}
         {!loading && !err && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
             {grouped.map((slot) => (
@@ -267,11 +283,26 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                   <SelectValue placeholder="Pick role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {assignableRoles.map((r) => (
-                    <SelectItem key={r.key} value={r.key}>
-                      {r.label}{r.admin_only ? " (admin-only)" : ""}
-                    </SelectItem>
-                  ))}
+                  {assignableRoles.map((r) => {
+                    const disabledForPm = !adminScope && r.admin_only;
+                    return (
+                      <SelectItem
+                        key={r.key}
+                        value={r.key}
+                        disabled={disabledForPm}
+                        data-testid={`job-team-role-option-${r.key}`}
+                        title={
+                          disabledForPm
+                            ? "Admin only — request from your administrator"
+                            : undefined
+                        }
+                      >
+                        {r.label}
+                        {r.admin_only ? " (admin-only)" : ""}
+                        {disabledForPm ? " — admin only" : ""}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               {adminScope ? (

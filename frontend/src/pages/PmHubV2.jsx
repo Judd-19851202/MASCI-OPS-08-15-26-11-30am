@@ -508,6 +508,11 @@ export default function PmHubV2() {
             <Link to="/pm/photos" data-testid="pm-hub-v2-dest-photos" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <Card title="Job Photos" description="Field photo library · R2-backed" status={<StatusChip statusKey="verified" compact />} />
             </Link>
+            {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE
+                PM Hub destination tile for cross-project staffing. */}
+            <Link to="/pm/project-staffing" data-testid="pm-hub-v2-dest-staffing" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+              <Card title="Project Staffing" description="Your projects · team rosters · add Superintendents, Foremen, PEs, Safety, QA/QC — and more" status={<StatusChip statusKey="verified" compact label="Manage team" />} />
+            </Link>
           </div>
         </Section>
 

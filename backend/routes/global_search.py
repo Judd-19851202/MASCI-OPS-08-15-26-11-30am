@@ -59,6 +59,7 @@ ALL_KINDS = (
     "document_expirations",
     "operations_events",
     "field_leadership",
+    "staffing",
 )
 
 # Role → tuple of kinds visible to that role. Admin gets everything.
@@ -70,28 +71,33 @@ KIND_VISIBILITY: Dict[str, tuple] = {
         "fire_extinguishers", "safety_documents",
         "safety_training", "document_expirations",
         "employees", "equipment",
+        "staffing",
     ),
     "hr": (
         "tasks", "notifications",
         "employees", "safety_training",
         "document_expirations", "field_leadership",
         "po_requests",
+        "staffing",
     ),
     "pm": (
         "tasks", "notifications",
         "projects", "po_requests",
         "incidents", "corrective_actions",
         "employees", "equipment",
+        "staffing",
     ),
     "shop": (
         "tasks", "notifications",
         "equipment", "operations_events",
         "document_expirations",
+        "staffing",
     ),
     "dispatch": (
         "tasks", "notifications",
         "equipment", "operations_events",
         "projects",
+        "staffing",
     ),
     "leadership": (
         "po_requests", "field_leadership",
@@ -114,6 +120,7 @@ KIND_LABELS: Dict[str, str] = {
     "document_expirations": "Document Expirations",
     "operations_events": "Operations Events",
     "field_leadership": "Field Leadership Records",
+    "staffing": "Project Staffing",
 }
 
 
@@ -488,6 +495,46 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                 ))
             return rows
 
+        async def run_staffing() -> List[Dict[str, Any]]:
+            """Track 14.0-PM-STAFFING-UI-DISCOVERABILITY: search project
+            team assignments by display_name, email, role label, or
+            project_number. Honors PM scope. Returns deep-links to the
+            project Team page."""
+            q_doc = {"$and": [
+                {"$or": [
+                    {"display_name": rx},
+                    {"email": rx},
+                    {"assignment_role": rx},
+                    {"role_label": rx},
+                    {"project_number": rx},
+                ]},
+                {"active": True},
+            ]}
+            if role == "pm" and pm_proj is not None:
+                q_doc["$and"].append({"project_number": {"$in": pm_proj}})
+            rows = []
+            base_url = "/admin/jobs" if role == "admin" else "/pm/job"
+            async for d in db.project_team_assignments.find(q_doc, {"_id": 0}).limit(limit * 2):
+                pn = d.get("project_number") or "—"
+                # Apply same role label as project_team_assignments service
+                try:
+                    from routes.project_team_assignments import (  # noqa: PLC0415
+                        ROLE_REGISTRY as _PTA_ROLES,
+                    )
+                    role_label = _PTA_ROLES.get(d.get("assignment_role"), d.get("assignment_role"))
+                except Exception:
+                    role_label = d.get("role_label") or d.get("assignment_role")
+                rows.append(_row(
+                    "staffing", d,
+                    title=f"{d.get('display_name') or d.get('email') or '—'} · {role_label}",
+                    subtitle=f"Project {pn}"
+                    + (" · primary" if d.get("is_primary") else ""),
+                    url=f"{base_url}/{pn}/team",
+                    status="active" if d.get("active") else "inactive",
+                    badge=d.get("assignment_role"),
+                ))
+            return rows
+
         runners: Dict[str, Callable[[], Awaitable[List[Dict[str, Any]]]]] = {
             "tasks": run_tasks,
             "notifications": run_notifications,
@@ -503,6 +550,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             "document_expirations": run_document_expirations,
             "operations_events": run_operations_events,
             "field_leadership": run_field_leadership,
+            "staffing": run_staffing,
         }
 
         coros = [_probe(k, limit, runners[k]) for k in visible if k in runners]

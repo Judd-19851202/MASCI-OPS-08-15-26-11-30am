@@ -633,10 +633,11 @@ export default function AdminJobMasterPanel() {
                     <div className="flex items-center gap-1">
                       <a
                         href={`/admin/jobs/${encodeURIComponent(j.project_number)}/team`}
-                        className="inline-flex items-center justify-center px-2 py-1 rounded text-xs text-slate-600 hover:bg-amber-50 hover:text-amber-700 border border-slate-200"
-                        title="Manage project team roster"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700"
+                        title="Manage project team — assign Superintendent, Foreman, Safety, QA/QC, etc."
                         data-testid={`job-team-link-${j.project_number}`}
                       >
+                        <Users className="w-3.5 h-3.5" />
                         Team
                       </a>
                       <button

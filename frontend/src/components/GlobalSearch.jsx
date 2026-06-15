@@ -41,6 +41,8 @@ const KIND_TINT = {
   document_expirations:"bg-amber-50 text-amber-900 border-amber-300",
   operations_events:   "bg-sky-50 text-sky-800 border-sky-200",
   field_leadership:    "bg-stone-100 text-stone-800 border-stone-300",
+  // Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE
+  staffing:            "bg-amber-50 text-amber-900 border-amber-300",
 };
 
 function recentKey() {

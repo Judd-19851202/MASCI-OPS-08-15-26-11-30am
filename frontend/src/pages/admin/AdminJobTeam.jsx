@@ -14,12 +14,15 @@ export default function AdminJobTeam() {
       section="jobs"
       intro={
         <p className="text-sm text-slate-600">
-          Assign Superintendent, Foreman, Safety Lead, Project Engineer,
-          Asset Admin / 811 Locate Coordinator, Dispatcher Contact, and
-          Shop Contact to this project. Every change is audited. The
-          existing PM and Co-PM email assignments are mirrored here
-          read-only on roster backfill; rename PMs from{" "}
-          <a href="/admin/jobs" className="underline">Jobs &amp; Field</a>.
+          Manage the full 17-role project roster — Project Manager, Co-PM,
+          Executive Oversight, Superintendent, Assistant Superintendent,
+          Foreman, Project Engineer, Project Administrator, Project
+          Coordinator, Safety / QA-QC / HR / Dispatch / Equipment / Shop /
+          Survey / Accounting Representatives. Every assignment fires a
+          notification to the affected user and is recorded in the audit
+          history. PM / Co-PM email assignments are mirrored from{" "}
+          <a href="/admin/jobs" className="underline">Jobs &amp; Field</a>{" "}
+          on first save.
         </p>
       }
     >
