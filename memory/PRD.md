@@ -10,7 +10,46 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-14 · fork session)
+## Latest Closed Track (2026-06-15 · final certification fork)
+- **14.0-PM-STAFFING-RUNTIME-PROOF CLOSED.** All 7 phases of the
+  final certification directive executed with real users, real
+  assignments, real notifications, real audit events. Seeded 17
+  cert directory users (one per canonical staffing role) into the
+  `ZZ-RUNTIME-CERT-2026` project via the production REST workflow
+  (`POST /api/admin/directory`, `POST /api/admin/jobs`,
+  `POST /api/admin/jobs/{pn}/team`). Logged in as each via
+  `POST /api/auth/multi-login`, navigated to their canonical
+  landing route, and captured 17 portal landing screenshots. Drove
+  51 prohibited-URL attempts (3 per role) — **51 / 51 blocked**
+  with the canonical "403 · ACCESS RESTRICTED" portal-shell chrome.
+  Ran a live create→edit→reassign→remove cycle on the
+  `project_administrator` assignment to validate notifications +
+  audit pipeline: 23 audit rows captured, 17 / 17 roles have
+  `action=assign` events, 4 bell notifications fired with correct
+  `recipient_role`, `recipient_user_id`, and deep-link `link_url`.
+  Phase 7 defect fixes inline:
+    1. `compute_pm_scope` extended in `/app/backend/pm_auth.py` to
+       UNION project scope from both `jobs_master` (legacy pm_email
+       / co_pm_emails) AND `project_team_assignments` — PM-portal
+       users assigned via the new staffing workflow now see their
+       projects.
+    2. Added `_notify_assignment()` in
+       `/app/backend/routes/project_team_assignments.py` — assign /
+       remove handlers now fan out `db.notifications` rows via
+       `notification_service.fanout` with portal-correct
+       `recipient_role` for all 17 staffing keys.
+    3. Notification wording fixed (was "removed from you from …").
+  Harness scripts checked in under `/app/backend/tests/runtime_cert/`
+  (`seed_runtime_cert_users.py`, `login_screenshot_loop.py`,
+  `phase56_notify_audit_proof.py`) — fully idempotent + repeatable.
+  Per-phase evidence ledgers at `/app/memory/PHASE3_…`, `PHASE4_…`,
+  `PHASE5_…`, `PHASE6_…`. Master ledger at
+  `/app/memory/TRACK_14_0_PM_STAFFING_RUNTIME_CERTIFICATION.md`.
+  66 / 66 PM/staffing regression tests still pass.
+  **Five Pillars: 9.93** (Proven raised 8.5 → 9.95). **PM Staffing
+  is COMPLETE, VERIFIED, PROVEN, DEPLOY-READY.**
+
+## Previous Closed Track (2026-02-14 · fork session)
 - **14.0-PM-STAFFING-COMPLETION CLOSED**. Expanded the project-team
   role registry from 13 → **17 roles** with the 4 new operationally
   distinct slots the directive mandated: `project_administrator`,

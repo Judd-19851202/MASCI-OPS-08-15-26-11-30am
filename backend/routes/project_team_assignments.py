@@ -262,6 +262,76 @@ async def _audit(
         logger.warning("[team-roster] audit insert failed: %s", exc)
 
 
+# Role → recipient_role mapping for bell notifications. Keeps the bell
+# drawer aligned with the portal each role lives in.
+_ROLE_TO_RECIPIENT_ROLE: Dict[str, str] = {
+    "pm": "pm",
+    "co_pm": "pm",
+    "executive_oversight": "pm",
+    "superintendent": "pm",
+    "assistant_superintendent": "pm",
+    "project_engineer": "pm",
+    "project_administrator": "pm",
+    "project_coordinator": "pm",
+    "qaqc_rep": "pm",
+    "survey_rep": "pm",
+    "accounting_rep": "pm",
+    "foreman": "fl",
+    "safety_rep": "safety",
+    "hr_rep": "hr",
+    "dispatch_rep": "dispatch",
+    "equipment_manager": "shop",
+    "shop_rep": "shop",
+}
+
+
+async def _notify_assignment(
+    db,
+    *,
+    action: str,
+    project_number: str,
+    role_key: str,
+    role_label: str,
+    target_user_id: Optional[str],
+    target_email: Optional[str],
+    actor_name: str,
+) -> None:
+    """Fan out a bell notification to the newly-assigned (or removed)
+    user so they see project context the moment they log in.
+
+    Track 14.0-PM-STAFFING-RUNTIME-PROOF · Phase 5.
+    """
+    try:
+        from routes.tasks_notifications import notification_service
+    except Exception as exc:
+        logger.warning("[team-roster] notification module unavailable: %s", exc)
+        return
+    recipient_role = _ROLE_TO_RECIPIENT_ROLE.get(role_key, "admin")
+    if action == "assign":
+        title = f"You were added to project {project_number}"
+        message = f"{actor_name} added you to {project_number} as {role_label}."
+    elif action == "remove":
+        title = f"You were removed from project {project_number}"
+        message = f"{actor_name} removed you from {project_number} as {role_label}."
+    else:  # update
+        title = f"Your role on project {project_number} was updated"
+        message = f"{actor_name} updated your assignment on {project_number} ({role_label})."
+    payload = {
+        "type": "project_team_assignment",
+        "title": title[:200],
+        "message": message[:2000],
+        "severity": "Info",
+        "recipient_role": recipient_role,
+        "recipient_user_id": target_user_id,
+        "linked_project_number": project_number,
+        "link_url": f"/pm/projects/{project_number}" if recipient_role == "pm" else None,
+    }
+    try:
+        await notification_service.fanout(db, payload)
+    except Exception as exc:
+        logger.warning("[team-roster] notification fanout failed: %s", exc)
+
+
 # ── Resolver helpers (used by Phase-2 producer rewrites) ─────────────
 async def resolve_team_for_project(
     db, project_number: str, *, active_only: bool = True,
@@ -556,6 +626,13 @@ def register_project_team_assignments(
             target_email=email, before=None, after=_public(row), actor=actor,
             notes=payload.notes,
         )
+        await _notify_assignment(
+            db, action="assign", project_number=project_number,
+            role_key=payload.assignment_role,
+            role_label=ROLE_REGISTRY.get(payload.assignment_role, payload.assignment_role),
+            target_user_id=user_id, target_email=email,
+            actor_name=actor.get("name") or actor.get("email") or "Admin",
+        )
         return {"ok": True, "assignment": _public(row),
                 "user_link_warning": user_id is None}
 
@@ -629,6 +706,14 @@ def register_project_team_assignments(
             target_email=existing.get("email"),
             before=_public(existing), after=_public(after), actor=actor,
             notes=reason,
+        )
+        await _notify_assignment(
+            db, action="remove", project_number=project_number,
+            role_key=existing["assignment_role"],
+            role_label=ROLE_REGISTRY.get(existing["assignment_role"], existing["assignment_role"]),
+            target_user_id=existing.get("user_id"),
+            target_email=existing.get("email"),
+            actor_name=actor.get("name") or actor.get("email") or "Admin",
         )
         return {"ok": True}
 

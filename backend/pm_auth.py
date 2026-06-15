@@ -27,7 +27,7 @@ import os
 import secrets
 import string
 from datetime import datetime, timezone
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import bcrypt
 
@@ -332,6 +332,7 @@ async def compute_pm_scope(db, actor) -> PmScope:
     email = (actor.get("email") or "").strip().lower()
     if not email:
         return PmScope(is_admin=True)
+    uid = actor.get("id") or actor.get("user_id") or actor.get("_id")
     # Pull every job where this PM is primary OR appears in co_pm_emails.
     cursor = db.jobs_master.find(
         {
@@ -348,6 +349,27 @@ async def compute_pm_scope(db, actor) -> PmScope:
         pn = (j.get("project_number") or "").strip()
         if pn:
             nums.add(pn)
+    # Track 14.0-PM-STAFFING-COMPLETION — also pull project_numbers from
+    # the canonical project_team_assignments collection so users assigned
+    # via the new PM staffing workflow (and not just the legacy
+    # pm_email / co_pm_emails fields on jobs_master) see their projects
+    # in the PM Portal.
+    try:
+        roster_q: Dict[str, Any] = {"active": True, "$or": []}
+        if uid:
+            roster_q["$or"].append({"user_id": uid})
+        if email:
+            roster_q["$or"].append({"email": email})
+        if roster_q["$or"]:
+            async for r in db.project_team_assignments.find(
+                roster_q, {"_id": 0, "project_number": 1}
+            ):
+                pn = (r.get("project_number") or "").strip()
+                if pn:
+                    nums.add(pn)
+    except Exception:
+        # Defensive — never let staffing-roster lookup break PM scope.
+        pass
     return PmScope(is_admin=False, project_numbers=nums, pm=actor)
 
 
