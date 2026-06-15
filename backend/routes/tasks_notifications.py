@@ -451,7 +451,13 @@ async def _resolve_recipient_user_id(db, payload: Dict[str, Any]) -> Optional[st
 def _resolve_link_url(payload: Dict[str, Any]) -> Optional[str]:
     """Best-effort route mapper. Prefers source-module lookup, falls
     back to type prefix. Returns None if no safe deep route is known
-    (drawer then falls back to `linked_task_id` → /tasks)."""
+    (drawer then falls back to `linked_task_id` → /tasks).
+
+    SAFETY-CONTEXT-CERT (2026-06-15) — when `recipient_role == "safety"`,
+    rewrite admin-routed templates to their Safety-portal equivalents so
+    Safety users open notifications in Safety chrome (no
+    "Back to Admin Overview" leak).
+    """
     record_id = payload.get("linked_source_record_id") or payload.get("linked_equipment_id")
     if not record_id:
         return None
@@ -465,6 +471,12 @@ def _resolve_link_url(payload: Dict[str, Any]) -> Optional[str]:
                 break
     if not template:
         return None
+    # Portal-context rewrites for safety recipients.
+    if (payload.get("recipient_role") or "").lower() == "safety":
+        if template.startswith("/admin/incidents/"):
+            template = template.replace("/admin/incidents/", "/safety-portal/incidents/")
+        elif template == "/meetings/{id}":
+            template = "/safety-portal/meetings/{id}"
     try:
         return template.format(id=str(record_id))
     except (KeyError, IndexError, ValueError):

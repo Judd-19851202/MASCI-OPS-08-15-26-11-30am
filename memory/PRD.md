@@ -10,7 +10,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-15 · RC1 OPERATIONAL HARDENING SWEEP)
+## Latest Closed Track (2026-06-15 · SAFETY-PORTAL-CONTEXT-CERT)
+- **14.0-SAFETY-PORTAL-CONTEXT-INCIDENT-CLOSURE-FIX CLOSED.** 🟢
+  Root caused: (1) `SafetyIncidents.jsx` hardcoded Open link to
+  `/admin/incidents/{id}` → forced AdminShell + "Back to Admin
+  Overview" copy for Safety users; (2) `tasks_notifications.py::
+  _resolve_link_url()` mapped `safety.incidents` and `safety.meeting`
+  to admin routes regardless of recipient role. **Fixed**: added
+  `/safety-portal/incidents/:id` + `/safety-portal/meetings/:id`
+  routes wrapped in `SF(<View*/>)` so Safety users get SafetyShell
+  chrome; updated SafetyIncidents Open link to the new route;
+  extended `_resolve_link_url()` to rewrite admin routes to Safety
+  routes when `recipient_role == "safety"` (Admin/PM keep legacy
+  routes — no security regression). Tests: 7 / 7 in
+  `test_safety_context_cert.py`; cumulative 31 / 31 cert. Live
+  Playwright proof as `cert.safety@example.com`: navigated through
+  `/safety-portal/incidents` → Open → final URL stays in
+  `/safety-portal/...` with full Safety chrome and **zero** "Back
+  to Admin" / "Return to Admin" / "Admin Overview" / "Admin Portal"
+  in body text. No DB migration; additive route + helper changes
+  only. Master ledger:
+  `/app/memory/SAFETY_PORTAL_CONTEXT_CERT_CLOSURE.md`.
+
+## Previous Closed Track (2026-06-15 · RC1 OPERATIONAL HARDENING SWEEP)
 - **14.0-RC1 OPERATIONAL HARDENING SWEEP CLOSED.** 🟢 GO for
   redeploy. 14-phase sweep across the redeploy branch. Live
   preview baseline confirmed (health OK, source_hash

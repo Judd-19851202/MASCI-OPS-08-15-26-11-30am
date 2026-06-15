@@ -873,6 +873,13 @@ function App() {
             <Route path="/safety-portal/documents" element={SF(<SafetyDocuments />)} />
             <Route path="/safety-portal/training" element={SF(<SafetyTrainingRecords />)} />
             <Route path="/safety-portal/incidents" element={SF(<SafetyIncidents />)} />
+            {/* SAFETY-CONTEXT-CERT (2026-06-15) · Safety users open incident
+                detail in the Safety portal (was hardcoded to /admin/incidents/:id,
+                which forced AdminShell + "Back to Admin Overview" copy).
+                ViewIncident accepts X-Safety-Token via APS() already; here we
+                wrap it in the Safety shell instead so the chrome is correct. */}
+            <Route path="/safety-portal/incidents/:id" element={SF(<ViewIncident />)} />
+            <Route path="/safety-portal/meetings/:id" element={SF(<ViewMeeting />)} />
             <Route path="/safety-portal/audits" element={SF(<SafetyAudits />)} />
             <Route path="/safety-portal/forms-records" element={SF(<SafetyFormsRecords />)} />
             <Route path="/safety-portal/reports" element={SF(<SafetyReports />)} />

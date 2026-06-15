@@ -173,7 +173,7 @@ export default function SafetyIncidents() {
                     <td className="px-3 py-2 text-slate-600 truncate max-w-[10rem]">{i.reporter_name || i.supervisor || "—"}</td>
                     <td className="px-3 py-2 text-right">
                       <Link
-                        to={`/admin/incidents/${i.id}`}
+                        to={`/safety-portal/incidents/${i.id}`}
                         state={{
                           from: {
                             key: "safety-incidents",
