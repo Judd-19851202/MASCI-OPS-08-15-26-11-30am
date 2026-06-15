@@ -10,7 +10,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · RC1 PRIORITY-ONE DEFECT CLOSURE — DEPLOY-READY)
+## Latest Closed Track (2026-02-15 · PM-STAFFING-UI-DISCOVERABILITY-CLOSURE — DEPLOY-READY)
+- **14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE · 🟢 PROVEN · TRUSTED · DEPLOY-READY.**
+  10-point discoverability sweep. PMs and Admins can now reach the
+  17-role project staffing UI from every logical entry point. Shipped:
+  (1) **3 new backend endpoints** — `GET /api/project-staffing/summary`
+  (cross-project, scope-aware, returns totals + role_totals +
+  primary_snapshot + unassigned_roles), `GET /api/employees/{key}/project-assignments`
+  (reverse lookup), and `staffing` kind in `/api/search` with PM-scope
+  filtering + admin/pm/safety/hr/shop/dispatch visibility. (2)
+  **`_is_pm_on_project()` reconciliation** — previously only consulted
+  `jobs_master.pm_email`; now also queries `project_team_assignments`
+  with `assignment_role IN ('pm','co_pm') AND active=True`, fixing
+  the P0 bug where the cert PM was stranded out of their own roster.
+  (3) **JobTeamRosterPanel PM permission UX** — amber scope note,
+  role select shows all 17 with `data-testid="job-team-role-option-{key}"`
+  and admin-only options disabled with tooltip "Admin only — request
+  from your administrator". (4) **8 new frontend entry points**:
+  Admin Job Master prominent amber Team CTA per row · Admin Hub V2
+  "Project Staffing" tile · PM Hub V2 "Project Staffing" destination
+  tile · NEW `/admin/project-staffing` and `/pm/project-staffing`
+  pages with KPI cards + searchable project table + key-role-filled
+  chips + gap chips + role-coverage grid · inline `JobTeamRosterPanel`
+  on `/pm/project/:projectNumber` (NEW route) + "Open dedicated Team
+  page" link · "PROJECT ASSIGNMENTS" section in HR Employee Drawer
+  with deep-links · `staffing` chip color in GlobalSearch. (5) **Copy
+  cleanups** on AdminJobTeam + PmJobTeam pages referencing the full
+  17-role roster (was referencing removed "811 Locate Coordinator").
+  **Pytest 97/97 PASS** in 22.96s (33 dedicated this track + 64 prior
+  RC1 + S1/S2/S2A). Testing-agent iter517 found 1 critical (PM 403)
+  + 1 high (missing /pm/project/ route) + 1 testability suggestion;
+  iter518 confirmed all fixes. Runtime proof on preview:
+  cert.pm@example.com renders 18 active members on
+  /pm/job/ZZ-RUNTIME-CERT-2026/team with 17 role options (14 enabled,
+  3 admin-only disabled+tooltipped); /admin/project-staffing shows
+  29 projects · 48 active assignments · 445 unassigned role slots;
+  PM-scope returns only ZZ-RUNTIME-CERT-2026 with 18 active. Master
+  ledger: `/app/memory/TRACK_14_PM_STAFFING_DISCOVERABILITY_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-15 · RC1 PRIORITY-ONE DEFECT CLOSURE — DEPLOY-READY)
 - **14.0-RC1 PRIORITY-ONE DEFECT CLOSURE · 🟢 PROVEN · TRUSTED · DEPLOY-READY.**
   No new features — defect closure only. Closed all four deferred items
   from iteration_515 with runtime proof + contract pytest:
