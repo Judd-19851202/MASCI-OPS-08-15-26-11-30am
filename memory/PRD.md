@@ -1096,3 +1096,27 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar score: 5/5** (Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10).
 - Deployment readiness remains 🟢 **GREEN**. GO for production redeploy.
 - Report: `/app/memory/TRACK_14_PLATFORM_STABILITY_CERT_CLOSURE.md`.
+
+## 2026-02-15 · TRACK 14.0-CROSS-PORTAL-SESSION-INHERITANCE-SSO — CLOSED
+
+- **Mode:** Surgical SSO hardening on top of the existing Multi-Portal Master Sign-In foundation (iter82). Frontend + 1 backend route change. No new auth architecture, no rewrites.
+- **P0 user pain ELIMINATED:** Platform was feeling like 7 separate apps because portal-specific tokens caused login loops on direct-URL navigation. Now: one sign-in → every authorized portal accessible. Unauthorized portals → clean Access Restricted card (not login loops).
+- **Root cause:** Three asymmetries on top of an otherwise-correct foundation: (a) `usePortalHydration` (iter88) had setters only for admin/pm/shop/hr — missing safety/dispatch/field_leadership; (b) `RequireSafety / RequireDispatch / RequireFl` didn't call the hydration hook at all; (c) backend `/api/auth/issue-portal-token` had `field_leadership` in `ALLOWED_PORTALS` but omitted it from the minter dispatch dict → 500 'field_leadership token minter not configured'; (d) portal login pages didn't redirect already-authenticated users with the grant.
+- **Surgical fix (8 surfaces):**
+  - `frontend/src/lib/usePortalHydration.js` — extended SETTERS + PORTAL_ALIASES to cover safety/dispatch/field_leadership/fl; `skipSessionStatus:true` on mint call.
+  - `frontend/src/components/MultiPortalHydrator.jsx` — extended TOKEN_GETTERS/SETTERS for the same three portals; background hydration on route change now fans out FL/Safety/Dispatch.
+  - `frontend/src/components/PortalHydratingLoader.jsx` — accent + label for safety/dispatch/field_leadership.
+  - `frontend/src/components/RequireSafety.jsx` — uses `usePortalHydration("safety", isSafety())`.
+  - `frontend/src/components/RequireDispatch.jsx` — uses `usePortalHydration("dispatch", isDispatch())`.
+  - `frontend/src/components/RequireFl.jsx` — uses `usePortalHydration("field_leadership", isFl())` + added missing AccessDenied branch.
+  - `frontend/src/lib/useRedirectIfDirectoryGrant.js` — NEW reusable hook for portal login pages.
+  - `frontend/src/pages/{Safety,Pm,Hr,Shop,Dispatch}Login.jsx` — each calls the redirect hook on mount.
+  - `backend/routes/auth_directory_routes.py` — added `field_leadership: field_leadership_token_minter` to the minter dispatch dict (line 343) and `field_leadership: "OPERATIONS"` to the tier map (line 371). Closes the asymmetric registration.
+- **Runtime certification (testing agent iter 506 + 507):** Backend pytest 14/14 PASS (`test_track14_sso_cross_portal.py`). Frontend: 100% PASS on the 6-role matrix — Super Admin walks all 7 portals without re-login; cert.safety/pm/hr/shop/dispatch single-portal users get Access Restricted on unauthorized portals (NOT login loops); FL hydration race resolves cleanly on direct-URL navigation; backend escalation gate verified (Safety-only directory token cannot mint admin/pm/hr/shop/dispatch tokens).
+- **No regression** to TRACK 14.0-PLATFORM-STABILITY (Session Expired / Connection Problem modals still absent; SystemHealthBadge still settles to ALL OK).
+- **Files added:** `frontend/src/lib/useRedirectIfDirectoryGrant.js` · `memory/TRACK_14_SSO_CROSS_PORTAL_CERT_CLOSURE.md` · `backend/tests/test_track14_sso_cross_portal.py` (created by testing agent in iter 506-507).
+- **Files modified:** 6 frontend (hydration hook + hydrator + 3 guards + loader) · 5 frontend login pages · 1 backend route file (auth_directory_routes.py).
+- **No backend schema change. No env change. No new package deps.**
+- **Five-Pillar score: 5/5** (Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10).
+- Deployment readiness remains 🟢 **GREEN**. GO for production redeploy.
+- Report: `/app/memory/TRACK_14_SSO_CROSS_PORTAL_CERT_CLOSURE.md`.
