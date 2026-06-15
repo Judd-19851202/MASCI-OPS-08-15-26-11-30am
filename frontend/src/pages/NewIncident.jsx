@@ -329,6 +329,17 @@ export default function NewIncident({ publicMode = false }) {
       toast.success(t("Incident report filed · Safety + PM notified · visible under Incidents"));
       await commit();
       idempotencyKeyRef.current = null;
+      // TRACK 14.0-S1 Amendment A — persist Spanish originals sidecar.
+      if (lang === "es" && payload._originals) {
+        try {
+          const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+          await persistBilingualSidecar(
+            "incident",
+            res.data?.id || r.data?.incident_number || "",
+            payload,
+          );
+        } catch { /* sidecar best-effort */ }
+      }
       // iter147 — telemetry on the most-used safety form
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/incidents", true, "incident-new")).catch(() => {});

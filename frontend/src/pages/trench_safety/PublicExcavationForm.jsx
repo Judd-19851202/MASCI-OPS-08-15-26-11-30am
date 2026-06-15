@@ -33,6 +33,7 @@ import { Section as BaseSection } from "@/components/Section";
 import { computeExcavationCompliance } from "@/lib/excavationCompliance";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import { translateUserInput, persistBilingualSidecar } from "@/lib/translateOnSubmit";
 
 const WORK_TYPES = ["Utility Work", "Storm Drain", "Sanitary Sewer", "Water Main", "Electrical / Communication", "Roadway Excavation", "Structure / Box Culvert", "Drainage", "Other"];
 const SOILS = ["Type A", "Type B", "Type C", "Stable Rock", "Unknown / Needs Review"];
@@ -240,7 +241,7 @@ export default function PublicExcavationForm() {
     setSaving(true);
     try {
       const depthNum = Number(f.depth_ft) || 0;
-      const payload = {
+      const rawPayload = {
         ...f,
         length_ft: f.length_ft ? Number(f.length_ft) : null,
         width_ft: f.width_ft ? Number(f.width_ft) : null,
@@ -255,7 +256,25 @@ export default function PublicExcavationForm() {
         field_notes_original_text: f.field_notes,
         field_notes_original_language: currentLang,
       };
+      // TRACK 14.0-S1-B5 — translate Spanish free-text to English BEFORE the
+      // canonical excavation record is stored. Office PDFs / notifications /
+      // search / exports must read clean English. The original field_notes
+      // are also kept verbatim in `field_notes_original_text` (existing
+      // backend convention) for fast inline rendering on the trench portal,
+      // and the full sidecar is persisted below for audit.
+      const translated = await translateUserInput(rawPayload, currentLang);
+      const payload = { ...translated };
+      delete payload._originals;
+      delete payload._original_language;
+      delete payload._translated_at;
+      delete payload._translation_source;
       const r = await api.post("/trench-safety/excavations/public/submit", payload);
+      // Best-effort: write the bilingual sidecar so the original Spanish is
+      // preserved for audit while the canonical record stays English.
+      const newId = r?.data?.id || r?.data?.excavation_id;
+      if (newId) {
+        await persistBilingualSidecar("trench_excavation", newId, translated);
+      }
       setDone(r.data);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {

@@ -144,6 +144,13 @@ export default function ReturnEquipment() {
       }
       payload = { ...payload, submit_language: submitLang || "en" };
       await api.post(`/safety-forms/equipment-issuances/${id}/return`, payload);
+      // TRACK 14.0-S1 — Preserve original Spanish in the bilingual sidecar
+      // (keyed by the parent equipment-issuance id since the return event
+      // is logically a child of that record).
+      if (submitLang === "es" && id) {
+        const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+        await persistBilingualSidecar("safety_form", `${id}:return`, payload);
+      }
       toast.success(t("Check-in saved — PDF emailed to Safety"));
       navigate(`/safety/forms/equipment-issuance/${id}`);
     } catch (err) {

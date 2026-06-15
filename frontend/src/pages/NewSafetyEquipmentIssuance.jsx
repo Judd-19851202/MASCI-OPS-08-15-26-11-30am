@@ -193,6 +193,11 @@ export default function NewSafetyEquipmentIssuance() {
       }
       payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-issuances", payload);
+      // TRACK 14.0-S1 — Preserve original Spanish in the bilingual sidecar.
+      if (submitLang === "es" && res?.data?.id) {
+        const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+        await persistBilingualSidecar("safety_form", res.data.id, payload);
+      }
       toast.success(t("Issuance filed · PDF emailed to Safety · visible in Safety Forms Records"));
       if (fromRecords) {
         navigate("/safety-portal/forms-records");

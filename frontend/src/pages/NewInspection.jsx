@@ -205,6 +205,13 @@ export default function NewInspection({ publicMode = false }) {
       let res;
       try {
         res = await api.post("/inspections", payload);
+        // TRACK 14.0-S1 Amendment A — bilingual originals sidecar.
+        if (lang === "es" && payload._originals) {
+          try {
+            const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+            await persistBilingualSidecar("safety_inspection", res?.data?.id || "", payload);
+          } catch { /* sidecar best-effort */ }
+        }
       } catch (netErr) {
         // iter438 · Phase 31 · Pass C · offline / network failure →
         // queue the submission so it replays on `online` event. The

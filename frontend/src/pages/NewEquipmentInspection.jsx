@@ -508,6 +508,17 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       }
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/equipment-inspections", payload);
+      // TRACK 14.0-S1 Amendment A — bilingual originals sidecar.
+      if (lang === "es" && payload._originals) {
+        try {
+          const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+          await persistBilingualSidecar(
+            "equipment_inspection",
+            res.data?.id || res.data?.inspection_number || "",
+            payload,
+          );
+        } catch { /* sidecar best-effort */ }
+      }
       toast.success(
         payload.fail_count > 0
           ? `Submitted — ${payload.fail_count} FAIL flagged. Tag out the unit.`

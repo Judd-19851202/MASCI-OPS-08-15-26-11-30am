@@ -38,6 +38,7 @@ import { useRememberedFilter } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { Link, useLocation } from "react-router-dom";
 import { useT } from "@/lib/i18n";
+import { translateUserInput, persistBilingualSidecar } from "@/lib/translateOnSubmit";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { WhyItMattersPanel } from "@/components/guidance";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
@@ -118,7 +119,7 @@ function isOverdue(ca) {
 }
 
 export default function SafetyCorrectiveActions() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   // iter148 — remember the status tab + search per user across visits
@@ -238,7 +239,7 @@ export default function SafetyCorrectiveActions() {
     }
     setSaving(true);
     try {
-      const payload = {
+      const rawPayload = {
         title: f.title.trim(),
         description: f.description || "",
         source_kind: f.source_kind || "manual",
@@ -249,12 +250,27 @@ export default function SafetyCorrectiveActions() {
         priority: f.priority || "Medium",
         due_date: f.due_date || null,
         notes: f.notes || "",
+        completion_notes: f.completion_notes || "",
         // iter138 — preserve master bindings on every save (empty = freetext OK)
         equipment_master_id: f.equipment_master_id || "",
         employee_master_id: f.employee_master_id || "",
       };
+      // TRACK 14.0-S1-B4 — translate Spanish free text (title/description/
+      // notes) to English BEFORE writing the canonical record so the office
+      // sees English in PDFs / notifications / search / exports.
+      const translated = await translateUserInput(rawPayload, lang);
+      const payload = { ...translated };
+      delete payload._originals;
+      delete payload._original_language;
+      delete payload._translated_at;
+      delete payload._translation_source;
       if (dlg.mode === "create") {
-        await axios.post(`${API}/safety/corrective-actions`, payload, auth());
+        const res = await axios.post(`${API}/safety/corrective-actions`, payload, auth());
+        const newId = res?.data?.id || res?.data?.doc_id;
+        // Preserve original Spanish in the sidecar (best-effort).
+        if (newId) {
+          await persistBilingualSidecar("corrective_action", newId, translated);
+        }
         toast.success("Corrective action created");
         // iter147 — usage telemetry
         import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
@@ -262,9 +278,11 @@ export default function SafetyCorrectiveActions() {
       } else {
         await axios.patch(
           `${API}/safety/corrective-actions/${dlg.id}`,
-          { ...payload, status: f.status, completion_notes: f.completion_notes || "" },
+          { ...payload, status: f.status, completion_notes: translated.completion_notes || f.completion_notes || "" },
           auth(),
         );
+        // Preserve original Spanish in the sidecar (best-effort).
+        await persistBilingualSidecar("corrective_action", dlg.id, translated);
         toast.success("Corrective action updated");
         import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
           trackFormSubmit("/safety/corrective-actions", true, "ca-edit")).catch(() => {});

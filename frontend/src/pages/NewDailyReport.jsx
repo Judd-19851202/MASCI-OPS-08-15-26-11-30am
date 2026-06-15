@@ -876,6 +876,19 @@ export default function NewDailyReport({ publicMode = false }) {
       idempotencyKeyRef.current = null;
       // iter148 — remember this project for the next visit
       if (payload.project_number) rememberLastProject(String(payload.project_number));
+      // TRACK 14.0-S1 Amendment A — persist Spanish originals sidecar
+      // for the bilingual-record collection. Best-effort; never blocks
+      // user flow on sidecar write failures.
+      if (lang === "es" && payload._originals) {
+        try {
+          const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+          await persistBilingualSidecar(
+            "daily_report",
+            r.data?.id || r.data?.report_number || "",
+            payload,
+          );
+        } catch { /* sidecar best-effort */ }
+      }
       // iter147 — telemetry on the daily-report flow (heaviest PM form)
       import("@/lib/usageTracker").then(({ trackFormSubmit }) =>
         trackFormSubmit("/daily-reports", true, "daily-report-new")).catch(() => {});

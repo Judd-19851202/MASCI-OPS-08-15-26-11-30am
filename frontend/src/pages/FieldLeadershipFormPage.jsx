@@ -705,6 +705,13 @@ export default function FieldLeadershipFormPage() {
       toast.success(t("Submitted — assigned PM, jaymn, and safety have been notified."));
       await commit();
       idempotencyKeyRef.current = null;
+      // TRACK 14.0-S1 Amendment A — bilingual originals sidecar.
+      if (lang === "es" && finalPayload._originals) {
+        try {
+          const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+          await persistBilingualSidecar("field_leadership", r.data?.id || "", finalPayload);
+        } catch { /* sidecar best-effort */ }
+      }
       navigate(`/leadership/records/${r.data.id}`);
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Submit failed"));

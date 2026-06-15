@@ -196,6 +196,13 @@ export default function NewQaqcInspection() {
       }
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/qaqc-inspections", payload);
+      // TRACK 14.0-S1 Amendment A — bilingual originals sidecar.
+      if (lang === "es" && payload._originals) {
+        try {
+          const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+          await persistBilingualSidecar("qaqc", res.data?.id || "", payload);
+        } catch { /* sidecar best-effort */ }
+      }
       toast.success(t("Submitted. Routing to assigned PM…"));
       navigate(`/qaqc/${res.data.id}`);
     } catch (err) {

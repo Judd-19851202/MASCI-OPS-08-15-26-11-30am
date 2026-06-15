@@ -21,7 +21,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
-import { translateUserInput } from "@/lib/translateOnSubmit";
+import { translateUserInput, persistBilingualSidecar } from "@/lib/translateOnSubmit";
 import { formatEmployeeIdentity } from "@/lib/identity";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -123,6 +123,14 @@ export default function PublicTimeOff() {
         throw new Error(d.detail || "Submit failed");
       }
       const d = await resp.json();
+      // TRACK 14.0-S1-B8 — preserve original Spanish in the bilingual sidecar.
+      // d.doc_id (or d.id) is the canonical record id; the canonical record
+      // already stores the English-translated values. This call is best-
+      // effort — a sidecar failure must never block the user's submission.
+      const sidecarId = d?.doc_id || d?.id;
+      if (sidecarId) {
+        await persistBilingualSidecar("time_off", sidecarId, translated);
+      }
       setSubmitted(d);
     } catch (e) {
       toast.error(e.message || "Submit failed");

@@ -6237,6 +6237,282 @@ const ES = {
     "Acción Requerida · Profundidad Nominal de la Caja",
   "Add a reason or check the tabulated-data exception.":
     "Agregue un motivo o revise la excepción de datos tabulados.",
+  // ─────────────────────────────────────────────────────────────────
+  // TRACK 14.0-S1-B1 THROUGH B10 · Critical-Workflow Translations
+  // (2026-02-15) Amendment C — surgical, glossary-driven. Strings a
+  // Spanish-speaking foreman / PM / safety rep reads on the 10 critical
+  // workflow surfaces: Daily Reports, Safety Meetings, Incidents,
+  // Corrective Actions, Trench/Excavation, Equipment Inspections,
+  // Employee Requests, Time Off, QA/QC, JHP.
+  // Operational data remains English-only — these strings are UI-only
+  // and never affect canonical record contents.
+  // ─────────────────────────────────────────────────────────────────
+  "Add a row with cause = Weather (required)":
+    "Agregue una fila con causa = Clima (requerido)",
+  "Add at least one delay (required)": "Agregue al menos una demora (requerido)",
+  "Add photo (camera or gallery, required for FAIL)":
+    "Agregue foto (cámara o galería, requerido para FAIL)",
+  "Advisory": "Aviso",
+  "All fields marked * are required": "Todos los campos marcados * son requeridos",
+  "Anything the employee + supervisor + PM should know…":
+    "Cualquier cosa que el empleado + supervisor + PM deba saber…",
+  "Approve, deny, or request more information on field & office time-off requests.":
+    "Apruebe, deniegue, o solicite más información sobre solicitudes de tiempo libre de campo y oficina.",
+  "Approved tabulated-data exception (manufacturer or PE-stamped engineering)":
+    "Excepción de datos tabulados aprobada (fabricante o ingeniería con sello de PE)",
+  "Attendee {n}: {field} required": "Asistente {n}: {field} requerido",
+  "Auto-derived from depth — no toggle needed.":
+    "Derivado automáticamente de la profundidad — sin alternancia necesaria.",
+  "Auto-filled from price book — change condition to Fair or Damaged to edit":
+    "Auto-completado desde libro de precios — cambie la condición a Aceptable o Dañado para editar",
+  "Cannot delete — linked corrective actions still reference this incident.":
+    "No se puede eliminar — acciones correctivas vinculadas aún hacen referencia a este incidente.",
+  "Canonical asset_type is authoritative · this dropdown is retained for backward compatibility only.":
+    "El tipo de activo canónico es autoritativo · este desplegable se conserva solo por compatibilidad.",
+  "Coaching, not punishment.": "Coaching, no castigo.",
+  "Competent Person": "Persona Competente",
+  "Competent Person Required.": "Se Requiere Persona Competente.",
+  "Complete the current attendee before adding another: {missing}":
+    "Complete el asistente actual antes de agregar otro: {missing}",
+  "Condition Changed? Request Reinspection.":
+    "¿Cambió la Condición? Solicite Reinspección.",
+  "Contact During Leave": "Contacto Durante la Ausencia",
+  "Copied!": "¡Copiado!",
+  "Copy URL": "Copiar Enlace",
+  "Could not create link. Try again.":
+    "No se pudo crear el enlace. Intente de nuevo.",
+  "Could not delete. Try again.":
+    "No se pudo eliminar. Intente de nuevo.",
+  "Could not delete right now. Try again, or contact your administrator if it keeps failing.":
+    "No se pudo eliminar ahora. Intente de nuevo, o contacte a su administrador si sigue fallando.",
+  "Could not load incidents.": "No se pudieron cargar los incidentes.",
+  "Could not load time-off list. Try again.":
+    "No se pudo cargar la lista de tiempo libre. Intente de nuevo.",
+  "Could not save decision. Try again.":
+    "No se pudo guardar la decisión. Intente de nuevo.",
+  "Could not submit HR request":
+    "No se pudo enviar la solicitud a Recursos Humanos",
+  "Coverage": "Cobertura",
+  "Create Link": "Crear Enlace",
+  "Creating…": "Creando…",
+  "Customer": "Cliente",
+  "Dates": "Fechas",
+  "Delay": "Demora",
+  "Delays / Extra Work": "Demoras / Trabajo Adicional",
+  "Delays / Extra Work Today?": "¿Demoras / Trabajo Adicional Hoy?",
+  "Delete failed. Try again.": "Falló la eliminación. Intente de nuevo.",
+  "Delete temporarily unavailable. Try again in a moment.":
+    "Eliminación temporalmente no disponible. Intente de nuevo en un momento.",
+  "Delete this QA/QC inspection?": "¿Eliminar esta inspección QA/QC?",
+  "Deleted.": "Eliminado.",
+  "Denied": "Denegado",
+  "Deny": "Denegar",
+  "Describe accidents or injuries…": "Describa accidentes o lesiones…",
+  "Draft brought back": "Borrador recuperado",
+  "Employee Email (sends auto-link)":
+    "Correo del Empleado (envía enlace automático)",
+  "Employee ID": "ID del Empleado",
+  "Employee not present (Quit / Abandonment / Discharged off-site)":
+    "Empleado ausente (Renuncia / Abandono / Despedido fuera del sitio)",
+  "Employee signature, refusal, or 'not present' is required":
+    "Se requiere firma del empleado, rechazo, o 'no presente'",
+  "End Date *": "Fecha Final *",
+  "Equipment Type (legacy compat · auto-set from canonical record)":
+    "Tipo de Equipo (compatibilidad heredada · auto-establecido del registro canónico)",
+  "Equipment Use & Care Training": "Entrenamiento de Uso y Cuidado de Equipo",
+  "Every trench 5 ft or deeper needs a designated competent person on-site — trained to identify hazards, authorized to correct them, and present before entry.":
+    "Cada zanja de 5 pies o más profunda necesita una persona competente designada en el sitio — entrenada para identificar peligros, autorizada para corregirlos, y presente antes del ingreso.",
+  "Field Excavation Record": "Registro de Excavación de Campo",
+  "Field Submission": "Envío de Campo",
+  "Filed By": "Presentado Por",
+  "First aid": "Primeros auxilios",
+  "Flags mean Safety will follow up — not that you did anything wrong.":
+    "Las banderas significan que Seguridad hará seguimiento — no que usted haya hecho algo mal.",
+  "Foreman / Leadman / Superintendent":
+    "Capataz / Jefe de Cuadrilla / Superintendente",
+  "HR · Time Off Requests": "RRHH · Solicitudes de Tiempo Libre",
+  "HR Decision": "Decisión de RRHH",
+  "HR Notes (optional)": "Notas de RRHH (opcional)",
+  "Hours Impact": "Impacto en Horas",
+  "How do I pick the right incident type?":
+    "¿Cómo elijo el tipo de incidente correcto?",
+  "I acknowledge": "Reconozco",
+  "I acknowledge the rated-depth gap and the justification above is accurate.":
+    "Reconozco la brecha de profundidad nominal y que la justificación anterior es precisa.",
+  "I was present, understood the topic and the hazards, and agree to the safe-work commitments discussed.":
+    "Estuve presente, entendí el tema y los peligros, y acepto los compromisos de trabajo seguro discutidos.",
+  "If anything looks wrong, stop the job. You will never be punished for keeping a crew alive.":
+    "Si algo se ve mal, detenga la obra. Nunca será castigado por mantener viva a una cuadrilla.",
+  "In progress": "En progreso",
+  "In window": "Dentro del período",
+  "Incident not found. It may already be deleted.":
+    "Incidente no encontrado. Es posible que ya haya sido eliminado.",
+  "Incidents temporarily unavailable. Try again in a moment.":
+    "Incidentes temporalmente no disponibles. Intente de nuevo en un momento.",
+  "Inspection Notes": "Notas de Inspección",
+  "Instructor signature required": "Se requiere firma del instructor",
+  "Items": "Artículos",
+  "Last 7 Days": "Últimos 7 Días",
+  "Link created · email sent.": "Enlace creado · correo enviado.",
+  "Link created — copy and share.": "Enlace creado — copie y comparta.",
+  "Linked Daily Report(s):": "Reporte(s) Diario(s) Vinculado(s):",
+  "Loaded from recent reports on this iPad.":
+    "Cargado desde reportes recientes en este iPad.",
+  "Lost time": "Tiempo perdido",
+  "Name contains…": "El nombre contiene…",
+  "Near miss": "Cuasi accidente",
+  "Need Info": "Necesita Información",
+  "No constraints recorded.": "Sin restricciones registradas.",
+  "No deliveries today": "Sin entregas hoy",
+  "No delays today": "Sin demoras hoy",
+  "No incidents in this window.": "Sin incidentes en este período.",
+  "No production rows.": "Sin filas de producción.",
+  "No subs today": "Sin subcontratistas hoy",
+  "No time off requests in this view yet.":
+    "Aún no hay solicitudes de tiempo libre en esta vista.",
+  "No visitors today": "Sin visitantes hoy",
+  "Non-MASCI / Subcontractor": "No-MASCI / Subcontratista",
+  "Not found.": "No encontrado.",
+  "Note (shown to employee)": "Nota (mostrada al empleado)",
+  "Notes & Corrective Actions": "Notas y Acciones Correctivas",
+  "Optional · add if cause is known": "Opcional · agregue si la causa es conocida",
+  "Optional · add if known": "Opcional · agregue si se conoce",
+  "Optional · none today": "Opcional · ninguno hoy",
+  "Optional · platform notifies automatically on submit":
+    "Opcional · la plataforma notifica automáticamente al enviar",
+  "Outbound": "Saliente",
+  "Outbound Materials / Hauled Off": "Materiales Salientes / Acarreados Fuera",
+  "PDF": "PDF",
+  "PM": "PM",
+  "Pay": "Pago",
+  "Pay Code (Exact)": "Código de Pago (Exact)",
+  "Permission denied. Admin or PM sign-in required to delete incidents.":
+    "Permiso denegado. Se requiere acceso de Administrador o PM para eliminar incidentes.",
+  "Person": "Persona",
+  "Person · project · description": "Persona · proyecto · descripción",
+  "Pick a MASCI Job (or type a custom project name) before submitting.":
+    "Seleccione un Proyecto MASCI (o escriba un nombre de proyecto personalizado) antes de enviar.",
+  "Pick the category that BEST DESCRIBES THE EVENT — not the body part injured. Use Near Miss for events with no actual harm. Property Damage for asset-only events.":
+    "Elija la categoría que MEJOR DESCRIBA EL EVENTO — no la parte del cuerpo lesionada. Use Cuasi Accidente para eventos sin daño real. Daño a la Propiedad para eventos que solo afecten activos.",
+  "Pick a project · crew and equipment can preload after.":
+    "Elija un proyecto · la cuadrilla y el equipo pueden precargarse después.",
+  "Production Quantities": "Cantidades de Producción",
+  "Public link created. Valid 7 days, one submission. Copy + share if the auto-email wasn't sent.":
+    "Enlace público creado. Válido 7 días, un solo envío. Copie + comparta si el correo automático no se envió.",
+  "Rain, water, cave-in, protective system change, utility conflict, near miss — request a reinspection. No approval needed. Safety and the Superintendent will be notified.":
+    "Lluvia, agua, derrumbe, cambio del sistema de protección, conflicto de servicios públicos, cuasi accidente — solicite una reinspección. No se requiere aprobación. Se notificará a Seguridad y al Superintendente.",
+  "Read-only · HR labor / OSHA view · closeout owned by Safety":
+    "Solo lectura · Vista de RRHH / OSHA · cierre a cargo de Seguridad",
+  "Read-only HR view of safety incidents across the OSHA window. Closeout and CAPA owned by Safety.":
+    "Vista de RRHH de solo lectura de los incidentes de seguridad en el período OSHA. Cierre y CAPA a cargo de Seguridad.",
+  "Read-only review of every incident and near-miss filed from the field. Filter by severity, project, or employee.":
+    "Revisión de solo lectura de cada incidente y cuasi accidente presentado desde el campo. Filtre por severidad, proyecto, o empleado.",
+  "Ready to submit · graded on file": "Listo para enviar · calificado en archivo",
+  "Ready to submit · PM distribution will send":
+    "Listo para enviar · la distribución al PM se enviará",
+  "Ready to submit · Safety + PM will be notified":
+    "Listo para enviar · se notificará a Seguridad + PM",
+  "Received By required": "Se requiere Recibido Por",
+  "Recommended": "Recomendado",
+  "Recordable": "Registrable",
+  "Reinspection requested — Safety and Superintendent notified.":
+    "Reinspección solicitada — Seguridad y Superintendente notificados.",
+  "Request Reinspection": "Solicitar Reinspección",
+  "Required photo kinds — capture each before crew descent.":
+    "Tipos de fotos requeridas — capture cada una antes del descenso de la cuadrilla.",
+  "Resolved": "Resuelto",
+  "Return to Work": "Regreso al Trabajo",
+  "Return to Work Date": "Fecha de Regreso al Trabajo",
+  "Review Time Off Request": "Revisar Solicitud de Tiempo Libre",
+  "Safety Forms records temporarily unavailable. Try again in a moment.":
+    "Registros de Formularios de Seguridad temporalmente no disponibles. Intente de nuevo en un momento.",
+  "Safety has been notified. A competent person will follow up on any coaching flag above. The job site is not changed by this submission — keep working as planned.":
+    "Seguridad ha sido notificada. Una persona competente hará seguimiento a cualquier bandera de coaching anterior. El sitio de trabajo no cambia con este envío — continúe trabajando según lo planeado.",
+  "Save Decision & Email Employee": "Guardar Decisión y Enviar Correo al Empleado",
+  "Saved · will upload when reconnected":
+    "Guardado · se subirá cuando se reconecte",
+  "Schedule": "Programa",
+  "Search Employee": "Buscar Empleado",
+  "Select a Foreman / Supervisor from the MASCI roster.":
+    "Seleccione un Capataz / Supervisor del personal de MASCI.",
+  "Send Another": "Enviar Otro",
+  "Send Reinspection Request": "Enviar Solicitud de Reinspección",
+  "Send Time Off Form to an Office Employee":
+    "Enviar Formulario de Tiempo Libre a un Empleado de Oficina",
+  "Send to Office Employee": "Enviar a Empleado de Oficina",
+  "Severity is Medical or higher — follow-up sections are open and required before submit.":
+    "La severidad es Médica o superior — las secciones de seguimiento están abiertas y son requeridas antes de enviar.",
+  "Shown": "Mostrado",
+  "Stacked boxes, engineered systems, or approved tabulated-data exceptions can legitimately exceed a simple rated-depth check. Acknowledge with a reason on file.":
+    "Cajas apiladas, sistemas con ingeniería, o excepciones de datos tabulados aprobadas pueden legítimamente exceder una verificación simple de profundidad nominal. Reconozca con un motivo en archivo.",
+  "Start Date *": "Fecha de Inicio *",
+  "Stop-Work Authority.": "Autoridad para Detener el Trabajo.",
+  "Submit Another Record": "Enviar Otro Registro",
+  "Submitted By is required.": "Se requiere Presentado Por.",
+  "Submitted to HR Queue": "Enviado a la Cola de RRHH",
+  "Submitting daily report…": "Enviando reporte diario…",
+  "Submitting incident report…": "Enviando reporte de incidente…",
+  "Submitting inspection…": "Enviando inspección…",
+  "Subcontractor company": "Empresa subcontratista",
+  "Suggested:": "Sugerido:",
+  "Superintendent / Sr. Superintendent": "Superintendente / Superintendente Sr.",
+  "Tap a delay cause to document impacts to today's work. Signal only — never creates an RFI or schedule entry.":
+    "Toque una causa de demora para documentar impactos al trabajo de hoy. Solo señal — nunca crea un RFI ni una entrada de programa.",
+  "The platform thinks first. You verify. Compliance is calculated live — only the sections that apply to your trench will appear below.":
+    "La plataforma piensa primero. Usted verifica. El cumplimiento se calcula en vivo — solo las secciones que aplican a su zanja aparecerán abajo.",
+  "This setup is from a different project. Reuse crew and equipment anyway?":
+    "Esta configuración es de un proyecto diferente. ¿Reusar la cuadrilla y el equipo de todas formas?",
+  "Total Days": "Total de Días",
+  "Tracked": "Rastreado",
+  "Type subcontractor's full name": "Escriba el nombre completo del subcontratista",
+  "Upload photos after submission via the asset photo workflow on the success page.":
+    "Suba fotos después del envío mediante el flujo de fotos del activo en la página de éxito.",
+  "Use this for office employees who don't have a platform login. We generate a token-gated public URL valid 7 days.":
+    "Use esto para empleados de oficina que no tienen acceso a la plataforma. Generamos un URL público con token válido por 7 días.",
+  "What changed? (Optional but helpful)": "¿Qué cambió? (Opcional pero útil)",
+  "Witness name required when employee is not present":
+    "Se requiere el nombre del testigo cuando el empleado no está presente",
+  "Witness signature is optional when the employee is not present — the witness name is sufficient documentation.":
+    "La firma del testigo es opcional cuando el empleado no está presente — el nombre del testigo es documentación suficiente.",
+  "Write in English or Spanish — your original text is preserved.":
+    "Escriba en inglés o español — su texto original se conserva.",
+  "Your Safety session expired. Please sign in again.":
+    "Su sesión de Seguridad expiró. Por favor inicie sesión de nuevo.",
+  "Your email or name": "Su correo o nombre",
+  "Your entry is queued and will send automatically.":
+    "Su entrada está en cola y se enviará automáticamente.",
+  "Your excavation depth": "La profundidad de su excavación",
+  "acknowledgement": "reconocimiento",
+  "apply": "aplicar",
+  "at least": "al menos",
+  "company": "empresa",
+  "e.g. Foreman, Laborer, Pipe Layer":
+    "p. ej. Capataz, Obrero, Plomero",
+  "e.g. Stacked TB-04 over TB-06, engineered shoring per PE-stamped drawing 23-A4, manufacturer tabulated data ref…":
+    "p. ej. TB-04 apilada sobre TB-06, entibado con ingeniería según plano sellado por PE 23-A4, ref. de datos tabulados del fabricante…",
+  "entered": "ingresado",
+  "exceeds the rated depth of:": "excede la profundidad nominal de:",
+  "logged": "registrado",
+  "must be at least": "debe ser al menos",
+  "name": "nombre",
+  "rated": "calificado",
+  "required": "requerido",
+  "rows": "filas",
+  "selected": "seleccionado",
+  "signature": "firma",
+  // Final 6 long-form critical-workflow strings that differ in exact wording.
+  "Safety has been notified. A competent person will follow up on any coaching flag above. The job site is not changed by this submission — keep working safely.":
+    "Seguridad ha sido notificada. Una persona competente hará seguimiento a cualquier bandera de coaching anterior. El sitio de trabajo no cambia con este envío — continúe trabajando de forma segura.",
+  "Stacked boxes, engineered systems, or approved tabulated-data exceptions can legitimately exceed a simple rated-depth check. Acknowledge with a reason — Safety will verify.":
+    "Cajas apiladas, sistemas con ingeniería, o excepciones de datos tabulados aprobadas pueden legítimamente exceder una verificación simple de profundidad nominal. Reconozca con un motivo — Seguridad verificará.",
+  "Rain, water, cave-in, protective system change, utility conflict, near miss — request a reinspection. No approval needed. Safety and the Superintendent are notified immediately.":
+    "Lluvia, agua, derrumbe, cambio del sistema de protección, conflicto de servicios públicos, cuasi accidente — solicite una reinspección. No se requiere aprobación. Se notifica de inmediato a Seguridad y al Superintendente.",
+  "Every trench 5 ft or deeper needs a designated competent person on-site — trained to identify hazards, authorized to correct them, and present before crews enter. No competent person, no entry.":
+    "Cada zanja de 5 pies o más profunda necesita una persona competente designada en el sitio — entrenada para identificar peligros, autorizada para corregirlos, y presente antes del ingreso de las cuadrillas. Sin persona competente, sin ingreso.",
+  "Any reimbursement or payroll deduction will be handled in accordance with applicable Florida law and the Fair Labor Standards Act (FLSA), and will not occur without proper authorization where required.":
+    "Cualquier reembolso o deducción de nómina se manejará de acuerdo con la ley aplicable de Florida y la Ley de Normas Justas de Trabajo (FLSA), y no ocurrirá sin la autorización adecuada cuando se requiera.",
+  "Pick the category that BEST DESCRIBES THE EVENT — not the body part injured. Use Near Miss for events with no actual harm. Property Damage for asset-only impact. Use one type per report; file a second report if multiple distinct events occurred.":
+    "Elija la categoría que MEJOR DESCRIBA EL EVENTO — no la parte del cuerpo lesionada. Use Cuasi Accidente para eventos sin daño real. Daño a la Propiedad para impacto que solo afecta al activo. Use un tipo por reporte; presente un segundo reporte si ocurrieron múltiples eventos distintos.",
 };
 
 const DICTS = { es: ES, en: {} };
