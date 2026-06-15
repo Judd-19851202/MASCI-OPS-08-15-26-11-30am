@@ -978,6 +978,11 @@ function App() {
             <Route path="/incidents/:id" element={<RedirectWithId base="/admin/incidents" />} />
             <Route path="/daily" element={<Navigate to="/admin/daily" replace />} />
             <Route path="/daily/:id" element={<RedirectWithId base="/admin/daily" />} />
+            {/* TRACK 14.0-ELITE-OPS-B · 5:30 AM iPad usability redirects (iter510)
+                A tired user types the natural URL — don't 404, send them home. */}
+            <Route path="/safety-portal/meetings" element={<Navigate to="/admin/meetings" replace />} />
+            <Route path="/admin/daily-reports" element={<Navigate to="/hr/daily-reports" replace />} />
+            <Route path="/admin/trench-safety-assets" element={<Navigate to="/safety/trench-safety/assets" replace />} />
 
             {/* Legal */}
             <Route path="/legal/terms" element={<TermsOfService />} />
