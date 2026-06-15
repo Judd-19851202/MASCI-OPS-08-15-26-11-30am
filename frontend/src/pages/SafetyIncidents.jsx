@@ -88,7 +88,7 @@ export default function SafetyIncidents() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-800 text-white shrink-0">
             <ClipboardCheck className="w-6 h-6" />
           </div>
-          <div>
+          <div className="flex-1">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">
               Safety Portal · Incidents
             </span>
@@ -96,11 +96,22 @@ export default function SafetyIncidents() {
               {t("Incidents & Near Misses")}
             </h1>
             <p className="text-sm text-slate-600 mt-1">
-              {t("Read-only review of every incident and near-miss filed from the field. Filter by severity, project, or employee.")}{" "}
-              {t("New incidents are submitted from the field at ")}
-              <Link to="/incidents/new" className="font-bold text-slate-800 underline">/incidents/new</Link>.
+              {t("Read-only review of every incident and near-miss filed from the field. Filter by severity, project, or employee.")}
             </p>
           </div>
+          {/* TRACK 14.0-ELITE-OPS-B (iter510 friction fix · 2026-02-15):
+              5:30 AM iPad audit found users scanned the header for a
+              "New Incident" button and felt lost when the only entry
+              point was a hyperlink buried in body copy. Promote it to
+              a real CTA on the right rail. */}
+          <Link
+            to="/incidents/new"
+            data-testid="incidents-submit-field-cta"
+            className="hidden sm:inline-flex items-center gap-2 self-start px-4 py-2 rounded-md border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white transition-colors text-sm font-bold whitespace-nowrap"
+          >
+            <ClipboardCheck className="w-4 h-4" />
+            {t("Submit Field Incident →")}
+          </Link>
         </header>
 
         {/* Filters */}
