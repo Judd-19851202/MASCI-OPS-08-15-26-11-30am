@@ -9843,6 +9843,16 @@ from routes.integrations._deps import make_require_any_portal_token  # noqa: E40
 _require_any_portal_token = make_require_any_portal_token(db, _is_valid_admin_token)
 app.include_router(build_tasks_notifications_router(db, _require_any_portal_token))
 
+# TRACK 14.0-S1 Amendment A — bilingual record sidecar (original-language
+# preservation for free-text fields submitted in Spanish or any future
+# non-English language). Additive collection · zero coupling to the
+# canonical form records.
+from routes.bilingual_records import (  # noqa: E402
+    build_bilingual_records_router,
+    ensure_bilingual_indexes,
+)
+app.include_router(build_bilingual_records_router(db, _require_any_portal_token))
+
 
 # ─── Document Expiration Engine (iter151 — Phase 2.5 · Phase B) ─────
 # Central expirations across employee docs, training certs, equipment
@@ -10464,6 +10474,8 @@ async def _bootstrap_integrations():
     logger.info("[usage-analytics] indexes ensured + async sink started")
     await ensure_tasks_notifications_indexes(db)
     logger.info("[tasks-notifications] indexes ensured")
+    await ensure_bilingual_indexes(db)
+    logger.info("[bilingual-records] indexes ensured")
     await ensure_document_expirations_indexes(db)
     logger.info("[document-expirations] indexes ensured")
     await ensure_employee_lifecycle_indexes(db)

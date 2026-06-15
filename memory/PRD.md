@@ -10,7 +10,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · NOTIF-NEW-USER-SCOPE)
+## Latest Closed Track (2026-02-15 · S1 BILINGUAL SIDECAR FOUNDATION)
+- **14.0-S1 SPANISH TRANSLATION CERTIFICATION (Amendment A foundation)
+  SHIPPED 🟡 — track REMAINS OPEN at P1.** Shipped: (1) new `db.bilingual_
+  records` collection + `POST/GET /api/bilingual-records/{form_type}/
+  {form_id}` endpoints in `routes/bilingual_records.py`; (2) frontend
+  `persistBilingualSidecar(formType, formId, payload)` helper in
+  `lib/translateOnSubmit.js` — `translateUserInput()` now stamps
+  `_originals` / `_original_language` / `_translation_source` onto the
+  translated payload so the sidecar can be persisted post-submit;
+  (3) `NewMeeting.jsx` wired end-to-end as proof of pattern; (4) audit
+  script `scripts/track14_s1_translation_audit.py` + JSON output;
+  (5) dictionary entries added for every string introduced by recent
+  ELITE-OPS-B / TRUST-SUITE / NOTIF-SCOPE tracks. Coverage moved 78.3%
+  → 79.1%. **7/7 pytest pass**. Runtime proof: ES originals (`tubería`,
+  `mañana`, `atención`) round-trip character-for-character. **OPEN ITEMS
+  before track can close (B1–B10)**: wire remaining ~15 forms, render
+  sidecar in views, PDFs, notifications, search, exports; complete
+  ~688 common-UI translations + ~150 construction-terminology strings
+  with linguist review; add language detection + iPad mobile regression
+  for Spanish text expansion. Master ledger:
+  `/app/memory/TRACK_14_S1_FOUNDATION_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-15 · NOTIF-NEW-USER-SCOPE)
 - **14.0-NOTIF-NEW-USER-SCOPE CLOSED.** 🟢 PROVEN · TRUSTED · DEPLOY-READY.
   Resolved the P1 deferral from PRODUCTION-TRUST-SUITE F3. Added an
   eligibility cutoff to the read-side notification filter: role-broadcast

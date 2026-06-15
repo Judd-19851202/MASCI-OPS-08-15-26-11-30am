@@ -290,6 +290,19 @@ export default function NewMeeting({ publicMode = false }) {
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/meetings", payload);
       toast.success(t("Meeting saved"));
+      // TRACK 14.0-S1 Amendment A — preserve original-language strings
+      // in the bilingual_records sidecar collection. Fire-and-forget;
+      // a failure here must not break the user's flow.
+      if (lang === "es" && payload._originals) {
+        try {
+          const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
+          await persistBilingualSidecar(
+            "meeting",
+            res.data?.id || res.data?.meeting_number || "",
+            payload,
+          );
+        } catch { /* sidecar best-effort */ }
+      }
       if (publicMode || !isAdmin()) {
         navigate("/thank-you", {
           state: {

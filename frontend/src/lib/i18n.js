@@ -6107,6 +6107,136 @@ const ES = {
     "Acción Operacional — responsabilidad operacional, no un ticket.",
   "Required": "Obligatorio",
   "Optional": "Opcional",
+
+  // ─────────────────────────────────────────────────────────────────
+  // TRACK 14.0-S1 · Spanish Translation Certification Suite (2026-02-15)
+  // High-impact strings introduced or unverified during recent tracks
+  // (ELITE-OPS-B, PRODUCTION-TRUST-SUITE, NOTIF-NEW-USER-SCOPE).
+  // Reviewed for heavy-civil construction terminology — these are the
+  // strings a 5:30 AM Spanish-speaking foreman/superintendent / PM /
+  // safety rep / HR rep / dispatcher reads on the most-trafficked
+  // surfaces.
+  // ─────────────────────────────────────────────────────────────────
+
+  // Submit-button missing-fields hint chip (NewMeeting.jsx)
+  "Missing": "Faltante",
+  "To submit, complete": "Para enviar, complete",
+  "Photos": "Fotos",
+  "Need": "Necesita",
+  "more photo(s) before you can submit":
+    "más foto(s) antes de poder enviar",
+
+  // HR Hub directory search section (HrHubV2.jsx)
+  "Find a person": "Buscar una persona",
+  "Search by name, preferred name, or job title…":
+    "Buscar por nombre, nombre preferido o puesto…",
+  "Search": "Buscar",
+  "Open full directory →": "Abrir directorio completo →",
+  "Search employee directory": "Buscar el directorio de empleados",
+  "Live search across the active HR roster. No keyboard shortcut needed.":
+    "Búsqueda en vivo del personal activo de Recursos Humanos. No se necesita atajo de teclado.",
+  "Employee Directory": "Directorio de Empleados",
+  "Employee Accountability": "Responsabilidad del Empleado",
+  "Search by employee · coaching, training, equipment, safety brief":
+    "Buscar por empleado · entrenamiento, equipo, resumen de seguridad",
+
+  // Safety Incidents CTA (SafetyIncidents.jsx)
+  "Submit Field Incident →": "Reportar Incidente de Campo →",
+
+  // Common UI verbs and labels found untranslated
+  "Open": "Abrir",
+  "Close": "Cerrar",
+  "Closed": "Cerrado",
+  "Reopen": "Reabrir",
+  "Edit": "Editar",
+  "Delete": "Eliminar",
+  "Filter": "Filtrar",
+  "Clear": "Limpiar",
+  "Reset": "Restablecer",
+  "Apply": "Aplicar",
+  "Export": "Exportar",
+  "Import": "Importar",
+  "Download": "Descargar",
+  "Upload": "Cargar",
+  "Print": "Imprimir",
+  "Refresh": "Actualizar",
+  "Update": "Actualizar",
+  "Approve": "Aprobar",
+  "Reject": "Rechazar",
+  "Needs Revision": "Necesita Revisión",
+  "Pending Verification": "Verificación Pendiente",
+  "Under Investigation": "Bajo Investigación",
+  "Verified": "Verificado",
+  "Active": "Activo",
+  "Inactive": "Inactivo",
+  "Archived": "Archivado",
+  "ARCHIVED": "ARCHIVADO",
+  "Pending": "Pendiente",
+  "Approved": "Aprobado",
+  "Available": "Disponible",
+  "Assigned": "Asignado",
+  "In Transit": "En Tránsito",
+  "Maintenance Hold": "Retención de Mantenimiento",
+  "Safety Hold": "Retención de Seguridad",
+  "Action Required": "Acción Requerida",
+  "Pending Closure": "Cierre Pendiente",
+  "Reopened": "Reabierto",
+  "ACKNOWLEDGE": "RECONOCER",
+  "ACKNOWLEDGE REVISION": "RECONOCER REVISIÓN",
+
+  // Retention windows (HrIncidents.jsx)
+  "30 days": "30 días",
+  "90 days": "90 días",
+  "5 years": "5 años",
+  "1 year (OSHA 300)": "1 año (OSHA 300)",
+  "6+ hour day with no lunch": "Día de 6+ horas sin almuerzo",
+
+  // Trench weight classes (TrenchSafetyReports.jsx)
+  "< 40k lb": "< 40k lb",
+  "40k–80k lb": "40k–80k lb",
+
+  // Generic empty / placeholder strings
+  "(no project)": "(sin proyecto)",
+  "(no item)": "(sin artículo)",
+  "(No Job)": "(Sin Trabajo)",
+  "(unnamed)": "(sin nombre)",
+  "(preserved · write-once)": "(preservado · escritura única)",
+  "(set project to load)": "(seleccione un proyecto para cargar)",
+  "(required if condition is Fair or Damaged)":
+    "(obligatorio si la condición es Regular o Dañado)",
+
+  // Generic error / retry copy (lib/errors.js)
+  "Action unavailable. Try again in a moment.":
+    "Acción no disponible. Inténtelo de nuevo en un momento.",
+
+  // Field-leadership / Dispatch
+  "Active assignments, waiting trucks, breakdowns, haul movement.":
+    "Asignaciones activas, camiones en espera, averías, movimiento de acarreo.",
+  "Acknowledge this assignment": "Reconocer esta asignación",
+  "Acked": "Reconocido",
+
+  // PM Command Center labels
+  "Active Projects (admin scope)":
+    "Proyectos Activos (alcance de administrador)",
+  "Active JHPs / JHAs across your projects.":
+    "JHPs / JHAs Activos en sus proyectos.",
+  "Across every project (admin scope).":
+    "En cada proyecto (alcance de administrador).",
+
+  // HR accountability + employee tiles
+  "Accountability Timeline": "Cronología de Responsabilidad",
+  "Active Write-ups": "Amonestaciones Activas",
+  "Active Employees": "Empleados Activos",
+  "Add Training Record": "Agregar Registro de Entrenamiento",
+
+  // Public excavation / trench-safety form errors
+  "Acknowledge the trench-box rated-depth gap with a reason before submitting.":
+    "Reconozca con un motivo la diferencia de profundidad nominal de la caja antes de enviar.",
+  "Acknowledgement Reason": "Motivo del Reconocimiento",
+  "Action Required · Trench Box Rated Depth":
+    "Acción Requerida · Profundidad Nominal de la Caja",
+  "Add a reason or check the tabulated-data exception.":
+    "Agregue un motivo o revise la excepción de datos tabulados.",
 };
 
 const DICTS = { es: ES, en: {} };

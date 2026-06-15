@@ -78,13 +78,27 @@ function setByPath(root, path, value) {
  * English, and stamp the original submit language onto the returned payload
  * so admins can see which records were originally filed in Spanish.
  *
+ * TRACK 14.0-S1 Amendment A — Original-text preservation:
+ *   When a translation actually fires, the original strings are stored
+ *   in a sidecar map ``_originals`` (keyed by the same path used for
+ *   translation), plus ``_original_language`` ("es") on the payload.
+ *   The translated EN content remains the canonical, searchable value
+ *   stored at the original field path (preserves existing search /
+ *   admin-view contracts); the sidecar is purely additive and lets
+ *   bilingual views render BOTH languages. Backends that don't know
+ *   about the sidecar simply ignore the extra keys (Pydantic extras
+ *   policy = ignore on this codebase).
+ *
  * - Returns a NEW payload object (original is never mutated).
  * - `submit_language` is ALWAYS set on the output ("en" | "es") regardless
  *   of whether any translation was actually needed. Downstream admin views
  *   + the /api/admin/submit-language-stats endpoint read this field.
  * - If the backend translate call fails for any reason, we still return a
  *   clone of the original payload with `submit_language` stamped — we never
- *   block submit on a translation failure.
+ *   block submit on a translation failure. In that fallback case we ALSO
+ *   stamp a sidecar copy of the originals so downstream consumers can
+ *   surface a "translation pending" affordance instead of silently
+ *   showing Spanish to an English audience.
  */
 export async function translateUserInput(payload, fromLang) {
   // English — no LLM call needed, still stamp the language for audit.
@@ -105,6 +119,13 @@ export async function translateUserInput(payload, fromLang) {
     dict[String(i)] = it.value;
   });
 
+  // Pre-build the originals sidecar (path -> original string) up front so
+  // it is available in both the success and failure branches.
+  const originals = {};
+  items.forEach((it) => {
+    originals[it.path] = it.value;
+  });
+
   try {
     const res = await api.post("/translate", {
       from_lang: fromLang,
@@ -122,9 +143,58 @@ export async function translateUserInput(payload, fromLang) {
       }
     });
     next.submit_language = fromLang;
+    // TRACK 14.0-S1 Amendment A — preserve originals + source language.
+    next._originals = originals;
+    next._original_language = fromLang;
+    next._translated_at = new Date().toISOString();
+    next._translation_source = "llm";
     return next;
   } catch (err) {
     console.warn("Auto-translate failed; submitting as-typed.", err);
-    return { ...payload, submit_language: fromLang };
+    return {
+      ...payload,
+      submit_language: fromLang,
+      // Even on failure, stamp the originals sidecar so the eventual
+      // record explicitly carries the source-language flag and lets a
+      // background retranslation cron pick it up.
+      _originals: originals,
+      _original_language: fromLang,
+      _translation_source: "pending",
+    };
   }
 }
+
+/**
+ * TRACK 14.0-S1 Amendment A · post-submit sidecar write.
+ *
+ * After a form is saved to its canonical collection, callers invoke this
+ * helper with the form_type + form_id + the previously-prepared
+ * translated payload so the original-language strings get persisted to
+ * the `bilingual_records` sidecar collection. The canonical record
+ * stays unchanged — backend-side schema changes are avoided.
+ *
+ * Returns ``{ok, stored, id?}``; never throws (a sidecar write failure
+ * must not break the user's submission).
+ */
+export async function persistBilingualSidecar(formType, formId, translatedPayload) {
+  try {
+    if (!formType || !formId) return { ok: false, stored: false, reason: "missing_id" };
+    const originals = translatedPayload?._originals;
+    const lang = translatedPayload?._original_language;
+    if (!originals || !lang || Object.keys(originals).length === 0) {
+      return { ok: true, stored: false, reason: "no_originals" };
+    }
+    const r = await api.post("/bilingual-records", {
+      form_type: String(formType).toLowerCase(),
+      form_id: String(formId),
+      original_language: lang,
+      originals,
+      translation_source: translatedPayload?._translation_source || "llm",
+    });
+    return r?.data || { ok: true, stored: true };
+  } catch (err) {
+    console.warn("Bilingual sidecar persist failed; continuing.", err);
+    return { ok: false, stored: false, reason: "post_failed" };
+  }
+}
+
