@@ -347,6 +347,15 @@ def build_auth_directory_router(
             "hr": hr_token_minter,
             "safety": safety_token_minter,
             "dispatch": dispatch_token_minter,
+            # TRACK 14.0-SSO (2026-02-15): register field_leadership so
+            # the on-demand mint path used by the frontend RequireFl
+            # guard (via usePortalHydration) actually works. Previously
+            # this returned 500 'field_leadership token minter not
+            # configured', breaking direct-URL navigation to FL routes
+            # for users who lost their fl token. The minter is already
+            # accepted as a kwarg on the router factory and used by
+            # multi-login — registering it here closes the asymmetry.
+            "field_leadership": field_leadership_token_minter,
         }.get(target)
         if not minter:
             raise HTTPException(status_code=500, detail=f"{target} token minter not configured.")
@@ -363,6 +372,8 @@ def build_auth_directory_router(
                 "admin": "ADMIN_HR", "hr": "ADMIN_HR",
                 "pm": "OPERATIONS", "shop": "OPERATIONS",
                 "safety": "OPERATIONS", "dispatch": "OPERATIONS",
+                # TRACK 14.0-SSO · FL is an operational portal.
+                "field_leadership": "OPERATIONS",
             }.get(target, "OPERATIONS")
             await reset_session_activity(
                 db, tok, _tier,
