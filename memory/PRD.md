@@ -10,7 +10,44 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · S2A AUTOMATED iPad FIELD CERT)
+## Latest Closed Track (2026-02-15 · RC1 PRIORITY-ONE DEFECT CLOSURE — DEPLOY-READY)
+- **14.0-RC1 PRIORITY-ONE DEFECT CLOSURE · 🟢 PROVEN · TRUSTED · DEPLOY-READY.**
+  No new features — defect closure only. Closed all four deferred items
+  from iteration_515 with runtime proof + contract pytest:
+  **D3 (P1 — Offline Trust Surface)** — NEW
+  `/app/frontend/src/components/OfflineBanner.jsx` mounted globally in
+  App.js next to QueueStatusPill, listens to navigator online/offline
+  events, renders calm sky-blue ribbon "You're offline. Drafts and
+  submits are queued locally and will sync when you reconnect."
+  Auto-dismisses on reconnect. errorClassification.js already
+  short-circuits CanceledError/AbortError to kind:null — preserved by
+  contract test. ES translations added. **D2 (P2 — PM Command Center
+  401 race)** — `pmCommandApi.js` gained token-presence guard
+  `if (!getAdminToken() && !getPmToken()) return null;` before firing
+  — prevents the 5×401 console storm reported by iter515 during
+  React-StrictMode double-mount race. **D1 (P2 — Hub poller 401
+  noise)** — Verified NotificationBell already early-returns when
+  `!isSignedInAnywhere()` and GlobalKeepalive only hits public
+  `/api/health`. Contract tests pin these guards against regression.
+  **D4 (P3 — Safety Forms login copy)** — Title clarified from
+  "Safety Forms" → "Safety Forms · Password-Gated" with
+  `.field-glance-anchor` and `aria-busy={submitting}` adopted for
+  consistency. **79/79 backend pytest PASS in 16.20s** (14 new RC1
+  contract + 22 S2A + 14 S2 + 14 S1-B1-B10 + 7 bilingual + 8 notif).
+  Testing-agent iteration 516: backend 100% · frontend 100% — D3
+  offline banner shows correct sky-blue copy and auto-dismisses, D3
+  aborted request leaves NO false modals, D2 PM Command Center
+  first-load fires ZERO 401s, D1 /sign-in shows ZERO 401s over 10s,
+  D4 title visible with all attributes; stress loop 0 modals 0
+  console errors; multi-tab SSO + D2 guard work together in tab2.
+  Two OPTIONAL non-blocking enhancements identified for backlog
+  (tighten pmCommandApi guard for shop-impact/safety-impact
+  sub-endpoints; same guard for /api/job-photos+/api/daily-reports
+  background fetches). NO backend code changed. Deploy risk LOW;
+  rollback risk LOW. Master ledger:
+  `/app/memory/TRACK_14_RC1_PRIORITY_ONE_CLOSURE.md`.
+
+## Previous Closed Track (2026-02-15 · S2A AUTOMATED iPad FIELD CERT)
 - **14.0-S2A IPAD FIELD CERTIFICATION · Phases 4-11 + Amendment F.
   🟢 Automated Field Certification Complete · Physical Field UAT
   Pending.** User-authorized scope: A (max honest automated evidence
