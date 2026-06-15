@@ -268,22 +268,101 @@ def register_asset_routes(
             raise HTTPException(409, err)
 
         actor_email = (actor or {}).get("email") or (actor or {}).get("_actor") or "unknown"
+
+        # TRENCH-ASSET-ASSIGNMENT-QR-FIX · Phase 2:
+        # When transitioning to "Assigned", the caller MUST supply
+        # project_id + project_name + project_number so we never leave
+        # an asset Assigned-with-blank-project. When transitioning back
+        # to "Available", clear the project context + reset
+        # current_location to the home yard.
+        update_set: Dict[str, Any] = {
+            "operational_status": body.operational_status,
+            "updated_at": now_iso(),
+            "updated_by": actor_email,
+        }
+        if body.operational_status == "Assigned":
+            pid = (body.project_id or "").strip()
+            pnm = (body.project_name or "").strip()
+            pnum = (body.project_number or "").strip()
+            if not pid and not pnum:
+                raise HTTPException(422, {
+                    "code": "project_required_for_assigned",
+                    "msg": "An asset cannot be Assigned without a project. "
+                           "Supply project_id (or project_number) plus project_name.",
+                })
+            if not pnm:
+                raise HTTPException(422, {
+                    "code": "project_name_required_for_assigned",
+                    "msg": "project_name is required when assigning a trench asset.",
+                })
+            update_set["current_project_id"] = pid or None
+            update_set["current_project_name"] = pnm
+            update_set["current_project_number"] = pnum or None
+            update_set["current_location"] = (body.location or pnm).strip()
+            if body.assigned_to_name:
+                update_set["assigned_to_name"] = body.assigned_to_name.strip()
+            if body.assigned_to_role:
+                update_set["assigned_to_role"] = body.assigned_to_role.strip()
+        elif body.operational_status == "Available":
+            # Returning to yard — clear project context, reset current_location.
+            home_yard = existing.get("yard_location") or "MASCI Yard"
+            update_set["current_project_id"] = None
+            update_set["current_project_name"] = None
+            update_set["current_project_number"] = None
+            update_set["current_location"] = home_yard
+            update_set["assigned_to_name"] = None
+            update_set["assigned_to_role"] = None
+
         await db.trench_safety_assets.update_one(
             {"id": existing["id"]},
-            {"$set": {
-                "operational_status": body.operational_status,
-                "updated_at": now_iso(),
-                "updated_by": actor_email,
-            }},
+            {"$set": update_set},
         )
         fresh = await db.trench_safety_assets.find_one({"id": existing["id"]}, {"_id": 0})
         await upsert_equipment_master_mirror(db, fresh)
+        # Deployment history — write a row whenever the asset enters or
+        # leaves the Assigned state so the asset detail timeline can
+        # show "assigned to X on Y" / "returned from X on Y".
+        try:
+            if body.operational_status == "Assigned":
+                await db.trench_safety_deployments.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "asset_id": fresh["asset_id"],
+                    "action": "assign",
+                    "from_status": existing.get("operational_status"),
+                    "to_status": "Assigned",
+                    "project_id": update_set.get("current_project_id"),
+                    "project_name": update_set.get("current_project_name"),
+                    "project_number": update_set.get("current_project_number"),
+                    "at": now_iso(),
+                    "by": actor_email,
+                    "source": "Manual Assignment",
+                })
+            elif (body.operational_status == "Available"
+                  and existing.get("operational_status") == "Assigned"):
+                await db.trench_safety_deployments.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "asset_id": fresh["asset_id"],
+                    "action": "return",
+                    "from_status": "Assigned",
+                    "to_status": "Available",
+                    "project_id": existing.get("current_project_id"),
+                    "project_name": existing.get("current_project_name"),
+                    "project_number": existing.get("current_project_number"),
+                    "at": now_iso(),
+                    "by": actor_email,
+                    "source": "Manual Return",
+                })
+        except Exception:
+            # Never let history-insert failure block the status change.
+            pass
         await write_audit(
             db, kind="trench_asset_status_changed", asset_id=fresh["asset_id"],
             actor=actor, detail={
                 "from": existing.get("operational_status"),
                 "to": body.operational_status,
                 "note": body.note,
+                "project_name": update_set.get("current_project_name"),
+                "project_number": update_set.get("current_project_number"),
             },
         )
         return fresh

@@ -278,6 +278,16 @@ class TrenchSafetyAssetUpdate(BaseModel):
     current_location: Optional[str] = None
     yard_location: Optional[str] = None
 
+    # TRENCH-ASSET-ASSIGNMENT-QR-FIX (2026-06-15) · project-assignment
+    # fields are now editable through the standard update endpoint so the
+    # Edit Asset modal can put an asset on a job. The /status endpoint
+    # still owns operational_status transitions.
+    current_project_id: Optional[str] = None
+    current_project_name: Optional[str] = None
+    current_project_number: Optional[str] = None
+    assigned_to_name: Optional[str] = None
+    assigned_to_role: Optional[str] = None
+
     manufacturer_ref_id: Optional[str] = None
 
     missing_serial_number: Optional[bool] = None
@@ -303,8 +313,30 @@ class RetireAssetBody(BaseModel):
 
 
 class StatusChangeBody(BaseModel):
+    """TRENCH-ASSET-ASSIGNMENT-QR-FIX · Phase 2 contract.
+
+    When the asset is being moved to `Assigned`, the caller MUST supply
+    project context (id + name + number) so the resulting record is
+    not Assigned-with-blank-project. The /status endpoint applies these
+    onto the asset row. When the asset returns to `Available`, the
+    project context fields are cleared and current_location resets to
+    the home yard.
+    """
+    model_config = ConfigDict(extra="ignore")
+
     operational_status: str = Field(min_length=1)
     note: Optional[str] = None
+    # Project context (required when operational_status == "Assigned")
+    project_id: Optional[str] = None
+    project_name: Optional[str] = None
+    project_number: Optional[str] = None
+    location: Optional[str] = None
+    assigned_to_name: Optional[str] = None
+    assigned_to_role: Optional[str] = None
+
+
+# Compat-alias: keep current_project_number reads safe even when not
+# present in older DB rows (used by tests).
 
 
 # ────────────────────────────────────────────────────────────────────────

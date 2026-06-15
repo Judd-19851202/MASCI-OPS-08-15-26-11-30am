@@ -131,6 +131,7 @@ def register_qr_and_photo_routes(
     @api_router.get("/trench-safety/assets/{ident}/qr-label")
     async def qr_label_meta(
         ident: str,
+        size: int = Query(default=10, ge=4, le=20),
         _actor: dict = Depends(require_safety_or_admin),
     ):
         asset = await db.trench_safety_assets.find_one(
@@ -146,10 +147,30 @@ def register_qr_and_photo_routes(
             (f"{type_str} · {size_str}" if size_str else type_str).strip(" · "),
             "SCAN FOR TABULATED DATA + INSPECTION",
         ]
+        # TRENCH-ASSET-ASSIGNMENT-QR-FIX · Phase 5: embed the QR PNG
+        # as a base64 data URL so the frontend `<img src=…>` renders
+        # without a follow-up authenticated request (the PNG endpoint
+        # requires a token that browsers can't attach via <img>, which
+        # was producing the broken-image icon in production).
+        import base64  # noqa: PLC0415
+        target = f"/trench-safety/assets/{asset['asset_id']}"
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=size,
+            border=4,
+        )
+        qr.add_data(target)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        png_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
         return {
             "asset_id": asset["asset_id"],
-            "target_url": f"/trench-safety/assets/{asset['asset_id']}",
+            "target_url": target,
             "png_url": f"/api/trench-safety/assets/{asset['asset_id']}/qr-label.png",
+            "png_data_url": f"data:image/png;base64,{png_b64}",
             "label_lines": label_lines,
         }
 

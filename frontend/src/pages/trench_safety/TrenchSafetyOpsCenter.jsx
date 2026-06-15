@@ -383,11 +383,19 @@ export function QRManagementPanel({ asset }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
+  // TRENCH-ASSET-ASSIGNMENT-QR-FIX · Phase 5 — fetch base64 data URL
+  // from the auth-gated meta endpoint instead of <img src=…> pointing
+  // at the PNG endpoint (which requires a token <img> can't attach).
+  const [qrDataUrl, setQrDataUrl] = useState("");
   const pngUrl = `${BACKEND}/api/trench-safety/assets/${asset.asset_id}/qr-label.png`;
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      try {
+        const meta = await api.get(`/trench-safety/assets/${asset.asset_id}/qr-label`);
+        if (!cancelled) setQrDataUrl(meta.data?.png_data_url || "");
+      } catch { /* swallow */ }
       try {
         const r = await api.get(`/trench-safety/assets/${asset.asset_id}/audit`, { params: { limit: 100, kind_prefix: "trench_asset_qr_label" } });
         if (!cancelled) setHistory((r.data?.items || []).filter((x) => (x.kind || "").includes("qr_label")));
@@ -404,8 +412,17 @@ export function QRManagementPanel({ asset }) {
     } catch (e) { toast.error(extractErr(e, t("Reprint log failed."))); }
   }
   function printNow() {
-    const w = window.open(pngUrl, "_blank");
-    if (w) w.focus();
+    // Open the data URL in a new window for printing.
+    if (!qrDataUrl) {
+      toast.error(t("QR label still loading."));
+      return;
+    }
+    const w = window.open("", "_blank");
+    if (w) {
+      w.document.write(`<html><head><title>${asset.asset_id} QR</title></head><body style="margin:0;display:flex;justify-content:center;align-items:center;height:100vh;background:#fff;"><img src="${qrDataUrl}" style="max-width:480px;width:80%;height:auto;" /></body></html>`);
+      w.document.close();
+      w.focus();
+    }
   }
   return (
     <section className="bg-white border border-slate-200 rounded-md p-4" data-testid="qr-mgmt-panel">
@@ -415,20 +432,26 @@ export function QRManagementPanel({ asset }) {
         </div>
       </div>
       <div className="flex flex-wrap items-start gap-4">
-        <a href={pngUrl} target="_blank" rel="noreferrer" className="block border border-slate-200 rounded p-2 bg-white" data-testid="qr-img-link">
-          <img src={pngUrl} alt="QR label" className="w-40 h-auto" />
-        </a>
+        <div className="block border border-slate-200 rounded p-2 bg-white" data-testid="qr-img-link">
+          {qrDataUrl ? (
+            <img src={qrDataUrl} alt={`${asset.asset_id} QR label`} className="w-40 h-auto" data-testid="qr-img" />
+          ) : (
+            <div className="w-40 h-40 flex items-center justify-center bg-slate-50 text-slate-400 text-xs font-mono" data-testid="qr-img-loading">
+              {loading ? t("Generating…") : t("QR unavailable")}
+            </div>
+          )}
+        </div>
         <div className="flex-1 min-w-[220px]">
           <div className="text-xs text-slate-600 mb-2">
             {t("QR label is MASCI-branded and embeds the asset ID, serial, last inspection, and current status.")}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" asChild data-testid="qr-download">
-              <a href={pngUrl} download={`${asset.asset_id}-qr.png`}>
+            <Button size="sm" asChild disabled={!qrDataUrl} data-testid="qr-download">
+              <a href={qrDataUrl || "#"} download={`${asset.asset_id}-qr.png`} aria-disabled={!qrDataUrl}>
                 <Download className="w-3.5 h-3.5 mr-1" /> {t("Download")}
               </a>
             </Button>
-            <Button size="sm" variant="outline" onClick={printNow} data-testid="qr-print">
+            <Button size="sm" variant="outline" onClick={printNow} disabled={!qrDataUrl} data-testid="qr-print">
               <Printer className="w-3.5 h-3.5 mr-1" /> {t("Print")}
             </Button>
             <Button size="sm" variant="outline" onClick={logReprint} data-testid="qr-log-reprint">

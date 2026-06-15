@@ -32,6 +32,10 @@ import { Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+// TRENCH-ASSET-ASSIGNMENT-QR-FIX · Phase 2 — real job dropdown sourced
+// from the active jobs master list (same control the Safety Meeting
+// form uses), instead of free-text typing.
+import { JobPicker } from "@/components/JobPicker";
 
 const CONDITION_OPTIONS = ["Excellent", "Good", "Fair", "Poor", "Out Of Service"];
 const SOURCE_OPTIONS = [
@@ -107,6 +111,23 @@ export function AssignToProjectDialog({ open, onOpenChange, asset, onAssigned })
         </DialogHeader>
 
         <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="md:col-span-2">
+            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">
+              {t("Project")} <span className="text-red-600">*</span>
+            </Label>
+            <JobPicker
+              projectName={form.project_name}
+              projectNumber={form.project_number}
+              onSelect={(job) => {
+                set("project_number", job.project_number || "");
+                set("project_name", job.project_name || "");
+              }}
+              emptyHint={t("Pick an active project — required for assignment")}
+            />
+            <p className="text-[10px] text-slate-500 font-mono mt-1">
+              {t("Or type a custom project name below if the project isn't yet in the job-master list.")}
+            </p>
+          </div>
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">
               {t("Project Number")}

@@ -10,7 +10,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-15 · SAFETY-MEETING-WORKFLOW-PDF-CERT)
+## Latest Closed Track (2026-06-15 · TRENCH-ASSET-ASSIGNMENT-QR-FIX)
+- **14.0-TRENCH-ASSET-ASSIGNMENT-QR-FIX CLOSED.** 🟢
+  Root-caused three independent defects: (1) `/status` endpoint
+  accepted "Assigned" without project context → assets could be
+  Assigned-with-blank-project; (2) `TrenchSafetyAssetUpdate`
+  schema dropped project fields → Edit modal had no path to a job;
+  (3) `<img src=/api/.../qr-label.png>` 401'd because PNG endpoint
+  requires `X-Safety-Token` which `<img>` can't attach → broken
+  image icon. **Five fixes shipped**:
+    1. `_models.py::TrenchSafetyAssetUpdate` gains `current_project_id`,
+       `current_project_name`, `current_project_number`,
+       `assigned_to_name`, `assigned_to_role`.
+    2. `_models.py::StatusChangeBody` gains project context payload.
+    3. `assets.py::/status` endpoint NOW: requires `project_name +
+       project_id/number` when → Assigned (422 otherwise); clears
+       project context + resets `current_location` when → Available;
+       writes a `trench_safety_deployments` row for every assign /
+       return; audit event payload carries project_name + number.
+    4. `qr_photos.py::/qr-label` meta endpoint embeds
+       `png_data_url` base64 so `<img>` renders without auth follow-up.
+    5. `TrenchSafetyAssignDialogs.jsx` integrates the `JobPicker`
+       dropdown at the top (sourced from `/api/jobs-master`).
+       `TrenchSafetyOpsCenter.jsx::QRManagementPanel` renders from
+       `png_data_url`.
+  Tests: 9 / 9 PASS (`test_trench_asset_assignment_qr_cert.py`) —
+  live tests use timestamp-suffixed cert assets with retire teardown.
+  Visual smoke: detail + dialog screenshots captured on RP-901, QR
+  image rendered (`data-testid='qr-img'` present, not loading).
+  Master ledger: `/app/memory/TRENCH_ASSET_ASSIGNMENT_QR_FIX_CLOSURE.md`.
+
+## Previous Closed Track (2026-06-15 · SAFETY-MEETING-WORKFLOW-PDF-CERT)
 - **14.0-SAFETY-MEETING-WORKFLOW-PDF-CERTIFICATION CLOSED.** 🟢
   Root-caused the production PDF defect where sections jumped
   01 → 06 → 07 with blank discussion / hazards / action-items /
