@@ -21,6 +21,13 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
+        // TRACK 14.0-S2 · iPad Field Certification.
+        // Desktop visual scale preserved via the original h-9 heights.
+        // `index.css` raises these to ≥44px on coarse-pointer (iPad /
+        // touch) devices automatically — see the
+        // `@media (pointer: coarse)` block. This split keeps desktop
+        // dense layouts intact while iPad users always get a finger-
+        // safe tap surface.
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",

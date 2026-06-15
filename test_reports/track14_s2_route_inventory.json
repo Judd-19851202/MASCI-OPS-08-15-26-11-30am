@@ -1,0 +1,1049 @@
+{
+  "total_routes": 261,
+  "routes": [
+    {
+      "path": "/",
+      "component": "Hub"
+    },
+    {
+      "path": "/revise/:token",
+      "component": "Revise"
+    },
+    {
+      "path": "/safety",
+      "component": "SafetySection"
+    },
+    {
+      "path": "/safety/forms/login",
+      "component": "SafetyFormsLogin"
+    },
+    {
+      "path": "/safety/forms",
+      "component": "SafetyFormsHub"
+    },
+    {
+      "path": "/safety/forms/equipment-issuance/new",
+      "component": "NewSafetyEquipmentIssuance"
+    },
+    {
+      "path": "/safety/forms/equipment-issuance/:id",
+      "component": "ViewSafetyForm"
+    },
+    {
+      "path": "/safety/forms/equipment-issuance/:id/return",
+      "component": "ReturnEquipment"
+    },
+    {
+      "path": "/safety/forms/equipment-training/new",
+      "component": "NewSafetyEquipmentTraining"
+    },
+    {
+      "path": "/safety/forms/equipment-training/:id",
+      "component": "ViewSafetyForm"
+    },
+    {
+      "path": "/safety/cards",
+      "component": "FieldSafetyCards"
+    },
+    {
+      "path": "/field",
+      "component": "FieldSection"
+    },
+    {
+      "path": "/field/calculators",
+      "component": "MaterialCalculators"
+    },
+    {
+      "path": "/qaqc",
+      "component": "QaqcSection"
+    },
+    {
+      "path": "/qa-qc",
+      "component": "Navigate"
+    },
+    {
+      "path": "/qaqc/:slug/new",
+      "component": "NewQaqcInspection"
+    },
+    {
+      "path": "/qaqc/:id",
+      "component": "ViewQaqcInspection"
+    },
+    {
+      "path": "/admin/qaqc",
+      "component": "AdminQaqcList"
+    },
+    {
+      "path": "/admin/photos",
+      "component": "JobPhotosLibrary"
+    },
+    {
+      "path": "/constraints",
+      "component": "Constraints"
+    },
+    {
+      "path": "/constraints/new",
+      "component": "NewConstraint"
+    },
+    {
+      "path": "/constraints/:id",
+      "component": "ConstraintDetail"
+    },
+    {
+      "path": "/leadership",
+      "component": "FieldLeadershipHub"
+    },
+    {
+      "path": "/leadership/hub_v2",
+      "component": "LeadershipHubV"
+    },
+    {
+      "path": "/leadership/records",
+      "component": "FieldLeadershipRecords"
+    },
+    {
+      "path": "/leadership/records/:id",
+      "component": "FieldLeadershipView"
+    },
+    {
+      "path": "/leadership/:kind/new",
+      "component": "FieldLeadershipFormPage"
+    },
+    {
+      "path": "/inspect/new",
+      "component": "InspectionLegacyRedirect"
+    },
+    {
+      "path": "/submit",
+      "component": "InspectionLegacyRedirect"
+    },
+    {
+      "path": "/inspections/submit",
+      "component": "InspectionLegacyRedirect"
+    },
+    {
+      "path": "/inspections/new",
+      "component": "InspectionLegacyRedirect"
+    },
+    {
+      "path": "/meetings/new",
+      "component": "NewMeeting"
+    },
+    {
+      "path": "/meetings/submit",
+      "component": "NewMeeting"
+    },
+    {
+      "path": "/jha",
+      "component": "JhaPlansHub"
+    },
+    {
+      "path": "/jha/submit",
+      "component": "Navigate"
+    },
+    {
+      "path": "/jha/new",
+      "component": "Navigate"
+    },
+    {
+      "path": "/trench-boxes",
+      "component": "Navigate"
+    },
+    {
+      "path": "/trench-safety",
+      "component": "PublicTrenchSafetyDashboard"
+    },
+    {
+      "path": "/trench-safety/tabulated-data",
+      "component": "PublicTrenchSafetyTabulatedData"
+    },
+    {
+      "path": "/trench-safety/references",
+      "component": "PublicTrenchSafetyReferences"
+    },
+    {
+      "path": "/trench-safety/report",
+      "component": "PublicTrenchSafetyReport"
+    },
+    {
+      "path": "/trench-safety/assets/:assetId",
+      "component": "TrenchSafetyQrLanding"
+    },
+    {
+      "path": "/incidents/new",
+      "component": "NewIncident"
+    },
+    {
+      "path": "/incidents/submit",
+      "component": "NewIncident"
+    },
+    {
+      "path": "/daily/new",
+      "component": "NewDailyReport"
+    },
+    {
+      "path": "/daily/submit",
+      "component": "NewDailyReport"
+    },
+    {
+      "path": "/equipment/new",
+      "component": "NewEquipmentInspection"
+    },
+    {
+      "path": "/equipment/submit",
+      "component": "NewEquipmentInspection"
+    },
+    {
+      "path": "/equipment/:id",
+      "component": "RedirectWithId"
+    },
+    {
+      "path": "/fleet/dvir/new",
+      "component": "NewFleetDVIR"
+    },
+    {
+      "path": "/fleet/dvir/submit",
+      "component": "NewFleetDVIR"
+    },
+    {
+      "path": "/fleet/weekly-lead/new",
+      "component": "NewFleetDVIR"
+    },
+    {
+      "path": "/fleet/weekly-emergency/new",
+      "component": "NewFleetDVIR"
+    },
+    {
+      "path": "/fleet/dvir/submitted/:id",
+      "component": "FleetDVIRConfirmation"
+    },
+    {
+      "path": "/thank-you",
+      "component": "ThankYou"
+    },
+    {
+      "path": "/cheatsheet",
+      "component": "PosterErrorBoundary"
+    },
+    {
+      "path": "/cheat-sheet",
+      "component": "Navigate"
+    },
+    {
+      "path": "/reports/daily/new",
+      "component": "Navigate"
+    },
+    {
+      "path": "/safety/jha",
+      "component": "Navigate"
+    },
+    {
+      "path": "/safety/trench-boxes",
+      "component": "Navigate"
+    },
+    {
+      "path": "/trench-safety/excavation/new",
+      "component": "PublicExcavationForm"
+    },
+    {
+      "path": "/safety-portal/trench-safety",
+      "component": "Navigate"
+    },
+    {
+      "path": "/safety-portal/trench-safety/assets",
+      "component": "Navigate"
+    },
+    {
+      "path": "/safety-portal/trench-safety/tabulated-data",
+      "component": "Navigate"
+    },
+    {
+      "path": "/app/*",
+      "component": "Navigate"
+    },
+    {
+      "path": "/admin/login",
+      "component": "AdminLogin"
+    },
+    {
+      "path": "/admin",
+      "component": "AdminHub"
+    },
+    {
+      "path": "/admin/hub_v2",
+      "component": "AdminHubV"
+    },
+    {
+      "path": "/admin/material-ledger-quality",
+      "component": "AdminMaterialLedgerQuality"
+    },
+    {
+      "path": "/admin/people",
+      "component": "AdminPeople"
+    },
+    {
+      "path": "/admin/mfa",
+      "component": "AdminMfa"
+    },
+    {
+      "path": "/admin/promo-assets",
+      "component": "AdminPromoAssets"
+    },
+    {
+      "path": "/admin/jobs",
+      "component": "AdminJobs"
+    },
+    {
+      "path": "/admin/jobs/:projectNumber/team",
+      "component": "AdminJobTeam"
+    },
+    {
+      "path": "/admin/geofence-reconciliation",
+      "component": "AdminGeofenceReconciliation"
+    },
+    {
+      "path": "/admin/operations-dashboard",
+      "component": "AdminOperationsDashboard"
+    },
+    {
+      "path": "/admin/asset-mapping",
+      "component": "AdminAssetMapping"
+    },
+    {
+      "path": "/admin/asset-spine",
+      "component": "AdminAssetSpineHealth"
+    },
+    {
+      "path": "/admin/equipment",
+      "component": "AdminEquipment"
+    },
+    {
+      "path": "/admin/email",
+      "component": "AdminEmail"
+    },
+    {
+      "path": "/admin/training",
+      "component": "AdminTraining"
+    },
+    {
+      "path": "/admin/compliance",
+      "component": "AdminCompliance"
+    },
+    {
+      "path": "/admin/system",
+      "component": "AdminSystem"
+    },
+    {
+      "path": "/admin/recovery",
+      "component": "AdminRecovery"
+    },
+    {
+      "path": "/admin/recovery-stream",
+      "component": "AdminRecoveryStream"
+    },
+    {
+      "path": "/admin/jha-acknowledgements",
+      "component": "AdminJhaAcknowledgements"
+    },
+    {
+      "path": "/admin/command-center",
+      "component": "AdminCommandCenter"
+    },
+    {
+      "path": "/admin/database",
+      "component": "AdminDatabase"
+    },
+    {
+      "path": "/admin/integrations",
+      "component": "AdminIntegrationCenter"
+    },
+    {
+      "path": "/admin/dispatch",
+      "component": "AdminDispatch"
+    },
+    {
+      "path": "/admin/dls/shift-qr",
+      "component": "AdminDlsShiftQR"
+    },
+    {
+      "path": "/admin/dls/day-1-debrief",
+      "component": "AdminDlsDay"
+    },
+    {
+      "path": "/admin/dls/week-1-debrief",
+      "component": "AdminDlsDay"
+    },
+    {
+      "path": "/admin/profile",
+      "component": "AdminProfile"
+    },
+    {
+      "path": "/admin/operations-events",
+      "component": "AdminOperationsEvents"
+    },
+    {
+      "path": "/admin/digest-config",
+      "component": "AdminDigestConfig"
+    },
+    {
+      "path": "/admin/system-health",
+      "component": "SystemHealth"
+    },
+    {
+      "path": "/admin/audit-log",
+      "component": "AdminAuditLog"
+    },
+    {
+      "path": "/admin/scheduler-runs",
+      "component": "AdminSchedulerRuns"
+    },
+    {
+      "path": "/admin/legacy-imports",
+      "component": "AdminLegacyImports"
+    },
+    {
+      "path": "/admin/sessions",
+      "component": "AdminSessions"
+    },
+    {
+      "path": "/admin/guidance-coverage",
+      "component": "AdminGuidanceCoverage"
+    },
+    {
+      "path": "/admin/operational-inventory",
+      "component": "AdminOperationalInventory"
+    },
+    {
+      "path": "/notifications",
+      "component": "NotificationsDigest"
+    },
+    {
+      "path": "/admin/governance",
+      "component": "AdminGovernance"
+    },
+    {
+      "path": "/admin/project-identity",
+      "component": "AdminProjectIdentityGovernance"
+    },
+    {
+      "path": "/admin/governance/self-protection",
+      "component": "SelfProtection"
+    },
+    {
+      "path": "/admin/compliance-findings",
+      "component": "AdminComplianceFindings"
+    },
+    {
+      "path": "/admin/operational-language",
+      "component": "AdminOperationalLanguage"
+    },
+    {
+      "path": "/guidance",
+      "component": "OperationalGuidanceCenter"
+    },
+    {
+      "path": "/guidance/section/:sectionId",
+      "component": "OperationalGuidanceCenter"
+    },
+    {
+      "path": "/guidance/:articleId",
+      "component": "OperationalGuidanceCenter"
+    },
+    {
+      "path": "/admin/deploy-recovery",
+      "component": "DeployRecovery"
+    },
+    {
+      "path": "/admin/assets/:assetId",
+      "component": "AssetProfile"
+    },
+    {
+      "path": "/admin/asset-admin",
+      "component": "AdminAssetAdmin"
+    },
+    {
+      "path": "/admin/driver-intel/:driverKey",
+      "component": "AdminDriverIntel"
+    },
+    {
+      "path": "/admin/equipment/:id/history",
+      "component": "AdminMasterHistory"
+    },
+    {
+      "path": "/admin/employees/:id/history",
+      "component": "AdminMasterHistory"
+    },
+    {
+      "path": "/admin/analytics",
+      "component": "AdminAnalytics"
+    },
+    {
+      "path": "/admin/leadership-equipment",
+      "component": "AdminLeadershipEquipment"
+    },
+    {
+      "path": "/admin/terminations",
+      "component": "AdminTerminations"
+    },
+    {
+      "path": "/admin/guide",
+      "component": "AdminGuide"
+    },
+    {
+      "path": "/admin/jha",
+      "component": "Navigate"
+    },
+    {
+      "path": "/admin/jha/:id",
+      "component": "Navigate"
+    },
+    {
+      "path": "/pm/login",
+      "component": "PmLogin"
+    },
+    {
+      "path": "/pm/reset/:token",
+      "component": "PmResetPassword"
+    },
+    {
+      "path": "/pm/change-password",
+      "component": "PmChangePassword"
+    },
+    {
+      "path": "/pm",
+      "component": "PmHomeRedirect"
+    },
+    {
+      "path": "/pm/hub",
+      "component": "PmHubV"
+    },
+    {
+      "path": "/pm/hub_legacy",
+      "component": "PmHub"
+    },
+    {
+      "path": "/pm/hub_v2",
+      "component": "PmHubV"
+    },
+    {
+      "path": "/pm/crew-compliance",
+      "component": "PmCrewCompliance"
+    },
+    {
+      "path": "/pm/jobs",
+      "component": "PmJobs"
+    },
+    {
+      "path": "/pm/job/:projectNumber/team",
+      "component": "PmJobTeam"
+    },
+    {
+      "path": "/pm/projects/:projectNumber",
+      "component": "PmProjectRedirect"
+    },
+    {
+      "path": "/pm/projects-legacy/:projectNumber",
+      "component": "PmProjectDetail"
+    },
+    {
+      "path": "/pm/command-center",
+      "component": "PmCommandCenter"
+    },
+    {
+      "path": "/operations-center",
+      "component": "OperationsCenterCommand"
+    },
+    {
+      "path": "/operations-map",
+      "component": "OperationsMapPage"
+    },
+    {
+      "path": "/pm/field-leadership",
+      "component": "PmFieldLeadership"
+    },
+    {
+      "path": "/pm/fleet",
+      "component": "PmFleet"
+    },
+    {
+      "path": "/pm/people",
+      "component": "PmPeople"
+    },
+    {
+      "path": "/pm/suppliers",
+      "component": "PmSuppliers"
+    },
+    {
+      "path": "/pm/posters",
+      "component": "PmPosters"
+    },
+    {
+      "path": "/pm/qaqc",
+      "component": "PmQaqcList"
+    },
+    {
+      "path": "/pm/photos",
+      "component": "JobPhotosLibrary"
+    },
+    {
+      "path": "/shop/login",
+      "component": "ShopLogin"
+    },
+    {
+      "path": "/shop/reset/:token",
+      "component": "ShopResetPassword"
+    },
+    {
+      "path": "/shop/change-password",
+      "component": "ShopChangePassword"
+    },
+    {
+      "path": "/shop",
+      "component": "ShopHubV"
+    },
+    {
+      "path": "/shop/hub_legacy",
+      "component": "ShopHub"
+    },
+    {
+      "path": "/shop/hub_v2",
+      "component": "ShopHubV"
+    },
+    {
+      "path": "/shop/asset-care",
+      "component": "ShopAssetCare"
+    },
+    {
+      "path": "/shop/manager/queue",
+      "component": "ShopManagerQueue"
+    },
+    {
+      "path": "/shop/me",
+      "component": "ShopMyAssignments"
+    },
+    {
+      "path": "/shop/units/history",
+      "component": "UnitHistoryLanding"
+    },
+    {
+      "path": "/shop/units/:unitNumber/history",
+      "component": "UnitHistoryTimeline"
+    },
+    {
+      "path": "/shop/fuel-lube/new",
+      "component": "FuelLubeVisitForm"
+    },
+    {
+      "path": "/shop/fuel-lube",
+      "component": "FuelLubeVisitRecords"
+    },
+    {
+      "path": "/shop/fuel-lube/:visitId",
+      "component": "FuelLubeVisitDetail"
+    },
+    {
+      "path": "/shop/service-truck-reconciliation/new",
+      "component": "ServiceTruckReconciliationForm"
+    },
+    {
+      "path": "/shop/service-truck-reconciliation",
+      "component": "ServiceTruckReconciliationRecords"
+    },
+    {
+      "path": "/shop/service-truck-reconciliation/:recId",
+      "component": "ServiceTruckReconciliationDetail"
+    },
+    {
+      "path": "/shop/pm",
+      "component": "PmDashboard"
+    },
+    {
+      "path": "/shop/pm/templates",
+      "component": "PmTemplates"
+    },
+    {
+      "path": "/shop/pm/schedules",
+      "component": "PmSchedules"
+    },
+    {
+      "path": "/shop/pm/work-orders",
+      "component": "PmWorkOrders"
+    },
+    {
+      "path": "/shop/pm/work-orders/:id",
+      "component": "PmWorkOrders"
+    },
+    {
+      "path": "/shop/trench-safety-repairs",
+      "component": "ShopTrenchSafetyRepairs"
+    },
+    {
+      "path": "/shop/fleet",
+      "component": "FleetVisibility"
+    },
+    {
+      "path": "/shop/equipment",
+      "component": "EquipmentDashboard"
+    },
+    {
+      "path": "/shop/equipment/:id",
+      "component": "ViewEquipmentInspection"
+    },
+    {
+      "path": "/hr/login",
+      "component": "HrLogin"
+    },
+    {
+      "path": "/sign-in",
+      "component": "SignIn"
+    },
+    {
+      "path": "/hr/forgot",
+      "component": "HrForgotPassword"
+    },
+    {
+      "path": "/hr/reset/:token",
+      "component": "HrResetPassword"
+    },
+    {
+      "path": "/hr/change-password",
+      "component": "HrChangePassword"
+    },
+    {
+      "path": "/hr",
+      "component": "HrHubV"
+    },
+    {
+      "path": "/hr/hub_legacy",
+      "component": "HrHub"
+    },
+    {
+      "path": "/hr/hub_v2",
+      "component": "HrHubV"
+    },
+    {
+      "path": "/hr/field-leadership",
+      "component": "HrFieldLeadership"
+    },
+    {
+      "path": "/hr/field-leadership-users",
+      "component": "HrFieldLeadershipUsers"
+    },
+    {
+      "path": "/hr/employee-accountability",
+      "component": "HrEmployeeAccountability"
+    },
+    {
+      "path": "/hr/time-verification",
+      "component": "HrTimeVerification"
+    },
+    {
+      "path": "/hr/time-off",
+      "component": "HrTimeOff"
+    },
+    {
+      "path": "/hr/payroll-variance",
+      "component": "HrPayrollVariance"
+    },
+    {
+      "path": "/hr/training-records",
+      "component": "HrTrainingRecords"
+    },
+    {
+      "path": "/hr/driver-qualification",
+      "component": "HrDriverQualificationDashboard"
+    },
+    {
+      "path": "/hr/driver-qualification/import",
+      "component": "HrDriverQualificationImport"
+    },
+    {
+      "path": "/hr/daily-reports",
+      "component": "HrDailyReports"
+    },
+    {
+      "path": "/hr/daily-reports/:id",
+      "component": "HrDailyReportDetail"
+    },
+    {
+      "path": "/hr/motive-drivers",
+      "component": "HrMotiveDrivers"
+    },
+    {
+      "path": "/hr/driver/:driverKey",
+      "component": "HrDriverProfile"
+    },
+    {
+      "path": "/time-off/public/:token",
+      "component": "PublicTimeOff"
+    },
+    {
+      "path": "/field-leadership/portal/login",
+      "component": "FieldLeadershipPortalLogin"
+    },
+    {
+      "path": "/safety-portal/login",
+      "component": "SafetyLogin"
+    },
+    {
+      "path": "/safety-portal/forgot-password",
+      "component": "SafetyForgotPassword"
+    },
+    {
+      "path": "/safety-portal/reset/:token",
+      "component": "SafetyResetPassword"
+    },
+    {
+      "path": "/hr/safety-records",
+      "component": "HrSafetyRecords"
+    },
+    {
+      "path": "/dispatch-portal/login",
+      "component": "DispatchLogin"
+    },
+    {
+      "path": "/leadership/login",
+      "component": "FieldLeadershipPortalLogin"
+    },
+    {
+      "path": "/leadership/legacy-login",
+      "component": "LeadershipLogin"
+    },
+    {
+      "path": "/dispatch-portal/forgot-password",
+      "component": "DispatchForgotPassword"
+    },
+    {
+      "path": "/dispatch-portal/reset/:token",
+      "component": "DispatchResetPassword"
+    },
+    {
+      "path": "/training",
+      "component": "TrainingHub"
+    },
+    {
+      "path": "/training-hub",
+      "component": "Navigate"
+    },
+    {
+      "path": "/training/:track",
+      "component": "TrainingTrack"
+    },
+    {
+      "path": "/training/:track/poster",
+      "component": "TrainingQrPoster"
+    },
+    {
+      "path": "/training/:track/packet",
+      "component": "TrainingPacketDownload"
+    },
+    {
+      "path": "/admin/training-videos",
+      "component": "AdminTrainingVideos"
+    },
+    {
+      "path": "/admin/deploy-readiness",
+      "component": "AdminDeployReadiness"
+    },
+    {
+      "path": "/ops-training",
+      "component": "Navigate"
+    },
+    {
+      "path": "/ops-training/:slug",
+      "component": "Navigate"
+    },
+    {
+      "path": "/dev/login",
+      "component": "DevLogin"
+    },
+    {
+      "path": "/dev",
+      "component": "DevHub"
+    },
+    {
+      "path": "/inspections",
+      "component": "Navigate"
+    },
+    {
+      "path": "/inspect/:id",
+      "component": "RedirectWithId"
+    },
+    {
+      "path": "/inspections/:id",
+      "component": "RedirectWithId"
+    },
+    {
+      "path": "/meetings",
+      "component": "Navigate"
+    },
+    {
+      "path": "/meetings/:id",
+      "component": "RedirectWithId"
+    },
+    {
+      "path": "/incidents",
+      "component": "Navigate"
+    },
+    {
+      "path": "/incidents/:id",
+      "component": "RedirectWithId"
+    },
+    {
+      "path": "/daily",
+      "component": "Navigate"
+    },
+    {
+      "path": "/daily/:id",
+      "component": "RedirectWithId"
+    },
+    {
+      "path": "/safety-portal/meetings",
+      "component": "Navigate"
+    },
+    {
+      "path": "/admin/daily-reports",
+      "component": "Navigate"
+    },
+    {
+      "path": "/admin/trench-safety-assets",
+      "component": "Navigate"
+    },
+    {
+      "path": "/legal/terms",
+      "component": "TermsOfService"
+    },
+    {
+      "path": "/legal/privacy",
+      "component": "PrivacyPolicy"
+    },
+    {
+      "path": "/tasks",
+      "component": "Tasks"
+    },
+    {
+      "path": "/document-expirations",
+      "component": "DocumentExpirations"
+    },
+    {
+      "path": "/hr/employees",
+      "component": "HrEmployees"
+    },
+    {
+      "path": "/hr/employee-requests",
+      "component": "HrEmployeeRequestsQueue"
+    },
+    {
+      "path": "/hr/employees/:id/accountability",
+      "component": "HrEmployeeAccountabilityTimeline"
+    },
+    {
+      "path": "/hr/incidents",
+      "component": "HrIncidents"
+    },
+    {
+      "path": "/po-requests",
+      "component": "PoRequests"
+    },
+    {
+      "path": "/project-health",
+      "component": "ProjectHealth"
+    },
+    {
+      "path": "/asset-transfers",
+      "component": "AssetTransfers"
+    },
+    {
+      "path": "/access-denied",
+      "component": "AccessDenied"
+    },
+    {
+      "path": "/admin/audit",
+      "component": "Navigate"
+    },
+    {
+      "path": "/admin/health",
+      "component": "Navigate"
+    },
+    {
+      "path": "/d/:token",
+      "component": "DriverMagicLanding"
+    },
+    {
+      "path": "/driver",
+      "component": "DriverShift"
+    },
+    {
+      "path": "/shift",
+      "component": "ShiftStart"
+    },
+    {
+      "path": "/field-leadership",
+      "component": "Navigate"
+    },
+    {
+      "path": "/odr/new",
+      "component": "OdrNew"
+    },
+    {
+      "path": "/odr/center",
+      "component": "OdrCenter"
+    },
+    {
+      "path": "/pm/odr",
+      "component": "OdrPmPanel"
+    },
+    {
+      "path": "/odr/public/:doc_id",
+      "component": "OdrPublicViewer"
+    },
+    {
+      "path": "/odr/:id/done",
+      "component": "OdrDone"
+    },
+    {
+      "path": "/odr/:id",
+      "component": "OdrDetail"
+    },
+    {
+      "path": "/operational-records",
+      "component": "OperationalRecords"
+    },
+    {
+      "path": "/operations-actions",
+      "component": "OperationsActions"
+    },
+    {
+      "path": "/operations-actions/new",
+      "component": "OperationsActionNew"
+    },
+    {
+      "path": "/operations-actions/:id",
+      "component": "OperationsActionDetail"
+    },
+    {
+      "path": "/_internal/design-system",
+      "component": "DesignSystemDemo"
+    },
+    {
+      "path": "/_internal/pm-v2-preview",
+      "component": "PmV"
+    },
+    {
+      "path": "/_internal/hr-v2-preview",
+      "component": "HrV"
+    },
+    {
+      "path": "/_internal/v2-index",
+      "component": "V"
+    },
+    {
+      "path": "/_internal/v2-compare/:portal",
+      "component": "V"
+    },
+    {
+      "path": "*",
+      "component": "NotFound"
+    }
+  ]
+}

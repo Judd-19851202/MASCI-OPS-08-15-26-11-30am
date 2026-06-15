@@ -1,0 +1,5797 @@
+{
+  "total_defects_logged": 3594,
+  "by_category": {
+    "TEXT-XS": 2253,
+    "CONTRAST-LOW-400": 509,
+    "TAP-SM": 417,
+    "DENSE-GRID": 268,
+    "CONTRAST-LOW-300": 75,
+    "TAP-XS": 70,
+    "INPUT-MD-SHRINK": 2
+  },
+  "by_severity": {
+    "HIGH": 762,
+    "LOW": 2512,
+    "CRIT": 320
+  },
+  "rows": [
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/trench_safety/PublicExcavationForm.jsx",
+      "count": 50
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/NewIncident.jsx",
+      "count": 47
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/NewDailyReport.jsx",
+      "count": 36
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/NewMeeting.jsx",
+      "count": 28
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/NewInspection.jsx",
+      "count": 25
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/NewEquipmentInspection.jsx",
+      "count": 24
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/HrTimeOff.jsx",
+      "count": 22
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/FieldLeadershipFormPage.jsx",
+      "count": 19
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/NewSafetyEquipmentIssuance.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/NewQaqcInspection.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/ReturnEquipment.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/SafetyCorrectiveActions.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/NewSafetyEquipmentTraining.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/NewDailyReport.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/SafetyCorrectiveActions.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "CRIT",
+      "file": "pages/NewDailyReport.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "CRIT",
+      "file": "pages/HrTimeOff.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "CRIT",
+      "file": "pages/NewEquipmentInspection.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "CRIT",
+      "file": "pages/PublicTimeOff.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/NewIncident.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/NewMeeting.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/HrTimeOff.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/trench_safety/PublicExcavationForm.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "CRIT",
+      "file": "pages/trench_safety/PublicExcavationForm.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "CRIT",
+      "file": "pages/trench_safety/PublicExcavationForm.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/ReturnEquipment.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "CRIT",
+      "file": "pages/ReturnEquipment.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "CRIT",
+      "file": "pages/NewMeeting.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "CRIT",
+      "file": "pages/NewMeeting.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "CRIT",
+      "file": "pages/NewDailyReport.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/NewInspection.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "CRIT",
+      "file": "pages/NewInspection.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/NewSafetyEquipmentTraining.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "CRIT",
+      "file": "pages/NewSafetyEquipmentIssuance.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "CRIT",
+      "file": "pages/NewEquipmentInspection.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminGuide.jsx",
+      "count": 38
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrEmployees.jsx",
+      "count": 28
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipView.jsx",
+      "count": 26
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrDriverQualificationImport.jsx",
+      "count": 22
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminSchedulerRuns.jsx",
+      "count": 18
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminMaterialLedgerQuality.jsx",
+      "count": 16
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/DispatchHaulLedger.jsx",
+      "count": 15
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrDailyReports.jsx",
+      "count": 15
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/PmProjectDetail.jsx",
+      "count": 14
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminLegacyImports.jsx",
+      "count": 12
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeRequestsQueue.jsx",
+      "count": 12
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/Hub.jsx",
+      "count": 12
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyFireExtImport.jsx",
+      "count": 11
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/DispatchBoard.jsx",
+      "count": 11
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrDriverQualificationDashboard.jsx",
+      "count": 11
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeAccountability.jsx",
+      "count": 10
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrEmployees.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrHub.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/PmCrewCompliance.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/ViewSafetyForm.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrPayrollVariance.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/FieldSafetyCards.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/ViewEquipmentInspection.jsx",
+      "count": 7
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrDriverQualificationDashboard.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrTimeVerification.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipPortalDashboard.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/PmHub.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyFormsRecords.jsx",
+      "count": 7
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/AdminLegacyImports.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeAccountabilityTimeline.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyTopicLibrary.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/FieldSection.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetySection.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipHub.jsx",
+      "count": 6
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "HIGH",
+      "file": "pages/SafetyFireExtImport.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrTrainingRecords.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyEmployeeProfiles.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/PmFieldLeadership.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrPayrollVariance.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrDriverQualificationDashboard.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminTrainingVideos.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeRequestsQueue.jsx",
+      "count": 5
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/ViewDailyReport.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminLeadershipEquipment.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyAudits.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrDriverQualificationImport.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipPortalChangePassword.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrIncidents.jsx",
+      "count": 4
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/AdminLegacyImports.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrSafetyRecords.jsx",
+      "count": 4
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/DispatchBoard.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyReports.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/SafetyEmployeeProfiles.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminTerminations.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipPortalLogin.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/ViewIncident.jsx",
+      "count": 4
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/SafetyFireExtinguishers.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyHub.jsx",
+      "count": 4
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/SafetyHub.jsx",
+      "count": 4
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrFieldLeadership.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrFieldLeadership.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/PmProjectDetail.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/PmQaqcList.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/PmQaqcList.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/ViewDailyReport.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/AdminLeadershipEquipment.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/AdminQaqcList.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/PmLogin.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrEmployees.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/DispatchHub.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyTrainingRecords.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/HrLogin.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/PmCommandCenter.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/ViewQaqcInspection.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipRecords.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipRecords.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipRecords.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/ViewInspection.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/ViewMeeting.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/DailyReportsDashboard.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/FieldSection.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/Hub.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/Dashboard.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/IncidentsDashboard.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/MeetingsDashboard.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/PmLogin.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyForgotPassword.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrIncidents.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "HIGH",
+      "file": "pages/HrEmployees.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/HrEmployees.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/DispatchHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/DispatchHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/AdminMaterialLedgerQuality.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/DispatchHaulLedger.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrSafetyRecords.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/SafetyFireExtImport.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeAccountabilityTimeline.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeAccountabilityTimeline.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/DispatchForgotPassword.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/DispatchBoard.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/SafetyDocuments.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/AdminHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrTrainingRecords.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/SafetyTrainingRecords.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyIncidents.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrLogin.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/SafetyReports.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyFormsLogin.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/AdminTerminations.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyFormsHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/ViewQaqcInspection.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/AdminSchedulerRuns.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/PmCrewCompliance.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/PmCrewCompliance.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipPortalLogin.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/ViewIncident.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/PmFieldLeadership.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/PmFieldLeadership.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/ViewInspection.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/ViewInspection.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyFireExtinguishers.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "HIGH",
+      "file": "pages/HrFieldLeadership.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminDeployReadiness.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipView.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipView.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/AdminGuide.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyLogin.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/DispatchLogin.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/Hub.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminQaqcList.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrTimeVerification.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrTimeVerification.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/HrTimeVerification.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/PmHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/PmHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrDriverQualificationImport.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/SafetyForgotPassword.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminLegacyImports.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "HIGH",
+      "file": "pages/AdminLegacyImports.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/AdminLegacyImports.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeAccountability.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrSafetyRecords.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/DispatchForgotPassword.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyDocuments.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/SafetyDocuments.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/ViewEquipmentInspection.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/AdminHub.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/DispatchCommandCenter.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/DispatchCommandCenter.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyTrainingRecords.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/SafetyTrainingRecords.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/SafetyIncidents.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/SafetyIncidents.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/PmCommandCenter.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/SafetyReports.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/SafetyEmployeeProfiles.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/ViewQaqcInspection.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/FieldSafetyCards.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/FieldSafetyCards.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/AdminSchedulerRuns.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/SafetyTopicLibrary.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/PmCrewCompliance.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/ViewIncident.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/ViewIncident.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/ViewSafetyForm.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/ViewSafetyForm.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyDigest.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "HIGH",
+      "file": "pages/SafetyFireExtinguishers.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrFieldLeadership.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/HrDailyReports.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/ViewMeeting.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/ViewMeeting.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/HrDriverProfile.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/AdminDeployReadiness.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipView.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeRequestsQueue.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/HrEmployeeRequestsQueue.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/ViewDailyReport.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminLeadershipEquipment.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/AdminLeadershipEquipment.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "HIGH",
+      "file": "pages/Hub.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/SafetySection.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipPortalDashboard.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipPortalDashboard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "HIGH",
+      "file": "pages/PmHub.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/FieldLeadershipHub.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "HIGH",
+      "file": "pages/AdminLogin.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/AdminLogin.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/SafetyAudits.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/SafetyAudits.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "HIGH",
+      "file": "pages/SafetyFormsRecords.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "HIGH",
+      "file": "pages/SafetyFormsRecords.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyActions.jsx",
+      "count": 60
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminIntegrationCenter.jsx",
+      "count": 37
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/PoRequests.jsx",
+      "count": 24
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyOpsCenter.jsx",
+      "count": 22
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetAdmin.jsx",
+      "count": 21
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyAssetDetail.jsx",
+      "count": 21
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyPolish.jsx",
+      "count": 17
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EquipmentReturnLines.jsx",
+      "count": 17
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EquipmentLines.jsx",
+      "count": 17
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminMfa.jsx",
+      "count": 16
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AssetProfile.jsx",
+      "count": 16
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/AssignmentDrawer.jsx",
+      "count": 16
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminIntegrationCenter.jsx",
+      "count": 15
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGuidanceCoverage.jsx",
+      "count": 15
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDispatch.jsx",
+      "count": 15
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminJobMasterPanel.jsx",
+      "count": 15
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDispatch.jsx",
+      "count": 14
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminRecovery.jsx",
+      "count": 14
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/RestoreBackupPanel.jsx",
+      "count": 14
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PartsCatalog.jsx",
+      "count": 14
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/OperationsCenterCommand.jsx",
+      "count": 13
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminCommandCenter.jsx",
+      "count": 13
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/DateAuditPanel.jsx",
+      "count": 13
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/dispatch/AssignmentDrawer.jsx",
+      "count": 13
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/ShopHub.jsx",
+      "count": 12
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/AssetTransfers.jsx",
+      "count": 12
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyReports.jsx",
+      "count": 12
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EquipmentMasterPanel.jsx",
+      "count": 12
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/admin/MappingCleanupTab.jsx",
+      "count": 12
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/DocumentExpirations.jsx",
+      "count": 11
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/PoRequests.jsx",
+      "count": 11
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetSpineHealth.jsx",
+      "count": 11
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/DriverCommandProfile.jsx",
+      "count": 11
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminBannersPanel.jsx",
+      "count": 11
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminAccessControlPanel.jsx",
+      "count": 11
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/asset/AssetDocumentsTab.jsx",
+      "count": 11
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminIntegrationCenter.jsx",
+      "count": 10
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGeofenceReconciliation.jsx",
+      "count": 10
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AssetProfile.jsx",
+      "count": 10
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AssetProfile.jsx",
+      "count": 10
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyOpsCenter.jsx",
+      "count": 10
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminPMPanel.jsx",
+      "count": 10
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/NewConstraint.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/DevHub.jsx",
+      "count": 9
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyOpsCenter.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminUnifiedDirectoryPanel.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/QueueStatusPill.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminFieldLeadershipUsersPanel.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SiteInspectionLifecyclePanel.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/QaqcLifecyclePanel.jsx",
+      "count": 9
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/ProjectPnlPage.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/TrenchBoxesAdmin.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/AssetTransfers.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDlsShiftQR.jsx",
+      "count": 8
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminPromoAssets.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/operations_actions/OperationsActionDetail.jsx",
+      "count": 8
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyAssetDetail.jsx",
+      "count": 8
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyActions.jsx",
+      "count": 8
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyHub.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyAssetsList.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/ExcavationOversight.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/driver/DriverShift.jsx",
+      "count": 8
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/driver/DriverShift.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminSafetyUsersPanel.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminBackupVerificationPanel.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminHRUsersPanel.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminDispatchUsersPanel.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminShopUsersPanel.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/MaintainxP0Tab.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/AttachmentStrip.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/asset/AssetDocumentsTab.jsx",
+      "count": 8
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/Tasks.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/ConstraintDetail.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/ProjectHealth.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/NewFleetDVIR.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/JhaPlansAdmin.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/TrainingHub.jsx",
+      "count": 7
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/shop/ShopAssetCare.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/shop/ShopAssetCare.jsx",
+      "count": 7
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminPromoAssets.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationsEvents.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminProjectIdentityGovernance.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/odr/OdrDetail.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/CloudArchivesPanel.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/FieldSubmitterIdentityForm.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AutoEmailRoutingPanel.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/MasterListPanel.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/MappingCleanupTab.jsx",
+      "count": 7
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/admin/MappingCleanupTab.jsx",
+      "count": 7
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/team/JobTeamRosterPanel.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/PmJobsRead.jsx",
+      "count": 7
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/pm/PmJobsRead.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/PmExposureTile.jsx",
+      "count": 7
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/MaterialCalculators.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/OpsTrainingCenter.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/QaqcSection.jsx",
+      "count": 6
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/Tasks.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/JobPhotosLibrary.jsx",
+      "count": 6
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/JhaPlansAdmin.jsx",
+      "count": 6
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminRecovery.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDlsDay1Debrief.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/DeployRecovery.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyDashboard.jsx",
+      "count": 6
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminUnifiedDirectoryPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/AdminSafetyUsersPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminSafetyFormsPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/DriverCommandProfile.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/LifecyclePanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ShopOpsIntelPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/MotiveOpsIntelPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/IncidentLifecyclePanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SafetyShell.jsx",
+      "count": 6
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/AdminHRUsersPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/AdminFieldLeadershipUsersPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/DriverQualificationReadOnlyView.jsx",
+      "count": 6
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/AdminDispatchUsersPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminDispatchUsersPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SignatureCapture.jsx",
+      "count": 6
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminBannersPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SafetyCaLinksManager.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminEmailRoutingPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/AdminShopUsersPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminSignatureMigrationPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/CompanyInfoDialog.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/daily-report/EquipmentDetectedToday.jsx",
+      "count": 6
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/pm/command/PmProjectFirstHome.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/AssignmentCreateDrawer.jsx",
+      "count": 6
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/trench/TrenchSafetyOnProjectPanel.jsx",
+      "count": 6
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/OperationsCenterCommand.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/ShopHub.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/FleetVisibility.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/OpsTrainingGuide.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/TrainingTrack.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/DocumentExpirations.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/Constraints.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/PoRequests.jsx",
+      "count": 5
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminIntegrationCenter.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminComplianceFindings.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGeofenceReconciliation.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminJhaAcknowledgements.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDispatch.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDispatch.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAnalytics.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGovernance.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGovernance.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetAdmin.jsx",
+      "count": 5
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetAdmin.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetMapping.jsx",
+      "count": 5
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetMapping.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminSessions.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AssetProfile.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationsEvents.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyAssetDetail.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyActions.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyReportDistribution.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyReports.jsx",
+      "count": 5
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyPolish.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/trench_safety/ExcavationOversight.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/operational_records/OperationalRecords.jsx",
+      "count": 5
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/guidance/OperationalGuidanceCenter.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/odr/OdrNew.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminSafetyUsersPanel.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/CrewRecoveryPanel.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PersistenceHealthBanner.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SmartUnitClassificationChip.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/StoredBackupsPanel.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminHRUsersPanel.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminFieldLeadershipUsersPanel.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PortalContextBanner.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/BannerAuditDialog.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/NotificationBell.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminGlobalSearch.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminShopUsersPanel.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/OpenItemsPanel.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/OperationsCenter.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/TrainingStatsStripe.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/GlobalSearch.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/StorageObservabilityCard.jsx",
+      "count": 5
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/admin/MaintainxP0Tab.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/team/JobTeamRosterPanel.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmProjectFirstHome.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/AssignmentDrawer.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/AssignmentCreateDrawer.jsx",
+      "count": 5
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/command/FleetBoard.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/command/ShopFeedBoard.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/trench/DailyReportExcavationActivity.jsx",
+      "count": 5
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/NotificationsDigest.jsx",
+      "count": 4
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/FleetVisibility.jsx",
+      "count": 4
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/JobPhotosLibrary.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/EquipmentDashboard.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/JhaPlansHub.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/DevHub.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/DevHub.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/Revise.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/shop/ShopTrenchSafetyRepairs.jsx",
+      "count": 4
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminComplianceFindings.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminCommandCenter.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminRecoveryStream.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationsDashboard.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminPromoAssets.jsx",
+      "count": 4
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminPromoAssets.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/operations_actions/OperationsActions.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyHub.jsx",
+      "count": 4
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyPulse.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyReports.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/guidance/OperationalGuidanceCenter.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/driver/ShiftStart.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/odr/OdrCenter.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/IntegrationHealthCard.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/FlAccountabilityWidget.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PmShell.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminPMPanel.jsx",
+      "count": 4
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/DispatchLiveSnapshot.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ComplianceExportPanel.jsx",
+      "count": 4
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/AdminKpiStrip.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/MasterLookupCombobox.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/TrenchBoxTabulatedLibrary.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/TrenchBoxTabulatedLibrary.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/StoredBackupsPanel.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/DispatchIntegrationsTab.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/BannerStrip.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/UndoLastTransitionButton.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EmailReportDialog.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/TrenchBoxPosterCard.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/PartsCatalog.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/MaintainxDefectCoverageSection.jsx",
+      "count": 4
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/admin/StorageObservabilityCard.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/LocationIntelligencePanel.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmBoardShell.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/operational/OperationalTimelineSidecar.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/OperationalMomentsRail.jsx",
+      "count": 4
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/command/BoardShell.jsx",
+      "count": 4
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/NotificationsDigest.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/NotFound.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/AccessDenied.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/DevLogin.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/FleetVisibility.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/JobPhotosLibrary.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/ThankYou.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/ProjectPnlPage.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/admin/AdminIntegrationCenter.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDlsShiftQR.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminMasterHistory.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminProfile.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetSpineHealth.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/operations_actions/OperationsActions.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/operations_actions/OperationsActionNew.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyOpsCenter.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyHub.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyPulse.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyDashboard.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/guidance/OperationalGuidanceCenter.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/odr/OdrDone.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/odr/OdrPublicViewer.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/odr/OdrPmPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminJobMasterPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/BilingualAdoptionCard.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/PmShell.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/HrPageShell.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/IntegrationEventsCard.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/BackupHeroPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/MotiveDriverIntelPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/JobFolderList.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/DriverQualificationReadOnlyView.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/SafetyCaLinksManager.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AssetHistoryTimeline.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PosterErrorBoundary.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminEmailRoutingPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/CanonicalInspectionSections.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/NotificationBell.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/MaterialMovementTile.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminAccessControlPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ShopSignoffCard.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ShopActivityFeed.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/OutstandingEquipmentLookup.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/EquipmentLines.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PhotoUpload.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/PhotoUpload.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/DistributionList.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/MasterListPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/SearchableSelect.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/ActivityFeed.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminShell.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminShell.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EquipmentTrendsPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/GlobalSearch.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/WhereUsedPanel.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/ProductionHealthLine.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/daily-report/CrewSetupRestorePrompt.jsx",
+      "count": 3
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/daily-report/EquipmentDetectedToday.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/daily-report/EquipmentDetectedToday.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/iam/IamBadges.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/auth/PasskeyEnrollPrompt.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/oa/PhotoUploader.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/pm/PmExposureTile.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmMaterialsBoard.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/pm/command/PmProjectFirstHome.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/pm/command/PmCommandStrip.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/DispatchLifecycleTile.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/PmHaulActivityTile.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/asset/AssetDocumentsTab.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/asset/AssetDocumentsTab.jsx",
+      "count": 3
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/asset/AddAssetDialog.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/asset/RequiredDocsEditor.jsx",
+      "count": 3
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/trench/ExcavationComplianceCard.jsx",
+      "count": 3
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/OpsTrainingCenter.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/NotificationsDigest.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/NotFound.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/Tasks.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/AccessDenied.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/FleetDVIRConfirmation.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/DevLogin.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/ShopLogin.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/JobPhotosLibrary.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/JobPhotosLibrary.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/OpsTrainingGuide.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/TrainingQrPoster.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/ProjectHealth.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/SignIn.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/JhaPlansHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/TrainingHub.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/shop/ShopAssetCare.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDigestConfig.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDigestConfig.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminIntegrationCenter.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAuditLog.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAuditLog.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAuditLog.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGeofenceReconciliation.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationalInventory.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationalInventory.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminCommandCenter.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/SystemHealth.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminRecovery.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/SelfProtection.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetMapping.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminProfile.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationsEvents.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationsEvents.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationalLanguage.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDatabase.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDatabase.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminProjectIdentityGovernance.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminProjectIdentityGovernance.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/operations_actions/OperationsActions.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/operations_actions/OperationsActionDetail.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/operations_actions/OperationsActionDetail.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyReportDistribution.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicReportModal.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyTabulatedData.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyReport.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyDashboard.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyAssetsList.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyQrLanding.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyQrLanding.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/driver/ShiftStart.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/driver/ShiftStart.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/odr/OdrNew.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/legal/TermsOfService.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/legal/PrivacyPolicy.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/EquipmentReturnLines.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/IntegrationHealthCard.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminJobMasterPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EmployeeCombo.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/CloudArchivesPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/PmShell.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/LifecycleGuide.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/DriverCommandProfile.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/IntegrationEventsCard.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/JhaAcknowledgeButton.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EmptyState.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/LifecyclePanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/FleetRepairDrawer.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/ForgedOpsAttribution.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/MasterLookupCombobox.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/IntegrationProbesPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/MotiveOpsIntelPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/MotiveOpsIntelPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/MotiveDriverIntelPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/IncidentLifecyclePanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/SafetyShell.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/DispatchMapHero.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/JobFolderList.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/StoredBackupsPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/HrKpiStrip.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SupplierCombo.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/DriverQualificationReadOnlyView.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/SiteInspectionLifecyclePanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/JhaPlansPosterCard.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/SignatureCapture.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AssetHistoryTimeline.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminEmailRoutingPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/Grade.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/JobPicker.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SectionTile.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AutoEmailRoutingPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SignaturePad.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/EquipmentMasterPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/OperationsCenter.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/OperationsCenter.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EmployeeRosterField.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/TrenchBoxPosterCard.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/EquipmentStatusBoard.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SessionStatusOverlay.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ExpirationsSummary.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/MasterListPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminTrainingResourcesPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminTrainingResourcesPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/AdminTrainingResourcesPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/QaqcLifecyclePanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminShell.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/SafetyFireExtManageDialog.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SafetyFireExtManageDialog.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/TopicPicker.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/field_memory/FieldMemoryGlance.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/safety/sidebar/SafetySideNavV2.jsx",
+      "count": 2
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/admin/MaintainxDefectCoverageSection.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/admin/MaintainxP0Tab.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/admin/LocationIntelligencePanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/admin/sidebar/SideNavV2.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/hr/sidebar/HrSideNavV2.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/daily-report/MotiveVerificationPanel.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/iam/IamUserDetailDrawer.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/command.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/odr/ArchiveBadge.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/odr/OdrTrustBanner.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/oa/OperationsActionsTile.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/oa/OwnerPicker.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/oa/HistoryFeed.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/pm/sidebar/SideNavV2.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/pm/command/PmCommandStrip.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmSafetyImpactBoard.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/operational/OperationalTimelineSidecar.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/PmHaulActivityTile.jsx",
+      "count": 2
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/dispatch/PmHaulActivityTile.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/sidebar/DispatchSideNavV2.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/command/FleetBoard.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/dispatch/command/FleetBoard.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/command/HaulBoard.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/dispatch/command/JobBoard.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/command/CommunicationsTab.jsx",
+      "count": 2
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/dispatch/command/DriverBoard.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/trench/OshaCoachingBlock.jsx",
+      "count": 2
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/JhaPlansPoster.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/MaterialCalculators.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/MaterialCalculators.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/OperationsCenterCommand.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/LeadershipLogin.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/OpsTrainingCenter.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/NotificationsDigest.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/NotificationsDigest.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/QaqcSection.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/NotFound.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/Tasks.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/AccessDenied.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/FleetDVIRConfirmation.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/TrainingPacketDownload.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/TrainingPacketDownload.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/FleetVisibility.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/FleetVisibility.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/CheatSheet.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/ShopLogin.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/TrainingQrPoster.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/TrenchBoxPoster.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/ConstraintDetail.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/ThankYou.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/ProjectHealth.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/SignIn.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/NewFleetDVIR.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/NewFleetDVIR.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/NewFleetDVIR.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/DocumentExpirations.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/ProjectPnlPage.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/ProjectPnlPage.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/TrenchBoxes.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/Constraints.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/Constraints.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/TrenchBoxesAdmin.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/AssetTransfers.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/AssetTransfers.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/PoRequests.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/PoRequests.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/AllPostersPrint.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/JhaPlansAdmin.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/TrainingHub.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/TrainingHub.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/shop/ShopTrenchSafetyRepairs.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/shop/ShopTrenchSafetyRepairs.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/shop/ShopTrenchSafetyRepairs.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAuditLog.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAuditLog.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminComplianceFindings.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGeofenceReconciliation.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGuidanceCoverage.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGuidanceCoverage.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminJhaAcknowledgements.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationalInventory.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationalInventory.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationalInventory.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminCommandCenter.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/SystemHealth.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/SystemHealth.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAnalytics.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAnalytics.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminRecoveryStream.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationsDashboard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGovernance.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminGovernance.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDriverIntel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDriverIntel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminAssetMapping.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminSessions.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/admin/AssetProfile.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/AdminProfile.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminDlsDay1Debrief.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/admin/AdminOperationalLanguage.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/admin/DeployRecovery.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/admin/DeployRecovery.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyActions.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyReportDistribution.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyReportDistribution.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyTabulatedData.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyPulse.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicAssetLookup.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicAssetLookup.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyReport.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyDashboard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyShell.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/TrenchSafetyAssetsList.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyReferences.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/trench_safety/PublicTrenchSafetyReferences.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "pages/trench_safety/ExcavationOversight.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "pages/operational_records/OperationalRecords.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/guidance/OperationalGuidanceCenter.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/driver/DriverMagicLanding.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/driver/DriverMagicLanding.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "pages/driver/DriverShift.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/odr/OdrDetail.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "pages/odr/OdrPublicViewer.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "pages/pm/PmSections.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SitePostersPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/EquipmentReturnLines.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/EquipmentReturnLines.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/EquipmentReturnLines.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/PasswordInput.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/AdminUnifiedDirectoryPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/AdminUnifiedDirectoryPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/IntegrationHealthCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/IntegrationHealthCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/FlAccountabilityWidget.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/EmployeeCombo.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PreDeploySnapshotPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/CloudArchivesPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/AdminBackupVerificationPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/HrPageShell.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/IntegrationEventsCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/IntegrationEventsCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/IntegrationEventsCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/EmptyState.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/EmptyState.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/LifecyclePanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/SplashOverlay.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/ComplianceExportPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/ComplianceExportPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/ComplianceExportPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/FleetRepairDrawer.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminKpiStrip.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/Section.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ForgedOpsAttribution.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/StatusBadge.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/StatusBadge.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/ShopOpsIntelPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/ShopOpsIntelPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/GovernanceHealthChip.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/IntegrationProbesPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/TrenchBoxTabulatedLibrary.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/MotiveDriverIntelPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/IncidentLifecyclePanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/FormPasswordGate.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/DateAuditPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/MasciLogo.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/StoredBackupsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/PhotoZipDownload.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PhotoZipDownload.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/FlUserCombo.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/FlUserCombo.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/SupplierCombo.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/DriverQualificationReadOnlyView.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/SiteInspectionLifecyclePanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/PhotoLightbox.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PhotoLightbox.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/PhotoLightbox.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/JhaPlansPosterCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PortalHydratingLoader.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/SignatureCapture.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminDocIdSearch.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminDocIdSearch.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/AdminBannersPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/CheatSheetCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/CheatSheetCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/SafetyCaLinksManager.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/AssetHistoryTimeline.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/NotificationBell.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/DispatchIntegrationsTab.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/DispatchIntegrationsTab.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/Grade.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/SectionTile.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/SectionTile.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/SignaturePad.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/OpenItemsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/OpenItemsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/UndoLastTransitionButton.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/UndoLastTransitionButton.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/FormGrid.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/LangToggle.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/EquipmentMasterPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/ShopSignoffCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/EmployeeRosterField.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/ShopActivityFeed.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/ShopActivityFeed.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/ShopActivityFeed.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/RestoreBackupPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/RestoreBackupPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/TrainingStatsStripe.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/EquipmentLines.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/EquipmentLines.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/TrenchBoxPosterCard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/AdminAccessStatsTile.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/AdminAccessStatsTile.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PromoHeroLoop.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/PromoHeroLoop.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/PhotoUpload.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EquipmentStatusBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EnvBanner.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/PortalSwitcher.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/ExpirationsSummary.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/SystemHealthBadge.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/EditProjectDialog.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/AdminTrainingResourcesPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/RefKicker.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/PartsCatalog.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ClusterCapacityBanner.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/QaqcLifecyclePanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/ActivityFeed.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ActivityFeed.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/AdminShell.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/EquipmentTrendsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/EquipmentTrendsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/EquipmentTrendsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/SafetyFireExtManageDialog.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/GlobalSearch.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/WhereUsedPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/field_memory/FieldMemoryGlance.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/safety/sidebar/SafetySideNavV2.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/shop/RecoveryActionRow.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/shop/RecoveryActionRow.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/shop/ShopMaintainxReadinessTile.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-XS",
+      "severity": "LOW",
+      "file": "components/admin/MaintainxDefectCoverageSection.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/admin/MaintainxDefectCoverageSection.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/admin/OperationalSignalsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/OperationalSignalsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/admin/OperationalSignalsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/admin/OperationalSignalsPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/admin/MappingCleanupTab.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/LastActivityLine.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/admin/LastActivityLine.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/admin/LocationIntelligencePanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/admin/sidebar/SideNavV2.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/hr/sidebar/HrSideNavV2.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/daily-report/SupportIdAffordance.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/daily-report/EquipmentDetectedToday.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/daily-report/VerificationSummaryPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/daily-report/VerificationSummaryPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/daily-report/VerificationSummaryPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/daily-report/MotiveVerificationPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/iam/IamUserDetailDrawer.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/iam/IamBadges.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/dropdown-menu.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/button.jsx",
+      "count": 1
+    },
+    {
+      "category": "INPUT-MD-SHRINK",
+      "severity": "LOW",
+      "file": "components/ui/textarea.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/HelpTip.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/ui/HelpTip.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/toast.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/menubar.jsx",
+      "count": 1
+    },
+    {
+      "category": "INPUT-MD-SHRINK",
+      "severity": "LOW",
+      "file": "components/ui/input.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/context-menu.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/PortalStates.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/ui/PortalStates.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/badge.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/ui/tooltip.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/auth/PasskeyEnrollPrompt.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/team/JobTeamRosterPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/team/JobTeamRosterPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/team/MyAssignedProjectsWidget.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/odr/OdrTrustBanner.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/oa/OperationsActionsTile.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/oa/CoachingPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/oa/CoachingPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/oa/PhotoUploader.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/sidebar/SideNavV2.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmShopImpactBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmProjectSelector.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmTimelineBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/pm/command/PmTimelineBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmCommandStrip.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmResourcesBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/pm/command/PmResourcesBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/pm/command/PmHaulsBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/operational/ChronologyPanel.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/operational/SeverityPill.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/DispatchLifecycleTile.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/AttachmentStrip.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/dispatch/AttachmentStrip.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/OperationalMomentsRail.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/dispatch/sidebar/DispatchSideNavV2.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/command/BoardShell.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/dispatch/command/ShopFeedBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/command/CommandStrip.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/dispatch/command/CommandStrip.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/command/HaulBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/command/JobBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/dispatch/command/CommunicationsTab.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/dispatch/command/DriverBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/dispatch/command/DriverBoard.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/asset/AddAssetDialog.jsx",
+      "count": 1
+    },
+    {
+      "category": "TAP-SM",
+      "severity": "LOW",
+      "file": "components/asset/RequiredDocsEditor.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/asset/RequiredDocsEditor.jsx",
+      "count": 1
+    },
+    {
+      "category": "DENSE-GRID",
+      "severity": "LOW",
+      "file": "components/asset/RequiredDocsEditor.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/trench/PublicTrenchHeader.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/trench/DailyReportExcavationActivity.jsx",
+      "count": 1
+    },
+    {
+      "category": "TEXT-XS",
+      "severity": "LOW",
+      "file": "components/trench/TrenchAssetPicker.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-400",
+      "severity": "LOW",
+      "file": "components/trench/TrenchAssetPicker.jsx",
+      "count": 1
+    },
+    {
+      "category": "CONTRAST-LOW-300",
+      "severity": "LOW",
+      "file": "components/trench/TrenchSafetyOnProjectPanel.jsx",
+      "count": 1
+    }
+  ]
+}
