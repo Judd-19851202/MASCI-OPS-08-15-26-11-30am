@@ -209,7 +209,8 @@ export default function HrEmployees() {
               <thead className="bg-slate-50">
                 <tr className="text-left text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
                   <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Name</th>
+                  <th className="px-4 py-2.5">Legal Name</th>
+                  <th className="px-4 py-2.5">Preferred Name</th>
                   <th className="px-4 py-2.5">Trade / Role</th>
                   <th className="px-4 py-2.5">Crew</th>
                   <th className="px-4 py-2.5">Supervisor</th>
@@ -220,6 +221,17 @@ export default function HrEmployees() {
               <tbody className="divide-y divide-slate-100">
                 {items.map((e) => {
                   const status = e.lifecycle_status || (e.is_active === false ? "Inactive" : "Active");
+                  // Track 14.0 · HR Identity Directory column rule:
+                  //   Legal Name    = first + last when stored, else
+                  //                   the denormalised `name` so the
+                  //                   row never reads as blank for
+                  //                   legacy records.
+                  //   Preferred     = preferred_name only, with a
+                  //                   clean em-dash placeholder when
+                  //                   no preferred is on file.
+                  const legalParts = [e.legal_first_name, e.legal_last_name].filter(Boolean).join(" ");
+                  const legalName = legalParts || e.name || "—";
+                  const preferred = (e.preferred_name || "").trim();
                   return (
                     <tr
                       key={e.id}
@@ -238,8 +250,14 @@ export default function HrEmployees() {
                           <StatusBadge kind="lifecycle" value={status} size="sm" />
                         </button>
                       </td>
-                      <td className="px-4 py-2.5 font-bold text-slate-900" data-testid={`hremp-row-name-${e.id}`}>
-                        {formatEmployeeIdentity(e) || e.name}
+                      <td className="px-4 py-2.5 font-bold text-slate-900" data-testid={`hremp-row-legal-name-${e.id}`}>
+                        {legalName}
+                      </td>
+                      <td
+                        className={`px-4 py-2.5 text-sm ${preferred ? "text-slate-900 font-semibold italic" : "text-slate-300"}`}
+                        data-testid={`hremp-row-preferred-name-${e.id}`}
+                      >
+                        {preferred || "—"}
                       </td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.trade || "—"} {e.role && <span className="text-slate-400">· {e.role}</span>}</td>
                       <td className="px-4 py-2.5 text-slate-600 text-xs">{e.crew || "—"}</td>

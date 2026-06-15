@@ -170,6 +170,75 @@ def test_hr_employees_uses_canonical_identity_helper():
     )
 
 
+# Track 14.0-HR-DIRECTORY-PREFERRED-NAME-COLUMN-FIX —
+# HR's stated need: two visible columns, not one merged label.
+
+
+def test_hr_directory_has_separate_legal_and_preferred_columns():
+    """The HR Employee Directory table must show Legal Name and
+    Preferred Name as separate visible columns. HR has to scan the
+    roster at a glance and see preferred name without opening the
+    drawer."""
+    src = HR_EMPLOYEES.read_text()
+    # Header presence
+    assert '<th className="px-4 py-2.5">Legal Name</th>' in src, (
+        "HR Directory no longer has a 'Legal Name' column header. "
+        "HR's directory requirement is regressed."
+    )
+    assert '<th className="px-4 py-2.5">Preferred Name</th>' in src, (
+        "HR Directory no longer has a 'Preferred Name' column header. "
+        "HR's directory requirement is regressed."
+    )
+    # Cell test-ids (so e2e + this regression both verify the column body)
+    assert "hremp-row-legal-name-${e.id}" in src, (
+        "Legal-name cell data-testid removed; e2e cannot verify the "
+        "value rendered for HR."
+    )
+    assert "hremp-row-preferred-name-${e.id}" in src, (
+        "Preferred-name cell data-testid removed; e2e cannot verify "
+        "the value rendered for HR."
+    )
+
+
+def test_hr_directory_preferred_name_cell_uses_preferred_name_field():
+    """The Preferred Name column body must read from
+    `preferred_name` (not from `name`, not from `formatEmployeeIdentity`,
+    not from a duplicate of the legal name). And empty preferred names
+    must render the em-dash placeholder — never 'undefined' / 'null'."""
+    src = HR_EMPLOYEES.read_text()
+    # Source of truth for the preferred cell.
+    assert 'const preferred = (e.preferred_name || "").trim();' in src, (
+        "Preferred-name cell no longer derives its value from "
+        "`preferred_name`. Possible regression to legal-name duplication."
+    )
+    # Em-dash fallback for blank preferred.
+    assert 'preferred || "—"' in src, (
+        "Preferred-name cell no longer falls back to em-dash for empty "
+        "values; HR could see 'undefined' / 'null' literal leaks."
+    )
+    # The cell renders the preferred-only value (not the formatted
+    # "Legal (Preferred)" string).
+    assert "{preferred || \"—\"}" in src, (
+        "Preferred-name cell no longer renders just the preferred "
+        "name — HR will see the wrong content in that column."
+    )
+
+
+def test_hr_directory_legal_name_cell_renders_legal_parts():
+    """The Legal Name column body must derive from
+    `legal_first_name + legal_last_name`, with `name` as the
+    denormalised fallback so legacy records stay visible."""
+    src = HR_EMPLOYEES.read_text()
+    assert "const legalParts = [e.legal_first_name, e.legal_last_name]" in src, (
+        "Legal-name cell no longer derives from legal_first_name + "
+        "legal_last_name; HR may see the wrong content in that column."
+    )
+    assert 'legalParts || e.name || "—"' in src, (
+        "Legal-name cell no longer falls back through name → em-dash; "
+        "legacy records would render blank."
+    )
+
+
 # ─────────────────────────────────────────────────────────────────────
 # Backend search + export coverage
 # ─────────────────────────────────────────────────────────────────────

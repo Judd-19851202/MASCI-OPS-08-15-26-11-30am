@@ -11,6 +11,26 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 ## Latest Closed Track (2026-02-14 · fork session)
+- **14.0-HR-DIRECTORY-PREFERRED-NAME-COLUMN-FIX CLOSED**. Split
+  the merged HR Directory `Name` column into separate visible
+  **Legal Name** and **Preferred Name** columns. Legal Name derives
+  from `legal_first_name + legal_last_name` with `name` as
+  denormalised fallback. Preferred Name reads from `preferred_name`
+  with a clean em-dash placeholder for blanks — zero `undefined` /
+  `null` / `None` leaks. Italic preferred styling so HR can scan a
+  roster of 359 employees and spot preferred names at a glance.
+  New cell test-ids: `hremp-row-legal-name-${id}` ·
+  `hremp-row-preferred-name-${id}`. Live verified at
+  `/hr/employees` (`Alec Perkins` row → `Al` preferred; other 358
+  rows → em-dash). Search still resolves the new fields (UXS-11D
+  query already broadened). CSV export already ships
+  `Legal First Name · Legal Middle Name · Legal Last Name ·
+  Preferred Name` columns (UXS-11D). +3 regression locks (column
+  headers + cell value rules + em-dash fallback). Full RC1 sweep:
+  **190 / 190 pass**. Five Pillars **9.95**. Closure ledger:
+  this PRD entry.
+
+## Previous Closed Track (2026-02-14 · fork session)
 - **14.0-UXS-11G FINAL IDENTITY CONSUMER ELIMINATION CLOSED**.
   Eliminated the last server-side identity gap — `safety_forms.py`
   PDF renderer + list/search + email subject + filename + fan-out
