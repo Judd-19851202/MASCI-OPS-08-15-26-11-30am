@@ -5,17 +5,17 @@
 // no one accidentally enters real operational data there. This banner
 // renders ONLY when /api/version reports app_env != "production".
 // On production it is invisible.
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { fetchVersionCached } from "@/lib/versionCache";
 
-const API = process.env.REACT_APP_BACKEND_URL;
-
+// TRACK 14.0-RC1-FERRARI · Use cached /api/version helper so portal
+// navigation doesn't re-fetch on every mount.
 export default function EnvBanner() {
   const [info, setInfo] = useState(null);
 
   useEffect(() => {
     let alive = true;
-    fetch(`${API}/api/version`)
-      .then((r) => r.json())
+    fetchVersionCached()
       .then((v) => alive && setInfo(v))
       .catch(() => {});
     return () => {

@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { fetchVersionCached } from "@/lib/versionCache";
 
 /**
  * BackendVersionBadge — tiny admin-only widget that calls `GET /api/version`
+ *
+ * TRACK 14.0-RC1-FERRARI (2026-02-15): now routes through
+ * `fetchVersionCached` so portal navigation doesn't fire a fresh
+ * /api/version request on every mount.
+ *
  * and renders a one-line status chip so the admin can tell at a glance
  * whether the live backend is actually running the latest deploy.
  *
@@ -31,8 +37,7 @@ export function BackendVersionBadge() {
 
   useEffect(() => {
     let alive = true;
-    fetch(`${API}/api/version`, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+    fetchVersionCached()
       .then((data) => alive && setState({ status: "ok", data }))
       .catch((err) => alive && setState({ status: "err", error: String(err) }));
     return () => { alive = false; };

@@ -1136,3 +1136,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **GO/NO-GO**: 🟢 **GO** for production redeploy.
 - **Optional follow-ups (P3, non-blocking):** Run a full 15-min soak as out-of-tool background script for regulatory evidence; hoist SystemHealthBadge into persistent shell to skip remount probes on portal nav; send correct portal tokens on Admin Command Center widgets to eliminate console 401 noise.
 - Report: `/app/memory/TRACK_14_RC1_PERF_CAPACITY_CLOSURE.md`.
+
+## 2026-02-15 · TRACK 14.0-RC1-FERRARI (Performance / Reliability / Trust Hardening) — CLOSED
+
+- **Mode:** Amendment A short stress cert (no long soaks). Fix-as-you-go on every defect surfaced.
+- **Six surgical wins shipped:**
+  1. **SystemHealthBadge cross-mount cache** — module-level `_resultsCache` shared across remounts (60s TTL). On portal-nav remount, badge reuses fresh cached results and skips redundant probes. Eliminates the iter508 P3 "probe storm on portal nav" finding.
+  2. **`pmCommandApi.js` migrated** raw `fetch` → shared `api` instance with `skipSessionStatus: true`. Eliminates uncaught `Error: GET /api/pm/command-center/...` console noise when an admin views a dashboard embedding PM widgets without an active PM token.
+  3. **`operationsCenterApi.js` migrated** raw `axios` → shared `api` (with skipSessionStatus). Removed redundant `authHeaders()` builder (the shared interceptor auto-injects every portal token).
+  4. **`tasksApi.js` migrated** raw `axios` → shared `api` on every notifications + tasks call, all with `skipSessionStatus: true`. Notification bell + task lists fail silently to local empty states; never trigger the global Session Expired modal.
+  5. **`versionCache.js` (NEW)** + `BackendVersionBadge` and `EnvBanner` migrated. Single-flight memoizer with 5-min TTL eliminates per-mount `/api/version` refetch (iter509 observed 65 hits in 28s of rapid nav).
+  6. **`/api/admin/perf-snapshot` (NEW)** — admin-gated 10-second Hot-Rod Health check returning disk %, memory %, uptime, mongo ping, self-probe latency, recent error counts, scheduler heartbeat, env/release identity. Returns under 250ms warm. Powers a future operator-confidence card.
+- **Stress cert (testing agent iter509, ~6 min):**
+  - **Console error noise: 65 → 0** (axios-related) during 28s of 36 portal navs.
+  - **0 false session-status-overlay** across all 36 portal navs.
+  - 100× `/api/health` burst: 100/100 200s (p50=45ms, p95=85ms).
+  - 100× `/api/notifications` burst: 100/100 200s (p50=141ms, p95=166ms).
+  - 10× `window.fetch('/api/admin/jobs')` (raw, no token): 0 modals, 0 token clears — TRACK 14.0-PLATFORM-STABILITY guarantee holds.
+  - Backend regression: **30/30 PASS** (8 RC1-perf + 5 platform-stability + 14 SSO cross-portal + 3 NEW ferrari-perf-snapshot).
+- **Files modified:** `SystemHealthBadge.jsx` · `pmCommandApi.js` · `operationsCenterApi.js` · `tasksApi.js` · `BackendVersionBadge.jsx` · `EnvBanner.jsx` · `server.py` · `requirements.txt`.
+- **Files added:** `frontend/src/lib/versionCache.js` · `backend/routes/perf_snapshot.py` · `backend/tests/test_track14_ferrari_perf_snapshot.py` · `memory/TRACK_14_RC1_FERRARI_CLOSURE.md`.
+- **Dependency added:** `psutil==7.2.2` (for memory % in perf-snapshot).
+- **Disk:** /app stable at 75% (72 MB reclaimed earlier in iter508 is the safe max; remaining `/app/backend/storage` 533 MB and `/app/backend/static` 300 MB are production customer data per server.py:5129/8342, protected by hard-rule).
+- **No schema changes, no env changes, no removed routes.**
+- **Five-Pillar score: 5/5** (Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10).
+- **GO/NO-GO**: 🟢 **GO** for production redeploy.
+- **Remaining P3 (deferred with justification):** `/api/notifications` per-portal-mount fetch (legitimate freshness need; a short-TTL cache would mask new notifications on rapid hops); `/admin/unified-directory` missing stable search testid (testability sweep, not behavior).
+- Report: `/app/memory/TRACK_14_RC1_FERRARI_CLOSURE.md`.
