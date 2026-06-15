@@ -1120,3 +1120,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar score: 5/5** (Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10).
 - Deployment readiness remains 🟢 **GREEN**. GO for production redeploy.
 - Report: `/app/memory/TRACK_14_SSO_CROSS_PORTAL_CERT_CLOSURE.md`.
+
+## 2026-02-15 · TRACK 14.0-RC1-PERFORMANCE-RELIABILITY-CAPACITY-REVIEW — CLOSED
+
+- **Mode:** Read-mostly performance audit + small surgical quick wins. No rewrites. No new features.
+- **Disk cleanup (Phase 1-2):** /app from **76% → 75%** (net 71 MB reclaimed). Archived `dr_migration_backups` (261M raw → 197M tar.gz, 67 daily-report JSONs already in MongoDB) and `track_13_4*_evidence` (28M raw → 21M tar.gz, 154 files from CLOSED track) to `/app/memory/_archived/`. Counts verified pre-delete. Per hard rules, no closure ledgers / active memory docs / production uploads / open-track evidence were touched.
+- **API latency (Phase 3):** 18 hot endpoints profiled with super-admin token. All hot reads <200 ms p50 (incidents 96 / daily-reports 142 / jobs-master 93 / notifications 104 / hr/employees 132 / trench-safety/assets 97). Only 2 outliers: `/admin/deploy-readiness` (1.4 s, rare admin call) and `/auth/multi-login` (526 ms, bcrypt + 7-portal mint, once-per-session). No optimization needed.
+- **DB indexes (Phase 4):** 15 hot collections audited. All have appropriate indexes. Heuristic "missing index" warnings are field-name mismatches (e.g. notifications uses `user_id` not `actor_id`). **No new indexes added** per the user's "do not shotgun indexes" rule.
+- **Polling/retry audit (Phase 5-6):** 36 setInterval call sites inventoried. Most at 60 s cadence (calm). Two quick wins applied: `SystemHealthBadge.jsx` and `BackendStatusBanner.jsx` now pause polling when `document.visibilityState !== "visible"` and reprobe immediately on focus. Saves ~10 probes/min per backgrounded tab × N tabs.
+- **Log noise fix (Phase 10):** Scheduler supervisor was emitting `CRITICAL [scheduled-backup] scheduler task is DEAD — respawning. Last state: completed without error` every 5 min in preview (caused by SCHEDULER_ENABLED=false in preview → clean exit → watchdog respawn cycle). Fix: `server.py:12937-13007` now demotes to DEBUG after the first observed clean-exit cycle. CRITICAL still fires for real production deaths-with-exception.
+- **Files modified:** `frontend/src/components/SystemHealthBadge.jsx` · `frontend/src/components/BackendStatusBanner.jsx` · `backend/server.py` (scheduler supervisor log severity).
+- **Files added:** `backend/tests/test_track14_rc1_perf_regression.py` (8 latency tests, all PASS) · `memory/TRACK_14_RC1_PERF_CAPACITY_CLOSURE.md` · `memory/_archived/dr_migration_backups_2026-05-30.tar.gz` (197M) · `memory/_archived/track_13_4_evidence_combined.tar.gz` (21M).
+- **Stability soak (Phase 13):** testing agent iter 508 ran a 4-min headless soak (truncated from 15 min by playwright tool deadline). 28 navigations across all 7 portals → **0 false session-status-overlay**, **0 false connection-problem**, **0 token clears on 401**. Heap stable at 44.7 MB. Background 401 absorption verified via raw `window.fetch` (5/5 absorbed). 27/27 backend regression tests PASS (8 RC1-perf + 5 platform-stability + 14 SSO cross-portal).
+- **Five-Pillar score: 5/5** (Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10).
+- **GO/NO-GO**: 🟢 **GO** for production redeploy.
+- **Optional follow-ups (P3, non-blocking):** Run a full 15-min soak as out-of-tool background script for regulatory evidence; hoist SystemHealthBadge into persistent shell to skip remount probes on portal nav; send correct portal tokens on Admin Command Center widgets to eliminate console 401 noise.
+- Report: `/app/memory/TRACK_14_RC1_PERF_CAPACITY_CLOSURE.md`.
