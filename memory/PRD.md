@@ -10,7 +10,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-15 · RC1 deployment readiness audit)
+## Latest Closed Track (2026-06-15 · RC1 LIVE PRODUCTION SMOKE)
+- **14.0-RC1 LIVE PRODUCTION SMOKE CERTIFICATION CLOSED.** 🟢
+  **PASS · DEPLOY-CONFIRMED.** Full authenticated smoke executed
+  against https://mascidocs.com under user authorization. Phases
+  1, 2, 3, 4, 6, 9, 10, 11, 12, 13, 14 all PASS. Phases 5 (HR
+  employee request) + 7 (Safety Form) skipped to avoid producing
+  real auto-emails to real HR/Safety reps; their notification +
+  audit primitives are exercised by Phase 4. Production env
+  confirmed: `app_env=production`, `db_name=masci_safety`,
+  CORS pinned, Sentry live, scheduler enabled, Motive Connected.
+  Deploy-readiness on prod: **0 blockers, 1 data-quality warn**.
+  **1 P2 defect found + fixed inline**: `GET /api/admin/directory?q=`
+  was ignoring the filter; added case-insensitive substring match
+  in `/app/backend/routes/auth_directory_routes.py` (verified on
+  preview: `q=cert.` → 17, `q=DUMMY` → 0, no-q → 116). Needs
+  prod redeploy. Created 4 tagged artifacts (project + user +
+  staffing assignment + 1 daily report); cleaned up 3; 1 daily
+  report (DR-2026-00323) retained as constitutionally immutable
+  (per `daily_reports.py` docstring "DELETE stays frozen"). Master
+  ledger at `/app/memory/RC1_LIVE_PRODUCTION_SMOKE_CERTIFICATION.md`.
+
+## Previous Closed Track (2026-06-15 · RC1 deployment readiness audit)
 - **14.0-RC1 DEPLOYMENT READINESS CERTIFICATION CLOSED.** Full
   14-phase deploy-survivability audit executed. Verdict: 🟢 **GO**
   with a 4-row env-var checklist applied at deploy time. Zero P0

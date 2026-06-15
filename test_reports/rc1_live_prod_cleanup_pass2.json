@@ -1,0 +1,24 @@
+{
+  "api": "https://mascidocs.com",
+  "tag": "RC1-LIVE-VERIFY",
+  "ran_at": "2026-06-15T11:20:54Z",
+  "actions": [
+    {
+      "kind": "job",
+      "id": "03622282-0d48-4043-ae7b-d9bdaeeff597",
+      "pn": "ZZ-RC1-LIVE-VERIFY-2026",
+      "status": 200
+    }
+  ],
+  "remaining_jobs": [],
+  "remaining_directory_users": [],
+  "immutable_daily_reports": [
+    {
+      "id": "d3becf52-0c37-418c-b9be-dd5803f9a63a",
+      "doc_id": null,
+      "project_number": "ZZ-RC1-LIVE-VERIFY-2026",
+      "prepared_by": "RC1-LIVE-VERIFY Smoke",
+      "report_date": "2026-06-15"
+    }
+  ]
+}

@@ -407,10 +407,20 @@ def build_auth_directory_router(
 
     # ── Admin endpoints ─────────────────────────────────────────────
     @router.get("/api/admin/directory", dependencies=[Depends(require_admin_strict_dep)])
-    async def list_users():
+    async def list_users(q: str = ""):
+        """List directory users. Optional `q` filter performs a
+        case-insensitive substring match against `email` + `name`
+        (RC1-LIVE-VERIFY · P2 defect fix · 2026-06-15)."""
         rows = []
         async for r in db.user_directory.find({}, {"_id": 0}).sort("created_at", -1):
             rows.append(ud.public_view(r))
+        needle = (q or "").strip().lower()
+        if needle:
+            rows = [
+                r for r in rows
+                if needle in (r.get("email") or "").lower()
+                or needle in (r.get("name") or "").lower()
+            ]
         return {"ok": True, "users": rows}
 
     @router.post("/api/admin/directory", dependencies=[Depends(require_admin_strict_dep)])
