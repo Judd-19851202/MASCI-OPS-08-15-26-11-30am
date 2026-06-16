@@ -10,7 +10,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.2 · PM STAFFING PROOF + NOTIFICATION LEAK CLEANUP + ACCOUNT/PASSWORD FLOW CERTIFICATION · 🟡 PASSED WITH OPERATOR RETRY REQUIRED)
+## Latest Closed Track (2026-06-16 · TRACK 15.3 · PROJECT SYSTEMS TILE MODERNIZATION & FORGEDOPS PLANS LAUNCHER · 🟢 PASSED)
+- **Track:** Replace landing-page "Projects" tile with production-ready "Project Systems" launcher hosting Basecamp + OnStation + ForgedOps Plans.
+- **Verdict:** 🟢 12/12 Definition-of-Done items met · 25/25 across Five Pillars · 10/10 logo quality.
+- **Changes:**
+  - `/app/frontend/src/pages/Hub.jsx` — new `ProjectSystemsCard` component + `PROJECT_SYSTEMS` config-driven array (white-label-ready). Backward-compatible `ProjectsCard` alias retained.
+  - `/app/frontend/public/brand-logos/{basecamp.jpeg, onstation.jpeg, forgedops-plans.png}` — official logos saved.
+- **DOM-verified:** all 3 launchers carry correct URL + `target=_blank` + `rel=noopener noreferrer` + data-testids `hub-projects-{basecamp,onstation,forgedops-plans}-btn`.
+- **Responsive proof:** iPad portrait (768×1024) + landscape (1024×768) + desktop (1280×900) — graceful wrap, no truncation, no overlap.
+- **ForgedOps Plans button** uses full brand name (NOT "FO Plans" / "FOP" / "Plans"), `min-w-[180px]` + `whitespace-nowrap` enforces it.
+- **Brand colors:** Basecamp green (#16a34a) · OnStation blue (#1d4ed8) · ForgedOps orange (#ea580c) on left-edge stripe + LAUNCH eyebrow.
+- **Logo integration:** 56×56 black logo chips match the source-asset backgrounds; `object-contain` + 44×44 max preserves aspect ratios across all three.
+- **Cert report:** `/app/memory/TRACK_15_3_PROJECT_SYSTEMS_CERTIFICATION.md` (full 6-section evidence trail incl. Logo Quality Certification per directive Section 5A).
+- **Production deploy required** to ship — single frontend redeploy (no backend changes).
+
+## Previous Closed Track (2026-06-16 · TRACK 15.2 · PM STAFFING PROOF + NOTIFICATION LEAK CLEANUP + ACCOUNT/PASSWORD FLOW CERTIFICATION · 🟡 PASSED WITH OPERATOR RETRY REQUIRED)
 - **Track:** Live production trust recovery — three remaining items from 15.1.
 - **Verdict:** 🟡 13/16 GREEN · 3/16 YELLOW (all operator-execution gates: cleanup `--apply`, deploy, Project 26-07 retry).
 - **Cleanup script delivered**: `/app/backend/scripts/track_15_2_backfill_leaked_pm_offboarding.py`. Dry-run-by-default · tight predicate (linked_source_module='hr.offboarding' AND recipient_role='pm' AND recipient_user_id IS NULL AND linked_employee_id IS NOT NULL) · audit-logged · reversible from ledger · capped at 200 rows. Expires broadcast rows (no delete) and fans out person-targeted copies to legitimate PMs.

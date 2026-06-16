@@ -22,7 +22,7 @@ import { Link } from "react-router-dom";
 import {
   HardHat, ClipboardList, Building2, Shield, Wrench, ClipboardCheck,
   GraduationCap, UserCheck, Users, ArrowRight, MapPin, Lock, Phone,
-  BookOpen, LogOut, ShieldAlert, Truck,
+  BookOpen, LogOut, ShieldAlert, Truck, ExternalLink,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -540,10 +540,53 @@ function detectActiveSession(t, rerender) {
 }
 
 /**
- * ProjectsCard — Basecamp / OnStation external links (kept as a tile
- * because they don't have a single canonical URL).
+ * ProjectSystemsCard — Track 15.3 (2026-06-16) replacement for the
+ * legacy "Projects" tile. Three connected platform launchers:
+ *   • Basecamp     — project communication / to-dos / docs
+ *   • OnStation    — utility locating / field staking
+ *   • ForgedOps Plans — construction plan viewer / takeoff
+ *
+ * Config-driven (PROJECT_SYSTEMS array) so future customers can swap
+ * branding without re-engineering the tile. Logos render on dark
+ * logo "chips" so the official black-background source assets
+ * integrate cleanly with the surrounding card design (no clash with
+ * the per-platform accent colors which live on the left edge stripe
+ * and the label).
  */
-function ProjectsCard({ testId }) {
+const PROJECT_SYSTEMS = [
+  {
+    key: "basecamp",
+    label: "Basecamp",
+    url: "https://3.basecamp.com/5958093/projects",
+    logo: "/brand-logos/basecamp.jpeg",
+    // Basecamp brand green.
+    accent: "#16a34a",
+    accentHover: "#15803d",
+    testid: "hub-projects-basecamp-btn",
+  },
+  {
+    key: "onstation",
+    label: "OnStation",
+    url: "https://app.onstation.us/login",
+    logo: "/brand-logos/onstation.jpeg",
+    // OnStation brand blue.
+    accent: "#1d4ed8",
+    accentHover: "#1e40af",
+    testid: "hub-projects-onstation-btn",
+  },
+  {
+    key: "forgedops-plans",
+    label: "ForgedOps Plans",
+    url: "https://forgedopsplans.com/login",
+    logo: "/brand-logos/forgedops-plans.png",
+    // ForgedOps signature orange (matches the molten-metal in the logotype).
+    accent: "#ea580c",
+    accentHover: "#c2410c",
+    testid: "hub-projects-forgedops-plans-btn",
+  },
+];
+
+function ProjectSystemsCard({ testId }) {
   const { t } = useT();
   return (
     <div
@@ -555,33 +598,71 @@ function ProjectsCard({ testId }) {
       </div>
       <div className="flex-1 min-w-0">
         <span className="inline-block px-2 py-0.5 rounded text-yellow-800 bg-yellow-100 font-mono text-[10px] uppercase tracking-[0.2em] font-bold mb-1">
-          {t("Project Workspaces")}
+          {t("Connected Platforms")}
         </span>
-        <h3 className="font-display text-xl font-black tracking-tight text-slate-900">{t("Projects")}</h3>
-        <p className="text-slate-600 text-sm mt-1 leading-snug">
-          {t("Messages, to-dos, schedules, docs, and field staking.")}
+        <h3
+          className="font-display text-xl font-black tracking-tight text-slate-900"
+          data-testid="hub-project-systems-title"
+        >
+          {t("Project Systems")}
+        </h3>
+        <p
+          className="text-slate-600 text-sm mt-1 leading-snug"
+          data-testid="hub-project-systems-description"
+        >
+          {t("Connected project platforms for communication, utility locating, and construction plans.")}
         </p>
-        <div className="flex flex-wrap gap-2 mt-3">
-          <a
-            href="https://3.basecamp.com/5958093/projects"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wide"
-            data-testid="hub-projects-basecamp-btn"
-          >
-            <Building2 className="w-3.5 h-3.5" /> Basecamp <ArrowRight className="w-3.5 h-3.5" />
-          </a>
-          <a
-            href="https://app.onstation.us/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold uppercase tracking-wide"
-            data-testid="hub-projects-onstation-btn"
-          >
-            <MapPin className="w-3.5 h-3.5" /> OnStation <ArrowRight className="w-3.5 h-3.5" />
-          </a>
+        <div
+          className="flex flex-wrap gap-2.5 mt-4"
+          data-testid="hub-project-systems-launchers"
+        >
+          {PROJECT_SYSTEMS.map((sys) => (
+            <a
+              key={sys.key}
+              href={sys.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid={sys.testid}
+              aria-label={`Open ${sys.label} in a new tab`}
+              className="group/sys relative flex items-center gap-3 h-14 pl-0 pr-3 rounded-md bg-slate-900 hover:bg-slate-800 text-white transition-all duration-150 overflow-hidden shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 min-w-[180px] flex-1 basis-[180px]"
+              style={{ borderLeft: `4px solid ${sys.accent}` }}
+            >
+              {/* Logo chip — dark plate frames the black-background source */}
+              <span className="flex items-center justify-center w-14 h-full bg-black shrink-0">
+                <img
+                  src={sys.logo}
+                  alt={`${sys.label} logo`}
+                  className="max-w-[44px] max-h-[44px] object-contain"
+                  draggable={false}
+                />
+              </span>
+              {/* Label */}
+              <span className="flex-1 min-w-0 flex flex-col">
+                <span
+                  className="text-[10px] font-mono uppercase tracking-[0.18em] font-bold leading-tight"
+                  style={{ color: sys.accent }}
+                >
+                  Launch
+                </span>
+                <span className="text-sm font-display font-bold tracking-tight leading-tight whitespace-nowrap">
+                  {sys.label}
+                </span>
+              </span>
+              {/* External arrow */}
+              <ExternalLink className="w-4 h-4 shrink-0 opacity-60 group-hover/sys:opacity-100 transition-opacity" />
+            </a>
+          ))}
         </div>
       </div>
     </div>
   );
+}
+
+/**
+ * ProjectsCard — DEPRECATED, kept as alias for backward compatibility
+ * with anything importing the old name. Renders the new
+ * ProjectSystemsCard.
+ */
+function ProjectsCard({ testId }) {
+  return <ProjectSystemsCard testId={testId} />;
 }
