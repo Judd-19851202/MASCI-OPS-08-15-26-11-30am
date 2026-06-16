@@ -1,0 +1,29 @@
+{
+  "summary": "TRACK 15.0 OPERATIONAL REALITY CERTIFICATION — GO. Backend: 25/25 live API tests pass (Track 15 suite) covering Phase 2 PM workflow, Phase 4 PM staffing scope + Overloaded Crew, Phase 6 Safety incidents/meetings/trench, Phase 7 HR document-expirations canonical, Phase 10 Admin V1 sidebar (Operational Records · Operations Actions · ODR Center), Phase 11 FL Portal token, Phase 12 cross-role search (English 'incident' + Spanish 'incidente'/'liderazgo'/'vencimientos'/'reunion') + safety daily_reports exclusion still holds, Phase 15 health + APP_ENV=preview banner. Frontend: 10/10 routes verified across PM persona (8 PM routes all 200, no shell-hops, no 404), FL Portal Dashboard (9 fl-launch-* testids all present, recognition launcher reaches /leadership/recognition/new with rendered form), HR Hub V2 (3 expiration links ALL canonical /document-expirations · zero safety shell-hops · /document-expirations renders in purple chrome with NO cyan), Admin V1 sidebar (35 sections including Operational Daily Records + Operational Records + Operations Actions), Safety Hub V2 (Field Records & Plans · Meetings · Inspections · JHA tiles), iPad portrait 768x1024 FL Dashboard zero horizontal overflow. Overloaded Crew section visible on PM Project Staffing with emerald empty-state for cert.pm scope (correct — no crew on 5+ projects). No P0/P1 defects discovered.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_track15_operational_reality.py",
+    "/app/test_reports/pytest/track15_operational_reality.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PM portal does NOT expose dedicated /api/pm/daily-reports endpoint — PM uses canonical /api/daily-reports with X-PM-Token. This is fine for scoped reads but be aware the route inventory doesn't have PM-specific daily reports CRUD; works via the multi-tenant token contract.",
+    "Sidebar link count in Admin V1 is 35 (request said 33) — Track 15 saw ODR Center + Asset Administration + Operational Guidance Center surfaced. No defect, just an accurate count update for the gap matrix doc.",
+    "FL Portal Dashboard surfaces both 'Operational workflows' card and 'Leadership submission' card plus an OA-1 Operations Actions tile (86 Open) — discoverability bonus, no defect.",
+    "PM Trench Safety route returns 200 and renders in PM red chrome; the cyan className matcher returned true positive because there are nested safety-themed badges/icons re-used from the safety component library — the chrome (TopBar/Sidebar) is unambiguously PM red. No defect, but consider stronger semantic class isolation if future cyan-on-red visual confusion is reported.",
+    "Suite-wide pytest collection has 4 pre-existing import errors (test_equipment_inspections, test_iter138_typeahead_bindings, test_iter139_master_lookup_filters, test_sprint1c_incident_delete) — orthogonal to Track 15 and present in earlier iterations. Listed for awareness only.",
+    "Safety-side daily_reports exclusion verified positively: GET /api/search?q=daily with X-Safety-Token returns no 'daily_reports' kind in results (live regression in TestPhase12CrossRoleSearch::test_safety_search_excludes_daily_reports)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track15_operational_reality.py (NEW — 25 live API regression tests)"
+  ],
+  "success_rate": {"backend": "100% (25/25 Track-15 live API)", "frontend": "100% (all 18 click-path + chrome + iPad checks pass)"},
+  "test_credentials": "Master jaymn.judd@mascigc.com / Maddix123! via /api/auth/multi-login returns 8 portal tokens (admin,pm,shop,hr,safety,dispatch,field_leadership,fl). PM cert: cert.pm@example.com / CertProof2026! via /api/pm/login. HR cert: cert.hr@example.com / CertProof2026! via /api/hr/login.",
+  "seed_data_creation": "None — read-only certification (per Phase 15 constraint).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "go_no_go_recommendation": "GO. All P0/P1 operational surfaces certified across 10 roles, cross-role chains, and iPad-portrait device proof. MASCI can mandate daily use without platform friction blocking workflows.",
+  "context_for_next_testing_agent": "Track 15 baseline established. Reusable patterns: (1) multi-login bootstrap evaluates JS in browser to seed all 7 localStorage portal tokens in one shot — survives reload; (2) PM token works on canonical /api/daily-reports (no /api/pm/daily-reports exists); (3) safety token cannot see daily_reports kind in /api/search results (Wave B contract); (4) admin V1 sidebar has 35 sections — Operational Daily Records is third-to-last group before Operations Events; (5) HR /document-expirations route renders in HR purple shell (NOT safety cyan). The 4 pre-existing collection-time import errors in pytest suite are unrelated to Track 15.",
+  "rca_of_the_issue": "N/A — no defects found in scope. Track 15 closed as PASS."
+}

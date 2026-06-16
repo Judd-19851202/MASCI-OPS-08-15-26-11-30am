@@ -1,5 +1,19 @@
 {
   "viewport": "desktop",
-  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/",
-  "console_tail": []
+  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+  "console_tail": [
+    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[info] [sentry] initialised {env: preview, release: 740398bc1f9277a8edfdb1e92e5dc26d}",
+    "[error] Failed to load resource: the server responded with a status of 401 ()",
+    "[error] Failed to load resource: the server responded with a status of 401 ()",
+    "[error] Failed to load resource: the server responded with a status of 401 ()",
+    "[error] Failed to load resource: the server responded with a status of 401 ()",
+    "[error] Failed to load resource: the server responded with a status of 401 ()",
+    "[error] Failed to load resource: the server responded with a status of 401 ()",
+    "[error] Failed to load resource: the server responded with a status of 401 ()",
+    "[error] Failed to load resource: the server responded with a status of 401 ()",
+    "[warning] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+    "[warning] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+  ]
 }

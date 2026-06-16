@@ -56,6 +56,7 @@ const SECTIONS = [
   { key: "asset-transfers", to: "/asset-transfers", icon: Truck,         label: "Asset Transfers", desc: "Equipment movement · lifecycle · receiving" },
   { key: "dispatch",   to: "/admin/dispatch",   icon: Truck,           label: "Dispatch Portal", desc: "Transfers · Holds · Utilization" },
   { key: "events",     to: "/admin/operations-events", icon: Activity, label: "Operations Events", desc: "Append-only log · platform history" },
+  { key: "odr-center", to: "/odr/center", icon: NotebookPen, label: "Operational Daily Records", desc: "Field-day system of record · FLL-aware ODR rollups" },
   { key: "operational-records", to: "/operational-records", icon: NotebookPen, label: "Operational Records", desc: "Cross-portal field-day records · Phase V.1" },
   { key: "operations-actions", to: "/operations-actions", icon: ListTodo, label: "Operations Actions", desc: "Cross-portal operational tasks · owners" },
   { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },

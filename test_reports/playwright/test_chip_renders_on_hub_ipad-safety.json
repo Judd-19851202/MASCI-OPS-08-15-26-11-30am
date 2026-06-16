@@ -2,6 +2,8 @@
   "viewport": "ipad",
   "url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal?safetySidebarV2=1",
   "console_tail": [
-    "[info] [sentry] initialised {env: preview, release: 0f5d997dffba4e95fefa9a58c7f02780}"
+    "[info] [sentry] initialised {env: preview, release: 740398bc1f9277a8edfdb1e92e5dc26d}",
+    "[warning] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+    "[warning] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
   ]
 }

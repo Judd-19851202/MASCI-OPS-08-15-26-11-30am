@@ -1,5 +1,5 @@
 {
-  "viewport": "ipad",
+  "viewport": "mobile",
   "url": "https://safety-audit-mobile-1.preview.emergentagent.com/dispatch-portal?dispatchSidebarV2=1",
   "console_tail": [
     "[info] [sentry] initialised {env: preview, release: 740398bc1f9277a8edfdb1e92e5dc26d}",
