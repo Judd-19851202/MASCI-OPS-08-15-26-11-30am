@@ -10,7 +10,56 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-16 · RC1 PRE-DEPLOY ADDENDUM · PREVIEW→PRODUCTION ISOLATION · 🟢 VERIFIED)
+## Latest Closed Track (2026-02-16 · TRACK 16.0 · WHITE-LABEL / MULTI-TENANT READINESS AUDIT · 🔴 NOT WHITE-LABEL READY · ROADMAP DELIVERED)
+- **TRACK 16.0-WHITE-LABEL READINESS AUDIT · audit-first · no code changes (hard rules honored).**
+  Honest assessment of how white-label-ready the platform is for
+  Customer #2 (Bob's Excavating type) onboarding.
+  - **Verdict**: 🔴 **NOT WHITE-LABEL READY today.** Platform is
+    single-tenant MASCI deployment with strong env-based environment
+    isolation but no central brand config layer.
+  - **Hardcoded MASCI/Massey references**: **3,016 total** (1,486
+    backend · 1,530 frontend) across ~230 files. Categorized as:
+    Operational doctrine (~200, semantic-rename), Environment/
+    isolation primitives (~2,000, KEEP per-customer), Customer-
+    visible copy (~600-800, parameterize via BrandConfig).
+  - **No tenant model exists**: no tenant_id, no customer_id, no
+    central BrandConfig. Two stray references in test files only.
+  - **Configurability**: 25 infra surfaces env-driven (strong),
+    10 partially env-driven (medium), 15-20 brand/copy/asset
+    surfaces hardcoded (weak — the gap).
+  - **Recommended onboarding model**: **Model 2 (Config-driven
+    single-tenant clone)** — per-customer Atlas DB + R2 bucket +
+    Resend + Sentry + domain; one shared codebase reading from
+    BrandConfig per deploy. Same isolation primitives as RC1
+    preview/production proven.
+  - **12 deliverables produced** in `/app/memory/`:
+    `WHITE_LABEL_AUDIT_MASTER_LEDGER.md`,
+    `MASCI_HARDCODED_SURFACE_MATRIX.md`,
+    `WHITE_LABEL_CONFIGURABILITY_MATRIX.md`,
+    `WHITE_LABEL_DATA_ISOLATION_MATRIX.md`,
+    `WHITE_LABEL_BRANDING_MATRIX.md`,
+    `WHITE_LABEL_EMAIL_MATRIX.md`,
+    `WHITE_LABEL_PDF_REPORT_MATRIX.md`,
+    `WHITE_LABEL_INTEGRATION_MATRIX.md`,
+    `CUSTOMER_ONBOARDING_REQUIREMENTS.md`,
+    `CUSTOMER_2_ROADMAP.md` (8 phases),
+    `WHITE_LABEL_RISK_REGISTER.md` (15 risks · 6 high-score),
+    `WHITE_LABEL_EFFORT_ESTIMATE.md` (3 models compared).
+  - **Customer #2 effort estimate**:
+    Model 1 (manual clone) 3 wks one-off · not recommended.
+    Model 2 (config-driven) ~10 wks one-time then 4 days/customer.
+    Model 3 (true SaaS) ~24 wks · defer until 20+ customers.
+  - **15 risks documented** · 6 high-score (R-1 data leak · R-3
+    wrong reset links · R-6 Resend contamination · R-10 divergent
+    codebases · R-12 audit log mixing · R-14 RC1 destabilization).
+  - **Hard rule honored**: zero code changes during the audit.
+    Path forward = Track 17 starts only after RC1 has 7+ days of
+    clean production uptime.
+  - **Five Pillars composite for white-label readiness**: 7.0
+    (POWERFUL 8 · SIMPLE 5 · BEAUTIFUL 4 · TRUSTED 9 · PROVEN 9).
+    RC1 composite (9.78) is unaffected.
+
+## Previously Closed Track (2026-02-16 · RC1 PRE-DEPLOY ADDENDUM · PREVIEW→PRODUCTION ISOLATION · 🟢 VERIFIED)
 - **RC1 PREDEPLOY ADDENDUM · PREVIEW → PRODUCTION DATA ISOLATION · 🟢 VERIFIED.**
   Proved Preview cannot mutate, notify, email, or store into Production.
   - **Boot guard**: `_verify_env_db_alignment()` in `server.py` refuses
