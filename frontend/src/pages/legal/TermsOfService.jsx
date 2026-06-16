@@ -310,6 +310,35 @@ export default function TermsOfService() {
 
         <hr className="my-6 border-slate-200" />
 
+        <h2>7A. SMS &amp; Text-Message Communications</h2>
+        <p>
+          Where the Platform is configured to deliver SMS / text-message
+          notifications, by providing a mobile number — directly or via
+          MASCI&rsquo;s administrative provisioning — the recipient
+          consents to receive operational text messages from the Platform
+          related to dispatch, safety, scheduling, account security,
+          and similar workflow events.
+        </p>
+        <p>
+          Message frequency varies based on operational activity.
+          <strong> Message and data rates may apply</strong> as charged by
+          the recipient&rsquo;s wireless carrier; ForgedOps&trade;, MASCI,
+          and their respective subprocessors are not responsible for any
+          such carrier charges.
+        </p>
+        <p>
+          Recipients may opt out of non-critical text messages by replying
+          <strong> STOP</strong> to any Platform text message, or by
+          contacting MASCI&rsquo;s administrator. Recipients may reply
+          <strong> HELP</strong> for assistance. Opting out of safety,
+          security, or operationally critical SMS may result in loss of
+          access to affected Platform features as set forth in Section 7.
+          Wireless carriers are not liable for delayed or undelivered
+          messages.
+        </p>
+
+        <hr className="my-6 border-slate-200" />
+
         <h2>7B. Automated Processing &amp; AI-Assisted Features</h2>
         <p>
           Certain Platform features may utilize automated processing,
@@ -321,11 +350,22 @@ export default function TermsOfService() {
           decision-making, or signature authority.
         </p>
         <p>
-          Users remain solely responsible for reviewing, validating,
-          approving, and acting on any output produced by an Automated
-          Feature. Outputs from automated systems do not constitute
-          regulatory determinations, legal opinions, engineering
-          certifications, medical advice, or safety clearances.
+          <strong>Output from Automated Features is advisory only and may
+          contain errors, omissions, or outdated information.</strong> Users
+          remain solely responsible for reviewing, validating, approving,
+          and acting on any output produced by an Automated Feature.
+          Human review and human approval are required before relying on
+          any Automated Feature output for an operational, financial,
+          regulatory, safety, payroll, or personnel decision.
+        </p>
+        <p>
+          <strong>No output from any Automated Feature constitutes legal
+          advice, engineering approval, regulatory determination, payroll
+          decision, medical advice, safety certification, or any other
+          professional opinion or licensed determination.</strong> Users
+          must obtain qualified human review from the appropriate licensed
+          professional before acting on any Automated Feature output in a
+          context that requires such determination.
         </p>
         <p>
           ForgedOps&trade; may add, remove, or modify the Automated Features
@@ -367,9 +407,29 @@ export default function TermsOfService() {
 
         <h2>9. Limitation of Liability</h2>
         <p className="uppercase">
-          To the fullest extent permitted by law, in no event shall ForgedOps LLC or MASCI be liable to any user for any indirect,
-          incidental, special, consequential, or punitive damages arising out
-          of or related to the Platform or these Terms.
+          TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT SHALL FORGEDOPS LLC
+          BE LIABLE TO MASCI OR TO ANY USER FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+          CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION LOST
+          PROFITS, LOST REVENUE, LOSS OF BUSINESS, LOSS OF OPPORTUNITY, LOSS OF
+          GOODWILL, LOSS OR INACCURACY OF DATA, OR COST OF PROCUREMENT OF
+          SUBSTITUTE GOODS OR SERVICES, ARISING OUT OF OR RELATED TO THE PLATFORM
+          OR THESE TERMS, WHETHER BASED ON CONTRACT, TORT (INCLUDING NEGLIGENCE),
+          STRICT LIABILITY, OR ANY OTHER LEGAL THEORY, EVEN IF FORGEDOPS LLC HAS
+          BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+        </p>
+        <p className="uppercase">
+          THE AGGREGATE LIABILITY OF FORGEDOPS LLC ARISING OUT OF OR RELATED TO
+          THE PLATFORM OR THESE TERMS, FROM ALL CLAIMS AND ALL CAUSES OF ACTION
+          COMBINED, SHALL NOT EXCEED FIFTY THOUSAND U.S. DOLLARS ($50,000 USD)
+          IN THE AGGREGATE.
+        </p>
+        <p>
+          The exclusions and cap set forth in this Section 9 do not apply to:
+          (a) liability that cannot be limited or excluded under applicable law;
+          (b) a party&rsquo;s indemnification obligations under Section 10; or
+          (c) liability arising from fraud, gross negligence, or willful misconduct.
+          These exclusions and the cap apply notwithstanding any failure of essential
+          purpose of any limited remedy.
         </p>
 
         <hr className="my-6 border-slate-200" />

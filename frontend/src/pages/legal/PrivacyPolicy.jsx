@@ -212,6 +212,13 @@ export default function PrivacyPolicy() {
             generation where applicable to the Automated Features.
           </li>
           <li>
+            <strong>Twilio</strong> (conditional) — SMS / text-message
+            delivery for dispatch, safety, and operational notifications.
+            Twilio is engaged only when SMS is provisioned for a
+            deployment; where SMS is not provisioned, Twilio receives no
+            Platform data.
+          </li>
+          <li>
             <strong>Cloud infrastructure providers</strong> — compute
             hosting, container orchestration, supervisor services, and
             related system operations.

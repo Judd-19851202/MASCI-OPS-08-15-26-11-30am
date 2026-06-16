@@ -10,7 +10,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.4B · FIELD LEADERSHIP PUBLIC CARD CORRECTION · 🟢 PASSED)
+## Latest Closed Track (2026-06-16 · TRACK 15.5 · PUBLIC TRUST, LEGAL, PRIVACY, BRANDING & CUSTOMER-READY HARDENING CERTIFICATION · 🟡 PASSED WITH LEGAL-COUNSEL REVIEW RECOMMENDED)
+- **Track:** Complete trust/legal/privacy/branding hardening certification for commercial-grade readiness.
+- **Verdict:** 🟡 8/10 closure criteria GREEN · 2/10 YELLOW (Customer #2 legal/architecture blockers honestly documented). 24/25 Five Pillars.
+- **Terms §9 Liability HARDENED**: explicit $50,000 USD aggregate cap + 8 enumerated damage exclusions (indirect, incidental, special, consequential, punitive, lost profits, lost revenue, loss of business, loss of opportunity, loss of goodwill, loss/inaccuracy of data, cost of substitute services) + standard carve-outs (legally-non-waivable, indemnification, fraud, gross negligence, willful misconduct) + "failure of essential purpose" preservation.
+- **Terms §7A SMS Compliance NEW**: consent language + STOP/HELP/frequency-varies/Message and Data Rates / carrier-disclaimer / safety-critical-opt-out boundary.
+- **Terms §7B AI Hardened**: explicit "advisory only, may contain errors" + mandatory human-review-and-approval for operational/financial/regulatory/safety/payroll/personnel decisions + explicit non-applicability to legal advice, engineering approval, regulatory determination, payroll decision, medical advice, safety certification, or any licensed determination.
+- **Privacy §4 Subprocessors**: Twilio added as conditional (no data flows to Twilio when SMS not provisioned). Existing list unchanged (MongoDB Atlas, Cloudflare R2, Cloudflare, Resend, Anthropic Claude, OpenAI, Google Gemini, Cloud infrastructure providers).
+- **Six directive-required reports consolidated** into one master at `/app/memory/TRACK_15_5_PUBLIC_TRUST_LEGAL_PRIVACY_CERTIFICATION.md` (PUBLIC_TRUST_AUDIT §6 · TERMS_REWRITE_REPORT §7 · PRIVACY_REWRITE_REPORT §11 · SMS_NOTIFICATION_COMPLIANCE_REPORT §10 · CUSTOMER_2_READINESS_REPORT §13 · LEGAL_RISK_REGISTER §16).
+- **Deferred to legal counsel** (per directive "no fake legal language" rule): jurisdiction/governing-law specifics, mandatory-arbitration/class-action waiver, TCPA marketing-SMS flow, DPA template, A2P 10DLC registration. None block current MASCI operations; all flagged for Customer #2 contracting.
+- **Cleanup**: production untouched, 2 frontend legal files edited, 1 master report created.
+
+## Previous Closed Track (2026-06-16 · TRACK 15.4B · FIELD LEADERSHIP PUBLIC CARD CORRECTION · 🟢 PASSED)
 - **Track:** Public-safety correction to the Field Leadership homepage card.
 - **Verdict:** 🟢 12/12 closure criteria · 25/25 Five Pillars.
 - **Problem fixed**: 15.4A exposed 5 internal workflow URLs (/leadership/recognition/new, /write_up/new, /equipment_checkout/new, /records, plus the Open Hub link) on the PUBLIC homepage. That advertised gated form taxonomy, created a phishing surface, and made Field Leadership read as a form menu instead of a leadership system.
