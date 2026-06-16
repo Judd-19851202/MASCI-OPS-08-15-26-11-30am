@@ -162,3 +162,87 @@ def test_admin_daily_reports_redirect_targets_admin_daily():
     assert "/hr/daily-reports" not in line, (
         "Regression: /admin/daily-reports must NOT redirect to /hr/daily-reports"
     )
+
+
+# ─── Wave B-P1 · D-A11 Spanish synonym layer ─────────────────────────
+
+def test_spanish_synonym_layer_present():
+    """D-A11 lock: bilingual search map must include the documented
+    Spanish terms so a foreman typing `zanja` / `incidente` actually
+    hits English-language records."""
+    from routes.global_search import ES_EN_SYNONYMS  # noqa: WPS433
+    required = [
+        "incidente", "reporte", "reporte diario", "reunion",
+        "zanja", "excavacion", "equipo", "solicitud", "tiempo libre",
+        "capataz", "supervisor",
+    ]
+    missing = [t for t in required if t not in ES_EN_SYNONYMS]
+    assert not missing, f"Wave B-P1 D-A11 regression — missing ES terms: {missing}"
+
+
+def test_spanish_synonym_expansion_to_english():
+    from routes.global_search import ES_EN_SYNONYMS  # noqa: WPS433
+    # whole-token discipline: zanja → trench
+    assert "trench" in ES_EN_SYNONYMS["zanja"]
+    assert "daily report" in ES_EN_SYNONYMS["reporte diario"]
+    assert "incident" in ES_EN_SYNONYMS["incidente"]
+    assert "meeting" in ES_EN_SYNONYMS["reunion"]
+    assert "excavation" in ES_EN_SYNONYMS["excavacion"]
+
+
+# ─── Wave B-P1 · D-A12 PM sidebar parity ─────────────────────────────
+
+PM_DOMAIN_MAP = (
+    Path(__file__).resolve().parents[2]
+    / "frontend" / "src" / "components" / "pm" / "sidebar" / "domainMap.js"
+)
+
+
+def test_pm_sidebar_has_command_center():
+    src = PM_DOMAIN_MAP.read_text()
+    assert 'to: "/pm/command-center"' in src, (
+        "Wave B-P1 D-A12 regression: PM sidebar missing Command Center entry"
+    )
+
+
+def test_pm_sidebar_has_holds_and_due_today():
+    src = PM_DOMAIN_MAP.read_text()
+    assert 'to: "/pm/holds"' in src, "PM sidebar missing Holds entry"
+    assert 'to: "/pm/due-today"' in src, "PM sidebar missing Due Today entry"
+
+
+def test_pm_sidebar_has_project_staffing():
+    src = PM_DOMAIN_MAP.read_text()
+    assert 'to: "/pm/project-staffing"' in src, (
+        "Wave B-P1 D-A12 regression: PM sidebar missing Project Staffing entry"
+    )
+
+
+# ─── Wave B-P1 · D-A13 PM trench-safety entry ───────────────────────
+
+def test_pm_trench_safety_route_present():
+    src = APP_JS.read_text()
+    assert 'path="/pm/trench-safety"' in src, (
+        "Wave B-P1 D-A13 regression: /pm/trench-safety route missing"
+    )
+    line = next(ln for ln in src.split("\n") if 'path="/pm/trench-safety"' in ln and "/excavations" not in ln and "/assets" not in ln and "/tabulated" not in ln and "/reports" not in ln)
+    assert "AP(" in line, "/pm/trench-safety must be AP-guarded (admin or PM)"
+
+
+def test_pm_sidebar_has_trench_safety_entry():
+    src = PM_DOMAIN_MAP.read_text()
+    assert 'to: "/pm/trench-safety"' in src, (
+        "Wave B-P1 D-A13 regression: PM sidebar missing Trench Safety entry"
+    )
+
+
+def test_trench_safety_shell_pm_context_detection():
+    """D-A13 lock: TrenchSafetyShell must detect /pm/ context so PMs
+    stay in PmShell instead of shell-hopping into Safety."""
+    shell = (
+        Path(__file__).resolve().parents[2]
+        / "frontend" / "src" / "pages" / "trench_safety" / "TrenchSafetyShell.jsx"
+    )
+    src = shell.read_text()
+    assert "/pm/trench-safety" in src, "TrenchSafetyShell missing /pm/ portalBase detection"
+    assert "PmShell" in src, "TrenchSafetyShell missing PmShell wrap for /pm/ context"

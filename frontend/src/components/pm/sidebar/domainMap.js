@@ -12,7 +12,8 @@ import {
   Activity, Briefcase, ClipboardList, ClipboardCheck, Users, Camera, UserCheck,
   Wrench, Truck, FileText, Box, AlertOctagon, ShieldCheck,
   Mail, KeyRound, FileImage, GraduationCap, Building2,
-  NotebookPen, ListTodo,
+  NotebookPen, ListTodo, Radar, PauseCircle, CalendarClock, UsersRound,
+  ShieldAlert,
 } from "lucide-react";
 
 export const DOMAINS_V2 = [
@@ -24,7 +25,10 @@ export const DOMAINS_V2 = [
     icon: Activity,
     routes: [
       { to: "/pm",                   label: "Overview",          desc: "Today's signal across your projects.",         icon: Briefcase, end: true },
+      { to: "/pm/command-center",    label: "Command Center",    desc: "Live operations · jobs · timeline · risk.",    icon: Radar },
       { to: "/pm/jobs",              label: "Jobs",              desc: "Jobs assigned to you (read-only).",            icon: Building2 },
+      { to: "/pm/holds",             label: "Holds",             desc: "Open holds across your projects.",             icon: PauseCircle },
+      { to: "/pm/due-today",         label: "Due Today",         desc: "Items due today across your projects.",        icon: CalendarClock },
       { to: "/pm/daily",             label: "Daily Reports",     desc: "Field production, manpower, progress.",        icon: ClipboardList },
       { to: "/pm/inspections",       label: "Inspections",       desc: "Field safety and quality checks.",             icon: ClipboardCheck },
       { to: "/pm/meetings",          label: "Meetings",          desc: "Pre-shift, toolbox, project meetings.",        icon: Users },
@@ -52,22 +56,24 @@ export const DOMAINS_V2 = [
     stripe: "#d97706", // amber-600
     icon: Truck,
     routes: [
-      { to: "/pm/fleet",     label: "Equipment Fleet",  desc: "Master roster and parts catalog (read-only).",  icon: Wrench },
-      { to: "/pm/equipment", label: "Pre-Op Checks",    desc: "Today's pre-shift checks across your fleet.",  icon: ClipboardCheck },
-      { to: "/pm/suppliers", label: "Suppliers",        desc: "Approved supplier roster (read-only).",        icon: Truck },
-      { to: "/pm/people",    label: "People",           desc: "Employee master (read-only).",                 icon: Users },
+      { to: "/pm/fleet",            label: "Equipment Fleet",  desc: "Master roster and parts catalog (read-only).",  icon: Wrench },
+      { to: "/pm/equipment",        label: "Pre-Op Checks",    desc: "Today's pre-shift checks across your fleet.",  icon: ClipboardCheck },
+      { to: "/pm/suppliers",        label: "Suppliers",        desc: "Approved supplier roster (read-only).",        icon: Truck },
+      { to: "/pm/people",           label: "People",           desc: "Employee master (read-only).",                 icon: Users },
+      { to: "/pm/project-staffing", label: "Project Staffing", desc: "Crew assignments across your projects.",       icon: UsersRound },
     ],
   },
   {
     id: "document-control",
     label: "Document Control",
-    subline: "JHAs, trench boxes, posters.",
+    subline: "JHAs, trench boxes, trench safety, posters.",
     stripe: "#7c3aed", // violet-600
     icon: FileText,
     routes: [
-      { to: "/pm/jha-plans",    label: "JHA Plans",    desc: "Job hazard analyses by asset and task.",       icon: FileText },
-      { to: "/pm/trench-boxes", label: "Trench Boxes", desc: "Box specifications and inspections.",          icon: Box },
-      { to: "/pm/posters",      label: "Site Posters", desc: "Printable JHA, trench box, inspection QRs.",   icon: FileImage },
+      { to: "/pm/jha-plans",     label: "JHA Plans",     desc: "Job hazard analyses by asset and task.",       icon: FileText },
+      { to: "/pm/trench-boxes",  label: "Trench Boxes",  desc: "Box specifications and inspections.",          icon: Box },
+      { to: "/pm/trench-safety", label: "Trench Safety", desc: "Excavations, assets, repair queue, reports.",  icon: ShieldAlert },
+      { to: "/pm/posters",       label: "Site Posters",  desc: "Printable JHA, trench box, inspection QRs.",   icon: FileImage },
     ],
   },
   {
