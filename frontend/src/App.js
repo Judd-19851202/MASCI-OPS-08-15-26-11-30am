@@ -996,9 +996,16 @@ function App() {
             <Route path="/daily" element={<Navigate to="/admin/daily" replace />} />
             <Route path="/daily/:id" element={<RedirectWithId base="/admin/daily" />} />
             {/* TRACK 14.0-ELITE-OPS-B · 5:30 AM iPad usability redirects (iter510)
-                A tired user types the natural URL — don't 404, send them home. */}
-            <Route path="/safety-portal/meetings" element={<Navigate to="/admin/meetings" replace />} />
-            <Route path="/admin/daily-reports" element={<Navigate to="/hr/daily-reports" replace />} />
+                A tired user types the natural URL — don't 404, send them home.
+                TRACK 14.0-DISCOVERABILITY (2026-02-15) — two of these landed users
+                on AccessDenied because the destination guard rejected their portal
+                token. Replaced with portal-correct destinations:
+                  · /safety-portal/meetings is now a real SF-guarded list (was
+                    redirecting to /admin/meetings which only AP-accepts).
+                  · /admin/daily-reports now redirects to /admin/daily (was
+                    redirecting to /hr/daily-reports which rejected admin tokens). */}
+            <Route path="/safety-portal/meetings" element={SF(<MeetingsDashboard />)} />
+            <Route path="/admin/daily-reports" element={<Navigate to="/admin/daily" replace />} />
             <Route path="/admin/trench-safety-assets" element={<Navigate to="/safety/trench-safety/assets" replace />} />
 
             {/* Legal */}

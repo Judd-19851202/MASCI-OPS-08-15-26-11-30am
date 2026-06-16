@@ -10,7 +10,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · TRACK 14.0-AUTH-PASSWORD-PARITY-CERTIFICATION — DEPLOY-READY)
+## Latest Closed Track (2026-02-15 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE A)
+- **14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE A · 🟢 INVENTORY + DEFECT LEDGER + 2 SAFE FIXES SHIPPED.**
+  Full platform-wide nav/discoverability audit (Phases 1–12 inventory).
+  Read-only audit by user mandate: "First prove what is actually broken."
+  Shipped: (1) **`/safety-portal/meetings` AccessDenied fix [P1]** — replaced
+  legacy redirect-to-`/admin/meetings` (RequireAdminOrPm, rejects safety
+  token → AccessDenied) with real `SF(<MeetingsDashboard />)` route.
+  Backend `/api/meetings` already accepts safety token. Runtime-verified
+  via preview: Safety cert user lands at `/safety-portal/meetings` with
+  full SafetyShell chrome (cyan) and 42 meetings list. (2) **`/admin/daily-reports`
+  AccessDenied fix [P1]** — was redirecting admin URL to HR-only
+  `/hr/daily-reports`, which 403'd for admins. Changed redirect target
+  to `/admin/daily`. Runtime-verified: admin token → `/admin/daily-reports`
+  → `/admin/daily` (899 reports rendered, correct shell). (3) **8
+  deliverables produced**: `DISCOVERABILITY_INVENTORY.md` (full route
+  map, sidebar matrix, search coverage, deep-link table, persona
+  cross-walk, label/empty-state spot-checks); `DISCOVERABILITY_DEFECT_LEDGER.md`
+  (20 documented defects with severity, root cause, fix risk; Wave B
+  prioritized backlog). **Wave B backlog (prioritized for next track):**
+  P1 — Global Search coverage expansion (5 missing probes: daily reports,
+  safety meetings, site inspections, trench assets, JHA plans · D-A6–10);
+  Safety Hub V2 missing tiles (Meetings, Inspections, JHA · D-A2/A4/A5);
+  PM trench-safety entry (D-A13). P2 — Spanish search synonym layer
+  (D-A11 quantified: 7 ES terms miss, 1 cognate coincidence); PmShell
+  sidebar parity (D-A12); cross-portal Operational Records/Operations
+  Actions entries (D-A15). P3 — V2 admin sidebar parity (D-A1 ·
+  feature-flagged, no production impact); HR Document Expirations link
+  target (D-A20); FL Portal form launchers (D-A16). Closure ledger:
+  inline at top of DISCOVERABILITY_DEFECT_LEDGER.md. **Status: WAVE A
+  COMPLETE. Wave B/C deferred pending operator review.** Per user
+  directive, certification is **NOT** declared closed until Wave B
+  fixes are scoped + Wave C runtime proof + regression added.
+
+## Previous Closed Track (2026-02-15 · TRACK 14.0-AUTH-PASSWORD-PARITY-CERTIFICATION — DEPLOY-READY)
 - **14.0-AUTH-PASSWORD-PARITY-CERTIFICATION · 🟢 PROVEN · TRUSTED · CERTIFIED · DEPLOY-READY · CLOSED.**
   15-phase platform-wide auth/password trust certification across Admin,
   PM, HR, Safety, Shop, Dispatch, and Field Leadership portals. ZERO
