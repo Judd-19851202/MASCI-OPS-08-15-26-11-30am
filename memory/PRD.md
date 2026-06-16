@@ -10,7 +10,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.6 · HOMEPAGE BEAUTY LOCK · FIELD LEADERSHIP + OFFICE PORTALS ELITE POLISH · 🟢 PASSED)
+## Latest Closed Track (2026-06-16 · TRACK 15.7 · FINAL PRE-DEPLOY RELEASE GATE · 🟡 GO WITH OPERATOR FOLLOW-UP)
+- **Track:** Combined pre-deploy gate for Tracks 15.1 → 15.6.
+- **Verdict:** 🟡 17/17 GREEN. No P0 / P1 deployment blockers.
+- **Identity baseline**: prod `source_hash=740398bc1f9277a8edfdb1e92e5dc26d` (pre-deploy build, unchanged); preview matches byte-for-byte → valid runtime-equivalent surface.
+- **Backend regression**: 11/11 PASS (5 Track 15.1 + 6 Track 15.2).
+- **Auth boundary**: all 7 protected /me endpoints uniformly 401 on prod. No permission leakage.
+- **Public routes**: all 13 public routes return 200 on prod (homepage + 6 portal logins + sign-in + cheatsheet + guidance + terms + privacy + leadership).
+- **External launchers**: Basecamp + OnStation + ForgedOps Plans URLs correct; target=_blank + rel=noopener noreferrer verified.
+- **Static audit**: 0 `href="#"` placeholders, 0 leftover `console.log`/TODO/FIXME in touched files, AdminShopUsersPanel junk text confirmed fixed, hero red-span contract correct (EN + ES).
+- **Cleanup script**: dry-run-by-default verified; preview run returned 0 leaked rows; tight 4-clause predicate; 200-row cap; audit-logged; expires-not-deletes; reversal procedure documented.
+- **Combined release inventory**: 0 DB migrations · 0 env changes · 0 permission changes · 0 route deletions · 4 backend + 5 frontend + 2 legal files touched · 3 brand-logo assets · 1 operator script · 8 memory reports.
+- **Post-deploy operator actions**: (1) capture new prod source_hash, (2) cleanup script --apply after dry-run review, (3) PM Add Member retry on Project 26-07. Counsel review of Track 15.5 hardening recommended but NOT a blocker for MASCI deployment.
+- **Cleanup**: production untouched, preview cleanup script verified safe, 1 gate report created.
+
+## Previous Closed Track (2026-06-16 · TRACK 15.6 · HOMEPAGE BEAUTY LOCK · 🟢 PASSED)
 - **Track:** Final homepage polish to 9.7+ Beautiful score before combined 15.1-15.5 deploy.
 - **Verdict:** 🟢 25/25 Five Pillars · 9.73 average Beautiful score across 6 sections (gate was 9.7).
 - **Field Leadership**: boxed mini-card grid → clean checkmark list. Labels swapped to outcome-focused: Workforce Accountability · Employee Development · Equipment Custody · Recognition Programs. Card still routes only to /leadership (unchanged).
