@@ -10,7 +10,42 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-16 · TRACK RC1-FINAL-PREDEPLOY-CERTIFICATION-GATE · 🟢 GO FOR DEPLOYMENT)
+## Latest Closed Track (2026-02-16 · RC1 PRE-DEPLOY ADDENDUM · PREVIEW→PRODUCTION ISOLATION · 🟢 VERIFIED)
+- **RC1 PREDEPLOY ADDENDUM · PREVIEW → PRODUCTION DATA ISOLATION · 🟢 VERIFIED.**
+  Proved Preview cannot mutate, notify, email, or store into Production.
+  - **Boot guard**: `_verify_env_db_alignment()` in `server.py` refuses
+    to start if `APP_ENV=preview` and `DB_NAME` does not end with
+    `_preview` (or vice versa for production). RuntimeError on
+    misalignment.
+  - **Failsafe probe**: `db_isolation_failsafe.assert_db_isolation()`
+    attempts `client['masci_safety'].list_collection_names()` on
+    boot. Required outcome: Atlas rejection. **Live boot log proves
+    `OperationFailure` — preview Atlas credential is denied on
+    production DB namespace.** `ENFORCE_DB_ISOLATION=true` →
+    `sys.exit(99)` on credential drift.
+  - **Email**: `AUTO_EMAIL_REPORTS=false` in Preview. Every Resend
+    wrapper (`phase4.py`, `health_monitor.py`, `safety_digest.py`,
+    `training_pdf.py`) honors the flag — no emails to real users
+    from Preview.
+  - **Identity probe**: `GET /api/version` reports
+    `app_env=preview · db_name=masci_safety_preview · source_hash=…`.
+  - **Sessions / tokens / notifications / audit / files** — all
+    persistence routes through the single `db = client[DB_NAME]`
+    handle. Preview tokens reference preview-only records;
+    Production cannot read preview DB (credential-level isolation).
+    R2 backup keys include `db_name + timestamp`.
+  - **Regression lock**: new `/app/backend/tests/test_rc1_predeploy_isolation.py`
+    (7 tests · all green): boot guard present · failsafe module
+    exists · APP_ENV=preview · DB_NAME suffix=_preview ·
+    ENFORCE_DB_ISOLATION=true · AUTO_EMAIL_REPORTS=false · live
+    cross-DB probe rejected with `OperationFailure`.
+  - **Final statement**: "Preview-to-Production data isolation is
+    VERIFIED. Preview data cannot enter or mutate Production
+    through normal platform write paths. RC1 remains GO for
+    deployment."
+  - **Closure ledger**: `/app/memory/TRACK_RC1_PREDEPLOY_ISOLATION_CERTIFICATION.md`.
+
+## Previously Closed Track (2026-02-16 · TRACK RC1-FINAL-PREDEPLOY-CERTIFICATION-GATE · 🟢 GO FOR DEPLOYMENT)
 - **TRACK RC1-FINAL-PREDEPLOY-CERTIFICATION-GATE · 🟢 GO.**
   Three-lens independent verification: static analysis · regression
   suite · live runtime. **All converge on GO.**
