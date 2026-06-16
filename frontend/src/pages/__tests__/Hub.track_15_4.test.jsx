@@ -150,24 +150,29 @@ describe("TRACK 15.4 — Homepage hero + Project Systems contract", () => {
   );
 
   it.each([
-    "Leadership Records",
-    "Employee Documentation",
+    "Workforce Accountability",
+    "Employee Development",
     "Equipment Custody",
-    "Recognition Tracking",
+    "Recognition Programs",
   ])(
-    "Field Leadership capability label %s renders publicly",
+    "Field Leadership outcome capability label %s renders publicly",
     (label) => {
       renderHub();
-      // Each capability label is rendered as a non-clickable <li>.
       expect(screen.getByText(label)).toBeTruthy();
     },
   );
 
-  it.each(["Write-Up", "Coaching Note", "Discipline", "Recognition Form", "Records Ledger", "Attendance Action"])(
-    "Track 15.4B: forbidden internal label %s is NOT shown publicly",
+  it.each([
+    "Write-Up", "Coaching Note", "Discipline", "Recognition Form",
+    "Records Ledger", "Attendance Action", "Employee Issue",
+    "Leadership Records", "Employee Documentation", "Recognition Tracking",
+  ])(
+    "Track 15.6: forbidden / superseded internal label %s is NOT shown publicly",
     (label) => {
       renderHub();
-      expect(screen.queryByText(label)).toBeNull();
+      // Case-sensitive match; allows "Field Leadership" / "Leadership Tools" header to pass.
+      const matches = screen.queryAllByText(label);
+      expect(matches.length).toBe(0);
     },
   );
 

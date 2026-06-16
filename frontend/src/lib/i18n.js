@@ -3566,6 +3566,10 @@ const ES = {
   "Employee Documentation": "Documentación del Empleado",
   "Equipment Custody": "Custodia de Equipo",
   "Recognition Tracking": "Registro de Reconocimientos",
+  // ── Track 15.6 (2026-06-16) · Field Leadership outcome labels ───
+  "Workforce Accountability": "Responsabilidad del Personal",
+  "Employee Development": "Desarrollo del Empleado",
+  "Recognition Programs": "Programas de Reconocimiento",
   "What every crew on site does today.":
     "Lo que cada cuadrilla en el sitio hace hoy.",
   "File end-of-day reports, log equipment walk-arounds, and capture crew, weather, and production from the job site.":

@@ -348,22 +348,22 @@ export default function Hub() {
           const authed = isSignedInAnywhere() ? authorizedPortals() : null;
           const portalDefs = [
             { kind: "pm", to: "/pm/login", icon: ClipboardList, title: t("PM Portal"),
-              desc: t("Manage jobs, PO requests, daily reports, inspections, photos, and project compliance."),
+              desc: t("Project management, PO requests, subcontractor administration, and project oversight."),
               testId: "hub-section-pm", signedInLabel: t("Open Portal") },
             { kind: "shop", to: "/shop/login", icon: Wrench, title: t("Shop"),
-              desc: t("Run the mechanic queue — repairs, parts, PMs, and fleet readiness."),
+              desc: t("Fleet maintenance, inspections, repairs, parts, and equipment readiness."),
               testId: "hub-section-shop", signedInLabel: t("Open Console") },
             { kind: "hr", to: "/hr/login", icon: Users, title: t("HR Portal"),
-              desc: t("Employee records, onboarding, payroll cross-checks, and workforce documentation."),
+              desc: t("Employee records, onboarding, compliance, training, and workforce management."),
               testId: "hub-section-hr", signedInLabel: t("Open Portal") },
             { kind: "safety", to: session?.kind === "safety" ? "/safety-portal" : "/safety-portal/login", icon: ShieldAlert, title: t("Safety Portal"),
-              desc: t("Incidents, audits, inspections, PPE accountability, training, and corrective actions."),
+              desc: t("Incidents, audits, inspections, JHPs, toolbox talks, and compliance workflows."),
               testId: "hub-section-safety-portal", signedInLabel: t("Open Portal") },
             { kind: "dispatch", to: session?.kind === "dispatch" ? "/dispatch-portal" : "/dispatch-portal/login", icon: Truck, title: t("Dispatch"),
-              desc: t("Equipment movement, DVIRs, transfers, utilization, and operational readiness."),
+              desc: t("Equipment movement, scheduling, logistics, and fleet coordination."),
               testId: "hub-section-dispatch-portal", signedInLabel: t("Open Portal") },
             { kind: "admin", to: "/admin/login", icon: ClipboardList, title: t("Admin"),
-              desc: t("System administration — users, roles, integrations, audit logs, and exports."),
+              desc: t("System administration, user management, platform configuration, and reporting."),
               testId: "hub-section-admin", signedInLabel: t("Open Console") },
           ];
           const yours = authed ? portalDefs.filter((p) => authed.includes(p.kind)) : portalDefs;
@@ -376,7 +376,10 @@ export default function Hub() {
                 title={authed ? t("Your Portals") : t("Office Portals")}
                 subtitle={authed ? t("Sign-in required. Showing the portals you're authorized for.") : t("Sign-in required. Office, mechanic, HR, Safety, Dispatch, and Admin operations.")}
               />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
+              {/* Track 15.6 (2026-06-16) — premium 3-col / 2-row layout
+                  replaces the cramped 6-col layout. Bigger cards, no
+                  truncation, no ellipses. */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
                 {yours.map((p) => (
                   <PortalPill
                     key={p.kind}
@@ -556,10 +559,10 @@ function detectActiveSession(t, rerender) {
  * without exposing internal workflow URLs.
  */
 const FIELD_LEADERSHIP_CAPABILITIES = [
-  "Leadership Records",
-  "Employee Documentation",
+  "Workforce Accountability",
+  "Employee Development",
   "Equipment Custody",
-  "Recognition Tracking",
+  "Recognition Programs",
 ];
 
 function FieldLeadershipCard({ testId }) {
@@ -594,20 +597,21 @@ function FieldLeadershipCard({ testId }) {
           {t("Track workforce accountability, employee development, equipment custody, recognition, and leadership records across every project.")}
         </p>
         {/* Public-safe capability list — descriptive only, NOT
-            clickable, NOT routed. The gated /leadership portal
-            handles the real workflow menu after sign-in. */}
+            clickable, NOT routed. Track 15.6: clean checkmark list
+            replaces the boxed mini-card grid so capability labels
+            no longer read as buttons. */}
         <ul
-          className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 mt-5"
           data-testid="hub-field-leadership-capabilities"
           aria-label={t("Field Leadership capabilities")}
         >
           {FIELD_LEADERSHIP_CAPABILITIES.map((label) => (
             <li
               key={label}
-              className="flex items-center gap-2 h-10 px-3 rounded-md bg-slate-50 border border-slate-200"
+              className="flex items-center gap-2.5 text-slate-700"
             >
-              <ShieldCheck className="w-4 h-4 text-slate-700 shrink-0" />
-              <span className="text-[13px] font-display font-bold tracking-tight text-slate-900 whitespace-nowrap">
+              <ShieldCheck className="w-4 h-4 text-slate-500 shrink-0" />
+              <span className="text-sm font-display font-bold tracking-tight text-slate-900 whitespace-nowrap">
                 {t(label)}
               </span>
             </li>

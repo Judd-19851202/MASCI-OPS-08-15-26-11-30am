@@ -10,7 +10,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.5 · PUBLIC TRUST, LEGAL, PRIVACY, BRANDING & CUSTOMER-READY HARDENING CERTIFICATION · 🟡 PASSED WITH LEGAL-COUNSEL REVIEW RECOMMENDED)
+## Latest Closed Track (2026-06-16 · TRACK 15.6 · HOMEPAGE BEAUTY LOCK · FIELD LEADERSHIP + OFFICE PORTALS ELITE POLISH · 🟢 PASSED)
+- **Track:** Final homepage polish to 9.7+ Beautiful score before combined 15.1-15.5 deploy.
+- **Verdict:** 🟢 25/25 Five Pillars · 9.73 average Beautiful score across 6 sections (gate was 9.7).
+- **Field Leadership**: boxed mini-card grid → clean checkmark list. Labels swapped to outcome-focused: Workforce Accountability · Employee Development · Equipment Custody · Recognition Programs. Card still routes only to /leadership (unchanged).
+- **Office Portals**: cramped `lg:grid-cols-6` → premium `lg:grid-cols-3` (2 rows × 3). All 6 portal descriptions rewritten per directive Phase 6 approved copy. No truncation, no ellipses, full lock+sign-in cues.
+- **Public-safety**: forbidden-label regression list expanded 6 → 10 terms (includes superseded 15.4B labels). DOM probe confirms zero internal workflow exposure.
+- **Combined regression**: 41 assertions across 15.1-15.6.
+- **Cleanup**: production untouched, 3 frontend files edited, 1 report created.
+
+## Previous Closed Track (2026-06-16 · TRACK 15.5 · PUBLIC TRUST, LEGAL, PRIVACY, BRANDING & CUSTOMER-READY HARDENING CERTIFICATION · 🟡 PASSED WITH LEGAL-COUNSEL REVIEW RECOMMENDED)
 - **Track:** Complete trust/legal/privacy/branding hardening certification for commercial-grade readiness.
 - **Verdict:** 🟡 8/10 closure criteria GREEN · 2/10 YELLOW (Customer #2 legal/architecture blockers honestly documented). 24/25 Five Pillars.
 - **Terms §9 Liability HARDENED**: explicit $50,000 USD aggregate cap + 8 enumerated damage exclusions (indirect, incidental, special, consequential, punitive, lost profits, lost revenue, loss of business, loss of opportunity, loss of goodwill, loss/inaccuracy of data, cost of substitute services) + standard carve-outs (legally-non-waivable, indemnification, fraud, gross negligence, willful misconduct) + "failure of essential purpose" preservation.
