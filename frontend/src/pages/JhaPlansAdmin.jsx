@@ -77,13 +77,23 @@ export default function JhaPlansAdmin() {
   const [filter, setFilter] = useState("");
   const [newProject, setNewProject] = useState("");
   const fileInputs = useRef({});
+  // TRACK 14.0-DISCOVERABILITY · Wave B — when this page is mounted in
+  // the Safety portal shell (/safety-portal/jha-plans), the safety
+  // token cannot satisfy /api/job-hazard-files (admin-gated). Fall
+  // back to the public-grouped endpoint, which is read-only and
+  // already permission-safe (returns no file_data). Admin / PM keep
+  // the authenticated endpoint with full upload capability.
+  const isSafetyContext = typeof window !== "undefined"
+    && window.location.pathname.startsWith("/safety-portal/");
 
   const refresh = async () => {
     setLoading(true);
     try {
       const [r, j] = await Promise.all([
-        api.get("/job-hazard-files"),
-        api.get("/jobs"),
+        isSafetyContext
+          ? api.get("/job-hazard-files/public/grouped").then((res) => ({ data: { projects: res.data } }))
+          : api.get("/job-hazard-files"),
+        api.get("/jobs").catch(() => ({ data: { items: [] } })),
       ]);
       setGroups(r.data?.projects || []);
       setJobs(j.data?.items || []);

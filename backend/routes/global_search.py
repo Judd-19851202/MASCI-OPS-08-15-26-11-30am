@@ -60,6 +60,16 @@ ALL_KINDS = (
     "operations_events",
     "field_leadership",
     "staffing",
+    # TRACK 14.0-DISCOVERABILITY · Wave B (2026-02-15) — 5 critical
+    # workflow probes the operator search-coverage audit identified as
+    # missing. Probes only return rows the actor's HTTP gate already
+    # admits (read-side parity with /api/daily-reports, /api/meetings,
+    # /api/inspections, /api/trench-safety/assets, /api/jhas).
+    "daily_reports",
+    "meetings",
+    "inspections",
+    "trench_assets",
+    "jha_plans",
 )
 
 # Role → tuple of kinds visible to that role. Admin gets everything.
@@ -72,6 +82,8 @@ KIND_VISIBILITY: Dict[str, tuple] = {
         "safety_training", "document_expirations",
         "employees", "equipment",
         "staffing",
+        # Wave B additions — Safety reads these via _read_gate already.
+        "meetings", "inspections", "jha_plans", "trench_assets",
     ),
     "hr": (
         "tasks", "notifications",
@@ -79,6 +91,8 @@ KIND_VISIBILITY: Dict[str, tuple] = {
         "document_expirations", "field_leadership",
         "po_requests",
         "staffing",
+        # Wave B — HR has /hr/daily-reports portal page (read-only).
+        "daily_reports",
     ),
     "pm": (
         "tasks", "notifications",
@@ -86,12 +100,16 @@ KIND_VISIBILITY: Dict[str, tuple] = {
         "incidents", "corrective_actions",
         "employees", "equipment",
         "staffing",
+        # Wave B — PM-scoped via compute_pm_scope on each probe.
+        "daily_reports", "meetings", "inspections", "jha_plans",
     ),
     "shop": (
         "tasks", "notifications",
         "equipment", "operations_events",
         "document_expirations",
         "staffing",
+        # Wave B — Shop runs the trench-safety repair queue.
+        "trench_assets",
     ),
     "dispatch": (
         "tasks", "notifications",
@@ -121,6 +139,12 @@ KIND_LABELS: Dict[str, str] = {
     "operations_events": "Operations Events",
     "field_leadership": "Field Leadership Records",
     "staffing": "Project Staffing",
+    # Wave B (TRACK 14.0-DISCOVERABILITY)
+    "daily_reports": "Daily Reports",
+    "meetings": "Safety Meetings",
+    "inspections": "Site Inspections",
+    "trench_assets": "Trench Safety Assets",
+    "jha_plans": "JHA Plans",
 }
 
 
@@ -535,6 +559,134 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                 ))
             return rows
 
+        async def run_daily_reports() -> List[Dict[str, Any]]:
+            """Wave B — searchable daily reports. Project-scoped for PMs."""
+            q_doc = {"$or": [
+                {"report_number": rx}, {"project_name": rx},
+                {"project_number": rx}, {"location": rx},
+                {"prepared_by": rx}, {"weather_summary": rx},
+            ]}
+            scope: List[Dict[str, Any]] = []
+            if role == "pm" and pm_proj is not None:
+                scope.append({"project_number": {"$in": pm_proj}})
+            final = {"$and": [q_doc] + scope} if scope else q_doc
+            rows = []
+            async for d in db.daily_reports.find(final, {"_id": 0}).sort("created_at", -1).limit(limit * 2):
+                rows.append(_row(
+                    "daily_reports", d,
+                    title=d.get("report_number") or d.get("project_name") or "Daily Report",
+                    subtitle=" · ".join(p for p in [
+                        d.get("project_number"), d.get("report_date"), d.get("prepared_by"),
+                    ] if p) or None,
+                    url=(f"/hr/daily-reports/{d.get('id')}" if role == "hr"
+                         else f"/admin/daily/{d.get('id')}" if role == "admin"
+                         else f"/pm/daily/{d.get('id')}"),
+                    status=d.get("status"),
+                ))
+            return rows
+
+        async def run_meetings() -> List[Dict[str, Any]]:
+            """Wave B — searchable safety meetings. PM-scoped."""
+            q_doc = {"$or": [
+                {"topic": rx}, {"topic_category": rx},
+                {"project_name": rx}, {"project_number": rx},
+                {"location": rx}, {"conducted_by": rx},
+            ]}
+            if role == "pm" and pm_proj is not None:
+                q_doc = {"$and": [q_doc, {"project_number": {"$in": pm_proj}}]}
+            rows = []
+            async for d in db.meetings.find(q_doc, {"_id": 0}).sort("meeting_date", -1).limit(limit * 2):
+                rows.append(_row(
+                    "meetings", d,
+                    title=d.get("topic") or d.get("topic_category") or "Safety Meeting",
+                    subtitle=" · ".join(p for p in [
+                        d.get("project_name") or d.get("project_number"),
+                        d.get("meeting_date"), d.get("conducted_by"),
+                    ] if p) or None,
+                    url=(f"/safety-portal/meetings/{d.get('id')}" if role == "safety"
+                         else f"/admin/meetings/{d.get('id')}" if role == "admin"
+                         else f"/pm/meetings/{d.get('id')}"),
+                ))
+            return rows
+
+        async def run_inspections() -> List[Dict[str, Any]]:
+            """Wave B — searchable site inspections. PM-scoped."""
+            q_doc = {"$or": [
+                {"inspection_number": rx}, {"project_name": rx},
+                {"project_number": rx}, {"location": rx},
+                {"inspector_name": rx}, {"inspection_type": rx},
+            ]}
+            if role == "pm" and pm_proj is not None:
+                q_doc = {"$and": [q_doc, {"project_number": {"$in": pm_proj}}]}
+            rows = []
+            async for d in db.inspections.find(q_doc, {"_id": 0}).sort("inspection_date", -1).limit(limit * 2):
+                rows.append(_row(
+                    "inspections", d,
+                    title=d.get("inspection_number") or d.get("inspection_type") or "Site Inspection",
+                    subtitle=" · ".join(p for p in [
+                        d.get("project_name") or d.get("project_number"),
+                        d.get("inspection_date"), d.get("inspector_name"),
+                    ] if p) or None,
+                    url=(f"/safety-portal/inspections/{d.get('id')}" if role == "safety"
+                         else f"/admin/inspections/{d.get('id')}" if role == "admin"
+                         else f"/pm/inspections/{d.get('id')}"),
+                ))
+            return rows
+
+        async def run_trench_assets() -> List[Dict[str, Any]]:
+            """Wave B — searchable Trench Safety assets (boxes, plates, shores).
+            Public Trench Safety dashboard is no-auth, so role-gating is
+            relaxed — Admin / Safety / PM / Shop all need to find an
+            asset by ID, type, model, or serial. No PM-scoping (assets
+            move across projects)."""
+            q_doc = {"$or": [
+                {"asset_id": rx}, {"asset_type": rx},
+                {"model": rx}, {"serial_number": rx},
+                {"manufacturer": rx},
+            ]}
+            rows = []
+            async for d in db.trench_safety_assets.find(q_doc, {"_id": 0}).sort("asset_id", 1).limit(limit * 2):
+                aid = d.get("asset_id") or "—"
+                rows.append(_row(
+                    "trench_assets", d,
+                    title=f"{aid} · {d.get('asset_type') or 'Trench Asset'}",
+                    subtitle=" · ".join(p for p in [
+                        d.get("model"), d.get("manufacturer"),
+                        d.get("operational_status"),
+                    ] if p) or None,
+                    url=(f"/admin/trench-safety/assets/{aid}" if role == "admin"
+                         else f"/safety/trench-safety/assets/{aid}" if role == "safety"
+                         else f"/trench-safety/assets/{aid}"),
+                    status=d.get("operational_status"),
+                    badge=d.get("asset_type"),
+                ))
+            return rows
+
+        async def run_jha_plans() -> List[Dict[str, Any]]:
+            """Wave B — searchable JHA / JHP plans. PM-scoped."""
+            q_doc = {"$or": [
+                {"jha_number": rx}, {"job_title": rx},
+                {"title": rx}, {"project_name": rx},
+                {"project_number": rx}, {"prepared_by": rx},
+                {"crew_lead": rx}, {"location": rx},
+            ]}
+            if role == "pm" and pm_proj is not None:
+                q_doc = {"$and": [q_doc, {"project_number": {"$in": pm_proj}}]}
+            rows = []
+            async for d in db.jhas.find(q_doc, {"_id": 0}).sort("jha_date", -1).limit(limit * 2):
+                rows.append(_row(
+                    "jha_plans", d,
+                    title=d.get("job_title") or d.get("jha_number") or d.get("title") or "JHA",
+                    subtitle=" · ".join(p for p in [
+                        d.get("project_name") or d.get("project_number"),
+                        d.get("jha_date"), d.get("crew_lead") or d.get("prepared_by"),
+                    ] if p) or None,
+                    url=(f"/admin/jha-plans?focus={d.get('id')}" if role in ("admin", "pm")
+                         else f"/safety-portal/jha-plans?focus={d.get('id')}" if role == "safety"
+                         else "/jha"),
+                ))
+            return rows
+
         runners: Dict[str, Callable[[], Awaitable[List[Dict[str, Any]]]]] = {
             "tasks": run_tasks,
             "notifications": run_notifications,
@@ -551,6 +703,11 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             "operations_events": run_operations_events,
             "field_leadership": run_field_leadership,
             "staffing": run_staffing,
+            "daily_reports": run_daily_reports,
+            "meetings": run_meetings,
+            "inspections": run_inspections,
+            "trench_assets": run_trench_assets,
+            "jha_plans": run_jha_plans,
         }
 
         coros = [_probe(k, limit, runners[k]) for k in visible if k in runners]

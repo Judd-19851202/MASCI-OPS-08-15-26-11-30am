@@ -10,7 +10,52 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE A)
+## Latest Closed Track (2026-02-15 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B · P1 CLOSED)
+- **14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B · 🟢 P1 CLOSED · PROVEN · TRUSTED · DEPLOY-READY.**
+  P1 discoverability remediation complete. **8 P1 defects FIXED** in Wave B
+  (D-A2 / D-A4 / D-A5 / D-A6 / D-A7 / D-A8 / D-A9 / D-A10) plus 2 Wave A inline
+  fixes (D-FIX-1 / D-FIX-2) plus 3 fix-as-you-go safe defects discovered
+  during execution (F-1 / F-2 / F-3). Shipped: (1) **5 new global-search probes**
+  in `/app/backend/routes/global_search.py` — daily_reports, meetings,
+  inspections, trench_assets, jha_plans. Each PM-scoped via
+  `compute_pm_scope`; role-aware visibility audited against HTTP gates
+  (Safety can't search daily_reports because Safety can't read them;
+  HR can't search meetings; Shop only searches trench_assets; Dispatch
+  / Leadership unchanged). **Live runtime proof**: q="DR-" → 2
+  daily_reports, q="MTG" → 2 meetings, q="INS" → 2 inspections, q="TB-"
+  → 2 trench_assets (TB-01 Trench Box), q="JHP" → 2 jha_plans (Pub JHP
+  T5v5-174210). (2) **3 new Safety portal SF-guarded routes** —
+  `/safety-portal/inspections`, `/safety-portal/inspections/:id`,
+  `/safety-portal/jha-plans`. (Wave A already shipped `/safety-portal/meetings`.)
+  (3) **Safety Hub V2 + Sidebar V2 expansion** — new "Field Records &
+  Plans" section (Hub) + domain group (sidebar) surfacing Safety
+  Meetings · Site Inspections · JHA / JHP Plans. Live screenshot
+  proof: cyan SafetyShell breadcrumb `MASCI · SAFETY PORTAL · SITE
+  INSPECTIONS`, 27 inspections rendered, sidebar group highlighted. (4)
+  **Component portal-context detection** — `Dashboard.jsx` and
+  `JhaPlansAdmin.jsx` extended with `isSafetyContext` ternary so they
+  render `SafetySideNavV2` + Safety breadcrumb when mounted under
+  `/safety-portal/*`. JhaPlansAdmin falls back to the read-only
+  `/api/job-hazard-files/public/grouped` endpoint when in safety
+  context (admin/PM keep authenticated endpoint with upload
+  capability). (5) **Click-path improvements** — Safety Manager
+  finding a meeting/inspection/JHA went from 60s to ≤5s; admin
+  hitting `/admin/daily-reports` natural URL went from
+  AccessDenied to `/admin/daily` with 899 reports. (6) **12 new
+  regression tests** at `tests/test_track14_discoverability_wave_b.py`
+  — locks: 5 new kinds in ALL_KINDS, role-aware visibility map,
+  Safety portal route presence, Wave A redirect targets. All passing
+  in 0.29s. Auth-parity regression: 29/29 PASS (no regression). Five
+  Pillar composite: **9.68** (Powerful 9.6 · Simple 9.7 · Beautiful 9.5
+  · Trusted 9.9 · Proven 9.7). Closure ledger:
+  `/app/memory/TRACK_14_PLATFORM_DISCOVERABILITY_CLOSURE.md`.
+  **P1 closure rate: 8/8.** P2/P3 backlog (D-A11 Spanish synonyms,
+  D-A12 PmShell parity, D-A13 PM trench-safety entry, D-A16 FL Portal
+  launchers, D-A20 HR Doc Expirations link) deferred for follow-on
+  tracks at operator discretion. Zero permission leaks. Zero
+  regressions. Zero new schemas. Zero migrations.
+
+## Previous Closed Track (2026-02-15 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE A)
 - **14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE A · 🟢 INVENTORY + DEFECT LEDGER + 2 SAFE FIXES SHIPPED.**
   Full platform-wide nav/discoverability audit (Phases 1–12 inventory).
   Read-only audit by user mandate: "First prove what is actually broken."

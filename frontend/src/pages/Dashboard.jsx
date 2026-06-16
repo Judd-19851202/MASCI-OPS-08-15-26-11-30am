@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
+import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import { GradePill } from "@/components/Grade";
 import JobFolderList from "@/components/JobFolderList";
@@ -39,8 +40,15 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isPmContext = pathname.startsWith("/pm/");
-  const sideNav = isPmContext ? <PmSideNavV2 /> : <AdminSideNavV2 />;
-  const portalRole = isPmContext ? "PM Portal · Inspections" : "Admin · Inspections";
+  const isSafetyContext = pathname.startsWith("/safety-portal/");
+  // TRACK 14.0-DISCOVERABILITY · Wave B — render the matching portal
+  // sidebar so /safety-portal/inspections feels like Safety, not Admin.
+  const sideNav = isSafetyContext ? <SafetySideNavV2 />
+    : isPmContext ? <PmSideNavV2 />
+    : <AdminSideNavV2 />;
+  const portalRole = isSafetyContext ? "Safety Portal · Site Inspections"
+    : isPmContext ? "PM Portal · Inspections"
+    : "Admin · Inspections";
 
   const load = async () => {
     setLoading(true);

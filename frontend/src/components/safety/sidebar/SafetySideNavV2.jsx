@@ -55,6 +55,24 @@ export const SAFETY_DOMAINS_V2 = [
     ],
   },
   {
+    // TRACK 14.0-DISCOVERABILITY · Wave B — net-new domain group surfacing
+    // three Safety records that were Wave A defects (D-A2/A4/A5):
+    // toolbox / tailgate meetings, site inspections, JHA plans. All
+    // three were reachable only via Admin namespace (wrong shell) or
+    // not reachable at all from the Safety Hub. Adding them here puts
+    // them inside the cyan Safety chrome with one click.
+    id: "field-records",
+    label: "Field Records & Plans",
+    subline: "Toolbox talks, site inspections, JHA plans.",
+    stripe: "#0e7490", // cyan-700 — Safety brand
+    icon: ClipboardCheck,
+    routes: [
+      { to: "/safety-portal/meetings",     label: "Safety Meetings",   desc: "Toolbox talks and pre-shift huddles.",      icon: Users },
+      { to: "/safety-portal/inspections",  label: "Site Inspections",  desc: "Job-site walkthroughs and grading.",        icon: ClipboardCheck },
+      { to: "/safety-portal/jha-plans",    label: "JHA / JHP Plans",   desc: "Job hazard analyses and crew sign-offs.",   icon: FileText },
+    ],
+  },
+  {
     id: "compliance-records",
     label: "Compliance & Records",
     subline: "Expirations, fire extinguishers, weekly digest, reports.",

@@ -268,6 +268,53 @@ export default function SafetyHubV2() {
           </div>
         </section>
 
+        {/* TRACK 14.0-DISCOVERABILITY · Wave B (2026-02-15)
+           Section 4 — Field Records & Plans. Three Safety records were
+           Wave A discoverability defects: tailgate / toolbox meetings,
+           site inspections, JHA plans. Surfacing them here puts them
+           one click away from the Safety Hub. Each tile deep-links
+           into the SF-guarded list page (added in this track). */}
+        <section data-testid="safety-hub-v2-section-field-records" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="04 · Field records · plans on file"
+            title="Toolbox talks · site inspections · JHA plans"
+            caption="Browse the Safety record set directly inside the Safety portal."
+          />
+          <div data-testid="safety-hub-v2-queue-grid-field-records"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+            <QueueCard
+              to="/safety-portal/meetings"
+              testid="safety-hub-v2-queue-meetings"
+              title="Safety Meetings"
+              why="Toolbox talks · pre-shift huddles · jobsite topic reviews"
+              source="Live count · safety meetings on file"
+              value={null}
+              loaded={true}
+              variantWhenAttention="default"
+            />
+            <QueueCard
+              to="/safety-portal/inspections"
+              testid="safety-hub-v2-queue-inspections"
+              title="Site Inspections"
+              why="Job-site walkthroughs · hazard observations · grading"
+              source="Live count · inspections on file"
+              value={null}
+              loaded={true}
+              variantWhenAttention="default"
+            />
+            <QueueCard
+              to="/safety-portal/jha-plans"
+              testid="safety-hub-v2-queue-jha-plans"
+              title="JHA / JHP Plans"
+              why="Job hazard analyses · crew sign-offs · revisions"
+              source="Live count · JHA plans on file"
+              value={null}
+              loaded={true}
+              variantWhenAttention="default"
+            />
+          </div>
+        </section>
+
         {allZero && (
           <EmptyState
             testId="safety-hub-v2-all-clear"

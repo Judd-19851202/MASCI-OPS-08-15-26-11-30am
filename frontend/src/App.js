@@ -903,6 +903,15 @@ function App() {
             <Route path="/safety-portal/library" element={SF(<SafetyTopicLibrary />)} />
             <Route path="/safety-portal/employees" element={SF(<SafetyEmployeeProfiles />)} />
             <Route path="/safety-portal/digest" element={SF(<SafetyDigest />)} />
+            {/* TRACK 14.0-DISCOVERABILITY · Wave B (2026-02-15) — Safety
+                portal first-class entries for Site Inspections and JHA
+                Plans. Both backends already accept X-Safety-Token via
+                _read_gate; adding the SF-wrapped routes lets safety
+                users list / review these records inside their portal
+                shell instead of bouncing through AdminShell. */}
+            <Route path="/safety-portal/inspections" element={SF(<Dashboard />)} />
+            <Route path="/safety-portal/inspections/:id" element={SF(<ViewInspection />)} />
+            <Route path="/safety-portal/jha-plans" element={SF(<JhaPlansAdmin />)} />
             {/* DCP-1 · Driver Command Profile · Safety scope */}
             <Route path="/safety-portal/driver/:driverKey" element={SF(<SafetyDriverProfile />)} />
 
