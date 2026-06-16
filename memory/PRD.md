@@ -10,7 +10,43 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-16 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B-P1 REMAINING REMEDIATION · CLOSED)
+## Latest Closed Track (2026-02-16 · TRACK 14.0-OVERLOADED-CREW-VISIBILITY-CERTIFICATION · CLOSED)
+- **14.0-OVERLOADED-CREW-VISIBILITY-CERTIFICATION · 🟢 CLOSED · PROVEN · CERTIFIED.**
+  Visibility-only track (not a staffing redesign). Leadership now sees
+  overloaded personnel above the fold on Project Staffing with no
+  hunting and no exports.
+  - **Backend**: new `OVERLOAD_ACTIVE_PROJECT_THRESHOLD = 5` constant in
+    `/app/backend/routes/project_team_assignments.py` (single source of
+    truth, exported via `__all__`). `/api/project-staffing/summary`
+    extended to compute per-person aggregation across the actor's
+    scope and emit `overloaded[]` (each with `email`, `display_name`,
+    `active_project_count`, `is_overloaded`, `projects[].roles[]`),
+    `overload_threshold`, `people_count`. De-dup logic counts UNIQUE
+    projects, not roster rows. No new queries · no new collections ·
+    no new permissions.
+  - **Frontend**: new 4th KPI tile "OVERLOADED CREW · count · ≥5
+    active projects" and full "Overloaded Crew" panel in
+    `/app/frontend/src/pages/ProjectStaffingHub.jsx`. Rose for risk ·
+    emerald for empty state · icon + color + text (color is never the
+    sole signal). Expandable person rows drill into project list,
+    each project linking to `/admin/jobs/{pn}/team` or
+    `/pm/job/{pn}/team`. iPad-safe layout. Same component mounts at
+    `/admin/project-staffing` and `/pm/project-staffing` so admin
+    and PM scopes inherit the visibility surface.
+  - **Permission audit (no leaks)**: Admin → 2 overloaded persons
+    (Chris Wright @ 8 projects, David Jewett @ 8 projects, both PM).
+    PM (cert.pm) → 0 overloaded (scope=1 project). HR/Safety/Shop
+    do not consume this endpoint.
+  - **Performance**: 0.247s end-to-end vs 2.0s budget — endpoint
+    is in-memory aggregation over data already pulled.
+  - **Persona cert** (testing_agent_v3_fork iter520): 100%
+    backend / 100% frontend · 0 defects · `retest_needed=False`.
+  - **Regression**: `tests/test_track14_overloaded_crew_visibility.py`
+    (8 tests) · Wave B regression (20) · Auth parity (29) ·
+    **56/56 green**.
+  - **Closure ledger**: `/app/memory/TRACK_14_OVERLOADED_CREW_CLOSURE.md`.
+
+## Previously Closed Track (2026-02-16 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B-P1 REMAINING REMEDIATION · CLOSED)
 - **14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B-P1 · 🟢 CLOSED · PROVEN · CERTIFIED.**
   Final three Wave A backlog items closed in a single P1 pass:
   - **D-A11 Spanish search synonyms** → `ES_EN_SYNONYMS` table (33 ES tokens)
