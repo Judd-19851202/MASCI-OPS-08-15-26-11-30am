@@ -3557,6 +3557,15 @@ const ES = {
     "Plataformas de proyecto conectadas para comunicación, localización de servicios y planos de construcción.",
   // ── Track 15.4A (2026-06-16) · Field Leadership card upgrade ─────
   "View all Field Leadership records": "Ver todos los registros de Field Leadership",
+  // ── Track 15.4B (2026-06-16) · Field Leadership public-safe correction ─
+  "Track workforce accountability, employee development, equipment custody, recognition, and leadership records across every project.":
+    "Registre responsabilidad de personal, desarrollo del empleado, custodia de equipo, reconocimiento y registros de liderazgo en cada proyecto.",
+  "Open Field Leadership": "Abrir Field Leadership",
+  "Field Leadership capabilities": "Capacidades de Field Leadership",
+  "Leadership Records": "Registros de Liderazgo",
+  "Employee Documentation": "Documentación del Empleado",
+  "Equipment Custody": "Custodia de Equipo",
+  "Recognition Tracking": "Registro de Reconocimientos",
   "What every crew on site does today.":
     "Lo que cada cuadrilla en el sitio hace hoy.",
   "File end-of-day reports, log equipment walk-arounds, and capture crew, weather, and production from the job site.":

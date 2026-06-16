@@ -10,7 +10,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.4A · HERO PERIOD FIX + FIELD LEADERSHIP CARD POLISH · 🟢 PASSED)
+## Latest Closed Track (2026-06-16 · TRACK 15.4B · FIELD LEADERSHIP PUBLIC CARD CORRECTION · 🟢 PASSED)
+- **Track:** Public-safety correction to the Field Leadership homepage card.
+- **Verdict:** 🟢 12/12 closure criteria · 25/25 Five Pillars.
+- **Problem fixed**: 15.4A exposed 5 internal workflow URLs (/leadership/recognition/new, /write_up/new, /equipment_checkout/new, /records, plus the Open Hub link) on the PUBLIC homepage. That advertised gated form taxonomy, created a phishing surface, and made Field Leadership read as a form menu instead of a leadership system.
+- **Fix**: removed the 4-launcher grid + footer link. Replaced with a non-clickable capability list (Leadership Records · Employee Documentation · Equipment Custody · Recognition Tracking). Whole card is now ONE `<a href="/leadership">` click target. Capability list children are `<li>` with zero nested `<a>` tags.
+- **Approved description applied**: "Track workforce accountability, employee development, equipment custody, recognition, and leadership records across every project." (EN + ES).
+- **DOM-verified**: all 5 old launcher testids return count=0; capability list count=1; card tag=A href=/leadership.
+- **Regression**: replaced 5 internal-launcher assertions with 12 public-safety assertions (forbidden labels assertions, capability renders, no nested anchors, single-route check). Combined suite: ~37 assertions across 15.1-15.4B.
+- **Cleanup**: production untouched, 3 frontend files edited, 1 report created.
+
+## Previous Closed Track (2026-06-16 · TRACK 15.4A · HERO PERIOD FIX + FIELD LEADERSHIP CARD POLISH · 🟢 PASSED)
 - **Track:** Tight polish pass — hero period color + Field Leadership card upgrade.
 - **Verdict:** 🟢 12/12 closure criteria · 25/25 Five Pillars.
 - **Phase 1 — Hero period**: red span shrunk to "Every Job" (no trailing period); final `.` now inherits navy `text-slate-900`. EN + ES both fixed.

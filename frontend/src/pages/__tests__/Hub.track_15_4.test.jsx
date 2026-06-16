@@ -127,37 +127,63 @@ describe("TRACK 15.4 — Homepage hero + Project Systems contract", () => {
     expect(screen.getByTestId("hub-field-leadership-title").textContent).toBe(
       "Field Leadership",
     );
-    expect(screen.getByTestId("hub-field-leadership-launchers")).toBeTruthy();
+    // Track 15.4B: the public homepage MUST NOT expose internal
+    // workflow launchers. The capability list replaces them.
+    expect(screen.getByTestId("hub-field-leadership-capabilities")).toBeTruthy();
+    expect(
+      screen.queryByTestId("hub-field-leadership-launchers"),
+    ).toBeNull();
   });
 
   it.each([
-    ["hub-fl-launch-open", "/leadership", "Open Hub"],
-    ["hub-fl-launch-recognition", "/leadership/recognition/new", "Recognition"],
-    ["hub-fl-launch-write-up", "/leadership/write_up/new", "Write-Up"],
-    [
-      "hub-fl-launch-equipment-checkout",
-      "/leadership/equipment_checkout/new",
-      "Equipment Checkout",
-    ],
+    "hub-fl-launch-open",
+    "hub-fl-launch-recognition",
+    "hub-fl-launch-write-up",
+    "hub-fl-launch-equipment-checkout",
+    "hub-fl-view-all-records",
   ])(
-    "Field Leadership launcher %s routes to %s (label=%s)",
-    (testId, route, label) => {
+    "Track 15.4B: public homepage does NOT expose internal launcher %s",
+    (testId) => {
       renderHub();
-      const el = screen.getByTestId(testId);
-      expect(el.tagName).toBe("A");
-      // react-router Link renders <a href="..."> for in-app routes.
-      expect(el.getAttribute("href")).toBe(route);
-      // No placeholder anchors.
-      expect(el.getAttribute("href")).not.toBe("#");
-      expect(el.textContent).toMatch(new RegExp(label));
+      expect(screen.queryByTestId(testId)).toBeNull();
     },
   );
 
-  it("Field Leadership 'View all records' footer link routes correctly", () => {
+  it.each([
+    "Leadership Records",
+    "Employee Documentation",
+    "Equipment Custody",
+    "Recognition Tracking",
+  ])(
+    "Field Leadership capability label %s renders publicly",
+    (label) => {
+      renderHub();
+      // Each capability label is rendered as a non-clickable <li>.
+      expect(screen.getByText(label)).toBeTruthy();
+    },
+  );
+
+  it.each(["Write-Up", "Coaching Note", "Discipline", "Recognition Form", "Records Ledger", "Attendance Action"])(
+    "Track 15.4B: forbidden internal label %s is NOT shown publicly",
+    (label) => {
+      renderHub();
+      expect(screen.queryByText(label)).toBeNull();
+    },
+  );
+
+  it("Field Leadership card is a single click target routing to /leadership", () => {
     renderHub();
-    const el = screen.getByTestId("hub-fl-view-all-records");
-    expect(el.tagName).toBe("A");
-    expect(el.getAttribute("href")).toBe("/leadership/records");
-    expect(el.getAttribute("href")).not.toBe("#");
+    const card = screen.getByTestId("hub-section-leadership");
+    expect(card.tagName).toBe("A");
+    expect(card.getAttribute("href")).toBe("/leadership");
+    expect(card.getAttribute("href")).not.toBe("#");
+  });
+
+  it("Field Leadership capability list items are NOT clickable", () => {
+    renderHub();
+    const list = screen.getByTestId("hub-field-leadership-capabilities");
+    // <ul> children should be <li>, not <a> — no internal links.
+    const anchors = list.querySelectorAll("a");
+    expect(anchors.length).toBe(0);
   });
 });

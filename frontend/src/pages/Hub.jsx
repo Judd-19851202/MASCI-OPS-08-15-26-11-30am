@@ -535,63 +535,44 @@ function detectActiveSession(t, rerender) {
 }
 
 /**
- * FieldLeadershipCard — Track 15.4A (2026-06-16) sibling-of-Project-Systems.
+ * FieldLeadershipCard — Track 15.4B (2026-06-16) public-safe correction.
  *
- * Before 15.4A, the Leadership Tools row had a heavyweight Project
- * Systems card on the right and a thin <MediumTile> on the left
- * which made Field Leadership read as empty/unfinished. This card
- * is a sibling — same shell language (border, padding, badge,
- * title, description, action area), but with INTERNAL route
- * launchers instead of external platform launchers, and a calm
- * MASCI navy/slate palette so the two cards differ by purpose, not
- * by quality.
+ * The 15.4A iteration exposed 4 internal workflow routes
+ * (Recognition / Write-Up / Equipment Checkout / Records) on the
+ * public homepage. That advertised internal gated process structure
+ * and made the card read as a form menu rather than a leadership
+ * system.
  *
- * All four launchers route to live FieldLeadership routes already
- * registered in App.js. No placeholder links.
+ * 15.4B removes all internal launchers. The card is now a single
+ * full-card click target routing to `/leadership` (the gated
+ * Field Leadership entry point that already enforces auth and shows
+ * the real workflow menu to authorized users). A non-clickable
+ * capability list communicates scope in public-safe language
+ * (capability labels, NOT form names).
+ *
+ * Visual density (vs the prior 4-launcher grid) comes from the
+ * capability list rendered as small bordered rows with check icons,
+ * so the card retains its equal-peer weight with Project Systems
+ * without exposing internal workflow URLs.
  */
-const FIELD_LEADERSHIP_LAUNCHERS = [
-  {
-    key: "open",
-    label: "Open Hub",
-    sub: "Records & ledger",
-    to: "/leadership",
-    icon: UserCheck,
-    testid: "hub-fl-launch-open",
-  },
-  {
-    key: "recognition",
-    label: "Recognition",
-    sub: "Log a good catch",
-    to: "/leadership/recognition/new",
-    icon: ShieldCheck,
-    testid: "hub-fl-launch-recognition",
-  },
-  {
-    key: "write-up",
-    label: "Write-Up",
-    sub: "Coaching note",
-    to: "/leadership/write_up/new",
-    icon: ClipboardCheck,
-    testid: "hub-fl-launch-write-up",
-  },
-  {
-    key: "equipment-checkout",
-    label: "Equipment Checkout",
-    sub: "Custody hand-off",
-    to: "/leadership/equipment_checkout/new",
-    icon: Truck,
-    testid: "hub-fl-launch-equipment-checkout",
-  },
+const FIELD_LEADERSHIP_CAPABILITIES = [
+  "Leadership Records",
+  "Employee Documentation",
+  "Equipment Custody",
+  "Recognition Tracking",
 ];
 
 function FieldLeadershipCard({ testId }) {
   const { t } = useT();
   return (
-    <div
-      // Same shell language as ProjectSystemsCard so the row reads
-      // as a balanced pair of equal-weight cards.
-      className="group relative bg-white border border-slate-200 rounded-md p-6 flex items-start gap-5 shadow-sm"
+    <Link
+      to="/leadership"
       data-testid={testId}
+      aria-label={t("Open Field Leadership")}
+      // Same shell language as ProjectSystemsCard so the row reads
+      // as a balanced pair of equal-weight cards. Whole card is the
+      // click target — no internal links, no public submenu.
+      className="group relative bg-white border border-slate-200 hover:border-slate-900 rounded-md p-6 flex items-start gap-5 shadow-sm hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 no-underline text-inherit"
     >
       <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-slate-900 text-white shrink-0">
         <UserCheck className="w-7 h-7" />
@@ -610,54 +591,36 @@ function FieldLeadershipCard({ testId }) {
           className="text-slate-600 text-sm mt-1.5 leading-snug"
           data-testid="hub-field-leadership-description"
         >
-          {t("Track crew accountability, employee documentation, equipment custody, recognition, and workforce decisions.")}
+          {t("Track workforce accountability, employee development, equipment custody, recognition, and leadership records across every project.")}
         </p>
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-5"
-          data-testid="hub-field-leadership-launchers"
+        {/* Public-safe capability list — descriptive only, NOT
+            clickable, NOT routed. The gated /leadership portal
+            handles the real workflow menu after sign-in. */}
+        <ul
+          className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5"
+          data-testid="hub-field-leadership-capabilities"
+          aria-label={t("Field Leadership capabilities")}
         >
-          {FIELD_LEADERSHIP_LAUNCHERS.map((act) => {
-            const Icon = act.icon;
-            return (
-              <Link
-                key={act.key}
-                to={act.to}
-                data-testid={act.testid}
-                aria-label={act.label}
-                // Calm slate-50 → slate-100 palette so these read as
-                // operational actions inside the MASCI shell — not
-                // external-launch buttons. Same 64px touch target.
-                className="group/act relative flex items-center gap-3 h-16 px-3 rounded-md bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-900 transition-colors duration-150 border border-slate-200 hover:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
-              >
-                <span className="flex items-center justify-center w-10 h-10 rounded-md bg-white border border-slate-200 group-hover/act:bg-slate-800 group-hover/act:border-slate-700 shrink-0 transition-colors">
-                  <Icon className="w-5 h-5" />
-                </span>
-                <span className="flex-1 min-w-0 flex flex-col">
-                  <span className="text-sm font-display font-bold tracking-tight leading-tight whitespace-nowrap">
-                    {act.label}
-                  </span>
-                  <span className="text-[11px] text-slate-500 group-hover/act:text-slate-300 leading-tight truncate">
-                    {act.sub}
-                  </span>
-                </span>
-                <ArrowRight className="w-4 h-4 shrink-0 opacity-40 group-hover/act:opacity-100 transition-opacity" />
-              </Link>
-            );
-          })}
+          {FIELD_LEADERSHIP_CAPABILITIES.map((label) => (
+            <li
+              key={label}
+              className="flex items-center gap-2 h-10 px-3 rounded-md bg-slate-50 border border-slate-200"
+            >
+              <ShieldCheck className="w-4 h-4 text-slate-700 shrink-0" />
+              <span className="text-[13px] font-display font-bold tracking-tight text-slate-900 whitespace-nowrap">
+                {t(label)}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {/* Single quiet open affordance so the click target is
+            unambiguous on iPad without re-introducing a submenu. */}
+        <div className="inline-flex items-center gap-1.5 mt-4 text-xs font-mono uppercase tracking-[0.18em] font-bold text-slate-700 group-hover:text-slate-900">
+          {t("Open Field Leadership")}
+          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
         </div>
-        {/* Footer link gives the card vertical balance with the
-            3-launcher Project Systems sibling and surfaces the full
-            records ledger for leaders auditing prior submissions. */}
-        <Link
-          to="/leadership/records"
-          data-testid="hub-fl-view-all-records"
-          className="inline-flex items-center gap-1.5 mt-3 text-xs font-mono uppercase tracking-[0.18em] font-bold text-slate-700 hover:text-slate-900 group/foot"
-        >
-          {t("View all Field Leadership records")}
-          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/foot:translate-x-1" />
-        </Link>
       </div>
-    </div>
+    </Link>
   );
 }
 
