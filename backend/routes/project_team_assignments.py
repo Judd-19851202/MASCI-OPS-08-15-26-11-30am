@@ -76,6 +76,15 @@ ADMIN_ONLY_ROLES: Set[str] = {"pm", "co_pm", "executive_oversight"}
 PM_ASSIGNABLE_ROLES: Set[str] = ALL_ROLES - ADMIN_ONLY_ROLES
 
 
+# ── TRACK 14.0-OVERLOADED-CREW-VISIBILITY · Phase 2 ──────────────────
+# Single source of truth for the overload threshold. A person is
+# considered "overloaded" when they hold this many or more active
+# assignments across active (non-deleted) projects within the actor's
+# visibility scope. Configurable, regression-locked, no magic numbers
+# elsewhere.
+OVERLOAD_ACTIVE_PROJECT_THRESHOLD: int = 5
+
+
 # ── Pydantic IO models ───────────────────────────────────────────────
 class AssignmentIn(BaseModel):
     user_id: Optional[str] = None
@@ -937,6 +946,9 @@ def register_project_team_assignments(
                     if not pns:
                         return {"items": [], "count": 0,
                                 "role_totals": {}, "role_keys": list(ROLE_REGISTRY.keys()),
+                                "overloaded": [],
+                                "overload_threshold": OVERLOAD_ACTIVE_PROJECT_THRESHOLD,
+                                "people_count": 0,
                                 "totals": {"projects": 0, "active_assignments": 0,
                                            "unassigned_role_slots": 0}}
                     q_jobs["project_number"] = {"$in": pns}
@@ -967,6 +979,20 @@ def register_project_team_assignments(
         total_unassigned_slots = 0
         items: List[Dict[str, Any]] = []
 
+        # TRACK 14.0-OVERLOADED-CREW-VISIBILITY · Phase 1+3 — per-person
+        # aggregation across the actor's scope. Keyed on email (lower),
+        # falling back to user_id if email is absent. One row per person
+        # carrying every active project they are on so leadership can
+        # see WHO is overloaded and WHICH projects create the load.
+        person_index: Dict[str, Dict[str, Any]] = {}
+
+        # Map for project name lookup during person aggregation.
+        project_name_by_pn: Dict[str, str] = {
+            (j.get("project_number") or ""):
+                (j.get("name") or j.get("project_name") or "")
+            for j in projects
+        }
+
         primary_role_keys = ("pm", "superintendent", "foreman",
                              "safety_rep", "qaqc_rep", "project_engineer")
         for j in projects:
@@ -985,6 +1011,29 @@ def register_project_team_assignments(
                             "email": r.get("email"),
                             "is_primary": bool(r.get("is_primary")),
                         }
+                # Per-person index — count every active assignment row
+                # toward that person's load, regardless of role.
+                p_email = (r.get("email") or "").strip().lower()
+                p_uid = r.get("user_id") or ""
+                p_key = p_email or p_uid
+                if p_key:
+                    bucket = person_index.get(p_key)
+                    if bucket is None:
+                        bucket = {
+                            "key": p_key,
+                            "email": r.get("email"),
+                            "user_id": p_uid or None,
+                            "display_name": r.get("display_name") or r.get("email") or "—",
+                            "projects": [],
+                        }
+                        person_index[p_key] = bucket
+                    bucket["projects"].append({
+                        "project_number": pn,
+                        "name": project_name_by_pn.get(pn or "", ""),
+                        "assignment_role": role,
+                        "role_label": ROLE_REGISTRY.get(role, role or "—"),
+                        "is_primary": bool(r.get("is_primary")),
+                    })
             unassigned = [k for k in ROLE_REGISTRY.keys() if k not in roles_filled]
             total_active += len(roster)
             total_unassigned_slots += len(unassigned)
@@ -999,11 +1048,63 @@ def register_project_team_assignments(
 
         items.sort(key=lambda i: (i.get("active_assignments") or 0, i.get("project_number") or ""))
 
+        # TRACK 14.0-OVERLOADED-CREW-VISIBILITY · Phase 1-6 — build the
+        # overload roster from the in-memory person index. No new
+        # queries; we already saw every active assignment row above.
+        # "Active project count" is the number of UNIQUE project numbers
+        # the person is rostered on (not the number of roster rows) so
+        # someone holding two roles on the same job counts as 1 project.
+        overloaded: List[Dict[str, Any]] = []
+        people_summary: List[Dict[str, Any]] = []
+        for bucket in person_index.values():
+            # Group this person's roster rows by project_number.
+            by_pn: Dict[str, Dict[str, Any]] = {}
+            for row in bucket["projects"]:
+                pn = row.get("project_number") or ""
+                slot = by_pn.get(pn)
+                if slot is None:
+                    slot = {
+                        "project_number": pn,
+                        "name": row.get("name") or "",
+                        "roles": [],
+                        "is_primary": False,
+                    }
+                    by_pn[pn] = slot
+                slot["roles"].append({
+                    "assignment_role": row.get("assignment_role"),
+                    "role_label": row.get("role_label"),
+                    "is_primary": bool(row.get("is_primary")),
+                })
+                if row.get("is_primary"):
+                    slot["is_primary"] = True
+            projects_sorted = sorted(by_pn.values(), key=lambda p: p.get("project_number") or "")
+            count = len(projects_sorted)
+            display_name = bucket.get("display_name") or bucket.get("email") or bucket.get("user_id") or "—"
+            person_row = {
+                "email": bucket.get("email"),
+                "user_id": bucket.get("user_id"),
+                "display_name": display_name,
+                "active_project_count": count,
+                "is_overloaded": count >= OVERLOAD_ACTIVE_PROJECT_THRESHOLD,
+                "projects": projects_sorted,
+            }
+            people_summary.append(person_row)
+            if person_row["is_overloaded"]:
+                overloaded.append(person_row)
+
+        # Sort overloaded list: highest load first, then name.
+        overloaded.sort(
+            key=lambda p: (-p["active_project_count"], (p.get("display_name") or "").lower())
+        )
+
         return {
             "items": items,
             "count": len(items),
             "role_keys": list(ROLE_REGISTRY.keys()),
             "role_totals": role_totals,
+            "overloaded": overloaded,
+            "overload_threshold": OVERLOAD_ACTIVE_PROJECT_THRESHOLD,
+            "people_count": len(people_summary),
             "totals": {
                 "projects": len(items),
                 "active_assignments": total_active,
@@ -1051,4 +1152,5 @@ __all__ = [
     "_canonical_role",
     "ADMIN_ONLY_ROLES",
     "PM_ASSIGNABLE_ROLES",
+    "OVERLOAD_ACTIVE_PROJECT_THRESHOLD",
 ]

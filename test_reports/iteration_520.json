@@ -1,0 +1,54 @@
+{
+  "summary": "TRACK 14.0-OVERLOADED-CREW-VISIBILITY-CERTIFICATION certified PASS. 7/7 existing regression tests pass. 7/7 new API smoke tests pass (admin contract, PM scope, HR/Safety boundary, perf). Frontend visually verified on desktop + mobile: admin sees count=2 (Chris Wright @8, David Jewett @8) with rose chrome and expand-to-projects working with /admin/jobs/{pn}/team links; PM sees count=0 with emerald empty state.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track14_overloaded_crew_visibility.py",
+    "/app/backend/tests/test_track14_overload_api_smoke.py",
+    "/app/test_reports/pytest/track14_overload_visibility.xml",
+    "/app/test_reports/pytest/track14_overload_api_smoke.xml",
+    "/app/test_reports/track14_overload_admin.jpg",
+    "/app/test_reports/track14_overload_admin_expanded.jpg",
+    "/app/test_reports/track14_overload_pm.jpg",
+    "/app/test_reports/track14_overload_pm_mobile.jpg"
+  ],
+  "test_evidence": {
+    "admin_kpi_tile": "OVERLOADED CREW · 2 · ≥ 5 ACTIVE PROJECTS (rose color)",
+    "admin_panel": "'Overloaded Crew' with 'Threshold: 5+ active projects' chip, rose-tinted card border",
+    "admin_overloaded_people": "Chris Wright (chriswright@mascigc.com) - 8 active projects; David Jewett (davidjewett@mascigc.com) - 8 active projects",
+    "admin_expand": "Clicking Chris Wright row reveals 'PROJECTS CREATING THE LOAD' header and 8 project rows: 24-13 - CP, 25-12, 25-13, 25-15, 25-23 - CP, 26-01 - CP, 26-08 - CP, 26-09 - all with Project Manager ★ role badge",
+    "project_link_href": "/admin/jobs/24-13%20-%20CP/team (correct format)",
+    "pm_kpi_tile": "OVERLOADED CREW · 0 · ≥ 5 ACTIVE PROJECTS (emerald)",
+    "pm_empty_state": "'No crew currently overloaded in your scope.' with emerald chrome",
+    "api_contract_admin": "overloaded[]=2, overload_threshold=5, people_count present, entries have email/display_name/active_project_count/is_overloaded/projects[] with roles[]",
+    "api_contract_pm": "overloaded[]=0, overload_threshold=5, scope respected",
+    "permission_boundary_hr": "X-HR-Token GET /api/project-staffing/summary did NOT leak admin overload data (Chris/David not exposed)",
+    "permission_boundary_safety": "X-Safety-Token did NOT leak admin overload data",
+    "performance": "/api/project-staffing/summary?limit=300 with admin token = 0.247s (budget 2.0s)",
+    "mobile_viewport_390x844": "Overloaded Crew section visible and operational",
+    "sidebar_discoverability": "/admin/project-staffing reachable via sidebar 'Project Staffing' entry (Admin Console left sidebar); PM sidebar shows 'Project Staffing' under Field Coordination — confirmed by direct navigation and text presence"
+  },
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Constant OVERLOAD_ACTIVE_PROJECT_THRESHOLD=5 properly exported via __all__ in routes/project_team_assignments.py - good pattern, prevents magic numbers.",
+    "Project links use URL-encoded project_number (e.g., '24-13%20-%20CP') - confirmed working with /admin/jobs/{pn}/team route.",
+    "Performance is excellent (0.247s vs 2.0s budget) — no scalability concern at current data size.",
+    "Data-testid coverage on overload section is exemplary (section, count, threshold-chip, empty-state, list, row-{id}, toggle-{id}, count-{id}, project-link-{pn})."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track14_overload_api_smoke.py (new — 7 API contract+boundary+perf tests)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin via /sign-in: jaymn.judd@mascigc.com / Maddix123! (master multi-login fans out portal tokens). Legacy /api/admin/login password MASCI1982! still works programmatically. PM: cert.pm@example.com / CertProof2026!. HR: cert.hr@example.com / CertProof2026!. Safety: cert.safety@example.com / CertProof2026!.",
+  "seed_data_creation": "None - used existing preview data (24 people, 2 overloaded).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Track 14 overload visibility is GREEN end-to-end on preview. Use /sign-in (not /admin/login) for admin UI tests — the legacy admin/login page now requires email+password and does not accept the bare MASCI1982! string. For API tests, /api/admin/login still accepts {password: 'MASCI1982!'}. Note admin login can be slow on cold preview (use timeout=45). Re-usable API smoke test at /app/backend/tests/test_track14_overload_api_smoke.py covers contract+scope+boundary+perf."
+}

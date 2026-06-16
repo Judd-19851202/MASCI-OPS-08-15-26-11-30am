@@ -11,7 +11,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Users, AlertTriangle, ArrowRight, Search } from "lucide-react";
+import { Users, AlertTriangle, ArrowRight, Search, ShieldAlert, ChevronDown, ChevronRight } from "lucide-react";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,9 +44,19 @@ const PRIMARY_LABELS = {
 };
 
 export default function ProjectStaffingHub({ scope = "admin" }) {
-  const [data, setData] = useState({ loaded: false, items: [], totals: null, role_totals: null });
+  const [data, setData] = useState({
+    loaded: false,
+    items: [],
+    totals: null,
+    role_totals: null,
+    overloaded: [],
+    overload_threshold: 5,
+  });
   const [q, setQ] = useState("");
   const [err, setErr] = useState(null);
+  // TRACK 14.0-OVERLOADED-CREW-VISIBILITY — expand state per overloaded
+  // person so leadership can drill into the projects creating the load.
+  const [expandedKey, setExpandedKey] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +77,8 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
           items: body.items || [],
           totals: body.totals || null,
           role_totals: body.role_totals || null,
+          overloaded: body.overloaded || [],
+          overload_threshold: body.overload_threshold || 5,
         });
       })
       .catch((e) => { if (!cancelled) { setErr(e.message); setData((d) => ({ ...d, loaded: true })); } });
@@ -122,17 +134,174 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
               <p className="text-2xl font-bold text-amber-700">{data.totals.unassigned_role_slots}</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card data-testid="overload-summary-card">
             <CardContent className="p-4">
-              <p className="text-xs uppercase text-slate-500">Avg per project</p>
-              <p className="text-2xl font-bold">
-                {data.totals.projects
-                  ? (data.totals.active_assignments / data.totals.projects).toFixed(1)
-                  : "0.0"}
+              <p className="text-xs uppercase text-slate-500 flex items-center gap-1">
+                <ShieldAlert className="w-3 h-3" />
+                Overloaded Crew
+              </p>
+              <p
+                className={
+                  "text-2xl font-bold " +
+                  ((data.overloaded?.length || 0) > 0 ? "text-rose-700" : "text-emerald-700")
+                }
+                data-testid="overload-count"
+              >
+                {data.overloaded?.length || 0}
+              </p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wide">
+                ≥ {data.overload_threshold} active projects
               </p>
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* TRACK 14.0-OVERLOADED-CREW-VISIBILITY · Phase 3-6 — above-fold,
+          always-visible (when data is loaded) overload section. Empty
+          state explicitly confirms "no overload" so leadership trusts
+          the silence. */}
+      {data.loaded && !err && (
+        <Card
+          data-testid="overloaded-crew-section"
+          className={
+            (data.overloaded?.length || 0) > 0
+              ? "border-rose-300 bg-rose-50/40"
+              : "border-emerald-200 bg-emerald-50/30"
+          }
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ShieldAlert
+                className={
+                  "w-4 h-4 " +
+                  ((data.overloaded?.length || 0) > 0 ? "text-rose-700" : "text-emerald-700")
+                }
+              />
+              Overloaded Crew
+              <Badge
+                variant="outline"
+                className={
+                  "text-[10px] " +
+                  ((data.overloaded?.length || 0) > 0
+                    ? "border-rose-400 text-rose-800 bg-rose-100"
+                    : "border-emerald-400 text-emerald-800 bg-emerald-100")
+                }
+                data-testid="overload-threshold-chip"
+              >
+                Threshold: {data.overload_threshold}+ active projects
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-2">
+            {(data.overloaded?.length || 0) === 0 ? (
+              <p
+                className="text-sm text-emerald-800 font-medium"
+                data-testid="overload-empty-state"
+              >
+                No crew currently overloaded in {scope === "admin" ? "the company" : "your scope"}.
+              </p>
+            ) : (
+              <div className="space-y-2" data-testid="overload-list">
+                <p className="text-xs text-rose-900/80 mb-1">
+                  These team members are assigned to {data.overload_threshold} or more active
+                  projects. Open a row to see exactly which projects create the load.
+                </p>
+                <ul className="divide-y divide-rose-100/80 rounded border border-rose-200 bg-white overflow-hidden">
+                  {data.overloaded.map((p) => {
+                    const key = p.email || p.user_id || p.display_name;
+                    const isOpen = expandedKey === key;
+                    return (
+                      <li
+                        key={key}
+                        data-testid={`overload-row-${(p.email || p.user_id || p.display_name || "row").replace(/[^a-zA-Z0-9._-]/g, "-")}`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setExpandedKey(isOpen ? null : key)}
+                          className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-rose-50 focus:bg-rose-50 focus:outline-none"
+                          aria-expanded={isOpen}
+                          data-testid={`overload-toggle-${(p.email || p.user_id || p.display_name || "row").replace(/[^a-zA-Z0-9._-]/g, "-")}`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            {isOpen
+                              ? <ChevronDown className="w-3.5 h-3.5 text-rose-700 shrink-0" />
+                              : <ChevronRight className="w-3.5 h-3.5 text-rose-700 shrink-0" />
+                            }
+                            <span className="font-semibold text-sm text-slate-900 truncate">
+                              {p.display_name || p.email || "—"}
+                            </span>
+                            {p.email && p.email !== p.display_name && (
+                              <span className="text-xs text-slate-500 truncate hidden sm:inline">
+                                · {p.email}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge
+                              className="bg-rose-600 hover:bg-rose-600 text-white text-[11px]"
+                              data-testid={`overload-count-${(p.email || p.user_id || p.display_name || "row").replace(/[^a-zA-Z0-9._-]/g, "-")}`}
+                            >
+                              <AlertTriangle className="w-3 h-3 mr-1 inline" />
+                              {p.active_project_count} active projects
+                            </Badge>
+                          </div>
+                        </button>
+                        {isOpen && (
+                          <div className="px-3 pb-3 pt-1 border-t border-rose-100 bg-rose-50/30">
+                            <p className="text-[11px] uppercase tracking-wide text-rose-900/70 mb-1">
+                              Projects creating the load
+                            </p>
+                            <ul className="space-y-1">
+                              {p.projects.map((proj) => (
+                                <li
+                                  key={proj.project_number}
+                                  className="flex items-center justify-between gap-2 text-sm"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <Link
+                                      to={`${teamLinkBase}/${encodeURIComponent(proj.project_number)}/team`}
+                                      className="font-mono font-semibold text-slate-900 hover:text-rose-800 hover:underline"
+                                      data-testid={`overload-project-link-${proj.project_number}`}
+                                    >
+                                      {proj.project_number}
+                                    </Link>
+                                    {proj.name && (
+                                      <span className="text-xs text-slate-500 ml-2 truncate">
+                                        {proj.name}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1 justify-end">
+                                    {(proj.roles || []).map((r, idx) => (
+                                      <Badge
+                                        key={`${proj.project_number}-${r.assignment_role}-${idx}`}
+                                        variant="outline"
+                                        className={
+                                          "text-[10px] " +
+                                          (r.is_primary
+                                            ? "border-amber-500 text-amber-800 bg-amber-50"
+                                            : "border-slate-300 text-slate-700 bg-white")
+                                        }
+                                      >
+                                        {r.is_primary && <span className="mr-1">★</span>}
+                                        {r.role_label || r.assignment_role}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       <Card>
