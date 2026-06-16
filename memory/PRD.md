@@ -10,7 +10,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-15 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B · P1 CLOSED)
+## Latest Closed Track (2026-02-16 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B-P1 REMAINING REMEDIATION · CLOSED)
+- **14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B-P1 · 🟢 CLOSED · PROVEN · CERTIFIED.**
+  Final three Wave A backlog items closed in a single P1 pass:
+  - **D-A11 Spanish search synonyms** → `ES_EN_SYNONYMS` table (33 ES tokens)
+    + `_bilingual_regex` in `/app/backend/routes/global_search.py`. Runtime-proven
+    on 7 ES queries: `incidente`→18 hits, `zanja`→23 hits (incl. trench_assets),
+    `reunion`→12 hits, `excavacion`→10, `equipo`→27, `solicitud`→24,
+    `reporte diario`→6. PM/Safety token scoping respected — no permission leaks.
+  - **D-A12 PM Shell sidebar parity** → 5 new entries added to
+    `/app/frontend/src/components/pm/sidebar/domainMap.js`: Command Center,
+    Holds, Due Today, Project Staffing, Trench Safety. PM sidebar now reaches
+    all 28 PM-accessible destinations — Hub round-trip no longer required.
+  - **D-A13 PM Trench Safety entry** → `/pm/trench-safety` route + 4 sub-routes
+    wired AP-guarded in `App.js`; `TrenchSafetyShell.jsx` now PM-context-aware
+    and wraps in `PmShell` for `/pm/*` paths (red chrome + PM sidebar +
+    amber-700 tab accent) instead of forcing the SafetyShell hop.
+  - **Persona certification** (testing_agent_v3_fork iter519): PM persona 100% ·
+    Safety persona 100% · 0 defects · `retest_needed=False`.
+  - **Regression**: `tests/test_track14_discoverability_wave_b.py` extended
+    from 12 → 20 tests, all green; auth-parity 29/29 still green.
+  - **Closure ledger**: `/app/memory/TRACK_14_PLATFORM_DISCOVERABILITY_CLOSURE.md`
+    updated with Wave B-P1 section. **All Wave A P1+P2 defects in audit
+    scope are now CLOSED.**
+
+## Previously Closed Track (2026-02-15 · TRACK 14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B · P1 CLOSED)
 - **14.0-PLATFORM-DISCOVERABILITY-CERTIFICATION · WAVE B · 🟢 P1 CLOSED · PROVEN · TRUSTED · DEPLOY-READY.**
   P1 discoverability remediation complete. **8 P1 defects FIXED** in Wave B
   (D-A2 / D-A4 / D-A5 / D-A6 / D-A7 / D-A8 / D-A9 / D-A10) plus 2 Wave A inline

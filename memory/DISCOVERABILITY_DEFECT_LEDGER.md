@@ -99,7 +99,7 @@ non-breaking · non-migrational. Everything else documented for Wave B.
 ### D-A10 — Global Search lacks JHA Plans probe [P2]
 - **Recommendation:** Wave B — add `run_jha_plans` probe.
 
-### D-A11 — Spanish search synonyms not honored [P2 — DOCUMENT ONLY per user directive]
+### D-A11 — Spanish search synonyms not honored [P2 — ✅ FIXED Wave B-P1 (2026-02-16)]
 - **Component:** `routes/global_search.py` — regex search hits field VALUES, not LABELS.
 - **Workflow:** Spanish-speaking superintendent types `incidente`, `zanja`, `reporte diario`, `reunión de seguridad`, `equipo`, `capataz`, `supervisor`, `solicitud`, `tiempo libre`
 - **Result inventory (read-only test, no fixes applied):**
@@ -118,14 +118,14 @@ non-breaking · non-migrational. Everything else documented for Wave B.
 - **Recommendation:** Wave B — add a small Spanish-to-English term map applied to the regex query BEFORE field matching. Out of Wave A scope per user directive ("DO NOT open another translation project").
 - **Safety:** None (read-only audit).
 
-### D-A12 — PM Shell sidebar sparseness [P3]
+### D-A12 — PM Shell sidebar sparseness [P3 — ✅ FIXED Wave B-P1 (2026-02-16)]
 - **Component:** `/app/frontend/src/components/PmShell.jsx`
 - **Observation:** PM sidebar shows only 7 sections (Overview, Jobs, FL, Fleet, People, Suppliers, Posters). PM Hub V2 has 15+ destinations. Operator may discover via Hub but not via sidebar when deep in a sub-page.
 - **Impact:** Friction (extra click to return Hub) — but Hub is one tap away via "Overview".
 - **Recommendation:** Wave B — sync PmShell sidebar with Hub V2 destination list (additive sidebar entries).
 - **Safety:** Additive only.
 
-### D-A13 — PM lacks Trench Safety entry [P2]
+### D-A13 — PM lacks Trench Safety entry [P2 — ✅ FIXED Wave B-P1 (2026-02-16)]
 - **Workflow:** PM checks trench excavations on their project
 - **User impact:** No `/pm/trench-safety*` route. PM must visit `/admin/trench-safety/excavations` (AP-gated) which works but lands in AdminShell, not PmShell.
 - **Recommendation:** Wave B — add PM-scoped trench safety entry that renders inside PmShell (mirror `/admin/trench-safety` pattern under `/pm/trench-safety`, AP-guarded, PM-scoped data).

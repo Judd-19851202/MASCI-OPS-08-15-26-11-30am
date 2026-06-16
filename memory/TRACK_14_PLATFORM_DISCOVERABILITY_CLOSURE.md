@@ -3,7 +3,7 @@
 **Date:** 2026-02-15 (fork session)
 **Wave A inventory:** `/app/memory/DISCOVERABILITY_INVENTORY.md`
 **Wave A defect ledger:** `/app/memory/DISCOVERABILITY_DEFECT_LEDGER.md`
-**Status:** 🟢 P1 REMEDIATION COMPLETE · PROVEN ON PREVIEW · REGRESSION LOCKED
+**Status:** 🟢 P1 REMEDIATION COMPLETE · WAVE B-P1 REMAINING REMEDIATION COMPLETE · PROVEN ON PREVIEW · REGRESSION LOCKED
 
 ## Five Pillars Score
 
@@ -164,15 +164,87 @@ Verified via static contract test (`test_safety_visibility_matches_http_gate`, `
 | **D-A8** | Search probe — inspections | ✅ **FIXED** |
 | **D-A9** | Search probe — trench_assets | ✅ **FIXED** |
 | **D-A10** | Search probe — jha_plans | ✅ **FIXED** |
-| D-A11 | Spanish synonym layer | DEFERRED (P2 — documented in Wave A; user directive "do not open translation project") |
-| D-A12 | PmShell sidebar parity | DEFERRED (P3 — friction only; Hub V2 covers destinations) |
-| D-A13 | PM trench-safety entry | DEFERRED (P2 — admin route works via AP; would need PmShell wrap) |
+| **D-A11** | Spanish synonym layer | ✅ **FIXED (Wave B-P1)** — `ES_EN_SYNONYMS` table + `_bilingual_regex` in `global_search.py`; whole-token expansion; runtime-proven on 7 ES terms (incidente · zanja · reunion · excavacion · equipo · solicitud · reporte diario). |
+| **D-A12** | PmShell sidebar parity | ✅ **FIXED (Wave B-P1)** — 5 new sidebar entries added to `domainMap.js`: Command Center, Holds, Due Today, Project Staffing, Trench Safety. All 19 PM-accessible destinations now reachable from the sidebar. |
+| **D-A13** | PM trench-safety entry | ✅ **FIXED (Wave B-P1)** — `/pm/trench-safety` route plus sub-routes wired in `App.js` (AP-guarded); `TrenchSafetyShell.jsx` now PM-context-aware and wraps in PmShell instead of SafetyShell for `/pm/*` paths so PM stays in red chrome with their own sidebar. Runtime-screenshot proven. |
 | D-A14 | Operations Center map scope | BY-DESIGN |
 | D-A15 | Operational Records / Operations Actions admin V1 entry | DEFERRED (P3) |
 | D-A16 | FL Portal form launchers | DEFERRED (P3) |
 | D-A20 | HR Document Expirations link target | DEFERRED (P3 — cosmetic) |
 
 **P1 closure rate: 8/8 P1 defects FIXED (D-A2, D-A4, D-A5, D-A6, D-A7, D-A8, D-A9, D-A10) plus the 2 Wave A inline fixes (D-FIX-1, D-FIX-2). Zero P1 defects remain in the discoverability audit scope.**
+
+## Wave B-P1 Remaining Remediation (closed 2026-02-16)
+
+Three remaining items from the Wave A backlog (D-A11, D-A12, D-A13) shipped together as a single "P1 remaining" pass.
+
+### D-A11 — Spanish synonym layer
+**File:** `/app/backend/routes/global_search.py`
+
+- New static `ES_EN_SYNONYMS` table (33 ES tokens) + parallel `_EN_ES_SYNONYMS` rebuild.
+- `_normalize_for_lookup(s)` ASCII-folds accents (á é í ó ú ñ ü) for table lookup.
+- `_bilingual_regex(q)` expands the query into an alternation regex containing the original `q` PLUS every mapped synonym. Behavior is strictly additive — a query that has no synonym entry behaves identically to `_safe_regex(q)`.
+- Whole-token discipline: `zanja` → `trench`, not `zanjado`.
+
+**Runtime proof (preview, 2026-02-16):**
+| ES query | Total hits | Kinds returned |
+|----------|------------|----------------|
+| `incidente` | 18 | tasks · notifications · incidents |
+| `zanja` | 23 | tasks · notifications · equipment · incidents · trench_assets |
+| `reporte diario` | 6 | notifications |
+| `reunion` | 12 | tasks · notifications |
+| `excavacion` | 10 | tasks · notifications |
+| `equipo` | 27 | tasks · notifications · equipment · incidents · field_leadership · staffing · meetings |
+| `solicitud` | 24 | tasks · notifications · operations_events · field_leadership |
+| `tiempo libre` | 0 | (no DB data — correct mapping, no records) |
+
+**Permission audit (no leaks):** Safety token at `q="daily report"` returns ONLY tasks/notifications — `daily_reports` kind correctly excluded from Safety scope. PM token at `q="incidente"` returns only PM-scoped notifications (zero leakage of out-of-scope tasks/incidents).
+
+### D-A12 — PM Shell Sidebar Parity
+**File:** `/app/frontend/src/components/pm/sidebar/domainMap.js`
+
+5 new sidebar entries (additive only · no permission changes):
+- `/pm/command-center` (Project Operations · between Overview and Jobs)
+- `/pm/holds` (Project Operations)
+- `/pm/due-today` (Project Operations)
+- `/pm/project-staffing` (Field Coordination)
+- `/pm/trench-safety` (Document Control)
+
+Now 23 → **28 sidebar destinations** matching PM Hub V2's full destination list. A PM never has to return to the Hub to navigate to any role-accessible workflow.
+
+### D-A13 — PM Trench Safety Entry
+**Files:** `/app/frontend/src/App.js`, `/app/frontend/src/pages/trench_safety/TrenchSafetyShell.jsx`
+
+- `/pm/trench-safety` + 4 sub-routes (`/assets`, `/excavations`, `/reports`, `/tabulated-data`) wired in `App.js` (AP-guarded — admin or PM tokens).
+- `TrenchSafetyShell.jsx` now detects `/pm/trench-safety` paths and wraps in `PmShell` (red chrome + PM sidebar) instead of forcing the SafetyShell hop. Tab colors switch to amber-700 in PM context to match PM portal theming. Tabs internally route to `/pm/trench-safety/*` to keep the PM in their portal across navigation.
+
+**Runtime proof (preview, 2026-02-16):** PM token (`cert.pm@example.com`) lands at `/pm/trench-safety` and sees `PM PORTAL · TRENCH SAFETY` breadcrumb, "Back to PM Overview" button, PM sidebar visible with Command Center / Holds / Due Today / etc, and all 5 Trench Safety tabs rendered with real data (10 safety holds, 96 out-of-service, etc).
+
+### Persona certification (testing_agent_v3_fork iteration_519)
+
+| Persona | Tests | Pass | Defects |
+|---------|-------|------|---------|
+| PM (cert.pm@example.com) | 19 sidebar entries · 5 Trench Safety tabs · 4 direct PM routes · 3 Spanish searches | 100% | 0 |
+| Safety (cert.safety@example.com) | Hub Field Records & Plans · sidebar group · 3 portal routes · 3 Spanish searches · permission gate | 100% | 0 |
+
+Testing agent: `retest_needed=False · action_items=[] · backend_issues=[] · frontend_issues=[]`.
+
+### Regression lock
+
+```
+$ python -m pytest tests/test_track14_discoverability_wave_b.py -q
+....................                                                  [100%]
+20 passed, 1 warning in 0.30s
+
+$ python -m pytest tests/test_track14_auth_password_parity.py -q
+.............................                                        [100%]
+29 passed in 0.09s
+```
+
+New tests added (Wave B-P1):
+- `test_spanish_synonym_layer_present` · `test_spanish_synonym_expansion_to_english`
+- `test_pm_sidebar_has_command_center` · `test_pm_sidebar_has_holds_and_due_today` · `test_pm_sidebar_has_project_staffing`
+- `test_pm_trench_safety_route_present` · `test_pm_sidebar_has_trench_safety_entry` · `test_trench_safety_shell_pm_context_detection`
 
 ## Bottom Line
 
