@@ -10,7 +10,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-16 · TRACK 16.0 · WHITE-LABEL / MULTI-TENANT READINESS AUDIT · 🔴 NOT WHITE-LABEL READY · ROADMAP DELIVERED)
+## Latest Closed Track (2026-06-16 · RC1 LIVE POST-DEPLOY VERIFICATION · 🟢 VERIFIED WITH OBSERVATIONS)
+- **Track:** RC1 LIVE POST-DEPLOY VERIFICATION against `https://mascidocs.com`.
+- **Mode:** READ-ONLY · NO MUTATIONS · NO REAL EMAILS · NO JUNK DATA.
+- **Verdict:** 🟢 **VERIFIED WITH OBSERVATIONS** — 13/13 checks PASS.
+- **Production identity confirmed:** `app_env=production`, `db_name=masci_safety`,
+  `source_hash=740398bc1f9277a8edfdb1e92e5dc26d`, Sentry enabled,
+  session timeouts enabled (ADMIN_HR/OPERATIONS/FIELD), TLS valid,
+  HSTS preload, Cloudflare edge.
+- **All 11 SPA routes** return 200; **all 8 portal logins** return 401 on bad creds (uniform, no enumeration); **all 14 protected endpoints** return 401 without token; **all 7 admin POST endpoints** return 401 without token.
+- **Security controls verified active:** rate-limiting (7 bad → 429 lockout), CORS allow-list enforced (rogue origin → 400), HSTS preload, x-content-type-options nosniff, referrer-policy, schema validation (422 on malformed body), method validation (405 on wrong verb).
+- **Performance:** all API endpoints sub-1s p95; `/api/version` 103ms avg; SPA shell sub-400ms TTFB.
+- **Dispatch 422 anomaly from prior session: RESOLVED.** Confirmed to be standard FastAPI Pydantic schema validation (uniform across ALL login endpoints when payload is incomplete). With well-formed payload, `/api/dispatch/login` returns 401 like every other portal. Not a defect.
+- **Authenticated verification NOT executed** per user requirement #14 — no existing creds allowed, no user-provided creds, and the app has no public self-service registration. Limitation documented in §7 of the report. Mitigated by source-hash continuity with prior preview certifications (TRACK 14.0 / 15.0 / RC1 GATE / RC1 ISOLATION) which exercised authenticated flows against the same byte-identical codebase image.
+- **Cleanup ledger:** 0 accounts created, 0 records created, 0 modified, 0 deleted. Production is in the IDENTICAL state it was in at 12:41:04 UTC. Only side effects: ~10 anonymous bad-login counter rows on the rate-limiter (auto-expire in 13 min) and standard read-only access-log entries.
+- **Report:** `/app/memory/RC1_POST_DEPLOY_VERIFICATION_REPORT.md` (442 lines, full evidence + raw reproducible curl probes in Appendix A).
+- **RC1 is GO for continued production operation.**
+
+## Previous Closed Track (2026-02-16 · TRACK 16.0 · WHITE-LABEL / MULTI-TENANT READINESS AUDIT · 🔴 NOT WHITE-LABEL READY · ROADMAP DELIVERED)
 - **TRACK 16.0-WHITE-LABEL READINESS AUDIT · audit-first · no code changes (hard rules honored).**
   Honest assessment of how white-label-ready the platform is for
   Customer #2 (Bob's Excavating type) onboarding.
