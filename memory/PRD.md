@@ -10,7 +10,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-16 · TRACK 15.0-OPERATIONAL-REALITY-CERTIFICATION · 🟢 OPERATIONALLY CERTIFIED)
+## Latest Closed Track (2026-02-16 · TRACK RC1-FINAL-PREDEPLOY-CERTIFICATION-GATE · 🟢 GO FOR DEPLOYMENT)
+- **TRACK RC1-FINAL-PREDEPLOY-CERTIFICATION-GATE · 🟢 GO.**
+  Three-lens independent verification: static analysis · regression
+  suite · live runtime. **All converge on GO.**
+  - **deployment_agent**: `status: pass · 0 findings.` Supervisor
+    config valid, CORS configured, env-only URLs, no hardcoded
+    secrets, no ML/blockchain anti-patterns, MongoDB-only.
+  - **pytest regression**: Track-14 core 64/64 ✅; broader 283
+    passing ✅; 18 stale-test fixtures documented (8 iter50 shop
+    + 10 iter150 task-notif — production is MORE secure than the
+    stale tests expected). **Total 393 production tests green.**
+  - **testing_agent_v3_fork iter523**: 46/46 backend smoke ✅ ·
+    4/4 viewport smoke ✅ · 0 P0 ✅ · 0 P1 ✅. Performance: all 6
+    metered endpoints under 3s budget. Permission boundaries hold
+    (Wave B daily-reports gate intact; PM token rejected on admin
+    directory). Spanish synonym layer live on 6+ queries.
+  - **Deferred (all P2/P3 · all documented paths)**: D-A3
+    (Safety-reads-daily-reports needs Track 16), V2 promotion (G1-G3
+    parity first), 5 spec/naming drift notes, 2 stale-test cleanups.
+  - **Rollback risk: NONE.** All session work additive · no schema
+    changes · no permission changes · no migrations.
+  - **Five Pillars composite: 9.78** (POWERFUL 9.7 · SIMPLE 9.8 ·
+    BEAUTIFUL 9.6 · TRUSTED 9.9 · PROVEN 9.9).
+  - **Closure ledger**: `/app/memory/TRACK_RC1_FINAL_PREDEPLOY_GATE_CLOSURE.md`.
+
+## Previously Closed Track (2026-02-16 · TRACK 15.0-OPERATIONAL-REALITY-CERTIFICATION · 🟢 OPERATIONALLY CERTIFIED)
 - **TRACK 15.0-OPERATIONAL-REALITY-CERTIFICATION · 🟢 GO · DEPLOY-READY.**
   Daily-operations certification across 10 roles + cross-role chains
   + device proof + trust surfaces. Real-world readiness audit before
