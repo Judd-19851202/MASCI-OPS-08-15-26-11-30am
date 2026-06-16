@@ -169,7 +169,7 @@ export default function HrKpiStrip({ className = "" }) {
         hint={t("Vacation / sick approvals awaiting HR.")}
       />
       <Tile
-        to="/safety-portal/document-expirations"
+        to="/document-expirations"
         icon={GraduationCap}
         label={t("Training / Cert Due")}
         value={fmt(counts.training_exp_soon)}
@@ -178,7 +178,7 @@ export default function HrKpiStrip({ className = "" }) {
         hint={t("Credentials expiring in the next 60 days.")}
       />
       <Tile
-        to="/safety-portal/document-expirations?bucket=expired"
+        to="/document-expirations?bucket=expired"
         icon={FileWarning}
         label={t("Documents Expired")}
         value={fmt(counts.docs_expired)}

@@ -15,7 +15,7 @@ import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
   ShieldCheck, LogOut, Menu as MenuIcon, Home, Cable, Truck, Activity,
   Rocket, History, GraduationCap, ListChecks, ChartBar, Map, Film, Database,
-  Clock,
+  Clock, NotebookPen, ListTodo,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -56,6 +56,8 @@ const SECTIONS = [
   { key: "asset-transfers", to: "/asset-transfers", icon: Truck,         label: "Asset Transfers", desc: "Equipment movement · lifecycle · receiving" },
   { key: "dispatch",   to: "/admin/dispatch",   icon: Truck,           label: "Dispatch Portal", desc: "Transfers · Holds · Utilization" },
   { key: "events",     to: "/admin/operations-events", icon: Activity, label: "Operations Events", desc: "Append-only log · platform history" },
+  { key: "operational-records", to: "/operational-records", icon: NotebookPen, label: "Operational Records", desc: "Cross-portal field-day records · Phase V.1" },
+  { key: "operations-actions", to: "/operations-actions", icon: ListTodo, label: "Operations Actions", desc: "Cross-portal operational tasks · owners" },
   { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },
   { key: "system",     to: "/admin/system",     icon: ShieldCheck,     label: "System & Backups",desc: "Backups · R2 · Restore · Recovery" },
   { key: "system-health", to: "/admin/system-health", icon: Activity,  label: "System Health",   desc: "Green/yellow/red operational probe" },

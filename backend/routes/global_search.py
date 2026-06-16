@@ -224,6 +224,23 @@ ES_EN_SYNONYMS: Dict[str, tuple] = {
     "mantenimiento":        ("maintenance", "pm"),
     "reparacion":           ("repair",),
     "reparaciones":         ("repair", "repairs"),
+    # Cross-portal records / actions / leadership / expirations
+    # (TRACK 14.0-DISCOVERABILITY-FINALIZATION)
+    "registro":             ("record",),
+    "registros":            ("record", "records"),
+    "registro diario":      ("daily record", "operational record"),
+    "accion":               ("action",),
+    "acciones":             ("action", "actions"),
+    "liderazgo":            ("leadership",),
+    "liderazgo de campo":   ("field leadership",),
+    "vencimiento":          ("expiration", "expiry"),
+    "vencimientos":         ("expiration", "expirations", "expiry"),
+    "expiracion":           ("expiration", "expiry"),
+    "expiraciones":         ("expiration", "expirations"),
+    "certificacion":        ("certification",),
+    "certificaciones":      ("certification", "certifications"),
+    "entrenamiento":        ("training",),
+    "capacitacion":         ("training",),
 }
 
 # Build a parallel EN → ES map so an English query also catches any

@@ -217,6 +217,48 @@ export default function FieldLeadershipPortalDashboard() {
           </CardContent>
         </Card>
 
+        {/* TRACK 14.0-DISCOVERABILITY-FINALIZATION · D-A16 — Leadership
+            submission launchers. These were already present at the
+            legacy /leadership hub but absent from the per-user FL
+            Portal Dashboard. Forms are public-submit (no permission
+            change) — additive launcher only. */}
+        <Card data-testid="fl-leadership-launchers">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-1.5">
+              <HardHat className="w-4 h-4 text-red-700" />
+              {t("Leadership submissions")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-slate-600 mb-3">
+              {t("Submit write-ups, recognitions, evaluations, and equipment checkouts directly from the field. These submissions append to the leadership ledger HR and admins use for accountability.")}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
+              {[
+                { label: t("Recognition"), to: "/leadership/recognition/new", testid: "fl-launch-recognition" },
+                { label: t("Write-up"), to: "/leadership/write_up/new", testid: "fl-launch-write_up" },
+                { label: t("Verbal Coaching"), to: "/leadership/verbal_coaching/new", testid: "fl-launch-verbal_coaching" },
+                { label: t("Attendance Note"), to: "/leadership/attendance/new", testid: "fl-launch-attendance" },
+                { label: t("Equipment Checkout"), to: "/leadership/equipment_checkout/new", testid: "fl-launch-equipment_checkout" },
+                { label: t("New Employee Eval"), to: "/leadership/new_employee_eval/new", testid: "fl-launch-new_employee_eval" },
+                { label: t("Crew Evaluation"), to: "/leadership/crew_eval/new", testid: "fl-launch-crew_eval" },
+                { label: t("Promotion Recommendation"), to: "/leadership/promotion_recommendation/new", testid: "fl-launch-promotion_recommendation" },
+                { label: t("Training Deficiency"), to: "/leadership/training_deficiency/new", testid: "fl-launch-training_deficiency" },
+              ].map((w) => (
+                <Button
+                  key={w.to}
+                  variant="outline"
+                  className="h-9 text-xs justify-start"
+                  onClick={() => navigate(w.to)}
+                  data-testid={w.testid}
+                >
+                  {w.label}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* iter353d · Employee Accountability Lookup card */}
         <Card data-testid="fl-card-acct-lookup" className="mt-6 border-2 border-red-300">
           <CardHeader className="pb-2">

@@ -315,7 +315,7 @@ export default function HrHubV2() {
               loaded={s.loaded}
             />
             <QueueCard
-              to="/safety-portal/document-expirations"
+              to="/document-expirations"
               testid="hr-hub-v2-queue-training-due"
               title="Training / Certs Due"
               why="Credentials expiring in the next 60 days"
@@ -324,7 +324,7 @@ export default function HrHubV2() {
               loaded={s.loaded}
             />
             <QueueCard
-              to="/safety-portal/document-expirations?bucket=expired"
+              to="/document-expirations?bucket=expired"
               testid="hr-hub-v2-queue-docs-expired"
               title="Documents Expired"
               why="Past expiry — must be addressed now"

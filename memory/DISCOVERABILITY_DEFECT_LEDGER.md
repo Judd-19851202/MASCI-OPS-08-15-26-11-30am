@@ -136,12 +136,12 @@ non-breaking · non-migrational. Everything else documented for Wave B.
 - **Observation:** Could be exposed to PM / Dispatch as read-only. Currently dispatch users have `/dispatch-portal/command` and PM has `/pm/command-center`, so the gate is defensible.
 - **Recommendation:** Document — by-design. No Wave B work needed unless operators request cross-portal map.
 
-### D-A15 — `/operational-records` and `/operations-actions` have no portal-specific entry [P2]
+### D-A15 — `/operational-records` and `/operations-actions` have no portal-specific entry [P2 — ✅ FIXED Finalization (2026-02-16)]
 - **Routes:** `/operational-records` (Phase V.1) and `/operations-actions` (OA-1) are cross-portal pages, server-side role-gated.
 - **Observation:** Admin sidebar V2 lists them in the Operations domain. V1 sidebar lists Tasks/PO/Guidance pinned but NOT these two. Pm/HR/Safety hubs do not surface them.
 - **Recommendation:** Wave B — add to Admin V1 SECTIONS pinned rail; consider Hub-tile presence in PM / Safety / HR where role-permitted.
 
-### D-A16 — FL Portal lacks daily report / leadership submit entry [P3]
+### D-A16 — FL Portal lacks daily report / leadership submit entry [P3 — ✅ FIXED Finalization (2026-02-16)]
 - **Workflow:** Foreman in `/field-leadership/portal/dashboard` wants to submit a daily report or a recognition note.
 - **Observation:** FL Portal dashboard is sparse — only displays driver qualification + dashboard summary. The legacy `/leadership` hub (shared-password) DOES have the rich form launchers. Per-user FL Portal lacks them.
 - **Recommendation:** Wave B — add form-launcher tiles inside FL Portal dashboard (additive, no permission change since the forms are themselves public-submit).
@@ -160,7 +160,7 @@ non-breaking · non-migrational. Everything else documented for Wave B.
 - **Observation:** Already has `/shop/pm/templates`, `/shop/pm/schedules` tiles, but `/shop/pm/work-orders` only reachable via PM Dashboard sub-nav. Minor.
 - **Recommendation:** Defer — Shop Mechanics know the route.
 
-### D-A20 — HR Hub V2 has indirect entry to Document Expirations (cross-portal hop) [P3]
+### D-A20 — HR Hub V2 has indirect entry to Document Expirations (cross-portal hop) [P3 — ✅ FIXED Finalization (2026-02-16)]
 - **Component:** `HrHubV2.jsx`
 - **Route used:** `/safety-portal/document-expirations` — exists outside HR portal
 - **Observation:** HR user clicks this tile and lands in Safety portal shell (cyan). Slight visual context switch but works because `/document-expirations` is cross-portal.
