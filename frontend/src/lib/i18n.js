@@ -3548,6 +3548,13 @@ const ES = {
   // instead of generic department names. Field-readable Spanish.
   "End-of-day reports, safety enforcement, equipment tracking, quality control, and complete documentation — captured in the field, routed automatically, and stored in one operational system.":
     "Reportes de fin de día, cumplimiento de seguridad, control de equipo, control de calidad y documentación completa — capturado en campo, ruteado automáticamente y archivado en un solo sistema operativo.",
+  // ── Track 15.4 (2026-06-16) · Hero copy refresh ─────────────────
+  "Field reporting, safety, quality, equipment, workforce accountability, dispatch, and project operations — captured once, routed automatically, and visible everywhere they matter.":
+    "Reportes de campo, seguridad, calidad, equipo, responsabilidad de personal, despacho y operaciones de proyecto — capturado una vez, ruteado automáticamente y visible donde importa.",
+  "Connected Platforms": "Plataformas Conectadas",
+  "Project Systems": "Sistemas de Proyecto",
+  "Connected project platforms for communication, utility locating, and construction plans.":
+    "Plataformas de proyecto conectadas para comunicación, localización de servicios y planos de construcción.",
   "What every crew on site does today.":
     "Lo que cada cuadrilla en el sitio hace hoy.",
   "File end-of-day reports, log equipment walk-arounds, and capture crew, weather, and production from the job site.":

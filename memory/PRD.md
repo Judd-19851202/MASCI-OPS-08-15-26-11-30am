@@ -10,7 +10,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.3 · PROJECT SYSTEMS TILE MODERNIZATION & FORGEDOPS PLANS LAUNCHER · 🟢 PASSED)
+## Latest Closed Track (2026-06-16 · TRACK 15.4 · RC1 LIVE FIX DEPLOYMENT + HOMEPAGE HERO / PROJECT SYSTEMS POLISH · 🟡 PASSED WITH OPERATOR FOLLOW-UP REQUIRED)
+- **Track:** Seven-priority sequence — deploy 15.1+15.2+15.3, run notification cleanup, prove PM Add Member, polish Project Systems + logos + hero copy.
+- **Verdict:** 🟡 13/13 directly-actionable items GREEN. 3 operator-owned items pending (deploy, prod DB cleanup, Project 26-07 retry).
+- **Phase 4 — Project Systems card weight**: ~+18% (p-5→p-6, text-xl→text-2xl, h-14→h-16, 56→72px chip). Equal peer to Field Leadership.
+- **Phase 5 — Logo normalization**: every launcher button is one component shape (identical 72×72 black chip, 4px left-stripe, mono LAUNCH eyebrow, font-display label, hover/focus/touch target). Only label/url/accent/logo/logoMax differ across the three.
+- **Phase 6 — ForgedOps logo visibility**: per-platform `logoMax`; Basecamp/OnStation 52px max, ForgedOps 64px max (+23% logo). Same button + same chip → no oversized feel. Orange wordmark legible.
+- **Phase 7 — Hero copy**: EN headline → "One System. Every Crew. Every Job." (Every Job. red). EN subheadline → approved capability sentence. ES translation added.
+- **Phases 8-11**: beauty pass (no defects in touched areas), responsive proof (1280×900 + 768×1024 + 1024×768), link proof (DOM-probed target=_blank + rel=noopener noreferrer), 7-assertion regression suite (`Hub.track_15_4.test.jsx`).
+- **Phase 1-3 operator-owned**: deploy runbook §2.1, cleanup runbook §2.2, PM Add Member retry per Track 15.2 §6.2. Single combined backend+frontend redeploy ships 15.1+15.2+15.3+15.4.
+- **Cleanup ledger**: production untouched. 2 frontend files edited, 1 test created, 1 report created.
+
+## Previous Closed Track (2026-06-16 · TRACK 15.3 · PROJECT SYSTEMS TILE MODERNIZATION & FORGEDOPS PLANS LAUNCHER · 🟢 PASSED)
 - **Track:** Replace landing-page "Projects" tile with production-ready "Project Systems" launcher hosting Basecamp + OnStation + ForgedOps Plans.
 - **Verdict:** 🟢 12/12 Definition-of-Done items met · 25/25 across Five Pillars · 10/10 logo quality.
 - **Changes:**

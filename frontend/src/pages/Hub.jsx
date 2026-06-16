@@ -250,21 +250,24 @@ export default function Hub() {
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
             {t("MASCI Operations Platform")}
           </span>
+          {/* Track 15.4 (2026-06-16) — hero copy refresh.
+              Approved EN headline: "One System. Every Crew. Every Job."
+              Approved EN subheadline: see below. ES translation aligned. */}
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
             {lang === "es" ? (
               <>
-                {"Cada trabajo bajo control. Cada detalle dirigido. "}
-                <span className="text-red-700">Todo</span>{" protegido."}
+                {"Un Solo Sistema. Cada Cuadrilla. "}
+                <span className="text-red-700">Cada Trabajo.</span>
               </>
             ) : (
               <>
-                {"Run Every Job. Control Every Detail. Protect "}
-                <span className="text-red-700">Everything</span>{"."}
+                {"One System. Every Crew. "}
+                <span className="text-red-700">Every Job.</span>
               </>
             )}
           </h1>
-          <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            {t("End-of-day reports, safety enforcement, equipment tracking, quality control, and complete documentation — captured in the field, routed automatically, and stored in one operational system.")}
+          <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl">
+            {t("Field reporting, safety, quality, equipment, workforce accountability, dispatch, and project operations — captured once, routed automatically, and visible everywhere they matter.")}
           </p>
         </div>
 
@@ -563,6 +566,8 @@ const PROJECT_SYSTEMS = [
     accent: "#16a34a",
     accentHover: "#15803d",
     testid: "hub-projects-basecamp-btn",
+    // Logo natively fills its frame (square icon) — standard max.
+    logoMax: 52,
   },
   {
     key: "onstation",
@@ -573,6 +578,7 @@ const PROJECT_SYSTEMS = [
     accent: "#1d4ed8",
     accentHover: "#1e40af",
     testid: "hub-projects-onstation-btn",
+    logoMax: 52,
   },
   {
     key: "forgedops-plans",
@@ -583,6 +589,12 @@ const PROJECT_SYSTEMS = [
     accent: "#ea580c",
     accentHover: "#c2410c",
     testid: "hub-projects-forgedops-plans-btn",
+    // Track 15.4 (2026-06-16) — ForgedOps Plans logo has more
+    // negative space in the source asset than Basecamp/OnStation, so
+    // we render it ~23% larger inside the SAME chip footprint to
+    // achieve equal perceived visual weight. Button height and chip
+    // size remain identical across all three.
+    logoMax: 64,
   },
 ];
 
@@ -590,30 +602,34 @@ function ProjectSystemsCard({ testId }) {
   const { t } = useT();
   return (
     <div
-      className="group relative bg-white border border-slate-200 rounded-md p-5 flex items-start gap-4"
+      // Track 15.4 (2026-06-16) — Phase 4 visual-weight increase:
+      // p-5 → p-6, tighter shadow, slight border emphasis so the
+      // tile reads as an equal peer next to the Field Leadership
+      // card in the Leadership Tools row.
+      className="group relative bg-white border border-slate-200 rounded-md p-6 flex items-start gap-5 shadow-sm"
       data-testid={testId}
     >
-      <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-yellow-500 text-slate-900 shrink-0">
-        <Building2 className="w-6 h-6" />
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-yellow-500 text-slate-900 shrink-0">
+        <Building2 className="w-7 h-7" />
       </div>
       <div className="flex-1 min-w-0">
-        <span className="inline-block px-2 py-0.5 rounded text-yellow-800 bg-yellow-100 font-mono text-[10px] uppercase tracking-[0.2em] font-bold mb-1">
+        <span className="inline-block px-2 py-0.5 rounded text-yellow-800 bg-yellow-100 font-mono text-[10px] uppercase tracking-[0.2em] font-bold mb-1.5">
           {t("Connected Platforms")}
         </span>
         <h3
-          className="font-display text-xl font-black tracking-tight text-slate-900"
+          className="font-display text-2xl font-black tracking-tight text-slate-900"
           data-testid="hub-project-systems-title"
         >
           {t("Project Systems")}
         </h3>
         <p
-          className="text-slate-600 text-sm mt-1 leading-snug"
+          className="text-slate-600 text-sm mt-1.5 leading-snug"
           data-testid="hub-project-systems-description"
         >
           {t("Connected project platforms for communication, utility locating, and construction plans.")}
         </p>
         <div
-          className="flex flex-wrap gap-2.5 mt-4"
+          className="flex flex-wrap gap-3 mt-5"
           data-testid="hub-project-systems-launchers"
         >
           {PROJECT_SYSTEMS.map((sys) => (
@@ -624,15 +640,27 @@ function ProjectSystemsCard({ testId }) {
               rel="noopener noreferrer"
               data-testid={sys.testid}
               aria-label={`Open ${sys.label} in a new tab`}
-              className="group/sys relative flex items-center gap-3 h-14 pl-0 pr-3 rounded-md bg-slate-900 hover:bg-slate-800 text-white transition-all duration-150 overflow-hidden shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 min-w-[180px] flex-1 basis-[180px]"
+              // Track 15.4 — Phase 5 logo normalization: every
+              // launcher shares the EXACT same shell (size, radius,
+              // padding, shadow, border, hover, focus). The only
+              // differences are accent color (left stripe + LAUNCH
+              // eyebrow + label color), label, URL, and logo asset.
+              className="group/sys relative flex items-center gap-3 h-16 pl-0 pr-3.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white transition-all duration-150 overflow-hidden shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 min-w-[200px] flex-1 basis-[200px]"
               style={{ borderLeft: `4px solid ${sys.accent}` }}
             >
-              {/* Logo chip — dark plate frames the black-background source */}
-              <span className="flex items-center justify-center w-14 h-full bg-black shrink-0">
+              {/* Track 15.4 — Phase 5 unified logo chip: identical
+                  72×72 black plate for all three platforms. Source
+                  assets natively have black backgrounds so the chip
+                  blends seamlessly. */}
+              <span className="flex items-center justify-center w-[72px] h-full bg-black shrink-0">
                 <img
                   src={sys.logo}
                   alt={`${sys.label} logo`}
-                  className="max-w-[44px] max-h-[44px] object-contain"
+                  className="object-contain"
+                  style={{
+                    maxWidth: `${sys.logoMax}px`,
+                    maxHeight: `${sys.logoMax}px`,
+                  }}
                   draggable={false}
                 />
               </span>
