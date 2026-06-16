@@ -10,7 +10,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.1 · LIVE PRODUCTION OPERATIONAL DEFECT SWEEP · 🟢 PASSED WITH FOLLOW-UPS)
+## Latest Closed Track (2026-06-16 · TRACK 15.2 · PM STAFFING PROOF + NOTIFICATION LEAK CLEANUP + ACCOUNT/PASSWORD FLOW CERTIFICATION · 🟡 PASSED WITH OPERATOR RETRY REQUIRED)
+- **Track:** Live production trust recovery — three remaining items from 15.1.
+- **Verdict:** 🟡 13/16 GREEN · 3/16 YELLOW (all operator-execution gates: cleanup `--apply`, deploy, Project 26-07 retry).
+- **Cleanup script delivered**: `/app/backend/scripts/track_15_2_backfill_leaked_pm_offboarding.py`. Dry-run-by-default · tight predicate (linked_source_module='hr.offboarding' AND recipient_role='pm' AND recipient_user_id IS NULL AND linked_employee_id IS NOT NULL) · audit-logged · reversible from ledger · capped at 200 rows. Expires broadcast rows (no delete) and fans out person-targeted copies to legitimate PMs.
+- **PM Add Member runtime cert**: 6-test pytest suite in `tests/test_track_15_2_pm_add_member_runtime.py`. All 6 PASS. Critical static-analysis test (`test_add_member_does_not_create_a_login`) enforces at CI time that `routes/project_team_assignments.py` NEVER writes to any of 7 portal-user collections + never calls password ops.
+- **Account/password flow doc**: `/app/memory/PM_STAFFING_ACCOUNT_PASSWORD_FLOW.md`. 14-question Q&A, canonical contract ("identity-binding, not credential-issuance"), 8 password-issuing surfaces listed, worked Field-Leadership example, edge cases.
+- **Project 26-07 retry plan**: §6.2 of the report — 10-step operator checklist with hypothesis ranking and decisive evidence collection.
+- **Combined 15.1+15.2 regression**: 11/11 PASS.
+- **Production untouched** (0 mutations). Preview cleaned (0 cert residue).
+
+**Operator-owned next actions:**
+1. Deploy Track 15.1 + 15.2 fixes (single combined backend+frontend redeploy).
+2. Run cleanup script `--apply` against production after dry-run review.
+3. Retry PM Add Member on Project 26-07 per §6.2 checklist.
+
+## Previous Closed Track (2026-06-16 · TRACK 15.1 · LIVE PRODUCTION OPERATIONAL DEFECT SWEEP · 🟢 PASSED WITH FOLLOW-UPS)
 - **Track:** Live production defect response — user reported 5 defects from iPad use of production deploy.
 - **Mode:** read-only on production · runtime-proof on preview (matching `source_hash=740398bc1f9277a8edfdb1e92e5dc26d`).
 - **Verdict:** 🟢 **PASSED** with 2/16 yellow follow-ups.
