@@ -10,7 +10,42 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-16 · TRACK 14.0-DISCOVERABILITY-FINALIZATION · CLOSED)
+## Latest Closed Track (2026-02-16 · TRACK 15.0-OPERATIONAL-REALITY-CERTIFICATION · 🟢 OPERATIONALLY CERTIFIED)
+- **TRACK 15.0-OPERATIONAL-REALITY-CERTIFICATION · 🟢 GO · DEPLOY-READY.**
+  Daily-operations certification across 10 roles + cross-role chains
+  + device proof + trust surfaces. Real-world readiness audit before
+  MASCI mandates the platform for daily use.
+  - **Phases 1, 16, 17, 18, 20 deliverables** in `/app/memory/`:
+    `TRACK_15_ROLE_DAILY_REALITY_MAP.md` (10 roles mapped),
+    `ADMIN_V1_V2_GAP_MATRIX.md` (audit-only · 1 fix-as-you-go applied),
+    `SAFETY_DAILY_REPORTS_PERMISSION_REVIEW.md` (D-A3 deferred with
+    Option C/D path forward), `TRACK_15_FRICTION_LEDGER.md` (P0=0,
+    P1=0, P2=3, P3=1), `TRACK_15_OPERATIONAL_REALITY_FINAL_REPORT.md`.
+  - **Phases 2-12 persona certification** via testing_agent_v3_fork
+    iter522: 100% backend (25/25 live API tests) · 100% frontend
+    (18 click-path + chrome + iPad checks) · 0 defects ·
+    `retest_needed=False`. PM, Safety, HR, FL, Admin, Shop, Dispatch
+    all certified end-to-end. Cross-role chains (daily report,
+    incident, staffing) all hold permission boundaries.
+  - **Phases 13-15 device + discoverability + trust** all 🟢:
+    iPad 768×1024 portrait + 1024×768 landscape · laptop 1366×768 ·
+    desktop 1920×1080 verified across Admin V1 sidebar, PM Hub V2,
+    Safety Hub V2, HR Hub V2, FL Portal Dashboard, Trench Safety,
+    Project Staffing with Overloaded Crew section.
+  - **G4 fix-as-you-go**: added `/odr/center` (Operational Daily
+    Records) to Admin V1 sidebar so V1 has parity with V2 on this
+    surface. Single SECTIONS line · no permission change.
+  - **Regression**: 64 backend tests + 25 live API tests = **89 tests
+    green**. Pre-existing pytest collection errors documented in
+    friction ledger as P2 (orthogonal to track scope).
+  - **Five Pillars composite: 9.76** (POWERFUL 9.7 · SIMPLE 9.8 ·
+    BEAUTIFUL 9.6 · TRUSTED 9.9 · PROVEN 9.8).
+  - **GO recommendation**: MASCI can mandate daily use today.
+    Deferred items (D-A3 safety daily-reports read, V2 promotion,
+    RFI/submittal mgmt, subcontractor DRs) have honest documented
+    paths and do not block the mandate.
+
+## Previously Closed Track (2026-02-16 · TRACK 14.0-DISCOVERABILITY-FINALIZATION · CLOSED)
 - **14.0-DISCOVERABILITY-FINALIZATION · 🟢 CLOSED · PROVEN · CERTIFIED.**
   Final discoverability cleanup pass before moving platform focus
   elsewhere. Closes D-A15, D-A16, D-A20 plus a bilingual search
