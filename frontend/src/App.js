@@ -766,6 +766,17 @@ function App() {
             <Route path="/pm/trench-boxes" element={AP(<TrenchBoxesAdmin />)} />
             <Route path="/pm/equipment" element={AP(<EquipmentDashboard />)} />
             <Route path="/pm/equipment/:id" element={AP(<ViewEquipmentInspection context="admin" />)} />
+            {/* TRACK 14.0-DISCOVERABILITY · Wave B-P1 (D-A13) — PM Trench
+                Safety entries. Same components as /admin/trench-safety
+                under AP guard (PM tokens accepted). PMs need to see
+                excavations, assets, repair status for their projects;
+                backend probes already PM-scope via compute_pm_scope. */}
+            <Route path="/pm/trench-safety"                  element={AP(<TrenchSafetyHub />)} />
+            <Route path="/pm/trench-safety/assets"           element={AP(<TrenchSafetyAssetsList />)} />
+            <Route path="/pm/trench-safety/assets/:assetId"  element={AP(<TrenchSafetyAssetDetail />)} />
+            <Route path="/pm/trench-safety/tabulated-data"   element={AP(<TrenchSafetyTabulatedData />)} />
+            <Route path="/pm/trench-safety/reports"          element={AP(<TrenchSafetyReports />)} />
+            <Route path="/pm/trench-safety/excavations"      element={AP(<ExcavationOversight />)} />
             {/* /pm/pnl removed 2026-05-07 per Justin — owners want P&L kept admin-only */}
 
             {/* ============================================================

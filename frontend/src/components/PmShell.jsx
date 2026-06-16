@@ -13,6 +13,8 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Wrench, Mail, Users, Truck, FileImage,
   ClipboardCheck, LogOut, Menu as MenuIcon, Home, Briefcase, UserCheck, KeyRound,
+  Activity, AlertOctagon, Camera, NotebookPen, ListChecks, Clock, ShieldAlert,
+  ClipboardList, Construction,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -34,12 +36,34 @@ import { toast } from "sonner";
 
 const SECTIONS = [
   { key: "overview",        to: "/pm",                   icon: LayoutDashboard, label: "Overview",        desc: "Forms · Jobs · Search" },
+  // TRACK 14.0-DISCOVERABILITY · Wave B-P1 (D-A12) — PmShell sidebar
+  // parity with PmHubV2 destinations. Each entry is already a working
+  // route under a PM-accepting guard (P or AP). Sidebar surfaces them
+  // so PMs don't have to bounce back to the Hub for every workflow.
+  { key: "command-center",  to: "/pm/command-center",    icon: Activity,        label: "Command Center",  desc: "Single-glass project ops · 7 tabs" },
+  { key: "holds",           to: "/pm/holds",             icon: ClipboardList,   label: "Holds",           desc: "Unified hold queue across projects" },
+  { key: "due-today",       to: "/pm/due-today",         icon: Clock,           label: "Due Today",       desc: "Actions and approvals due today" },
   { key: "jobs",            to: "/pm/jobs",              icon: Briefcase,       label: "Jobs",            desc: "Jobs assigned to you (read-only)" },
-  { key: "field-leadership", to: "/pm/field-leadership", icon: UserCheck,       label: "Field Leadership", desc: "Crew docs · My jobs only" },
-  { key: "fleet",           to: "/pm/fleet",             icon: Wrench,          label: "Equipment Fleet", desc: "Master · Parts (read-only)" },
+  { key: "daily",           to: "/pm/daily",             icon: NotebookPen,     label: "Daily Reports",   desc: "Field activity across your projects" },
+  { key: "incidents",       to: "/pm/incidents",         icon: AlertOctagon,    label: "Incidents · CAPAs", desc: "Severity-tagged review · open CAPAs" },
+  { key: "meetings",        to: "/pm/meetings",          icon: Users,           label: "Safety Meetings", desc: "Toolbox talks · jobsite huddles" },
+  { key: "inspections",     to: "/pm/inspections",       icon: ClipboardCheck,  label: "Site Inspections", desc: "OSHA pre-shift inspections" },
+  { key: "qaqc",            to: "/pm/qaqc",              icon: ClipboardCheck,  label: "QA / QC",         desc: "Quality inspections · concrete · asphalt" },
+  { key: "jha-plans",       to: "/pm/jha-plans",         icon: ShieldAlert,     label: "JHA / JHP Plans", desc: "Job hazard analyses · crew sign-offs" },
+  { key: "trench-safety",   to: "/pm/trench-safety",     icon: Construction,    label: "Trench Safety",   desc: "Excavations · road plates · trench boxes" },
+  { key: "project-staffing", to: "/pm/project-staffing", icon: Users,           label: "Project Staffing", desc: "17-role roster across your projects" },
+  { key: "crew-compliance", to: "/pm/crew-compliance",   icon: UserCheck,       label: "Crew Compliance", desc: "Read-only lens · training · CDL" },
+  { key: "field-leadership", to: "/pm/field-leadership", icon: UserCheck,       label: "Field Leadership", desc: "Crew docs · my jobs only" },
+  { key: "fleet",           to: "/pm/fleet",             icon: Wrench,          label: "Equipment Fleet", desc: "Master · parts (read-only)" },
+  { key: "equipment",       to: "/pm/equipment",         icon: Wrench,          label: "Equipment Inspections", desc: "Pre-op + DVIR records" },
+  { key: "photos",          to: "/pm/photos",            icon: Camera,          label: "Job Photos",      desc: "Field photos by job and week" },
+  { key: "odr",             to: "/pm/odr",               icon: NotebookPen,     label: "ODR Panel",       desc: "Operational Daily Records · field events" },
   { key: "people",          to: "/pm/people",            icon: Users,           label: "People",          desc: "Employee master (read-only)" },
   { key: "suppliers",       to: "/pm/suppliers",         icon: Truck,           label: "Suppliers",       desc: "Supplier master (read-only)" },
   { key: "posters",         to: "/pm/posters",           icon: FileImage,       label: "Site Posters",    desc: "JHP · Trench Box · Inspection QRs" },
+  { key: "po-requests",     to: "/po-requests",          icon: ListChecks,      label: "PO Requests",     desc: "Field POs · approvals · receipts" },
+  { key: "tasks",           to: "/tasks",                icon: ListChecks,      label: "Tasks & Actions", desc: "Cross-portal accountability" },
+  { key: "constraints",     to: "/constraints",          icon: AlertOctagon,    label: "Constraints",     desc: "Operational blockers · per-project view" },
 ];
 
 export { SECTIONS };

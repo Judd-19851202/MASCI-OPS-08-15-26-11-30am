@@ -153,6 +153,126 @@ def _safe_regex(q: str) -> Dict[str, str]:
     return {"$regex": re.escape(q.strip()), "$options": "i"}
 
 
+# ─── Spanish discoverability layer (TRACK 14.0-DISCOVERABILITY D-A11) ─
+# Static EN ↔ ES vocabulary map applied to the query BEFORE the regex
+# is built. A Spanish-speaking superintendent typing `incidente` should
+# find the same incident a foreman typing `incident` finds. No data is
+# translated — only the QUERY is expanded into the alternation regex so
+# the existing English-stored records match. Per-language coverage is
+# documented in `DISCOVERABILITY_SPANISH_CERT.md`.
+#
+# Bidirectional: ES → EN AND EN → ES (so `trench` ALSO matches a record
+# that happens to be authored in Spanish, e.g. a notification body).
+# Whole-token match only — `zanja` matches `zanja` but not `zanjado`.
+
+ES_EN_SYNONYMS: Dict[str, tuple] = {
+    # Safety / records
+    "incidente":            ("incident",),
+    "incidentes":           ("incident", "incidents"),
+    "reporte":              ("report",),
+    "reportes":             ("report", "reports"),
+    "reporte diario":       ("daily report",),
+    "reportes diarios":     ("daily report", "daily reports"),
+    "reunion":              ("meeting",),
+    "reuniones":            ("meeting", "meetings"),
+    "reunion de seguridad": ("safety meeting", "toolbox"),
+    "tailgate":             ("toolbox", "huddle"),
+    "charla":               ("talk", "meeting"),
+    "inspeccion":           ("inspection",),
+    "inspecciones":         ("inspection", "inspections"),
+    # Trench / excavation
+    "zanja":                ("trench",),
+    "zanjas":               ("trench", "trenches"),
+    "excavacion":           ("excavation",),
+    "excavaciones":         ("excavation", "excavations"),
+    "caja de zanja":        ("trench box",),
+    "placa":                ("plate", "road plate"),
+    "placas":               ("plate", "road plate"),
+    # Workforce
+    "equipo":               ("equipment", "crew"),
+    "equipos":              ("equipment", "crews"),
+    "cuadrilla":            ("crew",),
+    "capataz":              ("foreman",),
+    "supervisor":           ("supervisor", "superintendent"),
+    "superintendente":      ("superintendent",),
+    "empleado":             ("employee",),
+    "empleados":            ("employee", "employees"),
+    "conductor":            ("driver",),
+    "operador":             ("operator",),
+    # HR / requests
+    "solicitud":            ("request",),
+    "solicitudes":          ("request", "requests"),
+    "tiempo libre":         ("time off",),
+    "vacaciones":           ("time off", "vacation"),
+    # Project / JHA
+    "proyecto":             ("project",),
+    "proyectos":            ("project", "projects"),
+    "trabajo":              ("job",),
+    "obra":                 ("project", "job"),
+    "plan":                 ("plan",),
+    "planes":               ("plan", "plans"),
+    "peligro":              ("hazard",),
+    "peligros":             ("hazard", "hazards"),
+    # Acronyms — symmetric (JHA / JHP unchanged across languages)
+    "jha":                  ("jha",),
+    "jhp":                  ("jhp",),
+    "atp":                  ("atp", "jha"),  # Analisis de Trabajo Peligroso
+    # Equipment / fleet
+    "vehiculo":             ("vehicle", "truck"),
+    "camion":               ("truck",),
+    "flota":                ("fleet",),
+    "mantenimiento":        ("maintenance", "pm"),
+    "reparacion":           ("repair",),
+    "reparaciones":         ("repair", "repairs"),
+}
+
+# Build a parallel EN → ES map so an English query also catches any
+# Spanish-authored data (rare but possible in bilingual notes).
+_EN_ES_SYNONYMS: Dict[str, tuple] = {}
+for _es, _en_list in ES_EN_SYNONYMS.items():
+    for _en in _en_list:
+        _EN_ES_SYNONYMS[_en] = tuple(set(_EN_ES_SYNONYMS.get(_en, ()) + (_es,)))
+
+
+def _normalize_for_lookup(s: str) -> str:
+    """ASCII-fold accents and lowercase for synonym table lookup."""
+    # Cheap, dependency-free folding for the small ES character set we
+    # actually use (á é í ó ú ñ ü). Avoid pulling unicodedata for a 7-char
+    # map.
+    table = str.maketrans({
+        "á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u",
+        "ñ": "n", "ü": "u",
+        "Á": "a", "É": "e", "Í": "i", "Ó": "o", "Ú": "u",
+        "Ñ": "n", "Ü": "u",
+    })
+    return s.strip().lower().translate(table)
+
+
+def _bilingual_regex(q: str) -> Dict[str, str]:
+    """Build a regex that matches `q` PLUS any EN/ES synonym tokens.
+
+    Single-term mapping only — we don't try to parse phrases; we look up
+    the whole normalized query in the table, and if it has matches we
+    OR them into the regex. The original `q` is always preserved, so
+    behavior is strictly additive — a query that doesn't have synonyms
+    behaves identically to `_safe_regex(q)`.
+    """
+    key = _normalize_for_lookup(q)
+    alternates = list(ES_EN_SYNONYMS.get(key, ())) + list(_EN_ES_SYNONYMS.get(key, ()))
+    if not alternates:
+        return _safe_regex(q)
+    # Escape each alternate and the original query
+    escaped = [re.escape(q.strip())] + [re.escape(a) for a in alternates]
+    # Dedup while preserving order
+    seen, dedup = set(), []
+    for tok in escaped:
+        low = tok.lower()
+        if low not in seen:
+            seen.add(low)
+            dedup.append(tok)
+    return {"$regex": "|".join(dedup), "$options": "i"}
+
+
 def _row(
     kind: str, doc: Dict[str, Any],
     title: str, subtitle: Optional[str] = None,
@@ -236,7 +356,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                     "groups": [], "total": 0,
                 }
 
-        rx = _safe_regex(q)
+        rx = _bilingual_regex(q)
 
         # PM scope (project numbers) — None means unrestricted.
         pm_proj: Optional[List[str]] = None
