@@ -10,7 +10,35 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · RC1 LIVE POST-DEPLOY VERIFICATION · 🟢 VERIFIED WITH OBSERVATIONS)
+## Latest Closed Track (2026-06-16 · TRACK 15.1 · LIVE PRODUCTION OPERATIONAL DEFECT SWEEP · 🟢 PASSED WITH FOLLOW-UPS)
+- **Track:** Live production defect response — user reported 5 defects from iPad use of production deploy.
+- **Mode:** read-only on production · runtime-proof on preview (matching `source_hash=740398bc1f9277a8edfdb1e92e5dc26d`).
+- **Verdict:** 🟢 **PASSED** with 2/16 yellow follow-ups.
+
+**Defects fixed (4 user + 1 bonus):**
+- D1 — PM notification leakage (Offboarding broadcast to ALL PMs): FIXED at the write site. `task_service.create` now propagates `assignee_user_id` → `recipient_user_id`; `_fan_out_offboarding_playbook` PM row is per-project scoped via new `_resolve_offboarding_pm_targets()` helper. PMs of unrelated projects never see offboarding noise. Skip-when-empty if no active assignments. **5/5 pytest regression PASS.**
+- D2 — Notification drawer iPad layout (Close X colliding with Mark all read; cramped sound row): FIXED. `pr-12` on header row, `flex-wrap` on sound row, iPad touch targets bumped to `h-8`. Runtime-verified at 768×1024 and 1024×768.
+- D3 — PM nav dead-click audit: PASS. All 29 PM sidebar routes registered in App.js. Parent domain rows are intentionally expand-only (cross-portal consistent with Admin).
+- D5 — Shop role dropdown gap: FIXED. Added Equipment Manager, Asset Manager, Asset Administrator, Fleet Coordinator, Shop Representative. Label-only change (no permission redesign).
+- BONUS P1 — Junk text `data-testid={...}` rendered as button content in `AdminShopUsersPanel.jsx` (line 308): FIXED.
+
+**Deferred with follow-up tickets:**
+- D1 follow-up — backfill script for ~6 historical leaked PM offboarding notifications already in `db.notifications`. Requires operator-approved write to production.
+- D4 — PM Add Member runtime cert: code path 12/12 audited green, but exact-user-context repro (Project 26-07) requires ask-back to the user for the toast/dialog state.
+
+**Cleanup ledger:** zero residue in production (`masci_safety`), zero residue in preview (`masci_safety_preview`) after test suite cleanup. No real emails sent. No real users touched.
+
+**Files changed:**
+- `/app/backend/routes/employee_lifecycle.py` — added `_resolve_offboarding_pm_targets()`, rewrote PM playbook branch
+- `/app/backend/routes/tasks_notifications.py` — `task_service.create` propagates `recipient_user_id`
+- `/app/frontend/src/components/NotificationBell.jsx` — iPad drawer header rework
+- `/app/frontend/src/components/AdminShopUsersPanel.jsx` — role catalog expansion + junk text fix
+- `/app/backend/tests/test_track_15_1_offboarding_pm_scoping.py` — 5-test regression suite (NEW)
+- `/app/memory/TRACK_15_1_LIVE_PRODUCTION_DEFECT_SWEEP_REPORT.md` — comprehensive 14-section report (NEW)
+
+**Production deploy required** to activate the fixes. Single backend+frontend redeploy. No DB migration.
+
+## Previous Closed Track (2026-06-16 · RC1 LIVE POST-DEPLOY VERIFICATION · 🟢 VERIFIED WITH OBSERVATIONS)
 - **Track:** RC1 LIVE POST-DEPLOY VERIFICATION against `https://mascidocs.com`.
 - **Mode:** READ-ONLY · NO MUTATIONS · NO REAL EMAILS · NO JUNK DATA.
 - **Verdict:** 🟢 **VERIFIED WITH OBSERVATIONS** — 13/13 checks PASS.

@@ -32,7 +32,25 @@ import { api } from "@/lib/api";
 import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
 
-const ROLE_OPTIONS = ["Shop Manager", "Mechanic", "Parts Coordinator", "Service Writer", "Other"];
+// Track 15.1 (2026-06-16) — Defect 5 fix: extended shop role catalog
+// to include Equipment / Asset Management labels that the operational
+// vocabulary uses. `role` is a free-text label on the shop_users
+// record (backend does not permission-gate on it). Asset-admin
+// authority is granted separately via the `is_asset_admin` boolean
+// on the directory record, not by role name. Adding labels here is
+// safe and additive — no backend or permission migration required.
+const ROLE_OPTIONS = [
+  "Shop Manager",
+  "Equipment Manager",
+  "Asset Manager",
+  "Asset Administrator",
+  "Fleet Coordinator",
+  "Mechanic",
+  "Parts Coordinator",
+  "Service Writer",
+  "Shop Representative",
+  "Other",
+];
 
 const inputCls =
   "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-orange-600";
@@ -303,8 +321,6 @@ export default function AdminShopUsersPanel() {
                       onClick={() => toggleDisabled(u)}
                       disabled={savingId === u.id}
                       className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold uppercase ${u.disabled ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"}`}
-                      data-testid={`admin-shop-toggle-disabled-${u.id}`}
-                    >
                       data-testid={`admin-shop-toggle-disabled-${u.id}`}
                     >
                       {u.disabled ? <><ShieldOff className="w-3 h-3" />Disabled</> : <><ShieldCheck className="w-3 h-3" />Active</>}

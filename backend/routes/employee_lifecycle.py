@@ -700,6 +700,103 @@ async def _find_inactive_match(
     return candidate
 
 
+async def _resolve_offboarding_pm_targets(
+    db, employee: Dict[str, Any],
+) -> List[Dict[str, str]]:
+    """Track 15.1 (2026-06-16) — Defect 1: PM notification leakage.
+
+    For the offboarded employee, return one target per (project_number,
+    pm_user_id) pair so we can create a per-PM "Backfill open project
+    assignments" task instead of broadcasting to every PM in the system.
+
+    Returns [] when the employee has no active project_team_assignments
+    — in that case the caller should skip the PM playbook row entirely
+    so PMs never receive offboarding noise for someone who wasn't on
+    one of their projects.
+    """
+    emp_id = employee.get("id")
+    emp_email = (employee.get("email") or "").strip().lower()
+    if not (emp_id or emp_email):
+        return []
+    # 1. Active assignments tied to this employee.
+    or_clauses: List[Dict[str, Any]] = []
+    if emp_id:
+        or_clauses.append({"employee_id": emp_id})
+    if emp_email:
+        or_clauses.append({"email": emp_email})
+    project_numbers: set = set()
+    try:
+        cur = db.project_team_assignments.find(
+            {
+                "active": True,
+                "$or": or_clauses,
+            },
+            {"_id": 0, "project_number": 1},
+        )
+        async for r in cur:
+            pn = r.get("project_number")
+            if pn:
+                project_numbers.add(pn)
+    except Exception:  # pragma: no cover
+        return []
+    if not project_numbers:
+        return []
+    # 2. For each project, find PMs (primary + co-PMs from jobs_master,
+    #    plus assignment_role in ['pm','co_pm'] from staffing).
+    targets: List[Dict[str, str]] = []
+    seen_user_ids: set = set()
+    for pn in project_numbers:
+        pm_emails: set = set()
+        try:
+            job = await db.jobs_master.find_one(
+                {"project_number": pn},
+                {"_id": 0, "pm_email": 1, "co_pm_emails": 1},
+            )
+            if job:
+                if job.get("pm_email"):
+                    pm_emails.add(job["pm_email"].lower())
+                for e in (job.get("co_pm_emails") or []):
+                    if e:
+                        pm_emails.add(e.lower())
+            staff_cur = db.project_team_assignments.find(
+                {
+                    "project_number": pn,
+                    "active": True,
+                    "assignment_role": {"$in": ["pm", "co_pm"]},
+                },
+                {"_id": 0, "email": 1, "user_id": 1},
+            )
+            async for r in staff_cur:
+                if r.get("email"):
+                    pm_emails.add(r["email"].lower())
+        except Exception:  # pragma: no cover
+            continue
+        # 3. Resolve PM emails to directory user_ids so we can scope
+        #    the notification person-level.
+        for em in pm_emails:
+            try:
+                u = await db.user_directory.find_one(
+                    {"email": em},
+                    {"_id": 0, "id": 1, "email": 1, "name": 1},
+                )
+            except Exception:  # pragma: no cover
+                u = None
+            if not u:
+                continue
+            uid = u.get("id")
+            key = f"{uid}|{pn}"
+            if not uid or key in seen_user_ids:
+                continue
+            seen_user_ids.add(key)
+            targets.append({
+                "user_id": uid,
+                "email": u.get("email", ""),
+                "name": u.get("name", ""),
+                "project_number": pn,
+            })
+    return targets
+
+
 async def _fan_out_offboarding_playbook(
     db, employee: Dict[str, Any], new_status: str, reason: Optional[str],
     actor: Dict[str, Any],
@@ -709,7 +806,53 @@ async def _fan_out_offboarding_playbook(
     from routes.tasks_notifications import task_service  # noqa: PLC0415
     created: List[str] = []
     label = f"Offboarding: {employee.get('name', '(unknown)')}"
+    # Track 15.1 (2026-06-16) — Defect 1 fix: pre-resolve the
+    # per-project PM targets so the PM playbook row scopes to only
+    # the PMs of the employee's active projects, instead of
+    # broadcasting to every PM in the directory.
+    pm_targets: List[Dict[str, str]] = await _resolve_offboarding_pm_targets(db, employee)
     for row in _OFFBOARDING_PLAYBOOK:
+        # PM row: scope to specific PMs per project (or skip entirely
+        # when the employee has no active project assignments).
+        if row["role"] == "pm":
+            if not pm_targets:
+                # No active project assignments → PMs need no task.
+                # No broadcast notification is created either.
+                continue
+            for target in pm_targets:
+                try:
+                    task_id = await task_service.create(db, {
+                        "title": (
+                            f"{label} — {row['title']} "
+                            f"({target['project_number']})"
+                        ),
+                        "description": (
+                            f"Status: {new_status}. "
+                            f"{('Reason: ' + reason) if reason else ''}\n\n"
+                            f"Project: {target['project_number']}\n"
+                            f"{row['desc']}"
+                        ).strip(),
+                        "source_module": "hr.offboarding",
+                        "source_record_id": employee.get("id"),
+                        "linked_employee_id": employee.get("id"),
+                        "linked_project_number": target["project_number"],
+                        "assignee_role": row["role"],
+                        "assignee_user_id": target["user_id"],
+                        "priority": row["priority"],
+                        "created_by": {
+                            "role": "hr",
+                            "name": actor.get("name") or actor.get("email")
+                                    or "HR Manager",
+                        },
+                    })
+                    if task_id:
+                        created.append(task_id)
+                except Exception as e:  # pragma: no cover
+                    logger.warning(
+                        "offboarding playbook pm-task failed: %s", e,
+                    )
+            continue
+        # Non-PM rows: existing role-broadcast behavior.
         try:
             task_id = await task_service.create(db, {
                 "title": f"{label} — {row['title']}",

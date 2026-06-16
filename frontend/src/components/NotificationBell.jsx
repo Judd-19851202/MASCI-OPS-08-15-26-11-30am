@@ -207,27 +207,31 @@ export default function NotificationBell({ accent = "slate" }) {
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col" data-testid="notification-drawer">
         <SheetHeader className="px-5 pt-5 pb-3 border-b border-slate-200">
-          <div className="flex items-center justify-between gap-3">
+          {/* Track 15.1 (2026-06-16) — Defect 3 iPad layout fix:
+              pr-12 reserves space for the Shadcn close X (absolute
+              right-4 top-4); flex-wrap on the sound row prevents
+              cramped overflow on iPad portrait widths. */}
+          <div className="flex items-center justify-between gap-3 pr-12">
             <SheetTitle className="font-display text-lg">Notifications</SheetTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={onMarkAll}
               disabled={items.every((x) => x.is_read)}
-              className="text-xs"
+              className="text-xs whitespace-nowrap"
               data-testid="notification-mark-all-read"
             >
               <CheckCheck className="w-3.5 h-3.5 mr-1" /> Mark all read
             </Button>
           </div>
-          <div className="flex items-center gap-2 mt-2" data-testid="notification-sound-controls">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500">Sound</span>
+          <div className="flex items-center gap-2 mt-3 flex-wrap" data-testid="notification-sound-controls">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 shrink-0">Sound</span>
             <Button
               type="button"
               size="sm"
               variant={muted ? "outline" : "default"}
               onClick={() => applyMute(0)}
-              className="h-7 px-2 text-[11px]"
+              className="h-8 px-2.5 text-[11px]"
               data-testid="notification-sound-on"
               aria-pressed={!muted}
             >
@@ -238,7 +242,7 @@ export default function NotificationBell({ accent = "slate" }) {
               size="sm"
               variant={muted && muteUntil - Date.now() <= 3600 * 1000 + 1000 ? "default" : "outline"}
               onClick={() => applyMute(1)}
-              className="h-7 px-2 text-[11px]"
+              className="h-8 px-2.5 text-[11px]"
               data-testid="notification-snooze-1h"
             >
               Snooze 1h
@@ -248,7 +252,7 @@ export default function NotificationBell({ accent = "slate" }) {
               size="sm"
               variant={muted && muteUntil - Date.now() > 3600 * 1000 + 1000 ? "default" : "outline"}
               onClick={() => applyMute(8)}
-              className="h-7 px-2 text-[11px]"
+              className="h-8 px-2.5 text-[11px]"
               data-testid="notification-snooze-8h"
             >
               Snooze 8h
@@ -258,7 +262,7 @@ export default function NotificationBell({ accent = "slate" }) {
               size="sm"
               variant={muted ? "default" : "outline"}
               onClick={() => applyMute(24 * 365)}
-              className="h-7 px-2 text-[11px]"
+              className="h-8 px-2.5 text-[11px]"
               data-testid="notification-mute"
               title="Mute notification sounds on this device"
             >

@@ -206,9 +206,17 @@ class _TaskService:
                     "message": (task.get("description") or "")[:200],
                     "severity": "Info" if task["priority"] in ("Low", "Medium") else "Warning",
                     "recipient_role": task["assignee_role"],
+                    # Track 15.1 (2026-06-16) — when the task is bound to a
+                    # specific user via assignee_user_id, propagate that
+                    # through as recipient_user_id so the notification is
+                    # person-targeted (hidden from the role broadcast) and
+                    # other users in the same role don't see noise.
+                    "recipient_user_id": task.get("assignee_user_id"),
                     "linked_task_id": task["id"],
                     "linked_source_module": task["source_module"],
                     "linked_source_record_id": task["source_record_id"],
+                    "linked_employee_id": task.get("linked_employee_id"),
+                    "linked_project_number": task.get("linked_project_number"),
                 })
             except Exception as e:  # pragma: no cover
                 logger.warning("task notification fanout failed: %s", e)
