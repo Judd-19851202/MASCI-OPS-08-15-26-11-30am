@@ -10,7 +10,53 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-02-16 · TRACK 14.0-OVERLOADED-CREW-VISIBILITY-CERTIFICATION · CLOSED)
+## Latest Closed Track (2026-02-16 · TRACK 14.0-DISCOVERABILITY-FINALIZATION · CLOSED)
+- **14.0-DISCOVERABILITY-FINALIZATION · 🟢 CLOSED · PROVEN · CERTIFIED.**
+  Final discoverability cleanup pass before moving platform focus
+  elsewhere. Closes D-A15, D-A16, D-A20 plus a bilingual search
+  certification.
+  - **D-A15 Operational Records + Operations Actions**: Admin V1
+    sidebar (production default in `AdminShell.jsx`) now exposes
+    BOTH workflows as their own SECTIONS entries (NotebookPen +
+    ListTodo icons). 1-click reachable from any admin page.
+  - **D-A16 FL Portal Leadership launchers**: per-user FL Portal
+    Dashboard at `/field-leadership/portal/dashboard` gained a new
+    "Leadership submissions" card with 9 launcher Buttons for the
+    canonical leadership form kinds (recognition, write_up,
+    verbal_coaching, attendance, equipment_checkout,
+    new_employee_eval, crew_eval, promotion_recommendation,
+    training_deficiency). Each has `data-testid="fl-launch-{kind}"`.
+    Routes are public-submit — zero permission change.
+  - **D-A20 HR Document Expirations canonical link**: HrHubV2.jsx
+    + HrKpiStrip.jsx tile targets switched from
+    `/safety-portal/document-expirations` →
+    `/document-expirations` (canonical cross-portal route).
+    HR users now stay in the HR purple shell instead of shell-
+    hopping into Safety cyan.
+  - **Bilingual search**: ES_EN_SYNONYMS extended with 14 entries
+    (registro/s, accion/es, liderazgo, vencimiento/s, expiracion/es,
+    certificacion/es, capacitacion, entrenamiento). Runtime-verified:
+    registros→14 hits, acciones→13, liderazgo→7, vencimientos→6,
+    expiraciones→6, certificaciones→6, capacitacion→18,
+    entrenamiento→18.
+  - **Persona certification** (testing_agent_v3_fork iter521): 100%
+    backend (18/18) · 100% frontend (4 click-paths + iPad 768×1024) ·
+    0 defects · `retest_needed=False` · safety daily_reports
+    exclusion still intact.
+  - **Regression**: 8 new tests · 64/64 cumulative green
+    (`test_track14_discoverability_finalization.py` +
+    `test_track14_overloaded_crew_visibility.py` +
+    `test_track14_discoverability_wave_b.py` +
+    `test_track14_auth_password_parity.py`).
+  - **Closure ledger**:
+    `/app/memory/TRACK_14_DISCOVERABILITY_FINALIZATION_CLOSURE.md`.
+  - **All P1+P2 discoverability defects from Wave A audit are now
+    CLOSED.** Only D-A1 (V2 sidebar parity, feature-flagged off),
+    D-A3 (Safety daily-reports — permission redesign), D-A14
+    (Ops Center map by-design), D-A18/D-A19 (Dispatch/Shop minor)
+    remain explicitly deferred per hard rules.
+
+## Previously Closed Track (2026-02-16 · TRACK 14.0-OVERLOADED-CREW-VISIBILITY-CERTIFICATION · CLOSED)
 - **14.0-OVERLOADED-CREW-VISIBILITY-CERTIFICATION · 🟢 CLOSED · PROVEN · CERTIFIED.**
   Visibility-only track (not a staffing redesign). Leadership now sees
   overloaded personnel above the fold on Project Staffing with no
