@@ -3555,6 +3555,8 @@ const ES = {
   "Project Systems": "Sistemas de Proyecto",
   "Connected project platforms for communication, utility locating, and construction plans.":
     "Plataformas de proyecto conectadas para comunicación, localización de servicios y planos de construcción.",
+  // ── Track 15.4A (2026-06-16) · Field Leadership card upgrade ─────
+  "View all Field Leadership records": "Ver todos los registros de Field Leadership",
   "What every crew on site does today.":
     "Lo que cada cuadrilla en el sitio hace hoy.",
   "File end-of-day reports, log equipment walk-arounds, and capture crew, weather, and production from the job site.":

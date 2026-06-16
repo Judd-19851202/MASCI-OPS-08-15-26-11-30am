@@ -22,7 +22,7 @@ import { Link } from "react-router-dom";
 import {
   HardHat, ClipboardList, Building2, Shield, Wrench, ClipboardCheck,
   GraduationCap, UserCheck, Users, ArrowRight, MapPin, Lock, Phone,
-  BookOpen, LogOut, ShieldAlert, Truck, ExternalLink,
+  BookOpen, LogOut, ShieldAlert, ShieldCheck, Truck, ExternalLink,
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -257,12 +257,12 @@ export default function Hub() {
             {lang === "es" ? (
               <>
                 {"Un Solo Sistema. Cada Cuadrilla. "}
-                <span className="text-red-700">Cada Trabajo.</span>
+                <span className="text-red-700">Cada Trabajo</span>{"."}
               </>
             ) : (
               <>
                 {"One System. Every Crew. "}
-                <span className="text-red-700">Every Job.</span>
+                <span className="text-red-700">Every Job</span>{"."}
               </>
             )}
           </h1>
@@ -334,15 +334,7 @@ export default function Hub() {
         {/* SECTION 2 — Leadership Tools */}
         <SectionHeader kicker="02" title={t("Leadership Tools")} subtitle={t("For foremen, supervisors, and superintendents running the work.")} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 sm:gap-5 mb-10">
-          <MediumTile
-            to="/leadership"
-            icon={UserCheck}
-            kicker={t("MASCI Field Leadership")}
-            title={t("Field Leadership")}
-            desc={t("Track crew accountability, employee documentation, equipment custody, recognition, and workforce decisions.")}
-            accent="slate"
-            testId="hub-section-leadership"
-          />
+          <FieldLeadershipCard testId="hub-section-leadership" />
           <ProjectsCard testId="hub-section-projects" />
         </div>
 
@@ -540,6 +532,133 @@ function detectActiveSession(t, rerender) {
              signOut: onSignOut(clearLeadershipToken) };
   }
   return null;
+}
+
+/**
+ * FieldLeadershipCard — Track 15.4A (2026-06-16) sibling-of-Project-Systems.
+ *
+ * Before 15.4A, the Leadership Tools row had a heavyweight Project
+ * Systems card on the right and a thin <MediumTile> on the left
+ * which made Field Leadership read as empty/unfinished. This card
+ * is a sibling — same shell language (border, padding, badge,
+ * title, description, action area), but with INTERNAL route
+ * launchers instead of external platform launchers, and a calm
+ * MASCI navy/slate palette so the two cards differ by purpose, not
+ * by quality.
+ *
+ * All four launchers route to live FieldLeadership routes already
+ * registered in App.js. No placeholder links.
+ */
+const FIELD_LEADERSHIP_LAUNCHERS = [
+  {
+    key: "open",
+    label: "Open Hub",
+    sub: "Records & ledger",
+    to: "/leadership",
+    icon: UserCheck,
+    testid: "hub-fl-launch-open",
+  },
+  {
+    key: "recognition",
+    label: "Recognition",
+    sub: "Log a good catch",
+    to: "/leadership/recognition/new",
+    icon: ShieldCheck,
+    testid: "hub-fl-launch-recognition",
+  },
+  {
+    key: "write-up",
+    label: "Write-Up",
+    sub: "Coaching note",
+    to: "/leadership/write_up/new",
+    icon: ClipboardCheck,
+    testid: "hub-fl-launch-write-up",
+  },
+  {
+    key: "equipment-checkout",
+    label: "Equipment Checkout",
+    sub: "Custody hand-off",
+    to: "/leadership/equipment_checkout/new",
+    icon: Truck,
+    testid: "hub-fl-launch-equipment-checkout",
+  },
+];
+
+function FieldLeadershipCard({ testId }) {
+  const { t } = useT();
+  return (
+    <div
+      // Same shell language as ProjectSystemsCard so the row reads
+      // as a balanced pair of equal-weight cards.
+      className="group relative bg-white border border-slate-200 rounded-md p-6 flex items-start gap-5 shadow-sm"
+      data-testid={testId}
+    >
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-slate-900 text-white shrink-0">
+        <UserCheck className="w-7 h-7" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <span className="inline-block px-2 py-0.5 rounded text-slate-700 bg-slate-100 font-mono text-[10px] uppercase tracking-[0.2em] font-bold mb-1.5">
+          {t("MASCI Field Leadership")}
+        </span>
+        <h3
+          className="font-display text-2xl font-black tracking-tight text-slate-900"
+          data-testid="hub-field-leadership-title"
+        >
+          {t("Field Leadership")}
+        </h3>
+        <p
+          className="text-slate-600 text-sm mt-1.5 leading-snug"
+          data-testid="hub-field-leadership-description"
+        >
+          {t("Track crew accountability, employee documentation, equipment custody, recognition, and workforce decisions.")}
+        </p>
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-5"
+          data-testid="hub-field-leadership-launchers"
+        >
+          {FIELD_LEADERSHIP_LAUNCHERS.map((act) => {
+            const Icon = act.icon;
+            return (
+              <Link
+                key={act.key}
+                to={act.to}
+                data-testid={act.testid}
+                aria-label={act.label}
+                // Calm slate-50 → slate-100 palette so these read as
+                // operational actions inside the MASCI shell — not
+                // external-launch buttons. Same 64px touch target.
+                className="group/act relative flex items-center gap-3 h-16 px-3 rounded-md bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-900 transition-colors duration-150 border border-slate-200 hover:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
+              >
+                <span className="flex items-center justify-center w-10 h-10 rounded-md bg-white border border-slate-200 group-hover/act:bg-slate-800 group-hover/act:border-slate-700 shrink-0 transition-colors">
+                  <Icon className="w-5 h-5" />
+                </span>
+                <span className="flex-1 min-w-0 flex flex-col">
+                  <span className="text-sm font-display font-bold tracking-tight leading-tight whitespace-nowrap">
+                    {act.label}
+                  </span>
+                  <span className="text-[11px] text-slate-500 group-hover/act:text-slate-300 leading-tight truncate">
+                    {act.sub}
+                  </span>
+                </span>
+                <ArrowRight className="w-4 h-4 shrink-0 opacity-40 group-hover/act:opacity-100 transition-opacity" />
+              </Link>
+            );
+          })}
+        </div>
+        {/* Footer link gives the card vertical balance with the
+            3-launcher Project Systems sibling and surfaces the full
+            records ledger for leaders auditing prior submissions. */}
+        <Link
+          to="/leadership/records"
+          data-testid="hub-fl-view-all-records"
+          className="inline-flex items-center gap-1.5 mt-3 text-xs font-mono uppercase tracking-[0.18em] font-bold text-slate-700 hover:text-slate-900 group/foot"
+        >
+          {t("View all Field Leadership records")}
+          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/foot:translate-x-1" />
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 /**

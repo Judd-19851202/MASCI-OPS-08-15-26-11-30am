@@ -10,7 +10,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.4 · RC1 LIVE FIX DEPLOYMENT + HOMEPAGE HERO / PROJECT SYSTEMS POLISH · 🟡 PASSED WITH OPERATOR FOLLOW-UP REQUIRED)
+## Latest Closed Track (2026-06-16 · TRACK 15.4A · HERO PERIOD FIX + FIELD LEADERSHIP CARD POLISH · 🟢 PASSED)
+- **Track:** Tight polish pass — hero period color + Field Leadership card upgrade.
+- **Verdict:** 🟢 12/12 closure criteria · 25/25 Five Pillars.
+- **Phase 1 — Hero period**: red span shrunk to "Every Job" (no trailing period); final `.` now inherits navy `text-slate-900`. EN + ES both fixed.
+- **Phase 2-5 — Field Leadership card**: replaced thin `<MediumTile>` with sibling `<FieldLeadershipCard>` matching `<ProjectSystemsCard>` shell language. 4 real route launchers in 2×2 grid (Open Hub /leadership, Recognition /leadership/recognition/new, Write-Up /leadership/write_up/new, Equipment Checkout /leadership/equipment_checkout/new) + footer link "View all Field Leadership records" → /leadership/records. Calm slate-50 → slate-900 hover palette differentiates from Project Systems' colored brand launchers — sibling, not clone.
+- **Phase 4 — Visual balance**: card heights within 2% of each other at desktop. iPad portrait + landscape verified.
+- **Phase 7 — Regression**: +6 new frontend assertions (hero accent contract, FL card title, 4 launcher routes, footer link route). Combined suite: 24 assertions across 15.1-15.4A.
+- **Cleanup**: production untouched, 3 frontend files edited, 1 report created.
+
+## Previous Closed Track (2026-06-16 · TRACK 15.4 · RC1 LIVE FIX DEPLOYMENT + HOMEPAGE HERO / PROJECT SYSTEMS POLISH · 🟡 PASSED WITH OPERATOR FOLLOW-UP REQUIRED)
 - **Track:** Seven-priority sequence — deploy 15.1+15.2+15.3, run notification cleanup, prove PM Add Member, polish Project Systems + logos + hero copy.
 - **Verdict:** 🟡 13/13 directly-actionable items GREEN. 3 operator-owned items pending (deploy, prod DB cleanup, Project 26-07 retry).
 - **Phase 4 — Project Systems card weight**: ~+18% (p-5→p-6, text-xl→text-2xl, h-14→h-16, 56→72px chip). Equal peer to Field Leadership.

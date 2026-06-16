@@ -106,4 +106,58 @@ describe("TRACK 15.4 — Homepage hero + Project Systems contract", () => {
     // "Plans" alone is fine inside "ForgedOps Plans" but must not be
     // the only platform name shown.
   });
+
+  // ── Track 15.4A (2026-06-16) — hero period color + FL card ─────
+
+  it("hero accent span contains ONLY 'Every Job' (no trailing period)", () => {
+    renderHub();
+    const h1 = screen.getByRole("heading", { level: 1 });
+    const accent = h1.querySelector(".text-red-700");
+    expect(accent).not.toBeNull();
+    // Approved: red span is the words only. Final period belongs to
+    // the navy headline text, not the accent.
+    expect(accent.textContent).toBe("Every Job");
+    expect(accent.textContent).not.toMatch(/\.$/);
+    // The complete headline must still end with a period.
+    expect(h1.textContent.trim().endsWith(".")).toBe(true);
+  });
+
+  it("renders the Field Leadership card title (NOT a thin MediumTile)", () => {
+    renderHub();
+    expect(screen.getByTestId("hub-field-leadership-title").textContent).toBe(
+      "Field Leadership",
+    );
+    expect(screen.getByTestId("hub-field-leadership-launchers")).toBeTruthy();
+  });
+
+  it.each([
+    ["hub-fl-launch-open", "/leadership", "Open Hub"],
+    ["hub-fl-launch-recognition", "/leadership/recognition/new", "Recognition"],
+    ["hub-fl-launch-write-up", "/leadership/write_up/new", "Write-Up"],
+    [
+      "hub-fl-launch-equipment-checkout",
+      "/leadership/equipment_checkout/new",
+      "Equipment Checkout",
+    ],
+  ])(
+    "Field Leadership launcher %s routes to %s (label=%s)",
+    (testId, route, label) => {
+      renderHub();
+      const el = screen.getByTestId(testId);
+      expect(el.tagName).toBe("A");
+      // react-router Link renders <a href="..."> for in-app routes.
+      expect(el.getAttribute("href")).toBe(route);
+      // No placeholder anchors.
+      expect(el.getAttribute("href")).not.toBe("#");
+      expect(el.textContent).toMatch(new RegExp(label));
+    },
+  );
+
+  it("Field Leadership 'View all records' footer link routes correctly", () => {
+    renderHub();
+    const el = screen.getByTestId("hub-fl-view-all-records");
+    expect(el.tagName).toBe("A");
+    expect(el.getAttribute("href")).toBe("/leadership/records");
+    expect(el.getAttribute("href")).not.toBe("#");
+  });
 });
