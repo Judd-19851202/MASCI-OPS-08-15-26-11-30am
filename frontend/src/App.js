@@ -1125,7 +1125,12 @@ function App() {
 
 function RedirectWithId({ base }) {
   const id = window.location.pathname.split("/").filter(Boolean).pop();
-  return <Navigate to={`${base}/${id}`} replace />;
+  // Track 15.12A · preserve `location.state` across this synthetic
+  // redirect — without `state={location.state}` the `<Navigate replace>`
+  // discards the caller's navigation context (used by PM photo lightbox
+  // to set `{from:"pm-photos"}` so the daily-report back button can
+  // return to /pm/command-center).
+  return <Navigate to={`${base}/${id}`} replace state={window.history.state?.usr} />;
 }
 
 export default App;

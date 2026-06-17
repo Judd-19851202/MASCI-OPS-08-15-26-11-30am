@@ -130,12 +130,22 @@ export default function ViewDailyReport() {
   const hubHome = useHubHome();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, state: navState } = useLocation();
   // Parent list URL — strips `/<id>` from the current pathname so PMs
   // viewing /pm/daily/<id> bounce back to /pm/daily, and admins viewing
   // /admin/daily/<id> bounce back to /admin/daily. Avoids the legacy
   // hard-coded "/admin/daily" that wiped the PM token via EnforcePortalScope.
   const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/daily";
+  // Track 15.12A · Photo Workflow Recovery — when the user arrived here
+  // by clicking a photo tile on the PM Command Center, honor the
+  // `{from: "pm-photos"}` location.state so the back button takes them
+  // back to the dashboard photo panel instead of dumping them in the
+  // Daily Reports list.
+  const cameFromPmPhotos = navState && navState.from === "pm-photos";
+  const backHref = cameFromPmPhotos
+    ? (navState.returnTo || "/pm/command-center")
+    : listUrl;
+  const backLabel = cameFromPmPhotos ? t("Photos") : t("Daily Reports");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -193,11 +203,11 @@ export default function ViewDailyReport() {
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
-            to={listUrl}
+            to={backHref}
             className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
             data-testid="back-link"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Daily Reports")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {backLabel}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
           <div className="flex gap-2">
@@ -238,6 +248,30 @@ export default function ViewDailyReport() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+        {/* Track 15.12A · breadcrumb only when arriving from the PM
+            Command Center photo lightbox, so the user can see the
+            navigation source they came from. */}
+        {cameFromPmPhotos && (
+          <nav
+            aria-label="Breadcrumb"
+            data-testid="view-daily-breadcrumb"
+            className="no-print -mt-2 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500"
+          >
+            <Link to="/pm/command-center" className="hover:text-red-700 hover:underline font-bold">
+              {t("PM Portal")}
+            </Link>
+            <span className="mx-1 text-slate-400">/</span>
+            <Link to="/pm/command-center" className="hover:text-red-700 hover:underline font-bold">
+              {t("Command Center")}
+            </Link>
+            <span className="mx-1 text-slate-400">/</span>
+            <Link to="/pm/command-center" className="hover:text-red-700 hover:underline font-bold">
+              {t("Photos")}
+            </Link>
+            <span className="mx-1 text-slate-400">/</span>
+            <span className="text-slate-700 font-bold">{t("Daily Report")}</span>
+          </nav>
+        )}
         <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo

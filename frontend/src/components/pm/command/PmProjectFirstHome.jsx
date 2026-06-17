@@ -32,15 +32,24 @@
 //   - /api/job-photos                       (recent photos)
 //   - /api/daily-reports                    (daily report list)
 
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Briefcase, FileText, Camera, ShieldAlert, Wrench,
   ClipboardList, ArrowRight, ExternalLink, BookMarked,
+  ChevronLeft, ChevronRight, X as XIcon,
 } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// Track 15.12A · Photo Workflow Recovery — same signed-URL pattern the
+// canonical /pm/photos library uses so dashboard thumbs render as real
+// images instead of the Camera placeholder.
+const THUMB_BASE = `${process.env.REACT_APP_BACKEND_URL}/api/job-photos`;
+const thumbSrc = (p) =>
+  p?.thumb_token
+    ? `${THUMB_BASE}/${encodeURIComponent(p.id)}/thumb-signed?t=${encodeURIComponent(p.thumb_token)}`
+    : (p?.thumb_url || p?.url || null);
 
 function _authHeaders() {
   // Track 15.11C fix: previously this helper only checked sessionStorage
@@ -285,8 +294,180 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
 }
 
 // ── Section B — Field Truth ───────────────────────────────────────
+//
+// Track 15.12A · Photo Workflow Recovery
+//   Before: clicking a photo tile silently navigated to the underlying
+//   Daily Report — users expected a photo and got a report, with no
+//   way back to the photo panel.
+//   After: clicking a tile opens an inline PhotoLightbox showing the
+//   actual image (via /api/job-photos/{id}/thumb-signed?t=<token>),
+//   project + date + report metadata, prev/next nav, close, and a
+//   secondary "Open Daily Report" link that hands the destination a
+//   `{from:'pm-photos'}` location.state so the daily-report back button
+//   can return to /pm/command-center.
+function PhotoLightbox({ photos, openIndex, onClose, onNext, onPrev }) {
+  const { t } = useT();
+  const navigate = useNavigate();
+  const p = photos?.[openIndex];
+
+  // Keyboard nav: Esc closes, ← prev, → next.
+  useEffect(() => {
+    if (openIndex == null) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowLeft") onPrev();
+      else if (e.key === "ArrowRight") onNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openIndex, onClose, onNext, onPrev]);
+
+  if (openIndex == null || !p) return null;
+
+  const src = thumbSrc(p);
+  const reportRef = p.report_number || p.source_id || "";
+  const dateLabel = p.record_date || p.captured_at || "";
+  const dateText = dateLabel ? String(dateLabel).slice(0, 10) : "";
+
+  const openReport = () => {
+    if (!p.source_id) return;
+    onClose();
+    // Track 15.12A · navigate directly to the PM portal route so the
+    // back button on ViewDailyReport falls back to /pm/daily (not
+    // /admin/daily), and the state hop is preserved (the global
+    // /daily/:id route uses <Navigate replace /> which discards state).
+    navigate(`/pm/daily/${p.source_id}`, {
+      state: { from: "pm-photos", returnTo: "/pm/command-center" },
+    });
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      data-testid="pm-pfh-photo-lightbox"
+      className="fixed inset-0 z-50 flex items-stretch justify-center bg-slate-900/95 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="m-auto w-full max-w-4xl bg-slate-950 text-white border border-slate-700 rounded-lg overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-slate-800">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-400 font-bold">
+              {t("Field Photo")}
+            </div>
+            <div className="text-base font-bold truncate">
+              {p.project_name || p.project_number || t("(no project)")}
+            </div>
+            <div className="text-xs text-slate-400 truncate">
+              {[p.project_number, dateText, reportRef].filter(Boolean).join(" · ")}
+              {p.submitter ? ` · ${p.submitter}` : ""}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            data-testid="pm-pfh-photo-lightbox-close"
+            className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded hover:bg-slate-800 text-slate-300 hover:text-white"
+            aria-label={t("Close")}
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Image */}
+        <div className="relative bg-black flex items-center justify-center min-h-[260px] max-h-[70vh] overflow-hidden">
+          {src ? (
+            <img
+              src={src}
+              alt={p.project_number || "photo"}
+              className="max-h-[70vh] w-auto object-contain"
+              data-testid="pm-pfh-photo-lightbox-img"
+            />
+          ) : (
+            <div className="text-slate-500 flex flex-col items-center gap-2 py-12">
+              <Camera className="w-8 h-8" />
+              <span className="text-xs">{t("Photo unavailable")}</span>
+            </div>
+          )}
+          {photos.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={onPrev}
+                data-testid="pm-pfh-photo-lightbox-prev"
+                aria-label={t("Previous")}
+                className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-11 h-11 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white border border-slate-700"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                data-testid="pm-pfh-photo-lightbox-next"
+                aria-label={t("Next")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-11 h-11 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white border border-slate-700"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Footer actions — "Open Daily Report" is SECONDARY by design.
+            Photo remains the primary subject. */}
+        <div className="px-4 py-3 border-t border-slate-800 flex items-center justify-between gap-3">
+          <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
+            {photos.length > 1 ? `${openIndex + 1} / ${photos.length}` : ""}
+          </div>
+          <div className="flex items-center gap-2">
+            {p.source_id ? (
+              <button
+                type="button"
+                onClick={openReport}
+                data-testid="pm-pfh-photo-lightbox-open-report"
+                className="inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded border border-slate-600 bg-slate-900 hover:border-red-500 hover:text-red-300 text-sm font-bold"
+              >
+                <FileText className="w-4 h-4" />
+                {t("Open Daily Report")}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              data-testid="pm-pfh-photo-lightbox-done"
+              className="inline-flex items-center min-h-[44px] px-3 rounded bg-red-700 hover:bg-red-800 text-white text-sm font-bold"
+            >
+              {t("Done")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FieldTruth({ photos, dailies, loading }) {
   const { t } = useT();
+  const safePhotos = Array.isArray(photos) ? photos : [];
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  const openAt = useCallback((i) => setLightboxIndex(i), []);
+  const close = useCallback(() => setLightboxIndex(null), []);
+  const next = useCallback(
+    () => setLightboxIndex((i) => (i == null ? null : (i + 1) % safePhotos.length)),
+    [safePhotos.length],
+  );
+  const prev = useCallback(
+    () =>
+      setLightboxIndex((i) =>
+        i == null ? null : (i - 1 + safePhotos.length) % safePhotos.length,
+      ),
+    [safePhotos.length],
+  );
+
   return (
     <SectionShell
       kicker={t("Section B · Field Truth")}
@@ -345,30 +526,36 @@ function FieldTruth({ photos, dailies, loading }) {
           </div>
           {loading ? (
             <div className="grid grid-cols-4 gap-1.5">{[1,2,3,4].map((i) => (<div key={i} className="aspect-square bg-slate-100 rounded animate-pulse" />))}</div>
-          ) : (photos && photos.length > 0) ? (
+          ) : (safePhotos.length > 0) ? (
             <div className="grid grid-cols-4 gap-1.5" data-testid="pm-pfh-photo-grid">
-              {photos.slice(0, 8).map((p) => (
-                <Link
-                  key={p.id}
-                  to={p.source === "daily_report" ? `/daily/${p.source_id}` : `/pm/photos?source_id=${p.source_id}`}
-                  className="aspect-square block bg-slate-200 rounded overflow-hidden hover:ring-2 hover:ring-red-400 transition-shadow"
-                  data-testid={`pm-pfh-photo-${p.id}`}
-                  title={`${p.project_number || ""} ${p.record_date || ""}`}
-                >
-                  {p.thumb_url || p.url ? (
-                    <img
-                      src={p.thumb_url || p.url}
-                      alt={p.project_number || "photo"}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <Camera className="w-4 h-4" />
-                    </div>
-                  )}
-                </Link>
-              ))}
+              {safePhotos.slice(0, 8).map((p, i) => {
+                const src = thumbSrc(p);
+                const cap = [p.project_number, p.record_date].filter(Boolean).join(" · ");
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => openAt(i)}
+                    className="aspect-square block bg-slate-200 rounded overflow-hidden hover:ring-2 hover:ring-red-400 transition-shadow focus:outline-none focus:ring-2 focus:ring-red-500"
+                    data-testid={`pm-pfh-photo-${p.id}`}
+                    title={cap || t("Field photo")}
+                    aria-label={cap ? `${t("Open photo")} — ${cap}` : t("Open photo")}
+                  >
+                    {src ? (
+                      <img
+                        src={src}
+                        alt={p.project_number || "photo"}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        <Camera className="w-4 h-4" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <EmptyRow testId="pm-pfh-photo-empty">
@@ -378,6 +565,13 @@ function FieldTruth({ photos, dailies, loading }) {
           )}
         </div>
       </div>
+      <PhotoLightbox
+        photos={safePhotos.slice(0, 8)}
+        openIndex={lightboxIndex}
+        onClose={close}
+        onNext={next}
+        onPrev={prev}
+      />
     </SectionShell>
   );
 }

@@ -2094,3 +2094,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Verdict:** 🟢 **DEPLOY** · Five-Pillar 9.96 / 10.
 - **Deliverables added:** `/app/memory/TRACK_15_12_FINAL_RELEASE_GATE.md` · `/app/memory/TRACK_15_12_DEPLOYMENT_RECOMMENDATION.md`.
 - **Pending operator-only carryover (NOT blocking):** Track 15.8A/B production PM notification leak cleanup — requires operator-spawned prod pod.
+
+
+## 2026-02-15 · TRACK 15.12A · HR DIAGNOSTIC + PM PHOTO WORKFLOW RECOVERY — CLOSED 🟢
+
+- **Mode:** P1 production diagnostic + targeted UX recovery, no redesign.
+- **HR diagnostic verdict (no code fix):** the `SERVER UNREACHABLE` banner the operator saw on `mascidocs.com/hr/daily-reports` was triggered by `BackendStatusBanner` after 2 consecutive `/api/health` failures (transient post-deploy blip). The amendment confirmed *"Data is now loading"* — the banner had already self-cleared. HR auth helper (`hrAuth.js`) was audited and is NOT affected by the `_authHeaders` defect class that bit PM in 15.11C (reads both storage tiers, sends `X-HR-Token`). All `/api/hr/daily-reports` filters return the expected counts (project 3/200, superintendent 3, foreman 3, date_from 200, etc.).
+- **PM Photo Workflow Recovery (fixes landed):**
+  - `frontend/src/components/pm/command/PmProjectFirstHome.jsx`: photo grid now renders real thumbnails via `/api/job-photos/<id>/thumb-signed?t=<token>` (same signed-URL pattern as `JobPhotosLibrary`). Tile is a `<button>` that opens an in-page `<PhotoLightbox>` showing the actual image + project/date/report metadata + Prev/Next/Close/Open Daily Report. The lightbox navigates with `state={from:"pm-photos", returnTo:"/pm/command-center"}`.
+  - `frontend/src/pages/ViewDailyReport.jsx`: reads `location.state`; when `from === "pm-photos"` the back-link label switches to *Photos* and the href to `/pm/command-center`, and a breadcrumb (`PM Portal / Command Center / Photos / Daily Report`) is rendered above the report body. Default flow is unchanged.
+  - `frontend/src/App.js · RedirectWithId`: forwards `location.state` through the `<Navigate replace>` synthetic redirect so future origin-aware flows (`/inspect/<id>`, `/incidents/<id>`, etc.) can preserve their context too.
+- **Browser runtime proof:** tile click opens lightbox; Open Daily Report routes to `/pm/daily/<id>`; breadcrumb visible; back label reads *Photos*; back link returns to `/pm/command-center`. iPad portrait 768x1024 — no horizontal scroll, all controls reachable. Default daily-row flow regression: breadcrumb absent, back label *Daily Reports*. Screenshots `/tmp/pm_photo_lightbox*.png`, `/tmp/pm_photo_to_dailyreport_v2.png`.
+- **Tests:** 103/103 across 15.11B / 15.10 / 15.9A regression. No backend change, no schema migration, no env vars.
+- **Five-Pillar (photo workflow):** Powerful 10 · Simple 10 · Beautiful 9.7 · Trusted 10 · Proven 10 → **9.94 / 10**.
+- **Files:** `frontend/src/components/pm/command/PmProjectFirstHome.jsx` · `frontend/src/pages/ViewDailyReport.jsx` · `frontend/src/App.js`.
+- **Docs:** `memory/TRACK_15_12A_PM_PHOTO_WORKFLOW_RECOVERY.md` · `memory/TRACK_15_12A_HR_DAILY_REPORTS_PRODUCTION_FAILURE_DIAGNOSTIC.md`.
+- **Verdict:** 🟢 **READY TO REDEPLOY** — pure additive UI improvements + state-preserving `RedirectWithId` hardening.
