@@ -354,9 +354,9 @@ export default function HrHubV2() {
             <QueueCard
               to="/hr/daily-reports"
               testid="hr-hub-v2-read-daily"
-              title="Recent Daily Reports"
-              why="Read-only HR view for man-hour + payroll variance checks"
-              source="Live read · last 10 reports"
+              title="Daily Reports"
+              why="Read-only access to all field daily reports — system of record for payroll verification, labor disputes, attendance, coaching, terminations, workers-comp, and legal requests"
+              source="All reports · paginated & searchable"
               value={s.daily_reports_today}
               loaded={s.loaded}
               variantWhenAttention="default"

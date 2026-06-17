@@ -142,10 +142,17 @@ export default function ViewDailyReport() {
   // back to the dashboard photo panel instead of dumping them in the
   // Daily Reports list.
   const cameFromPmPhotos = navState && navState.from === "pm-photos";
+  // Track 15.13C — HR portal mounts this same view via /hr/daily-reports/:id
+  // for read-only access. Backend already rejects HR's X-HR-Token on
+  // every mutating endpoint; UI hides the mutation controls so the
+  // page looks read-only as well as behaves read-only.
+  const isHrReadOnly = pathname.startsWith("/hr/");
   const backHref = cameFromPmPhotos
     ? (navState.returnTo || "/pm/command-center")
-    : listUrl;
-  const backLabel = cameFromPmPhotos ? t("Photos") : t("Daily Reports");
+    : (isHrReadOnly ? "/hr/daily-reports" : listUrl);
+  const backLabel = cameFromPmPhotos
+    ? t("Photos")
+    : (isHrReadOnly ? t("Daily Reports") : t("Daily Reports"));
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -210,40 +217,53 @@ export default function ViewDailyReport() {
             <ArrowLeft className="w-4 h-4 mr-1" /> {backLabel}
           </Link>
           <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex gap-2">
-            <EditProjectDialog
-              kind="daily-reports"
-              recordId={data.id}
-              current={data}
-              onSaved={(rec) => rec && setData(rec)}
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleDelete}
-              className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
-              data-testid="delete-btn"
-              aria-label="Delete daily report"
-              title="Delete"
+          {isHrReadOnly ? (
+            /* Track 15.13C · HR read-only — surface the read-only badge
+               in the same slot where Edit / Delete / Email / Print
+               render for PM/Admin. HR sees the EXACT real Daily Report
+               body below; just no mutation surface. */
+            <div
+              className="text-[10px] font-mono uppercase tracking-[0.22em] font-bold px-2 py-1 rounded border border-slate-500 text-slate-200"
+              data-testid="hr-readonly-badge"
             >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setEmailOpen(true)}
-              className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-white hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
-              data-testid="email-btn"
-            >
-              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
-            </Button>
-            <Button
-              onClick={printReport}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="print-btn"
-            >
-              <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
-            </Button>
-          </div>
+              {t("Read-only · HR")}
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <EditProjectDialog
+                kind="daily-reports"
+                recordId={data.id}
+                current={data}
+                onSaved={(rec) => rec && setData(rec)}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleDelete}
+                className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
+                data-testid="delete-btn"
+                aria-label="Delete daily report"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setEmailOpen(true)}
+                className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-white hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
+                data-testid="email-btn"
+              >
+                <Mail className="w-4 h-4 mr-1" /> {t("Email")}
+              </Button>
+              <Button
+                onClick={printReport}
+                className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+                data-testid="print-btn"
+              >
+                <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 

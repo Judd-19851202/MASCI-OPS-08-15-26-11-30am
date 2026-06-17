@@ -2153,3 +2153,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Verdict:** 🟡 **PARTIAL — FIXES REQUIRED REDEPLOY.** Preview-verified end-to-end with live curl + DB probes; production verification awaits the next redeploy from the operator.
 - **Deliverables:** `/app/memory/TRUST_GAP_REPORT.md` · `/app/memory/PRODUCTION_FAILURE_ROOT_CAUSE_ANALYSIS.md` · `/app/memory/ASSET_ADMIN_RUNTIME_TRACE.md` · `/app/memory/HR_DAILY_REPORT_REALITY_AUDIT.md` · `/app/memory/MEDIA_RENDERING_CERTIFICATION.md`.
 - **Going-forward rule (proposed):** No closure claim "PROVEN" without one production-data-shape probe. Cert seed alone is insufficient — must exercise a document type the cert seed did NOT create (e.g. open a random real preview daily report ID with `photo://` refs, not a `cert-dr-…` ID).
+
+
+## 2026-02-15 · TRACK 15.13C · HR DAILY REPORTS SIMPLIFICATION (REUSE THE REAL REPORT) — CLOSED 🟢
+
+- **Mode:** Stop reinventing. Route HR Daily Report detail to the real `ViewDailyReport` component PM/admin use; kill the custom HR summary renderer.
+- **Three surgical changes:**
+  1. `App.js` — route `/hr/daily-reports/:id` now mounts `ViewDailyReport` (real PM/admin component) instead of the custom `HrDailyReportDetail` summary.
+  2. `ViewDailyReport.jsx` — added `const isHrReadOnly = pathname.startsWith("/hr/")`. When true: back-link returns to `/hr/daily-reports`; a `READ-ONLY · HR` badge replaces the `EditProject / Delete / Email / Print` button row. Report body unchanged across all roles.
+  3. `HrHubV2.jsx` — card title `Recent Daily Reports` → `Daily Reports`; source `Live read · last 10 reports` → `All reports · paginated & searchable`; copy now lists payroll / labor / attendance / terminations / workers-comp / legal use cases.
+- **Runtime browser proof:** HR Hub title verified PRESENT for "Daily Reports" + "All reports · paginated", ABSENT for "Recent Daily Reports" + "last 10 reports". `/hr/daily-reports/<cert-dr-id>` renders the REAL Daily Job Report layout (M-glyph header, REF · DR-CERT-..., Office Review Lifecycle, History, SECTION 01 · Report Information with all real fields) and the action row shows a `READ-ONLY · HR` badge in place of Edit/Delete/Email/Print buttons. Defence-in-depth: backend still 401s every mutation attempt under `X-HR-Token` regardless of UI.
+- **Defence-in-depth permission proof (pre-existing):** `DELETE /api/daily-reports/{id}` with `X-HR-Token` → 401; `PATCH` → 405; office-review transitions require admin or PM scope.
+- **Photos:** HR now inherits `resolvePhotoSrc()` automatically because it renders the real component. The `photo-0..3` defect class is structurally eliminated.
+- **Tests:** 75/75 PASS across touched suites (15.13A + 15.13B + 15.9A). Lint clean.
+- **Five-Pillar 9.9 / 10.**
+- **Deferred (NOT blocking):** Track 15.13D job-folder browser (grouping the HR list page by project) — current 15.9A filterable list already supports the workflows HR called out.
+- **Verdict:** 🟢 **READY TO DEPLOY** — pure routing + presentational change.

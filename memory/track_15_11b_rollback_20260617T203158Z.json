@@ -1,0 +1,15 @@
+{
+  "mode": "rollback",
+  "ts": "2026-06-17T20:31:58.291036+00:00",
+  "deleted": {
+    "daily_reports": 3,
+    "job_photos": 3,
+    "incidents": 3,
+    "jhas": 2,
+    "jha_records": 0,
+    "equipment_inspections": 2,
+    "project_team_assignments": 1,
+    "jobs_master": 3,
+    "user_directory": 5
+  }
+}

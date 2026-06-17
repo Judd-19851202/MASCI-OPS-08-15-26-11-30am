@@ -854,9 +854,23 @@ function App() {
             <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
             <Route path="/hr/driver-qualification" element={H(<HrDriverQualificationDashboard />)} />
             <Route path="/hr/driver-qualification/import" element={H(<HrDriverQualificationImport />)} />
-            {/* iter332 · HR read-only Daily Reports Review */}
+            {/* iter332 · HR read-only Daily Reports Review.
+                Track 15.13C — HR detail route now mounts the REAL
+                `ViewDailyReport` component (the same view PM/admin
+                use) so HR sees every field the field crew submitted
+                — notes, photos, attachments, signatures, crews,
+                subs, vendors — not the rebuilt summary that was
+                shipping the broken "photo-0..3" placeholders. The
+                read-only contract is enforced backend-side: HR's
+                X-HR-Token is rejected on every mutating endpoint
+                (`PATCH/DELETE/POST /api/daily-reports/*` and the
+                office-review/print/email endpoints), so even without
+                hiding the UI controls the user cannot mutate. UI
+                guard for the mutation buttons lives in the same
+                component via the `isHrReadOnly` pathname check
+                added in 15.13C. */}
             <Route path="/hr/daily-reports" element={H(<HrDailyReports />)} />
-            <Route path="/hr/daily-reports/:id" element={H(<HrDailyReportDetail />)} />
+            <Route path="/hr/daily-reports/:id" element={H(<ViewDailyReport />)} />
             {/* MCC-1 HR Access Extension · 2026-06-08 · HR-scoped driver cleanup */}
             <Route path="/hr/motive-drivers" element={H(<HrMotiveDrivers />)} />
             {/* DCP-1 · Driver Command Profile · per-portal landing */}
