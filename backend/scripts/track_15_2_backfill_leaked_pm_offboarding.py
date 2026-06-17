@@ -63,12 +63,25 @@ On the production box (or via a one-off pod with prod MONGO_URL):
     less scripts/track_15_2_dryrun_<ts>.json
 
     # Apply (only after dry-run approval).
-    MONGO_URL="<prod>" DB_NAME="masci_safety" \
-      python scripts/track_15_2_backfill_leaked_pm_offboarding.py --apply
+    MONGO_URL="<prod>" DB_NAME="masci_safety" APP_ENV="production" \
+      python scripts/track_15_2_backfill_leaked_pm_offboarding.py --apply --prod-confirm
 
     # The script writes a final ledger `track_15_2_applied_<ts>.json`
     # listing every notification id expired and every per-PM copy
     # created. Keep both files for audit.
+
+PRODUCTION SAFETY GUARD (Track 15.8B)
+=====================================
+  • Dry-run is always allowed (no --prod-confirm required).
+  • `--apply` against APP_ENV=production OR DB_NAME=masci_safety REFUSES
+    unless `--prod-confirm` is ALSO passed. Exit code 2, clear message:
+        "Refusing production mutation without --prod-confirm ..."
+  • `--prod-confirm` asserts BOTH APP_ENV=="production" AND
+    DB_NAME=="masci_safety". Mismatch → exit code 2 with diagnostic.
+  • `--prod-confirm` without `--apply` is a no-op (dry-run is the same
+    either way).
+  • Non-production `--apply` (e.g. preview cleanup) still works without
+    `--prod-confirm` for normal pre-deploy gate flows.
 
 REVERTING
 =========
@@ -338,14 +351,68 @@ async def main(args: argparse.Namespace) -> int:
         cli.close()
 
 
-def cli_args() -> argparse.Namespace:
+def cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__.split("\n\n", 1)[0])
     p.add_argument("--apply", action="store_true",
                    help="mutate. WITHOUT this flag, runs dry-run only.")
+    p.add_argument("--dry-run", action="store_true", dest="dry_run_explicit",
+                   help="explicit dry-run (default behavior; this flag is "
+                        "a no-op alias for clarity in runbooks).")
+    p.add_argument("--prod-confirm", action="store_true", dest="prod_confirm",
+                   help="required to --apply against APP_ENV=production / "
+                        "DB_NAME=masci_safety. Belt-and-suspenders guard.")
     p.add_argument("--max-rows", type=int, default=200,
                    help="refuse to touch more than N rows in one pass.")
-    return p.parse_args()
+    return p.parse_args(argv)
+
+
+def validate_safety(
+    args: argparse.Namespace,
+    app_env: Optional[str],
+    db_name: Optional[str],
+) -> Optional[str]:
+    """Return None if the invocation is safe, else an error string.
+
+    Rules (TRACK 15.8B):
+      • Dry-run is always safe; --prod-confirm is ignored for dry-runs.
+      • --apply against a production target (APP_ENV=production OR
+        DB_NAME=masci_safety) REQUIRES --prod-confirm.
+      • --prod-confirm ASSERTS APP_ENV=production AND DB_NAME=masci_safety.
+        Either mismatch is a hard refusal.
+      • --apply against a non-production target (e.g. preview) works
+        without --prod-confirm — the preview pod uses this for gate
+        runs.
+    """
+    if not args.apply:
+        if args.prod_confirm:
+            # No-op but not an error; explicit dry-run with confirm is fine.
+            return None
+        return None
+    env = (app_env or "").strip().lower()
+    db = (db_name or "").strip()
+    targets_prod = (env == "production") or (db == "masci_safety")
+    if args.prod_confirm:
+        if env != "production":
+            return ("--prod-confirm requires APP_ENV=production "
+                    f"(got APP_ENV={app_env!r}). Refusing to apply.")
+        if db != "masci_safety":
+            return ("--prod-confirm requires DB_NAME=masci_safety "
+                    f"(got DB_NAME={db_name!r}). Refusing to apply.")
+        return None
+    if targets_prod:
+        return ("Refusing production mutation without --prod-confirm "
+                f"(APP_ENV={app_env!r} DB_NAME={db_name!r}). "
+                "Re-run with --apply --prod-confirm on a production-"
+                "authorized pod.")
+    return None
 
 
 if __name__ == "__main__":  # pragma: no cover
-    sys.exit(asyncio.run(main(cli_args())))
+    _args = cli_args()
+    _app_env = os.environ.get("APP_ENV")
+    _db_name = os.environ.get("DB_NAME") or "masci_safety_preview"
+    _safety_err = validate_safety(_args, _app_env, _db_name)
+    if _safety_err:
+        print(f"# SAFETY GUARD: {_safety_err}", file=sys.stderr)
+        sys.exit(2)
+    sys.exit(asyncio.run(main(_args)))

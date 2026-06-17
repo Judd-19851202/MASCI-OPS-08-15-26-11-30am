@@ -10,7 +10,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.8A · PRODUCTION PM NOTIFICATION LEAK CLEANUP · 🔴 BLOCKED — OPERATOR ACTION REQUIRED)
+## Latest Closed Track (2026-06-17 · TRACK 15.8B · PROD-CONFIRM SAFETY PATCH + PRODUCTION CLEANUP EXECUTION · 🟢 PATCH + TESTS COMPLETE · 🔴 PROD EXEC OPERATOR-OWNED)
+- **Track:** Add `--prod-confirm` belt-and-suspenders safety guard to the Track 15.2 cleanup script, then run the production cleanup of historical leaked PM offboarding notifications.
+- **Verdict:** 🟢 Phases 1-2 complete (script hardened, 31/31 tests green, 0 regressions) · 🔴 Phases 3-5 still operator-owned for the same Atlas RBAC reason as Track 15.8A.
+- **Script patched** (`/app/backend/scripts/track_15_2_backfill_leaked_pm_offboarding.py`):
+  - New `--prod-confirm` flag: required to `--apply` when `APP_ENV=production` OR `DB_NAME=masci_safety`.
+  - New `--dry-run` flag: explicit alias for the default behavior (clarity in runbooks).
+  - New `validate_safety()` helper: asserts both `APP_ENV=production` AND `DB_NAME=masci_safety` when `--prod-confirm` is used; mismatch → exit 2 with diagnostic.
+  - Updated `__main__` guard: short-circuits with `sys.exit(2)` on safety failure before opening the DB connection.
+- **Test suite created** (`/app/backend/tests/test_track_15_8b_prod_confirm_safety.py`): 20 tests across 3 classes — `TestProdConfirmSafetyGuard` (10 unit tests of validate_safety), `TestCliBehavior` (4 subprocess invocations confirming exit-code-2 refusal), `TestPredicateAndVerbContracts` (6 contract guards — predicate, no-hard-delete, audit, idempotency, max-rows cap, dry-run-default).
+- **Regressions**: 11/11 pre-existing Track 15.1/15.2 tests still green. Predicate (4-clause AND), verb (expire-not-delete), 200-row cap, audit logging, idempotency flag, dry-run-by-default — all preserved.
+- **Live smoke**: preview dry-run still scans 0 rows and exits 0; prod-targeted apply WITHOUT `--prod-confirm` now exits 2 with clear stderr ("Refusing production mutation without --prod-confirm").
+- **Production execution still blocked** at the MongoDB Atlas authorization layer — the preview-pod user is `readWrite` on `masci_safety_preview` only. New `--prod-confirm` guard is *additive* defense-in-depth on top of this Atlas-level barrier.
+- **Operator runbook (in report §7)** updated to use the new `--apply --prod-confirm` form.
+- **Cleanup**: production untouched, preview DB untouched, 1 script modified, 1 test file created, 1 report created.
+
+## Previous Closed Track (2026-06-17 · TRACK 15.8A · PRODUCTION PM NOTIFICATION LEAK CLEANUP · 🔴 BLOCKED — OPERATOR ACTION REQUIRED)
 - **Track:** Apply Track 15.2 cleanup script against production to expire historical leaked PM offboarding notifications (Ryan Heims, James Pudder, Mark Stalter, Timothy Carpenter, Shan Wilson, etc.).
 - **Verdict:** 🔴 Agent cannot run cleanup from preview pod. **Not a script defect — this is the MongoDB Atlas user-permission boundary working as designed.**
 - **Attempted from preview pod**: `MONGO_URL=$PREVIEW_URL DB_NAME=masci_safety python3 scripts/track_15_2_backfill_leaked_pm_offboarding.py` → `pymongo.errors.OperationFailure: not authorized on masci_safety to execute command { find: notifications ... }, code 13`. The preview-pod Atlas user has `readWrite` on `masci_safety_preview` only.
