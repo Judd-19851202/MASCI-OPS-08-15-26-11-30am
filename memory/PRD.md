@@ -10,7 +10,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.8 · LIVE POST-DEPLOY PRODUCTION VERIFICATION · 🟢 PRODUCTION VERIFIED)
+## Latest Closed Track (2026-06-17 · TRACK 15.8A · PRODUCTION PM NOTIFICATION LEAK CLEANUP · 🔴 BLOCKED — OPERATOR ACTION REQUIRED)
+- **Track:** Apply Track 15.2 cleanup script against production to expire historical leaked PM offboarding notifications (Ryan Heims, James Pudder, Mark Stalter, Timothy Carpenter, Shan Wilson, etc.).
+- **Verdict:** 🔴 Agent cannot run cleanup from preview pod. **Not a script defect — this is the MongoDB Atlas user-permission boundary working as designed.**
+- **Attempted from preview pod**: `MONGO_URL=$PREVIEW_URL DB_NAME=masci_safety python3 scripts/track_15_2_backfill_leaked_pm_offboarding.py` → `pymongo.errors.OperationFailure: not authorized on masci_safety to execute command { find: notifications ... }, code 13`. The preview-pod Atlas user has `readWrite` on `masci_safety_preview` only.
+- **Script integrity verified on preview**: same script ran cleanly against `masci_safety_preview`, scanned 0 rows (correct — preview was never leaked), wrote ledger, exited 0. Predicate compiles, query runs, ledger format is correct.
+- **Operator runbook documented in §8 of the report**: 7-step procedure (confirm identity → dry-run → review → apply → verify PM bell → archive ledgers → reversal procedure).
+- **Acceptance criteria for proceeding to apply**: ledger entries match offboarding-task title pattern, all have `recipient_role=pm` + `recipient_user_id=null` + `linked_employee_id != null`, `proposed_action` is `expire_and_fanout` or `expire_only_no_targets`.
+- **Safety profile**: dry-run by default · expire-not-delete · 200-row cap · 4-clause predicate · per-row audit · `_track_15_2_cleaned_at` idempotency flag · ledger-driven reversibility.
+- **Cleanup**: production untouched, preview untouched (0-row dry-run only), no agent code edits.
+
+## Previous Closed Track (2026-06-17 · TRACK 15.8 · LIVE POST-DEPLOY PRODUCTION VERIFICATION · 🟢 PRODUCTION VERIFIED)
 - **Track:** Re-run of live post-deploy verification on https://mascidocs.com after operator feedback on the 2026-06-16 false-positive.
 - **Verdict:** 🟢 **PRODUCTION VERIFIED.** All Track 15.1-15.6 changes are live and rendering correctly.
 - **Identity ✅**: app_env=production · db_name=masci_safety · Sentry enabled · uptime 697s · all 14 public routes 200 · all 7 protected /me endpoints 401.
