@@ -1,4 +1,4 @@
-"""TRACK 15.11B — PM Portal runtime certification seed script.
+"""TRACK 15.11B / 15.11C — PM Portal runtime certification seed script.
 
 Modes:
     python3 scripts/seed_track_15_11b_pm_cert.py --seed       # write cert dataset
@@ -16,26 +16,52 @@ Hard safety contract:
     --rollback only matches still-present cert rows.
   * Ledger JSON written to /app/memory/track_15_11b_<mode>_<ts>.json
     for every run.
+
+Track 15.11C addition (2026-02-15):
+  * Adds a SECOND in-scope project `TRACK15-11B-SECOND` (same cert PM)
+    so the PM Command Center can be browser-proven against multiple
+    assigned projects.
+  * The existing `TRACK15-11B-OTHER` project remains the out-of-scope
+    scope-leak fixture (different pm_email).
+  * Cert PM `user_directory` row is now seeded with a real bcrypt
+    hash of CERT_PM_PASSWORD so a browser session can be established
+    via /api/auth/multi-login without any production-touch.
 """
 from __future__ import annotations
-import argparse, asyncio, hashlib, json, logging, os, sys, uuid
+import argparse
+import asyncio
+import hashlib
+import json
+import logging
+import os
+import sys
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
+# Import the canonical bcrypt hash helper used by /api/auth/multi-login so
+# the seeded cert PM password is verifiable through the production code
+# path (no parallel auth shim).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from user_directory import hash_password as _hash_password  # noqa: E402
+
 logger = logging.getLogger("track_15_11b_cert")
 logging.basicConfig(level=logging.INFO, format="# %(message)s")
 
 CERT_TRACK = "TRACK15_11B"
 PROJECT_NUMBER = "TRACK15-11B"
-PROJECT_NUMBER_OTHER = "TRACK15-11B-OTHER"
+PROJECT_NUMBER_SECOND = "TRACK15-11B-SECOND"          # 15.11C — 2nd in-scope
+PROJECT_NUMBER_OTHER = "TRACK15-11B-OTHER"            # out-of-scope (leak test)
 PM_EMAIL = "track15.11b.cert.pm@mascicert.local"
 FOREMAN_EMAIL = "track15.11b.cert.foreman@mascicert.local"
 SAFETY_EMAIL = "track15.11b.cert.safety@mascicert.local"
 ASSET_EMAIL = "track15.11b.cert.shop@mascicert.local"
 NOLOGIN_EMAIL = "track15.11b.cert.nologin@mascicert.local"
+OTHER_PM_EMAIL = "track15.11b.cert.other@mascicert.local"
+CERT_PM_PASSWORD = "Track15Cert!2026"                 # 15.11C — known cert pw
 LEDGER_DIR = Path("/app/memory")
 
 
@@ -60,16 +86,43 @@ def _validate_env(args, app_env: Optional[str], db_name: Optional[str]) -> Optio
     return None
 
 
-async def _ensure_user(db, run_id, email, name, *, portals, has_password=True, disabled=False) -> str:
+async def _ensure_user(
+    db, run_id, email, name, *, portals,
+    has_password=True, disabled=False, real_password: Optional[str] = None,
+) -> str:
+    """Idempotent directory user creation. If `real_password` is set we
+    write a verifiable bcrypt hash (matches user_directory.hash_password).
+    Otherwise we keep the original placeholder hash that mirrors the
+    Track 15.11B fixture (still cert-tagged, still rollback-safe)."""
     existing = await db.user_directory.find_one({"email": email}, {"_id": 0, "id": 1})
     if existing:
+        # 15.11C — if cert PM was previously seeded with the placeholder
+        # hash, upgrade to a real bcrypt hash so the browser session can
+        # establish. Keep this strictly cert-tagged for rollback safety.
+        if real_password:
+            await db.user_directory.update_one(
+                {"id": existing["id"]},
+                {"$set": {
+                    "password_hash": _hash_password(real_password),
+                    "must_change_password": False,
+                    "cert_track": CERT_TRACK,
+                    "created_by_cert": True,
+                    "cert_run_id": run_id,
+                }},
+            )
         return existing["id"]
     uid = f"cert-user-{hashlib.sha1(email.encode()).hexdigest()[:16]}"
+    if real_password:
+        pw_hash = _hash_password(real_password)
+    elif has_password:
+        pw_hash = "$2b$12$" + "a" * 53      # placeholder; not a valid bcrypt
+    else:
+        pw_hash = None
     doc = _stamp({
         "id": uid, "email": email, "name": name,
         "portals": portals, "disabled": disabled,
         "must_change_password": False,
-        "password_hash": ("$2b$12$" + "a"*53) if has_password else None,
+        "password_hash": pw_hash,
         "last_login_at": _now() if has_password else None,
         "created_at": _now(),
         "cert_run_id": run_id,
@@ -112,7 +165,8 @@ async def _ensure_assignment(db, run_id, project_number, user_id, email, role) -
     return doc["id"]
 
 
-async def _ensure_daily_report(db, run_id, project_number, pm_email) -> str:
+async def _ensure_daily_report(db, run_id, project_number, pm_email,
+                               *, note: str = "primary") -> str:
     q = {"project_number": project_number, "cert_track": CERT_TRACK}
     existing = await db.daily_reports.find_one(q, {"_id": 0, "id": 1})
     if existing:
@@ -120,12 +174,12 @@ async def _ensure_daily_report(db, run_id, project_number, pm_email) -> str:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     doc = _stamp({
         "id": f"cert-dr-{project_number}-{run_id[:8]}",
-        "report_number": f"DR-CERT-{run_id[:8]}",
+        "report_number": f"DR-CERT-{project_number[-10:]}-{run_id[:6]}",
         "report_date": today, "project_number": project_number,
-        "project_name": "Track 15.11B Runtime Certification Project",
+        "project_name": f"Track 15.11 cert · {note}",
         "location": "Cert lot 1", "prepared_by": pm_email,
         "superintendent": "Cert Super", "weather_summary": "Clear, 70°F",
-        "narrative": "TRACK15_11B certification DR — synthetic.",
+        "narrative": f"TRACK15_11 certification DR — {note} synthetic.",
         "masci_crews": [{"foreman": "Cert Foreman", "members": [{"name": "Cert Member", "hours": 8}]}],
         "subcontractors": [], "visitors": [], "photos": [],
         "created_at": _now(), "cert_run_id": run_id,
@@ -140,9 +194,9 @@ async def _ensure_photo(db, run_id, project_number, dr_id) -> str:
     if existing:
         return existing["id"]
     doc = _stamp({
-        "id": f"cert-photo-{run_id[:8]}",
+        "id": f"cert-photo-{project_number}-{run_id[:8]}",
         "project_number": project_number, "source": "daily_reports", "source_id": dr_id,
-        "filename": "cert.jpg", "key": f"cert/{run_id}/cert.jpg",
+        "filename": "cert.jpg", "key": f"cert/{run_id}/{project_number}.jpg",
         "captured_at": _now(), "created_at": _now(), "cert_run_id": run_id,
     })
     await db.job_photos.insert_one(doc)
@@ -155,9 +209,9 @@ async def _ensure_incident(db, run_id, project_number) -> str:
     if existing:
         return existing["id"]
     doc = _stamp({
-        "id": f"cert-inc-{run_id[:8]}",
+        "id": f"cert-inc-{project_number}-{run_id[:8]}",
         "project_number": project_number, "status": "open",
-        "severity": "low", "description": "Cert incident — TRACK15_11B.",
+        "severity": "low", "description": f"Cert incident — {project_number}.",
         "reported_at": _now(), "created_at": _now(), "cert_run_id": run_id,
     })
     await db.incidents.insert_one(doc)
@@ -165,16 +219,29 @@ async def _ensure_incident(db, run_id, project_number) -> str:
 
 
 async def _ensure_jha(db, run_id, project_number) -> str:
+    # Canonical JHA collection is `jhas` (the FastAPI route writes there;
+    # the dashboard tile reads from there). Earlier 15.11B revision used
+    # `jha_records` — corrected in 15.11C so the seeded JHP actually
+    # surfaces on the PM dashboard.
     q = {"project_number": project_number, "cert_track": CERT_TRACK}
-    existing = await db.jha_records.find_one(q, {"_id": 0, "id": 1})
+    existing = await db.jhas.find_one(q, {"_id": 0, "id": 1})
     if existing:
         return existing["id"]
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     doc = _stamp({
-        "id": f"cert-jha-{run_id[:8]}",
-        "project_number": project_number, "title": "Cert JHP",
-        "status": "active", "created_at": _now(), "cert_run_id": run_id,
+        "id": f"cert-jha-{project_number}-{run_id[:8]}",
+        "project_number": project_number,
+        "project_name": f"Track 15.11 cert · {project_number}",
+        "job_title": "Cert JHP",
+        "location": "Cert lot 1",
+        "jha_date": today,
+        "crew_lead": "Cert Foreman",
+        "task_steps": [],
+        "crew_signoffs": [],
+        "created_at": _now(),
+        "cert_run_id": run_id,
     })
-    await db.jha_records.insert_one(doc)
+    await db.jhas.insert_one(doc)
     return doc["id"]
 
 
@@ -184,8 +251,9 @@ async def _ensure_equipment(db, run_id, project_number) -> str:
     if existing:
         return existing["id"]
     doc = _stamp({
-        "id": f"cert-equip-{run_id[:8]}",
-        "project_number": project_number, "unit_number": "CERT-001",
+        "id": f"cert-equip-{project_number}-{run_id[:8]}",
+        "project_number": project_number,
+        "unit_number": f"CERT-{project_number[-3:] or '001'}",
         "kind": "equipment", "inspection_date": _now()[:10],
         "passed": True, "failures": [],
         "created_at": _now(), "cert_run_id": run_id,
@@ -198,7 +266,13 @@ async def seed(db, run_id) -> Dict[str, Any]:
     logger.info(f"# seed start · run_id={run_id}")
     ledger: Dict[str, Any] = {"mode": "seed", "run_id": run_id, "ts": _now(), "rows": {}}
 
-    pm_id = await _ensure_user(db, run_id, PM_EMAIL, "Cert PM", portals=["pm"])
+    # Cert PM gets a real, verifiable bcrypt hash so the browser cert
+    # session can sign in via /api/auth/multi-login. All other cert
+    # users keep the placeholder hash (no usable login).
+    pm_id = await _ensure_user(
+        db, run_id, PM_EMAIL, "Cert PM", portals=["pm"],
+        real_password=CERT_PM_PASSWORD,
+    )
     foreman_id = await _ensure_user(db, run_id, FOREMAN_EMAIL, "Cert Foreman", portals=["pm", "field-leadership"])
     safety_id = await _ensure_user(db, run_id, SAFETY_EMAIL, "Cert Safety", portals=["safety"])
     asset_id = await _ensure_user(db, run_id, ASSET_EMAIL, "Cert Shop", portals=["shop"])
@@ -207,25 +281,47 @@ async def seed(db, run_id) -> Dict[str, Any]:
     ledger["rows"]["users"] = {"pm": pm_id, "foreman": foreman_id, "safety": safety_id,
                                "asset": asset_id, "nologin": nologin_id}
 
+    # Two in-scope projects (cert PM is primary on both) + one out-of-scope.
     job_id = await _ensure_job(db, run_id, PROJECT_NUMBER,
                                "Track 15.11B Runtime Certification Project", PM_EMAIL)
+    second_id = await _ensure_job(
+        db, run_id, PROJECT_NUMBER_SECOND,
+        "Track 15.11B Second Runtime Certification Project", PM_EMAIL,
+    )
     other_id = await _ensure_job(db, run_id, PROJECT_NUMBER_OTHER,
                                  "Track 15.11B OTHER (scope-leak test)",
-                                 "track15.11b.cert.other@mascicert.local")
-    ledger["rows"]["jobs"] = {"primary": job_id, "other": other_id}
+                                 OTHER_PM_EMAIL)
+    ledger["rows"]["jobs"] = {"primary": job_id, "second": second_id, "other": other_id}
 
     sup_id = await _ensure_assignment(db, run_id, PROJECT_NUMBER, pm_id, PM_EMAIL, "superintendent")
     ledger["rows"]["assignments"] = {"superintendent": sup_id}
 
-    dr_id = await _ensure_daily_report(db, run_id, PROJECT_NUMBER, PM_EMAIL)
+    # Primary in-scope project operational fixtures.
+    dr_id = await _ensure_daily_report(db, run_id, PROJECT_NUMBER, PM_EMAIL, note="primary")
     ledger["rows"]["daily_report"] = dr_id
     ledger["rows"]["photo"] = await _ensure_photo(db, run_id, PROJECT_NUMBER, dr_id)
     ledger["rows"]["incident"] = await _ensure_incident(db, run_id, PROJECT_NUMBER)
     ledger["rows"]["jha"] = await _ensure_jha(db, run_id, PROJECT_NUMBER)
     ledger["rows"]["equipment"] = await _ensure_equipment(db, run_id, PROJECT_NUMBER)
 
+    # Second in-scope project operational fixtures (15.11C requirement).
+    # Daily report + photo + incident + JHA + equipment guarantee the PM
+    # Command Center can prove multi-project counts > 0 on the dashboard.
+    second_dr = await _ensure_daily_report(
+        db, run_id, PROJECT_NUMBER_SECOND, PM_EMAIL, note="second",
+    )
+    ledger["rows"]["second_project"] = {
+        "daily_report": second_dr,
+        "photo": await _ensure_photo(db, run_id, PROJECT_NUMBER_SECOND, second_dr),
+        "incident": await _ensure_incident(db, run_id, PROJECT_NUMBER_SECOND),
+        "jha": await _ensure_jha(db, run_id, PROJECT_NUMBER_SECOND),
+        "equipment": await _ensure_equipment(db, run_id, PROJECT_NUMBER_SECOND),
+    }
+
     # Scope-leak fixtures on TRACK15-11B-OTHER:
-    other_dr = await _ensure_daily_report(db, run_id, PROJECT_NUMBER_OTHER, "track15.11b.cert.other@mascicert.local")
+    other_dr = await _ensure_daily_report(
+        db, run_id, PROJECT_NUMBER_OTHER, OTHER_PM_EMAIL, note="OOS leak fixture",
+    )
     ledger["rows"]["scope_leak"] = {
         "daily_report": other_dr,
         "photo": await _ensure_photo(db, run_id, PROJECT_NUMBER_OTHER, other_dr),
@@ -239,16 +335,43 @@ async def seed(db, run_id) -> Dict[str, Any]:
 async def verify(db) -> Dict[str, Any]:
     counts = {}
     for coll in ("user_directory", "jobs_master", "project_team_assignments",
-                 "daily_reports", "job_photos", "incidents", "jha_records",
+                 "daily_reports", "job_photos", "incidents", "jhas",
                  "equipment_inspections"):
         c = await db[coll].count_documents({"cert_track": CERT_TRACK})
         counts[coll] = c
-    return {"mode": "verify", "ts": _now(), "counts": counts}
+    # Per-project breakdown so the ledger proves multi-project seeding.
+    per_project: Dict[str, Dict[str, int]] = {}
+    for pn in (PROJECT_NUMBER, PROJECT_NUMBER_SECOND, PROJECT_NUMBER_OTHER):
+        per_project[pn] = {}
+        for coll in ("daily_reports", "job_photos", "incidents",
+                     "jhas", "equipment_inspections"):
+            per_project[pn][coll] = await db[coll].count_documents(
+                {"cert_track": CERT_TRACK, "project_number": pn},
+            )
+        per_project[pn]["jobs_master"] = await db.jobs_master.count_documents(
+            {"cert_track": CERT_TRACK, "project_number": pn},
+        )
+    # Scope proof: which cert pm_email each project resolves to.
+    scope: Dict[str, Optional[str]] = {}
+    for pn in (PROJECT_NUMBER, PROJECT_NUMBER_SECOND, PROJECT_NUMBER_OTHER):
+        row = await db.jobs_master.find_one(
+            {"project_number": pn}, {"_id": 0, "pm_email": 1},
+        )
+        scope[pn] = (row or {}).get("pm_email")
+    return {
+        "mode": "verify",
+        "ts": _now(),
+        "counts": counts,
+        "per_project": per_project,
+        "pm_email_by_project": scope,
+        "cert_pm_email": PM_EMAIL,
+    }
 
 
 async def rollback(db) -> Dict[str, Any]:
     deleted = {}
-    for coll in ("daily_reports", "job_photos", "incidents", "jha_records",
+    for coll in ("daily_reports", "job_photos", "incidents", "jhas",
+                 "jha_records",   # legacy 15.11B collection — safe sweep
                  "equipment_inspections", "project_team_assignments",
                  "jobs_master", "user_directory"):
         r = await db[coll].delete_many({"cert_track": CERT_TRACK})
@@ -278,10 +401,12 @@ async def main(args):
     db_name = os.environ.get("DB_NAME") or "masci_safety_preview"
     app_env = os.environ.get("APP_ENV") or "preview"
     if not mongo_url:
-        print("# MONGO_URL is required", file=sys.stderr); return 2
+        print("# MONGO_URL is required", file=sys.stderr)
+        return 2
     err = _validate_env(args, app_env, db_name)
     if err:
-        print(f"# SAFETY GUARD: {err}", file=sys.stderr); return 2
+        print(f"# SAFETY GUARD: {err}", file=sys.stderr)
+        return 2
     client = AsyncIOMotorClient(mongo_url)
     db = client[db_name]
     logger.info(f"# TRACK 15.11B · db={db_name} env={app_env}")

@@ -43,11 +43,23 @@ import { useT } from "@/lib/i18n";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function _authHeaders() {
-  const t =
-    sessionStorage.getItem("masci.pm.token") ||
-    sessionStorage.getItem("masci.admin.token") ||
+  // Track 15.11C fix: previously this helper only checked sessionStorage
+  // and forwarded any found token as `X-Admin-Token`. PMs who logged
+  // in with "Remember me" checked (the default) have their token in
+  // localStorage and the backend rejects PM tokens sent under the
+  // admin header — so the Field Truth tiles silently went blank for
+  // every real PM. Read from both tiers and pick the right header
+  // for each portal token.
+  const _read = (k) =>
+    (typeof sessionStorage !== "undefined" && sessionStorage.getItem(k)) ||
+    (typeof localStorage !== "undefined" && localStorage.getItem(k)) ||
     "";
-  return t ? { "X-Admin-Token": t } : {};
+  const headers = {};
+  const adminTok = _read("masci.admin.token");
+  if (adminTok) headers["X-Admin-Token"] = adminTok;
+  const pmTok = _read("masci.pm.token");
+  if (pmTok) headers["X-PM-Token"] = pmTok;
+  return headers;
 }
 
 // ── shared visual primitives (inherit platform baseline) ──────────

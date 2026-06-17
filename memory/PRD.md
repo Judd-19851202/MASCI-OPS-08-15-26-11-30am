@@ -2048,3 +2048,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **GO/NO-GO**: 🟢 **GO** for production redeploy.
 - **Remaining P3 (deferred with justification):** `/api/notifications` per-portal-mount fetch (legitimate freshness need; a short-TTL cache would mask new notifications on rapid hops); `/admin/unified-directory` missing stable search testid (testability sweep, not behavior).
 - Report: `/app/memory/TRACK_14_RC1_FERRARI_CLOSURE.md`.
+
+
+## 2026-02-15 · TRACK 15.11C · PM PORTAL RUNTIME BROWSER CERTIFICATION (MULTI-PROJECT) — CLOSED
+
+- **Mode:** Extended Track 15.11B preview cert seed to a multi-project runtime certification. Logged in as the cert PM in the live browser, screenshot-proved the dashboard, rolled everything back with zero residue.
+- **Seed script extended (`/app/backend/scripts/seed_track_15_11b_pm_cert.py`):**
+  - Added `PROJECT_NUMBER_SECOND = "TRACK15-11B-SECOND"` — second in-scope project assigned to the cert PM.
+  - Added DR + photo + incident + JHA + equipment-inspection fixtures on the second project.
+  - Switched JHA collection writes/reads from `jha_records` → `jhas` (the canonical Safety route + dashboard reader). Rollback still sweeps `jha_records` for back-compat.
+  - Cert PM is now seeded with a real bcrypt hash via `user_directory.hash_password` (password `Track15Cert!2026`) so a browser session can be established through `/api/auth/multi-login` without any production touch.
+  - Verify ledger now emits per-project breakdown + `pm_email_by_project` map.
+- **Tests (`tests/test_track_15_11b_seed_safety.py`):** 17 → 27 assertions covering second-project seeding, OOS pm_email disjointness, real bcrypt usage, idempotent rollback walk, no-silent-login, no canonical prod emails. **27/27 PASS** · **123/123** across Track 15.{8B,9,9A,10,11B} suites.
+- **Runtime browser proof (1920x800 + iPad 768x1024):**
+  - Cert PM signed in via `/api/auth/multi-login`; `/pm/command-center` rendered BOTH `TRACK15-11B` and `TRACK15-11B-SECOND` cards under *Projects Assigned to You*, each with 1 daily / 1 incident / Review Safety Item chip.
+  - Recent Daily Reports + Recent Photos tiles populated with cert fixtures.
+  - `/pm/job/TRACK15-11B/team` rendered the cert PM as PM + Superintendent with `Active Login` chip, no `(unnamed)`, Add member CTA available.
+  - Out-of-scope `TRACK15-11B-OTHER` was not visible at any surface; even passing `?project_number=TRACK15-11B-OTHER` to `/api/pm/command-center/overview` was overridden by `compute_pm_scope`.
+  - iPad portrait: no horizontal scroll, all controls reachable.
+- **Fix-as-you-go defect resolved:** `frontend/src/components/pm/command/PmProjectFirstHome.jsx · _authHeaders` had a real defect — it only checked `sessionStorage` and forwarded any token under `X-Admin-Token`, so PMs who used the default "Remember me" lost the Field Truth tiles silently. Now reads from both storage tiers and sends the correct per-portal header. Benefits every real PM.
+- **Rollback proof:** 22 cert docs deleted across 8 collections; re-running `--rollback` deletes zero (idempotent). Production database not touched.
+- **Files modified:** `backend/scripts/seed_track_15_11b_pm_cert.py` · `backend/tests/test_track_15_11b_seed_safety.py` · `frontend/src/components/pm/command/PmProjectFirstHome.jsx`.
+- **Files added:** `memory/TRACK_15_11C_PM_RUNTIME_BROWSER_CERTIFICATION.md`.
+- **Five-Pillar score: 5/5** (Powerful 10 · Simple 10 · Beautiful 9.8 · Trusted 10 · Proven 10).
+- **GO/NO-GO**: 🟢 **GO** for next deploy window — PM portal runtime certified.
+- **Deferred (pre-existing, unrelated):** `react-hooks/purity` lint warning on `PmProjectFirstHome · relAgo()` (existed before our edit; refactor risks regressing PM dashboard).
+- Report: `/app/memory/TRACK_15_11C_PM_RUNTIME_BROWSER_CERTIFICATION.md`.

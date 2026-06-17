@@ -1,0 +1,39 @@
+{
+  "mode": "seed",
+  "run_id": "982f3620-6c93-4d60-8a1e-5d560aa3fe7f",
+  "ts": "2026-06-17T16:37:32.454691+00:00",
+  "rows": {
+    "users": {
+      "pm": "cert-user-bb1223248175aee0",
+      "foreman": "cert-user-74f85e262c2a119f",
+      "safety": "cert-user-29021f1f517a9fc7",
+      "asset": "cert-user-0a0dbcc8edc1e894",
+      "nologin": "cert-user-b226e547a47e3667"
+    },
+    "jobs": {
+      "primary": "cert-job-TRACK15-11B",
+      "second": "cert-job-TRACK15-11B-SECOND",
+      "other": "cert-job-TRACK15-11B-OTHER"
+    },
+    "assignments": {
+      "superintendent": "cert-asgn-TRACK15-11B-superintendent-bb122324"
+    },
+    "daily_report": "cert-dr-TRACK15-11B-982f3620",
+    "photo": "cert-photo-TRACK15-11B-982f3620",
+    "incident": "cert-inc-TRACK15-11B-982f3620",
+    "jha": "cert-jha-TRACK15-11B-982f3620",
+    "equipment": "cert-equip-TRACK15-11B-982f3620",
+    "second_project": {
+      "daily_report": "cert-dr-TRACK15-11B-SECOND-982f3620",
+      "photo": "cert-photo-TRACK15-11B-SECOND-982f3620",
+      "incident": "cert-inc-TRACK15-11B-SECOND-982f3620",
+      "jha": "cert-jha-TRACK15-11B-SECOND-982f3620",
+      "equipment": "cert-equip-TRACK15-11B-SECOND-982f3620"
+    },
+    "scope_leak": {
+      "daily_report": "cert-dr-TRACK15-11B-OTHER-982f3620",
+      "photo": "cert-photo-TRACK15-11B-OTHER-982f3620",
+      "incident": "cert-inc-TRACK15-11B-OTHER-982f3620"
+    }
+  }
+}
