@@ -2110,3 +2110,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Files:** `frontend/src/components/pm/command/PmProjectFirstHome.jsx` · `frontend/src/pages/ViewDailyReport.jsx` · `frontend/src/App.js`.
 - **Docs:** `memory/TRACK_15_12A_PM_PHOTO_WORKFLOW_RECOVERY.md` · `memory/TRACK_15_12A_HR_DAILY_REPORTS_PRODUCTION_FAILURE_DIAGNOSTIC.md`.
 - **Verdict:** 🟢 **READY TO REDEPLOY** — pure additive UI improvements + state-preserving `RedirectWithId` hardening.
+
+
+## 2026-02-15 · TRACK 15.13 · ASSET MANAGEMENT SOURCE-OF-TRUTH AUDIT — CLOSED 🟢 (NO CODE CHANGES)
+
+- **Mode:** Read-only operational audit. NO routing / permission / role / login behavior modified.
+- **Verdict:** Asset Portal does NOT exist as a peer of Shop/PM/HR — by design. Asset experience IS real and operational across `/admin/asset-admin` (Track 13.31B) + `/shop/asset-care` (Track 13.33ABC) + `/admin/equipment` + Asset Transfers + Fleet Visibility + Equipment Dashboard. The architectural plan was: Asset Admins authenticate via `/sign-in` (multi-portal), receive `is_asset_admin` on the directory row, and `landingFor()` routes them to `/shop/asset-care`.
+- **Root cause of the symptom** (Asset Admin lands in Shop Command Center): the test user was provisioned through the legacy Admin Shop Users console which writes to `shop_users` (NOT `user_directory`) — `is_asset_admin` lives only on `user_directory`. The hardcoded "Welcome to the MASCI Shop Portal" email (server.py:3196) points at `/shop/login`; on shop-login success `ShopLogin.jsx:115` unconditionally `navigate("/shop")`. `landingFor()` is never called on the shop-login path.
+- **Six prioritized recovery items (NOT implemented, audit only):**
+  1. Mirror `is_asset_admin` into the `/shop/login` response and call `landingFor()` from `ShopLogin.jsx`.
+  2. Make Shop Users console set `is_asset_admin=true` on `user_directory` when "Asset Administrator" is chosen.
+  3. Branch the welcome email template by `is_asset_admin` (new "Welcome to MASCI · Asset Care" template).
+  4. Add an "Asset Care & Readiness" tile to ShopHubV2.
+  5. Wrap the ungated `/asset-transfers` SPA route with `S()` or equivalent guard.
+  6. Introduce `require_admin_or_asset_admin` FastAPI dep so non-admin asset admins can call `/api/asset-spine/*` document routes.
+- **Live preview DB counts** (proof): `shop_users=5` · `user_directory=120` · `user_directory.is_asset_admin=True → 1` · `shop_users.is_asset_admin=True → 0` (confirms flag does not live on shop_users).
+- **Deliverable:** `/app/memory/TRACK_15_13_ASSET_MANAGEMENT_SOURCE_OF_TRUTH_AUDIT.md` — full inventory, role matrix, login-path trace, email audit, data-flow audit, sequenced recovery plan with risk + rollback per item.
