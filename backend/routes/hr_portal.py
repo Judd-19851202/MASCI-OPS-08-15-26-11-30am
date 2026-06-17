@@ -403,12 +403,20 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
 
     @router.get("/hr/daily-reports/{report_id}")
     async def hr_get_daily_report(report_id: str, actor=Depends(require_hr_user)):
-        doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
+        # TRACK 15.9 · least-privilege projection. HR renders narrative,
+        # crews, subs, vendors, weather, photos, location, signatures,
+        # and the identity envelope — but NOT the PM's email CC list
+        # (`distribution_list`), which is the PM's outbound-comms tool
+        # and has zero HR rendering use case. Strip it at the database
+        # boundary so we never even ship it across the wire.
+        projection = {"_id": 0, "distribution_list": 0}
+        doc = await db.daily_reports.find_one({"id": report_id}, projection)
         if not doc:
             raise HTTPException(404, "daily report not found")
-        # Read-only view — return the document as-is so HR can see labor
-        # crews, subcontractor names, vendor visits, weather, photos, and
-        # all narrative fields the PM authored. No edit affordance.
+        # Read-only view — return the projected document so HR can see
+        # labor crews, subcontractor names, vendor visits, weather,
+        # photos, signatures, and the narrative the PM authored.
+        # No edit affordance, no PM email CC list, no role leakage.
         return doc
 
     # ─────────────────────────────────────────────────────────────────

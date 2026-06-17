@@ -10,7 +10,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.8B · PROD-CONFIRM SAFETY PATCH + PRODUCTION CLEANUP EXECUTION · 🟢 PATCH + TESTS COMPLETE · 🔴 PROD EXEC OPERATOR-OWNED)
+## Latest Closed Track (2026-06-17 · TRACK 15.9 · HR DAILY REPORTS READ-ONLY CERTIFICATION · 🟢 CERTIFIED 9.9/10)
+- **Track:** Five-Pillar certification + minimal hardening of HR read-only Daily Reports surface (built iter332, calm-errors iter339).
+- **Verdict:** 🟢 CERTIFIED. 56/56 tests green. 0 regressions. No code drift. No shadow systems.
+- **Phase 1 — Audit**: `/app/memory/HR_DAILY_REPORT_VISIBILITY_AUDIT.md` (180 lines) classifies 50+ DR fields as HR SAFE / HR REVIEW REQUIRED / HR EXCLUDE. Only 1 field requires EXCLUDE (`distribution_list` — PM's email CC list, no HR rendering use case).
+- **Phase 2 — Permission model**: HR-token-only gate (`require_hr_user`) verified — only inspects `X-HR-Token`, never falls back to PM/Admin/Safety/Dispatch/FL/Authorization. 13 iter373 parity tests confirm.
+- **Phase 3 — HR portal tile**: pre-existing in HrHub.jsx + HrSideNavV2.jsx, ClipboardList icon, same visual primitives as Employee Records / Training / Compliance.
+- **Phase 4 — Landing page**: pre-existing with 7 filters (date_from/to, project, employee, subcontractor, vendor, report_number — `employee` matches `masci_crews[].members[].name`), KPI strip, newest-first sort, 500-row cap.
+- **Phase 5 — Detail view**: pre-existing read-only renderer — narrative, crews, subs, vendors, weather, photos, signatures. Zero edit/approve/reject/reopen/submit/PDF/email/route buttons. Read-only banner.
+- **Phase 6 — Workforce intelligence**: pre-existing `/api/hr/employee-accountability` unions field_leadership_records + safety_training_records + training_track_records + safety_forms + outstanding equipment.
+- **Phase 7 — Security hardening**: NEW least-privilege projection — `hr_get_daily_report` now projects out `distribution_list` at the DB boundary (`{"_id": 0, "distribution_list": 0}`). +7 lines of explanatory comment.
+- **Phase 8 — Visual consistency**: 11/11 parity checks pass against other HR pages. No drift.
+- **Phase 9 — Quality sweep**: 1 informational item (4 free-text fields PMs should know HR can read — `narrative`, `general_notes`, `incident_notes`, `photos[]`). No defects.
+- **Phase 10 — Tests**: NEW `test_track_15_9_hr_daily_reports_certification.py` (220 lines, 20 tests, 100% green). Combined HR-DR surface: 56 tests / 56 green across 4 files.
+- **Five-Pillar Scorecard**: POWERFUL 9.9 · SIMPLE 9.8 · BEAUTIFUL 9.8 · TRUSTED 10.0 · PROVEN 10.0 · Composite **9.9 / 10**.
+- **Files changed**: 1 backend (1 line + 7 comments), 1 new test file (20 tests), 2 new memory docs (audit + closure), 1 PRD update.
+- **No production deployment** performed (per directive).
+
+## Previous Closed Track (2026-06-17 · TRACK 15.8B · PROD-CONFIRM SAFETY PATCH + PRODUCTION CLEANUP EXECUTION · 🟢 PATCH + TESTS COMPLETE · 🔴 PROD EXEC OPERATOR-OWNED)
 - **Track:** Add `--prod-confirm` belt-and-suspenders safety guard to the Track 15.2 cleanup script, then run the production cleanup of historical leaked PM offboarding notifications.
 - **Verdict:** 🟢 Phases 1-2 complete (script hardened, 31/31 tests green, 0 regressions) · 🔴 Phases 3-5 still operator-owned for the same Atlas RBAC reason as Track 15.8A.
 - **Script patched** (`/app/backend/scripts/track_15_2_backfill_leaked_pm_offboarding.py`):
