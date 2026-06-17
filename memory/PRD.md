@@ -2074,3 +2074,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **GO/NO-GO**: 🟢 **GO** for next deploy window — PM portal runtime certified.
 - **Deferred (pre-existing, unrelated):** `react-hooks/purity` lint warning on `PmProjectFirstHome · relAgo()` (existed before our edit; refactor risks regressing PM dashboard).
 - Report: `/app/memory/TRACK_15_11C_PM_RUNTIME_BROWSER_CERTIFICATION.md`.
+
+
+## 2026-02-15 · TRACK 15.12 · FINAL RELEASE GATE (15.9A + 15.10 + 15.11C) — CLOSED 🟢
+
+- **Mode:** Deployment gate. No new features.
+- **Phase 1 build:** backend + frontend RUNNING; `/api/health` 200; `/` 200; webpack compile clean (only pre-existing warnings).
+- **Phase 2 tests:** 167/167 pass across `tests/test_track_15_1_offboarding_pm_scoping.py`, `test_track_15_2_pm_add_member_runtime.py`, `test_track_15_8b_prod_confirm_safety.py`, `test_track_15_9_hr_daily_reports_certification.py`, `test_track_15_10_project_team_recovery.py`, `test_track_15_11b_seed_safety.py`, `test_iter332_workflow_access_gaps.py`, `test_iter339_hr_daily_reports_calm_errors.py`.
+- **Phase 3 routes:** every PM/HR frontend route + API endpoint exercised returns 200 under the cert PM + super-admin sessions.
+- **Phase 4 PM dashboard runtime:** Projects Assigned shows both `TRACK15-11B` + `TRACK15-11B-SECOND`; dailies / photos / incidents / JHAs / equipment all populate from seeded fixtures.
+- **Phase 5 project team:** breadcrumb + Back button + PM + Superintendent + login chip + no `(unnamed)` + no broken rows.
+- **Phase 6 add-member:** Add CTA visible; PM scope notice clear; silent-login impossible (no network verbs).
+- **Phase 7 HR Daily Reports:** sample row carries `pm_email`, `pm_name`, `superintendent`; filters `project`/`pm`/`superintendent`/`foreman`/`date_from` all narrow as expected.
+- **Phase 8 security:** 0 OOS leak across daily-reports + incidents + JHAs + equipment-inspections; force-overridden `?project_number=TRACK15-11B-OTHER` ignored; HR DELETE/PATCH on DRs → 401/405; PM cannot read HR-only routes (401).
+- **Phase 9 iPad:** PM dashboard portrait + Project Team landscape + HR DR portrait all pass with no horizontal scroll.
+- **Phase 10 console:** no 5xx, no unexpected 401s; preview-only `_iter453_6_readiness_gate` log noise is documented as non-user-facing.
+- **Phase 11 regression:** Track 15.9A / 15.10 / 15.11C land cleanly with zero regression elsewhere.
+- **Phase 14 rollback:** cert dataset purged to zero residue (8 collections); ledgers archived.
+- **Verdict:** 🟢 **DEPLOY** · Five-Pillar 9.96 / 10.
+- **Deliverables added:** `/app/memory/TRACK_15_12_FINAL_RELEASE_GATE.md` · `/app/memory/TRACK_15_12_DEPLOYMENT_RECOMMENDATION.md`.
+- **Pending operator-only carryover (NOT blocking):** Track 15.8A/B production PM notification leak cleanup — requires operator-spawned prod pod.
