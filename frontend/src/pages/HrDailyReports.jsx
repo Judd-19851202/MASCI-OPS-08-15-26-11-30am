@@ -22,6 +22,7 @@ import { PortalShell } from "@/design-system";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import { RefKicker } from "@/components/RefKicker";
 import { getHrToken } from "@/lib/hrAuth";
+import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
 import { operationalError } from "@/lib/errors";
@@ -410,11 +411,34 @@ export function HrDailyReportDetail() {
             {Array.isArray(doc.photos) && doc.photos.length > 0 && (
               <Section title={t("Photos")} count={doc.photos.length}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-                  {doc.photos.map((p, idx) => (
-                    <a key={idx} href={p.url || p} target="_blank" rel="noreferrer">
-                      <img src={p.url || p} alt={`photo-${idx}`} loading="lazy" decoding="async" className="w-full h-32 object-cover rounded border border-slate-200" />
-                    </a>
-                  ))}
+                  {doc.photos.map((p, idx) => {
+                    // TRACK 15.13B FAILURE #3 · resolvePhotoSrc bypass.
+                    // The iter64 R2 migration stores photos as
+                    // `photo://masci-hub/photos/...` references. The
+                    // browser cannot resolve `photo://` directly — it
+                    // errors out and renders the `alt` text instead,
+                    // which is why production HR was showing literal
+                    // strings "photo-0 / photo-1 / photo-2 / photo-3"
+                    // for every report attachment. Pipe every photo
+                    // ref through the canonical `resolvePhotoSrc`
+                    // resolver (the same helper PM / Inspection /
+                    // Meeting / Equipment / Incident views all use)
+                    // so the browser fetches bytes via the
+                    // /api/photo-bytes resolver instead.
+                    const ref = typeof p === "string" ? p : (p?.url || p?.ref || "");
+                    const src = resolvePhotoSrc(ref);
+                    return (
+                      <a key={idx} href={src} target="_blank" rel="noreferrer" data-testid={`hr-dr-photo-${idx}`}>
+                        <img
+                          src={src}
+                          alt={`Photo ${idx + 1}`}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-32 object-cover rounded border border-slate-200"
+                        />
+                      </a>
+                    );
+                  })}
                 </div>
               </Section>
             )}

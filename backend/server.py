@@ -1877,14 +1877,23 @@ async def shop_login(body: AdminLoginRequest, request: Request):
             ip=ip,
             user_agent=request.headers.get("user-agent") or "",
         )
-        # Track 15.13A · Asset Care Routing Recovery — mirror the
-        # `is_asset_admin` flag from the canonical `user_directory`
-        # row (keyed by email) into the shop_login response so the
-        # SPA `landingFor()` resolver can route asset administrators
-        # to `/shop/asset-care` instead of the generic `/shop` hub.
-        # Pure read-only echo — no permission widening, no auth bypass,
-        # no token reissue. If no directory row exists, the flag is
-        # simply False and behavior is unchanged from pre-15.13A.
+        # Track 15.13A / 15.13B · Asset Care Routing Recovery.
+        # Mirror the `is_asset_admin` flag from the canonical
+        # `user_directory` row (keyed by email) into the shop_login
+        # response so the SPA `landingFor()` resolver can route asset
+        # administrators to `/shop/asset-care` instead of the generic
+        # `/shop` hub.
+        #
+        # Track 15.13B FAILURE #1 fallback — production showed that an
+        # existing Asset Administrator created BEFORE the 15.13A mirror
+        # landed has NO directory row, so the dir lookup returned None
+        # and `is_asset_admin` resolved to False — landing them on the
+        # generic /shop hub. Fix: also honor the role label on the
+        # shop_users row itself via `_role_implies_asset_admin(role)`
+        # as a strict read-only fallback. This guarantees every legacy
+        # Asset Administrator / Asset Manager / Equipment Manager /
+        # Fleet Coordinator gets the right landing on first login
+        # WITHOUT a separate backfill script.
         public_user = public_shop_user_view(user)
         is_asset_admin = False
         try:
@@ -1894,10 +1903,14 @@ async def shop_login(body: AdminLoginRequest, request: Request):
             )
             if dir_row and dir_row.get("is_asset_admin") is True:
                 is_asset_admin = True
-                public_user["is_asset_admin"] = True
                 public_user["portals"] = dir_row.get("portals") or []
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"shop_login is_asset_admin mirror failed: {exc}")
+        # 15.13B fallback — role-label check (read-only, no write).
+        if not is_asset_admin and _role_implies_asset_admin(user.get("role")):
+            is_asset_admin = True
+        if is_asset_admin:
+            public_user["is_asset_admin"] = True
         return {
             "ok": True,
             "token": token,

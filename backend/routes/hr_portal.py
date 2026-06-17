@@ -412,15 +412,22 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             # then narrow the DR match. If no PM matches, return empty
             # — DON'T scope by PM session (HR sees every project's
             # PM, just filters by which PM the operator typed).
+            # Track 15.13B FAILURE #2 — also resolve via `jobs_master`
+            # which is the canonical job spine; legacy DRs reference
+            # project_numbers that only exist there.
             pm_regex = {"$regex": pm.strip(), "$options": "i"}
             pm_projects = await db.projects.find(
                 {"$or": [{"pm_name": pm_regex}, {"pm_email": pm_regex}]},
                 {"_id": 0, "project_number": 1},
             ).to_list(5000)
-            pm_pns = [
-                p["project_number"] for p in pm_projects
+            pm_jobs = await db.jobs_master.find(
+                {"$or": [{"pm_name": pm_regex}, {"pm_email": pm_regex}]},
+                {"_id": 0, "project_number": 1},
+            ).to_list(5000)
+            pm_pns = list({
+                p["project_number"] for p in pm_projects + pm_jobs
                 if p.get("project_number")
-            ]
+            })
             if not pm_pns:
                 return {"ok": True, "items": [], "count": 0}
             # Coexist with an existing project_number-touching match
@@ -448,6 +455,18 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                     {"$limit": 1},
                 ],
             }},
+            # Track 15.13B FAILURE #2 — fallback to jobs_master when
+            # projects has no row (the common case for legacy DRs).
+            {"$lookup": {
+                "from": "jobs_master",
+                "localField": "project_number",
+                "foreignField": "project_number",
+                "as": "_jm",
+                "pipeline": [
+                    {"$project": {"_id": 0, "pm_email": 1, "pm_name": 1, "project_name": 1}},
+                    {"$limit": 1},
+                ],
+            }},
             {"$project": {
                 "_id": 0, "id": 1, "project_name": 1, "project_number": 1,
                 "report_number": 1, "report_date": 1, "prepared_by": 1,
@@ -457,12 +476,18 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 "crew_count":    {"$size": {"$ifNull": ["$masci_crews", []]}},
                 "sub_count":     {"$size": {"$ifNull": ["$subcontractors", []]}},
                 "visitor_count": {"$size": {"$ifNull": ["$visitors", []]}},
-                # Track 15.9A — PM identity (name + email) lifted from
-                # the project of record. Empty string when the project
-                # row has no PM stamped (legacy / unbound) — never null
-                # so the frontend can `r.pm_name || "—"` cleanly.
-                "pm_name":  {"$ifNull": [{"$arrayElemAt": ["$_proj.pm_name", 0]}, ""]},
-                "pm_email": {"$ifNull": [{"$arrayElemAt": ["$_proj.pm_email", 0]}, ""]},
+                # Track 15.9A + 15.13B — PM identity (name + email).
+                # `projects` first, `jobs_master` second. Empty string
+                # when neither has a row (never null — frontend can
+                # `r.pm_name || "—"` cleanly).
+                "pm_name":  {"$ifNull": [
+                    {"$arrayElemAt": ["$_proj.pm_name", 0]},
+                    {"$ifNull": [{"$arrayElemAt": ["$_jm.pm_name", 0]}, ""]},
+                ]},
+                "pm_email": {"$ifNull": [
+                    {"$arrayElemAt": ["$_proj.pm_email", 0]},
+                    {"$ifNull": [{"$arrayElemAt": ["$_jm.pm_email", 0]}, ""]},
+                ]},
             }},
         ]
         items = await db.daily_reports.aggregate(pipeline).to_list(500)
@@ -488,6 +513,16 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             raise HTTPException(404, "daily report not found")
         # Best-effort PM enrichment — never fails the request if the
         # project row is missing (legacy DR / unbound project).
+        # Track 15.13B FAILURE #2 · production reported PM "often missing".
+        # Root cause: real daily reports point at `project_number`s that
+        # exist in `jobs_master` (the canonical job spine) but NOT in
+        # `projects` (the secondary mirror table used by Field
+        # Leadership). Add a 3-tier fallback so HR always gets the right
+        # PM-of-record:
+        #   1. `projects` collection (existing 15.9A enrichment)
+        #   2. `jobs_master.pm_email` (the canonical source per
+        #      Track 15.11A audit)
+        #   3. the daily report's own `prepared_by` (last-resort label)
         pm_name, pm_email = "", ""
         pn = (doc.get("project_number") or "").strip()
         if pn:
@@ -498,6 +533,27 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             if proj:
                 pm_name = (proj.get("pm_name") or "").strip()
                 pm_email = (proj.get("pm_email") or "").strip()
+            # Fallback 2 — canonical jobs_master.pm_email.
+            if not pm_email:
+                job = await db.jobs_master.find_one(
+                    {"project_number": pn},
+                    {"_id": 0, "pm_email": 1, "pm_name": 1, "project_name": 1},
+                )
+                if job:
+                    pm_email = (job.get("pm_email") or "").strip()
+                    if not pm_name:
+                        pm_name = (job.get("pm_name") or "").strip()
+                    # If the daily report didn't carry a project_name,
+                    # surface it from jobs_master so HR sees the right
+                    # project label (some legacy DRs only carry pn).
+                    if not doc.get("project_name") and job.get("project_name"):
+                        doc["project_name"] = job["project_name"]
+        # Fallback 3 — derive name from email local-part if we have an
+        # email but no display name (better than rendering "—" when
+        # the email is visible right next to it).
+        if pm_email and not pm_name:
+            local = pm_email.split("@", 1)[0]
+            pm_name = local.replace(".", " ").replace("_", " ").title()
         doc["pm_name"] = pm_name
         doc["pm_email"] = pm_email
         # Read-only view — return the projected document so HR can see
