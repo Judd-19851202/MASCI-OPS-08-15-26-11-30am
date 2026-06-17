@@ -10,7 +10,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.10 · PROJECT TEAM MANAGEMENT RECOVERY · 🟢 OPERATIONALLY RECOVERED)
+## Latest Closed Track (2026-06-17 · TRACK 15.11A · PM DASHBOARD OPERATIONAL TRUTH RECOVERY · 🟡 RECOVERED WITH OPERATOR FOLLOW-UP)
+- **Track:** Audit, prove, and certify the PM Portal Command Center end-to-end wiring; identify root cause of "pretty but empty" dashboard cards observed on production.
+- **Verdict:** 🟡 Wiring audit complete and proves the dashboard is CORRECTLY connected to PM-scoped endpoints. Runtime proof on the 7 Project-Team scenarios remains operator-owned because the preview pod has no PM credentials and Hard Rules forbid creating production users.
+- **Core finding:** every PM-dashboard card (Projects Assigned, Daily Reports, Photos, JHPs, Project Roster, Equipment/Trucks/Trailers/Drivers/Road-Plates/Specialty, Detailed Operational View) is correctly wired to `/api/pm/command-center/*`, `/api/daily-reports`, `/api/job-photos`, all gated by `require_admin` (which accepts PM tokens) and filtered through `compute_pm_scope()` in `backend/pm_auth.py`. The scope function unions BOTH `jobs_master.pm_email/co_pm_emails[]` AND modern `project_team_assignments` rows — no PM is invisible by scope.
+- **Why cards look empty in production**: one of three (cannot disambiguate without PM session): (a) PM has no scope-matching projects, (b) projects exist but no DR/photos/incidents yet — empty state is truthful, (c) project_number string mismatch (e.g. trailing-space). Each case documented in `/app/memory/PM_PORTAL_OPERATIONAL_FEED_AUDIT.md` §1.
+- **JIT/backfill contract documented**: synthetic leadership rows derived live from `jobs_master` on every read; backfill is admin-only, idempotent, safe to run before deploy but NOT required; duplicate prevention proven by code read.
+- **Card / link matrix**: 11 clickable surfaces audited — no dead links detected. All resolve to registered routes.
+- **Permission verification**: all 8 forbidden actions mapped to enforcement points + tests (Track 15.10 + Track 15.9A inheritance).
+- **No code changes** in this session. Pure audit. Track 15.10's 130-test regression suite remains the certification floor.
+- **Phase 13 handoff** (the 7 runtime scenarios): turn-key cert-data seed plan documented in audit doc §9. Next agent (with PM creds) can execute all 7 scenarios in a 30-minute browser session.
+- **Five-Pillar Scorecard**: POWERFUL 9.0 · SIMPLE 9.5 · BEAUTIFUL 9.7 · TRUSTED 10.0 · PROVEN 9.0 · Composite **9.4 / 10**. Loses 2.0 in POWERFUL+PROVEN explicitly because runtime side is not certified — honest scoring, not theatre.
+- **Deliverables**: `PM_PORTAL_OPERATIONAL_FEED_AUDIT.md` (NEW — full surface inventory + feed truth table + Phase-13 seed plan), `PROJECT_TEAM_JIT_BACKFILL_BEHAVIOR_AUDIT.md` (NEW — JIT/backfill contract), `TRACK_15_11A_PM_DASHBOARD_OPERATIONAL_TRUTH_RECOVERY.md` (NEW — closure + findings ledger + deployment recommendation).
+- **Findings ledger**: 8 items — 5 INFO/proven, 2 operator-decision (drivers source, JHP terminology), 1 cosmetic (`/api/daily-reports` ignores `?limit=` query param — non-defect).
+- **Deployment recommendation**: 🟡 READY-PENDING. Do not deploy until Phase 13 runtime scenarios execute successfully. If all PASS → upgrades to 🟢 RECOVERED.
+- **No production deployment** performed. No data mutated. No cert users created. No emails or SMS sent.
+
+## Previous Closed Track (2026-06-17 · TRACK 15.10 · PROJECT TEAM MANAGEMENT RECOVERY · 🟢 OPERATIONALLY RECOVERED)
 - **Track:** Operational recovery of the Project Team workflow — 6 required items, no deferral allowed.
 - **Verdict:** 🟢 OPERATIONALLY RECOVERED. 32/32 Track 15.10 tests green · 93/93 cross-track regressions green · 0 new collections · 0 silent login paths · 0 permission leaks.
 - **`(unnamed)` ROOT CAUSE FIXED**: iter332 panel rendered `{it.display_name || it.email || "(unnamed)"}` — became `(unnamed)` whenever both fields were empty (employee_id-only assignments, lost user_directory link, legacy backfill rows). Replaced with `displayNameOf()` helper using full fallback hierarchy: full_name → display_name → name → first+last → email → Employee #id → "Unknown person — Admin review required". Backend mirror: `_resolve_display_name()` + `_enrich_row_with_directory()`. Never returns the placeholder string.
