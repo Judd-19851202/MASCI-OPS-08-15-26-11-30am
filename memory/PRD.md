@@ -10,7 +10,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-16 · TRACK 15.7 · FINAL PRE-DEPLOY RELEASE GATE · 🟡 GO WITH OPERATOR FOLLOW-UP)
+## Latest Closed Track (2026-06-17 · TRACK 15.8 · LIVE POST-DEPLOY PRODUCTION VERIFICATION · 🟢 PRODUCTION VERIFIED)
+- **Track:** Re-run of live post-deploy verification on https://mascidocs.com after operator feedback on the 2026-06-16 false-positive.
+- **Verdict:** 🟢 **PRODUCTION VERIFIED.** All Track 15.1-15.6 changes are live and rendering correctly.
+- **Identity ✅**: app_env=production · db_name=masci_safety · Sentry enabled · uptime 697s · all 14 public routes 200 · all 7 protected /me endpoints 401.
+- **Track 15.5 status REVERSED ✅**: Previous report incorrectly flagged 15.5 as missing. Root cause: (1) tested `/terms` and `/privacy` instead of the actual React Router paths `/legal/terms` and `/legal/privacy`, (2) grep'd only `main.<hash>.js` and missed the `React.lazy()` code-split chunks where the legal page content actually lives.
+- **15.5 markers confirmed live**: `$50,000`, `FIFTY THOUSAND`, `STOP`, `Message and data rates`, `advisory only` all render on `/legal/terms` (source chunk `7477.fcafc315.chunk.js`, 20 KB). `Twilio`, `subprocessor`, `Subprocessors`, `OpenAI`, `Anthropic` all render on `/legal/privacy` (source chunk `7741.5376733a.chunk.js`, 16 KB).
+- **15.6 markers confirmed live**: hero "One System. Every Crew. Every Job." with red final period, "First week on the platform" CTA, Field/QA-QC/Safety card row, Leadership Tools section, Project Systems, Field Leadership, Office Portals, Basecamp/OnStation/ForgedOps all render in headless Chromium.
+- **Responsive ✅**: iPad portrait (768×1024) and landscape (1024×768) — `scrollWidth == clientWidth` (no horizontal overflow). 0 console pageerrors caught.
+- **Methodology improvement captured**: future gates must render lazy-loaded routes in headless Chromium, not bundle-grep alone. Documented in §15 of the gate report.
+- **Operator follow-up (carry-forward, not blockers)**: run Track 15.2 cleanup script `--apply` after dry-run, retry PM Add Member on Project 26-07, optional counsel review of now-confirmed-live 15.5 hardening.
+- **Cleanup**: production untouched, preview untouched, no agent code edits this track — pure read-only verification.
+
+## Previous Closed Track (2026-06-16 · TRACK 15.7 · FINAL PRE-DEPLOY RELEASE GATE · 🟡 GO WITH OPERATOR FOLLOW-UP)
 - **Track:** Combined pre-deploy gate for Tracks 15.1 → 15.6.
 - **Verdict:** 🟡 17/17 GREEN. No P0 / P1 deployment blockers.
 - **Identity baseline**: prod `source_hash=740398bc1f9277a8edfdb1e92e5dc26d` (pre-deploy build, unchanged); preview matches byte-for-byte → valid runtime-equivalent surface.
