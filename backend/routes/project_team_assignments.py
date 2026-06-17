@@ -372,15 +372,227 @@ async def _notify_assignment(
 
 
 # ── Resolver helpers (used by Phase-2 producer rewrites) ─────────────
+# TRACK 15.10 · operational recovery — display-name fallback hierarchy
+# and login-status enrichment, plus JIT lift of PM/Co-PM from
+# jobs_master into the response so PMs always see known leadership.
+_DISPLAY_FALLBACK_ORDER = (
+    "full_name", "display_name", "name", "first_name", "email",
+    "employee_id",
+)
+
+
+def _resolve_display_name(*sources: Dict[str, Any]) -> str:
+    """Track 15.10 · canonical display-name fallback hierarchy.
+
+    1. full_name
+    2. display_name (existing roster row)
+    3. name (user_directory)
+    4. first_name + last_name (employees)
+    5. email
+    6. employee_id
+    7. "Unknown person — Admin review required"
+
+    Never returns "(unnamed)". A missing identity is operator-visible
+    so PMs know the row needs Admin review.
+    """
+    for src in sources:
+        if not isinstance(src, dict):
+            continue
+        full = (src.get("full_name") or "").strip()
+        if full:
+            return full
+        disp = (src.get("display_name") or "").strip()
+        if disp:
+            return disp
+        name = (src.get("name") or "").strip()
+        if name:
+            return name
+        first = (src.get("first_name") or "").strip()
+        last = (src.get("last_name") or "").strip()
+        if first or last:
+            joined = " ".join(p for p in (first, last) if p)
+            if joined:
+                return joined
+        em = (src.get("email") or "").strip()
+        if em:
+            return em
+        emp = (src.get("employee_id") or "").strip()
+        if emp:
+            return f"Employee #{emp}"
+    return "Unknown person — Admin review required"
+
+
+def _login_status_from_directory(ud_row: Optional[Dict[str, Any]]) -> str:
+    """Track 15.10 · derive login/access status from user_directory.
+
+    Returns one of: "active", "invite_pending", "no_login", "disabled",
+    "unknown". Uses EXISTING user_directory fields — no new auth
+    system, no silent account creation.
+    """
+    if not ud_row:
+        return "no_login"
+    if ud_row.get("disabled"):
+        return "disabled"
+    if ud_row.get("must_change_password"):
+        return "invite_pending"
+    if ud_row.get("password_hash") or ud_row.get("last_login_at"):
+        return "active"
+    # User_directory row exists but no password set and never logged in —
+    # treat as invite_pending (admin must reset/issue temp pwd).
+    return "invite_pending"
+
+
+async def _enrich_row_with_directory(
+    db, row: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Track 15.10 · attach login_status + a resolved display_name to a
+    project_team_assignments row. Read-only. Best-effort: if directory
+    lookup fails, login_status falls back to "unknown".
+    """
+    ud_row: Optional[Dict[str, Any]] = None
+    try:
+        if row.get("user_id"):
+            ud_row = await db.user_directory.find_one(
+                {"id": row["user_id"]},
+                {"_id": 0, "id": 1, "email": 1, "name": 1,
+                 "employee_id": 1, "disabled": 1,
+                 "must_change_password": 1, "password_hash": 1,
+                 "last_login_at": 1},
+            )
+        if not ud_row and row.get("email"):
+            ud_row = await db.user_directory.find_one(
+                {"email": (row.get("email") or "").lower()},
+                {"_id": 0, "id": 1, "email": 1, "name": 1,
+                 "employee_id": 1, "disabled": 1,
+                 "must_change_password": 1, "password_hash": 1,
+                 "last_login_at": 1},
+            )
+    except Exception as exc:
+        logger.warning("[team-roster] directory enrichment failed: %s", exc)
+        row["login_status"] = "unknown"
+        row["display_name"] = _resolve_display_name(row)
+        return row
+
+    emp_row: Optional[Dict[str, Any]] = None
+    if not ud_row and row.get("employee_id"):
+        try:
+            emp_row = await db.employees.find_one(
+                {"id": row["employee_id"]},
+                {"_id": 0, "first_name": 1, "last_name": 1, "email": 1},
+            )
+        except Exception:
+            emp_row = None
+
+    row["display_name"] = _resolve_display_name(row, ud_row or {}, emp_row or {})
+    row["login_status"] = (
+        _login_status_from_directory(ud_row) if ud_row is not None
+        else ("no_login" if not row.get("user_id") else "unknown")
+    )
+    # Mirror useful directory fields for the UI (read-only).
+    if ud_row:
+        row.setdefault("email", ud_row.get("email") or row.get("email"))
+    return row
+
+
+async def _jit_lift_known_leadership(
+    db, project_number: str, existing_rows: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Track 15.10 · if no active row exists for PM / Co-PM, synthesise
+    read-only rows from `jobs_master.pm_email` / `co_pm_emails` so the
+    Project Team page never hides leadership the platform already
+    knows. These synthetic rows are marked `synthetic: True` and
+    `id: "jit-..."` so the UI can render them without offering remove/
+    transfer actions (operator must run the backfill to materialise).
+    """
+    have_pm = any(
+        (r.get("active") and r.get("assignment_role") == "pm")
+        for r in existing_rows
+    )
+    have_co_pm: Set[str] = {
+        (r.get("email") or "").lower()
+        for r in existing_rows
+        if r.get("active") and r.get("assignment_role") == "co_pm"
+    }
+    try:
+        job = await db.jobs_master.find_one(
+            {"project_number": project_number,
+             "deleted_at": {"$in": [None, ""]}},
+            {"_id": 0, "pm_email": 1, "co_pm_emails": 1},
+        )
+    except Exception as exc:
+        logger.warning("[team-roster] jit-lift jobs_master read failed: %s", exc)
+        return existing_rows
+    if not job:
+        return existing_rows
+
+    synth: List[Dict[str, Any]] = []
+    if not have_pm:
+        pm_email = (job.get("pm_email") or "").strip().lower()
+        if pm_email:
+            ud_row = await db.user_directory.find_one(
+                {"email": pm_email},
+                {"_id": 0, "id": 1, "email": 1, "name": 1,
+                 "employee_id": 1, "disabled": 1,
+                 "must_change_password": 1, "password_hash": 1,
+                 "last_login_at": 1},
+            )
+            synth.append({
+                "id": f"jit-pm-{pm_email}",
+                "project_number": project_number,
+                "user_id": (ud_row or {}).get("id"),
+                "email": pm_email,
+                "display_name": _resolve_display_name({"email": pm_email}, ud_row or {}),
+                "assignment_role": "pm",
+                "role_label": ROLE_REGISTRY["pm"],
+                "active": True,
+                "is_primary": True,
+                "synthetic": True,
+                "synthetic_source": "jobs_master.pm_email",
+                "login_status": _login_status_from_directory(ud_row),
+            })
+    for ce in (job.get("co_pm_emails") or []):
+        ce_norm = (ce or "").strip().lower()
+        if not ce_norm or ce_norm in have_co_pm:
+            continue
+        ud_row = await db.user_directory.find_one(
+            {"email": ce_norm},
+            {"_id": 0, "id": 1, "email": 1, "name": 1,
+             "employee_id": 1, "disabled": 1,
+             "must_change_password": 1, "password_hash": 1,
+             "last_login_at": 1},
+        )
+        synth.append({
+            "id": f"jit-copm-{ce_norm}",
+            "project_number": project_number,
+            "user_id": (ud_row or {}).get("id"),
+            "email": ce_norm,
+            "display_name": _resolve_display_name({"email": ce_norm}, ud_row or {}),
+            "assignment_role": "co_pm",
+            "role_label": ROLE_REGISTRY["co_pm"],
+            "active": True,
+            "is_primary": False,
+            "synthetic": True,
+            "synthetic_source": "jobs_master.co_pm_emails",
+            "login_status": _login_status_from_directory(ud_row),
+        })
+    return existing_rows + synth
+
+
 async def resolve_team_for_project(
     db, project_number: str, *, active_only: bool = True,
+    enrich: bool = True,
 ) -> List[Dict[str, Any]]:
     q = {"project_number": project_number}
     if active_only:
         q["active"] = True
     rows: List[Dict[str, Any]] = []
     async for r in db.project_team_assignments.find(q, {"_id": 0}):
-        rows.append(_public(r))
+        public = _public(r)
+        if enrich:
+            await _enrich_row_with_directory(db, public)
+        rows.append(public)
+    if enrich:
+        rows = await _jit_lift_known_leadership(db, project_number, rows)
     return rows
 
 
@@ -761,6 +973,56 @@ def register_project_team_assignments(
         actor=Depends(require_admin_dep),  # noqa: ARG001
     ):
         return await backfill_pm_and_co_pm(db)
+
+    # ── TRACK 15.10 · PM-callable directory picker ──────────────────
+    # PMs were previously forced to type a raw email in the Add Member
+    # flow because only Admin could call the K4 directory endpoint.
+    # This route exposes a READ-ONLY, role-filtered, active-only subset
+    # of `user_directory` to portal token holders so the Add Member
+    # picker can be a dropdown backed by the existing source rosters
+    # (Field Leadership, Shop, Safety, HR, Dispatch — all of which
+    # already write to user_directory.portals). No new identity system,
+    # no silent account creation. Pure read.
+    @router.get("/api/pm/directory/users")
+    async def pm_directory_users(
+        actor=Depends(require_any_portal_token),  # noqa: ARG001
+        q: Optional[str] = Query(default=None, max_length=120),
+        portal: Optional[str] = Query(default=None, max_length=40),
+        limit: int = Query(default=300, ge=1, le=500),
+    ):
+        match: Dict[str, Any] = {
+            "$and": [
+                {"$or": [{"disabled": {"$exists": False}},
+                         {"disabled": False}]},
+            ],
+        }
+        if q:
+            needle = q.strip()
+            match["$and"].append({
+                "$or": [
+                    {"email": {"$regex": needle, "$options": "i"}},
+                    {"name": {"$regex": needle, "$options": "i"}},
+                ],
+            })
+        if portal:
+            match["$and"].append({"portals": portal.strip().lower()})
+        rows: List[Dict[str, Any]] = []
+        async for u in db.user_directory.find(
+            match,
+            {"_id": 0, "id": 1, "email": 1, "name": 1,
+             "employee_id": 1, "portals": 1, "disabled": 1,
+             "must_change_password": 1, "password_hash": 1,
+             "last_login_at": 1},
+        ).sort("email", 1).limit(limit):
+            rows.append({
+                "id": u.get("id"),
+                "email": u.get("email"),
+                "name": u.get("name") or "",
+                "employee_id": u.get("employee_id"),
+                "portals": sorted(set(u.get("portals") or [])),
+                "login_status": _login_status_from_directory(u),
+            })
+        return {"ok": True, "items": rows, "count": len(rows)}
 
     # ── PM-scoped read/write ─────────────────────────────────────────
     @router.get("/api/pm/job/{project_number}/team")

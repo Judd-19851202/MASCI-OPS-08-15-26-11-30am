@@ -10,7 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   fetchRoleRegistry, fetchTeam, fetchTeamAudit, addTeamMember,
   patchTeamMember, removeTeamMember, fetchDirectoryUsers,
-  transferTeamMember,
+  fetchPmDirectoryUsers, transferTeamMember,
 } from "@/lib/teamRosterApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,65 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
-import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft } from "lucide-react";
+import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft, ShieldCheck, ShieldAlert, Clock, ShieldOff, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const ROW_TEST = (slot) => `job-team-row-${slot}`;
+
+// TRACK 15.10 · canonical display-name fallback hierarchy.
+// 1) full_name → 2) display_name → 3) name → 4) first+last →
+// 5) email → 6) Employee #<id> → 7) "Unknown person — Admin review required"
+// Never returns the unnamed-placeholder string.
+function displayNameOf(it) {
+  if (!it || typeof it !== "object") return "Unknown person — Admin review required";
+  const tryStr = (s) => (typeof s === "string" ? s.trim() : "");
+  const full = tryStr(it.full_name);
+  if (full) return full;
+  const disp = tryStr(it.display_name);
+  if (disp) return disp;
+  const nm = tryStr(it.name);
+  if (nm) return nm;
+  const first = tryStr(it.first_name);
+  const last = tryStr(it.last_name);
+  if (first || last) return [first, last].filter(Boolean).join(" ");
+  const em = tryStr(it.email);
+  if (em) return em;
+  const emp = tryStr(it.employee_id);
+  if (emp) return `Employee #${emp}`;
+  return "Unknown person — Admin review required";
+}
+
+// TRACK 15.10 · login/access status badge derived from existing
+// user_directory fields. NO new auth system, NO silent account
+// creation — just a visibility surface so PMs can tell whether an
+// assigned person can actually log in.
+const LOGIN_STATUS_META = {
+  active:          { label: "Active login",    cls: "bg-emerald-50 text-emerald-800 border-emerald-200", Icon: ShieldCheck },
+  invite_pending:  { label: "Invite pending",  cls: "bg-amber-50 text-amber-800 border-amber-200",       Icon: Clock },
+  no_login:        { label: "No login",        cls: "bg-rose-50 text-rose-800 border-rose-200",          Icon: ShieldAlert },
+  disabled:        { label: "Disabled",        cls: "bg-slate-200 text-slate-700 border-slate-300",      Icon: ShieldOff },
+  unknown:         { label: "Unknown",         cls: "bg-slate-50 text-slate-600 border-slate-200",       Icon: HelpCircle },
+};
+
+function LoginStatusBadge({ status }) {
+  const meta = LOGIN_STATUS_META[status] || LOGIN_STATUS_META.unknown;
+  const Icon = meta.Icon;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-wide ${meta.cls}`}
+      data-testid={`job-team-login-status-${status}`}
+      title={
+        status === "active" ? "User has set a password and can sign in to the platform." :
+        status === "invite_pending" ? "User account exists but they haven't set a password yet — Admin can issue/reset a temporary password." :
+        status === "no_login" ? "No platform login on file — Admin must issue access." :
+        status === "disabled" ? "Account is disabled. Admin must re-enable before this person can sign in." :
+        "Login status could not be determined."
+      }
+    >
+      <Icon className="w-3 h-3" /> {meta.label}
+    </span>
+  );
+}
 
 export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   const adminScope = scope === "admin";
@@ -57,6 +112,12 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
         setDirectory(dir);
         const a = await fetchTeamAudit(projectNumber).catch(() => ({ items: [] }));
         setAudit(a.items || []);
+      } else {
+        // TRACK 15.10 · PM scope now also loads a directory picker
+        // (read-only via /api/pm/directory/users — same user_directory
+        // collection the existing portal rosters live in).
+        const dir = await fetchPmDirectoryUsers().catch(() => []);
+        setDirectory(dir);
       }
     } catch (e) {
       setErr(e.message || String(e));
@@ -213,21 +274,38 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                 {slot.active.length === 0 && (
                   <p className="text-sm text-slate-400 italic">Unassigned</p>
                 )}
-                {slot.active.map((it) => (
+                {slot.active.map((it) => {
+                  const isSynthetic = !!it.synthetic;
+                  return (
                   <div
                     key={it.id}
                     className="flex items-center justify-between bg-slate-50 px-2 py-1.5 rounded mt-1"
                     data-testid={`job-team-member-${it.id}`}
                   >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {it.display_name || it.email || "(unnamed)"}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium flex items-center gap-1.5 flex-wrap">
+                        <span data-testid={`job-team-member-name-${it.id}`}>
+                          {displayNameOf(it)}
+                        </span>
                         {it.is_primary && (
-                          <Star className="inline h-3 w-3 ml-1 text-amber-500" data-testid="primary-badge" />
+                          <Star className="inline h-3 w-3 text-amber-500" data-testid="primary-badge" />
+                        )}
+                        {/* TRACK 15.10 · login/access status surfaced from
+                            user_directory. No silent account creation. */}
+                        <LoginStatusBadge status={it.login_status || "unknown"} />
+                        {isSynthetic && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] bg-blue-50 text-blue-800 border-blue-200"
+                            data-testid={`job-team-synthetic-${it.id}`}
+                            title="Known from jobs_master but not yet materialised into project_team_assignments. Admin can run a backfill to bind."
+                          >
+                            from project record
+                          </Badge>
                         )}
                       </p>
                       <p className="text-xs text-slate-500">{it.email || "—"}</p>
-                      {!it.user_id && (
+                      {!it.user_id && !isSynthetic && (
                         <p className="text-xs text-amber-700 flex items-center gap-1">
                           <AlertTriangle className="h-3 w-3" />
                           User/employee link missing — notifications may route by role until linked.
@@ -235,7 +313,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {adminScope && (
+                      {adminScope && !isSynthetic && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -246,7 +324,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                           <Star className={`h-3 w-3 ${it.is_primary ? "text-amber-500" : "text-slate-300"}`} />
                         </Button>
                       )}
-                      {adminScope && (
+                      {adminScope && !isSynthetic && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -257,18 +335,21 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                           <ArrowRightLeft className="h-3 w-3" />
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemove(it)}
-                        data-testid={`job-team-remove-${it.id}`}
-                        title="Remove"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                      {!isSynthetic && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemove(it)}
+                          data-testid={`job-team-remove-${it.id}`}
+                          title="Remove"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -319,12 +400,32 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                   </SelectContent>
                 </Select>
               ) : (
-                <Input
-                  placeholder="User email (must exist in directory)"
-                  onChange={(e) => setNewUserId(e.target.value)}
-                  value={newUserId}
-                  data-testid="job-team-user-email"
-                />
+                /* TRACK 15.10 · PM scope now picks from the same
+                   read-only user_directory the existing FL/Shop/Safety/
+                   HR/Dispatch rosters already populate — no free-text
+                   email blind entry, no fake new-person flow. */
+                <Select value={newUserId} onValueChange={setNewUserId}>
+                  <SelectTrigger data-testid="job-team-user-select-pm">
+                    <SelectValue placeholder={
+                      directory.length === 0
+                        ? "No active candidates found — ask Admin to add this person"
+                        : "Pick from existing roster"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {directory.length === 0 && (
+                      <SelectItem value="__none__" disabled>
+                        No active candidates found
+                      </SelectItem>
+                    )}
+                    {directory.map((u) => (
+                      <SelectItem key={u.id} value={u.id} data-testid={`job-team-user-option-${u.id}`}>
+                        {(u.name || u.email)}{u.email ? ` · ${u.email}` : ""}
+                        {(u.portals || []).length ? ` · ${(u.portals || []).join("/")}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
               <Input
                 placeholder="Notes (optional)"

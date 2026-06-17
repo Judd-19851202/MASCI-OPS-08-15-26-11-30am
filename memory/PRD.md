@@ -10,7 +10,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.9A · HR DR OPERATIONAL CERTIFICATION & HARDENING · 🟢 CERTIFIED FOR DEPLOYMENT · 9.9/10)
+## Latest Closed Track (2026-06-17 · TRACK 15.10 · PROJECT TEAM MANAGEMENT RECOVERY · 🟢 OPERATIONALLY RECOVERED)
+- **Track:** Operational recovery of the Project Team workflow — 6 required items, no deferral allowed.
+- **Verdict:** 🟢 OPERATIONALLY RECOVERED. 32/32 Track 15.10 tests green · 93/93 cross-track regressions green · 0 new collections · 0 silent login paths · 0 permission leaks.
+- **`(unnamed)` ROOT CAUSE FIXED**: iter332 panel rendered `{it.display_name || it.email || "(unnamed)"}` — became `(unnamed)` whenever both fields were empty (employee_id-only assignments, lost user_directory link, legacy backfill rows). Replaced with `displayNameOf()` helper using full fallback hierarchy: full_name → display_name → name → first+last → email → Employee #id → "Unknown person — Admin review required". Backend mirror: `_resolve_display_name()` + `_enrich_row_with_directory()`. Never returns the placeholder string.
+- **NAVIGATION**: `PmJobTeam.jsx` and `AdminJobTeam.jsx` now include a breadcrumb (`PM Portal > Project Staffing > Project N Team`) AND a sticky `Back to Project Staffing` pill button. iPad-friendly (`flex-wrap`). Data-testids: `pm-job-team-breadcrumb`, `pm-job-team-back`, admin counterparts.
+- **PM / CO-PM / EXECUTIVE OVERSIGHT SURFACING**: New `_jit_lift_known_leadership()` synthesises read-only rows from `jobs_master.pm_email` / `jobs_master.co_pm_emails[]` when no active `project_team_assignments` row exists. Marked `synthetic: true` so the UI hides destructive actions (no remove/transfer/primary buttons on synth rows). Operator badge: "from project record". Operator can still run admin backfill to materialise — JIT remains active either way.
+- **LOGIN STATUS VISIBILITY**: `_login_status_from_directory()` derives 5 statuses (`active` / `invite_pending` / `no_login` / `disabled` / `unknown`) from EXISTING `user_directory` fields (`disabled`, `must_change_password`, `password_hash`, `last_login_at`). `LoginStatusBadge` component renders them on every row with hover-text rationale. No new auth code.
+- **PM DIRECTORY PICKER**: New `GET /api/pm/directory/users?q=&portal=&limit=` route — portal-token-gated (PM/Shop/Safety/HR/Dispatch/FL all may call), reads existing `user_directory` only, excludes `disabled` accounts by default, optional `portal=` filter for role-specific subsetting. Panel's PM-scope Add Member modal now uses this picker instead of the iter332 free-text email input. Calm empty state: "No active candidates found — ask Admin to add this person".
+- **PERMISSION BOUNDARY PRESERVED**: `ADMIN_ONLY_ROLES = {pm, co_pm, executive_oversight}` unchanged. PM cannot assign admin-only roles. Synthetic rows are read-only. No silent account creation. No new identity collection.
+- **Tests**: NEW `test_track_15_10_project_team_recovery.py` (320 lines, 32 tests across 7 classes: NoUnnamedDisplay, BackNavigation, KnownLeadershipSurfacing, BackendFallbackHierarchy, LoginStatusVisibility, PmDirectoryPicker, SafetyGuards). Includes `test_no_new_collections_introduced` that scans for any new `db.<x>` reference outside the allow-list.
+- **Files changed**: 5 source files (~350 lines net additions), 1 test file, 3 new memory docs.
+- **Deliverables in /app/memory/**: `TRACK_15_10_PROJECT_TEAM_MANAGEMENT_RECOVERY.md` (closure + Phase-by-phase status + Findings Ledger), `PROJECT_TEAM_SOURCE_OF_TRUTH_AUDIT.md` (17-role inventory), `FIELD_LEADERSHIP_PROJECT_TEAM_BOUNDARY.md` (FL/PT separation contract).
+- **No production deployment** performed (per directive). Ready for next operator-led deploy gate.
+- **Carry-forward (NOT blockers)**: Admin stamps `portals[]` on legacy directory rows for accounting/survey roles; operator may run `POST /api/admin/team-roster/backfill` to materialise JIT-lifted rows.
+
+## Previous Closed Track (2026-06-17 · TRACK 15.9A · HR DR OPERATIONAL CERTIFICATION & HARDENING · 🟢 CERTIFIED FOR DEPLOYMENT · 9.9/10)
 - **Track:** Deep operational re-audit of HR Daily Reports surface. Track 15.9 was correct in scope but missed three operationally-critical PM-identity surfaces. Track 15.9A closes those gaps.
 - **Verdict:** 🟢 CERTIFIED FOR DEPLOYMENT. 111/111 tests green. 0 regressions.
 - **Gaps found and fixed (P1/P2):**

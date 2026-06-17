@@ -109,6 +109,20 @@ export async function fetchDirectoryUsers() {
   return data.users || data.items || [];
 }
 
+// TRACK 15.10 · PM-callable read-only directory picker for the Add
+// Member flow. Backed by user_directory (the same collection FL/Shop/
+// Safety/HR/Dispatch already write to). No new roster system.
+export async function fetchPmDirectoryUsers({ q = "", portal = "", limit = 300 } = {}) {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (portal) params.set("portal", portal);
+  params.set("limit", String(limit));
+  const r = await fetch(`${API}/api/pm/directory/users?${params.toString()}`, { headers: headers() });
+  if (!r.ok) throw new Error(`pm-directory: ${r.status}`);
+  const data = await r.json();
+  return data.items || [];
+}
+
 export async function fetchMyProjects() {
   const r = await fetch(`${API}/api/users/me/projects`, { headers: headers() });
   if (!r.ok) return { items: [], count: 0 };
