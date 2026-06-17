@@ -3272,3 +3272,33 @@ Dispatch Map-First · Driver no-login · Repair Complete ≠ RTS · Dispatch RTS
 
 ### Report
 `/app/memory/TRACK_13_30C_FIX_SHOP_FORM_NAV_UX_CORRECTION.md`. Deployment readiness remains 🟢 **GREEN**.
+
+---
+
+## 2026-06-17 · Track 15.13E — Production Auth Session Recovery (LIVE)
+
+**Mode:** SURGICAL · backend (additive auth deps) + frontend (interceptor scoping) · fixes P0 lockouts identified in 15.13D audit.
+
+### What broke
+- HR users got "Session Expired" when opening Daily Reports (read endpoint was admin-or-PM only).
+- Asset Administrators got "Admin or PM login required" toast on `/shop/asset-care` (Asset Care read endpoints were admin-or-PM only).
+- Both cases were amplified by the global Axios 401 handler wiping every portal token and broadcasting a cross-portal session-expired modal.
+
+### Fixes
+- New `require_admin_or_asset_admin` dep accepts Admin tokens OR Shop-portal Asset Administrators via canonical `user_directory.is_asset_admin` flag (`auth_path=directory_flag`) OR legacy `shop_users.role` label (`auth_path=legacy_shop_role`). Mounted on **read-only** Asset Care endpoints (`/api/asset-care/*` and the 4 `/api/asset-spine/dashboard/*` GETs + `required-documents-config-effective`). Authenticated non-asset shop users get **403**, not 401.
+- New `require_admin_pm_or_hr_read` dep accepts Admin/PM/HR. Mounted ONLY on `GET /api/daily-reports/{id}`. All DR mutations (POST/DELETE/audit-footer/list/CSV) stay on `require_admin` — HR is never granted write.
+- `pm_auth.compute_pm_scope` now treats `_actor_kind=hr_user` as unrestricted reader (mirrors shop_user / safety_user behavior).
+- Frontend Axios interceptor: non-namespaced 401s now infer the *active* portal from `window.location.pathname` and clear only that portal's token. Other portal sessions stay live. If the failing request didn't carry the active portal's token, the global modal is fully suppressed.
+
+### Tests
+- `test_track_15_13e_production_auth_session_recovery.py` — 26 cases (20 static + 6 live HTTP), all passing.
+- Regression: `test_track_15_13a_asset_care_routing.py`, `test_track_15_13b_production_failure_recovery.py`, `test_track_13_31b_d3d4_asset_documents.py`, `test_track_13_31b_d7_asset_admin_operational_completion.py`, `test_iter180_pm_token_admin_namespace_lockdown.py`, `test_iter369_auth_regression_lock.py`, `test_iter382_pm_admin_extraction.py`, `test_track_15_9_hr_daily_reports_certification.py`, `test_iter322_safety_read_gate.py`, `test_iter332_workflow_access_gaps.py`, `test_iter338_admin_reference_lookup.py` — all green.
+
+### Hard locks preserved
+- No new portal, no new token, no widened role grant.
+- HR cannot mutate Daily Reports.
+- Asset Admin cannot mutate required-docs config or asset records.
+- No production data backfill required — legacy role label path is the back-compat fallback.
+
+### Report
+`/app/memory/TRACK_15_13E_PRODUCTION_AUTH_SESSION_RECOVERY_IMPLEMENTATION.md`. Deployment readiness remains 🟢 **GREEN**.

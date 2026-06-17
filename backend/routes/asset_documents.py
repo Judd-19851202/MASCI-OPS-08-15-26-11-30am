@@ -171,8 +171,17 @@ def register_asset_documents_routes(
     db,
     require_admin_dep: Callable,
     require_any_portal_dep: Callable,
+    require_admin_or_asset_admin_dep: Optional[Callable] = None,
 ) -> APIRouter:
-    """Mount asset-document routes under `/api/asset-spine/`."""
+    """Mount asset-document routes under `/api/asset-spine/`.
+
+    TRACK 15.13E — `require_admin_or_asset_admin_dep` (optional) is
+    used on the 4 read-only Asset Care dashboard endpoints so that
+    Shop-portal Asset Administrators can view them. When not provided,
+    falls back to `_require_asset_admin` (admin/PM only) — preserves
+    the legacy behavior for any test/regression harness that mounts
+    this router without the extra dep.
+    """
     parent_has_prefix = hasattr(app_or_router, "prefix") and getattr(app_or_router, "prefix", "") == "/api"
     router_prefix = "/asset-spine" if parent_has_prefix else "/api/asset-spine"
     router = APIRouter(prefix=router_prefix, tags=["asset-documents"])
@@ -184,6 +193,10 @@ def register_asset_documents_routes(
         if not _is_admin_or_asset_admin(actor):
             raise HTTPException(status_code=403, detail="Asset Administrator access required.")
         return actor
+
+    # TRACK 15.13E — read dep for the 4 dashboard endpoints. Defaults
+    # to the legacy gate when the new dep isn't supplied.
+    _dashboard_read_dep = require_admin_or_asset_admin_dep or _require_asset_admin
 
     async def _get_asset_or_404(asset_id: str) -> Dict[str, Any]:
         doc = await db.equipment_master.find_one({"id": asset_id}, {"_id": 0})
@@ -527,7 +540,7 @@ def register_asset_documents_routes(
     # ── DASHBOARD: MISSING DOCUMENTS ──────────────────────────────
     @router.get("/dashboard/missing-documents")
     async def dashboard_missing_documents(
-        actor: Dict[str, Any] = Depends(_require_asset_admin),  # noqa: ARG001
+        actor: Dict[str, Any] = Depends(_dashboard_read_dep),  # noqa: ARG001
     ):
         """Platform-wide counts of active assets missing the required
         documents for their canonical asset_type. Read-only · informational.
@@ -588,7 +601,7 @@ def register_asset_documents_routes(
     @router.get("/dashboard/renewals")
     async def dashboard_renewals(
         bucket: str = Query("all", pattern="^(all|expired|30|60|90)$"),
-        actor: Dict[str, Any] = Depends(_require_asset_admin),  # noqa: ARG001
+        actor: Dict[str, Any] = Depends(_dashboard_read_dep),  # noqa: ARG001
     ):
         """Renewals by bucket: expired · 30d · 60d · 90d · all.
 
@@ -662,7 +675,7 @@ def register_asset_documents_routes(
     @router.get("/dashboard/recent-uploads")
     async def dashboard_recent_uploads(
         limit: int = Query(20, ge=1, le=100),
-        actor: Dict[str, Any] = Depends(_require_asset_admin),  # noqa: ARG001
+        actor: Dict[str, Any] = Depends(_dashboard_read_dep),  # noqa: ARG001
     ):
         cursor = db.operational_attachments.find(
             {"host_kind": ASSET_HOST_KIND, "tenant_id": DEFAULT_TENANT_ID},
@@ -691,7 +704,7 @@ def register_asset_documents_routes(
     # ── DASHBOARD: REQUIRED-DOCS CONFIG (read-only this round) ───
     @router.get("/dashboard/required-documents-config")
     async def required_documents_config(
-        actor: Dict[str, Any] = Depends(_require_asset_admin),  # noqa: ARG001
+        actor: Dict[str, Any] = Depends(_dashboard_read_dep),  # noqa: ARG001
     ):
         m = all_required_map()
         return {

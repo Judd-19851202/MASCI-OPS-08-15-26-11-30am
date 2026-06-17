@@ -10,7 +10,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.11B · PM RUNTIME OPERATIONAL CERTIFICATION · 🟡 CERTIFIED WITH OPERATOR FOLLOW-UP)
+## Latest Closed Track (2026-06-17 · TRACK 15.13E · PRODUCTION AUTH SESSION RECOVERY · 🟢 IMPLEMENTED & TESTED)
+- **Track:** Surgical fix for P0 production lockouts where HR users hit "Session Expired" opening Daily Reports and Asset Administrators got "Admin or PM login required" on `/shop/asset-care`.
+- **Verdict:** 🟢 26-test regression suite passes (20 static + 6 live HTTP) with NO mutation widening, NO new portal, NO production data backfill.
+- **Backend additions** (server.py):
+  - `require_admin_or_asset_admin` — accepts Admin OR Shop-portal Asset Admin via canonical `user_directory.is_asset_admin=True` (auth_path=directory_flag) OR legacy `shop_users.role ∈ {Asset Administrator, Asset Manager, Equipment Manager, Fleet Coordinator}` (auth_path=legacy_shop_role). Authenticated non-asset shop users get **403**, not 401.
+  - `require_admin_pm_or_hr_read` — accepts Admin/PM/HR for the ONE endpoint `GET /api/daily-reports/{id}`. HR cannot mutate.
+- **`pm_auth.compute_pm_scope`** now treats `_actor_kind=hr_user` as unrestricted reader (mirrors shop_user/safety_user).
+- **Frontend `lib/api.js`** non-namespaced 401 handler now infers the *active* portal from `window.location.pathname` and clears only that portal's token. Other portal sessions stay live. Modal fully suppressed when failing request didn't carry the active portal's token.
+- **Mounted on these read-only endpoints only**: `/api/asset-care/{summary,readiness,work-queue,alerts,notifications-matrix}`, `/api/asset-spine/dashboard/{missing-documents,renewals,recent-uploads,required-documents-config,required-documents-config-effective}`, `GET /api/daily-reports/{id}`. Mutations on every router stay on `require_admin`.
+- **Hard locks preserved**: HR cannot write Daily Reports. Asset Admin cannot mutate required-docs config or asset records. No production data backfill needed (legacy role label is back-compat fallback).
+- **Deliverable**: `TRACK_15_13E_PRODUCTION_AUTH_SESSION_RECOVERY_IMPLEMENTATION.md`. Deployment readiness 🟢 GREEN.
+
+## Previous Closed Track (2026-06-17 · TRACK 15.11B · PM RUNTIME OPERATIONAL CERTIFICATION · 🟡 CERTIFIED WITH OPERATOR FOLLOW-UP)
 - **Track:** Build the cert-data seed infrastructure required to runtime-prove the PM Portal dashboard + 7 Project Team scenarios.
 - **Verdict:** 🟡 Seed lifecycle (seed → verify → rollback → verify-clean) proven end-to-end on preview DB with 16 cert rows in/out. Browser-based Phases 5-11 require an interactive session — turn-key handoff documented.
 - **Shipped**: `/app/backend/scripts/seed_track_15_11b_pm_cert.py` (~280 lines, 3 modes: --seed, --verify, --rollback) + `/app/backend/tests/test_track_15_11b_seed_safety.py` (14 tests, 100% green).

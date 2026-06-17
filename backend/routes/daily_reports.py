@@ -203,8 +203,14 @@ class DailyReportSummary(BaseModel):
     created_at: str
 
 
-def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email):
-    """Attach Daily Report endpoints to the shared router."""
+def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate_limit_public_post, schedule_auto_email, require_admin_pm_or_hr_read=None):
+    """Attach Daily Report endpoints to the shared router.
+
+    TRACK 15.13E — `require_admin_pm_or_hr_read` is an OPTIONAL extra
+    dep that, when supplied, replaces `require_admin` on the single
+    read endpoint `GET /api/daily-reports/{report_id}` so HR can view
+    Daily Reports. All mutation routes stay on the strict admin/PM gate.
+    """
 
     async def _sanitize_inline_photos(doc: Dict[str, Any]) -> Dict[str, int]:
         """Batch H · GAP-1 write-path defense (2026-05-30).
@@ -578,8 +584,12 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             },
         )
 
+    # TRACK 15.13E — fall back to `require_admin` when the new HR-read
+    # gate isn't supplied (keeps existing test harness imports working).
+    _read_dep = require_admin_pm_or_hr_read or require_admin
+
     @api_router.get("/daily-reports/{report_id}")
-    async def get_daily_report(report_id: str, actor=Depends(require_admin)):
+    async def get_daily_report(report_id: str, actor=Depends(_read_dep)):
         doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Daily report not found")

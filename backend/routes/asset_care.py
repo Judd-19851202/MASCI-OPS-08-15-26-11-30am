@@ -121,8 +121,13 @@ def _classify(asset: Dict[str, Any], required_docs: List[str],
     return {"status": "Ready", "reasons": []}
 
 
-def register_asset_care_routes(app, db, require_admin_dep: Callable) -> APIRouter:
+def register_asset_care_routes(app, db, require_admin_dep: Callable, require_admin_or_asset_admin_dep: Optional[Callable] = None) -> APIRouter:
     router = APIRouter(prefix="/api/asset-care", tags=["asset-care"])
+
+    # TRACK 15.13E — read dep for the Asset Care portal read endpoints
+    # (summary · readiness · alerts · work-queue · notifications-matrix).
+    # Defaults to the legacy admin/PM gate for back-compat.
+    _read_dep = require_admin_or_asset_admin_dep or require_admin_dep
 
     async def _gather(asset_type_filter: Optional[str] = None):
         q: Dict[str, Any] = {"$or": [
@@ -193,7 +198,7 @@ def register_asset_care_routes(app, db, require_admin_dep: Callable) -> APIRoute
         return results
 
     @router.get("/summary")
-    async def summary(actor=Depends(require_admin_dep)):  # noqa: ARG001
+    async def summary(actor=Depends(_read_dep)):  # noqa: ARG001
         rows = await _gather()
         counts = {"Ready": 0, "Warning": 0, "Not Ready": 0, "Needs Review": 0}
         missing_docs_total = 0
@@ -227,7 +232,7 @@ def register_asset_care_routes(app, db, require_admin_dep: Callable) -> APIRoute
         status: Optional[str] = Query(default=None),
         asset_type: Optional[str] = Query(default=None),
         limit: int = Query(default=200, ge=1, le=1000),
-        actor=Depends(require_admin_dep),  # noqa: ARG001
+        actor=Depends(_read_dep),  # noqa: ARG001
     ):
         rows = await _gather(asset_type)
         if status:
@@ -237,7 +242,7 @@ def register_asset_care_routes(app, db, require_admin_dep: Callable) -> APIRoute
         return {"count": len(rows), "items": rows[:limit]}
 
     @router.get("/work-queue")
-    async def work_queue(actor=Depends(require_admin_dep)):  # noqa: ARG001
+    async def work_queue(actor=Depends(_read_dep)):  # noqa: ARG001
         rows = await _gather()
         gps_survey_tech = {"GPS / Machine Control", "Survey Equipment", "Technology Equipment"}
         return {
@@ -252,7 +257,7 @@ def register_asset_care_routes(app, db, require_admin_dep: Callable) -> APIRoute
         }
 
     @router.get("/alerts")
-    async def alerts(actor=Depends(require_admin_dep)):  # noqa: ARG001
+    async def alerts(actor=Depends(_read_dep)):  # noqa: ARG001
         out: List[Dict[str, Any]] = []
         async for a in db.equipment_master.find(
             {"$or": [{"is_active": True}, {"active": True}]},
@@ -290,7 +295,7 @@ def register_asset_care_routes(app, db, require_admin_dep: Callable) -> APIRoute
         return {"count": len(out), "items": out[:500]}
 
     @router.get("/notifications-matrix")
-    async def notifications_matrix(actor=Depends(require_admin_dep)):  # noqa: ARG001
+    async def notifications_matrix(actor=Depends(_read_dep)):  # noqa: ARG001
         events = [
             # (event, trigger, audience, dashboard, resolution)
             ("registration_expired",       "Renewal date < today",      ["Asset Admin", "Ops"],   True,  "Upload renewed Registration"),

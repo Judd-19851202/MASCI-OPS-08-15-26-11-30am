@@ -329,6 +329,11 @@ async def compute_pm_scope(db, actor) -> PmScope:
     # destructive endpoints stay on the stricter ``require_admin`` gate.
     if actor.get("_actor_kind") == "safety_user":
         return PmScope(is_admin=True)
+    # TRACK 15.13E — HR readers are cross-job by design (Daily Report
+    # review). HR is never granted via require_admin so they cannot
+    # mutate; this only widens read scope for HR Daily Report viewing.
+    if actor.get("_actor_kind") == "hr_user":
+        return PmScope(is_admin=True)
     email = (actor.get("email") or "").strip().lower()
     if not email:
         return PmScope(is_admin=True)

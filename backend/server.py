@@ -579,6 +579,139 @@ async def require_safety_or_admin(
     raise HTTPException(status_code=401, detail="Safety or Admin auth required")
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# TRACK 15.13E — Production Auth Session Recovery (P0 fix)
+# ─────────────────────────────────────────────────────────────────────────
+# Two purpose-built dependencies that accept exactly the personas the
+# directive calls out — no broader, no narrower. Both gates are
+# READ-ONLY by intent and must NEVER be mounted on mutation routes.
+#
+# 1) `require_admin_or_asset_admin`
+#      Used on the 4 Asset Care read APIs (asset-spine dashboard +
+#      /api/asset-care/* reads). Admin token unlocks. Per-shop-user
+#      tokens unlock ONLY when the user is a recognized Asset
+#      Administrator via EITHER:
+#         · canonical `user_directory.is_asset_admin == True`
+#           (auth_path = "directory_flag"), OR
+#         · legacy `shop_users.role` ∈ _ASSET_ADMIN_ROLE_LABELS
+#           (auth_path = "legacy_shop_role")
+#      Production back-compat: existing Asset Admin users may not
+#      yet have a user_directory mirror row, so the legacy fallback
+#      is required. Normal mechanic / parts-coordinator / shop-
+#      manager users WITHOUT the role get a clean 403.
+#
+# 2) `require_admin_pm_or_hr_read`
+#      Used ONLY on `GET /api/daily-reports/{id}` so HR can read the
+#      same Daily Report the PMs and Admins use. Mutations remain on
+#      `require_admin` (Admin + PM only). HR is never granted write.
+#
+# No new portal, no new role grant, no new token. Surgical additions
+# the production failure has been waiting on since 15.13D's audit.
+async def require_admin_or_asset_admin(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None),
+    x_shop_token: Optional[str] = Header(default=None),
+):
+    """TRACK 15.13E · Accept Admin OR Shop-portal Asset Administrator.
+
+    Returns an actor dict tagged with `_auth_path` ∈
+    {"admin_token", "directory_flag", "legacy_shop_role"} so route
+    handlers and tests can verify which path resolved.
+    """
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return {"_actor": "admin", "name": "Admin", "_auth_path": "admin_token"}
+
+    if not x_shop_token or "." not in x_shop_token:
+        # Shared shop token (no `.`) doesn't identify a user, so we
+        # cannot prove asset_admin status. Reject with the same
+        # admin-or-asset-admin signal the SPA expects.
+        raise HTTPException(
+            status_code=401,
+            detail="Asset Administrator login required",
+        )
+
+    from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
+    user = await is_valid_shop_user_token_async(db, x_shop_token)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Asset Administrator login required",
+        )
+
+    # Path 1 — canonical directory flag (preferred going forward).
+    email_norm = (user.get("email") or "").strip().lower()
+    if email_norm:
+        try:
+            dir_row = await db.user_directory.find_one(
+                {"email": email_norm},
+                {"_id": 0, "is_asset_admin": 1},
+            )
+            if dir_row and dir_row.get("is_asset_admin") is True:
+                return {
+                    **user,
+                    "_actor_kind": "shop_user",
+                    "_actor": "asset_admin",
+                    "_auth_path": "directory_flag",
+                }
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                f"require_admin_or_asset_admin directory lookup failed: {exc}"
+            )
+
+    # Path 2 — legacy shop role label. Required because existing
+    # Asset Admin users may not yet have a directory mirror row.
+    if _role_implies_asset_admin(user.get("role")):
+        return {
+            **user,
+            "_actor_kind": "shop_user",
+            "_actor": "asset_admin",
+            "_auth_path": "legacy_shop_role",
+        }
+
+    # Authenticated as a Shop user but not an Asset Admin —
+    # straight 403 (not 401) so the SPA does NOT clear the Shop
+    # token / show "Session Expired".
+    raise HTTPException(
+        status_code=403,
+        detail="Asset Administrator access required.",
+    )
+
+
+async def require_admin_pm_or_hr_read(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None),
+    x_pm_token: Optional[str] = Header(default=None),
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+):
+    """TRACK 15.13E · Read-only gate: Admin · PM · HR.
+
+    Returns the same actor shapes the existing `require_admin` gate
+    returns for admin/PM. HR tokens resolve to an actor dict tagged
+    `_actor_kind="hr_user"` so `compute_pm_scope` treats them as
+    unrestricted readers. NEVER mount on mutation routes.
+    """
+    if x_admin_token and _is_valid_admin_token(x_admin_token):
+        return True  # legacy admin sentinel — preserves existing handler contract
+    if x_pm_token:
+        if "." in x_pm_token:
+            from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
+            pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+            if pm_doc:
+                return pm_doc
+        elif _is_valid_pm_token(x_pm_token):
+            return True
+    if x_hr_token:
+        from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+        u = await is_valid_hr_user_token_async(db, x_hr_token)
+        if u:
+            return {**u, "_actor_kind": "hr_user", "_actor": "hr"}
+    if not (x_admin_token or x_pm_token or x_hr_token):
+        raise HTTPException(
+            status_code=401, detail="Admin, PM, or HR login required",
+        )
+    raise HTTPException(status_code=401, detail="Invalid admin/PM/HR token")
+
+
 class AdminLoginRequest(BaseModel):
     password: str
 
@@ -2321,6 +2454,7 @@ from routes.daily_reports import (  # noqa: E402,F401
 register_daily_reports_routes(
     api_router, db, require_admin, rate_limit_public_post,
     lambda kind, record: schedule_auto_email(kind, record),
+    require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
 )
 
 
@@ -12151,13 +12285,16 @@ register_asset_spine_routes(app, db, require_admin, _require_any_portal_token)
 # under the same /api/asset-spine/* prefix as the parent spine routes
 # so admin tooling consumes a single API surface.
 from routes.asset_documents import register_asset_documents_routes  # noqa: E402
-register_asset_documents_routes(app, db, require_admin, _require_any_portal_token)
+register_asset_documents_routes(
+    app, db, require_admin, _require_any_portal_token,
+    require_admin_or_asset_admin_dep=require_admin_or_asset_admin,
+)
 
 # Track 13.31B-D7 · Asset Admin operational completion · adds Required Docs
 # editor save + asset_admin role grant pathway. Additive, single small config
 # collection (asset_required_doc_overrides).
 from routes.asset_admin_settings import register_asset_admin_settings_routes  # noqa: E402
-register_asset_admin_settings_routes(app, db, require_admin)
+register_asset_admin_settings_routes(app, db, require_admin, require_admin_or_asset_admin_dep=require_admin_or_asset_admin)
 
 from routes.notify_ownership_lock_seed import register_notify_ownership_lock_seed  # noqa: E402
 register_notify_ownership_lock_seed(app, db, require_admin)
@@ -12173,7 +12310,7 @@ register_ownership_lifecycle(app, db, require_admin, _require_any_portal_token)
 
 # Track 13.33ABC · Asset Care & Readiness Command Center
 from routes.asset_care import register_asset_care_routes  # noqa: E402
-register_asset_care_routes(app, db, require_admin)
+register_asset_care_routes(app, db, require_admin, require_admin_or_asset_admin_dep=require_admin_or_asset_admin)
 
 # TRACK 14.0-RC1-FERRARI · /api/admin/perf-snapshot · 10-second
 # operator-confidence check (disk, memory, uptime, mongo ping,

@@ -44,9 +44,14 @@ class AssetAdminToggleBody(BaseModel):
 
 
 def register_asset_admin_settings_routes(
-    app, db, require_admin_dep: Callable,
+    app, db, require_admin_dep: Callable, require_admin_or_asset_admin_dep: Optional[Callable] = None,
 ) -> APIRouter:
     router = APIRouter(tags=["asset-admin-settings"])
+
+    # TRACK 15.13E — read dep for `required-documents-config-effective`
+    # (consumed by RequiredDocsEditor in the Asset Admin Console). Falls
+    # back to admin/PM gate if not supplied.
+    _read_dep = require_admin_or_asset_admin_dep or require_admin_dep
 
     # ── REQUIRED DOCS OVERRIDES ─────────────────────────────────────────
 
@@ -109,7 +114,7 @@ def register_asset_admin_settings_routes(
         "/api/asset-spine/dashboard/required-documents-config-effective",
     )
     async def effective_required_documents(
-        actor=Depends(require_admin_dep),  # noqa: ARG001
+        actor=Depends(_read_dep),  # noqa: ARG001
     ):
         """Returns the merged map: static defaults + overrides.
 

@@ -154,6 +154,16 @@ api.interceptors.response.use(
     // overlay. The route guard for that portal will bounce the user
     // back to the correct login the next time they navigate inside it.
     // Other portal sessions stay live.
+    //
+    // TRACK 15.13E — Cross-portal session bleed protection.
+    // Non-namespaced 401s (e.g. /api/daily-reports/{id}, /api/asset-care/*)
+    // previously wiped EVERY portal token and broadcast a global
+    // "Session Expired" modal. That blew up HR and Asset Admin
+    // workflows in production whenever a read endpoint rejected a
+    // valid portal token. The fix: infer the *active* portal from
+    // window.location.pathname (the portal the user is actively in)
+    // and scope the cleanup to that portal alone. Other portal
+    // sessions stay live.
     const cfg = err.config || {};
     let _namespacedHandled = false;
     if (err?.response?.status === 401) {
@@ -214,21 +224,86 @@ api.interceptors.response.use(
         // portal session that just doesn't satisfy this helper).
         _namespacedHandled = true;
       } else {
-        // Non-namespaced 401 (e.g. /api/daily-reports/{id} rejected by a
-        // top-level gate) — preserve the legacy behavior of clearing every
-        // token the request carried so the next protected click bounces to
-        // the right login.
-        if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
-        if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
-        if (cfg.headers?.["X-PM-Token"]) clearPmToken();
-        if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
-        if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
-        if (cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
-        if (cfg.headers?.["X-HR-Token"]) clearHrToken();
-        if (cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
-        if (cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
-        if (cfg.headers?.["X-FL-Token"]) clearFlToken();
-        if (cfg.headers?.Authorization) clearJwt();
+        // TRACK 15.13E — Non-namespaced 401 (e.g. /api/daily-reports/{id},
+        // /api/asset-care/*). Determine the *active portal* from
+        // window.location.pathname so the cleanup is portal-scoped
+        // instead of a global token wipe. Production failure mode the
+        // previous "wipe everything" branch caused:
+        //   • HR user reading a Daily Report → backend rejects (gate
+        //     was admin-only) → frontend wipes HR token → user is
+        //     kicked out of HR portal even though their session is fine.
+        //   • Asset Admin reading Asset Care summary → same pattern.
+        // The fix: only clear the active portal's token, and only
+        // broadcast `session_expired` if the request actually carried
+        // that token. Other portal sessions remain live.
+        let activePortal = null;
+        try {
+          const p = (typeof window !== "undefined" && window.location && window.location.pathname) || "";
+          if (p.startsWith("/admin/") || p === "/admin") activePortal = "admin";
+          else if (p.startsWith("/hr/") || p === "/hr") activePortal = "hr";
+          else if (p.startsWith("/shop/") || p === "/shop") activePortal = "shop";
+          else if (p.startsWith("/pm/") || p === "/pm") activePortal = "pm";
+          else if (p.startsWith("/safety/") || p === "/safety") activePortal = "safety";
+          else if (p.startsWith("/dispatch/") || p === "/dispatch") activePortal = "dispatch";
+          else if (p.startsWith("/field-leadership/") || p === "/field-leadership") activePortal = "fl";
+          else if (p.startsWith("/leadership/") || p === "/leadership") activePortal = "leadership";
+          else if (p.startsWith("/dev/") || p === "/dev") activePortal = "dev";
+        } catch { /* keep activePortal = null */ }
+
+        // Map the active portal to the single token we'll clear and
+        // the only header we'll require for emitting `session_expired`.
+        const portalTokenHeader = {
+          admin: "X-Admin-Token",
+          hr: "X-HR-Token",
+          shop: "X-Shop-Token",
+          pm: "X-PM-Token",
+          safety: "X-Safety-Token",
+          dispatch: "X-Dispatch-Token",
+          fl: "X-FL-Token",
+          leadership: "X-Leadership-Token",
+          dev: "X-Dev-Token",
+        };
+
+        if (activePortal) {
+          // Portal-scoped cleanup. The request did NOT use the active
+          // portal's token? → silent (probably a stale background
+          // helper firing while the route is unloading). Request DID
+          // use it? → drop just that token, do NOT touch any other
+          // portal session.
+          const hdr = portalTokenHeader[activePortal];
+          const usedActiveToken = !!(hdr && cfg.headers?.[hdr]);
+          if (usedActiveToken) {
+            if (activePortal === "admin") clearAdminToken();
+            else if (activePortal === "hr") clearHrToken();
+            else if (activePortal === "shop") clearShopToken();
+            else if (activePortal === "pm") clearPmToken();
+            else if (activePortal === "safety") clearSafetyToken();
+            else if (activePortal === "dispatch") clearDispatchToken();
+            else if (activePortal === "fl") clearFlToken();
+            else if (activePortal === "leadership") clearLeadershipToken();
+            else if (activePortal === "dev") clearDevToken();
+          } else {
+            // The request didn't even carry the active portal's token
+            // → not our session that's failing; surface no UX signal.
+            _namespacedHandled = true;
+          }
+        } else {
+          // No portal context (root, /login, etc.). Preserve the
+          // legacy behavior of clearing every token the request
+          // carried so the next protected click bounces to the right
+          // login. This branch should be rare in production.
+          if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
+          if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
+          if (cfg.headers?.["X-PM-Token"]) clearPmToken();
+          if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
+          if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
+          if (cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
+          if (cfg.headers?.["X-HR-Token"]) clearHrToken();
+          if (cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
+          if (cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
+          if (cfg.headers?.["X-FL-Token"]) clearFlToken();
+          if (cfg.headers?.Authorization) clearJwt();
+        }
       }
     }
     // TRUST-DIAGNOSTICS-001 · Publish the classified failure to the
