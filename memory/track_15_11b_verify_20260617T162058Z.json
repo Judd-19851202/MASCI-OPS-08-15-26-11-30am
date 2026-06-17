@@ -1,0 +1,14 @@
+{
+  "mode": "verify",
+  "ts": "2026-06-17T16:20:58.009646+00:00",
+  "counts": {
+    "user_directory": 5,
+    "jobs_master": 2,
+    "project_team_assignments": 1,
+    "daily_reports": 2,
+    "job_photos": 2,
+    "incidents": 2,
+    "jha_records": 1,
+    "equipment_inspections": 1
+  }
+}
