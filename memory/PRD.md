@@ -2169,3 +2169,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Five-Pillar 9.9 / 10.**
 - **Deferred (NOT blocking):** Track 15.13D job-folder browser (grouping the HR list page by project) — current 15.9A filterable list already supports the workflows HR called out.
 - **Verdict:** 🟢 **READY TO DEPLOY** — pure routing + presentational change.
+
+
+## 2026-02-15 · TRACK 15.13D · PRODUCTION AUTH SESSION RECOVERY — RECOVERY PLAN (NOT YET IMPLEMENTED) 🟡
+
+- **Honest mode change:** Stopped to write the plan instead of shipping under context pressure.
+- **Root cause #1 (HR session expired on opening a DR):** `ViewDailyReport` calls `GET /api/daily-reports/{id}` via shared axios — endpoint accepts admin/PM only, returns 401 — global axios interceptor publishes `session_expired` to the directory bus → modal fires across HR portal. Token-kind mismatch, not real session loss.
+- **Root cause #2 (Asset Admin "Admin or PM login required" on `/shop/asset-care`):** `ShopAssetCare` calls `/api/asset-spine/dashboard/{renewals,missing-documents,missing-photos,required-documents-config}` — gated by `_require_asset_admin` which chains `require_admin_dep` and rejects shop tokens before the `is_asset_admin` check fires. This is the deferred Track 15.13 plan item #6.
+- **3 surgical fixes designed (NOT yet implemented in this session):**
+  1. `require_admin_or_asset_admin` FastAPI dep — accepts admin token OR any portal token whose directory row has `is_asset_admin=true` OR shop_users.role matches asset-admin labels. Wire into the 4 asset-spine dashboard READ endpoints. Mutation endpoints stay admin-strict.
+  2. `require_admin_pm_or_hr_read` FastAPI dep — accepts admin/PM/HR token on `GET /api/daily-reports/{id}` ONLY; PATCH/DELETE stay admin/PM-strict.
+  3. `lib/api.js` axios interceptor — attach `X-HR-Token` when pathname starts with `/hr/`; on 401 publish a portal-scoped `session_expired` event so an HR call cannot expire other portals (and vice versa).
+- **Permission proof:** NO broad Admin grant. Mechanics still 401 on asset-care dashboard reads; HR still 401/405 on every DR mutation.
+- **Why deferred for user approval:** auth-dep changes are exactly the class that burned us in 15.13A — better one focused session that ships + cert-proves all three changes together than a half-shipped fix under context pressure.
+- **Verdict:** 🟡 **PARTIAL — RECOVERY PLAN ONLY.** 15.13B/15.13C landings work; downstream API calls still token-mismatched. Approve scope → next session implements + runtime-proves.
+- **Deliverable:** `/app/memory/TRACK_15_13D_PRODUCTION_AUTH_SESSION_RECOVERY.md` with full plan, route matrix, code snippets, and test plan.
