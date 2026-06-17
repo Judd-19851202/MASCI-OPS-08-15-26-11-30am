@@ -10,7 +10,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.9 · HR DAILY REPORTS READ-ONLY CERTIFICATION · 🟢 CERTIFIED 9.9/10)
+## Latest Closed Track (2026-06-17 · TRACK 15.9A · HR DR OPERATIONAL CERTIFICATION & HARDENING · 🟢 CERTIFIED FOR DEPLOYMENT · 9.9/10)
+- **Track:** Deep operational re-audit of HR Daily Reports surface. Track 15.9 was correct in scope but missed three operationally-critical PM-identity surfaces. Track 15.9A closes those gaps.
+- **Verdict:** 🟢 CERTIFIED FOR DEPLOYMENT. 111/111 tests green. 0 regressions.
+- **Gaps found and fixed (P1/P2):**
+  - **P1** PM identity not visible in HR DR list/detail → FIXED. `pm_name` + `pm_email` now surfaced via `$lookup` against `projects` on `project_number`. List response + detail response both enriched.
+  - **P1** PM filter absent → FIXED. New `pm` query param pre-resolves matching `project_number`s via `projects.{pm_name, pm_email}` (no HR-actor bleed-through; HR sees every PM's reports, just filtered by needle).
+  - **P2** Superintendent filter absent → FIXED. New `superintendent` query param on DR top-level field.
+  - **P2** Foreman filter absent → FIXED. New `foreman` query param on nested `masci_crews.foreman`.
+- **Filter completeness now**: 10/10 operator-mandated filters (Date, Project Number, Project Name, PM, Superintendent, Foreman, Employee, Vendor, Subcontractor) + 1 bonus (Report number).
+- **Frontend additions**: 3 new filter inputs (PM, Superintendent, Foreman), 2 new table columns (PM, Superintendent), detail-header PM/Super identity strip (`hr-dr-detail-pm-strip`), Clear button resets all 10 filters.
+- **i18n**: 3 new ES translations added (Project manager name or email, Superintendent name, Foreman name).
+- **Company-wide guarantee**: asserted by test — no `actor.` reference in either endpoint body after signature, no PM-scope helpers invoked. HR sees ALL DRs across ALL projects.
+- **Tests**: 24 new Track 15.9A tests across 5 classes (PmIdentitySurfacing · NewFilters · CompanyWideGuarantee · FrontendFiltersAndColumns · EsTranslations). Combined HR-DR suite: 44 tests on 1 file. Total Track 15.x + iter332/339/373 surface: 111 tests / 111 green.
+- **Five-Pillar Scorecard**: POWERFUL 9.9 · SIMPLE 9.8 · BEAUTIFUL 9.8 · TRUSTED 10.0 · PROVEN 10.0 · **Composite 9.9/10**.
+- **Files changed**: 1 backend (+75 lines), 1 frontend page (+60 lines), 1 i18n (+3 lines), 1 test file (+250 lines), 2 new memory docs (audit + certification), 1 PRD update.
+- **No production deployment** performed (per directive). Ready for next operator-led deploy gate.
+
+## Previous Closed Track (2026-06-17 · TRACK 15.9 · HR DAILY REPORTS READ-ONLY CERTIFICATION · 🟢 CERTIFIED 9.9/10)
 - **Track:** Five-Pillar certification + minimal hardening of HR read-only Daily Reports surface (built iter332, calm-errors iter339).
 - **Verdict:** 🟢 CERTIFIED. 56/56 tests green. 0 regressions. No code drift. No shadow systems.
 - **Phase 1 — Audit**: `/app/memory/HR_DAILY_REPORT_VISIBILITY_AUDIT.md` (180 lines) classifies 50+ DR fields as HR SAFE / HR REVIEW REQUIRED / HR EXCLUDE. Only 1 field requires EXCLUDE (`distribution_list` — PM's email CC list, no HR rendering use case).

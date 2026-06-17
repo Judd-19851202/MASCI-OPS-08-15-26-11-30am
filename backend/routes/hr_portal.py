@@ -344,14 +344,27 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
     # employee labor verification, and subcontractor/vendor attendance —
     # WITHOUT being granted PM scope, edit/delete/submit/email, or
     # approval rights. Read-only namespace under /hr/* mirrors the
-    # /hr/field-leadership pattern. Filters: date_from · date_to ·
-    # project · employee · subcontractor · vendor · report_number.
+    # /hr/field-leadership pattern.
+    #
+    # TRACK 15.9A · operational hardening:
+    #   • Surface project PM (name + email) via $lookup against
+    #     `projects` collection on project_number.
+    #   • Surface DR-day Superintendent and per-crew Foremen.
+    #   • Add 3 new filters: pm · superintendent · foreman.
+    #     PM filter pre-resolves project_numbers from the `projects`
+    #     collection so the company-wide guarantee is preserved
+    #     (no PM scope bleed-through).
+    #   • Existing filters unchanged: date_from · date_to · project ·
+    #     employee · subcontractor · vendor · report_number.
     @router.get("/hr/daily-reports")
     async def hr_list_daily_reports(
         actor=Depends(require_hr_user),
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
         project: Optional[str] = None,
+        pm: Optional[str] = None,
+        superintendent: Optional[str] = None,
+        foreman: Optional[str] = None,
         employee: Optional[str] = None,
         subcontractor: Optional[str] = None,
         vendor: Optional[str] = None,
@@ -383,19 +396,73 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             match["subcontractors.name"] = {"$regex": subcontractor.strip(), "$options": "i"}
         if vendor:
             match["visitors.name"] = {"$regex": vendor.strip(), "$options": "i"}
+        if superintendent:
+            # Superintendent name lives at DR-doc top level.
+            match["superintendent"] = {
+                "$regex": superintendent.strip(), "$options": "i",
+            }
+        if foreman:
+            # Foreman lives at masci_crews[].foreman (per crew, per day).
+            match["masci_crews.foreman"] = {
+                "$regex": foreman.strip(), "$options": "i",
+            }
+        if pm:
+            # PM is a property of the PROJECT, not the DR. Resolve PM →
+            # matching project_numbers via the `projects` collection,
+            # then narrow the DR match. If no PM matches, return empty
+            # — DON'T scope by PM session (HR sees every project's
+            # PM, just filters by which PM the operator typed).
+            pm_regex = {"$regex": pm.strip(), "$options": "i"}
+            pm_projects = await db.projects.find(
+                {"$or": [{"pm_name": pm_regex}, {"pm_email": pm_regex}]},
+                {"_id": 0, "project_number": 1},
+            ).to_list(5000)
+            pm_pns = [
+                p["project_number"] for p in pm_projects
+                if p.get("project_number")
+            ]
+            if not pm_pns:
+                return {"ok": True, "items": [], "count": 0}
+            # Coexist with an existing project_number-touching match
+            # (rare, but safe — wrap in $and if needed).
+            existing = match.get("project_number")
+            if existing is None:
+                match["project_number"] = {"$in": pm_pns}
+            else:
+                match.setdefault("$and", []).append(
+                    {"project_number": {"$in": pm_pns}}
+                )
 
         pipeline = [
             {"$match": match},
             {"$sort": {"report_date": -1, "created_at": -1}},
             {"$limit": min(limit, 500)},
+            # TRACK 15.9A · enrich page with PM-of-record from `projects`.
+            {"$lookup": {
+                "from": "projects",
+                "localField": "project_number",
+                "foreignField": "project_number",
+                "as": "_proj",
+                "pipeline": [
+                    {"$project": {"_id": 0, "pm_name": 1, "pm_email": 1}},
+                    {"$limit": 1},
+                ],
+            }},
             {"$project": {
                 "_id": 0, "id": 1, "project_name": 1, "project_number": 1,
                 "report_number": 1, "report_date": 1, "prepared_by": 1,
+                "superintendent": 1,
                 "location": 1, "weather_summary": 1, "created_at": 1,
                 "photo_count":   {"$size": {"$ifNull": ["$photos", []]}},
                 "crew_count":    {"$size": {"$ifNull": ["$masci_crews", []]}},
                 "sub_count":     {"$size": {"$ifNull": ["$subcontractors", []]}},
                 "visitor_count": {"$size": {"$ifNull": ["$visitors", []]}},
+                # Track 15.9A — PM identity (name + email) lifted from
+                # the project of record. Empty string when the project
+                # row has no PM stamped (legacy / unbound) — never null
+                # so the frontend can `r.pm_name || "—"` cleanly.
+                "pm_name":  {"$ifNull": [{"$arrayElemAt": ["$_proj.pm_name", 0]}, ""]},
+                "pm_email": {"$ifNull": [{"$arrayElemAt": ["$_proj.pm_email", 0]}, ""]},
             }},
         ]
         items = await db.daily_reports.aggregate(pipeline).to_list(500)
@@ -409,10 +476,30 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         # (`distribution_list`), which is the PM's outbound-comms tool
         # and has zero HR rendering use case. Strip it at the database
         # boundary so we never even ship it across the wire.
+        #
+        # TRACK 15.9A · enrich the response with PM-of-record (name +
+        # email) looked up from the `projects` collection. HR needs to
+        # identify which PM owns the project the report belongs to
+        # without having to guess from `prepared_by` (who may be a
+        # foreman or super submitting on the PM's behalf).
         projection = {"_id": 0, "distribution_list": 0}
         doc = await db.daily_reports.find_one({"id": report_id}, projection)
         if not doc:
             raise HTTPException(404, "daily report not found")
+        # Best-effort PM enrichment — never fails the request if the
+        # project row is missing (legacy DR / unbound project).
+        pm_name, pm_email = "", ""
+        pn = (doc.get("project_number") or "").strip()
+        if pn:
+            proj = await db.projects.find_one(
+                {"project_number": pn},
+                {"_id": 0, "pm_name": 1, "pm_email": 1},
+            )
+            if proj:
+                pm_name = (proj.get("pm_name") or "").strip()
+                pm_email = (proj.get("pm_email") or "").strip()
+        doc["pm_name"] = pm_name
+        doc["pm_email"] = pm_email
         # Read-only view — return the projected document so HR can see
         # labor crews, subcontractor names, vendor visits, weather,
         # photos, signatures, and the narrative the PM authored.

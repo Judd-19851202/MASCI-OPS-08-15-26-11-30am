@@ -38,26 +38,33 @@ export default function HrDailyReports() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters — 6 per operator mandate.
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [project, setProject] = useState("");
-  const [employee, setEmployee] = useState("");
-  const [subcontractor, setSubcontractor] = useState("");
-  const [vendor, setVendor] = useState("");
-  const [reportNumber, setReportNumber] = useState("");
+  // Filters — Track 15.9A · 10 operational filters per HR mandate.
+  // Stored as a single object so resetting all filters at once is a
+  // single setState call (lint-clean and idiomatic).
+  const EMPTY_FILTERS = {
+    dateFrom: "", dateTo: "", project: "", pm: "",
+    superintendent: "", foreman: "", employee: "",
+    subcontractor: "", vendor: "", reportNumber: "",
+  };
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const setF = (k) => (e) =>
+    setFilters((prev) => ({ ...prev, [k]: e.target.value }));
 
-  const fetchList = async () => {
+  const fetchList = async (overrides) => {
     setLoading(true);
     try {
+      const s = { ...filters, ...(overrides || {}) };
       const params = {};
-      if (dateFrom) params.date_from = dateFrom;
-      if (dateTo) params.date_to = dateTo;
-      if (project) params.project = project;
-      if (employee) params.employee = employee;
-      if (subcontractor) params.subcontractor = subcontractor;
-      if (vendor) params.vendor = vendor;
-      if (reportNumber) params.report_number = reportNumber;
+      if (s.dateFrom) params.date_from = s.dateFrom;
+      if (s.dateTo) params.date_to = s.dateTo;
+      if (s.project) params.project = s.project;
+      if (s.pm) params.pm = s.pm;
+      if (s.superintendent) params.superintendent = s.superintendent;
+      if (s.foreman) params.foreman = s.foreman;
+      if (s.employee) params.employee = s.employee;
+      if (s.subcontractor) params.subcontractor = s.subcontractor;
+      if (s.vendor) params.vendor = s.vendor;
+      if (s.reportNumber) params.report_number = s.reportNumber;
       const r = await axios.get(`${API}/hr/daily-reports`, { ...auth(), params });
       setItems(Array.isArray(r.data?.items) ? r.data.items : []);
     } catch (e) {
@@ -76,9 +83,8 @@ export default function HrDailyReports() {
 
   const onApply = (e) => { e?.preventDefault?.(); fetchList(); };
   const onClear = () => {
-    setDateFrom(""); setDateTo(""); setProject(""); setEmployee("");
-    setSubcontractor(""); setVendor(""); setReportNumber("");
-    setTimeout(fetchList, 0);
+    setFilters(EMPTY_FILTERS);
+    fetchList(EMPTY_FILTERS);
   };
 
   const totals = useMemo(() => ({
@@ -109,25 +115,34 @@ export default function HrDailyReports() {
         <form onSubmit={onApply} className="bg-white border border-slate-200 rounded-md p-4" data-testid="hr-dr-filters">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <FilterField label={t("Date from")} testId="hr-dr-date-from">
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-9" />
+              <Input type="date" value={filters.dateFrom} onChange={setF("dateFrom")} className="h-9" />
             </FilterField>
             <FilterField label={t("Date to")} testId="hr-dr-date-to">
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-9" />
+              <Input type="date" value={filters.dateTo} onChange={setF("dateTo")} className="h-9" />
             </FilterField>
             <FilterField label={t("Project")} testId="hr-dr-project">
-              <Input value={project} onChange={(e) => setProject(e.target.value)} placeholder={t("Project name or number")} className="h-9" />
+              <Input value={filters.project} onChange={setF("project")} placeholder={t("Project name or number")} className="h-9" />
+            </FilterField>
+            <FilterField label={t("PM")} testId="hr-dr-pm">
+              <Input value={filters.pm} onChange={setF("pm")} placeholder={t("Project manager name or email")} className="h-9" />
+            </FilterField>
+            <FilterField label={t("Superintendent")} testId="hr-dr-superintendent">
+              <Input value={filters.superintendent} onChange={setF("superintendent")} placeholder={t("Superintendent name")} className="h-9" />
+            </FilterField>
+            <FilterField label={t("Foreman")} testId="hr-dr-foreman">
+              <Input value={filters.foreman} onChange={setF("foreman")} placeholder={t("Foreman name")} className="h-9" />
             </FilterField>
             <FilterField label={t("Report number")} testId="hr-dr-report-number">
-              <Input value={reportNumber} onChange={(e) => setReportNumber(e.target.value)} placeholder="DR-…" className="h-9 font-mono" />
+              <Input value={filters.reportNumber} onChange={setF("reportNumber")} placeholder="DR-…" className="h-9 font-mono" />
             </FilterField>
             <FilterField label={t("Employee")} testId="hr-dr-employee">
-              <Input value={employee} onChange={(e) => setEmployee(e.target.value)} placeholder={t("Crew member name")} className="h-9" />
+              <Input value={filters.employee} onChange={setF("employee")} placeholder={t("Crew member name")} className="h-9" />
             </FilterField>
             <FilterField label={t("Subcontractor")} testId="hr-dr-subcontractor">
-              <Input value={subcontractor} onChange={(e) => setSubcontractor(e.target.value)} placeholder={t("Sub company name")} className="h-9" />
+              <Input value={filters.subcontractor} onChange={setF("subcontractor")} placeholder={t("Sub company name")} className="h-9" />
             </FilterField>
             <FilterField label={t("Vendor / Visitor")} testId="hr-dr-vendor">
-              <Input value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder={t("Vendor name")} className="h-9" />
+              <Input value={filters.vendor} onChange={setF("vendor")} placeholder={t("Vendor name")} className="h-9" />
             </FilterField>
             <div className="flex items-end gap-2">
               <Button type="submit" className="h-9 bg-purple-700 hover:bg-purple-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="hr-dr-apply">
@@ -158,6 +173,8 @@ export default function HrDailyReports() {
                   <th className="text-left px-3 py-2">{t("Date")}</th>
                   <th className="text-left px-3 py-2">{t("Report #")}</th>
                   <th className="text-left px-3 py-2">{t("Project")}</th>
+                  <th className="text-left px-3 py-2">{t("PM")}</th>
+                  <th className="text-left px-3 py-2">{t("Superintendent")}</th>
                   <th className="text-left px-3 py-2">{t("Prepared by")}</th>
                   <th className="text-center px-3 py-2">{t("Crews")}</th>
                   <th className="text-center px-3 py-2">{t("Subs")}</th>
@@ -173,6 +190,19 @@ export default function HrDailyReports() {
                     <td className="px-3 py-2 truncate max-w-[16rem]">
                       <div className="font-bold">{r.project_name || "—"}</div>
                       {r.project_number && <div className="text-xs text-slate-500 font-mono">{r.project_number}</div>}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700 truncate max-w-[11rem]" data-testid={`hr-dr-row-${idx}-pm`}>
+                      {r.pm_name ? (
+                        <>
+                          <div className="font-bold text-xs">{r.pm_name}</div>
+                          {r.pm_email && <div className="text-[10px] text-slate-500 font-mono truncate">{r.pm_email}</div>}
+                        </>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700 truncate max-w-[10rem]" data-testid={`hr-dr-row-${idx}-superintendent`}>
+                      {r.superintendent || <span className="text-slate-400">—</span>}
                     </td>
                     <td className="px-3 py-2 text-slate-600 truncate max-w-[10rem]">{r.prepared_by || "—"}</td>
                     <td className="px-3 py-2 text-center font-mono font-bold">{r.crew_count || 0}</td>
@@ -293,6 +323,27 @@ export function HrDailyReportDetail() {
                 {doc.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {doc.location}</span>}
                 {doc.prepared_by && <span>· {t("Prepared by")} {doc.prepared_by}</span>}
               </div>
+              {/* Track 15.9A · PM + Superintendent identity row so HR can
+                  identify project ownership without inspecting raw fields. */}
+              {(doc.pm_name || doc.pm_email || doc.superintendent) && (
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs" data-testid="hr-dr-detail-pm-strip">
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">{t("Project Manager")}</div>
+                    <div className="mt-0.5 text-slate-800">
+                      {doc.pm_name || <span className="text-slate-400">—</span>}
+                      {doc.pm_email && (
+                        <span className="text-slate-500 font-mono text-[11px] ml-2">{doc.pm_email}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">{t("Superintendent")}</div>
+                    <div className="mt-0.5 text-slate-800">
+                      {doc.superintendent || <span className="text-slate-400">—</span>}
+                    </div>
+                  </div>
+                </div>
+              )}
             </header>
 
             {doc.weather_summary && (
