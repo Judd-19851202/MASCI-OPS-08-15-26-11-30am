@@ -1877,12 +1877,34 @@ async def shop_login(body: AdminLoginRequest, request: Request):
             ip=ip,
             user_agent=request.headers.get("user-agent") or "",
         )
+        # Track 15.13A · Asset Care Routing Recovery — mirror the
+        # `is_asset_admin` flag from the canonical `user_directory`
+        # row (keyed by email) into the shop_login response so the
+        # SPA `landingFor()` resolver can route asset administrators
+        # to `/shop/asset-care` instead of the generic `/shop` hub.
+        # Pure read-only echo — no permission widening, no auth bypass,
+        # no token reissue. If no directory row exists, the flag is
+        # simply False and behavior is unchanged from pre-15.13A.
+        public_user = public_shop_user_view(user)
+        is_asset_admin = False
+        try:
+            dir_row = await db.user_directory.find_one(
+                {"email": (user.get("email") or "").strip().lower()},
+                {"_id": 0, "is_asset_admin": 1, "portals": 1},
+            )
+            if dir_row and dir_row.get("is_asset_admin") is True:
+                is_asset_admin = True
+                public_user["is_asset_admin"] = True
+                public_user["portals"] = dir_row.get("portals") or []
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"shop_login is_asset_admin mirror failed: {exc}")
         return {
             "ok": True,
             "token": token,
             "kind": "shop",
             "must_change_password": bool(user.get("must_change_password")),
-            "user": public_shop_user_view(user),
+            "user": public_user,
+            "is_asset_admin": is_asset_admin,
         }
 
     # ---- Legacy shared-password path ----
@@ -3049,12 +3071,90 @@ async def admin_list_shop_users(_: bool = Depends(require_admin)):
     return {"items": [public_shop_user_view(u) for u in items]}
 
 
+# Track 15.13A · Asset Care Routing Recovery — Shop ↔ Directory mirror.
+#
+# When the Shop Users console creates / updates a user with an asset role
+# label ("Asset Administrator", "Asset Manager", "Equipment Manager",
+# "Fleet Coordinator"), the canonical `user_directory` row must carry
+# `is_asset_admin: True` so:
+#   * /api/auth/multi-login returns the flag on `user.is_asset_admin`
+#   * /shop/login mirrors the flag into its response
+#   * the SPA `landingFor()` resolver lands the user on /shop/asset-care
+#
+# This is a strict additive write — no portal grant, no permission widening,
+# no token reissue. If a directory row does not exist for the email we
+# upsert a minimal row carrying ONLY the asset_admin flag + the email +
+# the display name (no password, no portals, no portal grants). Asset
+# admins still authenticate through the existing shop password.
+_ASSET_ADMIN_ROLE_LABELS = {
+    "Asset Administrator",
+    "Asset Manager",
+    "Equipment Manager",
+    "Fleet Coordinator",
+}
+
+
+def _role_implies_asset_admin(role: Any) -> bool:
+    if not role:
+        return False
+    return str(role).strip() in _ASSET_ADMIN_ROLE_LABELS
+
+
+async def _mirror_asset_admin_flag(email: str, name: str, role: Any) -> bool:
+    """Idempotently set/clear `user_directory.is_asset_admin` based on the
+    Shop role label. Returns the resulting flag value. Safe to call on
+    every shop-user create / update / role-change."""
+    email_norm = (email or "").strip().lower()
+    if not email_norm:
+        return False
+    is_asset_admin = _role_implies_asset_admin(role)
+    try:
+        existing = await db.user_directory.find_one(
+            {"email": email_norm}, {"_id": 0, "id": 1},
+        )
+        now_iso = datetime.now(timezone.utc).isoformat()
+        if existing:
+            await db.user_directory.update_one(
+                {"id": existing["id"]},
+                {"$set": {"is_asset_admin": bool(is_asset_admin),
+                          "updated_at": now_iso,
+                          "source": "shop_console_mirror"}},
+            )
+        elif is_asset_admin:
+            # Only spawn a stub directory row when we actually need the
+            # flag. We never spawn a directory row for non-asset shop
+            # users — they don't need one.
+            await db.user_directory.insert_one({
+                "id": f"dir-asset-shadow-{hashlib.sha1(email_norm.encode()).hexdigest()[:16]}",
+                "email": email_norm,
+                "name": (name or "").strip() or email_norm.split("@")[0],
+                "portals": [],
+                "disabled": False,
+                "must_change_password": False,
+                "password_hash": None,
+                "is_asset_admin": True,
+                "created_at": now_iso,
+                "updated_at": now_iso,
+                "source": "shop_console_mirror",
+            })
+        return bool(is_asset_admin)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"_mirror_asset_admin_flag failed for {email_norm}: {exc}")
+        return False
+
+
 @api_router.post("/admin/shop-users")
 async def admin_add_shop_user(body: ShopUserIn, _: bool = Depends(require_admin)):
     from shop_users import add_shop_user, public_shop_user_view
     try:
         user = await add_shop_user(db, body.model_dump())
-        return public_shop_user_view(user)
+        # Track 15.13A — mirror asset-admin flag on directory.
+        await _mirror_asset_admin_flag(
+            user.get("email"), user.get("name"), user.get("role"),
+        )
+        view = public_shop_user_view(user)
+        view["is_asset_admin"] = _role_implies_asset_admin(user.get("role"))
+        return view
     except ValueError as e:
         raise HTTPException(400, str(e))
 
@@ -3071,7 +3171,13 @@ async def admin_update_shop_user(
         saved = await update_shop_user(db, user_id, fields)
         if not saved:
             raise HTTPException(404, "Shop user not found")
-        return public_shop_user_view(saved)
+        # Track 15.13A — if role changed (or email changed), re-mirror.
+        await _mirror_asset_admin_flag(
+            saved.get("email"), saved.get("name"), saved.get("role"),
+        )
+        view = public_shop_user_view(saved)
+        view["is_asset_admin"] = _role_implies_asset_admin(saved.get("role"))
+        return view
     except ValueError as e:
         raise HTTPException(400, str(e))
 
@@ -3193,15 +3299,39 @@ async def admin_shop_user_email_welcome(
     )
 
     is_reset = bool(user.get("password_hash"))
-    headline = "Your password has been reset" if is_reset else "Welcome to the MASCI Shop Portal"
-    intro = (
-        "Your MASCI Shop Portal password has been reset. Use the temporary password below to "
-        "sign in — you will be forced to choose your own on first login."
-        if is_reset else
-        f'You have a new account on the MASCI Shop Portal at '
-        f'<a href="{portal_url}/shop/login" style="color:#b91c1c;font-weight:700">{portal_url}/shop/login</a>. '
-        "Use the temporary password below to sign in — you will be forced to choose your own on first login."
-    )
+    # Track 15.13A · Asset Care welcome email branching.
+    # If the shop user's role label maps to asset admin work, send the
+    # Asset Care welcome instead of the generic Shop Portal welcome.
+    # The login URL stays /shop/login (asset admins authenticate
+    # through the same shop password) but the copy reflects where
+    # they actually land after sign-in (/shop/asset-care).
+    is_asset_admin_role = _role_implies_asset_admin(user.get("role"))
+    if is_asset_admin_role and not is_reset:
+        headline = "Welcome to MASCI Asset Care"
+        intro = (
+            f'You have access to the <strong>MASCI Asset Care</strong> workspace for '
+            f'equipment readiness, registrations, assignments, transfers, and asset '
+            f'lifecycle visibility. Sign in at '
+            f'<a href="{portal_url}/shop/login" style="color:#b91c1c;font-weight:700">'
+            f'{portal_url}/shop/login</a> and Asset Care opens automatically.'
+        )
+    elif is_asset_admin_role and is_reset:
+        headline = "Your Asset Care password has been reset"
+        intro = (
+            "Your MASCI Asset Care password has been reset. Use the temporary "
+            "password below to sign in — you will be forced to choose your own on "
+            "first login."
+        )
+    else:
+        headline = "Your password has been reset" if is_reset else "Welcome to the MASCI Shop Portal"
+        intro = (
+            "Your MASCI Shop Portal password has been reset. Use the temporary password below to "
+            "sign in — you will be forced to choose your own on first login."
+            if is_reset else
+            f'You have a new account on the MASCI Shop Portal at '
+            f'<a href="{portal_url}/shop/login" style="color:#b91c1c;font-weight:700">{portal_url}/shop/login</a>. '
+            "Use the temporary password below to sign in — you will be forced to choose your own on first login."
+        )
     body_inner = f"""
       <p style="margin:0 0 12px;font-size:15px;line-height:1.5">Hi {user_name},</p>
       <p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#334155">{intro}</p>
@@ -3220,7 +3350,14 @@ async def admin_shop_user_email_welcome(
         <li>Open <a href="{portal_url}/shop/login" style="color:#b91c1c;font-weight:700">{portal_url}/shop/login</a></li>
         <li>Sign in with the email + temporary password above</li>
         <li>Pick your own 6+ character password (the temp one stops working immediately)</li>
-        <li>Failed Pre-Op inspections (Out-of-Service / Needs-Attention) auto-route to your inbox so you can plan parts &amp; scheduling</li>
+        {(
+            "<li>Asset Care opens automatically — manage registrations, "
+            "assignments, transfers, equipment readiness, and lifecycle visibility "
+            "from the Asset Care &amp; Readiness landing page.</li>"
+            if is_asset_admin_role else
+            "<li>Failed Pre-Op inspections (Out-of-Service / Needs-Attention) auto-route "
+            "to your inbox so you can plan parts &amp; scheduling</li>"
+        )}
       </ol>
 
       <p style="margin:14px 0 0;font-size:13px;color:#64748b;line-height:1.55">
@@ -3228,7 +3365,7 @@ async def admin_shop_user_email_welcome(
       </p>
     """
     html_body = render_portal_email(
-        portal="Shop",
+        portal="Asset Care" if is_asset_admin_role else "Shop",
         headline=headline,
         body_inner_html=body_inner,
     )

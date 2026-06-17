@@ -653,6 +653,18 @@ export default function ShopHubV2() {
                            background: "var(--paper-card)", color: "var(--ink-strong)",
                            border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
                            textDecoration: "none" }}>New Fuel/Lube Visit</Link>
+            {/* Track 15.13A · Asset Care entry point on the Shop Hub.
+                Always visible — same design system, same chrome — so any
+                shop user (Asset Admin, Asset Manager, Shop Manager,
+                Mechanic) can reach the Asset Care & Readiness workspace
+                without typing the URL. Asset admins still land there
+                directly via ShopLogin → landingFor(); this link covers
+                the case where someone navigates to /shop manually. */}
+            <Link to="/shop/asset-care" data-testid="shop-hub-v2-action-asset-care"
+                  style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600,
+                           background: "var(--paper-card)", color: "var(--ink-strong)",
+                           border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
+                           textDecoration: "none" }}>Asset Care &amp; Readiness</Link>
           </div>
         }
         lastActivity={

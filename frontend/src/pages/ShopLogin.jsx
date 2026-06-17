@@ -44,7 +44,18 @@ export default function ShopLogin() {
   }, []);
 
   // TRACK 14.0-SSO · Auto-forward if directory grants Shop.
-  useRedirectIfDirectoryGrant("shop", isShop() || isAdmin(), "/shop");
+  // Track 15.13A · destination is dynamic — once login fires and the
+  // ShopLogin onSubmit writes `masci.is_asset_admin=true` to localStorage,
+  // this hook re-evaluates (deps on hasToken) and must honor the asset
+  // admin landing to avoid racing past our /shop/asset-care navigate.
+  const _isAssetAdminLanding =
+    typeof window !== "undefined" &&
+    window.localStorage.getItem("masci.is_asset_admin") === "true";
+  useRedirectIfDirectoryGrant(
+    "shop",
+    isShop() || isAdmin(),
+    _isAssetAdminLanding ? "/shop/asset-care" : "/shop",
+  );
 
   const submitForgot = async () => {
     const e = (forgotEmail || "").trim();
@@ -103,7 +114,23 @@ export default function ShopLogin() {
           return;
         }
         setShopToken(res.data.token, { remember: rememberMe });
-        const intended = location.state?.from || "/shop";
+        // Track 15.13A — Asset Care landing. When the shop user is
+        // also flagged `is_asset_admin` on the canonical directory row,
+        // backend mirrors that into the shop_login response. Send the
+        // user to /shop/asset-care so they land where the asset work
+        // lives (`landingFor()` already returns the right route, but it
+        // expects a directory-user shape; we honor the mirror here in
+        // a single-line addition so non-asset shop users are unaffected).
+        const isAssetAdmin =
+          res.data?.is_asset_admin === true ||
+          res.data?.user?.is_asset_admin === true;
+        try {
+          if (isAssetAdmin) {
+            window.localStorage.setItem("masci.is_asset_admin", "true");
+          }
+        } catch (_e) { /* ignore storage errors */ }
+        const intended =
+          location.state?.from || (isAssetAdmin ? "/shop/asset-care" : "/shop");
         if (res.data.must_change_password) {
           toast.success(t("Password rotation required — pick a new one"));
           navigate("/shop/change-password", {
@@ -111,7 +138,9 @@ export default function ShopLogin() {
             state: { from: intended },
           });
         } else {
-          toast.success(t("Welcome to the Shop"));
+          toast.success(
+            isAssetAdmin ? t("Welcome to Asset Care") : t("Welcome to the Shop")
+          );
           navigate(intended, { replace: true });
         }
       } else {

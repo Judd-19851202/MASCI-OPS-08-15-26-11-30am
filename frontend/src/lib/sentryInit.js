@@ -31,8 +31,43 @@ function _scrubValue(v) {
   return v;
 }
 
-function _beforeSend(event /* , hint */) {
+function _beforeSend(event, hint) {
   try {
+    // Track 15.13A · Sentry noise suppression for transient network errors.
+    // AxiosError "Network Error" / ERR_NETWORK fires whenever:
+    //   * Safari suspends a background tab mid-fetch,
+    //   * backend cold-start returns 520 before the worker is hot,
+    //   * an in-flight request is aborted by a route change.
+    // The session-status bus already classifies these as
+    // NETWORK_UNREACHABLE and renders a calm in-app banner — bubbling
+    // the underlying AxiosError to Sentry on top of that is pure noise
+    // (the user already sees the right message). Drop these events at
+    // the gateway. Real backend 5xx / 4xx still flow through because
+    // those carry `err.response.status` and are classified above.
+    const origErr = hint && hint.originalException;
+    if (origErr && typeof origErr === "object") {
+      const code = origErr.code;
+      const name = origErr.name;
+      const message = String(origErr.message || "");
+      const noResponse = !origErr.response;
+      const isAxios = origErr.isAxiosError === true || name === "AxiosError";
+      const isCanceled =
+        code === "ERR_CANCELED" ||
+        name === "CanceledError" ||
+        name === "AbortError" ||
+        /canceled|aborted/i.test(message);
+      const isNetwork =
+        code === "ERR_NETWORK" ||
+        code === "ENETUNREACH" ||
+        /network error/i.test(message);
+      const isTimeout =
+        code === "ECONNABORTED" ||
+        code === "ETIMEDOUT" ||
+        /timeout/i.test(message);
+      if (isAxios && noResponse && (isCanceled || isNetwork || isTimeout)) {
+        return null; // suppress — already surfaced as a banner in-app
+      }
+    }
     if (event.request) {
       if (event.request.headers) {
         for (const h of Object.keys(event.request.headers)) {
