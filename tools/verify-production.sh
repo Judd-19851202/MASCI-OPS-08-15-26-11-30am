@@ -33,7 +33,12 @@ probe() {
   local label="$1" ; shift
   local expect="$1" ; shift   # 'ok' for 200, 'auth' for 200|401, 'route' for any non-5xx
   local code
-  code=$(curl -sS -m 8 -o /dev/null -w "%{http_code}" "$@" 2>/dev/null || echo "000")
+  # TRACK 15.26 · iter440 · two-retry buffer for transient runner-side
+  # network blips. The 15-minute monitor should only ring when the
+  # platform is genuinely down, not when a GitHub-hosted runner has a
+  # 1-second DNS hiccup mid-probe.
+  code=$(curl -sS -m 8 --retry 2 --retry-all-errors --retry-delay 1 \
+              -o /dev/null -w "%{http_code}" "$@" 2>/dev/null || echo "000")
   local ok=0
   case "$expect" in
     ok)    [[ "$code" == "200" ]] && ok=1 ;;

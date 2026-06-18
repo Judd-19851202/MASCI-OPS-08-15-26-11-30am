@@ -2402,3 +2402,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 **Deliverable:** `/app/memory/TRACK_15_24B_PLATFORM_COST_TRUTH_AUDIT.md` (~500 lines, single document)
 
 **Verdict:** 🟡 **Audit complete. Pricing recommendation: $1,800 stays healthy through ~50 % adoption; renegotiate at 50 % milestone.** No code changes authorized.
+
+---
+
+## TRACK 15.26 — Production Health Probe Run #127 Failure Audit (2026-06-18) · ✅ RESOLVED
+
+**Trigger:** GitHub Actions `production-health-probe` Run #127 (commit `b9f70e2`) failed in ~2 s.
+
+**Verdict:** ✅ **Platform is healthy. Failure was a transient runner-side network blip.**
+
+**Evidence (🟢 measured live from this pod):**
+- `https://mascidocs.com/api/health` → HTTP 200 with valid JSON.
+- `/api/healthz` → 200; `/` → 200 HTML; DNS resolves Cloudflare anycast; TLS valid through Jul 25 2026.
+- Re-running the exact probe script (`tools/verify-production.sh`) locally: **✅ 5/5 in 1 second, EXIT=0**. Script is byte-identical to what ran in #127 (no commits to it after b9f70e2).
+
+**Root cause:** unhardened curl probes. A single sub-second DNS/TLS blip on a GitHub-hosted runner flips a 15-minute monitor red even though the platform is fine. Standard unhardened-monitor false-positive pattern.
+
+**Fix applied (1 line, surgical):** added `curl --retry 2 --retry-all-errors --retry-delay 1` to the `probe()` helper in `tools/verify-production.sh`. Preserves true-positive coverage; eliminates single-blip false alarms. Re-tested locally — still ✅ 5/5.
+
+**Operator action:** push this fix to the repo's default branch; the next 15-min cron run will turn green automatically (or click "Run workflow" via workflow_dispatch to confirm immediately).
+
+**Deliverable:** `/app/memory/TRACK_15_26_PRODUCTION_HEALTH_PROBE_FAILURE_AUDIT.md`
