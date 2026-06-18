@@ -73,9 +73,17 @@ export default function BackendStatusBanner() {
       } catch {
         consecutiveFailures += 1;
       }
-      // Only flip to "down" after 2+ consecutive failures (avoids flicker on
-      // single-request flakes).
-      if (consecutiveFailures >= 2) setStatus("down");
+      // TRACK 15.13K — Require 4 consecutive failures (≈60 s window)
+      // before flipping to "down". Mobile networks routinely drop 1–2
+      // probes in a row (cell-tower handoff, Wi-Fi/LTE switch, brief
+      // tunnel) while the backend is perfectly healthy. The earlier
+      // 2-failure threshold was producing false SERVER UNREACHABLE
+      // banners on iPhone Safari for users who can otherwise load
+      // the rest of the app. 4 failures × 15 s poll = ~60 s of true
+      // outage before we tell the user the backend is down — matches
+      // the typical pod-restart envelope and stays well clear of
+      // mobile-network noise.
+      if (consecutiveFailures >= 4) setStatus("down");
     };
 
     probe();

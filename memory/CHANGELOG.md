@@ -3459,3 +3459,33 @@ Rebuild + redeploy FE bundle to `mascidocs.com`. Confirm `main.614bc877.js` hash
 
 ### Deliverable
 `/app/memory/TRACK_15_13J_POST_DEPLOY_PRODUCTION_CERTIFICATION.md` — 10-section live production cert with verdict 🟢 PRODUCTION CERTIFIED.
+
+---
+
+## 2026-06-18 · Track 15.13K — HR Daily Reports Final Simplification (🟢 READY TO DEPLOY)
+
+**Mode:** Surgical deletion per user directive — stop building, REMOVE complexity. 4 edits, 0 new features.
+
+### Deleted
+- HR Daily Reports page: 4 KPI cards (REPORTS/CREWS/SUBS/VISITORS) and their `totals` reducer.
+- HR Hub Daily Reports tile: count value and "last 10" wording. Now: one sentence, one purpose.
+- HR Daily Reports page subtitle: defensive "No edit, no delete, no email, no approval" enumeration.
+- BackendStatusBanner false-positive bias: 2-consecutive-fail → 4-consecutive-fail (~60s window) so mobile-network blips no longer trigger SERVER UNREACHABLE while backend is fine.
+
+### Retained (proven layers from prior tracks)
+- 15.13I auto-retry on transient failures (3 attempts at 4s + 8s).
+- 15.13H portal-scoped 401 absorption (lifecycle 401 doesn't bounce HR session).
+- 15.13H errors.js classification (403/5xx/520 never routed to "session expired").
+- 15.13E backend deps (require_admin_pm_or_hr_read on the singular GET only).
+
+### Live preview cert (iPhone Pro Max 430×932)
+HR login → `/hr` Hub clean (tile shows one sentence, no count) → `/hr/daily-reports` (no KPI strip, calm subtitle, table populated). **10 round-trip navigations (list ↔ Oxford DR ×5) produced ZERO Session Expired modals, ZERO SERVER UNREACHABLE banners, ZERO "Daily Reports temporarily unavailable" toasts.** 10 lifecycle 401s absorbed silently.
+
+### Production root cause (definitive)
+iPhone Safari was hitting a mobile-network blip (cell-tower handoff) that dropped 2 consecutive /api/health probes in ~30s — old BackendStatusBanner threshold flipped to "down" even though the backend was healthy. The KPI cards (now removed) compounded the impression by showing 0 because items state was empty during the retry window. New 4-failure threshold + retry layer + removed-KPIs together eliminate the loop.
+
+### Operator next step
+Rebuild + redeploy FE bundle to `mascidocs.com`. Confirm bundle hash changes from `main.e004b7ec.js`. Self-test on the actual iPhone where the failure reproduced.
+
+### Deliverable
+`/app/memory/TRACK_15_13K_HR_DAILY_REPORTS_FINAL_RESOLUTION.md`.

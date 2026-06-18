@@ -128,18 +128,15 @@ export default function HrDailyReports() {
     <PortalShell
       portalName="MASCI"
       portalRole="HR Portal · Daily Reports"
-      pageTitle={t("Daily Reports Review")}
-      subtitle={t("Read-only visibility into daily reports — labor crews, subcontractors, vendors, weather, location, and photo counts. No edit, no delete, no email, no approval.")}
+      pageTitle={t("Daily Reports")}
+      subtitle={t("Read-only access to field daily reports.")}
       sideNav={<HrSideNavV2 />}
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 space-y-5" data-testid="hr-daily-reports-page">
-        {/* KPI strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-          <Kpi label={t("Reports")} value={totals.count} stripe="border-l-purple-700" testId="hr-dr-kpi-reports" />
-          <Kpi label={t("Crews")} value={totals.crews} stripe="border-l-emerald-600" testId="hr-dr-kpi-crews" />
-          <Kpi label={t("Subs")} value={totals.subs} stripe="border-l-amber-600" testId="hr-dr-kpi-subs" />
-          <Kpi label={t("Visitors")} value={totals.visitors} stripe="border-l-cyan-600" testId="hr-dr-kpi-visitors" />
-        </div>
+        {/* TRACK 15.13K — KPI strip removed per user directive.
+            HR needs ONE thing: read-only access to Daily Reports.
+            No counts, no totals, no dashboard metrics. The list itself
+            is the source of truth. */}
 
         {/* Filters · 6 required */}
         <form onSubmit={onApply} className="bg-white border border-slate-200 rounded-md p-4" data-testid="hr-dr-filters">

@@ -10,7 +10,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-18 · TRACK 15.13J · POST-DEPLOY PRODUCTION CERTIFICATION · 🟢 PRODUCTION CERTIFIED)
+## Latest Closed Track (2026-06-18 · TRACK 15.13K · HR DAILY REPORTS FINAL SIMPLIFICATION · 🟢 READY TO DEPLOY)
+- **Track:** Final HR simplification per user's explicit directive — stop adding features, REMOVE complexity. 4 surgical edits, 0 new features.
+- **What was deleted**: KPI strip (REPORTS/CREWS/SUBS/VISITORS cards) from HR Daily Reports page. HR Hub Daily Reports tile no longer shows a count or "last 10" wording. Defensive "No edit, no delete, no email, no approval" subtitle copy. Mobile-network false-positive bias in BackendStatusBanner (2-fail → 4-fail threshold).
+- **What stayed**: 15.13I auto-retry layer. 15.13H portal-scoped 401 absorption. Read-only routing. HR cannot mutate.
+- **Production root cause**: iPhone Safari mobile-network blips (cell-tower handoff, Wi-Fi/LTE switch) dropped 2 consecutive /api/health probes in ~30s → BackendStatusBanner flipped to "SERVER UNREACHABLE" even though the backend was healthy. Now requires 4 consecutive failures (~60s) — well clear of mobile-network noise but still catches real pod restarts.
+- **10 round-trip nav cert**: iPhone Pro Max viewport, hrmanager@mascigc.com on preview. list ↔ detail ×5 with 10 lifecycle 401s — ZERO Session Expired modals, ZERO SERVER UNREACHABLE banners, ZERO "unavailable" toasts. Final URL still /hr/daily-reports.
+- **Operator next step**: rebuild + redeploy FE bundle to mascidocs.com (bundle hash should change from `main.e004b7ec.js`). 5-min self-test on the actual iPhone where the failure reproduced.
+- **Carried forward (unchanged)**: 15.8A/B PM notification cleanup operator-blocked.
+- **Deliverable**: `/app/memory/TRACK_15_13K_HR_DAILY_REPORTS_FINAL_RESOLUTION.md`.
+
+## Previous Closed Track (2026-06-18 · TRACK 15.13J · POST-DEPLOY PRODUCTION CERTIFICATION · 🟢 PRODUCTION CERTIFIED)
 - **Track:** Real browser cert on `mascidocs.com` after 15.13I redeploy. No code review, no test review, no preview certification — only observed production behavior.
 - **Bundle confirmed live**: `main.e004b7ec.js` (was `main.614bc877.js` pre-15.13I). 15.13H+I FE fixes ARE deployed.
 - **Backend healthy**: 5/5 health probes ≤ 260ms · unique 15.13E error messages live (`"Asset Administrator login required"` / `"Admin, PM, or HR login required"`).

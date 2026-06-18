@@ -355,9 +355,9 @@ export default function HrHubV2() {
               to="/hr/daily-reports"
               testid="hr-hub-v2-read-daily"
               title="Daily Reports"
-              why="Read-only access to all field daily reports — system of record for payroll verification, labor disputes, attendance, coaching, terminations, workers-comp, and legal requests"
-              source="All reports · paginated & searchable"
-              value={s.daily_reports_today}
+              why="Read-only access to field daily reports"
+              source=""
+              value={null}
               loaded={s.loaded}
               variantWhenAttention="default"
             />
