@@ -2341,3 +2341,38 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - `/app/memory/TRACK_15_21A_HR_EMPLOYEE_ROSTER_EXPORT_PRINT_IMPLEMENTATION.md` (post-approval cert).
 
 **Verdict:** ✅ **SHIPPED + BACKEND-CERTIFIED.** Frontend buttons render via React from the same `items` state used by the on-screen table; UI verification pending operator's manual click-through on preview before production deploy.
+
+---
+
+## TRACK 15.24 — Platform Cost, Capacity & Scaling Audit (2026-06-18) · 🔍 READ-ONLY AUDIT
+
+**Type:** Read-only — no code, no deploy, no migration.
+
+**Trust posture:** Every number labeled by source class — 🟢 measured / 🟡 vendor list price / 🟠 modeled / 🔴 operator-required. Refused to fabricate dollar amounts where billing-dashboard evidence does not exist.
+
+**Hard-measured baselines (🟢):**
+- MongoDB Atlas `masci_safety_preview` — 177 collections, 504,006 docs, 184.62 MiB data, 51.86 MiB indexes; cluster `atlas-5p2de4-shard-0` (3-node dedicated, MongoDB 8.0.26 Enterprise).
+- Cloudflare R2 bucket `masci-hub` — **285.45 GiB / 9,608 objects**, of which **283.06 GiB are backup zips growing at +14.5 GiB/day** (hourly cadence; per-zip size has grown 13× in 6 weeks).
+- Pod (Emergent) — cgroup RAM cap 8.00 GiB / 38.8 % used; 2 vCPUs; 27 GiB / 104 GiB disk.
+- 228 portal users · 395 employees (383 active) · 1,032 daily reports (190/wk pace) · 411,686 usage_events (14,571/day, all <30 d old).
+
+**Trust gap (🔴 — operator must retrieve):** Atlas cluster tier (M10 list $57 / M20 $146 / M30 $394), Emergent plan + invoice, Resend plan, Sentry plan, Cloudflare zone plan, domain registrar.
+
+**Bounded current monthly cost (list-price interval, non-Emergent third parties): ≈ $62 – $466 / month.** Emergent on top — needs operator confirmation.
+
+**Top risks (P0):**
+1. R2 backup retention is unbounded → quiet cost runaway (path to $80/mo just for backups by year-end).
+2. Emergent pod = single point of failure for runtime.
+3. Atlas vendor lock-in.
+
+**First binding constraint at 100% adoption:** Atlas working-set RAM, driven by `usage_events` index size — forces M10 → M20 step in ~18–24 months.
+
+**Forecast (Expected case, non-Emergent third parties):** 6 mo $170 → 1 yr $200 → 2 yr $300 → 3 yr $430 → 5 yr $520.
+
+**Deliverables:**
+- `/app/memory/TRACK_15_24_PLATFORM_COST_AND_SCALING_AUDIT.md`
+- `/app/memory/TRACK_15_24_VENDOR_DEPENDENCY_MAP.md`
+- `/app/memory/TRACK_15_24_CAPACITY_FORECAST_MODEL.md`
+- `/app/memory/TRACK_15_24_EXECUTIVE_COST_SUMMARY.md`
+
+**Verdict:** 🟡 **Audit complete; awaiting operator dashboard pulls to convert from 🟡/🔴 hybrid into 100 % 🟢 deterministic budget.** No code changes authorized.
