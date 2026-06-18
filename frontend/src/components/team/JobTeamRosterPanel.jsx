@@ -19,8 +19,44 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
-import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft, ShieldCheck, ShieldAlert, Clock, ShieldOff, HelpCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft, ShieldCheck, ShieldAlert, Clock, ShieldOff, HelpCircle, Search, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
+
+// TRACK 15.27A · P1-2 — Common field roles bubble to the top so a
+// Superintendent / Foreman / Field Engineer assignment is a 1-click
+// pick instead of a 17-item scroll. Admin-only governance roles fall
+// to the bottom. No new roles. No new logic — purely a sort order
+// applied to the same registry the backend already returns.
+const ROLE_ORDER_PRIORITY = {
+  superintendent: 1,
+  assistant_superintendent: 2,
+  foreman: 3,
+  project_engineer: 4,        // field-engineer label per directive
+  project_administrator: 5,
+  project_coordinator: 6,
+  safety_rep: 7,
+  qaqc_rep: 8,
+  equipment_manager: 9,
+  shop_rep: 10,
+  hr_rep: 11,
+  dispatch_rep: 12,
+  survey_rep: 13,
+  accounting_rep: 14,
+  pm: 90,                     // admin-only roles last
+  co_pm: 91,
+  executive_oversight: 92,
+};
+function sortRoles(roles) {
+  return [...roles].sort((a, b) => {
+    const pa = ROLE_ORDER_PRIORITY[a.key] ?? 50;
+    const pb = ROLE_ORDER_PRIORITY[b.key] ?? 50;
+    if (pa !== pb) return pa - pb;
+    return (a.label || "").localeCompare(b.label || "");
+  });
+}
 
 const ROW_TEST = (slot) => `job-team-row-${slot}`;
 
@@ -95,18 +131,37 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   const [newNotes, setNewNotes] = useState("");
   const [isPrimary, setIsPrimary] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // TRACK 15.27A · P1-1 — searchable employee picker state
+  const [userPickerOpen, setUserPickerOpen] = useState(false);
+  // TRACK 15.27A · P0-2 — actionable 403 message when a PM opens a
+  // project they are not assigned to as PM/Co-PM.
+  const [accessErr, setAccessErr] = useState(null);
 
   const reload = async () => {
     if (!projectNumber) return;
     setLoading(true);
     setErr(null);
+    setAccessErr(null);
     try {
-      const [t, reg] = await Promise.all([
-        fetchTeam(projectNumber, { adminScope, pmScope: !adminScope }),
-        fetchRoleRegistry(),
-      ]);
-      setItems(t.items || []);
+      // TRACK 15.27A · P0-2 — fetch team and registry independently so
+      // a 403 on the team-fetch (PM-not-PM-of-record) does not also
+      // wipe the role registry + directory, which the add form needs.
+      const reg = await fetchRoleRegistry();
       setRegistry(reg.roles || []);
+      try {
+        const t = await fetchTeam(projectNumber, { adminScope, pmScope: !adminScope });
+        setItems(t.items || []);
+      } catch (fetchErr) {
+        const msg = String(fetchErr?.message || fetchErr || "");
+        if (msg.includes(": 403") || /authoriz/i.test(msg)) {
+          setAccessErr(
+            "You are not assigned as PM or Co-PM on this project. Ask an Admin (or the project's PM) to add you to the team before you can manage its roster."
+          );
+          setItems([]);
+        } else {
+          throw fetchErr;
+        }
+      }
       if (adminScope) {
         const dir = await fetchDirectoryUsers().catch(() => []);
         setDirectory(dir);
@@ -143,8 +198,22 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
     // Track 14.0-PM-STAFFING-UI-DISCOVERABILITY: PMs see every role in
     // the picker — admin-only roles are visible but disabled with a
     // tooltip so PMs always know the full role set + who manages it.
-    return registry;
+    // TRACK 15.27A · P1-2 — common field roles bubble to the top.
+    return sortRoles(registry);
   }, [registry]);
+
+  // TRACK 15.27A · P0-2 — clean cancel/close helper so all paths reset
+  // form state uniformly.
+  const closeAdd = () => {
+    setShowAdd(false);
+    setNewRole(""); setNewUserId(""); setNewNotes(""); setIsPrimary(false);
+    setUserPickerOpen(false);
+  };
+
+  const pickedUser = useMemo(
+    () => directory.find((u) => u.id === newUserId) || null,
+    [directory, newUserId],
+  );
 
   const handleAdd = async () => {
     if (!newRole) { toast.error("Pick a role"); return; }
@@ -159,8 +228,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
       );
       toast.success(`Added ${r.assignment.display_name || r.assignment.email || "member"} as ${r.assignment.role_label}`);
       if (r.user_link_warning) toast.warning("User/employee link missing — notifications may route by role until linked.");
-      setShowAdd(false);
-      setNewRole(""); setNewUserId(""); setNewNotes(""); setIsPrimary(false);
+      closeAdd();
       reload();
     } catch (e) {
       toast.error(e.message || "Add failed");
@@ -233,6 +301,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
           <Button
             size="sm"
             onClick={() => setShowAdd(true)}
+            disabled={!!accessErr || loading}
             data-testid="job-team-add-btn"
           >
             <UserPlus className="h-4 w-4 mr-1" /> Add member
@@ -241,6 +310,15 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
       </CardHeader>
       <CardContent>
         {loading && <p className="text-sm text-slate-500">Loading roster…</p>}
+        {accessErr && (
+          <div
+            data-testid="job-team-access-error"
+            className="text-sm text-amber-900 bg-amber-50 border border-amber-200 p-3 rounded mb-3 flex items-start gap-2"
+          >
+            <ShieldAlert className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-700" />
+            <p>{accessErr}</p>
+          </div>
+        )}
         {err && (
           <p className="text-sm text-red-700 bg-red-50 p-2 rounded mb-3">
             {err}
@@ -355,84 +433,141 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
           </div>
         )}
 
-        {showAdd && (
-          <div className="mt-4 p-3 border rounded bg-slate-50" data-testid="job-team-add-form">
-            <p className="text-sm font-medium mb-2">Add team member</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <Select value={newRole} onValueChange={setNewRole}>
-                <SelectTrigger data-testid="job-team-role-select">
-                  <SelectValue placeholder="Pick role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {assignableRoles.map((r) => {
-                    const disabledForPm = !adminScope && r.admin_only;
-                    return (
-                      <SelectItem
-                        key={r.key}
-                        value={r.key}
-                        disabled={disabledForPm}
-                        data-testid={`job-team-role-option-${r.key}`}
-                        title={
-                          disabledForPm
-                            ? "Admin only — request from your administrator"
-                            : undefined
-                        }
-                      >
-                        {r.label}
-                        {r.admin_only ? " (admin-only)" : ""}
-                        {disabledForPm ? " — admin only" : ""}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              {adminScope ? (
-                <Select value={newUserId} onValueChange={setNewUserId}>
-                  <SelectTrigger data-testid="job-team-user-select">
-                    <SelectValue placeholder="Pick user from directory" />
+        {/* TRACK 15.27A · P0-1 — Add-member is now a Dialog modal. The
+            previous inline form rendered below the 17-role grid which
+            users perceived as a dead button. Dialog always centers on
+            screen, so the click → form-visible loop is unambiguous on
+            desktop, iPad portrait, and iPad landscape. */}
+        <Dialog
+          open={showAdd}
+          onOpenChange={(o) => (o ? setShowAdd(true) : closeAdd())}
+        >
+          <DialogContent
+            className="max-w-lg"
+            data-testid="job-team-add-form"
+          >
+            <DialogHeader>
+              <DialogTitle>Add team member</DialogTitle>
+              <DialogDescription>
+                Pick a role and an employee — both are required.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Role</p>
+                <Select value={newRole} onValueChange={setNewRole}>
+                  <SelectTrigger data-testid="job-team-role-select">
+                    <SelectValue placeholder="Pick role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {directory.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.name || u.email} · {u.email}
-                      </SelectItem>
-                    ))}
+                    {assignableRoles.map((r) => {
+                      const disabledForPm = !adminScope && r.admin_only;
+                      return (
+                        <SelectItem
+                          key={r.key}
+                          value={r.key}
+                          disabled={disabledForPm}
+                          data-testid={`job-team-role-option-${r.key}`}
+                          title={
+                            disabledForPm
+                              ? "Admin only — request from your administrator"
+                              : undefined
+                          }
+                        >
+                          {r.label}
+                          {r.admin_only ? " (admin-only)" : ""}
+                          {disabledForPm ? " — admin only" : ""}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
-              ) : (
-                /* TRACK 15.10 · PM scope now picks from the same
-                   read-only user_directory the existing FL/Shop/Safety/
-                   HR/Dispatch rosters already populate — no free-text
-                   email blind entry, no fake new-person flow. */
-                <Select value={newUserId} onValueChange={setNewUserId}>
-                  <SelectTrigger data-testid="job-team-user-select-pm">
-                    <SelectValue placeholder={
-                      directory.length === 0
-                        ? "No active candidates found — ask Admin to add this person"
-                        : "Pick from existing roster"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {directory.length === 0 && (
-                      <SelectItem value="__none__" disabled>
-                        No active candidates found
-                      </SelectItem>
-                    )}
-                    {directory.map((u) => (
-                      <SelectItem key={u.id} value={u.id} data-testid={`job-team-user-option-${u.id}`}>
-                        {(u.name || u.email)}{u.email ? ` · ${u.email}` : ""}
-                        {(u.portals || []).length ? ` · ${(u.portals || []).join("/")}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <Input
-                placeholder="Notes (optional)"
-                value={newNotes}
-                onChange={(e) => setNewNotes(e.target.value)}
-                data-testid="job-team-notes"
-              />
+              </div>
+
+              {/* TRACK 15.27A · P1-1 — search-as-you-type employee picker.
+                  Replaces the long scrollable Select with a Command (cmdk)
+                  inside a Popover so typing "Joe" narrows results live.
+                  No new endpoints; reads the same `directory` array
+                  already loaded into state. */}
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Employee</p>
+                <Popover open={userPickerOpen} onOpenChange={setUserPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={userPickerOpen}
+                      className="w-full justify-between font-normal"
+                      data-testid={adminScope ? "job-team-user-select" : "job-team-user-select-pm"}
+                    >
+                      <span className="truncate text-left">
+                        {pickedUser
+                          ? `${pickedUser.name || pickedUser.email}${pickedUser.email ? " · " + pickedUser.email : ""}`
+                          : (directory.length === 0
+                              ? "No active candidates found — ask Admin"
+                              : "Pick from existing roster")}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="Type a name or email…"
+                        data-testid="job-team-user-search"
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {directory.length === 0
+                            ? "No active candidates found."
+                            : "No employee matches."}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {directory.map((u) => {
+                            const label = (u.name || u.email || "").toString();
+                            const portals = Array.isArray(u.portals) ? u.portals.join("/") : "";
+                            // Build a single string cmdk uses for matching:
+                            const value = `${label} ${u.email || ""} ${portals}`.toLowerCase();
+                            return (
+                              <CommandItem
+                                key={u.id}
+                                value={value}
+                                data-testid={`job-team-user-option-${u.id}`}
+                                onSelect={() => {
+                                  setNewUserId(u.id);
+                                  setUserPickerOpen(false);
+                                }}
+                              >
+                                <Check className={`mr-2 h-4 w-4 ${newUserId === u.id ? "opacity-100" : "opacity-0"}`} />
+                                <span className="flex-1 min-w-0">
+                                  <span className="block truncate">
+                                    {label}
+                                    {portals ? <span className="ml-1 text-xs text-slate-500">· {portals}</span> : null}
+                                  </span>
+                                  {u.email ? (
+                                    <span className="block text-xs text-slate-500 truncate">{u.email}</span>
+                                  ) : null}
+                                </span>
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Notes (optional)</p>
+                <Input
+                  placeholder="Notes (optional)"
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  data-testid="job-team-notes"
+                />
+              </div>
+
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -443,26 +578,24 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                 Mark primary
               </label>
             </div>
-            <div className="flex gap-2 mt-3">
-              <Button
-                size="sm"
-                onClick={handleAdd}
-                disabled={submitting}
-                data-testid="job-team-submit"
-              >
-                {submitting ? "Adding…" : "Add"}
-              </Button>
+            <DialogFooter>
               <Button
                 variant="ghost"
-                size="sm"
-                onClick={() => setShowAdd(false)}
+                onClick={closeAdd}
                 data-testid="job-team-cancel"
               >
                 Cancel
               </Button>
-            </div>
-          </div>
-        )}
+              <Button
+                onClick={handleAdd}
+                disabled={submitting || !newRole || !newUserId}
+                data-testid="job-team-submit"
+              >
+                {submitting ? "Adding…" : "Add"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {adminScope && showAudit && (
           <div className="mt-4 p-3 border rounded bg-slate-50" data-testid="job-team-audit-drawer">

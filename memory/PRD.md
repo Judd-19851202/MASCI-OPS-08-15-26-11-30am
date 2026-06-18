@@ -2485,3 +2485,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 **No code changed. No deploy. No fixes applied. Awaiting operator approval.**
 
 **Deliverable:** `/app/memory/TRACK_15_27_PROJECT_TEAM_ASSIGNMENT_FAILURE_AUDIT.md` (~280 lines)
+
+---
+
+## TRACK 15.27A — Project Team Assignment Simplification (2026-06-18) · ✅ SHIPPED + LIVE-CERTIFIED (preview)
+
+**Scope (operator-authorized):** P0-1 + P0-2 + P1-1 + P1-2 — exactly four items, nothing more.
+
+**Changes (1 file, ~120 lines net):**
+- **P0-1 · Add-form visibility:** wrapped the inline form in shadcn `<Dialog>` so it centers on every viewport (eliminates the "off-screen below the 17-role grid" perception that drove the "dead button" complaint).
+- **P0-2 · PM authorization messaging:** decoupled the `Promise.all([fetchTeam, fetchRoleRegistry])` so a 403 on fetchTeam shows a friendly amber banner ("You are not assigned as PM or Co-PM on this project. Ask an Admin…") AND disables the Add button. No silent failures.
+- **P1-1 · Searchable employee picker:** replaced shadcn `<Select>` for the user dropdown with `<Popover>` + cmdk `<Command>` — type-to-filter on name/email/portals. Same `directory` data, no new endpoint.
+- **P1-2 · Role ordering:** `ROLE_ORDER_PRIORITY` map puts Superintendent / Asst Sup / Foreman / Project Engineer at the top; admin-only governance roles (PM / Co-PM / Executive Oversight) at the bottom.
+
+**Backend changes:** none.
+**New dependencies:** none (Dialog/Popover/Command already shadcn-installed).
+**New collections / endpoints / roles:** none.
+
+**Live-certified across:** Desktop 1920×800 · iPad Portrait 768×1024 · iPad Landscape 1024×768 · PM-only 403 path.
+
+**Five-Pillar score:** Powerful 5 · Simple **5** (up from 2) · Beautiful **5** (up from 3) · Trusted **5** (up from 4) · Proven **5** (up from 3) → **25 / 25**.
+
+**Deliverable:** `/app/memory/TRACK_15_27A_PROJECT_TEAM_ASSIGNMENT_SIMPLIFICATION_CERT.md`
+
+**Files changed:** `/app/frontend/src/components/team/JobTeamRosterPanel.jsx`.
+
+**Status:** preview-certified; awaiting deployment approval.
