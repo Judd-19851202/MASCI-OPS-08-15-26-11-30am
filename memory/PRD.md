@@ -2376,3 +2376,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - `/app/memory/TRACK_15_24_EXECUTIVE_COST_SUMMARY.md`
 
 **Verdict:** 🟡 **Audit complete; awaiting operator dashboard pulls to convert from 🟡/🔴 hybrid into 100 % 🟢 deterministic budget.** No code changes authorized.
+
+---
+
+## TRACK 15.24B — Platform Cost Truth Audit (Actual Dollars + Support Pricing) (2026-06-18) · 🔍 READ-ONLY
+
+**Type:** Fact-finding follow-up to TRACK 15.24. No code, no deploy, no optimization.
+
+**Sharpened evidence (🟢):**
+- Cloudflare R2 backups: hourly cadence CONFIRMED — exactly 24 zips in last 24h, each **617.4 MiB avg (607–622 MiB range)**. **+14.47 GiB/day, +434 GiB/month, +5.28 TiB/year if no retention enforcement.**
+- Backup retention policy: directory naming `backups/auto-90d/` implies 90-day intent, but oldest zip is only 32 days old; **no scheduled pruning is running** (only emergency disk-pressure pruning at `server.py:5917`).
+- Mongo per-collection 30d new-doc rates measured. `usage_events` data 64.35 MiB + index 27.45 MiB. `daily_reports` 27.01 MiB / 1,032 docs (avg 26.8 KiB/doc).
+- Pod (Emergent): 8.00 GiB RAM cap, 38.8 % used, 2 vCPUs, 27/104 GB disk.
+
+**NEW Phase 5 — ForgedOps support pricing math:**
+- TCO at 100 % adoption (Expected case): **≈ $2,983 / mo** (infra $458 + labor $2,525).
+- Current charge **$1,800 / mo** is comfortably profitable today (+52 % GM at 22 % adoption) but **crosses below break-even at ~65 % adoption** and is **−65.7 % GM at 100 %**.
+- Target $2,500 / mo crosses below break-even at ~87 % adoption.
+- Recommended phased pricing ladder: $1,800 today → **$2,800 at 50 %** → **$4,250 at 75 % → 100 %** (secures 30 % GM).
+
+**Bounded current monthly cost (non-Emergent third parties, list price): $66 – $470.** Emergent on top — still requires operator dashboard pull.
+
+**Trust gap unchanged from TRACK 15.24:** Atlas tier, Emergent plan/invoice, Resend plan, Sentry plan, Cloudflare zone — all 🔴, all retrievable by operator in ~30 min total.
+
+**Deliverable:** `/app/memory/TRACK_15_24B_PLATFORM_COST_TRUTH_AUDIT.md` (~500 lines, single document)
+
+**Verdict:** 🟡 **Audit complete. Pricing recommendation: $1,800 stays healthy through ~50 % adoption; renegotiate at 50 % milestone.** No code changes authorized.
