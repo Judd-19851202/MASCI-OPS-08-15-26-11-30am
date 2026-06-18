@@ -2464,3 +2464,24 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 **Deliverable:** `/app/memory/TRACK_15_23A_TEMP_PASSWORD_ENFORCEMENT_CERTIFICATION.md`
 
 **No code changed. No deploy.**
+
+---
+
+## TRACK 15.27 — Project Team Assignment Failure Audit (2026-06-18) · ⚠️ PARTIAL (READ-ONLY)
+
+**Operator report:** "Add Team Member button is dead and does nothing; assigning personnel is overly complicated."
+
+**Verdict on the literal button:** ❌ NOT dead. Live browser cert at `/admin/jobs/26-05/team` confirms button renders, click fires, form opens with both dropdowns populated. Backend wires to `POST /api/admin/jobs/{pn}/team` / `POST /api/pm/job/{pn}/team` correctly.
+
+**Verdict on the workflow:** ✅ Overly complicated — operator is right. **10–14 clicks per assignment.** Three failure modes that *present as* a dead button:
+- **F-1 Form opens BELOW the 17-role grid** (off-screen on iPad portrait; off-fold on desktop). No `scrollIntoView`. ← #1 cause.
+- **F-2 PM viewing a non-owned project** → `fetchTeam` 403 → `Promise.all` in `reload()` rejects atomically → registry + directory stay empty → form is functional but unusable → "Pick a role" toast on Add. ← #2 cause.
+- **F-3 No search in role/user dropdowns** (17 roles, 100+ users). ← #3 cause.
+
+**Five-Pillar of the workflow:** Powerful 5/5 · Simple **2/5** · Beautiful 3/5 · Trusted 4/5 · Proven 3/5 → **17/25**.
+
+**Simplest viable workflow (Open → Add → Pick Employee → Pick Role → Save) IS supportable on current architecture** — gap is purely frontend ergonomics (~60 lines across 6 surgical changes in `JobTeamRosterPanel.jsx`, zero backend, zero new dependencies). Recommended P0/P1/P2 fix order documented.
+
+**No code changed. No deploy. No fixes applied. Awaiting operator approval.**
+
+**Deliverable:** `/app/memory/TRACK_15_27_PROJECT_TEAM_ASSIGNMENT_FAILURE_AUDIT.md` (~280 lines)
