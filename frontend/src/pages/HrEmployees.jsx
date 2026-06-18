@@ -15,7 +15,10 @@ import {
   Users, Plus, Search, ArrowLeft, Home, RefreshCw,
   UserCheck, UserMinus, Briefcase, AlertOctagon, CheckCircle2,
   ChevronRight, FileText, ClipboardList, Wrench,
+  Printer, Download,
 } from "lucide-react";
+import axios from "axios";
+import { getHrToken } from "@/lib/hrAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +46,7 @@ import {
 import { useRememberedFilter } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { isHr } from "@/lib/hrAuth";
-import { isAdmin } from "@/lib/adminAuth";
+import { isAdmin, getAdminToken } from "@/lib/adminAuth";
 import AccessDenied from "@/pages/AccessDenied";
 import { toast } from "sonner";
 import StatusBadge from "@/components/StatusBadge";
@@ -108,6 +111,52 @@ export default function HrEmployees() {
   }, [allowed, showInactive, statusFilter, rehireFilter, q]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Track 15.21A · Build the exact query string the export endpoint
+  // needs from the live filter state so the .xlsx mirrors the on-screen
+  // roster row-for-row (same dataset, same count, zero drift).
+  const buildExportParams = useCallback(() => {
+    const p = new URLSearchParams();
+    if (showInactive) p.set("show_inactive", "true");
+    if (statusFilter !== "all") p.set("lifecycle_status", statusFilter);
+    if (rehireFilter !== "all") p.set("rehire_eligibility", rehireFilter);
+    if (q) p.set("q", q);
+    return p;
+  }, [showInactive, statusFilter, rehireFilter, q]);
+
+  const onPrint = useCallback(() => {
+    // Use the browser's native print pipeline. The scoped @media print
+    // stylesheet (below) hides chrome and renders only the roster.
+    if (typeof window !== "undefined") window.print();
+  }, []);
+
+  const [exporting, setExporting] = useState(false);
+  const onExportXlsx = useCallback(async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const params = buildExportParams();
+      const url = `${process.env.REACT_APP_BACKEND_URL}/api/hr/employees/export.xlsx`;
+      const headers = {};
+      const hr = getHrToken(); if (hr) headers["X-HR-Token"] = hr;
+      const ad = getAdminToken(); if (ad) headers["X-Admin-Token"] = ad;
+      const resp = await axios.get(url, {
+        headers, params, responseType: "blob",
+      });
+      const today = new Date().toISOString().slice(0, 10);
+      const blobUrl = URL.createObjectURL(resp.data);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `MASCI_HR_Employee_Roster_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 250);
+      toast.success(`Exported ${items.length} employee${items.length === 1 ? "" : "s"}`);
+    } catch (e) {
+      toast.error(friendlyError(e, "Could not export roster"));
+    } finally { setExporting(false); }
+  }, [exporting, buildExportParams, items.length]);
 
   const counts = useMemo(() => {
     const c = { active: 0, inactive: 0 };
@@ -180,8 +229,24 @@ export default function HrEmployees() {
               data-testid="hremp-search-input"
             />
           </div>
-          <Button variant="outline" size="sm" onClick={fetchAll} className="text-xs" data-testid="hremp-refresh">
+          <Button variant="outline" size="sm" onClick={fetchAll} className="text-xs" data-testid="hremp-refresh" data-print-hide>
             <RefreshCw className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            variant="outline" size="sm" onClick={onPrint}
+            className="text-xs" data-testid="hremp-print" data-print-hide
+            disabled={loading || items.length === 0}
+            title="Print the roster shown below"
+          >
+            <Printer className="w-3.5 h-3.5 mr-1" /> Print
+          </Button>
+          <Button
+            variant="outline" size="sm" onClick={onExportXlsx}
+            className="text-xs" data-testid="hremp-export-xlsx" data-print-hide
+            disabled={loading || items.length === 0 || exporting}
+            title="Download the roster shown below as an Excel file"
+          >
+            <Download className="w-3.5 h-3.5 mr-1" /> {exporting ? "Exporting…" : "Export Excel"}
           </Button>
           <AddDialog
             open={addOpen}
@@ -283,6 +348,106 @@ export default function HrEmployees() {
           </div>
         )}
       </main>
+
+      {/* Track 15.21A · PRINT-ONLY ROSTER
+          Hidden on screen; appears only when the browser is in print
+          preview / paper output. Mirrors the export .xlsx column-for-
+          column so the same 9 fields land on paper and in Excel. */}
+      <div className="hr-print-only" data-print-only data-testid="hremp-print-region">
+        <div className="hr-print-header">
+          <div className="hr-print-title">MASCI Employee Roster</div>
+          <div className="hr-print-meta">
+            {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+            {" · "}
+            {showInactive ? "All employees" : "Active employees only"}
+            {statusFilter !== "all" ? ` · status: ${statusFilter}` : ""}
+            {rehireFilter !== "all" ? ` · rehire: ${rehireFilter}` : ""}
+            {q ? ` · search: “${q}”` : ""}
+            {" · "}
+            <span data-testid="hremp-print-count">{items.length}</span>
+            {" "}{items.length === 1 ? "employee" : "employees"}
+          </div>
+        </div>
+        <table className="hr-print-table">
+          <thead>
+            <tr>
+              <th>Employee Name</th>
+              <th>Preferred Name</th>
+              <th>Status</th>
+              <th>Position</th>
+              <th>Department</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Hire Date</th>
+              <th>Supervisor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((e) => {
+              const legalParts = [e.legal_first_name, e.legal_last_name].filter(Boolean).join(" ");
+              const legalName = legalParts || e.name || "";
+              const status = e.lifecycle_status || (e.is_active === false ? "Inactive" : "Active");
+              return (
+                <tr key={`print-${e.id}`} data-testid={`hremp-print-row-${e.id}`}>
+                  <td>{legalName}</td>
+                  <td>{e.preferred_name || ""}</td>
+                  <td>{status}</td>
+                  <td>{e.role || ""}</td>
+                  <td>{e.department || ""}</td>
+                  <td>{e.phone || ""}</td>
+                  <td>{e.email || ""}</td>
+                  <td>{e.original_hire_date || e.hire_date || ""}</td>
+                  <td>{e.supervisor || ""}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Scoped print stylesheet — hides screen chrome, reveals the
+          print-only region, paginates the table cleanly. */}
+      <style>{`
+        .hr-print-only { display: none; }
+        @media print {
+          @page { size: landscape; margin: 0.4in; }
+          html, body { background: #fff !important; }
+          /* Hide every interactive surface on the screen. */
+          aside, nav, header, [data-print-hide],
+          [data-testid="hr-employees-page"] > main > :not(.hr-print-only) {
+            display: none !important;
+          }
+          /* Reveal & isolate the print-only region. */
+          [data-testid="hr-employees-page"] { display: block !important; }
+          [data-testid="hr-employees-page"] > main {
+            max-width: none !important; padding: 0 !important; margin: 0 !important;
+          }
+          .hr-print-only {
+            display: block !important;
+            color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+          }
+          .hr-print-header {
+            margin: 0 0 12pt 0;
+            padding: 0 0 8pt 0;
+            border-bottom: 1.5pt solid #000;
+          }
+          .hr-print-title { font-size: 16pt; font-weight: 700; letter-spacing: 0.5pt; }
+          .hr-print-meta { font-size: 9pt; color: #333; margin-top: 3pt; }
+          .hr-print-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+          .hr-print-table thead { display: table-header-group; } /* repeat header on each page */
+          .hr-print-table th {
+            text-align: left; font-weight: 700; font-size: 7.5pt;
+            text-transform: uppercase; letter-spacing: 0.4pt;
+            border-bottom: 1pt solid #000; padding: 4pt 6pt 4pt 0; vertical-align: bottom;
+          }
+          .hr-print-table td {
+            padding: 3.5pt 6pt 3.5pt 0; border-bottom: 0.4pt solid #999;
+            vertical-align: top; line-height: 1.25;
+          }
+          .hr-print-table tr { page-break-inside: avoid; }
+        }
+      `}</style>
 
       <EmployeeDrawer
         id={editId}

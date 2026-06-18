@@ -907,15 +907,16 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             return actor
         raise HTTPException(403, "HR or Admin only")
 
-    # ── HR employee CRUD ──────────────────────────────────────────────
-    @router.get("/api/hr/employees")
-    async def list_employees(
-        actor: Dict[str, Any] = Depends(require_hr_or_admin),
-        show_inactive: bool = Query(default=False),
-        lifecycle_status: Optional[str] = Query(default=None),
-        rehire_eligibility: Optional[str] = Query(default=None),
-        q: Optional[str] = Query(default=None, max_length=80),
-        limit: int = Query(default=500, ge=1, le=2000),
+    # ── Shared HR roster query ────────────────────────────────────────
+    # Track 15.21A · Single source of truth for the HR employee dataset.
+    # Used by both `GET /api/hr/employees` (roster + print source) and
+    # `GET /api/hr/employees/export.xlsx` (Excel export). Same filters,
+    # same dataset, zero drift between screen / print / export.
+    def _build_employee_query(
+        show_inactive: bool,
+        lifecycle_status: Optional[str],
+        rehire_eligibility: Optional[str],
+        q: Optional[str],
     ) -> Dict[str, Any]:
         clauses: List[Dict[str, Any]] = [{"deleted_at": None}]
         if not show_inactive:
@@ -951,7 +952,21 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 {"employee_id": {"$regex": q, "$options": "i"}},
                 {"trade": {"$regex": q, "$options": "i"}},
             ]})
-        final = {"$and": clauses}
+        return {"$and": clauses}
+
+    # ── HR employee CRUD ──────────────────────────────────────────────
+    @router.get("/api/hr/employees")
+    async def list_employees(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        show_inactive: bool = Query(default=False),
+        lifecycle_status: Optional[str] = Query(default=None),
+        rehire_eligibility: Optional[str] = Query(default=None),
+        q: Optional[str] = Query(default=None, max_length=80),
+        limit: int = Query(default=500, ge=1, le=2000),
+    ) -> Dict[str, Any]:
+        final = _build_employee_query(
+            show_inactive, lifecycle_status, rehire_eligibility, q
+        )
         cur = db.employees.find(final, {"_id": 0}).sort("name", 1).limit(limit)
         from masci.identity import format_employee_identity
         items = []
@@ -964,6 +979,64 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             d["display_identity"] = format_employee_identity(d)
             items.append(d)
         return {"items": items, "count": len(items)}
+
+    # ── Track 15.21A · HR Roster Excel Export ─────────────────────────
+    # Generates an .xlsx of the same dataset the HR roster page renders,
+    # using the same filters. Audit doc: /app/memory/
+    # TRACK_15_21_HR_EMPLOYEE_ROSTER_EXPORT_PRINT_AUDIT.md.
+    #
+    # Sensitive fields explicitly excluded (per operator directive):
+    #   - cdl_license_number
+    #   - rehire_eligibility_reason
+    #   - status_history (free-text per-transition reasons)
+    @router.get("/api/hr/employees/export.xlsx")
+    async def export_hr_employees_xlsx(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        show_inactive: bool = Query(default=False),
+        lifecycle_status: Optional[str] = Query(default=None),
+        rehire_eligibility: Optional[str] = Query(default=None),
+        q: Optional[str] = Query(default=None, max_length=80),
+        limit: int = Query(default=5000, ge=1, le=10000),
+    ):
+        final = _build_employee_query(
+            show_inactive, lifecycle_status, rehire_eligibility, q
+        )
+        docs = await db.employees.find(
+            final, {"_id": 0}
+        ).sort("name", 1).to_list(limit)
+        # Column order matches Track 15.21A directive exactly.
+        header = [
+            "Employee Name", "Preferred Name", "Status", "Position",
+            "Department", "Phone", "Email", "Hire Date", "Supervisor",
+        ]
+        rows = []
+        for d in docs:
+            legal_parts = [
+                d.get("legal_first_name") or "",
+                d.get("legal_last_name") or "",
+            ]
+            legal = " ".join(p for p in legal_parts if p).strip()
+            rows.append([
+                legal or (d.get("name") or ""),
+                d.get("preferred_name") or "",
+                d.get("lifecycle_status") or (
+                    "Active" if d.get("is_active") is not False else "Inactive"
+                ),
+                d.get("role") or "",
+                d.get("department") or "",
+                d.get("phone") or "",
+                d.get("email") or "",
+                d.get("original_hire_date") or d.get("hire_date") or "",
+                d.get("supervisor") or "",
+            ])
+        # Reuse the existing server.py helper — same code path used by
+        # /admin/employees/export, /admin/suppliers/export, etc.
+        from server import _xlsx_response, _today_stamp  # noqa: PLC0415
+        return _xlsx_response(
+            rows, header,
+            f"MASCI_HR_Employee_Roster_{_today_stamp()}.xlsx",
+            "Employees",
+        )
 
     @router.post("/api/hr/employees")
     async def create_employee(

@@ -3489,3 +3489,30 @@ Rebuild + redeploy FE bundle to `mascidocs.com`. Confirm bundle hash changes fro
 
 ### Deliverable
 `/app/memory/TRACK_15_13K_HR_DAILY_REPORTS_FINAL_RESOLUTION.md`.
+
+---
+
+## 2026-06-18 · TRACK 15.21A — HR Employee Roster Export + Print
+
+### Added
+- **Backend route** `GET /api/hr/employees/export.xlsx` (`require_hr_or_admin`-gated). Reuses `_xlsx_response()` + `openpyxl`. Honors same filters as `GET /api/hr/employees`. Output: 9-column .xlsx, filename `MASCI_HR_Employee_Roster_YYYY-MM-DD.xlsx`.
+- **Backend helper** `_build_employee_query()` in `routes/employee_lifecycle.py` — single source of truth shared between roster, print, and Excel paths.
+- **Frontend buttons** on `/hr/employees`: Print, Export Excel. `data-testid` = `hremp-print`, `hremp-export-xlsx`.
+- **Frontend print-only roster** (`<div className="hr-print-only">`) + scoped `@media print` stylesheet. Landscape paper, repeating header, `page-break-inside: avoid`.
+
+### Verified
+- 5 / 5 count-parity tests passed (Active=383, All=395, Inactive=3, `q=foreman`=2, `q=an`+inactive=98).
+- No-auth → 401. HR token → 200. Preview ingress 200 (`safety-audit-mobile-1.preview.emergentagent.com`).
+- Banned-field grep across produced .xlsx: clean.
+- Python + JavaScript lint clean.
+
+### Excluded by design
+- `cdl_license_number` · `rehire_eligibility_reason` · `status_history` · internal metadata.
+- No PDF · no CSV twin · no audit_events row · no second-sheet · no new collection · no new auth flow.
+
+### Files changed
+- `/app/backend/routes/employee_lifecycle.py`
+- `/app/frontend/src/pages/HrEmployees.jsx`
+
+### Deliverable
+- `/app/memory/TRACK_15_21A_HR_EMPLOYEE_ROSTER_EXPORT_PRINT_IMPLEMENTATION.md`

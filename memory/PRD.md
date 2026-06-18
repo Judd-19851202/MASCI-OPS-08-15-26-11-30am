@@ -2315,3 +2315,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - **Why deferred for user approval:** auth-dep changes are exactly the class that burned us in 15.13A — better one focused session that ships + cert-proves all three changes together than a half-shipped fix under context pressure.
 - **Verdict:** 🟡 **PARTIAL — RECOVERY PLAN ONLY.** 15.13B/15.13C landings work; downstream API calls still token-mismatched. Approve scope → next session implements + runtime-proves.
 - **Deliverable:** `/app/memory/TRACK_15_13D_PRODUCTION_AUTH_SESSION_RECOVERY.md` with full plan, route matrix, code snippets, and test plan.
+
+---
+
+## TRACK 15.21A — HR Employee Roster Export + Print (2026-06-18) ✅ IMPLEMENTED
+
+**Operator request:** HR needs to print and export the employee roster from the existing employee roster using the data already in the platform.
+
+**Implementation strategy:** Option C — minimal, safe, reuse-first.
+
+**Delivered:**
+- New endpoint `GET /api/hr/employees/export.xlsx` (`require_hr_or_admin`-gated) reusing the existing `_xlsx_response()` helper from `server.py`.
+- Shared filter helper `_build_employee_query()` in `routes/employee_lifecycle.py` — single source of truth for the HR roster, print, and Excel export (drift is structurally impossible).
+- Print + Export Excel buttons added to `HrEmployees.jsx` filter bar.
+- Print-only roster table + scoped `@media print` stylesheet (landscape, repeating header per page, `page-break-inside: avoid`).
+
+**9-column output (print + Excel):** Employee Name · Preferred Name · Status · Position · Department · Phone · Email · Hire Date · Supervisor.
+
+**Sensitive fields explicitly excluded:** `cdl_license_number`, `rehire_eligibility_reason`, `status_history`, internal metadata. Banned-token grep across produced .xlsx returned zero hits.
+
+**Certification matrix (5 / 5 PASS):** count parity between roster API and Excel rows verified across Active-only (383), All (395), `status=Inactive` (3), `q=foreman` (2), `q=an` + inactive (98). Auth 401 verified. Preview ingress 200 verified.
+
+**Deliverables:**
+- `/app/memory/TRACK_15_21_HR_EMPLOYEE_ROSTER_EXPORT_PRINT_AUDIT.md` (read-only audit, pre-approval).
+- `/app/memory/TRACK_15_21A_HR_EMPLOYEE_ROSTER_EXPORT_PRINT_IMPLEMENTATION.md` (post-approval cert).
+
+**Verdict:** ✅ **SHIPPED + BACKEND-CERTIFIED.** Frontend buttons render via React from the same `items` state used by the on-screen table; UI verification pending operator's manual click-through on preview before production deploy.
