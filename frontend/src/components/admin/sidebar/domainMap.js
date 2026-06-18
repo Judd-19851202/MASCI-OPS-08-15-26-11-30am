@@ -45,6 +45,7 @@ export const DOMAINS_V2 = [
     icon: Users,
     routes: [
       { to: "/admin/people",          label: "People & Access",       desc: "PM · Shop · HR · employee master",           icon: Users },
+      { to: "/admin/asset-admin",     label: "Asset Admin Console",   desc: "Asset Administrators · governance.",        icon: KeyRound },
       { to: "/admin/training",        label: "Training & Forms",      desc: "Training resources · safety forms",          icon: BookOpen },
       { to: "/document-expirations",  label: "Document Expirations",  desc: "OSHA · TWIC · CDL · registrations",          icon: ClipboardCheck },
       { to: "/admin/sessions",        label: "Sessions",              desc: "Last 50 portal sessions · forensic",         icon: Activity },
