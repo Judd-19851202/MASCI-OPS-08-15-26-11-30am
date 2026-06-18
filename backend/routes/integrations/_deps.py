@@ -29,6 +29,7 @@ def make_require_any_portal_token(
     """
 
     async def _require_any_portal_token(
+        request: Request,
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
         x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
         x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
