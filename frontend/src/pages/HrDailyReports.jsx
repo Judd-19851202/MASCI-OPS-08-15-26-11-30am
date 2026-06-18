@@ -51,7 +51,7 @@ export default function HrDailyReports() {
   const setF = (k) => (e) =>
     setFilters((prev) => ({ ...prev, [k]: e.target.value }));
 
-  const fetchList = async (overrides) => {
+  const fetchList = async (overrides, retryCount = 0) => {
     setLoading(true);
     try {
       const s = { ...filters, ...(overrides || {}) };
@@ -78,22 +78,38 @@ export default function HrDailyReports() {
       // those are per-call client errors, not platform outages.
       const isTransient = !e?.response || (typeof status === "number" && status >= 500);
       const isAuth = status === 401;
+      if (isAuth) {
+        setItems([]);
+        toast.error(t("Your HR session expired. Please sign in again."));
+        return;
+      }
+      // TRACK 15.13I — Auto-retry on transient/network/5xx failures so
+      // the page self-recovers from a pod restart (the common
+      // production cause). Up to 2 silent retries spaced 4s + 8s
+      // apart. Only after the third attempt fails do we surface the
+      // "temporarily unavailable" toast — and we still preserve the
+      // previously-loaded items so the user keeps whatever they had.
+      if (isTransient && retryCount < 2) {
+        const delayMs = 4000 * (retryCount + 1);  // 4s, then 8s
+        setTimeout(() => {
+          fetchList(overrides, retryCount + 1);
+        }, delayMs);
+        // Don't toast yet — give the retry a chance first.
+        return;
+      }
+      // 403/404/422 → operator-detail message (not session expired).
+      // After exhausted retries on 5xx → calm fallback.
       toast.error(operationalError(
         e,
         t("Daily Reports temporarily unavailable. Try again in a moment."),
         t("Your HR session expired. Please sign in again.")
       ));
-      if (isAuth) {
-        setItems([]);
-      }
-      // Transient / 403 / 404 / 422: leave existing items untouched.
-      void isTransient;
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchList(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { fetchList(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onApply = (e) => { e?.preventDefault?.(); fetchList(); };
   const onClear = () => {

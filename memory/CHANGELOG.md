@@ -3401,3 +3401,37 @@ HR signed in → opened DR list (200 reports) → opened Oxford DR → back to l
 
 ### Deliverable
 `/app/memory/TRACK_15_13H_PRODUCTION_STABILITY_RECOVERY.md`. Operator next step: redeploy FE bundle and 5-min browser self-test.
+
+---
+
+## 2026-06-18 · Track 15.13I — HR Daily Reports Production Failure · Final Fix (🟢 READY TO DEPLOY)
+
+**Mode:** P0 final fix for HR Daily Reports failing on production iPhone with "SERVER UNREACHABLE" banner + zero KPI cards + "temporarily unavailable" toast.
+
+### Root causes
+1. **15.13H FE fixes never reached production** — bundle hash unchanged, still pre-15.13H code path.
+2. **`HrDailyReports.jsx fetchList()` had no auto-retry** — a single pod-restart window (~30-60 s) permanently wiped the list with no recovery path.
+
+### Backend proof (always healthy)
+`GET /api/hr/daily-reports?limit=200` against `mascidocs.com` → **HTTP 200 in 281 ms with 200 real reports**. 5 consecutive `/api/health` probes all 200 under 260 ms. Pod restart at 10:27 UTC was the trigger.
+
+### Fix
+`fetchList()` now retries silently on transient failures:
+- Up to 3 attempts (initial + 2 retries at 4 s + 8 s).
+- ONLY retries on no-response / status ≥ 500.
+- 401 short-circuits with session-expired toast (no retry).
+- 403/404/422 surface operator detail (no retry).
+- "Temporarily unavailable" toast DEFERRED to after retries exhaust — first-attempt blips fire no UI noise.
+- Previously-loaded items preserved (15.13H behavior retained).
+
+### Tests
+22/22 FE tests pass (`track_15_13h_session_classification.test.js`). 53/53 backend regression tests pass.
+
+### Mobile cert proof (preview, iPhone Pro Max viewport 430×932)
+HR login → `/hr/daily-reports` → REPORTS 200 / CREWS 14 / SUBS 0 / VISITORS 0 with full report table. **No banner. No toast. No errors. Zero API failures.**
+
+### Operator next step
+Rebuild + redeploy FE bundle to `mascidocs.com`. Confirm `main.614bc877.js` hash changes. 5-min self-test.
+
+### Deliverable
+`/app/memory/TRACK_15_13I_HR_DAILY_REPORTS_PRODUCTION_FAILURE_FINAL_FIX.md`.

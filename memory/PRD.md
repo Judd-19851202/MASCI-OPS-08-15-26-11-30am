@@ -10,7 +10,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-18 · TRACK 15.13H · PRODUCTION STABILITY RECOVERY · 🟢 STABLE post-redeploy)
+## Latest Closed Track (2026-06-18 · TRACK 15.13I · HR DAILY REPORTS PRODUCTION FAILURE · FINAL FIX · 🟢 READY TO DEPLOY)
+- **Track:** P0 production failure on iPhone — HR `/hr/daily-reports` showed red "SERVER UNREACHABLE" banner + KPI cards at 0 + "Daily Reports temporarily unavailable" toast despite the backend being fully healthy.
+- **Root cause #1**: 15.13H frontend fixes are NOT yet deployed to production. The live bundle `main.614bc877.js` still has the pre-15.13H session-expired conflation and aggressive token clearing.
+- **Root cause #2 (NEW · this track)**: `HrDailyReports.jsx fetchList()` had no auto-retry, so a brief pod-restart window (~30–60 s) permanently wiped the list with no recovery. User had to manually navigate away and back.
+- **Verdict:** 🟢 READY TO DEPLOY. Fix is purely frontend (HrDailyReports.jsx + 2 new tests). 22/22 FE tests pass. 53/53 backend regression tests pass. Live preview cert on iPhone viewport showed REPORTS 200 / CREWS 14 with full table populated, no banner, no toast, zero API failures.
+- **Fix applied**: `fetchList()` now performs up to 3 attempts (initial + 2 silent retries at 4 s + 8 s) on transient failures (no-response / status ≥ 500). 401 short-circuits with the session-expired toast (no retry). 403/404/422 surface operator-detail messages (no retry). The "temporarily unavailable" toast is DEFERRED to after retries exhaust — first-attempt blips fire no UI noise.
+- **Backend was always healthy**: live curl proof `GET /api/hr/daily-reports?limit=200` → HTTP 200 in 281 ms with 200 real reports (Parent loop 26-07, Corbin park 26-01, Oxford 24-12, etc.). 5 consecutive /api/health probes all returned 200 under 260 ms. Pod restart at 10:27 UTC was the trigger window.
+- **Operator next step**: rebuild + redeploy FE bundle to `mascidocs.com`. Confirm bundle hash changes from `main.614bc877.js`. 5-min self-test on `/hr/daily-reports`.
+- **Pending blockers (unchanged)**: Track 15.8A/B PM notification cleanup operator-blocked. 15.13H carries the runbook.
+- **Deliverable**: `/app/memory/TRACK_15_13I_HR_DAILY_REPORTS_PRODUCTION_FAILURE_FINAL_FIX.md`.
+
+## Previous Closed Track (2026-06-18 · TRACK 15.13H · PRODUCTION STABILITY RECOVERY · 🟢 STABLE post-redeploy)
 - **Track:** P0 production stability fix after 15.13G revealed false "Session Expired" + "Your HR session expired" toasts still firing on live `mascidocs.com`. Root causes traced to TWO frontend layers, both pre-existing but compounded by 15.13E.
 - **Root cause #1**: `/app/frontend/src/lib/errors.js` `operationalError()` conflated 401 and 403 as the same "session boundary" → HR users got "Your HR session expired" on any 403-gated child endpoint (e.g. lifecycle).
 - **Root cause #2**: `/app/frontend/src/lib/api.js` active-portal 401 handler cleared the active portal's token AND fell through to publish `session_expired` → lifecycle 401s wiped HR token & bounced users to `/hr/login`.

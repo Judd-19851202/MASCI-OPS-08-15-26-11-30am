@@ -170,3 +170,36 @@ describe("TRACK 15.13H · api.js interceptor contract (smoke / source check)", (
     expect(text).not.toMatch(/clearPmToken\(\)/);
   });
 });
+
+describe("TRACK 15.13I · HrDailyReports auto-retry contract (source check)", () => {
+  it("HrDailyReports.jsx fetchList retries on transient failures up to 2x", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const src = fs.readFileSync(path.resolve(__dirname, "../../pages/HrDailyReports.jsx"), "utf-8");
+    expect(src).toMatch(/TRACK 15\.13I/);
+    // Must accept a retry counter parameter.
+    expect(src).toMatch(/fetchList\s*=\s*async\s*\(\s*overrides,\s*retryCount\s*=\s*0\s*\)/);
+    // Must reschedule on transient failures (5xx / network).
+    expect(src).toMatch(/isTransient[\s\S]{0,200}retryCount\s*<\s*2/);
+    expect(src).toMatch(/setTimeout\(\(\)\s*=>\s*\{[\s\S]{0,80}fetchList\(overrides,\s*retryCount\s*\+\s*1\)/);
+    // Auth 401 must short-circuit (no retry on session expiry).
+    expect(src).toMatch(/if\s*\(isAuth\)\s*\{[\s\S]{0,200}setItems\(\[\]\)/);
+  });
+
+  it("HrDailyReports.jsx does NOT toast on the first transient failure", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const src = fs.readFileSync(path.resolve(__dirname, "../../pages/HrDailyReports.jsx"), "utf-8");
+    // Slice from `const fetchList` to the next `useEffect` AFTER it
+    // (the original import has the same word — skip past the
+    // function definition before searching).
+    const fetchStart = src.indexOf("const fetchList");
+    const fetchBlock = src.slice(fetchStart, src.indexOf("useEffect", fetchStart));
+    const retryReturnIdx = fetchBlock.indexOf("retryCount < 2");
+    const finalToastIdx = fetchBlock.indexOf("Daily Reports temporarily unavailable");
+    expect(retryReturnIdx).toBeGreaterThan(-1);
+    // The fallback toast lives in i18n string passed to operationalError;
+    // it's after the retry early-return in the function body.
+    expect(finalToastIdx).toBeGreaterThan(retryReturnIdx);
+  });
+});
