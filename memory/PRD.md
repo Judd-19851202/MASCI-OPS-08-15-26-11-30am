@@ -10,7 +10,15 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-18 · TRACK 15.15 · PLATFORM HARDENING + GAP CLOSURE · 🟢 DEPLOYABLE (preview-certified))
+## Latest Track (2026-06-18 · TRACK 15.16 · PRODUCTION HEALTHCHECK / STARTUP STABILITY · 🟢 DEPLOYABLE)
+- **Track:** add bare `/health` and `/healthz` routes to satisfy the platform health probe that dials `http://127.0.0.1:8001/health` directly (bypassing the `/api` ingress).
+- **Root cause:** canonical health endpoint is `/api/health` (via `build_health_router()`); the platform probe hits bare `/health` and was getting 404, generating proxy noise + potential `SERVER UNREACHABLE` false positives.
+- **Fix:** two `@app.get(...)` routes added directly on the FastAPI app (NOT on `api_router`) — `/health` returns `{"status":"ok","service":"masci-backend"}`, `/healthz` returns `{"status":"ok"}`. Zero auth, zero DB, zero side-effect, 3 ms response.
+- **Files:** `backend/server.py` (+25), `backend/tests/track_15_16_health_probe.py` (+62), `memory/TRACK_15_16_*.md`. Nothing else.
+- **Regression:** Track 15.14C safety gate 39/39 PASS. `/api/health` unchanged.
+- **Deliverable:** `/app/memory/TRACK_15_16_PRODUCTION_HEALTHCHECK_STARTUP_STABILITY.md`
+
+## Previous Track (2026-06-18 · TRACK 15.15 · PLATFORM HARDENING + GAP CLOSURE · 🟢 DEPLOYABLE (preview-certified))
 - **Track:** Hardening + Gap Closure — surgical additive nav repairs to close the highest-value defects from the 15.14D ledger.
 - **Closures in this track (5 fixed + 1 partial + 3 honest-empty already in place):**
   - **D-01 HR Incidents** added to HR sidebar People Operations group · "Read-only OSHA-relevant list · CSV export"

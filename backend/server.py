@@ -80,6 +80,31 @@ api_router = APIRouter(prefix="/api")
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# Track 15.16 · Production healthcheck compatibility.
+#
+# Some platform / proxy / container health probes hit the bare paths
+# `/health` and `/healthz` (no `/api` prefix). The canonical app health
+# endpoint is `/api/health` (registered via `build_health_router()`),
+# but if the probe target is misaligned the proxy logs fill with
+# repeated 404s and can flap "SERVER UNREACHABLE" surfaces to users.
+#
+# These two top-level routes are compatibility shims:
+#   • zero auth · zero DB · zero side-effect · zero state mutation
+#   • cannot block startup or restart behaviour
+#   • intentionally NOT under `api_router` (no `/api` prefix)
+# `/api/health` and `/api/healthz` remain unchanged.
+# ─────────────────────────────────────────────────────────────────────────
+@app.get("/health", include_in_schema=False)
+def _probe_health():
+    return {"status": "ok", "service": "masci-backend"}
+
+
+@app.get("/healthz", include_in_schema=False)
+def _probe_healthz():
+    return {"status": "ok"}
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Sentry (Phase 2 Initiative 1) — env-gated. If SENTRY_DSN is unset, this
 # is a complete no-op. Initialised here BEFORE any middleware so all
 # subsequent code is observed.
