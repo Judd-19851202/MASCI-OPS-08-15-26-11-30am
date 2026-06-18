@@ -10,7 +10,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-18 · TRACK 15.13I · HR DAILY REPORTS PRODUCTION FAILURE · FINAL FIX · 🟢 READY TO DEPLOY)
+## Latest Closed Track (2026-06-18 · TRACK 15.13J · POST-DEPLOY PRODUCTION CERTIFICATION · 🟢 PRODUCTION CERTIFIED)
+- **Track:** Real browser cert on `mascidocs.com` after 15.13I redeploy. No code review, no test review, no preview certification — only observed production behavior.
+- **Bundle confirmed live**: `main.e004b7ec.js` (was `main.614bc877.js` pre-15.13I). 15.13H+I FE fixes ARE deployed.
+- **Backend healthy**: 5/5 health probes ≤ 260ms · unique 15.13E error messages live (`"Asset Administrator login required"` / `"Admin, PM, or HR login required"`).
+- **HR Daily Reports**: REPORTS 144 · CREWS 549 · SUBS 100 · VISITORS 57 — real production data, NOT zero. 5 sequential navigations across list↔DR: **0 Session Expired modals**. Real Parent loop DR-2026-00338 opened cleanly with READ-ONLY · HR badge, "Loading lifecycle..." graceful state, full Section 01 + Section 02 rendered.
+- **Asset Care (admin path)**: dashboard renders cleanly. Live curl proves 604-asset payload via admin token.
+- **Asset Care (negative control)**: shop token without asset role → **403** (not 401). Session preserved. No false logout. Page stays on `/shop/asset-care` with graceful empty-state KPIs.
+- **PM Command Center**: 4 projects assigned (26-07, 25-02, 26-06, 26-05) · 5 recent dailies + photos · sidebar nav functional · no auth regression.
+- **Mobile**: iPhone Pro Max + iPad portrait both clean. No horizontal scroll. No banner. No modal.
+- **Network forensics**: only 401s observed were `/api/daily-reports/{id}/lifecycle` (expected for HR, absorbed silently) and shop-PM/parts/mechanics widgets (super admin shop token isn't shop manager, absorbed silently). All 403s on /api/asset-care/* were correctly classified as access-denied, not session-expired.
+- **Carried forward (unchanged)**: 15.8A/B PM notification cleanup — STILL operator-blocked on production pod shell access. One-command runbook documented in 15.13H §12 and re-stated in 15.13J §9.
+- **Deliverable**: `/app/memory/TRACK_15_13J_POST_DEPLOY_PRODUCTION_CERTIFICATION.md` (10-section report with screenshots, network traces, auth matrix, deployment verdict).
+
+## Previous Closed Track (2026-06-18 · TRACK 15.13I · HR DAILY REPORTS PRODUCTION FAILURE · FINAL FIX · 🟢 READY TO DEPLOY)
 - **Track:** P0 production failure on iPhone — HR `/hr/daily-reports` showed red "SERVER UNREACHABLE" banner + KPI cards at 0 + "Daily Reports temporarily unavailable" toast despite the backend being fully healthy.
 - **Root cause #1**: 15.13H frontend fixes are NOT yet deployed to production. The live bundle `main.614bc877.js` still has the pre-15.13H session-expired conflation and aggressive token clearing.
 - **Root cause #2 (NEW · this track)**: `HrDailyReports.jsx fetchList()` had no auto-retry, so a brief pod-restart window (~30–60 s) permanently wiped the list with no recovery. User had to manually navigate away and back.

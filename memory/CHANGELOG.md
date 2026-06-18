@@ -3435,3 +3435,27 @@ Rebuild + redeploy FE bundle to `mascidocs.com`. Confirm `main.614bc877.js` hash
 
 ### Deliverable
 `/app/memory/TRACK_15_13I_HR_DAILY_REPORTS_PRODUCTION_FAILURE_FINAL_FIX.md`.
+
+---
+
+## 2026-06-18 · Track 15.13J — Post-Deploy Production Certification (🟢 PRODUCTION CERTIFIED)
+
+**Mode:** Live browser cert against `mascidocs.com` after 15.13I redeploy. No code changes. No preview cert. Only observed production behavior.
+
+### Deployment confirmation
+- New FE bundle live: `main.e004b7ec.js` (was `main.614bc877.js`). 15.13H+I FE fixes ARE deployed.
+- Backend release `d988f7c821d8b7217cecaf0d0ae883ce` · `app_env=production` · `db_name=masci_safety`. Unique 15.13E auth messages confirmed live.
+- Backend health: 5/5 probes ≤ 260ms.
+
+### Real production workflows certified
+- **HR**: 144 reports · 549 crews · 100 subs · 57 visitors loaded. 5 sequential nav (list↔DR×3) with 0 Session Expired modals. Real Parent loop DR opened with READ-ONLY · HR badge and all sections rendered.
+- **Asset Care (admin)**: 604-asset payload returned via admin token. Dashboard renders.
+- **Asset Care (neg control)**: shop token without asset role → 403 (not 401). Session preserved. No false logout.
+- **PM**: Command Center loads with 4 projects + 5 recent dailies + photo thumbnails.
+- **Mobile**: iPhone + iPad portrait both clean. No horizontal scroll, no banner, no modal.
+
+### Pending blocker (unchanged)
+- 15.8A/B PM notification cleanup STILL operator-blocked. Runbook in 15.13H §12 / 15.13J §9.
+
+### Deliverable
+`/app/memory/TRACK_15_13J_POST_DEPLOY_PRODUCTION_CERTIFICATION.md` — 10-section live production cert with verdict 🟢 PRODUCTION CERTIFIED.
