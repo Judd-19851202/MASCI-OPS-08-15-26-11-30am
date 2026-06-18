@@ -3334,3 +3334,33 @@ All under `/app/memory/track_15_13f_screens/`.
 
 ### Deliverable
 `/app/memory/TRACK_15_13F_FINAL_RUNTIME_CERTIFICATION.md` — full cert ledger with deployment recommendation **🟢 READY TO DEPLOY**.
+
+---
+
+## 2026-06-18 · Track 15.13G — Live Post-Deploy Verification (🟡 VERIFIED WITH FOLLOW-UP)
+
+**Mode:** Live production verification on `mascidocs.com` (no code, no mutations, no seeded data) against the deployed `d988f7c821d8b7217cecaf0d0ae883ce` source hash. Browser + curl proof. 22 screenshots captured.
+
+### What was verified
+- **Backend 15.13E is deployed**: `/api/asset-care/summary` unauth returns the new `"Asset Administrator login required"` 401; `/api/daily-reports/{id}` unauth returns the new `"Admin, PM, or HR login required"` 401 — both messages are unique to the 15.13E source.
+- **Identity**: `/api/version` confirms `app_env=production`, `db_name=masci_safety`, Sentry on, session timeouts enforced (ADMIN_HR 15min idle / 4hr abs), uptime stable.
+- **Asset Admin (admin_token path)**: 8 Asset Care + Asset Spine endpoints return 200 with admin token; total_assets=604, missing_documents_total=0, all KPIs honest.
+- **Asset Admin (negative control)**: Super Admin's shop_token (no asset role) gets clean **403 "Asset Administrator access required."** on all Asset Care endpoints — NOT 401, so no session-bleed cascade. Browser confirms: page renders empty-state KPI dashes, no Session Expired modal, no admin-wall toast.
+- **HR Daily Reports**: HR can open real production DR (project 26-07 "Parent loop", DR-2026-00338, JOE SPIKER prepared by, full weather/sections render). UI shows READ-ONLY · HR badge top-right and "Lifecycle controls unavailable for this session." banner. NO Session Expired modal under stable conditions.
+- **HR mutations stay locked**: DELETE → 401, PATCH → 405. (POST /api/daily-reports is intentionally PUBLIC for field-foreman submissions per Wave-1A — out of scope for 15.13E.)
+- **PM regression**: PM-token reads DR list + DR detail return 200. `/pm/command-center` renders cleanly. No auth header regression.
+- **iPad portrait + landscape**: layout responsive, no horizontal scroll, no clipped controls.
+
+### One P2 follow-up
+- During the cert run a transient Cloudflare 520 outage (~60–90 s window at ≈ 01:11 UTC) caused a single Session Expired modal artifact in one iPad-landscape screenshot. After the outage cleared, the modal could not be reproduced. Root cause: FE `classifyApiError()` maps 5xx → session_expired (legacy behavior, predates 15.13E). Recommended polish (separate track): map 502/503/504/520 → "platform_unavailable" so future transient outages don't surface as auth errors.
+
+### Operator action items
+1. **Real Asset Admin browser cert** — have `info@forgedopshq.com` log in to `/shop/login` and confirm `/shop/asset-care` loads the 604-asset KPI dashboard. (Cannot drive their session from cert without their password; preview 15.13F + production curl matrix proves the backend code path is correct.)
+2. **Monitor Sentry for 24 h** — confirm no 15.13E-tagged errors.
+3. **Open P2 polish track** for `errorClassification.js` 5xx→platform_unavailable mapping.
+
+### Hard locks preserved
+- No production data mutated. No accounts created. No emails sent. No PM notification cleanup ran. No backfill ran.
+
+### Deliverable
+`/app/memory/TRACK_15_13G_LIVE_POST_DEPLOY_VERIFICATION.md` — 14-section live cert report with deployment recommendation **🟡 PRODUCTION VERIFIED WITH FOLLOW-UP**.

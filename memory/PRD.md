@@ -10,7 +10,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.13F · FINAL PRE-DEPLOY RUNTIME CERTIFICATION · 🟢 READY TO DEPLOY)
+## Latest Closed Track (2026-06-18 · TRACK 15.13G · LIVE POST-DEPLOY PRODUCTION VERIFICATION · 🟡 VERIFIED WITH FOLLOW-UP)
+- **Track:** Post-deploy live verification of 15.13B/C/E on `mascidocs.com` (production). Real browser, real production data (project 26-07 Parent loop DR-2026-00338), curl auth-matrix on the live backend.
+- **Verdict:** 🟡 **VERIFIED WITH FOLLOW-UP**. Backend 15.13E is deployed and behaves exactly as spec. HR can read real Daily Reports with READ-ONLY · HR badge and "Lifecycle controls unavailable" banner. HR mutations stay locked. Asset Care endpoints accept Admin tokens, reject non-asset shop tokens with **403** (no session bleed). PM regression clean. iPad portrait + landscape both pass.
+- **Backend proof (curl-verified on production)**: Unique 15.13E 401 strings observed (`"Asset Administrator login required"`, `"Admin, PM, or HR login required"`), proving the new deps are live. Source hash `d988f7c821d8b7217cecaf0d0ae883ce`, `app_env=production`, `db_name=masci_safety`.
+- **One P2 follow-up identified**: Single "Session Expired" modal artifact appeared in one iPad-landscape screenshot during a transient Cloudflare 520 outage (~60–90s window at ≈01:11 UTC). Modal could not be reproduced after the outage cleared. Root cause is FE `classifyApiError()` mapping 5xx → session_expired (legacy behavior, independent of 15.13E). Recommended P2 polish: map 5xx → "platform_unavailable".
+- **Gaps documented**: Real production Asset Admin (`info@forgedopshq.com`) browser cert pending — no password available to drive their session. Backend code path is provably correct (preview 15.13F cert + production curl proof). Operator action: have the real user log in and confirm dashboard renders.
+- **NO PRODUCTION DATA MUTATED** during cert. NO accounts created. NO emails sent.
+- **Deliverable**: `TRACK_15_13G_LIVE_POST_DEPLOY_VERIFICATION.md` + 22 screenshots in `/app/memory/track_15_13g_screens/`.
+
+## Previous Closed Track (2026-06-17 · TRACK 15.13F · FINAL PRE-DEPLOY RUNTIME CERTIFICATION · 🟢 READY TO DEPLOY)
 - **Track:** Final pre-deploy runtime cert for 15.13B/C/E. Real browser, real production-shaped data (Oxford CC5744 DR with 12 photos), end-to-end workflows. Not unit tests, not curl-only.
 - **Verdict:** 🟢 ALL workflows completed end-to-end. Asset Admins (both directory_flag AND legacy_shop_role paths), HR users (real Oxford DR with photos), iPad portrait + landscape, AND negative-control mechanic blocked with 403 (no false session-expired modal).
 - **Browser proof (22 screenshots)** in `/app/memory/track_15_13f_screens/`: Asset Admin login → `/shop/asset-care` (705 assets, all KPIs live) · Legacy-role Asset Admin same dashboard · Mechanic direct-nav rejected with red toast "Asset Administrator access required." (no session expired) · HR Daily Reports list (200 reports, "READ-ONLY · HR" banner, no edit/delete/email/approval) · HR opened real Oxford DR (CC5744 - OXFORD RD Improvements, project 24-12, May 5 2026, Allen Smathers superintendent, 12 actual photos rendering, lifecycle controls disabled) · iPad portrait + landscape pass with no horizontal scroll.
