@@ -10,8 +10,9 @@ sees the same integration layer from their respective portal.
 from __future__ import annotations
 from typing import Callable, Awaitable, Optional
 
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, Request
 
+from auth_must_change import enforce_password_change_required
 from safety_users import is_valid_safety_user_token_async
 from hr_users import is_valid_hr_user_token_async
 from field_leadership_users import is_valid_fl_user_token_async
@@ -100,6 +101,10 @@ def make_require_any_portal_token(
                             actor["is_asset_admin"] = True
                     except Exception:
                         pass
+        # Track 15.14A Layer 3 — temp-password backstop. Reject any
+        # protected call when the resolved actor still owes a password
+        # rotation. /me, /change-password, /logout etc are exempt.
+        enforce_password_change_required(request, actor)
         return actor
 
     return _require_any_portal_token

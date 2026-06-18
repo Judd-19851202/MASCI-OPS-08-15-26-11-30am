@@ -5,6 +5,7 @@ import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { buildContinuity } from "@/lib/portalContinuity";
+import { getMustChange } from "@/lib/mustChangePassword";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
@@ -22,7 +23,13 @@ export function RequireFl({ children }) {
   const location = useLocation();
   const hasToken = isFl();
   const state = usePortalHydration("field_leadership", hasToken);
-  if (state === "ready") return children;
+  if (state === "ready") {
+    const mustChange = getMustChange("fl") || getMustChange("field_leadership");
+    if (mustChange && !/\/field-leadership\/portal\/change-password/.test(location.pathname)) {
+      return <Navigate to="/field-leadership/portal/change-password" replace />;
+    }
+    return children;
+  }
   if (state === "hydrating") return <PortalHydratingLoader portal="field_leadership" />;
   if (isSignedInAnywhere()) {
     return <AccessDenied attemptedPortal="field_leadership" />;

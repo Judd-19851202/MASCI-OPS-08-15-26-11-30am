@@ -24,6 +24,7 @@ import {
   isDispatch,
 } from "@/lib/dispatchAuth";
 import { setAdminToken } from "@/lib/adminAuth";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -63,12 +64,15 @@ export default function DispatchLogin() {
       }
       setDispatchToken(r.data.token, remember);
       setDispatchUser(r.data.user);
+      // Track 15.14A Layer 2 — persist must-change-password flag.
+      const mustChange = !!r.data.must_change_password;
+      setMustChange("dispatch", mustChange);
       toast.success(t("Welcome to Dispatch"));
       // iter322-B · honor redirect intent
       const intended = location.state?.continuity?.continueTo
         || location.state?.from
         || "/dispatch-portal";
-      if (r.data.must_change_password) {
+      if (mustChange) {
         nav("/dispatch-portal/change-password", {
           replace: true,
           state: { from: intended },

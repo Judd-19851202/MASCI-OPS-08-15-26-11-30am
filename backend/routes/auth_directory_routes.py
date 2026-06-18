@@ -259,6 +259,31 @@ def build_auth_directory_router(
         session_token = ud.make_directory_token()
         await ud.persist_session(db, token=session_token, user_id=row["id"])
         await ud.stamp_last_login(db, user_id=row["id"], portal="multi")
+
+        # Track 15.14A · Layer 1 — TEMP-PASSWORD ENFORCEMENT.
+        # If the directory user still owes a password rotation, do NOT
+        # hand them any portal tokens. The SPA detects must_change_password
+        # and forces them through /change-password. The session_token
+        # remains valid so /api/auth/change-master-password can authenticate
+        # the rotation itself. After rotation completes the user re-runs
+        # multi-login and gets a full token bundle.
+        if bool(row.get("must_change_password")):
+            await ud.write_audit(
+                db,
+                actor_email=row["email"],
+                action="multi_login_temp_pw_blocked",
+                target_email=row["email"],
+                diff={"reason": "must_change_password=true; portal_tokens suppressed"},
+                ip=_client_ip(request),
+                user_agent=request.headers.get("user-agent"),
+            )
+            return {
+                "ok": True,
+                "session_token": session_token,
+                "portal_tokens": {},
+                "user": ud.public_view(row),
+                "must_change_password": True,
+            }
         # Initiative 4 fix — reset session_activity for every minted
         # portal token. Each portal token is deterministic per
         # (user_id, pwh), so without this a stale row would expire the
@@ -414,7 +439,46 @@ def build_auth_directory_router(
             target_email=row["email"],
             ip=_client_ip(request) if request else None,
         )
-        return {"ok": True}
+        # Track 15.14A · Layer 4 — after a successful rotation, re-mint
+        # the full portal-token bundle so the SPA can land the user on
+        # their portal in one round-trip (no second sign-in required).
+        # The old per-portal tokens, if any, are HMAC-bound to the prior
+        # password hash and were already invalidated by the password
+        # change above.
+        fresh_row = await db.user_directory.find_one(
+            {"id": row["id"]}, {"_id": 0},
+        )
+        portal_tokens = await _mint_all(fresh_row or row)
+        try:
+            from session_timeout import reset_session_activity
+            import asyncio  # noqa: PLC0415
+            _tier = {
+                "admin": "ADMIN_HR", "hr": "ADMIN_HR",
+                "pm": "OPERATIONS", "shop": "OPERATIONS",
+                "safety": "OPERATIONS", "dispatch": "OPERATIONS",
+                "field_leadership": "ADMIN_FL",
+            }
+            _ua = (request.headers.get("user-agent") if request else "") or ""
+            _ip = _client_ip(request) if request else None
+            _tasks = [
+                reset_session_activity(
+                    db, _tok, _tier.get(_p, "OPERATIONS"),
+                    user_id=(fresh_row or row).get("id"),
+                    email=(fresh_row or row).get("email"),
+                    actor_label=_p, ip=_ip, user_agent=_ua,
+                )
+                for _p, _tok in (portal_tokens or {}).items() if _tok
+            ]
+            if _tasks:
+                await asyncio.gather(*_tasks, return_exceptions=True)
+        except Exception:  # noqa: BLE001
+            pass
+        return {
+            "ok": True,
+            "portal_tokens": portal_tokens,
+            "user": ud.public_view(fresh_row or row),
+            "must_change_password": False,
+        }
 
     # ── Admin endpoints ─────────────────────────────────────────────
     @router.get("/api/admin/directory", dependencies=[Depends(require_admin_strict_dep)])

@@ -12,6 +12,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
+import { setMustChange } from "@/lib/mustChangePassword";
 import {
   getSafetyToken,
   setSafetyToken,
@@ -73,6 +74,7 @@ export default function SafetyChangePassword() {
       if (r.data?.ok && r.data?.token) {
         setSafetyToken(r.data.token, true);
         setSafetyUser(r.data.user || {});
+        setMustChange("safety", false);
         toast.success(t("Password updated"));
         navigate(originalFrom, { replace: true });
       } else {

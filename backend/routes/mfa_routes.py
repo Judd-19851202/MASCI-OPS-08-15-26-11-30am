@@ -303,6 +303,30 @@ def build_mfa_router(db, require_admin_strict_dep: Callable,
             raise HTTPException(400, "Invalid code.")
         # SUCCESS — reset failures, mint portal tokens, write audit
         await mfa.reset_failures(db, user_id)
+
+        # Track 15.14A · Layer 1 — TEMP-PASSWORD ENFORCEMENT on MFA path.
+        # If the directory user still owes a password rotation, hand back
+        # the session_token but NO portal tokens so the SPA must force
+        # them through /change-password before any portal can be used.
+        if bool(row.get("must_change_password")):
+            session_token = ud.make_directory_token()
+            await ud.persist_session(db, token=session_token, user_id=row["id"])
+            await ud.stamp_last_login(db, user_id=row["id"], portal="multi")
+            await mfa.write_audit(
+                db, user_id=user_id, user_email=row.get("email"),
+                event="LOGIN_TEMP_PW_BLOCKED",
+                ip=_client_ip(request),
+                user_agent=request.headers.get("user-agent"),
+                metadata={"reason": "must_change_password=true; portal_tokens suppressed"},
+            )
+            return {
+                "ok": True,
+                "session_token": session_token,
+                "portal_tokens": {},
+                "user": ud.public_view(row),
+                "must_change_password": True,
+            }
+
         portal_tokens = await mint_all_portal_tokens_fn(row)
         session_token = ud.make_directory_token()
         await ud.persist_session(db, token=session_token, user_id=row["id"])

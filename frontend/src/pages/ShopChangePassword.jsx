@@ -10,6 +10,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setShopToken, clearShopToken } from "@/lib/shopAuth";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { toast } from "sonner";
 
 /**
@@ -79,6 +80,7 @@ export default function ShopChangePassword() {
       });
       if (r.data?.ok && r.data?.token) {
         setShopToken(r.data.token, { remember: true });
+        setMustChange("shop", false);
         toast.success(t("Password updated"));
         navigate(originalFrom, { replace: true });
       } else {

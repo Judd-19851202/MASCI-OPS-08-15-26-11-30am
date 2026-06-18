@@ -12,6 +12,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
+import { setMustChange } from "@/lib/mustChangePassword";
 import {
   getDispatchToken,
   setDispatchToken,
@@ -73,6 +74,7 @@ export default function DispatchChangePassword() {
       if (r.data?.ok && r.data?.token) {
         setDispatchToken(r.data.token, true);
         setDispatchUser(r.data.user || {});
+        setMustChange("dispatch", false);
         toast.success(t("Password updated"));
         navigate(originalFrom, { replace: true });
       } else {

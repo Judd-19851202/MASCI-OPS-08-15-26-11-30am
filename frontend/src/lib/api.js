@@ -10,6 +10,7 @@ import { getHrToken, clearHrToken } from "@/lib/hrAuth";
 import { getFlToken, clearFlToken } from "@/lib/flAuth";
 import { getSafetyToken, clearSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken, clearDispatchToken } from "@/lib/dispatchAuth";
+import { setMustChange, redirectToChangePassword } from "@/lib/mustChangePassword";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -140,6 +141,61 @@ api.interceptors.response.use(
         } catch { /* never crash the interceptor */ }
       }
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // Track 15.14A · Layer 3 client handler — backend backstop sent
+    // HTTP 403 with `{detail:{code:"PASSWORD_CHANGE_REQUIRED"}}`.
+    // Detect, persist the per-portal flag, and bounce the user into
+    // the right /change-password page. Idempotent + silent.
+    // ─────────────────────────────────────────────────────────────
+    try {
+      if (err?.response?.status === 403) {
+        const det = err?.response?.data?.detail;
+        const code =
+          (det && typeof det === "object" && det.code) ||
+          (typeof det === "string" && det.includes("PASSWORD_CHANGE_REQUIRED")
+            ? "PASSWORD_CHANGE_REQUIRED"
+            : null);
+        if (code === "PASSWORD_CHANGE_REQUIRED") {
+          const cfgHdrs = err?.config?.headers || {};
+          let portal = null;
+          if (cfgHdrs["X-HR-Token"]) portal = "hr";
+          else if (cfgHdrs["X-PM-Token"]) portal = "pm";
+          else if (cfgHdrs["X-Shop-Token"]) portal = "shop";
+          else if (cfgHdrs["X-Safety-Token"]) portal = "safety";
+          else if (cfgHdrs["X-Dispatch-Token"]) portal = "dispatch";
+          else if (cfgHdrs["X-FL-Token"]) portal = "fl";
+          else if (cfgHdrs["X-Admin-Token"]) portal = "admin";
+          if (!portal) {
+            // Fall back to active portal from URL.
+            const p = (typeof window !== "undefined" && window.location && window.location.pathname) || "";
+            if (p.startsWith("/hr")) portal = "hr";
+            else if (p.startsWith("/pm")) portal = "pm";
+            else if (p.startsWith("/shop")) portal = "shop";
+            else if (p.startsWith("/safety")) portal = "safety";
+            else if (p.startsWith("/dispatch")) portal = "dispatch";
+            else if (p.startsWith("/field-leadership")) portal = "fl";
+            else if (p.startsWith("/admin")) portal = "admin";
+          }
+          if (portal) {
+            setMustChange(portal, true);
+            // Only redirect if we're not already on the change-password
+            // route (avoid bounce loops).
+            const here =
+              typeof window !== "undefined" && window.location
+                ? window.location.pathname
+                : "";
+            if (!/change-password/.test(here)) {
+              redirectToChangePassword(portal);
+            }
+            // Stop session_status publish below — this is not an auth
+            // failure, it's a flow gate.
+            return Promise.reject(err);
+          }
+        }
+      }
+    } catch { /* never break interceptor */ }
+
     // TRACK 14.0-PLATFORM-STABILITY · Namespace-scoped 401 handling.
     //
     // The previous implementation cleared the matching portal token on

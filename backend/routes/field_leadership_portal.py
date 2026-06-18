@@ -48,6 +48,8 @@ from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
+from auth_must_change import enforce_password_change_required
+
 import field_leadership_users as fl
 from branded_portal_emails import render_portal_email
 from field_leadership_users import (
@@ -122,6 +124,7 @@ def build_field_leadership_portal_router(
 
     # ─── FL token resolver ───────────────────────────────────────────
     async def require_fl_user(
+        request: Request,
         x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
     ) -> Dict[str, Any]:
         if not x_fl_token:
@@ -129,6 +132,8 @@ def build_field_leadership_portal_router(
         user = await is_valid_fl_user_token_async(db, x_fl_token)
         if not user:
             raise HTTPException(401, "Field leadership session expired or invalid")
+        # Track 15.14A Layer 3 — temp-password backstop.
+        enforce_password_change_required(request, user)
         return {**user, "_actor_kind": "fl_user"}
 
     # ─── HR-or-Admin combined gate (operator iter314 mandate: HR and
@@ -153,6 +158,7 @@ def build_field_leadership_portal_router(
         if x_hr_token:
             user = await is_valid_hr_user_token_async(db, x_hr_token)
             if user:
+                enforce_password_change_required(request, user)
                 return {**user, "_actor_kind": "hr_user"}
         raise HTTPException(401, "Admin or HR login required")
 

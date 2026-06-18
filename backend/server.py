@@ -124,6 +124,9 @@ from admin_hardening import (  # noqa: E402
     step_up_enabled as _admin_step_up_enabled,
 )
 
+# Track 15.14A · Layer 3 backend backstop for temp-password enforcement.
+from auth_must_change import enforce_password_change_required  # noqa: E402
+
 
 
 # ------------------------- Rate limiting (in-memory, single-instance) -------------------------
@@ -367,6 +370,7 @@ async def require_admin(
                 # can apply per-PM data scoping. Existing callers that
                 # ignore the value (``_: bool = Depends(require_admin)``)
                 # keep working since a non-empty dict is truthy.
+                enforce_password_change_required(request, pm_doc)
                 return pm_doc
         # Legacy shared-PM token (env-flag bypass).
         elif _is_valid_pm_token(x_pm_token):
@@ -411,6 +415,7 @@ async def require_admin_async(
             from pm_auth import is_valid_pm_user_token_async
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
+                enforce_password_change_required(request, pm_doc)
                 return pm_doc
         elif _is_valid_pm_token(x_pm_token):
             return True
@@ -536,6 +541,7 @@ async def require_shop_or_admin(
             from pm_auth import is_valid_pm_user_token_async
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
+                enforce_password_change_required(request, pm_doc)
                 return pm_doc
         elif _is_valid_pm_token(x_pm_token):
             return True
@@ -553,6 +559,7 @@ async def require_shop_or_admin(
             # NOT a project-scoped PM. Without this tag the scope helper
             # would treat the shop user's email as a PM email, find zero
             # assigned jobs, and 404 every record fetch. Fixed iter69.
+            enforce_password_change_required(request, user)
             return {**user, "_actor_kind": "shop_user"}
     raise HTTPException(status_code=401, detail="Shop, PM, or admin login required")
 
@@ -647,6 +654,7 @@ async def require_admin_or_asset_admin(
                 {"_id": 0, "is_asset_admin": 1},
             )
             if dir_row and dir_row.get("is_asset_admin") is True:
+                enforce_password_change_required(request, user)
                 return {
                     **user,
                     "_actor_kind": "shop_user",
@@ -661,6 +669,7 @@ async def require_admin_or_asset_admin(
     # Path 2 — legacy shop role label. Required because existing
     # Asset Admin users may not yet have a directory mirror row.
     if _role_implies_asset_admin(user.get("role")):
+        enforce_password_change_required(request, user)
         return {
             **user,
             "_actor_kind": "shop_user",
@@ -697,6 +706,7 @@ async def require_admin_pm_or_hr_read(
             from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
+                enforce_password_change_required(request, pm_doc)
                 return pm_doc
         elif _is_valid_pm_token(x_pm_token):
             return True
@@ -704,6 +714,7 @@ async def require_admin_pm_or_hr_read(
         from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
         u = await is_valid_hr_user_token_async(db, x_hr_token)
         if u:
+            enforce_password_change_required(request, u)
             return {**u, "_actor_kind": "hr_user", "_actor": "hr"}
     if not (x_admin_token or x_pm_token or x_hr_token):
         raise HTTPException(

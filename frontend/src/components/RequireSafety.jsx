@@ -17,13 +17,19 @@ import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { buildContinuity } from "@/lib/portalContinuity";
+import { getMustChange } from "@/lib/mustChangePassword";
 import AccessDenied from "@/pages/AccessDenied";
 
 export function RequireSafety({ children }) {
   const location = useLocation();
   const hasToken = isSafety();
   const state = usePortalHydration("safety", hasToken);
-  if (state === "ready") return children;
+  if (state === "ready") {
+    if (getMustChange("safety") && !/\/safety-portal\/change-password/.test(location.pathname)) {
+      return <Navigate to="/safety-portal/change-password" replace />;
+    }
+    return children;
+  }
   if (state === "hydrating") return <PortalHydratingLoader portal="safety" />;
   if (isSignedInAnywhere()) {
     return <AccessDenied attemptedPortal="safety" />;

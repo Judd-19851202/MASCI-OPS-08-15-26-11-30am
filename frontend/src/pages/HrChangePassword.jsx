@@ -10,6 +10,7 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setHrToken, setHrUser, clearHrToken } from "@/lib/hrAuth";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { toast } from "sonner";
 
 /**
@@ -82,6 +83,7 @@ export default function HrChangePassword() {
       if (r.data?.ok && r.data?.token) {
         setHrToken(r.data.token, true);
         setHrUser(r.data.user || {});
+        setMustChange("hr", false);
         toast.success(t("Password updated"));
         navigate(originalFrom, { replace: true });
       } else {

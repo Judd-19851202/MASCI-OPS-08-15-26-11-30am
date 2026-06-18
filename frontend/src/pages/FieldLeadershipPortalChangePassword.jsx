@@ -10,6 +10,7 @@ import { useT } from "@/lib/i18n";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
 import { setFlToken, getFlUser } from "@/lib/flAuth";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { toast } from "sonner";
 
 /**
@@ -44,6 +45,8 @@ export default function FieldLeadershipPortalChangePassword() {
       const r = await api.post("/field-leadership/portal/change-password", body);
       const tok = r?.data?.token;
       if (tok) setFlToken(tok, true);
+      setMustChange("fl", false);
+      setMustChange("field_leadership", false);
       toast.success(t("Password updated"));
       navigate("/field-leadership/portal/dashboard", { replace: true });
     } catch (err) {

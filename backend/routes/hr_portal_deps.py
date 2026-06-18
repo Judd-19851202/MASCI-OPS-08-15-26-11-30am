@@ -34,8 +34,9 @@ from __future__ import annotations
 
 from typing import Any, Awaitable, Callable, Dict, Optional
 
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, Request
 
+from auth_must_change import enforce_password_change_required
 from hr_users import is_valid_hr_user_token_async
 
 
@@ -54,6 +55,7 @@ def make_require_hr_user(db) -> Callable[..., Awaitable[Dict[str, Any]]]:
     """
 
     async def _require_hr_user(
+        request: Request,
         x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
     ) -> Dict[str, Any]:
         if not x_hr_token:
@@ -61,6 +63,11 @@ def make_require_hr_user(db) -> Callable[..., Awaitable[Dict[str, Any]]]:
         user = await is_valid_hr_user_token_async(db, x_hr_token)
         if not user:
             raise HTTPException(401, "HR session expired or invalid")
+        # Track 15.14A Layer 3 — backend backstop. Reject any
+        # protected call when the resolved user still owes a
+        # password rotation. Change-password / me / logout are
+        # exempt by path allow-list inside the helper.
+        enforce_password_change_required(request, user)
         return {**user, "_actor_kind": "hr_user"}
 
     return _require_hr_user

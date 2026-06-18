@@ -23,6 +23,7 @@ from typing import Callable, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 
+from auth_must_change import enforce_password_change_required
 from dispatch_users import (
     add_dispatch_user,
     consume_dispatch_reset_token,
@@ -91,6 +92,7 @@ class DispatchUserUpdate(BaseModel):
 def make_require_dispatch_token(db) -> Callable[..., dict]:
     """FastAPI dependency: resolve `X-Dispatch-Token` to a user."""
     async def _require_dispatch_token(
+        request: Request,
         x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
     ) -> dict:
         if not x_dispatch_token:
@@ -98,6 +100,8 @@ def make_require_dispatch_token(db) -> Callable[..., dict]:
         user = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
         if not user:
             raise HTTPException(401, "Invalid Dispatch token")
+        # Track 15.14A Layer 3 — temp-password backstop.
+        enforce_password_change_required(request, user)
         return user
     return _require_dispatch_token
 
@@ -118,6 +122,7 @@ def make_require_dispatch_or_admin(
     """
 
     async def _require_dispatch_or_admin(
+        request: Request,
         x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     ) -> dict:
@@ -126,6 +131,7 @@ def make_require_dispatch_or_admin(
         if x_dispatch_token:
             u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
             if u:
+                enforce_password_change_required(request, u)
                 return {"role": "dispatch", **u}
         raise HTTPException(401, "Dispatch or Admin auth required")
 

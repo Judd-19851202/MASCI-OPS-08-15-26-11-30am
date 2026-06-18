@@ -17,6 +17,7 @@ import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { useT } from "@/lib/i18n";
 import {
   Dialog,
@@ -131,7 +132,10 @@ export default function ShopLogin() {
         } catch (_e) { /* ignore storage errors */ }
         const intended =
           location.state?.from || (isAssetAdmin ? "/shop/asset-care" : "/shop");
-        if (res.data.must_change_password) {
+        // Track 15.14A Layer 2 — persist must-change-password flag.
+        const mustChange = !!res.data.must_change_password;
+        setMustChange("shop", mustChange);
+        if (mustChange) {
           toast.success(t("Password rotation required — pick a new one"));
           navigate("/shop/change-password", {
             replace: true,

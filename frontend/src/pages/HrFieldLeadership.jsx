@@ -2,8 +2,9 @@
 // List with filter chips per kind and search box. Clicking an item
 // opens an HR-scoped detail panel with the PDF download link.
 import React, { useCallback, useEffect, useState } from "react";
-import { Loader2, FileText, Search, Eye, X } from "lucide-react";
+import { Loader2, FileText, Search, Eye, X, KeyRound } from "lucide-react";
 import { api, API } from "@/lib/api";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -79,6 +80,22 @@ export default function HrFieldLeadership() {
 
   return (
     <HrPageShell title="Field Leadership Records" kicker="HR · Read-Only">
+      {/* Track 15.14B — make the user-management surface obvious from
+          the records page so HR is not split between two screens. */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 p-3 rounded-md border-2 border-amber-200 bg-amber-50/60">
+        <div className="text-sm text-slate-700">
+          <span className="font-semibold text-slate-900">{t("Field Leadership Records")}</span>{" "}
+          <span className="text-slate-600">
+            {t("· read-only audit of write-ups, coaching, recognition, evaluations.")}
+          </span>
+        </div>
+        <Link to="/hr/field-leadership-users" data-testid="hr-fl-records-to-users">
+          <Button size="sm" className="bg-amber-700 hover:bg-amber-800 text-white">
+            <KeyRound className="w-3.5 h-3.5 mr-1.5" />
+            {t("Manage Field Leadership Users")}
+          </Button>
+        </Link>
+      </div>
       {/* iter221 · surface the iter218 reviewer-side coaching on the
           HR records page. Same family wired on FieldLeadershipRecords
           for supers; HR reviewers need the same anchor: reviewing

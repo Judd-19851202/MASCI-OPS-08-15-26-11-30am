@@ -6,6 +6,7 @@ from typing import Optional, Callable, Awaitable
 
 from fastapi import Header, HTTPException, Request
 
+from auth_must_change import enforce_password_change_required
 from safety_users import is_valid_safety_user_token_async
 
 
@@ -18,6 +19,8 @@ def make_require_safety_token(db) -> Callable[..., Awaitable[dict]]:
         user = await is_valid_safety_user_token_async(db, token)
         if not user:
             raise HTTPException(401, "Safety auth required")
+        # Track 15.14A Layer 3 — temp-password backstop.
+        enforce_password_change_required(request, user)
         return user
 
     return _require_safety_token
@@ -39,6 +42,7 @@ def make_require_safety_or_admin(
         if x_safety_token:
             u = await is_valid_safety_user_token_async(db, x_safety_token)
             if u:
+                enforce_password_change_required(request, u)
                 return {**u, "_actor": "safety"}
         if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
             return {"_actor": "admin", "name": "Admin"}
@@ -80,6 +84,7 @@ def make_require_safety_or_admin_fleet(
         if x_safety_token:
             u = await is_valid_safety_user_token_async(db, x_safety_token)
             if u:
+                enforce_password_change_required(request, u)
                 return {"role": "safety", **u}
         raise HTTPException(401, "Safety or Admin auth required")
 
@@ -122,6 +127,7 @@ def make_require_safety_admin_or_pm(
         if x_safety_token:
             u = await is_valid_safety_user_token_async(db, x_safety_token)
             if u:
+                enforce_password_change_required(request, u)
                 return {**u, "_actor_kind": "safety_user", "_actor": "safety"}
         if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
             return True
@@ -135,6 +141,7 @@ def make_require_safety_admin_or_pm(
                     # can identify it as a PM actor. Pre-existing consumers
                     # spread the dict and ignore unknown keys, so this is
                     # additive-only.
+                    enforce_password_change_required(request, pm_doc)
                     return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm"}
             elif is_valid_pm_token and is_valid_pm_token(x_pm_token):
                 return True
@@ -160,11 +167,13 @@ def make_require_safety_or_hr_or_admin(
         if x_safety_token:
             u = await is_valid_safety_user_token_async(db, x_safety_token)
             if u:
+                enforce_password_change_required(request, u)
                 return {**u, "_actor": "safety"}
         if x_hr_token:
             from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
             u = await is_valid_hr_user_token_async(db, x_hr_token)
             if u:
+                enforce_password_change_required(request, u)
                 return {**u, "_actor": "hr"}
         if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
             return {"_actor": "admin", "name": "Admin"}

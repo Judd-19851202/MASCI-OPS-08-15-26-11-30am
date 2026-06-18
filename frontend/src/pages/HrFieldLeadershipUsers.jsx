@@ -3,7 +3,9 @@
 // the backend route accepts either X-Admin-Token or X-HR-Token.
 // UXS-11E: wrapped in PortalShell (HR Portal).
 import React from "react";
-import { Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Users, ScrollText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import AdminFieldLeadershipUsersPanel from "@/components/AdminFieldLeadershipUsersPanel";
@@ -24,6 +26,21 @@ export default function HrFieldLeadershipUsers() {
       sideNav={<HrSideNavV2 />}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6" data-testid="hr-fl-users-page">
+        {/* Track 15.14B — paired surface anchor. Records ↔ Users. */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 p-3 rounded-md border-2 border-purple-200 bg-purple-50/60">
+          <div className="text-sm text-slate-700">
+            <span className="font-semibold text-slate-900">{t("Field Leadership Users")}</span>{" "}
+            <span className="text-slate-600">
+              {t("· create, disable, and rotate passwords for portal logins.")}
+            </span>
+          </div>
+          <Link to="/hr/field-leadership" data-testid="hr-fl-users-to-records">
+            <Button size="sm" variant="outline" className="border-purple-700 text-purple-700 hover:bg-purple-50">
+              <ScrollText className="w-3.5 h-3.5 mr-1.5" />
+              {t("View Field Leadership Records")}
+            </Button>
+          </Link>
+        </div>
         <HelpTipBlock formKey="field-leadership.user-management" showCounter />
         <div className="mb-4 mt-3 flex items-center gap-2 text-sm text-slate-600">
           <Users className="h-4 w-4 text-purple-700" />

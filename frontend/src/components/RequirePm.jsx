@@ -6,6 +6,7 @@ import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { buildContinuity } from "@/lib/portalContinuity";
+import { getMustChange } from "@/lib/mustChangePassword";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
@@ -25,7 +26,12 @@ export function RequirePm({ children }) {
   const location = useLocation();
   const hasToken = isPm() || isAdmin();
   const state = usePortalHydration("pm", hasToken);
-  if (state === "ready") return children;
+  if (state === "ready") {
+    if (getMustChange("pm") && !/\/pm\/change-password/.test(location.pathname)) {
+      return <Navigate to="/pm/change-password" replace />;
+    }
+    return children;
+  }
   if (state === "hydrating") return <PortalHydratingLoader portal="pm" />;
   if (isSignedInAnywhere()) {
     return <AccessDenied attemptedPortal="pm" />;

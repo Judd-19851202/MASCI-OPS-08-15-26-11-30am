@@ -40,6 +40,7 @@ import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
 import { clearHrToken } from "@/lib/hrAuth";
 import { operationalError } from "@/lib/errors";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
@@ -114,7 +115,11 @@ export default function FieldLeadershipPortalLogin() {
         setFlUser(user);
         toast.success(`${t("Welcome,")} ${user?.name || t("Field Leader")}`);
       }
-      if (r?.data?.must_change_password) {
+      // Track 15.14A Layer 2 — persist must-change-password flag.
+      const mustChange = !!r?.data?.must_change_password;
+      setMustChange("fl", mustChange);
+      setMustChange("field_leadership", mustChange);
+      if (mustChange) {
         navigate("/field-leadership/portal/change-password", { replace: true });
       } else {
         // Land directly in the Field Leadership Hub.

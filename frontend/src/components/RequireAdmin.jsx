@@ -5,6 +5,7 @@ import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { buildContinuity } from "@/lib/portalContinuity";
+import { getMustChange } from "@/lib/mustChangePassword";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
@@ -22,7 +23,15 @@ export function RequireAdmin({ children }) {
   const location = useLocation();
   const hasToken = isAdmin();
   const state = usePortalHydration("admin", hasToken);
-  if (state === "ready") return children;
+  if (state === "ready") {
+    // Admin can be reached either through a per-admin token OR a
+    // directory user whose master rotation is still pending. Honor both.
+    const mustChange = getMustChange("admin") || getMustChange("directory");
+    if (mustChange && !/change-password/.test(location.pathname)) {
+      return <Navigate to="/change-password" replace />;
+    }
+    return children;
+  }
   if (state === "hydrating") return <PortalHydratingLoader portal="admin" />;
   if (isSignedInAnywhere()) {
     return <AccessDenied attemptedPortal="admin" />;

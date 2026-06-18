@@ -6,6 +6,7 @@ import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { buildContinuity } from "@/lib/portalContinuity";
+import { getMustChange } from "@/lib/mustChangePassword";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
@@ -23,7 +24,12 @@ export function RequireShop({ children }) {
   const location = useLocation();
   const hasToken = isShop() || isAdmin();
   const state = usePortalHydration("shop", hasToken);
-  if (state === "ready") return children;
+  if (state === "ready") {
+    if (getMustChange("shop") && !/\/shop\/change-password/.test(location.pathname)) {
+      return <Navigate to="/shop/change-password" replace />;
+    }
+    return children;
+  }
   if (state === "hydrating") return <PortalHydratingLoader portal="shop" />;
   if (isSignedInAnywhere()) {
     return <AccessDenied attemptedPortal="shop" />;

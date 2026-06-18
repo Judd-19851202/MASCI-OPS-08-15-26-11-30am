@@ -17,6 +17,7 @@ import { setPmToken, clearPmToken, isPm } from "@/lib/pmAuth";
 import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearShopToken } from "@/lib/shopAuth";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -122,8 +123,11 @@ export default function PmLogin() {
           return;
         }
         setPmToken(res.data.token, { remember: rememberMe });
+        // Track 15.14A Layer 2 — persist must-change-password flag.
+        const mustChange = !!res.data.must_change_password;
+        setMustChange("pm", mustChange);
         // First-time login OR admin reset → must rotate before any access.
-        if (res.data.must_change_password) {
+        if (mustChange) {
           toast.info(t("Welcome — please choose a new password"));
           navigate("/pm/change-password", {
             replace: true,

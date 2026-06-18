@@ -14,6 +14,7 @@ import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setHrToken, setHrUser, clearHrToken, isHr } from "@/lib/hrAuth";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearPmToken } from "@/lib/pmAuth";
@@ -134,6 +135,9 @@ export default function HrLogin() {
         const mustChange =
           res.data.must_change_password ||
           res.data.user?.must_change_password;
+        // Track 15.14A Layer 2 — persist the flag so the route guard
+        // catches deep-links / bookmarks too.
+        setMustChange("hr", !!mustChange);
         if (mustChange) {
           toast.info(t("Welcome — please choose a new password"));
           // Small microtask yield so localStorage write commits before

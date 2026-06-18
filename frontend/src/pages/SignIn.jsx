@@ -27,6 +27,7 @@ import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearHrToken } from "@/lib/hrAuth";
 import { clearShopToken } from "@/lib/shopAuth";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { passkeySupported, platformAuthenticatorAvailable, signInWithPasskey } from "@/lib/passkeys";
 import { toast } from "sonner";
 
@@ -75,6 +76,13 @@ export default function SignIn() {
       }
       if (data?.ok) {
         applyMultiLoginResponse(data, rememberMe);
+        // Track 15.14A Layer 1 — temp-password enforcement on passkey path.
+        if (data.must_change_password) {
+          setMustChange("directory", true);
+          toast.info(t("Welcome — please choose a new password to continue"));
+          navigate("/change-password", { replace: true });
+          return;
+        }
         toast.success(`${t("Welcome")} ${data?.user?.name || ""}`, { duration: 4000 });
         navigate(landingFor(data.user), { replace: true });
       } else {
@@ -128,6 +136,19 @@ export default function SignIn() {
         const granted = Object.entries(res.data.portal_tokens || {})
           .filter(([, v]) => !!v)
           .map(([k]) => k);
+        // Track 15.14A Layer 1 — temp-password enforcement. The
+        // backend suppresses portal_tokens entirely when the directory
+        // user still owes a password rotation. The SPA must NOT
+        // proceed to landingFor() because no portal tokens exist;
+        // we drop the user into the unified /change-password flow
+        // (uses the session_token) and let them re-acquire the token
+        // bundle after a successful rotation.
+        if (res.data.must_change_password) {
+          setMustChange("directory", true);
+          toast.info(t("Welcome — please choose a new password to continue"));
+          navigate("/change-password", { replace: true });
+          return;
+        }
         toast.success(
           `${t("Welcome")} ${user?.name || ""} · ${t("Signed in to")}: ${
             granted.length ? granted.map((p) => p.toUpperCase()).join(" · ") : "—"
@@ -169,6 +190,13 @@ export default function SignIn() {
       const res = await api.post("/auth/mfa/verify-login", payload, { timeout: 30000 });
       if (res?.data?.ok) {
         applyMultiLoginResponse(res.data, rememberMe);
+        // Track 15.14A Layer 1 — temp-password enforcement on MFA path.
+        if (res.data.must_change_password) {
+          setMustChange("directory", true);
+          toast.info(t("Welcome — please choose a new password to continue"));
+          navigate("/change-password", { replace: true });
+          return;
+        }
         toast.success(`${t("Welcome")} ${res.data?.user?.name || ""}`, { duration: 4000 });
         navigate(landingFor(res.data.user), { replace: true });
       } else {

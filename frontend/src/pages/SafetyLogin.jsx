@@ -24,6 +24,7 @@ import {
   isSafety,
 } from "@/lib/safetyAuth";
 import { setAdminToken } from "@/lib/adminAuth";
+import { setMustChange } from "@/lib/mustChangePassword";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -78,13 +79,16 @@ export default function SafetyLogin() {
       }
       setSafetyToken(r.data.token, remember);
       setSafetyUser(r.data.user);
+      // Track 15.14A Layer 2 — persist must-change-password flag.
+      const mustChange = !!r.data.must_change_password;
+      setMustChange("safety", mustChange);
       toast.success(t("Welcome to the Safety Portal"));
       // iter322-B · honor redirect intent — bounce user back to the
       // protected workflow they originally clicked, not the hub root.
       const intended = location.state?.continuity?.continueTo
         || location.state?.from
         || "/safety-portal";
-      if (r.data.must_change_password) {
+      if (mustChange) {
         nav("/safety-portal/change-password", {
           replace: true,
           state: { from: intended },

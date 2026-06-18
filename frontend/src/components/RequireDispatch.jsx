@@ -14,13 +14,19 @@ import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { buildContinuity } from "@/lib/portalContinuity";
+import { getMustChange } from "@/lib/mustChangePassword";
 import AccessDenied from "@/pages/AccessDenied";
 
 export function RequireDispatch({ children }) {
   const location = useLocation();
   const hasToken = isDispatch();
   const state = usePortalHydration("dispatch", hasToken);
-  if (state === "ready") return children;
+  if (state === "ready") {
+    if (getMustChange("dispatch") && !/\/dispatch-portal\/change-password/.test(location.pathname)) {
+      return <Navigate to="/dispatch-portal/change-password" replace />;
+    }
+    return children;
+  }
   if (state === "hydrating") return <PortalHydratingLoader portal="dispatch" />;
   if (isSignedInAnywhere()) {
     return <AccessDenied attemptedPortal="dispatch" />;

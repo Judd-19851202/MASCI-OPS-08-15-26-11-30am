@@ -120,6 +120,7 @@ import ShopChangePassword from "@/pages/ShopChangePassword";
 import ShopResetPassword from "@/pages/ShopResetPassword";
 import HrLogin from "@/pages/HrLogin";
 import SignIn from "@/pages/SignIn";
+import DirectoryChangePassword from "@/pages/DirectoryChangePassword";
 const AdminPeople = React.lazy(() => import("@/pages/admin/AdminPeople"));
 const AdminMfa = React.lazy(() => import("@/pages/admin/AdminMfa"));
 const AdminPromoAssets = React.lazy(() => import("@/pages/admin/AdminPromoAssets"));
@@ -837,6 +838,7 @@ function App() {
                 ============================================================ */}
             <Route path="/hr/login" element={<HrLogin />} />
             <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/change-password" element={<DirectoryChangePassword />} />
             <Route path="/hr/forgot" element={<HrForgotPassword />} />
             <Route path="/hr/reset/:token" element={<HrResetPassword />} />
             <Route path="/hr/change-password" element={H(<HrChangePassword />)} />

@@ -10,7 +10,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-18 · TRACK 15.13K · HR DAILY REPORTS FINAL SIMPLIFICATION · 🟢 READY TO DEPLOY)
+## Latest Track (2026-06-18 · TRACK 15.14A/B · TEMP-PASSWORD ENFORCEMENT + FL RECOVERY · 🟡 ENGINEERING COMPLETE · PRODUCTION VERIFICATION PENDING)
+- **Track:** Platform Trust Recovery — eliminated the temp-password bypass across every portal AND repaired HR Field Leadership navigation in a single execution.
+- **Track 15.14A · Layer 3 backend backstop**: `auth_must_change.py` raises HTTP 403 with `{detail:{code:"PASSWORD_CHANGE_REQUIRED"}}` from EVERY portal `require_*` dependency when the resolved user's `must_change_password=true`, except for `/me`, `/change-password`, `/logout`, `/forgot-password`, `/reset-password`, `/reset/{token}` paths. Patched: HR, PM, Shop, Safety, Dispatch, Field Leadership, plus `require_admin`, `require_admin_async`, `require_admin_or_asset_admin`, `require_admin_pm_or_hr_read`, `require_safety_or_admin`, `require_safety_or_hr_or_admin`, `require_dispatch_or_admin`, and the integrations `require_any_portal_token` aggregator.
+- **Track 15.14A · Layer 1 multi-login suppression**: `/api/auth/multi-login` and `/api/auth/mfa/verify-login` now return `portal_tokens={}` + `must_change_password=true` + a directory `session_token` when the directory user owes rotation. Audited as `multi_login_temp_pw_blocked` / `LOGIN_TEMP_PW_BLOCKED`.
+- **Track 15.14A · Layer 4 post-rotation re-mint**: `/api/auth/change-master-password` now re-mints the full portal-token bundle and clears the flag in one round-trip — no second login required.
+- **Track 15.14A · Layer 2 client guards**: every `Require*` (HR/PM/Shop/Safety/Dispatch/FL/Admin) reads `getMustChange(portal)` from a new `lib/mustChangePassword.js` and bounces to the right `/change-password` route before any protected fetch fires. `lib/api.js` also handles 403 PASSWORD_CHANGE_REQUIRED globally as defense-in-depth.
+- **Track 15.14A · Layer 1 SPA (`/sign-in` master)**: SignIn.jsx now routes through `/change-password` (new unified `DirectoryChangePassword.jsx`) when multi-login/MFA/passkey responses carry `must_change_password=true`. Every per-portal login page stamps the flag on success. Every per-portal change-password page clears it.
+- **Track 15.14B · UX recovery**: HR side-nav now reads "Field Leadership Users" + "Field Leadership Records" side-by-side. Records page → primary CTA "Manage Field Leadership Users". Users page → secondary CTA "View Field Leadership Records". No isolated workflows, no hidden management surface.
+- **Browser proof on preview**: HR Manager → Records page renders CTA → Users page renders CTA → setting `hr_must_change_password=1` in localStorage and deep-linking `/hr/employees` bounces to `/hr/change-password` (screenshot captured).
+- **Backend proof on preview**: `backend/tests/track_15_14a_backstop_proof.py` runs full create-temp-pw → login → 403 PASSWORD_CHANGE_REQUIRED → rotate → 200 + fresh token → old token rejected loop on HR / Dispatch / Safety / FL portals. All PASS.
+- **Directory flow proof on preview**: create directory user mcp=true → multi-login returns `portal_tokens={}` → change-master-password returns `portal_tokens={hr,pm}` + mcp=false → re-login mints full bundle.
+- **Pending**: Production data-state read for `field_leadership_users` (operator must run the documented Mongo command on `masci_safety`). Real-device production verification of every flow (deploy + walkthrough).
+- **Deliverable**: `/app/memory/TRACK_15_14_TEMP_PASSWORD_FL_RECOVERY_CERT.md`. Audit predecessor: `/app/memory/TRACK_15_14_PLATFORM_REALITY_AUDIT.md`.
+
+## Previous Track (2026-06-18 · TRACK 15.13K · HR DAILY REPORTS FINAL SIMPLIFICATION · 🟢 READY TO DEPLOY)
 - **Track:** Final HR simplification per user's explicit directive — stop adding features, REMOVE complexity. 4 surgical edits, 0 new features.
 - **What was deleted**: KPI strip (REPORTS/CREWS/SUBS/VISITORS cards) from HR Daily Reports page. HR Hub Daily Reports tile no longer shows a count or "last 10" wording. Defensive "No edit, no delete, no email, no approval" subtitle copy. Mobile-network false-positive bias in BackendStatusBanner (2-fail → 4-fail threshold).
 - **What stayed**: 15.13I auto-retry layer. 15.13H portal-scoped 401 absorption. Read-only routing. HR cannot mutate.

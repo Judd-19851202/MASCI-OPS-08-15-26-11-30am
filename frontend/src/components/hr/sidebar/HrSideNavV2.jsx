@@ -33,7 +33,8 @@ export const HR_DOMAINS_V2 = [
       { to: "/hr",                        label: "Overview",            desc: "Today's HR signal across the field.",                 icon: Activity, end: true },
       { to: "/hr/employees",              label: "Employee Lifecycle",  desc: "Add, status, offboarding, termination playbook.",     icon: Users },
       { to: "/hr/employee-accountability", label: "Employee Accountability", desc: "Per-employee records, history, equipment, clearance.", icon: Search },
-      { to: "/hr/field-leadership",       label: "Field Leadership",    desc: "Crew docs, coaching, recognition, evaluations.",      icon: Users },
+      { to: "/hr/field-leadership-users", label: "Field Leadership Users",   desc: "Create, disable, reset passwords for Field Leadership logins.", icon: KeyRound },
+      { to: "/hr/field-leadership",       label: "Field Leadership Records", desc: "Crew docs, coaching, recognition, evaluations.",  icon: Users },
     ],
   },
   {
@@ -70,7 +71,6 @@ export const HR_DOMAINS_V2 = [
     stripe: "#b45309", // amber-700
     icon: KeyRound,
     routes: [
-      { to: "/hr/field-leadership-users", label: "FL Portal Accounts", desc: "Issue, reset, deactivate Field Leadership logins.", icon: KeyRound },
       { to: "/hr/change-password",        label: "Change Password",    desc: "Rotate your sign-in credentials.",                 icon: KeyRound },
     ],
   },
