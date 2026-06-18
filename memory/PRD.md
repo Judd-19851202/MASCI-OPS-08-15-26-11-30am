@@ -2423,3 +2423,44 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 **Operator action:** push this fix to the repo's default branch; the next 15-min cron run will turn green automatically (or click "Run workflow" via workflow_dispatch to confirm immediately).
 
 **Deliverable:** `/app/memory/TRACK_15_26_PRODUCTION_HEALTH_PROBE_FAILURE_AUDIT.md`
+
+---
+
+## TRACK 15.22A — HR Field Leadership Certification (2026-06-18) · ✅ PASS
+
+**Type:** Read-only browser + API + DB certification.
+
+**Reconciliation (🟢 measured):**
+- MongoDB `field_leadership_users` = **31** docs (24 active, 7 disabled, 24 with mcp=true)
+- API `GET /api/admin/field-leadership-users` (HR token) = **31** users
+- UI `tbody tr` count on `/hr/field-leadership-users` after HR login = **31** rows
+- ✅ All three match exactly. No orphans, no duplicates.
+
+**Live operational tests (12/12 PASS):** create → login-with-temp → protected-endpoints 403-blocked → `/me` allowed → change-password 200 → re-login mcp=false → access restored → old-temp 401 → cleanup DELETE 200.
+
+**Original symptom ("empty roster") not reproducible today** — likely resolved by Track 15.14A/15.14B.
+
+**Deliverable:** `/app/memory/TRACK_15_22A_HR_FIELD_LEADERSHIP_CERTIFICATION.md`
+
+**No code changed. No deploy.**
+
+---
+
+## TRACK 15.23A — Temp Password Enforcement Certification (2026-06-18) · ✅ PASS
+
+**Type:** Read-only security certification.
+
+**Architecture proven (🟢 grep):**
+- Single centralized enforcer `auth_must_change.enforce_password_change_required` (`/app/backend/auth_must_change.py`).
+- **21 callsites** across 6 portal dependency modules (Admin/PM/Shop via server.py × 8, Safety × 7, Dispatch × 2, FL × 2, HR × 1, Integrations × 1).
+- Asset Admin: N/A (zero provisioned users).
+
+**Live end-to-end pass on FL portal (12/12):** forced 403 on every protected endpoint while mcp=true; `/me` correctly allow-listed; change-password rotates and clears flag; old temp invalidated; new password works; bypass attempts via deep-link/token-reuse blocked.
+
+**Stable 403 contract:** `{"detail":{"code":"PASSWORD_CHANGE_REQUIRED","message":"..."}}` — same contract for every portal.
+
+**Original symptom ("temp password did not require change") not reproducible today** — resolved by Track 15.14A/15.14B.
+
+**Deliverable:** `/app/memory/TRACK_15_23A_TEMP_PASSWORD_ENFORCEMENT_CERTIFICATION.md`
+
+**No code changed. No deploy.**
