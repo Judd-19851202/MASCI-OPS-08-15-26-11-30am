@@ -10,7 +10,25 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-18 · TRACK 15.14A/B · TEMP-PASSWORD ENFORCEMENT + FL RECOVERY · 🟡 ENGINEERING COMPLETE · PRODUCTION VERIFICATION PENDING)
+## Latest Track (2026-06-18 · TRACK 15.15 · PLATFORM HARDENING + GAP CLOSURE · 🟢 DEPLOYABLE (preview-certified))
+- **Track:** Hardening + Gap Closure — surgical additive nav repairs to close the highest-value defects from the 15.14D ledger.
+- **Closures in this track (5 fixed + 1 partial + 3 honest-empty already in place):**
+  - **D-01 HR Incidents** added to HR sidebar People Operations group · "Read-only OSHA-relevant list · CSV export"
+  - **D-03 HR Daily Reports** moved from "Compliance & Records" → People Operations · "Read-only HR audit of crew daily reports"
+  - **D-06 HR orphan "Access & Identity" group** collapsed · "Change Password" folded into Guidance
+  - **D-07 Admin Incidents** added to Admin sidebar Safety & Compliance group
+  - **D-08 partial** — Admin Daily Reports + Site Inspections + Compliance Findings + Asset Admin Console all added
+  - **D-09 Admin Asset Admin Console** added to Admin sidebar Workforce group
+  - **D-11/D-12/D-13** all confirmed already render honest dashed-border "Awaiting integration / honest placeholder" disabled states — no change needed
+- **Code touched:** `HrSideNavV2.jsx`, `domainMap.js` (admin). Zero backend changes. Zero API surface change. Zero new features.
+- **Browser proof on preview:** HR sidebar walk 14/14 entries open · Admin sidebar walk 8/8 entries open · HR Daily Reports 5-cycle regression 0 modals 0 banners · iPhone-viewport HR/daily-reports 600 rows · iPad-viewport admin/people 0 modals.
+- **Backend regression:** Track 15.14C harness re-run → 39/39 PASS.
+- **Deferred (each with stated reason):** D-02, D-04, D-14, D-15, D-16, D-17, D-22.
+- **Requires operator/production:** D-18, D-19, D-20, D-21, D-23, D-24.
+- **Out of scope (would require code removal that risks bookmark breakage):** D-05, D-10.
+- **Deliverable:** `/app/memory/TRACK_15_15_PLATFORM_HARDENING_GAP_CLOSURE.md`.
+
+## Previous Track (2026-06-18 · TRACK 15.14A/B · TEMP-PASSWORD ENFORCEMENT + FL RECOVERY · 🟡 ENGINEERING COMPLETE · PRODUCTION VERIFICATION PENDING)
 - **Track:** Platform Trust Recovery — eliminated the temp-password bypass across every portal AND repaired HR Field Leadership navigation in a single execution.
 - **Track 15.14A · Layer 3 backend backstop**: `auth_must_change.py` raises HTTP 403 with `{detail:{code:"PASSWORD_CHANGE_REQUIRED"}}` from EVERY portal `require_*` dependency when the resolved user's `must_change_password=true`, except for `/me`, `/change-password`, `/logout`, `/forgot-password`, `/reset-password`, `/reset/{token}` paths. Patched: HR, PM, Shop, Safety, Dispatch, Field Leadership, plus `require_admin`, `require_admin_async`, `require_admin_or_asset_admin`, `require_admin_pm_or_hr_read`, `require_safety_or_admin`, `require_safety_or_hr_or_admin`, `require_dispatch_or_admin`, and the integrations `require_any_portal_token` aggregator.
 - **Track 15.14A · Layer 1 multi-login suppression**: `/api/auth/multi-login` and `/api/auth/mfa/verify-login` now return `portal_tokens={}` + `must_change_password=true` + a directory `session_token` when the directory user owes rotation. Audited as `multi_login_temp_pw_blocked` / `LOGIN_TEMP_PW_BLOCKED`.

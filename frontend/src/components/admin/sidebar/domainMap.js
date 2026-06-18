@@ -15,6 +15,7 @@ import {
   Activity, Users, Wrench, Mail, ClipboardCheck, Shield,
   Building2, Truck, BookOpen, GraduationCap, History, Database,
   ListChecks, ChartBar, Cable, Film, Map, NotebookPen, ListTodo,
+  AlertTriangle, KeyRound, FileText,
 } from "lucide-react";
 
 export const DOMAINS_V2 = [
@@ -28,6 +29,7 @@ export const DOMAINS_V2 = [
       { to: "/admin",                   label: "Overview",            desc: "KPIs, search, snapshot",                     icon: Activity, end: true },
       { to: "/admin/jobs",              label: "Jobs & Field",        desc: "Job master · posters · banners",             icon: Building2 },
       { to: "/admin/operations-events", label: "Operations Events",   desc: "Append-only operational record",             icon: Activity },
+      { to: "/admin/daily-reports",     label: "Daily Reports",       desc: "Cross-portal daily reports · admin view.",  icon: FileText },
       { to: "/odr/center",              label: "Operational Daily Records", desc: "Field-day system of record · FLL-aware",      icon: NotebookPen },
       { to: "/operations-actions",      label: "Operations Actions",  desc: "Cross-portal operational tasks · owners",   icon: ListTodo },
       { to: "/admin/dispatch",          label: "Dispatch",            desc: "Transfers · holds · utilization",            icon: Truck },
@@ -78,6 +80,9 @@ export const DOMAINS_V2 = [
     icon: ClipboardCheck,
     routes: [
       { to: "/admin/compliance",            label: "Compliance & Audits",  desc: "Exports · date audit",                  icon: ClipboardCheck },
+      { to: "/admin/compliance-findings",   label: "Compliance Findings",  desc: "Open governance findings · severity",   icon: AlertTriangle },
+      { to: "/admin/incidents",             label: "Incidents",            desc: "Safety incidents · admin review.",      icon: AlertTriangle },
+      { to: "/admin/inspections",           label: "Site Inspections",     desc: "Job-site safety inspections.",          icon: ClipboardCheck },
       { to: "/admin/governance",            label: "Governance Health",    desc: "Cross-portal contradictions · score",   icon: Shield },
       { to: "/admin/operational-language",  label: "Operational Language", desc: "Shared glossary · EN + ES",             icon: BookOpen },
     ],

@@ -17,7 +17,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   Activity, Users, Search, Clock, GraduationCap, Calculator,
   CalendarOff, Receipt, Truck, ClipboardList, ShieldCheck, BookOpen,
-  KeyRound, FileText,
+  KeyRound, FileText, AlertTriangle,
 } from "lucide-react";
 
 // Domain groups · ordered by operational frequency (highest first).
@@ -31,8 +31,10 @@ export const HR_DOMAINS_V2 = [
     icon: Users,
     routes: [
       { to: "/hr",                        label: "Overview",            desc: "Today's HR signal across the field.",                 icon: Activity, end: true },
+      { to: "/hr/daily-reports",          label: "Daily Reports",       desc: "Read-only HR audit of crew daily reports.",            icon: ClipboardList },
       { to: "/hr/employees",              label: "Employee Lifecycle",  desc: "Add, status, offboarding, termination playbook.",     icon: Users },
       { to: "/hr/employee-accountability", label: "Employee Accountability", desc: "Per-employee records, history, equipment, clearance.", icon: Search },
+      { to: "/hr/incidents",              label: "Incidents",            desc: "Read-only OSHA-relevant list · CSV export.",          icon: AlertTriangle },
       { to: "/hr/field-leadership-users", label: "Field Leadership Users",   desc: "Create, disable, reset passwords for Field Leadership logins.", icon: KeyRound },
       { to: "/hr/field-leadership",       label: "Field Leadership Records", desc: "Crew docs, coaching, recognition, evaluations.",  icon: Users },
     ],
@@ -61,17 +63,6 @@ export const HR_DOMAINS_V2 = [
       { to: "/hr/training-records",      label: "Training Records",     desc: "Completed tracks and certification roster.",      icon: GraduationCap },
       { to: "/hr/driver-qualification",  label: "Driver Qualification", desc: "CDL holders, endorsements, tanker capability.",   icon: Truck },
       { to: "/hr/safety-records",        label: "Safety Records",       desc: "Read-only Safety document library and per-employee training.", icon: ShieldCheck },
-      { to: "/hr/daily-reports",         label: "Daily Reports",        desc: "Read-only payroll cross-check context.",          icon: ClipboardList },
-    ],
-  },
-  {
-    id: "access-identity",
-    label: "Access & Identity",
-    subline: "Field leadership accounts and sign-in management.",
-    stripe: "#b45309", // amber-700
-    icon: KeyRound,
-    routes: [
-      { to: "/hr/change-password",        label: "Change Password",    desc: "Rotate your sign-in credentials.",                 icon: KeyRound },
     ],
   },
   {
@@ -82,6 +73,7 @@ export const HR_DOMAINS_V2 = [
     icon: BookOpen,
     routes: [
       { to: "/guidance?from=hr", label: "Training Center", desc: "Step-by-step HR operator guides.", icon: BookOpen },
+      { to: "/hr/change-password", label: "Change Password", desc: "Rotate your sign-in credentials.", icon: KeyRound },
     ],
   },
 ];
