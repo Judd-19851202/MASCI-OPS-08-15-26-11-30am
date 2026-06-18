@@ -3364,3 +3364,40 @@ All under `/app/memory/track_15_13f_screens/`.
 
 ### Deliverable
 `/app/memory/TRACK_15_13G_LIVE_POST_DEPLOY_VERIFICATION.md` — 14-section live cert report with deployment recommendation **🟡 PRODUCTION VERIFIED WITH FOLLOW-UP**.
+
+---
+
+## 2026-06-18 · Track 15.13H — Production Stability Recovery (🟢 STABLE post-redeploy)
+
+**Mode:** P0 surgical FE fixes after 15.13G revealed false Session Expired modals & "Your HR session expired" toasts still firing on `mascidocs.com`. Two layered defects identified and fixed.
+
+### Root causes (both FE, both pre-existing, compounded by 15.13E)
+1. `lib/errors.js` `operationalError()` treated 401 and 403 as the same "session boundary" → HR got "session expired" on any 403-gated child endpoint.
+2. `lib/api.js` active-portal 401 handler cleared the active portal's token AND let session_expired publish → lifecycle 401s wiped HR token and bounced users to /hr/login.
+
+### Fixes
+- **`lib/errors.js`** — `operationalError` now has explicit branches:
+  - 401 → `expiredMsg` (legitimate session boundary)
+  - **403 → `fallback`** (or operator-authored `detail` if present) — NEVER expiredMsg
+  - 5xx including 520 → `fallback` — NEVER expiredMsg
+  - Network / no-response → `fallback` — NEVER expiredMsg
+  - 422 with operator detail → keeps the detail
+- **`lib/api.js`** — active-portal branch no longer clears any token; just sets `_namespacedHandled = true`. Route guard handles bouncing if token truly invalid on next navigation. Removed unused `portalTokenHeader` map.
+- **`pages/HrDailyReports.jsx`** — list preserves previously-loaded items on transient failures (5xx / network / 403 / 404 / 422). Only 401 clears the list. No more "0 reports" flash on origin hiccups.
+
+### Live preview cert proof
+HR signed in → opened DR list (200 reports) → opened Oxford DR → back to list (still 200) → re-opened DR. **4 lifecycle 401s observed**, ALL absorbed silently. Zero Session Expired modals. Zero HR-session-expired toasts. Zero redirects to /hr/login.
+
+### Asset Care + Mechanic neg control still pass
+- Asset Admin (legacy_shop_role) → /shop/asset-care loads 705 assets.
+- Mechanic → /shop/asset-care 403 absorbed; URL preserved; no Session Expired modal; no logout.
+
+### Tests
+- 20-case FE classifier+operationalError+api.js suite (`track_15_13h_session_classification.test.js`) — all passing.
+- 53-test backend regression (15.13A/B/E) updated for new contract — all passing.
+
+### Pending blocker
+- 15.8A/B PM notification cleanup remains operator-blocked. One-command runbook in 15.13H §12.
+
+### Deliverable
+`/app/memory/TRACK_15_13H_PRODUCTION_STABILITY_RECOVERY.md`. Operator next step: redeploy FE bundle and 5-min browser self-test.

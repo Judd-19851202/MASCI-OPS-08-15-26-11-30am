@@ -32,11 +32,37 @@ export function operationalError(e, fallback, expiredMsg) {
   const status = e?.response?.status;
   const detail = e?.response?.data?.detail;
 
-  // 401 / 403 → session boundary, not a server defect.
-  if ((status === 401 || status === 403) && expiredMsg) return expiredMsg;
+  // 401 → session boundary. The active portal's token came back as
+  // invalid/missing/expired; "session expired" is the right message.
+  // TRACK 15.13H — 403 is NOT a session boundary. 403 means the user
+  // is authenticated but the request resource is gated by a higher
+  // role (e.g. HR hitting an admin-only audit endpoint, or a Shop
+  // mechanic hitting an Asset-Admin-only Asset Care endpoint). We
+  // now route 403 through the calm `fallback` copy so the operator
+  // sees "temporarily unavailable" rather than a misleading
+  // "session expired" — and so the FE does NOT bounce them out of
+  // a perfectly valid session.
+  if (status === 401 && expiredMsg) return expiredMsg;
 
   // 404 from a route that should exist = deploy-skew or stale build.
   if (status === 404) return fallback;
+
+  // 403 → access denied; calm fallback. Keep the per-call message
+  // so users understand the immediate context.
+  if (status === 403) {
+    if (detail && typeof detail === "string" && !RAW_FASTAPI_DEFAULTS.has(detail.trim())) {
+      return detail.trim();
+    }
+    return fallback;
+  }
+
+  // 5xx (502/503/504/520) → platform unavailable; calm fallback.
+  // TRACK 15.13H — explicitly map server-side errors to the
+  // operator-grade fallback rather than letting them fall through
+  // to an "expired session" prompt below.
+  if (typeof status === "number" && status >= 500 && status <= 599) {
+    return fallback;
+  }
 
   // Network / CORS / timeout — no `response` at all.
   if (!e?.response) return fallback;

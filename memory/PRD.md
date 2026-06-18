@@ -10,7 +10,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-18 · TRACK 15.13G · LIVE POST-DEPLOY PRODUCTION VERIFICATION · 🟡 VERIFIED WITH FOLLOW-UP)
+## Latest Closed Track (2026-06-18 · TRACK 15.13H · PRODUCTION STABILITY RECOVERY · 🟢 STABLE post-redeploy)
+- **Track:** P0 production stability fix after 15.13G revealed false "Session Expired" + "Your HR session expired" toasts still firing on live `mascidocs.com`. Root causes traced to TWO frontend layers, both pre-existing but compounded by 15.13E.
+- **Root cause #1**: `/app/frontend/src/lib/errors.js` `operationalError()` conflated 401 and 403 as the same "session boundary" → HR users got "Your HR session expired" on any 403-gated child endpoint (e.g. lifecycle).
+- **Root cause #2**: `/app/frontend/src/lib/api.js` active-portal 401 handler cleared the active portal's token AND fell through to publish `session_expired` → lifecycle 401s wiped HR token & bounced users to `/hr/login`.
+- **Verdict:** 🟢 STABLE. Live browser cert showed **4 lifecycle 401s absorbed silently** with HR session intact across multiple page navigations. No false Session Expired modal. No false "Your HR session expired" toast. HR Daily Reports list no longer collapses to 0 reports on transient blips.
+- **Code changed**: `errors.js` (401/403/404/5xx/network branches explicit; 403 NEVER routes to expiredMsg; 5xx including 520 routes to fallback NEVER expiredMsg) · `api.js` (active-portal branch now absorbs 401 silently — NO token clearing, just sets `_namespacedHandled=true`; legacy no-portal fallback preserved) · `HrDailyReports.jsx` (list preserves previously-loaded items on 5xx/network/403/404/422; only 401 clears).
+- **Tests**: 20-case classifier+operationalError+api.js source contract suite (`/app/frontend/src/lib/__tests__/track_15_13h_session_classification.test.js`) — all passing. 53-test backend regression (15.13A/B/E) updated and passing.
+- **Pending blocker (unchanged from 15.13G)**: Track 15.8A/B PM notification cleanup — STILL operator-blocked. One-command runbook documented in 15.13H §12.
+- **Deliverable**: `/app/memory/TRACK_15_13H_PRODUCTION_STABILITY_RECOVERY.md`.
+- **Operator next step**: redeploy FE bundle to pick up `errors.js` + `api.js` + `HrDailyReports.jsx` changes, then 5-minute browser self-test.
+
+## Previous Closed Track (2026-06-18 · TRACK 15.13G · LIVE POST-DEPLOY PRODUCTION VERIFICATION · 🟡 VERIFIED WITH FOLLOW-UP)
 - **Track:** Post-deploy live verification of 15.13B/C/E on `mascidocs.com` (production). Real browser, real production data (project 26-07 Parent loop DR-2026-00338), curl auth-matrix on the live backend.
 - **Verdict:** 🟡 **VERIFIED WITH FOLLOW-UP**. Backend 15.13E is deployed and behaves exactly as spec. HR can read real Daily Reports with READ-ONLY · HR badge and "Lifecycle controls unavailable" banner. HR mutations stay locked. Asset Care endpoints accept Admin tokens, reject non-asset shop tokens with **403** (no session bleed). PM regression clean. iPad portrait + landscape both pass.
 - **Backend proof (curl-verified on production)**: Unique 15.13E 401 strings observed (`"Asset Administrator login required"`, `"Admin, PM, or HR login required"`), proving the new deps are live. Source hash `d988f7c821d8b7217cecaf0d0ae883ce`, `app_env=production`, `db_name=masci_safety`.

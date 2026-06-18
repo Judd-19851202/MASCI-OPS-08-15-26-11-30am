@@ -261,27 +261,23 @@ class TestFrontendInterceptorScoping:
             assert needle in API_JS, f"missing pathname check for {needle}"
 
     def test_portal_scoped_cleanup_doesnt_wipe_other_tokens(self):
-        # Look at the *active portal* cleanup block — when a portal
-        # IS active, only clearXToken() of that portal should be
-        # called. The old global wipe (all clearXToken in one block)
-        # must only appear in the no-portal fallback branch.
-        # Find the active-portal branch:
+        # TRACK 15.13H — Revised contract. The active-portal branch
+        # must NOT clear any token (a single 401 on a feature
+        # endpoint is overwhelmingly a "feature not authorized"
+        # signal, not a session-expiry signal). Token-clearing is
+        # now reserved exclusively for the no-portal-context
+        # fallback below.
         idx_start = API_JS.index('if (activePortal) {')
         idx_end = API_JS.index('} else {', idx_start)
         active_branch = API_JS[idx_start:idx_end]
-        # Active branch must only call ONE clearer per portal — not all of them.
-        # It also must NOT call clearJwt() (which is the global SPA JWT).
-        assert "clearJwt()" not in active_branch
-        # The active branch uses else-if dispatch keyed by activePortal —
-        # exactly 9 portal branches (admin/hr/shop/pm/safety/dispatch/
-        # fl/leadership/dev).
+        # Active branch must NOT call any clearer (15.13H rule).
         clears = re.findall(r"clear[A-Z][A-Za-z]+Token\(\)", active_branch)
-        # Each portal has exactly one clear call so we expect 9 unique
-        # clearers, one per portal.
-        assert len(set(clears)) == 9, (
-            f"active-portal branch should clear 9 portal tokens "
-            f"(one per else-if), got {sorted(set(clears))}"
+        assert clears == [], (
+            f"active-portal branch must not clear any token, "
+            f"got {sorted(set(clears))}"
         )
+        # And it must NOT call clearJwt().
+        assert "clearJwt()" not in active_branch
 
     def test_no_portal_inference_falls_back_to_legacy_wipe(self):
         # If pathname is something like / or /login, we have no
@@ -304,15 +300,16 @@ class TestFrontendInterceptorScoping:
             assert f"{clr}()" in legacy_tail, f"legacy fallback missing {clr}"
 
     def test_namespaced_handled_suppresses_global_modal(self):
-        # The existing rule: when a 401 is handled at the namespace
-        # level we set `_namespacedHandled = true` so the global
-        # SessionStatusOverlay does NOT fire. Verify the rule
-        # extension covers the new active-portal branch too: if the
-        # request didn't carry the active portal's token we still
-        # mark it handled to silence the modal.
-        idx = API_JS.index("if (usedActiveToken) {")
-        block = API_JS[idx : idx + 1500]
-        assert "_namespacedHandled = true" in block
+        # TRACK 15.13H — The active-portal branch must set
+        # `_namespacedHandled = true` so the global "Session
+        # Expired" modal does NOT fire. This applies regardless of
+        # whether the failing request used the active portal's
+        # token (lifecycle 401 case) or not (stale background
+        # helper case). Both must absorb silently.
+        idx_start = API_JS.index('if (activePortal) {')
+        idx_end = API_JS.index('} else {', idx_start)
+        active_branch = API_JS[idx_start:idx_end]
+        assert "_namespacedHandled = true" in active_branch
 
 
 # ---------------------------------------------------------------------

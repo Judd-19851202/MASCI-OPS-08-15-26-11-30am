@@ -69,12 +69,25 @@ export default function HrDailyReports() {
       const r = await axios.get(`${API}/hr/daily-reports`, { ...auth(), params });
       setItems(Array.isArray(r.data?.items) ? r.data.items : []);
     } catch (e) {
+      const status = e?.response?.status;
+      // TRACK 15.13H — Preserve previously-loaded list on transient
+      // failures (5xx, 502/503/504/520, network blips) so the user
+      // doesn't see "0 reports" flash whenever the origin briefly
+      // hiccups. Only reset the list on a real auth boundary (401)
+      // or a real "no results" 2xx. 403/404/422 also keep the list:
+      // those are per-call client errors, not platform outages.
+      const isTransient = !e?.response || (typeof status === "number" && status >= 500);
+      const isAuth = status === 401;
       toast.error(operationalError(
         e,
         t("Daily Reports temporarily unavailable. Try again in a moment."),
         t("Your HR session expired. Please sign in again.")
       ));
-      setItems([]);
+      if (isAuth) {
+        setItems([]);
+      }
+      // Transient / 403 / 404 / 422: leave existing items untouched.
+      void isTransient;
     } finally {
       setLoading(false);
     }

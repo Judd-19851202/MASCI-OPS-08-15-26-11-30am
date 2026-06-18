@@ -250,43 +250,35 @@ api.interceptors.response.use(
           else if (p.startsWith("/dev/") || p === "/dev") activePortal = "dev";
         } catch { /* keep activePortal = null */ }
 
-        // Map the active portal to the single token we'll clear and
-        // the only header we'll require for emitting `session_expired`.
-        const portalTokenHeader = {
-          admin: "X-Admin-Token",
-          hr: "X-HR-Token",
-          shop: "X-Shop-Token",
-          pm: "X-PM-Token",
-          safety: "X-Safety-Token",
-          dispatch: "X-Dispatch-Token",
-          fl: "X-FL-Token",
-          leadership: "X-Leadership-Token",
-          dev: "X-Dev-Token",
-        };
-
         if (activePortal) {
-          // Portal-scoped cleanup. The request did NOT use the active
-          // portal's token? → silent (probably a stale background
-          // helper firing while the route is unloading). Request DID
-          // use it? → drop just that token, do NOT touch any other
-          // portal session.
-          const hdr = portalTokenHeader[activePortal];
-          const usedActiveToken = !!(hdr && cfg.headers?.[hdr]);
-          if (usedActiveToken) {
-            if (activePortal === "admin") clearAdminToken();
-            else if (activePortal === "hr") clearHrToken();
-            else if (activePortal === "shop") clearShopToken();
-            else if (activePortal === "pm") clearPmToken();
-            else if (activePortal === "safety") clearSafetyToken();
-            else if (activePortal === "dispatch") clearDispatchToken();
-            else if (activePortal === "fl") clearFlToken();
-            else if (activePortal === "leadership") clearLeadershipToken();
-            else if (activePortal === "dev") clearDevToken();
-          } else {
-            // The request didn't even carry the active portal's token
-            // → not our session that's failing; surface no UX signal.
-            _namespacedHandled = true;
-          }
+          // TRACK 15.13H — Portal-scoped 401 absorption.
+          //
+          // A 401 from a single non-namespaced endpoint with the
+          // active portal's token is OVERWHELMINGLY a "this user
+          // lacks the role for this specific endpoint" signal
+          // (e.g. HR hitting `/api/daily-reports/{id}/lifecycle`,
+          // which is admin/PM-only by design). It is NOT proof
+          // that the user's portal session expired.
+          //
+          // Rule: do NOT clear any token in this branch. The token
+          // is still valid for every endpoint the user IS
+          // authorized for. Just silence the global "Session
+          // Expired" modal so a peripheral 401 cannot bounce the
+          // user out of an otherwise-working session.
+          //
+          // If the token IS truly invalid, the next protected
+          // call (or the next route-guard check on navigation)
+          // will fail consistently and the route guard will route
+          // them to the portal sign-in. We never lose them.
+          //
+          // Net effect for the production failure modes:
+          //   • Lifecycle 401 for HR on a DR detail page →
+          //     suppressed; HR session stays live.
+          //   • Stale Shop background helper 401 while user is on
+          //     /hr/* → suppressed; HR session unaffected.
+          //   • Cross-portal helper 401 (already handled above) →
+          //     unchanged.
+          _namespacedHandled = true;
         } else {
           // No portal context (root, /login, etc.). Preserve the
           // legacy behavior of clearing every token the request
