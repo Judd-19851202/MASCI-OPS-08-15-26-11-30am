@@ -10,7 +10,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-18 · TRACK 15.16 · PRODUCTION HEALTHCHECK / STARTUP STABILITY · 🟢 DEPLOYABLE)
+## Latest Track (2026-06-18 · TRACK 15.17 + 15.18 · PLATFORM STABILITY / STARTUP / STORAGE / AUTH / NAV REALITY · 🟢 DEPLOYABLE preview-certified)
+- **Mode:** read-only audit + consolidated five-pillar reality certification. No code touched.
+- **Startup waterfall:** uvicorn binds at ~0.4 s · health probes available immediately · readiness gate flips at ~18 s · no structural change needed.
+- **Storage audit:** preview disk 80 %, dominated by `node_modules` (2.0 G dev artifact) and `/app/memory/_archived` (217 M). Mongo preview = 184 MB data / 269 MB storage. Top growth driver: `usage_events` (64 MB / 410k docs) — TTL recommended but NOT applied. Production Atlas is separate.
+- **Auth break-attempts:** no bypass found across 11 adversarial scenarios.
+- **Defect ledger:** all 24 entries from 15.14D have explicit disposition (fixed / partial-fixed / honest-already-in-place / deferred-with-reason / operator-required). No P0 open.
+- **Daily Reports + Pre-Ops:** regression-clean from 15.15/15.16/15.17 perspective. Write-path + real-device walk remain operator-side.
+- **Deliverable:** `/app/memory/TRACK_15_17_18_PLATFORM_STABILITY_STARTUP_STORAGE_REALITY.md`
+
+## Previous Track (2026-06-18 · TRACK 15.16 · PRODUCTION HEALTHCHECK / STARTUP STABILITY · 🟢 DEPLOYABLE)
 - **Track:** add bare `/health` and `/healthz` routes to satisfy the platform health probe that dials `http://127.0.0.1:8001/health` directly (bypassing the `/api` ingress).
 - **Root cause:** canonical health endpoint is `/api/health` (via `build_health_router()`); the platform probe hits bare `/health` and was getting 404, generating proxy noise + potential `SERVER UNREACHABLE` false positives.
 - **Fix:** two `@app.get(...)` routes added directly on the FastAPI app (NOT on `api_router`) — `/health` returns `{"status":"ok","service":"masci-backend"}`, `/healthz` returns `{"status":"ok"}`. Zero auth, zero DB, zero side-effect, 3 ms response.
