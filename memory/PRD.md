@@ -10,7 +10,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Closed Track (2026-06-17 · TRACK 15.13E · PRODUCTION AUTH SESSION RECOVERY · 🟢 IMPLEMENTED & TESTED)
+## Latest Closed Track (2026-06-17 · TRACK 15.13F · FINAL PRE-DEPLOY RUNTIME CERTIFICATION · 🟢 READY TO DEPLOY)
+- **Track:** Final pre-deploy runtime cert for 15.13B/C/E. Real browser, real production-shaped data (Oxford CC5744 DR with 12 photos), end-to-end workflows. Not unit tests, not curl-only.
+- **Verdict:** 🟢 ALL workflows completed end-to-end. Asset Admins (both directory_flag AND legacy_shop_role paths), HR users (real Oxford DR with photos), iPad portrait + landscape, AND negative-control mechanic blocked with 403 (no false session-expired modal).
+- **Browser proof (22 screenshots)** in `/app/memory/track_15_13f_screens/`: Asset Admin login → `/shop/asset-care` (705 assets, all KPIs live) · Legacy-role Asset Admin same dashboard · Mechanic direct-nav rejected with red toast "Asset Administrator access required." (no session expired) · HR Daily Reports list (200 reports, "READ-ONLY · HR" banner, no edit/delete/email/approval) · HR opened real Oxford DR (CC5744 - OXFORD RD Improvements, project 24-12, May 5 2026, Allen Smathers superintendent, 12 actual photos rendering, lifecycle controls disabled) · iPad portrait + landscape pass with no horizontal scroll.
+- **Auth path proof (curl-verified)**: Path 1 directory_flag → 200; Path 2 legacy_shop_role → 200; Path 3 mechanic → 403 (clean 403, not 401, so no session-expired); Path 4 HR GET → 200, HR DELETE/POST → 401 (mutations remain admin-only).
+- **One issue found and fixed during cert**: my cert seed script used dots in `shop_users.id` which broke `parse_shop_user_token`. Reseeded with UUID-shaped ids. Production users are UUID-based — this was strictly a cert-data bug, not a production code bug. After fix, all 4 paths certified.
+- **Pre-existing, deferred**: `/admin/asset-admin` frontend route guard (`A()`) still rejects shop tokens with a 403 "Access Restricted" page. This is the legacy admin-only route gate; Asset Admins now use `/shop/asset-care` as their canonical surface. Extending `A()` to recognize asset-admin shop tokens is a separate frontend change, OUT OF SCOPE for 15.13E.
+- **Deliverable**: `TRACK_15_13F_FINAL_RUNTIME_CERTIFICATION.md` with deployment recommendation 🟢 GREEN, plus the cert seed script `/app/backend/scripts/seed_track_15_13f_cert.py` (refuses production DB).
+
+## Previous Closed Track (2026-06-17 · TRACK 15.13E · PRODUCTION AUTH SESSION RECOVERY · 🟢 IMPLEMENTED & TESTED)
 - **Track:** Surgical fix for P0 production lockouts where HR users hit "Session Expired" opening Daily Reports and Asset Administrators got "Admin or PM login required" on `/shop/asset-care`.
 - **Verdict:** 🟢 26-test regression suite passes (20 static + 6 live HTTP) with NO mutation widening, NO new portal, NO production data backfill.
 - **Backend additions** (server.py):

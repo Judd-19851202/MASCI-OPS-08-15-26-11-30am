@@ -3302,3 +3302,35 @@ Dispatch Map-First · Driver no-login · Repair Complete ≠ RTS · Dispatch RTS
 
 ### Report
 `/app/memory/TRACK_15_13E_PRODUCTION_AUTH_SESSION_RECOVERY_IMPLEMENTATION.md`. Deployment readiness remains 🟢 **GREEN**.
+
+---
+
+## 2026-06-17 · Track 15.13F — Final Pre-Deploy Runtime Certification (🟢 READY TO DEPLOY)
+
+**Mode:** RUNTIME CERT · no code changes · real browser + real Oxford daily report + iPad orientations. Final gate before deploying 15.13B/C/E.
+
+### What was proven
+- **Asset Admin (directory_flag path)** — `cert.assetadmin.directory@mascicert.local` logged in at `/shop/login`, redirected to `/shop/asset-care`, dashboard loaded: 705 assets, 1 Not Ready (TB-01), 50 Needs Review, all KPIs live. No session-expired modal. No admin wall.
+- **Asset Admin (legacy_shop_role path)** — `cert.assetadmin.legacy@mascicert.local` (role label "Asset Administrator", no directory mirror) reached the same Asset Care dashboard with the same data payload. Legacy back-compat fully proven.
+- **HR can read real Daily Reports** — `hrmanager@mascigc.com` logged in, opened the Oxford CC5744 DR (`0fa21157-68e5-42d7-9634-343b61e28bee`, 12 photos), saw full read-only viewer: project info, weather, materials, activity log, 12 real construction photos rendering, READ-ONLY · HR badge, "Lifecycle controls unavailable for this session." banner. No edit/delete/submit/approve affordances.
+- **Negative control (Mechanic)** — `cert.mechanic@mascicert.local` blocked at `/api/asset-care/*` with **HTTP 403** (NOT 401) and a clean red toast "Asset Administrator access required." **No false session-expired modal** — exactly what 15.13E's portal-scoped interceptor was designed to prevent.
+- **iPad cert** — Asset Care + Oxford DR pass in BOTH portrait (834×1194) AND landscape (1194×834) — no horizontal scroll, no clipped controls, no auth modals.
+- **Auth path matrix (curl-proven)** — admin_token / directory_flag / legacy_shop_role / hr_user all unlock their permitted reads. HR mutations rejected (401).
+
+### One issue discovered + fixed mid-cert
+- Initial cert seed script used `shop_users.id = "cert-15-13f-<email_local>"` (contains dots) which broke `parse_shop_user_token` (the token format `{uid}.{hmac}` cannot tolerate dots in the uid). Reseeded with UUID-shaped ids. **Production code is fine** — real shop_users use UUIDs. The fix was strictly in the cert seed script, not in production.
+
+### Pre-existing, intentionally deferred
+- `/admin/asset-admin` frontend route guard (`A()`) still bounces shop-portal Asset Admins. They reach all Asset Care functionality via `/shop/asset-care`. Extending the route guard would be a separate frontend change.
+
+### Hard locks reaffirmed
+- HR cannot write Daily Reports (proven by HTTP 401 on DELETE/POST in cert run).
+- Asset Admin cannot mutate required-docs config or asset records (mutations stay on `require_admin`).
+- No production data was mutated by the cert run; preview DB only.
+
+### 22 screenshots captured
+Asset Admin (6) · Negative Control (2) · HR (4) · Photo proof (1) · iPad (4) · plus initial diagnostic (5)
+All under `/app/memory/track_15_13f_screens/`.
+
+### Deliverable
+`/app/memory/TRACK_15_13F_FINAL_RUNTIME_CERTIFICATION.md` — full cert ledger with deployment recommendation **🟢 READY TO DEPLOY**.
