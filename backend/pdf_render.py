@@ -2520,7 +2520,9 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     {('Date: ' + escape(date_str) + ' · ') if date_str else ''}
     Record ID: {escape(record_id)}
   </div>
+  {_t1541_metadata_block_for(kind, record, canonical_ref, project)}
   {body}
+  {_t1541_audit_block_for(kind, record, canonical_ref, project)}
   <!-- iter310 · per-page footer comes from @page @bottom-left CSS rule.
        The redundant `<div class="ftr">` previously here caused
        footer text to render twice on every page of multi-page PDFs.
@@ -2546,6 +2548,60 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
 
     pdf_bytes = HTML(string=html).write_pdf()
     return pdf_bytes
+
+
+# ───────────────────────── TRACK 15.41 · FOUNDATION ADOPTION ──────────────
+#
+# Universal metadata + audit block additions for the operational PDF
+# generator. Additive only — existing body, header, footer, legal text
+# stay byte-identical. Foundation chrome layers on top.
+#
+# Source module map (kind → source_module). New kinds default to the
+# kind string so the audit block always has SOMETHING populated.
+_T1541_SOURCE_MODULE = {
+    "meeting": "safety.meeting",
+    "daily-report": "daily_reports",
+    "jha": "safety.jha",
+    "incident": "safety.incidents",
+    "equipment-inspection": "equipment.preop",
+    "qaqc": "qaqc.inspections",
+}
+
+
+def _t1541_metadata_block_for(
+    kind: str, record: Dict[str, Any], canonical_ref: str, project: str,
+) -> str:
+    try:
+        from pdf_branding import build_metadata_block_html
+    except Exception:
+        return ""
+    doc_type = KIND_TITLES.get(kind, kind)
+    return build_metadata_block_html(
+        document_type=doc_type,
+        document_id=canonical_ref or record.get("id") or "",
+        project_number=str(record.get("project_number") or ""),
+    )
+
+
+def _t1541_audit_block_for(
+    kind: str, record: Dict[str, Any], canonical_ref: str, project: str,
+) -> str:
+    try:
+        from pdf_branding import build_audit_block_html
+    except Exception:
+        return ""
+    return build_audit_block_html(
+        record_id=canonical_ref or record.get("id") or "—",
+        source_module=_T1541_SOURCE_MODULE.get(kind, f"unknown:{kind}"),
+        project=project or None,
+        generated_by=(
+            record.get("submitted_by_name")
+            or record.get("submitted_by_email")
+            or record.get("created_by_email")
+            or record.get("conducted_by")
+            or "system"
+        ),
+    )
 
 
 def render_email_html(

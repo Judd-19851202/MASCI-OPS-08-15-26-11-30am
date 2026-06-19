@@ -40,6 +40,41 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from masci.identity import format_employee_identity
 
+
+# ───────────────────────── TRACK 15.41 · FOUNDATION ADOPTION ──────────────
+#
+# Universal Audit Block injection for the Equipment Issuance / Return /
+# Training PDFs. Additive only — the existing `<div class='foot'>` legal
+# footer stays exactly where it was. The audit block sits between the
+# signature block and the foot, so legal discovery can pin the doc to
+# the foundation version without touching operational content.
+
+def _t1541_audit_block(*, record_id: str, source_module: str,
+                       project: Optional[str], generated_by: Optional[str]) -> str:
+    try:
+        from pdf_branding import build_audit_block_html
+        return build_audit_block_html(
+            record_id=record_id or "—",
+            source_module=source_module,
+            project=project or None,
+            generated_by=generated_by or "system",
+        )
+    except Exception:
+        return ""
+
+
+def _t1541_metadata_block(*, document_type: str, document_id: Optional[str],
+                          project_number: Optional[str]) -> str:
+    try:
+        from pdf_branding import build_metadata_block_html
+        return build_metadata_block_html(
+            document_type=document_type,
+            document_id=document_id,
+            project_number=project_number,
+        )
+    except Exception:
+        return ""
+
 # Resolve photo:// refs (R2) → base64 data URLs at PDF render time.
 try:
     from photo_storage import resolve_to_data_url_sync as _resolve_photo_ref
@@ -466,6 +501,12 @@ def render_issuance_pdf(rec: Dict[str, Any]) -> bytes:
       </div>
 
       <div class='foot'>MASCI General Contractors Inc. · Generated {_safe(rec.get('created_at') or '')} · Confidential</div>
+      {_t1541_audit_block(
+          record_id=canonical_ref or rec.get('id') or '',
+          source_module='safety.form.issuance',
+          project=rec.get('project_name') or rec.get('project'),
+          generated_by=rec.get('issued_by') or rec.get('created_by_email') or 'system',
+      )}
     </body></html>"""
     return HTML(string=html_doc).write_pdf()
 
@@ -624,6 +665,12 @@ def render_return_pdf(issuance: Dict[str, Any], ret: Dict[str, Any]) -> bytes:
       </div>
 
       <div class='foot'>MASCI General Contractors Inc. · Generated {_safe(ret.get('created_at') or '')} · Confidential</div>
+      {_t1541_audit_block(
+          record_id=(ret.get('return_number') or ret.get('doc_id') or ret.get('id') or ''),
+          source_module='safety.form.return',
+          project=issuance.get('project_name') or ret.get('project_name'),
+          generated_by=ret.get('received_by') or ret.get('returned_by_name') or 'system',
+      )}
     </body></html>"""
     return HTML(string=html_doc).write_pdf()
 
@@ -728,6 +775,12 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
       </div>
 
       <div class='foot'>MASCI General Contractors Inc. · Generated {_safe(rec.get('created_at') or '')} · Confidential</div>
+      {_t1541_audit_block(
+          record_id=canonical_ref or rec.get('id') or '',
+          source_module='safety.form.training',
+          project=rec.get('project_name') or rec.get('project'),
+          generated_by=rec.get('instructor_name') or rec.get('created_by_email') or 'system',
+      )}
     </body></html>"""
     return HTML(string=html_doc).write_pdf()
 

@@ -10,7 +10,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.40 · Directory Resolution + Notification Completion · 🟢 COMPLETE & CERTIFIED)
+## Latest Track (2026-06-19 · TRACK 15.41 · Universal PDF Foundation · 🟢 COMPLETE & CERTIFIED · v15.41.1)
+
+### Foundation delivered
+- `backend/pdf_branding.py` extended with `WhiteLabelConfig`, `get_white_label()`, `build_audit_block_html()`, `build_metadata_block_html()`, `PDF_FOUNDATION_VERSION="15.41.1"`, env-driven white-label via `PDF_BRAND_*` env vars (all optional · MASCI defaults preserved). Pre-existing `BRAND_CSS`/`brand_header`/`wrap_pdf_html` untouched.
+- `_env_tag()` derives PREVIEW/STAGING/DEV/PRODUCTION from `DB_NAME` and stamps it on every audit block.
+
+### Top-6 adoption (additive · zero data loss)
+| PDF | Generator | Audit block | Metadata block |
+|---|---|---|---|
+| Safety Meeting | `pdf_render.render_record_pdf("meeting")` | ✓ | ✓ |
+| Daily Report | `pdf_render.render_record_pdf("daily-report")` | ✓ | ✓ |
+| JHA | `pdf_render.render_record_pdf("jha")` | ✓ | ✓ |
+| Equipment Issuance | `routes/safety_forms.render_issuance_pdf` | ✓ | (header-only) |
+| Equipment Return | `routes/safety_forms.render_return_pdf` | ✓ | (header-only) |
+| Training Acknowledgement | `routes/safety_forms.render_training_pdf` | ✓ | (header-only) |
+
+### Field preservation cert (CRITICAL DIRECTIVE #1)
+- `AFTER ⊇ BEFORE` enforced by `scripts/track_15_41_pdf_compare.py`.
+- 6/6 PDFs PASS · 0 missing fingerprints across 297 BEFORE lines · 395 AFTER lines (+98 from additive foundation chrome).
+- Artifacts: `/tmp/track_15_41/{before,after}/*.pdf|*.txt` retained.
+
+### Non-regression
+- Auth (Track 15.34) · Notifications (Track 15.40) · Team Assignment (Track 15.39/15.39A) · Backups (Tracks 15.36-15.38) untouched.
+- 22 not-yet-adopted PDF surfaces continue to render exactly as before.
+- No new collections · no new endpoints · no schema changes.
+
+### Deliverables on disk
+- `/app/memory/TRACK_15_41_PDF_INVENTORY.md`
+- `/app/memory/TRACK_15_41_FIELD_PRESERVATION_MATRIX.md`
+- `/app/memory/TRACK_15_41_UNIVERSAL_PDF_FOUNDATION.md`
+- `/app/memory/TRACK_15_41_IMPLEMENTATION_REPORT.md`
+- `/app/memory/TRACK_15_41_CERTIFICATION_REPORT.md`
+
+### Backlog (P1 for Track 15.42)
+- Adopt foundation in remaining 22 active PDF surfaces.
+- Build `pdf_branding_rl.py` ReportLab parallel.
+- Wire `PDF_BRAND_LOGO_URL` through `pdf_render.py` baked-in data URI.
+
+## Previous Track (2026-06-19 · TRACK 15.40 · Directory Resolution + Notification Completion · 🟢 COMPLETE & CERTIFIED)
 
 ### Objective 1 — Directory Resolution Fix
 - **Root cause:** `_enrich_row_with_directory` only consulted `employees` collection when `row.employee_id` was set. Alec Perkins (`user_id=c9d7ebc3-...`) carries only `user_id` and lives in `employees` (not `user_directory`), so his rows rendered as "Unknown person — Admin review required".

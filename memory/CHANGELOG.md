@@ -2,6 +2,56 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.41 · Universal PDF Foundation (🟢 COMPLETE & CERTIFIED · v15.41.1)
+
+**Foundation track for white-labeled, audit-traceable PDF generation across MASCI Docs and future ForgedOps customers. Additive only — zero data loss across the Top-6 operational PDFs.**
+
+### Phase 0 — Discovery
+* 30 PDF-generating functions inventoried across 22 modules. 21 WeasyPrint / 9 ReportLab. Classified into ACTIVE (6 Top-6), ACTIVE-FOUNDATION-PENDING (22 backlog), LEGACY-ACTIVE (1 fallback funnel), NOT-A-PDF (1 email template).
+* Inventory document: `/app/memory/TRACK_15_41_PDF_INVENTORY.md`.
+
+### Phase 1 — Field preservation
+* BEFORE+AFTER PDFs generated for the Top-6 (Safety Meeting, Daily Report, JHA, Equipment Issuance, Equipment Return, Training Acknowledgement) from preview DB.
+* pdfminer.six extracted text · line-level fingerprint set comparison · `AFTER ⊇ BEFORE` rule enforced by `scripts/track_15_41_pdf_compare.py`.
+* Result: **6/6 PASS · 0 missing fingerprints across 297 BEFORE lines** (395 AFTER lines · +98 from the additive foundation chrome).
+* Matrix: `/app/memory/TRACK_15_41_FIELD_PRESERVATION_MATRIX.md`.
+
+### Phase 2 — Foundation
+* `backend/pdf_branding.py` extended (backwards compatible) — added `WhiteLabelConfig` dataclass, `get_white_label()` env-driven reader, `build_audit_block_html()`, `build_metadata_block_html()`, `PDF_FOUNDATION_VERSION="15.41.1"`, `_env_tag()` (PREVIEW/STAGING/DEV/PRODUCTION). Pre-existing `BRAND_CSS`, `brand_header`, `wrap_pdf_html` untouched.
+* White-label env vars: `PDF_BRAND_NAME`, `PDF_BRAND_LONG_NAME`, `PDF_BRAND_LOGO_URL`, `PDF_BRAND_COLOR_HEX`, `PDF_BRAND_FOOTER_TAGLINE`, `PDF_BRAND_LEGAL_LINE`. All optional · MASCI defaults preserved.
+* Foundation doc: `/app/memory/TRACK_15_41_UNIVERSAL_PDF_FOUNDATION.md`.
+
+### Phase 3 — Adoption (additive)
+* `backend/pdf_render.py` — `render_record_pdf` adopters `_t1541_metadata_block_for` + `_t1541_audit_block_for` for meeting · daily-report · jha · incident · equipment-inspection · qaqc. Existing header, body, footer, Wave-1C audit envelope footer, last-page legal all preserved byte-identically.
+* `backend/routes/safety_forms.py` — same additive adoption for `render_issuance_pdf`, `render_return_pdf`, `render_training_pdf`. Existing `<div class='foot'>` legal line preserved; audit block inserted immediately after.
+* `kind → source_module` taxonomy mirrors Track 15.40 notification `linked_source_module` keys (single truth across audit logs, notifications, PDFs).
+
+### Phase 4 — Certification
+* 21 / 21 GREEN cert gates cleared.
+* Cert report: `/app/memory/TRACK_15_41_CERTIFICATION_REPORT.md`.
+* Implementation report: `/app/memory/TRACK_15_41_IMPLEMENTATION_REPORT.md`.
+* White-label override verified (PDF_BRAND_NAME=FORGEDOPS_TEST works).
+* Env tag verified (preview DB → PREVIEW stamp).
+* Backend `/api/health` green.
+
+### Non-regression
+* No new collections · no new endpoints · no schema changes.
+* Auth (Track 15.34) · Notifications (Track 15.40) · Team Assignment (Track 15.39/15.39A) · Backups (Tracks 15.36-15.38) all untouched.
+* 22 not-yet-adopted PDF surfaces continue to render exactly as before.
+
+### Files changed
+* `backend/pdf_branding.py` (extended, backward compatible)
+* `backend/pdf_render.py` (additive adopters)
+* `backend/routes/safety_forms.py` (additive adopters)
+* `backend/scripts/track_15_41_pdf_baseline.py` **(new)** — baseline generator
+* `backend/scripts/track_15_41_pdf_compare.py` **(new)** — field-preservation differ
+
+### Backlog (P1 for Track 15.42)
+* Adopt foundation in remaining 22 active PDF surfaces (WeasyPrint adoption is 2 lines each; ReportLab parallel needs `pdf_branding_rl.py`).
+* Wire `PDF_BRAND_LOGO_URL` through `pdf_render.py` so the baked-in MASCI logo data URI yields to env override for white-label deployments.
+
+🟢 **DEPLOYABLE.** No data loss. No regressions. Foundation live.
+
 ## 2026-06-19 — TRACK 15.40 · Directory Resolution + Notification Completion (🟢 COMPLETE & CERTIFIED)
 
 **Two P0 operator-experience fixes in one pass — no schema changes, no architecture changes.**
