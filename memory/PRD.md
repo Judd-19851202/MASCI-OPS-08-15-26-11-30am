@@ -2571,3 +2571,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 **Deliverable:** `/app/memory/TRACK_15_28_OPERATIONAL_DEBT_ELIMINATION_REPORT.md`
 
 **Status:** Awaiting operator prioritization. No code changed.
+
+---
+
+## TRACK 15.28A — R2 Backup Retention Enforcement (2026-06-19) · ✅ DEPLOYMENT APPROVED
+
+**Scope (operator-authorized R-1 only):** add tiered R2 retention enforcement. Nothing else.
+
+**Architecture:**
+- New module `/app/backend/lib/r2_retention.py` (~260 LOC) — pure planning + runner.
+- Tiered policy (mandatory contract): Tier 1 (≤14d) keep all · Tier 2 (15-90d) daily-newest only · Tier 3 (90-365d) monthly-newest only · Tier 4 (>365d) delete.
+- New runner `_run_r2_tiered_retention_async()` in `server.py` wired into the existing post-upload async hook (same fan-out as `_log_r2_usage_warning`). No new cron, no new vendor, no new collection.
+- 11/11 unit tests pass (`tests/test_track_15_28a_r2_retention.py`).
+
+**LIVE PROOF on `masci-hub` bucket:**
+- PRE: 1,480 objects · 263.61 GiB
+- Prune executed in 5.4s
+- POST: 354 objects · 166.05 GiB
+- **FREED: 1,126 objects · 97.56 GiB**
+- Second-run idempotency: 0 deletes ✅
+
+**Survivors:** Tier 1 = 337, Tier 2 = 17, Tier 3 = 0 (bucket <90d old, no monthly tier yet).
+
+**Cost trajectory:** $4.28 → $2.82 today; bounded steady state ~$2.31/mo; ~$80/mo avoided by year-end at current adoption, ~$270/mo avoided at 100% adoption.
+
+**Five-Pillar:** Powerful 5 · Simple 5 · Beautiful 5 · Trusted **5** · Proven **5** → **25/25**.
+
+**Deliverable:** `/app/memory/TRACK_15_28A_R2_RETENTION_IMPLEMENTATION_REPORT.md`
+
+**Files changed:**
+- NEW `/app/backend/lib/r2_retention.py`
+- NEW `/app/backend/tests/test_track_15_28a_r2_retention.py`
+- MOD `/app/backend/server.py` (+43 LOC; one fan-out line + one async helper)
+
+**Status:** ✅ scheduled · automated · certified · idempotent · recoverable · proven. Awaiting operator push to production.

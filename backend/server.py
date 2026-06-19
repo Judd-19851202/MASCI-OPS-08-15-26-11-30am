@@ -6744,6 +6744,48 @@ def _iter_photo_refs(doc):
             yield v
 
 
+async def _run_r2_tiered_retention_async() -> None:
+    """TRACK 15.28A · Enforce the R2 tiered retention policy.
+
+    Tier 1: keep all hourly zips for the last 14 days.
+    Tier 2: 14–90 days · keep only newest per calendar day (UTC).
+    Tier 3: 90–365 days · keep only newest per calendar month (UTC).
+    Tier 4: >365 days · delete.
+
+    Idempotent. Touches only ``backups/auto-90d/`` (the active R2 prefix).
+    Legacy ``backups/*.zip`` is out of scope by design — see comment at
+    upload-site.
+    """
+    try:
+        from photo_storage import _client as _r2_client_for_retention
+        from lib.r2_retention import enforce_r2_retention
+    except Exception as _e:  # noqa: BLE001
+        logger.warning(f"[r2-retention] imports unavailable: {_e}")
+        return
+    bucket = os.environ.get("S3_BUCKET", "").strip()
+    if not bucket:
+        return
+    s3 = _r2_client_for_retention()
+    if s3 is None:
+        return
+    try:
+        result = await asyncio.to_thread(
+            enforce_r2_retention, s3, bucket,
+            prefix="backups/auto-90d/", dry_run=False,
+        )
+        if result.get("ok") and (result.get("deleted") or 0) > 0:
+            logger.info(
+                f"[r2-retention] pruned {result['deleted']} objects · "
+                f"survivors_by_tier={result['survivors_by_tier']} · "
+                f"deleted_by_tier={result['deleted_by_tier']}"
+            )
+        elif not result.get("ok"):
+            logger.warning(f"[r2-retention] errors: {result.get('errors')}")
+    except Exception as _e:  # noqa: BLE001
+        logger.warning(f"[r2-retention] failed: {_e}")
+
+
+
 async def _log_r2_usage_warning() -> None:
     """Background probe — sum bucket size and log a warning when we cross
     the 45 GB warn / 50 GB alert thresholds. Fire-and-forget; failures are
@@ -6972,6 +7014,16 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             asyncio.create_task(_log_r2_usage_warning())
         except Exception as _e:  # noqa: BLE001
             logger.warning(f"[r2-usage] couldn't schedule probe: {_e}")
+
+        # TRACK 15.28A · R2 tiered backup retention enforcement.
+        # Runs once per successful upload (~hourly) so the bucket is
+        # bounded without a separate cron. Tier-1 keeps every hourly zip
+        # for 14d; Tier-2 keeps newest per day for 90d; Tier-3 keeps
+        # newest per month for 365d; Tier-4 deletes. Idempotent.
+        try:
+            asyncio.create_task(_run_r2_tiered_retention_async())
+        except Exception as _e:  # noqa: BLE001
+            logger.warning(f"[r2-retention] couldn't schedule prune: {_e}")
 
         return {
             "filename": filename,
