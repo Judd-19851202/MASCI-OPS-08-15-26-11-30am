@@ -2,6 +2,46 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.52B · Backup Cadence Decision Audit (🟢 GREEN · forensic · read-only)
+
+**Triggered by:** Operator request to verify the truth before authorizing any backup-cadence change.
+
+**Final recommendation (one answer, no hedging):** 🟢 **REMAIN ON HOURLY CADENCE.**
+
+### Why (evidence-anchored)
+- Live R2: 854 objects · 193.5 GB · `auto-90d/` active prefix 354 objects / 171 GB; hourly cadence proven (mean 59.8-min spacing across 10 consecutive deltas).
+- Saving from switching to 6-hourly: only **$17/year** ($34.90 → $17.83). Track 15.37's "−66%" projection was overstated; actual −49%.
+- Atlas PITR — the safety net that makes 6-hourly safe — is **UNVERIFIED** (`❓ OPERATOR REQUIRED` since Track 15.37). Without it, worst-case RPO would degrade from 60 min to 360 min (6× regression for a safety-critical platform).
+- Production launches tomorrow morning — wrong moment to change foundational data-protection cadence.
+
+### Three NEW contradictions discovered
+1. **R2 lifecycle silently overrides app Tier 3.** Cloudflare bucket rule `masci-backups-auto-90d` deletes the entire `backups/auto-90d/` prefix at 90 d, killing the app code's intent to preserve monthly survivors 90-365 d. Live cohort histogram confirms zero objects past 90 d.
+2. **Legacy `backups/*.zip` prefix is unmanaged.** 500 objects / 22.5 GB (not the 12 GiB cited in Track 15.37). Neither retention engine touches it. Frozen since 2026-05-17.
+3. **R2 protection layers all OFF.** Versioning=NotEnabled · Object-Lock=NotEnabled · Replication=NotEnabled. Any object delete (accidental, malicious, or by lifecycle) is final.
+
+### Operator action sequence (no urgency, but right order)
+1. Verify Atlas PITR ON/OFF (5-min dashboard task).
+2. Decide on R2 versioning (recommended for OSHA/WV chain-of-custody platform).
+3. Resolve the R2-lifecycle vs. app-Tier-3 conflict (pick one engine).
+4. Sweep legacy 22.5 GB prefix.
+5. *Then* re-evaluate the cadence flip.
+
+### Deliverables (`/app/memory/`)
+- `TRACK_15_52B_BACKUP_RETENTION_AUDIT.md`
+- `TRACK_15_52B_ATLAS_PROTECTION_AUDIT.md`
+- `TRACK_15_52B_R2_PROTECTION_AUDIT.md`
+- `TRACK_15_52B_COST_ANALYSIS.md`
+- `TRACK_15_52B_RECOVERY_POSTURE_AUDIT.md`
+- `TRACK_15_52B_CODE_PATH_AUDIT.md`
+- `TRACK_15_52B_CONTRADICTION_ANALYSIS.md`
+- `TRACK_15_52B_EXECUTIVE_RECOMMENDATION.md`
+- `TRACK_15_52B_SIX_PILLAR_CERTIFICATION.md`
+
+### Hard-rule compliance
+Zero code · zero env · zero deploys · zero config changes · zero assumptions. Every claim anchored to live evidence or labeled UNVERIFIED.
+
+
+
 ## 2026-06-19 — TRACK 15.52A · Backup Truth Audit + Health Probe RCA (🟢 GREEN · forensic read-only · zero code changes)
 
 **Forensic audit triggered by an apparent contradiction in the certified record:** Track 15.51 reports 855 hourly snapshots; operator believed a 6-hour cadence had been approved; GitHub Actions production-health-probe was reportedly emailing. Evidence-only re-verification.

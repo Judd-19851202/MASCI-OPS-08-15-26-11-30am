@@ -10,7 +10,41 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.52A · Backup Truth Audit + Health Probe RCA · 🟢 GREEN · forensic read-only)
+## Latest Track (2026-06-19 · TRACK 15.52B · Backup Cadence Decision Audit · 🟢 GREEN · read-only forensic)
+
+### Decision
+**KEEP HOURLY.** Do not flip to 6-hour cadence yet.
+
+### Why (top 5 evidence anchors)
+1. Saving is only **$17/year** at current scale ($34.90 → $17.83).
+2. Atlas PITR status remains **UNVERIFIED** (Track 15.37/15.38 operator gate still open). Without PITR, worst-case RPO would degrade 60 min → 360 min (6× regression).
+3. Production launches tomorrow — wrong window for foundational data-protection changes.
+4. R2 hourly is currently the platform's only *verified* sub-hour recovery mechanism.
+5. New finding: R2 bucket lifecycle (90-d Expiration) silently overrides the app's Tier 3 monthly retention. Live cohort histogram confirms ZERO objects past 90 d. Operator should resolve this conflict first, then re-evaluate.
+
+### Three contradictions surfaced (none in prior certifications)
+- R2 lifecycle vs. app-side `lib/r2_retention.py` Tier 3 — they conflict; lifecycle wins.
+- Track 15.37 cost projection was overstated (−66% → actual −49%).
+- Track 15.37 legacy-prefix size was understated (12 GiB → actual 22.5 GB).
+
+### Operator pre-flight checklist (priority order)
+1. Verify Atlas PITR ON/OFF via dashboard (5 min).
+2. Decide on enabling R2 versioning (~$0.50/mo).
+3. Resolve R2 lifecycle vs. app-side Tier 3 conflict.
+4. Sweep legacy `backups/*.zip` (22.5 GB, frozen).
+5. Then re-evaluate the 6-hour cadence flip.
+
+### Code-readiness
+6-hour cadence is **fully implemented in code and tested** (Track 15.38). Enabling requires only three env-var changes on production (no code change):
+`BACKUP_R2_HOURLY=false · BACKUP_HOURS_LOCAL=0,6,12,18 · BACKUP_TIMEZONE=America/New_York`
+
+### Deliverables
+9 markdown files under `/app/memory/TRACK_15_52B_*.md`.
+
+### Hard-rule compliance
+Zero code · zero env · zero deploys · zero config writes. Live evidence-only.
+
+## Prior Track (2026-06-19 · TRACK 15.52A · Backup Truth Audit + Health Probe RCA · 🟢 GREEN · forensic read-only)
 
 ### What this is
 Evidence-only forensic audit triggered by a perceived contradiction in the certified record (855 hourly snapshots vs. "approved 6-hour cadence" vs. failing GitHub production-health-probe). All claims re-verified against live code, live env files, live R2 inventory, and live `mascidocs.com` API responses. No prior certification language trusted as fact.
