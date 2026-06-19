@@ -218,6 +218,34 @@ def register(app, *, db=None, require_admin_dep=None):
 
         # ───────────── Overall health verdict ─────────────
         # Simple deterministic rollup — NO AI, NO weights model.
+        # TRACK 15.46 · FR-02 · "Why RED?" — surface the deterministic
+        # reasons driving the verdict so operators don't have to scan
+        # all six tiles to understand the color.
+        verdict_reasons: List[str] = []
+        if oos_units > 5:
+            verdict_reasons.append(
+                f"{oos_units} units out of service (threshold > 5)",
+            )
+        if unresolved_incidents > 10:
+            verdict_reasons.append(
+                f"{unresolved_incidents} unresolved incidents (threshold > 10)",
+            )
+        if overdue_capa > 5:
+            verdict_reasons.append(
+                f"{overdue_capa} overdue corrective actions (threshold > 5)",
+            )
+        if len(stale_projects) > 3:
+            verdict_reasons.append(
+                f"{len(stale_projects)} projects with no DR in 3+ days (threshold > 3)",
+            )
+        if active_asset_holds_severe > 0:
+            verdict_reasons.append(
+                f"{active_asset_holds_severe} high-severity active asset hold(s)",
+            )
+        if unresolved_capa > 3 and overdue_capa <= 5:
+            verdict_reasons.append(
+                f"{unresolved_capa} open corrective actions (threshold > 3)",
+            )
         red = (oos_units > 5) or (unresolved_incidents > 10) or (overdue_capa > 5)
         amber = (
             (len(stale_projects) > 3)
@@ -229,6 +257,7 @@ def register(app, *, db=None, require_admin_dep=None):
         return {
             "generated_at": now.isoformat(),
             "verdict": verdict,
+            "verdict_reasons": verdict_reasons,
             "tiles": {
                 "jobs": jobs,
                 "overdue": overdue,

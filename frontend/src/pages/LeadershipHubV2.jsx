@@ -82,6 +82,21 @@ export default function LeadershipHubV2() {
         pageTitle="What requires executive attention?"
         subtitle="Cross-portal threats to execution, schedule, safety, compliance. No vanity metrics. Every card opens the workflow that resolves it."
       >
+        {/* TRACK 15.46 · FR-01 · Discoverability link to the Executive
+            Overview (Track 15.44). One nav entry so executives never
+            need to remember a URL. */}
+        <Section k="00 · 30-Second Awareness · live" t="Executive Overview" c="Six-tile attention surface · ≤ 30 second comprehension">
+          <QC
+            to="/admin/executive-overview"
+            testid="lead-hub-v2-q-executive-overview"
+            title="Executive Overview →"
+            why="Jobs / Overdue / Staffing / Equipment / Safety / Activity — single page"
+            source="Source: /api/admin/executive/overview (Track 15.44)"
+            value={null}
+            loaded={true}
+          />
+        </Section>
+
         <Section k="01 · Threats to Safety · live" t="Safety attention items" c="Real from /api/safety/overview">
           <QC to="/safety-portal" testid="lead-hub-v2-q-incidents-open" title="Open Incidents" why="Incidents not yet closed by Safety" source="Source: safety/overview" value={ds.safety?.incidents_open ?? null} loaded={s.loaded} />
           <QC to="/safety-portal" testid="lead-hub-v2-q-capas-overdue" title="Overdue CAPAs" why="Corrective actions past due_date" source="Source: safety/overview.corrective_actions_overdue" value={sa.corrective_actions_overdue ?? null} loaded={s.loaded} />

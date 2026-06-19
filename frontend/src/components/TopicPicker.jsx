@@ -45,6 +45,8 @@ const DOMAIN_CHIPS = [
   { key: "confined_space", en: "Confined Space", es: "Esp. Confinado" },
   { key: "environmental", en: "Environmental", es: "Ambiental" },
   { key: "wellness", en: "Heat / Fatigue / MH", es: "Calor / Fatiga / SM" },
+  // TRACK 15.46 · Public Interaction & Conflict De-Escalation
+  { key: "public_interaction", en: "Public Interaction", es: "Trato con Público" },
   { key: "office", en: "Office", es: "Oficina" },
   { key: "general", en: "General", es: "General" },
 ];

@@ -136,6 +136,17 @@ export default function ExecutiveOverview() {
               <div className={`text-sm ${theme.text} opacity-80`}>
                 Executive Overview · v{data.foundation_version}
               </div>
+              {/* TRACK 15.46 · FR-02 · "Why RED?" deterministic reasons */}
+              {Array.isArray(data.verdict_reasons) && data.verdict_reasons.length > 0 && (
+                <ul
+                  className="mt-2 text-sm leading-snug list-disc list-inside opacity-90"
+                  data-testid="executive-verdict-reasons"
+                >
+                  {data.verdict_reasons.map((r, i) => (
+                    <li key={i} data-testid={`executive-verdict-reason-${i}`}>{r}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
           <button

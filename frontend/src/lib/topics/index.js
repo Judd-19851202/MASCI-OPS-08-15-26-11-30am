@@ -23,6 +23,8 @@ import { TOPICS_ELECTRICAL } from "./electrical.js";
 import { TOPICS_CONFINED_SPACE } from "./confined_space.js";
 import { TOPICS_ENVIRONMENTAL } from "./environmental.js";
 import { TOPICS_WELLNESS } from "./wellness.js";
+// TRACK 15.46 · Public Interaction & Conflict De-Escalation
+import { TOPICS_PUBLIC_INTERACTION } from "./public_interaction.js";
 import { TOPICS_OFFICE } from "./office.js";
 import { TOPICS_GENERAL } from "./general.js";
 
@@ -47,6 +49,7 @@ export const TOPIC_LIBRARY = [
   ...TOPICS_CONFINED_SPACE,
   ...TOPICS_ENVIRONMENTAL,
   ...TOPICS_WELLNESS,
+  ...TOPICS_PUBLIC_INTERACTION,
   ...TOPICS_OFFICE,
   ...TOPICS_GENERAL,
 ];
