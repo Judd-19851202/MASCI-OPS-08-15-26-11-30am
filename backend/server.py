@@ -5547,11 +5547,62 @@ BACKUP_HOUR_UTC = int(os.environ.get("BACKUP_HOUR_UTC", "2"))   # legacy single-
 
 
 def _parse_backup_hours() -> list[int]:
-    """Parse BACKUP_HOURS_UTC env var (comma-separated UTC hours).
-    Default = "2,18" → nightly + mid-day backups so the field crew always
-    has two off-site recovery points per workday. Falls back to
-    [BACKUP_HOUR_UTC] if the env var is missing/empty. Invalid entries
-    are dropped, duplicates removed, result sorted."""
+    """Parse backup schedule env vars into a sorted list of UTC hours.
+
+    TRACK 15.38 (2026-02) — added white-label tenant-local-time support.
+
+    Precedence (highest first):
+      1. `BACKUP_HOURS_LOCAL` + `BACKUP_TIMEZONE`  → convert local hours
+         to UTC using the current DST offset. Recommended for white-label
+         deployments (MASCI Florida · Texas customer · Arizona customer
+         all use `BACKUP_HOURS_LOCAL=0,6,12,18`).
+      2. `BACKUP_HOURS_UTC`                       → legacy UTC-only path,
+         e.g. "2,18" for the historical nightly+mid-day pattern.
+      3. Default `[BACKUP_HOUR_UTC, 18]`.
+
+    Invalid entries are dropped, duplicates removed, result sorted.
+
+    DST caveat: the local→UTC conversion happens at module load time. A
+    worker restart will pick up the post-DST offset. For environments
+    that demand sub-hour DST-accurate scheduling, restart the worker
+    after each DST transition (twice a year)."""
+    # Tenant-local mode (preferred for white-label)
+    local_raw = (os.environ.get("BACKUP_HOURS_LOCAL") or "").strip()
+    tz_name = (os.environ.get("BACKUP_TIMEZONE") or "").strip()
+    if local_raw and tz_name:
+        try:
+            from zoneinfo import ZoneInfo  # py3.9+
+            tz = ZoneInfo(tz_name)
+            # Convert each local hour to its UTC equivalent at the current
+            # wall-clock-day. astimezone() handles DST automatically.
+            local_hours: set[int] = set()
+            for part in local_raw.split(","):
+                s = part.strip()
+                if not s:
+                    continue
+                try:
+                    h = int(s)
+                    if 0 <= h <= 23:
+                        local_hours.add(h)
+                except ValueError:
+                    continue
+            if local_hours:
+                today_local = datetime.now(tz).date()
+                utc_hours: set[int] = set()
+                for h in local_hours:
+                    local_dt = datetime(
+                        today_local.year, today_local.month, today_local.day,
+                        h, 0, tzinfo=tz,
+                    )
+                    utc_hours.add(local_dt.astimezone(timezone.utc).hour)
+                return sorted(utc_hours)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                f"[backup-schedule] BACKUP_HOURS_LOCAL/BACKUP_TIMEZONE "
+                f"parse failed ({e}); falling back to BACKUP_HOURS_UTC."
+            )
+
+    # Legacy UTC-only path
     raw = (os.environ.get("BACKUP_HOURS_UTC") or "").strip()
     if not raw:
         raw = f"{BACKUP_HOUR_UTC},18"  # default: nightly 02:00 UTC + mid-day 18:00 UTC
@@ -8538,6 +8589,24 @@ async def edit_record_project(
     return {"ok": True, "record": doc}
 
 
+# TRACK 15.37 — Restore upload ceiling.
+# Old hard-coded 500 MB rejected every current hourly archive (~600 MB).
+# Now env-driven; default 2048 MB accepts every standard backup with
+# generous headroom for future growth.
+def _restore_max_bytes() -> int:
+    try:
+        mb = int(os.environ.get("RESTORE_MAX_UPLOAD_MB", "2048") or 2048)
+    except ValueError:
+        mb = 2048
+    # Clamp at 8 GiB as an absolute sanity-ceiling — anything larger almost
+    # certainly indicates an upload-stream attack, not a real backup.
+    mb = max(64, min(mb, 8192))
+    return mb * 1024 * 1024
+
+
+_RESTORE_MAX_BYTES = _restore_max_bytes()
+
+
 @api_router.post("/exports/restore")
 async def exports_restore(
     file: UploadFile = File(...),
@@ -8561,8 +8630,15 @@ async def exports_restore(
         raise HTTPException(400, f"Failed to read upload: {e}")
     if not payload:
         raise HTTPException(400, "Empty upload")
-    if len(payload) > 500 * 1024 * 1024:  # 500 MB hard ceiling
-        raise HTTPException(413, "Backup file exceeds 500 MB limit")
+    if len(payload) > _RESTORE_MAX_BYTES:
+        raise HTTPException(
+            413,
+            f"Backup file exceeds the configured restore ceiling "
+            f"({_RESTORE_MAX_BYTES // (1024 * 1024)} MB). "
+            f"Override via env `RESTORE_MAX_UPLOAD_MB` if you need a larger "
+            f"window; current archives average ~600 MB so the default 2048 MB "
+            f"ceiling accepts every standard hourly archive with headroom.",
+        )
 
     try:
         zf = zipfile.ZipFile(io.BytesIO(payload), "r")
@@ -8570,16 +8646,25 @@ async def exports_restore(
         raise HTTPException(400, "Uploaded file is not a valid ZIP archive")
 
     names = set(zf.namelist())
-    if "backup_manifest.json" not in names:
+
+    # TRACK 15.38 — restore endpoint accepts BOTH manifest formats:
+    #   * `backup_manifest.json` — Track 14.0-I1 envelope (email backup path)
+    #   * `MANIFEST.json` — R2 hourly complete archive
+    manifest_name = None
+    for candidate in ("backup_manifest.json", "MANIFEST.json"):
+        if candidate in names:
+            manifest_name = candidate
+            break
+    if manifest_name is None:
         raise HTTPException(
             400,
-            "backup_manifest.json missing — this does not look like a MASCI "
-            "full-backup .zip. Regenerate via 'Download Full Backup' first.",
+            "Neither backup_manifest.json nor MANIFEST.json found — "
+            "this does not look like a MASCI backup .zip.",
         )
     try:
-        manifest = _backup_json.loads(zf.read("backup_manifest.json").decode("utf-8"))
+        manifest = _backup_json.loads(zf.read(manifest_name).decode("utf-8"))
     except Exception as e:
-        raise HTTPException(400, f"Corrupt manifest: {e}")
+        raise HTTPException(400, f"Corrupt manifest ({manifest_name}): {e}")
 
     # ---------------------------------------------------------------
     # Track 14.0-I1 (2026-02-14) — Archive Origin Verification.
@@ -8592,6 +8677,15 @@ async def exports_restore(
     current_db = os.environ.get("DB_NAME", "")
     archive_env = (manifest.get("environment") or manifest.get("app_env") or "").lower()
     archive_db = manifest.get("database_name") or manifest.get("db_name") or ""
+
+    # TRACK 15.38 — R2 hourly archives use MANIFEST.json which carries
+    # `source` (e.g. "mascidocs.com") instead of explicit `environment`.
+    # Infer `environment` from `source` so the env-mismatch guard fires
+    # correctly for production archives.
+    if not archive_env and manifest_name == "MANIFEST.json":
+        src = (manifest.get("source") or "").lower()
+        if "mascidocs.com" in src:
+            archive_env = "production"
 
     audit_doc = {
         "id": str(uuid.uuid4()),
@@ -8714,6 +8808,34 @@ async def exports_restore(
                 _add(coll, data)
         except Exception as e:  # noqa: BLE001
             logger.warning(f"restore: skipped {n}: {e}")
+
+    # 2d-bis. TRACK 15.38 — R2 hourly archive auto-discovery.
+    # The R2 complete archive (`_build_complete_archive_on_disk`) writes
+    # per-record files under `<collection>/json/<id>.json` for every
+    # collection — auto-discovered, not whitelisted. Walk that layout for
+    # any collection NOT already covered by sections 2a/2b/2c/2d above.
+    _per_record_collections: Dict[str, List[dict]] = {}
+    for n in names:
+        if not (n.endswith(".json") and "/json/" in n):
+            continue
+        parts = n.split("/")
+        if len(parts) != 3 or parts[1] != "json":
+            continue
+        coll = parts[0]
+        # Skip system/manifest entries
+        if coll in ("collections", "crew_hub", "safety_aux", "disk_files", "photos"):
+            continue
+        # Skip if already restored via a dedicated path above
+        if coll in bucket:
+            continue
+        try:
+            doc = _backup_json.loads(zf.read(n).decode("utf-8"))
+            if isinstance(doc, dict):
+                _per_record_collections.setdefault(coll, []).append(doc)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"restore: skipped {n}: {e}")
+    for coll, docs in _per_record_collections.items():
+        _add(coll, docs)
 
     # 2e. Disk-backed files — restore the storage tree (Oxford big PDFs etc.)
     disk_restored = 0

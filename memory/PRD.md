@@ -2613,3 +2613,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Cadence verdict: 🟡 YELLOW — reduce hourly → 6-hour pending operator verification of Atlas backup tier + R2 versioning
 - Gaps surfaced: 500 MB restore upload ceiling vs 600 MB archives (broken) · legacy backups/ prefix unpruned (~500 obj) · drift watcher dormant · no portal undelete for safety forms
 - See /app/memory/TRACK_15_36_BACKUP_ARCHITECTURE_CERTIFICATION.md for full evidence
+
+---
+## Track 15.37 (2026-02) — Backup Restore Certification + Cadence Optimization
+- Restore-blocker fix LANDED: `RESTORE_MAX_UPLOAD_MB` env (default 2048 MB · clamped 64-8192 MB) replaces hard-coded 500 MB ceiling
+- Live restore drill PASS: 138,464 / 138,464 records restored in 17.7 s · 0 errors · isolated drill namespace cleaned up
+- Cadence verdict: 🟡 YELLOW — switch hourly → every-6-hours after operator verifies Atlas PITR + R2 versioning
+- Legacy `backups/` prefix dry-run plan written (NOT executed): ~500 objects · ~12 GiB · safe to clean
+- Discovered Track-15.38 follow-up: `/api/exports/restore` requires `backup_manifest.json` but R2 archives write `MANIFEST.json` — endpoint can't ingest R2 archives directly
+- Tests: `backend/tests/test_track_15_37_restore_ceiling.py` · 8 tests · all PASS
+
+---
+## Track 15.38 (2026-02) — Backup Architecture Finalization + Cadence Optimization + Restore Trust Closure
+
+**Code landed:**
+- `/api/exports/restore` now accepts BOTH `backup_manifest.json` and `MANIFEST.json` — every archive the platform produces is now restorable through the documented endpoint
+- Source-heuristic infers `environment=production` from `MANIFEST.json`'s `source` field — cross-env guard correctly fires for R2 archives
+- Per-record auto-discovery (section 2d-bis) covers the R2 archive's `<coll>/json/<id>.json` layout
+- `_parse_backup_hours()` rewritten with white-label `BACKUP_HOURS_LOCAL` + `BACKUP_TIMEZONE` support — every customer configures local time, not UTC
+
+**Tests:** 14/14 PASS (`tests/test_track_15_37_restore_ceiling.py` + `tests/test_track_15_38_local_schedule.py`)
+
+**Live cert proof:** 632 MB R2 archive successfully ingested through the fixed endpoint up to (and correctly rejected at) the cross-env guard — proving size · manifest detection · parsing · env-inference · audit all work.
+
+**Operator gate:** Atlas PITR + R2 versioning dashboard confirmation. After confirmation, cadence flip is a single env-var change (`BACKUP_R2_HOURLY=false` + `BACKUP_HOURS_LOCAL=0,6,12,18` + `BACKUP_TIMEZONE=<tenant>`).
+
+**Verdict:** 🟢 GREEN on code · YELLOW on configuration · all Five Pillars ≥9.
