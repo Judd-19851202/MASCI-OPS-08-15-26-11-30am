@@ -43,6 +43,38 @@ const SEV_CLR = {
   Critical: "text-red-700",
 };
 
+// TRACK 15.40 · Notification Completion — humanize the canonical
+// `linked_source_module` keys into operator-readable traceability
+// chips. Adding a new module key here is the ONLY operator-facing
+// change required for a new producer.
+const SOURCE_MODULE_LABEL = {
+  team_assignment: "Team Assignment",
+  "safety.incidents": "Safety Incident",
+  "safety.meeting": "Safety Meeting",
+  "safety.jha": "JHA",
+  "safety.inspections": "Safety Inspection",
+  "safety.fire_extinguishers": "Fire Extinguisher",
+  "safety.form.issuance": "Equipment Issuance",
+  "safety.form.return": "Equipment Return",
+  "safety.form.training": "Equipment Training",
+  daily_reports: "Daily Report",
+  "qaqc.inspections": "QA/QC",
+  "field_leadership.records": "Field Leadership",
+  "po.requests": "PO Request",
+  "po.receipts": "PO Receipt",
+  "equipment.preop": "Pre-Op",
+  "fleet.dvir": "DVIR",
+  "fleet.defect.assignment": "Fleet Defect",
+  "fuel_lube_visit.issue": "Fuel/Lube Issue",
+  "asset.transfer": "Asset Transfer",
+  "documents.expiration": "Document Expiration",
+  "hr.payroll_variance": "Payroll Variance",
+  "trench_safety:reinspection_requested": "Trench Re-inspection",
+};
+
+// TRACK 15.40 · 5-minute "recently read" window per operator approval.
+const RECENT_READ_MS = 5 * 60 * 1000;
+
 const MUTE_KEY = "masci.notifications.mute_until";
 const LAST_COUNT_KEY = "masci.notifications.last_count";
 
@@ -150,7 +182,11 @@ export default function NotificationBell({ accent = "slate" }) {
   const onItemClick = async (n) => {
     if (!n.is_read) {
       try { await markRead(n.id); } catch { /* silent */ }
-      setItems((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true } : x));
+      // TRACK 15.40 · stamp `_recently_read_at` locally so the row shows
+      // the amber "recently read" pulse for the next 5 minutes — no
+      // schema change; client-side ephemeral state only.
+      const stamp = Date.now();
+      setItems((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true, _recently_read_at: stamp } : x));
     }
     // Click-through routing — prefer explicit link_url, then linked task.
     const target = n.link_url || n.url || (n.linked_task_id ? `/tasks?id=${n.linked_task_id}` : null);
@@ -287,12 +323,18 @@ export default function NotificationBell({ accent = "slate" }) {
               {items.map((n) => {
                 const SevIcon = SEV_ICON[n.severity] || Info;
                 const localTime = n.created_at ? new Date(n.created_at).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
+                // TRACK 15.40 · "recently read" = read within the last
+                // 5 minutes. Drives the amber pulse below.
+                const recentlyRead = n.is_read && n._recently_read_at && (Date.now() - n._recently_read_at) < RECENT_READ_MS;
+                const sourceLabel = SOURCE_MODULE_LABEL[n.linked_source_module] || n.linked_source_module || null;
                 return (
                   <li
                     key={n.id}
                     onClick={() => onItemClick(n)}
                     className={`px-5 py-3.5 cursor-pointer hover:bg-slate-50 transition-colors ${n.is_read ? "" : "bg-blue-50/50"}`}
                     data-testid={`notification-item-${n.id}`}
+                    data-read={n.is_read ? "true" : "false"}
+                    data-recently-read={recentlyRead ? "true" : "false"}
                   >
                     <div className="flex items-start gap-3">
                       <SevIcon className={`w-4 h-4 mt-0.5 shrink-0 ${SEV_CLR[n.severity] || "text-slate-500"}`} />
@@ -301,28 +343,62 @@ export default function NotificationBell({ accent = "slate" }) {
                         {n.message && (
                           <div className="text-xs text-slate-600 mt-0.5 line-clamp-2">{n.message}</div>
                         )}
-                        <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                          <span>{n.type}</span>
-                          <span>·</span>
-                          <span title="Local device time">{localTime}</span>
+                        {/* TRACK 15.40 · traceability chip row.
+                            Type · source-module · created-at — all
+                            sourced from canonical notification fields,
+                            no schema change. */}
+                        <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-500 flex-wrap">
+                          <span
+                            className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
+                            data-testid={`notification-type-${n.id}`}
+                            title="Event type"
+                          >
+                            {n.type}
+                          </span>
+                          {sourceLabel && (
+                            <span
+                              className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200"
+                              data-testid={`notification-source-${n.id}`}
+                              title={`Source module · ${n.linked_source_module}`}
+                            >
+                              {sourceLabel}
+                            </span>
+                          )}
+                          <span
+                            className="text-slate-400 normal-case tracking-normal"
+                            title="Local device time"
+                            data-testid={`notification-time-${n.id}`}
+                          >
+                            {localTime}
+                          </span>
                           {n.linked_task_id && (
-                            <>
-                              <span>·</span>
-                              <Link
-                                to={`/tasks?id=${n.linked_task_id}`}
-                                className="inline-flex items-center gap-0.5 text-slate-600 hover:text-slate-900"
-                                onClick={(e) => e.stopPropagation()}
-                                data-testid={`notification-task-link-${n.id}`}
-                              >
-                                Task <ExternalLink className="w-2.5 h-2.5" />
-                              </Link>
-                            </>
+                            <Link
+                              to={`/tasks?id=${n.linked_task_id}`}
+                              className="inline-flex items-center gap-0.5 text-slate-600 hover:text-slate-900 normal-case tracking-normal"
+                              onClick={(e) => e.stopPropagation()}
+                              data-testid={`notification-task-link-${n.id}`}
+                            >
+                              Task <ExternalLink className="w-2.5 h-2.5" />
+                            </Link>
                           )}
                         </div>
                       </div>
-                      {!n.is_read && (
-                        <span className="inline-block w-2 h-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                      )}
+                      {/* TRACK 15.40 · unread state (solid blue) OR
+                          recently-read state (soft amber w/ pulse).
+                          After 5 minutes the indicator goes away
+                          entirely so the row reads as normal. */}
+                      {!n.is_read ? (
+                        <span
+                          className="inline-block w-2 h-2 rounded-full bg-blue-600 mt-1.5 shrink-0"
+                          data-testid={`notification-unread-dot-${n.id}`}
+                        />
+                      ) : recentlyRead ? (
+                        <span
+                          className="inline-block w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0 animate-pulse"
+                          data-testid={`notification-recent-dot-${n.id}`}
+                          title="Recently read"
+                        />
+                      ) : null}
                     </div>
                   </li>
                 );

@@ -390,7 +390,22 @@ async def _notify_assignment(
         "recipient_role": recipient_role,
         "recipient_user_id": target_user_id,
         "linked_project_number": project_number,
-        "link_url": f"/pm/projects/{project_number}" if recipient_role == "pm" else None,
+        # TRACK 15.40 · Notification Completion — every recipient gets a
+        # valid deep link. Admin opens the team management page; PM
+        # opens the project; everyone else opens the project shell.
+        # This eliminates the previous null-link_url case that left
+        # admins/safety reps tapping a notification that did nothing.
+        "link_url": (
+            f"/admin/jobs/{project_number}/team" if recipient_role == "admin"
+            else f"/pm/projects/{project_number}" if recipient_role == "pm"
+            else f"/admin/jobs/{project_number}/team"
+        ),
+        # TRACK 15.40 · traceability metadata — uses existing
+        # canonical notification fields. `linked_source_module` is
+        # the persisted "producer source" the frontend surfaces as a
+        # traceability chip. `type` carries the event type. The
+        # platform schema is unchanged.
+        "linked_source_module": "team_assignment",
     }
     try:
         await notification_service.fanout(db, payload)
@@ -475,6 +490,16 @@ async def _enrich_row_with_directory(
     """Track 15.10 · attach login_status + a resolved display_name to a
     project_team_assignments row. Read-only. Best-effort: if directory
     lookup fails, login_status falls back to "unknown".
+
+    TRACK 15.40 · Directory Resolution Fix — extended employee fallback.
+    Previously the `employees` collection was only consulted when
+    `row.employee_id` was set, which left assignments created with
+    only a `user_id` (and where the user does NOT exist in
+    `user_directory`) rendering as "Unknown person — Admin review
+    required". The fix below tries `employees` by `id == user_id`,
+    `id == employee_id`, and `email == row.email.lower()` so any valid
+    employee record resolves the row name without any new auth, new
+    collection, or new endpoint.
     """
     ud_row: Optional[Dict[str, Any]] = None
     try:
@@ -500,17 +525,39 @@ async def _enrich_row_with_directory(
         row["display_name"] = _resolve_display_name(row)
         return row
 
+    # TRACK 15.40 · expanded employees fallback. Try every key the
+    # assignment row may carry (user_id, employee_id, email). The
+    # employees collection is the canonical HR directory and is the
+    # source of truth for any person who has not yet been promoted
+    # into user_directory (no portal login yet).
     emp_row: Optional[Dict[str, Any]] = None
-    if not ud_row and row.get("employee_id"):
-        try:
+    emp_projection = {
+        "_id": 0, "id": 1, "employee_id": 1,
+        "first_name": 1, "last_name": 1, "name": 1,
+        "preferred_name": 1, "email": 1,
+    }
+    try:
+        if not emp_row and row.get("user_id"):
             emp_row = await db.employees.find_one(
-                {"id": row["employee_id"]},
-                {"_id": 0, "first_name": 1, "last_name": 1, "email": 1},
+                {"id": row["user_id"]}, emp_projection,
             )
-        except Exception:
-            emp_row = None
+        if not emp_row and row.get("employee_id"):
+            emp_row = await db.employees.find_one(
+                {"id": row["employee_id"]}, emp_projection,
+            )
+            if not emp_row:
+                emp_row = await db.employees.find_one(
+                    {"employee_id": row["employee_id"]}, emp_projection,
+                )
+        if not emp_row and row.get("email"):
+            emp_row = await db.employees.find_one(
+                {"email": (row.get("email") or "").lower()},
+                emp_projection,
+            )
+    except Exception:
+        emp_row = None
 
-    row["display_name"] = _resolve_display_name(row, ud_row or {}, emp_row or {})
+    row["display_name"] = _resolve_display_name(ud_row or {}, emp_row or {}, row)
     row["login_status"] = (
         _login_status_from_directory(ud_row) if ud_row is not None
         else ("no_login" if not row.get("user_id") else "unknown")
@@ -518,6 +565,21 @@ async def _enrich_row_with_directory(
     # Mirror useful directory fields for the UI (read-only).
     if ud_row:
         row.setdefault("email", ud_row.get("email") or row.get("email"))
+        if not row.get("name"):
+            row["name"] = ud_row.get("name")
+    if emp_row:
+        # Only fill blanks — never overwrite values the assignment row
+        # already carries.
+        if not row.get("email"):
+            row["email"] = emp_row.get("email") or None
+        if not row.get("name"):
+            row["name"] = emp_row.get("name")
+        if not row.get("first_name"):
+            row["first_name"] = emp_row.get("first_name")
+        if not row.get("last_name"):
+            row["last_name"] = emp_row.get("last_name")
+        if not row.get("preferred_name"):
+            row["preferred_name"] = emp_row.get("preferred_name")
     return row
 
 
@@ -837,6 +899,38 @@ def register_project_team_assignments(
         ).sort("at", -1).limit(limit)
         async for r in cur:
             rows.append(r)
+        # TRACK 15.40 · enrich audit rows with resolved display_name +
+        # role_label so the History drawer never shows "(unknown)" when
+        # the platform already knows who the user is. Cache lookups by
+        # target_user_id / target_email so repeated rows on the same
+        # human do not re-query the DB.
+        name_cache: Dict[Any, str] = {}
+
+        async def _resolve_audit_name(uid: Optional[str], email: Optional[str]) -> str:
+            key = (uid or "", (email or "").lower())
+            if key in name_cache:
+                return name_cache[key]
+            shim = {"user_id": uid, "email": email}
+            try:
+                await _enrich_row_with_directory(db, shim)
+            except Exception:
+                shim.setdefault("display_name", _resolve_display_name(shim))
+            name = shim.get("display_name") or _resolve_display_name(shim)
+            name_cache[key] = name
+            return name
+
+        for r in rows:
+            uid = r.get("target_user_id") or (r.get("after") or {}).get("user_id") or (r.get("before") or {}).get("user_id")
+            email = r.get("target_email") or (r.get("after") or {}).get("email") or (r.get("before") or {}).get("email")
+            r["target_display_name"] = await _resolve_audit_name(uid, email)
+            # also enrich `before`/`after` snapshots if they exist
+            for snap_key in ("before", "after"):
+                snap = r.get(snap_key)
+                if isinstance(snap, dict) and snap.get("user_id"):
+                    snap_name = await _resolve_audit_name(
+                        snap.get("user_id"), snap.get("email"),
+                    )
+                    snap["display_name"] = snap_name
         return {"items": rows, "count": len(rows)}
 
     @router.post("/api/admin/jobs/{project_number}/team")
