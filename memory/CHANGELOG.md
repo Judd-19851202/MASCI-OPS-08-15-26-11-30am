@@ -2,6 +2,42 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.43 · Field Operations Workflow Certification (🟡 YELLOW-GREEN · documentation-only track)
+
+**Stop building foundations. Start proving operations.** No code changed. Seven personas audited against the certified platform from Tracks 15.34-15.42.
+
+### Per-persona verdicts (evidence-backed)
+| Persona | Verdict |
+|---|---|
+| Superintendent | 🟢 GREEN |
+| PM | 🟢 GREEN |
+| Safety | 🟢 GREEN |
+| Shop | 🟢 GREEN |
+| Dispatch | 🟢 GREEN |
+| HR | 🟢 GREEN |
+| Executive | 🟡 YELLOW (30-second comprehension partial; 4 visibility gaps documented, NOT built) |
+
+### Friction register
+12 items captured · 2 HIGH (FR-001/FR-002 exec composite visibility) · 4 MEDIUM (notification clarity, shop→PM handoff, bulk attendee, staffing callout) · 6 LOW. Directive followed strictly: documented, not built.
+
+### Final answers
+- **Operating or merely storing data?** OPERATING. Every persona has dedicated portals + backend routes + certified PDFs + notification surfaces.
+- **Top wins:** PDF foundation (15.41/15.42), directory resolution (15.40), notifications complete (15.40), Team Assignment P2 (15.39/15.39A), auth hardening (15.34), backups certified (15.36-15.38).
+- **Top friction:** exec composite rollups (HIGH×2), notification action label specificity, shop→PM handoff visibility, bulk attendee ergonomics.
+
+### Deliverables
+- `/app/memory/TRACK_15_43_WORKFLOW_CERTIFICATION.md`
+- `/app/memory/TRACK_15_43_SUPERINTENDENT_AUDIT.md`
+- `/app/memory/TRACK_15_43_PM_AUDIT.md`
+- `/app/memory/TRACK_15_43_SAFETY_AUDIT.md`
+- `/app/memory/TRACK_15_43_SHOP_AUDIT.md`
+- `/app/memory/TRACK_15_43_DISPATCH_AUDIT.md`
+- `/app/memory/TRACK_15_43_HR_AUDIT.md`
+- `/app/memory/TRACK_15_43_EXECUTIVE_AUDIT.md`
+- `/app/memory/TRACK_15_43_FRICTION_REGISTER.md`
+
+🟡 **GREEN for 6/7 personas · YELLOW for Executive · Friction captured · No new builds (directive followed).**
+
 ## 2026-06-19 — TRACK 15.42 · Universal PDF Foundation Completion + ReportLab Parity (🟢 COMPLETE & CERTIFIED)
 
 **Track 15.41 brought 6 of 30 PDFs onto the foundation. Track 15.42 brings the remaining 24 active surfaces home + builds the ReportLab parallel so both engines speak the same audit/metadata/branding contract.**

@@ -10,7 +10,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.42 · Universal PDF Foundation Completion + ReportLab Parity · 🟢 COMPLETE & CERTIFIED)
+## Latest Track (2026-06-19 · TRACK 15.43 · Field Operations Workflow Certification · 🟡 YELLOW-GREEN · documentation-only)
+
+- **Mode:** evidence-based workflow audit · NO code changes · NO new features built.
+- **Verdicts:** 6 of 7 personas at 🟢 GREEN (Superintendent · PM · Safety · Shop · Dispatch · HR). Executive at 🟡 YELLOW with 4 documented visibility gaps (composite "jobs at risk" rollup, overdue items tile, staffing-issues callout, unresolved-actions composite).
+- **Friction register:** 12 items captured · 2 HIGH · 4 MEDIUM · 6 LOW. Per directive: documented, not built.
+- **Verdict on the core question — "Operating or merely storing data?"** OPERATING. Every persona has dedicated portals, backend routes, certified PDFs, and notification surfaces.
+
+### Deliverables
+- `TRACK_15_43_WORKFLOW_CERTIFICATION.md` · 7 per-persona audit MDs · `FRICTION_REGISTER.md`
+
+### Recommendation for Track 15.44 (NOT built this session)
+Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggregates EXISTING data into 4-6 tiles (jobs at risk · overdue items · staffing issues · unresolved actions · safety · equipment). No schema changes; pure aggregation.
+
+## Previous Track (2026-06-19 · TRACK 15.42 · Universal PDF Foundation Completion + ReportLab Parity · 🟢 COMPLETE & CERTIFIED)
 
 ### Foundation completion
 - **30 of 30 active PDF generators on the foundation** (was 6/30 after Track 15.41).
