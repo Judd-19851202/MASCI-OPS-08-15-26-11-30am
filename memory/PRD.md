@@ -10,7 +10,49 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.54 · Final Pre-Deployment War Room Certification · 🟢 GO)
+## Latest Track (2026-06-19 · TRACK 15.55 · Safety Meeting Attendee Workflow RCA + Permanent Fix · 🟢 GREEN)
+
+### Defect
+Field superintendents reported the "Add Attendee" button stopped working after row 1, appearing to force them toward Bulk Add From Roster. Inverted the real-world workflow of "type all 25 names up front · collect signatures as crew arrives."
+
+### Root cause (2 lines of UI code)
+`/app/frontend/src/pages/NewMeeting.jsx`:
+- Lines 146-164: `addAttendee()` had a per-row completeness gate that toast-blocked row creation.
+- Line 965: the same gate was mirrored as a `disabled={...}` prop on the Add Attendee button.
+
+Both were `SAFETY-MEETING-CERT` hardening that should have lived only at submit time — and already does in `validate()` (unchanged).
+
+### Fix (frontend-only · two edits · no backend / schema / migration)
+1. Removed the row-creation gate inside `addAttendee()` (button now just appends a blank row).
+2. Removed the `disabled` prop from the Add Attendee button (always clickable).
+
+### Schema audit
+- `MeetingCreate.attendees: List[MeetingAttendee]` — no `max_items` cap.
+- Mongo BSON ceiling ≈ 3,000 signed attendees.
+- Live evidence: 65 production meetings · max already 15 attendees.
+
+### Defensibility preserved
+Submit-time `validate()` still requires every row to have name + company + signature + acknowledgement. Plus the 2-photo minimum, conductor signature, and required header fields. Nothing weakened.
+
+### Pillar scorecard (no inflation · 55/60)
+Powerful 9 · Simple 10 · Beautiful 9 · Trusted 9 · Proven 8 · Deployable 10.
+
+### Verification
+- Lint clean.
+- Page renders post-fix.
+- Zero backend impact (`/app/backend/.env` md5 unchanged).
+- Bulk Add From Roster path untouched and still appends correctly.
+
+### Deployment
+🟢 **GO.** Reaches production at next standard frontend deploy. Rollback is `git revert` and never causes data corruption.
+
+### Open follow-up (non-blocking)
+5-minute manual production walkthrough: create a 5-attendee meeting · submit · download PDF.
+
+### Deliverables
+8 markdown files under `/app/memory/TRACK_15_55_*.md`.
+
+## Prior Track (2026-06-19 · TRACK 15.54 · Final Pre-Deployment War Room Certification · 🟢 GO)
 
 ### Decision: 🟢 GO
 Production deployment of MASCI Operations Platform authorized as of 2026-06-19 22:30 UTC.

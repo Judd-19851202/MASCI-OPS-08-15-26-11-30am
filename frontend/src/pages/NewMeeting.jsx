@@ -144,15 +144,14 @@ export default function NewMeeting({ publicMode = false }) {
   };
 
   const addAttendee = () => {
-    // SAFETY-MEETING-CERT · block adding a new row until current row is complete.
-    const last = data.attendees[data.attendees.length - 1];
-    if (last) {
-      const incomplete = isAttendeeIncomplete(last);
-      if (incomplete) {
-        toast.error(t("Complete the current attendee before adding another: {missing}").replace("{missing}", incomplete));
-        return;
-      }
-    }
+    // TRACK 15.55 · field workflow restoration.
+    // A superintendent must be able to add every attendee row up-front
+    // (name + company) and then walk around to collect signatures as
+    // people arrive. Blocking per-row completeness here inverted the
+    // real-world flow. The completeness gate now lives ONLY at submit
+    // time (see validate()), where it correctly enforces "every row
+    // must have a signature + acknowledgement before the meeting is
+    // recorded" without blocking the row-building step itself.
     setData((p) => ({
       ...p,
       attendees: [...p.attendees, {
@@ -962,8 +961,7 @@ export default function NewMeeting({ publicMode = false }) {
             type="button"
             variant="outline"
             onClick={addAttendee}
-            disabled={data.attendees.length > 0 && !!isAttendeeIncomplete(data.attendees[data.attendees.length - 1])}
-            className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
             data-testid="attendee-add"
           >
             <UserPlus className="w-4 h-4 mr-2" /> {t("Add Attendee")}

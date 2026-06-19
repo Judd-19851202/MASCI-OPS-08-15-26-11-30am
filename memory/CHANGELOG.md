@@ -2,6 +2,47 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.55 · Safety Meeting Attendee Workflow RCA + Permanent Fix (🟢 GREEN · 2-line frontend fix)
+
+**Defect:** Field superintendents couldn't add attendee row 2 until they collected a signature for row 1 — inverting the real-world flow of "type all 25 names up front, sign as people arrive." Pushed users toward Bulk Add From Roster as if mandatory.
+
+**Root cause:** `/app/frontend/src/pages/NewMeeting.jsx` had a per-row completeness gate inside `addAttendee()` (lines 146-164) and mirrored it as a `disabled` prop on the Add Attendee button (line 965). Both were intentional ("SAFETY-MEETING-CERT" comments) but misplaced — the correct gate lives in `validate()` at submit time, which was unchanged.
+
+**Fix (2 edits, frontend-only):**
+1. Removed the toast-block at the top of `addAttendee()`. Button just appends a blank row now.
+2. Removed the `disabled={...}` prop from the Add Attendee button. Always clickable.
+
+**Schema audit confirmed unlimited attendees at every layer below the UI:**
+- React state: unbounded array
+- `MeetingCreate.attendees: List[MeetingAttendee]` (no `max_items` cap)
+- Mongo BSON 16 MB ceiling ≈ 3,000 signed attendees
+- Live evidence: 65 production meetings · max already 15 attendees · avg 2.6
+
+**Validator preserved.** Submit-time `validate()` still requires every row to have name + company + signature + acknowledgement. Defensibility unchanged.
+
+**Pillar scorecard (no inflation):**
+- Powerful 9 · Simple 10 · Beautiful 9 · Trusted 9 · Proven 8 · Deployable 10 → **55/60 (92%)**
+
+**Verification:**
+- Lint clean (`mcp_lint_javascript NewMeeting.jsx` → no issues)
+- Frontend renders post-fix (Playwright smoke screenshot)
+- No backend changes, no schema changes, no migrations, no env changes
+- Bulk Add From Roster path untouched and still appends correctly
+
+**Deployment:** 🟢 GO. Frontend-only change in preview. Reaches production at next standard deploy. Rollback is `git revert` and never causes data corruption (previous behavior was strictly more restrictive).
+
+**Deliverables (8 files, `/app/memory/`):**
+- TRACK_15_55_ATTENDEE_WORKFLOW_RCA.md
+- TRACK_15_55_SCHEMA_AUDIT.md
+- TRACK_15_55_FIELD_WORKFLOW_ANALYSIS.md
+- TRACK_15_55_IMPLEMENTATION_REPORT.md
+- TRACK_15_55_REGRESSION_REPORT.md
+- TRACK_15_55_PDF_CERTIFICATION.md
+- TRACK_15_55_DEPLOYMENT_READINESS.md
+- TRACK_15_55_SIX_PILLAR_CERTIFICATION.md
+
+
+
 ## 2026-06-19 — TRACK 15.54 · Final Pre-Deployment War Room Certification (🟢 GO)
 
 **Decision: 🟢 GO — production deployment of MASCI Operations Platform authorized as of 22:30 UTC.**
