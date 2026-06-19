@@ -2511,3 +2511,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 **Files changed:** `/app/frontend/src/components/team/JobTeamRosterPanel.jsx`.
 
 **Status:** preview-certified; awaiting deployment approval.
+
+---
+
+## TRACK 15.27B — Project Team Assignment Deployment Gate (2026-06-19) · ✅ DEPLOYMENT APPROVED
+
+**Standard met:** *"DONE = A real user can successfully perform the workflow repeatedly without confusion, failure, or hidden defects."*
+
+**Real-persistence proof (live preview backend + Atlas DB):**
+- Project: `ZZ-RUNTIME-CERT-2026` (real active, jaymn PM-of-record).
+- Real employee: ALLEN SMATHERS (`91f90906-…`, `allensmathers@masciae.com`).
+- Pre-state: DB active=18, API active=18, DB==API ✅
+- Add via `POST /api/admin/jobs/ZZ-RUNTIME-CERT-2026/team`: HTTP 200 in 0.25s. DB active=19, ALLEN row written.
+- "Hard refresh" simulated via fresh API GET: active=19, ALLEN-as-foreman count=1, **no duplicates** ✅
+- Remove via `DELETE /api/admin/jobs/.../team/{id}?reason=…`: HTTP 200 in 0.22s. Soft-delete (`active=False`, history preserved).
+- "Hard refresh" again: active=18, ALLEN active=0, **1 audit-history row preserved** ✅
+- Final consistency: DB active = API active = pre-state = 18.
+- Audit events captured in `audit_events`: `assign @ 00:02:30` + `remove @ 00:02:33` for `allensmathers@masciae.com`.
+
+**All 7 mandatory tests PASS:**
+1. Open workflow (dialog opens centered on Desktop/iPad-Portrait/iPad-Landscape) ✅
+2. Employee search (first name / last name / partial all narrow results correctly) ✅
+3. Role ordering (`superintendent, assistant_superintendent, foreman, project_engineer, project_administrator` confirmed live) ✅
+4. **Real add-member persistence after hard refresh** ✅
+5. **Real remove-member persistence after hard refresh** ✅
+6. PM-only 403 → friendly amber banner + disabled Add button ✅
+7. DB == API at every checkpoint, no orphans, no duplicates ✅
+
+**Five-Pillar re-score: 25/25** (Powerful 5 · Simple 5 · Beautiful 5 · Trusted 5 · Proven 5).
+
+**Deliverables:**
+- `/app/memory/TRACK_15_27B_DEPLOYMENT_GATE_CERT.md`
+- 5 browser screenshots (`/tmp/team_desktop.png`, `team_ipad_portrait.png`, `team_ipad_landscape.png`, `team_pm_403.png`, `cert_final_state.png`).
+
+**Status:** ✅ **DEPLOYMENT APPROVED.** Awaiting operator push to production.
