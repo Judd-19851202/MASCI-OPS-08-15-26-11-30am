@@ -24,6 +24,8 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft, ShieldCheck, ShieldAlert, Clock, ShieldOff, HelpCircle, Search, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
+import { RemoveReasonDialog } from "@/components/team/RemoveReasonDialog";
+import { AssignmentHistoryDrawer } from "@/components/team/AssignmentHistoryDrawer";
 
 // TRACK 15.27A · P1-2 — Common field roles bubble to the top so a
 // Superintendent / Foreman / Field Engineer assignment is a 1-click
@@ -121,7 +123,6 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   const [registry, setRegistry] = useState([]);
   const [directory, setDirectory] = useState([]);
   const [audit, setAudit] = useState([]);
-  const [showAudit, setShowAudit] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
@@ -136,6 +137,14 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   // TRACK 15.27A · P0-2 — actionable 403 message when a PM opens a
   // project they are not assigned to as PM/Co-PM.
   const [accessErr, setAccessErr] = useState(null);
+  // TRACK 15.39A · structured remove + history drawer + inline role
+  // change. `removeTarget` holds the assignment row to remove; the
+  // dialog reads it for the title + role label. `rowBusy` disables
+  // the inline role Select while a PATCH is in flight (per-row).
+  // `historyOpen` controls the read-only audit drawer.
+  const [removeTarget, setRemoveTarget] = useState(null);
+  const [rowBusy, setRowBusy] = useState({});
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const reload = async () => {
     if (!projectNumber) return;
@@ -202,6 +211,14 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
     return sortRoles(registry);
   }, [registry]);
 
+  // TRACK 15.39A · O(1) label lookup for inline role-change toasts and
+  // the dropdown trigger value text.
+  const roleByKey = useMemo(() => {
+    const m = {};
+    for (const r of registry) m[r.key] = r;
+    return m;
+  }, [registry]);
+
   // TRACK 15.27A · P0-2 — clean cancel/close helper so all paths reset
   // form state uniformly.
   const closeAdd = () => {
@@ -237,14 +254,47 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
     }
   };
 
-  const handleRemove = async (it) => {
-    const reason = prompt(`Remove ${it.display_name || it.email} as ${it.role_label}? (optional reason)`);
-    if (reason === null) return;
+  const handleRemove = (it) => {
+    // TRACK 15.39A · structured reason dialog replaces the legacy
+    // window.prompt(...). The dialog calls handleRemoveConfirm below
+    // with (reason_category, reason_text).
+    setRemoveTarget(it);
+  };
+
+  const handleRemoveConfirm = async (reason_category, reason_text) => {
+    if (!removeTarget) return;
+    await removeTeamMember(
+      projectNumber,
+      removeTarget.id,
+      { reason_category, reason_text },
+      { adminScope },
+    );
+    toast.success("Assignment removed.");
+    setRemoveTarget(null);
+    reload();
+  };
+
+  // TRACK 15.39A · inline role change (admin scope only). PATCH the
+  // assignment to a new role; backend single-source-of-truths the
+  // audit row (one `role_change` event, no synthetic add+remove).
+  const setBusy = (id, v) => setRowBusy((b) => ({ ...b, [id]: v }));
+  const handleRoleChange = async (it, newRoleKey) => {
+    if (!newRoleKey || newRoleKey === it.assignment_role) return;
+    setBusy(it.id, true);
     try {
-      await removeTeamMember(projectNumber, it.id, reason || undefined, { adminScope });
-      toast.success("Assignment removed.");
+      await patchTeamMember(projectNumber, it.id, { assignment_role: newRoleKey });
+      const label = roleByKey[newRoleKey]?.label || newRoleKey;
+      toast.success(`Role changed to ${label}`);
       reload();
-    } catch (e) { toast.error(e.message); }
+    } catch (e) {
+      if (e?.status === 409) {
+        toast.error(e.detail || "User already holds that role on this project.");
+      } else {
+        toast.error(e?.detail || e?.message || "Role change failed");
+      }
+    } finally {
+      setBusy(it.id, false);
+    }
   };
 
   const handleTogglePrimary = async (it) => {
@@ -291,11 +341,11 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowAudit((v) => !v)}
-              data-testid="job-team-audit-toggle"
+              onClick={() => setHistoryOpen(true)}
+              data-testid="open-history-drawer"
             >
               <History className="h-4 w-4 mr-1" />
-              {showAudit ? "Hide history" : `History (${audit.length})`}
+              {`History (${audit.length})`}
             </Button>
           )}
           <Button
@@ -392,6 +442,33 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                     </div>
                     <div className="flex items-center gap-1">
                       {adminScope && !isSynthetic && (
+                        <Select
+                          value={it.assignment_role}
+                          onValueChange={(v) => handleRoleChange(it, v)}
+                          disabled={!!rowBusy[it.id]}
+                        >
+                          <SelectTrigger
+                            className="h-7 w-44 text-xs"
+                            data-testid={`row-role-${it.id}`}
+                            title="Change role"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {assignableRoles.map((r) => (
+                              <SelectItem
+                                key={r.key}
+                                value={r.key}
+                                data-testid={`row-role-${it.id}-opt-${r.key}`}
+                              >
+                                {r.label}
+                                {r.admin_only ? " (admin-only)" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {adminScope && !isSynthetic && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -418,7 +495,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemove(it)}
-                          data-testid={`job-team-remove-${it.id}`}
+                          data-testid={`row-remove-${it.id}`}
                           title="Remove"
                         >
                           <X className="h-3 w-3" />
@@ -597,22 +674,32 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
           </DialogContent>
         </Dialog>
 
-        {adminScope && showAudit && (
-          <div className="mt-4 p-3 border rounded bg-slate-50" data-testid="job-team-audit-drawer">
-            <p className="text-sm font-medium mb-2">Roster history</p>
-            {audit.length === 0 && <p className="text-xs text-slate-500">No history yet.</p>}
-            <ul className="text-xs space-y-1 max-h-72 overflow-auto">
-              {audit.map((a) => (
-                <li key={a.id} className="font-mono">
-                  <span className="text-slate-500">{a.at?.slice(0, 19)}</span> · {a.action} ·{" "}
-                  {a.assignment_role} · {a.target_email || a.target_user_id || "—"} ·{" "}
-                  by {a.actor_email || a.actor_name || a.actor_role}
-                  {a.notes ? ` — ${a.notes}` : ""}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {adminScope && (
+          <AssignmentHistoryDrawer
+            open={historyOpen}
+            onOpenChange={setHistoryOpen}
+            items={audit}
+          />
         )}
+
+        <RemoveReasonDialog
+          open={!!removeTarget}
+          onOpenChange={(v) => { if (!v) setRemoveTarget(null); }}
+          member={
+            removeTarget
+              ? {
+                  id: removeTarget.id,
+                  display_name: displayNameOf(removeTarget),
+                  email: removeTarget.email,
+                  role_label:
+                    removeTarget.role_label ||
+                    (registry.find((r) => r.key === removeTarget.assignment_role)?.label) ||
+                    removeTarget.assignment_role,
+                }
+              : null
+          }
+          onConfirm={handleRemoveConfirm}
+        />
       </CardContent>
     </Card>
   );

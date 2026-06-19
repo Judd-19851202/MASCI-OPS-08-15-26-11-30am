@@ -6,6 +6,113 @@
 
 ---
 
+## 0 · T0 Fixture Seed Block — known-good 2-row scenario
+
+> The fork session runs this BEFORE writing any code. It produces a deterministic
+> 2-assignment fixture (Alec Perkins · foreman + safety_rep on project `20-07`)
+> against PREVIEW only, captures both `assignment_id`s + the audit baseline count,
+> and is the same fixture the cert procedure in §6 references. Re-runnable
+> (deactivates any prior active rows for the same user×project before reseeding).
+
+### 0.1 · Constants (preview-only)
+```
+PROJECT     = "20-07"
+EMPLOYEE_ID = "c9d7ebc3-a292-4d7a-8765-0ce2739c6029"     # Alec Perkins (preview directory)
+EMPLOYEE_EMAIL = "alec.perkins@mascigc.com"              # display sanity check
+SUPER_EMAIL = "jaymn.judd@mascigc.com"
+SUPER_PASS  = "Maddix123!"
+ROLES       = ["foreman", "safety_rep"]
+```
+
+### 0.2 · Seed commands (paste verbatim into the fork session shell)
+```bash
+API=$(grep REACT_APP_BACKEND_URL /app/frontend/.env | cut -d '=' -f2)
+
+# 1. Mint admin token via super-admin multi-login
+ADMIN_TOK=$(curl -sS -X POST "$API/api/auth/multi-login" \
+    -H "Content-Type: application/json" \
+    -d '{"email":"jaymn.judd@mascigc.com","password":"Maddix123!"}' \
+  | python3 -c "import sys,json;print(json.load(sys.stdin)['portal_tokens']['admin'])")
+echo "ADMIN_TOK len: ${#ADMIN_TOK}"   # expect 64
+
+# 2. Baseline audit count BEFORE seed
+BASE_AUDIT=$(curl -sS "$API/api/admin/jobs/20-07/team/audit?limit=500" \
+    -H "X-Admin-Token: $ADMIN_TOK" \
+  | python3 -c "import sys,json;print(len(json.load(sys.stdin).get('items',[])))")
+echo "BASE_AUDIT_COUNT=$BASE_AUDIT"
+
+# 3. Cleanup: remove any pre-existing active rows for this user×project
+#    (idempotent — DELETE 404 is fine when none exist)
+EXISTING=$(curl -sS "$API/api/admin/jobs/20-07/team" \
+    -H "X-Admin-Token: $ADMIN_TOK" \
+  | python3 -c "import sys,json;d=json.load(sys.stdin);print(' '.join([i['id'] for i in d.get('items',[]) if i.get('active') and i.get('user_id')=='c9d7ebc3-a292-4d7a-8765-0ce2739c6029']))")
+for AID in $EXISTING; do
+  curl -sS -X DELETE "$API/api/admin/jobs/20-07/team/$AID" \
+       -H "X-Admin-Token: $ADMIN_TOK" \
+       -H "Content-Type: application/json" \
+       -d '{"reason_category":"reassigned","reason_text":"T0 cleanup before seed"}' >/dev/null
+done
+
+# 4. Seed Row A — foreman
+ROW_A=$(curl -sS -X POST "$API/api/admin/jobs/20-07/team" \
+    -H "X-Admin-Token: $ADMIN_TOK" \
+    -H "Content-Type: application/json" \
+    -d '{"user_id":"c9d7ebc3-a292-4d7a-8765-0ce2739c6029","assignment_role":"foreman","notes":"T0 fixture · foreman"}')
+ASSIGN_FOREMAN=$(echo "$ROW_A" | python3 -c "import sys,json;print(json.load(sys.stdin)['assignment']['id'])")
+echo "ASSIGN_FOREMAN=$ASSIGN_FOREMAN"
+
+# 5. Seed Row B — safety_rep
+ROW_B=$(curl -sS -X POST "$API/api/admin/jobs/20-07/team" \
+    -H "X-Admin-Token: $ADMIN_TOK" \
+    -H "Content-Type: application/json" \
+    -d '{"user_id":"c9d7ebc3-a292-4d7a-8765-0ce2739c6029","assignment_role":"safety_rep","notes":"T0 fixture · safety_rep"}')
+ASSIGN_SAFETY=$(echo "$ROW_B" | python3 -c "import sys,json;print(json.load(sys.stdin)['assignment']['id'])")
+echo "ASSIGN_SAFETY=$ASSIGN_SAFETY"
+
+# 6. Verify
+curl -sS "$API/api/admin/jobs/20-07/team" -H "X-Admin-Token: $ADMIN_TOK" \
+  | python3 -c "import sys,json;d=json.load(sys.stdin);rows=[i for i in d.get('items',[]) if i.get('active') and i.get('user_id')=='c9d7ebc3-a292-4d7a-8765-0ce2739c6029'];print('SEEDED_ACTIVE_ROWS:',len(rows));[print(r['id'],r['assignment_role']) for r in rows]"
+```
+
+### 0.3 · Expected output
+```
+ADMIN_TOK len: 64
+BASE_AUDIT_COUNT=<N>            # captured baseline
+ASSIGN_FOREMAN=<uuid-1>         # used by T1 (Change Role), T3 (Remove), T5 (History)
+ASSIGN_SAFETY=<uuid-2>          # used by T2 (Duplicate Role 409)
+SEEDED_ACTIVE_ROWS: 2
+<uuid-1> foreman
+<uuid-2> safety_rep
+```
+
+### 0.4 · Per-test references
+| Test | Uses fixture row |
+|---|---|
+| T1 Change Role inline | `$ASSIGN_FOREMAN` · change `foreman → assistant_superintendent`, then back to `foreman` for repeatability |
+| T2 Duplicate role guard | `$ASSIGN_SAFETY` · try to change to `foreman` → 409 because `$ASSIGN_FOREMAN` already holds it |
+| T3 Remove with reason | `$ASSIGN_SAFETY` · remove with `reason_category=staffing_adjustment` |
+| T4 Other-requires-text | `$ASSIGN_FOREMAN` · open dialog only — close without submitting (no state mutation) |
+| T5 History Drawer | reads project-wide audit · expects ≥ 1 each of assign / role_change / remove from T1+T3 |
+| T6 Performance | reuses T1 + T3 timings |
+
+### 0.5 · Teardown (post-cert)
+```bash
+# Idempotent — remove both seeded rows with a structured reason so the audit trail is clean
+for AID in $ASSIGN_FOREMAN $ASSIGN_SAFETY; do
+  curl -sS -X DELETE "$API/api/admin/jobs/20-07/team/$AID" \
+       -H "X-Admin-Token: $ADMIN_TOK" \
+       -H "Content-Type: application/json" \
+       -d '{"reason_category":"project_complete","reason_text":"T0 fixture teardown after Track 15.39A cert"}' >/dev/null
+done
+```
+
+### 0.6 · Guard-rails
+* PREVIEW only — script must NOT run against production (`DB_NAME=masci_safety`). Verify by hitting `/api/admin/env-check` or by visually confirming the amber preview banner.
+* If step 4 or 5 returns 409 ("User already holds the ... role"), step 3 cleanup did not complete — re-run step 3 then resume.
+* If the directory does not contain Alec Perkins under the documented `EMPLOYEE_ID`, fall back to: pick any active employee from `GET /api/admin/directory/k4/users?limit=10` and substitute `EMPLOYEE_ID` everywhere above.
+
+---
+
 ## 1 · Architecture map (already-existing files the fork edits / creates)
 
 | Path | Role | Action |

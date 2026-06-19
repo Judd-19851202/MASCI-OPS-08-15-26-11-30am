@@ -1,0 +1,44 @@
+{
+  "summary": "TRACK 15.39A — Team Assignment P2 Frontend smoke verification. Authenticated as super admin (jaymn.judd@mascigc.com) and loaded /admin/jobs/20-07/team successfully. Confirmed page render, T0 fixture state visible (Foreman + Safety Rep + PM Demo rows on project 20-07), and all critical data-testids are mounted as specified in the spec. Did NOT complete the full T1-T6 mutation/viewport matrix due to token-budget exhaustion during environment login (sign-in form needed specific data-testid selectors).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_testids_present": [
+    "row-role-9a9bfc3d-c740-4ef8-9f58-9afad29b3e8c (Foreman row Select)",
+    "row-remove-61447c6f-8ae3-4544-a7e5-d18d5bd91616 (safety_rep Remove button)",
+    "open-history-drawer (rendered as 'History (14)' chip)",
+    "job-team-add-btn (Add member button)"
+  ],
+  "not_yet_executed": [
+    "T1 — Inline role change PATCH + reload verification + revert",
+    "T2 — 409 duplicate-role toast with 'User already holds the Foreman role on this project' substring assertion",
+    "T3 — Remove dialog submit with reason_category=reassigned + history audit row appearance",
+    "T4 — 'other' reason text-required enable/disable toggle",
+    "T5 — History drawer assign/role_change/remove rows + newest-first + Esc close",
+    "T6 — Viewport matrix at 1920x800, 768x1024, 1024x768 + 5-second perf budget",
+    "Regression — Add Member modal + PM scope at /pm/job/20-07/team"
+  ],
+  "test_report_links": [
+    "/app/test_reports/track1539a_v4_team.png"
+  ],
+  "action_items": [
+    "Spawn a fresh testing agent with explicit instruction to use data-testid selectors (admin-email-input, admin-password-input, admin-login-submit) for the /admin/login flow — the default 'input[type=email]' selectors leave React state empty and silently fail login.",
+    "Re-run full T1-T6 cert at three viewports. The page infrastructure is verified loading and all critical testids are mounted, so the next agent can drive directly into T1.",
+    "After T3 successfully removes the safety_rep row, re-seed it per task instructions: POST /api/admin/jobs/20-07/team with body {\"user_id\":\"c9d7ebc3-a292-4d7a-8765-0ce2739c6029\",\"assignment_role\":\"safety_rep\",\"notes\":\"cert reseed\"} using X-Admin-Token header."
+  ],
+  "critical_code_review_comments": [
+    "JobTeamRosterPanel.jsx and RemoveReasonDialog.jsx — components rendered correctly with full testid scaffolding. No structural issues observed during smoke load.",
+    "teamRosterApi.js correctly migrated to JSON body for DELETE (Track 15.39A contract). patchTeamMember properly re-throws err.status + err.detail for 409 surfacing."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skip)", "frontend": "infrastructure only - mutations not yet exercised"},
+  "test_credentials": "Super admin: jaymn.judd@mascigc.com / Maddix123! — verified working at /admin/login via data-testid=admin-login-submit (returns 101-char masci.admin.token). PM Demo: pm.demo@mascigc.com / PmTest2026! — not yet exercised.",
+  "seed_data_creation": "None — T0 fixture (Alec Perkins foreman + safety_rep + PM Demo) confirmed visible on project 20-07.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "CRITICAL: To log in via /admin/login UI, fill `[data-testid=admin-email-input]` and `[data-testid=admin-password-input]` then click `[data-testid=admin-login-submit]`. Generic `input[type=email]` selectors silently fail (React controlled inputs). After login, localStorage['masci.admin.token'] is 101 chars. Then navigate to /admin/jobs/20-07/team and wait ~6s — all 15.39A testids are mounted (verified: row-role-{foreman_id}, row-remove-{safety_rep_id}, open-history-drawer, job-team-add-btn). History button is labeled 'History (14)' currently. Foreman row currently shows 'Unknown person — Admin review required' which is a known display-name issue (NOT a bug for this track per the task brief — target rows by assignment_id testid, not name).",
+  "rca of the issue": "No bug RCA — this was a partial-coverage smoke run. Token budget was consumed by three login attempts before the correct data-testid-based selector strategy was identified. Subsequent re-test should bypass this and drive T1-T6 directly."
+}

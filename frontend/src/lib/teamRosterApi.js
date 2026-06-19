@@ -74,21 +74,41 @@ export async function patchTeamMember(projectNumber, assignmentId, body) {
     { method: "PATCH", headers: headers(true), body: JSON.stringify(body) }
   );
   const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || `patch: ${r.status}`);
+  if (!r.ok) {
+    const err = new Error(data.detail || `patch: ${r.status}`);
+    err.status = r.status;
+    err.detail = data.detail;
+    throw err;
+  }
   return data;
 }
 
-export async function removeTeamMember(projectNumber, assignmentId, reason, { adminScope = false } = {}) {
+// TRACK 15.39A · structured remove reason — backend now expects a JSON body
+// `{ reason_category, reason_text? }` instead of the legacy `?reason=` query.
+// `body` may be a plain string (legacy callers — coerced to `{reason_text}` with
+// `reason_category=null`) or an object with the new shape.
+export async function removeTeamMember(projectNumber, assignmentId, body, { adminScope = false } = {}) {
   const path = adminScope
     ? `/api/admin/jobs/${encodeURIComponent(projectNumber)}/team/${assignmentId}`
     : `/api/pm/job/${encodeURIComponent(projectNumber)}/team/${assignmentId}`;
-  const url = reason
-    ? `${API}${path}?reason=${encodeURIComponent(reason)}`
-    : `${API}${path}`;
-  const r = await fetch(url, { method: "DELETE", headers: headers() });
+  const payload =
+    body && typeof body === "object"
+      ? {
+          reason_category: body.reason_category || null,
+          reason_text: body.reason_text || null,
+        }
+      : { reason_category: null, reason_text: body || null };
+  const r = await fetch(`${API}${path}`, {
+    method: "DELETE",
+    headers: headers(true),
+    body: JSON.stringify(payload),
+  });
   if (!r.ok) {
     const data = await r.json().catch(() => ({}));
-    throw new Error(data.detail || `remove: ${r.status}`);
+    const err = new Error(data.detail || `remove: ${r.status}`);
+    err.status = r.status;
+    err.detail = data.detail;
+    throw err;
   }
   return r.json();
 }
