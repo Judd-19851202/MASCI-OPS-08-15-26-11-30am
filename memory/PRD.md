@@ -10,7 +10,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-18 · TRACK 15.19 · FINAL REALITY GATE · ZERO-SURPRISE DEPLOYMENT CERT · 🟢 DEPLOYABLE preview-certified)
+## Latest Track (2026-06-19 · TRACK 15.39A · Team Assignment P2 FRONTEND · 🟢 COMPLETE & CERTIFIED)
+- **Mode:** single-session frontend completion using the certified Track 15.39 backend.
+- **Delivered:** (1) inline role-change `<Select>` per row (admin scope · PATCH /api/admin/jobs/{pn}/team/{id} with 409 duplicate-role toast); (2) structured `RemoveReasonDialog` (shadcn Dialog · 7 reason categories · "other" requires text · DELETE with JSON body); (3) read-only `AssignmentHistoryDrawer` (shadcn Sheet · color-coded action badges · newest-first).
+- **Backend:** zero changes — uses certified Track 15.39 endpoints exclusively.
+- **Cert:** iter524 (smoke) + iter525 (T1 inline change + revert · T2 409 duplicate · T3 structured remove · Add-member regression PASS) + iter526 (T4 other-requires-text · T5 history drawer · T6 viewport matrix · PM-scope regression PASS). **7/7 PASS** at Desktop 1920×800 · iPad portrait 768×1024 · iPad landscape 1024×768.
+- **Side fixes:** ResizeObserver loop dev-overlay suppressor in `frontend/src/index.js` (narrow window.error listener for the specific Radix Select/Sheet animation warning).
+- **PM scope unchanged:** admin-only surfaces (inline role Select, history drawer) hidden; PM can still remove via the structured dialog.
+- **Fixture left intact:** project `20-07` · Alec Perkins · foreman `9a9bfc3d-...` + safety_rep `453e5110-...`.
+- **Deliverables:** `/app/memory/TRACK_15_39A_TEAM_ASSIGNMENT_P2_FRONTEND_IMPLEMENTATION.md` · `/app/memory/TRACK_15_39A_TEAM_ASSIGNMENT_P2_FRONTEND_CERTIFICATION.md`
+
+## Previous Track (2026-06-18 · TRACK 15.19 · FINAL REALITY GATE · ZERO-SURPRISE DEPLOYMENT CERT · 🟢 DEPLOYABLE preview-certified)
 - **Mode:** live runtime certification only. Zero code changes.
 - **Live proof captured:** 39/39 backend safety gate PASS · 6/6 health probe PASS · 6/6 auth attack vectors blocked · 29/29 multi-portal browser walk PASS · 20/20 HR Daily Reports navigation cycles with 0 session modals / 0 server-unreachable banners · iPhone-390 Admin Hub render · iPad-1024 Asset Care render.
 - **No P0 open. No P1 workflow blocker open.** All 24 defects from 15.14D ledger have explicit disposition.

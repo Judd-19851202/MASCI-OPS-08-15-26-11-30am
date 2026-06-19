@@ -2,6 +2,26 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.39A · Team Assignment P2 Frontend (🟢 COMPLETE & CERTIFIED)
+
+**One-pass frontend completion using the certified Track 15.39 backend.**
+
+Files touched:
+* `frontend/src/lib/teamRosterApi.js` — `removeTeamMember` now POSTs JSON body `{reason_category, reason_text}` (was `?reason=` query); `patchTeamMember` re-throws `err.status` + `err.detail` so 409 duplicate-role can be surfaced inline.
+* `frontend/src/components/team/RemoveReasonDialog.jsx` **(new)** — shadcn Dialog with 7 radio categories + textarea. Submit gated when `other` is selected without text. Server `detail` surfaces inline on error.
+* `frontend/src/components/team/AssignmentHistoryDrawer.jsx` **(new)** — shadcn Sheet (right-side), newest-first, color-coded action badges (assign/role_change/update/remove).
+* `frontend/src/components/team/JobTeamRosterPanel.jsx` — replaced `window.prompt(...)` with the structured dialog; added inline role-change Select per row (admin scope only) calling PATCH with 409 toast; swapped inline audit panel for the drawer; removed unused `showAudit` state.
+* `frontend/src/index.js` — narrow `ResizeObserver loop` warning suppressor so the CRA dev overlay no longer blocks Radix Select/Sheet animations during testing.
+* `memory/TRACK_15_39A_FRONTEND_HANDOFF_PLAN.md` — prepended §0 T0 fixture seed block (Alec Perkins foreman + safety_rep on `20-07`) with copy-paste curl seed + teardown.
+
+Cert: iter524 (smoke) + iter525 (T1/T2/T3/Add-member PASS) + iter526 (T4/T5/T6/PM-scope PASS) → **7/7 PASS across 3 viewports (Desktop 1920×800 · iPad portrait 768×1024 · iPad landscape 1024×768)**.
+
+Deliverables:
+* `/app/memory/TRACK_15_39A_TEAM_ASSIGNMENT_P2_FRONTEND_IMPLEMENTATION.md`
+* `/app/memory/TRACK_15_39A_TEAM_ASSIGNMENT_P2_FRONTEND_CERTIFICATION.md`
+
+🟢 **DEPLOYABLE.** No backend changes. No new endpoints. No new collections. PM scope unchanged where designed.
+
 ## 2026-02-14 — UXS-11C Sweep A continuation (batch 3 · partial)
 
 **2 more drifted pages wrapped + HR identity surfacing in directory**:
