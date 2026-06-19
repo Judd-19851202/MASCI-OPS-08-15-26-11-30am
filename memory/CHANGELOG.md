@@ -3546,3 +3546,39 @@ PM bell complaints are now fully explainable and reproducible — root cause is 
 - 🔒 No remediation performed (per directive).
 - 🟡 10-step canonicalization plan documented in the deliverable, awaiting separate authorization.
 
+
+
+---
+
+## 2026-02 — TRACK 15.28C · Notification System Canonicalization REMEDIATION
+
+### Deliverables
+- `/app/memory/TRACK_15_28C_REMEDIATION_CERTIFICATION.md`
+- `/app/backend/scripts/track_15_28c_canonicalization_migration.py` (re-entrant, `--dry-run` / `--apply`)
+- `/app/backend/tests/test_track_15_28c_notification_canonicalization.py` (18 pytest cases, all passing)
+
+### Code changes
+- `routes/tasks_notifications.py` — added `event_id` + permanent idempotency (sha256 over discriminators) + unique sparse index; added `build_notif_filter_async()` with PM project-scope filter using `project_team_assignments`; wired bell endpoints to async filter.
+- `routes/employee_requests.py` — `_notify_hr_queue_pending` rewired to canonical `emit_notification`.
+- `routes/operations_actions/api.py` — `_notify_assignment` rewired to canonical.
+- `routes/pm_engine.py` — `_notify` now writes to `db.notifications` (was `db.tasks_notifications`).
+- `phase4.py` — `/api/me/notifications` GET + POST handlers deleted; `notify_user` rewired to canonical.
+
+### Database changes
+- 9,742 → 8,849 rows (variance 100 % explained: 995 dedupe + 54 cross-collection dedupe + 7 orphans, − 162 net from tasks_notifications, +1 live write).
+- 552 legacy rows migrated in place (kind/audience/user_email/user_id/read fields dropped).
+- 162 `tasks_notifications` rows migrated; collection dropped.
+- 7 itest-mech orphans deleted.
+- 8,849 / 8,849 rows now have `event_id` + `idempotency_key` + canonical `type` + `recipient_role`.
+
+### Operator decisions (locked)
+- PM scope source = `project_team_assignments` (active only)
+- PM unscoped events suppressed unless producer sets `pm_broadcast=True`
+- Idempotency = PERMANENT (one event → one row, ever)
+- Legacy rows = in-place rewrite
+- `/api/me/notifications` = deleted entirely
+
+### Status
+- 🟢 Trusted = restored.
+- 🟢 Proven = restored.
+- 🟢 Deployment gate = OPEN.

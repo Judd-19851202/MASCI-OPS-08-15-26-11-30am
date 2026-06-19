@@ -58,15 +58,54 @@ API endpoints (any portal token):
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
+
+# ──────────────────────────────────────────────────────────────────
+# TRACK 15.28C — Notification System Canonicalization Remediation
+# ──────────────────────────────────────────────────────────────────
+# event_id  — uuid stamped on every notification, traceable to the
+#             originating producer call.
+# idempotency_key — sha256 over (type, linked_source_record_id,
+#             linked_task_id, recipient_role, recipient_user_id,
+#             linked_request_id, linked_equipment_id). PERMANENT
+#             dedupe — same key collapses to one row, ever.
+# pm_broadcast — opt-in flag set by producers that genuinely want
+#             every PM in the company to see the event. Without it,
+#             PMs only see notifications scoped to projects they are
+#             actively assigned to via `db.project_team_assignments`.
+#
+# Operator decision (Track 15.28C):
+#   PM scope source        = project_team_assignments only (active rows)
+#   PM unscoped behaviour  = suppress unless `pm_broadcast=true`
+#   Idempotency window     = permanent (one event → one row, EVER)
+#   Migration mode         = in-place
+#   Dormant routes         = deleted
+# ──────────────────────────────────────────────────────────────────
+
+def compute_idempotency_key(payload: Dict[str, Any]) -> str:
+    """Deterministic SHA-256 over the dedupe discriminators. Same payload
+    shape → same key → upsert collapses repeats to a single row."""
+    parts = [
+        str(payload.get("type") or ""),
+        str(payload.get("linked_source_record_id") or ""),
+        str(payload.get("linked_task_id") or ""),
+        str(payload.get("recipient_role") or ""),
+        str(payload.get("recipient_user_id") or ""),
+        str(payload.get("linked_request_id") or ""),
+        str(payload.get("linked_equipment_id") or ""),
+        str(payload.get("linked_employee_id") or ""),
+    ]
+    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
 
 # ──────────────────────────────────────────────────────────────────
 # Closed enums — keeping these tight prevents schema rot.
@@ -309,40 +348,60 @@ class _NotificationService:
         sev = payload.get("severity", "Info")
         if sev not in ALLOWED_SEVERITY:
             sev = "Info"
+        # TRACK 15.28C — resolve recipient first so the idempotency
+        # key reflects the materialized recipient_user_id.
+        resolved_recipient_user_id = payload.get("recipient_user_id") or (
+            await _resolve_recipient_user_id(db, payload)
+        )
+        eff_payload = dict(payload)
+        eff_payload["recipient_user_id"] = resolved_recipient_user_id
+        eff_payload.setdefault("recipient_role",
+                               payload.get("recipient_role") or "admin")
+        idem_key = compute_idempotency_key(eff_payload)
+        # TRACK 15.28C — permanent dedupe via idempotency_key.
+        # If a row with the same key exists, return its id without
+        # creating a duplicate. One event → one row, EVER.
+        existing = await db.notifications.find_one(
+            {"idempotency_key": idem_key},
+            {"_id": 0, "id": 1},
+        )
+        if existing and existing.get("id"):
+            return existing["id"]
         notif = {
             "id": str(uuid.uuid4()),
-            "type": str(payload.get("type", "system"))[:48],
+            # TRACK 15.28C — every notification traceable to its
+            # originating producer call. Producers may pass their
+            # own event_id (preferred); otherwise we mint one.
+            "event_id": str(payload.get("event_id") or uuid.uuid4()),
+            "idempotency_key": idem_key,
+            "type": str(payload.get("type", "system"))[:64],
             "title": str(payload.get("title", ""))[:200],
             "message": (payload.get("message") or "")[:2000] or None,
             "severity": sev,
-            "recipient_role": (payload.get("recipient_role") or "admin"),
-            # Track 14.0-NOTIFY-OWNERSHIP-LOCK D2 — resolve specific
-            # human recipient via the 8-step ownership chain. When a
-            # specific human is resolved, recipient_role stays
-            # populated as the scope guard, AND recipient_user_id
-            # carries the person-level address.
-            "recipient_user_id": payload.get("recipient_user_id") or (
-                await _resolve_recipient_user_id(db, payload)
-            ),
+            "recipient_role": eff_payload["recipient_role"],
+            "recipient_user_id": resolved_recipient_user_id,
+            # TRACK 15.28C — opt-in flag. PMs only see notifications
+            # for projects they are assigned to in
+            # `project_team_assignments`. Set `pm_broadcast=True` to
+            # surface a notification to all PMs regardless of project.
+            "pm_broadcast": bool(payload.get("pm_broadcast", False)),
             "linked_task_id": payload.get("linked_task_id"),
             "linked_source_module": payload.get("linked_source_module"),
             "linked_source_record_id": payload.get("linked_source_record_id"),
             "linked_employee_id": payload.get("linked_employee_id"),
             "linked_equipment_id": payload.get("linked_equipment_id"),
             "linked_project_number": payload.get("linked_project_number"),
-            # Track 14.0-NOTIFY-LOCK-COMPLETION — deep-link resolution
-            # at write time so the drawer can navigate to the exact
-            # record without a runtime route lookup. Falls back to None
-            # → linked_task_id → /tasks (existing chain).
-            "link_url": payload.get("link_url") or _resolve_link_url(payload),
+            "linked_request_id": payload.get("linked_request_id"),
+            "link_url": payload.get("link_url") or _resolve_link_url(eff_payload),
             "created_at": now,
-            # Auto-expire 60d after creation; ackd Critical alerts can be
-            # explicitly kept by setting expires_at = None on ack.
-            "expires_at": now + timedelta(days=60),
-            "read_by": [],          # list of {user_id|role, at}
+            # Permanent dedupe ⇒ expiry is opt-in. Set when caller
+            # provides a TTL or when severity is Info (90d).
+            "expires_at": payload.get("expires_at") or (
+                now + timedelta(days=90)
+            ),
+            "read_by": [],
             "acknowledged_by": None,
             "acknowledged_at": None,
-            # Future-ready delivery channel placeholders
             "delivery": {
                 "internal": True,
                 "email": payload.get("email_enabled", False),
@@ -350,7 +409,18 @@ class _NotificationService:
                 "sms": False,
             },
         }
-        await db.notifications.insert_one(notif)
+        try:
+            await db.notifications.insert_one(notif)
+        except Exception as exc:  # noqa: BLE001
+            # Race: another writer raced us with the same idem_key.
+            # Re-read and return the surviving id.
+            existing2 = await db.notifications.find_one(
+                {"idempotency_key": idem_key},
+                {"_id": 0, "id": 1},
+            )
+            if existing2 and existing2.get("id"):
+                return existing2["id"]
+            raise exc
         return notif["id"]
 
 
@@ -511,6 +581,16 @@ async def ensure_tasks_notifications_indexes(db) -> None:
         await db.notifications.create_index("id", unique=True)
         await db.notifications.create_index([("recipient_role", 1), ("created_at", -1)])
         await db.notifications.create_index([("recipient_user_id", 1), ("created_at", -1)])
+        # TRACK 15.28C — permanent dedupe index. Sparse so legacy
+        # rows without an idempotency_key don't collide.
+        await db.notifications.create_index(
+            "idempotency_key", unique=True, sparse=True,
+        )
+        await db.notifications.create_index("event_id", sparse=True)
+        # TRACK 15.28C — PM project-scope read index.
+        await db.notifications.create_index(
+            [("linked_project_number", 1), ("recipient_role", 1), ("created_at", -1)],
+        )
         # TRACK 14.0-NOTIF-NEW-USER-SCOPE — supports eligibility filter
         # on the role-broadcast leg: {recipient_role, created_at>=cutoff,
         # no recipient_user_id}. The existing (recipient_role, created_at)
@@ -558,6 +638,97 @@ def actor_eligibility(actor: Dict[str, Any]) -> Optional[datetime]:
         except (ValueError, TypeError):
             return None
     return None
+
+
+async def _pm_assigned_project_numbers(
+    db, actor: Dict[str, Any],
+) -> Set[str]:
+    """TRACK 15.28C — returns the set of project_numbers the PM actor
+    is actively assigned to in `db.project_team_assignments`. Used by
+    the read-side scope filter so PMs no longer see role-broadcast
+    notifications for projects they are not on.
+
+    Match strategy: prefer `user_id`, fall back to lowercased email.
+    Only `active=True` rows count.
+    """
+    user_id = actor.get("id") or actor.get("user_id")
+    email = (actor.get("email") or "").strip().lower()
+    or_clauses: List[Dict[str, Any]] = []
+    if user_id:
+        or_clauses.append({"user_id": user_id})
+    if email:
+        or_clauses.append({"email": email})
+    if not or_clauses:
+        return set()
+    q: Dict[str, Any] = {"active": True, "$or": or_clauses}
+    projects: Set[str] = set()
+    try:
+        async for row in db.project_team_assignments.find(
+            q, {"_id": 0, "project_number": 1},
+        ):
+            pn = row.get("project_number")
+            if pn:
+                projects.add(pn)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[notif-pm-scope] lookup failed: %s", exc)
+    return projects
+
+
+async def build_notif_filter_async(
+    db, actor: Dict[str, Any],
+) -> Dict[str, Any]:
+    """TRACK 15.28C — async read-side notification filter.
+
+    Rules:
+      • Admin → ``{}`` (no filter).
+      • Person-level routing: ``recipient_user_id == actor.id`` is OR'd
+        with the role clause; direct-addressed notifications bypass
+        every other constraint (eligibility, project scope).
+      • Asset Admin OR-scope: ``asset_admin`` is appended to the role
+        list when ``actor.is_asset_admin == True``.
+      • Eligibility cutoff: role-broadcast notifications are further
+        constrained to ``created_at >= actor_eligibility(actor)``.
+      • PM project scope (NEW): when ``actor.role == "pm"``, role-
+        broadcast notifications are additionally constrained to:
+            linked_project_number ∈ assigned_projects
+              OR (linked_project_number IS NULL AND pm_broadcast=True)
+        i.e. PMs see project-scoped notifications for their projects,
+        plus explicit company-wide PM broadcasts only.
+    """
+    role = actor_role(actor)
+    if role == "admin":
+        return {}
+    scope_roles = [role]
+    if actor.get("is_asset_admin") is True:
+        scope_roles.append("asset_admin")
+    user_id = actor.get("id") or actor.get("user_id")
+    role_clauses: List[Dict[str, Any]] = [
+        {"recipient_role": {"$in": scope_roles}},
+        {"$or": [
+            {"recipient_user_id": None},
+            {"recipient_user_id": {"$exists": False}},
+        ]},
+    ]
+    eligibility = actor_eligibility(actor)
+    if eligibility is not None:
+        role_clauses.append({"created_at": {"$gte": eligibility}})
+    if role == "pm":
+        assigned = await _pm_assigned_project_numbers(db, actor)
+        pm_scope_clauses: List[Dict[str, Any]] = []
+        if assigned:
+            pm_scope_clauses.append({"linked_project_number": {"$in": list(assigned)}})
+        pm_scope_clauses.append({"$and": [
+            {"$or": [
+                {"linked_project_number": None},
+                {"linked_project_number": {"$exists": False}},
+            ]},
+            {"pm_broadcast": True},
+        ]})
+        role_clauses.append({"$or": pm_scope_clauses})
+    role_clause = {"$and": role_clauses}
+    if user_id:
+        return {"$or": [role_clause, {"recipient_user_id": user_id}]}
+    return role_clause
 
 
 def build_notif_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
@@ -784,6 +955,14 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         """
         return build_notif_filter(actor)
 
+    async def _notif_filter_async(actor: Dict[str, Any]) -> Dict[str, Any]:
+        """TRACK 15.28C — async shim that includes PM project-scope.
+
+        Used by the bell read endpoints so PMs only see notifications
+        for projects they are actively assigned to.
+        """
+        return await build_notif_filter_async(db, actor)
+
     # ── Notifications ────────────────────────────────────────────────
     @router.get("/api/notifications")
     async def list_notifications(
@@ -792,7 +971,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         limit: int = Query(default=50, ge=1, le=200),
     ) -> Dict[str, Any]:
         role = _actor_role(actor)
-        filt = _notif_filter(actor)
+        filt = await _notif_filter_async(actor)
         cur = db.notifications.find(filt, {"_id": 0}).sort("created_at", -1).limit(limit)
         items: List[Dict[str, Any]] = []
         async for d in cur:
@@ -811,7 +990,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         role = _actor_role(actor)
-        filt = _notif_filter(actor)
+        filt = await _notif_filter_async(actor)
         # Approximate: not-acknowledged & role-marker absent from read_by
         cnt = 0
         cur = db.notifications.find(
@@ -855,7 +1034,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         }
         # Use the same D2/D3-aware filter as the list endpoint so users
         # can only mark-read what they can actually see.
-        filt: Dict[str, Any] = _notif_filter(actor)
+        filt: Dict[str, Any] = await _notif_filter_async(actor)
         if filt:
             filt = {"$and": [filt, {"read_by.role": {"$ne": role}}]}
         else:

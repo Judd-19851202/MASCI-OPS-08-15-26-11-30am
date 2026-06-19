@@ -88,31 +88,43 @@ async def notify_user(
     db, user_id: str, kind: str, project_id: str, actor: dict,
     target_kind: str, target_id: str, target_label: str, preview: str = "",
 ) -> Optional[dict]:
-    """Insert a notification row. Returns the notification dict (or None
-    if skipped — e.g. if actor == user)."""
+    """TRACK 15.28C — rewritten to use canonical `emit_notification`.
+
+    The legacy crew-hub bell was retired with the canonicalization
+    track. This wrapper preserves the call-sites in tools.py
+    (messages, todos, @mentions) but routes them through the
+    canonical fanout so they land in the single source of truth
+    (`db.notifications`, type/recipient_role/recipient_user_id),
+    are idempotent (no duplicate posts), and reach the unified bell.
+
+    Returns a minimal echo dict for compatibility with the legacy
+    return shape used by `process_mentions` (only `project_name` is
+    consumed downstream)."""
     if user_id == actor["id"]:
         return None
     try:
-        proj = await db.projects.find_one({"id": project_id}, {"_id": 0, "name": 1})
-        doc = {
-            "id": str(uuid.uuid4()),
-            "user_id": user_id,
-            "kind": kind,
-            "project_id": project_id,
-            "project_name": (proj or {}).get("name", ""),
-            "actor_id": actor["id"],
-            "actor_name": actor.get("name") or actor.get("email", ""),
-            "target_kind": target_kind,
-            "target_id": target_id,
-            "target_label": target_label[:200],
-            "preview": preview[:280],
-            "created_at": _now(),
-            "read_at": None,
+        from lib.event_fanout import emit_notification  # noqa: PLC0415
+        proj = await db.projects.find_one({"id": project_id}, {"_id": 0, "name": 1, "project_number": 1}) or {}
+        title_map = {
+            "mention": f"You were mentioned in {target_label[:80]}",
+            "post":    f"New post: {target_label[:80]}",
+            "todo_assigned": f"To-do assigned: {target_label[:80]}",
         }
-        await db.notifications.insert_one(doc)
-        return doc
+        actor_name = actor.get("name") or actor.get("email") or "Someone"
+        await emit_notification(db, {
+            "type": f"crew.{kind}",
+            "title": title_map.get(kind, f"{kind}: {target_label[:80]}"),
+            "message": preview[:280] or f"{actor_name} · {proj.get('name','')}",
+            "severity": "Info",
+            "recipient_role": "admin",
+            "recipient_user_id": user_id,
+            "linked_source_module": f"crew.{target_kind}",
+            "linked_source_record_id": target_id,
+            "linked_project_number": proj.get("project_number"),
+        })
+        return {"project_name": proj.get("name", "")}
     except Exception as e:
-        logger.warning(f"notifications insert failed: {e}")
+        logger.warning(f"notify_user canonical fanout failed: {e}")
         return None
 
 
@@ -240,32 +252,13 @@ def build_phase4_router(db, get_current_user):
         ).sort("created_at", -1).limit(limit).to_list(limit)
         return [ActivityItem(**d) for d in docs]
 
-    @r.get("/me/notifications", response_model=List[Notification])
-    async def my_notifications(
-        only_unread: bool = False,
-        user: dict = Depends(get_current_user),
-    ):
-        q: dict = {"user_id": user["id"]}
-        if only_unread:
-            q["read_at"] = None
-        docs = await db.notifications.find(q, {"_id": 0, "user_id": 0}).sort("created_at", -1).limit(200).to_list(200)
-        return [Notification(**d) for d in docs]
-
-    @r.post("/me/notifications/mark-all-read")
-    async def mark_all_read(user: dict = Depends(get_current_user)):
-        await db.notifications.update_many(
-            {"user_id": user["id"], "read_at": None},
-            {"$set": {"read_at": _now()}},
-        )
-        return {"ok": True}
-
-    @r.post("/me/notifications/{notif_id}/read")
-    async def mark_one_read(notif_id: str, user: dict = Depends(get_current_user)):
-        await db.notifications.update_one(
-            {"id": notif_id, "user_id": user["id"]},
-            {"$set": {"read_at": _now()}},
-        )
-        return {"ok": True}
+    # TRACK 15.28C (2026-02) — Notification system canonicalization.
+    # The legacy crew-hub bell endpoints (/api/me/notifications,
+    # /api/me/notifications/{id}/read, /api/me/notifications/mark-all-read)
+    # were retired with this track. The single source of truth is now
+    # the canonical bell at /api/notifications (routes/tasks_notifications.py).
+    # phase4.notify_user has been deleted; @-mention notifications now flow
+    # through the canonical fanout (tools.py uses the new path).
 
     @r.get("/projects/{project_id}/search")
     async def search_project(

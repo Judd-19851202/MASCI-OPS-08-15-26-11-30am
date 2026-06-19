@@ -417,19 +417,30 @@ def _wo_out(w: Dict[str, Any]) -> Dict[str, Any]:
 
 async def _notify(db, *, kind: str, audience_role: str, audience_id: str,
                   unit: str, pm_name: str, summary: str) -> None:
-    """Best-effort notification via existing tasks_notifications collection."""
+    """TRACK 15.28C — rewritten to use canonical `emit_notification`.
+    Previously wrote to `db.tasks_notifications` which had no reader;
+    now writes to `db.notifications` so the bell actually delivers
+    PM-engine alerts. Idempotent + person-targeted."""
     try:
-        await db.tasks_notifications.insert_one({
-            "id": f"pm-{uuid.uuid4().hex[:12]}",
-            "kind": kind,
-            "audience_role": audience_role,
-            "audience_id": audience_id,
-            "unit_number": unit,
-            "pm_name": pm_name,
-            "summary": summary,
-            "created_at": _now_iso(),
-            "read_at": "",
-            "source_system": PM_ENGINE_SOURCE,
+        from lib.event_fanout import emit_notification  # noqa: PLC0415
+        role_map = {
+            "mechanic": "shop",
+            "shop": "shop",
+            "shop_manager": "shop",
+            "pm": "pm",
+            "admin": "admin",
+        }
+        recipient_role = role_map.get((audience_role or "").lower(), "shop")
+        await emit_notification(db, {
+            "type": f"pm_engine.{kind}",
+            "title": f"{pm_name} · {unit}",
+            "message": summary,
+            "severity": "Info",
+            "recipient_role": recipient_role,
+            "recipient_user_id": audience_id or None,
+            "linked_source_module": "pm_engine",
+            "linked_source_record_id": f"{unit}:{kind}",
+            "linked_equipment_id": unit,
         })
     except Exception:  # noqa: BLE001
         logger.exception("[pm_engine] notify failed (non-fatal)")

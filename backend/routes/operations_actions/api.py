@@ -260,26 +260,42 @@ def _history_entry(kind: str, actor: Dict[str, Any], before=None, after=None) ->
 
 # ── Notification (in-app only, via existing notifications collection) ─
 async def _notify_assignment(db, oa: Dict[str, Any]):
-    """Best-effort in-app notification when an OA is assigned. Writes a
-    row to db.notifications; existing NotificationBell picks it up.
+    """Best-effort in-app notification when an OA is assigned.
+
+    TRACK 15.28C — rewritten to use canonical `emit_notification`
+    (single schema, idempotent, project-scoped on read). The legacy
+    `kind=oa_assignment` shape is retired; rows now carry `type` +
+    `recipient_role` + `recipient_user_id` like every other producer.
     Never raises — assignment must succeed even if notify fails."""
     owner = oa.get("current_owner") or {}
     if not owner.get("id"):
         return
     try:
-        await db.notifications.insert_one({
-            "id": uuid.uuid4().hex,
-            "kind": "oa_assignment",
-            "user_directory": owner.get("directory"),
-            "user_id": owner.get("id"),
-            "user_email": owner.get("email"),
+        from lib.event_fanout import emit_notification  # noqa: PLC0415
+        oa_id = oa.get("id")
+        owner_directory = (owner.get("directory") or "").lower()
+        # Map operations_action owner directory → recipient_role so
+        # role-scoped reads still surface the row even if the
+        # recipient_user_id no longer resolves.
+        role_map = {
+            "hr_users": "hr",
+            "safety_users": "safety",
+            "shop_users": "shop",
+            "dispatch_users": "dispatch",
+            "field_leadership_users": "fl",
+            "users": "admin",
+        }
+        recipient_role = role_map.get(owner_directory, "admin")
+        await emit_notification(db, {
+            "type": "oa_assignment",
             "title": f"Action assigned: {oa.get('title', '')}",
-            "body": f"{oa.get('oa_number', '')} · {oa.get('category', '')} · {oa.get('priority', '')}",
-            "ref_kind": "operations_action",
-            "ref_id": oa.get("id"),
-            "ref_url": f"/operations-actions/{oa.get('id')}",
-            "read": False,
-            "created_at": _now_iso(),
+            "message": f"{oa.get('oa_number', '')} · {oa.get('category', '')} · {oa.get('priority', '')}",
+            "severity": "Info",
+            "recipient_role": recipient_role,
+            "recipient_user_id": owner.get("id"),
+            "link_url": f"/operations-actions/{oa_id}",
+            "linked_source_module": "operations_action",
+            "linked_source_record_id": oa_id,
         })
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[oa-1] in-app notify failed: {e}")

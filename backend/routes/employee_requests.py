@@ -157,7 +157,14 @@ async def _notify_hr_queue_pending(db, request_doc: Dict[str, Any], kind: str) -
     The notification carries `link_url=/hr/employee-requests?id=<rid>`
     so the queue page can deep-link and highlight the new request.
     Best-effort — never raises (notifications are operational sugar,
-    not a hard dependency of the request flow)."""
+    not a hard dependency of the request flow).
+
+    TRACK 15.28C — rewritten to use canonical `emit_notification`
+    (single schema, single collection, idempotent). Fans out one
+    notification per active HR user via `recipient_user_id` so each
+    user gets a person-targeted row that survives PM-style role-
+    broadcast filtering on other portals.
+    """
     try:
         rid = request_doc.get("id") or ""
         if kind == "new_hire":
@@ -176,12 +183,17 @@ async def _notify_hr_queue_pending(db, request_doc: Dict[str, Any], kind: str) -
                 "Open the queue to review."
             )
 
-        now = datetime.now(timezone.utc).isoformat()
         link_url = f"/hr/employee-requests?id={rid}"
 
-        # Fan out one row per active HR user so the bell badge counts
-        # per-actor. Fall back to a single hr_inbox row if no hr_users
-        # exist (preview / fresh install).
+        # Lazy import — keeps the legacy module importable in tests
+        # where the notification service hasn't bootstrapped yet.
+        try:
+            from lib.event_fanout import emit_notification  # noqa: PLC0415
+        except Exception:
+            emit_notification = None  # type: ignore[assignment]
+
+        # Person-target every active HR user. emit_notification is
+        # idempotent (track 15.28C), so retries collapse safely.
         targets: List[Dict[str, Any]] = []
         try:
             async for u in db.hr_users.find(
@@ -192,37 +204,24 @@ async def _notify_hr_queue_pending(db, request_doc: Dict[str, Any], kind: str) -
         except Exception:  # noqa: BLE001
             pass
 
-        notif_template = {
-            "kind": "hr.employee_request",
-            "title": title,
-            "message": message,
-            "link_url": link_url,
-            "url": link_url,                 # alias for older bells
-            "linked_request_id": rid,
-            "request_kind": kind,
-            "created_at": now,
-            "ts": now,
-            "read": False,
-            "severity": "info",
-            "audience": "hr",
-        }
-        if targets:
-            rows = []
-            for t in targets:
-                row = dict(notif_template)
-                row["id"] = str(uuid.uuid4())
-                row["user_id"] = t.get("id") or t.get("email") or ""
-                row["user_email"] = t.get("email") or ""
-                rows.append(row)
-            if rows:
-                await db.notifications.insert_many(rows)
-        else:
-            row = dict(notif_template)
-            row["id"] = str(uuid.uuid4())
-            row["user_id"] = "hr_inbox"
-            await db.notifications.insert_one(row)
+        if not emit_notification:
+            return
+
+        for t in targets:
+            payload = {
+                "type": "hr.employee_request",
+                "title": title,
+                "message": message,
+                "severity": "Info",
+                "recipient_role": "hr",
+                "recipient_user_id": t.get("id"),
+                "link_url": link_url,
+                "linked_request_id": rid,
+                "linked_source_module": "hr.employee_request",
+                "linked_source_record_id": rid,
+            }
+            await emit_notification(db, payload)
     except Exception as e:  # noqa: BLE001
-        # Operational-sugar contract: never block the request insert.
         try:
             from logging import getLogger
             getLogger("employee_requests").warning(
