@@ -10,7 +10,41 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.46 + 15.46A · Friction Reduction + Safety Topic Library · 🟢 COMPLETE & CERTIFIED)
+## Latest Track (2026-06-19 · TRACK 15.47 · Incident & Public Interaction Hardening · 🟢 GREEN · Six-Pillar Certified)
+
+### What this is
+Driver: real-world public-confrontation incident that escalated to physical contact. Certification target: "Can MASCI defend itself six months later using only ForgedOps?"
+
+All 10 numbered defensibility gaps closed (G1-G10). 8-topic Public Interaction series + Stop Work Authority topic shipped EN+ES with foreman read-aloud blocks.
+
+### Backend changes
+- `IncidentCreate` schema extended additively with G1-G5 + G7 structured fields. `model_config = ConfigDict(extra="allow")` preserved so legacy clients keep working.
+- Notification fan-out extended (`routes/safety.py`) — Workplace Violence / Public Interaction triggers Critical-severity notifications to 4 new roles (Superintendent · Operations · Executive · HR) + auto-issued WV review CAPA.
+- PDF enrichment helper `lib/incident_pdf_enrichment.py` attaches `_state_timeline` + `_linked_capas` to the record dict before render.
+- `pdf_render._render_generic` extended with three new dedicated sections: Evidence Attachments · Investigation Timeline · Linked Corrective Actions. Witness sub-doc extended.
+
+### Frontend changes
+- `lib/incidentSchema.js` defaults extended with all G1-G5/G7 fields.
+- `pages/NewIncident.jsx` witness rows extended with role / witness_type / phone / email / employer (G4 inline).
+- 8-topic Public Interaction series in `lib/topics/public_interaction.js` (+ `.es.js`) — each topic carries warning_signs / what_to_do / what_not_to_do / supervisor_actions / documentation / corrective_actions / read_aloud.
+- Stop Work Authority topic in `lib/topics/stop_work.js` (+ `.es.js`).
+- `TopicPicker.jsx` `DOMAIN_CHIPS` extended with `stop_work` (EN "Stop Work" / ES "Parar Trabajo").
+- `lib/topics/index.js` + `index.es.js` aggregators wired.
+
+### Hard-rule compliance
+- No new collections · no V2 PDF system · no V2 incident · no V2 CAPA · no V2 notification engine · no Emergent LLM. Pure additive extension of certified workflows.
+
+### Cert evidence
+- Synthetic incident INC-2026-00488 · 79 fields · 4 witnesses · 5 typed attachments · 3 state events · 2 linked CAPAs · PDF 2.3 MB · field-preservation verified.
+- Live API smoke · 9 expected notifications fired on test incident.
+- Lint clean across all touched files.
+
+### Final verdict
+🟢 GREEN — the platform answers all 10 forensic questions in the affirmative, backed by rendered PDF evidence.
+
+---
+
+## Previous Track (2026-06-19 · TRACK 15.46 + 15.46A · Friction Reduction + Safety Topic Library · 🟢 COMPLETE & CERTIFIED)
 
 ### What shipped
 Top-5 HIGH-tier friction items from the Track 15.45 audit are live + the Safety Topic Library gained a new category.

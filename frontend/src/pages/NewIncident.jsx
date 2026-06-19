@@ -208,7 +208,17 @@ export default function NewIncident({ publicMode = false }) {
   const addWitness = () =>
     setData((p) => ({
       ...p,
-      witnesses: [...p.witnesses, { name: "", statement: "" }],
+      witnesses: [...p.witnesses, {
+        // TRACK 15.47 · G4 · extended witness sub-doc
+        name: "",
+        statement: "",
+        role: "",
+        phone: "",
+        email: "",
+        employer: "",
+        witness_type: "",
+        signature: "",
+      }],
     }));
   const updateWitness = (i, k, v) =>
     setData((p) => ({
@@ -1028,6 +1038,51 @@ export default function NewIncident({ publicMode = false }) {
                 placeholder="Name"
                 testId={`witness-name-${i}`}
               />
+              {/* TRACK 15.47 · G4 · extended witness fields. Six-months-
+                  later defensibility requires phone + role + employer. */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input
+                  value={w.role || ""}
+                  onChange={(e) => updateWitness(i, "role", e.target.value)}
+                  placeholder="Role (Foreman, Operator, Deputy, etc.)"
+                  className="h-11 text-base border-2 border-slate-300"
+                  data-testid={`witness-role-${i}`}
+                />
+                <select
+                  value={w.witness_type || ""}
+                  onChange={(e) => updateWitness(i, "witness_type", e.target.value)}
+                  className="h-11 text-base border-2 border-slate-300 rounded-md px-3"
+                  data-testid={`witness-type-${i}`}
+                >
+                  <option value="">Witness type…</option>
+                  <option value="employee">Employee (MASCI)</option>
+                  <option value="subcontractor">Subcontractor</option>
+                  <option value="public">Member of public</option>
+                  <option value="police">Law enforcement</option>
+                  <option value="other">Other</option>
+                </select>
+                <Input
+                  value={w.phone || ""}
+                  onChange={(e) => updateWitness(i, "phone", e.target.value)}
+                  placeholder="Phone"
+                  className="h-11 text-base border-2 border-slate-300"
+                  data-testid={`witness-phone-${i}`}
+                />
+                <Input
+                  value={w.email || ""}
+                  onChange={(e) => updateWitness(i, "email", e.target.value)}
+                  placeholder="Email"
+                  className="h-11 text-base border-2 border-slate-300"
+                  data-testid={`witness-email-${i}`}
+                />
+                <Input
+                  value={w.employer || ""}
+                  onChange={(e) => updateWitness(i, "employer", e.target.value)}
+                  placeholder="Employer / Company"
+                  className="h-11 text-base border-2 border-slate-300 md:col-span-2"
+                  data-testid={`witness-employer-${i}`}
+                />
+              </div>
               <Textarea
                 value={w.statement}
                 onChange={(e) => updateWitness(i, "statement", e.target.value)}

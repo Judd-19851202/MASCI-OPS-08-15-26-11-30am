@@ -5383,8 +5383,17 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
 
                 if pdf_kind:
                     try:
+                        # TRACK 15.47 · enrich incidents with state
+                        # timeline + linked CAPAs before render.
+                        _record_for_pdf = d
+                        if pdf_kind == "incident":
+                            try:
+                                from lib.incident_pdf_enrichment import enrich_incident_for_pdf  # noqa: PLC0415
+                                _record_for_pdf = await enrich_incident_for_pdf(db, d)
+                            except Exception:
+                                _record_for_pdf = d
                         pdf_bytes = await _backup_asyncio.to_thread(
-                            render_record_pdf, pdf_kind, d
+                            render_record_pdf, pdf_kind, _record_for_pdf
                         )
                         total_pdf_bytes += len(pdf_bytes)
                         zf.writestr(f"{kind}/pdf/{base}.pdf", pdf_bytes)
@@ -12644,6 +12653,21 @@ from pm_routing import (  # noqa: E402
 )
 
 
+# TRACK 15.47 · Incident PDF enrichment shim.
+# When the PDF kind is `incident`, load the state-event timeline and
+# linked CAPAs and attach them to the record so the PDF renderer's
+# G8 + G9 blocks have data to draw. All other kinds pass through
+# unchanged. Best-effort — never raises.
+async def _maybe_enrich_for_pdf(_db, kind: str, record: dict) -> dict:
+    if kind != "incident" or not isinstance(record, dict):
+        return record
+    try:
+        from lib.incident_pdf_enrichment import enrich_incident_for_pdf  # noqa: PLC0415
+        return await enrich_incident_for_pdf(_db, record)
+    except Exception:
+        return record
+
+
 _KIND_TO_COLLECTION = {
     "inspection": "inspections",
     "meeting": "meetings",
@@ -12776,7 +12800,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
         reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
 
-        pdf_bytes = await asyncio.to_thread(render_record_pdf, kind, record)
+        pdf_bytes = await asyncio.to_thread(render_record_pdf, kind, await _maybe_enrich_for_pdf(db, kind, record))
 
         pm_name = dist.get("pm_name")
 
@@ -13151,7 +13175,7 @@ async def email_report(
 
         resend.api_key = api_key
 
-        pdf_bytes = render_record_pdf(body.kind, record)
+        pdf_bytes = render_record_pdf(body.kind, await _maybe_enrich_for_pdf(db, body.kind, record))
         project = record.get("project_name") or record.get("project") or "MASCI"
         date_part = (
             record.get("report_date")

@@ -2,6 +2,56 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.47 · Incident & Public Interaction Hardening (🟢 ALL 10 GAPS CLOSED · Six-Pillar Certified · GREEN)
+
+**Driven by a real-world public-confrontation incident that escalated to physical contact. Defensibility-from-the-PDF was the certification target.**
+
+### What shipped
+* **G1 · Classifications** · 14-value multi-select on every incident (`classifications: List[str]`). Workplace Violence is one of them.
+* **G2 · Threat / Contact** · 9 structured fields (threat_made / threat_description / physical_contact / physical_assault / weapon_displayed / weapon_used / weapon_description / media_filmed / social_media_posted).
+* **G3 · Police involvement** · 10 structured fields (police_called / police_arrived / agency / officer_name / badge / case_number / report_number / report_obtained / arrest_made / citation_issued).
+* **G4 · Witness sub-doc** · extended with role, phone, email, employer, witness_type, signature. PDF renders multi-column witness table.
+* **G5 · Damage / Vehicle / Claim** · 8 structured fields (damage_description / damage_estimated_value / vehicle_make_model / vin / plate / asset_number / insurance_claim_number / insurance_carrier).
+* **G6 + G10 · Notification fan-out + Workplace Violence workflow** · 4 NEW roles get Critical-severity notifications on every WV / public-interaction incident (Superintendent · Operations · Executive · HR). Auto-issued WV review CAPA. Verified live: 9 notifications fired on the test incident.
+* **G7 · Unified evidence attachments** · `attachments[]` field with 7 typed kinds (photo, video, witness_statement, police_report, medical, insurance, other). PDF renders "Evidence Attachments" block.
+* **G8 · Investigation timeline on PDF** · state-events queried + rendered as table. open → investigating → review visible on the single PDF.
+* **G9 · Linked CAPA cross-reference on PDF** · linked CAPAs (with status, owner, due, completion) rendered on the same PDF.
+* **Public Interaction Series** · 8 topics total (7 new + 1 extended) in EN + ES with foreman read-aloud blocks, warning signs, what-to-do / what-not-to-do, supervisor actions, documentation, corrective actions.
+* **Stop Work Authority topic** · field-real EN + ES with 60-second laborer-comprehension read-aloud + 9 explicit Stop Work triggers + anti-retaliation clause.
+
+### Foundation compliance
+* Universal PDF Foundation (15.41 + 15.42) preserved — no V2 PDF system.
+* No new collections — every read uses an existing collection.
+* No new authentication path.
+* No new background scheduler.
+* No Emergent LLM consumed.
+* Two existing endpoints extended additively (`/api/incidents` schema, `/api/incidents` fan-out).
+
+### Cert evidence
+* Synthetic incident INC-2026-00488 with full Track 15.47 fields · PDF rendered 2.3 MB · independent AI content extraction verified every G1-G5/G7/G8/G9 field on the artifact.
+* Real incident INC-2026-00002 re-rendered · zero regression · field-preservation `AFTER ⊇ BEFORE` confirmed.
+* Live API smoke test · 9 expected notifications fired (Safety + PM + Superintendent + Operations + Executive + HR + WV review task + 2 task entries).
+* Lint clean on every touched JS + Python file.
+
+### Deliverables (in /app/memory/)
+* `TRACK_15_47_INCIDENT_WORKFLOW_AUDIT.md`
+* `TRACK_15_47_PUBLIC_INTERACTION_INCIDENT_CERTIFICATION.md`
+* `TRACK_15_47_WORKPLACE_VIOLENCE_IMPLEMENTATION.md`
+* `TRACK_15_47_NOTIFICATION_CHAIN_CERTIFICATION.md`
+* `TRACK_15_47_EVIDENCE_MANAGEMENT_CERTIFICATION.md`
+* `TRACK_15_47_CAPA_DEFENSIBILITY_CERTIFICATION.md`
+* `TRACK_15_47_STOP_WORK_AUTHORITY_TOPIC.md`
+* `TRACK_15_47_PUBLIC_INTERACTION_SERIES.md`
+* `TRACK_15_47_PDF_FIELD_PRESERVATION_CERTIFICATION.md`
+* `TRACK_15_47_EXECUTIVE_VISIBILITY_AUDIT.md`
+* `TRACK_15_47_SIXTH_PILLAR_FIX_IT_CERTIFICATION.md`
+* `TRACK_15_47_FIVE_PILLAR_CERTIFICATION.md`
+
+### Final answer
+🟢 **GREEN.** If the same incident occurred tomorrow morning, MASCI can document, investigate, notify leadership, manage corrective actions, generate defensible PDFs, and successfully defend itself six months later using only ForgedOps. Evidence: the rendered PDF for the synthetic recreation carries every field a court would need.
+
+---
+
 ## 2026-06-19 — TRACK 15.45 · Operational Friction Audit (🟢 AUDIT COMPLETE · documentation-only · no code changes)
 
 **Per directive: audit only. No code shipped. 25 active friction items scored and ranked across 7 personas.**

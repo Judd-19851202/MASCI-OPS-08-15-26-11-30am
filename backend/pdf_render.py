@@ -1611,6 +1611,10 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
         "topics",
         "tasks",
         "witnesses",
+        # TRACK 15.47 · special enrichment keys handled by dedicated blocks
+        "attachments",
+        "_state_timeline",
+        "_linked_capas",
     }
 
     blocks: List[str] = []
@@ -1625,12 +1629,17 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
         v = d.get(k)
         if not isinstance(v, list) or not v:
             continue
+        # TRACK 15.47 · G4 · extended witness rendering. Witnesses now
+        # carry phone, email, role, employer, and statement — rendered
+        # as additional columns so the deposition-six-months-later
+        # question is answerable from the PDF alone.
+        is_witnesses = (k == "witnesses")
         rows_html = []
         for entry in v:
             if not isinstance(entry, dict):
                 continue
             name = entry.get("name") or entry.get("witness_name") or "—"
-            company = entry.get("company") or entry.get("trade") or ""
+            company = entry.get("company") or entry.get("employer") or entry.get("trade") or ""
             sig = entry.get("signature") or entry.get("sig") or ""
             # iter75: resolve photo:// to inline data URL for embedding.
             if isinstance(sig, str) and sig.startswith("photo://"):
@@ -1645,34 +1654,74 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
                 if sig and isinstance(sig, str) and sig.startswith("data:image/")
                 else (escape(sig) if sig else "—")
             )
-            rows_html.append(
-                f"<tr><td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;'>"
-                f"{escape(str(name))}</td>"
-                f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;color:#475569;'>"
-                f"{escape(str(company))}</td>"
-                f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;'>"
-                f"{sig_cell}</td></tr>"
-            )
-        if rows_html:
-            blocks.append(
-                _section(
-                    k.replace("_", " ").title(),
-                    "<table style='width:100%;border-collapse:collapse;font-size:9pt;'>"
-                    "<thead><tr>"
-                    "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
-                    "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
-                    "text-transform:uppercase;color:#64748b;'>Name</th>"
-                    "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
-                    "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
-                    "text-transform:uppercase;color:#64748b;'>Company / Trade</th>"
-                    "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
-                    "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
-                    "text-transform:uppercase;color:#64748b;'>Signature</th>"
-                    "</tr></thead><tbody>"
-                    + "".join(rows_html)
-                    + "</tbody></table>",
+            if is_witnesses:
+                # Build a multi-line cell with role/phone/email + statement.
+                role = entry.get("role") or entry.get("witness_type") or ""
+                phone = entry.get("phone") or ""
+                email = entry.get("email") or ""
+                statement = entry.get("statement") or ""
+                contact_html = "<br>".join(
+                    escape(x) for x in [role, phone, email] if x
+                ) or "—"
+                stmt_html = escape(statement)[:600] if statement else "—"
+                rows_html.append(
+                    f"<tr>"
+                    f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top;'>{escape(str(name))}</td>"
+                    f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;color:#475569;vertical-align:top;font-size:8.5pt;'>{contact_html}</td>"
+                    f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;color:#475569;vertical-align:top;'>{escape(str(company)) or '—'}</td>"
+                    f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top;font-size:8.5pt;'>{stmt_html}</td>"
+                    f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top;'>{sig_cell}</td>"
+                    f"</tr>"
                 )
-            )
+            else:
+                rows_html.append(
+                    f"<tr><td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;'>"
+                    f"{escape(str(name))}</td>"
+                    f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;color:#475569;'>"
+                    f"{escape(str(company))}</td>"
+                    f"<td style='padding:4px 8px;border-bottom:1px solid #e2e8f0;'>"
+                    f"{sig_cell}</td></tr>"
+                )
+        if rows_html:
+            if is_witnesses:
+                _th_style = ("text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
+                             "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+                             "text-transform:uppercase;color:#64748b;")
+                blocks.append(
+                    _section(
+                        "Witnesses",
+                        "<table style='width:100%;border-collapse:collapse;font-size:9pt;'>"
+                        "<thead><tr>"
+                        f"<th style='{_th_style}'>Name</th>"
+                        f"<th style='{_th_style}'>Role · Phone · Email</th>"
+                        f"<th style='{_th_style}'>Employer</th>"
+                        f"<th style='{_th_style}'>Statement</th>"
+                        f"<th style='{_th_style}'>Signature</th>"
+                        "</tr></thead><tbody>"
+                        + "".join(rows_html)
+                        + "</tbody></table>",
+                    )
+                )
+            else:
+                blocks.append(
+                    _section(
+                        k.replace("_", " ").title(),
+                        "<table style='width:100%;border-collapse:collapse;font-size:9pt;'>"
+                        "<thead><tr>"
+                        "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
+                        "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+                        "text-transform:uppercase;color:#64748b;'>Name</th>"
+                        "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
+                        "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+                        "text-transform:uppercase;color:#64748b;'>Company / Trade</th>"
+                        "<th style='text-align:left;padding:4px 8px;border-bottom:2px solid #cbd5e1;"
+                        "font-family:Courier New,monospace;font-size:8pt;letter-spacing:0.1em;"
+                        "text-transform:uppercase;color:#64748b;'>Signature</th>"
+                        "</tr></thead><tbody>"
+                        + "".join(rows_html)
+                        + "</tbody></table>",
+                    )
+                )
         handled_lists.add(k)
 
     main_kvs = "".join(
@@ -1704,6 +1753,97 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
     # Photos
     if d.get("photos"):
         blocks.append(_section("Photos", _photos_block(d.get("photos"))))
+
+    # ===== TRACK 15.47 · G7 · Unified attachments =====
+    # Render typed evidence (police reports, witness statements,
+    # medical, insurance, video, other) as a categorized block. Photos
+    # remain in the dedicated section above; structured attachments
+    # appear here so a reader of the PDF can SEE what evidence type
+    # was filed without opening a separate database.
+    _atts = d.get("attachments") or []
+    if isinstance(_atts, list) and _atts:
+        kind_label_map = {
+            "photo": "Photo",
+            "video": "Video",
+            "witness_statement": "Witness Statement",
+            "police_report": "Police Report",
+            "medical": "Medical Documentation",
+            "insurance": "Insurance Documentation",
+            "other": "Other",
+        }
+        # Group by kind for readable listing
+        grouped: Dict[str, List[Dict[str, Any]]] = {}
+        for a in _atts:
+            if not isinstance(a, dict):
+                continue
+            k_ = (a.get("kind") or "other").strip() or "other"
+            grouped.setdefault(k_, []).append(a)
+        rows = []
+        for k_ in sorted(grouped.keys()):
+            for a in grouped[k_]:
+                rows.append([
+                    kind_label_map.get(k_, k_.replace("_", " ").title()),
+                    a.get("label") or "—",
+                    a.get("uploaded_at") or "—",
+                    "✓" if a.get("data_url") else "—",
+                ])
+        if rows:
+            blocks.append(_section(
+                "Evidence Attachments",
+                _table(["Kind", "Label", "Uploaded", "Attached"], rows),
+            ))
+
+    # ===== TRACK 15.47 · G8 · State timeline on the PDF =====
+    # Reader of the PDF can now SEE the open → investigating → closed
+    # progression and the actor + reason for each transition, without
+    # having to query the state-events collection separately. The
+    # upstream caller enriches the record with `_state_timeline` before
+    # render; if it's not present we silently skip.
+    _timeline = d.get("_state_timeline") or []
+    if isinstance(_timeline, list) and _timeline:
+        rows = []
+        for ev in _timeline:
+            if not isinstance(ev, dict):
+                continue
+            rows.append([
+                str(ev.get("from_state") or "—"),
+                str(ev.get("to_state") or "—"),
+                str(ev.get("actor") or ev.get("actor_email") or "system"),
+                str(ev.get("at") or ev.get("created_at") or "—")[:19],
+                str(ev.get("reason") or "")[:120],
+            ])
+        if rows:
+            blocks.append(_section(
+                "Investigation Timeline",
+                _table(["From", "To", "Actor", "When (UTC)", "Reason"], rows),
+            ))
+
+    # ===== TRACK 15.47 · G9 · Linked CAPA cross-reference =====
+    # Reader of the PDF can now see whether corrective actions were
+    # actually completed, who completed them, and when. Upstream caller
+    # enriches with `_linked_capas`.
+    _capas = d.get("_linked_capas") or []
+    if isinstance(_capas, list) and _capas:
+        rows = []
+        for c in _capas:
+            if not isinstance(c, dict):
+                continue
+            rows.append([
+                str(c.get("id") or "")[:8].upper(),
+                str(c.get("title") or "—")[:60],
+                str(c.get("assigned_to_name") or c.get("assigned_to_email") or "—"),
+                str(c.get("due_date") or "—")[:10],
+                str(c.get("status") or "Open"),
+                str(c.get("completed_at") or "—")[:19] if c.get("completed_at") else "—",
+            ])
+        if rows:
+            blocks.append(_section(
+                "Linked Corrective Actions (CAPA)",
+                _table(
+                    ["CAPA ID", "Title", "Assigned To", "Due", "Status", "Completed"],
+                    rows,
+                ),
+            ))
 
     # Signatures (record may have multiple signature fields)
     sig_blocks = []

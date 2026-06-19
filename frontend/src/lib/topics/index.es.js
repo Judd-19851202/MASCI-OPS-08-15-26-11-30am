@@ -23,6 +23,8 @@ import { TOPICS_ENVIRONMENTAL_ES } from "./environmental.es.js";
 import { TOPICS_WELLNESS_ES } from "./wellness.es.js";
 // TRACK 15.46 · Public Interaction & Conflict De-Escalation
 import { TOPICS_PUBLIC_INTERACTION_ES } from "./public_interaction.es.js";
+// TRACK 15.47 · Stop Work Authority
+import { TOPICS_STOP_WORK_ES } from "./stop_work.es.js";
 import { TOPICS_OFFICE_ES } from "./office.es.js";
 import { TOPICS_GENERAL_ES } from "./general.es.js";
 
@@ -48,6 +50,7 @@ export const TOPIC_LIBRARY_ES = {
   ...TOPICS_ENVIRONMENTAL_ES,
   ...TOPICS_WELLNESS_ES,
   ...TOPICS_PUBLIC_INTERACTION_ES,
+  ...TOPICS_STOP_WORK_ES,
   ...TOPICS_OFFICE_ES,
   ...TOPICS_GENERAL_ES,
 };

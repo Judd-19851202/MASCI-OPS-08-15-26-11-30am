@@ -47,6 +47,8 @@ const DOMAIN_CHIPS = [
   { key: "wellness", en: "Heat / Fatigue / MH", es: "Calor / Fatiga / SM" },
   // TRACK 15.46 · Public Interaction & Conflict De-Escalation
   { key: "public_interaction", en: "Public Interaction", es: "Trato con Público" },
+  // TRACK 15.47 · Stop Work Authority
+  { key: "stop_work", en: "Stop Work", es: "Parar Trabajo" },
   { key: "office", en: "Office", es: "Oficina" },
   { key: "general", en: "General", es: "General" },
 ];

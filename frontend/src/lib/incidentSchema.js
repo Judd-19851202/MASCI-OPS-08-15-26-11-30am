@@ -12,6 +12,48 @@ export const INCIDENT_TYPES = [
   "Other",
 ];
 
+// TRACK 15.47 · G1 · Multi-select classifications. These are NOT the
+// same as `incident_type` (which is single-select and stays in place).
+// Operators tick every classification that applies. Workplace
+// Violence flags automatic exec/operations notification (see backend
+// safety.py G6/G10 fan-out).
+export const INCIDENT_CLASSIFICATIONS = [
+  "Public Interaction",
+  "Verbal Confrontation",
+  "Threat",
+  "Harassment",
+  "Trespass",
+  "Property Damage",
+  "Physical Contact",
+  "Physical Assault",
+  "Workplace Violence",
+  "Weapon Displayed",
+  "Weapon Used",
+  "Near-Miss",
+  "Media Filmed",
+  "Social Media Exposure",
+];
+
+// TRACK 15.47 · G4 · Witness role enum
+export const WITNESS_TYPES = [
+  "employee",
+  "subcontractor",
+  "public",
+  "police",
+  "other",
+];
+
+// TRACK 15.47 · G7 · Attachment kinds
+export const ATTACHMENT_KINDS = [
+  { key: "photo", label: "Photo" },
+  { key: "video", label: "Video" },
+  { key: "witness_statement", label: "Witness Statement" },
+  { key: "police_report", label: "Police Report" },
+  { key: "medical", label: "Medical Documentation" },
+  { key: "insurance", label: "Insurance Documentation" },
+  { key: "other", label: "Other Document" },
+];
+
 // OSHA-style severity tiers — left to right increases consequence.
 export const SEVERITY_LEVELS = [
   {
@@ -178,7 +220,48 @@ export function buildIncidentDefaults() {
     distribution_list: [],
 
     // 08 — Evidence
-    photos: [], // base64 dataURLs
+    photos: [], // base64 dataURLs (legacy — kept working)
+
+    // TRACK 15.47 · G7 · typed attachments. Each: {kind, label,
+    // data_url, uploaded_at}. PDF renderer surfaces these in a
+    // dedicated "Evidence Attachments" block.
+    attachments: [],
+
+    // TRACK 15.47 · G1 · multi-select classifications
+    classifications: [],
+
+    // TRACK 15.47 · G2 · structured threat & contact
+    threat_made: false,
+    threat_description: "",
+    physical_contact: false,
+    physical_assault: false,
+    weapon_displayed: false,
+    weapon_used: false,
+    weapon_description: "",
+    media_filmed: false,
+    social_media_posted: false,
+
+    // TRACK 15.47 · G3 · police involvement
+    police_called: false,
+    police_arrived: false,
+    police_agency: "",
+    police_officer_name: "",
+    police_badge: "",
+    police_case_number: "",
+    police_report_number: "",
+    police_report_obtained: false,
+    arrest_made: false,
+    citation_issued: false,
+
+    // TRACK 15.47 · G5 · damage & claim
+    damage_description: "",
+    damage_estimated_value: "",
+    vehicle_make_model: "",
+    vehicle_vin: "",
+    vehicle_plate: "",
+    asset_number: "",
+    insurance_claim_number: "",
+    insurance_carrier: "",
 
     // 09 — Sign-offs
     reporter_signature: "",

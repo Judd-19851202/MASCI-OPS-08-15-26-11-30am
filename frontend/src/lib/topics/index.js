@@ -25,6 +25,8 @@ import { TOPICS_ENVIRONMENTAL } from "./environmental.js";
 import { TOPICS_WELLNESS } from "./wellness.js";
 // TRACK 15.46 · Public Interaction & Conflict De-Escalation
 import { TOPICS_PUBLIC_INTERACTION } from "./public_interaction.js";
+// TRACK 15.47 · Stop Work Authority
+import { TOPICS_STOP_WORK } from "./stop_work.js";
 import { TOPICS_OFFICE } from "./office.js";
 import { TOPICS_GENERAL } from "./general.js";
 
@@ -50,6 +52,7 @@ export const TOPIC_LIBRARY = [
   ...TOPICS_ENVIRONMENTAL,
   ...TOPICS_WELLNESS,
   ...TOPICS_PUBLIC_INTERACTION,
+  ...TOPICS_STOP_WORK,
   ...TOPICS_OFFICE,
   ...TOPICS_GENERAL,
 ];

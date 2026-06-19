@@ -315,6 +315,62 @@ class IncidentCreate(BaseModel):
 
     photos: List[str] = Field(default_factory=list)
 
+    # === TRACK 15.47 · Incident Defensibility Hardening ===
+    # All fields below are ADDITIVE. Existing 69 incidents in the DB
+    # render fine without them (defaults). PDF renderer dumps unknown
+    # keys via the generic kv path so coverage is automatic.
+
+    # G1 · Classifications · multi-select instead of single incident_type.
+    # Controlled vocabulary lives on the frontend; the backend accepts
+    # any string. Today's incident_type is preserved verbatim — this
+    # field is in addition to it, not in place of it.
+    classifications: List[str] = Field(default_factory=list)
+
+    # G2 · Threat & contact · structured booleans (not free text) so
+    # the platform can answer "how many physical assaults in 2026?"
+    # without scanning the description.
+    threat_made: Optional[bool] = False
+    threat_description: Optional[str] = ""
+    physical_contact: Optional[bool] = False
+    physical_assault: Optional[bool] = False
+    weapon_displayed: Optional[bool] = False
+    weapon_used: Optional[bool] = False
+    weapon_description: Optional[str] = ""
+    media_filmed: Optional[bool] = False
+    social_media_posted: Optional[bool] = False
+
+    # G3 · Police involvement · structured fields so the case number,
+    # responding officer, and agency are queryable.
+    police_called: Optional[bool] = False
+    police_arrived: Optional[bool] = False
+    police_agency: Optional[str] = ""
+    police_officer_name: Optional[str] = ""
+    police_badge: Optional[str] = ""
+    police_case_number: Optional[str] = ""
+    police_report_number: Optional[str] = ""
+    police_report_obtained: Optional[bool] = False
+    arrest_made: Optional[bool] = False
+    citation_issued: Optional[bool] = False
+
+    # G5 · Damage & claim · monetary value + VIN/plate live OUTSIDE
+    # the photos array now. Subrogation and civil recovery become
+    # queryable rather than archaeological.
+    damage_description: Optional[str] = ""
+    damage_estimated_value: Optional[str] = ""
+    vehicle_make_model: Optional[str] = ""
+    vehicle_vin: Optional[str] = ""
+    vehicle_plate: Optional[str] = ""
+    asset_number: Optional[str] = ""
+    insurance_claim_number: Optional[str] = ""
+    insurance_carrier: Optional[str] = ""
+
+    # G7 · Unified evidence attachments. Each entry: {kind, data_url,
+    # label, uploaded_at}. `kind` is one of: photo · video ·
+    # witness_statement · police_report · medical · insurance · other.
+    # Backward-compat: legacy `photos[]` continues to work. The PDF
+    # renderer reads BOTH paths.
+    attachments: List[Dict[str, Any]] = Field(default_factory=list)
+
     reporter_signature: Optional[str] = ""
     supervisor_signature: Optional[str] = ""
     distribution_list: Optional[List[str]] = Field(default=None, max_length=20)
@@ -852,6 +908,110 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                                     project_number=doc.get("project_number"),
                                     event_key="incident.pm_visibility")
                 await emit_notification(db, _pm_notif)
+
+                # === TRACK 15.47 · G6 + G10 · Defensibility fan-out ===
+                # Public-interaction, workplace-violence, weapon-involved,
+                # and arrest/citation incidents trigger an EXTRA fan-out
+                # to Superintendent · Operations · Executive · HR.
+                # Pure additive; legacy Safety + PM routes above are
+                # untouched. Same `incidents` doc; no V2 collection.
+                _classifs = {c.lower() for c in (doc.get("classifications") or []) if isinstance(c, str)}
+                _wv_flags = (
+                    "workplace violence" in _classifs
+                    or "physical assault" in _classifs
+                    or "weapon displayed" in _classifs
+                    or "weapon used" in _classifs
+                    or bool(doc.get("physical_assault"))
+                    or bool(doc.get("weapon_displayed"))
+                    or bool(doc.get("weapon_used"))
+                    or bool(doc.get("arrest_made"))
+                )
+                _pi_flags = (
+                    "public interaction" in _classifs
+                    or "verbal confrontation" in _classifs
+                    or "threat" in _classifs
+                    or "harassment" in _classifs
+                    or "physical contact" in _classifs
+                    or bool(doc.get("threat_made"))
+                    or bool(doc.get("physical_contact"))
+                )
+                if _wv_flags or _pi_flags:
+                    _extra_title = (
+                        "Workplace violence incident"
+                        if _wv_flags
+                        else "Public-interaction incident"
+                    )
+                    _extra_msg = (
+                        f"{doc.get('project_name') or '—'} · "
+                        f"{', '.join(sorted(_classifs)) or doc.get('incident_type','—')} · "
+                        f"reporter {doc.get('reported_by') or '—'}"
+                    )[:200]
+                    # Roles that need eyes on this beyond Safety + PM.
+                    # Superintendent visibility is project-scoped via
+                    # `linked_project_number` routing — same pattern the
+                    # PM fan-out already uses successfully.
+                    for _role in ("superintendent", "operations", "executive", "hr"):
+                        _notif = {
+                            "type": "incident.violence" if _wv_flags else "incident.public_interaction",
+                            "title": f"{_extra_title} — {doc.get('project_name') or 'project'}",
+                            "message": _extra_msg,
+                            "severity": "Critical" if _wv_flags else "Warning",
+                            "recipient_role": _role,
+                            "linked_source_module": "safety.incidents",
+                            "linked_source_record_id": doc.get("id"),
+                            "linked_project_number": doc.get("project_number") or None,
+                        }
+                        try:
+                            await apply_routing(
+                                db, _notif,
+                                project_number=doc.get("project_number"),
+                                event_key=_notif["type"],
+                            )
+                            await emit_notification(db, _notif)
+                        except Exception:  # pragma: no cover — per-role best-effort
+                            import logging
+                            logging.getLogger(__name__).warning(
+                                "[incident-defense-fanout] role=%s failed", _role
+                            )
+                    # G10 · Workplace-violence template CAPA — automatic
+                    # placeholder so safety doesn't have to remember to
+                    # open one. Title is the trigger; assignee_role is
+                    # safety so the existing portal picks it up.
+                    if _wv_flags:
+                        try:
+                            await emit_task_and_notification(
+                                db,
+                                task={
+                                    "title": "Workplace-violence review — confirm witnesses + police data + media exposure",
+                                    "description": (
+                                        f"Auto-issued from incident {doc.get('doc_id') or doc.get('id')}. "
+                                        f"Confirm: police case # · witness contact info · "
+                                        f"media/social media flags · employee welfare check · "
+                                        f"insurance + legal notified."
+                                    )[:4000],
+                                    "source_module": "safety.incidents",
+                                    "source_record_id": doc.get("id"),
+                                    "linked_project_number": doc.get("project_number") or None,
+                                    "assignee_role": "safety",
+                                    "priority": "Critical",
+                                    "created_by": {"role": "system", "via": "wv-fanout"},
+                                },
+                                notification={
+                                    "type": "incident.wv_review_task",
+                                    "title": "Workplace-violence review opened",
+                                    "message": _extra_msg,
+                                    "severity": "Critical",
+                                    "recipient_role": "safety",
+                                    "linked_source_module": "safety.incidents",
+                                    "linked_source_record_id": doc.get("id"),
+                                    "linked_project_number": doc.get("project_number") or None,
+                                },
+                            )
+                        except Exception:
+                            import logging
+                            logging.getLogger(__name__).warning(
+                                "[wv-template-capa] failed for %s", doc.get("id")
+                            )
                 # Iter160 · Operational signal — passive throughput observation.
                 try:
                     from lib.operational_signals import record_signal  # noqa: PLC0415
