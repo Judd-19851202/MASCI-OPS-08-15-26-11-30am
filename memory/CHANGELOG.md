@@ -2,6 +2,41 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.56 · EMERGENCY · Stop production-health-probe PR Alert Storm (🟢 GO)
+
+**Defect:** Operator received dozens of GitHub failure emails on every PR. GitHub UI showed `production-health-probe` Run #193 · Failure · 3 s · pull_request · "this check has no steps."
+
+**Root cause:** Version drift between the preview branch and GitHub `main`. The workflow file on `main` still has `pull_request` in its `on:` trigger block. The job-level `if:` guard rejects PR events, so all steps are skipped → GitHub records "no steps · failure." Preview file is already correct.
+
+**Fix (two files, GitHub-actions-only):**
+1. `.github/workflows/production-health-probe.yml` — already clean in preview (triggers = `schedule` + `workflow_dispatch` only). Needs to reach `main` via operator redeploy.
+2. `.github/workflows/production-health-probe-pr-noop.yml` — NEW · triggers on `pull_request` · same `name: production-health-probe` + job `name: probe` so branch-protection pinning is satisfied · runs a single PASS step in ~3 seconds.
+
+**Hard-rule compliance:**
+- ✅ Real production outage detection NOT weakened (real probe unchanged for schedule + workflow_dispatch).
+- ✅ Production health monitoring NOT deleted.
+- ✅ Real failures NOT hidden (noop only runs on PRs, never probes production endpoints).
+- ✅ PR-triggered alert spam stops once operator pushes to `main`.
+
+**Final 7 answers:**
+1. Why was GitHub firing on `pull_request`? — The file on `main` still has `pull_request:` in `on:`.
+2. Why did the check have no steps? — The job-level `if:` guard skipped all steps on PR events.
+3. What exact file/rule caused it? — `.github/workflows/production-health-probe.yml` on `main` (older version).
+4. What exact change stopped it? — Preview file is already corrected; new PR-safe noop file added; operator must redeploy `.github/`.
+5. Can production outages still alert? — Yes. Real probe is unchanged.
+6. Will Jaymn keep getting spammed? — No, once `.github/workflows/` is pushed to `main`.
+7. GO / NO-GO — 🟢 GO.
+
+**Deliverables (4 files, `/app/memory/`):**
+- TRACK_15_56_GITHUB_ACTIONS_ALERT_STORM_RCA.md
+- TRACK_15_56_PRODUCTION_HEALTH_PROBE_TRIGGER_FIX.md
+- TRACK_15_56_GITHUB_CHECKS_CERTIFICATION.md
+- TRACK_15_56_DEPLOYMENT_READINESS.md
+
+**Operator action:** `git add .github/workflows/production-health-probe*.yml && git commit -m "TRACK 15.56" && git push origin main`. After push, open a draft PR to verify the noop fires green in ~3 s. Wait one cron tick to verify the real probe still runs on schedule.
+
+
+
 ## 2026-06-19 — TRACK 15.55 · Safety Meeting Attendee Workflow RCA + Permanent Fix (🟢 GREEN · 2-line frontend fix)
 
 **Defect:** Field superintendents couldn't add attendee row 2 until they collected a signature for row 1 — inverting the real-world flow of "type all 25 names up front, sign as people arrive." Pushed users toward Bulk Add From Roster as if mandatory.

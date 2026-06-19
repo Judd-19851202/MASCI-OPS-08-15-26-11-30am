@@ -10,7 +10,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.55 · Safety Meeting Attendee Workflow RCA + Permanent Fix · 🟢 GREEN)
+## Latest Track (2026-06-19 · TRACK 15.56 · EMERGENCY · Stop production-health-probe PR Alert Storm · 🟢 GO)
+
+### Defect
+Operator received dozens of GitHub failure emails on every PR. GitHub UI: `production-health-probe` Run #193 · Failure · 3 s · `pull_request` · "this check has no steps."
+
+### Root cause
+Version drift between preview and GitHub `main`. The workflow file currently on `main` still has `pull_request` in `on:`. The job-level `if:` guard skips all steps on PR events, so GitHub records "no steps · failure" and emails the operator.
+
+### Fix
+Two files under `/app/.github/workflows/` — **GitHub Actions only · zero code/env/schema impact**:
+1. `production-health-probe.yml` — already clean in preview (`on: schedule + workflow_dispatch`); awaits operator redeploy to `main`.
+2. `production-health-probe-pr-noop.yml` — **NEW** · triggers only on `pull_request` · matches `name: production-health-probe` + job `name: probe` so pinned branch-protection rules find a green check · runs a single PASS step in ~3 s · never probes production.
+
+### Hard-rule compliance
+✅ Real production outage detection NOT weakened.
+✅ Production health monitoring NOT deleted.
+✅ Real failures NOT hidden.
+✅ PR spam stops once `.github/` is pushed to `main`.
+
+### Operator action required
+`git add .github/workflows/production-health-probe*.yml && git commit -m "TRACK 15.56" && git push origin main` — then open a draft PR to verify the noop fires green in ~3 s.
+
+### Deliverables
+4 markdown files under `/app/memory/TRACK_15_56_*.md`.
+
+## Prior Track (2026-06-19 · TRACK 15.55 · Safety Meeting Attendee Workflow RCA + Permanent Fix · 🟢 GREEN)
 
 ### Defect
 Field superintendents reported the "Add Attendee" button stopped working after row 1, appearing to force them toward Bulk Add From Roster. Inverted the real-world workflow of "type all 25 names up front · collect signatures as crew arrives."

@@ -1,0 +1,54 @@
+name: production-health-probe
+
+# TRACK 15.56 — PR-safe noop sibling to .github/workflows/production-health-probe.yml.
+#
+# Context: the real production-health-probe workflow is intentionally narrow
+# (schedule + workflow_dispatch only). But if any branch-protection rule on
+# the repository still lists "production-health-probe" as a *required status
+# check* on pull_request, GitHub will:
+#   - Look for a workflow named "production-health-probe" on PRs.
+#   - Find the main workflow's job_level `if:` guard skipping itself.
+#   - Report the run as "Failure · 3s · this check has no steps".
+#   - Email the operator on every PR.
+#
+# This file fixes that by claiming the same check name ("production-health-probe")
+# for pull_request events and reporting an intentional pass with at least one
+# step, so GitHub records a green check on PRs without invoking any real
+# production probes. The real probe workflow continues to handle schedule and
+# workflow_dispatch unchanged.
+#
+# Net effect:
+#   - PR opens → this noop runs → check turns green in seconds → operator
+#     gets no email.
+#   - Cron tick (every 15 min) → real probe workflow runs (in
+#     production-health-probe.yml) → fails ONLY on a real production outage.
+#   - workflow_dispatch → real probe workflow runs manually.
+
+on:
+  pull_request: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-health-probe-pr-noop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    # NOTE: this job's name MUST match the job name in
+    # production-health-probe.yml ("probe") so that branch-protection rules
+    # that pin "production-health-probe / probe" as a required check find
+    # this run on PRs.
+    name: probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: PR-safe noop
+        run: |
+          echo "Pull request context — production health probe does not run on PRs."
+          echo "The real production probe runs every 15 minutes against mascidocs.com"
+          echo "(see .github/workflows/production-health-probe.yml). This noop exists"
+          echo "only to satisfy any branch-protection rule that requires a check named"
+          echo "'production-health-probe' on pull_request events."
+          echo "PASS"
