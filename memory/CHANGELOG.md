@@ -3850,3 +3850,37 @@ All gate endpoints return 401 with no token; multi-login issues per-PM tokens; P
 
 ### Verdict
 🟢 GREEN · TRACK 15.34 CERTIFIED COMPLETE · zero regressions, all four deliverables evidence-backed.
+
+---
+
+## 2026-02 · TRACK 15.34A · Pre-Deployment Release Gate Certification
+
+### Mode
+Operational GO/NO-GO gate · evidence-based · zero code changes.
+
+### Scope evaluated
+Tracks 15.28 → 15.34: Notifications canonicalization, Shop HMAC retirement, PM/Admin shared-auth retirement, Auth Hardening dead-shim removal.
+
+### Six gate phases — all PASS
+
+| Phase | Gate | Result |
+|---|---|---|
+| 1 | Authentication (7 portals) | ✅ PASS — multi-login issues all 7 portal tokens; protected pages 200 with token / 401 without |
+| 2 | Notifications (Admin + PM) | ✅ PASS — bell/list/mark-read/refresh cycle works; 0 dupes; 0 scope leak |
+| 3 | Team Assignment (real project `20-07`, real employee Alec Perkins) | ✅ PASS — add/refresh/remove/audit cycle persists end-to-end |
+| 4 | Admin Critical Surfaces | ✅ PASS — every canonical admin endpoint returns 200 |
+| 5 | Public Operational Surfaces | ✅ PASS — Daily Reports + Meetings submissions accepted & persisted; safety-forms gate fires correctly |
+| 6 | Regression checks (15.28/15.30/15.32/15.34) | ✅ PASS — every retired path returns retirement message; 0 live refs to dead factory kwargs |
+
+### Verdict
+🟢 **DEPLOY APPROVED**
+
+No deployment blockers identified. Build safe to deploy to production today.
+
+### Deliverable
+* `/app/memory/TRACK_15_34A_PRE_DEPLOY_RELEASE_GATE.md` — full evidence record
+
+### Non-blocking observations
+* `test_credentials.md` HR/Dispatch passwords have drifted from the rotated values (multi-login path works regardless)
+* Soft-deleted team-assignment rows keep `assignment_status="ACTIVE"` while `active=False` (cosmetic; UI uses `active`)
+* 3 pre-existing pytest failures reproduce on baseline (not caused by 15.28→15.34)
