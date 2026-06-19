@@ -3516,3 +3516,33 @@ Rebuild + redeploy FE bundle to `mascidocs.com`. Confirm bundle hash changes fro
 
 ### Deliverable
 - `/app/memory/TRACK_15_21A_HR_EMPLOYEE_ROSTER_EXPORT_PRINT_IMPLEMENTATION.md`
+
+---
+
+## 2026-02 — TRACK 15.28B · Notification System Canonicalization Audit (READ-ONLY)
+
+### Deliverable
+- `/app/memory/TRACK_15_28B_NOTIFICATION_CANONICALIZATION_AUDIT.md` (482 lines)
+
+### Scope
+- READ-ONLY audit. No code, no migration, no backfill, no deploy.
+- Mapped every notification create-path, read-path, schema, and per-portal surface.
+- Answered all 9 mandatory operator questions with hard MongoDB / source evidence.
+
+### Headline findings
+- **9,742 docs in `db.notifications`** across **4 distinct on-the-wire shapes** in **3 collections** (`notifications`, `tasks_notifications`, dormant phase4 schema).
+- **Canonical = `type` + `recipient_role` + `recipient_user_id`** (9,190 docs, 94.3 %). Read by `/api/notifications`.
+- **552 legacy `kind/audience/user_email` rows** (hr.employee_request 522 + oa_assignment 30) are **silently invisible** to the bell — admin sees them; HR/Safety/PM/Shop/Dispatch never see them.
+- **97.7 % of canonical rows have `recipient_user_id=NULL`** → routing is pure role-broadcast. Every PM sees every PM event regardless of project membership.
+- **No `event_id` / no idempotency key.** Same producer fires repeatedly: TB-03 has 147 `trench_safety.asset_returned_to_service` rows (49 firings × 3 roles).
+- **`db.tasks_notifications` (162 rows) has no live reader** — pm_engine writes there, nobody reads.
+- **0 of 9,742 notifications have ever been acknowledged.**
+
+### Track 15.8A / 15.8B explanation
+PM bell complaints are now fully explainable and reproducible — root cause is **role-broadcast with a join-date eligibility cutoff but no project-membership scope** on the read side. The Track 15.8B eligibility fix correctly clipped pre-join-date noise but did not introduce project scoping.
+
+### Status
+- ❌ System NOT trustworthy.
+- 🔒 No remediation performed (per directive).
+- 🟡 10-step canonicalization plan documented in the deliverable, awaiting separate authorization.
+
