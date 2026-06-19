@@ -10,7 +10,38 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.52C · Backup Retention Truth Audit & Long-Term Recovery Certification · 🟢 GREEN · read-only forensic)
+## Latest Track (2026-06-19 · TRACK 15.53 · Backup Protection Hardening & Retention Conflict Resolution · 🟢 GREEN · execution)
+
+### Outcomes
+- ✅ **Retention conflict resolved.** R2 lifecycle `masci-backups-auto-90d` → `masci-backups-auto-365d` (Expiration 365 d). Both engines (R2 lifecycle + app `lib/r2_retention.py`) now agree. **Forecast 2026-08-29 monthly-survivor data loss is prevented.**
+- 🟡 **R2 versioning NOT enabled.** Cloudflare R2 does NOT implement S3-compatible `PutBucketVersioning` (`NotImplemented` returned by API; confirmed by Cloudflare official docs). Operator must enable via `dash.cloudflare.com → R2 → masci-hub → Settings → Object Versioning` (3-click task).
+- ✅ **Backup pipeline unaffected.** 854 objects / 207.8 GB / newest backup HEAD 200 / `/api/health/full` 200 post-change.
+
+### Single source of truth (post-track)
+**`backend/lib/r2_retention.py`** is now authoritative. R2 lifecycle is a longstop at the same 365-d boundary.
+
+### Restore-point status today
+- 1 h / 24 h / 7 d / 30 d → ✅ R2 Tier 1 & 2.
+- 90 / 180 / 365 d → 🟡 path enabled but bucket-age limited (39 d old today). First Tier 3 monthly survivor arrives ~2026-08-09.
+
+### Hourly cadence: KEEP (unchanged from Track 15.52B/C)
+Atlas PITR still UNVERIFIED · cost saving $17/yr too small · production launches tomorrow.
+
+### Final-6 answers
+1. R2 versioning enabled? **No** (R2 API limitation; operator dashboard task).
+2. Retention conflict resolved? **Yes.**
+3. SSOT? **`lib/r2_retention.py`.**
+4. Recovery 1h/24h/7d/30d? **All ✅.** 90/180/365d? **Path enabled, awaiting bucket age.**
+5. Hourly cadence still recommended? **Yes.**
+6. Production-hardened? **Yes on Track 15.53 scope.**
+
+### Deliverables
+7 markdown files under `/app/memory/TRACK_15_53_*.md`.
+
+### Hard-rule compliance
+✅ Zero code edits · zero env changes · zero new buckets/schedulers/collections · zero cadence change. One S3 API call (`put_bucket_lifecycle_configuration`) executed live and verified.
+
+## Prior Track (2026-06-19 · TRACK 15.52C · Backup Retention Truth Audit & Long-Term Recovery Certification · 🟢 GREEN · read-only forensic)
 
 ### Root cause proven for "zero objects > 90 days"
 The R2 bucket `masci-hub` was **created 2026-05-11** — only **39.46 days** before this audit. No object can be older than the bucket. Neither the R2 lifecycle rule nor the app-side retention has deleted any > 90-d objects; none ever existed in this bucket.
