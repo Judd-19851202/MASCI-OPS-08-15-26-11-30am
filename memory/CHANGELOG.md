@@ -3684,3 +3684,36 @@ All five targets (≥9 / ≥9 / ≥8 / ≥9 / ≥9) met or exceeded.
 - 🟢 Proven = restored
 - 🟢 Deployment gate = OPEN
 
+
+---
+
+## 2026-02 — TRACK 15.31 · PM_PASSWORD & ADMIN_PASSWORD Authentication Audit (READ-ONLY)
+
+### Deliverable
+- `/app/memory/TRACK_15_31_PM_ADMIN_AUTH_AUDIT.md` (338 lines · 9 sections + executive summary + retirement blueprint)
+
+### ⚠ STOP-CONDITIONS HIT (THREE)
+1. **Shared Admin authentication ACTIVE** — `POST /api/admin/login` accepts `{password}` only (no email). Validator `_is_valid_admin_token` is wired into ~60 admin gates.
+2. **Shared PM authentication ACTIVE (default-on)** — `routes/pm_routes.py:419-444` email-less bypass. Gated by `PM_SHARED_LOGIN_ENABLED` env flag which defaults to `"true"` if not set.
+3. **Source-controlled secret literals** — `MASCI1982!`, `"Happy123!"`, `"Maddix123!"` appear in **210 committed test files** under `backend/tests/`. Both `.env` and `.env.pre_atlas_backup` carry the live secrets.
+
+No remediation performed.
+
+### Live usage (30-day window)
+- `pm-shared` sessions: 2 (both python-requests UAs — automation)
+- `admin` actor_label sessions: 3 (label does not distinguish shared from per-user directory admin)
+- 14 live env-read sites for `ADMIN_PASSWORD`; 5 for `PM_PASSWORD`
+
+### Classification
+- Shop-HMAC-class risk: **YES** — same derivation family (`HMAC_SHA256(ADMIN_HMAC_SECRET, "epoch=<n>\|<scope>:<password>")`). Admin variant is **strictly worse** than the retired Shop variant — unlocks backup/restore + the entire `/api/admin/*` namespace.
+- Retirement: PM = SAFE WITH MIGRATION · Admin = SAFE WITH MIGRATION + COORDINATION
+- Phase 0 hardening (zero code change): set `PM_SHARED_LOGIN_ENABLED=false`. Fully reversible.
+
+### Five-Pillar (current)
+Powerful 5 · Simple 6 · Beautiful 4 · **Trusted 2** · Proven 4 — Trusted and Proven both below the 8 target. Documented why in §8 of the deliverable.
+
+### Status
+- 🟢 Audit COMPLETE
+- 🔒 No code changes performed
+- 🔴 Trusted + Proven NOT restored — Phase 0 hardening + a follow-on retirement track (TRACK 15.32) required
+
