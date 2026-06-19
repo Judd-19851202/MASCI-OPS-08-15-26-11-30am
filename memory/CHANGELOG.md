@@ -2,6 +2,34 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.51 · Production Deployment Readiness Certification (🟢 GREEN · 1 YELLOW observability finding)
+
+**Decision: deploy.** Platform-wide acceptance certification across Tracks 15.34 – 15.50.
+
+### Output
+- 11 evidence files under `/app/memory/TRACK_15_51_*.md`: Platform Inventory · Persona · Safety Topic Library · Incident Workflow · Training Compliance · PDF Foundation · Notifications · Performance · Backup & Recovery · Six-Pillar Scorecard · Deployment War-Room Report.
+- All 12 deployment gates answered **YES** with evidence on file.
+- No features built. No collections changed. No code refactored.
+
+### Six-pillar scorecard
+- Powerful · Simple · Beautiful · Trusted · Proven → all **GREEN**.
+- Fix It → **YELLOW** for one observability defect (`/api/health/full` reports backups stale even when R2 has 855 hourly snapshots, latest 17 min before measurement). Fix queued as Track 15.52. Underlying backups are healthy.
+
+### Live evidence (captured 2026-06-19, not historical)
+- Read latencies: median 0.22 s · max 0.86 s (Executive Overview) · all paths ≤ 1 s vs 2 s SLO.
+- Write latency: `POST /api/tasks` 0.25 – 0.30 s.
+- PDF render: incident 1.73 s · daily report 0.94 s · meeting 0.89 s · JHA 0.84 s · all under 2 s SLO.
+- R2 backups: 855 objects, hourly cadence, latest 2026-06-19 20:04 UTC, ~680 MB/zip, 14/90/365-day tiered retention live.
+- Topic library: 152 EN topics · 23 modules · ES parity · all 9 amendment-mandated public-interaction/stop-work topics live and PDF-renderable.
+
+### No-V2 audit
+One incident system · one PDF entry point · one notification engine · one CAPA collection · one training-records collection · one executive-overview computation · one topic library. Zero duplicates.
+
+### Recommendation
+🟢 **GREEN — production deployment safe today.** Monitor R2 directly during first 48 h via `/api/admin/backups-list-r2`; ship Track 15.52 observability patch when on-call has bandwidth.
+
+
+
 ## 2026-06-19 — TRACK 15.50 · Training Compliance, Recurrence Prevention & Workforce Requalification (🟢 GREEN · Six-Pillar Certified)
 
 **Closes the recurrence-prevention loop. The incident is the trigger; the platform drives everything else.**

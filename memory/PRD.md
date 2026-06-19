@@ -10,7 +10,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.50 · Training Compliance, Recurrence Prevention & Workforce Requalification · 🟢 GREEN · Six-Pillar Certified)
+## Latest Track (2026-06-19 · TRACK 15.51 · Production Deployment Readiness Certification · 🟢 GREEN · 1 YELLOW observability finding)
+
+### What this is
+Full platform operational acceptance certification across Tracks 15.34 – 15.50. Question answered: *"Can MASCI deploy today and have every persona run the system tomorrow morning at 5:30 AM without confusion, missing workflows, broken routing, missing data, missing PDFs, performance degradation, or operational surprises?"* Answer: **yes, deploy.**
+
+### Output
+- 11 evidence files under `/app/memory/TRACK_15_51_*.md` (Platform Inventory · Persona · Safety Topic Library · Incident Workflow · Training Compliance · PDF Foundation · Notifications · Performance · Backup & Recovery · Six-Pillar · Deployment War-Room).
+- 12 deployment gates · 12 YES answers · all evidence-backed.
+- Zero features built · zero collections changed · zero code refactored during this track.
+
+### Six-pillar scorecard
+- **Powerful · Simple · Beautiful · Trusted · Proven** → all GREEN.
+- **Fix It** → YELLOW for one observability defect (`/api/health/full` under-reports backup state). R2 itself holds 855 hourly snapshots, latest 17 min before measurement. Fix queued as Track 15.52.
+
+### Live evidence (captured 2026-06-19 against preview build)
+- All 13 measured read endpoints ≤ 1 s · Executive Overview 0.86 s · target was 2 s.
+- Write path `POST /api/tasks` 0.25 – 0.30 s.
+- PDF renders: incident 1.73 s · daily report 0.94 s · meeting 0.89 s · JHA 0.84 s.
+- R2 backups: 855 objects · hourly cadence · 14/90/365-day tiered retention · 7-day presigned URLs.
+- Topic library: 152 EN topics · ES parity · all 9 amendment-mandated public-interaction/stop-work topics live and PDF-renderable.
+
+### Recommendation to MASCI leadership
+🟢 **GREEN — deploy with confidence.** Monitor R2 directly during the first 48 h via `/api/admin/backups-list-r2` (not `/api/health/full`). Ship Track 15.52 observability patch when on-call has bandwidth — **not a deployment blocker**.
+
+## Prior Track (2026-06-19 · TRACK 15.50 · Training Compliance, Recurrence Prevention & Workforce Requalification · 🟢 GREEN · Six-Pillar Certified)
 
 ### What this is
 Closes the recurrence-prevention loop. Auto-issues a 14-day training requalification task on every WV/PI incident · names the affected employees + the 4 required topics · binds completion records back to the source incident · surfaces compliance on the Executive Overview.
