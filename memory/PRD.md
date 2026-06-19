@@ -2545,3 +2545,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - 5 browser screenshots (`/tmp/team_desktop.png`, `team_ipad_portrait.png`, `team_ipad_landscape.png`, `team_pm_403.png`, `cert_final_state.png`).
 
 **Status:** ✅ **DEPLOYMENT APPROVED.** Awaiting operator push to production.
+
+---
+
+## TRACK 15.28 — Operational Debt Elimination Report (2026-06-19) · 🔍 READ-ONLY AUDIT
+
+**Type:** Consolidated operational-debt audit. No code, no deploy, no fix.
+
+**Risk ranking:**
+- 🟥 **R-1 P0** — R2 backups grow indefinitely (14.47 GiB/day measured). Root cause located: `_emergency_prune_backups` exists + is tested + works, but is only triggered on (a) startup sweep and (b) disk-pressure watermark. On R2 there's no local-disk pressure, so the prune **never schedules**. Fix budget: ~1 hour (sibling cron entry calling the already-tested helper).
+- 🟥 **R-2/R-7 P0** — Production iPhone/iPad real-device cert never executed across all 8 portals. Operator-only work (~30 min × 8 portals).
+- 🟧 **R-3 P1** — Notifications schema split between `kind`+`user_email` (552 legacy docs) and `type`+`recipient_user_id`+`recipient_role` (9,190 docs). The "is the inbox cluttered?" question from the original 15.8A/15.8B complaint is **currently unanswerable** until schema is canonicalized. Zero orphaned `linked_project_number` references (✅ confirmed).
+- 🟧 **R-4/R-5 P1/P2** — Team Assignment P2 follow-up bundle: Change-Role action (~55 LOC backend+frontend) + replace `window.prompt()` with Dialog (~25 LOC). Bounded.
+- 🟨 **R-8 P1** — Atlas/Emergent/Resend/Sentry/Cloudflare cost dashboard pulls still pending (15.24B trust gap).
+- 🟨 **R-6/R-9 P2** — Mixed notif schema mop-up; static Shop HMAC retirement (D-16).
+
+**Recommended execution order:**
+1. R-1 (R2 scheduled prune) — 1 hr · P0
+2. R-7 (Production real-device walkthroughs) — 4 hr operator · P0
+3. R-3 (Notif schema canonicalization + backfill) — 1.5 hr · P1
+4. R-4/R-5 (Team P2 bundle) — 2.5 hr · P1/P2
+5. R-8 (Operator dashboard pulls) — 30 min operator · P1
+6. R-9/R-6 (Tech-debt long tail) — backlog · P2/P3
+
+**Deliverable:** `/app/memory/TRACK_15_28_OPERATIONAL_DEBT_ELIMINATION_REPORT.md`
+
+**Status:** Awaiting operator prioritization. No code changed.
