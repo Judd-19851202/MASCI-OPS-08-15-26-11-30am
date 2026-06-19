@@ -3604,3 +3604,37 @@ Powerful 8/10 · Simple 9/10 · Beautiful 6/10 · Trusted 9/10 · Proven 9/10
 
 ### No code changes performed.
 
+
+---
+
+## 2026-02 — TRACK 15.29 · Static Shop HMAC Retirement Audit (READ-ONLY)
+
+### Deliverable
+- `/app/memory/TRACK_15_29_STATIC_SHOP_HMAC_RETIREMENT_AUDIT.md` (396 lines)
+
+### STOP-CONDITION FINDING (P0)
+**Secret-in-source detected.** The production-shape literal (`Nothappy123!`, `ResetWorks2026!`) is committed in **19+ test files** under `backend/tests/`. Anyone with the literal + production hostname can authenticate as an anonymous shop kiosk via `POST /api/shop/login` (email-less branch).
+- No remediation performed (operator directive).
+- Reproduction recipe + exact file:line inventory in the audit deliverable.
+
+### Inventory (live code)
+- 1 HMAC derivation function (`_shop_token_for` in `server.py:516`)
+- 5 distinct validation gates (server.py · shop_portal_deps · fleet_ops · fleet_ops_deps · shop_intel)
+- 1 `/api/shop/login` email-less branch in `server.py:2092-2107`
+- 19 hardcoded test files + 2 on-disk `.env` files
+
+### Live usage
+- 2 `actor_label=shop-shared` sessions in last 14 days — BOTH `python-requests/2.33.1` (test traffic). Latest: 2026-06-08.
+- 12 active per-user `shop_users` accounts.
+- Frontend `ShopLogin.jsx` requires email — does NOT use the shared path.
+
+### Retirement classification
+**SAFE WITH MIGRATION.** Live user impact = 0. Test files to migrate = 19. Code call-sites to delete = 8. Env vars to remove = 1. No new infrastructure required.
+
+### Five-Pillar score (current)
+Powerful 5/10 · Simple 7/10 · Beautiful 4/10 · **Trusted 2/10** · Proven 4/10. Trusted target ≥9/10 after Phase 3.
+
+### Status
+- 🟢 Audit COMPLETE. Trusted + Proven NOT YET restored — explicit retirement (Phase 1–3 in §7) required.
+- 🔒 No code changes performed.
+
