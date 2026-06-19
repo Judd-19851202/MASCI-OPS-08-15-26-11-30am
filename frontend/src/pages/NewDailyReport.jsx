@@ -539,15 +539,63 @@ export default function NewDailyReport({ publicMode = false }) {
       toast.success(`Job loaded: #${job.project_number}`);
       // Fallback fetch — only when jobs_master didn't carry the value
       // and the foreman has not already typed a name.
-      if (!jobSuper && job.project_number) {
+      // TRACK 15.46 · FR-15 · Also prefills crew + equipment rows from
+      // the most recent DR on this project (only when the foreman has
+      // not started those sections). Hours/trade/description copy
+      // forward; signatures and clock times do NOT (per-day deltas).
+      if (job.project_number) {
         api
           .get(`/jobs/${encodeURIComponent(job.project_number)}/recent-context`)
           .then((r) => {
             const recent = (r?.data?.superintendent || "").trim();
-            if (!recent) return;
+            const priorCrews = Array.isArray(r?.data?.masci_crews)
+              ? r.data.masci_crews
+              : [];
+            const priorEquipment = Array.isArray(r?.data?.equipment)
+              ? r.data.equipment
+              : [];
+            const sourceDate = r?.data?.source_report_date || "";
             setData((p) => {
-              if (p.superintendent && p.superintendent.trim()) return p;
-              return { ...p, superintendent: recent };
+              const next = { ...p };
+              if (recent && !jobSuper && !(p.superintendent && p.superintendent.trim())) {
+                next.superintendent = recent;
+              }
+              let prefilledLines = 0;
+              if (priorCrews.length > 0 && (p.masci_crews || []).length === 0) {
+                next.masci_crews = priorCrews.map((c) => ({
+                  name: c.name || "",
+                  trade: c.trade || "",
+                  employee_id: c.employee_id || "",
+                  start_time: "",
+                  lunch_minutes: "",
+                  stop_time: "",
+                  hours: c.hours || "",
+                  work_performed: "",
+                }));
+                prefilledLines += priorCrews.length;
+              }
+              if (priorEquipment.length > 0 && (p.equipment || []).length === 0) {
+                next.equipment = priorEquipment.map((e) => ({
+                  description: e.description || "",
+                  hours_used: e.hours_used || "",
+                  time_delivered: "",
+                  time_removed: "",
+                  notes: e.notes || "",
+                }));
+                prefilledLines += priorEquipment.length;
+              }
+              if (prefilledLines > 0) {
+                // Lightweight toast — fire outside the setState to keep
+                // it side-effect-free against React 18 strict mode.
+                setTimeout(() => {
+                  toast.success(
+                    t("Prefilled {n} rows from {d} — edit the deltas")
+                      .replace("{n}", String(prefilledLines))
+                      .replace("{d}", sourceDate || t("prior report")),
+                  );
+                }, 0);
+              }
+              return next;
             });
           })
           .catch(() => { /* silent — keep the field empty for manual entry */ });

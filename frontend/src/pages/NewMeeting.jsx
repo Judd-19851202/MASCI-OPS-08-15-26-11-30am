@@ -19,6 +19,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { TopicPicker } from "@/components/TopicPicker";
 import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
+import { AttendeeBulkAddDialog } from "@/components/AttendeeBulkAddDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { BilingualConsent } from "@/components/BilingualConsent";
 import { useT, getLang } from "@/lib/i18n";
@@ -967,6 +968,18 @@ export default function NewMeeting({ publicMode = false }) {
           >
             <UserPlus className="w-4 h-4 mr-2" /> {t("Add Attendee")}
           </Button>
+          {/* TRACK 15.46 · FR-07 · Bulk multi-select from the certified
+              employees roster. Removes ~5-10 clicks per meeting for
+              typical 10-person crews. */}
+          <AttendeeBulkAddDialog
+            existing={data.attendees}
+            onAdd={(additions) =>
+              setData((p) => ({
+                ...p,
+                attendees: [...p.attendees, ...additions],
+              }))
+            }
+          />
         </Section>
 
         <Section number="04" title={t("Photos")}>

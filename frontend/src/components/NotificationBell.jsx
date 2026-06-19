@@ -72,6 +72,97 @@ const SOURCE_MODULE_LABEL = {
   "trench_safety:reinspection_requested": "Trench Re-inspection",
 };
 
+// TRACK 15.46 · FR-03 · Notification action label specificity.
+// The raw `type` token (e.g. `project_team_assignment`,
+// `daily_report.pending_review`) is technical and tells the operator
+// nothing about WHAT action to take. This map translates it into an
+// action-oriented verb chip ("Review", "Approve", "Open", "Submit")
+// so a PM scanning the bell list knows in 0.5s whether the item
+// requires a decision or is purely informational.
+//
+// Pattern: every label MUST start with an imperative verb
+// (Review · Approve · Open · Submit · Acknowledge · Verify) so the
+// operator's brain doesn't have to translate "X happened" → "what do
+// I do about X". Honest field-real verbs only — no marketing copy.
+const TYPE_ACTION_LABEL = {
+  // Team / assignment
+  project_team_assignment: "Review team change",
+  // Tasks
+  "task.assigned": "Action assigned task",
+  "task.closed": "Acknowledge closed task",
+  // Daily reports
+  "daily_report.pending_review": "Review daily report",
+  "daily_reports.submitted": "Review daily report",
+  // Safety incidents / inspections
+  "safety.incident.opened": "Review incident",
+  "incident.opened": "Review incident",
+  "inspection.deficiency": "Review deficiency",
+  "inspection.stop_work": "Action stop-work",
+  // Pre-Op
+  "preop.failed": "Review failed Pre-Op",
+  // PO
+  "po.approval_visibility": "Review PO request",
+  "po.receipt_received": "Acknowledge receipt",
+  // Asset transfers
+  "asset_transfer.requested": "Review transfer request",
+  "asset_transfer.approved": "Acknowledge transfer",
+  "asset_transfer.dispatch_pickup": "Dispatch pickup",
+  "asset_transfer.in_transit": "Track in-transit",
+  "asset_transfer.received": "Acknowledge received",
+  "asset_transfer.rejected": "Review rejection",
+  // Fuel/Lube
+  "fuel_lube.issue_reported": "Review fuel/lube issue",
+  "fuel_lube.issue_reported.dispatch": "Action fuel/lube issue",
+  // Fire ext / fleet
+  "fire_ext.deficiency": "Review extinguisher deficiency",
+  "dvir.defect.oos": "Review OOS defect",
+  "shop_assignment": "Review shop assignment",
+  // Safety forms
+  "safety_form.issuance.submitted": "Acknowledge issuance",
+  "safety_form.return.submitted": "Acknowledge return",
+  "safety_form.training.submitted": "Acknowledge training",
+  // Documents
+  "document.expired": "Renew expired document",
+  "document.expiring": "Renew expiring document",
+  // Payroll
+  "payroll_variance.manual_run": "Review payroll variance",
+  // Trench safety
+  "trench_safety.hold_opened": "Review trench hold",
+  "trench_safety.hold_cleared": "Acknowledge hold cleared",
+  "trench_safety.inspection_failed": "Review failed inspection",
+  "trench_safety.damage_report": "Review damage report",
+  "trench_safety.cert_expired": "Renew expired certification",
+  "trench_safety.cert_due_soon_7": "Renew certification (≤ 7d)",
+  "trench_safety.cert_due_soon_14": "Renew certification (≤ 14d)",
+  "trench_safety.cert_due_soon_30": "Renew certification (≤ 30d)",
+  "trench_safety.reinspection_requested": "Schedule re-inspection",
+  "trench_safety.repair_awaiting_safety": "Verify repair",
+  "trench_safety.asset_returned_to_service": "Acknowledge return",
+  // Operations Actions
+  "oa_assignment": "Action assigned item",
+  // System
+  "system": "Review notification",
+};
+
+// Resolve an `n.type` token to an action-verb label. Falls back to a
+// humanized version of the raw type so unmapped events still read
+// reasonably (e.g. `fleet.defect.assignment` → "Fleet · Defect ·
+// Assignment").
+function actionLabelFor(rawType) {
+  if (!rawType) return "Review notification";
+  if (TYPE_ACTION_LABEL[rawType]) return TYPE_ACTION_LABEL[rawType];
+  // Prefix match for namespaced events with dynamic suffixes.
+  for (const key of Object.keys(TYPE_ACTION_LABEL)) {
+    if (rawType.startsWith(key + ".") || rawType.startsWith(key + "_")) {
+      return TYPE_ACTION_LABEL[key];
+    }
+  }
+  // Humanize fallback: snake/dot/colon → Title · Case
+  return String(rawType)
+    .replace(/[._:]+/g, " · ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 // TRACK 15.40 · 5-minute "recently read" window per operator approval.
 const RECENT_READ_MS = 5 * 60 * 1000;
 
@@ -395,9 +486,9 @@ export default function NotificationBell({ accent = "slate" }) {
                           <span
                             className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
                             data-testid={`notification-type-${n.id}`}
-                            title="Event type"
+                            title={`Action · ${n.type}`}
                           >
-                            {n.type}
+                            {actionLabelFor(n.type)}
                           </span>
                           {sourceLabel && (
                             <span

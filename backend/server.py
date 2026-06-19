@@ -3161,7 +3161,7 @@ async def list_jobs_public():
 async def jobs_recent_context(project_number: str):
     project_number = (project_number or "").strip()
     if not project_number:
-        return {"superintendent": ""}
+        return {"superintendent": "", "masci_crews": [], "equipment": []}
     latest = await db.daily_reports.find_one(
         {
             "project_number": project_number,
@@ -3170,7 +3170,53 @@ async def jobs_recent_context(project_number: str):
         {"_id": 0, "superintendent": 1},
         sort=[("created_at", -1)],
     )
-    return {"superintendent": (latest or {}).get("superintendent", "") or ""}
+    # TRACK 15.46 · FR-15 · Pre-fill crew + equipment hours from the
+    # most recent DR on this project. Keeps the foreman editing deltas
+    # instead of re-typing the same 8-person crew + 4-piece spread
+    # every morning. Sanitised: signatures and timestamps stripped so
+    # nothing stale carries forward.
+    latest_full = await db.daily_reports.find_one(
+        {"project_number": project_number},
+        {"_id": 0, "masci_crews": 1, "equipment": 1, "report_date": 1, "created_at": 1},
+        sort=[("created_at", -1)],
+    ) or {}
+    raw_crews = latest_full.get("masci_crews") or []
+    raw_equipment = latest_full.get("equipment") or []
+    masci_crews = []
+    for c in raw_crews:
+        if not isinstance(c, dict):
+            continue
+        nm = (c.get("name") or "").strip()
+        if not nm:
+            continue
+        masci_crews.append({
+            "name": nm,
+            "trade": (c.get("trade") or "").strip(),
+            "employee_id": c.get("employee_id") or "",
+            "hours": c.get("hours") or "",
+            # Times intentionally NOT copied — they belong to the prior
+            # shift. Foreman re-enters today's clock-in/out.
+        })
+    equipment = []
+    for e in raw_equipment:
+        if not isinstance(e, dict):
+            continue
+        desc = (e.get("description") or "").strip()
+        if not desc:
+            continue
+        equipment.append({
+            "description": desc,
+            "hours_used": e.get("hours_used") or "",
+            # time_delivered / time_removed intentionally NOT copied —
+            # those are per-day movement events.
+            "notes": "",
+        })
+    return {
+        "superintendent": (latest or {}).get("superintendent", "") or "",
+        "masci_crews": masci_crews,
+        "equipment": equipment,
+        "source_report_date": latest_full.get("report_date") or "",
+    }
 
 
 # iter245 · Vendors / Subcontractors master list — RETIRED 2026-05-19.
