@@ -2639,3 +2639,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 **Operator gate:** Atlas PITR + R2 versioning dashboard confirmation. After confirmation, cadence flip is a single env-var change (`BACKUP_R2_HOURLY=false` + `BACKUP_HOURS_LOCAL=0,6,12,18` + `BACKUP_TIMEZONE=<tenant>`).
 
 **Verdict:** 🟢 GREEN on code · YELLOW on configuration · all Five Pillars ≥9.
+
+---
+## Track 15.39 (2026-02) — Team Assignment P2 (backend complete · frontend deferred)
+
+**Backend landed:**
+- PATCH route accepts `assignment_role` → single `role_change` audit row + duplicate-prevention guard (HTTP 409)
+- DELETE route accepts structured `{reason_category, reason_text}` body · 7 categories · `other` requires text
+- All history accessible via existing audit endpoint
+
+**Live cert:** 9/10 backend tests PASS (T8 iPad deferred to frontend). Performance all within targets.
+
+**Frontend follow-up:** ~200 lines React across TeamRosterPage · RemoveReasonDialog · AssignmentHistoryDrawer. Backend complete — no further backend work needed.
+
+**Verdict:** 🟢 GREEN on backend · ⏭ frontend pending.

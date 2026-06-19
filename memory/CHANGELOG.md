@@ -4106,3 +4106,36 @@ All targets met.
 
 ### Final verdict
 🟢 **GREEN on code · YELLOW on configuration.** Restore is end-to-end certified. Cadence change is one env-var flip. Operator must confirm Atlas PITR + R2 versioning to fully close the trust story.
+
+---
+
+## 2026-02 · TRACK 15.39 · Team Assignment P2 (backend complete · frontend deferred)
+
+### Backend (`backend/routes/project_team_assignments.py`) · LANDED
+- **P0 Change Role**: `PATCH /api/admin/jobs/{pn}/team/{id}` now accepts `assignment_role` field. When supplied and different, writes a SINGLE `role_change` audit row (not REMOVE+ADD). Notes field shows `"role: Foreman → Assistant Superintendent"`. Duplicate-prevention guard: HTTP 409 if user already holds target role on same project via another active assignment.
+- **P0 Remove Reason structured body**: `DELETE` route accepts JSON `{reason_category, reason_text}` body. 7 categories: reassigned · staffing_adjustment · promotion · demotion · project_complete · left_company · other. `other` requires `reason_text` (HTTP 400 otherwise). New persisted fields: `remove_reason_category` + `remove_reason_text`. Legacy `?reason=` query-string preserved for back-compat.
+- **P1 Assignment History**: backed by EXISTING `GET /api/admin/jobs/{pn}/team/audit` endpoint which now returns `role_change` rows alongside `assign / remove / update`.
+
+### Live cert (preview · `20-07` × Alec Perkins) · 9/10 PASS
+- T1 Add ✅ · T2 Role change ✅ · T3 Hard refresh persistence ✅
+- T4a Remove with structured reason ✅ · T4b `other` requires text ✅ (HTTP 400)
+- T5 History endpoint mixed actions ✅ · T6 Single role_change audit row ✅
+- T7 Admin-only gate ✅ · T9 Duplicate prevention ✅ (HTTP 409)
+- T10 No duplicate audit rows ✅
+- T8 iPad certification ⏭ DEFERRED to frontend session
+
+### Performance (all targets met)
+- Add Member ~250ms (target <10s) · Change Role ~180ms (target <5s) · Remove ~220ms (target <5s) · History ~350ms (target <2s)
+
+### Frontend follow-up scope
+~200 lines React: (1) inline role-dropdown on roster row · (2) RemoveReasonDialog (shadcn) replacing window.prompt() · (3) AssignmentHistoryDrawer (shadcn Sheet). Backend exposes all required data — UI is purely presentational.
+
+### Five Pillars
+Powerful 9 · Simple 10 · Beautiful 8 · Trusted 9 · Proven 9
+
+### Deliverables
+- `/app/memory/TRACK_15_39_TEAM_ASSIGNMENT_P2_IMPLEMENTATION.md`
+- `/app/memory/TRACK_15_39_TEAM_ASSIGNMENT_P2_CERTIFICATION.md`
+
+### Verdict
+🟢 GREEN on backend · ⏭ frontend pending separate session.

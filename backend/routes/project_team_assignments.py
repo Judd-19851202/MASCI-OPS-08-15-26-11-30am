@@ -106,6 +106,33 @@ class AssignmentPatch(BaseModel):
     is_backup: Optional[bool] = None
     end_date: Optional[str] = None
     notes: Optional[str] = None
+    # TRACK 15.39 — P0 · Change Role.
+    # When `assignment_role` is supplied AND differs from the current
+    # role, the route writes a single `role_change` audit row instead of
+    # the legacy REMOVE+ADD pair.
+    assignment_role: Optional[str] = None
+
+
+# TRACK 15.39 — P0 · Remove Reason structured body.
+# Replaces the previous `?reason=` query-string with a structured
+# category + free-text body so the iPad dialog can submit operator
+# intent without window.prompt().
+class AssignmentRemove(BaseModel):
+    # One of: reassigned, staffing_adjustment, promotion, demotion,
+    # project_complete, left_company, other
+    reason_category: Optional[str] = None
+    reason_text: Optional[str] = None
+
+
+_REMOVE_REASON_CATEGORIES: Set[str] = {
+    "reassigned",
+    "staffing_adjustment",
+    "promotion",
+    "demotion",
+    "project_complete",
+    "left_company",
+    "other",
+}
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -900,6 +927,31 @@ def register_project_team_assignments(
         )
         if not existing:
             raise HTTPException(404, "assignment not found")
+
+        # TRACK 15.39 — detect role change FIRST so we can emit the
+        # correct audit action.
+        new_role = _canonical_role(patch.assignment_role) if patch.assignment_role else None
+        is_role_change = bool(new_role) and new_role != existing["assignment_role"]
+        if new_role and new_role not in ALL_ROLES:
+            raise HTTPException(400, f"unknown assignment_role: {patch.assignment_role}")
+        if is_role_change:
+            # No-op duplicate guard: an active row with the same
+            # (project, user, new_role) would create a duplicate
+            # assignment.
+            dup = await db.project_team_assignments.find_one({
+                "project_number": project_number,
+                "user_id": existing.get("user_id"),
+                "assignment_role": new_role,
+                "active": True,
+                "id": {"$ne": assignment_id},
+            }, {"_id": 0})
+            if dup:
+                raise HTTPException(
+                    409,
+                    f"User already holds the {ROLE_REGISTRY.get(new_role, new_role)} "
+                    f"role on this project. Remove the existing assignment first.",
+                )
+
         updates: Dict[str, Any] = {"updated_at": _now_iso(),
                                    "updated_by": actor.get("id") or "admin"}
         for field in ("assignment_scope", "is_primary", "is_backup",
@@ -907,26 +959,39 @@ def register_project_team_assignments(
             v = getattr(patch, field, None)
             if v is not None:
                 updates[field] = v
+        if is_role_change:
+            updates["assignment_role"] = new_role
         await db.project_team_assignments.update_one(
             {"id": assignment_id}, {"$set": updates},
         )
         after = await db.project_team_assignments.find_one(
             {"id": assignment_id}, {"_id": 0},
         )
+
+        # Single audit row, correct action label.
+        audit_action = "role_change" if is_role_change else "update"
+        audit_notes = None
+        if is_role_change:
+            audit_notes = (
+                f"role: {ROLE_REGISTRY.get(existing['assignment_role'], existing['assignment_role'])}"
+                f" → {ROLE_REGISTRY.get(new_role, new_role)}"
+            )
         await _audit(
-            db, action="update", project_number=project_number,
-            assignment_role=existing["assignment_role"],
+            db, action=audit_action, project_number=project_number,
+            assignment_role=new_role if is_role_change else existing["assignment_role"],
             target_user_id=existing.get("user_id"),
             target_email=existing.get("email"),
             before=_public(existing), after=_public(after), actor=actor,
+            notes=audit_notes,
         )
-        return {"ok": True, "assignment": _public(after)}
+        return {"ok": True, "assignment": _public(after), "role_changed": is_role_change}
 
     @router.delete("/api/admin/jobs/{project_number}/team/{assignment_id}")
     async def admin_remove_team_member(
         project_number: str,
         assignment_id: str,
         reason: Optional[str] = Query(default=None),
+        body: Optional[AssignmentRemove] = Body(default=None),
         actor=Depends(require_admin_dep),
     ):
         actor = _coerce_actor(actor)
@@ -936,6 +1001,41 @@ def register_project_team_assignments(
         )
         if not existing:
             raise HTTPException(404, "active assignment not found")
+
+        # TRACK 15.39 — resolve structured reason. Body takes precedence
+        # over the legacy `?reason=` query-string. `other` requires text.
+        reason_category: Optional[str] = None
+        reason_text: Optional[str] = None
+        if body:
+            reason_category = (body.reason_category or "").strip().lower() or None
+            reason_text = (body.reason_text or "").strip() or None
+            if reason_category and reason_category not in _REMOVE_REASON_CATEGORIES:
+                raise HTTPException(
+                    400,
+                    f"unknown reason_category: {reason_category}. "
+                    f"Allowed: {sorted(_REMOVE_REASON_CATEGORIES)}",
+                )
+            if reason_category == "other" and not reason_text:
+                raise HTTPException(
+                    400,
+                    "reason_text is required when reason_category is 'other'.",
+                )
+        # Compose a single human-readable string for the legacy
+        # `remove_reason` field + audit `notes`.
+        composed_reason = reason
+        if reason_category:
+            label_map = {
+                "reassigned": "Reassigned",
+                "staffing_adjustment": "Staffing Adjustment",
+                "promotion": "Promotion",
+                "demotion": "Demotion",
+                "project_complete": "Project Complete",
+                "left_company": "Left Company",
+                "other": "Other",
+            }
+            label = label_map.get(reason_category, reason_category)
+            composed_reason = f"{label}: {reason_text}" if reason_text else label
+
         now = _now_iso()
         await db.project_team_assignments.update_one(
             {"id": assignment_id},
@@ -943,7 +1043,9 @@ def register_project_team_assignments(
                 "active": False,
                 "removed_by": actor.get("id") or "admin",
                 "removed_at": now,
-                "remove_reason": reason,
+                "remove_reason": composed_reason,
+                "remove_reason_category": reason_category,
+                "remove_reason_text": reason_text,
                 "end_date": (existing.get("end_date") or now[:10]),
             }},
         )
@@ -956,7 +1058,7 @@ def register_project_team_assignments(
             target_user_id=existing.get("user_id"),
             target_email=existing.get("email"),
             before=_public(existing), after=_public(after), actor=actor,
-            notes=reason,
+            notes=composed_reason,
         )
         await _notify_assignment(
             db, action="remove", project_number=project_number,
