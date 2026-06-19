@@ -1067,6 +1067,34 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                             "priority": "High",
                             "notif_type": "incident.aftercare.investigator_7d",
                         },
+                        # === TRACK 15.50 · Recurrence-prevention training assignment ===
+                        # Closes the "did the affected employees actually
+                        # get retrained?" question. Reuses the existing
+                        # Tasks system; the safety topic library already
+                        # carries the content (Track 15.47 8-topic series
+                        # + Stop Work). Description names the topics
+                        # explicitly so the task IS the assignment.
+                        {
+                            "key": "incident.aftercare.training_14d",
+                            "due_in": _td_aft(days=14),
+                            "title": "14-day training requalification · affected employees + witness chain",
+                            "desc": (
+                                f"Auto-issued from incident {doc.get('doc_id') or doc.get('id')}. "
+                                f"Schedule + deliver the following Safety topics to the affected employee "
+                                f"({(doc.get('person_name') or '—')}) + all crew witnesses + foreman "
+                                f"({(doc.get('supervisor_name') or '—')}) before the 14-day deadline: "
+                                f"(1) Dealing With Angry Members of the Public · "
+                                f"(2) Stop Work Authority · "
+                                f"(3) Verbal Threats and Harassment · "
+                                f"(4) Physical Confrontations. "
+                                f"Record completion in `safety_training_records` with "
+                                f"`source_incident_id={doc.get('id')}` so the requalification is "
+                                f"defensibly tied back to this incident."
+                            ),
+                            "assignee_role": "safety",
+                            "priority": "High",
+                            "notif_type": "incident.aftercare.training_14d",
+                        },
                     ]
                     for _aft in _aftercare:
                         try:

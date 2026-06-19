@@ -243,15 +243,42 @@ def register(app, *, db=None, require_admin_dep=None):
         except Exception:
             pass
 
+        # TRACK 15.50 · Training requalification compliance metrics.
+        # Smallest additive solution: surface 3 numbers on the existing
+        # safety tile — required / completed / overdue.
+        training_required = 0
+        training_completed = 0
+        training_overdue = 0
+        try:
+            training_required = await db.safety_training_records.count_documents(
+                {"source_incident_id": {"$nin": [None, ""]}}
+            )
+            training_completed = await db.safety_training_records.count_documents(
+                {"source_incident_id": {"$nin": [None, ""]},
+                 "status": {"$in": ["Completed", "Verified"]}}
+            )
+            # Tasks where the aftercare training task is past-due and
+            # unfinished — proxy for incident-driven training overdue.
+            training_overdue = await db.tasks.count_documents({
+                "task_key": "incident.aftercare.training_14d",
+                "status": {"$nin": ["Closed", "Completed"]},
+                "due_at": {"$lt": now.isoformat()},
+            })
+        except Exception:
+            pass
+
         safety = {
             "unresolved_incidents": unresolved_incidents,
             "unresolved_corrective_actions": unresolved_capa,
             "active_trench_safety_holds": trench_holds_active,
             "wv_incidents_90d": wv_incidents_90d,
             "public_interaction_30d": public_interaction_30d,
+            "training_required": training_required,
+            "training_completed": training_completed,
+            "training_overdue": training_overdue,
             "source_modules": [
                 "safety.incidents", "corrective_actions",
-                "trench_safety.holds",
+                "trench_safety.holds", "safety_training_records",
             ],
         }
 
@@ -297,11 +324,18 @@ def register(app, *, db=None, require_admin_dep=None):
             verdict_reasons.append(
                 f"{public_interaction_30d} public-interaction incidents in last 30 days (threshold > 2)",
             )
+        # TRACK 15.50 · Training overdue = RED-grade. Recurrence-
+        # prevention isn't done if the 14-day training is past due.
+        if training_overdue > 0:
+            verdict_reasons.append(
+                f"{training_overdue} incident-triggered training assignment(s) overdue",
+            )
         red = (
             (oos_units > 5)
             or (unresolved_incidents > 10)
             or (overdue_capa > 5)
             or (wv_incidents_90d > 0)
+            or (training_overdue > 0)
         )
         amber = (
             (len(stale_projects) > 3)
@@ -323,7 +357,7 @@ def register(app, *, db=None, require_admin_dep=None):
                 "safety": safety,
                 "activity": activity,
             },
-            "foundation_version": "15.48.1",
+            "foundation_version": "15.50.1",
         }
 
     app.include_router(router)

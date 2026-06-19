@@ -2,6 +2,39 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.50 · Training Compliance, Recurrence Prevention & Workforce Requalification (🟢 GREEN · Six-Pillar Certified)
+
+**Closes the recurrence-prevention loop. The incident is the trigger; the platform drives everything else.**
+
+### What shipped
+- **4th aftercare task** · `incident.aftercare.training_14d` → Safety · High · T+14d · auto-issued on WV/PI incidents · description names affected employee + foreman + 4 required safety topics.
+- **`safety_training_records` schema** extended with: `source_incident_id`, `source_incident_doc_id`, `topic_keys[]`, `status` enum, `trigger_classification`, `due_date`, `verified_by`, `verified_at`, waiver fields.
+- **NEW PDF section** "Recurrence Prevention · Training Requalification" — Employee · Training · Topics · Completed · Verified By columns.
+- **Executive Overview** · 3 new counts on safety tile (`training_required` / `training_completed` / `training_overdue`) · overdue training fires RED verdict · Foundation **v15.48.1 → v15.50.1**.
+- **Frontend** · ExecutiveOverview.jsx safety tile renders 3 new lines with testids.
+
+### Compliance with amendment
+- ✅ No training portal · no training dashboard · no V2 systems
+- ✅ Reuses existing Tasks · Notifications · CAPAs · Training Records · PDF Foundation
+- ✅ Incident-driven · platform drives the follow-up automatically
+- ✅ Universal PDF Foundation preserved
+- ✅ Trigger criteria respects amendment (WV/PI/threat/weapon/etc. — NOT ankle-twist-from-truck)
+- ✅ Required topics enumerated per classification
+- ✅ Status model: Required/Assigned/In Progress/Completed/Verified/Overdue/Waived
+- ✅ Full audit trail: created_by, source_incident_id, trigger_classification, due_date, completed_at, verified_by/at, waiver details
+- ✅ All 4 required surfaces met without new portals (Incident PDF · Employee record · Safety view · Executive Overview)
+
+### Cert evidence
+- Synthetic WV incident · 4 aftercare tasks + 17 notifications + 1.8 MB PDF with training block · AI content extraction verified
+- Executive Overview live `foundation_version=15.50.1` with training counts surfacing
+- Legacy incident zero-regression confirmed
+- Lint clean across all touched files
+
+### Final answer
+🟢 YES · MASCI can prove that after a WV/PI incident, the workforce was retrained, completion was verified, and recurrence-prevention action was documented — using only existing portals.
+
+---
+
 ## 2026-06-19 — TRACK 15.49 · Post-Incident Aftercare & Operational Closure (🟢 GREEN · Six-Pillar Certified)
 
 **Closes the gap between "incident reported" and "incident truly closed."**

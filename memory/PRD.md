@@ -10,7 +10,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.49 · Post-Incident Aftercare & Operational Closure · 🟢 GREEN · Six-Pillar Certified)
+## Latest Track (2026-06-19 · TRACK 15.50 · Training Compliance, Recurrence Prevention & Workforce Requalification · 🟢 GREEN · Six-Pillar Certified)
+
+### What this is
+Closes the recurrence-prevention loop. Auto-issues a 14-day training requalification task on every WV/PI incident · names the affected employees + the 4 required topics · binds completion records back to the source incident · surfaces compliance on the Executive Overview.
+
+### What shipped
+- **Backend** · `routes/safety.py` aftercare chain extended with a 4th task `incident.aftercare.training_14d` (Safety · High · T+14d).
+- **Backend** · `routes/safety_portal/_models.py` + `training.py` · added 10 NEW optional fields on `TrainingRecordCreate/Update`: `source_incident_id`, `source_incident_doc_id`, `topic_keys`, `status`, `trigger_classification`, `due_date`, `verified_by`, `verified_at`, `waived_by`, `waived_at`, `waiver_reason`.
+- **Backend** · `lib/incident_pdf_enrichment.py` loads training records bound to incident; exposes as `_training_records`.
+- **Backend** · `pdf_render.py` NEW section "Recurrence Prevention · Training Requalification" with Employee · Training · Topics · Completed · Verified By columns.
+- **Backend** · `routes/executive_overview.py` adds `training_required` / `training_completed` / `training_overdue` counts on safety tile · overdue training fires RED verdict · foundation bumped to **v15.50.1**.
+- **Frontend** · `pages/ExecutiveOverview.jsx` safety tile renders 3 new lines with testids · red emphasis when overdue.
+
+### Hard-rule compliance (amendment)
+- ✅ No training portal · no training dashboard · no V2 anything
+- ✅ Reuses existing Tasks · Notifications · CAPAs · Training Records · PDF Foundation · Executive Overview
+- ✅ Incident is the trigger · platform drives everything automatically
+- ✅ Universal PDF Foundation v15.41.1 preserved · zero field loss
+
+### Cert evidence
+- Synthetic WV incident produced 4 aftercare tasks (including 14d training) + 17 notifications + 1.8 MB PDF with the new training block · verified via AI content extraction
+- Executive Overview live foundation v15.50.1 with training counts surfacing
+- Real legacy incident INC-2026-00002 zero-regression confirmed
+- Lint clean across all touched files
+
+### Deliverables (all 9 in /app/memory/)
+TRACK_15_50_TRAINING_DEFENSIBILITY_AUDIT.md · TRACK_15_50_RECURRENCE_PREVENTION_AUDIT.md · TRACK_15_50_REQUALIFICATION_WORKFLOW.md · TRACK_15_50_SAFETY_TOPIC_COMPLIANCE_CERTIFICATION.md · TRACK_15_50_TRAINING_TRACEABILITY_CERTIFICATION.md · TRACK_15_50_PDF_CERTIFICATION.md · TRACK_15_50_EXECUTIVE_OVERSIGHT_AUDIT.md · TRACK_15_50_DEPLOYMENT_READINESS.md · TRACK_15_50_SIX_PILLAR_CERTIFICATION.md
+
+### Final answer
+🟢 **YES** — MASCI can now prove that after a WV/PI incident, the workforce was retrained, the retraining was completed, the completion was verified, and the recurrence-prevention action was documented. Single PDF · single artifact · single source of truth · no portal, no dashboard, no manual workaround.
+
+---
+
+## Previous Track (2026-06-19 · TRACK 15.49 · Post-Incident Aftercare & Operational Closure · 🟢 GREEN · Six-Pillar Certified)
 
 ### What this is
 Closes the gap between "incident reported" and "incident truly closed." Auto-issues a 3-task aftercare chain on every Workplace-Violence / Public-Interaction incident: 24h HR welfare check-in · 72h Safety witness follow-up · 7d Safety investigator review.

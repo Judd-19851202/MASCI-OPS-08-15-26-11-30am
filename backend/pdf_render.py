@@ -1617,6 +1617,8 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
         "_linked_capas",
         # TRACK 15.49 · aftercare task chain
         "_aftercare_tasks",
+        # TRACK 15.50 · training requalification records
+        "_training_records",
     }
 
     blocks: List[str] = []
@@ -1873,6 +1875,35 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
                 "Aftercare Follow-Up Actions",
                 _table(
                     ["Kind", "Action", "Owner", "Due (UTC)", "Status", "Completed"],
+                    rows,
+                ),
+            ))
+
+    # ===== TRACK 15.50 · Training Requalification Records =====
+    # Surfaces every safety_training_record bound back to this incident
+    # so the printable PDF answers "did the affected employees actually
+    # get retrained?" with evidence — six months later in court the
+    # single artifact carries the full requalification chain.
+    _training = d.get("_training_records") or []
+    if isinstance(_training, list) and _training:
+        rows = []
+        for tr in _training:
+            if not isinstance(tr, dict):
+                continue
+            topics = tr.get("topic_keys") or []
+            topics_lbl = ", ".join(t for t in topics if t) or "—"
+            rows.append([
+                str(tr.get("employee_name") or "—"),
+                str(tr.get("training_name") or "—")[:60],
+                topics_lbl[:60],
+                str(tr.get("completed_date") or "—")[:19],
+                str(tr.get("verified_by") or "—"),
+            ])
+        if rows:
+            blocks.append(_section(
+                "Recurrence Prevention · Training Requalification",
+                _table(
+                    ["Employee", "Training", "Topics", "Completed", "Verified By"],
                     rows,
                 ),
             ))

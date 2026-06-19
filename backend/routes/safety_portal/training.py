@@ -80,6 +80,19 @@ def register_training_routes(
             "updated_by_role": actor_role,
             "created_at": now,
             "updated_at": now,
+            # TRACK 15.50 · incident-trigger traceability fields
+            "source_incident_id": (body.source_incident_id or "").strip() or None,
+            "source_incident_doc_id": (body.source_incident_doc_id or "").strip() or None,
+            "topic_keys": body.topic_keys or [],
+            # TRACK 15.50 AMENDMENT
+            "status": (body.status or ("Completed" if body.completed_date else "Assigned")),
+            "trigger_classification": body.trigger_classification or [],
+            "due_date": body.due_date or None,
+            "verified_by": body.verified_by or None,
+            "verified_at": body.verified_at or None,
+            "waived_by": body.waived_by or None,
+            "waived_at": body.waived_at or None,
+            "waiver_reason": body.waiver_reason or None,
         }
         await db.safety_training_records.insert_one(doc)
         doc.pop("_id", None)

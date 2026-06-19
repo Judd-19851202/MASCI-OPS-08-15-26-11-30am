@@ -107,4 +107,31 @@ async def enrich_incident_for_pdf(db, record: Dict[str, Any]) -> Dict[str, Any]:
     if followups:
         out["_aftercare_tasks"] = followups
 
+    # ---------- TRACK 15.50 · Training requalification records ----------
+    # Pulls every training record bound back to this incident (via
+    # the new `source_incident_id` field on safety_training_records).
+    # Closes the "did the affected employees actually get retrained?"
+    # question with defensible evidence on the printable PDF.
+    training: List[Dict[str, Any]] = []
+    try:
+        cur = db.safety_training_records.find(
+            {"source_incident_id": incident_id},
+            {"_id": 0},
+        ).sort("completed_date", 1)
+        async for tr in cur:
+            training.append({
+                "employee_name": tr.get("employee_name") or "—",
+                "employee_id": tr.get("employee_id") or "",
+                "training_name": tr.get("training_name") or "—",
+                "topic_keys": tr.get("topic_keys") or [],
+                "completed_date": tr.get("completed_date") or "",
+                "expiration_date": tr.get("expiration_date") or "",
+                "issued_by": tr.get("issued_by") or "",
+                "verified_by": tr.get("created_by_name") or tr.get("created_by") or "",
+            })
+    except Exception:
+        training = []
+    if training:
+        out["_training_records"] = training
+
     return out

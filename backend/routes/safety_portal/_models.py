@@ -176,6 +176,22 @@ class TrainingRecordCreate(BaseModel):
     notes: Optional[str] = ""
     certificate_file_id: Optional[str] = None
     employee_master_id: Optional[str] = None  # iter138
+    # TRACK 15.50 · Defensibility traceability — if this training was
+    # issued in response to an incident, bind the record so we can
+    # prove the requalification chain in court six months later.
+    source_incident_id: Optional[str] = None
+    source_incident_doc_id: Optional[str] = None
+    topic_keys: Optional[list] = None  # safety topic keys delivered (e.g. ["angry_public_de_escalation"])
+    # TRACK 15.50 AMENDMENT · Status model + audit + waiver
+    # Status enum: Required · Assigned · In Progress · Completed · Verified · Overdue · Waived
+    status: Optional[str] = None
+    trigger_classification: Optional[list] = None  # e.g. ["Workplace Violence","Threat"]
+    due_date: Optional[str] = None
+    verified_by: Optional[str] = None
+    verified_at: Optional[str] = None
+    waived_by: Optional[str] = None
+    waived_at: Optional[str] = None
+    waiver_reason: Optional[str] = None
 
 
 class TrainingRecordUpdate(BaseModel):
@@ -187,3 +203,14 @@ class TrainingRecordUpdate(BaseModel):
     notes: Optional[str] = None
     certificate_file_id: Optional[str] = None
     employee_master_id: Optional[str] = None  # iter138
+    source_incident_id: Optional[str] = None
+    source_incident_doc_id: Optional[str] = None
+    topic_keys: Optional[list] = None
+    status: Optional[str] = None
+    trigger_classification: Optional[list] = None
+    due_date: Optional[str] = None
+    verified_by: Optional[str] = None
+    verified_at: Optional[str] = None
+    waived_by: Optional[str] = None
+    waived_at: Optional[str] = None
+    waiver_reason: Optional[str] = None

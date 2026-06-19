@@ -246,10 +246,11 @@ export default function ExecutiveOverview() {
           count={(t.safety?.unresolved_incidents || 0) + (t.safety?.unresolved_corrective_actions || 0)}
           countTone={
             (t.safety?.wv_incidents_90d || 0) > 0 ? "red" :
+            (t.safety?.training_overdue || 0) > 0 ? "red" :
             (t.safety?.unresolved_incidents || 0) > 0 ? "red" :
             (t.safety?.unresolved_corrective_actions || 0) > 0 ? "amber" : "green"
           }
-          description="Unresolved incidents + open CAPAs + workplace violence + public interaction"
+          description="Unresolved incidents + open CAPAs + workplace violence + public interaction + retraining"
           lines={[
             <span key="inc"><strong>{fmt(t.safety?.unresolved_incidents)}</strong> unresolved incidents</span>,
             <span key="capa"><strong>{fmt(t.safety?.unresolved_corrective_actions)}</strong> open corrective actions</span>,
@@ -260,6 +261,16 @@ export default function ExecutiveOverview() {
             </span>,
             <span key="pi" data-testid="tile-safety-public-interaction" className={(t.safety?.public_interaction_30d || 0) > 0 ? "text-amber-700 font-medium" : ""}>
               <strong>{fmt(t.safety?.public_interaction_30d)}</strong> public-interaction incidents (30d)
+            </span>,
+            // TRACK 15.50 · Recurrence-prevention training compliance.
+            <span key="tr_req" data-testid="tile-safety-training-required">
+              <strong>{fmt(t.safety?.training_required)}</strong> incident-triggered retraining required
+            </span>,
+            <span key="tr_done" data-testid="tile-safety-training-completed">
+              <strong>{fmt(t.safety?.training_completed)}</strong> retraining completed
+            </span>,
+            <span key="tr_ovd" data-testid="tile-safety-training-overdue" className={(t.safety?.training_overdue || 0) > 0 ? "text-red-700 font-bold" : ""}>
+              <strong>{fmt(t.safety?.training_overdue)}</strong> retraining overdue
             </span>,
           ]}
           sources={t.safety?.source_modules}
