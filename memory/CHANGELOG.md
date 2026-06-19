@@ -2,6 +2,52 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.52C · Backup Retention Truth Audit & Long-Term Recovery Certification (🟢 GREEN · forensic · read-only)
+
+**Triggered by:** Continued investigation into why the R2 bucket appeared to have zero objects older than 90 days (surfaced in Track 15.52B).
+
+**Headline (root cause proven):** The R2 bucket `masci-hub` was **created 2026-05-11 10:28 UTC**, only **39.46 days** before this audit. No object can be older than the bucket. Neither the R2 lifecycle rule nor the app-side retention engine has deleted any "> 90 day" objects — none ever existed in this bucket.
+
+**Final recommendation:** **D + F** (both apply, independent).
+- **D** — Enable R2 versioning AND fix the R2 lifecycle vs. app-Tier-3 retention conflict. < 15 min operator-dashboard work · < $1/mo extra cost.
+- **F** — Moving to 6-hour cadence is **UNSAFE today** (Atlas PITR still UNVERIFIED · production launches tomorrow · R2 hourly is the only confirmed sub-hour recovery layer).
+
+### Restore-point matrix (live)
+| Restore Point | Available | Source |
+|---|:---:|---|
+| 1 h / 24 h / 7 d / 30 d | ✅ | R2 Archive |
+| 39 d (bucket-age limit today) | ✅ (last day of legacy prefix) | R2 Archive |
+| 90 d / 180 d / 365 d | ❌ | Atlas PITR UNVERIFIED — currently NOT ESTABLISHED |
+
+### Bucket walk (live)
+- Total: 8,541 objects · 196 GB. Of these, 854 objects · 193.5 GB are `backups/*` (auto-90d/=354, legacy=500). The rest are photos / drill-photos / safety-docs.
+- Bucket age: 39.46 days. Forecast first lifecycle-driven monthly-survivor deletion: **2026-08-29 ± 1 d**.
+
+### Seven contradictions surfaced (ranked)
+1. R2 lifecycle silently overrides app Tier 3 monthly retention (CRITICAL · forecast 2026-08-29).
+2. Track 15.37 cost projection overstated (−66% → actual −49%).
+3. Track 15.37 legacy prefix size understated (12 GiB → actual 22.5 GB).
+4. Implied 365-day retention vs. actual 39-day bucket age (temporal mismatch).
+5. R2 versioning/object-lock/replication all OFF.
+6. Pre-2026-05-11 backup history undocumented.
+7. Track 15.52A 855 vs. today 854 (noise, ±1 hourly).
+
+### Hard-rule compliance
+✅ READ ONLY (only `list_buckets`, `get_bucket_*`, `list_objects_v2`). ✅ Zero code · zero env · zero deploys · zero config writes · zero Cloudflare or Atlas modifications. `/app/backend/.env` md5 unchanged. `mascidocs.com/api/health/full` returned 200 post-audit.
+
+### Deliverables (9 files, `/app/memory/`)
+- `TRACK_15_52C_RETENTION_TRUTH_AUDIT.md`
+- `TRACK_15_52C_LONG_TERM_RECOVERY_CERTIFICATION.md`
+- `TRACK_15_52C_MONTHLY_ARCHIVE_AUDIT.md`
+- `TRACK_15_52C_R2_LIFECYCLE_FORENSICS.md`
+- `TRACK_15_52C_ATLAS_PROTECTION_AUDIT.md`
+- `TRACK_15_52C_RESTORE_POINT_MATRIX.md`
+- `TRACK_15_52C_CONTRADICTION_REPORT.md`
+- `TRACK_15_52C_EXECUTIVE_RECOMMENDATION.md`
+- `TRACK_15_52C_SIX_PILLAR_CERTIFICATION.md`
+
+
+
 ## 2026-06-19 — TRACK 15.52B · Backup Cadence Decision Audit (🟢 GREEN · forensic · read-only)
 
 **Triggered by:** Operator request to verify the truth before authorizing any backup-cadence change.

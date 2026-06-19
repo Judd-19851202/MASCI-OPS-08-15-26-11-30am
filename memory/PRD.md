@@ -10,7 +10,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.52B · Backup Cadence Decision Audit · 🟢 GREEN · read-only forensic)
+## Latest Track (2026-06-19 · TRACK 15.52C · Backup Retention Truth Audit & Long-Term Recovery Certification · 🟢 GREEN · read-only forensic)
+
+### Root cause proven for "zero objects > 90 days"
+The R2 bucket `masci-hub` was **created 2026-05-11** — only **39.46 days** before this audit. No object can be older than the bucket. Neither the R2 lifecycle rule nor the app-side retention has deleted any > 90-d objects; none ever existed in this bucket.
+
+### Final recommendation: D + F (both apply)
+- **D** — Enable R2 versioning AND fix the R2 lifecycle vs. app-Tier-3 retention conflict. Operator-dashboard work · < 15 min · < $1/mo.
+- **F** — Moving to 6-hour cadence is **UNSAFE today** (Atlas PITR still UNVERIFIED · production launches tomorrow morning).
+
+### Long-term recovery (≥ 90 days): NOT ESTABLISHED
+R2's effective retention ceiling will be 90 days at steady state (forecast first measurable loss: 2026-08-29). The only candidate fallback is Atlas PITR — **UNVERIFIED** for the fifth track in a row.
+
+### Live restore-point matrix
+1 h / 24 h / 7 d / 30 d / 39 d → ✅ R2 Archive
+90 d / 180 d / 365 d → ❌ Not Available (Atlas UNVERIFIED)
+
+### Hard-rule compliance
+✅ Zero code · zero env · zero deploys · zero R2 mutations · zero Atlas access. `mascidocs.com/api/health/full` still 200.
+
+### Deliverables
+9 markdown files under `/app/memory/TRACK_15_52C_*.md`.
+
+## Prior Track (2026-06-19 · TRACK 15.52B · Backup Cadence Decision Audit · 🟢 GREEN · read-only forensic)
 
 ### Decision
 **KEEP HOURLY.** Do not flip to 6-hour cadence yet.
