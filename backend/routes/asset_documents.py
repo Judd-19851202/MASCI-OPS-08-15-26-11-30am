@@ -1054,5 +1054,21 @@ def _render_asset_profile_pdf(
       {docs_html}
       {insp_html}
       <div class='foot'>MASCI General Contractors Inc. &middot; Generated {generated} &middot; Confidential</div>
+      {_t1541_asset_audit_block(asset)}
     </body></html>"""
     return HTML(string=html_doc).write_pdf()
+
+
+def _t1541_asset_audit_block(asset) -> str:
+    """TRACK 15.42 · additive foundation audit block for asset profile PDFs."""
+    try:
+        from pdf_branding import build_audit_block_html
+        a = asset if isinstance(asset, dict) else {}
+        return build_audit_block_html(
+            record_id=(a.get("unit_number") or a.get("id") or "—"),
+            source_module="assets.profile",
+            project=(a.get("project_name") or a.get("assigned_project") or None),
+            generated_by="system",
+        )
+    except Exception:
+        return ""

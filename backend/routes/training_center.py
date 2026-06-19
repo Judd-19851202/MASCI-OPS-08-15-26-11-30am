@@ -420,7 +420,15 @@ def _render_guide_html(guide: Dict[str, Any]) -> str:
         f'Updated {(guide.get("updated_at") or "")[:10]}</p>'
         f'{"".join(sections_html)}'
     )
-    return wrap_pdf_html(body, title=guide.get("title", ""), kicker=guide.get("kicker", ""))
+    # TRACK 15.42 · Universal foundation adoption — additive only.
+    return wrap_pdf_html(
+        body, title=guide.get("title", ""), kicker=guide.get("kicker", ""),
+        audit_record_id=guide.get("slug") or guide.get("id") or "—",
+        audit_source_module="training.guides",
+        audit_project=None,
+        metadata_document_type=guide.get("title", "Training Guide"),
+        metadata_document_id=guide.get("slug") or guide.get("id"),
+    )
 
 
 # ─── ROUTER ────────────────────────────────────────────────────────

@@ -675,7 +675,21 @@ table.lines td.ret-neutral {{ color:#92400e; font-weight:700; }}
   </section>
 
   {body_blocks}
-
+  {_t1541_fl_audit_block(rec)}
 </body></html>"""
 
     return HTML(string=doc_html).write_pdf()
+
+
+def _t1541_fl_audit_block(rec: Dict[str, Any]) -> str:
+    """TRACK 15.42 · additive foundation audit block for FL records."""
+    try:
+        from pdf_branding import build_audit_block_html
+        return build_audit_block_html(
+            record_id=(rec.get("record_number") or rec.get("doc_id") or rec.get("id") or "—"),
+            source_module="field_leadership.records",
+            project=(rec.get("project_name") or rec.get("project") or None),
+            generated_by=(rec.get("submitted_by_name") or rec.get("submitted_by_email") or "system"),
+        )
+    except Exception:
+        return ""

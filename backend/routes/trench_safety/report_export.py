@@ -197,6 +197,18 @@ def render_pdf(report_id: str, rows: List[List[Any]], actor_email: str, filters:
         i += 1
     _flush_table(None)
 
+    # TRACK 15.42 · Universal foundation audit block — additive only.
+    try:
+        from pdf_branding_rl import draw_audit_block_flowable
+        story.append(draw_audit_block_flowable(
+            record_id=report_id or "—",
+            source_module="trench_safety.export",
+            project=(filters or {}).get("project_name") or (filters or {}).get("project"),
+            generated_by=actor_email or "system",
+        ))
+    except Exception:
+        pass
+
     doc.build(story)
     buf.seek(0)
     return buf

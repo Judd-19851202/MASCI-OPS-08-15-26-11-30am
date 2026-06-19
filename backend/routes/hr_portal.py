@@ -1109,6 +1109,17 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             "Source records remain authoritative. For corrections, contact HR or Safety.",
             small,
         ))
+        # TRACK 15.42 · Universal foundation audit block — additive only.
+        try:
+            from pdf_branding_rl import draw_audit_block_flowable  # noqa: PLC0415
+            story.append(draw_audit_block_flowable(
+                record_id=emp.get("id") or emp_id or "—",
+                source_module="hr.compliance_brief",
+                project=None,
+                generated_by=(actor.get("email") if isinstance(actor, dict) else None) or "hr.system",
+            ))
+        except Exception:
+            pass
         doc.build(story)
         buf.seek(0)
         return Response(

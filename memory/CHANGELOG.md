@@ -2,6 +2,47 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.42 · Universal PDF Foundation Completion + ReportLab Parity (🟢 COMPLETE & CERTIFIED)
+
+**Track 15.41 brought 6 of 30 PDFs onto the foundation. Track 15.42 brings the remaining 24 active surfaces home + builds the ReportLab parallel so both engines speak the same audit/metadata/branding contract.**
+
+### Foundation extensions
+* `backend/pdf_branding_rl.py` **(new)** — ReportLab parallel · `draw_audit_block_flowable`, `draw_metadata_block_flowable`, `draw_universal_footer`, `PageNumCanvas` (two-pass Page X of Y), `build_brand_header_flowable`. Imports `get_white_label`, `PDF_FOUNDATION_VERSION`, `_env_tag` from `pdf_branding.py` for single-source-of-truth config.
+* `backend/pdf_branding.py::wrap_pdf_html` — extended (backward compatible) with optional `audit_*` + `metadata_*` kwargs. Three existing callers (`master_history`, `training_center`, `safety_portal/fire_ext_attachments`) now get foundation chrome for free.
+
+### Adoption (additive · zero data loss)
+* **WeasyPrint inline:** `pm_welcome_pdf`, `hub_banners_pdf`, `field_leadership_pdf`, `routes/asset_documents`, `export_pdf_fallback` (covers all 11 safety_exports endpoints in one funnel).
+* **WeasyPrint via wrap_pdf_html:** `routes/master_history`, `routes/training_center`, `routes/safety_portal/fire_ext_attachments`.
+* **ReportLab:** `routes/odr/pdf`, `routes/trench_safety/report_export`, `routes/fleet_ops::severity_reference_card_pdf`, `routes/hr_portal::hr_employee_compliance_brief_pdf`.
+
+### Field preservation cert
+* Top-6 (Track 15.41): 🟢 PASS unchanged after 15.42 — 0 missing across 297 BEFORE lines.
+* Extended set (Track 15.42, 10 PDFs): 🟢 PASS — 0 missing fingerprints across all PDFs.
+* Total certified: **16 PDFs · 0 operational field loss across both engines.**
+* Reproducible via `scripts/track_15_42_pdf_baseline_extended.py` + `scripts/track_15_42_pdf_compare_extended.py`.
+
+### Coverage
+* **30 of 30 active PDF generators on the foundation** (direct, transitive, or passive).
+* 25 WeasyPrint surfaces · 5 ReportLab surfaces.
+* Source-module taxonomy aligned with Track 15.40 notification `linked_source_module` keys.
+
+### White-label
+* Six `PDF_BRAND_*` env vars override every brand element across both engines. No DB write. No code change. Future ForgedOps customers rebrand the entire 30-generator stack via environment alone.
+
+### Non-regression
+* Auth (15.34) · Notifications (15.40) · Team Assignment (15.39/15.39A) · Backups (15.36-15.38) · existing legal/audit footers (Wave-1C DR sha256, last-page MASCI legal) all untouched.
+* No new collections · no new endpoints · no schema changes · no feature flags.
+
+### Deliverables
+* `/app/memory/TRACK_15_42_PDF_ADOPTION_MATRIX.md`
+* `/app/memory/TRACK_15_42_REPORTLAB_FOUNDATION.md`
+* `/app/memory/TRACK_15_42_IMPLEMENTATION_REPORT.md`
+* `/app/memory/TRACK_15_42_FIELD_PRESERVATION_CERTIFICATION.md`
+* `/app/memory/TRACK_15_42_VISUAL_CONSISTENCY_CERTIFICATION.md`
+* `/app/memory/TRACK_15_42_FIVE_PILLAR_CERTIFICATION.md`
+
+🟢 **DEPLOYABLE.**
+
 ## 2026-06-19 — TRACK 15.41 · Universal PDF Foundation (🟢 COMPLETE & CERTIFIED · v15.41.1)
 
 **Foundation track for white-labeled, audit-traceable PDF generation across MASCI Docs and future ForgedOps customers. Additive only — zero data loss across the Top-6 operational PDFs.**

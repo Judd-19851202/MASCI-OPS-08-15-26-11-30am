@@ -97,6 +97,12 @@ def _render_history_html(fe: dict) -> str:
         body,
         title=f"Unit {fe.get('unit_id', '—')} — Inspection History",
         kicker="SAFETY · FIRE EXTINGUISHER RECORD",
+        # TRACK 15.42 · Universal foundation adoption — additive only.
+        audit_record_id=fe.get("id") or fe.get("unit_id") or "—",
+        audit_source_module="safety.fire_extinguishers",
+        audit_project=fe.get("project_name") or fe.get("location") or None,
+        metadata_document_type="Fire Extinguisher History",
+        metadata_document_id=fe.get("unit_id") or fe.get("id"),
     )
 
 

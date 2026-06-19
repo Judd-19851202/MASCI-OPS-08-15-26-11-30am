@@ -226,8 +226,22 @@ def render_pm_welcome_pdf(
     <img class="mark" src="{mark}" alt="MASCI" />
     <span>{today}</span>
   </div>
-
+  {_t1541_audit("pm_welcome", pm)}
 </body>
 </html>"""
 
     return HTML(string=html, base_url=str(_PUBLIC_DIR)).write_pdf()
+
+
+def _t1541_audit(source_module: str, pm: dict) -> str:
+    """TRACK 15.42 · audit block append helper. Additive — last in body."""
+    try:
+        from pdf_branding import build_audit_block_html
+        return build_audit_block_html(
+            record_id=(pm.get("id") or pm.get("email") or "—"),
+            source_module=source_module,
+            project=None,
+            generated_by="admin",
+        )
+    except Exception:
+        return ""

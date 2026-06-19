@@ -1471,6 +1471,18 @@ def build_router(
             foot,
         ))
 
+        # TRACK 15.42 · Universal foundation audit block — additive only.
+        try:
+            from pdf_branding_rl import draw_audit_block_flowable  # noqa: PLC0415
+            flow.append(draw_audit_block_flowable(
+                record_id=f"severity-v{_sev.SEVERITY_TABLE_VERSION}",
+                source_module="fleet.severity_reference",
+                project=None,
+                generated_by="system",
+            ))
+        except Exception:
+            pass
+
         doc.build(flow)
         pdf_bytes = buf.getvalue()
         buf.close()

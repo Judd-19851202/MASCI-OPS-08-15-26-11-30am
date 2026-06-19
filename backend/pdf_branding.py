@@ -317,9 +317,41 @@ def wrap_pdf_html(
     title: str = "",
     kicker: str = "",
     extra_css: str = "",
+    # TRACK 15.42 · Universal adoption — optional foundation chrome.
+    # Any caller can pass these to gain audit + metadata blocks
+    # without rewriting their renderer. Backwards compatible:
+    # omit them and the wrapper behaves exactly as before.
+    audit_record_id: Optional[str] = None,
+    audit_source_module: Optional[str] = None,
+    audit_project: Optional[str] = None,
+    audit_generated_by: Optional[str] = None,
+    metadata_document_type: Optional[str] = None,
+    metadata_document_id: Optional[str] = None,
+    metadata_project_number: Optional[str] = None,
 ) -> str:
-    """Compose a full <html> document with brand chrome + body content."""
+    """Compose a full <html> document with brand chrome + body content.
+
+    TRACK 15.42 · `audit_*` and `metadata_*` kwargs are additive — when
+    provided, the wrapper injects a Universal Metadata block right after
+    the brand bar and a Universal Audit block immediately before
+    `</body>`. Existing body content is never modified.
+    """
     generated = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    meta_html = ""
+    if metadata_document_type or audit_source_module:
+        meta_html = build_metadata_block_html(
+            document_type=metadata_document_type or (kicker or title or "Document"),
+            document_id=metadata_document_id or audit_record_id,
+            project_number=metadata_project_number,
+        )
+    audit_html = ""
+    if audit_source_module:
+        audit_html = build_audit_block_html(
+            record_id=audit_record_id or "—",
+            source_module=audit_source_module,
+            project=audit_project,
+            generated_by=audit_generated_by,
+        )
     return f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8" />
 <style>
@@ -330,7 +362,9 @@ def wrap_pdf_html(
 </style></head>
 <body>
 {brand_header(title, kicker)}
+{meta_html}
 {body_html}
+{audit_html}
 </body></html>
 """
 

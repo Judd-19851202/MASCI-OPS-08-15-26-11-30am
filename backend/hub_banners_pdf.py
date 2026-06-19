@@ -225,6 +225,21 @@ def render_banner_audit_pdf(banner: Dict[str, Any], audit: List[Dict[str, Any]])
   <span>Banner ID · {escape(banner.get("id") or "—")}</span>
   <span>Generated {rendered_at}</span>
 </div>
+{_t1541_banner_audit_block(banner)}
 </body></html>"""
 
     return HTML(string=html).write_pdf()
+
+
+def _t1541_banner_audit_block(banner: Dict[str, Any]) -> str:
+    """TRACK 15.42 · additive foundation audit block for banner-audit PDFs."""
+    try:
+        from pdf_branding import build_audit_block_html
+        return build_audit_block_html(
+            record_id=banner.get("id") or "—",
+            source_module="hub.banners",
+            project=None,
+            generated_by="admin",
+        )
+    except Exception:
+        return ""

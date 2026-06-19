@@ -675,6 +675,18 @@ def _render_pdf(
         story.append(Spacer(1, 6))
     story += _section_signature(env)
 
+    # TRACK 15.42 · Universal foundation audit block — additive only.
+    try:
+        from pdf_branding_rl import draw_audit_block_flowable
+        story.append(draw_audit_block_flowable(
+            record_id=(getattr(env, "doc_id", None) or getattr(env, "report_id", None) or "—"),
+            source_module="odr.reports",
+            project=(getattr(env, "project_name", None) or getattr(env, "project", None)),
+            generated_by="odr.system",
+        ))
+    except Exception:
+        pass  # never fail render on foundation chrome
+
     doc.build(story)
     return buf.getvalue(), sha, footer
 

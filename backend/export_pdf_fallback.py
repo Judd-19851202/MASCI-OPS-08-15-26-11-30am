@@ -271,10 +271,34 @@ def render_fallback_pdf(
   {('<section><h3>Summary</h3><table>' + ''.join(header_rows) + '</table></section>') if header_rows else ''}
   {('<section><h3>Additional Fields</h3><table>' + ''.join(rest_rows) + '</table></section>') if rest_rows else ''}
   {photo_html}
-
+  {_t1541_fallback_audit_block(kind_label, doc_id_str, record)}
 </body></html>"""
 
         return HTML(string=html).write_pdf()
     except Exception as e:  # noqa: BLE001
         logger.warning("[export-pdf-fallback] render failed: %s", e)
         return None
+
+
+def _t1541_fallback_audit_block(kind_label: str, doc_id_str: str, record: Dict[str, Any]) -> str:
+    """TRACK 15.42 · additive foundation audit block for any export
+    funneled through `render_fallback_pdf`. Source module is derived
+    from the kind_label so every export type (incidents · CAPA ·
+    inspections · training · fire ext · employees · documents ·
+    project safety · executive) gets a per-type traceability tag."""
+    try:
+        from pdf_branding import build_audit_block_html
+        slug = (
+            (kind_label or "")
+            .lower()
+            .replace(" ", "_")
+            .replace("/", "_")
+        )
+        return build_audit_block_html(
+            record_id=doc_id_str or "—",
+            source_module=f"safety.exports.{slug or 'unknown'}",
+            project=(record.get("project_name") or record.get("project") or None),
+            generated_by="export",
+        )
+    except Exception:
+        return ""

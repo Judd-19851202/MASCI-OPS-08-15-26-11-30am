@@ -364,7 +364,15 @@ def _render_pdf_html(feed: List[Dict[str, Any]], header: Dict[str, Any],
     </table>
     """
     from pdf_branding import wrap_pdf_html  # noqa: PLC0415
-    return wrap_pdf_html(body, title=title, kicker=kicker)
+    # TRACK 15.42 · Universal foundation adoption — additive only.
+    return wrap_pdf_html(
+        body, title=title, kicker=kicker,
+        audit_record_id=header.get("master_id") or header.get("id") or "—",
+        audit_source_module="master_history",
+        audit_project=header.get("project_name") or header.get("location") or None,
+        metadata_document_type=title,
+        metadata_document_id=header.get("master_id") or header.get("id"),
+    )
 
 
 # ──────────────────────────────────────────────────────────────────
