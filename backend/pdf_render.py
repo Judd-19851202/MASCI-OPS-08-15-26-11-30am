@@ -1615,6 +1615,8 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
         "attachments",
         "_state_timeline",
         "_linked_capas",
+        # TRACK 15.49 · aftercare task chain
+        "_aftercare_tasks",
     }
 
     blocks: List[str] = []
@@ -1841,6 +1843,36 @@ def _render_generic(kind_label: str, d: Dict[str, Any]) -> str:
                 "Linked Corrective Actions (CAPA)",
                 _table(
                     ["CAPA ID", "Title", "Assigned To", "Due", "Status", "Completed"],
+                    rows,
+                ),
+            ))
+
+    # ===== TRACK 15.49 · Aftercare task chain =====
+    # Reader of the PDF can now see what FOLLOW-UP actions were
+    # issued and whether they were completed. Closes the OSHA loop
+    # on post-incident response (welfare check, witness follow-up,
+    # 7-day investigator review).
+    _aftercare = d.get("_aftercare_tasks") or []
+    if isinstance(_aftercare, list) and _aftercare:
+        rows = []
+        for tk in _aftercare:
+            if not isinstance(tk, dict):
+                continue
+            key_lbl = (tk.get("task_key") or "").replace("incident.aftercare.", "")
+            key_lbl = key_lbl.replace("_", " ").title() if key_lbl else "Other"
+            rows.append([
+                key_lbl,
+                str(tk.get("title") or "—")[:70],
+                str(tk.get("assignee_role") or "—").title(),
+                str(tk.get("due_date") or "—")[:19],
+                str(tk.get("status") or "Open"),
+                str(tk.get("completed_at") or "—")[:19] if tk.get("completed_at") else "—",
+            ])
+        if rows:
+            blocks.append(_section(
+                "Aftercare Follow-Up Actions",
+                _table(
+                    ["Kind", "Action", "Owner", "Due (UTC)", "Status", "Completed"],
                     rows,
                 ),
             ))

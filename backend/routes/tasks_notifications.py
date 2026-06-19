@@ -221,7 +221,7 @@ class _TaskService:
             "priority": payload.get("priority", "Medium")
                 if payload.get("priority") in ALLOWED_PRIORITY else "Medium",
             "status": "Open",
-            "due_at": payload.get("due_at"),
+            "due_at": payload.get("due_at") or payload.get("due_date"),
             "created_at": now,
             "updated_at": now,
             "created_by": payload.get("created_by") or {"role": "system"},
@@ -233,6 +233,11 @@ class _TaskService:
             }],
             "closed_at": None,
             "completion_notes": None,
+            # TRACK 15.49 · optional pass-through for aftercare task
+            # classification. Lets PDF + enrichment surface "24h
+            # welfare check-in" vs "72h witness follow-up" vs "7d
+            # investigator review" without parsing the title string.
+            "task_key": payload.get("task_key") or None,
         }
         await db.tasks.insert_one(task)
 

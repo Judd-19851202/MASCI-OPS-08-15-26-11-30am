@@ -10,7 +10,51 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.48 · Incident UI + WV Workflow + Exec Visibility + Deployment Readiness · 🟢 GREEN · Six-Pillar Certified)
+## Latest Track (2026-06-19 · TRACK 15.49 · Post-Incident Aftercare & Operational Closure · 🟢 GREEN · Six-Pillar Certified)
+
+### What this is
+Closes the gap between "incident reported" and "incident truly closed." Auto-issues a 3-task aftercare chain on every Workplace-Violence / Public-Interaction incident: 24h HR welfare check-in · 72h Safety witness follow-up · 7d Safety investigator review.
+
+### What shipped
+- **Backend** · `routes/safety.py` fan-out extends with `emit_task_and_notification` × 3 per WV/PI incident · all wrapped in best-effort `try/except`.
+- **Backend** · `routes/tasks_notifications.py` `_TaskService.create()` extended with optional `task_key` pass-through + `due_date` ↔ `due_at` alias.
+- **Backend** · `lib/incident_pdf_enrichment.py` loads `_aftercare_tasks` from `db.tasks`.
+- **Backend** · `pdf_render.py` `_render_generic` adds "Aftercare Follow-Up Actions" section · 6 columns · uses Universal PDF Foundation typography.
+- **Foundation version** unchanged at v15.48.1.
+
+### Hard-rule compliance
+- ✅ No V2 systems · no new collections · no new endpoints
+- ✅ Reuses existing Tasks · Notifications · CAPAs · PDF Foundation · Incident System
+- ✅ Universal PDF Foundation preserved · zero field loss on legacy + synthetic incidents
+- ✅ Best-effort fan-out · never blocks the underlying incident write
+
+### Cert evidence
+- Synthetic WV test incident · 3 NEW aftercare tasks + 6 NEW notifications + 1.8 MB PDF
+- Independent AI content extraction confirmed all 3 follow-up rows render correctly
+- Lint clean · cleanup performed · zero regression on legacy incidents
+
+### Deliverables (in /app/memory/)
+- TRACK_15_49_AFTERCARE_AUDIT.md
+- TRACK_15_49_EMPLOYEE_WELFARE_CERTIFICATION.md
+- TRACK_15_49_WITNESS_FOLLOWUP_CERTIFICATION.md
+- TRACK_15_49_TASK_CHAIN_AUDIT.md
+- TRACK_15_49_NOTIFICATION_CERTIFICATION.md
+- TRACK_15_49_PDF_DEFENSIBILITY_CERTIFICATION.md
+- TRACK_15_49_EXECUTIVE_OVERSIGHT_AUDIT.md
+- TRACK_15_49_DEPLOYMENT_READINESS.md
+- TRACK_15_49_SIX_PILLAR_CERTIFICATION.md
+
+### Backlog deferred to Track 15.50
+- B-01 · Welfare note convenience UI on incident view
+- B-02 · Witness status enum (pending / contacted / received / unavailable / declined)
+- B-03 · Executive Overview avg-close-days + investigating-split tiles
+
+### Final answer
+🟢 GREEN — MASCI can now prove not only HOW an incident occurred but HOW the company responded, investigated, corrected, followed up, and closed the matter. Single PDF · single artifact · single source of truth.
+
+---
+
+## Previous Track (2026-06-19 · TRACK 15.48 · Incident UI + WV Workflow + Exec Visibility + Deployment Readiness · 🟢 GREEN · Six-Pillar Certified)
 
 ### What this is
 The deployment-readiness certification track on top of Track 15.47. Question answered: "Can MASCI deploy today and confidently handle public-interaction / WV / police incidents entirely inside ForgedOps?" — **YES, with evidence.**

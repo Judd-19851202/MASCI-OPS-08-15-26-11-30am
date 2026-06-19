@@ -80,4 +80,31 @@ async def enrich_incident_for_pdf(db, record: Dict[str, Any]) -> Dict[str, Any]:
     if capas:
         out["_linked_capas"] = capas
 
+    # ---------- TRACK 15.49 · Aftercare task chain ----------
+    # Pulls the 24h/72h/7d follow-up tasks created by the aftercare
+    # fan-out (and any manually-added incident follow-up tasks) so the
+    # PDF can SHOW that the company followed through, not just
+    # responded.
+    followups: List[Dict[str, Any]] = []
+    try:
+        cur = db.tasks.find(
+            {"source_module": "safety.incidents", "source_record_id": incident_id},
+            {"_id": 0},
+        ).sort("due_date", 1)
+        async for tk in cur:
+            followups.append({
+                "task_key": tk.get("task_key") or "",
+                "title": tk.get("title") or "",
+                "assignee_role": tk.get("assignee_role") or "",
+                "assignee_name": tk.get("assigned_to_name") or tk.get("assigned_to_email") or "",
+                "due_date": tk.get("due_at") or tk.get("due_date") or "",
+                "status": tk.get("status") or "Open",
+                "completed_at": tk.get("closed_at") or tk.get("completed_at") or "",
+                "priority": tk.get("priority") or "",
+            })
+    except Exception:
+        followups = []
+    if followups:
+        out["_aftercare_tasks"] = followups
+
     return out

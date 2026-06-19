@@ -2,6 +2,39 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.49 · Post-Incident Aftercare & Operational Closure (🟢 GREEN · Six-Pillar Certified)
+
+**Closes the gap between "incident reported" and "incident truly closed."**
+
+### What shipped
+- **3-task aftercare chain** auto-issued on every WV/PI incident:
+  - `incident.aftercare.welfare_24h` → HR · Critical · T+24h
+  - `incident.aftercare.witness_72h` → Safety · High · T+72h
+  - `incident.aftercare.investigator_7d` → Safety · High · T+7d
+- **6 NEW notifications** per WV incident (3 `task.assigned` + 3 topical) on top of the 9 from 15.47.
+- **PDF "Aftercare Follow-Up Actions" block** — kind / action / owner / due / status / completed columns. Universal PDF Foundation typography preserved.
+- **`task_key` optional field** added to `_TaskService.create()` for PDF surfacing.
+- **`due_date` ↔ `due_at` alias** added for backward compatibility.
+
+### Compliance
+- ✅ Reuses existing Tasks · Notifications · CAPAs · PDF Foundation
+- ✅ No new collections · no V2 systems · no new endpoints
+- ✅ Best-effort fan-out · never blocks the incident write
+- ✅ Zero regression on legacy incidents (verified on INC-2026-00002)
+
+### Evidence
+- Synthetic WV test incident · 3 aftercare tasks + 6 notifications + 1.8 MB PDF
+- AI content extraction confirmed all 3 follow-up rows visible in PDF Section 8
+- Lint clean across all touched files
+
+### Closure questions all answered ✅
+What happened · Who was involved · What actions were taken · What corrective actions occurred · What follow-up occurred · Whether employees were checked on · Whether witnesses were followed up · Whether CAPAs were completed · Whether the incident was truly closed.
+
+### Deliverables
+9 files in `/app/memory/TRACK_15_49_*.md` · PRD.md updated · this CHANGELOG entry.
+
+---
+
 ## 2026-06-19 — TRACK 15.48 · Incident UI + WV Workflow + Deployment Readiness (🟢 GREEN · Six-Pillar Certified)
 
 **Deployment-readiness certification on top of Track 15.47. Answer to "Can MASCI deploy today and handle these incidents entirely inside ForgedOps?" — YES, with evidence.**

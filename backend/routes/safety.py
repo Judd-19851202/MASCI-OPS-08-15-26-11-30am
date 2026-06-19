@@ -1012,6 +1012,95 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                             logging.getLogger(__name__).warning(
                                 "[wv-template-capa] failed for %s", doc.get("id")
                             )
+                # === TRACK 15.49 · Post-Incident Aftercare Task Chain ===
+                # On every Public-Interaction or Workplace-Violence
+                # incident, auto-create three time-fused follow-up
+                # tasks that close the OSHA-favored aftercare loop:
+                # 24h employee welfare check-in · 72h witness follow-up
+                # · 7-day investigator review. Reuses the existing
+                # `tasks` collection + notification engine — no new
+                # collection, no new architecture, no V2 workflow.
+                if _wv_flags or _pi_flags:
+                    from datetime import datetime as _dt_aft, timedelta as _td_aft, timezone as _tz_aft
+                    _now_aft = _dt_aft.now(_tz_aft.utc)
+                    _aftercare = [
+                        {
+                            "key": "incident.aftercare.welfare_24h",
+                            "due_in": _td_aft(hours=24),
+                            "title": "24-hour welfare check-in with affected employee",
+                            "desc": (
+                                f"Auto-issued from incident {doc.get('doc_id') or doc.get('id')}. "
+                                f"Confirm: physical condition · psychological well-being · medical "
+                                f"follow-up scheduled · employee preferences for next-day attendance. "
+                                f"Document outcome on the incident as a state-event note."
+                            ),
+                            "assignee_role": "hr",
+                            "priority": "Critical" if _wv_flags else "High",
+                            "notif_type": "incident.aftercare.welfare_24h",
+                        },
+                        {
+                            "key": "incident.aftercare.witness_72h",
+                            "due_in": _td_aft(hours=72),
+                            "title": "72-hour witness follow-up · verify contact info and obtain signed statements",
+                            "desc": (
+                                f"Auto-issued from incident {doc.get('doc_id') or doc.get('id')}. "
+                                f"For every witness on the record: confirm phone/email still reaches them, "
+                                f"obtain signed statement if not yet collected, mark as unavailable / declined "
+                                f"if applicable. Update the witness rows on the incident."
+                            ),
+                            "assignee_role": "safety",
+                            "priority": "High",
+                            "notif_type": "incident.aftercare.witness_72h",
+                        },
+                        {
+                            "key": "incident.aftercare.investigator_7d",
+                            "due_in": _td_aft(days=7),
+                            "title": "7-day investigator review · close the loop on CAPAs + police report + insurance",
+                            "desc": (
+                                f"Auto-issued from incident {doc.get('doc_id') or doc.get('id')}. "
+                                f"Verify all linked CAPAs are progressing on schedule · confirm police "
+                                f"report obtained (or chase) · confirm insurance / legal notified · prepare "
+                                f"investigation summary for executive review. Transition incident state if "
+                                f"ready."
+                            ),
+                            "assignee_role": "safety",
+                            "priority": "High",
+                            "notif_type": "incident.aftercare.investigator_7d",
+                        },
+                    ]
+                    for _aft in _aftercare:
+                        try:
+                            await emit_task_and_notification(
+                                db,
+                                task={
+                                    "title": _aft["title"],
+                                    "description": _aft["desc"][:4000],
+                                    "source_module": "safety.incidents",
+                                    "source_record_id": doc.get("id"),
+                                    "linked_project_number": doc.get("project_number") or None,
+                                    "assignee_role": _aft["assignee_role"],
+                                    "priority": _aft["priority"],
+                                    "due_date": (_now_aft + _aft["due_in"]).isoformat(),
+                                    "created_by": {"role": "system", "via": "aftercare-chain"},
+                                    "task_key": _aft["key"],
+                                },
+                                notification={
+                                    "type": _aft["notif_type"],
+                                    "title": _aft["title"][:120],
+                                    "message": _extra_msg,
+                                    "severity": _aft["priority"],
+                                    "recipient_role": _aft["assignee_role"],
+                                    "linked_source_module": "safety.incidents",
+                                    "linked_source_record_id": doc.get("id"),
+                                    "linked_project_number": doc.get("project_number") or None,
+                                },
+                            )
+                        except Exception:
+                            import logging
+                            logging.getLogger(__name__).warning(
+                                "[aftercare-task] %s failed for %s",
+                                _aft["key"], doc.get("id"),
+                            )
                 # Iter160 · Operational signal — passive throughput observation.
                 try:
                     from lib.operational_signals import record_signal  # noqa: PLC0415
