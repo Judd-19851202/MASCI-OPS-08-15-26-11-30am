@@ -1,0 +1,51 @@
+{
+  "summary": "TRACK 15.39A · Iter 526 — Completed remaining frontend certification (T4, T5, T6, PM-scope regression). All 4 PASS. The ResizeObserver-loop suppressor added in /app/frontend/src/index.js correctly prevents the CRA dev overlay from blocking clicks; tests now run cleanly without needing the iframe removal fallback.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Team roster (/admin/jobs/20-07/team & /pm/job/20-07/team)", "issues": ["Foreman & Safety Rep rows display 'Unknown person — Admin review required' due to pre-existing directory-link bug — flagged by main agent as OUT OF SCOPE for this track."]}
+    ]
+  },
+  "test_results": {
+    "T4_other_requires_text": {
+      "status": "PASS",
+      "details": "Dialog opens on safety_rep row remove. With 'other' selected + empty text → reason-submit is disabled. Typing 'hi' → submit enabled. Clearing → disabled again. Cancel closes dialog (count=0) and safety_rep row remains (no mutation).",
+      "selectors_verified": ["row-remove-453e5110-...", "remove-reason-dialog", "reason-other", "reason-submit", "reason-text", "reason-cancel"]
+    },
+    "T5_history_drawer": {
+      "status": "PASS",
+      "details": "Drawer opens on open-history-drawer click. Counts: history-row-assign=8, history-row-role_change=5, history-row-remove=6 (all >=1). Total rows=20. Row[0] ASSIGNED 6/19/2026 1:10:25 PM, Row[1] REMOVED 6/19/2026 1:07:11 PM — newest-first ordering confirmed. Both rows contain 'by Admin' actor field. Escape closes drawer cleanly (count→0).",
+      "selectors_verified": ["open-history-drawer", "assignment-history-drawer", "history-list", "history-row-assign", "history-row-role_change", "history-row-remove"]
+    },
+    "T6_viewport_matrix": {
+      "status": "PASS",
+      "details": "Verified at desktop 1920x800, iPad portrait 768x1024, iPad landscape 1024x768. Drawer opens at all viewports. Remove dialog bbox stays within viewport (right edge ≤ width+2, top≥0). No horizontal scroll on any viewport (documentElement.scrollWidth ≤ innerWidth+2).",
+      "bboxes": {
+        "desktop_1920x800": {"x": 736, "y": 111, "width": 448, "height": 578},
+        "ipad_p_768x1024": {"x": 160, "y": 223, "width": 448, "height": 578},
+        "ipad_l_1024x768": {"x": 288, "y": 95, "width": 448, "height": 578}
+      }
+    },
+    "PM_scope_regression": {
+      "status": "PASS",
+      "details": "Logged out admin (localStorage masci.* cleared) and logged in as pm.demo@mascigc.com via generic input[type=email]/input[type=password]/button[type=submit] (no pm-*-input testids). Note: PM team page route is /pm/job/20-07/team (singular 'job'). On that page: (a) open-history-drawer count=0 ✓, (b) row-role-9a9bfc3d-... count=0 ✓, (c) row-remove-9a9bfc3d-... count=1 ✓. Clicking remove opens remove-reason-dialog ✓. reason-cancel closes dialog cleanly.",
+      "selectors_verified": ["input[type=email]", "input[type=password]", "button[type=submit]", "row-remove-9a9bfc3d-..."]
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PM login form does NOT expose data-testid attributes (pm-email-input / pm-password-input / pm-login-submit) — they were referenced in the test spec but absent in markup. Test fell back to generic input[type=email]/input[type=password]/button[type=submit] selectors which worked. Suggest adding the testids for testability parity with /admin/login.",
+    "ResizeObserver-loop suppressor in /app/frontend/src/index.js is dev-only-visible band-aid for CRA overlay; consider migrating off CRA or upgrading to a build that ignores this warning category. Acceptable as-is for this cert.",
+    "JobTeamRosterPanel.jsx admin-only gating verified: history trigger gated on adminScope (~L313), inline role Select gated on `adminScope && !isSynthetic` (~L395), Remove button intentionally NOT gated so PMs can remove via dialog — confirmed in PM scope test."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (4/4 tests PASS)"},
+  "test_credentials": "Admin: jaymn.judd@mascigc.com / Maddix123! · PM: pm.demo@mascigc.com / PmTest2026! — both verified working.",
+  "seed_data_creation": "None — used existing iter525 fixture (Alec Perkins foreman 9a9bfc3d-..., safety_rep 453e5110-...). Fixture left intact per request.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TRACK 15.39A is fully certified across iter524 (smoke) + iter525 (T1/T2/T3/Add-member) + iter526 (T4/T5/T6/PM-scope). Fixture preserved on project 20-07. The ResizeObserver suppressor at /app/frontend/src/index.js works reliably; no iframe-removal fallback was needed in any of the 4 tests this iteration. PM team route is /pm/job/20-07/team (singular). PM login form lacks dedicated data-testid attributes — use generic input selectors."
+}
