@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -153,6 +154,11 @@ export function AttendeeBulkAddDialog({ onAdd, existing = [] }) {
       >
         <DialogHeader>
           <DialogTitle>{t("Bulk Add Attendees")}</DialogTitle>
+          <DialogDescription>
+            {t(
+              "Pick everyone on this crew. Names + trades pre-fill from the certified roster. Signatures and acknowledgements still get collected on the form.",
+            )}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="relative">

@@ -10,7 +10,52 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.45 · Operational Friction Audit · 🟢 AUDIT COMPLETE · documentation-only)
+## Latest Track (2026-06-19 · TRACK 15.46 + 15.46A · Friction Reduction + Safety Topic Library · 🟢 COMPLETE & CERTIFIED)
+
+### What shipped
+Top-5 HIGH-tier friction items from the Track 15.45 audit are live + the Safety Topic Library gained a new category.
+
+#### FR-01 · LeadershipHubV2 → Executive Overview nav card
+- `frontend/src/pages/LeadershipHubV2.jsx` · top-of-page card linked to `/admin/executive-overview`.
+
+#### FR-02 · "Why RED?" deterministic verdict reasons
+- Backend · `routes/executive_overview.py` returns `verdict_reasons: List[str]` with threshold-specific strings.
+- Frontend · `pages/ExecutiveOverview.jsx` renders bullets `executive-verdict-reason-{i}`.
+- Foundation version 15.44.1 (unchanged).
+
+#### FR-03 · Notification action label specificity
+- `components/NotificationBell.jsx` · `TYPE_ACTION_LABEL` map + `actionLabelFor()` resolver. Every chip now starts with an imperative verb (Review/Action/Acknowledge/Open/Submit/Verify/Renew/Schedule). Raw type preserved in chip `title`.
+
+#### FR-07 · Safety Meeting attendee bulk multi-select
+- New `components/AttendeeBulkAddDialog.jsx` · reuses `/api/employees` cache. Multi-select 1-to-N attendees from the certified roster. Already-added rows greyed out on re-open.
+- Wired into `pages/NewMeeting.jsx` Section 03.
+
+#### FR-15 · Daily Report crew + equipment prefill from prior day
+- Backend · `GET /api/jobs/{project_number}/recent-context` extended with `masci_crews[]`, `equipment[]`, `source_report_date`. Carries name / trade / employee_id / hours / description / hours_used only. NOT carried: signatures, clock times, equipment movement times, work_performed.
+- Frontend · `pages/NewDailyReport.jsx` `applyJob()` consumes the extended payload. Toast on prefill. Gated so it never clobbers an in-progress draft.
+
+#### 15.46A · Safety Topic Library
+- New domain `public_interaction`. New topic `angry_public_de_escalation` ("Dealing With Angry Members of the Public"). EN + ES parity. Wired into `TopicPicker` as domain chip and category section.
+- Files: `lib/topics/public_interaction.js`, `lib/topics/public_interaction.es.js`, `lib/topics/index.js`, `lib/topics/index.es.js`, `components/TopicPicker.jsx`.
+
+### Hard-rule compliance
+- No new collections · no new schemas · no new background jobs · no Emergent LLM calls · no new auth path · no new PDF surface. Two existing endpoints extended additively (`/api/admin/executive/overview`, `/api/jobs/{p}/recent-context`).
+
+### Cert evidence
+- Backend pytest · `backend/tests/test_track_15_46_friction_reduction.py` · 8 / 8 PASS.
+- Frontend e2e · `test_reports/iteration_528.json` · 6 / 6 features PASS (incl. Safety Topic Library).
+- Lint clean on all touched files.
+
+### Deliverables
+- `TRACK_15_46_IMPLEMENTATION_REPORT.md`
+- `TRACK_15_46_CERTIFICATION_REPORT.md`
+- `TRACK_15_46_FRICTION_REDUCTION_CERTIFICATION.md`
+- `TRACK_15_46_SAFETY_TOPIC_LIBRARY_AUDIT.md`
+- `TRACK_15_46_SAFETY_TOPIC_LIBRARY_CERTIFICATION.md`
+
+---
+
+## Previous Track (2026-06-19 · TRACK 15.45 · Operational Friction Audit · 🟢 AUDIT COMPLETE · documentation-only)
 
 ### What this is
 Audit-only review of operational friction across 7 personas. No code changes. 25 items scored on Frequency × Pain × Time × Adoption (max 20 composite).
