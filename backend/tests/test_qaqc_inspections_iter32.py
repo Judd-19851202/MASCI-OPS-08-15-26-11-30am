@@ -30,8 +30,8 @@ BASE_URL = (
     _read_kv(Path("/app/frontend/.env"), "REACT_APP_BACKEND_URL")
     or os.environ.get("REACT_APP_BACKEND_URL", "")
 ).rstrip("/")
-ADMIN_PASSWORD = _read_kv(Path("/app/backend/.env"), "ADMIN_PASSWORD") or "MASCI1982!"
-PM_PASSWORD = _read_kv(Path("/app/backend/.env"), "PM_PASSWORD") or "Happy123!"
+ADMIN_PASSWORD = _read_kv(Path("/app/backend/.env"), "ADMIN_PASSWORD") or "Maddix123!"
+PM_PASSWORD = _read_kv(Path("/app/backend/.env"), "PM_PASSWORD") or "Maddix123!"
 
 # Project number 25-15 maps to a real PM in jobs_master (Chris Wright)
 SEED_PROJECT = "25-15"

@@ -6,10 +6,10 @@ import pytest
 BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
 API = f"{BASE}/api"
 
-ADMIN_PW = "MASCI1982!"
+ADMIN_PW = "Maddix123!"
 CHRIS_EMAIL = "chriswright@mascigc.com"
 CHRIS_PW = "ChrisRocksThis2026"
-SHARED_PM_PW = "Happy123!"
+SHARED_PM_PW = "Maddix123!"
 
 # ---------- session helpers ----------
 @pytest.fixture(scope="module")

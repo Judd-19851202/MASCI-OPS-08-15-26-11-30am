@@ -18,7 +18,7 @@ API = REACT_APP_BACKEND_URL.rstrip("/") + "/api"
 
 
 def _admin():
-    r = httpx.post(f"{API}/admin/login", json={"password": "MASCI1982!"}, timeout=30)
+    r = httpx.post(f"{API}/admin/login", json={"password": "Maddix123!"}, timeout=30)
     if r.status_code != 200:
         pytest.skip(f"admin login failed: {r.status_code}")
     return r.json()["token"]

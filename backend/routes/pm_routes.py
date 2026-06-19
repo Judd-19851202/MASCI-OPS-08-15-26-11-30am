@@ -315,7 +315,9 @@ def build_pm_router(
     _directory_admin_token = login_deps["directory_admin_token_fn"]
     _reset_session_activity = login_deps["reset_session_activity_fn"]
     _clear_session_activity = login_deps["clear_session_activity_fn"]
-    _pm_token_for = login_deps["pm_token_for_fn"]
+    # TRACK 15.32 — `pm_token_for_fn` is None (shared PM HMAC retired);
+    # the kwarg is retained on the factory boundary for backwards-compat
+    # but not bound here.
     _render_portal_email = login_deps["render_portal_email_fn"]
 
     @router.post("/pm/login")
@@ -416,32 +418,20 @@ def build_pm_router(
                 "pm": public_pm_view(pm),
             }
 
-        # ---- Legacy shared-password emergency bypass ----
-        if not shared_pm_login_enabled():
-            raise HTTPException(
-                status_code=400,
-                detail="Email is required.",
-            )
-        expected_pw = os.environ.get("PM_PASSWORD", "")
-        if not expected_pw:
-            return {"ok": True, "token": "open-mode", "must_change_password": False}
-        if not hmac.compare_digest(password, expected_pw):
-            _record_login_fail(ip)
-            raise HTTPException(status_code=401, detail="Wrong password")
-        _reset_login_fails(ip)
-        token = _pm_token_for(expected_pw)
-        await _reset_session_activity(
-            db, token, "OPERATIONS",
-            actor_label="pm-shared",
-            ip=ip,
-            user_agent=request.headers.get("user-agent") or "",
+        # TRACK 15.32 (2026-02) — shared PM_PASSWORD HMAC retired.
+        # The email-less legacy emergency-bypass branch and its
+        # `pm-shared` token producer were removed. Reaching this point
+        # means no `email` was supplied AND no per-PM user was matched
+        # — return a clear retirement-aware 401 so legacy automation
+        # gets an actionable message instead of a silent failure.
+        raise HTTPException(
+            status_code=401,
+            detail=(
+                "Email is required. The shared PM password path was "
+                "retired in TRACK 15.32 — sign in with your assigned "
+                "PM user account email + password."
+            ),
         )
-        return {
-            "ok": True,
-            "token": token,
-            "must_change_password": False,
-            "pm": None,
-        }
 
     @router.post("/pm/forgot-password")
     async def pm_forgot_password(body: PMForgotPasswordBody, request: Request):

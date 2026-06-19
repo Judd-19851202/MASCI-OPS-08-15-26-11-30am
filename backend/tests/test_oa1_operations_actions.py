@@ -45,7 +45,7 @@ def _req(method: str, path: str, *, token: str, body: Optional[Dict[str, Any]] =
 # Reuse existing seeded super-admin → multi-login → portal_tokens.
 @pytest.fixture(scope="module")
 def admin_token():
-    resp = _req("POST", "/admin/login", token="", body={"password": os.environ.get("ADMIN_PASSWORD", "MASCI1982!")})
+    resp = _req("POST", "/admin/login", token="", body={"password": os.environ.get("ADMIN_PASSWORD", "Maddix123!")})
     assert resp["status"] == 200, f"admin login failed: {resp}"
     return resp["json"]["token"]
 

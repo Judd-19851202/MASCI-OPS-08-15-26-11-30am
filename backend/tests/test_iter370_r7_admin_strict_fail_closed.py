@@ -36,7 +36,7 @@ def _read_env(path: str, key: str) -> str:
 
 
 BASE_URL = _read_env("/app/frontend/.env", "REACT_APP_BACKEND_URL").rstrip("/")
-ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "Maddix123!"
 
 
 def _raw_post(url, body, headers=None):
@@ -122,7 +122,7 @@ class TestR7AdminStrictFailsClosed:
         """iter370 R7 must preserve the strict-no-PM behavior."""
         # Try to login as PM
         code, body = _raw_post(f"{BASE_URL}/api/pm/login",
-                               {"password": "Happy123!"})
+                               {"password": "Maddix123!"})
         if code != 200:
             pytest.skip("PM login not available in this env")
         import json as _json

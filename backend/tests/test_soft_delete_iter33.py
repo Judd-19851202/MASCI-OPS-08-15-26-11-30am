@@ -31,7 +31,7 @@ BASE = os.environ.get(
     "https://safety-audit-mobile-1.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE}/api"
-ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or _read_env("ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or _read_env("ADMIN_PASSWORD") or "Maddix123!"
 
 
 @pytest.fixture(scope="module")

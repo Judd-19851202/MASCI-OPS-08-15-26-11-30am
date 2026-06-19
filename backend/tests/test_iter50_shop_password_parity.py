@@ -24,7 +24,7 @@ import pytest
 sys.path.insert(0, "/app/backend")
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "").strip()
 
 if not BASE_URL:

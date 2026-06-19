@@ -200,7 +200,7 @@ def test_preview_known_job_resolves_pm():
 def _admin_token():
     r = requests.post(
         f"{URL}/api/admin/login",
-        json={"password": os.environ.get("ADMIN_PASSWORD") or "MASCI1982!"},
+        json={"password": os.environ.get("ADMIN_PASSWORD") or "Maddix123!"},
         timeout=10,
     )
     return r.json()["token"]

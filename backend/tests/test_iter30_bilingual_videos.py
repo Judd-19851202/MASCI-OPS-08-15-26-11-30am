@@ -35,7 +35,7 @@ BASE_URL = (
     or os.environ.get("REACT_APP_BACKEND_URL", "")
 ).rstrip("/")
 
-PM_PASSWORD = _read_kv(Path("/app/backend/.env"), "PM_PASSWORD") or "Happy123!"
+PM_PASSWORD = _read_kv(Path("/app/backend/.env"), "PM_PASSWORD") or "Maddix123!"
 
 
 # --- Seeded bilingual slugs + expected language fingerprints -------------

@@ -15,8 +15,8 @@ SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PW = "Maddix123!"
 HR_EMAIL = "hrmanager@mascigc.com"
 HR_PW = "HRPortal2026!"
-ADMIN_LEGACY_PW = "MASCI1982!"
-PM_LEGACY_PW = "Happy123!"
+ADMIN_LEGACY_PW = "Maddix123!"
+PM_LEGACY_PW = "Maddix123!"
 FL_PW = "MASCIGC"
 
 

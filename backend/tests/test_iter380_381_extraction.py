@@ -31,7 +31,7 @@ def _read_env(path: str, key: str) -> str:
 
 
 BASE_URL = _read_env("/app/frontend/.env", "REACT_APP_BACKEND_URL").rstrip("/")
-ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "Maddix123!"
 
 
 def _raw(method: str, url: str, headers=None, body=None):

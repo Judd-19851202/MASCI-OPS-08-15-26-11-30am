@@ -59,7 +59,7 @@ import os
 import uuid
 import secrets
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import bcrypt
 
@@ -439,3 +439,82 @@ async def session_user(db, *, token: str) -> Optional[Dict[str, Any]]:
 async def kill_session(db, *, token: str) -> None:
     if token:
         await db.directory_sessions.delete_one({"token": token})
+
+
+
+# ─────────────────────────────────────────────────────────────────────
+# TRACK 15.32 (2026-02) — per-user admin token
+# ─────────────────────────────────────────────────────────────────────
+# The shared ADMIN_PASSWORD HMAC was retired with this track. Per-user
+# admin tokens follow the same `<user_id>.<HMAC>` shape used by
+# `pm_auth.make_pm_token` and `shop_users.make_shop_user_token`. The
+# HMAC binds to ADMIN_HMAC_SECRET + ADMIN_SESSION_EPOCH + user_id +
+# password_hash[:16] so:
+#   • A directory password rotation instantly invalidates extant tokens.
+#   • A bumped ADMIN_SESSION_EPOCH wipes every per-user admin token.
+#   • Tokens carry the user identity; session_activity attribution is
+#     restored on every privileged action.
+import hashlib as _h  # noqa: E402
+import hmac as _hmac  # noqa: E402
+
+
+def _admin_hmac_secret() -> bytes:
+    """Same secret/epoch envelope used by the shop/pm minters."""
+    s = os.environ.get("ADMIN_HMAC_SECRET") or ""
+    if not s:
+        # Hard error — admin tokens MUST be deterministic across restarts
+        # for session_activity to survive logouts.
+        raise RuntimeError(
+            "ADMIN_HMAC_SECRET must be set to mint directory admin tokens."
+        )
+    return s.encode("utf-8")
+
+
+def _admin_session_epoch() -> str:
+    return (os.environ.get("ADMIN_SESSION_EPOCH") or "1").strip()
+
+
+def make_directory_admin_token(user_id: str, password_hash: str) -> str:
+    """Mint `<user_id>.<HMAC>` for an admin-authorized directory user.
+    Mirrors `pm_auth.make_pm_token` / `shop_users.make_shop_user_token`.
+    """
+    if not user_id or not password_hash:
+        raise ValueError("user_id and password_hash are required")
+    msg = (
+        f"epoch={_admin_session_epoch()}|admin:{user_id}:{password_hash[:16]}"
+    ).encode()
+    sig = _hmac.new(_admin_hmac_secret(), msg, _h.sha256).hexdigest()
+    return f"{user_id}.{sig}"
+
+
+def _parse_directory_admin_token(token: str) -> Optional[Tuple[str, str]]:
+    if not token or "." not in token:
+        return None
+    uid, _, sig = token.partition(".")
+    if not uid or not sig or len(sig) != 64:
+        return None
+    return uid, sig
+
+
+async def is_valid_directory_admin_token_async(
+    db, token: str,
+) -> Optional[Dict[str, Any]]:
+    """Validate a per-user admin token. Returns the directory row on
+    success, None on failure. Disabled users + users without the
+    `admin` portal are rejected even with a valid signature."""
+    parsed = _parse_directory_admin_token(token)
+    if not parsed:
+        return None
+    uid, _sig = parsed
+    row = await find_by_id(db, uid)
+    if not row or row.get("disabled"):
+        return None
+    if "admin" not in (row.get("portals") or []):
+        return None
+    pwh = row.get("password_hash") or ""
+    if not pwh:
+        return None
+    expected = make_directory_admin_token(uid, pwh)
+    if not _hmac.compare_digest(token, expected):
+        return None
+    return row

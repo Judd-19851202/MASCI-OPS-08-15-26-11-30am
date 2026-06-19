@@ -39,7 +39,7 @@ def _req(method, path, *, body=None, token="", token_header="X-Admin-Token"):
 
 @pytest.fixture(scope="module")
 def admin_token():
-    pwd = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+    pwd = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
     r = _req("POST", "/admin/login", body={"password": pwd})
     assert r["status"] == 200
     return r["json"]["token"]

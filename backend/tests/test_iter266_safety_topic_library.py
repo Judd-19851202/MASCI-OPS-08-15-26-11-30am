@@ -93,7 +93,7 @@ def safety_token():
         return r.json()["token"]
 
     # Self-bootstrap
-    pw = _env("ADMIN_PASSWORD") or "MASCI1982!"
+    pw = _env("ADMIN_PASSWORD") or "Maddix123!"
     a = requests.post(f"{BASE_URL}/api/admin/login", json={"password": pw}, timeout=TIMEOUT)
     if a.status_code != 200:
         pytest.skip(f"Admin bootstrap login failed: {a.status_code}")

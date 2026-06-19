@@ -17,7 +17,7 @@ from pymongo import MongoClient
 
 
 API_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/") or "http://localhost:8001"
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.environ.get("DB_NAME", "test_database")
 

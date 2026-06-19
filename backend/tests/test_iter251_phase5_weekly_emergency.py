@@ -25,7 +25,7 @@ BASE_URL = os.environ.get(
     "REACT_APP_BACKEND_URL",
     "https://safety-audit-mobile-1.preview.emergentagent.com",
 ).rstrip("/")
-ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 
 
 def _admin_token() -> str:

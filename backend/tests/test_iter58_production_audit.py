@@ -11,7 +11,7 @@ import requests
 
 # HARD OVERRIDE — production target, NOT preview
 PROD_URL = "https://mascidocs.com"
-ADMIN_PASSWORD = "MASCI1982!"
+ADMIN_PASSWORD = "Maddix123!"
 LEADERSHIP_PASSWORD = "MASCIGC"
 
 session = requests.Session()

@@ -12,7 +12,7 @@ import pytest
 import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:3000").rstrip("/")
-ADMIN_PW = "MASCI1982!"
+ADMIN_PW = "Maddix123!"
 PM_EMAIL = "chriswright@mascigc.com"
 PM_PW = "ChrisRocksThis2026"
 

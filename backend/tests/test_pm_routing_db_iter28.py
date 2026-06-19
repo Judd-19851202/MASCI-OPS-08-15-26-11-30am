@@ -27,7 +27,7 @@ if not URL:
     )
 
 BASE = URL
-ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or "Maddix123!"
 
 
 def _admin_token():

@@ -23,7 +23,7 @@ def _multi_login(email, password):
 
 @pytest.fixture(scope="module")
 def admin_token():
-    r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": "MASCI1982!"}, timeout=45)
+    r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": "Maddix123!"}, timeout=45)
     assert r.status_code == 200, f"admin login failed: {r.text[:200]}"
     return r.json()["token"]
 

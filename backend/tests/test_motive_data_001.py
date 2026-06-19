@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv("/app/backend/.env")
 BACKEND = os.environ.get("BACKEND_URL", "http://127.0.0.1:8001")
 API = f"{BACKEND}/api"
-ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 
 
 def _req(method, path, *, body=None, token=""):

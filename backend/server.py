@@ -275,16 +275,20 @@ def _session_epoch() -> str:
     return v or "1"
 
 
-def _admin_token_for(password: str) -> str:
-    msg = (f"epoch={_session_epoch()}|admin:" + password).encode()
-    return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
-
-
-def _pm_token_for(password: str) -> str:
-    """PM portal token. Distinct namespace from admin so a stolen PM token
-    cannot be replayed against admin-strict (backup/recovery) routes."""
-    msg = (f"epoch={_session_epoch()}|pm:" + password).encode()
-    return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
+# TRACK 15.32 (2026-02) — PM/Admin shared HMAC retirement
+# ──────────────────────────────────────────────────────────────────────
+# The historical `_admin_token_for` / `_pm_token_for` derivations, the
+# email-less branches of `/api/admin/login` and `/api/pm/login`, and the
+# shared-HMAC validators in `_is_valid_admin_token` / `_is_valid_pm_token`
+# have been removed. The single canonical PM/Admin auth paths are now:
+#   • Admin → `user_directory.authenticate` + `_directory_admin_token`
+#             (per-user, bound to a `user_directory` row)
+#   • PM    → `pm_auth.authenticate` + `make_pm_user_token`
+#             (per-user, bound to a `project_managers` row)
+# Audit + retirement evidence:
+#   • /app/memory/TRACK_15_31_PM_ADMIN_AUTH_AUDIT.md
+#   • /app/memory/TRACK_15_32_PM_ADMIN_SHARED_AUTH_RETIREMENT_*.md
+# ──────────────────────────────────────────────────────────────────────
 
 
 # TRACK 15.30 (2026-02) — Static Shop HMAC retirement
@@ -302,32 +306,44 @@ def _pm_token_for(password: str) -> str:
 # ──────────────────────────────────────────────────────────────────────
 
 
-def _is_valid_admin_token(tok: Optional[str]) -> bool:
-    pw = os.environ.get("ADMIN_PASSWORD", "")
-    if not tok or not pw:
+async def _is_valid_directory_admin_token_async(token: Optional[str]) -> bool:
+    """TRACK 15.32 — per-user admin token validator. Accepts the new
+    `<user_id>.<HMAC>` shape and validates against the directory row's
+    password_hash. Used by every async admin gate."""
+    if not token or "." not in token:
         return False
-    return hmac.compare_digest(tok, _admin_token_for(pw))
+    try:
+        import user_directory as _ud_local  # noqa: PLC0415
+        row = await _ud_local.is_valid_directory_admin_token_async(db, token)
+        return row is not None
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _is_valid_admin_token(tok: Optional[str]) -> bool:
+    """TRACK 15.32 — shared ADMIN_PASSWORD HMAC retired.
+
+    Synchronous fast-path now returns False unconditionally. All admin
+    gates have been switched to the async validator
+    ``_is_valid_directory_admin_token_async`` which performs a one-row
+    `user_directory` lookup. Per-user admin tokens use the
+    ``<user_id>.<HMAC>`` shape (see ``user_directory.make_directory_admin_token``).
+    """
+    del tok  # noqa: ERA001
+    return False
 
 
 def _is_valid_pm_token(tok: Optional[str]) -> bool:
-    """Legacy shared-PM token validator. Returns True only when:
-       1) ``PM_SHARED_LOGIN_ENABLED`` is on (the env-flag emergency bypass),
-       2) AND the token matches the HMAC of the shared ``PM_PASSWORD``.
+    """TRACK 15.32 — shared PM_PASSWORD HMAC retired.
 
-    Per-PM (per-user) tokens are validated via
-    ``pm_auth.is_valid_pm_user_token_async`` which needs a DB lookup."""
-    pw = os.environ.get("PM_PASSWORD", "")
-    if not tok or not pw:
-        return False
-    # Per-PM tokens have a `.` delimiter — they're handled in the async
-    # validator. Reject them here so the legacy path doesn't accidentally
-    # pass them.
-    if "." in tok:
-        return False
-    flag = os.environ.get("PM_SHARED_LOGIN_ENABLED", "true").strip().lower()
-    if flag not in ("1", "true", "yes", "on"):
-        return False
-    return hmac.compare_digest(tok, _pm_token_for(pw))
+    Per-PM tokens (``<id>.<HMAC>``) are validated by
+    ``pm_auth.is_valid_pm_user_token_async`` via a DB lookup. This
+    helper is retained as a hard-False stub so the synchronous gate
+    surface keeps the same shape; the shared-PM bypass it used to
+    enforce no longer exists.
+    """
+    del tok  # noqa: ERA001
+    return False
 
 
 def _dev_token_for(password: str) -> str:
@@ -388,11 +404,12 @@ async def require_admin(
     prefix embedded in the token. Legacy shared-PM tokens and admin
     tokens validate without DB I/O.
     """
-    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
-    pm_pw = os.environ.get("PM_PASSWORD", "")
-    if not expected_pw and not pm_pw:
-        return True
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    # TRACK 15.32 — gate is always-on. The legacy `if not ADMIN_PASSWORD
+    # and not PM_PASSWORD: return True` open-mode escape hatch was
+    # removed in 15.32 (it would have become a critical bypass after
+    # both env vars were retired). All admin/pm tokens now flow through
+    # the per-user validators.
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return True
 
     # Iter180: PM tokens are NOT accepted on the admin namespace.
@@ -401,7 +418,7 @@ async def require_admin(
     path = (request.scope.get("path") or request.url.path or "").lower()
     admin_namespace = path.startswith("/api/admin/") or path == "/api/admin"
     if x_pm_token and not admin_namespace:
-        # New per-PM token → has a `.` between pm_id and the HMAC.
+        # Per-PM token → has a `.` between pm_id and the HMAC.
         if "." in x_pm_token:
             from pm_auth import is_valid_pm_user_token_async
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
@@ -412,9 +429,7 @@ async def require_admin(
                 # keep working since a non-empty dict is truthy.
                 enforce_password_change_required(request, pm_doc)
                 return pm_doc
-        # Legacy shared-PM token (env-flag bypass).
-        elif _is_valid_pm_token(x_pm_token):
-            return True
+        # TRACK 15.32 — legacy shared-PM token path retired.
     if not x_admin_token and not x_pm_token:
         # On admin namespace routes, the error message is admin-only
         # so PM users get a precise signal instead of "Admin or PM".
@@ -442,11 +457,8 @@ async def require_admin_async(
     ``/pm/change-password``). Iter180: PM tokens are still rejected on
     any ``/api/admin/*`` route — the same namespace lockdown as the
     primary ``require_admin`` gate."""
-    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
-    pm_pw = os.environ.get("PM_PASSWORD", "")
-    if not expected_pw and not pm_pw:
-        return True
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    # TRACK 15.32 — env-disable escape hatch removed; gate always-on.
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return True
     path = (request.scope.get("path") or request.url.path or "").lower()
     admin_namespace = path.startswith("/api/admin/") or path == "/api/admin"
@@ -457,8 +469,7 @@ async def require_admin_async(
             if pm_doc:
                 enforce_password_change_required(request, pm_doc)
                 return pm_doc
-        elif _is_valid_pm_token(x_pm_token):
-            return True
+        # TRACK 15.32 — legacy shared-PM token path retired.
     if admin_namespace:
         if not x_admin_token:
             raise HTTPException(status_code=401, detail="Admin login required")
@@ -473,28 +484,17 @@ async def require_admin_strict(
     """Admin-only gate — used on backup & recovery endpoints. PM tokens are
     rejected here so a project manager cannot download or restore backups.
 
-    iter370 R7 hardening — fails CLOSED if ``ADMIN_PASSWORD`` env is unset.
-    Previously this gate returned True on empty password as a dev convenience,
-    which created a critical bypass risk if production ever shipped without
-    the password configured."""
-    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
-    if not expected_pw:
-        # iter370 R7 — fail closed instead of bypassing. Operators must
-        # explicitly configure the admin password for any environment that
-        # uses admin-strict routes (backups, recovery, MFA gateways).
-        await _record_access_denial(db, request, namespace="admin",
-                                    reason="admin_password_unconfigured")
-        raise HTTPException(
-            status_code=503,
-            detail="Admin authentication not configured",
-        )
+    TRACK 15.32 (2026-02) — switched from the shared ``ADMIN_PASSWORD``
+    HMAC check to the per-user ``user_directory`` validator. Behaviour
+    unchanged for callers: a missing or invalid admin token still 401s.
+    """
     if not x_admin_token:
         # Phase 2 Initiative 5b-minimal — log denied attempts on the
         # highest-risk gate too.
         await _record_access_denial(db, request, namespace="admin",
                                     reason="no_token_strict")
         raise HTTPException(status_code=401, detail="Admin login required")
-    if not _is_valid_admin_token(x_admin_token):
+    if not await _is_valid_directory_admin_token_async(x_admin_token):
         await _record_access_denial(db, request, namespace="admin",
                                     reason="invalid_token_strict")
         raise HTTPException(status_code=401, detail="Invalid admin token")
@@ -555,11 +555,8 @@ async def require_shop_or_admin(
     scoping). Existing ``_: bool = Depends(...)`` callers keep working
     because non-empty dicts are truthy.
     """
-    admin_pw = os.environ.get("ADMIN_PASSWORD", "")
-    pm_pw = os.environ.get("PM_PASSWORD", "")
-    if not admin_pw and not pm_pw:
-        return True  # all gates disabled
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    # TRACK 15.32 — env-disable escape hatch removed; gate always-on.
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return True
 
     # Iter180: Shop + PM tokens are NOT accepted on the admin namespace.
@@ -577,8 +574,7 @@ async def require_shop_or_admin(
             if pm_doc:
                 enforce_password_change_required(request, pm_doc)
                 return pm_doc
-        elif _is_valid_pm_token(x_pm_token):
-            return True
+        # TRACK 15.32 — legacy shared-PM token path retired.
     # TRACK 15.30 — shared SHOP_PASSWORD HMAC branch removed.
     # Per-shop-user token (canonical)
     if x_shop_token and "." in x_shop_token:
@@ -1684,28 +1680,22 @@ async def export_jobs(_: bool = Depends(require_admin)):
 
 @api_router.post("/admin/login")
 async def admin_login(body: AdminLoginRequest, request: Request):
-    ip = _client_ip(request)
-    _check_login_lockout(ip)
-    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
-    if not expected_pw:
-        # Gate disabled — anyone can "log in"
-        return {"ok": True, "token": "open-mode"}
-    if not hmac.compare_digest(body.password, expected_pw):
-        _record_login_fail(ip)
-        raise HTTPException(status_code=401, detail="Wrong password")
-    _reset_login_fails(ip)
-    token = _admin_token_for(expected_pw)
-    # Initiative 4 fix — admin HMAC tokens are deterministic, so the
-    # session_activity row keyed by sha256(token) survives across
-    # logouts. Reset it on every successful login so a re-login after
-    # idle never fails the middleware's idle check against a stale row.
-    await _reset_session_activity(
-        db, token, "ADMIN_HR",
-        actor_label="admin",
-        ip=ip,
-        user_agent=request.headers.get("user-agent") or "",
+    """TRACK 15.32 (2026-02) — shared ADMIN_PASSWORD path retired.
+
+    The single canonical admin login is now `POST /api/auth/multi-login`
+    which uses the per-user `user_directory` table. This endpoint is
+    retained so legacy clients receive a clear retirement message
+    instead of a silent 404.
+    """
+    del body, request  # noqa: ERA001 — explicit retirement marker
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "The shared-password admin login was retired in TRACK 15.32. "
+            "Use POST /api/auth/multi-login with your assigned admin user "
+            "email + password instead."
+        ),
     )
-    return {"ok": True, "token": token}
 
 
 @api_router.get("/admin/check")
@@ -1741,21 +1731,43 @@ async def admin_logout(request: Request, _: bool = Depends(require_admin)):
 
 @api_router.post("/admin/auth/verify-password")
 async def admin_verify_password(body: AdminLoginRequest, request: Request):
-    """Re-verify the admin password without rotating the stored session
-    token. Used by destructive-action confirmation dialogs (delete backup
-    file, REPLACE restore, force re-seed) so an admin must re-type the
-    password before the action runs.
+    """Re-verify the *current admin user's* password without rotating
+    their session token. Used by destructive-action confirmation dialogs
+    (delete backup file, REPLACE restore, force re-seed) so an admin
+    must re-type their password before the action runs.
 
-    Shares the same lockout protection as ``/admin/login`` so brute force
-    against this endpoint is rate-limited per IP.
+    TRACK 15.32 (2026-02) — rewired from the shared ``ADMIN_PASSWORD``
+    HMAC check to the per-user ``user_directory`` password. The actor is
+    resolved from the X-Admin-Token header; we re-authenticate them
+    against their directory bcrypt hash.
+
+    Shares the same lockout protection as the multi-login path so brute
+    force is rate-limited per IP.
     """
     ip = _client_ip(request)
     _check_login_lockout(ip)
-    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
-    if not expected_pw:
-        # Gate disabled — anyone can "confirm"
-        return {"ok": True}
-    if not hmac.compare_digest(body.password or "", expected_pw):
+    x_admin_token = request.headers.get("x-admin-token") or ""
+    # Resolve the current admin actor from session_activity (the row
+    # was stamped at multi-login time).
+    actor_row = None
+    if x_admin_token:
+        try:
+            import hashlib as _h
+            th = _h.sha256(x_admin_token.encode()).hexdigest()
+            sess = await db.session_activity.find_one(
+                {"token_hash": th},
+                {"_id": 0, "email": 1, "user_id": 1},
+            )
+            if sess and sess.get("email"):
+                import user_directory as _ud  # noqa: PLC0415
+                actor_row = await _ud.authenticate(
+                    db,
+                    email=sess["email"],
+                    password=body.password or "",
+                )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"admin_verify_password resolver failed: {exc}")
+    if not actor_row or actor_row.get("disabled"):
         _record_login_fail(ip)
         raise HTTPException(status_code=401, detail="Wrong password")
     _reset_login_fails(ip)
@@ -1763,7 +1775,6 @@ async def admin_verify_password(body: AdminLoginRequest, request: Request):
     # action within the configured window passes the require_recent
     # gate. The admin token comes via header; if missing, the step-up
     # record is keyed by an empty token-hash (effectively a no-op).
-    x_admin_token = request.headers.get("x-admin-token") or ""
     await _record_admin_step_up(db, x_admin_token)
     await _record_admin_action(db, "admin_step_up_verified", request)
     return {"ok": True}
@@ -11909,13 +11920,19 @@ from routes.auth_directory_routes import build_auth_directory_router  # noqa: E4
 
 
 def _directory_admin_token(row: Dict[str, Any]) -> Optional[str]:
-    """Mint an admin token for a directory user. Reuses the env-derived
-    admin token format so all existing /api/admin/* routes accept it
-    unchanged."""
-    expected_pw = os.environ.get("ADMIN_PASSWORD", "")
-    if not expected_pw:
+    """Mint a per-user admin token (TRACK 15.32). The token format is
+    ``<user_id>.<HMAC>`` and binds to the directory user's
+    ``password_hash`` so a password rotation invalidates extant tokens.
+    All /api/admin/* routes accept it via the new validator
+    ``user_directory.is_valid_directory_admin_token_async``.
+    """
+    if not row or not row.get("id") or not row.get("password_hash"):
         return None
-    return _admin_token_for(expected_pw)
+    try:
+        return _ud.make_directory_admin_token(row["id"], row["password_hash"])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"_directory_admin_token mint failed: {exc}")
+        return None
 
 
 async def _ensure_portal_shadow(
@@ -12167,7 +12184,7 @@ _pm_router = build_pm_router(
         "directory_admin_token_fn": _directory_admin_token,
         "reset_session_activity_fn": _reset_session_activity,
         "clear_session_activity_fn": _clear_session_activity,
-        "pm_token_for_fn": _pm_token_for,
+        "pm_token_for_fn": None,  # TRACK 15.32 — shared PM HMAC retired
         "render_portal_email_fn": render_portal_email,
     },
 )

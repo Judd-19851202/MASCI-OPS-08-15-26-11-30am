@@ -16,7 +16,7 @@ load_dotenv("/app/frontend/.env")
 load_dotenv("/app/backend/.env")
 
 BASE_URL = os.environ["REACT_APP_BACKEND_URL"].rstrip("/")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 LEADERSHIP_PASSWORD = os.environ.get("LEADERSHIP_PASSWORD", "MASCIGC")
 
 DOC_ID_RE = re.compile(r"^[A-Z]{2,5}-\d{4}-\d{5}$")

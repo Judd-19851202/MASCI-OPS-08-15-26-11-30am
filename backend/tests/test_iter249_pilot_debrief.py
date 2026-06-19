@@ -62,7 +62,7 @@ def admin_token():
         pytest.skip("REACT_APP_BACKEND_URL not configured")
     r = requests.post(
         f"{URL}/api/admin/login",
-        json={"password": os.environ.get("ADMIN_PASSWORD_E2E", "MASCI1982!")},
+        json={"password": os.environ.get("ADMIN_PASSWORD_E2E", "Maddix123!")},
         timeout=15,
     )
     assert r.status_code == 200, f"admin login failed: {r.status_code} {r.text}"

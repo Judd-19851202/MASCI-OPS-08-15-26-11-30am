@@ -35,7 +35,7 @@ def _read_kv(path, key):
 
 URL = (_read_kv(Path("/app/frontend/.env"), "REACT_APP_BACKEND_URL")
        or os.environ.get("REACT_APP_BACKEND_URL", "")).rstrip("/")
-ADMIN_PW = _read_kv(Path("/app/backend/.env"), "ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PW = _read_kv(Path("/app/backend/.env"), "ADMIN_PASSWORD") or "Maddix123!"
 HR_EMAIL, HR_PW = "hrmanager@mascigc.com", "HRTesting2026!"
 SAFETY_EMAIL, SAFETY_PW = "safety@mascigc.com", "SafetyTest2026!"
 

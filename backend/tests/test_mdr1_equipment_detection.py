@@ -28,7 +28,7 @@ load_dotenv("/app/backend/.env")
 
 BACKEND = os.environ.get("BACKEND_URL", "http://localhost:8001")
 API = f"{BACKEND}/api"
-ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 MONGO_URL = os.environ["MONGO_URL"]
 DB_NAME = os.environ["DB_NAME"]
 

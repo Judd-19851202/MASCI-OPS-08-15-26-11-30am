@@ -49,7 +49,7 @@ def _req(method, path, *, body=None, headers=None):
 @pytest.fixture(scope="module")
 def admin_token():
     r = _req("POST", "/admin/login",
-             body={"password": os.environ.get("ADMIN_PASSWORD", "MASCI1982!")})
+             body={"password": os.environ.get("ADMIN_PASSWORD", "Maddix123!")})
     assert r["status"] == 200, r
     return r["json"]["token"]
 

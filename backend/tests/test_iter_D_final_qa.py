@@ -27,7 +27,7 @@ API = f"{BASE}/api"
 # ----------------- Token fixtures (session-scoped) -----------------
 @pytest.fixture(scope="session")
 def admin_token():
-    r = requests.post(f"{API}/admin/login", json={"password": "MASCI1982!"}, timeout=10)
+    r = requests.post(f"{API}/admin/login", json={"password": "Maddix123!"}, timeout=10)
     assert r.status_code == 200, f"admin login failed: {r.status_code} {r.text}"
     return r.json()["token"]
 

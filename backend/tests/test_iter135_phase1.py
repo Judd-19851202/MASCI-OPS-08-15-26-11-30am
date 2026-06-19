@@ -26,7 +26,7 @@ def _load_backend_url() -> str:
 BASE_URL = _load_backend_url()
 SAFETY_EMAIL = "safety@mascigc.com"
 SAFETY_PW = "Safety123!"
-ADMIN_PW = "MASCI1982!"
+ADMIN_PW = "Maddix123!"
 PM_EMAIL = "chriswright@mascigc.com"
 PM_PW = "ChrisRocksThis2026"
 

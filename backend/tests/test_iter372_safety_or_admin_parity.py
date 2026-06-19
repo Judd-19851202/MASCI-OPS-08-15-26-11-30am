@@ -43,7 +43,7 @@ def _read_env(path: str, key: str) -> str:
 
 
 BASE_URL = _read_env("/app/frontend/.env", "REACT_APP_BACKEND_URL").rstrip("/")
-ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "Maddix123!"
 
 # Fleet-ops safety route — uses _require_safety_or_admin_fleet
 FLEET_OPS_SAFETY_ROUTE = "/api/safety/fleet/emergency-equipment"  # canonical safety fleet endpoint

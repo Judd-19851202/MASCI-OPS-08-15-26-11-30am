@@ -41,7 +41,7 @@ def leadership_token():
 
 @pytest.fixture(scope="module")
 def admin_token():
-    r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": "MASCI1982!"}, timeout=15)
+    r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": "Maddix123!"}, timeout=15)
     assert r.status_code == 200, r.text
     return r.json()["token"]
 

@@ -46,7 +46,7 @@ API = f"{URL}/api"
 
 
 def _admin_hdrs():
-    r = requests.post(f"{API}/admin/login", json={"password": "MASCI1982!"}, timeout=15)
+    r = requests.post(f"{API}/admin/login", json={"password": "Maddix123!"}, timeout=15)
     if r.status_code == 200:
         token = r.json().get("token")
         if token:

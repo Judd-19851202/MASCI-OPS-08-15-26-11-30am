@@ -1,8 +1,8 @@
 """Iter 31 — PM (Project Manager) portal authorization model.
 
 Verifies:
-- Admin password rotated to MASCI1982! (old Happy123! rejected at /admin/login).
-- /api/pm/login + /api/pm/check work with PM_PASSWORD=Happy123!.
+- Admin password rotated to Maddix123! (old Maddix123! rejected at /admin/login).
+- /api/pm/login + /api/pm/check work with PM_PASSWORD=Maddix123!.
 - PM token CAN access regular admin routes (jobs master, equipment master,
   inspections, suppliers, employees, posters, compliance CSVs).
 - PM token CANNOT access backup/recovery routes (admin-strict 401).
@@ -30,8 +30,8 @@ BASE = os.environ.get(
 ).rstrip("/")
 API = f"{BASE}/api"
 
-ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or _read_env("ADMIN_PASSWORD") or "MASCI1982!"
-PM_PWD = os.environ.get("PM_PASSWORD") or _read_env("PM_PASSWORD") or "Happy123!"
+ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or _read_env("ADMIN_PASSWORD") or "Maddix123!"
+PM_PWD = os.environ.get("PM_PASSWORD") or _read_env("PM_PASSWORD") or "Maddix123!"
 
 
 # ---------- Login fixtures ----------
@@ -51,13 +51,13 @@ def pm_token():
 
 # ---------- Login behavior ----------
 def test_old_admin_password_rejected():
-    """Old Happy123! must no longer authenticate as admin."""
-    if ADMIN_PWD == "Happy123!":
+    """Old Maddix123! must no longer authenticate as admin."""
+    if ADMIN_PWD == "Maddix123!":
         pytest.skip("ADMIN_PASSWORD has not been rotated in this env")
     # Bypass conftest auto-token injection on the login call itself.
     r = requests.post(
         f"{API}/admin/login",
-        json={"password": "Happy123!"},
+        json={"password": "Maddix123!"},
         headers={"X-Admin-Token": ""},
         timeout=15,
     )

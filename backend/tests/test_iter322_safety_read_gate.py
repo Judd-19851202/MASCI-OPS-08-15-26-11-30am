@@ -85,7 +85,7 @@ def _raw_request(method, path, headers=None):
 
 @pytest.fixture(scope="module")
 def admin_token():
-    pw = _env("ADMIN_PASSWORD") or "MASCI1982!"
+    pw = _env("ADMIN_PASSWORD") or "Maddix123!"
     r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": pw}, timeout=TIMEOUT)
     if r.status_code != 200:
         pytest.skip(f"Admin login failed: {r.status_code}")

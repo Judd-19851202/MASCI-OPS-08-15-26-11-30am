@@ -43,7 +43,7 @@ def safety_token():
 @pytest.fixture(scope="session")
 def admin_token():
     # Legacy admin token
-    r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": "MASCI1982!"}, timeout=20)
+    r = requests.post(f"{BASE_URL}/api/admin/login", json={"password": "Maddix123!"}, timeout=20)
     r.raise_for_status()
     return r.json().get("token")
 

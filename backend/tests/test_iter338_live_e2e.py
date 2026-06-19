@@ -8,7 +8,7 @@ import pytest
 import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
-ADMIN_PASSWORD = "MASCI1982!"
+ADMIN_PASSWORD = "Maddix123!"
 
 SEEDED_INCIDENT_REF = "INC-2026-0517-002"
 SEEDED_DAILY_UUID = "42e3a8e6-dc41-4cc4-bb57-0d5c4be3d0f8"

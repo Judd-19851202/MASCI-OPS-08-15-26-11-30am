@@ -45,7 +45,7 @@ if not os.environ.get("MFA_ENCRYPTION_KEY"):
 
 
 BASE_URL = _read_env("/app/frontend/.env", "REACT_APP_BACKEND_URL").rstrip("/")
-ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "Maddix123!"
 SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PW = "Maddix123!"
 

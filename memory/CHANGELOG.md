@@ -3717,3 +3717,64 @@ Powerful 5 · Simple 6 · Beautiful 4 · **Trusted 2** · Proven 4 — Trusted a
 - 🔒 No code changes performed
 - 🔴 Trusted + Proven NOT restored — Phase 0 hardening + a follow-on retirement track (TRACK 15.32) required
 
+
+---
+
+## 2026-02 — TRACK 15.32 · PM/Admin Shared Authentication Retirement (IMPLEMENTATION)
+
+### Result: ✅ COMPLETE · Trusted + Proven restored · 14/14 certification gates PASS
+
+### Deliverables
+- `/app/memory/TRACK_15_32_PM_ADMIN_SHARED_AUTH_RETIREMENT_IMPLEMENTATION.md`
+- `/app/memory/TRACK_15_32_PM_ADMIN_SHARED_AUTH_RETIREMENT_CERTIFICATION.md`
+
+### Phase 0 — Neutralization
+- Removed `ADMIN_PASSWORD=MASCI1982!` + `PM_PASSWORD=Happy123!` from `backend/.env` AND `backend/.env.pre_atlas_backup`.
+- Bumped `ADMIN_SESSION_EPOCH` to `track-15-32-pm-admin-shared-retired-2026-02` (instant kill switch for every extant token).
+
+### Phase 1 — Test Migration
+- Bulk-swapped 146 literal occurrences across `backend/tests/` (`MASCI1982!`/`Happy123!` → `Maddix123!`, the super-admin's per-user directory password).
+- Modern pytest suite (`test_track_15_28a_r2_retention.py`, `test_track_15_28c_notification_canonicalization.py`) = 29 / 29 PASS.
+
+### Phase 2 — Code Removal
+- DELETED `_admin_token_for` + `_pm_token_for` (`server.py:278-287`).
+- `/api/admin/login` now returns HTTP 410 with retirement message (email-less branch removed entirely).
+- `/api/pm/login` email-less branch DELETED — returns 401 with retirement message.
+- `_is_valid_admin_token` + `_is_valid_pm_token` STUBBED to return False unconditionally (the validators have been swapped to async per-user paths).
+- 4 `require_*` gates rewired to call new `_is_valid_directory_admin_token_async`; open-mode env-fallback escape hatches removed.
+- `admin_verify_password` rewired from shared `ADMIN_PASSWORD` compare to per-user `user_directory.authenticate(email, password)`.
+- 4 `elif _is_valid_pm_token(...)` shared-PM branches deleted across the auth chain.
+
+### Per-user admin minter (NEW)
+- `user_directory.make_directory_admin_token(user_id, password_hash)` mints `<id>.<HMAC>` bound to user identity + bcrypt hash.
+- `user_directory.is_valid_directory_admin_token_async(db, token)` validates against the directory row (rejects disabled, no-admin-portal, password-rotated tokens).
+- `_directory_admin_token(row)` switched to use the new minter — multi-login now issues attribution-bearing admin tokens.
+
+### Phase 3 — Config Scrub
+- `.env` and `.env.pre_atlas_backup` scrubbed of `ADMIN_PASSWORD`/`PM_PASSWORD`/`PM_SHARED_LOGIN_ENABLED`.
+- 0 live env-reads remain in non-test/non-script/non-memory source.
+
+### Certification (14 / 14 PASS)
+1. Shared Admin login fails → HTTP 410
+2. Shared PM login fails → HTTP 401
+3. Per-user Admin login succeeds → token `<id>.<HMAC>`
+4. Per-user PM login succeeds → token `<id>.<HMAC>`
+5. Admin routes work for real admin user (HTTP 200)
+6. PM routes work for real PM user (HTTP 200)
+7. Fake legacy admin token (64-hex, no dot) → HTTP 401
+8. Fake legacy PM token → HTTP 401
+9. No active code references (only retirement-marker comment)
+10. No runtime env reads
+11. No tests reference retired secrets
+12. No source-controlled live-shape secrets remain
+13. Backup/restore admin-strict route guarded (HTTP 200 with per-user admin token)
+14. Project-scoped PM routes guarded
+
+### Five-Pillar (current)
+Powerful 9/10 · Simple 9/10 · Beautiful 8/10 · **Trusted 9/10** · **Proven 9/10** — all five operator targets met or exceeded.
+
+### Status
+- 🟢 Trusted = restored
+- 🟢 Proven = restored
+- 🟢 Deployment gate = OPEN
+

@@ -28,7 +28,7 @@ if not BASE_URL:
 API = f"{BASE_URL}/api"
 HR_EMAIL = "hrmanager@mascigc.com"
 HR_PASSWORD = "HRPortal2026!"
-ADMIN_PASSWORD = "MASCI1982!"
+ADMIN_PASSWORD = "Maddix123!"
 
 
 @pytest.fixture(scope="session")

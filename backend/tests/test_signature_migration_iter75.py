@@ -34,7 +34,7 @@ BASE_URL = (
     _read_kv(Path("/app/frontend/.env"), "REACT_APP_BACKEND_URL")
     or os.environ.get("REACT_APP_BACKEND_URL", "")
 ).rstrip("/")
-ADMIN_PASSWORD = "MASCI1982!"
+ADMIN_PASSWORD = "Maddix123!"
 
 
 def _raw(method, path, headers=None, timeout=15):

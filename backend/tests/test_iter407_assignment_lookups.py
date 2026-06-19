@@ -57,7 +57,7 @@ def _dispatch_token():
     """Admin path is simpler for fork tests — admin satisfies the gate."""
     r = requests.post(
         f"{API}/admin/login",
-        json={"password": "MASCI1982!"},
+        json={"password": "Maddix123!"},
         timeout=15,
     )
     if r.status_code == 200:

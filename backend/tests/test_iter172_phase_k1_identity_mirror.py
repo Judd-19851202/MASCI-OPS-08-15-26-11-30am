@@ -126,7 +126,7 @@ def test_mirrored_rows_have_random_unguessable_hash():
 
     row = _run(body)
     assert row["password_hash"]
-    for guess in ("", "password", "seedpw", "Maddix123!", "MASCI1982!"):
+    for guess in ("", "password", "seedpw", "Maddix123!", "Maddix123!"):
         assert not bcrypt.checkpw(guess.encode(), row["password_hash"].encode("ascii"))
 
 

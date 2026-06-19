@@ -41,7 +41,7 @@ if not BASE_URL:
                 break
 
 API = f"{BASE_URL}/api"
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD") or "Maddix123!"
 XLSX_PATH = Path("/tmp/assets/Equipment List.xlsx")
 SEED_FILE = Path("/app/backend/data/equipment_master.json")
 DATA_DIR = SEED_FILE.parent

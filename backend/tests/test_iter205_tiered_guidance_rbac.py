@@ -210,7 +210,7 @@ def test_deep_portal_article_has_spanish(aid):
 def _admin_token():
     r = httpx.post(
         f"{API_URL}/api/admin/login",
-        json={"password": os.environ.get("ADMIN_PASSWORD", "MASCI1982!")},
+        json={"password": os.environ.get("ADMIN_PASSWORD", "Maddix123!")},
         timeout=10.0,
     )
     return r.json().get("token")

@@ -20,7 +20,7 @@ import requests
 import pytest
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
-ADMIN_PASSWORD = "MASCI1982!"
+ADMIN_PASSWORD = "Maddix123!"
 
 
 @pytest.fixture(scope="module")

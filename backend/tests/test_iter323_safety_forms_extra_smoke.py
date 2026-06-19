@@ -35,7 +35,7 @@ def safety_token() -> str:
 def admin_token() -> str:
     resp = requests.post(
         f"{BASE_URL}/api/admin/login",
-        json={"password": "MASCI1982!"},
+        json={"password": "Maddix123!"},
         timeout=20,
     )
     assert resp.status_code == 200, f"admin login failed: {resp.text}"

@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 API_BASE = (os.environ.get("TRENCH_SAFETY_API_BASE") or "http://localhost:8001").rstrip("/")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 
 # 1x1 png base64
 _TINY_PNG = (

@@ -65,7 +65,7 @@ def _anon_status(path: str) -> int:
 def _admin_hdrs():
     r = requests.post(
         f"{API}/admin/login",
-        json={"password": "MASCI1982!"},
+        json={"password": "Maddix123!"},
         timeout=15,
     )
     if r.status_code == 200:

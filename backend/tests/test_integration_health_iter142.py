@@ -47,7 +47,7 @@ def admin_headers(admin_token):
     # Fallback: legacy admin login
     if not portal_tok:
         r2 = requests.post(f"{BASE_URL}/api/admin/login",
-                           json={"password": "MASCI1982!"},
+                           json={"password": "Maddix123!"},
                            timeout=10)
         if r2.status_code == 200:
             portal_tok = r2.json().get("token")

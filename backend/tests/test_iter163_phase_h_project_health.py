@@ -55,7 +55,7 @@ def _arun(coro):
 
 def _admin_token():
     r = requests.post(f"{URL}/api/admin/login",
-                      json={"password": "MASCI1982!"},
+                      json={"password": "Maddix123!"},
                       headers={"X-Admin-Token": ""}, timeout=10)
     r.raise_for_status()
     return r.json()["token"]

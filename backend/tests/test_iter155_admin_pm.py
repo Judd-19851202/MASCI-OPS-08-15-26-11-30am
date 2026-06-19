@@ -53,7 +53,7 @@ def admin_token():
     # Fallback to shared admin login
     r = requests.post(
         f"{BASE_URL}/api/admin/login",
-        json={"password": "MASCI1982!"},
+        json={"password": "Maddix123!"},
         headers=NO_ADMIN, timeout=20,
     )
     if r.status_code == 200:

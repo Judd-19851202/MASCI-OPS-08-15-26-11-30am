@@ -11,7 +11,7 @@ import requests
 BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
 TIMEOUT = 30
 
-ADMIN_LEGACY_PW = "MASCI1982!"
+ADMIN_LEGACY_PW = "Maddix123!"
 MASTER_EMAIL = "jaymn.judd@mascigc.com"
 MASTER_PW = "Maddix123!"
 CERT_PW = "CertProof2026!"

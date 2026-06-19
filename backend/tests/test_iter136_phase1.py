@@ -29,7 +29,7 @@ BASE_URL = (
     _read_kv(Path("/app/frontend/.env"), "REACT_APP_BACKEND_URL")
     or os.environ.get("REACT_APP_BACKEND_URL", "")
 ).rstrip("/")
-ADMIN_PW = "MASCI1982!"
+ADMIN_PW = "Maddix123!"
 SAFETY_EMAIL = "safety@mascigc.com"
 SAFETY_PW = "Safety123!"
 

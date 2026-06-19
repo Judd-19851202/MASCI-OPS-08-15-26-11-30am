@@ -32,7 +32,7 @@ API_BASE = (
     or "http://localhost:8001"
 ).rstrip("/")
 
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 
 
 # ──────────────────────────────────────────────────────────────────────

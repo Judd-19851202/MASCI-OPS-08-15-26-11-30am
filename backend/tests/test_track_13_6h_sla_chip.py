@@ -30,7 +30,7 @@ load_dotenv("/app/backend/.env")
 sys.path.insert(0, "/app/backend")
 
 BASE = os.environ.get("REACT_APP_BACKEND_URL") or "http://localhost:8001"
-ADMIN_PW = "MASCI1982!"
+ADMIN_PW = "Maddix123!"
 HOLDS = "/api/pm/command-center/holds"
 DUE = "/api/pm/command-center/due-today"
 

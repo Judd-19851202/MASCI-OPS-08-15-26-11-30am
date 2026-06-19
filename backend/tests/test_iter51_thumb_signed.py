@@ -33,7 +33,7 @@ if not _RAW_BASE_URL:
         allow_module_level=True,
     )
 BASE_URL = _RAW_BASE_URL.rstrip("/")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 
 # Allow `import routes.job_photos` for the HEIF-registration assertion.
 sys.path.insert(0, "/app/backend")

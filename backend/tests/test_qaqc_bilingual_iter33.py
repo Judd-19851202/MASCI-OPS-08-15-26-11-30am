@@ -29,7 +29,7 @@ BASE_URL = (
     or os.environ.get("REACT_APP_BACKEND_URL", "")
 ).rstrip("/")
 ADMIN_PASSWORD = _read_kv(Path("/app/backend/.env"), "ADMIN_PASSWORD") or os.environ.get(
-    "ADMIN_PASSWORD", "MASCI1982!"
+    "ADMIN_PASSWORD", "Maddix123!"
 )
 
 # Adjust import path so we can exercise pdf_render directly.

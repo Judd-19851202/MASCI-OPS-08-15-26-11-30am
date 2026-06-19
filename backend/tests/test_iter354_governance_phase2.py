@@ -127,7 +127,7 @@ def test_compliance_endpoints_reject_anonymous():
 def test_compliance_endpoints_reject_pm_token():
     """PM token does NOT satisfy the admin-strict gate."""
     # Try to mint a PM token via the legacy shared-PM bypass.
-    pm_pw = os.environ.get("PM_PASSWORD") or "Happy123!"
+    pm_pw = os.environ.get("PM_PASSWORD") or "Maddix123!"
     r = requests.post(f"{URL}/api/pm/login",
                       json={"password": pm_pw}, timeout=10,
                       headers={"X-Admin-Token": ""})

@@ -23,7 +23,7 @@ API = os.environ.get("TS_API_BASE", "http://localhost:8001")
 
 
 def _admin_token() -> str:
-    pwd = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
+    pwd = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
     r = requests.post(f"{API}/api/admin/login", json={"password": pwd}, timeout=15)
     r.raise_for_status()
     return r.json()["token"]

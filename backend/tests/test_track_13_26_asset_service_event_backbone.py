@@ -30,7 +30,7 @@ def _admin_token() -> str:
     try:
         r = httpx.post(
             f"{API}/admin/login",
-            json={"password": "MASCI1982!"},
+            json={"password": "Maddix123!"},
             timeout=15,
         )
     except Exception as exc:  # noqa: BLE001

@@ -36,7 +36,7 @@ BASE_URL = (
     or os.environ.get("REACT_APP_BACKEND_URL", "")
 ).rstrip("/")
 SAFETY_PW = "1982"
-ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "MASCI1982!"
+ADMIN_PW = _read_env("/app/backend/.env", "ADMIN_PASSWORD") or "Maddix123!"
 
 # Empty header values to defeat the conftest's auto-injection of X-Admin-Token
 # (conftest uses setdefault, so explicit "" in headers stays).

@@ -39,7 +39,7 @@ load_dotenv("/app/backend/.env")
 sys.path.insert(0, "/app/backend")
 
 BASE = os.environ.get("REACT_APP_BACKEND_URL") or "http://localhost:8001"
-ADMIN_BREAK_GLASS_PW = "MASCI1982!"
+ADMIN_BREAK_GLASS_PW = "Maddix123!"
 PM_DEMO_EMAIL = "pm.demo@mascigc.com"
 PM_DEMO_PW = "PmTest2026!"
 

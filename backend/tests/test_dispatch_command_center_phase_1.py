@@ -34,7 +34,7 @@ load_dotenv("/app/frontend/.env")
 load_dotenv("/app/backend/.env")
 
 BASE = os.environ.get("REACT_APP_BACKEND_URL") or "http://localhost:8001"
-ADMIN_BREAK_GLASS_PW = "MASCI1982!"
+ADMIN_BREAK_GLASS_PW = "Maddix123!"
 
 
 def _run(coro):
