@@ -206,10 +206,49 @@ def register(app, *, db=None, require_admin_dep=None):
         except Exception:
             trench_holds_active = 0
 
+        # TRACK 15.48 · G6 follow-up · Workplace-violence + Public-
+        # Interaction visibility for leadership. Smallest additive
+        # solution: TWO extra counts on the existing safety tile.
+        # No new tile, no new endpoint, no new collection. Uses the
+        # Track 15.47 `classifications` field on incidents — written
+        # to existing `db.incidents` collection.
+        thirty_days_ago = (now - timedelta(days=30)).isoformat()
+        ninety_days_ago = (now - timedelta(days=90)).isoformat()
+        wv_incidents_90d = 0
+        public_interaction_30d = 0
+        try:
+            wv_incidents_90d = await db.incidents.count_documents({
+                "created_at": {"$gte": ninety_days_ago},
+                "$or": [
+                    {"classifications": {"$in": [
+                        "Workplace Violence", "Physical Assault",
+                        "Weapon Displayed", "Weapon Used",
+                    ]}},
+                    {"physical_assault": True},
+                    {"weapon_displayed": True},
+                    {"weapon_used": True},
+                ],
+            })
+            public_interaction_30d = await db.incidents.count_documents({
+                "created_at": {"$gte": thirty_days_ago},
+                "$or": [
+                    {"classifications": {"$in": [
+                        "Public Interaction", "Verbal Confrontation",
+                        "Threat", "Harassment", "Physical Contact",
+                    ]}},
+                    {"threat_made": True},
+                    {"physical_contact": True},
+                ],
+            })
+        except Exception:
+            pass
+
         safety = {
             "unresolved_incidents": unresolved_incidents,
             "unresolved_corrective_actions": unresolved_capa,
             "active_trench_safety_holds": trench_holds_active,
+            "wv_incidents_90d": wv_incidents_90d,
+            "public_interaction_30d": public_interaction_30d,
             "source_modules": [
                 "safety.incidents", "corrective_actions",
                 "trench_safety.holds",
@@ -246,11 +285,29 @@ def register(app, *, db=None, require_admin_dep=None):
             verdict_reasons.append(
                 f"{unresolved_capa} open corrective actions (threshold > 3)",
             )
-        red = (oos_units > 5) or (unresolved_incidents > 10) or (overdue_capa > 5)
+        # TRACK 15.48 · WV is always RED-grade. Any workplace-violence
+        # incident in the last 90 days surfaces immediately on the
+        # verdict reasons block so the executive sees it without
+        # having to scan tiles.
+        if wv_incidents_90d > 0:
+            verdict_reasons.append(
+                f"{wv_incidents_90d} workplace-violence incident(s) in last 90 days",
+            )
+        if public_interaction_30d > 2:
+            verdict_reasons.append(
+                f"{public_interaction_30d} public-interaction incidents in last 30 days (threshold > 2)",
+            )
+        red = (
+            (oos_units > 5)
+            or (unresolved_incidents > 10)
+            or (overdue_capa > 5)
+            or (wv_incidents_90d > 0)
+        )
         amber = (
             (len(stale_projects) > 3)
             or (active_asset_holds_severe > 0)
             or (unresolved_capa > 3)
+            or (public_interaction_30d > 2)
         )
         verdict = "RED" if red else ("YELLOW" if amber else "GREEN")
 
@@ -266,7 +323,7 @@ def register(app, *, db=None, require_admin_dep=None):
                 "safety": safety,
                 "activity": activity,
             },
-            "foundation_version": "15.44.1",
+            "foundation_version": "15.48.1",
         }
 
     app.include_router(router)

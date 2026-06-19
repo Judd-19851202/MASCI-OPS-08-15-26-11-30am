@@ -10,7 +10,43 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.47 · Incident & Public Interaction Hardening · 🟢 GREEN · Six-Pillar Certified)
+## Latest Track (2026-06-19 · TRACK 15.48 · Incident UI + WV Workflow + Exec Visibility + Deployment Readiness · 🟢 GREEN · Six-Pillar Certified)
+
+### What this is
+The deployment-readiness certification track on top of Track 15.47. Question answered: "Can MASCI deploy today and confidently handle public-interaction / WV / police incidents entirely inside ForgedOps?" — **YES, with evidence.**
+
+### What shipped
+- **Phase 1 · Incident UI (Section 02B)** · `NewIncident.jsx` now captures every G1-G5 field. 14 classification chips · 7 G2 threat/contact toggles · conditional police-detail reveal · 8 damage/vehicle/claim fields. iPad portrait + landscape verified.
+- **Phase 6 · Executive visibility** · `wv_incidents_90d` + `public_interaction_30d` counts added to existing safety tile. WV incidents force RED verdict. Foundation bumped to v15.48.1.
+- **Phase 2-5 · Verification** · Real incident INC-2026-00002 re-rendered (zero regression) + synthetic INC-2026-00488 (79 fields, 2.3 MB PDF). Field preservation `AFTER ⊇ BEFORE` proven.
+
+### Cert evidence
+- Live API: 9 notifications fired on WV test incident (Safety + PM + Superintendent + Operations + Executive + HR + WV review task)
+- Live API: `foundation_version=15.48.1`, `verdict=RED`, `wv_incidents_90d=1`, verdict_reasons includes WV bullet
+- Visual: Section 02B + Topic Picker verified at 3 viewports (desktop + iPad portrait + landscape)
+- PDF: AI content extraction confirms every G1-G5/G7/G8/G9 field present
+
+### Hard-rule compliance
+- No new collections · no V2 PDF/incident/CAPA/notification systems · no new endpoints
+- Universal PDF Foundation (15.41 + 15.42) preserved
+- Pre-existing 69 incidents render identically (zero regression)
+
+### Deliverables (in /app/memory/)
+- TRACK_15_48_INCIDENT_UI_CERTIFICATION.md
+- TRACK_15_48_WORKPLACE_VIOLENCE_CERTIFICATION.md
+- TRACK_15_48_PUBLIC_INTERACTION_TOPIC_CERTIFICATION.md
+- TRACK_15_48_SAFETY_MEETING_UX_AUDIT.md
+- TRACK_15_48_PDF_COMPLIANCE_CERTIFICATION.md
+- TRACK_15_48_EXECUTIVE_VISIBILITY_AUDIT.md
+- TRACK_15_48_DEPLOYMENT_READINESS_CERTIFICATION.md
+- TRACK_15_48_SIX_PILLAR_CERTIFICATION.md
+
+### Final answer
+🟢 **DEPLOYMENT READY.** All 9 acceptance gates met. Zero unresolved HIGH-severity defects.
+
+---
+
+## Previous Track (2026-06-19 · TRACK 15.47 · Incident & Public Interaction Hardening · 🟢 GREEN · Six-Pillar Certified)
 
 ### What this is
 Driver: real-world public-confrontation incident that escalated to physical contact. Certification target: "Can MASCI defend itself six months later using only ForgedOps?"

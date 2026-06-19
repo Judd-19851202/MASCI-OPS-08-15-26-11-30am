@@ -245,14 +245,22 @@ export default function ExecutiveOverview() {
           title="Safety Attention Items"
           count={(t.safety?.unresolved_incidents || 0) + (t.safety?.unresolved_corrective_actions || 0)}
           countTone={
+            (t.safety?.wv_incidents_90d || 0) > 0 ? "red" :
             (t.safety?.unresolved_incidents || 0) > 0 ? "red" :
             (t.safety?.unresolved_corrective_actions || 0) > 0 ? "amber" : "green"
           }
-          description="Unresolved incidents + open CAPAs + active trench holds"
+          description="Unresolved incidents + open CAPAs + workplace violence + public interaction"
           lines={[
             <span key="inc"><strong>{fmt(t.safety?.unresolved_incidents)}</strong> unresolved incidents</span>,
             <span key="capa"><strong>{fmt(t.safety?.unresolved_corrective_actions)}</strong> open corrective actions</span>,
             <span key="trench"><strong>{fmt(t.safety?.active_trench_safety_holds)}</strong> active trench-safety holds</span>,
+            // TRACK 15.48 · Workplace-violence + Public-Interaction visibility.
+            <span key="wv" data-testid="tile-safety-wv" className={(t.safety?.wv_incidents_90d || 0) > 0 ? "text-red-700 font-bold" : ""}>
+              <strong>{fmt(t.safety?.wv_incidents_90d)}</strong> workplace-violence incidents (90d)
+            </span>,
+            <span key="pi" data-testid="tile-safety-public-interaction" className={(t.safety?.public_interaction_30d || 0) > 0 ? "text-amber-700 font-medium" : ""}>
+              <strong>{fmt(t.safety?.public_interaction_30d)}</strong> public-interaction incidents (30d)
+            </span>,
           ]}
           sources={t.safety?.source_modules}
           drillTo="/safety"

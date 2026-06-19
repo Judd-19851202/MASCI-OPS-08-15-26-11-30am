@@ -41,6 +41,7 @@ import { HelpTipBlock } from "@/components/HelpTip";
 import { formatApiError } from "@/lib/apiErrors";
 import {
   INCIDENT_TYPES,
+  INCIDENT_CLASSIFICATIONS,
   SEVERITY_LEVELS,
   BODY_PARTS,
   INJURY_NATURES,
@@ -701,7 +702,241 @@ export default function NewIncident({ publicMode = false }) {
           </div>
         </Section>
 
-        {/* Section 03 — Person involved (only if injury-related) */}
+        {/* TRACK 15.47 / 15.48 · Defensibility Classifications.
+            Surfaces the G1 / G2 / G3 / G5 fields the operator needs for
+            public-interaction, workplace-violence, and police-involved
+            incidents. Form section is always visible so the operator
+            does not have to remember to expand a hidden card. */}
+        <Section number="02B" title={t("Defensibility Classifications · Track 15.47")}>
+          <p className="text-xs text-slate-500 mb-3">
+            {t("Tick every classification that applies. These drive notifications to Operations / Executive / HR for workplace-violence events and appear on the printed PDF.")}
+          </p>
+
+          {/* G1 · Multi-select classifications */}
+          <div className="mb-5">
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 mb-2 block">
+              {t("Classifications")}
+            </Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2" data-testid="incident-classifications-grid">
+              {INCIDENT_CLASSIFICATIONS.map((label) => {
+                const active = (data.classifications || []).includes(label);
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() =>
+                      set(
+                        "classifications",
+                        active
+                          ? (data.classifications || []).filter((c) => c !== label)
+                          : [...(data.classifications || []), label],
+                      )
+                    }
+                    className={cn(
+                      "text-left text-xs border-2 rounded-md px-3 py-2 transition-colors duration-150",
+                      active
+                        ? "border-red-700 bg-red-50 text-red-900 font-bold"
+                        : "border-slate-200 bg-white hover:border-red-300 text-slate-700",
+                    )}
+                    data-testid={`incident-classification-${label.toLowerCase().replace(/\s+/g, "-")}`}
+                  >
+                    {active ? "✓ " : ""}{t(label)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* G2 · Threat & contact structured booleans */}
+          <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              ["threat_made", "Threat made (verbal or implied)"],
+              ["physical_contact", "Physical contact occurred"],
+              ["physical_assault", "Physical assault occurred"],
+              ["weapon_displayed", "Weapon displayed"],
+              ["weapon_used", "Weapon used"],
+              ["media_filmed", "Encounter was filmed by public / media"],
+              ["social_media_posted", "Posted to social media"],
+            ].map(([key, label]) => (
+              <label key={key} className="flex items-start gap-2 text-sm cursor-pointer" data-testid={`incident-flag-${key}`}>
+                <Checkbox
+                  checked={!!data[key]}
+                  onCheckedChange={(v) => set(key, !!v)}
+                />
+                <span className="text-slate-700">{t(label)}</span>
+              </label>
+            ))}
+          </div>
+
+          {/* G2 · Threat / weapon description */}
+          {(data.threat_made || data.weapon_displayed || data.weapon_used) && (
+            <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data.threat_made && (
+                <div>
+                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                    {t("Threat description (verbatim if possible)")}
+                  </Label>
+                  <Textarea
+                    value={data.threat_description || ""}
+                    onChange={(e) => set("threat_description", e.target.value)}
+                    className="min-h-[70px] text-sm border-2 border-slate-300 mt-1"
+                    placeholder='e.g. "I&apos;ll catch you in the parking lot." (Direct quote, finger pointed.)'
+                    data-testid="incident-threat-description"
+                  />
+                </div>
+              )}
+              {(data.weapon_displayed || data.weapon_used) && (
+                <div>
+                  <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                    {t("Weapon description")}
+                  </Label>
+                  <Textarea
+                    value={data.weapon_description || ""}
+                    onChange={(e) => set("weapon_description", e.target.value)}
+                    className="min-h-[70px] text-sm border-2 border-slate-300 mt-1"
+                    placeholder="e.g. Handgun shown · baseball bat · vehicle used as weapon"
+                    data-testid="incident-weapon-description"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* G3 · Police involvement */}
+          <div className="mb-5">
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 mb-2 block">
+              {t("Police Involvement")}
+            </Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+              {[
+                ["police_called", "Police called"],
+                ["police_arrived", "Police arrived"],
+                ["arrest_made", "Arrest made"],
+                ["citation_issued", "Citation issued"],
+              ].map(([key, label]) => (
+                <label key={key} className="flex items-start gap-2 text-sm cursor-pointer" data-testid={`incident-flag-${key}`}>
+                  <Checkbox
+                    checked={!!data[key]}
+                    onCheckedChange={(v) => set(key, !!v)}
+                  />
+                  <span className="text-slate-700">{t(label)}</span>
+                </label>
+              ))}
+            </div>
+            {data.police_called && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input
+                  value={data.police_agency || ""}
+                  onChange={(e) => set("police_agency", e.target.value)}
+                  placeholder={t("Agency (e.g. Seminole County Sheriff)")}
+                  className="h-11 text-sm border-2 border-slate-300"
+                  data-testid="incident-police-agency"
+                />
+                <Input
+                  value={data.police_officer_name || ""}
+                  onChange={(e) => set("police_officer_name", e.target.value)}
+                  placeholder={t("Responding officer name")}
+                  className="h-11 text-sm border-2 border-slate-300"
+                  data-testid="incident-police-officer"
+                />
+                <Input
+                  value={data.police_badge || ""}
+                  onChange={(e) => set("police_badge", e.target.value)}
+                  placeholder={t("Badge / ID")}
+                  className="h-11 text-sm border-2 border-slate-300"
+                  data-testid="incident-police-badge"
+                />
+                <Input
+                  value={data.police_case_number || ""}
+                  onChange={(e) => set("police_case_number", e.target.value)}
+                  placeholder={t("Case number")}
+                  className="h-11 text-sm border-2 border-slate-300"
+                  data-testid="incident-police-case"
+                />
+                <Input
+                  value={data.police_report_number || ""}
+                  onChange={(e) => set("police_report_number", e.target.value)}
+                  placeholder={t("Report number")}
+                  className="h-11 text-sm border-2 border-slate-300"
+                  data-testid="incident-police-report-number"
+                />
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    checked={!!data.police_report_obtained}
+                    onCheckedChange={(v) => set("police_report_obtained", !!v)}
+                    data-testid="incident-police-report-obtained"
+                  />
+                  <span className="text-slate-700">{t("Police report obtained")}</span>
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* G5 · Damage & claim tracking */}
+          <div>
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 mb-2 block">
+              {t("Damage / Vehicle / Claim")}
+            </Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Textarea
+                value={data.damage_description || ""}
+                onChange={(e) => set("damage_description", e.target.value)}
+                placeholder={t("Damage description (what was hit, what broke)")}
+                className="min-h-[60px] text-sm border-2 border-slate-300 md:col-span-2"
+                data-testid="incident-damage-description"
+              />
+              <Input
+                value={data.damage_estimated_value || ""}
+                onChange={(e) => set("damage_estimated_value", e.target.value)}
+                placeholder={t("Estimated damage value ($)")}
+                className="h-11 text-sm border-2 border-slate-300"
+                data-testid="incident-damage-value"
+              />
+              <Input
+                value={data.vehicle_make_model || ""}
+                onChange={(e) => set("vehicle_make_model", e.target.value)}
+                placeholder={t("Vehicle make / model (if applicable)")}
+                className="h-11 text-sm border-2 border-slate-300"
+                data-testid="incident-vehicle-make"
+              />
+              <Input
+                value={data.vehicle_vin || ""}
+                onChange={(e) => set("vehicle_vin", e.target.value)}
+                placeholder={t("VIN")}
+                className="h-11 text-sm border-2 border-slate-300"
+                data-testid="incident-vehicle-vin"
+              />
+              <Input
+                value={data.vehicle_plate || ""}
+                onChange={(e) => set("vehicle_plate", e.target.value)}
+                placeholder={t("License plate")}
+                className="h-11 text-sm border-2 border-slate-300"
+                data-testid="incident-vehicle-plate"
+              />
+              <Input
+                value={data.asset_number || ""}
+                onChange={(e) => set("asset_number", e.target.value)}
+                placeholder={t("MASCI asset # (if our equipment)")}
+                className="h-11 text-sm border-2 border-slate-300"
+                data-testid="incident-asset-number"
+              />
+              <Input
+                value={data.insurance_carrier || ""}
+                onChange={(e) => set("insurance_carrier", e.target.value)}
+                placeholder={t("Insurance carrier")}
+                className="h-11 text-sm border-2 border-slate-300"
+                data-testid="incident-insurance-carrier"
+              />
+              <Input
+                value={data.insurance_claim_number || ""}
+                onChange={(e) => set("insurance_claim_number", e.target.value)}
+                placeholder={t("Insurance claim #")}
+                className="h-11 text-sm border-2 border-slate-300"
+                data-testid="incident-insurance-claim"
+              />
+            </div>
+          </div>
+        </Section>
         {isInjury && (
           <Section number="03" title={t("Person Involved")}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
@@ -893,7 +1128,7 @@ export default function NewIncident({ publicMode = false }) {
               Equipment involved (optional)
             </Label>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Link to a specific MASCI equipment unit. Improves traceability for the Safety team's corrective-action lookup.
+              Link to a specific MASCI equipment unit. Improves traceability for the Safety team&apos;s corrective-action lookup.
             </p>
             <div className="mt-1">
               <MasterLookupCombobox
@@ -1008,7 +1243,7 @@ export default function NewIncident({ publicMode = false }) {
         <Section number="06" title={t("Witnesses")}>
           <HelpTipBlock formKey="incident.witnesses" className="mb-3" />
           <p className="text-sm text-slate-600">
-            Add anyone who saw the event. Capture short statements while it's
+            Add anyone who saw the event. Capture short statements while it&apos;s
             fresh.
           </p>
           {data.witnesses.map((w, i) => (
