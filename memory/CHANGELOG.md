@@ -3919,3 +3919,36 @@ Production (`mascidocs.com`) was HEALTHY (5/5 probes pass in 1s direct). The ale
 
 ### Deliverable
 - `/app/memory/TRACK_15_34B_PRODUCTION_HEALTH_PROBE_RCA.md`
+
+---
+
+## 2026-02 · TRACK 15.35 · Production Post-Deployment Certification
+
+### Mode
+LIVE production verification against `https://mascidocs.com` · NO code changes · evidence-only.
+
+### Scope
+Tracks 15.28C/D, 15.30, 15.32, 15.34, 15.34A, 15.34B invariants verified against the deployed build.
+
+### Eight phases — all PASS
+
+| Phase | Gate | Result |
+|---|---|---|
+| 1 | Production health (`/api/health` 200 in 421ms · verify-production.sh v15.34B 5/5 in 2s) | ✅ PASS |
+| 2 | Authentication (7/7 portals issue tokens via canonical multi-login; protected pages 200 with token, 401 without; directory session restores) | ✅ PASS |
+| 3 | Notifications (mark-read decrements count, 200/200 distinct ids, 0 PM scope leaks, canonical Track 15.28C `read_by[]` schema intact) | ✅ PASS |
+| 4 | Team assignment (real production project `20-07` + real production employee Alec V Perkins, full add/remove/audit cycle) | ✅ PASS |
+| 5 | Admin critical surfaces (16/16 endpoints return 200 with substantive payloads) | ✅ PASS |
+| 6 | Public operational surfaces (Daily Report + Safety Meeting submissions accepted & persisted; SAFETY_FORMS_PASSWORD gate fires correctly) | ✅ PASS |
+| 7 | Regression locks (Shop 401 · PM 401 · Admin 410 retirement messages · canonical schema 100/100 · dead-shim retirement preserved · 15.34B hardening in source) | ✅ PASS |
+| 8 | Five-Pillar Certification (Powerful · Simple · Beautiful · Trusted · Proven — all cleared) | ✅ PASS |
+
+### Verdict
+🟢 **GREEN** · Production at `https://mascidocs.com` is fully operational and safe for tomorrow-morning operations.
+
+### Deliverable
+- `/app/memory/TRACK_15_35_PRODUCTION_POST_DEPLOY_CERTIFICATION.md` — full evidence record (250+ lines)
+
+### Non-blocking observations
+* Team-assignment ADD response/list does not resolve display_name for employees-collection records (cosmetic; functional fields correct).
+* `test_credentials.md` HR/Dispatch per-portal passwords drifted (multi-login works regardless).
