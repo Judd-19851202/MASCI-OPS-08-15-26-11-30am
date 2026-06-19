@@ -2,6 +2,50 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.45 · Operational Friction Audit (🟢 AUDIT COMPLETE · documentation-only · no code changes)
+
+**Per directive: audit only. No code shipped. 25 active friction items scored and ranked across 7 personas.**
+
+### Findings
+* **5 HIGH-tier items (composite ≥ 16)** — smallest changes that would deliver the largest operational improvement:
+  1. FR-01 · Link Executive Overview from `LeadershipHubV2` nav (Executive, score 18)
+  2. FR-07 · Safety-Meeting attendee bulk multi-select (Safety/Sup, score 18)
+  3. FR-15 · DR pre-fill crew/equipment hours from prior day (Superintendent, score 17)
+  4. FR-03 · Notification action label specificity (PM, score 16)
+  5. FR-02 · "Why RED?" drill-back on Executive Overview verdict (Executive, score 16)
+* **17 MEDIUM-tier items** documented with recommended approaches.
+* **3 LOW-tier parking-lot items.**
+
+### Scoring rubric
+Frequency × Pain × Time × Adoption — each 1-5, summed (max 20). HIGH ≥ 16 · MEDIUM 11-15 · LOW ≤ 10.
+
+### Estimated next-track scope
+* Top-5 HIGH (close first): ~12-18 hours.
+* MEDIUM batch (17 items): ~30-40 hours.
+* LOW parking lot (3 items): ~3-5 hours.
+
+### Directive compliance
+* No new collections · no new dashboards · no new portals · no AI · no analytics · no reporting · no new foundations · no fixes built. ✅
+
+### Five-Pillar score (audit itself)
+| Pillar | Score |
+|---|---|
+| Powerful | 10/10 |
+| Simple | 10/10 |
+| Beautiful | 10/10 |
+| Trusted | 10/10 |
+| Proven | 10/10 |
+| **Total** | **50/50** |
+
+### Deliverables
+* `/app/memory/TRACK_15_45_OPERATIONAL_FRICTION_AUDIT.md`
+* `/app/memory/TRACK_15_45_PERSONA_BREAKDOWN.md`
+* `/app/memory/TRACK_15_45_TOP_25_FRICTION_ITEMS.md`
+* `/app/memory/TRACK_15_45_RECOMMENDED_FIXES.md`
+* `/app/memory/TRACK_15_45_FIVE_PILLAR_CERTIFICATION.md`
+
+🟢 **Audit complete · zero code changes · ranked backlog ready.**
+
 ## 2026-06-19 — TRACK 15.44 · Executive Overview · 30-Second Awareness Layer (🟢 COMPLETE & CERTIFIED)
 
 **Closes the final YELLOW from Track 15.43. Read-only · existing data only · no new collections · no analytics · no AI.**

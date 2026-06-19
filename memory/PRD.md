@@ -10,7 +10,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.44 · Executive Overview · 🟢 COMPLETE & CERTIFIED · v15.44.1)
+## Latest Track (2026-06-19 · TRACK 15.45 · Operational Friction Audit · 🟢 AUDIT COMPLETE · documentation-only)
+
+### What this is
+Audit-only review of operational friction across 7 personas. No code changes. 25 items scored on Frequency × Pain × Time × Adoption (max 20 composite).
+
+### Top-5 HIGH-tier (next-track candidates · ~12-18 hours total)
+1. **FR-01** · Link Executive Overview from `LeadershipHubV2` nav (Executive · 18)
+2. **FR-07** · Safety-Meeting attendee bulk multi-select from employees (Safety/Sup · 18)
+3. **FR-15** · Daily Report pre-fill crew/equipment hours from prior day (Superintendent · 17)
+4. **FR-03** · Notification action label specificity (PM · 16)
+5. **FR-02** · "Why RED?" drill-back on Executive Overview verdict (Executive · 16)
+
+### Distribution
+* HIGH (≥16): 5
+* MEDIUM (11-15): 17
+* LOW (≤10): 3
+
+### Directive compliance
+- No new collections · no new dashboards · no new portals · no AI · no analytics · no reporting · no new foundations · no fixes built.
+
+### Deliverables
+- `TRACK_15_45_OPERATIONAL_FRICTION_AUDIT.md` · `..._PERSONA_BREAKDOWN.md` · `..._TOP_25_FRICTION_ITEMS.md` · `..._RECOMMENDED_FIXES.md` · `..._FIVE_PILLAR_CERTIFICATION.md`
+
+## Previous Track (2026-06-19 · TRACK 15.44 · Executive Overview · 🟢 COMPLETE & CERTIFIED · v15.44.1)
 
 ### Closes Track 15.43's final YELLOW
 - 6-tile read-only awareness surface at `/admin/executive-overview`.
