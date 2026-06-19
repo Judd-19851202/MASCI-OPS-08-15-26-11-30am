@@ -3778,3 +3778,43 @@ Powerful 9/10 · Simple 9/10 · Beautiful 8/10 · **Trusted 9/10** · **Proven 9
 - 🟢 Proven = restored
 - 🟢 Deployment gate = OPEN
 
+
+---
+
+## 2026-02 — TRACK 15.33 · Production Operational Certification (API + Desktop)
+
+### Result: 🟡 CONDITIONAL PASS — desktop/web cleared; mobile/cross-browser deferred to human QA runbook
+
+### Deliverables
+- `/app/memory/TRACK_15_33_PRODUCTION_OPERATIONAL_CERTIFICATION.md` — 22 API probes + desktop SPA evidence + per-portal verdict + Five-Pillar
+- `/app/memory/TRACK_15_33_MOBILE_CERTIFICATION.md` — human-QA runbook (6-device matrix · 8 portals · workflow rubric · sign-off block)
+
+### Probes (22 / 22 reachable; 19 expected-status; 3 yellow probe-path mismatches)
+- Multi-login: HTTP 200, all 7 portal tokens issued in per-user `<id>.<HMAC>` shape
+- Admin / PM / HR / Safety / Shop / Dispatch / Field Leadership / Public — all GREEN at API layer
+- Notification bell: HTTP 200 for every portal (8,846 admin · 663 hr · 3,447 safety · 934 shop · 793 dispatch · 35 fl)
+- Response-time SLO: every probe < 400 ms (median 200 ms)
+
+### Regression caught + fixed mid-cert
+- `/api/notifications/unread-count` returned HTTP 401 for admin tokens because `make_require_any_portal_token` was still calling the synchronous `_is_valid_admin_token` (stubbed False by Track 15.32).
+- Fix: switched the admin branch of `routes/integrations/_deps.py:43-51` to the per-user DB-backed validator `user_directory.is_valid_directory_admin_token_async`. One-file surgical change.
+- Re-probe → HTTP 200 with `{"unread": 8846}`. Logged for inclusion in post-deploy smoke set going forward.
+
+### Desktop SPA sanity (1920×800, Chromium-Playwright)
+- Page renders with preview-environment banner, multi-portal sign-in card, all 7 single-portal links visible. No white-screen, no infinite spinner.
+
+### Five-Pillar (API + desktop only)
+Powerful 9 · Simple 9 · Beautiful DEFERRED · Trusted 9 · **Proven 7** (reaches 9 only after mobile cert runbook signed off)
+
+### What is explicitly NOT certified by this track
+- iPhone portrait / landscape (real device)
+- iPad portrait / landscape (real device)
+- Microsoft Edge browser
+- Real human workflows (create employee, submit JHA, reset password)
+
+**The mobile certification runbook (`TRACK_15_33_MOBILE_CERTIFICATION.md`) is the authoritative document for those tiers.** Do not declare TRACK 15.33 fully complete until that runbook is signed off by a human QA tester on real devices.
+
+### 5:30 AM verdict
+- **Desktop / web Chrome:** YES — trustworthy for daily ops tomorrow.
+- **Mobile / iPad field crews:** PENDING — gated on human QA pass.
+

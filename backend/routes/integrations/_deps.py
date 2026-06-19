@@ -42,9 +42,14 @@ def make_require_any_portal_token(
     ) -> dict:
         # Resolve the base actor from whichever portal token is valid.
         actor: Optional[dict] = None
-        if x_admin_token and is_valid_admin_token(x_admin_token):
-            actor = {"_actor": "admin", "name": "Admin"}
-        elif x_safety_token:
+        # TRACK 15.32 — admin tokens are now per-user (<id>.<HMAC>);
+        # validate via the directory lookup, not the legacy sync compare.
+        if x_admin_token and "." in x_admin_token:
+            from user_directory import is_valid_directory_admin_token_async  # noqa: PLC0415
+            u = await is_valid_directory_admin_token_async(db, x_admin_token)
+            if u:
+                actor = {**u, "_actor": "admin", "name": u.get("name") or "Admin"}
+        if actor is None and x_safety_token:
             u = await is_valid_safety_user_token_async(db, x_safety_token)
             if u:
                 actor = {**u, "_actor": "safety"}
