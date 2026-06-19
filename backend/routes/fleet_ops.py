@@ -1659,17 +1659,10 @@ def build_router(
                     "name": user.get("name") or user.get("email") or "Shop User",
                     "role": role or "Shop",
                 }
-        # Legacy shared shop password — admits but with NO identity.
-        # This is the kiosk fallback; manager-only endpoints reject it.
-        shop_pw = os.environ.get("SHOP_PASSWORD", "")
-        if x_shop_token and shop_pw:
-            from server import _shop_token_for  # noqa: PLC0415
-            try:
-                expected = _shop_token_for(shop_pw)
-            except Exception:
-                expected = ""
-            if expected and hmac.compare_digest(x_shop_token, expected):
-                return {"kind": "shop", "id": None, "name": "Shop", "role": "Shop"}
+        # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired. Only per-user
+        # shop tokens (format `<user_id>.<HMAC>`) are accepted; that
+        # branch is handled above. Any unrecognized X-Shop-Token falls
+        # through to the 401.
         raise HTTPException(401, "Shop or Admin auth required")
 
     def _is_manager(actor: Dict[str, Any]) -> bool:

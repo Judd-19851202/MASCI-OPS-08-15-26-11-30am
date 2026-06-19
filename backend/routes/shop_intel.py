@@ -103,15 +103,9 @@ def build_shop_intel_router(
                     }
             except Exception:  # noqa: BLE001
                 logger.exception("shop_intel · per-user token validation failed")
-        # Legacy shared shop password — generic shop, no identity.
-        shop_pw = os.environ.get("SHOP_PASSWORD", "")
-        if x_shop_token and shop_pw:
-            try:
-                expected = shop_token_for_fn(shop_pw)
-                if expected and hmac.compare_digest(x_shop_token, expected):
-                    return {"kind": "shop", "id": None, "name": "Shop", "role": "Shop"}
-            except Exception:  # noqa: BLE001
-                pass
+        # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired. Only per-user
+        # shop tokens are accepted (handled above). Any other X-Shop-Token
+        # falls through to 401.
         raise HTTPException(401, "Shop or Admin auth required")
 
     # ── GET /units/search ───────────────────────────────────────────

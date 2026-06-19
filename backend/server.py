@@ -287,6 +287,21 @@ def _pm_token_for(password: str) -> str:
     return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
 
 
+# TRACK 15.30 (2026-02) — Static Shop HMAC retirement
+# ──────────────────────────────────────────────────────────────────────
+# The historical `_shop_token_for` derivation, the email-less branch of
+# `/api/shop/login`, and the shared-HMAC validators previously living in
+# `require_shop_or_admin`, `_require_shop_or_admin_fleet`,
+# `routes/shop_portal_deps.make_require_shop_or_admin_fleet`,
+# `routes/fleet_ops._dispatch_or_shop`, and `routes/shop_intel` have all
+# been removed. The single canonical shop auth path is now the per-user
+# token issued by `shop_users.make_shop_user_token` (format
+# `<user_id>.<HMAC>`). Audit + retirement evidence:
+#   • /app/memory/TRACK_15_29_STATIC_SHOP_HMAC_RETIREMENT_AUDIT.md
+#   • /app/memory/TRACK_15_30_STATIC_SHOP_HMAC_RETIREMENT_CERTIFICATION.md
+# ──────────────────────────────────────────────────────────────────────
+
+
 def _is_valid_admin_token(tok: Optional[str]) -> bool:
     pw = os.environ.get("ADMIN_PASSWORD", "")
     if not tok or not pw:
@@ -513,11 +528,6 @@ async def _require_hr_or_admin_for_queue(
 
 
 
-def _shop_token_for(password: str) -> str:
-    msg = (f"epoch={_session_epoch()}|shop:" + password).encode()
-    return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
-
-
 async def require_shop_or_admin(
     request: Request,
     x_admin_token: Optional[str] = Header(default=None),
@@ -546,9 +556,8 @@ async def require_shop_or_admin(
     because non-empty dicts are truthy.
     """
     admin_pw = os.environ.get("ADMIN_PASSWORD", "")
-    shop_pw = os.environ.get("SHOP_PASSWORD", "")
     pm_pw = os.environ.get("PM_PASSWORD", "")
-    if not admin_pw and not shop_pw and not pm_pw:
+    if not admin_pw and not pm_pw:
         return True  # all gates disabled
     if x_admin_token and _is_valid_admin_token(x_admin_token):
         return True
@@ -570,11 +579,8 @@ async def require_shop_or_admin(
                 return pm_doc
         elif _is_valid_pm_token(x_pm_token):
             return True
-    if x_shop_token and shop_pw:
-        expected = _shop_token_for(shop_pw)
-        if hmac.compare_digest(x_shop_token, expected):
-            return True
-    # Per-shop-user token (new)
+    # TRACK 15.30 — shared SHOP_PASSWORD HMAC branch removed.
+    # Per-shop-user token (canonical)
     if x_shop_token and "." in x_shop_token:
         from shop_users import is_valid_shop_user_token_async
         user = await is_valid_shop_user_token_async(db, x_shop_token)
@@ -1960,151 +1966,140 @@ async def admin_calculator_export_csv(_: bool = Depends(require_admin)):
 
 @api_router.post("/shop/login")
 async def shop_login(body: AdminLoginRequest, request: Request):
-    """Mirror of /admin/login but for the shop console (mechanics).
+    """Per-user shop console login (mechanics, shop managers, parts).
 
-    Per-user flow: if `email` is present in the body, look up the
-    shop_user, verify their bcrypt password, and issue a per-user token.
-    Falls back to the legacy shared SHOP_PASSWORD when email is absent
-    so existing kiosks/bookmarks keep working until you migrate every
-    mechanic onto a per-user account."""
+    TRACK 15.30 (2026-02) — the legacy email-less shared-password
+    branch has been retired. Email is now REQUIRED; a missing email
+    returns 401 explaining that per-user accounts are mandatory.
+    """
     ip = _client_ip(request)
     _check_login_lockout(ip)
 
     body_email = ""
     try:
-        # AdminLoginRequest is `{password: str}`. Accept email too if
-        # included in the raw body.
         raw = await request.json()
         body_email = (raw.get("email") or "").strip().lower()
     except Exception:
         body_email = ""
 
+    if not body_email:
+        raise HTTPException(
+            status_code=401,
+            detail=(
+                "Email is required. The shared-password kiosk path was "
+                "retired in TRACK 15.30 — sign in with your assigned "
+                "shop user account."
+            ),
+        )
+
     # ---- Per-user shop auth ----
-    if body_email:
-        from shop_users import (
-            find_shop_user_by_email,
-            make_shop_user_token,
-            public_shop_user_view,
-            stamp_shop_login,
-            verify_password,
-        )
-        user = await find_shop_user_by_email(db, body_email)
+    from shop_users import (
+        find_shop_user_by_email,
+        make_shop_user_token,
+        public_shop_user_view,
+        stamp_shop_login,
+        verify_password,
+    )
+    user = await find_shop_user_by_email(db, body_email)
 
-        # iter346-B · universal super-admin fallback (Path 2) — local
-        # closure invoked when native shop auth fails.
-        async def _try_directory_admin_fallback():
-            try:
-                import user_directory as _ud_local  # noqa: WPS433
-                row = await _ud_local.authenticate(db, email=body_email, password=body.password)
-            except Exception as exc:  # noqa: BLE001
-                logger.warning(f"shop_login directory fallback error: {exc}")
-                return None
-            if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
-                admin_tok = _directory_admin_token(row)
-                if admin_tok:
-                    await _reset_session_activity(
-                        db, admin_tok, "OPERATIONS",
-                        user_id=row.get("id"), email=row.get("email"),
-                        actor_label="admin_via_shop", ip=ip,
-                        user_agent=request.headers.get("user-agent") or "",
-                    )
-                    _reset_login_fails(ip)
-                    return {
-                        "ok": True,
-                        "token": admin_tok,
-                        "kind": "admin",
-                        "must_change_password": False,
-                        "user": _ud_local.public_view(row),
-                    }
-            return None
-
-        if not user:
-            fb = await _try_directory_admin_fallback()
-            if fb is not None:
-                return fb
-            _record_login_fail(ip)
-            raise HTTPException(status_code=401, detail="Wrong email or password")
-        if user.get("disabled"):
-            raise HTTPException(status_code=403, detail="This shop user is disabled. Contact the admin.")
-        pwh = user.get("password_hash") or ""
-        if not pwh:
-            raise HTTPException(status_code=403, detail="No password set yet. Ask the admin to issue one.")
-        if not verify_password(body.password, pwh):
-            fb = await _try_directory_admin_fallback()
-            if fb is not None:
-                return fb
-            _record_login_fail(ip)
-            raise HTTPException(status_code=401, detail="Wrong email or password")
-        _reset_login_fails(ip)
-        await stamp_shop_login(db, user["id"], ip=ip)
-        token = make_shop_user_token(user["id"], pwh)
-        await _reset_session_activity(
-            db, token, "OPERATIONS",
-            user_id=user.get("id"),
-            email=user.get("email"),
-            actor_label="shop",
-            ip=ip,
-            user_agent=request.headers.get("user-agent") or "",
-        )
-        # Track 15.13A / 15.13B · Asset Care Routing Recovery.
-        # Mirror the `is_asset_admin` flag from the canonical
-        # `user_directory` row (keyed by email) into the shop_login
-        # response so the SPA `landingFor()` resolver can route asset
-        # administrators to `/shop/asset-care` instead of the generic
-        # `/shop` hub.
-        #
-        # Track 15.13B FAILURE #1 fallback — production showed that an
-        # existing Asset Administrator created BEFORE the 15.13A mirror
-        # landed has NO directory row, so the dir lookup returned None
-        # and `is_asset_admin` resolved to False — landing them on the
-        # generic /shop hub. Fix: also honor the role label on the
-        # shop_users row itself via `_role_implies_asset_admin(role)`
-        # as a strict read-only fallback. This guarantees every legacy
-        # Asset Administrator / Asset Manager / Equipment Manager /
-        # Fleet Coordinator gets the right landing on first login
-        # WITHOUT a separate backfill script.
-        public_user = public_shop_user_view(user)
-        is_asset_admin = False
+    # iter346-B · universal super-admin fallback (Path 2) — local
+    # closure invoked when native shop auth fails.
+    async def _try_directory_admin_fallback():
         try:
-            dir_row = await db.user_directory.find_one(
-                {"email": (user.get("email") or "").strip().lower()},
-                {"_id": 0, "is_asset_admin": 1, "portals": 1},
-            )
-            if dir_row and dir_row.get("is_asset_admin") is True:
-                is_asset_admin = True
-                public_user["portals"] = dir_row.get("portals") or []
+            import user_directory as _ud_local  # noqa: WPS433
+            row = await _ud_local.authenticate(db, email=body_email, password=body.password)
         except Exception as exc:  # noqa: BLE001
-            logger.warning(f"shop_login is_asset_admin mirror failed: {exc}")
-        # 15.13B fallback — role-label check (read-only, no write).
-        if not is_asset_admin and _role_implies_asset_admin(user.get("role")):
-            is_asset_admin = True
-        if is_asset_admin:
-            public_user["is_asset_admin"] = True
-        return {
-            "ok": True,
-            "token": token,
-            "kind": "shop",
-            "must_change_password": bool(user.get("must_change_password")),
-            "user": public_user,
-            "is_asset_admin": is_asset_admin,
-        }
+            logger.warning(f"shop_login directory fallback error: {exc}")
+            return None
+        if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
+            admin_tok = _directory_admin_token(row)
+            if admin_tok:
+                await _reset_session_activity(
+                    db, admin_tok, "OPERATIONS",
+                    user_id=row.get("id"), email=row.get("email"),
+                    actor_label="admin_via_shop", ip=ip,
+                    user_agent=request.headers.get("user-agent") or "",
+                )
+                _reset_login_fails(ip)
+                return {
+                    "ok": True,
+                    "token": admin_tok,
+                    "kind": "admin",
+                    "must_change_password": False,
+                    "user": _ud_local.public_view(row),
+                }
+        return None
 
-    # ---- Legacy shared-password path ----
-    expected_pw = os.environ.get("SHOP_PASSWORD", "")
-    if not expected_pw:
-        return {"ok": True, "token": "open-mode"}
-    if not hmac.compare_digest(body.password, expected_pw):
+    if not user:
+        fb = await _try_directory_admin_fallback()
+        if fb is not None:
+            return fb
         _record_login_fail(ip)
-        raise HTTPException(status_code=401, detail="Wrong password")
+        raise HTTPException(status_code=401, detail="Wrong email or password")
+    if user.get("disabled"):
+        raise HTTPException(status_code=403, detail="This shop user is disabled. Contact the admin.")
+    pwh = user.get("password_hash") or ""
+    if not pwh:
+        raise HTTPException(status_code=403, detail="No password set yet. Ask the admin to issue one.")
+    if not verify_password(body.password, pwh):
+        fb = await _try_directory_admin_fallback()
+        if fb is not None:
+            return fb
+        _record_login_fail(ip)
+        raise HTTPException(status_code=401, detail="Wrong email or password")
     _reset_login_fails(ip)
-    token = _shop_token_for(expected_pw)
+    await stamp_shop_login(db, user["id"], ip=ip)
+    token = make_shop_user_token(user["id"], pwh)
     await _reset_session_activity(
         db, token, "OPERATIONS",
-        actor_label="shop-shared",
+        user_id=user.get("id"),
+        email=user.get("email"),
+        actor_label="shop",
         ip=ip,
         user_agent=request.headers.get("user-agent") or "",
     )
-    return {"ok": True, "token": token}
+    # Track 15.13A / 15.13B · Asset Care Routing Recovery.
+    # Mirror the `is_asset_admin` flag from the canonical
+    # `user_directory` row (keyed by email) into the shop_login
+    # response so the SPA `landingFor()` resolver can route asset
+    # administrators to `/shop/asset-care` instead of the generic
+    # `/shop` hub.
+    #
+    # Track 15.13B FAILURE #1 fallback — production showed that an
+    # existing Asset Administrator created BEFORE the 15.13A mirror
+    # landed has NO directory row, so the dir lookup returned None
+    # and `is_asset_admin` resolved to False — landing them on the
+    # generic /shop hub. Fix: also honor the role label on the
+    # shop_users row itself via `_role_implies_asset_admin(role)`
+    # as a strict read-only fallback. This guarantees every legacy
+    # Asset Administrator / Asset Manager / Equipment Manager /
+    # Fleet Coordinator gets the right landing on first login
+    # WITHOUT a separate backfill script.
+    public_user = public_shop_user_view(user)
+    is_asset_admin = False
+    try:
+        dir_row = await db.user_directory.find_one(
+            {"email": (user.get("email") or "").strip().lower()},
+            {"_id": 0, "is_asset_admin": 1, "portals": 1},
+        )
+        if dir_row and dir_row.get("is_asset_admin") is True:
+            is_asset_admin = True
+            public_user["portals"] = dir_row.get("portals") or []
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"shop_login is_asset_admin mirror failed: {exc}")
+    # 15.13B fallback — role-label check (read-only, no write).
+    if not is_asset_admin and _role_implies_asset_admin(user.get("role")):
+        is_asset_admin = True
+    if is_asset_admin:
+        public_user["is_asset_admin"] = True
+    return {
+        "ok": True,
+        "token": token,
+        "kind": "shop",
+        "must_change_password": bool(user.get("must_change_password")),
+        "user": public_user,
+        "is_asset_admin": is_asset_admin,
+    }
 
 
 @api_router.get("/shop/check")
@@ -9449,11 +9444,16 @@ async def training_packet_pdf(
                 detail="PM or Admin login required for the PM training packet.",
             )
     elif t_lower == "shop":
-        # inline the shop-token check to avoid wiring a dedicated helper
+        # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired. Per-user shop
+        # tokens (format `<user_id>.<HMAC>`) are accepted via the
+        # shop_users module.
         shop_ok = False
-        shop_pw = os.environ.get("SHOP_PASSWORD", "")
-        if x_shop_token and shop_pw:
-            shop_ok = hmac.compare_digest(x_shop_token, _shop_token_for(shop_pw))
+        if x_shop_token and "." in x_shop_token:
+            try:
+                from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
+                shop_ok = (await is_valid_shop_user_token_async(db, x_shop_token)) is not None
+            except Exception:  # noqa: BLE001
+                shop_ok = False
         if not (
             (x_admin_token and _is_valid_admin_token(x_admin_token))
             or (x_pm_token and _is_valid_pm_token(x_pm_token))
@@ -11360,7 +11360,7 @@ _require_fleet_submitter = make_require_fleet_submitter(
 _require_any_fleet_portal = make_require_any_fleet_portal(
     db=db,
     is_valid_admin_token=_is_valid_admin_token,
-    shop_token_for=_shop_token_for,
+    shop_token_for=None,  # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired
 )
 
 
@@ -11423,7 +11423,8 @@ from routes.shop_portal_deps import (  # noqa: E402
     make_require_shop_or_admin_fleet as _make_shop_or_admin_fleet,
 )
 _shared_shop_or_admin_fleet = _make_shop_or_admin_fleet(
-    db, _is_valid_admin_token, _shop_token_for,
+    db, _is_valid_admin_token,
+    None,  # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired
 )
 
 
@@ -11592,7 +11593,7 @@ _shop_intel_router = build_shop_intel_router(
     db,
     require_shop_or_admin_dep=_require_shop_or_admin_fleet,
     is_valid_admin_token_fn=_is_valid_admin_token,
-    shop_token_for_fn=_shop_token_for,
+    shop_token_for_fn=None,  # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired
 )
 app.include_router(_shop_intel_router)
 

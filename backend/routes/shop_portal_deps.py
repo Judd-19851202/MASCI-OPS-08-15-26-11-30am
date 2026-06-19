@@ -38,26 +38,15 @@ def make_require_shop_or_admin_fleet(
     dispatch pattern from iter370.
 
     Semantics:
-      • Admin token (valid)       → {"role": "admin"}
-      • Shop HMAC token (valid)   → {"role": "shop"}
-      • Otherwise                 → HTTPException(401, "Shop or Admin auth required")
+      • Admin token (valid)        → {"role": "admin"}
+      • Per-user shop token (valid) → {"role": "shop"}
+      • Otherwise                  → HTTPException(401, "Shop or Admin auth required")
 
-    NOTE: Per-shop-user tokens, PM tokens, and admin-namespace lockdown
-    are NOT supported here by design — fleet_ops surfaces use the narrow
-    contract. The richer chain lives in server.py:require_shop_or_admin.
+    TRACK 15.30 (2026-02) — the shared `SHOP_PASSWORD` HMAC branch has
+    been retired. Only per-user shop tokens (issued by
+    `shop_users.make_shop_user_token`, format `<user_id>.<HMAC>`) are
+    accepted on the shop side.
     """
-
-    def _default_shop_token_for(password: str) -> str:
-        # Fallback impl if caller doesn't pass shop_token_for_fn.
-        # Uses the same HMAC envelope shape but requires the caller to
-        # have configured ADMIN_HMAC_SECRET externally (server.py owns
-        # the canonical implementation).
-        secret = os.environ.get("ADMIN_HMAC_SECRET", "").encode()
-        epoch = os.environ.get("ADMIN_SESSION_EPOCH", "1")
-        msg = (f"epoch={epoch}|shop:" + password).encode()
-        return hmac.new(secret, msg, hashlib.sha256).hexdigest()
-
-    _token_for = shop_token_for_fn or _default_shop_token_for
 
     async def _require_shop_or_admin_fleet(
         request: Request,
@@ -66,10 +55,14 @@ def make_require_shop_or_admin_fleet(
     ) -> Dict[str, Any]:
         if x_admin_token and is_valid_admin_token_fn and is_valid_admin_token_fn(x_admin_token):
             return {"role": "admin"}
-        if x_shop_token:
-            shop_pw = os.environ.get("SHOP_PASSWORD", "")
-            if shop_pw and hmac.compare_digest(x_shop_token, _token_for(shop_pw)):
-                return {"role": "shop"}
+        if x_shop_token and "." in x_shop_token:
+            try:
+                from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
+                row = await is_valid_shop_user_token_async(db, x_shop_token)
+                if row is not None:
+                    return {"role": "shop", "actor_id": row.get("id"), "name": row.get("name", "")}
+            except Exception:  # noqa: BLE001
+                pass
         raise HTTPException(401, "Shop or Admin auth required")
 
     return _require_shop_or_admin_fleet

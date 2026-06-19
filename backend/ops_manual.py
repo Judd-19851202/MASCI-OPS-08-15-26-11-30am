@@ -240,7 +240,7 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
         ]),
         ("h3", "Client vs Server Exposure"),
         ("list", [
-            "Server-only: ADMIN_PASSWORD, PM_PASSWORD, SHOP_PASSWORD, JWT_SECRET, ADMIN_HMAC_SECRET, RESEND_API_KEY, MONGO_URL, EMERGENT_LLM_KEY.",
+            "Server-only: ADMIN_PASSWORD, PM_PASSWORD, JWT_SECRET, ADMIN_HMAC_SECRET, RESEND_API_KEY, MONGO_URL, EMERGENT_LLM_KEY.",
             "Client-visible (intended): REACT_APP_BACKEND_URL (needed to call the API).",
             "Verified via audit: zero secrets in the minified JS bundle. Grep `sk-`, `re_`, `AWS_`, `MONGO_URL` against the live bundle returns nothing but env-var *names* in admin docs strings.",
         ]),

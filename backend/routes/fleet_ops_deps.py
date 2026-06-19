@@ -24,7 +24,7 @@ Mounted in server.py as:
     _require_any_fleet_portal = make_require_any_fleet_portal(
         db=db,
         is_valid_admin_token=_is_valid_admin_token,
-        shop_token_for=_shop_token_for,
+        shop_token_for=None,  # TRACK 15.30 — retired
     )
 
 Then the wrapping calls into `_fleet_build_router(...)` continue
@@ -86,12 +86,17 @@ def make_require_any_fleet_portal(
     *,
     db,
     is_valid_admin_token: Callable[[str], bool],
-    shop_token_for: Callable[[str], str],
+    shop_token_for: Optional[Callable[[str], str]] = None,  # TRACK 15.30 — deprecated, accepted for backwards-compat at call sites
 ) -> Callable[..., Awaitable[Dict[str, Any]]]:
     """Return the multi-portal READ gate used by fleet_ops for defect
     detail + audit-trail reads. Any of admin / shop / dispatch /
     safety satisfies — fleet-ops doctrine: all three operational
-    scopes see the same record."""
+    scopes see the same record.
+
+    TRACK 15.30 (2026-02) — shared SHOP_PASSWORD HMAC retired.
+    `shop_token_for` is no longer used; per-user shop tokens are the
+    only shop credential accepted."""
+    del shop_token_for  # noqa: ERA001 — retained kwarg for callers
     async def _dep(
         request: Request,  # noqa: ARG001
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
@@ -101,10 +106,14 @@ def make_require_any_fleet_portal(
     ) -> Dict[str, Any]:
         if x_admin_token and is_valid_admin_token(x_admin_token):
             return {"role": "admin"}
-        if x_shop_token:
-            shop_pw = os.environ.get("SHOP_PASSWORD", "")
-            if shop_pw and x_shop_token == shop_token_for(shop_pw):
-                return {"role": "shop"}
+        if x_shop_token and "." in x_shop_token:
+            try:
+                from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
+                row = await is_valid_shop_user_token_async(db, x_shop_token)
+                if row is not None:
+                    return {"role": "shop", **{k: v for k, v in row.items() if k != "_id"}}
+            except Exception:  # noqa: BLE001
+                pass
         if x_dispatch_token:
             try:
                 from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
