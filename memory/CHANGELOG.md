@@ -3884,3 +3884,38 @@ No deployment blockers identified. Build safe to deploy to production today.
 * `test_credentials.md` HR/Dispatch passwords have drifted from the rotated values (multi-login path works regardless)
 * Soft-deleted team-assignment rows keep `assignment_status="ACTIVE"` while `active=False` (cosmetic; UI uses `active`)
 * 3 pre-existing pytest failures reproduce on baseline (not caused by 15.28→15.34)
+
+---
+
+## 2026-02 · TRACK 15.34B · Production-Health-Probe Alert Storm RCA + Hardening
+
+### Root cause
+Production (`mascidocs.com`) was HEALTHY (5/5 probes pass in 1s direct). The alert storm was caused by:
+1. `tools/verify-production.sh` had no double-take soak — a single 25-second transient GitHub-runner DNS/TLS blip → instant email alert.
+2. Failure output emitted only `HTTP 000` (or garbled `HTTP 000000` from retry accumulation) with no DNS/TLS/curl diagnostic — operator could not triage real outage vs runner-side noise.
+3. ANSI escape codes rendered literally in CI logs (not TTY-aware).
+4. Subtle bash-arithmetic latent bug on the `route` expectation could pass `code=000` as healthy.
+
+### Files changed (only monitor surface, NO production app code)
+- `tools/verify-production.sh` — full rewrite. Two-pass soak (30s default, `SOAK_SECONDS=`/`STRICT_NO_SOAK=1` env overrides), full diagnostic capture (curl exit code + errormsg + DNS/TLS/total timings + body excerpt), strict regex status-code parsing, TTY-aware ANSI.
+- `.github/workflows/production-health-probe.yml` — added defensive job-level `if:` guard (rejects PR/push even if someone edits the trigger block later), `tee` of probe output into `/tmp/probe.log`, GitHub Step Summary publishing the full diagnostic + operator triage checklist on failure.
+
+### Verification
+- Live production: ✅ 5/5 probes green in 1 second (post-fix).
+- Synthetic outage: ✅ fails both passes, exits 1 with full diagnostic — real-outage detection preserved.
+- Workflow YAML: ✅ triggers remain `[schedule, workflow_dispatch]` only; job-level `if:` guard active.
+- Bash syntax: ✅ valid.
+
+### Before / After
+| | Before | After |
+|---|---|---|
+| Single 25s runner blip | 2 emails per blip (fail + recovery) | 0 emails (soak catches it) |
+| Real outage (>60s) | 1 fail email | 1 fail email + GitHub Step Summary with full diagnostic |
+| Failure output | `HTTP 000000` (no useful info) | HTTP code + curl exit + errormsg + DNS/TLS timing + body excerpt |
+| PR/push spam | Not happening (trigger was clean) | Still not happening + job-level `if:` belt-and-suspenders guard |
+
+### Rollback
+`git checkout HEAD~1 -- tools/verify-production.sh .github/workflows/production-health-probe.yml`
+
+### Deliverable
+- `/app/memory/TRACK_15_34B_PRODUCTION_HEALTH_PROBE_RCA.md`

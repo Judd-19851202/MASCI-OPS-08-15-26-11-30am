@@ -1,22 +1,31 @@
 name: production-health-probe
 
-# iter439 · Item J · scheduled production smoke probe.
+# Scheduled production smoke probe.
 #
 # Runs the same checks as tools/verify-production.sh from GitHub-hosted
-# runners every 15 minutes. If any probe goes red, the workflow fails
-# and GitHub sends the standard "workflow failed" notification email
-# to whichever account has notifications enabled on the repo.
+# runners every 15 minutes. If any probe goes red on BOTH the initial pass
+# AND the 30-second soak re-verify, the workflow fails and GitHub sends
+# the standard "workflow failed" notification email.
+#
+# TRACK 15.34B (2026-02) — hardened against alert storms:
+#   * The probe script now does a two-pass soak (see tools/verify-production.sh).
+#   * Single transient GitHub-runner DNS/TLS blips no longer trigger emails.
+#   * Failure output now includes curl exit code + error message + DNS/TLS
+#     timings + response body excerpt — the operator can immediately tell
+#     a real outage from a runner-side network hiccup.
+#
+# Triggers (intentionally narrow — NO pull_request, NO push):
+#   * schedule */15 * * * *  → every 15 minutes
+#   * workflow_dispatch      → manual "Run workflow" button
 #
 # To wire this up:
-#   1. Push this file to the repo's default branch (the workflow is
-#      auto-enabled by GitHub Actions on first push).
+#   1. Push this file to the repo's default branch (auto-enabled on first push).
 #   2. Make sure your GitHub profile email notifications are enabled
 #      ("Actions" workflow runs failures).
 #   3. Optionally set the secret PROD_URL in repo settings if you ever
 #      move off mascidocs.com — default is mascidocs.com.
 #
-# To pause: comment out the `schedule:` block. Manual trigger via the
-# workflow_dispatch button always works.
+# To pause: comment out the `schedule:` block. workflow_dispatch always works.
 
 on:
   schedule:
@@ -26,21 +35,58 @@ on:
 permissions:
   contents: read
 
+# Defensive: even on a manual workflow_dispatch, never let two probes run
+# at once. cancel-in-progress: false so an in-flight 60s soak pass finishes
+# before the next 15-minute tick starts.
 concurrency:
   group: production-health-probe
-  cancel-in-progress: false  # let in-flight probes finish before next tick
+  cancel-in-progress: false
 
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+
+    # Defensive guard: this job MUST only run on schedule or manual trigger.
+    # Belt-and-suspenders in case someone later adds push/pull_request to
+    # the trigger block — keep this here so PR/push spam is impossible.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run verify-production.sh
+        id: probe
         env:
           PROD_URL: ${{ secrets.PROD_URL || 'https://mascidocs.com' }}
+          SOAK_SECONDS: "30"
         run: |
           chmod +x ./tools/verify-production.sh
-          ./tools/verify-production.sh
+          # Tee the output so we can include it in the GitHub Step Summary
+          # on failure — operator sees the full diagnostic in the workflow
+          # UI without digging into log files.
+          ./tools/verify-production.sh 2>&1 | tee /tmp/probe.log
+          # Preserve the exit code from verify-production.sh, not from tee.
+          exit "${PIPESTATUS[0]}"
+
+      - name: Publish diagnostic summary on failure
+        if: failure()
+        run: |
+          {
+            echo "## ❌ Production health probe FAILED both passes"
+            echo ""
+            echo "**Target:** \`${PROD_URL:-https://mascidocs.com}\`"
+            echo "**Time:** \`$(date -u +"%Y-%m-%dT%H:%M:%SZ")\`"
+            echo ""
+            echo "### Probe output"
+            echo '```'
+            cat /tmp/probe.log
+            echo '```'
+            echo ""
+            echo "### Operator triage steps"
+            echo "1. Visit https://mascidocs.com/api/health in a browser. If it returns \`{\"ok\":true,...}\`, the probe was transient noise — close the failed run."
+            echo "2. If \`/api/health\` is also down, check the Emergent deploy dashboard for the production pod status."
+            echo "3. Check \`MONGO_URL\` + \`DB_NAME\` env vars are current on production."
+            echo "4. Check the deploy log for \`Authentication failed\` or \`MongoServerSelectionError\`."
+          } >> "$GITHUB_STEP_SUMMARY"
