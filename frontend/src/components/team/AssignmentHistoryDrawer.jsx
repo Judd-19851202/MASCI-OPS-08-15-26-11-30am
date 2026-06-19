@@ -92,6 +92,9 @@ export function AssignmentHistoryDrawer({ open, onOpenChange, items }) {
               ev.assignment_role ||
               null;
             const who =
+              ev.target_display_name ||
+              ev.before?.display_name ||
+              ev.after?.display_name ||
               ev.target_email ||
               ev.before?.email ||
               ev.after?.email ||

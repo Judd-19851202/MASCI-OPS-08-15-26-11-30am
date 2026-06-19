@@ -163,15 +163,58 @@ export default function NotificationBell({ accent = "slate" }) {
     return () => { try { unsub && unsub(); } catch { /* ignore */ } };
   }, []);
 
+  // TRACK 15.40 · 5-minute "recently read" persistence.
+  // We persist a small `{id → readTimestampMs}` map to localStorage
+  // so the amber pulse survives drawer close+open AND hard reloads
+  // within the 5-min window. Pruned on every read so the map never
+  // grows beyond the active window.
+  const RECENT_READ_LS_KEY = "masci.notif.recentReadStamps";
+
+  const readRecentMap = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(RECENT_READ_LS_KEY);
+      if (!raw) return {};
+      const map = JSON.parse(raw);
+      const now = Date.now();
+      let mutated = false;
+      for (const k of Object.keys(map)) {
+        if (typeof map[k] !== "number" || now - map[k] > RECENT_READ_MS) {
+          delete map[k];
+          mutated = true;
+        }
+      }
+      if (mutated) {
+        try { localStorage.setItem(RECENT_READ_LS_KEY, JSON.stringify(map)); } catch { /* quota */ }
+      }
+      return map;
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const writeRecentRead = useCallback((id, ts) => {
+    try {
+      const map = readRecentMap();
+      map[id] = ts;
+      localStorage.setItem(RECENT_READ_LS_KEY, JSON.stringify(map));
+    } catch { /* quota */ }
+  }, [readRecentMap]);
+
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
       const r = await listNotifications({ limit: 30 });
-      setItems(r.items || []);
+      const recent = readRecentMap();
+      // TRACK 15.40 · merge stale-but-still-recent stamps onto the
+      // fresh server payload so the amber pulse persists across
+      // drawer reopens and reloads.
+      setItems((r.items || []).map((n) => (
+        recent[n.id] ? { ...n, _recently_read_at: recent[n.id] } : n
+      )));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [readRecentMap]);
 
   const handleOpenChange = (v) => {
     setOpen(v);
@@ -182,10 +225,11 @@ export default function NotificationBell({ accent = "slate" }) {
   const onItemClick = async (n) => {
     if (!n.is_read) {
       try { await markRead(n.id); } catch { /* silent */ }
-      // TRACK 15.40 · stamp `_recently_read_at` locally so the row shows
-      // the amber "recently read" pulse for the next 5 minutes — no
-      // schema change; client-side ephemeral state only.
+      // TRACK 15.40 · stamp `_recently_read_at` locally (state + ls)
+      // so the row shows the amber "recently read" pulse for the next
+      // 5 minutes. No schema change; client-only ephemeral state.
       const stamp = Date.now();
+      writeRecentRead(n.id, stamp);
       setItems((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true, _recently_read_at: stamp } : x));
     }
     // Click-through routing — prefer explicit link_url, then linked task.

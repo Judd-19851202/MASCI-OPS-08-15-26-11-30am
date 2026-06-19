@@ -10,7 +10,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.39A · Team Assignment P2 FRONTEND · 🟢 COMPLETE & CERTIFIED)
+## Latest Track (2026-06-19 · TRACK 15.40 · Directory Resolution + Notification Completion · 🟢 COMPLETE & CERTIFIED)
+
+### Objective 1 — Directory Resolution Fix
+- **Root cause:** `_enrich_row_with_directory` only consulted `employees` collection when `row.employee_id` was set. Alec Perkins (`user_id=c9d7ebc3-...`) carries only `user_id` and lives in `employees` (not `user_directory`), so his rows rendered as "Unknown person — Admin review required".
+- **Fix:** Added 3 additional `employees` fallbacks (by `user_id`, by `employee_id`, by `email.lower()`) + per-row enrichment of `target_display_name` on the audit endpoint + `AssignmentHistoryDrawer` prefers `target_display_name`. Source order now `(ud_row, emp_row, row)`.
+- **Cert:** 5/5 pytest PASS · 0 Unknown Person rows on 20-07 · 10 Alec audit rows resolve · iter527 DIR-1/DIR-3 PASS · 3-viewport PASS.
+
+### Objective 2 — Notification Completion
+- **Backend:** `_notify_assignment` sets `link_url` for ALL recipient roles + stamps `linked_source_module="team_assignment"`. Backfill script populated 6 historical rows · 0 NULL_AFTER · idempotency proven.
+- **Frontend:** Traceability chips (event type · source module · timestamp); `SOURCE_MODULE_LABEL` map covers 20+ canonical modules; 5-min amber "recently-read" pulse persisted in localStorage; survives drawer reopen + hard reload + self-prunes after 5 min.
+- **Cert:** iter527 NOTIF-1/NOTIF-2/BACKFILL/REG-1/3-viewport PASS · post-iter527 manual NOTIF-3 PASS after localStorage persistence added.
+
+### Non-regression
+- Auth · Backups · Notification schema · Notification recipient computation · Team Assignment P2 flows — all untouched.
+
+### Deliverables
+- `/app/memory/TRACK_15_40_DIRECTORY_RESOLUTION_IMPLEMENTATION.md`
+- `/app/memory/TRACK_15_40_DIRECTORY_RESOLUTION_CERTIFICATION.md`
+- `/app/memory/TRACK_15_40_NOTIFICATION_COMPLETION_IMPLEMENTATION.md`
+- `/app/memory/TRACK_15_40_NOTIFICATION_COMPLETION_CERTIFICATION.md`
+
+## Previous Track (2026-06-19 · TRACK 15.39A · Team Assignment P2 FRONTEND · 🟢 COMPLETE & CERTIFIED)
 - **Mode:** single-session frontend completion using the certified Track 15.39 backend.
 - **Delivered:** (1) inline role-change `<Select>` per row (admin scope · PATCH /api/admin/jobs/{pn}/team/{id} with 409 duplicate-role toast); (2) structured `RemoveReasonDialog` (shadcn Dialog · 7 reason categories · "other" requires text · DELETE with JSON body); (3) read-only `AssignmentHistoryDrawer` (shadcn Sheet · color-coded action badges · newest-first).
 - **Backend:** zero changes — uses certified Track 15.39 endpoints exclusively.

@@ -2,6 +2,38 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.40 · Directory Resolution + Notification Completion (🟢 COMPLETE & CERTIFIED)
+
+**Two P0 operator-experience fixes in one pass — no schema changes, no architecture changes.**
+
+### Objective 1 · Directory Resolution
+* `backend/routes/project_team_assignments.py::_enrich_row_with_directory` — added employees-collection fallback (by `user_id`, `employee_id`, `email`) so any operator carried only by the `employees` collection (no portal login yet) resolves to a real name instead of `"Unknown person — Admin review required"`. Resolver source order is now `(ud_row, emp_row, row)` so the canonical directory always wins.
+* `backend/routes/project_team_assignments.py::admin_team_audit` — enriches `target_display_name` + before/after snapshot `display_name`s with a per-request name cache.
+* `frontend/src/components/team/AssignmentHistoryDrawer.jsx` — `who` fallback chain prefers `target_display_name` then snapshot `display_name`.
+* `backend/tests/test_track_15_40_directory_resolution.py` **(new)** — 5/5 PASS (employees fallback by user_id, by email, sentinel, Alec fixture, source-order smoke).
+* **Cert evidence:** 0 false Unknown Person rows on `20-07`; Alec Perkins resolves on foreman + safety_rep + 10 audit rows; iter527 + viewport matrix all PASS.
+
+### Objective 2 · Notification Completion
+* `backend/routes/project_team_assignments.py::_notify_assignment` — `link_url` now populated for ALL recipient roles (admin/safety/hr/dispatch/fl → `/admin/jobs/{pn}/team`, pm → `/pm/projects/{pn}`); `linked_source_module="team_assignment"` stamp for traceability.
+* `backend/scripts/track_15_40_backfill_notification_link_url.py` **(new, one-shot idempotent)** — BEFORE_COUNT=8, NULL_BEFORE=6, MODIFIED=6, SKIPPED=2, NULL_AFTER=0. Re-run is 0 modified / 8 skipped (idempotency proven). No recipients, content, timestamps, or read state mutated.
+* `frontend/src/components/NotificationBell.jsx` — traceability chips (event type slate · source-module indigo · timestamp) with humanized `SOURCE_MODULE_LABEL` for 20+ canonical module keys; `_recently_read_at` 5-minute amber pulse persisted to `localStorage.masci.notif.recentReadStamps` so it survives drawer reopen + hard reload + 5-min self-prune; new row attrs `data-read` / `data-recently-read`.
+* **Cert evidence:** iter527 — NOTIF-1 (chips), NOTIF-2 (admin link_url), BACKFILL idempotency, REG-1, viewport matrix all PASS. Post-iter527 manual: recently-read pulse persists across drawer reopen AND `page.reload()` within 5-min window.
+
+### Non-regression
+* Auth (Track 15.34) untouched.
+* Backup architecture (Tracks 15.36-15.38) untouched.
+* Notification schema unchanged.
+* Notification recipient computation unchanged.
+* Team Assignment flows (Track 15.39 + 15.39A) unchanged.
+
+### Deliverables
+* `/app/memory/TRACK_15_40_DIRECTORY_RESOLUTION_IMPLEMENTATION.md`
+* `/app/memory/TRACK_15_40_DIRECTORY_RESOLUTION_CERTIFICATION.md`
+* `/app/memory/TRACK_15_40_NOTIFICATION_COMPLETION_IMPLEMENTATION.md`
+* `/app/memory/TRACK_15_40_NOTIFICATION_COMPLETION_CERTIFICATION.md`
+
+🟢 **DEPLOYABLE.** No backend schema changes. No new endpoints. No new collections.
+
 ## 2026-06-19 — TRACK 15.39A · Team Assignment P2 Frontend (🟢 COMPLETE & CERTIFIED)
 
 **One-pass frontend completion using the certified Track 15.39 backend.**
