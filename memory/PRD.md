@@ -10,7 +10,35 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.51 · Production Deployment Readiness Certification · 🟢 GREEN · 1 YELLOW observability finding)
+## Latest Track (2026-06-19 · TRACK 15.52 · Production Health-Probe Backup-Observability Fix · 🟢 GREEN)
+
+### What this is
+Closes the only YELLOW finding from Track 15.51. `/api/health/full` was returning 503 with `backup_recent=false` even though R2 had 855 hourly backups (newest 17 min old). This triggered UptimeRobot emails and blocked `scripts/predeploy_certify.sh`. Track 15.52 fixes the false-negative without weakening real-outage detection.
+
+### What shipped
+- `backend/server.py` · new `_r2_backup_age_seconds_cached()` helper · 5-minute in-process cache · same paginator as `/api/admin/backups-list-r2`.
+- `/api/health/full` · `backup_recent` now derived from R2 directly · falls back to `backup_health` DB row when R2 unreachable.
+- No new files · no env vars · no scheduler changes · no schema changes.
+
+### Hard-rule compliance
+- ✅ No new backup system · no new scheduler · no new collections.
+- ✅ Health checks not weakened — stale-R2 simulation (27 h) still returns 503.
+- ✅ Real backup failures not hidden — both R2 path AND DB audit row would have to fail for the probe to fall silent.
+- ✅ Schema unchanged — contract pytest `test_iter183_health_full_endpoint.py` passes 3/3.
+
+### Live verification
+- `GET /api/health/full` → 200 `{ok:true, mongo:true, scheduler:true, backup_recent:true}`.
+- Stale-R2 negative test → 503 `{ok:false, backup_recent:false}`.
+- Latency: cold 0.142 s · warm 0.156 – 0.163 s.
+
+### Deliverables
+- `/app/memory/TRACK_15_52_HEALTH_PROBE_BACKUP_OBSERVABILITY_FIX.md`
+- `/app/memory/TRACK_15_52_PRODUCTION_HEALTH_PROBE_CERTIFICATION.md`
+
+### Final answer
+**Yes — this stops false GitHub alert emails without masking real outages.** Confirmed by the stale-bucket negative test (still returns 503) and the live `/api/health/full` 200 against R2's actual newest object.
+
+## Prior Track (2026-06-19 · TRACK 15.51 · Production Deployment Readiness Certification · 🟢 GREEN · 1 YELLOW observability finding)
 
 ### What this is
 Full platform operational acceptance certification across Tracks 15.34 – 15.50. Question answered: *"Can MASCI deploy today and have every persona run the system tomorrow morning at 5:30 AM without confusion, missing workflows, broken routing, missing data, missing PDFs, performance degradation, or operational surprises?"* Answer: **yes, deploy.**

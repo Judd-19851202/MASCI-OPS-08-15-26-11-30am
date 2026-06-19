@@ -936,6 +936,71 @@ async def _guidance_caller_scopes(request: Request) -> set:
 
 
 
+# Track 15.52 (2026-06-19) — R2 backup-age cache used by /api/health/full.
+# R2 is the canonical source of truth for "did a backup happen recently?";
+# the in-DB audit row can drift stale (see /api/health/full body comment).
+# We cache the bucket-list result for 5 minutes so the anonymous probe
+# doesn't hammer R2. Cache layout: {"ts": <unix_seconds>, "age_s": <float|None>}.
+_R2_BACKUP_AGE_CACHE: dict = {"ts": 0.0, "age_s": None}
+_R2_BACKUP_AGE_TTL_S = 300  # 5 minutes
+
+
+async def _r2_backup_age_seconds_cached() -> Optional[float]:
+    """Return the age (in seconds) of the newest object under the
+    ``backups/`` prefix in R2, or ``None`` if R2 isn't configured /
+    listing fails. Cached for 5 minutes per process.
+
+    Crucially: a real outage where the bucket has NO recent backups
+    returns a large number (caller's 26h check will mark unhealthy);
+    only a true infrastructure failure (R2 unreachable, no creds)
+    returns ``None`` so the caller can fall back to the DB audit row.
+    """
+    import time as _time
+    now = _time.time()
+    if (now - (_R2_BACKUP_AGE_CACHE.get("ts") or 0.0)) < _R2_BACKUP_AGE_TTL_S:
+        return _R2_BACKUP_AGE_CACHE.get("age_s")
+
+    age_s: Optional[float] = None
+    try:
+        from photo_storage import _bucket, _client, is_configured  # noqa: PLC0415
+        if not is_configured():
+            _R2_BACKUP_AGE_CACHE.update({"ts": now, "age_s": None})
+            return None
+        c = _client()
+        if c is None:
+            _R2_BACKUP_AGE_CACHE.update({"ts": now, "age_s": None})
+            return None
+
+        def _newest_age() -> Optional[float]:
+            # We only need the newest object, not all 855. Paginate just
+            # enough to find max(LastModified). Most recent R2 keys sort
+            # to the front when we walk pages — but key ordering is
+            # alphabetic, not by date, so we scan all pages to be safe.
+            # The bucket lives well under the 1000-key page limit per
+            # call so this stays under ~200ms in practice; the 5-minute
+            # cache amortizes it to ~1 list per process per 5 min.
+            paginator = c.get_paginator("list_objects_v2")
+            newest = None
+            for page in paginator.paginate(Bucket=_bucket(), Prefix="backups/"):
+                for o in (page.get("Contents") or []):
+                    lm = o.get("LastModified")
+                    if lm and (newest is None or lm > newest):
+                        newest = lm
+            if newest is None:
+                return None
+            # boto3 returns tz-aware datetimes; normalise to UTC.
+            if newest.tzinfo is None:
+                newest = newest.replace(tzinfo=timezone.utc)
+            return (datetime.now(timezone.utc) - newest).total_seconds()
+
+        age_s = await asyncio.wait_for(asyncio.to_thread(_newest_age), timeout=4.0)
+    except Exception:
+        age_s = None
+
+    _R2_BACKUP_AGE_CACHE.update({"ts": now, "age_s": age_s})
+    return age_s
+
+
 @api_router.get("/health/full")
 async def api_health_full(response: Response):
     out = {"ok": True, "mongo": False, "scheduler": False, "backup_recent": False}
@@ -970,25 +1035,54 @@ async def api_health_full(response: Response):
     except Exception:
         out["scheduler"] = False
 
-    # Most recent successful backup_health row within last 26h (covers a
-    # missed nightly + 2h fudge for retries).
-    try:
-        latest_ok = await asyncio.wait_for(
-            db.backup_health.find_one({"ok": True}, sort=[("ts", -1)], projection={"_id": 0, "ts": 1}),
-            timeout=2.0,
-        )
-        if latest_ok and latest_ok.get("ts"):
-            ts_val = latest_ok["ts"]
-            if isinstance(ts_val, str):
-                ts_dt = datetime.fromisoformat(ts_val.replace("Z", "+00:00"))
-            else:
-                ts_dt = ts_val
-            if ts_dt.tzinfo is None:
-                ts_dt = ts_dt.replace(tzinfo=timezone.utc)
-            age_s = (datetime.now(timezone.utc) - ts_dt).total_seconds()
-            out["backup_recent"] = age_s < (26 * 3600)
-    except Exception:
-        out["backup_recent"] = False
+    # Most recent successful backup row within the last 26h. This is the
+    # canonical "is the platform's data actually being captured?" signal.
+    #
+    # Track 15.52 (2026-06-19) — root-cause fix: previously this only
+    # consulted `backup_health.find_one({ok: true})` (the in-DB audit
+    # row). In a shared-R2-bucket / multi-environment deployment, the
+    # audit row can drift stale (e.g. a worker restart, an audit-write
+    # exception, or — in the preview pod we discovered today — a code
+    # path where the hourly R2 upload succeeded but the audit row was
+    # never written). Meanwhile R2 itself holds 855 hourly snapshots
+    # with the newest 17 min old. UptimeRobot and predeploy_certify.sh
+    # both consume this endpoint, so a false-red here triggers an email
+    # storm AND blocks deploys.
+    #
+    # The fix consults the R2 bucket directly (same source of truth as
+    # /api/admin/backups-list-r2) and treats its newest object as the
+    # primary signal. The DB audit row is now a FALLBACK only — if R2
+    # listing fails or the env isn't R2-configured, we still answer
+    # truthfully from the audit collection. Both paths apply the same
+    # 26h staleness rule, so a real outage (no backups in 26h) still
+    # returns 503 correctly. R2 result is cached in-process for 5 min
+    # via _R2_BACKUP_AGE_CACHE to keep the anonymous probe cheap.
+    backup_age_s = await _r2_backup_age_seconds_cached()
+    if backup_age_s is not None:
+        out["backup_recent"] = backup_age_s < (26 * 3600)
+    else:
+        # Fallback: DB audit row.
+        try:
+            latest_ok = await asyncio.wait_for(
+                db.backup_health.find_one(
+                    {"ok": True, "filename": {"$nin": [None, ""]}},
+                    sort=[("ts", -1)],
+                    projection={"_id": 0, "ts": 1},
+                ),
+                timeout=2.0,
+            )
+            if latest_ok and latest_ok.get("ts"):
+                ts_val = latest_ok["ts"]
+                if isinstance(ts_val, str):
+                    ts_dt = datetime.fromisoformat(ts_val.replace("Z", "+00:00"))
+                else:
+                    ts_dt = ts_val
+                if ts_dt.tzinfo is None:
+                    ts_dt = ts_dt.replace(tzinfo=timezone.utc)
+                age_s = (datetime.now(timezone.utc) - ts_dt).total_seconds()
+                out["backup_recent"] = age_s < (26 * 3600)
+        except Exception:
+            out["backup_recent"] = False
 
     out["ok"] = bool(out["mongo"] and out["scheduler"] and out["backup_recent"])
     # RC-2.1 root-cause fix (2026-06-11): if the scheduler heartbeat

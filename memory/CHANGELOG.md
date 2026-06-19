@@ -2,6 +2,33 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.52 · Production Health-Probe Backup-Observability Fix (🟢 GREEN)
+
+**Closes the Track 15.51 Phase 8 YELLOW finding.** Stops the false-alert path that was firing GitHub / UptimeRobot emails when R2 backups were demonstrably healthy.
+
+### Root cause
+`/api/health/full` derived `backup_recent` from `db.backup_health.find_one({ok:true})`. The in-DB audit row drifts stale even when R2 succeeds, because (a) the R2 bucket is shared across `APP_ENV=preview` + `production` while the audit row is per-DB, (b) worker restarts between upload + audit-write drop the row, and (c) `_record_backup_health` is best-effort and swallows transient Atlas write failures.
+
+### Fix (1 file · ~70 lines)
+- New `_r2_backup_age_seconds_cached()` helper in `backend/server.py` lists R2 directly (same paginator pattern as `/api/admin/backups-list-r2`), with a 5-minute in-process cache.
+- `/api/health/full` now consults R2 first; falls back to the existing `backup_health` DB row when R2 is unreachable.
+- 26-hour staleness window unchanged. Contract schema unchanged. UptimeRobot consumer unaffected.
+
+### Verification (live)
+- `GET /api/health/full` → **200 `{"ok":true,"mongo":true,"scheduler":true,"backup_recent":true}`**.
+- Contract pytest `test_iter183_health_full_endpoint.py` → **3/3 PASS**.
+- Stale-R2 simulation (27 h) → still returns **503 `backup_recent:false`** — real outages still alert.
+- Latency: cold 0.142 s · warm 0.156 – 0.163 s.
+
+### Deliverables
+- `/app/memory/TRACK_15_52_HEALTH_PROBE_BACKUP_OBSERVABILITY_FIX.md`
+- `/app/memory/TRACK_15_52_PRODUCTION_HEALTH_PROBE_CERTIFICATION.md`
+
+### Hard rules respected
+No new backup system. No new scheduler. No new collections. Health checks not weakened. Real failures not hidden. Schema unchanged.
+
+
+
 ## 2026-06-19 — TRACK 15.51 · Production Deployment Readiness Certification (🟢 GREEN · 1 YELLOW observability finding)
 
 **Decision: deploy.** Platform-wide acceptance certification across Tracks 15.34 – 15.50.
