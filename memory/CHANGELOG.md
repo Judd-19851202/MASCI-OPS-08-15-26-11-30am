@@ -2,6 +2,42 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.52A · Backup Truth Audit + Health Probe RCA (🟢 GREEN · forensic read-only · zero code changes)
+
+**Forensic audit triggered by an apparent contradiction in the certified record:** Track 15.51 reports 855 hourly snapshots; operator believed a 6-hour cadence had been approved; GitHub Actions production-health-probe was reportedly emailing. Evidence-only re-verification.
+
+### Required-output table
+| Field | Value |
+|---|---|
+| INTENDED BACKUP CADENCE | 6-hour (`BACKUP_HOURS_LOCAL=0,6,12,18`), **conditional** on Atlas-PITR + R2-versioning operator gate · gate still open |
+| ACTUAL CONFIGURED CADENCE | HOURLY (`BACKUP_R2_HOURLY=true` on production env, verified via live admin endpoint) |
+| ACTUAL R2 CADENCE | HOURLY (mean **59.8 min** inter-backup delta across 50 most-recent objects · 855 total in bucket) |
+| ACTIVE BACKUP JOBS | ONE: `_backup_scheduler_loop → _run_complete_archive_to_r2` on production worker only; preview pod scheduler-off |
+| CANONICAL BACKUP SYSTEM | `_backup_scheduler_loop` (singleton-locked) → `s3://masci-hub/backups/auto-90d/` → tiered retention 14d/90d/365d |
+| HEALTH PROBE CHECKS | Pre-Track-15.52: stale-prone DB audit row. Post-Track-15.52 (preview): R2 `LastModified` of newest `backups/` object, with DB fallback. |
+| GITHUB ALERT ROOT CAUSE | **Unverified** — live re-run of all 5 `production-health-probe.yml` probes against `mascidocs.com` PASS. Workflow does not consult `/api/health/full`. Most likely source: **UptimeRobot** on the audit-row-drift defect that Track 15.52 fixed. |
+| MATCHES INTENT | **YES** — current state matches what Tracks 15.37 + 15.38 explicitly deployed (cadence flip deferred to operator gate) |
+| DEPLOYMENT IMPACT | **NONE** |
+| REQUIRED FIXES | None urgent. R1 · propagate Track 15.52 to production at next deploy (defense-in-depth). |
+
+### Three final-answer questions
+1. **Did the approved backup cadence change actually happen?** **NO** — it was a PROPOSAL gated on an operator confirmation gate (Atlas PITR + R2 versioning) that is still open. Tracks 15.37/15.38 explicitly recorded "env vars NOT flipped".
+2. **Why is production-health-probe failing?** Live re-execution shows **it isn't failing** (all 5 probes PASS as of 2026-06-19 20:50 UTC). The most plausible source of past operator-visible failure emails is UptimeRobot on the audit-row-drift defect, which Track 15.52 has already fixed in preview. Cannot evidence GitHub-Actions failures from this container.
+3. **What exactly must be fixed?** Nothing urgent. Recommend propagating Track 15.52 to production at next deploy. Optionally close the Track 15.37/15.38 cadence-flip operator gate to reduce R2 cost ~66 %.
+
+### Deliverables (6 files, all in `/app/memory/`)
+- `TRACK_15_52A_BACKUP_TRUTH_AUDIT.md`
+- `TRACK_15_52A_HEALTH_PROBE_FORENSICS.md`
+- `TRACK_15_52A_BACKUP_ARCHITECTURE_MAP.md`
+- `TRACK_15_52A_ROOT_CAUSE_ANALYSIS.md`
+- `TRACK_15_52A_FIX_RECOMMENDATIONS.md`
+- `TRACK_15_52A_SIX_PILLAR_CERTIFICATION.md`
+
+### Hard-rule compliance
+✅ Zero code modified during audit · zero new schedulers · zero new collections · zero V2 systems · every claim re-verified against live evidence · prior certification language NOT trusted as fact.
+
+
+
 ## 2026-06-19 — TRACK 15.52 · Production Health-Probe Backup-Observability Fix (🟢 GREEN)
 
 **Closes the Track 15.51 Phase 8 YELLOW finding.** Stops the false-alert path that was firing GitHub / UptimeRobot emails when R2 backups were demonstrably healthy.

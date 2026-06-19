@@ -10,7 +10,48 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.52 · Production Health-Probe Backup-Observability Fix · 🟢 GREEN)
+## Latest Track (2026-06-19 · TRACK 15.52A · Backup Truth Audit + Health Probe RCA · 🟢 GREEN · forensic read-only)
+
+### What this is
+Evidence-only forensic audit triggered by a perceived contradiction in the certified record (855 hourly snapshots vs. "approved 6-hour cadence" vs. failing GitHub production-health-probe). All claims re-verified against live code, live env files, live R2 inventory, and live `mascidocs.com` API responses. No prior certification language trusted as fact.
+
+### Headline findings
+- **Cadence**: Intended = 6h (proposal, gated on operator confirmation). Actual = HOURLY (`BACKUP_R2_HOURLY=true` on prod). **MATCHES the cadence Tracks 15.37+15.38 explicitly deployed** — the 6h flip was deferred to operator gate. No regression.
+- **R2 truth**: 50 newest objects show mean **59.8-min spacing** (= HOURLY). 855 total in bucket. Cadence claim from Track 15.51 re-verified mathematically.
+- **production-health-probe**: live re-execution of all 5 probes against `mascidocs.com` PASS. Workflow does NOT consult `/api/health/full`. Most likely past-failure source: UptimeRobot on the audit-row-drift defect Track 15.52 already fixed.
+- **Architecture**: ONE backup-creator (`_backup_scheduler_loop → _run_complete_archive_to_r2`). Zero duplicates. Zero orphans. Zero V2 systems.
+
+### Deliverables (`/app/memory/`)
+- `TRACK_15_52A_BACKUP_TRUTH_AUDIT.md`
+- `TRACK_15_52A_HEALTH_PROBE_FORENSICS.md`
+- `TRACK_15_52A_BACKUP_ARCHITECTURE_MAP.md`
+- `TRACK_15_52A_ROOT_CAUSE_ANALYSIS.md`
+- `TRACK_15_52A_FIX_RECOMMENDATIONS.md`
+- `TRACK_15_52A_SIX_PILLAR_CERTIFICATION.md`
+
+### Required-output table (verbatim)
+| Field | Value |
+|---|---|
+| INTENDED BACKUP CADENCE | 6h, gated on Atlas-PITR + R2-versioning · gate open |
+| ACTUAL CONFIGURED CADENCE | HOURLY (`BACKUP_R2_HOURLY=true` on prod) |
+| ACTUAL R2 CADENCE | HOURLY (mean 59.8-min spacing across 50 most-recent objects) |
+| ACTIVE BACKUP JOBS | ONE (`_backup_scheduler_loop` on prod worker only) |
+| CANONICAL BACKUP SYSTEM | `_run_complete_archive_to_r2 → s3://masci-hub/backups/auto-90d/` |
+| HEALTH PROBE CHECKS | R2 `LastModified` (post-Track-15.52 on preview) with DB-audit-row fallback |
+| GITHUB ALERT ROOT CAUSE | Unverified · live workflow run PASSES · most likely UptimeRobot, not GitHub Actions |
+| MATCHES INTENT | YES |
+| DEPLOYMENT IMPACT | NONE |
+| REQUIRED FIXES | None urgent · propagate Track 15.52 to prod at next deploy (defense-in-depth) |
+
+### Final answers
+1. **Did the approved backup cadence change actually happen?** NO — it was a PROPOSAL conditional on an operator gate that is still open. Tracks 15.37/15.38 explicitly recorded "env vars NOT flipped".
+2. **Why is production-health-probe failing?** It isn't, per live measurement. Past failure emails most likely came from UptimeRobot on the audit-row-drift defect Track 15.52 has already fixed.
+3. **What must be fixed?** Nothing urgent. Recommend propagating Track 15.52 to production at next deploy. Optionally close the cadence-flip operator gate for −66 % R2 cost.
+
+### Hard-rule compliance
+Zero code modified during audit. Zero new schedulers / collections / V2 systems. Every claim anchored to live evidence captured 2026-06-19 20:40–20:55 UTC.
+
+## Prior Track (2026-06-19 · TRACK 15.52 · Production Health-Probe Backup-Observability Fix · 🟢 GREEN)
 
 ### What this is
 Closes the only YELLOW finding from Track 15.51. `/api/health/full` was returning 503 with `backup_recent=false` even though R2 had 855 hourly backups (newest 17 min old). This triggered UptimeRobot emails and blocked `scripts/predeploy_certify.sh`. Track 15.52 fixes the false-negative without weakening real-outage detection.
