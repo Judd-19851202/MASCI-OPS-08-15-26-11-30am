@@ -3952,3 +3952,50 @@ Tracks 15.28C/D, 15.30, 15.32, 15.34, 15.34A, 15.34B invariants verified against
 ### Non-blocking observations
 * Team-assignment ADD response/list does not resolve display_name for employees-collection records (cosmetic; functional fields correct).
 * `test_credentials.md` HR/Dispatch per-portal passwords drifted (multi-login works regardless).
+
+---
+
+## 2026-02 · TRACK 15.36 · Backup Architecture Certification
+
+### Mode
+READ-ONLY architecture certification · NO code changes · NO cadence change · NO deletes · evidence-only.
+
+### Live production probe (against `mascidocs.com`)
+- R2 bucket total: 197.13 GiB / 8,517 objects (R2 usage probe @ 2026-06-19T10:06:16Z)
+- Backups prefix (`backups/`): 864 objects (363 in `auto-90d/` retention-governed + ~500 legacy unpruned)
+- Newest 500 backups sample: 182 GiB (avg 373 MB, min 0.1 MB, max 632 MB)
+- Hourly cadence verified live: 06/07/08/09/10 UTC ticks all fired
+- Last archive: `MASCI_complete_backup_2026-06-19_100315Z.zip` · 632 MB · 138,236 records
+- Bucket at 394% of `R2_USAGE_ALERT_GB=50` threshold (log-only, no email storm by design)
+
+### 14 backup systems documented (see TRACK_15_36_BACKUP_INVENTORY.md)
+- 9 active (hourly R2 archive · email cron · tiered retention · verification cron · watchdog · usage probe · soft-delete restores · full-archive restore endpoint · GitHub)
+- 3 transient/dormant (local pod disk · legacy `backups/` prefix · drift watcher dormant)
+- 2 unknown — operator dashboard check required (Atlas backup tier · R2 versioning)
+
+### 12 restore scenarios documented (see TRACK_15_36_RESTORE_RUNBOOK.md)
+Every scenario from "single document delete" to "Cloudflare R2 outage" mapped to a restore path, time estimate, required credentials, and risk profile.
+
+### Cost model (see TRACK_15_36_BACKUP_COST_MODEL.md)
+- Current R2 storage cost: $2.96/month at 197 GiB
+- Hourly cadence steady-state: 247 GiB → $44/year
+- 6-hour cadence steady-state: 83 GiB → $15/year (66% savings)
+- Daily cadence steady-state: 58 GiB → $10/year
+- Class A op costs negligible at all cadences; R2 egress = $0
+
+### Serious gaps surfaced (none are deploy blockers; all are operator-actionable)
+1. 🔴 `POST /api/exports/restore` has 500 MB upload ceiling but archives are ~600 MB — restore endpoint structurally broken for current-size archives
+2. 🔴 Atlas backup tier + R2 versioning unverified (must check Atlas + Cloudflare dashboards)
+3. 🟡 Legacy `backups/` prefix (~500 objects · 15 GiB) explicitly outside retention pruner
+4. 🟡 Drift watcher dormant (`drift_watch_active: false`)
+5. 🟡 No portal-level undelete UI for daily_reports / meetings / incidents / corrective_actions / notifications
+6. 🟡 No automated restore drill ever recorded
+
+### Verdict on cadence reduction (Hourly → 6-hour)
+🟡 **YELLOW** — likely safe, but operator must verify Atlas backup tier + R2 versioning before flipping. Both are 10-min dashboard checks. After confirmation, the cadence change is a single env var flip with no code change.
+
+### Deliverables
+- `/app/memory/TRACK_15_36_BACKUP_ARCHITECTURE_CERTIFICATION.md` (executive doc)
+- `/app/memory/TRACK_15_36_BACKUP_INVENTORY.md` (14-system inventory)
+- `/app/memory/TRACK_15_36_RESTORE_RUNBOOK.md` (12-scenario runbook)
+- `/app/memory/TRACK_15_36_BACKUP_COST_MODEL.md` (cadence × adoption matrix)

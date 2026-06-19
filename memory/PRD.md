@@ -2605,3 +2605,11 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - MOD `/app/backend/server.py` (+43 LOC; one fan-out line + one async helper)
 
 **Status:** ✅ scheduled · automated · certified · idempotent · recoverable · proven. Awaiting operator push to production.
+
+---
+## Track 15.36 (2026-02) — Backup Architecture Certification (read-only)
+- Inventory: 14 backup systems documented · 9 active · 3 transient/dormant · 2 unverified
+- Live state: R2 bucket = 197 GiB / 8,517 objects · backups/ prefix = 864 objects · hourly cadence firing correctly
+- Cadence verdict: 🟡 YELLOW — reduce hourly → 6-hour pending operator verification of Atlas backup tier + R2 versioning
+- Gaps surfaced: 500 MB restore upload ceiling vs 600 MB archives (broken) · legacy backups/ prefix unpruned (~500 obj) · drift watcher dormant · no portal undelete for safety forms
+- See /app/memory/TRACK_15_36_BACKUP_ARCHITECTURE_CERTIFICATION.md for full evidence
