@@ -3582,3 +3582,25 @@ PM bell complaints are now fully explainable and reproducible — root cause is 
 - 🟢 Trusted = restored.
 - 🟢 Proven = restored.
 - 🟢 Deployment gate = OPEN.
+
+---
+
+## 2026-02 — TRACK 15.28D · Notification Production Certification (READ-ONLY)
+
+### Deliverable
+- `/app/memory/TRACK_15_28D_NOTIFICATION_PRODUCTION_CERTIFICATION.md`
+
+### Result: ✅ PASS (no failures)
+All six certification sections verified with hard evidence against live preview DB + live API:
+- DB: 8,849 rows · 100 % event_id · 100 % idempotency_key · 0 dup keys · 0 legacy residue
+- PM scope: 3 PMs (davidjewett, chriswright, ramonrodriguez), 98–100 % bell reduction, **0 leaks**
+- Bell: DB ↔ API count matches (8,848 admin) · hard-refresh stable · pagination stable · read transition end-to-end
+- Producers: 38 modules · 81 emit_notification call-sites · 100 % canonical compliance
+- Dead paths: `tasks_notifications` collection absent · `/api/me/notifications` deleted · 0 live legacy refs (1 docstring false-positive verified)
+- Regression: 7 portals (admin/pm/hr/safety/shop/dispatch/field_leadership) all HTTP 200 with canonical payloads
+
+### Five-Pillar Score
+Powerful 8/10 · Simple 9/10 · Beautiful 6/10 · Trusted 9/10 · Proven 9/10
+
+### No code changes performed.
+
