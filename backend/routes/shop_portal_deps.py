@@ -30,7 +30,6 @@ from fastapi import Header, HTTPException, Request
 def make_require_shop_or_admin_fleet(
     db,
     is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None,
-    shop_token_for_fn: Optional[Callable[[str], str]] = None,
 ) -> Callable[..., Any]:
     """iter371 · Canonical narrow Shop+Admin fleet-ops gate factory.
 
@@ -46,6 +45,8 @@ def make_require_shop_or_admin_fleet(
     been retired. Only per-user shop tokens (issued by
     `shop_users.make_shop_user_token`, format `<user_id>.<HMAC>`) are
     accepted on the shop side.
+    TRACK 15.34 (2026-02) — the deprecated `shop_token_for_fn` kwarg
+    was removed from this factory's signature.
     """
 
     async def _require_shop_or_admin_fleet(

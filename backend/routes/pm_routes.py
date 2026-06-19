@@ -129,7 +129,7 @@ def build_pm_router(
           client_ip_fn, check_login_lockout_fn,
           record_login_fail_fn, reset_login_fails_fn,
           directory_admin_token_fn, reset_session_activity_fn,
-          clear_session_activity_fn, pm_token_for_fn,
+          clear_session_activity_fn,
           render_portal_email_fn.
         If None, the auth-lifecycle routes are NOT mounted (use this
         for tests that only need the read-only surface).
@@ -315,9 +315,10 @@ def build_pm_router(
     _directory_admin_token = login_deps["directory_admin_token_fn"]
     _reset_session_activity = login_deps["reset_session_activity_fn"]
     _clear_session_activity = login_deps["clear_session_activity_fn"]
-    # TRACK 15.32 — `pm_token_for_fn` is None (shared PM HMAC retired);
-    # the kwarg is retained on the factory boundary for backwards-compat
-    # but not bound here.
+    # TRACK 15.32 — shared PM HMAC retired; the per-PM auth path uses
+    # `pm_auth.make_pm_token` directly (see pm_login below).
+    # TRACK 15.34 — the deprecated `pm_token_for_fn` login_deps key was
+    # removed entirely.
     _render_portal_email = login_deps["render_portal_email_fn"]
 
     @router.post("/pm/login")

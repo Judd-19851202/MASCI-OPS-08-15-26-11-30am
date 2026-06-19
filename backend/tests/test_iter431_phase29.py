@@ -299,7 +299,6 @@ def test_iter431_fleet_portal_factory_raises_when_no_token():
     dep = make_require_any_fleet_portal(
         db=_DB(),
         is_valid_admin_token=lambda t: False,
-        shop_token_for=lambda pw: "xxx",
     )
 
     class _R: client = None

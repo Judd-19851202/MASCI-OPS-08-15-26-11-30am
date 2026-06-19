@@ -11371,7 +11371,6 @@ _require_fleet_submitter = make_require_fleet_submitter(
 _require_any_fleet_portal = make_require_any_fleet_portal(
     db=db,
     is_valid_admin_token=_is_valid_admin_token,
-    shop_token_for=None,  # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired
 )
 
 
@@ -11435,7 +11434,6 @@ from routes.shop_portal_deps import (  # noqa: E402
 )
 _shared_shop_or_admin_fleet = _make_shop_or_admin_fleet(
     db, _is_valid_admin_token,
-    None,  # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired
 )
 
 
@@ -11604,7 +11602,6 @@ _shop_intel_router = build_shop_intel_router(
     db,
     require_shop_or_admin_dep=_require_shop_or_admin_fleet,
     is_valid_admin_token_fn=_is_valid_admin_token,
-    shop_token_for_fn=None,  # TRACK 15.30 — shared SHOP_PASSWORD HMAC retired
 )
 app.include_router(_shop_intel_router)
 
@@ -12184,7 +12181,6 @@ _pm_router = build_pm_router(
         "directory_admin_token_fn": _directory_admin_token,
         "reset_session_activity_fn": _reset_session_activity,
         "clear_session_activity_fn": _clear_session_activity,
-        "pm_token_for_fn": None,  # TRACK 15.32 — shared PM HMAC retired
         "render_portal_email_fn": render_portal_email,
     },
 )

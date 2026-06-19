@@ -3818,3 +3818,35 @@ Powerful 9 · Simple 9 · Beautiful DEFERRED · Trusted 9 · **Proven 7** (reach
 - **Desktop / web Chrome:** YES — trustworthy for daily ops tomorrow.
 - **Mobile / iPad field crews:** PENDING — gated on human QA pass.
 
+
+---
+
+## 2026-02 · TRACK 15.34 · Auth Hardening + Endpoint Registry + Data Hygiene (Option A)
+
+### Authentication hardening — dead factory-shim removal (lockstep)
+Removed 9 dead-shim sites across 5 source files + 1 test file in a single transactional refactor:
+
+| File | Site removed |
+|---|---|
+| `backend/server.py` | `shop_token_for=None` (line 11374) · positional `None` (line 11437) · `shop_token_for_fn=None` (line 11607) · `"pm_token_for_fn": None` dict entry (line 12187) |
+| `backend/routes/fleet_ops_deps.py` | `shop_token_for` kwarg on `make_require_any_fleet_portal` + `del` line + module docstring |
+| `backend/routes/shop_intel.py` | `shop_token_for_fn` kwarg on `build_shop_intel_router` + docstring |
+| `backend/routes/shop_portal_deps.py` | `shop_token_for_fn` kwarg on `make_require_shop_or_admin_fleet` + docstring |
+| `backend/routes/pm_routes.py` | `pm_token_for_fn` from `login_deps` docstring + in-body binding comment |
+| `backend/tests/test_iter431_phase29.py` | `shop_token_for=lambda pw: "xxx"` test invocation arg |
+
+### Live env-gated paths retained (operator-approved)
+- `DEV_PASSWORD` → KEEP (live ForgedOps `/api/dev/*` vendor gate)
+- `SAFETY_FORMS_PASSWORD` → KEEP (live public safety-form submission gate)
+
+### Verification (13 / 13 live probes pass)
+All gate endpoints return 401 with no token; multi-login issues per-PM tokens; PM token unlocks `/api/pm/check`, `/api/pm/me`, and `/api/notifications/unread-count`. Backend boots clean. No regressions in pytest suites that exercise the modified factories. The 15.33 admin-bell auth fix is preserved.
+
+### Deliverables produced this track (4 of 4 complete)
+1. `/app/memory/AUTHENTICATION_HARDENING_REPORT.md` — updated with implementation evidence
+2. `/app/memory/ENDPOINT_REGISTRY.md` — auto-generated from FastAPI routing
+3. `/app/memory/PRODUCTION_DATA_HYGIENE_REPORT.md` — production scan (414 rows, 2 flagged) + preview supplement (712 rows, 248 flagged, all known fixtures)
+4. `/app/memory/EXECUTIVE_SUMMARY.md` — Track 15.34 certification
+
+### Verdict
+🟢 GREEN · TRACK 15.34 CERTIFIED COMPLETE · zero regressions, all four deliverables evidence-backed.

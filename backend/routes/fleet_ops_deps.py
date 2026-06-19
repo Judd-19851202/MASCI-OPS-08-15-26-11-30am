@@ -24,11 +24,14 @@ Mounted in server.py as:
     _require_any_fleet_portal = make_require_any_fleet_portal(
         db=db,
         is_valid_admin_token=_is_valid_admin_token,
-        shop_token_for=None,  # TRACK 15.30 — retired
     )
 
 Then the wrapping calls into `_fleet_build_router(...)` continue
 unchanged.
+
+TRACK 15.34 (2026-02) — the `shop_token_for` kwarg (a leftover from the
+retired shared SHOP_PASSWORD HMAC, TRACK 15.30) was removed from the
+factory signature. All call-sites updated in lockstep.
 """
 from __future__ import annotations
 
@@ -86,17 +89,16 @@ def make_require_any_fleet_portal(
     *,
     db,
     is_valid_admin_token: Callable[[str], bool],
-    shop_token_for: Optional[Callable[[str], str]] = None,  # TRACK 15.30 — deprecated, accepted for backwards-compat at call sites
 ) -> Callable[..., Awaitable[Dict[str, Any]]]:
     """Return the multi-portal READ gate used by fleet_ops for defect
     detail + audit-trail reads. Any of admin / shop / dispatch /
     safety satisfies — fleet-ops doctrine: all three operational
     scopes see the same record.
 
-    TRACK 15.30 (2026-02) — shared SHOP_PASSWORD HMAC retired.
-    `shop_token_for` is no longer used; per-user shop tokens are the
-    only shop credential accepted."""
-    del shop_token_for  # noqa: ERA001 — retained kwarg for callers
+    TRACK 15.30 (2026-02) — shared SHOP_PASSWORD HMAC retired. Only
+    per-user shop tokens are accepted.
+    TRACK 15.34 (2026-02) — the deprecated `shop_token_for` kwarg was
+    removed from this factory's signature."""
     async def _dep(
         request: Request,  # noqa: ARG001
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),

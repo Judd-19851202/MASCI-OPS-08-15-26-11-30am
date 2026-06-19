@@ -65,12 +65,15 @@ def build_shop_intel_router(
     *,
     require_shop_or_admin_dep: Callable[..., Awaitable[Any]],
     is_valid_admin_token_fn: Callable[[str], bool],
-    shop_token_for_fn: Callable[[str], str],
 ) -> APIRouter:
-    """The two helpers ``is_valid_admin_token_fn`` and ``shop_token_for_fn``
-    are injected from ``server.py`` so we don't import-cycle. Together
-    with the shop-user-token validator from ``shop_users``, they let us
-    resolve the rich actor for ``/me/summary``."""
+    """The helper ``is_valid_admin_token_fn`` is injected from
+    ``server.py`` so we don't import-cycle. Together with the shop-user-
+    token validator from ``shop_users``, it lets us resolve the rich
+    actor for ``/me/summary``.
+
+    TRACK 15.34 (2026-02) — the deprecated ``shop_token_for_fn`` kwarg
+    (a leftover from the retired shared SHOP_PASSWORD HMAC, TRACK
+    15.30) was removed from this factory's signature."""
     router = APIRouter(prefix="/api/shop", tags=["shop-intel"])
 
     async def _resolve_actor(

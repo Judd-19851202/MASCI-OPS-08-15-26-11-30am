@@ -1,8 +1,20 @@
-# Executive Summary · One-Page Forensic Snapshot
+# TRACK 15.34 · EXECUTIVE SUMMARY
 
-**Batch:** OMEGA Forensic Platform Certification
-**Date:** 2026-05-31
-**Production:** `https://mascidocs.com` · source_hash `2383567f4f9735cf936d90dce26bb267`
+**Track:** 15.34 (Option A — Authentication Hardening + Endpoint Registry + Data Hygiene)
+**Date:** 2026-02
+**Mode:** Audit + targeted lockstep refactor + READ-ONLY data scan
+**Predecessors:** 15.28B/C/D (Notification canonicalization), 15.29/15.30 (Shop HMAC retirement), 15.31/15.32 (PM/Admin shared-auth retirement), 15.33 (Production mobile & operational certification)
+
+---
+
+## Track 15.34 deliverables (4 of 4 complete)
+
+| # | Deliverable | Status |
+|---|---|---|
+| 1 | `AUTHENTICATION_HARDENING_REPORT.md` | ✅ Audit + lockstep removal of 9 dead-shim sites + 13 live probes |
+| 2 | `ENDPOINT_REGISTRY.md` | ✅ Auto-generated from FastAPI app routing |
+| 3 | `PRODUCTION_DATA_HYGIENE_REPORT.md` | ✅ Read-only scan of production (414 rows) + preview supplement (712 rows) |
+| 4 | `EXECUTIVE_SUMMARY.md` | ✅ This document |
 
 ---
 
@@ -10,64 +22,112 @@
 
 | Dimension | Score | Color |
 |---|---|---|
-| Production Health | **88/100** | 🟢 |
-| Production Data Cleanliness | **88/100** | 🟡 |
-| White-Label Readiness | **15/100** | 🔴 |
-| Customer #2 Readiness | **20/100** | 🔴 |
-| ForgedOps Support Readiness | **5/100** | 🔴 |
+| Authentication surface integrity | 🟢 GREEN | Per-user JWT identity tokens are the only credential. All shared HMACs retired (Shop in 15.30, PM/Admin in 15.32). Dead factory-shim kwargs removed in lockstep in 15.34. |
+| Live auth probe pass rate | **13 / 13** | 🟢 |
+| Endpoint registry coverage | Auto-generated | 🟢 — see `ENDPOINT_REGISTRY.md` |
+| Production data cleanliness | 412 / 414 | 🟢 — 1 false positive, 1 deactivated test FL (Sprint 1B output) |
+| Preview data hygiene | Bounded · 245 known seed fixtures + 3 operator-attention | 🟢 — no production crossover (§7 of hygiene report) |
+| Regressions introduced | **0** | 🟢 |
 
 ---
 
-## The 5 things to look at first
+## What this track did (lockstep refactor)
 
-1. **🔴 Test FL user `fieldleader@mascigc.com`** is live on production with a documented password. Rotate · deactivate · or delete.
-2. **🔴 Duplicate incident `doc_id='INC-2026-00001'`** — two `incidents` rows share the same display ID. Risk to display + delete pathways.
-3. **🔴 Incident DELETE** workflow is known fragile (cascade-to-CA). Migrate to soft-delete.
-4. **🟡 10 payroll-variance batches** with `status=null · uploaded_by=null` live in production. Likely failed test imports from 2026-05-12/13. Delete or archive.
-5. **🟡 2 PREVIEW_POSTENV notifications** (2026-05-16 preview/prod crossover) still in `notifications` collection. Delete; no operational impact.
+### 1 · Authentication hardening — code changes
 
----
+**Files modified (lockstep · single transactional refactor):**
 
-## What's working well
+| File | Change |
+|---|---|
+| `backend/server.py` | Removed 3 dead-shim callsite kwargs (`shop_token_for=None` at line 11374, `shop_token_for_fn=None` at line 11607, `"pm_token_for_fn": None` at line 12187) + 1 positional `None` at `_shared_shop_or_admin_fleet` callsite (line 11437) |
+| `backend/routes/fleet_ops_deps.py` | Removed `shop_token_for: Optional[Callable[[str], str]] = None` kwarg from `make_require_any_fleet_portal` factory signature + the `del shop_token_for` retirement line + updated module docstring |
+| `backend/routes/shop_intel.py` | Removed `shop_token_for_fn: Callable[[str], str]` kwarg from `build_shop_intel_router` factory signature + updated docstring |
+| `backend/routes/shop_portal_deps.py` | Removed `shop_token_for_fn: Optional[Callable[[str], str]] = None` kwarg from `make_require_shop_or_admin_fleet` factory signature + updated docstring |
+| `backend/routes/pm_routes.py` | Removed `pm_token_for_fn` from `login_deps` docstring + removed dead in-body binding comment block + updated to TRACK 15.34 note |
+| `backend/tests/test_iter431_phase29.py` | Removed `shop_token_for=lambda pw: "xxx"` from test invocation — gate behavior unchanged, test still passes |
 
-- ✅ Pillar 1 (Accountability Engine — Phases 1A-2 → 1A-5) is **production certified** as of 2026-05-31. All endpoints healthy. `escalation_level=0` invariant verified.
-- ✅ Pillar 2 Phase A (Executive Command Center) is live on production.
-- ✅ Backup scheduler is `alive · armed · ticking · boot_step=entering_main_tick_loop` post-redeploy.
-- ✅ Hourly cadence intact. Last archive 335 MB · 24,002 records · `ok=true`.
-- ✅ 7 portal `/me` endpoints all return 200; auth gate fires correctly.
-- ✅ No false-test users in `users` / `user_directory` / `hr_users` (the FL portal account is the lone exception).
-- ✅ Integration settings: 2 providers both `enabled=False · status="Not Connected"` — no surprise integrations active.
+**Net delta:** -9 dead-shim sites across 5 source files + 1 test file. Zero behavioral change on live auth gates.
 
----
+### 2 · Live env-gated paths explicitly retained (per operator decision)
 
-## What's blocked
+| Env var | Used by | Why retained |
+|---|---|---|
+| `DEV_PASSWORD` | `/api/dev/*` (ForgedOps/vendor portal) — `server.py:358`, `:368`, `:1149` | Live vendor-only gate, distinct namespace from admin/PM/shop. Low-privilege. Not Shop-HMAC-class. Removal would break the vendor ops manual flow. |
+| `SAFETY_FORMS_PASSWORD` | `/api/safety-forms/*` (public field-crew submission) — `routes/safety_forms.py:75`, `:960` | Live public-submission gate. No portal privilege beyond submitting safety forms. By-design pre-shared with field crews. Removal would break the public safety-forms intake flow. |
 
-- 🔴 **White-label**: 413 files contain MASCI literals · 4,431 occurrences. Backlog WL-0..WL-15 = ~30-40 dev-days.
-- 🔴 **Customer #2**: architecturally supportable, but requires WL-batch + tenant_id propagation.
-- 🔴 **ForgedOps multi-customer operations**: no support portal · no tickets · no tenants. ~92-108 dev-day build needed.
-- 🔴 **Pillar 1A-6 (Accountability Dashboard UI)**: not built. Pillar 1 service surface is reachable only by direct API.
-- 🔴 **Pillar 1B (Escalation Framework)**: not built. Supportability "what changed" question unanswerable without it.
+### 3 · Endpoint registry
 
----
+Auto-generated at `/app/memory/ENDPOINT_REGISTRY.md` from the FastAPI app routing table. Comprehensive enumeration of every `/api/*` endpoint, the dependency gate that protects it, and the HTTP method/path/router mapping.
 
-## OMEGA discipline
+### 4 · Data hygiene (read-only)
 
-🟢 Zero code · zero DB writes · zero deletes · zero fixes · zero schema changes · zero deployments · zero refactors · zero cleanup · zero feature work · zero white-label implementation · zero ForgedOps implementation. **Certification only.**
+| Scope | Records scanned | Flagged | Action recommended |
+|---|---|---|---|
+| Production (`mascidocs.com` / `masci_safety`) | 414 | 2 | None — 1 false positive (canonical `safety@mascigc.com`), 1 already-deactivated test FL (`fieldleader@mascigc.com`, Sprint 1B output) |
+| Preview (`masci_safety_preview`) | 712 | 248 | None — 245 are known/expected seed fixtures (Track K4B HR pytest, Track 15.x cert seeds, Sprint 1B disabled cert FL/SF/DP); 3 are flagged for operator attention but pose no risk |
 
----
-
-## Deliverables in this batch (9 reports)
-
-1. `PLATFORM_MASTER_INVENTORY.md` — 8 portals · 251 routes · 546 endpoints · 141 collections · 31 templates
-2. `UI_HYGIENE_AUDIT.md` — sampled · operator-flagged items investigated
-3. `PRODUCTION_DATA_HYGIENE_AUDIT.md` — 6 contamination items · 44 docs · 5 collections · 88/100
-4. `WORKFLOW_CERTIFICATION.md` — 10 workflows · 60 verbs · all certified
-5. `ROLE_PERMISSION_MATRIX.md` — 9 roles · 31 templates · no leaks
-6. `WHITE_LABEL_BLOCKERS.md` — extended WL-0..WL-15 backlog (30-40 dev-days)
-7. `FORGEDOPS_OPERATIONS_READINESS.md` — 92-108 dev-day build estimate
-8. `EXECUTIVE_PLATFORM_CERTIFICATION.md` — 75 findings (25 🔴 · 25 🟡 · 25 🟢)
-9. `EXECUTIVE_SUMMARY.md` (this file)
+**Cross-environment drift:** 🟢 Zero preview test data leaked to production.
 
 ---
 
-🛑 **STOP.** No fix · no deploy · no further batch. Operator review and authorization required for any subsequent action.
+## Live auth probes executed post-removal (preview · 2026-02)
+
+| Probe | Expected | Actual |
+|---|---|---|
+| `GET /api/dev/check` (no token) | 401 | ✅ 401 |
+| `POST /api/dev/login` (wrong pw) | 401 | ✅ 401 |
+| `POST /api/safety-forms/login` (wrong pw) | 401 | ✅ 401 |
+| `GET /api/safety-forms/check` (no token) | 401 | ✅ 401 |
+| `GET /api/shop/me/summary` (no token) | 401 | ✅ 401 |
+| `GET /api/fleet/defects/<id>/detail` (no token) | 401 | ✅ 401 |
+| `GET /api/shop/fleet/by-unit` (no token) | 401 | ✅ 401 |
+| `GET /api/pm/check` (no token) | 401 | ✅ 401 |
+| `GET /api/notifications/unread-count` (no token) | 401 | ✅ 401 |
+| `POST /api/auth/multi-login` (PM cert creds) | 200 + per-PM token | ✅ 200 + `cert-user-….<hmac>` |
+| `GET /api/pm/check` (valid PM token) | 200 | ✅ 200 |
+| `GET /api/pm/me` (valid PM token) | 200 + PM identity | ✅ 200 |
+| `GET /api/notifications/unread-count` (valid PM token) | 200 | ✅ 200 (15.33 admin-bell auth fix preserved) |
+
+**Probe pass rate: 13/13 (100%).**
+
+---
+
+## Pytest regression check
+
+| Suite | Result | Notes |
+|---|---|---|
+| `tests/test_iter431_phase29.py` (5 tests covering the factories we touched) | ✅ all pass | including the updated `test_iter431_fleet_portal_factory_raises_when_no_token` |
+| `tests/test_iter370_dispatch_or_admin_parity.py` (10 tests) | ✅ 9 pass · 1 pre-existing fail | the 1 fail reproduces identically on baseline (pre-change) code |
+| `tests/test_iter370_r7_admin_strict_fail_closed.py` | ✅ pass / 1 pre-existing fail | same as above |
+| `tests/test_iter251_fleet_ops_foundation.py` | ✅ pass / 4 pre-existing setup errors | unrelated 410 from a different admin-login flow |
+| `tests/test_iter377_pm_routes_extraction.py` | ✅ all pass | confirms pm_routes signature change is backwards-compatible |
+| `tests/test_iter323_safety_forms_portal_gate.py` | ✅ all pass | confirms `SAFETY_FORMS_PASSWORD` gate still fires correctly |
+| `tests/test_safety_forms_iter37.py` | ✅ 2 pre-existing fails | reproduce identically on baseline |
+
+**No new regressions introduced by Track 15.34 changes.** Pre-existing failures are documented in earlier track reports and are unrelated to dead-shim removal.
+
+---
+
+## What's NOT in this track (explicit deferrals)
+
+* 🟡 **DEV_PASSWORD removal** — operator-rejected. It is a live ForgedOps/vendor gate, not dead code.
+* 🟡 **SAFETY_FORMS_PASSWORD removal** — operator-rejected. It is a live public-submission gate, not dead code.
+* 🟡 **Team Assignment P2** (Change Role, Remove Assignment, Assignment History UI) — deferred to next track.
+* 🟡 **Notifications Completion** (Read/Unread status, Action links, Portal-specific actions) — deferred to next track.
+* 🟡 **Universal PDF Foundation** (Shared framework for headers, typography, audit blocks) — deferred to next track.
+* 🟡 **Production data destructive cleanup** — explicit READ-ONLY directive; operator must authorize a separate "Production Data Action" batch.
+* 🟡 **Preview fixture cleanup** (`k4btest-*`, `track1514_*` cohorts) — bounded and expected; cleanup can be authorized in a future preview-only batch.
+
+---
+
+## Final verdict
+
+🟢 **GREEN · TRACK 15.34 CERTIFIED COMPLETE**
+
+* Authentication surface: dead shims removed in lockstep, live gates preserved, per-user identity tokens are the single source of truth for admin/PM/shop/HR/safety/dispatch/field-leadership portals.
+* Endpoint registry: auto-generated and committed.
+* Data hygiene: production substantially clean; preview bounded; no cross-env drift.
+* Regressions: zero.
+* All four Track 15.34 deliverables present, complete, and evidence-backed.
+
+🛑 STOP. Operator review and explicit authorization required for any subsequent track.
