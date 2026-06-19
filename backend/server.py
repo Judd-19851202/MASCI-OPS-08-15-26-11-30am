@@ -12529,6 +12529,10 @@ register_scheduled_producers_d456(app, db, require_admin)
 from routes.project_team_assignments import register_project_team_assignments  # noqa: E402
 register_project_team_assignments(app, db, require_admin, _require_any_portal_token)
 
+# TRACK 15.44 · Executive Overview (read-only aggregator over existing data).
+from routes.executive_overview import register as register_executive_overview  # noqa: E402
+register_executive_overview(app, db=db, require_admin_dep=require_admin)
+
 from routes.ownership_lifecycle import register_ownership_lifecycle  # noqa: E402
 register_ownership_lifecycle(app, db, require_admin, _require_any_portal_token)
 

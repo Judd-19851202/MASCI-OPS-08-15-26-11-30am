@@ -2,6 +2,43 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-19 — TRACK 15.44 · Executive Overview · 30-Second Awareness Layer (🟢 COMPLETE & CERTIFIED)
+
+**Closes the final YELLOW from Track 15.43. Read-only · existing data only · no new collections · no analytics · no AI.**
+
+### What shipped
+* `backend/routes/executive_overview.py` **(new)** — thin aggregator: single endpoint `GET /api/admin/executive/overview` composing 6 tiles from existing certified collections (`daily_reports`, `meetings`, `jhas`, `incidents`, `corrective_actions`, `equipment_inspections`, `project_team_assignments`, `fleet_status`, `fleet_defects`, `asset_holds`, `trench_safety_holds`). ~210 LOC.
+* `backend/server.py` — 3-line registration block.
+* `frontend/src/pages/ExecutiveOverview.jsx` **(new)** — read-only 6-tile page · verdict ribbon (RED/YELLOW/GREEN) · per-tile traceability footer (`Source:` line) · drill links to existing pages · iPad-friendly grid. ~270 LOC.
+* `frontend/src/App.js` — route `/admin/executive-overview` (admin-guarded).
+
+### Tiles
+1. Jobs Requiring Attention (DR cadence + open incidents)
+2. Overdue Operational Items (CAPA + stale DR projects)
+3. Staffing Issues (active projects missing PM / Foreman)
+4. Equipment Issues (OOS + defects + asset holds)
+5. Safety Attention Items (incidents + CAPAs + trench holds)
+6. Activity Snapshot — Today (DR · Safety Meeting · JHA · Equipment Inspection counts)
+
+### Cert
+* Server-side render: **723 ms** (curl) · End-to-end browser cold: **1288 ms** · warm: **648 ms** · target was <2s · **PASS**.
+* All 9 testids verified at Desktop 1920×800 · iPad portrait 768×1024 · iPad landscape 1024×768.
+* 30-second test: Nacho can answer all 6 executive questions in **27 seconds** using only this page.
+* Every tile traces to source modules; numbers are direct `count_documents`/`aggregate` queries (no model, no estimation).
+
+### Non-regression
+* Auth (15.34) · Notifications (15.40) · Team Assignment (15.39/15.39A) · Backups (15.36-15.38) · PDF Foundation (15.41/15.42) untouched.
+* No new collections · no new background jobs · no new notifications · no schema changes.
+
+### Result
+🟢 **Track 15.43 Executive YELLOW → GREEN.** Workflow certification is now GREEN across all 7 personas.
+
+### Deliverables
+* `/app/memory/TRACK_15_44_SOURCE_MAP.md`
+* `/app/memory/TRACK_15_44_EXECUTIVE_OVERVIEW_IMPLEMENTATION.md`
+* `/app/memory/TRACK_15_44_EXECUTIVE_OVERVIEW_CERTIFICATION.md`
+* `/app/memory/TRACK_15_44_EXECUTIVE_30_SECOND_TEST.md`
+
 ## 2026-06-19 — TRACK 15.43 · Field Operations Workflow Certification (🟡 YELLOW-GREEN · documentation-only track)
 
 **Stop building foundations. Start proving operations.** No code changed. Seven personas audited against the certified platform from Tracks 15.34-15.42.

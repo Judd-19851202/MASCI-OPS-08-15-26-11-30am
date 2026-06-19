@@ -10,7 +10,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.43 · Field Operations Workflow Certification · 🟡 YELLOW-GREEN · documentation-only)
+## Latest Track (2026-06-19 · TRACK 15.44 · Executive Overview · 🟢 COMPLETE & CERTIFIED · v15.44.1)
+
+### Closes Track 15.43's final YELLOW
+- 6-tile read-only awareness surface at `/admin/executive-overview`.
+- One new backend endpoint: `GET /api/admin/executive/overview` (admin-only · thin aggregator over existing certified collections).
+- One new frontend page: `ExecutiveOverview.jsx` · verdict ribbon · 6 tiles · per-tile source traceability · drill links to existing pages.
+
+### Hard-rule compliance
+- No new collections · no new schemas · no new background jobs · no notifications · no analytics engines · no forecasting · no AI summaries · no data warehouses · no reporting systems. Pure composition.
+
+### Performance + cert
+- Server render: 723 ms · Browser cold: 1288 ms · Warm: 648 ms (target <2s · PASS).
+- All 9 testids verified at Desktop 1920×800 · iPad portrait 768×1024 · iPad landscape 1024×768.
+- 30-second test: all 6 executive questions answered in 27 seconds.
+
+### Verdict aggregate (post-15.44)
+- 7 of 7 operator personas at 🟢 GREEN (Superintendent · PM · Safety · Shop · Dispatch · HR · Executive).
+
+### Deliverables
+- `/app/memory/TRACK_15_44_SOURCE_MAP.md` · `..._IMPLEMENTATION.md` · `..._CERTIFICATION.md` · `..._30_SECOND_TEST.md`
+
+## Previous Track (2026-06-19 · TRACK 15.43 · Field Operations Workflow Certification · 🟡 YELLOW-GREEN · documentation-only)
 
 - **Mode:** evidence-based workflow audit · NO code changes · NO new features built.
 - **Verdicts:** 6 of 7 personas at 🟢 GREEN (Superintendent · PM · Safety · Shop · Dispatch · HR). Executive at 🟡 YELLOW with 4 documented visibility gaps (composite "jobs at risk" rollup, overdue items tile, staffing-issues callout, unresolved-actions composite).
