@@ -1,6 +1,47 @@
 # CHANGELOG
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
+## 2026-06-20 — TRACK 15.59 · Live Production Post-Deployment Automated Verification (✅ PASS)
+
+**Trigger:** Production deploy at `https://mascidocs.com` complete. Operator requested an automated, end-to-end, real-network post-deployment verification using Playwright/automation against the LIVE site (NOT preview).
+
+**Outcome:** ✅ **PASS — 11 / 11 phases.** Duration 56.7 s. Zero left-over synthetic artefacts.
+
+**What the script proves (in one paragraph):** The production front-door is reachable, `APP_ENV=production` / `DB_NAME=masci_safety` confirmed by `/api/version`, `/api/health/full` reports mongo + scheduler + recent-backup all `true`, all 12 public login routes return 200 with correct inputs, all 9 protected dashboards correctly redirect anonymous visitors to the matching login, the super-admin (`jaymn.judd@mascigc.com`) authenticates via `POST /api/auth/multi-login` and gets all 8 portal tokens (`admin`, `pm`, `shop`, `hr`, `safety`, `dispatch`, `field_leadership`, `fl`), the UI sign-in lands on `/admin` with the directory token in localStorage, four authenticated portals (`/admin`, `/pm/command-center`, `/safety-portal`, `/hr`) hydrate over 80 KB of authenticated mark-up each, six canonical safety read endpoints return 200, a real write workflow creates Safety Meeting `MTG-2026-00084` on the production DB, `POST /api/email-report` renders a 1.36 MB PDF and Resend accepts the envelope to `safety@mascigc.com`, the cleanup contract holds (DELETE 200 → GET 404 → zero meetings remain bearing the `POST_DEPLOY_TEST_TRACK_15_59_DELETE` tag).
+
+**Runner:** `/app/tests/post_deploy/track_15_59_live_prod_verify.py` (Playwright 1.59 + chromium-headless-shell v1217 + requests). Idempotent. Exit code 0 on full pass.
+
+**Machine-readable result:** `/app/test_reports/track_15_59_live_prod_verify.json`.
+
+**Evidence captured:**
+- 27 viewport screenshots under `/app/memory/track_15_59_screenshots/` (12 public-route shots, 9 auth-wall shots, 2 UI-login shots, 4 portal-render shots).
+- JSON status grid covering all 11 phases with per-endpoint HTTP codes, counts, and timing.
+
+**Deliverables (11 files in `/app/memory/`):**
+1. `TRACK_15_59_LIVE_PROD_VERIFY_PLAN.md`
+2. `TRACK_15_59_ROUTE_INVENTORY.md`
+3. `TRACK_15_59_AUTH_WALL_PROOF.md`
+4. `TRACK_15_59_LOGIN_PROOF.md`
+5. `TRACK_15_59_PORTAL_RENDER_PROOF.md`
+6. `TRACK_15_59_WORKFLOW_PROOF.md`
+7. `TRACK_15_59_PDF_PROOF.md`
+8. `TRACK_15_59_CLEANUP_PROOF.md`
+9. `TRACK_15_59_SCREENSHOT_INDEX.md`
+10. `TRACK_15_59_FINAL_CERTIFICATION.md`
+11. `TRACK_15_59_EXECUTIVE_SUMMARY.md`
+
+**Backlog noted (non-blocking · post-15.59 cleanup):**
+- `is_valid_admin_token` predicate inside `routes/safety_portal/_deps.py::make_require_safety_admin_or_pm` rejects directory-minted admin tokens; the matching `require_admin` dependency accepts them. Cosmetic — SPA flows are unaffected because each surface sends its own portal token.
+- `/api/version.commit` reports `unknown`. Build chain not yet stamping git commit.
+- `/safety-portal` and `/hr` still wear the generic SPA `<title>` tag.
+
+**Authorisation notes:** Operator pre-approved (a) one production write tagged for cleanup, (b) one email envelope to `safety@mascigc.com`, (c) use of the super-admin credential against production. All three were exercised exactly once.
+
+**GO/NO-GO:** ✅ **GO — Production certified post-deployment healthy.**
+
+
+
+
 
 ## 2026-06-19 — TRACK 15.58 · GitHub Actions Node.js 20 Deprecation Elimination (🟢 GO)
 

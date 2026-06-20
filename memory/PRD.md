@@ -10,7 +10,48 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.58 · GitHub Actions Node.js 20 Deprecation Elimination · 🟢 GO)
+## Latest Track (2026-06-20 · TRACK 15.59 · Live Production Post-Deployment Automated Verification · ✅ PASS)
+
+### What shipped
+Automated, end-to-end, real-network verification of the live deploy at `https://mascidocs.com`. 11 / 11 phases passed in 56.7 s. Zero left-over synthetic artefacts on the production database.
+
+### Phase grid
+
+| # | Phase | Result |
+|---|-------|--------|
+| 1 | Smoke (`/`, `/api/version`, `/api/health/full`) | ✅ |
+| 2 | Public route inventory (12 routes · 200 + login affordance) | ✅ |
+| 3 | Auth-wall enforcement (9 protected URLs → redirect to login) | ✅ |
+| 4 | Production health probe (`APP_ENV=production` · `DB_NAME=masci_safety`) | ✅ |
+| 5 | API multi-login | ✅ |
+| 6 | Portal token fan-out (8 / 8 tokens minted) | ✅ |
+| 7 | UI sign-in via `/sign-in` → `/admin` | ✅ |
+| 8 | Authenticated portal render (admin · pm · safety-portal · hr) | ✅ |
+| 9 | Cross-portal API reads (6 endpoints) | ✅ |
+| 10 | Write workflow — Safety Meeting `MTG-2026-00084` created | ✅ |
+| 11 | PDF render (1.36 MB) + email delivery via Resend | ✅ |
+| 12 | Cleanup — DELETE → GET 404 → zero tagged remnants | ✅ |
+
+### Verification artefacts
+- Runner: `/app/tests/post_deploy/track_15_59_live_prod_verify.py` (Playwright 1.59 + requests)
+- Machine-readable result: `/app/test_reports/track_15_59_live_prod_verify.json`
+- 27 viewport screenshots under `/app/memory/track_15_59_screenshots/`
+
+### Deliverables (11 markdown files)
+`TRACK_15_59_LIVE_PROD_VERIFY_PLAN.md` · `TRACK_15_59_ROUTE_INVENTORY.md` · `TRACK_15_59_AUTH_WALL_PROOF.md` · `TRACK_15_59_LOGIN_PROOF.md` · `TRACK_15_59_PORTAL_RENDER_PROOF.md` · `TRACK_15_59_WORKFLOW_PROOF.md` · `TRACK_15_59_PDF_PROOF.md` · `TRACK_15_59_CLEANUP_PROOF.md` · `TRACK_15_59_SCREENSHOT_INDEX.md` · `TRACK_15_59_FINAL_CERTIFICATION.md` · `TRACK_15_59_EXECUTIVE_SUMMARY.md`
+
+### Backlog noted (non-blocking · post-15.59 cleanup)
+1. `is_valid_admin_token` predicate inside `routes/safety_portal/_deps.py::make_require_safety_admin_or_pm` rejects directory-minted admin tokens; the matching `require_admin` dependency accepts them. SPA users unaffected (each surface sends its own portal token). Unify when convenient.
+2. `/api/version.commit` reports `unknown`. Build chain not yet stamping git commit.
+3. `/safety-portal` and `/hr` still wear the generic SPA `<title>` tag.
+
+### Operator action
+None required. Production is certified post-deployment healthy. Re-run the script after any future production deploy as a 60-second sanity probe.
+
+### GO/NO-GO
+✅ **GO — production certified.**
+
+## Prior Track (2026-06-19 · TRACK 15.58 · GitHub Actions Node.js 20 Deprecation Elimination · 🟢 GO)
 
 ### What shipped
 7 action-version bumps across 3 GitHub Actions workflow files. Zero Node 20 third-party-action runtimes remain.
