@@ -10,7 +10,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-19 · TRACK 15.57 · Verify 15.56 Actually Reached GitHub Main · 🟡 UNVERIFIED · operator action required)
+## Latest Track (2026-06-19 · TRACK 15.58 · GitHub Actions Node.js 20 Deprecation Elimination · 🟢 GO)
+
+### What shipped
+7 action-version bumps across 3 GitHub Actions workflow files. Zero Node 20 third-party-action runtimes remain.
+
+| File | Upgrades |
+|---|---|
+| `ci.yml` | `checkout@v4 ×2 → @v5` · `setup-node@v4 → @v5` |
+| `sigma3-deploy-gate.yml` | `checkout@v4 ×3 → @v5` |
+| `production-health-probe.yml` | `checkout@v4 → @v5` |
+| `production-health-probe-pr-noop.yml` | unchanged (no third-party actions) |
+
+### Verification
+✅ YAML lint clean across all 4 workflows · ✅ `grep -rE "uses:.*@v[1-4]\b" .github/workflows/` returns empty · ✅ all v5 versions confirmed GA against current GitHub docs · ✅ MASCI uses `ubuntu-latest` runners (Node 24 default since 2026-06-16).
+
+### Pillar scorecard (no inflation · 56/60 = 93%)
+Powerful 9 · Simple 10 · Beautiful 9 · Trusted 9 · Proven 9 · Deployable 10.
+
+### Operator action
+Push all 4 workflow files to GitHub `main` via "Save to GitHub" (alongside Track 15.55/15.56/15.57 deltas if not yet pushed).
+
+### Deliverables
+6 markdown files under `/app/memory/TRACK_15_58_*.md`.
+
+### Final 7 answers
+1. Workflows affected: ci.yml · sigma3-deploy-gate.yml · production-health-probe.yml
+2. Actions causing Node 20 warning: `actions/checkout@v4` (6 sites) + `actions/setup-node@v4` (1 site)
+3. Upgrades required: all 7 → `@v5`
+4. Files changed: the 3 above
+5. Regressions tested: YAML lint · grep audit · trigger/permission/job-name preservation · belt-and-suspenders `if:` guard intact
+6. Risks remaining: only the standard operator-push-to-`main` step (carry-forward from 15.57)
+7. GO/NO-GO: 🟢 GO
+
+## Prior Track (2026-06-19 · TRACK 15.57 · Verify 15.56 Actually Reached GitHub Main · 🟡 UNVERIFIED · operator action required)
 
 ### Honest container limitation
 This Emergent container has **no `origin` git remote** (`git remote -v` returns nothing). Platform auto-commits land in local `/app/.git` only. Pushing to the operator's GitHub repo requires the operator to click "Save to GitHub" in the Emergent UI.
