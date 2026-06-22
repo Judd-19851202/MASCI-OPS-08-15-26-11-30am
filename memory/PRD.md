@@ -10,7 +10,44 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.67 · Email Routing V2 Wave 3 · Phase 3 · 🟢 GO for V2 cutover · ⚠️ Track stays OPEN for Track 15.68 chrome migration)
+## Latest Track (2026-06-22 · TRACK 15.68 · White-Label Chrome Migration & Customer #2 Readiness · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ Phase 3 governance still GO)
+
+### What shipped this fork
+1. **TenantLogo infrastructure** — `MasciLogo.jsx` is now tenant-aware via `useBranding()`. MASCI tenant unchanged; non-MASCI renders `branding.logo_url` or a generic monogram fallback. `TenantLogo` export alias added.
+2. **Tenant preview mode** — backend `GET /api/branding/current` accepts `X-Tenant-Preview` header (preview/dev only, refused in production). Frontend `BrandingProvider` reads `?tenantPreview=<key>` URL param, persists in `sessionStorage`. Proven: `curl -H "X-Tenant-Preview: track_15_68_tenant_test_delete"` returns ZERO MASCI strings.
+3. **Synthetic Customer #2 tenant seeded** — `track_15_68_tenant_test_delete` in `db.tenant_branding`.
+4. **Tenant-aware `companyInfo.js`** — MASCI defaults only when `sessionStorage.branding.tenantKey === "masci"`; non-MASCI gets blank `NEUTRAL_COMPANY_INFO`.
+5. **Genericized**: `BackendStatusBanner`, `SessionStatusOverlay`, `errorClassification.js`, `PublicShell.jsx`.
+6. **All 12 deliverables published** in `/app/memory/TRACK_15_68_*.md`.
+
+### What did NOT ship (honest list)
+- ❌ `SplashOverlay.jsx` still loads `/masci-mark.png` directly — confirmed via visual walkthrough screenshot.
+- ❌ Backend PDF templates (`pdf_render.py`, `pm_welcome_pdf.py`, `pdf_branding.py`) still render MASCI.
+- ❌ Legal pages (`TermsOfService.jsx`, `PrivacyPolicy.jsx`) still hardcode "MASCI General Contractors Inc." — 72 strings.
+- ❌ `AdminGuide.jsx`, `MaintainxP0Tab`, `MappingCleanupTab`, ~25 frontend pages with sub-header MASCI strings (~250 hits in Bucket A).
+- ❌ ~80 Bucket-B "must-become-tenant-aware" hits (PDFs, integration labels, asset filenames, translation keys).
+
+### Final-12 answers (proven)
+1. MASCI references before: 495 · 2. After: **491 disallowed** · 3. Customer-visible remaining: **~250** · 4. C2 sees MASCI logo? **YES** (SplashOverlay) · 5. MASCI name? **YES** (PDFs/legal/admin) · 6. mascigc.com? **YES** · 7. MASCI support/safety/HR/ops contacts? **NO** ✅ (Phase 3 cleared these) · 8. MASCI looks same? **YES** ✅ · 9. Parity 19/19? **YES** ✅ · 10. Live emails sent? **NO** ✅ · 11. Customer #2 visually white-label ready? **NO** · 12. **NO-GO for full white-label cutover**; GO for deploy with `EMAIL_ROUTING_V2=false` (no MASCI regression).
+
+### Six Pillars (honest)
+Powerful 7 · Simple 8 · Beautiful 6 · Trusted 8 · Proven 7 · Deployable 8 → **44 / 60 (73 %)** — below 85% closure threshold. **Track 15.68 stays OPEN.**
+
+### Hard rules honoured
+✅ No production cutover · ✅ No V2 production flip · ✅ No live blasts · ✅ MASCI appearance & workflows unchanged · ✅ Historical evidence not mutated · ✅ No replacement branding system · ✅ No V3 · ✅ No score inflation · ✅ Honest NO-GO returned.
+
+### Next-fork checklist (in order)
+1. Migrate `SplashOverlay` to `TenantLogo` with branding-aware fallback.
+2. Template `TermsOfService.jsx` + `PrivacyPolicy.jsx` via `useBranding()` + add `legal_*` branding fields.
+3. Parameterise `pdf_branding.py` so backend PDFs resolve brand strings from the tenant.
+4. Sweep `AdminGuide.jsx` + admin tabs (`MaintainxP0Tab`, `MappingCleanupTab`, `AdminIntegrationCenter`, `AssetProfile`).
+5. Sweep page sub-headers across `Hub`, `NewMeeting`, `NewIncident`, `ViewDailyReport`, `ViewInspection`, etc.
+6. Migrate asset filename templates (`MASCI_${id}.pdf`) to `${branding.company_name_slug}_${id}.pdf`.
+7. Re-run contamination scan; target zero disallowed customer-visible hits.
+8. Full visual walkthrough across login + 8 portals with Customer #2 preview.
+9. Re-issue Track 15.68 certification (target 53+/60).
+
+## Prior Track (2026-06-22 · TRACK 15.67 · Email Routing V2 Wave 3 · Phase 3 · 🟢 GO for V2 cutover · ⚠️ Track stays OPEN for Track 15.68 chrome migration)
 
 ### Phase 3 shipped (all 6 blockers closed)
 1. **Portal seed env migration** — `safety_users.py`, `shop_users.py`, `hr_users.py` resolve via `_resolve_initial_*_users()` reading env vars (`SAFETY_SEED_USERS`, `SHOP_SEED_USERS`, `HR_SEED_USERS`). MASCI defaults only when env unset AND tenant is MASCI.

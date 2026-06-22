@@ -2,6 +2,31 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.68 · White-Label Chrome Migration · 🟡 OPEN · ❌ NO-GO for full white-label
+
+**Shipped foundation (Track 15.68)**
+- `MasciLogo`/`TenantLogo` tenant-aware via `useBranding()`. Non-MASCI tenant gets `branding.logo_url` or a generic SVG monogram (no broken images).
+- Tenant preview mode: `X-Tenant-Preview` header (backend, gated on `APP_ENV != production`) + `?tenantPreview=<key>` URL param (frontend, sessionStorage).
+- Synthetic tenant `track_15_68_tenant_test_delete` seeded with non-MASCI contacts. `curl` proof: no MASCI strings in response.
+- `companyInfo.js` tenant-aware defaults: MASCI defaults only when `sessionStorage.branding.tenantKey === "masci"`.
+- Genericized `BackendStatusBanner`, `SessionStatusOverlay`, `errorClassification.js`, `PublicShell`.
+
+**Contamination scan**: 495 → **491 disallowed**. Parity 19/19. Second-tenant sim 40/40.
+
+**Not migrated (Bucket A — must do next)**
+- `SplashOverlay.jsx` hardcodes `/masci-mark.png` (confirmed via visual walkthrough).
+- Backend PDF templates (`pdf_render.py`, `pm_welcome_pdf.py`, `pdf_branding.py`).
+- Legal pages (`TermsOfService.jsx`, `PrivacyPolicy.jsx` — 72 strings).
+- `AdminGuide.jsx`, `MaintainxP0Tab`, `MappingCleanupTab`, `AdminIntegrationCenter`, asset filename templates.
+- ~150 page sub-header strings across 25+ files.
+
+**12 deliverables published in `/app/memory/`:**
+TRACK_15_68_REFERENCE_CLASSIFICATION · TENANT_LOGO_ASSET_PIPELINE · CHROME_MIGRATION · LEGAL_HISTORICAL_HANDLING · TENANT_PREVIEW_MODE · CUSTOMER_2_VISUAL_CERTIFICATION · MASCI_PARITY_CERTIFICATION · FINAL_CONTAMINATION_SCAN · CUSTOMER_2_READINESS_REPORT · PRODUCTION_READINESS · SIX_PILLAR_CERTIFICATION · FINAL_CLOSEOUT.
+
+**Six pillars (honest)**: 7+8+6+8+7+8 = **44/60 (73%)** — below 85% closure threshold.
+
+**Verdict**: Track 15.68 stays OPEN. Phase 3 governance is still GO. Customer #2 onboarding (visual) still NOT possible without code changes. Recommend keeping `EMAIL_ROUTING_V2=false` and not announcing C2 onboarding capability publicly until Bucket A closes.
+
 ## 2026-06-22 — TRACK 15.67 · Phase 3 Final Execution — 🟢 GO for V2 cutover · ⚠️ Track stays OPEN for Track 15.68 chrome migration
 
 **All 6 Phase-3 blockers closed**

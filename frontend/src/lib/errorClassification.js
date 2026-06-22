@@ -51,11 +51,11 @@ const COPY = {
   },
   [T.NETWORK_UNREACHABLE]: {
     title: "Connection Problem",
-    body: "Your device cannot reach MASCI services right now. Any drafts or pending uploads remain protected locally.",
+    body: "Your device cannot reach platform services right now. Any drafts or pending uploads remain protected locally.",
     action: "Retry",
   },
   [T.BACKEND_UNAVAILABLE]: {
-    title: "MASCI Services Temporarily Unavailable",
+    title: "Services Temporarily Unavailable",
     body: "The server is reachable but returned an error. Try again shortly. Field drafts remain protected locally.",
     action: "Retry",
   },

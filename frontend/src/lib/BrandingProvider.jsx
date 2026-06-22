@@ -53,15 +53,41 @@ const BrandingContext = createContext({
 
 const BRANDING_URL = `${process.env.REACT_APP_BACKEND_URL}/api/branding/current`;
 
+// Track 15.68 · Tenant preview override. URL param `?tenantPreview=customer2`
+// (or sessionStorage `branding.previewTenant`) flows through as an
+// `X-Tenant-Preview` header — preview/dev only; backend refuses it in
+// production. Used for visual QA of Customer #2 chrome without
+// flipping the live tenant.
+function getPreviewTenant() {
+  if (typeof window === "undefined") return "";
+  try {
+    const url = new URL(window.location.href);
+    const fromQuery = url.searchParams.get("tenantPreview");
+    if (fromQuery) {
+      window.sessionStorage.setItem("branding.previewTenant", fromQuery);
+      return fromQuery;
+    }
+    return window.sessionStorage.getItem("branding.previewTenant") || "";
+  } catch {
+    return "";
+  }
+}
+
 export function BrandingProvider({ children }) {
   const [branding, setBranding] = useState({ ...NEUTRAL_DEFAULTS, loading: true });
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch(BRANDING_URL, { credentials: "omit" });
+      const previewTk = getPreviewTenant();
+      const headers = {};
+      if (previewTk) headers["X-Tenant-Preview"] = previewTk;
+      const r = await fetch(BRANDING_URL, { credentials: "omit", headers });
       if (!r.ok) throw new Error(`branding fetch ${r.status}`);
       const data = await r.json();
-      setBranding({ ...NEUTRAL_DEFAULTS, ...data, loading: false });
+      try {
+        window.sessionStorage.setItem("branding.tenantKey", data.tenant_key || "masci");
+      } catch { /* sessionStorage may be unavailable */ }
+      setBranding({ ...NEUTRAL_DEFAULTS, ...data, loading: false, previewTenant: previewTk });
     } catch (_e) {
       setBranding((prev) => ({ ...prev, loading: false }));
     }

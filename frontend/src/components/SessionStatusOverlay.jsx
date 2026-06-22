@@ -79,13 +79,13 @@ function _copy(state) {
     case ERROR_KINDS.NETWORK_UNREACHABLE:
       return {
         title: "Connection Problem",
-        body: "Your device cannot reach MASCI services right now. Any drafts or pending uploads remain protected locally.",
+        body: "Your device cannot reach platform services right now. Any drafts or pending uploads remain protected locally.",
         primary: "Retry",
         secondary: "Dismiss",
       };
     case ERROR_KINDS.BACKEND_UNAVAILABLE:
       return {
-        title: "MASCI Services Temporarily Unavailable",
+        title: "Services Temporarily Unavailable",
         body: "The server is reachable but returned an error. Try again shortly. Field drafts remain protected locally.",
         primary: "Retry",
         secondary: "Dismiss",

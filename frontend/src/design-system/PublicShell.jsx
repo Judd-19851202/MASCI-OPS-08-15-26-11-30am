@@ -32,7 +32,7 @@ export function PublicShell({
               textTransform: "uppercase",
               color: "var(--ink-soft)",
             }}>
-              MASCI · {surfaceName}
+              {surfaceName}
             </span>
           </div>
           {languageToggle}

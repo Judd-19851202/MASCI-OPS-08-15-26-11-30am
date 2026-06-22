@@ -1,11 +1,11 @@
 # TRACK 15.67 · Customer #2 Contamination Scan
 
-_Generated 2026-06-22T17:02:48.802863+00:00_
+_Generated 2026-06-22T17:27:18.175499+00:00_
 
 ## Summary
 
-- Total MASCI-flavour hits: **12114**
-- Disallowed customer-visible surface hits: **495**
+- Total MASCI-flavour hits: **12115**
+- Disallowed customer-visible surface hits: **491**
 - Verdict: **❌ FAIL**
 
 ## By Category
@@ -15,9 +15,9 @@ _Generated 2026-06-22T17:02:48.802863+00:00_
 | historical_migration | 6679 | YES |
 | test_fixture | 1865 | YES |
 | backend_internal | 1153 | YES (docstrings/comments) |
-| uncategorized | 1048 | REVIEW |
+| uncategorized | 1044 | REVIEW |
 | masci_tenant_config | 1001 | YES |
-| masci_data_library | 368 | YES (asset/i18n library) |
+| masci_data_library | 373 | YES (asset/i18n library) |
 
 ## Disallowed Surface Hits (must be 0)
 
@@ -25,12 +25,10 @@ _Generated 2026-06-22T17:02:48.802863+00:00_
 - `frontend/src/design-system/PortalShell.jsx` — /app/frontend/src/design-system/PortalShell.jsx:118:      {/* MASCI top chrome — unified across all authenticated portals */}
 - `frontend/src/design-system/PortalShell.jsx` — /app/frontend/src/design-system/PortalShell.jsx:124:          {/* MASCI mark — anchors brand identity in every portal */}
 - `frontend/src/design-system/PortalShell.jsx` — /app/frontend/src/design-system/PortalShell.jsx:142:          {/* Right-side nav cluster — unified MASCI chrome */}
-- `frontend/src/design-system/PublicShell.jsx` — /app/frontend/src/design-system/PublicShell.jsx:35:              MASCI · {surfaceName}
 - `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:235:      const fname = m ? m[1] : "MASCI_jobs.xlsx";
 - `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:292:            MASCI Current Jobs
 - `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:298:            Add, edit, deactivate, or bulk-replace the MASCI job list. Active jobs
 - `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:667:              Bulk replace MASCI jobs
-- `frontend/src/components/BackendStatusBanner.jsx` — /app/frontend/src/components/BackendStatusBanner.jsx:138:              The MASCI backend is down. Your form data is safe — wait ~60s and
 - `frontend/src/components/AdminSafetyFormsPanel.jsx` — /app/frontend/src/components/AdminSafetyFormsPanel.jsx:101:      a.download = `MASCI_${label}_${id.slice(0, 8)}.pdf`;
 - `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:186:          <DialogTitle>Pick {kind === "asset" ? "MASCI equipment" : "MASCI employee"}</DialogTitle>
 - `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:313:              <th className="text-left px-2 py-1">Existing MASCI Match</th>
@@ -91,8 +89,6 @@ _Generated 2026-06-22T17:02:48.802863+00:00_
 - `frontend/src/components/operations-map/MapCanvas.jsx` — /app/frontend/src/components/operations-map/MapCanvas.jsx:297:          if (window.__MASCI_MAP_REF__ === map) {
 - `frontend/src/components/operations-map/MapCanvas.jsx` — /app/frontend/src/components/operations-map/MapCanvas.jsx:298:            window.__MASCI_MAP_REF__ = (window.__MASCI_MAP_REFS__ || []).slice(-1)[0] || null;
 - `frontend/src/components/operations-map/MapCanvas.jsx` — /app/frontend/src/components/operations-map/MapCanvas.jsx:300:          window.__MASCI_MAP_DISPOSE_COUNT__ = (window.__MASCI_MAP_DISPOSE_COUNT__ || 0) + 1;
-- `frontend/src/components/SessionStatusOverlay.jsx` — /app/frontend/src/components/SessionStatusOverlay.jsx:82:        body: "Your device cannot reach MASCI services right now. Any drafts or pending uploads remain protected locally.",
-- `frontend/src/components/SessionStatusOverlay.jsx` — /app/frontend/src/components/SessionStatusOverlay.jsx:88:        title: "MASCI Services Temporarily Unavailable",
 - `frontend/src/components/MasterListPanel.jsx` — /app/frontend/src/components/MasterListPanel.jsx:235:      const fname = m ? m[1] : `MASCI_${entitySingular}s.xlsx`;
 - `frontend/src/components/pm/command/PmProjectFirstHome.jsx` — /app/frontend/src/components/pm/command/PmProjectFirstHome.jsx:189:        ? t("Admin / super-admin sees all MASCI projects. Click any project to drill in.")
 - `frontend/src/components/PartsCatalog.jsx` — /app/frontend/src/components/PartsCatalog.jsx:61:      const fname = m ? m[1] : "MASCI_parts.xlsx";
@@ -563,13 +559,13 @@ _Generated 2026-06-22T17:02:48.802863+00:00_
 - `backend/dispatch_users.py`
 - `backend/doc_ids.py`
 
-### masci_data_library (368)
+### masci_data_library (373)
 
 - `frontend/src/components/MasciLogo.jsx`
 - `frontend/src/lib/companyInfo.js`
-- `frontend/src/lib/errorClassification.js`
 - `frontend/src/lib/geolocation.js`
 - `frontend/src/lib/i18n.js`
 - `frontend/src/lib/inspectionSchema.js`
 - `frontend/src/lib/jobLibrary.js`
 - `frontend/src/lib/jwtAuth.js`
+- `frontend/src/lib/printReport.js`

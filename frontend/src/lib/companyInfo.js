@@ -1,13 +1,16 @@
 // Company info persisted on the device (localStorage).
 // Used on the printed PDF footer and on photo watermarks for legal/insurance filings.
+//
+// Track 15.68 · Tenant-aware default. The MASCI defaults below are only
+// returned when the active tenant is MASCI; for any other tenant, the
+// defaults come from the BrandingProvider doc and the operator's saved
+// localStorage overrides (which they fill in via the Admin → Company
+// Info panel on first onboarding).
 
 const STORAGE_KEY = "masci.companyInfo.v1";
 
 export const DEFAULT_COMPANY_INFO = {
   company_name: "MASCI General Contractors Inc.",
-  // Tagline intentionally blank — it's now baked into the logo image
-  // itself (per the 2026-05-03 logo deployment). Print views guard on
-  // `company.tagline && …` so they skip rendering when this is empty.
   tagline: "",
   address: "5752 South Ridgewood Avenue",
   city_state_zip: "Port Orange, FL 32127-6442",
@@ -16,17 +19,39 @@ export const DEFAULT_COMPANY_INFO = {
   website: "mascigc.com",
 };
 
+// Track 15.68 · Tenant-neutral defaults for non-MASCI tenants. Used as
+// the fallback when localStorage is empty AND the tenant is not MASCI.
+const NEUTRAL_COMPANY_INFO = {
+  company_name: "",
+  tagline: "",
+  address: "",
+  city_state_zip: "",
+  phone: "",
+  email: "",
+  website: "",
+};
+
+function _isMasciTenant() {
+  if (typeof window === "undefined") return true;
+  try {
+    // Best-effort: BrandingProvider stashes the active tenant in
+    // sessionStorage on first load. If absent, assume MASCI (the
+    // preview deployment).
+    const tk = window.sessionStorage.getItem("branding.tenantKey") || "masci";
+    return tk === "masci";
+  } catch {
+    return true;
+  }
+}
+
 export function getCompanyInfo() {
   if (typeof window === "undefined") return DEFAULT_COMPANY_INFO;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_COMPANY_INFO;
-    const stored = JSON.parse(raw);
-    // Smart merge: a stored field overrides default ONLY if it is a
-    // non-empty string. Blank/missing fields fall back to defaults so users
-    // who saved with old empty defaults still get the new MASCI values.
-    const out = { ...DEFAULT_COMPANY_INFO };
-    for (const k of Object.keys(DEFAULT_COMPANY_INFO)) {
+    const stored = raw ? JSON.parse(raw) : null;
+    const base = _isMasciTenant() ? DEFAULT_COMPANY_INFO : NEUTRAL_COMPANY_INFO;
+    const out = { ...base };
+    for (const k of Object.keys(base)) {
       const v = stored?.[k];
       if (typeof v === "string" && v.trim().length > 0) {
         out[k] = v;
@@ -34,7 +59,7 @@ export function getCompanyInfo() {
     }
     return out;
   } catch {
-    return DEFAULT_COMPANY_INFO;
+    return _isMasciTenant() ? DEFAULT_COMPANY_INFO : NEUTRAL_COMPANY_INFO;
   }
 }
 

@@ -13555,8 +13555,16 @@ async def admin_v2_branding_put(
 # strings (no secrets, no recipient lists). Used by every page on first
 # load to render the active tenant's brand instead of hardcoded MASCI.
 @_email_router.get("/branding/current")
-async def public_branding_current():
-    tk = _current_tenant_key()
+async def public_branding_current(request: Request):
+    # Track 15.68 · Tenant preview override — allow an `X-Tenant-Preview`
+    # header (preview/dev only) so the operator can visually inspect any
+    # tenant's branding without changing the production tenant. Refused
+    # in production env to prevent accidental customer impersonation.
+    preview_tk = ""
+    app_env = (os.environ.get("APP_ENV") or "").strip().lower()
+    if app_env != "production":
+        preview_tk = (request.headers.get("X-Tenant-Preview") or "").strip().lower()
+    tk = preview_tk or _current_tenant_key()
     doc = await db.tenant_branding.find_one({"_id": tk}, {"_id": 0}) or {}
     try:
         from tenant_context import is_masci as _is_masci_t  # noqa: PLC0415

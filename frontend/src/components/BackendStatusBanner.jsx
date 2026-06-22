@@ -135,7 +135,7 @@ export default function BackendStatusBanner() {
               <span className="font-display tracking-wide uppercase">
                 Server Unreachable —
               </span>{" "}
-              The MASCI backend is down. Your form data is safe — wait ~60s and
+              The backend is down. Your form data is safe — wait ~60s and
               try again. Reports won&apos;t save until this banner disappears.
             </>
           ) : (

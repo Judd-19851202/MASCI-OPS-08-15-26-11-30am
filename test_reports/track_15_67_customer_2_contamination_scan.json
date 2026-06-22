@@ -1,5 +1,5 @@
 {
-  "ts": "2026-06-22T17:02:48.802863+00:00",
+  "ts": "2026-06-22T17:27:18.175499+00:00",
   "needles": [
     "MASCI",
     "mascigc\\.com",
@@ -134,7 +134,7 @@
       ]
     },
     "uncategorized": {
-      "count": 1048,
+      "count": 1044,
       "samples": [
         ".deploy_checks/README.md",
         "ATLAS_MIGRATION.md",
@@ -169,11 +169,10 @@
       ]
     },
     "masci_data_library": {
-      "count": 368,
+      "count": 373,
       "samples": [
         "frontend/src/components/MasciLogo.jsx",
         "frontend/src/lib/companyInfo.js",
-        "frontend/src/lib/errorClassification.js",
         "frontend/src/lib/geolocation.js",
         "frontend/src/lib/i18n.js",
         "frontend/src/lib/inspectionSchema.js",
@@ -200,11 +199,12 @@
         "frontend/src/lib/topics/public_interaction.js",
         "frontend/src/lib/topics/shop.es.js",
         "frontend/src/lib/topics/shop.js",
-        "frontend/src/lib/topics/stop_work.es.js"
+        "frontend/src/lib/topics/stop_work.es.js",
+        "frontend/src/lib/topics/stop_work.js"
       ]
     }
   },
-  "total_hits": 12114,
+  "total_hits": 12115,
   "disallowed_hits": [
     {
       "path": "frontend/src/design-system/PortalShell.jsx",
@@ -227,11 +227,6 @@
       "line": "/app/frontend/src/design-system/PortalShell.jsx:142:          {/* Right-side nav cluster \u2014 unified MASCI chrome */}"
     },
     {
-      "path": "frontend/src/design-system/PublicShell.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/design-system/PublicShell.jsx:35:              MASCI \u00b7 {surfaceName}"
-    },
-    {
       "path": "frontend/src/components/AdminJobMasterPanel.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:235:      const fname = m ? m[1] : \"MASCI_jobs.xlsx\";"
@@ -250,11 +245,6 @@
       "path": "frontend/src/components/AdminJobMasterPanel.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:667:              Bulk replace MASCI jobs"
-    },
-    {
-      "path": "frontend/src/components/BackendStatusBanner.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/BackendStatusBanner.jsx:138:              The MASCI backend is down. Your form data is safe \u2014 wait ~60s and"
     },
     {
       "path": "frontend/src/components/AdminSafetyFormsPanel.jsx",
@@ -555,16 +545,6 @@
       "path": "frontend/src/components/operations-map/MapCanvas.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/components/operations-map/MapCanvas.jsx:300:          window.__MASCI_MAP_DISPOSE_COUNT__ = (window.__MASCI_MAP_DISPOSE_COUNT__ || 0) + 1;"
-    },
-    {
-      "path": "frontend/src/components/SessionStatusOverlay.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/SessionStatusOverlay.jsx:82:        body: \"Your device cannot reach MASCI services right now. Any drafts or pending uploads remain protected locally.\","
-    },
-    {
-      "path": "frontend/src/components/SessionStatusOverlay.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/SessionStatusOverlay.jsx:88:        title: \"MASCI Services Temporarily Unavailable\","
     },
     {
       "path": "frontend/src/components/MasterListPanel.jsx",
@@ -2682,5 +2662,5 @@
       "line": "/app/frontend/src/pages/MeetingsDashboard.jsx:66:      portalName=\"MASCI\" portalRole=\"Safety Portal \u00b7 Safety Meetings\""
     }
   ],
-  "disallowed_count": 495
+  "disallowed_count": 491
 }
