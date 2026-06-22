@@ -31,6 +31,7 @@ import {
 import { api } from "@/lib/api";
 import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
+import { useBranding } from "@/lib/BrandingProvider";
 
 // Track 15.1 (2026-06-16) — Defect 5 fix: extended shop role catalog
 // to include Equipment / Asset Management labels that the operational
@@ -56,6 +57,7 @@ const inputCls =
   "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-orange-600";
 
 export default function AdminShopUsersPanel() {
+  const branding = useBranding();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -231,7 +233,7 @@ export default function AdminShopUsersPanel() {
             </h3>
             <p className="text-sm text-slate-600 mt-1 max-w-xl">
               Add or remove shop personnel and issue per-user passwords. Failed
-              Pre-Op submissions auto-email <strong>shopmanager@mascigc.com</strong>.
+              Pre-Op submissions auto-email <strong>{branding.operations_email || "your shop manager"}</strong>.
             </p>
           </div>
         </div>

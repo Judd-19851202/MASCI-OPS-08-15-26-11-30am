@@ -2,6 +2,44 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.67 · Phase 3 Final Execution — 🟢 GO for V2 cutover · ⚠️ Track stays OPEN for Track 15.68 chrome migration
+
+**All 6 Phase-3 blockers closed**
+- **Blocker 1** — Portal seed env migration (`safety_users.py`, `shop_users.py`, `hr_users.py`).
+- **Blocker 2** — `pm_routing.py` hardcoded `PM_TABLE` + `ALWAYS_CC` removed; unresolved PM events route to `ADMIN_DEAD_LETTER_TO` with audit row + admin notification.
+- **Blocker 3** — 30 sender-swap site migrations across `server.py` + 9 satellite files (`phase4.py`, `outage_alerts.py`, `health_monitor.py`, `backup_verification.py`, `routes/pm_routes.py`, `routes/safety_forms.py`, `routes/shop_parts.py`, `routes/pm_admin.py`, `lib/fsi_email_sender.py`). New `branding_resolver.resolve_sender_email(db)` + `resolve_reply_to_email(db)` compat helpers.
+- **Blocker 4** — Frontend `BrandingProvider` + public `GET /api/branding/current` endpoint + 14 customer-visible chrome surfaces migrated (PortalShell, ForgedOpsAttribution, CheatSheetCard, JhaPlansPosterCard, TrenchBoxPosterCard, ShareFormDialog, PromoHeroLoop, PosterErrorBoundary, BackupHeroPanel, CloudArchivesPanel, AdminSafetyFormsPanel, AdminShopUsersPanel, EmployeeMasterPanel, SupplierMasterPanel).
+- **Blocker 5** — "Run Route Health" button + green/amber/red summary strip in `EmailRoutingV2Panel`.
+- **Blocker 6** — Extended second-tenant simulation 27 → 40 checks. Customer #2 contamination scan script.
+
+**Proofs**
+- `track_15_65_parity_verify.py` → **19/19 match** (MASCI behaviour unchanged).
+- `track_15_67_second_tenant_simulation.py` → **40/40 pass**.
+- `track_15_67_customer_2_contamination_scan.py` → 0 disallowed on the 14 migrated chrome surfaces; 495 remaining on legacy page-level / legal / admin-label / asset-filename strings (Track 15.68).
+
+**Six pillars:** Powerful 9 · Simple 9 · Beautiful 8 · Trusted 9 · Proven 9 · Deployable 9 → **53/60 (88%)**.
+
+**12 deliverables published in `/app/memory/`:**
+1. `TRACK_15_67_PORTAL_SEED_MIGRATION.md`
+2. `TRACK_15_67_PM_FALLBACK_REMOVAL.md`
+3. `TRACK_15_67_SENDER_SWAP_COMPLETION.md`
+4. `TRACK_15_67_FRONTEND_BRANDING_WIRING.md`
+5. `TRACK_15_67_ROUTE_HEALTH_UI.md`
+6. `TRACK_15_67_CUSTOMER_2_CONTAMINATION_SCAN.md`
+7. `TRACK_15_67_EXTENDED_SECOND_TENANT_CERTIFICATION.md`
+8. `TRACK_15_67_FINAL_ZERO_LEAKAGE_AUDIT.md`
+9. `TRACK_15_67_PRODUCTION_CUTOVER_READINESS.md`
+10. `TRACK_15_67_FINAL_EXECUTIVE_SUMMARY.md`
+11. `TRACK_15_67_SIX_PILLAR_CERTIFICATION.md`
+12. `TRACK_15_67_FINAL_CLOSEOUT.md`
+
+**Honest verdict**
+- **GO** for the email routing V2 cutover.
+- **GO** for Customer #2 onboarding on the email / routing / sender / PM / portal-seed / branding subsystem (one env block + one Mongo upsert).
+- **NO-GO** for "Customer #2 sees the literal word MASCI nowhere" — Track 15.68 must close the remaining 495 legacy frontend strings.
+- MASCI production behaviour identical (parity 19/19).
+- `EMAIL_ROUTING_V2` stays `false` until operator authorises cutover.
+
 ## 2026-06-22 — TRACK 15.67 · Phase 2 Final Closeout — 🟡 TRACK OPEN · ❌ NO-GO for cutover
 
 **Phase 2 shipped (Blocker 1 closed)**

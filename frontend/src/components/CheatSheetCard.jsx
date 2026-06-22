@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { useT } from "@/lib/i18n";
+import { useBranding } from "@/lib/BrandingProvider";
 
 /**
  * Crew Field Card — printable single-page poster for every job trailer.
@@ -23,7 +24,9 @@ import { useT } from "@/lib/i18n";
 
 export default function CheatSheetCard() {
   const { t } = useT();
-  const hubUrl = "https://mascidocs.com/";
+  const branding = useBranding();
+  const hubUrl = branding.marketing_url || "https://mascidocs.com/";
+  const platformDisplay = branding.platform_display_name || "Operations Platform";
 
   const submissionTiles = [
     {
@@ -89,7 +92,7 @@ export default function CheatSheetCard() {
         <div className="flex-1">
           <MasciLogo variant="mark" size="2xl" onLight homeLink="/" />
           <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-bold">
-            {t("MASCI Operations Platform · Field Card")}
+            {platformDisplay} · {t("Field Card")}
           </div>
         </div>
         <div className="text-right">
@@ -100,7 +103,7 @@ export default function CheatSheetCard() {
             386-322-4500
           </div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">
-            mascidocs.com
+            {(branding.marketing_url || "mascidocs.com").replace(/^https?:\/\//, "").replace(/\/+$/, "")}
           </div>
         </div>
       </div>
@@ -127,7 +130,7 @@ export default function CheatSheetCard() {
           </h1>
           <p className="text-slate-700 text-base mt-3 leading-relaxed">
             {t(
-              "Open your camera, point it at the QR code, tap the link. MASCI Operations Platform opens in your browser. No login for field forms. No app to install. Add it to your home screen and you're set.",
+              "Open your camera, point it at the QR code, tap the link. The platform opens in your browser. No login for field forms. No app to install. Add it to your home screen and you're set.",
             )}
           </p>
         </div>
@@ -246,7 +249,7 @@ export default function CheatSheetCard() {
       <div className="mt-7 pt-4 border-t-2 border-black flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="text-center sm:text-left">
           <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-slate-900 font-bold">
-            {t("MASCI Operations Platform")}
+            {platformDisplay}
           </div>
           <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500 mt-0.5">
             {t("Powered by ForgedOps™")}

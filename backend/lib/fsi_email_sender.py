@@ -22,13 +22,32 @@ async def fsi_send_email(
     html: str,
     *,
     reply_to: Optional[str] = None,
+    db=None,
 ) -> Dict[str, Any]:
     """Send a transactional email via Resend. Caller is the FSI
     dispatcher; provider errors propagate so the dispatcher can write
-    a ``notification_dispatch_failed`` row carrying the error string."""
+    a ``notification_dispatch_failed`` row carrying the error string.
+
+    Track 15.67 Phase 3: when ``db`` is provided the sender/reply-to
+    resolve through ``branding_resolver`` (tenant-safe). When ``db`` is
+    None we fall back to env (preserves callers that haven't been
+    migrated yet)."""
     api_key = os.environ.get("RESEND_API_KEY") or ""
-    sender = os.environ.get("SENDER_EMAIL") or "onboarding@resend.dev"
-    reply = reply_to or os.environ.get("REPLY_TO_EMAIL") or sender
+    if db is not None:
+        try:
+            from branding_resolver import (
+                resolve_sender_email as _resolve_sender_email,
+                resolve_reply_to_email as _resolve_reply_to_email,
+            )
+            sender = await _resolve_sender_email(db)
+            reply_env = await _resolve_reply_to_email(db)
+        except Exception:
+            sender = os.environ.get("SENDER_EMAIL") or "onboarding@resend.dev"
+            reply_env = os.environ.get("REPLY_TO_EMAIL") or ""
+    else:
+        sender = os.environ.get("SENDER_EMAIL") or "onboarding@resend.dev"
+        reply_env = os.environ.get("REPLY_TO_EMAIL") or ""
+    reply = reply_to or reply_env or sender
     if not api_key:
         raise RuntimeError("resend_api_key_missing")
     if not to:

@@ -4,12 +4,12 @@ import MasterListPanel from "@/components/MasterListPanel";
 import { clearEmployeeCache } from "@/components/EmployeeCombo";
 
 /**
- * MASCI Employee Roster — single-add + table + edit + delete + bulk XLSX.
+ * Employee Roster — single-add + table + edit + delete + bulk XLSX.
  * Drives every employee dropdown across the app.
  */
 const EmployeeMasterPanel = ({ readOnly = false }) => (
   <MasterListPanel
-    title="MASCI Employee Roster"
+    title="Employee Roster"
     icon={Users}
     accent="amber"
     testIdPrefix="employee-master"
@@ -31,7 +31,7 @@ const EmployeeMasterPanel = ({ readOnly = false }) => (
       { key: "trade",       label: "Trade",       placeholder: "Operator" },
       { key: "role",        label: "Role",        placeholder: "Foreman" },
       { key: "crew",        label: "Crew",        placeholder: "Crew A" },
-      { key: "email",       label: "Email",       placeholder: "name@mascigc.com" },
+      { key: "email",       label: "Email",       placeholder: "name@yourcompany.com" },
       { key: "phone",       label: "Phone",       placeholder: "555-0123" },
     ]}
     itemLabel={(r) => r.name}

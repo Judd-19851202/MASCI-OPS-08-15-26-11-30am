@@ -2,9 +2,13 @@
 MASCI Project Manager → Job auto-routing.
 
 DB-BACKED (2026-04-30): the source of truth is now `db.jobs_master.pm_email`
-combined with `db.project_managers`. The legacy hardcoded PM_TABLE is kept
-ONLY as a synchronous fallback for code paths that don't have a DB handle
-(rare); every production code path now resolves PMs via the DB.
+combined with `db.project_managers`. Track 15.67 Phase 3 removed the
+hard-coded PM_TABLE — for non-MASCI tenants there is now no fallback
+dictionary at all, and even for MASCI the legacy table is resolved
+from the optional `PM_SEED_DIRECTORY` env var (defaults to the
+historical four names on the MASCI tenant only). Unresolved PM
+events go to `ADMIN_DEAD_LETTER_TO` via the routing engine, never
+silently to MASCI office addresses.
 
 To change a job's PM:
   • Open /admin → "Active Jobs Master" → click the PM cell → pick from dropdown.
@@ -15,31 +19,72 @@ To add a new PM:
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Dict, List, Optional, Tuple
 
+logger = logging.getLogger(__name__)
+
 
 # ---------------------------------------------------------------------------
-# Legacy fallback table (used ONLY when no DB lookup is wired in for the
-# caller). New code paths should call resolve_pm_for_record_async() with
-# the live `db` handle.
+# Phase 3 · Tenant-safe legacy fallback. Resolved from env var only.
+# Format: "Name|email,Name|email,...". For Customer #2 this stays empty
+# unless an operator wires the env. The MASCI default is honoured only
+# when the env is unset AND the tenant is MASCI.
 # ---------------------------------------------------------------------------
-PM_TABLE: Dict[str, Dict[str, object]] = {
-    "David Jewett":     {"email": "davidjewett@mascigc.com",     "jobs": []},
-    "Chris Wright":     {"email": "chriswright@mascigc.com",     "jobs": []},
-    "Ramon Rodriguez":  {"email": "RamonRodriguez@mascigc.com",  "jobs": []},
-    "Jaymn Judd":       {"email": "jaymn.judd@mascigc.com",      "jobs": []},
-}
+def _resolve_pm_table() -> Dict[str, Dict[str, object]]:
+    raw = (os.environ.get("PM_SEED_DIRECTORY") or "").strip()
+    if raw:
+        out: Dict[str, Dict[str, object]] = {}
+        for entry in raw.split(","):
+            parts = [p.strip() for p in entry.split("|")]
+            if len(parts) < 2 or "@" not in parts[1]:
+                continue
+            out[parts[0]] = {"email": parts[1].lower(), "jobs": []}
+        return out
+    try:
+        from tenant_context import is_masci as _is_masci
+        masci_tenant = _is_masci()
+    except Exception:
+        masci_tenant = True
+    if masci_tenant:
+        return {
+            "David Jewett":    {"email": "davidjewett@mascigc.com",    "jobs": []},
+            "Chris Wright":    {"email": "chriswright@mascigc.com",    "jobs": []},
+            "Ramon Rodriguez": {"email": "RamonRodriguez@mascigc.com", "jobs": []},
+            "Jaymn Judd":      {"email": "jaymn.judd@mascigc.com",     "jobs": []},
+        }
+    logger.warning(
+        "pm_routing: PM_SEED_DIRECTORY unset and tenant is not MASCI — "
+        "PM_TABLE will be empty; unresolved PM events route to "
+        "ADMIN_DEAD_LETTER_TO."
+    )
+    return {}
 
 
-# Always copied on every COMPLIANCE form (Site Inspection, Safety Meeting,
-# JHP, Incident Report). These are the four legal/compliance forms that the
-# office needs a copy of. Daily Job Reports and Equipment Pre-Op Inspections
-# are operational forms — they go to the assigned PM only (no office CC).
-ALWAYS_CC: List[str] = [
-    "jaymn.judd@mascigc.com",
-    "safety@mascigc.com",
-]
+PM_TABLE: Dict[str, Dict[str, object]] = _resolve_pm_table()
+
+
+# ---------------------------------------------------------------------------
+# ALWAYS_CC — compliance-form office copy. Phase 3 resolves from
+# COMPLIANCE_ALWAYS_CC env (comma-separated) and falls back to the
+# MASCI default only when env unset AND tenant is MASCI.
+# ---------------------------------------------------------------------------
+def _resolve_always_cc() -> List[str]:
+    raw = (os.environ.get("COMPLIANCE_ALWAYS_CC") or "").strip()
+    if raw:
+        return [e.strip().lower() for e in raw.split(",") if e.strip() and "@" in e]
+    try:
+        from tenant_context import is_masci as _is_masci
+        masci_tenant = _is_masci()
+    except Exception:
+        masci_tenant = True
+    if masci_tenant:
+        return ["jaymn.judd@mascigc.com", "safety@mascigc.com"]
+    return []
+
+
+ALWAYS_CC: List[str] = _resolve_always_cc()
 
 # Kinds that get the always-CC pair (compliance docs).
 COMPLIANCE_KINDS = {"inspection", "meeting", "jha", "incident"}
@@ -212,8 +257,11 @@ async def recipients_for_record_async(
         # primary but every assigned PM still gets a copy.
         cc: List[str] = list(co_pm_emails)
         if not to:
-            # No primary PM resolved — default office address.
-            to = ["jaymn.judd@mascigc.com"]
+            # No primary PM resolved — route to ADMIN_DEAD_LETTER_TO.
+            # Phase 3: never silently fall back to a MASCI office address.
+            to = await _dead_letter_recipients(db)
+            await _audit_dead_letter(db, kind=kind or "operational",
+                                     record=record, reason="no_primary_pm")
     else:
         # Compliance kinds: co-PMs FIRST, then office CC. De-dup the
         # always-cc list against both the primary and the co-PMs so
@@ -239,8 +287,11 @@ async def recipients_for_record_async(
             seen_for_cc.add(e.lower())
             cc.append(e)
         if not to:
-            to = cc[:]
-            cc = []
+            # No primary PM resolved on a compliance form — escalate to
+            # ADMIN_DEAD_LETTER_TO in To: and keep the office CC.
+            to = await _dead_letter_recipients(db)
+            await _audit_dead_letter(db, kind=kind or "compliance",
+                                     record=record, reason="no_primary_pm")
 
     seen = set()
     all_unique: List[str] = []
@@ -274,6 +325,73 @@ async def recipients_for_record_async(
 
 
 # ---------------------------------------------------------------------------
+# Phase 3 · Dead-letter helpers — every unresolved PM event ends up here
+# instead of silently inheriting a MASCI office address.
+# ---------------------------------------------------------------------------
+async def _dead_letter_recipients(db) -> List[str]:
+    """Return the active tenant's ADMIN_DEAD_LETTER_TO recipients. Falls
+    back to the env `ADMIN_DEAD_LETTER_EMAIL` only when the tenant is
+    MASCI; for any other tenant returns an empty list, which the
+    routing engine surfaces as an explicit failure rather than a
+    silent MASCI inheritance."""
+    try:
+        from tenant_context import resolve_tenant_key, is_masci
+        tk = resolve_tenant_key()
+    except Exception:
+        tk = "masci"
+        is_masci = lambda *a, **k: True  # noqa: E731
+    try:
+        doc = await db.email_routes.find_one(
+            {"_id": f"{tk}::ADMIN_DEAD_LETTER_TO"}, {"_id": 0, "to": 1}
+        )
+        to = (doc or {}).get("to") or []
+        if isinstance(to, list) and to:
+            return [str(e) for e in to if e]
+    except Exception:
+        pass
+    if is_masci(tk):
+        env = (os.environ.get("ADMIN_DEAD_LETTER_EMAIL") or "").strip()
+        if env:
+            return [env]
+    return []
+
+
+async def _audit_dead_letter(db, *, kind: str, record: dict, reason: str) -> None:
+    """Write a routing audit row + admin notification when a PM event
+    falls through to the dead-letter route. Never raises."""
+    try:
+        from tenant_context import resolve_tenant_key
+        tk = resolve_tenant_key()
+    except Exception:
+        tk = "masci"
+    try:
+        from email_routing_v2 import write_audit as _v2_audit  # noqa: PLC0415
+        await _v2_audit(
+            db, route_key="ADMIN_DEAD_LETTER_TO", tenant_key=tk,
+            source="db", to_count=0, cc_count=0, bcc_count=0,
+            subject=f"[PM UNRESOLVED] {kind}",
+            status="dry_run",
+            calling_module="pm_routing_dead_letter",
+            dry_run=True,
+        )
+    except Exception:
+        pass
+    try:
+        from datetime import datetime, timezone
+        await db.platform_audit.insert_one({
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "tenant_key": tk,
+            "event": "pm_unresolved_dead_letter",
+            "kind": kind,
+            "reason": reason,
+            "project_number": (record.get("project_number") or "")[:64],
+            "project_name": (record.get("project_name") or "")[:128],
+        })
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
 # LEGACY synchronous helpers — kept for any code that calls them directly.
 # These now return a stub from PM_TABLE only. New code should use the async
 # DB-backed helpers above.
@@ -286,11 +404,15 @@ def find_pm_for_record(record: dict) -> Optional[Tuple[str, str]]:
 
 
 def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str, object]:
-    """Legacy sync fallback. Always returns the office distribution as
-    primary because we can't resolve the PM without a DB handle."""
+    """Legacy sync fallback. Phase 3: no DB handle = no resolved PM,
+    so we return the tenant-scoped ALWAYS_CC (which is empty for
+    non-MASCI tenants) and avoid any hardcoded MASCI office address."""
     is_pm_only = kind in PM_ONLY_KINDS
     if is_pm_only:
-        to = ["jaymn.judd@mascigc.com"]
+        # Operational kinds with no DB — return whatever sync ALWAYS_CC
+        # resolves to; on a non-MASCI tenant this is []. The send-site
+        # is expected to refuse delivery on an empty recipient list.
+        to = ALWAYS_CC[:1] if ALWAYS_CC else []
         cc: List[str] = []
     else:
         to = ALWAYS_CC[:]

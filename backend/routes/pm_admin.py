@@ -336,8 +336,12 @@ def build_pm_admin_router(
 
         import resend  # noqa: E402,PLC0415
         resend.api_key = api_key
-        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
-        reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+        from branding_resolver import (
+            resolve_sender_email as _resolve_sender_email,
+            resolve_reply_to_email as _resolve_reply_to_email,
+        )
+        sender_email = await _resolve_sender_email(db)
+        reply_to = (await _resolve_reply_to_email(db)) or ""
         safe_name = pm_name.replace(" ", "_")
         fname = f"MASCI_PM_Welcome_{safe_name}.pdf"
 

@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 // AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
+// Track 15.67 Phase 3 · tenant-safe branding context for the whole app.
+import { BrandingProvider } from "@/lib/BrandingProvider";
 // Track 13.5A · Phase B1 — Internal design-system showcase (lazy, isolated).
 const DesignSystemDemo = React.lazy(() => import("@/pages/DesignSystemDemo"));
 // Track 13.5A · Phase B2 — Internal PM Portal V2 preview lane (lazy, mock data only).
@@ -407,6 +409,7 @@ function App() {
   }, []);
 
   return (
+    <BrandingProvider>
     <div className="App min-h-screen flex flex-col">
       <SplashOverlay />
       <Toaster position="bottom-right" richColors closeButton offset={16} />
@@ -1138,6 +1141,7 @@ function App() {
         </div>
       </BrowserRouter>
     </div>
+    </BrandingProvider>
   );
 }
 

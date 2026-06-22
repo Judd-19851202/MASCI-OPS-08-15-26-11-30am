@@ -26,6 +26,11 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
+from branding_resolver import (
+    resolve_sender_email as _resolve_sender_email,
+    resolve_reply_to_email as _resolve_reply_to_email,
+)
+
 logger = logging.getLogger(__name__)
 
 # Module-level cooldown tracker — survives across requests within one
@@ -147,8 +152,8 @@ async def send_outage_alert(
             "reason": f"on cooldown ({_cooldown_minutes()} min) for issue_key={issue_key}",
         }
 
-    sender = (os.environ.get("SENDER_EMAIL") or "noreply@mascidocs.com").strip()
-    reply_to = (os.environ.get("REPLY_TO_EMAIL") or "").strip()
+    sender = (await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")) if db is not None else (os.environ.get("SENDER_EMAIL") or "noreply@mascidocs.com").strip()
+    reply_to = (await _resolve_reply_to_email(db)) if db is not None else (os.environ.get("REPLY_TO_EMAIL") or "").strip()
     timestamp = datetime.now(timezone.utc).isoformat()
 
     # ALERT-ENV-001 · Decorate subject with [PRODUCTION] / [PREVIEW] and

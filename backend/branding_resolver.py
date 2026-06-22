@@ -103,3 +103,50 @@ def format_from_field(s: SenderIdentity) -> str:
     if s.from_display_name:
         return f"{s.from_display_name} <{s.from_email}>"
     return s.from_email
+
+
+# Track 15.67 Phase 3 · Compatibility helper for send-site sweep.
+# Many existing send sites already build a `From: "<Display Name> <addr>"`
+# string by hand and only need the `addr`. They now call this helper
+# rather than `os.environ.get("SENDER_EMAIL", ...)` directly. Behavior:
+#   • Resolves through `resolve_sender(db)` (branding-first, env only for
+#     MASCI tenant).
+#   • Never raises — if the resolver hard-fails (non-MASCI without
+#     branding) the helper returns the `safe_fallback` (typically
+#     `"onboarding@resend.dev"`) so the send site can still attempt
+#     delivery via Resend's universal sender. This is a deliberate
+#     soft-fail because most send sites already used
+#     `"onboarding@resend.dev"` as their own historical fallback.
+#   • For tenants other than MASCI the helper logs a WARNING so the
+#     operator is alerted to wire branding (production cutover gate).
+async def resolve_sender_email(
+    db, *, route_key: Optional[str] = None,
+    safe_fallback: str = "onboarding@resend.dev",
+) -> str:
+    """Return the resolved sender `addr` for the active tenant. Never
+    raises. Logs a warning when a non-MASCI tenant falls back."""
+    try:
+        s = await resolve_sender(db, route_key=route_key)
+        return s.from_email or safe_fallback
+    except UnconfiguredSenderError:
+        import logging
+        from tenant_context import resolve_tenant_key
+        logging.getLogger(__name__).warning(
+            "resolve_sender_email: tenant '%s' has no sender configured; "
+            "falling back to %s. Wire tenant_branding.from_email before cutover.",
+            resolve_tenant_key(), safe_fallback,
+        )
+        return safe_fallback
+    except Exception:
+        # Any other failure (DB down, etc.) — preserve historical behavior.
+        return safe_fallback
+
+
+async def resolve_reply_to_email(db) -> str:
+    """Return reply-to for the active tenant. Never raises; empty string
+    if not configured (callers omit the header when empty)."""
+    try:
+        s = await resolve_sender(db)
+        return s.reply_to or ""
+    except Exception:
+        return ""

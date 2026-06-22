@@ -20,6 +20,17 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, Set
 
+
+async def _resolve_sender_email_safe(db) -> str:
+    """Tenant-safe sender resolution wrapper. Falls back to env value
+    (only when MASCI tenant). Track 15.67 Phase 3."""
+    try:
+        from branding_resolver import resolve_sender_email
+        return await resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
+    except Exception:
+        return os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+
+
 logger = logging.getLogger(__name__)
 
 POLL_INTERVAL_SEC = 60
@@ -72,7 +83,10 @@ async def _send_alert(red_cards: List[Dict[str, Any]], overall: str, db=None) ->
     if not api_key:
         return False
 
-    sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+    sender = (
+        await _resolve_sender_email_safe(db) if db is not None
+        else os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+    )
     env_label = os.environ.get("DEPLOY_ENV", "production")
     dashboard = os.environ.get(
         "DEPLOY_PUBLIC_URL",

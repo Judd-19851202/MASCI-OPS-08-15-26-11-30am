@@ -6,6 +6,7 @@ import { useHubHome } from "@/components/HubBackLink";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { JOB_LIBRARY } from "@/lib/jobLibrary";
+import { useBranding } from "@/lib/BrandingProvider";
 
 /**
  * Pure printable card for the Job Hazard Plans QR poster. Renders no
@@ -17,11 +18,12 @@ import { JOB_LIBRARY } from "@/lib/jobLibrary";
 export default function JhaPlansPosterCard() {
   const { t } = useT();
   const hubHome = useHubHome();
+  const branding = useBranding();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Production-locked URL — printed posters keep working forever.
-  const jhaUrl = "https://mascidocs.com/jha";
+  const jhaUrl = `${(branding.marketing_url || "https://mascidocs.com").replace(/\/+$/, "")}/jha`;
 
   useEffect(() => {
     let alive = true;
@@ -62,7 +64,7 @@ export default function JhaPlansPosterCard() {
             386-322-4500
           </div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">
-            safety@mascigc.com
+            {branding.safety_email || branding.support_email || ""}
           </div>
         </div>
       </div>

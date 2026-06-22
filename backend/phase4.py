@@ -156,7 +156,7 @@ async def process_mentions(
         )
         if n:
             await _dispatch_email(
-                to=u["email"], subject=f'You were mentioned — {target_label[:60]}',
+                db, to=u["email"], subject=f'You were mentioned — {target_label[:60]}',
                 actor=actor.get("name") or actor.get("email"),
                 project_name=n.get("project_name", ""),
                 target_label=target_label, preview=body[:600],
@@ -165,15 +165,23 @@ async def process_mentions(
     return notified
 
 
-async def _dispatch_email(to: str, subject: str, actor: str, project_name: str, target_label: str, preview: str) -> None:
+async def _dispatch_email(db, to: str, subject: str, actor: str, project_name: str, target_label: str, preview: str) -> None:
     """Fire-and-forget email via Resend. No-op if AUTO_EMAIL_REPORTS=false or RESEND_API_KEY missing."""
     if os.environ.get("AUTO_EMAIL_REPORTS", "false").lower() not in ("true", "1", "yes"):
         return
     api_key = os.environ.get("RESEND_API_KEY", "").strip()
     if not api_key:
         return
-    sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
-    reply_to = os.environ.get("REPLY_TO_EMAIL") or None
+    try:
+        from branding_resolver import (
+            resolve_sender_email as _resolve_sender_email,
+            resolve_reply_to_email as _resolve_reply_to_email,
+        )
+        sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
+        reply_to = (await _resolve_reply_to_email(db)) or None
+    except Exception:
+        sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+        reply_to = os.environ.get("REPLY_TO_EMAIL") or None
     html = (
         f'<div style="font-family:system-ui,-apple-system,sans-serif;max-width:520px;margin:0 auto;">'
         f'<div style="border-bottom:4px solid #b91c1c;padding-bottom:10px;margin-bottom:15px;">'

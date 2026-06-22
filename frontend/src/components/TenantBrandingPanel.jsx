@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { useBranding } from "@/lib/BrandingProvider";
 
 const FIELDS = [
   ["company_name", "Company name"],
@@ -36,6 +37,7 @@ export default function TenantBrandingPanel() {
   const [draft, setDraft] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { refresh: refreshBranding } = useBranding();
 
   const load = async () => {
     setLoading(true);
@@ -69,6 +71,9 @@ export default function TenantBrandingPanel() {
       await api.put("/admin/email-routing/v2/branding", body);
       toast.success("Branding saved");
       await load();
+      // Track 15.67 Phase 3 · live-refresh the global branding context so
+      // every page picks up the new strings without a hard reload.
+      try { await refreshBranding(); } catch { /* silent */ }
     } catch (e) {
       const msg = e?.response?.data?.detail || e?.message || "Save failed";
       toast.error(msg);

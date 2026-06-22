@@ -841,8 +841,12 @@ async def _dispatch_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[s
             return
         import resend  # noqa: E402
         resend.api_key = os.environ["RESEND_API_KEY"]
-        sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
-        reply_to = (os.environ.get("REPLY_TO_EMAIL") or "").strip()
+        from branding_resolver import (
+            resolve_sender_email as _resolve_sender_email,
+            resolve_reply_to_email as _resolve_reply_to_email,
+        )
+        sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
+        reply_to = (await _resolve_reply_to_email(db)) or ""
 
         # Stamp the human-readable doc_id into the subject across all
         # three kinds (issuance, return, training). For ``return`` we

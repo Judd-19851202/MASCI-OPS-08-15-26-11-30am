@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useBranding } from "@/lib/BrandingProvider";
 
 export const ShareFormDialog = ({
   formType = "inspection",
@@ -20,6 +21,11 @@ export const ShareFormDialog = ({
   description = "Give this link or QR code to anyone who needs to fill out a safety inspection. No login required — submissions show up here automatically.",
   testIdPrefix = "share",
 }) => {
+  const branding = useBranding();
+  const platformName = branding.platform_display_name || "Operations Platform";
+  const safetyTitle = branding.company_name
+    ? `${branding.company_name} Job Site Safety Inspection`
+    : "Job Site Safety Inspection";
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -41,7 +47,7 @@ export const ShareFormDialog = ({
 
   const nativeShare = async () => {
     const shareData = {
-      title: "MASCI Job Site Safety Inspection",
+      title: safetyTitle,
       text: "Fill out today's safety inspection:",
       url: publicUrl,
     };
@@ -63,7 +69,7 @@ export const ShareFormDialog = ({
       return;
     }
     w.document.write(`<!doctype html>
-<html><head><title>MASCI Operations Platform — Inspection QR</title>
+<html><head><title>${platformName} — Inspection QR</title>
 <style>
   @page { size: Letter portrait; margin: 0.5in; }
   body { font-family: 'Chivo', Arial, sans-serif; text-align: center; padding: 24px; color: #000; }
@@ -76,12 +82,12 @@ export const ShareFormDialog = ({
   .foot { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #555; margin-top: 16px; }
 </style></head><body>
   <div class="stripe"></div>
-  <h1>MASCI SAFETY</h1>
+  <h1>${(branding.company_name || "JOB SITE").toUpperCase()} SAFETY</h1>
   <div style="font-size:22px;font-weight:700;margin-bottom:18px">Scan to fill out today's<br/>Job Site Safety Inspection</div>
   <div class="qr">${document.getElementById("masci-share-qr")?.outerHTML || ""}</div>
   <div class="url">${publicUrl}</div>
   <div class="tag">POST IN TRAILER · TOOL BOX · TRUCK CAB</div>
-  <div class="foot">Generated through MASCI Operations Platform &mdash; Powered by ForgedOps&trade; | &copy; 2026 ForgedOps&trade;</div>
+  <div class="foot">Generated through ${platformName} &mdash; Powered by ForgedOps&trade; | &copy; 2026 ForgedOps&trade;</div>
   <div class="stripe" style="margin-top:24px"></div>
 </body></html>`);
     w.document.close();

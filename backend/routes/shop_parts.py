@@ -318,7 +318,11 @@ def register_shop_parts_routes(api_router: APIRouter, db, require_admin, require
         try:
             import resend  # noqa: E402
             resend.api_key = api_key
-            sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+            from branding_resolver import (
+                resolve_sender_email as _resolve_sender_email,
+                resolve_reply_to_email as _resolve_reply_to_email,
+            )
+            sender_email = await _resolve_sender_email(db)
             params = {
                 "from": f"MASCI Operations Platform <{sender_email}>",
                 "to": payload.send_to,
@@ -330,7 +334,7 @@ def register_shop_parts_routes(api_router: APIRouter, db, require_admin, require
             }
             if payload.cc:
                 params["cc"] = payload.cc
-            reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+            reply_to = (await _resolve_reply_to_email(db)) or ""
             if reply_to:
                 params["reply_to"] = reply_to
             result = await asyncio.to_thread(resend.Emails.send, params)

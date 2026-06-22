@@ -18,6 +18,7 @@ import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import { LangToggle } from "@/components/LangToggle";
+import { useBranding } from "@/lib/BrandingProvider";
 
 function useLocalClock() {
   const [now, setNow] = React.useState(() => new Date());
@@ -92,6 +93,9 @@ export function PortalShell({
   children,
   className = "",
 }) {
+  const branding = useBranding();
+  const platformShort = branding.platform_short_name || portalName;
+  const platformDisplay = branding.platform_display_name || "Operations Platform";
   const renderedLastActivity = formatLastActivity(lastActivity);
   const clock = useLocalClock();
   const localTimeLabel = clock.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -273,7 +277,7 @@ export function PortalShell({
         >
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 flex items-center justify-between">
             <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
-              MASCI Operations Platform
+              {platformDisplay}
             </div>
             <ForgedOpsAttribution variant="login" />
           </div>

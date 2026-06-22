@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import forgedOpsLogo from "@/assets/forgedops-logo.png";
 import { BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
 import { useT } from "@/lib/i18n";
+import { useBranding } from "@/lib/BrandingProvider";
 
 /**
  * ForgedOpsAttribution — platform-owner branding line, three render modes.
@@ -32,6 +33,8 @@ import { useT } from "@/lib/i18n";
 
 export function ForgedOpsAttribution({ variant = "global", className = "" }) {
   const { t } = useT();
+  const { platform_display_name } = useBranding();
+  const platform = platform_display_name || "Operations Platform";
   if (variant === "login") {
     return (
       <div
@@ -60,7 +63,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
           className="h-7 w-auto opacity-90"
         />
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-600 font-bold">
-          MASCI Operations Platform{" "}
+          {platform}{" "}
           <span className="text-slate-400 font-normal mx-1.5">·</span>{" "}
           Powered by ForgedOps™
         </div>
@@ -78,7 +81,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
         className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.25em] text-slate-800 font-bold"
         data-testid="footer-primary"
       >
-        MASCI Operations Platform
+        {platform}
       </div>
       <div
         className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500"

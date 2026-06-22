@@ -21,6 +21,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Play, X } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { useBranding } from "@/lib/BrandingProvider";
 
 const HERO_URL = process.env.REACT_APP_PROMO_HERO_LOOP_URL || "";
 const FULL_URL = process.env.REACT_APP_PROMO_FULL_VIDEO_URL || "";
@@ -28,6 +29,7 @@ const POSTER_URL = process.env.REACT_APP_PROMO_POSTER_URL || "";
 
 export function PromoHeroLoop({ className = "" }) {
   const { t } = useT();
+  const branding = useBranding();
   const [open, setOpen] = useState(false);
   const heroRef = useRef(null);
 
@@ -91,7 +93,7 @@ export function PromoHeroLoop({ className = "" }) {
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3 pointer-events-none">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/80">
-                {t("MASCI Operations Platform")}
+                {branding.platform_display_name || t("MASCI Operations Platform")}
               </div>
               <div className="font-display text-base sm:text-lg font-black text-white leading-tight mt-1">
                 {t("Watch The Platform In Action")}

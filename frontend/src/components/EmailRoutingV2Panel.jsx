@@ -25,6 +25,7 @@ import {
   AlertCircle,
   History,
   X,
+  Stethoscope,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,6 +174,28 @@ export default function EmailRoutingV2Panel() {
     }
   };
 
+  // Track 15.67 Phase 3 · Route Health — one-click validation of every
+  // route for the active tenant. Dry-run only (no Resend send).
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [healthReport, setHealthReport] = useState(null);
+  const runRouteHealth = async () => {
+    setHealthLoading(true);
+    try {
+      const r = await api.post("/admin/email-routing/v2/route-health");
+      setHealthReport(r?.data || null);
+      const s = r?.data?.summary || {};
+      toast.success(
+        `Route health: ${s.green || 0} green · ${s.amber || 0} amber · ${s.red || 0} red`
+      );
+      await load();
+    } catch (e) {
+      const msg = e?.response?.data?.detail || e?.message || "Route health failed";
+      toast.error(msg);
+    } finally {
+      setHealthLoading(false);
+    }
+  };
+
   const grouped = useMemo(() => {
     const g = {};
     for (const r of routes) {
@@ -200,6 +223,21 @@ export default function EmailRoutingV2Panel() {
             disabled or saved with empty recipients.
           </p>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={runRouteHealth}
+          disabled={healthLoading || loading}
+          data-testid="v2-route-health-run"
+          title="Dry-run every route for this tenant. No emails are sent. Each route gets an audit row."
+        >
+          {healthLoading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+          ) : (
+            <Stethoscope className="h-3.5 w-3.5 mr-1" />
+          )}
+          Run Route Health
+        </Button>
         <span
           data-testid="v2-routes-count"
           className="text-xs px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700"
@@ -207,6 +245,65 @@ export default function EmailRoutingV2Panel() {
           {routes.length} routes
         </span>
       </header>
+
+      {healthReport && (
+        <div
+          data-testid="v2-route-health-summary"
+          className="px-5 py-3 border-b border-slate-200 bg-slate-50/50 flex items-center gap-3 flex-wrap"
+        >
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+            Last route health
+          </span>
+          <span
+            data-testid="v2-route-health-green"
+            className="text-xs px-2 py-0.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 font-semibold"
+          >
+            🟢 {healthReport.summary?.green || 0} green
+          </span>
+          <span
+            data-testid="v2-route-health-amber"
+            className="text-xs px-2 py-0.5 rounded-full border border-amber-300 bg-amber-50 text-amber-800 font-semibold"
+          >
+            🟡 {healthReport.summary?.amber || 0} amber
+          </span>
+          <span
+            data-testid="v2-route-health-red"
+            className="text-xs px-2 py-0.5 rounded-full border border-rose-300 bg-rose-50 text-rose-800 font-semibold"
+          >
+            🔴 {healthReport.summary?.red || 0} red
+          </span>
+          <span className="text-[11px] text-slate-500">
+            Tenant {healthReport.tenant_key} · {healthReport.total || 0} routes ·{" "}
+            {(healthReport.ts || "").replace("T", " ").slice(0, 19)}
+          </span>
+          {(healthReport.results || []).some((r) => r.status !== "green") && (
+            <details className="basis-full mt-1">
+              <summary className="text-[11px] text-slate-600 cursor-pointer font-semibold">
+                Show failing routes
+              </summary>
+              <ul className="mt-1.5 text-[11px] font-mono text-slate-700 space-y-0.5">
+                {(healthReport.results || [])
+                  .filter((r) => r.status !== "green")
+                  .map((r) => (
+                    <li key={r.route_key} className="flex items-center gap-2">
+                      <span
+                        className={
+                          r.status === "red"
+                            ? "text-rose-700"
+                            : "text-amber-700"
+                        }
+                      >
+                        {r.status === "red" ? "🔴" : "🟡"}
+                      </span>
+                      <span className="font-semibold">{r.route_key}</span>
+                      <span className="text-slate-500">— {r.reason}</span>
+                    </li>
+                  ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="p-8 flex items-center justify-center text-slate-500">

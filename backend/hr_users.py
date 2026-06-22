@@ -68,10 +68,38 @@ def _normalize(doc: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-# Initial roster — seeded once on first boot if empty. Edits don't replay.
-INITIAL_HR_USERS: List[Dict[str, str]] = [
-    {"name": "HR Manager", "email": "hrmanager@mascigc.com", "role": "HR Manager"},
-]
+# Track 15.67 Phase 3 · Tenant-safe seed resolver
+# Resolved from `HR_SEED_USERS` env var. Format identical to safety.
+def _resolve_initial_hr_users() -> List[Dict[str, str]]:
+    raw = (os.environ.get("HR_SEED_USERS") or "").strip()
+    if raw:
+        out: List[Dict[str, str]] = []
+        for entry in raw.split(","):
+            parts = [p.strip() for p in entry.split("|")]
+            if not parts or not parts[0] or "@" not in parts[0]:
+                continue
+            email = parts[0].lower()
+            name = parts[1] if len(parts) > 1 and parts[1] else "HR User"
+            role = parts[2] if len(parts) > 2 and parts[2] else "HR Coordinator"
+            out.append({"name": name, "email": email, "role": role})
+        return out
+    try:
+        from tenant_context import is_masci as _is_masci
+        masci_tenant = _is_masci()
+    except Exception:
+        masci_tenant = True
+    if masci_tenant:
+        return [
+            {"name": "HR Manager", "email": "hrmanager@mascigc.com", "role": "HR Manager"},
+        ]
+    logger.warning(
+        "hr_users seed: HR_SEED_USERS unset and tenant is not MASCI — "
+        "refusing to seed MASCI personnel into a non-MASCI tenant."
+    )
+    return []
+
+
+INITIAL_HR_USERS: List[Dict[str, str]] = _resolve_initial_hr_users()
 
 
 async def seed_hr_users(db) -> None:
@@ -86,6 +114,8 @@ async def seed_hr_users(db) -> None:
     if docs:
         await db.hr_users.insert_many(docs)
         logger.info(f"hr_users seeded {len(docs)} initial users")
+    else:
+        logger.info("hr_users seed skipped — no initial users resolved (tenant-safe).")
 
 
 # ----- token helpers (per-user, bcrypt-bound) --------------------------

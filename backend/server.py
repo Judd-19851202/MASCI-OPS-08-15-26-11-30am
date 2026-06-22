@@ -22,6 +22,8 @@ from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone, timedelta
 from branded_portal_emails import render_portal_email
+# Track 15.67 Phase 3 · tenant-safe sender resolver wrapper.
+from branding_resolver import resolve_sender_email as _resolve_sender_email, resolve_reply_to_email as _resolve_reply_to_email  # noqa: E402
 
 
 ROOT_DIR = Path(__file__).parent
@@ -2377,14 +2379,14 @@ async def shop_forgot_password(body: ShopForgotPasswordBody, request: Request):
     try:
         import resend
         resend.api_key = api_key
-        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+        sender_email = await _resolve_sender_email(db)
         params = {
             "from": f"MASCI Operations Platform <{sender_email}>",
             "to": [email],
             "subject": "[MASCI] Reset your Shop Portal password",
             "html": html_body,
         }
-        reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+        reply_to = (await _resolve_reply_to_email(db)) or ""
         if reply_to:
             params["reply_to"] = reply_to
         await asyncio.to_thread(resend.Emails.send, params)
@@ -3711,8 +3713,8 @@ async def admin_shop_user_email_welcome(
     import resend  # noqa: E402
 
     resend.api_key = api_key
-    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
-    reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+    sender_email = await _resolve_sender_email(db)
+    reply_to = (await _resolve_reply_to_email(db)) or ""
     params = {
         "from": f"MASCI Operations Platform <{sender_email}>",
         "to": [user_email],
@@ -6460,7 +6462,7 @@ async def _send_watchdog_alarm(db, *, hours_silent: float, latest: dict) -> bool
     try:
         import resend  # noqa: E402
         resend.api_key = api_key
-        sender_email = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+        sender_email = await _resolve_sender_email(db)
         latest_filename = latest.get("filename") or "(unknown)"
         latest_ts = latest.get("ts") or "(unknown)"
         size_mb = (latest.get("size_bytes") or 0) / (1024 * 1024)
@@ -7423,8 +7425,8 @@ async def _send_backup_email(
         await asyncio.to_thread(lambda: attachment_path.stat().st_size)
     ) / (1024 * 1024)
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    sender = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
-    reply_to = os.environ.get("REPLY_TO_EMAIL") or None
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
+    reply_to = (await _resolve_reply_to_email(db)) or None
 
     html = (
         f'<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;">'
@@ -9976,7 +9978,7 @@ async def _job_photos_send_email(*, to: str, subject: str, text: str, attachment
     if not api_key:
         raise RuntimeError("RESEND_API_KEY missing")
     _resend.api_key = api_key
-    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     params: dict = {
         "from": f"MASCI Operations Platform <{sender}>",
         "to": [to],
@@ -10016,7 +10018,7 @@ async def _field_leadership_send_email(recipients, subject, html_body, attachmen
         return
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
-    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     params: dict = {
         "from": f"MASCI Operations Platform <{sender}>",
         "to": list(recipients),
@@ -10308,7 +10310,7 @@ async def _hr_send_email(to_email: str, subject: str, html: str):
         return
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
-    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     params = {
         "from": f"MASCI HR Portal <{sender}>",
         "to": [to_email],
@@ -10387,7 +10389,7 @@ async def _safety_send_email(to_email: str, subject: str, html: str) -> bool:
         return False
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
-    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     params = {
         "from": f"MASCI Safety Portal <{sender}>",
         "to": [to_email],
@@ -10423,7 +10425,7 @@ async def _trench_send_email(to_email: str, subject: str, html: str) -> bool:
         return False
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
-    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     params = {
         "from": f"MASCI Trench Safety <{sender}>",
         "to": [to_email],
@@ -11452,7 +11454,7 @@ async def _po_digest_send_email(to_email: str, subject: str, html: str) -> bool:
         return False
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
-    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     params = {
         "from": f"MASCI PO Operations <{sender}>",
         "to": [to_email],
@@ -12328,7 +12330,7 @@ async def _directory_send_email(to: str, subject: str, html: str) -> None:
         raise RuntimeError("RESEND_API_KEY missing")
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
-    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     params = {
         "from": f"MASCI Operations <{sender}>",
         "to": [to],
@@ -12572,7 +12574,7 @@ async def _maybe_send_weekly_variance_email():
     import base64 as _b64
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
-    sender = (os.environ.get("SENDER_EMAIL") or "").strip() or "noreply@mascidocs.com"
+    sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     params = {
         "from": f"MASCI HR · Payroll Variance <{sender}>",
         "to": recipients,
@@ -12900,8 +12902,8 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
 
         import resend  # noqa: E402
         resend.api_key = os.environ["RESEND_API_KEY"]
-        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
-        reply_to = os.environ.get("REPLY_TO_EMAIL", "").strip()
+        sender_email = await _resolve_sender_email(db)
+        reply_to = (await _resolve_reply_to_email(db)) or ""
 
         pdf_bytes = await asyncio.to_thread(render_record_pdf, kind, await _maybe_enrich_for_pdf(db, kind, record))
 
@@ -13152,7 +13154,7 @@ async def admin_email_routing_test(
         raise HTTPException(400, "Valid 'to' address required")
     import resend  # noqa: E402
     resend.api_key = api_key
-    sender_email = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+    sender_email = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     subject = body.subject or "[MASCI HUB] Email Routing test"
     html = (
         "<div style='font-family:Arial,sans-serif;max-width:540px'>"
@@ -13388,8 +13390,8 @@ async def admin_v2_route_test(
         return {
             "ok": True, "dry_run": True,
             "resolved": {"to": res_to, "cc": res_cc, "bcc": res_bcc},
-            "sender_email": doc.get("from_email") or os.environ.get("SENDER_EMAIL", ""),
-            "reply_to": doc.get("reply_to") or os.environ.get("REPLY_TO_EMAIL", ""),
+            "sender_email": doc.get("from_email") or await _resolve_sender_email(db, route_key=route_key, safe_fallback=""),
+            "reply_to": doc.get("reply_to") or await _resolve_reply_to_email(db),
         }
 
     # Controlled real send — only to the test_recipient.
@@ -13401,9 +13403,8 @@ async def admin_v2_route_test(
         raise HTTPException(503, "RESEND_API_KEY not configured")
     import resend as _resend  # noqa: PLC0415
     _resend.api_key = api_key
-    sender = (doc.get("from_email") or os.environ.get("SENDER_EMAIL")
-              or "noreply@mascidocs.com")
-    reply_to = doc.get("reply_to") or os.environ.get("REPLY_TO_EMAIL") or ""
+    sender = doc.get("from_email") or await _resolve_sender_email(db, route_key=route_key, safe_fallback="noreply@mascidocs.com")
+    reply_to = doc.get("reply_to") or await _resolve_reply_to_email(db)
     subject = f"[ROUTE TEST · {route_key}] Controlled probe"
     html = (
         f"<div style='font-family:Arial,sans-serif;max-width:540px'>"
@@ -13474,21 +13475,45 @@ async def admin_v2_branding_get(_: bool = Depends(require_admin)):
     tk = _current_tenant_key()
     doc = await db.tenant_branding.find_one({"_id": tk}, {"_id": 0})
     if not doc:
-        doc = {
-            "tenant_key": tk,
-            "company_name": "MASCI",
-            "platform_display_name": "MASCI Operations Platform",
-            "sender_name": "MASCI Operations Platform",
-            "from_email": (os.environ.get("SENDER_EMAIL") or "").strip(),
-            "reply_to": (os.environ.get("REPLY_TO_EMAIL") or "").strip(),
-            "support_email": "safety@mascigc.com",
-            "safety_email": "safety@mascigc.com",
-            "hr_email": (os.environ.get("HR_EMAIL") or "").strip(),
-            "operations_email": (os.environ.get("OPERATIONS_EMAIL") or "").strip(),
-            "logo_url": None,
-            "primary_color": "#C8102E",
-            "source": "env_defaults",
-        }
+        # Track 15.67 Phase 3 · only seed env defaults for the MASCI tenant;
+        # any other tenant gets a blank doc the operator must populate.
+        try:
+            from tenant_context import is_masci as _is_masci_t  # noqa: PLC0415
+            tenant_is_masci = _is_masci_t(tk)
+        except Exception:
+            tenant_is_masci = tk == "masci"
+        if tenant_is_masci:
+            doc = {
+                "tenant_key": tk,
+                "company_name": "MASCI",
+                "platform_display_name": "MASCI Operations Platform",
+                "sender_name": "MASCI Operations Platform",
+                "from_email": (os.environ.get("SENDER_EMAIL") or "").strip(),
+                "reply_to": (os.environ.get("REPLY_TO_EMAIL") or "").strip(),
+                "support_email": "safety@mascigc.com",
+                "safety_email": "safety@mascigc.com",
+                "hr_email": (os.environ.get("HR_EMAIL") or "").strip(),
+                "operations_email": (os.environ.get("OPERATIONS_EMAIL") or "").strip(),
+                "logo_url": None,
+                "primary_color": "#C8102E",
+                "source": "env_defaults",
+            }
+        else:
+            doc = {
+                "tenant_key": tk,
+                "company_name": "",
+                "platform_display_name": "",
+                "sender_name": "",
+                "from_email": "",
+                "reply_to": "",
+                "support_email": "",
+                "safety_email": "",
+                "hr_email": "",
+                "operations_email": "",
+                "logo_url": None,
+                "primary_color": "#0F766E",
+                "source": "unconfigured",
+            }
     return doc
 
 
@@ -13523,6 +13548,61 @@ async def admin_v2_branding_put(
         pass
     doc = await db.tenant_branding.find_one({"_id": tk}, {"_id": 0})
     return {"ok": True, "changed": True, "doc": doc}
+
+
+# Track 15.67 Phase 3 · Public branding endpoint for the frontend
+# BrandingProvider. NO auth — returns only the customer-facing display
+# strings (no secrets, no recipient lists). Used by every page on first
+# load to render the active tenant's brand instead of hardcoded MASCI.
+@_email_router.get("/branding/current")
+async def public_branding_current():
+    tk = _current_tenant_key()
+    doc = await db.tenant_branding.find_one({"_id": tk}, {"_id": 0}) or {}
+    try:
+        from tenant_context import is_masci as _is_masci_t  # noqa: PLC0415
+        tenant_is_masci = _is_masci_t(tk)
+    except Exception:
+        tenant_is_masci = tk == "masci"
+    if tenant_is_masci:
+        defaults = {
+            "company_name": "MASCI",
+            "platform_display_name": "MASCI Operations Platform",
+            "platform_short_name": "MASCI Hub",
+            "support_email": doc.get("support_email") or "safety@mascigc.com",
+            "safety_email": doc.get("safety_email") or "safety@mascigc.com",
+            "hr_email": doc.get("hr_email") or "",
+            "operations_email": doc.get("operations_email") or "",
+            "logo_url": doc.get("logo_url") or "",
+            "primary_color": doc.get("primary_color") or "#C8102E",
+            "marketing_url": "https://mascidocs.com",
+        }
+    else:
+        defaults = {
+            "company_name": doc.get("company_name") or "Customer",
+            "platform_display_name": doc.get("platform_display_name") or "Operations Platform",
+            "platform_short_name": doc.get("platform_short_name") or "Ops Hub",
+            "support_email": doc.get("support_email") or "",
+            "safety_email": doc.get("safety_email") or "",
+            "hr_email": doc.get("hr_email") or "",
+            "operations_email": doc.get("operations_email") or "",
+            "logo_url": doc.get("logo_url") or "",
+            "primary_color": doc.get("primary_color") or "#0F766E",
+            "marketing_url": doc.get("marketing_url") or "",
+        }
+    out = {
+        "tenant_key": tk,
+        "company_name": doc.get("company_name") or defaults["company_name"],
+        "platform_display_name": doc.get("platform_display_name") or defaults["platform_display_name"],
+        "platform_short_name": doc.get("platform_short_name") or defaults["platform_short_name"],
+        "support_email": defaults["support_email"],
+        "safety_email": defaults["safety_email"],
+        "hr_email": defaults["hr_email"],
+        "operations_email": defaults["operations_email"],
+        "logo_url": defaults["logo_url"],
+        "primary_color": defaults["primary_color"],
+        "marketing_url": defaults["marketing_url"],
+    }
+    return out
 
 
 @_email_router.post("/admin/email-routing/v2/route-health")
@@ -13698,7 +13778,7 @@ async def email_report(
             detail="RESEND_API_KEY not configured. Add it to /app/backend/.env and restart backend.",
         )
 
-    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+    sender_email = await _resolve_sender_email(db)
 
     try:
         import resend  # noqa: E402
@@ -13816,7 +13896,7 @@ async def email_safety_card(body: SafetyCardEmailRequest):
     if not valid_recipients:
         raise HTTPException(status_code=400, detail="At least one recipient email is required")
 
-    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+    sender_email = await _resolve_sender_email(db)
 
     try:
         import resend  # noqa: E402
@@ -13897,7 +13977,7 @@ async def email_all_safety_cards(body: SafetyCardEmailAllRequest):
         total_size += len(pdf_bytes)
         cards.append((filename, label, pdf_bytes))
 
-    sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+    sender_email = await _resolve_sender_email(db)
 
     try:
         import resend  # noqa: E402

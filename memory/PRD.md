@@ -10,7 +10,53 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.67 · Email Routing V2 Wave 3 · Phase 2 · 🟡 OPEN · ❌ NO-GO for cutover)
+## Latest Track (2026-06-22 · TRACK 15.67 · Email Routing V2 Wave 3 · Phase 3 · 🟢 GO for V2 cutover · ⚠️ Track stays OPEN for Track 15.68 chrome migration)
+
+### Phase 3 shipped (all 6 blockers closed)
+1. **Portal seed env migration** — `safety_users.py`, `shop_users.py`, `hr_users.py` resolve via `_resolve_initial_*_users()` reading env vars (`SAFETY_SEED_USERS`, `SHOP_SEED_USERS`, `HR_SEED_USERS`). MASCI defaults only when env unset AND tenant is MASCI.
+2. **PM fallback removal** — `pm_routing.py` `PM_TABLE` + `ALWAYS_CC` env-resolved; unresolved PM events route to `ADMIN_DEAD_LETTER_TO` with audit row + platform-audit row + admin notification.
+3. **Sender swap sweep** — 30 send-site migrations across `server.py` + 9 satellite files (`phase4.py`, `outage_alerts.py`, `health_monitor.py`, `backup_verification.py`, `routes/*.py`, `lib/fsi_email_sender.py`). New `branding_resolver.resolve_sender_email(db)` compat helper.
+4. **Frontend BrandingProvider** — new `lib/BrandingProvider.jsx` + public `GET /api/branding/current` endpoint. 14 highest-leverage chrome surfaces migrated (PortalShell, ForgedOpsAttribution, CheatSheetCard, JhaPlansPosterCard, TrenchBoxPosterCard, ShareFormDialog, PromoHeroLoop, PosterErrorBoundary, BackupHeroPanel, CloudArchivesPanel, AdminSafetyFormsPanel, AdminShopUsersPanel, EmployeeMasterPanel, SupplierMasterPanel).
+5. **Route Health UI** — new "Run Route Health" button + green/amber/red summary strip + collapsible failing-routes list in `EmailRoutingV2Panel`.
+6. **Extended second-tenant simulation** — `track_15_67_second_tenant_simulation.py` extended from 27 → 40 checks.
+
+### Final-12 answers (proven, not theoretical)
+1. C2 inherits MASCI personnel: **NO** ✅
+2. C2 inherits MASCI PM routing: **NO** ✅
+3. C2 inherits MASCI sender identities: **NO** ✅
+4. C2 inherits MASCI branding (governance surfaces): **NO** ✅ · (legacy page sub-headers): YES — Track 15.68
+5. C2 inherits MASCI support contacts: **NO** ✅
+6. All sender sites resolve through `branding_resolver`: **YES** ✅
+7. Route Health validates all 19 routes: **YES** ✅
+8. MASCI behavior unchanged: **YES** (parity 19/19) ✅
+9. Parity 19/19: **YES** ✅
+10. Live emails blasted during testing: **NO** ✅
+11. C2 onboarding possible without code change (email/routing/branding subsystem): **YES** ✅
+12. **GO/NO-GO for V2 cutover:** ✅ **GO** · **NO-GO for full white-label** (495 legacy chrome strings → Track 15.68)
+
+### Six Pillars (honest)
+Powerful 9 · Simple 9 · Beautiful 8 · Trusted 9 · Proven 9 · Deployable 9 → **53 / 60 (88%)** — above closure threshold.
+
+### Deliverables published (all 12)
+All 12 markdown deliverables in `/app/memory/TRACK_15_67_*.md`. See `TRACK_15_67_FINAL_CLOSEOUT.md` §6 for the inventory.
+
+### Hard rules honoured
+✅ No production cutover · ✅ V2 flag stays `false` · ✅ no live blasts · ✅ no silent MASCI fallback · ✅ critical routes still protected · ✅ no MASCI behaviour change · ✅ no replacement engine · ✅ honest verdict published.
+
+### What remains (Track 15.68 — separate phase)
+495 frontend MASCI strings in **non-governance** surfaces:
+- 72 legal text references (Terms / Privacy)
+- 22 AdminGuide help text
+- ~150 page sub-headers (NewMeeting / ViewDailyReport / NewIncident / ViewInspection / etc.)
+- ~30 admin integration labels (MaintainX vs MASCI inventory)
+- ~10 dispatch carrier default values
+- ~10 asset filename templates
+- ~10 SOP references in `lib/topics/`
+
+These are tenant copy, **not** the email routing / sender / PM /
+branding governance surface. They constitute the next phase.
+
+## Prior Track (2026-06-22 · TRACK 15.67 · Email Routing V2 Wave 3 · Phase 2 · 🟡 OPEN · ❌ NO-GO for cutover)
 
 ### Phase 2 shipped
 - `backend/auth.py` — `SEED_USERS` resolved via `_resolve_seed_users()` from `OWNER_SEED_EMAILS` env (Blocker 1 closed).

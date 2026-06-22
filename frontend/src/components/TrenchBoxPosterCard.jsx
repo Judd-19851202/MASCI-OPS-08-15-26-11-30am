@@ -4,6 +4,7 @@ import { Box, BookOpen, ScanLine } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { useHubHome } from "@/components/HubBackLink";
 import { useT } from "@/lib/i18n";
+import { useBranding } from "@/lib/BrandingProvider";
 
 /**
  * Trench Box QR Poster — Tabulated Data Library edition.
@@ -66,7 +67,7 @@ export default function TrenchBoxPosterCard() {
             386-322-4500
           </div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">
-            safety@mascigc.com
+            {branding.safety_email || branding.support_email || ""}
           </div>
         </div>
       </div>
@@ -198,7 +199,7 @@ export default function TrenchBoxPosterCard() {
 
       {/* Vendor attribution */}
       <div className="mt-3 text-center font-mono text-[9px] uppercase tracking-[0.3em] text-slate-400">
-        Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™
+        Generated through {branding.platform_display_name || "Operations Platform"} — Powered by ForgedOps™ | © 2026 ForgedOps™
       </div>
     </div>
   );

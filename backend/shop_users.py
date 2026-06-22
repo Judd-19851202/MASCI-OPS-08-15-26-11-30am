@@ -68,10 +68,38 @@ def _normalize(doc: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-# Initial roster — seeded once on first boot if empty. Edits don't replay.
-INITIAL_SHOP_USERS: List[Dict[str, str]] = [
-    {"name": "Shop Manager", "email": "shopmanager@mascigc.com", "role": "Shop Manager"},
-]
+# Track 15.67 Phase 3 · Tenant-safe seed resolver
+# Resolved from `SHOP_SEED_USERS` env var. Format identical to safety.
+def _resolve_initial_shop_users() -> List[Dict[str, str]]:
+    raw = (os.environ.get("SHOP_SEED_USERS") or "").strip()
+    if raw:
+        out: List[Dict[str, str]] = []
+        for entry in raw.split(","):
+            parts = [p.strip() for p in entry.split("|")]
+            if not parts or not parts[0] or "@" not in parts[0]:
+                continue
+            email = parts[0].lower()
+            name = parts[1] if len(parts) > 1 and parts[1] else "Shop User"
+            role = parts[2] if len(parts) > 2 and parts[2] else "Mechanic"
+            out.append({"name": name, "email": email, "role": role})
+        return out
+    try:
+        from tenant_context import is_masci as _is_masci
+        masci_tenant = _is_masci()
+    except Exception:
+        masci_tenant = True
+    if masci_tenant:
+        return [
+            {"name": "Shop Manager", "email": "shopmanager@mascigc.com", "role": "Shop Manager"},
+        ]
+    logger.warning(
+        "shop_users seed: SHOP_SEED_USERS unset and tenant is not MASCI — "
+        "refusing to seed MASCI personnel into a non-MASCI tenant."
+    )
+    return []
+
+
+INITIAL_SHOP_USERS: List[Dict[str, str]] = _resolve_initial_shop_users()
 
 
 async def seed_shop_users(db) -> None:
@@ -86,6 +114,8 @@ async def seed_shop_users(db) -> None:
     if docs:
         await db.shop_users.insert_many(docs)
         logger.info(f"shop_users seeded {len(docs)} initial users")
+    else:
+        logger.info("shop_users seed skipped — no initial users resolved (tenant-safe).")
 
 
 # ----- token helpers (per-user, bcrypt-bound) --------------------------

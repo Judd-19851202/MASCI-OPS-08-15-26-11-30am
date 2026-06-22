@@ -515,15 +515,19 @@ async def send_verification_email(db, *, force_recipients: Optional[List[str]] =
 
     try:
         import resend  # noqa: E402
+        from branding_resolver import (
+            resolve_sender_email as _resolve_sender_email,
+            resolve_reply_to_email as _resolve_reply_to_email,
+        )
         resend.api_key = api_key
-        sender_email = os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
+        sender_email = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com") if db is not None else os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
         params = {
             "from": f"MASCI Operations Platform <{sender_email}>",
             "to": recipients,
             "subject": render_verification_subject(report),
             "html": render_verification_email_html(report),
         }
-        reply_to = (os.environ.get("REPLY_TO_EMAIL") or "").strip()
+        reply_to = (await _resolve_reply_to_email(db)) if db is not None else (os.environ.get("REPLY_TO_EMAIL") or "").strip()
         if reply_to:
             params["reply_to"] = reply_to
         await asyncio.to_thread(resend.Emails.send, params)

@@ -297,7 +297,7 @@ export default function CloudArchivesPanel() {
       <p className="mt-3 text-[11px] text-slate-500 leading-relaxed">
         Complete archives include every record AND every photo (fetched
         from R2 and inlined), so the zip is fully self-contained — restore
-        restore the entire MASCI Operations Platform from this one file even if Cloudflare R2
+        the entire platform from this one file even if Cloudflare R2
         becomes unreachable. Nightly build runs at{" "}
         {String(r2Hour).padStart(2, "0")}:00 UTC. Set{" "}
         <code className="bg-slate-100 px-1 rounded">BACKUP_R2_FULL_HOUR_UTC</code>{" "}

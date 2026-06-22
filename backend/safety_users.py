@@ -67,10 +67,49 @@ def _normalize(doc: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-# Initial roster — seeded once on first boot if empty.
-INITIAL_SAFETY_USERS: List[Dict[str, str]] = [
-    {"name": "Safety Manager", "email": "safety@mascigc.com", "role": "Safety Manager"},
-]
+# Track 15.67 Phase 3 · Tenant-safe seed resolver
+# ------------------------------------------------
+# Initial roster is now resolved from `SAFETY_SEED_USERS` env var.
+# Format: "email|Display Name|Role,email|Name|Role" — pipes inside an
+# entry, commas between entries. The env path is honoured for every
+# tenant (a future Customer #2 sets their own env). The legacy MASCI
+# fallback list is only honoured when the env var is UNSET AND the
+# resolved tenant is MASCI; for any other tenant the seeder refuses
+# to seed at all (returns an empty list and logs a clear warning) so
+# Customer #2 cannot accidentally inherit MASCI safety personnel.
+def _resolve_initial_safety_users() -> List[Dict[str, str]]:
+    raw = (os.environ.get("SAFETY_SEED_USERS") or "").strip()
+    if raw:
+        out: List[Dict[str, str]] = []
+        for entry in raw.split(","):
+            parts = [p.strip() for p in entry.split("|")]
+            if not parts or not parts[0] or "@" not in parts[0]:
+                continue
+            email = parts[0].lower()
+            name = parts[1] if len(parts) > 1 and parts[1] else "Safety User"
+            role = parts[2] if len(parts) > 2 and parts[2] else "Safety Coordinator"
+            out.append({"name": name, "email": email, "role": role})
+        return out
+    # Env-unset path — MASCI-only legacy default. Anything else hard-fails
+    # (returns []) and logs at WARNING so the operator can wire env.
+    try:
+        from tenant_context import is_masci as _is_masci
+        masci_tenant = _is_masci()
+    except Exception:
+        masci_tenant = True
+    if masci_tenant:
+        return [
+            {"name": "Safety Manager", "email": "safety@mascigc.com", "role": "Safety Manager"},
+        ]
+    logger.warning(
+        "safety_users seed: SAFETY_SEED_USERS unset and tenant is not MASCI — "
+        "refusing to seed MASCI personnel into a non-MASCI tenant. Set "
+        "SAFETY_SEED_USERS env to seed this tenant."
+    )
+    return []
+
+
+INITIAL_SAFETY_USERS: List[Dict[str, str]] = _resolve_initial_safety_users()
 
 
 async def seed_safety_users(db) -> None:
@@ -85,6 +124,8 @@ async def seed_safety_users(db) -> None:
     if docs:
         await db.safety_users.insert_many(docs)
         logger.info(f"safety_users seeded {len(docs)} initial users")
+    else:
+        logger.info("safety_users seed skipped — no initial users resolved (tenant-safe).")
 
 
 # ----- token helpers (per-user, bcrypt-bound) --------------------------

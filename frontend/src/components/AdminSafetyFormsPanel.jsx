@@ -18,6 +18,7 @@ import { api, API } from "@/lib/api";
 import { getAdminToken } from "@/lib/adminAuth";
 import { fmtMoney } from "@/lib/safetyFormsSchema";
 import { formatDateLong } from "@/lib/utils";
+import { useBranding } from "@/lib/BrandingProvider";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { formatEmployeeIdentity } from "@/lib/identity";
@@ -30,6 +31,7 @@ import { formatEmployeeIdentity } from "@/lib/identity";
  * record's view page or download the PDF directly.
  */
 export default function AdminSafetyFormsPanel() {
+  const branding = useBranding();
   const [tab, setTab] = useState("issuance"); // "issuance" | "training"
   const [filters, setFilters] = useState({
     q: "",
@@ -124,7 +126,7 @@ export default function AdminSafetyFormsPanel() {
           </h2>
           <p className="text-sm text-slate-600 mt-2 max-w-3xl">
             Equipment Issuance &amp; Accountability and Use &amp; Care Training records.
-            Auto-emailed to <span className="font-mono">safety@mascigc.com</span> on submit.
+            Auto-emailed to <span className="font-mono">{branding.safety_email || branding.support_email || "your safety inbox"}</span> on submit.
           </p>
         </div>
         <Link
