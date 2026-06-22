@@ -140,6 +140,50 @@ def _kv(label: str, value: Any) -> str:
         "</div>"
     )
 
+# TRACK 15.62 · Render the structured narrative_sections block on
+# the Daily Report PDF. Each section gets its own bold heading + body
+# paragraph. Sections with empty values are omitted. The block is a
+# no-op (returns "") when `sections` is None or has no usable values
+# so legacy Daily Reports render identically.
+_NARRATIVE_SECTION_TITLES = [
+    ("work_completed",      "Work Completed Today"),
+    ("delays",              "Delays / Constraints"),
+    ("inspections",         "Inspections / Testing"),
+    ("materials_received",  "Materials Received"),
+    ("follow_ups",          "Issues Requiring Follow-Up"),
+    ("tomorrow_plan",       "Planned Work Tomorrow"),
+]
+
+
+def _render_narrative_sections(sections: Any) -> str:
+    if not isinstance(sections, dict) or not sections:
+        return ""
+    blocks: List[str] = []
+    for key, label in _NARRATIVE_SECTION_TITLES:
+        v = sections.get(key)
+        if not isinstance(v, str):
+            continue
+        text = v.strip()
+        if not text:
+            continue
+        blocks.append(
+            '<div class="kv" style="margin-top:6px;">'
+            f'<div class="kv-k">{escape(label)}</div>'
+            f'<div class="kv-v" style="white-space:pre-wrap;">{escape(text)}</div>'
+            "</div>"
+        )
+    if not blocks:
+        return ""
+    return (
+        '<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #ccc;">'
+        '<div class="sec-sub" style="font-weight:bold;font-size:9.5pt;letter-spacing:.05em;'
+        'text-transform:uppercase;color:#333;margin-bottom:4px;">Narrative</div>'
+        + "".join(blocks)
+        + "</div>"
+    )
+
+
+
 
 def _section(title: str, body_html: str) -> str:
     return (
@@ -658,6 +702,13 @@ def _render_daily(d: Dict[str, Any]) -> str:
                     else ""
                 )
                 + _kv("General Notes", d.get("general_notes"))
+                # TRACK 15.62 · Render the optional structured narrative
+                # sections (work_completed / delays / inspections /
+                # materials_received / follow_ups / tomorrow_plan).
+                # Each section is shown only when non-empty. Backward
+                # compatible — legacy reports without `narrative_sections`
+                # render unchanged.
+                + _render_narrative_sections(d.get("narrative_sections"))
             ),
         )
     )

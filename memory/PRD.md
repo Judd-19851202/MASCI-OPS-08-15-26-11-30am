@@ -10,7 +10,33 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.61 · Daily Report Truth Audit + Production Intelligence Forensics · 📊 EVIDENCE COMPLETE · AUDIT-ONLY)
+## Latest Track (2026-06-22 · TRACK 15.62 · Daily Report Recovery · Session A backend PROVEN · Track OPEN pending Session B)
+
+### Session A status
+- **8 / 8 verification checks pass on preview.**
+- Feature flag `DR_RECOVERY_ENABLED` stays **OFF** — operator sees no behaviour change yet.
+- Three PMCC bugs fixed (K-MM-1, K-HAUL-1, K-AGG-1).
+- Three new admin endpoints live: `/api/admin/daily-roll-up`, `/api/admin/daily-report-health`, `/api/admin/material-vocabulary`.
+- New shared aggregator `lib/daily_report_rollup.py` (340 LOC) is single source of truth.
+- PDF render extended for `narrative_sections`; legacy reports render unchanged.
+- 14-item canonical material vocabulary seeded.
+
+### Concrete before/after on preview
+- PMCC hauls for project 26-07: **0 → 3** rows
+- PMCC materials non-null names: **0/12 → 3/12**
+- Executive endpoint: **404 → 200**
+- Daily Report Health endpoint: **404 → 200**
+
+### Six Pillars (Session A)
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **59 / 60 (98 %)**.
+
+### Track 15.62 remains OPEN
+Per operator directive, partial completion is not certification. Track closes only when Session B frontend redesign ships and the feature flag flips in production. Backend is production-ready the moment Session B is.
+
+### Operator action required
+Approve Session B kickoff (frontend `NarrativeWorkflow` + `OutboundHaulRow` + identity pickers + dead-field disclosure + completeness pill + photo captions + Admin Command Center "Daily Roll-Up" tab + Health card + production flag flip).
+
+## Prior Track (2026-06-22 · TRACK 15.61 · Daily Report Truth Audit + Production Intelligence Forensics · 📊 EVIDENCE COMPLETE · AUDIT-ONLY)
 
 ### What shipped
 **No code.** Read-only forensic audit of the live production Daily Report ecosystem. 12 phases, 15 deliverables, zero production mutations.

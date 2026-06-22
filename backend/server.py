@@ -2593,6 +2593,15 @@ register_daily_reports_routes(
     require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
 )
 
+# ============================================================
+# TRACK 15.62 · Admin-tier Daily Report intelligence
+# ============================================================
+from routes.dr_admin_intel import register_dr_admin_intel_routes
+register_dr_admin_intel_routes(
+    api_router, db,
+    require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
+)
+
 
 # ============================================================
 # Job Hazard Plans (per-job PDF repository — admin uploads, crews view)

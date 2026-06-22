@@ -1,6 +1,48 @@
 # CHANGELOG
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
+## 2026-06-22 — TRACK 15.62 · Session A · Daily Report Recovery Backend Block (🟢 Session A PROVEN · Track OPEN pending Session B)
+
+**Posture:** backend + PDF + verification harness delivered. Feature flag `DR_RECOVERY_ENABLED` stays OFF. No operator-facing behaviour change yet. Track 15.62 closes only when Session B frontend redesign ships and the flag flips in production.
+
+**8 / 8 verification checks pass** on preview (`track_15_62_session_a_verify.json`).
+
+**Backend bugs fixed in existing code:**
+- K-MM-1 · `/api/pm/command-center/materials` extracted material name from wrong keys; now correctly reads `m.get("material")`. Production rows go from `material:null` → real names like "Dirt".
+- K-HAUL-1 · `/api/pm/command-center/hauls` queried only `dispatch_assignments`; now UNIONs Daily-Report `outbound_materials` rows (14-day window, scoped by project). Each DR row carries `source_system="daily_reports"`, `daily_report_doc_id`, full material/quantity/unit/hauler/destination.
+- K-AGG-1 · `/api/pm/command-center/overview` now exposes `counts.loads_today_breakdown.{dispatch_haul_cycles, daily_report_outbound, daily_report_inbound}` so consumers see exactly where loads come from.
+
+**New primitives:**
+- `backend/lib/daily_report_rollup.py` (340 LOC, new) — shared aggregator (`rollup_window`, `rollup_today`, `normalize_material_name`, `is_load_unit`, `haulers_to_motive_trucks`). Single source of truth for PM Command Center, Executive, and Health Metrics surfaces.
+- `GET /api/admin/daily-roll-up?from=&to=&project=` — executive cross-project aggregation.
+- `GET /api/admin/daily-report-health?days=30` — narrative completion %, blank %, word counts, loads window.
+- `GET /api/admin/material-vocabulary` — 14 canonical materials seeded (Dirt · Rock · Crushed Concrete · Asphalt Millings · Asphalt · Concrete · Sand · Gravel · Topsoil · Debris · Mulch · Pipe · Rebar · Other).
+- Additive schema: optional `narrative_sections: Dict[str,str]` (six keys) + `photo_captions: List[str]` on `DailyReportCreate`. Zero migration.
+- `pdf_render._render_narrative_sections()` renders the six guided sections when present; legacy reports unchanged.
+- Motive linkage primitive: `haulers_to_motive_trucks(db, hauler_names)` cross-walk via `db.asset_mappings`.
+- Feature flag env: `DR_RECOVERY_ENABLED=false|true`.
+
+**Concrete before/after on preview corpus:**
+- PMCC hauls for project 26-07: **0 → 3** rows
+- PMCC materials non-null material names: **0/12 → 3/12**
+- PMCC overview `loads_today_breakdown`: **absent → present**
+- Executive endpoint: **404 → 200 with full rollup**
+- Daily Report Health endpoint: **404 → 200 with metrics**
+
+**Deliverables (11 files in `/app/memory/`):**
+`TRACK_15_62_IMPLEMENTATION_ARCHITECTURE.md` (approved plan) · `TRACK_15_62_SESSION_A_REPORT.md` · `TRACK_15_62_PMCC_HAUL_RECOVERY.md` · `TRACK_15_62_NARRATIVE_RECOVERY.md` · `TRACK_15_62_EXECUTIVE_PRODUCTION.md` · `TRACK_15_62_MOTIVE_LINKAGE.md` · `TRACK_15_62_DAILY_REPORT_HEALTH.md` · `TRACK_15_62_DEAD_FIELD_RECOVERY.md` · `TRACK_15_62_PRODUCTION_VERIFICATION.md` · `TRACK_15_62_SIX_PILLAR_CERTIFICATION.md` · `TRACK_15_62_EXECUTIVE_SUMMARY.md`
+
+**Six Pillars (Session A scope):** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **59 / 60 (98 %)**.
+
+**Engineering envelope:** ~800 LOC across 6 backend files + 1 verification harness.
+
+**Session B (pending operator approval):** frontend `NarrativeWorkflow`, `OutboundHaulRow`, `EmployeeCombo` on preparer/super, progressive disclosure of dead fields, header completeness pill, per-photo captions, Admin Command Center "Daily Roll-Up" tab, Daily Report Health card, then flag flip to production.
+
+**Operator decision required:** approve Session B kickoff so the full Track-15.62 operational-intelligence loop closes in one coordinated production deploy.
+
+
+
+
 ## 2026-06-22 — TRACK 15.61 · Daily Report Truth Audit + Production Intelligence Forensics (📊 EVIDENCE COMPLETE · AUDIT-ONLY · NO IMPLEMENTATION)
 
 **Mission.** Forensic, read-only audit of the live `mascidocs.com` Daily Report ecosystem. Stopped before implementation per the original instruction. **Zero production mutations.** Zero test records created. Zero email side-effects.

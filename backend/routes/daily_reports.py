@@ -127,6 +127,27 @@ class DailyReportCreate(BaseModel):
 
     photos: List[str] = Field(default_factory=list)
 
+    # ────────────────────────────────────────────────────────────
+    # TRACK 15.62 · Daily Report Recovery (additive · feature-flagged
+    # consumption by the new NewDailyReport guided-narrative workflow).
+    # All five fields below are optional and default empty. Legacy
+    # clients submitting without them continue to work unchanged.
+    # The aggregator and PDF render layers read these when present
+    # and fall back to `general_notes` / `activities[]` otherwise.
+    # ────────────────────────────────────────────────────────────
+
+    # Structured narrative — six guided-prompt sections that, taken
+    # together, form the operational story of the day. Stored as a
+    # dict so adding a seventh prompt later does not require a model
+    # change. Keys (when present): work_completed, delays, inspections,
+    # materials_received, follow_ups, tomorrow_plan.
+    narrative_sections: Optional[Dict[str, str]] = None
+
+    # Per-photo captions, parallel to `photos[]`. `photo_captions[i]`
+    # captions `photos[i]` when present; missing entries are rendered
+    # without a caption (legacy behaviour).
+    photo_captions: Optional[List[str]] = None
+
     prepared_by_signature: Optional[str] = ""
     superintendent_signature: Optional[str] = ""
     distribution_list: Optional[List[str]] = Field(default=None, max_length=20)

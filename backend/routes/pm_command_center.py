@@ -427,7 +427,20 @@ def build_pm_command_center_router(
         # Loads today
         hc_q: Dict[str, Any] = {"completed_at": {"$gte": day_start}}
         if nums: hc_q["project_number"] = {"$in": nums}
-        loads_today = await db.haul_cycles.count_documents(hc_q)
+        loads_today_dispatch = await db.haul_cycles.count_documents(hc_q)
+
+        # TRACK 15.62 · K-AGG-1 · also sum loads recorded via Daily
+        # Report outbound_materials for today. Without this, foreman-
+        # captured hauls were invisible to PMs (the 15.61 finding).
+        # Imports kept inline to avoid restructuring the registrar fn.
+        from lib.daily_report_rollup import rollup_today as _rollup_today
+        dr_today = await _rollup_today(db, project_numbers=nums or None)
+        loads_today_dr_out = int(dr_today.get("loads", {}).get("out") or 0)
+        loads_today_dr_in = int(dr_today.get("loads", {}).get("in") or 0)
+        # Combined live count: dispatch_assignments completions + DR-
+        # recorded outbound loads. Reported separately under
+        # `loads_today_breakdown` for full transparency to consumers.
+        loads_today = int(loads_today_dispatch) + loads_today_dr_out
 
         return {
             "ok": True,
@@ -445,6 +458,11 @@ def build_pm_command_center_router(
                 "active_assignments": int(active_assns),
                 "active_hauls": int(active_hauls),
                 "loads_today": int(loads_today),
+                "loads_today_breakdown": {
+                    "dispatch_haul_cycles": int(loads_today_dispatch),
+                    "daily_report_outbound": int(loads_today_dr_out),
+                    "daily_report_inbound": int(loads_today_dr_in),
+                },
                 "defects_open": int(defects_open),
                 "incidents_open": int(incidents_open),
                 "capas_open": int(capas_open),
@@ -576,6 +594,7 @@ def build_pm_command_center_router(
                 "breakdown_impact": a.get("current_state") == DLS.BREAKDOWN,
                 "last_activity_at": a.get("last_transition_at"),
                 "fleetwatcher": _fleetwatcher_tpl(),
+                "source_system": "dispatch_lifecycle",
                 **_map_ready(
                     asset_id=a.get("truck_id"),
                     project_number=a.get("project_number"),
@@ -588,6 +607,52 @@ def build_pm_command_center_router(
                     source_system="dispatch_lifecycle",
                 ),
             })
+
+        # TRACK 15.62 · K-HAUL-1 · UNION Daily-Report outbound rows.
+        # Foreman-authored "11 loads of Dirt to 415 yard" entries were
+        # entirely missing from this tab (the 15.61 P0 finding). They
+        # are now surfaced alongside dispatch-lifecycle rows with a
+        # distinct `source_system` so consumers can choose to filter.
+        # Bound to last 14 days to keep payload size reasonable; the
+        # forensic harness confirms the 60-day corpus has only 4 rows
+        # globally, so 14 days is amply generous.
+        dr_cutoff = (datetime.now(timezone.utc).date() - timedelta(days=14)).isoformat()
+        dr_q: Dict[str, Any] = {"report_date": {"$gte": dr_cutoff},
+                                 "deleted_at": {"$in": [None, "", False]},
+                                 "outbound_materials.0": {"$exists": True}}
+        if nums: dr_q["project_number"] = {"$in": nums}
+        async for d in db.daily_reports.find(dr_q,
+            {"_id": 0, "id": 1, "doc_id": 1, "report_date": 1, "project_number": 1,
+             "outbound_materials": 1}):
+            for m in (d.get("outbound_materials") or []):
+                if not isinstance(m, dict):
+                    continue
+                rows.append({
+                    "truck_id": (m.get("hauler") or "no_truck"),
+                    "driver_name": "(daily-report)",
+                    "material": m.get("material"),
+                    "source": d.get("project_number"),
+                    "destination": m.get("destination"),
+                    "current_state": "RECORDED",
+                    "cycle_count": int(m.get("quantity") or 0) if str(m.get("quantity") or "").strip() else 0,
+                    "unit": m.get("unit"),
+                    "ticket_or_manifest": m.get("ticket_or_manifest"),
+                    "report_date": d.get("report_date"),
+                    "daily_report_id": d.get("id"),
+                    "daily_report_doc_id": d.get("doc_id"),
+                    "source_system": "daily_reports",
+                    "waiting_plant": False,
+                    "waiting_dump": False,
+                    "breakdown_impact": False,
+                    "fleetwatcher": _fleetwatcher_tpl(),
+                    **_map_ready(
+                        project_number=d.get("project_number"),
+                        status="recorded",
+                        timestamp=d.get("report_date"),
+                        trust_state="material_out",
+                        source_system="daily_reports",
+                    ),
+                })
         return {"ok": True, "as_of": _now_iso(),
                 "project_number_filter": project_number, "rows": rows}
 
@@ -620,8 +685,14 @@ def build_pm_command_center_router(
                 rows.append({
                     "report_date": d.get("report_date"),
                     "direction": "in",
-                    "material": (m or {}).get("type") or (m or {}).get("name"),
-                    "source": (m or {}).get("source"),
+                    # TRACK 15.62 · K-MM-1 bug fix — production rows store
+                    # the material name on the `material` key, not `type`
+                    # or `name`. The 15.61 audit proved this was returning
+                    # null for every Daily-Report-sourced row.
+                    "material": (m or {}).get("material") or (m or {}).get("type") or (m or {}).get("name"),
+                    "quantity": (m or {}).get("quantity"),
+                    "unit": (m or {}).get("unit"),
+                    "source": (m or {}).get("source") or (m or {}).get("supplier"),
                     "destination": (m or {}).get("destination") or d.get("project_number"),
                     "estimated_quantity": (m or {}).get("quantity"),
                     "actual_quantity": (m or {}).get("actual_quantity"),
@@ -635,7 +706,10 @@ def build_pm_command_center_router(
                 rows.append({
                     "report_date": d.get("report_date"),
                     "direction": "out",
-                    "material": (m or {}).get("type") or (m or {}).get("name"),
+                    "material": (m or {}).get("material") or (m or {}).get("type") or (m or {}).get("name"),
+                    "quantity": (m or {}).get("quantity"),
+                    "unit": (m or {}).get("unit"),
+                    "hauler": (m or {}).get("hauler"),
                     "source": d.get("project_number"),
                     "destination": (m or {}).get("destination"),
                     "estimated_quantity": (m or {}).get("quantity"),
