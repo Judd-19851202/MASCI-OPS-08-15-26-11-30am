@@ -33,8 +33,17 @@ Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable
 ### Track 15.62 remains OPEN
 Per operator directive, partial completion is not certification. Track closes only when Session B frontend redesign ships and the feature flag flips in production. Backend is production-ready the moment Session B is.
 
+### Session B handoff
+**Plan written for next agent:** `/app/memory/TRACK_15_62_SESSION_B_EXECUTION_PLAN.md` — contracts for `NarrativeWorkflow`, `OutboundHaulRow`, `CompletenessChip`, Admin Roll-Up tab, Health card, verification harness, cleanup, day-0 baseline, Definition of Done.
+
+**Next agent must:**
+1. Read `TRACK_15_62_IMPLEMENTATION_ARCHITECTURE.md` + `TRACK_15_62_SESSION_A_REPORT.md` + `TRACK_15_62_SESSION_B_EXECUTION_PLAN.md`.
+2. Run `python3 /app/tests/post_deploy/track_15_62_session_a_verify.py` to confirm Session A still green (sanity floor).
+3. Implement Session B per the contracts.
+4. Do NOT flip `DR_RECOVERY_ENABLED` until every Definition-of-Done bullet is satisfied.
+
 ### Operator action required
-Approve Session B kickoff (frontend `NarrativeWorkflow` + `OutboundHaulRow` + identity pickers + dead-field disclosure + completeness pill + photo captions + Admin Command Center "Daily Roll-Up" tab + Health card + production flag flip).
+Approve Session B kickoff in a **fresh session** (per the agreed Option A handoff).
 
 ## Prior Track (2026-06-22 · TRACK 15.61 · Daily Report Truth Audit + Production Intelligence Forensics · 📊 EVIDENCE COMPLETE · AUDIT-ONLY)
 
