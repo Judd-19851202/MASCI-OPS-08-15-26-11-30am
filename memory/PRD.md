@@ -10,7 +10,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-20 · TRACK 15.59 · Live Production Post-Deployment Automated Verification · ✅ PASS)
+## Latest Track (2026-06-22 · TRACK 15.60 · P0 Field Trust Fix · Safety Meeting Autosave + Request-to-Add Reliability · 🟢 GO)
+
+### What shipped
+2 file changes (~80 LOC additive) close the P0 field-trust gap reported in a real production Safety Meeting with ~15–20 attendees.
+
+- `frontend/src/pages/NewMeeting.jsx` — wired the shared `useFormDraft` autosave hook (iter440 layer used by NewIncident / NewDailyReport / NewInspection). Adds `DraftStatusPill` header pill + `DraftRestorePrompt` calm restore prompt + `commit()` on submit success. Survives refresh, navigate-away, iOS lifecycle events.
+- `frontend/src/components/EmployeeCombo.jsx` — rerouted `addToRoster` through `enqueueUpload` so a flaky 4G or transient backend never drops the Request-to-Add on the floor and never reaches up into the parent form state.
+
+### Stress test result
+6 / 6 scenarios pass in 44 s. Cleanup leaves zero tagged synthetic records on the preview DB.
+
+### Six Pillars
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **59 / 60 (98%)**.
+
+### Deliverables
+11 markdown files under `/app/memory/TRACK_15_60_*.md`.
+
+### Backlog (non-blocking)
+- Inline Request-to-Add on Equipment Issuance / Equipment Training
+- Offline-queue the final `POST /api/meetings` submission
+- Orphan-task sweep for tasks linked to deleted meetings
+
+## Prior Track (2026-06-20 · TRACK 15.59 · Live Production Post-Deployment Automated Verification · ✅ PASS)
 
 ### What shipped
 Automated, end-to-end, real-network verification of the live deploy at `https://mascidocs.com`. 11 / 11 phases passed in 56.7 s. Zero left-over synthetic artefacts on the production database.

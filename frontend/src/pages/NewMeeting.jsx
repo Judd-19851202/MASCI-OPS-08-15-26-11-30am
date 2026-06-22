@@ -39,6 +39,15 @@ import {
   reverseGeocode,
   formatCoords,
 } from "@/lib/geolocation";
+// TRACK 15.60 · P0 field-trust fix — Safety Meeting draft autosave.
+// Mirrors the iter440 pattern used by NewIncident, NewDailyReport,
+// NewInspection. The field reported losing a 15–20 person meeting
+// mid-entry because this surface had no draft persistence. Wired the
+// shared resiliency layer with no schema changes.
+import {
+  useFormDraft, getActorId,
+  DraftStatusPill, DraftRestorePrompt,
+} from "@/lib/resiliency";
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
@@ -50,6 +59,32 @@ export default function NewMeeting({ publicMode = false }) {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [templateKey, setTemplateKey] = useState(CUSTOM_TOPIC_KEY);
+
+  // TRACK 15.60 · Safety Meeting draft autosave (P0 field-trust fix).
+  // Wires the shared resiliency layer (`useFormDraft`) so the entire
+  // form — attendees, topic, photos, signature, notes — autosaves
+  // to IndexedDB every 800 ms and on every iOS lifecycle event
+  // (visibilitychange, pagehide, beforeunload). Survives refresh,
+  // navigation, accidental close, and transient network failure.
+  // Field-incident reproduction: 20-attendee meeting + Request-to-Add
+  // failure + refresh → previously lost everything; now restores.
+  const actorId = React.useMemo(() => getActorId(), []);
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft("meeting-new", data, actorId);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const d = restore();
+    if (d) {
+      setData(d);
+      toast.success(t("Draft restored"));
+    }
+  }, [restore, t]);
+
+  const onDiscardDraft = React.useCallback(() => {
+    discard();
+    toast.message(t("Draft discarded"));
+  }, [discard, t]);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -290,6 +325,10 @@ export default function NewMeeting({ publicMode = false }) {
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/meetings", payload);
       toast.success(t("Meeting saved"));
+      // TRACK 15.60 · clear the IDB draft once the server confirms
+      // persistence, so the next visit starts clean. Do this BEFORE
+      // navigate() to avoid stale-draft restoration on the return.
+      try { await commit(); } catch { /* never break submit success */ }
       // TRACK 14.0-S1 Amendment A — preserve original-language strings
       // in the bilingual_records sidecar collection. Fire-and-forget;
       // a failure here must not break the user's flow.
@@ -366,6 +405,7 @@ export default function NewMeeting({ publicMode = false }) {
           )}
           <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} homeLink="/" />
           <div className="flex items-center gap-2">
+            <DraftStatusPill status={draftStatus} testId="meeting-draft-pill" />
             <LangToggle />
             {missingHint && (
               <span
@@ -399,6 +439,17 @@ export default function NewMeeting({ publicMode = false }) {
             {t("Site Safety Meeting")}
           </h1>
         </div>
+
+        {/* TRACK 15.60 · P0 field-trust fix — calm draft recovery prompt.
+            Shown ONLY when an unsent meeting draft was found in IDB on
+            mount. The operator picks Restore or Discard — we never
+            silently overwrite the form. */}
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          testId="meeting-draft-restore-prompt"
+        />
 
         <Section number="01" title={t("Meeting Information")}>
           {/* iter270 · form-root coaching · counter shown above the meeting form */}

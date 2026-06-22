@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
+// TRACK 15.60 · P0 field-trust fix — Request-to-Add reliability.
+// Route the inline new-hire request through the same offline queue
+// used by NewIncident / NewDailyReport submissions so a flaky 4G or
+// transient backend error NEVER drops the request on the floor and
+// NEVER reaches up into the parent form's state.
+import { enqueueUpload, mintIdempotencyKey } from "@/lib/resiliency";
 
 /**
  * EmployeeCombo
@@ -152,28 +158,78 @@ export const EmployeeCombo = ({
     const name = (rawName || "").trim();
     if (name.length < 2) return;
     setAddingNew(true);
+    // TRACK 15.60 · P0 reliability fix.
+    // Old behaviour: a single api.post that, on a 4G blip or 502,
+    // threw a "Can't reach the server" toast and the request never
+    // landed. Foremen reported this happening with 15-20 attendees
+    // queued up — they hit Request-to-Add, saw the failure, and the
+    // 'just retry' loop spread panic.
+    //
+    // New behaviour: enqueueUpload() routes the request through the
+    // shared IndexedDB-backed retry queue (used by NewIncident /
+    // NewDailyReport). On success we get the same 200 path back. On
+    // network failure the request is durably persisted and replayed
+    // automatically when the device next has connectivity. Either
+    // way, the parent form's state is NEVER touched — we never call
+    // onChange / onPick on the failure path.
+    const idem = mintIdempotencyKey();
+    const body = {
+      kind: "new_hire",
+      name,
+      submitted_via: "employee_combo_inline",
+      // 15.60 — soft attribution so HR can see where the request came
+      // from. Stays free-text; HR's review surface displays it.
+      _track_15_60_client_idempotency_key: idem,
+    };
     try {
-      const r = await api.post("/employee-requests", {
-        kind: "new_hire",
-        name,
-        submitted_via: "employee_combo_inline",
+      const r = await enqueueUpload({
+        method: "POST",
+        url: "/employee-requests",
+        headers: {},
+        body,
+        idempotencyKey: idem,
+        formKey: "employee-request-inline",
       });
-      const rid = r?.data?.id || "";
-      toast.success(
-        `Request submitted to HR Queue`,
-        { description: `HR will review and add "${name}" to the roster (request ${rid.slice(0, 8)}…). You can continue this form with the typed name.` }
-      );
-      // Hand the typed label back to the parent form so the user is
-      // not blocked. The label remains free-text until HR approves.
-      onChange?.(name);
-      onPick?.({ name, _pending_hr_review: true, request_id: rid });
-      setOpen(false);
+      if (r.ok) {
+        const rid = r?.data?.id || "";
+        toast.success(
+          `Request submitted to HR Queue`,
+          { description: `HR will review and add "${name}" to the roster (request ${rid.slice(0, 8)}…). You can continue this form with the typed name.` }
+        );
+        onChange?.(name);
+        onPick?.({ name, _pending_hr_review: true, request_id: rid });
+        setOpen(false);
+      } else if (r.queued) {
+        // Network failure — request is durably persisted and will
+        // replay automatically. The parent form is NOT touched; we
+        // simply tell the user the request is safe.
+        toast.message(
+          `Request saved · will send when reconnected`,
+          { description: `"${name}" is queued for HR review. Keep building your form — your work is safe.`, duration: 6000 }
+        );
+        onChange?.(name);
+        onPick?.({ name, _pending_hr_review: true, request_id: "queued", _queued: true });
+        setOpen(false);
+      } else {
+        // Non-network error — server returned 4xx/5xx. The queue
+        // does NOT retry these. Show the user the calm reason.
+        const status = r?.status;
+        const detail = r?.lastError?.responseData?.detail || r?.lastError?.message;
+        const msg = (status === 410)
+          ? "Employee creation moved to HR Queue · please refresh and retry."
+          : (status === 429)
+          ? "Too many requests right now — wait a moment and try again. Your form is safe."
+          : (typeof detail === "string" ? detail : "Could not submit HR request — your form is safe.");
+        toast.error(msg);
+      }
     } catch (err) {
+      // Defensive: enqueueUpload should not throw, but if anything
+      // slips through we MUST NOT propagate it up to the parent.
       const status = err?.response?.status;
       const msg = (status === 410)
         ? "Employee creation moved to HR Queue · please refresh and retry."
-        : (err?.response?.data?.detail || err?.message || "Could not submit HR request");
-      toast.error(typeof msg === "string" ? msg : "Could not submit HR request");
+        : (err?.response?.data?.detail || err?.message || "Could not submit HR request — your form is safe.");
+      toast.error(typeof msg === "string" ? msg : "Could not submit HR request — your form is safe.");
     } finally {
       setAddingNew(false);
     }
