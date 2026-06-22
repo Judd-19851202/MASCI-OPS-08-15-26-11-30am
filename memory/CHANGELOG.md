@@ -1,6 +1,64 @@
 # CHANGELOG
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
+## 2026-06-22 — TRACK 15.61 · Daily Report Truth Audit + Production Intelligence Forensics (📊 EVIDENCE COMPLETE · AUDIT-ONLY · NO IMPLEMENTATION)
+
+**Mission.** Forensic, read-only audit of the live `mascidocs.com` Daily Report ecosystem. Stopped before implementation per the original instruction. **Zero production mutations.** Zero test records created. Zero email side-effects.
+
+**Method.** Single Python harness (`/app/tests/post_deploy/track_15_61_audit.py`) pulls all 154 production Daily Reports (60-day window), computes forensic metrics, dumps to `/app/memory/track_15_61_data/forensics.json`. PDFs rendered locally on 3 representative samples (BEST 8/8 · HAUL EDGE · WORST 0-word) and text-extracted to confirm PDF fidelity.
+
+**Headline findings (every claim backed by `forensics.json`):**
+
+| Metric | Result |
+|---|---|
+| Reports in 60-day window | 154 |
+| % blank Activity Log | **74.7 %** |
+| % Activity Log under 25 words | 89.6 % |
+| % Activity Log over 100 words | **0.0 %** |
+| Median Activity Log words | **0** |
+| Median activity rows | 0 |
+| Reports with outbound material | **4 / 154 (2.6 %)** · 50 loads total · 1 material type ("Dirt") |
+| Reports with `production[]` populated | 3.2 % |
+| Reports with zero narrative anywhere | **46.8 %** |
+| Median job-story score (out of 8) | **4** · only 1 report scored 8/8 |
+| PM Command Center hauls tab `rows` | `[]` (empty despite 4 captured outbound rows) |
+| PM Command Center `loads_today` counter | 0 |
+| PDF fidelity (DB → API → PDF) | ✅ faithful (proven across 3 samples; 1.4–1.5 MB PDFs with %PDF- magic + extracted text confirming every populated field) |
+| Motive integration health | Connected · 190 asset mappings · 65 employee mappings · live GPS events |
+| Motive ↔ Daily Report linkage | **None** — no daily-report field references a Motive vehicle_id |
+| Executive dashboard endpoint | **Does not exist** (5 candidate URLs all 404) |
+
+**Loss points identified (in severity order):**
+
+1. **At data entry — Activity Log is functionally dead.** 74.7 % blank.
+2. **At data entry — outbound trucking is essentially unrecorded.** 2.6 % capture rate.
+3. **At aggregation — PM Command Center does not roll up Daily Report data.**
+4. **At aggregation — no executive endpoint exists at all.**
+5. **At integration — `asset_mappings` and `employee_mappings` are durable but unconsulted by the Daily Report form.**
+
+**Recommendations (10 ranked items, P0 → P2 · see `TRACK_15_61_RECOMMENDATIONS.md` for full detail):**
+
+1. **R-PMCC (P0 · 56/60)** — backend-only aggregator extension surfacing daily-report outbound + materials into PM Command Center.
+2. **R-UX-NARRATIVE (P0 · 53/60)** — unify the two narrative surfaces into one "What happened today?" prompt.
+3. **R-HAUL (P0 · 55/60)** — outbound material/hauler/unit/destination pickers replacing free-text.
+4. R-DEAD-FIELDS (P1 · 57/60) — hide 3 never-used fields.
+5. R-IDENTITY (P1 · 56/60) — bind preparer + super to canonical employees.
+6. R-EXEC (P1 · 55/60) — new `/api/admin/daily-roll-up` endpoint.
+7. R-MOTIVE (P1 · 51/60) — wire `asset_mappings` into pickers + Command Center hauls cross-join.
+8. R-MATERIAL-VOCAB (P2 · 54/60) — canonical material vocabulary.
+9. R-UX-PROMPT (P2 · 55/60) — real-time completeness coaching.
+10. R-PHOTO-CAPS (P2 · 52/60) — per-photo captions in the PDF.
+
+**Deliverables (13 files in `/app/memory/`):**
+`TRACK_15_61_DAILY_REPORT_INVENTORY.md` · `TRACK_15_61_ACTIVITY_LOG_FORENSICS.md` · `TRACK_15_61_PDF_TRUTH_AUDIT.md` · `TRACK_15_61_JOB_STORY_AUDIT.md` · `TRACK_15_61_HAUL_DATA_FORENSICS.md` · `TRACK_15_61_PM_DASHBOARD_TRACE.md` · `TRACK_15_61_EXECUTIVE_TRACE.md` · `TRACK_15_61_MOTIVE_FORENSICS.md` · `TRACK_15_61_FIELD_BEHAVIOR_ANALYSIS.md` · `TRACK_15_61_DATA_FLOW_MATRIX.md` · `TRACK_15_61_HUMAN_USABILITY_AUDIT.md` · `TRACK_15_61_RECOMMENDATIONS.md` · `TRACK_15_61_CLEANUP_CERTIFICATION.md` · `TRACK_15_61_EXECUTIVE_SUMMARY.md` · `TRACK_15_61_SIX_PILLAR_CERTIFICATION.md`
+
+**Six Pillars (audit posture · no inflation):** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **59 / 60 (98 %)**.
+
+**Recommendation:** GO for Track 15.62 implementing the P0 fix block (R-PMCC + R-UX-NARRATIVE + R-HAUL). Operator review of evidence required before any code changes ship.
+
+
+
+
 ## 2026-06-22 — TRACK 15.60 · P0 Field Trust Fix · Safety Meeting Autosave + Request-to-Add Reliability (🟢 GO)
 
 **Trigger:** Real production field failure on a ~15–20 attendee Safety Meeting. Operator hit Request-to-Add for unknown attendees; saw "no signal / could not connect to server"; the entire meeting form glitched and reset; the crew had to start over.

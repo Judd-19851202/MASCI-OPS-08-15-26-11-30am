@@ -10,7 +10,36 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.60 · P0 Field Trust Fix · Safety Meeting Autosave + Request-to-Add Reliability · 🟢 GO)
+## Latest Track (2026-06-22 · TRACK 15.61 · Daily Report Truth Audit + Production Intelligence Forensics · 📊 EVIDENCE COMPLETE · AUDIT-ONLY)
+
+### What shipped
+**No code.** Read-only forensic audit of the live production Daily Report ecosystem. 12 phases, 15 deliverables, zero production mutations.
+
+### Headline findings (every claim backed by `/app/memory/track_15_61_data/forensics.json`)
+- **74.7 %** of production Daily Reports have a completely blank Activity Log
+- Median Activity Log: **0 words** · 0 of 154 reports exceed 100 words
+- **46.8 %** of reports contain zero narrative anywhere
+- **2.6 %** of reports capture outbound material (4 reports · 50 loads · single material "Dirt")
+- Median job-story score: **4 / 8** · only 1 report scored 8/8
+- PM Command Center hauls tab returns `rows: []` despite captured outbound data — aggregation gap
+- No executive endpoint exists at all (5 candidate URLs all 404)
+- Motive is connected (190 asset mappings · 65 employee mappings) but **zero** linkage to Daily Reports
+
+### PDF fidelity
+✅ Faithful — PDFs render every populated field. Information loss is at the data-entry and aggregation layers, NOT at the PDF render.
+
+### Recommendations (do not implement until reviewed)
+P0: **R-PMCC** (backend aggregator) · **R-UX-NARRATIVE** (unify two narrative surfaces) · **R-HAUL** (outbound pickers)
+P1: R-DEAD-FIELDS · R-IDENTITY · R-EXEC · R-MOTIVE
+P2: R-MATERIAL-VOCAB · R-UX-PROMPT · R-PHOTO-CAPS
+
+### Six Pillars (audit posture)
+Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **59 / 60 (98 %)**.
+
+### Operator action
+Review the 15 markdown deliverables under `/app/memory/TRACK_15_61_*.md`. Decide GO/NO-GO for Track 15.62 (P0 implementation block).
+
+## Prior Track (2026-06-22 · TRACK 15.60 · P0 Field Trust Fix · Safety Meeting Autosave + Request-to-Add Reliability · 🟢 GO)
 
 ### What shipped
 2 file changes (~80 LOC additive) close the P0 field-trust gap reported in a real production Safety Meeting with ~15–20 attendees.
