@@ -1,7 +1,7 @@
 {
   "track": "15.62.session_a",
   "target": "https://safety-audit-mobile-1.preview.emergentagent.com",
-  "started_at_utc": "2026-06-22T13:01:54.046359+00:00",
+  "started_at_utc": "2026-06-22T13:15:19.084421+00:00",
   "checks": {
     "material_vocabulary_seeded": {
       "size": 14,
@@ -55,16 +55,16 @@
       "status": "pass"
     },
     "pdf_renders_narrative_sections": {
-      "pdf_bytes": 1356795,
+      "pdf_bytes": 1356794,
       "text_bytes": 1805,
       "status": "pass"
     },
     "pdf_legacy_path_unchanged": {
-      "pdf_bytes": 1354017,
+      "pdf_bytes": 1354015,
       "status": "pass"
     }
   },
   "overall_status": "PASS",
   "failed_checks": [],
-  "finished_at_utc": "2026-06-22T13:01:59.805673+00:00"
+  "finished_at_utc": "2026-06-22T13:15:24.887855+00:00"
 }

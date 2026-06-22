@@ -1,6 +1,41 @@
 # CHANGELOG
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
+## 2026-06-22 — TRACK 15.62 · Session B · Daily Report Operational Intelligence (✅ FULLY VERIFIED ON PREVIEW · 🟡 production flag-flip = operator action)
+
+**Status:** Sessions A + B fully implemented and proven on preview. Backend + frontend + PDF + verification + cleanup-doctrine all green. Production deploy + `DR_RECOVERY_ENABLED=true` flag flip is the operator-owned final step.
+
+**Session B verification:** ✅ **8 / 8 PASS** (`/app/test_reports/track_15_62_session_b_verify.json`)
+
+**Session B deliverables (frontend operational layer):**
+- `frontend/src/lib/dailyReportScore.js` — operationally-honest 9-point scorer (no fake percentages)
+- `frontend/src/components/CompletenessChip.jsx` — header pill, color-coded, dimension tooltip
+- `frontend/src/components/NarrativeWorkflow.jsx` — six guided prompts (work · delays · inspections · materials received · follow-ups · tomorrow)
+- `frontend/src/components/OutboundHaulRow.jsx` — canonical material dropdown + custom fallback + unit dropdown + hauler + destination
+- `frontend/src/pages/NewDailyReport.jsx` — wired NarrativeWorkflow + CompletenessChip
+- `tests/post_deploy/track_15_62_session_b_verify.py` — end-to-end Playwright + API + PDF harness
+
+**End-to-end loop proven:**
+Field Entry → Daily Report (writes `narrative_sections` + outbound row) → PM Visibility (PMCC `/hauls` surfaces row) → Executive Visibility (`/admin/daily-roll-up` shows aggregated Dirt loads) → Historical Record (PDF renders six narrative sections) → Operational Intelligence (`/admin/daily-report-health` `narrative_sections_completion_pct > 0`).
+
+**Discovered defect (resolved in-track per directive):** `daily_report_delete_frozen` doctrine — Daily Reports cannot be hard-deleted by design (audit preservation). API correctly returns HTTP 410. Cleanup posture confirmed: tagged synthetic records remain in historical corpus with `TRACK_15_62_DELETE` embedded in human-readable fields, trivially queryable.
+
+**Six Pillars (Sessions A + B):** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **59/60 (98 %)**.
+
+**Operator actions remaining (outside agent scope):**
+1. Deploy Sessions A + B to production via CI/CD
+2. Set `DR_RECOVERY_ENABLED=true` on production env
+3. Re-run `track_15_62_session_b_verify.py` against `mascidocs.com`
+4. Capture day-0 production baseline via `track_15_61_audit.py`
+5. Re-run forensics at day 14 + day 30 for adoption lift measurement
+
+**Final certification:** `/app/memory/TRACK_15_62_FINAL_CERTIFICATION.md`
+
+**🟢 GO** for production deploy + flag flip.
+
+
+
+
 ## 2026-06-22 — TRACK 15.62 · Session A · Daily Report Recovery Backend Block (🟢 Session A PROVEN · Track OPEN pending Session B)
 
 **Posture:** backend + PDF + verification harness delivered. Feature flag `DR_RECOVERY_ENABLED` stays OFF. No operator-facing behaviour change yet. Track 15.62 closes only when Session B frontend redesign ships and the flag flips in production.

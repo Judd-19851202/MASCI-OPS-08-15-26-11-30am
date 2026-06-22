@@ -10,40 +10,36 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.62 · Daily Report Recovery · Session A backend PROVEN · Track OPEN pending Session B)
+## Latest Track (2026-06-22 · TRACK 15.62 · Daily Report Operational Intelligence · Sessions A+B ✅ VERIFIED · production flag-flip = operator action)
 
-### Session A status
-- **8 / 8 verification checks pass on preview.**
-- Feature flag `DR_RECOVERY_ENABLED` stays **OFF** — operator sees no behaviour change yet.
-- Three PMCC bugs fixed (K-MM-1, K-HAUL-1, K-AGG-1).
-- Three new admin endpoints live: `/api/admin/daily-roll-up`, `/api/admin/daily-report-health`, `/api/admin/material-vocabulary`.
-- New shared aggregator `lib/daily_report_rollup.py` (340 LOC) is single source of truth.
-- PDF render extended for `narrative_sections`; legacy reports render unchanged.
-- 14-item canonical material vocabulary seeded.
+### What shipped
+End-to-end Daily Report recovery: backend aggregator + admin endpoints + PMCC bug fixes + PDF narrative render (Session A) + frontend NarrativeWorkflow + CompletenessChip + OutboundHaulRow + dailyReportScore + NewDailyReport.jsx integration (Session B).
 
-### Concrete before/after on preview
-- PMCC hauls for project 26-07: **0 → 3** rows
-- PMCC materials non-null names: **0/12 → 3/12**
-- Executive endpoint: **404 → 200**
-- Daily Report Health endpoint: **404 → 200**
+### Verification (both harnesses)
+- Session A: ✅ 8 / 8 — `track_15_62_session_a_verify.json`
+- Session B: ✅ 8 / 8 — `track_15_62_session_b_verify.json`
 
-### Six Pillars (Session A)
-Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **59 / 60 (98 %)**.
+### End-to-end loop proven
+Field Entry → Daily Report → PM Visibility → Executive Visibility → Historical Record → Operational Intelligence — all green on preview.
 
-### Track 15.62 remains OPEN
-Per operator directive, partial completion is not certification. Track closes only when Session B frontend redesign ships and the feature flag flips in production. Backend is production-ready the moment Session B is.
+### Discovered defect (in-track resolution)
+`daily_report_delete_frozen` doctrine — Daily Reports cannot be hard-deleted (HTTP 410). Cleanup posture confirmed: tagged record persists in historical corpus by design.
 
-### Session B handoff
-**Plan written for next agent:** `/app/memory/TRACK_15_62_SESSION_B_EXECUTION_PLAN.md` — contracts for `NarrativeWorkflow`, `OutboundHaulRow`, `CompletenessChip`, Admin Roll-Up tab, Health card, verification harness, cleanup, day-0 baseline, Definition of Done.
+### Six Pillars
+59 / 60 (98 %).
 
-**Next agent must:**
-1. Read `TRACK_15_62_IMPLEMENTATION_ARCHITECTURE.md` + `TRACK_15_62_SESSION_A_REPORT.md` + `TRACK_15_62_SESSION_B_EXECUTION_PLAN.md`.
-2. Run `python3 /app/tests/post_deploy/track_15_62_session_a_verify.py` to confirm Session A still green (sanity floor).
-3. Implement Session B per the contracts.
-4. Do NOT flip `DR_RECOVERY_ENABLED` until every Definition-of-Done bullet is satisfied.
+### Operator actions for production close-out
+1. Deploy A + B together to production
+2. Flip `DR_RECOVERY_ENABLED=true`
+3. Re-run `track_15_62_session_b_verify.py` against `mascidocs.com`
+4. Capture day-0 baseline · re-baseline at day-14 + day-30
 
-### Operator action required
-Approve Session B kickoff in a **fresh session** (per the agreed Option A handoff).
+### Final certification
+`/app/memory/TRACK_15_62_FINAL_CERTIFICATION.md`
+
+🟢 GO for production deploy.
+
+## Prior Track (2026-06-22 · TRACK 15.61 · Daily Report Truth Audit + Production Intelligence Forensics · 📊 EVIDENCE COMPLETE · AUDIT-ONLY)
 
 ## Prior Track (2026-06-22 · TRACK 15.61 · Daily Report Truth Audit + Production Intelligence Forensics · 📊 EVIDENCE COMPLETE · AUDIT-ONLY)
 

@@ -40,6 +40,9 @@ import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import DailyReportExcavationActivity from "@/components/trench/DailyReportExcavationActivity";
 import { fetchDailyWeather } from "@/lib/weather";
 import { HelpTipBlock } from "@/components/HelpTip";
+// TRACK 15.62 · Session B operational-intelligence components.
+import { NarrativeWorkflow } from "@/components/NarrativeWorkflow";
+import { CompletenessChip } from "@/components/CompletenessChip";
 // M-DR-1 · Equipment Auto-Discovery — Motive suggests, foreman verifies.
 import EquipmentDetectedToday from "@/components/daily-report/EquipmentDetectedToday";
 // M-2-5 · Motive Verification (read-only).
@@ -1047,6 +1050,7 @@ export default function NewDailyReport({ publicMode = false }) {
             className={publicMode ? "sm:hidden" : ""}
           homeLink="/" />
           <div className="flex items-center gap-2">
+            <CompletenessChip data={data} testId="daily-report-completeness-chip" />
             <DraftStatusPill
               status={draftStatus}
               lastSavedAt={lastSavedAt}
@@ -1574,6 +1578,22 @@ export default function NewDailyReport({ publicMode = false }) {
               placeholder={t("Anything else worth noting from today...")}
               data-testid="input-general-notes"
             />
+          </div>
+
+          {/* TRACK 15.62 · NarrativeWorkflow — six guided prompts that
+              capture the operational story of the day. Writes to
+              `narrative_sections` (additive optional schema). */}
+          <div className="mt-4 border-t pt-4">
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
+              {t("Tell the story of the day")}
+            </Label>
+            <div className="mt-2">
+              <NarrativeWorkflow
+                value={data.narrative_sections || {}}
+                onChange={(ns) => set("narrative_sections", ns)}
+                testIdPrefix="dr-narrative"
+              />
+            </div>
           </div>
 
           {/* Phase 10A-B · OMEGA Correction 1 — Excavation Activity Gate */}

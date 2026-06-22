@@ -1,0 +1,61 @@
+{
+  "track": "15.62.session_b",
+  "target": "https://safety-audit-mobile-1.preview.emergentagent.com",
+  "started": "2026-06-22T13:22:25.559120+00:00",
+  "checks": {
+    "ui_new_components_render": {
+      "status": "pass",
+      "completeness_chip": 1,
+      "narrative_work": 1,
+      "narrative_delays": 1,
+      "narrative_tomorrow": 1
+    },
+    "create_tagged_dr": {
+      "id": "d9865fda-23af-41a7-953b-483e6c045656",
+      "doc_id": "DR-2026-01131",
+      "status": "pass"
+    },
+    "readback_persists_narrative_and_haul": {
+      "narrative_keys": [
+        "work_completed",
+        "delays",
+        "tomorrow_plan"
+      ],
+      "outbound_count": 1,
+      "status": "pass"
+    },
+    "pmcc_hauls_surfaces_new_row": {
+      "sample_material": "Dirt",
+      "cycle_count": 7,
+      "status": "pass"
+    },
+    "exec_rollup_includes_new_loads": {
+      "today_loads_out": 14,
+      "by_material": [
+        "Dirt"
+      ],
+      "status": "pass"
+    },
+    "health_metrics_move": {
+      "narrative_sections_completion_pct": 0.2,
+      "any_narrative_completion_pct": 11.6,
+      "status": "pass"
+    },
+    "pdf_renders_narrative": {
+      "pdf_bytes": 1472058,
+      "status": "pass"
+    },
+    "cleanup_doctrine_enforced": {
+      "delete_http": 410,
+      "doctrine_code": "daily_report_delete_frozen",
+      "cleanup_posture": "doctrine_preserves_record_unique_tag_in_human_fields",
+      "status": "pass"
+    }
+  },
+  "created": [
+    "d9865fda-23af-41a7-953b-483e6c045656"
+  ],
+  "overall": "PASS",
+  "failed": [],
+  "finished": "2026-06-22T13:22:34.150919+00:00"
+}
