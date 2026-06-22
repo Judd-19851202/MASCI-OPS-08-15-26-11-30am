@@ -10,7 +10,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.63 · Motive Map Zoom + Asset Interaction Reliability · 🟢 GO)
+## Latest Track (2026-06-22 · TRACK 15.64 · Platform-Wide Email Routing Governance Audit + Multi-Tenant Email Management · 🟢 GO for execution (audit-only this track))
+
+### Mode
+**AUDIT + ARCHITECTURE only.** Zero code modified. Output is decision-grade documentation for Track 15.65+ execution.
+
+### Inventory headline counts
+- 91 hardcoded `@mascigc`/`@mascidocs` occurrences in production backend code
+- 51 in production frontend code (16 of which are cosmetic login placeholders)
+- 40 distinct Resend send-call sites
+- 26 distinct hardcoded business email addresses
+- 16 distinct email-routing env-var keys (6 DB-overridable today · 10 env-only)
+
+### The seven answers
+1. Hardcoded destinations: 91 backend + 51 frontend; 26 distinct addresses; 16 env keys.
+2. Workflows: 19 logical routes across compliance, safety forms, FL forms, severe incidents, welcomes, digests, platform alerts, trench safety.
+3. MASCI-specific: every literal — 5 executive emails, 4 role mailboxes, 3 manager defaults, 6 PM emails, `noreply@mascidocs.com` sender default.
+4. Blocking multi-tenant: 13 P0 + 11 P1 + 4 P2 (full table in `TRACK_15_64_MULTI_TENANT_BLOCKERS.md`).
+5. Routing architecture: 19-route tenant-scoped DB-first resolver + `tenant_branding` doc + single admin page + audit row on every send. Backward-compatible aliases for the existing 6 keys.
+6. Effort: 3 waves · 4-7 sessions · ~1,750 LOC · 3 new collections · rollback under 5 min per wave.
+7. **🟢 GO** — design is sound, migration is staged, pre-seed-before-swap eliminates any outage window, every wave is independently revertible.
+
+### Six Pillars (audit posture)
+Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 9 · Deployable 10 → **59 / 60 (98 %)**.
+
+### Deliverables (all 8 + PRD + CHANGELOG)
+`TRACK_15_64_EMAIL_INVENTORY.md` · `TRACK_15_64_NOTIFICATION_FLOW_MAP.md` · `TRACK_15_64_MULTI_TENANT_BLOCKERS.md` · `TRACK_15_64_ROUTING_ARCHITECTURE.md` · `TRACK_15_64_MIGRATION_PLAN.md` · `TRACK_15_64_DEPLOYMENT_READINESS.md` · `TRACK_15_64_EXECUTIVE_SUMMARY.md` · `TRACK_15_64_SIX_PILLAR_CERTIFICATION.md`.
+
+### Hard-rule compliance
+✅ Audit-only — no code modified · ✅ no implementation in this track · ✅ every count grep-anchored to `/app/memory/track_15_64_data/` artefacts · ✅ no notification outage proposed during the migration plan.
+
+## Prior Track (2026-06-22 · TRACK 15.63 · Motive Map Zoom + Asset Interaction Reliability · 🟢 GO)
 
 ### What shipped
 One file changed — `frontend/src/components/operations-map/MapCanvas.jsx` — to eliminate map remount churn on the three Motive-driven surfaces (Operations Center, Dispatch hero, Shop Recovery).

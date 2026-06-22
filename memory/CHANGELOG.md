@@ -2,6 +2,38 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.64 · Platform-Wide Email Routing Governance Audit + Multi-Tenant Email Management (🟢 GO for execution · AUDIT-ONLY this track)
+
+**Mode:** AUDIT + ARCHITECTURE only · zero code modified.
+
+**Why this track:** Before a single line of routing-system code is written, surface every hardcoded email dependency, classify every email-emitting workflow, and design the tenant-safe replacement.
+
+**Inventory headlines (grep-anchored in `/app/memory/track_15_64_data/`):**
+- 91 hardcoded `@mascigc` / `@mascidocs` occurrences in production backend.
+- 51 in production frontend (16 are cosmetic login placeholders).
+- 40 distinct Resend send-call sites.
+- 26 distinct hardcoded business email addresses.
+- 16 distinct routing env-var keys, of which 6 are DB-overridable today and 10 are env-only.
+
+**Existing infrastructure surfaced (better than expected):**
+- `backend/email_routing.py` already handles 6 routing keys with DB-backed overrides + 60-s cache.
+- `/api/admin/email-routing` GET/PUT/test endpoints + `AdminEmailRoutingPanel.jsx` already mounted at `/admin/email`.
+- `email_audit` collection covers ~70 % of sends.
+
+**Architecture verdict:** expand from 6 → 19 routes · add `tenant_branding` doc · resolver hard-fails on unconfigured route (no silent send to MASCI) · backward-compatible aliases for the existing 6 keys.
+
+**Estimated execution effort (Track 15.65+):** 3 waves · 4-7 sessions · ~1,750 LOC · 3 new collections · rollback under 5 minutes per wave.
+
+**Six Pillars:** Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 9 · Deployable 10 → **59 / 60 (98 %)**.
+
+**Deliverables (all in `/app/memory/`):** EMAIL_INVENTORY · NOTIFICATION_FLOW_MAP · MULTI_TENANT_BLOCKERS · ROUTING_ARCHITECTURE · MIGRATION_PLAN · DEPLOYMENT_READINESS · EXECUTIVE_SUMMARY · SIX_PILLAR_CERTIFICATION.
+
+**Hard-rule compliance:** Audit only · no code changed · no notification outage during proposed rollout · backward-compatible at every wave boundary · pre-seed before swap.
+
+**🟢 GO for Track 15.65 execution.**
+
+---
+
 ## 2026-06-22 — TRACK 15.63 · Motive Map Zoom + Asset Interaction Reliability (🟢 GO)
 
 **Status:** Shipped to preview. Reproduction proven, fix verified, multi-portal regression PASS at desktop + iPad portrait + iPad landscape.
