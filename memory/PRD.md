@@ -10,7 +10,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.68D · White-Label Chrome FINAL CLOSURE · ✅ CLOSED · ✅ MASCI parity GREEN · ✅ Track 15.68 family CLOSED)
+## Latest Track (2026-06-22 · TRACK 15.69 · EMAIL_ROUTING_V2 Production Cutover · 🟡 READY-AWAITING-AUTHORIZATION · ✅ Pre-flight PASS · 🟢 GO for cutover when operator authorizes)
+
+### Track Status
+**Engineering-complete. Awaiting operator authorization for production flag flip.**
+
+The pre-flight, decision gate, rollback runbook, and 24-hour monitoring plan are all in place. The cutover is gated only on:
+1. Operator running the cutover sequence in the production deploy (this pod is `APP_ENV=preview`; cannot flip the production flag).
+2. Operator providing one of the four explicit authorization phrases ("Proceed with production cutover" / "Flip EMAIL_ROUTING_V2" / "Authorize Track 15.69 cutover" / "Go live with V2 routing").
+
+### Pre-flight evidence
+- ✅ Production env safety check (preview pod confirmed; `mascidocs.com/api/health` reachable HTTP 200)
+- ✅ Seed verification: **19 routes** (4 critical, 18 enabled, 0 critical-empty, 0 errors)
+- ✅ Flag-OFF parity: **19/19 match** (Track 15.65 harness, source=legacy)
+- ✅ V2 dry-run parity: **19/19 match** (source=db, zero recipient drift, zero sender drift)
+- ✅ Route Health: **18 green / 0 amber / 0 red / 1 disabled** (PASSWORD_RESET_MONITORING_TO intentional)
+- ✅ Audit collection: **20 dry-run rows · 0 failures · source=db**
+- ✅ Rollback runbook: **≤ 5 minutes · documented · reversible**
+- 🟡 Controlled test send: DEFERRED (operator-gated; 20 dry-run audit rows already prove the path)
+
+### What's next
+- 🟡 **Phase 9** · `EMAIL_ROUTING_V2 = true` flag flip in production env console (operator)
+- 🟡 **Phase 10** · post-flip smoke (runs immediately after Phase 9)
+- 🟡 **Phase 11** · 24-hour monitoring (plan ready; activates at Phase 9)
+- 🟡 **Phase 12** · post-cutover certification (issued at T+24h)
+
+### Hard rules honoured
+NO architecture change · NO new routing engine · NO live blasts · NO recipient/sender drift · NO audit-log deletion · NO Customer #2 onboarding · NO module gating · NO branding/provisioning work. Files modified in this track: **0** (pre-flight + documentation only).
+
+### 15 deliverables filed
+TRACK_15_69_PRODUCTION_ENV_SAFETY_CHECK · PRODUCTION_SEED_VERIFICATION · FLAG_OFF_PARITY · V2_DRY_RUN_PARITY · ROUTE_HEALTH_PROOF · CONTROLLED_SEND_PROOF (🟡 deferred) · ROLLBACK_RUNBOOK · CUTOVER_DECISION_GATE · FLAG_FLIP_PROOF (🟡 deferred) · POST_FLIP_SMOKE (🟡 deferred) · 24H_MONITORING_PLAN · POST_CUTOVER_CERTIFICATION (🟡 deferred) · FINAL_EXECUTIVE_SUMMARY · SIX_PILLAR_CERTIFICATION · FINAL_CLOSEOUT.
+
+---
+
+## Previous Track (2026-06-22 · TRACK 15.68D · White-Label Chrome FINAL CLOSURE · ✅ CLOSED · ✅ MASCI parity GREEN · ✅ Track 15.68 family CLOSED)
 
 ### Shipped this fork
 - **i18n renderer-level interpolation** — `frontend/src/lib/i18n.js` now passes every `tStr()` lookup through `_brandSubst()` which substitutes `MASCI` → tenant short name (read from `sessionStorage`, populated by `BrandingProvider`) at render time. MASCI tenant gets bit-for-bit identical strings (helper short-circuits when both `brand` and `company` resolve to `MASCI`).

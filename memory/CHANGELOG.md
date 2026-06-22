@@ -2,6 +2,28 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.69 · EMAIL_ROUTING_V2 Production Cutover · 🟡 READY-AWAITING-AUTHORIZATION
+
+**Status**: Engineering-complete. Pre-flight Phases 1-8 + Rollback runbook + 24h monitoring plan all PASS. Phase 9 (flag flip) deferred awaiting operator authorization.
+
+**Pre-flight evidence**
+- 19 routes seeded (4 critical, 18 enabled, 0 critical-empty, 0 errors).
+- Flag-OFF parity: 19/19 match (source=legacy).
+- V2 dry-run parity: 19/19 match (source=db, zero recipient/sender drift).
+- Route Health: 18 green / 0 amber / 0 red / 1 disabled.
+- Audit collection: 20 dry-run rows · 0 failures · 0 live blasts.
+- Rollback: ≤ 5 min · documented · reversible.
+
+**Files modified**: **0** (pre-flight + documentation only).
+
+**Hard rules honoured**: NO architecture · NO new engine · NO live blasts · NO recipient drift · NO sender drift · NO audit deletion · NO flag flip from non-prod pod.
+
+**15 deliverables filed in `/app/memory/TRACK_15_69_*.md`**: PRODUCTION_ENV_SAFETY_CHECK · PRODUCTION_SEED_VERIFICATION · FLAG_OFF_PARITY · V2_DRY_RUN_PARITY · ROUTE_HEALTH_PROOF · CONTROLLED_SEND_PROOF (🟡 deferred) · ROLLBACK_RUNBOOK · CUTOVER_DECISION_GATE · FLAG_FLIP_PROOF (🟡 deferred) · POST_FLIP_SMOKE (🟡 deferred) · 24H_MONITORING_PLAN · POST_CUTOVER_CERTIFICATION (🟡 deferred) · FINAL_EXECUTIVE_SUMMARY · SIX_PILLAR_CERTIFICATION · FINAL_CLOSEOUT.
+
+**Final answer**: 🟡 **READY — awaiting operator authorization.** When the operator says "Proceed with production cutover" / "Flip EMAIL_ROUTING_V2" / "Authorize Track 15.69 cutover" / "Go live with V2 routing", they personally execute Phase 9 in the production deploy.
+
+---
+
 ## 2026-06-22 — TRACK 15.68D · White-Label Chrome FINAL CLOSURE · ✅ CLOSED · ✅ Track 15.68 family CLOSED
 
 **Shipped**
