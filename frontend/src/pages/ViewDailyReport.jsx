@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { brandSlug } from "@/lib/brandFilename";
+import { useBranding } from "@/lib/BrandingProvider";
 import {
   ArrowLeft,
   Printer,
@@ -126,6 +128,7 @@ const Table = ({ headers, rows, emptyText }) => {
 };
 
 export default function ViewDailyReport() {
+  const branding = useBranding();
   const { t } = useT();
   const hubHome = useHubHome();
   const { id } = useParams();
@@ -537,7 +540,7 @@ export default function ViewDailyReport() {
                             key={i}
                             src={p}
                             alt={`${s.company || "Subcontractor"} photo ${i + 1}`}
-                            filename={`MASCI_DR_sub_${(s.company || "sub").replace(/[^a-z0-9]+/gi, "_")}_${i + 1}.jpg`}
+                            filename={`${brandSlug()}_DR_sub_${(s.company || "sub").replace(/[^a-z0-9]+/gi, "_")}_${i + 1}.jpg`}
                             className="aspect-square rounded-md overflow-hidden border-2 border-slate-200"
                             testId={`dr-sub-photo-${idx}-${i}`}
                           >
@@ -683,7 +686,7 @@ export default function ViewDailyReport() {
             <div className="flex justify-end mb-2 print:hidden">
               <PhotoZipDownload
                 photos={data.photos}
-                prefix={`MASCI_DR_${(data.id || "").slice(0, 8)}_photos`}
+                prefix={`${brandSlug()}_DR_${(data.id || "").slice(0, 8)}_photos`}
                 testId="dr-photos-zip"
               />
             </div>
@@ -693,7 +696,7 @@ export default function ViewDailyReport() {
                   key={i}
                   src={p}
                   alt={`Daily Report Photo ${i + 1}`}
-                  filename={`MASCI_DR_${(data.id || "").slice(0, 8)}_photo${i + 1}.jpg`}
+                  filename={`${brandSlug()}_DR_${(data.id || "").slice(0, 8)}_photo${i + 1}.jpg`}
                   className="relative w-full aspect-square rounded-md overflow-hidden border border-slate-200 bg-white"
                   testId={`view-photo-${i}`}
                 >
@@ -736,7 +739,7 @@ export default function ViewDailyReport() {
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print:break-inside-avoid">
           Generated{" "}
           {data.created_at ? new Date(data.created_at).toLocaleString() : ""} ·{" "}
-          {company.company_name || "MASCI"} Daily Report
+          {company.company_name || branding.company_name || "Customer"} Daily Report
         </div>
         {(company.address ||
           company.phone ||
@@ -745,7 +748,7 @@ export default function ViewDailyReport() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="font-display font-black text-[11pt] text-black">
-                  {company.company_name || "MASCI"}
+                  {company.company_name || branding.company_name || "Customer"}
                 </div>
                 {company.tagline && (
                   <div className="font-mono text-[8pt] uppercase tracking-[0.2em] text-black">

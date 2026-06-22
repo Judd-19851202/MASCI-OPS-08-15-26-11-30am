@@ -84,9 +84,18 @@ export function BrandingProvider({ children }) {
       const r = await fetch(BRANDING_URL, { credentials: "omit", headers });
       if (!r.ok) throw new Error(`branding fetch ${r.status}`);
       const data = await r.json();
+      // Track 15.68B · derive slug for filename templates etc.
+      const slugBase = (data.company_name || "tenant").toString();
+      data.slug = slugBase
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 32) || "tenant";
       try {
         window.sessionStorage.setItem("branding.tenantKey", data.tenant_key || "masci");
         window.sessionStorage.setItem("branding.shortName", data.platform_short_name || "Ops");
+        window.sessionStorage.setItem("branding.slug", data.slug);
+        window.sessionStorage.setItem("branding.companyName", data.company_name || "");
       } catch { /* sessionStorage may be unavailable */ }
       setBranding({ ...NEUTRAL_DEFAULTS, ...data, loading: false, previewTenant: previewTk });
     } catch (_e) {

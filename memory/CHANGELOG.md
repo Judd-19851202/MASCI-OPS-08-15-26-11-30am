@@ -2,6 +2,23 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.68B · White-Label Chrome Final Sweep · 🟡 OPEN · ❌ NO-GO for full white-label
+
+**Shipped**
+- `lib/brandFilename.js` — `brandSlug()` / `brandFilename()` / `brandCompanyName()` helpers.
+- `BrandingProvider` derives `slug` from `company_name`, persists in sessionStorage.
+- Filename templates migrated: `ViewDailyReport.jsx`, `ViewInspection.jsx`, `AdminSafetyFormsPanel.jsx`, `AdminJobMasterPanel.jsx`. C2 produces `CUSTOMER_2_CONSTRUCTION_LLC_*.jpg`; MASCI produces `MASCI_*.jpg`.
+- Dispatch carrier default in `AssignmentCreateDrawer.jsx` overrides "MASCI" via sessionStorage on mount.
+- Top 4 `|| "MASCI"` fallback literals migrated in `ViewDailyReport.jsx` + `ViewInspection.jsx`.
+
+**Contamination scan**: 464 → **454 disallowed** (-10). Parity 19/19. Sim 40/40.
+
+**Six pillars (honest)**: 8+9+7+8+8+8 = **48/60 (80%)** — below 85%. Track stays OPEN.
+
+**Not shipped (15.68C)**: 5 admin tabs (~25 strings) + 10 long-tail body subheaders.
+
+**12 deliverables in `/app/memory/`**: TRACK_15_68B_BASELINE_RESCAN · FILENAME_EXPORT_SWEEP · DISPATCH_DEFAULT_SWEEP · COMPANY_FALLBACK_SWEEP · ADMIN_CHROME_SWEEP · PAGE_SUBHEADER_SWEEP · CUSTOMER_2_VISUAL_WALKTHROUGH · MASCI_PARITY_CERTIFICATION · FINAL_CONTAMINATION_SCAN · PRODUCTION_READINESS · SIX_PILLAR_CERTIFICATION · FINAL_CLOSEOUT.
+
 ## 2026-06-22 — TRACK 15.68A · White-Label Chrome Closure · 🟡 OPEN · ❌ NO-GO for full white-label
 
 **Shipped (Track 15.68A)**

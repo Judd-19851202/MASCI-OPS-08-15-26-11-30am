@@ -1,21 +1,21 @@
 # TRACK 15.67 · Customer #2 Contamination Scan
 
-_Generated 2026-06-22T18:02:04.522457+00:00_
+_Generated 2026-06-22T18:18:38.606409+00:00_
 
 ## Summary
 
-- Total MASCI-flavour hits: **12186**
-- Disallowed customer-visible surface hits: **464**
+- Total MASCI-flavour hits: **12242**
+- Disallowed customer-visible surface hits: **454**
 - Verdict: **❌ FAIL**
 
 ## By Category
 
 | Category | Hits | Allowed? |
 |---|---:|:--:|
-| historical_migration | 6781 | YES |
-| test_fixture | 1860 | YES |
+| historical_migration | 6866 | YES |
+| test_fixture | 1834 | YES |
 | backend_internal | 1153 | YES (docstrings/comments) |
-| uncategorized | 1011 | REVIEW |
+| uncategorized | 1008 | REVIEW |
 | masci_tenant_config | 1001 | YES |
 | masci_data_library | 380 | YES (asset/i18n library) |
 
@@ -25,11 +25,9 @@ _Generated 2026-06-22T18:02:04.522457+00:00_
 - `frontend/src/design-system/PortalShell.jsx` — /app/frontend/src/design-system/PortalShell.jsx:118:      {/* MASCI top chrome — unified across all authenticated portals */}
 - `frontend/src/design-system/PortalShell.jsx` — /app/frontend/src/design-system/PortalShell.jsx:124:          {/* MASCI mark — anchors brand identity in every portal */}
 - `frontend/src/design-system/PortalShell.jsx` — /app/frontend/src/design-system/PortalShell.jsx:142:          {/* Right-side nav cluster — unified MASCI chrome */}
-- `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:235:      const fname = m ? m[1] : "MASCI_jobs.xlsx";
-- `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:292:            MASCI Current Jobs
-- `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:298:            Add, edit, deactivate, or bulk-replace the MASCI job list. Active jobs
-- `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:667:              Bulk replace MASCI jobs
-- `frontend/src/components/AdminSafetyFormsPanel.jsx` — /app/frontend/src/components/AdminSafetyFormsPanel.jsx:101:      a.download = `MASCI_${label}_${id.slice(0, 8)}.pdf`;
+- `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:293:            MASCI Current Jobs
+- `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:299:            Add, edit, deactivate, or bulk-replace the MASCI job list. Active jobs
+- `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:668:              Bulk replace MASCI jobs
 - `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:186:          <DialogTitle>Pick {kind === "asset" ? "MASCI equipment" : "MASCI employee"}</DialogTitle>
 - `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:313:              <th className="text-left px-2 py-1">Existing MASCI Match</th>
 - `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:490:              <th className="text-left px-2 py-1">Existing MASCI Match</th>
@@ -93,12 +91,13 @@ _Generated 2026-06-22T18:02:04.522457+00:00_
 - `frontend/src/components/PartsCatalog.jsx` — /app/frontend/src/components/PartsCatalog.jsx:61:      const fname = m ? m[1] : "MASCI_parts.xlsx";
 - `frontend/src/components/CompanyInfoDialog.jsx` — /app/frontend/src/components/CompanyInfoDialog.jsx:88:              : t("Office phone, address, and after-hours contact for MASCI General Contractors Inc.")}
 - `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:292:  const [carrier, setCarrier] = useState({ label: "MASCI", refId: "", isTemp: false });
-- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:349:    setCarrier({ label: "MASCI", refId: "", isTemp: false });
-- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:422:      && (!carrier || carrier.label === "MASCI");
-- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:742:            placeholder="MASCI"
-- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:796:              emptyHint={t("Pick a MASCI job — auto-fills number, name, location, customer, PM.")}
-- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:885:                placeholder={t("e.g. MASCI Hot Plant 1, Storage Tank")}
-- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:909:                placeholder={t("e.g. MASCI Hot Plant 1, 415 Yard")}
+- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:297:      if (cn && cn !== "MASCI") setCarrier((c) => ({ ...c, label: cn }));
+- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:356:    setCarrier({ label: "MASCI", refId: "", isTemp: false });
+- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:429:      && (!carrier || carrier.label === "MASCI");
+- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:749:            placeholder="MASCI"
+- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:803:              emptyHint={t("Pick a MASCI job — auto-fills number, name, location, customer, PM.")}
+- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:892:                placeholder={t("e.g. MASCI Hot Plant 1, Storage Tank")}
+- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — /app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:916:                placeholder={t("e.g. MASCI Hot Plant 1, 415 Yard")}
 - `frontend/src/components/asset/AssetDocumentsTab.jsx` — /app/frontend/src/components/asset/AssetDocumentsTab.jsx:165:      a.download = `MASCI_Asset_Profile_${(unitNumber || assetId).replace(/[^\w-]/g, "_")}.pdf`;
 - `frontend/src/components/asset/AddAssetDialog.jsx` — /app/frontend/src/components/asset/AddAssetDialog.jsx:288:                  placeholder="e.g. MASCI Asphalt · MASCI Earthwork"
 - `frontend/src/components/MapThumbnail.jsx` — /app/frontend/src/components/MapThumbnail.jsx:96:        {/* Marker (MASCI red pin) */}
@@ -267,10 +266,6 @@ _Generated 2026-06-22T18:02:04.522457+00:00_
 - `frontend/src/pages/SafetyDigest.jsx` — /app/frontend/src/pages/SafetyDigest.jsx:25:  const [toEmail, setToEmail] = useState("safety@mascigc.com");
 - `frontend/src/pages/SafetyDigest.jsx` — /app/frontend/src/pages/SafetyDigest.jsx:67:          {t("Weekly Monday-morning digest emailed to safety@mascigc.com (configurable). KPIs cover open CAs, overdue CAs, 7-day inciden
 - `frontend/src/pages/PmHoldsV2.jsx` — /app/frontend/src/pages/PmHoldsV2.jsx:166:        portalName="MASCI"
-- `frontend/src/pages/ViewInspection.jsx` — /app/frontend/src/pages/ViewInspection.jsx:413:                  prefix={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_findings`}
-- `frontend/src/pages/ViewInspection.jsx` — /app/frontend/src/pages/ViewInspection.jsx:423:                    filename={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_finding${i + 1}.jpg`}
-- `frontend/src/pages/ViewInspection.jsx` — /app/frontend/src/pages/ViewInspection.jsx:485:          {t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} {t
-- `frontend/src/pages/ViewInspection.jsx` — /app/frontend/src/pages/ViewInspection.jsx:494:                  {company.company_name || "MASCI"}
 - `frontend/src/pages/DispatchDriverQualification.jsx` — /app/frontend/src/pages/DispatchDriverQualification.jsx:18:      portalName="MASCI"
 - `frontend/src/pages/SafetyHub.jsx` — /app/frontend/src/pages/SafetyHub.jsx:158:  usePageTitle("Safety · MASCI");
 - `frontend/src/pages/HrFieldLeadership.jsx` — /app/frontend/src/pages/HrFieldLeadership.jsx:72:      a.download = `MASCI_FL_${(rec.employee_name || rec.kind).replace(/\s+/g, "_")}_${(rec.id || "").slice(0, 8)}.pdf`;
@@ -345,11 +340,6 @@ _Generated 2026-06-22T18:02:04.522457+00:00_
 - `frontend/src/pages/PmQaqcList.jsx` — /app/frontend/src/pages/PmQaqcList.jsx:110:      portalName="MASCI" portalRole="PM Portal · QA/QC"
 - `frontend/src/pages/AdminHubV2.jsx` — /app/frontend/src/pages/AdminHubV2.jsx:83:        portalName="MASCI" portalRole="Admin Portal · Hub V2"
 - `frontend/src/pages/AdminHubV2.jsx` — /app/frontend/src/pages/AdminHubV2.jsx:118:              description="Review proposed Motive geofence ↔ MASCI project matches. Approve, reject, reassign, or bulk-approve high-confi
-- `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:540:                            filename={`MASCI_DR_sub_${(s.company || "sub").replace(/[^a-z0-9]+/gi, "_")}_${i + 1}.jpg`}
-- `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:686:                prefix={`MASCI_DR_${(data.id || "").slice(0, 8)}_photos`}
-- `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:696:                  filename={`MASCI_DR_${(data.id || "").slice(0, 8)}_photo${i + 1}.jpg`}
-- `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:739:          {company.company_name || "MASCI"} Daily Report
-- `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:748:                  {company.company_name || "MASCI"}
 - `frontend/src/pages/TrenchBoxes.jsx` — /app/frontend/src/pages/TrenchBoxes.jsx:33:            {t("This is where your trench shield's life-safety data lives. Every box in the MASCI fleet has a manufacturer-engineered dat
 - `frontend/src/pages/AdminLeadershipEquipment.jsx` — /app/frontend/src/pages/AdminLeadershipEquipment.jsx:156:      portalName="MASCI"
 - `frontend/src/pages/HrV2Preview.jsx` — /app/frontend/src/pages/HrV2Preview.jsx:341:        portalName="MASCI"
@@ -488,7 +478,7 @@ _Generated 2026-06-22T18:02:04.522457+00:00_
 
 ## Sample Allowed Hits
 
-### historical_migration (6781)
+### historical_migration (6866)
 
 - `backend/scripts/seed_pm_demo_fixture.py`
 - `backend/scripts/track_15_65_parity_verify.py`
@@ -499,7 +489,7 @@ _Generated 2026-06-22T18:02:04.522457+00:00_
 - `memory/ACCOUNTABILITY_ENGINE_AUDIT.md`
 - `memory/ACTIVE_FINDINGS_VERIFICATION.md`
 
-### test_fixture (1860)
+### test_fixture (1834)
 
 - `backend/tests/odr/test_m1_option_c.py`
 - `backend/tests/odr/test_odr_m02.py`

@@ -10,7 +10,43 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.68A · White-Label Chrome Closure · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 47/60 (78%))
+## Latest Track (2026-06-22 · TRACK 15.68B · White-Label Chrome Final Sweep · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 48/60 (80%))
+
+### Shipped
+1. **`lib/brandFilename.js`** — `brandSlug()` + `brandFilename()` + `brandCompanyName()` helpers reading from sessionStorage (populated by BrandingProvider).
+2. **`BrandingProvider`** now derives `slug` from `company_name` (lowercase + alphanumeric_) and persists to sessionStorage.
+3. **Filename templates migrated** — `ViewDailyReport.jsx` (3), `ViewInspection.jsx` (2), `AdminSafetyFormsPanel.jsx` (1), `AdminJobMasterPanel.jsx` (1). Customer #2 → `CUSTOMER_2_CONSTRUCTION_LLC_DR_*.jpg`. MASCI → `MASCI_*.jpg` unchanged.
+4. **Dispatch carrier default** — `AssignmentCreateDrawer.jsx` overrides `{label:"MASCI"}` from sessionStorage `companyName` on mount for non-MASCI tenants.
+5. **Top 4 `|| "MASCI"` fallbacks** — `ViewDailyReport.jsx:739,748` + `ViewInspection.jsx:485,494` now read `branding.company_name`.
+
+### Proofs
+- Contamination scan: 464 → **454 disallowed** (-10).
+- Parity 19/19 ✅. Second-tenant sim 40/40 ✅.
+- Screenshot `/tmp/track_15_68b_customer2_splash.png` — Customer #2 teal "C" monogram, zero MASCI.
+- Backend healthy.
+
+### Not shipped (deferred to 15.68C)
+- ❌ Admin tabs — `MaintainxP0Tab`, `MappingCleanupTab`, `AdminIntegrationCenter`, `AssetProfile`, `AdminDlsShiftQR` (~25 strings).
+- ❌ Body subheaders in `SignIn`, `Hub`, `Dashboard`, `TrainingHub`, `OperationalGuidanceCenter`, `V2Compare`, `PublicTimeOff`, `HrTimeVerification`, `NewFleetDVIR`, `PublicTrenchSafety*` (~12 strings).
+- ❌ `EquipmentMasterPanel`, `AttendeeBulkAddDialog`, `EmailReportDialog` data-seed defaults (admin overrides per row — non-customer-rendered).
+
+### Final-12 answers (proven)
+1. Baseline: 464 · 2. Remaining: **454** · 3. Customer-visible: ~50 · 4. C2 downloads MASCI files? **NO** ✅ · 5. C2 dispatch shows MASCI? **NO** ✅ · 6. C2 admin chrome? **YES** ❌ · 7. C2 page subheaders? **partial** · 8. C2 fallback literals? **NO** for top 4 ✅ · 9. MASCI same? **YES** ✅ · 10. Parity 19/19? **YES** ✅ · 11. Live emails? **NO** ✅ · 12. **GO with flags OFF; NO-GO for full white-label** ❌.
+
+### Six pillars
+Powerful 8 · Simple 9 · Beautiful 7 · Trusted 8 · Proven 8 · Deployable 8 = **48/60 (80%)** — below 85% closure. Improvement vs 15.68A: +1.
+
+### 12 deliverables
+`TRACK_15_68B_*.md` in `/app/memory/`: BaselineRescan · FilenameExportSweep · DispatchDefaultSweep · CompanyFallbackSweep · AdminChromeSweep · PageSubheaderSweep · Customer2VisualWalkthrough · MASCIParityCertification · FinalContaminationScan · ProductionReadiness · SixPillarCertification · FinalCloseout.
+
+### Next track 15.68C (purely mechanical, ~40 string edits)
+- Admin tab chrome (5 files).
+- 10 long-tail body subheaders.
+- Backend `services/asset_taxonomy.py` MASCI_GC canonical.
+- Full 8-portal visual walkthrough.
+Target: disallowed < 30 → Track 15.68 family closes.
+
+## Prior Track (2026-06-22 · TRACK 15.68A · White-Label Chrome Closure · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 47/60 (78%))
 
 ### Shipped (verified)
 1. **SplashOverlay tenant-aware** — Customer #2 sees teal "C" monogram + tenant name; MASCI sees red M + caution stripe. Screenshots `/tmp/track_15_68a_customer2_splash.png` + `/tmp/track_15_68a_masci_splash.png` prove both render paths.

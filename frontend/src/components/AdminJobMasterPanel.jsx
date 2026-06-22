@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { brandSlug } from "@/lib/brandFilename";
 import {
   Briefcase,
   Loader2,
@@ -232,7 +233,7 @@ export default function AdminJobMasterPanel() {
       const r = await api.get("/admin/jobs/export", { responseType: "blob" });
       const cd = r.headers["content-disposition"] || r.headers["Content-Disposition"] || "";
       const m = /filename="?([^";]+)"?/i.exec(cd);
-      const fname = m ? m[1] : "MASCI_jobs.xlsx";
+      const fname = m ? m[1] : `${brandSlug()}_jobs.xlsx`;
       const url = window.URL.createObjectURL(new Blob([r.data]));
       const a = document.createElement("a");
       a.href = url;

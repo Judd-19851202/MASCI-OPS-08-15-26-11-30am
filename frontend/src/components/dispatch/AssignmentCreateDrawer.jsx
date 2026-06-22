@@ -290,6 +290,13 @@ export default function AssignmentCreateDrawer({
   const [driver, setDriver] = useState(null);
   const [trailer, setTrailer] = useState(null);
   const [carrier, setCarrier] = useState({ label: "MASCI", refId: "", isTemp: false });
+  // Track 15.68B · resolve tenant-aware default carrier label on mount.
+  useEffect(() => {
+    try {
+      const cn = window.sessionStorage.getItem("branding.companyName");
+      if (cn && cn !== "MASCI") setCarrier((c) => ({ ...c, label: cn }));
+    } catch { /* noop */ }
+  }, []);
   const [project, setProject] = useState(null);
   const [source, setSource] = useState(null);
   const [destination, setDestination] = useState(null);

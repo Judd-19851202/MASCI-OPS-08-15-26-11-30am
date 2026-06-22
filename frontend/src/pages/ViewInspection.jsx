@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { Printer, Loader2, AlertTriangle, Trash2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { brandSlug } from "@/lib/brandFilename";
+import { useBranding } from "@/lib/BrandingProvider";
 import { RefKicker } from "@/components/RefKicker";
 import BackLink from "@/components/BackLink";
 import { useHubHome } from "@/components/HubBackLink";
@@ -101,6 +103,7 @@ const ReportSection = ({ number, title, children }) => (
 );
 
 export default function ViewInspection() {
+  const branding = useBranding();
   const { t } = useT();
   const hubHome = useHubHome();
   const { id } = useParams();
@@ -410,7 +413,7 @@ export default function ViewInspection() {
                 </div>
                 <PhotoZipDownload
                   photos={data.photos}
-                  prefix={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_findings`}
+                  prefix={`${brandSlug()}_Inspection_${(data.id || "").slice(0, 8)}_findings`}
                   testId="inspection-photos-zip"
                 />
               </div>
@@ -420,7 +423,7 @@ export default function ViewInspection() {
                     key={i}
                     src={p}
                     alt={`Inspection Finding ${i + 1}`}
-                    filename={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_finding${i + 1}.jpg`}
+                    filename={`${brandSlug()}_Inspection_${(data.id || "").slice(0, 8)}_finding${i + 1}.jpg`}
                     className="relative w-full aspect-square rounded-md overflow-hidden border border-slate-200 bg-white"
                     testId={`view-photo-${i}`}
                   >
@@ -482,7 +485,7 @@ export default function ViewInspection() {
         </ReportSection>
 
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
-          {t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} {t("Job Site Safety")}
+          {t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || branding.company_name || "Customer"} {t("Job Site Safety")}
         </div>
 
         {/* Print-only company info footer */}
@@ -491,7 +494,7 @@ export default function ViewInspection() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="font-display font-black text-[11pt] text-black">
-                  {company.company_name || "MASCI"}
+                  {company.company_name || branding.company_name || "Customer"}
                 </div>
                 {company.tagline && (
                   <div className="font-mono text-[8pt] uppercase tracking-[0.2em] text-black">

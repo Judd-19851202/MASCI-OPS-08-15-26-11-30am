@@ -1,5 +1,5 @@
 {
-  "ts": "2026-06-22T18:02:04.522457+00:00",
+  "ts": "2026-06-22T18:18:38.606409+00:00",
   "needles": [
     "MASCI",
     "mascigc\\.com",
@@ -49,7 +49,7 @@
       ]
     },
     "test_fixture": {
-      "count": 1860,
+      "count": 1834,
       "samples": [
         "backend/tests/odr/test_m1_option_c.py",
         "backend/tests/odr/test_odr_m02.py",
@@ -99,7 +99,7 @@
       ]
     },
     "historical_migration": {
-      "count": 6781,
+      "count": 6866,
       "samples": [
         "backend/scripts/seed_pm_demo_fixture.py",
         "backend/scripts/track_15_65_parity_verify.py",
@@ -134,7 +134,7 @@
       ]
     },
     "uncategorized": {
-      "count": 1011,
+      "count": 1008,
       "samples": [
         ".deploy_checks/README.md",
         "ATLAS_MIGRATION.md",
@@ -204,7 +204,7 @@
       ]
     }
   },
-  "total_hits": 12186,
+  "total_hits": 12242,
   "disallowed_hits": [
     {
       "path": "frontend/src/design-system/PortalShell.jsx",
@@ -229,27 +229,17 @@
     {
       "path": "frontend/src/components/AdminJobMasterPanel.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:235:      const fname = m ? m[1] : \"MASCI_jobs.xlsx\";"
+      "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:293:            MASCI Current Jobs"
     },
     {
       "path": "frontend/src/components/AdminJobMasterPanel.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:292:            MASCI Current Jobs"
+      "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:299:            Add, edit, deactivate, or bulk-replace the MASCI job list. Active jobs"
     },
     {
       "path": "frontend/src/components/AdminJobMasterPanel.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:298:            Add, edit, deactivate, or bulk-replace the MASCI job list. Active jobs"
-    },
-    {
-      "path": "frontend/src/components/AdminJobMasterPanel.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:667:              Bulk replace MASCI jobs"
-    },
-    {
-      "path": "frontend/src/components/AdminSafetyFormsPanel.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/AdminSafetyFormsPanel.jsx:101:      a.download = `MASCI_${label}_${id.slice(0, 8)}.pdf`;"
+      "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:668:              Bulk replace MASCI jobs"
     },
     {
       "path": "frontend/src/components/admin/MappingCleanupTab.jsx",
@@ -569,32 +559,37 @@
     {
       "path": "frontend/src/components/dispatch/AssignmentCreateDrawer.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:349:    setCarrier({ label: \"MASCI\", refId: \"\", isTemp: false });"
+      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:297:      if (cn && cn !== \"MASCI\") setCarrier((c) => ({ ...c, label: cn }));"
     },
     {
       "path": "frontend/src/components/dispatch/AssignmentCreateDrawer.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:422:      && (!carrier || carrier.label === \"MASCI\");"
+      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:356:    setCarrier({ label: \"MASCI\", refId: \"\", isTemp: false });"
     },
     {
       "path": "frontend/src/components/dispatch/AssignmentCreateDrawer.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:742:            placeholder=\"MASCI\""
+      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:429:      && (!carrier || carrier.label === \"MASCI\");"
     },
     {
       "path": "frontend/src/components/dispatch/AssignmentCreateDrawer.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:796:              emptyHint={t(\"Pick a MASCI job \u2014 auto-fills number, name, location, customer, PM.\")}"
+      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:749:            placeholder=\"MASCI\""
     },
     {
       "path": "frontend/src/components/dispatch/AssignmentCreateDrawer.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:885:                placeholder={t(\"e.g. MASCI Hot Plant 1, Storage Tank\")}"
+      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:803:              emptyHint={t(\"Pick a MASCI job \u2014 auto-fills number, name, location, customer, PM.\")}"
     },
     {
       "path": "frontend/src/components/dispatch/AssignmentCreateDrawer.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:909:                placeholder={t(\"e.g. MASCI Hot Plant 1, 415 Yard\")}"
+      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:892:                placeholder={t(\"e.g. MASCI Hot Plant 1, Storage Tank\")}"
+    },
+    {
+      "path": "frontend/src/components/dispatch/AssignmentCreateDrawer.jsx",
+      "category": "uncategorized",
+      "line": "/app/frontend/src/components/dispatch/AssignmentCreateDrawer.jsx:916:                placeholder={t(\"e.g. MASCI Hot Plant 1, 415 Yard\")}"
     },
     {
       "path": "frontend/src/components/asset/AssetDocumentsTab.jsx",
@@ -1437,26 +1432,6 @@
       "line": "/app/frontend/src/pages/PmHoldsV2.jsx:166:        portalName=\"MASCI\""
     },
     {
-      "path": "frontend/src/pages/ViewInspection.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewInspection.jsx:413:                  prefix={`MASCI_Inspection_${(data.id || \"\").slice(0, 8)}_findings`}"
-    },
-    {
-      "path": "frontend/src/pages/ViewInspection.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewInspection.jsx:423:                    filename={`MASCI_Inspection_${(data.id || \"\").slice(0, 8)}_finding${i + 1}.jpg`}"
-    },
-    {
-      "path": "frontend/src/pages/ViewInspection.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewInspection.jsx:485:          {t(\"Generated\")} {data.created_at ? new Date(data.created_at).toLocaleString() : \"\"} \u00b7 {company.company_name || \"MASCI\"} {t(\"Job Site Safety\")}"
-    },
-    {
-      "path": "frontend/src/pages/ViewInspection.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewInspection.jsx:494:                  {company.company_name || \"MASCI\"}"
-    },
-    {
       "path": "frontend/src/pages/DispatchDriverQualification.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/DispatchDriverQualification.jsx:18:      portalName=\"MASCI\""
@@ -1825,31 +1800,6 @@
       "path": "frontend/src/pages/AdminHubV2.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/AdminHubV2.jsx:118:              description=\"Review proposed Motive geofence \u2194 MASCI project matches. Approve, reject, reassign, or bulk-approve high-confidence rows. Cleaner geofences mean cleaner assignment names "
-    },
-    {
-      "path": "frontend/src/pages/ViewDailyReport.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewDailyReport.jsx:540:                            filename={`MASCI_DR_sub_${(s.company || \"sub\").replace(/[^a-z0-9]+/gi, \"_\")}_${i + 1}.jpg`}"
-    },
-    {
-      "path": "frontend/src/pages/ViewDailyReport.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewDailyReport.jsx:686:                prefix={`MASCI_DR_${(data.id || \"\").slice(0, 8)}_photos`}"
-    },
-    {
-      "path": "frontend/src/pages/ViewDailyReport.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewDailyReport.jsx:696:                  filename={`MASCI_DR_${(data.id || \"\").slice(0, 8)}_photo${i + 1}.jpg`}"
-    },
-    {
-      "path": "frontend/src/pages/ViewDailyReport.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewDailyReport.jsx:739:          {company.company_name || \"MASCI\"} Daily Report"
-    },
-    {
-      "path": "frontend/src/pages/ViewDailyReport.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewDailyReport.jsx:748:                  {company.company_name || \"MASCI\"}"
     },
     {
       "path": "frontend/src/pages/TrenchBoxes.jsx",
@@ -2527,5 +2477,5 @@
       "line": "/app/frontend/src/pages/MeetingsDashboard.jsx:66:      portalName=\"MASCI\" portalRole=\"Safety Portal \u00b7 Safety Meetings\""
     }
   ],
-  "disallowed_count": 464
+  "disallowed_count": 454
 }

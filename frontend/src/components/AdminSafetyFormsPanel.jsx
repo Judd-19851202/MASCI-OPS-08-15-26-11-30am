@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { brandSlug } from "@/lib/brandFilename";
 import {
   ShieldCheck,
   Loader2,
@@ -98,7 +99,7 @@ export default function AdminSafetyFormsPanel() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `MASCI_${label}_${id.slice(0, 8)}.pdf`;
+      a.download = `${brandSlug()}_${label}_${id.slice(0, 8)}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
