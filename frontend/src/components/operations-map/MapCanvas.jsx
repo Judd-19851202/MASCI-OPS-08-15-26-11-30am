@@ -8,8 +8,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./OperationsMap.css";
 import { spriteUrl, KIND_LIST } from "@/lib/operations-map/icons";
 
-/* MapCanvas
- * --------------
+/* MapCanvas — Track 15.63 hardened
+ * ----------------------------------
  * Renders the MapLibre WebGL canvas with two GeoJSON sources:
  *   - assets (clustered)
  *   - geofences (polygon fill + outline)
@@ -17,7 +17,20 @@ import { spriteUrl, KIND_LIST } from "@/lib/operations-map/icons";
  * Props:
  *   snapshot: { assets:[], geofences:[], counts:{} }
  *   filters:  { types:[], status:[], driver, project }
- *   onSelect: fn(unit_number)
+ *   onSelect: fn(unit_number) — invoked when a marker is clicked
+ *
+ * Stability contract (Track 15.63):
+ *   - The MapLibre instance is constructed ONCE per mount. It is NOT
+ *     re-created when `snapshot`, `filters`, or `onSelect` change
+ *     identity. Polling refreshes (15-s tick) push new GeoJSON into
+ *     the existing sources via `setData` — viewport (zoom, center,
+ *     pitch, bearing) is preserved by definition because the same map
+ *     instance keeps owning the camera.
+ *   - `onSelect` is read through a ref so caller-side inline arrow
+ *     functions don't trigger any re-creation of event handlers.
+ *   - Filter changes are dispatched through `setData` only when the
+ *     filtered feature signature actually changes, so reference-only
+ *     re-renders are absorbed without DOM churn.
  */
 const TILE_STYLE = {
   version: 8,
@@ -25,47 +38,81 @@ const TILE_STYLE = {
     osm: {
       type: "raster",
       // CARTO dark basemap — free, no API key, CORS-friendly, CDN-backed.
-      // Falls back to Stadia and OSM if CARTO is unreachable.
       tiles: [
         "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
         "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
         "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
       ],
       tileSize: 256,
-      attribution: '© OpenStreetMap contributors © CARTO',
+      attribution: "© OpenStreetMap contributors © CARTO",
     },
   },
-  layers: [
-    { id: "osm", type: "raster", source: "osm" },
-  ],
+  layers: [{ id: "osm", type: "raster", source: "osm" }],
 };
+
+const DEFAULT_CENTER = [-81.0, 28.9]; // East-central Florida (MASCI service area)
+const DEFAULT_ZOOM = 8;
+const ALL_BANDS = ["green", "amber", "red", "gray"];
 
 export default function MapCanvas({ snapshot, filters, onSelect }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
+  // Stable callback ref so caller-side inline `onSelect` arrows do NOT
+  // tear down and re-create the map (Track 15.63 root cause #1).
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
+
+  // Last-applied GeoJSON signatures — used to skip setData calls when
+  // the rendered feature set hasn't actually changed (Track 15.63 #3).
+  const lastAssetsSigRef = useRef("");
+  const lastGeofencesSigRef = useRef("");
+
   const [ready, setReady] = useState(false);
 
-  // initial map
+  // ---------------------------------------------------------------------
+  // Map instance — created ONCE per mount. No prop-driven re-creation.
+  // ---------------------------------------------------------------------
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: TILE_STYLE,
-      center: [-81.0, 28.9], // East-central Florida (MASCI service area)
-      zoom: 8,
+      center: DEFAULT_CENTER,
+      zoom: DEFAULT_ZOOM,
       attributionControl: true,
       // Track 13.4A · keep WebGL drawing buffer so Playwright / browser
-      // screenshots actually capture the rendered map tiles (otherwise
-      // page.screenshot() returns blank for the canvas region even
-      // though the map is visible to human eyes).
+      // screenshots actually capture the rendered map tiles.
       preserveDrawingBuffer: true,
     });
     mapRef.current = map;
+
+    // Optional e2e hook — exposes the map ref to a well-known window slot
+    // so the Track 15.63 reproduction harness can probe zoom/center without
+    // changing public behaviour. No-op in production unless something reads
+    // these globals.
+    try {
+      if (typeof window !== "undefined") {
+        // 1. Stable list of all live MapLibre instances on the page.
+        if (!Array.isArray(window.__MASCI_MAP_REFS__)) window.__MASCI_MAP_REFS__ = [];
+        window.__MASCI_MAP_REFS__.push(map);
+        // 2. Latest-map convenience pointer.
+        window.__MASCI_MAP_REF__ = map;
+        // 3. Mount counter — increments on every fresh MapLibre Map construction
+        //    (so a re-mount of MapCanvas is detectable).
+        window.__MASCI_MAP_MOUNT_COUNT__ = (window.__MASCI_MAP_MOUNT_COUNT__ || 0) + 1;
+        // 4. Optional legacy hook (kept for back-compat with prior harness).
+        if (typeof window.__MASCI_REGISTER_MAP__ === "function") {
+          window.__MASCI_REGISTER_MAP__(map);
+        }
+      }
+    } catch { /* ignore */ }
+
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "top-right");
+
     map.on("load", async () => {
       // Pre-load sprite icons (one per kind × band combo)
       for (const kind of KIND_LIST) {
-        for (const band of ["green", "amber", "red", "gray"]) {
+        for (const band of ALL_BANDS) {
           const url = spriteUrl(kind, band);
           await new Promise((res) => {
             const img = new Image(32, 32);
@@ -83,11 +130,11 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
         }
       }
       if (!mapRef.current) return;   // unmounted during async sprite load
-      // assets source — clustered
-      // Per-cluster aggregates compute the worst severity contained,
-      // so the cluster ring tone reflects operational risk (rose for
-      // any Attention Required, slate for Offline-heavy, amber for
-      // Idle, emerald for healthy) instead of generic blue.
+
+      // assets source — clustered. Per-cluster aggregates compute the worst
+      // severity contained, so the cluster ring tone reflects operational
+      // risk (rose for any Attention Required, slate for Offline-heavy,
+      // amber for Idle, emerald for healthy).
       map.addSource("assets", {
         type: "geojson",
         data: { type: "FeatureCollection", features: [] },
@@ -105,6 +152,7 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
           attn_stale_position: ["+", ["case", ["==", ["get", "attention_reason"], "stale_position"], 1, 0]],
         },
       });
+
       // geofences source
       map.addSource("geofences", {
         type: "geojson",
@@ -140,10 +188,10 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
           "circle-stroke-width": 3,
           "circle-stroke-color": [
             "case",
-            [">", ["get", "has_red"],   0], "#e11d48",   // rose · attention required
-            [">", ["get", "has_gray"],  0], "#94a3b8",   // slate · offline-heavy
-            [">", ["get", "has_amber"], 0], "#f59e0b",   // amber · idle
-            "#10b981",                                  // emerald · healthy
+            [">", ["get", "has_red"],   0], "#e11d48",
+            [">", ["get", "has_gray"],  0], "#94a3b8",
+            [">", ["get", "has_amber"], 0], "#f59e0b",
+            "#10b981",
           ],
         },
       });
@@ -174,21 +222,27 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
         },
       });
 
+      // Marker click — route through the ref so caller-side inline arrows
+      // don't tear down the listener on every render. Stop event bubbling
+      // so the click does not also trigger map-level handlers (which would
+      // briefly recenter the camera and cause the visible "jump"). See
+      // Track 15.63 root cause #4.
       map.on("click", "asset-marker", (e) => {
-        const f = e.features?.[0];
-        if (f?.properties?.unit_number) onSelect(f.properties.unit_number);
+        try { if (e.originalEvent) { e.originalEvent.stopPropagation(); } } catch { /* ignore */ }
+        const f = e.features && e.features[0];
+        const unit = f && f.properties && f.properties.unit_number;
+        const cb = onSelectRef.current;
+        if (unit && typeof cb === "function") cb(unit);
       });
       map.on("mouseenter", "asset-marker", () => { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "asset-marker", () => { map.getCanvas().style.cursor = ""; });
 
       map.on("click", "asset-clusters", async (e) => {
+        try { if (e.originalEvent) { e.originalEvent.stopPropagation(); } } catch { /* ignore */ }
         const f = map.queryRenderedFeatures(e.point, { layers: ["asset-clusters"] })[0];
         if (!f) return;
         const clusterId = f.properties.cluster_id;
         const p = f.properties;
-        // Build operational popup BEFORE zoom — gives Truck Boss /
-        // Dispatch the cluster's dominant cause + owner so a single tap
-        // explains why this risk concentration exists.
         const reasons = [
           { id: "maintenance",    label: "Maintenance Due",        count: +p.attn_maintenance    || 0, owner: "Shop" },
           { id: "inspection",     label: "Inspection Overdue",     count: +p.attn_inspection     || 0, owner: "Shop / Safety" },
@@ -220,32 +274,53 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
             `<div data-testid="ops-map-cluster-popup" style="padding:6px 8px 8px 8px;font-family:'Chivo','IBM Plex Sans',sans-serif;">${rows}</div>`
           )
           .addTo(map);
-        // Also offer expansion on a second tap by zoom-on-shift; keep default zoom UX
         const src = map.getSource("assets");
         const zoom = await src.getClusterExpansionZoom(clusterId);
-        // shift+click → expand; plain click shows popup only
-        if (e.originalEvent?.shiftKey) {
+        if (e.originalEvent && e.originalEvent.shiftKey) {
           map.easeTo({ center: f.geometry.coordinates, zoom });
         }
       });
 
+      map.on("mouseenter", "asset-clusters", () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", "asset-clusters", () => { map.getCanvas().style.cursor = ""; });
+
       setReady(true);
     });
-    return () => { map.remove(); mapRef.current = null; setReady(false); };
-  }, [onSelect]);
 
-  // push fresh data into the sources whenever snapshot/filters change
+    return () => {
+      try {
+        if (typeof window !== "undefined") {
+          if (Array.isArray(window.__MASCI_MAP_REFS__)) {
+            const idx = window.__MASCI_MAP_REFS__.indexOf(map);
+            if (idx >= 0) window.__MASCI_MAP_REFS__.splice(idx, 1);
+          }
+          if (window.__MASCI_MAP_REF__ === map) {
+            window.__MASCI_MAP_REF__ = (window.__MASCI_MAP_REFS__ || []).slice(-1)[0] || null;
+          }
+          window.__MASCI_MAP_DISPOSE_COUNT__ = (window.__MASCI_MAP_DISPOSE_COUNT__ || 0) + 1;
+        }
+      } catch { /* ignore */ }
+      try { map.remove(); } catch { /* ignore */ }
+      mapRef.current = null;
+      setReady(false);
+    };
+    // Intentionally empty deps — map instance is mount-stable.
+  }, []);
+
+  // ---------------------------------------------------------------------
+  // Snapshot + filter dispatch.
+  //
+  // This effect runs whenever the snapshot, filters, or `ready` flag
+  // changes IDENTITY, but it only writes to MapLibre when the resulting
+  // feature signature actually changes — so reference-only re-renders
+  // are silently absorbed and never disturb the viewport.
+  // ---------------------------------------------------------------------
   useEffect(() => {
     if (!mapRef.current || !ready || !snapshot) return;
     const map = mapRef.current;
     const tSet = new Set(filters?.types || []);
-    // Track 13.4A · Empty status array must mean "all bands" (matches
-    // the `types` filter semantics on the line above). Without this
-    // the snapshot's assets all get filtered out and zero markers
-    // render — which is the bug that made `DispatchMapHero` look
-    // empty over the basemap.
-    const allBands = ["green", "amber", "red", "gray"];
-    const sSet = new Set(filters?.status?.length ? filters.status : allBands);
+    // Empty status array == "all bands" (matches the `types` filter semantics).
+    const sSet = new Set(filters?.status?.length ? filters.status : ALL_BANDS);
     const driver = (filters?.driver || "").toLowerCase();
 
     const features = (snapshot.assets || [])
@@ -265,14 +340,29 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
           attention_reason: a.attention_reason || "",
         },
       }));
-    map.getSource("assets")?.setData({ type: "FeatureCollection", features });
+
+    // Cheap structural signature — avoids JSON.stringify on the full
+    // collection when nothing meaningful changed.
+    const assetsSig = features
+      .map((f) => `${f.properties.unit_number}|${f.geometry.coordinates[0].toFixed(5)}|${f.geometry.coordinates[1].toFixed(5)}|${f.properties.band}|${f.properties.attention_reason}`)
+      .join(";");
+    if (assetsSig !== lastAssetsSigRef.current) {
+      map.getSource("assets")?.setData({ type: "FeatureCollection", features });
+      lastAssetsSigRef.current = assetsSig;
+    }
 
     const gfFeatures = (snapshot.geofences || []).map((g) => ({
       type: "Feature",
       geometry: { type: "Polygon", coordinates: [g.polygon.map(([lat, lon]) => [lon, lat])] },
       properties: { id: g.id, name: g.name, category: g.category },
     }));
-    map.getSource("geofences")?.setData({ type: "FeatureCollection", features: gfFeatures });
+    const gfSig = gfFeatures
+      .map((f) => `${f.properties.id}|${f.properties.category}|${f.geometry.coordinates[0].length}`)
+      .join(";");
+    if (gfSig !== lastGeofencesSigRef.current) {
+      map.getSource("geofences")?.setData({ type: "FeatureCollection", features: gfFeatures });
+      lastGeofencesSigRef.current = gfSig;
+    }
   }, [snapshot, filters, ready]);
 
   return <div ref={containerRef} className="ops-map-canvas" data-testid="ops-map-canvas" />;
