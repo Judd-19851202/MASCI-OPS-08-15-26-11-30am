@@ -1,6 +1,36 @@
 # CHANGELOG
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
+
+## 2026-06-22 — TRACK 15.63 · Motive Map Zoom + Asset Interaction Reliability (🟢 GO)
+
+**Status:** Shipped to preview. Reproduction proven, fix verified, multi-portal regression PASS at desktop + iPad portrait + iPad landscape.
+
+**Defect:** All three Motive-driven map surfaces (Operations Center `/operations-map`, Dispatch hero `/dispatch-portal`, Shop Recovery `/shop`) re-instantiated their MapLibre canvas on every parent render — so each 15-second polling tick reset zoom to the default 8 and re-centered to East-Central Florida `[-81.0, 28.9]`. Selection appeared lost; marker clicks felt jumpy.
+
+**Root cause:** `frontend/src/components/operations-map/MapCanvas.jsx` declared `[onSelect]` in the construction `useEffect`'s deps, and every caller passed a fresh closure on every render. The cleanup invoked `map.remove()` — full tear-down — on every parent re-render.
+
+**Fix (one file):** `frontend/src/components/operations-map/MapCanvas.jsx`
+1. Mount-stable map instance (`useEffect(..., [])`).
+2. Callback ref pattern for `onSelect`.
+3. `stopPropagation()` on marker + cluster click handlers.
+4. Signature-keyed `setData` dedup — only writes to MapLibre sources when feature content actually changes.
+5. Optional `window.__MASCI_MAP_REF__` instrumentation so the reproduction harness can probe `getZoom()` / `getCenter()` without changing public behaviour.
+
+**Hard-rule compliance:** Zero backend impact · zero env / schema impact · same map provider · same Motive API contract · stale data still labelled · selection stays ID-based · polling cadence unchanged.
+
+**Verification:**
+- Runtime: `/app/test_reports/track_15_63_reproduction.json` — zoom retained across 16-s poll on all three surfaces.
+- Cross-portal: `/app/test_reports/iteration_529.json` — testing_agent_v3_fork 100 % PASS at three viewports.
+
+**Six Pillars:** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **59/60 (98 %)**.
+
+**Deliverables (`/app/memory/`):** TRACK_15_63_MAP_SURFACE_INVENTORY · TRACK_15_63_REPRODUCTION_REPORT · TRACK_15_63_ROOT_CAUSE_ANALYSIS · TRACK_15_63_MAP_HARDENING_IMPLEMENTATION · TRACK_15_63_MOTIVE_DATA_CERTIFICATION · TRACK_15_63_PERFORMANCE_CERTIFICATION · TRACK_15_63_PORTAL_REGRESSION_CERTIFICATION · TRACK_15_63_PRODUCTION_READINESS · TRACK_15_63_SIX_PILLAR_CERTIFICATION.
+
+**Operator action:** Standard frontend redeploy to `mascidocs.com`.
+
+---
+
 ## 2026-06-22 — TRACK 15.62 · Session B · Daily Report Operational Intelligence (✅ FULLY VERIFIED ON PREVIEW · 🟡 production flag-flip = operator action)
 
 **Status:** Sessions A + B fully implemented and proven on preview. Backend + frontend + PDF + verification + cleanup-doctrine all green. Production deploy + `DR_RECOVERY_ENABLED=true` flag flip is the operator-owned final step.

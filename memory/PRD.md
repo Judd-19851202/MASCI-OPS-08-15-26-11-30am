@@ -10,7 +10,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.62 · Daily Report Operational Intelligence · Sessions A+B ✅ VERIFIED · production flag-flip = operator action)
+## Latest Track (2026-06-22 · TRACK 15.63 · Motive Map Zoom + Asset Interaction Reliability · 🟢 GO)
+
+### What shipped
+One file changed — `frontend/src/components/operations-map/MapCanvas.jsx` — to eliminate map remount churn on the three Motive-driven surfaces (Operations Center, Dispatch hero, Shop Recovery).
+
+### Root cause (single sentence)
+The shared `MapCanvas` rebuilt its MapLibre instance on every parent render because its construction effect declared `onSelect` as a dependency, and every caller passed a fresh closure for `onSelect` on every render — turning each 15-second snapshot tick (plus every unrelated state update) into a full map tear-down and remount.
+
+### Fix (four defenses, one file)
+1. Mount-stable map instance — construction `useEffect` now has empty deps; MapLibre is built once per page visit.
+2. Callback ref for `onSelect` — caller-side inline arrow functions cannot trigger a remount.
+3. `stopPropagation()` on marker + cluster click handlers — eliminates "click-then-jump" pattern.
+4. Signature-keyed `setData` dedup — reference-only re-renders absorb silently; `setData` only fires when feature content actually changes.
+
+### Verification (preview)
+- Reproduction harness `/app/tests/post_deploy/track_15_63_reproduction.py` + machine-readable JSON `/app/test_reports/track_15_63_reproduction.json` — zoom retained across the 16-s polling window on all three surfaces.
+- Cross-portal regression iteration_529 — 100% pass at Desktop 1920×1080 · iPad portrait 768×1024 · iPad landscape 1024×768.
+- Mount instrumentation: `window.__MASCI_MAP_REFS__.length === 1` at every probe.
+
+### Six Pillars
+59 / 60 (98 %).
+
+### Deliverables (in /app/memory/)
+TRACK_15_63_MAP_SURFACE_INVENTORY.md · TRACK_15_63_REPRODUCTION_REPORT.md · TRACK_15_63_ROOT_CAUSE_ANALYSIS.md · TRACK_15_63_MAP_HARDENING_IMPLEMENTATION.md · TRACK_15_63_MOTIVE_DATA_CERTIFICATION.md · TRACK_15_63_PERFORMANCE_CERTIFICATION.md · TRACK_15_63_PORTAL_REGRESSION_CERTIFICATION.md · TRACK_15_63_PRODUCTION_READINESS.md · TRACK_15_63_SIX_PILLAR_CERTIFICATION.md
+
+### Hard-rule compliance
+✅ Did not touch Track 15.62 Daily Reports · did not replace map provider · did not create V2 fleet · did not fake or hide Motive data · polling does not reset viewport · selection is ID-based · click bubbling stopped · no polling storm.
+
+🟢 GO for production deploy.
+
+## Prior Track (2026-06-22 · TRACK 15.62 · Daily Report Operational Intelligence · Sessions A+B ✅ VERIFIED · production flag-flip = operator action)
 
 ### What shipped
 End-to-end Daily Report recovery: backend aggregator + admin endpoints + PMCC bug fixes + PDF narrative render (Session A) + frontend NarrativeWorkflow + CompletenessChip + OutboundHaulRow + dailyReportScore + NewDailyReport.jsx integration (Session B).
