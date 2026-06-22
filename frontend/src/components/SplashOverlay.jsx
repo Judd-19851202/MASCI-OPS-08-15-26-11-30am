@@ -16,10 +16,21 @@
  * already seen it during this browser session.
  */
 import React, { useEffect, useState } from "react";
+import { useBranding } from "@/lib/BrandingProvider";
 
 const SEEN_KEY = "masci.splash.seen.2026";
 
 export function SplashOverlay() {
+  const branding = useBranding();
+  const isMasci = !branding?.tenant_key || branding.tenant_key === "masci";
+  const platformName = (branding.platform_display_name || "Operations Platform").toUpperCase();
+  const tagline = isMasci
+    ? "Run every job. Control every detail. Protect everything."
+    : (branding.company_name ? `${branding.company_name} · Operations` : "Operations Platform");
+  const logoSrc = isMasci ? "/icon-512.png" : (branding.logo_url || "");
+  const primary = branding.primary_color || "#b91c1c";
+  const monogramLetter = (branding.company_name || "C").trim().slice(0, 1).toUpperCase();
+
   const [visible, setVisible] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -64,20 +75,32 @@ export function SplashOverlay() {
         }}
       />
 
-      {/* Center stack: M-mark + wordmark + tagline */}
+      {/* Center stack: tenant logo + platform name + tagline */}
       <div className="relative flex flex-col items-center px-6">
-        <img
-          src="/icon-512.png"
-          alt=""
-          className="w-40 h-40 sm:w-48 sm:h-48 splash-m"
-          draggable={false}
-        />
+        {logoSrc ? (
+          <img
+            src={logoSrc}
+            alt=""
+            className="w-40 h-40 sm:w-48 sm:h-48 splash-m object-contain"
+            draggable={false}
+            data-testid="splash-logo"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        ) : (
+          <div
+            className="w-40 h-40 sm:w-48 sm:h-48 splash-m rounded-2xl flex items-center justify-center font-display font-black text-white text-7xl sm:text-8xl"
+            style={{ background: primary }}
+            data-testid="splash-monogram"
+          >
+            {monogramLetter}
+          </div>
+        )}
         <div className="mt-6 sm:mt-8 splash-text">
           <h1 className="font-display text-2xl sm:text-3xl font-black text-white tracking-wider text-center">
-            MASCI&nbsp;OPERATIONS&nbsp;PLATFORM
+            {platformName.replace(/ /g, "\u00a0")}
           </h1>
           <p className="mt-2 text-sm sm:text-base text-slate-300 text-center">
-            Run every job. Control every detail. Protect everything.
+            {tagline}
           </p>
         </div>
       </div>
@@ -88,7 +111,7 @@ export function SplashOverlay() {
           className="absolute inset-0 splash-stripe"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(135deg, #b91c1c 0 18px, #0f172a 18px 36px)",
+              `repeating-linear-gradient(135deg, ${primary} 0 18px, #0f172a 18px 36px)`,
           }}
         />
       </div>

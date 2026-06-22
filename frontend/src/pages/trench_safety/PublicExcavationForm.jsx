@@ -214,11 +214,11 @@ export default function PublicExcavationForm() {
   async function submit() {
     setErr("");
     if (!f.job_id && !f.project_name.trim()) {
-      setErr(t("Pick a MASCI Job (or type a custom project name) before submitting."));
+      setErr(t("Pick a Job (or type a custom project name) before submitting."));
       return;
     }
     if (!f.foreman_name.trim() && !f.supervisor_name.trim()) {
-      setErr(t("Select a Foreman / Supervisor from the MASCI roster."));
+      setErr(t("Select a Foreman / Supervisor from the roster."));
       return;
     }
     if (!f.submitted_by.trim()) {
@@ -300,7 +300,7 @@ export default function PublicExcavationForm() {
         <div className="text-center mb-4">
           <ScanLine className="w-7 h-7 mx-auto text-cyan-700" />
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700 font-bold mt-1">
-            {t("MASCI Trench Safety")} · {t("Field Excavation Record")}
+            {t("Trench Safety")} · {t("Field Excavation Record")}
           </div>
           <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-excavation-title">
             {t("Excavation Operations")}
@@ -332,7 +332,7 @@ export default function PublicExcavationForm() {
         </div>
 
         {/* Section 1 — Job (JobPicker) */}
-        <Section num="1" title={t("MASCI Job · Project Information")} testId="exc-section-1">
+        <Section num="1" title={t("Job · Project Information")} testId="exc-section-1">
           <div className="flex items-center gap-2 mb-2 text-xs text-slate-600">
             <Briefcase className="w-4 h-4 text-cyan-700" />
             <span>{t("Same job source as Daily Reports.")}</span>
@@ -371,7 +371,7 @@ export default function PublicExcavationForm() {
         <Section num="1b" title={t("Field Leadership Roster")} testId="exc-section-1b">
           <div className="flex items-center gap-2 mb-2 text-xs text-slate-600">
             <Users className="w-4 h-4 text-cyan-700" />
-            <span>{t("Pull from the certified MASCI roster — no manual typing.")}</span>
+            <span>{t("Pull from the certified roster — no manual typing.")}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div><Label className="text-xs font-bold">{t("Prepared By")}</Label>
@@ -487,7 +487,7 @@ export default function PublicExcavationForm() {
         <Section num="6" title={t("Assigned Trench Safety Assets")} testId="exc-section-6">
           <div className="flex items-center gap-2 mb-2 text-xs text-slate-600">
             <Package className="w-4 h-4 text-cyan-700" />
-            <span>{t("Multi-select from the certified MASCI trench registry. Status / serial / open holds shown.")}</span>
+            <span>{t("Multi-select from the certified trench registry. Status / serial / open holds shown.")}</span>
           </div>
           <TrenchAssetPicker
             selected={f.assigned_asset_ids}
@@ -784,7 +784,7 @@ export default function PublicExcavationForm() {
         </div>
 
         <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
-          {t("MASCI Operations Platform")} · {t("Field-safe view")}
+          {t("Operations Platform")} · {t("Field-safe view")}
         </footer>
       </main>
     </div>
@@ -831,7 +831,7 @@ function SuccessScreen({ done, setDone, t }) {
         <div className="text-center mb-4">
           <CheckCircle2 className="w-7 h-7 mx-auto text-emerald-700" />
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold mt-1">
-            {t("MASCI Trench Safety")} · {t("Field Submission")}
+            {t("Trench Safety")} · {t("Field Submission")}
           </div>
           <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-excavation-success-title">
             {t("Excavation Record Submitted")}
@@ -925,7 +925,7 @@ function SuccessScreen({ done, setDone, t }) {
           </button>
         </div>
         <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
-          {t("MASCI Operations Platform")} · {t("Field-safe view")}
+          {t("Operations Platform")} · {t("Field-safe view")}
         </footer>
       </main>
     </div>

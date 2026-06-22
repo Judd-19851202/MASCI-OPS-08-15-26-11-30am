@@ -456,7 +456,7 @@ export default function NewMeeting({ publicMode = false }) {
           <HelpTipBlock formKey="meeting" className="mb-3" showCounter />
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("MASCI Job")}
+              {t("Job")}
             </Label>
             <div className="mt-2">
               <JobPicker
@@ -833,7 +833,7 @@ export default function NewMeeting({ publicMode = false }) {
               value={data.references_cited}
               onChange={(e) => set("references_cited", e.target.value)}
               className="min-h-[80px] text-base border-2 border-slate-300"
-              placeholder={t("OSHA standards, SDS reviewed, MASCI procedures...")}
+              placeholder={t("OSHA standards, SDS reviewed, site procedures...")}
               data-testid="input-references"
             />
           </div>
@@ -901,7 +901,7 @@ export default function NewMeeting({ publicMode = false }) {
                     data-testid={`attendee-nonmasci-${i}`}
                   />
                   <span className="font-mono uppercase tracking-wide text-slate-600">
-                    {t("Non-MASCI / Subcontractor")}
+                    {t("Non-OurCo / Subcontractor")}
                   </span>
                 </label>
               </div>

@@ -1,5 +1,5 @@
 {
-  "ts": "2026-06-22T17:27:18.175499+00:00",
+  "ts": "2026-06-22T18:02:04.522457+00:00",
   "needles": [
     "MASCI",
     "mascigc\\.com",
@@ -49,7 +49,7 @@
       ]
     },
     "test_fixture": {
-      "count": 1865,
+      "count": 1860,
       "samples": [
         "backend/tests/odr/test_m1_option_c.py",
         "backend/tests/odr/test_odr_m02.py",
@@ -99,7 +99,7 @@
       ]
     },
     "historical_migration": {
-      "count": 6679,
+      "count": 6781,
       "samples": [
         "backend/scripts/seed_pm_demo_fixture.py",
         "backend/scripts/track_15_65_parity_verify.py",
@@ -134,7 +134,7 @@
       ]
     },
     "uncategorized": {
-      "count": 1044,
+      "count": 1011,
       "samples": [
         ".deploy_checks/README.md",
         "ATLAS_MIGRATION.md",
@@ -169,7 +169,7 @@
       ]
     },
     "masci_data_library": {
-      "count": 373,
+      "count": 380,
       "samples": [
         "frontend/src/components/MasciLogo.jsx",
         "frontend/src/lib/companyInfo.js",
@@ -204,7 +204,7 @@
       ]
     }
   },
-  "total_hits": 12115,
+  "total_hits": 12186,
   "disallowed_hits": [
     {
       "path": "frontend/src/design-system/PortalShell.jsx",
@@ -310,11 +310,6 @@
       "path": "frontend/src/components/AdminPMPanel.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/components/AdminPMPanel.jsx:243:        const fname = m ? m[1] : `MASCI_PM_Welcome_${pwTargetPm.name.replace(/\\s+/g, \"_\")}.pdf`;"
-    },
-    {
-      "path": "frontend/src/components/SplashOverlay.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/SplashOverlay.jsx:77:            MASCI&nbsp;OPERATIONS&nbsp;PLATFORM"
     },
     {
       "path": "frontend/src/components/BackupHeroPanel.jsx",
@@ -710,31 +705,6 @@
       "path": "frontend/src/pages/AdminMaterialLedgerQuality.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/AdminMaterialLedgerQuality.jsx:472:            FleetWatcher not connected \u2014 admin view is currently based on MASCI daily reports, dispatch haul cycles, and scale-ticket attachments. No accounting, cost, pay-quantity,"
-    },
-    {
-      "path": "frontend/src/pages/NewIncident.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/NewIncident.jsx:463:              {t(\"MASCI Job\")}"
-    },
-    {
-      "path": "frontend/src/pages/NewIncident.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/NewIncident.jsx:919:                placeholder={t(\"MASCI asset # (if our equipment)\")}"
-    },
-    {
-      "path": "frontend/src/pages/NewIncident.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/NewIncident.jsx:985:                  placeholder=\"MASCI / subcontractor name\""
-    },
-    {
-      "path": "frontend/src/pages/NewIncident.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/NewIncident.jsx:1131:              Link to a specific MASCI equipment unit. Improves traceability for the Safety team&apos;s corrective-action lookup."
-    },
-    {
-      "path": "frontend/src/pages/NewIncident.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/NewIncident.jsx:1293:                  <option value=\"employee\">Employee (MASCI)</option>"
     },
     {
       "path": "frontend/src/pages/DispatchHaulLedger.jsx",
@@ -1382,51 +1352,6 @@
       "line": "/app/frontend/src/pages/trench_safety/PublicTrenchSafetyReferences.jsx:155:          {t(\"MASCI Operations Platform\")} \u00b7 {t(\"Field-safe view\")}"
     },
     {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:217:      setErr(t(\"Pick a MASCI Job (or type a custom project name) before submitting.\"));"
-    },
-    {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:221:      setErr(t(\"Select a Foreman / Supervisor from the MASCI roster.\"));"
-    },
-    {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:303:            {t(\"MASCI Trench Safety\")} \u00b7 {t(\"Field Excavation Record\")}"
-    },
-    {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:335:        <Section num=\"1\" title={t(\"MASCI Job \u00b7 Project Information\")} testId=\"exc-section-1\">"
-    },
-    {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:374:            <span>{t(\"Pull from the certified MASCI roster \u2014 no manual typing.\")}</span>"
-    },
-    {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:490:            <span>{t(\"Multi-select from the certified MASCI trench registry. Status / serial / open holds shown.\")}</span>"
-    },
-    {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:787:          {t(\"MASCI Operations Platform\")} \u00b7 {t(\"Field-safe view\")}"
-    },
-    {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:834:            {t(\"MASCI Trench Safety\")} \u00b7 {t(\"Field Submission\")}"
-    },
-    {
-      "path": "frontend/src/pages/trench_safety/PublicExcavationForm.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:928:          {t(\"MASCI Operations Platform\")} \u00b7 {t(\"Field-safe view\")}"
-    },
-    {
       "path": "frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx:109:            {t(\"MASCI Trench Safety\")} \u00b7 {t(\"Field View\")}"
@@ -1459,16 +1384,6 @@
     {
       "path": "frontend/src/pages/NewMeeting.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/NewMeeting.jsx:459:              {t(\"MASCI Job\")}"
-    },
-    {
-      "path": "frontend/src/pages/NewMeeting.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/NewMeeting.jsx:836:              placeholder={t(\"OSHA standards, SDS reviewed, MASCI procedures...\")}"
-    },
-    {
-      "path": "frontend/src/pages/NewMeeting.jsx",
-      "category": "uncategorized",
       "line": "/app/frontend/src/pages/NewMeeting.jsx:882:              {/* SAFETY-MEETING-CERT \u00b7 MASCI vs Non-MASCI / Subcontractor toggle */}"
     },
     {
@@ -1480,11 +1395,6 @@
       "path": "frontend/src/pages/NewMeeting.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/NewMeeting.jsx:898:                        if (!a.company) updateAttendee(i, \"company\", \"MASCI\");"
-    },
-    {
-      "path": "frontend/src/pages/NewMeeting.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/NewMeeting.jsx:904:                    {t(\"Non-MASCI / Subcontractor\")}"
     },
     {
       "path": "frontend/src/pages/NewMeeting.jsx",
@@ -1525,11 +1435,6 @@
       "path": "frontend/src/pages/PmHoldsV2.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/PmHoldsV2.jsx:166:        portalName=\"MASCI\""
-    },
-    {
-      "path": "frontend/src/pages/ViewInspection.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewInspection.jsx:326:            <KV label={t(\"Crew / MASCI Personnel\")} value={data.crew_personnel} full />"
     },
     {
       "path": "frontend/src/pages/ViewInspection.jsx",
@@ -1769,112 +1674,82 @@
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:26:      portalName=\"MASCI\""
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:74:          <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Five portals plus public submission entry points:</p>"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:46:              <div className=\"font-black text-lg\">MASCI Operations Platform</div>"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:113:                <strong>No login.</strong> Field workers open <code>mascidocs.com</code> on their phone and tap a Safety or Field submission tile directly \u2014 no password needed for public submission"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:49:            <div className=\"text-xs\">mascidocs.com</div>"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:174:          <p className=\"mb-2\">Crews do <strong>nothing different</strong> than before. They just open <code>mascidocs.com</code> on their phone or tablet and tap the section tile for what they need"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:56:            MASCI Admin \u00b7 Owner's Manual"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:183:            PDFs <strong>auto-email</strong> to the assigned PM + safety@mascigc.com as soon as the form is submitted."
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:60:            when you're out. You do not need to understand any code to run the MASCI Operations Platform."
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:190:          <p>Sign in at <code>mascidocs.com/admin/login</code> with your work email + password. Land on the Admin Overview. Most weekly tasks:</p>"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:66:          <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Five portals plus public submission entry points:</p>"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:209:            <li><strong>Crew hrs by employee</strong> \u2014 each MASCI worker, days on site, hours, cost @ rate.</li>"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:105:                <strong>No login.</strong> Field workers open <code>mascidocs.com</code> on their phone and tap a Safety or Field submission tile directly \u2014 no password needed for public submission"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:212:            <li><strong>4 KPI tiles</strong> at the top: # of reports, MASCI crew hrs, Sub man-hrs, total Labor cost.</li>"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:166:          <p className=\"mb-2\">Crews do <strong>nothing different</strong> than before. They just open <code>mascidocs.com</code> on their phone or tablet and tap the section tile for what they need"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:321:            <li><strong>Nightly email backup</strong> \u2014 every night at 2 AM UTC a complete <code>.zip</code> emails to <strong>jaymn.judd@mascigc.com</strong>. Keep those emails as a separate off-s"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:175:            PDFs <strong>auto-email</strong> to the assigned PM + safety@mascigc.com as soon as the form is submitted."
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:496:            <code>safety@mascigc.com</code>. PDFs use the standardized M-mark letterhead and full footer string."
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:182:          <p>Sign in at <code>mascidocs.com/admin/login</code> with your work email + password. Land on the Admin Overview. Most weekly tasks:</p>"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:510:            <li><strong>jaymn.judd@mascigc.com</strong></li>"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:201:            <li><strong>Crew hrs by employee</strong> \u2014 each MASCI worker, days on site, hours, cost @ rate.</li>"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:511:            <li><strong>safety@mascigc.com</strong></li>"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:204:            <li><strong>4 KPI tiles</strong> at the top: # of reports, MASCI crew hrs, Sub man-hrs, total Labor cost.</li>"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:516:            The PDF styling matches every other Field Leadership form (iter98 parity) \u2014 same black/red letterhead, same MASCI"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:313:            <li><strong>Nightly email backup</strong> \u2014 every night at 2 AM UTC a complete <code>.zip</code> emails to <strong>jaymn.judd@mascigc.com</strong>. Keep those emails as a separate off-s"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:531:            <li><strong>jaymn.judd@mascigc.com</strong> (always)</li>"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:488:            <code>safety@mascigc.com</code>. PDFs use the standardized M-mark letterhead and full footer string."
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:532:            <li><strong>safety@mascigc.com</strong> (always)</li>"
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:502:            <li><strong>jaymn.judd@mascigc.com</strong></li>"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:640:            <li><strong>Asset Mapping / Employee Mapping</strong> \u2014 CRUD layer that ties MASCI master IDs to Motive/MaintainX external IDs. Master collections (`equipment_master`, `employees`) are "
     },
     {
       "path": "frontend/src/pages/AdminGuide.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:503:            <li><strong>safety@mascigc.com</strong></li>"
-    },
-    {
-      "path": "frontend/src/pages/AdminGuide.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:508:            The PDF styling matches every other Field Leadership form (iter98 parity) \u2014 same black/red letterhead, same MASCI"
-    },
-    {
-      "path": "frontend/src/pages/AdminGuide.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:523:            <li><strong>jaymn.judd@mascigc.com</strong> (always)</li>"
-    },
-    {
-      "path": "frontend/src/pages/AdminGuide.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:524:            <li><strong>safety@mascigc.com</strong> (always)</li>"
-    },
-    {
-      "path": "frontend/src/pages/AdminGuide.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:632:            <li><strong>Asset Mapping / Employee Mapping</strong> \u2014 CRUD layer that ties MASCI master IDs to Motive/MaintainX external IDs. Master collections (`equipment_master`, `employees`) are "
-    },
-    {
-      "path": "frontend/src/pages/AdminGuide.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:652:            <li>Weekly Digest \u2014 Monday 14:00 UTC cron \u2192 safety@mascigc.com.</li>"
-    },
-    {
-      "path": "frontend/src/pages/AdminGuide.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminGuide.jsx:692:          Generated through MASCI Operations Platform \u2014 Powered by ForgedOps\u2122 | \u00a9 2026 ForgedOps\u2122"
+      "line": "/app/frontend/src/pages/AdminGuide.jsx:660:            <li>Weekly Digest \u2014 Monday 14:00 UTC cron \u2192 safety@mascigc.com.</li>"
     },
     {
       "path": "frontend/src/pages/SafetyLogin.jsx",
@@ -1950,16 +1825,6 @@
       "path": "frontend/src/pages/AdminHubV2.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/AdminHubV2.jsx:118:              description=\"Review proposed Motive geofence \u2194 MASCI project matches. Approve, reject, reassign, or bulk-approve high-confidence rows. Cleaner geofences mean cleaner assignment names "
-    },
-    {
-      "path": "frontend/src/pages/ViewDailyReport.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewDailyReport.jsx:448:        <ReportSection number=\"04\" title={`${t(\"MASCI Crews\")} (${data.masci_crews?.length || 0})`}>"
-    },
-    {
-      "path": "frontend/src/pages/ViewDailyReport.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/ViewDailyReport.jsx:493:            emptyText={t(\"No MASCI crews on site.\")}"
     },
     {
       "path": "frontend/src/pages/ViewDailyReport.jsx",
@@ -2234,362 +2099,362 @@
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:68:          <strong>MASCI General Contractors Inc.</strong> and{\" \"}"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:97:          <strong>MASCI General Contractors Inc.</strong> and{\" \"}"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:69:          <strong>MASCI Corporation</strong> (collectively, &ldquo;"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:98:          <strong>MASCI Corporation</strong> (collectively, &ldquo;"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:70:          <strong>MASCI</strong>&rdquo;) as the{\" \"}"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:99:          <strong>MASCI</strong>&rdquo;) as the{\" \"}"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:71:          <strong>MASCI Operations Platform</strong>, a customer-branded"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:100:          <strong>MASCI Operations Platform</strong>, a customer-branded"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:83:          ForgedOps LLC and MASCI are independent companies. Neither is a"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:112:          ForgedOps LLC and MASCI are independent companies. Neither is a"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:86:          MASCI is the deployed-for organization."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:115:          MASCI is the deployed-for organization."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:101:          MASCI or to any User. The white-label deployment of the Platform as"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:130:          MASCI or to any User. The white-label deployment of the Platform as"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:102:          the MASCI Operations Platform reflects customer-branded presentation"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:131:          the MASCI Operations Platform reflects customer-branded presentation"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:104:          architecture, or operational methodology to MASCI."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:133:          architecture, or operational methodology to MASCI."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:107:          Customer Data submitted by MASCI through the Platform remains the"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:136:          Customer Data submitted by MASCI through the Platform remains the"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:108:          exclusive property of MASCI as set forth in Section 3 below. The"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:137:          exclusive property of MASCI as set forth in Section 3 below. The"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:110:          Data (owned by MASCI) is intentional and material to these Terms."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:139:          Data (owned by MASCI) is intentional and material to these Terms."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:113:          MASCI&rsquo;s use of the Platform is limited to the rights expressly"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:142:          MASCI&rsquo;s use of the Platform is limited to the rights expressly"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:114:          granted in MASCI&rsquo;s separate written services agreement with"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:143:          granted in MASCI&rsquo;s separate written services agreement with"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:122:          ForgedOps&trade;, the ForgedOps logo, the MASCI Operations Platform"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:151:          ForgedOps&trade;, the ForgedOps logo, the MASCI Operations Platform"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:131:          MASCI is granted a non-exclusive, non-transferable, revocable right"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:160:          MASCI is granted a non-exclusive, non-transferable, revocable right"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:132:          to display the &ldquo;MASCI Operations Platform&rdquo; deployment"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:161:          to display the &ldquo;MASCI Operations Platform&rdquo; deployment"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:134:          attribution within MASCI&rsquo;s internal operations during the term"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:163:          attribution within MASCI&rsquo;s internal operations during the term"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:135:          of MASCI&rsquo;s services agreement. All other uses (including"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:164:          of MASCI&rsquo;s services agreement. All other uses (including"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:147:          or operational use by MASCI."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:176:          or operational use by MASCI."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:162:          information that MASCI or its users submit through the Platform"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:191:          information that MASCI or its users submit through the Platform"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:164:          MASCI."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:193:          MASCI."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:175:          MASCI may request export of its Customer Data in a standard format."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:204:          MASCI may request export of its Customer Data in a standard format."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:185:          Subject to these Terms, ForgedOps LLC grants MASCI&rsquo;s"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:214:          Subject to these Terms, ForgedOps LLC grants MASCI&rsquo;s"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:189:          Platform solely for legitimate MASCI business operations."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:218:          Platform solely for legitimate MASCI business operations."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:192:          Use of the Platform is strictly limited to MASCI General Contractors"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:221:          Use of the Platform is strictly limited to MASCI General Contractors"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:193:          Inc. and MASCI Corporation as a single legal entity."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:222:          Inc. and MASCI Corporation as a single legal entity."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:210:          <li>represent the Platform as MASCI&rsquo;s own product;</li>"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:239:          <li>represent the Platform as MASCI&rsquo;s own product;</li>"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:216:            use the Platform outside the scope of MASCI&rsquo;s internal"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:245:            use the Platform outside the scope of MASCI&rsquo;s internal"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:243:          The Platform contains MASCI&rsquo;s internal business information,"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:272:          The Platform contains MASCI&rsquo;s internal business information,"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:250:          information solely for legitimate MASCI business purposes."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:279:          information solely for legitimate MASCI business purposes."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:291:          By using the Platform, MASCI authorizes ForgedOps&trade; to"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:320:          By using the Platform, MASCI authorizes ForgedOps&trade; to"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:302:          on-demand actions taken by authorized MASCI personnel."
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:331:          on-demand actions taken by authorized MASCI personnel."
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:317:          MASCI&rsquo;s administrative provisioning \u2014 the recipient"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:346:          MASCI&rsquo;s administrative provisioning \u2014 the recipient"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:325:          the recipient&rsquo;s wireless carrier; ForgedOps&trade;, MASCI,"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:354:          the recipient&rsquo;s wireless carrier; ForgedOps&trade;, MASCI,"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:332:          contacting MASCI&rsquo;s administrator. Recipients may reply"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:361:          contacting MASCI&rsquo;s administrator. Recipients may reply"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:387:          The Platform is a tool to support \u2014 not replace \u2014 MASCI&rsquo;s"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:416:          The Platform is a tool to support \u2014 not replace \u2014 MASCI&rsquo;s"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:400:          MASCI remains solely responsible for operational and regulatory"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:429:          MASCI remains solely responsible for operational and regulatory"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:411:          BE LIABLE TO MASCI OR TO ANY USER FOR ANY INDIRECT, INCIDENTAL, SPECIAL,"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:440:          BE LIABLE TO MASCI OR TO ANY USER FOR ANY INDIRECT, INCIDENTAL, SPECIAL,"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:439:          MASCI agrees to defend, indemnify, and hold harmless ForgedOps"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:468:          MASCI agrees to defend, indemnify, and hold harmless ForgedOps"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:444:          <li>MASCI&rsquo;s use of the Platform;</li>"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:473:          <li>MASCI&rsquo;s use of the Platform;</li>"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:447:          <li>misuse of the Platform by MASCI or its users.</li>"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:476:          <li>misuse of the Platform by MASCI or its users.</li>"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:454:          ForgedOps LLC or MASCI may suspend or terminate any"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:483:          ForgedOps LLC or MASCI may suspend or terminate any"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:468:        <p>Material changes will be communicated to MASCI.</p>"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:497:        <p>Material changes will be communicated to MASCI.</p>"
     },
     {
       "path": "frontend/src/pages/legal/TermsOfService.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:487:          For questions regarding these Terms, contact MASCI administration or"
+      "line": "/app/frontend/src/pages/legal/TermsOfService.jsx:516:          For questions regarding these Terms, contact MASCI administration or"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:61:          of <strong>MASCI General Contractors Inc.</strong> and{\" \"}"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:90:          of <strong>MASCI General Contractors Inc.</strong> and{\" \"}"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:62:          <strong>MASCI Corporation</strong> (collectively, &ldquo;"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:91:          <strong>MASCI Corporation</strong> (collectively, &ldquo;"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:63:          <strong>MASCI</strong>&rdquo;) as the{\" \"}"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:92:          <strong>MASCI</strong>&rdquo;) as the{\" \"}"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:64:          <strong>MASCI Operations Platform</strong>, a customer-branded"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:93:          <strong>MASCI Operations Platform</strong>, a customer-branded"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:84:            information solely on behalf of MASCI."
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:113:            information solely on behalf of MASCI."
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:87:            <strong>MASCI</strong> acts as the <strong>data controller</strong>{\" \"}"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:116:            <strong>MASCI</strong> acts as the <strong>data controller</strong>{\" \"}"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:92:        <p>MASCI is solely responsible for:</p>"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:121:        <p>MASCI is solely responsible for:</p>"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:99:          ForgedOps LLC and MASCI are independent companies. Neither is a"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:128:          ForgedOps LLC and MASCI are independent companies. Neither is a"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:114:          <li>Name, email, and phone number (as provided by MASCI for account access)</li>"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:143:          <li>Name, email, and phone number (as provided by MASCI for account access)</li>"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:129:          <li>All Customer Data is owned and controlled by MASCI</li>"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:158:          <li>All Customer Data is owned and controlled by MASCI</li>"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:148:          <li>Route reports, alerts, and notifications to appropriate MASCI personnel</li>"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:177:          <li>Route reports, alerts, and notifications to appropriate MASCI personnel</li>"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:194:            termination, and DDoS protection for mascidocs.com."
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:223:            termination, and DDoS protection for mascidocs.com."
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:231:          scales; material changes are communicated to MASCI in"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:260:          scales; material changes are communicated to MASCI in"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:268:          <li>Report suspected unauthorized access immediately to MASCI</li>"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:297:          <li>Report suspected unauthorized access immediately to MASCI</li>"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:275:          Customer Data is retained according to MASCI&rsquo;s requirements"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:304:          Customer Data is retained according to MASCI&rsquo;s requirements"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:288:        <p>MASCI may request:</p>"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:317:        <p>MASCI may request:</p>"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:294:          Requests are handled in accordance with MASCI&rsquo;s agreement with"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:323:          Requests are handled in accordance with MASCI&rsquo;s agreement with"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:302:          <strong>MASCI is solely responsible for:</strong>"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:331:          <strong>MASCI is solely responsible for:</strong>"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:326:          <li>How MASCI uses Customer Data</li>"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:355:          <li>How MASCI uses Customer Data</li>"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:334:            Demonstrating regulatory compliance on behalf of MASCI \u2014"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:363:            Demonstrating regulatory compliance on behalf of MASCI \u2014"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:353:          lists, or on-demand actions taken by authorized MASCI"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:382:          lists, or on-demand actions taken by authorized MASCI"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:380:          Data, are not used for model training on MASCI data, and"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:409:          Data, are not used for model training on MASCI data, and"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:398:            directed to your MASCI administrator"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:427:            directed to your MASCI administrator"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:401:            MASCI (as data controller) is responsible for responding to such"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:430:            MASCI (as data controller) is responsible for responding to such"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:406:          ForgedOps LLC will assist MASCI in fulfilling these requests as"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:435:          ForgedOps LLC will assist MASCI in fulfilling these requests as"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:428:          Material changes will be communicated to MASCI and, where"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:457:          Material changes will be communicated to MASCI and, where"
     },
     {
       "path": "frontend/src/pages/legal/PrivacyPolicy.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:441:          <br />\u2192 Contact your MASCI administrator"
+      "line": "/app/frontend/src/pages/legal/PrivacyPolicy.jsx:470:          <br />\u2192 Contact your MASCI administrator"
     },
     {
       "path": "frontend/src/pages/FieldLeadershipFormPage.jsx",
@@ -2662,5 +2527,5 @@
       "line": "/app/frontend/src/pages/MeetingsDashboard.jsx:66:      portalName=\"MASCI\" portalRole=\"Safety Portal \u00b7 Safety Meetings\""
     }
   ],
-  "disallowed_count": 491
+  "disallowed_count": 464
 }

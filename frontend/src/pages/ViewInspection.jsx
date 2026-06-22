@@ -323,7 +323,7 @@ export default function ViewInspection() {
             <KV label={t("Operation")} value={data.operation} />
             <KV label={t("Inspector")} value={data.inspector_name} />
             <KV label={t("Foreman / Supervisor")} value={data.foreman_name} />
-            <KV label={t("Crew / MASCI Personnel")} value={data.crew_personnel} full />
+            <KV label={t("Crew / Personnel")} value={data.crew_personnel} full />
             <KV label={t("Subcontractors")} value={data.subcontractors} full />
             <KV label={t("Weather Conditions")} value={data.weather_conditions} full />
           </div>

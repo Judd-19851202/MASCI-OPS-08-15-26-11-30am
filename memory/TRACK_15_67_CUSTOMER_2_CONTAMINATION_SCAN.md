@@ -1,23 +1,23 @@
 # TRACK 15.67 · Customer #2 Contamination Scan
 
-_Generated 2026-06-22T17:27:18.175499+00:00_
+_Generated 2026-06-22T18:02:04.522457+00:00_
 
 ## Summary
 
-- Total MASCI-flavour hits: **12115**
-- Disallowed customer-visible surface hits: **491**
+- Total MASCI-flavour hits: **12186**
+- Disallowed customer-visible surface hits: **464**
 - Verdict: **❌ FAIL**
 
 ## By Category
 
 | Category | Hits | Allowed? |
 |---|---:|:--:|
-| historical_migration | 6679 | YES |
-| test_fixture | 1865 | YES |
+| historical_migration | 6781 | YES |
+| test_fixture | 1860 | YES |
 | backend_internal | 1153 | YES (docstrings/comments) |
-| uncategorized | 1044 | REVIEW |
+| uncategorized | 1011 | REVIEW |
 | masci_tenant_config | 1001 | YES |
-| masci_data_library | 373 | YES (asset/i18n library) |
+| masci_data_library | 380 | YES (asset/i18n library) |
 
 ## Disallowed Surface Hits (must be 0)
 
@@ -42,7 +42,6 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `frontend/src/components/admin/MaintainxP0Tab.jsx` — /app/frontend/src/components/admin/MaintainxP0Tab.jsx:446:    { label: "Missing in MASCI", key: "missing_in_masci", tone: "warn" },
 - `frontend/src/components/AdminPMPanel.jsx` — /app/frontend/src/components/AdminPMPanel.jsx:126:      const fname = m ? m[1] : "MASCI_pms.xlsx";
 - `frontend/src/components/AdminPMPanel.jsx` — /app/frontend/src/components/AdminPMPanel.jsx:243:        const fname = m ? m[1] : `MASCI_PM_Welcome_${pwTargetPm.name.replace(/\s+/g, "_")}.pdf`;
-- `frontend/src/components/SplashOverlay.jsx` — /app/frontend/src/components/SplashOverlay.jsx:77:            MASCI&nbsp;OPERATIONS&nbsp;PLATFORM
 - `frontend/src/components/BackupHeroPanel.jsx` — /app/frontend/src/components/BackupHeroPanel.jsx:180:            {t("Pick a MASCI backup .zip from your computer. Every record inside is merged into the live system. Safe — existin
 - `frontend/src/components/ComplianceExportPanel.jsx` — /app/frontend/src/components/ComplianceExportPanel.jsx:54:    const fname = m ? m[1] : `MASCI_${kind}_${todayIso()}.csv`;
 - `frontend/src/components/ComplianceExportPanel.jsx` — /app/frontend/src/components/ComplianceExportPanel.jsx:87:      const fname = m ? m[1] : `MASCI_full_backup_${todayIso()}.zip`;
@@ -122,11 +121,6 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `frontend/src/pages/DispatchHub.jsx` — /app/frontend/src/pages/DispatchHub.jsx:82:  usePageTitle("Dispatch Command · MASCI");
 - `frontend/src/pages/DispatchHub.jsx` — /app/frontend/src/pages/DispatchHub.jsx:138:      portalName="MASCI"
 - `frontend/src/pages/AdminMaterialLedgerQuality.jsx` — /app/frontend/src/pages/AdminMaterialLedgerQuality.jsx:472:            FleetWatcher not connected — admin view is currently based on MASCI daily reports, dispatch haul cycles, and 
-- `frontend/src/pages/NewIncident.jsx` — /app/frontend/src/pages/NewIncident.jsx:463:              {t("MASCI Job")}
-- `frontend/src/pages/NewIncident.jsx` — /app/frontend/src/pages/NewIncident.jsx:919:                placeholder={t("MASCI asset # (if our equipment)")}
-- `frontend/src/pages/NewIncident.jsx` — /app/frontend/src/pages/NewIncident.jsx:985:                  placeholder="MASCI / subcontractor name"
-- `frontend/src/pages/NewIncident.jsx` — /app/frontend/src/pages/NewIncident.jsx:1131:              Link to a specific MASCI equipment unit. Improves traceability for the Safety team&apos;s corrective-action lookup.
-- `frontend/src/pages/NewIncident.jsx` — /app/frontend/src/pages/NewIncident.jsx:1293:                  <option value="employee">Employee (MASCI)</option>
 - `frontend/src/pages/DispatchHaulLedger.jsx` — /app/frontend/src/pages/DispatchHaulLedger.jsx:424:            FleetWatcher not connected — ledger is currently based on MASCI daily reports, dispatch haul cycles, and scale-ticket
 - `frontend/src/pages/LeadershipLogin.jsx` — /app/frontend/src/pages/LeadershipLogin.jsx:182:          {t("MASCI · Field Leadership Portal")}
 - `frontend/src/pages/shop/PmTemplates.jsx` — /app/frontend/src/pages/shop/PmTemplates.jsx:93:      <PortalShell portalName="MASCI" portalRole="Shop Portal"
@@ -256,27 +250,15 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `frontend/src/pages/trench_safety/PublicTrenchSafetyReferences.jsx` — /app/frontend/src/pages/trench_safety/PublicTrenchSafetyReferences.jsx:61:            {t("MASCI Trench Safety")} · {t("Field References")}
 - `frontend/src/pages/trench_safety/PublicTrenchSafetyReferences.jsx` — /app/frontend/src/pages/trench_safety/PublicTrenchSafetyReferences.jsx:75:            {t("Every MASCI crew member has the right and the duty to stop work for unsafe conditions. You
 - `frontend/src/pages/trench_safety/PublicTrenchSafetyReferences.jsx` — /app/frontend/src/pages/trench_safety/PublicTrenchSafetyReferences.jsx:155:          {t("MASCI Operations Platform")} · {t("Field-safe view")}
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:217:      setErr(t("Pick a MASCI Job (or type a custom project name) before submitting."));
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:221:      setErr(t("Select a Foreman / Supervisor from the MASCI roster."));
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:303:            {t("MASCI Trench Safety")} · {t("Field Excavation Record")}
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:335:        <Section num="1" title={t("MASCI Job · Project Information")} testId="exc-section-1">
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:374:            <span>{t("Pull from the certified MASCI roster — no manual typing.")}</span>
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:490:            <span>{t("Multi-select from the certified MASCI trench registry. Status / serial / open holds shown."
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:787:          {t("MASCI Operations Platform")} · {t("Field-safe view")}
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:834:            {t("MASCI Trench Safety")} · {t("Field Submission")}
-- `frontend/src/pages/trench_safety/PublicExcavationForm.jsx` — /app/frontend/src/pages/trench_safety/PublicExcavationForm.jsx:928:          {t("MASCI Operations Platform")} · {t("Field-safe view")}
 - `frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx` — /app/frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx:109:            {t("MASCI Trench Safety")} · {t("Field View")}
 - `frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx` — /app/frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx:121:            <div className="text-xs mt-1">{t("This QR is not linked to a known MASCI trench safety asset. Contac
 - `frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx` — /app/frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx:275:          {t("MASCI Operations Platform")} · {t("Field-safe view")}
 - `frontend/src/pages/TrainingQrPoster.jsx` — /app/frontend/src/pages/TrainingQrPoster.jsx:152:                MASCI Training · Scan-&-Go
 - `frontend/src/pages/TrainingQrPoster.jsx` — /app/frontend/src/pages/TrainingQrPoster.jsx:224:            Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™ · Post inside
 - `frontend/src/pages/TrainingQrPoster.jsx` — /app/frontend/src/pages/TrainingQrPoster.jsx:287:        mascidocs.com
-- `frontend/src/pages/NewMeeting.jsx` — /app/frontend/src/pages/NewMeeting.jsx:459:              {t("MASCI Job")}
-- `frontend/src/pages/NewMeeting.jsx` — /app/frontend/src/pages/NewMeeting.jsx:836:              placeholder={t("OSHA standards, SDS reviewed, MASCI procedures...")}
 - `frontend/src/pages/NewMeeting.jsx` — /app/frontend/src/pages/NewMeeting.jsx:882:              {/* SAFETY-MEETING-CERT · MASCI vs Non-MASCI / Subcontractor toggle */}
 - `frontend/src/pages/NewMeeting.jsx` — /app/frontend/src/pages/NewMeeting.jsx:895:                        if (a.company === "MASCI") updateAttendee(i, "company", "");
 - `frontend/src/pages/NewMeeting.jsx` — /app/frontend/src/pages/NewMeeting.jsx:898:                        if (!a.company) updateAttendee(i, "company", "MASCI");
-- `frontend/src/pages/NewMeeting.jsx` — /app/frontend/src/pages/NewMeeting.jsx:904:                    {t("Non-MASCI / Subcontractor")}
 - `frontend/src/pages/NewMeeting.jsx` — /app/frontend/src/pages/NewMeeting.jsx:932:                    updateAttendee(i, "company", "MASCI");
 - `frontend/src/pages/NewMeeting.jsx` — /app/frontend/src/pages/NewMeeting.jsx:964:                    placeholder={a.non_masci ? t("Subcontractor company") : "MASCI"}
 - `frontend/src/pages/HrPayrollVariance.jsx` — /app/frontend/src/pages/HrPayrollVariance.jsx:162:      a.download = `MASCI_payroll_variance_${batch.week_ending}.csv`;
@@ -285,7 +267,6 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `frontend/src/pages/SafetyDigest.jsx` — /app/frontend/src/pages/SafetyDigest.jsx:25:  const [toEmail, setToEmail] = useState("safety@mascigc.com");
 - `frontend/src/pages/SafetyDigest.jsx` — /app/frontend/src/pages/SafetyDigest.jsx:67:          {t("Weekly Monday-morning digest emailed to safety@mascigc.com (configurable). KPIs cover open CAs, overdue CAs, 7-day inciden
 - `frontend/src/pages/PmHoldsV2.jsx` — /app/frontend/src/pages/PmHoldsV2.jsx:166:        portalName="MASCI"
-- `frontend/src/pages/ViewInspection.jsx` — /app/frontend/src/pages/ViewInspection.jsx:326:            <KV label={t("Crew / MASCI Personnel")} value={data.crew_personnel} full />
 - `frontend/src/pages/ViewInspection.jsx` — /app/frontend/src/pages/ViewInspection.jsx:413:                  prefix={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_findings`}
 - `frontend/src/pages/ViewInspection.jsx` — /app/frontend/src/pages/ViewInspection.jsx:423:                    filename={`MASCI_Inspection_${(data.id || "").slice(0, 8)}_finding${i + 1}.jpg`}
 - `frontend/src/pages/ViewInspection.jsx` — /app/frontend/src/pages/ViewInspection.jsx:485:          {t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} {t
@@ -333,28 +314,22 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `frontend/src/pages/NewDailyReport.jsx` — /app/frontend/src/pages/NewDailyReport.jsx:1617:        <Section number="04" title={t("MASCI Crews on Site")}>
 - `frontend/src/pages/NewDailyReport.jsx` — /app/frontend/src/pages/NewDailyReport.jsx:2046:                + "Use the dedicated dispatch portal for MASCI-controlled hauling."
 - `frontend/src/pages/FieldSection.jsx` — /app/frontend/src/pages/FieldSection.jsx:234:        {t("MASCI · Field")}
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:26:      portalName="MASCI"
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:46:              <div className="font-black text-lg">MASCI Operations Platform</div>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:49:            <div className="text-xs">mascidocs.com</div>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:56:            MASCI Admin · Owner's Manual
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:60:            when you're out. You do not need to understand any code to run the MASCI Operations Platform.
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:66:          <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Five portals plus public submission entry points:</p>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:105:                <strong>No login.</strong> Field workers open <code>mascidocs.com</code> on their phone and tap a Safety or Field submiss
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:166:          <p className="mb-2">Crews do <strong>nothing different</strong> than before. They just open <code>mascidocs.com</code> on their
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:175:            PDFs <strong>auto-email</strong> to the assigned PM + safety@mascigc.com as soon as the form is submitted.
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:182:          <p>Sign in at <code>mascidocs.com/admin/login</code> with your work email + password. Land on the Admin Overview. Most weekly t
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:201:            <li><strong>Crew hrs by employee</strong> — each MASCI worker, days on site, hours, cost @ rate.</li>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:204:            <li><strong>4 KPI tiles</strong> at the top: # of reports, MASCI crew hrs, Sub man-hrs, total Labor cost.</li>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:313:            <li><strong>Nightly email backup</strong> — every night at 2 AM UTC a complete <code>.zip</code> emails to <strong>jaymn.judd
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:488:            <code>safety@mascigc.com</code>. PDFs use the standardized M-mark letterhead and full footer string.
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:502:            <li><strong>jaymn.judd@mascigc.com</strong></li>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:503:            <li><strong>safety@mascigc.com</strong></li>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:508:            The PDF styling matches every other Field Leadership form (iter98 parity) — same black/red letterhead, same MASCI
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:523:            <li><strong>jaymn.judd@mascigc.com</strong> (always)</li>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:524:            <li><strong>safety@mascigc.com</strong> (always)</li>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:632:            <li><strong>Asset Mapping / Employee Mapping</strong> — CRUD layer that ties MASCI master IDs to Motive/MaintainX external ID
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:652:            <li>Weekly Digest — Monday 14:00 UTC cron → safety@mascigc.com.</li>
-- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:692:          Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:74:          <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Five portals plus public submission entry points:</p>
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:113:                <strong>No login.</strong> Field workers open <code>mascidocs.com</code> on their phone and tap a Safety or Field submiss
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:174:          <p className="mb-2">Crews do <strong>nothing different</strong> than before. They just open <code>mascidocs.com</code> on their
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:183:            PDFs <strong>auto-email</strong> to the assigned PM + safety@mascigc.com as soon as the form is submitted.
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:190:          <p>Sign in at <code>mascidocs.com/admin/login</code> with your work email + password. Land on the Admin Overview. Most weekly t
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:209:            <li><strong>Crew hrs by employee</strong> — each MASCI worker, days on site, hours, cost @ rate.</li>
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:212:            <li><strong>4 KPI tiles</strong> at the top: # of reports, MASCI crew hrs, Sub man-hrs, total Labor cost.</li>
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:321:            <li><strong>Nightly email backup</strong> — every night at 2 AM UTC a complete <code>.zip</code> emails to <strong>jaymn.judd
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:496:            <code>safety@mascigc.com</code>. PDFs use the standardized M-mark letterhead and full footer string.
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:510:            <li><strong>jaymn.judd@mascigc.com</strong></li>
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:511:            <li><strong>safety@mascigc.com</strong></li>
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:516:            The PDF styling matches every other Field Leadership form (iter98 parity) — same black/red letterhead, same MASCI
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:531:            <li><strong>jaymn.judd@mascigc.com</strong> (always)</li>
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:532:            <li><strong>safety@mascigc.com</strong> (always)</li>
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:640:            <li><strong>Asset Mapping / Employee Mapping</strong> — CRUD layer that ties MASCI master IDs to Motive/MaintainX external ID
+- `frontend/src/pages/AdminGuide.jsx` — /app/frontend/src/pages/AdminGuide.jsx:660:            <li>Weekly Digest — Monday 14:00 UTC cron → safety@mascigc.com.</li>
 - `frontend/src/pages/SafetyLogin.jsx` — /app/frontend/src/pages/SafetyLogin.jsx:113:      footerLabel={t("MASCI · Safety Portal")}
 - `frontend/src/pages/NewInspection.jsx` — /app/frontend/src/pages/NewInspection.jsx:343:              {t("MASCI Job")}
 - `frontend/src/pages/NewInspection.jsx` — /app/frontend/src/pages/NewInspection.jsx:483:                Crew / MASCI Personnel Onsite
@@ -370,8 +345,6 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `frontend/src/pages/PmQaqcList.jsx` — /app/frontend/src/pages/PmQaqcList.jsx:110:      portalName="MASCI" portalRole="PM Portal · QA/QC"
 - `frontend/src/pages/AdminHubV2.jsx` — /app/frontend/src/pages/AdminHubV2.jsx:83:        portalName="MASCI" portalRole="Admin Portal · Hub V2"
 - `frontend/src/pages/AdminHubV2.jsx` — /app/frontend/src/pages/AdminHubV2.jsx:118:              description="Review proposed Motive geofence ↔ MASCI project matches. Approve, reject, reassign, or bulk-approve high-confi
-- `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:448:        <ReportSection number="04" title={`${t("MASCI Crews")} (${data.masci_crews?.length || 0})`}>
-- `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:493:            emptyText={t("No MASCI crews on site.")}
 - `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:540:                            filename={`MASCI_DR_sub_${(s.company || "sub").replace(/[^a-z0-9]+/gi, "_")}_${i + 1}.jpg`}
 - `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:686:                prefix={`MASCI_DR_${(data.id || "").slice(0, 8)}_photos`}
 - `frontend/src/pages/ViewDailyReport.jsx` — /app/frontend/src/pages/ViewDailyReport.jsx:696:                  filename={`MASCI_DR_${(data.id || "").slice(0, 8)}_photo${i + 1}.jpg`}
@@ -426,78 +399,78 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `frontend/src/pages/HrFieldLeadershipUsers.jsx` — /app/frontend/src/pages/HrFieldLeadershipUsers.jsx:49:              "Manage MASCI Field Leadership Portal accounts. Issue per-user temporary passwords, reset passwords, and deactiv
 - `frontend/src/pages/HrResetPassword.jsx` — /app/frontend/src/pages/HrResetPassword.jsx:153:          {t("MASCI · Human Resources Portal")}
 - `frontend/src/pages/PmDueTodayV2.jsx` — /app/frontend/src/pages/PmDueTodayV2.jsx:156:        portalName="MASCI"
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:68:          <strong>MASCI General Contractors Inc.</strong> and{" "}
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:69:          <strong>MASCI Corporation</strong> (collectively, &ldquo;
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:70:          <strong>MASCI</strong>&rdquo;) as the{" "}
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:71:          <strong>MASCI Operations Platform</strong>, a customer-branded
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:83:          ForgedOps LLC and MASCI are independent companies. Neither is a
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:86:          MASCI is the deployed-for organization.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:101:          MASCI or to any User. The white-label deployment of the Platform as
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:102:          the MASCI Operations Platform reflects customer-branded presentation
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:104:          architecture, or operational methodology to MASCI.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:107:          Customer Data submitted by MASCI through the Platform remains the
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:108:          exclusive property of MASCI as set forth in Section 3 below. The
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:110:          Data (owned by MASCI) is intentional and material to these Terms.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:113:          MASCI&rsquo;s use of the Platform is limited to the rights expressly
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:114:          granted in MASCI&rsquo;s separate written services agreement with
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:122:          ForgedOps&trade;, the ForgedOps logo, the MASCI Operations Platform
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:131:          MASCI is granted a non-exclusive, non-transferable, revocable right
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:132:          to display the &ldquo;MASCI Operations Platform&rdquo; deployment
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:134:          attribution within MASCI&rsquo;s internal operations during the term
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:135:          of MASCI&rsquo;s services agreement. All other uses (including
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:147:          or operational use by MASCI.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:162:          information that MASCI or its users submit through the Platform
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:164:          MASCI.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:175:          MASCI may request export of its Customer Data in a standard format.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:185:          Subject to these Terms, ForgedOps LLC grants MASCI&rsquo;s
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:189:          Platform solely for legitimate MASCI business operations.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:192:          Use of the Platform is strictly limited to MASCI General Contractors
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:193:          Inc. and MASCI Corporation as a single legal entity.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:210:          <li>represent the Platform as MASCI&rsquo;s own product;</li>
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:216:            use the Platform outside the scope of MASCI&rsquo;s internal
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:243:          The Platform contains MASCI&rsquo;s internal business information,
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:250:          information solely for legitimate MASCI business purposes.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:291:          By using the Platform, MASCI authorizes ForgedOps&trade; to
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:302:          on-demand actions taken by authorized MASCI personnel.
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:317:          MASCI&rsquo;s administrative provisioning — the recipient
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:325:          the recipient&rsquo;s wireless carrier; ForgedOps&trade;, MASCI,
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:332:          contacting MASCI&rsquo;s administrator. Recipients may reply
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:387:          The Platform is a tool to support — not replace — MASCI&rsquo;s
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:400:          MASCI remains solely responsible for operational and regulatory
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:411:          BE LIABLE TO MASCI OR TO ANY USER FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:439:          MASCI agrees to defend, indemnify, and hold harmless ForgedOps
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:444:          <li>MASCI&rsquo;s use of the Platform;</li>
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:447:          <li>misuse of the Platform by MASCI or its users.</li>
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:454:          ForgedOps LLC or MASCI may suspend or terminate any
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:468:        <p>Material changes will be communicated to MASCI.</p>
-- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:487:          For questions regarding these Terms, contact MASCI administration or
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:61:          of <strong>MASCI General Contractors Inc.</strong> and{" "}
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:62:          <strong>MASCI Corporation</strong> (collectively, &ldquo;
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:63:          <strong>MASCI</strong>&rdquo;) as the{" "}
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:64:          <strong>MASCI Operations Platform</strong>, a customer-branded
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:84:            information solely on behalf of MASCI.
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:87:            <strong>MASCI</strong> acts as the <strong>data controller</strong>{" "}
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:92:        <p>MASCI is solely responsible for:</p>
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:99:          ForgedOps LLC and MASCI are independent companies. Neither is a
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:114:          <li>Name, email, and phone number (as provided by MASCI for account access)</li>
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:129:          <li>All Customer Data is owned and controlled by MASCI</li>
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:148:          <li>Route reports, alerts, and notifications to appropriate MASCI personnel</li>
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:194:            termination, and DDoS protection for mascidocs.com.
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:231:          scales; material changes are communicated to MASCI in
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:268:          <li>Report suspected unauthorized access immediately to MASCI</li>
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:275:          Customer Data is retained according to MASCI&rsquo;s requirements
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:288:        <p>MASCI may request:</p>
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:294:          Requests are handled in accordance with MASCI&rsquo;s agreement with
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:302:          <strong>MASCI is solely responsible for:</strong>
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:326:          <li>How MASCI uses Customer Data</li>
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:334:            Demonstrating regulatory compliance on behalf of MASCI —
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:353:          lists, or on-demand actions taken by authorized MASCI
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:380:          Data, are not used for model training on MASCI data, and
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:398:            directed to your MASCI administrator
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:401:            MASCI (as data controller) is responsible for responding to such
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:406:          ForgedOps LLC will assist MASCI in fulfilling these requests as
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:428:          Material changes will be communicated to MASCI and, where
-- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:441:          <br />→ Contact your MASCI administrator
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:97:          <strong>MASCI General Contractors Inc.</strong> and{" "}
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:98:          <strong>MASCI Corporation</strong> (collectively, &ldquo;
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:99:          <strong>MASCI</strong>&rdquo;) as the{" "}
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:100:          <strong>MASCI Operations Platform</strong>, a customer-branded
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:112:          ForgedOps LLC and MASCI are independent companies. Neither is a
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:115:          MASCI is the deployed-for organization.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:130:          MASCI or to any User. The white-label deployment of the Platform as
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:131:          the MASCI Operations Platform reflects customer-branded presentation
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:133:          architecture, or operational methodology to MASCI.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:136:          Customer Data submitted by MASCI through the Platform remains the
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:137:          exclusive property of MASCI as set forth in Section 3 below. The
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:139:          Data (owned by MASCI) is intentional and material to these Terms.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:142:          MASCI&rsquo;s use of the Platform is limited to the rights expressly
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:143:          granted in MASCI&rsquo;s separate written services agreement with
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:151:          ForgedOps&trade;, the ForgedOps logo, the MASCI Operations Platform
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:160:          MASCI is granted a non-exclusive, non-transferable, revocable right
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:161:          to display the &ldquo;MASCI Operations Platform&rdquo; deployment
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:163:          attribution within MASCI&rsquo;s internal operations during the term
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:164:          of MASCI&rsquo;s services agreement. All other uses (including
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:176:          or operational use by MASCI.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:191:          information that MASCI or its users submit through the Platform
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:193:          MASCI.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:204:          MASCI may request export of its Customer Data in a standard format.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:214:          Subject to these Terms, ForgedOps LLC grants MASCI&rsquo;s
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:218:          Platform solely for legitimate MASCI business operations.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:221:          Use of the Platform is strictly limited to MASCI General Contractors
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:222:          Inc. and MASCI Corporation as a single legal entity.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:239:          <li>represent the Platform as MASCI&rsquo;s own product;</li>
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:245:            use the Platform outside the scope of MASCI&rsquo;s internal
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:272:          The Platform contains MASCI&rsquo;s internal business information,
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:279:          information solely for legitimate MASCI business purposes.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:320:          By using the Platform, MASCI authorizes ForgedOps&trade; to
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:331:          on-demand actions taken by authorized MASCI personnel.
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:346:          MASCI&rsquo;s administrative provisioning — the recipient
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:354:          the recipient&rsquo;s wireless carrier; ForgedOps&trade;, MASCI,
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:361:          contacting MASCI&rsquo;s administrator. Recipients may reply
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:416:          The Platform is a tool to support — not replace — MASCI&rsquo;s
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:429:          MASCI remains solely responsible for operational and regulatory
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:440:          BE LIABLE TO MASCI OR TO ANY USER FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:468:          MASCI agrees to defend, indemnify, and hold harmless ForgedOps
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:473:          <li>MASCI&rsquo;s use of the Platform;</li>
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:476:          <li>misuse of the Platform by MASCI or its users.</li>
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:483:          ForgedOps LLC or MASCI may suspend or terminate any
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:497:        <p>Material changes will be communicated to MASCI.</p>
+- `frontend/src/pages/legal/TermsOfService.jsx` — /app/frontend/src/pages/legal/TermsOfService.jsx:516:          For questions regarding these Terms, contact MASCI administration or
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:90:          of <strong>MASCI General Contractors Inc.</strong> and{" "}
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:91:          <strong>MASCI Corporation</strong> (collectively, &ldquo;
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:92:          <strong>MASCI</strong>&rdquo;) as the{" "}
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:93:          <strong>MASCI Operations Platform</strong>, a customer-branded
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:113:            information solely on behalf of MASCI.
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:116:            <strong>MASCI</strong> acts as the <strong>data controller</strong>{" "}
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:121:        <p>MASCI is solely responsible for:</p>
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:128:          ForgedOps LLC and MASCI are independent companies. Neither is a
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:143:          <li>Name, email, and phone number (as provided by MASCI for account access)</li>
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:158:          <li>All Customer Data is owned and controlled by MASCI</li>
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:177:          <li>Route reports, alerts, and notifications to appropriate MASCI personnel</li>
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:223:            termination, and DDoS protection for mascidocs.com.
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:260:          scales; material changes are communicated to MASCI in
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:297:          <li>Report suspected unauthorized access immediately to MASCI</li>
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:304:          Customer Data is retained according to MASCI&rsquo;s requirements
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:317:        <p>MASCI may request:</p>
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:323:          Requests are handled in accordance with MASCI&rsquo;s agreement with
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:331:          <strong>MASCI is solely responsible for:</strong>
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:355:          <li>How MASCI uses Customer Data</li>
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:363:            Demonstrating regulatory compliance on behalf of MASCI —
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:382:          lists, or on-demand actions taken by authorized MASCI
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:409:          Data, are not used for model training on MASCI data, and
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:427:            directed to your MASCI administrator
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:430:            MASCI (as data controller) is responsible for responding to such
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:435:          ForgedOps LLC will assist MASCI in fulfilling these requests as
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:457:          Material changes will be communicated to MASCI and, where
+- `frontend/src/pages/legal/PrivacyPolicy.jsx` — /app/frontend/src/pages/legal/PrivacyPolicy.jsx:470:          <br />→ Contact your MASCI administrator
 - `frontend/src/pages/FieldLeadershipFormPage.jsx` — /app/frontend/src/pages/FieldLeadershipFormPage.jsx:705:      toast.success(t("Submitted — assigned PM, jaymn, and safety have been notified."));
 - `frontend/src/pages/FieldLeadershipFormPage.jsx` — /app/frontend/src/pages/FieldLeadershipFormPage.jsx:730:          {/* Forms always show the M mark only (NOT the MASCI HUB lockup —
 - `frontend/src/pages/IncidentsDashboard.jsx` — /app/frontend/src/pages/IncidentsDashboard.jsx:88:      portalName="MASCI" portalRole="Safety Portal · Incidents & Near Misses"
@@ -515,7 +488,7 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 
 ## Sample Allowed Hits
 
-### historical_migration (6679)
+### historical_migration (6781)
 
 - `backend/scripts/seed_pm_demo_fixture.py`
 - `backend/scripts/track_15_65_parity_verify.py`
@@ -526,7 +499,7 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `memory/ACCOUNTABILITY_ENGINE_AUDIT.md`
 - `memory/ACTIVE_FINDINGS_VERIFICATION.md`
 
-### test_fixture (1865)
+### test_fixture (1860)
 
 - `backend/tests/odr/test_m1_option_c.py`
 - `backend/tests/odr/test_odr_m02.py`
@@ -559,7 +532,7 @@ _Generated 2026-06-22T17:27:18.175499+00:00_
 - `backend/dispatch_users.py`
 - `backend/doc_ids.py`
 
-### masci_data_library (373)
+### masci_data_library (380)
 
 - `frontend/src/components/MasciLogo.jsx`
 - `frontend/src/lib/companyInfo.js`

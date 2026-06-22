@@ -20,10 +20,18 @@ import { Button } from "@/components/ui/button";
  *   - Pre-Deploy Snapshot panel + hourly R2 auto-snapshots
  *   - 5-portal Hub (Field/Safety/PM/Shop/HR + Leadership)
  */
+import { useBranding } from "@/lib/BrandingProvider";
+
 export default function AdminGuide() {
+  const branding = useBranding();
+  const platformDisplay = branding.platform_display_name || "Operations Platform";
+  const platformShort = branding.platform_short_name || "Ops";
+  const marketingHost = (branding.marketing_url || "")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/+$/, "") || "your platform host";
   return (
     <PortalShell
-      portalName="MASCI"
+      portalName={platformShort}
       portalRole="Admin · Owner's Manual"
       pageTitle="How to run this thing"
       subtitle="One page, plain English. Print it, tape it to the wall."
@@ -43,21 +51,21 @@ export default function AdminGuide() {
         <div className="hidden print:block mb-6 pb-3 border-b-2 border-black">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-black text-lg">MASCI Operations Platform</div>
+              <div className="font-black text-lg">{platformDisplay}</div>
               <div className="text-xs uppercase tracking-[0.2em]">Owner's Manual · Print / Tape to wall</div>
             </div>
-            <div className="text-xs">mascidocs.com</div>
+            <div className="text-xs">{marketingHost}</div>
           </div>
         </div>
 
         {/* Screen hero */}
         <div className="mb-8 print:hidden">
           <div className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
-            MASCI Admin · Owner's Manual
+            {platformShort} Admin · Owner's Manual
           </div>
           <p className="text-slate-600 mt-3 max-w-2xl text-base">
             One page, plain English. Print it, tape it to the wall, hand it to whoever covers the office
-            when you're out. You do not need to understand any code to run the MASCI Operations Platform.
+            when you're out. You do not need to understand any code to run the platform.
           </p>
         </div>
 
@@ -689,7 +697,7 @@ export default function AdminGuide() {
         </Section>
 
         <div className="mt-10 pt-6 border-t-2 border-slate-200 text-center text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
-          Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™
+          Generated through {platformDisplay} — Powered by ForgedOps™ | © 2026 ForgedOps™
         </div>
       </div>
 

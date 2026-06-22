@@ -86,6 +86,7 @@ export function BrandingProvider({ children }) {
       const data = await r.json();
       try {
         window.sessionStorage.setItem("branding.tenantKey", data.tenant_key || "masci");
+        window.sessionStorage.setItem("branding.shortName", data.platform_short_name || "Ops");
       } catch { /* sessionStorage may be unavailable */ }
       setBranding({ ...NEUTRAL_DEFAULTS, ...data, loading: false, previewTenant: previewTk });
     } catch (_e) {

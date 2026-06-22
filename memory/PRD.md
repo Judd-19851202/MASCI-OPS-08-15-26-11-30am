@@ -10,7 +10,46 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.68 · White-Label Chrome Migration & Customer #2 Readiness · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ Phase 3 governance still GO)
+## Latest Track (2026-06-22 · TRACK 15.68A · White-Label Chrome Closure · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 47/60 (78%))
+
+### Shipped (verified)
+1. **SplashOverlay tenant-aware** — Customer #2 sees teal "C" monogram + tenant name; MASCI sees red M + caution stripe. Screenshots `/tmp/track_15_68a_customer2_splash.png` + `/tmp/track_15_68a_masci_splash.png` prove both render paths.
+2. **Backend PDF branding resolver** — `pdf_branding.get_white_label()` now reads `tenant_branding` via sync mongo client FIRST, falls back to env, then MASCI defaults. MASCI PDFs unchanged; Customer #2 PDFs render Customer #2 brand. `pdf_render.py` + `pm_welcome_pdf.py` wired up.
+3. **Legal pages tenant-gated** — `TermsOfService.jsx`/`PrivacyPolicy.jsx` render iter239/iter76 MASCI text only for MASCI tenant; Customer #2 sees a clean "pending tenant configuration" placeholder with their company_name and support_email.
+4. **AdminGuide migrated** — `portalName`, print-header text, marketing_url, body brand strings now read from BrandingProvider.
+5. **Page chrome sweep (5 high-leverage pages)** — `PublicExcavationForm.jsx`, `NewMeeting.jsx`, `NewIncident.jsx`, `ViewDailyReport.jsx`, `ViewInspection.jsx`.
+6. **`usePageTitle` rewrites "· MASCI" suffix patterns** to active tenant's short brand from sessionStorage.
+
+### Not shipped (Bucket A leakage that remains)
+- ❌ **Filename templates** (Phase 7) — `MASCI_DR_*.jpg`, `MASCI_Inspection_*.jpg`, `MASCI_jobs.xlsx` still hardcoded. Visible in every photo/PDF download for Customer #2.
+- ❌ Dispatch carrier `{label:"MASCI"}` default.
+- ❌ Admin tabs — `MaintainxP0Tab`, `MappingCleanupTab`, `AdminIntegrationCenter`, `AssetProfile`, `AdminDlsShiftQR`.
+- ❌ Long-tail page sub-headers — `SignIn`, `Hub`, `Dashboard`, `TrainingHub`, `OperationalGuidanceCenter`, `V2Compare`, `PublicTimeOff`, `HrTimeVerification`, `NewFleetDVIR`, `PublicTrenchSafety*`.
+- ❌ `company.company_name || "MASCI"` fallback in `ViewDailyReport.jsx:739` + `ViewInspection.jsx:485` — should use `branding.company_name`.
+
+### Proofs
+- Contamination scan: 491 → **464 disallowed** (-27 this fork).
+- Parity: **19/19** ✅.
+- Second-tenant sim: **40/40** ✅.
+- Backend `pdf_branding.get_white_label()` returns Customer #2 strings end-to-end under tenant context — proven via shell.
+
+### Six pillars (honest, no inflation)
+Powerful 8 · Simple 8 · Beautiful 7 · Trusted 8 · Proven 8 · Deployable 8 → **47/60 (78%)** — below 85% closure threshold. **Track 15.68A stays OPEN.** Improvement vs 15.68: +3 points (44 → 47).
+
+### Final-12 answers
+1. Customer-visible at baseline: **491** · 2. After 15.68A: **464 disallowed** (most are non-rendered MASCI text inside tenant-gated components) · 3. C2 sees MASCI on splash/login? **NO** ✅ · 4. C2 sees MASCI in PDFs? **NO** ✅ · 5. C2 sees MASCI in legal pages? **NO** ✅ · 6. C2 sees MASCI in admin chrome? **partial** · 7. C2 sees MASCI in page headers? **partial** · 8. C2 downloads MASCI-named files? **YES** ❌ · 9. MASCI looks same? **YES** ✅ · 10. Parity 19/19? **YES** ✅ · 11. Live emails sent? **NO** ✅ · 12. **GO for deploy with flags OFF; NO-GO for full white-label** ❌.
+
+### 13 deliverables (all published)
+`TRACK_15_68A_*.md` in `/app/memory/`: BaselineRescan, SplashLoginShellFix, PdfBrandingFix, LegalTemplateMigration, AdminChromeSweep, PageChromeSweep, FilenameExportSweep, Customer2VisualWalkthrough, MASCIParityCertification, FinalZeroLeakageScan, ProductionReadiness, SixPillarCertification, FinalCloseout.
+
+### Next track (15.68B): purely mechanical
+- Filename templates → tenant-slug.
+- ~50 long-tail page chrome strings.
+- ~25 admin tab labels.
+- Full 8-portal visual walkthrough.
+Estimated drop: 464 → <50 disallowed. Track 15.68 family closes only after this.
+
+## Prior Track (2026-06-22 · TRACK 15.68 · White-Label Chrome Migration & Customer #2 Readiness · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ Phase 3 governance still GO)
 
 ### What shipped this fork
 1. **TenantLogo infrastructure** — `MasciLogo.jsx` is now tenant-aware via `useBranding()`. MASCI tenant unchanged; non-MASCI renders `branding.logo_url` or a generic monogram fallback. `TenantLogo` export alias added.

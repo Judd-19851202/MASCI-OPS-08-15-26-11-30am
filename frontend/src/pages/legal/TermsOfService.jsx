@@ -1,36 +1,65 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Scale } from "lucide-react";
+import { useBranding } from "@/lib/BrandingProvider";
 
 /**
  * /legal/terms — Terms of Service.
  *
- * iter239 (2026-05-18) — branding/legal continuity refinement pass:
- *   • Platform identity standardized to "MASCI Operations Platform".
- *     Legacy "MASCI HUB™" designation retired from user-facing legal
- *     surfaces. "ForgedOps™" remains the underlying platform trademark.
- *   • Trademark/competitive-use section softened from defensive tone
- *     to standard enterprise-SaaS language.
- *   • Customer-data vs platform-IP separation re-stated cleanly.
- *   • Backup/disaster-recovery language preserved.
- *
- * Hardened in iter76 (legal/infra/branding standardization pass).
- * Existing approved language preserved verbatim where compatible; new
- * sections added per the iter76 spec for: trademark protection,
- * enterprise backup & disaster recovery, automation/AI future-proofing,
- * notifications, and regulatory compliance hardening.
- *
- * Relationship model:
- *   • ForgedOps LLC owns the Platform (code, software,
- *     infrastructure, mascidocs.com domain). User-facing branding
- *     uses "ForgedOps™" (trademark glyph). "LLC" reserved for legal
- *     references like this one.
- *   • MASCI is the customer that licenses the Platform and owns all
- *     Customer Data submitted through it.
- *   • The two companies are independent. No subsidiary, affiliate,
- *     partner, or co-owner relationship.
+ * Track 15.68A — tenant-aware. For the MASCI tenant the existing
+ * iter239 legal text renders unchanged. For any other tenant
+ * (Customer #2 etc.) we render a placeholder asking the tenant
+ * operator to supply their own terms — the only legitimate path,
+ * since legal text is a contract between the licensing customer and
+ * ForgedOps LLC, not boilerplate we can autogenerate.
  */
 export default function TermsOfService() {
+  const branding = useBranding();
+  const isMasci = !branding?.tenant_key || branding.tenant_key === "masci";
+  if (!isMasci) {
+    return <NonMasciLegalPlaceholder branding={branding} kind="Terms of Service" />;
+  }
+  return <MasciTerms />;
+}
+
+function NonMasciLegalPlaceholder({ branding, kind }) {
+  const company = branding.company_name || "your company";
+  const support = branding.support_email;
+  return (
+    <main className="min-h-screen bg-slate-50" data-testid="legal-tenant-placeholder">
+      <header className="border-b-2 border-slate-200 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
+          <Link to="/" className="text-slate-600 hover:text-slate-900">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <Scale className="w-5 h-5 text-slate-500" />
+          <h1 className="text-lg font-semibold text-slate-900">{kind}</h1>
+        </div>
+      </header>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+        <div className="rounded-lg border-2 border-dashed border-slate-300 bg-white p-8">
+          <h2 className="text-xl font-bold text-slate-900 mb-3">
+            {kind} pending tenant configuration
+          </h2>
+          <p className="text-slate-700 leading-relaxed mb-4">
+            {company} has not yet published a tenant-specific {kind.toLowerCase()}.
+            {support && (
+              <> Contact <span className="font-mono">{support}</span> to request a copy.</>
+            )}
+          </p>
+          <p className="text-slate-500 text-sm leading-relaxed">
+            The underlying platform is provided by ForgedOps LLC. Use of the
+            platform is governed by the contract between {company} and ForgedOps
+            LLC, supplemented by any {kind.toLowerCase()} {company} chooses to
+            publish here.
+          </p>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function MasciTerms() {
   return (
     <main className="min-h-screen bg-slate-50">
       <header className="border-b-2 border-slate-200 bg-white">

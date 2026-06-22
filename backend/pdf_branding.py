@@ -66,26 +66,91 @@ _DEFAULT_LEGAL = "MASCI General Contractors Inc. · 386-322-4500 · mascidocs.co
 
 
 def get_white_label() -> WhiteLabelConfig:
-    """Read PDF_BRAND_* env vars with MASCI fallbacks. Called fresh
-    per render so a config change takes effect on the next PDF without
-    a backend restart."""
+    """Read PDF brand from active tenant context first, then PDF_BRAND_*
+    env vars with MASCI fallbacks. Called fresh per render so a tenant
+    branding change takes effect on the next PDF without a backend
+    restart.
+
+    Track 15.68A: prioritises `tenant_branding` doc so Customer #2 PDFs
+    automatically inherit their branding (`company_name`,
+    `platform_display_name`, `logo_url`, `primary_color`) without env
+    edits or code changes."""
+    # Best-effort tenant lookup. Falls back to env on any error so MASCI
+    # behaviour is preserved when the tenant doc / DB is unreachable.
+    tenant_brand = _read_tenant_brand_sync()
     return WhiteLabelConfig(
-        brand_name=os.environ.get("PDF_BRAND_NAME", _DEFAULT_BRAND_NAME),
-        brand_long_name=os.environ.get(
-            "PDF_BRAND_LONG_NAME", _DEFAULT_BRAND_LONG,
+        brand_name=(
+            tenant_brand.get("brand_name")
+            or os.environ.get("PDF_BRAND_NAME")
+            or _DEFAULT_BRAND_NAME
         ),
-        brand_logo_url=os.environ.get("PDF_BRAND_LOGO_URL", ""),
-        brand_color=os.environ.get(
-            "PDF_BRAND_COLOR_HEX", _DEFAULT_BRAND_COLOR,
+        brand_long_name=(
+            tenant_brand.get("brand_long_name")
+            or os.environ.get("PDF_BRAND_LONG_NAME")
+            or _DEFAULT_BRAND_LONG
+        ),
+        brand_logo_url=(
+            tenant_brand.get("brand_logo_url")
+            or os.environ.get("PDF_BRAND_LOGO_URL", "")
+        ),
+        brand_color=(
+            tenant_brand.get("brand_color")
+            or os.environ.get("PDF_BRAND_COLOR_HEX")
+            or _DEFAULT_BRAND_COLOR
         ).lstrip("#"),
-        footer_tagline=os.environ.get(
-            "PDF_BRAND_FOOTER_TAGLINE", _DEFAULT_TAGLINE,
+        footer_tagline=(
+            tenant_brand.get("footer_tagline")
+            or os.environ.get("PDF_BRAND_FOOTER_TAGLINE")
+            or _DEFAULT_TAGLINE
         ),
-        company_legal_name=os.environ.get(
-            "PDF_BRAND_LEGAL_LINE", _DEFAULT_LEGAL,
+        company_legal_name=(
+            tenant_brand.get("company_legal_name")
+            or os.environ.get("PDF_BRAND_LEGAL_LINE")
+            or _DEFAULT_LEGAL
         ),
         platform_owner="ForgedOps\u2122",
     )
+
+
+def _read_tenant_brand_sync() -> dict:
+    """Synchronously read the active tenant's branding doc. Returns
+    {} on any error (DB down, tenant is MASCI, etc.). Uses a synchronous
+    Mongo client so it works inside WeasyPrint render contexts that
+    aren't async-aware."""
+    try:
+        from tenant_context import resolve_tenant_key, is_masci
+        tk = resolve_tenant_key()
+        # MASCI tenant — preserve env-driven path. The MASCI doc itself
+        # mirrors env defaults, but we shortcut here so MASCI PDFs are
+        # bit-for-bit identical to the pre-15.68A output.
+        if is_masci(tk):
+            return {}
+        from pymongo import MongoClient  # type: ignore
+        client = MongoClient(os.environ["MONGO_URL"], serverSelectionTimeoutMS=1000)
+        doc = client[os.environ["DB_NAME"]].tenant_branding.find_one(
+            {"_id": tk}, {"_id": 0}
+        ) or {}
+        client.close()
+        if not doc:
+            return {}
+        company = doc.get("company_name") or "Customer"
+        display = doc.get("platform_display_name") or "Operations Platform"
+        return {
+            "brand_name": company,
+            "brand_long_name": display,
+            "brand_logo_url": doc.get("logo_url") or "",
+            "brand_color": (doc.get("primary_color") or "").lstrip("#"),
+            "footer_tagline": (
+                f"Generated through {display} — Powered by ForgedOps™ | "
+                f"© 2026 ForgedOps™"
+            ),
+            "company_legal_name": (
+                f"{company}"
+                + (f" · {doc.get('support_email')}" if doc.get("support_email") else "")
+            ),
+        }
+    except Exception:
+        return {}
 
 
 # ───────────────────────── ENVIRONMENT TAG ─────────────────────────────────

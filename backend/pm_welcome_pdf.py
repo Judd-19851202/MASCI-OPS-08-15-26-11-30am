@@ -63,6 +63,19 @@ def render_pm_welcome_pdf(
     m_mark = _b64_data_uri("masci-mark.png")
     mark = _b64_data_uri("masci-mark.png")
 
+    # Track 15.68A · tenant-aware brand strings.
+    try:
+        from pdf_branding import get_white_label as _gw
+        wl = _gw()
+    except Exception:
+        from pdf_branding import WhiteLabelConfig
+        wl = WhiteLabelConfig(
+            brand_name="MASCI", brand_long_name="MASCI Operations Platform",
+            brand_logo_url="", brand_color="c8102e",
+            footer_tagline="", company_legal_name="",
+            platform_owner="ForgedOps™",
+        )
+
     # If no temp password is provided (e.g. admin reusing this PDF),
     # blank the tear-off so paper isn't wasted on a credential field.
     pw_block = ""
@@ -162,7 +175,7 @@ def render_pm_welcome_pdf(
 <body>
 
   <div class="header">
-    <img class="lockup" src="{m_mark}" alt="MASCI" style="width: 64px; height: auto;" />
+    <img class="lockup" src="{m_mark}" alt="{wl.brand_name}" style="width: 64px; height: auto;" />
     <div class="header-meta">
       <div class="tag">PM Portal · Welcome</div>
       <div>Issued: {today}</div>
@@ -222,8 +235,8 @@ def render_pm_welcome_pdf(
   {pw_block}
 
   <div class="footer">
-    <span>MASCI · Project Management Portal</span>
-    <img class="mark" src="{mark}" alt="MASCI" />
+    <span>{wl.brand_name} · Project Management Portal</span>
+    <img class="mark" src="{mark}" alt="{wl.brand_name}" />
     <span>{today}</span>
   </div>
   {_t1541_audit("pm_welcome", pm)}

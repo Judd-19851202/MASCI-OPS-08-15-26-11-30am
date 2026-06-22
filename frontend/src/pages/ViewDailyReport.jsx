@@ -445,7 +445,7 @@ export default function ViewDailyReport() {
           </div>
         </ReportSection>
 
-        <ReportSection number="04" title={`${t("MASCI Crews")} (${data.masci_crews?.length || 0})`}>
+        <ReportSection number="04" title={`${t("Crews")} (${data.masci_crews?.length || 0})`}>
           <Table
             headers={[t("Name"), t("Trade / Role"), t("Start"), t("Stop"), t("Lunch"), t("Hrs"), t("Work Performed")]}
             rows={[
@@ -490,7 +490,7 @@ export default function ViewDailyReport() {
                   ]]
                 : []),
             ]}
-            emptyText={t("No MASCI crews on site.")}
+            emptyText={t("No crews on site.")}
           />
         </ReportSection>
 

@@ -1,31 +1,60 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { useBranding } from "@/lib/BrandingProvider";
 
 /**
- * /legal/privacy — Privacy Policy.
- *
- * Hardened in iter76 (legal/infra/branding standardization pass).
- * Existing approved language preserved; new sections added per iter76
- * spec for: subprocessor disclosure (Cloudflare R2 redundant object
- * storage), enhanced backup/disaster-recovery language, notifications
- * consent, automated processing & AI features, and a strengthened
- * compliance disclaimer.
- *
- * iter239 (2026-05-18) — branding continuity refinement:
- *   • Platform identity standardized to "MASCI Operations Platform".
- *     Legacy "MASCI HUB" designation retired from user-facing legal
- *     surfaces. "ForgedOps™" remains the underlying platform trademark.
- *   • Customer-data vs platform-IP separation re-stated cleanly.
- *
- * Roles:
- *   • ForgedOps LLC = data PROCESSOR (owns and operates the
- *     Platform). UI-facing branding uses "ForgedOps™".
- *   • MASCI = data CONTROLLER (owns all Customer Data submitted
- *     through the MASCI Operations Platform deployment).
- *   • The two companies are independent.
+ * /legal/privacy — Privacy Policy. Track 15.68A tenant-aware: MASCI
+ * tenant renders the original iter76/239 text; other tenants render a
+ * placeholder asking the operator to publish their own privacy notice.
  */
 export default function PrivacyPolicy() {
+  const branding = useBranding();
+  const isMasci = !branding?.tenant_key || branding.tenant_key === "masci";
+  if (!isMasci) {
+    return <NonMasciPrivacyPlaceholder branding={branding} />;
+  }
+  return <MasciPrivacy />;
+}
+
+function NonMasciPrivacyPlaceholder({ branding }) {
+  const company = branding.company_name || "your company";
+  const support = branding.support_email;
+  return (
+    <main className="min-h-screen bg-slate-50" data-testid="privacy-tenant-placeholder">
+      <header className="border-b-2 border-slate-200 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
+          <Link to="/" className="text-slate-600 hover:text-slate-900">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <ShieldCheck className="w-5 h-5 text-slate-500" />
+          <h1 className="text-lg font-semibold text-slate-900">Privacy Policy</h1>
+        </div>
+      </header>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+        <div className="rounded-lg border-2 border-dashed border-slate-300 bg-white p-8">
+          <h2 className="text-xl font-bold text-slate-900 mb-3">
+            Privacy Policy pending tenant configuration
+          </h2>
+          <p className="text-slate-700 leading-relaxed mb-4">
+            {company} has not yet published a tenant-specific Privacy Policy.
+            {support && (
+              <> Contact <span className="font-mono">{support}</span> to request a copy.</>
+            )}
+          </p>
+          <p className="text-slate-500 text-sm leading-relaxed">
+            The underlying platform is operated by ForgedOps LLC and any
+            personal data processed is subject to the contract between {company}
+            (controller) and ForgedOps LLC (processor). Tenant-specific privacy
+            terms are published by {company}.
+          </p>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function MasciPrivacy() {
   return (
     <main className="min-h-screen bg-slate-50">
       <header className="border-b-2 border-slate-200 bg-white">

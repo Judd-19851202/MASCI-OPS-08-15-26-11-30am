@@ -2684,12 +2684,26 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
         record.get("report_date") or record.get("date") or record.get("incident_date")
     )
 
+    # Track 15.68A · resolve tenant-aware PDF brand chrome.
+    try:
+        from pdf_branding import get_white_label as _get_wl  # noqa: PLC0415
+        _wl = _get_wl()
+    except Exception:
+        from pdf_branding import WhiteLabelConfig
+        _wl = WhiteLabelConfig(
+            brand_name="MASCI", brand_long_name="MASCI Operations Platform",
+            brand_logo_url="", brand_color="c8102e",
+            footer_tagline="Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™",
+            company_legal_name="MASCI General Contractors Inc.",
+            platform_owner="ForgedOps™",
+        )
+
     html = f"""<!doctype html>
-<html><head><meta charset="utf-8"><title>{escape(title)} · MASCI</title>
+<html><head><meta charset="utf-8"><title>{escape(title)} · {escape(_wl.brand_name)}</title>
 <style>
   @page {{ size: Letter; margin: 0.5in 0.5in 0.85in 0.5in;
            @bottom-left {{
-             content: "Generated through MASCI Operations Platform \u2014 Powered by ForgedOps\u2122 | \u00A9 2026 ForgedOps\u2122";
+             content: "{_wl.footer_tagline}";
              font-family: 'Courier New', monospace; font-size: 7pt;
              letter-spacing: 0.16em; text-transform: uppercase;
              color: #334155; font-weight: bold;
@@ -2762,10 +2776,10 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   {audit_footer_css}
 </style></head><body>
   <header class="hdr">
-    <img src="{logo_uri}" alt="MASCI" />
+    <img src="{logo_uri}" alt="{_wl.brand_name}" />
     <div class="hdr-r">
       <div class="hdr-title">{escape(title)}</div>
-      <div class="hdr-kicker">MASCI Operations Platform</div>
+      <div class="hdr-kicker">{escape(_wl.brand_long_name)}</div>
       {('<div class="hdr-docid" style="font-family:Courier New,monospace;font-size:11pt;font-weight:900;color:#c8102e;letter-spacing:0.05em;margin-top:6px">Ref &middot; ' + escape(canonical_ref) + '</div>') if canonical_ref else ''}
     </div>
   </header>
@@ -2899,7 +2913,7 @@ def render_email_html(
     mark_html = (
         f'<div style="background:#0f172a;border-radius:6px 6px 0 0;'
         f'padding:18px 0;text-align:center;margin:-24px -24px 18px -24px;">'
-        f'<img src="{mark_uri}" alt="MASCI" width="56" height="56" '
+        f'<img src="{mark_uri}" alt="{_wl.brand_name}" width="56" height="56" '
         f'style="display:inline-block;width:56px;height:56px;border:0;outline:none;" /></div>'
         if mark_uri
         else ""

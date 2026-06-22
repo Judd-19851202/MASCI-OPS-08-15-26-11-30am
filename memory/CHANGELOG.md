@@ -2,6 +2,31 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.68A · White-Label Chrome Closure · 🟡 OPEN · ❌ NO-GO for full white-label
+
+**Shipped (Track 15.68A)**
+- `SplashOverlay.jsx` tenant-aware via `useBranding()`. Customer #2 → teal "C" monogram; MASCI → original red M mark + caution stripe.
+- `pdf_branding.get_white_label()` now reads `tenant_branding` doc first (sync pymongo). MASCI PDFs bit-for-bit identical; Customer #2 PDFs render Customer #2 brand. `pdf_render.py` + `pm_welcome_pdf.py` wired up.
+- Legal pages (`TermsOfService.jsx`, `PrivacyPolicy.jsx`) tenant-gated: MASCI text only for MASCI tenant; Customer #2 sees "pending tenant configuration" placeholder.
+- `AdminGuide.jsx` migrated (portalName, print header, marketing host, brand strings).
+- Page chrome sweep — `PublicExcavationForm`, `NewMeeting`, `NewIncident`, `ViewDailyReport`, `ViewInspection`.
+- `usePageTitle` rewrites trailing "· MASCI" suffix patterns to active tenant brand.
+
+**Not shipped (Track 15.68B candidates)**
+- ❌ Filename templates (`MASCI_DR_*.jpg`, `MASCI_Inspection_*.jpg`).
+- ❌ Dispatch carrier `{label:"MASCI"}` default.
+- ❌ 5+ admin tab files (MaintainX/Mapping/IntegrationCenter/AssetProfile/AdminDlsShiftQR).
+- ❌ ~10 long-tail page sub-headers (SignIn/Hub/Dashboard/TrainingHub/OperationalGuidanceCenter/etc.).
+- ❌ `company.company_name || "MASCI"` fallback literals in ViewDailyReport.jsx:739 + ViewInspection.jsx:485.
+
+**Contamination scan**: 491 → **464 disallowed** (-27). Parity 19/19. Second-tenant sim 40/40.
+
+**Six pillars (honest)**: 8+8+7+8+8+8 = **47/60 (78%)** — below 85% closure. **Track 15.68A stays OPEN.**
+
+**13 deliverables in `/app/memory/`**: TRACK_15_68A_BASELINE_RESCAN · SPLASH_LOGIN_SHELL_FIX · PDF_BRANDING_FIX · LEGAL_TEMPLATE_MIGRATION · ADMIN_CHROME_SWEEP · PAGE_CHROME_SWEEP · FILENAME_EXPORT_SWEEP · CUSTOMER_2_VISUAL_WALKTHROUGH · MASCI_PARITY_CERTIFICATION · FINAL_ZERO_LEAKAGE_SCAN · PRODUCTION_READINESS · SIX_PILLAR_CERTIFICATION · FINAL_CLOSEOUT.
+
+**Verdict**: GO for deploy with `EMAIL_ROUTING_V2=false`; NO-GO for full white-label until Track 15.68B closes filename + admin chrome + page sub-header leaks.
+
 ## 2026-06-22 — TRACK 15.68 · White-Label Chrome Migration · 🟡 OPEN · ❌ NO-GO for full white-label
 
 **Shipped foundation (Track 15.68)**

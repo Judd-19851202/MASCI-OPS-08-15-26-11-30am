@@ -460,7 +460,7 @@ export default function NewIncident({ publicMode = false }) {
         <Section number="01" title={t("Report Information")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("MASCI Job")}
+              {t("Job")}
             </Label>
             <div className="mt-2">
               <JobPicker
@@ -916,7 +916,7 @@ export default function NewIncident({ publicMode = false }) {
               <Input
                 value={data.asset_number || ""}
                 onChange={(e) => set("asset_number", e.target.value)}
-                placeholder={t("MASCI asset # (if our equipment)")}
+                placeholder={t("Asset # (if our equipment)")}
                 className="h-11 text-sm border-2 border-slate-300"
                 data-testid="incident-asset-number"
               />
@@ -982,7 +982,7 @@ export default function NewIncident({ publicMode = false }) {
                 <SupplierCombo
                   value={data.person_employer}
                   onChange={(v) => set("person_employer", v)}
-                  placeholder="MASCI / subcontractor name"
+                  placeholder="Company / subcontractor name"
                   testId="input-person-employer"
                 />
               </div>
@@ -1128,7 +1128,7 @@ export default function NewIncident({ publicMode = false }) {
               Equipment involved (optional)
             </Label>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Link to a specific MASCI equipment unit. Improves traceability for the Safety team&apos;s corrective-action lookup.
+              Link to a specific equipment unit. Improves traceability for the Safety team&apos;s corrective-action lookup.
             </p>
             <div className="mt-1">
               <MasterLookupCombobox
@@ -1290,7 +1290,7 @@ export default function NewIncident({ publicMode = false }) {
                   data-testid={`witness-type-${i}`}
                 >
                   <option value="">Witness type…</option>
-                  <option value="employee">Employee (MASCI)</option>
+                  <option value="employee">Employee (Our Company)</option>
                   <option value="subcontractor">Subcontractor</option>
                   <option value="public">Member of public</option>
                   <option value="police">Law enforcement</option>
