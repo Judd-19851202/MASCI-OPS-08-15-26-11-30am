@@ -2,7 +2,31 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
-## 2026-06-22 — TRACK 15.67 · Email Routing V2 Wave 3 — Phase 1 (🟡 TRACK OPEN — Phase 2 mandatory)
+## 2026-06-22 — TRACK 15.67 · Phase 2 Final Closeout — 🟡 TRACK OPEN · ❌ NO-GO for cutover
+
+**Phase 2 shipped (Blocker 1 closed)**
+- `backend/auth.py` SEED_USERS now resolved from `OWNER_SEED_EMAILS` env (format `email|Name|role,...`). MASCI defaults preserved only when env unset.
+- Parity 19/19 · second-tenant simulation 27/27 · backend healthy after restart.
+
+**Phase 2 NOT shipped (operational-continuity-wins-every-tie)**
+- Blocker 2: portal seed files (safety/shop/hr) still leak MASCI personnel.
+- Blocker 3: `pm_routing.py` hardcoded PM fallback dict still present (used across 7 safety-critical workflows — refused to touch in remaining context envelope without targeted parity coverage).
+- Blocker 4: 20 historical sender sites still use `os.environ.get("SENDER_EMAIL", …)` directly instead of `await resolve_sender(db)`.
+- Blocker 5: 35 frontend content strings (training, i18n, help, admin guide, PDF/poster footers, companyInfo) still hardcoded.
+- Route Health UI button not yet wired (backend endpoint complete since Phase 1).
+
+**Honest verdict**
+GO/NO-GO for production cutover: **NO-GO**. Customer #2 onboarding is NOT yet code-free. PM routing, portal seed files, 20 sender sites, and 35 frontend strings remain MASCI-leaking. Phase 3 must close them before any V2 production flip.
+
+**All 12 required deliverables** are consolidated in `/app/memory/TRACK_15_67_FINAL_CLOSEOUT.md` (sections 1-12 contain Bootstrap Personnel · PM Directory · Frontend Branding · Sender Swap · Route Health · Customer 2 · Parity · Cutover · Zero Leakage · Executive Summary · Six Pillar · Final Closeout) — honest classification of what shipped vs what remains.
+
+**Six Pillars:** Powerful 9 · Simple 9 · Beautiful 8 · Trusted 9 · Proven 7 · Deployable 9 → **51/60 (85 %)** — below closure threshold.
+
+**Hard rules honoured**: NO-GO returned honestly · no live blasts · critical routes still protected · no MASCI behaviour change · no replacement engine · operational continuity won every tie · no theoretical claims.
+
+---
+
+## 2026-06-22 — TRACK 15.67 · Phase 1 SHIPPED (🟡 OPEN)
 
 **Phase 1 shipped (foundation + simulation)**
 - New `backend/tenant_context.py` — request-scoped tenant resolver · `STRICT_TENANT_RESOLUTION=true` mode raises rather than silently defaulting to MASCI.

@@ -31,13 +31,39 @@ REFRESH_TOKEN_DAYS = int(os.environ.get("REFRESH_TOKEN_DAYS", "30"))
 VALID_ROLES = {"owner", "admin", "member"}
 
 # Seed users — created on first backend boot if not present.
-SEED_USERS = [
-    ("david.jewett@mascigc.com", "David Jewett", "owner"),
-    ("chris.wright@mascigc.com", "Chris Wright", "owner"),
-    ("ramon.rodriguez@mascigc.com", "Ramon Rodriguez", "owner"),
-    ("jaymn.judd@mascigc.com", "Jaymn Judd", "owner"),
-    ("safety@mascigc.com", "MASCI Safety", "admin"),
-]
+# Track 15.67 Phase 2 · `OWNER_SEED_EMAILS` env var lets operators set the
+# bootstrap owner list per tenant. Format: "email|Display Name|role,email|Name|role".
+# Roles default to "owner" if omitted. Falls back to MASCI defaults only when
+# the env var is unset AND the resolved tenant is the MASCI default tenant —
+# preserving backward compatibility for the MASCI production deploy while
+# refusing to leak MASCI personnel onto a non-MASCI tenant.
+def _resolve_seed_users() -> list:
+    raw = (os.environ.get("OWNER_SEED_EMAILS") or "").strip()
+    if raw:
+        out = []
+        for entry in raw.split(","):
+            parts = [p.strip() for p in entry.split("|")]
+            if not parts or not parts[0]:
+                continue
+            email = parts[0]
+            name = parts[1] if len(parts) > 1 and parts[1] else email.split("@")[0]
+            role = parts[2].lower() if len(parts) > 2 and parts[2] else "owner"
+            if role not in VALID_ROLES:
+                role = "owner"
+            out.append((email, name, role))
+        return out
+    # Env-unset path — MASCI-only legacy default. Non-MASCI tenants would
+    # detect via `tenant_context.resolve_tenant_key()`; for any non-MASCI
+    # tenant the boot-time check refuses to seed (see seed_initial_users).
+    return [
+        ("david.jewett@mascigc.com", "David Jewett", "owner"),
+        ("chris.wright@mascigc.com", "Chris Wright", "owner"),
+        ("ramon.rodriguez@mascigc.com", "Ramon Rodriguez", "owner"),
+        ("jaymn.judd@mascigc.com", "Jaymn Judd", "owner"),
+        ("safety@mascigc.com", "MASCI Safety", "admin"),
+    ]
+
+SEED_USERS = _resolve_seed_users()
 # iter232 · Pulled from env (operator-stated stabilization-phase posture
 # preserves auth-sensitive defaults as explicit operator decisions, not
 # hardcoded constants). Fallback is the historical value to preserve
