@@ -2,7 +2,38 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
-## 2026-06-22 — TRACK 15.66 · Email Routing V2 Wave 2: Admin Control Panel + Full Send-Site Sweep + Hard-Coded Email Elimination (🟢 Engineering DONE · production cutover remains operator-authorised)
+## 2026-06-22 — TRACK 15.67 · Email Routing V2 Wave 3 — Phase 1 (🟡 TRACK OPEN — Phase 2 mandatory)
+
+**Phase 1 shipped (foundation + simulation)**
+- New `backend/tenant_context.py` — request-scoped tenant resolver · `STRICT_TENANT_RESOLUTION=true` mode raises rather than silently defaulting to MASCI.
+- New `backend/branding_resolver.py` — sender identity resolver · env fallback for `SENDER_EMAIL`/`REPLY_TO_EMAIL` gated to MASCI tenant only · raises `UnconfiguredSenderError` for non-MASCI tenants without branding.
+- `email_routing_v2.current_tenant_key()` patched to delegate to `tenant_context.resolve_tenant_key()`.
+- New endpoint `POST /api/admin/email-routing/v2/route-health` — one-click dry-run of all routes · returns green/amber/red summary + per-route status reason · writes one audit row per route.
+- New script `backend/scripts/track_15_67_second_tenant_simulation.py` — creates a synthetic tenant, runs 27 leakage-proof assertions, cleans up.
+
+**Results**
+- Second-tenant simulation: **27/27 PASS** (tenant resolution · per-route tenant scoping · no MASCI recipients on any route · critical-not-empty · sender from branding · no MASCI sender leak · audit rows carry tenant_key · unknown-route does not leak to MASCI · non-MASCI tenant refuses env fallback).
+- Parity: 19/19 match · 0 mismatch · 0 critical-empty.
+- Route Health live: green=1 · amber=18 · red=0 · total=19.
+- Backend health green.
+
+**Customer #2 leakage scoreboard (Phase 1)**
+- Routing: ✅ · Sender: ✅ · Branding: ✅ · Audit: ✅ · Route validation UI: ✅ (backend)
+- PM routing: ❌ (Phase 2) · Bootstrap personnel: ❌ (Phase 2) · Frontend content templating: ❌ (Phase 2)
+
+**Phase 2 — mandatory before track closes / before any production cutover**
+- `auth.py OWNER_SEED` → env-driven seed list.
+- Portal `*_users.py` seed migration.
+- `pm_routing.py` hardcoded PM fallback removal.
+- ~20 remaining sender-swap sites wired to `resolve_sender(db)`.
+- Frontend branding context + 35 content-string template wiring.
+- Production cutover readiness package + final certification.
+
+**Hard rules honoured (Phase 1):** no cutover · no V2 production flip · no MASCI leakage in proven surfaces · no live email blast · critical-route protections preserved · no replacement engine · track explicitly OPEN.
+
+---
+
+## 2026-06-22 — TRACK 15.66 · Email Routing V2 Wave 2 (🟢 Engineering DONE · production cutover remains operator-authorised)
 
 **Shipped (Phase 1 + Phase 2 in one open track)**
 - Backend per-route admin V2 endpoints: list, get, update, dry-run/controlled test, audit slice, branding get/put — all admin-token gated.

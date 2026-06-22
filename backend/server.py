@@ -13525,6 +13525,89 @@ async def admin_v2_branding_put(
     return {"ok": True, "changed": True, "doc": doc}
 
 
+@_email_router.post("/admin/email-routing/v2/route-health")
+async def admin_v2_route_health(_: bool = Depends(require_admin)):
+    """Track 15.67 · One-click validation of every route for the active
+    tenant. Dry-runs each route (no Resend send), writes an audit row
+    per route, and returns a green/amber/red summary so an operator can
+    verify the whole routing surface before any production change."""
+    tk = _current_tenant_key()
+    cursor = db.email_routes.find({"tenant_key": tk}, {"_id": 0}).sort("route_key", 1)
+    routes = await cursor.to_list(100)
+    try:
+        from email_routing_v2 import write_audit as _v2_audit  # noqa: PLC0415
+    except Exception:
+        _v2_audit = None
+    results = []
+    summary = {"green": 0, "amber": 0, "red": 0}
+    now_iso = datetime.now(timezone.utc).isoformat()
+    for r in routes:
+        rk = r["route_key"]
+        to = r.get("to") or []
+        cc = r.get("cc") or []
+        bcc = r.get("bcc") or []
+        enabled = bool(r.get("enabled", True))
+        critical = bool(r.get("critical", False))
+        recip_total = len(to) + len(cc) + len(bcc)
+        # Severity classification
+        if critical and enabled and not to:
+            status = "red"  # critical route can't deliver
+        elif enabled and recip_total == 0 and rk != "ACCOUNT_INVITES_FROM" and rk != "PASSWORD_RESET_MONITORING_TO":
+            status = "amber"
+        elif not enabled and not critical:
+            status = "amber"  # explicitly disabled, but flag for visibility
+        else:
+            status = "green"
+        # Stale-test pill: if never tested or > 30 days
+        last_tested = r.get("last_tested_at")
+        stale = True
+        if last_tested:
+            try:
+                from datetime import datetime as _dt
+                lt = _dt.fromisoformat(last_tested.replace("Z", "+00:00"))
+                age_days = (datetime.now(timezone.utc) - lt).days
+                stale = age_days > 30
+            except Exception:
+                stale = True
+        if status == "green" and stale:
+            status = "amber"  # never-tested or stale critical route → amber
+        summary[status] += 1
+        if _v2_audit is not None:
+            try:
+                await _v2_audit(
+                    db, route_key=rk, tenant_key=tk, source="db",
+                    to_count=len(to), cc_count=len(cc), bcc_count=len(bcc),
+                    subject="[ROUTE HEALTH] dry-run", status="dry_run",
+                    calling_module="route_health", dry_run=True,
+                )
+            except Exception:
+                pass
+        results.append({
+            "route_key": rk,
+            "display_name": r.get("display_name"),
+            "critical": critical,
+            "enabled": enabled,
+            "to_count": len(to), "cc_count": len(cc), "bcc_count": len(bcc),
+            "last_tested_at": last_tested,
+            "stale": stale,
+            "status": status,
+            "reason": (
+                "critical route has empty TO" if (critical and enabled and not to) else
+                "no recipients configured" if (enabled and recip_total == 0 and rk not in ("ACCOUNT_INVITES_FROM", "PASSWORD_RESET_MONITORING_TO")) else
+                "explicitly disabled" if not enabled else
+                "never tested / stale (>30d)" if stale else
+                "healthy"
+            ),
+        })
+    return {
+        "tenant_key": tk,
+        "ts": now_iso,
+        "summary": summary,
+        "total": len(routes),
+        "results": results,
+    }
+
+
 # ─────────────────────────────────────────────────────────────────────────
 # Photo Storage (iter64): S3-compatible cloud storage admin endpoints.
 # Lets admin: (1) check connectivity to R2/S3, (2) run a dry-run migration

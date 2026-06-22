@@ -78,9 +78,15 @@ DEFAULT_TENANT_KEY = "masci"
 
 
 def current_tenant_key() -> str:
-    """Resolve the active tenant. Wave 1 returns the env-configured tenant
-    (default ``masci``). Wave 3 replaces this with request-scoped middleware."""
-    return (os.environ.get("EMAIL_ROUTING_TENANT") or DEFAULT_TENANT_KEY).strip().lower() or DEFAULT_TENANT_KEY
+    """Resolve the active tenant. Track 15.67 · uses the shared
+    tenant_context resolver so future-tenant code paths see consistent
+    behaviour. Wave 3 will replace the env default with request-scoped
+    middleware."""
+    try:
+        from tenant_context import resolve_tenant_key  # noqa: PLC0415
+        return resolve_tenant_key()
+    except Exception:
+        return (os.environ.get("EMAIL_ROUTING_TENANT") or DEFAULT_TENANT_KEY).strip().lower() or DEFAULT_TENANT_KEY
 
 
 # --- Feature flag ----------------------------------------------------------

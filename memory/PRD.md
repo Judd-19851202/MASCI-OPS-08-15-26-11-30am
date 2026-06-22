@@ -10,7 +10,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.66 · Email Routing V2 Wave 2: Admin Control Panel + Full Send-Site Sweep + Hard-Coded Email Elimination · 🟢 Engineering DONE · Production cutover remains operator-authorised)
+## Latest Track (2026-06-22 · TRACK 15.67 · Email Routing V2 Wave 3: Tenant-Safe White-Label Completion · 🟡 OPEN — Phase 1 of 2 shipped · Phase 2 must close OWNER_SEED + PM fallback + frontend branding wiring + cutover plan)
+
+### Phase 1 (this session) — what shipped
+- `backend/tenant_context.py` — request-scoped tenant resolver with `STRICT_TENANT_RESOLUTION` mode (no silent MASCI fallback).
+- `backend/branding_resolver.py` — sender identity resolver; env fallback gated to MASCI tenant only.
+- `email_routing_v2.current_tenant_key()` now delegates to `tenant_context.resolve_tenant_key()`.
+- `POST /api/admin/email-routing/v2/route-health` — one-click validation of all routes (green/amber/red).
+- `backend/scripts/track_15_67_second_tenant_simulation.py` — synthetic tenant proof harness (creates → tests → cleans up).
+
+### Live results
+- Second-tenant simulation: **27/27 PASS** · 0 MASCI leakage on resolver / sender / audit / branding paths.
+- Parity verification: **19/19 match · 0 mismatch · 0 critical-empty**.
+- Route Health endpoint live: `summary={green:1, amber:18, red:0, total:19}` (zero red = no critical-empty).
+- Backend health green after every restart.
+
+### Phase 2 (next session — track remains OPEN)
+- `auth.py OWNER_SEED` → env-driven `OWNER_SEED_EMAILS` seed list.
+- `safety_users.py` / `shop_users.py` / `hr_users.py` seed migration.
+- `pm_routing.py` hardcoded PM fallback removal · route admin-fallback through `ADMIN_DEAD_LETTER_TO`.
+- Remaining sender swap (~20 sites) → `resolve_sender(db)`.
+- Frontend branding context + `{{tenant.support_email}}` template (35 content strings).
+- Production cutover readiness package · final certification.
+
+### Customer #2 onboarding scoreboard (post-Phase-1)
+- Independent routing: ✅ · Independent sender: ✅ · Independent branding: ✅
+- Independent PM routing: ❌ (Phase 2) · Avoid MASCI personnel inheritance: ❌ (Phase 2)
+- Validate all routes from Admin UI: ✅ · Change routing without code: ✅
+- Safe `EMAIL_ROUTING_V2` cutover: 🟡 partial — engine ready · cutover should wait for Phase 2 bootstrap/PM cleanup
+
+### Deliverables (Phase 1 · 7 of 12 in `/app/memory/`)
+TRACK_15_67_CUSTOMER_2_LEAKAGE_AUDIT · _TENANT_RESOLUTION · _SENDER_IDENTITY_SWAP · _ROUTE_HEALTH_CHECK · _SECOND_TENANT_SIMULATION · _FINAL_ZERO_TOLERANCE_AUDIT · _PARITY_AND_REGRESSION.
+
+### Phase 2 deliverables pending
+TRACK_15_67_BOOTSTRAP_PERSONNEL_MIGRATION · _PM_DIRECTORY_FALLBACK_REMOVAL · _FRONTEND_BRANDING_WIRING · _PRODUCTION_CUTOVER_READINESS · _SIX_PILLAR_CERTIFICATION.
+
+### Hard-rule compliance (Phase 1)
+✅ No production cutover · ✅ no V2 production flip · ✅ no MASCI leakage in proven surfaces · ✅ Customer #2 simulation passes 27/27 · ✅ no live email blast · ✅ critical-route protections preserved · ✅ no replacement routing engine · ✅ track marked OPEN with explicit Phase 2 scope.
+
+## Prior Track (2026-06-22 · TRACK 15.66 · Email Routing V2 Wave 2 · 🟢 Engineering DONE)
 
 ### What shipped (Phase 1 + Phase 2 in one open track)
 - Backend: per-route admin V2 endpoints (`GET/PUT /admin/email-routing/v2/routes`, `POST .../{key}/test`, `GET .../audit`, `GET/PUT .../branding`) — added in `server.py`.
