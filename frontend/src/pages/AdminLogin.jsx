@@ -30,10 +30,13 @@ import { clearShopToken } from "@/lib/shopAuth";
 import { clearHrToken } from "@/lib/hrAuth";
 import { passkeySupported, platformAuthenticatorAvailable, signInWithPasskey } from "@/lib/passkeys";
 import { useT } from "@/lib/i18n";
+import { useBranding } from "@/lib/BrandingProvider";
 import { toast } from "sonner";
 
 export default function AdminLogin() {
   const { t } = useT();
+  const branding = useBranding();
+  const brandShort = branding?.platform_short_name || branding?.company_name || "Operations";
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -338,7 +341,7 @@ export default function AdminLogin() {
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          MASCI · Office Use Only
+          {brandShort} · Office Use Only
         </div>
         <ForgedOpsAttribution variant="login" />
       </footer>

@@ -142,7 +142,7 @@ function PillCount({ label, value, tone = "slate", testid }) {
   );
 }
 
-// Modal for picking a MASCI employee / equipment manually
+// Modal for picking a company employee / equipment manually
 function PickerDialog({ open, kind, onClose, onPick }) {
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
@@ -183,7 +183,7 @@ function PickerDialog({ open, kind, onClose, onPick }) {
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="mcc-picker-dialog">
         <DialogHeader>
-          <DialogTitle>Pick {kind === "asset" ? "MASCI equipment" : "MASCI employee"}</DialogTitle>
+          <DialogTitle>Pick {kind === "asset" ? "company equipment" : "company employee"}</DialogTitle>
           <DialogDescription>
             Only unmapped {kind === "asset" ? "equipment" : "employees"} appear here.
             Start typing to filter.
@@ -310,7 +310,7 @@ function DriverQueue({ data, onRefresh, mode = "admin" }) {
               <th className="text-left px-2 py-1">Driver</th>
               <th className="text-left px-2 py-1">Email / Phone</th>
               <th className="text-left px-2 py-1">Motive Status</th>
-              <th className="text-left px-2 py-1">Existing MASCI Match</th>
+              <th className="text-left px-2 py-1">Existing Match</th>
               <th className="text-left px-2 py-1">Candidate</th>
               <th className="text-right px-2 py-1">Actions</th>
             </tr>
@@ -487,7 +487,7 @@ function AssetQueue({ data, onRefresh, mode = "admin" }) {
               <th className="text-left px-2 py-1">Unit / Name</th>
               <th className="text-left px-2 py-1">VIN / Type</th>
               <th className="text-left px-2 py-1">GPS · Last Seen</th>
-              <th className="text-left px-2 py-1">Existing MASCI Match</th>
+              <th className="text-left px-2 py-1">Existing Match</th>
               <th className="text-left px-2 py-1">Candidate</th>
               <th className="text-right px-2 py-1">Actions</th>
             </tr>
@@ -620,7 +620,7 @@ function ConflictPanel({ data, onRefresh }) {
 
       {all.length === 0 ? (
         <div className="text-sm text-slate-500 italic py-4" data-testid="mcc-conflict-empty">
-          No open mapping conflicts. Every MASCI record currently has at most one Motive owner.
+          No open mapping conflicts. Every internal record currently has at most one Motive owner.
         </div>
       ) : (
         <div className="space-y-3">

@@ -1,5 +1,5 @@
 {
-  "ts": "2026-06-22T18:34:22.027839+00:00",
+  "ts": "2026-06-22T19:06:09.938810+00:00",
   "needles": [
     "MASCI",
     "mascigc\\.com",
@@ -49,7 +49,7 @@
       ]
     },
     "test_fixture": {
-      "count": 1819,
+      "count": 1796,
       "samples": [
         "backend/tests/odr/test_m1_option_c.py",
         "backend/tests/odr/test_odr_m02.py",
@@ -99,7 +99,7 @@
       ]
     },
     "historical_migration": {
-      "count": 6923,
+      "count": 6940,
       "samples": [
         "backend/scripts/seed_pm_demo_fixture.py",
         "backend/scripts/track_15_65_parity_verify.py",
@@ -134,7 +134,7 @@
       ]
     },
     "uncategorized": {
-      "count": 1003,
+      "count": 979,
       "samples": [
         ".deploy_checks/README.md",
         "ATLAS_MIGRATION.md",
@@ -169,7 +169,7 @@
       ]
     },
     "masci_data_library": {
-      "count": 380,
+      "count": 400,
       "samples": [
         "frontend/src/components/MasciLogo.jsx",
         "frontend/src/lib/companyInfo.js",
@@ -204,7 +204,7 @@
       ]
     }
   },
-  "total_hits": 12279,
+  "total_hits": 12269,
   "disallowed_hits": [
     {
       "path": "frontend/src/design-system/PortalShell.jsx",
@@ -240,56 +240,6 @@
       "path": "frontend/src/components/AdminJobMasterPanel.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/components/AdminJobMasterPanel.jsx:668:              Bulk replace MASCI jobs"
-    },
-    {
-      "path": "frontend/src/components/admin/MappingCleanupTab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MappingCleanupTab.jsx:186:          <DialogTitle>Pick {kind === \"asset\" ? \"MASCI equipment\" : \"MASCI employee\"}</DialogTitle>"
-    },
-    {
-      "path": "frontend/src/components/admin/MappingCleanupTab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MappingCleanupTab.jsx:313:              <th className=\"text-left px-2 py-1\">Existing MASCI Match</th>"
-    },
-    {
-      "path": "frontend/src/components/admin/MappingCleanupTab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MappingCleanupTab.jsx:490:              <th className=\"text-left px-2 py-1\">Existing MASCI Match</th>"
-    },
-    {
-      "path": "frontend/src/components/admin/MappingCleanupTab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MappingCleanupTab.jsx:623:          No open mapping conflicts. Every MASCI record currently has at most one Motive owner."
-    },
-    {
-      "path": "frontend/src/components/admin/MaintainxP0Tab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MaintainxP0Tab.jsx:159:            MaintainX work orders, MaintainX assets, MASCI equipment records, DVIR data,"
-    },
-    {
-      "path": "frontend/src/components/admin/MaintainxP0Tab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MaintainxP0Tab.jsx:372:            A dry-run pulls MaintainX assets, matches them to MASCI equipment,"
-    },
-    {
-      "path": "frontend/src/components/admin/MaintainxP0Tab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MaintainxP0Tab.jsx:374:            MaintainX or MASCI. \"Run + Save Report\" appends the result to the"
-    },
-    {
-      "path": "frontend/src/components/admin/MaintainxP0Tab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MaintainxP0Tab.jsx:422:                    {\" \u00b7 MASCI \"}{r.totals?.masci_equipment_count ?? 0}"
-    },
-    {
-      "path": "frontend/src/components/admin/MaintainxP0Tab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MaintainxP0Tab.jsx:441:    { label: \"MASCI count\", key: \"masci_equipment_count\", tone: \"muted\" },"
-    },
-    {
-      "path": "frontend/src/components/admin/MaintainxP0Tab.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/admin/MaintainxP0Tab.jsx:446:    { label: \"Missing in MASCI\", key: \"missing_in_masci\", tone: \"warn\" },"
     },
     {
       "path": "frontend/src/components/AdminPMPanel.jsx",
@@ -807,51 +757,6 @@
       "line": "/app/frontend/src/pages/DispatchBoard.jsx:449:  usePageTitle(\"Operational Board \u00b7 Dispatch \u00b7 MASCI\");"
     },
     {
-      "path": "frontend/src/pages/admin/AdminIntegrationCenter.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:549:                ? \"Link a MASCI equipment record to Motive + MaintainX IDs. One mapping per equipment.\""
-    },
-    {
-      "path": "frontend/src/pages/admin/AdminIntegrationCenter.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:550:                : \"Link a MASCI employee to Motive driver + MaintainX user. One mapping per employee.\"}"
-    },
-    {
-      "path": "frontend/src/pages/admin/AdminIntegrationCenter.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:1014:              Paste rows from a Motive or MaintainX export, match by MASCI unit number,"
-    },
-    {
-      "path": "frontend/src/pages/admin/AdminIntegrationCenter.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:1289:                  This will link Motive {target} to MASCI {kind === \"asset\" ? \"equipment\" : \"employees\"} using"
-    },
-    {
-      "path": "frontend/src/pages/admin/AdminIntegrationCenter.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:1307:                    <th className=\"text-left px-2 py-1.5\">MASCI</th>"
-    },
-    {
-      "path": "frontend/src/pages/admin/AdminDlsShiftQR.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminDlsShiftQR.jsx:36:  usePageTitle(\"Shift Start QR \u00b7 Dispatch \u00b7 MASCI\");"
-    },
-    {
-      "path": "frontend/src/pages/admin/AdminDlsShiftQR.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminDlsShiftQR.jsx:42:  const [carrierLabel, setCarrierLabel] = useState(\"MASCI\");"
-    },
-    {
-      "path": "frontend/src/pages/admin/AdminDlsShiftQR.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminDlsShiftQR.jsx:150:                  placeholder=\"MASCI\""
-    },
-    {
-      "path": "frontend/src/pages/admin/AdminDlsShiftQR.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AdminDlsShiftQR.jsx:244:          {carrierLabel || \"MASCI\"} \u00b7 {t(\"DRIVER SHIFT START\")}"
-    },
-    {
       "path": "frontend/src/pages/admin/AdminGeofenceReconciliation.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/admin/AdminGeofenceReconciliation.jsx:179:                Reconcile Motive geofences with MASCI projects"
@@ -885,26 +790,6 @@
       "path": "frontend/src/pages/admin/AdminAssetAdmin.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/pages/admin/AdminAssetAdmin.jsx:818:            onClick={() => downloadCsv(\"/asset-spine/exports/assets.csv\", \"MASCI_Asset_Inventory.csv\")}"
-    },
-    {
-      "path": "frontend/src/pages/admin/AssetProfile.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AssetProfile.jsx:141:      <Field label=\"MASCI ID\"      value={overview.id} />"
-    },
-    {
-      "path": "frontend/src/pages/admin/AssetProfile.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AssetProfile.jsx:240:            <p className=\"text-xs text-amber-800 mt-1\">This MASCI equipment record is not yet linked to a Motive vehicle or Asset Gateway unit. Use Admin \u2192 Integration Center \u2192 Auto-Link or"
-    },
-    {
-      "path": "frontend/src/pages/admin/AssetProfile.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AssetProfile.jsx:312:        <Tile label=\"Mapping\" testid=\"ap-motive-mapped\" value={mapping?.masci_equipment_id ? \"Linked to MASCI\" : \"Unlinked\"} />"
-    },
-    {
-      "path": "frontend/src/pages/admin/AssetProfile.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/admin/AssetProfile.jsx:471:          <h3 className=\"font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold\">MASCI operations events</h3>"
     },
     {
       "path": "frontend/src/pages/admin/AdminProfile.jsx",
@@ -1979,12 +1864,7 @@
     {
       "path": "frontend/src/pages/AdminLogin.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminLogin.jsx:321:                  {t(\"Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.\")}"
-    },
-    {
-      "path": "frontend/src/pages/AdminLogin.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/pages/AdminLogin.jsx:341:          MASCI \u00b7 Office Use Only"
+      "line": "/app/frontend/src/pages/AdminLogin.jsx:324:                  {t(\"Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.\")}"
     },
     {
       "path": "frontend/src/pages/V2Index.jsx",
@@ -2452,5 +2332,5 @@
       "line": "/app/frontend/src/pages/MeetingsDashboard.jsx:66:      portalName=\"MASCI\" portalRole=\"Safety Portal \u00b7 Safety Meetings\""
     }
   ],
-  "disallowed_count": 449
+  "disallowed_count": 425
 }

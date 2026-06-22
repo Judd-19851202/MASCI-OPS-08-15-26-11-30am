@@ -2,6 +2,38 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.68D · White-Label Chrome FINAL CLOSURE · ✅ CLOSED · ✅ Track 15.68 family CLOSED
+
+**Shipped**
+- `frontend/src/lib/i18n.js` — renderer-level interpolation in `tStr()` via `_brandSubst()`. Substitutes `MASCI` → tenant short name at render time. MASCI parity bit-for-bit (helper short-circuits when both `brand` and `company` resolve to `MASCI`).
+- 5 admin tab files swept: `MaintainxP0Tab.jsx`, `MappingCleanupTab.jsx`, `AdminIntegrationCenter.jsx`, `AssetProfile.jsx`, `AdminDlsShiftQR.jsx`. Visible labels migrated to neutral terms; backend API field names preserved.
+- `AdminDlsShiftQR.jsx` now imports `useBranding`. The printable QR card carrier label defaults to `branding.company_name` (`MASCI` for MASCI tenant; `Customer #2 Construction LLC` for C2).
+- `frontend/src/lib/BrandingProvider.jsx` — overrides `document.title` for non-MASCI tenants so Customer #2 never sees `MASCI Operations Platform` in the browser tab before the first `usePageTitle()` call site fires.
+- `frontend/src/pages/AdminLogin.jsx` footer fix — `MASCI · Office Use Only` → `${branding.platform_short_name} · Office Use Only` (real visual leak found during walkthrough).
+
+**Closure-gate answers** (the 5 YES/NO questions, all proven):
+1. Onboard without dev work? **YES** ✅
+2. Change branding without dev work? **YES** ✅
+3. Change email routing without dev work? **YES** ✅
+4. Operate daily without seeing MASCI? **YES** (daily-use surfaces) ✅ / Tier-2 deep-content backlog open ⚠️
+5. Customer #3 onboardable tomorrow? **YES** ✅
+
+**Proofs**
+- Contamination scan: 449 → **425 disallowed** (-24, -70 vs. 15.67 baseline).
+- MASCI parity (Track 15.65 harness): **19/19** match ✅.
+- Second-tenant simulation: **40/40** probes pass ✅.
+- Visual walkthrough: 6/6 daily-use surfaces clean for Customer #2 (`/`, `/sign-in`, `/admin/login`, `/safety`, `/field`, PDF chrome). The only `MASCI` token surviving in any C2 surface is the dev-only `EnvBanner` showing the live preview DB name (gated to `app_env !== "production"`).
+
+**10 deliverables in `/app/memory/`**: TRACK_15_68D_I18N_MIGRATION_REPORT · ADMIN_TAB_SWEEP · BASELINE_RESCAN · FINAL_CONTAMINATION_SCAN · MASCI_PARITY_CERTIFICATION · CUSTOMER_2_VISUAL_WALKTHROUGH · SECOND_TENANT_SIMULATION · SIX_PILLAR_CERTIFICATION · CLOSURE_GATE_ANSWERS · FINAL_CLOSEOUT.
+
+**Tier-2 follow-up backlog** (Track 16.x candidates, NOT 15.69):
+- Deep-content rewrites in ~180 files: `AdminGuide.jsx` (16 hits), `MapCanvas.jsx` (13), `AssignmentCreateDrawer.jsx` (8), `OperationalGuidanceCenter.jsx` (6), `TrainingHub.jsx`, `NewMeeting.jsx`, `PublicTrenchSafetyDashboard.jsx`, `V2Compare.jsx`, ~170 more.
+- Backend schema rename: `masci_equipment_id` / `masci_employee_id` → `internal_*` (functional contract migration).
+
+**Track 15.69 (Email Routing V2 production cutover)**: 🟢 AUTHORIZED to start. Pre-cutover state: `EMAIL_ROUTING_V2=false` for MASCI; `=true` ready for Customer #2 from day one. 19/19 routes proven bit-identical between paths.
+
+---
+
 ## 2026-06-22 — TRACK 15.68C · White-Label Chrome Final Mop-Up · 🟡 OPEN · ❌ NO-GO for full white-label
 
 **Shipped**

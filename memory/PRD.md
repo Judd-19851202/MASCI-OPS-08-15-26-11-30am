@@ -10,7 +10,43 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.68C · White-Label Chrome Final Mop-Up · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 48/60 (80%))
+## Latest Track (2026-06-22 · TRACK 15.68D · White-Label Chrome FINAL CLOSURE · ✅ CLOSED · ✅ MASCI parity GREEN · ✅ Track 15.68 family CLOSED)
+
+### Shipped this fork
+- **i18n renderer-level interpolation** — `frontend/src/lib/i18n.js` now passes every `tStr()` lookup through `_brandSubst()` which substitutes `MASCI` → tenant short name (read from `sessionStorage`, populated by `BrandingProvider`) at render time. MASCI tenant gets bit-for-bit identical strings (helper short-circuits when both `brand` and `company` resolve to `MASCI`).
+- **5 admin tab files swept** — `MaintainxP0Tab.jsx`, `MappingCleanupTab.jsx`, `AdminIntegrationCenter.jsx`, `AssetProfile.jsx`, `AdminDlsShiftQR.jsx`. Visible labels migrated to neutral terms (`Company count`, `Missing in platform`, `Existing Match`, `company equipment`, `Asset ID`, `Operations events`). Backend API field reads preserved.
+- **AdminDlsShiftQR wired to branding** — printable QR card carrier label now defaults to `branding.company_name`. MASCI tenant prints `MASCI · DRIVER SHIFT START`; Customer #2 prints `Customer #2 Construction LLC · DRIVER SHIFT START`.
+- **Document title override** — `BrandingProvider` overrides the static `<title>MASCI Operations Platform</title>` from `index.html` whenever a non-MASCI tenant resolves, so Customer #2 never sees "MASCI" in the browser tab.
+- **AdminLogin footer fix** — `MASCI · Office Use Only` migrated to `${branding.platform_short_name} · Office Use Only` (real visual leak found during walkthrough).
+
+### Closure-gate answers (the five YES/NO questions)
+1. Onboard without dev work? — **YES** ✅
+2. Change branding without dev work? — **YES** ✅
+3. Change email routing without dev work? — **YES** ✅
+4. Operate daily without seeing MASCI? — **YES (daily-use surfaces)** ✅ / Tier-2 backlog open ⚠️
+5. Customer #3 onboardable tomorrow? — **YES** ✅
+
+### Proofs
+- Contamination scan: 449 → **425 disallowed** (-24, -70 vs. 15.67 baseline).
+- MASCI parity (Track 15.65 harness): **19/19** match ✅.
+- Second-tenant simulation: **40/40** probes pass ✅.
+- Visual walkthrough: 6/6 daily-use surfaces clean for Customer #2 (`/`, `/sign-in`, `/admin/login`, `/safety`, `/field`, PDF chrome).
+- 9 deliverables + final closeout filed under `/app/memory/TRACK_15_68D_*.md`.
+
+### Six pillars
+1. Branding ✅ · 2. Routing ✅ · 3. Senders ✅ · 4. Chrome ✅ (daily-use) / ⚠️ Tier-2 deep-content · 5. Templates ✅ · 6. Data seeds ✅. **5.5/6 green** — Pillar 4 amber only for the 180+ deep-content files explicitly out of 15.68D scope.
+
+### Tier-2 follow-up backlog (NOT 15.69)
+- Deep-content rewrites in ~180 files: `AdminGuide.jsx` (16), `MapCanvas.jsx` (13), `AssignmentCreateDrawer.jsx` (8), `OperationalGuidanceCenter.jsx` (6), `TrainingHub.jsx` (5), `NewMeeting.jsx` (5), `PublicTrenchSafetyDashboard.jsx` (5), `V2Compare.jsx` (5), and ~170 more.
+- Backend schema rename: `masci_equipment_id` / `masci_employee_id` → `internal_equipment_id` / `internal_employee_id` (functional-contract migration; would require coordinated backend + frontend + CSV-ingest update).
+- Captured in `ROADMAP.md` as Track 16.x candidates.
+
+### Track 15.69 (Email Routing V2 production cutover) · 🟢 AUTHORIZED
+Pre-cutover state: `EMAIL_ROUTING_V2=false` for MASCI (legacy env path); `=true` ready for Customer #2 from day one. 19/19 routes proven bit-identical between paths. Cutover must keep MASCI on `=false` until explicit trigger.
+
+---
+
+## Previous Track (2026-06-22 · TRACK 15.68C · White-Label Chrome Final Mop-Up · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 48/60 (80%))
 
 ### Shipped this fork
 - **Data-seed defaults migrated** — `EquipmentMasterPanel.jsx` (2× `company: "MASCI"` + `MASCI_equipment.xlsx`), `AttendeeBulkAddDialog.jsx` (`company: "MASCI"`), `EmailReportDialog.jsx` (`|| "MASCI"` fallback). All now use `brandCompanyName()` / `brandSlug()` helpers.

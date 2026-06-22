@@ -4,6 +4,77 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## 🟢 P0 · Track 15.69 — EMAIL_ROUTING_V2 Production Cutover (AUTHORIZED)
+
+Track 15.68 family is closed (2026-06-22). The pre-cutover state is:
+
+- `EMAIL_ROUTING_V2=false` for MASCI in production (legacy env path).
+- `EMAIL_ROUTING_V2=true` ready for Customer #2 from day one (DB-first).
+- 19/19 production routes proven bit-identical between paths (Track 15.65 harness).
+
+Track 15.69 must:
+1. Stage the V2 enablement behind a documented flag-flip date.
+2. Run a final parity verify in the live MASCI environment **before** the flip.
+3. Provide an explicit rollback runbook.
+4. Continue keeping `EMAIL_ROUTING_V2=false` until the explicit cutover trigger.
+
+NO LIVE BLASTS until cutover trigger.
+
+---
+
+## 🟡 P1 · Track 16.x — White-Label Tier-2 Deep-Content Migration
+
+Track 15.68 family closed the **chrome** layer for Customer #2 (logos, titles, footers, tab labels, filename exports, PDF chrome, email senders, data seeds). The remaining MASCI-flavoured copy lives in **deep-content prose pages** that gate render on neither tenant-key nor branding fields.
+
+Files needing tenant-aware rewrite (~180 total, top hits):
+
+| Hits | File | Type |
+|---:|---|---|
+| 16 | `frontend/src/pages/AdminGuide.jsx` | admin owner's manual |
+| 13 | `frontend/src/components/operations-map/MapCanvas.jsx` | map overlays / labels |
+| 8 | `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` | dispatch UI prose |
+| 6 | `frontend/src/pages/guidance/OperationalGuidanceCenter.jsx` | guidance prose |
+| 5 | `frontend/src/pages/V2Compare.jsx` | dev / V2 demo page |
+| 5 | `frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx` | public dashboard |
+| 5 | `frontend/src/pages/NewMeeting.jsx` | meeting form |
+| 5 | `frontend/src/pages/TrainingHub.jsx` | training library prose |
+| 4 | `frontend/src/components/JhaPlansPosterCard.jsx` | poster |
+| 4 | `frontend/src/pages/shop/ShopAssetCare.jsx` | shop care prose |
+| 4 | `frontend/src/pages/ViewIncident.jsx` | incident detail |
+| 4 | `frontend/src/pages/trench_safety/PublicTrenchSafetyTabulatedData.jsx` | public data |
+| 4 | `frontend/src/pages/ViewMeeting.jsx` | meeting detail |
+| 4 | `frontend/src/pages/NewDailyReport.jsx` | daily report form |
+| 4 | `frontend/src/pages/ProjectPnlPage.jsx` | P&L page |
+| 4 | `frontend/src/pages/TrenchBoxesAdmin.jsx` | trench admin |
+| 4 | `frontend/src/pages/DevHub.jsx` | dev hub |
+| 4 | `frontend/src/pages/FieldLeadershipHub.jsx` | leadership hub |
+| 3+ | ~165 other files | various |
+
+**Approach**: TermsOfService.jsx pattern — add `const isMasci = !branding?.tenant_key || branding.tenant_key === "masci"` gate. For non-MASCI tenants, render either a `branding.company_name`-substituted version (if the prose can be safely templated) or a `<NonMasciContentPlaceholder>` (if the prose is MASCI-specific and must be authored by the customer).
+
+**Why not in 15.68D**: scope was strictly `lib/i18n.js` + 5 admin tab files. Tier-2 is a content-rewrite track, not a label sweep.
+
+---
+
+## 🟡 P1 · Track 16.x · Backend Schema Rename (`masci_*` → `internal_*`)
+
+The asset/employee mapping API uses literal column names `masci_equipment_id` and `masci_employee_id`. These flow through:
+
+- Backend response shapes (`masci_equipment_id`, `masci_employee_id`, `masci_unit_number`, `masci_employee_name`, `masci_equipment_name`, `masci_employee_trade`, `masci_employee_role`, `masci_equipment_count`, `missing_in_masci`).
+- CSV ingest column headers (`/admin/integrations/asset-mappings/import` + `/employee-mappings/import`).
+- Frontend code reads (kept literal in 15.68D — they are functional contracts).
+- localStorage key `masci.admin.token`.
+
+**Rename plan**:
+1. Backend accepts both legacy and new names (read alias, write canonical) — backwards-compat shim.
+2. Frontend reads canonical name, falls back to legacy.
+3. Migrate any persisted CSV/import workflow docs.
+4. After 30-day soak, remove legacy alias.
+
+**Why not in 15.68D**: requires coordinated backend + frontend + ingest update; out of scope for chrome closure.
+
+---
+
 ## ✅ Track 14.0-PORTAL-LANDING-NAVIGATION-UNIFICATION — DONE (2026-02-12)
 PortalShell `sideNav` slot added · PM Hub V2 renders full SideNavV2 sidebar on desktop. 17 LOC · backward compatible · live screenshot proof. HR/Safety/Shop are 1-line wire-ins away. FL + Public Forms KEEP AS IS. Five-Pillar **9.90**.
 Ledger: `TRACK_14_0_PORTAL_LANDING_NAVIGATION_UNIFICATION_CLOSURE.md`.

@@ -1,4 +1,4 @@
-// Unified Asset Profile — read-only aggregator across MASCI master,
+// Unified Asset Profile — read-only aggregator across the company master,
 // integrations, dispatch, safety, and operations event log.
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -138,7 +138,7 @@ function Field({ label, value }) {
 function OverviewSection({ overview }) {
   return (
     <div className="bg-white border border-slate-200 rounded-md p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="ap-overview">
-      <Field label="MASCI ID"      value={overview.id} />
+      <Field label="Asset ID"      value={overview.id} />
       <Field label="Unit #"        value={overview.unit_number} />
       <Field label="Name"          value={overview.name} />
       <Field label="Type"          value={overview.equipment_type} />
@@ -237,7 +237,7 @@ function MotiveLiveTab({ live, mapping, operator }) {
           <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
           <div>
             <div className="font-display font-black text-sm text-amber-900">No Motive mapping</div>
-            <p className="text-xs text-amber-800 mt-1">This MASCI equipment record is not yet linked to a Motive vehicle or Asset Gateway unit. Use Admin → Integration Center → Auto-Link or Mappings to connect it.</p>
+            <p className="text-xs text-amber-800 mt-1">This company equipment record is not yet linked to a Motive vehicle or Asset Gateway unit. Use Admin → Integration Center → Auto-Link or Mappings to connect it.</p>
           </div>
         </div>
       </div>
@@ -309,7 +309,7 @@ function MotiveLiveTab({ live, mapping, operator }) {
         <Tile label="Motive ID" testid="ap-motive-id" value={<span className="font-mono">{live.vehicle_id || live.asset_id}</span>} />
         <Tile label="GPS Enabled" testid="ap-motive-gpsflag" value={live.gps_enabled ? "Yes" : "No"} />
         <Tile label="Dashcam" testid="ap-motive-dashcam" value={live.dashcam_enabled ? "Yes" : "No"} />
-        <Tile label="Mapping" testid="ap-motive-mapped" value={mapping?.masci_equipment_id ? "Linked to MASCI" : "Unlinked"} />
+        <Tile label="Mapping" testid="ap-motive-mapped" value={mapping?.masci_equipment_id ? "Linked" : "Unlinked"} />
       </div>
 
       {/* Source footer */}
@@ -468,7 +468,7 @@ function EventsSection({ data }) {
 
       <div className="bg-white border border-slate-200 rounded-md p-5">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">MASCI operations events</h3>
+          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Operations events</h3>
           <span className="text-xs text-slate-500">Showing {events.length} of {data.events_total_for_asset}</span>
         </div>
         {events.length === 0 ? <p className="text-sm text-slate-500 italic">No events recorded for this asset.</p> : (

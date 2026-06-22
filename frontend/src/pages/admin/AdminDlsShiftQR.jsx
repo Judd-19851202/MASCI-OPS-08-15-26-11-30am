@@ -31,15 +31,19 @@ import { Label } from "@/components/ui/label";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
+import { useBranding } from "@/lib/BrandingProvider";
 
 export default function AdminDlsShiftQR() {
-  usePageTitle("Shift Start QR · Dispatch · MASCI");
+  const branding = useBranding();
+  const brandShort = branding?.platform_short_name || branding?.company_name || "Operations";
+  const brandCarrier = (branding?.company_name || brandShort || "Carrier").toString();
+  usePageTitle(`Shift Start QR · Dispatch · ${brandShort}`);
   const { t } = useT();
 
   // Optional labels printed on the card. These don't change the QR
   // target — they just help operations know which sticker goes where.
   const [truckLabel, setTruckLabel] = useState("");
-  const [carrierLabel, setCarrierLabel] = useState("MASCI");
+  const [carrierLabel, setCarrierLabel] = useState(brandCarrier);
   const [tenant, setTenant] = useState("");
 
   // QR target — always the public shift entry. Tenant param is purely
@@ -147,7 +151,7 @@ export default function AdminDlsShiftQR() {
                   data-testid="shiftqr-carrier-input"
                   value={carrierLabel}
                   onChange={(e) => setCarrierLabel(e.target.value)}
-                  placeholder="MASCI"
+                  placeholder={brandCarrier}
                   className="mt-1.5 min-h-[44px]"
                   maxLength={48}
                 />
@@ -206,6 +210,7 @@ export default function AdminDlsShiftQR() {
               shiftUrl={shiftUrl}
               truckLabel={truckLabel}
               carrierLabel={carrierLabel}
+              carrierFallback={brandCarrier}
               t={t}
             />
           </div>
@@ -232,7 +237,7 @@ export default function AdminDlsShiftQR() {
 // ─────────────────────────────────────────────────────────────────────
 // Printable card · 4.25 × 5.5 in style (half-letter portrait)
 // ─────────────────────────────────────────────────────────────────────
-function ShiftQrCard({ shiftUrl, truckLabel, carrierLabel, t }) {
+function ShiftQrCard({ shiftUrl, truckLabel, carrierLabel, carrierFallback, t }) {
   return (
     <div
       data-testid="shiftqr-card"
@@ -241,7 +246,7 @@ function ShiftQrCard({ shiftUrl, truckLabel, carrierLabel, t }) {
       {/* Header band */}
       <div className="border-b-2 border-slate-900 pb-3 mb-4">
         <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-orange-700 font-black">
-          {carrierLabel || "MASCI"} · {t("DRIVER SHIFT START")}
+          {carrierLabel || carrierFallback || "Carrier"} · {t("DRIVER SHIFT START")}
         </div>
         {truckLabel ? (
           <div

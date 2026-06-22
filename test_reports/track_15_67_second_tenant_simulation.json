@@ -1,6 +1,6 @@
 {
   "tenant": "tenant_15_67_demo",
-  "ts": "2026-06-22T18:18:40.761679+00:00",
+  "ts": "2026-06-22T19:05:57.686520+00:00",
   "checks": [
     {
       "check": "tenant_resolution_returns_demo",

@@ -546,8 +546,8 @@ function MappingTab({ kind }) {
             <DialogTitle>{dlg.mode === "create" ? "New mapping" : "Edit mapping"}</DialogTitle>
             <DialogDescription>
               {isAsset
-                ? "Link a MASCI equipment record to Motive + MaintainX IDs. One mapping per equipment."
-                : "Link a MASCI employee to Motive driver + MaintainX user. One mapping per employee."}
+                ? "Link a company equipment record to Motive + MaintainX IDs. One mapping per equipment."
+                : "Link a company employee to Motive driver + MaintainX user. One mapping per employee."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-2">
@@ -763,8 +763,8 @@ function CsvTab() {
       <div className="bg-white border border-slate-200 rounded-md p-5">
         <h3 className="font-display text-lg font-black mb-2 flex items-center gap-2"><FileUp className="w-5 h-5" /> Import mappings from CSV</h3>
         <p className="text-sm text-slate-600 mb-4">
-          Bulk-create / bulk-update mappings before the live API is wired. Each CSV must include a <code>masci_equipment_id</code>
-          (for asset rows) or <code>masci_employee_id</code> (for driver/user rows) plus the relevant provider ID columns.
+          Bulk-create / bulk-update mappings before the live API is wired. Each CSV must include an internal asset key (column: <code>masci_equipment_id</code>, legacy name)
+          for asset rows, or an internal employee key (column: <code>masci_employee_id</code>, legacy name) for driver/user rows, plus the relevant provider ID columns.
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 items-end">
           <div>
@@ -1011,7 +1011,7 @@ function WizardTab() {
               Mappings Wizard
             </h3>
             <p className="text-sm text-slate-600 mt-1">
-              Paste rows from a Motive or MaintainX export, match by MASCI unit number,
+              Paste rows from a Motive or MaintainX export, match by company unit number,
               <strong> review every row</strong>, then commit. Master equipment records are never
               modified — only the <code className="text-xs">asset_mappings</code> collection is written.
               Existing mappings will <strong>not</strong> be overwritten unless you explicitly toggle
@@ -1239,7 +1239,7 @@ function WizardTab() {
 }
 
 /* ──────────────────────────────────────────────────────────────────
- * P1-A / P1-B · Motive ↔ MASCI Auto-Link button.
+ * P1-A / P1-B · Motive ↔ Company Auto-Link button.
  * Re-uses POST /api/admin/integrations/motive/auto-link?kind={assets|drivers}
  * Idempotent · never overwrites manual mappings · logs to sync_logs.
  * ────────────────────────────────────────────────────────────────── */
@@ -1286,7 +1286,7 @@ function AutoLinkButton({ kind, onDone }) {
               <div className="flex-1">
                 <h3 className="font-display text-lg font-black">Auto-Link Preview · {target}</h3>
                 <p className="text-xs text-slate-600 mt-1">
-                  This will link Motive {target} to MASCI {kind === "asset" ? "equipment" : "employees"} using
+                  This will link Motive {target} to company {kind === "asset" ? "equipment" : "employees"} using
                   high-confidence matches only (VIN / unit-number for assets · email / full-name for drivers).
                   <strong> Existing manual links are never overwritten.</strong>
                 </p>
@@ -1304,7 +1304,7 @@ function AutoLinkButton({ kind, onDone }) {
                 <thead className="bg-slate-100 text-[10px] uppercase tracking-[0.15em] font-mono text-slate-700">
                   <tr>
                     <th className="text-left px-2 py-1.5">Motive</th>
-                    <th className="text-left px-2 py-1.5">MASCI</th>
+                    <th className="text-left px-2 py-1.5">Company</th>
                     <th className="text-left px-2 py-1.5">Method</th>
                     <th className="text-left px-2 py-1.5">Decision</th>
                   </tr>

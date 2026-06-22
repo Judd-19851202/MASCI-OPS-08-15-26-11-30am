@@ -156,7 +156,7 @@ export default function MaintainxP0Tab() {
           </div>
           <p className="text-sm text-amber-950 mt-1 leading-snug">
             Writes are disabled. This screen <strong>cannot</strong> create, update, or delete
-            MaintainX work orders, MaintainX assets, MASCI equipment records, DVIR data,
+            MaintainX work orders, MaintainX assets, company equipment records, DVIR data,
             RTS records, shop, or dispatch records. The MaintainX API key is read from a
             secure server-side environment variable and is never sent to the browser in full.
           </p>
@@ -369,9 +369,9 @@ export default function MaintainxP0Tab() {
 
         {dryRun ? <DryRunSummary report={dryRun} /> : (
           <div className="text-xs text-slate-500">
-            A dry-run pulls MaintainX assets, matches them to MASCI equipment,
+            A dry-run pulls MaintainX assets, matches them to company equipment,
             and reports classifications. No writes are performed against
-            MaintainX or MASCI. "Run + Save Report" appends the result to the
+            MaintainX or the platform inventory. &ldquo;Run + Save Report&rdquo; appends the result to the
             audit collection <code className="font-mono">maintainx_dryrun_reports</code>.
           </div>
         )}
@@ -419,7 +419,7 @@ export default function MaintainxP0Tab() {
                   <div className="font-mono text-xs text-slate-700 truncate">{r.id}</div>
                   <div className="text-[11px] text-slate-500">
                     {r.started_at || "—"} · pulled {r.totals?.maintainx_assets_pulled ?? 0}
-                    {" · MASCI "}{r.totals?.masci_equipment_count ?? 0}
+                    {" · Company "}{r.totals?.masci_equipment_count ?? 0}
                   </div>
                 </div>
                 <Pill tone={(r.totals?.errors || 0) > 0 ? "warn" : "ok"}>
@@ -438,12 +438,12 @@ function DryRunSummary({ report }) {
   const t = report?.totals || {};
   const cells = [
     { label: "MaintainX pulled", key: "maintainx_assets_pulled", tone: "muted" },
-    { label: "MASCI count", key: "masci_equipment_count", tone: "muted" },
+    { label: "Company count", key: "masci_equipment_count", tone: "muted" },
     { label: "Exact match", key: "exact_match", tone: "ok" },
     { label: "Probable match", key: "probable_match", tone: "ok" },
     { label: "Possible duplicate", key: "possible_duplicate", tone: "warn" },
     { label: "Conflict", key: "conflict", tone: "warn" },
-    { label: "Missing in MASCI", key: "missing_in_masci", tone: "warn" },
+    { label: "Missing in platform", key: "missing_in_masci", tone: "warn" },
     { label: "Missing in MaintainX", key: "missing_in_maintainx", tone: "warn" },
     { label: "Dup-risk blocked", key: "duplicate_risk_blocked", tone: "bad" },
     { label: "Dup-risk safe", key: "duplicate_risk_safe", tone: "ok" },

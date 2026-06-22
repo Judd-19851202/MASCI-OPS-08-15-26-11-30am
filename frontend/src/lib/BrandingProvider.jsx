@@ -97,6 +97,17 @@ export function BrandingProvider({ children }) {
         window.sessionStorage.setItem("branding.slug", data.slug);
         window.sessionStorage.setItem("branding.companyName", data.company_name || "");
       } catch { /* sessionStorage may be unavailable */ }
+      // Track 15.68D · Override the static index.html title for non-MASCI
+      // tenants so Customer #2 never sees "MASCI" in the browser tab
+      // before a usePageTitle() call site fires.
+      try {
+        if (typeof document !== "undefined" && (data.tenant_key && data.tenant_key !== "masci")) {
+          const display = data.platform_display_name || "Operations Platform";
+          if (document.title && document.title.includes("MASCI")) {
+            document.title = display;
+          }
+        }
+      } catch { /* document may be unavailable */ }
       setBranding({ ...NEUTRAL_DEFAULTS, ...data, loading: false, previewTenant: previewTk });
     } catch (_e) {
       setBranding((prev) => ({ ...prev, loading: false }));

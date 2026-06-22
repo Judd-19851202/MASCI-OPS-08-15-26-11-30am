@@ -6548,9 +6548,49 @@ const ES = {
 
 const DICTS = { es: ES, en: {} };
 
+// Track 15.68D · tenant brand interpolation. After i18n picks the
+// English-or-Spanish string, swap MASCI literals for the active
+// tenant's short name read from sessionStorage (populated by
+// BrandingProvider). For the MASCI tenant the short name IS "MASCI",
+// so the output is bit-for-bit identical. For Customer #2 (or any
+// non-MASCI tenant) the output never contains the word "MASCI" —
+// regardless of which dictionary the call site looked up.
+//
+// Note: this is a renderer-level rewrite, not a dictionary edit, so
+// the original English/Spanish strings remain searchable + the brief's
+// "do not break English/Spanish i18n" rule is honoured.
+function _brandSubst(s) {
+  if (!s || typeof s !== "string") return s;
+  if (s.indexOf("MASCI") === -1) return s;
+  let brand = "MASCI";
+  let company = "MASCI";
+  try {
+    if (typeof window !== "undefined") {
+      brand = window.sessionStorage.getItem("branding.shortName") || "MASCI";
+      company = window.sessionStorage.getItem("branding.companyName") || brand;
+    }
+  } catch { /* sessionStorage may be unavailable */ }
+  if (brand === "MASCI" && company === "MASCI") return s;
+  // Order matters — replace the longest match first.
+  return s
+    .replace(/MASCI General Contractors Inc\.?/g, company)
+    .replace(/MASCI Operations Platform/g, `${brand} Operations Platform`)
+    .replace(/MASCI Safety Hub/g, `${brand} Safety Hub`)
+    .replace(/MASCI Trench Safety/g, "Trench Safety")
+    .replace(/MASCI Hub/g, `${brand} Hub`)
+    .replace(/MASCI Safety/g, `${brand} Safety`)
+    .replace(/MASCI Field/g, `${brand} Field`)
+    .replace(/MASCI Crews/g, "Crews")
+    .replace(/MASCI Job\b/g, "Job")
+    .replace(/Centro MASCI/g, `Centro ${brand}`)
+    .replace(/Cuadrillas MASCI/g, "Cuadrillas")
+    .replace(/\bMASCI\b/g, brand);
+}
+
 export function tStr(key) {
-  if (_current === "en" || !key) return key;
-  return DICTS[_current][key] || key;
+  if (!key) return key;
+  const raw = _current === "en" ? key : (DICTS[_current][key] || key);
+  return _brandSubst(raw);
 }
 
 /**

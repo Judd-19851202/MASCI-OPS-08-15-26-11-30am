@@ -1,23 +1,23 @@
 # TRACK 15.67 · Customer #2 Contamination Scan
 
-_Generated 2026-06-22T18:34:22.027839+00:00_
+_Generated 2026-06-22T19:06:09.938810+00:00_
 
 ## Summary
 
-- Total MASCI-flavour hits: **12279**
-- Disallowed customer-visible surface hits: **449**
+- Total MASCI-flavour hits: **12269**
+- Disallowed customer-visible surface hits: **425**
 - Verdict: **❌ FAIL**
 
 ## By Category
 
 | Category | Hits | Allowed? |
 |---|---:|:--:|
-| historical_migration | 6923 | YES |
-| test_fixture | 1819 | YES |
+| historical_migration | 6940 | YES |
+| test_fixture | 1796 | YES |
 | backend_internal | 1153 | YES (docstrings/comments) |
-| uncategorized | 1003 | REVIEW |
 | masci_tenant_config | 1001 | YES |
-| masci_data_library | 380 | YES (asset/i18n library) |
+| uncategorized | 979 | REVIEW |
+| masci_data_library | 400 | YES (asset/i18n library) |
 
 ## Disallowed Surface Hits (must be 0)
 
@@ -28,16 +28,6 @@ _Generated 2026-06-22T18:34:22.027839+00:00_
 - `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:293:            MASCI Current Jobs
 - `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:299:            Add, edit, deactivate, or bulk-replace the MASCI job list. Active jobs
 - `frontend/src/components/AdminJobMasterPanel.jsx` — /app/frontend/src/components/AdminJobMasterPanel.jsx:668:              Bulk replace MASCI jobs
-- `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:186:          <DialogTitle>Pick {kind === "asset" ? "MASCI equipment" : "MASCI employee"}</DialogTitle>
-- `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:313:              <th className="text-left px-2 py-1">Existing MASCI Match</th>
-- `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:490:              <th className="text-left px-2 py-1">Existing MASCI Match</th>
-- `frontend/src/components/admin/MappingCleanupTab.jsx` — /app/frontend/src/components/admin/MappingCleanupTab.jsx:623:          No open mapping conflicts. Every MASCI record currently has at most one Motive owner.
-- `frontend/src/components/admin/MaintainxP0Tab.jsx` — /app/frontend/src/components/admin/MaintainxP0Tab.jsx:159:            MaintainX work orders, MaintainX assets, MASCI equipment records, DVIR data,
-- `frontend/src/components/admin/MaintainxP0Tab.jsx` — /app/frontend/src/components/admin/MaintainxP0Tab.jsx:372:            A dry-run pulls MaintainX assets, matches them to MASCI equipment,
-- `frontend/src/components/admin/MaintainxP0Tab.jsx` — /app/frontend/src/components/admin/MaintainxP0Tab.jsx:374:            MaintainX or MASCI. "Run + Save Report" appends the result to the
-- `frontend/src/components/admin/MaintainxP0Tab.jsx` — /app/frontend/src/components/admin/MaintainxP0Tab.jsx:422:                    {" · MASCI "}{r.totals?.masci_equipment_count ?? 0}
-- `frontend/src/components/admin/MaintainxP0Tab.jsx` — /app/frontend/src/components/admin/MaintainxP0Tab.jsx:441:    { label: "MASCI count", key: "masci_equipment_count", tone: "muted" },
-- `frontend/src/components/admin/MaintainxP0Tab.jsx` — /app/frontend/src/components/admin/MaintainxP0Tab.jsx:446:    { label: "Missing in MASCI", key: "missing_in_masci", tone: "warn" },
 - `frontend/src/components/AdminPMPanel.jsx` — /app/frontend/src/components/AdminPMPanel.jsx:126:      const fname = m ? m[1] : "MASCI_pms.xlsx";
 - `frontend/src/components/AdminPMPanel.jsx` — /app/frontend/src/components/AdminPMPanel.jsx:243:        const fname = m ? m[1] : `MASCI_PM_Welcome_${pwTargetPm.name.replace(/\s+/g, "_")}.pdf`;
 - `frontend/src/components/BackupHeroPanel.jsx` — /app/frontend/src/components/BackupHeroPanel.jsx:180:            {t("Pick a MASCI backup .zip from your computer. Every record inside is merged into the live system. Safe — existin
@@ -141,15 +131,6 @@ _Generated 2026-06-22T18:34:22.027839+00:00_
 - `frontend/src/pages/OpsTrainingCenter.jsx` — /app/frontend/src/pages/OpsTrainingCenter.jsx:121:              {t("MASCI Training Center & Operator Guides")}
 - `frontend/src/pages/NotificationsDigest.jsx` — /app/frontend/src/pages/NotificationsDigest.jsx:136:  usePageTitle("Today's intelligence · MASCI");
 - `frontend/src/pages/DispatchBoard.jsx` — /app/frontend/src/pages/DispatchBoard.jsx:449:  usePageTitle("Operational Board · Dispatch · MASCI");
-- `frontend/src/pages/admin/AdminIntegrationCenter.jsx` — /app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:549:                ? "Link a MASCI equipment record to Motive + MaintainX IDs. One mapping per equipment."
-- `frontend/src/pages/admin/AdminIntegrationCenter.jsx` — /app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:550:                : "Link a MASCI employee to Motive driver + MaintainX user. One mapping per employee."}
-- `frontend/src/pages/admin/AdminIntegrationCenter.jsx` — /app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:1014:              Paste rows from a Motive or MaintainX export, match by MASCI unit number,
-- `frontend/src/pages/admin/AdminIntegrationCenter.jsx` — /app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:1289:                  This will link Motive {target} to MASCI {kind === "asset" ? "equipment" : "employees"} using
-- `frontend/src/pages/admin/AdminIntegrationCenter.jsx` — /app/frontend/src/pages/admin/AdminIntegrationCenter.jsx:1307:                    <th className="text-left px-2 py-1.5">MASCI</th>
-- `frontend/src/pages/admin/AdminDlsShiftQR.jsx` — /app/frontend/src/pages/admin/AdminDlsShiftQR.jsx:36:  usePageTitle("Shift Start QR · Dispatch · MASCI");
-- `frontend/src/pages/admin/AdminDlsShiftQR.jsx` — /app/frontend/src/pages/admin/AdminDlsShiftQR.jsx:42:  const [carrierLabel, setCarrierLabel] = useState("MASCI");
-- `frontend/src/pages/admin/AdminDlsShiftQR.jsx` — /app/frontend/src/pages/admin/AdminDlsShiftQR.jsx:150:                  placeholder="MASCI"
-- `frontend/src/pages/admin/AdminDlsShiftQR.jsx` — /app/frontend/src/pages/admin/AdminDlsShiftQR.jsx:244:          {carrierLabel || "MASCI"} · {t("DRIVER SHIFT START")}
 - `frontend/src/pages/admin/AdminGeofenceReconciliation.jsx` — /app/frontend/src/pages/admin/AdminGeofenceReconciliation.jsx:179:                Reconcile Motive geofences with MASCI projects
 - `frontend/src/pages/admin/AdminGeofenceReconciliation.jsx` — /app/frontend/src/pages/admin/AdminGeofenceReconciliation.jsx:182:                Motive provides coordinates. MASCI provides identity. Approve a
 - `frontend/src/pages/admin/AdminOperationsDashboard.jsx` — /app/frontend/src/pages/admin/AdminOperationsDashboard.jsx:204:                  ["Q6 · MASCI-mapped assets",               audit.q6_asset_mappings_masci_mapped],
@@ -157,10 +138,6 @@ _Generated 2026-06-22T18:34:22.027839+00:00_
 - `frontend/src/pages/admin/AdminAssetAdmin.jsx` — /app/frontend/src/pages/admin/AdminAssetAdmin.jsx:712:            onClick={() => downloadCsv("/asset-spine/exports/renewals.csv", "MASCI_Asset_Renewals.csv")}
 - `frontend/src/pages/admin/AdminAssetAdmin.jsx` — /app/frontend/src/pages/admin/AdminAssetAdmin.jsx:761:            onClick={() => downloadCsv("/asset-spine/exports/missing-documents.csv", "MASCI_Missing_Documents.csv")}
 - `frontend/src/pages/admin/AdminAssetAdmin.jsx` — /app/frontend/src/pages/admin/AdminAssetAdmin.jsx:818:            onClick={() => downloadCsv("/asset-spine/exports/assets.csv", "MASCI_Asset_Inventory.csv")}
-- `frontend/src/pages/admin/AssetProfile.jsx` — /app/frontend/src/pages/admin/AssetProfile.jsx:141:      <Field label="MASCI ID"      value={overview.id} />
-- `frontend/src/pages/admin/AssetProfile.jsx` — /app/frontend/src/pages/admin/AssetProfile.jsx:240:            <p className="text-xs text-amber-800 mt-1">This MASCI equipment record is not yet linked to a Motive vehicle or Asset
-- `frontend/src/pages/admin/AssetProfile.jsx` — /app/frontend/src/pages/admin/AssetProfile.jsx:312:        <Tile label="Mapping" testid="ap-motive-mapped" value={mapping?.masci_equipment_id ? "Linked to MASCI" : "Unlinked"} />
-- `frontend/src/pages/admin/AssetProfile.jsx` — /app/frontend/src/pages/admin/AssetProfile.jsx:471:          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">MASCI operations events</h3>
 - `frontend/src/pages/admin/AdminProfile.jsx` — /app/frontend/src/pages/admin/AdminProfile.jsx:39:  usePageTitle("Admin profile · MASCI");
 - `frontend/src/pages/admin/AdminProfile.jsx` — /app/frontend/src/pages/admin/AdminProfile.jsx:98:            {t("Manage how you sign in to MASCI on this and other devices.")}
 - `frontend/src/pages/admin/AdminPromoAssets.jsx` — /app/frontend/src/pages/admin/AdminPromoAssets.jsx:338:              "Cinematic platform clips, hero loops, and screen captures for the long-form MASCI promo film. Organized, downl
@@ -375,8 +352,7 @@ _Generated 2026-06-22T18:34:22.027839+00:00_
 - `frontend/src/pages/FieldLeadershipHub.jsx` — /app/frontend/src/pages/FieldLeadershipHub.jsx:375:          {t("MASCI · Field Leadership · Restricted")}
 - `frontend/src/pages/FieldLeadershipHub.jsx` — /app/frontend/src/pages/FieldLeadershipHub.jsx:402:  usePageTitle("Field Leadership · MASCI");
 - `frontend/src/pages/FieldLeadershipHub.jsx` — /app/frontend/src/pages/FieldLeadershipHub.jsx:445:      portalName="MASCI"
-- `frontend/src/pages/AdminLogin.jsx` — /app/frontend/src/pages/AdminLogin.jsx:321:                  {t("Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.")}
-- `frontend/src/pages/AdminLogin.jsx` — /app/frontend/src/pages/AdminLogin.jsx:341:          MASCI · Office Use Only
+- `frontend/src/pages/AdminLogin.jsx` — /app/frontend/src/pages/AdminLogin.jsx:324:                  {t("Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.")}
 - `frontend/src/pages/V2Index.jsx` — /app/frontend/src/pages/V2Index.jsx:233:        portalName="MASCI"
 - `frontend/src/pages/DesignSystemDemo.jsx` — /app/frontend/src/pages/DesignSystemDemo.jsx:136:        portalName="MASCI"
 - `frontend/src/pages/DesignSystemDemo.jsx` — /app/frontend/src/pages/DesignSystemDemo.jsx:146:          description="Every operator-facing state in MASCI maps to one of these chips. Forbidden labels (Rejected · Denied · Faile
@@ -473,7 +449,7 @@ _Generated 2026-06-22T18:34:22.027839+00:00_
 
 ## Sample Allowed Hits
 
-### historical_migration (6923)
+### historical_migration (6940)
 
 - `backend/scripts/seed_pm_demo_fixture.py`
 - `backend/scripts/track_15_65_parity_verify.py`
@@ -484,7 +460,7 @@ _Generated 2026-06-22T18:34:22.027839+00:00_
 - `memory/ACCOUNTABILITY_ENGINE_AUDIT.md`
 - `memory/ACTIVE_FINDINGS_VERIFICATION.md`
 
-### test_fixture (1819)
+### test_fixture (1796)
 
 - `backend/tests/odr/test_m1_option_c.py`
 - `backend/tests/odr/test_odr_m02.py`
@@ -517,7 +493,7 @@ _Generated 2026-06-22T18:34:22.027839+00:00_
 - `backend/dispatch_users.py`
 - `backend/doc_ids.py`
 
-### masci_data_library (380)
+### masci_data_library (400)
 
 - `frontend/src/components/MasciLogo.jsx`
 - `frontend/src/lib/companyInfo.js`
