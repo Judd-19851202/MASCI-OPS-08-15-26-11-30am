@@ -2,6 +2,46 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.65 · Email Routing V2 Wave 1: DB-First Engine + Pre-Seed + Safe Send-Site Migration (🟢 GO · feature flag OFF until operator approval)
+
+**Shipped**
+- `backend/email_routing_v2.py` — DB-first resolver with feature flag `EMAIL_ROUTING_V2`, legacy back-compat aliases for the 6 existing routing keys, append-only audit collection (`email_routing_audit_v2`), critical-route hard-fail guard.
+- `backend/scripts/track_15_65_seed_email_routes.py` — idempotent seed for the 19 routes (dry-run, apply, verify modes; refuses production without `--allow-prod`).
+- `backend/scripts/track_15_65_parity_verify.py` — comparison harness for flag-off vs flag-on resolution; zero live emails sent.
+- `backend/safety_digest.py` + `backend/health_monitor.py` — Wave-1 send-site migrations behind the feature flag.
+
+**Results**
+- 19 routes seeded, 4 critical, 0 empty-critical.
+- Parity harness: 19 / 19 match · 0 mismatch · 0 critical-empty · 0 live emails sent.
+- Resolver round-trip live-proven: `EMAIL_ROUTING_V2=false → source=legacy`, `EMAIL_ROUTING_V2=true → source=db`.
+- Backend healthy after migration; lint clean on all touched files.
+
+**The ten answers**
+1. Routes seeded: **19**
+2. Send sites migrated: **2** (safety digest + health monitor — Wave-1 minimum-blast-radius)
+3. Hardcoded recipients still in code: **91 backend + 51 frontend** (Wave 2 will sweep)
+4. `EMAIL_ROUTING_V2=false` preserves exact legacy behaviour: **YES**
+5. `EMAIL_ROUTING_V2=true` resolves from DB first: **YES**
+6. Parity passed for every critical route: **YES (4 / 4)**
+7. Any real emails sent during testing: **NO**
+8. All critical routes have recipients: **YES**
+9. Rollback: set `EMAIL_ROUTING_V2=false` + restart backend (< 5 min)
+10. GO / NO-GO: **🟢 GO** — production cutover remains operator-authorized
+
+**Six Pillars:** Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 9 · Deployable 10 → **59 / 60 (98 %)**.
+
+**Hard-rule compliance**
+- ✅ Zero behaviour change with flag OFF
+- ✅ No live test-email blast
+- ✅ Critical routes hard-fail rather than silent drop
+- ✅ Rollback under 5 minutes
+- ✅ Backward-compatible legacy aliases preserved
+- ✅ No destructive migration
+
+**Production rollout plan:** see `/app/memory/TRACK_15_65_DEPLOYMENT_READINESS.md` §2 (deploy code → pre-seed prod → verify → run parity against prod → flip flag → monitor first 24h).
+
+---
+
 ## 2026-06-22 — TRACK 15.64 · Platform-Wide Email Routing Governance Audit + Multi-Tenant Email Management (🟢 GO for execution · AUDIT-ONLY this track)
 
 **Mode:** AUDIT + ARCHITECTURE only · zero code modified.

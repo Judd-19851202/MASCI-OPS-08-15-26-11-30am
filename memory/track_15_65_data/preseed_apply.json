@@ -1,0 +1,34 @@
+{
+  "mode": "apply",
+  "tenant_key": "masci",
+  "force": false,
+  "ts": "2026-06-22T14:59:01.634525+00:00",
+  "summary": {
+    "created": [
+      "COMPLIANCE_ALWAYS_CC",
+      "SAFETY_FORMS_TO",
+      "FIELD_LEADERSHIP_ALWAYS_TO",
+      "PRE_OP_FAIL_FALLBACK",
+      "INCIDENT_SEVERE_CC",
+      "BACKUP_ALERTS",
+      "HEALTH_ALERTS",
+      "OUTAGE_ALERTS",
+      "SAFETY_DIGEST_TO",
+      "OPERATOR_DIGEST_RECIPIENTS",
+      "PAYROLL_VARIANCE_TO",
+      "ADMIN_DEAD_LETTER_TO",
+      "DISPATCH_ROLE_TO",
+      "SUPER_ADMIN_TO",
+      "EXECUTIVE_DIGEST",
+      "ACCOUNT_INVITES_FROM",
+      "PASSWORD_RESET_MONITORING_TO",
+      "TRENCH_SAFETY_PULSE_SAFETY",
+      "TRENCH_SAFETY_PULSE_SHOP"
+    ],
+    "updated": [],
+    "unchanged": [],
+    "skipped": [],
+    "errors": []
+  },
+  "total_routes": 19
+}

@@ -46,7 +46,25 @@ def _recipients() -> List[str]:
     return [fallback]
 
 
-async def _send_alert(red_cards: List[Dict[str, Any]], overall: str) -> bool:
+async def _recipients_v2(db) -> List[str]:
+    """Track 15.65 · DB-first resolver when EMAIL_ROUTING_V2=true; otherwise
+    identical legacy behaviour."""
+    try:
+        from email_routing_v2 import resolve_and_audit as _v2_resolve  # noqa: PLC0415
+        res = await _v2_resolve(
+            db,
+            "HEALTH_ALERTS",
+            legacy_provider=_recipients,
+            fallback_env_keys=["HEALTH_ALERT_RECIPIENTS", "BACKUP_EMAIL_TO"],
+            critical=True,
+            calling_module="health_monitor",
+        )
+        return res.to or _recipients()
+    except Exception:
+        return _recipients()
+
+
+async def _send_alert(red_cards: List[Dict[str, Any]], overall: str, db=None) -> bool:
     """Send a single Resend email summarizing the red subsystems."""
     if os.environ.get("AUTO_EMAIL_REPORTS", "false").lower() not in ("true", "1", "yes"):
         return False
@@ -115,8 +133,13 @@ async def _send_alert(red_cards: List[Dict[str, Any]], overall: str) -> bool:
 
     try:
         import httpx  # noqa: PLC0415
+        # Track 15.65 · resolve recipients through DB-first router when V2 enabled.
+        try:
+            _to_list = await _recipients_v2(db) if db is not None else _recipients()
+        except Exception:
+            _to_list = _recipients()
         async with httpx.AsyncClient(timeout=10) as client:
-            for to in _recipients():
+            for to in _to_list:
                 await client.post(
                     "https://api.resend.com/emails",
                     headers={
@@ -197,7 +220,7 @@ def start_health_monitor_loop(
                     last_alerted[key] = now
 
                 if to_alert:
-                    sent = await _send_alert(to_alert, overall)
+                    sent = await _send_alert(to_alert, overall, db=db)
                     # Stamp the last run as alerted=True
                     try:
                         await db.health_monitor_runs.update_one(

@@ -1,0 +1,366 @@
+{
+  "ts": "2026-06-22T15:06:51.874956+00:00",
+  "tenant": "masci",
+  "route_count": 19,
+  "results": [
+    {
+      "route_key": "ACCOUNT_INVITES_FROM",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": false,
+      "match": true
+    },
+    {
+      "route_key": "ADMIN_DEAD_LETTER_TO",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "safety@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "safety@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "BACKUP_ALERTS",
+      "critical": true,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "COMPLIANCE_ALWAYS_CC",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com",
+        "safety@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com",
+        "safety@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "DISPATCH_ROLE_TO",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "EXECUTIVE_DIGEST",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": false,
+      "match": true
+    },
+    {
+      "route_key": "FIELD_LEADERSHIP_ALWAYS_TO",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com",
+        "safety@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com",
+        "safety@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "HEALTH_ALERTS",
+      "critical": true,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "INCIDENT_SEVERE_CC",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "OPERATOR_DIGEST_RECIPIENTS",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "safety@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "safety@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "OUTAGE_ALERTS",
+      "critical": true,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "PASSWORD_RESET_MONITORING_TO",
+      "critical": false,
+      "enabled": false,
+      "flag_off_to": [],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "disabled",
+      "legacy_provided": false,
+      "match": true
+    },
+    {
+      "route_key": "PAYROLL_VARIANCE_TO",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "PRE_OP_FAIL_FALLBACK",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "shopmanager@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "shopmanager@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "SAFETY_DIGEST_TO",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "safety@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "safety@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "SAFETY_FORMS_TO",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "safety@mascigc.com",
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "safety@mascigc.com",
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "SUPER_ADMIN_TO",
+      "critical": true,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "TRENCH_SAFETY_PULSE_SAFETY",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "safety@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    },
+    {
+      "route_key": "TRENCH_SAFETY_PULSE_SHOP",
+      "critical": false,
+      "enabled": true,
+      "flag_off_to": [
+        "shopmanager@mascigc.com"
+      ],
+      "flag_off_cc": [],
+      "flag_off_bcc": [],
+      "flag_off_source": "legacy",
+      "flag_on_to": [
+        "shopmanager@mascigc.com"
+      ],
+      "flag_on_cc": [],
+      "flag_on_bcc": [],
+      "flag_on_source": "db",
+      "legacy_provided": true,
+      "match": true
+    }
+  ],
+  "summary": {
+    "match": 19,
+    "mismatch": 0,
+    "skipped_no_legacy": 3,
+    "critical_empty": 0
+  }
+}

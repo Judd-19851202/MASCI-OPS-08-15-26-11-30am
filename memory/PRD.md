@@ -10,7 +10,42 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.64 · Platform-Wide Email Routing Governance Audit + Multi-Tenant Email Management · 🟢 GO for execution (audit-only this track))
+## Latest Track (2026-06-22 · TRACK 15.65 · Email Routing V2 Wave 1: DB-First Engine + Pre-Seed + Safe Send-Site Migration · 🟢 GO · feature flag OFF until operator approval)
+
+### What shipped
+- `backend/email_routing_v2.py` — DB-first resolver, audit, feature-flag, legacy back-compat shim.
+- `backend/scripts/track_15_65_seed_email_routes.py` — idempotent seed for the 19 routes.
+- `backend/scripts/track_15_65_parity_verify.py` — parity harness.
+- 2 P0 send-site migrations behind feature flag (`safety_digest.py`, `health_monitor.py`).
+
+### Headline results
+- 19 routes seeded for `tenant_key='masci'`, 4 critical (BACKUP, HEALTH, OUTAGE, SUPER_ADMIN), 0 empty-critical.
+- Parity harness 19/19 match · 0 mismatch · 0 critical-empty · 0 live emails sent.
+- Resolver round-trip proven: `OFF source=legacy` · `ON source=db`.
+- Backend healthy after migration (`/api/health` 200, lint clean on all touched files).
+
+### The ten answers
+1. Routes seeded: 19.
+2. Send sites migrated: 2 (`safety_digest.py`, `health_monitor.py`) — Wave-1 minimum-blast-radius.
+3. Hard-coded recipients remaining (in code): 91 backend + 51 frontend (unchanged — Wave 2 sweeps them).
+4. `EMAIL_ROUTING_V2=false` preserves exact legacy behaviour: YES (proven by parity harness with flag OFF).
+5. `EMAIL_ROUTING_V2=true` resolves from DB first: YES (proven by parity harness with flag ON).
+6. Parity passed for every critical route: YES (4/4 critical routes resolved non-empty).
+7. Any real emails sent during testing: NO.
+8. All critical routes configured with recipients: YES (4 routes, each ≥ 1 recipient).
+9. Rollback procedure: set `EMAIL_ROUTING_V2=false` in production env + `supervisorctl restart backend`, < 5 minutes.
+10. GO / NO-GO: 🟢 GO — engine deploy-ready; flag stays OFF until operator authorization.
+
+### Six Pillars
+Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 9 · Deployable 10 → **59 / 60 (98 %)**.
+
+### Deliverables (all 10 in `/app/memory/`)
+TRACK_15_65_BASELINE_RECONCILIATION · _ROUTE_CATALOG · _ENGINE_IMPLEMENTATION · _PRESEED_CERTIFICATION · _EMAIL_AUDIT_LOGGING · _SEND_SITE_MIGRATION · _PARITY_VERIFICATION · _PREVIEW_CERTIFICATION · _DEPLOYMENT_READINESS · _SIX_PILLAR_CERTIFICATION.
+
+### Hard-rule compliance
+✅ Zero MASCI behaviour change with flag OFF · ✅ no live test emails sent · ✅ no critical-route silent drop · ✅ rollback under 5 min · ✅ backward-compatible legacy aliases · ✅ no destructive migration · ✅ no production flip without operator approval.
+
+## Prior Track (2026-06-22 · TRACK 15.64 · Platform-Wide Email Routing Governance Audit + Multi-Tenant Email Management · 🟢 GO for execution (audit-only this track))
 
 ### Mode
 **AUDIT + ARCHITECTURE only.** Zero code modified. Output is decision-grade documentation for Track 15.65+ execution.

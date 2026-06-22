@@ -80,7 +80,21 @@ async def safety_digest_scheduler_loop(
             try:
                 payload = await build_payload()
                 html = render_html(payload)
-                recipient = (os.environ.get("SAFETY_DIGEST_TO_EMAIL") or "safety@mascigc.com").strip()
+                # Track 15.65 · resolve via DB-first router when flag is ON.
+                # Flag OFF (default) → identical legacy behaviour.
+                try:
+                    from email_routing_v2 import resolve_and_audit as _v2_resolve  # noqa: PLC0415
+                    _res = await _v2_resolve(
+                        db,
+                        "SAFETY_DIGEST_TO",
+                        legacy_provider=lambda: [(os.environ.get("SAFETY_DIGEST_TO_EMAIL") or "safety@mascigc.com").strip()],
+                        fallback_env_keys=["SAFETY_DIGEST_TO_EMAIL"],
+                        subject="[MASCI] Weekly Safety Digest",
+                        calling_module="safety_digest",
+                    )
+                    recipient = (_res.to[0] if _res.to else (os.environ.get("SAFETY_DIGEST_TO_EMAIL") or "safety@mascigc.com").strip())
+                except Exception:
+                    recipient = (os.environ.get("SAFETY_DIGEST_TO_EMAIL") or "safety@mascigc.com").strip()
                 sent_ok = False
                 if send_email_fn:
                     try:
