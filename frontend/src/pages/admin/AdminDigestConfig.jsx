@@ -149,7 +149,7 @@ export default function AdminDigestConfig() {
             className="mt-2 h-10 border-2 font-mono"
             value={(cfg.recipients || []).join(", ")}
             onChange={(e) => update({ recipients: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
-            placeholder="safety@mascigc.com, ops@mascigc.com"
+            placeholder="alerts@yourcompany.com, ops@yourcompany.com"
             data-testid="digest-recipients"
           />
           <p className="text-[11px] text-slate-500 mt-1 font-mono">

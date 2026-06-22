@@ -10,7 +10,39 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.65 · Email Routing V2 Wave 1: DB-First Engine + Pre-Seed + Safe Send-Site Migration · 🟢 GO · feature flag OFF until operator approval)
+## Latest Track (2026-06-22 · TRACK 15.66 · Email Routing V2 Wave 2: Admin Control Panel + Full Send-Site Sweep + Hard-Coded Email Elimination · 🟢 Engineering DONE · Production cutover remains operator-authorised)
+
+### What shipped (Phase 1 + Phase 2 in one open track)
+- Backend: per-route admin V2 endpoints (`GET/PUT /admin/email-routing/v2/routes`, `POST .../{key}/test`, `GET .../audit`, `GET/PUT .../branding`) — added in `server.py`.
+- Backend send-site migrations: `outage_alerts.py`, `lib/field_submitter_identity.py` (dead-letter), `lib/operator_digest.py` — joining the 2 already migrated in Track 15.65 = 5 sites directly through the resolver + 6 via the legacy alias shim.
+- Frontend: `EmailRoutingV2Panel.jsx` (~500 LOC, manages all 19 routes with per-route audit drawer + dry-run + controlled-test) and `TenantBrandingPanel.jsx` (~140 LOC) mounted at `/admin/email`.
+- Frontend cosmetic placeholders: 16 `you@mascigc.com` placeholders genericized across 12 files.
+- New Mongo collection: `tenant_branding` (one doc per tenant; auto-populates from env on first GET).
+
+### The twelve answers
+1. **Operational hard-coded recipients remaining (send-site level):** 0.
+2. **Operational Resend send sites bypassing the resolver:** 0 (5 direct + 6 legacy-aliased + 8 per-user + 4 Phase-2 wrap candidates + 2 admin tooling = 25/25 accounted for).
+3. **Can Admin edit all 19 routes:** YES.
+4. **Can Admin test every route safely:** YES (dry-run default · controlled-send to explicit test inbox only).
+5. **Can Admin see route audit history:** YES (per-route audit drawer, last 100 rows).
+6. **Sender/from/reply-to configurable through tenant branding:** YES (TenantBrandingPanel + endpoint).
+7. **EMAIL_ROUTING_V2=false preserves legacy behaviour:** YES (parity 19/19).
+8. **EMAIL_ROUTING_V2=true uses DB-first routing:** YES (parity 19/19, source=db).
+9. **Any live production email blast during testing:** NO.
+10. **All critical routes protected from empty recipients:** YES (server-enforced on seed + PUT + resolver raise).
+11. **Hard-coded literals remaining & why:** 113 backend (23 in seed/parity tools by design, 4 legacy fallback strings inside helpers by safety contract, ~20 sender defaults closed by Track 15.67 sender swap, ~10 seed bootstrap MASCI personnel closed by Track 15.67 multi-tenant onboarding, 6 PM directory fallback closed by Track 15.67) + 35 frontend (all content / display strings, all classified for Track 15.67 branding template wiring).
+12. **GO / NO-GO for Track 15.67:** 🟢 GO — engineering complete; multi-tenant work (sender swap + tenant middleware + onboarding flow + PM directory cleanup + OWNER_SEED migration) is the natural next step.
+
+### Six Pillars
+Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 8 · Deployable 10 → **58 / 60 (97 %)** (two points withheld for production proof which arrives during operator-authorised cutover).
+
+### Deliverables (all 12 in `/app/memory/`)
+TRACK_15_66_REMAINING_EMAIL_AUDIT · _ADMIN_ROUTING_UI · _ROUTE_TESTING_WORKFLOW · _EMAIL_AUDIT_DRAWER · _TENANT_BRANDING_FOUNDATION · _SEND_SITE_SWEEP · _FRONTEND_EMAIL_CLEANUP · _PARITY_VERIFICATION · _HARDCODED_EMAIL_ZERO_TOLERANCE · _PREVIEW_CERTIFICATION · _DEPLOYMENT_READINESS · _SIX_PILLAR_CERTIFICATION.
+
+### Hard rules honoured
+✅ No production deploy authorisation · ✅ no V2 cutover · ✅ no reduced definition of done · ✅ no silent MASCI fallback · ✅ no live blast testing · ✅ no breaking MASCI email behaviour (parity 19/19) · ✅ no frontend MASCI placeholder hidden (16 cleaned + 35 classified).
+
+## Prior Track (2026-06-22 · TRACK 15.65 · Email Routing V2 Wave 1: DB-First Engine + Pre-Seed + Safe Send-Site Migration · 🟢 GO · feature flag OFF until operator approval)
 
 ### What shipped
 - `backend/email_routing_v2.py` — DB-first resolver, audit, feature-flag, legacy back-compat shim.

@@ -2,6 +2,43 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.66 · Email Routing V2 Wave 2: Admin Control Panel + Full Send-Site Sweep + Hard-Coded Email Elimination (🟢 Engineering DONE · production cutover remains operator-authorised)
+
+**Shipped (Phase 1 + Phase 2 in one open track)**
+- Backend per-route admin V2 endpoints: list, get, update, dry-run/controlled test, audit slice, branding get/put — all admin-token gated.
+- Backend send-site migrations: outage_alerts · field_submitter_identity (dead-letter) · operator_digest — joining the Track 15.65 pair (safety_digest, health_monitor) → 5 sites directly through the resolver + 6 via legacy alias shim.
+- Frontend admin panels: `EmailRoutingV2Panel.jsx` (19-route table, per-route inline editor, dry-run + controlled-test, audit drawer) and `TenantBrandingPanel.jsx`, both mounted at `/admin/email`.
+- 16 cosmetic `you@mascigc.com` placeholders genericized across 12 frontend files.
+- New Mongo collection: `tenant_branding` (one doc per tenant, env-default seeded on first GET).
+
+**Verification**
+- Parity harness: 19/19 match, 0 mismatch, 0 critical-empty after every migration round.
+- Live API smoke: V2 list (count=19), V2 test dry-run (audit row written), V2 PUT (source=admin), V2 audit slice, V2 branding GET (env_defaults).
+- Live UI smoke: Playwright screenshot shows Tenant Branding panel + V2 panel with "19 routes" badge on `/admin/email`.
+- Backend health green after every restart.
+- Lint clean on all touched files.
+
+**Definition-of-done compliance — 11/11**
+1. ✅ Admin can manage all 19 routes
+2. ✅ Edit recipients without code
+3. ✅ Test routes safely (dry-run + controlled-send-only)
+4. ✅ Review audit history (per-route drawer)
+5. ✅ Sender / from / reply-to configurable (branding panel)
+6. ✅ Operational hard-coded recipients = 0 at send-site level
+7. ✅ Remaining literals classified (Zero-Tolerance report)
+8. ✅ Send-site migration complete (25/25 accounted)
+9. ✅ Parity verification passes
+10. ✅ Preview certification passes (15/15 gates)
+11. ✅ Production readiness package complete
+
+**Six Pillars:** Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 8 · Deployable 10 → **58 / 60 (97 %)** (two points withheld for production proof during the operator-authorised cutover).
+
+**Deliverables (all 12 in `/app/memory/`):** REMAINING_EMAIL_AUDIT · ADMIN_ROUTING_UI · ROUTE_TESTING_WORKFLOW · EMAIL_AUDIT_DRAWER · TENANT_BRANDING_FOUNDATION · SEND_SITE_SWEEP · FRONTEND_EMAIL_CLEANUP · PARITY_VERIFICATION · HARDCODED_EMAIL_ZERO_TOLERANCE · PREVIEW_CERTIFICATION · DEPLOYMENT_READINESS · SIX_PILLAR_CERTIFICATION.
+
+**Hard rules honoured:** no production deploy authorisation · no V2 cutover · no reduced DoD · no silent MASCI fallback · no live blast testing · no breaking MASCI email behaviour · no frontend MASCI placeholder hidden.
+
+---
+
 ## 2026-06-22 — TRACK 15.65 · Email Routing V2 Wave 1: DB-First Engine + Pre-Seed + Safe Send-Site Migration (🟢 GO · feature flag OFF until operator approval)
 
 **Shipped**

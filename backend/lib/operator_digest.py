@@ -322,10 +322,25 @@ async def operator_digest_scheduler_loop(
             try:
                 payload = await build_weekly_digest_payload(db)
                 text = render_digest_plaintext(payload)
-                recipients = (os.environ.get("OPERATOR_DIGEST_RECIPIENTS")
-                              or os.environ.get("SAFETY_DIGEST_TO_EMAIL")
-                              or "safety@mascigc.com").strip()
-                recipient_list = [r.strip() for r in recipients.split(",") if r.strip()]
+                # Track 15.66 · DB-first recipient resolution. Flag OFF
+                # produces identical legacy behaviour.
+                def _legacy_recipients() -> list[str]:
+                    raw = (os.environ.get("OPERATOR_DIGEST_RECIPIENTS")
+                           or os.environ.get("SAFETY_DIGEST_TO_EMAIL")
+                           or "safety@mascigc.com").strip()
+                    return [r.strip() for r in raw.split(",") if r.strip()]
+                try:
+                    from email_routing_v2 import resolve_and_audit as _v2_resolve  # noqa: PLC0415
+                    _res = await _v2_resolve(
+                        db,
+                        "OPERATOR_DIGEST_RECIPIENTS",
+                        legacy_provider=_legacy_recipients,
+                        fallback_env_keys=["OPERATOR_DIGEST_RECIPIENTS", "SAFETY_DIGEST_TO_EMAIL"],
+                        calling_module="operator_digest",
+                    )
+                    recipient_list = _res.to or _legacy_recipients()
+                except Exception:
+                    recipient_list = _legacy_recipients()
                 if not recipient_list:
                     logger.info(f"[operator-digest] no recipients · skipping · payload preview=\n{text}")
                     await mark_completed(db, "operator_digest", slot_key, recipients=0,

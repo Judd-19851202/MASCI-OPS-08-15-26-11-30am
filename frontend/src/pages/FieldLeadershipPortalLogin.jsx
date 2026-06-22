@@ -177,7 +177,7 @@ export default function FieldLeadershipPortalLogin() {
                       submitForgot();
                     }
                   }}
-                  placeholder="yourname@mascigc.com"
+                  placeholder="yourname@yourcompany.com"
                   className="h-11 pl-9 text-base border-2 border-slate-300"
                   data-testid="fl-forgot-email"
                   autoFocus
@@ -261,7 +261,7 @@ export default function FieldLeadershipPortalLogin() {
                     onChange={(e) => setEmail(e.target.value)}
                     autoFocus
                     autoComplete="username"
-                    placeholder="yourname@mascigc.com"
+                    placeholder="yourname@yourcompany.com"
                     className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700"
                     data-testid="fl-email"
                   />

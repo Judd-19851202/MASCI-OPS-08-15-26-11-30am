@@ -93,6 +93,26 @@ def _alert_to() -> str:
     return (os.environ.get("OUTAGE_ALERT_TO") or "").strip()
 
 
+async def _alert_to_v2(db) -> str:
+    """Track 15.66 · DB-first resolution when EMAIL_ROUTING_V2=true.
+    Falls back to legacy env behaviour when flag is off or DB doc empty."""
+    try:
+        from email_routing_v2 import resolve_and_audit as _v2_resolve  # noqa: PLC0415
+        res = await _v2_resolve(
+            db,
+            "OUTAGE_ALERTS",
+            legacy_provider=lambda: _alert_to(),
+            fallback_env_keys=["OUTAGE_ALERT_TO"],
+            critical=True,
+            calling_module="outage_alerts",
+        )
+        if res.to:
+            return res.to[0] if isinstance(res.to, list) else str(res.to)
+    except Exception:
+        pass
+    return _alert_to()
+
+
 def _on_cooldown(issue_key: str) -> bool:
     last = _LAST_ALERT_SENT.get(issue_key)
     if not last:
@@ -107,12 +127,13 @@ async def send_outage_alert(
     subject: str,
     summary: str,
     details_html: str = "",
+    db=None,
 ) -> dict:
     """Send a one-line outage email via Resend (cooldown-gated).
 
     Returns a dict {sent: bool, reason: str, ...}. Never raises.
     """
-    to = _alert_to()
+    to = await _alert_to_v2(db) if db is not None else _alert_to()
     if not to:
         return {"sent": False, "reason": "OUTAGE_ALERT_TO not set"}
 

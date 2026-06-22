@@ -208,7 +208,7 @@ export default function ShopLogin() {
                       submitForgot();
                     }
                   }}
-                  placeholder="yourname@mascigc.com"
+                  placeholder="yourname@yourcompany.com"
                   className="h-11 pl-9 text-base border-2 border-slate-300"
                   data-testid="shop-forgot-email-input"
                   autoFocus
@@ -276,7 +276,7 @@ export default function ShopLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 required
-                placeholder="shopmanager@mascigc.com"
+                placeholder="shop-manager@yourcompany.com"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-amber-500"
                 data-testid="shop-email-input"
               />

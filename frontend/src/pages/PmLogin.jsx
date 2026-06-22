@@ -199,7 +199,7 @@ export default function PmLogin() {
                       submitForgot();
                     }
                   }}
-                  placeholder="yourname@mascigc.com"
+                  placeholder="yourname@yourcompany.com"
                   className="h-11 pl-9 text-base border-2 border-slate-300"
                   data-testid="pm-forgot-email-input"
                   autoFocus
@@ -272,7 +272,7 @@ export default function PmLogin() {
                   onChange={(e) => setEmail(e.target.value)}
                   autoFocus
                   autoComplete="username"
-                  placeholder="yourname@mascigc.com"
+                  placeholder="yourname@yourcompany.com"
                   className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-amber-500"
                   data-testid="pm-email-input"
                 />

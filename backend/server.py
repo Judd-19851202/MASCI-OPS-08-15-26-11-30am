@@ -13182,6 +13182,350 @@ async def admin_email_routing_test(
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# Email Routing V2 (Track 15.66 Wave 2) — per-route management surface.
+# All endpoints below operate on the new ``email_routes`` collection seeded
+# by ``backend/scripts/track_15_65_seed_email_routes.py``. Behaviour is
+# back-compat: existing V1 endpoints above continue to work unchanged.
+# ─────────────────────────────────────────────────────────────────────────
+class V2RouteUpdate(BaseModel):
+    to: Optional[List[str]] = None
+    cc: Optional[List[str]] = None
+    bcc: Optional[List[str]] = None
+    from_email: Optional[str] = None
+    reply_to: Optional[str] = None
+    enabled: Optional[bool] = None
+    description: Optional[str] = None
+
+
+class V2RouteTestBody(BaseModel):
+    """Controlled test send. ``dry_run=True`` (default) only resolves
+    recipients and writes an audit row. Set ``dry_run=False`` AND
+    ``test_recipient`` to send a real email to a specific test inbox —
+    NEVER to the route's production recipient list."""
+    dry_run: bool = True
+    test_recipient: Optional[str] = None
+
+
+class V2BrandingUpdate(BaseModel):
+    company_name: Optional[str] = None
+    platform_display_name: Optional[str] = None
+    sender_name: Optional[str] = None
+    from_email: Optional[str] = None
+    reply_to: Optional[str] = None
+    support_email: Optional[str] = None
+    safety_email: Optional[str] = None
+    hr_email: Optional[str] = None
+    operations_email: Optional[str] = None
+    logo_url: Optional[str] = None
+    primary_color: Optional[str] = None
+
+
+def _current_tenant_key() -> str:
+    return (os.environ.get("EMAIL_ROUTING_TENANT") or "masci").strip().lower() or "masci"
+
+
+def _validate_email_list(emails: List[str], field_name: str) -> List[str]:
+    """Validate every email in a list. Empty list is allowed."""
+    if emails is None:
+        return []
+    cleaned: List[str] = []
+    seen: set = set()
+    for raw in emails:
+        s = str(raw or "").strip()
+        if not s:
+            continue
+        if "@" not in s or "." not in s.split("@", 1)[-1]:
+            raise HTTPException(400, f"Invalid email '{s}' in {field_name}")
+        key = s.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(s)
+    return cleaned
+
+
+@_email_router.get("/admin/email-routing/v2/routes")
+async def admin_v2_routes_list(_: bool = Depends(require_admin)):
+    """Return every route doc for the active tenant, plus per-route
+    last-send / last-failure summaries derived from the audit collection."""
+    tk = _current_tenant_key()
+    cursor = db.email_routes.find({"tenant_key": tk}, {"_id": 0}).sort("route_key", 1)
+    routes = await cursor.to_list(100)
+    # Per-route last-audit lookup (cheap — bounded by 19 routes)
+    summaries: Dict[str, Dict[str, Any]] = {}
+    for r in routes:
+        rk = r["route_key"]
+        last = await db.email_routing_audit_v2.find_one(
+            {"tenant_key": tk, "route_key": rk}, sort=[("ts", -1)]
+        )
+        last_fail = await db.email_routing_audit_v2.find_one(
+            {"tenant_key": tk, "route_key": rk, "status": {"$in": ["failed", "error"]}},
+            sort=[("ts", -1)],
+        )
+        summaries[rk] = {
+            "last_send_at": (last or {}).get("ts"),
+            "last_send_status": (last or {}).get("status"),
+            "last_send_source": (last or {}).get("source"),
+            "last_failure_at": (last_fail or {}).get("ts"),
+            "last_failure_error": (last_fail or {}).get("error"),
+        }
+        r["summary"] = summaries[rk]
+    return {"tenant_key": tk, "routes": routes, "count": len(routes)}
+
+
+@_email_router.get("/admin/email-routing/v2/routes/{route_key}")
+async def admin_v2_route_get(route_key: str, _: bool = Depends(require_admin)):
+    tk = _current_tenant_key()
+    doc = await db.email_routes.find_one({"_id": f"{tk}::{route_key}"}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, f"Route {route_key} not configured for tenant {tk}")
+    return doc
+
+
+@_email_router.put("/admin/email-routing/v2/routes/{route_key}")
+async def admin_v2_route_put(
+    route_key: str, body: V2RouteUpdate, _: bool = Depends(require_admin)
+):
+    """Edit recipients / enabled / description for a route. Admin source
+    is recorded so the seed script will not overwrite admin edits without
+    --force. Prevents disabling critical routes and prevents empty
+    enabled-critical TO lists."""
+    tk = _current_tenant_key()
+    _id = f"{tk}::{route_key}"
+    existing = await db.email_routes.find_one({"_id": _id})
+    if not existing:
+        raise HTTPException(404, f"Route {route_key} not configured for tenant {tk}")
+    update: Dict[str, Any] = {}
+    if body.to is not None:
+        update["to"] = _validate_email_list(body.to, "to")
+    if body.cc is not None:
+        update["cc"] = _validate_email_list(body.cc, "cc")
+    if body.bcc is not None:
+        update["bcc"] = _validate_email_list(body.bcc, "bcc")
+    if body.from_email is not None:
+        v = (body.from_email or "").strip()
+        if v and "@" not in v:
+            raise HTTPException(400, "Invalid from_email")
+        update["from_email"] = v or None
+    if body.reply_to is not None:
+        v = (body.reply_to or "").strip()
+        if v and "@" not in v:
+            raise HTTPException(400, "Invalid reply_to")
+        update["reply_to"] = v or None
+    if body.enabled is not None:
+        if (not body.enabled) and bool(existing.get("critical")):
+            raise HTTPException(
+                400,
+                "Critical routes cannot be disabled through this endpoint. "
+                "Use platform-admin override path if intentional.",
+            )
+        update["enabled"] = bool(body.enabled)
+    if body.description is not None:
+        update["description"] = str(body.description).strip()[:500]
+
+    # Critical-route TO guard
+    new_to = update.get("to", existing.get("to") or [])
+    new_enabled = update.get("enabled", existing.get("enabled", True))
+    if bool(existing.get("critical")) and new_enabled and not new_to:
+        raise HTTPException(
+            400, "Critical route cannot have empty 'to' while enabled."
+        )
+
+    if not update:
+        return {"ok": True, "changed": False, "doc": {**existing, "_id": None}}
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update["updated_by"] = "admin"
+    update["source"] = "admin"
+    await db.email_routes.update_one({"_id": _id}, {"$set": update})
+    # Invalidate resolver cache so the next send picks up the edit.
+    try:
+        from email_routing_v2 import invalidate_cache as _v2_invalidate
+        _v2_invalidate()
+    except Exception:
+        pass
+    new_doc = await db.email_routes.find_one({"_id": _id}, {"_id": 0})
+    return {"ok": True, "changed": True, "doc": new_doc}
+
+
+@_email_router.post("/admin/email-routing/v2/routes/{route_key}/test")
+async def admin_v2_route_test(
+    route_key: str, body: V2RouteTestBody, _: bool = Depends(require_admin)
+):
+    """Controlled route test. Dry-run by default — only resolves recipients
+    and writes an audit row. When ``dry_run=False`` AND ``test_recipient``
+    is supplied, sends ONE email to that test inbox using the route's
+    sender/reply-to. Never blasts the route's production recipients."""
+    tk = _current_tenant_key()
+    _id = f"{tk}::{route_key}"
+    doc = await db.email_routes.find_one({"_id": _id})
+    if not doc:
+        raise HTTPException(404, f"Route {route_key} not configured for tenant {tk}")
+
+    try:
+        from email_routing_v2 import resolve as _v2_resolve, write_audit as _v2_audit  # noqa: PLC0415
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(500, f"Routing engine unavailable: {e}")
+
+    # Force-resolve via DB doc (does not depend on EMAIL_ROUTING_V2 flag).
+    res_to = [str(x).strip() for x in (doc.get("to") or [])]
+    res_cc = [str(x).strip() for x in (doc.get("cc") or [])]
+    res_bcc = [str(x).strip() for x in (doc.get("bcc") or [])]
+
+    if body.dry_run or not body.test_recipient:
+        # Dry-run path — write audit row, no Resend call.
+        await _v2_audit(
+            db,
+            route_key=route_key, tenant_key=tk, source="db",
+            to_count=len(res_to), cc_count=len(res_cc), bcc_count=len(res_bcc),
+            subject="[ROUTE TEST · DRY-RUN]", sender_email=None,
+            status="dry_run", calling_module="admin_v2_route_test", dry_run=True,
+        )
+        await db.email_routes.update_one(
+            {"_id": _id},
+            {"$set": {"last_tested_at": datetime.now(timezone.utc).isoformat(),
+                      "last_test_status": "dry_run"}},
+        )
+        return {
+            "ok": True, "dry_run": True,
+            "resolved": {"to": res_to, "cc": res_cc, "bcc": res_bcc},
+            "sender_email": doc.get("from_email") or os.environ.get("SENDER_EMAIL", ""),
+            "reply_to": doc.get("reply_to") or os.environ.get("REPLY_TO_EMAIL", ""),
+        }
+
+    # Controlled real send — only to the test_recipient.
+    target = (body.test_recipient or "").strip()
+    if "@" not in target:
+        raise HTTPException(400, "Invalid test_recipient")
+    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(503, "RESEND_API_KEY not configured")
+    import resend as _resend  # noqa: PLC0415
+    _resend.api_key = api_key
+    sender = (doc.get("from_email") or os.environ.get("SENDER_EMAIL")
+              or "noreply@mascidocs.com")
+    reply_to = doc.get("reply_to") or os.environ.get("REPLY_TO_EMAIL") or ""
+    subject = f"[ROUTE TEST · {route_key}] Controlled probe"
+    html = (
+        f"<div style='font-family:Arial,sans-serif;max-width:540px'>"
+        f"<h2 style='color:#C8102E'>Route test — {route_key}</h2>"
+        f"<p>This is a controlled probe of the <strong>{doc.get('display_name', route_key)}</strong> "
+        f"route. Production recipients ({len(res_to)} TO · {len(res_cc)} CC · {len(res_bcc)} BCC) "
+        f"were intentionally NOT contacted. Only this test inbox received the probe.</p>"
+        f"<p style='color:#64748b;font-size:12px'>Sent {datetime.now(timezone.utc).isoformat()} UTC</p>"
+        f"</div>"
+    )
+    params: Dict[str, Any] = {
+        "from": f"MASCI Operations Platform <{sender}>",
+        "to": [target],
+        "subject": subject,
+        "html": html,
+    }
+    if reply_to:
+        params["reply_to"] = reply_to
+    try:
+        result = await asyncio.to_thread(_resend.Emails.send, params)
+    except Exception as e:  # noqa: BLE001
+        await _v2_audit(
+            db, route_key=route_key, tenant_key=tk, source="db",
+            to_count=1, cc_count=0, bcc_count=0,
+            subject=subject, sender_email=sender, status="failed",
+            error=str(e), calling_module="admin_v2_route_test", dry_run=False,
+        )
+        raise HTTPException(502, f"Resend send failed: {e}")
+    rid = (result or {}).get("id")
+    await _v2_audit(
+        db, route_key=route_key, tenant_key=tk, source="db",
+        to_count=1, cc_count=0, bcc_count=0,
+        subject=subject, sender_email=sender, resend_message_id=rid,
+        status="sent", calling_module="admin_v2_route_test", dry_run=False,
+    )
+    await db.email_routes.update_one(
+        {"_id": _id},
+        {"$set": {"last_tested_at": datetime.now(timezone.utc).isoformat(),
+                  "last_test_status": "sent"}},
+    )
+    return {"ok": True, "dry_run": False, "test_recipient": target, "resend_id": rid}
+
+
+@_email_router.get("/admin/email-routing/v2/audit")
+async def admin_v2_audit_slice(
+    route_key: Optional[str] = None,
+    limit: int = 100,
+    _: bool = Depends(require_admin),
+):
+    """Per-route audit slice. Defaults to the most recent 100 rows across
+    all routes for the active tenant. Filter by route_key when opening the
+    audit drawer for a single route."""
+    tk = _current_tenant_key()
+    limit = max(1, min(int(limit or 100), 500))
+    q: Dict[str, Any] = {"tenant_key": tk}
+    if route_key:
+        q["route_key"] = route_key
+    cursor = db.email_routing_audit_v2.find(q, {"_id": 0}).sort("ts", -1).limit(limit)
+    rows = await cursor.to_list(limit)
+    return {"tenant_key": tk, "route_key": route_key, "rows": rows, "count": len(rows)}
+
+
+@_email_router.get("/admin/email-routing/v2/branding")
+async def admin_v2_branding_get(_: bool = Depends(require_admin)):
+    """Tenant branding (sender / reply-to / company / etc.). Defaults
+    derive from env vars so the first GET on a fresh tenant returns a
+    pre-populated doc rather than 404."""
+    tk = _current_tenant_key()
+    doc = await db.tenant_branding.find_one({"_id": tk}, {"_id": 0})
+    if not doc:
+        doc = {
+            "tenant_key": tk,
+            "company_name": "MASCI",
+            "platform_display_name": "MASCI Operations Platform",
+            "sender_name": "MASCI Operations Platform",
+            "from_email": (os.environ.get("SENDER_EMAIL") or "").strip(),
+            "reply_to": (os.environ.get("REPLY_TO_EMAIL") or "").strip(),
+            "support_email": "safety@mascigc.com",
+            "safety_email": "safety@mascigc.com",
+            "hr_email": (os.environ.get("HR_EMAIL") or "").strip(),
+            "operations_email": (os.environ.get("OPERATIONS_EMAIL") or "").strip(),
+            "logo_url": None,
+            "primary_color": "#C8102E",
+            "source": "env_defaults",
+        }
+    return doc
+
+
+@_email_router.put("/admin/email-routing/v2/branding")
+async def admin_v2_branding_put(
+    body: V2BrandingUpdate, _: bool = Depends(require_admin)
+):
+    tk = _current_tenant_key()
+    update: Dict[str, Any] = {}
+    raw = body.model_dump()
+    for k, v in raw.items():
+        if v is None:
+            continue
+        if k in ("from_email", "reply_to", "support_email", "safety_email",
+                 "hr_email", "operations_email"):
+            s = str(v).strip()
+            if s and "@" not in s:
+                raise HTTPException(400, f"Invalid email in '{k}'")
+            update[k] = s or None
+        else:
+            update[k] = str(v).strip()[:240] if isinstance(v, str) else v
+    if not update:
+        return {"ok": True, "changed": False}
+    update["tenant_key"] = tk
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update["updated_by"] = "admin"
+    await db.tenant_branding.update_one({"_id": tk}, {"$set": update}, upsert=True)
+    try:
+        from email_routing_v2 import invalidate_cache as _v2_invalidate
+        _v2_invalidate()
+    except Exception:
+        pass
+    doc = await db.tenant_branding.find_one({"_id": tk}, {"_id": 0})
+    return {"ok": True, "changed": True, "doc": doc}
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Photo Storage (iter64): S3-compatible cloud storage admin endpoints.
 # Lets admin: (1) check connectivity to R2/S3, (2) run a dry-run migration
 # preview, (3) run a real migration in capped batches, (4) inspect progress.

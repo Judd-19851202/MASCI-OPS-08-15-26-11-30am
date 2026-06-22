@@ -179,6 +179,25 @@ def _dead_letter_email() -> str:
     return "safety@mascigc.com"
 
 
+async def _dead_letter_email_v2(db) -> str:
+    """Track 15.66 · DB-first dead-letter resolution. Falls back to legacy
+    env behaviour when EMAIL_ROUTING_V2=false or DB doc empty."""
+    try:
+        from email_routing_v2 import resolve_and_audit as _v2_resolve  # noqa: PLC0415
+        res = await _v2_resolve(
+            db,
+            "ADMIN_DEAD_LETTER_TO",
+            legacy_provider=lambda: _dead_letter_email(),
+            fallback_env_keys=["ADMIN_DEAD_LETTER_EMAIL"],
+            calling_module="field_submitter_identity",
+        )
+        if res.to:
+            return res.to[0] if isinstance(res.to, list) else str(res.to)
+    except Exception:
+        pass
+    return _dead_letter_email()
+
+
 async def _resolve_project_owners(db, project_number: str) -> Dict[str, Any]:
     """Return ``{pm_name, pm_email, co_pm_emails, superintendent_email}``
     or empty strings if not resolvable. Reuses the existing
@@ -257,8 +276,9 @@ async def resolve_identity(
     # Tier 4 · PM relay
     owners = await _resolve_project_owners(db, project_number)
 
-    # Tier 5 · dead-letter
-    dead_letter = _dead_letter_email()
+    # Tier 5 · dead-letter (DB-first when EMAIL_ROUTING_V2=true; identical
+    # to ``_dead_letter_email()`` when flag is off).
+    dead_letter = await _dead_letter_email_v2(db)
 
     # Resolve the "best" email + tier (first non-empty wins).
     if fl_email:

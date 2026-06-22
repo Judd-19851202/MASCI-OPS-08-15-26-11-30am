@@ -126,7 +126,7 @@ export default function DispatchLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoFocus
                 autoComplete="username"
-                placeholder="yourname@mascigc.com"
+                placeholder="yourname@yourcompany.com"
                 className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-orange-600"
                 data-testid="dispatch-email-input"
               />

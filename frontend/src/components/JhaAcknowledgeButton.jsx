@@ -140,7 +140,7 @@ export function JhaAcknowledgeButton({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@mascigc.com"
+                placeholder="you@yourcompany.com"
                 className="mt-1.5 h-11 border-2 border-slate-300"
                 data-testid="jha-ack-email-input"
                 autoComplete="email"

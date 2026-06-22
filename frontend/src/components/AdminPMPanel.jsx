@@ -391,7 +391,7 @@ export default function AdminPMPanel() {
             type="email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            placeholder="johndoe@mascigc.com"
+            placeholder="johndoe@yourcompany.com"
             className="h-9 text-sm mt-1"
             data-testid="pm-input-email"
           />

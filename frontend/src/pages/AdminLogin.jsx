@@ -245,7 +245,7 @@ export default function AdminLogin() {
                   autoFocus
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@mascigc.com"
+                  placeholder="you@yourcompany.com"
                   className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
                   data-testid="admin-email-input"
                 />

@@ -337,7 +337,7 @@ export default function SignIn() {
                   onChange={(e) => setEmail(e.target.value)}
                   autoFocus
                   autoComplete="username"
-                  placeholder="yourname@mascigc.com"
+                  placeholder="yourname@yourcompany.com"
                   className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700"
                   data-testid="signin-email"
                 />

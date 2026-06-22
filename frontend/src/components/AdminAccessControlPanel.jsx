@@ -432,7 +432,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@mascigc.com"
+              placeholder="name@yourcompany.com"
               className="mt-1.5 h-11"
               data-testid="acc-create-email"
             />

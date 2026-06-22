@@ -210,7 +210,7 @@ export default function HrLogin() {
                       submitForgot();
                     }
                   }}
-                  placeholder="yourname@mascigc.com"
+                  placeholder="yourname@yourcompany.com"
                   className="h-11 pl-9 text-base border-2 border-slate-300"
                   data-testid="hr-forgot-email-input"
                   autoFocus
@@ -285,7 +285,7 @@ export default function HrLogin() {
                   onChange={(e) => setEmail(e.target.value)}
                   autoFocus
                   autoComplete="username"
-                  placeholder="yourname@mascigc.com"
+                  placeholder="yourname@yourcompany.com"
                   className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-700"
                   data-testid="hr-email-input"
                 />
