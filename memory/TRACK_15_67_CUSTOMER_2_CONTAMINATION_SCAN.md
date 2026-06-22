@@ -1,21 +1,21 @@
 # TRACK 15.67 · Customer #2 Contamination Scan
 
-_Generated 2026-06-22T18:18:38.606409+00:00_
+_Generated 2026-06-22T18:34:22.027839+00:00_
 
 ## Summary
 
-- Total MASCI-flavour hits: **12242**
-- Disallowed customer-visible surface hits: **454**
+- Total MASCI-flavour hits: **12279**
+- Disallowed customer-visible surface hits: **449**
 - Verdict: **❌ FAIL**
 
 ## By Category
 
 | Category | Hits | Allowed? |
 |---|---:|:--:|
-| historical_migration | 6866 | YES |
-| test_fixture | 1834 | YES |
+| historical_migration | 6923 | YES |
+| test_fixture | 1819 | YES |
 | backend_internal | 1153 | YES (docstrings/comments) |
-| uncategorized | 1008 | REVIEW |
+| uncategorized | 1003 | REVIEW |
 | masci_tenant_config | 1001 | YES |
 | masci_data_library | 380 | YES (asset/i18n library) |
 
@@ -49,7 +49,6 @@ _Generated 2026-06-22T18:18:38.606409+00:00_
 - `frontend/src/components/JhaPlansPosterCard.jsx` — /app/frontend/src/components/JhaPlansPosterCard.jsx:90:            {t("Every active MASCI job. Its own Hazard Plan PDF. One scan.")}
 - `frontend/src/components/JhaPlansPosterCard.jsx` — /app/frontend/src/components/JhaPlansPosterCard.jsx:148:              : t("Active MASCI jobs")}
 - `frontend/src/components/JhaPlansPosterCard.jsx` — /app/frontend/src/components/JhaPlansPosterCard.jsx:186:            : t("Sample of MASCI active jobs. Scan the QR for the live, complete list with download links.")}
-- `frontend/src/components/AttendeeBulkAddDialog.jsx` — /app/frontend/src/components/AttendeeBulkAddDialog.jsx:115:        company: "MASCI",
 - `frontend/src/components/CheatSheetCard.jsx` — /app/frontend/src/components/CheatSheetCard.jsx:28:  const hubUrl = branding.marketing_url || "https://mascidocs.com/";
 - `frontend/src/components/CheatSheetCard.jsx` — /app/frontend/src/components/CheatSheetCard.jsx:106:            {(branding.marketing_url || "mascidocs.com").replace(/^https?:\/\//, "").replace(/\/+$/, "")}
 - `frontend/src/components/CheatSheetCard.jsx` — /app/frontend/src/components/CheatSheetCard.jsx:234:            {t("Short bilingual lessons for every role — open mascidocs.com/training.")}
@@ -61,13 +60,9 @@ _Generated 2026-06-22T18:18:38.606409+00:00_
 - `frontend/src/components/DispatchIntegrationsTab.jsx` — /app/frontend/src/components/DispatchIntegrationsTab.jsx:123:        Mapping records live in <code>asset_mappings</code> / <code>employee_mappings</code> — they tie MASCI master ID
 - `frontend/src/components/JobPicker.jsx` — /app/frontend/src/components/JobPicker.jsx:82:    ? t("Pick a MASCI job — or choose Custom")
 - `frontend/src/components/JobPicker.jsx` — /app/frontend/src/components/JobPicker.jsx:161:            <CommandGroup heading={`MASCI Current Jobs · ${library.length}`}>
-- `frontend/src/components/EquipmentMasterPanel.jsx` — /app/frontend/src/components/EquipmentMasterPanel.jsx:92:  company: "MASCI",
-- `frontend/src/components/EquipmentMasterPanel.jsx` — /app/frontend/src/components/EquipmentMasterPanel.jsx:189:      company: u.company || "MASCI",
-- `frontend/src/components/EquipmentMasterPanel.jsx` — /app/frontend/src/components/EquipmentMasterPanel.jsx:268:      const fname = m ? m[1] : "MASCI_equipment.xlsx";
-- `frontend/src/components/EquipmentMasterPanel.jsx` — /app/frontend/src/components/EquipmentMasterPanel.jsx:329:          MASCI Equipment Master Fleet
+- `frontend/src/components/EquipmentMasterPanel.jsx` — /app/frontend/src/components/EquipmentMasterPanel.jsx:330:          MASCI Equipment Master Fleet
 - `frontend/src/components/auth/PasskeyEnrollPrompt.jsx` — /app/frontend/src/components/auth/PasskeyEnrollPrompt.jsx:116:            {t("Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.")}
 - `frontend/src/components/odr/ArchiveBadge.jsx` — /app/frontend/src/components/odr/ArchiveBadge.jsx:61:        This entry was filed before MASCI Ops moved to the Operational
-- `frontend/src/components/EmailReportDialog.jsx` — /app/frontend/src/components/EmailReportDialog.jsx:66:    const proj = record.project_name || record.project || "MASCI";
 - `frontend/src/components/RestoreBackupPanel.jsx` — /app/frontend/src/components/RestoreBackupPanel.jsx:175:              Upload a MASCI .zip · rebuilds the entire system
 - `frontend/src/components/TrenchBoxPosterCard.jsx` — /app/frontend/src/components/TrenchBoxPosterCard.jsx:22:  const trenchUrl = "https://mascidocs.com/trench-boxes";
 - `frontend/src/components/TrenchBoxPosterCard.jsx` — /app/frontend/src/components/TrenchBoxPosterCard.jsx:97:              "One scan. Every MASCI trench shield. Manufacturer-stamped depth, width, and soil-type ratings."
@@ -478,7 +473,7 @@ _Generated 2026-06-22T18:18:38.606409+00:00_
 
 ## Sample Allowed Hits
 
-### historical_migration (6866)
+### historical_migration (6923)
 
 - `backend/scripts/seed_pm_demo_fixture.py`
 - `backend/scripts/track_15_65_parity_verify.py`
@@ -489,7 +484,7 @@ _Generated 2026-06-22T18:18:38.606409+00:00_
 - `memory/ACCOUNTABILITY_ENGINE_AUDIT.md`
 - `memory/ACTIVE_FINDINGS_VERIFICATION.md`
 
-### test_fixture (1834)
+### test_fixture (1819)
 
 - `backend/tests/odr/test_m1_option_c.py`
 - `backend/tests/odr/test_odr_m02.py`

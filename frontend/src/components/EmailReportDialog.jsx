@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { brandCompanyName } from "@/lib/brandFilename";
 import { Mail, Loader2, X } from "lucide-react";
 import {
   Dialog,
@@ -63,7 +64,7 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
     );
     setRecipients(merged.length > 0 ? merged : [""]);
 
-    const proj = record.project_name || record.project || "MASCI";
+    const proj = record.project_name || record.project || brandCompanyName("Project");
     const date = record.report_date || record.date || record.incident_date || "";
     const title =
       kind === "daily-report"

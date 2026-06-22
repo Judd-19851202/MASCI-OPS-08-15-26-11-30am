@@ -1,5 +1,5 @@
 {
-  "ts": "2026-06-22T18:18:38.606409+00:00",
+  "ts": "2026-06-22T18:34:22.027839+00:00",
   "needles": [
     "MASCI",
     "mascigc\\.com",
@@ -49,7 +49,7 @@
       ]
     },
     "test_fixture": {
-      "count": 1834,
+      "count": 1819,
       "samples": [
         "backend/tests/odr/test_m1_option_c.py",
         "backend/tests/odr/test_odr_m02.py",
@@ -99,7 +99,7 @@
       ]
     },
     "historical_migration": {
-      "count": 6866,
+      "count": 6923,
       "samples": [
         "backend/scripts/seed_pm_demo_fixture.py",
         "backend/scripts/track_15_65_parity_verify.py",
@@ -134,7 +134,7 @@
       ]
     },
     "uncategorized": {
-      "count": 1008,
+      "count": 1003,
       "samples": [
         ".deploy_checks/README.md",
         "ATLAS_MIGRATION.md",
@@ -204,7 +204,7 @@
       ]
     }
   },
-  "total_hits": 12242,
+  "total_hits": 12279,
   "disallowed_hits": [
     {
       "path": "frontend/src/design-system/PortalShell.jsx",
@@ -347,11 +347,6 @@
       "line": "/app/frontend/src/components/JhaPlansPosterCard.jsx:186:            : t(\"Sample of MASCI active jobs. Scan the QR for the live, complete list with download links.\")}"
     },
     {
-      "path": "frontend/src/components/AttendeeBulkAddDialog.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/AttendeeBulkAddDialog.jsx:115:        company: \"MASCI\","
-    },
-    {
       "path": "frontend/src/components/CheatSheetCard.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/components/CheatSheetCard.jsx:28:  const hubUrl = branding.marketing_url || \"https://mascidocs.com/\";"
@@ -409,22 +404,7 @@
     {
       "path": "frontend/src/components/EquipmentMasterPanel.jsx",
       "category": "uncategorized",
-      "line": "/app/frontend/src/components/EquipmentMasterPanel.jsx:92:  company: \"MASCI\","
-    },
-    {
-      "path": "frontend/src/components/EquipmentMasterPanel.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/EquipmentMasterPanel.jsx:189:      company: u.company || \"MASCI\","
-    },
-    {
-      "path": "frontend/src/components/EquipmentMasterPanel.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/EquipmentMasterPanel.jsx:268:      const fname = m ? m[1] : \"MASCI_equipment.xlsx\";"
-    },
-    {
-      "path": "frontend/src/components/EquipmentMasterPanel.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/EquipmentMasterPanel.jsx:329:          MASCI Equipment Master Fleet"
+      "line": "/app/frontend/src/components/EquipmentMasterPanel.jsx:330:          MASCI Equipment Master Fleet"
     },
     {
       "path": "frontend/src/components/auth/PasskeyEnrollPrompt.jsx",
@@ -435,11 +415,6 @@
       "path": "frontend/src/components/odr/ArchiveBadge.jsx",
       "category": "uncategorized",
       "line": "/app/frontend/src/components/odr/ArchiveBadge.jsx:61:        This entry was filed before MASCI Ops moved to the Operational"
-    },
-    {
-      "path": "frontend/src/components/EmailReportDialog.jsx",
-      "category": "uncategorized",
-      "line": "/app/frontend/src/components/EmailReportDialog.jsx:66:    const proj = record.project_name || record.project || \"MASCI\";"
     },
     {
       "path": "frontend/src/components/RestoreBackupPanel.jsx",
@@ -2477,5 +2452,5 @@
       "line": "/app/frontend/src/pages/MeetingsDashboard.jsx:66:      portalName=\"MASCI\" portalRole=\"Safety Portal \u00b7 Safety Meetings\""
     }
   ],
-  "disallowed_count": 454
+  "disallowed_count": 449
 }

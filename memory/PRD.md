@@ -10,7 +10,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.68B · White-Label Chrome Final Sweep · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 48/60 (80%))
+## Latest Track (2026-06-22 · TRACK 15.68C · White-Label Chrome Final Mop-Up · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 48/60 (80%))
+
+### Shipped this fork
+- **Data-seed defaults migrated** — `EquipmentMasterPanel.jsx` (2× `company: "MASCI"` + `MASCI_equipment.xlsx`), `AttendeeBulkAddDialog.jsx` (`company: "MASCI"`), `EmailReportDialog.jsx` (`|| "MASCI"` fallback). All now use `brandCompanyName()` / `brandSlug()` helpers.
+- **Asset taxonomy classified** — `services/asset_taxonomy.py` `CANONICAL_COMPANIES` is an internal Mongo discriminator, not surfaced to UI/PDF/exports. Allowed per Phase 4 option (3).
+
+### Not shipped — deferred to Track 15.68D (i18n migration)
+- ❌ Admin tabs (5 files, ~31 strings): MaintainxP0Tab, MappingCleanupTab, AdminIntegrationCenter, AssetProfile, AdminDlsShiftQR. These are comparison labels against MaintainX/Motive inventory — need an i18n-key rewire (not bulk replace) to preserve meaning.
+- ❌ Body subheaders in 11 page files (~41 strings): SignIn, Hub, Dashboard, TrainingHub, OperationalGuidanceCenter, V2Compare, PublicTimeOff, HrTimeVerification, NewFleetDVIR, PublicTrenchSafety*. Most live inside `t("MASCI Operations Platform")` i18n call sites — the right fix is to migrate `lib/i18n.js` values to template via BrandingProvider in one shot.
+
+### Proofs
+- Contamination scan: 454 → **449 disallowed** (-5).
+- Parity 19/19 ✅, Second-tenant sim 40/40 ✅.
+- Lint clean across all modified files.
+
+### Six pillars (honest)
+Powerful 8 · Simple 9 · Beautiful 7 · Trusted 8 · Proven 8 · Deployable 8 = **48/60 (80%)** — below 85%. Same as 15.68B because this fork added defensive data-seed coverage rather than closing new chrome surfaces. **Track 15.68 family stays OPEN.**
+
+### Final-12 answers
+1. Baseline 454 · 2. After **449** · 3. Customer-visible remaining: ~72 (admin tabs + body subheaders) · 4. Admin tabs leak? **YES** ❌ · 5. Page subheaders leak? **partial** ❌ · 6. Data-seed defaults leak? **NO** ✅ · 7. Asset taxonomy leak? **NO** ✅ (internal) · 8. MASCI same? **YES** ✅ · 9. Parity 19/19? **YES** ✅ · 10. Live emails? **NO** ✅ · 11. Track 15.68 family closed? **NO** · 12. **GO for deploy with flags OFF; NO-GO for full white-label** ❌.
+
+### 11 deliverables published
+`TRACK_15_68C_*.md` in `/app/memory/`: BaselineRescan · AdminTabSweep · PageSubheaderSweep · AssetTaxonomySweep · DataSeedDefaultSweep · Customer2Walkthrough · MASCIParityCertification · FinalContaminationScan · ProductionReadiness · SixPillarCertification · FinalCloseout.
+
+### What unlocks Track 15.68 family closure (Track 15.68D)
+Single architectural change: migrate `lib/i18n.js` MASCI-keyed translation values to template via BrandingProvider. ~100 lines in one file closes all ~41 body-subheader leaks and most admin-tab leaks. Expected scan: 449 → <30 disallowed → full white-label **GO**.
+
+## Prior Track (2026-06-22 · TRACK 15.68B · White-Label Chrome Final Sweep · 🟡 OPEN · ❌ NO-GO for full white-label · ✅ MASCI parity GREEN · 48/60 (80%))
 
 ### Shipped
 1. **`lib/brandFilename.js`** — `brandSlug()` + `brandFilename()` + `brandCompanyName()` helpers reading from sessionStorage (populated by BrandingProvider).

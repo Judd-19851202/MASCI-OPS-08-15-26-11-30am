@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { brandSlug, brandCompanyName } from "@/lib/brandFilename";
 import {
   Truck,
   Plus,
@@ -89,7 +90,7 @@ const blankUnit = {
   vin_serial_number: "",
   category: "",
   preop_equipment_type: "Other",
-  company: "MASCI",
+  company: brandCompanyName("Customer"),
   comments: "",
 };
 
@@ -186,7 +187,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
       vin_serial_number: u.vin_serial_number || "",
       category: u.category || "",
       preop_equipment_type: u.preop_equipment_type || "Other",
-      company: u.company || "MASCI",
+      company: u.company || brandCompanyName("Customer"),
       comments: u.comments || "",
     });
     setOpen(true);
@@ -265,7 +266,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
       const r = await api.get("/admin/equipment-master/export", { responseType: "blob" });
       const cd = r.headers["content-disposition"] || r.headers["Content-Disposition"] || "";
       const m = /filename="?([^";]+)"?/i.exec(cd);
-      const fname = m ? m[1] : "MASCI_equipment.xlsx";
+      const fname = m ? m[1] : `${brandSlug()}_equipment.xlsx`;
       const url = window.URL.createObjectURL(new Blob([r.data]));
       const a = document.createElement("a");
       a.href = url;

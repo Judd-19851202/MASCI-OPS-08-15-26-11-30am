@@ -16,6 +16,7 @@
 //     meeting still requires each person to sign on the form.
 
 import React, { useEffect, useMemo, useState } from "react";
+import { brandCompanyName } from "@/lib/brandFilename";
 import { Users, Search, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,7 +113,7 @@ export function AttendeeBulkAddDialog({ onAdd, existing = [] }) {
         name: e.name || e.full_name || "",
         employee_id: id,
         non_masci: false,
-        company: "MASCI",
+        company: brandCompanyName("Customer"),
         trade: e.trade || e.role || e.position || e.job_title || "",
         signature: "",
         acknowledged: false,

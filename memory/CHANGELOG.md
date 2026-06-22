@@ -2,6 +2,24 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-22 — TRACK 15.68C · White-Label Chrome Final Mop-Up · 🟡 OPEN · ❌ NO-GO for full white-label
+
+**Shipped**
+- Data-seed defaults: `EquipmentMasterPanel.jsx`, `AttendeeBulkAddDialog.jsx`, `EmailReportDialog.jsx` migrated to `brandCompanyName()` + `brandSlug()`.
+- Asset taxonomy classified as internal Mongo discriminator (not customer-visible).
+
+**Not shipped (Track 15.68D)**
+- Admin tabs (5 files, 31 strings) — needs i18n-key rewire.
+- Body subheaders in 11 pages (41 strings) — needs `lib/i18n.js` migration.
+
+**Contamination scan**: 454 → **449 disallowed** (-5). Parity 19/19. Sim 40/40.
+
+**Six pillars (honest)**: 8+9+7+8+8+8 = **48/60 (80%)** — same as 15.68B. Track stays OPEN.
+
+**11 deliverables in `/app/memory/`**: TRACK_15_68C_*.md — BaselineRescan · AdminTabSweep · PageSubheaderSweep · AssetTaxonomySweep · DataSeedDefaultSweep · Customer2Walkthrough · MASCIParityCertification · FinalContaminationScan · ProductionReadiness · SixPillarCertification · FinalCloseout.
+
+**Verdict**: GO for deploy with `EMAIL_ROUTING_V2=false`; NO-GO for full white-label until Track 15.68D migrates the i18n.js translation map.
+
 ## 2026-06-22 — TRACK 15.68B · White-Label Chrome Final Sweep · 🟡 OPEN · ❌ NO-GO for full white-label
 
 **Shipped**
