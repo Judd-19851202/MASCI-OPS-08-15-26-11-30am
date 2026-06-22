@@ -1,7 +1,7 @@
 {
   "track": "15.62.session_b",
   "target": "https://safety-audit-mobile-1.preview.emergentagent.com",
-  "started": "2026-06-22T13:22:25.559120+00:00",
+  "started": "2026-06-22T13:32:10.732002+00:00",
   "checks": {
     "ui_new_components_render": {
       "status": "pass",
@@ -11,8 +11,8 @@
       "narrative_tomorrow": 1
     },
     "create_tagged_dr": {
-      "id": "d9865fda-23af-41a7-953b-483e6c045656",
-      "doc_id": "DR-2026-01131",
+      "id": "f2be1a6c-d3a0-48cd-be8e-4ad16735b8bd",
+      "doc_id": "DR-2026-01132",
       "status": "pass"
     },
     "readback_persists_narrative_and_haul": {
@@ -30,19 +30,19 @@
       "status": "pass"
     },
     "exec_rollup_includes_new_loads": {
-      "today_loads_out": 14,
+      "today_loads_out": 21,
       "by_material": [
         "Dirt"
       ],
       "status": "pass"
     },
     "health_metrics_move": {
-      "narrative_sections_completion_pct": 0.2,
+      "narrative_sections_completion_pct": 0.3,
       "any_narrative_completion_pct": 11.6,
       "status": "pass"
     },
     "pdf_renders_narrative": {
-      "pdf_bytes": 1472058,
+      "pdf_bytes": 1471909,
       "status": "pass"
     },
     "cleanup_doctrine_enforced": {
@@ -53,9 +53,9 @@
     }
   },
   "created": [
-    "d9865fda-23af-41a7-953b-483e6c045656"
+    "f2be1a6c-d3a0-48cd-be8e-4ad16735b8bd"
   ],
   "overall": "PASS",
   "failed": [],
-  "finished": "2026-06-22T13:22:34.150919+00:00"
+  "finished": "2026-06-22T13:32:19.704225+00:00"
 }

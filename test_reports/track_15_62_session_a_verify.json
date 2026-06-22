@@ -1,7 +1,7 @@
 {
   "track": "15.62.session_a",
   "target": "https://safety-audit-mobile-1.preview.emergentagent.com",
-  "started_at_utc": "2026-06-22T13:15:19.084421+00:00",
+  "started_at_utc": "2026-06-22T13:32:04.719476+00:00",
   "checks": {
     "material_vocabulary_seeded": {
       "size": 14,
@@ -13,32 +13,32 @@
       "status": "pass"
     },
     "daily_roll_up_returns_numbers": {
-      "loads_out_total": 39,
+      "loads_out_total": 53,
       "loads_in_total": 0,
       "by_material_out_count": 1,
-      "reports_n": 15,
+      "reports_n": 17,
       "vocab_size": 14,
       "status": "pass"
     },
     "daily_report_health_returns_metrics": {
-      "reports_30d": 907,
+      "reports_30d": 909,
       "activity_log_completion_pct": 0.8,
-      "blank_pct": 88.6,
-      "loads_window_out": 291,
+      "blank_pct": 88.4,
+      "loads_window_out": 305,
       "median_word_count": 0,
       "status": "pass"
     },
     "pmcc_hauls_includes_dr_rows": {
-      "total_rows": 3,
-      "dr_sourced_rows": 3,
+      "total_rows": 5,
+      "dr_sourced_rows": 5,
       "sample_material": "Dirt",
       "sample_doc_id": "DR-2026-00341",
       "sample_quantity": 10,
       "status": "pass"
     },
     "pmcc_materials_non_null_names": {
-      "total_rows": 12,
-      "non_null_material_rows": 3,
+      "total_rows": 14,
+      "non_null_material_rows": 5,
       "first_materials": [
         "Dirt",
         "Dirt",
@@ -49,22 +49,22 @@
     "pmcc_overview_loads_breakdown": {
       "loads_today_breakdown": {
         "dispatch_haul_cycles": 0,
-        "daily_report_outbound": 0,
+        "daily_report_outbound": 14,
         "daily_report_inbound": 0
       },
       "status": "pass"
     },
     "pdf_renders_narrative_sections": {
-      "pdf_bytes": 1356794,
+      "pdf_bytes": 1356793,
       "text_bytes": 1805,
       "status": "pass"
     },
     "pdf_legacy_path_unchanged": {
-      "pdf_bytes": 1354015,
+      "pdf_bytes": 1354016,
       "status": "pass"
     }
   },
   "overall_status": "PASS",
   "failed_checks": [],
-  "finished_at_utc": "2026-06-22T13:15:24.887855+00:00"
+  "finished_at_utc": "2026-06-22T13:32:10.472712+00:00"
 }
